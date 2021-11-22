@@ -25,7 +25,7 @@ function GetUIFontSmall: TCastleAbstractFont;
 procedure SetUIFontSmall(const Value: TCastleAbstractFont);
   deprecated 'use any other font (like UIFont or Container.DefaultFont) and just set smaller size (e.g. by TCastleLabel.FontSize)';
 
-{$ifdef CASTLE_OBJFPC}
+{$ifdef FPC}
 (*The default font, used throughout the engine as a fallback.
   By default, this is a modern sans-serif font hardcoded into the engine.
 

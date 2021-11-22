@@ -954,7 +954,7 @@ type
     property CollidesWithMoving default true;
   end;
 
-  TCreatureList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCreature>)
+  TCreatureList = class({$ifdef FPC}specialize{$endif} TObjectList<TCreature>)
   end;
 
   { Creature using TWalkAttackCreatureResource. }

@@ -328,5 +328,5 @@ begin
 end;
 
 initialization
-  RegisterSoundFormat('audio/ogg', {$ifdef CASTLE_OBJFPC}@{$endif}TOggVorbisStream{$ifdef FPC}(nil){$endif}.ReadStream);
+  RegisterSoundFormat('audio/ogg', {$ifdef FPC}@{$endif}TOggVorbisStream{$ifdef FPC}(nil){$endif}.ReadStream);
 end.

@@ -628,7 +628,7 @@ begin
   WalkNavigation.Input_DecreasePreferredHeight.MakeClear;
 
   WalkNavigation.CheckModsDown := false;
-  WalkNavigation.OnFall := {$ifdef CASTLE_OBJFPC}@{$endif}NavigationFall;
+  WalkNavigation.OnFall := {$ifdef FPC}@{$endif}NavigationFall;
 
   { Although it will be called in every OnUpdate anyway,
     we also call it here to be sure that right after TPlayer constructor

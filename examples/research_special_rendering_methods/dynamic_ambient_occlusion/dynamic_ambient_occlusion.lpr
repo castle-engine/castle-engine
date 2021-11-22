@@ -31,7 +31,7 @@ program dynamic_ambient_occlusion;
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils, Classes, Math,
-  GL, GLExt,
+  {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleWindow, CastleTriangles, CastleTransform,
   CastleClassUtils, CastleUtils, CastleKeysMouse,
   CastleGLUtils, CastleSceneCore, CastleScene, CastleParameters,

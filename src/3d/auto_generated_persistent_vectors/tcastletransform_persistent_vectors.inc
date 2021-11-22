@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCenterPersistent := TCastleVector3Persistent.Create;
-  FCenterPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetCenterForPersistent;
-  FCenterPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetCenterForPersistent;
+  FCenterPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCenterForPersistent;
+  FCenterPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCenterForPersistent;
   FCenterPersistent.InternalDefaultValue := Center; // current value is default
 {$endif read_implementation_constructor}
 
@@ -113,8 +113,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FRotationPersistent := TCastleVector4Persistent.Create;
-  FRotationPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetRotationForPersistent;
-  FRotationPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetRotationForPersistent;
+  FRotationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRotationForPersistent;
+  FRotationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRotationForPersistent;
   FRotationPersistent.InternalDefaultValue := Rotation; // current value is default
 {$endif read_implementation_constructor}
 
@@ -175,8 +175,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FScalePersistent := TCastleVector3Persistent.Create;
-  FScalePersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetScaleForPersistent;
-  FScalePersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetScaleForPersistent;
+  FScalePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetScaleForPersistent;
+  FScalePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetScaleForPersistent;
   FScalePersistent.InternalDefaultValue := Scale; // current value is default
 {$endif read_implementation_constructor}
 
@@ -237,8 +237,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FScaleOrientationPersistent := TCastleVector4Persistent.Create;
-  FScaleOrientationPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetScaleOrientationForPersistent;
-  FScaleOrientationPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetScaleOrientationForPersistent;
+  FScaleOrientationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetScaleOrientationForPersistent;
+  FScaleOrientationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetScaleOrientationForPersistent;
   FScaleOrientationPersistent.InternalDefaultValue := ScaleOrientation; // current value is default
 {$endif read_implementation_constructor}
 
@@ -299,8 +299,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTranslationPersistent := TCastleVector3Persistent.Create;
-  FTranslationPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetTranslationForPersistent;
-  FTranslationPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetTranslationForPersistent;
+  FTranslationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTranslationForPersistent;
+  FTranslationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTranslationForPersistent;
   FTranslationPersistent.InternalDefaultValue := Translation; // current value is default
 {$endif read_implementation_constructor}
 

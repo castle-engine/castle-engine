@@ -303,7 +303,7 @@ uses {$define read_interface_uses}
   { FPC units }
   SysUtils, Classes, Generics.Collections, CustApp,
   { Castle Game Engine units }
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif} {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
@@ -2325,7 +2325,7 @@ type
 
   {$endif}
 
-  TWindowList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleWindowBase>)
+  TWindowList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleWindowBase>)
   private
     { Call wszystkie OnUpdate / OnTimer for all windows on this list.
       Using Application.OpenWindows.DoUpdate / DoTimer  is a simplest
@@ -2957,7 +2957,7 @@ begin
   CreateBackend;
 
   if Messaging <> nil then
-    Messaging.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif}MessageReceived);
+    Messaging.OnReceive.Add({$ifdef FPC}@{$endif}MessageReceived);
 end;
 
 destructor TCastleWindowBase.Destroy;
@@ -2973,7 +2973,7 @@ begin
   end;
 
   if Messaging <> nil then
-    Messaging.OnReceive.Remove({$ifdef CASTLE_OBJFPC}@{$endif}MessageReceived);
+    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif}MessageReceived);
 
   FreeAndNil(FContainer);
   FreeAndNil(FTouches);
@@ -4014,19 +4014,19 @@ const
     end =
   ( ( pOptions: @GeometryOptions;
       Count: High(GeometryOptions)+1;
-      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} GeometryOptionProc),
+      OptionProc: {$ifdef FPC} @ {$endif} GeometryOptionProc),
     ( pOptions: @ScreenGeometryOptions;
       Count: High(ScreenGeometryOptions) + 1;
-      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} ScreenGeometryOptionProc),
+      OptionProc: {$ifdef FPC} @ {$endif} ScreenGeometryOptionProc),
     ( pOptions: @DisplayOptions;
       Count: High(DisplayOptions) + 1;
-      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} DisplayOptionProc),
+      OptionProc: {$ifdef FPC} @ {$endif} DisplayOptionProc),
     ( pOptions: nil;
       Count: 0;
       OptionProc: nil),
     ( pOptions: @LimitFpsOptions;
       Count: High(LimitFpsOptions) + 1;
-      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} LimitFpsOptionProc)
+      OptionProc: {$ifdef FPC} @ {$endif} LimitFpsOptionProc)
   );
 
 var
@@ -4692,7 +4692,7 @@ begin
   FTimerMilisec := 1000;
   FDefaultWindowClass := TCastleWindowBase;
   CreateBackend;
-  OnMainContainer := {$ifdef CASTLE_OBJFPC}@{$endif}GetMainContainer;
+  OnMainContainer := {$ifdef FPC}@{$endif}GetMainContainer;
 end;
 
 destructor TCastleApplication.Destroy;

@@ -3180,7 +3180,7 @@ begin
   FRotationAccelerationSpeed := DefaultRotationAccelerationSpeed;
   FRotationSpeed := DefaultRotationSpeed;
   FPinchGestureRecognizer := TCastlePinchPanGestureRecognizer.Create;
-  FPinchGestureRecognizer.OnGestureChanged := {$ifdef CASTLE_OBJFPC}@{$endif}OnGestureRecognized;
+  FPinchGestureRecognizer.OnGestureChanged := {$ifdef FPC}@{$endif}OnGestureRecognized;
 
   FMouseButtonRotate := buttonLeft;
   FMouseButtonMove := buttonMiddle;
@@ -5773,7 +5773,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleWalkNavigation;
   R.Caption := 'Fly (Walk with Gravity=false)';
-  R.OnCreate := {$ifdef CASTLE_OBJFPC}@{$endif}TCastleWalkNavigation{$ifdef FPC}(nil){$endif}.CreateComponentFly;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleWalkNavigation{$ifdef FPC}(nil){$endif}.CreateComponentFly;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleWalkNavigation, 'Walk');

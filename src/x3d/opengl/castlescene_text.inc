@@ -141,7 +141,7 @@ begin
   { default properties values }
   Material := pmUnlit;
   FText := TCastleStringList.Create;
-  (FText as TCastleStringList).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} TextChange;
+  (FText as TCastleStringList).OnChange := {$ifdef FPC}@{$endif} TextChange;
   FCaptionTranslate := true;
   FDoubleSided := true;
   FSize := 1;
@@ -150,7 +150,7 @@ begin
   FVerticalAlignment := vpBottom;
 
   FCustomFontObserver := TFreeNotificationObserver.Create(Self);
-  FCustomFontObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}CustomFontFreeNotification;
+  FCustomFontObserver.OnFreeNotification := {$ifdef FPC}@{$endif}CustomFontFreeNotification;
 end;
 
 destructor TCastleText.Destroy;
@@ -309,11 +309,11 @@ begin
   begin
     if FCustomFont <> nil then
       FCustomFont.RemoveFontSizeChangeNotification(
-        {$ifdef CASTLE_OBJFPC}@{$endif}CustomFontSizeChanged);
+        {$ifdef FPC}@{$endif}CustomFontSizeChanged);
     FCustomFont := Value;
     if FCustomFont <> nil then
       FCustomFont.AddFontSizeChangeNotification(
-        {$ifdef CASTLE_OBJFPC}@{$endif}CustomFontSizeChanged);
+        {$ifdef FPC}@{$endif}CustomFontSizeChanged);
 
     // modify X3D nodes
     FontStyleNode.CustomFont := Value;

@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FColorPersistent := TCastleColorPersistent.Create;
-  FColorPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetColorForPersistent;
-  FColorPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetColorForPersistent;
+  FColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetColorForPersistent;
+  FColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetColorForPersistent;
   FColorPersistent.InternalDefaultValue := Color; // current value is default
 {$endif read_implementation_constructor}
 

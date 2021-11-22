@@ -72,7 +72,7 @@ type
     function BoundingBox: TBox3D; virtual; abstract;
   end;
 
-  TCurveList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCurve>)
+  TCurveList = class({$ifdef FPC}specialize{$endif} TObjectList<TCurve>)
   public
     { Load curves definitions from a simple XML file.
       Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
@@ -193,7 +193,7 @@ type
 
   TControlPointsCurveClass = class of TControlPointsCurve;
 
-  TControlPointsCurveList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TControlPointsCurve>;
+  TControlPointsCurveList = {$ifdef FPC}specialize{$endif} TObjectList<TControlPointsCurve>;
 
   TCubicBezier2DPoints = array [0..3] of TVector2;
   TCubicBezier3DPoints = array [0..3] of TVector3;
@@ -930,7 +930,7 @@ begin
   if Arguments.Count <> Values.Count then
     raise Exception.Create('CatmullRomSpline: Arguments and Values lists must have equal count');
   Result := CalculateSpline(X, Loop, Arguments, Values,
-    {$ifdef CASTLE_OBJFPC}@{$endif} {$ifdef FPC}CatmullRomSegment{$else} CaptureCatmullRomSegment(){$endif});
+    {$ifdef FPC}@{$endif} {$ifdef FPC}CatmullRomSegment{$else} CaptureCatmullRomSegment(){$endif});
 end;
 
 function Hermite(const V0, V1, Tangent0, Tangent1, X: Single): Single;
@@ -975,7 +975,7 @@ begin
     raise Exception.Create('HermiteSpline: Arguments and Values and Tangents lists must have equal count');
 
   Result := CalculateSpline(X, Loop, Arguments, Values,
-    {$ifdef CASTLE_OBJFPC}@{$endif} {$ifdef FPC}HermiteSegment{$else}CaptureHermiteSegment(){$endif});
+    {$ifdef FPC}@{$endif} {$ifdef FPC}HermiteSegment{$else}CaptureHermiteSegment(){$endif});
 end;
 
 function HermiteTense(const V0, V1, X: Single): Single;
@@ -1014,7 +1014,7 @@ begin
   if Arguments.Count <> Values.Count then
     raise Exception.Create('HermiteTenseSpline: Arguments and Values lists must have equal count');
   Result := CalculateSpline(X, Loop, Arguments, Values,
-    {$ifdef CASTLE_OBJFPC}@{$endif} {$ifdef FPC}HermiteTenseSegment{$else}CaptureHermiteTenseSegment(){$endif});
+    {$ifdef FPC}@{$endif} {$ifdef FPC}HermiteTenseSegment{$else}CaptureHermiteTenseSegment(){$endif});
 end;
 
 { Calculate the convex hull ignoring Z coordinates of pixels.

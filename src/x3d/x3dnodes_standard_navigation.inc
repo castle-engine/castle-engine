@@ -281,7 +281,7 @@ const
 constructor TAbstractViewpointNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  Eventset_bind.AddNotification({$ifdef FPC}@{$endif} EventSet_BindReceive);
   FdOrientation.ChangeAlways := chViewpointVectors;
   FdDirection.ChangeAlways := chViewpointVectors;
   FdUp.ChangeAlways := chViewpointVectors;
@@ -615,7 +615,7 @@ end;
 constructor TNavigationInfoNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  Eventset_bind.AddNotification({$ifdef FPC}@{$endif} EventSet_BindReceive);
 end;
 
 procedure TNavigationInfoNode.EventSet_BindReceive(

@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FBorderColorPersistent := TCastleColorPersistent.Create;
-  FBorderColorPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetBorderColorForPersistent;
-  FBorderColorPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetBorderColorForPersistent;
+  FBorderColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetBorderColorForPersistent;
+  FBorderColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetBorderColorForPersistent;
   FBorderColorPersistent.InternalDefaultValue := BorderColor; // current value is default
 {$endif read_implementation_constructor}
 

@@ -22,8 +22,8 @@ type
 
   { List of structures.
     This is just TList class from Generics.Collections, with some useful helpers. }
-  {$ifdef CASTLE_OBJFPC}generic{$endif}
-  TStructList<T> = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<T>
+  {$ifdef FPC}generic{$endif}
+  TStructList<T> = class({$ifdef FPC}specialize{$endif} TList<T>
     {$ifndef FPC}, ICastleItemList<T, TStructList<T>>{$endif})
   {$ifndef FPC}
   strict private
@@ -102,7 +102,7 @@ type
     { Pointer to ith item. }
     function Ptr(const I: TListSize): PtrT;
 
-    procedure Assign(const Source: TStructList {$ifndef CASTLE_OBJFPC}<T>{$endif}); overload;
+    procedure Assign(const Source: TStructList {$ifndef FPC}<T>{$endif}); overload;
     procedure Assign(const A: array of T); overload;
 
     function ItemSize: TListSize;
@@ -136,10 +136,10 @@ type
     { Does the SecondValue have equal type, length and content.
       The values are compared perfectly, without any tolerance for difference. }
     function PerfectlyEquals(
-      const SecondValue: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}): Boolean;
+      const SecondValue: TStructList{$ifndef FPC}<T>{$endif}): Boolean;
 
     procedure AddArray(const A: array of T); deprecated 'use AddRange';
-    procedure AddList(const Source: TStructList {$ifndef CASTLE_OBJFPC}<T>{$endif}); deprecated 'use AddRange';
+    procedure AddList(const Source: TStructList {$ifndef FPC}<T>{$endif}); deprecated 'use AddRange';
     procedure AssignArray(const A: array of T); deprecated 'use Assign';
     {$ifndef FPC}
     property Count: TListSize read GetCount write SetCount;
@@ -152,56 +152,56 @@ type
 
 { TStructList ---------------------------------------------------------------- }
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.List: PTypeList;
+function TStructList{$ifndef FPC}<T>{$endif}.List: PTypeList;
 begin
   Result := PTypeList({$ifdef FPC} FItems {$else} inherited List {$endif});
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.L: PtrT;
+function TStructList{$ifndef FPC}<T>{$endif}.L: PtrT;
 begin
   Result := PtrT({$ifdef FPC} FItems {$else} inherited List {$endif});
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Add: PtrT;
+function TStructList{$ifndef FPC}<T>{$endif}.Add: PtrT;
 begin
   Count := Count + 1;
   Result := Addr(List^[Count - 1]);
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Ptr(const I: TListSize): PtrT;
+function TStructList{$ifndef FPC}<T>{$endif}.Ptr(const I: TListSize): PtrT;
 begin
   Result := Addr(List^[I]);
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Assign(const Source: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif});
+procedure TStructList{$ifndef FPC}<T>{$endif}.Assign(const Source: TStructList{$ifndef FPC}<T>{$endif});
 begin
   Clear;
   AddRange(Source);
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Assign(const A: array of T);
+procedure TStructList{$ifndef FPC}<T>{$endif}.Assign(const A: array of T);
 begin
   Clear;
   AddRange(A);
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.ItemSize: TListSize;
+function TStructList{$ifndef FPC}<T>{$endif}.ItemSize: TListSize;
 begin
   Result := SizeOf(T);
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AddArray(const A: array of T);
+procedure TStructList{$ifndef FPC}<T>{$endif}.AddArray(const A: array of T);
 begin
   AddRange(A);
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AddList(const Source: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif});
+procedure TStructList{$ifndef FPC}<T>{$endif}.AddList(const Source: TStructList{$ifndef FPC}<T>{$endif});
 begin
   AddRange(Source);
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AddSubRange(
-  const Source: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif};
+procedure TStructList{$ifndef FPC}<T>{$endif}.AddSubRange(
+  const Source: TStructList{$ifndef FPC}<T>{$endif};
   const Index, AddCount: TListSize);
 var
   OldCount: TListSize;
@@ -212,22 +212,22 @@ begin
     System.Move(Source.List^[Index], List^[OldCount], SizeOf(T) * AddCount);
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.PerfectlyEquals(
-  const SecondValue: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}): boolean;
+function TStructList{$ifndef FPC}<T>{$endif}.PerfectlyEquals(
+  const SecondValue: TStructList{$ifndef FPC}<T>{$endif}): boolean;
 begin
   Result :=
     (Count = SecondValue.Count) and
     CompareMem(List, SecondValue.List, SizeOf(T) * Count);
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AssignLerpRange(const Fraction: Single;
-  const V1, V2: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif};
+procedure TStructList{$ifndef FPC}<T>{$endif}.AssignLerpRange(const Fraction: Single;
+  const V1, V2: TStructList{$ifndef FPC}<T>{$endif};
   const Index1, Index2, ACount: TListSize);
 begin
   raise Exception.Create('AssignLerpRange not implemented for ' + ClassName);
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AssignLerp(const Fraction: Single;
+procedure TStructList{$ifndef FPC}<T>{$endif}.AssignLerp(const Fraction: Single;
   const V1, V2: TStructList {$ifndef FPC}<T>{$endif});
 begin
   if V1.Count <> V2.Count then
@@ -236,43 +236,43 @@ begin
   AssignLerpRange(Fraction, V1, V2, 0, 0, V1.Count);
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AssignArray(const A: array of T);
+procedure TStructList{$ifndef FPC}<T>{$endif}.AssignArray(const A: array of T);
 begin
   Assign(A);
 end;
 
 {$ifndef FPC}
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.GetCount: TListSize;
+function TStructList{$ifndef FPC}<T>{$endif}.GetCount: TListSize;
 begin
   Result := TList(Self).Count;
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.SetCount(const Value: TListSize);
+procedure TStructList{$ifndef FPC}<T>{$endif}.SetCount(const Value: TListSize);
 begin
   inherited Count := Value;
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.GetCapacity: TListSize;
+function TStructList{$ifndef FPC}<T>{$endif}.GetCapacity: TListSize;
 begin
   Result := TList(Self).Capacity;
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.SetCapacity(Value: TListSize);
+procedure TStructList{$ifndef FPC}<T>{$endif}.SetCapacity(Value: TListSize);
 begin
   inherited Capacity := Value;
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}._AddRef: Integer;
+function TStructList{$ifndef FPC}<T>{$endif}._AddRef: Integer;
 begin
   Result := -1;
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}._Release: Integer;
+function TStructList{$ifndef FPC}<T>{$endif}._Release: Integer;
 begin
   Result := -1;
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TStructList{$ifndef FPC}<T>{$endif}.QueryInterface(const IID: TGUID; out Obj): HResult;
 begin
   if GetInterface(IID, Obj) then
     Result := S_OK
@@ -280,19 +280,19 @@ begin
     Result := E_NOINTERFACE;
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.InternalGetItem(
+function TStructList{$ifndef FPC}<T>{$endif}.InternalGetItem(
   const Index: TListSize): T;
 begin
   Result := List^[Index];
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.InternalSetItem(
+procedure TStructList{$ifndef FPC}<T>{$endif}.InternalSetItem(
   const Index: TListSize; const Value: T);
 begin
   Items[Index] := Value;
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.GetInternalItems:
+function TStructList{$ifndef FPC}<T>{$endif}.GetInternalItems:
   TStructList<T>;
 begin
   Result := Self;

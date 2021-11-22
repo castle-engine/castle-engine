@@ -294,15 +294,15 @@ begin
   Assert(ASource <> nil);
   Assert(ASource.Buffer = FSound.InternalBuffer);
   FSource := ASource;
-  FSource.OnRelease := {$ifdef CASTLE_OBJFPC}@{$endif}SourceRelease;
+  FSource.OnRelease := {$ifdef FPC}@{$endif}SourceRelease;
 
-  FSound.InternalAddChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SoundChangeDuringPlayback);
+  FSound.InternalAddChangeNotification({$ifdef FPC}@{$endif}SoundChangeDuringPlayback);
 end;
 
 procedure TCastlePlayingSound.SourceRelease(Source: TInternalSoundSource);
 begin
   // FSound must always exist during playback, since we stop playback when FSound is freed.
-  FSound.InternalRemoveChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SoundChangeDuringPlayback);
+  FSound.InternalRemoveChangeNotification({$ifdef FPC}@{$endif}SoundChangeDuringPlayback);
 
   Assert(Source = FSource); // we should only ever get callback about current FSource
   Source.OnRelease := nil;

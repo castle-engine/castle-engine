@@ -123,7 +123,7 @@ type
     property Required: boolean read FRequired;
   end;
 
-  T3DResourceAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<T3DResourceAnimation>)
+  T3DResourceAnimationList = class({$ifdef FPC}specialize{$endif} TObjectList<T3DResourceAnimation>)
     { Find an animation by name.
       @raises Exception if not found. }
     function FindName(const AName: string): T3DResourceAnimation;
@@ -456,7 +456,7 @@ type
 
   T3DResourceClass = class of T3DResource;
 
-  T3DResourceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<T3DResource>)
+  T3DResourceList = class({$ifdef FPC}specialize{$endif} TObjectList<T3DResource>)
   private
     ResourceXmlReload: boolean;
     procedure AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -535,7 +535,7 @@ const
 { TResourceClasses ---------------------------------------------------------- }
 
 type
-  TResourceClasses = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, T3DResourceClass>)
+  TResourceClasses = class({$ifdef FPC}specialize{$endif} TDictionary<string, T3DResourceClass>)
   strict private
     function GetItems(const AKey: string): T3DResourceClass;
     procedure SetItems(const AKey: string; const AValue: T3DResourceClass);
@@ -1154,7 +1154,7 @@ begin
     Clear;
   ResourceXmlReload := Reload;
   FindFiles(Path, 'resource.xml', false,
-    {$ifdef CASTLE_OBJFPC}@{$endif}AddFromInfo, [ffRecursive]);
+    {$ifdef FPC}@{$endif}AddFromInfo, [ffRecursive]);
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Reload: boolean);

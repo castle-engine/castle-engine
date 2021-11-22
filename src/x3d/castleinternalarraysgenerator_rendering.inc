@@ -489,7 +489,7 @@ begin
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef CASTLE_OBJFPC}@{$endif}PrepareIndexesCoordsRange);
+    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
 
 procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRange(
@@ -518,7 +518,7 @@ end;
 
 procedure TTriangleFanSetGenerator.GenerateCoordinate;
 begin
-  Geometry.InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif}GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif}GenerateCoordsRange);
 end;
 
 procedure TTriangleFanSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -721,7 +721,7 @@ begin
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef CASTLE_OBJFPC}@{$endif}PrepareIndexesCoordsRange);
+    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
 
 procedure TTriangleStripSetGenerator.PrepareIndexesCoordsRange(
@@ -751,7 +751,7 @@ end;
 procedure TTriangleStripSetGenerator.GenerateCoordinate;
 begin
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef CASTLE_OBJFPC}@{$endif}GenerateCoordsRange);
+    {$ifdef FPC}@{$endif}GenerateCoordsRange);
 end;
 
 procedure TTriangleStripSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -1059,7 +1059,7 @@ begin
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef CASTLE_OBJFPC}@{$endif}PrepareIndexesCoordsRange);
+    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
 
 procedure TAbstractLineSetGenerator.GenerateCoordsRange(
@@ -1075,7 +1075,7 @@ end;
 procedure TAbstractLineSetGenerator.GenerateCoordinate;
 begin
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef CASTLE_OBJFPC}@{$endif}GenerateCoordsRange);
+    {$ifdef FPC}@{$endif}GenerateCoordsRange);
 end;
 
 { TIndexedLineSet_1Generator -------------------------------------------------- }

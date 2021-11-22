@@ -724,7 +724,7 @@ type
     procedure InternalAfterChange;
   end;
 
-  TShapeTreeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeTree>;
+  TShapeTreeList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeTree>;
 
   { Internal (non-leaf) node of the TShapeTree.
     This is practically just a list of other children
@@ -957,7 +957,7 @@ type
     property Current: TShape read FCurrent;
   end deprecated{ 'use Tree.TraverseList(...)'};
 
-  TShapeList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShape>)
+  TShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TShape>)
   strict private
     SortPosition: TVector3;
     function IsSmallerFrontToBack(
@@ -1035,7 +1035,7 @@ type
     when only mesh names are stored in VRML/X3D exported files),
     in which case it can be a mesh name. }
   TPlaceholderName = function (const Shape: TShape): string;
-  TPlaceholderNames = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TPlaceholderName>)
+  TPlaceholderNames = class({$ifdef FPC}specialize{$endif} TDictionary<string, TPlaceholderName>)
   strict private
     function GetItems(const AKey: string): TPlaceholderName;
     procedure SetItems(const AKey: string; const AValue: TPlaceholderName);
@@ -1328,7 +1328,7 @@ var
       since MaxShapesCount is usually instant, while ShapesCount...
       now ShapesCount depends on TraverseList, so it would cause infinite loop. }
     Result.Capacity := MaxShapesCount;
-    TraverseCore({$ifdef CASTLE_OBJFPC}@{$endif} {$ifdef FPC}AddToList{$else} CaptureAddToList(){$endif},
+    TraverseCore({$ifdef FPC}@{$endif} {$ifdef FPC}AddToList{$else} CaptureAddToList(){$endif},
       OnlyActive, OnlyVisible, OnlyCollidable);
     CachedChildrenListHash[OnlyActive, OnlyVisible, OnlyCollidable] := CurrentShapesHash;
     CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable] := Result;
@@ -2164,11 +2164,11 @@ begin
         try
           TriangleOctreeToAdd := Result;
           LocalTriangulate(false,
-            {$ifdef CASTLE_OBJFPC}@{$endif}AddTriangleToOctreeProgress);
+            {$ifdef FPC}@{$endif}AddTriangleToOctreeProgress);
         finally Progress.Fini end;
       end else
         LocalTriangulate(false,
-          {$ifdef CASTLE_OBJFPC}@{$endif}Result.AddItemTriangle);
+          {$ifdef FPC}@{$endif}Result.AddItemTriangle);
     end;
   except Result.Free; raise end;
 
@@ -2830,7 +2830,7 @@ begin
   try
     Helper.Node := Node;
     Result := EnumerateTextures(
-      {$ifdef CASTLE_OBJFPC}@{$endif}Helper.HandleTexture) <> nil;
+      {$ifdef FPC}@{$endif}Helper.HandleTexture) <> nil;
   finally Helper.Free end;
 end;
 
@@ -3088,7 +3088,7 @@ begin
   try
     TR.Transform := @(State.Transformation.Transform);
     TR.TriangleEvent := TriangleEvent;
-    LocalTriangulate(OverTriangulate, {$ifdef CASTLE_OBJFPC}@{$endif}TR.LocalNewTriangle);
+    LocalTriangulate(OverTriangulate, {$ifdef FPC}@{$endif}TR.LocalNewTriangle);
   finally FreeAndNil(TR) end;
 end;
 
@@ -3160,7 +3160,7 @@ constructor TShapeTreeGroup.Create(const AParentScene: TX3DEventsEngine);
 begin
   inherited;
   FChildren := TShapeTreeList.Create(true);
-  FChildren.OnNotify := {$ifdef CASTLE_OBJFPC}@{$endif} ChildrenChanged;
+  FChildren.OnNotify := {$ifdef FPC}@{$endif} ChildrenChanged;
 end;
 
 destructor TShapeTreeGroup.Destroy;
@@ -3728,11 +3728,11 @@ begin
   { This method uses Tree.Traverse that uses Tree.TraverseList that creates a list,
     iterates over it, and here we add results to another list...
     This is clearly a waste of time. That's why this method is deprecated. }
-  Tree.Traverse({$ifdef CASTLE_OBJFPC}@{$endif} {$ifdef FPC}AddToList{$else} CaptureAddToList(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable);
+  Tree.Traverse({$ifdef FPC}@{$endif} {$ifdef FPC}AddToList{$else} CaptureAddToList(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable);
 end;
 
 type
-  TShapeComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TShape>;
+  TShapeComparer = {$ifdef FPC}specialize{$endif} TComparer<TShape>;
 
 function TShapeList.IsSmallerFrontToBack(
   {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
@@ -3756,7 +3756,7 @@ end;
 procedure TShapeList.SortFrontToBack(const Position: TVector3);
 begin
   SortPosition := Position;
-  Sort(TShapeComparer.Construct({$ifdef CASTLE_OBJFPC}@{$endif}IsSmallerFrontToBack));
+  Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerFrontToBack));
 end;
 
 procedure TShapeList.SortBackToFront(const Position: TVector3;
@@ -3764,9 +3764,9 @@ procedure TShapeList.SortBackToFront(const Position: TVector3;
 begin
   SortPosition := Position;
   if Distance3D then
-    Sort(TShapeComparer.Construct({$ifdef CASTLE_OBJFPC}@{$endif}IsSmallerBackToFront3D))
+    Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3D))
   else
-    Sort(TShapeComparer.Construct({$ifdef CASTLE_OBJFPC}@{$endif}IsSmallerBackToFront2D));
+    Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront2D));
 end;
 
 { TPlaceholderNames ------------------------------------------------------- }

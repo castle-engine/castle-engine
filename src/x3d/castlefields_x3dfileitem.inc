@@ -80,7 +80,7 @@
     function SaveToXml: TSaveToXmlMethod; virtual;
   end;
 
-  TX3DFileItemList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DFileItem>)
+  TX3DFileItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DFileItem>)
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
@@ -137,10 +137,10 @@ end;
 
 procedure TX3DFileItemList.SortPositionInParent;
 type
-  TX3DFileItemComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TX3DFileItem>;
+  TX3DFileItemComparer = {$ifdef FPC}specialize{$endif} TComparer<TX3DFileItem>;
 begin
   Sort(TX3DFileItemComparer.Construct(
-    {$ifdef CASTLE_OBJFPC}@{$endif}IsSmallerPositionInParent));
+    {$ifdef FPC}@{$endif}IsSmallerPositionInParent));
 end;
 
 procedure TX3DFileItemList.SaveToStream(Writer: TX3DWriter);

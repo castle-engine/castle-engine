@@ -36,7 +36,7 @@ type
 
   { Line of text with processing commands.
     @exclude Internal type for TRichText. }
-  TTextLine = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextProperty>)
+  TTextLine = class({$ifdef FPC}specialize{$endif} TObjectList<TTextProperty>)
   strict private
     FWidthKnown: boolean;
     FWidth: Single;
@@ -47,7 +47,7 @@ type
         Color: TCastleColor;
         Size: Single;
       end;
-      TFontStateList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TFontState>;
+      TFontStateList = {$ifdef FPC}specialize{$endif} TObjectList<TFontState>;
 
       TPrintState = class
         Color: TCastleColor;
@@ -130,7 +130,7 @@ type
     Note that TRichText instance is always tied to a corresponding
     TCastleFontFamily used to render it. @bold(Through the lifetime of TRichText,
     we assume that size and other properties of this font remain constant.) }
-  TRichText = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextLine>)
+  TRichText = class({$ifdef FPC}specialize{$endif} TObjectList<TTextLine>)
   strict private
     FWidthKnown: boolean;
     { Known max line width, e.g. calculated by @link(Wrap).

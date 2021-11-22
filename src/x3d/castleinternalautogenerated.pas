@@ -58,7 +58,7 @@ type
         procedure Load(const E: TDOMElement);
       end;
 
-      TGeneratedTextureList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TGeneratedTexture>;
+      TGeneratedTextureList = {$ifdef FPC}specialize{$endif} TObjectList<TGeneratedTexture>;
 
       TTexture = class
       private
@@ -100,7 +100,7 @@ type
       end;
   private
     type
-      TTextureList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTexture>;
+      TTextureList = {$ifdef FPC}specialize{$endif} TObjectList<TTexture>;
     var
       Textures: TTextureList;
   public

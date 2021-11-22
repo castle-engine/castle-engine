@@ -131,7 +131,7 @@ type
     function Barycentric(const Point: TVector3): TVector3;
   end;
 
-  TTriangle3List = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TTriangle3>;
+  TTriangle3List = {$ifdef FPC}specialize{$endif} TStructList<TTriangle3>;
 
   PTriangle3 = ^TTriangle3;
 
@@ -201,7 +201,7 @@ type
     IndexBegin, IndexEnd: Integer;
   end;
 
-  TFaceIndexesList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFaceIndex>;
+  TFaceIndexesList = {$ifdef FPC}specialize{$endif} TStructList<TFaceIndex>;
 
 const
   UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);
@@ -373,7 +373,7 @@ type
   end;
   PTriangle = ^TTriangle;
 
-  TTriangleList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TTriangle>;
+  TTriangleList = {$ifdef FPC}specialize{$endif} TStructList<TTriangle>;
 
   { Return for given Triangle do we want to ignore collisions with it.
     For now, Sender is always TTriangleOctree. }

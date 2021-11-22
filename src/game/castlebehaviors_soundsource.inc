@@ -96,7 +96,7 @@ type
     procedure SoundStop;
   private
     type
-      TCastlePlayingSoundSourceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastlePlayingSoundSource>;
+      TCastlePlayingSoundSourceList = {$ifdef FPC}specialize{$endif} TObjectList<TCastlePlayingSoundSource>;
     var
       AllPlayingSounds: TCastlePlayingSoundSourceList;
       MainPlayingSound: TCastlePlayingSoundSource; //< TCastlePlayingSoundSource corresponding to main Sound
@@ -423,13 +423,13 @@ begin
     if FSound <> nil then
     begin
       SoundStop;
-      FSound.InternalRemoveChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SoundChange);
+      FSound.InternalRemoveChangeNotification({$ifdef FPC}@{$endif}SoundChange);
       FSound.RemoveFreeNotification(Self);
     end;
     FSound := Value;
     if FSound <> nil then
     begin
-      FSound.InternalAddChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SoundChange);
+      FSound.InternalAddChangeNotification({$ifdef FPC}@{$endif}SoundChange);
       FSound.FreeNotification(Self);
       SoundStart;
     end;

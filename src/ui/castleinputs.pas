@@ -384,7 +384,7 @@ type
 
   { Group of TInputShortcut, to easily manage (search, load, save...)
     the inputs. }
-  TInputShortcutList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInputShortcut>)
+  TInputShortcutList = class({$ifdef FPC}specialize{$endif} TObjectList<TInputShortcut>)
   public
     { Find shortcut by name, returns @nil if not found. }
     function FindName(const Name: string): TInputShortcut;
@@ -895,7 +895,7 @@ end;
 
 procedure TInputShortcutList.LoadFromConfig(const Config: TCastleConfig; ConfigPath: String);
 type
-  TInputShortcutComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TInputShortcut>;
+  TInputShortcutComparer = {$ifdef FPC}specialize{$endif} TComparer<TInputShortcut>;
 var
   I: TInputShortcut;
   ConflictDescription: string;
@@ -908,7 +908,7 @@ begin
       'Default key/mouse shortcuts layout has conflicts: ' + ConflictDescription);
 
   for G := Low(TInputGroupNotLocal) to High(TInputGroupNotLocal) do
-    InputsGroup(G).Sort(TInputShortcutComparer.Construct({$ifdef CASTLE_OBJFPC}@{$endif}SortInputShortcut));
+    InputsGroup(G).Sort(TInputShortcutComparer.Construct({$ifdef FPC}@{$endif}SortInputShortcut));
 
   // add slash at the end of ConfigPath, if necessary
   if (ConfigPath <> '') and (ConfigPath[Length(ConfigPath)] <> '/') then

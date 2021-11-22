@@ -593,7 +593,7 @@ begin
     G.Vertices := Vertices;
     G.VerticesCount := VerticesCount;
     TriangulateFace(FaceIndices, Count,
-      {$ifdef CASTLE_OBJFPC}@{$endif}G.Generate, TriangulatorProc, AddToIndices);
+      {$ifdef FPC}@{$endif}G.Generate, TriangulatorProc, AddToIndices);
   finally FreeAndNil(G); end;
 end;
 

@@ -92,7 +92,7 @@ constructor TCastleDesign.Create(AOwner: TComponent);
 begin
   inherited;
   FDesignObserver := TFreeNotificationObserver.Create(Self);
-  FDesignObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}DesignFreeNotification;
+  FDesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif}DesignFreeNotification;
   FStretchWhenNotLoaded := true;
 end;
 

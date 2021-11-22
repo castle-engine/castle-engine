@@ -82,7 +82,7 @@
     V: TVector2; //< vertex position in local Bone coordinate system
     Weight: Single;
   end;
-  TMeshVertexBoneList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMeshVertexBone>;
+  TMeshVertexBoneList = {$ifdef FPC}specialize{$endif} TObjectList<TMeshVertexBone>;
 
   TMeshVertex = class
     Offset: Integer; // Offset relative to where this Vertex is loaded from the list
@@ -93,7 +93,7 @@
       Index: Integer; const BonesCount: Cardinal; const AllBones: TBoneList);
   end;
 
-  TMeshVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMeshVertex>)
+  TMeshVertexList = class({$ifdef FPC}specialize{$endif} TObjectList<TMeshVertex>)
     procedure Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
   end;
 
@@ -125,7 +125,7 @@
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
   end;
 
-  TAttachmentList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAttachment>)
+  TAttachmentList = class({$ifdef FPC}specialize{$endif} TObjectList<TAttachment>)
     { Find by slot+attachment name.
       @raises ESpineReadError If does not exist. }
     function Find(const SlotName, AttachmentName: string;

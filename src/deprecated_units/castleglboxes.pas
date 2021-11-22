@@ -33,7 +33,7 @@ procedure glDrawBox3DWire(const Box: TBox3D); deprecated 'do not draw like this;
 
 implementation
 
-uses {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
+uses {$ifdef FPC} CastleGL {$else} GL, GLExt {$endif};
 
 {$ifndef OpenGLES}
 

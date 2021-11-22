@@ -21,7 +21,7 @@ unit CastleViewport;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleInternalBackground, CastleUtils, CastleClassUtils,
@@ -1174,7 +1174,7 @@ type
   {$undef read_interface_class}
   end;
 
-  TCastleViewportList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleViewport>)
+  TCastleViewportList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleViewport>)
   private
     SceneManager: TCastleSceneManager;
   protected
@@ -1403,18 +1403,18 @@ begin
   FCamera.InternalViewport := Self;
   FCamera.SetSubComponent(true);
   FCamera.Name := 'Camera';
-  FCamera.InternalOnSceneBoundViewpointChanged := {$ifdef CASTLE_OBJFPC}@{$endif}MainSceneAndCamera_BoundViewpointChanged;
-  FCamera.InternalOnSceneBoundViewpointVectorsChanged := {$ifdef CASTLE_OBJFPC}@{$endif}MainSceneAndCamera_BoundViewpointVectorsChanged;
-  FCamera.InternalOnSceneBoundNavigationInfoChanged := {$ifdef CASTLE_OBJFPC}@{$endif}MainSceneAndCamera_BoundNavigationInfoChanged;
+  FCamera.InternalOnSceneBoundViewpointChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundViewpointChanged;
+  FCamera.InternalOnSceneBoundViewpointVectorsChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundViewpointVectorsChanged;
+  FCamera.InternalOnSceneBoundNavigationInfoChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundNavigationInfoChanged;
 
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
-  FItems.OnCursorChange := {$ifdef CASTLE_OBJFPC}@{$endif}RecalculateCursor;
+  FItems.OnCursorChange := {$ifdef FPC}@{$endif}RecalculateCursor;
   FItems.MainCamera := Camera;
 
   FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
-  FCapturePointingDeviceObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}CapturePointingDeviceFreeNotification;
+  FCapturePointingDeviceObserver.OnFreeNotification := {$ifdef FPC}@{$endif}CapturePointingDeviceFreeNotification;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -1527,8 +1527,8 @@ begin
 
     if FNavigation <> nil then
     begin
-      FNavigation.OnInternalMoveAllowed := {$ifdef CASTLE_OBJFPC}@{$endif}NavigationMoveAllowed;
-      FNavigation.OnInternalHeight := {$ifdef CASTLE_OBJFPC}@{$endif}NavigationHeight;
+      FNavigation.OnInternalMoveAllowed := {$ifdef FPC}@{$endif}NavigationMoveAllowed;
+      FNavigation.OnInternalHeight := {$ifdef FPC}@{$endif}NavigationHeight;
       FNavigation.FreeNotification(Self);
       FNavigation.InternalViewport := Self;
       { Check IndexOfControl first, in case the FNavigation is already part
@@ -1835,7 +1835,7 @@ var
     if (FProjection.ProjectionNear = 0) or
        (FProjection.ProjectionFar = 0) then // in case ApplyProjection was not called yet
       FProjection := CalculateProjection;
-    Items.InternalRenderEverythingEvent := {$ifdef CASTLE_OBJFPC}@{$endif}RenderFromViewEverything;
+    Items.InternalRenderEverythingEvent := {$ifdef FPC}@{$endif}RenderFromViewEverything;
     Items.InternalProjectionNear := FProjection.ProjectionNear;
     Items.InternalProjectionFar := FProjection.ProjectionFar;
   end;
@@ -2312,7 +2312,7 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
   procedure RenderWithShadows(const MainLightPosition: TVector4);
   begin
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
-    FShadowVolumeRenderer.Render(Params, {$ifdef CASTLE_OBJFPC}@{$endif}Render3D, {$ifdef CASTLE_OBJFPC}@{$endif}RenderShadowVolume, ShadowVolumesRender);
+    FShadowVolumeRenderer.Render(Params, {$ifdef FPC}@{$endif}Render3D, {$ifdef FPC}@{$endif}RenderShadowVolume, ShadowVolumesRender);
   end;
 
 var
@@ -3969,7 +3969,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleViewport;
   R.Caption := 'Viewport (Configured For 2D)';
-  R.OnCreate := {$ifdef CASTLE_OBJFPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentSetup2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentSetup2D;
   RegisterSerializableComponent(R);
 
   InitializeWarmupCache;

@@ -69,7 +69,7 @@ type
       (we cannot get it using RTTI for now). }
     IsDeprecated: Boolean;
   end;
-  TRegisteredComponents = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredComponent>;
+  TRegisteredComponents = {$ifdef FPC}specialize{$endif} TObjectList<TRegisteredComponent>;
 
 { Register a component that can be serialized and edited using CGE editor.
 
@@ -192,7 +192,7 @@ type
         InstanceProperty: PPropInfo;
         PropertyValue: String;
       end;
-      TResolveObjectPropertyList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TResolveObjectProperty>;
+      TResolveObjectPropertyList = {$ifdef FPC}specialize{$endif} TObjectList<TResolveObjectProperty>;
 
       { Handle reading custom things during TCastleComponent.CustomSerialization. }
       TSerializationProcessReader = class(TSerializationProcess)
@@ -203,7 +203,7 @@ type
           const ListEnumerate: TSerializationProcess.TListEnumerateEvent; const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
       end;
-      TSerializationProcessReaderList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSerializationProcessReader>;
+      TSerializationProcessReaderList = {$ifdef FPC}specialize{$endif} TObjectList<TSerializationProcessReader>;
 
     var
       FDeStreamer: TMyJsonDeStreamer;
@@ -497,10 +497,10 @@ begin
 
   FDeStreamer := TMyJsonDeStreamer.Create(nil);
   FDeStreamer.Reader := Self;
-  FDeStreamer.BeforeReadObject := {$ifdef CASTLE_OBJFPC}@{$endif}BeforeReadObject;
-  FDeStreamer.AfterReadObject := {$ifdef CASTLE_OBJFPC}@{$endif}AfterReadObject;
-  FDeStreamer.OnRestoreProperty := {$ifdef CASTLE_OBJFPC}@{$endif}RestoreProperty;
-  FDeStreamer.OnGetObject := {$ifdef CASTLE_OBJFPC}@{$endif}ReaderGetObject;
+  FDeStreamer.BeforeReadObject := {$ifdef FPC}@{$endif}BeforeReadObject;
+  FDeStreamer.AfterReadObject := {$ifdef FPC}@{$endif}AfterReadObject;
+  FDeStreamer.OnRestoreProperty := {$ifdef FPC}@{$endif}RestoreProperty;
+  FDeStreamer.OnGetObject := {$ifdef FPC}@{$endif}ReaderGetObject;
 
   ResolveObjectProperties := TResolveObjectPropertyList.Create(true);
 
@@ -619,7 +619,7 @@ type
           const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
       end;
-      TSerializationProcessWriterList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSerializationProcessWriter>;
+      TSerializationProcessWriterList = {$ifdef FPC}specialize{$endif} TObjectList<TSerializationProcessWriter>;
 
     var
       FStreamer: TJsonStreamer;
@@ -659,7 +659,7 @@ procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWrite(const AKey: St
 begin
   CurrentlyWritingArray := nil; // will be created on-demand
   Key := AKey;
-  ListEnumerate({$ifdef CASTLE_OBJFPC}@{$endif}WriteItem);
+  ListEnumerate({$ifdef FPC}@{$endif}WriteItem);
 end;
 
 constructor TCastleJsonWriter.Create;
@@ -679,9 +679,9 @@ begin
     jsoDateTimeAsString,
     jsoCheckEmptyDateTime
   ];
-  Streamer.BeforeStreamObject := {$ifdef CASTLE_OBJFPC}@{$endif}BeforeStreamObject;
-  Streamer.AfterStreamObject := {$ifdef CASTLE_OBJFPC}@{$endif}AfterStreamObject;
-  Streamer.OnStreamProperty := {$ifdef CASTLE_OBJFPC}@{$endif}StreamProperty;
+  Streamer.BeforeStreamObject := {$ifdef FPC}@{$endif}BeforeStreamObject;
+  Streamer.AfterStreamObject := {$ifdef FPC}@{$endif}AfterStreamObject;
+  Streamer.OnStreamProperty := {$ifdef FPC}@{$endif}StreamProperty;
 
   SerializationProcessPool := TSerializationProcessWriterList.Create(true);
 end;

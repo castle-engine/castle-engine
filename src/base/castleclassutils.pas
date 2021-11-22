@@ -756,7 +756,7 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
-  TNotifyEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TNotifyEvent>)
+  TNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TNotifyEvent>)
   public
     { Call all (non-nil) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
@@ -1675,9 +1675,9 @@ end;
 procedure TCastleComponent.CustomSerialization(const SerializationProcess: TSerializationProcess);
 begin
   SerializationProcess.ReadWrite('NonVisualComponents',
-    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsEnumerate,
-    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsAdd,
-    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsClear);
+    {$ifdef FPC}@{$endif} SerializeNonVisualComponentsEnumerate,
+    {$ifdef FPC}@{$endif} SerializeNonVisualComponentsAdd,
+    {$ifdef FPC}@{$endif} SerializeNonVisualComponentsClear);
 end;
 
 procedure TCastleComponent.SerializeNonVisualComponentsEnumerate(const Proc: TGetChildProc);
@@ -1751,7 +1751,7 @@ begin
     try
       GetChildrenHandler.TranslatePropertyEvent := TranslatePropertyEvent;
       TCastleComponent(C).GetChildren(
-        {$ifdef CASTLE_OBJFPC}@{$endif} GetChildrenHandler.TranslatePropertiesOnChild, nil);
+        {$ifdef FPC}@{$endif} GetChildrenHandler.TranslatePropertiesOnChild, nil);
     finally FreeAndNil(GetChildrenHandler) end;
   end;
 

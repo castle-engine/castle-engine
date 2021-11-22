@@ -51,7 +51,7 @@ type
         Width: Single;
         Color: TCastleColor;
       end;
-      TNotificationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TNotification>)
+      TNotificationList = class({$ifdef FPC}specialize{$endif} TObjectList<TNotification>)
         procedure DeleteFirst(DelCount: Integer);
       end;
     var

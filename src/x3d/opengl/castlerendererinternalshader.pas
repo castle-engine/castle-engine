@@ -135,7 +135,7 @@ type
       var CurrentValue: TVector4; const NewValue: TVector4); overload;
   end;
 
-  TLightUniformsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLightUniforms>;
+  TLightUniformsList = {$ifdef FPC}specialize{$endif} TObjectList<TLightUniforms>;
 
   { GLSL program integrated with VRML/X3D and TShader.
     Allows to bind uniform values from VRML/X3D fields,
@@ -269,7 +269,7 @@ type
     procedure SetDynamicUniforms(AProgram: TX3DShaderProgram);
   end;
 
-  TLightShaders = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLightShader>)
+  TLightShaders = class({$ifdef FPC}specialize{$endif} TObjectList<TLightShader>)
   private
     function Find(const Node: TAbstractLightNode; out Shader: TLightShader): boolean;
   end;
@@ -324,7 +324,7 @@ type
         GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); override;
   end;
 
-  TTextureCoordinateShaderList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureCoordinateShader>;
+  TTextureCoordinateShaderList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureCoordinateShader>;
 
   TDynamicUniform = class abstract
   public
@@ -359,7 +359,7 @@ type
     procedure SetUniform(AProgram: TX3DShaderProgram); override;
   end;
 
-  TDynamicUniformList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TDynamicUniform>;
+  TDynamicUniformList = {$ifdef FPC}specialize{$endif} TObjectList<TDynamicUniform>;
 
   TSurfaceTextureShader = record
     Enable: boolean;
@@ -652,7 +652,7 @@ type
 implementation
 
 uses SysUtils, StrUtils,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleGLUtils, CastleLog, CastleGLVersion,
   CastleScreenEffects, CastleInternalX3DLexer;
 
@@ -1229,7 +1229,7 @@ begin
   if EventsObserved <> nil then
   begin
     for I := 0 to EventsObserved.Count - 1 do
-      EventsObserved[I].RemoveNotification({$ifdef CASTLE_OBJFPC}@{$endif}EventReceive);
+      EventsObserved[I].RemoveNotification({$ifdef FPC}@{$endif}EventReceive);
     FreeAndNil(EventsObserved);
   end;
   FreeAndNil(UniformsTextures);
@@ -1278,7 +1278,7 @@ begin
 
   if ObservedEvent <> nil then
   begin
-    ObservedEvent.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif}EventReceive);
+    ObservedEvent.AddNotification({$ifdef FPC}@{$endif}EventReceive);
     EventsObserved.Add(ObservedEvent);
   end;
 end;
@@ -1468,7 +1468,7 @@ begin
     on E: EGLSLUniformInvalid do
     begin
       WritelnWarning('VRML/X3D', E.Message);
-      Event.RemoveNotification({$ifdef CASTLE_OBJFPC}@{$endif}EventReceive);
+      Event.RemoveNotification({$ifdef FPC}@{$endif}EventReceive);
       EventsObserved.Remove(Event);
       Exit;
     end;

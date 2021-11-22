@@ -74,7 +74,7 @@ begin
   FDuration := DefaultDuration;
   FullSize := true;
   FImage := TCastleImagePersistent.Create;
-  FImage.OnChange := {$ifdef CASTLE_OBJFPC}@{$endif}ImageChanged;
+  FImage.OnChange := {$ifdef FPC}@{$endif}ImageChanged;
 end;
 
 destructor TCastleFlashEffect.Destroy;

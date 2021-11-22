@@ -188,7 +188,7 @@ type
     Integer: Int64; //< for vtInteger
   end;
 
-  TX3DTokenInfoList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DTokenInfo>)
+  TX3DTokenInfoList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DTokenInfo>)
     procedure AssertEqual(const TestCase: TTestCase; SecondValue: TX3DTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;

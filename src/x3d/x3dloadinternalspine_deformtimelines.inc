@@ -16,7 +16,7 @@
 { Spine deform timelines. }
 
 {$ifdef read_interface}
-  TDeformVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSingleList>)
+  TDeformVertexList = class({$ifdef FPC}specialize{$endif} TObjectList<TSingleList>)
   end;
 
   TDeformTimeline = class
@@ -48,7 +48,7 @@
       const NormalizeCurvesKeyValues: Boolean);
   end;
 
-  TDeformTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TDeformTimeline>)
+  TDeformTimelineList = class({$ifdef FPC}specialize{$endif} TObjectList<TDeformTimeline>)
   end;
 {$endif}
 

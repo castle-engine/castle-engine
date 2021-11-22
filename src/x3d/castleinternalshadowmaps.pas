@@ -63,7 +63,7 @@ type
   end;
   PLight = ^TLight;
 
-  TLightList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TLight>)
+  TLightList = class({$ifdef FPC}specialize{$endif} TStructList<TLight>)
   public
     DefaultShadowMapSize: Cardinal;
     ShadowMapShaders: array [boolean, 0..1] of TComposedShaderNode;
@@ -721,7 +721,7 @@ begin
       if they receive shadow from more then one light. So it was too easy
       to remove a shadow map (or projector) that we have just added... }
     Shapes.Traverse(
-      {$ifdef CASTLE_OBJFPC}@{$endif} {$ifdef FPC}HereShapeRemove{$else}CaptureHereShapeRemove(){$endif},
+      {$ifdef FPC}@{$endif} {$ifdef FPC}HereShapeRemove{$else}CaptureHereShapeRemove(){$endif},
       false);
 
     if Enable then
@@ -732,11 +732,11 @@ begin
       { calculate Lights.LightsCastingOnEverything first }
       Lights.LightsCastingOnEverything := TX3DNodeList.Create(false);
       Model.EnumerateNodes(TAbstractPunctualLightNode,
-        {$ifdef CASTLE_OBJFPC}@{$endif}Lights.HandleLightCastingOnEverything,
+        {$ifdef FPC}@{$endif}Lights.HandleLightCastingOnEverything,
         false);
 
       Shapes.Traverse(
-        {$ifdef CASTLE_OBJFPC}@{$endif} {$ifdef FPC}HereShapeAdd{$else}CaptureHereShapeAdd(){$endif},
+        {$ifdef FPC}@{$endif} {$ifdef FPC}HereShapeAdd{$else}CaptureHereShapeAdd(){$endif},
         false);
 
       for I := 0 to Lights.Count - 1 do

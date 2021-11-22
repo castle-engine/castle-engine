@@ -29,8 +29,8 @@ type
   TCastleSpriteSheetAnimation = class;
   TCastleSpriteSheetFrame = class;
 
-  TCastleSpriteSheetAnimationList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleSpriteSheetAnimation>;
-  TCastleSpriteSheetFrameList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleSpriteSheetFrame>;
+  TCastleSpriteSheetAnimationList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleSpriteSheetAnimation>;
+  TCastleSpriteSheetFrameList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleSpriteSheetFrame>;
 
   TCastleSpriteSheetAbstractAtlasGen = class;
 

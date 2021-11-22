@@ -65,7 +65,7 @@ type
   end;
   PManifoldEdge = ^TManifoldEdge;
 
-  TManifoldEdgeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TManifoldEdge>;
+  TManifoldEdgeList = {$ifdef FPC}specialize{$endif} TStructList<TManifoldEdge>;
 
   { Edge that has one neighbor, i.e. border edge.
     It's used by @link(TShapeShadowVolumes.BorderEdges),
@@ -83,7 +83,7 @@ type
   end;
   PBorderEdge = ^TBorderEdge;
 
-  TBorderEdgeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TBorderEdge>;
+  TBorderEdgeList = {$ifdef FPC}specialize{$endif} TStructList<TBorderEdge>;
 
   { Triangles array for shadow casting shape. In local shape coordinates. }
   TTrianglesShadowCastersList = TTriangle3List;
@@ -238,7 +238,7 @@ function TShapeShadowVolumes.TrianglesListShadowCasters: TTrianglesShadowCasters
         TriangleAdder.TriangleList := Result;
         if ShadowCaster(Shape) then
           Shape.LocalTriangulate(false,
-            {$ifdef CASTLE_OBJFPC}@{$endif}TriangleAdder.AddTriangle);
+            {$ifdef FPC}@{$endif}TriangleAdder.AddTriangle);
         if LogShadowVolumes then
           WritelnLog('Shadow volumes', Format('Shadows casters triangles: %d',
             [Result.Count]));

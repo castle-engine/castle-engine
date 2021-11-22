@@ -111,13 +111,13 @@ begin
   begin
     if FSourceFont <> nil then
     begin
-      FSourceFont.RemoveFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
+      FSourceFont.RemoveFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FSourceFont.RemoveFreeNotification(Self);
     end;
     FSourceFont := Value;
     if FSourceFont <> nil then
     begin
-      FSourceFont.AddFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
+      FSourceFont.AddFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FSourceFont.FreeNotification(Self);
     end;
 

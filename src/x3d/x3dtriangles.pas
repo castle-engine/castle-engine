@@ -1321,7 +1321,7 @@ begin
        LightedPointPlane)) and
    (SegmentCollision(LightedPoint, LightPos,
      false, TriangleToIgnore, IgnoreMarginAtStart,
-     {$ifdef CASTLE_OBJFPC}@{$endif}IgnoreForShadowRays) = nil);
+     {$ifdef FPC}@{$endif}IgnoreForShadowRays) = nil);
 end;
 
 { TOctreeIgnoreForShadowRaysAndOneItem -------------------------------------- }

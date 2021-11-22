@@ -28,7 +28,7 @@ type
       OutlineHighQuality: boolean;
       TargetImage: TCastleImage;
     end;
-    TSavedPropertiesList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSavedProperties>;
+    TSavedPropertiesList = {$ifdef FPC}specialize{$endif} TObjectList<TSavedProperties>;
   var
     FMeasuredSize, FMeasuredRowHeight, FMeasuredRowHeightBase, FMeasuredDescend: Single;
     FOutline: Cardinal;
@@ -405,13 +405,13 @@ begin
   inherited;
   FMeasuredSize := -1; // not measured at all
   FOutlineColor := Black;
-  ApplicationProperties.OnGLContextCloseObject.Add({$ifdef CASTLE_OBJFPC}@{$endif}GLContextCloseEvent);
+  ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}GLContextCloseEvent);
 end;
 
 destructor TCastleAbstractFont.Destroy;
 begin
   if ApplicationProperties <> nil then
-    ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef CASTLE_OBJFPC}@{$endif}GLContextCloseEvent);
+    ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef FPC}@{$endif}GLContextCloseEvent);
   GLContextClose;
   FreeAndNil(FPropertiesStack);
   FreeAndNil(FFontSizeNotifications);

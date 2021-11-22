@@ -41,7 +41,7 @@ type
     Event: TWarmupCacheFormatEvent;
   end;
 
-  TWarmupCacheFormatList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWarmupCacheFormat>)
+  TWarmupCacheFormatList = class({$ifdef FPC}specialize{$endif} TObjectList<TWarmupCacheFormat>)
   private
     function CallRegisteredFormat(const Cache: TWarmupCache;
       const Element: TDOMElement; const ElementBaseUrl: String): Boolean;
@@ -163,7 +163,7 @@ begin
   begin
     FWarmupCacheFormats := TWarmupCacheFormatList.Create(true);
     // register formats implemented in this unit
-    FWarmupCacheFormats.RegisterFormat('image_ui', {$ifdef CASTLE_OBJFPC}@{$endif}TImageUiCache{$ifdef FPC}(nil){$endif}.Event);
+    FWarmupCacheFormats.RegisterFormat('image_ui', {$ifdef FPC}@{$endif}TImageUiCache{$ifdef FPC}(nil){$endif}.Event);
   end;
   Result := FWarmupCacheFormats;
 end;

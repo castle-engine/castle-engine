@@ -720,7 +720,7 @@ begin
   // note that above Create will call virtual Load() which will already set our FImage
   FOwnsImage := AOwnsImage;
   ApplicationProperties.OnGLContextCloseObject.Add(
-    {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
+    {$ifdef FPC}@{$endif} GLContextCloseEvent);
 end;
 
 constructor TDrawableImage.Create(const AURL: string;
@@ -767,7 +767,7 @@ begin
 
   if ApplicationProperties <> nil then
     ApplicationProperties.OnGLContextCloseObject.Remove(
-      {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
+      {$ifdef FPC}@{$endif} GLContextCloseEvent);
 
   RenderToImageFree;
   GLContextClose;

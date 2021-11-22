@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,7 +25,7 @@ uses
   // needed by castleglutils_delphi_wgl.inc
   {$ifndef FPC} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
   SysUtils, Math, {$ifdef FPC} Matrix, {$endif} Generics.Collections,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif} {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions;
 

@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   F${PROPERTY_NAME}Persistent := ${PERSISTENT_PROPERTY_CLASS}.Create;
-  F${PROPERTY_NAME}Persistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}Get${PROPERTY_NAME}ForPersistent;
-  F${PROPERTY_NAME}Persistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}Set${PROPERTY_NAME}ForPersistent;
+  F${PROPERTY_NAME}Persistent.InternalGetValue := {$ifdef FPC}@{$endif}Get${PROPERTY_NAME}ForPersistent;
+  F${PROPERTY_NAME}Persistent.InternalSetValue := {$ifdef FPC}@{$endif}Set${PROPERTY_NAME}ForPersistent;
   F${PROPERTY_NAME}Persistent.InternalDefaultValue := ${PROPERTY_NAME}; // current value is default
 {$endif read_implementation_constructor}
 

@@ -41,7 +41,7 @@ type
     const ReceivedStream: TMemoryStream): Boolean of object;
 
   { Used by TMessaging to manage a list of listeners. }
-  TMessageReceivedEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TMessageReceivedEvent>)
+  TMessageReceivedEventList = class({$ifdef FPC}specialize{$endif} TList<TMessageReceivedEvent>)
   public
     procedure ExecuteAll(const Received: TCastleStringList; const ReceivedStream: TMemoryStream);
   end;
@@ -182,14 +182,14 @@ begin
 
   { Only register the Update on platforms where CastleMessaging is actually used. }
   {$if defined(ANDROID) or defined(CASTLE_IOS)}
-  ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif} Update);
+  ApplicationProperties.OnUpdate.Add({$ifdef FPC}@{$endif} Update);
   {$endif}
 end;
 
 destructor TMessaging.Destroy;
 begin
   if ApplicationProperties(false) <> nil then
-    ApplicationProperties(false).OnUpdate.Remove({$ifdef CASTLE_OBJFPC}@{$endif} Update);
+    ApplicationProperties(false).OnUpdate.Remove({$ifdef FPC}@{$endif} Update);
   FreeAndNil(ToPascal);
   FreeAndNil(FOnReceive);
 

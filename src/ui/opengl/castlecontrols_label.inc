@@ -195,7 +195,7 @@ begin
   inherited;
 
   FText := TStringList.Create;
-  TStringList(FText).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} TextChange;
+  TStringList(FText).OnChange := {$ifdef FPC}@{$endif} TextChange;
   {$warnings off}
   if Theme.DefaultLabelWhite then
   {$warnings on}

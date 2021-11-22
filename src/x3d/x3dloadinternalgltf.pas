@@ -130,7 +130,7 @@ begin
   { The interpretation of RootPath lies on our side, in GetUri implementation.
     Just use it to store BaseUrl then. }
   RootPath := BaseUrl;
-  GetURI := {$ifdef CASTLE_OBJFPC}@{$endif}CastleGetUri;
+  GetURI := {$ifdef FPC}@{$endif}CastleGetUri;
 
   LoadFromStream(Stream);
 end;
@@ -165,7 +165,7 @@ type
     ShapesParent: TAbstractX3DGroupingNode;
   end;
 
-  TSkinToInitializeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinToInitialize>;
+  TSkinToInitializeList = {$ifdef FPC}specialize{$endif} TObjectList<TSkinToInitialize>;
 
 { TAnimation ----------------------------------------------------------------- }
 
@@ -183,7 +183,7 @@ type
     Path: TGltfSamplerPath;
   end;
 
-  TInterpolatorList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TInterpolator>;
+  TInterpolatorList = {$ifdef FPC}specialize{$endif} TList<TInterpolator>;
 
   { Information about created animation. }
   TAnimation = class
@@ -193,7 +193,7 @@ type
     destructor Destroy; override;
   end;
 
-  TAnimationList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAnimation>;
+  TAnimationList = {$ifdef FPC}specialize{$endif} TObjectList<TAnimation>;
 
 constructor TAnimation.Create;
 begin

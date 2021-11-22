@@ -328,7 +328,7 @@ type
         Video: TVideo;
         AlphaChannel: TAlphaChannel;
       end;
-      TCachedVideoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCachedVideo>;
+      TCachedVideoList = {$ifdef FPC}specialize{$endif} TObjectList<TCachedVideo>;
     var
       CachedVideos: TCachedVideoList;
       FOnEmpty: TProcedure;

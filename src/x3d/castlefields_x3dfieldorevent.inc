@@ -162,7 +162,7 @@
     procedure SaveToStreamClassicIsClauses(Writer: TX3DWriter);
   end;
 
-  TX3DFieldOrEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DFieldOrEvent>;
+  TX3DFieldOrEventList = {$ifdef FPC}specialize{$endif} TObjectList<TX3DFieldOrEvent>;
 
 {$endif read_interface}
 

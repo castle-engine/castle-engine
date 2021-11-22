@@ -453,7 +453,7 @@ type
     @link(TAliveWithInventory.DropItem).
     They make sure that items are correctly stacked, and that
     TInventoryItem.Owner3D and memory management is good. }
-  TInventory = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInventoryItem>)
+  TInventory = class({$ifdef FPC}specialize{$endif} TObjectList<TInventoryItem>)
   private
     FOwner3D: TAliveWithInventory;
   protected

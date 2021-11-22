@@ -90,7 +90,7 @@ const
     deprecated 'use TX3DTime.Oldest';
 
 type
-  TX3DTimeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TX3DTime>;
+  TX3DTimeList = {$ifdef FPC}specialize{$endif} TStructList<TX3DTime>;
 
 implementation
 

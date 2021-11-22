@@ -392,8 +392,8 @@ end;
 procedure TGLMode.TWindowState.SetStandardState(
   NewRender, NewResize, NewCloseQuery: TContainerEvent);
 begin
-  Window.OnOpenObject := {$ifdef CASTLE_OBJFPC}@{$endif}WindowOpen;
-  Window.OnCloseObject := {$ifdef CASTLE_OBJFPC}@{$endif}WindowClose;
+  Window.OnOpenObject := {$ifdef FPC}@{$endif}WindowOpen;
+  Window.OnCloseObject := {$ifdef FPC}@{$endif}WindowClose;
   Window.OnMotion := nil;
   Window.OnPress := nil;
   Window.OnRelease := nil;

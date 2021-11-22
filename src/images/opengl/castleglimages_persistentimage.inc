@@ -279,7 +279,7 @@ begin
   FScaleCorners := 1;
   FScaleFromUrl := 1;
 
-  FProtectedSides := TBorder.Create({$ifdef CASTLE_OBJFPC}@{$endif}ProtectedSidesChange);
+  FProtectedSides := TBorder.Create({$ifdef FPC}@{$endif}ProtectedSidesChange);
   CreateDrawableImage;
 
   {$define read_implementation_constructor}

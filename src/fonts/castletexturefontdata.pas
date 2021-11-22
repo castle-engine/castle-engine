@@ -51,7 +51,7 @@ type
         ImageX, ImageY: Cardinal;
       end;
       { Map Unicode code to a TGlyph representation. }
-      TGlyphDictionary = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TUnicodeChar, TGlyph>)
+      TGlyphDictionary = class({$ifdef FPC}specialize{$endif} TDictionary<TUnicodeChar, TGlyph>)
       strict private
         FOwnsGlyphs: boolean;
         function GetItems(const AKey: TUnicodeChar): TGlyph;

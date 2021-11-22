@@ -364,7 +364,7 @@ begin
   end;
 
   { recursively check children }
-  Node.DirectEnumerateAll({$ifdef CASTLE_OBJFPC}@{$endif} Self.HandleNode);
+  Node.DirectEnumerateAll({$ifdef FPC}@{$endif} Self.HandleNode);
 end;
 
 { global routines ------------------------------------------------------------ }
@@ -392,7 +392,7 @@ var
     Handler := TFixNamesHandler.Create;
     try
       Handler.HandleNode(nil, Node);
-      Node.DirectEnumerateAll({$ifdef CASTLE_OBJFPC}@{$endif} Handler.HandleNode);
+      Node.DirectEnumerateAll({$ifdef FPC}@{$endif} Handler.HandleNode);
     finally FreeAndNil(Handler) end;
   end;
 
@@ -416,7 +416,7 @@ var
     (Node as TX3DRootNode).HasForceVersion := true;
     (Node as TX3DRootNode).ForceVersion := Version;
 
-    Node.EnumerateReplaceChildren({$ifdef CASTLE_OBJFPC}@{$endif} TVRMLToX3DConverter(nil).Convert);
+    Node.EnumerateReplaceChildren({$ifdef FPC}@{$endif} TVRMLToX3DConverter(nil).Convert);
   end;
 
   procedure Classic;

@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FSizePersistent := TCastleVector3Persistent.Create;
-  FSizePersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetSizeForPersistent;
-  FSizePersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetSizeForPersistent;
+  FSizePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetSizeForPersistent;
+  FSizePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetSizeForPersistent;
   FSizePersistent.InternalDefaultValue := Size; // current value is default
 {$endif read_implementation_constructor}
 

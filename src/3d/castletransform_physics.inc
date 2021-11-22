@@ -180,7 +180,7 @@
   TCollisionEvent = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
   TOnCollision = TCollisionEvent deprecated 'use TCollisionEvent';
 
-  TRigidBodyList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TRigidBody>;
+  TRigidBodyList = {$ifdef FPC}specialize{$endif} TList<TRigidBody>;
 
   { Rigid body properties for the physics engine,
     see @link(TCastleTransform.RigidBody).
@@ -917,7 +917,7 @@ begin
     Exit;
 
   if Assigned(FOnCollisionEnter) or Assigned(FOnCollisionStay) or Assigned(FOnCollisionExit) then
-    FKraftBody.OnPostStep := {$ifdef CASTLE_OBJFPC}@{$endif}PhysicsPostStep
+    FKraftBody.OnPostStep := {$ifdef FPC}@{$endif}PhysicsPostStep
   else
     FKraftBody.OnPostStep := nil;
 end;

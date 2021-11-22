@@ -223,7 +223,7 @@
     property BaseUrl: string read FBaseUrl write FBaseUrl;
   end;
 
-  TX3DPrototypeBaseList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DPrototypeBase>);
+  TX3DPrototypeBaseList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DPrototypeBase>);
 
   TX3DPrototype = class(TX3DPrototypeBase)
   strict private
@@ -620,7 +620,7 @@ begin
   for I := 0 to Child.EventsCount - 1 do
     ExpandEvent(Child.Events[I]);
 
-  Child.DirectEnumerateAll({$ifdef CASTLE_OBJFPC}@{$endif} Self.InstantiateIsClauses);
+  Child.DirectEnumerateAll({$ifdef FPC}@{$endif} Self.InstantiateIsClauses);
 end;
 
 function TX3DPrototypeNode.PrepareInstantiateIsClause(
@@ -630,7 +630,7 @@ begin
   if not (Child.NeedsInstantiateIsClause or (Child is TInlineNode)) then
   begin
     Child.NeedsInstantiateIsClause := true;
-    Child.DirectEnumerateAll({$ifdef CASTLE_OBJFPC}@{$endif} Self.PrepareInstantiateIsClause);
+    Child.DirectEnumerateAll({$ifdef FPC}@{$endif} Self.PrepareInstantiateIsClause);
   end;
 end;
 

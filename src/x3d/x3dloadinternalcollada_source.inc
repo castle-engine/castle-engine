@@ -58,7 +58,7 @@ type
     function AssignToVectorST(const Value: TVector2List): boolean;
   end;
 
-  TColladaSourceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaSource>)
+  TColladaSourceList = class({$ifdef FPC}specialize{$endif} TObjectList<TColladaSource>)
   public
     { Find a TColladaSource with given Name, @nil if not found. }
     function Find(const Name: string): TColladaSource;

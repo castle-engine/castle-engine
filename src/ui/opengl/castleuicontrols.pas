@@ -104,7 +104,7 @@ type
   PTouch = ^TTouch;
 
   { Tracking of multi-touch, a position of each finger on the screen. }
-  TTouchList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TTouch>)
+  TTouchList = class({$ifdef FPC}specialize{$endif} TStructList<TTouch>)
   private
     { Find an item with given FingerIndex, or -1 if not found. }
     function FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
@@ -247,7 +247,7 @@ type
   TCastleContainer = class abstract(TComponent)
   strict private
     type
-      TFingerIndexCaptureMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TFingerIndex, TCastleUserInterface>;
+      TFingerIndexCaptureMap = {$ifdef FPC}specialize{$endif} TDictionary<TFingerIndex, TCastleUserInterface>;
     var
     FOnOpen, FOnClose: TContainerEvent;
     FOnOpenObject, FOnCloseObject: TContainerObjectEvent;
@@ -2219,7 +2219,7 @@ type
   end;
 
   { Simple list of TCastleUserInterface instances. }
-  TCastleUserInterfaceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleUserInterface>)
+  TCastleUserInterfaceList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleUserInterface>)
   public
     { Add child control, at the front of other children. }
     procedure InsertFront(const NewItem: TCastleUserInterface); overload;
@@ -2406,9 +2406,9 @@ function RenderControlToImage(const Container: TCastleContainer;
 implementation
 
 uses DOM, TypInfo, Math,
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleLog, CastleXMLUtils, CastleStringUtils,
-  CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL;{$else}GL, GLExt;{$endif}{$else}OpenGL, OpenGLext;{$endif}
+  CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions;
 
 {$define read_implementation}
 {$I castleuicontrols_serialize.inc}
@@ -3995,7 +3995,7 @@ begin
   FCapturesEvents := true;
   FWidth := DefaultWidth;
   FHeight := DefaultHeight;
-  FBorder := TBorder.Create({$ifdef CASTLE_OBJFPC}@{$endif}BorderChange);
+  FBorder := TBorder.Create({$ifdef FPC}@{$endif}BorderChange);
   FLastSeenUIScale := 1.0;
 
   {$define read_implementation_constructor}
@@ -4184,9 +4184,9 @@ procedure TCastleUserInterface.CustomSerialization(const SerializationProcess: T
 begin
   inherited;
   SerializationProcess.ReadWrite('Children',
-    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenEnumerate,
-    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenAdd,
-    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenClear);
+    {$ifdef FPC}@{$endif}SerializeChildrenEnumerate,
+    {$ifdef FPC}@{$endif}SerializeChildrenAdd,
+    {$ifdef FPC}@{$endif}SerializeChildrenClear);
 end;
 
 procedure TCastleUserInterface.SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -4679,15 +4679,15 @@ begin
     Instead, we'll save design-time "Left" below, under a special name. }
 
   Filer.DefineProperty('TUIControlPos_RealLeft',
-    {$ifdef CASTLE_OBJFPC}@{$endif} ReadRealLeft,
-    {$ifdef CASTLE_OBJFPC}@{$endif} WriteRealLeft,
+    {$ifdef FPC}@{$endif} ReadRealLeft,
+    {$ifdef FPC}@{$endif} WriteRealLeft,
     FLeft <> 0);
 
     // TODO: unfinished tests
 (*
   Filer.DefineProperty('Controls',
-    {$ifdef CASTLE_OBJFPC}@{$endif} ReadControls,
-    {$ifdef CASTLE_OBJFPC}@{$endif} WriteControls,
+    {$ifdef FPC}@{$endif} ReadControls,
+    {$ifdef FPC}@{$endif} WriteControls,
     ControlsCount <> 0);
 *)
 
@@ -4696,12 +4696,12 @@ begin
   Ancestor:=TComponent(Filer.Ancestor);
   If Assigned(Ancestor) then Temp:=Ancestor.DesignInfo;
   Filer.Defineproperty('TUIControlPos_Design_Left',
-    {$ifdef CASTLE_OBJFPC}@{$endif} readleft,
-    {$ifdef CASTLE_OBJFPC}@{$endif} writeleft,
+    {$ifdef FPC}@{$endif} readleft,
+    {$ifdef FPC}@{$endif} writeleft,
     (longrec(DesignInfo).Lo<>Longrec(temp).Lo));
   Filer.Defineproperty('TUIControlPos_Design_Top',
-    {$ifdef CASTLE_OBJFPC}@{$endif} readtop,
-    {$ifdef CASTLE_OBJFPC}@{$endif} writetop,
+    {$ifdef FPC}@{$endif} readtop,
+    {$ifdef FPC}@{$endif} writetop,
     (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
 end;
 

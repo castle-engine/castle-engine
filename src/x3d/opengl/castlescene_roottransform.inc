@@ -181,7 +181,7 @@ constructor TCastleRootTransform.Create(AOwner: TComponent);
 begin
   inherited;
   MainSceneObserver := TFreeNotificationObserver.Create(Self);
-  MainSceneObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}MainSceneFreeNotification;
+  MainSceneObserver.OnFreeNotification := {$ifdef FPC}@{$endif}MainSceneFreeNotification;
   FUseHeadlight := hlMainScene;
 end;
 
@@ -219,10 +219,10 @@ begin
 
     if FMainScene <> nil then
     begin
-      FMainScene.OnBoundViewpointVectorsChanged := {$ifdef CASTLE_OBJFPC}@{$endif}MainScene_BoundViewpointVectorsChanged;
-      FMainScene.OnBoundNavigationInfoFieldsChanged := {$ifdef CASTLE_OBJFPC}@{$endif}MainScene_BoundNavigationInfoChanged;
-      FMainScene.ViewpointStack.OnBoundChanged := {$ifdef CASTLE_OBJFPC}@{$endif}MainScene_BoundViewpointChanged;
-      FMainScene.NavigationInfoStack.OnBoundChanged := {$ifdef CASTLE_OBJFPC}@{$endif}MainScene_BoundNavigationInfoChanged;
+      FMainScene.OnBoundViewpointVectorsChanged := {$ifdef FPC}@{$endif}MainScene_BoundViewpointVectorsChanged;
+      FMainScene.OnBoundNavigationInfoFieldsChanged := {$ifdef FPC}@{$endif}MainScene_BoundNavigationInfoChanged;
+      FMainScene.ViewpointStack.OnBoundChanged := {$ifdef FPC}@{$endif}MainScene_BoundViewpointChanged;
+      FMainScene.NavigationInfoStack.OnBoundChanged := {$ifdef FPC}@{$endif}MainScene_BoundNavigationInfoChanged;
     end;
 
     { Setting MainScene may change lights, if MainScene determines the headlight

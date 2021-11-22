@@ -34,7 +34,7 @@
     end;
     { Using TObjectList, not map, this way we can sort the list looking
       at data sizes. }
-    TAllocatedTextures = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAllocatedTexture>;
+    TAllocatedTextures = {$ifdef FPC}specialize{$endif} TObjectList<TAllocatedTexture>;
   var
     AllocatedTextures: TAllocatedTextures;
     FEnabled: boolean;
@@ -257,7 +257,7 @@ function TTextureMemoryProfiler.Summary: string;
   end;
 
 type
-  TAllocatedTextureComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TAllocatedTexture>;
+  TAllocatedTextureComparer = {$ifdef FPC}specialize{$endif} TComparer<TAllocatedTexture>;
 var
   S: string;
   I: Integer;
@@ -272,7 +272,7 @@ begin
   S := Format('Texture memory used: %s (%d bytes in %d textures)',
     [FormatSize(Used), Used, AllocatedTextures.Count]) + NL;
 
-  AllocatedTextures.Sort(TAllocatedTextureComparer.Construct({$ifdef CASTLE_OBJFPC}@{$endif}AllocatedTexturesSort));
+  AllocatedTextures.Sort(TAllocatedTextureComparer.Construct({$ifdef FPC}@{$endif}AllocatedTexturesSort));
   for I := 0 to AllocatedTextures.Count - 1 do
   begin
     AllocatedTex := AllocatedTextures[I];

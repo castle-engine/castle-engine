@@ -21,7 +21,7 @@ unit CastleRenderContext;
 interface
 
 uses SysUtils, Generics.Collections,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif} {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleUtils, CastleVectors, CastleRectangles, CastleGLShaders, CastleColors;
 
 type
@@ -78,7 +78,7 @@ type
   TRenderContext = class
   strict private
     type
-      TScissorList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TScissor>)
+      TScissorList = class({$ifdef FPC}specialize{$endif} TObjectList<TScissor>)
       public
         FFinalScissor: TRectangle; // only defined when Count <> 0
         procedure Update;

@@ -24,26 +24,26 @@ type
 
   EListsDifferentCount = class(Exception);
 
-  TWordList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Word>)
+  TWordList = class({$ifdef FPC}specialize{$endif} TStructList<Word>)
   public
     function Max: Word;
     procedure Assign(const Source: TLongIntList);
   end;
 
-  TLongWordList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<LongWord>)
+  TLongWordList = class({$ifdef FPC}specialize{$endif} TStructList<LongWord>)
   public
     function Max: LongWord;
     procedure Assign(const Source: TLongIntList);
   end;
 
-  TFloatList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Float>)
+  TFloatList = class({$ifdef FPC}specialize{$endif} TStructList<Float>)
     procedure AppendFloats(Floats: TSingleList);
   end;
 
   TSingleArray = packed array [0..MaxInt div SizeOf(Single) - 1] of Single;
   PSingleArray = ^TSingleArray;
 
-  TSingleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Single>)
+  TSingleList = class({$ifdef FPC}specialize{$endif} TStructList<Single>)
     procedure AppendFloats(Floats: TFloatList);
     function ToDouble: TDoubleList;
 
@@ -51,7 +51,7 @@ type
     procedure Assign(const Source: TDoubleList); overload;
 
     procedure AssignLerpRange(const Fraction: Single;
-      const V1, V2: {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Single>;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<Single>;
       const Index1, Index2, ACount: TListSize); override;
 
     procedure AddListRange(const Source: TSingleList; const Index, AddCount: TListSize); deprecated 'use AddSubRange';
@@ -71,14 +71,14 @@ type
     procedure SortAndRemoveDuplicates;
   end;
 
-  TDoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Double>)
+  TDoubleList = class({$ifdef FPC}specialize{$endif} TStructList<Double>)
     function ToSingle: TSingleList;
 
     { Assign value from TSingleList, converting to single-precision. }
     procedure Assign(const Source: TSingleList); overload;
 
     procedure AssignLerpRange(const Fraction: Single;
-      const V1, V2: {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Double>;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<Double>;
       const Index1, Index2, ACount: TListSize); override;
 
     { Does the SecondValue have equal length and content.
@@ -87,12 +87,12 @@ type
     function Equals(SecondValue: TObject): boolean; override;
   end;
 
-  TCardinalList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Cardinal>)
+  TCardinalList = class({$ifdef FPC}specialize{$endif} TStructList<Cardinal>)
     function BigSum: Int64;
     function Sum: Cardinal;
   end;
 
-  TBooleanList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<boolean> {$ifndef FPC}, ICastleItemList<boolean, TStructList<boolean>> {$endif})
+  TBooleanList = class({$ifdef FPC}specialize{$endif} TStructList<boolean> {$ifndef FPC}, ICastleItemList<boolean, TStructList<boolean>> {$endif})
   public
     { Set appropriate item to given value.
       These are useful methods to pass as callback in some situations
@@ -114,7 +114,7 @@ type
   TLongIntArray = packed array [0..MaxInt div SizeOf(LongInt) - 1] of LongInt;
   PLongIntArray = ^TLongIntArray;
 
-  TLongIntList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<LongInt>)
+  TLongIntList = class({$ifdef FPC}specialize{$endif} TStructList<LongInt>)
   public
     function Max: LongInt;
     function Sum: LongInt;
@@ -128,7 +128,7 @@ type
     function Equals(SecondValue: TObject): boolean; override;
   end;
 
-  TIntegerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Integer>)
+  TIntegerList = class({$ifdef FPC}specialize{$endif} TStructList<Integer>)
   public
     function Sum: Integer;
   end;
@@ -233,7 +233,7 @@ begin
 end;
 
 procedure TSingleList.AssignLerpRange(const Fraction: Single;
-  const V1, V2: {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Single>;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<Single>;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
@@ -344,7 +344,7 @@ begin
 end;
 
 procedure TDoubleList.AssignLerpRange(const Fraction: Single;
-  const V1, V2: {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Double>;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<Double>;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;

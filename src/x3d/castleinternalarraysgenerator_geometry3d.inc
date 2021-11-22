@@ -129,7 +129,7 @@ end;
 procedure TAbstractIndexedFaceSetGenerator.GenerateCoordinate;
 begin
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef CASTLE_OBJFPC}@{$endif}GenerateCoordsRange);
+    {$ifdef FPC}@{$endif}GenerateCoordsRange);
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.AutoGenerateNormals(
@@ -186,7 +186,7 @@ begin
   begin
     TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
       EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
-      {$ifdef CASTLE_OBJFPC}@{$endif}GenerateTriangle, BeginIndex);
+      {$ifdef FPC}@{$endif}GenerateTriangle, BeginIndex);
   end else
   begin
     (* Alternative version:
@@ -214,7 +214,7 @@ begin
   begin
     TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
       EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
-      {$ifdef CASTLE_OBJFPC}@{$endif}PrepareIndexesTriangle1, BeginIndex);
+      {$ifdef FPC}@{$endif}PrepareIndexesTriangle1, BeginIndex);
   end else
   begin
     IFSIndexesCount := IFSIndexesCount + Max(EndIndex - BeginIndex - 2, 0) * 3;
@@ -251,7 +251,7 @@ begin
   begin
     TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
       EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
-      {$ifdef CASTLE_OBJFPC}@{$endif}PrepareIndexesTriangle2, BeginIndex);
+      {$ifdef FPC}@{$endif}PrepareIndexesTriangle2, BeginIndex);
   end else
   begin
     for I := BeginIndex to EndIndex - 3 do
@@ -279,7 +279,7 @@ begin
   { calculate IFSIndexesCount by one iteration over coordIndex }
   IFSIndexesCount := 0;
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef CASTLE_OBJFPC}@{$endif}PrepareIndexesCoordsRange1);
+    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange1);
 
   if FacesNeeded then
   begin
@@ -294,7 +294,7 @@ begin
   TrivialIndexesFromCoordIndex.Count := IFSIndexesCount;
   IFSNextIndex := 0;
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef CASTLE_OBJFPC}@{$endif}PrepareIndexesCoordsRange2);
+    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange2);
   Assert(IFSNextIndex = IFSIndexesCount);
 end;
 

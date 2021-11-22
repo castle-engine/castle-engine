@@ -33,7 +33,7 @@
     procedure Add(Joint: THAnimJointNode; const Weight: Single);
   end;
   PVertexJoints = ^TVertexJoints;
-  TVertexJointsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVertexJoints>;
+  TVertexJointsList = {$ifdef FPC}specialize{$endif} TStructList<TVertexJoints>;
 
   { Central node for moving the animated humanoid. It contains the skeleton,
     and other information necessary for animation. }
@@ -324,7 +324,7 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
   begin
     if FdJoints.Count = 0 then
     begin
-      EnumerateNodes(THAnimJointNode, {$ifdef CASTLE_OBJFPC}@{$endif} AddJoint, false);
+      EnumerateNodes(THAnimJointNode, {$ifdef FPC}@{$endif} AddJoint, false);
       if FdJoints.Count <> 0 then
         WritelnWarning('HAnimHumanoid.joints list was empty, fixed to list all %d joints', [
           FdJoints.Count

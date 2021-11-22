@@ -548,7 +548,7 @@ const
   EmptyBox3D: TBox3D = (Data: ((Data: (0, 0, 0)), (Data: (-1, -1, -1)))) deprecated 'use TBox3D.Empty';
 
 type
-  TBox3DList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TBox3D>;
+  TBox3DList = {$ifdef FPC}specialize{$endif} TStructList<TBox3D>;
 
 { Construct TBox3D value from a minimum and maximum 3D point. }
 function Box3D(const p0, p1: TVector3): TBox3D;
@@ -2418,7 +2418,7 @@ begin
     Calculator.VertsStride := VertsStride;
     Calculator.Verts := Verts;
     result := CalculateBoundingBox(
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetVertexNotTransform, VertsCount);
+      {$ifdef FPC} @ {$endif} Calculator.GetVertexNotTransform, VertsCount);
   finally Calculator.Free end;
 end;
 
@@ -2435,7 +2435,7 @@ begin
     Calculator.Verts := Verts;
     Calculator.PMatrix := @Transform;
     result := CalculateBoundingBox(
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetVertexTransform, VertsCount);
+      {$ifdef FPC} @ {$endif} Calculator.GetVertexTransform, VertsCount);
   finally Calculator.Free end;
 end;
 
@@ -2531,7 +2531,7 @@ begin
     result := CalculateBoundingBoxFromIndices(
       GetVertIndex,
       VertsIndicesCount,
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetTransformed);
+      {$ifdef FPC} @ {$endif} Calculator.GetTransformed);
   finally Calculator.Free end;
 end;
 

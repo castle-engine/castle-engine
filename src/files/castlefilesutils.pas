@@ -903,7 +903,7 @@ begin
   try
     Handler.SourcePath := SourcePath;
     Handler.DestinationPath := DestinationPath;
-    FindFiles(SourcePath, '*', false, {$ifdef CASTLE_OBJFPC}@{$endif} Handler.FoundFile, [ffRecursive]);
+    FindFiles(SourcePath, '*', false, {$ifdef FPC}@{$endif} Handler.FoundFile, [ffRecursive]);
   finally FreeAndNil(Handler) end;
 end;
 

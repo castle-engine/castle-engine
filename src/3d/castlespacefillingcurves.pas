@@ -420,7 +420,7 @@ begin
 
  InitStepData(StepData, APixels, SizeX, SizeY);
  HilbertCurve(true, 0, Level,
-   {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
+   {$ifdef FPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
 class function THilbertCurve.SFCName: string;
@@ -443,7 +443,7 @@ begin
 
  InitStepData(StepData, APixels, SizeX, SizeY);
  PeanoCurve(false, 0, Level,
-   {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
+   {$ifdef FPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
 class function TPeanoCurve.SFCName: string;

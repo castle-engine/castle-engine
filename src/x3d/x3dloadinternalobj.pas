@@ -208,7 +208,7 @@ type
     constructor Create(const AName: string);
   end;
 
-  TWavefrontMaterialList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWavefrontMaterial>)
+  TWavefrontMaterialList = class({$ifdef FPC}specialize{$endif} TObjectList<TWavefrontMaterial>)
     { Find material with given name, @nil if not found. }
     function TryFindName(const Name: string): TWavefrontMaterial;
   end;
@@ -225,7 +225,7 @@ type
     destructor Destroy; override;
   end;
 
-  TWavefrontFaceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWavefrontFace>;
+  TWavefrontFaceList = {$ifdef FPC}specialize{$endif} TObjectList<TWavefrontFace>;
 
   { 3D model in OBJ file format. }
   TObject3DOBJ = class

@@ -86,7 +86,7 @@
   end;
   PLightInstance = ^TLightInstance;
 
-  TLightInstancesList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TLightInstance>)
+  TLightInstancesList = class({$ifdef FPC}specialize{$endif} TStructList<TLightInstance>)
   public
     { Find given light node. Return -1 if not found. }
     function IndexOfNode(Node: TAbstractLightNode): integer;

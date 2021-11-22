@@ -130,13 +130,13 @@ begin
   begin
     if FRegular <> nil then
     begin
-      FRegular.RemoveFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
+      FRegular.RemoveFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FRegular.RemoveFreeNotification(Self);
     end;
     FRegular := Value;
     if FRegular <> nil then
     begin
-      FRegular.AddFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
+      FRegular.AddFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FRegular.FreeNotification(Self);
     end;
   end;
@@ -148,13 +148,13 @@ begin
   begin
     if FBold <> nil then
     begin
-      FBold.RemoveFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
+      FBold.RemoveFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FBold.RemoveFreeNotification(Self);
     end;
     FBold := Value;
     if FBold <> nil then
     begin
-      FBold.AddFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
+      FBold.AddFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FBold.FreeNotification(Self);
     end;
   end;
@@ -166,13 +166,13 @@ begin
   begin
     if FItalic <> nil then
     begin
-      FItalic.RemoveFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
+      FItalic.RemoveFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FItalic.RemoveFreeNotification(Self);
     end;
     FItalic := Value;
     if FItalic <> nil then
     begin
-      FItalic.AddFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
+      FItalic.AddFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FItalic.FreeNotification(Self);
     end;
   end;
@@ -184,13 +184,13 @@ begin
   begin
     if FBoldItalic <> nil then
     begin
-      FBoldItalic.RemoveFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
+      FBoldItalic.RemoveFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FBoldItalic.RemoveFreeNotification(Self);
     end;
     FBoldItalic := Value;
     if FBoldItalic <> nil then
     begin
-      FBoldItalic.AddFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
+      FBoldItalic.AddFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FBoldItalic.FreeNotification(Self);
     end;
   end;

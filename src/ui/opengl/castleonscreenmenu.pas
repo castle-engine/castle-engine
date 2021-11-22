@@ -717,9 +717,9 @@ begin
   AutoSizeToChildren := true;
 
   FSoundClickObserver := TFreeNotificationObserver.Create(Self);
-  FSoundClickObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}SoundClickFreeNotification;
+  FSoundClickObserver.OnFreeNotification := {$ifdef FPC}@{$endif}SoundClickFreeNotification;
   FSoundCurrentItemChangedObserver := TFreeNotificationObserver.Create(Self);
-  FSoundCurrentItemChangedObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}SoundCurrentItemChangedFreeNotification;
+  FSoundCurrentItemChangedObserver.OnFreeNotification := {$ifdef FPC}@{$endif}SoundCurrentItemChangedFreeNotification;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc}

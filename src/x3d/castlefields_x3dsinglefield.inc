@@ -22,7 +22,7 @@
   end;
   TX3DSingleFieldClass = class of TX3DSingleField;
 
-  TX3DSingleFieldList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DSingleField>;
+  TX3DSingleFieldList = {$ifdef FPC}specialize{$endif} TObjectList<TX3DSingleField>;
 
 {$endif read_interface}
 

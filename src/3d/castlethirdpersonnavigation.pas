@@ -378,9 +378,9 @@ begin
   FAnimationCrouchRotate := DefaultAnimationCrouchRotate;
 
   FAvatarFreeObserver := TFreeNotificationObserver.Create(Self);
-  FAvatarFreeObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}AvatarFreeNotification;
+  FAvatarFreeObserver.OnFreeNotification := {$ifdef FPC}@{$endif}AvatarFreeNotification;
   FAvatarHierarchyFreeObserver := TFreeNotificationObserver.Create(Self);
-  FAvatarHierarchyFreeObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}AvatarHierarchyFreeNotification;
+  FAvatarHierarchyFreeObserver.OnFreeNotification := {$ifdef FPC}@{$endif}AvatarHierarchyFreeNotification;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -431,7 +431,7 @@ begin
   {$undef read_implementation_constructor}
 
   // override vector change method, to call Init in design mode when this changes
-  AvatarTargetPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}MySetAvatarTargetForPersistent
+  AvatarTargetPersistent.InternalSetValue := {$ifdef FPC}@{$endif}MySetAvatarTargetForPersistent
 end;
 
 procedure TCastleThirdPersonNavigation.MySetAvatarTargetForPersistent(const AValue: TVector3);

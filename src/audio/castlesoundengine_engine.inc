@@ -34,7 +34,7 @@
   TSoundEngine = class(TSoundAllocator)
   private
     type
-      TInternalSoundBuffersList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalSoundBuffer>;
+      TInternalSoundBuffersList = {$ifdef FPC}specialize{$endif} TObjectList<TInternalSoundBuffer>;
     var
       FInformation: string;
       FDevice: string;
@@ -462,11 +462,11 @@ begin
   // Config.AddSaveListener(@SaveToConfig);
 
   ApplicationProperties.OnInitializeJavaActivity.Add(
-    {$ifdef CASTLE_OBJFPC}@{$endif} ReinitializeJavaActivity);
+    {$ifdef FPC}@{$endif} ReinitializeJavaActivity);
   ApplicationProperties.OnPause.Add(
-    {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationPause);
+    {$ifdef FPC}@{$endif} ApplicationPause);
   ApplicationProperties.OnResume.Add(
-    {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationResume);
+    {$ifdef FPC}@{$endif} ApplicationResume);
 end;
 
 destructor TSoundEngine.Destroy;
@@ -474,11 +474,11 @@ begin
   if ApplicationProperties(false) <> nil then
   begin
     ApplicationProperties(false).OnInitializeJavaActivity.Remove(
-      {$ifdef CASTLE_OBJFPC}@{$endif} ReinitializeJavaActivity);
+      {$ifdef FPC}@{$endif} ReinitializeJavaActivity);
     ApplicationProperties(false).OnPause.Remove(
-      {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationPause);
+      {$ifdef FPC}@{$endif} ApplicationPause);
     ApplicationProperties(false).OnResume.Remove(
-      {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationResume);
+      {$ifdef FPC}@{$endif} ApplicationResume);
   end;
 
   // automatic loading/saving is more troublesome than it's worth

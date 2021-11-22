@@ -160,9 +160,9 @@ begin
 
   FCurrentKeyRange := -1;
 
-  EventNext.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventNextReceive);
-  EventPrevious.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventPreviousReceive);
-  EventSet_Fraction.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+  EventNext.AddNotification({$ifdef FPC}@{$endif} EventNextReceive);
+  EventPrevious.AddNotification({$ifdef FPC}@{$endif} EventPreviousReceive);
+  EventSet_Fraction.AddNotification({$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
 function TAbstractSequencerNode.KeyRange(
@@ -265,7 +265,7 @@ end;
 constructor TBooleanFilterNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-  FEventSet_boolean.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
+  FEventSet_boolean.AddNotification({$ifdef FPC}@{$endif} EventSet_BooleanReceive);
 end;
 
 procedure TBooleanFilterNode.EventSet_BooleanReceive(
@@ -297,7 +297,7 @@ end;
 constructor TBooleanToggleNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-  FEventSet_boolean.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
+  FEventSet_boolean.AddNotification({$ifdef FPC}@{$endif} EventSet_BooleanReceive);
 end;
 
 procedure TBooleanToggleNode.EventSet_BooleanReceive(
@@ -315,7 +315,7 @@ end;
 constructor TBooleanTriggerNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-  FEventSet_triggerTime.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_triggerTimeReceive);
+  FEventSet_triggerTime.AddNotification({$ifdef FPC}@{$endif} EventSet_triggerTimeReceive);
 end;
 
 procedure TBooleanTriggerNode.EventSet_triggerTimeReceive(
@@ -340,7 +340,7 @@ end;
 constructor TIntegerTriggerNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-  FEventSet_boolean.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_booleanReceive);
+  FEventSet_boolean.AddNotification({$ifdef FPC}@{$endif} EventSet_booleanReceive);
 end;
 
 procedure TIntegerTriggerNode.EventSet_BooleanReceive(
@@ -354,7 +354,7 @@ end;
 constructor TTimeTriggerNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-  FEventSet_boolean.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
+  FEventSet_boolean.AddNotification({$ifdef FPC}@{$endif} EventSet_BooleanReceive);
 end;
 
 procedure TTimeTriggerNode.EventSet_BooleanReceive(
@@ -368,7 +368,7 @@ end;
 constructor TValueTriggerNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-  FEventTrigger.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventTriggerReceive);
+  FEventTrigger.AddNotification({$ifdef FPC}@{$endif} EventTriggerReceive);
   HasInterfaceDeclarations := AllAccessTypes;
 end;
 

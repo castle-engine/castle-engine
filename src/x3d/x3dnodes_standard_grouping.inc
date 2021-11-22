@@ -147,7 +147,7 @@
   end;
   TGroupNode_2 = TGroupNode;
 
-  TStringLongIntMap = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, LongInt>)
+  TStringLongIntMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, LongInt>)
   strict private
     function GetItems(const AKey: string): LongInt;
     procedure SetItems(const AKey: string; const AValue: LongInt);
@@ -523,7 +523,7 @@ begin
     if Self is TAnchorNode then
       GroupBeforeTraverse_AddPointingDeviceSensor(Self, Enumerator.State, Enumerator.WasPointingDeviceSensor);
 
-    DirectEnumerateActive({$ifdef CASTLE_OBJFPC}@{$endif} Enumerator.EnumerateChildrenFunction);
+    DirectEnumerateActive({$ifdef FPC}@{$endif} Enumerator.EnumerateChildrenFunction);
   finally
     if Enumerator = TempEnumerator then
       TempEnumeratorUsed := false
@@ -549,11 +549,11 @@ begin
 
   FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
   AddEvent(FEventAddChildren);
-  EventaddChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventAddChildrenReceive);
+  EventaddChildren.AddNotification({$ifdef FPC}@{$endif} EventAddChildrenReceive);
 
   FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
   AddEvent(FEventRemoveChildren);
-  EventRemoveChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
+  EventRemoveChildren.AddNotification({$ifdef FPC}@{$endif} EventRemoveChildrenReceive);
 
   { Add TAbstractGeometryNode_1 to allow VRML 1.0 geometry nodes (that cannot be TAbstractChildNode)
     to be present at top-level of the file.

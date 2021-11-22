@@ -75,7 +75,7 @@
       end;
 
       { List of TSoundInfo. }
-      TSoundInfoList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundInfo>)
+      TSoundInfoList = class({$ifdef FPC}specialize{$endif} TObjectList<TSoundInfo>)
       public
         { Index of sound with given TSoundInfo.Name, or -1 if not found. }
         function IndexOfName(const SoundName: String): Integer;
@@ -120,13 +120,13 @@
         ParentGroup: TSoundGroup;
       end;
 
-      TSoundGroupList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundGroup>)
+      TSoundGroupList = class({$ifdef FPC}specialize{$endif} TObjectList<TSoundGroup>)
       public
         { Index of group with given TSoundGroup.Name, or -1 if not found. }
         function IndexOfName(const GroupName: String): Integer;
       end;
 
-      TLoopingChannelList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLoopingChannel>;
+      TLoopingChannelList = {$ifdef FPC}specialize{$endif} TObjectList<TLoopingChannel>;
 
     var
       FSoundImportanceNames: TStringList;

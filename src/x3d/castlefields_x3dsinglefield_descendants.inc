@@ -339,7 +339,7 @@
 
   {$ifdef FPC}
   { Generic class for an X3D field containing a single matrix value. }
-  {$ifdef CASTLE_OBJFPC}generic{$endif}
+  {$ifdef FPC}generic{$endif}
   TSFGenericMatrix<
     TItem,
     TItemColumn,
@@ -375,7 +375,7 @@
   {$endif}
 
   { X3D field containing a 3x3 matrix with Single precision. }
-  TSFMatrix3f = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix3f = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
     TMatrix3,
     TVector3,
     TSFMatrix3fEvent>{$else}TX3DSingleField{$endif})
@@ -414,7 +414,7 @@
   end;
 
   { X3D field containing a 3x3 matrix with Double precision. }
-  TSFMatrix3d = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix3d = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
     TMatrix3Double,
     TVector3Double,
     TSFMatrix3dEvent>{$else}TX3DSingleField{$endif})
@@ -453,7 +453,7 @@
   end;
 
   { X3D field containing a 4x4 matrix with Single precision. }
-  TSFMatrix4f = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix4f = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
     TMatrix4,
     TVector4,
     TSFMatrix4fEvent>{$else}TX3DSingleField{$endif})
@@ -492,7 +492,7 @@
   end;
 
   { X3D field containing a 4x4 matrix with Double precision. }
-  TSFMatrix4d = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix4d = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericMatrix<
     TMatrix4Double,
     TVector4Double,
     TSFMatrix4dEvent>{$else}TX3DSingleField{$endif})
@@ -665,7 +665,7 @@
 
   {$ifdef FPC}
   { X3D field containing a vector. }
-  {$ifdef CASTLE_OBJFPC}generic{$endif}
+  {$ifdef FPC}generic{$endif}
   TSFGenericVector<
     TItem,
     TEvent> = class(TX3DSingleField)
@@ -698,7 +698,7 @@
   {$endif FPC}
 
   { X3D field containing a 2D vector with Single precision. }
-  TSFVec2f = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
+  TSFVec2f = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericVector<
     TVector2,
     TSFVec2fEvent>{$else}TX3DSingleField{$endif})
   {$ifndef FPC}
@@ -734,7 +734,7 @@
   end;
 
   { X3D field containing a 3D vector with Single precision. }
-  TSFVec3f = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
+  TSFVec3f = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericVector<
     TVector3,
     TSFVec3fEvent>{$else}TX3DSingleField{$endif})
   {$ifndef FPC}
@@ -779,7 +779,7 @@
   end;
 
   { X3D field containing a 4D vector with Single precision. }
-  TSFVec4f = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
+  TSFVec4f = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericVector<
     TVector4,
     TSFVec4fEvent>{$else}TX3DSingleField{$endif})
   {$ifndef FPC}
@@ -822,7 +822,7 @@
   end;
 
   { X3D field containing a 2D vector with Double precision. }
-  TSFVec2d = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
+  TSFVec2d = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericVector<
     TVector2Double,
     TSFVec2dEvent>{$else}TX3DSingleField{$endif})
   {$ifndef FPC}
@@ -858,7 +858,7 @@
   end;
 
   { X3D field containing a 3D vector with Double precision. }
-  TSFVec3d = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
+  TSFVec3d = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericVector<
     TVector3Double,
     TSFVec3dEvent>{$else}TX3DSingleField{$endif})
   {$ifndef FPC}
@@ -894,7 +894,7 @@
   end;
 
   { X3D field containing a 4D vector with Double precision. }
-  TSFVec4d = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
+  TSFVec4d = class({$ifdef FPC}{$ifdef FPC}specialize{$endif} TSFGenericVector<
     TVector4Double,
     TSFVec4dEvent>{$else}TX3DSingleField{$endif})
   {$ifndef FPC}
@@ -1625,7 +1625,7 @@ end;
 
 { TSFGenericMatrix ---------------------------------------------------------------------------- }
 {$ifdef FPC}
-constructor TSFGenericMatrix{$ifndef CASTLE_OBJFPC}<
+constructor TSFGenericMatrix{$ifndef FPC}<
   TItem,
   TItemColumn,
   TEvent>{$endif} .
@@ -1637,7 +1637,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFGenericMatrix{$ifndef CASTLE_OBJFPC}<
+procedure TSFGenericMatrix{$ifndef FPC}<
   TItem,
   TItemColumn,
   TEvent>{$endif} .

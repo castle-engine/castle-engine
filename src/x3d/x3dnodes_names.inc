@@ -25,7 +25,7 @@
   PX3DNodeNameRec = ^TX3DNodeNameRec;
 
   { List to track node names while parsing VRML/X3D file. }
-  TX3DNodeNames = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TX3DNodeNameRec>)
+  TX3DNodeNames = class({$ifdef FPC}specialize{$endif} TStructList<TX3DNodeNameRec>)
   strict private
     FAutoRemove: boolean;
     procedure DestructionNotification(const Node: TX3DNode);
@@ -111,7 +111,7 @@ begin
   inherited Create;
   FAutoRemove := AAutoRemove;
   if AutoRemove then
-    AnyNodeDestructionNotifications.Add({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification);
+    AnyNodeDestructionNotifications.Add({$ifdef FPC}@{$endif} DestructionNotification);
 end;
 
 destructor TX3DNodeNames.Destroy;
@@ -122,7 +122,7 @@ begin
     unit finalization, because Application owns Window that owns Scene).
     So secure from AnyNodeDestructionNotifications being nil. }
   if AutoRemove and (AnyNodeDestructionNotifications <> nil) then
-    AnyNodeDestructionNotifications.Remove({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification);
+    AnyNodeDestructionNotifications.Remove({$ifdef FPC}@{$endif} DestructionNotification);
   inherited;
 end;
 

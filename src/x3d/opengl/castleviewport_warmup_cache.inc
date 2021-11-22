@@ -95,7 +95,7 @@ end;
 
 procedure InitializeWarmupCache;
 begin
-  WarmupCacheFormats.RegisterFormat('scene', {$ifdef CASTLE_OBJFPC}@{$endif}TSceneCache{$ifdef FPC}(nil){$endif}.Event);
+  WarmupCacheFormats.RegisterFormat('scene', {$ifdef FPC}@{$endif}TSceneCache{$ifdef FPC}(nil){$endif}.Event);
 end;
 
 {$endif read_implementation}

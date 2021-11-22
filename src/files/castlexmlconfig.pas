@@ -30,7 +30,7 @@ type
 
   TCastleConfigEvent = procedure (const Config: TCastleConfig) of object;
 
-  TCastleConfigEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TCastleConfigEvent>)
+  TCastleConfigEventList = class({$ifdef FPC}specialize{$endif} TList<TCastleConfigEvent>)
   public
     { Call all items. }
     procedure ExecuteAll(const Config: TCastleConfig);

@@ -190,7 +190,7 @@
 
   TSound = TInternalSoundSource deprecated 'play sounds using TCastleSoundSource + TCastleSound';
 
-  TInternalSoundSourceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalSoundSource>)
+  TInternalSoundSourceList = class({$ifdef FPC}specialize{$endif} TObjectList<TInternalSoundSource>)
   public
     { Sort sounds by Used + Priority, descending.
       First all sounds with Used = @true are placed,
@@ -387,10 +387,10 @@ end;
 
 procedure TInternalSoundSourceList.SortByPriority;
 type
-  TInternalSoundSourceComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TInternalSoundSource>;
+  TInternalSoundSourceComparer = {$ifdef FPC}specialize{$endif} TComparer<TInternalSoundSource>;
 begin
   Sort(TInternalSoundSourceComparer.Construct(
-    {$ifdef CASTLE_OBJFPC}@{$endif} IsSmallerByPriority));
+    {$ifdef FPC}@{$endif} IsSmallerByPriority));
 end;
 
 {$endif read_implementation}

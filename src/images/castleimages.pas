@@ -67,7 +67,7 @@
 unit CastleImages;
 
 {$include castleconf.inc}
-{$ifdef CASTLE_OBJFPC} {$modeswitch nestedprocvars}{$H+} {$endif}
+{$ifdef FPC} {$modeswitch nestedprocvars}{$H+} {$endif}
 
 interface
 
@@ -913,9 +913,9 @@ type
     { @groupEnd }
   end;
 
-  TCastleImageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleImage>;
+  TCastleImageList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleImage>;
 
-  TEncodedImageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TEncodedImage>;
+  TEncodedImageList = {$ifdef FPC}specialize{$endif} TObjectList<TEncodedImage>;
 
   { Possible compression of textures for GPU.
     The compressed texture formats may be automatically created for you by CGE,
@@ -2248,7 +2248,7 @@ var
     end;
   end;
 
-{$ifdef CASTLE_OBJFPC}
+{$ifdef FPC}
 
 type
   TMakeLineFunction = procedure is nested;
@@ -2332,7 +2332,7 @@ begin
       InternalResize(PixelSize,
         RawPixels, Rect, Width, Height,
         NewPixels, CastleRectangles.Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
-        Interpolation, {$ifdef CASTLE_OBJFPC}@{$endif} MixColors, ProgressTitle);
+        Interpolation, {$ifdef FPC}@{$endif} MixColors, ProgressTitle);
       FreeMemNiling(FRawPixels);
 
       FRawPixels := NewPixels;
@@ -2379,7 +2379,7 @@ begin
         InternalResize(PixelSize,
                  RawPixels,        Rect,        Width,        Height,
           Result.RawPixels, Result.Rect, Result.Width, Result.Height,
-          Interpolation, {$ifdef CASTLE_OBJFPC}@{$endif} MixColors, ProgressTitle);
+          Interpolation, {$ifdef FPC}@{$endif} MixColors, ProgressTitle);
     except Result.Free; raise end;
   end;
 end;
@@ -2408,7 +2408,7 @@ type
     InternalResize(PixelSize,
       RawPixels, SourceRect, Width, Height,
       NewPixels, DestRect, ResizeWidth, ResizeHeight,
-      Interpolation, {$ifdef CASTLE_OBJFPC}@{$endif} MixColors, '');
+      Interpolation, {$ifdef FPC}@{$endif} MixColors, '');
   end;
 
 var
@@ -2643,15 +2643,15 @@ end;
 
 procedure TCastleImage.Grayscale;
 begin
-  ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorGrayscaleByte);
+  ModulateRGB({$ifdef FPC}@{$endif} ColorGrayscaleByte);
 end;
 
 procedure TCastleImage.ConvertToChannelRGB(Channel: Integer);
 begin
   case Channel of
-    0: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorRedConvertByte);
-    1: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorGreenConvertByte);
-    2: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorBlueConvertByte);
+    0: ModulateRGB({$ifdef FPC}@{$endif} ColorRedConvertByte);
+    1: ModulateRGB({$ifdef FPC}@{$endif} ColorGreenConvertByte);
+    2: ModulateRGB({$ifdef FPC}@{$endif} ColorBlueConvertByte);
     else raise EInternalError.Create(
       'ConvertToChannelRGB: Channel must be 0, 1 or 2');
   end;
@@ -2660,9 +2660,9 @@ end;
 procedure TCastleImage.StripToChannelRGB(Channel: Integer);
 begin
   case Channel of
-    0: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorRedStripByte);
-    1: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorGreenStripByte);
-    2: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorBlueStripByte);
+    0: ModulateRGB({$ifdef FPC}@{$endif} ColorRedStripByte);
+    1: ModulateRGB({$ifdef FPC}@{$endif} ColorGreenStripByte);
+    2: ModulateRGB({$ifdef FPC}@{$endif} ColorBlueStripByte);
     else raise EInternalError.Create(
       'StripToChannelRGB: Channel must be 0, 1 or 2');
   end;
@@ -4513,7 +4513,7 @@ end;
 
 type
   { List of TLoadImageEvent methods. }
-  TLoadImageEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TLoadImageEvent>)
+  TLoadImageEventList = class({$ifdef FPC}specialize{$endif} TList<TLoadImageEvent>)
     procedure Execute(var URL: string);
   end;
 

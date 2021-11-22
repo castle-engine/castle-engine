@@ -85,7 +85,7 @@ type
 implementation
 
 uses SysUtils, Math,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleUtils;
 
 { Set and enable OpenGL light properties based on VRML/X3D light.

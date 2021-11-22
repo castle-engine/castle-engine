@@ -40,7 +40,7 @@ initialization
 
   { replace OnScriptMessage to allow using Notifications from CastleScript }
   PreviousOnScriptMessage := OnScriptMessage;
-  OnScriptMessage := {$ifdef CASTLE_OBJFPC}@{$endif}Notifications.Show;
+  OnScriptMessage := {$ifdef FPC}@{$endif}Notifications.Show;
 finalization
 
   { restore original OnScriptMessage }

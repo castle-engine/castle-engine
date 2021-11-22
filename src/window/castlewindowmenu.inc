@@ -73,7 +73,7 @@
     property ParentMenuPosition: Cardinal read FParentMenuPosition;
   end;
 
-  TMenuEntryList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMenuEntry>;
+  TMenuEntryList = {$ifdef FPC}specialize{$endif} TObjectList<TMenuEntry>;
 
   TMenuEntryWithCaption = class(TMenuEntry)
   private
@@ -404,7 +404,7 @@
     properties. Instead always use methods defined here.
     TODO: This should not descend from TObjectList<TMenuItemRadio> then,
     it should contain it privately. }
-  TMenuItemRadioGroup = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMenuItemRadio>)
+  TMenuItemRadioGroup = class({$ifdef FPC}specialize{$endif} TObjectList<TMenuItemRadio>)
   private
     FSelected: TMenuItemRadio;
     procedure SetSelected(Value: TMenuItemRadio);

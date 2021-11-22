@@ -34,7 +34,7 @@
       const Container: TX3DRootNode);
   end;
 
-  TDrawOrderTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TDrawOrderTimeline>)
+  TDrawOrderTimelineList = class({$ifdef FPC}specialize{$endif} TObjectList<TDrawOrderTimeline>)
   strict private
     FMaxTime: Single;
   public
@@ -117,8 +117,8 @@ begin
 end;
 
 type
-  TSlotsByDrawOrder = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<Integer, TSlot>;
-  TSlotsToFloatDrawOrder = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TSlot, Single>;
+  TSlotsByDrawOrder = {$ifdef FPC}specialize{$endif} TDictionary<Integer, TSlot>;
+  TSlotsToFloatDrawOrder = {$ifdef FPC}specialize{$endif} TDictionary<TSlot, Single>;
 
 procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray; const Slots: TSlotList);
 

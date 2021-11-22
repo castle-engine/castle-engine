@@ -60,7 +60,7 @@
   TSprite = class
   private
     type
-      TSpriteAnimations = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSpriteAnimation>;
+      TSpriteAnimations = {$ifdef FPC}specialize{$endif} TObjectList<TSpriteAnimation>;
     var
     FImage: TDrawableImage;
     FX, FY: Single;
@@ -389,7 +389,7 @@
   end {deprecated 'load sprite sheets to TCastleScene from .castle-sprite-sheet format'};
 
   { List of sprites. }
-  TSpriteList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSprite>;
+  TSpriteList = {$ifdef FPC}specialize{$endif} TObjectList<TSprite>;
 
 {$endif read_interface_type}
 

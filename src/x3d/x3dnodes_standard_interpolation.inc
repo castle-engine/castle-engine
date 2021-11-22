@@ -47,7 +47,7 @@
   end;
 
   { Common base class for all implemented interpolator nodes. }
-  {$ifdef CASTLE_OBJFPC}generic{$endif}
+  {$ifdef FPC}generic{$endif}
   TAbstractCommonInterpolatorNode<
     TOutputField: TX3DField> = class(TAbstractInterpolatorNode)
   strict private
@@ -77,7 +77,7 @@
   end;
 
   { Interpolate (animate) a single color. }
-  TColorInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+  TColorInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
     TSFVec3f>)
   strict protected
     function KeyValueCount: TListSize; override;
@@ -92,7 +92,7 @@
   { Interpolate (animate) a set of colors,
     for example to animate a set of @link(TBackgroundNode)
     or @link(TColorNode) colors. }
-  TColorSetInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+  TColorSetInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
     TMFColor>)
   strict private
     function FrameValues: TListSize;
@@ -108,7 +108,7 @@
 
   { Interpolate (animate) a set of 3D positions,
     for example to animate @link(TCoordinateNode coordinates) of a mesh. }
-  TCoordinateInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+  TCoordinateInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
     TMFVec3f>)
   strict private
     function FrameValues: TListSize;
@@ -124,7 +124,7 @@
 
   { Interpolate (animate) a set of 2D positions,
     for example to animate 2D texture coordinates. }
-  TCoordinateInterpolator2DNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+  TCoordinateInterpolator2DNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
     TMFVec2f>)
   strict private
     function FrameValues: TListSize;
@@ -146,7 +146,7 @@
   end;
 
   { Interpolate (animate) a set of 3D directions, for example normal vectors. }
-  TNormalInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+  TNormalInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
     TMFVec3f>)
   strict private
     function FrameValues: TListSize;
@@ -162,7 +162,7 @@
 
   { Interpolate (animate) an orientation,
     for example to animate @link(TTransformNode.Rotation). }
-  TOrientationInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+  TOrientationInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
     TSFRotation>)
   strict protected
     function KeyValueCount: TListSize; override;
@@ -176,7 +176,7 @@
 
   { Interpolate (animate) a 3D position,
     for example to animate @link(TTransformNode.Translation). }
-  TPositionInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+  TPositionInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
     TSFVec3f>)
   strict protected
     function KeyValueCount: TListSize; override;
@@ -189,7 +189,7 @@
   end;
 
   { Interpolate (animate) a 2D position. }
-  TPositionInterpolator2DNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+  TPositionInterpolator2DNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
     TSFVec2f>)
   strict protected
     function KeyValueCount: TListSize; override;
@@ -203,7 +203,7 @@
 
   { Interpolate (animate) a single floating-point value,
     for example to animate @link(TMaterialNode.Transparency). }
-  TScalarInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+  TScalarInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
     TSFFloat>)
   strict protected
     function KeyValueCount: TListSize; override;
@@ -241,7 +241,7 @@
 
   { Interpolate (animate) a set of floats, for example to animate
     @link(TElevationGridNode) heights. }
-  TVectorInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+  TVectorInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
     TMFFloat>)
   strict private
     function FrameValues: TListSize;
@@ -290,17 +290,17 @@ end;
 { TAbstractCommonInterpolatorNode -------------------------------------------- }
 
 constructor TAbstractCommonInterpolatorNode
-  {$ifndef CASTLE_OBJFPC}<TOutputField>{$endif} .
+  {$ifndef FPC}<TOutputField>{$endif} .
   Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   FEventValue_changed := AnyEvent('value_changed', true);
   EventSet_Fraction.AddNotification(
-    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+    {$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
 destructor TAbstractCommonInterpolatorNode
-  {$ifndef CASTLE_OBJFPC}<TOutputField>{$endif} .
+  {$ifndef FPC}<TOutputField>{$endif} .
   Destroy;
 var
   I: TListSize;
@@ -311,7 +311,7 @@ begin
 end;
 
 function TAbstractCommonInterpolatorNode
-  {$ifndef CASTLE_OBJFPC}<TOutputField>{$endif} .
+  {$ifndef FPC}<TOutputField>{$endif} .
   CheckKeyValue(const Index: TListSize): Boolean;
 begin
   Result := Index < KeyValueCount;
@@ -320,7 +320,7 @@ begin
 end;
 
 procedure TAbstractCommonInterpolatorNode
-  {$ifndef CASTLE_OBJFPC}<TOutputField>{$endif} .
+  {$ifndef FPC}<TOutputField>{$endif} .
   EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   T: Single;

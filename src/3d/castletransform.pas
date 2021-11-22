@@ -141,7 +141,7 @@ type
     containers that contain given collision.
 
     This is never an empty list when returned by RayCollision. }
-  TRayCollision = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TRayCollisionNode>)
+  TRayCollision = class({$ifdef FPC}specialize{$endif} TStructList<TRayCollisionNode>)
   public
     { Distance, in world coordinate system, from the current
       camera to the picked point. The suggested usage is to decide if player
@@ -182,7 +182,7 @@ type
     containers that contain given collision.
 
     This is never an empty list when returned by XxxCollision method. }
-  TCollisionDetails = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCollisionDetailsItem>)
+  TCollisionDetails = class({$ifdef FPC}specialize{$endif} TStructList<TCollisionDetailsItem>)
   public
     { Index of node with given Item. }
     function IndexOfItem(const Item: TCastleTransform): Integer;
@@ -2623,7 +2623,7 @@ begin
 
   if RegisteredGLContextCloseListener then
   begin
-    ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef CASTLE_OBJFPC}@{$endif}GLContextCloseEvent);
+    ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef FPC}@{$endif}GLContextCloseEvent);
     RegisteredGLContextCloseListener := false;
   end;
   GLContextClose;
@@ -3076,7 +3076,7 @@ begin
   if not RegisteredGLContextCloseListener then
   begin
     RegisteredGLContextCloseListener := true;
-    ApplicationProperties.OnGLContextCloseObject.Add({$ifdef CASTLE_OBJFPC}@{$endif}GLContextCloseEvent);
+    ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}GLContextCloseEvent);
   end;
 end;
 
@@ -3793,13 +3793,13 @@ procedure TCastleTransform.CustomSerialization(const SerializationProcess: TSeri
 begin
   inherited;
   SerializationProcess.ReadWrite('Children',
-    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenEnumerate,
-    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenAdd,
-    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenClear);
+    {$ifdef FPC}@{$endif}SerializeChildrenEnumerate,
+    {$ifdef FPC}@{$endif}SerializeChildrenAdd,
+    {$ifdef FPC}@{$endif}SerializeChildrenClear);
   SerializationProcess.ReadWrite('Behaviors',
-    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeBehaviorsEnumerate,
-    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeBehaviorsAdd,
-    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeBehaviorsClear);
+    {$ifdef FPC}@{$endif}SerializeBehaviorsEnumerate,
+    {$ifdef FPC}@{$endif}SerializeBehaviorsAdd,
+    {$ifdef FPC}@{$endif}SerializeBehaviorsClear);
 end;
 
 procedure TCastleTransform.SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -4132,7 +4132,7 @@ begin
   FPhysicsProperties.RootTransform := Self;
 
   FMainCameraObserver := TFreeNotificationObserver.Create(Self);
-  FMainCameraObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}MainCameraFreeNotification;
+  FMainCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif}MainCameraFreeNotification;
 
   FTimeScale := 1;
   FMoveLimit := TBox3D.Empty;
@@ -4194,7 +4194,7 @@ begin
   Result := not SegmentCollision(Pos1, Pos2,
     { Ignore transparent materials, this means that creatures can see through
       glass --- even though they can't walk through it. }
-    {$ifdef CASTLE_OBJFPC}@{$endif}TBaseTrianglesOctree{$ifdef FPC}(nil){$endif}.IgnoreTransparentItem,
+    {$ifdef FPC}@{$endif}TBaseTrianglesOctree{$ifdef FPC}(nil){$endif}.IgnoreTransparentItem,
     true);
 end;
 

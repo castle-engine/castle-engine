@@ -465,7 +465,7 @@ procedure TStateDialogOK.InitializeButtons(var Buttons: TStateDialog.TButtonArra
 begin
   SetLength(Buttons, 1);
   Buttons[0] := TCastleButton.Create(Self);
-  Buttons[0].OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ButtonOKClick;
+  Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonOKClick;
   Buttons[0].Caption := 'OK';
 end;
 
@@ -493,11 +493,11 @@ begin
   SetLength(Buttons, 2);
 
   Buttons[0] := TCastleButton.Create(Self);
-  Buttons[0].OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ButtonNoClick;
+  Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonNoClick;
   Buttons[0].Caption := 'No';
 
   Buttons[1] := TCastleButton.Create(Self);
-  Buttons[1].OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ButtonYesClick;
+  Buttons[1].OnClick := {$ifdef FPC}@{$endif}ButtonYesClick;
   Buttons[1].Caption := 'Yes';
 end;
 
@@ -545,7 +545,7 @@ begin
   for I := 0 to High(ButtonCaptions) do
   begin
     Buttons[I] := TCastleButton.Create(Self);
-    Buttons[I].OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ButtonClick;
+    Buttons[I].OnClick := {$ifdef FPC}@{$endif}ButtonClick;
     Buttons[I].Caption := ButtonCaptions[I];
     Buttons[I].Tag := Ord(ButtonChars[I]);
   end;
@@ -589,17 +589,17 @@ begin
     SetLength(Buttons, 2);
 
     Buttons[0] := TCastleButton.Create(Self);
-    Buttons[0].OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ButtonCancelClick;
+    Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonCancelClick;
     Buttons[0].Caption := 'Cancel';
 
     Buttons[1] := TCastleButton.Create(Self);
-    Buttons[1].OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ButtonOKClick;
+    Buttons[1].OnClick := {$ifdef FPC}@{$endif}ButtonOKClick;
     Buttons[1].Caption := 'OK';
   end else
   begin
     SetLength(Buttons, 1);
     Buttons[0] := TCastleButton.Create(Self);
-    Buttons[0].OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ButtonOKClick;
+    Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonOKClick;
     Buttons[0].Caption := 'OK';
   end;
 end;

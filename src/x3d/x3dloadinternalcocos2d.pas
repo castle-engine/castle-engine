@@ -412,7 +412,7 @@ begin
   inherited Create;
   FDisplayUrl := DisplayUrl;
   { By default, use format 3 }
-  FParseFrameDictionary := {$ifdef CASTLE_OBJFPC}@{$endif}ParseFrameDictionaryFormat3;
+  FParseFrameDictionary := {$ifdef FPC}@{$endif}ParseFrameDictionaryFormat3;
 end;
 
 procedure TCocos2dLoader.TCocosFrame.SetCocosFormat(const Format: Integer);
@@ -420,12 +420,12 @@ begin
   FCocosFormat := Format;
   case Format of
     2:
-      FParseFrameDictionary := {$ifdef CASTLE_OBJFPC}@{$endif}ParseFrameDictionaryFormat2;
+      FParseFrameDictionary := {$ifdef FPC}@{$endif}ParseFrameDictionaryFormat2;
     3:
-      FParseFrameDictionary := {$ifdef CASTLE_OBJFPC}@{$endif}ParseFrameDictionaryFormat3;
+      FParseFrameDictionary := {$ifdef FPC}@{$endif}ParseFrameDictionaryFormat3;
     else
       { If format is unsupported try use latest supported version and add warning. }
-      FParseFrameDictionary := {$ifdef CASTLE_OBJFPC}@{$endif}ParseFrameDictionaryFormat3;
+      FParseFrameDictionary := {$ifdef FPC}@{$endif}ParseFrameDictionaryFormat3;
       WritelnWarning('Cocos2d',
         'Unsupported format version %d in "%s", trying to load with the latest importer (format = 3).',
         [Format, FDisplayUrl]);

@@ -590,7 +590,7 @@
     procedure InternalRestoreSaveValue;
   end;
 
-  TX3DFieldList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
+  TX3DFieldList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DField>)
   strict private
     function GetByName(const AName: string): TX3DField;
   public
@@ -789,10 +789,10 @@ begin
     begin
       if ExposedEventsLinked then
         FExposedEvents[true].AddNotification(
-          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive)
+          {$ifdef FPC}@{$endif} ExposedEventReceive)
       else
         FExposedEvents[true].RemoveNotification(
-          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
+          {$ifdef FPC}@{$endif} ExposedEventReceive);
     end;
   end;
 end;
@@ -832,12 +832,12 @@ begin
 
       if ExposedEventsLinked then
         FExposedEvents[true].AddNotification(
-          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
+          {$ifdef FPC}@{$endif} ExposedEventReceive);
     end else
     begin
       if ExposedEventsLinked then
         FExposedEvents[true].RemoveNotification(
-          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
+          {$ifdef FPC}@{$endif} ExposedEventReceive);
 
       FreeAndNil(FExposedEvents[false]);
       FreeAndNil(FExposedEvents[true]);

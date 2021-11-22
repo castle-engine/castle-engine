@@ -128,7 +128,7 @@ begin
   FLife := DefaultLife;
   FMaxLife := DefaultLife;
   FAttackerObserver := TFreeNotificationObserver.Create(Self);
-  FAttackerObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}AttackerFreeNotification;
+  FAttackerObserver.OnFreeNotification := {$ifdef FPC}@{$endif}AttackerFreeNotification;
 end;
 
 procedure TCastleAliveBehavior.ParentChanged;

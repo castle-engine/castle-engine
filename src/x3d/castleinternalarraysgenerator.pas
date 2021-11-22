@@ -705,7 +705,7 @@ type
     constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
   end;
 
-  TX3DVertexAttributeNodes = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAbstractVertexAttributeNode>;
+  TX3DVertexAttributeNodes = {$ifdef FPC}specialize{$endif} TObjectList<TAbstractVertexAttributeNode>;
 
   { Handle GLSL custom attributes from X3D "attrib" field.
     Descendants don't have to do anything, this just works
@@ -1223,7 +1223,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
           if (ProjectorValue <> nil) and
              (ProjectorValue is TAbstractPunctualLightNode) then
           begin
-            Result := {$ifdef CASTLE_OBJFPC}@{$endif}TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
+            Result := {$ifdef FPC}@{$endif}TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
           end else
             WritelnWarning('X3D', 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
         end else
@@ -1232,11 +1232,11 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
           ProjectorValue := TProjectedTextureCoordinateNode(GeneratorNode).FdProjector.Value;
           if ProjectorValue is TAbstractPunctualLightNode then // checks also ProjectorValue <> nil
           begin
-            Result := {$ifdef CASTLE_OBJFPC}@{$endif}TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
+            Result := {$ifdef FPC}@{$endif}TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
           end else
           if ProjectorValue is TAbstractViewpointNode then // checks also ProjectorValue <> nil
           begin
-            Result := {$ifdef CASTLE_OBJFPC}@{$endif}TAbstractViewpointNode(ProjectorValue).GetProjectorMatrix;
+            Result := {$ifdef FPC}@{$endif}TAbstractViewpointNode(ProjectorValue).GetProjectorMatrix;
           end else
             WritelnWarning('X3D', 'ProjectedTextureCoordinate.projector is NULL or incorrect');
         end else

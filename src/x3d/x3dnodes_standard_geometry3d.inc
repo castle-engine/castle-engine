@@ -362,7 +362,7 @@ end;
 constructor TElevationGridNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  Eventset_height.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_HeightReceive);
+  Eventset_height.AddNotification({$ifdef FPC}@{$endif} EventSet_HeightReceive);
 end;
 
 function TElevationGridNode.IsNotEmpty: boolean;
@@ -423,10 +423,10 @@ end;
 constructor TExtrusionNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  Eventset_crossSection.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_crossSectionReceive);
-  Eventset_orientation.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_orientationReceive);
-  Eventset_scale.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_scaleReceive);
-  Eventset_spine.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_spineReceive);
+  Eventset_crossSection.AddNotification({$ifdef FPC}@{$endif} EventSet_crossSectionReceive);
+  Eventset_orientation.AddNotification({$ifdef FPC}@{$endif} EventSet_orientationReceive);
+  Eventset_scale.AddNotification({$ifdef FPC}@{$endif} EventSet_scaleReceive);
+  Eventset_spine.AddNotification({$ifdef FPC}@{$endif} EventSet_spineReceive);
 end;
 
 function TExtrusionNode.CrossSection3D(Index: integer): TVector3;
@@ -792,10 +792,10 @@ constructor TIndexedFaceSetNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   {$ifndef CASTLE_SLIM_NODES}
-  Eventset_colorIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_colorIndexReceive);
-  Eventset_coordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_coordIndexReceive);
-  Eventset_normalIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_normalIndexReceive);
-  Eventset_texCoordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_texCoordIndexReceive);
+  Eventset_colorIndex.AddNotification({$ifdef FPC}@{$endif} EventSet_colorIndexReceive);
+  Eventset_coordIndex.AddNotification({$ifdef FPC}@{$endif} EventSet_coordIndexReceive);
+  Eventset_normalIndex.AddNotification({$ifdef FPC}@{$endif} EventSet_normalIndexReceive);
+  Eventset_texCoordIndex.AddNotification({$ifdef FPC}@{$endif} EventSet_texCoordIndexReceive);
   {$endif}
   FdColorIndex.SaveToStreamLineUptoNegative := true;
   FdCoordIndex.SaveToStreamLineUptoNegative := true;

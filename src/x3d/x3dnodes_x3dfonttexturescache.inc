@@ -31,7 +31,7 @@
         FontTexture: TPixelTextureNode;
       end;
 
-      TCachedFontTextureList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCachedFontTexture>;
+      TCachedFontTextureList = {$ifdef FPC}specialize{$endif} TObjectList<TCachedFontTexture>;
 
     var
       CachedFontTextures: TCachedFontTextureList;

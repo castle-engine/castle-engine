@@ -479,16 +479,16 @@ const
       ExtsCount: 1; Exts: ('png', '', '');
       { Regardless of using libpng or not, our PNG load/save can handle
         all possibilities. }
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadPNG; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SavePNG; SavedClasses: scG_GA_RGB_RGBA;
-      DetectClass: {$ifdef CASTLE_OBJFPC}@{$endif}InternalDetectClassPNG;
+      Load: {$ifdef FPC}@{$endif}LoadPNG; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SavePNG; SavedClasses: scG_GA_RGB_RGBA;
+      DetectClass: {$ifdef FPC}@{$endif}InternalDetectClassPNG;
     ),
     ( FormatName: 'Windows BMP image';
       MimeTypesCount: 1;
       MimeTypes: ('image/bmp', '', '', '', '', '');
       ExtsCount: 1; Exts: ('bmp', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadBMP; LoadedClasses: lcRGB_RGBA;
-      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SaveBMP; SavedClasses: scRGB;
+      Load: {$ifdef FPC}@{$endif}LoadBMP; LoadedClasses: lcRGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveBMP; SavedClasses: scRGB;
       DetectClass: nil;
     ),
     { Portable Pixel Map } { }
@@ -496,8 +496,8 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/x-portable-pixmap', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ppm', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadPPM; LoadedClasses: lcRGB;
-      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SavePPM; SavedClasses: scRGB;
+      Load: {$ifdef FPC}@{$endif}LoadPPM; LoadedClasses: lcRGB;
+      Save: {$ifdef FPC}@{$endif}SavePPM; SavedClasses: scRGB;
       DetectClass: nil;
     ),
     { JFIF, JPEG File Interchange Format } { }
@@ -505,40 +505,40 @@ const
       MimeTypesCount: 2;
       MimeTypes: ('image/jpeg', 'image/jpg', '', '', '', '');
       ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadJPEG; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SaveJPEG; SavedClasses: scG_GA_RGB_RGBA;
-      DetectClass: {$ifdef CASTLE_OBJFPC}@{$endif}DetectClassJPG;
+      Load: {$ifdef FPC}@{$endif}LoadJPEG; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveJPEG; SavedClasses: scG_GA_RGB_RGBA;
+      DetectClass: {$ifdef FPC}@{$endif}DetectClassJPG;
     ),
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
       MimeTypesCount: 1;
       MimeTypes: ('image/gif', '', '', '', '', '');
       ExtsCount: 1; Exts: ('gif', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadGIF; LoadedClasses: lcRGB_RGBA;
-      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SaveGIF; SavedClasses: scG_GA_RGB_RGBA;
+      Load: {$ifdef FPC}@{$endif}LoadGIF; LoadedClasses: lcRGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveGIF; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
     ( FormatName: 'TarGA image';
       MimeTypesCount: 2;
       MimeTypes: ('image/x-targa', 'image/x-tga', '', '', '', '');
       ExtsCount: 2; Exts: ('tga', 'tpic', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadTGA; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SaveTGA; SavedClasses: scG_GA_RGB_RGBA;
+      Load: {$ifdef FPC}@{$endif}LoadTGA; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveTGA; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
     ( FormatName: 'XPM image';
       MimeTypesCount: 1;
       MimeTypes: ('image/x-xpixmap', '', '', '', '', '');
       ExtsCount: 1; Exts: ('xpm', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadXPM; LoadedClasses: lcRGB_RGBA;
-      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SaveXPM; SavedClasses: scG_GA_RGB_RGBA;
+      Load: {$ifdef FPC}@{$endif}LoadXPM; LoadedClasses: lcRGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveXPM; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
     ( FormatName: 'PSD image';
       MimeTypesCount: 4;
       MimeTypes: ('image/photoshop', 'image/x-photoshop', 'image/psd', 'application/photoshop', '', '');
       ExtsCount: 1; Exts: ('psd', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadPSD; LoadedClasses: lcRGB_RGBA;
+      Load: {$ifdef FPC}@{$endif}LoadPSD; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     ),
@@ -546,7 +546,7 @@ const
       MimeTypesCount: 5;
       MimeTypes: ('image/pcx', 'application/pcx', 'application/x-pcx', 'image/x-pc-paintbrush', 'image/x-pcx', '');
       ExtsCount: 1; Exts: ('pcx', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadPCX; LoadedClasses: lcRGB_RGBA;
+      Load: {$ifdef FPC}@{$endif}LoadPCX; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     ),
@@ -554,8 +554,8 @@ const
       MimeTypesCount: 6;
       MimeTypes: ('image/x-portable-anymap', 'image/x-portable-graymap', 'image/x-pgm', 'image/x-portable-bitmap', 'image/pbm', 'image/x-pbm');
       ExtsCount: 3; Exts: ('pnm', 'pgm', 'pbm');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadPNM; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SavePNM; SavedClasses: scG_GA_RGB_RGBA;
+      Load: {$ifdef FPC}@{$endif}LoadPNM; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SavePNM; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
 
@@ -564,8 +564,8 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/x-dds', '', '', '', '', '');
       ExtsCount: 1; Exts: ('dds', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadDDS; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
-      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SaveDDS; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
+      Load: {$ifdef FPC}@{$endif}LoadDDS; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
+      Save: {$ifdef FPC}@{$endif}SaveDDS; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
       DetectClass: nil;
     ),
 
@@ -574,7 +574,7 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/ktx', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ktx', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadKTX; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
+      Load: {$ifdef FPC}@{$endif}LoadKTX; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
       Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
       DetectClass: nil;
     ),
@@ -582,8 +582,8 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/vnd.radiance', '', '', '', '', '');
       ExtsCount: 3; Exts: ('rgbe', 'pic', 'hdr');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadRGBE; LoadedClasses: lcRGB_RGBFloat;
-      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SaveRGBE; SavedClasses: scRGB_RGBFloat;
+      Load: {$ifdef FPC}@{$endif}LoadRGBE; LoadedClasses: lcRGB_RGBFloat;
+      Save: {$ifdef FPC}@{$endif}SaveRGBE; SavedClasses: scRGB_RGBFloat;
       DetectClass: nil;
     ),
     ( FormatName: 'IPLab image';
@@ -591,7 +591,7 @@ const
       { ipl MIME type invented by Kambi, to make it unique to communicate image format for LoadImage } { }
       MimeTypes: ('image/x-ipl', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ipl', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadIPL; LoadedClasses: lcRGB;
+      Load: {$ifdef FPC}@{$endif}LoadIPL; LoadedClasses: lcRGB;
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     ),
@@ -599,8 +599,8 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/tiff', '', '', '', '', '');
       ExtsCount: 2; Exts: ('tiff', 'tif', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadTIFF; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil (*{$ifdef CASTLE_OBJFPC}@{$endif}SaveTIFF*); SavedClasses: scG_GA_RGB_RGBA;
+      Load: {$ifdef FPC}@{$endif}LoadTIFF; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil (*{$ifdef FPC}@{$endif}SaveTIFF*); SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
     (*
@@ -608,7 +608,7 @@ const
       MimeTypesCount: 3;
       MimeTypes: ('image/sgi', 'image/x-sgi', 'image/x-sgi-rgba', '', '', '');
       ExtsCount: 1; Exts: ('sgi', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadSGI; LoadedClasses: lcG_GA_RGB_RGBA;
+      Load: {$ifdef FPC}@{$endif}LoadSGI; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     ),
@@ -617,8 +617,8 @@ const
       MimeTypesCount: 4;
       MimeTypes: ('image/jp2', 'image/jpeg2000', 'image/jpeg2000-image', 'image/x-jpeg2000-image', '', '');
       ExtsCount: 1; Exts: ('jp2', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadJP2; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil (*{$ifdef CASTLE_OBJFPC}@{$endif}SaveJP2*); SavedClasses: scG_GA_RGB_RGBA;
+      Load: {$ifdef FPC}@{$endif}LoadJP2; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil (*{$ifdef FPC}@{$endif}SaveJP2*); SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     )
     (*
@@ -626,7 +626,7 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/x-exr', '', '', '', '', '');
       ExtsCount: 1; Exts: ('exr', '', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadEXR; LoadedClasses: lcG_GA_RGB_RGBA;
+      Load: {$ifdef FPC}@{$endif}LoadEXR; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     )

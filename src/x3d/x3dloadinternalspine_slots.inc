@@ -18,10 +18,10 @@
 {$ifdef read_interface}
   TSlotList = class;
 
-  TUnlitMaterialNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TUnlitMaterialNode>;
+  TUnlitMaterialNodeList = {$ifdef FPC}specialize{$endif} TObjectList<TUnlitMaterialNode>;
 
-  TColorInterpolatorNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColorInterpolatorNode>;
-  TScalarInterpolatorNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TScalarInterpolatorNode>;
+  TColorInterpolatorNodeList = {$ifdef FPC}specialize{$endif} TObjectList<TColorInterpolatorNode>;
+  TScalarInterpolatorNodeList = {$ifdef FPC}specialize{$endif} TObjectList<TScalarInterpolatorNode>;
 
   TSlot = class
   public
@@ -55,7 +55,7 @@
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
   end;
 
-  TSlotList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSlot>)
+  TSlotList = class({$ifdef FPC}specialize{$endif} TObjectList<TSlot>)
     { Find slot by name.
       @raises ESpineReadError If slot does not exist. }
     function Find(const SlotName: string): TSlot;

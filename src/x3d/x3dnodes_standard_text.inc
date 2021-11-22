@@ -627,7 +627,7 @@ constructor TFontStyleNode.Create(const AX3DName: string = ''; const ABaseUrl: s
 begin
   inherited;
   FCustomFontObserver := TFreeNotificationObserver.Create(nil);
-  FCustomFontObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}CustomFontFreeNotification;
+  FCustomFontObserver.OnFreeNotification := {$ifdef FPC}@{$endif}CustomFontFreeNotification;
 end;
 
 destructor TFontStyleNode.Destroy;

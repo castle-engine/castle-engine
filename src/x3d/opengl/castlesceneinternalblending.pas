@@ -62,7 +62,7 @@ procedure ShapesFilterBlending(
 implementation
 
 uses SysUtils,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleLog, X3DNodes, CastleScene, CastleTimeUtils, CastleRenderContext;
 
 { Given blending name (as defined by X3D BlendMode node spec,
@@ -369,8 +369,8 @@ begin
   FilteredShapes.Capacity := Tree.MaxShapesCount;
 
   if Assigned(TestShapeVisibility) then
-    Tree.Traverse({$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}AddToListIfTested{$else}CaptureAddToListIfTested(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable) else
-    Tree.Traverse({$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}AddToList{$else}CaptureAddToList(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable);
+    Tree.Traverse({$ifdef FPC}{$ifdef FPC}@{$endif}AddToListIfTested{$else}CaptureAddToListIfTested(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable) else
+    Tree.Traverse({$ifdef FPC}{$ifdef FPC}@{$endif}AddToList{$else}CaptureAddToList(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable);
   FrameProfiler.Stop(fmRenderShapesFilterBlending);
 end;
 

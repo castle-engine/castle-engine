@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FColorPersistent := TCastleColorPersistent.Create;
-  FColorPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetColorForPersistent;
-  FColorPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetColorForPersistent;
+  FColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetColorForPersistent;
+  FColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetColorForPersistent;
   FColorPersistent.InternalDefaultValue := Color; // current value is default
 {$endif read_implementation_constructor}
 
@@ -113,8 +113,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FClipLinePersistent := TCastleVector3Persistent.Create;
-  FClipLinePersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetClipLineForPersistent;
-  FClipLinePersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetClipLineForPersistent;
+  FClipLinePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetClipLineForPersistent;
+  FClipLinePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetClipLineForPersistent;
   FClipLinePersistent.InternalDefaultValue := ClipLine; // current value is default
 {$endif read_implementation_constructor}
 
@@ -175,8 +175,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FRotationCenterPersistent := TCastleVector2Persistent.Create;
-  FRotationCenterPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetRotationCenterForPersistent;
-  FRotationCenterPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetRotationCenterForPersistent;
+  FRotationCenterPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRotationCenterForPersistent;
+  FRotationCenterPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRotationCenterForPersistent;
   FRotationCenterPersistent.InternalDefaultValue := RotationCenter; // current value is default
 {$endif read_implementation_constructor}
 

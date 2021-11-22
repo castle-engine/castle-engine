@@ -17,7 +17,7 @@
 
   TNodeDestructionNotification = procedure (const Node: TX3DNode) of object;
 
-  TNodeDestructionNotificationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TNodeDestructionNotification>)
+  TNodeDestructionNotificationList = class({$ifdef FPC}specialize{$endif} TList<TNodeDestructionNotification>)
   public
     { Call all functions. }
     procedure ExecuteAll(const Node: TX3DNode);

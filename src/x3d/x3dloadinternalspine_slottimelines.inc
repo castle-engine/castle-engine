@@ -69,7 +69,7 @@
       const NormalizeCurvesKeyValues: Boolean); override;
   end;
 
-  TSlotTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSlotTimeline>)
+  TSlotTimelineList = class({$ifdef FPC}specialize{$endif} TObjectList<TSlotTimeline>)
   end;
 {$endif}
 

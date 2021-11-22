@@ -82,7 +82,7 @@ type
     { Offset, only for Generation = tgExplicit. }
     Offset: Integer;
   end;
-  TGeometryTexCoordList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TGeometryTexCoord>;
+  TGeometryTexCoordList = {$ifdef FPC}specialize{$endif} TObjectList<TGeometryTexCoord>;
 
   TGeometryAttribType = (atFloat, atVector2, atVector3, atVector4,
     atMatrix3, atMatrix4);
@@ -98,7 +98,7 @@ type
     AType: TGeometryAttribType;
     Offset: Integer;
   end;
-  TGeometryAttribList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TGeometryAttrib>)
+  TGeometryAttribList = class({$ifdef FPC}specialize{$endif} TObjectList<TGeometryAttrib>)
   public
     function Find(const Name: string): TGeometryAttrib;
   end;

@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
 type
-  TStringTextureNodeMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TAbstractTextureNode>;
+  TStringTextureNodeMap = {$ifdef FPC}specialize{$endif} TDictionary<string, TAbstractTextureNode>;
 
   TColladaEffect = class
     Appearance: TAppearanceNode;
@@ -40,7 +40,7 @@ begin
 end;
 
 type
-  TColladaEffectList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaEffect>)
+  TColladaEffectList = class({$ifdef FPC}specialize{$endif} TObjectList<TColladaEffect>)
     { Find a TColladaEffect with given Name, @nil if not found. }
     function Find(const Name: string): TColladaEffect;
   end;

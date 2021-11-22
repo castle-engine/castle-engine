@@ -111,7 +111,7 @@ unit CastleInternalRenderer;
 interface
 
 uses Classes, SysUtils, Generics.Collections,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleUtils, CastleVectors, X3DFields, X3DNodes, CastleColors,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
@@ -139,7 +139,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureImageCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureImageCache>;
+  TTextureImageCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureImageCache>;
 
   TTextureVideoCache = class
     { Full URL of used texture image. Empty ('') if not known
@@ -153,7 +153,7 @@ type
     References: Cardinal;
     GLVideo: TGLVideo3D;
   end;
-  TTextureVideoCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureVideoCache>;
+  TTextureVideoCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureVideoCache>;
 
   TTextureCubeMapCache = class
     { Full URL of used texture image. Empty ('') if not known
@@ -164,7 +164,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureCubeMapCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureCubeMapCache>;
+  TTextureCubeMapCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureCubeMapCache>;
 
   TTexture3DCache = class
     { Full URL of used texture image. Empty ('') if not known
@@ -176,7 +176,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTexture3DCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTexture3DCache>;
+  TTexture3DCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTexture3DCache>;
 
   { Cached depth or float texture.
     For now, depth and float textures require the same fields. }
@@ -188,7 +188,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureDepthOrFloatCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureDepthOrFloatCache>;
+  TTextureDepthOrFloatCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureDepthOrFloatCache>;
 
   TX3DRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
@@ -242,7 +242,7 @@ type
     function ToString: String; override;
   end;
 
-  TShapeCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeCache>;
+  TShapeCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeCache>;
 
   TX3DGLSLProgram = class;
 
@@ -261,7 +261,7 @@ type
     destructor Destroy; override;
   end;
 
-  TShaderProgramCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShaderProgramCache>;
+  TShaderProgramCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TShaderProgramCache>;
 
   TGLRenderer = class;
 
@@ -1891,7 +1891,7 @@ end;
 
 procedure TGLRenderer.Prepare(Shape: TX3DRendererShape);
 begin
-  Shape.EnumerateTextures({$ifdef CASTLE_OBJFPC}@{$endif}PrepareTexture);
+  Shape.EnumerateTextures({$ifdef FPC}@{$endif}PrepareTexture);
 end;
 
 procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
@@ -2374,7 +2374,7 @@ begin
   if PhongShading then
     Shader.ShapeRequiresShaders := true;
 
-  Shader.ShapeBoundingBox := {$ifdef CASTLE_OBJFPC}@{$endif} Shape.BoundingBox;
+  Shader.ShapeBoundingBox := {$ifdef FPC}@{$endif} Shape.BoundingBox;
   Shader.ShadowSampling := RenderOptions.ShadowSampling;
   RenderShapeLineProperties(Shape, Shader);
 end;

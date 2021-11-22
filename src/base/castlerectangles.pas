@@ -456,7 +456,7 @@ type
   TFloatRectangleArray = packed array [0..MaxInt div SizeOf(TFloatRectangle) - 1] of TFloatRectangle;
   PFloatRectangleArray = ^TFloatRectangleArray;
 
-  TRectangleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TRectangle>)
+  TRectangleList = class({$ifdef FPC}specialize{$endif} TStructList<TRectangle>)
   public
     { Index of the first rectangle that contains point (X, Y).
       Returns -1 if not found. }
@@ -464,7 +464,7 @@ type
     function FindRectangle(const Point: TVector2): Integer; overload;
   end;
 
-  TFloatRectangleList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFloatRectangle>;
+  TFloatRectangleList = {$ifdef FPC}specialize{$endif} TStructList<TFloatRectangle>;
 
 function Rectangle(const Left, Bottom: Integer;
   const Width, Height: Cardinal): TRectangle; overload;

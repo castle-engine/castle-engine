@@ -18,7 +18,7 @@
 program transform_feedback;
 
 uses
-  GL, GLExt,
+  {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleApplicationProperties,
   CastleViewport, CastleTimeUtils, CastleGLShaders;

@@ -16,7 +16,7 @@
 { Spine weighted mesh timelines. }
 
 {$ifdef read_interface}
-  TWeightedMeshVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSingleList>)
+  TWeightedMeshVertexList = class({$ifdef FPC}specialize{$endif} TObjectList<TSingleList>)
   end;
 
   TWeightedMeshTimeline = class
@@ -33,7 +33,7 @@
     procedure BuildNodes(const MaxAnimationTime: Single; const Container: TX3DRootNode);
   end;
 
-  TWeightedMeshTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWeightedMeshTimeline>)
+  TWeightedMeshTimelineList = class({$ifdef FPC}specialize{$endif} TObjectList<TWeightedMeshTimeline>)
   end;
 {$endif}
 

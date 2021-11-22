@@ -63,7 +63,7 @@ unit CastleGLImages;
 interface
 
 uses SysUtils, Generics.Collections, Classes,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif} {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
   CastleTextureImages, CastleVideos, CastleCompositeImage, CastleRectangles,
   CastleGLShaders, CastleColors, CastleUtils, CastleRenderOptions;

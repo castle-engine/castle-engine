@@ -373,7 +373,7 @@ constructor TCastleImageControl.Create(AOwner: TComponent);
 begin
   inherited;
   FContent := TCastleImagePersistent.Create;
-  FContent.OnChange := {$ifdef CASTLE_OBJFPC}@{$endif}ContentChanged;
+  FContent.OnChange := {$ifdef FPC}@{$endif}ContentChanged;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
@@ -460,7 +460,7 @@ begin
   FContent.ScaleCorners := UIScale;
   FContent.InternalVisualizeProtectedSides := Stretch;
   FContent.Draw(RenderRect);
-  FContent.OnChange := {$ifdef CASTLE_OBJFPC}@{$endif}ContentChanged;
+  FContent.OnChange := {$ifdef FPC}@{$endif}ContentChanged;
 end;
 
 procedure TCastleImageControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);

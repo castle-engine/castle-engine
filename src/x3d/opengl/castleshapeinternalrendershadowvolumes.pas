@@ -68,7 +68,7 @@ implementation
 // TODO: This unit temporarily uses RenderingCamera singleton,
 // to keep it working for backward compatibility.
 uses SysUtils,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleRenderingCamera, CastleGLUtils, CastleUtils, CastleShapes, CastleImages,
   CastleRenderContext;
 {$warnings on}

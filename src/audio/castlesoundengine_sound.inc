@@ -34,7 +34,7 @@
   TCastleSoundChangeEvent = procedure (const Sender: TCastleSound; const Change: TSoundChange) of object;
 
   { @exclude Used with TCastleSound notifications (TCastleSound.InternalAddChangeNotification). }
-  TCastleSoundChangeEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TCastleSoundChangeEvent>)
+  TCastleSoundChangeEventList = class({$ifdef FPC}specialize{$endif} TList<TCastleSoundChangeEvent>)
   public
     procedure ExecuteAll(const Sender: TCastleSound; const Change: TSoundChange);
   end;

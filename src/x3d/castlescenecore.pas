@@ -462,7 +462,7 @@ type
         Internal for TCastleSceneCore: list of generated textures
         (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
         along with their shape. }
-      TGeneratedTextureList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TGeneratedTexture>)
+      TGeneratedTextureList = class({$ifdef FPC}specialize{$endif} TStructList<TGeneratedTexture>)
       public
         function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
         function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
@@ -470,8 +470,8 @@ type
         procedure UpdateShadowMaps(LightNode: TAbstractLightNode);
       end;
 
-      TProximitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
-      TTimeDependentList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTimeDependentFunctionality>)
+      TProximitySensorInstanceList = {$ifdef FPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
+      TTimeDependentList = class({$ifdef FPC}specialize{$endif} TObjectList<TTimeDependentFunctionality>)
         procedure AddIfNotExists(const Item: TTimeDependentFunctionality);
       end;
 
@@ -483,7 +483,7 @@ type
         Name: string;
       end;
       PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
-      TCompiledScriptHandlerInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
+      TCompiledScriptHandlerInfoList = {$ifdef FPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
 
       TExposedTransform = class
       strict private
@@ -504,12 +504,12 @@ type
         procedure Synchronize;
         class function X3dNameToPascal(const Prefix, S: String): String; static;
       end;
-      TExposedTransformList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TExposedTransform>;
+      TExposedTransformList = {$ifdef FPC}specialize{$endif} TObjectList<TExposedTransform>;
 
   protected
     type
-      TVisibilitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TVisibilitySensorInstance>;
-      TVisibilitySensors = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
+      TVisibilitySensorInstanceList = {$ifdef FPC}specialize{$endif} TObjectList<TVisibilitySensorInstance>;
+      TVisibilitySensors = class({$ifdef FPC}specialize{$endif} TDictionary<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
       public
         destructor Destroy; override;
         { Remove everything are released owned stuff.
@@ -706,7 +706,7 @@ type
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
   private
   type
-    TAbstractViewpointNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAbstractViewpointNode>;
+    TAbstractViewpointNodeList = {$ifdef FPC}specialize{$endif} TObjectList<TAbstractViewpointNode>;
   var
     FShapesActiveCount: Cardinal;
     FShapesActiveVisibleCount: Cardinal;
@@ -2934,7 +2934,7 @@ begin
 
   // create ChildObserver
   ChildObserver := TFreeNotificationObserver.Create(nil);
-  ChildObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}ChildFreeNotification;
+  ChildObserver.OnFreeNotification := {$ifdef FPC}@{$endif}ChildFreeNotification;
   ChildObserver.Observed := Child;
 end;
 
@@ -3059,7 +3059,7 @@ procedure TDetectAffectedFields.FindRoutesAndInterpolators;
 begin
   if ParentScene.RootNode <> nil then
     ParentScene.RootNode.EnumerateNodes(TX3DNode,
-      {$ifdef CASTLE_OBJFPC}@{$endif}FindRoutesAndInterpolatorsEnumerate,
+      {$ifdef FPC}@{$endif}FindRoutesAndInterpolatorsEnumerate,
       false);
 end;
 
@@ -3229,7 +3229,7 @@ begin
   FAutoAnimationLoop := true;
 
   FExposeTransforms := TStringList.Create;
-  TStringList(FExposeTransforms).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} ExposeTransformsChange;
+  TStringList(FExposeTransforms).OnChange := {$ifdef FPC}@{$endif} ExposeTransformsChange;
   FExposedTransforms := TExposedTransformList.Create(true);
 
   { We could call here ScheduleChangedAll (or directly ChangedAll),
@@ -3700,7 +3700,7 @@ function TChangedAllTraverser.Traverse(
       Traverser.Active := Active;
 
       TransformNode.TraverseIntoChildren(StateStack, TX3DNode,
-        {$ifdef CASTLE_OBJFPC}@{$endif}Traverser.Traverse, ParentInfo);
+        {$ifdef FPC}@{$endif}Traverser.Traverse, ParentInfo);
     finally FreeAndNil(Traverser) end;
 
     TraverseIntoChildren := false;
@@ -3730,7 +3730,7 @@ function TChangedAllTraverser.Traverse(
         Traverser.ShapesGroup := ChildGroup;
         Traverser.Active := Active and (I = SwitchNode.FdWhichChoice.Value);
         ChildNode.TraverseInternal(StateStack, TX3DNode,
-          {$ifdef CASTLE_OBJFPC}@{$endif}Traverser.Traverse, ParentInfo);
+          {$ifdef FPC}@{$endif}Traverser.Traverse, ParentInfo);
       finally FreeAndNil(Traverser) end;
     end;
 
@@ -3774,7 +3774,7 @@ function TChangedAllTraverser.Traverse(
         Traverser.ShapesGroup := ChildGroup;
         Traverser.Active := Active and (Cardinal(I) = LODTree.Level);
         ChildNode.TraverseInternal(StateStack, TX3DNode,
-          {$ifdef CASTLE_OBJFPC}@{$endif}Traverser.Traverse, ParentInfo);
+          {$ifdef FPC}@{$endif}Traverser.Traverse, ParentInfo);
       finally FreeAndNil(Traverser) end;
     end;
 
@@ -3975,7 +3975,7 @@ begin
   { clear animation stuff, since any TTimeSensorNode may be freed soon }
   if PlayingAnimationNode <> nil then
     PlayingAnimationNode.EventIsActive.RemoveNotification(
-      {$ifdef CASTLE_OBJFPC}@{$endif}PlayingAnimationIsActive);
+      {$ifdef FPC}@{$endif}PlayingAnimationIsActive);
   PlayingAnimationNode := nil;
   PlayingAnimationStopNotification := nil;
   FCurrentAnimation := nil;
@@ -4110,7 +4110,7 @@ procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
   begin
     if RootNode <> nil then
       RootNode.EnumerateNodes(TX3DNode,
-        {$ifdef CASTLE_OBJFPC}@{$endif}ChangedAllEnumerateCallback, false);
+        {$ifdef FPC}@{$endif}ChangedAllEnumerateCallback, false);
   end;
 
   procedure DetectAffectedFields;
@@ -4210,7 +4210,7 @@ begin
         Traverser.ShapesGroup := TShapeTreeGroup(FShapes);
         Traverser.Active := true;
         RootNode.Traverse(TX3DNode,
-          {$ifdef CASTLE_OBJFPC}@{$endif}Traverser.Traverse);
+          {$ifdef FPC}@{$endif}Traverser.Traverse);
       finally FreeAndNil(Traverser) end;
 
       AddGlobalLights;
@@ -4265,7 +4265,7 @@ begin
     Note that clearing GeneratedTextures was already done at the beginning
     of ChangedAll (as part of BeforeNodesFree(true) call). }
   Shapes.EnumerateTextures(
-    {$ifdef CASTLE_OBJFPC}@{$endif}GeneratedTextures.AddShapeTexture);
+    {$ifdef FPC}@{$endif}GeneratedTextures.AddShapeTexture);
 
   if ScheduleHeadlightOnFromNavigationInfoInChangedAll then
   begin
@@ -4374,7 +4374,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
 
       TransformNode.TraverseIntoChildren(
         StateStack, TX3DNode,
-        {$ifdef CASTLE_OBJFPC}@{$endif}Self.TransformChangeTraverse, ParentInfo);
+        {$ifdef FPC}@{$endif}Self.TransformChangeTraverse, ParentInfo);
     finally Shapes := OldShapes end;
 
     TraverseIntoChildren := false;
@@ -4409,7 +4409,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
 
         SwitchNode.FdChildren[I].TraverseInternal(
           StateStack, TX3DNode,
-          {$ifdef CASTLE_OBJFPC}@{$endif}Self.TransformChangeTraverse,
+          {$ifdef FPC}@{$endif}Self.TransformChangeTraverse,
           ParentInfo);
 
         if ChildInactive then Dec(Inactive);
@@ -4457,7 +4457,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
 
         LODNode.FdChildren[I].TraverseInternal(
           StateStack, TX3DNode,
-          {$ifdef CASTLE_OBJFPC}@{$endif}Self.TransformChangeTraverse,
+          {$ifdef FPC}@{$endif}Self.TransformChangeTraverse,
           ParentInfo);
 
         if Cardinal(I) <> ShapeLOD.Level then Dec(Inactive);
@@ -4701,7 +4701,7 @@ begin
         TransformChangeHelper.Inactive := 0;
 
         TransformNode.TraverseInternal(TraverseStack, TX3DNode,
-          {$ifdef CASTLE_OBJFPC}@{$endif}TransformChangeHelper.TransformChangeTraverse,
+          {$ifdef FPC}@{$endif}TransformChangeHelper.TransformChangeTraverse,
           nil);
 
         if TransformChangeHelper.AnythingChanged then
@@ -4779,7 +4779,7 @@ begin
       TransformChangeHelper.Inactive := 0;
 
       RootNode.Traverse(TX3DNode,
-        {$ifdef CASTLE_OBJFPC}@{$endif}TransformChangeHelper.TransformChangeTraverse);
+        {$ifdef FPC}@{$endif}TransformChangeHelper.TransformChangeTraverse);
 
       if TransformChangeHelper.AnythingChanged then
         DoVisibleChanged := true;
@@ -5938,10 +5938,10 @@ begin
       Progress.Init(TrianglesCount(false), ProgressTitle, true);
       try
         TriangleOctreeToAdd := Result;
-        FillOctree({$ifdef CASTLE_OBJFPC} @ {$endif} AddTriangleToOctreeProgress);
+        FillOctree({$ifdef FPC} @ {$endif} AddTriangleToOctreeProgress);
       finally Progress.Fini end;
     end else
-      FillOctree({$ifdef CASTLE_OBJFPC} @ {$endif} Result.AddItemTriangle);
+      FillOctree({$ifdef FPC} @ {$endif} Result.AddItemTriangle);
   except Result.Free; raise end;
 
   finally Dec(InternalDirty) end;
@@ -6049,7 +6049,7 @@ begin
       Seeker.ViewpointDescription := ViewpointDescription;
       Result := TAbstractViewpointNode(
         RootNode.Traverse(TAbstractViewpointNode,
-        {$ifdef CASTLE_OBJFPC}@{$endif}Seeker.Seek));
+        {$ifdef FPC}@{$endif}Seeker.Seek));
     finally FreeAndNil(Seeker) end;
   end;
 
@@ -6116,9 +6116,9 @@ begin
   if (frTextureDataInNodes in Resources) and (RootNode <> nil) then
   begin
     RootNode.EnumerateNodes(TAbstractTexture2DNode,
-      {$ifdef CASTLE_OBJFPC}@{$endif}FreeResources_UnloadTextureData, false);
+      {$ifdef FPC}@{$endif}FreeResources_UnloadTextureData, false);
     RootNode.EnumerateNodes(TAbstractTexture3DNode,
-      {$ifdef CASTLE_OBJFPC}@{$endif}FreeResources_UnloadTexture3DData, false);
+      {$ifdef FPC}@{$endif}FreeResources_UnloadTexture3DData, false);
   end;
 
   if frShadowVolume in Resources then
@@ -6745,7 +6745,7 @@ begin
         PlayingAnimationStopNotification := nil;
       end;
       PlayingAnimationNode.EventIsActive.RemoveNotification(
-        {$ifdef CASTLE_OBJFPC}@{$endif}PlayingAnimationIsActive);
+        {$ifdef FPC}@{$endif}PlayingAnimationIsActive);
     end;
     Assert({$ifndef FPC}@{$endif}PlayingAnimationStopNotification = nil);
 
@@ -6857,7 +6857,7 @@ begin
         NewPlayingAnimationInitialTime);
 
       PlayingAnimationNode.EventIsActive.AddNotification(
-        {$ifdef CASTLE_OBJFPC}@{$endif}PlayingAnimationIsActive);
+        {$ifdef FPC}@{$endif}PlayingAnimationIsActive);
       PlayingAnimationStopNotification := NewPlayingAnimationStopNotification;
     end;
   end;
@@ -7029,7 +7029,7 @@ end;
 procedure TCastleSceneCore.ResetTime(const NewValue: TFloatTime);
 begin
   if RootNode <> nil then
-    RootNode.EnumerateNodes({$ifdef CASTLE_OBJFPC}@{$endif}ResetLastEventTime,
+    RootNode.EnumerateNodes({$ifdef FPC}@{$endif}ResetLastEventTime,
      false);
   InternalSetTime(NewValue, 0, true);
 end;
@@ -7883,7 +7883,7 @@ procedure TCastleSceneCore.ValidateMainLightForShadows;
     FMainLightForShadowsExists := false;
     if RootNode <> nil then
       RootNode.Traverse(TAbstractPunctualLightNode,
-        {$ifdef CASTLE_OBJFPC}@{$endif}SearchMainLightForShadows);
+        {$ifdef FPC}@{$endif}SearchMainLightForShadows);
   end;
 
 begin
@@ -8256,7 +8256,7 @@ begin
         Since the Switch.WhichChoice may change at runtime,
         while the animations list should stay constant. }
       RootNode.EnumerateNodes(TTimeSensorNode,
-        {$ifdef CASTLE_OBJFPC}@{$endif}Enum.Enumerate, false);
+        {$ifdef FPC}@{$endif}Enum.Enumerate, false);
 
       { recognize named animations also from IMPORTed node names.
         This alllows to import and rename animations, which is useful. }
@@ -8567,9 +8567,9 @@ begin
       we only need to free proxies on text nodes. }
     ChangedAll;
     RootNode.EnumerateNodes(TTextNode,
-      {$ifdef CASTLE_OBJFPC}@{$endif}FontChanged_TextNode, false);
+      {$ifdef FPC}@{$endif}FontChanged_TextNode, false);
     RootNode.EnumerateNodes(TAsciiTextNode_1,
-      {$ifdef CASTLE_OBJFPC}@{$endif}FontChanged_AsciiTextNode_1, false);
+      {$ifdef FPC}@{$endif}FontChanged_AsciiTextNode_1, false);
   end;
 end;
 

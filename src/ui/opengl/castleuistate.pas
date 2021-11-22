@@ -486,7 +486,7 @@ type
     property FullSize default true;
   end;
 
-  TUIStateList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TUIState>);
+  TUIStateList = class({$ifdef FPC}specialize{$endif} TObjectList<TUIState>);
 
 implementation
 
@@ -743,7 +743,7 @@ begin
   FWaitingForRender := TNotifyEventList.Create;
   FCallBeforeUpdate := TNotifyEventList.Create;
   FStartContainerObserver := TFreeNotificationObserver.Create(Self);
-  FStartContainerObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}StartContainerFreeNotification;
+  FStartContainerObserver.OnFreeNotification := {$ifdef FPC}@{$endif}StartContainerFreeNotification;
 end;
 
 constructor TUIState.CreateUntilStopped;

@@ -20,7 +20,7 @@
   Note that we cannot use proper generics to define a TGenericVector3<T>,
   because this cannot work under Delphi:
 
-    function TGenericVector3 {$ifndef CASTLE_OBJFPC}<T>{$endif}.Length: T;
+    function TGenericVector3 {$ifndef FPC}<T>{$endif}.Length: T;
     begin
       Result := Sqrt(
         (Data[0] * Data[0]) +
@@ -1450,7 +1450,7 @@ end;
 
 function TGenericMatrix2.GetColumns(const AColumn: TIndex): TGenericVector2;
 begin
-  {$ifdef CASTLE_OBJFPC}
+  {$ifdef FPC}
   Result.Data := Data[AColumn];
   {$else}
   Result := TGenericVector2(Data[AColumn]); // more dirty, but necessary
@@ -1459,7 +1459,7 @@ end;
 
 procedure TGenericMatrix2.SetColumns(const AColumn: TIndex; const Value: TGenericVector2);
 begin
-  {$ifdef CASTLE_OBJFPC}
+  {$ifdef FPC}
   Data[AColumn] := Value.Data;
   {$else}
   TGenericVector2(Data[AColumn]) := Value; // more dirty, but necessary
@@ -1716,7 +1716,7 @@ end;
 
 function TGenericMatrix3.GetColumns(const AColumn: TIndex): TGenericVector3;
 begin
-  {$ifdef CASTLE_OBJFPC}
+  {$ifdef FPC}
   Result.Data := Data[AColumn];
   {$else}
   Result := TGenericVector3(Data[AColumn]); // more dirty, but necessary
@@ -1725,7 +1725,7 @@ end;
 
 procedure TGenericMatrix3.SetColumns(const AColumn: TIndex; const Value: TGenericVector3);
 begin
-  {$ifdef CASTLE_OBJFPC}
+  {$ifdef FPC}
   Data[AColumn] := Value.Data;
   {$else}
   TGenericVector3(Data[AColumn]) := Value; // more dirty, but necessary
@@ -2093,7 +2093,7 @@ end;
 
 function TGenericMatrix4.GetColumns(const AColumn: TIndex): TGenericVector4;
 begin
-  {$ifdef CASTLE_OBJFPC}
+  {$ifdef FPC}
   Result.Data := Data[AColumn];
   {$else}
   Result := TGenericVector4(Data[AColumn]); // more dirty, but necessary
@@ -2102,7 +2102,7 @@ end;
 
 procedure TGenericMatrix4.SetColumns(const AColumn: TIndex; const Value: TGenericVector4);
 begin
-  {$ifdef CASTLE_OBJFPC}
+  {$ifdef FPC}
   Data[AColumn] := Value.Data;
   {$else}
   TGenericVector4(Data[AColumn]) := Value; // more dirty, but necessary

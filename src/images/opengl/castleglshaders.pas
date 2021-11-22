@@ -60,7 +60,7 @@ unit CastleGLShaders;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif} {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleGLUtils, CastleUtils, CastleVectors, CastleRenderOptions;
 
 type
@@ -243,9 +243,9 @@ type
     { @groupEnd }
   end;
 
-  TGLSLAttributeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TGLSLAttribute>;
+  TGLSLAttributeList = {$ifdef FPC}specialize{$endif} TList<TGLSLAttribute>;
 
-  TLocationCache = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, TGLint>;
+  TLocationCache = {$ifdef FPC}specialize{$endif} TDictionary<String, TGLint>;
 
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
@@ -596,12 +596,12 @@ type
     {$endif}
   end;
 
-  TGLSLProgramList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TGLSLProgram>;
+  TGLSLProgramList = {$ifdef FPC}specialize{$endif} TObjectList<TGLSLProgram>;
 
 var
   LogShaders: boolean;
 
-{$ifdef CASTLE_OBJFPC}
+{$ifdef FPC}
 function GetCurrentProgram: TGLSLProgram;
   deprecated 'use RenderContext.CurrentProgram';
 procedure SetCurrentProgram(const Value: TGLSLProgram);
@@ -616,7 +616,7 @@ procedure SetCurrentProgram(const Value: TGLSLProgram);
   @deprecated Use RenderContext.CurrentProgram }
 property CurrentProgram: TGLSLProgram
   read GetCurrentProgram write SetCurrentProgram;
-{$endif CASTLE_OBJFPC}
+{$endif FPC}
 
 // @exclude User by RenderContext.SetCurrentProgram
 procedure InternalSetCurrentProgram(const Value: TGLSLProgram);

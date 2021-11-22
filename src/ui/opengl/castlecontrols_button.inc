@@ -344,15 +344,15 @@ begin
   FImageScale := 1.0;
 
   FImage := TCastleImagePersistent.Create;
-  FImage.OnChange := {$ifdef CASTLE_OBJFPC}@{$endif}ImageChanged;
+  FImage.OnChange := {$ifdef FPC}@{$endif}ImageChanged;
   FCustomBackgroundPressed := TCastleImagePersistent.Create;
-  FCustomBackgroundPressed.OnChange := {$ifdef CASTLE_OBJFPC}@{$endif}CustomBackgroundImageChanged;
+  FCustomBackgroundPressed.OnChange := {$ifdef FPC}@{$endif}CustomBackgroundImageChanged;
   FCustomBackgroundDisabled := TCastleImagePersistent.Create;
-  FCustomBackgroundDisabled.OnChange := {$ifdef CASTLE_OBJFPC}@{$endif}CustomBackgroundImageChanged;
+  FCustomBackgroundDisabled.OnChange := {$ifdef FPC}@{$endif}CustomBackgroundImageChanged;
   FCustomBackgroundFocused := TCastleImagePersistent.Create;
-  FCustomBackgroundFocused.OnChange := {$ifdef CASTLE_OBJFPC}@{$endif}CustomBackgroundImageChanged;
+  FCustomBackgroundFocused.OnChange := {$ifdef FPC}@{$endif}CustomBackgroundImageChanged;
   FCustomBackgroundNormal := TCastleImagePersistent.Create;
-  FCustomBackgroundNormal.OnChange := {$ifdef CASTLE_OBJFPC}@{$endif}CustomBackgroundImageChanged;
+  FCustomBackgroundNormal.OnChange := {$ifdef FPC}@{$endif}CustomBackgroundImageChanged;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
@@ -467,7 +467,7 @@ begin
       CustomBackgroundImage.ScaleCorners := UIScale;
       CustomBackgroundImage.Draw(SR);
       CustomBackgroundImage.Color := OriginalColor;
-      CustomBackgroundImage.OnChange := {$ifdef CASTLE_OBJFPC}@{$endif}CustomBackgroundImageChanged;
+      CustomBackgroundImage.OnChange := {$ifdef FPC}@{$endif}CustomBackgroundImageChanged;
     end else
     begin
       if Pressed then

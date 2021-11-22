@@ -570,7 +570,7 @@ end;
 
 { We dereference here memory allocated with PNG, so pointer checks
   will make false errors. }
-{$ifdef CASTLE_OBJFPC}
+{$ifdef FPC}
 {$checkpointer off}
 {$endif}
 
@@ -659,15 +659,15 @@ begin
     is sufficient for us. }
   png_ptr := png_create_read_struct(CurrentLibpngVersion,
     nil { we could pass here data to warning/error handlers },
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_error_fn,
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_warning_fn);
+    {$ifdef FPC} @ {$endif} our_png_error_fn,
+    {$ifdef FPC} @ {$endif} our_png_warning_fn);
   Check( png_ptr <> nil, 'png_create_read_struct failed');
 
   info_ptr := png_create_info_struct(png_ptr);
   Check( info_ptr <> nil, 'png_create_info_struct failed');
 
   png_set_read_fn(png_ptr, Stream,
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_read_fn);
+    {$ifdef FPC} @ {$endif} our_png_read_fn);
 
   { Note: We could use png_set_read_status_fn to show progress bar of loading.
     Doesn't seem actually necessary, PNG would have to be truly huge to matter. }
@@ -785,16 +785,16 @@ begin
  try
   png_ptr := png_create_write_struct(CurrentLibpngVersion,
     nil { we could pass here data to warning/error handlers },
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_error_fn,
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_warning_fn);
+    {$ifdef FPC} @ {$endif} our_png_error_fn,
+    {$ifdef FPC} @ {$endif} our_png_warning_fn);
   Check( png_ptr <> nil, 'png_create_write_struct failed');
 
   info_ptr := png_create_info_struct(png_ptr);
   Check( info_ptr <> nil, 'png_create_info_struct failed');
 
   png_set_write_fn(png_ptr, Stream,
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_write_fn,
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_flush_fn);
+    {$ifdef FPC} @ {$endif} our_png_write_fn,
+    {$ifdef FPC} @ {$endif} our_png_flush_fn);
 
   { TODO -- uzyj tu png_set_write_status_fn aby miec progressa }
 

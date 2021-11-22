@@ -126,7 +126,7 @@ begin
 
   if FAllocatedSource <> nil then
     FAllocatedSource.OnRelease :=
-      {$ifdef CASTLE_OBJFPC}@{$endif} AllocatedSourceRelease
+      {$ifdef FPC}@{$endif} AllocatedSourceRelease
   else
     WritelnWarning('Could not allocate sound source, to play looping sound %s', [
       Sound.Name
@@ -139,7 +139,7 @@ begin
   begin
     if FSound <> nil then
     begin
-      FSound.InternalRemoveChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SoundChange);
+      FSound.InternalRemoveChangeNotification({$ifdef FPC}@{$endif}SoundChange);
       FSound.RemoveFreeNotification(Self);
       if FAllocatedSource <> nil then
       begin
@@ -153,7 +153,7 @@ begin
 
     if FSound <> nil then
     begin
-      FSound.InternalAddChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SoundChange);
+      FSound.InternalAddChangeNotification({$ifdef FPC}@{$endif}SoundChange);
       FSound.FreeNotification(Self);
       AllocateSource;
     end;

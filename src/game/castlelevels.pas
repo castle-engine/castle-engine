@@ -248,7 +248,7 @@ type
     property MusicSound: TCastleSound read FMusicSound write FMusicSound;
   end;
 
-  TLevelInfoList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLevelInfo>)
+  TLevelInfoList = class({$ifdef FPC}specialize{$endif} TObjectList<TLevelInfo>)
   private
     { How many TLevel have references to our children by
       TLevel.Info? }
@@ -624,7 +624,7 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-  TLevelLogicClasses = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TLevelLogicClass>)
+  TLevelLogicClasses = class({$ifdef FPC}specialize{$endif} TDictionary<string, TLevelLogicClass>)
   strict private
     function GetItems(const AKey: string): TLevelLogicClass;
     procedure SetItems(const AKey: string; const AValue: TLevelLogicClass);
@@ -1664,7 +1664,7 @@ end;
 procedure TLevelInfoList.LoadFromFiles(const LevelsPath: string);
 begin
   FindFiles(LevelsPath, 'level.xml', false,
-    {$ifdef CASTLE_OBJFPC}@{$endif}AddFromInfo, [ffRecursive]);
+    {$ifdef FPC}@{$endif}AddFromInfo, [ffRecursive]);
 end;
 
 procedure TLevelInfoList.LoadFromFiles;
@@ -1675,9 +1675,9 @@ end;
 
 procedure TLevelInfoList.SortByNumber;
 type
-  TLevelInfoComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TLevelInfo>;
+  TLevelInfoComparer = {$ifdef FPC}specialize{$endif} TComparer<TLevelInfo>;
 begin
-  Sort(TLevelInfoComparer.Construct({$ifdef CASTLE_OBJFPC}@{$endif}IsSmallerByNumber));
+  Sort(TLevelInfoComparer.Construct({$ifdef FPC}@{$endif}IsSmallerByNumber));
 end;
 
 { TLevelLogicClasses --------------------------------------------------------- }

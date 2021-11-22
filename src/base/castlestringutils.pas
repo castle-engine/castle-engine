@@ -147,7 +147,7 @@ type
   { String-to-string map. Note that in simple cases you can also
     use standard TStringList functionality (see it's properties Names, Values),
     but this is better if your key/values may be multiline. }
-  TStringStringMap = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, string>)
+  TStringStringMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, string>)
   strict private
     function GetItems(const AKey: string): string;
     procedure SetItems(const AKey: string; const AValue: string);
@@ -2380,7 +2380,7 @@ begin
     try
       C.Index := Index;
       {$ifdef FPC}
-      Result := R.Replace(NamePattern, {$ifdef CASTLE_OBJFPC}@{$endif} C.ReplaceCallback);
+      Result := R.Replace(NamePattern, {$ifdef FPC}@{$endif} C.ReplaceCallback);
       {$else}
         // Fix for delphi < Tokio, needs an extra Variable for the call
          P := C.ReplaceCallback;

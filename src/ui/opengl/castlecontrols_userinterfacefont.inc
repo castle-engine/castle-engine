@@ -332,7 +332,7 @@ begin
     if FCustomFont <> nil then
     begin
       FCustomFont.RemoveFreeNotification(Self);
-      FCustomFont.RemoveFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}CustomFontSizeChanged);
+      FCustomFont.RemoveFontSizeChangeNotification({$ifdef FPC}@{$endif}CustomFontSizeChanged);
     end;
     {$ifdef FPC}
     {$warnings off}
@@ -350,7 +350,7 @@ begin
         Testcase: assing to TCastleLabel.CustomFont some TCastleFont,
         then change the TCastleFont.URL (without changing anything
         at TCastleLabel directly) -- the TCastleLabel size should change. }
-      FCustomFont.AddFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}CustomFontSizeChanged);
+      FCustomFont.AddFontSizeChangeNotification({$ifdef FPC}@{$endif}CustomFontSizeChanged);
     end;
     { don't call virtual function, that may try to measure the text by accessing Font
       (needlessly using UIFont, possibly even recreating UIFont if "finalization"

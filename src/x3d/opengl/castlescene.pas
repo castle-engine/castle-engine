@@ -27,7 +27,7 @@ unit CastleScene;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils, CastleFonts,
   CastleUtils, CastleSceneCore, CastleInternalRenderer, CastleInternalBackground,
   CastleGLUtils, CastleInternalShapeOctree, CastleInternalGLShadowVolumes, X3DFields,
@@ -481,10 +481,10 @@ type
 
   TCastleSceneClass = class of TCastleScene;
 
-  TCastleSceneList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleScene>)
+  TCastleSceneList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleScene>)
   end;
 
-  TTriangle4List = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TTriangle4>;
+  TTriangle4List = {$ifdef FPC}specialize{$endif} TStructList<TTriangle4>;
 
   { @exclude Internal.
 
@@ -975,7 +975,7 @@ var
          (Params.RenderingCamera.Target = rtScreen) then
       begin
         SimpleOcclusionQueryRenderer.Render(Shape,
-          {$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_BatchingTest{$else}CaptureRenderShape_BatchingTest(){$endif}, Params);
+          {$ifdef FPC}{$ifdef FPC}@{$endif}RenderShape_BatchingTest{$else}CaptureRenderShape_BatchingTest(){$endif}, Params);
       end else
       {$warnings off}
       if RenderOptions.DebugHierOcclusionQueryResults and
@@ -1102,11 +1102,11 @@ var
     begin
       if IgnoreShapesWithBlending then
         Shapes.Traverse(
-          {$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_AllTests_Opaque{$else}
+          {$ifdef FPC}{$ifdef FPC}@{$endif}RenderShape_AllTests_Opaque{$else}
           CaptureRenderShape_AllTests_Opaque(){$endif}, true, true)
       else
         Shapes.Traverse(
-          {$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_AllTests{$else}
+          {$ifdef FPC}{$ifdef FPC}@{$endif}RenderShape_AllTests{$else}
           CaptureRenderShape_AllTests(){$endif}, true, true);
     end;
   end;
@@ -1179,7 +1179,7 @@ var
        (InternalOctreeRendering <> nil) then
     begin
       HierarchicalOcclusionQueryRenderer.Render(
-        {$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_SomeTests{$else}
+        {$ifdef FPC}{$ifdef FPC}@{$endif}RenderShape_SomeTests{$else}
         CaptureRenderShape_SomeTests(){$endif}, Params,
         RenderCameraPosition);
     end else
@@ -1205,7 +1205,7 @@ var
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests({$ifndef FPC}Params, ModelView,{$endif} TGLShape(FilteredShapes[I]));
           end else
-            Shapes.Traverse({$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_AllTests_Opaque{$else}
+            Shapes.Traverse({$ifdef FPC}{$ifdef FPC}@{$endif}RenderShape_AllTests_Opaque{$else}
             CaptureRenderShape_AllTests_Opaque(){$endif}, true, true, false);
         end else
         { this means Params.Transparent = true }
@@ -1226,7 +1226,7 @@ var
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests({$ifndef FPC}Params, ModelView,{$endif} TGLShape(FilteredShapes[I]));
           end else
-            Shapes.Traverse({$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_AllTests_Blending{$else}
+            Shapes.Traverse({$ifdef FPC}{$ifdef FPC}@{$endif}RenderShape_AllTests_Blending{$else}
               CaptureRenderShape_AllTests_Blending(){$endif}, true, true, false);
         end;
 
@@ -1252,7 +1252,7 @@ begin
   end;
 
   if Params.InShadow then
-    LightRenderEvent := {$ifdef CASTLE_OBJFPC}@{$endif}LightRenderInShadow
+    LightRenderEvent := {$ifdef FPC}@{$endif}LightRenderInShadow
   else
     LightRenderEvent := nil;
 
@@ -1841,10 +1841,10 @@ procedure TCastleScene.UpdateShapeCullingCallbacks;
   begin
     if DoDistanceCulling then
       case FC of
-        fcNone  : Result := {$ifdef CASTLE_OBJFPC}@{$endif}DistanceCulling_FrustumCulling_None;
-        fcSphere: Result := {$ifdef CASTLE_OBJFPC}@{$endif}DistanceCulling_FrustumCulling_Sphere;
-        fcBox   : Result := {$ifdef CASTLE_OBJFPC}@{$endif}DistanceCulling_FrustumCulling_Box;
-        fcBoth  : Result := {$ifdef CASTLE_OBJFPC}@{$endif}DistanceCulling_FrustumCulling_Both;
+        fcNone  : Result := {$ifdef FPC}@{$endif}DistanceCulling_FrustumCulling_None;
+        fcSphere: Result := {$ifdef FPC}@{$endif}DistanceCulling_FrustumCulling_Sphere;
+        fcBox   : Result := {$ifdef FPC}@{$endif}DistanceCulling_FrustumCulling_Box;
+        fcBoth  : Result := {$ifdef FPC}@{$endif}DistanceCulling_FrustumCulling_Both;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('ShapeCullingToCallback:FC?');
         {$endif}
@@ -1853,12 +1853,12 @@ procedure TCastleScene.UpdateShapeCullingCallbacks;
       case FC of
         fcNone  :
           if MustBeAssigned then
-            Result := {$ifdef CASTLE_OBJFPC}@{$endif}FrustumCulling_None
+            Result := {$ifdef FPC}@{$endif}FrustumCulling_None
           else
             Result := nil; // FrustumCulling_None always returns true
-        fcSphere: Result := {$ifdef CASTLE_OBJFPC}@{$endif}FrustumCulling_Sphere;
-        fcBox   : Result := {$ifdef CASTLE_OBJFPC}@{$endif}FrustumCulling_Box;
-        fcBoth  : Result := {$ifdef CASTLE_OBJFPC}@{$endif}FrustumCulling_Both;
+        fcSphere: Result := {$ifdef FPC}@{$endif}FrustumCulling_Sphere;
+        fcBox   : Result := {$ifdef FPC}@{$endif}FrustumCulling_Box;
+        fcBoth  : Result := {$ifdef FPC}@{$endif}FrustumCulling_Both;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('ShapeCullingToCallback:FC?');
         {$endif}
@@ -2069,10 +2069,10 @@ procedure TCastleScene.LocalRender(const Params: TRenderParams);
     {$endif}
 
   begin
-    Shapes.Traverse({$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}ResetShapeVisible
+    Shapes.Traverse({$ifdef FPC}{$ifdef FPC}@{$endif}ResetShapeVisible
       {$else}CaptureResetShapeVisible(){$endif}, false, true);
     Octree.EnumerateCollidingOctreeItems(Params.Frustum^,
-      {$ifdef CASTLE_OBJFPC}@{$endif}RenderWithOctree_CheckShapeCulling);
+      {$ifdef FPC}@{$endif}RenderWithOctree_CheckShapeCulling);
   end;
 
 begin
@@ -2120,7 +2120,7 @@ begin
         ShapeCullingOctreeFunc test. Thanks to octree, many shapes
         don't even reach the stage when ShapeCullingOctreeFunc could be called. }
       TestOctreeWithFrustum(InternalOctreeRendering);
-      LocalRenderOutside({$ifdef CASTLE_OBJFPC}@{$endif}RenderFrustumOctree_TestShape, Params);
+      LocalRenderOutside({$ifdef FPC}@{$endif}RenderFrustumOctree_TestShape, Params);
     end else
       LocalRenderOutside(ShapeCullingFunc, Params);
 
@@ -2301,7 +2301,7 @@ end;
 function TCastleScene.Batching: TBatchShapes;
 begin
   if FBatching = nil then
-    FBatching := TBatchShapes.Create({$ifdef CASTLE_OBJFPC}@{$endif} CreateShape);
+    FBatching := TBatchShapes.Create({$ifdef FPC}@{$endif} CreateShape);
   Result := FBatching;
 end;
 
@@ -2349,7 +2349,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleScene;
   R.Caption := 'Scene (Optimal Blending for 2D Models)';
-  R.OnCreate := {$ifdef CASTLE_OBJFPC}@{$endif}TCastleScene{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleScene{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleBox, 'Box');
