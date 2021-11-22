@@ -241,10 +241,12 @@ function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
 
 function BoolToGL(const Value: boolean): TGLboolean;
 
+{$ifndef ForceStandardGLSLApi}
 { PGLcharARBOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
   If string is empty, this returns @nil, otherwise it works just like
   PGLcharARBOrNil(S): returns a Pointer(S) with appropriate type cast. }
 function PGLcharARBOrNil(const s: AnsiString): PGLcharARB;
+{$endif}
 
 {$endif read_interface}
 
@@ -561,7 +563,9 @@ begin
   end;
 end;
 
+{$ifndef ForceStandardGLSLApi}
 function PGLcharARBOrNil(const s: AnsiString): PGLcharARB;
 begin if s = '' then result := nil else result := PGLcharARB(s); end;
+{$endif}
 
 {$endif read_implementation}
