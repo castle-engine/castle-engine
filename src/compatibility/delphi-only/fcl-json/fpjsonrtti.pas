@@ -437,12 +437,13 @@ begin
     tkEnumeration,
     tkSet,
     tkChar,
-    tkWChar,
+    tkWChar:
+      SetOrdProp(AObject,PI,0);
     ///tkBool,
     ///tkQWord,
     ///tkUChar,
     tkInt64 :
-      SetOrdProp(AObject,PI,0);
+      SetInt64Prop(AObject,PI,0);
     tkFloat :
       SetFloatProp(AObject,PI,0.0);
     tkString,
