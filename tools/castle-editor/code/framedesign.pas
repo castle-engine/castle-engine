@@ -27,6 +27,7 @@ uses
   Spin, Buttons, Menus, Contnrs, Generics.Collections,
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
+  CollectionPropEditForm,
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
@@ -219,6 +220,7 @@ type
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
       PendingErrorBox: String;
       VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
+      IsCollectionFormInitialized: Boolean;
 
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
@@ -294,6 +296,12 @@ type
       then only PropertyEditorModified is called. }
     procedure PropertyGridModified(Sender: TObject);
     procedure PropertyEditorModified(Sender: TObject);
+    procedure PropertyGridCollectionItemClick(Sender: TObject);
+    procedure PropertyGridCollectionItemClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure PropertyGridCollectionItemAdd(Sender: TObject);
+    procedure PropertyGridCollectionItemDelete(Sender: TObject);
+    procedure PropertyGridCollectionItemMoveUp(Sender: TObject);
+    procedure PropertyGridCollectionItemMoveDown(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
@@ -995,6 +1003,7 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
 begin
   inherited;
 
+  IsCollectionFormInitialized := False;
   PropertyEditorHook := TPropertyEditorHook.Create(Self);
 
   FUndoSystem := TUndoSystem.Create(Self);
@@ -2300,6 +2309,75 @@ begin
     raise EInternalError.Create('PropertyEditorModified can only be called with TPropertyEditor as a Sender.');
 end;
 
+procedure TDesignFrame.PropertyGridCollectionItemClick(Sender: TObject);
+var
+  SelectionForOI: TPersistentSelectionList;
+  InspectorType: TInspectorType;
+  Ed: TCollectionPropertyEditorForm;
+  ListBox: TListBox;
+begin
+  SelectionForOI := TPersistentSelectionList.Create;
+  try
+    ListBox := Sender as TListBox;
+    if ListBox.ItemIndex >= 0 then
+    begin
+      Ed := ListBox.Parent as TCollectionPropertyEditorForm;
+      SelectionForOI.Add(Ed.Collection.Items[ListBox.ItemIndex]);
+      for InspectorType in TInspectorType do
+        Inspector[InspectorType].Selection := SelectionForOI;
+    end;
+  finally FreeAndNil(SelectionForOI) end;
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  UpdateSelectedControl;
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemAdd(Sender: TObject);
+begin
+  ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actAddExecute(Sender);
+  RecordUndo('Add item', ucLow);
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemDelete(Sender: TObject);
+begin
+  ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actDelExecute(Sender);
+  RecordUndo('Delete item', ucLow);
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemMoveUp(Sender: TObject);
+var
+  FakeSender: TComponent;
+begin
+  FakeSender := TComponent.Create(nil);
+  try
+    { This is a weird decision. It depends on sender's name to determine if
+      it should move item up or move item down }
+    FakeSender.Name := 'actMoveUp';
+    ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(FakeSender);
+    RecordUndo('Move item up', ucLow);
+  finally
+    FreeAndNil(FakeSender);
+  end;
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemMoveDown(Sender: TObject);
+var
+  FakeSender: TComponent;
+begin
+  FakeSender := TComponent.Create(nil);
+  try
+    { This is a weird decision. It depends on sender's name to determine if
+      it should move item up or move item down }
+    FakeSender.Name := 'actMoveDown';
+    ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(FakeSender);
+    RecordUndo('Move item down', ucLow);
+  finally
+    FreeAndNil(FakeSender);
+  end;
+end;
+
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
   const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
 var
@@ -2622,10 +2700,57 @@ begin
 end;
 
 procedure TDesignFrame.UpdateSelectedControl;
+
+  procedure InitializeCollectionFormEvents(InspectorType: TInspectorType);
+  var
+    I: Integer;
+    Row: TOIPropertyGridRow;
+    Ed: TCollectionPropertyEditor = nil;
+    Fm: TCollectionPropertyEditorForm;
+  begin
+    if not IsCollectionFormInitialized then
+    begin
+      for I := 0 to Inspector[InspectorType].RowCount - 1 do
+      begin
+        Row := Inspector[InspectorType].Rows[I];
+        if Row.Editor is TCollectionPropertyEditor then
+        begin
+          Ed := TCollectionPropertyEditor(Row.Editor);
+          Break;
+        end;
+      end;
+      if Ed <> nil then
+      begin
+        Fm := TCollectionPropertyEditorForm(
+          Ed.ShowCollectionEditor(nil, nil, '')
+        );
+        { We remove close event in case we set it before, so that it doesn't
+          call nil/event with uninitialized variables when we hide this form }
+        Fm.OnClose := nil;
+        Fm.Close; // Hide the form
+        Fm.OnClose := @PropertyGridCollectionItemClose;
+        Fm.FormStyle := fsStayOnTop;
+        Fm.CollectionListBox.OnClick := @PropertyGridCollectionItemClick;
+        { We remove TToolButton's actions and use our own's OnClick events
+          instead so that we can hook our undo/redo system in }
+        Fm.AddButton.Action := nil;
+        Fm.DeleteButton.Action := nil;
+        Fm.MoveUpButton.Action := nil;
+        Fm.MoveDownButton.Action := nil;
+        Fm.AddButton.OnClick := @PropertyGridCollectionItemAdd;
+        Fm.DeleteButton.OnClick := @PropertyGridCollectionItemDelete;
+        Fm.MoveUpButton.OnClick := @PropertyGridCollectionItemMoveUp;
+        Fm.MoveDownButton.OnClick := @PropertyGridCollectionItemMoveDown;
+        { We only need to initialize TCollectionPropertyEditorForm 1 time }
+        IsCollectionFormInitialized := True;
+      end;
+    end;
+  end;
+
 var
   Selected: TComponentList;
-  SelectionForOI: TPersistentSelectionList;
   I, SelectedCount: Integer;
+  SelectionForOI: TPersistentSelectionList;
   UI: TCastleUserInterface;
   InspectorType: TInspectorType;
   V: TCastleViewport;
@@ -2648,7 +2773,10 @@ begin
       for I := 0 to SelectedCount - 1 do
         SelectionForOI.Add(Selected[I]);
       for InspectorType in TInspectorType do
+      begin
         Inspector[InspectorType].Selection := SelectionForOI;
+        InitializeCollectionFormEvents(InspectorType);
+      end;
     finally FreeAndNil(SelectionForOI) end;
   finally FreeAndNil(Selected) end;
 
