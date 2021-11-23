@@ -75,7 +75,7 @@ begin
   ButtonCopyText := TCastleButton.Create(Application);
   ButtonCopyText.AutoSizeWidth := false;
   ButtonCopyText.Caption := 'Copy text from one edit box to another';
-  ButtonCopyText.OnClick := {$ifdef FPC_OBJFPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.ButtonCopyTextClick;
+  ButtonCopyText.OnClick := {$ifdef FPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.ButtonCopyTextClick;
   Group.InsertFront(ButtonCopyText);
 
   Spacer := TCastleUserInterface.Create(Application);

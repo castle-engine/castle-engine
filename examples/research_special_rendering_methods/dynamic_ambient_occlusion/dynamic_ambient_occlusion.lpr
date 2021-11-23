@@ -66,7 +66,7 @@ type
     Position, Normal: TVector3;
   end;
   PAOElement = ^TAOElement;
-  TAOElementList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TAOElement>;
+  TAOElementList = {$ifdef FPC}specialize{$endif} TStructList<TAOElement>;
 
 var
   Elements: TAOElementList;

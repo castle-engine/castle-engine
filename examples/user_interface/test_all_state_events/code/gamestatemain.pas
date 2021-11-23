@@ -89,7 +89,7 @@ begin
   Notifications.Timeout := 20000;
   InsertFront(Notifications);
 
-  Timer.OnTimer := {$ifdef FPC_OBJFPC}@{$endif}DoTimer;
+  Timer.OnTimer := {$ifdef FPC}@{$endif}DoTimer;
 
   Notifications.Show('State started');
 end;
