@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2019 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,13 +14,21 @@
 }
 
 { Useful assertions for CGE types.
-  Adjusted from castle-engine/tests/code/common/castletestcase.pas
-  (which is only for FPC now). }
+  Adjusted from tests/code/common/castletestcase.pas (which is only for FPC now).
+
+  All these routines fail with exception when the condition is not satisfied.
+  They are @italic(not) based on built-in Assert routine, and are not affected
+  by the $assertions on/off compiler mode. They will check (and raise exception
+  if needed) regardless of the $assertions on/off compiler mode.
+}
 unit CastleAssertions;
 
 interface
 
 uses CastleVectors, CastleRectangles, CastleBoxes;
+
+procedure AssertEquals(const Expected, Actual: Int64); overload;
+procedure AssertEquals(const Expected, Actual: String); overload;
 
 procedure AssertMatrixEquals(const Expected, Actual: TMatrix4;
   const Epsilon: Single);
@@ -65,6 +73,24 @@ uses Math, SysUtils,
 procedure Fail(const Message: String);
 begin
   raise Exception.Create(Message);
+end;
+
+procedure AssertEquals(const Expected, Actual: Int64);
+begin
+  if Expected <> Actual then
+    Fail(Format('Expected integer: %d, actual: %d', [
+      Expected,
+      Actual
+    ]));
+end;
+
+procedure AssertEquals(const Expected, Actual: String);
+begin
+  if Expected <> Actual then
+    Fail(Format('Expected string: "%s", actual: "%s"', [
+      Expected,
+      Actual
+    ]));
 end;
 
 procedure AssertMatrixEquals(

@@ -1,85 +1,106 @@
+{
+  Copyright 2020-2021 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ (Partially-)automatic tests of CGE with Delphi.
+
+  We have much larger fully automated test suite in CGE tests/ ,
+  but it is for now only for FPC.
+  For Delphi testing, we use this simpler approach. }
+
 program base_tests;
 
 {$APPTYPE CONSOLE}
 {$ASSERTIONS ON}
 
+{ For EXTENDED_EQUALS_DOUBLE symbol. }
+{$I castleconf.inc}
+
 uses
-  System.SysUtils,
-  CastleAssertions,
-  CastleUtils,
-  CastleVectors,
-  CastleColors,
-  CastleStringUtils,
-  CastleLog,
-  CastleClassUtils,
-  CastleProjection,
-  CastleTimeUtils,
-  CastleRectangles,
-  URIParser,
-  CastleFindFiles,
-  CastleFilesUtils,
-  CastleURIUtils,
-  DOM,
-  CastleXMLUtils;
+  { standard units }
+  SysUtils,
+  { CGE units taken from FPC, only for Delphi compatibility }
+  URIParser, DOM,
+  { CGE units }
+  CastleUtils, CastleVectors, CastleColors, CastleStringUtils,
+  CastleLog, CastleClassUtils, CastleProjection, CastleTimeUtils,
+  CastleRectangles, CastleFindFiles, CastleFilesUtils,
+  CastleURIUtils, CastleXMLUtils, CastleImages,
+  { units specific to this project }
+  CastleAssertions;
 
-
-procedure FoundFile(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+procedure TestLog;
 begin
-  Writeln('  Found file: ', FileInfo.Name, ', ', FileInfo.URL);
+  WritelnLog('MyLog', 'Something to log: %d', [123]);
 end;
 
+procedure TestVectors;
 var
   M: TMatrix4;
   V: TVector3;
-  Col: TCastleColorRGB;
-  ColHsv: TVector3;
-  R: TFloatRectangle;
-  TimeStart: TTimerResult;
-  URI: TURI;
-  ExePath: String;
-  XML: TXMLDocument;
 begin
-  TimeStart := Timer;
-
-  // logging
-  InitializeLog;
-  WritelnLog('MyLog', 'Something to log: %d', [123]);
-
   // vectors
   M := TranslationMatrix(10, 20, 30);
   V := Vector3(1, 2, 3);
   V := M.MultPoint(V);
   Writeln('Translated vector: ', V.ToString);
   AssertVectorEquals(Vector3(11, 22, 33), V);
+end;
 
-  // colors
+procedure TestColors;
+var
+  Col: TCastleColorRGB;
+  ColHsv: TVector3;
+begin
   Col := RedRGB;
   ColHsv := RgbToHsv(Col);
   ColHsv.Z := 0.5; // half brightness
   Col := HsvToRgb(ColHsv);
   Writeln('Red color with half brightness ', Col.ToString);
   AssertVectorEquals(Vector3(0.5, 0, 0), Col);
+end;
 
-  // useful stuff from FPC RTL
-  Writeln('ApplicationName: ', ApplicationName);
-  Writeln('AppConfigDir (user): ', GetAppConfigDir(false));
-  Writeln('AppConfigDir (global): ', GetAppConfigDir(true));
-
-  // rects
+procedure TestRects;
+var
+  R: TFloatRectangle;
+begin
   R := FloatRectangle(2, 3, 10, 10);
   R := R.Grow(100, 100);
   Writeln(R.ToString);
   AssertRectsEqual(FloatRectangle(-98, -97, 210, 210), R);
+end;
 
-  // URI
-  URI := ParseURI('https://example.com/mypath/myfile.html');
-  Assert('https' = URI.Protocol);
-  Assert('example.com' = URI.Host);
-  Assert('/mypath/' = URI.Path);
-  Assert('myfile.html' = URI.Document);
+procedure FoundFile(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+begin
+  Writeln('  Found file: ', FileInfo.Name, ', ', FileInfo.URL);
+end;
+
+procedure TestPaths;
+begin
+  // useful stuff from FPC RTL
+  Writeln('ApplicationName: ', ApplicationName);
+  Assert('base_tests' = ApplicationName);
+  Writeln('AppConfigDir (user): ', GetAppConfigDir(false));
+  Writeln('AppConfigDir (global): ', GetAppConfigDir(true));
 
   // CGE data
   Writeln('ApplicationData(''''): ', ApplicationData(''));
+
+  (*
+  // Old code, when we needed to set ApplicationDataOverride.
+  // Now, the castle-data:/ works with Delphi out-of-the-box.
+
   {$ifdef MSWINDOWS}
   // Go 2 parent dirs up
   ExePath := ParentPath(ParentPath(ParentPath(ParamStr(0), false), false), false);
@@ -89,6 +110,8 @@ begin
   Writeln('Detected ExePath: ', ExePath);
   ApplicationDataOverride := FilenameToURISafe(ExePath + 'data/');
   Writeln('ApplicationData('''') after ApplicationDataOverride: ', ApplicationData(''));
+  *)
+
   Writeln('castle-data:/image.png: ', ResolveCastleDataURL('castle-data:/image.png'));
 
   // CastleFilesUtils test
@@ -97,16 +120,33 @@ begin
   // FindFiles
   Writeln('Searching recursively for *.dpr*:');
   FindFiles('', '*.dpr*', false, FoundFile, nil, [ffRecursive]);
-  Writeln('Searching recursively for *.dpr* in ExePath:');
-  FindFiles(FilenameToURISafe(ExePath), '*.dpr*', false, FoundFile, nil, [ffRecursive]);
+  Writeln('Searching recursively for *.dpr* in GetCurrentDir:');
+  FindFiles(FilenameToURISafe(GetCurrentDir), '*.dpr*', false, FoundFile, nil, [ffRecursive]);
+end;
 
-  // text file reading
+procedure TestURI;
+var
+  URI: TURI;
+begin
+  URI := ParseURI('https://example.com/mypath/myfile.html');
+  Assert('https' = URI.Protocol);
+  Assert('example.com' = URI.Host);
+  Assert('/mypath/' = URI.Path);
+  Assert('myfile.html' = URI.Document);
+end;
+
+procedure TestTextRead;
+begin
   Writeln('test txt file reading: ', FileToString('castle-data:/test-file.txt'));
   Assert(
     'one line' + NL +
     '2nd line' + NL = FileToString('castle-data:/test-file.txt'));
+end;
 
-  // XML file reading
+procedure TestXmlRead;
+var
+  XML: TXMLDocument;
+begin
   XML := URLReadXML('castle-data:/test.xml');
   try
     Writeln('test xml file reading: ',
@@ -122,10 +162,70 @@ begin
   finally
     FreeAndNil(Xml);
   end;
+end;
 
-  // timer
+procedure TestImage;
+var
+  Img: TCastleImage;
+begin
+  Img := LoadImage('castle-data:/test_texture.png');
+  try
+    AssertEquals(256, Img.Width);
+    AssertEquals(256, Img.Height);
+  finally FreeAndNil(Img) end;
+end;
+
+procedure TestTypeSizes;
+begin
+  AssertEquals(1, SizeOf(Byte));
+  AssertEquals(1, SizeOf(ShortInt));
+
+  AssertEquals(2, SizeOf(Word));
+  AssertEquals(2, SizeOf(SmallInt));
+
+  AssertEquals(4, SizeOf(Int32));
+  AssertEquals(4, SizeOf(UInt32));
+
+  AssertEquals(8, SizeOf(Int64));
+  AssertEquals(8, SizeOf(UInt64));
+  AssertEquals(8, SizeOf(QWord));
+
+  { Both in FPC and Delphi, Integer/Cardinal remained 4-byte (even though
+    in old days the Integer/Cardinal were documented as potentially
+    platform-dependent size).
+    See (Delphi): https://docwiki.embarcadero.com/RADStudio/Sydney/en/Simple_Types_(Delphi) }
+  AssertEquals(4, SizeOf(Integer));
+  AssertEquals(4, SizeOf(Cardinal));
+
+  AssertEquals(4, SizeOf(Single));
+  AssertEquals(8, SizeOf(Double));
+
+  AssertEquals(
+    {$if defined(EXTENDED_EQUALS_DOUBLE)} 8
+    {$elseif defined(EXTENDED_EQUALS_LONG_DOUBLE)} 16
+    {$else} 10
+    {$endif}, SizeOf(Extended));
+end;
+
+var
+  TimeStart: TTimerResult;
+begin
+  TimeStart := Timer;
+  InitializeLog;
+
+  TestLog;
+  TestVectors;
+  TestColors;
+  TestRects;
+  TestPaths;
+  TestURI;
+  TestTextRead;
+  TestXmlRead;
+  TestImage;
+  TestTypeSizes;
+
+  // timer test
   Writeln('This was done in ', TimerSeconds(Timer, TimeStart):1:2, ' seconds');
 
   Readln;
 end.
-
