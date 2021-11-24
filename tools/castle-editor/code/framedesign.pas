@@ -27,6 +27,7 @@ uses
   Spin, Buttons, Menus, Contnrs, Generics.Collections,
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
+  CollectionPropEditForm,
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
@@ -219,6 +220,7 @@ type
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
       PendingErrorBox: String;
       VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
+      CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
 
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
@@ -228,6 +230,7 @@ type
     procedure CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure ChangeViewportNavigation(
       const NewNavigation: TCastleNavigation);
+    procedure CollectionPropertyEditorFormUnassign;
     function ComponentCaption(const C: TComponent): String;
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
     procedure FrameAnchorsChange(Sender: TObject);
@@ -294,6 +297,12 @@ type
       then only PropertyEditorModified is called. }
     procedure PropertyGridModified(Sender: TObject);
     procedure PropertyEditorModified(Sender: TObject);
+    procedure PropertyGridCollectionItemClick(Sender: TObject);
+    procedure PropertyGridCollectionItemClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure PropertyGridCollectionItemAdd(Sender: TObject);
+    procedure PropertyGridCollectionItemDelete(Sender: TObject);
+    procedure PropertyGridCollectionItemMoveUp(Sender: TObject);
+    procedure PropertyGridCollectionItemMoveDown(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
@@ -324,6 +333,8 @@ type
       AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
     procedure GizmoHasModifiedParent(Sender: TObject);
     procedure GizmoStopDrag(Sender: TObject);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation);
   public
     OnUpdateFormCaption: TNotifyEvent;
     OnSelectionChanged: TNotifyEvent;
@@ -1074,9 +1085,51 @@ begin
 end;
 
 destructor TDesignFrame.Destroy;
+var
+  F: TCollectionPropertyEditorForm;
 begin
   FreeAndNil(TreeNodeMap);
+
+  if CollectionPropertyEditorForm <> nil then
+  begin
+    F := CollectionPropertyEditorForm;
+    CollectionPropertyEditorFormUnassign;
+
+    { Do not call when FormProject called Application.Terminate, doing
+      F.Close causes  SIGSEGV in this case, and is not necessary.
+      (Testcase:
+      open custom editor in https://github.com/castle-engine/castle-db-aware-controls ,
+      open TDbf.FieldDefs property editor,
+      close the project window by "X" in corner,
+      GTK widgetset on Lazarus 2.0.12. }
+    if not Application.Terminated then
+      F.Close;
+  end;
+
   inherited Destroy;
+end;
+
+procedure TDesignFrame.CollectionPropertyEditorFormUnassign;
+begin
+  if CollectionPropertyEditorForm <> nil then
+  begin
+    // unassign our callbacks from the form, as this TDesignFrame instance will no longer be valid
+    CollectionPropertyEditorForm.OnClose := nil;
+    CollectionPropertyEditorForm.CollectionListBox.OnClick := nil;
+    CollectionPropertyEditorForm.AddButton.OnClick := nil;
+    CollectionPropertyEditorForm.DeleteButton.OnClick := nil;
+    CollectionPropertyEditorForm.MoveUpButton.OnClick := nil;
+    CollectionPropertyEditorForm.MoveDownButton.OnClick := nil;
+    CollectionPropertyEditorForm.RemoveFreeNotification(Self);
+    CollectionPropertyEditorForm := nil;
+  end;
+end;
+
+procedure TDesignFrame.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = CollectionPropertyEditorForm) then
+    CollectionPropertyEditorFormUnassign;
 end;
 
 procedure TDesignFrame.SaveDesign(const Url: String);
@@ -2300,6 +2353,75 @@ begin
     raise EInternalError.Create('PropertyEditorModified can only be called with TPropertyEditor as a Sender.');
 end;
 
+procedure TDesignFrame.PropertyGridCollectionItemClick(Sender: TObject);
+var
+  SelectionForOI: TPersistentSelectionList;
+  InspectorType: TInspectorType;
+  Ed: TCollectionPropertyEditorForm;
+  ListBox: TListBox;
+begin
+  SelectionForOI := TPersistentSelectionList.Create;
+  try
+    ListBox := Sender as TListBox;
+    if ListBox.ItemIndex >= 0 then
+    begin
+      Ed := ListBox.Parent as TCollectionPropertyEditorForm;
+      SelectionForOI.Add(Ed.Collection.Items[ListBox.ItemIndex]);
+      for InspectorType in TInspectorType do
+        Inspector[InspectorType].Selection := SelectionForOI;
+    end;
+  finally FreeAndNil(SelectionForOI) end;
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  UpdateSelectedControl;
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemAdd(Sender: TObject);
+begin
+  ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actAddExecute(Sender);
+  RecordUndo('Add item', ucLow);
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemDelete(Sender: TObject);
+begin
+  ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actDelExecute(Sender);
+  RecordUndo('Delete item', ucLow);
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemMoveUp(Sender: TObject);
+var
+  FakeSender: TComponent;
+begin
+  FakeSender := TComponent.Create(nil);
+  try
+    { This is a weird decision. It depends on sender's name to determine if
+      it should move item up or move item down }
+    FakeSender.Name := 'actMoveUp';
+    ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(FakeSender);
+    RecordUndo('Move item up', ucLow);
+  finally
+    FreeAndNil(FakeSender);
+  end;
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemMoveDown(Sender: TObject);
+var
+  FakeSender: TComponent;
+begin
+  FakeSender := TComponent.Create(nil);
+  try
+    { This is a weird decision. It depends on sender's name to determine if
+      it should move item up or move item down }
+    FakeSender.Name := 'actMoveDown';
+    ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(FakeSender);
+    RecordUndo('Move item down', ucLow);
+  finally
+    FreeAndNil(FakeSender);
+  end;
+end;
+
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
   const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
 var
@@ -2622,10 +2744,66 @@ begin
 end;
 
 procedure TDesignFrame.UpdateSelectedControl;
+
+  procedure InitializeCollectionFormEvents(InspectorType: TInspectorType);
+  var
+    I: Integer;
+    Row: TOIPropertyGridRow;
+    Ed: TCollectionPropertyEditor = nil;
+  begin
+    if CollectionPropertyEditorForm = nil then
+    begin
+      { If there is any property that can have a TCollectionPropertyEditor,
+        then (once for the whole lifetime of this TDesignFrame) we need to assign
+        our callbacks to the associated TCollectionPropertyEditorForm .
+        *Before* the form can be actually invoked by user pressing "..." button
+        near the respective field.
+
+        The TCollectionPropertyEditorForm form instance is internal in LCL,
+        it is reused by all property editors and it stays constant
+        for the rest of the application's lifetime.
+        The code below detects if there's *any* field with TCollectionPropertyEditor,
+        and if yes -- creates (and immediately closes) the associated
+        TCollectionPropertyEditorForm, just to initialize our callbacks.
+
+        Example field: TDbf.FieldDefs, test with
+        https://github.com/castle-engine/castle-db-aware-controls }
+
+      for I := 0 to Inspector[InspectorType].RowCount - 1 do
+      begin
+        Row := Inspector[InspectorType].Rows[I];
+        if Row.Editor is TCollectionPropertyEditor then
+        begin
+          Ed := TCollectionPropertyEditor(Row.Editor);
+          Break;
+        end;
+      end;
+      if Ed <> nil then
+      begin
+        CollectionPropertyEditorForm := Ed.ShowCollectionEditor(nil, nil, '') as TCollectionPropertyEditorForm;
+        CollectionPropertyEditorForm.FreeNotification(Self);
+        CollectionPropertyEditorForm.Close; // Hide the form
+        CollectionPropertyEditorForm.OnClose := @PropertyGridCollectionItemClose;
+        CollectionPropertyEditorForm.FormStyle := fsStayOnTop;
+        CollectionPropertyEditorForm.CollectionListBox.OnClick := @PropertyGridCollectionItemClick;
+        { We remove TToolButton's actions and use our own's OnClick events
+          instead so that we can hook our undo/redo system in }
+        CollectionPropertyEditorForm.AddButton.Action := nil;
+        CollectionPropertyEditorForm.DeleteButton.Action := nil;
+        CollectionPropertyEditorForm.MoveUpButton.Action := nil;
+        CollectionPropertyEditorForm.MoveDownButton.Action := nil;
+        CollectionPropertyEditorForm.AddButton.OnClick := @PropertyGridCollectionItemAdd;
+        CollectionPropertyEditorForm.DeleteButton.OnClick := @PropertyGridCollectionItemDelete;
+        CollectionPropertyEditorForm.MoveUpButton.OnClick := @PropertyGridCollectionItemMoveUp;
+        CollectionPropertyEditorForm.MoveDownButton.OnClick := @PropertyGridCollectionItemMoveDown;
+      end;
+    end;
+  end;
+
 var
   Selected: TComponentList;
-  SelectionForOI: TPersistentSelectionList;
   I, SelectedCount: Integer;
+  SelectionForOI: TPersistentSelectionList;
   UI: TCastleUserInterface;
   InspectorType: TInspectorType;
   V: TCastleViewport;
@@ -2649,6 +2827,10 @@ begin
         SelectionForOI.Add(Selected[I]);
       for InspectorType in TInspectorType do
         Inspector[InspectorType].Selection := SelectionForOI;
+
+      { Inspector itAll includes all fields from all inspectors, always.
+        So there's no reason to run InitializeCollectionFormEvents on other itXxx inspectors. }
+      InitializeCollectionFormEvents(itAll);
     finally FreeAndNil(SelectionForOI) end;
   finally FreeAndNil(Selected) end;
 
