@@ -13,13 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ (Partially-)automatic tests of CGE with Delphi.
-
-  We have much larger fully automated test suite in CGE tests/ ,
-  but it is for now only for FPC.
-  For Delphi testing, we use this simpler approach. }
-
-program base_tests;
+{ (Partially-)automatic tests of CGE with Delphi. }
+program delphi_tests;
 
 {$APPTYPE CONSOLE}
 {$ASSERTIONS ON}
@@ -90,7 +85,7 @@ procedure TestPaths;
 begin
   // useful stuff from FPC RTL
   Writeln('ApplicationName: ', ApplicationName);
-  Assert('base_tests' = ApplicationName);
+  Assert('delphi_tests' = ApplicationName);
   Writeln('AppConfigDir (user): ', GetAppConfigDir(false));
   Writeln('AppConfigDir (global): ', GetAppConfigDir(true));
 

@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{59877DD6-9D29-486F-A9A3-4649E71069BF}</ProjectGuid>
-        <MainSource>base_tests.dpr</MainSource>
+        <ProjectGuid>{ECB5C12B-BD87-4D79-8CCD-27F57C05F4B5}</ProjectGuid>
+        <MainSource>delphi_tests.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>33939</TargetedPlatforms>
@@ -73,13 +73,13 @@
         <DCC_N>false</DCC_N>
         <DCC_S>false</DCC_S>
         <DCC_ImageBase>00400000</DCC_ImageBase>
-        <SanitizedProjectName>base_tests</SanitizedProjectName>
+        <SanitizedProjectName>delphi_tests</SanitizedProjectName>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>..\..\..\src/base;..\..\..\src/common_includes;..\..\..\src/base/android;..\..\..\src/base/windows;..\..\..\src/base/unix;..\..\..\src/base/opengl;..\..\..\src/fonts;..\..\..\src/fonts/opengl;..\..\..\src/window;..\..\..\src/window/gtk;..\..\..\src/window/windows;..\..\..\src/window/unix;..\..\..\src/window/deprecated_units;..\..\..\src/images;..\..\..\src/images/opengl;..\..\..\src/images/opengl/glsl/generated-pascal;..\..\..\src/3d;..\..\..\src/3d/opengl;..\..\..\src/x3d;..\..\..\src/x3d/opengl;..\..\..\src/x3d/opengl/glsl/generated-pascal;..\..\..\src/audio;..\..\..\src/audio/fmod;..\..\..\src/audio/openal;..\..\..\src/audio/ogg_vorbis;..\..\..\src/files;..\..\..\src/files/indy;..\..\..\src/castlescript;..\..\..\src/ui;..\..\..\src/ui/windows;..\..\..\src/ui/opengl;..\..\..\src/game;..\..\..\src/services;..\..\..\src/services/opengl;..\..\..\src/physics;..\..\..\src/physics/kraft;..\..\..\src/pasgltf;..\..\..\src/deprecated_units;..\..\..\src/vampyre_imaginglib/src/Source;..\..\..\src/vampyre_imaginglib/src/Source/JpegLib;..\..\..\src/vampyre_imaginglib/src/Source/ZLib;..\..\..\src/vampyre_imaginglib/src/Extras/Extensions;..\..\..\src/vampyre_imaginglib/src/Extensions/J2KObjects;..\..\..\src/vampyre_imaginglib/src/Extensions/LibTiff;..\..\..\src/vampyre_imaginglib/src/Extensions;..\..\..\src/compatibility/delphi-only;..\..\..\src/compatibility/delphi-only/fcl-json;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\src/base;..\..\src/common_includes;..\..\src/base/android;..\..\src/base/windows;..\..\src/base/unix;..\..\src/base/opengl;..\..\src/fonts;..\..\src/fonts/opengl;..\..\src/window;..\..\src/window/gtk;..\..\src/window/windows;..\..\src/window/unix;..\..\src/window/deprecated_units;..\..\src/images;..\..\src/images/opengl;..\..\src/images/opengl/glsl/generated-pascal;..\..\src/3d;..\..\src/3d/opengl;..\..\src/x3d;..\..\src/x3d/opengl;..\..\src/x3d/opengl/glsl/generated-pascal;..\..\src/audio;..\..\src/audio/fmod;..\..\src/audio/openal;..\..\src/audio/ogg_vorbis;..\..\src/files;..\..\src/files/indy;..\..\src/castlescript;..\..\src/ui;..\..\src/ui/windows;..\..\src/ui/opengl;..\..\src/game;..\..\src/services;..\..\src/services/opengl;..\..\src/physics;..\..\src/physics/kraft;..\..\src/pasgltf;..\..\src/deprecated_units;..\..\src/vampyre_imaginglib/src/Source;..\..\src/vampyre_imaginglib/src/Source/JpegLib;..\..\src/vampyre_imaginglib/src/Source/ZLib;..\..\src/vampyre_imaginglib/src/Extras/Extensions;..\..\src/vampyre_imaginglib/src/Extensions/J2KObjects;..\..\src/vampyre_imaginglib/src/Extensions/LibTiff;..\..\src/vampyre_imaginglib/src/Extensions;..\..\src/compatibility/delphi-only;..\..\src/compatibility/delphi-only/fcl-json;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\compilation\delphi</DCC_DcuOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
@@ -177,7 +177,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">base_tests.dpr</Source>
+                    <Source Name="MainSource">delphi_tests.dpr</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>

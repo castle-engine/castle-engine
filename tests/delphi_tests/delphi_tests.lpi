@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="base_tests"/>
+      <Title Value="delphi_tests"/>
     </General>
     <RequiredPackages Count="2">
       <Item1>
@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="base_tests.dpr"/>
+        <Filename Value="delphi_tests.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -40,7 +40,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="base_tests"/>
+      <Filename Value="delphi_tests"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value=""/>

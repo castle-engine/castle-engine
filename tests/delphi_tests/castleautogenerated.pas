@@ -13,8 +13,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'base_tests';
-  ApplicationProperties.Caption := 'base_tests';
+  ApplicationProperties.ApplicationName := 'delphi_tests';
+  ApplicationProperties.Caption := 'delphi_tests';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
