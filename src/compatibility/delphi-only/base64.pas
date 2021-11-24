@@ -46,7 +46,7 @@ begin
   inherited Create;
   FSource := ASource;
   // TODO: should we call this repeatedly until the end?
-  TNetEncoding.Base64.Decode(Self, FSource);
+  TNetEncoding.Base64.Decode(FSource, Self);
   Position := 0;
 end;
 

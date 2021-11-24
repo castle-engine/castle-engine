@@ -24,14 +24,15 @@ program delphi_tests;
 
 uses
   { standard units }
-  SysUtils,
+  SysUtils, Classes,
   { CGE units taken from FPC, only for Delphi compatibility }
   URIParser, DOM,
   { CGE units }
   CastleUtils, CastleVectors, CastleColors, CastleStringUtils,
   CastleLog, CastleClassUtils, CastleProjection, CastleTimeUtils,
   CastleRectangles, CastleFindFiles, CastleFilesUtils,
-  CastleURIUtils, CastleXMLUtils, CastleImages,
+  CastleURIUtils, CastleXMLUtils, CastleImages, CastleDataUri,
+  CastleDownload,
   { units specific to this project }
   CastleAssertions;
 
@@ -202,6 +203,25 @@ begin
     {$endif}, SizeOf(Extended));
 end;
 
+{ Test reading data URI encoded with base64. }
+procedure TestDataUri;
+const
+  ImageDataUri = {$I bricks_base64.inc};
+var
+  S: TStream;
+  Img: TCastleImage;
+begin
+  S := Download(ImageDataUri);
+  try
+  finally FreeAndNil(S) end;
+
+  Img := LoadImage(ImageDataUri);
+  try
+    AssertEquals(1024, Img.Width);
+    AssertEquals(1024, Img.Height);
+  finally FreeAndNil(Img) end;
+end;
+
 var
   TimeStart: TTimerResult;
 begin
@@ -218,9 +238,10 @@ begin
   TestXmlRead;
   TestImage;
   TestTypeSizes;
+  TestDataUri;
 
   // timer test
   Writeln('This was done in ', TimerSeconds(Timer, TimeStart):1:2, ' seconds');
 
-  Readln;
+  //Readln;
 end.
