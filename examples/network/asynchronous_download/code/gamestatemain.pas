@@ -30,7 +30,7 @@ type
     const
       DownloadsCount = 3;
     var
-      { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+      { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
       LabelDownload: array [1..DownloadsCount] of TCastleLabel;
       ProgressDownload: array [1..DownloadsCount] of TCastleRectangleControl;
       ButtonStartDownloads, ButtonAbortDownloads: TCastleButton;

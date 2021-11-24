@@ -29,7 +29,7 @@ type
     type
       TTestMode = (tmMove, tmBox, tmSphere, tmRay);
     var
-      { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+      { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
       LabelFps: TCastleLabel;
       TransformMoving: TCastleTransform;
       SceneMovingBox: TCastleScene;

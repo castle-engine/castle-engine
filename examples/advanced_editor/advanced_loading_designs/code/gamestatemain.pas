@@ -26,7 +26,7 @@ type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
     DesignedButton1: TCastleDesign;
     DesignedButton1Button: TCastleButton;
