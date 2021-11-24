@@ -69,6 +69,34 @@
 
 {$writeableconst off} // Note: no way to specify this by FPC command-line.
 
+{ CPU symbols ---------------------------------------------------------------- }
+
+{ Delphi compatibility }
+{$ifndef FPC}
+  { Define in Delphi CPU32/64, like FPC does. }
+  {$ifdef CPUX86} {$define CPU32} {$endif}
+  {$ifdef CPU32BITS} {$define CPU32} {$endif}
+  {$ifdef CPUX64} {$define CPU64} {$endif}
+  {$ifdef CPU64BITS} {$define CPU64} {$endif}
+
+  { Define platforms like FPC does. }
+  {$ifdef CPUX64} {$define cpux86_64} {$define cpuamd64} {$endif}
+  {$ifdef CPUX86} {$define cpu386} {$define cpui386} {$endif}
+  {$ifdef CPUARM64} {$define CPUAARCH64} {$endif}
+
+  { Define in Delphi UNIX when LINUX, like FPC does. }
+  {$ifdef LINUX} {$define UNIX} {$endif}
+{$endif}
+
+{ Traditionally, CGE defined CPUARM64 also for 64-bit iOS.
+  For compatibility, keep it defined there.
+  But CPUARM64 should not be used anymore: we use now CPUAARCH64,
+  defined by FPC automatically (so it's safer to use, it will work
+  regardless of how you compile the sources). }
+{$ifdef CPUAARCH64}
+  {$define CPUARM64}
+{$endif}
+
 { Define various necessary things -------------------------------------------- }
 
 (*EXTENDED_EQUALS_DOUBLE should be defined when Extended type is
@@ -91,6 +119,15 @@
 *)
 {$ifdef FPC}
   {$ifndef FPC_HAS_TYPE_EXTENDED}
+    {$define EXTENDED_EQUALS_DOUBLE}
+  {$endif}
+{$else}
+  { Following https://docwiki.embarcadero.com/RADStudio/Sydney/en/Simple_Types_(Delphi)#Real_Types }
+  {$if defined(LINUX) and defined(CPU64)}
+    {$define EXTENDED_EQUALS_LONG_DOUBLE}
+  {$elseif defined(WIN32)}
+    { Original Pascal 10-byte Extended. }
+  {$else}
     {$define EXTENDED_EQUALS_DOUBLE}
   {$endif}
 {$endif}
@@ -118,32 +155,6 @@
 {$endif}
 
 {$define TOBJECT_HAS_EQUALS}
-
-{ Delphi compatibility }
-{$ifndef FPC}
-  { Define in Delphi CPU32/64, like FPC does. }
-  {$ifdef CPUX86} {$define CPU32} {$endif}
-  {$ifdef CPU32BITS} {$define CPU32} {$endif}
-  {$ifdef CPUX64} {$define CPU64} {$endif}
-  {$ifdef CPU64BITS} {$define CPU64} {$endif}
-
-  { Define platforms like FPC does. }
-  {$ifdef CPUX64} {$define cpux86_64} {$define cpuamd64} {$endif}
-  {$ifdef CPUX86} {$define cpu386} {$define cpui386} {$endif}
-  {$ifdef CPUARM64} {$define CPUAARCH64} {$endif}
-
-  { Define in Delphi UNIX when LINUX, like FPC does. }
-  {$ifdef LINUX} {$define UNIX} {$endif}
-{$endif}
-
-{ Traditionally, CGE defined CPUARM64 also for 64-bit iOS.
-  For compatibility, keep it defined there.
-  But CPUARM64 should not be used anymore: we use now CPUAARCH64,
-  defined by FPC automatically (so it's safer to use, it will work
-  regardless of how you compile the sources). }
-{$ifdef CPUAARCH64}
-  {$define CPUARM64}
-{$endif}
 
 { Delphi reports many hints/warnings that are known to be harmless in our case. }
 {$ifndef FPC}

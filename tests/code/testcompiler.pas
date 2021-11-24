@@ -102,16 +102,11 @@ begin
   AssertEquals(4, SizeOf(Single));
   AssertEquals(8, SizeOf(Double));
 
-  { TODO: Delphi on some platforms (
-    64-bit Intel Linux
-    32-bit Intel macOS
-    32-bit Intel iOS Simulator
-    ) defines Extended as 16-byte.
-    See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Simple_Types_(Delphi)#Real_Types
-    We'll have to adjust to this.
-    Most of CGE code should not use Extended anyway,
-    see https://github.com/castle-engine/castle-engine/wiki/Coding-Conventions/ }
-  AssertEquals({$ifdef EXTENDED_EQUALS_DOUBLE} 8 {$else} 10 {$endif}, SizeOf(Extended));
+  AssertEquals(
+    {$if defined(EXTENDED_EQUALS_DOUBLE)} 8
+    {$elseif defined(EXTENDED_EQUALS_LONG_DOUBLE)} 16
+    {$else} 10
+    {$endif}, SizeOf(Extended));
 end;
 
 initialization
