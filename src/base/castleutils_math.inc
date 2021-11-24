@@ -17,6 +17,17 @@
 
 {$ifdef read_interface}
 
+{ When using FPC, and Extended = Double, you cannot overload
+  for both Double and Extended as they are just equal.
+  Extended is just alias for Double.
+
+  Delphi, even when Extended = Double, still treats Extended
+  like a different type, for choosing overloads.
+  It even requires Extended overloads e.g. for MinVar(Extended, ...). }
+{$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
+  {$define EXTENDED_OVERLOADS}
+{$endif}
+
 { Swap variables values.
   @groupBegin }
 procedure SwapValues(var a, b: Byte    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -26,7 +37,7 @@ procedure SwapValues(var a, b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inl
 procedure SwapValues(var a, b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure SwapValues(var a, b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 procedure SwapValues(var a, b: char    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -41,7 +52,7 @@ procedure OrderUp(var Smaller, Larger: Int32   ); overload; {$ifdef SUPPORTS_INL
 procedure OrderUp(var Smaller, Larger: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(var Smaller, Larger: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(var Smaller, Larger: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure OrderUp(var Smaller, Larger: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
@@ -53,7 +64,7 @@ procedure OrderUp(x, y: Int32 ; var Smaller, Larger: Int32   ); overload; {$ifde
 procedure OrderUp(x, y: UInt32; var Smaller, Larger: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(x, y: Single; var Smaller, Larger: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(x, y: Double; var Smaller, Larger: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
@@ -68,7 +79,7 @@ procedure MinVar(var a: Int32   ; const b: Int32   ); overload; {$ifdef SUPPORTS
 procedure MinVar(var a: UInt32  ; const b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure MinVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
@@ -83,7 +94,7 @@ procedure MaxVar(var a: Int32   ; const b: Int32   ); overload; {$ifdef SUPPORTS
 procedure MaxVar(var a: UInt32  ; const b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure MaxVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
@@ -122,7 +133,7 @@ function Clamped(const a, vBegin, vEnd: Int32   ): Int32   ; overload; {$ifdef S
 function Clamped(const a, vBegin, vEnd: UInt32  ): UInt32  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 function Clamped(const a, vBegin, vEnd: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
@@ -132,7 +143,7 @@ procedure ClampVar(var a: Int32   ; const vBegin, vEnd: Int32   ); overload; {$i
 procedure ClampVar(var a: UInt32  ; const vBegin, vEnd: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure ClampVar(var a: Extended; const vBegin, vEnd: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
@@ -141,7 +152,7 @@ procedure Clamp(var a: Int32   ; const vBegin, vEnd: Int32   ); overload; {$ifde
 procedure Clamp(var a: UInt32  ; const vBegin, vEnd: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 {$endif}
 
@@ -433,7 +444,7 @@ procedure SwapValues(var a, b: Int32);  var Tmp: Int32;  begin Tmp := A; A := B;
 procedure SwapValues(var a, b: UInt32); var Tmp: UInt32; begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Single); var Tmp: Single; begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Double); var Tmp: Double; begin Tmp := A; A := B; B := Tmp; end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure SwapValues(var a, b: Extended); var Tmp: Extended; begin Tmp := A; A := B; B := Tmp; end;
 {$endif}
 procedure SwapValues(var a, b: char);     var Tmp: char;     begin Tmp := A; A := B; B := Tmp; end;
@@ -444,7 +455,7 @@ procedure OrderUp(var Smaller, Larger: Int32);  begin if Smaller > Larger then S
 procedure OrderUp(var Smaller, Larger: UInt32); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
 procedure OrderUp(var Smaller, Larger: Single); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
 procedure OrderUp(var Smaller, Larger: Double); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure OrderUp(var Smaller, Larger: Extended); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
 {$endif}
 
@@ -452,7 +463,7 @@ procedure OrderUp(x, y: Int32;  var Smaller, Larger: Int32);  begin if X <= Y th
 procedure OrderUp(x, y: UInt32; var Smaller, Larger: UInt32); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 procedure OrderUp(x, y: Single;   var Smaller, Larger: Single);   begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 procedure OrderUp(x, y: Double;   var Smaller, Larger: Double);   begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 {$endif}
 
@@ -462,7 +473,7 @@ procedure MinVar(var a: Int32  ; const b: Int32  ); begin if B < A then A := B e
 procedure MinVar(var a: UInt32 ; const b: UInt32 ); begin if B < A then A := B end;
 procedure MinVar(var a: Single ; const b: Single ); begin if B < A then A := B end;
 procedure MinVar(var a: Double ; const b: Double ); begin if B < A then A := B end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure MinVar(var a: Extended; const b: Extended); begin if B < A then A := B end;
 {$endif}
 
@@ -472,7 +483,7 @@ procedure MaxVar(var a: Int32 ; const b: Int32 ); begin if B > A then A := B end
 procedure MaxVar(var a: UInt32; const b: UInt32); begin if B > A then A := B end;
 procedure MaxVar(var a: Single; const b: Single); begin if B > A then A := B end;
 procedure MaxVar(var a: Double; const b: Double); begin if B > A then A := B end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure MaxVar(var a: Extended; const b: Extended); begin if B > A then A := B end;
 {$endif}
 
@@ -567,7 +578,7 @@ begin
     result := a;
 end;
 
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 function Clamped(const a, vBegin, vEnd: Extended): Extended;
 begin
   if a < vBegin then result := vBegin else
@@ -612,7 +623,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure ClampVar(var a: Extended; const vBegin, vEnd: Extended);
 begin
   if a < vBegin then a := vBegin else
@@ -650,7 +661,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure Clamp(var a: Extended; const vBegin, vEnd: Extended);
 begin
   if a < vBegin then a := vBegin else
