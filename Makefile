@@ -333,10 +333,13 @@ examples:
 # Exceptions:
 # - We do not compile examples/network/tcp_connection/ here,
 #   as it requires Indy which may not be installed.
+# - delphi_tests requires Delphi, which is not available on non-Windows,
+#   so it is disabled from automatic test here.
 	$(FIND) . \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
+	  '(' -path ./tests/delphi_tests -prune ')' -o \
 	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
 	  xargs -0 -n1 ./castle-engine-copy$(EXE_EXTENSION) \
 	    $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
