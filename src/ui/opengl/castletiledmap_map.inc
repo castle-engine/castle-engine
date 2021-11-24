@@ -650,6 +650,9 @@ begin
   Properties := TPropertyList.Create;
   Animation := TAnimation.Create;
   Image := TImage.Create;
+
+  { Default values }
+  Probability := 1.0;
 end;
 
 destructor TTiledMap.TTile.Destroy;
@@ -947,6 +950,7 @@ begin
   Properties := TPropertyList.Create;
   Tiles := TTileList.Create;
   Image := TImage.Create;
+  FirstGID := 1;
 end;
 
 destructor TTiledMap.TTileset.Destroy;
@@ -974,6 +978,41 @@ procedure TTiledMap.TTileset.Load(const Element: TDOMElement; const BaseUrl: Str
     end;
   end;
 
+  { Generate complete tileset tiles list (Tileset.Tiles).
+    Should only be called if not all tiles are found in the tsx-file! }
+  procedure GenerateCompleteTileList(ATileset: TTileset);
+  var
+    NewTile, Tile: TTile;
+    IncompleteTileList: TTileList;
+    Index: Cardinal;
+  begin
+    { "Copy" old, incomplete tile list and create a new one for the tileset. }
+    IncompleteTileList := ATileset.Tiles;
+    ATileset.Tiles := nil;
+    ATileset.Tiles := TTileList.Create;
+    IncompleteTileList.OwnsObjects := False;
+
+    { Create for every "missing" tile a new tile and add it to tile list. }
+    for Index := 0 to ATileset.TileCount - IncompleteTileList.Count - 1 do
+    begin
+      NewTile := TTile.Create;
+      NewTile.Id := Index;
+      ATileset.Tiles.Add(NewTile);
+    end;
+
+    { Insert all existing tiles (if any) from the iincomplete tile list
+      at the correct position (Tile.Id corresponds to item index). }
+    for Tile in IncompleteTileList do
+      ATileset.Tiles.Insert(Tile.Id, Tile);
+
+    { Give all tiles the correct id. This is esp. important for the new
+      tiles, as they have no id set on creation. }
+    for Index := 0 to ATileset.TileCount - 1 do
+      (ATileset.Tiles.Items[Index] as TTile).Id := Index;
+
+    FreeAndNil(IncompleteTileList);
+  end;
+
 var
   I: TXMLElementIterator;
   NewTile: TTile;
@@ -984,9 +1023,17 @@ begin
   Margin := 0;
 
   if Element.AttributeString('firstgid', TmpStr) then
-    FirstGID := StrToDWord(TmpStr)
-  else
-    FirstGID := 1;
+    FirstGID := StrToDWord(TmpStr); 
+  { Otherwise (if firstgid not specified in XML element), leave FirstGID unchanged.
+    This is important to correctly read "firstgid" in case <tileset> in TMX points 
+    to external file like
+    
+      <tileset firstgid="10" source="image3x3-regular.tsx"/>
+      
+     This means that TTiledMap.TTileset.Load calls itself,
+     and outer call set FirstGID to 10 and it should not be overridden by inner call.
+     Testcases in examples/tiled/map_viewer/data/maps/multiple_tilesets/ . }
+      
   if Element.AttributeString('source', TmpStr) then
   begin
     URL := CombineURI(BaseUrl, TmpStr);
@@ -1034,10 +1081,36 @@ begin
     end;
   finally FreeAndNil(I) end;
 
+  { Fallback: TileCount determination if is not found in (old) tsx-files prior
+    to version 0.13 (Aug 2015). }
   if TileCount = 0 then
   begin
     Image.DetermineSize;
     TileCount := (Image.Width div TileWidth) * (Image.Height div TileHeight);
+  end;
+
+  if TileCount <> Tiles.Count then
+  { Hint 1: Tiles which have no special setting (probability equals 1.0,
+            no terrains set, no type set) are not explicitly written down
+            in the tsx-file (like "<tile id="0" ... />").
+            This means they are not loaded by the iteration above
+            and consequently are not found in the tiles list of the tileset.
+            (This means Tiles.Count is smaller than TileCount!)
+
+    Hint 2: This does not affect loading/displaying via TCastleTiledMapControl
+            because this control class determines the tiles from tilesets
+            solely by width/height/column/row-calculations.
+
+    Hint 3: A complete tile list is necessary for X3D loading. (To come)
+            Also, developers can expect to find all tiles in this list. }
+  begin
+    WritelnLog('%s: Could not load all tiles of a tileset. Expected tiles: %d, loaded tiles: %d', [
+      URIDisplay(URL),
+      TileCount,
+      Tiles.Count
+    ]);
+
+    GenerateCompleteTileList(Self);
   end;
 end;
 
