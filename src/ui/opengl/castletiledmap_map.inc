@@ -1023,7 +1023,17 @@ begin
   Margin := 0;
 
   if Element.AttributeString('firstgid', TmpStr) then
-    FirstGID := StrToDWord(TmpStr);
+    FirstGID := StrToDWord(TmpStr); 
+  { Otherwise (if firstgid not specified in XML element), leave FirstGID unchanged.
+    This is important to correctly read "firstgid" in case <tileset> in TMX points 
+    to external file like
+    
+      <tileset firstgid="10" source="image3x3-regular.tsx"/>
+      
+     This means that TTiledMap.TTileset.Load calls itself,
+     and outer call set FirstGID to 10 and it should not be overridden by inner call.
+     Testcases in examples/tiled/map_viewer/data/maps/multiple_tilesets/ . }
+      
   if Element.AttributeString('source', TmpStr) then
   begin
     URL := CombineURI(BaseUrl, TmpStr);
