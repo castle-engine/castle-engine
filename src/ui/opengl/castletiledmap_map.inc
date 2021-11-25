@@ -862,8 +862,8 @@ begin
   Name := Element.AttributeStringDef('name', '');
   if Element.AttributeString('opacity', TmpStr) then
     Opacity := StrToFloatDot(TmpStr);
-  if Element.GetAttribute('visible') = '0' then
-    Visible := False;
+  if Element.AttributeStringDef('visible', '1') = '0' then
+    Visible := false;
   OffsetX := Element.AttributeSingleDef('offsetx', 0);
   OffsetY := Element.AttributeSingleDef('offsety', 0);
 
