@@ -203,16 +203,6 @@ strip-precompiled-libraries:
 
 # examples and tools -----------------------------------------------------------
 
-# Note that images/examples/fft_tests is not included here,
-# and unit images/imagesfftw.pas is not included in fpmake.pp,
-# because
-# 1. it requires to compile FPC > 2.2.x, and we try to work also with earlier FPC.
-# 2. to link the example, you need the fftw library. I don't want
-#    to force everyone who wants to execute "make examples" to install
-#    fftw library (especially since it's really not needed by my engine,
-#    currently my fftw code is just for testing, it's not actually used
-#    by our engine or any game for anything).
-#
 # Note that examples with CastleEngineManifest.xml are not listed here.
 # They will be found and compiled by a Makefile rule that searches using
 # "find ... -iname CastleEngineManifest.xml ..." .
