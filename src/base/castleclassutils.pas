@@ -187,25 +187,36 @@ function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
   then the string contents (Length(S) bytes).
   Works on 8-bit strings, i.e. AnsiStrings.
   @groupBegin }
-procedure StreamWriteString8(const Stream: TStream; const S: AnsiString);
-function StreamReadString8(const Stream: TStream): AnsiString;
+procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
+function StreamReadString(const Stream: TStream): AnsiString;
 { @groupEnd }
 
 { Convert whole Stream to a string.
   Changes Stream.Position to 0 and then reads Stream.Size bytes,
   so be sure that Stream.Size is usable.
   Works on 8-bit strings, i.e. AnsiStrings. }
-function StreamToString8(const Stream: TStream): AnsiString;
+function StreamToString(const Stream: TStream): AnsiString;
 
-{ Set contents of TMemoryStream to given string.
+{ Set contents of TMemoryStream to given string, in UTF-8 encoding.
   If Rewind then the position is reset to the beginning,
   otherwise it stays at the end.
 
-  Works on default String, which means 16-bit String with Delphi,
-  and 9-bit String with FPC. }
+  Works on 8-bit strings, i.e. AnsiStrings. }
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: String; const Rewind: boolean = true); overload;
+  const S: AnsiString; const Rewind: boolean = true); overload;
 function MemoryStreamLoadFromString(
+  const S: AnsiString; const Rewind: boolean = true): TMemoryStream; overload;
+
+{ Set contents of TMemoryStream to given string,
+  in UTF-8 or UTF-16 (matching default String) encoding.
+  If Rewind then the position is reset to the beginning,
+  otherwise it stays at the end.
+
+  On FPC, works with 8-bit strings (AnsiStrings) and is equivalent to MemoryStreamLoadFromString8.
+  On Delphi, works with 16-bit strings (UnicodeString), so the resulting stream size is 2x larger. }
+procedure MemoryStreamLoadFromDefaultString(const Stream: TMemoryStream;
+  const S: String; const Rewind: boolean = true); overload;
+function MemoryStreamLoadFromDefaultString(
   const S: String; const Rewind: boolean = true): TMemoryStream; overload;
 
 type
@@ -1162,7 +1173,7 @@ begin
   until false;
 end;
 
-procedure StreamWriteString8(const Stream: TStream; const S: AnsiString);
+procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
 var
   L: Integer;
 begin
@@ -1172,7 +1183,7 @@ begin
   if L > 0 then Stream.WriteBuffer(S[1], L);
 end;
 
-function StreamReadString8(const Stream: TStream): AnsiString;
+function StreamReadString(const Stream: TStream): AnsiString;
 var
   L: Integer;
 begin
@@ -1182,7 +1193,7 @@ begin
   if L > 0 then Stream.ReadBuffer(Result[1], L);
 end;
 
-function StreamToString8(const Stream: TStream): AnsiString;
+function StreamToString(const Stream: TStream): AnsiString;
 begin
   SetLength(Result, Stream.Size);
   Stream.Position := 0;
@@ -1190,9 +1201,28 @@ begin
 end;
 
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: String; const Rewind: boolean);
+  const S: AnsiString; const Rewind: boolean);
 begin
   Stream.Size := Length(S);
+  if S <> '' then
+  begin
+    Stream.WriteBuffer(S[1], Length(S));
+    if Rewind then Stream.Position := 0;
+  end;
+end;
+
+function MemoryStreamLoadFromString(const S: AnsiString; const Rewind: boolean): TMemoryStream;
+begin
+  Result := TMemoryStream.Create;
+  try
+    MemoryStreamLoadFromString(Result, S, Rewind);
+  except FreeAndNil(Result); raise end;
+end;
+
+procedure MemoryStreamLoadFromDefaultString(const Stream: TMemoryStream;
+  const S: String; const Rewind: boolean);
+begin
+  Stream.Size := Length(S) * SizeOf(Char);
   if S <> '' then
   begin
     Stream.WriteBuffer(S[1], Length(S) * SizeOf(Char));
@@ -1200,7 +1230,7 @@ begin
   end;
 end;
 
-function MemoryStreamLoadFromString(const S: String; const Rewind: boolean): TMemoryStream;
+function MemoryStreamLoadFromDefaultString(const S: String; const Rewind: boolean): TMemoryStream;
 begin
   Result := TMemoryStream.Create;
   try

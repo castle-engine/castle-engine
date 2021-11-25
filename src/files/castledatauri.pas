@@ -229,7 +229,9 @@ begin
     begin
       Contents := SEnding(URI, StreamBegin);
 
-      MemStream := MemoryStreamLoadFromString(Contents);
+      { Note: loads a 16-bit String into TMemoryStream on Delphi.
+        This is what TNetEncoding.Base64.Decode expects. }
+      MemStream := MemoryStreamLoadFromDefaultString(Contents);
 
       if Base64 then
       begin
