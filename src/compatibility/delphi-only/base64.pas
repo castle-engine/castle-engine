@@ -45,8 +45,7 @@ constructor TBase64DecodingStream.Create(const ASource: TStream);
 begin
   inherited Create;
   FSource := ASource;
-  // TODO: should we call this repeatedly until the end?
-  TNetEncoding.Base64.Decode(FSource, Self);
+  while TNetEncoding.Base64.Decode(FSource, Self) <> 0 do ;
   Position := 0;
 end;
 
