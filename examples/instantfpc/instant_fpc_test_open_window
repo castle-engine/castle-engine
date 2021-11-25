@@ -1,6 +1,11 @@
 #!/usr/bin/env instantfpc
 
-{ Show the 1st command-line parameter in a CGE window. }
+{ Show the 1st command-line parameter in a CGE window.
+
+  To make this work,
+  - install FPC, which should include the instantfpc binary
+  - install CGE using FpMake/FpPkg following https://github.com/castle-engine/castle-engine/wiki/FpMake
+}
 
 uses CastleParameters, CastleWindow, CastleControls, CastleColors, CastleUIControls;
 

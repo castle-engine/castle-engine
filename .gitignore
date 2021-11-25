@@ -180,8 +180,6 @@ castle-game-engine-*.fpm
 /examples/short_api_samples/transform_save_load/transform_save_load
 /examples/short_api_samples/xml_utils/bookmarks_xml_demo
 /examples/short_api_samples/animation_stop_notification/animation_stop_notification
-/examples/simple_command_line_utilities/dircleaner
-/examples/simple_command_line_utilities/stringoper
 /examples/space_filling_curve/draw_space_filling_curve
 /examples/sprite_sheets/sprite_sheets_demo/sprite_sheets_demo
 /examples/terrain/terrain

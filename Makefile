@@ -237,9 +237,7 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_paint \
   examples/images_videos/image_render_custom_shader \
   examples/images_videos/simple_video_editor \
-  examples/images_videos/test_castleimage_draw3x3 \
-  examples/simple_command_line_utilities/dircleaner \
-  examples/simple_command_line_utilities/stringoper
+  examples/images_videos/test_castleimage_draw3x3
 
 # Note that src/library/castleengine must be compiled before
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.

@@ -1,6 +1,11 @@
 #!/usr/bin/env instantfpc
 
-{ List all .pas files in this directory, recursively. }
+{ List all .pas files in this directory, recursively.
+
+  To make this work,
+  - install FPC, which should include the instantfpc binary
+  - install CGE using FpMake/FpPkg following https://github.com/castle-engine/castle-engine/wiki/FpMake
+}
 
 uses CastleFindFiles;
 
