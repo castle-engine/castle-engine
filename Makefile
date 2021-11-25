@@ -370,22 +370,25 @@ examples-laz:
 .PHONY: clean cleanmore cleanall
 
 clean: cleanexamples
-	$(FIND) . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or -iname '*.aw' -or \
-	                   -iname '*.o'   -or -iname '*.ppu' -or -iname '*.a' -or \
+	$(FIND) . -type f '(' -iname '*.ow'  -or \
+	                   -iname '*.ppw' -or \
+			   -iname '*.aw' -or \
+	                   -iname '*.o'   -or \
 			   -iname '*.or'  -or \
-			   -iname '*.res' -or \
+			   -iname '*.ppu' -or \
+			   '(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
+			   '(' -iname '*.res' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
 			   -iname '*.rsj' -or \
 			   -iname '*.compiled' -or \
 			   -iname '*.lps' -or \
 			   -iname '*.libimp*.a' -or \
 			   -iname '*.apk' -or \
 			   -iname '*.dbg' -or \
-	                   -iname '*.dcu' -or -iname '*.dpu' -or \
+	                   -iname '*.dcu' -or \
+			   -iname '*.dpu' -or \
 			   -iname '*.dproj.local' -or \
 			   -iname '*.identcache' -or \
 			   -iname '*.rsm' -or \
-			   -iname 'automatic-windows-resources.res' -or \
-			   -iname 'castle-auto-generated-resources.res' -or \
 	                   -iname '*.log' ')' \
 	     -print \
 	     | xargs rm -f
