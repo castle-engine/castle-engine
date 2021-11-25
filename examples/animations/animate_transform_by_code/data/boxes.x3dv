@@ -1,11 +1,6 @@
 #X3D V3.2 utf8
 PROFILE Interchange
 
-# Note that change_vrml_by_code.lpr depends on this,
-# (we could alternatively call Scene.ResetWorldTime(0) in change_vrml_by_code
-# after loading), otherwise Scene.WorldTime.Seconds is wildly large.
-KambiNavigationInfo { timeOriginAtLoad TRUE }
-
 DEF Box1 Shape {
   appearance Appearance { material Material { } }
   geometry Box { size 1 10 1 }

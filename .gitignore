@@ -58,8 +58,6 @@ castle-game-engine-*.fpm
 /doc/pasdoc/html/
 /doc/pasdoc/latex/
 /doc/reference/
-/examples/3d_rendering_processing/animate_3d_model_by_code
-/examples/3d_rendering_processing/animate_3d_model_by_code_2
 /examples/3d_rendering_processing/anisotropic_filtering/anisotropic_filtering
 /examples/3d_rendering_processing/build_3d_object_by_code
 /examples/3d_rendering_processing/build_3d_tunnel
@@ -90,6 +88,8 @@ castle-game-engine-*.fpm
 /examples/3d_rendering_processing/view_3d_model_advanced/view_3d_model_advanced
 /examples/3d_rendering_processing/view_3d_model_basic/view_3d_model_basic
 /examples/advanced_editor/advanced_editor
+/examples/animations/animate_transform_by_code/animate_transform_by_code
+/examples/animations/animate_transform_by_code_2/animate_transform_by_code_2
 /examples/animations/expose_transformations_to_animate_children/expose_transformations_demo
 /examples/animations/play_animation/play_animation
 /examples/animations/resource_animations/resource_animations

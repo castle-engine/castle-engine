@@ -211,8 +211,6 @@ strip-precompiled-libraries:
 # then the need to maintain EXAMPLES_BASE_NAMES would disappear.
 
 EXAMPLES_BASE_NAMES := \
-  examples/3d_rendering_processing/animate_3d_model_by_code \
-  examples/3d_rendering_processing/animate_3d_model_by_code_2 \
   examples/3d_rendering_processing/build_3d_object_by_code \
   examples/3d_rendering_processing/build_3d_tunnel \
   examples/3d_rendering_processing/call_pascal_code_from_3d_model_script \
