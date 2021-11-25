@@ -32,7 +32,7 @@ uses
   CastleLog, CastleClassUtils, CastleProjection, CastleTimeUtils,
   CastleRectangles, CastleFindFiles, CastleFilesUtils,
   CastleURIUtils, CastleXMLUtils, CastleImages, CastleDataUri,
-  CastleDownload,
+  CastleDownload, CastleInternalSoundFile, CastleSoundBase,
   { units specific to this project }
   CastleAssertions;
 
@@ -207,9 +207,11 @@ end;
 procedure TestDataUri;
 const
   ImageDataUri = {$I bricks_base64.inc};
+  WavDataUri = {$I werewolf_howling_wav_base64.inc};
 var
   S: TStream;
   Img: TCastleImage;
+  SoundFile: TSoundFile;
 begin
   S := Download(ImageDataUri);
   try
@@ -220,6 +222,19 @@ begin
     AssertEquals(1024, Img.Width);
     AssertEquals(1024, Img.Height);
   finally FreeAndNil(Img) end;
+
+  SoundFile := TSoundFile.Create(WavDataUri);
+  try
+    Writeln('Loaded: ', URICaption(SoundFile.URL));
+    Writeln('  Format: ', DataFormatToStr(SoundFile.DataFormat));
+    Writeln('  Frequency: ', SoundFile.Frequency);
+    Writeln('  Duration: ', SoundFile.Duration:1:2);
+
+    Assert(SoundFile.DataFormat = sfMono16);
+    AssertSameValue(3.75, SoundFile.Duration, 0.01);
+    AssertEquals(22050, SoundFile.Frequency);
+    AssertEquals('data:audio/x-wav;base64,...', URICaption(SoundFile.URL));
+  finally FreeAndNil(SoundFile) end;
 end;
 
 var
