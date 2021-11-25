@@ -693,7 +693,7 @@ begin
   try
     while I.GetNext do
     begin
-      LowerTagName := LowerCase(I.Current.TagName);
+      LowerTagName := LowerCase(I.Current.TagName8);
       if LowerTagName = 'properties' then
         Properties.Load(I.Current, BaseUrl)
       else
@@ -800,7 +800,7 @@ begin
   try
     while I.GetNext do
     begin
-      LowerTagName := LowerCase(I.Current.TagName);
+      LowerTagName := LowerCase(I.Current.TagName8);
       if LowerTagName = 'properties' then
         Properties.Load(I.Current, BaseUrl)
       else
@@ -871,7 +871,7 @@ begin
   try
     while I.GetNext do
     begin
-      LowerTagName := LowerCase(I.Current.TagName);
+      LowerTagName := LowerCase(I.Current.TagName8);
       if LowerTagName = 'properties' then
         Properties.Load(I.Current, BaseUrl)
       else
@@ -1089,7 +1089,7 @@ begin
   try
     while I.GetNext do
     begin
-      LowerTagName := LowerCase(I.Current.TagName);
+      LowerTagName := LowerCase(I.Current.TagName8);
       if LowerTagName = 'tileoffset' then
       begin
         TileOffset[0] := I.Current.AttributeIntegerDef('x', 0);
@@ -1224,7 +1224,7 @@ begin
   try
     while I.GetNext do
     begin
-      LowerTagName := LowerCase(I.Current.TagName);
+      LowerTagName := LowerCase(I.Current.TagName8);
       if LowerTagName = 'tileset' then
       begin
         NewTileset := TTileset.Create;
