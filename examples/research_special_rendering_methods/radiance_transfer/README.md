@@ -1,4 +1,23 @@
-Implementation of Precomputed Radiance Transfer idea.
+# Precomputed Radiance Transfer
+
+Implementation of Precomputed Radiance Transfer in Castle Game Engine.
+It's a technique for dynamic shading providing soft shadows.
+
+Run the main project, radiance_transfer, to see the result.
+
+There are also 2 helper applcations:
+
+- precompute/ contains the application to precompute radiance transfer.
+  Process your model using it, before displaying.
+
+- visualize_spherical_harmonics/ allows to better understand Spherical Harmonics,
+  which are important piece of Radiance Transfer. They allow to express
+  a function mapping 3D angle -> float (like a light intensity received at 3D
+  position) efficiently, as a small array of floats.
+
+Using [Castle Game Engine](https://castle-engine.io/).
+
+## Precomputed Radiance Transfer description
 
 http://www.mpi-inf.mpg.de/~jnkautz/projects/prt/prtSIG02.pdf (orig paper, 2002)
 http://www.tml.tkk.fi/~tmakipat/prtf_fixed.pdf (more tutorial-like into)
@@ -111,3 +130,13 @@ is simply calculated in pre-processing. Explanation why this works:
   to visualize this: use "Show Simple Occlusion" menu item.
   Then vertex color is simply taken from radianceTransfer value,
   only scaled appropriately.
+
+## Building
+
+Compile by:
+
+- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+
+- Or use [CGE command-line build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool). Run `castle-engine compile` in this directory.
+
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `animate_transform_by_code_2_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).

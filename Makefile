@@ -238,9 +238,6 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_render_custom_shader \
   examples/images_videos/simple_video_editor \
   examples/images_videos/test_castleimage_draw3x3 \
-  examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
-  examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
-  examples/research_special_rendering_methods/radiance_transfer/show_sh \
   examples/simple_command_line_utilities/dircleaner \
   examples/simple_command_line_utilities/stringoper
 

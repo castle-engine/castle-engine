@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,57 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Process arbitrary model for PRT. Computes and adds "radianceTransfer"
-  field to all geometry nodes (descending from X3DComposedGeometryNode,
-  this includes most often used nodes).
-  See https://castle-engine.io/x3d_extensions.php#section_ext_radiance_transfer
-  about the radiance transfer.
-
-  Command-line usage:
-    $1 is the source model,
-    $2 is the output model (output is always VRML/X3D, so use .wrl/.x3dv extension).
-
-  Example:
-    ./precompute_radiance_transfer data/chinchilla.wrl.gz chinchilla-output.x3dv
-    ./radiance_transfer chinchilla-output.x3dv # test the output
-
-  Optional parameters:
-
-  --sh-basis-count / -c COUNT
-
-    Says how much basis SH functions to use. PRT paper advices between
-    9 and 25.
-
-  --rays-per-vertex / -r COUNT
-
-    How many rays per vertex to generate. This linearly affects the speed
-    of the program. Default if 1000, PRT paper advices 10 * 1000 to 30 * 1000
-    for best effect.
-
-  TODO: for now, radianceTransfer is calculated for whole model.
-  This means that self-shadowing takes whole model into account,
-  but also that whole model must remain static (or radianceTransfer must
-  be animated along with coords).
-
-  Alternative approach is possible: calculate radianceTransfer only
-  for this specific shape. Then shape must stay static (or it's
-  radianceTransfer must be animated along with it's coords), but it can
-  move with respect to other shapes. But note that then self-shadowing
-  takes only this shape into account... TODO: make this possible,
-  and document on
-  https://castle-engine.io/x3d_extensions.php#section_ext_radiance_transfer
-
-  We compute radianceTransfer in scene space (not in local shape
-  space). This is important, otherwise incoming light SH (calculated
-  when rendering at every frame) would have to be transformed (rotated)
-  for each shape. Right now, it only has to be rotated once, for each scene.
-
-  Note that your geometry nodes shouldn't use DEF/USE mechanism.
-  If the same shape is instantiated many times, it will have the same
-  radianceTransfer. Which is bad, since self-shadowing may be different
-  on different instances...
-}
-
+{ Process arbitrary model for Precomputed Radiance Transfer.
+  See README.md for detailed info. }
 program precompute_radiance_transfer;
 
 uses SysUtils, CastleUtils, CastleVectors, CastleSceneCore, X3DNodes, X3DLoad,

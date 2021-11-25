@@ -13,14 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Show Spherical harmonics function basis.
-  Single SH function is shown on a sphere, yellow indicates positive values,
-  blue negative values.
-
-  Navigate with mouse or keyboard (like view3dscene in Examine mode).
-}
-
-program show_sh;
+program visualize_spherical_harmonics;
 
 uses SysUtils, Classes, Math,
   CastleFrustum, CastleVectors, CastleBoxes, CastleWindow, CastleUIControls,
