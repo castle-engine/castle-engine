@@ -70,7 +70,7 @@ castle-game-engine-*.fpm
 /examples/3d_rendering_processing/custom_3d_object
 /examples/3d_rendering_processing/custom_input_shortcuts_saved_to_config
 /examples/3d_rendering_processing/detect_scene_hit/detect_scene_hit
-/examples/3d_rendering_processing/display_box_custom_shaders
+/examples/3d_rendering_processing/shader_override/shader_override
 /examples/3d_rendering_processing/fog_and_distance_culling/fog_and_distance_culling
 /examples/3d_rendering_processing/gl_primitive_performance
 /examples/3d_rendering_processing/listen_on_x3d_events

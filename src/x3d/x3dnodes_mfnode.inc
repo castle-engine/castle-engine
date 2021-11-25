@@ -624,7 +624,7 @@ begin
     { AExposed = false below, because not needed otherwise. }
     FieldValue := TMFNode.CreateUndefined(ParentNode, false, X3DName);
     try
-      FieldValue.FItems.AddRange(AValue);
+      FieldValue.AssignItems(AValue);
       Send(FieldValue);
     finally FreeAndNil(FieldValue) end;
   end else
