@@ -1796,7 +1796,7 @@ type
         is assumed to be in final device pixels,
         i.e. the window area in X is from 0 to @link(TCastleContainer.Width),
         in Y from 0 and @link(TCastleContainer.Height).
-        This is useful when the parameter comes e.g. from @link(TInputPressRelease.MousePosition).
+        This is useful when the parameter comes e.g. from @link(TInputPressRelease.Position).
 
         If @false then the container position (the ContainerPosition parameter)
         is assumed to be in unscaled device pixels,

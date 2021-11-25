@@ -58,9 +58,9 @@
       The final length, returned here, is
 
       @unorderedList(
-        @item(In case of TAudioClipNode: sound duration divided by @link(TAudioClipNode.Pitch).)
+        @item(In case of TAudioClipNode: sound duration divided by @link(TAbstractSoundSourceNode.Pitch).)
 
-        @item(In case of TMovieTextureNode: movie duration divided by @link(MovieTexture.Speed).)
+        @item(In case of TMovieTextureNode: movie duration divided by @link(TMovieTextureNode.Speed).)
 
         @item(In case of TTimeSensorNode: just @link(TTimeSensorNode.CycleInterval).)
       ) }

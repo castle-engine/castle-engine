@@ -24,8 +24,10 @@
   Delphi, even when Extended = Double, still treats Extended
   like a different type, for choosing overloads.
   It even requires Extended overloads e.g. for MinVar(Extended, ...). }
-{$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
-  {$define EXTENDED_OVERLOADS}
+{$ifndef PASDOC}
+  {$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
+    {$define EXTENDED_OVERLOADS}
+  {$endif}
 {$endif}
 
 { Swap variables values.

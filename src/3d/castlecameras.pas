@@ -241,10 +241,10 @@ type
               You can read the @link(EffectiveWidth), @link(EffectiveHeight) to know
               the adjusted values.
 
-              Note that the @link(TCamera.Position) is considered to be relative
+              Note that the @link(TCastleCamera.Position) is considered to be relative
               to unadjusted @link(Width) and @link(Height), not to the adjusted
               @link(EffectiveWidth), @link(EffectiveHeight).
-              In effect, when @link(Origin) is zero, the @link(TCamera.Position) does not point
+              In effect, when @link(Origin) is zero, the @link(TCastleCamera.Position) does not point
               to the left-bottom of the whole viewport.
               It points to the left-bottom of the rectangle of aspect ratio
               @link(Width) / @link(Height) within the viewport.
