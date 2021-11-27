@@ -1,0 +1,90 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Camera" : {
+        "$$ClassName" : "TCastleCamera",
+        "InitialDirectionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 8.0253407359123230E-002,
+          "Y" : -4.7805500030517578E-001,
+          "Z" : -8.7465584278106689E-001
+        },
+        "InitialPositionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -1.1340000152587891E+001,
+          "Y" : 3.0040000915527344E+001,
+          "Z" : 9.6069999694824219E+001
+        },
+        "InitialUpPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 3.3377444744110107E-001,
+          "Y" : 8.3971720933914185E-001,
+          "Z" : -4.2833358049392700E-001
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "Name" : "Orthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective",
+          "Name" : "Perspective"
+        }
+      },
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "Name" : "PhysicsProperties"
+        },
+        "UseHeadlight" : "hlOn",
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "RoadScene",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "URL" : "castle-data:/road.gltf"
+          }
+        ]
+      },
+      "Name" : "MainViewport",
+      "Navigation" : "ExamineNavigation1",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleExamineNavigation",
+          "Name" : "ExamineNavigation1"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    }
+  ]
+}
