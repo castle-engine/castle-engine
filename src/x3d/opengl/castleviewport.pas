@@ -3782,6 +3782,7 @@ end;
 function TCastleViewport.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'Transparent') or
+     (PropertyName = 'Camera') or
      (PropertyName = 'Navigation') then
     Result := [psBasic]
   else
