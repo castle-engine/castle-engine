@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,14 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simple example how to build a 3D object (which is equivalent to
-  VRML/X3D nodes graph) by pure ObjectPascal code.
-
-  Check out latest X3D specification,
-  http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html,
-  and our
-  https://castle-engine.io/x3d_implementation_status.php
-  for a complete list of supported VRML/X3D nodes. }
+{ Simple example how to build a 3D object by ObjectPascal code.
+  See README.md for details. }
 
 uses SysUtils,
   CastleVectors, X3DNodes, X3DLoad;
