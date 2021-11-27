@@ -334,7 +334,7 @@ type
     procedure GizmoHasModifiedParent(Sender: TObject);
     procedure GizmoStopDrag(Sender: TObject);
   protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation);
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     OnUpdateFormCaption: TNotifyEvent;
     OnSelectionChanged: TNotifyEvent;
@@ -1094,16 +1094,7 @@ begin
   begin
     F := CollectionPropertyEditorForm;
     CollectionPropertyEditorFormUnassign;
-
-    { Do not call when FormProject called Application.Terminate, doing
-      F.Close causes  SIGSEGV in this case, and is not necessary.
-      (Testcase:
-      open custom editor in https://github.com/castle-engine/castle-db-aware-controls ,
-      open TDbf.FieldDefs property editor,
-      close the project window by "X" in corner,
-      GTK widgetset on Lazarus 2.0.12. }
-    if not Application.Terminated then
-      F.Close;
+    F.Close;
   end;
 
   inherited Destroy;
