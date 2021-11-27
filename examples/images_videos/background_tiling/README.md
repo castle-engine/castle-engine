@@ -1,11 +1,9 @@
-# Test TCastleImage.Draw3x3
+# Tiling and moving background in Viewport
 
-Test `TCastleImage.Draw3x3` method, to draw one image on another using 9-slices
-algorithm.
-
-Note that you should prefer to use TDrawableImage.Draw3x3 in most games
-(it's done on GPU and is much faster), see e.g. draw_images_on_gpu.lpr
-for an example how to draw on TDrawableImage.
+Example how to draw a tiling (repeated texture into infinity) and moving background
+in a Viewport. It is efficient -- draws only 1 quad, depends on GPU to repeat the texture.
+Defines a reusable class TTilingBackground.
+Use arrows to modify the origin (shift the image).
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

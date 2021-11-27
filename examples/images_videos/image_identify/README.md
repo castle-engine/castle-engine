@@ -1,11 +1,12 @@
-# Test TCastleImage.Draw3x3
+# Command-line tool to write basic information about the image
 
-Test `TCastleImage.Draw3x3` method, to draw one image on another using 9-slices
-algorithm.
+Given a list of image URLs or filenames (as parameters), load them, and write basic information about them.
 
-Note that you should prefer to use TDrawableImage.Draw3x3 in most games
-(it's done on GPU and is much faster), see e.g. draw_images_on_gpu.lpr
-for an example how to draw on TDrawableImage.
+- Image size,
+- type,
+- alpha channel (detailed analysis of alpha: yes/no or full range).
+
+Can be used as a test of our CastleImages loading capabilities. Similar to ImageMagick `identify`.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

@@ -1,11 +1,10 @@
-# Test TCastleImage.Draw3x3
+# Drawing ellipses, rectangles, lines on TCastleImage (using CPU drawing)
 
-Test `TCastleImage.Draw3x3` method, to draw one image on another using 9-slices
-algorithm.
+Drawing ellipses, rectangles, lines on TCastleImage (using CPU drawing).
 
-Note that you should prefer to use TDrawableImage.Draw3x3 in most games
-(it's done on GPU and is much faster), see e.g. draw_images_on_gpu.lpr
-for an example how to draw on TDrawableImage.
+_It is not advised to use this approach. It may be deprecated in the future._
+It is faster, and more feature-packed, to draw on images using GPU,
+following ../draw_images_on_gpu/ approach.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

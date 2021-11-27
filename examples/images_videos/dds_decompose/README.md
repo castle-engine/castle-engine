@@ -1,11 +1,17 @@
-# Test TCastleImage.Draw3x3
+# Read DDS and decompose multiple images
 
-Test `TCastleImage.Draw3x3` method, to draw one image on another using 9-slices
-algorithm.
+Read DDS and decompose multiple images into a number of simple images.
+Reads DDS file $1, outputs some information about it,
+and (if not --no-save) saves a sequence of PNG files xxx-yyy.png
+(where xxx comes
+from the basename of $1, and yyy is the consecutive number from 0,
+and the files are saved in $1 directory).
 
-Note that you should prefer to use TDrawableImage.Draw3x3 in most games
-(it's done on GPU and is much faster), see e.g. draw_images_on_gpu.lpr
-for an example how to draw on TDrawableImage.
+Try
+
+```
+./dds_decompose data/marble_with_colored_mipmaps.dds
+```
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
