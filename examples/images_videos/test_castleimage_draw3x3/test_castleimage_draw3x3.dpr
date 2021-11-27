@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2020 Michalis Kamburelis.
+  Copyright 2018-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,10 +14,7 @@
 }
 
 { Test TCastleImage.Draw3x3.
-
-  Note that you should prefer to use TDrawableImage.Draw3x3 in most games
-  (it's done on GPU and is much faster), see e.g. draw_images_on_gpu.lpr
-  for an example how to draw on TDrawableImage. }
+  See README.md for details. }
 
 uses SysUtils,
   CastleVectors, CastleColors, CastleImages, CastleRectangles;
@@ -28,9 +25,13 @@ begin
   try
     SourceImage := LoadImage('castle-data:/box_with_borders.png');
 
-    DestImage := TRGBAlphaImage.Create(400, 400);
+    DestImage := TRGBAlphaImage.Create(1000, 1000);
     DestImage.Clear(Yellow);
-    DestImage.DrawFrom3x3(Rectangle(150, 100, 200, 200),
+    DestImage.DrawFrom3x3(Rectangle(10, 10, 128, 128),
+      SourceImage, Vector4Integer(40, 40, 40, 40), dmBlend);
+    DestImage.DrawFrom3x3(Rectangle(300, 350, 200, 200),
+      SourceImage, Vector4Integer(40, 40, 40, 40), dmBlend);
+    DestImage.DrawFrom3x3(Rectangle(500, 500, 500, 500),
       SourceImage, Vector4Integer(40, 40, 40, 40), dmBlend);
 
     SaveImage(DestImage, 'test_castleimage_draw3x3_output.png');
