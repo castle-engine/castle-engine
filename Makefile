@@ -211,33 +211,7 @@ strip-precompiled-libraries:
 # then the need to maintain EXAMPLES_BASE_NAMES would disappear.
 
 EXAMPLES_BASE_NAMES := \
-  examples/3d_rendering_processing/build_3d_object_by_code \
-  examples/3d_rendering_processing/build_3d_tunnel \
-  examples/3d_rendering_processing/call_pascal_code_from_3d_model_script \
-  examples/3d_rendering_processing/cars_demo \
-  examples/3d_rendering_processing/combine_multiple_x3d_into_one \
-  examples/3d_rendering_processing/custom_input_shortcuts_saved_to_config \
-  examples/3d_rendering_processing/listen_on_x3d_events \
-  examples/3d_rendering_processing/multiple_viewports \
-  examples/3d_rendering_processing/placeholder_names \
-  examples/3d_rendering_processing/render_3d_to_image \
-  examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad \
-  examples/3d_rendering_processing/transform_scenes_demos \
-  examples/3d_rendering_processing/show_bounding_rect_in_2d \
-  examples/3d_rendering_processing/transform_feedback \
-  examples/3d_rendering_processing/triangulate_demo \
-  examples/curves/simplest_curve_read \
-  examples/images_videos/background_tiling \
-  examples/images_videos/dds_decompose \
-  examples/images_videos/draw_images_on_gpu \
-  examples/images_videos/drawing_modes_test \
-  examples/images_videos/image_compare \
-  examples/images_videos/image_convert \
-  examples/images_videos/image_identify \
-  examples/images_videos/image_paint \
-  examples/images_videos/image_render_custom_shader \
-  examples/images_videos/simple_video_editor \
-  examples/images_videos/test_castleimage_draw3x3
+  examples/curves/simplest_curve_read
 
 # Note that src/library/castleengine must be compiled before
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
