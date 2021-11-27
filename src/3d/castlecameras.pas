@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -113,7 +113,7 @@ type
 
     Do not create instances of this class yourself,
     these are automatically created by TCastleCamera. }
-  TCastlePerspective = class(TComponent)
+  TCastlePerspective = class(TCastleComponent)
   strict private
     FFieldOfView: Single;
     FFieldOfViewAxis: TFieldOfViewAxis;
@@ -128,6 +128,7 @@ type
       DefaultFieldOfViewAxis = faSmallest;
 
     constructor Create(AOwner: TComponent); override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Perspective field of view angle, in radians.
       The @link(FieldOfViewAxis) determines whether this is horizontal
@@ -146,7 +147,7 @@ type
 
     Do not create instances of this class yourself,
     these are automatically created by TCastleCamera. }
-  TCastleOrthographic = class(TComponent)
+  TCastleOrthographic = class(TCastleComponent)
   strict private
     FOrigin: TVector2;
     FWidth, FHeight, FScale: Single;
@@ -162,6 +163,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Additional translation of the camera.
       The camera movement applied here is always scaled by
@@ -359,6 +361,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Express current view as camera vectors: position, direction, up.
 
@@ -2317,6 +2320,15 @@ begin
   Result := not SameValue(FFieldOfView, DefaultFieldOfView);
 end;
 
+function TCastlePerspective.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'FieldOfView') or
+     (PropertyName = 'FieldOfViewAxis') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 { TCastleOrthographic --------------------------------------------------------- }
 
 constructor TCastleOrthographic.Create(AOwner: TComponent);
@@ -2396,6 +2408,16 @@ begin
   end;
   FEffectiveWidth := W;
   FEffectiveHeight := H;
+end;
+
+function TCastleOrthographic.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'Width') or
+     (PropertyName = 'Height') or
+     (PropertyName = 'OriginPersistent') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}
@@ -2764,6 +2786,22 @@ procedure TCastleCamera.InternalSetEffectiveProjection(
 begin
   FEffectiveProjectionNear := AEffectiveProjectionNear;
   FEffectiveProjectionFar := AEffectiveProjectionFar;
+end;
+
+function TCastleCamera.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'InitialPosition') or
+     (PropertyName = 'InitialDirection') or
+     (PropertyName = 'InitialUp') or
+     (PropertyName = 'GravityUp') or
+     (PropertyName = 'ProjectionFar') or
+     (PropertyName = 'ProjectionNear') or
+     (PropertyName = 'ProjectionType') or
+     (PropertyName = 'Orthographic') or
+     (PropertyName = 'Perspective') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}
