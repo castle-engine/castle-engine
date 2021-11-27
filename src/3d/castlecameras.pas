@@ -2790,10 +2790,10 @@ end;
 
 function TCastleCamera.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'InitialPosition') or
-     (PropertyName = 'InitialDirection') or
-     (PropertyName = 'InitialUp') or
-     (PropertyName = 'GravityUp') or
+  if (PropertyName = 'InitialPositionPersistent') or
+     (PropertyName = 'InitialDirectionPersistent') or
+     (PropertyName = 'InitialUpPersistent') or
+     (PropertyName = 'GravityUpPersistent') or
      (PropertyName = 'ProjectionFar') or
      (PropertyName = 'ProjectionNear') or
      (PropertyName = 'ProjectionType') or
