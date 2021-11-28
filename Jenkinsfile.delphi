@@ -1,0 +1,86 @@
+/* -*- mode: groovy -*-
+  Confgure how to run our job in Jenkins.
+  See https://github.com/castle-engine/castle-engine/wiki/Cloud-Builds-(Jenkins) .
+
+  This runs on Windows machine with Delphi installed.
+*/
+
+library 'cag-shared-jenkins-library'
+
+pipeline {
+  options {
+    /* While concurrent builds of CGE work OK,
+       they stuck Jenkins much with too many long-running builds.
+       Better to wait for previous build to finish. */
+    disableConcurrentBuilds()
+  }
+  agent {
+    label 'windows-cge-builder'
+  }
+  environment {
+    /* Used by CGE build tool ("castle-engine").
+       Define env based on another env variable.
+       According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+       this should be supported. */
+    CASTLE_ENGINE_PATH = "${WORKSPACE}"
+    PATH = "${PATH};${CASTLE_ENGINE_PATH}/installed/bin/" // Note: on Windows, PATH is separated by ;
+  }
+  stages {
+    stage('Info') {
+      steps {
+        // check versions (and availability) of our requirements early
+        sh 'fpc -iV'
+        sh 'lazbuild --version'
+        sh 'make --version'
+      }
+    }
+    stage('Build Tools') {
+      steps {
+        sh 'rm -Rf installed/'
+        sh 'mkdir -p installed/'
+        sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+      }
+    }
+    stage('Build Delpi AutoTests') {
+      dir ('cd tests/delphi_tests/') {
+        steps {
+          sh 'castle-engine compile --compiler=delphi'
+        }
+      }
+    }
+    stage('Run Delpi AutoTests') {
+      dir ('cd tests/delphi_tests/') {
+        steps {
+          sh 'castle-engine run'
+        }
+      }
+    }
+    stage('Build Templates with Delphi') {
+      steps {
+        sh 'make test-editor-template BUILD_TOOL="castle-engine --compiler=delphi"'
+      }
+    }
+    stage('Build Examples with Delphi') {
+      steps {
+        sh 'make examples-delphi'
+      }
+    }
+  }
+  post {
+    regression {
+      mail to: 'michalis@castle-engine.io',
+        subject: "[jenkins] Build started failing: ${currentBuild.fullDisplayName}",
+        body: "See the build details on ${env.BUILD_URL}"
+    }
+    failure {
+      mail to: 'michalis@castle-engine.io',
+        subject: "[jenkins] Build failed: ${currentBuild.fullDisplayName}",
+        body: "See the build details on ${env.BUILD_URL}"
+    }
+    fixed {
+      mail to: 'michalis@castle-engine.io',
+        subject: "[jenkins] Build is again successful: ${currentBuild.fullDisplayName}",
+        body: "See the build details on ${env.BUILD_URL}"
+    }
+  }
+}
