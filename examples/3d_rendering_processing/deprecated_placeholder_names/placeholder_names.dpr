@@ -28,6 +28,8 @@
   placeholders in the engine. }
 program placeholder_names;
 
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+
 uses SysUtils, CastleUtils, CastleShapes, CastleSceneCore, CastleParameters,
   X3DNodes;
 
