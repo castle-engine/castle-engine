@@ -1,4 +1,19 @@
-{ Simple demo how to get direct list of 3D scene triangles. }
+{
+  Copyright 2010-2021 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Deconstruct scene into triangles using `TCastleShape.Triangulate`. }
 program triangulate_demo;
 
 uses SysUtils, CastleVectors, CastleSceneCore, CastleShapes, CastleTriangles,
@@ -29,7 +44,7 @@ var
 begin
   Scene := TCastleSceneCore.Create(nil);
   try
-    Scene.Load('castle-data:/bridge_final.x3dv');
+    Scene.Load('castle-data:/teapot.x3dv');
 
     ShapeList := Scene.Shapes.TraverseList(true);
     Handler := TTriangleHandler.Create;

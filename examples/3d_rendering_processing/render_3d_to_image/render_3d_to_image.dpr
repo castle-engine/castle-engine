@@ -116,11 +116,7 @@ begin
   Image := TDrawableImage.Create(
     TRGBAlphaImage.Create(ImageWidth, ImageHeight), true, true);
   try
-
-    RenderScene('castle-data:/boxes.x3dv');
-    RenderScene('castle-data:/bridge_final.x3dv');
     RenderScene('castle-data:/car.gltf');
     RenderScene('castle-data:/teapot.x3dv');
-
   finally FreeAndNil(Image) end;
 end.
