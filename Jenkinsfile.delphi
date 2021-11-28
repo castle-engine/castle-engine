@@ -34,6 +34,12 @@ pipeline {
         sh 'make --version'
       }
     }
+    stage('Cleanup') {
+      steps {
+        sh 'make clean'
+        sh 'git clean -f'
+      }
+    }
     stage('Build Tools') {
       steps {
         sh 'rm -Rf installed/'
@@ -41,7 +47,7 @@ pipeline {
         sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
       }
     }
-    stage('Check Delpi AutoTests (Win64)') {
+    stage('Check Delphi AutoTests (Win64)') {
       steps {
         dir ('tests/delphi_tests/') {
           sh 'castle-engine compile --compiler=delphi'
@@ -49,7 +55,7 @@ pipeline {
         }
       }
     }
-    stage('Check Delpi AutoTests (Win32)') {
+    stage('Check Delphi AutoTests (Win32)') {
       steps {
         dir ('tests/delphi_tests/') {
           sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
