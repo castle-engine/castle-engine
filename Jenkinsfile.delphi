@@ -42,16 +42,16 @@ pipeline {
       }
     }
     stage('Check Delpi AutoTests (Win64)') {
-      dir ('cd tests/delphi_tests/') {
-        steps {
+      steps {
+        dir ('cd tests/delphi_tests/') {
           sh 'castle-engine compile --compiler=delphi'
           sh 'castle-engine run'
         }
       }
     }
     stage('Check Delpi AutoTests (Win32)') {
-      dir ('cd tests/delphi_tests/') {
-        steps {
+      steps {
+        dir ('cd tests/delphi_tests/') {
           sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
           sh 'castle-engine run'
         }
