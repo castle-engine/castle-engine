@@ -75,10 +75,11 @@ function LoadXPM(const Stream: TStream;
 begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
-  {$elseif defined(FPC)}
-  Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
+  // FpImage XPM reader crashes on examples/images_videos/image_display/data/images/test_texture.xpm
+  // {$elseif defined(FPC)}
+  // Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
   {$else}
-  raise EImageLoadError.Create('Cannot read XPM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  raise EImageLoadError.Create('Cannot read XPM (Vampyre Imaging Library not available at compile-time)');
   {$endif}
 end;
 
