@@ -111,6 +111,7 @@ castle-game-engine-*.fpm
 /examples/fonts/texture-font-to-pascal
 /examples/fps_game/fps_game
 /examples/headlight_test/headlight_test
+/examples/images_videos/image_display/image_display
 /examples/images_videos/background_tiling/background_tiling
 /examples/images_videos/dds_decompose/dds_decompose
 /examples/images_videos/draw_images_on_gpu/draw_images_on_gpu
