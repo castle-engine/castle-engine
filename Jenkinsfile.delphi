@@ -65,12 +65,12 @@ pipeline {
     }
     stage('Build Templates with Delphi (Win64)') {
       steps {
-        sh 'make test-editor-template CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi"'
+        sh 'make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi"'
       }
     }
     stage('Build Templates with Delphi (Win32)') {
       steps {
-        sh 'make test-editor-template CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win32 --cpu=i386"'
+        sh 'make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win32 --cpu=i386"'
       }
     }
     stage('Build Examples with Delphi (Win64)') {
