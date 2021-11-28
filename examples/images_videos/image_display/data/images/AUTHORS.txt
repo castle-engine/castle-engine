@@ -21,3 +21,13 @@ crown.gif, texture_alpha.png
 
   silly demo images done in GIMP by Michalis.
   License: same as CGE examples, see castle-engine/COPYING.md
+
+orient-up.ktx
+rgb-reference.ktx
+
+  From Khronos https://github.com/KhronosGroup/KTX-Software/tree/master/tests/testimages .
+
+  License: Apache 2.0 license.
+  With copyright holders including Mark Callow, the KTX-Software author;
+  The Khronos Group Inc., which has supported KTX development; and other contributors to the KTX project.
+  (see https://github.com/KhronosGroup/KTX-Software/blob/master/LICENSE.md
