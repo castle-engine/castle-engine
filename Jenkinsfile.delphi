@@ -41,28 +41,40 @@ pipeline {
         sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
       }
     }
-    stage('Build Delpi AutoTests') {
+    stage('Check Delpi AutoTests (Win64)') {
       dir ('cd tests/delphi_tests/') {
         steps {
           sh 'castle-engine compile --compiler=delphi'
-        }
-      }
-    }
-    stage('Run Delpi AutoTests') {
-      dir ('cd tests/delphi_tests/') {
-        steps {
           sh 'castle-engine run'
         }
       }
     }
-    stage('Build Templates with Delphi') {
-      steps {
-        sh 'make test-editor-template BUILD_TOOL="castle-engine --compiler=delphi"'
+    stage('Check Delpi AutoTests (Win32)') {
+      dir ('cd tests/delphi_tests/') {
+        steps {
+          sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
+          sh 'castle-engine run'
+        }
       }
     }
-    stage('Build Examples with Delphi') {
+    stage('Build Templates with Delphi (Win64)') {
+      steps {
+        sh 'make test-editor-template CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi"'
+      }
+    }
+    stage('Build Templates with Delphi (Win32)') {
+      steps {
+        sh 'make test-editor-template CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win32 --cpu=i386"'
+      }
+    }
+    stage('Build Examples with Delphi (Win64)') {
       steps {
         sh 'make examples-delphi'
+      }
+    }
+    stage('Build Examples with Delphi (Win32)') {
+      steps {
+        sh 'make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386"'
       }
     }
   }
