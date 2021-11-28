@@ -25,7 +25,7 @@ type
   TStateSpeedTest = class(TUIState)
   private
     const
-      TestImages: array [0..8] of String = (
+      TestImages: array [0..11] of String = (
         'castle-data:/images/bricks2.jpg',
         'castle-data:/images/crown.gif',
         'castle-data:/images/metal_decal.dds',
@@ -34,7 +34,10 @@ type
         'castle-data:/images/sky_red_right.rgbe',
         'castle-data:/images/test_texture_grayscale.png',
         'castle-data:/images/test_texture.png',
-        'castle-data:/images/texture_alpha.png'
+        'castle-data:/images/texture_alpha.png',
+        'castle-data:/images/test_texture.tga',
+        'castle-data:/images/test_texture.xpm',
+        'castle-data:/images/rgb-reference.ktx'
       );
 
     var
