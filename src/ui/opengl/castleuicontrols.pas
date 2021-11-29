@@ -38,6 +38,7 @@ type
   TCastleUserInterface = class;
   TChildrenControls = class;
   TCastleContainer = class;
+  TCastleTheme = class;
 
   TContainerEvent = procedure (Container: TCastleContainer);
   TContainerObjectEvent = procedure (Container: TCastleContainer) of object;
@@ -1010,6 +1011,8 @@ type
       FCulling: Boolean;
       FClipChildren: Boolean;
       FOnRender, FOnInternalMouseEnter, FOnInternalMouseLeave: TUiNotifyEvent;
+      FCustomTheme: TCastleTheme;
+      FCustomThemeObserver: TFreeNotificationObserver;
 
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
@@ -1056,6 +1059,8 @@ type
     procedure SetClipChildren(const Value: Boolean);
     procedure SetWidth(const Value: Single);
     procedure SetHeight(const Value: Single);
+    procedure SetCustomTheme(const Value: TCastleTheme);
+    procedure CustomThemeFreeNotification(const Sender: TFreeNotificationObserver);
 
     { Position and size of this control, assuming it exists,
       in the local coordinates (relative to the parent 2D control,
@@ -1166,6 +1171,10 @@ type
 
     procedure DoInternalMouseEnter; virtual;
     procedure DoInternalMouseLeave; virtual;
+
+    { Theme that should be used by this control.
+      Either CustomTheme or global @link(Theme). }
+    function Theme: TCastleTheme;
   public
     const
       DefaultWidth = 100.0;
@@ -2204,6 +2213,9 @@ type
       anchored to the top). }
     property Border: TBorder read FBorder;
 
+    { Use a custom instance of TCastleTheme to determine the look of this control. }
+    property CustomTheme: TCastleTheme read FCustomTheme write SetCustomTheme;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -2321,6 +2333,11 @@ type
   TUIControlList = TCastleUserInterfaceList deprecated 'use TCastleUserInterfaceList';
   TUIControlChangeEvent = TCastleUserInterfaceChangeEvent deprecated 'use TCastleUserInterfaceChangeEvent';
 
+{$define read_interface}
+{$I castleuicontrols_theme.inc} // ends the "type" clause
+{$I castleuicontrols_serialize.inc}
+{$undef read_interface}
+
 function OnGLContextOpen: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextOpen';
 function OnGLContextClose: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextClose';
 function IsGLContextOpen: boolean; deprecated 'use ApplicationProperties.IsGLContextOpen';
@@ -2390,19 +2407,16 @@ function RenderControlToImage(const Container: TCastleContainer;
   const ViewportRect: TRectangle;
   const BackgroundColor: TCastleColor): TRGBAlphaImage; overload;
 
-{$define read_interface}
-{$I castleuicontrols_serialize.inc}
-{$undef read_interface}
-
 implementation
 
 uses DOM, TypInfo, Math,
   CastleLog, CastleXMLUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
-  CastleInternalInspector,
+  CastleInternalInspector, CastleControlsImages,
   {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
 
 {$define read_implementation}
+{$I castleuicontrols_theme.inc}
 {$I castleuicontrols_serialize.inc}
 {$undef read_implementation}
 
@@ -4019,6 +4033,9 @@ begin
   FBorder := TBorder.Create(@BorderChange);
   FLastSeenUIScale := 1.0;
 
+  FCustomThemeObserver := TFreeNotificationObserver.Create(Self);
+  FCustomThemeObserver.OnFreeNotification := @CustomThemeFreeNotification;
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -5325,6 +5342,30 @@ begin
   end;
 end;
 
+procedure TCastleUserInterface.SetCustomTheme(const Value: TCastleTheme);
+begin
+  if FCustomTheme <> Value then
+  begin
+    FCustomThemeObserver.Observed := Value;
+    FCustomTheme := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleUserInterface.CustomThemeFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  CustomTheme := nil;
+end;
+
+function TCastleUserInterface.Theme: TCastleTheme;
+begin
+  if CustomTheme <> nil then
+    Result := CustomTheme
+  else
+    Result := CastleUIControls.Theme;
+end;
+
 procedure TCastleUserInterface.SetClipChildren(const Value: Boolean);
 begin
   if FClipChildren <> Value then
@@ -5807,11 +5848,9 @@ begin
     Result := nil;
 end;
 
-procedure DoInitialization;
-begin
-  RegisterSerializableComponent(TCastleUserInterface, 'Empty Rectangle');
-end;
-
 initialization
-  DoInitialization;
+  InitializationTheme;
+  RegisterSerializableComponent(TCastleUserInterface, 'Empty Rectangle');
+finalization
+  FinalizationTheme;
 end.

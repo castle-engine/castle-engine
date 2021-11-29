@@ -54,6 +54,11 @@ property UIFontSmall: TCastleAbstractFont read GetUIFontSmall write SetUIFontSma
   This is a modern sans-serif font hardcoded into the engine. }
 function FallbackFont: TCastleFont;
 
+{ Force using FallbackFont (thus, ignore @link(TCastleContainer.DefaultFont))
+  and FallbackTheme (thus, disable any @link(TCastleTheme Theme) customizations) in this UI.
+  This guarantees the same UI look, ignoring user's UI font and theme customizations. }
+procedure ForceFallbackLook(const Ui: TCastleUserInterface);
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -130,6 +135,17 @@ begin
       FUIFontSmall := nil;
     FreeAndNil(DefaultUIFont);
   end;
+end;
+
+procedure ForceFallbackLook(const Ui: TCastleUserInterface);
+var
+  Child: TCastleUserInterface;
+begin
+  Ui.CustomTheme := FallbackTheme;
+  if Ui is TCastleUserInterfaceFont then
+    TCastleUserInterfaceFont(Ui).CustomFont := FallbackFont;
+  for Child in Ui do
+    ForceFallbackLook(Child);
 end;
 
 {$endif read_implementation}

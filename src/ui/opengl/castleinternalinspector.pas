@@ -76,10 +76,6 @@ type
     { Update properties to reflect current FSelectedComponent.
       Only SetSelectedComponent needs to call it. }
     procedure UpdateProperties;
-    { Force using FallbackFont (not Container.DefaultFont) in this UI.
-      This makes proper look, ignoring user's UI font specified in CastleSettings.xml,
-      e.g. test on platformer. }
-    procedure ForceUsingFallbackFont(const Ui: TCastleUserInterface);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -140,11 +136,6 @@ uses SysUtils, StrUtils,
 
   checkbox to also show X3D nodes
 
-  better name for FallbackFont?
-  DefaultFont would be confusing.
-
-  better way to reset everything to FallbackFont - ParentFont would be more comfortable, I'd set it in one place then
-
   we still use global Theme, for our buttons, and we don't want to.
 }
 
@@ -190,7 +181,7 @@ begin
   LabelInspectorHelp := UiOwner.FindRequiredComponent('LabelInspectorHelp') as TCastleLabel;
   SliderOpacity := UiOwner.FindRequiredComponent('SliderOpacity') as TCastleFloatSlider;
 
-  ForceUsingFallbackFont(Ui);
+  ForceFallbackLook(Ui);
 
   CheckboxShowEvenInternal.OnChange := {$ifdef FPC}@{$endif} UpdateHierarchy;
   ButtonHierarchyShow.OnClick := {$ifdef FPC}@{$endif} ClickHierarchyShow;
@@ -233,16 +224,6 @@ begin
   inherited;
 end;
 
-procedure TCastleInspector.ForceUsingFallbackFont(const Ui: TCastleUserInterface);
-var
-  Child: TCastleUserInterface;
-begin
-  if Ui is TCastleUserInterfaceFont then
-    TCastleUserInterfaceFont(Ui).CustomFont := FallbackFont;
-  for Child in Ui do
-    ForceUsingFallbackFont(Child);
-end;
-
 const
   SLevelPrefix = '- ';
 
@@ -277,7 +258,7 @@ var
     end else
     begin
       HierarchyButton := SerializedHierarchyRowTemplate.ComponentLoad(Self) as TCastleButton;
-      ForceUsingFallbackFont(HierarchyButton);
+      ForceFallbackLook(HierarchyButton);
       HierarchyButton.OnClick := {$ifdef FPC}@{$endif} ClickHierarchyRow;
       HierarchyButton.Culling := true; // many such buttons are often not visible, in scroll view
       HierarchyButton.Width := RectHierarchy.EffectiveWidthForChildren;
@@ -540,7 +521,7 @@ procedure TCastleInspector.UpdateProperties;
 
     PropertyOwner := TComponent.Create(Self);
     Ui := SerializedPropertyRowTemplate.ComponentLoad(PropertyOwner) as TCastleUserInterface;
-    ForceUsingFallbackFont(Ui);
+    ForceFallbackLook(Ui);
     Ui.Culling := true; // many such rows are often not visible, in scroll view
     Ui.Width := RectProperties.EffectiveWidthForChildren;
     PropertyRowParent.InsertFront(Ui);
