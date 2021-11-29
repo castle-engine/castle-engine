@@ -15,7 +15,7 @@
 
 { Inspect Castle Game Engine state at runtime (TCastleInspector).
   Invoke this automatically in debug builds by F12 (see @link(TCastleContainer.InspectorKey)). }
-unit CastleInspector;
+unit CastleInternalInspector;
 
 {$I castleconf.inc}
 

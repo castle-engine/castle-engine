@@ -1562,8 +1562,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleFlashEffect"/>
       </Item366>
       <Item367>
-        <Filename Value="../src/ui/opengl/castleinspector.pas"/>
-        <UnitName Value="CastleInspector"/>
+        <Filename Value="../src/ui/opengl/castleinternalinspector.pas"/>
+        <UnitName Value="CastleInternalInspector"/>
       </Item367>
       <Item368>
         <Filename Value="../src/ui/opengl/castleinternalsettings.pas"/>

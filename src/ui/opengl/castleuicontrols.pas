@@ -2399,7 +2399,7 @@ implementation
 uses DOM, TypInfo, Math,
   CastleLog, CastleXMLUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
-  CastleInspector,
+  CastleInternalInspector,
   {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
 
 {$define read_implementation}
