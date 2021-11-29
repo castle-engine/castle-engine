@@ -178,12 +178,20 @@
       read FTextAlignment write SetTextAlignment default DefaultTextAlignment;
 
     { Horizontal alignment of the text+image within button area,
-      useful in case you don't use @link(AutoSize). }
+      useful in case you don't use @link(AutoSize).
+
+      We align text+image within the available area inside the button
+      (which is determined by button size, without paddings determined by @link(PaddingHorizontal),
+      @link(PaddingVertical)).  }
     property Alignment: THorizontalPosition
       read FAlignment write SetAlignment default hpMiddle;
 
     { Vertical alignment of the text+image within button area,
-      useful in case you don't use @link(AutoSize). }
+      useful in case you don't use @link(AutoSize).
+
+      We align text+image within the available area inside the button
+      (which is determined by button size, without paddings determined by @link(PaddingHorizontal),
+      @link(PaddingVertical)).  }
     property VerticalAlignment: TVerticalPosition
       read FVerticalAlignment write SetVerticalAlignment default vpMiddle;
 
