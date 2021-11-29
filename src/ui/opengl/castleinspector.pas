@@ -84,7 +84,12 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     const
-      DefaultOpacity = 0.9;
+      DefaultDefaultOpacity = 0.9;
+    class var
+      { Class variable, to save across all inspector instances.
+        Initially DefaultDefaultOpacity. }
+      DefaultOpacity: Single;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single;  var HandleInput: boolean); override;
@@ -93,8 +98,9 @@ type
     property FullSize stored false;
 
     { Opacity of the whole UI.
-      Can be changed by user while operating this UI. }
-    property Opacity: Single read FOpacity write SetOpacity default DefaultOpacity;
+      Can be changed by user while operating this UI.
+      Synchronized with class DefaultOpacity. }
+    property Opacity: Single read FOpacity write SetOpacity;
 
     { Selected object in hierarchy, for which we display the properties.
       Can be changed by user while operating this UI. }
@@ -141,8 +147,6 @@ uses SysUtils, StrUtils,
   we still use global Theme, for our buttons, and we don't want to.
 
   properties, hierarchy rows don't adjust to possible size
-
-  preserve Opacity between runs
 }
 
 constructor TCastleInspector.Create(AOwner: TComponent);
@@ -203,7 +207,7 @@ begin
   ButtonHierarchyShow.Exists := false;
   ButtonLogShow.Exists := false;
 
-  FOpacity := 0.0; // to force setting below call SetOpacity
+  FOpacity := -1; // to force setting below call SetOpacity
   Opacity := DefaultOpacity;
   SliderOpacity.Value := Opacity;
   SliderOpacity.OnChange := {$ifdef FPC}@{$endif} ChangeOpacity;
@@ -415,6 +419,7 @@ begin
   if FOpacity <> Value then
   begin
     FOpacity := Value;
+    DefaultOpacity := Value;
     RectOptions.ColorPersistent.Alpha := Value;
     RectProperties.ColorPersistent.Alpha := Value;
     RectLog.ColorPersistent.Alpha := Value;
@@ -572,4 +577,6 @@ begin
   end;
 end;
 
+initialization
+  TCastleInspector.DefaultOpacity := TCastleInspector.DefaultDefaultOpacity;
 end.
