@@ -6,6 +6,10 @@
   caption="Test Image Loading and Displaying"
 >
   <compiler_options>
+    <custom_options>
+      <!-- Without Vampyre, XPM reading will fail -->
+      <option>-dUSE_VAMPYRE_IMAGING</option>
+    </custom_options>
     <search_paths>
       <path value="code/" />
     </search_paths>
