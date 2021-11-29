@@ -93,9 +93,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single;  var HandleInput: boolean); override;
-  published
-    property KeepInFront stored false;
-    property FullSize stored false;
+    procedure Resize; override;
 
     { Opacity of the whole UI.
       Can be changed by user while operating this UI.
@@ -105,6 +103,9 @@ type
     { Selected object in hierarchy, for which we display the properties.
       Can be changed by user while operating this UI. }
     property SelectedComponent: TComponent read FSelectedComponent write SetSelectedComponent;
+  published
+    property KeepInFront stored false;
+    property FullSize stored false;
   end;
 
 implementation
@@ -145,8 +146,6 @@ uses SysUtils, StrUtils,
   better way to reset everything to FallbackFont - ParentFont would be more comfortable, I'd set it in one place then
 
   we still use global Theme, for our buttons, and we don't want to.
-
-  properties, hierarchy rows don't adjust to possible size
 }
 
 constructor TCastleInspector.Create(AOwner: TComponent);
@@ -281,6 +280,7 @@ var
       ForceUsingFallbackFont(HierarchyButton);
       HierarchyButton.OnClick := {$ifdef FPC}@{$endif} ClickHierarchyRow;
       HierarchyButton.Culling := true; // many such buttons are often not visible, in scroll view
+      HierarchyButton.Width := RectHierarchy.EffectiveWidthForChildren;
       HierarchyRowParent.InsertFront(HierarchyButton);
     end;
 
@@ -541,8 +541,9 @@ procedure TCastleInspector.UpdateProperties;
     PropertyOwner := TComponent.Create(Self);
     Ui := SerializedPropertyRowTemplate.ComponentLoad(PropertyOwner) as TCastleUserInterface;
     ForceUsingFallbackFont(Ui);
+    Ui.Culling := true; // many such rows are often not visible, in scroll view
+    Ui.Width := RectProperties.EffectiveWidthForChildren;
     PropertyRowParent.InsertFront(Ui);
-    PropertyRowParent.Culling := true; // many such rows are often not visible, in scroll view
 
     PropName := PropertyOwner.FindRequiredComponent('PropName') as TCastleLabel;
     PropValue := PropertyOwner.FindRequiredComponent('PropValue') as TCastleEdit;
@@ -575,6 +576,22 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TCastleInspector.Resize;
+var
+  C: TCastleUserInterface;
+begin
+  inherited;
+
+  { We need to manually adjust rows widths to follow available space,
+    righ now this is not doable by simple properties,
+    because ScrollArea looks at children for size (and we cannot look
+    at children for height, but at the same time determine children width). }
+  for C in HierarchyRowParent do
+    C.Width := RectHierarchy.EffectiveWidthForChildren;
+  for C in PropertyRowParent do
+    C.Width := RectProperties.EffectiveWidthForChildren;
 end;
 
 initialization
