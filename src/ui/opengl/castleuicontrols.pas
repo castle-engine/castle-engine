@@ -287,6 +287,8 @@ type
     FContext: TRenderContext;
     FBackgroundEnable: Boolean;
     FBackgroundColor: TCastleColor;
+    FInspectorKey: TKey;
+    FInspector: TCastleUserInterface; //< always TCastleInspectorControl
 
     function UseForceCaptureInput: boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
@@ -888,6 +890,11 @@ type
       By default it is @link(DefaultBackgroundColor), which is very dark gray. }
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
+
+    { Key shortcut to show/hide TCastleInspectorControl at any point in the game.
+      In DEBUG builds, this is keyF12 by default.
+      In RELEASE builds, this is keyNone by default. }
+    property InspectorKey: TKey read FInspectorKey write FInspectorKey;
   end;
 
   TUIContainer = TCastleContainer deprecated 'use TCastleContainer';
@@ -2392,6 +2399,7 @@ implementation
 uses DOM, TypInfo, Math,
   CastleLog, CastleXMLUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
+  CastleInspectorControl,
   {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
 
 {$define read_implementation}
@@ -2449,6 +2457,13 @@ end;
 constructor TCastleContainer.Create(AOwner: TComponent);
 begin
   inherited;
+
+  // FInputInspector := TInputShortcut.Create(Self, 'CGE Inspector', 'cge_inspector', igLocal);
+  // {$ifdef DEBUG} // only in DEBUG mode, by default allow this by F12
+  // FInputInspector.Assign(keyF12, keyNone, '', false, buttonLeft);
+  // {$endif}
+  FInspectorKey := {$ifdef DEBUG} keyF12 {$else} keyNone {$endif};
+
   FControls := TChildrenControls.Create(nil);
   TChildrenControls(FControls).Container := Self;
   FTooltipDelay := DefaultTooltipDelay;
@@ -3106,10 +3121,32 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): boolean;
     Result := false;
   end;
 
+  procedure ToggleInspector;
+  begin
+    if FInspector = nil then
+    begin
+      FInspector := TCastleInspectorControl.Create(Self);
+      Controls.InsertFront(FInspector);
+    end else
+    begin
+      { Turning off inspector does not merely hide it by Exists:=false,
+        to make sure it doesn't consume any resources when not used.
+        This is important, as it will be used in wildest scenarios
+        (all CGE applications) and it may gather logs when existing. }
+      FreeAndNil(FInspector);
+    end;
+  end;
+
 var
   I: Integer;
 begin
   Result := false;
+
+  if Event.IsKey(FInspectorKey) then
+  begin
+    ToggleInspector;
+    Exit(true);
+  end;
 
   { pass to ForceCaptureInput }
   if UseForceCaptureInput then

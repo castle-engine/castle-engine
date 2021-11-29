@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2019 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Inspector of user interface (@link(TCastleInspectorControl)). }
+{ Inspect Castle Game Engine state at runtime (TCastleInspectorControl).
+  Invoke this automatically in debug builds by F12 (see @link(TCastleContainer.InspectorKey)). }
 unit CastleInspectorControl;
 
 {$I castleconf.inc}
@@ -25,9 +26,9 @@ uses Classes,
   CastleVectors, CastleKeysMouse;
 
 type
-  { Add this to your 2D controls to have a nice inspector
-    of the user interface hierarchy.
-    Pressing F12 toggles it. }
+  { Inspect Castle Game Engine state.
+    Show log, current UI and viewports state.
+    Invoke this automatically in debug builds by F12 (see @link(TCastleContainer.InspectorKey)). }
   TCastleInspectorControl = class(TCastleUserInterfaceFont)
   strict private
     Background: TCastleRectangleControl;
