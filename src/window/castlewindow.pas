@@ -5096,18 +5096,18 @@ procedure TCastleApplication.HandleException(Sender: TObject);
          handling of GuessedMainWindow.MessageOK causes another exception
          that resulted in recursive call to HandleException.
          Prevent the loop with just crash in this case. }
-       (not Theme.InternalForceOpaqueBackground) then
+       (not Theme.InternalMessageFallbackLook) then
     begin
       try
         OriginalObj := ExceptObject;
         OriginalAddr := ExceptAddr;
         OriginalFrameCount := ExceptFrameCount;
         OriginalFrame := ExceptFrames;
-        Theme.InternalForceOpaqueBackground := true;
+        Theme.InternalMessageFallbackLook := true;
         ContinueApp := GuessedMainWindow.MessageYesNo(
           'An error occurred. Try to continue the application?' + NL + NL +
           'Error details:' + NL + ErrMessage, mtError);
-        Theme.InternalForceOpaqueBackground := false;
+        Theme.InternalMessageFallbackLook := false;
       except
         on E: TObject do
         begin

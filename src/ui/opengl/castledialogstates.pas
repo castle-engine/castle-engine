@@ -345,7 +345,7 @@ begin
   FText := TStringList.Create;
   FAlignment := DefaultAlignment;
   FBackground := true;
-  if Theme.InternalForceOpaqueBackground then
+  if Theme.InternalMessageFallbackLook then
     FBackgroundColor := Vector4(Theme.BackgroundOpaqueColor, 1)
   else
     FBackgroundColor := Theme.BackgroundColor;
@@ -401,7 +401,7 @@ begin
   if Background then
   begin
     { Avoid making screenshot when BackgroundColor[3] = 1.
-      This means that Theme.InternalForceOpaqueBackground prevents from taking a screenshot. }
+      This means that Theme.InternalMessageFallbackLook prevents from taking a screenshot. }
     if BackgroundScreenshot and (BackgroundColor[3] <> 1) then
     begin
       BackgroundImage := TCastleImageControl.Create(FreeAtStop);
@@ -424,6 +424,9 @@ begin
 
   FDialog.Initialize(Text, Alignment, Html, Buttons, DrawInputText);
   InsertFront(FDialog);
+
+  if Theme.InternalMessageFallbackLook then
+    ForceFallbackLook(FDialog);
 
   InterceptInput := true;
 end;

@@ -99,7 +99,7 @@
       which helps dialog to stand out. }
     BackgroundColor: TCastleColor;
 
-    { Color used instead of BackgroundColor when InternalForceOpaqueBackground is used.
+    { Color used instead of BackgroundColor when InternalMessageFallbackLook is used.
       You can only customize the RGB values, alpha is always 1, so the resulting
       color is always opaque.
       It's a dark gray color (0.33, 0.33, 0.33) by default. }
@@ -151,21 +151,32 @@
     { Minumum scrollbar height, to be comfortably visible and draggable. }
     MinimumScrollbarSliderHeight: Single;
 
-    { Request modal boxes to use opaque color from @link(BackgroundOpaqueColor).
+    { Request modal boxes to use safe "fallback" rendering options,
+      to work even when application is in buggy/dirty state
+      because something unexpected happened.
 
       This is internally set and unset by the CastleWindow exception handler
       (you should not modify this yourself).
-      It allows to request showing opaque color under
+      It allows to request "fallback" drawing for
       @link(TCastleWindowBase.MessageOK) and friends,
       or modal states by @link(TGLModeFrozenScreen).
 
-      This allows to avoid making a screenshot (TStateDialog.BackgroundScreenshot may be false),
-      which is safer when we want to show an exception
-      (since the application may be in some dirty state, so it's better to avoid
-      rendering user stuff).
+      This means:
+
+      @unorderedList(
+        @item(Using opaque color from @link(BackgroundOpaqueColor) such that
+          we don't need to render anything underneath.)
+
+        @item(Use FallbackFont and FallbackTheme, so ignore user customizations
+          to font and theme.)
+
+        @item(Avoid making a screenshot (TStateDialog.BackgroundScreenshot may be false),
+          which is safer since the application may be in some dirty state, so it's better to avoid
+          rendering user stuff.)
+      )
 
       @exclude }
-    InternalForceOpaqueBackground: boolean;
+    InternalMessageFallbackLook: boolean;
 
     DefaultLabelWhite: Boolean deprecated 'if you want the labels to be white, adjust TCastleLabel.Color to White after creating every TCastleLabel';
 
