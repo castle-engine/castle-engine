@@ -124,7 +124,12 @@ uses SysUtils, StrUtils,
 
   untangle dependencies: it is a bit dirty that CastleUIControls, basic unit,
   uses this unit -- which includes everything, like TCastleViewport.
-  CastleUIControls should instead expose InternalInspectorClass that this unit would overwrite.
+  CastleUIControls should instead expose InternalInspectorClass that this unit would set.
+
+    Hm, but then how to make sure this is always used?
+    This unit will have to be used by CastleWindow, CastleControl...
+    again creating a bigger dependency than needed.
+    Would be best if this unit didn't need some, at least no CastleViewport, CastleScene.
 
   checkbox to also show X3D nodes
 
