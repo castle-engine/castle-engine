@@ -3999,7 +3999,8 @@ end;
 function TCastleUserInterface.TEnumerator.MoveNext: Boolean;
 begin
   Inc(FPosition);
-  Result := FPosition < FList.Count;
+  { Note that FList may be nil, as TCastleUserInterface.FControls may be nil when empty. }
+  Result := (FList <> nil) and (FPosition < FList.Count);
 end;
 
 { TCastleUserInterface ----------------------------------------------------------------- }

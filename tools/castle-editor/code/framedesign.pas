@@ -2535,6 +2535,7 @@ procedure TDesignFrame.UpdateDesign;
         AddTransform(Result, T[I]);
   end;
 
+  { Add given UI control, and its children. }
   function AddControl(const Parent: TTreeNode; const C: TCastleUserInterface): TTreeNode;
   var
     S: String;

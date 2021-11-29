@@ -1,0 +1,666 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "InspectorRoot",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "Bottom" : 1.0000000000000000E+001,
+        "Right" : 1.0000000000000000E+001
+      },
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 8.9999997615814209E-001
+      },
+      "HeightFraction" : 2.5000000000000000E-001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "RectLog",
+      "WidthFraction" : 7.5000000000000000E-001,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleRectangleControl",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 8.9999997615814209E-001,
+            "Blue" : 7.5294119119644165E-001,
+            "Green" : 7.5294119119644165E-001,
+            "Red" : 7.5294119119644165E-001
+          },
+          "Height" : 3.0000000000000000E+001,
+          "Name" : "HeaderLog",
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "WidthFraction" : 1.0000000000000000E+000,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Border" : {
+                "$$ClassName" : "TBorder",
+                "AllSides" : 5.0000000000000000E+000
+              },
+              "Name" : "LabelLogHeader",
+              "Text" : [
+                "Log (10)"
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "AutoSize" : false,
+              "Caption" : "X",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Height" : 3.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpRight",
+              "HorizontalAnchorSelf" : "hpRight",
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonLogHide",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 3.0000000000000000E+001
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleScrollView",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "Top" : 3.0000000000000000E+001
+          },
+          "FullSize" : true,
+          "Name" : "ScrollLogs",
+          "ScrollArea" : {
+            "$$ClassName" : "TInternalCastleScrollArea",
+            "AutoSizeToChildren" : true,
+            "Name" : "ScrollArea",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleLabel",
+                "Border" : {
+                  "$$ClassName" : "TBorder",
+                  "AllSides" : 2.0000000000000000E+000
+                },
+                "Name" : "LabelLog",
+                "Text" : [
+                  "-------------------- Rendering Context Initialization begin",
+                  "OpenGL information (detected by castle-editor):",
+                  "",
+                  "--------",
+                  "Version:",
+                  "  Version string: 4.6.0 NVIDIA 470.82.00",
+                  "  Version parsed: major: 4, minor: 6, release exists: True, release: 0, vendor-specific information: \"NVIDIA 470.82.00\"",
+                  "  Vendor-specific version parsed: major: 470, minor: 82, release: 0",
+                  "  Vendor: NVIDIA Corporation",
+                  "  Vendor type: Nvidia",
+                  "",
+                  "  Renderer: NVIDIA GeForce GTX 660/PCIe/SSE2",
+                  "  Fglrx (ATI on Linux): False",
+                  "  Mesa: False",
+                  "",
+                  "  Buggy glGenerateMipmap(EXT): False",
+                  "  Buggy GL_LIGHT_MODEL_TWO_SIDE: False",
+                  "  Buggy VBO: False",
+                  "  Buggy shader shadow map: False",
+                  "  Buggy FBO rendering to multi-sampling texture: False",
+                  "  Buggy FBO rendering to cube map texture: False",
+                  "  Buggy swap buffers with non-standard glViewport: False",
+                  "  Buggy 32-bit depth buffer: False",
+                  "  Buggy GLSL gl_FrontFacing: False",
+                  "  Buggy GLSL read varying: False",
+                  "  Buggy Pure Shader Pipeline: False",
+                  "  Buggy Texture Size Above 2048: False",
+                  "  Buggy Shader Bump Mapping num_steps: False",
+                  "",
+                  "------------------------",
+                  "Real versions available:",
+                  "(checks both version string and actual functions availability in GL library, to secure from buggy implementations)",
+                  ""
+                ],
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 1.0000000000000000E+001
+      },
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 8.9999997615814209E-001
+      },
+      "HeightFraction" : 7.5000000000000000E-001,
+      "Name" : "RectHierarchy",
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "WidthFraction" : 2.5000000000000000E-001,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleRectangleControl",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 8.9999997615814209E-001,
+            "Blue" : 7.5294119119644165E-001,
+            "Green" : 7.5294119119644165E-001,
+            "Red" : 7.5294119119644165E-001
+          },
+          "Height" : 3.0000000000000000E+001,
+          "Name" : "HeaderHierarchy",
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "WidthFraction" : 1.0000000000000000E+000,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Border" : {
+                "$$ClassName" : "TBorder",
+                "AllSides" : 5.0000000000000000E+000
+              },
+              "Name" : "LabelHierarchyHeader",
+              "Text" : [
+                "Hierarchy"
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "AutoSize" : false,
+              "Caption" : "X",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Height" : 3.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpRight",
+              "HorizontalAnchorSelf" : "hpRight",
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonHierarchyHide",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 3.0000000000000000E+001
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleScrollView",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "Bottom" : 3.0000000000000000E+001,
+            "Top" : 3.0000000000000000E+001
+          },
+          "FullSize" : true,
+          "Name" : "ScrollView3",
+          "ScrollArea" : {
+            "$$ClassName" : "TInternalCastleScrollArea",
+            "AutoSizeToChildren" : true,
+            "Name" : "ScrollArea",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleVerticalGroup",
+                "Name" : "HierarchyRowParent",
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleButton",
+                    "AutoSize" : false,
+                    "Caption" : "HierarchyRowTemplate",
+                    "CustomBackground" : true,
+                    "CustomBackgroundDisabled" : {
+                      "$$ClassName" : "TCastleImagePersistent"
+                    },
+                    "CustomBackgroundFocused" : {
+                      "$$ClassName" : "TCastleImagePersistent"
+                    },
+                    "CustomBackgroundNormal" : {
+                      "$$ClassName" : "TCastleImagePersistent"
+                    },
+                    "CustomBackgroundPressed" : {
+                      "$$ClassName" : "TCastleImagePersistent"
+                    },
+                    "CustomColorDisabledPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Alpha" : 1.0000000000000000E+000,
+                      "Blue" : 1.0000000000000000E+000,
+                      "Green" : 1.0000000000000000E+000,
+                      "Red" : 1.0000000000000000E+000
+                    },
+                    "CustomColorFocusedPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Alpha" : 1.0000000000000000E+000,
+                      "Blue" : 1.0000000000000000E+000,
+                      "Green" : 1.0000000000000000E+000,
+                      "Red" : 1.0000000000000000E+000
+                    },
+                    "CustomColorNormalPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Alpha" : 1.0000000000000000E+000,
+                      "Blue" : 1.0000000000000000E+000,
+                      "Green" : 1.0000000000000000E+000,
+                      "Red" : 1.0000000000000000E+000
+                    },
+                    "CustomColorPressedPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Alpha" : 1.0000000000000000E+000,
+                      "Blue" : 1.0000000000000000E+000,
+                      "Green" : 1.0000000000000000E+000,
+                      "Red" : 1.0000000000000000E+000
+                    },
+                    "Height" : 4.0000000000000000E+001,
+                    "Image" : {
+                      "$$ClassName" : "TCastleImagePersistent"
+                    },
+                    "Name" : "HierarchyRowTemplate",
+                    "TextAlignment" : "hpLeft",
+                    "TintFocusedPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Blue" : 4.8235294222831726E-001
+                    },
+                    "TintNormalPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Alpha" : 0.0000000000000000E+000
+                    },
+                    "TintPressedPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Blue" : 0.0000000000000000E+000
+                    },
+                    "Toggle" : true,
+                    "VerticalAnchorParent" : "vpTop",
+                    "VerticalAnchorSelf" : "vpTop",
+                    "Width" : 3.5000000000000000E+002
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "$$ClassName" : "TCastleCheckbox",
+          "Caption" : "Show Even Internal",
+          "Name" : "CheckboxShowEvenInternal"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 1.0000000000000000E+001
+      },
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 8.9999997615814209E-001
+      },
+      "HeightFraction" : 7.5000000000000000E-001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "RectProperties",
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "WidthFraction" : 2.5000000000000000E-001,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleRectangleControl",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 8.9999997615814209E-001,
+            "Blue" : 7.5294119119644165E-001,
+            "Green" : 7.5294119119644165E-001,
+            "Red" : 7.5294119119644165E-001
+          },
+          "Height" : 3.0000000000000000E+001,
+          "Name" : "HeaderProperties",
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "WidthFraction" : 1.0000000000000000E+000,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Border" : {
+                "$$ClassName" : "TBorder",
+                "AllSides" : 5.0000000000000000E+000
+              },
+              "Name" : "LabelPropertiesHeader",
+              "Text" : [
+                "Properties"
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "AutoSize" : false,
+              "Caption" : "X",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Height" : 3.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpRight",
+              "HorizontalAnchorSelf" : "hpRight",
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonPropertiesHide",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "Width" : 3.0000000000000000E+001
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleScrollView",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "Top" : 3.0000000000000000E+001
+          },
+          "FullSize" : true,
+          "Name" : "ScrollView4",
+          "ScrollArea" : {
+            "$$ClassName" : "TInternalCastleScrollArea",
+            "AutoSizeToChildren" : true,
+            "Name" : "ScrollArea",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleVerticalGroup",
+                "Name" : "PropertyRowParent",
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleUserInterface",
+                    "Border" : {
+                      "$$ClassName" : "TBorder",
+                      "AllSides" : 2.0000000000000000E+000
+                    },
+                    "BorderColorPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Alpha" : 1.0000000000000000E+000,
+                      "Blue" : 5.5294120311737061E-001,
+                      "Green" : 5.5294120311737061E-001,
+                      "Red" : 5.6078433990478516E-001
+                    },
+                    "Height" : 4.0000000000000000E+001,
+                    "Name" : "PropertyRowTemplate",
+                    "VerticalAnchorParent" : "vpTop",
+                    "VerticalAnchorSelf" : "vpTop",
+                    "Width" : 3.5000000000000000E+002,
+                    "$Children" : [
+                      {
+                        "$$ClassName" : "TCastleRectangleControl",
+                        "Border" : {
+                          "$$ClassName" : "TBorder",
+                          "Right" : 2.0000000000000000E+000
+                        },
+                        "BorderColorPersistent" : {
+                          "$$ClassName" : "TCastleColorPersistent",
+                          "Alpha" : 1.0000000000000000E+000,
+                          "Blue" : 5.5294120311737061E-001,
+                          "Green" : 5.5294120311737061E-001,
+                          "Red" : 5.6078433990478516E-001
+                        },
+                        "ColorPersistent" : {
+                          "$$ClassName" : "TCastleColorPersistent",
+                          "Blue" : 7.6078432798385620E-001,
+                          "Green" : 7.6078432798385620E-001,
+                          "Red" : 7.6078432798385620E-001
+                        },
+                        "HeightFraction" : 1.0000000000000000E+000,
+                        "Name" : "RectangleControl1",
+                        "WidthFraction" : 5.0000000000000000E-001,
+                        "$Children" : [
+                          {
+                            "$$ClassName" : "TCastleLabel",
+                            "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+                            "Name" : "PropName",
+                            "Text" : [
+                              "Position"
+                            ],
+                            "VerticalAnchorParent" : "vpMiddle",
+                            "VerticalAnchorSelf" : "vpMiddle"
+                          }
+                        ]
+                      },
+                      {
+                        "$$ClassName" : "TCastleEdit",
+                        "AutoSizeHeight" : false,
+                        "CaptureAllInput" : false,
+                        "HeightFraction" : 1.0000000000000000E+000,
+                        "HorizontalAnchorParent" : "hpRight",
+                        "HorizontalAnchorSelf" : "hpRight",
+                        "Name" : "PropValue",
+                        "Text" : "PropValue",
+                        "VerticalAnchorParent" : "vpMiddle",
+                        "VerticalAnchorSelf" : "vpMiddle",
+                        "WidthFraction" : 5.0000000000000000E-001
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "Bottom" : 1.0000000000000000E+001,
+        "Left" : 1.0000000000000000E+001,
+        "Right" : 1.0000000000000000E+001
+      },
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 8.9999997615814209E-001
+      },
+      "HeightFraction" : 2.5000000000000000E-001,
+      "Name" : "RectOptions",
+      "WidthFraction" : 2.5000000000000000E-001,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "HorizontalAnchorDelta" : 5.0000000000000000E+000,
+          "Name" : "LabelInspectorFps",
+          "Text" : [
+            "60 FPS"
+          ],
+          "VerticalAnchorDelta" : 5.0000000000000000E+000
+        },
+        {
+          "$$ClassName" : "TCastleVerticalGroup",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 5.0000000000000000E+000,
+            "Top" : 3.0000000000000000E+001
+          },
+          "FullSize" : true,
+          "Name" : "VerticalGroup5",
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "LabelInspectorHelp",
+              "Text" : [
+                "Press F12 to close inspector."
+              ],
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleFloatSlider",
+              "Caption" : "Opacity",
+              "Height" : 3.0000000000000000E+001,
+              "Name" : "SliderOpacity",
+              "SmallFont" : false,
+              "Value" : 8.9999997615814209E-001,
+              "VerticalAnchorDelta" : -2.1999998092651367E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "WidthFraction" : 1.0000000000000000E+000
+            },
+            {
+              "$$ClassName" : "TCastleHorizontalGroup",
+              "Name" : "HorizontalGroupShow",
+              "VerticalAnchorDelta" : -5.1999996185302734E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "Name" : "Label1",
+                  "Text" : [
+                    "Show: "
+                  ],
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle"
+                },
+                {
+                  "$$ClassName" : "TCastleButton",
+                  "Caption" : "Hierarchy",
+                  "CustomBackgroundDisabled" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundFocused" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundNormal" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundPressed" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "HorizontalAnchorDelta" : 6.7000000000000000E+001,
+                  "Image" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "Name" : "ButtonHierarchyShow",
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle"
+                },
+                {
+                  "$$ClassName" : "TCastleButton",
+                  "Caption" : "Properties",
+                  "CustomBackgroundDisabled" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundFocused" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundNormal" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundPressed" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "HorizontalAnchorDelta" : 1.8400000000000000E+002,
+                  "Image" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "Name" : "ButtonPropertiesShow",
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle"
+                },
+                {
+                  "$$ClassName" : "TCastleButton",
+                  "Caption" : "Log",
+                  "CustomBackgroundDisabled" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundFocused" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundNormal" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundPressed" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "HorizontalAnchorDelta" : 3.0500000000000000E+002,
+                  "Image" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "Name" : "ButtonLogShow",
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleRectangleControl",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 8.9999997615814209E-001,
+            "Blue" : 7.5294119119644165E-001,
+            "Green" : 7.5294119119644165E-001,
+            "Red" : 7.5294119119644165E-001
+          },
+          "Height" : 3.0000000000000000E+001,
+          "Name" : "HeaderOptions",
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "WidthFraction" : 1.0000000000000000E+000,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Border" : {
+                "$$ClassName" : "TBorder",
+                "AllSides" : 5.0000000000000000E+000
+              },
+              "Name" : "LabelOptionsHeader",
+              "Text" : [
+                "Options"
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
