@@ -336,6 +336,7 @@
 '      "$Children" : [' + LineEnding +
 '        {' + LineEnding +
 '          "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
+'          "ClipChildren" : true,' + LineEnding +
 '          "ColorPersistent" : {' + LineEnding +
 '            "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
 '            "Alpha" : 8.9999997615814209E-001,' + LineEnding +
