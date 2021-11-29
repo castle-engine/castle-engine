@@ -142,7 +142,7 @@ uses SysUtils, StrUtils,
 
   properties, hierarchy rows don't adjust to possible size
 
-  hierarchy button needs to be aligned left
+  preserve Opacity between runs
 }
 
 constructor TCastleInspector.Create(AOwner: TComponent);

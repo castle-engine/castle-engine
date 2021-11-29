@@ -235,6 +235,7 @@
 '                "$Children" : [' + LineEnding +
 '                  {' + LineEnding +
 '                    "$$ClassName" : "TCastleButton",' + LineEnding +
+'                    "Alignment" : "hpLeft",' + LineEnding +
 '                    "AutoSize" : false,' + LineEnding +
 '                    "Caption" : "HierarchyRowTemplate",' + LineEnding +
 '                    "CustomBackground" : true,' + LineEnding +
@@ -278,11 +279,13 @@
 '                      "Green" : 1.0000000000000000E+000,' + LineEnding +
 '                      "Red" : 1.0000000000000000E+000' + LineEnding +
 '                    },' + LineEnding +
-'                    "Height" : 4.0000000000000000E+001,' + LineEnding +
+'                    "Height" : 3.0000000000000000E+001,' + LineEnding +
 '                    "Image" : {' + LineEnding +
 '                      "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
 '                    },' + LineEnding +
 '                    "Name" : "HierarchyRowTemplate",' + LineEnding +
+'                    "PaddingHorizontal" : 5.0000000000000000E+000,' + LineEnding +
+'                    "PaddingVertical" : 5.0000000000000000E+000,' + LineEnding +
 '                    "TextAlignment" : "hpLeft",' + LineEnding +
 '                    "TintFocusedPersistent" : {' + LineEnding +
 '                      "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
