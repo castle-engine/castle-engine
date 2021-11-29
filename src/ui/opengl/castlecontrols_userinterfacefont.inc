@@ -250,7 +250,7 @@ begin
     as it would not be visible.
     As a last fallback, we can always use UIFont. }
   if (CustomFont <> nil) and
-     // TODO: hack for CastleInspectorControl, why needed?
+     // TODO: hack for TCastleInspector, why needed?
      (CustomFont.ClassType <> TCastleAbstractFont) and
      (CustomFont.FontLoaded) then
     Result := CustomFont

@@ -288,7 +288,7 @@ type
     FBackgroundEnable: Boolean;
     FBackgroundColor: TCastleColor;
     FInspectorKey: TKey;
-    FInspector: TCastleUserInterface; //< always TCastleInspectorControl
+    FInspector: TCastleUserInterface; //< always TCastleInspector
 
     function UseForceCaptureInput: boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
@@ -891,7 +891,7 @@ type
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
 
-    { Key shortcut to show/hide TCastleInspectorControl at any point in the game.
+    { Key shortcut to show/hide TCastleInspector at any point in the game.
       In DEBUG builds, this is keyF12 by default.
       In RELEASE builds, this is keyNone by default. }
     property InspectorKey: TKey read FInspectorKey write FInspectorKey;
@@ -2399,7 +2399,7 @@ implementation
 uses DOM, TypInfo, Math,
   CastleLog, CastleXMLUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
-  CastleInspectorControl,
+  CastleInspector,
   {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
 
 {$define read_implementation}
@@ -2648,7 +2648,7 @@ var
       That's because they all can receive input event (like Press),
       assuming that all controls return "not handled" (return false from Press).
       This is crucial to make some "invisible" controls (like TCastleNavigation
-      or TCastleInspectorControl) work seamlessly, they should not prevent
+      or TCastleInspector) work seamlessly, they should not prevent
       other controls from appearing on Focus list.
    }
 
@@ -3125,7 +3125,7 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): boolean;
   begin
     if FInspector = nil then
     begin
-      FInspector := TCastleInspectorControl.Create(Self);
+      FInspector := TCastleInspector.Create(Self);
       Controls.InsertFront(FInspector);
     end else
     begin

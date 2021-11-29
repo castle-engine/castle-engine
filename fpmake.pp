@@ -337,7 +337,7 @@ begin
     P.Targets.AddUnit('castlecontrolsimages.pas');
     P.Targets.AddUnit('castledialogstates.pas');
     P.Targets.AddUnit('castleflasheffect.pas');
-    P.Targets.AddUnit('castleinspectorcontrol.pas');
+    P.Targets.AddUnit('castleinspector.pas');
     P.Targets.AddUnit('castleinternalsettings.pas');
     P.Targets.AddUnit('castlenotifications.pas');
     P.Targets.AddUnit('castleonscreenmenu.pas');

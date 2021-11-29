@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Inspect Castle Game Engine state at runtime (TCastleInspectorControl).
+{ Inspect Castle Game Engine state at runtime (TCastleInspector).
   Invoke this automatically in debug builds by F12 (see @link(TCastleContainer.InspectorKey)). }
-unit CastleInspectorControl;
+unit CastleInspector;
 
 {$I castleconf.inc}
 
@@ -29,7 +29,7 @@ type
   { Inspect Castle Game Engine state.
     Show log, current UI and viewports state.
     Invoke this automatically in debug builds by F12 (see @link(TCastleContainer.InspectorKey)). }
-  TCastleInspectorControl = class(TCastleUserInterfaceFont)
+  TCastleInspector = class(TCastleUserInterfaceFont)
   strict private
     { Controls loaded from inspector_ui.castle-user-interface.inc }
     CheckboxShowEvenInternal: TCastleCheckbox;
@@ -140,7 +140,7 @@ uses SysUtils, StrUtils,
   hierarchy button needs to be aligned left
 }
 
-constructor TCastleInspectorControl.Create(AOwner: TComponent);
+constructor TCastleInspector.Create(AOwner: TComponent);
 var
   UiOwner: TComponent;
   Ui: TCastleUserInterface;
@@ -215,7 +215,7 @@ begin
   LabelLog.Caption := '';
 end;
 
-destructor TCastleInspectorControl.Destroy;
+destructor TCastleInspector.Destroy;
 begin
   ApplicationProperties.OnLog.Remove({$ifdef FPC}@{$endif} LogCallback);
 
@@ -225,7 +225,7 @@ begin
   inherited;
 end;
 
-procedure TCastleInspectorControl.ForceUsingFallbackFont(const Ui: TCastleUserInterface);
+procedure TCastleInspector.ForceUsingFallbackFont(const Ui: TCastleUserInterface);
 var
   Child: TCastleUserInterface;
 begin
@@ -238,12 +238,12 @@ end;
 const
   SLevelPrefix = '- ';
 
-function TCastleInspectorControl.ComponentCaption(const C: TComponent; const Level: Integer): String;
+function TCastleInspector.ComponentCaption(const C: TComponent; const Level: Integer): String;
 begin
   Result := DupeString(SLevelPrefix, Level) + C.Name + ' (' + C.ClassName + ')';
 end;
 
-function TCastleInspectorControl.ComponentShow(const C: TComponent): Boolean;
+function TCastleInspector.ComponentShow(const C: TComponent): Boolean;
 begin
   { Never show Self,
     this would cause problems as we'll create HierarchyRow to show HierarchyRow instances... }
@@ -252,7 +252,7 @@ begin
   Result := (not (csTransient in C.ComponentStyle)) or CheckboxShowEvenInternal.Checked;
 end;
 
-procedure TCastleInspectorControl.UpdateHierarchy(Sender: TObject);
+procedure TCastleInspector.UpdateHierarchy(Sender: TObject);
 
 { Parts of this are deliberately consistent with TDesignFrame.UpdateDesign. }
 
@@ -388,7 +388,7 @@ begin
     HierarchyRowParent.Controls[RowIndex].Free;
 end;
 
-procedure TCastleInspectorControl.Update(const SecondsPassed: Single;  var HandleInput: boolean);
+procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput: boolean);
 begin
   inherited;
   UpdateHierarchy(nil);
@@ -400,12 +400,12 @@ begin
     LabelInspectorHelp.Caption := 'Press ' + KeyToStr(Container.InspectorKey) + ' to hide inspector';
 end;
 
-procedure TCastleInspectorControl.ChangeOpacity(Sender: TObject);
+procedure TCastleInspector.ChangeOpacity(Sender: TObject);
 begin
   Opacity := SliderOpacity.Value;
 end;
 
-procedure TCastleInspectorControl.SetOpacity(const Value: Single);
+procedure TCastleInspector.SetOpacity(const Value: Single);
 begin
   if FOpacity <> Value then
   begin
@@ -417,7 +417,7 @@ begin
   end;
 end;
 
-procedure TCastleInspectorControl.SynchronizeButtonsToShow;
+procedure TCastleInspector.SynchronizeButtonsToShow;
 begin
   ButtonLogShow.Exists := not RectLog.Exists;
   ButtonPropertiesShow.Exists := not RectProperties.Exists;
@@ -425,43 +425,43 @@ begin
   HorizontalGroupShow.Exists := ButtonHierarchyShow.Exists or ButtonLogShow.Exists or ButtonPropertiesShow.Exists;
 end;
 
-procedure TCastleInspectorControl.ClickHierarchyShow(Sender: TObject);
+procedure TCastleInspector.ClickHierarchyShow(Sender: TObject);
 begin
   RectHierarchy.Exists := true;
   SynchronizeButtonsToShow;
 end;
 
-procedure TCastleInspectorControl.ClickHierarchyHide(Sender: TObject);
+procedure TCastleInspector.ClickHierarchyHide(Sender: TObject);
 begin
   RectHierarchy.Exists := false;
   SynchronizeButtonsToShow;
 end;
 
-procedure TCastleInspectorControl.ClickLogShow(Sender: TObject);
+procedure TCastleInspector.ClickLogShow(Sender: TObject);
 begin
   RectLog.Exists := true;
   SynchronizeButtonsToShow;
 end;
 
-procedure TCastleInspectorControl.ClickLogHide(Sender: TObject);
+procedure TCastleInspector.ClickLogHide(Sender: TObject);
 begin
   RectLog.Exists := false;
   SynchronizeButtonsToShow;
 end;
 
-procedure TCastleInspectorControl.ClickPropertiesShow(Sender: TObject);
+procedure TCastleInspector.ClickPropertiesShow(Sender: TObject);
 begin
   RectProperties.Exists := true;
   SynchronizeButtonsToShow;
 end;
 
-procedure TCastleInspectorControl.ClickPropertiesHide(Sender: TObject);
+procedure TCastleInspector.ClickPropertiesHide(Sender: TObject);
 begin
   RectProperties.Exists := false;
   SynchronizeButtonsToShow;
 end;
 
-procedure TCastleInspectorControl.LogCallback(const Message: String);
+procedure TCastleInspector.LogCallback(const Message: String);
 begin
   { Use InsideLogCallback to prevent from infinite recursion,
     in case anything inside would also cause WritelnLog. }
@@ -476,12 +476,12 @@ begin
   finally InsideLogCallback := false end;
 end;
 
-procedure TCastleInspectorControl.ClickHierarchyRow(Sender: TObject);
+procedure TCastleInspector.ClickHierarchyRow(Sender: TObject);
 begin
   SelectedComponent := TComponent(Pointer((Sender as TCastleButton).Tag));
 end;
 
-procedure TCastleInspectorControl.SetSelectedComponent(const Value: TComponent);
+procedure TCastleInspector.SetSelectedComponent(const Value: TComponent);
 var
   HierarchyRow: TCastleUserInterface;
   HierachyRowButton: TCastleButton;
@@ -509,7 +509,7 @@ begin
   end;
 end;
 
-procedure TCastleInspectorControl.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleInspector.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
   if (Operation = opRemove) and (AComponent = FSelectedComponent) then
@@ -517,7 +517,7 @@ begin
     SelectedComponent := nil;
 end;
 
-procedure TCastleInspectorControl.UpdateProperties;
+procedure TCastleInspector.UpdateProperties;
 
   procedure AddPropertyRow(const PropNameStr, PropValueStr: String);
   var
@@ -526,7 +526,7 @@ procedure TCastleInspectorControl.UpdateProperties;
     PropName: TCastleLabel;
     PropValue: TCastleEdit;
   begin
-    // TODO: We will create lots of PropertyOwner and never free them, until you close the TCastleInspectorControl
+    // TODO: We will create lots of PropertyOwner and never free them, until you close the TCastleInspector
 
     PropertyOwner := TComponent.Create(Self);
     Ui := SerializedPropertyRowTemplate.ComponentLoad(PropertyOwner) as TCastleUserInterface;

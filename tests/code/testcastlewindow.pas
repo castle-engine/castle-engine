@@ -45,7 +45,7 @@ implementation
 uses SysUtils, Classes, Math,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
-  CastleInspectorControl, CastleCameras, CastleSceneManager, CastleVectors,
+  CastleCameras, CastleSceneManager, CastleVectors,
   CastleTransform, CastleScene, CastleApplicationProperties, CastleUIState;
 
 procedure TTestWindow.Test1;
@@ -204,8 +204,6 @@ var
     OnScreenMenu1.Add('two');
     OnScreenMenu1.Add('three');
     Window.Controls.InsertFront(OnScreenMenu1);
-
-    Window.Controls.InsertFront(TCastleInspectorControl.Create(Window));
   end;
 
   procedure MoveMouse(const Pos: TVector2);
@@ -233,31 +231,24 @@ begin
     AddUserInterfaceFromCode;
 
     MoveMouse(FloatRectangle(Window.Rect).Middle);
-    AssertEquals(6, Window.Container.Focus.Count);
+    AssertEquals(3, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
-    AssertTrue(Window.Container.Focus[3] is TCastleInspectorControl);
-    AssertTrue(Window.Container.Focus[4] is TCastleRectangleControl); // internal in TCastleInspectorControl
-    AssertTrue(Window.Container.Focus[5] is TCastleLabel); // internal in TCastleInspectorControl
 
     MoveMouse(ManualButton.RenderRect.Middle);
-    AssertEquals(6, Window.Container.Focus.Count);
+    AssertEquals(4, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
     AssertTrue(Window.Container.Focus[3] = ManualButton);
-    AssertTrue(Window.Container.Focus[4] is TCastleInspectorControl);
-    AssertTrue(Window.Container.Focus[5] is TCastleRectangleControl); // internal in TCastleInspectorControl
 
     MoveMouse(Button2.RenderRect.Middle);
-    AssertEquals(6, Window.Container.Focus.Count);
+    AssertEquals(4, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
     AssertTrue(Window.Container.Focus[3] = Button2);
-    AssertTrue(Window.Container.Focus[4] is TCastleInspectorControl);
-    AssertTrue(Window.Container.Focus[5] is TCastleRectangleControl); // internal in TCastleInspectorControl
   finally FreeAndNil(Window) end;
 end;
 
