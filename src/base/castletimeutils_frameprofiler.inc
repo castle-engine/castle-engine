@@ -1,6 +1,6 @@
 {%MainUnit castletimeutils.pas}
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,6 +22,7 @@ type
   TFrameMetric = (
     fmBeforeRender,
     fmRender,
+    fmRenderSwapFlush,
     fmRenderTransform,
     fmRenderScene,
     fmRenderShapesFilterBlending,
@@ -210,6 +211,7 @@ procedure TCastleFrameProfiler.StartFrame;
       'Frame time: %f secs (we should have %f FPS based on this):' + NL +
       '- BeforeRender: %d%%' + NL +
       '- Render: %d%% (%f secs, we should have %f "only render FPS" based on this)' + NL +
+      '  - Swap / flush buffers (includes waiting for v-sync): %d%%' + NL +
       '  - TCastleTransform.Render transformation: %d%%' + NL +
       '  - TCastleScene.Render: %d%%' + NL +
       '    - ShapesFilterBlending: %d%%' + NL +
@@ -229,6 +231,7 @@ procedure TCastleFrameProfiler.StartFrame;
       PercentTime(fmRender),
       FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
       1 / FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
+      PercentTime(fmRenderSwapFlush),
       PercentTime(fmRenderTransform),
       PercentTime(fmRenderScene),
       PercentTime(fmRenderShapesFilterBlending),
