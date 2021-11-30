@@ -61,8 +61,8 @@ type
 
     Use this class only through the singleton instance @link(FrameProfiler).
 
-    TODO: In the future we plan to implement UI to automatically
-    show this in a pretty manner, like TCastleDebugOverlay .
+    The easiest way to enable this and view the data is through TCastleInspector.
+    Just use F12 in a debug build.
   }
   TCastleFrameProfiler = class
   private
@@ -94,6 +94,9 @@ type
       UserMetricsRenderNames: array [TUserMetric] of String;
       UserMetricsUpdateNames: array [TUserMetric] of String;
       UserMetricsOtherNames: array [TUserMetric] of String;
+      FFramesForSummary: Cardinal;
+      FOnSummaryAvailable: TNotifyEvent;
+      FLogSummary: Boolean;
     function IndexFrameMetric(const Metric: TFrameMetric): TMetricIndex;
     function IndexUserMetric(const Name: String; out Metric: TMetricIndex): Boolean;
     { StartCore and StopCore unify all metrics (frame total, TFrameMetric, user metrics)
@@ -101,6 +104,9 @@ type
     procedure StartCore(const Metric: TMetricIndex);
     procedure StopCore(const Metric: TMetricIndex);
   public
+    const
+      DefaultFramesForSummary = 60;
+
     constructor Create;
     { No data is gathered when Enabled = false, the calls to @link(StartFrame),
       @link(Start), @link(Stop) are ignored then. }
@@ -110,6 +116,16 @@ type
     procedure Stop(const Metric: TFrameMetric); overload;
     procedure Start(const UserMetric: String); overload;
     procedure Stop(const UserMetric: String); overload;
+
+    { Gather this many frames for a summary. }
+    property FramesForSummary: Cardinal read FFramesForSummary write FFramesForSummary
+      default DefaultFramesForSummary;
+
+    { Notification when the summary is available, i.e. we have gathered FramesForSummary frames. }
+    property OnSummaryAvailable: TNotifyEvent read FOnSummaryAvailable write FOnSummaryAvailable;
+
+    { When the summary is available, output details to log. }
+    property LogSummary: Boolean read FLogSummary write FLogSummary default false;
   end;
 
 { Single instance of @link(TCastleFrameProfiler) that you can use for frame profiling.
@@ -140,6 +156,7 @@ begin
   //    SizeOf(CurrentFrameStarted) +
   //    SizeOf(CurrentFrameStart)) / (1024 * 1024)
   // ]);
+  FFramesForSummary := DefaultFramesForSummary;
 end;
 
 procedure TCastleFrameProfiler.StartCore(const Metric: TMetricIndex);
@@ -178,7 +195,7 @@ end;
 
 procedure TCastleFrameProfiler.StartFrame;
 
-  procedure DisplaySummary;
+  procedure DoLogSummary;
   var
     TotalTime: TFloatTime;
 
@@ -247,8 +264,6 @@ procedure TCastleFrameProfiler.StartFrame;
     ]));
   end;
 
-const
-  DisplaySummaryAtFrames = 60;
 var
   OtherMetric: TMetricIndex;
 begin
@@ -275,8 +290,13 @@ begin
         end;
 
     // until we have a proper TCastleFrameProfilerDisplay, just dump it in the log every second
-    if CurrentFrame mod DisplaySummaryAtFrames = 0 then
-      DisplaySummary;
+    if CurrentFrame mod FramesForSummary = 0 then
+    begin
+      if Assigned(OnSummaryAvailable) then
+        OnSummaryAvailable(Self);
+      if LogSummary then
+        DoLogSummary;
+    end;
 
     CurrentFrame := (CurrentFrame + 1) mod MaxRecordFrames;
     FillChar(FramesTimes[CurrentFrame], SizeOf(FramesTimes[CurrentFrame]), 0);

@@ -92,12 +92,16 @@
 '              "CustomBackgroundPressed" : {' + LineEnding +
 '                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
 '              },' + LineEnding +
-'              "HorizontalAnchorDelta" : 8.1000000000000000E+002,' + LineEnding +
+'              "HorizontalAnchorDelta" : -3.2000000000000000E+002,' + LineEnding +
+'              "HorizontalAnchorParent" : "hpRight",' + LineEnding +
+'              "HorizontalAnchorSelf" : "hpRight",' + LineEnding +
 '              "Image" : {' + LineEnding +
 '                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
 '              },' + LineEnding +
 '              "Name" : "ButtonLogClear",' + LineEnding +
-'              "PaddingVertical" : 5.0000000000000000E+000' + LineEnding +
+'              "PaddingVertical" : 5.0000000000000000E+000,' + LineEnding +
+'              "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'              "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
 '            },' + LineEnding +
 '            {' + LineEnding +
 '              "$$ClassName" : "TCastleCheckbox",' + LineEnding +
@@ -175,6 +179,269 @@
 '          },' + LineEnding +
 '          "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
 '          "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
+'        }' + LineEnding +
+'      ]' + LineEnding +
+'    },' + LineEnding +
+'    {' + LineEnding +
+'      "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
+'      "Border" : {' + LineEnding +
+'        "$$ClassName" : "TBorder",' + LineEnding +
+'        "Bottom" : 1.0000000000000000E+001,' + LineEnding +
+'        "Top" : 1.0000000000000000E+001' + LineEnding +
+'      },' + LineEnding +
+'      "ColorPersistent" : {' + LineEnding +
+'        "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'        "Alpha" : 8.9999997615814209E-001,' + LineEnding +
+'        "Blue" : 2.6666668057441711E-001,' + LineEnding +
+'        "Green" : 2.6666668057441711E-001,' + LineEnding +
+'        "Red" : 2.6666668057441711E-001' + LineEnding +
+'      },' + LineEnding +
+'      "HeightFraction" : 1.5000000596046448E-001,' + LineEnding +
+'      "HorizontalAnchorParent" : "hpMiddle",' + LineEnding +
+'      "HorizontalAnchorSelf" : "hpMiddle",' + LineEnding +
+'      "Name" : "RectProfiler",' + LineEnding +
+'      "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'      "VerticalAnchorSelf" : "vpTop",' + LineEnding +
+'      "WidthFraction" : 5.0000000000000000E-001,' + LineEnding +
+'      "$Children" : [' + LineEnding +
+'        {' + LineEnding +
+'          "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
+'          "ColorPersistent" : {' + LineEnding +
+'            "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'            "Alpha" : 8.9999997615814209E-001,' + LineEnding +
+'            "Blue" : 7.5294119119644165E-001,' + LineEnding +
+'            "Green" : 7.5294119119644165E-001,' + LineEnding +
+'            "Red" : 7.5294119119644165E-001' + LineEnding +
+'          },' + LineEnding +
+'          "Height" : 3.0000000000000000E+001,' + LineEnding +
+'          "Name" : "HeaderProfiler",' + LineEnding +
+'          "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'          "VerticalAnchorSelf" : "vpTop",' + LineEnding +
+'          "WidthFraction" : 1.0000000000000000E+000,' + LineEnding +
+'          "$Children" : [' + LineEnding +
+'            {' + LineEnding +
+'              "$$ClassName" : "TCastleLabel",' + LineEnding +
+'              "Border" : {' + LineEnding +
+'                "$$ClassName" : "TBorder",' + LineEnding +
+'                "AllSides" : 5.0000000000000000E+000' + LineEnding +
+'              },' + LineEnding +
+'              "Name" : "LabelProfilerHeader",' + LineEnding +
+'              "Text" : [' + LineEnding +
+'                "Frame Profiler"' + LineEnding +
+'              ],' + LineEnding +
+'              "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'              "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
+'            },' + LineEnding +
+'            {' + LineEnding +
+'              "$$ClassName" : "TCastleButton",' + LineEnding +
+'              "AutoSize" : false,' + LineEnding +
+'              "Caption" : "X",' + LineEnding +
+'              "CustomBackgroundDisabled" : {' + LineEnding +
+'                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'              },' + LineEnding +
+'              "CustomBackgroundFocused" : {' + LineEnding +
+'                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'              },' + LineEnding +
+'              "CustomBackgroundNormal" : {' + LineEnding +
+'                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'              },' + LineEnding +
+'              "CustomBackgroundPressed" : {' + LineEnding +
+'                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'              },' + LineEnding +
+'              "Height" : 3.0000000000000000E+001,' + LineEnding +
+'              "HorizontalAnchorParent" : "hpRight",' + LineEnding +
+'              "HorizontalAnchorSelf" : "hpRight",' + LineEnding +
+'              "Image" : {' + LineEnding +
+'                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'              },' + LineEnding +
+'              "Name" : "ButtonProfilerHide",' + LineEnding +
+'              "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'              "VerticalAnchorSelf" : "vpMiddle",' + LineEnding +
+'              "Width" : 3.0000000000000000E+001' + LineEnding +
+'            },' + LineEnding +
+'            {' + LineEnding +
+'              "$$ClassName" : "TCastleCheckbox",' + LineEnding +
+'              "Caption" : "Log Details",' + LineEnding +
+'              "HorizontalAnchorDelta" : -5.0000000000000000E+001,' + LineEnding +
+'              "HorizontalAnchorParent" : "hpRight",' + LineEnding +
+'              "HorizontalAnchorSelf" : "hpRight",' + LineEnding +
+'              "Name" : "CheckboxProfilerDetailsInLog",' + LineEnding +
+'              "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'              "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
+'            }' + LineEnding +
+'          ]' + LineEnding +
+'        },' + LineEnding +
+'        {' + LineEnding +
+'          "$$ClassName" : "TCastleUserInterface",' + LineEnding +
+'          "Border" : {' + LineEnding +
+'            "$$ClassName" : "TBorder",' + LineEnding +
+'            "Top" : 3.0000000000000000E+001' + LineEnding +
+'          },' + LineEnding +
+'          "FullSize" : true,' + LineEnding +
+'          "Name" : "ProfilerGraph",' + LineEnding +
+'          "$Children" : [' + LineEnding +
+'            {' + LineEnding +
+'              "$$ClassName" : "TCastleLabel",' + LineEnding +
+'              "ColorPersistent" : {' + LineEnding +
+'                "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'                "Alpha" : 5.0000000000000000E-001,' + LineEnding +
+'                "Green" : 1.0000000000000000E+000' + LineEnding +
+'              },' + LineEnding +
+'              "FontSize" : 1.5000000000000000E+001,' + LineEnding +
+'              "Name" : "Label2",' + LineEnding +
+'              "Text" : [' + LineEnding +
+'                "FPS = 60.0"' + LineEnding +
+'              ],' + LineEnding +
+'              "VerticalAnchorParent" : "vpMiddle"' + LineEnding +
+'            },' + LineEnding +
+'            {' + LineEnding +
+'              "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
+'              "ColorPersistent" : {' + LineEnding +
+'                "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'                "Alpha" : 5.0196081399917603E-001,' + LineEnding +
+'                "Blue" : 0.0000000000000000E+000,' + LineEnding +
+'                "Red" : 0.0000000000000000E+000' + LineEnding +
+'              },' + LineEnding +
+'              "Height" : 2.0000000000000000E+000,' + LineEnding +
+'              "Name" : "RectangleControl5",' + LineEnding +
+'              "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'              "VerticalAnchorSelf" : "vpMiddle",' + LineEnding +
+'              "WidthFraction" : 1.0000000000000000E+000' + LineEnding +
+'            },' + LineEnding +
+'            {' + LineEnding +
+'              "$$ClassName" : "TCastleVerticalGroup",' + LineEnding +
+'              "HorizontalAnchorDelta" : -5.0000000000000000E+000,' + LineEnding +
+'              "HorizontalAnchorParent" : "hpRight",' + LineEnding +
+'              "HorizontalAnchorSelf" : "hpRight",' + LineEnding +
+'              "Name" : "ProfilerLegend",' + LineEnding +
+'              "VerticalAnchorDelta" : -5.0000000000000000E+000,' + LineEnding +
+'              "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'              "VerticalAnchorSelf" : "vpTop",' + LineEnding +
+'              "$Children" : [' + LineEnding +
+'                {' + LineEnding +
+'                  "$$ClassName" : "TCastleHorizontalGroup",' + LineEnding +
+'                  "Name" : "HorizontalGroup1",' + LineEnding +
+'                  "Spacing" : 5.0000000000000000E+000,' + LineEnding +
+'                  "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'                  "VerticalAnchorSelf" : "vpTop",' + LineEnding +
+'                  "$Children" : [' + LineEnding +
+'                    {' + LineEnding +
+'                      "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
+'                      "ColorPersistent" : {' + LineEnding +
+'                        "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'                        "Blue" : 0.0000000000000000E+000' + LineEnding +
+'                      },' + LineEnding +
+'                      "Height" : 1.0000000000000000E+001,' + LineEnding +
+'                      "Name" : "RectangleControl2",' + LineEnding +
+'                      "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'                      "VerticalAnchorSelf" : "vpMiddle",' + LineEnding +
+'                      "Width" : 1.0000000000000000E+001' + LineEnding +
+'                    },' + LineEnding +
+'                    {' + LineEnding +
+'                      "$$ClassName" : "TCastleLabel",' + LineEnding +
+'                      "ColorPersistent" : {' + LineEnding +
+'                        "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'                        "Alpha" : 5.0000000000000000E-001,' + LineEnding +
+'                        "Blue" : 1.0000000000000000E+000,' + LineEnding +
+'                        "Green" : 1.0000000000000000E+000,' + LineEnding +
+'                        "Red" : 1.0000000000000000E+000' + LineEnding +
+'                      },' + LineEnding +
+'                      "FontSize" : 1.5000000000000000E+001,' + LineEnding +
+'                      "HorizontalAnchorDelta" : 1.5000000000000000E+001,' + LineEnding +
+'                      "Name" : "Label3",' + LineEnding +
+'                      "Text" : [' + LineEnding +
+'                        "Update"' + LineEnding +
+'                      ],' + LineEnding +
+'                      "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'                      "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
+'                    }' + LineEnding +
+'                  ]' + LineEnding +
+'                },' + LineEnding +
+'                {' + LineEnding +
+'                  "$$ClassName" : "TCastleHorizontalGroup",' + LineEnding +
+'                  "Name" : "HorizontalGroup2",' + LineEnding +
+'                  "Spacing" : 5.0000000000000000E+000,' + LineEnding +
+'                  "VerticalAnchorDelta" : -1.6499998092651367E+001,' + LineEnding +
+'                  "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'                  "VerticalAnchorSelf" : "vpTop",' + LineEnding +
+'                  "$Children" : [' + LineEnding +
+'                    {' + LineEnding +
+'                      "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
+'                      "ColorPersistent" : {' + LineEnding +
+'                        "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'                        "Green" : 4.0392157435417175E-001,' + LineEnding +
+'                        "Red" : 4.0392157435417175E-001' + LineEnding +
+'                      },' + LineEnding +
+'                      "Height" : 1.0000000000000000E+001,' + LineEnding +
+'                      "Name" : "RectangleControl3",' + LineEnding +
+'                      "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'                      "VerticalAnchorSelf" : "vpMiddle",' + LineEnding +
+'                      "Width" : 1.0000000000000000E+001' + LineEnding +
+'                    },' + LineEnding +
+'                    {' + LineEnding +
+'                      "$$ClassName" : "TCastleLabel",' + LineEnding +
+'                      "ColorPersistent" : {' + LineEnding +
+'                        "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'                        "Alpha" : 5.0000000000000000E-001,' + LineEnding +
+'                        "Blue" : 1.0000000000000000E+000,' + LineEnding +
+'                        "Green" : 1.0000000000000000E+000,' + LineEnding +
+'                        "Red" : 1.0000000000000000E+000' + LineEnding +
+'                      },' + LineEnding +
+'                      "FontSize" : 1.5000000000000000E+001,' + LineEnding +
+'                      "HorizontalAnchorDelta" : 1.5000000000000000E+001,' + LineEnding +
+'                      "Name" : "Label4",' + LineEnding +
+'                      "Text" : [' + LineEnding +
+'                        "Render"' + LineEnding +
+'                      ],' + LineEnding +
+'                      "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'                      "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
+'                    }' + LineEnding +
+'                  ]' + LineEnding +
+'                },' + LineEnding +
+'                {' + LineEnding +
+'                  "$$ClassName" : "TCastleHorizontalGroup",' + LineEnding +
+'                  "Name" : "HorizontalGroup3",' + LineEnding +
+'                  "Spacing" : 5.0000000000000000E+000,' + LineEnding +
+'                  "VerticalAnchorDelta" : -3.2999996185302734E+001,' + LineEnding +
+'                  "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'                  "VerticalAnchorSelf" : "vpTop",' + LineEnding +
+'                  "$Children" : [' + LineEnding +
+'                    {' + LineEnding +
+'                      "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
+'                      "ColorPersistent" : {' + LineEnding +
+'                        "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'                        "Green" : 6.9411766529083252E-001,' + LineEnding +
+'                        "Red" : 6.9411766529083252E-001' + LineEnding +
+'                      },' + LineEnding +
+'                      "Height" : 1.0000000000000000E+001,' + LineEnding +
+'                      "Name" : "RectangleControl4",' + LineEnding +
+'                      "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'                      "VerticalAnchorSelf" : "vpMiddle",' + LineEnding +
+'                      "Width" : 1.0000000000000000E+001' + LineEnding +
+'                    },' + LineEnding +
+'                    {' + LineEnding +
+'                      "$$ClassName" : "TCastleLabel",' + LineEnding +
+'                      "ColorPersistent" : {' + LineEnding +
+'                        "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'                        "Alpha" : 5.0000000000000000E-001,' + LineEnding +
+'                        "Blue" : 1.0000000000000000E+000,' + LineEnding +
+'                        "Green" : 1.0000000000000000E+000,' + LineEnding +
+'                        "Red" : 1.0000000000000000E+000' + LineEnding +
+'                      },' + LineEnding +
+'                      "FontSize" : 1.5000000000000000E+001,' + LineEnding +
+'                      "HorizontalAnchorDelta" : 1.5000000000000000E+001,' + LineEnding +
+'                      "Name" : "Label5",' + LineEnding +
+'                      "Text" : [' + LineEnding +
+'                        "Swap (V-Sync Wait)"' + LineEnding +
+'                      ],' + LineEnding +
+'                      "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'                      "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
+'                    }' + LineEnding +
+'                  ]' + LineEnding +
+'                }' + LineEnding +
+'              ]' + LineEnding +
+'            }' + LineEnding +
+'          ]' + LineEnding +
 '        }' + LineEnding +
 '      ]' + LineEnding +
 '    },' + LineEnding +
@@ -553,15 +820,6 @@
 '      "WidthFraction" : 2.5000000000000000E-001,' + LineEnding +
 '      "$Children" : [' + LineEnding +
 '        {' + LineEnding +
-'          "$$ClassName" : "TCastleLabel",' + LineEnding +
-'          "HorizontalAnchorDelta" : 5.0000000000000000E+000,' + LineEnding +
-'          "Name" : "LabelInspectorFps",' + LineEnding +
-'          "Text" : [' + LineEnding +
-'            "60 FPS"' + LineEnding +
-'          ],' + LineEnding +
-'          "VerticalAnchorDelta" : 5.0000000000000000E+000' + LineEnding +
-'        },' + LineEnding +
-'        {' + LineEnding +
 '          "$$ClassName" : "TCastleVerticalGroup",' + LineEnding +
 '          "Border" : {' + LineEnding +
 '            "$$ClassName" : "TBorder",' + LineEnding +
@@ -593,7 +851,7 @@
 '              "Name" : "SliderOpacity",' + LineEnding +
 '              "SmallFont" : false,' + LineEnding +
 '              "Value" : 8.9999997615814209E-001,' + LineEnding +
-'              "VerticalAnchorDelta" : -2.1999998092651367E+001,' + LineEnding +
+'              "VerticalAnchorDelta" : -2.2000001907348633E+001,' + LineEnding +
 '              "VerticalAnchorParent" : "vpTop",' + LineEnding +
 '              "VerticalAnchorSelf" : "vpTop",' + LineEnding +
 '              "WidthFraction" : 1.0000000000000000E+000' + LineEnding +
@@ -601,12 +859,13 @@
 '            {' + LineEnding +
 '              "$$ClassName" : "TCastleHorizontalGroup",' + LineEnding +
 '              "Name" : "HorizontalGroupShow",' + LineEnding +
-'              "VerticalAnchorDelta" : -5.1999996185302734E+001,' + LineEnding +
+'              "VerticalAnchorDelta" : -5.2000000000000000E+001,' + LineEnding +
 '              "VerticalAnchorParent" : "vpTop",' + LineEnding +
 '              "VerticalAnchorSelf" : "vpTop",' + LineEnding +
 '              "$Children" : [' + LineEnding +
 '                {' + LineEnding +
 '                  "$$ClassName" : "TCastleLabel",' + LineEnding +
+'                  "Exists" : false,' + LineEnding +
 '                  "Name" : "Label1",' + LineEnding +
 '                  "Text" : [' + LineEnding +
 '                    "Show: "' + LineEnding +
@@ -629,7 +888,6 @@
 '                  "CustomBackgroundPressed" : {' + LineEnding +
 '                    "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
 '                  },' + LineEnding +
-'                  "HorizontalAnchorDelta" : 6.7000000000000000E+001,' + LineEnding +
 '                  "Image" : {' + LineEnding +
 '                    "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
 '                  },' + LineEnding +
@@ -652,7 +910,7 @@
 '                  "CustomBackgroundPressed" : {' + LineEnding +
 '                    "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
 '                  },' + LineEnding +
-'                  "HorizontalAnchorDelta" : 1.8400000000000000E+002,' + LineEnding +
+'                  "HorizontalAnchorDelta" : 1.1700000000000000E+002,' + LineEnding +
 '                  "Image" : {' + LineEnding +
 '                    "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
 '                  },' + LineEnding +
@@ -675,11 +933,34 @@
 '                  "CustomBackgroundPressed" : {' + LineEnding +
 '                    "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
 '                  },' + LineEnding +
-'                  "HorizontalAnchorDelta" : 3.0500000000000000E+002,' + LineEnding +
+'                  "HorizontalAnchorDelta" : 2.3800000000000000E+002,' + LineEnding +
 '                  "Image" : {' + LineEnding +
 '                    "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
 '                  },' + LineEnding +
 '                  "Name" : "ButtonLogShow",' + LineEnding +
+'                  "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'                  "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
+'                },' + LineEnding +
+'                {' + LineEnding +
+'                  "$$ClassName" : "TCastleButton",' + LineEnding +
+'                  "Caption" : "Profiler",' + LineEnding +
+'                  "CustomBackgroundDisabled" : {' + LineEnding +
+'                    "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'                  },' + LineEnding +
+'                  "CustomBackgroundFocused" : {' + LineEnding +
+'                    "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'                  },' + LineEnding +
+'                  "CustomBackgroundNormal" : {' + LineEnding +
+'                    "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'                  },' + LineEnding +
+'                  "CustomBackgroundPressed" : {' + LineEnding +
+'                    "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'                  },' + LineEnding +
+'                  "HorizontalAnchorDelta" : 2.9400000000000000E+002,' + LineEnding +
+'                  "Image" : {' + LineEnding +
+'                    "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'                  },' + LineEnding +
+'                  "Name" : "ButtonProfilerShow",' + LineEnding +
 '                  "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
 '                  "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
 '                }' + LineEnding +

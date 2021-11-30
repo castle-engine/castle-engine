@@ -31,30 +31,46 @@ type
     Invoke this automatically in debug builds by F12 (see @link(TCastleContainer.InspectorKey)). }
   TCastleInspector = class(TCastleUserInterfaceFont)
   strict private
-    { Controls loaded from inspector_ui.castle-user-interface.inc }
-    CheckboxShowEvenInternal: TCastleCheckbox;
-    RectOptions, RectProperties, RectLog, RectHierarchy: TCastleRectangleControl;
-    ButtonHierarchyShow, ButtonHierarchyHide,
-      ButtonLogShow, ButtonLogHide,
-      ButtonPropertiesShow, ButtonPropertiesHide: TCastleButton;
-    HorizontalGroupShow: TCastleUserInterface;
-    HierarchyRowParent: TCastleUserInterface;
-    PropertyRowParent: TCastleUserInterface;
-    ScrollLogs: TCastleScrollView;
-    LabelLog: TCastleLabel;
-    LabelLogHeader: TCastleLabel;
-    LabelPropertiesHeader: TCastleLabel;
-    LabelInspectorFps: TCastleLabel;
-    LabelInspectorHelp: TCastleLabel;
-    SliderOpacity: TCastleFloatSlider;
-    ButtonLogClear: TCastleButton;
-    CheckboxLogAutoScroll: TCastleCheckbox;
+    const
+      ProfilerDataCount = 100;
+    type
+      TProfilerDataItem = record
+        Update, Render, Swap, Fps: Single;
+      end;
+      TProfilerData = array [0..ProfilerDataCount - 1] of TProfilerDataItem;
 
-    FOpacity: Single;
-    FSelectedComponent: TComponent;
-    InsideLogCallback: Boolean;
-    SerializedHierarchyRowTemplate: TSerializedComponent;
-    SerializedPropertyRowTemplate: TSerializedComponent;
+    var
+      { Controls loaded from inspector_ui.castle-user-interface.inc }
+      CheckboxShowEvenInternal: TCastleCheckbox;
+      RectOptions, RectProperties, RectLog, RectHierarchy, RectProfiler: TCastleRectangleControl;
+      ButtonHierarchyShow, ButtonHierarchyHide,
+        ButtonLogShow, ButtonLogHide,
+        ButtonPropertiesShow, ButtonPropertiesHide,
+        ButtonProfilerShow, ButtonProfilerHide: TCastleButton;
+      HorizontalGroupShow: TCastleUserInterface;
+      HierarchyRowParent: TCastleUserInterface;
+      PropertyRowParent: TCastleUserInterface;
+      ScrollLogs: TCastleScrollView;
+      LabelLog: TCastleLabel;
+      LabelLogHeader: TCastleLabel;
+      LabelPropertiesHeader: TCastleLabel;
+      LabelInspectorHelp: TCastleLabel;
+      SliderOpacity: TCastleFloatSlider;
+      ButtonLogClear: TCastleButton;
+      CheckboxLogAutoScroll: TCastleCheckbox;
+      LabelProfilerHeader: TCastleLabel;
+      CheckboxProfilerDetailsInLog: TCastleCheckbox;
+
+      FOpacity: Single;
+      FSelectedComponent: TComponent;
+      InsideLogCallback: Boolean;
+      SerializedHierarchyRowTemplate: TSerializedComponent;
+      SerializedPropertyRowTemplate: TSerializedComponent;
+      ProfilerData: TProfilerData;
+      { When ProfilerDataLast < ProfilerDataFirst, then it wraps (FIFO).
+        When ProfilerDataLast = ProfilerDataFirst, there is no data. }
+      ProfilerDataFirst, ProfilerDataLast: Integer;
+
     procedure ChangeOpacity(Sender: TObject);
     procedure SetOpacity(const Value: Single);
     { Show component in hierarchy. }
@@ -65,7 +81,10 @@ type
     procedure ClickLogHide(Sender: TObject);
     procedure ClickPropertiesShow(Sender: TObject);
     procedure ClickPropertiesHide(Sender: TObject);
+    procedure ClickProfilerShow(Sender: TObject);
+    procedure ClickProfilerHide(Sender: TObject);
     procedure ClickLogClear(Sender: TObject);
+    procedure ChangeProfilerDetailsInLog(Sender: TObject);
     { Synchronize state of HorizontalGroupShow and its children with the existence of rectangles
       like RectHierarchy. So you only need to change RectHierarchy.Exists and call this method
       to have UI consistent. }
@@ -79,6 +98,7 @@ type
     { Update properties to reflect current FSelectedComponent.
       Only SetSelectedComponent needs to call it. }
     procedure UpdateProperties;
+    procedure ProfilerSummaryAvailable(Sender: TObject);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -89,6 +109,7 @@ type
         Opacity: Single;
         RectPropertiesExists: Boolean;
         RectLogExists: Boolean;
+        RectProfilerExists: Boolean;
         RectHierarchyExists: Boolean;
       end;
     class var
@@ -116,7 +137,7 @@ implementation
 
 uses SysUtils, StrUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
-  CastleTransform, CastleViewport, CastleScene, CastleURIUtils;
+  CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleTimeUtils;
 
 { TODO:
 
@@ -166,12 +187,15 @@ begin
   RectProperties := UiOwner.FindRequiredComponent('RectProperties') as TCastleRectangleControl;
   RectLog := UiOwner.FindRequiredComponent('RectLog') as TCastleRectangleControl;
   RectHierarchy := UiOwner.FindRequiredComponent('RectHierarchy') as TCastleRectangleControl;
+  RectProfiler := UiOwner.FindRequiredComponent('RectProfiler') as TCastleRectangleControl;
   ButtonHierarchyShow := UiOwner.FindRequiredComponent('ButtonHierarchyShow') as TCastleButton;
   ButtonHierarchyHide := UiOwner.FindRequiredComponent('ButtonHierarchyHide') as TCastleButton;
   ButtonLogShow := UiOwner.FindRequiredComponent('ButtonLogShow') as TCastleButton;
   ButtonLogHide := UiOwner.FindRequiredComponent('ButtonLogHide') as TCastleButton;
   ButtonPropertiesShow := UiOwner.FindRequiredComponent('ButtonPropertiesShow') as TCastleButton;
   ButtonPropertiesHide := UiOwner.FindRequiredComponent('ButtonPropertiesHide') as TCastleButton;
+  ButtonProfilerShow := UiOwner.FindRequiredComponent('ButtonProfilerShow') as TCastleButton;
+  ButtonProfilerHide := UiOwner.FindRequiredComponent('ButtonProfilerHide') as TCastleButton;
   HorizontalGroupShow := UiOwner.FindRequiredComponent('HorizontalGroupShow') as TCastleUserInterface;
   HierarchyRowTemplate := UiOwner.FindRequiredComponent('HierarchyRowTemplate') as TCastleButton;
   PropertyRowTemplate := UiOwner.FindRequiredComponent('PropertyRowTemplate') as TCastleUserInterface;
@@ -181,11 +205,12 @@ begin
   LabelLog := UiOwner.FindRequiredComponent('LabelLog') as TCastleLabel;
   LabelLogHeader := UiOwner.FindRequiredComponent('LabelLogHeader') as TCastleLabel;
   LabelPropertiesHeader := UiOwner.FindRequiredComponent('LabelPropertiesHeader') as TCastleLabel;
-  LabelInspectorFps := UiOwner.FindRequiredComponent('LabelInspectorFps') as TCastleLabel;
   LabelInspectorHelp := UiOwner.FindRequiredComponent('LabelInspectorHelp') as TCastleLabel;
   SliderOpacity := UiOwner.FindRequiredComponent('SliderOpacity') as TCastleFloatSlider;
   ButtonLogClear := UiOwner.FindRequiredComponent('ButtonLogClear') as TCastleButton;
   CheckboxLogAutoScroll := UiOwner.FindRequiredComponent('CheckboxLogAutoScroll') as TCastleCheckbox;
+  LabelProfilerHeader := UiOwner.FindRequiredComponent('LabelProfilerHeader') as TCastleLabel;
+  CheckboxProfilerDetailsInLog := UiOwner.FindRequiredComponent('CheckboxProfilerDetailsInLog') as TCastleCheckbox;
 
   ForceFallbackLook(Ui);
 
@@ -196,12 +221,16 @@ begin
   ButtonLogHide.OnClick := {$ifdef FPC}@{$endif} ClickLogHide;
   ButtonPropertiesShow.OnClick := {$ifdef FPC}@{$endif} ClickPropertiesShow;
   ButtonPropertiesHide.OnClick := {$ifdef FPC}@{$endif} ClickPropertiesHide;
+  ButtonProfilerShow.OnClick := {$ifdef FPC}@{$endif} ClickProfilerShow;
+  ButtonProfilerHide.OnClick := {$ifdef FPC}@{$endif} ClickProfilerHide;
   ButtonLogClear.OnClick := {$ifdef FPC}@{$endif} ClickLogClear;
+  CheckboxProfilerDetailsInLog.OnChange := {$ifdef FPC}@{$endif} ChangeProfilerDetailsInLog;
 
   { initial state of UI to show/hide }
   RectProperties.Exists := PersistentState.RectPropertiesExists;
   RectLog.Exists := PersistentState.RectLogExists;
   RectHierarchy.Exists := PersistentState.RectHierarchyExists;
+  RectProfiler.Exists := PersistentState.RectProfilerExists;
   SynchronizeButtonsToShow;
 
   FOpacity := -1; // to force setting below call SetOpacity
@@ -220,6 +249,11 @@ begin
   LabelLogHeader.Caption := 'Log (0)';
   LabelLog.Caption := '';
   CheckboxLogAutoScroll.Checked := true;
+
+  { initialize profiler }
+  FrameProfiler.Enabled := RectProfiler.Exists;
+  FrameProfiler.OnSummaryAvailable := {$ifdef FPC}@{$endif} ProfilerSummaryAvailable;
+  CheckboxProfilerDetailsInLog.Checked := FrameProfiler.LogSummary;
 end;
 
 destructor TCastleInspector.Destroy;
@@ -234,6 +268,9 @@ begin
   PersistentState.RectPropertiesExists := RectProperties.Exists;
   PersistentState.RectLogExists := RectLog.Exists;
   PersistentState.RectHierarchyExists := RectHierarchy.Exists;
+  PersistentState.RectProfilerExists := RectProfiler.Exists;
+
+  FrameProfiler.Enabled := false;
 
   inherited;
 end;
@@ -397,7 +434,7 @@ begin
   inherited;
   UpdateHierarchy(nil);
 
-  LabelInspectorFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  LabelProfilerHeader.Caption := 'Profiler | Current FPS: ' + Container.Fps.ToString;
 
   LabelInspectorHelp.Exists := Container.InspectorKey <> keyNone;
   if LabelInspectorHelp.Exists then
@@ -417,6 +454,7 @@ begin
     RectOptions.ColorPersistent.Alpha := Value;
     RectProperties.ColorPersistent.Alpha := Value;
     RectLog.ColorPersistent.Alpha := Value;
+    RectProfiler.ColorPersistent.Alpha := Value;
     RectHierarchy.ColorPersistent.Alpha := Value;
   end;
 end;
@@ -426,7 +464,12 @@ begin
   ButtonLogShow.Exists := not RectLog.Exists;
   ButtonPropertiesShow.Exists := not RectProperties.Exists;
   ButtonHierarchyShow.Exists := not RectHierarchy.Exists;
-  HorizontalGroupShow.Exists := ButtonHierarchyShow.Exists or ButtonLogShow.Exists or ButtonPropertiesShow.Exists;
+  ButtonProfilerShow.Exists := not RectProfiler.Exists;
+  HorizontalGroupShow.Exists :=
+    ButtonHierarchyShow.Exists or
+    ButtonLogShow.Exists or
+    ButtonPropertiesShow.Exists or
+    ButtonProfilerShow.Exists;
 end;
 
 procedure TCastleInspector.ClickHierarchyShow(Sender: TObject);
@@ -462,6 +505,18 @@ end;
 procedure TCastleInspector.ClickPropertiesHide(Sender: TObject);
 begin
   RectProperties.Exists := false;
+  SynchronizeButtonsToShow;
+end;
+
+procedure TCastleInspector.ClickProfilerShow(Sender: TObject);
+begin
+  RectProfiler.Exists := true;
+  SynchronizeButtonsToShow;
+end;
+
+procedure TCastleInspector.ClickProfilerHide(Sender: TObject);
+begin
+  RectProfiler.Exists := false;
   SynchronizeButtonsToShow;
 end;
 
@@ -594,9 +649,20 @@ begin
     C.Width := RectProperties.EffectiveWidthForChildren;
 end;
 
+procedure TCastleInspector.ChangeProfilerDetailsInLog(Sender: TObject);
+begin
+  FrameProfiler.LogSummary := CheckboxProfilerDetailsInLog.Checked;
+end;
+
+procedure TCastleInspector.ProfilerSummaryAvailable(Sender: TObject);
+begin
+
+end;
+
 initialization
   TCastleInspector.PersistentState.Opacity := TCastleInspector.DefaultOpacity;
   TCastleInspector.PersistentState.RectPropertiesExists := true;
   TCastleInspector.PersistentState.RectLogExists := true;
   TCastleInspector.PersistentState.RectHierarchyExists := true;
+  TCastleInspector.PersistentState.RectProfilerExists := true;
 end.
