@@ -317,16 +317,11 @@ begin
     begin
       Tmp := TItemList.Create;
       try
-        //TODO how to translate to Delphi
-        {$ifdef FPC}
         Tmp.Add(DefaultValue);
         Result := Tmp.PerfectlyEquals(Items);
-        {$else}
-        { Invalid implementation on Delphi, but in practice nothing bad
-          will happen if EqualsDefaultValue = always false. }
-        Result := false;
-        {$endif}
-      finally FreeAndNil(Tmp) end;
+      finally
+        FreeAndNil(Tmp)
+      end;
     end else
     if DefaultValuesCount <> 0 then
       // we cannot check in case DefaultValuesCount >= 2
