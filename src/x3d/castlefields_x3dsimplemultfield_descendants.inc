@@ -21,7 +21,6 @@
   TMFBool = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     boolean,
     TSFBool,
-    {$ifndef FPC}TStructList<boolean>,{$endif}
     TBooleanList>)
   strict protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
@@ -35,7 +34,6 @@
   TMFLong = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     LongInt,
     TSFLong,
-    {$ifndef FPC}TStructList<LongInt>,{$endif}
     TLongIntList>)
   strict private
     FSaveToStreamLineUptoNegative: boolean;
@@ -88,7 +86,6 @@
   TMFMatrix3f = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     TMatrix3,
     TSFMatrix3f,
-    {$ifndef FPC}TStructList<TMatrix3>,{$endif}
     TMatrix3List>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
@@ -104,7 +101,6 @@
   TMFMatrix3d = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     TMatrix3Double,
     TSFMatrix3d,
-    {$ifndef FPC}TStructList<TMatrix3Double>,{$endif}
     TMatrix3DoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
@@ -120,7 +116,6 @@
   TMFMatrix4f = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     TMatrix4,
     TSFMatrix4f,
-    {$ifndef FPC}TStructList<TMatrix4>,{$endif}
     TMatrix4List>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
@@ -136,7 +131,6 @@
   TMFMatrix4d = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     TMatrix4Double,
     TSFMatrix4d,
-    {$ifndef FPC}TStructList<TMatrix4Double>,{$endif}
     TMatrix4DoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
@@ -152,7 +146,6 @@
   TMFVec2f = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     TVector2,
     TSFVec2f,
-    {$ifndef FPC}TStructList<TVector2>,{$endif}
     TVector2List>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
@@ -168,7 +161,6 @@
   TMFVec3f = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     TVector3,
     TSFVec3f,
-    {$ifndef FPC}TStructList<TVector3>,{$endif}
     TVector3List>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
@@ -190,7 +182,6 @@
   TMFVec4f = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     TVector4,
     TSFVec4f,
-    {$ifndef FPC}TStructList<TVector4>,{$endif}
     TVector4List>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
@@ -212,7 +203,6 @@
   TMFVec2d = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     TVector2Double,
     TSFVec2d,
-    {$ifndef FPC}TStructList<TVector2Double>,{$endif}
     TVector2DoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
@@ -228,7 +218,6 @@
   TMFVec3d = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     TVector3Double,
     TSFVec3d,
-    {$ifndef FPC}TStructList<TVector3Double>,{$endif}
     TVector3DoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
@@ -244,7 +233,6 @@
   TMFVec4d = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     TVector4Double,
     TSFVec4d,
-    {$ifndef FPC}TStructList<TVector4Double>,{$endif}
     TVector4DoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
@@ -260,7 +248,6 @@
   TMFRotation = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     TVector4,
     TSFRotation,
-    {$ifndef FPC}TStructList<TVector4>,{$endif}
     TVector4List>)
   strict protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
@@ -276,7 +263,6 @@
   TMFFloat = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     Single,
     TSFFloat,
-    {$ifndef FPC}TStructList<Single>,{$endif}
     TSingleList>)
   strict private
     FAngle: boolean;
@@ -300,7 +286,6 @@
   TMFDouble = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
     Double,
     TSFDouble,
-    {$ifndef FPC}TStructList<Double>,{$endif}
     TDoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;

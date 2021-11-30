@@ -22,7 +22,6 @@
   TX3DSimpleMultField<
     TItem;
     TSingleField{$ifndef FPC}: TX3DSingleField{$endif};
-    {$ifndef FPC}TInternalItemList: class;{$endif}
     TItemList{$ifndef FPC}: TStructList<TItem>, constructor{$endif}> = class(TX3DMultField)
   strict private
     WarningDoneInvalidIndex: boolean;
@@ -98,7 +97,7 @@
     property Items: TItemList read GetItems write SetItems;
 
     {$ifndef FPC}
-    function GetInternalItems: TInternalItemList;
+    ///function GetInternalItems: TInternalItemList;
     {$endif}
 
     { Copy another field value, default value and other properties. }
@@ -140,7 +139,6 @@
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
@@ -197,7 +195,6 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader);
@@ -228,7 +225,6 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   SaveToStreamValue(Writer: TX3DWriter);
@@ -288,7 +284,6 @@ end;
 function TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
@@ -299,21 +294,19 @@ end;
 function TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   Equals(SecondValue: TX3DField): boolean;
 begin
   Result :=
     (inherited Equals(SecondValue)) and
-    (SecondValue is TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField, TInternalItemList, TItemList>{$endif}) and
-    Items.Equals(TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField, TInternalItemList, TItemList>{$endif}(SecondValue).Items);
+    (SecondValue is TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField, TItemList>{$endif}) and
+    Items.Equals(TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField, TItemList>{$endif}(SecondValue).Items);
 end;
 
 function TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   EqualsDefaultValue: boolean;
@@ -348,7 +341,6 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   WritelnWarning_InvalidIndex(
@@ -365,7 +357,6 @@ end;
 constructor TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   CreateUndefined(const AParentNode: TX3DFileItem;
@@ -379,7 +370,6 @@ end;
 constructor TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   Create(
@@ -394,7 +384,6 @@ end;
 destructor TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   Destroy;
@@ -406,7 +395,6 @@ end;
 function TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   GetCount: TListSize;
@@ -417,7 +405,6 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   SetCount(const Value: TListSize);
@@ -428,7 +415,6 @@ end;
 function TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   GetCapacity: TListSize;
@@ -439,7 +425,6 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   SetCapacity(const Value: TListSize);
@@ -450,7 +435,6 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   Clear;
@@ -461,7 +445,6 @@ end;
 function TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   GetItems: TItemList;
@@ -472,7 +455,6 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   SetItems(const Value: TItemList);
@@ -481,35 +463,34 @@ begin
 end;
 
 {$ifndef FPC}
-function TX3DSimpleMultField{$ifndef FPC} <
-    TItem;
-    TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
-    TItemList
-  > {$endif} .
-  GetInternalItems: TInternalItemList;
-begin
-  Result := FItems as TInternalItemList;
-end;
+///function TX3DSimpleMultField{$ifndef FPC} <
+///    TItem;
+///    TSingleField;
+///    {$ifndef FPC}TInternalItemList;{$endif}
+///    TItemList
+///  > {$endif} .
+///  GetInternalItems: TInternalItemList;
+///begin
+///  Result := FItems as TInternalItemList;
+///end;
 {$endif}
 
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   Assign(Source: TPersistent);
 begin
   if Source is TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-    TInternalItemList, TItemList>{$endif} then
+    TItemList>{$endif} then
   begin
     DefaultValuesCount := TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-      TInternalItemList, TItemList>{$endif}(Source).DefaultValuesCount;
+      TItemList>{$endif}(Source).DefaultValuesCount;
     DefaultValue       := TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-      TInternalItemList, TItemList>{$endif}(Source).DefaultValue;
+      TItemList>{$endif}(Source).DefaultValue;
     Items.Assign(TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-      TInternalItemList, TItemList>{$endif}(Source).Items);
+      TItemList>{$endif}(Source).Items);
     VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
@@ -518,17 +499,16 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   AssignValue(Source: TX3DField);
 begin
   if Source is TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-    TInternalItemList, TItemList>{$endif} then
+    TItemList>{$endif} then
   begin
     inherited;
     Items.Assign(TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-      TInternalItemList, TItemList>{$endif}(Source).Items);
+    TItemList>{$endif}(Source).Items);
   end else
     AssignValueRaiseInvalidClass(Source);
 end;
@@ -536,7 +516,6 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   AssignDefaultValueFromValue;
@@ -558,7 +537,6 @@ end;
 function TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   GetItemsSafe(Index: Integer): TItem;
@@ -586,7 +564,6 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   SetItemsSafe(Index: Integer; const Value: TItem);
@@ -605,7 +582,6 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   Send(const AValue: array of TItem);
@@ -615,7 +591,7 @@ procedure TX3DSimpleMultField{$ifndef FPC} <
 //   TMyClassClass = class of TMyClass;
 var
   FieldValue: TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-    TInternalItemList, TItemList>{$endif};
+    TItemList>{$endif};
 begin
   if SendsByEvent then
   begin
@@ -627,7 +603,7 @@ begin
 
     { AExposed = false below, because not needed otherwise. }
     FieldValue := TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-      TInternalItemList, TItemList>{$endif}(
+      TItemList>{$endif}(
       TX3DFieldClass(ClassType).CreateUndefined(ParentNode, false, X3DName));
     try
       FieldValue.Items.AddRange(AValue);
@@ -647,19 +623,18 @@ end;
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
     TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
     TItemList
   > {$endif} .
   Send(const AValue: TItemList);
 var
   FieldValue: TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-    TInternalItemList, TItemList>{$endif};
+    TItemList>{$endif};
 begin
   { This is a copy-paste of implementation of Send(const AValue: array of TItem) }
   if SendsByEvent then
   begin
     FieldValue := TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-      TInternalItemList, TItemList>{$endif}(
+      TItemList>{$endif}(
       TX3DFieldClass(ClassType).CreateUndefined(ParentNode, false, X3DName));
     try
       FieldValue.Items.Assign(AValue);
