@@ -47,6 +47,8 @@ type
     LabelInspectorFps: TCastleLabel;
     LabelInspectorHelp: TCastleLabel;
     SliderOpacity: TCastleFloatSlider;
+    ButtonLogClear: TCastleButton;
+    CheckboxLogAutoScroll: TCastleCheckbox;
 
     FOpacity: Single;
     FSelectedComponent: TComponent;
@@ -63,6 +65,7 @@ type
     procedure ClickLogHide(Sender: TObject);
     procedure ClickPropertiesShow(Sender: TObject);
     procedure ClickPropertiesHide(Sender: TObject);
+    procedure ClickLogClear(Sender: TObject);
     { Synchronize state of HorizontalGroupShow and its children with the existence of rectangles
       like RectHierarchy. So you only need to change RectHierarchy.Exists and call this method
       to have UI consistent. }
@@ -181,6 +184,8 @@ begin
   LabelInspectorFps := UiOwner.FindRequiredComponent('LabelInspectorFps') as TCastleLabel;
   LabelInspectorHelp := UiOwner.FindRequiredComponent('LabelInspectorHelp') as TCastleLabel;
   SliderOpacity := UiOwner.FindRequiredComponent('SliderOpacity') as TCastleFloatSlider;
+  ButtonLogClear := UiOwner.FindRequiredComponent('ButtonLogClear') as TCastleButton;
+  CheckboxLogAutoScroll := UiOwner.FindRequiredComponent('CheckboxLogAutoScroll') as TCastleCheckbox;
 
   ForceFallbackLook(Ui);
 
@@ -191,6 +196,7 @@ begin
   ButtonLogHide.OnClick := {$ifdef FPC}@{$endif} ClickLogHide;
   ButtonPropertiesShow.OnClick := {$ifdef FPC}@{$endif} ClickPropertiesShow;
   ButtonPropertiesHide.OnClick := {$ifdef FPC}@{$endif} ClickPropertiesHide;
+  ButtonLogClear.OnClick := {$ifdef FPC}@{$endif} ClickLogClear;
 
   { initial state of UI to show/hide }
   RectProperties.Exists := PersistentState.RectPropertiesExists;
@@ -213,6 +219,7 @@ begin
   ApplicationProperties.OnLog.Add({$ifdef FPC}@{$endif} LogCallback);
   LabelLogHeader.Caption := 'Log (0)';
   LabelLog.Caption := '';
+  CheckboxLogAutoScroll.Checked := true;
 end;
 
 destructor TCastleInspector.Destroy;
@@ -468,8 +475,15 @@ begin
   try
     LabelLog.Text.AddMultiLine(TrimEndingNewline(Message));
     LabelLogHeader.Caption := 'Log (' + IntToStr(LabelLog.Text.Count) + ')';
-    ScrollLogs.Scroll := ScrollLogs.ScrollMax;
+    if CheckboxLogAutoScroll.Checked then
+      ScrollLogs.Scroll := ScrollLogs.ScrollMax;
   finally InsideLogCallback := false end;
+end;
+
+procedure TCastleInspector.ClickLogClear(Sender: TObject);
+begin
+  LabelLogHeader.Caption := 'Log (0)';
+  LabelLog.Caption := '';
 end;
 
 procedure TCastleInspector.ClickHierarchyRow(Sender: TObject);

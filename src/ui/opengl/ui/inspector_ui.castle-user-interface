@@ -74,6 +74,38 @@
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle",
               "Width" : 3.0000000000000000E+001
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Clear",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "HorizontalAnchorDelta" : 8.1000000000000000E+002,
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonLogClear",
+              "PaddingVertical" : 5.0000000000000000E+000
+            },
+            {
+              "$$ClassName" : "TCastleCheckbox",
+              "Caption" : "Auto Scroll To Bottom",
+              "HorizontalAnchorDelta" : -5.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpRight",
+              "HorizontalAnchorSelf" : "hpRight",
+              "Name" : "CheckboxLogAutoScroll",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
             }
           ]
         },
@@ -84,6 +116,8 @@
             "Top" : 3.0000000000000000E+001
           },
           "FullSize" : true,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "ScrollLogs",
           "ScrollArea" : {
             "$$ClassName" : "TInternalCastleScrollArea",
@@ -136,7 +170,9 @@
                 "VerticalAnchorSelf" : "vpTop"
               }
             ]
-          }
+          },
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle"
         }
       ]
     },
@@ -308,9 +344,24 @@
           }
         },
         {
-          "$$ClassName" : "TCastleCheckbox",
-          "Caption" : "Show Even Internal",
-          "Name" : "CheckboxShowEvenInternal"
+          "$$ClassName" : "TCastleRectangleControl",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 9.0196079015731812E-001,
+            "Blue" : 7.5294119119644165E-001,
+            "Green" : 7.5294119119644165E-001,
+            "Red" : 7.5294119119644165E-001
+          },
+          "Height" : 3.0000000000000000E+001,
+          "Name" : "HierarchyBottomControls",
+          "WidthFraction" : 1.0000000000000000E+000,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleCheckbox",
+              "Caption" : "Show Even Internal",
+              "Name" : "CheckboxShowEvenInternal"
+            }
+          ]
         }
       ]
     },

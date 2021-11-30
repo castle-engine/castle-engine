@@ -76,6 +76,38 @@
 '              "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
 '              "VerticalAnchorSelf" : "vpMiddle",' + LineEnding +
 '              "Width" : 3.0000000000000000E+001' + LineEnding +
+'            },' + LineEnding +
+'            {' + LineEnding +
+'              "$$ClassName" : "TCastleButton",' + LineEnding +
+'              "Caption" : "Clear",' + LineEnding +
+'              "CustomBackgroundDisabled" : {' + LineEnding +
+'                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'              },' + LineEnding +
+'              "CustomBackgroundFocused" : {' + LineEnding +
+'                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'              },' + LineEnding +
+'              "CustomBackgroundNormal" : {' + LineEnding +
+'                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'              },' + LineEnding +
+'              "CustomBackgroundPressed" : {' + LineEnding +
+'                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'              },' + LineEnding +
+'              "HorizontalAnchorDelta" : 8.1000000000000000E+002,' + LineEnding +
+'              "Image" : {' + LineEnding +
+'                "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
+'              },' + LineEnding +
+'              "Name" : "ButtonLogClear",' + LineEnding +
+'              "PaddingVertical" : 5.0000000000000000E+000' + LineEnding +
+'            },' + LineEnding +
+'            {' + LineEnding +
+'              "$$ClassName" : "TCastleCheckbox",' + LineEnding +
+'              "Caption" : "Auto Scroll To Bottom",' + LineEnding +
+'              "HorizontalAnchorDelta" : -5.0000000000000000E+001,' + LineEnding +
+'              "HorizontalAnchorParent" : "hpRight",' + LineEnding +
+'              "HorizontalAnchorSelf" : "hpRight",' + LineEnding +
+'              "Name" : "CheckboxLogAutoScroll",' + LineEnding +
+'              "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'              "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
 '            }' + LineEnding +
 '          ]' + LineEnding +
 '        },' + LineEnding +
@@ -86,6 +118,8 @@
 '            "Top" : 3.0000000000000000E+001' + LineEnding +
 '          },' + LineEnding +
 '          "FullSize" : true,' + LineEnding +
+'          "HorizontalAnchorParent" : "hpMiddle",' + LineEnding +
+'          "HorizontalAnchorSelf" : "hpMiddle",' + LineEnding +
 '          "Name" : "ScrollLogs",' + LineEnding +
 '          "ScrollArea" : {' + LineEnding +
 '            "$$ClassName" : "TInternalCastleScrollArea",' + LineEnding +
@@ -138,7 +172,9 @@
 '                "VerticalAnchorSelf" : "vpTop"' + LineEnding +
 '              }' + LineEnding +
 '            ]' + LineEnding +
-'          }' + LineEnding +
+'          },' + LineEnding +
+'          "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'          "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
 '        }' + LineEnding +
 '      ]' + LineEnding +
 '    },' + LineEnding +
@@ -310,9 +346,24 @@
 '          }' + LineEnding +
 '        },' + LineEnding +
 '        {' + LineEnding +
-'          "$$ClassName" : "TCastleCheckbox",' + LineEnding +
-'          "Caption" : "Show Even Internal",' + LineEnding +
-'          "Name" : "CheckboxShowEvenInternal"' + LineEnding +
+'          "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
+'          "ColorPersistent" : {' + LineEnding +
+'            "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'            "Alpha" : 9.0196079015731812E-001,' + LineEnding +
+'            "Blue" : 7.5294119119644165E-001,' + LineEnding +
+'            "Green" : 7.5294119119644165E-001,' + LineEnding +
+'            "Red" : 7.5294119119644165E-001' + LineEnding +
+'          },' + LineEnding +
+'          "Height" : 3.0000000000000000E+001,' + LineEnding +
+'          "Name" : "HierarchyBottomControls",' + LineEnding +
+'          "WidthFraction" : 1.0000000000000000E+000,' + LineEnding +
+'          "$Children" : [' + LineEnding +
+'            {' + LineEnding +
+'              "$$ClassName" : "TCastleCheckbox",' + LineEnding +
+'              "Caption" : "Show Even Internal",' + LineEnding +
+'              "Name" : "CheckboxShowEvenInternal"' + LineEnding +
+'            }' + LineEnding +
+'          ]' + LineEnding +
 '        }' + LineEnding +
 '      ]' + LineEnding +
 '    },' + LineEnding +
