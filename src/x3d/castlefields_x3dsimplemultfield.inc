@@ -96,10 +96,6 @@
 
     property Items: TItemList read GetItems write SetItems;
 
-    {$ifndef FPC}
-    ///function GetInternalItems: TInternalItemList;
-    {$endif}
-
     { Copy another field value, default value and other properties. }
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
@@ -461,19 +457,6 @@ procedure TX3DSimpleMultField{$ifndef FPC} <
 begin
   TItemList(FItems).Assign(Value);
 end;
-
-{$ifndef FPC}
-///function TX3DSimpleMultField{$ifndef FPC} <
-///    TItem;
-///    TSingleField;
-///    {$ifndef FPC}TInternalItemList;{$endif}
-///    TItemList
-///  > {$endif} .
-///  GetInternalItems: TInternalItemList;
-///begin
-///  Result := FItems as TInternalItemList;
-///end;
-{$endif}
 
 procedure TX3DSimpleMultField{$ifndef FPC} <
     TItem;
