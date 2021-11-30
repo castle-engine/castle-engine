@@ -80,11 +80,17 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     const
-      DefaultDefaultOpacity = 0.9;
+      DefaultOpacity = 0.9;
+    type
+      TPersistentState = record
+        Opacity: Single;
+        RectPropertiesExists: Boolean;
+        RectLogExists: Boolean;
+        RectHierarchyExists: Boolean;
+      end;
     class var
-      { Class variable, to save across all inspector instances.
-        Initially DefaultDefaultOpacity. }
-      DefaultOpacity: Single;
+      { Class variables, to save across all inspector instances. }
+      PersistentState: TPersistentState;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -92,8 +98,7 @@ type
     procedure Resize; override;
 
     { Opacity of the whole UI.
-      Can be changed by user while operating this UI.
-      Synchronized with class DefaultOpacity. }
+      Can be changed by user while operating this UI. }
     property Opacity: Single read FOpacity write SetOpacity;
 
     { Selected object in hierarchy, for which we display the properties.
@@ -135,8 +140,6 @@ uses SysUtils, StrUtils,
     Would be best if this unit didn't need some, at least no CastleViewport, CastleScene.
 
   checkbox to also show X3D nodes
-
-  we still use global Theme, for our buttons, and we don't want to.
 }
 
 constructor TCastleInspector.Create(AOwner: TComponent);
@@ -192,13 +195,13 @@ begin
   ButtonPropertiesHide.OnClick := {$ifdef FPC}@{$endif} ClickPropertiesHide;
 
   { initial state of UI to show/hide }
-  HorizontalGroupShow.Exists := false;
-  ButtonPropertiesShow.Exists := false;
-  ButtonHierarchyShow.Exists := false;
-  ButtonLogShow.Exists := false;
+  RectProperties.Exists := PersistentState.RectPropertiesExists;
+  RectLog.Exists := PersistentState.RectLogExists;
+  RectHierarchy.Exists := PersistentState.RectHierarchyExists;
+  SynchronizeButtonsToShow;
 
   FOpacity := -1; // to force setting below call SetOpacity
-  Opacity := DefaultOpacity;
+  Opacity := PersistentState.Opacity;
   SliderOpacity.Value := Opacity;
   SliderOpacity.OnChange := {$ifdef FPC}@{$endif} ChangeOpacity;
 
@@ -220,6 +223,12 @@ begin
 
   { set to nil by SetSelectedComponent, to detach free notification }
   SelectedComponent := nil;
+
+  { update PersistentState }
+  PersistentState.Opacity := Opacity;
+  PersistentState.RectPropertiesExists := RectProperties.Exists;
+  PersistentState.RectLogExists := RectLog.Exists;
+  PersistentState.RectHierarchyExists := RectHierarchy.Exists;
 
   inherited;
 end;
@@ -400,7 +409,6 @@ begin
   if FOpacity <> Value then
   begin
     FOpacity := Value;
-    DefaultOpacity := Value;
     RectOptions.ColorPersistent.Alpha := Value;
     RectProperties.ColorPersistent.Alpha := Value;
     RectLog.ColorPersistent.Alpha := Value;
@@ -576,5 +584,8 @@ begin
 end;
 
 initialization
-  TCastleInspector.DefaultOpacity := TCastleInspector.DefaultDefaultOpacity;
+  TCastleInspector.PersistentState.Opacity := TCastleInspector.DefaultOpacity;
+  TCastleInspector.PersistentState.RectPropertiesExists := true;
+  TCastleInspector.PersistentState.RectLogExists := true;
+  TCastleInspector.PersistentState.RectHierarchyExists := true;
 end.
