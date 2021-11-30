@@ -309,6 +309,21 @@
   strict private
     FItems: TCastleStringList;
 
+    { DefaultValuesCount may have three valid values (for now):
+      -1 (means "no default value for this field")
+      0 (means "default value of this field is empty")
+      1 (means "default value of this field is one-item array with DefaultValue").
+
+      So it's not possible to express default values with more
+      than one item. That's OK, because nodes from VRML 1.0 and 2.0 specifications
+      never have such field (and VRML 2.0 prototypes (that have user-defined
+      default field values) actually don't need it). So, for now, more flexible
+      DefaultValuesCount is not needed.
+
+      CreateUndefined sets DefaultValuesCount to -1. }
+    DefaultValuesCount: Integer;
+    DefaultValue: string;
+
     procedure SetItems(const Value: TCastleStringList);
   strict protected
     procedure Clear;
@@ -340,6 +355,16 @@
 
     { Copy another field value, default value and other properties. }
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TX3DField); override;
+    procedure AssignDefaultValueFromValue; override;
+
+    { Checks equality between this and SecondValue field.
+      In addition to inherited(Equals), this checks the actual contents
+      of the items.
+      Note that floating-point values are compared with some tolerance
+      for errors by this method. }
+    function Equals(SecondValue: TX3DField): boolean; override;
+    function EqualsDefaultValue: boolean; override;
 
     { Set the field's value in a correct way (by sending X3D event, or at least notifying
       the parent scene). }
@@ -1108,7 +1133,7 @@ constructor TMFString.CreateUndefined(const AParentNode: TX3DFileItem;
 begin
   inherited;
   FItems := TCastleStringList.Create;
-  //DefaultValuesCount := -1;
+  DefaultValuesCount := -1;
 end;
 
 constructor TMFString.Create(const AParentNode: TX3DFileItem;
@@ -1190,12 +1215,68 @@ procedure TMFString.Assign(Source: TPersistent);
 begin
   if Source is TMFString then
   begin
-    //DefaultValuesCount := TMFString(Source).DefaultValuesCount;
-    //DefaultValue       := TMFString(Source).DefaultValue;
+    DefaultValuesCount := TMFString(Source).DefaultValuesCount;
+    DefaultValue       := TMFString(Source).DefaultValue;
     Items.Assign(TMFString(Source).Items);
     VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
+end;
+
+procedure TMFString.AssignValue(Source: TX3DField);
+begin
+  if Source is TMFString then
+  begin
+    inherited;
+    Items.Assign(TMFString(Source).Items);
+  end else
+    AssignValueRaiseInvalidClass(Source);
+end;
+
+procedure TMFString.AssignDefaultValueFromValue;
+begin
+  inherited;
+
+  (* initialize default value of the field: DefaultValuesCount, and (only
+     in case of DefaultValuesCount = 1 for now) initialize also DefaultValue *)
+  case Count of
+    0: DefaultValuesCount := 0;
+    1: begin
+         DefaultValuesCount := 1;
+         DefaultValue := Items[0];
+       end;
+    else DefaultValuesCount := -1;
+  end;
+end;
+
+function TMFString.Equals(SecondValue: TX3DField): boolean;
+begin
+  Result := (inherited Equals(SecondValue)) and (SecondValue is TMFString) and
+    Items.Equals(TMFString(SecondValue).Items);
+end;
+
+function TMFString.EqualsDefaultValue: boolean;
+var
+  Tmp: TCastleStringList;
+begin
+  Result := Count = DefaultValuesCount;
+
+  if Result then
+  begin
+    if DefaultValuesCount = 1 then
+    begin
+      Tmp := TCastleStringList.Create;
+      try
+        Tmp.Add(DefaultValue);
+        Result := Tmp.PerfectlyEquals(Items);
+      finally
+        FreeAndNil(Tmp)
+      end;
+    end else
+    if DefaultValuesCount <> 0 then
+      // we cannot check in case DefaultValuesCount >= 2
+      Result := false;
+  end;
 end;
 
 
