@@ -307,6 +307,8 @@
 
   TMFString = class(TX3DMultField)
   strict private
+    WarningDoneInvalidIndex: boolean;
+
     FItems: TCastleStringList;
 
     { DefaultValuesCount may have three valid values (for now):
@@ -325,6 +327,8 @@
     DefaultValue: string;
 
     procedure SetItems(const Value: TCastleStringList);
+    function GetItemsSafe(Index: Integer): string;
+    procedure SetItemsSafe(Index: Integer; const Value: string);
   strict protected
     procedure Clear;
     function GetCount: TListSize; override;
@@ -334,6 +338,8 @@
     procedure AddToList(const ItemList: TCastleStringList; const Item: TSFString);
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function CreateItemBeforeParse: TSFString;
+
+    procedure WritelnWarning_InvalidIndex(const Index, ACount: Integer);
   public
     constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: string;
@@ -352,6 +358,7 @@
     function SaveToXmlValue: TSaveToXmlMethod; override;
 
     property Items: TCastleStringList read FItems write SetItems;
+    property ItemsSafe[Index: Integer]: string read GetItemsSafe write SetItemsSafe;
 
     { Copy another field value, default value and other properties. }
     procedure Assign(Source: TPersistent); override;
@@ -1067,7 +1074,7 @@ procedure TMFString.SaveToStreamValue(Writer: TX3DWriter);
 begin
   { MFString in XML encoding is surrounded by single quotes }
   if Writer.Encoding = xeXML then Writer.Write('''');
-  inherited;
+  //inherited;
   if Writer.Encoding = xeXML then Writer.Write('''');
 end;
 
@@ -1279,5 +1286,34 @@ begin
   end;
 end;
 
+function TMFString.GetItemsSafe(Index: Integer): string;
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    //Result := Items.{$ifdef FPC}L[Index]{$else}InternalGetItem(Index){$endif} else
+    Result := Items.L[Index] else
+  begin
+    WritelnWarning_InvalidIndex(Index, Count);
+    Result := Default(string);
+  end;
+end;
+
+procedure TMFString.SetItemsSafe(Index: Integer; const Value: string);
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    Items.L[Index] := Value else
+  begin
+    WritelnWarning_InvalidIndex(Index, Count);
+  end;
+end;
+
+procedure TMFString.WritelnWarning_InvalidIndex(const Index, ACount: Integer);
+begin
+  if not WarningDoneInvalidIndex then
+  begin
+    WarningDoneInvalidIndex := true;
+    WritelnWarning('X3D', Format('Invalid index for field %s (%s)',
+      [NiceName, X3DType]));
+  end;
+end;
 
 {$endif read_implementation}
