@@ -1522,7 +1522,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item356>
       <Item357>
-        <Filename Value="../src/ui/opengl/castlecontrols_theme.inc"/>
+        <Filename Value="../src/ui/opengl/castleuicontrols_theme.inc"/>
         <Type Value="Include"/>
       </Item357>
       <Item358>
