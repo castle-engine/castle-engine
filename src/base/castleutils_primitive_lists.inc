@@ -92,7 +92,7 @@ type
     function Sum: Cardinal;
   end;
 
-  TBooleanList = class({$ifdef FPC}specialize{$endif} TStructList<boolean> {$ifndef FPC}, ICastleItemList<boolean, TStructList<boolean>> {$endif})
+  TBooleanList = class({$ifdef FPC}specialize{$endif} TStructList<boolean>)
   public
     { Set appropriate item to given value.
       These are useful methods to pass as callback in some situations

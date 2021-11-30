@@ -23,18 +23,7 @@ type
   { List of structures.
     This is just TList class from Generics.Collections, with some useful helpers. }
   {$ifdef FPC}generic{$endif}
-  TStructList<T> = class({$ifdef FPC}specialize{$endif} TList<T>
-    {$ifndef FPC}, ICastleItemList<T, TStructList<T>>{$endif})
-  {$ifndef FPC}
-  strict private
-    procedure SetCount(const Value: TListSize);
-    function GetCount: TListSize;
-    procedure SetCapacity(Value: TListSize);
-    function GetCapacity: TListSize;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-    function QueryInterface(const IID: TGUID; out Obj): Hresult; virtual; stdcall;
-  {$endif}
+  TStructList<T> = class({$ifdef FPC}specialize{$endif} TList<T>)
   public
     type
       PtrT = ^T;
@@ -89,9 +78,6 @@ type
     {$ifndef FPC}
     function InternalGetItem(const Index: TListSize): T;
     procedure InternalSetItem(const Index: TListSize; const Value: T);
-    function GetInternalItems: TStructList<T>;
-    //procedure InternalAddSubRange(Source: TList<T>; Index, AddCount: TListSize);
-
     {$endif}
 
     { Increase Count and return pointer to new item.
@@ -141,9 +127,6 @@ type
     procedure AddArray(const A: array of T); deprecated 'use AddRange';
     procedure AddList(const Source: TStructList {$ifndef FPC}<T>{$endif}); deprecated 'use AddRange';
     procedure AssignArray(const A: array of T); deprecated 'use Assign';
-    {$ifndef FPC}
-    property Count: TListSize read GetCount write SetCount;
-    {$endif}
   end;
 
 {$endif}
@@ -242,62 +225,17 @@ begin
 end;
 
 {$ifndef FPC}
-function TStructList{$ifndef FPC}<T>{$endif}.GetCount: TListSize;
-begin
-  Result := TList(Self).Count;
-end;
-
-procedure TStructList{$ifndef FPC}<T>{$endif}.SetCount(const Value: TListSize);
-begin
-  inherited Count := Value;
-end;
-
-function TStructList{$ifndef FPC}<T>{$endif}.GetCapacity: TListSize;
-begin
-  Result := TList(Self).Capacity;
-end;
-
-procedure TStructList{$ifndef FPC}<T>{$endif}.SetCapacity(Value: TListSize);
-begin
-  inherited Capacity := Value;
-end;
-
-function TStructList{$ifndef FPC}<T>{$endif}._AddRef: Integer;
-begin
-  Result := -1;
-end;
-
-function TStructList{$ifndef FPC}<T>{$endif}._Release: Integer;
-begin
-  Result := -1;
-end;
-
-function TStructList{$ifndef FPC}<T>{$endif}.QueryInterface(const IID: TGUID; out Obj): HResult;
-begin
-  if GetInterface(IID, Obj) then
-    Result := S_OK
-  else
-    Result := E_NOINTERFACE;
-end;
-
-function TStructList{$ifndef FPC}<T>{$endif}.InternalGetItem(
+function TStructList<T>.InternalGetItem(
   const Index: TListSize): T;
 begin
   Result := List^[Index];
 end;
 
-procedure TStructList{$ifndef FPC}<T>{$endif}.InternalSetItem(
+procedure TStructList<T>.InternalSetItem(
   const Index: TListSize; const Value: T);
 begin
   Items[Index] := Value;
 end;
-
-function TStructList{$ifndef FPC}<T>{$endif}.GetInternalItems:
-  TStructList<T>;
-begin
-  Result := Self;
-end;
-
 {$endif}
 
 {$endif read_implementation}

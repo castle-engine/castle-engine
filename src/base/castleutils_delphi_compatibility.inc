@@ -79,42 +79,6 @@ type
   end;
   {$endif}
 
-  {$ifndef FPC}
-  ICastleItemList <T; TList> = interface
-  ['{3B8A5F76-4B00-439A-B906-D081C6BC325F}']
-    procedure SetCount(const Value: TListSize);
-    function GetCount: TListSize;
-    function GetCapacity: TListSize;
-    procedure SetCapacity(Value: TListSize); // no "const" at argument, it would be incompatible with Delphi TStringList.SetCapacity
-//    function GetL(const Index: TListSize): string;
-//    procedure SetL(const Index: TListSize; const S: string);
-
-//    property L[const Index: TListSize]: string read GetL write SetL;
-    ///function InternalL: Pointer;
-    procedure Assign(const Source: TList); overload;
-    procedure Assign(const A: array of T); overload;
-    procedure AddSubRange(const Source: TList; const Index, AddCount: TListSize);
-    procedure AddRange(const AValues: array of T); overload;
-    procedure AssignLerpRange(const Fraction: Single;
-      const V1, V2: TList; const Index1, Index2, ACount: TListSize);
-    // needed because in TCastleStringList L is property and in TStructList is function
-    function InternalGetItem(const Index: TListSize): T;
-    procedure InternalSetItem(const Index: TListSize; const Value: T);
-//    function Add(const Value: T): TListSize;
-    function Equals(SecondValue: TObject): boolean;
-    function PerfectlyEquals(const SecondValue: TList): boolean;
-    procedure Clear;
-    //procedure InternalAddSubRange(Source: TList<T>; Index, AddCount: TListSize);
-    property Count: TListSize read GetCount write SetCount;
-    property Capacity: TListSize read GetCapacity write SetCapacity;
-  end;
-
-  //ICastleSimpleField = interface
-  //  ['{CE9C40CA-9780-4C1A-A986-0605B50F839B}']
-  //  procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
-  //end;
-  {$endif}
-
 var
   OnGetVendorName      : TGetVendorNameEvent;
   OnGetApplicationName : TGetAppNameEvent;

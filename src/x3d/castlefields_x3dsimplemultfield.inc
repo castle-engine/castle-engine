@@ -15,25 +15,6 @@
 
 {$ifdef read_interface}
 
-{$ifndef FPC}
-  { Needed by Delphi generics }
-  IX3DSimpleMultField<
-    TItem;
-    TInternalItemList;
-    TItemList: ICastleItemList<TItem, TInternalItemList>> = interface
-  ['{3B8A5F76-4B00-439A-B906-D081C6BC325F}']
-    function GetItems: TItemList;
-    procedure SetItems(const Value: TItemList);
-
-    function GetInternalItems: TInternalItemList;
-    property Items: TItemList read GetItems write SetItems;
-
-    function GetInternalPartialSend: TPartialSend;
-    procedure SetInternalPartialSend(const Value: TPartialSend);
-    property InternalPartialSend: TPartialSend read GetInternalPartialSend write SetInternalPartialSend;
-  end;
-{$endif}
-
 
   { X3D field with a list of values.
     This is an ancestor of most multiple-value X3D fields. }
@@ -42,7 +23,7 @@
     TItem;
     TSingleField{$ifndef FPC}: TX3DSingleField{$endif};
     {$ifndef FPC}TInternalItemList: class;{$endif}
-    TItemList{$ifndef FPC}: ICastleItemList<TItem, TInternalItemList>, class, constructor{$endif}> = class(TX3DMultField{$ifndef FPC}{, IX3DSimpleMultField<TItem, TInternalItemList, TItemList>}{$endif})
+    TItemList{$ifndef FPC}: TStructList<TItem>, constructor{$endif}> = class(TX3DMultField)
   strict private
     WarningDoneInvalidIndex: boolean;
 
@@ -496,7 +477,7 @@ procedure TX3DSimpleMultField{$ifndef FPC} <
   > {$endif} .
   SetItems(const Value: TItemList);
 begin
-  TItemList(FItems).Assign(Value{$ifndef FPC} as TInternalItemList{$endif});
+  TItemList(FItems).Assign(Value);
 end;
 
 {$ifndef FPC}
@@ -528,7 +509,7 @@ begin
     DefaultValue       := TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
       TInternalItemList, TItemList>{$endif}(Source).DefaultValue;
     Items.Assign(TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-      TInternalItemList, TItemList>{$endif}(Source).Items{$ifndef FPC} as TInternalItemList{$endif});
+      TInternalItemList, TItemList>{$endif}(Source).Items);
     VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
@@ -547,7 +528,7 @@ begin
   begin
     inherited;
     Items.Assign(TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
-      TInternalItemList, TItemList>{$endif}(Source).Items{$ifndef FPC} as TInternalItemList{$endif});
+      TInternalItemList, TItemList>{$endif}(Source).Items);
   end else
     AssignValueRaiseInvalidClass(Source);
 end;
@@ -614,7 +595,7 @@ begin
     {$ifdef FPC}
     Items.L[Index] := Value else
     {$else}
-    Items.InternalSetItem(Index, Value);
+    Items.InternalSetItem(Index, Value) else
     {$endif}
   begin
     WritelnWarning_InvalidIndex(Index, Count);
@@ -673,9 +654,6 @@ procedure TX3DSimpleMultField{$ifndef FPC} <
 var
   FieldValue: TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
     TInternalItemList, TItemList>{$endif};
-  {$ifndef FPC}
-  I: Integer;
-  {$endif}
 begin
   { This is a copy-paste of implementation of Send(const AValue: array of TItem) }
   if SendsByEvent then
@@ -684,13 +662,13 @@ begin
       TInternalItemList, TItemList>{$endif}(
       TX3DFieldClass(ClassType).CreateUndefined(ParentNode, false, X3DName));
     try
-      FieldValue.Items.Assign(AValue{$ifndef FPC} as TInternalItemList{$endif});
+      FieldValue.Items.Assign(AValue);
       Send(FieldValue);
     finally FreeAndNil(FieldValue) end;
   end else
   begin
     ValueFromIsClause := false;
-    Items.Assign(AValue{$ifndef FPC} as TInternalItemList{$endif});
+    Items.Assign(AValue);
     Changed;
   end;
 end;

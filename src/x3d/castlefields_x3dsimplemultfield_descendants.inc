@@ -320,21 +320,46 @@
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
   end;
 
-  TMFString = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
-    string,
-    TSFString,
-    {$ifndef FPC}TStringList,{$endif}
-    TCastleStringList>)
+  TMFString = class(TX3DMultField)
+  strict private
+    FItems: TCastleStringList;
+
+    procedure SetItems(const Value: TCastleStringList);
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
-    procedure AddToList(const ItemList: TCastleStringList; const Item: TSFString); override;
+    procedure Clear;
+    function GetCount: TListSize; override;
+    procedure SetCount(const Value: TListSize); override;
+
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+    procedure AddToList(const ItemList: TCastleStringList; const Item: TSFString);
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
-    function CreateItemBeforeParse: TSFString; override;
+    function CreateItemBeforeParse: TSFString;
   public
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string;
+      const InitialContent: array of string);
+
+    constructor CreateUndefined(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string); override;
+
+    { Parse MF field. This class handles parsing fully, usually no need to
+      override this more in descendants. It uses TSingleField.Parse method. }
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
+
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
     procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
+
+    property Items: TCastleStringList read FItems write SetItems;
+
+    { Copy another field value, default value and other properties. }
+    procedure Assign(Source: TPersistent); override;
+
+    { Set the field's value in a correct way (by sending X3D event, or at least notifying
+      the parent scene). }
+    procedure Send(const AValue: array of string); overload;
+    procedure Send(const AValue: TCastleStringList); overload;
   end;
 
 {$endif read_interface}
@@ -1035,5 +1060,158 @@ begin
   inherited;
   if Writer.Encoding = xeXML then Writer.Write('''');
 end;
+
+procedure TMFString.SetItems(const Value: TCastleStringList);
+begin
+  FItems.Assign(Value);
+end;
+
+
+procedure TMFString.Send(const AValue: array of string);
+var
+  FieldValue: TMFString;
+begin
+  if SendsByEvent then
+  begin
+    { We want to create an instance of ClassType (actual current class type),
+      not just an instance of TMFString (which is only an ancestor
+      of other MF field classes). }
+    // This works in FPC (Delphi and ObjFpc mode), but doesn't in actual Delphi:
+    // FieldValue := TX3DFieldClass(ClassType).Create(ParentNode, false, X3DName, AValue);
+
+    { AExposed = false below, because not needed otherwise. }
+    FieldValue := TMFString(
+      TX3DFieldClass(ClassType).CreateUndefined(ParentNode, false, X3DName));
+    try
+      FieldValue.Items.AddRange(AValue);
+      Send(FieldValue);
+    finally FreeAndNil(FieldValue) end;
+  end else
+  begin
+    { When SendsByEvent = false, we can optimize this method.
+      No need to create an intermediate FieldValue instance
+      (and assign AValue to FieldValue, just to later assign FieldValue to Items). }
+    ValueFromIsClause := false;
+    Items.Assign(AValue);
+    Changed;
+  end;
+end;
+
+procedure TMFString.Send(const AValue: TCastleStringList);
+var
+  FieldValue: TMFString;
+begin
+  { This is a copy-paste of implementation of Send(const AValue: array of TItem) }
+  if SendsByEvent then
+  begin
+    FieldValue := TMFString(
+      TX3DFieldClass(ClassType).CreateUndefined(ParentNode, false, X3DName));
+    try
+      FieldValue.Items.Assign(AValue);
+      Send(FieldValue);
+    finally FreeAndNil(FieldValue) end;
+  end else
+  begin
+    ValueFromIsClause := false;
+    Items.Assign(AValue);
+    Changed;
+  end;
+end;
+
+constructor TMFString.CreateUndefined(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string);
+begin
+  inherited;
+  FItems := TCastleStringList.Create;
+  //DefaultValuesCount := -1;
+end;
+
+constructor TMFString.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string;
+  const InitialContent: array of string);
+begin
+  inherited Create(AParentNode, AExposed, AName);
+  Items.AddRange(InitialContent);
+  AssignDefaultValueFromValue;
+end;
+
+procedure TMFString.Clear;
+begin
+  FItems.Clear;
+end;
+
+function TMFString.GetCount: TListSize;
+begin
+  Result := FItems.Count;
+end;
+
+procedure TMFString.SetCount(const Value: TListSize);
+begin
+  FItems.Count := Value;
+end;
+
+procedure TMFString.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
+var
+  SingleItem: TSFString;
+begin
+  Clear;
+
+  SingleItem := nil;
+  try
+    SingleItem := CreateItemBeforeParse;
+
+    if Lexer.Token = vtOpenSqBracket then
+    begin
+      Lexer.NextToken;
+
+      { List size may be increased rapidly during parsing.
+        Prepare for it by allocating some size in advance. }
+      FItems.Capacity := 64;
+
+      while Lexer.Token <> vtCloseSqBracket do
+      { we always look now at "]" or next single value }
+      begin
+        SingleItem.ParseValue(Lexer, Reader);
+        AddToList(Items, SingleItem);
+
+        if Lexer.Token = vtCloseSqBracket then break;
+
+        if Lexer.Version.Major < 2 then
+        begin
+          Lexer.CheckTokenIs(vtComma);
+          Lexer.NextToken;
+        end;
+      end;
+
+      { Our handling of commas is specified by VRML 1.0 spec:
+        - When the list has no items, "[]" is allowed but "[,]" is not.
+        - When there are some items on the list, the last item *may*
+          be followed by a comma.
+        For VRML >= 2.0 this all doesn't matter, comma is just a whitespace
+        and Lexer will never return such token. }
+
+      Lexer.NextToken;
+    end else
+    begin
+      { one single field - not enclosed in [] brackets }
+      SingleItem.ParseValue(Lexer, Reader);
+      AddToList(Items, SingleItem);
+    end;
+
+  finally FreeAndNil(SingleItem) end;
+end;
+
+procedure TMFString.Assign(Source: TPersistent);
+begin
+  if Source is TMFString then
+  begin
+    //DefaultValuesCount := TMFString(Source).DefaultValuesCount;
+    //DefaultValue       := TMFString(Source).DefaultValue;
+    Items.Assign(TMFString(Source).Items);
+    VRMLFieldAssignCommon(TX3DField(Source));
+  end else
+    inherited;
+end;
+
 
 {$endif read_implementation}
