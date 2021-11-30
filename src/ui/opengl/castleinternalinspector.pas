@@ -126,8 +126,6 @@ uses SysUtils, StrUtils,
   Show historic logs immediately, instead of starting LabelLog always empty.
   Just keep last X logs in DEBUG build always?
 
-  Are multiline logs displayed and counted OK?
-
   Animate RectXxx existence changes.
 
   untangle dependencies: it is a bit dirty that CastleUIControls, basic unit,
@@ -468,8 +466,7 @@ begin
 
   InsideLogCallback := true;
   try
-    // We use TrimRight to strip traling newline
-    LabelLog.Text.Add(TrimRight(Message));
+    LabelLog.Text.AddMultiLine(TrimEndingNewline(Message));
     LabelLogHeader.Caption := 'Log (' + IntToStr(LabelLog.Text.Count) + ')';
     ScrollLogs.Scroll := ScrollLogs.ScrollMax;
   finally InsideLogCallback := false end;
