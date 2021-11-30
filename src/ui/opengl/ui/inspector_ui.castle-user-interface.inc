@@ -118,8 +118,8 @@
 '            "Top" : 3.0000000000000000E+001' + LineEnding +
 '          },' + LineEnding +
 '          "FullSize" : true,' + LineEnding +
-'          "HorizontalAnchorParent" : "hpMiddle",' + LineEnding +
-'          "HorizontalAnchorSelf" : "hpMiddle",' + LineEnding +
+'          "HorizontalAnchorParent" : "hpRight",' + LineEnding +
+'          "HorizontalAnchorSelf" : "hpRight",' + LineEnding +
 '          "Name" : "ScrollLogs",' + LineEnding +
 '          "ScrollArea" : {' + LineEnding +
 '            "$$ClassName" : "TInternalCastleScrollArea",' + LineEnding +

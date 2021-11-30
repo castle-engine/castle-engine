@@ -116,8 +116,8 @@
             "Top" : 3.0000000000000000E+001
           },
           "FullSize" : true,
-          "HorizontalAnchorParent" : "hpMiddle",
-          "HorizontalAnchorSelf" : "hpMiddle",
+          "HorizontalAnchorParent" : "hpRight",
+          "HorizontalAnchorSelf" : "hpRight",
           "Name" : "ScrollLogs",
           "ScrollArea" : {
             "$$ClassName" : "TInternalCastleScrollArea",
