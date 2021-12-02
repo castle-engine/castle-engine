@@ -357,9 +357,51 @@
                 },
                 {
                   "$$ClassName" : "TCastleHorizontalGroup",
-                  "Name" : "HorizontalGroup2",
+                  "Name" : "HorizontalGroup4",
                   "Spacing" : 5.0000000000000000E+000,
                   "VerticalAnchorDelta" : -1.6499998092651367E+001,
+                  "VerticalAnchorParent" : "vpTop",
+                  "VerticalAnchorSelf" : "vpTop",
+                  "$Children" : [
+                    {
+                      "$$ClassName" : "TCastleRectangleControl",
+                      "ColorPersistent" : {
+                        "$$ClassName" : "TCastleColorPersistent",
+                        "Blue" : 0.0000000000000000E+000,
+                        "Green" : 4.7843137383460999E-001,
+                        "Red" : 4.7843137383460999E-001
+                      },
+                      "Height" : 1.0000000000000000E+001,
+                      "Name" : "RectangleControl6",
+                      "VerticalAnchorParent" : "vpMiddle",
+                      "VerticalAnchorSelf" : "vpMiddle",
+                      "Width" : 1.0000000000000000E+001
+                    },
+                    {
+                      "$$ClassName" : "TCastleLabel",
+                      "ColorPersistent" : {
+                        "$$ClassName" : "TCastleColorPersistent",
+                        "Alpha" : 5.0000000000000000E-001,
+                        "Blue" : 1.0000000000000000E+000,
+                        "Green" : 1.0000000000000000E+000,
+                        "Red" : 1.0000000000000000E+000
+                      },
+                      "FontSize" : 1.5000000000000000E+001,
+                      "HorizontalAnchorDelta" : 1.5000000000000000E+001,
+                      "Name" : "Label6",
+                      "Text" : [
+                        "Physics"
+                      ],
+                      "VerticalAnchorParent" : "vpMiddle",
+                      "VerticalAnchorSelf" : "vpMiddle"
+                    }
+                  ]
+                },
+                {
+                  "$$ClassName" : "TCastleHorizontalGroup",
+                  "Name" : "HorizontalGroup2",
+                  "Spacing" : 5.0000000000000000E+000,
+                  "VerticalAnchorDelta" : -3.2999996185302734E+001,
                   "VerticalAnchorParent" : "vpTop",
                   "VerticalAnchorSelf" : "vpTop",
                   "$Children" : [
@@ -400,7 +442,7 @@
                   "$$ClassName" : "TCastleHorizontalGroup",
                   "Name" : "HorizontalGroup3",
                   "Spacing" : 5.0000000000000000E+000,
-                  "VerticalAnchorDelta" : -3.2999996185302734E+001,
+                  "VerticalAnchorDelta" : -4.9499992370605469E+001,
                   "VerticalAnchorParent" : "vpTop",
                   "VerticalAnchorSelf" : "vpTop",
                   "$Children" : [
@@ -890,6 +932,7 @@
                     "$$ClassName" : "TCastleImagePersistent"
                   },
                   "Name" : "ButtonHierarchyShow",
+                  "PaddingHorizontal" : 8.0000000000000000E+000,
                   "VerticalAnchorParent" : "vpMiddle",
                   "VerticalAnchorSelf" : "vpMiddle"
                 },
@@ -908,11 +951,12 @@
                   "CustomBackgroundPressed" : {
                     "$$ClassName" : "TCastleImagePersistent"
                   },
-                  "HorizontalAnchorDelta" : 1.1700000000000000E+002,
+                  "HorizontalAnchorDelta" : 1.1300000762939453E+002,
                   "Image" : {
                     "$$ClassName" : "TCastleImagePersistent"
                   },
                   "Name" : "ButtonPropertiesShow",
+                  "PaddingHorizontal" : 8.0000000000000000E+000,
                   "VerticalAnchorParent" : "vpMiddle",
                   "VerticalAnchorSelf" : "vpMiddle"
                 },
@@ -931,11 +975,12 @@
                   "CustomBackgroundPressed" : {
                     "$$ClassName" : "TCastleImagePersistent"
                   },
-                  "HorizontalAnchorDelta" : 2.3800000000000000E+002,
+                  "HorizontalAnchorDelta" : 2.3000000000000000E+002,
                   "Image" : {
                     "$$ClassName" : "TCastleImagePersistent"
                   },
                   "Name" : "ButtonLogShow",
+                  "PaddingHorizontal" : 8.0000000000000000E+000,
                   "VerticalAnchorParent" : "vpMiddle",
                   "VerticalAnchorSelf" : "vpMiddle"
                 },
@@ -954,11 +999,12 @@
                   "CustomBackgroundPressed" : {
                     "$$ClassName" : "TCastleImagePersistent"
                   },
-                  "HorizontalAnchorDelta" : 2.9400000000000000E+002,
+                  "HorizontalAnchorDelta" : 2.8200000000000000E+002,
                   "Image" : {
                     "$$ClassName" : "TCastleImagePersistent"
                   },
                   "Name" : "ButtonProfilerShow",
+                  "PaddingHorizontal" : 8.0000000000000000E+000,
                   "VerticalAnchorParent" : "vpMiddle",
                   "VerticalAnchorSelf" : "vpMiddle"
                 }

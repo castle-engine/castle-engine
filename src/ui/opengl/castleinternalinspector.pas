@@ -34,10 +34,19 @@ type
     const
       ProfilerDataCount = 100;
     type
+      TProfilerMetric = (pmUpdate, pmPhysics, pmRender, pmSwap);
+
       TProfilerDataItem = record
-        Update, Render, Swap, Fps: Single;
+        { Frame time, in 0..1 range (how much of frame do they occupy. }
+        Time: array [TProfilerMetric] of Single;
+        Fps: Single;
       end;
+      PProfilerDataItem = ^TProfilerDataItem;
+
       TProfilerData = array [0..ProfilerDataCount - 1] of TProfilerDataItem;
+
+      { This type is local for ProfilerGraphRender, but it has to be declared here
+        to compile, otherwise FPC 3.2.0 doesn't handle TProfilerMetric reference. }
 
     var
       { Controls loaded from inspector_ui.castle-user-interface.inc }
@@ -60,6 +69,7 @@ type
       CheckboxLogAutoScroll: TCastleCheckbox;
       LabelProfilerHeader: TCastleLabel;
       CheckboxProfilerDetailsInLog: TCastleCheckbox;
+      ProfilerGraph: TCastleUserInterface;
 
       FOpacity: Single;
       FSelectedComponent: TComponent;
@@ -67,9 +77,16 @@ type
       SerializedHierarchyRowTemplate: TSerializedComponent;
       SerializedPropertyRowTemplate: TSerializedComponent;
       ProfilerData: TProfilerData;
-      { When ProfilerDataLast < ProfilerDataFirst, then it wraps (FIFO).
-        When ProfilerDataLast = ProfilerDataFirst, there is no data. }
+      ProfilerDataNonEmpty: Boolean;
+      { We have useful data at ProfilerDataFirst...ProfilerDataLast-1 indexes,
+        if ProfilerDataNonEmpty.
+        So ProfilerDataNonEmpty and (ProfilerDataLast = ProfilerDataFirst) means that queue is full.
+
+        When ProfilerDataLast < ProfilerDataFirst, then it wraps modulo ProfilerDataCount.
+        Both ProfilerDataFirst and ProfilerDataLast are always between 0 and ProfilerDataCount-1. }
       ProfilerDataFirst, ProfilerDataLast: Integer;
+      // Do not use LabelLog.Count for this, as we split multiline logs into many lines
+      LogCount: Cardinal;
 
     procedure ChangeOpacity(Sender: TObject);
     procedure SetOpacity(const Value: Single);
@@ -99,6 +116,7 @@ type
       Only SetSelectedComponent needs to call it. }
     procedure UpdateProperties;
     procedure ProfilerSummaryAvailable(Sender: TObject);
+    procedure ProfilerGraphRender(const Sender: TCastleUserInterface);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -137,7 +155,8 @@ implementation
 
 uses SysUtils, StrUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
-  CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleTimeUtils;
+  CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleTimeUtils,
+  CastleUtils;
 
 { TODO:
 
@@ -211,6 +230,7 @@ begin
   CheckboxLogAutoScroll := UiOwner.FindRequiredComponent('CheckboxLogAutoScroll') as TCastleCheckbox;
   LabelProfilerHeader := UiOwner.FindRequiredComponent('LabelProfilerHeader') as TCastleLabel;
   CheckboxProfilerDetailsInLog := UiOwner.FindRequiredComponent('CheckboxProfilerDetailsInLog') as TCastleCheckbox;
+  ProfilerGraph := UiOwner.FindRequiredComponent('ProfilerGraph') as TCastleUserInterface;
 
   ForceFallbackLook(Ui);
 
@@ -225,6 +245,7 @@ begin
   ButtonProfilerHide.OnClick := {$ifdef FPC}@{$endif} ClickProfilerHide;
   ButtonLogClear.OnClick := {$ifdef FPC}@{$endif} ClickLogClear;
   CheckboxProfilerDetailsInLog.OnChange := {$ifdef FPC}@{$endif} ChangeProfilerDetailsInLog;
+  ProfilerGraph.OnRender := {$ifdef FPC}@{$endif} ProfilerGraphRender;
 
   { initial state of UI to show/hide }
   RectProperties.Exists := PersistentState.RectPropertiesExists;
@@ -246,13 +267,15 @@ begin
 
   { initialize log }
   ApplicationProperties.OnLog.Add({$ifdef FPC}@{$endif} LogCallback);
-  LabelLogHeader.Caption := 'Log (0)';
+  LogCount := 0;
+  LabelLogHeader.Caption := Format('Log (%d)', [LogCount]);
   LabelLog.Caption := '';
   CheckboxLogAutoScroll.Checked := true;
 
   { initialize profiler }
   FrameProfiler.Enabled := RectProfiler.Exists;
   FrameProfiler.OnSummaryAvailable := {$ifdef FPC}@{$endif} ProfilerSummaryAvailable;
+  //FrameProfiler.FramesForSummary := 2;
   CheckboxProfilerDetailsInLog.Checked := FrameProfiler.LogSummary;
 end;
 
@@ -529,7 +552,8 @@ begin
   InsideLogCallback := true;
   try
     LabelLog.Text.AddMultiLine(TrimEndingNewline(Message));
-    LabelLogHeader.Caption := 'Log (' + IntToStr(LabelLog.Text.Count) + ')';
+    Inc(LogCount);
+    LabelLogHeader.Caption := Format('Log (%d)', [LogCount]);
     if CheckboxLogAutoScroll.Checked then
       ScrollLogs.Scroll := ScrollLogs.ScrollMax;
   finally InsideLogCallback := false end;
@@ -537,7 +561,8 @@ end;
 
 procedure TCastleInspector.ClickLogClear(Sender: TObject);
 begin
-  LabelLogHeader.Caption := 'Log (0)';
+  LogCount := 0;
+  LabelLogHeader.Caption := Format('Log (%d)', [LogCount]);
   LabelLog.Caption := '';
 end;
 
@@ -655,7 +680,130 @@ begin
 end;
 
 procedure TCastleInspector.ProfilerSummaryAvailable(Sender: TObject);
+var
+  Data: PProfilerDataItem;
+  TotalTime: TFloatTime;
 begin
+  Data := @ProfilerData[ProfilerDataLast];
+
+  TotalTime := FrameProfiler.SummaryTotalFrameTime;
+
+  // fmRender includes fmRenderSwapFlush, we make them separate for display
+  Data^.Time[pmRender] := (FrameProfiler.SummaryTime(fmRender) - FrameProfiler.SummaryTime(fmRenderSwapFlush)) / TotalTime;
+  Data^.Time[pmSwap] := FrameProfiler.SummaryTime(fmRenderSwapFlush) / TotalTime;
+  // fmUpdate includes fmUpdatePhysics, we make them separate for display
+  Data^.Time[pmUpdate] := (FrameProfiler.SummaryTime(fmUpdate) - FrameProfiler.SummaryTime(fmUpdatePhysics)) / TotalTime;
+  Data^.Time[pmPhysics] := FrameProfiler.SummaryTime(fmUpdatePhysics) / TotalTime;
+
+  Data^.Fps := Container.Fps.RealFps;
+
+  if ProfilerDataNonEmpty and (ProfilerDataLast = ProfilerDataFirst) then
+    ProfilerDataFirst := (ProfilerDataFirst + 1) mod ProfilerDataCount;
+  ProfilerDataLast := (ProfilerDataLast + 1) mod ProfilerDataCount;
+  ProfilerDataNonEmpty := true;
+end;
+
+procedure TCastleInspector.ProfilerGraphRender(const Sender: TCastleUserInterface);
+const
+  Colors: array [TProfilerMetric] of String = (
+    'FFFF00',
+    '7A7A00',
+    '6767FF',
+    'B1B1FF'
+  );
+  ColorFpsHex = '00B300';
+type
+  TTimeSum = array [TProfilerMetric] of Single;
+  TProfilerItemDraw = record
+    { For each metric: sum of time of this metric + lower metrics, in 0..1. }
+    TimeSum: TTimeSum;
+    { From 0 upward. }
+    Index: Integer;
+    { From ProfilerDataFirst to ProfilerDataLast-1. }
+    DataIndex: Integer;
+  end;
+  PProfilerItemDraw = ^TProfilerItemDraw;
+
+  { Calcualate ItemDraw.XxxY based on ProfilerData[ItemDraw.DataIndex]. }
+  procedure CalculateItemDraw(var ItemDraw: TProfilerItemDraw);
+  var
+    Data: PProfilerDataItem;
+    TimeSum: Single;
+    Metric: TProfilerMetric;
+  begin
+    Data := @ProfilerData[ItemDraw.DataIndex];
+    TimeSum := 0;
+    for Metric := High(TProfilerMetric) downto Low(TProfilerMetric) do
+    begin
+      TimeSum := TimeSum + Data^.Time[Metric];
+      ItemDraw.TimeSum[Metric] := TimeSum;
+    end;
+  end;
+
+var
+  RR: TFloatRectangle;
+  Triangles: array [TProfilerMetric] of array of TVector2;
+  PointsFps: array of TVector2;
+  CurrentDataCount: Integer;
+  Previous, Next: TProfilerItemDraw;
+  Metric: TProfilerMetric;
+  {ItemWidth, }X1, X2, Y1, Y2: Single;
+begin
+  if not ProfilerDataNonEmpty then Exit; // empty data
+
+  if ProfilerDataLast <= ProfilerDataFirst then
+    CurrentDataCount := ProfilerDataLast + ProfilerDataCount - ProfilerDataFirst
+  else
+    CurrentDataCount := ProfilerDataLast - ProfilerDataFirst;
+  Assert(Between(CurrentDataCount, 1, ProfilerDataCount));
+
+  { Allocate all necessary memory for TVector2 arrays }
+  for Metric in TProfilerMetric do
+    SetLength(Triangles[Metric], 6 * (CurrentDataCount - 1));
+
+  RR := ProfilerGraph.RenderRect;
+  { (ProfilerDataCount - 1) is maximum number of rectangles we want to squeeze
+    within ProfilerGraph area. }
+  //ItemWidth := RR.Width / (ProfilerDataCount - 1);
+
+  Next.Index := 0;
+  Next.DataIndex := ProfilerDataFirst;
+  CalculateItemDraw(Next);
+
+  { Calculate contents of Triangles by iteration over available data items.
+    This has to be fast, and generate efficient lists to render graphs using
+    only a few draw calls. }
+  while (Next.DataIndex + 1) mod ProfilerDataCount <> ProfilerDataLast do
+  begin
+    Previous := Next;
+    Inc(Next.Index);
+    Next.DataIndex := (Next.DataIndex + 1) mod ProfilerDataCount;
+    CalculateItemDraw(Next);
+
+    X1 := Lerp(Previous.Index / (ProfilerDataCount - 1), RR.Left, RR.Right);
+    X2 := Lerp(Next.Index / (ProfilerDataCount - 1), RR.Left, RR.Right);
+
+    for Metric in TProfilerMetric do
+    begin
+      Y1 := Lerp(Previous.TimeSum[Metric], RR.Bottom, RR.Top);
+      Y2 := Lerp(Next.TimeSum[Metric], RR.Bottom, RR.Top);
+      { use 2 triangles to express a quad, from old to new data point }
+      Triangles[Metric][6 * Previous.Index    ] := Vector2(X1, RR.Bottom);
+      Triangles[Metric][6 * Previous.Index + 1] := Vector2(X2, RR.Bottom);
+      Triangles[Metric][6 * Previous.Index + 2] := Vector2(X2, Y2);
+      Triangles[Metric][6 * Previous.Index + 3] := Vector2(X1, RR.Bottom);
+      Triangles[Metric][6 * Previous.Index + 4] := Vector2(X2, Y2);
+      Triangles[Metric][6 * Previous.Index + 5] := Vector2(X1, Y1);
+    end;
+  end;
+
+  Assert(Next.Index + 1 = CurrentDataCount);
+
+  for Metric in TProfilerMetric do
+    DrawPrimitive2D(pmTriangles, Triangles[Metric], HexToColor(Colors[Metric]));
+
+  // TODO: FPS calculate and display
+  //SetLength(PointsFps, CurrentDataCount);
 
 end;
 

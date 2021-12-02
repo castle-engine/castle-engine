@@ -19,14 +19,36 @@
 {$ifdef read_interface}
 
 type
+  { Various possible per-frame times measured by TCastleFrameProfiler. }
   TFrameMetric = (
+    { Time in TCastleContainer.EventBeforeRender. }
     fmBeforeRender,
+
+    { Time of entire rendering, including TCastleContainer.EventRender
+      (so, all TCastleUserInterface.Render and TCastleTransform.Render calls)
+      and including final swap/flush.
+      This includes all other fmRenderXxx times. }
     fmRender,
+    { Time of swap/flush at the end of rendering, when we flush GPU commands,
+      swap buffers (in case of double buffering), and wait for v-sync.
+      If this is large, it generally means that you have "free" time in the application
+      to use on anything (CPU or GPU work), because you don't use up most of the frame time. }
     fmRenderSwapFlush,
-    fmRenderTransform,
+    { Time within TCastleTransform transformation.
+      This should not be significant -- otherwise we'll have to optimize CGE TCastleTransform transformations. }
+    //fmRenderTransform,
+    { Time within TCastleScene.Render.
+      Large time means that you have TCastleScene content that is time-consuming to render. }
     fmRenderScene,
-    fmRenderShapesFilterBlending,
-    //fmRenderFrameProfiler,
+    { Time within fmRenderScene spent filtering blended shapes.
+      This should not be significant -- otherwise we'll have to optimize this bit in CGE. }
+    //fmRenderShapesFilterBlending,
+
+    { Time of TCastleContainer.EventUpdate,
+      so most of the things outside of rendering.
+      If this is large, it means you do something time-consuming aside from rendering,
+      like creature AI or physics.
+      This includes all other fmUpdateXxx times. }
     fmUpdate,
     fmUpdateGeneratedTextures,
     fmUpdateScene,
@@ -121,6 +143,15 @@ type
     property FramesForSummary: Cardinal read FFramesForSummary write FFramesForSummary
       default DefaultFramesForSummary;
 
+    { Summary of times, use only from @link(OnSummaryAvailable).
+      SummaryTotalFrameTime is the total time we spent this frame.
+      SummaryTime are times of particular things within this frame.
+      @groupBegin }
+    function SummaryTotalFrameTime: TFloatTime;
+    function SummaryTime(const FrameMetric: TFrameMetric): TFloatTime;
+    function SummaryTime(const UserMetric: String): TFloatTime;
+    { @groupEnd }
+
     { Notification when the summary is available, i.e. we have gathered FramesForSummary frames. }
     property OnSummaryAvailable: TNotifyEvent read FOnSummaryAvailable write FOnSummaryAvailable;
 
@@ -193,6 +224,25 @@ begin
   CurrentFrameStarted[Metric] := false;
 end;
 
+function TCastleFrameProfiler.SummaryTotalFrameTime: TFloatTime;
+begin
+  Result := FramesTimes[CurrentFrame, IndexTotalMetric];
+end;
+
+function TCastleFrameProfiler.SummaryTime(const FrameMetric: TFrameMetric): TFloatTime;
+begin
+  Result := FramesTimes[CurrentFrame, IndexFrameMetric(FrameMetric)];
+end;
+
+function TCastleFrameProfiler.SummaryTime(const UserMetric: String): TFloatTime;
+var
+  Metric: TMetricIndex;
+begin
+  if not IndexUserMetric(UserMetric, Metric) then
+    raise Exception.CreateFmt('Cannot find user metric "%s"', [UserMetric]);
+  Result := FramesTimes[CurrentFrame, Metric];
+end;
+
 procedure TCastleFrameProfiler.StartFrame;
 
   procedure DoLogSummary;
@@ -223,16 +273,15 @@ procedure TCastleFrameProfiler.StartFrame;
     end;
 
   begin
-    TotalTime := FramesTimes[CurrentFrame, IndexTotalMetric];
+    TotalTime := SummaryTotalFrameTime;
     WritelnLogMultiline('FrameProfiler', Format(
       'Frame time: %f secs (we should have %f FPS based on this):' + NL +
       '- BeforeRender: %d%%' + NL +
       '- Render: %d%% (%f secs, we should have %f "only render FPS" based on this)' + NL +
-      '  - Swap / flush buffers (includes waiting for v-sync): %d%%' + NL +
-      '  - TCastleTransform.Render transformation: %d%%' + NL +
+      //'  - TCastleTransform.Render transformation: %d%%' + NL +
       '  - TCastleScene.Render: %d%%' + NL +
-      '    - ShapesFilterBlending: %d%%' + NL +
-      // '  - RenderFrameProfiler: %d%%' + NL +
+      //'    - ShapesFilterBlending: %d%%' + NL +
+      '  - Swap / flush buffers (includes waiting for v-sync): %d%%' + NL +
       '%s' +
       '- Update: %d%%' + NL +
       '  - TCastleScene.UpdateGeneratedTextures: %d%%' + NL +
@@ -249,10 +298,9 @@ procedure TCastleFrameProfiler.StartFrame;
       FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
       1 / FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
       PercentTime(fmRenderSwapFlush),
-      PercentTime(fmRenderTransform),
+      //PercentTime(fmRenderTransform),
       PercentTime(fmRenderScene),
-      PercentTime(fmRenderShapesFilterBlending),
-      // PercentTime(fmRenderFrameProfiler),
+      //PercentTime(fmRenderShapesFilterBlending),
       DisplayUserMetrics(UserMetricsRenderNames, 1 + Ord(High(TFrameMetric)) + 1 + 0),
       PercentTime(fmUpdate),
       PercentTime(fmUpdateGeneratedTextures),
@@ -289,7 +337,6 @@ begin
             CurrentFrameStart[OtherMetric].ElapsedTime;
         end;
 
-    // until we have a proper TCastleFrameProfilerDisplay, just dump it in the log every second
     if CurrentFrame mod FramesForSummary = 0 then
     begin
       if Assigned(OnSummaryAvailable) then

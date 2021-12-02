@@ -345,7 +345,7 @@ procedure ShapesFilterBlending(
   end;
 
 begin
-  FrameProfiler.Start(fmRenderShapesFilterBlending);
+  //FrameProfiler.Start(fmRenderShapesFilterBlending);
 
   { Use "Count := 0" instead of Clear, this way previous Capacity remains }
   FilteredShapes.Count := 0;
@@ -355,7 +355,7 @@ begin
   if Assigned(TestShapeVisibility) then
     Tree.Traverse(@AddToListIfTested, OnlyActive, OnlyVisible, OnlyCollidable) else
     Tree.Traverse(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
-  FrameProfiler.Stop(fmRenderShapesFilterBlending);
+  //FrameProfiler.Stop(fmRenderShapesFilterBlending);
 end;
 
 end.
