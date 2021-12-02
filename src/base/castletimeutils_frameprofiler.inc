@@ -125,6 +125,12 @@ type
       as a simple integer index. }
     procedure StartCore(const Metric: TMetricIndex);
     procedure StopCore(const Metric: TMetricIndex);
+    { Gather frame information from start.
+      This is useful if you're going to keep @link(Enabled) = @false for a longer amount of time,
+      and then turn @link(Enabled) back to @true.
+      You don't want to sum new frames to the old frames and make statistics from it. }
+    procedure Reset;
+    procedure SetEnabled(const Value: Boolean);
   public
     const
       DefaultFramesForSummary = 60;
@@ -132,7 +138,7 @@ type
     constructor Create;
     { No data is gathered when Enabled = false, the calls to @link(StartFrame),
       @link(Start), @link(Stop) are ignored then. }
-    property Enabled: Boolean read FEnabled write FEnabled;
+    property Enabled: Boolean read FEnabled write SetEnabled;
     procedure StartFrame;
     procedure Start(const Metric: TFrameMetric); overload;
     procedure Stop(const Metric: TFrameMetric); overload;
@@ -337,7 +343,7 @@ begin
             CurrentFrameStart[OtherMetric].ElapsedTime;
         end;
 
-    if CurrentFrame mod FramesForSummary = 0 then
+    if (CurrentFrame > 0) and (CurrentFrame mod FramesForSummary = 0) then
     begin
       if Assigned(OnSummaryAvailable) then
         OnSummaryAvailable(Self);
@@ -353,6 +359,24 @@ begin
   end;
 
   StartCore(IndexTotalMetric);
+end;
+
+procedure TCastleFrameProfiler.Reset;
+begin
+  CurrentFrame := 0;
+  InitialFrame := 0;
+  FillChar(FramesTimes[CurrentFrame], SizeOf(FramesTimes[CurrentFrame]), 0);
+  FillChar(CurrentFrameStarted, SizeOf(CurrentFrameStarted), 0);
+end;
+
+procedure TCastleFrameProfiler.SetEnabled(const Value: Boolean);
+begin
+  if FEnabled <> Value then
+  begin
+    FEnabled := Value;
+    if not Value then // for now, we just always Reset when setting Enabled to false
+      Reset;
+  end;
 end;
 
 function TCastleFrameProfiler.IndexFrameMetric(const Metric: TFrameMetric): TMetricIndex;
