@@ -60,7 +60,8 @@ type
       HierarchyRowParent: TCastleUserInterface;
       PropertyRowParent: TCastleUserInterface;
       ScrollLogs: TCastleScrollView;
-      LabelLog: TCastleLabel;
+      LogsVerticalGroup: TCastleVerticalGroup;
+      LabelEarlierLogsRemoved: TCastleLabel;
       LabelLogHeader: TCastleLabel;
       LabelPropertiesHeader: TCastleLabel;
       LabelInspectorHelp: TCastleLabel;
@@ -85,7 +86,6 @@ type
         When ProfilerDataLast < ProfilerDataFirst, then it wraps modulo ProfilerDataCount.
         Both ProfilerDataFirst and ProfilerDataLast are always between 0 and ProfilerDataCount-1. }
       ProfilerDataFirst, ProfilerDataLast: Integer;
-      // Do not use LabelLog.Count for this, as we split multiline logs into many lines
       LogCount: Cardinal;
 
     procedure ChangeOpacity(Sender: TObject);
@@ -221,7 +221,8 @@ begin
   HierarchyRowParent := UiOwner.FindRequiredComponent('HierarchyRowParent') as TCastleUserInterface;
   PropertyRowParent := UiOwner.FindRequiredComponent('PropertyRowParent') as TCastleUserInterface;
   ScrollLogs := UiOwner.FindRequiredComponent('ScrollLogs') as TCastleScrollView;
-  LabelLog := UiOwner.FindRequiredComponent('LabelLog') as TCastleLabel;
+  LogsVerticalGroup := UiOwner.FindRequiredComponent('LogsVerticalGroup') as TCastleVerticalGroup;
+  LabelEarlierLogsRemoved := UiOwner.FindRequiredComponent('LabelEarlierLogsRemoved') as TCastleLabel;
   LabelLogHeader := UiOwner.FindRequiredComponent('LabelLogHeader') as TCastleLabel;
   LabelPropertiesHeader := UiOwner.FindRequiredComponent('LabelPropertiesHeader') as TCastleLabel;
   LabelInspectorHelp := UiOwner.FindRequiredComponent('LabelInspectorHelp') as TCastleLabel;
@@ -269,13 +270,12 @@ begin
   ApplicationProperties.OnLog.Add({$ifdef FPC}@{$endif} LogCallback);
   LogCount := 0;
   LabelLogHeader.Caption := Format('Log (%d)', [LogCount]);
-  LabelLog.Caption := '';
   CheckboxLogAutoScroll.Checked := true;
 
   { initialize profiler }
   FrameProfiler.Enabled := RectProfiler.Exists;
   FrameProfiler.OnSummaryAvailable := {$ifdef FPC}@{$endif} ProfilerSummaryAvailable;
-  //FrameProfiler.FramesForSummary := 2;
+  // FrameProfiler.FramesForSummary := 2; // useful to quickly test
   CheckboxProfilerDetailsInLog.Checked := FrameProfiler.LogSummary;
 end;
 
@@ -544,6 +544,11 @@ begin
 end;
 
 procedure TCastleInspector.LogCallback(const Message: String);
+const
+  { Do not keep too many logs, to not slow down rendering. }
+  MaxLogs = 100;
+var
+  NewLabelLog: TCastleLabel;
 begin
   { Use InsideLogCallback to prevent from infinite recursion,
     in case anything inside would also cause WritelnLog. }
@@ -551,7 +556,19 @@ begin
 
   InsideLogCallback := true;
   try
-    LabelLog.Text.AddMultiLine(TrimEndingNewline(Message));
+    if LogsVerticalGroup.ControlsCount = MaxLogs then
+    begin
+      LogsVerticalGroup.Controls[1].Free; // free 1st, leave LabelEarlierLogsRemoved
+      LabelEarlierLogsRemoved.Exists := true;
+    end;
+
+    { Creating new TCastleLabel for each log is more efficient than stuffing all logs
+      into one big TCastleLabel, tested (with "Log Details" of profiler). }
+    NewLabelLog := TCastleLabel.Create(Self);
+    NewLabelLog.Text.AddMultiLine(TrimEndingNewline(Message));
+    NewLabelLog.Culling := true; // makes rendering much faster in case of multiple logs
+    LogsVerticalGroup.InsertFront(NewLabelLog);
+
     Inc(LogCount);
     LabelLogHeader.Caption := Format('Log (%d)', [LogCount]);
     if CheckboxLogAutoScroll.Checked then
@@ -563,7 +580,8 @@ procedure TCastleInspector.ClickLogClear(Sender: TObject);
 begin
   LogCount := 0;
   LabelLogHeader.Caption := Format('Log (%d)', [LogCount]);
-  LabelLog.Caption := '';
+  LogsVerticalGroup.ClearControls;
+  LabelEarlierLogsRemoved.Exists := false;
 end;
 
 procedure TCastleInspector.ClickHierarchyRow(Sender: TObject);

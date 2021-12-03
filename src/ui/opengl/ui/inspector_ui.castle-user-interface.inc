@@ -131,49 +131,23 @@
 '            "Name" : "ScrollArea",' + LineEnding +
 '            "$Children" : [' + LineEnding +
 '              {' + LineEnding +
-'                "$$ClassName" : "TCastleLabel",' + LineEnding +
-'                "Border" : {' + LineEnding +
-'                  "$$ClassName" : "TBorder",' + LineEnding +
-'                  "AllSides" : 2.0000000000000000E+000' + LineEnding +
-'                },' + LineEnding +
-'                "Name" : "LabelLog",' + LineEnding +
-'                "Text" : [' + LineEnding +
-'                  "-------------------- Rendering Context Initialization begin",' + LineEnding +
-'                  "OpenGL information (detected by castle-editor):",' + LineEnding +
-'                  "",' + LineEnding +
-'                  "--------",' + LineEnding +
-'                  "Version:",' + LineEnding +
-'                  "  Version string: 4.6.0 NVIDIA 470.82.00",' + LineEnding +
-'                  "  Version parsed: major: 4, minor: 6, release exists: True, release: 0, vendor-specific information: \"NVIDIA 470.82.00\"",' + LineEnding +
-'                  "  Vendor-specific version parsed: major: 470, minor: 82, release: 0",' + LineEnding +
-'                  "  Vendor: NVIDIA Corporation",' + LineEnding +
-'                  "  Vendor type: Nvidia",' + LineEnding +
-'                  "",' + LineEnding +
-'                  "  Renderer: NVIDIA GeForce GTX 660/PCIe/SSE2",' + LineEnding +
-'                  "  Fglrx (ATI on Linux): False",' + LineEnding +
-'                  "  Mesa: False",' + LineEnding +
-'                  "",' + LineEnding +
-'                  "  Buggy glGenerateMipmap(EXT): False",' + LineEnding +
-'                  "  Buggy GL_LIGHT_MODEL_TWO_SIDE: False",' + LineEnding +
-'                  "  Buggy VBO: False",' + LineEnding +
-'                  "  Buggy shader shadow map: False",' + LineEnding +
-'                  "  Buggy FBO rendering to multi-sampling texture: False",' + LineEnding +
-'                  "  Buggy FBO rendering to cube map texture: False",' + LineEnding +
-'                  "  Buggy swap buffers with non-standard glViewport: False",' + LineEnding +
-'                  "  Buggy 32-bit depth buffer: False",' + LineEnding +
-'                  "  Buggy GLSL gl_FrontFacing: False",' + LineEnding +
-'                  "  Buggy GLSL read varying: False",' + LineEnding +
-'                  "  Buggy Pure Shader Pipeline: False",' + LineEnding +
-'                  "  Buggy Texture Size Above 2048: False",' + LineEnding +
-'                  "  Buggy Shader Bump Mapping num_steps: False",' + LineEnding +
-'                  "",' + LineEnding +
-'                  "------------------------",' + LineEnding +
-'                  "Real versions available:",' + LineEnding +
-'                  "(checks both version string and actual functions availability in GL library, to secure from buggy implementations)",' + LineEnding +
-'                  ""' + LineEnding +
-'                ],' + LineEnding +
-'                "VerticalAnchorParent" : "vpTop",' + LineEnding +
-'                "VerticalAnchorSelf" : "vpTop"' + LineEnding +
+'                "$$ClassName" : "TCastleVerticalGroup",' + LineEnding +
+'                "Name" : "LogsVerticalGroup",' + LineEnding +
+'                "Padding" : 2.0000000000000000E+000,' + LineEnding +
+'                "$Children" : [' + LineEnding +
+'                  {' + LineEnding +
+'                    "$$ClassName" : "TCastleLabel",' + LineEnding +
+'                    "Exists" : false,' + LineEnding +
+'                    "HorizontalAnchorDelta" : 2.0000000000000000E+000,' + LineEnding +
+'                    "Name" : "LabelEarlierLogsRemoved",' + LineEnding +
+'                    "Text" : [' + LineEnding +
+'                      "Earlier log messages have been hidden."' + LineEnding +
+'                    ],' + LineEnding +
+'                    "VerticalAnchorDelta" : -2.0000000000000000E+000,' + LineEnding +
+'                    "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'                    "VerticalAnchorSelf" : "vpTop"' + LineEnding +
+'                  }' + LineEnding +
+'                ]' + LineEnding +
 '              }' + LineEnding +
 '            ]' + LineEnding +
 '          },' + LineEnding +

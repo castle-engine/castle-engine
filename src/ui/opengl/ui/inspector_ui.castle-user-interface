@@ -129,49 +129,23 @@
             "Name" : "ScrollArea",
             "$Children" : [
               {
-                "$$ClassName" : "TCastleLabel",
-                "Border" : {
-                  "$$ClassName" : "TBorder",
-                  "AllSides" : 2.0000000000000000E+000
-                },
-                "Name" : "LabelLog",
-                "Text" : [
-                  "-------------------- Rendering Context Initialization begin",
-                  "OpenGL information (detected by castle-editor):",
-                  "",
-                  "--------",
-                  "Version:",
-                  "  Version string: 4.6.0 NVIDIA 470.82.00",
-                  "  Version parsed: major: 4, minor: 6, release exists: True, release: 0, vendor-specific information: \"NVIDIA 470.82.00\"",
-                  "  Vendor-specific version parsed: major: 470, minor: 82, release: 0",
-                  "  Vendor: NVIDIA Corporation",
-                  "  Vendor type: Nvidia",
-                  "",
-                  "  Renderer: NVIDIA GeForce GTX 660/PCIe/SSE2",
-                  "  Fglrx (ATI on Linux): False",
-                  "  Mesa: False",
-                  "",
-                  "  Buggy glGenerateMipmap(EXT): False",
-                  "  Buggy GL_LIGHT_MODEL_TWO_SIDE: False",
-                  "  Buggy VBO: False",
-                  "  Buggy shader shadow map: False",
-                  "  Buggy FBO rendering to multi-sampling texture: False",
-                  "  Buggy FBO rendering to cube map texture: False",
-                  "  Buggy swap buffers with non-standard glViewport: False",
-                  "  Buggy 32-bit depth buffer: False",
-                  "  Buggy GLSL gl_FrontFacing: False",
-                  "  Buggy GLSL read varying: False",
-                  "  Buggy Pure Shader Pipeline: False",
-                  "  Buggy Texture Size Above 2048: False",
-                  "  Buggy Shader Bump Mapping num_steps: False",
-                  "",
-                  "------------------------",
-                  "Real versions available:",
-                  "(checks both version string and actual functions availability in GL library, to secure from buggy implementations)",
-                  ""
-                ],
-                "VerticalAnchorParent" : "vpTop",
-                "VerticalAnchorSelf" : "vpTop"
+                "$$ClassName" : "TCastleVerticalGroup",
+                "Name" : "LogsVerticalGroup",
+                "Padding" : 2.0000000000000000E+000,
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleLabel",
+                    "Exists" : false,
+                    "HorizontalAnchorDelta" : 2.0000000000000000E+000,
+                    "Name" : "LabelEarlierLogsRemoved",
+                    "Text" : [
+                      "Earlier log messages have been hidden."
+                    ],
+                    "VerticalAnchorDelta" : -2.0000000000000000E+000,
+                    "VerticalAnchorParent" : "vpTop",
+                    "VerticalAnchorSelf" : "vpTop"
+                  }
+                ]
               }
             ]
           },
