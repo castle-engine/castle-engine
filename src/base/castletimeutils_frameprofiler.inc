@@ -154,8 +154,8 @@ type
       SummaryTime are times of particular things within this frame.
       @groupBegin }
     function SummaryTotalFrameTime: TFloatTime;
-    function SummaryTime(const FrameMetric: TFrameMetric): TFloatTime;
-    function SummaryTime(const UserMetric: String): TFloatTime;
+    function SummaryTime(const FrameMetric: TFrameMetric): TFloatTime; overload;
+    function SummaryTime(const UserMetric: String): TFloatTime; overload;
     { @groupEnd }
 
     { Notification when the summary is available, i.e. we have gathered FramesForSummary frames. }

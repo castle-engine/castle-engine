@@ -991,7 +991,7 @@ begin
   Assert(Between(CurrentDataCount, 1, ProfilerDataCount));
 
   { Allocate all necessary memory for TVector2 arrays }
-  for Metric in TProfilerMetric do
+  for Metric := Low(TProfilerMetric) to High(TProfilerMetric) do
     SetLength(Triangles[Metric], 6 * (CurrentDataCount - 1));
   SetLength(PointsFps, CurrentDataCount);
 
@@ -1020,7 +1020,7 @@ begin
 
     PointsFps[Next.Index] := Vector2(X2, Lerp(Next.Fps, RR.Bottom, RR.Top));
 
-    for Metric in TProfilerMetric do
+    for Metric := Low(TProfilerMetric) to High(TProfilerMetric) do
     begin
       Y1 := Lerp(Previous.TimeSum[Metric], RR.Bottom, RR.Top);
       Y2 := Lerp(Next.TimeSum[Metric], RR.Bottom, RR.Top);
@@ -1036,7 +1036,7 @@ begin
 
   Assert(Next.Index + 1 = CurrentDataCount);
 
-  for Metric in TProfilerMetric do
+  for Metric := Low(TProfilerMetric) to High(TProfilerMetric) do
     DrawPrimitive2D(pmTriangles, Triangles[Metric], Colors[Metric]);
 
   DrawPrimitive2D(pmLineStrip, PointsFps, ColorFpsHex);

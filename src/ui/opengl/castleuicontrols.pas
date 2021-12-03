@@ -4051,7 +4051,7 @@ begin
   FLastSeenUIScale := 1.0;
 
   FCustomThemeObserver := TFreeNotificationObserver.Create(Self);
-  FCustomThemeObserver.OnFreeNotification := @CustomThemeFreeNotification;
+  FCustomThemeObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CustomThemeFreeNotification;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
