@@ -156,7 +156,7 @@ implementation
 uses SysUtils, StrUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
   CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleTimeUtils,
-  CastleUtils;
+  CastleUtils, CastleLog;
 
 { TODO:
 
@@ -184,6 +184,17 @@ uses SysUtils, StrUtils,
 }
 
 constructor TCastleInspector.Create(AOwner: TComponent);
+
+  procedure AddLastLogs;
+  var
+    I: Integer;
+  begin
+    for I := LastLogCount - 1 downto 0 do
+      LogCallback(LastLog(I));
+    // TODO: for some reason, this is necessary to correctly layout the newly added logs
+    LogsVerticalGroup.VisibleChange([chChildren]);
+  end;
+
 var
   UiOwner: TComponent;
   Ui: TCastleUserInterface;
@@ -271,6 +282,7 @@ begin
   LogCount := 0;
   LabelLogHeader.Caption := Format('Log (%d)', [LogCount]);
   CheckboxLogAutoScroll.Checked := true;
+  AddLastLogs;
 
   { initialize profiler }
   FrameProfiler.Enabled := RectProfiler.Exists;
@@ -566,6 +578,7 @@ begin
     { Creating new TCastleLabel for each log is more efficient than stuffing all logs
       into one big TCastleLabel, tested (with "Log Details" of profiler). }
     NewLabelLog := TCastleLabel.Create(Self);
+    ForceFallbackLook(NewLabelLog);
     NewLabelLog.Text.AddMultiLine(TrimEndingNewline(Message));
     NewLabelLog.Culling := true; // makes rendering much faster in case of multiple logs
     LogsVerticalGroup.InsertFront(NewLabelLog);
@@ -682,6 +695,10 @@ var
   C: TCastleUserInterface;
 begin
   inherited;
+
+  // TODO: doing this in constructor makes a wild scrollbar move
+  if CheckboxLogAutoScroll.Checked then
+    ScrollLogs.Scroll := ScrollLogs.ScrollMax;
 
   { We need to manually adjust rows widths to follow available space,
     righ now this is not doable by simple properties,
