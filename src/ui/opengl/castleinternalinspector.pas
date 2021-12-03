@@ -21,9 +21,9 @@ unit CastleInternalInspector;
 
 interface
 
-uses Classes,
+uses Classes, Generics.Collections, TypInfo,
   CastleControls, CastleUIControls, CastleColors, CastleRectangles,
-  CastleVectors, CastleKeysMouse, CastleComponentSerialize;
+  CastleVectors, CastleKeysMouse, CastleComponentSerialize, CastleTimeUtils;
 
 type
   { Inspect Castle Game Engine state.
@@ -46,6 +46,16 @@ type
       TProfilerData = array [0..ProfilerDataCount - 1] of TProfilerDataItem;
 
       TAutoSelect = (asNothing, asUi, asTransform);
+
+      TPropertyOwner = class(TComponent)
+      public
+        Ui: TCastleUserInterface;
+        LabelName: TCastleLabel;
+        EditValue: TCastleEdit;
+        PropObject: TObject;
+        PropInfo: PPropInfo;
+      end;
+      TPropertyOwnerList = {$ifdef FPC}specialize{$endif} TObjectList<TPropertyOwner>;
 
     var
       { Controls loaded from inspector_ui.castle-user-interface.inc }
@@ -90,6 +100,9 @@ type
       ProfilerDataFirst, ProfilerDataLast: Integer;
       LogCount: Cardinal;
       AutoSelect: TAutoSelect;
+      { Properties of the SelectedComponent. }
+      Properties: TPropertyOwnerList;
+      TimeToUpdatePropertiesValues: TFloatTime;
 
     procedure ChangeOpacity(Sender: TObject);
     procedure SetOpacity(const Value: Single);
@@ -118,6 +131,9 @@ type
     { Update properties to reflect current FSelectedComponent.
       Only SetSelectedComponent needs to call it. }
     procedure UpdateProperties;
+    { Like UpdateProperties, but only updates property Values, assuming SelectedComponent
+      didn't change. }
+    procedure UpdatePropertiesValues;
     procedure ProfilerSummaryAvailable(Sender: TObject);
     procedure ProfilerGraphRender(const Sender: TCastleUserInterface);
     { Synchronize state of ButtonAutoSelectXxx based on current AutoSelect value. }
@@ -162,11 +178,10 @@ type
 
 implementation
 
-uses SysUtils, StrUtils,
+uses SysUtils, StrUtils, RttiUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
-  CastleUtils, CastleLog,
-  CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleTimeUtils,
-  CastleCameras;
+  CastleUtils, CastleLog, CastleInternalInspectorUtils,
+  CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleCameras;
 
 { TODO:
 
@@ -304,6 +319,8 @@ begin
   { initialize AutoSelect }
   AutoSelect := asNothing;
   SynchronizeButtonsAutoSelect;
+
+  Properties := TPropertyOwnerList.Create(true);
 end;
 
 destructor TCastleInspector.Destroy;
@@ -322,6 +339,8 @@ begin
 
   FrameProfiler.OnSummaryAvailable := nil;
   FrameProfiler.Enabled := false;
+
+  FreeAndNil(Properties);
 
   inherited;
 end;
@@ -482,7 +501,8 @@ end;
 
 procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput: boolean);
 
-  { Adjusted from CGE editor TDesignFrame.TDesignerLayer.HoverUserInterface }
+  { Detect UI control that mouse hovers over.
+    Adjusted from CGE editor TDesignFrame.TDesignerLayer.HoverUserInterface }
   function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
 
     { Like TCastleUserInterface.CapturesEventsAtPosition, but
@@ -555,7 +575,8 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
       end;
   end;
 
-  { Adjusted from CGE editor TDesignFrame.TDesignerLayer.HoverTransform }
+  { Detect TCastleTransform that mouse hovers over.
+    Adjusted from CGE editor TDesignFrame.TDesignerLayer.HoverTransform }
   function HoverTransform(const AMousePosition: TVector2): TCastleTransform;
   var
     UI: TCastleUserInterface;
@@ -603,6 +624,9 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
      SelectedComponent := C;
   end;
 
+const
+  { Delay between updating properties. }
+  UpdatePropertiesValuesInterval = 0.5;
 begin
   inherited;
   UpdateHierarchy(nil);
@@ -614,6 +638,16 @@ begin
     LabelInspectorHelp.Caption := 'Press ' + KeyToStr(Container.InspectorKey) + ' to hide inspector';
 
   UpdateAutoSelect;
+
+  if RectProperties.Exists then // do not do UpdatePropertiesValues when not visible, to save speed
+  begin
+    TimeToUpdatePropertiesValues := TimeToUpdatePropertiesValues - SecondsPassed;
+    if TimeToUpdatePropertiesValues < 0 then
+    begin
+      UpdatePropertiesValues;
+      TimeToUpdatePropertiesValues := UpdatePropertiesValuesInterval;
+    end;
+  end;
 end;
 
 procedure TCastleInspector.ChangeOpacity(Sender: TObject);
@@ -675,6 +709,9 @@ procedure TCastleInspector.ClickPropertiesShow(Sender: TObject);
 begin
   RectProperties.Exists := true;
   SynchronizeButtonsToShow;
+  { We didn't update properties values when RectProperties.Exists was false,
+    so update them now. }
+  UpdatePropertiesValues;
 end;
 
 procedure TCastleInspector.ClickPropertiesHide(Sender: TObject);
@@ -780,52 +817,61 @@ end;
 
 procedure TCastleInspector.UpdateProperties;
 
-  procedure AddPropertyRow(const PropNameStr, PropValueStr: String);
+  procedure AddPropertyRow(const PropObject: TObject; const PropInfo: PPropInfo;
+    const PropName, PropValue: String);
   var
-    PropertyOwner: TComponent;
-    Ui: TCastleUserInterface;
-    PropName: TCastleLabel;
-    PropValue: TCastleEdit;
+    PropertyOwner: TPropertyOwner;
   begin
-    // TODO: We will create lots of PropertyOwner and never free them, until you close the TCastleInspector
+    PropertyOwner := TPropertyOwner.Create(Self);
+    PropertyOwner.PropObject := PropObject;
+    PropertyOwner.PropInfo := PropInfo;
+    Properties.Add(PropertyOwner);
 
-    PropertyOwner := TComponent.Create(Self);
-    Ui := SerializedPropertyRowTemplate.ComponentLoad(PropertyOwner) as TCastleUserInterface;
-    ForceFallbackLook(Ui);
-    Ui.Culling := true; // many such rows are often not visible, in scroll view
-    Ui.Width := RectProperties.EffectiveWidthForChildren;
-    PropertyRowParent.InsertFront(Ui);
+    PropertyOwner.Ui := SerializedPropertyRowTemplate.ComponentLoad(PropertyOwner) as TCastleUserInterface;
+    PropertyOwner.Ui.Culling := true; // many such rows are often not visible, in scroll view
+    PropertyOwner.Ui.Width := RectProperties.EffectiveWidthForChildren;
+    ForceFallbackLook(PropertyOwner.Ui);
+    PropertyRowParent.InsertFront(PropertyOwner.Ui);
 
-    PropName := PropertyOwner.FindRequiredComponent('PropName') as TCastleLabel;
-    PropValue := PropertyOwner.FindRequiredComponent('PropValue') as TCastleEdit;
+    PropertyOwner.LabelName := PropertyOwner.FindRequiredComponent('PropName') as TCastleLabel;
+    PropertyOwner.EditValue := PropertyOwner.FindRequiredComponent('PropValue') as TCastleEdit;
 
-    PropName.Caption := PropNameStr;
+    PropertyOwner.LabelName.Caption := PropName;
     // TODO: editing PropValue has no effect now
-    PropValue.Text := PropValueStr;
+    PropertyOwner.EditValue.Text := PropValue;
   end;
 
+var
+  PropInfos: TPropInfoList;
+  I: Integer;
+  PropName, PropValue: String;
 begin
-  while PropertyRowParent.ControlsCount > 0 do
-    PropertyRowParent.Controls[0].Free;
+  // frees TPropertyOwner instances along with their UIs
+  Properties.Clear;
 
-  // TODO: hardcoded properties for now, use RTTI instead to get all
   if FSelectedComponent <> nil then
   begin
-    AddPropertyRow('Name', FSelectedComponent.Name);
-    if FSelectedComponent is TCastleUserInterface then
+    PropInfos := TPropInfoList.Create(FSelectedComponent, tkProperties);
+    try
+      for I := 0 to PropInfos.Count - 1 do
+        if PropertyGet(FSelectedComponent, PropInfos.Items[I], PropName, PropValue) then
+          AddPropertyRow(FSelectedComponent, PropInfos.Items[I], PropName, PropValue);
+    finally FreeAndNil(PropInfos) end;
+  end;
+end;
+
+procedure TCastleInspector.UpdatePropertiesValues;
+var
+  Po: TPropertyOwner;
+  PropName, PropValue: String;
+begin
+  for Po in Properties do
+  begin
+    if PropertyGet(Po.PropObject, Po.PropInfo, PropName, PropValue) then
     begin
-      AddPropertyRow('Exists', BoolToStr(TCastleUserInterface(FSelectedComponent).Exists, true));
-    end;
-    if FSelectedComponent is TCastleTransform then
-    begin
-      AddPropertyRow('Translation', TCastleTransform(FSelectedComponent).Translation.ToString);
-      AddPropertyRow('Rotation', TCastleTransform(FSelectedComponent).Rotation.ToString);
-      AddPropertyRow('Scale', TCastleTransform(FSelectedComponent).Scale.ToString);
-      if FSelectedComponent is TCastleScene then
-      begin
-        AddPropertyRow('URL', URIDisplay(TCastleScene(FSelectedComponent).URL));
-      end;
-    end;
+      Po.EditValue.Text := PropValue;
+    end else
+      WritelnWarning('Cannot read property name/value, but it was possible to read it earlier');
   end;
 end;
 
@@ -956,8 +1002,8 @@ begin
 
   Next.Index := 0;
   Next.DataIndex := ProfilerDataFirst;
-  PointsFps[0] := Vector2(RR.Left, Lerp(Next.Fps, RR.Bottom, RR.Top));
   CalculateItemDraw(Next);
+  PointsFps[0] := Vector2(RR.Left, Lerp(Next.Fps, RR.Bottom, RR.Top));
 
   { Calculate contents of Triangles by iteration over available data items.
     This has to be fast, and generate efficient lists to render graphs using
