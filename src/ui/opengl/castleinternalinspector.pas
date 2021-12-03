@@ -729,13 +729,15 @@ end;
 
 procedure TCastleInspector.ProfilerGraphRender(const Sender: TCastleUserInterface);
 const
-  Colors: array [TProfilerMetric] of String = (
-    'FFFF00',
-    '7A7A00',
-    '6767FF',
-    'B1B1FF'
+  { Use instant_fpc_color_hex_to_pascal to easily convert hex colors to TCastleColor
+    Pascal constants. }
+  Colors: array [TProfilerMetric] of TCastleColor = (
+    (Data: (1.00, 1.00, 0.00, 1.00)), // hex: FFFF00
+    (Data: (0.48, 0.48, 0.00, 1.00)), // hex: 7A7A00
+    (Data: (0.40, 0.40, 1.00, 1.00)), // hex: 6767FF
+    (Data: (0.69, 0.69, 1.00, 1.00)) // hex: B1B1FF
   );
-  ColorFpsHex = '00B300';
+  ColorFpsHex: TCastleColor = (Data: (0.00, 0.70, 0.00, 1.00)); // hex: 00B300
 type
   TTimeSum = array [TProfilerMetric] of Single;
   TProfilerItemDraw = record
@@ -745,11 +747,15 @@ type
     Index: Integer;
     { From ProfilerDataFirst to ProfilerDataLast-1. }
     DataIndex: Integer;
+    { FPS in 0..1 range. }
+    Fps: Single;
   end;
   PProfilerItemDraw = ^TProfilerItemDraw;
 
-  { Calcualate ItemDraw.XxxY based on ProfilerData[ItemDraw.DataIndex]. }
+  { Calcualate ItemDraw.TimeSum, Fps based on ProfilerData[ItemDraw.DataIndex]. }
   procedure CalculateItemDraw(var ItemDraw: TProfilerItemDraw);
+  const
+    FpsMiddle = 60.0;
   var
     Data: PProfilerDataItem;
     TimeSum: Single;
@@ -762,6 +768,7 @@ type
       TimeSum := TimeSum + Data^.Time[Metric];
       ItemDraw.TimeSum[Metric] := TimeSum;
     end;
+    ItemDraw.Fps := Clamped(Data^.Fps * 0.5 / FpsMiddle, 0, 1);
   end;
 
 var
@@ -784,6 +791,7 @@ begin
   { Allocate all necessary memory for TVector2 arrays }
   for Metric in TProfilerMetric do
     SetLength(Triangles[Metric], 6 * (CurrentDataCount - 1));
+  SetLength(PointsFps, CurrentDataCount);
 
   RR := ProfilerGraph.RenderRect;
   { (ProfilerDataCount - 1) is maximum number of rectangles we want to squeeze
@@ -792,6 +800,7 @@ begin
 
   Next.Index := 0;
   Next.DataIndex := ProfilerDataFirst;
+  PointsFps[0] := Vector2(RR.Left, Lerp(Next.Fps, RR.Bottom, RR.Top));
   CalculateItemDraw(Next);
 
   { Calculate contents of Triangles by iteration over available data items.
@@ -806,6 +815,8 @@ begin
 
     X1 := Lerp(Previous.Index / (ProfilerDataCount - 1), RR.Left, RR.Right);
     X2 := Lerp(Next.Index / (ProfilerDataCount - 1), RR.Left, RR.Right);
+
+    PointsFps[Next.Index] := Vector2(X2, Lerp(Next.Fps, RR.Bottom, RR.Top));
 
     for Metric in TProfilerMetric do
     begin
@@ -824,11 +835,9 @@ begin
   Assert(Next.Index + 1 = CurrentDataCount);
 
   for Metric in TProfilerMetric do
-    DrawPrimitive2D(pmTriangles, Triangles[Metric], HexToColor(Colors[Metric]));
+    DrawPrimitive2D(pmTriangles, Triangles[Metric], Colors[Metric]);
 
-  // TODO: FPS calculate and display
-  //SetLength(PointsFps, CurrentDataCount);
-
+  DrawPrimitive2D(pmLineStrip, PointsFps, ColorFpsHex);
 end;
 
 initialization

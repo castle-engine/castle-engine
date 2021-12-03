@@ -138,12 +138,10 @@
 '                  {' + LineEnding +
 '                    "$$ClassName" : "TCastleLabel",' + LineEnding +
 '                    "Exists" : false,' + LineEnding +
-'                    "HorizontalAnchorDelta" : 2.0000000000000000E+000,' + LineEnding +
 '                    "Name" : "LabelEarlierLogsRemoved",' + LineEnding +
 '                    "Text" : [' + LineEnding +
 '                      "Earlier log messages have been hidden."' + LineEnding +
 '                    ],' + LineEnding +
-'                    "VerticalAnchorDelta" : -2.0000000000000000E+000,' + LineEnding +
 '                    "VerticalAnchorParent" : "vpTop",' + LineEnding +
 '                    "VerticalAnchorSelf" : "vpTop"' + LineEnding +
 '                  }' + LineEnding +
@@ -272,7 +270,7 @@
 '              "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
 '              "ColorPersistent" : {' + LineEnding +
 '                "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
-'                "Alpha" : 5.0196081399917603E-001,' + LineEnding +
+'                "Alpha" : 1.0000000149011612E-001,' + LineEnding +
 '                "Blue" : 0.0000000000000000E+000,' + LineEnding +
 '                "Red" : 0.0000000000000000E+000' + LineEnding +
 '              },' + LineEnding +
