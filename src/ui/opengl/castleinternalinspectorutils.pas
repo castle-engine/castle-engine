@@ -27,7 +27,7 @@ function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo; out N
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleVectors;
+  CastleUtils, CastleVectors, CastleStringUtils, CastleColors;
 
 function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo; out Name, Value: String): Boolean;
 
@@ -37,14 +37,30 @@ function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo; out N
       Result := 'nil'
     else
     if O is TCastleVector2Persistent then
-      Result := TCastleVector2Persistent(O).Value.ToString
-    else
+    begin
+      Result := TCastleVector2Persistent(O).Value.ToString;
+      Name := SuffixRemove('persistent', Name, true);
+    end else
     if O is TCastleVector3Persistent then
-      Result := TCastleVector3Persistent(O).Value.ToString
-    else
+    begin
+      Result := TCastleVector3Persistent(O).Value.ToString;
+      Name := SuffixRemove('persistent', Name, true);
+    end else
     if O is TCastleVector4Persistent then
-      Result := TCastleVector4Persistent(O).Value.ToString
-    else
+    begin
+      Result := TCastleVector4Persistent(O).Value.ToString;
+      Name := SuffixRemove('persistent', Name, true);
+    end else
+    if O is TCastleColorPersistent then
+    begin
+      Result := TCastleColorPersistent(O).Value.ToString;
+      Name := SuffixRemove('persistent', Name, true);
+    end else
+    if O is TCastleColorRGBPersistent then
+    begin
+      Result := TCastleColorRGBPersistent(O).Value.ToString;
+      Name := SuffixRemove('persistent', Name, true);
+    end else
       Result := O.ClassName;
   end;
 
