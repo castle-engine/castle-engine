@@ -45,8 +45,7 @@ type
 
       TProfilerData = array [0..ProfilerDataCount - 1] of TProfilerDataItem;
 
-      { This type is local for ProfilerGraphRender, but it has to be declared here
-        to compile, otherwise FPC 3.2.0 doesn't handle TProfilerMetric reference. }
+      TAutoSelect = (asNothing, asUi, asTransform);
 
     var
       { Controls loaded from inspector_ui.castle-user-interface.inc }
@@ -71,6 +70,9 @@ type
       LabelProfilerHeader: TCastleLabel;
       CheckboxProfilerDetailsInLog: TCastleCheckbox;
       ProfilerGraph: TCastleUserInterface;
+      ButtonAutoSelectNothing: TCastleButton;
+      ButtonAutoSelectUi: TCastleButton;
+      ButtonAutoSelectTransform: TCastleButton;
 
       FOpacity: Single;
       FSelectedComponent: TComponent;
@@ -87,11 +89,12 @@ type
         Both ProfilerDataFirst and ProfilerDataLast are always between 0 and ProfilerDataCount-1. }
       ProfilerDataFirst, ProfilerDataLast: Integer;
       LogCount: Cardinal;
+      AutoSelect: TAutoSelect;
 
     procedure ChangeOpacity(Sender: TObject);
     procedure SetOpacity(const Value: Single);
-    { Show component in hierarchy. }
-    function ComponentShow(const C: TComponent): Boolean;
+    { Show component in hierarchy, allow to select it. }
+    function Selectable(const C: TComponent): Boolean;
     procedure ClickHierarchyShow(Sender: TObject);
     procedure ClickHierarchyHide(Sender: TObject);
     procedure ClickLogShow(Sender: TObject);
@@ -117,6 +120,11 @@ type
     procedure UpdateProperties;
     procedure ProfilerSummaryAvailable(Sender: TObject);
     procedure ProfilerGraphRender(const Sender: TCastleUserInterface);
+    { Synchronize state of ButtonAutoSelectXxx based on current AutoSelect value. }
+    procedure SynchronizeButtonsAutoSelect;
+    procedure ClickAutoSelectNothing(Sender: TObject);
+    procedure ClickAutoSelectUi(Sender: TObject);
+    procedure ClickAutoSelectTransform(Sender: TObject);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -138,6 +146,7 @@ type
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single;  var HandleInput: boolean); override;
     procedure Resize; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
 
     { Opacity of the whole UI.
       Can be changed by user while operating this UI. }
@@ -155,19 +164,15 @@ implementation
 
 uses SysUtils, StrUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
+  CastleUtils, CastleLog,
   CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleTimeUtils,
-  CastleUtils, CastleLog;
+  CastleCameras;
 
 { TODO:
-
-  Allow selecting components in game view, following focused
 
   Show size as extra property - (C.EffectiveRect - like in CGE editor)
 
   Show C.Focused marked by some border of button on hierarchy
-
-  Show historic logs immediately, instead of starting LabelLog always empty.
-  Just keep last X logs in DEBUG build always?
 
   Animate RectXxx existence changes.
 
@@ -243,6 +248,9 @@ begin
   LabelProfilerHeader := UiOwner.FindRequiredComponent('LabelProfilerHeader') as TCastleLabel;
   CheckboxProfilerDetailsInLog := UiOwner.FindRequiredComponent('CheckboxProfilerDetailsInLog') as TCastleCheckbox;
   ProfilerGraph := UiOwner.FindRequiredComponent('ProfilerGraph') as TCastleUserInterface;
+  ButtonAutoSelectNothing := UiOwner.FindRequiredComponent('ButtonAutoSelectNothing') as TCastleButton;
+  ButtonAutoSelectUi := UiOwner.FindRequiredComponent('ButtonAutoSelectUi') as TCastleButton;
+  ButtonAutoSelectTransform := UiOwner.FindRequiredComponent('ButtonAutoSelectTransform') as TCastleButton;
 
   ForceFallbackLook(Ui);
 
@@ -258,6 +266,9 @@ begin
   ButtonLogClear.OnClick := {$ifdef FPC}@{$endif} ClickLogClear;
   CheckboxProfilerDetailsInLog.OnChange := {$ifdef FPC}@{$endif} ChangeProfilerDetailsInLog;
   ProfilerGraph.OnRender := {$ifdef FPC}@{$endif} ProfilerGraphRender;
+  ButtonAutoSelectNothing.OnClick := {$ifdef FPC}@{$endif} ClickAutoSelectNothing;
+  ButtonAutoSelectUi.OnClick := {$ifdef FPC}@{$endif} ClickAutoSelectUi;
+  ButtonAutoSelectTransform.OnClick := {$ifdef FPC}@{$endif} ClickAutoSelectTransform;
 
   { initial state of UI to show/hide }
   RectProperties.Exists := PersistentState.RectPropertiesExists;
@@ -289,6 +300,10 @@ begin
   FrameProfiler.OnSummaryAvailable := {$ifdef FPC}@{$endif} ProfilerSummaryAvailable;
   // FrameProfiler.FramesForSummary := 2; // useful to quickly test
   CheckboxProfilerDetailsInLog.Checked := FrameProfiler.LogSummary;
+
+  { initialize AutoSelect }
+  AutoSelect := asNothing;
+  SynchronizeButtonsAutoSelect;
 end;
 
 destructor TCastleInspector.Destroy;
@@ -319,7 +334,7 @@ begin
   Result := DupeString(SLevelPrefix, Level) + C.Name + ' (' + C.ClassName + ')';
 end;
 
-function TCastleInspector.ComponentShow(const C: TComponent): Boolean;
+function TCastleInspector.Selectable(const C: TComponent): Boolean;
 begin
   { Never show Self,
     this would cause problems as we'll create HierarchyRow to show HierarchyRow instances... }
@@ -368,7 +383,7 @@ var
     if C is TCastleComponent then
     begin
       for Child in TCastleComponent(C).NonVisualComponentsEnumerate do
-        if ComponentShow(Child) then
+        if Selectable(Child) then
           AddNonVisualComponent(Child, Level + 1);
     end;
   end;
@@ -383,7 +398,7 @@ var
     begin
       AddHierarchyEntry(DupeString(SLevelPrefix, Level) + 'Non-Visual Components', C);
       for Child in C.NonVisualComponentsEnumerate do
-        if ComponentShow(Child) then
+        if Selectable(Child) then
           AddNonVisualComponent(Child, Level + 1);
     end;
   end;
@@ -398,7 +413,7 @@ var
     begin
       AddHierarchyEntry(DupeString(SLevelPrefix, Level) + 'Behaviors', T);
       for Child in T.BehaviorsEnumerate do
-        if ComponentShow(Child) then
+        if Selectable(Child) then
           AddNonVisualComponent(Child, Level + 1);
     end;
   end;
@@ -415,7 +430,7 @@ var
     AddBehaviorsSection(T, Level + 1);
 
     for I := 0 to T.Count - 1 do
-      if ComponentShow(T[I]) then
+      if Selectable(T[I]) then
         AddTransform(T[I], Level + 1);
   end;
 
@@ -431,14 +446,14 @@ var
 
     for I := 0 to C.ControlsCount - 1 do
     begin
-      if ComponentShow(C.Controls[I]) then
+      if Selectable(C.Controls[I]) then
         AddControl(C.Controls[I], Level + 1);
     end;
 
     if C is TCastleViewport then
     begin
       Viewport := TCastleViewport(C);
-      if ComponentShow(Viewport.Items) then
+      if Selectable(Viewport.Items) then
         AddTransform(Viewport.Items, Level + 1);
     end;
   end;
@@ -457,7 +472,7 @@ begin
   for I := 0 to Container.Controls.Count - 1 do
   begin
     C := Container.Controls[I];
-    if ComponentShow(C) then
+    if Selectable(C) then
       AddControl(C, 0);
   end;
 
@@ -466,6 +481,128 @@ begin
 end;
 
 procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput: boolean);
+
+  { Adjusted from CGE editor TDesignFrame.TDesignerLayer.HoverUserInterface }
+  function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
+
+    { Like TCastleUserInterface.CapturesEventsAtPosition, but
+      - ignores CapturesEvents
+      - uses RenderRectWithBorder (to be able to drag complete control)
+      - doesn't need "if the control covers the whole Container" hack. }
+    function SimpleCapturesEventsAtPosition(const UI: TCastleUserInterface;
+      const Position: TVector2; const TestWithBorder: Boolean): Boolean;
+    begin
+      if TestWithBorder then
+        Result := UI.RenderRectWithBorder.Contains(Position)
+      else
+        Result := UI.RenderRect.Contains(Position);
+    end;
+
+    function ControlUnder(const C: TCastleUserInterface;
+      const MousePos: TVector2; const TestWithBorder: Boolean): TCastleUserInterface;
+    var
+      I: Integer;
+    begin
+      Result := nil;
+
+      { To allow selecting even controls that have bad rectangle (outside
+        of parent, which can happen, e.g. if you enlarge caption of label
+        with AutoSize), do not check C.CapturesEventsAtPosition(MousePos)
+        too early here. So the condition
+
+          and C.CapturesEventsAtPosition(MousePos)
+
+        is not present in "if" below. }
+
+      if C.GetExists then
+      begin
+        { First try to find children, with TestWithBorder=false (so it doesn't detect
+          control if we merely point at its border). This allows to find controls
+          places on another control's border. }
+        for I := C.ControlsCount - 1 downto 0 do
+          if Selectable(C.Controls[I]) then
+          begin
+            Result := ControlUnder(C.Controls[I], MousePos, false);
+            if Result <> nil then Exit;
+          end;
+
+        { Next try to find children, with TestWithBorder=true, so it tries harder
+          to find something. }
+        for I := C.ControlsCount - 1 downto 0 do
+          if Selectable(C.Controls[I]) then
+          begin
+            Result := ControlUnder(C.Controls[I], MousePos, true);
+            if Result <> nil then Exit;
+          end;
+
+        { Eventually return yourself, C. }
+        //if C.CapturesEventsAtPosition(MousePos) then
+        if SimpleCapturesEventsAtPosition(C, MousePos, TestWithBorder) and
+           { Do not select TCastleNavigation, they would always obscure TCastleViewport. }
+           (not (C is TCastleNavigation)) then
+          Result := C;
+      end;
+    end;
+
+  var
+    I: Integer;
+  begin
+    for I := Container.Controls.Count - 1 downto 0 do
+      if Container.Controls[I] <> Self then
+      begin
+        Result := ControlUnder(Container.Controls[I], AMousePosition, true);
+        if Result <> nil then Exit;
+      end;
+  end;
+
+  { Adjusted from CGE editor TDesignFrame.TDesignerLayer.HoverTransform }
+  function HoverTransform(const AMousePosition: TVector2): TCastleTransform;
+  var
+    UI: TCastleUserInterface;
+    Viewport: TCastleViewport;
+    RayOrigin, RayDirection: TVector3;
+    RayHit: TRayCollision;
+    I: Integer;
+  begin
+    UI := HoverUserInterface(AMousePosition);
+    if UI is TCastleViewport then // also checks UI <> nil
+      Viewport := TCastleViewport(UI)
+    else
+      Viewport := nil;
+
+    if Viewport = nil then
+      Exit(nil);
+
+    Viewport.PositionToRay(AMousePosition, true, RayOrigin, RayDirection);
+    RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+    try
+      Result := nil;
+      // set the inner-most TCastleTransform hit, but not anything transient (to avoid hitting gizmo)
+      if RayHit <> nil then
+        for I := 0 to RayHit.Count - 1 do
+          if Selectable(RayHit[I].Item) then
+          begin
+            Result := RayHit[I].Item;
+            Break;
+          end;
+    finally FreeAndNil(RayHit) end;
+  end;
+
+  procedure UpdateAutoSelect;
+  var
+    C: TComponent;
+  begin
+    case AutoSelect of
+     asNothing: C := nil;
+     asUi: C := HoverUserInterface(Container.MousePosition);
+     asTransform: C := HoverTransform(Container.MousePosition);
+   end;
+   { do not change SelectedComponent to nil, this avoids e.g. unselecting UI when going into
+     asTransform mode for a short time. }
+   if C <> nil then
+     SelectedComponent := C;
+  end;
+
 begin
   inherited;
   UpdateHierarchy(nil);
@@ -475,6 +612,8 @@ begin
   LabelInspectorHelp.Exists := Container.InspectorKey <> keyNone;
   if LabelInspectorHelp.Exists then
     LabelInspectorHelp.Caption := 'Press ' + KeyToStr(Container.InspectorKey) + ' to hide inspector';
+
+  UpdateAutoSelect;
 end;
 
 procedure TCastleInspector.ChangeOpacity(Sender: TObject);
@@ -855,6 +994,47 @@ begin
     DrawPrimitive2D(pmTriangles, Triangles[Metric], Colors[Metric]);
 
   DrawPrimitive2D(pmLineStrip, PointsFps, ColorFpsHex);
+end;
+
+function TCastleInspector.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit; // allow the ancestor to handle keys
+
+  if Event.IsKey(keyF9) then
+  begin
+    if AutoSelect = High(AutoSelect) then
+      AutoSelect := Low(AutoSelect)
+    else
+      AutoSelect := Succ(AutoSelect);
+    SynchronizeButtonsAutoSelect;
+    Exit(true);
+  end;
+end;
+
+procedure TCastleInspector.SynchronizeButtonsAutoSelect;
+begin
+  ButtonAutoSelectNothing.Pressed := AutoSelect = asNothing;
+  ButtonAutoSelectUi.Pressed := AutoSelect = asUi;
+  ButtonAutoSelectTransform.Pressed := AutoSelect = asTransform;
+end;
+
+procedure TCastleInspector.ClickAutoSelectNothing(Sender: TObject);
+begin
+  AutoSelect := asNothing;
+  SynchronizeButtonsAutoSelect;
+end;
+
+procedure TCastleInspector.ClickAutoSelectUi(Sender: TObject);
+begin
+  AutoSelect := asUi;
+  SynchronizeButtonsAutoSelect;
+end;
+
+procedure TCastleInspector.ClickAutoSelectTransform(Sender: TObject);
+begin
+  AutoSelect := asTransform;
+  SynchronizeButtonsAutoSelect;
 end;
 
 initialization
