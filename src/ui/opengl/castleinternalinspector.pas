@@ -293,6 +293,7 @@ begin
   PersistentState.RectHierarchyExists := RectHierarchy.Exists;
   PersistentState.RectProfilerExists := RectProfiler.Exists;
 
+  FrameProfiler.OnSummaryAvailable := nil;
   FrameProfiler.Enabled := false;
 
   inherited;
@@ -702,6 +703,11 @@ var
   Data: PProfilerDataItem;
   TotalTime: TFloatTime;
 begin
+  { Container = nil may happen if TCastleInspector exists,
+    but is no longer on the Window.Controls, e.g. if you invoke Window.FileDialog. }
+  if Container = nil then
+    Exit;
+
   Data := @ProfilerData[ProfilerDataLast];
 
   TotalTime := FrameProfiler.SummaryTotalFrameTime;
