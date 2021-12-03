@@ -3420,7 +3420,10 @@ begin
     if GLVersion.BuggySwapNonStandardViewport then
       RenderContext.Viewport := Rect;
 
+    FrameProfiler.Start(fmRenderSwapFlush);
     if DoubleBuffer then SwapBuffers else glFlush;
+    FrameProfiler.Stop(fmRenderSwapFlush);
+
     if AutoRedisplay then Invalidate;
   finally
     Fps._RenderEnd;
@@ -5128,7 +5131,7 @@ procedure TCastleApplication.HandleException(Sender: TObject);
          handling of GuessedMainWindow.MessageOK causes another exception
          that resulted in recursive call to HandleException.
          Prevent the loop with just crash in this case. }
-       (not Theme.InternalForceOpaqueBackground) then
+       (not Theme.InternalMessageFallbackLook) then
     begin
       OriginalObj := ExceptObject;
       OriginalAddr := ExceptAddr;
@@ -5138,11 +5141,11 @@ procedure TCastleApplication.HandleException(Sender: TObject);
       {$endif}
       ContinueApp := false; // initialize, in case MessageYesNo will make exception
       try
-        Theme.InternalForceOpaqueBackground := true;
+        Theme.InternalMessageFallbackLook := true;
         ContinueApp := GuessedMainWindow.MessageYesNo(
           'An error occurred. Try to continue the application?' + NL + NL +
           'Error details:' + NL + ErrMessage, mtError);
-        Theme.InternalForceOpaqueBackground := false;
+        Theme.InternalMessageFallbackLook := false;
       except
         on E: TObject do
         begin

@@ -65,6 +65,8 @@
     FEnabled: boolean;
     FEnableParentDragging: boolean;
     FTextAlignment: THorizontalPosition;
+    FAlignment: THorizontalPosition;
+    FVerticalAlignment: TVerticalPosition;
     FLineSpacing: Single;
     FHtml: boolean;
     FCaptionTranslate: Boolean;
@@ -94,6 +96,8 @@
     procedure CustomBackgroundImageChanged(Sender: TObject);
     procedure ImageChanged(Sender: TObject);
     procedure SetImageScale(const Value: Single);
+    procedure SetAlignment(const Value: THorizontalPosition);
+    procedure SetVerticalAlignment(const Value: TVerticalPosition);
   protected
     procedure SetPressed(const Value: boolean); virtual;
     procedure UIScaleChanged; override;
@@ -172,6 +176,24 @@
     { For multi-line @link(Caption), the horizontal alignment of the lines. }
     property TextAlignment: THorizontalPosition
       read FTextAlignment write SetTextAlignment default DefaultTextAlignment;
+
+    { Horizontal alignment of the text+image within button area,
+      useful in case you don't use @link(AutoSize).
+
+      We align text+image within the available area inside the button
+      (which is determined by button size, without paddings determined by @link(PaddingHorizontal),
+      @link(PaddingVertical)).  }
+    property Alignment: THorizontalPosition
+      read FAlignment write SetAlignment default hpMiddle;
+
+    { Vertical alignment of the text+image within button area,
+      useful in case you don't use @link(AutoSize).
+
+      We align text+image within the available area inside the button
+      (which is determined by button size, without paddings determined by @link(PaddingHorizontal),
+      @link(PaddingVertical)).  }
+    property VerticalAlignment: TVerticalPosition
+      read FVerticalAlignment write SetVerticalAlignment default vpMiddle;
 
     { For multi-line @link(Caption), the extra spacing between lines.
       May also be negative to squeeze lines tighter. }
@@ -342,6 +364,8 @@ begin
   FCustomTextColor := Black;
   FCaptionTranslate := true;
   FImageScale := 1.0;
+  FAlignment := hpMiddle;
+  FVerticalAlignment := vpMiddle;
 
   FImage := TCastleImagePersistent.Create;
   FImage.OnChange := {$ifdef FPC}@{$endif}ImageChanged;
@@ -401,7 +425,7 @@ var
         hpMiddle: TextX := TextLeft + TextWidth / 2;
         hpRight : TextX := TextLeft + TextWidth;
         {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('TCastleButton.Render: Alignment?');
+        else raise EInternalError.Create('TCastleButton.Render: TextAlignment?');
         {$endif}
       end;
 
@@ -422,6 +446,7 @@ var
   ImageMarginScaled: Single;
   UseImage, UseText: boolean;
   Tint, SolidColor, OriginalColor: TCastleColor;
+  RectForTextAndImage: TFloatRectangle;
 begin
   inherited;
 
@@ -511,22 +536,63 @@ begin
     ImgScreenHeight := 0;
   end;
 
+  { rectangle where we should display the text+image }
+  RectForTextAndImage := SR.Grow(
+    -PaddingHorizontal * UIScale,
+    -PaddingVertical   * UIScale);
+
   UseText := (Length(Caption) > 0);
 
   if UseText then
   begin
-    TextLeft := SR.Left + (SR.Width - TextWidth) / 2;
-    if UseImage and (ImageLayout = ilLeft) then
-      TextLeft := TextLeft + ((ImgScreenWidth + ImageMarginScaled) / 2) else
-    if UseImage and (ImageLayout = ilRight) then
-      TextLeft := TextLeft - ((ImgScreenWidth + ImageMarginScaled) / 2);
+    case Alignment of
+      hpLeft :
+        begin
+          TextLeft := RectForTextAndImage.Left;
+          Check(not (UseImage and (ImageLayout in [ilLeft, ilRight])), 'TODO: Alignment combined with this ImageLayout not implemented');
+        end;
+      hpRight:
+        begin
+          TextLeft := RectForTextAndImage.Right - TextWidth;
+          Check(not (UseImage and (ImageLayout in [ilLeft, ilRight])), 'TODO: Alignment combined with this ImageLayout not implemented');
+        end;
+      hpMiddle:
+        begin
+          TextLeft := RectForTextAndImage.Left + (RectForTextAndImage.Width - TextWidth) / 2;
+          if UseImage and (ImageLayout = ilLeft) then
+            TextLeft := TextLeft + ((ImgScreenWidth + ImageMarginScaled) / 2) else
+          if UseImage and (ImageLayout = ilRight) then
+            TextLeft := TextLeft - ((ImgScreenWidth + ImageMarginScaled) / 2);
+        end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TCastleButton.Render: Alignment?');
+      {$endif}
+    end;
 
-    TextBottom := SR.Bottom + (SR.Height - TextHeight) / 2;
-    if UseImage and (ImageLayout = ilBottom) then
-      TextBottom := TextBottom + ((ImgScreenHeight + ImageMarginScaled) / 2) else
-    if UseImage and (ImageLayout = ilTop) then
-      TextBottom := TextBottom - ((ImgScreenHeight + ImageMarginScaled) / 2);
-    TextBottom := TextBottom + Font.Descend;
+    case VerticalAlignment of
+      vpBottom:
+        begin
+          TextBottom := RectForTextAndImage.Bottom;
+          Check(not (UseImage and (ImageLayout in [ilBottom, ilTop])), 'TODO: Alignment combined with this ImageLayout not implemented');
+        end;
+      vpTop:
+        begin
+          TextBottom := RectForTextAndImage.Top - TextHeight;
+          Check(not (UseImage and (ImageLayout in [ilBottom, ilTop])), 'TODO: Alignment combined with this ImageLayout not implemented');
+        end;
+      vpMiddle:
+        begin
+          TextBottom := RectForTextAndImage.Bottom + (RectForTextAndImage.Height - TextHeight) / 2;
+          if UseImage and (ImageLayout = ilBottom) then
+            TextBottom := TextBottom + ((ImgScreenHeight + ImageMarginScaled) / 2) else
+          if UseImage and (ImageLayout = ilTop) then
+            TextBottom := TextBottom - ((ImgScreenHeight + ImageMarginScaled) / 2);
+          TextBottom := TextBottom + Font.Descend;
+        end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TCastleButton.Render: Alignment?');
+      {$endif}
+    end;
 
     RenderText;
   end else
@@ -1020,6 +1086,8 @@ function TCastleButton.PropertySections(
 begin
   if (PropertyName = 'Caption') or
      (PropertyName = 'TextAlignment') or
+     (PropertyName = 'Alignment') or
+     (PropertyName = 'VerticalAlignment') or
      (PropertyName = 'LineSpacing') or
      (PropertyName = 'Html') or
      (PropertyName = 'TintPressed') or
@@ -1056,6 +1124,24 @@ begin
     S := Caption;
     TranslatePropertyEvent(Self, 'Caption', S);
     Caption := S;
+  end;
+end;
+
+procedure TCastleButton.SetAlignment(const Value: THorizontalPosition);
+begin
+  if FAlignment <> Value then
+  begin
+    FAlignment := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleButton.SetVerticalAlignment(const Value: TVerticalPosition);
+begin
+  if FVerticalAlignment <> Value then
+  begin
+    FVerticalAlignment := Value;
+    VisibleChange([chRender]);
   end;
 end;
 

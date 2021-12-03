@@ -38,7 +38,7 @@ implementation
 
 uses Math, {$ifndef FPC} Character,{$endif}
   CastleGLUtils, CastleUtils, CastleComponentSerialize, CastleInternalRichText,
-  CastleLog, CastleURIUtils;
+  CastleLog, CastleURIUtils, CastleRenderContext;
 
 {$define read_implementation}
 {$I castlefonts_miscellaneous.inc} // must be first at implementation, to define some internal consts

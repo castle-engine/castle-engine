@@ -523,7 +523,7 @@ constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowBase);
     BackgroundImage: TCastleImageControl;
     BackgroundRect: TCastleRectangleControl;
   begin
-    if Theme.InternalForceOpaqueBackground then
+    if Theme.InternalMessageFallbackLook then
       BackgroundColor := Vector4(Theme.BackgroundOpaqueColor, 1)
     else
       BackgroundColor := Theme.BackgroundColor;

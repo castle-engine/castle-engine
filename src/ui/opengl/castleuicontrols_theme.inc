@@ -1,6 +1,6 @@
-{%MainUnit castlecontrols.pas}
+{%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,9 +16,62 @@
 
 {$ifdef read_interface}
 
-  { Theme for 2D GUI controls.
-    Should only be used through the single global instance @link(Theme). }
-  TCastleTheme = class
+  { Type of theme image, use of @link(TCastleTheme.ImagesPersistent). }
+  TThemeImage = (
+    tiPanel, tiPanelSeparator, tiProgressBar, tiProgressFill,
+    tiButtonPressed, tiButtonDisabled, tiButtonFocused, tiButtonNormal,
+    tiWindow, tiScrollbarFrame, tiScrollbarSlider,
+    tiSlider, tiSliderPosition, tiLabel, tiGroup, tiActiveFrame, tiTooltip,
+    tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
+    tiCrosshair1, tiCrosshair2, tiCheckmark,
+    tiSquareEmpty, tiSquareChecked, tiSquarePressedBackground,
+    tiDisclosure,
+    tiSwitchControl, tiSwitchControlFill,
+
+    { Image displayed when the application is initializing,
+      during @link(TCastleApplication.OnInitialize Application.OnInitialize)
+      and @link(TCastleWindowBase.OnOpen Window.OnOpen).
+      And @link(TCastleUserInterface.GLContextOpen) for all initially present UI controls.
+      This "loading image" is loaded and displayed first,
+      so that user does not see a black screen while the resources are prepared.
+
+      It is especially useful on Android, where we can lose the OpenGL context
+      at any moment, as user may switch applications in the middle of the game.
+      When getting back to the application, we need to initiailize some
+      resources, and during this process we also show this image.
+      So this serves as a universal "please wait, we're loading" screen.
+
+      You can customize this image, by setting
+      @link(TCastleTheme.ImagesPersistent Theme.ImagesPersistent[tiLoading].Image),
+      @link(TCastleTheme.LoadingBackgroundColor LoadingBackgroundColor),
+      @link(TCastleTheme.LoadingTextColor LoadingTextColor).
+      See https://castle-engine.io/manual_2d_user_interface.php#section_theme
+      for a sample code that sets a theme image.
+
+      Note that the customization of this image should be done before
+      @link(TCastleApplication.OnInitialize Application.OnInitialize) has
+      started, so it has to be usually done from the "initialization" section
+      of some unit. And in the "initialization" section of a unit,
+      you cannot load files (doing @link(LoadImage) at this point may fail on
+      some Android devices, as we cannot load assets before activity is started).
+      So you can only assign images already available in code ---
+      use image-to-pascal tool to convert any image to a Pascal code for this purpose. }
+    tiLoading,
+
+    { TCastleEdit frame. }
+    tiEdit
+  );
+
+  { Theme for user interface controls.
+
+    You can customize @link(Theme) singleton to change the default look.
+
+    You can also create new instances of TCastleTheme and use them for multiple controls,
+    assigning to @link(TCastleUserInterface.CustomTheme).
+
+    You can also use @link(FallbackTheme) to effectively disable any customizations
+    and always use default hardcoded look. }
+  TCastleTheme = class(TCastleComponent)
   strict private
     FImagesPersistent: array [TThemeImage] of TCastleImagePersistent;
     FMessageFont: TCastleAbstractFont;
@@ -46,7 +99,7 @@
       which helps dialog to stand out. }
     BackgroundColor: TCastleColor;
 
-    { Color used instead of BackgroundColor when InternalForceOpaqueBackground is used.
+    { Color used instead of BackgroundColor when InternalMessageFallbackLook is used.
       You can only customize the RGB values, alpha is always 1, so the resulting
       color is always opaque.
       It's a dark gray color (0.33, 0.33, 0.33) by default. }
@@ -98,25 +151,36 @@
     { Minumum scrollbar height, to be comfortably visible and draggable. }
     MinimumScrollbarSliderHeight: Single;
 
-    { Request modal boxes to use opaque color from @link(BackgroundOpaqueColor).
+    { Request modal boxes to use safe "fallback" rendering options,
+      to work even when application is in buggy/dirty state
+      because something unexpected happened.
 
       This is internally set and unset by the CastleWindow exception handler
       (you should not modify this yourself).
-      It allows to request showing opaque color under
+      It allows to request "fallback" drawing for
       @link(TCastleWindowBase.MessageOK) and friends,
       or modal states by @link(TGLModeFrozenScreen).
 
-      This allows to avoid making a screenshot (TStateDialog.BackgroundScreenshot may be false),
-      which is safer when we want to show an exception
-      (since the application may be in some dirty state, so it's better to avoid
-      rendering user stuff).
+      This means:
+
+      @unorderedList(
+        @item(Using opaque color from @link(BackgroundOpaqueColor) such that
+          we don't need to render anything underneath.)
+
+        @item(Use FallbackFont and FallbackTheme, so ignore user customizations
+          to font and theme.)
+
+        @item(Avoid making a screenshot (TStateDialog.BackgroundScreenshot may be false),
+          which is safer since the application may be in some dirty state, so it's better to avoid
+          rendering user stuff.)
+      )
 
       @exclude }
-    InternalForceOpaqueBackground: boolean;
+    InternalMessageFallbackLook: boolean;
 
     DefaultLabelWhite: Boolean deprecated 'if you want the labels to be white, adjust TCastleLabel.Color to White after creating every TCastleLabel';
 
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     {$ifdef FPC}
@@ -201,7 +265,11 @@
     {$endif}
   end;
 
+{ Theme that you can customize, used by default by all UI controls. }
 function Theme: TCastleTheme;
+
+{ Fallback (do not change this, ever) theme. Default state of @link(Theme). }
+function FallbackTheme: TCastleTheme;
 
 {$endif read_interface}
 
@@ -209,7 +277,7 @@ function Theme: TCastleTheme;
 
 { TCastleTheme --------------------------------------------------------------- }
 
-constructor TCastleTheme.Create;
+constructor TCastleTheme.Create(AOwner: TComponent);
 var
   T: TThemeImage;
 begin
@@ -293,7 +361,7 @@ begin
   FImagesPersistent[tiSquarePressedBackground].Image := SquarePressedBackground;
 
   FImagesPersistent[tiDisclosure].Image := Disclosure;
-  FImagesPersistent[tiLoading].Image := Loading;
+  FImagesPersistent[tiLoading].Image := CastleControlsImages.Loading;
   FImagesPersistent[tiEdit].Image := Edit;
   FImagesPersistent[tiEdit].ProtectedSides.AllSides := 2;
 end;
@@ -411,11 +479,28 @@ begin
 end;
 
 var
-  FTheme: TCastleTheme;
+  FTheme, FFallbackTheme: TCastleTheme;
 
 function Theme: TCastleTheme;
 begin
   Result := FTheme;
+end;
+
+function FallbackTheme: TCastleTheme;
+begin
+  Result := FFallbackTheme;
+end;
+
+procedure InitializationTheme;
+begin
+  FTheme := TCastleTheme.Create(nil);
+  FFallbackTheme := TCastleTheme.Create(nil);
+end;
+
+procedure FinalizationTheme;
+begin
+  FreeAndNil(FTheme);
+  FreeAndNil(FFallbackTheme);
 end;
 
 {$endif read_implementation}

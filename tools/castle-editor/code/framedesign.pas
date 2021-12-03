@@ -453,13 +453,16 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
     - uses RenderRectWithBorder (to be able to drag complete control)
     - doesn't need "if the control covers the whole Container" hack. }
   function SimpleCapturesEventsAtPosition(const UI: TCastleUserInterface;
-    const Position: TVector2): Boolean;
+    const Position: TVector2; const TestWithBorder: Boolean): Boolean;
   begin
-    Result := UI.RenderRectWithBorder.Contains(Position);
+    if TestWithBorder then
+      Result := UI.RenderRectWithBorder.Contains(Position)
+    else
+      Result := UI.RenderRect.Contains(Position);
   end;
 
   function ControlUnder(const C: TCastleUserInterface;
-    const MousePos: TVector2): TCastleUserInterface;
+    const MousePos: TVector2; const TestWithBorder: Boolean): TCastleUserInterface;
   var
     I: Integer;
   begin
@@ -476,14 +479,28 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
 
     if C.GetExists then
     begin
+      { First try to find children, with TestWithBorder=false (so it doesn't detect
+        control if we merely point at its border). This allows to find controls
+        places on another control's border. }
       for I := C.ControlsCount - 1 downto 0 do
         if TDesignFrame.Selectable(C.Controls[I]) then
         begin
-          Result := ControlUnder(C.Controls[I], MousePos);
+          Result := ControlUnder(C.Controls[I], MousePos, false);
           if Result <> nil then Exit;
         end;
+
+      { Next try to find children, with TestWithBorder=true, so it tries harder
+        to find something. }
+      for I := C.ControlsCount - 1 downto 0 do
+        if TDesignFrame.Selectable(C.Controls[I]) then
+        begin
+          Result := ControlUnder(C.Controls[I], MousePos, true);
+          if Result <> nil then Exit;
+        end;
+
+      { Eventually return yourself, C. }
       //if C.CapturesEventsAtPosition(MousePos) then
-      if SimpleCapturesEventsAtPosition(C, MousePos) and
+      if SimpleCapturesEventsAtPosition(C, MousePos, TestWithBorder) and
          { Do not select TCastleNavigation, they would always obscure TCastleViewport. }
          (not (C is TCastleNavigation)) then
         Result := C;
@@ -501,7 +518,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
 begin
   if MouseOverControl(Frame.CastleControl) and
      (Frame.DesignRoot is TCastleUserInterface) then
-    Result := ControlUnder(Frame.DesignRoot as TCastleUserInterface, AMousePosition)
+    Result := ControlUnder(Frame.DesignRoot as TCastleUserInterface, AMousePosition, true)
   else
     Result := nil;
 end;
@@ -2526,6 +2543,7 @@ procedure TDesignFrame.UpdateDesign;
         AddTransform(Result, T[I]);
   end;
 
+  { Add given UI control, and its children. }
   function AddControl(const Parent: TTreeNode; const C: TCastleUserInterface): TTreeNode;
   var
     S: String;

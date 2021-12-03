@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="942">
+    <Files Count="944">
       <Item1>
         <Filename Value="../src/3d/auto_generated_persistent_vectors/tcastlecamera_persistent_vectors.inc"/>
         <Type Value="Include"/>
@@ -1522,7 +1522,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item356>
       <Item357>
-        <Filename Value="../src/ui/opengl/castlecontrols_theme.inc"/>
+        <Filename Value="../src/ui/opengl/castleuicontrols_theme.inc"/>
         <Type Value="Include"/>
       </Item357>
       <Item358>
@@ -1562,8 +1562,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleFlashEffect"/>
       </Item366>
       <Item367>
-        <Filename Value="../src/ui/opengl/castleinspectorcontrol.pas"/>
-        <UnitName Value="CastleInspectorControl"/>
+        <Filename Value="../src/ui/opengl/castleinternalinspector.pas"/>
+        <UnitName Value="CastleInternalInspector"/>
       </Item367>
       <Item368>
         <Filename Value="../src/ui/opengl/castleinternalsettings.pas"/>
@@ -3869,6 +3869,14 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/images/castleimages_vcl_imaging.inc"/>
         <Type Value="Include"/>
       </Item942>
+      <Item943>
+        <Filename Value="../src/ui/opengl/ui/inspector_ui.castle-user-interface.inc"/>
+        <Type Value="Include"/>
+      </Item943>
+      <Item944>
+        <Filename Value="../src/ui/opengl/castleinternalinspectorutils.pas"/>
+        <UnitName Value="CastleInternalInspectorUtils"/>
+      </Item944>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

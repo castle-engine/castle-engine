@@ -43,12 +43,6 @@
 
     property ScrollbarVisible: Boolean read FScrollbarVisible;
 
-    { Minimum sensible value for @link(Scroll), corresponds to scrollbar slider at the top. }
-    function ScrollMin: Single;
-
-    { Maximum sensible value for @link(Scroll), corresponds to scrollbar slider at the bottom. }
-    function ScrollMax: Single;
-
     { How much @link(Scroll) is represented by the height of the scrollbar slider.
       Among other things, this determines how much @link(Scroll) changes
       in response to Page Up and Page Down keys. }
@@ -81,6 +75,12 @@
     { Scroll bar width, either from @link(ScrollBarWidth) or
       @link(TCastleTheme.ScrollBarWidth Theme.ScrollBarWidth). }
     function EffectiveScrollBarWidth: Single;
+
+    { Minimum sensible value for @link(Scroll), corresponds to scrollbar slider at the top. }
+    function ScrollMin: Single;
+
+    { Maximum sensible value for @link(Scroll), corresponds to scrollbar slider at the bottom. }
+    function ScrollMax: Single;
   published
     { Speed of scrolling by arrow keys, in pixels (before UI scaling) per second. }
     property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed {$ifdef FPC}default DefaultKeyScrollSpeed{$endif};

@@ -31,7 +31,7 @@ uses
     {$else} Posix.SysTypes, Posix.SysTime, Posix.SysTimes, {$endif}
   {$endif}
   {$ifdef ANDROID} Linux, {$endif}
-  SysUtils, Math, Generics.Collections,
+  SysUtils, Classes, Math, Generics.Collections,
   CastleUtils;
 
 {$define read_interface}
