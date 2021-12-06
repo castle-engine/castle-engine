@@ -345,6 +345,8 @@ type
     function PassEvents(const C: TCastleUserInterface;
       const Event: TInputMotion;
       const CheckEventPosition: Boolean = true): Boolean; overload;
+    function GetInspectorKey: TKey;
+    procedure SetInspectorKey(const Value: TKey);
   private
     { FControls cannot be declared as TChildrenControls to avoid
       http://bugs.freepascal.org/view.php?id=22495 }
@@ -933,6 +935,10 @@ type
       In DEBUG builds, this is key F1 (useful on desktops),
       or pressing 3 fingers for 1 second (useful on mobile) by default. }
     property InputInspector: TInputInspector read FInputInspector;
+
+    { @deprecated Use InputInspector.Key now. }
+    property InspectorKey: TKey read GetInspectorKey write SetInspectorKey;
+      {$ifdef FPC}deprecated 'use InputInspector';{$endif}
   end;
 
   TUIContainer = TCastleContainer deprecated 'use TCastleContainer';
@@ -4072,6 +4078,16 @@ begin
   if not ApplicationProperties.IsGLContextOpen then
     raise Exception.Create('Rendering context not open when calling TUIContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindowBase.OnOpen, TCastleControlBase.OnOpen');
   SettingsLoad(Self, SettingsUrl);
+end;
+
+function TCastleContainer.GetInspectorKey: TKey;
+begin
+  Result := FInputInspector.Key;
+end;
+
+procedure TCastleContainer.SetInspectorKey(const Value: TKey);
+begin
+  FInputInspector.Key := Value;
 end;
 
 { TCastleUserInterface.TEnumerator ------------------------------------------------- }
