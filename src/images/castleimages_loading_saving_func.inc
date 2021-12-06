@@ -80,6 +80,7 @@ begin
   // Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
   {$else}
   raise EImageLoadError.Create('Cannot read XPM (Vampyre Imaging Library not available at compile-time)');
+  Result := nil; // silence FPC 3.2.2 warning
   {$endif}
 end;
 
