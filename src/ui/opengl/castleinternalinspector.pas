@@ -567,6 +567,7 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
   var
     I: Integer;
   begin
+    Result := nil;
     for I := Container.Controls.Count - 1 downto 0 do
       if Container.Controls[I] <> Self then
       begin
@@ -614,9 +615,9 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
     C: TComponent;
   begin
     case AutoSelect of
-     asNothing: C := nil;
      asUi: C := HoverUserInterface(Container.MousePosition);
      asTransform: C := HoverTransform(Container.MousePosition);
+     else Exit; // on asNothing, just Exit
    end;
    { do not change SelectedComponent to nil, this avoids e.g. unselecting UI when going into
      asTransform mode for a short time. }
