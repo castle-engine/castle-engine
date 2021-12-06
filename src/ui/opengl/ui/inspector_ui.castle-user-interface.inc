@@ -854,7 +854,7 @@
 '              },' + LineEnding +
 '              "Name" : "LabelInspectorHelp",' + LineEnding +
 '              "Text" : [' + LineEnding +
-'                "Press F12 to close inspector."' + LineEnding +
+'                "Press F1 to close inspector."' + LineEnding +
 '              ],' + LineEnding +
 '              "VerticalAnchorParent" : "vpTop",' + LineEnding +
 '              "VerticalAnchorSelf" : "vpTop"' + LineEnding +

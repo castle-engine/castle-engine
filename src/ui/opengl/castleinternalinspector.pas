@@ -14,7 +14,7 @@
 }
 
 { Inspect Castle Game Engine state at runtime (TCastleInspector).
-  Invoke this automatically in debug builds by F12 (see @link(TCastleContainer.InspectorKey)). }
+  Invoke this automatically in debug builds by F1 (see @link(TCastleContainer.InspectorKey)). }
 unit CastleInternalInspector;
 
 {$I castleconf.inc}
@@ -28,7 +28,7 @@ uses Classes, Generics.Collections, TypInfo,
 type
   { Inspect Castle Game Engine state.
     Show log, current UI and viewports state.
-    Invoke this automatically in debug builds by F12 (see @link(TCastleContainer.InspectorKey)). }
+    Invoke this automatically in debug builds by F1 (see @link(TCastleContainer.InspectorKey)). }
   TCastleInspector = class(TCastleUserInterfaceFont)
   strict private
     const

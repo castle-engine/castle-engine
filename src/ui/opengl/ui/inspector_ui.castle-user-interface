@@ -852,7 +852,7 @@
               },
               "Name" : "LabelInspectorHelp",
               "Text" : [
-                "Press F12 to close inspector."
+                "Press F1 to close inspector."
               ],
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"

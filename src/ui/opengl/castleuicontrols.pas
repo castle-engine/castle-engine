@@ -895,7 +895,7 @@ type
       read FBackgroundColor write FBackgroundColor;
 
     { Key shortcut to show/hide TCastleInspector at any point in the game.
-      In DEBUG builds, this is keyF12 by default.
+      In DEBUG builds, this is keyF1 by default.
       In RELEASE builds, this is keyNone by default. }
     property InspectorKey: TKey read FInspectorKey write FInspectorKey;
   end;
@@ -2489,10 +2489,10 @@ begin
   inherited;
 
   // FInputInspector := TInputShortcut.Create(Self, 'CGE Inspector', 'cge_inspector', igLocal);
-  // {$ifdef DEBUG} // only in DEBUG mode, by default allow this by F12
-  // FInputInspector.Assign(keyF12, keyNone, '', false, buttonLeft);
+  // {$ifdef DEBUG} // only in DEBUG mode, by default allow this key
+  // FInputInspector.Assign(keyF1, keyNone, '', false, buttonLeft);
   // {$endif}
-  FInspectorKey := {$ifdef DEBUG} keyF12 {$else} keyNone {$endif};
+  FInspectorKey := {$ifdef DEBUG} keyF1 {$else} keyNone {$endif};
 
   FControls := TChildrenControls.Create(nil);
   TChildrenControls(FControls).Container := Self;

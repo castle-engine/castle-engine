@@ -84,7 +84,7 @@ type
     Use this class only through the singleton instance @link(FrameProfiler).
 
     The easiest way to enable this and view the data is through TCastleInspector.
-    Just use F12 in a debug build.
+    Just use F1 in a debug build.
   }
   TCastleFrameProfiler = class
   private
