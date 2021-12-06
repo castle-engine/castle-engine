@@ -578,9 +578,10 @@ type
       @seealso AddNonVisualComponent }
     function NonVisualComponentsEnumerate: TNonVisualComponentsEnumerator;
 
-    { Returns true when component is under deserialization. We can't simply use
-      csLoading in ComponentState because in Delphi it is not possible
-      to manually set it}
+    { Is the component during deserialization now.
+
+      Note: We can't use @code(csLoading in ComponentState) because in Delphi
+      it is not possible to control it from CastleComponentSerialize. }
     property IsLoading: Boolean read FIsLoading;
   end;
 
@@ -1635,8 +1636,6 @@ end;
 
 procedure TCastleComponent.InternalLoading;
 begin
-  { We have added the FIsLoading field because in Delphi it is not possible
-    to manually set csLoading in ComponentState }
   {$ifdef FPC}
   Loading;
   {$endif}
@@ -1645,11 +1644,9 @@ end;
 
 procedure TCastleComponent.InternalLoaded;
 begin
-  { We have added the FIsLoading field because in Delphi it is not possible
-    to manually set csLoading in ComponentState }
   FIsLoading := false;
 
-  { We need call Loaded here because some things can be delayed to run after
+  { We need to call Loaded because some things can be delayed to run after
     loading for example TCastleSceneCore.UpdateAutoAnimation() }
   Loaded;
 end;
@@ -1671,7 +1668,7 @@ begin
     // and InternalText should not be automatically modified.
     (not IsLoading) and
     (Name = InternalText) and
-    // Do not update InternalText when Owner has csLoading.
+    // Do not update InternalText when Owner is during deserialization.
     ( (Owner = nil) or
       (not (Owner is TCastleComponent)) or
       (not TCastleComponent(Owner).IsLoading));
