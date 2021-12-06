@@ -465,6 +465,7 @@ type
       end;
     var
       FNonVisualComponents: TComponentList;
+      FIsLoading: Boolean;
     function GetNonVisualComponents(const Index: Integer): TComponent;
     procedure SerializeNonVisualComponentsEnumerate(const Proc: TGetChildProc);
     procedure SerializeNonVisualComponentsAdd(const C: TComponent);
@@ -576,6 +577,11 @@ type
 
       @seealso AddNonVisualComponent }
     function NonVisualComponentsEnumerate: TNonVisualComponentsEnumerator;
+
+    { Returns true when component is under deserialization. We can't simply use
+      csLoading in ComponentState because in Delphi it is not possible
+      to manually set it}
+    property IsLoading: Boolean read FIsLoading;
   end;
 
 { Enumerate all properties that are possible to translate in this component
@@ -1629,17 +1635,22 @@ end;
 
 procedure TCastleComponent.InternalLoading;
 begin
+  { We have added the FIsLoading field because in Delphi it is not possible
+    to manually set csLoading in ComponentState }
   {$ifdef FPC}
   Loading;
-  {$else}
-  // TODO:
-  // How do we implement this in Delphi?
-  // ComponentState := ComponentState + [csLoading];
   {$endif}
+  FIsLoading := true;
 end;
 
 procedure TCastleComponent.InternalLoaded;
 begin
+  { We have added the FIsLoading field because in Delphi it is not possible
+    to manually set csLoading in ComponentState }
+  FIsLoading := false;
+
+  { We need call Loaded here because some things can be delayed to run after
+    loading for example TCastleSceneCore.UpdateAutoAnimation() }
   Loaded;
 end;
 
@@ -1658,12 +1669,12 @@ begin
     // reading Name would set Caption.
     // During loading, we assume that all component properties are to be deserialized from file,
     // and InternalText should not be automatically modified.
-    (not (csLoading in ComponentState)) and
+    (not IsLoading) and
     (Name = InternalText) and
     // Do not update InternalText when Owner has csLoading.
     ( (Owner = nil) or
-      (not (Owner is TComponent)) or
-      (not (csLoading in TComponent(Owner).ComponentState)));
+      (not (Owner is TCastleComponent)) or
+      (not TCastleComponent(Owner).IsLoading));
   // Note that this can raise exception is Value is not a valid name.
   inherited SetName(Value);
   if ChangeInternalText then

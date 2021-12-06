@@ -331,7 +331,7 @@ begin
   if FStream <> Value then
   begin
     FStream := Value;
-    if not (csLoading in ComponentState) then
+    if not IsLoading then
       ReloadBuffer;
   end;
 end;
@@ -341,7 +341,7 @@ begin
   if FURL <> Value then
   begin
     FURL := Value;
-    if not (csLoading in ComponentState) then
+    if not IsLoading then
       ReloadBuffer;
   end;
 end;

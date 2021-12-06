@@ -3416,8 +3416,8 @@ end;
 
 procedure TCastleSceneCore.UpdateAutoAnimation(const StopIfPlaying: Boolean);
 begin
-  // when csLoading, delay this to Loaded
-  if not (csLoading in ComponentState) then
+  // when IsLoading, delay this to Loaded
+  if not IsLoading then
   begin
     if AutoAnimation <> '' then
     begin
@@ -4224,7 +4224,7 @@ begin
     { Wait until loading finished before calling ExposeTransformsChange.
       Otherwise we would create new TCastleTransform children in ExposeTransformsChange,
       instead of reusing existing ones. }
-    if not (csLoading in ComponentState) then
+    if not IsLoading then
       ExposeTransformsChange(nil);
 
     { Call DoGeometryChanged here, as our new shapes are added.
