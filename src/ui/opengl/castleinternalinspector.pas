@@ -14,7 +14,7 @@
 }
 
 { Inspect Castle Game Engine state at runtime (TCastleInspector).
-  Invoke this automatically in debug builds by F1 (see @link(TCastleContainer.InspectorKey)). }
+  Invoke this automatically in debug builds by F1 (see @link(TCastleContainer.InputInspector)). }
 unit CastleInternalInspector;
 
 {$I castleconf.inc}
@@ -28,7 +28,7 @@ uses Classes, Generics.Collections, TypInfo,
 type
   { Inspect Castle Game Engine state.
     Show log, current UI and viewports state.
-    Invoke this automatically in debug builds by F1 (see @link(TCastleContainer.InspectorKey)). }
+    Invoke this automatically in debug builds by F1 (see @link(TCastleContainer.InputInspector)). }
   TCastleInspector = class(TCastleUserInterfaceFont)
   strict private
     const
@@ -628,15 +628,19 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
 const
   { Delay between updating properties. }
   UpdatePropertiesValuesInterval = 0.5;
+var
+  InspectorInputStr: String;
 begin
   inherited;
   UpdateHierarchy(nil);
 
   LabelProfilerHeader.Caption := 'Profiler | Current FPS: ' + Container.Fps.ToString;
 
-  LabelInspectorHelp.Exists := Container.InspectorKey <> keyNone;
+  InspectorInputStr := Container.InputInspector.ToString;
+  LabelInspectorHelp.Exists := InspectorInputStr <> '';
   if LabelInspectorHelp.Exists then
-    LabelInspectorHelp.Caption := 'Press ' + KeyToStr(Container.InspectorKey) + ' to hide inspector';
+    LabelInspectorHelp.Caption := 'Hide inspector by ' + NL +
+      '  ' + InspectorInputStr + '.';
 
   UpdateAutoSelect;
 

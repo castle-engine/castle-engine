@@ -223,6 +223,41 @@ type
     const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean)
     of object;
 
+  { How to invoke the inspector, see @link(TCastleContainer.InputInspector). }
+  TInputInspector = class(TComponent)
+  public
+    { Key to activate the inspector, set to keyNone to disable.
+      This is keyF1 by default in DEBUG builds, keyNone in RELEASE. }
+    Key: TKey;
+
+    { Required modifiers to be pressed together with @link(Key).
+      This is [] by default (no modifiers).
+      Ignored when @link(Key) is keyNone. }
+    KeyModifiers: TModifierKeys;
+
+    { Number of fingers necessary to be pressed to activate the inspector,
+      set to 0 to disable.
+      This is 3 by default in DEBUG builds, 0 in RELEASE.
+
+      This is mainly useful on devices with touch screen (mobile devices),
+      where you can press more than 1 finger.
+      On desktops (devices with mouse input), clicking the mouse is
+      like pressing 1 finger.
+      So you cannot activate the inspector by clicking,
+      unless you set this to 1, then any click will toggle the inspector. }
+    PressFingers: Cardinal;
+
+    { How long do the fingers mentioned in @link(PressFingers) have to be pressed.
+      Ignored when @link(PressFingers) is 0. }
+    PressTime: TFloatTime;
+
+    { Does this TInputPressRelease should toggle the inspector. }
+    function IsEvent(const Event: TInputPressRelease): Boolean;
+
+    { Describe current TInputInspector state. }
+    function ToString: String; override;
+  end;
+
   { Abstract user interface container. Connects OpenGL context management
     code with Castle Game Engine controls (TCastleUserInterface, that is the basis
     for all our 2D and 3D rendering). When you use TCastleWindowBase
@@ -288,7 +323,7 @@ type
     FContext: TRenderContext;
     FBackgroundEnable: Boolean;
     FBackgroundColor: TCastleColor;
-    FInspectorKey: TKey;
+    FInputInspector: TInputInspector;
     FInspector: TCastleUserInterface; //< always TCastleInspector
 
     function UseForceCaptureInput: boolean;
@@ -894,10 +929,10 @@ type
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
 
-    { Key shortcut to show/hide TCastleInspector at any point in the game.
-      In DEBUG builds, this is keyF1 by default.
-      In RELEASE builds, this is keyNone by default. }
-    property InspectorKey: TKey read FInspectorKey write FInspectorKey;
+    { Input (key, touch) to toggle the inspector at any point in the application.
+      In DEBUG builds, this is key F1 (useful on desktops),
+      or pressing 3 fingers for 1 second (useful on mobile) by default. }
+    property InputInspector: TInputInspector read FInputInspector;
   end;
 
   TUIContainer = TCastleContainer deprecated 'use TCastleContainer';
@@ -2482,17 +2517,43 @@ begin
     Delete(Index);
 end;
 
+{ TInputInspector ------------------------------------------------------------ }
+
+function TInputInspector.IsEvent(const Event: TInputPressRelease): Boolean;
+begin
+  Result := Event.IsKey(Key) and (Event.ModifiersDown = KeyModifiers);
+end;
+
+function TInputInspector.ToString: String;
+var
+  MK: TModifierKey;
+begin
+  Result := '';
+
+  if Key <> keyNone then
+  begin
+    for MK in KeyModifiers do
+      Result := Result + KeyToStr(ModifierKeyToKey[MK]) + '+';
+    Result := Result + KeyToStr(Key);
+  end;
+
+  if PressFingers <> 0 then
+  begin
+    Result := SAppendPart(Result, ' / ', Format('press %d fingers', [PressFingers]));
+  end;
+end;
+
 { TCastleContainer --------------------------------------------------------------- }
 
 constructor TCastleContainer.Create(AOwner: TComponent);
 begin
   inherited;
 
-  // FInputInspector := TInputShortcut.Create(Self, 'CGE Inspector', 'cge_inspector', igLocal);
-  // {$ifdef DEBUG} // only in DEBUG mode, by default allow this key
-  // FInputInspector.Assign(keyF1, keyNone, '', false, buttonLeft);
-  // {$endif}
-  FInspectorKey := {$ifdef DEBUG} keyF1 {$else} keyNone {$endif};
+  FInputInspector := TInputInspector.Create(Self);
+  FInputInspector.Key := {$ifdef DEBUG} keyF1 {$else} keyNone {$endif};
+  FInputInspector.KeyModifiers := [];
+  FInputInspector.PressFingers := {$ifdef DEBUG} 3 {$else} 0 {$endif};
+  FInputInspector.PressTime := 1;
 
   FControls := TChildrenControls.Create(nil);
   TChildrenControls(FControls).Container := Self;
@@ -3172,7 +3233,7 @@ var
 begin
   Result := false;
 
-  if Event.IsKey(FInspectorKey) then
+  if FInputInspector.IsEvent(Event) then
   begin
     ToggleInspector;
     Exit(true);
