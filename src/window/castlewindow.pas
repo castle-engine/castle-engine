@@ -3422,6 +3422,36 @@ begin
 
     FrameProfiler.Start(fmRenderSwapFlush);
     if DoubleBuffer then SwapBuffers else glFlush;
+
+    { Keep this check inside fmRenderSwapFlush measurement.
+
+      Naive explanation (seems wrong, see below):
+      On Windows, SwapBuffers may execute immediately,
+      but then the next OpenGL call actually waits for it to finish
+      (see https://www.freelists.org/post/visionegg/swap-buffers-returns-immediately-for-2D-Textures-in-OpenGL-20,1 ).
+      So if this is outside fmRenderSwapFlush, fmRenderSwapFlush would be usually
+      zero, and most of the frame time would not be covered by anything we measure
+      in FrameProfiler.
+
+      The above explanation is however proven wrong by:
+
+      in -dRELEASE builds, without CheckGLErrors call at all,
+      fmRenderSwapFlush times are OK, nicely non-zero reasonable.
+      I.e. we don't have the problem of fmRenderSwapFlush = zero in -dRELEASE
+      builds, and we should -> if the above explanation was all that happens.
+      If the above explanation was right, then we should also measure
+      the next GL command (like RenderContext.Clear at the start
+      of TCastleContainer.EventRender), but we don't need to.
+
+      Tested (both debug and release observations above) on
+        Version string: 4.6.0 NVIDIA 425.46
+        Vendor: NVIDIA Corporation
+        Renderer: GeForce GTX 1050 Ti/PCIe/SSE2
+    }
+    {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW}
+    CheckGLErrors('End of TCastleWindowBase.DoRender');
+    {$endif}
+
     FrameProfiler.Stop(fmRenderSwapFlush);
 
     if AutoRedisplay then Invalidate;
@@ -3429,8 +3459,6 @@ begin
     Fps._RenderEnd;
     FrameProfiler.Stop(fmRender);
   end;
-
-  {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowBase.DoRender'); {$endif}
 end;
 
 procedure TCastleWindowBase.DoKeyDown(const Key: TKey; const KeyString: string);
