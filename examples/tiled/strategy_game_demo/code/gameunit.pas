@@ -90,10 +90,10 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Initialize(const AUnitsOnMap: TUnitsOnMap;
-      const AKind: TUnitKind; const AnAttack, ALife, AMovement: Integer);
+      const AKind: TUnitKind; const AnAttack, ALife, AMovement: Integer); overload;
     { Initialize, choosing default statistics for this TUnitKind. }
     procedure Initialize(const AUnitsOnMap: TUnitsOnMap;
-      const AKind: TUnitKind);
+      const AKind: TUnitKind); overload;
     function ToString: String; override;
     function Human: Boolean;
     function CanMove(const NewTilePosition: TVector2Integer): Boolean;
@@ -356,6 +356,8 @@ begin
     LabelMovement.Caption := IntToStr(Movement);
   end;
 end;
+
+initialization
 
 finalization
   FreeAndNil(TUnit.UiTemplate);
