@@ -235,7 +235,7 @@ type
     function IsPressed(const Container: TCastleContainer; const SecondsPassed: Single): Boolean;
   public
     { Key to activate the inspector (set to keyNone to disable).
-      By default this is keyF1 in debug builds, and keyNone in release. }
+      By default this is keyF8 in debug builds, and keyNone in release. }
     Key: TKey;
 
     { Required modifiers to be pressed together with @link(Key).
@@ -934,8 +934,8 @@ type
       read FBackgroundColor write FBackgroundColor;
 
     { Input (key, touch) to toggle the inspector at any point in the application.
-      In DEBUG builds, this is key F1 (useful on desktops),
-      or pressing 3 fingers for 1 second (useful on mobile) by default. }
+      By default this is possible in debug builds, using key F8,
+      or pressing 3 fingers for 1 second (latter is useful on multi-touch devices). }
     property InputInspector: TInputInspector read FInputInspector;
 
     { @deprecated Use InputInspector.Key now. }
@@ -2578,7 +2578,7 @@ begin
   inherited;
 
   FInputInspector := TInputInspector.Create(Self);
-  FInputInspector.Key := {$ifdef DEBUG} keyF1 {$else} keyNone {$endif};
+  FInputInspector.Key := {$ifdef DEBUG} keyF8 {$else} keyNone {$endif};
   FInputInspector.KeyModifiers := [];
   FInputInspector.PressFingers := {$ifdef DEBUG} 3 {$else} 0 {$endif};
   FInputInspector.PressTime := 1;

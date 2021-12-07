@@ -83,8 +83,8 @@ type
 
     Use this class only through the singleton instance @link(FrameProfiler).
 
-    The easiest way to enable this and view the data is through TCastleInspector.
-    Just use F1 in a debug build.
+    The easiest way to enable this and view the data is through
+    Castle Game Engine inspector. Just press F8 in a debug build to view it.
   }
   TCastleFrameProfiler = class
   private
