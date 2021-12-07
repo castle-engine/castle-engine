@@ -174,7 +174,7 @@ function LogOutput: String;
 const
   { How many last logs to preserve.
     Last logs are useful to read using @link(LastLog),
-    observe in inspector (press F1 in debug build),
+    observe in inspector (press F8 in debug build),
     and they serve as a buffer in case you call InitializeLog
     after something already did WritelnLog. }
   MaxLastLogCount = 10;
