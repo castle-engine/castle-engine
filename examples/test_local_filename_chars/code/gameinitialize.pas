@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2020-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -113,7 +113,7 @@ procedure ApplicationInitialize;
     DataPath :=
       {$ifdef MSWINDOWS} ExtractFilePath(ExeNameFromGetModule)
       {$else} InclPathDelim(GetCurrentDir)
-      {$endif} + 'data/';
+      {$endif} + InclPathDelim('data');
 
     if not DirectoryExists(DataPath) then
       raise Exception.CreateFmt('Cannot find directory "%s"', [DataPath]);

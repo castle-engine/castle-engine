@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="test_local_filename_chars"
-  standalone_source="test_local_filename_chars_standalone.lpr"
+  standalone_source="test_local_filename_chars_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.test.local.filename.chars"
   caption="Test Local Filename Chars"
