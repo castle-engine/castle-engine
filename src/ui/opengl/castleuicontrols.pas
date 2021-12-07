@@ -225,9 +225,17 @@ type
 
   { How to invoke the inspector, see @link(TCastleContainer.InputInspector). }
   TInputInspector = class(TComponent)
+  strict private
+    Pressed: TFloatTime;
+  private
+    { Does this TInputPressRelease should toggle the inspector. }
+    function IsEvent(const Event: TInputPressRelease): Boolean;
+
+    { Track should we trigger inspector toggle because of PressFingers/PressTime. }
+    function IsPressed(const Container: TCastleContainer; const SecondsPassed: Single): Boolean;
   public
-    { Key to activate the inspector, set to keyNone to disable.
-      This is keyF1 by default in DEBUG builds, keyNone in RELEASE. }
+    { Key to activate the inspector (set to keyNone to disable).
+      By default this is keyF1 in debug builds, and keyNone in release. }
     Key: TKey;
 
     { Required modifiers to be pressed together with @link(Key).
@@ -235,24 +243,16 @@ type
       Ignored when @link(Key) is keyNone. }
     KeyModifiers: TModifierKeys;
 
-    { Number of fingers necessary to be pressed to activate the inspector,
-      set to 0 to disable.
-      This is 3 by default in DEBUG builds, 0 in RELEASE.
-
-      This is mainly useful on devices with touch screen (mobile devices),
-      where you can press more than 1 finger.
-      On desktops (devices with mouse input), clicking the mouse is
-      like pressing 1 finger.
-      So you cannot activate the inspector by clicking,
-      unless you set this to 1, then any click will toggle the inspector. }
+    { Number of fingers necessary to be pressed on a touch device to activate the inspector
+      (set to 0 to disable).
+      By default this is 3 in debug builds, 0 in release.
+      On multi-touch devices (typical mobile devices) this determines
+      the number of fingers you need to press. }
     PressFingers: Cardinal;
 
     { How long do the fingers mentioned in @link(PressFingers) have to be pressed.
       Ignored when @link(PressFingers) is 0. }
     PressTime: TFloatTime;
-
-    { Does this TInputPressRelease should toggle the inspector. }
-    function IsEvent(const Event: TInputPressRelease): Boolean;
 
     { Describe current TInputInspector state. }
     function ToString: String; override;
@@ -347,6 +347,8 @@ type
       const CheckEventPosition: Boolean = true): Boolean; overload;
     function GetInspectorKey: TKey;
     procedure SetInspectorKey(const Value: TKey);
+    { Create / destroy FInspector. }
+    procedure ToggleInspector;
   private
     { FControls cannot be declared as TChildrenControls to avoid
       http://bugs.freepascal.org/view.php?id=22495 }
@@ -2530,6 +2532,26 @@ begin
   Result := Event.IsKey(Key) and (Event.ModifiersDown = KeyModifiers);
 end;
 
+function TInputInspector.IsPressed(const Container: TCastleContainer; const SecondsPassed: Single): Boolean;
+var
+  PressedNow: Boolean;
+begin
+  Result := false;
+  PressedNow := ApplicationProperties.TouchDevice and
+    (PressFingers <> 0) and
+    (Container.TouchesCount >= PressFingers);
+  if PressedNow then
+  begin
+    Pressed := Pressed + SecondsPassed;
+    if Pressed >= PressTime then
+    begin
+      Result := true;
+      Pressed := 0;
+    end;
+  end else
+    Pressed := 0;
+end;
+
 function TInputInspector.ToString: String;
 var
   MK: TModifierKey;
@@ -2974,6 +2996,22 @@ begin
   Result := false;
 end;
 
+procedure TCastleContainer.ToggleInspector;
+begin
+  if FInspector = nil then
+  begin
+    FInspector := TCastleInspector.Create(Self);
+    Controls.InsertFront(FInspector);
+  end else
+  begin
+    { Turning off inspector does not merely hide it by Exists:=false,
+      to make sure it doesn't consume any resources when not used.
+      This is important, as it will be used in wildest scenarios
+      (all CGE applications) and it may gather logs when existing. }
+    FreeAndNil(FInspector);
+  end;
+end;
+
 procedure TCastleContainer.EventUpdate;
 
   procedure UpdateTooltip;
@@ -3145,6 +3183,9 @@ var
 begin
   Fps._UpdateBegin;
 
+  if FInputInspector.IsPressed(Self, Fps.SecondsPassed) then
+    ToggleInspector;
+
   UpdateTooltip;
 
   if not FFocusAndMouseCursorValid then
@@ -3216,22 +3257,6 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): boolean;
     end;
 
     Result := false;
-  end;
-
-  procedure ToggleInspector;
-  begin
-    if FInspector = nil then
-    begin
-      FInspector := TCastleInspector.Create(Self);
-      Controls.InsertFront(FInspector);
-    end else
-    begin
-      { Turning off inspector does not merely hide it by Exists:=false,
-        to make sure it doesn't consume any resources when not used.
-        This is important, as it will be used in wildest scenarios
-        (all CGE applications) and it may gather logs when existing. }
-      FreeAndNil(FInspector);
-    end;
   end;
 
 var
