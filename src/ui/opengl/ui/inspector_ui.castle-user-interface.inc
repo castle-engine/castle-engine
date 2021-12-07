@@ -598,6 +598,7 @@
 '                      "Green" : 1.0000000000000000E+000,' + LineEnding +
 '                      "Red" : 1.0000000000000000E+000' + LineEnding +
 '                    },' + LineEnding +
+'                    "EnableParentDragging" : true,' + LineEnding +
 '                    "Height" : 3.0000000000000000E+001,' + LineEnding +
 '                    "Image" : {' + LineEnding +
 '                      "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
