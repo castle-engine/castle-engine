@@ -119,6 +119,7 @@
             "$$ClassName" : "TBorder",
             "Top" : 3.0000000000000000E+001
           },
+          "EnableDragging" : true,
           "FullSize" : true,
           "HorizontalAnchorParent" : "hpRight",
           "HorizontalAnchorSelf" : "hpRight",
@@ -537,6 +538,7 @@
             "Bottom" : 3.0000000000000000E+001,
             "Top" : 3.0000000000000000E+001
           },
+          "EnableDragging" : true,
           "FullSize" : true,
           "Name" : "ScrollView3",
           "ScrollArea" : {
@@ -728,6 +730,7 @@
             "$$ClassName" : "TBorder",
             "Top" : 3.0000000000000000E+001
           },
+          "EnableDragging" : true,
           "FullSize" : true,
           "Name" : "ScrollView4",
           "ScrollArea" : {

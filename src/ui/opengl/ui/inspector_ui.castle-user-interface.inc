@@ -121,6 +121,7 @@
 '            "$$ClassName" : "TBorder",' + LineEnding +
 '            "Top" : 3.0000000000000000E+001' + LineEnding +
 '          },' + LineEnding +
+'          "EnableDragging" : true,' + LineEnding +
 '          "FullSize" : true,' + LineEnding +
 '          "HorizontalAnchorParent" : "hpRight",' + LineEnding +
 '          "HorizontalAnchorSelf" : "hpRight",' + LineEnding +
@@ -539,6 +540,7 @@
 '            "Bottom" : 3.0000000000000000E+001,' + LineEnding +
 '            "Top" : 3.0000000000000000E+001' + LineEnding +
 '          },' + LineEnding +
+'          "EnableDragging" : true,' + LineEnding +
 '          "FullSize" : true,' + LineEnding +
 '          "Name" : "ScrollView3",' + LineEnding +
 '          "ScrollArea" : {' + LineEnding +
@@ -730,6 +732,7 @@
 '            "$$ClassName" : "TBorder",' + LineEnding +
 '            "Top" : 3.0000000000000000E+001' + LineEnding +
 '          },' + LineEnding +
+'          "EnableDragging" : true,' + LineEnding +
 '          "FullSize" : true,' + LineEnding +
 '          "Name" : "ScrollView4",' + LineEnding +
 '          "ScrollArea" : {' + LineEnding +

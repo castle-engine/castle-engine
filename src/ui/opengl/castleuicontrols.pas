@@ -2537,8 +2537,9 @@ var
   PressedNow: Boolean;
 begin
   Result := false;
-  PressedNow := ApplicationProperties.TouchDevice and
-    (PressFingers <> 0) and
+  // PressFingers checked first, as it will be false in most release builds
+  PressedNow := (PressFingers <> 0) and
+    ApplicationProperties.TouchDevice and
     (Container.TouchesCount >= PressFingers);
   if PressedNow then
   begin
@@ -2567,7 +2568,7 @@ begin
 
   if PressFingers <> 0 then
   begin
-    Result := SAppendPart(Result, ' / ', Format('press %d fingers', [PressFingers]));
+    Result := SAppendPart(Result, ' / ', Format('Press %d fingers', [PressFingers]));
   end;
 end;
 

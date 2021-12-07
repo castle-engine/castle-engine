@@ -224,10 +224,17 @@ begin
      CurrentFrameStarted[IndexFrameMetric(fmUpdateGeneratedTextures)] then
     Exit; // do not measure rendering times inside fmUpdateGeneratedTextures, they make output confusing
 
-  Assert(CurrentFrameStarted[Metric]);
-  FramesTimes[CurrentFrame, Metric] := FramesTimes[CurrentFrame, Metric] +
-    CurrentFrameStart[Metric].ElapsedTime;
-  CurrentFrameStarted[Metric] := false;
+  if not CurrentFrameStarted[Metric] then
+  begin
+    WritelnWarning('Frame metric %d not started. Possible cause: called FrameProfiler.Enabled between Start/Stop, this can be ignored.', [
+      Metric
+    ]);
+  end else
+  begin
+    FramesTimes[CurrentFrame, Metric] := FramesTimes[CurrentFrame, Metric] +
+      CurrentFrameStart[Metric].ElapsedTime;
+    CurrentFrameStarted[Metric] := false;
+  end;
 end;
 
 function TCastleFrameProfiler.SummaryTotalFrameTime: TFloatTime;

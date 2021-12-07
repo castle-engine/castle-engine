@@ -387,7 +387,9 @@ var
     end;
 
     HierarchyButton.Caption := Caption;
-    HierarchyButton.Tag := PtrUInt(C);
+    { TComponent.Tag is a (signed) PtrInt in FPC, (signed) NativeInt in Delphi,
+      so typecast to PtrInt to avoid range check errors. }
+    HierarchyButton.Tag := PtrInt(C);
 
     Inc(RowIndex);
   end;
