@@ -53,7 +53,8 @@ interface
 
 uses
   {$IFDEF MEM_CHECK}MemCheck,{$ENDIF}
-  SysUtils, Classes, DOM, XMLRead, XMLWrite;
+  SysUtils, Classes, DOM, XMLRead, XMLWrite,
+  CastleClassUtils;
 
 resourcestring
   SMissingPathName = 'A part of the pathname is invalid (missing)';
@@ -69,7 +70,7 @@ type
    is the name of the value. The path components will be mapped to XML
    elements, the name will be an element attribute.}
 
-  TXMLConfig = class(TComponent)
+  TXMLConfig = class(TCastleComponent)
   private
     FURL: String;
     FStartEmpty: Boolean;
@@ -537,7 +538,7 @@ begin
 
   FURL := AURL;
 
-  if csLoading in ComponentState then
+  if IsLoading then
     exit;
 
   if URIFileExists(AURL) and (not FStartEmpty) then
