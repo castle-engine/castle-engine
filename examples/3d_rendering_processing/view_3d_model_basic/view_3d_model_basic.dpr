@@ -62,9 +62,34 @@ begin
     //'castle-data:/bridge_final.x3dv'
     'castle-data:/car.gltf'
   );
+
+  { Initialize spatial structures, to allow
+    - collision detection in a dynamic scene (ssDynamicCollisions)
+    - and frustum culling optimization when rendering (ssRendering). }
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
+
+  { X3D events will be processed.
+    You seldom need to set "Scene.ProcessEvents := true" explicitly --
+    as the main usage of events is animation, and doing
+    "Scene.PlayAnimation" would set "Scene.ProcessEvents := true" anyway.
+    But doing this explicitly makes sense if your model relies on other X3D events,
+    like X3D touch/key sensors or X3D scripts. }
   Scene.ProcessEvents := true;
+
+  { Adding the scene to Viewport.Items makes is actually visible and updated,
+    as part of the given viewport. }
   Viewport.Items.Add(Scene);
+
+  { Setting the scene as MainScene allows the engine to initialize some central
+    things based on this scene:
+    - Viewport.AutoCamera and Viewport.AutoNavigation
+      will look for camera/navigation information in the MainScene.
+    - The headlight will, by default, follow configuration from the MainScene
+      (though you can explicitly enable/disable it by Viewport.Items.Headlight too).
+    - See TCastleRootTransform.MainScene documentation for details.
+
+    This is optional, i.e. leaving Viewport.Items.MainScene as "nil" is also totall OK.
+    Just be sure in that case to assign sensible camera/navigation using other methods. }
   Viewport.Items.MainScene := Scene;
 
   Application.Run;
