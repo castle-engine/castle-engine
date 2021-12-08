@@ -1,0 +1,182 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+DEF ParticleScript Script {
+  inputOutput MFVec3f coords []
+  inputOutput MFColor colors []
+  initializeOnly MFVec3f speeds []
+  initializeOnly MFVec3f last_coord_change []
+
+  inputOutput MFInt32 line_coordIndex []
+  inputOutput MFInt32 line_colorIndex []
+  inputOutput MFVec3f line_coords []
+  inputOutput MFColor line_colors []
+
+  initializeOnly SFTime previousTime -1
+  initializeOnly SFTime timeDiff 0
+  inputOnly SFTime time
+
+  # number of particles
+  initializeOnly SFInt32 count 1000
+
+  # randomization params
+  initializeOnly SFFloat speed_horiz_const 1.25
+  initializeOnly SFFloat speed_horiz_rand 0.5
+  initializeOnly SFFloat speed_vert_const 12.5
+  initializeOnly SFFloat speed_vert_rand 5
+
+  # helper vars
+  initializeOnly SFInt32 i 0
+  initializeOnly SFVec3f v 0 0 0
+
+  # This is only used internally to call update_lines function.
+  # Value passed here doesn't matter.
+  inputOutput SFBool update_lines FALSE
+
+  url "castlescript:
+
+function initialize(timestamp)
+
+  { Initialize starting coords position. }
+  array_set_count(coords, count);
+  for (i, 0, count - 1,
+    array_set(coords, i, vector(
+      sin(i * 2 * Pi / count) * 2.0,
+      cos(i * 2 * Pi / count) * 2.0,
+      0)));
+
+  { Starting speeds. }
+  array_set_count(speeds, count);
+  for (i, 0, count - 1,
+    array_set(speeds, i,
+      { Speed slightly outside of the circle and much up. }
+      vector(
+        vector_get(array_get(coords, i), 0) * (speed_horiz_const + speed_horiz_rand * random()),
+        vector_get(array_get(coords, i), 1) * (speed_horiz_const + speed_horiz_rand * random()),
+        speed_vert_const + random() * speed_vert_rand)));
+
+  { Initialize colors. }
+  array_set_count(colors, count);
+  for (i, 0, count - 1,
+    array_set(colors, i,
+      { random blueish color }
+      vector(random() * 0.2, random() * 0.2, 1 - random() * 0.2)));
+
+  { Initialize last_coord_change. }
+  array_set_count(last_coord_change, count);
+  for (i, 0, count - 1,
+    array_set(last_coord_change, i, vector(0, 0, 0)));
+
+  update_lines := TRUE
+
+function time(value, timestamp)
+  { calculate timeDiff, to scale animations
+    (so that it runs with the same speed on every system) }
+  timeDiff := if (previousTime >= 0, value - previousTime, 0);
+
+  { update previousTime }
+  previousTime := value;
+
+  { update positions }
+  for (i, 0, count - 1,
+    v := array_get(coords, i);
+    { increase positions by speed }
+    v := v + array_get(speeds, i) * timeDiff;
+    { fall down by gravity }
+    vector_set(v, 2, vector_get(v, 2) - timeDiff * 5);
+    array_set(last_coord_change, i,
+      array_get(speeds, i) + vector(0, 0, -5));
+    { when particle falls down on the ground --- initialize new }
+    when (vector_get(v, 2) < 0,
+      v := vector(
+        sin(i * 2 * Pi / count) * 2.0,
+        cos(i * 2 * Pi / count) * 2.0,
+        0);
+      array_set(speeds, i,
+        vector(
+          vector_get(v, 0) * (speed_horiz_const + speed_horiz_rand * random()),
+          vector_get(v, 1) * (speed_horiz_const + speed_horiz_rand * random()),
+          speed_vert_const + random() * speed_vert_rand));
+      array_set(last_coord_change, i, vector(0, 0, 0))
+    );
+    array_set(coords, i, v));
+
+  { decrease speeds by time }
+  for (i, 0, count - 1,
+    v := array_get(speeds, i);
+    v := v * power(0.5, timeDiff);
+    array_set(speeds, i, v));
+
+  update_lines := TRUE
+
+{ initialize LineSet properties, based on coords, speeds, colors }
+function update_lines(value, timestamp)
+  array_set_count(line_coords, count * 2);
+  array_set_count(line_colors, count * 2);
+  array_set_count(line_coordIndex, count * 3);
+  array_set_count(line_colorIndex, count * 3);
+  for (i, 0, count - 1,
+    v := array_get(coords, i);
+    array_set(line_coords, 2 * i    , v - array_get(last_coord_change, i) / 10);
+    array_set(line_coords, 2 * i + 1, v + array_get(last_coord_change, i) / 10);
+    array_set(line_colors, 2 * i    , array_get(colors, i));
+    array_set(line_colors, 2 * i + 1, array_get(colors, i));
+    array_set(line_colorIndex, 3 * i    , 2 * i);
+    array_set(line_colorIndex, 3 * i + 1, 2 * i + 1);
+    array_set(line_colorIndex, 3 * i + 2, -1);
+    array_set(line_coordIndex, 3 * i    , 2 * i);
+    array_set(line_coordIndex, 3 * i + 1, 2 * i + 1);
+    array_set(line_coordIndex, 3 * i + 2, -1))
+"
+}
+
+Collision {
+  enabled FALSE
+  children Shape {
+    geometry DEF LnSet IndexedLineSet {
+      color DEF LnColor Color { }
+      coord DEF LnCoord Coordinate { }
+    }
+  }
+}
+ROUTE ParticleScript.line_colors TO LnColor.color
+ROUTE ParticleScript.line_coords TO LnCoord.point
+ROUTE ParticleScript.line_colorIndex TO LnSet.set_colorIndex
+ROUTE ParticleScript.line_coordIndex TO LnSet.set_coordIndex
+
+Collision {
+  enabled FALSE
+  children Shape {
+    geometry PointSet {
+      color DEF PtColor Color { }
+      coord DEF PtCoord Coordinate { }
+    }
+  }
+}
+ROUTE ParticleScript.colors TO PtColor.color
+ROUTE ParticleScript.coords TO PtCoord.point
+
+DEF Time TimeSensor { loop TRUE }
+ROUTE Time.time TO ParticleScript.time
+
+Shape {
+  appearance Appearance { material Material { } }
+  geometry Box { }
+}
+
+# Camera settings "encoded" in the VRML declaration below :
+# direction -0.0198693256825208 -4.1451200805120436E-010 -0.0022825174964964
+# up -0.1141257956624031 -3.7782339745717763E-007 0.9934662580490112
+# gravityUp 0 -4.3711388286737929E-008 1
+Transform {
+  translation 21.568759918212891 5.8969815697196282E-009 4.7044863700866699
+  rotation 1 0 -0 1.5707963705062866
+  children Viewpoint {
+    position 0 0 0 # camera position is expressed by translation
+    orientation -0.057063028216362 0.9967384338378906 0.0570633709430694 1.5740633010864258
+  }
+}
+
+NavigationInfo {
+  type "FLY"
+}

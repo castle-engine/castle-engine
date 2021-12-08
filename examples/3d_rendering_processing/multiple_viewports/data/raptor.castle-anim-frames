@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+
+<animation backwards="true" loop="true">
+  <frame url="raptor_1.x3d" time="0" />
+  <frame url="raptor_2.x3d" time="1" />
+</animation>
