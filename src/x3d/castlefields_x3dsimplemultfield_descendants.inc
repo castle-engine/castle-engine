@@ -1035,6 +1035,33 @@ begin
 end;
 
 procedure TMFString.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
+
+  { TODO: Copy-paste of TX3DSimpleMultField.ParseXMLAttributeLexer }
+  procedure ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader);
+  var
+    SingleItem: TSFString;
+  begin
+    { This is much easier and simpler in XML encoding than it was
+      in classic encoding. We don't have to check for [ and ] tokens,
+      comma is ignored (it was only for VRML 1.0 anyway), we just read
+      single values up to the end of stream. }
+
+    Clear;
+
+    SingleItem := CreateItemBeforeParse;
+    try
+      { List size may be increased rapidly during parsing.
+        Prepare for it by allocating some size in advance. }
+      //Capacity := 64;
+
+      while Lexer.Token <> vtEnd do
+      begin
+        SingleItem.ParseValue(Lexer, Reader);
+        AddToList(Items, SingleItem);
+      end;
+    finally FreeAndNil(SingleItem) end;
+  end;
+
 var
   Lexer: TX3DLexer;
 begin
@@ -1071,10 +1098,71 @@ begin
 end;
 
 procedure TMFString.SaveToStreamValue(Writer: TX3DWriter);
+
+  function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
+  begin
+    Result := true;
+  end;
+
+  { TODO: Copy-paste of TX3DSimpleMultField.SaveToStreamValue }
+  procedure SaveToStreamValueCore(Writer: TX3DWriter);
+  var
+    i: integer;
+    WriteIndentNextTime: boolean;
+    IndentMultiValueFields: boolean;
+  begin
+    case Writer.Encoding of
+      xeClassic:
+        { The general "for I := ..." code below can handle correctly any FItems.Count
+          value. But for aesthetics, i.e. more clear output for humans,
+          I handle the FItems.Count = 0 and 1 cases separately. }
+        case Count of
+          0: Writer.Write('[]');
+          1: Writer.Write(RawItemToString(0, Writer.Encoding));
+          else
+            begin
+              Writer.Writeln('[');
+              Writer.IncIndent;
+
+              { For really long fields, writing indentation before each item
+                can cost a significant disk space. So do not indent when
+                there are many items. }
+              IndentMultiValueFields := Count <= 10;
+
+              WriteIndentNextTime := IndentMultiValueFields;
+              for i := 0 to Count-1 do
+              begin
+                if WriteIndentNextTime then Writer.WriteIndent('');
+                Writer.Write(RawItemToString(i, Writer.Encoding) +',');
+                { After the last item we always write newline,
+                  no matter what's SaveToStreamDoNewLineAfterRawItem }
+                if (i = Count - 1) or
+                   SaveToStreamDoNewLineAfterRawItem(i) then
+                  begin Writer.Writeln; WriteIndentNextTime := IndentMultiValueFields end else
+                  begin Writer.Write(' '); WriteIndentNextTime := false; end;
+              end;
+
+              Writer.DecIndent;
+              Writer.WriteIndent(']');
+            end;
+        end;
+      xeXML:
+        for I := 0 to Count - 1 do
+        begin
+          Writer.Write(RawItemToString(I, Writer.Encoding));
+          if I <> Count - 1 then
+            Writer.Write(' ');
+        end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TX3DSimpleMultField.SaveToStreamValue Encoding?');
+      {$endif}
+    end;
+  end;
+
 begin
   { MFString in XML encoding is surrounded by single quotes }
   if Writer.Encoding = xeXML then Writer.Write('''');
-  //inherited;
+  SaveToStreamValueCore(Writer);
   if Writer.Encoding = xeXML then Writer.Write('''');
 end;
 
@@ -1082,7 +1170,6 @@ procedure TMFString.SetItems(const Value: TCastleStringList);
 begin
   FItems.Assign(Value);
 end;
-
 
 procedure TMFString.Send(const AValue: array of string);
 var
