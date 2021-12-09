@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -63,6 +63,8 @@ type
     FHistory: TCastleStringList;
     FCollectHistory: boolean;
     FTextAlignment: THorizontalPosition;
+    FDesignTestMessagesInterval: Single;
+    FDesignTestMessagesTimeout: TFloatTime;
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
@@ -130,6 +132,12 @@ type
     property TextAlignment: THorizontalPosition
       read FTextAlignment write FTextAlignment default hpLeft;
 
+    { In design mode (within CGE editor) we can spawn test messages (so you can see how
+      the notifications look). This property determines how often we do it.
+      0 means to not do it. }
+    property DesignTestMessagesInterval: Single
+      read FDesignTestMessagesInterval write FDesignTestMessagesInterval default 1;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -173,6 +181,8 @@ begin
   Timeout := DefaultTimeout;
   Fade := DefaultFade;
   FColor := White;
+  FDesignTestMessagesInterval := 1;
+  FDesignTestMessagesTimeout := FDesignTestMessagesInterval;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
@@ -266,17 +276,23 @@ end;
 
 procedure TCastleNotifications.Render;
 var
-  I: integer;
   SR: TFloatRectangle;
+
+  procedure ShowMessage(const MessageIndex, MessagesCount: Integer;
+    const MessageColor: TCastleColor; const Text: String);
+  begin
+    Font.PrintRect(FloatRectangle(SR.Left,
+      SR.Bottom + (MessagesCount - 1 - MessageIndex) * Font.RowHeight,
+      SR.Width, Font.RowHeight), MessageColor, Text,
+      TextAlignment, vpBottom);
+  end;
+
+var
+  I: integer;
 begin
   SR := RenderRect;
   for I := 0 to Messages.Count - 1 do
-  begin
-    Font.PrintRect(FloatRectangle(SR.Left,
-      SR.Bottom + (Messages.Count - 1 - I) * Font.RowHeight,
-      SR.Width, Font.RowHeight), Messages[i].Color, Messages[i].Text,
-      TextAlignment, vpBottom);
-  end;
+    ShowMessage(I, Messages.Count, Messages[I].Color, Messages[I].Text);
 end;
 
 procedure TCastleNotifications.Update(const SecondsPassed: Single;
@@ -305,6 +321,16 @@ begin
       Messages[I].Color := C;
       VisibleChange([chRectangle]);
     end;
+
+  if FDesignTestMessagesInterval <> 0 then
+  begin
+    FDesignTestMessagesTimeout := FDesignTestMessagesTimeout - SecondsPassed;
+    if FDesignTestMessagesTimeout < 0 then
+    begin
+      Show('Test Message in Design Mode at ' + DateTimeToAtStr(CastleNow));
+      FDesignTestMessagesTimeout := FDesignTestMessagesInterval;
+    end;
+  end;
 end;
 
 {$define read_implementation_methods}
