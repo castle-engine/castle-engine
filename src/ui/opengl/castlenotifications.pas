@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleUIControls, CastleUtils, CastleControls,
   CastleFonts, CastleTimeUtils, CastleVectors, CastleStringUtils,
-  CastleColors, CastleRectangles;
+  CastleColors, CastleRectangles, CastleClassUtils;
 
 type
   { Notifications displayed on the screen.
@@ -90,8 +90,8 @@ type
 
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
-
     procedure Render; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Color used to draw subsequent messages. Default value is white. }
     property Color: TCastleColor read FColor write FColor;
@@ -322,7 +322,7 @@ begin
       VisibleChange([chRectangle]);
     end;
 
-  if FDesignTestMessagesInterval <> 0 then
+  if CastleDesignMode and (FDesignTestMessagesInterval <> 0) then
   begin
     FDesignTestMessagesTimeout := FDesignTestMessagesTimeout - SecondsPassed;
     if FDesignTestMessagesTimeout < 0 then
@@ -331,6 +331,21 @@ begin
       FDesignTestMessagesTimeout := FDesignTestMessagesInterval;
     end;
   end;
+end;
+
+function TCastleNotifications.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'MaxMessages') or
+     (PropertyName = 'Timeout') or
+     (PropertyName = 'Fade') or
+     (PropertyName = 'CollectHistory') or
+     (PropertyName = 'TextAlignment') or
+     (PropertyName = 'DesignTestMessagesInterval') or
+     (PropertyName = 'ColorPersistent') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}
