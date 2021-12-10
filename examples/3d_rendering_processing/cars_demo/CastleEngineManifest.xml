@@ -2,7 +2,7 @@
 <project name="cars_demo"
   standalone_source="cars_demo_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.carsdemo"
+  qualified_name="io.castleengine.cars.demo"
   caption="Cars Demo"
 >
   <compiler_options>
