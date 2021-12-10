@@ -53,7 +53,7 @@
               "Red" : 8.1960785388946533E-001
             },
             "Material" : "pmUnlit",
-            "Name" : "Sphere1",
+            "Name" : "SphereTransform",
             "Radius" : 4.0000000000000000E+001,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions",

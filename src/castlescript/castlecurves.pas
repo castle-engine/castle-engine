@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,7 +25,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections, DOM,
   CastleVectors, CastleBoxes, CastleUtils, {$ifdef FPC}CastleScript,{$endif}
-  CastleClassUtils, CastleFrustum;
+  CastleClassUtils, CastleFrustum, X3DNodes;
 
 type
   ECurveFileInvalid = class(Exception);
@@ -35,11 +35,15 @@ type
   TCurve = class
   private
     FTBegin, FTEnd: Single;
-    FDefaultSegments: Cardinal;
   protected
     procedure LoadFromElement(const E: TDOMElement); virtual;
     procedure SaveToStream(const Stream: TStream); virtual;
   public
+    const
+      DefaultSegments = 32;
+
+    constructor Create;
+
     { The valid range of curve function argument. Must be TBegin <= TEnd.
       @groupBegin }
     property TBegin: Single read FTBegin write FTBegin {$ifdef FPC}default 0{$endif};
@@ -47,7 +51,8 @@ type
     { @groupEnd }
 
     { Curve function, for each parameter value determine the 3D point.
-      This determines the actual shape of the curve. }
+      This determines the actual shape of the curve.
+      This is the simplest approach to calculate points on a curve. }
     function Point(const t: Float): TVector3; virtual; abstract;
     function Point2D(const t: Float): TVector2;
 
@@ -55,14 +60,7 @@ type
       This is simply a more specialized version of @link(Point),
       it scales the argument such that you get Point(TBegin) for I = 0
       and you get Point(TEnd) for I = Segments. }
-    function PointOfSegment(i, Segments: Cardinal): TVector3;
-
-    { Default number of segments, used when rendering by T3D interface
-      (that is, @code(Render(Frustum, TransparentGroup...)) method.) }
-    property DefaultSegments: Cardinal
-      read FDefaultSegments write FDefaultSegments default 10;
-
-    constructor Create;
+    function PointOfSegment(const i, Segments: Cardinal): TVector3;
 
     { Load the first curve defined in given XML file.
       Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
@@ -70,6 +68,10 @@ type
     class function LoadFromFile(const URL: string): TCurve;
 
     function BoundingBox: TBox3D; virtual; abstract;
+
+    { Represent this curve as an X3D geometry node,
+      that you can use to visualize this. }
+    function GeometryNode(const Segments: Cardinal = DefaultSegments): TAbstractGeometryNode;
   end;
 
   TCurveList = class({$ifdef FPC}specialize{$endif} TObjectList<TCurve>)
@@ -210,12 +212,6 @@ type
 
     ControlPoints.Count may be 1 (in general,
     for TControlPointsCurve, it must be >= 2).
-
-    You can use this to calculate points on a curve, you cannot render the curve
-    out-of-the-box with this class.
-    For a portable and renderable curves consider using
-    X3D NURBS nodes (wrapped in a TCastleScene) instead.
-    Or convert this curve to a TLineSetNode X3D node.
   }
   TPiecewiseCubicBezier = class(TControlPointsCurve)
   strict private
@@ -290,7 +286,7 @@ function ConvexHullIndexes(Points: TVector3List): TIntegerList; forward;
 
 { TCurve ------------------------------------------------------------ }
 
-function TCurve.PointOfSegment(i, Segments: Cardinal): TVector3;
+function TCurve.PointOfSegment(const i, Segments: Cardinal): TVector3;
 begin
   Result := Point(TBegin + (i/Segments) * (TEnd-TBegin));
 end;
@@ -300,7 +296,6 @@ begin
   inherited;
   FTBegin := 0;
   FTEnd := 1;
-  FDefaultSegments := 10;
 end;
 
 procedure TCurve.LoadFromElement(const E: TDOMElement);
@@ -337,6 +332,24 @@ begin
       raise ECurveFileInvalid.Create('Empty curve XML file, cannot get first curve');
     Result := List.Extract(List.First);
   finally FreeAndNil(List) end;
+end;
+
+function TCurve.GeometryNode(const Segments: Cardinal = DefaultSegments): TAbstractGeometryNode;
+var
+  Coord: TCoordinateNode;
+  LineSet: TLineSetNode;
+  I: Integer;
+begin
+  Coord := TCoordinateNode.Create;
+  Coord.FdPoint.Items.Clear;
+  for I := 0 to Segments do
+    Coord.FdPoint.Items.Add(Point(I / Segments));
+
+  LineSet := TLineSetNode.Create;
+  LineSet.SetVertexCount([Segments + 1]);
+  LineSet.Coord := Coord;
+
+  Result := LineSet;
 end;
 
 { TCurveList ---------------------------------------------------- }

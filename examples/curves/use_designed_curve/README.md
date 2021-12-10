@@ -2,16 +2,15 @@
 
 Castle Game Engine contains a simple tool to design curves (piecewise cubic Bezier curves), called `castle-curves`, documented on 
 
-https://github.com/castle-engine/castle-engine/wiki/Curves-tool
+  https://github.com/castle-engine/castle-engine/wiki/Curves-tool
 
 The created curves can be saved into a simple XML format and loaded into your own Castle Game Engine programs and used for any purpose (for example as a track along which something moves).
 
-This example show how to read these XML files.
+This example show how to read an XML file with a curve, display such curve, and use it to follow something (in this case -- a sphere) along the curve.
 
 TODO:
 - invent extension, like `.castle-curves`, for such files
 - allow to automatically load and display them by TCastleScene
-- make this example more interesting, by actually displaying the curve, being designed in editor, and moving some TCastleScene along the curve
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
