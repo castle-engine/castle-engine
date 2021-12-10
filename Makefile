@@ -206,12 +206,8 @@ strip-precompiled-libraries:
 # Note that examples with CastleEngineManifest.xml are not listed here.
 # They will be found and compiled by a Makefile rule that searches using
 # "find ... -iname CastleEngineManifest.xml ..." .
-#
-# TODO: In the long run, it would be best if *all* examples had CastleEngineManifest.xml,
-# then the need to maintain EXAMPLES_BASE_NAMES would disappear.
 
-EXAMPLES_BASE_NAMES := \
-  examples/curves/simplest_curve_read
+EXAMPLES_BASE_NAMES :=
 
 # Note that src/library/castleengine must be compiled before
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
@@ -275,9 +271,6 @@ examples:
 # Also copy it, as below it will recompile itself (which would be trouble on Windows).
 	tools/build-tool/castle-engine_compile.sh
 	cp -f $(BUILD_TOOL) castle-engine-copy$(EXE_EXTENSION)
-
-# Compile all examples using xxx_compile.sh shell script (calls build tool), TODO: to remove
-	$(foreach NAME,$(EXAMPLES_BASE_NAMES),$(NAME)_compile.sh && ) true
 
 # Compile all examples with CastleEngineManifest.xml inside.
 # Use xargs (not "find ... -execdir") because we want the "make examples" to fail

@@ -13,8 +13,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'simplest_curve_read';
-  ApplicationProperties.Caption := 'simplest_curve_read';
+  ApplicationProperties.ApplicationName := 'use_designed_curve';
+  ApplicationProperties.Caption := 'Use Designed Curve';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

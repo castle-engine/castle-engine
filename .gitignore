@@ -101,7 +101,7 @@ castle-game-engine-*.fpm
 /examples/castlescript/image_make_by_script/image_make_by_script
 /examples/component_gallery/cge-component-gallery
 /examples/creature_behaviors/creature_behaviors
-/examples/curves/simplest_curve_read
+/examples/curves/use_designed_curve/use_designed_curve
 /examples/fixed_camera_game/rift
 /examples/fonts/font_draw_over_image/font_draw_over_image
 /examples/fonts/font_draw_over_image/font_draw_over_image_output.png
