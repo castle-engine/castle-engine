@@ -212,8 +212,8 @@ EXAMPLES_BASE_NAMES :=
 # Note that src/library/castleengine must be compiled before
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
 EXAMPLES_LAZARUS_BASE_NAMES := \
-  src/library/castleengine \
-  examples/library/lazarus_library_tester/cge_dynlib_tester
+  src/deprecated_library/castleengine \
+  examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)
@@ -372,10 +372,10 @@ clean: cleanexamples
 	rm -Rf fpmake fpmake.exe units/ *.fpm .fppkg .config
 # lazarus produces lib/ subdirectories during compilation
 	$(FIND) examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
-	rm -Rf src/library/ios-output/\
-	       src/library/libcastleengine.dylib \
-	       src/library/castleengine.dll \
-	       src/library/libcastleengine.so
+	rm -Rf src/deprecated_library/ios-output/\
+	       src/deprecated_library/libcastleengine.dylib \
+	       src/deprecated_library/castleengine.dll \
+	       src/deprecated_library/libcastleengine.so
 # Clean every project with CastleEngineManifest.xml .
 #
 # Avoid a project in project_templates,

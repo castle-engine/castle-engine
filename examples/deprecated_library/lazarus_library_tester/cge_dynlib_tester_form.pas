@@ -12,7 +12,7 @@
 
   ----------------------------------------------------------------------------
 
-  This is a test project for our library in src/library/.
+  This is a test project for our library in src/deprecated_library/.
   It uses library API (through the castlelib_dynloader unit),
   and uses a compiled dynamic library with the engine.
 
@@ -31,7 +31,7 @@
 
   HOW TO RUN THIS: prior to running this project,
   compile and copy the shared library
-  (in src/library/) to a place where it can be loaded:
+  (in src/deprecated_library/) to a place where it can be loaded:
 
   - Windows: copy castleengine.dll to this project folder
     (where the executable file is generated), or anywhere on $PATH.
@@ -44,7 +44,7 @@
     Or you can explicitly list the directory with libcastleengine.so,
     by doing this (in your shell, or even in your ~/.bashrc or similar file):
 
-    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"$CASTLE_ENGINE_PATH"/src/library/
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"$CASTLE_ENGINE_PATH"/src/deprecated_library/
 }
 unit cge_dynlib_tester_form;
 
@@ -127,7 +127,7 @@ begin
   CGE_Open(ecgeofLog, OpenGLControl1.Width, OpenGLControl1.Height, 96);
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
   CGE_SetUserInterface(true);
-  sFile := '../../3d_rendering_processing/data/bridge_final.x3dv';
+  sFile := 'data/bridge_level/bridge_final.x3dv';
   CGE_LoadSceneFromFile(@sFile[1]);
 
   OpenGLControl1.Invalidate;

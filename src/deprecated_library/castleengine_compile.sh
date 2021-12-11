@@ -12,7 +12,7 @@ if [ -f castleengine.lpr ]; then cd ../../; fi
 # 2. make sure that every unit is recompiled with -fPIC (necessary for .so on x86_64)
 make --quiet clean
 
-fpc -fPIC -dRELEASE @castle-fpc.cfg -dCASTLE_WINDOW_LIBRARY src/library/castleengine.lpr "$@"
+fpc -fPIC -dRELEASE @castle-fpc.cfg -dCASTLE_WINDOW_LIBRARY src/deprecated_library/castleengine.lpr "$@"
 
 # Clean units to avoid other programs to be accidentally compiled
 # with CastleWindow with LIBRARY backend, or -fPIC.

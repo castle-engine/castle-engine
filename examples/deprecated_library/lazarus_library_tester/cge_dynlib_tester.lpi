@@ -25,7 +25,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\..\..\src\common_includes"/>
-            <OtherUnitFiles Value="..\..\..\src\library"/>
+            <OtherUnitFiles Value="..\..\..\src\deprecated_library"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -75,7 +75,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\..\..\src\common_includes"/>
-            <OtherUnitFiles Value="..\..\..\src\library"/>
+            <OtherUnitFiles Value="..\..\..\src\deprecated_library"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -151,7 +151,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);..\..\..\src\common_includes"/>
-      <OtherUnitFiles Value="..\..\..\src\library"/>
+      <OtherUnitFiles Value="..\..\..\src\deprecated_library"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
