@@ -347,7 +347,7 @@ function TDOMNode.FindNode(const NodeName: String): TDOMNode;
 var
   I: Integer;
 begin
-  for I := 0 to ChildNodes.Count - 1 do
+  for I := 0 to Integer(ChildNodes.Count) - 1 do
   begin
     if ChildNodes[I].NodeName = NodeName then
       Exit(ChildNodes[I]);
@@ -524,7 +524,8 @@ end;
 procedure TDOMElement.SetAttribute(const Name, Value: String);
 begin
   InternalNode.Attributes[Name] := Value;
-  FAttributes.InvalidateMap;
+  if FAttributes <> nil then
+    FAttributes.InvalidateMap;
 end;
 
 function TDOMElement.TagName: String;
