@@ -740,7 +740,14 @@ begin
   begin
     { simple and fast implementation in case TRichText not needed }
 
-    HasScissorRect := RenderContext.FinalScissor(ScissorRect) and (not ScissorRect.IsEmpty);
+    { Check RenderContext <> nil, as this may be used for TCastleImage
+      drawing, testcase: font_draw_over_image.
+      TODO: better account for TCastleImage drawing,
+      it may be possible even when RenderContext <> nil,
+      and we should ignore scissors then. }
+    HasScissorRect := (RenderContext <> nil) and
+      RenderContext.FinalScissor(ScissorRect) and
+      (not ScissorRect.IsEmpty);
 
     for Line := 0 to Strs.Count - 1 do
     begin
