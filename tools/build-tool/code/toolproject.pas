@@ -260,7 +260,7 @@ uses {$ifdef UNIX} BaseUnix, {$endif}
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
   ToolResources, ToolAndroid, ToolWindowsRegistry,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
-  ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
+  ToolCommonUtils, ToolMacros, ToolDebian, ToolCompilerInfo, ToolPackageCollectFiles;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly.'
@@ -680,28 +680,6 @@ begin
     {$ifndef Linux}
     raise Exception.Create('Currently DEB package can only be created under Linux OS, as it depends on several Linux-specific tools.');
     {$endif}
-    Pack := TPackageDebian.Create(Name);
-    try
-      { executable is added 1st, since it's the most likely file
-        to not exist, so we'll fail earlier }
-      AddExecutable;
-      AddExternalLibraries;
-
-      Files := PackageFiles(false, TargetPlatform);
-      try
-        for I := 0 to Files.Count - 1 do
-        begin
-          ExecutablePermission := (Files.Objects[I] <> nil) and (TIncludePath(Files.Objects[I]).ExecutablePermission);
-          Pack.Add(Path + Files[I], Files[I], ExecutablePermission);
-        end;
-      finally FreeAndNil(Files) end;
-
-      Pack.AddDataInformation(TCastleManifest.DataName);
-
-      PackageFileName := PackageName(OS, CPU, pfDeb, PackageNameIncludeVersion);
-      (Pack as TPackageDebian).Make(OutputPath, TempOutputPath(Path), PackageFileName, Cpu, Manifest);
-    finally FreeAndNil(Pack) end;
-    Exit;
   end;
 
   if (Result in [
@@ -838,8 +816,39 @@ var
       Pack.AddDataInformation(TCastleManifest.DataName);
 
       PackageFileName := PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion);
-      Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
+      (Pack as TPackageDirectory).Make(OutputPath, PackageFileName, PackageFormatFinal);
     finally FreeAndNil(Pack) end;
+  end;
+
+  procedure PackageDebian;
+  var
+    I: Integer;
+    PackageFileName: string;
+    Files: TCastleStringList;
+    ExecutablePermission: Boolean;
+  begin
+    Pack := TPackageDebian.Create(Name);
+    try
+      { executable is added 1st, since it's the most likely file
+        to not exist, so we'll fail earlier }
+      AddExecutable;
+      AddExternalLibraries;
+
+      Files := PackageFiles(false, TargetPlatform);
+      try
+        for I := 0 to Files.Count - 1 do
+        begin
+          ExecutablePermission := (Files.Objects[I] <> nil) and (TIncludePath(Files.Objects[I]).ExecutablePermission);
+          Pack.Add(Path + Files[I], Files[I], ExecutablePermission);
+        end;
+      finally FreeAndNil(Files) end;
+
+      Pack.AddDataInformation(TCastleManifest.DataName);
+
+      PackageFileName := PackageName(OS, CPU, pfDeb, PackageNameIncludeVersion);
+      (Pack as TPackageDebian).Make(OutputPath, TempOutputPath(Path), PackageFileName, Cpu, Manifest);
+    finally FreeAndNil(Pack) end;
+    Exit;
   end;
 
 var
@@ -880,6 +889,8 @@ begin
       PackageNintendoSwitch(Self);
     pfDirectory, pfZip, pfTarGz:
       PackageDirectory(PackageFormatFinal);
+    pfDeb:
+      PackageDebian;
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Unhandled PackageFormatFinal in DoPackage');
     {$endif}
