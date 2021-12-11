@@ -97,15 +97,20 @@ end;
 
 procedure TStateSpeedTest.NextTest(Sender: TObject);
 const
-  TestsCount = 100;
+  TestsCountDefault = 100;
+  TestsCountXpm = 5; // XPM loading is *very* slow, smaller amount of tests is enough
 var
   Img: TEncodedImage;
-  I: Integer;
+  I, TestsCount: Integer;
   TimeStart: TTimerResult;
   Seconds: TFloatTime;
   ImgInfo: String;
 begin
   TimeStart := Timer;
+  if ExtractFileExt(TestImages[TestIndex]) = '.xpm' then
+    TestsCount := TestsCountXpm
+  else
+    TestsCount := TestsCountDefault;
   for I := 1 to TestsCount do
   begin
     Img := LoadEncodedImage(TestImages[TestIndex]);
