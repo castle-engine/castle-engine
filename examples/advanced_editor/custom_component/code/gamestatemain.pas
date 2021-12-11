@@ -27,7 +27,7 @@ type
   TStateMain = class(TUIState)
   private
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
-    LabelFps: TCastleLabel;
+    //LabelFps: TCastleLabel;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -56,14 +56,14 @@ procedure TStateMain.Start;
 begin
   inherited;
   { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  //LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}
-  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  //LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
 end.
