@@ -2269,7 +2269,7 @@ function TRegExprCounter.ReplaceCallback(
 var
   MatchedText: string;
 begin
-  MatchedText := {$ifdef FPC} ARegExpr.Match[1] {$else} Match.Value {$endif};
+  MatchedText := {$ifdef FPC} ARegExpr.Match[1] {$else} Match.Groups[1].Value {$endif};
   Result := IntToStrZPad(Index, StrToInt(MatchedText));
   Inc(ReplacementsDone);
 end;

@@ -237,6 +237,22 @@ begin
   finally FreeAndNil(SoundFile) end;
 end;
 
+procedure TestFormatNameCounter;
+var
+  AllowOldPercentSyntax: Boolean;
+  ReplacementsDone: Cardinal;
+begin
+  { assertions below should work for both AllowOldPercentSyntax values }
+  for AllowOldPercentSyntax := false to true do
+  begin
+    AssertEquals('', FormatNameCounter('', 0, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('a', FormatNameCounter('a', 0, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('%again66', FormatNameCounter('%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('%%again66', FormatNameCounter('%%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('%%again0066', FormatNameCounter('%%again@counter(4)', 66, AllowOldPercentSyntax, ReplacementsDone));
+  end;
+end;
+
 var
   TimeStart: TTimerResult;
 begin
@@ -254,6 +270,7 @@ begin
   TestImage;
   TestTypeSizes;
   TestDataUri;
+  TestFormatNameCounter;
 
   // timer test
   Writeln('This was done in ', TimerSeconds(Timer, TimeStart):1:2, ' seconds');
