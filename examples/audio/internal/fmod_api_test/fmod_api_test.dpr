@@ -13,6 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+
 { Simple application to test direct FMOD calls. }
 
 uses
@@ -22,7 +24,13 @@ uses
       CoInitializeEx(nil, COINIT_APARTMENTTHREADED);
     and
       CoUninitialize()
-    It seems that ComObj unit calls this automatically. }
+    It seems that ComObj unit in FPC calls this automatically.
+
+    TODO: In Delphi we should use
+       Windows, ActiveX,
+    and call
+      CoInitializeEx(nil, COINIT_APARTMENTTHREADED);
+    manually? }
   {$ifdef MSWINDOWS} ComObj, {$endif}
   SysUtils, TypInfo, CTypes,
   CastleInternalFMOD, CastleUtils, CastleStringUtils, CastleTimeUtils;
@@ -36,25 +44,24 @@ var
 begin
   if FMODResult <> FMOD_OK then
   begin
-    // FPC error "No type info available for this type", because it's an enum with assignments
-    //ErrorStr := GetEnumName(TypeInfo(TFMOD_RESULT), Ord(FMODResult));
-    WriteStr(ErrorStr, FMODResult);
+    ErrorStr := GetEnumName(TypeInfo(TFMOD_RESULT), Ord(FMODResult));
     raise EFMODError.CreateFmt('FMOD error: %s', [ErrorStr]);
   end;
 end;
 
 function SoundTypeToStr(const SoundType: TFMOD_SOUND_TYPE): String;
 begin
-  // FPC error "No type info available for this type", because it's an enum with assignments
-  //Result := GetEnumName(TypeInfo(TFMOD_SOUND_TYPE), Ord(SoundType));
-  WriteStr(Result, SoundType);
+  // WriteStr was better in FPC, when TFMOD_SOUND_TYPE had assignments.
+  //WriteStr(Result, SoundType);
+  // GetEnumName would make FPC error then "No type info available for this type".
+  // But it no longer has assignments.
+
+  Result := GetEnumName(TypeInfo(TFMOD_SOUND_TYPE), Ord(SoundType));
 end;
 
 function SoundFormatToStr(const SoundFormat: TFMOD_SOUND_FORMAT): String;
 begin
-  // FPC error "No type info available for this type", because it's an enum with assignments
-  //Result := GetEnumName(TypeInfo(TFMOD_SOUND_FORMAT), Ord(SoundFormat));
-  WriteStr(Result, SoundFormat);
+  Result := GetEnumName(TypeInfo(TFMOD_SOUND_FORMAT), Ord(SoundFormat));
 end;
 
 var
@@ -115,8 +122,8 @@ begin
 
   CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL, nil));
 
-  PlaySound('../../simplest_play_sound/data/tone.wav', true);
-  ChannelWaiting := PlaySound('../../simplest_play_sound/data/temple-adam-goh.ogg', false);
+  PlaySound('./data/tone.wav', true);
+  ChannelWaiting := PlaySound('./data/temple-adam-goh.ogg', false);
 
   TimeStart := Timer;
 
