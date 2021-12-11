@@ -1,10 +1,28 @@
+{
+  Copyright 2019-2021 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
 { Generate table of primes for IntegerNoise.
   Output Pascal code with $1 rows of primes table.
   In each row, each prime number will be randomly chosen from appropriate
   range (hardcoded in Ranges[] here).
 }
 
-uses SysUtils, CastleUtils;
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+
+uses SysUtils,
+  CastleUtils, CastleParameters;
 
 function IsPrime(const Value: Cardinal): boolean;
 var
@@ -39,10 +57,18 @@ const
     ( 1000000000,  2000000000)
   );
 var
-  I, J: Cardinal;
+  I, J, Rows: Cardinal;
 begin
-  Parameters.CheckHigh(1);
-  for I := 1 to StrToInt(Parameters[1]) do
+  if Parameters.High = 0 then
+  begin
+    Rows := 10;
+  end else
+  begin
+    Parameters.CheckHigh(1);
+    Rows := StrToInt(Parameters[1]);
+  end;
+
+  for I := 1 to Rows do
   begin
     Write('(');
     for J := 0 to 4 do
@@ -52,4 +78,6 @@ begin
     end;
     Writeln('),');
   end;
+
+  //Readln;
 end.
