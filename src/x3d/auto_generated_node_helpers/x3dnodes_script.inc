@@ -31,8 +31,18 @@
     function GetMustEvaluate: Boolean;
     procedure SetMustEvaluate(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDirectOutput: TSFBool;
+    { X3D field "directOutput". } { }
+    public property FdDirectOutput: TSFBool read FFdDirectOutput;
     { X3D field "directOutput". } { }
     property DirectOutput: Boolean read GetDirectOutput write SetDirectOutput;
+
+    strict private FFdMustEvaluate: TSFBool;
+    { X3D field "mustEvaluate". } { }
+    public property FdMustEvaluate: TSFBool read FFdMustEvaluate;
     { X3D field "mustEvaluate". } { }
     property MustEvaluate: Boolean read GetMustEvaluate write SetMustEvaluate;
 
@@ -60,6 +70,24 @@ end;
 procedure TScriptNode.SetMustEvaluate(const Value: Boolean);
 begin
   FdMustEvaluate.Send(Value);
+end;
+
+class function TScriptNode.ClassX3DType: String;
+begin
+  Result := 'Script';
+end;
+
+procedure TScriptNode.CreateNode;
+begin
+  inherited;
+
+  FFdDirectOutput := TSFBool.Create(Self, False, 'directOutput', false);
+   FdDirectOutput.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDirectOutput);
+
+  FFdMustEvaluate := TSFBool.Create(Self, False, 'mustEvaluate', false);
+   FdMustEvaluate.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMustEvaluate);
 end;
 
 {$endif read_implementation}

@@ -50,18 +50,31 @@ type
   It uses FindExeFpc, searching for 'fpc.sh' (script set by fpcupdeluxe
   that should be used to run FPC)
   or just 'fpc' (normal way to run FPC).
-  It raises EExecutableNotFound in case it failed.
-  @raises EExecutableNotFound }
-function FindExeFpcCompiler: String;
+
+  @raises EExecutableNotFound When the exe is not found and ExceptionWhenMissing. }
+function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean = true): String;
 
 { Find the main executable of Lazarus IDE.
   This uses FindExeLazarus for common executable names like 'lazarus' or 'lazarus-ide'.
-  @raises EExecutableNotFound When the exe is not found. }
-function FindExeLazarusIDE: String;
+
+  @raises EExecutableNotFound When the exe is not found and ExceptionWhenMissing. }
+function FindExeLazarusIDE(const ExceptionWhenMissing: Boolean = true): String;
+
+{ Find the path of Delphi installation.
+  Ends with PathDelim.
+
+  Overloaded version with AppExe argument returns the IDE exe (that should be used
+  to open pas files), which is practically always inside "bin/bds.exe" under Delphi path.
+
+  When missing: ExceptionWhenMissing -> raise EExecutableNotFound,
+  otherwise return ''. }
+function FindDelphiPath(const ExceptionWhenMissing: Boolean): String;
+function FindDelphiPath(const ExceptionWhenMissing: Boolean; out AppExe: String): String;
 
 implementation
 
-uses CastleFilesUtils, CastleStringUtils,
+uses CastleFilesUtils, CastleStringUtils, CastleLog,
+  {$ifdef MSWINDOWS} Registry, {$endif}
   ToolArchitectures;
 
 function FindExeFpc(const ExeName: String): String;
@@ -124,16 +137,17 @@ begin
     Result := PathAppend(Result, LazarusCustomPath);
 end;
 
-function FindExeFpcCompiler: String;
+function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean): String;
 begin
   Result := FindExeFpc('fpc.sh');
   if Result = '' then
     Result := FindExeFpc('fpc');
-  if Result = '' then
+
+  if (Result = '') and ExceptionWhenMissing then
     raise EExecutableNotFound.Create('Cannot find "fpc" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set FPC location in "Preferences".');
 end;
 
-function FindExeLazarusIDE: String;
+function FindExeLazarusIDE(const ExceptionWhenMissing: Boolean): String;
 begin
   Result := FindExeLazarus('lazarus');
   if Result = '' then
@@ -141,10 +155,115 @@ begin
     { Alternative possible Lazarus executable name on non-Windows,
       if installed from deb files or by "make install". }
     Result := FindExeLazarus('lazarus-ide');
-    if Result = '' then
-      // Note: FormProject using this message also for ErrorBox, so make sure it looks sensible.
-      raise EExecutableNotFound.Create('Cannot find "lazarus" or "lazarus-ide" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
   end;
+
+  if (Result = '') and ExceptionWhenMissing then
+    // Note: FormProject using this message also for ErrorBox, so make sure it looks sensible.
+    raise EExecutableNotFound.Create('Cannot find "lazarus" or "lazarus-ide" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
+end;
+
+function FindDelphiPath(const ExceptionWhenMissing: Boolean; out AppExe: String): String;
+{$ifdef MSWINDOWS}
+
+{ Our algorithm to find Delphi location in the registry (using some guesswork and regedit searching, confirmed by
+  https://docwiki.embarcadero.com/RADStudio/Sydney/en/System_Registry_Keys_for_IDE_Visual_Settings
+  https://stackoverflow.com/questions/6870282/how-are-delphi-environment-variables-such-as-bds-evaluated ) :
+
+  - Read subdirs from current user: HKEY_CURRENT_USER\SOFTWARE\Embarcadero\BDS\
+  - Read subdirs from machine: HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Embarcadero\BDS\
+  - Each subdirectory is the version number. Pick the latest.
+    Pick user-specific latest, if both HKEY_CURRENT_USER and HKEY_LOCAL_MACHINE will have the same versions.
+    To compare them, treat as floats (as they look like "22.0").
+  - Inside the chosen subdir, use:
+    - key "App" which is like "c:\program files (x86)\embarcadero\studio\22.0\bin\bds.exe".
+    - key "RootDir", like "c:\program files (x86)\embarcadero\studio\22.0\"
+      (without "bin" or exe inside).
+
+  Things inside Delphi path:
+
+    bin/bds.exe - Delphi IDE
+    bin/dcc[xxx].exe - Delphi compiler, name determines target OS/arch.
+      See CompileDelphi for a list.
+
+  See also
+  https://docwiki.embarcadero.com/RADStudio/Sydney/en/Delphi_Compiler
+  https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Delphi_Toolchains
+  https://docwiki.embarcadero.com/RADStudio/Alexandria/en/IDE_Command_Line_Switches_and_Options
+
+}
+
+var
+  R: TRegistry;
+  LargestKeyAsFloat: Double;
+  LargestKeyDelphiRootDir: String;
+  LargestKeyDelphiApp: String;
+
+  procedure ScanRegistry(const RootKey: HKEY; const BasePath: UnicodeString);
+  var
+    KeyName: UnicodeString;
+    KeyNames: TUnicodeStringArray;
+    DelphiRootDir, DelphiApp: String;
+    KeyFloat: Double;
+  begin
+    R.RootKey := RootKey;
+
+    R.OpenKeyReadOnly(BasePath);
+    KeyNames := R.GetKeyNames;
+    R.CloseKey;
+
+    for KeyName in KeyNames do
+      if TryStrToFloatDot(UTF8Encode(KeyName), KeyFloat) and
+         (KeyFloat >= LargestKeyAsFloat) then
+      begin
+        R.OpenKeyReadOnly(BasePath + KeyName);
+        DelphiRootDir := R.ReadString('RootDir');
+        R.CloseKey;
+
+        R.OpenKeyReadOnly(BasePath + KeyName);
+        DelphiApp := R.ReadString('App');
+        R.CloseKey;
+
+        if (DelphiRootDir <> '') and (DelphiApp <> '') then
+        begin
+          LargestKeyAsFloat := KeyFloat;
+          LargestKeyDelphiRootDir := DelphiRootDir;
+          LargestKeyDelphiApp := DelphiApp;
+          //WritelnLog('Delphi %f found in %s', [LargestKeyAsFloat, LargestKeyDelphiRootDir]);
+        end;
+      end;
+  end;
+
+begin
+  R := TRegistry.Create(KEY_READ);
+  try
+    LargestKeyAsFloat := 0;
+    ScanRegistry(HKEY_LOCAL_MACHINE, 'SOFTWARE\WOW6432Node\Embarcadero\BDS\');
+    ScanRegistry(HKEY_CURRENT_USER, 'SOFTWARE\Embarcadero\BDS\');
+
+    Result := LargestKeyDelphiRootDir;
+    if Result <> '' then
+    begin
+      Result := InclPathDelim(Result);
+      AppExe := LargestKeyDelphiApp;
+    end;
+  finally FreeAndNil(R)end;
+{$else}
+begin
+  // just in case Delphi IDE will be available on non-Windows some day
+  Result := FindExe('dcc32');
+  if Result <> '' then
+    Result := ExtractFilePath(Result);
+{$endif}
+
+  if (Result = '') and ExceptionWhenMissing then
+    raise EExecutableNotFound.Create('Cannot find Delphi installation in the registry. Make sure Delphi is installed correctly.');
+end;
+
+function FindDelphiPath(const ExceptionWhenMissing: Boolean): String;
+var
+  IgnoreAppExe: String;
+begin
+  Result := FindDelphiPath(ExceptionWhenMissing, IgnoreAppExe);
 end;
 
 end.

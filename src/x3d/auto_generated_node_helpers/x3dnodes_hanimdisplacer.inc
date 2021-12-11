@@ -31,16 +31,34 @@
     function GetWeight: Single;
     procedure SetWeight(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCoordIndex: TMFInt32;
+    { X3D field "coordIndex". } { }
+    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: array of LongInt);
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: TLongIntList);
+
+    strict private FFdDisplacements: TMFVec3f;
+    { X3D field "displacements". } { }
+    public property FdDisplacements: TMFVec3f read FFdDisplacements;
     { Set X3D field "displacements". } { }
     procedure SetDisplacements(const Value: array of TVector3);
     { Set X3D field "displacements". } { }
     procedure SetDisplacements(const Value: TVector3List);
+
+    strict private FFdName: TSFString;
+    { X3D field "name". } { }
+    public property FdName: TSFString read FFdName;
     { X3D field "name". } { }
     property NameField: String read GetNameField write SetNameField;
+
+    strict private FFdWeight: TSFFloat;
+    { X3D field "weight". } { }
+    public property FdWeight: TSFFloat read FFdWeight;
     { X3D field "weight". } { }
     property Weight: Single read GetWeight write SetWeight;
 
@@ -88,6 +106,34 @@ end;
 procedure THAnimDisplacerNode.SetWeight(const Value: Single);
 begin
   FdWeight.Send(Value);
+end;
+
+class function THAnimDisplacerNode.ClassX3DType: String;
+begin
+  Result := 'HAnimDisplacer';
+end;
+
+procedure THAnimDisplacerNode.CreateNode;
+begin
+  inherited;
+
+  FFdCoordIndex := TMFInt32.Create(Self, True, 'coordIndex', []);
+   FdCoordIndex.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCoordIndex);
+
+  FFdDisplacements := TMFVec3f.Create(Self, True, 'displacements', []);
+   FdDisplacements.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDisplacements);
+
+  FFdName := TSFString.Create(Self, True, 'name', '');
+   FdName.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdName);
+
+  FFdWeight := TSFFloat.Create(Self, True, 'weight', 0.0);
+   FdWeight.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdWeight);
+
+  DefaultContainerField := 'displacers';
 end;
 
 {$endif read_implementation}

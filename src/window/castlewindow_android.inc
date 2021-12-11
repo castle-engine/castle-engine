@@ -40,6 +40,7 @@ CastleAndroidInternalCWString, CastleAndroidInternalLooper,
 CastleAndroidInternalLog, CastleAndroidInternalAssetStream,
 CastleAndroidInternalConfiguration,
 {$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif} CastleDynLib,
+{$ifdef CASTLE_PNG_DYNAMIC} CastleInternalPng, {$endif}
 CastleInternalOpenAL, CastleInternalVorbisFile, CastleInternalFreeTypeH, CastleInternalZLib,
 {$endif}
 

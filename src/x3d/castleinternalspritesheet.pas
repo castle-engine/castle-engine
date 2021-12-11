@@ -489,21 +489,10 @@ type
     CoordInterp: TCoordinateInterpolatorNode;
     TexCoordInterp: TCoordinateInterpolator2DNode;
 
-    { Current frame tex cords and anchors }
-    X1: Single;
-    Y1: Single;
-    X2: Single;
-    Y2: Single;
-    AnchorX: Single;
-    AnchorY: Single;
-
     FSpriteSheet: TCastleSpriteSheet;
 
     procedure PrepareContainer;
 
-    procedure CalculateAnchors(const Frame: TCastleSpriteSheetFrame);
-    procedure PrepareTexCordsForX3D(const Frame: TCastleSpriteSheetFrame;
-      const ImageWidth, ImageHeight: Integer);
     { In case of X3D here we calculate anchors and set frame cords }
     procedure CalculateFrameCoords(const Frame: TCastleSpriteSheetFrame);
 
@@ -607,91 +596,136 @@ begin
   FRoot.AddChildren(Shape);
 end;
 
-procedure TCastleSpriteSheetX3DExporter.CalculateAnchors(
-  const Frame: TCastleSpriteSheetFrame);
-var
-  FrameAnchorX: Integer;
-  FrameAnchorY: Integer;
-begin
-  { I found some starling files which may have the last frame of the animation
-    with the size set to 0 so we need check this here (division by zero error)
-    example:
-    https://github.com/pammimeow/fatty-starling-as3-game/blob/master/assets/sprite%20elements.xml }
-  if Frame.Trimmed and (Frame.WidthInAtlas <> 0) and (Frame.HeightInAtlas <> 0) then
-  begin
-    { When frame is trimmed Width and Height does not mean the full size
-      of the frame, so we have to calculate the appropriate
-      anchor to get the correct position because it will not be (0.5, 0.5) }
-
-    { Anchor in pixels (Without translation to correct texture point
-      because we don't need that. Just add X1, Y1 to have correct position.) }
-    FrameAnchorX := Frame.FrameWidth div 2 + Frame.LeftOffset;
-    FrameAnchorY := Frame.FrameHeight div 2 + Frame.TopOffset;
-
-    { Convert to 0.0..1.0 coordinate system }
-    AnchorX := 1 / Frame.WidthInAtlas * FrameAnchorX;
-    AnchorY := 1 / Frame.HeightInAtlas * FrameAnchorY;
-  end else
-  begin
-    AnchorX := 0.5;
-    AnchorY := 0.5;
-  end;
-end;
-
-procedure TCastleSpriteSheetX3DExporter.PrepareTexCordsForX3D(
-  const Frame: TCastleSpriteSheetFrame; const ImageWidth, ImageHeight: Integer);
-begin
-  X1 := 1 / FSpriteSheet.AtlasWidth * Frame.XInAtlas;
-  Y1 := 1 / FSpriteSheet.AtlasHeight * Frame.YInAtlas;
-  X2 := 1 / FSpriteSheet.AtlasWidth * (Frame.XInAtlas + Frame.WidthInAtlas);
-  Y2 := 1 / FSpriteSheet.AtlasHeight * (Frame.YInAtlas + Frame.HeightInAtlas);
-end;
-
 procedure TCastleSpriteSheetX3DExporter.CalculateFrameCoords(
   const Frame: TCastleSpriteSheetFrame);
+
+  procedure CalculateAnchors(const Frame: TCastleSpriteSheetFrame; out AnchorX, AnchorY: Single);
+  var
+    FrameAnchorX: Integer;
+    FrameAnchorY: Integer;
+  begin
+    { I found some starling files which may have the last frame of the animation
+      with the size set to 0 so we need check this here (division by zero error)
+      example:
+      https://github.com/pammimeow/fatty-starling-as3-game/blob/master/assets/sprite%20elements.xml }
+    if Frame.Trimmed and (Frame.WidthInAtlas <> 0) and (Frame.HeightInAtlas <> 0) then
+    begin
+      { When frame is trimmed Width and Height does not mean the full size
+        of the frame, so we have to calculate the appropriate
+        anchor to get the correct position because it will not be (0.5, 0.5) }
+
+      { Anchor in pixels (Without translation to correct texture point
+        because we don't need that. Just add X1, Y1 to have correct position.) }
+      FrameAnchorX := Frame.FrameWidth div 2 + Frame.LeftOffset;
+      FrameAnchorY := Frame.FrameHeight div 2 + Frame.TopOffset;
+
+      { Convert to 0.0..1.0 coordinate system }
+      AnchorX := 1 / Frame.WidthInAtlas * FrameAnchorX;
+      AnchorY := 1 / Frame.HeightInAtlas * FrameAnchorY;
+    end else
+    begin
+      AnchorX := 0.5;
+      AnchorY := 0.5;
+    end;
+  end;
+
+  procedure AddCoords(const Frame: TCastleSpriteSheetFrame);
+  var
+    AnchorX, AnchorY: Single;
+    X1: Single;
+    Y1: Single;
+    X2: Single;
+    Y2: Single;
+  begin
+    CalculateAnchors(Frame, AnchorX, AnchorY);
+
+    X1 := -Frame.WidthInAtlas * AnchorX;
+    Y1 := -Frame.HeightInAtlas * (1 - AnchorY);
+    X2 := Frame.WidthInAtlas * (1 - AnchorX);
+    Y2 := Frame.HeightInAtlas * AnchorY;
+
+    FCoordArray[0] := Vector3(X1, Y1, 0);
+    FCoordArray[1] := Vector3(X2, Y1, 0);
+    FCoordArray[2] := Vector3(X2, Y2, 0);
+    FCoordArray[3] := Vector3(X1, Y1, 0);
+    FCoordArray[4] := Vector3(X2, Y2, 0);
+    FCoordArray[5] := Vector3(X1, Y2, 0);
+  end;
+
+  procedure AddTexCords(
+    const Frame: TCastleSpriteSheetFrame; const ImageWidth, ImageHeight: Integer);
+  var
+    { Current frame tex cords }
+    X1: Single;
+    Y1: Single;
+    X2: Single;
+    Y2: Single;
+  begin
+    X1 := 1 / FSpriteSheet.AtlasWidth * Frame.XInAtlas;
+    Y1 := 1 / FSpriteSheet.AtlasHeight * Frame.YInAtlas;
+    X2 := 1 / FSpriteSheet.AtlasWidth * (Frame.XInAtlas + Frame.WidthInAtlas);
+    Y2 := 1 / FSpriteSheet.AtlasHeight * (Frame.YInAtlas + Frame.HeightInAtlas);
+
+    FTexCoordArray[0] := Vector2(X1, Y1);
+    FTexCoordArray[1] := Vector2(X2, Y1);
+    FTexCoordArray[2] := Vector2(X2, Y2);
+    FTexCoordArray[3] := Vector2(X1, Y1);
+    FTexCoordArray[4] := Vector2(X2, Y2);
+    FTexCoordArray[5] := Vector2(X1, Y2);
+  end;
+
 begin
-  CalculateAnchors(Frame);
-  FCoordArray[0] := Vector3(-Frame.WidthInAtlas * (AnchorX),
-      -Frame.HeightInAtlas * (1 - AnchorY), 0);
-
-  FCoordArray[1] := Vector3(Frame.WidthInAtlas * (1 - AnchorX),
-      -Frame.HeightInAtlas * (1 - AnchorY), 0);
-
-  FCoordArray[2] := Vector3(Frame.WidthInAtlas * (1 - AnchorX),
-      Frame.HeightInAtlas * AnchorY, 0);
-
-  FCoordArray[3] := Vector3(-Frame.WidthInAtlas * AnchorX,
-      -Frame.HeightInAtlas * (1 - AnchorY), 0);
-
-  FCoordArray[4] := Vector3(Frame.WidthInAtlas * (1 - AnchorX),
-      Frame.HeightInAtlas * AnchorY, 0);
-
-  FCoordArray[5] := Vector3(-Frame.WidthInAtlas * AnchorX,
-      Frame.HeightInAtlas * AnchorY, 0);
-
-  PrepareTexCordsForX3D(Frame, FSpriteSheet.FAtlasWidth, FSpriteSheet.FAtlasHeight);
-
-  FTexCoordArray[0] := Vector2(X1, Y1);
-  FTexCoordArray[1] := Vector2(X2, Y1);
-  FTexCoordArray[2] := Vector2(X2, Y2);
-  FTexCoordArray[3] := Vector2(X1, Y1);
-  FTexCoordArray[4] := Vector2(X2, Y2);
-  FTexCoordArray[5] := Vector2(X1, Y2);
+  AddCoords(Frame);
+  AddTexCords(Frame, FSpriteSheet.FAtlasWidth, FSpriteSheet.FAtlasHeight);
 end;
 
 procedure TCastleSpriteSheetX3DExporter.PrepareAnimation(const Name: String);
 begin
   TimeSensor := TTimeSensorNode.Create(Name);
   CoordInterp := TCoordinateInterpolatorNode.Create(Name + '_Coord');
+  CoordInterp.Interpolation := inStep;
   TexCoordInterp := TCoordinateInterpolator2DNode.Create(Name + '_TexCoord');
+  TexCoordInterp.Interpolation := inStep;
 end;
 
 procedure TCastleSpriteSheetX3DExporter.AddAnimation(
   const Animation: TCastleSpriteSheetAnimation);
 var
+  FrameCount: Integer;
+
+  { CoordInterp often has a dummy animation, that actually wants the same coordinates
+    every frame. In this case it can be simplified. }
+  procedure OptimizeCoordInterp;
+  const
+    PerFrameValues = 6;
+  var
+    Values: TVector3List;
+    I: Integer;
+  begin
+    Assert(CoordInterp.FdKeyValue.Count = PerFrameValues * FrameCount);
+    Assert(FShapeCoord.FdPoint.Count = PerFrameValues);
+
+    Values := CoordInterp.FdKeyValue.Items;
+    for I := 1 to FrameCount - 1 do
+    begin
+      if not CompareMem(Values.List, Values.Ptr(I * PerFrameValues), SizeOf(TVector3) * PerFrameValues) then
+        Exit; // optimization not possible
+    end;
+
+    { optimization possible: simplify CoordInterp to 1 frame, or even remove CoordInterp }
+    if CompareMem(Values.List, FShapeCoord.FdPoint.Items.List, SizeOf(TVector3) * PerFrameValues) then
+    begin
+      FreeIfUnusedAndNil(CoordInterp);
+    end else
+    begin
+      CoordInterp.FdKey.Count := 1;
+      CoordInterp.FdKeyValue.Count := PerFrameValues;
+    end;
+  end;
+
+var
   I: Integer;
   Key: Single;
-  FrameCount: Integer;
 begin
   FrameCount := Animation.FrameCount;
   { Set Cycle Interval becouse we know now frame count }
@@ -701,39 +735,31 @@ begin
   for I := 0 to FrameCount - 1 do
   begin
     Key := I / FrameCount;
-
     CoordInterp.FdKey.Items.Add(Key);
     TexCoordInterp.FdKey.Items.Add(Key);
-    if I > 0 then
-    begin
-      CoordInterp.FdKey.Items.Add(Key);
-      TexCoordInterp.FdKey.Items.Add(Key);
-    end;
   end;
 
-  { This way, we have keys like
-    0 0.333 0.333 0.666 0.666 1
-    That is, all keys are repeated, except 0 and 1. }
-  CoordInterp.FdKey.Items.Add(1.0);
-  TexCoordInterp.FdKey.Items.Add(1.0);
+  OptimizeCoordInterp;
 
-  { Add TimeSensor, CoordinateInterpolatorNode,
-    CoordinateInterpolator2DNode to Root node }
+  { Add TimeSensor to Root node }
   FRoot.AddChildren(TimeSensor);
-  FRoot.AddChildren(CoordInterp);
+
+  { Add TextureCoordinate animation }
   FRoot.AddChildren(TexCoordInterp);
-  { Create routes. }
-  FRoot.AddRoute(TimeSensor.EventFraction_changed, CoordInterp.EventSet_fraction);
   FRoot.AddRoute(TimeSensor.EventFraction_changed, TexCoordInterp.EventSet_fraction);
-  FRoot.AddRoute(CoordInterp.EventValue_changed, FShapeCoord.FdPoint);
   FRoot.AddRoute(TexCoordInterp.EventValue_changed, FShapeTexCoord.FdPoint);
+
+  { Add Coordinate animation }
+  if CoordInterp <> nil then
+  begin
+    FRoot.AddChildren(CoordInterp);
+    FRoot.AddRoute(TimeSensor.EventFraction_changed, CoordInterp.EventSet_fraction);
+    FRoot.AddRoute(CoordInterp.EventValue_changed, FShapeCoord.FdPoint);
+  end;
 end;
 
 procedure TCastleSpriteSheetX3DExporter.AddFrame;
 begin
-  CoordInterp.FdKeyValue.Items.AddRange(FCoordArray);
-  TexCoordInterp.FdKeyValue.Items.AddRange(FTexCoordArray);
-  { Repeat all keyValues, to avoid interpolating them smoothly between two keys }
   CoordInterp.FdKeyValue.Items.AddRange(FCoordArray);
   TexCoordInterp.FdKeyValue.Items.AddRange(FTexCoordArray);
 end;

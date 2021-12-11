@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,7 +22,7 @@ interface
 
 uses Classes, SysUtils, DOM, Generics.Collections,
   CastleVectors, CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
-  CastleImages, CastleStringUtils, CastleInterfaces,
+  CastleImages, CastleStringUtils,
   X3DTime, CastleColors, CastleQuaternions;
 
 {$define read_interface}

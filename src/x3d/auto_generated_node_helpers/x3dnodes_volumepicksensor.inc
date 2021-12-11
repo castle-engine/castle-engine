@@ -25,11 +25,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TVolumePickSensorNode ----------------------------------------------- }
+
+class function TVolumePickSensorNode.ClassX3DType: String;
+begin
+  Result := 'VolumePickSensor';
+end;
+
+procedure TVolumePickSensorNode.CreateNode;
+begin
+  inherited;
+end;
 
 {$endif read_implementation}

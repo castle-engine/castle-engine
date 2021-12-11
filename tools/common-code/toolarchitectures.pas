@@ -142,6 +142,7 @@ const
     {$ifdef CPUmipsel} mipsel {$endif}
     {$ifdef CPUjvm} jvm {$endif}
     {$ifdef CPUi8086} i8086 {$endif}
+    {$ifdef CPUsparc64} sparc64 {$endif}
   ;
 
   DefaultOS: TOS =

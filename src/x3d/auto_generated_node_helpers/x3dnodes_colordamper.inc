@@ -31,8 +31,30 @@
     function GetInitialValue: TCastleColorRGB;
     procedure SetInitialValue(const Value: TCastleColorRGB);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_destination: TSFColorEvent;
+    { X3D in event "set_destination". } { }
+    public property EventSet_destination: TSFColorEvent read FEventSet_destination;
+
+    strict private FEventSet_value: TSFColorEvent;
+    { X3D in event "set_value". } { }
+    public property EventSet_value: TSFColorEvent read FEventSet_value;
+
+    strict private FEventValue_changed: TSFColorEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFColorEvent read FEventValue_changed;
+
+    strict private FFdInitialDestination: TSFColor;
+    { X3D field "initialDestination". } { }
+    public property FdInitialDestination: TSFColor read FFdInitialDestination;
     { X3D field "initialDestination". } { }
     property InitialDestination: TCastleColorRGB read GetInitialDestination write SetInitialDestination;
+
+    strict private FFdInitialValue: TSFColor;
+    { X3D field "initialValue". } { }
+    public property FdInitialValue: TSFColor read FFdInitialValue;
     { X3D field "initialValue". } { }
     property InitialValue: TCastleColorRGB read GetInitialValue write SetInitialValue;
 
@@ -60,6 +82,33 @@ end;
 procedure TColorDamperNode.SetInitialValue(const Value: TCastleColorRGB);
 begin
   FdInitialValue.Send(Value);
+end;
+
+class function TColorDamperNode.ClassX3DType: String;
+begin
+  Result := 'ColorDamper';
+end;
+
+procedure TColorDamperNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_destination := TSFColorEvent.Create(Self, 'set_destination', true);
+  AddEvent(FEventSet_destination);
+
+  FEventSet_value := TSFColorEvent.Create(Self, 'set_value', true);
+  AddEvent(FEventSet_value);
+
+  FEventValue_changed := TSFColorEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
+
+  FFdInitialDestination := TSFColor.Create(Self, False, 'initialDestination', Vector3(0.8, 0.8, 0.8));
+   FdInitialDestination.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInitialDestination);
+
+  FFdInitialValue := TSFColor.Create(Self, False, 'initialValue', Vector3(0.8, 0.8, 0.8));
+   FdInitialValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInitialValue);
 end;
 
 {$endif read_implementation}

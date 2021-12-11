@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2020 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,7 +43,8 @@ type
     { Generalized version of AssignAttribute, AssignCoordinate. }
     procedure AssignAttributeOrCoordinate(
       const TargetPtr: Pointer; const TargetItemSize: SizeInt;
-      const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+      const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+      const TrivialIndex: Boolean);
   protected
     { How Geometry and State are generated from Shape.
       We have to record it, to use with Shape.Normals* later. }
@@ -51,6 +52,26 @@ type
 
     { Indexes, only when Arrays.Indexes = nil but original node was indexed. }
     IndexesFromCoordIndex: TGeometryIndexList;
+
+    { Similar to IndexesFromCoordIndex, but not processed by CoordIndex[].
+      That is,
+
+        IndexesFromCoordIndex.L[Something] := CoordIndex.Items.L[SomethingElse];
+
+      where
+
+        TrivialIndexesFromCoordIndex.L[Something] := SomethingElse;
+
+      This is only non-nil when
+
+      - IndexesFromCoordIndex is non-nil
+      - moreover, node generator could use TrivialIndex.
+
+      Which is possible only when node may be indexed, but also use niPerVertexNonIndexed
+      at the same time, which is only possible for IndexedFaceSet with
+      non-trivial creaseAngle (the "Shape.NormalsCreaseAngle" then force
+      niPerVertexNonIndexed). }
+    TrivialIndexesFromCoordIndex: TGeometryIndexList;
 
     { Index to Arrays. Suitable always to index Arrays.Position / Color / Normal
       and other Arrays attribute arrays. Calculated in
@@ -198,7 +219,8 @@ type
       so the Source array (defined by SourcePtr, SourceItemSize, SourceCount) is accessed
       in the same way as vertex coordinates: it is either indexed by shape coordIndex/index,
       or it is not indexed. }
-    procedure AssignAttribute(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+    procedure AssignAttribute(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+      const TrivialIndex: Boolean = false);
 
     { Fill some attribute inside Arrays (in the Arrays.CoordinateArray, Arrays.CoordinateSize).
 
@@ -206,7 +228,8 @@ type
       so the Source array (defined by SourcePtr, SourceItemSize, SourceCount) is accessed
       in the same way as vertex coordinates: it is either indexed by shape coordIndex/index,
       or it is not indexed. }
-    procedure AssignCoordinate(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+    procedure AssignCoordinate(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+      const TrivialIndex: Boolean = false);
   public
     { Assign these before calling GenerateArrays.
       @groupBegin }
@@ -852,12 +875,16 @@ begin
         WritelnWarning('X3D', Format('Invalid number of items in a normal or texture coordinate array for shape "%s": %s',
           [Shape.NiceName, E.Message]));
     end;
-  finally FreeAndNil(IndexesFromCoordIndex); end;
+  finally
+    FreeAndNil(IndexesFromCoordIndex);
+    FreeAndNil(TrivialIndexesFromCoordIndex);
+  end;
 end;
 
 procedure TArraysGenerator.AssignAttributeOrCoordinate(
   const TargetPtr: Pointer; const TargetItemSize: SizeInt;
-  const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+  const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  const TrivialIndex: Boolean);
 begin
   { Following TArraysGenerator.GenerateArrays logic, there are various cases:
 
@@ -885,21 +912,28 @@ begin
       - So we have coordIndex on geometry, but we have to "expand" data when copying,
         making it non-indexed, because for some reason we cannot render it indexed
   }
-
+  if TrivialIndex then
+  begin
+    Assert(not Arrays.CoordinatePreserveGeometryOrder, 'Set AllowIndexed := false when there''s a possibility to call with TrivialIndex');
+    Assert(TrivialIndexesFromCoordIndex <> nil, 'Generate TrivialIndexesFromCoordIndex for all geometries that may call with TrivialIndex');
+    AssignToInterleavedIndexed(TargetPtr, TargetItemSize, Arrays.Count, SourcePtr, SourceItemSize, SourceCount, TrivialIndexesFromCoordIndex);
+  end else
   if Arrays.CoordinatePreserveGeometryOrder then
     AssignToInterleaved       (TargetPtr, TargetItemSize, Arrays.Count, SourcePtr, SourceItemSize, SourceCount)
   else
     AssignToInterleavedIndexed(TargetPtr, TargetItemSize, Arrays.Count, SourcePtr, SourceItemSize, SourceCount, IndexesFromCoordIndex);
 end;
 
-procedure TArraysGenerator.AssignAttribute(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+procedure TArraysGenerator.AssignAttribute(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  const TrivialIndex: Boolean);
 begin
-  AssignAttributeOrCoordinate(TargetPtr, Arrays.AttributeSize, SourcePtr, SourceItemSize, SourceCount);
+  AssignAttributeOrCoordinate(TargetPtr, Arrays.AttributeSize, SourcePtr, SourceItemSize, SourceCount, TrivialIndex);
 end;
 
-procedure TArraysGenerator.AssignCoordinate(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+procedure TArraysGenerator.AssignCoordinate(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  const TrivialIndex: Boolean);
 begin
-  AssignAttributeOrCoordinate(TargetPtr, Arrays.CoordinateSize, SourcePtr, SourceItemSize, SourceCount);
+  AssignAttributeOrCoordinate(TargetPtr, Arrays.CoordinateSize, SourcePtr, SourceItemSize, SourceCount, TrivialIndex);
 end;
 
 procedure TArraysGenerator.PrepareAttributes(var AllowIndexed: boolean);
@@ -1830,7 +1864,14 @@ begin
         - there is no coordIndex, and normal vectors are not indexed
         - there is coordIndex, and normal vectors are indexed by coordIndex
         - also niOverall, niUnlit can work in every possible case
-          (they just set the same value always). }
+          (they just set the same value always).
+
+        Note that when niPerVertexNonIndexed and CoordIndex <> nil,
+        then we set AllowIndexed := false.
+        This happens in particular when we have auto-generated normals based
+        on creaseAngle in IndexedFaceSet.
+        Testcase: auto_normals_indexed_geometry.x3dv
+      }
       (NorImplementation in [niPerVertexCoordIndexed, niOverall, niUnlit]) or
      ((NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil)) ) then
     AllowIndexed := false;
@@ -1940,8 +1981,10 @@ begin
   inherited;
 
   case NorImplementation of
-    niPerVertexCoordIndexed, niPerVertexNonIndexed:
+    niPerVertexCoordIndexed:
       AssignCoordinate(Arrays.Normal, Normals.L, Normals.ItemSize, Normals.Count);
+    niPerVertexNonIndexed:
+      AssignCoordinate(Arrays.Normal, Normals.L, Normals.ItemSize, Normals.Count, CoordIndex <> nil);
     niOverall: SetAllNormals(NormalsSafe(0));
     niUnlit: SetAllNormals(TVector3.Zero);
     else ;

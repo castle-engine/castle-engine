@@ -137,7 +137,7 @@
   { Interpolate (animate) positions along the 3D NURBS curve. }
   TNurbsPositionInterpolatorNode_2 = class(TAbstractChildNode)
   strict private
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -330,7 +330,7 @@ begin
   FEventremoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
   AddEvent(FEventremoveChildren);
 
-  FFdchildren := TMFNode.Create(Self, true, 'children', IAbstractChildNode);
+  FFdchildren := TMFNode.Create(Self, true, 'children', [TAbstractChildNode]);
   AddField(FFdchildren);
 
   FFdcontrolPoint := TMFVec3f.Create(Self, true, 'controlPoint', []);
@@ -524,7 +524,7 @@ begin
 end;
 
 procedure TNurbsPositionInterpolatorNode_2.EventSet_FractionReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   Knot, KeyWeight: TDoubleList;
   OutputValue: TVector3;

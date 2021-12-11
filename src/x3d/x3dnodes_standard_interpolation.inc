@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,21 +14,37 @@
 }
 
 {$ifdef read_interface}
+  { Interpolation mode, for @link(TAbstractInterpolatorNode.Interpolation). }
+  TInterpolation = (
+    { The value changes linearly from previous to next. }
+    inLinear,
+    { The value changes immediately from previous to next,
+      at the time of next key.
+      Before the time of 1st key, the value is equal to the 1st value.
+
+      E.g. key = [ 0.1, 0.2 ], keyValue = [ 1 2 ] =>
+      value is 1 when time is [0, 0.2),
+      value is 2 when time is [0.2, ...].
+
+      This is consistent with glTF "step" interpolation,
+      see https://www.khronos.org/registry/glTF/specs/2.0/glTF-2.0.html#appendix-c-interpolation . }
+    inStep
+  );
+
+
   { Basis for all nodes interpolating (animating) values. }
   TAbstractInterpolatorNode = class(TAbstractChildNode)
   strict protected
     function KeyRange(const Fraction: Single; out T: Single): Integer;
+  protected
+    function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
-    procedure CreateNode; override;
+    { TODO: Interpolation is now a regular Pascal class field,
+      not X3D field, to conserve memory use.
+      This matters greatly in case of e.g. https://github.com/castle-engine/castle-engine/issues/285 }
+    Interpolation: TInterpolation;
 
-    { Event in } { }
-    strict private FEventSet_fraction: TSFFloatEvent;
-    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
-
-    strict private FFdKey: TMFFloat;
-    public property FdKey: TMFFloat read FFdKey;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dinterpolatornode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dinterpolatornode.inc}
   end;
 
   { Basis for all nodes interpolating (animating) a single value. }
@@ -39,7 +55,7 @@
     TKeyValueEvent> = class(TAbstractInterpolatorNode)
   strict private
     function KeyValue(Index: Integer): TInterpolatedValue;
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   strict protected
     function InterpolatorDefault: TInterpolatedValue; virtual;
@@ -64,7 +80,7 @@
   strict private
     function KeyValue(const Index, KeyCount: Integer): TKeyValue;
     function KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TKeyValue;
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   strict protected
     procedure InterpolatorLerp(const Target: TKeyValue;
@@ -89,10 +105,8 @@
   strict protected
     function InterpolatorLerp(const A: Single;
       const V1, V2: TVector3): TVector3; override;
-  public
-    class function ClassX3DType: string; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_colorinterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_colorinterpolator.inc}
   end;
 
   { Interpolate (animate) a set of colors,
@@ -105,10 +119,8 @@
     procedure InterpolatorLerp(const Target: TMFColor;
       const Fraction: Single; const F1, F2: TMFColor;
       const Index1, Index2, ACount: Integer); override;
-  public
-    class function ClassX3DType: string; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc}
   end;
 
   { Interpolate (animate) a set of 3D positions,
@@ -116,10 +128,8 @@
   TCoordinateInterpolatorNode = class(specialize TAbstractArrayInterpolatorNode<
     TMFVec3f,
     TMFVec3fEvent>)
-  public
-    class function ClassX3DType: string; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
   end;
 
   { Interpolate (animate) a set of 2D positions,
@@ -127,35 +137,15 @@
   TCoordinateInterpolator2DNode = class(specialize TAbstractArrayInterpolatorNode<
     TMFVec2f,
     TMFVec2fEvent>)
-  public
-    class function ClassX3DType: string; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
   end;
 
   { Support controlled gradual transitions by modifying
     TimeSensor node fractions.
     @bold(Not implemented yet.) }
-  TEaseInEaseOutNode = class(TAbstractNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    { Event in } { }
-    strict private FEventSet_fraction: TSFFloatEvent;
-    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
-
-    strict private FFdEaseInEaseOut: TMFVec2f;
-    public property FdEaseInEaseOut: TMFVec2f read FFdEaseInEaseOut;
-
-    strict private FFdKey: TMFFloat;
-    public property FdKey: TMFFloat read FFdKey;
-
-    { Event out } { }
-    strict private FEventModifiedFraction_changed: TSFFloatEvent;
-    public property EventModifiedFraction_changed: TSFFloatEvent read FEventModifiedFraction_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_easeineaseout.inc}
+  TEaseInEaseOutNode = class(TAbstractChildNode)
+  {$I auto_generated_node_helpers/x3dnodes_easeineaseout.inc}
   end;
 
   { Interpolate (animate) a set of 3D directions, for example normal vectors. }
@@ -166,10 +156,8 @@
     procedure InterpolatorLerp(const Target: TMFVec3f;
       const Fraction: Single; const F1, F2: TMFVec3f;
       const Index1, Index2, ACount: Integer); override;
-  public
-    class function ClassX3DType: string; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_normalinterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_normalinterpolator.inc}
   end;
 
   { Interpolate (animate) an orientation,
@@ -181,10 +169,8 @@
   strict protected
     function InterpolatorLerp(const A: Single;
       const V1, V2: TVector4): TVector4; override;
-  public
-    class function ClassX3DType: string; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator.inc}
   end;
 
   { Interpolate (animate) a 3D position,
@@ -196,10 +182,8 @@
   strict protected
     function InterpolatorLerp(const A: Single;
       const V1, V2: TVector3): TVector3; override;
-  public
-    class function ClassX3DType: string; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_positioninterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_positioninterpolator.inc}
   end;
 
   { Interpolate (animate) a 2D position. }
@@ -210,10 +194,8 @@
   strict protected
     function InterpolatorLerp(const A: Single;
       const V1, V2: TVector2): TVector2; override;
-  public
-    class function ClassX3DType: string; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_positioninterpolator2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_positioninterpolator2d.inc}
   end;
 
   { Interpolate (animate) a single floating-point value,
@@ -225,108 +207,32 @@
   strict protected
     function InterpolatorLerp(const A: Single;
       const V1, V2: Single): Single; override;
-  public
-    class function ClassX3DType: string; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_scalarinterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_scalarinterpolator.inc}
   end;
 
   { Non-linearly interpolate (animate) a 3D position.
     @bold(Not implemented yet.) }
   TSplinePositionInterpolatorNode = class(TAbstractInterpolatorNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdClosed: TSFBool;
-    public property FdClosed: TSFBool read FFdClosed;
-
-    strict private FFdKeyValue: TMFVec3f;
-    public property FdKeyValue: TMFVec3f read FFdKeyValue;
-
-    strict private FFdKeyVelocity: TMFVec3f;
-    public property FdKeyVelocity: TMFVec3f read FFdKeyVelocity;
-
-    strict private FFdNormalizeVelocity: TSFBool;
-    public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
-
-    { Event out } { }
-    strict private FEventValue_changed: TSFVec3fEvent;
-    public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_splinepositioninterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_splinepositioninterpolator.inc}
   end;
 
   { Non-linearly interpolate (animate) a 2D position.
     @bold(Not implemented yet.) }
   TSplinePositionInterpolator2DNode = class(TAbstractInterpolatorNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdClosed: TSFBool;
-    public property FdClosed: TSFBool read FFdClosed;
-
-    strict private FFdKeyValue: TMFVec2f;
-    public property FdKeyValue: TMFVec2f read FFdKeyValue;
-
-    strict private FFdKeyVelocity: TMFVec2f;
-    public property FdKeyVelocity: TMFVec2f read FFdKeyVelocity;
-
-    strict private FFdNormalizeVelocity: TSFBool;
-    public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
-
-    { Event out } { }
-    strict private FEventValue_changed: TSFVec2fEvent;
-    public property EventValue_changed: TSFVec2fEvent read FEventValue_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_splinepositioninterpolator2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_splinepositioninterpolator2d.inc}
   end;
 
   { Non-linearly interpolate (animate) a single floating-point value.
     @bold(Not implemented yet.) }
   TSplineScalarInterpolatorNode = class(TAbstractInterpolatorNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdClosed: TSFBool;
-    public property FdClosed: TSFBool read FFdClosed;
-
-    strict private FFdKeyValue: TMFFloat;
-    public property FdKeyValue: TMFFloat read FFdKeyValue;
-
-    strict private FFdKeyVelocity: TMFFloat;
-    public property FdKeyVelocity: TMFFloat read FFdKeyVelocity;
-
-    strict private FFdNormalizeVelocity: TSFBool;
-    public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
-
-    { Event out } { }
-    strict private FEventValue_changed: TSFFloatEvent;
-    public property EventValue_changed: TSFFloatEvent read FEventValue_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_splinescalarinterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_splinescalarinterpolator.inc}
   end;
 
   { Non-linearly interpolate (animate) a rotation.
     @bold(Not implemented yet.) }
   TSquadOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdKeyValue: TMFRotation;
-    public property FdKeyValue: TMFRotation read FFdKeyValue;
-
-    strict private FFdNormalizeVelocity: TSFBool;
-    public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
-
-    { Event out } { }
-    strict private FEventValue_changed: TSFRotationEvent;
-    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_squadorientationinterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_squadorientationinterpolator.inc}
   end;
 
   { Interpolate (animate) a set of floats, for example to animate
@@ -334,36 +240,40 @@
   TVectorInterpolatorNode = class(specialize TAbstractArrayInterpolatorNode<
     TMFFloat,
     TMFFloatEvent>)
-  public
-    class function ClassX3DType: string; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
+{ // unused for now
+const
+  InterpolationNames: array [TInterpolation] of String = (
+    'LINEAR',
+    'STEP'
+  );
+}
+
 { TAbstractInterpolatorNode -------------------------------------------------- }
-
-procedure TAbstractInterpolatorNode.CreateNode;
-begin
-  inherited;
-
-  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
-  AddEvent(FEventSet_fraction);
-
-  FFdKey := TMFFloat.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'key', []);
-  AddField(FFdKey);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
-end;
 
 function TAbstractInterpolatorNode.KeyRange(
   const Fraction: Single; out T: Single): Integer;
 begin
   Result := X3DNodes.KeyRange(FdKey.Items, Fraction, T);
+end;
+
+function TAbstractInterpolatorNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;
+var
+  ResultI: TAbstractInterpolatorNode;
+begin
+  Result := inherited DeepCopyCore(CopyState);
+  ResultI := Result as TAbstractInterpolatorNode;
+
+  { TODO: As Interpolation is now a regular Pascal class field, not X3D field,
+    it needs to be copied manually. }
+  ResultI.Interpolation := Interpolation;
 end;
 
 { TAbstractSingleInterpolatorNode -------------------------------------------- }
@@ -384,7 +294,7 @@ procedure TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   TInterpolatedValue,
   TKeyValue,
   TKeyValueEvent>{$endif} .
-  EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   T: Single;
   OutputValue: TInterpolatedValue;
@@ -409,7 +319,15 @@ begin
   if Range = KeyCount then
     OutputValue := KeyValue(KeyCount - 1)
   else
-    OutputValue := InterpolatorLerp(T, KeyValue(Range - 1), KeyValue(Range));
+  begin
+    case Interpolation of
+      inLinear: OutputValue := InterpolatorLerp(T, KeyValue(Range - 1), KeyValue(Range));
+      inStep  : OutputValue := KeyValue(Range - 1);
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TAbstractSingleInterpolatorNode:Interpolation?');
+      {$endif}
+    end;
+  end;
 
   EventValue_Changed.Send(OutputValue, Time, Value.InternalPartialSend);
 end;
@@ -427,8 +345,6 @@ begin
 
   FEventValue_changed := TKeyValueEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
-
-  DefaultContainerField := 'children';
 
   EventSet_Fraction.AddNotification(
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
@@ -500,7 +416,7 @@ end;
 procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   TKeyValue,
   TKeyValueEvent>{$endif} .
-  EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   KeyCount: Integer;
   T: Single;
@@ -528,7 +444,16 @@ begin
   if Range = KeyCount then
     OutputValue := KeyValue(KeyCount - 1, KeyCount)
   else
-    OutputValue := KeyValueLerp(T, Range - 1, Range, KeyCount);
+  begin
+    case Interpolation of
+      inLinear: OutputValue := KeyValueLerp(T, Range - 1, Range, KeyCount);
+      inStep  : OutputValue := KeyValue(Range - 1, KeyCount);
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TAbstractSingleInterpolatorNode:Interpolation?');
+      {$endif}
+    end;
+  end;
+
   OutputValue.InternalPartialSend := Value.InternalPartialSend;
   try
     EventValue_Changed.Send(OutputValue, Time);
@@ -550,8 +475,6 @@ begin
   FEventValue_changed := TKeyValueEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
 
-  DefaultContainerField := 'children';
-
   EventSet_Fraction.AddNotification(
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
@@ -568,11 +491,6 @@ end;
 
 { TColorInterpolatorNode ----------------------------------------------------- }
 
-class function TColorInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'ColorInterpolator';
-end;
-
 function TColorInterpolatorNode.InterpolatorLerp(const A: Single;
   const V1, V2: TVector3): TVector3;
 begin
@@ -581,11 +499,6 @@ end;
 
 { TColorSetInterpolatorNode -------------------------------------------------- }
 
-class function TColorSetInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'ColorSetInterpolator';
-end;
-
 procedure TColorSetInterpolatorNode.InterpolatorLerp(const Target: TMFColor;
   const Fraction: Single; const F1, F2: TMFColor;
   const Index1, Index2, ACount: Integer);
@@ -593,48 +506,7 @@ begin
   Target.Items.AssignLerpRgbInHsv(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
 end;
 
-{ TCoordinateInterpolatorNode ------------------------------------------------ }
-
-class function TCoordinateInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'CoordinateInterpolator';
-end;
-
-class function TCoordinateInterpolator2DNode.ClassX3DType: string;
-begin
-  Result := 'CoordinateInterpolator2D';
-end;
-
-procedure TEaseInEaseOutNode.CreateNode;
-begin
-  inherited;
-
-  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
-  AddEvent(FEventSet_fraction);
-
-  FFdEaseInEaseOut := TMFVec2f.Create(Self, true, 'easeInEaseOut', []);
-  AddField(FFdEaseInEaseOut);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdKey := TMFFloat.Create(Self, true, 'key', []);
-  AddField(FFdKey);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FEventModifiedFraction_changed := TSFFloatEvent.Create(Self, 'modifiedFraction_changed', false);
-  AddEvent(FEventModifiedFraction_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TEaseInEaseOutNode.ClassX3DType: string;
-begin
-  Result := 'EaseInEaseOut';
-end;
-
-class function TNormalInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'NormalInterpolator';
-end;
+{ TNormalInterpolatorNode -------------------------------------------------- }
 
 procedure TNormalInterpolatorNode.InterpolatorLerp(
   const Target: TMFVec3f;
@@ -644,10 +516,7 @@ begin
   Target.Items.AssignLerpNormalize(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
 end;
 
-class function TOrientationInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'OrientationInterpolator';
-end;
+{ TOrientationInterpolatorNode -------------------------------------------------- }
 
 function TOrientationInterpolatorNode.InterpolatorLerp(const A: Single;
   const V1, V2: TVector4): TVector4;
@@ -659,10 +528,7 @@ begin
   Result := SLerp(A, V1, V2);
 end;
 
-class function TPositionInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'PositionInterpolator';
-end;
+{ TPositionInterpolatorNode -------------------------------------------------- }
 
 function TPositionInterpolatorNode.InterpolatorLerp(const A: Single;
   const V1, V2: TVector3): TVector3;
@@ -670,10 +536,7 @@ begin
   Result := Lerp(A, V1, V2);
 end;
 
-class function TPositionInterpolator2DNode.ClassX3DType: string;
-begin
-  Result := 'PositionInterpolator2D';
-end;
+{ TPositionInterpolator2DNode -------------------------------------------------- }
 
 function TPositionInterpolator2DNode.InterpolatorLerp(const A: Single;
   const V1, V2: TVector2): TVector2;
@@ -681,129 +544,12 @@ begin
   Result := Lerp(A, V1, V2);
 end;
 
-class function TScalarInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'ScalarInterpolator';
-end;
+{ TScalarInterpolatorNode -------------------------------------------------- }
 
 function TScalarInterpolatorNode.InterpolatorLerp(const A: Single;
   const V1, V2: Single): Single;
 begin
   Result := Lerp(A, V1, V2);
-end;
-
-procedure TSplinePositionInterpolatorNode.CreateNode;
-begin
-  inherited;
-
-  FFdClosed := TSFBool.Create(Self, true, 'closed', false);
-  AddField(FFdClosed);
-
-  FFdKeyValue := TMFVec3f.Create(Self, true, 'keyValue', []);
-  AddField(FFdKeyValue);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdKeyVelocity := TMFVec3f.Create(Self, true, 'keyVelocity', []);
-  AddField(FFdKeyVelocity);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdNormalizeVelocity := TSFBool.Create(Self, true, 'normalizeVelocity', false);
-  AddField(FFdNormalizeVelocity);
-
-  FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TSplinePositionInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'SplinePositionInterpolator';
-end;
-
-procedure TSplinePositionInterpolator2DNode.CreateNode;
-begin
-  inherited;
-
-  FFdClosed := TSFBool.Create(Self, true, 'closed', false);
-  AddField(FFdClosed);
-
-  FFdKeyValue := TMFVec2f.Create(Self, true, 'keyValue', []);
-  AddField(FFdKeyValue);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdKeyVelocity := TMFVec2f.Create(Self, true, 'keyVelocity', []);
-  AddField(FFdKeyVelocity);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdNormalizeVelocity := TSFBool.Create(Self, true, 'normalizeVelocity', false);
-  AddField(FFdNormalizeVelocity);
-
-  FEventValue_changed := TSFVec2fEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TSplinePositionInterpolator2DNode.ClassX3DType: string;
-begin
-  Result := 'SplinePositionInterpolator2D';
-end;
-
-procedure TSplineScalarInterpolatorNode.CreateNode;
-begin
-  inherited;
-
-  FFdClosed := TSFBool.Create(Self, true, 'closed', false);
-  AddField(FFdClosed);
-
-  FFdKeyValue := TMFFloat.Create(Self, true, 'keyValue', []);
-  AddField(FFdKeyValue);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdKeyVelocity := TMFFloat.Create(Self, true, 'keyVelocity', []);
-  AddField(FFdKeyVelocity);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdNormalizeVelocity := TSFBool.Create(Self, true, 'normalizeVelocity', false);
-  AddField(FFdNormalizeVelocity);
-
-  FEventValue_changed := TSFFloatEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TSplineScalarInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'SplineScalarInterpolator';
-end;
-
-procedure TSquadOrientationInterpolatorNode.CreateNode;
-begin
-  inherited;
-
-  FFdKeyValue := TMFRotation.Create(Self, true, 'keyValue', []);
-  AddField(FFdKeyValue);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdNormalizeVelocity := TSFBool.Create(Self, true, 'normalizeVelocity', false);
-  AddField(FFdNormalizeVelocity);
-
-  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TSquadOrientationInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'SquadOrientationInterpolator';
-end;
-
-class function TVectorInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'VectorInterpolator';
 end;
 
 procedure RegisterInterpolationNodes;

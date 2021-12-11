@@ -39,18 +39,48 @@
     function GetShadowVolumes: Boolean;
     procedure SetShadowVolumes(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAmbientIntensity: TSFFloat;
+    { X3D field "ambientIntensity". } { }
+    public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
     { X3D field "ambientIntensity". } { }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
+
+    strict private FFdColor: TSFColor;
+    { X3D field "color". } { }
+    public property FdColor: TSFColor read FFdColor;
     { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
+
+    strict private FFdGlobal: TSFBool;
+    { X3D field "global". } { }
+    public property FdGlobal: TSFBool read FFdGlobal;
     { X3D field "global". } { }
     property Global: Boolean read GetGlobal write SetGlobal;
+
+    strict private FFdIntensity: TSFFloat;
+    { X3D field "intensity". } { }
+    public property FdIntensity: TSFFloat read FFdIntensity;
     { X3D field "intensity". } { }
     property Intensity: Single read GetIntensity write SetIntensity;
+
+    strict private FFdOn: TSFBool;
+    { X3D field "on". } { }
+    public property FdOn: TSFBool read FFdOn;
     { X3D field "on". } { }
     property IsOn: Boolean read GetIsOn write SetIsOn;
+
+    strict private FFdEffects: TMFNode;
+    { X3D field "effects". } { }
+    public property FdEffects: TMFNode read FFdEffects;
     { Set X3D field "effects". } { }
     procedure SetEffects(const Value: array of TEffectNode);
+
+    strict private FFdShadowVolumes: TSFBool;
+    { X3D field "shadowVolumes". } { }
+    public property FdShadowVolumes: TSFBool read FFdShadowVolumes;
     { X3D field "shadowVolumes". } { }
     property ShadowVolumes: Boolean read GetShadowVolumes write SetShadowVolumes;
 
@@ -130,6 +160,44 @@ end;
 procedure TAbstractLightNode.SetShadowVolumes(const Value: Boolean);
 begin
   FdShadowVolumes.Send(Value);
+end;
+
+class function TAbstractLightNode.ClassX3DType: String;
+begin
+  Result := 'X3DLightNode';
+end;
+
+procedure TAbstractLightNode.CreateNode;
+begin
+  inherited;
+
+  FFdAmbientIntensity := TSFFloat.Create(Self, True, 'ambientIntensity', 0);
+   FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAmbientIntensity);
+
+  FFdColor := TSFColor.Create(Self, True, 'color', Vector3(1, 1, 1));
+   FdColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdColor);
+
+  FFdGlobal := TSFBool.Create(Self, True, 'global', false);
+   FdGlobal.ChangeAlways := chEverything;
+  AddField(FFdGlobal);
+
+  FFdIntensity := TSFFloat.Create(Self, True, 'intensity', 1);
+   FdIntensity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdIntensity);
+
+  FFdOn := TSFBool.Create(Self, True, 'on', true);
+   FdOn.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOn);
+
+  FFdEffects := TMFNode.Create(Self, False, 'effects', [TEffectNode]);
+   FdEffects.ChangeAlways := chEverything;
+  AddField(FFdEffects);
+
+  FFdShadowVolumes := TSFBool.Create(Self, True, 'shadowVolumes', false);
+   FdShadowVolumes.ChangeAlways := chLightForShadowVolumes;
+  AddField(FFdShadowVolumes);
 end;
 
 {$endif read_implementation}

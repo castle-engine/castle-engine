@@ -29,12 +29,26 @@
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdPoint: TMFVec3d;
+    { X3D field "point". } { }
+    public property FdPoint: TMFVec3d read FFdPoint;
     { Set X3D field "point". } { }
     procedure SetPoint(const Value: array of TVector3Double);
     { Set X3D field "point". } { }
     procedure SetPoint(const Value: TVector3DoubleList);
+
+    strict private FFdGeoOrigin: TSFNode;
+    { X3D field "geoOrigin". } { }
+    public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+
+    strict private FFdGeoSystem: TMFString;
+    { X3D field "geoSystem". } { }
+    public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: array of string);
     { Set X3D field "geoSystem". } { }
@@ -77,6 +91,28 @@ end;
 procedure TGeoCoordinateNode.SetGeoSystem(const Value: TCastleStringList);
 begin
   FdGeoSystem.Send(Value);
+end;
+
+class function TGeoCoordinateNode.ClassX3DType: String;
+begin
+  Result := 'GeoCoordinate';
+end;
+
+procedure TGeoCoordinateNode.CreateNode;
+begin
+  inherited;
+
+  FFdPoint := TMFVec3d.Create(Self, True, 'point', []);
+   FdPoint.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPoint);
+
+  FFdGeoOrigin := TSFNode.Create(Self, False, 'geoOrigin', [TGeoOriginNode]);
+   FdGeoOrigin.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoOrigin);
+
+  FFdGeoSystem := TMFString.Create(Self, False, 'geoSystem', ['GD','WE']);
+   FdGeoSystem.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoSystem);
 end;
 
 {$endif read_implementation}

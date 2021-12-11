@@ -508,16 +508,22 @@ var
 begin
   if CastlePngInitialized then
   begin
-    VerNumber := png_access_version_number();
-    FCurrentLibpngVersionRelease := VerNumber mod 100;
-    FCurrentLibpngVersionMinor := (VerNumber mod 10000) div 100;
-    FCurrentLibpngVersionMajor := VerNumber div 10000;
-    FCurrentLibpngVersion := Format('%d.%d.%d', [
-      FCurrentLibpngVersionMajor,
-      FCurrentLibpngVersionMinor,
-      FCurrentLibpngVersionRelease
-    ]);
-    WritelnLog('LibPng detected (version %s).', [FCurrentLibpngVersion]);
+    { Repeated calls to InitializePNGUsingLibpng should do nothing.
+      This is useful because we call it now from LoadPNG, as we need to do it
+      later than "initialization" on Android. }
+    if FCurrentLibpngVersion = '' then
+    begin
+      VerNumber := png_access_version_number();
+      FCurrentLibpngVersionRelease := VerNumber mod 100;
+      FCurrentLibpngVersionMinor := (VerNumber mod 10000) div 100;
+      FCurrentLibpngVersionMajor := VerNumber div 10000;
+      FCurrentLibpngVersion := Format('%d.%d.%d', [
+        FCurrentLibpngVersionMajor,
+        FCurrentLibpngVersionMinor,
+        FCurrentLibpngVersionRelease
+      ]);
+      WritelnLog('LibPng detected (version %s).', [FCurrentLibpngVersion]);
+    end;
   end else
     WritelnLog('LibPng not found.' + NL +
       '  This also happens when a dependency of LibPng, like Zlib, is missing.' + NL +

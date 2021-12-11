@@ -1,7 +1,7 @@
 object PreferencesForm: TPreferencesForm
-  Left = 586
+  Left = 438
   Height = 761
-  Top = 201
+  Top = 137
   Width = 1083
   Caption = 'Preferences'
   ClientHeight = 761
@@ -12,141 +12,20 @@ object PreferencesForm: TPreferencesForm
   OnShow = FormShow
   Position = poMainFormCenter
   LCLVersion = '2.0.10.0'
-  object PanelCodeEditor: TPanel
-    Left = 184
-    Height = 698
-    Top = 0
-    Width = 899
-    Align = alClient
-    BevelOuter = bvNone
-    ClientHeight = 698
-    ClientWidth = 899
-    TabOrder = 3
-    object LabelCodeEditorHeader: TLabel
-      Left = 8
-      Height = 23
-      Top = 16
-      Width = 186
-      Caption = 'Edit Pascal Code With:'
-      Font.Style = [fsBold]
-      ParentColor = False
-      ParentFont = False
-    end
-    object RadioCodeEditorLazarus: TRadioButton
-      AnchorSideLeft.Control = LabelCodeEditorHeader
-      AnchorSideTop.Control = LabelCodeEditorHeader
-      AnchorSideTop.Side = asrBottom
-      Left = 8
-      Height = 27
-      Top = 47
-      Width = 89
-      BorderSpacing.Top = 8
-      Caption = 'Lazarus'
-      Checked = True
-      OnChange = RadioCodeEditorAnyChange
-      TabOrder = 2
-      TabStop = True
-    end
-    object RadioCodeEditorCustom: TRadioButton
-      AnchorSideLeft.Control = LabelCodeEditorHeader
-      AnchorSideTop.Control = RadioCodeEditorLazarus
-      AnchorSideTop.Side = asrBottom
-      Left = 8
-      Height = 27
-      Top = 82
-      Width = 90
-      BorderSpacing.Top = 8
-      Caption = 'Custom'
-      OnChange = RadioCodeEditorAnyChange
-      TabOrder = 0
-    end
-    object LabelCodeEditorCommandInstructions: TLabel
-      AnchorSideLeft.Control = EditCodeEditorCommand
-      AnchorSideTop.Control = EditCodeEditorCommandProject
-      AnchorSideTop.Side = asrBottom
-      Left = 40
-      Height = 138
-      Top = 275
-      Width = 707
-      BorderSpacing.Top = 8
-      Caption = 'In both the fields above: Choose the executable file of your editor, then add macros.'#10#10'Recognized macros:'#10'- ${PAS} - Pascal file to edit'#10'- ${STANDALONE_SOURCE} - Main program source code (lpr) for standalone platform'#10'- ${PROJECT_DIR} - Project directory'
-      ParentColor = False
-    end
-    object EditCodeEditorCommand: TFileNameEdit
-      AnchorSideLeft.Control = LabelCodeEditorCommand
-      AnchorSideTop.Control = LabelCodeEditorCommand
-      AnchorSideTop.Side = asrBottom
-      Left = 40
-      Height = 40
-      Top = 148
-      Width = 810
-      OnAcceptFileName = EditCodeEditorCommandAcceptFileName
-      FilterIndex = 0
-      HideDirectories = False
-      ButtonWidth = 29
-      NumGlyphs = 1
-      Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Top = 8
-      MaxLength = 0
-      TabOrder = 1
-    end
-    object LabelCodeEditorCommand: TLabel
-      AnchorSideLeft.Control = RadioCodeEditorCustom
-      AnchorSideTop.Control = RadioCodeEditorCustom
-      AnchorSideTop.Side = asrBottom
-      Left = 40
-      Height = 23
-      Top = 117
-      Width = 460
-      BorderSpacing.Left = 32
-      BorderSpacing.Top = 8
-      Caption = 'Command to open Pascal source file (unit or include file):'
-      ParentColor = False
-    end
-    object LabelCodeEditorCommandProjectInstructions: TLabel
-      AnchorSideLeft.Control = LabelCodeEditorCommand
-      AnchorSideTop.Control = EditCodeEditorCommand
-      AnchorSideTop.Side = asrBottom
-      Left = 40
-      Height = 23
-      Top = 196
-      Width = 478
-      BorderSpacing.Top = 8
-      Caption = 'Command to open whole project in a code editor (optional):'
-      ParentColor = False
-    end
-    object EditCodeEditorCommandProject: TFileNameEdit
-      AnchorSideLeft.Control = LabelCodeEditorCommandProjectInstructions
-      AnchorSideTop.Control = LabelCodeEditorCommandProjectInstructions
-      AnchorSideTop.Side = asrBottom
-      Left = 40
-      Height = 40
-      Top = 227
-      Width = 810
-      OnAcceptFileName = EditCodeEditorCommandProjectAcceptFileName
-      FilterIndex = 0
-      HideDirectories = False
-      ButtonWidth = 29
-      NumGlyphs = 1
-      Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Top = 8
-      MaxLength = 0
-      TabOrder = 3
-    end
-  end
   object ListPages: TListBox
     Left = 8
-    Height = 690
+    Height = 691
     Top = 8
     Width = 168
     Align = alLeft
     BorderSpacing.Around = 8
     Items.Strings = (
-      'FPC and Lazarus'
       'Code Editor'
+      'Compilation'
+      'FPC and Lazarus'
       'Sound'
     )
-    ItemHeight = 29
+    ItemHeight = 28
     ItemIndex = 0
     OnClick = ListPagesClick
     ScrollWidth = 166
@@ -154,8 +33,8 @@ object PreferencesForm: TPreferencesForm
   end
   object ButtonPanel1: TButtonPanel
     Left = 8
-    Height = 47
-    Top = 706
+    Height = 46
+    Top = 707
     Width = 1067
     BorderSpacing.Around = 8
     OKButton.Name = 'OKButton'
@@ -171,19 +50,19 @@ object PreferencesForm: TPreferencesForm
   end
   object PanelSound: TPanel
     Left = 184
-    Height = 698
+    Height = 699
     Top = 0
     Width = 899
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 698
+    ClientHeight = 699
     ClientWidth = 899
     TabOrder = 4
     object LabelSound: TLabel
       Left = 8
-      Height = 23
+      Height = 20
       Top = 16
-      Width = 132
+      Width = 138
       Caption = 'Sound Settings:'
       Font.Style = [fsBold]
       ParentColor = False
@@ -202,37 +81,37 @@ object PreferencesForm: TPreferencesForm
     end
     object LabelVolume: TLabel
       Left = 8
-      Height = 23
+      Height = 20
       Top = 56
-      Width = 68
+      Width = 69
       Caption = 'Volume:'
       ParentColor = False
     end
     object CheckBoxMuteOnRun: TCheckBox
       Left = 8
-      Height = 27
+      Height = 26
       Top = 148
-      Width = 321
+      Width = 329
       Caption = 'Stay mute when the application runs'
       TabOrder = 1
     end
   end
   object PanelFpcLazarusConfig: TPanel
     Left = 184
-    Height = 698
+    Height = 699
     Top = 0
     Width = 899
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 698
+    ClientHeight = 699
     ClientWidth = 899
     TabOrder = 0
     object DirectoryEditFpc: TDirectoryEdit
       AnchorSideTop.Control = LabelFpc
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 40
-      Top = 89
+      Height = 38
+      Top = 83
       Width = 860
       ShowHidden = False
       ButtonWidth = 29
@@ -247,9 +126,9 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelTitle
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 66
-      Width = 75
+      Height = 20
+      Top = 63
+      Width = 74
       BorderSpacing.Top = 27
       Caption = 'FPC Path'
       ParentColor = False
@@ -259,9 +138,9 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelFpcAutoDetected
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 202
-      Width = 104
+      Height = 20
+      Top = 188
+      Width = 107
       BorderSpacing.Top = 27
       Caption = 'Lazarus Path'
       ParentColor = False
@@ -271,8 +150,8 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelLazarus
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 40
-      Top = 225
+      Height = 38
+      Top = 208
       Width = 860
       ShowHidden = False
       ButtonWidth = 29
@@ -285,9 +164,9 @@ object PreferencesForm: TPreferencesForm
     end
     object LabelTitle: TLabel
       Left = 8
-      Height = 23
+      Height = 20
       Top = 16
-      Width = 274
+      Width = 288
       Caption = 'Configure FPC and Lazarus Paths'
       Font.Style = [fsBold]
       ParentColor = False
@@ -297,9 +176,9 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelFpcAutoDetectedCaption
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 152
-      Width = 140
+      Height = 20
+      Top = 141
+      Width = 134
       Caption = 'Auto-detecting...'
       Font.Style = [fsItalic]
       ParentColor = False
@@ -309,9 +188,9 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelLazarusAutoDetectedCaption
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 288
-      Width = 140
+      Height = 20
+      Top = 266
+      Width = 134
       Caption = 'Auto-detecting...'
       Font.Style = [fsItalic]
       ParentColor = False
@@ -321,9 +200,9 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = DirectoryEditFpc
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 129
-      Width = 231
+      Height = 20
+      Top = 121
+      Width = 223
       Caption = 'Leave empty to auto-detect.'
       Font.Style = [fsItalic]
       ParentColor = False
@@ -333,9 +212,9 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = DirectoryEditLazarus
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 265
-      Width = 231
+      Height = 20
+      Top = 246
+      Width = 223
       Caption = 'Leave empty to auto-detect.'
       Font.Style = [fsItalic]
       ParentColor = False
@@ -346,10 +225,10 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = LabelLazarusAutoDetected
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 39
+      Height = 38
       Hint = 'Register Castle Game Engine packages (lpk) with Lazarus. Do this once for a new Lazarus installation.'
-      Top = 319
-      Width = 233
+      Top = 294
+      Width = 238
       AutoSize = True
       BorderSpacing.Top = 8
       Caption = 'Register Lazarus Packages'
@@ -361,23 +240,23 @@ object PreferencesForm: TPreferencesForm
       AnchorSideTop.Control = ButtonRegisterLazarusPackages
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 322
-      Top = 374
+      Height = 349
+      Top = 348
       Width = 880
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Top = 16
       BevelInner = bvLowered
       BevelOuter = bvNone
-      ClientHeight = 322
+      ClientHeight = 349
       ClientWidth = 880
       TabOrder = 3
       object LabelInstructions0: TLabel
         AnchorSideTop.Control = ButtonRegisterLazarusPackages
         AnchorSideTop.Side = asrBottom
         Left = 8
-        Height = 23
-        Top = 5
-        Width = 263
+        Height = 20
+        Top = 7
+        Width = 276
         Anchors = [akLeft]
         BorderSpacing.Top = 8
         Caption = 'How to Install Lazarus and FPC?'
@@ -389,8 +268,8 @@ object PreferencesForm: TPreferencesForm
         AnchorSideTop.Control = LabelInstructions0
         AnchorSideTop.Side = asrBottom
         Left = 8
-        Height = 46
-        Top = 55
+        Height = 40
+        Top = 54
         Width = 873
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 27
@@ -404,9 +283,9 @@ object PreferencesForm: TPreferencesForm
         AnchorSideTop.Side = asrBottom
         Cursor = crHandPoint
         Left = 8
-        Height = 23
-        Top = 115
-        Width = 236
+        Height = 20
+        Top = 108
+        Width = 243
         BorderSpacing.Top = 14
         Caption = 'https://www.lazarus-ide.org/'
         Font.Color = clBlue
@@ -419,8 +298,8 @@ object PreferencesForm: TPreferencesForm
         AnchorSideTop.Control = LabelLazarusWebsite
         AnchorSideTop.Side = asrBottom
         Left = 8
-        Height = 138
-        Top = 152
+        Height = 120
+        Top = 142
         Width = 873
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 14
@@ -429,6 +308,331 @@ object PreferencesForm: TPreferencesForm
         ParentFont = False
         WordWrap = True
       end
+    end
+  end
+  object PanelCodeEditor: TPanel
+    Left = 184
+    Height = 699
+    Top = 0
+    Width = 899
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 699
+    ClientWidth = 899
+    TabOrder = 3
+    object LabelCodeEditorHeader: TLabel
+      Left = 8
+      Height = 20
+      Top = 16
+      Width = 193
+      Caption = 'Edit Pascal Code With:'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+    end
+    object RadioCodeEditorAutodetect: TRadioButton
+      AnchorSideLeft.Control = LabelCodeEditorHeader
+      AnchorSideTop.Control = LabelCodeEditorHeader
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 26
+      Top = 44
+      Width = 431
+      BorderSpacing.Top = 8
+      Caption = 'Autodetect (Lazarus, Delphi, Visual Studio Code)'
+      Checked = True
+      OnChange = RadioCodeEditorAnyChange
+      TabOrder = 0
+      TabStop = True
+    end
+    object RadioCodeEditorCustom: TRadioButton
+      AnchorSideLeft.Control = LabelCodeEditorHeader
+      AnchorSideTop.Control = LabelCodeEditorVSCode
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 26
+      Top = 292
+      Width = 90
+      BorderSpacing.Top = 8
+      Caption = 'Custom'
+      OnChange = RadioCodeEditorAnyChange
+      TabOrder = 4
+    end
+    object LabelCodeEditorCommandInstructions: TLabel
+      AnchorSideLeft.Control = EditCodeEditorCommand
+      AnchorSideTop.Control = EditCodeEditorCommandProject
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 120
+      Top = 474
+      Width = 704
+      BorderSpacing.Top = 8
+      Caption = 'In both the fields above: Choose the executable file of your editor, then add macros.'#10#10'Recognized macros:'#10'- ${PAS} - Pascal file to edit'#10'- ${STANDALONE_SOURCE} - Main program source code (lpr) for standalone platform'#10'- ${PROJECT_DIR} - Project directory'
+      ParentColor = False
+    end
+    object EditCodeEditorCommand: TFileNameEdit
+      AnchorSideLeft.Control = LabelCodeEditorCommand
+      AnchorSideTop.Control = LabelCodeEditorCommand
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 38
+      Top = 354
+      Width = 810
+      OnAcceptFileName = EditCodeEditorCommandAcceptFileName
+      FilterIndex = 0
+      HideDirectories = False
+      ButtonWidth = 29
+      NumGlyphs = 1
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 8
+      MaxLength = 0
+      TabOrder = 5
+    end
+    object LabelCodeEditorCommand: TLabel
+      AnchorSideLeft.Control = RadioCodeEditorCustom
+      AnchorSideTop.Control = RadioCodeEditorCustom
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 20
+      Top = 326
+      Width = 477
+      BorderSpacing.Left = 32
+      BorderSpacing.Top = 8
+      Caption = 'Command to open Pascal source file (unit or include file):'
+      ParentColor = False
+    end
+    object LabelCodeEditorCommandProjectInstructions: TLabel
+      AnchorSideLeft.Control = LabelCodeEditorCommand
+      AnchorSideTop.Control = EditCodeEditorCommand
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 20
+      Top = 400
+      Width = 498
+      BorderSpacing.Top = 8
+      Caption = 'Command to open whole project in a code editor (optional):'
+      ParentColor = False
+    end
+    object EditCodeEditorCommandProject: TFileNameEdit
+      AnchorSideLeft.Control = LabelCodeEditorCommandProjectInstructions
+      AnchorSideTop.Control = LabelCodeEditorCommandProjectInstructions
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 38
+      Top = 428
+      Width = 810
+      OnAcceptFileName = EditCodeEditorCommandProjectAcceptFileName
+      FilterIndex = 0
+      HideDirectories = False
+      ButtonWidth = 29
+      NumGlyphs = 1
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 8
+      MaxLength = 0
+      TabOrder = 6
+    end
+    object RadioCodeEditorLazarus: TRadioButton
+      AnchorSideLeft.Control = LabelCodeEditorHeader
+      AnchorSideTop.Control = LabelCodeEditorAutodetect
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 26
+      Top = 106
+      Width = 91
+      BorderSpacing.Top = 8
+      Caption = 'Lazarus'
+      OnChange = RadioCodeEditorAnyChange
+      TabOrder = 1
+    end
+    object RadioCodeEditorDelphi: TRadioButton
+      AnchorSideLeft.Control = LabelCodeEditorHeader
+      AnchorSideTop.Control = LabelCodeEditorLazarus
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 26
+      Top = 168
+      Width = 80
+      BorderSpacing.Top = 8
+      Caption = 'Delphi'
+      OnChange = RadioCodeEditorAnyChange
+      TabOrder = 2
+    end
+    object RadioCodeEditorVSCode: TRadioButton
+      AnchorSideLeft.Control = LabelCodeEditorHeader
+      AnchorSideTop.Control = LabelCodeEditorDelphi
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 26
+      Top = 230
+      Width = 183
+      BorderSpacing.Top = 8
+      Caption = 'Visual Studio Code'
+      OnChange = RadioCodeEditorAnyChange
+      TabOrder = 3
+    end
+    object LabelCodeEditorAutodetect: TLabel
+      AnchorSideLeft.Control = RadioCodeEditorCustom
+      AnchorSideTop.Control = RadioCodeEditorAutodetect
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 20
+      Top = 78
+      Width = 145
+      BorderSpacing.Left = 32
+      BorderSpacing.Top = 8
+      Caption = 'Autodetected: Xxx'
+      Font.Style = [fsItalic]
+      ParentColor = False
+      ParentFont = False
+    end
+    object LabelCodeEditorLazarus: TLabel
+      AnchorSideLeft.Control = RadioCodeEditorCustom
+      AnchorSideTop.Control = RadioCodeEditorLazarus
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 20
+      Top = 140
+      Width = 110
+      BorderSpacing.Left = 32
+      BorderSpacing.Top = 8
+      Caption = 'Detected: Xxx'
+      Font.Style = [fsItalic]
+      ParentColor = False
+      ParentFont = False
+    end
+    object LabelCodeEditorDelphi: TLabel
+      AnchorSideLeft.Control = RadioCodeEditorCustom
+      AnchorSideTop.Control = RadioCodeEditorDelphi
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 20
+      Top = 202
+      Width = 81
+      BorderSpacing.Left = 32
+      BorderSpacing.Top = 8
+      Caption = 'Detected: '
+      Font.Style = [fsItalic]
+      ParentColor = False
+      ParentFont = False
+    end
+    object LabelCodeEditorVSCode: TLabel
+      AnchorSideLeft.Control = RadioCodeEditorCustom
+      AnchorSideTop.Control = RadioCodeEditorVSCode
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 20
+      Top = 264
+      Width = 81
+      BorderSpacing.Left = 32
+      BorderSpacing.Top = 8
+      Caption = 'Detected: '
+      Font.Style = [fsItalic]
+      ParentColor = False
+      ParentFont = False
+    end
+  end
+  object PanelCompilation: TPanel
+    Left = 184
+    Height = 699
+    Top = 0
+    Width = 899
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 699
+    ClientWidth = 899
+    TabOrder = 5
+    object LabelCompilationHeader: TLabel
+      Left = 8
+      Height = 20
+      Top = 16
+      Width = 85
+      Caption = 'Compiler:'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+    end
+    object RadioCompilerAutodetect: TRadioButton
+      AnchorSideLeft.Control = LabelCompilationHeader
+      AnchorSideTop.Control = LabelCompilationHeader
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 26
+      Top = 44
+      Width = 701
+      BorderSpacing.Top = 8
+      Caption = 'Autodetect (compiler indicated in project manifest, otherwise find FPC or Delphi)'
+      Checked = True
+      OnChange = RadioCodeEditorAnyChange
+      TabOrder = 0
+      TabStop = True
+    end
+    object RadioCompilerFpc: TRadioButton
+      AnchorSideLeft.Control = LabelCompilationHeader
+      AnchorSideTop.Control = LabelCompilerAutodetect
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 26
+      Top = 106
+      Width = 247
+      BorderSpacing.Top = 8
+      Caption = 'FPC (Free Pascal Compiler)'
+      OnChange = RadioCodeEditorAnyChange
+      TabOrder = 1
+    end
+    object RadioCompilerDelphi: TRadioButton
+      AnchorSideLeft.Control = LabelCompilationHeader
+      AnchorSideTop.Control = LabelCompilerFpc
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 26
+      Top = 168
+      Width = 80
+      BorderSpacing.Top = 8
+      Caption = 'Delphi'
+      OnChange = RadioCodeEditorAnyChange
+      TabOrder = 2
+    end
+    object LabelCompilerAutodetect: TLabel
+      AnchorSideTop.Control = RadioCompilerAutodetect
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 20
+      Top = 78
+      Width = 145
+      BorderSpacing.Left = 32
+      BorderSpacing.Top = 8
+      Caption = 'Autodetected: Xxx'
+      Font.Style = [fsItalic]
+      ParentColor = False
+      ParentFont = False
+    end
+    object LabelCompilerFpc: TLabel
+      AnchorSideTop.Control = RadioCompilerFpc
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 20
+      Top = 140
+      Width = 110
+      BorderSpacing.Left = 32
+      BorderSpacing.Top = 8
+      Caption = 'Detected: Xxx'
+      Font.Style = [fsItalic]
+      ParentColor = False
+      ParentFont = False
+    end
+    object LabelCompilerDelphi: TLabel
+      AnchorSideTop.Control = RadioCompilerDelphi
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 20
+      Top = 202
+      Width = 81
+      BorderSpacing.Left = 32
+      BorderSpacing.Top = 8
+      Caption = 'Detected: '
+      Font.Style = [fsItalic]
+      ParentColor = False
+      ParentFont = False
     end
   end
 end

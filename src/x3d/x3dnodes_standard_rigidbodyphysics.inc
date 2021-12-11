@@ -17,12 +17,12 @@
   TRigidBodyNode = class;
 
   { }
-  TAbstractNBodyCollidableNode = class(TAbstractChildNode, IAbstractBoundedObject)
+  TAbstractNBodyCollidableNode = class(TAbstractChildNode)
   public
     {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollidablenode.inc}
   end;
 
-  TAbstractNBodyCollisionSpaceNode = class(TAbstractNode, IAbstractBoundedObject)
+  TAbstractNBodyCollisionSpaceNode = class(TAbstractNode)
   public
     {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollisionspacenode.inc}
   end;

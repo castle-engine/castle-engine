@@ -26,6 +26,8 @@ uses DOM, Classes, Generics.Collections,
   ToolServices, ToolAssocDocTypes;
 
 type
+  TCompiler = (coAutodetect, coFpc, coDelphi);
+
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
   TDependencies = set of TDependency;
 
@@ -121,7 +123,8 @@ type
       FLaunchImageStoryboard: TLaunchImageStoryboard;
       FSearchPaths, FLibraryPaths: TStringList;
       FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
-      FLazarusProject: String;
+      FCompiler: TCompiler;
+      FLazarusProject, FDelphiProject: String;
       FBuildUsingLazbuild: Boolean;
       FGameUnits, FEditorUnits: string;
       FVersion: TProjectVersion;
@@ -175,7 +178,9 @@ type
     { }
 
     property Version: TProjectVersion read FVersion;
+    property Compiler: TCompiler read FCompiler;
     property LazarusProject: String read FLazarusProject;
+    property DelphiProject: String read FDelphiProject;
     property BuildUsingLazbuild: Boolean read FBuildUsingLazbuild;
     property GameUnits: String read FGameUnits;
     property EditorUnits: String read FEditorUnits;
@@ -259,17 +264,42 @@ type
     function FindPascalFiles: TStringList;
   end;
 
+function CompilerToString(const C: TCompiler): String;
+function StringToCompiler(const S: String): TCompiler;
+
 function DependencyToString(const D: TDependency): string;
 function StringToDependency(const S: string): TDependency;
 
 function ScreenOrientationToString(const O: TScreenOrientation): string;
 function StringToScreenOrientation(const S: string): TScreenOrientation;
 
+const
+  DefaultCompiler = coAutodetect;
+
 implementation
 
 uses SysUtils, Math,
   CastleXMLUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
   ToolCommonUtils;
+
+function CompilerToString(const C: TCompiler): String;
+const
+  Names: array [TCompiler] of String = (
+    'autodetect',
+    'fpc',
+    'delphi'
+  );
+begin
+  Result := Names[C];
+end;
+
+function StringToCompiler(const S: String): TCompiler;
+begin
+  for Result in TCompiler do
+    if SameText(CompilerToString(Result), S) then
+      Exit;
+  raise Exception.CreateFmt('Invalid compiler name "%s"', [S]);
+end;
 
 { TImageFileNames ------------------------------------------------------------- }
 
@@ -359,8 +389,10 @@ begin
   FCaption := FName;
   FQualifiedName := DefaultQualifiedName(FName);
   FExecutableName := FName;
+  FCompiler := DefaultCompiler;
   FStandaloneSource := FName + '.lpr';
   FLazarusProject := FName + '.lpi';
+  FDelphiProject := FName + '.dproj';
   FVersion := TProjectVersion.Create(OwnerComponent);
   FVersion.Code := DefautVersionCode;
   FVersion.DisplayValue := DefautVersionDisplayValue;
@@ -375,7 +407,7 @@ var
   AndroidProjectTypeStr: string;
   ChildElements: TXMLElementIterator;
   Element, ChildElement: TDOMElement;
-  NewCompilerOption, DefaultLazarusProject, NewSearchPath: String;
+  NewCompilerOption, DefaultLazarusProject, DefaultDelphiProject, NewSearchPath: String;
   IncludePath: TIncludePath;
 begin
   Create(APath);
@@ -390,11 +422,18 @@ begin
     FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', DefaultQualifiedName(FName));
     FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
     FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
+    FCompiler := StringToCompiler(Doc.DocumentElement.AttributeStringDef('compiler', 'autodetect'));
     if FStandaloneSource <> '' then
-      DefaultLazarusProject := ChangeFileExt(FStandaloneSource, '.lpi')
-    else
+    begin
+      DefaultLazarusProject := ChangeFileExt(FStandaloneSource, '.lpi');
+      DefaultDelphiProject := ChangeFileExt(FStandaloneSource, '.dproj');
+    end else
+    begin
       DefaultLazarusProject := '';
+      DefaultDelphiProject := '';
+    end;
     FLazarusProject := Doc.DocumentElement.AttributeStringDef('lazarus_project', DefaultLazarusProject);
+    FDelphiProject := Doc.DocumentElement.AttributeStringDef('delphi_project', DefaultDelphiProject);
     FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
     FIOSSource := Doc.DocumentElement.AttributeStringDef('ios_source', '');
     FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');

@@ -156,7 +156,7 @@ public class ServiceGameAnalytics extends ServiceAbstract
     }
 
     @Override
-    public void onPurchase(AvailableProduct product, String purchaseData, String signature)
+    public void onPurchase(AvailableProduct product, String originalJson, String signature)
     {
         if (!initialized) {
             return;
@@ -183,8 +183,13 @@ public class ServiceGameAnalytics extends ServiceAbstract
         int priceAmountCents = (int) (product.priceAmountMicros / 10000.0);
 
         GameAnalytics.addBusinessEventWithCurrency(
-            currency, priceAmountCents, category,
-            product.id, "defaultCart", purchaseData, "google_play", signature);
+            currency, priceAmountCents, category, product.id, "defaultCart",
+            /* Docs ( https://gameanalytics.com/docs/s/article/Android-SDK-Event-Tracking ) say:
+               "The transaction receipt. Null allowed."
+               Later they confirm in example that passing purchase.getOriginalJson() is OK. */
+            originalJson,
+            "google_play",
+            signature);
     }
 
     @Override

@@ -39,11 +39,11 @@ var
 
 type
   TMyEventListener = class(TComponent)
-    procedure ReceivedTouchTime(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-    procedure ReceivedIsActive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+    procedure ReceivedTouchTime(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+    procedure ReceivedIsActive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   end;
 
-procedure TMyEventListener.ReceivedTouchTime(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+procedure TMyEventListener.ReceivedTouchTime(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   Val: Double;
   Scene: TCastleScene;
@@ -58,7 +58,7 @@ begin
   Notifications.Show(Format('Received TouchSensor.touchTime event: time %f, scene: %s', [Val, Scene.Name]));
 end;
 
-procedure TMyEventListener.ReceivedIsActive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+procedure TMyEventListener.ReceivedIsActive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   Val: Boolean;
 begin

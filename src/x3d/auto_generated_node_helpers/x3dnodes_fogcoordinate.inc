@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDepth: TMFFloat;
+    { X3D field "depth". } { }
+    public property FdDepth: TMFFloat read FFdDepth;
     { Set X3D field "depth". } { }
     procedure SetDepth(const Value: array of Single);
     { Set X3D field "depth". } { }
@@ -45,6 +51,22 @@ end;
 procedure TFogCoordinateNode.SetDepth(const Value: TSingleList);
 begin
   FdDepth.Send(Value);
+end;
+
+class function TFogCoordinateNode.ClassX3DType: String;
+begin
+  Result := 'FogCoordinate';
+end;
+
+procedure TFogCoordinateNode.CreateNode;
+begin
+  inherited;
+
+  FFdDepth := TMFFloat.Create(Self, True, 'depth', []);
+   FdDepth.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDepth);
+
+  DefaultContainerField := 'fogCoord';
 end;
 
 {$endif read_implementation}

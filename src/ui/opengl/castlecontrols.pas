@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,8 +53,7 @@ type
   {$I castlecontrols_design.inc}
   // Add more UI controls include files here.
 
-  // Keep the following (theme, uifont...) at the end, as they end the "type" clause.
-  {$I castlecontrols_theme.inc}
+  // Keep the following (uifont...) at the end, as they end the "type" clause.
   {$I castlecontrols_uifont.inc}
   {$I castlecontrols_clipboard.inc}
   {$undef read_interface}
@@ -63,7 +62,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
+uses SysUtils, Math, CastleTextureFont_DjvSans_20,
   CastleTextureFont_DejaVuSans_10, CastleTextureImages,
   CastleApplicationProperties, CastleMessaging, CastleComponentSerialize,
   CastleUnicode;
@@ -90,7 +89,6 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_edit.inc}
 {$I castlecontrols_groups.inc}
 {$I castlecontrols_design.inc}
-{$I castlecontrols_theme.inc}
 {$I castlecontrols_clipboard.inc}
 {$undef read_implementation}
 
@@ -105,8 +103,6 @@ begin
 end;
 
 initialization
-  FTheme := TCastleTheme.Create;
-
   RegisterSerializableComponent(TCastleButton, 'Button');
   RegisterSerializableComponent(TCastleImageControl, 'Image');
   RegisterSerializableComponent(TCastleRectangleControl, 'Color Rectangle');
@@ -127,7 +123,6 @@ initialization
   RegisterSerializableComponent(TCastleSwitchControl, 'Switch');
   RegisterSerializableComponent(TCastleDesign, 'Design (Reference Another castle-user-interface File)');
 finalization
-  FreeAndNil(FTheme);
   FinalizationUIFonts;
   FinalizationClipboard;
 end.

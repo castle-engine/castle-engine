@@ -95,13 +95,13 @@ public class ServiceTenjin extends ServiceAbstract
     }
 
     @Override
-    public void onPurchase(AvailableProduct product, String purchaseData, String signature)
+    public void onPurchase(AvailableProduct product, String originalJson, String signature)
     {
         if (!initialized) {
             return;
         }
 
-        double price = ((double) product.priceAmountMicros / 10000.0);
-        tenjinInstance.transaction(product.id, product.priceCurrencyCode, 1, price, purchaseData, signature);
+        double price = ((double) product.priceAmountMicros / 1000000.0);
+        tenjinInstance.transaction(product.id, product.priceCurrencyCode, 1, price, originalJson, signature);
     }
 }

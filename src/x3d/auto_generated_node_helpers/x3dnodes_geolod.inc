@@ -35,40 +35,98 @@
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventChildren: TMFNodeEvent;
+    { X3D out event "children". } { }
+    public property EventChildren: TMFNodeEvent read FEventChildren;
+
+    strict private FEventLevel_changed: TSFInt32Event;
+    { X3D out event "level_changed". } { }
+    public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
+
+    strict private FFdCenter: TSFVec3d;
+    { X3D field "center". } { }
+    public property FdCenter: TSFVec3d read FFdCenter;
     { X3D field "center". } { }
     property Center: TVector3Double read GetCenter write SetCenter;
+
+    strict private FFdChild1Url: TMFString;
+    { X3D field "child1Url". } { }
+    public property FdChild1Url: TMFString read FFdChild1Url;
     { Set X3D field "child1Url". } { }
     procedure SetChild1Url(const Value: array of string);
     { Set X3D field "child1Url". } { }
     procedure SetChild1Url(const Value: TCastleStringList);
+
+    strict private FFdChild2Url: TMFString;
+    { X3D field "child2Url". } { }
+    public property FdChild2Url: TMFString read FFdChild2Url;
     { Set X3D field "child2Url". } { }
     procedure SetChild2Url(const Value: array of string);
     { Set X3D field "child2Url". } { }
     procedure SetChild2Url(const Value: TCastleStringList);
+
+    strict private FFdChild3Url: TMFString;
+    { X3D field "child3Url". } { }
+    public property FdChild3Url: TMFString read FFdChild3Url;
     { Set X3D field "child3Url". } { }
     procedure SetChild3Url(const Value: array of string);
     { Set X3D field "child3Url". } { }
     procedure SetChild3Url(const Value: TCastleStringList);
+
+    strict private FFdChild4Url: TMFString;
+    { X3D field "child4Url". } { }
+    public property FdChild4Url: TMFString read FFdChild4Url;
     { Set X3D field "child4Url". } { }
     procedure SetChild4Url(const Value: array of string);
     { Set X3D field "child4Url". } { }
     procedure SetChild4Url(const Value: TCastleStringList);
+
+    strict private FFdGeoOrigin: TSFNode;
+    { X3D field "geoOrigin". } { }
+    public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+
+    strict private FFdGeoSystem: TMFString;
+    { X3D field "geoSystem". } { }
+    public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: array of string);
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: TCastleStringList);
+
+    strict private FFdRange: TSFFloat;
+    { X3D field "range". } { }
+    public property FdRange: TSFFloat read FFdRange;
     { X3D field "range". } { }
     property Range: Single read GetRange write SetRange;
+
+    strict private FFdRootUrl: TMFString;
+    { X3D field "rootUrl". } { }
+    public property FdRootUrl: TMFString read FFdRootUrl;
     { Set X3D field "rootUrl". } { }
     procedure SetRootUrl(const Value: array of string);
     { Set X3D field "rootUrl". } { }
     procedure SetRootUrl(const Value: TCastleStringList);
+
+    strict private FFdRootNode: TMFNode;
+    { X3D field "rootNode". } { }
+    public property FdRootNode: TMFNode read FFdRootNode;
     { Set X3D field "rootNode". } { }
     procedure SetRootNode(const Value: array of TAbstractChildNode);
+
+    strict private FFdBboxCenter: TSFVec3f;
+    { X3D field "bboxCenter". } { }
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
     property BBox: TBox3D read GetBBox write SetBBox;
+
+    strict private FFdBboxSize: TSFVec3f;
+    { X3D field "bboxSize". } { }
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}
 
@@ -193,6 +251,70 @@ begin
   Value.ToCenterSize(ValueCenter, ValueSize);
   FdBBoxCenter.Send(ValueCenter);
   FdBBoxSize.Send(ValueSize);
+end;
+
+class function TGeoLODNode.ClassX3DType: String;
+begin
+  Result := 'GeoLOD';
+end;
+
+procedure TGeoLODNode.CreateNode;
+begin
+  inherited;
+
+  FEventChildren := TMFNodeEvent.Create(Self, 'children', false);
+  AddEvent(FEventChildren);
+
+  FEventLevel_changed := TSFInt32Event.Create(Self, 'level_changed', false);
+  AddEvent(FEventLevel_changed);
+
+  FFdCenter := TSFVec3d.Create(Self, False, 'center', Vector3Double(0, 0, 0));
+   FdCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCenter);
+
+  FFdChild1Url := TMFString.Create(Self, False, 'child1Url', []);
+   FdChild1Url.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdChild1Url);
+
+  FFdChild2Url := TMFString.Create(Self, False, 'child2Url', []);
+   FdChild2Url.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdChild2Url);
+
+  FFdChild3Url := TMFString.Create(Self, False, 'child3Url', []);
+   FdChild3Url.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdChild3Url);
+
+  FFdChild4Url := TMFString.Create(Self, False, 'child4Url', []);
+   FdChild4Url.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdChild4Url);
+
+  FFdGeoOrigin := TSFNode.Create(Self, False, 'geoOrigin', [TGeoOriginNode]);
+   FdGeoOrigin.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoOrigin);
+
+  FFdGeoSystem := TMFString.Create(Self, False, 'geoSystem', ['GD','WE']);
+   FdGeoSystem.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoSystem);
+
+  FFdRange := TSFFloat.Create(Self, False, 'range', 10);
+   FdRange.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRange);
+
+  FFdRootUrl := TMFString.Create(Self, False, 'rootUrl', []);
+   FdRootUrl.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRootUrl);
+
+  FFdRootNode := TMFNode.Create(Self, False, 'rootNode', [TAbstractChildNode]);
+   FdRootNode.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRootNode);
+
+  FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));
+   FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxCenter);
+
+  FFdBboxSize := TSFVec3f.Create(Self, False, 'bboxSize', Vector3(-1, -1, -1));
+   FdBboxSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxSize);
 end;
 
 {$endif read_implementation}

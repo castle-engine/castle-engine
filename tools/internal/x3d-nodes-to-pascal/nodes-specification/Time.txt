@@ -1,19 +1,27 @@
 X3DTimeDependentNode : X3DChildNode {
+  auto-generate-more: true
+
   SFBool  [in,out] loop         FALSE
   SFTime  [in,out] pauseTime    0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   SFTime  [in,out] resumeTime   0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   SFTime  [in,out] startTime    0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   SFTime  [in,out] stopTime     0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   SFTime  [out]    elapsedTime
   SFBool  [out]    isActive
   SFBool  [out]    isPaused
 }
 
 TimeSensor : X3DTimeDependentNode, X3DSensorNode {
+  auto-generate-more: true
+
   SFTime  [in,out] cycleInterval    1
     range: (0,Inf)
   SFTime  [out]    cycleTime

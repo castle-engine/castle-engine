@@ -233,7 +233,7 @@ implementation
 
 uses SysUtils,
   CastleUtils, CastleStringUtils, CastleLog, CastleGLVersion,
-  CastleTriangles, CastleRenderOptions;
+  CastleTriangles, CastleRenderOptions, CastleRenderContext;
 
 constructor TGLShadowVolumeRenderer.Create;
 begin
@@ -666,7 +666,9 @@ const
     but stencil_wrap will hopefully in this case minimize artifacts. }
   StencilShadowBits = $FF;
 var
-  OldCount: boolean;
+  SavedCount: boolean;
+  SavedDepthBufferUpdate: Boolean;
+  SavedColorChannels: TColorChannels;
 begin
   Params.InShadow := false;
   Params.Transparent := false;
@@ -685,9 +687,14 @@ begin
       { saves Enable(GL_DEPTH_TEST), Enable(GL_CULL_FACE) });
       glEnable(GL_DEPTH_TEST);
 
-      { Calculate shadows to the stencil buffer.
-        Don't write anything to depth or color buffers. }
-      glSetDepthAndColorWriteable(false);
+      { Calculate shadows to the stencil buffer. }
+
+      { Don't write anything to depth or color buffers. }
+      SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+      SavedColorChannels := RenderContext.ColorChannels;
+      RenderContext.DepthBufferUpdate := false;
+      RenderContext.ColorChannels := [];
+
         glStencilFunc(GL_ALWAYS, 0, 0);
 
         if StencilTwoSided then
@@ -705,14 +712,15 @@ begin
 
           { Render back facing shadow shadow volume faces. }
           StencilSetupKind := ssBack;
-          OldCount := Count;
+          SavedCount := Count;
           Count := false;
           glCullFace(GL_FRONT);
           RenderShadowVolumes;
-          Count := OldCount;
+          Count := SavedCount;
         end;
 
-      glSetDepthAndColorWriteable(true);
+      RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+      RenderContext.ColorChannels := SavedColorChannels;
     glPopAttrib;
   glDisable(GL_STENCIL_TEST);
 
@@ -797,18 +805,22 @@ begin
 
   if DrawShadowVolumes then
   begin
-    OldCount := Count;
+    SavedCount := Count;
     Count := false;
+    SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+    RenderContext.DepthBufferUpdate := false;
+
     glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
       glEnable(GL_DEPTH_TEST);
       glDisable(GL_LIGHTING);
       glColor4f(1, 1, 0, 0.3);
-      glDepthMask(GL_FALSE);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glEnable(GL_BLEND);
       RenderShadowVolumes;
     glPopAttrib;
-    Count := OldCount;
+
+    RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+    Count := SavedCount;
   end;
 
   Params.InShadow := false;

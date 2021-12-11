@@ -71,10 +71,7 @@
     { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
     InternalSkinWeights: TVector4List;
 
-    { Constructor for node.
-      Only sets DefaultContainerField to 'geometry', since this is valid
-      for all X3D nodes descending from TAbstractGeometryNode. }
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
 
     { Calculate bounding box of this geometry node.
@@ -489,21 +486,21 @@
 
     constructor CreateTransform(out Shape: TShapeNode; out Transform: TTransformNode); deprecated 'use CreateWithTransform';
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc}
   end;
 
   TAbstractGeometryNodeClass = class of TAbstractGeometryNode;
 
   { Base node type for all geometric property node types. }
   TAbstractGeometricPropertyNode = class(TAbstractNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dgeometricpropertynode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dgeometricpropertynode.inc}
   end;
 
   TAbstractX3DGeometryNode = TAbstractGeometryNode deprecated 'use TAbstractGeometryNode';
 
   { Base node for color specifications. }
   TAbstractColorNode = class(TAbstractGeometricPropertyNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dcolornode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dcolornode.inc}
   end;
 
   TAbstractVertexAttributeNode = class;
@@ -513,50 +510,6 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdAttrib: TMFNode;
-    public property FdAttrib: TMFNode read FFdAttrib;
-    {$endif}
-
-    strict private FFdColor: TSFNode;
-    public property FdColor: TSFNode read FFdColor;
-
-    strict private FFdCoord: TSFNode;
-    public property FdCoord: TSFNode read FFdCoord;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdFogCoord: TSFNode;
-    public property FdFogCoord: TSFNode read FFdFogCoord;
-    {$endif}
-
-    strict private FFdNormal: TSFNode;
-    public property FdNormal: TSFNode read FFdNormal;
-
-    strict private FFdTangent: TSFNode;
-    public property FdTangent: TSFNode read FFdTangent;
-
-    strict private FFdTexCoord: TSFNode;
-    public property FdTexCoord: TSFNode read FFdTexCoord;
-
-    strict private FFdCcw: TSFBool;
-    public property FdCcw: TSFBool read FFdCcw;
-
-    strict private FFdColorPerVertex: TSFBool;
-    public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
-
-    strict private FFdNormalPerVertex: TSFBool;
-    public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdRadianceTransfer: TMFVec3f;
-    public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
-    {$endif}
-
     { Access the coordinate node, and inside this node access it's points list. }
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -570,23 +523,21 @@
 
     function InternalFogCoord: TMFFloat; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
   end;
 
   { Base node type for all coordinate node types. }
   TAbstractCoordinateNode = class(TAbstractGeometricPropertyNode)
   public
-    procedure CreateNode; override;
-
     { Count of coordinates within. }
     function CoordCount: Cardinal; virtual; abstract;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dcoordinatenode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dcoordinatenode.inc}
   end;
 
   { Base node type for all normal node types. }
   TAbstractNormalNode = class(TAbstractGeometricPropertyNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dnormalnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dnormalnode.inc}
   end;
 
   { Clip the geometry with a plane. }
@@ -594,108 +545,41 @@
   protected
     procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdEnabled: TSFBool;
-    public property FdEnabled: TSFBool read FFdEnabled;
-
-    strict private FFdPlane: TSFVec4f;
-    public property FdPlane: TSFVec4f read FFdPlane;
-
-    {$I auto_generated_node_helpers/x3dnodes_clipplane.inc}
+  {$I auto_generated_node_helpers/x3dnodes_clipplane.inc}
   end;
 
   { Set of RGB colours. }
   TColorNode = class(TAbstractColorNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdColor: TMFColor;
-    public property FdColor: TMFColor read FFdColor;
-
-    {$I auto_generated_node_helpers/x3dnodes_color.inc}
+  {$I auto_generated_node_helpers/x3dnodes_color.inc}
   end;
 
   { Set of RGBA colours. }
   TColorRGBANode = class(TAbstractColorNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdColor: TMFColorRGBA;
-    public property FdColor: TMFColorRGBA read FFdColor;
-
-    {$I auto_generated_node_helpers/x3dnodes_colorrgba.inc}
+  {$I auto_generated_node_helpers/x3dnodes_colorrgba.inc}
   end;
 
   { Set of 3D coordinates to be used in the @code(Coord)
     field of vertex-based geometry nodes. }
   TCoordinateNode = class(TAbstractCoordinateNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdPoint: TMFVec3f;
-    public property FdPoint: TMFVec3f read FFdPoint;
-
     function CoordCount: Cardinal; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_coordinate.inc}
+  {$I auto_generated_node_helpers/x3dnodes_coordinate.inc}
   end;
 
   { Geometry formed by constructing polylines from 3D vertices. }
   TIndexedLineSetNode = class(TAbstractGeometryNode)
   strict private
     procedure EventSet_ColorIndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventSet_CoordIndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    { Event in } { }
-    strict private FEventSet_colorIndex: TMFInt32Event;
-    public property EventSet_colorIndex: TMFInt32Event read FEventSet_colorIndex;
-
-    { Event in } { }
-    strict private FEventSet_coordIndex: TMFInt32Event;
-    public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdAttrib: TMFNode;
-    public property FdAttrib: TMFNode read FFdAttrib;
-    {$endif}
-
-    strict private FFdColor: TSFNode;
-    public property FdColor: TSFNode read FFdColor;
-
-    strict private FFdCoord: TSFNode;
-    public property FdCoord: TSFNode read FFdCoord;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdFogCoord: TSFNode;
-    public property FdFogCoord: TSFNode read FFdFogCoord;
-    {$endif}
-
-    strict private FFdColorIndex: TMFInt32;
-    public property FdColorIndex: TMFInt32 read FFdColorIndex;
-
-    strict private FFdColorPerVertex: TSFBool;
-    public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
-
-    strict private FFdCoordIndex: TMFInt32;
-    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
-
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
-
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndexField: TMFLong; override;
@@ -704,7 +588,7 @@
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_indexedlineset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_indexedlineset.inc}
   end;
   TIndexedLineSetNode_2 = TIndexedLineSetNode;
 
@@ -712,87 +596,54 @@
   TIndexedTriangleFanSetNode = class(TAbstractComposedGeometryNode)
   strict private
     procedure EventSet_IndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
-
-    { Event in } { }
-    strict private FEventSet_index: TMFInt32Event;
-    public property EventSet_index: TMFInt32Event read FEventSet_index;
-
-    strict private FFdIndex: TMFInt32;
-    public property FdIndex: TMFInt32 read FFdIndex;
-
     function CoordIndexField: TMFLong; override;
-
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_indexedtrianglefanset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_indexedtrianglefanset.inc}
   end;
 
   { A collection of triangles. }
   TIndexedTriangleSetNode = class(TAbstractComposedGeometryNode)
   strict private
     procedure EventSet_IndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
-
-    { Event in } { }
-    strict private FEventSet_index: TMFInt32Event;
-    public property EventSet_index: TMFInt32Event read FEventSet_index;
-
-    strict private FFdIndex: TMFInt32;
-    public property FdIndex: TMFInt32 read FFdIndex;
-
     function CoordIndexField: TMFLong; override;
-
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_indexedtriangleset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_indexedtriangleset.inc}
   end;
 
   { Strips of triangles. }
   TIndexedTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   strict private
     procedure EventSet_IndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
-
-    { Event in } { }
-    strict private FEventSet_index: TMFInt32Event;
-    public property EventSet_index: TMFInt32Event read FEventSet_index;
-
-    strict private FFdIndex: TMFInt32;
-    public property FdIndex: TMFInt32 read FFdIndex;
-
     function CoordIndexField: TMFLong; override;
-
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_indexedtrianglestripset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_indexedtrianglestripset.inc}
   end;
 
   { Lines. }
@@ -803,52 +654,22 @@
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdAttrib: TMFNode;
-    public property FdAttrib: TMFNode read FFdAttrib;
-    {$endif}
-
-    strict private FFdColor: TSFNode;
-    public property FdColor: TSFNode read FFdColor;
-
-    strict private FFdCoord: TSFNode;
-    public property FdCoord: TSFNode read FFdCoord;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdFogCoord: TSFNode;
-    public property FdFogCoord: TSFNode read FFdFogCoord;
-    {$endif}
-
-    strict private FFdVertexCount: TMFInt32;
-    public property FdVertexCount: TMFInt32 read FFdVertexCount;
-
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordField: TSFNode; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
-
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_lineset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_lineset.inc}
   end;
 
   { Normal (information for lighting) node. }
   TNormalNode = class(TAbstractNormalNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdVector: TMFVec3f;
-    public property FdVector: TMFVec3f read FFdVector;
-
-    {$I auto_generated_node_helpers/x3dnodes_normal.inc}
+  {$I auto_generated_node_helpers/x3dnodes_normal.inc}
   end;
 
   { Tangent vectors information, for bump mapping.
@@ -862,8 +683,6 @@
   TTangentNode = class(TAbstractGeometricPropertyNode)
     {$I auto_generated_node_helpers/x3dnodes_tangent.inc}
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
-
     { Set tangent vectors from a list of 4D vectors following glTF specification.
       https://github.com/KhronosGroup/glTF/tree/master/specification/2.0 says
       "XYZW vertex tangents where the w component is a sign value
@@ -876,32 +695,11 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdAttrib: TMFNode;
-    public property FdAttrib: TMFNode read FFdAttrib;
-    {$endif}
-
-    strict private FFdColor: TSFNode;
-    public property FdColor: TSFNode read FFdColor;
-
-    strict private FFdCoord: TSFNode;
-    public property FdCoord: TSFNode read FFdCoord;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdFogCoord: TSFNode;
-    public property FdFogCoord: TSFNode read FFdFogCoord;
-    {$endif}
-
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
-
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordField: TSFNode; override;
@@ -909,7 +707,7 @@
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_pointset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_pointset.inc}
   end;
   TPointSetNode_2 = TPointSetNode;
 
@@ -922,20 +720,13 @@
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdFanCount: TMFInt32;
-    public property FdFanCount: TMFInt32 read FFdFanCount;
-
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_trianglefanset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_trianglefanset.inc}
   end;
 
   { A collection of triangles.
@@ -943,17 +734,13 @@
     to compose vertexes into triangles. }
   TTriangleSetNode = class(TAbstractComposedGeometryNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_triangleset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_triangleset.inc}
   end;
 
   { Strips of triangles.
@@ -965,20 +752,13 @@
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdStripCount: TMFInt32;
-    public property FdStripCount: TMFInt32 read FFdStripCount;
-
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
-
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_trianglestripset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_trianglestripset.inc}
   end;
 {$endif read_interface}
 
@@ -990,14 +770,12 @@ const
 
 { TAbstractGeometryNode ---------------------------------------------------------- }
 
-procedure TAbstractGeometryNode.CreateNode;
+constructor TAbstractGeometryNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
 
-  DefaultContainerField := 'geometry';
-
   { To make nodes without FdSolid and FdConvex field behave consistently,
-    we keep the value you set by SetValue to return it in GetSolid.
+    we keep the value you set by SetSolid / SetConvex to return it in GetSolid / GetConvex.
     The defaults are "true", which are more efficient (e.g. solid=true
     doesn't activate two-sided lighting) and correspond to X3D defaults on other nodes. }
   FIgnoredSolid := true;
@@ -1401,66 +1179,7 @@ begin
     Result := nil;
 end;
 
-{ Normal X3D spec nodes ------------------------------------------------------ }
-
-procedure TAbstractComposedGeometryNode.CreateNode;
-begin
-  inherited;
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangeAlways := chGeometry;
-  AddField(FFdAttrib);
-  {$endif}
-
-  FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangeAlways := chGeometry;
-  AddField(FFdColor);
-
-  FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangeAlways := chGeometry;
-  AddField(FFdCoord);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangeAlways := chGeometry;
-  AddField(FFdFogCoord);
-  {$endif}
-
-  FFdNormal := TSFNode.Create(Self, true, 'normal', [TAbstractNormalNode]);
-   FdNormal.ChangeAlways := chGeometry;
-  AddField(FFdNormal);
-
-  FFdTangent := TSFNode.Create(Self, true, 'tangent', [TTangentNode]);
-   FdTangent.ChangeAlways := chGeometry;
-  AddField(FFdTangent);
-
-  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TAbstractTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chGeometry;
-  AddField(FFdTexCoord);
-
-  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
-   FdCcw.ChangeAlways := chGeometry;
-  AddField(FFdCcw);
-
-  FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
-   FdColorPerVertex.ChangeAlways := chGeometry;
-  AddField(FFdColorPerVertex);
-
-  FFdNormalPerVertex := TSFBool.Create(Self, false, 'normalPerVertex', true);
-   FdNormalPerVertex.ChangeAlways := chGeometry;
-  AddField(FFdNormalPerVertex);
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdRadianceTransfer := TMFVec3f.Create(Self, true, 'radianceTransfer', []);
-   FdRadianceTransfer.ChangeAlways := chGeometry;
-  AddField(FFdRadianceTransfer);
-  {$endif}
-end;
+{ TAbstractComposedGeometryNode ------------------------------------------------------ }
 
 function TAbstractComposedGeometryNode.CoordField: TSFNode;
 begin
@@ -1546,33 +1265,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-procedure TAbstractCoordinateNode.CreateNode;
-begin
-  inherited;
-
-  DefaultContainerField := 'coord';
-end;
-
 { TClipPlaneNode ------------------------------------------------------------- }
-
-procedure TClipPlaneNode.CreateNode;
-begin
-  inherited;
-
-  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-   FdEnabled.ChangeAlways := chClipPlane;
-  AddField(FFdEnabled);
-
-  FFdPlane := TSFVec4f.Create(Self, true, 'plane', Vector4(0, 1, 0, 0));
-   FdPlane.ChangeAlways := chClipPlane;
-  AddField(FFdPlane);
-  { X3D specification comment: [0,1] }
-
-  { X3D specification (XML encoding, edition 2)
-    says that containerField of this should be "color"... which doesn't
-    make sense? I leave DefaultContainerField as "children"
-    (inherited from X3DChilNode. }
-end;
 
 procedure TClipPlaneNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
 var
@@ -1584,113 +1277,20 @@ begin
   CP^.Transform := State.Transformation.Transform;
 end;
 
-class function TClipPlaneNode.ClassX3DType: string;
-begin
-  Result := 'ClipPlane';
-end;
-
-procedure TColorNode.CreateNode;
-begin
-  inherited;
-
-  FFdColor := TMFColor.Create(Self, true, 'color', []);
-   FdColor.ChangeAlways := chColorNode;
-  AddField(FFdColor);
-  { X3D specification comment: [0,1] }
-end;
-
-class function TColorNode.ClassX3DType: string;
-begin
-  Result := 'Color';
-end;
-
-procedure TColorRGBANode.CreateNode;
-begin
-  inherited;
-
-  FFdColor := TMFColorRGBA.Create(Self, true, 'color', []);
-   FdColor.ChangeAlways := chColorNode;
-  AddField(FFdColor);
-  { X3D specification comment: [0,1] }
-end;
-
-class function TColorRGBANode.ClassX3DType: string;
-begin
-  Result := 'ColorRGBA';
-end;
-
-procedure TCoordinateNode.CreateNode;
-begin
-  inherited;
-
-  FFdPoint := TMFVec3f.Create(Self, true, 'point', []);
-   FdPoint.ChangeAlways := chCoordinate;
-  AddField(FFdPoint);
-  { X3D specification comment: (-Inf,Inf) }
-end;
-
-class function TCoordinateNode.ClassX3DType: string;
-begin
-  Result := 'Coordinate';
-end;
+{ TCoordinateNode ------------------------------------------------------------ }
 
 function TCoordinateNode.CoordCount: Cardinal;
 begin
   Result := FdPoint.Items.Count;
 end;
 
-procedure TIndexedLineSetNode.CreateNode;
+{ TIndexedLineSetNode -------------------------------------------------------- }
+
+constructor TIndexedLineSetNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
-  AddEvent(FEventSet_colorIndex);
   Eventset_colorIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_ColorIndexReceive);
-
-  FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
-  AddEvent(FEventSet_coordIndex);
   Eventset_coordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_CoordIndexReceive);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangeAlways := chGeometry;
-  AddField(FFdAttrib);
-  {$endif}
-
-  FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangeAlways := chGeometry;
-  AddField(FFdColor);
-
-  FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangeAlways := chGeometry;
-  AddField(FFdCoord);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangeAlways := chGeometry;
-  AddField(FFdFogCoord);
-  {$endif}
-
-  FFdColorIndex := TMFInt32.Create(Self, false, 'colorIndex', []);
-   FdColorIndex.SaveToStreamLineUptoNegative := true;
-   FdColorIndex.ChangeAlways := chGeometry;
-  AddField(FFdColorIndex);
-  { X3D specification comment: [0,Inf) or -1 }
-
-  FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
-   FdColorPerVertex.ChangeAlways := chGeometry;
-  AddField(FFdColorPerVertex);
-
-  FFdCoordIndex := TMFInt32.Create(Self, false, 'coordIndex', []);
-   FdCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdCoordIndex.ChangeAlways := chGeometry;
-  AddField(FFdCoordIndex);
-  { X3D specification comment: [0,Inf) or -1 }
-end;
-
-class function TIndexedLineSetNode.ClassX3DType: string;
-begin
-  Result := 'IndexedLineSet';
 end;
 
 class function TIndexedLineSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1740,14 +1340,14 @@ begin
 end;
 
 procedure TIndexedLineSetNode.EventSet_ColorIndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdColorIndex.Assign(Value);
   FdColorIndex.Changed;
 end;
 
 procedure TIndexedLineSetNode.EventSet_CoordIndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdCoordIndex.Assign(Value);
   FdCoordIndex.Changed;
@@ -1759,23 +1359,12 @@ begin
   Result := false;
 end;
 
-procedure TIndexedTriangleFanSetNode.CreateNode;
+{ TIndexedTriangleFanSetNode ------------------------------------------------- }
+
+constructor TIndexedTriangleFanSetNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
-  AddEvent(FEventSet_index);
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
-
-  FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangeAlways := chGeometry;
-  AddField(FFdIndex);
-  { X3D specification comment: [0,Inf) or -1 }
-end;
-
-class function TIndexedTriangleFanSetNode.ClassX3DType: string;
-begin
-  Result := 'IndexedTriangleFanSet';
 end;
 
 function TIndexedTriangleFanSetNode.CoordIndexField: TMFLong;
@@ -1784,7 +1373,7 @@ begin
 end;
 
 procedure TIndexedTriangleFanSetNode.EventSet_IndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdIndex.Send(Value);
 end;
@@ -1796,23 +1385,12 @@ begin
   Result := inherited;
 end;
 
-procedure TIndexedTriangleSetNode.CreateNode;
+{ TIndexedTriangleSetNode ---------------------------------------------------- }
+
+constructor TIndexedTriangleSetNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
-  AddEvent(FEventSet_index);
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
-
-  FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangeAlways := chGeometry;
-  AddField(FFdIndex);
-  { X3D specification comment: [0,Inf) }
-end;
-
-class function TIndexedTriangleSetNode.ClassX3DType: string;
-begin
-  Result := 'IndexedTriangleSet';
 end;
 
 function TIndexedTriangleSetNode.CoordIndexField: TMFLong;
@@ -1821,7 +1399,7 @@ begin
 end;
 
 procedure TIndexedTriangleSetNode.EventSet_IndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdIndex.Send(Value);
 end;
@@ -1833,23 +1411,12 @@ begin
   Result := inherited;
 end;
 
-procedure TIndexedTriangleStripSetNode.CreateNode;
+{ TIndexedTriangleStripSetNode ----------------------------------------------- }
+
+constructor TIndexedTriangleStripSetNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
-  AddEvent(FEventSet_index);
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
-
-  FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangeAlways := chGeometry;
-  AddField(FFdIndex);
-  { X3D specification comment: [0,Inf) or -1 }
-end;
-
-class function TIndexedTriangleStripSetNode.ClassX3DType: string;
-begin
-  Result := 'IndexedTriangleStripSet';
 end;
 
 function TIndexedTriangleStripSetNode.CoordIndexField: TMFLong;
@@ -1858,7 +1425,7 @@ begin
 end;
 
 procedure TIndexedTriangleStripSetNode.EventSet_IndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdIndex.Send(Value);
 end;
@@ -1868,41 +1435,6 @@ begin
   if Event = EventSet_index then
     Exit(FdIndex);
   Result := inherited;
-end;
-
-procedure TLineSetNode.CreateNode;
-begin
-  inherited;
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangeAlways := chGeometry;
-  AddField(FFdAttrib);
-  {$endif}
-
-  FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangeAlways := chGeometry;
-  AddField(FFdColor);
-
-  FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangeAlways := chGeometry;
-  AddField(FFdCoord);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangeAlways := chGeometry;
-  AddField(FFdFogCoord);
-  {$endif}
-
-  FFdVertexCount := TMFInt32.Create(Self, true, 'vertexCount', []);
-   FdVertexCount.ChangeAlways := chGeometry;
-  AddField(FFdVertexCount);
-  { X3D specification comment: [2,Inf) }
-end;
-
-class function TLineSetNode.ClassX3DType: string;
-begin
-  Result := 'LineSet';
 end;
 
 function TLineSetNode.CoordField: TSFNode;
@@ -1978,30 +1510,7 @@ begin
   Result := false;
 end;
 
-procedure TNormalNode.CreateNode;
-begin
-  inherited;
-
-  FFdVector := TMFVec3f.Create(Self, true, 'vector', []);
-   FdVector.ChangeAlways := chNormal;
-  AddField(FFdVector);
-  { X3D specification comment: [-1,1] }
-
-  DefaultContainerField := 'normal';
-end;
-
-class function TNormalNode.ClassX3DType: string;
-begin
-  Result := 'Normal';
-end;
-
 { TTangentNode --------------------------------------------------------------- }
-
-constructor TTangentNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
-begin
-  inherited;
-  FdVector.ChangeAlways := chTangent;
-end;
 
 procedure TTangentNode.SetVector4D(const List: TVector4List);
 var
@@ -2027,36 +1536,6 @@ begin
     Inc(Source);
     Inc(Dest);
   end;
-end;
-
-procedure TPointSetNode.CreateNode;
-begin
-  inherited;
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangeAlways := chGeometry;
-  AddField(FFdAttrib);
-  {$endif}
-
-  FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangeAlways := chGeometry;
-  AddField(FFdColor);
-
-  FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangeAlways := chGeometry;
-  AddField(FFdCoord);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangeAlways := chGeometry;
-  AddField(FFdFogCoord);
-  {$endif}
-end;
-
-class function TPointSetNode.ClassX3DType: string;
-begin
-  Result := 'PointSet';
 end;
 
 class function TPointSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -2124,20 +1603,7 @@ begin
   Result := false;
 end;
 
-procedure TTriangleFanSetNode.CreateNode;
-begin
-  inherited;
-
-  FFdFanCount := TMFInt32.Create(Self, true, 'fanCount', []);
-   FdFanCount.ChangeAlways := chGeometry;
-  AddField(FFdFanCount);
-  { X3D specification comment: [3,Inf) }
-end;
-
-class function TTriangleFanSetNode.ClassX3DType: string;
-begin
-  Result := 'TriangleFanSet';
-end;
+{ TTriangleFanSetNode -------------------------------------------------------- }
 
 function TTriangleFanSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
@@ -2151,30 +1617,7 @@ begin
   Result := true;
 end;
 
-procedure TTriangleSetNode.CreateNode;
-begin
-  inherited;
-end;
-
-class function TTriangleSetNode.ClassX3DType: string;
-begin
-  Result := 'TriangleSet';
-end;
-
-procedure TTriangleStripSetNode.CreateNode;
-begin
-  inherited;
-
-  FFdStripCount := TMFInt32.Create(Self, true, 'stripCount', []);
-   FdStripCount.ChangeAlways := chGeometry;
-  AddField(FFdStripCount);
-  { X3D specification comment: [3,Inf) }
-end;
-
-class function TTriangleStripSetNode.ClassX3DType: string;
-begin
-  Result := 'TriangleStripSet';
-end;
+{ TTriangleStripSetNode ------------------------------------------------------ }
 
 function TTriangleStripSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;

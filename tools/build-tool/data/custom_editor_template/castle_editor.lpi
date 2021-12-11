@@ -26,14 +26,17 @@
       <FormatVersion Value="2"/>
       <Modes Count="0"/>
     </RunParams>
-    <RequiredPackages Count="3">
+    <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="castle_components"/>
+        <PackageName Value="AnchorDocking"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCL"/>
+        <PackageName Value="castle_components"/>
       </Item2>
-    <Item3> <PackageName Value="castle_editor_automatic_package"/> </Item3> </RequiredPackages>
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
+    <Item4> <PackageName Value="castle_editor_automatic_package"/> </Item4> </RequiredPackages>
     <Units Count="21">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>

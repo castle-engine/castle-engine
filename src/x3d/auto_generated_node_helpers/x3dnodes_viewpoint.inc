@@ -31,8 +31,22 @@
     function GetFieldOfViewForceVertical: Boolean;
     procedure SetFieldOfViewForceVertical(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdFieldOfView: TSFFloat;
+    { X3D field "fieldOfView". } { }
+    public property FdFieldOfView: TSFFloat read FFdFieldOfView;
     { X3D field "fieldOfView". } { }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
+
+    strict private FFdPosition: TSFVec3f;
+    { X3D field "position". } { }
+    public property FdPosition: TSFVec3f read FFdPosition;
+
+    strict private FFdFieldOfViewForceVertical: TSFBool;
+    { X3D field "fieldOfViewForceVertical". } { }
+    public property FdFieldOfViewForceVertical: TSFBool read FFdFieldOfViewForceVertical;
     { X3D field "fieldOfViewForceVertical". } { }
     property FieldOfViewForceVertical: Boolean read GetFieldOfViewForceVertical write SetFieldOfViewForceVertical;
 
@@ -60,6 +74,28 @@ end;
 procedure TViewpointNode.SetFieldOfViewForceVertical(const Value: Boolean);
 begin
   FdFieldOfViewForceVertical.Send(Value);
+end;
+
+class function TViewpointNode.ClassX3DType: String;
+begin
+  Result := 'Viewpoint';
+end;
+
+procedure TViewpointNode.CreateNode;
+begin
+  inherited;
+
+  FFdFieldOfView := TSFFloat.Create(Self, True, 'fieldOfView', Pi/4);
+   FdFieldOfView.ChangeAlways := chViewpointProjection;
+  AddField(FFdFieldOfView);
+
+  FFdPosition := TSFVec3f.Create(Self, True, 'position', Vector3(0, 0, 10));
+   FdPosition.ChangeAlways := chViewpointVectors;
+  AddField(FFdPosition);
+
+  FFdFieldOfViewForceVertical := TSFBool.Create(Self, True, 'fieldOfViewForceVertical', false);
+   FdFieldOfViewForceVertical.ChangeAlways := chViewpointProjection;
+  AddField(FFdFieldOfViewForceVertical);
 end;
 
 {$endif read_implementation}

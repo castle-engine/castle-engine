@@ -391,7 +391,7 @@ function CreateTokens(const s: string;
   @code('foo') and @code('bar').
 
   The splitting is done "strictly", which means that we always return exactly
-  one more part than the occurences of delimiter in the source string.
+  one more part than the occurrences of delimiter in the source string.
 
   In particular, this means that:
   @unorderedList(
@@ -1263,7 +1263,7 @@ begin
   begin
     if CharInSet(S[i], [#10, #13]) then
     begin
-      { niech i obejmie cale zakonczenie linii ktore moze byc 2-znakowe #13#10 lub #10#13 }
+      { let i include whole newline sequence, which may be 2-character #13#10 or #10#13 }
       case s[i] of
         #13 : if SCharIs(s, i+1, #10) then Inc(i);
         #10 : if SCharIs(s, i+1, #13) then Inc(i);
@@ -1287,8 +1287,8 @@ begin
           end;
         if not BrokenSuccess then
         begin
-          { ups ! it can't be broken - no AllowedBreakChars found ! so we break after
-            done+maxcol position. }
+          { line can't be broken - no AllowedBreakChars found.
+            So we break after done+maxcol position. }
           Result := Result + Copy(s, Done+1, MaxCol) + Newline + Indent;
           Done := Done + MaxCol;
         end;

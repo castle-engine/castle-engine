@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2018 Michalis Kamburelis.
+  Copyright 2006-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -171,6 +171,19 @@ procedure cgeNxLog(Message: PChar); cdecl; external 'cgeNxLog';
 { Where it the log output going. }
 function LogOutput: String;
 
+const
+  { How many last logs to preserve.
+    Last logs are useful to read using @link(LastLog),
+    observe in inspector (press F12 in debug build),
+    and they serve as a buffer in case you call InitializeLog
+    after something already did WritelnLog. }
+  MaxLastLogCount = 10;
+
+function LastLogCount: Integer;
+{ Last log messages.
+  Use Index from 0 (newest) to LastLogCount - 1 (oldest). }
+function LastLog(const Index: Integer): String;
+
 implementation
 
 uses SysUtils,
@@ -196,12 +209,11 @@ var
   FLogOutput: String;
   LogStream: TStream;
   LogStreamOwned: boolean;
-  CollectedLog: String; //< log contents not saved to file yet
 
-const
-  { To avoid wasting time in applications that just never call InitializeLog,
-    stop adding things to CollectedLog when it reaches certain length. }
-  MaxCollectedLogLength = 80 * 100;
+  FLastLog: array [0..MaxLastLogCount - 1] of String;
+  FLastLogCount: Integer;
+  // index of FLastLog entry containing first log message
+  FLastLogFirst: Integer;
 
 procedure WriteLogCoreCore(const S: string); forward;
 
@@ -257,6 +269,7 @@ procedure InitializeLog(
 var
   WantsLogToStandardOutput: Boolean;
   EnableStandardOutput: Boolean;
+  I: Integer;
 begin
   LogTimePrefix := ALogTimePrefix;
 
@@ -330,11 +343,10 @@ begin
   WriteLogCoreCore('  Castle Game Engine version: ' + CastleEngineVersion + '.' + NL);
   WriteLogCoreCore('  Compiled with ' + SCompilerDescription + '.' + NL);
   WriteLogCoreCore('  Platform: ' + SPlatformDescription + '.' + NL);
-  if CollectedLog <> '' then
-  begin
-    WriteLogCoreCore(CollectedLog);
-    CollectedLog := '';
-  end;
+
+  { Write to log output all pending messages, collected by LastLog. }
+  for I := LastLogCount - 1 downto 0 do
+    WriteLogCoreCore(LastLog(I));
 
   { In case of exception in WriteStr in WriteLogCoreCore,
     leave FLog as false.
@@ -376,7 +388,7 @@ end;
 
 { Add the String to log contents.
   - Optionally adds backtrace to the String.
-  - If log not initialized yet, adds the String to CollectedLog.
+  - Adds the String to LastLog.
   - If log initialized, sends it to AndroidLog and LogStream and ApplicationProperties._Log
 }
 procedure WriteLogCore(const S: string);
@@ -390,15 +402,16 @@ begin
   {$endif}
 
   if FLog then
-  begin
     WriteLogCoreCore(LogContents);
-  end else
-  if Length(CollectedLog) < MaxCollectedLogLength then
-  begin
-    CollectedLog := CollectedLog + LogContents;
-    if Length(CollectedLog) >= MaxCollectedLogLength then
-      CollectedLog := CollectedLog + '(... Further log messages will not be collected, until you call InitializeLog ...)' + NL;
-  end;
+
+  if FLastLogFirst = 0 then
+    FLastLogFirst := MaxLastLogCount - 1
+  else
+    Dec(FLastLogFirst);
+  FLastLog[FLastLogFirst] := LogContents;
+  if FLastLogCount < MaxLastLogCount then
+    Inc(FLastLogCount);
+  //Assert(LastLog(0) = LogContents); // valid Assert, commented out only to not eat time even in DEBUG mode
 end;
 
 function LogTimePrefixStr: string;
@@ -491,6 +504,17 @@ procedure WritelnWarning(const MessageBase: string;
   const Args: array of const);
 begin
   WritelnWarning('', MessageBase, Args);
+end;
+
+function LastLogCount: Integer;
+begin
+  Result := FLastLogCount;
+end;
+
+function LastLog(const Index: Integer): String;
+begin
+  Assert(Between(Index, 0, FLastLogCount - 1));
+  Result := FLastLog[(FLastLogFirst + Index) mod MaxLastLogCount];
 end;
 
 initialization

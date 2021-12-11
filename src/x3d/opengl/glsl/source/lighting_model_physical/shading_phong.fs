@@ -114,42 +114,6 @@ float microfacetDistribution(const in MaterialInfo materialInfo, const in Angula
   return alphaRoughnessSq / (M_PI * f * f);
 }
 
-/* Main function that calculates per-light-source contribution to the final color.
-
-   pointToLight is the direction from current vertex to light source.
-   It is assumed to be already normalized.
-
-   normal is normal in eye-space.
-
-   view is direction from current vertex to camera, in eye-space,
-   already normalized.
-   IOW, "normalize(- vertex_eye)" because camera position is zero in eye-space.
-*/
-vec3 getPointShade(const in vec3 pointToLight,
-  const in MaterialInfo materialInfo,
-  const in vec3 normal,
-  const in vec3 view)
-{
-  AngularInfo angularInfo = getAngularInfo(pointToLight, normal, view);
-
-  if (angularInfo.NdotL > 0.0 || angularInfo.NdotV > 0.0)
-  {
-    // Calculate the shading terms for the microfacet specular shading model
-    vec3 F = specularReflection(materialInfo, angularInfo);
-    float Vis = visibilityOcclusion(materialInfo, angularInfo);
-    float D = microfacetDistribution(materialInfo, angularInfo);
-
-    // Calculation of analytical lighting contribution
-    vec3 diffuseContrib = (1.0 - F) * diffuse(materialInfo);
-    vec3 specContrib = F * Vis * D;
-
-    // Obtain final intensity as reflectance (BRDF) scaled by the energy of the light (cosine law)
-    return angularInfo.NdotL * (diffuseContrib + specContrib);
-  }
-
-  return vec3(0.0, 0.0, 0.0);
-}
-
 /* Get PhysicalMaterial properies.
    Matches glTF logic for metallic-roughness model.
 */

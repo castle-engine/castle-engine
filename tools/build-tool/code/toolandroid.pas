@@ -22,12 +22,14 @@ interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolArchitectures, ToolCompile, ToolPackageFormat, ToolProject;
+  ToolArchitectures, ToolCompile, ToolPackageFormat, ToolProject,
+  ToolManifest;
 
 { Compile (for all possible Android CPUs) Android unit or library.
   When Project <> nil, we assume we compile libraries (one of more .so files),
   and their final names must match Project.AndroidLibraryFile(CPU). }
-procedure CompileAndroid(const Project: TCastleProject;
+procedure CompileAndroid(const Compiler: TCompiler;
+  const Project: TCastleProject;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 
@@ -54,7 +56,7 @@ uses SysUtils, DOM, XMLWrite,
   // TODO: Should not be needed after https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
   {$IFDEF UNIX}BaseUnix, {$ENDIF}
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils, ToolManifest,
+  ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
   ToolServicesOperations;
 
 var
@@ -73,7 +75,8 @@ begin
   Result := DetectAndroidCPUSCached;
 end;
 
-procedure CompileAndroid(const Project: TCastleProject;
+procedure CompileAndroid(const Compiler: TCompiler;
+  const Project: TCastleProject;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
@@ -81,7 +84,7 @@ var
 begin
   for CPU in DetectAndroidCPUS do
   begin
-    Compile(Android, CPU, { Plugin } false,
+    Compile(Compiler, Android, CPU, { Plugin } false,
       Mode, WorkingDirectory, CompileFile, SearchPaths, LibraryPaths, ExtraOptions);
     if Project <> nil then
     begin
@@ -267,6 +270,9 @@ var
     if (depFreeType in Project.Dependencies) and
        not Project.AndroidServices.HasService('freetype') then
       ExtractService('freetype');
+    if (depPng in Project.Dependencies) and
+       not Project.AndroidServices.HasService('png') then
+      ExtractService('png');
     if (depHttps in Project.Dependencies) and
        not Project.AndroidServices.HasService('download_urls') then
       ExtractService('download_urls');

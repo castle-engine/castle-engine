@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,28 +36,7 @@
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
-    procedure CreateNode; override;
-
-    strict private FFdOn: TSFBool;
-    public property FdOn: TSFBool read FFdOn;
-
-    strict private FFdIntensity: TSFFloat;
-    public property FdIntensity: TSFFloat read FFdIntensity;
-
-    strict private FFdColor: TSFColor;
-    public property FdColor: TSFColor read FFdColor;
-
-    strict private FFdAmbientIntensity: TSFFloat;
-    public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
-
-    strict private FFdGlobal: TSFBool;
-    public property FdGlobal: TSFBool read FFdGlobal;
-
-    strict private FFdShadowVolumes: TSFBool;
-    public property FdShadowVolumes: TSFBool read FFdShadowVolumes;
-
-    strict private FFdEffects: TMFNode;
-    public property FdEffects: TMFNode read FFdEffects;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
     { Create TLightInstance record describing this light node under given
       State. }
@@ -102,7 +81,7 @@
 
     function TransformationChange: TNodeTransformationChange; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
   end;
 
   { Base class for all "punctual" light nodes (that have a position and/or direction).
@@ -124,33 +103,6 @@
     function  GetProjectionDirectionLocal: TVector3; virtual;
     procedure SetProjectionDirectionLocal(const Value: TVector3); virtual;
   public
-    procedure CreateNode; override;
-
-    strict private FFdShadowVolumesMain: TSFBool;
-    public property FdShadowVolumesMain: TSFBool read FFdShadowVolumesMain;
-
-    strict private FFdShowProxyGeometry: TSFBool;
-    { showProxyGeometry field is an InstantReality extension, see
-      [http://instant-reality.com/documentation/nodetype/Light/]. }
-    public property FdShowProxyGeometry: TSFBool read FFdShowProxyGeometry;
-
-    strict private FFdProjectionNear: TSFFloat;
-    { projectionNear / projectionFar / up are Kambi extensions, see
-      [https://castle-engine.io/x3d_extensions_shadow_maps.php#section_light_parameters] }
-    public property FdProjectionNear: TSFFloat read FFdProjectionNear;
-
-    strict private FFdProjectionFar: TSFFloat;
-    public property FdProjectionFar: TSFFloat read FFdProjectionFar;
-
-    strict private FFdUp: TSFVec3f;
-    public property FdUp: TSFVec3f read FFdUp;
-
-    strict private FFdDefaultShadowMap: TSFNode;
-    public property FdDefaultShadowMap: TSFNode read FFdDefaultShadowMap;
-
-    strict private FFdShadows: TSFBool;
-    public property FdShadows: TSFBool read FFdShadows;
-
     { Matrices for rendering shadow map from this light.
       Identity in this class, override for subclasses able to do shadow mapping.
       @groupBegin }
@@ -211,70 +163,35 @@
       Note that this is expressed in the local light node coordinate system. }
     function PositionAndDirection: TVector4; virtual; abstract;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dpunctuallightnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dpunctuallightnode.inc}
   end;
 
   { Base class for all directional lights. }
   TAbstractDirectionalLightNode = class(TAbstractPunctualLightNode)
-  strict private
-    function GetDirection: TVector3;
-    procedure SetDirection(const Value: TVector3);
-    function GetProjectionRectangle: TVector4;
-    procedure SetProjectionRectangle(const Value: TVector4);
-    function GetProjectionLocation: TVector3;
-    procedure SetProjectionLocation(const Value: TVector3);
   protected
     function  GetProjectionLocationLocal: TVector3; override;
     procedure SetProjectionLocationLocal(const Value: TVector3); override;
     function  GetProjectionDirectionLocal: TVector3; override;
     procedure SetProjectionDirectionLocal(const Value: TVector3); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdDirection: TSFVec3f;
-    public property FdDirection: TSFVec3f read FFdDirection;
-    property Direction: TVector3 read GetDirection write SetDirection;
-
-    strict private FFdProjectionRectangle: TSFVec4f;
-    public property FdProjectionRectangle: TSFVec4f read FFdProjectionRectangle;
-    property ProjectionRectangle: TVector4 read GetProjectionRectangle write SetProjectionRectangle;
-
-    strict private FFdProjectionLocation: TSFVec3f;
-    public property FdProjectionLocation: TSFVec3f read FFdProjectionLocation;
-    property ProjectionLocation: TVector3 read GetProjectionLocation write SetProjectionLocation;
-
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
-
     function ProjectionMatrix: TMatrix4; override;
     function ModelviewMatrix: TMatrix4; override;
     function ModelviewRotationMatrix: TMatrix4; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
     function PositionAndDirection: TVector4; override;
+  {$I auto_generated_node_helpers/x3dnodes_x3ddirectionallightnode.inc}
   end;
 
   { Base class for all positional lights. }
   TAbstractPositionalLightNode = class(TAbstractPunctualLightNode)
   strict private
-    function GetAttenuation: TVector3;
-    procedure SetAttenuation(const Value: TVector3);
-    function GetLocation: TVector3;
-    procedure SetLocation(const Value: TVector3);
     function GetSceneLocation: TVector3;
     procedure SetSceneLocation(const Value: TVector3);
-    function GetRadius: Single;
-    procedure SetRadius(const Value: Single);
   public
-    procedure CreateNode; override;
-
-    strict private FFdAttenuation: TSFVec3f;
-    public property FdAttenuation: TSFVec3f read FFdAttenuation;
-    property Attenuation: TVector3 read GetAttenuation write SetAttenuation;
-
-    strict private FFdLocation: TSFVec3f;
-    public property FdLocation: TSFVec3f read FFdLocation;
-    property Location: TVector3 read GetLocation write SetLocation;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
     { Light location, expressed in scene (current TCastleScene) coordinates.
       @italic(Do not use this if the light node may be instantiated multiple
@@ -309,15 +226,12 @@
       function always returns 1, so there's no point in using it at all. }
     function HasAttenuation: boolean;
 
-    strict private FFdRadius: TSFFloat;
-    public property FdRadius: TSFFloat read FFdRadius;
-    property Radius: Single read GetRadius write SetRadius;
-
     { Should the "radius" field be taken into account. }
     function HasRadius: boolean; virtual;
 
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
     function PositionAndDirection: TVector4; override;
+  {$I auto_generated_node_helpers/x3dnodes_x3dpositionallightnode.inc}
   end;
 
   { Point light source, that shines from a given point in all directions around,
@@ -327,22 +241,16 @@
     function  GetProjectionLocationLocal: TVector3; override;
     procedure SetProjectionLocationLocal(const Value: TVector3); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
+  {$I auto_generated_node_helpers/x3dnodes_x3dpointlightnode.inc}
   end;
 
   { Light source that shines along a given direction, like a sun. }
   TDirectionalLightNode = class(TAbstractDirectionalLightNode)
   public
-    procedure CreateNode; override;
-
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
-
-    {$I auto_generated_node_helpers/x3dnodes_directionallight.inc}
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
+  {$I auto_generated_node_helpers/x3dnodes_directionallight.inc}
   end;
   TDirectionalLightNode_2 = TDirectionalLightNode;
 
@@ -350,12 +258,8 @@
     for X3D. }
   TPointLightNode = class(TAbstractPointLightNode)
   public
-    procedure CreateNode; override;
-
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
-
-    {$I auto_generated_node_helpers/x3dnodes_pointlight.inc}
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
+  {$I auto_generated_node_helpers/x3dnodes_pointlight.inc}
   end;
   TPointLightNode_2 = TPointLightNode;
 
@@ -368,26 +272,9 @@
     function  GetProjectionDirectionLocal: TVector3; override;
     procedure SetProjectionDirectionLocal(const Value: TVector3); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdBeamWidth: TSFFloat;
-    public property FdBeamWidth: TSFFloat read FFdBeamWidth;
-
-    strict private FFdCutOffAngle: TSFFloat;
-    public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
-
-    strict private FFdDirection: TSFVec3f;
-    public property FdDirection: TSFVec3f read FFdDirection;
-
-    strict private FFdProjectionAngle: TSFFloat;
-    public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
-
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
-
     function ProjectionMatrix: TMatrix4; override;
     function ModelviewMatrix: TMatrix4; override;
     function ModelviewRotationMatrix: TMatrix4; override;
@@ -413,13 +300,12 @@
       e.g. for OpenGL fixed-function pipeline. }
     function SpotExponentApproximate: Single;
 
-    {$I auto_generated_node_helpers/x3dnodes_spotlight.inc}
+  {$I auto_generated_node_helpers/x3dnodes_spotlight.inc}
   end;
   TSpotLightNode_2 = TSpotLightNode;
 
   TEnvironmentLightNode = class(TAbstractLightNode)
-  public
-    {$I auto_generated_node_helpers/x3dnodes_environmentlight.inc}
+  {$I auto_generated_node_helpers/x3dnodes_environmentlight.inc}
   end;
 
 {$endif read_interface}
@@ -432,49 +318,15 @@ const
 
 { TAbstractLightNode --------------------------------------------------------- }
 
-procedure TAbstractLightNode.CreateNode;
+constructor TAbstractLightNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdGlobal := TSFBool.Create(Self, true, 'global', false);
-   FdGlobal.ChangeAlways := chEverything;
-  AddField(FFdGlobal);
-
-  FFdOn := TSFBool.Create(Self, true, 'on', true);
-   FdOn.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdOn);
-
-  FFdIntensity := TSFFloat.Create(Self, true, 'intensity', 1);
-   FdIntensity.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdIntensity);
-
-  FFdColor := TSFColor.Create(Self, true, 'color', Vector3(1, 1, 1));
-   FdColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdColor);
-
-  FFdAmbientIntensity := TSFFloat.Create(Self, true, 'ambientIntensity', 0);
-   FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdAmbientIntensity);
-
-  FFdShadowVolumes := TSFBool.Create(Self, true, 'shadowVolumes', false);
-   FdShadowVolumes.AddAlternativeName('kambiShadows', 0);
-   FdShadowVolumes.ChangeAlways := chLightForShadowVolumes;
-  AddField(FFdShadowVolumes);
-
-  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
-   FdEffects.ChangeAlways := chEverything;
-  AddField(FFdEffects);
-
-  DefaultContainerField := 'children';
-
   FTransformation.Init;
 end;
 
-procedure TAbstractLightNode.BeforeTraverse(
-  StateStack: TX3DGraphTraverseStateStack);
+procedure TAbstractLightNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
-
   FTransformation := StateStack.Top.Transformation;
 end;
 
@@ -604,48 +456,6 @@ end;
 
 { TAbstractPunctualLightNode --------------------------------------------------------- }
 
-procedure TAbstractPunctualLightNode.CreateNode;
-begin
-  inherited;
-
-  FFdShadowVolumesMain := TSFBool.Create(Self, true, 'shadowVolumesMain', false);
-   FdShadowVolumesMain.AddAlternativeName('kambiShadowsMain', 0);
-   FdShadowVolumesMain.ChangeAlways := chLightForShadowVolumes;
-  AddField(FFdShadowVolumesMain);
-
-  FFdShowProxyGeometry := TSFBool.Create(Self, true, 'showProxyGeometry', false);
-  AddField(FFdShowProxyGeometry);
-
-  FFdProjectionNear := TSFFloat.Create(Self, true, 'projectionNear', 0);
-   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
-     this light. For now, simply send chVisibleGeometry that will
-     force updating all GeneratedShadowMaps. }
-   FdProjectionNear.ChangeAlways := chVisibleGeometry;
-  AddField(FFdProjectionNear);
-
-  FFdProjectionFar := TSFFloat.Create(Self, true, 'projectionFar', 0);
-   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
-     this light. For now, simply send chVisibleGeometry that will
-     force updating all GeneratedShadowMaps. }
-   FdProjectionFar.ChangeAlways := chVisibleGeometry;
-  AddField(FFdProjectionFar);
-
-  FFdUp := TSFVec3f.Create(Self, true, 'up', TVector3.Zero);
-   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
-     this light. For now, simply send chVisibleGeometry that will
-     force updating all GeneratedShadowMaps. }
-   FdUp.ChangeAlways := chVisibleGeometry;
-  AddField(FFdUp);
-
-  FFdDefaultShadowMap := TSFNode.Create(Self, false, 'defaultShadowMap', [TGeneratedShadowMapNode]);
-   FdDefaultShadowMap.ChangeAlways := chEverything;
-  AddField(FFdDefaultShadowMap);
-
-  FFdShadows := TSFBool.Create(Self, false, 'shadows', false);
-   FdShadows.ChangeAlways := chShadowMaps;
-  AddField(FFdShadows);
-end;
-
 function TAbstractPunctualLightNode.ProjectionMatrix: TMatrix4;
 begin
   Result := TMatrix4.Identity;
@@ -733,32 +543,10 @@ end;
 
 { TAbstractDirectionalLightNode ---------------------------------------------- }
 
-procedure TAbstractDirectionalLightNode.CreateNode;
+constructor TAbstractDirectionalLightNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdDirection := TSFVec3f.Create(Self, true, 'direction', Vector3(0, 0, -1));
-   FdDirection.ChangeAlways := chLightLocationDirection;
-  AddField(FFdDirection);
-
-  FFdProjectionRectangle := TSFVec4f.Create(Self, true, 'projectionRectangle', TVector4.Zero);
-   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
-     this light. For now, simply send chVisibleGeometry that will
-     force updating all GeneratedShadowMaps. }
-   FdProjectionRectangle.ChangeAlways := chVisibleGeometry;
-  AddField(FFdProjectionRectangle);
-
-  FFdProjectionLocation := TSFVec3f.Create(Self, true, 'projectionLocation', TVector3.Zero);
-   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
-     this light. For now, simply send chVisibleGeometry that will
-     force updating all GeneratedShadowMaps. }
-   FdProjectionLocation.ChangeAlways := chVisibleGeometry;
-  AddField(FFdProjectionLocation);
-end;
-
-class function TAbstractDirectionalLightNode.ClassX3DType: string;
-begin
-  Result := 'DirectionalLight';
+  FdGlobal.Value := false;
 end;
 
 procedure TAbstractDirectionalLightNode.UpdateLightInstance(
@@ -842,54 +630,10 @@ begin
   Result := Vector4(-FdDirection.Value, 0);
 end;
 
-function TAbstractDirectionalLightNode.GetDirection: TVector3;
-begin
-  Result := FdDirection.Value;
-end;
-
-procedure TAbstractDirectionalLightNode.SetDirection(const Value: TVector3);
-begin
-  FdDirection.Send(Value);
-end;
-
-function TAbstractDirectionalLightNode.GetProjectionRectangle: TVector4;
-begin
-  Result := FdProjectionRectangle.Value;
-end;
-
-procedure TAbstractDirectionalLightNode.SetProjectionRectangle(const Value: TVector4);
-begin
-  FdProjectionRectangle.Send(Value);
-end;
-
-function TAbstractDirectionalLightNode.GetProjectionLocation: TVector3;
-begin
-  Result := FdProjectionLocation.Value;
-end;
-
-procedure TAbstractDirectionalLightNode.SetProjectionLocation(const Value: TVector3);
-begin
-  FdProjectionLocation.Send(Value);
-end;
-
-procedure TAbstractPositionalLightNode.CreateNode;
+constructor TAbstractPositionalLightNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdLocation := TSFVec3f.Create(Self, true, 'location', Vector3(0, 0, 0));
-   FdLocation.ChangeAlways := chLightLocationDirection;
-  AddField(FFdLocation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdAttenuation := TSFVec3f.Create(Self, true, 'attenuation', Vector3(1, 0, 0));
-   FdAttenuation.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdAttenuation);
-  { X3D specification comment: [0,Inf) }
-
-  FFdRadius := TSFFloat.Create(Self, true, 'radius', 100);
-   FdRadius.ChangeAlways := chLightInstanceProperty;
-  AddField(FFdRadius);
-  { X3D specification comment: [0,Inf) }
+  FdGlobal.Value := true;
 end;
 
 function TAbstractPositionalLightNode.DistanceNeededForAttenuation: boolean;
@@ -954,26 +698,6 @@ begin
   Result := Vector4(FdLocation.Value, 1);
 end;
 
-function TAbstractPositionalLightNode.GetAttenuation: TVector3;
-begin
-  Result := FdAttenuation.Value;
-end;
-
-procedure TAbstractPositionalLightNode.SetAttenuation(const Value: TVector3);
-begin
-  FdAttenuation.Send(Value);
-end;
-
-function TAbstractPositionalLightNode.GetLocation: TVector3;
-begin
-  Result := FdLocation.Value;
-end;
-
-procedure TAbstractPositionalLightNode.SetLocation(const Value: TVector3);
-begin
-  FdLocation.Send(Value);
-end;
-
 function TAbstractPositionalLightNode.GetSceneLocation: TVector3;
 begin
   Result := Transform.MultPoint(Location);
@@ -982,27 +706,6 @@ end;
 procedure TAbstractPositionalLightNode.SetSceneLocation(const Value: TVector3);
 begin
   Location := FTransformation.InverseTransform.MultPoint(Value);
-end;
-
-function TAbstractPositionalLightNode.GetRadius: Single;
-begin
-  Result := FdRadius.Value;
-end;
-
-procedure TAbstractPositionalLightNode.SetRadius(const Value: Single);
-begin
-  FdRadius.Send(Value);
-end;
-
-procedure TAbstractPointLightNode.CreateNode;
-begin
-  inherited;
-  { no new fields - this is just TAbstractPositionalLightNode }
-end;
-
-class function TAbstractPointLightNode.ClassX3DType: string;
-begin
-  Result := 'PointLight';
 end;
 
 function TAbstractPointLightNode.GetProjectionLocationLocal: TVector3;
@@ -1021,68 +724,14 @@ begin
   Box.PointDistances(ProjectionSceneLocation, MinDistance, MaxDistance);
 end;
 
-procedure TDirectionalLightNode.CreateNode;
-begin
-  inherited;
-
-  FdGlobal.Value := false;
-
-  DefaultContainerField := 'children';
-end;
-
 class function TDirectionalLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TPointLightNode.CreateNode;
-begin
-  inherited;
-
-  FdGlobal.Value := true;
-
-  DefaultContainerField := 'children';
-end;
-
 class function TPointLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
-end;
-
-procedure TSpotLightNode.CreateNode;
-begin
-  inherited;
-
-  FFdBeamWidth := TSFFloat.Create(Self, true, 'beamWidth', Pi / 2);
-   FdBeamWidth.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdBeamWidth);
-  { X3D specification comment: (0,Pi/2] }
-
-  FFdCutOffAngle := TSFFloat.Create(Self, true, 'cutOffAngle', Pi / 4);
-   FdCutOffAngle.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdCutOffAngle);
-  { X3D specification comment: (0,Pi/2] }
-
-  FFdDirection := TSFVec3f.Create(Self, true, 'direction', Vector3(0, 0, -1));
-   FdDirection.ChangeAlways := chLightLocationDirection;
-  AddField(FFdDirection);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FdGlobal.Value := true;
-
-  FFdProjectionAngle := TSFFloat.Create(Self, true, 'projectionAngle', 0);
-   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
-     this light. For now, simply send chVisibleGeometry that will
-     force updating all GeneratedShadowMaps. }
-   FdProjectionAngle.ChangeAlways := chVisibleGeometry;
-  AddField(FFdProjectionAngle);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TSpotLightNode.ClassX3DType: string;
-begin
-  Result := 'SpotLight';
 end;
 
 class function TSpotLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1185,8 +834,6 @@ begin
     Result := 0 else
     Result := Clamped(0.5 / Max(FdBeamWidth.Value, 0.0001), 0.0, 128.0);
 end;
-
-{ TEnvironmentLightNode ------------------------------------------------------ }
 
 procedure RegisterLightingNodes;
 begin

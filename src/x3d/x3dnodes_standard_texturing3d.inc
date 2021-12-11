@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,20 +31,7 @@
       and set all UsedCache, FTextureImage, FTextureComposite, FAlphaChannelData. }
     procedure LoadTextureData; virtual; abstract;
   public
-    procedure CreateNode; override;
     destructor Destroy; override;
-
-    strict private FFdRepeatS: TSFBool;
-    public property FdRepeatS: TSFBool read FFdRepeatS;
-
-    strict private FFdRepeatT: TSFBool;
-    public property FdRepeatT: TSFBool read FFdRepeatT;
-
-    strict private FFdRepeatR: TSFBool;
-    public property FdRepeatR: TSFBool read FFdRepeatR;
-
-    strict private FFdTextureProperties: TSFNode;
-    public property FdTextureProperties: TSFNode read FFdTextureProperties;
 
     { Load and unload 3D texture.
 
@@ -68,7 +55,7 @@
     property TextureImage: TEncodedImage read FTextureImage;
     property TextureComposite: TCompositeImage read FTextureComposite;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dtexture3dnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dtexture3dnode.inc}
   end;
 
   { 3D texture defined as a collection of 2D texture sources at various depths. }
@@ -78,32 +65,22 @@
   strict protected
     function AlphaChannelData: TAlphaChannel; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdTexture: TMFNode;
-    public property FdTexture: TMFNode read FFdTexture;
-
     procedure LoadTextureData; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_composedtexture3d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_composedtexture3d.inc}
   end;
 
   { 3D texture loaded from a single file like DDS. }
-  TImageTexture3DNode = class(TAbstractTexture3DNode, IAbstractUrlObject)
+  TImageTexture3DNode = class(TAbstractTexture3DNode)
   strict private
     FAlphaChannelData: TAlphaChannel;
   strict protected
     function AlphaChannelData: TAlphaChannel; override;
     procedure LoadTextureData; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
-    strict private FFdUrl: TMFString;
-    public property FdUrl: TMFString read FFdUrl;
-
-    {$I auto_generated_node_helpers/x3dnodes_imagetexture3d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_imagetexture3d.inc}
   end;
 
   { 3D texture defined as an explicit array of pixel values inside the X3D file. }
@@ -113,103 +90,44 @@
   strict protected
     function AlphaChannelData: TAlphaChannel; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdImage: TMFInt32;
-    public property FdImage: TMFInt32 read FFdImage;
-
     procedure LoadTextureData; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_pixeltexture3d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_pixeltexture3d.inc}
   end;
 
   { 3D texture coordinates, partcularly useful with 3D textures. }
   TTextureCoordinate3DNode = class(TAbstractSingleTextureCoordinateNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdPoint: TMFVec3f;
-    public property FdPoint: TMFVec3f read FFdPoint;
-
-    {$I auto_generated_node_helpers/x3dnodes_texturecoordinate3d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_texturecoordinate3d.inc}
   end;
 
   { 4D (homogeneous 3D) texture coordinates, partcularly useful with 3D textures. }
   TTextureCoordinate4DNode = class(TAbstractSingleTextureCoordinateNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdPoint: TMFVec4f;
-    public property FdPoint: TMFVec4f read FFdPoint;
-
-    {$I auto_generated_node_helpers/x3dnodes_texturecoordinate4d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_texturecoordinate4d.inc}
   end;
 
   { Transformation of texture coordinates by a 4x4 matrix,
     particularly useful with 3D textures. }
   TTextureTransformMatrix3DNode = class(TAbstractSingleTextureTransformNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdMatrix: TSFMatrix4f;
-    public property FdMatrix: TSFMatrix4f read FFdMatrix;
-
     function TransformMatrix: TMatrix4; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_texturetransformmatrix3d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_texturetransformmatrix3d.inc}
   end;
 
   { Transformation of texture coordinates in 3D,
     partcularly useful with 3D textures. }
   TTextureTransform3DNode = class(TAbstractSingleTextureTransformNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdCenter: TSFVec3f;
-    public property FdCenter: TSFVec3f read FFdCenter;
-
-    strict private FFdRotation: TSFRotation;
-    public property FdRotation: TSFRotation read FFdRotation;
-
-    strict private FFdScale: TSFVec3f;
-    public property FdScale: TSFVec3f read FFdScale;
-
-    strict private FFdTranslation: TSFVec3f;
-    public property FdTranslation: TSFVec3f read FFdTranslation;
-
     function TransformMatrix: TMatrix4; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_texturetransform3d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_texturetransform3d.inc}
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractTexture3DNode.CreateNode;
-begin
-  inherited;
 
-  FFdRepeatS := TSFBool.Create(Self, false, 'repeatS', false);
-   FdRepeatS.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdRepeatS);
-
-  FFdRepeatT := TSFBool.Create(Self, false, 'repeatT', false);
-   FdRepeatT.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdRepeatT);
-
-  FFdRepeatR := TSFBool.Create(Self, false, 'repeatR', false);
-   FdRepeatR.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdRepeatR);
-
-  FFdTextureProperties := TSFNode.Create(Self, false, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdTextureProperties);
-end;
+{ TAbstractTexture3DNode ----------------------------------------------------- }
 
 destructor TAbstractTexture3DNode.Destroy;
 begin
@@ -237,22 +155,10 @@ begin
   end;
 end;
 
-procedure TComposedTexture3DNode.CreateNode;
-begin
-  inherited;
+{ TComposedTexture3DNode ----------------------------------------------------- }
 
-  { TODO: just like ComposedCubeMapTexture, we will not correctly
-    detect changes inside nodes in "texture". }
-
-  FFdTexture := TMFNode.Create(Self, true, 'texture', [TAbstractX3DTexture2DNode]);
-   FdTexture.ChangeAlways := chTextureImage;
-  AddField(FFdTexture);
-end;
-
-class function TComposedTexture3DNode.ClassX3DType: string;
-begin
-  Result := 'ComposedTexture3D';
-end;
+{ TODO: TComposedTexture3DNode cannnot correctly update on changes
+  inside nodes in "texture", just like ComposedCubeMapTexture. }
 
 procedure TComposedTexture3DNode.LoadTextureData;
 
@@ -347,19 +253,12 @@ begin
   Result := FAlphaChannelData;
 end;
 
-procedure TImageTexture3DNode.CreateNode;
+{ TImageTexture3DNode -------------------------------------------------------- }
+
+constructor TImageTexture3DNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdUrl := TMFString.Create(Self, true, 'url', []);
-   FdUrl.ChangeAlways := chTextureImage;
-  AddField(FFdUrl);
-  { X3D specification comment: [URI] }
-end;
-
-class function TImageTexture3DNode.ClassX3DType: string;
-begin
-  Result := 'ImageTexture3D';
+  AddFunctionality(TUrlFunctionality.Create(Self));
 end;
 
 procedure TImageTexture3DNode.LoadTextureData;
@@ -408,19 +307,7 @@ begin
   Result := FAlphaChannelData;
 end;
 
-procedure TPixelTexture3DNode.CreateNode;
-begin
-  inherited;
-
-  FFdImage := TMFInt32.Create(Self, true, 'image', [0, 0, 0, 0]);
-   FdImage.ChangeAlways := chTextureImage;
-  AddField(FFdImage);
-end;
-
-class function TPixelTexture3DNode.ClassX3DType: string;
-begin
-  Result := 'PixelTexture3D';
-end;
+{ TPixelTexture3DNode -------------------------------------------------------- }
 
 procedure TPixelTexture3DNode.LoadTextureData;
 var
@@ -502,85 +389,14 @@ begin
   Result := FAlphaChannelData;
 end;
 
-procedure TTextureCoordinate3DNode.CreateNode;
-begin
-  inherited;
-
-  FFdPoint := TMFVec3f.Create(Self, true, 'point', []);
-   FdPoint.ChangeAlways := chTextureCoordinate;
-  AddField(FFdPoint);
-  { X3D specification comment: (-Inf,Inf) }
-end;
-
-class function TTextureCoordinate3DNode.ClassX3DType: string;
-begin
-  Result := 'TextureCoordinate3D';
-end;
-
-procedure TTextureCoordinate4DNode.CreateNode;
-begin
-  inherited;
-
-  FFdPoint := TMFVec4f.Create(Self, true, 'point', []);
-   FdPoint.ChangeAlways := chTextureCoordinate;
-  AddField(FFdPoint);
-  { X3D specification comment: (-Inf,Inf) }
-end;
-
-class function TTextureCoordinate4DNode.ClassX3DType: string;
-begin
-  Result := 'TextureCoordinate4D';
-end;
-
-procedure TTextureTransformMatrix3DNode.CreateNode;
-begin
-  inherited;
-
-  FFdMatrix := TSFMatrix4f.Create(Self, true, 'matrix', TMatrix4.Identity);
-   FdMatrix.ChangeAlways := chTextureTransform;
-  AddField(FFdMatrix);
-  { X3D specification comment: (-Inf,Inf) }
-end;
-
-class function TTextureTransformMatrix3DNode.ClassX3DType: string;
-begin
-  Result := 'TextureTransformMatrix3D';
-end;
+{ TTextureTransformMatrix3DNode ---------------------------------------------- }
 
 function TTextureTransformMatrix3DNode.TransformMatrix: TMatrix4;
 begin
   Result := FdMatrix.Value;
 end;
 
-procedure TTextureTransform3DNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangeAlways := chTextureTransform;
-  AddField(FFdCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangeAlways := chTextureTransform;
-  AddField(FFdRotation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangeAlways := chTextureTransform;
-  AddField(FFdScale);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangeAlways := chTextureTransform;
-  AddField(FFdTranslation);
-  { X3D specification comment: (-Inf,Inf) }
-end;
-
-class function TTextureTransform3DNode.ClassX3DType: string;
-begin
-  Result := 'TextureTransform3D';
-end;
+{ TTextureTransform3DNode ---------------------------------------------------- }
 
 function TTextureTransform3DNode.TransformMatrix: TMatrix4;
 begin

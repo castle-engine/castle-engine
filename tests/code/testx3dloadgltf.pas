@@ -28,47 +28,18 @@ uses
 type
   TTestX3DLoadGltf = class(TCastleTestCase)
   published
-    procedure TestProcessStepTimeline;
+    { Nothing to test now, glTF loading is extensively tested as part of other TCastleScene tests.
+      But we need at least 1st test here, otherwise failure
+      "No valid tests found in TTestX3DLoadGltf" }
+    procedure TestDummy;
   end;
 
 implementation
 
 uses X3DLoad, CastleVectors, X3DLoadInternalGltf, CastleUtils;
 
-procedure TTestX3DLoadGltf.TestProcessStepTimeline;
-var
-  Times: TSingleList;
-  Values: TVector3List;
+procedure TTestX3DLoadGltf.TestDummy;
 begin
-  Times := TSingleList.Create;
-  Values := TVector3List.Create;
-  try
-    Times.AddRange([0 / 3, 1 / 3, 2 / 3]);
-    Values.AddRange([
-      Vector3(0, 0, 0),
-      Vector3(1, 1, 1),
-      Vector3(2, 2, 2)
-    ]);
-
-    ProcessStepTimeline(Times, Values);
-
-    AssertEquals(5, Times.Count);
-    AssertEquals(0 / 3, Times[0]);
-    AssertEquals(1 / 3, Times[1]);
-    AssertEquals(1 / 3, Times[2]);
-    AssertEquals(2 / 3, Times[3]);
-    AssertEquals(2 / 3, Times[4]);
-
-    AssertEquals(5, Values.Count);
-    AssertVectorEquals(Vector3(0, 0, 0), Values[0]);
-    AssertVectorEquals(Vector3(0, 0, 0), Values[1]);
-    AssertVectorEquals(Vector3(1, 1, 1), Values[2]);
-    AssertVectorEquals(Vector3(1, 1, 1), Values[3]);
-    AssertVectorEquals(Vector3(2, 2, 2), Values[4]);
- finally
-    FreeAndNil(Times);
-    FreeAndNil(Values);
-  end;
 end;
 
 initialization

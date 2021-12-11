@@ -26,12 +26,26 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdData: TMFNode;
+    { X3D field "data". } { }
+    public property FdData: TMFNode read FFdData;
     { Set X3D field "data". } { }
     procedure SetData(const Value: array of TAbstractNode);
+
+    strict private FFdSummary: TMFString;
+    { X3D field "summary". } { }
+    public property FdSummary: TMFString read FFdSummary;
     { Set X3D field "summary". } { }
     procedure SetSummary(const Value: array of string);
     { Set X3D field "summary". } { }
     procedure SetSummary(const Value: TCastleStringList);
+
+    strict private FFdUrl: TMFString;
+    { X3D field "url". } { }
+    public property FdUrl: TMFString read FFdUrl;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string);
     { Set X3D field "url". } { }
@@ -73,6 +87,28 @@ end;
 procedure TGeoMetadataNode.SetUrl(const Value: TCastleStringList);
 begin
   FdUrl.Send(Value);
+end;
+
+class function TGeoMetadataNode.ClassX3DType: String;
+begin
+  Result := 'GeoMetadata';
+end;
+
+procedure TGeoMetadataNode.CreateNode;
+begin
+  inherited;
+
+  FFdData := TMFNode.Create(Self, True, 'data', [TAbstractNode]);
+   FdData.ChangeAlways := chNone;
+  AddField(FFdData);
+
+  FFdSummary := TMFString.Create(Self, True, 'summary', []);
+   FdSummary.ChangeAlways := chNone;
+  AddField(FFdSummary);
+
+  FFdUrl := TMFString.Create(Self, True, 'url', []);
+   FdUrl.ChangeAlways := chNone;
+  AddField(FFdUrl);
 end;
 
 {$endif read_implementation}

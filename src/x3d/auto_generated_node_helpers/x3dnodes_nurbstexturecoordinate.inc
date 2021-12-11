@@ -35,28 +35,62 @@
     function GetVOrder: Integer;
     procedure SetVOrder(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdControlPoint: TMFVec2f;
+    { X3D field "controlPoint". } { }
+    public property FdControlPoint: TMFVec2f read FFdControlPoint;
     { Set X3D field "controlPoint". } { }
     procedure SetControlPoint(const Value: array of TVector2);
     { Set X3D field "controlPoint". } { }
     procedure SetControlPoint(const Value: TVector2List);
+
+    strict private FFdWeight: TMFFloat;
+    { X3D field "weight". } { }
+    public property FdWeight: TMFFloat read FFdWeight;
     { Set X3D field "weight". } { }
     procedure SetWeight(const Value: array of Single);
     { Set X3D field "weight". } { }
     procedure SetWeight(const Value: TSingleList);
+
+    strict private FFdUDimension: TSFInt32;
+    { X3D field "uDimension". } { }
+    public property FdUDimension: TSFInt32 read FFdUDimension;
     { X3D field "uDimension". } { }
     property UDimension: Integer read GetUDimension write SetUDimension;
+
+    strict private FFdUKnot: TMFDouble;
+    { X3D field "uKnot". } { }
+    public property FdUKnot: TMFDouble read FFdUKnot;
     { Set X3D field "uKnot". } { }
     procedure SetUKnot(const Value: array of Double);
     { Set X3D field "uKnot". } { }
     procedure SetUKnot(const Value: TDoubleList);
+
+    strict private FFdUOrder: TSFInt32;
+    { X3D field "uOrder". } { }
+    public property FdUOrder: TSFInt32 read FFdUOrder;
     { X3D field "uOrder". } { }
     property UOrder: Integer read GetUOrder write SetUOrder;
+
+    strict private FFdVDimension: TSFInt32;
+    { X3D field "vDimension". } { }
+    public property FdVDimension: TSFInt32 read FFdVDimension;
     { X3D field "vDimension". } { }
     property VDimension: Integer read GetVDimension write SetVDimension;
+
+    strict private FFdVKnot: TMFDouble;
+    { X3D field "vKnot". } { }
+    public property FdVKnot: TMFDouble read FFdVKnot;
     { Set X3D field "vKnot". } { }
     procedure SetVKnot(const Value: array of Double);
     { Set X3D field "vKnot". } { }
     procedure SetVKnot(const Value: TDoubleList);
+
+    strict private FFdVOrder: TSFInt32;
+    { X3D field "vOrder". } { }
+    public property FdVOrder: TSFInt32 read FFdVOrder;
     { X3D field "vOrder". } { }
     property VOrder: Integer read GetVOrder write SetVOrder;
 
@@ -144,6 +178,50 @@ end;
 procedure TNurbsTextureCoordinateNode.SetVOrder(const Value: Integer);
 begin
   FdVOrder.Send(Value);
+end;
+
+class function TNurbsTextureCoordinateNode.ClassX3DType: String;
+begin
+  Result := 'NurbsTextureCoordinate';
+end;
+
+procedure TNurbsTextureCoordinateNode.CreateNode;
+begin
+  inherited;
+
+  FFdControlPoint := TMFVec2f.Create(Self, True, 'controlPoint', []);
+   FdControlPoint.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdControlPoint);
+
+  FFdWeight := TMFFloat.Create(Self, True, 'weight', []);
+   FdWeight.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdWeight);
+
+  FFdUDimension := TSFInt32.Create(Self, False, 'uDimension', 0);
+   FdUDimension.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdUDimension);
+
+  FFdUKnot := TMFDouble.Create(Self, False, 'uKnot', []);
+   FdUKnot.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdUKnot);
+
+  FFdUOrder := TSFInt32.Create(Self, False, 'uOrder', 3);
+   FdUOrder.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdUOrder);
+
+  FFdVDimension := TSFInt32.Create(Self, False, 'vDimension', 0);
+   FdVDimension.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVDimension);
+
+  FFdVKnot := TMFDouble.Create(Self, False, 'vKnot', []);
+   FdVKnot.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVKnot);
+
+  FFdVOrder := TSFInt32.Create(Self, False, 'vOrder', 3);
+   FdVOrder.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVOrder);
+
+  DefaultContainerField := 'texCoord';
 end;
 
 {$endif read_implementation}

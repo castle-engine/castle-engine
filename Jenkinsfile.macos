@@ -43,11 +43,12 @@ pipeline {
         sh 'make clean tools install PREFIX=${CGE_INSTALL_PREFIX}'
       }
     }
-    stage('Build Examples') {
-      steps {
-        sh 'make clean examples'
-      }
-    }
+    // TODO: faster
+    // stage('Build Examples') {
+    //   steps {
+    //     sh 'make clean examples'
+    //   }
+    // }
     stage('Build And Run Auto-Tests') {
       steps {
         sh 'make tests'

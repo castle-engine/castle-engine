@@ -28,13 +28,47 @@
   strict private
     function GetPickingGeometry: TAbstractGeometryNode;
     procedure SetPickingGeometry(const Value: TAbstractGeometryNode);
+    function GetIntersectionType: TPickSensorIntersectionType;
+    procedure SetIntersectionType(const Value: TPickSensorIntersectionType);
+    function GetSortOrder: TPickSensorRange;
+    procedure SetSortOrder(const Value: TPickSensorRange);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdObjectType: TMFString;
+    { X3D field "objectType". } { }
+    public property FdObjectType: TMFString read FFdObjectType;
     { Set X3D field "objectType". } { }
     procedure SetObjectType(const Value: array of string);
     { Set X3D field "objectType". } { }
     procedure SetObjectType(const Value: TCastleStringList);
+
+    strict private FFdPickingGeometry: TSFNode;
+    { X3D field "pickingGeometry". } { }
+    public property FdPickingGeometry: TSFNode read FFdPickingGeometry;
     { X3D field "pickingGeometry". } { }
     property PickingGeometry: TAbstractGeometryNode read GetPickingGeometry write SetPickingGeometry;
+
+    strict private FFdPickTarget: TMFNode;
+    { X3D field "pickTarget". } { }
+    public property FdPickTarget: TMFNode read FFdPickTarget;
+
+    strict private FEventPickedGeometry: TMFNodeEvent;
+    { X3D out event "pickedGeometry". } { }
+    public property EventPickedGeometry: TMFNodeEvent read FEventPickedGeometry;
+
+    strict private FFdIntersectionType: TSFStringEnum;
+    { X3D field "intersectionType". } { }
+    public property FdIntersectionType: TSFStringEnum read FFdIntersectionType;
+    { X3D field "intersectionType". } { }
+    property IntersectionType: TPickSensorIntersectionType read GetIntersectionType write SetIntersectionType;
+
+    strict private FFdSortOrder: TSFStringEnum;
+    { X3D field "sortOrder". } { }
+    public property FdSortOrder: TSFStringEnum read FFdSortOrder;
+    { X3D field "sortOrder". } { }
+    property SortOrder: TPickSensorRange read GetSortOrder write SetSortOrder;
 
 {$endif read_interface}
 
@@ -63,6 +97,59 @@ end;
 procedure TAbstractPickSensorNode.SetPickingGeometry(const Value: TAbstractGeometryNode);
 begin
   FdPickingGeometry.Send(Value);
+end;
+
+function TAbstractPickSensorNode.GetIntersectionType: TPickSensorIntersectionType;
+begin
+  Result := TPickSensorIntersectionType(FdIntersectionType.EnumValue);
+end;
+
+procedure TAbstractPickSensorNode.SetIntersectionType(const Value: TPickSensorIntersectionType);
+begin
+  FdIntersectionType.SendEnumValue(Ord(Value));
+end;
+
+function TAbstractPickSensorNode.GetSortOrder: TPickSensorRange;
+begin
+  Result := TPickSensorRange(FdSortOrder.EnumValue);
+end;
+
+procedure TAbstractPickSensorNode.SetSortOrder(const Value: TPickSensorRange);
+begin
+  FdSortOrder.SendEnumValue(Ord(Value));
+end;
+
+class function TAbstractPickSensorNode.ClassX3DType: String;
+begin
+  Result := 'X3DPickSensorNode';
+end;
+
+procedure TAbstractPickSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdObjectType := TMFString.Create(Self, True, 'objectType', ['ALL']);
+   FdObjectType.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdObjectType);
+
+  FFdPickingGeometry := TSFNode.Create(Self, True, 'pickingGeometry', [TAbstractGeometryNode]);
+   FdPickingGeometry.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPickingGeometry);
+
+  FFdPickTarget := TMFNode.Create(Self, True, 'pickTarget', [TAbstractX3DGroupingNode, TAbstractShapeNode, TInlineNode]);
+   FdPickTarget.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPickTarget);
+
+  FEventPickedGeometry := TMFNodeEvent.Create(Self, 'pickedGeometry', false);
+  AddEvent(FEventPickedGeometry);
+
+  FFdIntersectionType := TSFStringEnum.Create(Self, False, 'intersectionType', PickSensorIntersectionTypeNames, Ord(piBounds));
+   FdIntersectionType.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdIntersectionType);
+
+  FFdSortOrder := TSFStringEnum.Create(Self, False, 'sortOrder', PickSensorRangeNames, Ord(prClosest));
+   FdSortOrder.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSortOrder);
 end;
 
 {$endif read_implementation}

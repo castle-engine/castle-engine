@@ -26,33 +26,39 @@
 {$ifdef read_interface}
 
   strict private
-    function GetAttenuation: TVector3;
-    procedure SetAttenuation(const Value: TVector3);
     function GetBeamWidth: Single;
     procedure SetBeamWidth(const Value: Single);
     function GetCutOffAngle: Single;
     procedure SetCutOffAngle(const Value: Single);
     function GetDirection: TVector3;
     procedure SetDirection(const Value: TVector3);
-    function GetLocation: TVector3;
-    procedure SetLocation(const Value: TVector3);
-    function GetRadius: Single;
-    procedure SetRadius(const Value: Single);
     function GetProjectionAngle: Single;
     procedure SetProjectionAngle(const Value: Single);
   public
-    { X3D field "attenuation". } { }
-    property Attenuation: TVector3 read GetAttenuation write SetAttenuation;
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdBeamWidth: TSFFloat;
+    { X3D field "beamWidth". } { }
+    public property FdBeamWidth: TSFFloat read FFdBeamWidth;
     { X3D field "beamWidth". } { }
     property BeamWidth: Single read GetBeamWidth write SetBeamWidth;
+
+    strict private FFdCutOffAngle: TSFFloat;
+    { X3D field "cutOffAngle". } { }
+    public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
     { X3D field "cutOffAngle". } { }
     property CutOffAngle: Single read GetCutOffAngle write SetCutOffAngle;
+
+    strict private FFdDirection: TSFVec3f;
+    { X3D field "direction". } { }
+    public property FdDirection: TSFVec3f read FFdDirection;
     { X3D field "direction". } { }
     property Direction: TVector3 read GetDirection write SetDirection;
-    { X3D field "location". } { }
-    property Location: TVector3 read GetLocation write SetLocation;
-    { X3D field "radius". } { }
-    property Radius: Single read GetRadius write SetRadius;
+
+    strict private FFdProjectionAngle: TSFFloat;
+    { X3D field "projectionAngle". } { }
+    public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
     { X3D field "projectionAngle". } { }
     property ProjectionAngle: Single read GetProjectionAngle write SetProjectionAngle;
 
@@ -61,16 +67,6 @@
 {$ifdef read_implementation}
 
 { TSpotLightNode ----------------------------------------------- }
-
-function TSpotLightNode.GetAttenuation: TVector3;
-begin
-  Result := FdAttenuation.Value;
-end;
-
-procedure TSpotLightNode.SetAttenuation(const Value: TVector3);
-begin
-  FdAttenuation.Send(Value);
-end;
 
 function TSpotLightNode.GetBeamWidth: Single;
 begin
@@ -102,26 +98,6 @@ begin
   FdDirection.Send(Value);
 end;
 
-function TSpotLightNode.GetLocation: TVector3;
-begin
-  Result := FdLocation.Value;
-end;
-
-procedure TSpotLightNode.SetLocation(const Value: TVector3);
-begin
-  FdLocation.Send(Value);
-end;
-
-function TSpotLightNode.GetRadius: Single;
-begin
-  Result := FdRadius.Value;
-end;
-
-procedure TSpotLightNode.SetRadius(const Value: Single);
-begin
-  FdRadius.Send(Value);
-end;
-
 function TSpotLightNode.GetProjectionAngle: Single;
 begin
   Result := FdProjectionAngle.Value;
@@ -130,6 +106,33 @@ end;
 procedure TSpotLightNode.SetProjectionAngle(const Value: Single);
 begin
   FdProjectionAngle.Send(Value);
+end;
+
+class function TSpotLightNode.ClassX3DType: String;
+begin
+  Result := 'SpotLight';
+end;
+
+procedure TSpotLightNode.CreateNode;
+begin
+  inherited;
+
+  FFdBeamWidth := TSFFloat.Create(Self, True, 'beamWidth', Pi/2);
+   FdBeamWidth.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBeamWidth);
+
+  FFdCutOffAngle := TSFFloat.Create(Self, True, 'cutOffAngle', Pi/4);
+   FdCutOffAngle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCutOffAngle);
+
+  FFdDirection := TSFVec3f.Create(Self, True, 'direction', Vector3(0, 0, -1));
+   FdDirection.ChangeAlways := chLightLocationDirection;
+  AddField(FFdDirection);
+
+  FFdProjectionAngle := TSFFloat.Create(Self, True, 'projectionAngle', 0);
+   FdProjectionAngle.ChangeAlways := chVisibleGeometry;
+   FdProjectionAngle.Angle := true;
+  AddField(FFdProjectionAngle);
 end;
 
 {$endif read_implementation}

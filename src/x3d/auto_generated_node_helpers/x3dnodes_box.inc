@@ -33,10 +33,32 @@
     function GetDivisions: Integer;
     procedure SetDivisions(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdSize: TSFVec3f;
+    { X3D field "size". } { }
+    public property FdSize: TSFVec3f read FFdSize;
     { X3D field "size". } { }
     property Size: TVector3 read GetSize write SetSize;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
+
+    strict private FFdCcw: TSFBool;
+    { X3D field "ccw". } { }
+    public property FdCcw: TSFBool read FFdCcw;
     { X3D field "ccw". } { }
     property Ccw: Boolean read GetCcw write SetCcw;
+
+    strict private FFdTexCoord: TSFNode;
+    { X3D field "texCoord". } { }
+    public property FdTexCoord: TSFNode read FFdTexCoord;
+
+    strict private FFdDivisions: TSFInt32;
+    { X3D field "divisions". } { }
+    public property FdDivisions: TSFInt32 read FFdDivisions;
     { X3D field "divisions". } { }
     property Divisions: Integer read GetDivisions write SetDivisions;
 
@@ -74,6 +96,36 @@ end;
 procedure TBoxNode.SetDivisions(const Value: Integer);
 begin
   FdDivisions.Send(Value);
+end;
+
+class function TBoxNode.ClassX3DType: String;
+begin
+  Result := 'Box';
+end;
+
+procedure TBoxNode.CreateNode;
+begin
+  inherited;
+
+  FFdSize := TSFVec3f.Create(Self, False, 'size', Vector3(2, 2, 2));
+   FdSize.ChangeAlways := chGeometry;
+  AddField(FFdSize);
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', true);
+   FdSolid.ChangeAlways := chGeometry;
+  AddField(FFdSolid);
+
+  FFdCcw := TSFBool.Create(Self, False, 'ccw', true);
+   FdCcw.ChangeAlways := chGeometry;
+  AddField(FFdCcw);
+
+  FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
+   FdTexCoord.ChangeAlways := chGeometry;
+  AddField(FFdTexCoord);
+
+  FFdDivisions := TSFInt32.Create(Self, True, 'divisions', -1);
+   FdDivisions.ChangeAlways := chGeometry;
+  AddField(FFdDivisions);
 end;
 
 {$endif read_implementation}

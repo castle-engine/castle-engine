@@ -31,22 +31,72 @@
     function GetCreaseAngle: Single;
     procedure SetCreaseAngle(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FEventSet_colorIndex: TMFInt32Event;
+    { X3D in event "set_colorIndex". } { }
+    public property EventSet_colorIndex: TMFInt32Event read FEventSet_colorIndex;
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FEventSet_coordIndex: TMFInt32Event;
+    { X3D in event "set_coordIndex". } { }
+    public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FEventSet_normalIndex: TMFInt32Event;
+    { X3D in event "set_normalIndex". } { }
+    public property EventSet_normalIndex: TMFInt32Event read FEventSet_normalIndex;
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FEventSet_texCoordIndex: TMFInt32Event;
+    { X3D in event "set_texCoordIndex". } { }
+    public property EventSet_texCoordIndex: TMFInt32Event read FEventSet_texCoordIndex;
+{$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdColorIndex: TMFInt32;
+    { X3D field "colorIndex". } { }
+    public property FdColorIndex: TMFInt32 read FFdColorIndex;
     { Set X3D field "colorIndex". } { }
     procedure SetColorIndex(const Value: array of LongInt);
     { Set X3D field "colorIndex". } { }
     procedure SetColorIndex(const Value: TLongIntList);
+
+    strict private FFdConvex: TSFBool;
+    { X3D field "convex". } { }
+    public property FdConvex: TSFBool read FFdConvex;
     { X3D field "convex". } { }
     property Convex: Boolean read GetConvex write SetConvex;
+
+    strict private FFdCoordIndex: TMFInt32;
+    { X3D field "coordIndex". } { }
+    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: array of LongInt);
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: TLongIntList);
+
+    strict private FFdCreaseAngle: TSFFloat;
+    { X3D field "creaseAngle". } { }
+    public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
     { X3D field "creaseAngle". } { }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
+
+    strict private FFdNormalIndex: TMFInt32;
+    { X3D field "normalIndex". } { }
+    public property FdNormalIndex: TMFInt32 read FFdNormalIndex;
     { Set X3D field "normalIndex". } { }
     procedure SetNormalIndex(const Value: array of LongInt);
     { Set X3D field "normalIndex". } { }
     procedure SetNormalIndex(const Value: TLongIntList);
+
+    strict private FFdTexCoordIndex: TMFInt32;
+    { X3D field "texCoordIndex". } { }
+    public property FdTexCoordIndex: TMFInt32 read FFdTexCoordIndex;
     { Set X3D field "texCoordIndex". } { }
     procedure SetTexCoordIndex(const Value: array of LongInt);
     { Set X3D field "texCoordIndex". } { }
@@ -116,6 +166,61 @@ end;
 procedure TIndexedFaceSetNode.SetTexCoordIndex(const Value: TLongIntList);
 begin
   FdTexCoordIndex.Send(Value);
+end;
+
+class function TIndexedFaceSetNode.ClassX3DType: String;
+begin
+  Result := 'IndexedFaceSet';
+end;
+
+procedure TIndexedFaceSetNode.CreateNode;
+begin
+  inherited;
+
+{$ifndef CASTLE_SLIM_NODES}
+  FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
+  AddEvent(FEventSet_colorIndex);
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+  FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
+  AddEvent(FEventSet_coordIndex);
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+  FEventSet_normalIndex := TMFInt32Event.Create(Self, 'set_normalIndex', true);
+  AddEvent(FEventSet_normalIndex);
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+  FEventSet_texCoordIndex := TMFInt32Event.Create(Self, 'set_texCoordIndex', true);
+  AddEvent(FEventSet_texCoordIndex);
+{$endif not CASTLE_SLIM_NODES}
+
+  FFdColorIndex := TMFInt32.Create(Self, False, 'colorIndex', []);
+   FdColorIndex.ChangeAlways := chGeometry;
+  AddField(FFdColorIndex);
+
+  FFdConvex := TSFBool.Create(Self, False, 'convex', true);
+   FdConvex.ChangeAlways := chGeometry;
+  AddField(FFdConvex);
+
+  FFdCoordIndex := TMFInt32.Create(Self, False, 'coordIndex', []);
+   FdCoordIndex.ChangeAlways := chGeometry;
+  AddField(FFdCoordIndex);
+
+  FFdCreaseAngle := TSFFloat.Create(Self, False, 'creaseAngle', 0);
+   FdCreaseAngle.ChangeAlways := chGeometry;
+   FdCreaseAngle.Angle := true;
+  AddField(FFdCreaseAngle);
+
+  FFdNormalIndex := TMFInt32.Create(Self, False, 'normalIndex', []);
+   FdNormalIndex.ChangeAlways := chGeometry;
+  AddField(FFdNormalIndex);
+
+  FFdTexCoordIndex := TMFInt32.Create(Self, False, 'texCoordIndex', []);
+   FdTexCoordIndex.ChangeAlways := chGeometry;
+  AddField(FFdTexCoordIndex);
 end;
 
 {$endif read_implementation}

@@ -1,137 +1,222 @@
 Box : X3DGeometryNode {
+  auto-generate-more: true
+
   SFVec3f []       size     2 2 2
     range: (0,Inf)
+    change: chGeometry
   SFBool  []       solid    TRUE
+    change: chGeometry
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     []            ccw         TRUE
+    change: chGeometry
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
+    change: chGeometry
   SFInt32    [in,out]      divisions   -1
     range: [-1, infinity)
+    change: chGeometry
 }
 
 Cone : X3DGeometryNode {
+  auto-generate-more: true
+
   SFBool  []       bottom       TRUE
+    change: chGeometry
   SFFloat []       bottomRadius 1
     range: (0,Inf)
+    change: chGeometry
   SFFloat []       height       2
     range: (0,Inf)
+    change: chGeometry
   SFBool  []       side         TRUE
+    change: chGeometry
   SFBool  []       solid        TRUE
+    change: chGeometry
   # CASTLE GAME ENGINE EXTENSIONS:
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
+    change: chGeometry
   SFInt32    [in,out]      slices      -1
     range: {-1} + [3, infinity)
+    change: chGeometry
   SFInt32    [in,out]      stacks      -1
     range: {-1} + [2, infinity)
+    change: chGeometry
 }
 
 Cylinder : X3DGeometryNode {
+  auto-generate-more: true
+
   SFBool  []       bottom   TRUE
+    change: chGeometry
   SFFloat []       height   2
     range: (0,Inf)
+    change: chGeometry
   SFFloat []       radius   1
     range: (0,Inf)
+    change: chGeometry
   SFBool  []       side     TRUE
+    change: chGeometry
   SFBool  []       solid    TRUE
+    change: chGeometry
   SFBool  []       top      TRUE
+    change: chGeometry
   # CASTLE GAME ENGINE EXTENSIONS:
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
+    change: chGeometry
   SFInt32    [in,out]      slices      -1
     range: {-1} + [3, infinity)
+    change: chGeometry
   SFInt32    [in,out]      stacks      -1
     range: {-1} + [2, infinity)
+    change: chGeometry
 }
 
 ElevationGrid : X3DGeometryNode {
+  auto-generate-more: true
+
   MFFloat [in]     set_height
+    change: chGeometry
   MFNode  [in,out] attrib          []
     range: X3DVertexAttributeNode
+    change: chGeometry
   SFNode  [in,out] color           NULL
     range: X3DColorNode
+    change: chGeometry
   SFNode  [in,out] fogCoord        NULL
     range: FogCoordinate
+    change: chGeometry
   SFNode  [in,out] normal          NULL
     range: X3DNormalNode
+    change: chGeometry
   SFNode  [in,out] texCoord        NULL
     range: X3DTextureCoordinateNode
+    change: chGeometry
   SFBool  []       ccw             TRUE
+    change: chGeometry
   SFBool  []       colorPerVertex  TRUE
+    change: chGeometry
   SFFloat []       creaseAngle     0
     range: [0,Inf)
+    change: chGeometry
+    angle
   MFFloat []       height          []
     range: (-Inf,Inf)
+    change: chGeometry
   SFBool  []       normalPerVertex TRUE
+    change: chGeometry
   SFBool  []       solid           TRUE
+    change: chGeometry
   SFInt32 []       xDimension      0
     range: [0,Inf)
+    change: chGeometry
   SFFloat []       xSpacing        1.0
     range: (0,Inf)
+    change: chGeometry
   SFInt32 []       zDimension      0
     range: [0,Inf)
+    change: chGeometry
   SFFloat []       zSpacing        1.0
     range: (0,Inf)
+    change: chGeometry
 }
 
 Extrusion : X3DGeometryNode {
+  auto-generate-more: true
+
   MFVec2f    [in]     set_crossSection
+    change: chGeometry
   MFRotation [in]     set_orientation
+    change: chGeometry
   MFVec2f    [in]     set_scale
+    change: chGeometry
   MFVec3f    [in]     set_spine
+    change: chGeometry
   SFBool     []       beginCap         TRUE
+    change: chGeometry
   SFBool     []       ccw              TRUE
+    change: chGeometry
   SFBool     []       convex           TRUE
+    change: chGeometry
   SFFloat    []       creaseAngle      0
     range: [0,Inf)
-  MFVec2f    []       crossSection     [1 1 1 -1 -1 -1 -1 1 1 1]
+    change: chGeometry
+    angle
+  MFVec2f    []       crossSection     [ Vector2(1, 1), Vector2(1, -1), Vector2(-1, -1), Vector2(-1, 1), Vector2(1, 1) ]
     range: (-Inf,Inf)
+    change: chGeometry
   SFBool     []       endCap           TRUE
-  MFRotation []       orientation      0 0 1 0
+    change: chGeometry
+  MFRotation []       orientation      [ Vector4(0, 0, 1, 0) ]
     range: [-1,1] or (-Inf,Inf)
-  MFVec2f    []       scale            1 1
+    change: chGeometry
+  MFVec2f    []       scale            [ Vector2(1, 1) ]
     range: (0,Inf)
+    change: chGeometry
   SFBool     []       solid            TRUE
-  MFVec3f    []       spine            [0 0 0 0 1 0]
+    change: chGeometry
+  MFVec3f    []       spine            [ Vector3(0, 0, 0), Vector3(0, 1, 0) ]
     range: (-Inf,Inf)
+    change: chGeometry
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
+    change: chGeometry
 }
 
 IndexedFaceSet : X3DComposedGeometryNode {
+  auto-generate-more: true
+
   MFInt32 [in]     set_colorIndex
     not-slim
+    change: chGeometry
   MFInt32 [in]     set_coordIndex
     not-slim
+    change: chGeometry
   MFInt32 [in]     set_normalIndex
     not-slim
+    change: chGeometry
   MFInt32 [in]     set_texCoordIndex
     not-slim
+    change: chGeometry
   MFInt32 []       colorIndex        []
     range: [0,Inf) or -1
+    change: chGeometry
   SFBool  []       convex            TRUE
+    change: chGeometry
   MFInt32 []       coordIndex        []
     range: [0,Inf) or -1
+    change: chGeometry
   SFFloat []       creaseAngle       0
     range: [0,Inf)
+    change: chGeometry
+    angle
   MFInt32 []       normalIndex       []
     range: [0,Inf) or -1
+    change: chGeometry
   MFInt32 []       texCoordIndex     []
     range: [-1,Inf)
+    change: chGeometry
 }
 
 Sphere : X3DGeometryNode {
+  auto-generate-more: true
+
   SFFloat []       radius   1
     range: (0,Inf)
+    change: chGeometry
   SFBool  []       solid    TRUE
+    change: chGeometry
   # CASTLE GAME ENGINE EXTENSIONS:
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
+    change: chGeometry
   SFInt32    [in,out]      slices      -1
     range: {-1} + [3, infinity)
+    change: chGeometry
   SFInt32    [in,out]      stacks      -1
     range: {-1} + [2, infinity)
+    change: chGeometry
 }

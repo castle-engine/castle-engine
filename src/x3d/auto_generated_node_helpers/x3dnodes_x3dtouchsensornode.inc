@@ -25,11 +25,31 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventTouchTime: TSFTimeEvent;
+    { X3D out event "touchTime". } { }
+    public property EventTouchTime: TSFTimeEvent read FEventTouchTime;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractTouchSensorNode ----------------------------------------------- }
+
+class function TAbstractTouchSensorNode.ClassX3DType: String;
+begin
+  Result := 'X3DTouchSensorNode';
+end;
+
+procedure TAbstractTouchSensorNode.CreateNode;
+begin
+  inherited;
+
+  FEventTouchTime := TSFTimeEvent.Create(Self, 'touchTime', false);
+  AddEvent(FEventTouchTime);
+end;
 
 {$endif read_implementation}
