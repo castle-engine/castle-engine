@@ -26,15 +26,18 @@
       <FormatVersion Value="2"/>
       <Modes Count="0"/>
     </RunParams>
-    <RequiredPackages Count="3">
+    <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="castle_components"/>
+        <PackageName Value="AnchorDocking"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCL"/>
+        <PackageName Value="castle_components"/>
       </Item2>
-    <Item3> <PackageName Value="castle_editor_automatic_package"/> </Item3> </RequiredPackages>
-    <Units Count="20">
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
+    <Item4> <PackageName Value="castle_editor_automatic_package"/> </Item4> </RequiredPackages>
+    <Units Count="21">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -164,12 +167,17 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="EditorCodeTools"/>
       </Unit19>
+      <Unit20>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/castleshellctrls.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleShellCtrls"/>
+      </Unit20>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="castle-editor"/>
+      <Filename Value="castle-editor-new"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="${CASTLE_ENGINE_PATH}src/common_includes;$(ProjOutDir)"/>

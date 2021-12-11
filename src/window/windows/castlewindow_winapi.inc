@@ -1243,11 +1243,11 @@ procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
 
     Testcase: dragging_test, if we would use SetCursorPos then:
 
-    - TUIContainer.MouseLookDelta doesn't set FMouseLookWaitingForMiddle to true:
+    - TCastleContainer.MouseLookDelta doesn't set FMouseLookWaitingForMiddle to true:
       then we have problems due to occasional rect jump, when moving mouse slowly
       (because we need to set FMouseLookWaitingForMiddle to true!).
 
-    - TUIContainer.MouseLookDelta sets FMouseLookWaitingForMiddle to true:
+    - TCastleContainer.MouseLookDelta sets FMouseLookWaitingForMiddle to true:
       then we have occasional "blocks" when moving mouse very fast
       (like from edge to edge of the screen). Experimenting, we just
       cannot reliably capture "the end of FMouseLookWaitingForMiddle",

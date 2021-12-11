@@ -21,6 +21,9 @@ type
   { }
   ENodesManagerError = class(EX3DError);
   ENodeClassRegisterError = class(ENodesManagerError);
+
+  { Manages X3D non-abstract node classes, that can be used in X3D files.
+    Use only through a singleton @link(NodesManager). }
   TNodesManager = class
   strict private
     { Strings[] is ClassX3DType. Objects[] is the actual class
@@ -81,7 +84,9 @@ type
   end;
 
 var
-  { Nodes manager instance. In normal circumstances, this is the only
+  { Singleton to manage X3D non-abstract node classes, that can be used in X3D files.
+
+    In normal circumstances, this is the only
     instance of TNodesManager class ever created. It is created / destroyed
     in this unit's initialization / finalization. }
   NodesManager: TNodesManager;

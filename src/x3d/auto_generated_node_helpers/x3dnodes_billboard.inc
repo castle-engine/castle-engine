@@ -29,6 +29,12 @@
     function GetAxisOfRotation: TVector3;
     procedure SetAxisOfRotation(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAxisOfRotation: TSFVec3f;
+    { X3D field "axisOfRotation". } { }
+    public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
     { X3D field "axisOfRotation". } { }
     property AxisOfRotation: TVector3 read GetAxisOfRotation write SetAxisOfRotation;
 
@@ -46,6 +52,20 @@ end;
 procedure TBillboardNode.SetAxisOfRotation(const Value: TVector3);
 begin
   FdAxisOfRotation.Send(Value);
+end;
+
+class function TBillboardNode.ClassX3DType: String;
+begin
+  Result := 'Billboard';
+end;
+
+procedure TBillboardNode.CreateNode;
+begin
+  inherited;
+
+  FFdAxisOfRotation := TSFVec3f.Create(Self, True, 'axisOfRotation', Vector3(0, 1, 0));
+   FdAxisOfRotation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxisOfRotation);
 end;
 
 {$endif read_implementation}

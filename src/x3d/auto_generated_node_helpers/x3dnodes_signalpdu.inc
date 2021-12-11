@@ -40,6 +40,8 @@
     procedure SetMulticastRelayHost(const Value: String);
     function GetMulticastRelayPort: Integer;
     procedure SetMulticastRelayPort(const Value: Integer);
+    function GetNetworkMode: TDISNetworkMode;
+    procedure SetNetworkMode(const Value: TDISNetworkMode);
     function GetPort: Integer;
     procedure SetPort(const Value: Integer);
     function GetRadioID: Integer;
@@ -63,46 +65,154 @@
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAddress: TSFString;
+    { X3D field "address". } { }
+    public property FdAddress: TSFString read FFdAddress;
     { X3D field "address". } { }
     property Address: String read GetAddress write SetAddress;
+
+    strict private FFdApplicationID: TSFInt32;
+    { X3D field "applicationID". } { }
+    public property FdApplicationID: TSFInt32 read FFdApplicationID;
     { X3D field "applicationID". } { }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
+
+    strict private FFdData: TMFInt32;
+    { X3D field "data". } { }
+    public property FdData: TMFInt32 read FFdData;
     { Set X3D field "data". } { }
     procedure SetData(const Value: array of LongInt);
     { Set X3D field "data". } { }
     procedure SetData(const Value: TLongIntList);
+
+    strict private FFdDataLength: TSFInt32;
+    { X3D field "dataLength". } { }
+    public property FdDataLength: TSFInt32 read FFdDataLength;
     { X3D field "dataLength". } { }
     property DataLength: Integer read GetDataLength write SetDataLength;
+
+    strict private FFdEncodingScheme: TSFInt32;
+    { X3D field "encodingScheme". } { }
+    public property FdEncodingScheme: TSFInt32 read FFdEncodingScheme;
     { X3D field "encodingScheme". } { }
     property EncodingScheme: Integer read GetEncodingScheme write SetEncodingScheme;
+
+    strict private FFdEntityID: TSFInt32;
+    { X3D field "entityID". } { }
+    public property FdEntityID: TSFInt32 read FFdEntityID;
     { X3D field "entityID". } { }
     property EntityID: Integer read GetEntityID write SetEntityID;
+
+    strict private FFdMulticastRelayHost: TSFString;
+    { X3D field "multicastRelayHost". } { }
+    public property FdMulticastRelayHost: TSFString read FFdMulticastRelayHost;
     { X3D field "multicastRelayHost". } { }
     property MulticastRelayHost: String read GetMulticastRelayHost write SetMulticastRelayHost;
+
+    strict private FFdMulticastRelayPort: TSFInt32;
+    { X3D field "multicastRelayPort". } { }
+    public property FdMulticastRelayPort: TSFInt32 read FFdMulticastRelayPort;
     { X3D field "multicastRelayPort". } { }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
+
+    strict private FFdNetworkMode: TSFStringEnum;
+    { X3D field "networkMode". } { }
+    public property FdNetworkMode: TSFStringEnum read FFdNetworkMode;
+    { X3D field "networkMode". } { }
+    property NetworkMode: TDISNetworkMode read GetNetworkMode write SetNetworkMode;
+
+    strict private FFdPort: TSFInt32;
+    { X3D field "port". } { }
+    public property FdPort: TSFInt32 read FFdPort;
     { X3D field "port". } { }
     property Port: Integer read GetPort write SetPort;
+
+    strict private FFdRadioID: TSFInt32;
+    { X3D field "radioID". } { }
+    public property FdRadioID: TSFInt32 read FFdRadioID;
     { X3D field "radioID". } { }
     property RadioID: Integer read GetRadioID write SetRadioID;
+
+    strict private FFdReadInterval: TSFFloat;
+    { X3D field "readInterval". } { }
+    public property FdReadInterval: TSFFloat read FFdReadInterval;
     { X3D field "readInterval". } { }
     property ReadInterval: Single read GetReadInterval write SetReadInterval;
+
+    strict private FFdRtpHeaderExpected: TSFBool;
+    { X3D field "rtpHeaderExpected". } { }
+    public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
     { X3D field "rtpHeaderExpected". } { }
     property RtpHeaderExpected: Boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
+
+    strict private FFdSampleRate: TSFInt32;
+    { X3D field "sampleRate". } { }
+    public property FdSampleRate: TSFInt32 read FFdSampleRate;
     { X3D field "sampleRate". } { }
     property SampleRate: Integer read GetSampleRate write SetSampleRate;
+
+    strict private FFdSamples: TSFInt32;
+    { X3D field "samples". } { }
+    public property FdSamples: TSFInt32 read FFdSamples;
     { X3D field "samples". } { }
     property Samples: Integer read GetSamples write SetSamples;
+
+    strict private FFdSiteID: TSFInt32;
+    { X3D field "siteID". } { }
+    public property FdSiteID: TSFInt32 read FFdSiteID;
     { X3D field "siteID". } { }
     property SiteID: Integer read GetSiteID write SetSiteID;
+
+    strict private FFdTdlType: TSFInt32;
+    { X3D field "tdlType". } { }
+    public property FdTdlType: TSFInt32 read FFdTdlType;
     { X3D field "tdlType". } { }
     property TdlType: Integer read GetTdlType write SetTdlType;
+
+    strict private FFdWhichGeometry: TSFInt32;
+    { X3D field "whichGeometry". } { }
+    public property FdWhichGeometry: TSFInt32 read FFdWhichGeometry;
     { X3D field "whichGeometry". } { }
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
+
+    strict private FFdWriteInterval: TSFFloat;
+    { X3D field "writeInterval". } { }
+    public property FdWriteInterval: TSFFloat read FFdWriteInterval;
     { X3D field "writeInterval". } { }
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
+
+    strict private FEventIsNetworkReader: TSFBoolEvent;
+    { X3D out event "isNetworkReader". } { }
+    public property EventIsNetworkReader: TSFBoolEvent read FEventIsNetworkReader;
+
+    strict private FEventIsNetworkWriter: TSFBoolEvent;
+    { X3D out event "isNetworkWriter". } { }
+    public property EventIsNetworkWriter: TSFBoolEvent read FEventIsNetworkWriter;
+
+    strict private FEventIsRtpHeaderHeard: TSFBoolEvent;
+    { X3D out event "isRtpHeaderHeard". } { }
+    public property EventIsRtpHeaderHeard: TSFBoolEvent read FEventIsRtpHeaderHeard;
+
+    strict private FEventIsStandAlone: TSFBoolEvent;
+    { X3D out event "isStandAlone". } { }
+    public property EventIsStandAlone: TSFBoolEvent read FEventIsStandAlone;
+
+    strict private FEventTimestamp: TSFTimeEvent;
+    { X3D out event "timestamp". } { }
+    public property EventTimestamp: TSFTimeEvent read FEventTimestamp;
+
+    strict private FFdBboxCenter: TSFVec3f;
+    { X3D field "bboxCenter". } { }
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
     property BBox: TBox3D read GetBBox write SetBBox;
+
+    strict private FFdBboxSize: TSFVec3f;
+    { X3D field "bboxSize". } { }
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}
 
@@ -188,6 +298,16 @@ end;
 procedure TSignalPduNode.SetMulticastRelayPort(const Value: Integer);
 begin
   FdMulticastRelayPort.Send(Value);
+end;
+
+function TSignalPduNode.GetNetworkMode: TDISNetworkMode;
+begin
+  Result := TDISNetworkMode(FdNetworkMode.EnumValue);
+end;
+
+procedure TSignalPduNode.SetNetworkMode(const Value: TDISNetworkMode);
+begin
+  FdNetworkMode.SendEnumValue(Ord(Value));
 end;
 
 function TSignalPduNode.GetPort: Integer;
@@ -302,6 +422,115 @@ begin
   Value.ToCenterSize(ValueCenter, ValueSize);
   FdBBoxCenter.Send(ValueCenter);
   FdBBoxSize.Send(ValueSize);
+end;
+
+class function TSignalPduNode.ClassX3DType: String;
+begin
+  Result := 'SignalPdu';
+end;
+
+procedure TSignalPduNode.CreateNode;
+begin
+  inherited;
+
+  FFdAddress := TSFString.Create(Self, True, 'address', 'localhost');
+   FdAddress.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAddress);
+
+  FFdApplicationID := TSFInt32.Create(Self, True, 'applicationID', 1);
+   FdApplicationID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdApplicationID);
+
+  FFdData := TMFInt32.Create(Self, True, 'data', []);
+   FdData.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdData);
+
+  FFdDataLength := TSFInt32.Create(Self, True, 'dataLength', 0);
+   FdDataLength.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDataLength);
+
+  FFdEncodingScheme := TSFInt32.Create(Self, True, 'encodingScheme', 0);
+   FdEncodingScheme.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEncodingScheme);
+
+  FFdEntityID := TSFInt32.Create(Self, True, 'entityID', 0);
+   FdEntityID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEntityID);
+
+  FFdMulticastRelayHost := TSFString.Create(Self, True, 'multicastRelayHost', '');
+   FdMulticastRelayHost.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMulticastRelayHost);
+
+  FFdMulticastRelayPort := TSFInt32.Create(Self, True, 'multicastRelayPort', 0);
+   FdMulticastRelayPort.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMulticastRelayPort);
+
+  FFdNetworkMode := TSFStringEnum.Create(Self, True, 'networkMode', DISNetworkModeNames, Ord(nmStandAlone));
+   FdNetworkMode.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdNetworkMode);
+
+  FFdPort := TSFInt32.Create(Self, True, 'port', 0);
+   FdPort.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPort);
+
+  FFdRadioID := TSFInt32.Create(Self, True, 'radioID', 0);
+   FdRadioID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRadioID);
+
+  FFdReadInterval := TSFFloat.Create(Self, True, 'readInterval', 0.1);
+   FdReadInterval.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdReadInterval);
+
+  FFdRtpHeaderExpected := TSFBool.Create(Self, True, 'rtpHeaderExpected', false);
+   FdRtpHeaderExpected.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRtpHeaderExpected);
+
+  FFdSampleRate := TSFInt32.Create(Self, True, 'sampleRate', 0);
+   FdSampleRate.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSampleRate);
+
+  FFdSamples := TSFInt32.Create(Self, True, 'samples', 0);
+   FdSamples.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSamples);
+
+  FFdSiteID := TSFInt32.Create(Self, True, 'siteID', 0);
+   FdSiteID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSiteID);
+
+  FFdTdlType := TSFInt32.Create(Self, True, 'tdlType', 0);
+   FdTdlType.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTdlType);
+
+  FFdWhichGeometry := TSFInt32.Create(Self, True, 'whichGeometry', 1);
+   FdWhichGeometry.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdWhichGeometry);
+
+  FFdWriteInterval := TSFFloat.Create(Self, True, 'writeInterval', 1.0);
+   FdWriteInterval.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdWriteInterval);
+
+  FEventIsNetworkReader := TSFBoolEvent.Create(Self, 'isNetworkReader', false);
+  AddEvent(FEventIsNetworkReader);
+
+  FEventIsNetworkWriter := TSFBoolEvent.Create(Self, 'isNetworkWriter', false);
+  AddEvent(FEventIsNetworkWriter);
+
+  FEventIsRtpHeaderHeard := TSFBoolEvent.Create(Self, 'isRtpHeaderHeard', false);
+  AddEvent(FEventIsRtpHeaderHeard);
+
+  FEventIsStandAlone := TSFBoolEvent.Create(Self, 'isStandAlone', false);
+  AddEvent(FEventIsStandAlone);
+
+  FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
+  AddEvent(FEventTimestamp);
+
+  FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));
+   FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxCenter);
+
+  FFdBboxSize := TSFVec3f.Create(Self, False, 'bboxSize', Vector3(-1, -1, -1));
+   FdBboxSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxSize);
 end;
 
 {$endif read_implementation}

@@ -116,42 +116,6 @@
 '  return alphaRoughnessSq / (M_PI * f * f);' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
-'/* Main function that calculates per-light-source contribution to the final color.' + LineEnding +
-'' + LineEnding +
-'   pointToLight is the direction from current vertex to light source.' + LineEnding +
-'   It is assumed to be already normalized.' + LineEnding +
-'' + LineEnding +
-'   normal is normal in eye-space.' + LineEnding +
-'' + LineEnding +
-'   view is direction from current vertex to camera, in eye-space,' + LineEnding +
-'   already normalized.' + LineEnding +
-'   IOW, "normalize(- vertex_eye)" because camera position is zero in eye-space.' + LineEnding +
-'*/' + LineEnding +
-'vec3 getPointShade(const in vec3 pointToLight,' + LineEnding +
-'  const in MaterialInfo materialInfo,' + LineEnding +
-'  const in vec3 normal,' + LineEnding +
-'  const in vec3 view)' + LineEnding +
-'{' + LineEnding +
-'  AngularInfo angularInfo = getAngularInfo(pointToLight, normal, view);' + LineEnding +
-'' + LineEnding +
-'  if (angularInfo.NdotL > 0.0 || angularInfo.NdotV > 0.0)' + LineEnding +
-'  {' + LineEnding +
-'    // Calculate the shading terms for the microfacet specular shading model' + LineEnding +
-'    vec3 F = specularReflection(materialInfo, angularInfo);' + LineEnding +
-'    float Vis = visibilityOcclusion(materialInfo, angularInfo);' + LineEnding +
-'    float D = microfacetDistribution(materialInfo, angularInfo);' + LineEnding +
-'' + LineEnding +
-'    // Calculation of analytical lighting contribution' + LineEnding +
-'    vec3 diffuseContrib = (1.0 - F) * diffuse(materialInfo);' + LineEnding +
-'    vec3 specContrib = F * Vis * D;' + LineEnding +
-'' + LineEnding +
-'    // Obtain final intensity as reflectance (BRDF) scaled by the energy of the light (cosine law)' + LineEnding +
-'    return angularInfo.NdotL * (diffuseContrib + specContrib);' + LineEnding +
-'  }' + LineEnding +
-'' + LineEnding +
-'  return vec3(0.0, 0.0, 0.0);' + LineEnding +
-'}' + LineEnding +
-'' + LineEnding +
 '/* Get PhysicalMaterial properies.' + LineEnding +
 '   Matches glTF logic for metallic-roughness model.' + LineEnding +
 '*/' + LineEnding +

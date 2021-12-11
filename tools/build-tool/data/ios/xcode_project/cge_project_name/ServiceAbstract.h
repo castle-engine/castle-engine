@@ -48,7 +48,8 @@
 - (NSString*)boolToString:(bool)value;
 
 /* Notification that a purchase just happened. */
-- (void)onPurchase:(AvailableProduct*) product;
+- (void)onPurchase:(AvailableProduct*) product
+  withTransaction:(SKPaymentTransaction*) transaction;
 
 @property (nonatomic, retain) UIWindow *window;
 @property (nonatomic, retain) OpenGLController *mainController;

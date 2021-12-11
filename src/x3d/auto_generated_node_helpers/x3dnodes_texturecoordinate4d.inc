@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdPoint: TMFVec4f;
+    { X3D field "point". } { }
+    public property FdPoint: TMFVec4f read FFdPoint;
     { Set X3D field "point". } { }
     procedure SetPoint(const Value: array of TVector4);
     { Set X3D field "point". } { }
@@ -45,6 +51,20 @@ end;
 procedure TTextureCoordinate4DNode.SetPoint(const Value: TVector4List);
 begin
   FdPoint.Send(Value);
+end;
+
+class function TTextureCoordinate4DNode.ClassX3DType: String;
+begin
+  Result := 'TextureCoordinate4D';
+end;
+
+procedure TTextureCoordinate4DNode.CreateNode;
+begin
+  inherited;
+
+  FFdPoint := TMFVec4f.Create(Self, True, 'point', []);
+   FdPoint.ChangeAlways := chTextureCoordinate;
+  AddField(FFdPoint);
 end;
 
 {$endif read_implementation}

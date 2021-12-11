@@ -63,7 +63,7 @@ implementation
 
 uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleLog, X3DNodes, CastleScene, CastleTimeUtils;
+  CastleLog, X3DNodes, CastleScene, CastleTimeUtils, CastleRenderContext;
 
 { Given blending name (as defined by X3D BlendMode node spec,
   http://www.instantreality.org/documentation/nodetype/BlendMode/),
@@ -242,7 +242,7 @@ procedure TBlendingRenderer.RenderBegin;
 begin
   Active := true;
 
-  glDepthMask(GL_FALSE);
+  RenderContext.DepthBufferUpdate := false;
   glEnable(GL_BLEND);
 
   { Set glBlendFunc using RenderOptions.BlendingXxxFactor }
@@ -258,7 +258,7 @@ begin
   Active := false;
 
   { restore glDepthMask and blending state to default values }
-  glDepthMask(GL_TRUE);
+  RenderContext.DepthBufferUpdate := true;
   glDisable(GL_BLEND);
 end;
 
@@ -345,7 +345,7 @@ procedure ShapesFilterBlending(
   end;
 
 begin
-  FrameProfiler.Start(fmRenderShapesFilterBlending);
+  //FrameProfiler.Start(fmRenderShapesFilterBlending);
 
   { Use "Count := 0" instead of Clear, this way previous Capacity remains }
   FilteredShapes.Count := 0;
@@ -355,7 +355,7 @@ begin
   if Assigned(TestShapeVisibility) then
     Tree.Traverse(@AddToListIfTested, OnlyActive, OnlyVisible, OnlyCollidable) else
     Tree.Traverse(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
-  FrameProfiler.Stop(fmRenderShapesFilterBlending);
+  //FrameProfiler.Stop(fmRenderShapesFilterBlending);
 end;
 
 end.

@@ -29,8 +29,34 @@
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventHitNormal_changed: TSFVec3fEvent;
+    { X3D out event "hitNormal_changed". } { }
+    public property EventHitNormal_changed: TSFVec3fEvent read FEventHitNormal_changed;
+
+    strict private FEventHitPoint_changed: TSFVec3fEvent;
+    { X3D out event "hitPoint_changed". } { }
+    public property EventHitPoint_changed: TSFVec3fEvent read FEventHitPoint_changed;
+
+    strict private FEventHitTexCoord_changed: TSFVec2fEvent;
+    { X3D out event "hitTexCoord_changed". } { }
+    public property EventHitTexCoord_changed: TSFVec2fEvent read FEventHitTexCoord_changed;
+
+    strict private FEventHitGeoCoord_changed: TSFVec3dEvent;
+    { X3D out event "hitGeoCoord_changed". } { }
+    public property EventHitGeoCoord_changed: TSFVec3dEvent read FEventHitGeoCoord_changed;
+
+    strict private FFdGeoOrigin: TSFNode;
+    { X3D field "geoOrigin". } { }
+    public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+
+    strict private FFdGeoSystem: TMFString;
+    { X3D field "geoSystem". } { }
+    public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: array of string);
     { Set X3D field "geoSystem". } { }
@@ -63,6 +89,36 @@ end;
 procedure TGeoTouchSensorNode.SetGeoSystem(const Value: TCastleStringList);
 begin
   FdGeoSystem.Send(Value);
+end;
+
+class function TGeoTouchSensorNode.ClassX3DType: String;
+begin
+  Result := 'GeoTouchSensor';
+end;
+
+procedure TGeoTouchSensorNode.CreateNode;
+begin
+  inherited;
+
+  FEventHitNormal_changed := TSFVec3fEvent.Create(Self, 'hitNormal_changed', false);
+  AddEvent(FEventHitNormal_changed);
+
+  FEventHitPoint_changed := TSFVec3fEvent.Create(Self, 'hitPoint_changed', false);
+  AddEvent(FEventHitPoint_changed);
+
+  FEventHitTexCoord_changed := TSFVec2fEvent.Create(Self, 'hitTexCoord_changed', false);
+  AddEvent(FEventHitTexCoord_changed);
+
+  FEventHitGeoCoord_changed := TSFVec3dEvent.Create(Self, 'hitGeoCoord_changed', false);
+  AddEvent(FEventHitGeoCoord_changed);
+
+  FFdGeoOrigin := TSFNode.Create(Self, False, 'geoOrigin', [TGeoOriginNode]);
+   FdGeoOrigin.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoOrigin);
+
+  FFdGeoSystem := TMFString.Create(Self, False, 'geoSystem', ['GD','WE']);
+   FdGeoSystem.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoSystem);
 end;
 
 {$endif read_implementation}

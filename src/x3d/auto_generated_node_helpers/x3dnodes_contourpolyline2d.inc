@@ -25,11 +25,26 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TContourPolyline2DNode ----------------------------------------------- }
+
+class function TContourPolyline2DNode.ClassX3DType: String;
+begin
+  Result := 'ContourPolyline2D';
+end;
+
+procedure TContourPolyline2DNode.CreateNode;
+begin
+  inherited;
+
+  DefaultContainerField := 'geometry';
+end;
 
 {$endif read_implementation}

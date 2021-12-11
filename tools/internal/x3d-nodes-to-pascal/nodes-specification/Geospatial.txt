@@ -1,4 +1,6 @@
 GeoCoordinate : X3DCoordinateNode {
+  auto-generate-more: true
+
   MFVec3d  [in,out] point     []
     range: (-Inf,Inf)
   SFNode   []       geoOrigin NULL
@@ -8,40 +10,62 @@ GeoCoordinate : X3DCoordinateNode {
 }
 
 GeoElevationGrid : X3DGeometryNode {
+  auto-generate-more: true
+
   MFDouble [in]     set_height
   SFNode   [in,out] color           NULL
     range: X3DColorNode
+    change: chGeometry
   SFNode   [in,out] normal          NULL
     range: X3DNormalNode
+    change: chGeometry
   SFNode   [in,out] texCoord        NULL
     range: X3DTextureCoordinateNode
+    change: chGeometry
   SFFloat  [in,out] yScale          1.0
     range: [0,Inf)
+    change: chGeometry
   SFBool   []       ccw             TRUE
+    change: chGeometry
   SFBool   []       colorPerVertex  TRUE
+    change: chGeometry
   SFDouble []       creaseAngle     0
     range: [0,Inf)
+    angle
+    change: chGeometry
   SFVec3d  []       geoGridOrigin   0 0 0
     range: (-Inf,Inf)
+    change: chGeometry
   SFNode   []       geoOrigin       NULL
     range: GeoOrigin
+    change: chGeometry
   MFString []       geoSystem       ["GD","WE"]
     range: see 25.2.3
-  MFDouble []       height
+    change: chGeometry
+  MFDouble []       height          [0, 0]
     range: [0 0]       (-Inf,Inf)
+    change: chGeometry
   SFBool   []       normalPerVertex TRUE
+    change: chGeometry
   SFBool   []       solid           TRUE
+    change: chGeometry
   SFInt32  []       xDimension      0
     range: (0,Inf)
+    change: chGeometry
   SFDouble []       xSpacing        1.0
     range: [0,Inf)
+    change: chGeometry
   SFInt32  []       zDimension      0
     range: (0,Inf)
+    change: chGeometry
   SFDouble []       zSpacing        1.0
     range: [0,Inf)
+    change: chGeometry
 }
 
 GeoLocation : X3DGroupingNode {
+  auto-generate-more: true
+
   SFVec3d  [in,out] geoCoords      0 0 0
     range: (-Inf,Inf)
   SFNode   []       geoOrigin      NULL
@@ -51,6 +75,8 @@ GeoLocation : X3DGroupingNode {
 }
 
 GeoLOD : X3DChildNode, X3DBoundedObject {
+  auto-generate-more: true
+
   MFNode   [out]    children       []
     range: X3DChildNode
   SFInt32  [out]    level_changed
@@ -81,6 +107,8 @@ GeoLOD : X3DChildNode, X3DBoundedObject {
 }
 
 GeoMetadata : X3DInfoNode {
+  auto-generate-more: true
+
   MFNode   [in,out] data     []
     range: X3DNode
     change: chNone
@@ -92,6 +120,9 @@ GeoMetadata : X3DInfoNode {
 }
 
 GeoOrigin : X3DNode {
+  auto-generate-more: true
+
+  default-container-field: geoOrigin
   SFVec3d  [in,out] geoCoords 0 0 0
     range: (-Inf,Inf)
   MFString []       geoSystem ["GD","WE"]
@@ -100,6 +131,8 @@ GeoOrigin : X3DNode {
 }
 
 GeoPositionInterpolator : X3DInterpolatorNode {
+  auto-generate-more: true
+
   MFVec3d  [in,out] keyValue         []
   SFVec3d  [out]    geovalue_changed
   SFVec3f  [out]    value_changed
@@ -110,6 +143,8 @@ GeoPositionInterpolator : X3DInterpolatorNode {
 }
 
 GeoProximitySensor : X3DEnvironmentalSensorNode {
+  auto-generate-more: true
+
   SFVec3d    [in,out] geoCenter                0 0 0
     range: (-Inf,Inf)
   SFVec3f    [out]    centerOfRotation_changed
@@ -123,6 +158,8 @@ GeoProximitySensor : X3DEnvironmentalSensorNode {
 }
 
 GeoTouchSensor : X3DTouchSensorNode {
+  auto-generate-more: true
+
   SFVec3f  [out]    hitNormal_changed
   SFVec3f  [out]    hitPoint_changed
   SFVec2f  [out]    hitTexCoord_changed
@@ -134,6 +171,8 @@ GeoTouchSensor : X3DTouchSensorNode {
 }
 
 GeoTransform : X3DGroupingNode {
+  auto-generate-more: true
+
   SFVec3d    [in,out] geoCenter        0 0 0
     range: (-Inf,Inf)
   SFRotation [in,out] rotation         0 0 1 0
@@ -151,6 +190,8 @@ GeoTransform : X3DGroupingNode {
 }
 
 GeoViewpoint : X3DViewpointNode {
+  auto-generate-more: true
+
   SFRotation [in]     set_orientation
   SFVec3d    [in]     set_position
   SFFloat    [in,out] fieldOfView     Pi/4

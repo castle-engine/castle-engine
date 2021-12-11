@@ -26,6 +26,7 @@ black
 blending
 blue
 body
+border
 bottom
 bound
 box

@@ -1,0 +1,7 @@
+# This declaration will be inserted into the middle of the project Podfile
+# by the Castle Game Engine build tool.
+#
+# Use the official Tenjin from CocoaPods, see
+# https://github.com/tenjin/tenjin-ios-sdk
+
+pod 'TenjinSDK'

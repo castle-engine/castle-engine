@@ -17,7 +17,9 @@
   { Base node that may contain children nodes.
     Note that this descends from TAbstractChildNode,
     so it can be inserted as child of another grouping node.
-    So, you can create a hierarchy of nodes with any depth. }
+    So, you can create a hierarchy of nodes with any depth.
+
+    Handles TTransformFunctionality for any descendant that defines an instance of it. }
   TAbstractGroupingNode = class(TAbstractChildNode)
   strict private
     type
@@ -40,42 +42,21 @@
 
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
-
-    { Change State.Transformation for children nodes.
-
-      This should be done here, not in overriden BeforeTraverse.
-      Reason: for storing ClipPlanes transformations, we need to know
-      transformed matrix inside TAbstractGroupingNode.BeforeTraverse implementation.
-      And we also do StateStack.Push inside TAbstractGroupingNode.BeforeTraverse
-      implementation... So ApplyTransform must happen in the middle of
-      TAbstractGroupingNode.BeforeTraverse call.
-
-      Almost all descendants should override only the overload changing
-      TTransformation. }
-    procedure ApplyTransform(const State: TX3DGraphTraverseState); virtual;
-    procedure ApplyTransform(var Transformation: TTransformation); virtual;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
   end;
 
-  { Basis for all node types that have bounds specified as part of the definition. }
-  IAbstractBoundedObject = interface(IX3DNode)
-  ['{0EF47711-754B-4BA8-97E5-0A9601E9C542}']
-    property FdBboxCenter: TSFVec3f { read GetFdbboxCenter }; { }
-    property FdBboxSize: TSFVec3f { read GetFdbboxSize }; { }
-  end;
-
   { Base node that contains children nodes, in X3D and VRML 2.0. }
-  TAbstractX3DGroupingNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
+  TAbstractX3DGroupingNode = class(TAbstractGroupingNode)
   strict private
     type
       TChildrenArray = array of TAbstractChildNode;
     function ToChildrenArray(const Nodes: TMFNode): TChildrenArray;
     procedure EventAddChildrenReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventRemoveChildrenReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
 
@@ -162,7 +143,6 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-
     {$I auto_generated_node_helpers/x3dnodes_group.inc}
   end;
   TGroupNode_2 = TGroupNode;
@@ -180,6 +160,22 @@
       in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
       that only allows setting when the key already exists. }
     property Items [const AKey: string]: LongInt read GetItems write SetItems; default;
+  end;
+
+  { Node functionality for all X3D transformation nodes.
+    These nodes transform all their children (the ones enumerated
+    by traversing, so all active children).
+
+    The transformation change may be signalled by TX3DField.Changes
+    including chTransform flag. For some special nodes, like Billboard,
+    the transformation changes are automatically managed. }
+  TTransformFunctionality = class(TNodeFunctionality)
+  public
+    { Change State.Transformation for children nodes.
+      Almost all descendants should override only the overload changing
+      TTransformation. }
+    procedure ApplyTransform(const State: TX3DGraphTraverseState); virtual;
+    procedure ApplyTransform(var Transformation: TTransformation); virtual;
   end;
 
   { A top-level VRML/X3D node. This is what you get by loading 3D model from file.
@@ -200,12 +196,23 @@
     some namespace information (exported names and such). }
   TX3DRootNode = class(TGroupNode)
   strict private
-    FHasForceVersion: boolean;
-    FSaveAsRootNode: boolean;
-    FProfile: string;
-    FComponents: TStringLongIntMap;
-    FMeta: TStringStringMap;
-    FScale: Single;
+    type
+      TX3DRootNodeTransformFunctionality = class(TTransformFunctionality)
+      strict private
+        FParent: TX3DRootNode;
+      public
+        constructor Create(const AParent: TX3DRootNode);
+        property Parent: TX3DRootNode read FParent;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
+      end;
+    var
+      FTransformFunctionality: TX3DRootNodeTransformFunctionality;
+      FHasForceVersion: boolean;
+      FSaveAsRootNode: boolean;
+      FProfile: string;
+      FComponents: TStringLongIntMap;
+      FMeta: TStringStringMap;
+      FScale: Single;
   private
     FPrototypeNames: TX3DPrototypeNames;
     FExportedNames, FImportedNames: TX3DNodeNames;
@@ -219,13 +226,12 @@
       then it is placed inside Inline node, which will do save/restore anyway.
       And this way VRML 1.0 WWWInline with separate=FALSE may also work too. }
     function SeparateGroup: boolean; override;
-
-    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     ForceVersion: TX3DVersion;
 
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     { Should SaveToStream take care to nicely save us, treating as
       a root node of whole VRML file or prototype.
@@ -314,7 +320,7 @@
     send events, receive events or contain any USE
     references outside the StaticGroup.
     This allows to optimize this content for faster rendering and less memory usage. }
-  TStaticGroupNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
+  TStaticGroupNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -364,31 +370,31 @@
   end;
   TSwitchNode_2 = TSwitchNode;
 
-  { Interface for all VRML 2.0 / X3D transformation nodes.
-    These nodes transform all their children (the ones enumerated
-    by traversing, so all active children).
-
-    The transformation change may be signalled by TX3DField.Changes
-    including chTransform flag. For some special nodes, like Billboard,
-    the transformation changes are automatically managed. }
-  ITransformNode = interface(IX3DNode)
-  ['{6991EC7D-0821-4393-B5B3-08DD967CFE05}']
-  end;
-
   { Grouping node that transforms (moves, rotates, scales) it's children. }
-  TTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
+  TTransformNode = class(TAbstractX3DGroupingNode)
   strict private
-    //WarningNegativeScaleDone: boolean;
+    type
+      TTransformNodeTransformFunctionality = class(TTransformFunctionality)
+      strict private
+        FParent: TTransformNode;
+        //WarningNegativeScaleDone: boolean;
+      public
+        constructor Create(const AParent: TTransformNode);
+        property Parent: TTransformNode read FParent;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
+      end;
+    var
+      FTransformFunctionality: TTransformNodeTransformFunctionality;
   protected
     { }
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
-    procedure ApplyTransform(var Transformation: TTransformation); override;
 
     strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
@@ -470,7 +476,18 @@ begin
   if BeforeTraversePushedState then
     StateStack.Push;
 
-  ApplyTransform(StateStack.Top);
+  if TransformFunctionality <> nil then
+  begin
+    { Note: Applying transformation cannot be done in overriden BeforeTraverse.
+
+      Reason: for storing ClipPlanes transformations, we need to know
+      transformed matrix inside TAbstractGroupingNode.BeforeTraverse implementation.
+      And we also do StateStack.Push inside TAbstractGroupingNode.BeforeTraverse
+      implementation... So ApplyTransform must happen in the middle of
+      TAbstractGroupingNode.BeforeTraverse call. }
+
+    TransformFunctionality.ApplyTransform(StateStack.Top);
+  end;
 
   { We also use it to collect State.PointingDeviceSensors,
     as it turns our that the same approach is possible, for the same reasons.
@@ -515,15 +532,6 @@ begin
   end;
 end;
 
-procedure TAbstractGroupingNode.ApplyTransform(const State: TX3DGraphTraverseState);
-begin
-  ApplyTransform(State.Transformation);
-end;
-
-procedure TAbstractGroupingNode.ApplyTransform(var Transformation: TTransformation);
-begin
-end;
-
 procedure TAbstractGroupingNode.AfterTraverse(
   StateStack: TX3DGraphTraverseStateStack);
 begin
@@ -547,7 +555,10 @@ begin
   AddEvent(FEventRemoveChildren);
   EventRemoveChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
 
-  FFdChildren := TMFNode.Create(Self, true, 'children', IAbstractChildNode);
+  { Add TAbstractGeometryNode_1 to allow VRML 1.0 geometry nodes (that cannot be TAbstractChildNode)
+    to be present at top-level of the file.
+    Testcase: demo-models/vrml_1/castle_extensions/multi_root.wrl }
+  FFdChildren := TMFNode.Create(Self, true, 'children', [TAbstractChildNode, TAbstractGeometryNode_1]);
    FdChildren.ChangeAlways := chGroupChildren;
   AddField(FFdChildren);
 
@@ -593,13 +604,13 @@ begin
 end;
 
 procedure TAbstractX3DGroupingNode.EventAddChildrenReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   AddChildren(ToChildrenArray(Value as TMFNode), false);
 end;
 
 procedure TAbstractX3DGroupingNode.EventRemoveChildrenReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   RemoveChildren(ToChildrenArray(Value as TMFNode));
 end;
@@ -730,15 +741,54 @@ begin
   AddOrSetValue(AKey, AValue);
 end;
 
+{ TTransformFunctionality ---------------------------------------------------- }
+
+procedure TTransformFunctionality.ApplyTransform(const State: TX3DGraphTraverseState);
+begin
+  ApplyTransform(State.Transformation);
+end;
+
+procedure TTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
+begin
+end;
+
+{ TX3DRootNode.TX3DRootNodeTransformFunctionality -------------------------------------- }
+
+constructor TX3DRootNode.TX3DRootNodeTransformFunctionality.Create(const AParent: TX3DRootNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+procedure TX3DRootNode.TX3DRootNodeTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
+var
+  Scale: Single;
+  M, IM: TMatrix4;
+begin
+  inherited;
+
+  Scale := Parent.Scale;
+  if Scale <> 1 then
+  begin
+    ScalingMatrices(Vector3(Scale, Scale, Scale), true, M, IM);
+    Transformation.Transform := Transformation.Transform * M;
+    Transformation.InverseTransform := IM * Transformation.InverseTransform;
+    Transformation.Scale := Transformation.Scale * Scale;
+  end;
+end;
+
 { TX3DRootNode --------------------------------------------------------------- }
 
-procedure TX3DRootNode.CreateNode;
+constructor TX3DRootNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   FComponents := TStringLongIntMap.Create;
   FMeta := TStringStringMap.Create;
   FSaveAsRootNode := true;
   FScale := 1;
+
+  FTransformFunctionality := TX3DRootNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
 end;
 
 destructor TX3DRootNode.Destroy;
@@ -845,26 +895,18 @@ begin
     Also, add LayerSet (not allowed in Group.FdChildren).
     This is special (see http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/concepts.html#Rootnodes),
     "4.3.2 Root nodes" from X3D 3.2 spec.
+
+    Also add TAbstractGeometryNode_1 to enable VRML 1.0 geometry nodes at top-level,
+    like in demo-models/vrml_1/castle_extensions/multi_root.wrl .
   }
 
-  if not (Supports(Child, IAbstractChildNode) or (Child is TLayerSetNode)) then
+  if not (
+       (Child is TAbstractChildNode) or
+       (Child is TAbstractGeometryNode_1) or
+       (Child is TLayerSetNode)
+     ) then
     WritelnWarning('VRML/X3D', Format('Node "%s" is not allowed at the top level of the X3D file',
       [Child.X3DType]));
-end;
-
-procedure TX3DRootNode.ApplyTransform(var Transformation: TTransformation);
-var
-  M, IM: TMatrix4;
-begin
-  inherited;
-
-  if Scale <> 1 then
-  begin
-    ScalingMatrices(Vector3(Scale, Scale, Scale), true, M, IM);
-    Transformation.Transform := Transformation.Transform * M;
-    Transformation.InverseTransform := IM * Transformation.InverseTransform;
-    Transformation.Scale := Transformation.Scale * Scale;
-  end;
 end;
 
 procedure TX3DRootNode.ExportNode(const Node: TX3DNode; const ExportedAlias: string);
@@ -891,11 +933,18 @@ begin
   ExportNode(Node, Node.X3DName);
 end;
 
+function TX3DRootNode.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcTransform;
+end;
+
+{ TStaticGroupNode ----------------------------------------------------------- }
+
 procedure TStaticGroupNode.CreateNode;
 begin
   inherited;
 
-  FFdChildren := TMFNode.Create(Self, false, 'children', IAbstractChildNode);
+  FFdChildren := TMFNode.Create(Self, false, 'children', [TAbstractChildNode]);
    FdChildren.ChangeAlways := chGroupChildren;
   AddField(FFdChildren);
 
@@ -920,6 +969,8 @@ begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
+
+{ TSwitchNode ---------------------------------------------------------------- }
 
 procedure TSwitchNode.CreateNode;
 begin
@@ -958,6 +1009,45 @@ end;
 function TSwitchNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcSwitch;
+end;
+
+{ TTransformNode.TTransformNodeTransformFunctionality --------------------------------------- }
+
+constructor TTransformNode.TTransformNodeTransformFunctionality.Create(const AParent: TTransformNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+procedure TTransformNode.TTransformNodeTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
+begin
+  // inherited; // no need to call, conserve speed in this critical place
+
+  Transformation.Multiply(
+    Parent.Center,
+    Parent.Rotation,
+    Parent.Scale,
+    Parent.ScaleOrientation,
+    Parent.Translation);
+
+  {
+  if ((Fdscale.Value[0] < 0) or
+      (Fdscale.Value[1] < 0) or
+      (Fdscale.Value[2] < 0)) and not WarningNegativeScaleDone then
+  begin
+    WarningNegativeScaleDone := true;
+    WritelnLog('VRML/X3D', 'Note: Transform.scale has negative component. It allows some tricks (especially sensible for unlit 2D stuff), but it makes lighting act weird. Make sure you use it only for unlit objects.');
+  end;
+  }
+end;
+
+{ TTransformNode ------------------------------------------------------------- }
+
+constructor TTransformNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FTransformFunctionality := TTransformNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
 end;
 
 procedure TTransformNode.CreateNode;
@@ -1011,28 +1101,6 @@ end;
 function TTransformNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
-end;
-
-procedure TTransformNode.ApplyTransform(var Transformation: TTransformation);
-begin
-  // inherited; // no need to call, conserve speed in this critical place
-
-  Transformation.Multiply(
-    Center,
-    Rotation,
-    Scale,
-    ScaleOrientation,
-    Translation);
-
-  {
-  if ((Fdscale.Value[0] < 0) or
-      (Fdscale.Value[1] < 0) or
-      (Fdscale.Value[2] < 0)) and not WarningNegativeScaleDone then
-  begin
-    WarningNegativeScaleDone := true;
-    WritelnLog('VRML/X3D', 'Note: Transform.scale has negative component. It allows some tricks (especially sensible for unlit 2D stuff), but it makes lighting act weird. Make sure you use it only for unlit objects.');
-  end;
-  }
 end;
 
 procedure RegisterGroupingNodes;

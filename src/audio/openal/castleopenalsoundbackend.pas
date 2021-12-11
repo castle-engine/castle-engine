@@ -534,6 +534,8 @@ begin
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcePlay ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
 
+  // ignore FBuffer = nil which may mean that streaming sound failed to load
+  if FBuffer <> nil then
     raise EInternalError.CreateFmt('Cannot play buffer class type %s', [FBuffer.ClassName]);
 end;
 
@@ -636,6 +638,14 @@ begin
 end;
 
 procedure TOpenALSoundSourceBackend.SetBuffer(const Value: TSoundBufferBackend);
+
+  { Set buffer to 0 on this OpenAL source. }
+  procedure ClearALBuffer;
+  begin
+    alSourcei(ALSource, AL_BUFFER, 0);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_BUFFER, 0) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  end;
+
 var
   CompleteBuffer: TOpenALSoundBufferBackend;
   StreamBuffer: TOpenALStreamBufferBackend;
@@ -665,15 +675,34 @@ begin
     begin
       AdjustALLooping;
       StreamBuffer := TOpenALStreamBufferBackend(FBuffer);
-      Streaming := TOpenALStreaming.Create(Self, StreamBuffer);
+      try
+        Streaming := TOpenALStreaming.Create(Self, StreamBuffer);
+      except
+        { Catching exceptions in case of loading errors. Because:
+          - The programs can generally tolerate missing sound files.
+          - Error at OggVorbis reading may be caused by
+            EOggVorbisMissingLibraryError, and we try to gracefully react to missing
+            libraries.
+          See TCastleSound.ReloadBuffer for the same logic and reasons
+          for non-streaming sounds. }
+        on E: ESoundFileError do
+        begin
+          WritelnWarning('Sound', Format('Sound file "%s" cannot be loaded (with streaming): %s', [
+            // Do not use FBuffer.URL, as TOpenALStreaming.Destroy set FBuffer to nil
+            URIDisplay(StreamBuffer.URL),
+            E.Message
+          ]));
+
+          // continue like no buffer was assigned
+          FBuffer := nil; // actually TOpenALStreaming.Destroy just did it
+          ClearALBuffer;
+        end;
+      end;
     end else
 
       raise EInternalError.CreateFmt('Cannot assign buffer class type %s', [FBuffer.ClassName]);
   end else
-  begin
-    alSourcei(ALSource, AL_BUFFER, 0);
-    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_BUFFER, 0) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
-  end;
+    ClearALBuffer;
 end;
 
 procedure TOpenALSoundSourceBackend.SetPitch(const Value: Single);

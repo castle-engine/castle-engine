@@ -231,7 +231,7 @@
 
                     AvailableProduct* product = [self getAvailableProduct: productId];
                     if (product != nil) {
-                        [getAppDelegate() onPurchase: product];
+                        [getAppDelegate() onPurchase: product withTransaction: transaction];
                     } else {
                         NSLog(@"WARNING: In-app purchases: purchased unknown product: %@", productId);
                     }

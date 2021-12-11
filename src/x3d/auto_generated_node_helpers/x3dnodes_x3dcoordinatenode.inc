@@ -25,11 +25,26 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractCoordinateNode ----------------------------------------------- }
+
+class function TAbstractCoordinateNode.ClassX3DType: String;
+begin
+  Result := 'X3DCoordinateNode';
+end;
+
+procedure TAbstractCoordinateNode.CreateNode;
+begin
+  inherited;
+
+  DefaultContainerField := 'coord';
+end;
 
 {$endif read_implementation}

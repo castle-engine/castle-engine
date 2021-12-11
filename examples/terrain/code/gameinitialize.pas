@@ -417,7 +417,7 @@ begin
   end;
 end;
 
-procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
+procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
 
   procedure ExportToX3D(const URL: string; const UseTriangulatedNode: boolean);
   var

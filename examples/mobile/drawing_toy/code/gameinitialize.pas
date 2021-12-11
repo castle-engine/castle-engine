@@ -54,7 +54,7 @@ begin
   Window.Controls.InsertFront(ImageControl);
 end;
 
-procedure WindowRender(Container: TUIContainer);
+procedure WindowRender(Container: TCastleContainer);
 var
   S: TStringList;
   I: Integer;
@@ -76,7 +76,7 @@ begin
   finally FreeAndNil(S) end;
 end;
 
-procedure WindowResize(Container: TUIContainer);
+procedure WindowResize(Container: TCastleContainer);
 var
   NewImage: TRGBImage;
 begin
@@ -114,13 +114,13 @@ begin
     FloatRectangle(Brush.Rect));
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   if Event.EventType = itMouseButton then
     Draw(Event.Position, Event.FingerIndex);
 end;
 
-procedure WindowMotion(Container: TUIContainer; const Event: TInputMotion);
+procedure WindowMotion(Container: TCastleContainer; const Event: TInputMotion);
 begin
   if Event.Pressed <> [] then
     Draw(Event.Position, Event.FingerIndex);

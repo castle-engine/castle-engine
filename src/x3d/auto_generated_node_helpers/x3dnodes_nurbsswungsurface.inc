@@ -33,12 +33,30 @@
     function GetCcw: Boolean;
     procedure SetCcw(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdProfileCurve: TSFNode;
+    { X3D field "profileCurve". } { }
+    public property FdProfileCurve: TSFNode read FFdProfileCurve;
     { X3D field "profileCurve". } { }
     property ProfileCurve: TAbstractNurbsControlCurveNode read GetProfileCurve write SetProfileCurve;
+
+    strict private FFdTrajectoryCurve: TSFNode;
+    { X3D field "trajectoryCurve". } { }
+    public property FdTrajectoryCurve: TSFNode read FFdTrajectoryCurve;
     { X3D field "trajectoryCurve". } { }
     property TrajectoryCurve: TAbstractNurbsControlCurveNode read GetTrajectoryCurve write SetTrajectoryCurve;
+
+    strict private FFdCcw: TSFBool;
+    { X3D field "ccw". } { }
+    public property FdCcw: TSFBool read FFdCcw;
     { X3D field "ccw". } { }
     property Ccw: Boolean read GetCcw write SetCcw;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}
 
@@ -80,6 +98,32 @@ end;
 procedure TNurbsSwungSurfaceNode.SetCcw(const Value: Boolean);
 begin
   FdCcw.Send(Value);
+end;
+
+class function TNurbsSwungSurfaceNode.ClassX3DType: String;
+begin
+  Result := 'NurbsSwungSurface';
+end;
+
+procedure TNurbsSwungSurfaceNode.CreateNode;
+begin
+  inherited;
+
+  FFdProfileCurve := TSFNode.Create(Self, True, 'profileCurve', [TAbstractNurbsControlCurveNode]);
+   FdProfileCurve.ChangeAlways := chGeometry;
+  AddField(FFdProfileCurve);
+
+  FFdTrajectoryCurve := TSFNode.Create(Self, True, 'trajectoryCurve', [TAbstractNurbsControlCurveNode]);
+   FdTrajectoryCurve.ChangeAlways := chGeometry;
+  AddField(FFdTrajectoryCurve);
+
+  FFdCcw := TSFBool.Create(Self, False, 'ccw', true);
+   FdCcw.ChangeAlways := chGeometry;
+  AddField(FFdCcw);
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', true);
+   FdSolid.ChangeAlways := chGeometry;
+  AddField(FFdSolid);
 end;
 
 {$endif read_implementation}

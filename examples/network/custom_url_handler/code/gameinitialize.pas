@@ -20,7 +20,7 @@ interface
 
 implementation
 
-uses SysUtils, Classes, Zipper,
+uses SysUtils, Classes, Zipper, URIParser,
   CastleWindow, CastleScene, CastleControls, CastleLog, CastleUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleDownload, CastleStringUtils,
@@ -49,11 +49,13 @@ var
 
 function TPackedDataReader.ReadUrl(const Url: string; out MimeType: string): TStream;
 var
+  U: TURI;
   FileInZip: String;
   Unzip: TUnZipper;
   FilesInZipList: TStringlist;
 begin
-  FileInZip := PrefixRemove('/', URIDeleteProtocol(Url), false);
+  U := ParseURI(Url);
+  FileInZip := PrefixRemove('/', U.Path + U.Document, false);
 
   { Unpack file to a temporary directory.
     TODO: TPackedDataReader.ReadUrl should be implemented
@@ -81,13 +83,13 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 begin
   // ... do something every frame
   Status.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   // ... react to press of key, mouse, touch
 end;

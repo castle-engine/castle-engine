@@ -249,6 +249,23 @@ begin
     AtlasRegionName := Path;
   Shape.Appearance.Texture := TextureLoader.UseNode(AtlasRegionName,
     TexCoord, TexRect, TexRotated);
+
+  { Other alpha values are not really useful for Spine.
+
+    Setting AlphaMode explicitly is necessary in case we use TSimpleTextureLoader,
+    as then it's easy to have some images with blend, some with opaque,
+    and if we render them with different (automatic) alpha modes
+    -> it will cause fighting in Z-buffer. This fighting in Z-buffer can be counteracted
+    by increasing TSlot.DrawOrderZ, but sometimes it would require really large increase.
+    Testcase: private-assets/spine/unholy_images_without_atlas/
+    where even TSlot.DrawOrderZ = 1 is not enough (10 is enough).
+
+    So with TSimpleTextureLoader, it's more reliable to use amBlend for all.
+
+    For TAtlas, it's just simpler. Why auto-detect, when we just know to use blending
+    in all normal cases. }
+  Shape.Appearance.AlphaMode := amBlend;
+
   if Shape.Appearance.Texture <> nil then
     Shape.Geometry := BuildGeometry(BaseUrl, TexCoord, TexRect, TexRotated);
 
@@ -491,7 +508,7 @@ var
   V: TVector2;
 begin
   inherited;
-  ReadVector2List(Json, 'vertices', Vertices);
+  ReadVector2List(Json, 'vertices', Vertices, true);
 
   if Vertices.Count > UVs.Count then
   begin

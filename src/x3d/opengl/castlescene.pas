@@ -133,7 +133,6 @@ type
       FDistanceCulling: Single;
 
       FReceiveShadowVolumes: boolean;
-      RegisteredGLContextCloseListener: boolean;
       FTempPrepareParams: TPrepareParams;
       { Camera position, in local scene coordinates, known during the Render call. }
       RenderCameraPosition: TVector3;
@@ -185,7 +184,8 @@ type
 
       @unorderedList(
         @item(
-          OpenGL state of glDepthMask, glEnable/Disable(GL_BLEND), glBlendFunc
+          OpenGL state of glDepthMask (RenderContext.DepthBufferUpdate),
+          glEnable/Disable(GL_BLEND), glBlendFunc
           is controlled by this function. This function will unconditionally
           change (and restore later to original value) this state,
           to perform correct blending (transparency rendering).
@@ -216,8 +216,6 @@ type
     procedure LocalRenderOutside(
       const TestShapeVisibility: TTestShapeVisibility;
       const Params: TRenderParams);
-
-    procedure GLContextCloseEvent(Sender: TObject);
 
     function Batching: TBatchShapes;
 
@@ -714,13 +712,8 @@ begin
   FreeAndNil(FTempPrepareParams);
   FreeAndNil(FBatching);
 
-  if RegisteredGLContextCloseListener and
-     (ApplicationProperties <> nil) then
-  begin
-    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
-    RegisteredGLContextCloseListener := false;
-  end;
-
+  { Make sure to free TCastleScene resources now, even though TCastleTransform.Destroy
+    will also call it later -- but then we are in more "uninitialized" state. }
   GLContextClose;
 
   { Note that this calls Renderer.RenderOptions, so use this before
@@ -851,11 +844,6 @@ begin
     FBatching.GLContextClose;
 end;
 
-procedure TCastleScene.GLContextCloseEvent(Sender: TObject);
-begin
-  GLContextClose;
-end;
-
 function TCastleScene.ShapeFog(const Shape: TShape; const GlobalFog: TFogNode): TFogFunctionality;
 begin
   Result := nil;
@@ -912,7 +900,7 @@ var
     Shape.ModelView := ModelView;
     Shape.Fog := ShapeFog(Shape, Params.GlobalFog as TFogNode);
 
-    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
+    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(false);
 
     if (Params.InternalPass = 0) and not ExcludeFromStatistics then
       Inc(Params.Statistics.ShapesRendered);
@@ -922,11 +910,17 @@ var
     IsVisibleNow := true;
   end;
 
+  { Checks DynamicBatching and not occlusion query. }
+  function ReallyDynamicBatching: Boolean;
+  begin
+    Result := DynamicBatching and not ReallyAnyOcclusionQuery(RenderOptions);
+  end;
+
   { Renders Shape, testing only Batching.Collect before RenderShape_NoTests.
     This sets Shape.ModelView and other properties necessary right before rendering. }
   procedure RenderShape_BatchingTest(const Shape: TGLShape);
   begin
-    if not (DynamicBatching and Batching.Collect(Shape)) then
+    if not (ReallyDynamicBatching and Batching.Collect(Shape)) then
       RenderShape_NoTests(Shape);
   end;
 
@@ -934,7 +928,7 @@ var
   var
     Shape: TShape;
   begin
-    if DynamicBatching then
+    if ReallyDynamicBatching then
     begin
       Batching.Commit;
       for Shape in Batching.Collected do
@@ -1089,7 +1083,7 @@ var
               twice. This is a good thing: it means that sorting below has
               much less shapes to consider. }
             FilteredShapes.SortFrontToBack(RenderCameraPosition);
-            if DynamicBatching then
+            if ReallyDynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
@@ -1109,7 +1103,7 @@ var
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
             FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
-            if DynamicBatching then
+            if ReallyDynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
@@ -1145,8 +1139,7 @@ begin
   ModelView := GetModelViewTransform;
 
   { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
-  if ReallyOcclusionQuery(RenderOptions) or
-     ReallyHierarchicalOcclusionQuery(RenderOptions) then
+  if ReallyAnyOcclusionQuery(RenderOptions) then
   begin
     OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
       RenderContext.ProjectionMatrix * ModelView;
@@ -1167,7 +1160,8 @@ begin
   try
     case RenderOptions.Mode of
       rmDepth:
-        { When not rmFull, we don't want to do anything with glDepthMask
+        { When not rmFull, we don't want to do anything with
+          glDepthMask (RenderContext.DepthBufferUpdate)
           or GL_BLEND enable state. Just render everything
           (except: don't render partially transparent stuff for shadow maps). }
         RenderAllAsOpaque(true);
@@ -1186,14 +1180,9 @@ begin
       since BatchingCommit may render some shapes }
     BlendingRenderer.RenderEnd;
 
-    { Each RenderShape_SomeTests inside could set OcclusionBoxState.
-
-      TODO: in case of fixed-function path,
-      glPopAttrib inside could restore now
-      glDepthMask(GL_TRUE) and glDisable(GL_BLEND).
-      This problem will disappear when we'll get rid of fixed-function
-      possibility in OcclusionBoxStateEnd. }
-    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
+    { As each RenderShape_SomeTests inside could set OcclusionBoxState,
+      be sure to restore state now. }
+    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(true);
   finally Renderer.RenderEnd end;
 
   {$ifndef OpenGLES}
@@ -1318,12 +1307,6 @@ begin
   begin
     WritelnLog('PrepareResources', 'OpenGL context not available, skipping preparing TCastleScene OpenGL resources');
     Exit;
-  end;
-
-  if not RegisteredGLContextCloseListener then
-  begin
-    RegisteredGLContextCloseListener := true;
-    ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
   end;
 
   { When preparing resources, files (like textures) may get loaded,
@@ -2116,11 +2099,7 @@ begin
     Testcase: otherwise the noise1 texture of the screen effect in
     "The Unholy Society" is not released from OpenGL, we get warning from
     TextureMemoryProfiler. }
-  if not RegisteredGLContextCloseListener then
-  begin
-    RegisteredGLContextCloseListener := true;
-    ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
-  end;
+  RegisterGLContextClose;
 
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin

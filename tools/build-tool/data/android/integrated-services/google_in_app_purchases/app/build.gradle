@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <!-- See https://developer.android.com/google/play/billing/migrate -->
+  <dependencies>
+    <dependency>def billing_version = "4.0.0"
+implementation "com.android.billingclient:billing:$billing_version"</dependency>
+  </dependencies>
+</build_gradle_merge>

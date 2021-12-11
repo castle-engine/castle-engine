@@ -43,7 +43,7 @@ var
   Scene: TCastleScene;
   FogCulling: boolean;
 
-procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
+procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
 var
   FogNode: TFogNode;
 begin
@@ -67,7 +67,7 @@ begin
     Scene.ShapeFrustumCulling := not Scene.ShapeFrustumCulling;
 end;
 
-procedure Render(Container: TUIContainer);
+procedure Render(Container: TCastleContainer);
 begin
   UIFont.Outline := 1;
   UIFont.OutlineColor := Black;

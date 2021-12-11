@@ -214,7 +214,7 @@ type
 
     { Looking at Container's currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
-    function IsPressed(Container: TUIContainer): boolean; overload;
+    function IsPressed(Container: TCastleContainer): boolean; overload;
 
     { Check does given Key or AKeyString correspond to this input shortcut.
       If Key = keyNone and AString = '', result is always @false. }
@@ -601,7 +601,7 @@ begin
     ( MouseButton2Use and (MouseButton2 in MousePressed) );
 end;
 
-function TInputShortcut.IsPressed(Container: TUIContainer): boolean;
+function TInputShortcut.IsPressed(Container: TCastleContainer): boolean;
 begin
   Result := IsPressed(Container.Pressed, Container.MousePressed);
 end;

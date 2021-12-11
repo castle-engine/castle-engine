@@ -37,14 +37,40 @@
     function GetSize: TVector3;
     procedure SetSize(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCenter: TSFVec3f;
+    { X3D field "center". } { }
+    public property FdCenter: TSFVec3f read FFdCenter;
     { X3D field "center". } { }
     property Center: TVector3 read GetCenter write SetCenter;
+
+    strict private FFdChildren: TMFNode;
+    { X3D field "children". } { }
+    public property FdChildren: TMFNode read FFdChildren;
+
+    strict private FFdDescription: TSFString;
+    { X3D field "description". } { }
+    public property FdDescription: TSFString read FFdDescription;
     { X3D field "description". } { }
     property Description: String read GetDescription write SetDescription;
+
+    strict private FFdDisplayed: TSFBool;
+    { X3D field "displayed". } { }
+    public property FdDisplayed: TSFBool read FFdDisplayed;
     { X3D field "displayed". } { }
     property Displayed: Boolean read GetDisplayed write SetDisplayed;
+
+    strict private FFdRetainUserOffsets: TSFBool;
+    { X3D field "retainUserOffsets". } { }
+    public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
     { X3D field "retainUserOffsets". } { }
     property RetainUserOffsets: Boolean read GetRetainUserOffsets write SetRetainUserOffsets;
+
+    strict private FFdSize: TSFVec3f;
+    { X3D field "size". } { }
+    public property FdSize: TSFVec3f read FFdSize;
     { X3D field "size". } { }
     property Size: TVector3 read GetSize write SetSize;
 
@@ -102,6 +128,40 @@ end;
 procedure TViewpointGroupNode.SetSize(const Value: TVector3);
 begin
   FdSize.Send(Value);
+end;
+
+class function TViewpointGroupNode.ClassX3DType: String;
+begin
+  Result := 'ViewpointGroup';
+end;
+
+procedure TViewpointGroupNode.CreateNode;
+begin
+  inherited;
+
+  FFdCenter := TSFVec3f.Create(Self, True, 'center', Vector3(0, 0, 0));
+   FdCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCenter);
+
+  FFdChildren := TMFNode.Create(Self, True, 'children', [TAbstractViewpointNode, TViewpointGroupNode]);
+   FdChildren.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdChildren);
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDescription);
+
+  FFdDisplayed := TSFBool.Create(Self, True, 'displayed', true);
+   FdDisplayed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDisplayed);
+
+  FFdRetainUserOffsets := TSFBool.Create(Self, True, 'retainUserOffsets', false);
+   FdRetainUserOffsets.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRetainUserOffsets);
+
+  FFdSize := TSFVec3f.Create(Self, True, 'size', Vector3(0, 0, 0));
+   FdSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSize);
 end;
 
 {$endif read_implementation}

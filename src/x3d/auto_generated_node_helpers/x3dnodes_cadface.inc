@@ -75,7 +75,7 @@ procedure TCADFaceNode.CreateNode;
 begin
   inherited;
 
-  FFdShape := TSFNode.Create(Self, True, 'shape', [TAbstractShapeNode, TAbstractLODNode]);
+  FFdShape := TSFNode.Create(Self, True, 'shape', [TAbstractShapeNode, TLODNode, TTransformNode]);
    FdShape.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShape);
 

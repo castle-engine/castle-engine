@@ -25,11 +25,45 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventPickedNormal: TMFVec3fEvent;
+    { X3D out event "pickedNormal". } { }
+    public property EventPickedNormal: TMFVec3fEvent read FEventPickedNormal;
+
+    strict private FEventPickedPoint: TMFVec3fEvent;
+    { X3D out event "pickedPoint". } { }
+    public property EventPickedPoint: TMFVec3fEvent read FEventPickedPoint;
+
+    strict private FEventPickedTextureCoordinate: TMFVec3fEvent;
+    { X3D out event "pickedTextureCoordinate". } { }
+    public property EventPickedTextureCoordinate: TMFVec3fEvent read FEventPickedTextureCoordinate;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TLinePickSensorNode ----------------------------------------------- }
+
+class function TLinePickSensorNode.ClassX3DType: String;
+begin
+  Result := 'LinePickSensor';
+end;
+
+procedure TLinePickSensorNode.CreateNode;
+begin
+  inherited;
+
+  FEventPickedNormal := TMFVec3fEvent.Create(Self, 'pickedNormal', false);
+  AddEvent(FEventPickedNormal);
+
+  FEventPickedPoint := TMFVec3fEvent.Create(Self, 'pickedPoint', false);
+  AddEvent(FEventPickedPoint);
+
+  FEventPickedTextureCoordinate := TMFVec3fEvent.Create(Self, 'pickedTextureCoordinate', false);
+  AddEvent(FEventPickedTextureCoordinate);
+end;
 
 {$endif read_implementation}

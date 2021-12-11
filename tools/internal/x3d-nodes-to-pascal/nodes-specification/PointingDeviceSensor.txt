@@ -1,18 +1,22 @@
-X3DDragSensorNode : X3DPointingDeviceSensorNode {
-  SFBool   [in,out] autoOffset         TRUE
-  SFVec3f  [out]    trackPoint_changed
-}
-
 X3DPointingDeviceSensorNode : X3DSensorNode {
+  auto-generate-more: true
   SFString [in,out] description ""
   SFBool   [out]    isOver
 }
 
+X3DDragSensorNode : X3DPointingDeviceSensorNode {
+  auto-generate-more: true
+  SFBool   [in,out] autoOffset         TRUE
+  SFVec3f  [out]    trackPoint_changed
+}
+
 X3DTouchSensorNode : X3DPointingDeviceSensorNode {
+  auto-generate-more: true
   SFTime   [out]    touchTime
 }
 
 CylinderSensor : X3DDragSensorNode {
+  auto-generate-more: true
   SFRotation [in,out] axisRotation       0 1 0 0
   SFFloat    [in,out] diskAngle          Pi/12
     range: [0,Pi/2]
@@ -26,6 +30,7 @@ CylinderSensor : X3DDragSensorNode {
 }
 
 PlaneSensor : X3DDragSensorNode {
+  auto-generate-more: true
   SFRotation [in,out] axisRotation        0 0 1 0
   SFVec2f    [in,out] maxPosition         -1 -1
     range: (-Inf,Inf)
@@ -37,12 +42,14 @@ PlaneSensor : X3DDragSensorNode {
 }
 
 SphereSensor : X3DDragSensorNode {
+  auto-generate-more: true
   SFRotation [in,out] offset             0 1 0 0
     range: [-1,1],(-Inf,Inf)
   SFRotation [out]    rotation_changed
 }
 
 TouchSensor : X3DTouchSensorNode {
+  auto-generate-more: true
   SFVec3f  [out]    hitNormal_changed
   SFVec3f  [out]    hitPoint_changed
   SFVec2f  [out]    hitTexCoord_changed

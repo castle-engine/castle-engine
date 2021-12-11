@@ -16,7 +16,7 @@ public abstract class ServiceAbstract
 {
     private static final String CATEGORY = "ServiceAbstract";
 
-    private MainActivity mActivity;
+    private final MainActivity mActivity;
 
     public ServiceAbstract(MainActivity activity)
     {
@@ -29,19 +29,19 @@ public abstract class ServiceAbstract
        and our logs can be filtered using "adb logcat" filtering features.
        And the length of "category" is not limited this way (contrary
        to Android log "tag", that has limited length). */
-    public static final void logInfo(String category, String message)
+    public static void logInfo(String category, String message)
     {
         Log.i("${ANDROID_LOG_TAG}", category + ": " + message);
     }
 
     /* Log error. See logInfo for more comments. */
-    public static final void logError(String category, String message)
+    public static void logError(String category, String message)
     {
         Log.e("${ANDROID_LOG_TAG}", category + ": " + message);
     }
 
     /* Log warning. See logInfo for more comments. */
-    public static final void logWarning(String category, String message)
+    public static void logWarning(String category, String message)
     {
         Log.w("${ANDROID_LOG_TAG}", category + ": " + message);
     }
@@ -131,7 +131,7 @@ public abstract class ServiceAbstract
      * Split the string by char code.
      *
      * The splitting is done "strictly", which means that we always return exactly
-     * one more part than the occurences of delimiter in the source string.
+     * one more part than the occurrences of delimiter in the source string.
      *
      * This is an equivalent of Object Pascal SplitString function in CastleStringUtils,
      * and the reverse of Object Pascal GlueStrings function in CastleStringUtils.
@@ -173,5 +173,5 @@ public abstract class ServiceAbstract
     public void onPause() { }
     public void onNewIntent(Intent intent) { }
     public boolean onBackPressed() { return false; }
-    public void onPurchase(AvailableProduct product, String purchaseData, String signature) { }
+    public void onPurchase(AvailableProduct product, String originalJson, String signature) { }
 }

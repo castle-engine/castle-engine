@@ -24,8 +24,8 @@ uses Classes,
   CastleUIControls, CastleRectangles, CastleColors, CastleImages;
 
 type
-  TGLContainer = TUIContainer
-    deprecated 'use TUIContainer from CastleUIControls unit, no need to use CastleGLContainer unit';
+  TGLContainer = TCastleContainer
+    deprecated 'use TCastleContainer from CastleUIControls unit, no need to use CastleGLContainer unit';
 
 function RenderControlToImage(const Container: TGLContainer;
   const Control: TCastleUserInterface;

@@ -35,20 +35,58 @@
     function GetSpeedFactor: Single;
     procedure SetSpeedFactor(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_orientation: TSFRotationEvent;
+    { X3D in event "set_orientation". } { }
+    public property EventSet_orientation: TSFRotationEvent read FEventSet_orientation;
+
+    strict private FEventSet_position: TSFVec3dEvent;
+    { X3D in event "set_position". } { }
+    public property EventSet_position: TSFVec3dEvent read FEventSet_position;
+
+    strict private FFdFieldOfView: TSFFloat;
+    { X3D field "fieldOfView". } { }
+    public property FdFieldOfView: TSFFloat read FFdFieldOfView;
     { X3D field "fieldOfView". } { }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
+
+    strict private FFdHeadlight: TSFBool;
+    { X3D field "headlight". } { }
+    public property FdHeadlight: TSFBool read FFdHeadlight;
     { X3D field "headlight". } { }
     property Headlight: Boolean read GetHeadlight write SetHeadlight;
+
+    strict private FFdNavType: TMFString;
+    { X3D field "navType". } { }
+    public property FdNavType: TMFString read FFdNavType;
     { Set X3D field "navType". } { }
     procedure SetNavType(const Value: array of string);
     { Set X3D field "navType". } { }
     procedure SetNavType(const Value: TCastleStringList);
+
+    strict private FFdGeoOrigin: TSFNode;
+    { X3D field "geoOrigin". } { }
+    public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+
+    strict private FFdGeoSystem: TMFString;
+    { X3D field "geoSystem". } { }
+    public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: array of string);
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: TCastleStringList);
+
+    strict private FFdPosition: TSFVec3d;
+    { X3D field "position". } { }
+    public property FdPosition: TSFVec3d read FFdPosition;
+
+    strict private FFdSpeedFactor: TSFFloat;
+    { X3D field "speedFactor". } { }
+    public property FdSpeedFactor: TSFFloat read FFdSpeedFactor;
     { X3D field "speedFactor". } { }
     property SpeedFactor: Single read GetSpeedFactor write SetSpeedFactor;
 
@@ -119,6 +157,50 @@ end;
 procedure TGeoViewpointNode.SetSpeedFactor(const Value: Single);
 begin
   FdSpeedFactor.Send(Value);
+end;
+
+class function TGeoViewpointNode.ClassX3DType: String;
+begin
+  Result := 'GeoViewpoint';
+end;
+
+procedure TGeoViewpointNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_orientation := TSFRotationEvent.Create(Self, 'set_orientation', true);
+  AddEvent(FEventSet_orientation);
+
+  FEventSet_position := TSFVec3dEvent.Create(Self, 'set_position', true);
+  AddEvent(FEventSet_position);
+
+  FFdFieldOfView := TSFFloat.Create(Self, True, 'fieldOfView', Pi/4);
+   FdFieldOfView.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFieldOfView);
+
+  FFdHeadlight := TSFBool.Create(Self, True, 'headlight', true);
+   FdHeadlight.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdHeadlight);
+
+  FFdNavType := TMFString.Create(Self, True, 'navType', ['EXAMINE','ANY']);
+   FdNavType.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdNavType);
+
+  FFdGeoOrigin := TSFNode.Create(Self, False, 'geoOrigin', [TGeoOriginNode]);
+   FdGeoOrigin.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoOrigin);
+
+  FFdGeoSystem := TMFString.Create(Self, False, 'geoSystem', ['GD','WE']);
+   FdGeoSystem.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoSystem);
+
+  FFdPosition := TSFVec3d.Create(Self, False, 'position', Vector3Double(0, 0, 100000));
+   FdPosition.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPosition);
+
+  FFdSpeedFactor := TSFFloat.Create(Self, False, 'speedFactor', 1.0);
+   FdSpeedFactor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSpeedFactor);
 end;
 
 {$endif read_implementation}

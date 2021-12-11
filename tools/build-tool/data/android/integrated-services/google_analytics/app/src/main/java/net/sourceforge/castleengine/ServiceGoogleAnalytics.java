@@ -146,7 +146,7 @@ public class ServiceGoogleAnalytics extends ServiceAbstract
     }
 
     @Override
-    public void onPurchase(AvailableProduct availableProduct, String purchaseData, String signature)
+    public void onPurchase(AvailableProduct availableProduct, String originalJson, String signature)
     {
         Tracker t = getAppTracker();
         if (t == null) {

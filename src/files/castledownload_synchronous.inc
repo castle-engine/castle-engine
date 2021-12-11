@@ -146,7 +146,11 @@ begin
     Assert(D.Status in [dsError, dsSuccess]);
     if D.Status = dsError then
     begin
-      Assert(D.Contents = nil);
+      { D.Contents may be set non-nil even in case of error, testcase:
+        view3dscene https://x3dgraphics.com/examples/X3dForAdvancedModeling/GltfSampleModels/AlphaBlendModeTest_not_existent.x3d
+        So make sure to free them.
+      }
+      D.OwnsContents := true;
       raise EDownloadError.Create(D.ErrorMessage);
     end else
     begin

@@ -25,11 +25,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TTriangleSetNode ----------------------------------------------- }
+
+class function TTriangleSetNode.ClassX3DType: String;
+begin
+  Result := 'TriangleSet';
+end;
+
+procedure TTriangleSetNode.CreateNode;
+begin
+  inherited;
+end;
 
 {$endif read_implementation}

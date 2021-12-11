@@ -27,6 +27,7 @@ uses
   Spin, Buttons, Menus, Contnrs, Generics.Collections,
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
+  CollectionPropEditForm,
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
@@ -48,10 +49,11 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    MenuItemSeparator898989: TMenuItem;
+    MenuItemViewportNavigationNone: TMenuItem;
     MenuTreeViewItemSeparator127u30130120983: TMenuItem;
     MenuTreeViewItemAddNonVisual: TMenuItem;
     MenuTreeViewItemAddBehavior: TMenuItem;
-    MenuViewportNavigation2D: TMenuItem;
     MenuTreeViewItemRename: TMenuItem;
     MenuTreeViewItemAddTransform: TMenuItem;
     MenuTreeViewItemAddUserInterface: TMenuItem;
@@ -59,7 +61,6 @@ type
     MenuTreeViewItemPaste: TMenuItem;
     MenuTreeViewItemCopy: TMenuItem;
     MenuTreeViewItemDuplicate: TMenuItem;
-    MenuViewportNavigationFly: TMenuItem;
     MenuItemViewportCameraCurrentFromInitial: TMenuItem;
     MenuItemSeparator123: TMenuItem;
     MenuItemSeparator2: TMenuItem;
@@ -68,10 +69,7 @@ type
     MenuItemViewportCameraViewAll: TMenuItem;
     MenuItemSeparator1: TMenuItem;
     MenuItemViewportSort2D: TMenuItem;
-    MenuViewportNavigationWalk: TMenuItem;
-    MenuViewportNavigationThirdPerson: TMenuItem;
-    MenuViewportNavigationExamine: TMenuItem;
-    MenuViewportNavigationNone: TMenuItem;
+    MenuItemViewportChangeNavigation: TMenuItem;
     PanelLayoutTop: TPanel;
     PanelLayoutTransform: TPanel;
     PanelEventsInfo: TPanel;
@@ -140,12 +138,7 @@ type
     procedure MenuItemViewportSort2DClick(Sender: TObject);
     procedure MenuTreeViewItemPasteClick(Sender: TObject);
     procedure MenuTreeViewPopup(Sender: TObject);
-    procedure MenuViewportNavigation2DClick(Sender: TObject);
-    procedure MenuViewportNavigationExamineClick(Sender: TObject);
-    procedure MenuViewportNavigationFlyClick(Sender: TObject);
-    procedure MenuViewportNavigationNoneClick(Sender: TObject);
-    procedure MenuViewportNavigationWalkClick(Sender: TObject);
-    procedure MenuViewportNavigationThirdPersonClick(Sender: TObject);
+    procedure MenuItemViewportChangeNavigationNoneClick(Sender: TObject);
     procedure ClearDesign;
     procedure RenameSelectedItem;
     procedure PerformUndoRedo(const UHE: TUndoHistoryElement);
@@ -227,6 +220,7 @@ type
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
       PendingErrorBox: String;
       VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
+      CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
 
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
@@ -236,11 +230,13 @@ type
     procedure CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure ChangeViewportNavigation(
       const NewNavigation: TCastleNavigation);
+    procedure CollectionPropertyEditorFormUnassign;
     function ComponentCaption(const C: TComponent): String;
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
     procedure FrameAnchorsChange(Sender: TObject);
     procedure AdjustUserInterfaceAnchorsToKeepRect(const UI: TCastleUserInterface;
       const RenderRectBeforeChange: TFloatRectangle);
+    procedure MenuItemViewportChangeNavigationClick(Sender: TObject);
     // Save and restore selection.
     // Careful: you can use it only if the operation between will *never* free any of them.
     //procedure SelectionRestoreAndFree(var Selection: Classes.TList);
@@ -301,6 +297,12 @@ type
       then only PropertyEditorModified is called. }
     procedure PropertyGridModified(Sender: TObject);
     procedure PropertyEditorModified(Sender: TObject);
+    procedure PropertyGridCollectionItemClick(Sender: TObject);
+    procedure PropertyGridCollectionItemClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure PropertyGridCollectionItemAdd(Sender: TObject);
+    procedure PropertyGridCollectionItemDelete(Sender: TObject);
+    procedure PropertyGridCollectionItemMoveUp(Sender: TObject);
+    procedure PropertyGridCollectionItemMoveDown(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
@@ -331,6 +333,8 @@ type
       AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
     procedure GizmoHasModifiedParent(Sender: TObject);
     procedure GizmoStopDrag(Sender: TObject);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     OnUpdateFormCaption: TNotifyEvent;
     OnSelectionChanged: TNotifyEvent;
@@ -449,13 +453,16 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
     - uses RenderRectWithBorder (to be able to drag complete control)
     - doesn't need "if the control covers the whole Container" hack. }
   function SimpleCapturesEventsAtPosition(const UI: TCastleUserInterface;
-    const Position: TVector2): Boolean;
+    const Position: TVector2; const TestWithBorder: Boolean): Boolean;
   begin
-    Result := UI.RenderRectWithBorder.Contains(Position);
+    if TestWithBorder then
+      Result := UI.RenderRectWithBorder.Contains(Position)
+    else
+      Result := UI.RenderRect.Contains(Position);
   end;
 
   function ControlUnder(const C: TCastleUserInterface;
-    const MousePos: TVector2): TCastleUserInterface;
+    const MousePos: TVector2; const TestWithBorder: Boolean): TCastleUserInterface;
   var
     I: Integer;
   begin
@@ -472,14 +479,28 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
 
     if C.GetExists then
     begin
+      { First try to find children, with TestWithBorder=false (so it doesn't detect
+        control if we merely point at its border). This allows to find controls
+        places on another control's border. }
       for I := C.ControlsCount - 1 downto 0 do
         if TDesignFrame.Selectable(C.Controls[I]) then
         begin
-          Result := ControlUnder(C.Controls[I], MousePos);
+          Result := ControlUnder(C.Controls[I], MousePos, false);
           if Result <> nil then Exit;
         end;
+
+      { Next try to find children, with TestWithBorder=true, so it tries harder
+        to find something. }
+      for I := C.ControlsCount - 1 downto 0 do
+        if TDesignFrame.Selectable(C.Controls[I]) then
+        begin
+          Result := ControlUnder(C.Controls[I], MousePos, true);
+          if Result <> nil then Exit;
+        end;
+
+      { Eventually return yourself, C. }
       //if C.CapturesEventsAtPosition(MousePos) then
-      if SimpleCapturesEventsAtPosition(C, MousePos) and
+      if SimpleCapturesEventsAtPosition(C, MousePos, TestWithBorder) and
          { Do not select TCastleNavigation, they would always obscure TCastleViewport. }
          (not (C is TCastleNavigation)) then
         Result := C;
@@ -497,7 +518,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
 begin
   if MouseOverControl(Frame.CastleControl) and
      (Frame.DesignRoot is TCastleUserInterface) then
-    Result := ControlUnder(Frame.DesignRoot as TCastleUserInterface, AMousePosition)
+    Result := ControlUnder(Frame.DesignRoot as TCastleUserInterface, AMousePosition, true)
   else
     Result := nil;
 end;
@@ -913,12 +934,12 @@ procedure TDesignFrame.TDesignerLayer.Render;
           at least the beginning looks OK.
         - We don't want left-bottom corner, as that's where child controls
           are placed by default, so the text would be over them too often. }
-      Rect.Anchor(hpLeft, UIRect.Left);
+      Rect.Anchor(hpLeft, Max(0, UIRect.Left));
       Rect.Anchor(vpBottom, UIRect.Top);
 
       if Rect.RenderRect.Top > Rect.Container.Height then
         // put Rect inside UI, otherwise it would be offscreen
-        Rect.Anchor(vpTop, vpBottom, UIRect.Top);
+        Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
     end else
       Rect.Exists := false;
   end;
@@ -1062,20 +1083,70 @@ begin
   ChangeMode(moModifyUi); // most expected default, it seems
 
   BuildComponentsMenu(
+    nil,
     MenuTreeViewItemAddUserInterface,
     MenuTreeViewItemAddTransform,
     MenuTreeViewItemAddBehavior,
     MenuTreeViewItemAddNonVisual,
     @MenuItemAddComponentClick);
+  BuildComponentsMenu(
+    MenuItemViewportChangeNavigation,
+    nil,
+    nil,
+    nil,
+    nil,
+    @MenuItemViewportChangeNavigationClick);
   // Input_Interact (for gizmos) reacts to both left and right
   Input_Interact.MouseButton2Use := true;
   Input_Interact.MouseButton2 := buttonRight;
 end;
 
 destructor TDesignFrame.Destroy;
+var
+  F: TCollectionPropertyEditorForm;
 begin
   FreeAndNil(TreeNodeMap);
+
+  if CollectionPropertyEditorForm <> nil then
+  begin
+    F := CollectionPropertyEditorForm;
+    CollectionPropertyEditorFormUnassign;
+
+    { Do not call when FormProject called Application.Terminate, doing
+      F.Close causes  SIGSEGV in this case, and is not necessary.
+      (Testcase:
+      open custom editor in https://github.com/castle-engine/castle-db-aware-controls ,
+      open TDbf.FieldDefs property editor,
+      close the project window by "X" in corner,
+      GTK widgetset on Lazarus 2.0.12. }
+    if not Application.Terminated then
+      F.Close;
+  end;
+
   inherited Destroy;
+end;
+
+procedure TDesignFrame.CollectionPropertyEditorFormUnassign;
+begin
+  if CollectionPropertyEditorForm <> nil then
+  begin
+    // unassign our callbacks from the form, as this TDesignFrame instance will no longer be valid
+    CollectionPropertyEditorForm.OnClose := nil;
+    CollectionPropertyEditorForm.CollectionListBox.OnClick := nil;
+    CollectionPropertyEditorForm.AddButton.OnClick := nil;
+    CollectionPropertyEditorForm.DeleteButton.OnClick := nil;
+    CollectionPropertyEditorForm.MoveUpButton.OnClick := nil;
+    CollectionPropertyEditorForm.MoveDownButton.OnClick := nil;
+    CollectionPropertyEditorForm.RemoveFreeNotification(Self);
+    CollectionPropertyEditorForm := nil;
+  end;
+end;
+
+procedure TDesignFrame.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = CollectionPropertyEditorForm) then
+    CollectionPropertyEditorFormUnassign;
 end;
 
 procedure TDesignFrame.SaveDesign(const Url: String);
@@ -1871,7 +1942,7 @@ var
   CalculatedUIScale: Single;
   H, CalculatedUIScaleStr: String;
 begin
-  // trick to get private TUIContainer.FCalculatedUIScale
+  // trick to get private TCastleContainer.FCalculatedUIScale
   CalculatedUIScale :=  (1 / CastleControl.Container.UnscaledWidth) *
     CastleControl.Container.Width;
   CalculatedUIScaleStr := IntToStr(Round(CalculatedUIScale * 100)) + '%';
@@ -2299,6 +2370,75 @@ begin
     raise EInternalError.Create('PropertyEditorModified can only be called with TPropertyEditor as a Sender.');
 end;
 
+procedure TDesignFrame.PropertyGridCollectionItemClick(Sender: TObject);
+var
+  SelectionForOI: TPersistentSelectionList;
+  InspectorType: TInspectorType;
+  Ed: TCollectionPropertyEditorForm;
+  ListBox: TListBox;
+begin
+  SelectionForOI := TPersistentSelectionList.Create;
+  try
+    ListBox := Sender as TListBox;
+    if ListBox.ItemIndex >= 0 then
+    begin
+      Ed := ListBox.Parent as TCollectionPropertyEditorForm;
+      SelectionForOI.Add(Ed.Collection.Items[ListBox.ItemIndex]);
+      for InspectorType in TInspectorType do
+        Inspector[InspectorType].Selection := SelectionForOI;
+    end;
+  finally FreeAndNil(SelectionForOI) end;
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  UpdateSelectedControl;
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemAdd(Sender: TObject);
+begin
+  ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actAddExecute(Sender);
+  RecordUndo('Add item', ucLow);
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemDelete(Sender: TObject);
+begin
+  ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actDelExecute(Sender);
+  RecordUndo('Delete item', ucLow);
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemMoveUp(Sender: TObject);
+var
+  FakeSender: TComponent;
+begin
+  FakeSender := TComponent.Create(nil);
+  try
+    { This is a weird decision. It depends on sender's name to determine if
+      it should move item up or move item down }
+    FakeSender.Name := 'actMoveUp';
+    ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(FakeSender);
+    RecordUndo('Move item up', ucLow);
+  finally
+    FreeAndNil(FakeSender);
+  end;
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemMoveDown(Sender: TObject);
+var
+  FakeSender: TComponent;
+begin
+  FakeSender := TComponent.Create(nil);
+  try
+    { This is a weird decision. It depends on sender's name to determine if
+      it should move item up or move item down }
+    FakeSender.Name := 'actMoveDown';
+    ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(FakeSender);
+    RecordUndo('Move item down', ucLow);
+  finally
+    FreeAndNil(FakeSender);
+  end;
+end;
+
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
   const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
 var
@@ -2412,6 +2552,7 @@ procedure TDesignFrame.UpdateDesign;
         AddTransform(Result, T[I]);
   end;
 
+  { Add given UI control, and its children. }
   function AddControl(const Parent: TTreeNode; const C: TCastleUserInterface): TTreeNode;
   var
     S: String;
@@ -2621,10 +2762,66 @@ begin
 end;
 
 procedure TDesignFrame.UpdateSelectedControl;
+
+  procedure InitializeCollectionFormEvents(InspectorType: TInspectorType);
+  var
+    I: Integer;
+    Row: TOIPropertyGridRow;
+    Ed: TCollectionPropertyEditor = nil;
+  begin
+    if CollectionPropertyEditorForm = nil then
+    begin
+      { If there is any property that can have a TCollectionPropertyEditor,
+        then (once for the whole lifetime of this TDesignFrame) we need to assign
+        our callbacks to the associated TCollectionPropertyEditorForm .
+        *Before* the form can be actually invoked by user pressing "..." button
+        near the respective field.
+
+        The TCollectionPropertyEditorForm form instance is internal in LCL,
+        it is reused by all property editors and it stays constant
+        for the rest of the application's lifetime.
+        The code below detects if there's *any* field with TCollectionPropertyEditor,
+        and if yes -- creates (and immediately closes) the associated
+        TCollectionPropertyEditorForm, just to initialize our callbacks.
+
+        Example field: TDbf.FieldDefs, test with
+        https://github.com/castle-engine/castle-db-aware-controls }
+
+      for I := 0 to Inspector[InspectorType].RowCount - 1 do
+      begin
+        Row := Inspector[InspectorType].Rows[I];
+        if Row.Editor is TCollectionPropertyEditor then
+        begin
+          Ed := TCollectionPropertyEditor(Row.Editor);
+          Break;
+        end;
+      end;
+      if Ed <> nil then
+      begin
+        CollectionPropertyEditorForm := Ed.ShowCollectionEditor(nil, nil, '') as TCollectionPropertyEditorForm;
+        CollectionPropertyEditorForm.FreeNotification(Self);
+        CollectionPropertyEditorForm.Close; // Hide the form
+        CollectionPropertyEditorForm.OnClose := @PropertyGridCollectionItemClose;
+        CollectionPropertyEditorForm.FormStyle := fsStayOnTop;
+        CollectionPropertyEditorForm.CollectionListBox.OnClick := @PropertyGridCollectionItemClick;
+        { We remove TToolButton's actions and use our own's OnClick events
+          instead so that we can hook our undo/redo system in }
+        CollectionPropertyEditorForm.AddButton.Action := nil;
+        CollectionPropertyEditorForm.DeleteButton.Action := nil;
+        CollectionPropertyEditorForm.MoveUpButton.Action := nil;
+        CollectionPropertyEditorForm.MoveDownButton.Action := nil;
+        CollectionPropertyEditorForm.AddButton.OnClick := @PropertyGridCollectionItemAdd;
+        CollectionPropertyEditorForm.DeleteButton.OnClick := @PropertyGridCollectionItemDelete;
+        CollectionPropertyEditorForm.MoveUpButton.OnClick := @PropertyGridCollectionItemMoveUp;
+        CollectionPropertyEditorForm.MoveDownButton.OnClick := @PropertyGridCollectionItemMoveDown;
+      end;
+    end;
+  end;
+
 var
   Selected: TComponentList;
-  SelectionForOI: TPersistentSelectionList;
   I, SelectedCount: Integer;
+  SelectionForOI: TPersistentSelectionList;
   UI: TCastleUserInterface;
   InspectorType: TInspectorType;
   V: TCastleViewport;
@@ -2648,6 +2845,10 @@ begin
         SelectionForOI.Add(Selected[I]);
       for InspectorType in TInspectorType do
         Inspector[InspectorType].Selection := SelectionForOI;
+
+      { Inspector itAll includes all fields from all inspectors, always.
+        So there's no reason to run InitializeCollectionFormEvents on other itXxx inspectors. }
+      InitializeCollectionFormEvents(itAll);
     finally FreeAndNil(SelectionForOI) end;
   finally FreeAndNil(Selected) end;
 
@@ -3247,11 +3448,6 @@ begin
   MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
 end;
 
-procedure TDesignFrame.MenuViewportNavigation2DClick(Sender: TObject);
-begin
-  ChangeViewportNavigation(TCastle2DNavigation.Create(DesignOwner));
-end;
-
 procedure TDesignFrame.MenuTreeViewItemDuplicateClick(Sender: TObject);
 begin
   DuplicateComponent;
@@ -3399,40 +3595,23 @@ begin
   ModifiedOutsideObjectInspector('Change Viewport Navigation for ' + V.Name, ucHigh);
 end;
 
-procedure TDesignFrame.MenuViewportNavigationNoneClick(Sender: TObject);
+procedure TDesignFrame.MenuItemViewportChangeNavigationNoneClick(Sender: TObject);
 begin
   ChangeViewportNavigation(nil);
 end;
 
-procedure TDesignFrame.MenuViewportNavigationExamineClick(Sender: TObject);
-begin
-  ChangeViewportNavigation(TCastleExamineNavigation.Create(DesignOwner));
-end;
-
-procedure TDesignFrame.MenuViewportNavigationFlyClick(Sender: TObject);
+procedure TDesignFrame.MenuItemViewportChangeNavigationClick(Sender: TObject);
 var
-  W: TCastleWalkNavigation;
+  R: TRegisteredComponent;
+  Nav: TCastleNavigation;
 begin
-  W := TCastleWalkNavigation.Create(DesignOwner);
-  W.Gravity := false;
-  ChangeViewportNavigation(W);
-end;
+  R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
 
-procedure TDesignFrame.MenuViewportNavigationWalkClick(Sender: TObject);
-var
-  W: TCastleWalkNavigation;
-begin
-  W := TCastleWalkNavigation.Create(DesignOwner);
-  W.Gravity := true;
-  ChangeViewportNavigation(W);
-end;
+  Nav := R.ComponentClass.Create(DesignOwner) as TCastleNavigation;
+  if Assigned(R.OnCreate) then // call OnCreate ASAP after constructor
+    R.OnCreate(Nav);
 
-procedure TDesignFrame.MenuViewportNavigationThirdPersonClick(Sender: TObject);
-var
-  N: TCastleThirdPersonNavigation;
-begin
-  N := TCastleThirdPersonNavigation.Create(DesignOwner);
-  ChangeViewportNavigation(N);
+  ChangeViewportNavigation(Nav);
 end;
 
 procedure TDesignFrame.SetParent(AParent: TWinControl);

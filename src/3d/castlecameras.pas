@@ -23,7 +23,8 @@ interface
 uses SysUtils, Classes,
   CastleVectors, CastleUtils, CastleKeysMouse, CastleBoxes, CastleQuaternions,
   CastleFrustum, CastleUIControls, CastleRays, CastleProjection, CastleTimeUtils,
-  CastleInputs, CastleTriangles, CastleRectangles, CastleClassUtils;
+  CastleInputs, CastleTriangles, CastleRectangles, CastleClassUtils,
+  CastleInternalCameraGestures;
 
 type
   { Possible navigation input types for @link(TCastleNavigation.Input). }
@@ -235,8 +236,21 @@ type
 
               If the displayed viewport aspect ratio wil be different than given
               @link(Width) and @link(Height) ratio, then these value will be
-              treated as minimum values, and they will be adjusted.
-              This follows the X3D OrthoViewpoint.fieldOfView specification.)
+              treated as minimum values, and they will be adjusted (one of them will be increased)
+              for the purposes of rendering.
+              You can read the @link(EffectiveWidth), @link(EffectiveHeight) to know
+              the adjusted values.
+
+              Note that the @link(TCamera.Position) is considered to be relative
+              to unadjusted @link(Width) and @link(Height), not to the adjusted
+              @link(EffectiveWidth), @link(EffectiveHeight).
+              In effect, when @link(Origin) is zero, the @link(TCamera.Position) does not point
+              to the left-bottom of the whole viewport.
+              It points to the left-bottom of the rectangle of aspect ratio
+              @link(Width) / @link(Height) within the viewport.
+              This way the enlarged viewport shows equal amount of additional space on the left and right
+              (or bottom and top) of the @link(Width) / @link(Height) rectangle within.
+            )
 
             @item(When @link(Stretch) = @true, these values are used directly,
               even if it means that aspect ratio of the projection
@@ -453,7 +467,7 @@ type
 
       Resulting RayDirection is always normalized.
 
-      WindowPosition is given in the same style as TUIContainer.MousePosition:
+      WindowPosition is given in the same style as TCastleContainer.MousePosition:
       (0, 0) is bottom-left. }
     procedure CustomRay(
       const ViewportRect: TFloatRectangle;
@@ -908,7 +922,7 @@ type
       required for calculating the ray properly.
       Resulting RayDirection is always normalized.
 
-      WindowPosition is given in the same style as TUIContainer.MousePosition:
+      WindowPosition is given in the same style as TCastleContainer.MousePosition:
       (0, 0) is bottom-left. }
     procedure Ray(const WindowPosition: TVector2;
       const Projection: TProjection;
@@ -937,7 +951,7 @@ type
 
       Resulting RayDirection is always normalized.
 
-      WindowPosition is given in the same style as TUIContainer.MousePosition:
+      WindowPosition is given in the same style as TCastleContainer.MousePosition:
       (0, 0) is bottom-left. }
     procedure CustomRay(
       const ViewportRect: TRectangle;
@@ -1599,6 +1613,7 @@ type
 
     HeadBobbingPosition: Single;
     function UseHeadBobbing: boolean;
+    class procedure CreateComponentFly(Sender: TObject);
   private
     FIsCrouching: boolean;
 
@@ -5423,6 +5438,11 @@ begin
   end;
 end;
 
+class procedure TCastleWalkNavigation.CreateComponentFly(Sender: TObject);
+begin
+  (Sender as TCastleWalkNavigation).Gravity := false;
+end;
+
 { global ------------------------------------------------------------ }
 
 procedure CorrectPreferredHeight(var PreferredHeight: Single;
@@ -5719,8 +5739,16 @@ begin
   Position := Vector3(PositionXY, PositionZ);
 end;
 
+var
+  R: TRegisteredComponent;
 initialization
-  RegisterSerializableComponent(TCastleExamineNavigation, 'Examine Navigation');
-  RegisterSerializableComponent(TCastle2DNavigation, '2D Navigation');
-  RegisterSerializableComponent(TCastleWalkNavigation, 'Walk Navigation');
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleWalkNavigation;
+  R.Caption := 'Fly (Walk with Gravity=false)';
+  R.OnCreate := @TCastleWalkNavigation(nil).CreateComponentFly;
+  RegisterSerializableComponent(R);
+
+  RegisterSerializableComponent(TCastleWalkNavigation, 'Walk');
+  RegisterSerializableComponent(TCastleExamineNavigation, 'Examine');
+  RegisterSerializableComponent(TCastle2DNavigation, '2D');
 end.

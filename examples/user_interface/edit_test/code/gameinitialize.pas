@@ -110,7 +110,7 @@ begin
   Group.InsertFront(EditNumbers);
 end;
 
-procedure WindowResize(Container: TUIContainer);
+procedure WindowResize(Container: TCastleContainer);
 const
   Margin = 10;
 begin

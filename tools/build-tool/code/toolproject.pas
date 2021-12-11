@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleFindFiles, CastleStringUtils, CastleUtils,
   ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes,
-  ToolPackage, ToolManifest;
+  ToolPackage, ToolManifest, ToolProcessWait, ToolPackageFormat;
 
 type
   ECannotGuessManifest = class(Exception);
@@ -42,6 +42,8 @@ type
       Must be set by all commands that may use our macro system. }
     AndroidCPUS: TCPUS;
     IOSExportMethod: String; // set by DoPackage based on PackageFormat, otherwise ''
+    FLaunchImageStoryboardInitialized: Boolean;
+    FLaunchImageStoryboardWidth, FLaunchImageStoryboardHeight: Integer;
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const OS: TOS; const CPU: TCPU; const PackageFormat: TPackageFormatNoDefault;
       const PackageNameIncludeVersion: Boolean): string;
@@ -91,6 +93,12 @@ type
       Allowed Ext values are '.lpr' and '.lpi'. }
     function ExplicitStandaloneFile(const Ext: String): String;
 
+    { Check the PackageFormat (looking at what is allowed for this Target/OS/CPU),
+      finalize the pfDefault to something more concrete. }
+    function PackageFormatFinalize(
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const PackageFormat: TPackageFormat): TPackageFormatNoDefault;
+
     procedure AddMacrosAndroid(const Macros: TStringStringMap);
     procedure AddMacrosIOS(const Macros: TStringStringMap);
   public
@@ -102,14 +110,17 @@ type
     { }
 
     procedure DoCreateManifest;
-    procedure DoCompile(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+    procedure DoCompile(const OverrideCompiler: TCompiler;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
       const Plugin: boolean; const Mode: TCompilationMode; const FpcExtraOptions: TStrings = nil);
     procedure DoPackage(const Target: TTarget;
       const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
       const PackageFormat: TPackageFormat;
       const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
     procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU;
-      const Plugin: boolean);
+      const Plugin: boolean; const Mode: TCompilationMode;
+      const PackageFormat: TPackageFormat;
+      const PackageNameIncludeVersion: Boolean);
     procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU;
       const Plugin: boolean; const Params: TCastleStringList);
     procedure DoPackageSource(
@@ -120,11 +131,14 @@ type
     procedure DoAutoGenerateClean(const CleanAll: Boolean);
     procedure DoGenerateProgram;
     procedure DoEditor;
+    procedure DoEditorRebuildIfNeeded;
+    procedure DoEditorRun(const WaitForProcessId: TProcessId);
 
     { Information about the project, derived from CastleEngineManifest.xml. }
     { }
 
     function Version: TProjectVersion;
+    function ManifestCompiler: TCompiler;
     function QualifiedName: string;
     function Dependencies: TDependencies;
     function Name: string;
@@ -151,6 +165,7 @@ type
     function IOSServices: TServiceList;
     function AssociateDocumentTypes: TAssociatedDocTypeList;
     function LocalizedAppNames: TLocalizedAppNameList;
+    function LaunchImageStoryboard: TLaunchImageStoryboard;
 
     function ReplaceMacros(const Source: string): string;
 
@@ -234,13 +249,16 @@ type
     { Is this filename created by some DoPackage or DoPackageSource command.
       FileName must be relative to project root directory. }
     function PackageOutput(const FileName: String): Boolean;
+
+    function IOSHasLaunchImageStoryboard: Boolean;
   end;
 
 implementation
 
-uses StrUtils, DOM, Process,
-  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
-  ToolResources, ToolAndroid, ToolWindowsRegistry, ToolDebian,
+uses {$ifdef UNIX} BaseUnix, {$endif}
+  StrUtils, DOM, Process,
+  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
+  ToolResources, ToolAndroid, ToolWindowsRegistry,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
 
@@ -293,7 +311,10 @@ begin
     win32:
       begin
         if depFreetype in Dependencies then
+        begin
           AddExternalLibrary('freetype.dll');
+          AddExternalLibrary('vcruntime140.dll');
+        end;
         if depZlib in Dependencies then
           AddExternalLibrary('zlib1.dll');
         if depPng in Dependencies then
@@ -309,6 +330,7 @@ begin
           AddExternalLibrary('vorbis.dll');
           AddExternalLibrary('vorbisenc.dll');
           AddExternalLibrary('vorbisfile.dll');
+          AddExternalLibrary('msvcr120.dll');
         end;
         if depHttps in Dependencies then
         begin
@@ -320,7 +342,10 @@ begin
     win64:
       begin
         if depFreetype in Dependencies then
+        begin
           AddExternalLibrary('freetype.dll');
+          AddExternalLibrary('vcruntime140.dll');
+        end;
         if depZlib in Dependencies then
           AddExternalLibrary('zlib1.dll');
         if depPng in Dependencies then
@@ -336,6 +361,7 @@ begin
           AddExternalLibrary('libvorbis.dll');
           { AddExternalLibrary('vorbisenc.dll'); not present? }
           AddExternalLibrary('vorbisfile.dll');
+          AddExternalLibrary('msvcr120.dll');
         end;
         if depHttps in Dependencies then
         begin
@@ -453,7 +479,7 @@ begin
   Writeln('Created manifest ' + ManifestFile);
 end;
 
-procedure TCastleProject.DoCompile(const Target: TTarget;
+procedure TCastleProject.DoCompile(const OverrideCompiler: TCompiler; const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
   const FpcExtraOptions: TStrings);
 
@@ -479,15 +505,23 @@ procedure TCastleProject.DoCompile(const Target: TTarget;
 var
   SourceExe, DestExe, MainSource: string;
   ExtraOptions: TCastleStringList;
+  FinalCompiler: TCompiler;
 begin
   Writeln(Format('Compiling project "%s" for %s in mode "%s".',
     [Name, TargetCompleteToString(Target, OS, CPU, Plugin), ModeToString(Mode)]));
 
+  { TODO: "lazbuild" should be another Compiler option, called "lazbuild (calls FPC using options from LPI file)" }
   if Manifest.BuildUsingLazbuild then
   begin
     CompileLazbuild(OS, CPU, Mode, Path, Manifest.LazarusProject);
     Exit;
   end;
+
+  { use compiler specified in CastleEngineManifest.xml,
+    overridden by Compiler specified on command-line (given as parameter). }
+  FinalCompiler := OverrideCompiler;
+  if FinalCompiler = coAutodetect then
+    FinalCompiler := ManifestCompiler;
 
   ExtraOptions := TCastleStringList.Create;
   try
@@ -498,14 +532,14 @@ begin
     case Target of
       targetAndroid:
         begin
-          CompileAndroid(Self, Mode, Path, AndroidSourceFile(true, true),
+          CompileAndroid(FinalCompiler, Self, Mode, Path, AndroidSourceFile(true, true),
             SearchPaths, LibraryPaths, ExtraOptions);
         end;
       targetIOS:
         begin
-          CompileIOS(Mode, Path, IOSSourceFile(true, true),
+          CompileIOS(FinalCompiler, Mode, Path, IOSSourceFile(true, true),
             SearchPaths, LibraryPaths, ExtraOptions);
-          LinkIOSLibrary(Path, IOSLibraryFile);
+          LinkIOSLibrary(FinalCompiler, Path, IOSLibraryFile);
           Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
         end;
       targetNintendoSwitch:
@@ -518,7 +552,7 @@ begin
           case OS of
             Android:
               begin
-                Compile(OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true),
+                Compile(FinalCompiler, OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true),
                   SearchPaths, LibraryPaths, ExtraOptions);
                 { Our default compilation output doesn't contain CPU suffix,
                   but we need the CPU suffix to differentiate between Android/ARM and Android/Aarch64. }
@@ -542,7 +576,7 @@ begin
                 if MakeAutoGeneratedResources(Self, Path + ExtractFilePath(MainSource), OS, CPU, Plugin) then
                   ExtraOptions.Add('-dCASTLE_AUTO_GENERATED_RESOURCES');
 
-                Compile(OS, CPU, Plugin, Mode, Path, MainSource,
+                Compile(FinalCompiler, OS, CPU, Plugin, Mode, Path, MainSource,
                   SearchPaths, LibraryPaths, ExtraOptions);
 
                 if Plugin then
@@ -599,6 +633,95 @@ begin
       Result.Assign(Collector.CollectedFiles);
     finally FreeAndNil(Collector) end;
   except FreeAndNil(Result); raise; end;
+end;
+
+function TCastleProject.PackageFormatFinalize(
+  const Target: TTarget; const OS: TOS; const CPU: TCPU;
+  const PackageFormat: TPackageFormat): TPackageFormatNoDefault;
+begin
+  // calculate Result
+
+  if PackageFormat = pfDefault then
+  begin
+    if Target = targetIOS then
+      Result := pfIosXcodeProject
+    else
+    if (Target = targetAndroid) or (OS = Android) then
+      Result := pfAndroidApk
+    else
+    if Target = targetNintendoSwitch then
+      Result := pfNintendoSwitchProject
+    else
+    if OS in AllWindowsOSes then
+      Result := pfZip
+    else
+      Result := pfTarGz;
+  end else
+    Result := PackageFormat;
+
+  // check Result
+
+  if (Result in [
+      pfIosXcodeProject,
+      pfIosArchiveDevelopment,
+      pfIosArchiveAdHoc,
+      pfIosArchiveAppStore
+    ]) and (Target <> targetIOS) then
+  begin
+    raise Exception.CreateFmt('Package format "%s" only makes sense when target is iOS', [
+      PackageFormatToString(Result)
+    ]);
+  end;
+
+  if Result in [pfDeb] then
+  begin
+    if (OS <> Linux) then
+      raise Exception.Create('Cannot package DEB for OS = ' + OSToString(OS) + ' Expected: Linux.');
+    {$ifndef Linux}
+    raise Exception.Create('Currently DEB package can only be created under Linux OS, as it depends on several Linux-specific tools.');
+    {$endif}
+    Pack := TPackageDebian.Create(Name);
+    try
+      { executable is added 1st, since it's the most likely file
+        to not exist, so we'll fail earlier }
+      AddExecutable;
+      AddExternalLibraries;
+
+      Files := PackageFiles(false, TargetPlatform);
+      try
+        for I := 0 to Files.Count - 1 do
+        begin
+          ExecutablePermission := (Files.Objects[I] <> nil) and (TIncludePath(Files.Objects[I]).ExecutablePermission);
+          Pack.Add(Path + Files[I], Files[I], ExecutablePermission);
+        end;
+      finally FreeAndNil(Files) end;
+
+      Pack.AddDataInformation(TCastleManifest.DataName);
+
+      PackageFileName := PackageName(OS, CPU, pfDeb, PackageNameIncludeVersion);
+      (Pack as TPackageDebian).Make(OutputPath, TempOutputPath(Path), PackageFileName, Cpu, Manifest);
+    finally FreeAndNil(Pack) end;
+    Exit;
+  end;
+
+  if (Result in [
+      pfAndroidApk,
+      pfAndroidAppBundle
+    ]) and (Target <> targetAndroid) and (OS <> Android) then
+  begin
+    raise Exception.CreateFmt('Package format "%s" only makes sense when target is Android.', [
+      PackageFormatToString(Result)
+    ]);
+  end;
+
+  if (Result in [
+      pfNintendoSwitchProject
+    ]) and (Target <> targetNintendoSwitch) then
+  begin
+    raise Exception.CreateFmt('Package format "%s" only makes sense when target is Nintendo Switch.', [
+      PackageFormatToString(Result)
+    ]);
+  end;
 end;
 
 procedure TCastleProject.DoPackage(const Target: TTarget;
@@ -687,44 +810,16 @@ var
     end;
   end;
 
-var
-  I: Integer;
-  PackageFileName: string;
-  Files: TCastleStringList;
-  PackageFormatFinal: TPackageFormatNoDefault;
-  WantsIOSArchive: Boolean;
-  IOSArchiveType: TIosArchiveType;
-  ExecutablePermission: Boolean;
-begin
-  Writeln(Format('Packaging project "%s" for %s (platform: %s).', [
-    Name,
-    TargetCompleteToString(Target, OS, CPU, Plugin),
-    PlatformToStr(TargetPlatform)
-  ]));
-
-  if Plugin then
-    raise Exception.Create('The "package" command is not useful to package plugins for now');
-
-  { for iOS, the packaging process is special }
-  if (Target = targetIOS) and
-     (PackageFormat in [pfDefault, pfIosArchiveDevelopment, pfIosArchiveAdHoc, pfIosArchiveAppStore]) then
+  { Handle packaging using TPackageDirectory (to pfDirectory, pfZip, pfTarGz formats,
+    TPackageDirectory.Make will check it). }
+  procedure PackageDirectory(const PackageFormatFinal: TPackageFormatNoDefault);
+  var
+    I: Integer;
+    PackageFileName: string;
+    Files: TCastleStringList;
+    ExecutablePermission: Boolean;
   begin
-    // set IOSExportMethod early, as it determines IOS_EXPORT_METHOD macro
-    WantsIOSArchive := PackageFormatWantsIOSArchive(PackageFormat, IOSArchiveType, IOSExportMethod);
-    PackageIOS(Self, UpdateOnlyCode);
-    if WantsIOSArchive then
-      ArchiveIOS(Self, IOSArchiveType);
-    Exit;
-  end;
-
-  if PackageFormat = pfDeb then
-  begin
-    if (OS <> Linux) then
-      raise Exception.Create('Cannot package DEB for OS = ' + OSToString(OS) + ' Expected: Linux.');
-    {$ifndef Linux}
-    raise Exception.Create('Currently DEB package can only be created under Linux OS, as it depends on several Linux-specific tools.');
-    {$endif}
-    Pack := TPackageDebian.Create(Name);
+    Pack := TPackageDirectory.Create(Name);
     try
       { executable is added 1st, since it's the most likely file
         to not exist, so we'll fail earlier }
@@ -742,74 +837,59 @@ begin
 
       Pack.AddDataInformation(TCastleManifest.DataName);
 
-      PackageFileName := PackageName(OS, CPU, pfDeb, PackageNameIncludeVersion);
-      (Pack as TPackageDebian).Make(OutputPath, TempOutputPath(Path), PackageFileName, Cpu, Manifest);
+      PackageFileName := PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion);
+      Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
     finally FreeAndNil(Pack) end;
-    Exit;
   end;
 
-  { for Android, the packaging process is special }
-  if (Target = targetAndroid) or (OS = Android) then
-  begin
-    if (PackageFormat = pfDefault) then
-      PackageFormatFinal := pfAndroidApk
-    else
-      PackageFormatFinal := PackageFormat;
-    if not (PackageFormatFinal in [pfAndroidApk, pfAndroidAppBundle]) then
-      raise Exception.Create('Trying to package for Android, but package format is ' +
-        PackageFormatToString(PackageFormatFinal) + '. Expected: ' +
-        PackageFormatToString(pfAndroidApk) + ' or ' +
-        PackageFormatToString(pfAndroidAppBundle) + '.');
-    if Target = targetAndroid then
-      AndroidCPUS := DetectAndroidCPUS
-    else
-      AndroidCPUS := [CPU];
-    PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
-    Exit;
-  end;
+var
+  PackageFormatFinal: TPackageFormatNoDefault;
+  WantsIOSArchive: Boolean;
+  IOSArchiveType: TIosArchiveType;
+begin
+  if Plugin then
+    raise Exception.Create('The "package" command is not useful to package plugins for now');
 
-  if PackageFormat = pfDefault then
-  begin
-    { for Nintendo Switch, the packaging process is special }
-    if Target = targetNintendoSwitch then
-    begin
-      PackageNintendoSwitch(Self);
-      Exit;
-    end;
+  PackageFormatFinal := PackageFormatFinalize(Target, OS, CPU, PackageFormat);
 
-    { calculate PackageFormatFinal }
-    if OS in AllWindowsOSes then
-      PackageFormatFinal := pfZip
-    else
-      PackageFormatFinal := pfTarGz;
-  end else
-    PackageFormatFinal := PackageFormat;
+  Writeln(Format('Packaging project "%s" for %s (platform: %s).' + NL + 'Format: %s.', [
+    Name,
+    TargetCompleteToString(Target, OS, CPU, Plugin),
+    PlatformToStr(TargetPlatform),
+    PackageFormatToString(PackageFormatFinal)
+  ]));
 
-  Pack := TPackageDirectory.Create(Name);
-  try
-    { executable is added 1st, since it's the most likely file
-      to not exist, so we'll fail earlier }
-    AddExecutable;
-    AddExternalLibraries;
-
-    Files := PackageFiles(false, TargetPlatform);
-    try
-      for I := 0 to Files.Count - 1 do
+  case PackageFormatFinal of
+    pfIosXcodeProject, pfIosArchiveDevelopment, pfIosArchiveAdHoc, pfIosArchiveAppStore:
       begin
-        ExecutablePermission := (Files.Objects[I] <> nil) and (TIncludePath(Files.Objects[I]).ExecutablePermission);
-        Pack.Add(Path + Files[I], Files[I], ExecutablePermission);
+        // set IOSExportMethod early, as it determines IOS_EXPORT_METHOD macro
+        WantsIOSArchive := PackageFormatWantsIOSArchive(PackageFormatFinal, IOSArchiveType, IOSExportMethod);
+        PackageIOS(Self, UpdateOnlyCode);
+        if WantsIOSArchive then
+          ArchiveIOS(Self, IOSArchiveType);
       end;
-    finally FreeAndNil(Files) end;
-
-    Pack.AddDataInformation(TCastleManifest.DataName);
-
-    PackageFileName := PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion);
-    (Pack as TPackageDirectory).Make(OutputPath, PackageFileName, PackageFormatFinal);
-  finally FreeAndNil(Pack) end;
+    pfAndroidApk, pfAndroidAppBundle:
+      begin
+        if Target = targetAndroid then
+          AndroidCPUS := DetectAndroidCPUS
+        else
+          AndroidCPUS := [CPU];
+        PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+      end;
+    pfNintendoSwitchProject:
+      PackageNintendoSwitch(Self);
+    pfDirectory, pfZip, pfTarGz:
+      PackageDirectory(PackageFormatFinal);
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('Unhandled PackageFormatFinal in DoPackage');
+    {$endif}
+  end;
 end;
 
 procedure TCastleProject.DoInstall(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+  const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
+  const PackageFormat: TPackageFormat;
+  const PackageNameIncludeVersion: Boolean);
 
   {$ifdef UNIX}
   procedure InstallUnixPlugin;
@@ -836,26 +916,32 @@ procedure TCastleProject.DoInstall(const Target: TTarget;
   end;
   {$endif}
 
+var
+  PackageFormatFinal: TPackageFormatNoDefault;
 begin
   Writeln(Format('Installing project "%s" for %s.',
     [Name, TargetCompleteToString(Target, OS, CPU, Plugin)]));
 
-  if Target = targetIOS then
-    InstallIOS(Self)
-  else
-  if (Target = targetAndroid) or (OS = Android) then
-    InstallAndroid(Name, QualifiedName, OutputPath)
-  else
-  if Plugin and (OS in AllWindowsOSes) then
-    InstallWindowsPluginRegistry(Name, QualifiedName, OutputPath,
-      PluginLibraryFile(OS, CPU), Version.DisplayValue, Author)
-  else
-  {$ifdef UNIX}
-  if Plugin and (OS in AllUnixOSes) then
-    InstallUnixPlugin
-  else
-  {$endif}
-    raise Exception.Create('The "install" command is not useful for this target / OS / CPU right now. Install the application manually.');
+  if Plugin then
+  begin
+    if OS in AllWindowsOSes then
+      InstallWindowsPluginRegistry(Name, QualifiedName, OutputPath,
+        PluginLibraryFile(OS, CPU), Version.DisplayValue, Author);
+    {$ifdef UNIX}
+    if OS in AllUnixOSes then
+      InstallUnixPlugin;
+    {$endif}
+    Exit;
+  end;
+
+  PackageFormatFinal := PackageFormatFinalize(Target, OS, CPU, PackageFormat);
+
+  case PackageFormatFinal of
+    pfAndroidApk, pfAndroidAppBundle:
+      InstallAndroid(Self, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+    else
+      raise Exception.Create('The "install" command is not useful for this target / OS / CPU right now. Install the application manually.');
+  end;
 end;
 
 procedure TCastleProject.DoRun(const Target: TTarget;
@@ -1400,6 +1486,76 @@ begin
 end;
 
 procedure TCastleProject.DoEditor;
+begin
+  DoEditorRebuildIfNeeded;
+  DoEditorRun(0);
+end;
+
+procedure TCastleProject.DoEditorRebuildIfNeeded;
+var
+  CgePath, EditorPath: String;
+begin
+  if Trim(Manifest.EditorUnits) <> '' then
+  begin
+    { Check CastleEnginePath, since without this, compiling custom castle-editor.lpi
+      will always fail. }
+    CgePath := CastleEnginePath;
+    if CgePath = '' then
+      raise Exception.Create('Cannot find Castle Game Engine sources. Make sure that the environment variable CASTLE_ENGINE_PATH is correctly defined.');
+
+    // create custom editor directory
+    EditorPath := TempOutputPath(Path) + 'editor' + PathDelim;
+    { Do not remove previous directory contents,
+      allows to reuse previous lazbuild compilation results.
+      Just silence ExtractTemplate warnings when overriding. }
+    ExtractTemplate('custom_editor_template/', EditorPath, true);
+
+    // use lazbuild to compile CGE packages and CGE editor
+    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_base.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_components.lpk']);
+    RunLazbuild(Path, [EditorPath + 'castle_editor_automatic_package.lpk']);
+    RunLazbuild(Path, [EditorPath + 'castle_editor.lpi']);
+  end;
+end;
+
+procedure TCastleProject.DoEditorRun(const WaitForProcessId: TProcessId);
+
+  {$ifdef UNIX}
+  { Copied from FPC packages/fcl-extra/src/unix/daemonapp.inc .
+    We need to become a daemon to reliably keep working even if parent process
+    terminates. Otherwise restarting CGE editor after rebuilding new editor
+    fails. }
+  const
+    SErrFailedToFork          = 'Failed to fork daemon process.';
+
+  procedure DaemonizeProgram;
+  var
+    pid, sid: TPid;
+  begin
+    pid := FpFork;
+    if (pid<0) then
+      raise Exception.Create(SErrFailedToFork);
+    if pid>0 then
+    begin
+      // We are now in the main program, which has to terminate
+      FpExit(0);
+    end
+    else
+    begin
+      // Here we are in the daemonized proces
+      sid := FpSetsid;
+      if sid < 0 then
+        raise Exception.Create(SErrFailedToFork);
+      // Reset the file-mask
+      FpUmask(0);
+      // Change the current directory, to avoid locking the current directory
+      chdir('/');
+      FpClose(StdInputHandle);
+      FpClose(StdOutputHandle);
+      FpClose(StdErrorHandle);
+    end;
+  end;
+  {$endif}
 
   { Copy external libraries to LibrariesOutputPath. }
   procedure AddExternalLibraries(const LibrariesOutputPath: String);
@@ -1431,8 +1587,15 @@ procedure TCastleProject.DoEditor;
   end;
 
 var
-  EditorExe, CgePath, EditorPath: String;
+  EditorExe, NewEditorExe, EditorPath: String;
 begin
+  {$ifdef UNIX}
+  DaemonizeProgram;
+  {$endif}
+
+  if WaitForProcessId <> 0 then
+    WaitForProcessExit(WaitForProcessId);
+
   if Trim(Manifest.EditorUnits) = '' then
   begin
     EditorExe := FindExeCastleTool('castle-editor');
@@ -1440,33 +1603,28 @@ begin
       raise Exception.Create('Cannot find "castle-editor" program on $PATH or within $CASTLE_ENGINE_PATH/bin directory.');
   end else
   begin
-    { Check CastleEnginePath, since without this, compiling custom castle-editor.lpi
-      will always fail. }
-    CgePath := CastleEnginePath;
-    if CgePath = '' then
-      raise Exception.Create('Cannot find Castle Game Engine sources. Make sure that the environment variable CASTLE_ENGINE_PATH is correctly defined.');
-
-    // create custom editor directory
+    // here EditorPath and EditorExe are calculated like in DoEditorRebuildIfNeeded
     EditorPath := TempOutputPath(Path) + 'editor' + PathDelim;
-    { Do not remove previous directory contents,
-      allows to reuse previous lazbuild compilation results.
-      Just silence ExtractTemplate warnings when overriding. }
-    ExtractTemplate('custom_editor_template/', EditorPath, true);
 
-    // use lazbuild to compile CGE packages and CGE editor
-    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_base.lpk']);
-    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_components.lpk']);
-    RunLazbuild(Path, [EditorPath + 'castle_editor_automatic_package.lpk']);
-    RunLazbuild(Path, [EditorPath + 'castle_editor.lpi']);
-
+    { This can be done only once previous editor process finished,
+      to not block EXE and DLL files on Windows. }
     AddExternalLibraries(EditorPath);
 
+    NewEditorExe := EditorPath + 'castle-editor-new' + ExeExtension;
     EditorExe := EditorPath + 'castle-editor' + ExeExtension;
-    if not RegularFileExists(EditorExe) then
-      raise Exception.Create('Editor should be compiled, but (for an unknown reason) we cannot find file "' + EditorExe + '"');
+    if not RegularFileExists(NewEditorExe) then
+      raise Exception.Create('Editor should be compiled, but we cannot find file "' + NewEditorExe + '"');
+    CheckRenameFile(NewEditorExe, EditorExe);
   end;
 
-  RunCommandNoWait(TempOutputPath(Path), EditorExe, [ManifestFile]);
+  { Running with CurrentDirectory = Path, so that at least on Windows
+    editor can automatically use the DLL files inside the project, like libeffekseer.dll.
+
+    TODO: In the long run, this should change to use EditorPath as current path.
+    Running editor should not "lock" the project DLLs on Windows.
+    We should have a system of services for desktop, to manage DLLs, including custom
+    DLLs like Effekseer and FMOD. }
+  RunCommandNoWait(Path, EditorExe, [ManifestFile]);
 end;
 
 procedure TCastleProject.AddMacrosAndroid(const Macros: TStringStringMap);
@@ -1489,7 +1647,8 @@ const
 
   function AndroidActivityLoadLibraries: string;
   begin
-    { some Android devices work without this clause, some don't }
+    { Some Android devices work without this clause, some don't.
+      TODO: This should be moved to CastleEngineService.xml, not hardcoded here. }
     Result := '';
     if depSound in Dependencies then
       Result += 'safeLoadLibrary("openal");' + NL;
@@ -1497,6 +1656,8 @@ const
       Result += 'safeLoadLibrary("tremolo");' + NL;
     if depFreetype in Dependencies then
       Result += 'safeLoadLibrary("freetype");' + NL;
+    if depPng in Dependencies then
+      Result += 'safeLoadLibrary("png");' + NL;
     { Necessary, otherwise FMOD is not initialized correctly, and reports
         [ERR] FMOD_JNI_GetEnv                          : JNI_OnLoad has not run, should have occurred during System.LoadLibrary.
       and reports internal error even from FMOD_System_Create. }
@@ -1548,17 +1709,17 @@ end;
 
 procedure TCastleProject.AddMacrosIOS(const Macros: TStringStringMap);
 const
-  IOSScreenOrientation: array [TScreenOrientation] of string =
-  (#9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
-   #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL +
-   #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
-   #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
+  IOSScreenOrientation: array [TScreenOrientation] of string = (
+    #9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
+    #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL +
+    #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
+    #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
 
-   #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
-   #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
+    #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
+    #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
 
-   #9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
-   #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL
+    #9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
+    #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL
   );
 
   IOSCapabilityEnable =
@@ -1575,12 +1736,53 @@ const
       Result := QualifiedName;
   end;
 
+  procedure LaunchImageStoryboardInitialize;
+  var
+    Img: TCastleImage;
+  begin
+    if Manifest.LaunchImageStoryboard.Path <> '' then
+    begin
+      if ExtractFileExt(Manifest.LaunchImageStoryboard.Path) <> '.png' then
+        raise Exception.CreateFmt('Launch image storyboard must be a PNG file, but is "%s"', [
+          Manifest.LaunchImageStoryboard.Path
+        ]);
+      Img := LoadImage(Manifest.LaunchImageStoryboard.Path);
+      try
+        FLaunchImageStoryboardWidth := Img.Width;
+        FLaunchImageStoryboardHeight := Img.Height;
+      finally FreeAndNil(Img) end;
+    end;
+  end;
+
 var
-  P, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
+  InfoPList, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
   Service: TService;
   IOSVersion: TProjectVersion;
   GccPreprocessorDefinitions: String;
 begin
+  InfoPList := '';
+
+  // first time: initialize launch image storyboard
+  if not FLaunchImageStoryboardInitialized then
+  begin
+    FLaunchImageStoryboardInitialized := true;
+    LaunchImageStoryboardInitialize;
+  end;
+  // define macros related to launch image storyboard
+  if IOSHasLaunchImageStoryboard then
+  begin
+    Macros.Add('IOS_LAUNCH_IMAGE_WIDTH' , IntToStr(FLaunchImageStoryboardWidth));
+    Macros.Add('IOS_LAUNCH_IMAGE_HEIGHT', IntToStr(FLaunchImageStoryboardHeight));
+    Macros.Add('IOS_LAUNCH_IMAGE_DISPLAY_WIDTH' , IntToStr(Round(256 * Manifest.LaunchImageStoryboard.Scale)));
+    Macros.Add('IOS_LAUNCH_IMAGE_DISPLAY_HEIGHT', IntToStr(Round(256 * Manifest.LaunchImageStoryboard.Scale)));
+    Macros.Add('IOS_LAUNCH_BACKGROUND_RED'  , FloatToStrDot(Manifest.LaunchImageStoryboard.BackgroundColor[0]));
+    Macros.Add('IOS_LAUNCH_BACKGROUND_GREEN', FloatToStrDot(Manifest.LaunchImageStoryboard.BackgroundColor[1]));
+    Macros.Add('IOS_LAUNCH_BACKGROUND_BLUE' , FloatToStrDot(Manifest.LaunchImageStoryboard.BackgroundColor[2]));
+    Macros.Add('IOS_LAUNCH_BACKGROUND_ALPHA', FloatToStrDot(Manifest.LaunchImageStoryboard.BackgroundColor[3]));
+    InfoPList := SAppendPart(InfoPList, NL,
+      '<key>UILaunchStoryboardName</key> <string>Launch Screen</string>');
+  end;
+
   if Manifest.IOSOverrideVersion <> nil then
     IOSVersion := Manifest.IOSOverrideVersion
   else
@@ -1591,10 +1793,12 @@ begin
   Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
   Macros.Add('IOS_STATUSBAR_HIDDEN', BoolToStr(FullscreenImmersive, 'YES', 'NO'));
   Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
-  P := AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon');
+  InfoPList := SAppendPart(InfoPList, NL,
+    AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon'));
   if not Manifest.UsesNonExemptEncryption then
-    P := SAppendPart(P, NL, '<key>ITSAppUsesNonExemptEncryption</key> <false/>');
-  Macros.Add('IOS_EXTRA_INFO_PLIST', P);
+    InfoPList := SAppendPart(InfoPList, NL,
+      '<key>ITSAppUsesNonExemptEncryption</key> <false/>');
+  Macros.Add('IOS_EXTRA_INFO_PLIST', InfoPList);
 
   IOSTargetAttributes := '';
   IOSRequiredDeviceCapabilities := '';
@@ -1609,6 +1813,7 @@ begin
   end;
 
   IOSSystemCapabilities := '';
+  // TODO: These service-specifics should be in CastleEngineService.xml now
   if IOSServices.HasService('apple_game_center') then
   begin
     IOSSystemCapabilities := IOSSystemCapabilities +
@@ -1834,8 +2039,13 @@ var
   DestinationRelativeFileNameSlashes, Contents, Ext: string;
   BinaryFile: boolean;
 begin
-  if SameText(DestinationRelativeFileName, 'README.md') then
-    Exit; // do not copy README.md, most services define it and would just overwrite each other
+  { Do not copy README.md, most services define it and would just overwrite each other.
+    It is for informational purposes in CGE sources.
+    Similarly do not copy CastleEngineService.xml, most services define it,
+    it is internal info for build tool. }
+  if SameText(DestinationRelativeFileName, 'README.md') or
+     SameText(DestinationRelativeFileName, 'CastleEngineService.xml') then
+    Exit;
 
   if (not OverrideExisting) and RegularFileExists(DestinationFileName) then
   begin
@@ -1969,11 +2179,23 @@ begin
   Result := false;
 end;
 
+function TCastleProject.IOSHasLaunchImageStoryboard: Boolean;
+begin
+  Result :=
+    (FLaunchImageStoryboardWidth <> 0) and
+    (FLaunchImageStoryboardHeight <> 0);
+end;
+
 { shortcut methods to acces Manifest.Xxx ------------------------------------- }
 
 function TCastleProject.Version: TProjectVersion;
 begin
   Result := Manifest.Version;
+end;
+
+function TCastleProject.ManifestCompiler: TCompiler;
+begin
+  Result := Manifest.Compiler;
 end;
 
 function TCastleProject.QualifiedName: string;
@@ -2089,6 +2311,11 @@ end;
 function TCastleProject.LocalizedAppNames: TLocalizedAppNameList;
 begin
   Result := Manifest.LocalizedAppNames;
+end;
+
+function TCastleProject.LaunchImageStoryboard: TLaunchImageStoryboard;
+begin
+  Result := Manifest.LaunchImageStoryboard;
 end;
 
 end.

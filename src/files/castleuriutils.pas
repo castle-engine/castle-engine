@@ -122,7 +122,22 @@ function URIProtocol(const URI: string): string;
   ":" character. }
 function URIProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
 
+{ Remove the protocol part from URI. }
 function URIDeleteProtocol(const S: string): string;
+  deprecated 'use ParseURI to extract URI.Path + URI.Document, instead of this routine that doesn''t do decoding';
+
+{ Is the S a valid protocol scheme.
+
+  Following https://datatracker.ietf.org/doc/html/rfc3986 ,
+  protocol scheme must
+
+  @unorderedList(
+    @item(begin with an (ASCII) letter)
+
+    @item(and be followed by any combination of (ASCII) letters, digits, plus ("+"), period ("."), or hyphen ("-").)
+  )
+}
+function URIValidProtocol(const P: String): Boolean;
 
 { Return absolute URI, given base and relative URI.
 
@@ -193,14 +208,11 @@ function MaybeUseDataProtocol(const URL: String): String;
 { Get MIME type for content of the URI @italic(without downloading the file).
   For local and remote files (file, http, and similar protocols)
   it guesses MIME type based on file extension.
-  (Although we may add here detection of local file types by opening them
-  and reading a header, in the future.)
-  Only for data: URI scheme it actually reads the MIME type.
 
   Using this function is not adviced if you want to properly support
   MIME types returned by http server for network resources.
   For this, you have to download the file,
-  as look at what MIME type the http server reports.
+  and look at what MIME type the http server reports.
   The @link(Download) function returns such proper MimeType.
   This function only guesses without downloading.
 
@@ -385,7 +397,7 @@ implementation
 
 uses SysUtils, URIParser,
   CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils,
-  CastleInternalDirectoryInformation, CastleFindFiles
+  CastleInternalDirectoryInformation, CastleFindFiles, CastleDownload
   {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
 
 { Escape and Unescape --------------------------------------------------------
@@ -642,18 +654,30 @@ begin
   SetLength(Result, ResultI - 1);
 end;
 
+const
+  { These constants match URIParser algorithm, which in turn follows RFC. }
+  ALPHA = ['A'..'Z', 'a'..'z'];
+  DIGIT = ['0'..'9'];
+  ProtocolFirstChar = ALPHA;
+  ProtocolChar = ALPHA + DIGIT + ['+', '-', '.'];
+
+function URIValidProtocol(const P: String): Boolean;
+var
+  I: Integer;
+begin
+  Result := (P <> '') and (P[1] in ProtocolFirstChar);
+  if Result then
+    for I := 2 to Length(P) do
+      if not (P[I] in ProtocolChar) then
+        Exit(false);
+end;
+
 { Detect protocol delimiting positions.
   If returns true, then for sure:
   - FirstCharacter < Colon
   - FirstCharacter >= 1
   - Colon > 1 }
 function URIProtocolIndex(const S: string; out FirstCharacter, Colon: Integer): boolean;
-const
-  { These constants match URIParser algorithm, which in turn follows RFC. }
-  ALPHA = ['A'..'Z', 'a'..'z'];
-  DIGIT = ['0'..'9'];
-  ProtoFirstChar = ALPHA;
-  ProtoChar = ALPHA + DIGIT + ['+', '-', '.'];
 var
   I: Integer;
 begin
@@ -673,10 +697,10 @@ begin
       Exit;
 
     { Protocol name can only contain specific characters. }
-    if not CharInSet(S[FirstCharacter], ProtoFirstChar) then
+    if not CharInSet(S[FirstCharacter], ProtocolFirstChar) then
       Exit;
     for I := FirstCharacter + 1 to Colon - 1 do
-      if not CharInSet(S[I], ProtoChar) then
+      if not CharInSet(S[I], ProtocolChar) then
         Exit;
 
     { Do not treat drive names in Windows filenames as protocol.
@@ -879,216 +903,15 @@ begin
 end;
 
 function URIMimeType(const URI: string; out Gzipped: boolean): string;
-
-  function ExtToMimeType(const URI: string): string;
-  var
-    Ext, ExtExt, ExtA{, ExtExtA}, URIWithoutAnchor, URIName: String;
-  begin
-    { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
-      although they should be used for filenames.
-      Note that this unit does not define public functions like ExtractURIExt
-      or ExtractURIDoubleExt: *everything* should operate on MIME types instead. }
-    Ext := LowerCase(ExtractFileExt(URI));
-    ExtExt := LowerCase(ExtractFileDoubleExt(URI));
-
-    { Some of our reading functions, like Spine, sprite sheets and images,
-      recognize and strip anchors from URL.
-      So recognize MIME type based on URL without anchor too.
-      Otherwise 'xxx.json#skinname' would not be detected as Spine JSON.
-      The comparison below can use ExtA / ExtExtA instead of Ext / ExtExt then.
-
-      Note that doing it here means that *all* implementations of relevant formats
-      should strip anchors, e.g. both LoadImageAsNode and LoadImage must strip anchors. }
-    URIWithoutAnchor := URIDeleteAnchor(URI, true);
-    ExtA := LowerCase(ExtractFileExt(URIWithoutAnchor));
-    // unused: ExtExtA := LowerCase(ExtractFileDoubleExt(URIWithoutAnchor));
-
-    URIName := LowerCase(ExtractURIName(URI));
-
-    { This list is based on
-      http://svn.freepascal.org/cgi-bin/viewvc.cgi/trunk/lcl/interfaces/customdrawn/customdrawnobject_android.inc?root=lazarus&view=co&content-type=text%2Fplain
-      (license is LGPL with static linking exception, just like our engine).
-      See also various resources linked from
-      "Function to get the mimetype from a file extension" thread on Lazarus
-      mailing list:
-      http://comments.gmane.org/gmane.comp.ide.lazarus.general/62738
-
-      We somewhat cleaned it up (e.g. "postscript" and "mpeg" lowercase),
-      fixed categorization, and fixed/added many types looking at
-      /etc/mime.types and
-      /usr/share/mime/packages/freedesktop.org.xml on Debian.
-
-      For description of MIME content types see also
-      https://en.wikipedia.org/wiki/Internet_media_type
-      http://en.wikipedia.org/wiki/MIME
-      http://tools.ietf.org/html/rfc4288 }
-
-    // 3D models (see also view3dscene MIME specification in view3dscene/desktop/view3dscene.xml)
-    if Ext    = '.wrl'    then Result := 'model/vrml' else
-    if Ext    = '.wrz'    then begin Result := 'model/vrml'; Gzipped := true; end else
-    if ExtExt = '.wrl.gz' then begin Result := 'model/vrml'; Gzipped := true; end else
-    if Ext    = '.x3dv'    then Result := 'model/x3d+vrml' else
-    if Ext    = '.x3dvz'   then begin Result := 'model/x3d+vrml'; Gzipped := true; end else
-    if ExtExt = '.x3dv.gz' then begin Result := 'model/x3d+vrml'; Gzipped := true; end else
-    if Ext    = '.x3d'    then Result := 'model/x3d+xml' else
-    if Ext    = '.x3dz'   then begin Result := 'model/x3d+xml'; Gzipped := true; end else
-    if ExtExt = '.x3d.gz' then begin Result := 'model/x3d+xml'; Gzipped := true; end else
-    if Ext    = '.x3db'    then Result := 'model/x3d+binary' else
-    if ExtExt = '.x3db.gz' then begin Result := 'model/x3d+binary'; Gzipped := true; end else
-    if Ext = '.dae' then Result := 'model/vnd.collada+xml' else
-    { See http://en.wikipedia.org/wiki/.3ds about 3ds mime type.
-      application/x-3ds is better (3DS is hardly an "image"),
-      but Debian /usr/share/mime/packages/freedesktop.org.xml also uses
-      image/x-3ds, so I guess image/x-3ds is more popular. }
-    if Ext = '.3ds' then Result := 'image/x-3ds' else
-    if Ext = '.max' then Result := 'image/x-3ds' else
-    if Ext = '.iv' then Result := 'application/x-inventor' else
-    if Ext = '.md3' then Result := 'application/x-md3' else
-    if Ext = '.obj' then Result := 'application/x-wavefront-obj' else
-    if Ext = '.geo' then Result := 'application/x-geo' else
-    if Ext = '.kanim' then Result := 'application/x-castle-anim-frames' else
-    if Ext = '.castle-anim-frames' then Result := 'application/x-castle-anim-frames' else
-    if ExtA = '.json' then Result := 'application/json' else
-    { Various sites propose various MIME types for STL:
-      https://gist.github.com/allysonsouza/1bf9d4a0295a14373979cd23d15df0a9
-      application/wavefront-stl
-      application/vnd.ms-pki.stl }
-    if Ext = '.stl' then Result := 'application/x-stl' else
-    if Ext = '.glb' then Result := 'model/gltf-binary' else
-    if Ext = '.gltf' then Result := 'model/gltf+json' else
-    // Images.
-    { Only images that we cannot handle in CastleImages unit are listed below.
-      For handled images, their extensions and mime types are recorded
-      by CastleImages inside the URIMimeExtensions. }
-    if Ext = '.svg' then Result := 'image/svg+xml' else
-    if Ext = '.ico' then Result := 'image/x-icon' else
-    if Ext = '.icns' then Result := 'image/icns' else
-    if ExtA = '.castle-sprite-sheet' then Result := 'application/x-castle-sprite-sheet' else
-    { I didn't found real MIME type for Starling Texture Atlas.
-      Created as image type based on
-      https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
-    }
-    if ExtA = '.starling-xml' then Result := 'application/x-starling-sprite-sheet' else
-    if ExtA = '.cocos2d-plist' then Result := 'application/x-cocos2d-sprite-sheet' else
-    if ExtA = '.plist' then Result := 'application/x-plist' else
-
-    // HTML
-    if Ext = '.htm' then Result := 'text/html' else
-    if Ext = '.html' then Result := 'text/html' else
-    if Ext = '.shtml' then Result := 'text/html' else
-    if Ext = '.css' then Result := 'text/css' else
-    if Ext = '.php' then Result := 'text/php' else
-    // Plain text
-    if Ext = '.txt' then Result := 'text/plain' else
-    if Ext = '.pas' then Result := 'text/plain' else
-    if Ext = '.pp' then Result := 'text/plain' else
-    if Ext = '.inc' then Result := 'text/plain' else
-    if Ext = '.c' then Result := 'text/plain' else
-    if Ext = '.cpp' then Result := 'text/plain' else
-    if Ext = '.java' then Result := 'text/plain' else
-    if Ext = '.log' then Result := 'text/plain'  else
-    if Ext = '.md' then Result := 'text/plain' else
-    if URIName = '.gitignore' then Result := 'text/plain' else
-    // Videos
-    if Ext = '.mp4' then Result := 'video/mp4' else
-    if Ext = '.avi' then Result := 'video/x-msvideo' else
-    if Ext = '.mpeg' then Result := 'video/mpeg' else
-    if Ext = '.mpg'  then Result := 'video/mpeg' else
-    if Ext = '.mpe'  then Result := 'video/mpeg' else
-    if Ext = '.ogv'  then Result := 'video/ogg' else
-    if Ext = '.mov' then Result := 'video/quicktime' else
-    if Ext = '.flv' then Result := 'video/x-flv' else
-    if Ext = '.swf'  then Result := 'application/x-shockwave-flash' else
-    if Ext = '.swfl' then Result := 'application/x-shockwave-flash' else
-    // Sounds
-    if Ext = '.mp3' then Result := 'audio/mpeg' else
-    if Ext = '.ogg' then Result := 'audio/ogg' else
-    if Ext = '.oga' then Result := 'audio/ogg' else
-    if Ext = '.wav' then Result := 'audio/x-wav' else
-    if Ext = '.mid' then Result := 'audio/midi' else
-    if Ext = '.midi' then Result := 'audio/midi' else
-    if Ext = '.au' then Result := 'audio/basic' else
-    if Ext = '.snd' then Result := 'audio/basic' else
-    if Ext = '.mp2' then Result := 'audio/mpeg' else
-    // Documents
-    if Ext = '.rtf' then Result := 'text/rtf' else
-    if Ext = '.eps' then Result := 'application/postscript' else
-    if Ext = '.ps' then Result := 'application/postscript' else
-    if Ext = '.pdf' then Result := 'application/pdf' else
-    if Ext = '.csv' then Result := 'application/csv' else
-    // Documents - old MS Office
-    if Ext = '.xls' then Result := 'application/vnd.ms-excel' else
-    if Ext = '.doc' then Result := 'application/msword' else
-    if Ext = '.ppt' then Result := 'application/vnd.ms-powerpoint' else
-    // Documents - open standards
-    if Ext = '.odt' then Result := 'application/vnd.oasis.opendocument.text' else
-    if Ext = '.ods' then Result := 'application/vnd.oasis.opendocument.spreadsheet' else
-    if Ext = '.odp' then Result := 'application/vnd.oasis.opendocument.presentation' else
-    if Ext = '.odg' then Result := 'application/vnd.oasis.opendocument.graphics' else
-    if Ext = '.odc' then Result := 'application/vnd.oasis.opendocument.chart' else
-    if Ext = '.odf' then Result := 'application/vnd.oasis.opendocument.formula' else
-    if Ext = '.odi' then Result := 'application/vnd.oasis.opendocument.image' else
-    // Documents - new MS Office
-    if Ext = '.xlsx' then Result := 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' else
-    if Ext = '.pptx' then Result := 'application/vnd.openxmlformats-officedocument.presentationml.presentation' else
-    if Ext = '.docx' then Result := 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' else
-    // Compressed archives
-    if Ext = '.zip' then Result := 'application/zip' else
-    if Ext = '.tar' then Result := 'application/x-tar' else
-    if Ext = '.rar' then Result := 'application/x-rar-compressed' else
-    if Ext = '.gz' then begin Result := 'application/gzip'; Gzipped := true; end else
-    // Various
-    if ExtA = '.xml' then Result := 'application/xml' else
-    if Ext = '.castlescript' then Result := 'text/x-castlescript' else
-    if Ext = '.kscript'      then Result := 'text/x-castlescript' else
-    if Ext = '.js' then Result := 'application/javascript' else
-    if Ext = '.castle-user-interface' then Result := 'text/x-castle-user-interface' else
-    if Ext = '.castle-transform' then Result := 'text/x-castle-transform' else
-    if Ext = '.castle-component' then Result := 'text/x-castle-component' else
-      { as a last resort, check URIMimeExtensions }
-      URIMimeExtensions.TryGetValue(ExtA, Result);
-  end;
-
-var
-  P: string;
-  DataURI: TDataURI;
 begin
-  Result := '';
-  Gzipped := false;
+  Result := InternalURIMimeType(URI, Gzipped);
+end;
 
-  P := URIProtocol(URI);
-
-  if (P = '') or
-     (P = 'file') or
-     (P = 'http') or
-     (P = 'ftp') or
-     (P = 'https') or
-     (P = 'assets') or
-     (P = 'castle-nx-save') or
-     (P = 'castle-nx-contents') or
-     (P = 'castle-android-assets') or
-     (P = 'castle-data') then
-    Result := ExtToMimeType(URI) else
-
-  if P = 'data' then
-  begin
-    DataURI := TDataURI.Create;
-    try
-      DataURI.URI := URI;
-      if DataURI.Valid then Result := DataURI.MimeType;
-    finally FreeAndNil(DataURI) end;
-  end else
-
-  { Special script protocols always imply a specific MIME type.
-    Note: add these to CombineURI as exceptions too. }
-  if (P = 'ecmascript') or
-     (P = 'javascript') then
-    Result := 'application/javascript' else
-  if (P = 'castlescript') or
-     (P = 'kambiscript') then
-    Result := 'text/x-castlescript' else
-  if P = 'compiled' then
-    Result := 'text/x-castle-compiled';
+function URIMimeType(const URI: string): string;
+var
+  Gzipped: boolean;
+begin
+  Result := URIMimeType(URI, Gzipped);
 end;
 
 function MaybeUseDataProtocol(const URL: String): String;
@@ -1102,13 +925,6 @@ begin
     Result := 'castle-data:/' + PrefixRemove(DataPath, URL, not FileNameCaseSensitive)
   else
     Result := URL;
-end;
-
-function URIMimeType(const URI: string): string;
-var
-  Gzipped: boolean;
-begin
-  Result := URIMimeType(URI, Gzipped);
 end;
 
 function URIDisplay(const URI: string; const Short: boolean): string;
@@ -1350,9 +1166,9 @@ begin
   end;
 end;
 
-function ResolveCastleDataURL(const URL: String): String;
+function ResolveCastleDataUrl(const Url: String): String;
 
-  { Fix case for the URL relative to data. }
+  { Fix case for the Url relative to data. }
   function FixCase(const RelativeToData: String): String;
   var
     Parts: TCastleStringList;
@@ -1389,18 +1205,20 @@ function ResolveCastleDataURL(const URL: String): String;
   end;
 
 var
+  U: TURI;
   RelativeToData: String;
 begin
-  if URIProtocol(URL) = 'castle-data' then
+  if URIProtocol(Url) = 'castle-data' then
   begin
-    RelativeToData := PrefixRemove('/', URIDeleteProtocol(URL), false);
+    U := ParseURI(Url);
+    RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
     {$warnings off} // don't warn that CastleDataIgnoreCase is experimental
     if CastleDataIgnoreCase and FileNameCaseSensitive then
     {$warnings on}
       RelativeToData := FixCase(RelativeToData);
     Result := ApplicationData(RelativeToData);
   end else
-    Result := URL;
+    Result := Url;
 end;
 
 function RelativeToCastleDataURL(const Url: String; out WasInsideData: Boolean): String;

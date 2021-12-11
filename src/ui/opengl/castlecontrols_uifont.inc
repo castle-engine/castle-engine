@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,13 +16,14 @@
 
 {$ifdef read_interface}
 
+{ }
 function GetUIFont: TCastleAbstractFont;
 procedure SetUIFont(const Value: TCastleAbstractFont);
 
 function GetUIFontSmall: TCastleAbstractFont;
-  deprecated 'use UIFont and temporarily change the size to be smaller, or use TCastleUserInterfaceFont.SmallFont';
+  deprecated 'use any other font (like UIFont or Container.DefaultFont) and just set smaller size (e.g. by TCastleLabel.FontSize)';
 procedure SetUIFontSmall(const Value: TCastleAbstractFont);
-  deprecated 'use UIFont and temporarily change the size to be smaller, or use TCastleUserInterfaceFont.SmallFont';
+  deprecated 'use any other font (like UIFont or Container.DefaultFont) and just set smaller size (e.g. by TCastleLabel.FontSize)';
 
 (*The default font, used throughout the engine as a fallback.
   By default, this is a modern sans-serif font hardcoded into the engine.
@@ -31,7 +32,7 @@ procedure SetUIFontSmall(const Value: TCastleAbstractFont);
 
   Although in most cases it is better to leave @link(UIFont) unchanged
   (treat it like "engine default font"), and instead set your default font by
-  setting @link(TUIContainer.DefaultFont Window.Container.DefaultFont).
+  setting @link(TCastleContainer.DefaultFont Window.Container.DefaultFont).
   You can do it by code, or by editing CastleSettings.xml (this way editor
   will be aware of this new default), see https://castle-engine.io/manual_castle_settings.php .
 
@@ -49,6 +50,15 @@ property UIFont: TCastleAbstractFont read GetUIFont write SetUIFont;
 property UIFontSmall: TCastleAbstractFont read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }
 
+{ The default font, used throughout the engine as a fallback.
+  This is a modern sans-serif font hardcoded into the engine. }
+function FallbackFont: TCastleFont;
+
+{ Force using FallbackFont (thus, ignore @link(TCastleContainer.DefaultFont))
+  and FallbackTheme (thus, disable any @link(TCastleTheme Theme) customizations) in this UI.
+  This guarantees the same UI look, ignoring user's UI font and theme customizations. }
+procedure ForceFallbackLook(const Ui: TCastleUserInterface);
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -59,28 +69,30 @@ type
   { Component used as owner for fonts created on-demand in UIFont and UIFontSmall. }
   TDefaultUIFont = class(TComponent)
   public
-    Normal: TCastleAbstractFont;
-    Small: TCastleAbstractFont;
+    Normal: TCastleFont;
+    Small: TCastleFont;
   end;
 
 var
   DefaultUIFont: TDefaultUIFont;
   FUIFont, FUIFontSmall: TCastleAbstractFont;
 
+function FallbackFont: TCastleFont;
+begin
+  if DefaultUIFont = nil then
+    DefaultUIFont := TDefaultUIFont.Create(nil);
+  if DefaultUIFont.Normal = nil then
+  begin
+    DefaultUIFont.Normal := TCastleFont.Create(DefaultUIFont);
+    DefaultUIFont.Normal.Load(TextureFont_DejaVuSans_20);
+  end;
+  Result := DefaultUIFont.Normal;
+end;
+
 function GetUIFont: TCastleAbstractFont;
 begin
   if FUIFont = nil then
-  begin
-    if DefaultUIFont = nil then
-      DefaultUIFont := TDefaultUIFont.Create(nil);
-    if DefaultUIFont.Normal = nil then
-    begin
-      DefaultUIFont.Normal := TCastleFont.Create(DefaultUIFont);
-      (DefaultUIFont.Normal as TCastleFont).Load(TextureFont_DejaVuSans_20);
-    end;
-    FUIFont := DefaultUIFont.Normal;
-  end;
-
+    FUIFont := FallbackFont;
   Result := FUIFont;
 end;
 
@@ -98,7 +110,7 @@ begin
     if DefaultUIFont.Small = nil then
     begin
       DefaultUIFont.Small := TCastleFont.Create(DefaultUIFont);
-      (DefaultUIFont.Small as TCastleFont).Load(TextureFont_DejaVuSans_10);
+      DefaultUIFont.Small.Load(TextureFont_DejaVuSans_10);
     end;
     FUIFontSmall := DefaultUIFont.Small;
   end;
@@ -123,6 +135,17 @@ begin
       FUIFontSmall := nil;
     FreeAndNil(DefaultUIFont);
   end;
+end;
+
+procedure ForceFallbackLook(const Ui: TCastleUserInterface);
+var
+  Child: TCastleUserInterface;
+begin
+  Ui.CustomTheme := FallbackTheme;
+  if Ui is TCastleUserInterfaceFont then
+    TCastleUserInterfaceFont(Ui).CustomFont := FallbackFont;
+  for Child in Ui do
+    ForceFallbackLook(Child);
 end;
 
 {$endif read_implementation}

@@ -173,7 +173,7 @@ type
     procedure SetUniformFromField(const UniformName: string;
       const UniformValue: TX3DField; const EnableDisable: boolean);
 
-    procedure EventReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
 
     { Set uniform shader variable from VRML/X3D field (exposed or not).
@@ -1450,7 +1450,7 @@ begin
 end;
 
 procedure TX3DShaderProgram.EventReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   UniformName: string;
   Scene: TX3DEventsEngine;

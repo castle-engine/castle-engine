@@ -143,17 +143,6 @@ ScreenEffect : X3DChildNode {
     range: X3DShaderNode
 }
 
-# See https://castle-engine.io/x3d_implementation_interpolation.php
-ColorSetInterpolator : X3DInterpolatorNode {
-  MFColor  [in,out]  keyValue           []
-  MFColor  [out]     value_changed
-}
-
-VectorInterpolator : X3DInterpolatorNode {
-  MFFloat  [in,out]  keyValue           []
-  MFFloat  [out]     value_changed
-}
-
 # See https://castle-engine.io/compositing_shaders.php
 Effect : X3DChildNode {
   SFString   []            language    ""
@@ -224,23 +213,6 @@ ViewpointMirror {
   auto-generate-more: true
   default-container-field: viewpoint
   SFFloat   [in,out]      distanceFromShape 0.01
-}
-
-X3DCubicBezierInterpolator {
-  MFVec4f   [in,out]      controlPoints   []
-}
-
-CubicBezier2DOrientationInterpolator : X3DCubicBezierInterpolator {
-  default-container-field: children
-  MFFloat    [in,out] keyValue        []
-  SFVec3f    [in,out] axis            0 0 1
-  SFRotation [out]    value_changed
-}
-
-CubicBezierPositionInterpolator : X3DCubicBezierInterpolator {
-  default-container-field: children
-  MFVec3f    [in,out] keyValue        []
-  SFVec3f    [out]    value_changed
 }
 
 OrientationInterpolator2D : X3DInterpolatorNode {

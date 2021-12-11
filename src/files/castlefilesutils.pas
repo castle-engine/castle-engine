@@ -431,7 +431,7 @@ procedure CopyDirectory(SourcePath, DestinationPath: string);
   #)
 
   Note that to save a screenshot in the most cross-platform way possible, we advise using
-  @link(TUIContainer.SaveScreenToDefaultFile Window.Container.SaveScreenToDefaultFile)
+  @link(TCastleContainer.SaveScreenToDefaultFile Window.Container.SaveScreenToDefaultFile)
   instead, it will use @link(SaveScreenPath) or more elebarate mechanism to work on all platforms.
 
   Example usage to save anything else to user config:

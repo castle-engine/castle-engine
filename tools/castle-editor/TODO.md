@@ -15,7 +15,6 @@ OK if after nearest release:
   castledialogstates_dialog.inc
   castlecontrols_progressbar.inc
   castleonscreenmenu.pas
-  castleinspectorcontrol.pas
   castlenotifications.pas
   castlecontrols_touchcontrol.inc
   castlecontrols_groups.inc

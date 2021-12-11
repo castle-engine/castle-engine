@@ -19,8 +19,14 @@
 {$endif}
 
 {$ifdef read_implementation}
+
+{ Read from Spine JSON a TVector2List.
+  @param(IgnoreListUnexpectedEnd When @true, we ignore (not even a warning)
+    when the list ends unexpectedly in the middle of the vector.
+    This is known to happen in case of weighted mesh exported by Spine.)
+}
 procedure ReadVector2List(const Json: TJSONObject; const Name: string;
-  const List: TVector2List);
+  const List: TVector2List; const IgnoreListUnexpectedEnd: Boolean = false);
 var
   JsonArray: TJSONArray;
   I: Integer;
@@ -42,8 +48,8 @@ begin
           Vec2Index := 0;
         end;
       end;
-    if Vec2Index <> 0 then
-      WritelnWarning('Spine', 'Vector2 list (like uvs or vertices) ends in the middle of the vector. This is possible in case of weighted mesh.');
+    if (Vec2Index <> 0) and (not IgnoreListUnexpectedEnd) then
+      WritelnWarning('Spine', 'Vector2 list (like uvs or vertices) ends in the middle of the vector.');
   end;
 end;
 

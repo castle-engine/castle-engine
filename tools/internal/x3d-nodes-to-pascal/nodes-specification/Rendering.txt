@@ -1,3 +1,12 @@
+X3DGeometryNode : X3DNode {
+  auto-generate-more: true
+  default-container-field: geometry
+}
+
+X3DGeometricPropertyNode : X3DNode {
+  auto-generate-more: true
+}
+
 X3DColorNode : X3DGeometricPropertyNode {
   auto-generate-more: true
   default-container-field: color
@@ -7,125 +16,177 @@ X3DColorNode : X3DGeometricPropertyNode {
 }
 
 X3DComposedGeometryNode : X3DGeometryNode {
+  auto-generate-more: true
+
   MFNode [in,out] attrib          []
     range: X3DVertexAttributeNode
     not-slim
+    change: chGeometry
   SFNode [in,out] color           NULL
     range: X3DColorNode
+    change: chGeometry
   SFNode [in,out] coord           NULL
     range: X3DCoordinateNode
+    change: chGeometry
   SFNode [in,out] fogCoord        NULL
     range: FogCoordinate
     not-slim
+    change: chGeometry
   SFNode [in,out] normal          NULL
     range: X3DNormalNode
+    change: chGeometry
   SFNode [in,out] tangent         NULL
     range: Tangent
+    change: chGeometry
   SFNode [in,out] texCoord        NULL
     range: X3DTextureCoordinateNode
+    change: chGeometry
   SFBool []       ccw             TRUE
+    change: chGeometry
   SFBool []       colorPerVertex  TRUE
+    change: chGeometry
   SFBool []       normalPerVertex TRUE
+    change: chGeometry
   SFBool []       solid           TRUE
+    change: chGeometry
 
   # CASTLE GAME ENGINE EXTENSIONS:
   MFVec3f    [in,out]      radianceTransfer  []
     not-slim
+    change: chGeometry
 }
 
 X3DCoordinateNode : X3DGeometricPropertyNode {
-}
-
-X3DGeometricPropertyNode : X3DNode {
-}
-
-X3DGeometryNode : X3DNode {
+  auto-generate-more: true
+  default-container-field: coord
 }
 
 X3DNormalNode : X3DGeometricPropertyNode {
+  auto-generate-more: true
   default-container-field: normal
 }
 
 ClipPlane : X3DChildNode {
+  auto-generate-more: true
+
   SFBool  [in,out] enabled  TRUE
+    change: chClipPlane
   SFVec4f [in,out] plane    0 1 0 0
     range: [0,1]
+    change: chClipPlane
 }
 
 Color : X3DColorNode {
+  auto-generate-more: true
+
   MFColor [in,out] color    []
     range: [0,1]
+    change: chColorNode
 }
 
 ColorRGBA : X3DColorNode {
+  auto-generate-more: true
+
   MFColorRGBA [in,out] color    []
     range: [0,1]
+    change: chColorNode
 }
 
 Coordinate : X3DCoordinateNode {
+  auto-generate-more: true
+
   MFVec3f [in,out] point    []
     range: (-Inf,Inf)
+    change: chCoordinate
 }
 
 IndexedLineSet : X3DGeometryNode {
+  auto-generate-more: true
+
   MFInt32 [in]     set_colorIndex
   MFInt32 [in]     set_coordIndex
   MFNode  [in,out] attrib         []
     range: X3DVertexAttributeNode
     not-slim
+    change: chGeometry
   SFNode  [in,out] color          NULL
     range: X3DColorNode
+    change: chGeometry
   SFNode  [in,out] coord          NULL
     range: X3DCoordinateNode
+    change: chGeometry
   SFNode  [in,out] fogCoord       []
     range: FogCoordinate
     not-slim
+    change: chGeometry
   MFInt32 []       colorIndex     []
     range: [0,Inf) or -1
+    change: chGeometry
   SFBool  []       colorPerVertex TRUE
+    change: chGeometry
   MFInt32 []       coordIndex     []
     range:  [0,Inf) or -1
+    change: chGeometry
 }
 
 IndexedTriangleFanSet : X3DComposedGeometryNode {
+  auto-generate-more: true
+
   MFInt32 [in]     set_index       []
     range: [0,Inf) or -1
   MFInt32 []       index           []
     range: [0,Inf) or -1
+    change: chGeometry
 }
 
 IndexedTriangleSet : X3DComposedGeometryNode {
+  auto-generate-more: true
+
   MFInt32 [in]     set_index       []
     range: [0,Inf)
   MFInt32 []       index           []
     range: [0,Inf)
+    change: chGeometry
 }
 
 IndexedTriangleStripSet : X3DComposedGeometryNode {
+  auto-generate-more: true
+
   MFInt32 [in]     set_index       []
     range: [0,Inf) or -1
   MFInt32 []       index           []
     range: [0,Inf) or -1
+    change: chGeometry
 }
 
 LineSet : X3DGeometryNode {
+  auto-generate-more: true
+
   MFNode  [in,out] attrib         []
     range: X3DVertexAttributeNode
     not-slim
+    change: chGeometry
   SFNode  [in,out] color          NULL
     range: X3DColorNode
+    change: chGeometry
   SFNode  [in,out] coord          NULL
     range: X3DCoordinateNode
+    change: chGeometry
   SFNode  [in,out] fogCoord       []
     range: FogCoordinate
     not-slim
+    change: chGeometry
   MFInt32 [in,out] vertexCount    []
     range: [2,Inf)
+    change: chGeometry
 }
 
 Normal : X3DNormalNode {
+  auto-generate-more: true
+
   MFVec3f [in,out] vector   []
     range: [-1,1]
+    change: chNormal
 }
 
 Tangent : X3DGeometricPropertyNode {
@@ -133,30 +194,44 @@ Tangent : X3DGeometricPropertyNode {
   default-container-field: tangent
   MFVec3f [in,out] vector   []
     range: [-1,1]
+    change: chTangent
 }
 
 PointSet : X3DGeometryNode {
+  auto-generate-more: true
+
   MFNode [in,out] attrib   []
     range: X3DVertexAttributeNode
     not-slim
+    change: chGeometry
   SFNode [in,out] color    NULL
     range: X3DColorNode
+    change: chGeometry
   SFNode [in,out] coord    NULL
     range: X3DCoordinateNode
+    change: chGeometry
   SFNode [in,out] fogCoord []
     range: FogCoordinate
     not-slim
+    change: chGeometry
 }
 
 TriangleFanSet : X3DComposedGeometryNode {
+  auto-generate-more: true
+
   MFInt32 [in,out] fanCount        []
     range: [3,Inf)
+    change: chGeometry
 }
 
 TriangleSet : X3DComposedGeometryNode {
+  auto-generate-more: true
 }
 
 TriangleStripSet : X3DComposedGeometryNode {
+  auto-generate-more: true
+
   MFInt32 [in,out] stripCount      []
     range: [3,Inf)
+    change: chGeometry
 }

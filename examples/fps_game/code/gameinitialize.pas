@@ -438,7 +438,7 @@ end;
 
 { Window callbacks ----------------------------------------------------------- }
 
-procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
+procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   { We simulate button presses on some key presses. There is no automatic
     mechanism to assign key shortcut to a TCastleButton right now.
@@ -469,7 +469,7 @@ type
     of item; instances of it will be automatically
     created and placed on the global Resources list, based on resource.xml files
     referring to this class by type="xxx") and non-resource class
-    (information about a particular occurence of this item).
+    (information about a particular occurrence of this item).
     See engine tutorial for more extensive explanation.
     Creating new creatures looks the same.
 

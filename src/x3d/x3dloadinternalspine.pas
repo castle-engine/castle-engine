@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,6 +59,7 @@ type
   TAttachmentList = class;
 
   {$define read_interface}
+  {$I x3dloadinternalspine_animutils.inc}
   {$I x3dloadinternalspine_json.inc}
   {$I x3dloadinternalspine_bones.inc}
   {$I x3dloadinternalspine_slots.inc}
@@ -74,6 +75,7 @@ type
   {$undef read_interface}
 
   {$define read_implementation}
+  {$I x3dloadinternalspine_animutils.inc}
   {$I x3dloadinternalspine_json.inc}
   {$I x3dloadinternalspine_bones.inc}
   {$I x3dloadinternalspine_slots.inc}

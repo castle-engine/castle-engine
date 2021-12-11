@@ -25,11 +25,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractNetworkSensorNode ----------------------------------------------- }
+
+class function TAbstractNetworkSensorNode.ClassX3DType: String;
+begin
+  Result := 'X3DNetworkSensorNode';
+end;
+
+procedure TAbstractNetworkSensorNode.CreateNode;
+begin
+  inherited;
+end;
 
 {$endif read_implementation}

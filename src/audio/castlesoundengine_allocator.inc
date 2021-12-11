@@ -76,12 +76,6 @@
       to never let them be eliminated by other sounds. }
     function AllocateSound(const Priority: Single): TInternalSoundSource;
 
-    { All allocated (not necessarily used) sources.
-      Accessing this is useful only for debugging tasks,
-      in normal circumstances this is internal.
-      This is @nil when ContextOpen was not yet called. }
-    //property AllocatedSources: TInternalSoundSourceList read FAllocatedSources;
-
     { Stop all the sources currently playing. Especially useful since
       you have to stop a source before releasing it's associated buffer. }
     procedure StopAllSources;
@@ -156,6 +150,12 @@
       read FMaxAllocatedSources write SetMaxAllocatedSources
       default DefaultMaxAllocatedSources;
     { @groupEnd }
+
+    { All allocated (not necessarily used) sources.
+      Accessing this is useful only for debugging tasks,
+      in normal circumstances this is internal.
+      This is @nil when ContextOpen was not yet called. }
+    property InternalAllocatedSources: TInternalSoundSourceList read FAllocatedSources;
   end;
 
 {$endif read_interface}

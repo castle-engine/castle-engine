@@ -25,11 +25,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TNurbsPatchSurfaceNode ----------------------------------------------- }
+
+class function TNurbsPatchSurfaceNode.ClassX3DType: String;
+begin
+  Result := 'NurbsPatchSurface';
+end;
+
+procedure TNurbsPatchSurfaceNode.CreateNode;
+begin
+  inherited;
+end;
 
 {$endif read_implementation}

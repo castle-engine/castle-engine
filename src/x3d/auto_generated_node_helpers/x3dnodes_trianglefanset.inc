@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdFanCount: TMFInt32;
+    { X3D field "fanCount". } { }
+    public property FdFanCount: TMFInt32 read FFdFanCount;
     { Set X3D field "fanCount". } { }
     procedure SetFanCount(const Value: array of LongInt);
     { Set X3D field "fanCount". } { }
@@ -45,6 +51,20 @@ end;
 procedure TTriangleFanSetNode.SetFanCount(const Value: TLongIntList);
 begin
   FdFanCount.Send(Value);
+end;
+
+class function TTriangleFanSetNode.ClassX3DType: String;
+begin
+  Result := 'TriangleFanSet';
+end;
+
+procedure TTriangleFanSetNode.CreateNode;
+begin
+  inherited;
+
+  FFdFanCount := TMFInt32.Create(Self, True, 'fanCount', []);
+   FdFanCount.ChangeAlways := chGeometry;
+  AddField(FFdFanCount);
 end;
 
 {$endif read_implementation}

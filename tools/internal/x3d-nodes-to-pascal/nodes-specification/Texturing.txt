@@ -48,20 +48,26 @@ ImageTexture : X3DTexture2DNode, X3DUrlObject {
 }
 
 MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
+  auto-generate-more: true
   SFString [in,out] description       ""
   SFBool   [in,out] loop              FALSE
   SFTime   [in,out] pauseTime         0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   SFTime   [in,out] resumeTime        0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   SFFloat  [in,out] speed             1.0
     range: (-Inf,Inf)
   SFTime   [in,out] startTime         0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   SFTime   [in,out] stopTime          0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   MFString [in,out] url               []
     range: [URI]
+    change: chTextureImage
   SFBool   []       flipVertically    FALSE
   SFTime   [out]    duration_changed
   SFTime   [out]    elapsedTime
@@ -70,15 +76,22 @@ MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
 }
 
 MultiTexture : X3DTextureNode {
+  auto-generate-more: true
   SFFloat  [in,out] alpha    1
     range: [0,1]
+    change: chTextureRendererProperties
   SFColor  [in,out] color    1 1 1
     range: [0,1]
+    change: chTextureRendererProperties
   MFString [in,out] function []
+    change: chTextureRendererProperties
   MFString [in,out] mode     []
+    change: chTextureRendererProperties
   MFString [in,out] source   []
+    change: chTextureRendererProperties
   MFNode   [in,out] texture  []
     range: X3DSingleTextureNode
+    change: chTextureRendererProperties
 }
 
 MultiTextureCoordinate : X3DTextureCoordinateNode {

@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,90 +14,10 @@
 }
 
 {$ifdef read_interface}
-  TInternalTimeDependentHandler = class;
-
-  { Interface from which all time-dependent nodes are derived. }
-  IAbstractTimeDependentNode = interface(IAbstractChildNode)
-  ['{19D68914-F2BA-4CFA-90A1-F561DB264678}']
-
-    function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
-    property InternalTimeDependentHandler: TInternalTimeDependentHandler
-      read GetInternalTimeDependentHandler;
-
-    { Final length (in seconds) of this animation.
-      For a looping animation, this is the time it takes to make a single cycle.
-      Should always be > 0.
-
-      This is not called @italic("duration"), as that word is reserved to mean
-      @italic("unscaled time length") for X3D AudioClip and MovieTexture nodes.
-      The final length, returned here, is the AudioClip.duration divided
-      by AudioClip.pitch, or MovieTexture.duration / MovieTexture.speed.
-
-      On TTimeSensorNode descendants, you can also get and set this
-      by the property @link(TTimeSensorNode.CycleInterval). }
-    function GetCycleInterval: TFloatTime;
-
-    { Is the sensor enabled and running (ignoring whether it is paused).
-
-      For a precise (and complicated:) specification of how this behaves,
-      see the X3D TimeSensor.isActive specification at
-      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
-    function IsActive: boolean;
-
-    { Is the sensor paused.
-
-      For a precise (and complicated:) specification of how this behaves,
-      see the X3D TimeSensor.isPaused specification at
-      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
-    function IsPaused: boolean;
-
-    { Time in seconds since the sensor was activated and running,
-      not counting any time while in pause state.
-
-      For non-looping animations, note that the sensor automatically stops
-      when the animation finishes, so ElapsedTime will not grow beyond
-      the "duration". If you want to observe when the animation ended,
-      you probably do not want to use this property. Instead
-      observe when @link(IsActive) changed to @false, by registering
-      a callback on @code(EventIsActive.AddNotification).
-      See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
-      Or, even better (simpler and more reliable) register a stop
-      notification using @link(TPlayAnimationParameters.StopNotification) with
-      @link(TCastleSceneCore.PlayAnimation).
-
-      BTW, the @italic("duration") mentioned above is usually just
-      @link(GetCycleInterval), but sometimes it's a @link(GetCycleInterval)
-      multiplied by some scaling factor, like in case of @link(TAudioClipNode)
-      or @link(TMovieTextureNode)).
-
-      For a precise (and more complicated) specification of how this behaves,
-      see the X3D TimeSensor.elapsedTime specification at
-      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
-    function ElapsedTime: TFloatTime;
-
-    { Time in seconds since the sensor was activated and running,
-      in this cycle,
-      not counting any time while in pause state.
-
-      This is like ike @link(ElapsedTime), but counting only the current cycle.
-      When @link(GetCycleInterval) = 0, this is always 0.
-      When @link(GetCycleInterval) <> 0, this is always >= 0 and < CycleInterval . }
-    function ElapsedTimeInCycle: TFloatTime;
-  end;
-
   TTimeFunction = function: TFloatTime of object;
 
-  { Common helper for all X3DTimeDependentNode descendants.
-    This includes things descending from interface IAbstractTimeDependentNode,
-    in particular (but not only) descending from class
-    TAbstractTimeDependentNode.
-
-    It would be cleaner to have Node declared as IAbstractTimeDependentNode,
-    and have IAbstractTimeDependentNode contain common fields.
-    Then a lot of fields of this class would not be needed, as they
-    would be accessible as IAbstractTimeDependentNode fields.
-    TODO: maybe in the future. }
-  TInternalTimeDependentHandler = class
+  { Functionality of all time-dependent nodes. }
+  TTimeDependentFunctionality = class(TNodeFunctionality)
   strict private
     FIsActive: boolean;
     FIsPaused: boolean;
@@ -107,10 +27,10 @@
     procedure SetIsActive(const Value: boolean);
     procedure SetIsPaused(const Value: boolean);
     procedure SetElapsedTime(const Value: TFloatTime);
-  public
-    Node: TX3DNode;
-
-    OnCycleInterval: TTimeFunction;
+  private
+    { These should be set by node classes instantiating TTimeDependentFunctionality.
+      TODO: Should be solved cleaner, by abstract methods and then
+      TTimeDependentFunctionality descendants. }
 
     FdLoop: TSFBool;
     FdPauseTime: TSFTime;
@@ -126,28 +46,72 @@
     { May be @nil if node doesn't have a "cycleTime" event. }
     EventCycleTime: TSFTimeEvent;
 
+    OnCycleInterval: TTimeFunction;
+  public
     { Propagate this to all send events, to make animation fade-in/out. }
     PartialSend: TPartialSend;
 
-    { Cycle interval for this time-dependent node. }
+    { Final duration (in seconds) of this animation.
+      For a looping animation, this is the time it takes to make a single cycle.
+      Should always be > 0.
+
+      The final length, returned here, is
+
+      @unorderedList(
+        @item(In case of TAudioClipNode: sound duration divided by @link(TAudioClipNode.Pitch).)
+
+        @item(In case of TMovieTextureNode: movie duration divided by @link(MovieTexture.Speed).)
+
+        @item(In case of TTimeSensorNode: just @link(TTimeSensorNode.CycleInterval).)
+      ) }
     function CycleInterval: TFloatTime;
 
     { Is the sensor enabled and running (ignoring whether it is paused).
+
+      For a precise specification of how this behaves,
+      see the X3D TimeSensor.isActive specification at
+      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor
+
       Changing this automatically causes appropriate events to be generated. }
     property IsActive: boolean read FIsActive write SetIsActive;
 
     { Is the sensor paused.
+
+      For a precise specification of how this behaves,
+      see the X3D TimeSensor.isPaused specification at
+      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor
+
       Changing this automatically causes appropriate events to be generated. }
     property IsPaused: boolean read FIsPaused write SetIsPaused;
 
     { Time in seconds since the sensor was activated and running,
       not counting any time while in pause state.
+
+      For non-looping animations, note that the sensor automatically stops
+      when the animation finishes, so ElapsedTime will not grow beyond
+      the @link(CycleInterval). If you want to observe when the animation ended,
+      you probably do not want to use this property. Instead
+      observe when @link(IsActive) changed to @false, by registering
+      a callback on @code(EventIsActive.AddNotification).
+      See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
+      Or, even better (simpler and more reliable) register a stop
+      notification using @link(TPlayAnimationParameters.StopNotification) with
+      @link(TCastleSceneCore.PlayAnimation).
+
+      For a precise specification of how this behaves,
+      see the X3D TimeSensor.elapsedTime specification at
+      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor
+
       Changing this automatically causes appropriate events to be generated. }
     property ElapsedTime: TFloatTime read FElapsedTime write SetElapsedTime;
 
-    { Like ElapsedTime, but spent in the current cycle.
-      When cycleInterval = 0, this is always 0.
-      When cycleInterval <> 0, this is always >= 0 and < cycleInterval . }
+    { Time in seconds since the sensor was activated and running,
+      in this cycle,
+      not counting any time while in pause state.
+
+      This is like @link(ElapsedTime), but counting only the current cycle.
+      When @link(CycleInterval) = 0, this is always 0.
+      When @link(CycleInterval) <> 0, this is always >= 0 and < CycleInterval . }
     property ElapsedTimeInCycle: TFloatTime read FElapsedTimeInCycle;
 
     { Call this when world time increases.
@@ -175,172 +139,59 @@
       const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
   end;
 
-  { Time field, that ignores it's input event when parent time-dependent node
-    is active. }
-  TSFTimeIgnoreWhenActive = class(TSFTime)
-  strict protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
-      const Time: TX3DTime); override;
-  public
-    NeverIgnore: Cardinal;
-  end;
-
-  { Time field, that ignores it's input event when parent time-dependent node
-    is active and setting to value <= startTime. }
-  TSFStopTime = class(TSFTime)
-  strict protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
-      const Time: TX3DTime); override;
-  private
-    NeverIgnore: Cardinal;
-  end;
-
   { Abstract node from which most (but not all) time-dependent nodes are derived. }
-  TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractTimeDependentNode)
-  strict private
-    FInternalTimeDependentHandler: TInternalTimeDependentHandler;
+  TAbstractTimeDependentNode = class(TAbstractChildNode)
   private
-    { To satify IAbstractTimeDependentNode }
-    function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
-  strict protected
-    { CycleInterval that is always > 0. }
-    function SafeCycleInterval: TFloatTime;
+    FTimeFunctionality: TTimeDependentFunctionality;
+    { X3D rules state that sometimes input of StartTime, StopTime, CycleInterval
+      should be ignored when animation is already running.
+      As it is sometimes more bothersome than helpful, you can temporarily
+      disable this mechanism (that is, @italic(never ignore)) by increasing this field.
+      @exclude }
+    InternalNeverIgnore: Cardinal;
+    function IgnoreWhenActive(const ChangingField: TX3DField; const Event: TX3DEvent;
+      const Value: TX3DField; const Time: TX3DTime): Boolean;
+    function IgnoreStopTime(const ChangingField: TX3DField; const Event: TX3DEvent;
+      const Value: TX3DField; const Time: TX3DTime): Boolean;
   public
-    procedure CreateNode; override;
-    destructor Destroy; override;
-
-    strict private FFdLoop: TSFBool;
-    public property FdLoop: TSFBool read FFdLoop;
-
-    strict private FFdPauseTime: TSFTime;
-    public property FdPauseTime: TSFTime read FFdPauseTime;
-
-    strict private FFdResumeTime: TSFTime;
-    public property FdResumeTime: TSFTime read FFdResumeTime;
-
-    strict private FFdStartTime: TSFTimeIgnoreWhenActive;
-    public property FdStartTime: TSFTimeIgnoreWhenActive read FFdStartTime;
-
-    strict private FFdStopTime: TSFStopTime;
-    public property FdStopTime: TSFStopTime read FFdStopTime;
-
-    { Event out } { }
-    strict private FEventElapsedTime: TSFTimeEvent;
-    public property EventElapsedTime: TSFTimeEvent read FEventElapsedTime;
-
-    { Event out } { }
-    strict private FEventIsActive: TSFBoolEvent;
-    public property EventIsActive: TSFBoolEvent read FEventIsActive;
-
-    { Event out } { }
-    strict private FEventIsPaused: TSFBoolEvent;
-    public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
-
-    { Internal time-dependent logic handler. }
-    property InternalTimeDependentHandler: TInternalTimeDependentHandler
-      read FInternalTimeDependentHandler;
-
-    { Final length (in seconds) of this animation.
-      For a looping animation, this is the time it takes to make a single cycle.
-      Should always be > 0.
-
-      This is not called @italic("duration"), as that word is reserved to mean
-      @italic("unscaled time length") for X3D AudioClip and MovieTexture nodes.
-      The final length, returned here, is the AudioClip.duration divided
-      by AudioClip.pitch, or MovieTexture.duration / MovieTexture.speed.
-
-      On TTimeSensorNode descendants, you can also get and set this
-      by the class helper property @link(TTimeSensorNode.CycleInterval).
-      The name collision is harmless here, as both ways get the same
-      value. }
-    function GetCycleInterval: TFloatTime; virtual; abstract;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
     { Is the sensor enabled and running (ignoring whether it is paused).
 
-      For a precise (and complicated:) specification of how this behaves,
-      see the X3D TimeSensor.isActive specification at
-      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
-    function IsActive: boolean;
+      See @link(TTimeDependentFunctionality.IsActive). }
+    function IsActive: Boolean;
 
     { Is the sensor paused.
 
-      For a precise (and complicated:) specification of how this behaves,
-      see the X3D TimeSensor.isPaused specification at
-      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
-    function IsPaused: boolean;
+      See @link(TTimeDependentFunctionality.IsPaused). }
+    function IsPaused: Boolean;
 
     { Time in seconds since the sensor was activated and running,
       not counting any time while in pause state.
 
-      For non-looping animations, note that the sensor automatically stops
-      when the animation finishes, so ElapsedTime will not grow beyond
-      the "duration". If you want to observe when the animation ended,
-      you probably do not want to use this property. Instead
-      observe when @link(IsActive) changed to @false, by registering
-      a callback on @code(EventIsActive.AddNotification).
-      See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
-
-      BTW, the @italic("duration") mentioned above is usually just
-      @link(GetCycleInterval), but sometimes it's a @link(GetCycleInterval)
-      multiplied by some scaling factor, like in case of @link(TAudioClipNode)
-      or @link(TMovieTextureNode)).
-
-      For a precise (and complicated:) specification of how this behaves,
-      see the X3D TimeSensor.elapsedTime specification at
-      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
+      See @link(TTimeDependentFunctionality.ElapsedTime). }
     function ElapsedTime: TFloatTime;
 
     { Time in seconds since the sensor was activated and running,
       in this cycle,
       not counting any time while in pause state.
 
-      This is like ike @link(ElapsedTime), but counting only the current cycle.
-      When @link(GetCycleInterval) = 0, this is always 0.
-      When @link(GetCycleInterval) <> 0, this is always >= 0 and < CycleInterval . }
+      See @link(TTimeDependentFunctionality.ElapsedTimeInCycle). }
     function ElapsedTimeInCycle: TFloatTime;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dtimedependentnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dtimedependentnode.inc}
   end;
 
   { Generate events as time passes. }
-  TTimeSensorNode = class(TAbstractTimeDependentNode, IAbstractSensorNode)
+  TTimeSensorNode = class(TAbstractTimeDependentNode)
   strict private
     FakingTime: Integer;
     procedure EventElapsedTimeReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-    procedure SetCycleInterval(const Value: TFloatTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+    { CycleInterval that is always > 0. }
+    function SafeCycleInterval: TFloatTime;
   public
-    procedure CreateNode; override;
-
-    class function ClassX3DType: string; override;
-
-    strict private FFdCycleInterval: TSFTimeIgnoreWhenActive;
-    public property FdCycleInterval: TSFTimeIgnoreWhenActive read FFdCycleInterval;
-    function GetCycleInterval: TFloatTime; override;
-    property CycleInterval: TFloatTime read GetCycleInterval write SetCycleInterval;
-
-    { Event out } { }
-    strict private FEventCycleTime: TSFTimeEvent;
-    public property EventCycleTime: TSFTimeEvent read FEventCycleTime;
-
-    { Event out } { }
-    strict private FEventFraction_changed: TSFFloatEvent;
-    public property EventFraction_changed: TSFFloatEvent read FEventFraction_changed;
-
-    { Event out } { }
-    strict private FEventTime: TSFTimeEvent;
-    public property EventTime: TSFTimeEvent read FEventTime;
-
-    strict private FFdEnabled: TSFBool;
-    public property FdEnabled: TSFBool read FFdEnabled;
-
-    strict private FFdDetectAffectedFields: TSFBool;
-    public property FdDetectAffectedFields: TSFBool read FFdDetectAffectedFields;
-
-    strict private FFdFractionIncreasing: TSFBool;
-    public property FdFractionIncreasing: TSFBool read FFdFractionIncreasing;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
     { Send TimeSensor output events, without actually activating the TimeSensor.
 
@@ -414,123 +265,34 @@
     procedure Stop;
     { @groupEnd }
 
-    {$I auto_generated_node_helpers/x3dnodes_timesensor.inc}
+  {$I auto_generated_node_helpers/x3dnodes_timesensor.inc}
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ Field types for startTime/stopTime ----------------------------------------- }
+{ TTimeDependentFunctionality -------------------------------------------------- }
 
-class function TSFTimeIgnoreWhenActive.ExposedEventsFieldClass: TX3DFieldClass;
-begin
-  Result := TSFTime;
-end;
-
-procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
-  Event: TX3DEvent; AValue: TX3DField; const Time: TX3DTime);
-
-  { Is parent node an active X3DTimeDependentNode.
-
-    Doing this inside local procedure to limit lifetime of IAbstractTimeDependentNode,
-    to secure against http://bugs.freepascal.org/view.php?id=10374 }
-  function Ignore: boolean;
-  begin
-    Result :=
-      (NeverIgnore = 0) and
-      (ParentNode <> nil) and
-      Supports(ParentNode, IAbstractTimeDependentNode) and
-      (ParentNode as IAbstractTimeDependentNode).InternalTimeDependentHandler.IsActive;
-  end;
-
-  procedure LogIgnored;
-  var
-    SceneName: string;
-  begin
-    if TX3DNode(ParentNode).Scene <> nil then
-      SceneName := TX3DNode(ParentNode).Scene.Name else
-      SceneName := '<scene-unknown>';
-    WritelnLog('Change Ignored', 'A change of "' + TX3DNode(ParentNode).NiceName + '.' + X3DName + '" field (scene "' + SceneName + '") while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
-  end;
-
-begin
-  if Ignore then
-  begin
-    LogIgnored;
-    Exit;
-  end;
-  inherited;
-end;
-
-class function TSFStopTime.ExposedEventsFieldClass: TX3DFieldClass;
-begin
-  Result := TSFTime;
-end;
-
-procedure TSFStopTime.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
-  const Time: TX3DTime);
-
-  { Is parent node an active X3DTimeDependentNode, and AValue <= startTime.
-
-    Doing this inside local procedure to limit lifetime of IAbstractTimeDependentNode,
-    to secure against http://bugs.freepascal.org/view.php?id=10374 }
-  function Ignore: boolean;
-  var
-    H: TInternalTimeDependentHandler;
-  begin
-    Result :=
-      (NeverIgnore = 0) and
-      (ParentNode <> nil) and
-      Supports(ParentNode, IAbstractTimeDependentNode);
-    if Result then
-    begin
-      H := (ParentNode as IAbstractTimeDependentNode).InternalTimeDependentHandler;
-      Result := H.IsActive and
-        ( (AValue as TSFTime).Value <= H.FdStartTime.Value );
-    end;
-  end;
-
-  procedure LogIgnored;
-  var
-    SceneName: string;
-  begin
-    if TX3DNode(ParentNode).Scene <> nil then
-      SceneName := TX3DNode(ParentNode).Scene.Name else
-      SceneName := '<scene-unknown>';
-    WritelnLog('Change Ignored', 'A change of "' + TX3DNode(ParentNode).NiceName + '.' + X3DName + '" field (scene "' + SceneName + '"), to the value <= startTime, while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
-  end;
-
-begin
-  if Ignore then
-  begin
-    LogIgnored;
-    Exit;
-  end;
-  inherited;
-end;
-
-{ TInternalTimeDependentHandler -------------------------------------------------- }
-
-procedure TInternalTimeDependentHandler.SetIsActive(const Value: boolean);
+procedure TTimeDependentFunctionality.SetIsActive(const Value: boolean);
 begin
   if Value <> FIsActive then
   begin
     FIsActive := Value;
-    EventIsActive.Send(Value, Node.Scene.NextEventTime, PartialSend);
+    EventIsActive.Send(Value, Parent.Scene.NextEventTime, PartialSend);
   end;
 end;
 
-procedure TInternalTimeDependentHandler.SetIsPaused(const Value: boolean);
+procedure TTimeDependentFunctionality.SetIsPaused(const Value: boolean);
 begin
   if Value <> FIsPaused then
   begin
     FIsPaused := Value;
-    EventIsPaused.Send(Value, Node.Scene.NextEventTime, PartialSend);
+    EventIsPaused.Send(Value, Parent.Scene.NextEventTime, PartialSend);
   end;
 end;
 
-procedure TInternalTimeDependentHandler.SetElapsedTime(const Value: TFloatTime);
+procedure TTimeDependentFunctionality.SetElapsedTime(const Value: TFloatTime);
 begin
   if Value <> FElapsedTime then
   begin
@@ -542,7 +304,7 @@ begin
       Otherwise there was a bug when TCastleSceneCore.ResetTime
       (caused by ResetTimeAtLoad) was calling all time handlers
       and in effect changing elapsedTime on all TimeSensors to 0
-      (see TInternalTimeDependentHandler.SetTime implementation). This was
+      (see TTimeDependentFunctionality.SetTime implementation). This was
       (and still is) causing elapsedTime and fraction_changed outputs
       generated even for inactive TimeSensors.
 
@@ -550,17 +312,17 @@ begin
       for next elapsedTime send
       (reproduction: escape_universe game restart.) }
 
-    EventElapsedTime.Send(Value, Node.Scene.NextEventTime, PartialSend);
+    EventElapsedTime.Send(Value, Parent.Scene.NextEventTime, PartialSend);
   end;
 end;
 
-function TInternalTimeDependentHandler.CycleInterval: TFloatTime;
+function TTimeDependentFunctionality.CycleInterval: TFloatTime;
 begin
   Assert(Assigned(OnCycleInterval));
   Result := OnCycleInterval();
 end;
 
-function TInternalTimeDependentHandler.SetTime(
+function TTimeDependentFunctionality.SetTime(
   const NewTime: TFloatTime;
   const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
 
@@ -671,7 +433,7 @@ begin
     causing events (if their values changed). }
 
   { For ResetTime, set time-dependent node properties to default
-    (like after TInternalTimeDependentHandler creation) at the beginning. }
+    (like after TTimeDependentFunctionality creation) at the beginning. }
   if ResetTime then
   begin
     NewIsActive := false;
@@ -838,7 +600,7 @@ begin
     end;
 
     if CycleTimeSend and (EventCycleTime <> nil) then
-      EventCycleTime.Send(CycleTime, Node.Scene.NextEventTime, PartialSend);
+      EventCycleTime.Send(CycleTime, Parent.Scene.NextEventTime, PartialSend);
   end else
   begin
     if not NewIsPaused then
@@ -875,162 +637,102 @@ begin
   {$endif}
 end;
 
-{ VRML/X3D nodes ------------------------------------------------------------- }
+{ TAbstractTimeDependentNode ------------------------------------------------------------- }
 
-procedure TAbstractTimeDependentNode.CreateNode;
+constructor TAbstractTimeDependentNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
 
-  FFdLoop := TSFBool.Create(Self, true, 'loop', false);
-  AddField(FFdLoop);
+  FTimeFunctionality := TTimeDependentFunctionality.Create(Self);
+  FTimeFunctionality.FdLoop := FdLoop;
+  FTimeFunctionality.FdPauseTime := FdPauseTime;
+  FTimeFunctionality.FdResumeTime := FdResumeTime;
+  FTimeFunctionality.FdStartTime := FdStartTime;
+  FTimeFunctionality.FdStopTime := FdStopTime;
+  { descendants should set FTimeFunctionality.FdEnabled }
+  FTimeFunctionality.EventIsActive := EventIsActive;
+  FTimeFunctionality.EventIsPaused := EventIsPaused;
+  FTimeFunctionality.EventElapsedTime := EventElapsedTime;
+  { descendants should set FTimeFunctionality.EventCycleTime }
 
-  FFdPauseTime := TSFTime.Create(Self, true, 'pauseTime', 0);
-   FdPauseTime.ChangeAlways := chTimeStopStart;
-  AddField(FFdPauseTime);
-  { X3D specification comment: (-Inf,Inf) }
+  AddFunctionality(FTimeFunctionality);
 
-  FFdResumeTime := TSFTime.Create(Self, true, 'resumeTime', 0);
-   FdResumeTime.ChangeAlways := chTimeStopStart;
-  AddField(FFdResumeTime);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdStartTime := TSFTimeIgnoreWhenActive.Create(Self, true, 'startTime', 0);
-   FdStartTime.ChangeAlways := chTimeStopStart;
-  AddField(FFdStartTime);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdStopTime := TSFStopTime.Create(Self, true, 'stopTime', 0);
-   FdStopTime.ChangeAlways := chTimeStopStart;
-  AddField(FFdStopTime);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FEventElapsedTime := TSFTimeEvent.Create(Self, 'elapsedTime', false);
-  AddEvent(FEventElapsedTime);
-
-  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  AddEvent(FEventIsActive);
-
-  FEventIsPaused := TSFBoolEvent.Create(Self, 'isPaused', false);
-  AddEvent(FEventIsPaused);
-
-  DefaultContainerField := 'children';
-
-  FInternalTimeDependentHandler := TInternalTimeDependentHandler.Create;
-  FInternalTimeDependentHandler.Node := Self;
-  FInternalTimeDependentHandler.FdLoop := FdLoop;
-  FInternalTimeDependentHandler.FdPauseTime := FdPauseTime;
-  FInternalTimeDependentHandler.FdResumeTime := FdResumeTime;
-  FInternalTimeDependentHandler.FdStartTime := FdStartTime;
-  FInternalTimeDependentHandler.FdStopTime := FdStopTime;
-  { descendants should set FInternalTimeDependentHandler.FdEnabled }
-  FInternalTimeDependentHandler.EventIsActive := EventIsActive;
-  FInternalTimeDependentHandler.EventIsPaused := EventIsPaused;
-  FInternalTimeDependentHandler.EventElapsedTime := EventElapsedTime;
-  { descendants should set FInternalTimeDependentHandler.EventCycleTime }
-  { descendants should override GetCycleInterval }
-  FInternalTimeDependentHandler.OnCycleInterval := {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
+  FdStartTime.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenActive;
+  FdStopTime.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreStopTime;
 end;
 
-destructor TAbstractTimeDependentNode.Destroy;
+function TAbstractTimeDependentNode.IgnoreWhenActive(
+  const ChangingField: TX3DField; const Event: TX3DEvent;
+  const Value: TX3DField; const Time: TX3DTime): Boolean;
 begin
-  FreeAndNil(FInternalTimeDependentHandler);
-  inherited;
+  Result := (InternalNeverIgnore = 0) and FTimeFunctionality.IsActive;
 end;
 
-function TAbstractTimeDependentNode.GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
+function TAbstractTimeDependentNode.IgnoreStopTime(
+  const ChangingField: TX3DField; const Event: TX3DEvent;
+  const Value: TX3DField; const Time: TX3DTime): Boolean;
 begin
-  Result := FInternalTimeDependentHandler;
+  Result := (InternalNeverIgnore = 0) and
+    FTimeFunctionality.IsActive and
+    ( (Value as TSFTime).Value <= FdStartTime.Value );
 end;
 
-function TAbstractTimeDependentNode.SafeCycleInterval: TFloatTime;
+function TAbstractTimeDependentNode.IsActive: Boolean;
 begin
-  Result := GetCycleInterval;
-  if Result <= 0 then
-    Result := 1;
+  Result := FTimeFunctionality.IsActive;
 end;
 
-function TAbstractTimeDependentNode.IsActive: boolean;
+function TAbstractTimeDependentNode.IsPaused: Boolean;
 begin
-  Result := InternalTimeDependentHandler.IsActive;
-end;
-
-function TAbstractTimeDependentNode.IsPaused: boolean;
-begin
-  Result := InternalTimeDependentHandler.IsPaused;
+  Result := FTimeFunctionality.IsPaused;
 end;
 
 function TAbstractTimeDependentNode.ElapsedTime: TFloatTime;
 begin
-  Result := InternalTimeDependentHandler.ElapsedTime;
+  Result := FTimeFunctionality.ElapsedTime;
 end;
 
 function TAbstractTimeDependentNode.ElapsedTimeInCycle: TFloatTime;
 begin
-  Result := InternalTimeDependentHandler.ElapsedTimeInCycle;
+  Result := FTimeFunctionality.ElapsedTimeInCycle;
 end;
 
-procedure TTimeSensorNode.CreateNode;
+{ TTimeSensorNode ------------------------------------------------------------ }
+
+constructor TTimeSensorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
 
-  FFdCycleInterval := TSFTimeIgnoreWhenActive.Create(Self, true, 'cycleInterval', 1);
-  AddField(FFdCycleInterval);
-  { X3D specification comment: (0,Inf) }
-
-  FEventCycleTime := TSFTimeEvent.Create(Self, 'cycleTime', false);
-  AddEvent(FEventCycleTime);
-  { cycleTime_changed name is used e.g. by
-    www.web3d.org/x3d/content/examples/Basic/StudentProjects/WallClock.x3d }
-  FEventCycleTime.AddAlternativeName('cycleTime_changed', 0);
-
-  FEventFraction_changed := TSFFloatEvent.Create(Self, 'fraction_changed', false);
-  AddEvent(FEventFraction_changed);
-
-  FEventTime := TSFTimeEvent.Create(Self, 'time', false);
-  AddEvent(FEventTime);
-
-  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-  AddField(FFdEnabled);
-
-  FFdDetectAffectedFields := TSFBool.Create(Self, false, 'detectAffectedFields', true);
-  AddField(FFdDetectAffectedFields);
-
-  FFdFractionIncreasing := TSFBool.Create(Self, true, 'fractionIncreasing', true);
-  AddField(FFdFractionIncreasing);
-
-  DefaultContainerField := 'children';
-
-  { set InternalTimeDependentHandler }
-  InternalTimeDependentHandler.FdEnabled := FdEnabled;
-  InternalTimeDependentHandler.EventCycleTime := EventCycleTime;
+  { set FTimeFunctionality properties }
+  FTimeFunctionality.FdEnabled := FdEnabled;
+  FTimeFunctionality.EventCycleTime := EventCycleTime;
+  FTimeFunctionality.OnCycleInterval := {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
 
   { On receiving new elapsedTime, we send other continuous events. }
   EventElapsedTime.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventElapsedTimeReceive);
+
+  FdCycleInterval.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenActive;
+
+  { cycleTime_changed name is used e.g. by
+    www.web3d.org/x3d/content/examples/Basic/StudentProjects/WallClock.x3d }
+  FEventCycleTime.AddAlternativeName('cycleTime_changed', 0);
 end;
 
-function TTimeSensorNode.GetCycleInterval: TFloatTime;
+function TTimeSensorNode.SafeCycleInterval: TFloatTime;
 begin
-  Result := FdCycleInterval.Value;
-end;
-
-procedure TTimeSensorNode.SetCycleInterval(const Value: TFloatTime);
-begin
-  FdCycleInterval.Send(Value);
-end;
-
-class function TTimeSensorNode.ClassX3DType: string;
-begin
-  Result := 'TimeSensor';
+  Result := CycleInterval;
+  if Result <= 0 then
+    Result := 1;
 end;
 
 procedure TTimeSensorNode.EventElapsedTimeReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   Fraction: Single;
 begin
   if (FakingTime = 0) and FdEnabled.Value then
   begin
-    Fraction := InternalTimeDependentHandler.ElapsedTimeInCycle / SafeCycleInterval;
+    Fraction := FTimeFunctionality.ElapsedTimeInCycle / SafeCycleInterval;
     if (Fraction = 0) and (Time.Seconds > FdStartTime.Value) then Fraction := 1;
     if not FdFractionIncreasing.Value then
       Fraction := 1 - Fraction;
@@ -1126,13 +828,13 @@ begin
     - Also, setting startTime while time-dependent node is active is ignored,
       X3D spec requires this, see our TSFTimeIgnoreWhenActive implementation.
       (bug reproduction: escape_universe, meteorite_1 dying).
-      Although we remove this problem by NeverIgnore hack.
+      Although we remove this problem by InternalNeverIgnore hack.
     - (Obsolete argument:) Also, it's bad to unconditionally set "Loop" value.
       If user is using paDefault for animation, (s)he expects
       that PlayAnimation doesn't change it ever.
 
     So it's simpest and reliable to just set enabled=false on old TimeSensor.
-    TInternalTimeDependentHandler.SetTime then guarantees it will immediately stop
+    TTimeDependentFunctionality.SetTime then guarantees it will immediately stop
     sending elapsedTime events. }
 
   Enabled := false;
@@ -1150,16 +852,14 @@ begin
   { Disable the "ignore" mechanism, otherwise
     setting startTime on a running TimeSensor would be ignored.
     Testcase: e.g. mana animation on dark_dragon and dragon_squash. }
-  Inc(FdStopTime.NeverIgnore);
-  Inc(FdStartTime.NeverIgnore);
+  Inc(InternalNeverIgnore);
 
   { Assign StopTime and StartTime. }
   StopTime := 0;
   StartTime := Scene.Time - InitialTime;
 
   { Enable the "ignore" mechanism again, to follow X3D spec. }
-  Dec(FdStopTime.NeverIgnore);
-  Dec(FdStartTime.NeverIgnore);
+  Dec(InternalNeverIgnore);
 end;
 
 procedure RegisterTimeNodes;

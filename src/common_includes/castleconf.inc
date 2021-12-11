@@ -256,7 +256,7 @@
     {$ifdef CASTLE_NINTENDO_SWITCH}
       {$define CastleGL := CastleInternalNxGLES20}
     {$else}
-      {$define CastleGL := CastleGLES20}
+      {$define CastleGL := CastleGLES}
     {$endif}
   {$endif}
 
@@ -328,23 +328,29 @@
 
 { PNG ------------------------------------------------------------------------ }
 
-{ There are 3 ways to read/write the PNG format:
+{ There are few ways to read/write the PNG format:
 
-  1.FpImage (fcl-image units):
+  1.Pascal-only solutions.
 
-    Used if neither CASTLE_PNG_DYNAMIC nor CASTLE_PNG_STATIC are defined
-    (you can force it by CASTLE_DISABLE_LIBPNG).
-    Or when CASTLE_PNG_DYNAMIC is defined but libpng cannot be loaded.
+    These mean:
+    - FpImage (fcl-image units) with FPC
+    - PngImage with Delphi
 
-    Then we use PNG implementation inside fcl-image units family,
-    that does not depend on libpng API.
-    This is the simplest option to use, since the PNG support is completely
+    These are used:
+    - if neither CASTLE_PNG_DYNAMIC nor CASTLE_PNG_STATIC are defined.
+    - or CASTLE_DISABLE_LIBPNG is defined (which forcefully undefines
+      CASTLE_PNG_DYNAMIC and CASTLE_PNG_STATIC).
+    - or when CASTLE_PNG_DYNAMIC is defined but libpng cannot be loaded
+      at runtime.
+
+    This option is a reliable fallback.
+    It is the simplest to use, since the PNG support is completely
     contained in Pascal code, so you don't need to distribute anything,
     and it works on all platforms.
 
     The downside is that it is slow.
     Using libpng (see below option) results in drastically faster PNG loading
-    (even 4x times).
+    (4x speedup was observed on desktops; 10x speedup was observed on Android).
 
   2.If CASTLE_PNG_DYNAMIC is defined and libpng exists,
     we use libpng from a dynamic library (.so or .dll).
@@ -360,7 +366,10 @@
       See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
       It will also be placed alongside your .exe when you do "castle-engine compile ...".
 
-    - For macOS, see https://castle-engine.io/macosx_requirements.php .
+    - On macOS, see https://castle-engine.io/macosx_requirements.php .
+
+    - On Android, we have a "png" service with libpng included.
+      See tools/build-tool/data/android/integrated-services/png/README.md .
 
   3.If CASTLE_PNG_STATIC is defined, we statically link to libpng.
     The presense of static libpng library (libpng.a on Unix) is then
@@ -373,7 +382,7 @@
 
   { On most platforms, try dynamic libpng (will fallback on FpImage at runtime).
     Except on platforms where we know it would not work. }
-  {$if not (defined(CASTLE_IOS) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH))}
+  {$if not (defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH))}
     {$define CASTLE_PNG_DYNAMIC}
   {$endif}
 

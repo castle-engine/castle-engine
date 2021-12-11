@@ -24,7 +24,7 @@ interface
 
 uses
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleVectors, CastleSceneCore, CastleSceneInternalShape,
+  CastleVectors, CastleSceneCore, CastleSceneInternalShape, CastleRenderContext,
   CastleFrustum, CastleGLShaders, CastleBoxes, CastleTransform;
 
 type
@@ -34,7 +34,9 @@ type
   strict private
     GLInitiliazed: boolean;
     OcclusionBoxState: boolean;
-    SavedCullFace: boolean;
+    SavedDepthBufferUpdate: Boolean;
+    SavedColorChannels: TColorChannels;
+    SavedCullFace: Boolean;
     VboVertex, VboIndex: TGLuint;
     SimplestProgram: TGLSLProgram;
     UniformModelViewProjectionMatrix: TGLSLUniform;
@@ -47,7 +49,7 @@ type
     ModelViewProjectionMatrix: TMatrix4;
     ModelViewProjectionMatrixChanged: boolean;
     procedure GLContextClose;
-    procedure OcclusionBoxStateEnd;
+    procedure OcclusionBoxStateEnd(const RestoreDefaults: Boolean);
   end;
 
   TSimpleOcclusionQueryRenderer = class
@@ -79,7 +81,7 @@ implementation
 
 uses SysUtils,
   CastleClassUtils, CastleInternalShapeOctree, CastleGLUtils,
-  CastleRenderOptions, CastleRenderContext;
+  CastleRenderOptions;
 
 { TOcclusionQueryUtilsRenderer ------------------------------------------------- }
 
@@ -144,7 +146,12 @@ begin
     if not GLInitiliazed then
       GLContextOpen;
 
-    glSetDepthAndColorWriteable(false);
+    SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+    RenderContext.DepthBufferUpdate := false;
+
+    SavedColorChannels := RenderContext.ColorChannels;
+    RenderContext.ColorChannels := [];
+
     SavedCullFace := RenderContext.CullFace;
     RenderContext.CullFace := false;
 
@@ -182,7 +189,7 @@ begin
   end;
 end;
 
-procedure TOcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
+procedure TOcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(const RestoreDefaults: Boolean);
 begin
   if OcclusionBoxState then
   begin
@@ -193,8 +200,17 @@ begin
       {$endif}
     end;
 
-    glSetDepthAndColorWriteable(true);
-    RenderContext.CullFace := SavedCullFace;
+    if RestoreDefaults then
+    begin
+      RenderContext.DepthBufferUpdate := true;
+      RenderContext.ColorChannels := [0..3];
+      RenderContext.CullFace := false;
+    end else
+    begin
+      RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+      RenderContext.ColorChannels := SavedColorChannels;
+      RenderContext.CullFace := SavedCullFace;
+    end;
 
     if SimplestProgram <> nil then
     begin

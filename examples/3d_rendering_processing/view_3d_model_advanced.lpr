@@ -100,7 +100,6 @@ begin
   Scene.ShapeOctreeProgressTitle := 'Building shape octree';
 
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
-  Scene.ProcessEvents := true;
   Viewport.Items.Add(Scene);
   Viewport.Items.MainScene := Scene;
 

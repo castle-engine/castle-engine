@@ -27,13 +27,6 @@ uses Classes,
   This routine is internally used by the @link(LoadNode) to load an Gltf file. }
 function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
-{ Process a list of key and key values to turn linear into step interpolation.
-  This is internal, exposed only for tests. }
-procedure ProcessStepTimeline(const Times: TSingleList;
-  const Values: TVector3List); overload;
-procedure ProcessStepTimeline(const Times: TSingleList;
-  const Values: TVector4List); overload;
-
 implementation
 
 uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
@@ -81,84 +74,6 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
 
   - See https://castle-engine.io/planned_features.php .
 }
-
-{ other utilities ------------------------------------------------------------ }
-
-procedure ProcessStepTimeline(const Times: TSingleList;
-  const Values: TVector3List); overload;
-var
-  C, NewC: SizeInt;
-  I: Integer;
-  TimesPtr: PSingle;
-  ValuesPtr: PVector3;
-begin
-  if Times.Count > 1 then
-  begin
-    C := Times.Count;
-    if C <> Values.Count then
-    begin
-      WritelnWarning('"Step" timeline has different number of keys than key values');
-      Exit;
-    end;
-
-    NewC := (C - 1) * 2 + 1;
-
-    Times.Count := NewC;
-    Values.Count := NewC;
-
-    TimesPtr := PSingle(Times.List);
-    ValuesPtr := PVector3(Values.List);
-
-    // fill new values, going downward, to not overwrite the useful values
-    ValuesPtr[NewC - 1] := ValuesPtr[C- 1];
-    TimesPtr[NewC - 1] := TimesPtr[C- 1];
-    for I := C - 2 downto 0 do
-    begin
-      ValuesPtr[I * 2 + 1] := ValuesPtr[I];
-      ValuesPtr[I * 2    ] := ValuesPtr[I];
-      TimesPtr [I * 2 + 1] := TimesPtr [I + 1];
-      TimesPtr [I * 2    ] := TimesPtr [I];
-    end;
-  end;
-end;
-
-procedure ProcessStepTimeline(const Times: TSingleList;
-  const Values: TVector4List); overload;
-var
-  C, NewC: SizeInt;
-  I: Integer;
-  TimesPtr: PSingle;
-  ValuesPtr: PVector4;
-begin
-  if Times.Count > 1 then
-  begin
-    C := Times.Count;
-    if C <> Values.Count then
-    begin
-      WritelnWarning('"Step" timeline has different number of keys than key values');
-      Exit;
-    end;
-
-    NewC := (C - 1) * 2 + 1;
-
-    Times.Count := NewC;
-    Values.Count := NewC;
-
-    TimesPtr := PSingle(Times.List);
-    ValuesPtr := PVector4(Values.List);
-
-    // fill new values, going downward, to not overwrite the useful values
-    ValuesPtr[NewC - 1] := ValuesPtr[C- 1];
-    TimesPtr[NewC - 1] := TimesPtr[C- 1];
-    for I := C - 2 downto 0 do
-    begin
-      ValuesPtr[I * 2 + 1] := ValuesPtr[I];
-      ValuesPtr[I * 2    ] := ValuesPtr[I];
-      TimesPtr [I * 2 + 1] := TimesPtr [I + 1];
-      TimesPtr [I * 2    ] := TimesPtr [I];
-    end;
-  end;
-end;
 
 { Convert simple types ------------------------------------------------------- }
 
@@ -1100,6 +1015,20 @@ var
     end;
   end;
 
+  function FixTextureUrl(const Url: String): String;
+  begin
+    Result := Url;
+
+    { Workaround https://github.com/castle-engine/castle-engine/issues/339 }
+    if Pos('\', Result) <> 0 then
+    begin
+      WritelnWarning('URL in glTF contains a backslash "\", assuming that slash was meant "/": "%s"', [
+        Result
+      ]);
+      StringReplaceAllVar(Result, '\', '/');
+    end;
+  end;
+
   procedure ReadTexture(const GltfTextureAtMaterial: TTexture;
     out Texture: TAbstractX3DTexture2DNode; out TexMapping: String);
   var
@@ -1126,13 +1055,14 @@ var
             if FfmpegVideoMimeType(URIMimeType(GltfImage.URI), false) then
             begin
               Texture := TMovieTextureNode.Create('', BaseUrl);
-              TMovieTextureNode(Texture).SetUrl([GltfImage.URI]);
-              TMovieTextureNode(Texture).FlipVertically := true;
+              TMovieTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.URI)]);
+              if CastleX3dExtensions then
+                TMovieTextureNode(Texture).FlipVertically := true;
               TMovieTextureNode(Texture).Loop := true;
             end else
             begin
               Texture := TImageTextureNode.Create('', BaseUrl);
-              TImageTextureNode(Texture).SetUrl([GltfImage.URI]);
+              TImageTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.URI)]);
 
               { glTF specification defines (0,0) texture coord to be
                 at top-left corner, while X3D and OpenGL and OpenGLES expect it be
@@ -1144,7 +1074,8 @@ var
                 So we flip the textures.
                 This way we can use original texture coordinates from glTF
                 file (no need to process them, by doing "y := 1 - y"). }
-              TImageTextureNode(Texture).FlipVertically := true;
+              if CastleX3dExtensions then
+                TImageTextureNode(Texture).FlipVertically := true;
             end;
           end else
           if GltfImage.BufferView >= 0 then
@@ -1180,7 +1111,8 @@ var
               { Same reason as for TImageTextureNode.FlipVertically above:
                 glTF specification defines (0,0) texture coord to be
                 at top-left corner. }
-              TPixelTextureNode(Texture).FdImage.Value.FlipVertical;
+              if CastleX3dExtensions then
+                TPixelTextureNode(Texture).FdImage.Value.FlipVertical;
             finally FreeAndNil(Stream) end;
           end;
         end;
@@ -1568,6 +1500,14 @@ var
     MultiTexCoord.FdTexCoord.Add(SingleTexCoord);
   end;
 
+  procedure FlipTextureCoordinates(const TexCoord: TVector2SingleList);
+  var
+    I: Integer;
+  begin
+    for I := 0 to TexCoord.Count - 1 do
+      TexCoord.List^[I].Data[1] := 1  - TexCoord.List^[I].Data[1];
+  end;
+
   procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive;
     const ParentGroup: TGroupNode);
   var
@@ -1645,6 +1585,11 @@ var
         TexCoord := TTextureCoordinateNode.Create;
         TexCoord.Mapping := AttributeName;
         AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
+        { We prefer to flip the texture, using TImageTextureNode.FlipVertically,
+          and not make a (slower) flipping of texture coordinates.
+          But when CastleX3dExtensions = false, we have no other choice right now but to flip them. }
+        if not CastleX3dExtensions then
+          FlipTextureCoordinates(TexCoord.FdPoint.Items);
         SetMultiTextureCoordinate(Geometry, TexCoord);
       end else
       if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then
@@ -1672,13 +1617,16 @@ var
       end else
       if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
       begin
-        Tangent := TTangentNode.Create;
-        Tangent4D := TVector4List.Create;
-        try
-          AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
-          Tangent.SetVector4D(Tangent4D);
-        finally FreeAndNil(Tangent4D) end;
-        TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
+        if CastleX3dExtensions then
+        begin
+          Tangent := TTangentNode.Create;
+          Tangent4D := TVector4List.Create;
+          try
+            AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
+            Tangent.SetVector4D(Tangent4D);
+          finally FreeAndNil(Tangent4D) end;
+          TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
+        end;
       end else
       if (AttributeName = 'JOINTS_0') then
       begin
@@ -1708,7 +1656,8 @@ var
     // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
     Geometry.Solid := not Appearance.DoubleSided;
 
-    Shape.GenerateTangents;
+    if CastleX3dExtensions then
+      Shape.GenerateTangents;
 
     MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
     case MetadataCollision of
@@ -1755,7 +1704,8 @@ var
     begin
       OrthoViewpoint := TOrthoViewpointNode.Create;
       OrthoViewpoint.X3DName := Camera.Name;
-      OrthoViewpoint.GravityTransform := false;
+      if CastleX3dExtensions then
+        OrthoViewpoint.GravityTransform := false;
       ParentGroup.AddChildren(OrthoViewpoint);
 
       ReadMetadata(Camera.Extras, OrthoViewpoint);
@@ -1765,7 +1715,8 @@ var
       Viewpoint.X3DName := Camera.Name;
       if Camera.Perspective.YFov <> 0 then
         Viewpoint.FieldOfView := Camera.Perspective.YFov / 2;
-      Viewpoint.GravityTransform := false;
+      if CastleX3dExtensions then
+        Viewpoint.GravityTransform := false;
       ParentGroup.AddChildren(Viewpoint);
 
       ReadMetadata(Camera.Extras, Viewpoint);
@@ -1951,21 +1902,7 @@ var
     case Sampler.Interpolation of
       TPasGLTF.TAnimation.TSampler.TSamplerType.Linear: ; // nothing to do
       TPasGLTF.TAnimation.TSampler.TSamplerType.Step:
-        begin
-          case Path of
-            gsTranslation, gsScale:
-              ProcessStepTimeline(
-                InterpolatePosition.FdKey.Items,
-                InterpolatePosition.FdKeyValue.Items);
-            gsRotation:
-              ProcessStepTimeline(
-                InterpolateOrientation.FdKey.Items,
-                InterpolateOrientation.FdKeyValue.Items);
-            {$ifndef COMPILER_CASE_ANALYSIS}
-            else raise EInternalError.Create('ReadSampler - Path?');
-            {$endif}
-          end;
-        end;
+        Interpolator.Interpolation := inStep;
       TPasGLTF.TAnimation.TSampler.TSamplerType.CubicSpline:
         begin
           // May spam too much. Assume that our current approximation is good enough.

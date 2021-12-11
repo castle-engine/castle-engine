@@ -26,14 +26,32 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_fraction: TSFFloatEvent;
+    { X3D in event "set_fraction". } { }
+    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
+
+    strict private FFdEaseInEaseOut: TMFVec2f;
+    { X3D field "easeInEaseOut". } { }
+    public property FdEaseInEaseOut: TMFVec2f read FFdEaseInEaseOut;
     { Set X3D field "easeInEaseOut". } { }
     procedure SetEaseInEaseOut(const Value: array of TVector2);
     { Set X3D field "easeInEaseOut". } { }
     procedure SetEaseInEaseOut(const Value: TVector2List);
+
+    strict private FFdKey: TMFFloat;
+    { X3D field "key". } { }
+    public property FdKey: TMFFloat read FFdKey;
     { Set X3D field "key". } { }
     procedure SetKey(const Value: array of Single);
     { Set X3D field "key". } { }
     procedure SetKey(const Value: TSingleList);
+
+    strict private FEventModifiedFraction_changed: TSFFloatEvent;
+    { X3D out event "modifiedFraction_changed". } { }
+    public property EventModifiedFraction_changed: TSFFloatEvent read FEventModifiedFraction_changed;
 
 {$endif read_interface}
 
@@ -59,6 +77,30 @@ end;
 procedure TEaseInEaseOutNode.SetKey(const Value: TSingleList);
 begin
   FdKey.Send(Value);
+end;
+
+class function TEaseInEaseOutNode.ClassX3DType: String;
+begin
+  Result := 'EaseInEaseOut';
+end;
+
+procedure TEaseInEaseOutNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
+  AddEvent(FEventSet_fraction);
+
+  FFdEaseInEaseOut := TMFVec2f.Create(Self, True, 'easeInEaseOut', []);
+   FdEaseInEaseOut.ChangeAlways := chNone;
+  AddField(FFdEaseInEaseOut);
+
+  FFdKey := TMFFloat.Create(Self, True, 'key', []);
+   FdKey.ChangeAlways := chNone;
+  AddField(FFdKey);
+
+  FEventModifiedFraction_changed := TSFFloatEvent.Create(Self, 'modifiedFraction_changed', false);
+  AddEvent(FEventModifiedFraction_changed);
 end;
 
 {$endif read_implementation}

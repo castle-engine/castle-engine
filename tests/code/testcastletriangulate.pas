@@ -32,7 +32,6 @@ type
     Vertexes: PVector3;
     CountVertexes: Integer;
     procedure Face(const Tri: TVector3Integer);
-    procedure OnWarningRaiseException(const Category, S: string);
   published
     procedure TestIndexedConcavePolygonNormal;
     procedure TestTriangulateFace;
@@ -41,11 +40,6 @@ type
 implementation
 
 uses CastleStringUtils, CastleUtils, CastleLog, CastleApplicationProperties;
-
-procedure TTestCastleTriangulate.OnWarningRaiseException(const Category, S: string);
-begin
-  raise Exception.CreateFmt('CastleTriangulate made warning: %s: %s', [Category, S]);
-end;
 
 procedure TTestCastleTriangulate.TestIndexedConcavePolygonNormal;
 const

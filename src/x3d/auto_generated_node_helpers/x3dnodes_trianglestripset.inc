@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdStripCount: TMFInt32;
+    { X3D field "stripCount". } { }
+    public property FdStripCount: TMFInt32 read FFdStripCount;
     { Set X3D field "stripCount". } { }
     procedure SetStripCount(const Value: array of LongInt);
     { Set X3D field "stripCount". } { }
@@ -45,6 +51,20 @@ end;
 procedure TTriangleStripSetNode.SetStripCount(const Value: TLongIntList);
 begin
   FdStripCount.Send(Value);
+end;
+
+class function TTriangleStripSetNode.ClassX3DType: String;
+begin
+  Result := 'TriangleStripSet';
+end;
+
+procedure TTriangleStripSetNode.CreateNode;
+begin
+  inherited;
+
+  FFdStripCount := TMFInt32.Create(Self, True, 'stripCount', []);
+   FdStripCount.ChangeAlways := chGeometry;
+  AddField(FFdStripCount);
 end;
 
 {$endif read_implementation}

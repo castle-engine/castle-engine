@@ -25,11 +25,31 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventIsActive: TSFBoolEvent;
+    { X3D out event "isActive". } { }
+    public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractFollowerNode ----------------------------------------------- }
+
+class function TAbstractFollowerNode.ClassX3DType: String;
+begin
+  Result := 'X3DFollowerNode';
+end;
+
+procedure TAbstractFollowerNode.CreateNode;
+begin
+  inherited;
+
+  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
+  AddEvent(FEventIsActive);
+end;
 
 {$endif read_implementation}
