@@ -34,7 +34,8 @@ uses
   CastleURIUtils, CastleXMLUtils, CastleImages, CastleDataUri,
   CastleDownload, CastleInternalSoundFile, CastleSoundBase,
   { units specific to this project }
-  CastleAssertions;
+  CastleAssertions,
+  TestFpJsonRTTI, TestFpJson, TestCastleConfig, TestCastleSerialization;
 
 procedure TestLog;
 begin
@@ -271,6 +272,14 @@ begin
   TestTypeSizes;
   TestDataUri;
   TestFormatNameCounter;
+
+  TestFpJson1;
+  // simpledemo form fcl-json examples
+  TestFpJson2;
+
+  TestRTTI;
+  TestRTTICastle;
+  TestCastleConfig1;
 
   // timer test
   Writeln('This was done in ', TimerSeconds(Timer, TimeStart):1:2, ' seconds');
