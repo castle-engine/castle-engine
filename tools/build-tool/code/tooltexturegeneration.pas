@@ -279,7 +279,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
       ToolName := 'astcenc-sse2'; // https://github.com/ARM-software/astc-encoder says this will always work on a 64-bit processor
       //ToolName := 'astcenc-none'; // I have no idea what is it
       {$if ((FPC_VERSION = 3) and (FPC_RELEASE >= 3)) or (FPC_VERSION > 3)}
-      if SSE41Support then
+      if SSE41Support and POPCNTSupport then
         ToolName := 'astcenc-sse4.1';
       if AVX2Support and SSE42Support and POPCNTSupport and F16CSupport then
         ToolName := 'astcenc-avx2';
