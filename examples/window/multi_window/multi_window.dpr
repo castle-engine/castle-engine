@@ -44,7 +44,7 @@ procedure TText.Render;
 begin
   inherited;
   DrawRectangle(ParentRect, DarkColor);
-  UIFont.Print(10, 10, LightColor, Text);
+  FallbackFont.Print(10, 10, LightColor, Text);
 end;
 
 function TText.Press(const Event: TInputPressRelease): boolean;

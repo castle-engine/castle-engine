@@ -22,7 +22,7 @@ program drawing_modes_test;
 
 uses Classes, SysUtils, TypInfo,
   CastleWindow, CastleImages, CastleFilesUtils, CastleControls, CastleUIControls,
-  CastleColors, CastleStringUtils;
+  CastleColors, CastleStringUtils, CastleUtils;
 
 type
   TSetOfImages = class(TComponent)
@@ -155,7 +155,7 @@ begin
     B.Anchor(hpRight, -20);
     B.Anchor(vpBottom, 20 + Ord(DrawMode) * 50);
     B.Tag := Ord(DrawMode); // pass DrawMode to ChangeModeClick in the Tag
-    B.OnClick := @SetOfImages.ChangeModeClick;
+    B.OnClick := {$ifdef FPC}@{$endif} SetOfImages.ChangeModeClick;
     Background.InsertFront(B);
   end;
 end;

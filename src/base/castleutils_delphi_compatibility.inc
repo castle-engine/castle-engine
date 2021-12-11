@@ -194,6 +194,9 @@ var pc,pcc,lastpc : pchar;
     Found         : Boolean;
     sc            : sizeint;
 begin
+  if S = '' then
+    Exit; // early exit, rest of code assumes S is not empty, doing CompStr[1]
+
   sc := length(OldPattern);
   if sc <> length(NewPattern) then
     raise exception.Create('Amount of search and replace strings don''t match');

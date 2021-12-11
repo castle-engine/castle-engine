@@ -15,8 +15,10 @@
 
 { Use Window.Container.RenderControl to render various scenes to TDrawableImage. }
 
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
+
 uses SysUtils,
-  CastleWindow, CastleScene, CastleVectors,
+  CastleWindow, CastleScene, CastleVectors, CastleLog,
   CastleFilesUtils, CastleImages, CastleRectangles, CastleGLImages,
   CastleViewport, CastleURIUtils;
 
@@ -66,7 +68,7 @@ begin
     try
       ImageUrl := ChangeURIExt(ExtractURIName(Url), '.png');
       SaveImage(DestImage, ImageUrl);
-      Writeln('Saved ', ImageUrl);
+      WritelnLog('Saved ', ImageUrl);
     finally FreeAndNil(DestImage) end;
   end;
 end;

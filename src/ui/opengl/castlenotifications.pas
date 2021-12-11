@@ -136,7 +136,8 @@ type
       the notifications look). This property determines how often we do it.
       0 means to not do it. }
     property DesignTestMessagesInterval: Single
-      read FDesignTestMessagesInterval write FDesignTestMessagesInterval default 1;
+      read FDesignTestMessagesInterval write FDesignTestMessagesInterval
+      {$ifdef FPC}default 1{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}

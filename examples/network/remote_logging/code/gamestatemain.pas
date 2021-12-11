@@ -65,7 +65,7 @@ begin
   Notifications := DesignedComponent('Notifications') as TCastleNotifications;
   ButtonSendLog := DesignedComponent('ButtonSendLog') as TCastleButton;
 
-  ButtonSendLog.OnClick := @ClickSendLog;
+  ButtonSendLog.OnClick := {$ifdef FPC}@{$endif} ClickSendLog;
 
   LogNotifications := Notifications;
 end;

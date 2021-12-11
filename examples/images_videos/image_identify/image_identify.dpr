@@ -45,8 +45,8 @@ begin
     try
       AlphaChannel := AlphaToString[Img.AlphaChannel];
       case Img.AlphaChannel of
-        acTest    : AlphaChannel += ' (only fully transparent / fully opaque parts)';
-        acBlending: AlphaChannel += ' (partially transparent parts)';
+        acTest    : AlphaChannel := AlphaChannel + ' (only fully transparent / fully opaque parts)';
+        acBlending: AlphaChannel := AlphaChannel + ' (partially transparent parts)';
       end;
 
       Writeln(Parameters[I], ': ', Img.Width, ' x ', Img.Height,

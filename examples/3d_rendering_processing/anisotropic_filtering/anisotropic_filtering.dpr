@@ -48,7 +48,10 @@ end;
 
 procedure SetAnisotropicFiltering(const Node: TX3DRootNode);
 begin
-  Node.EnumerateNodes(TImageTextureNode, @TNodeHandler(nil).HandleImageTextureNode, false);
+  Node.EnumerateNodes(TImageTextureNode,
+    // TODO: This will look more sane if we remake example to use UI state
+    {$ifdef FPC}@{$endif} TNodeHandler {$ifdef FPC}(nil){$endif}.
+    HandleImageTextureNode, false);
 end;
 
 var

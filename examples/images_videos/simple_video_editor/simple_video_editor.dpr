@@ -62,7 +62,7 @@ const
     try
       S := Format('Video time: %f', [Time]);
       if not TimePlaying then
-        S += ' (paused)';
+        S := S + ' (paused)';
       Strs.Append(S);
 
       if Video.Loaded then
@@ -74,8 +74,8 @@ const
       end else
         Strs.Append('Video not loaded');
 
-      UIFont.PrintStrings(15,
-        Window.Height - UIFont.RowHeight * Strs.Count - TimeBarHeight, Yellow,
+      FallbackFont.PrintStrings(15,
+        Window.Height - FallbackFont.RowHeight * Strs.Count - TimeBarHeight, Yellow,
         Strs, false, 2);
     finally FreeAndNil(Strs) end;
   end;
@@ -100,7 +100,7 @@ end;
 procedure Update(Container: TCastleContainer);
 begin
   if TimePlaying then
-    Time += Window.Fps.SecondsPassed;
+    Time := Time + Window.Fps.SecondsPassed;
 end;
 
 procedure LoadVideo(const NewVideoURL: string);

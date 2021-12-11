@@ -108,7 +108,7 @@ begin
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
-  Time += Container.Fps.SecondsPassed;
+  Time := Time + Container.Fps.SecondsPassed;
 
   for I := 0 to XCount - 1 do
     for J := 0 to YCount - 1 do

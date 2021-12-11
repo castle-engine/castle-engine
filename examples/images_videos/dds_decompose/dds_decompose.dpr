@@ -41,7 +41,8 @@ var
   OutputName, OutputBaseName: string;
   I: Integer;
 begin
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
+  ApplicationProperties.OnWarning.Add(
+    {$ifdef FPC}@{$endif} ApplicationProperties.WriteWarningOnConsole);
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHigh(1);
   Composite := TCompositeImage.Create;

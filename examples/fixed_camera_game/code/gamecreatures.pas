@@ -498,6 +498,7 @@ begin
   State := csWalk;
 end;
 
+initialization
 finalization
   FreeAndNil(CreatureKinds);
 end.

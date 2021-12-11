@@ -74,7 +74,7 @@ begin
     PlayAnimationParams := TPlayAnimationParameters.Create;
     try
       PlayAnimationParams.Name := 'Attack';
-      PlayAnimationParams.StopNotification := @AnimationStopped;
+      PlayAnimationParams.StopNotification := {$ifdef FPC}@{$endif} AnimationStopped;
       Scene.PlayAnimation(PlayAnimationParams);
     finally FreeAndNil(PlayAnimationParams) end;
 

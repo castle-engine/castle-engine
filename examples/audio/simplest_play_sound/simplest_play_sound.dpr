@@ -16,8 +16,10 @@
 { Simply load and play sound using CastleSoundEngine. }
 program simplest_play_sound;
 
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+
 uses
-  {$ifndef CASTLE_DISABLE_THREADS}
+  {$if defined(FPC) and (not defined(CASTLE_DISABLE_THREADS))}
     {$info Thread support enabled.}
     {$ifdef UNIX} CThreads, {$endif}
   {$endif}
@@ -29,7 +31,8 @@ var
   URL: string;
   Sound: TCastleSound;
 begin
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
+  ApplicationProperties.OnWarning.Add(
+    {$ifdef FPC}@{$endif} ApplicationProperties.WriteWarningOnConsole);
 
   // put in log various info about sound loading
   InitializeLog;

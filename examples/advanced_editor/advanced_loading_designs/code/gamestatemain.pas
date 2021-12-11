@@ -119,8 +119,8 @@ begin
   DesignedButton2Button := DesignedButton2.FindRequiredComponent('RootButton') as TCastleButton;
 
   { Attach events }
-  DesignedButton1Button.OnClick := @ClickDesignedButton1;
-  DesignedButton2Button.OnClick := @ClickDesignedButton2;
+  DesignedButton1Button.OnClick := {$ifdef FPC}@{$endif} ClickDesignedButton1;
+  DesignedButton2Button.OnClick := {$ifdef FPC}@{$endif} ClickDesignedButton2;
 
   { Load and instantiate table row UI many times }
   TableRowTemplate := TSerializedComponent.Create('castle-data:/table_row.castle-user-interface');

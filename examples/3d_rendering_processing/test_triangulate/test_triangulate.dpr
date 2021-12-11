@@ -16,6 +16,8 @@
 { Deconstruct scene into triangles using `TCastleShape.Triangulate`. }
 program triangulate_demo;
 
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+
 uses SysUtils, CastleVectors, CastleSceneCore, CastleShapes, CastleTriangles,
   CastleFilesUtils;
 
@@ -52,7 +54,7 @@ begin
       for Shape in ShapeList do
         { Try also LocalTriangulate instead of Triangulate,
           to have Position in local shape coordinates. }
-        Shape.Triangulate(true, @Handler.HandleTriangle);
+        Shape.Triangulate(true, {$ifdef FPC}@{$endif} Handler.HandleTriangle);
     finally FreeAndNil(Handler) end;
 
     { An alternative method: use Scene.InternalOctreeVisibleTriangles.Triangles.

@@ -88,12 +88,12 @@ end;
 
 function TImageGrid.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Rows', 'Columns', 'URL':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Rows') or
+     (PropertyName = 'Columns') or
+     (PropertyName = 'URL') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TImageGrid.PreferredSize(var PreferredWidth, PreferredHeight: Single);

@@ -78,10 +78,10 @@ begin
   y := LastY;
 
   case Angle of
-    0: x+=StepXSize;
-    1: y+=StepYSize;
-    2: x-=StepXSize;
-    else {3:} y-=StepYSize;
+    0: x := x + StepXSize;
+    1: y := y + StepYSize;
+    2: x := x - StepXSize;
+    else {3:} y := y - StepYSize;
   end;
 
   if Between(x, 0, Integer(CurveImage.Width)-1) and

@@ -21,7 +21,7 @@ interface
 implementation
 
 uses SysUtils, Math, Classes,
-  {$ifndef VER3_0} OpenSSLSockets, {$endif} // support HTTPS
+  {$ifdef FPC} {$ifndef VER3_0} OpenSSLSockets, {$endif} {$endif} // support HTTPS
   CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState,
   GameStateMain, GameLogHandler;
 
@@ -34,7 +34,7 @@ procedure ApplicationInitialize;
 begin
   { Initialize LogHandler }
   LogHandler := TLogHandler.Create(Application);
-  ApplicationProperties.OnLog.Add(@LogHandler.LogCallback);
+  ApplicationProperties.OnLog.Add({$ifdef FPC}@{$endif} LogHandler.LogCallback);
 
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');

@@ -13,7 +13,7 @@ type
   end;
 
   { List of TBookmark. }
-  TBookmarkList = class(specialize TObjectList<TBookmark>)
+  TBookmarkList = class({$ifdef FPC}specialize{$endif} TObjectList<TBookmark>)
     procedure Load;
     procedure Save;
   end;
