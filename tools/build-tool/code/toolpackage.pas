@@ -27,21 +27,21 @@ type
   { Package a project to a directory. }
   TPackageDirectoryAbstract = class
   protected
-    TemporaryDir: string;
-    FPath: string;
-    FTopDirectoryName: string;
+    TemporaryDir: String;
+    FPath: String;
+    FTopDirectoryName: String;
 
     { Absolute path (ends with path delimiter) under which you should
       store your files. They will end up being packaged,
       under TopDirectoryName. }
-    property Path: string read FPath;
-    property TopDirectoryName: string read FTopDirectoryName;
+    property Path: String read FPath;
+    property TopDirectoryName: String read FTopDirectoryName;
   public
     { Create a package.
 
       @param(ATopDirectoryName is the name of the main directory that will
         be visible in the archive, it's usually just a project name.) }
-    constructor Create(const ATopDirectoryName: string);
+    constructor Create(const ATopDirectoryName: String);
     destructor Destroy; override;
 
     { Add file to the package.
@@ -51,7 +51,7 @@ type
       @param DestinationFileName Name in package, must be relative within package.
 
       @param MakeExecutable Set the Unix executable bit on given file. }
-    procedure Add(const SourceFileName, DestinationFileName: string;
+    procedure Add(const SourceFileName, DestinationFileName: String;
       const MakeExecutable: Boolean = false);
 
     { Generate auto_generated/CastleDataInformation.xml file inside
@@ -63,7 +63,7 @@ type
   public
     { Create final archive. It will be placed within OutputProjectPath.
       PackageName should contain only the base name, without extension. }
-    procedure Make(const OutputProjectPath: string; const PackageFileName: string;
+    procedure Make(const OutputProjectPath: String; const PackageFileName: String;
       const PackageFormat: TPackageFormatNoDefault);
   end;
 
@@ -81,7 +81,7 @@ uses SysUtils, Process,
 
 { TPackageDirectory ---------------------------------------------------------- }
 
-constructor TPackageDirectoryAbstract.Create(const ATopDirectoryName: string);
+constructor TPackageDirectoryAbstract.Create(const ATopDirectoryName: String);
 begin
   inherited Create;
   FTopDirectoryName := ATopDirectoryName;
@@ -99,12 +99,12 @@ begin
   inherited;
 end;
 
-procedure TPackageDirectory.Make(const OutputProjectPath: string;
-  const PackageFileName: string; const PackageFormat: TPackageFormatNoDefault);
+procedure TPackageDirectory.Make(const OutputProjectPath: String;
+  const PackageFileName: String; const PackageFormat: TPackageFormatNoDefault);
 
   procedure PackageCommand(const PackagingExeName: String; const PackagingParameters: array of String);
   var
-    FullPackageFileName, ProcessOutput, CommandExe: string;
+    FullPackageFileName, ProcessOutput, CommandExe: String;
     ProcessExitStatus: Integer;
   begin
     CommandExe := FindExe(PackagingExeName);
@@ -146,7 +146,7 @@ begin
   end;
 end;
 
-procedure TPackageDirectoryAbstract.Add(const SourceFileName, DestinationFileName: string;
+procedure TPackageDirectoryAbstract.Add(const SourceFileName, DestinationFileName: String;
   const MakeExecutable: Boolean);
 begin
   SmartCopyFile(SourceFileName, Path + DestinationFileName);
