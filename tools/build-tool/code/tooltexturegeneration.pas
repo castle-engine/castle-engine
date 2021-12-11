@@ -143,7 +143,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     CommandExe: string;
     CommandOptions: TCastleStringList;
   begin
-    ToolExe := '';
+    ToolExe := FindExeCastleTool('CompressonatorCLI');
     { otherwise, assume it's on $PATH }
     TryToolExePath(ToolExe, 'CompressonatorCLI', C);
 
@@ -205,7 +205,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   var
     ToolExe: string;
   begin
-    ToolExe := '';
+    ToolExe := FindExeCastleTool('PVRTexToolCLI');
     {$ifdef UNIX}
     { Try the standard installation path on Linux.
       On x86_64, try the 64-bit version first, otherwise fallback on 32-bit. }
@@ -286,7 +286,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
       {$endif}
     {$endif}
 
-    ToolExe := '';
+    ToolExe := FindExeCastleTool(ToolName);
     TryToolExePath(ToolExe, ToolName, C);
 
     RunCommandSimple(ToolExe,
@@ -303,7 +303,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   var
     ToolExe: string;
   begin
-    ToolExe := '';
+    ToolExe := FindExeCastleTool('nvcompress');
 
     { assume it's on $PATH }
     TryToolExePath(ToolExe, 'nvcompress', C);
