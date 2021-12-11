@@ -26,6 +26,8 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TVector3);
     { Set X3D field "keyValue". } { }
@@ -45,6 +47,16 @@ end;
 procedure TCubicBezierCoordinateInterpolatorNode.SetKeyValue(const Value: TVector3List);
 begin
   FdKeyValue.Send(Value);
+end;
+
+class function TCubicBezierCoordinateInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'CubicBezierCoordinateInterpolator';
+end;
+
+procedure TCubicBezierCoordinateInterpolatorNode.CreateNode;
+begin
+  inherited;
 end;
 
 {$endif read_implementation}

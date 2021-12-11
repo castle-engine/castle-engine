@@ -38,6 +38,7 @@ type
   TCastleUserInterface = class;
   TChildrenControls = class;
   TCastleContainer = class;
+  TCastleTheme = class;
 
   TContainerEvent = procedure (Container: TCastleContainer);
   TContainerObjectEvent = procedure (Container: TCastleContainer) of object;
@@ -287,6 +288,8 @@ type
     FContext: TRenderContext;
     FBackgroundEnable: Boolean;
     FBackgroundColor: TCastleColor;
+    FInspectorKey: TKey;
+    FInspector: TCastleUserInterface; //< always TCastleInspector
 
     function UseForceCaptureInput: boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
@@ -888,6 +891,11 @@ type
       By default it is @link(DefaultBackgroundColor), which is very dark gray. }
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
+
+    { Key shortcut to show/hide TCastleInspector at any point in the game.
+      In DEBUG builds, this is keyF12 by default.
+      In RELEASE builds, this is keyNone by default. }
+    property InspectorKey: TKey read FInspectorKey write FInspectorKey;
   end;
 
   TUIContainer = TCastleContainer deprecated 'use TCastleContainer';
@@ -1003,6 +1011,8 @@ type
       FCulling: Boolean;
       FClipChildren: Boolean;
       FOnRender, FOnInternalMouseEnter, FOnInternalMouseLeave: TUiNotifyEvent;
+      FCustomTheme: TCastleTheme;
+      FCustomThemeObserver: TFreeNotificationObserver;
 
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
@@ -1049,6 +1059,8 @@ type
     procedure SetClipChildren(const Value: Boolean);
     procedure SetWidth(const Value: Single);
     procedure SetHeight(const Value: Single);
+    procedure SetCustomTheme(const Value: TCastleTheme);
+    procedure CustomThemeFreeNotification(const Sender: TFreeNotificationObserver);
 
     { Position and size of this control, assuming it exists,
       in the local coordinates (relative to the parent 2D control,
@@ -1159,6 +1171,10 @@ type
 
     procedure DoInternalMouseEnter; virtual;
     procedure DoInternalMouseLeave; virtual;
+
+    { Theme that should be used by this control.
+      Either CustomTheme or global @link(Theme). }
+    function Theme: TCastleTheme;
   public
     const
       DefaultWidth = 100.0;
@@ -2197,6 +2213,9 @@ type
       anchored to the top). }
     property Border: TBorder read FBorder;
 
+    { Use a custom instance of TCastleTheme to determine the look of this control. }
+    property CustomTheme: TCastleTheme read FCustomTheme write SetCustomTheme;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -2314,6 +2333,11 @@ type
   TUIControlList = TCastleUserInterfaceList deprecated 'use TCastleUserInterfaceList';
   TUIControlChangeEvent = TCastleUserInterfaceChangeEvent deprecated 'use TCastleUserInterfaceChangeEvent';
 
+{$define read_interface}
+{$I castleuicontrols_theme.inc} // ends the "type" clause
+{$I castleuicontrols_serialize.inc}
+{$undef read_interface}
+
 function OnGLContextOpen: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextOpen';
 function OnGLContextClose: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextClose';
 function IsGLContextOpen: boolean; deprecated 'use ApplicationProperties.IsGLContextOpen';
@@ -2383,18 +2407,16 @@ function RenderControlToImage(const Container: TCastleContainer;
   const ViewportRect: TRectangle;
   const BackgroundColor: TCastleColor): TRGBAlphaImage; overload;
 
-{$define read_interface}
-{$I castleuicontrols_serialize.inc}
-{$undef read_interface}
-
 implementation
 
 uses DOM, TypInfo, Math,
   CastleLog, CastleXMLUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
+  CastleInternalInspector, CastleControlsImages,
   {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
 
 {$define read_implementation}
+{$I castleuicontrols_theme.inc}
 {$I castleuicontrols_serialize.inc}
 {$undef read_implementation}
 
@@ -2449,6 +2471,13 @@ end;
 constructor TCastleContainer.Create(AOwner: TComponent);
 begin
   inherited;
+
+  // FInputInspector := TInputShortcut.Create(Self, 'CGE Inspector', 'cge_inspector', igLocal);
+  // {$ifdef DEBUG} // only in DEBUG mode, by default allow this by F12
+  // FInputInspector.Assign(keyF12, keyNone, '', false, buttonLeft);
+  // {$endif}
+  FInspectorKey := {$ifdef DEBUG} keyF12 {$else} keyNone {$endif};
+
   FControls := TChildrenControls.Create(nil);
   TChildrenControls(FControls).Container := Self;
   FTooltipDelay := DefaultTooltipDelay;
@@ -2633,7 +2662,7 @@ var
       That's because they all can receive input event (like Press),
       assuming that all controls return "not handled" (return false from Press).
       This is crucial to make some "invisible" controls (like TCastleNavigation
-      or TCastleInspectorControl) work seamlessly, they should not prevent
+      or TCastleInspector) work seamlessly, they should not prevent
       other controls from appearing on Focus list.
    }
 
@@ -3106,10 +3135,32 @@ function TCastleContainer.EventPress(const Event: TInputPressRelease): boolean;
     Result := false;
   end;
 
+  procedure ToggleInspector;
+  begin
+    if FInspector = nil then
+    begin
+      FInspector := TCastleInspector.Create(Self);
+      Controls.InsertFront(FInspector);
+    end else
+    begin
+      { Turning off inspector does not merely hide it by Exists:=false,
+        to make sure it doesn't consume any resources when not used.
+        This is important, as it will be used in wildest scenarios
+        (all CGE applications) and it may gather logs when existing. }
+      FreeAndNil(FInspector);
+    end;
+  end;
+
 var
   I: Integer;
 begin
   Result := false;
+
+  if Event.IsKey(FInspectorKey) then
+  begin
+    ToggleInspector;
+    Exit(true);
+  end;
 
   { pass to ForceCaptureInput }
   if UseForceCaptureInput then
@@ -3962,7 +4013,8 @@ end;
 function TCastleUserInterface.TEnumerator.MoveNext: Boolean;
 begin
   Inc(FPosition);
-  Result := FPosition < FList.Count;
+  { Note that FList may be nil, as TCastleUserInterface.FControls may be nil when empty. }
+  Result := (FList <> nil) and (FPosition < FList.Count);
 end;
 
 { TCastleUserInterface ----------------------------------------------------------------- }
@@ -3980,6 +4032,9 @@ begin
   FHeight := DefaultHeight;
   FBorder := TBorder.Create(@BorderChange);
   FLastSeenUIScale := 1.0;
+
+  FCustomThemeObserver := TFreeNotificationObserver.Create(Self);
+  FCustomThemeObserver.OnFreeNotification := @CustomThemeFreeNotification;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
@@ -5287,6 +5342,30 @@ begin
   end;
 end;
 
+procedure TCastleUserInterface.SetCustomTheme(const Value: TCastleTheme);
+begin
+  if FCustomTheme <> Value then
+  begin
+    FCustomThemeObserver.Observed := Value;
+    FCustomTheme := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleUserInterface.CustomThemeFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  CustomTheme := nil;
+end;
+
+function TCastleUserInterface.Theme: TCastleTheme;
+begin
+  if CustomTheme <> nil then
+    Result := CustomTheme
+  else
+    Result := CastleUIControls.Theme;
+end;
+
 procedure TCastleUserInterface.SetClipChildren(const Value: Boolean);
 begin
   if FClipChildren <> Value then
@@ -5769,11 +5848,9 @@ begin
     Result := nil;
 end;
 
-procedure DoInitialization;
-begin
-  RegisterSerializableComponent(TCastleUserInterface, 'Empty Rectangle');
-end;
-
 initialization
-  DoInitialization;
+  InitializationTheme;
+  RegisterSerializableComponent(TCastleUserInterface, 'Empty Rectangle');
+finalization
+  FinalizationTheme;
 end.

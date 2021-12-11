@@ -18,6 +18,12 @@ unit FormProject;
 
 {$mode objfpc}{$H+}
 
+{ Hack to use OpenDocument instead of RunCommandNoWait to execute Delphi.
+  This assumes that Delphi is associated on your system with Pascal files.
+  OTOH it will work a bit nicer, not opening new Delphi instance each time,
+  as Windows underneath will use DDE to communicate with Delphi BDSLauncher. }
+{.$define DELPHI_OPEN_SHELL}
+
 interface
 
 uses
@@ -266,7 +272,8 @@ type
     var
       Manifest: TCastleManifest;
       ProjectName: String;
-      ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
+      ProjectPath, ProjectPathUrl, ProjectStandaloneSource,
+        ProjectLazarus, ProjectDelphi: String;
       BuildMode: TBuildMode;
       OutputList: TOutputList;
       RunningProcess: TAsynchronousProcessQueue;
@@ -527,9 +534,15 @@ end;
 
 procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
 var
-  Exe: String;
+  Exe, DelphiExe: String;
+  Ce: TCodeEditor;
 begin
-  case CodeEditor of
+  if CodeEditor = ceAutodetect then
+    Ce := AutodetectCodeEditor
+  else
+    Ce := CodeEditor;
+
+  case Ce of
     ceCustom:
       begin
         if CodeEditorCommandProject <> '' then
@@ -555,6 +568,51 @@ begin
           ErrorBox('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml).' + NL +
             NL +
             'Create Lazarus project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+      end;
+    ceDelphi:
+      begin
+        FindDelphiPath(true, DelphiExe);
+
+        { Open through DPROJ, this seems to be the only thing that works reliably. }
+        if ProjectDelphi = '' then
+        begin
+          ErrorBox('Delphi project not defined (neither "standalone_source" nor "delphi_project" were specified in CastleEngineManifest.xml).' + NL +
+            NL +
+            'Create Delphi project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+          Exit;
+        end;
+        if not RegularFileExists(ProjectDelphi) then
+        begin
+          ErrorBox(Format('Delphi project file does not exist: %s.' + NL +
+            NL +
+            'Create Delphi project (by "castle-engine generate-program" or using Delphi).', [
+            ProjectDelphi
+          ]));
+          Exit;
+        end;
+
+        {$ifdef DELPHI_OPEN_SHELL}
+        OpenDocument(ProjectDelphi); // hack to open Pascal names in existing Delphi window, using DDE
+        {$else}
+        RunCommandNoWait(ProjectPath, DelphiExe, [
+          ProjectDelphi
+          //ProjectStandaloneSource
+        ]);
+        {$endif}
+      end;
+    ceVSCode:
+      begin
+        Exe := FindExeVSCode(true);
+        RunCommandNoWait(ProjectPath, Exe, [
+          { --add would add project to workspace in current window.
+            See OpenPascal for comments. }
+          //'--add',
+
+          { We pass relative filenames, not absolute, to avoid
+            VS Code on Windows inability to deal with spaces in filenames.
+            See OpenPascal for comments. }
+          '.'
+        ], [rcNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -904,16 +962,22 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     end;
   end;
 
+var
+  EnableDocking: Boolean;
 begin
-  Docking := UserConfig.GetValue('ProjectForm_Docking', false);
+  EnableDocking := URIFileExists(ApplicationConfig('enable-docking.txt'));
+  MenuItemWindow.SetEnabledVisible(EnableDocking);
+  Docking := EnableDocking and UserConfig.GetValue('ProjectForm_Docking', false);
   OutputList := TOutputList.Create(ListOutput);
   BuildComponentsMenu(
+    nil,
     MenuItemDesignNewUserInterfaceCustomRoot,
     MenuItemDesignNewTransformCustomRoot,
     nil,
     MenuItemDesignNewNonVisualCustomRoot,
     @MenuItemDesignNewCustomRootClick);
   BuildComponentsMenu(
+    nil,
     MenuItemDesignAddUserInterface,
     MenuItemDesignAddTransform,
     MenuItemDesignAddBehavior,
@@ -1703,9 +1767,15 @@ end;
 
 procedure TProjectForm.OpenPascal(const FileName: String);
 var
-  Exe: String;
+  Exe, DelphiExe: String;
+  Ce: TCodeEditor;
 begin
-  case CodeEditor of
+  if CodeEditor = ceAutodetect then
+    Ce := AutodetectCodeEditor
+  else
+    Ce := CodeEditor;
+
+  case Ce of
     ceCustom:
       begin
         RunCustomCodeEditor(CodeEditorCommand, FileName);
@@ -1738,6 +1808,90 @@ begin
         //   WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
 
         RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+      end;
+    ceDelphi:
+      begin
+        FindDelphiPath(true, DelphiExe);
+
+        { Open through DPROJ }
+        (*
+        if ProjectDelphi = '' then
+        begin
+          ErrorBox('Delphi project not defined (neither "standalone_source" nor "delphi_project" were specified in CastleEngineManifest.xml).' + NL +
+            NL +
+            'Create Delphi project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+          Exit;
+        end;
+        if not RegularFileExists(ProjectDelphi) then
+        begin
+          ErrorBox(Format('Delphi project file does not exist: %s.' + NL +
+            NL +
+            'Create Delphi project (by "castle-engine generate-program" or using Delphi).', [
+            ProjectDelphi
+          ]));
+          Exit;
+        end;
+        *)
+
+        { We use DelphiExe, which is BDS.exe.
+
+          Notes:
+
+          - Do not use BDSLauncher.exe. BDSLauncher is defined in registry as the application
+            doing "shell open", but using BDSLauncher is not so easy: we would need
+            then to pass filename using DDE (Windows inter-process communication API).
+            Using just BDS is simpler.
+
+          - Multiple filenames are not supported.
+            We cannot point to the project *and* filename within, it seems.
+            TODO: Need to use Delphi DDE for this?
+
+          - We cannot open in existing Delphi instance?
+            TODO: Need to use Delphi DDE for this?
+
+          - Using /np doesn't work, in fact it makes the following filename ignored.
+            Maybe BDS doesn't understand /np at all, and treats it as another filename?
+            And only 1 filename is handler, as stated above.
+        }
+
+        {$ifdef DELPHI_OPEN_SHELL}
+        OpenDocument(FileName); // hack to open Pascal names in existing Delphi window, using DDE
+        {$else}
+        RunCommandNoWait(ProjectPath, DelphiExe, [
+          FileName
+        ]);
+        {$endif}
+
+      end;
+    ceVSCode:
+      begin
+        Exe := FindExeVSCode(true);
+        RunCommandNoWait(ProjectPath, Exe, [
+          { --add would add project to workspace in current window.
+            It avoids opening new window ever,
+            but it seems more confusing than helpful in our case
+            -- it creates multi-root workspace which may be surprising to users.
+
+            Instead we just pass project dir, as ".", to make sure this is
+            opened as a workspace.
+            See https://code.visualstudio.com/docs/editor/command-line ,
+            https://stackoverflow.com/questions/29955785/opening-microsoft-visual-studio-code-from-command-prompt-windows }
+          //'--add',
+
+          { We pass relative filenames, not absolute, to avoid
+            VS Code on Windows inability to deal with spaces in filenames.
+            Other solutions tried:
+
+            - calling code.exe without intermediate code.cmd
+            - using vscode:// URL with spaces encoded using %20.
+
+            See EditorUtils -- nothing helped.
+
+            Using relative paths is a workaround, as long as you don't
+            place Pascal code in subdirectory with spaces. }
+          '.',
+          ExtractRelativePath(ProjectPath, FileName)
+        ], [rcNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -1872,6 +2026,12 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
     Params.Add(ModeString);
   end;
 
+  procedure AddCompilerParameters(const Params: TStrings);
+  begin
+    if Compiler <> DefaultCompiler then
+      Params.Add('--compiler=' + CompilerToString(Compiler));
+  end;
+
   procedure AddPackageFormatParameters(const Params: TStrings; const Format: TPackageFormat);
   begin
     if Format <> pfDefault then
@@ -1918,6 +2078,10 @@ begin
         (Command = 'editor-run')
       ) then
       AddModeParameters(QueueItem.Parameters);
+    // add --compiler parameter
+    if (Command = 'compile') or
+       (Command = 'package') then
+      AddCompilerParameters(QueueItem.Parameters);
     // add --target, --os, --cpu parameters
     if (Command = 'compile') or
        (Command = 'run') or
@@ -2068,6 +2232,7 @@ begin
   ProjectPathUrl := Manifest.PathUrl;
   ProjectStandaloneSource := Manifest.StandaloneSource;
   ProjectLazarus := Manifest.LazarusProject;
+  ProjectDelphi := Manifest.DelphiProject;
   if (Manifest.EditorUnits <> '') and
      (not InternalHasCustomComponents) then
     WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
@@ -2077,6 +2242,8 @@ begin
     ProjectStandaloneSource := CombinePaths(ProjectPath, ProjectStandaloneSource);
   if ProjectLazarus <> '' then
     ProjectLazarus := CombinePaths(ProjectPath, ProjectLazarus);
+  if ProjectDelphi <> '' then
+    ProjectDelphi := CombinePaths(ProjectPath, ProjectDelphi);
 
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }

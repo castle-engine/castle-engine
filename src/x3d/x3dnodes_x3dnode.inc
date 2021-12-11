@@ -36,12 +36,6 @@
     function DeepCopy(OriginalNode: TX3DNode): TX3DNode;
   end;
 
-  { X3D node interface.
-    All other interfaces for X3D nodes descend from this. }
-  IX3DNode = interface
-  ['{5BD33327-430F-47EC-9241-AD899F072BF8}']
-  end;
-
   { Simple component system inside TX3DNode.
     See @link(TX3DNode.Functionality). }
   TNodeFunctionality = class
@@ -52,10 +46,16 @@
     property Parent: TX3DNode read FParent;
   end;
 
+  TNodeFunctionalityList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TNodeFunctionality>;
+
   TNodeFunctionalityClass = class of TNodeFunctionality;
 
   { X3D node. Every VRML/X3D node class descends from this. }
-  TX3DNode = class(TX3DFileItem, IX3DNode)
+  TX3DNode = class(TX3DFileItem)
+  strict private
+    FFunctionalityList: TNodeFunctionalityList; //< may be @nil if none
+    FTransformFunctionality: TTransformFunctionality;
+    FTimeFunctionality: TTimeDependentFunctionality;
   private
     FX3DName: string;
     FBaseUrl: string;
@@ -87,9 +87,9 @@
       and changes back to @false for appropriate nodes). }
     NeedsInstantiateIsClause: boolean;
 
-    function GetVRML1Child(i: integer): TX3DNode;
-    function GetVRML1Parent(i: integer): TX3DNode;
-    procedure SetVRML1Child(I: Integer; Value: TX3DNode);
+    function GetVRML1Child(const I: Integer): TX3DNode;
+    function GetVRML1Parent(const I: Integer): TX3DNode;
+    procedure SetVRML1Child(const I: Integer; const Value: TX3DNode);
     function GetParentFieldsItem(Index: Integer): TX3DField;
     function GetParentFieldsNodeItem(Index: Integer): TX3DNode;
     procedure RemoveParentField(Field: TX3DField);
@@ -125,6 +125,10 @@
       like TX3DPrototypeNode or TX3DUnknownNode, that simply cannot
       be created by default constructor. They need to override this. }
     function DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode; virtual;
+
+    { Register new TNodeFunctionality instance to be returned by @link(Functionality),
+      and automatically freed when this node is freed. }
+    procedure AddFunctionality(const F: TNodeFunctionality);
   protected
     { Are VRML 1.0 children allowed.
       This condition is checked in VRML1ChildAdd, so it's strictly
@@ -259,7 +263,7 @@
     function ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
       const APositionInParent: Integer): boolean; virtual;
 
-    { Called at the end of parsing (in both classic and XML encoding). }
+    { Called at the end of parsing this node (including children) in any encoding. }
     procedure ParseAfter(Reader: TX3DReaderNames); virtual;
 
     procedure CreateNode; virtual;
@@ -370,7 +374,7 @@
       is already equal to NewChildren, it does nothing.
 
       @groupBegin }
-    property VRML1Children [i: integer]: TX3DNode read GetVRML1Child write SetVRML1Child;
+    property VRML1Children [I: Integer]: TX3DNode read GetVRML1Child write SetVRML1Child;
     function VRML1ChildrenCount: integer;
     { @groupEnd }
 
@@ -378,12 +382,12 @@
       Index (position) must be in [0..VRML1ChildrenCount].
       Items at and above Index position are moved to the right,
       to insert new child at Index position. }
-    procedure VRML1ChildAdd(Index: Integer; child: TX3DNode); overload;
+    procedure VRML1ChildAdd(const Index: Integer; const Child: TX3DNode); overload;
 
     { Add a VRML 1.0 child node at the end of VRML1Children list. }
-    procedure VRML1ChildAdd(child: TX3DNode); overload;
+    procedure VRML1ChildAdd(const Child: TX3DNode); overload;
 
-    procedure VRML1ChildRemove(i: integer);
+    procedure VRML1ChildRemove(const I: Integer);
     procedure VRML1ChildrenClear;
 
     { Remove a VRML 1.0 children at index I and return it (do not free it).
@@ -393,14 +397,14 @@
       This removes children I, appropriately adjusting
       all parent / children links, but even if a node is unused after removing,
       it is not freed. It's always returned. }
-    function VRML1ChildExtract(I: Integer): TX3DNode;
+    function VRML1ChildExtract(const I: Integer): TX3DNode;
 
     { All VRML 1.0 parent nodes. VRML1Parents is a reverse of
       VRML1Children --- it lists all the nodes where we are on VRML1Children
       list.
 
       @groupBegin }
-    property VRML1Parents [i: integer] :TX3DNode read GetVRML1Parent;
+    property VRML1Parents [I: Integer] :TX3DNode read GetVRML1Parent;
     function VRML1ParentsCount: integer;
     { @groupEnd }
 
@@ -1039,8 +1043,7 @@
     { What happens when transformation of the node changes.
       This is internally used by TCastleSceneCore when Transform (or similar)
       node affecting this node changes. It's an important optimization,
-      to avoid large if clause with many "is" and "Supports" checks
-      that would be quite slow.
+      to avoid large if clause with many "is" checks that would be quite slow.
       @exclude }
     function TransformationChange: TNodeTransformationChange; virtual;
 
@@ -1094,9 +1097,17 @@
       (like a fog, transformation, material...), or @nil if none.
       This implements a simple component system inside TX3DNode,
       allowing some functionality to have common interface and implementation
-      across a few nodes that are not otherwise related in the ancestor hierarchy. }
+      across a few nodes that are not otherwise related in the ancestor hierarchy.
+
+      Descendants should register TNodeFunctionality classes using
+      @link(AddFunctionality). }
     function Functionality(
-      const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality; virtual;
+      const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality;
+
+    { Fast shortcut to Functionality(TTransformFunctionality). }
+    property TransformFunctionality: TTransformFunctionality read FTransformFunctionality;
+    { Fast shortcut to Functionality(TTimeDependentFunctionality). }
+    property TimeFunctionality: TTimeDependentFunctionality read FTimeFunctionality;
   end;
 
   TX3DNodeList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DNode>)
@@ -1177,8 +1188,6 @@ begin
   FX3DName := AX3DName;
   FBaseUrl := ABaseUrl;
 
-  FVRML1Children := TX3DNodeList.Create(false);
-  FVRML1Parents := TX3DNodeList.Create(false);
   FParentFields := TX3DFieldList.Create(false);
   FFields := TX3DFieldList.Create(false);
   FEvents := TX3DEventList.Create(false);
@@ -1207,7 +1216,8 @@ begin
     FreeAndNil(FDestructionNotifications);
   end;
 
-  if FVRML1Children <> nil then VRML1ChildrenClear;
+  if FVRML1Children <> nil then
+    VRML1ChildrenClear;
 
   if PrototypeInstance then
   begin
@@ -1222,6 +1232,7 @@ begin
   FreeAndNil(FExports);
   FreeAndNil(FFieldsSFNode);
   FreeAndNil(FFieldsMFNode);
+  FreeAndNil(FFunctionalityList);
 
   { First free Fields and Events, before freeing InterfaceDeclarations.
     Reason: Fields and Events may contains references to InterfaceDeclarations
@@ -1277,7 +1288,7 @@ end;
 procedure TX3DNode.FreeIfUnused;
 begin
   if (Self <> nil) and
-     (FVRML1Parents.Count = 0) and
+     (VRML1ParentsCount = 0) and
      (FParentFields.Count = 0) and
      (KeepExisting = 0) then
   begin
@@ -1303,32 +1314,46 @@ begin
   Dec(FKeepExisting);
 end;
 
-procedure TX3DNode.VRML1ChildAdd(Index: Integer; child: TX3DNode);
+procedure TX3DNode.VRML1ChildAdd(const Index: Integer; const Child: TX3DNode);
 begin
- Check(VRML1ChildrenAllowed, 'Node "' + X3DType + '" is not allowed to have child node of type ' + Child.X3DType);
- child.FVRML1Parents.Add(Self);
- FVRML1Children.Insert(Index, child);
+  Check(VRML1ChildrenAllowed, 'Node "' + X3DType + '" is not allowed to have child node of type ' + Child.X3DType);
+
+  if Child.FVRML1Parents = nil then
+    Child.FVRML1Parents := TX3DNodeList.Create(false);
+  Child.FVRML1Parents.Add(Self);
+
+  if FVRML1Children = nil then
+    FVRML1Children := TX3DNodeList.Create(false);
+  FVRML1Children.Insert(Index, Child);
 end;
 
-procedure TX3DNode.VRML1ChildAdd(child: TX3DNode);
+procedure TX3DNode.VRML1ChildAdd(const Child: TX3DNode);
 begin
-  VRML1ChildAdd(FVRML1Children.Count, child);
+  VRML1ChildAdd(VRML1ChildrenCount, Child);
 end;
 
-procedure TX3DNode.VRML1ChildRemove(i: integer);
+procedure TX3DNode.VRML1ChildRemove(const I: Integer);
 var
   OldChild: TX3DNode;
 begin
-  OldChild := FVRML1Children[i];
+  Assert(FVRML1Children <> nil);
+  Assert(Between(I, 0, FVRML1Children.Count - 1));
+
+  OldChild := FVRML1Children[I];
   FVRML1Children.Delete(i);
+  Assert(OldChild.FVRML1Parents <> nil);
   OldChild.FVRML1Parents.Remove(Self);
   OldChild.FreeIfUnused;
 end;
 
-function TX3DNode.VRML1ChildExtract(I: Integer): TX3DNode;
+function TX3DNode.VRML1ChildExtract(const I: Integer): TX3DNode;
 begin
-  Result := FVRML1Children[i];
+  Assert(FVRML1Children <> nil);
+  Assert(Between(I, 0, FVRML1Children.Count - 1));
+
+  Result := FVRML1Children[I];
   FVRML1Children.Delete(i);
+  Assert(Result.FVRML1Parents <> nil);
   Result.FVRML1Parents.Remove(Self);
 
   { VRML1ChildRemove now does
@@ -1336,10 +1361,13 @@ begin
     but ExtractChild doesn't do it. }
 end;
 
-procedure TX3DNode.SetVRML1Child(I: Integer; Value: TX3DNode);
+procedure TX3DNode.SetVRML1Child(const I: Integer; const Value: TX3DNode);
 var
   OldChild: TX3DNode;
 begin
+  Assert(FVRML1Children <> nil);
+  Assert(Between(I, 0, FVRML1Children.Count - 1));
+
   { Inefficient implementation: VRML1ChildRemove(I); VRML1ChildAdd(I, Value); }
 
   if Value <> FVRML1Children[I] then
@@ -1348,39 +1376,55 @@ begin
       'Node '+X3DType+' is not allowed to have child node of type '+
       Value.X3DType);
 
-    OldChild := FVRML1Children[i];
+    OldChild := FVRML1Children[I];
     FVRML1Children[I] := Value;
 
+    Assert(OldChild.FVRML1Parents <> nil);
     OldChild.FVRML1Parents.Remove(Self);
     OldChild.FreeIfUnused;
 
+    if Value.FVRML1Parents = nil then
+      Value.FVRML1Parents := TX3DNodeList.Create(false);
     Value.FVRML1Parents.Add(Self);
   end;
 end;
 
 procedure TX3DNode.VRML1ChildrenClear;
 begin
- while FVRML1Children.Count > 0 do VRML1ChildRemove(0);
+  while VRML1ChildrenCount > 0 do
+    VRML1ChildRemove(0);
 end;
 
-function TX3DNode.GetVRML1Child(i: integer): TX3DNode;
+function TX3DNode.GetVRML1Child(const I: Integer): TX3DNode;
 begin
-  result := FVRML1Children[i];
+  Assert(FVRML1Children <> nil);
+  Assert(Between(I, 0, FVRML1Children.Count - 1));
+
+  Result := FVRML1Children[I];
 end;
 
-function TX3DNode.GetVRML1Parent(i: integer): TX3DNode;
+function TX3DNode.GetVRML1Parent(const I: Integer): TX3DNode;
 begin
-  result := FVRML1Parents[i];
+  Assert(FVRML1Parents <> nil);
+  Assert(Between(I, 0, FVRML1Parents.Count - 1));
+
+  Result := FVRML1Parents[I];
 end;
 
-function TX3DNode.VRML1ChildrenCount: integer;
+function TX3DNode.VRML1ChildrenCount: Integer;
 begin
-  result := FVRML1Children.Count
+  if FVRML1Children <> nil then
+    Result := FVRML1Children.Count
+  else
+    Result := 0;
 end;
 
-function TX3DNode.VRML1ParentsCount: integer;
+function TX3DNode.VRML1ParentsCount: Integer;
 begin
-  result := FVRML1Parents.Count
+  if FVRML1Parents <> nil then
+    Result := FVRML1Parents.Count
+  else
+    Result := 0;
 end;
 
 procedure TX3DNode.FreeRemovingFromAllParents;
@@ -1391,8 +1435,9 @@ var
 begin
   if Self = nil then exit;
 
-  for i := 0 to FVRML1Parents.Count - 1 do
+  for i := 0 to VRML1ParentsCount - 1 do
   begin
+    Assert(FVRML1Parents[i].FVRML1Children <> nil);
     j := FVRML1Parents[i].FVRML1Children.IndexOf(Self);
     FVRML1Parents[i].FVRML1Children.Delete(j);
     { nie musimy sie tu martwic usuwaniem naszego Parenta z listy
@@ -1806,7 +1851,7 @@ function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames
   end;
 
 var
-  I: integer;
+  I: Integer;
   Route: TX3DRoute;
   Proto: TX3DPrototypeBase;
   Event: TX3DEvent;
@@ -2429,7 +2474,7 @@ end;
 
 function TX3DNode.TryFindParentByName(const FindName: string): TX3DNode;
 var
-  I: integer;
+  I: Integer;
 begin
   if X3DName = FindName then
     result := Self else
@@ -2478,7 +2523,7 @@ end;
 
 function TX3DNode.HasParentNode(Node: TX3DNode): boolean;
 var
-  I: integer;
+  I: Integer;
 begin
   if Self = Node then
     result := true else
@@ -2550,7 +2595,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
     You want to save here exactly what you read in ParseNodeBodyElement. }
   function ContentsToSave: TX3DFileItemList;
   var
-    I: integer;
+    I: Integer;
   begin
     Result := TX3DFileItemList.Create(false);
     try
@@ -3249,6 +3294,11 @@ end;
 function TX3DNode.NiceName: string;
 begin
   Result := X3DType;
+
+  // show ClassName *and* X3DType e.g. for Group:TX3DRootNode
+  if not SameText(ClassName, 'T' + X3DType + 'Node') then
+    Result := SAppendPart(Result, ':', ClassName);
+
   if X3DName <> '' then
     Result := Result + '(' + X3DName + ')';
 end;
@@ -3443,10 +3493,39 @@ begin
   Result := nil;
 end;
 
+procedure TX3DNode.AddFunctionality(const F: TNodeFunctionality);
+
+  procedure RefreshShortcuts;
+  begin
+    FTransformFunctionality := Functionality(TTransformFunctionality) as TTransformFunctionality;
+    FTimeFunctionality := Functionality(TTimeDependentFunctionality) as TTimeDependentFunctionality;
+  end;
+
+begin
+  Assert(not ( (F is TTransformFunctionality) and (FTransformFunctionality <> nil) ), 'Do not add 2 functionalities implementing TTransformFunctionality');
+  Assert(not ( (F is TTimeDependentFunctionality) and (FTimeFunctionality <> nil) ), 'Do not add 2 functionalities implementing TTimeDependentFunctionality');
+
+  if FFunctionalityList = nil then
+    FFunctionalityList := TNodeFunctionalityList.Create(true);
+  FFunctionalityList.Add(F);
+
+  RefreshShortcuts;
+end;
+
 function TX3DNode.Functionality(
   const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality;
+var
+  I: Integer;
+  MaybeResult: TNodeFunctionality;
 begin
   Result := nil;
+  if FFunctionalityList <> nil then
+    for I := 0 to FFunctionalityList.Count - 1 do
+    begin
+      MaybeResult := FFunctionalityList[I];
+      if MaybeResult.InheritsFrom(FunctionalityClass) then
+        Exit(MaybeResult);
+    end;
 end;
 
 procedure TX3DNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);

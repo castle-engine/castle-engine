@@ -29,6 +29,12 @@
     function GetDuration: TFloatTime;
     procedure SetDuration(const Value: TFloatTime);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDuration: TSFTime;
+    { X3D field "duration". } { }
+    public property FdDuration: TSFTime read FFdDuration;
     { X3D field "duration". } { }
     property Duration: TFloatTime read GetDuration write SetDuration;
 
@@ -46,6 +52,20 @@ end;
 procedure TAbstractChaserNode.SetDuration(const Value: TFloatTime);
 begin
   FdDuration.Send(Value);
+end;
+
+class function TAbstractChaserNode.ClassX3DType: String;
+begin
+  Result := 'X3DChaserNode';
+end;
+
+procedure TAbstractChaserNode.CreateNode;
+begin
+  inherited;
+
+  FFdDuration := TSFTime.Create(Self, False, 'duration', 0);
+   FdDuration.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDuration);
 end;
 
 {$endif read_implementation}

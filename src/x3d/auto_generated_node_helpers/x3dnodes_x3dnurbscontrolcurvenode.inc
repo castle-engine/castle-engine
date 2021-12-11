@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdControlPoint: TMFVec2d;
+    { X3D field "controlPoint". } { }
+    public property FdControlPoint: TMFVec2d read FFdControlPoint;
     { Set X3D field "controlPoint". } { }
     procedure SetControlPoint(const Value: array of TVector2Double);
     { Set X3D field "controlPoint". } { }
@@ -45,6 +51,22 @@ end;
 procedure TAbstractNurbsControlCurveNode.SetControlPoint(const Value: TVector2DoubleList);
 begin
   FdControlPoint.Send(Value);
+end;
+
+class function TAbstractNurbsControlCurveNode.ClassX3DType: String;
+begin
+  Result := 'X3DNurbsControlCurveNode';
+end;
+
+procedure TAbstractNurbsControlCurveNode.CreateNode;
+begin
+  inherited;
+
+  FFdControlPoint := TMFVec2d.Create(Self, True, 'controlPoint', []);
+   FdControlPoint.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdControlPoint);
+
+  DefaultContainerField := 'children';
 end;
 
 {$endif read_implementation}

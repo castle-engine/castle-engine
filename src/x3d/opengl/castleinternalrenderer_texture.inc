@@ -1011,7 +1011,7 @@ begin
   if GLVideo <> nil then
   begin
     VideoUnscaledTime :=
-      TextureNode.InternalTimeDependentHandler.ElapsedTimeInCycle *
+      TextureNode.TimeFunctionality.ElapsedTimeInCycle *
       TextureNode.Speed;
     if TextureNode.Speed < 0 then
       VideoUnscaledTime := TextureNode.Duration + VideoUnscaledTime;

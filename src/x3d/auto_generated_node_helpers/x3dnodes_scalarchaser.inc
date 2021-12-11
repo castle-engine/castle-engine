@@ -31,8 +31,30 @@
     function GetInitialValue: Single;
     procedure SetInitialValue(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_destination: TSFFloatEvent;
+    { X3D in event "set_destination". } { }
+    public property EventSet_destination: TSFFloatEvent read FEventSet_destination;
+
+    strict private FEventSet_value: TSFFloatEvent;
+    { X3D in event "set_value". } { }
+    public property EventSet_value: TSFFloatEvent read FEventSet_value;
+
+    strict private FEventValue_changed: TSFFloatEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFFloatEvent read FEventValue_changed;
+
+    strict private FFdInitialDestination: TSFFloat;
+    { X3D field "initialDestination". } { }
+    public property FdInitialDestination: TSFFloat read FFdInitialDestination;
     { X3D field "initialDestination". } { }
     property InitialDestination: Single read GetInitialDestination write SetInitialDestination;
+
+    strict private FFdInitialValue: TSFFloat;
+    { X3D field "initialValue". } { }
+    public property FdInitialValue: TSFFloat read FFdInitialValue;
     { X3D field "initialValue". } { }
     property InitialValue: Single read GetInitialValue write SetInitialValue;
 
@@ -60,6 +82,33 @@ end;
 procedure TScalarChaserNode.SetInitialValue(const Value: Single);
 begin
   FdInitialValue.Send(Value);
+end;
+
+class function TScalarChaserNode.ClassX3DType: String;
+begin
+  Result := 'ScalarChaser';
+end;
+
+procedure TScalarChaserNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_destination := TSFFloatEvent.Create(Self, 'set_destination', true);
+  AddEvent(FEventSet_destination);
+
+  FEventSet_value := TSFFloatEvent.Create(Self, 'set_value', true);
+  AddEvent(FEventSet_value);
+
+  FEventValue_changed := TSFFloatEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
+
+  FFdInitialDestination := TSFFloat.Create(Self, False, 'initialDestination', 0);
+   FdInitialDestination.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInitialDestination);
+
+  FFdInitialValue := TSFFloat.Create(Self, False, 'initialValue', 0);
+   FdInitialValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInitialValue);
 end;
 
 {$endif read_implementation}

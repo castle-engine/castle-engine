@@ -31,8 +31,30 @@
     function GetInitialValue: TVector4;
     procedure SetInitialValue(const Value: TVector4);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_destination: TSFRotationEvent;
+    { X3D in event "set_destination". } { }
+    public property EventSet_destination: TSFRotationEvent read FEventSet_destination;
+
+    strict private FEventSet_value: TSFRotationEvent;
+    { X3D in event "set_value". } { }
+    public property EventSet_value: TSFRotationEvent read FEventSet_value;
+
+    strict private FEventValue_changed: TSFRotationEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
+
+    strict private FFdInitialDestination: TSFRotation;
+    { X3D field "initialDestination". } { }
+    public property FdInitialDestination: TSFRotation read FFdInitialDestination;
     { X3D field "initialDestination". } { }
     property InitialDestination: TVector4 read GetInitialDestination write SetInitialDestination;
+
+    strict private FFdInitialValue: TSFRotation;
+    { X3D field "initialValue". } { }
+    public property FdInitialValue: TSFRotation read FFdInitialValue;
     { X3D field "initialValue". } { }
     property InitialValue: TVector4 read GetInitialValue write SetInitialValue;
 
@@ -60,6 +82,33 @@ end;
 procedure TOrientationChaserNode.SetInitialValue(const Value: TVector4);
 begin
   FdInitialValue.Send(Value);
+end;
+
+class function TOrientationChaserNode.ClassX3DType: String;
+begin
+  Result := 'OrientationChaser';
+end;
+
+procedure TOrientationChaserNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_destination := TSFRotationEvent.Create(Self, 'set_destination', true);
+  AddEvent(FEventSet_destination);
+
+  FEventSet_value := TSFRotationEvent.Create(Self, 'set_value', true);
+  AddEvent(FEventSet_value);
+
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
+
+  FFdInitialDestination := TSFRotation.Create(Self, False, 'initialDestination', Vector3(0, 1, 0), 0);
+   FdInitialDestination.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInitialDestination);
+
+  FFdInitialValue := TSFRotation.Create(Self, False, 'initialValue', Vector3(0, 1, 0), 0);
+   FdInitialValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInitialValue);
 end;
 
 {$endif read_implementation}

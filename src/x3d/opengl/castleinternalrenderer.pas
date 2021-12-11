@@ -93,7 +93,7 @@
     )
 
     @item(Blending settings (GL_BLEND enabled state, glBlendFunc),
-      and glDepthMask.
+      and glDepthMask (RenderContext.DepthBufferUpdate).
 
       This is used by @link(TCastleScene) to render
       scenes with a mix of tranparent and opaque objects.

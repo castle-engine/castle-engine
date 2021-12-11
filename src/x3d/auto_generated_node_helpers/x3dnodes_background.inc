@@ -26,26 +26,52 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdBackUrl: TMFString;
+    { X3D field "backUrl". } { }
+    public property FdBackUrl: TMFString read FFdBackUrl;
     { Set X3D field "backUrl". } { }
     procedure SetBackUrl(const Value: array of string);
     { Set X3D field "backUrl". } { }
     procedure SetBackUrl(const Value: TCastleStringList);
+
+    strict private FFdBottomUrl: TMFString;
+    { X3D field "bottomUrl". } { }
+    public property FdBottomUrl: TMFString read FFdBottomUrl;
     { Set X3D field "bottomUrl". } { }
     procedure SetBottomUrl(const Value: array of string);
     { Set X3D field "bottomUrl". } { }
     procedure SetBottomUrl(const Value: TCastleStringList);
+
+    strict private FFdFrontUrl: TMFString;
+    { X3D field "frontUrl". } { }
+    public property FdFrontUrl: TMFString read FFdFrontUrl;
     { Set X3D field "frontUrl". } { }
     procedure SetFrontUrl(const Value: array of string);
     { Set X3D field "frontUrl". } { }
     procedure SetFrontUrl(const Value: TCastleStringList);
+
+    strict private FFdLeftUrl: TMFString;
+    { X3D field "leftUrl". } { }
+    public property FdLeftUrl: TMFString read FFdLeftUrl;
     { Set X3D field "leftUrl". } { }
     procedure SetLeftUrl(const Value: array of string);
     { Set X3D field "leftUrl". } { }
     procedure SetLeftUrl(const Value: TCastleStringList);
+
+    strict private FFdRightUrl: TMFString;
+    { X3D field "rightUrl". } { }
+    public property FdRightUrl: TMFString read FFdRightUrl;
     { Set X3D field "rightUrl". } { }
     procedure SetRightUrl(const Value: array of string);
     { Set X3D field "rightUrl". } { }
     procedure SetRightUrl(const Value: TCastleStringList);
+
+    strict private FFdTopUrl: TMFString;
+    { X3D field "topUrl". } { }
+    public property FdTopUrl: TMFString read FFdTopUrl;
     { Set X3D field "topUrl". } { }
     procedure SetTopUrl(const Value: array of string);
     { Set X3D field "topUrl". } { }
@@ -115,6 +141,40 @@ end;
 procedure TBackgroundNode.SetTopUrl(const Value: TCastleStringList);
 begin
   FdTopUrl.Send(Value);
+end;
+
+class function TBackgroundNode.ClassX3DType: String;
+begin
+  Result := 'Background';
+end;
+
+procedure TBackgroundNode.CreateNode;
+begin
+  inherited;
+
+  FFdBackUrl := TMFString.Create(Self, True, 'backUrl', []);
+   FdBackUrl.ChangeAlways := chEverything;
+  AddField(FFdBackUrl);
+
+  FFdBottomUrl := TMFString.Create(Self, True, 'bottomUrl', []);
+   FdBottomUrl.ChangeAlways := chEverything;
+  AddField(FFdBottomUrl);
+
+  FFdFrontUrl := TMFString.Create(Self, True, 'frontUrl', []);
+   FdFrontUrl.ChangeAlways := chEverything;
+  AddField(FFdFrontUrl);
+
+  FFdLeftUrl := TMFString.Create(Self, True, 'leftUrl', []);
+   FdLeftUrl.ChangeAlways := chEverything;
+  AddField(FFdLeftUrl);
+
+  FFdRightUrl := TMFString.Create(Self, True, 'rightUrl', []);
+   FdRightUrl.ChangeAlways := chEverything;
+  AddField(FFdRightUrl);
+
+  FFdTopUrl := TMFString.Create(Self, True, 'topUrl', []);
+   FdTopUrl.ChangeAlways := chEverything;
+  AddField(FFdTopUrl);
 end;
 
 {$endif read_implementation}

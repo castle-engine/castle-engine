@@ -1,9 +1,11 @@
 X3DLightNode : X3DChildNode {
+  auto-generate-more: true
   SFFloat [in,out] ambientIntensity 0
     range: [0,1]
   SFColor [in,out] color            1 1 1
     range: [0,1]
   SFBool  [in,out] global           FALSE
+    change: chEverything
   SFFloat [in,out] intensity        1
     range: [0,1]
   SFBool  [in,out] on               TRUE
@@ -11,77 +13,118 @@ X3DLightNode : X3DChildNode {
   # CASTLE GAME ENGINE EXTENSIONS:
   MFNode     []            effects               []
     range: Effect
+    change: chEverything
   SFBool     [in,out]      shadowVolumes         FALSE
+    change: chLightForShadowVolumes
 }
 
 X3DPunctualLightNode : X3DLightNode {
+  auto-generate-more: true
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     []            shadows               FALSE
-  # meaningfull only when shadowVolumes = TRUE
+    change: chShadowMaps
   SFBool     [in,out]      shadowVolumesMain     FALSE
-  SFFloat    [in,out]      projectionNear        1
+    doc: Does this light determine shadows (when using shadow volumes). Ignored if not @link(ShadowVolumes).
+    change: chLightForShadowVolumes
+  SFBool     [in,out]      showProxyGeometry     FALSE
+    doc: InstantReality extension, see [http://instant-reality.com/documentation/nodetype/Light/].
+  SFFloat    [in,out]      projectionNear        0
     range: > 0
-  SFFloat    [in,out]      projectionFar         100
+    doc: Projection near, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php#section_light_parameters . }
+    # We want to set UpdateNeeded := true for all GeneratedShadowMap using
+    # this light. For now, simply send chVisibleGeometry that will
+    # force updating all GeneratedShadowMaps.
+    change: chVisibleGeometry
+  SFFloat    [in,out]      projectionFar         0
     range: anything > projectionNear
-  SFVec3f    [in,out]      up                    0 1 0
+    doc: Projection far, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php#section_light_parameters . }
+    # We want to set UpdateNeeded := true for all GeneratedShadowMap using
+    # this light. For now, simply send chVisibleGeometry that will
+    # force updating all GeneratedShadowMaps.
+    change: chVisibleGeometry
+  SFVec3f    [in,out]      up                    0 0 0
+    doc: View up vector, for shadow maps. See https://castle-engine.io/x3d_extensions_shadow_maps.php#section_light_parameters . }
+    # We want to set UpdateNeeded := true for all GeneratedShadowMap using
+    # this light. For now, simply send chVisibleGeometry that will
+    # force updating all GeneratedShadowMaps.
+    change: chVisibleGeometry
   SFNode     []            defaultShadowMap      NULL
     range: GeneratedShadowMap
+    doc: Shadow map used by this light source. See https://castle-engine.io/x3d_extensions_shadow_maps.php#section_light_parameters . }
+    change: chEverything
 }
 
-DirectionalLight : X3DLightNode {
-  # Commented out, for CGE this is special in TAbstractDirectionalLightNode
-  ### SFVec3f [in,out] direction        0 0 -1
-  ###   range: (-Inf,Inf)
+# We add abstract X3DDirectionalLight, not present in X3D spec.
+# This is an ancestor for X3D DirectionalLight and VRML 1.0 DirectionalLight.
+X3DDirectionalLightNode : X3DPunctualLightNode {
+  auto-generate-more: true
+  SFVec3f [in,out] direction        0 0 -1
+    range: (-Inf,Inf)
+    change: chLightLocationDirection
+
   # NOTE: global by default is FALSE
 
   # CASTLE GAME ENGINE EXTENSIONS:
-  # Commented out to not be seen by x3d-nodes-to-pascal,
-  # this is implemented specially in TAbstractDirectionalLightNode
-  # SFVec4f    [in,out]      projectionRectangle   -10 10 -10 10
-  #   range: left, bottom, right, top; must be left < right and bottom < top
-
-  # Commented out to not be seen by x3d-nodes-to-pascal,
-  # this is implemented specially in TAbstractDirectionalLightNode
-  # SFVec3f    [in,out]      projectionLocation    0 0 0
+  SFVec4f    [in,out]      projectionRectangle   0 0 0 0
+    range: left, bottom, right, top; must be left < right and bottom < top
+    # We want to set UpdateNeeded := true for all GeneratedShadowMap using
+    # this light. For now, simply send chVisibleGeometry that will
+    # force updating all GeneratedShadowMaps.
+    change: chVisibleGeometry
+  SFVec3f    [in,out]      projectionLocation    0 0 0
+    # We want to set UpdateNeeded := true for all GeneratedShadowMap using
+    # this light. For now, simply send chVisibleGeometry that will
+    # force updating all GeneratedShadowMaps.
+    change: chVisibleGeometry
 }
 
-PointLight : X3DLightNode {
+# We add abstract X3DPositionalLightNode, not present in X3D spec.
+# This is an ancestor for at least X3D PointLight, X3D SpotLight,
+# VRML 1.0 PointLight, VRML 1.0 SpotLight.
+X3DPositionalLightNode : X3DPunctualLightNode {
+  auto-generate-more: true
+
   # NOTE: global by default is TRUE
 
-  # CASTLE GAME ENGINE EXTENSIONS:
-  # Commented out to not be seen by x3d-nodes-to-pascal,
-  # this is implemented specially
-  # SFVec3f [in,out] attenuation      1 0 0
-  #   range: 0,Inf)
-
-  # Commented out to not be seen by x3d-nodes-to-pascal,
-  # this is implemented specially
-  # SFVec3f [in,out] location
-  #   range: 0 0 0 (-Inf,Inf)
-
-  # Commented out to not be seen by x3d-nodes-to-pascal,
-  # this is implemented specially
-  # SFFloat [in,out] radius           100
-  #   range: [0,Inf)
+  SFVec3f [in,out] attenuation      1 0 0
+    range: 0,Inf)
+  SFVec3f [in,out] location         0 0 0
+    range: 0 0 0 (-Inf,Inf)
+    change: chLightLocationDirection
+  SFFloat [in,out] radius           100
+    range: [0,Inf)
+    change: chLightInstanceProperty
 }
 
-SpotLight : X3DLightNode {
-  SFVec3f [in,out] attenuation      1 0 0
-    range: [0,Inf)
+X3DPointLightNode : X3DPositionalLightNode {
+  auto-generate-more: true
+}
+
+DirectionalLight : X3DDirectionalLightNode {
+  auto-generate-more: true
+}
+
+PointLight : X3DPointLightNode {
+  auto-generate-more: true
+}
+
+SpotLight : X3DPositionalLightNode {
+  auto-generate-more: true
   SFFloat [in,out] beamWidth        Pi/2
     range: (0,Pi/2]
   SFFloat [in,out] cutOffAngle      Pi/4
     range: (0,Pi/2]
   SFVec3f [in,out] direction        0 0 -1
     range: (-Inf,Inf)
-  # NOTE: global by default is TRUE
-  SFVec3f [in,out] location         0 0 0
-    range: (-Inf,Inf)
-  SFFloat [in,out] radius           100
-    range: [0,Inf)
+    change: chLightLocationDirection
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFFloat    [in,out]      projectionAngle       0
+    # We want to set UpdateNeeded := true for all GeneratedShadowMap using
+    # this light. For now, simply send chVisibleGeometry that will
+    # force updating all GeneratedShadowMaps.
+    change: chVisibleGeometry
+    angle
 }
 
 EnvironmentLight : X3DLightNode {

@@ -1,79 +1,127 @@
 X3DBackgroundNode : X3DBindableNode {
+  auto-generate-more: true
+  MFNode     [in,out]      shaders          []
+    range: X3DShaderNode
+    change: chEverything
+    doc: Shaders used to render background geometry.
+  MFNode     []            effects          []
+    range: Effect
+    change: chEverything
+    doc: Shader effects (see https://castle-engine.io/compositing_shaders.php) used to render background geometry.
 }
 
-# We split X3D into one empty abstract class, and X3D3DBackgroundNode.
+# X3D specification has just X3DBackgroundNode, not X3D3DBackgroundNode.
+# We split in into (empty) X3DBackgroundNode and X3D3DBackgroundNode (with colors and angles).
 # This allows to cleanly define ImageBackground.
 X3D3DBackgroundNode : X3DBindableNode {
+  auto-generate-more: true
   MFFloat [in,out] groundAngle   []
     range: [0,Pi/2]
+    change: chBackground
+    angle
   MFColor [in,out] groundColor   []
     range: [0,1]
+    change: chBackground
   MFFloat [in,out] skyAngle      []
     range: [0,Pi]
+    change: chBackground
+    angle
   MFColor [in,out] skyColor      0 0 0
     range: [0,1]
+    change: chBackground
   SFFloat [in,out] transparency  0
     range: [0,1]
+    change: chBackground
 }
 
 X3DFogObject {
+  auto-generate-more: true
   SFColor  [in,out] color           1 1 1
     range: [0,1]
+    change: chRedisplay
   SFString [in,out] fogType         "LINEAR"
     range: ["LINEAR"|"EXPONENTIAL"]
-    # TODO: enumerated-type
+    enumerated-type: TFogType FogTypeNames ftLinear
+    change: chRedisplay
   SFFloat  [in,out] visibilityRange 0
     range: [0,-Inf)
+    change: chRedisplay
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool   [in,out]      volumetric                    FALSE
+    doc: Activate volumetric fog, see https://castle-engine.io/x3d_extensions.php#ext_fog_volumetric .
+    change: chRedisplay
   SFVec3f  [in,out]      volumetricDirection           0 -1 0
     range: any non-zero vector
+    change: chRedisplay
   SFFloat  [in,out]      volumetricVisibilityStart     0
+    change: chRedisplay
 }
 
 Background : X3D3DBackgroundNode {
+  auto-generate-more: true
   MFString [in,out] backUrl      []
     range: [URI]
+    # TODO: chEverything is very unoptimal.
+    # Changing background XxxUrl should only cause reloading of the Textures
+    # (even better: only of the appropriate background side),
+    # and then chBackground.
+    change: chEverything
   MFString [in,out] bottomUrl    []
     range: [URI]
+    change: chEverything
   MFString [in,out] frontUrl     []
     range: [URI]
+    change: chEverything
   MFString [in,out] leftUrl      []
     range: [URI]
+    change: chEverything
   MFString [in,out] rightUrl     []
     range: [URI]
+    change: chEverything
   MFString [in,out] topUrl       []
     range: [URI]
+    change: chEverything
 }
 
 Fog : X3DBindableNode, X3DFogObject {
+  auto-generate-more: true
   # Although some of these fields are already present in X3DFogObject,
   # but we repeat them here, because only the fields from 1st ancestor
   # (X3DBindableNode here) are automatically inherited.
-  # In Pascal we realize the remaining ancestors as interfaces
-  # or TNodeFunctionality components.
+  # In Pascal we realize the remaining ancestors as TNodeFunctionality components.
 
   SFColor  [in,out] color           1 1 1
     range: [0,1]
+    change: chRedisplay
   SFString [in,out] fogType         "LINEAR"
     range: ["LINEAR"|"EXPONENTIAL"]
+    enumerated-type: TFogType FogTypeNames ftLinear
+    change: chRedisplay
   SFFloat  [in,out] visibilityRange 0
     range: [0,Inf)
+    change: chRedisplay
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool   [in,out]      volumetric                    FALSE
+    change: chRedisplay
+    doc: Activate volumetric fog, see https://castle-engine.io/x3d_extensions.php#ext_fog_volumetric .
   SFVec3f  [in,out]      volumetricDirection           0 -1 0
     range: any non-zero vector
+    change: chRedisplay
   SFFloat  [in,out]      volumetricVisibilityStart     0
+    change: chRedisplay
 }
 
 FogCoordinate : X3DGeometricPropertyNode {
+  auto-generate-more: true
+  default-container-field: fogCoord
   MFFloat [in,out] depth    []
     range: [0,1]
 }
 
 LocalFog : X3DChildNode, X3DFogObject {
+  auto-generate-more: true
   # Although some of these fields are already present in X3DFogObject,
   # but we repeat them here, because only the fields from 1st ancestor
   # (X3DBindableNode here) are automatically inherited.
@@ -85,18 +133,23 @@ LocalFog : X3DChildNode, X3DFogObject {
   SFBool   [in,out] enabled         TRUE
   SFString [in,out] fogType         "LINEAR"
     range: ["LINEAR"|"EXPONENTIAL"]
-    # TODO: enumerated-type
+    enumerated-type: TFogType FogTypeNames ftLinear
   SFFloat  [in,out] visibilityRange 0
     range: [0,-Inf)
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool   [in,out]      volumetric                    FALSE
+    doc: Activate volumetric fog, see https://castle-engine.io/x3d_extensions.php#ext_fog_volumetric .
+    change: chEverything
   SFVec3f  [in,out]      volumetricDirection           0 -1 0
     range: any non-zero vector
+    change: chEverything
   SFFloat  [in,out]      volumetricVisibilityStart     0
+    change: chEverything
 }
 
 TextureBackground : X3D3DBackgroundNode {
+  auto-generate-more: true
   SFNode  [in,out] backTexture   NULL
     range: X3DTextureNode
   SFNode  [in,out] bottomTexture NULL

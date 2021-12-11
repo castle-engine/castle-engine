@@ -39,16 +39,42 @@
     function GetTopTexture: TAbstractTextureNode;
     procedure SetTopTexture(const Value: TAbstractTextureNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdBackTexture: TSFNode;
+    { X3D field "backTexture". } { }
+    public property FdBackTexture: TSFNode read FFdBackTexture;
     { X3D field "backTexture". } { }
     property BackTexture: TAbstractTextureNode read GetBackTexture write SetBackTexture;
+
+    strict private FFdBottomTexture: TSFNode;
+    { X3D field "bottomTexture". } { }
+    public property FdBottomTexture: TSFNode read FFdBottomTexture;
     { X3D field "bottomTexture". } { }
     property BottomTexture: TAbstractTextureNode read GetBottomTexture write SetBottomTexture;
+
+    strict private FFdFrontTexture: TSFNode;
+    { X3D field "frontTexture". } { }
+    public property FdFrontTexture: TSFNode read FFdFrontTexture;
     { X3D field "frontTexture". } { }
     property FrontTexture: TAbstractTextureNode read GetFrontTexture write SetFrontTexture;
+
+    strict private FFdLeftTexture: TSFNode;
+    { X3D field "leftTexture". } { }
+    public property FdLeftTexture: TSFNode read FFdLeftTexture;
     { X3D field "leftTexture". } { }
     property LeftTexture: TAbstractTextureNode read GetLeftTexture write SetLeftTexture;
+
+    strict private FFdRightTexture: TSFNode;
+    { X3D field "rightTexture". } { }
+    public property FdRightTexture: TSFNode read FFdRightTexture;
     { X3D field "rightTexture". } { }
     property RightTexture: TAbstractTextureNode read GetRightTexture write SetRightTexture;
+
+    strict private FFdTopTexture: TSFNode;
+    { X3D field "topTexture". } { }
+    public property FdTopTexture: TSFNode read FFdTopTexture;
     { X3D field "topTexture". } { }
     property TopTexture: TAbstractTextureNode read GetTopTexture write SetTopTexture;
 
@@ -134,6 +160,40 @@ end;
 procedure TTextureBackgroundNode.SetTopTexture(const Value: TAbstractTextureNode);
 begin
   FdTopTexture.Send(Value);
+end;
+
+class function TTextureBackgroundNode.ClassX3DType: String;
+begin
+  Result := 'TextureBackground';
+end;
+
+procedure TTextureBackgroundNode.CreateNode;
+begin
+  inherited;
+
+  FFdBackTexture := TSFNode.Create(Self, True, 'backTexture', [TAbstractTextureNode]);
+   FdBackTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBackTexture);
+
+  FFdBottomTexture := TSFNode.Create(Self, True, 'bottomTexture', [TAbstractTextureNode]);
+   FdBottomTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBottomTexture);
+
+  FFdFrontTexture := TSFNode.Create(Self, True, 'frontTexture', [TAbstractTextureNode]);
+   FdFrontTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFrontTexture);
+
+  FFdLeftTexture := TSFNode.Create(Self, True, 'leftTexture', [TAbstractTextureNode]);
+   FdLeftTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLeftTexture);
+
+  FFdRightTexture := TSFNode.Create(Self, True, 'rightTexture', [TAbstractTextureNode]);
+   FdRightTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRightTexture);
+
+  FFdTopTexture := TSFNode.Create(Self, True, 'topTexture', [TAbstractTextureNode]);
+   FdTopTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTopTexture);
 end;
 
 {$endif read_implementation}

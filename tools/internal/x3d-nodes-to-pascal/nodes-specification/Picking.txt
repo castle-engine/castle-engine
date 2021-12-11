@@ -1,41 +1,57 @@
 X3DPickableObject {
-  MFString [in,out] objectType "ALL"
+  auto-generate-more: true
+
+  MFString [in,out] objectType ['ALL']
     range: ["ALL"|"NONE"|"TERRAIN"|...]
   SFBool   [in,out] pickable   TRUE
 }
 
 X3DPickSensorNode : X3DSensorNode {
-  MFString [in,out] objectType       "ALL"
+  auto-generate-more: true
+
+  MFString [in,out] objectType       ['ALL']
     range: ["ALL","NONE","TERRAIN",...]
   SFNode   [in,out] pickingGeometry  NULL
     range: X3DGeometryNode
   MFNode   [in,out] pickTarget       []
-    range: X3DGroupingNode|X3DShapeNode|X3DInlineNode
+    range: X3DGroupingNode|X3DShapeNode|Inline
   MFNode   [out]    pickedGeometry
   SFString []       intersectionType "BOUNDS"
     range: ["GEOMETRY"|"BOUNDS"]
+    enumerated-type: TPickSensorIntersectionType PickSensorIntersectionTypeNames piBounds
   SFString []       sortOrder        "CLOSEST"
     range: ["ANY"|"CLOSEST"|"ALL"|"ALL_SORTED"]
+    enumerated-type: TPickSensorRange PickSensorRangeNames prClosest
 }
 
 LinePickSensor : X3DPickSensorNode {
+  auto-generate-more: true
+
   MFVec3f  [out]    pickedNormal
   MFVec3f  [out]    pickedPoint
   MFVec3f  [out]    pickedTextureCoordinate
 }
 
 PickableGroup : X3DGroupingNode, X3DPickableObject {
-  MFString [in,out] objectType     "ALL"
+  auto-generate-more: true
+
+  MFString [in,out] objectType     ['ALL']
     range: ["ALL","NONE","TERRAIN",...]
   SFBool   [in,out] pickable       TRUE
 }
 
 PointPickSensor : X3DPickSensorNode {
+  auto-generate-more: true
+
   MFVec3f  [out]    pickedPoint
 }
 
 PrimitivePickSensor : X3DPickSensorNode {
+  auto-generate-more: true
+
 }
 
 VolumePickSensor : X3DPickSensorNode {
+  auto-generate-more: true
+
 }

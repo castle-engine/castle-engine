@@ -41,24 +41,62 @@
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCenterOfMass: TSFVec3f;
+    { X3D field "centerOfMass". } { }
+    public property FdCenterOfMass: TSFVec3f read FFdCenterOfMass;
     { X3D field "centerOfMass". } { }
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
+
+    strict private FFdCoord: TSFNode;
+    { X3D field "coord". } { }
+    public property FdCoord: TSFNode read FFdCoord;
     { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+
+    strict private FFdDisplacers: TMFNode;
+    { X3D field "displacers". } { }
+    public property FdDisplacers: TMFNode read FFdDisplacers;
     { Set X3D field "displacers". } { }
     procedure SetDisplacers(const Value: array of THAnimDisplacerNode);
+
+    strict private FFdMass: TSFFloat;
+    { X3D field "mass". } { }
+    public property FdMass: TSFFloat read FFdMass;
     { X3D field "mass". } { }
     property Mass: Single read GetMass write SetMass;
+
+    strict private FFdMomentsOfInertia: TMFFloat;
+    { X3D field "momentsOfInertia". } { }
+    public property FdMomentsOfInertia: TMFFloat read FFdMomentsOfInertia;
     { Set X3D field "momentsOfInertia". } { }
     procedure SetMomentsOfInertia(const Value: array of Single);
     { Set X3D field "momentsOfInertia". } { }
     procedure SetMomentsOfInertia(const Value: TSingleList);
+
+    strict private FFdName: TSFString;
+    { X3D field "name". } { }
+    public property FdName: TSFString read FFdName;
     { X3D field "name". } { }
     property NameField: String read GetNameField write SetNameField;
+
+    strict private FFdRotation: TSFRotation;
+    { X3D field "rotation". } { }
+    public property FdRotation: TSFRotation read FFdRotation;
     { X3D field "rotation". } { }
     property Rotation: TVector4 read GetRotation write SetRotation;
+
+    strict private FFdScale: TSFVec3f;
+    { X3D field "scale". } { }
+    public property FdScale: TSFVec3f read FFdScale;
     { X3D field "scale". } { }
     property Scale: TVector3 read GetScale write SetScale;
+
+    strict private FFdTranslation: TSFVec3f;
+    { X3D field "translation". } { }
+    public property FdTranslation: TSFVec3f read FFdTranslation;
     { X3D field "translation". } { }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
@@ -161,6 +199,52 @@ end;
 procedure THAnimSegmentNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
+end;
+
+class function THAnimSegmentNode.ClassX3DType: String;
+begin
+  Result := 'HAnimSegment';
+end;
+
+procedure THAnimSegmentNode.CreateNode;
+begin
+  inherited;
+
+  FFdCenterOfMass := TSFVec3f.Create(Self, True, 'centerOfMass', Vector3(0, 0, 0));
+   FdCenterOfMass.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCenterOfMass);
+
+  FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
+   FdCoord.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCoord);
+
+  FFdDisplacers := TMFNode.Create(Self, True, 'displacers', [THAnimDisplacerNode]);
+   FdDisplacers.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDisplacers);
+
+  FFdMass := TSFFloat.Create(Self, True, 'mass', 0);
+   FdMass.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMass);
+
+  FFdMomentsOfInertia := TMFFloat.Create(Self, True, 'momentsOfInertia', [0, 0, 0, 0, 0, 0, 0, 0, 0]);
+   FdMomentsOfInertia.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMomentsOfInertia);
+
+  FFdName := TSFString.Create(Self, True, 'name', '');
+   FdName.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdName);
+
+  FFdRotation := TSFRotation.Create(Self, True, 'rotation', Vector3(0, 0, 1), 0);
+   FdRotation.ChangeAlways := chTransform;
+  AddField(FFdRotation);
+
+  FFdScale := TSFVec3f.Create(Self, True, 'scale', Vector3(1, 1, 1));
+   FdScale.ChangeAlways := chTransform;
+  AddField(FFdScale);
+
+  FFdTranslation := TSFVec3f.Create(Self, True, 'translation', Vector3(0, 0, 0));
+   FdTranslation.ChangeAlways := chTransform;
+  AddField(FFdTranslation);
 end;
 
 {$endif read_implementation}

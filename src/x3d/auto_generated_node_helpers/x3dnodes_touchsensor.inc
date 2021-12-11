@@ -25,11 +25,45 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventHitNormal_changed: TSFVec3fEvent;
+    { X3D out event "hitNormal_changed". } { }
+    public property EventHitNormal_changed: TSFVec3fEvent read FEventHitNormal_changed;
+
+    strict private FEventHitPoint_changed: TSFVec3fEvent;
+    { X3D out event "hitPoint_changed". } { }
+    public property EventHitPoint_changed: TSFVec3fEvent read FEventHitPoint_changed;
+
+    strict private FEventHitTexCoord_changed: TSFVec2fEvent;
+    { X3D out event "hitTexCoord_changed". } { }
+    public property EventHitTexCoord_changed: TSFVec2fEvent read FEventHitTexCoord_changed;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TTouchSensorNode ----------------------------------------------- }
+
+class function TTouchSensorNode.ClassX3DType: String;
+begin
+  Result := 'TouchSensor';
+end;
+
+procedure TTouchSensorNode.CreateNode;
+begin
+  inherited;
+
+  FEventHitNormal_changed := TSFVec3fEvent.Create(Self, 'hitNormal_changed', false);
+  AddEvent(FEventHitNormal_changed);
+
+  FEventHitPoint_changed := TSFVec3fEvent.Create(Self, 'hitPoint_changed', false);
+  AddEvent(FEventHitPoint_changed);
+
+  FEventHitTexCoord_changed := TSFVec2fEvent.Create(Self, 'hitTexCoord_changed', false);
+  AddEvent(FEventHitTexCoord_changed);
+end;
 
 {$endif read_implementation}

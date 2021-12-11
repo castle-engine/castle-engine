@@ -694,17 +694,30 @@ procedure TCastleAbstractFont.PrintStrings(const X0, Y0: Single;
   end;
 
 var
-  S: string;
   Line: Integer;
   Text: TRichText;
+  S: String;
+  Y: Single;
+  HasScissorRect: Boolean;
+  ScissorRect: TRectangle;
 begin
   if not Html then
   begin
     { simple and fast implementation in case TRichText not needed }
+
+    HasScissorRect := RenderContext.FinalScissor(ScissorRect) and (not ScissorRect.IsEmpty);
+
     for Line := 0 to Strs.Count - 1 do
     begin
+      Y := YPos(Line);
+      { Reject entire line, if it would be clipped anyway. }
+      if HasScissorRect and
+         ( (Y > ScissorRect.Top) or
+           (Y + RowHeight < ScissorRect.Bottom)
+         ) then
+        Continue;
       S := Strs[Line];
-      Print(XPos(Line, S), YPos(Line), Color, S);
+      Print(XPos(Line, S), Y, Color, S);
     end;
   end else
   begin

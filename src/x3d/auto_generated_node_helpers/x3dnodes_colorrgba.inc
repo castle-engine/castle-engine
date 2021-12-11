@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdColor: TMFColorRGBA;
+    { X3D field "color". } { }
+    public property FdColor: TMFColorRGBA read FFdColor;
     { Set X3D field "color". } { }
     procedure SetColor(const Value: array of TCastleColor);
     { Set X3D field "color". } { }
@@ -45,6 +51,20 @@ end;
 procedure TColorRGBANode.SetColor(const Value: TVector4List);
 begin
   FdColor.Send(Value);
+end;
+
+class function TColorRGBANode.ClassX3DType: String;
+begin
+  Result := 'ColorRGBA';
+end;
+
+procedure TColorRGBANode.CreateNode;
+begin
+  inherited;
+
+  FFdColor := TMFColorRGBA.Create(Self, True, 'color', []);
+   FdColor.ChangeAlways := chColorNode;
+  AddField(FFdColor);
 end;
 
 {$endif read_implementation}

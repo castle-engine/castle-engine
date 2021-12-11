@@ -29,8 +29,18 @@
     function GetDescription: String;
     procedure SetDescription(const Value: String);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDescription: TSFString;
+    { X3D field "description". } { }
+    public property FdDescription: TSFString read FFdDescription;
     { X3D field "description". } { }
     property Description: String read GetDescription write SetDescription;
+
+    strict private FEventIsOver: TSFBoolEvent;
+    { X3D out event "isOver". } { }
+    public property EventIsOver: TSFBoolEvent read FEventIsOver;
 
 {$endif read_interface}
 
@@ -46,6 +56,23 @@ end;
 procedure TAbstractPointingDeviceSensorNode.SetDescription(const Value: String);
 begin
   FdDescription.Send(Value);
+end;
+
+class function TAbstractPointingDeviceSensorNode.ClassX3DType: String;
+begin
+  Result := 'X3DPointingDeviceSensorNode';
+end;
+
+procedure TAbstractPointingDeviceSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDescription);
+
+  FEventIsOver := TSFBoolEvent.Create(Self, 'isOver', false);
+  AddEvent(FEventIsOver);
 end;
 
 {$endif read_implementation}

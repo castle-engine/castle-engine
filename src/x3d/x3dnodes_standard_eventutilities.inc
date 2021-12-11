@@ -18,11 +18,11 @@
     and @link(TBooleanSequencerNode)) are derived. }
   TAbstractSequencerNode = class(TAbstractChildNode)
   strict private
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
-    procedure EventNextReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventNextReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
-    procedure EventPreviousReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventPreviousReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   strict private
     FCurrentKeyRange: Integer;
@@ -71,7 +71,7 @@
     of TRUE or FALSE values and negation. }
   TBooleanFilterNode = class(TAbstractChildNode)
   strict private
-    procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_BooleanReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
@@ -90,7 +90,7 @@
   { Stores a boolean value for toggling on/off. }
   TBooleanToggleNode = class(TAbstractChildNode)
   strict private
-    procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_BooleanReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
@@ -100,7 +100,7 @@
   { Trigger node that generates Boolean events upon receiving time events. }
   TBooleanTriggerNode = class(TAbstractTriggerNode)
   strict private
-    procedure EventSet_triggerTimeReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_triggerTimeReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
@@ -121,7 +121,7 @@
   { Generate an integer upon receiving any boolean value. }
   TIntegerTriggerNode = class(TAbstractTriggerNode)
   strict private
-    procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_BooleanReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
@@ -131,7 +131,7 @@
   { Generate time events upon receiving any boolean value. }
   TTimeTriggerNode = class(TAbstractTriggerNode)
   strict private
-    procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_BooleanReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
@@ -141,7 +141,7 @@
   { Generate events upon receiving a boolean TRUE value. }
   TValueTriggerNode = class(TAbstractTriggerNode)
   strict private
-    procedure EventTriggerReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventTriggerReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
@@ -189,7 +189,7 @@ begin
   end;
 end;
 
-procedure TAbstractSequencerNode.EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+procedure TAbstractSequencerNode.EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
   const Time: TX3DTime);
 var
   KeyCount: Integer;
@@ -216,7 +216,7 @@ begin
   end;
 end;
 
-procedure TAbstractSequencerNode.EventNextReceive(Event: TX3DEvent; Value: TX3DField;
+procedure TAbstractSequencerNode.EventNextReceive(const Event: TX3DEvent; const Value: TX3DField;
   const Time: TX3DTime);
 var
   KeyCount, NewKeyRange: Integer;
@@ -238,7 +238,7 @@ begin
   end;
 end;
 
-procedure TAbstractSequencerNode.EventPreviousReceive(Event: TX3DEvent; Value: TX3DField;
+procedure TAbstractSequencerNode.EventPreviousReceive(const Event: TX3DEvent; const Value: TX3DField;
   const Time: TX3DTime);
 var
   KeyCount, NewKeyRange: Integer;
@@ -269,7 +269,7 @@ begin
 end;
 
 procedure TBooleanFilterNode.EventSet_BooleanReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   B: boolean;
 begin
@@ -301,7 +301,7 @@ begin
 end;
 
 procedure TBooleanToggleNode.EventSet_BooleanReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   B: boolean;
 begin
@@ -319,7 +319,7 @@ begin
 end;
 
 procedure TBooleanTriggerNode.EventSet_triggerTimeReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   EventTriggerTrue.Send(true, Time, Value.InternalPartialSend);
 end;
@@ -344,7 +344,7 @@ begin
 end;
 
 procedure TIntegerTriggerNode.EventSet_BooleanReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   EventtriggerValue.Send(FdintegerKey.Value, Time, Value.InternalPartialSend);
 end;
@@ -358,7 +358,7 @@ begin
 end;
 
 procedure TTimeTriggerNode.EventSet_BooleanReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   EventTriggerTime.Send(Time.Seconds, Time, Value.InternalPartialSend);
 end;
@@ -372,7 +372,7 @@ begin
   HasInterfaceDeclarations := AllAccessTypes;
 end;
 
-procedure TValueTriggerNode.EventTriggerReceive(Event: TX3DEvent; Value: TX3DField;
+procedure TValueTriggerNode.EventTriggerReceive(const Event: TX3DEvent; const Value: TX3DField;
   const Time: TX3DTime);
 var
   B: Boolean;

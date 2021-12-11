@@ -35,20 +35,46 @@
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdControlPoint: TSFNode;
+    { X3D field "controlPoint". } { }
+    public property FdControlPoint: TSFNode read FFdControlPoint;
     { X3D field "controlPoint". } { }
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
+
+    strict private FFdTessellation: TSFInt32;
+    { X3D field "tessellation". } { }
+    public property FdTessellation: TSFInt32 read FFdTessellation;
     { X3D field "tessellation". } { }
     property Tessellation: Integer read GetTessellation write SetTessellation;
+
+    strict private FFdWeight: TMFDouble;
+    { X3D field "weight". } { }
+    public property FdWeight: TMFDouble read FFdWeight;
     { Set X3D field "weight". } { }
     procedure SetWeight(const Value: array of Double);
     { Set X3D field "weight". } { }
     procedure SetWeight(const Value: TDoubleList);
+
+    strict private FFdClosed: TSFBool;
+    { X3D field "closed". } { }
+    public property FdClosed: TSFBool read FFdClosed;
     { X3D field "closed". } { }
     property Closed: Boolean read GetClosed write SetClosed;
+
+    strict private FFdKnot: TMFDouble;
+    { X3D field "knot". } { }
+    public property FdKnot: TMFDouble read FFdKnot;
     { Set X3D field "knot". } { }
     procedure SetKnot(const Value: array of Double);
     { Set X3D field "knot". } { }
     procedure SetKnot(const Value: TDoubleList);
+
+    strict private FFdOrder: TSFInt32;
+    { X3D field "order". } { }
+    public property FdOrder: TSFInt32 read FFdOrder;
     { X3D field "order". } { }
     property Order: Integer read GetOrder write SetOrder;
 
@@ -119,6 +145,40 @@ end;
 procedure TNurbsCurveNode.SetOrder(const Value: Integer);
 begin
   FdOrder.Send(Value);
+end;
+
+class function TNurbsCurveNode.ClassX3DType: String;
+begin
+  Result := 'NurbsCurve';
+end;
+
+procedure TNurbsCurveNode.CreateNode;
+begin
+  inherited;
+
+  FFdControlPoint := TSFNode.Create(Self, True, 'controlPoint', [TAbstractCoordinateNode]);
+   FdControlPoint.ChangeAlways := chGeometry;
+  AddField(FFdControlPoint);
+
+  FFdTessellation := TSFInt32.Create(Self, True, 'tessellation', 0);
+   FdTessellation.ChangeAlways := chGeometry;
+  AddField(FFdTessellation);
+
+  FFdWeight := TMFDouble.Create(Self, True, 'weight', []);
+   FdWeight.ChangeAlways := chGeometry;
+  AddField(FFdWeight);
+
+  FFdClosed := TSFBool.Create(Self, False, 'closed', false);
+   FdClosed.ChangeAlways := chGeometry;
+  AddField(FFdClosed);
+
+  FFdKnot := TMFDouble.Create(Self, False, 'knot', []);
+   FdKnot.ChangeAlways := chGeometry;
+  AddField(FFdKnot);
+
+  FFdOrder := TSFInt32.Create(Self, False, 'order', 3);
+   FdOrder.ChangeAlways := chGeometry;
+  AddField(FFdOrder);
 end;
 
 {$endif read_implementation}

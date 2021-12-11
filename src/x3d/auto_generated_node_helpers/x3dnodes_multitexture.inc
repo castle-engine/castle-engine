@@ -31,22 +31,48 @@
     function GetColor: TCastleColorRGB;
     procedure SetColor(const Value: TCastleColorRGB);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAlpha: TSFFloat;
+    { X3D field "alpha". } { }
+    public property FdAlpha: TSFFloat read FFdAlpha;
     { X3D field "alpha". } { }
     property Alpha: Single read GetAlpha write SetAlpha;
+
+    strict private FFdColor: TSFColor;
+    { X3D field "color". } { }
+    public property FdColor: TSFColor read FFdColor;
     { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
+
+    strict private FFdFunction: TMFString;
+    { X3D field "function". } { }
+    public property FdFunction: TMFString read FFdFunction;
     { Set X3D field "function". } { }
     procedure SetFunction(const Value: array of string);
     { Set X3D field "function". } { }
     procedure SetFunction(const Value: TCastleStringList);
+
+    strict private FFdMode: TMFString;
+    { X3D field "mode". } { }
+    public property FdMode: TMFString read FFdMode;
     { Set X3D field "mode". } { }
     procedure SetMode(const Value: array of string);
     { Set X3D field "mode". } { }
     procedure SetMode(const Value: TCastleStringList);
+
+    strict private FFdSource: TMFString;
+    { X3D field "source". } { }
+    public property FdSource: TMFString read FFdSource;
     { Set X3D field "source". } { }
     procedure SetSource(const Value: array of string);
     { Set X3D field "source". } { }
     procedure SetSource(const Value: TCastleStringList);
+
+    strict private FFdTexture: TMFNode;
+    { X3D field "texture". } { }
+    public property FdTexture: TMFNode read FFdTexture;
     { Set X3D field "texture". } { }
     procedure SetTexture(const Value: array of TAbstractSingleTextureNode);
 
@@ -116,6 +142,40 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TAbstractSingleTextureNode));
   FdTexture.Send(A);
+end;
+
+class function TMultiTextureNode.ClassX3DType: String;
+begin
+  Result := 'MultiTexture';
+end;
+
+procedure TMultiTextureNode.CreateNode;
+begin
+  inherited;
+
+  FFdAlpha := TSFFloat.Create(Self, True, 'alpha', 1);
+   FdAlpha.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdAlpha);
+
+  FFdColor := TSFColor.Create(Self, True, 'color', Vector3(1, 1, 1));
+   FdColor.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdColor);
+
+  FFdFunction := TMFString.Create(Self, True, 'function', []);
+   FdFunction.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdFunction);
+
+  FFdMode := TMFString.Create(Self, True, 'mode', []);
+   FdMode.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdMode);
+
+  FFdSource := TMFString.Create(Self, True, 'source', []);
+   FdSource.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdSource);
+
+  FFdTexture := TMFNode.Create(Self, True, 'texture', [TAbstractSingleTextureNode]);
+   FdTexture.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdTexture);
 end;
 
 {$endif read_implementation}

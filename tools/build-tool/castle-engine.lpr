@@ -28,7 +28,7 @@ uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
-  ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid,
+  ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
   ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcessWait;
 
 var
@@ -46,9 +46,10 @@ var
   CleanAll: Boolean = false;
   WaitForProcessId: TProcessId = 0;
   GuiErrors: Boolean = false;
+  OverrideCompiler: TCompiler = coFpc;
 
 const
-  Options: array [0..21] of TOption =
+  Options: array [0..22] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -71,7 +72,8 @@ const
     (Short: #0 ; Long: 'all'; Argument: oaNone),
     (Short: #0 ; Long: 'manifest-name'; Argument: oaRequired),
     (Short: #0 ; Long: 'wait-for-process-exit'; Argument: oaRequired),
-    (Short: #0 ; Long: 'gui-errors'; Argument: oaNone)
+    (Short: #0 ; Long: 'gui-errors'; Argument: oaNone),
+    (Short: #0 ; Long: 'compiler'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -221,6 +223,8 @@ begin
               'Internal, useful with "editor-run".') +NL+
             OptionDescription('--gui-errors',
               'Show errors as GUI boxes. On Unix, requires "zenity" installed.') +NL+
+            OptionDescription('--compiler=COMPILER',
+              'Select compiler: "autodetect", "fpc", "delphi".') +NL+
             TargetOptionHelp + NL +
             OSOptionHelp + NL +
             CPUOptionHelp + NL +
@@ -256,6 +260,7 @@ begin
     19: ManifestName := Argument;
     20: WaitForProcessId := StrToInt64(Argument);
     21: GuiErrors := true;
+    22: OverrideCompiler := StringToCompiler(Argument);
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -320,9 +325,9 @@ begin
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
     case Target of
-      targetCustom        : Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetAndroid       : CompileAndroid(nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetIOS           : CompileIOS(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetCustom        : Compile(OverrideCompiler, OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetAndroid       : CompileAndroid(OverrideCompiler, nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetIOS           : CompileIOS(OverrideCompiler, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
       targetNintendoSwitch: CompileNintendoSwitch(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Operation not implemented for this target');
@@ -338,7 +343,7 @@ begin
         Project.DoCreateManifest
       else
       if Command = 'compile' then
-        Project.DoCompile(Target, OS, CPU, Plugin, Mode, CompilerExtraOptions)
+        Project.DoCompile(OverrideCompiler, Target, OS, CPU, Plugin, Mode, CompilerExtraOptions)
       else
       if Command = 'package' then
       begin
@@ -346,7 +351,7 @@ begin
         begin
           if not Fast then
             Project.DoClean;
-          Project.DoCompile(Target, OS, CPU, Plugin, Mode, CompilerExtraOptions);
+          Project.DoCompile(OverrideCompiler, Target, OS, CPU, Plugin, Mode, CompilerExtraOptions);
         end;
         Project.DoPackage(Target, OS, CPU, Plugin, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
       end else

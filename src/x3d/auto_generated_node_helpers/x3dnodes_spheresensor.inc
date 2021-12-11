@@ -29,8 +29,18 @@
     function GetOffset: TVector4;
     procedure SetOffset(const Value: TVector4);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdOffset: TSFRotation;
+    { X3D field "offset". } { }
+    public property FdOffset: TSFRotation read FFdOffset;
     { X3D field "offset". } { }
     property Offset: TVector4 read GetOffset write SetOffset;
+
+    strict private FEventRotation_changed: TSFRotationEvent;
+    { X3D out event "rotation_changed". } { }
+    public property EventRotation_changed: TSFRotationEvent read FEventRotation_changed;
 
 {$endif read_interface}
 
@@ -46,6 +56,23 @@ end;
 procedure TSphereSensorNode.SetOffset(const Value: TVector4);
 begin
   FdOffset.Send(Value);
+end;
+
+class function TSphereSensorNode.ClassX3DType: String;
+begin
+  Result := 'SphereSensor';
+end;
+
+procedure TSphereSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdOffset := TSFRotation.Create(Self, True, 'offset', Vector3(0, 1, 0), 0);
+   FdOffset.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOffset);
+
+  FEventRotation_changed := TSFRotationEvent.Create(Self, 'rotation_changed', false);
+  AddEvent(FEventRotation_changed);
 end;
 
 {$endif read_implementation}

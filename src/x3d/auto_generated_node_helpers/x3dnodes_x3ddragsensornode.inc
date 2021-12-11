@@ -29,8 +29,18 @@
     function GetAutoOffset: Boolean;
     procedure SetAutoOffset(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAutoOffset: TSFBool;
+    { X3D field "autoOffset". } { }
+    public property FdAutoOffset: TSFBool read FFdAutoOffset;
     { X3D field "autoOffset". } { }
     property AutoOffset: Boolean read GetAutoOffset write SetAutoOffset;
+
+    strict private FEventTrackPoint_changed: TSFVec3fEvent;
+    { X3D out event "trackPoint_changed". } { }
+    public property EventTrackPoint_changed: TSFVec3fEvent read FEventTrackPoint_changed;
 
 {$endif read_interface}
 
@@ -46,6 +56,23 @@ end;
 procedure TAbstractDragSensorNode.SetAutoOffset(const Value: Boolean);
 begin
   FdAutoOffset.Send(Value);
+end;
+
+class function TAbstractDragSensorNode.ClassX3DType: String;
+begin
+  Result := 'X3DDragSensorNode';
+end;
+
+procedure TAbstractDragSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdAutoOffset := TSFBool.Create(Self, True, 'autoOffset', true);
+   FdAutoOffset.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAutoOffset);
+
+  FEventTrackPoint_changed := TSFVec3fEvent.Create(Self, 'trackPoint_changed', false);
+  AddEvent(FEventTrackPoint_changed);
 end;
 
 {$endif read_implementation}

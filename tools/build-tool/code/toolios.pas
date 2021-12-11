@@ -20,7 +20,8 @@ interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures, ToolCompile, ToolProject, ToolPackageFormat;
+  ToolUtils, ToolArchitectures, ToolCompile, ToolProject, ToolPackageFormat,
+  ToolManifest;
 
 var
   IosSimulatorSupport: Boolean = false;
@@ -32,11 +33,12 @@ type
     atAppStore
   );
 
-procedure CompileIOS(
+procedure CompileIOS(const Compiler: TCompiler;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 
-procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
+procedure LinkIOSLibrary(const Compiler: TCompiler;
+  const CompilationWorkingDirectory, OutputFile: string);
 
 function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormatNoDefault;
   out ArchiveType: TIosArchiveType; out ExportMethod: String): Boolean;
@@ -64,7 +66,7 @@ uses SysUtils, DOM,
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
 
-procedure CompileIOS(
+procedure CompileIOS(const Compiler: TCompiler;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
@@ -76,12 +78,12 @@ var
     LinkResContents, ObjectFiles: TCastleStringList;
     I: Integer;
   begin
-    Compile(OS, CPU, { Plugin } false, Mode, WorkingDirectory, CompileFile,
+    Compile(Compiler, OS, CPU, { Plugin } false, Mode, WorkingDirectory, CompileFile,
       SearchPaths, LibraryPaths, FinalExtraOptions);
 
     { now use libtool to create a static library .a }
 
-    CompilationOutput := CompilationOutputPath(OS, CPU, WorkingDirectory);
+    CompilationOutput := CompilationOutputPath(Compiler, OS, CPU, WorkingDirectory);
 
     // will raise exception if not found, or ambiguous
     LinkRes := FindLinkRes(CompilationOutput);
@@ -130,7 +132,7 @@ begin
   finally FreeAndNil(FinalExtraOptions) end;
 end;
 
-procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
+procedure LinkIOSLibrary(const Compiler: TCompiler; const CompilationWorkingDirectory, OutputFile: string);
 var
   Options: TCastleStringList;
 begin
@@ -141,11 +143,11 @@ begin
     Options.Add(OutputFile);
     if IosSimulatorSupport then
     begin
-      Options.Add(CompilationOutputPath(iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
-      Options.Add(CompilationOutputPath(iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName);
+      Options.Add(CompilationOutputPath(Compiler, iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
+      Options.Add(CompilationOutputPath(Compiler, iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName);
     end;
-    Options.Add(CompilationOutputPath(iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
-    Options.Add(CompilationOutputPath(iOS   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
+    Options.Add(CompilationOutputPath(Compiler, iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
+    Options.Add(CompilationOutputPath(Compiler, iOS   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
     RunCommandSimple('libtool', Options.ToArray);
   finally FreeAndNil(Options) end;
 end;

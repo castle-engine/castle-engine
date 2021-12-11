@@ -26,6 +26,20 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventAddTrimmingContour: TMFNodeEvent;
+    { X3D in event "addTrimmingContour". } { }
+    public property EventAddTrimmingContour: TMFNodeEvent read FEventAddTrimmingContour;
+
+    strict private FEventRemoveTrimmingContour: TMFNodeEvent;
+    { X3D in event "removeTrimmingContour". } { }
+    public property EventRemoveTrimmingContour: TMFNodeEvent read FEventRemoveTrimmingContour;
+
+    strict private FFdTrimmingContour: TMFNode;
+    { X3D field "trimmingContour". } { }
+    public property FdTrimmingContour: TMFNode read FFdTrimmingContour;
     { Set X3D field "trimmingContour". } { }
     procedure SetTrimmingContour(const Value: array of TContour2DNode);
 
@@ -45,6 +59,26 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TContour2DNode));
   FdTrimmingContour.Send(A);
+end;
+
+class function TNurbsTrimmedSurfaceNode.ClassX3DType: String;
+begin
+  Result := 'NurbsTrimmedSurface';
+end;
+
+procedure TNurbsTrimmedSurfaceNode.CreateNode;
+begin
+  inherited;
+
+  FEventAddTrimmingContour := TMFNodeEvent.Create(Self, 'addTrimmingContour', true);
+  AddEvent(FEventAddTrimmingContour);
+
+  FEventRemoveTrimmingContour := TMFNodeEvent.Create(Self, 'removeTrimmingContour', true);
+  AddEvent(FEventRemoveTrimmingContour);
+
+  FFdTrimmingContour := TMFNode.Create(Self, True, 'trimmingContour', [TContour2DNode]);
+   FdTrimmingContour.ChangeAlways := chGeometry;
+  AddField(FFdTrimmingContour);
 end;
 
 {$endif read_implementation}

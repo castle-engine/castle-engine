@@ -31,8 +31,30 @@
     function GetInitialValue: TVector2;
     procedure SetInitialValue(const Value: TVector2);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_destination: TSFVec2fEvent;
+    { X3D in event "set_destination". } { }
+    public property EventSet_destination: TSFVec2fEvent read FEventSet_destination;
+
+    strict private FEventSet_value: TSFVec2fEvent;
+    { X3D in event "set_value". } { }
+    public property EventSet_value: TSFVec2fEvent read FEventSet_value;
+
+    strict private FEventValue_changed: TSFVec2fEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFVec2fEvent read FEventValue_changed;
+
+    strict private FFdInitialDestination: TSFVec2f;
+    { X3D field "initialDestination". } { }
+    public property FdInitialDestination: TSFVec2f read FFdInitialDestination;
     { X3D field "initialDestination". } { }
     property InitialDestination: TVector2 read GetInitialDestination write SetInitialDestination;
+
+    strict private FFdInitialValue: TSFVec2f;
+    { X3D field "initialValue". } { }
+    public property FdInitialValue: TSFVec2f read FFdInitialValue;
     { X3D field "initialValue". } { }
     property InitialValue: TVector2 read GetInitialValue write SetInitialValue;
 
@@ -60,6 +82,33 @@ end;
 procedure TPositionDamper2DNode.SetInitialValue(const Value: TVector2);
 begin
   FdInitialValue.Send(Value);
+end;
+
+class function TPositionDamper2DNode.ClassX3DType: String;
+begin
+  Result := 'PositionDamper2D';
+end;
+
+procedure TPositionDamper2DNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_destination := TSFVec2fEvent.Create(Self, 'set_destination', true);
+  AddEvent(FEventSet_destination);
+
+  FEventSet_value := TSFVec2fEvent.Create(Self, 'set_value', true);
+  AddEvent(FEventSet_value);
+
+  FEventValue_changed := TSFVec2fEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
+
+  FFdInitialDestination := TSFVec2f.Create(Self, False, 'initialDestination', Vector2(0, 0));
+   FdInitialDestination.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInitialDestination);
+
+  FFdInitialValue := TSFVec2f.Create(Self, False, 'initialValue', Vector2(0, 0));
+   FdInitialValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInitialValue);
 end;
 
 {$endif read_implementation}

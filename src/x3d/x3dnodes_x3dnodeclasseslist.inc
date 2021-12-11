@@ -38,10 +38,6 @@
     function IndexOfAnyAncestor(Node: TX3DNode): Integer;
 
     procedure Add(Value: TX3DNodeClass);
-
-    { Add all node classes registered in NodesManager that implement given
-      interface Interf. }
-    procedure AddRegisteredImplementing(Interf: TGUID);
   end;
 
 {$endif read_interface}
@@ -94,15 +90,6 @@ end;
 procedure TX3DNodeClassesList.Add(Value: TX3DNodeClass);
 begin
   inherited Add(Pointer(Value));
-end;
-
-procedure TX3DNodeClassesList.AddRegisteredImplementing(Interf: TGUID);
-var
-  I: Integer;
-begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
-    if Supports(NodesManager.Registered[I], Interf) then
-      Add(NodesManager.Registered[I]);
 end;
 
 {$endif read_implementation}

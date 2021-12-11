@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2018 Michalis Kamburelis.
+  Copyright 2007-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,15 +34,6 @@
   protected
     procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
-    procedure CreateNode; override;
-
-    strict private FFdDescription: TSFString;
-    public property FdDescription: TSFString read FFdDescription;
-
-    { Event out } { }
-    strict private FEventIsOver: TSFBoolEvent;
-    public property EventIsOver: TSFBoolEvent read FEventIsOver;
-
     { Activate pointing device sensor. Used by the events engine
       (like TCastleSceneCore) to notify this sensor.
 
@@ -62,40 +53,29 @@
       this simply sends isActive := FALSE event. }
     procedure Deactivate(const Time: TX3DTime); virtual;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dpointingdevicesensornode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dpointingdevicesensornode.inc}
   end;
 
   { Base type for all drag-style pointing device sensors. }
   TAbstractDragSensorNode = class(TAbstractPointingDeviceSensorNode)
   public
-    procedure CreateNode; override;
-
-    strict private FFdAutoOffset: TSFBool;
-    public property FdAutoOffset: TSFBool read FFdAutoOffset;
-
-    { Event out } { }
-    strict private FEventTrackPoint_changed: TSFVec3fEvent;
-    public property EventTrackPoint_changed: TSFVec3fEvent read FEventTrackPoint_changed;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
     { Called by events engine (like TCastleSceneCore) when you move your mouse
       over the @italic(active) drag sensor. }
     procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3); virtual;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc}
   end;
 
   { Base type for all touch-style pointing device sensors. }
   TAbstractTouchSensorNode = class(TAbstractPointingDeviceSensorNode)
   strict private
     FOnClick: TNotifyEvent;
-    procedure EventTouchTimeReceive(Event: TX3DEvent; AValue: TX3DField;
+    procedure EventTouchTimeReceive(const Event: TX3DEvent; const AValue: TX3DField;
       const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-
-    { Event out } { }
-    strict private FEventTouchTime: TSFTimeEvent;
-    public property EventTouchTime: TSFTimeEvent read FEventTouchTime;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
     { Event generated when we register a "click" on the shapes within
       the same group as this TouchSensor node.
@@ -116,7 +96,7 @@
     }
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc}
   end;
 
   { Pointing device sensor to rotate objects around a constrained axis. }
@@ -145,35 +125,13 @@
     { Last value of rotation_changed send, meaningful only if WasRotation. }
     RotationAngle: Single;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdAxisRotation: TSFRotation;
-    public property FdAxisRotation: TSFRotation read FFdAxisRotation;
-
-    strict private FFdDiskAngle: TSFFloat;
-    public property FdDiskAngle: TSFFloat read FFdDiskAngle;
-
-    strict private FFdMaxAngle: TSFFloat;
-    public property FdMaxAngle: TSFFloat read FFdMaxAngle;
-
-    strict private FFdMinAngle: TSFFloat;
-    public property FdMinAngle: TSFFloat read FFdMinAngle;
-
-    strict private FFdOffset: TSFFloat;
-    public property FdOffset: TSFFloat read FFdOffset;
-
-    { Event out } { }
-    strict private FEventRotation_changed: TSFRotationEvent;
-    public property EventRotation_changed: TSFRotationEvent read FEventRotation_changed;
-
     procedure Activate(const Time: TX3DTime;
       const ATransform, AInvertedTransform: TMatrix4;
       const OverPoint: TVector3); override;
     procedure Deactivate(const Time: TX3DTime); override;
     procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3); override;
 
-    {$I auto_generated_node_helpers/x3dnodes_cylindersensor.inc}
+  {$I auto_generated_node_helpers/x3dnodes_cylindersensor.inc}
   end;
 
   { Pointing device sensor to move objects on a plane. }
@@ -197,32 +155,13 @@
     { Last value of translation_changed send, meaningful only if WasTranslation. }
     Translation: TVector3;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdAxisRotation: TSFRotation;
-    public property FdAxisRotation: TSFRotation read FFdAxisRotation;
-
-    strict private FFdMaxPosition: TSFVec2f;
-    public property FdMaxPosition: TSFVec2f read FFdMaxPosition;
-
-    strict private FFdMinPosition: TSFVec2f;
-    public property FdMinPosition: TSFVec2f read FFdMinPosition;
-
-    strict private FFdOffset: TSFVec3f;
-    public property FdOffset: TSFVec3f read FFdOffset;
-
-    { Event out } { }
-    strict private FEventTranslation_changed: TSFVec3fEvent;
-    public property EventTranslation_changed: TSFVec3fEvent read FEventTranslation_changed;
-
     procedure Activate(const Time: TX3DTime;
       const ATransform, AInvertedTransform: TMatrix4;
       const OverPoint: TVector3); override;
     procedure Deactivate(const Time: TX3DTime); override;
     procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3); override;
 
-    {$I auto_generated_node_helpers/x3dnodes_planesensor.inc}
+  {$I auto_generated_node_helpers/x3dnodes_planesensor.inc}
   end;
 
   { Pointing device sensor to rotate objects. }
@@ -242,44 +181,18 @@
     { Last value of rotation_changed send, meaningful only if WasRotation. }
     Rotation: TVector4;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdOffset: TSFRotation;
-    public property FdOffset: TSFRotation read FFdOffset;
-
-    { Event out } { }
-    strict private FEventRotation_changed: TSFRotationEvent;
-    public property EventRotation_changed: TSFRotationEvent read FEventRotation_changed;
-
     procedure Activate(const Time: TX3DTime;
       const ATransform, AInvertedTransform: TMatrix4;
       const OverPoint: TVector3); override;
     procedure Deactivate(const Time: TX3DTime); override;
     procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3); override;
 
-    {$I auto_generated_node_helpers/x3dnodes_spheresensor.inc}
+  {$I auto_generated_node_helpers/x3dnodes_spheresensor.inc}
   end;
 
   { Sensor to catch clicks on 3D objects. }
   TTouchSensorNode = class(TAbstractTouchSensorNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    { Event out } { }
-    strict private FEventHitNormal_changed: TSFVec3fEvent;
-    public property EventHitNormal_changed: TSFVec3fEvent read FEventHitNormal_changed;
-
-    { Event out } { }
-    strict private FEventHitPoint_changed: TSFVec3fEvent;
-    public property EventHitPoint_changed: TSFVec3fEvent read FEventHitPoint_changed;
-
-    { Event out } { }
-    strict private FEventHitTexCoord_changed: TSFVec2fEvent;
-    public property EventHitTexCoord_changed: TSFVec2fEvent read FEventHitTexCoord_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_touchsensor.inc}
+  {$I auto_generated_node_helpers/x3dnodes_touchsensor.inc}
   end;
 
 {$endif read_interface}
@@ -310,18 +223,7 @@ begin
   Transformation := Source.Transformation;
 end;
 
-{ Rest of nodes -------------------------------------------------------------- }
-
-procedure TAbstractPointingDeviceSensorNode.CreateNode;
-begin
-  inherited;
-
-  FFdDescription := TSFString.Create(Self, true, 'description', '');
-  AddField(FFdDescription);
-
-  FEventIsOver := TSFBoolEvent.Create(Self, 'isOver', false);
-  AddEvent(FEventIsOver);
-end;
+{ TAbstractPointingDeviceSensorNode -------------------------------------------------------------- }
 
 procedure TAbstractPointingDeviceSensorNode.GroupBeforeTraverse(
   const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
@@ -342,16 +244,9 @@ begin
   EventIsActive.Send(false, Time);
 end;
 
-procedure TAbstractDragSensorNode.CreateNode;
+constructor TAbstractDragSensorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdAutoOffset := TSFBool.Create(Self, true, 'autoOffset', true);
-  AddField(FFdAutoOffset);
-
-  FEventTrackPoint_changed := TSFVec3fEvent.Create(Self, 'trackPoint_changed', false);
-  AddEvent(FEventTrackPoint_changed);
-
   FdEnabled.ChangeAlways := chDragSensorEnabled;
 end;
 
@@ -360,54 +255,17 @@ begin
   { Nothing to do in this class }
 end;
 
-procedure TAbstractTouchSensorNode.CreateNode;
+constructor TAbstractTouchSensorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FEventTouchTime := TSFTimeEvent.Create(Self, 'touchTime', false);
-   EventTouchTime.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventTouchTimeReceive);
-  AddEvent(FEventTouchTime);
+  EventTouchTime.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventTouchTimeReceive);
 end;
 
 procedure TAbstractTouchSensorNode.EventTouchTimeReceive(
-  Event: TX3DEvent; AValue: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const AValue: TX3DField; const Time: TX3DTime);
 begin
   if Assigned(FOnClick) then
     FOnClick(Self);
-end;
-
-procedure TCylinderSensorNode.CreateNode;
-begin
-  inherited;
-
-  FFdAxisRotation := TSFRotation.Create(Self, true, 'axisRotation', Vector3(0, 1, 0), 0);
-  AddField(FFdAxisRotation);
-
-  FFdDiskAngle := TSFFloat.Create(Self, true, 'diskAngle', Pi/12);
-  AddField(FFdDiskAngle);
-  { X3D specification comment: [0,Pi/2] }
-
-  FFdMaxAngle := TSFFloat.Create(Self, true, 'maxAngle', -1);
-  AddField(FFdMaxAngle);
-  { X3D specification comment: [-2Pi,2Pi] }
-
-  FFdMinAngle := TSFFloat.Create(Self, true, 'minAngle', 0);
-  AddField(FFdMinAngle);
-  { X3D specification comment: [-2Pi,2Pi] }
-
-  FFdOffset := TSFFloat.Create(Self, true, 'offset', 0);
-  AddField(FFdOffset);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FEventRotation_changed := TSFRotationEvent.Create(Self, 'rotation_changed', false);
-  AddEvent(FEventRotation_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TCylinderSensorNode.ClassX3DType: string;
-begin
-  Result := 'CylinderSensor';
 end;
 
 procedure TCylinderSensorNode.Activate(const Time: TX3DTime;
@@ -505,36 +363,6 @@ begin
     EventRotation_changed.Send(Vector4(0, 1, 0, RotationAngle), Time);
     WasRotation := true;
   end;
-end;
-
-procedure TPlaneSensorNode.CreateNode;
-begin
-  inherited;
-
-  FFdAxisRotation := TSFRotation.Create(Self, true, 'axisRotation', Vector3(0, 0, 1), 0);
-  AddField(FFdAxisRotation);
-
-  FFdMaxPosition := TSFVec2f.Create(Self, true, 'maxPosition', Vector2(-1, -1));
-  AddField(FFdMaxPosition);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdMinPosition := TSFVec2f.Create(Self, true, 'minPosition', Vector2(0, 0));
-  AddField(FFdMinPosition);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdOffset := TSFVec3f.Create(Self, true, 'offset', Vector3(0, 0, 0));
-  AddField(FFdOffset);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FEventTranslation_changed := TSFVec3fEvent.Create(Self, 'translation_changed', false);
-  AddEvent(FEventTranslation_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TPlaneSensorNode.ClassX3DType: string;
-begin
-  Result := 'PlaneSensor';
 end;
 
 procedure TPlaneSensorNode.Activate(const Time: TX3DTime;
@@ -665,25 +493,6 @@ begin
   end;
 end;
 
-procedure TSphereSensorNode.CreateNode;
-begin
-  inherited;
-
-  FFdOffset := TSFRotation.Create(Self, true, 'offset', Vector3(0, 1, 0), 0);
-  AddField(FFdOffset);
-  { X3D specification comment: [-1,1],(-Inf,Inf) }
-
-  FEventRotation_changed := TSFRotationEvent.Create(Self, 'rotation_changed', false);
-  AddEvent(FEventRotation_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TSphereSensorNode.ClassX3DType: string;
-begin
-  Result := 'SphereSensor';
-end;
-
 procedure TSphereSensorNode.Activate(const Time: TX3DTime;
   const ATransform, AInvertedTransform: TMatrix4;
   const OverPoint: TVector3);
@@ -750,27 +559,6 @@ begin
     EventRotation_changed.Send(Rotation, Time);
     WasRotation := true;
   end;
-end;
-
-procedure TTouchSensorNode.CreateNode;
-begin
-  inherited;
-
-  FEventHitNormal_changed := TSFVec3fEvent.Create(Self, 'hitNormal_changed', false);
-  AddEvent(FEventHitNormal_changed);
-
-  FEventHitPoint_changed := TSFVec3fEvent.Create(Self, 'hitPoint_changed', false);
-  AddEvent(FEventHitPoint_changed);
-
-  FEventHitTexCoord_changed := TSFVec2fEvent.Create(Self, 'hitTexCoord_changed', false);
-  AddEvent(FEventHitTexCoord_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TTouchSensorNode.ClassX3DType: string;
-begin
-  Result := 'TouchSensor';
 end;
 
 procedure RegisterPointingDeviceSensorNodes;

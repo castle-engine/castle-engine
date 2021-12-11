@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,15 +15,18 @@
 
 { VRML 1.0 specification nodes.
 
-  If a node is present in both VRML 1.0
-  and later (2.0 aka 97) specifications @bold(and) it's implemented using
-  the same class in our engine, then it goes to vrml97* or x3d* file,
-  not here. So this is for VRML 1.0-only nodes.
+  Note: If a node is present in both VRML 1.0 and later VRML / X3D versions
+  (VRML 2.0 aka VRML 97, X3D 3, X3D 4...)
+  and it's implemented using the same class,
+  then it is inside x3d_standard_xxx file, not here.
+  In practice there are not so many such nodes: maybe only TNormalNode.
 
-  (The above doesn't concern much nodes. Most nodes in VRML 1.0 and 97
-  specifications are different enough that even when they have the same
+  This file is only for VRML 1.0 nodes, that have no purpose
+  in later VRML / X3D versions.
+  Most nodes in VRML 1.0 vs VRML 2.0 specifications are different
+  enough that even when they have the same
   name (like Group) we implement them using different classes (like
-  TGroupNode_1 and TGroupNode).)
+  TGroupNode_1 and TGroupNode).
 
   Note that most VRML 1 nodes descend from TAbstractChildNode,
   this way we can use them inside VRML >= 2.0 group nodes and
@@ -37,7 +40,7 @@
     while VRML 2.0 has different idea of how shapes are handled
     (they must be inside Shape node), so no shape node
     is suitable at the same time for VRML 1.0 and VRML 2.0. }
-  TAbstractGeometryNode_1 = class(TAbstractGeometryNode, IAbstractChildNode)
+  TAbstractGeometryNode_1 = class(TAbstractGeometryNode)
   public
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -191,7 +194,6 @@
   TIndexedFaceSetNode_1 = class(TIndexedFacesOrTrianglesNode_1)
   public
     procedure CreateNode; override;
-
     class function ClassX3DType: string; override;
 
     procedure InternalCoordPolygons(
@@ -643,7 +645,6 @@
   TOrthographicCameraNode_1 = class(TAbstractCameraNode_1)
   public
     procedure CreateNode; override;
-
     class function ClassX3DType: string; override;
     class function ProjectionType: TProjectionType; override;
 
@@ -654,7 +655,6 @@
   TPerspectiveCameraNode_1 = class(TAbstractCameraNode_1)
   public
     procedure CreateNode; override;
-
     class function ClassX3DType: string; override;
     class function ProjectionType: TProjectionType; override;
 
@@ -665,16 +665,16 @@
   TDirectionalLightNode_1 = class(TAbstractDirectionalLightNode)
   public
     procedure CreateNode; override;
-
+    class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-
     function Scope: TLightScope; override;
   end;
 
   TPointLightNode_1 = class(TAbstractPointLightNode)
   public
     procedure CreateNode; override;
+    class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function HasRadius: boolean; override;
@@ -1341,7 +1341,7 @@ end;
 function TLODNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   { TODO: we should use here the LOD matching camera distance.
-    For now, just like TAbstractLODNode.DirectEnumerateActive, we ignore the issue. }
+    For now, just like TLODNode.DirectEnumerateActive, we ignore the issue. }
   if VRML1ChildrenCount = 0 then
     raise EX3DError.Create('LOD node must have at least one child');
 
@@ -2102,6 +2102,11 @@ begin
     Result := lsLocalVRML1;
 end;
 
+class function TDirectionalLightNode_1.ClassX3DType: string;
+begin
+  Result := 'DirectionalLight';
+end;
+
 procedure TPointLightNode_1.CreateNode;
 begin
   inherited;
@@ -2131,6 +2136,11 @@ begin
   if FdGlobal.Value then
     Result := lsGlobal else
     Result := lsLocalVRML1;
+end;
+
+class function TPointLightNode_1.ClassX3DType: string;
+begin
+  Result := 'PointLight';
 end;
 
 procedure TSpotLightNode_1.CreateNode;

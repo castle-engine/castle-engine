@@ -25,11 +25,31 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventPickedPoint: TMFVec3fEvent;
+    { X3D out event "pickedPoint". } { }
+    public property EventPickedPoint: TMFVec3fEvent read FEventPickedPoint;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TPointPickSensorNode ----------------------------------------------- }
+
+class function TPointPickSensorNode.ClassX3DType: String;
+begin
+  Result := 'PointPickSensor';
+end;
+
+procedure TPointPickSensorNode.CreateNode;
+begin
+  inherited;
+
+  FEventPickedPoint := TMFVec3fEvent.Create(Self, 'pickedPoint', false);
+  AddEvent(FEventPickedPoint);
+end;
 
 {$endif read_implementation}

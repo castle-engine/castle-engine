@@ -125,16 +125,16 @@ var
   I: Integer;
   SoundData: TSoundData;
 begin
-  if SoundEngine.AllocatedSources <> nil then
-    for I := 0 to SoundEngine.AllocatedSources.Count - 1 do
+  if SoundEngine.InternalAllocatedSources <> nil then
+    for I := 0 to SoundEngine.InternalAllocatedSources.Count - 1 do
     begin
-      SoundData := TSoundData(SoundEngine.AllocatedSources[I].UserData);
+      SoundData := TSoundData(SoundEngine.InternalAllocatedSources[I].UserData);
       if SoundData <> nil then
       begin
         { free the UserData, that keeps our TSoundData references }
         SoundEngine.FreeBuffer(SoundData.Buffer);
-        SoundEngine.AllocatedSources[I].UserData.Free;
-        SoundEngine.AllocatedSources[I].UserData := nil;
+        SoundEngine.InternalAllocatedSources[I].UserData.Free;
+        SoundEngine.InternalAllocatedSources[I].UserData := nil;
       end;
     end;
 
@@ -156,18 +156,18 @@ var
 begin
   ListAllocatedSources.Clear;
   // SoundEngine.AllocatedSources will be nil if sound backend initialization failed
-  if SoundEngine.AllocatedSources <> nil then
-    for I := 0 to SoundEngine.AllocatedSources.Count - 1 do
+  if SoundEngine.InternalAllocatedSources <> nil then
+    for I := 0 to SoundEngine.InternalAllocatedSources.Count - 1 do
     begin
       S := Format('%d: Sound source used: %5s',
         [ I,
-          BoolToStr(SoundEngine.AllocatedSources[I].Used, true) ]);
-      if SoundEngine.AllocatedSources[I].Used then
-        S += Format(', started on %s, importance: %d, filename: %s',
+          BoolToStr(SoundEngine.InternalAllocatedSources[I].Used, true) ]);
+      if SoundEngine.InternalAllocatedSources[I].Used then
+        S += Format(', started on %s, priority: %f, filename: %s',
           [ FormatDateTime('tt', TSoundData(
-              SoundEngine.AllocatedSources[I].UserData).StartedTime),
-            SoundEngine.AllocatedSources[I].Importance,
-            TSoundData(SoundEngine.AllocatedSources[I].
+              SoundEngine.InternalAllocatedSources[I].UserData).StartedTime),
+            SoundEngine.InternalAllocatedSources[I].Priority,
+            TSoundData(SoundEngine.InternalAllocatedSources[I].
               UserData).FileName
           ]);
       ListAllocatedSources.Items.Append(S);

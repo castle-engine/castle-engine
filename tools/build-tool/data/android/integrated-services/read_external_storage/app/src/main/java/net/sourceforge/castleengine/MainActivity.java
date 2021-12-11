@@ -1,3 +1,3 @@
 /* This will be inserted to the whole MainActivity.java sources
-   by the buil tool. */
+   by the build tool. */
 services.add(new ServiceReadExternalStorage(this));

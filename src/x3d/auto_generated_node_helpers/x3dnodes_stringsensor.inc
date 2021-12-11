@@ -29,8 +29,22 @@
     function GetDeletionAllowed: Boolean;
     procedure SetDeletionAllowed(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDeletionAllowed: TSFBool;
+    { X3D field "deletionAllowed". } { }
+    public property FdDeletionAllowed: TSFBool read FFdDeletionAllowed;
     { X3D field "deletionAllowed". } { }
     property DeletionAllowed: Boolean read GetDeletionAllowed write SetDeletionAllowed;
+
+    strict private FEventEnteredText: TSFStringEvent;
+    { X3D out event "enteredText". } { }
+    public property EventEnteredText: TSFStringEvent read FEventEnteredText;
+
+    strict private FEventFinalText: TSFStringEvent;
+    { X3D out event "finalText". } { }
+    public property EventFinalText: TSFStringEvent read FEventFinalText;
 
 {$endif read_interface}
 
@@ -46,6 +60,26 @@ end;
 procedure TStringSensorNode.SetDeletionAllowed(const Value: Boolean);
 begin
   FdDeletionAllowed.Send(Value);
+end;
+
+class function TStringSensorNode.ClassX3DType: String;
+begin
+  Result := 'StringSensor';
+end;
+
+procedure TStringSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdDeletionAllowed := TSFBool.Create(Self, True, 'deletionAllowed', true);
+   FdDeletionAllowed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDeletionAllowed);
+
+  FEventEnteredText := TSFStringEvent.Create(Self, 'enteredText', false);
+  AddEvent(FEventEnteredText);
+
+  FEventFinalText := TSFStringEvent.Create(Self, 'finalText', false);
+  AddEvent(FEventFinalText);
 end;
 
 {$endif read_implementation}

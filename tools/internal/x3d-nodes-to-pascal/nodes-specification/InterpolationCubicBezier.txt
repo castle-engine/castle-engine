@@ -1,0 +1,27 @@
+X3DCubicBezierInterpolator : X3DInterpolatorNode {
+  auto-generate-more: true
+  MFVec4f   [in,out]      controlPoints   []
+}
+
+CubicBezierCoordinateInterpolator : X3DCubicBezierInterpolator {
+  auto-generate-more: true
+  MFVec3f    [in,out] keyValue        []
+    # This is defined in Pascal by generic TAbstractCubicBezierArrayInterpolatorNode
+    field-generate-more: false
+  MFVec3f    [out]    value_changed
+    # This is defined in Pascal by generic TAbstractCubicBezierArrayInterpolatorNode
+    field-generate-more: false
+}
+
+CubicBezier2DOrientationInterpolator : X3DCubicBezierInterpolator {
+  auto-generate-more: true
+  MFFloat    [in,out] keyValue        []
+  SFVec3f    [in,out] axis            0 0 1
+  SFRotation [out]    value_changed
+}
+
+CubicBezierPositionInterpolator : X3DCubicBezierInterpolator {
+  auto-generate-more: true
+  MFVec3f    [in,out] keyValue        []
+  SFVec3f    [out]    value_changed
+}

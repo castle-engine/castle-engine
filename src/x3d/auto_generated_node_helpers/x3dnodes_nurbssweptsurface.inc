@@ -33,12 +33,30 @@
     function GetCcw: Boolean;
     procedure SetCcw(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCrossSectionCurve: TSFNode;
+    { X3D field "crossSectionCurve". } { }
+    public property FdCrossSectionCurve: TSFNode read FFdCrossSectionCurve;
     { X3D field "crossSectionCurve". } { }
     property CrossSectionCurve: TAbstractNurbsControlCurveNode read GetCrossSectionCurve write SetCrossSectionCurve;
+
+    strict private FFdTrajectoryCurve: TSFNode;
+    { X3D field "trajectoryCurve". } { }
+    public property FdTrajectoryCurve: TSFNode read FFdTrajectoryCurve;
     { X3D field "trajectoryCurve". } { }
     property TrajectoryCurve: TNurbsCurveNode read GetTrajectoryCurve write SetTrajectoryCurve;
+
+    strict private FFdCcw: TSFBool;
+    { X3D field "ccw". } { }
+    public property FdCcw: TSFBool read FFdCcw;
     { X3D field "ccw". } { }
     property Ccw: Boolean read GetCcw write SetCcw;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}
 
@@ -80,6 +98,32 @@ end;
 procedure TNurbsSweptSurfaceNode.SetCcw(const Value: Boolean);
 begin
   FdCcw.Send(Value);
+end;
+
+class function TNurbsSweptSurfaceNode.ClassX3DType: String;
+begin
+  Result := 'NurbsSweptSurface';
+end;
+
+procedure TNurbsSweptSurfaceNode.CreateNode;
+begin
+  inherited;
+
+  FFdCrossSectionCurve := TSFNode.Create(Self, True, 'crossSectionCurve', [TAbstractNurbsControlCurveNode]);
+   FdCrossSectionCurve.ChangeAlways := chGeometry;
+  AddField(FFdCrossSectionCurve);
+
+  FFdTrajectoryCurve := TSFNode.Create(Self, True, 'trajectoryCurve', [TNurbsCurveNode]);
+   FdTrajectoryCurve.ChangeAlways := chGeometry;
+  AddField(FFdTrajectoryCurve);
+
+  FFdCcw := TSFBool.Create(Self, False, 'ccw', true);
+   FdCcw.ChangeAlways := chGeometry;
+  AddField(FFdCcw);
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', true);
+   FdSolid.ChangeAlways := chGeometry;
+  AddField(FFdSolid);
 end;
 
 {$endif read_implementation}

@@ -22,7 +22,7 @@
       TX3DEventReceiveList = class(specialize TList<TX3DEventReceive>)
       public
         { Call all functions. }
-        procedure ExecuteAll(Event: TX3DEvent; Value: TX3DField;
+        procedure ExecuteAll(const Event: TX3DEvent; const Value: TX3DField;
           const Time: TX3DTime);
       end;
 
@@ -102,7 +102,7 @@
 
       @longCode(#
         procedure TTimeSensorNode.EventElapsedTimeReceive(
-          Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+          const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
         var
           Fraction: Single;
         begin
@@ -175,7 +175,7 @@
 { TX3DEvent.TX3DEventReceiveList -------------------------------------------------- }
 
 procedure TX3DEvent.TX3DEventReceiveList.ExecuteAll(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   I: Integer;
 begin

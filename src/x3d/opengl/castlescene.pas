@@ -184,7 +184,8 @@ type
 
       @unorderedList(
         @item(
-          OpenGL state of glDepthMask, glEnable/Disable(GL_BLEND), glBlendFunc
+          OpenGL state of glDepthMask (RenderContext.DepthBufferUpdate),
+          glEnable/Disable(GL_BLEND), glBlendFunc
           is controlled by this function. This function will unconditionally
           change (and restore later to original value) this state,
           to perform correct blending (transparency rendering).
@@ -899,7 +900,7 @@ var
     Shape.ModelView := ModelView;
     Shape.Fog := ShapeFog(Shape, Params.GlobalFog as TFogNode);
 
-    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
+    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(false);
 
     if (Params.InternalPass = 0) and not ExcludeFromStatistics then
       Inc(Params.Statistics.ShapesRendered);
@@ -909,11 +910,17 @@ var
     IsVisibleNow := true;
   end;
 
+  { Checks DynamicBatching and not occlusion query. }
+  function ReallyDynamicBatching: Boolean;
+  begin
+    Result := DynamicBatching and not ReallyAnyOcclusionQuery(RenderOptions);
+  end;
+
   { Renders Shape, testing only Batching.Collect before RenderShape_NoTests.
     This sets Shape.ModelView and other properties necessary right before rendering. }
   procedure RenderShape_BatchingTest(const Shape: TGLShape);
   begin
-    if not (DynamicBatching and Batching.Collect(Shape)) then
+    if not (ReallyDynamicBatching and Batching.Collect(Shape)) then
       RenderShape_NoTests(Shape);
   end;
 
@@ -921,7 +928,7 @@ var
   var
     Shape: TShape;
   begin
-    if DynamicBatching then
+    if ReallyDynamicBatching then
     begin
       Batching.Commit;
       for Shape in Batching.Collected do
@@ -1076,7 +1083,7 @@ var
               twice. This is a good thing: it means that sorting below has
               much less shapes to consider. }
             FilteredShapes.SortFrontToBack(RenderCameraPosition);
-            if DynamicBatching then
+            if ReallyDynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
@@ -1096,7 +1103,7 @@ var
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
             FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
-            if DynamicBatching then
+            if ReallyDynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
@@ -1132,8 +1139,7 @@ begin
   ModelView := GetModelViewTransform;
 
   { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
-  if ReallyOcclusionQuery(RenderOptions) or
-     ReallyHierarchicalOcclusionQuery(RenderOptions) then
+  if ReallyAnyOcclusionQuery(RenderOptions) then
   begin
     OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
       RenderContext.ProjectionMatrix * ModelView;
@@ -1154,7 +1160,8 @@ begin
   try
     case RenderOptions.Mode of
       rmDepth:
-        { When not rmFull, we don't want to do anything with glDepthMask
+        { When not rmFull, we don't want to do anything with
+          glDepthMask (RenderContext.DepthBufferUpdate)
           or GL_BLEND enable state. Just render everything
           (except: don't render partially transparent stuff for shadow maps). }
         RenderAllAsOpaque(true);
@@ -1173,14 +1180,9 @@ begin
       since BatchingCommit may render some shapes }
     BlendingRenderer.RenderEnd;
 
-    { Each RenderShape_SomeTests inside could set OcclusionBoxState.
-
-      TODO: in case of fixed-function path,
-      glPopAttrib inside could restore now
-      glDepthMask(GL_TRUE) and glDisable(GL_BLEND).
-      This problem will disappear when we'll get rid of fixed-function
-      possibility in OcclusionBoxStateEnd. }
-    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
+    { As each RenderShape_SomeTests inside could set OcclusionBoxState,
+      be sure to restore state now. }
+    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(true);
   finally Renderer.RenderEnd end;
 
   {$ifndef OpenGLES}

@@ -650,6 +650,9 @@ begin
   Properties := TPropertyList.Create;
   Animation := TAnimation.Create;
   Image := TImage.Create;
+
+  { Default values }
+  Probability := 1.0;
 end;
 
 destructor TTiledMap.TTile.Destroy;
@@ -947,6 +950,7 @@ begin
   Properties := TPropertyList.Create;
   Tiles := TTileList.Create;
   Image := TImage.Create;
+  FirstGID := 1;
 end;
 
 destructor TTiledMap.TTileset.Destroy;
@@ -974,6 +978,48 @@ procedure TTiledMap.TTileset.Load(const Element: TDOMElement; const BaseUrl: Str
     end;
   end;
 
+  { Reorder and complete Tiles list, to make sure
+
+    - Tiles.Count = TileCount
+    - Tiles list has no nil elements.
+
+        Tiled doesn't explicitly write all tiles in TSX file.
+        When the tile has everything default (probability equals 1.0,
+        no terrains set, no type set...) it is not present in TSX.
+        But it is more comfortable to have all instances of TTile available in API.
+
+    - All TTile instances are at index corresponding to their Id. }
+  procedure CompleteTiles;
+  var
+    NewTiles: TTileList;
+    Tile: TTile;
+    I: Integer;
+  begin
+    NewTiles := TTileList.Create(true);
+    NewTiles.Count := TileCount;
+
+    { place existing tiles in NewTiles, making sure they are at proper index }
+    for Tile in Tiles do
+    begin
+      Check(Between(Tile.Id, 0, TileCount - 1), 'Tile id is outside of allowed range');
+      Check(NewTiles[Tile.Id] = nil, 'Multiple tiles have the same id');
+      NewTiles[Tile.Id] := Tile;
+    end;
+
+    { add new tiles to fill the gaps }
+    for I := 0 to TileCount - 1 do
+      if NewTiles[I] = nil then
+      begin
+        NewTiles[I] := TTile.Create;
+        NewTiles[I].Id := I;
+      end;
+
+    { swap Tiles into NewTiles }
+    Tiles.OwnsObjects := false;
+    FreeAndNil(Tiles);
+    Tiles := NewTiles;
+  end;
+
 var
   I: TXMLElementIterator;
   NewTile: TTile;
@@ -984,9 +1030,17 @@ begin
   Margin := 0;
 
   if Element.AttributeString('firstgid', TmpStr) then
-    FirstGID := StrToDWord(TmpStr)
-  else
-    FirstGID := 1;
+    FirstGID := StrToDWord(TmpStr);
+  { Otherwise (if firstgid not specified in XML element), leave FirstGID unchanged.
+    This is important to correctly read "firstgid" in case <tileset> in TMX points
+    to external file like
+
+      <tileset firstgid="10" source="image3x3-regular.tsx"/>
+
+     This means that TTiledMap.TTileset.Load calls itself,
+     and outer call set FirstGID to 10 and it should not be overridden by inner call.
+     Testcases in examples/tiled/map_viewer/data/maps/multiple_tilesets/ . }
+
   if Element.AttributeString('source', TmpStr) then
   begin
     URL := CombineURI(BaseUrl, TmpStr);
@@ -1034,11 +1088,15 @@ begin
     end;
   finally FreeAndNil(I) end;
 
+  { Fallback: TileCount determination if is not found in (old) tsx-files prior
+    to version 0.13 (Aug 2015). }
   if TileCount = 0 then
   begin
     Image.DetermineSize;
     TileCount := (Image.Width div TileWidth) * (Image.Height div TileHeight);
   end;
+
+  CompleteTiles;
 end;
 
 { TTiledMap ------------------------------------------------------------------ }
