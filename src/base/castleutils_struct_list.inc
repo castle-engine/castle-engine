@@ -27,8 +27,12 @@ type
   public
     type
       PtrT = ^T;
-      // TODO: better size on Delphi
-      TTypeList = array [0 .. {$ifdef FPC} MaxInt div SizeOf(T) - 1 {$else} 1000 * 1000 {$endif}] of T;
+      { TODO: Can we calculate better size on Delphi?
+        Now we just assume that T has max size 16 * 16.
+        This declaration will fail if you try to use TStructList with larger T.
+        Note: we cannot declare list size too small, or using it may fail with range check error
+        (e.g. Delphi, in IndexedPolygons_TrianglesCount, testcase: build_3d_object_by_code_2_tunnel. }
+      TTypeList = array [0 .. MaxInt div {$ifdef FPC}SizeOf(T){$else}(16 * 16){$endif} - 1] of T;
       PTypeList = ^TTypeList;
 
     { Access the list contents directly through a pointer.
