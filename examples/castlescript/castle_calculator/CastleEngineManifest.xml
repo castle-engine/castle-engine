@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="castle_calculator"
-  standalone_source="castle_calculator.lpr"
+  standalone_source="castle_calculator.dpr"
   caption="CGE Calculator"
 >
   <data exists="false" />

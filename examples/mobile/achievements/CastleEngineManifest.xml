@@ -2,7 +2,7 @@
 <project name="dragon_spine_demo"
   caption="Dragon Spine Demo"
   qualified_name="net.sourceforge.castleengine.castlespine"
-  standalone_source="dragon_spine_demo_standalone.lpr"
+  standalone_source="dragon_spine_demo_standalone.dpr"
   game_units="GameInitialize"
   author="Castle Game Engine Developers"
   screen_orientation="landscape"

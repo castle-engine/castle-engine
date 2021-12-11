@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{9040DE35-BA28-4531-B1B4-F43691E82129}</ProjectGuid>
+        <ProjectGuid>{CE24ED70-5DD9-4E83-BAB1-EB6B618C4B24}</ProjectGuid>
         <MainSource>show_various_ui_controls.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

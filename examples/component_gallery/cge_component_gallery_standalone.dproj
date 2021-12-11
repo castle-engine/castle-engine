@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{4395D0B1-EE9F-46EF-985C-0C22D0CCDED8}</ProjectGuid>
+        <ProjectGuid>{4C1C9586-1AD4-46DB-933D-EA6949B71BA8}</ProjectGuid>
         <MainSource>cge_component_gallery_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

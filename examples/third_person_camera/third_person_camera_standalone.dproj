@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{CAF7F2DC-967E-43BE-8AFB-328FE71DDAE4}</ProjectGuid>
+        <ProjectGuid>{D8F5AE42-B7C9-437C-B792-48A6890B232C}</ProjectGuid>
         <MainSource>third_person_camera_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

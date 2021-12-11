@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="activity_recognition"
-  standalone_source="activity_recognition_standalone.lpr"
+  standalone_source="activity_recognition_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.activity.recognition"
   caption="Activity Recognition CGE"

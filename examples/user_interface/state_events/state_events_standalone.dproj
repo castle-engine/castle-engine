@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{48C4D1DF-C05E-4266-AC57-BAEE47EA75D6}</ProjectGuid>
+        <ProjectGuid>{56727F40-43C3-4306-977F-A79469643FC5}</ProjectGuid>
         <MainSource>state_events_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

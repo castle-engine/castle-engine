@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{A4435CD3-AEB9-4B9E-804F-426C8481ED60}</ProjectGuid>
+        <ProjectGuid>{4A407752-F325-47DD-B455-96FDC8540C3C}</ProjectGuid>
         <MainSource>simultaneous_animations_one_scene_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

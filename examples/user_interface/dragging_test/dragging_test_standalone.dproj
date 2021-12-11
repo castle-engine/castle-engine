@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{C1D17D81-D38B-4A91-A870-21F2B5FFA8B6}</ProjectGuid>
+        <ProjectGuid>{4C68CEC2-A7DE-42D1-B79B-F9B553263900}</ProjectGuid>
         <MainSource>dragging_test_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

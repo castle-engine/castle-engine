@@ -131,7 +131,7 @@
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
-        <Filename Value="cge_dynlib_tester.lpr"/>
+        <Filename Value="cge_dynlib_tester.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

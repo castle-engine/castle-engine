@@ -37,7 +37,7 @@
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
-        <Filename Value="graphics_random_test.lpr"/>
+        <Filename Value="graphics_random_test.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

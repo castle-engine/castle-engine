@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="dynamic_ambient_occlusion"
-  standalone_source="dynamic_ambient_occlusion.lpr"
+  standalone_source="dynamic_ambient_occlusion.dpr"
   qualified_name="io.castleengine.dynamic.ambient.occlusion"
 >
   <compiler_options>

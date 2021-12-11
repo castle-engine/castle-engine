@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="po_generator" standalone_source="po_generator.lpr">
+<project name="po_generator" standalone_source="po_generator.dpr">
   <data exists="false"/>
 </project>

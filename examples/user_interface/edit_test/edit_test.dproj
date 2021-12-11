@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{031F6171-F98C-4187-BD08-BCF7E6A0FF75}</ProjectGuid>
+        <ProjectGuid>{C460EA3D-345A-4A6C-9B8B-DD7465B70751}</ProjectGuid>
         <MainSource>edit_test.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

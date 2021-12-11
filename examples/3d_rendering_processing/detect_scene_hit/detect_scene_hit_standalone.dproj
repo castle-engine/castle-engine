@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{F17C27D3-12F8-4E8E-AD46-4BB8076B06A0}</ProjectGuid>
+        <ProjectGuid>{7E7E3391-8CEB-4614-9ABF-5D2B1F068F4C}</ProjectGuid>
         <MainSource>detect_scene_hit_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

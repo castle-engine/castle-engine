@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{6E17A75E-435C-4869-86EC-688E97B08528}</ProjectGuid>
+        <ProjectGuid>{75130308-FF49-427C-8DEB-74976F982E93}</ProjectGuid>
         <MainSource>doppler_demo_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

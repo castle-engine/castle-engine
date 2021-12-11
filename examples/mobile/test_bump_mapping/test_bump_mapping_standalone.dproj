@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{BC451C5B-4D0C-4457-A5E5-845BEA6DA949}</ProjectGuid>
+        <ProjectGuid>{81A81E31-05B5-4D90-BF24-530C16361B90}</ProjectGuid>
         <MainSource>test_bump_mapping_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
