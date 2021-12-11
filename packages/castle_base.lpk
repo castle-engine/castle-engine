@@ -3868,7 +3868,7 @@ See https://castle-engine.io/license.php for details.
       <Item942>
         <Filename Value="../src/images/castleimages_astc.inc"/>
         <Type Value="Include"/>
-      </Item937>
+      </Item942>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
