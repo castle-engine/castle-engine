@@ -302,6 +302,16 @@ examples:
 examples-delphi:
 	$(FIND) ./examples/ \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
+	  '(' -path ./examples/castlescript/image_make_by_script -prune ')' -o \
+	  '(' -path ./examples/localization/deprecated_custom -prune ')' -o \
+	  '(' -path ./examples/network/custom_url_handler -prune ')' -o \
+	  '(' -path ./examples/research_special_rendering_methods -prune ')' -o \
+	  '(' -path ./examples/visualize_triangulation -prune ')' -o \
+	  '(' -path ./examples/audio/audio_player -prune ')' -o \
+	  '(' -path ./examples/audio/test_sound_source_allocator -prune ')' -o \
+	  '(' -path ./examples/deprecated_random_generator -prune ')' -o \
+	  '(' -path ./examples/deprecated_library -prune ')' -o \
+	  '(' -path ./examples/lazarus -prune ')' -o \
 	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
 	  xargs -0 -n1 $(BUILD_TOOL) \
 	    $(CASTLE_ENGINE_TOOL_OPTIONS) compile --compiler=delphi --project
