@@ -110,7 +110,10 @@ begin
     ['-i', RcName[Plugin], '-o', ResName],
     WindresOutput, WindresStatus);
   if WindresStatus <> 0 then
-    raise Exception.Create('windres failed, cannot create Windows resource');
+  begin
+    WritelnWarning('Executing windres failed, cannot create Windows resource - exe will not have icon/metadata');
+    Exit(false);
+  end;
 
   CheckRenameFile(
     OutputResourcesPath + ResName,
