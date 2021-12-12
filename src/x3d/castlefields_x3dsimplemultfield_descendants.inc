@@ -347,6 +347,7 @@
 
     constructor CreateUndefined(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: string); override;
+    destructor Destroy; override;
 
     { Parse MF field. This class handles parsing fully, usually no need to
       override this more in descendants. It uses TSingleField.Parse method. }
@@ -1237,6 +1238,12 @@ begin
   inherited Create(AParentNode, AExposed, AName);
   Items.AddRange(InitialContent);
   AssignDefaultValueFromValue;
+end;
+
+destructor TMFString.Destroy;
+begin
+  FreeAndNil(FItems);
+  inherited;
 end;
 
 procedure TMFString.Clear;
