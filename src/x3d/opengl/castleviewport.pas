@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2020 Michalis Kamburelis.
+  Copyright 2009-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@ unit CastleViewport;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleInternalBackground, CastleUtils, CastleClassUtils,
@@ -95,7 +95,7 @@ type
     @unorderedList(
       @item(Explanation with an example:
         https://castle-engine.io/manual_2d_user_interface.php#section_viewport)
-      @item(Example in engine sources: examples/3d_rendering_processing/multiple_viewports.lpr)
+      @item(Example in engine sources: examples/3d_rendering_processing/multiple_viewports/)
       @item(Example in engine sources: examples/fps_game/)
     )
   }
@@ -421,6 +421,7 @@ type
       @exclude }
     procedure InternalCameraChanged;
 
+    {$ifdef FPC}
     { Current projection parameters,
       calculated by last @link(CalculateProjection) call,
       adjusted by @link(OnProjection).
@@ -428,6 +429,7 @@ type
       override @link(CalculateProjection) or handle event @link(OnProjection). }
     property Projection: TProjection read FProjection;
       deprecated 'in most cases, you can instead read Camera parameters, like Camera.Orthographic.EffectiveWidth, Camera.Orthographic.EffectiveHeight';
+    {$endif}
 
     { Return current navigation. Automatically creates it if missing. }
     function RequiredNavigation: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation/TCastleExamineNavigation and assign it, or call AssignDefaultNavigation';
@@ -569,7 +571,7 @@ type
       Each viewport may have it's own, different screen effects.
 
       @groupBegin }
-    property ScreenEffects [Index: Integer]: TGLSLProgram read GetScreenEffects;
+    property ScreenEffects [const Index: Integer]: TGLSLProgram read GetScreenEffects;
     function ScreenEffectsCount: Integer; virtual;
     function ScreenEffectsNeedDepth: boolean; virtual;
     { @groupEnd }
@@ -894,10 +896,10 @@ type
       Call it only when rendering context is initialized (ApplicationProperties.IsGLContextOpen).
       If DisplayProgressTitle <> '', we will display progress bar during loading. }
     procedure PrepareResources(const DisplayProgressTitle: string = '';
-      const Options: TPrepareResourcesOptions = DefaultPrepareOptions);
+      const Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload;
     procedure PrepareResources(const Item: TCastleTransform;
       const DisplayProgressTitle: string = '';
-      Options: TPrepareResourcesOptions = DefaultPrepareOptions); virtual;
+      Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload; virtual;
 
     { Current object (TCastleTransform hierarchy) under the mouse cursor.
       Updated in every mouse move. May be @nil.
@@ -923,12 +925,14 @@ type
       read FAvoidNavigationCollisions
       write SetAvoidNavigationCollisions;
 
+    {$ifdef FPC}
     { See @link(TCastleAbstractRootTransform.Paused). }
     property Paused: boolean read GetPaused write SetPaused default false;
       deprecated 'use Items.Paused';
 
     property SceneManager: TCastleSceneManager read FSceneManager write SetSceneManager;
       deprecated 'assign Items from one TCastleViewport to another to view the same world from multiple viewports';
+    {$endif}
   published
     { Transformations and scenes visible in this viewport.
       You should add here your @link(TCastleTransform) and @link(TCastleScene)
@@ -967,9 +971,11 @@ type
     property Navigation: TCastleNavigation read FNavigation write SetNavigation
       stored IsStoredNavigation;
 
+    {$ifdef FPC}
     { See Render3D method. }
     property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
       deprecated 'do not customize rendering with this; instead add TCastleUserInterface descendants where you can override TCastleUserInterface.Render to do custom rendering';
+    {$endif}
 
     { Should we render with shadow volumes.
       You can change this at any time, to switch rendering shadows on/off.
@@ -1076,6 +1082,7 @@ type
     property ApproximateActivation: boolean
       read FApproximateActivation write FApproximateActivation default false;
 
+    {$ifdef FPC}
     { Visibility limit of your 3D world. This is the distance the far projection
       clipping plane.
 
@@ -1105,6 +1112,7 @@ type
       projection parameters are calculated. }
     property OnProjection: TProjectionEvent read FOnProjection write FOnProjection;
       deprecated 'adjust projection by changing Camera.ProjectionType and other projection parameters inside Camera';
+    {$endif}
 
     { Enable to drag a parent control, for example to drag a TCastleScrollView
       that contains this TCastleViewport, even when the scene inside contains
@@ -1166,11 +1174,11 @@ type
   {$undef read_interface_class}
   end;
 
-  TCastleViewportList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleViewport>)
+  TCastleViewportList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleViewport>)
   private
     SceneManager: TCastleSceneManager;
   protected
-    procedure Notify(constref Value: TCastleViewport;
+    procedure Notify({$ifdef FPC}constref{$else}const{$endif} Value: TCastleViewport;
       Action: TCollectionNotification); override;
   end deprecated 'internal for TCastleSceneManager';
 
@@ -1204,11 +1212,13 @@ type
 
     procedure Render; override;
 
+    {$ifdef FPC}
     { Limit the movement allowed by @link(TCastleAbstractRootTransform.WorldMoveAllowed).
       Ignored when empty (default).
       @seealso TCastleAbstractRootTransform.MoveLimit }
     property MoveLimit: TBox3D read GetMoveLimit write SetMoveLimit;
       deprecated 'use Items.MoveLimit';
+    {$endif}
 
     { List of viewports connected to this scene manager.
       This contains all TCastleViewport instances that have
@@ -1226,6 +1236,7 @@ type
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3; deprecated 'use Camera.GravityUp';
 
+    {$ifdef FPC}
     { See @link(TCastleRootTransform.HeadlightNode). }
     property HeadlightNode: TAbstractLightNode
       read GetHeadlightNode write SetHeadlightNode;
@@ -1251,6 +1262,7 @@ type
     property UseHeadlight: TUseHeadlight
       read GetUseHeadlight write SetUseHeadlight default hlMainScene;
       deprecated 'use Items.UseHeadlight';
+    {$endif}
   published
     { Should we render the 3D world in a default viewport that covers
       the whole window. This is usually what you want. For more complicated
@@ -1263,7 +1275,7 @@ type
     property FullSize default true;
     property AutoCamera default true;
     property AutoNavigation default true;
-  end deprecated 'use TCastleViewport to render scenes. To have the same initial behavior, set FullSize, AutoCamera and AutoNavigation to true';
+  end {$ifdef FPC}deprecated 'use TCastleViewport to render scenes. To have the same initial behavior, set FullSize, AutoCamera and AutoNavigation to true'{$endif};
 
 procedure Register;
 
@@ -1391,18 +1403,18 @@ begin
   FCamera.InternalViewport := Self;
   FCamera.SetSubComponent(true);
   FCamera.Name := 'Camera';
-  FCamera.InternalOnSceneBoundViewpointChanged := @MainSceneAndCamera_BoundViewpointChanged;
-  FCamera.InternalOnSceneBoundViewpointVectorsChanged := @MainSceneAndCamera_BoundViewpointVectorsChanged;
-  FCamera.InternalOnSceneBoundNavigationInfoChanged := @MainSceneAndCamera_BoundNavigationInfoChanged;
+  FCamera.InternalOnSceneBoundViewpointChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundViewpointChanged;
+  FCamera.InternalOnSceneBoundViewpointVectorsChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundViewpointVectorsChanged;
+  FCamera.InternalOnSceneBoundNavigationInfoChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundNavigationInfoChanged;
 
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
-  FItems.OnCursorChange := @RecalculateCursor;
+  FItems.OnCursorChange := {$ifdef FPC}@{$endif}RecalculateCursor;
   FItems.MainCamera := Camera;
 
   FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
-  FCapturePointingDeviceObserver.OnFreeNotification := @CapturePointingDeviceFreeNotification;
+  FCapturePointingDeviceObserver.OnFreeNotification := {$ifdef FPC}@{$endif}CapturePointingDeviceFreeNotification;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -1411,9 +1423,11 @@ end;
 
 destructor TCastleViewport.Destroy;
 begin
+  {$ifdef FPC}
   {$warnings off} // only to keep deprecated feature working
   SceneManager := nil; { remove Self from SceneManager.Viewports }
   {$warnings on}
+  {$endif}
 
   { unregister free notification from these objects }
   SetMouseRayHit(nil);
@@ -1513,8 +1527,8 @@ begin
 
     if FNavigation <> nil then
     begin
-      FNavigation.OnInternalMoveAllowed := @NavigationMoveAllowed;
-      FNavigation.OnInternalHeight := @NavigationHeight;
+      FNavigation.OnInternalMoveAllowed := {$ifdef FPC}@{$endif}NavigationMoveAllowed;
+      FNavigation.OnInternalHeight := {$ifdef FPC}@{$endif}NavigationHeight;
       FNavigation.FreeNotification(Self);
       FNavigation.InternalViewport := Self;
       { Check IndexOfControl first, in case the FNavigation is already part
@@ -1821,7 +1835,7 @@ var
     if (FProjection.ProjectionNear = 0) or
        (FProjection.ProjectionFar = 0) then // in case ApplyProjection was not called yet
       FProjection := CalculateProjection;
-    Items.InternalRenderEverythingEvent := @RenderFromViewEverything;
+    Items.InternalRenderEverythingEvent := {$ifdef FPC}@{$endif}RenderFromViewEverything;
     Items.InternalProjectionNear := FProjection.ProjectionNear;
     Items.InternalProjectionFar := FProjection.ProjectionFar;
   end;
@@ -1879,10 +1893,12 @@ begin
   RenderContext.Viewport := Viewport;
 
   FProjection := CalculateProjection;
+  {$ifdef FPC}
   {$warnings off} // using deprecated to keep it working
   if Assigned(OnProjection) then
     OnProjection(FProjection);
   {$warnings on}
+  {$endif}
 
   { take into account InternalDistort* properties }
   AspectRatio := InternalDistortViewAspect * Viewport.Width / Viewport.Height;
@@ -1992,8 +2008,8 @@ var
     begin
       { Apply Camera.Orthographic.Scale here,
         this way it scales around Origin (e.g. around middle, when Origin is 0.5,0.5) }
-      EffectiveProjectionWidth  *= Camera.Orthographic.Scale;
-      EffectiveProjectionHeight *= Camera.Orthographic.Scale;
+      EffectiveProjectionWidth  := EffectiveProjectionWidth * Camera.Orthographic.Scale;
+      EffectiveProjectionHeight := EffectiveProjectionHeight * Camera.Orthographic.Scale;
 
       Result.Dimensions.Width  := EffectiveProjectionWidth;
       Result.Dimensions.Height := EffectiveProjectionHeight;
@@ -2090,10 +2106,12 @@ begin
 
   { calculate Result.ProjectionFar, algorithm documented at DefaultVisibilityLimit }
   Result.ProjectionFar := Camera.ProjectionFar;
+  {$ifdef FPC}
   {$warnings off} // using deprecated to keep it working
   if Result.ProjectionFar <= 0 then
     Result.ProjectionFar := DefaultVisibilityLimit;
   {$warnings on}
+  {$endif}
   if Result.ProjectionFar <= 0 then
     Result.ProjectionFar := GetDefaultProjectionFar;
   Assert(Result.ProjectionFar > 0);
@@ -2294,7 +2312,7 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
   procedure RenderWithShadows(const MainLightPosition: TVector4);
   begin
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
-    FShadowVolumeRenderer.Render(Params, @Render3D, @RenderShadowVolume, ShadowVolumesRender);
+    FShadowVolumeRenderer.Render(Params, {$ifdef FPC}@{$endif}Render3D, {$ifdef FPC}@{$endif}RenderShadowVolume, ShadowVolumesRender);
   end;
 
 var
@@ -3011,15 +3029,17 @@ begin
   begin
     if (EffectiveWidth = 0) or
        (EffectiveHeight = 0) then
-      raise Exception.Create('Cannot use TCastleViewport.PositionToXxx when viewport has effectively empty size. The typical solution is to add TCastleViewport to some UI hierarchy, like "Window.Container.InsertFront(MyViewport)", although you could also set TCastleViewport.Width/Height explicitly.');
+      raise Exception.Create('Cannot use TCastleViewport.PositionToXxx when viewport has effectively empty size. ' + 'The typical solution is to add TCastleViewport to some UI hierarchy, like "Window.Container.InsertFront(MyViewport)", although you could also set TCastleViewport.Width/Height explicitly.');
 
     EnsureCameraDetected;
 
     FProjection := CalculateProjection;
+    {$ifdef FPC}
     {$warnings off} // using deprecated to keep it working
     if Assigned(OnProjection) then
       OnProjection(FProjection);
     {$warnings on}
+    {$endif}
 
     Assert(FProjection.Initialized);
   end;
@@ -3745,6 +3765,7 @@ end;
 
 procedure TCastleViewport.SetSceneManager(const Value: TCastleSceneManager);
 begin
+  {$ifdef FPC}
   {$warnings off} // only to keep deprecated feature working
   if Value <> FSceneManager then
   begin
@@ -3755,16 +3776,17 @@ begin
       SceneManager.Viewports.Add(Self);
   end;
   {$warnings on}
+  {$endif}
 end;
 
 function TCastleViewport.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Transparent', 'Navigation':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Transparent') or
+     (PropertyName = 'Camera') or
+     (PropertyName = 'Navigation') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}
@@ -3773,7 +3795,7 @@ end;
 
 { TCastleViewportList -------------------------------------------------- }
 
-procedure TCastleViewportList.Notify(constref Value: TCastleViewport;
+procedure TCastleViewportList.Notify({$ifdef FPC}constref{$else}const{$endif} Value: TCastleViewport;
   Action: TCollectionNotification);
 begin
   inherited;
@@ -3818,12 +3840,14 @@ begin
     for I := 0 to FViewports.Count - 1 do
       if FViewports[I] is TCastleViewport then
       begin
+        {$ifdef FPC}
         {$warnings off} // using deprecated in deprecated
         Assert(
           (TCastleViewport(FViewports[I]).SceneManager = Self) or
           (TCastleViewport(FViewports[I]).SceneManager = nil)
         );
         {$warnings on}
+        {$endif}
 
         { Set SceneManager by direct field (FSceneManager),
           otherwise TCastleViewport.SetSceneManager would try to update
@@ -3909,10 +3933,12 @@ begin
   Items.MoveLimit := Value;
 end;
 
+{$ifdef FPC}
 function TCastleSceneManager.PhysicsProperties: TPhysicsProperties;
 begin
   Result := Items.PhysicsProperties;
 end;
+{$endif}
 
 function TCastleSceneManager.GetTimeScale: Single;
 begin
@@ -3944,7 +3970,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleViewport;
   R.Caption := 'Viewport (Configured For 2D)';
-  R.OnCreate := @TCastleViewport(nil).CreateComponentSetup2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentSetup2D;
   RegisterSerializableComponent(R);
 
   InitializeWarmupCache;

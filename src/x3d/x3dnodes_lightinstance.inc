@@ -23,7 +23,7 @@
 
     This record may be initialized only by TAbstractLightNode.CreateLightInstance.
     Update it (when transform changes) by TAbstractLightNode.UpdateLightInstance. }
-  TLightInstance = object
+  TLightInstance = record
     Node: TAbstractLightNode;
 
     Transform: TMatrix4;
@@ -86,7 +86,7 @@
   end;
   PLightInstance = ^TLightInstance;
 
-  TLightInstancesList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TLightInstance>)
+  TLightInstancesList = class({$ifdef FPC}specialize{$endif} TStructList<TLightInstance>)
   public
     { Find given light node. Return -1 if not found. }
     function IndexOfNode(Node: TAbstractLightNode): integer;
@@ -317,7 +317,7 @@ var
 begin
   for I := 0 to Count - 1 do
   begin
-    Result := Ptr(I);
+    Result := PLightInstance(Ptr(I));
     if Result^.Node.X3DName = NodeName then
       Exit;
   end;

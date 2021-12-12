@@ -62,9 +62,9 @@
     { X3D field "navType". } { }
     public property FdNavType: TMFString read FFdNavType;
     { Set X3D field "navType". } { }
-    procedure SetNavType(const Value: array of string);
+    procedure SetNavType(const Value: array of string); overload;
     { Set X3D field "navType". } { }
-    procedure SetNavType(const Value: TCastleStringList);
+    procedure SetNavType(const Value: TCastleStringList); overload;
 
     strict private FFdGeoOrigin: TSFNode;
     { X3D field "geoOrigin". } { }
@@ -76,9 +76,9 @@
     { X3D field "geoSystem". } { }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: TCastleStringList);
+    procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdPosition: TSFVec3d;
     { X3D field "position". } { }

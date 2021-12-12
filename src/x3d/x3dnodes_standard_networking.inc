@@ -315,8 +315,8 @@ begin
   inherited;
   AddFunctionality(TUrlFunctionality.Create(Self));
 
-  FdLoad.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventLoadReceive);
-  FdUrl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
+  FdLoad.AddNotification({$ifdef FPC}@{$endif} EventLoadReceive);
+  FdUrl.AddNotification({$ifdef FPC}@{$endif} EventUrlReceive);
 
   { To allow inlined children (they are loaded as VRML 1.0 style children) }
   VRML1ChildrenAllowed := true;

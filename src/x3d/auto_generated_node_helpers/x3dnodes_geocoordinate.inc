@@ -36,9 +36,9 @@
     { X3D field "point". } { }
     public property FdPoint: TMFVec3d read FFdPoint;
     { Set X3D field "point". } { }
-    procedure SetPoint(const Value: array of TVector3Double);
+    procedure SetPoint(const Value: array of TVector3Double); overload;
     { Set X3D field "point". } { }
-    procedure SetPoint(const Value: TVector3DoubleList);
+    procedure SetPoint(const Value: TVector3DoubleList); overload;
 
     strict private FFdGeoOrigin: TSFNode;
     { X3D field "geoOrigin". } { }
@@ -50,9 +50,9 @@
     { X3D field "geoSystem". } { }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: TCastleStringList);
+    procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
 {$endif read_interface}
 

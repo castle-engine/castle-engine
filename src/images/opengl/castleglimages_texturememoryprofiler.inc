@@ -17,7 +17,8 @@
 
 {$ifdef read_interface}
 
-type
+{$ifdef read_interface_type}
+// type - don't add type delphi can't parse it correctly when some types are forward declared
   { OpenGL texture memory profiler. See @link(TextureMemoryProfiler)
     for usage documentation. }
   TTextureMemoryProfiler = class
@@ -33,7 +34,7 @@ type
     end;
     { Using TObjectList, not map, this way we can sort the list looking
       at data sizes. }
-    TAllocatedTextures = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAllocatedTexture>;
+    TAllocatedTextures = {$ifdef FPC}specialize{$endif} TObjectList<TAllocatedTexture>;
   var
     AllocatedTextures: TAllocatedTextures;
     FEnabled: boolean;
@@ -60,7 +61,9 @@ type
       Assumes that all mipmaps are generated, as by GenerateMipmap call. }
     class function MipmapsSize(const Image: TEncodedImage): Int64;
   end;
+{$endif read_interface_type}
 
+{$ifdef read_interface_func}
 { OpenGL texture memory profiler, to detect which textures use up
   the GPU texture memory. Especially useful on mobile devices,
   where texture memory is limited and your application must really optimize
@@ -114,6 +117,7 @@ var
     If additionally @link(TextureMemoryProfiler) is enabled, then we will dump
     texture memory usage. }
   LogTextureLoading: boolean = false;
+{$endif read_interface_func}
 
 {$endif read_interface}
 
@@ -192,7 +196,7 @@ begin
       { texture id 0 may be allocated, but never released }
       (AllocatedTextures[0].TextureId = 0)) then
   begin
-    WritelnWarning('Textures', Format('TextureMemoryProfiler contains some textures when closing GL context. Possibly we have texture memory leak (textures will be freed anyway when closing GL context, but possibly we could free them earlier). Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
+    WritelnWarning('Textures', Format('TextureMemoryProfiler contains some textures when closing GL context. Possibly we have texture memory leak (textures will be freed anyway when closing GL context, but possibly we could free them earlier).'+' Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
       [AllocatedTextures.Count,
        AllocatedTextures[0].URL]));
   end;
@@ -234,7 +238,7 @@ begin
     [Result, Image.Size, Result / Image.Size]));}
 end;
 
-function AllocatedTexturesSort(constref Value1, Value2: TTextureMemoryProfiler.TAllocatedTexture): Integer;
+function AllocatedTexturesSort({$ifdef FPC}constref{$else}const{$endif} Value1, Value2: TTextureMemoryProfiler.TAllocatedTexture): Integer;
 begin
   Result := Value2.Size - Value1.Size;
 end;
@@ -253,7 +257,7 @@ function TTextureMemoryProfiler.Summary: string;
   end;
 
 type
-  TAllocatedTextureComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TAllocatedTexture>;
+  TAllocatedTextureComparer = {$ifdef FPC}specialize{$endif} TComparer<TAllocatedTexture>;
 var
   S: string;
   I: Integer;
@@ -268,7 +272,7 @@ begin
   S := Format('Texture memory used: %s (%d bytes in %d textures)',
     [FormatSize(Used), Used, AllocatedTextures.Count]) + NL;
 
-  AllocatedTextures.Sort(TAllocatedTextureComparer.Construct(@AllocatedTexturesSort));
+  AllocatedTextures.Sort(TAllocatedTextureComparer.Construct({$ifdef FPC}@{$endif}AllocatedTexturesSort));
   for I := 0 to AllocatedTextures.Count - 1 do
   begin
     AllocatedTex := AllocatedTextures[I];

@@ -147,7 +147,7 @@
   end;
   TGroupNode_2 = TGroupNode;
 
-  TStringLongIntMap = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, LongInt>)
+  TStringLongIntMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, LongInt>)
   strict private
     function GetItems(const AKey: string): LongInt;
     procedure SetItems(const AKey: string; const AValue: LongInt);
@@ -174,8 +174,8 @@
     { Change State.Transformation for children nodes.
       Almost all descendants should override only the overload changing
       TTransformation. }
-    procedure ApplyTransform(const State: TX3DGraphTraverseState); virtual;
-    procedure ApplyTransform(var Transformation: TTransformation); virtual;
+    procedure ApplyTransform(const State: TX3DGraphTraverseState); overload; virtual;
+    procedure ApplyTransform(var Transformation: TTransformation); overload; virtual;
   end;
 
   { A top-level VRML/X3D node. This is what you get by loading 3D model from file.
@@ -301,7 +301,7 @@
       inside another (e.g. using X3D Inline node), this is adjusted to
       the existing scale of the outer model (always to make the resulting
       complete node graph keep the assumption 1 unit = 1 meter). }
-    property Scale: Single read FScale write FScale default 1.0;
+    property Scale: Single read FScale write FScale {$ifdef FPC}default 1.0{$endif};
 
     { Export node, to have its name known by X3D graph that includes this graph by "Inline" node.
 
@@ -523,7 +523,7 @@ begin
     if Self is TAnchorNode then
       GroupBeforeTraverse_AddPointingDeviceSensor(Self, Enumerator.State, Enumerator.WasPointingDeviceSensor);
 
-    DirectEnumerateActive({$ifdef CASTLE_OBJFPC}@{$endif} Enumerator.EnumerateChildrenFunction);
+    DirectEnumerateActive({$ifdef FPC}@{$endif} Enumerator.EnumerateChildrenFunction);
   finally
     if Enumerator = TempEnumerator then
       TempEnumeratorUsed := false
@@ -549,11 +549,11 @@ begin
 
   FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
   AddEvent(FEventAddChildren);
-  EventaddChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventAddChildrenReceive);
+  EventaddChildren.AddNotification({$ifdef FPC}@{$endif} EventAddChildrenReceive);
 
   FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
   AddEvent(FEventRemoveChildren);
-  EventRemoveChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
+  EventRemoveChildren.AddNotification({$ifdef FPC}@{$endif} EventRemoveChildrenReceive);
 
   { Add TAbstractGeometryNode_1 to allow VRML 1.0 geometry nodes (that cannot be TAbstractChildNode)
     to be present at top-level of the file.
@@ -724,7 +724,7 @@ end;
 
 procedure TStringLongIntMap.Assign(const Source: TStringLongIntMap);
 var
-  Pair: TDictionaryPair;
+  Pair: {$ifdef FPC}TDictionaryPair{$else}TPair<string, LongInt>{$endif};
 begin
   Clear;
   for Pair in Source do

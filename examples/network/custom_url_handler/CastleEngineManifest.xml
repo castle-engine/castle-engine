@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="read_game_data_from_zip"
-  standalone_source="read_game_data_from_zip_standalone.lpr"
+  standalone_source="read_game_data_from_zip_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.read.game.data.from.zip"
   caption="Read Game Data from ZIP"

@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
 type
-  TX3DChildrenList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAbstractChildNode>)
+  TX3DChildrenList = class({$ifdef FPC}specialize{$endif} TObjectList<TAbstractChildNode>)
     { Find node by name, @nil if not found. }
     function FindName(const Name: string): TAbstractChildNode;
   end;

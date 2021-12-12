@@ -504,7 +504,7 @@ begin
       Exit;
     end;
 
-  VRML1Children[0].EnumerateReplaceChildren({$ifdef CASTLE_OBJFPC}@{$endif} DoReplaceNodes);
+  VRML1Children[0].EnumerateReplaceChildren({$ifdef FPC}@{$endif} DoReplaceNodes);
 end;
 
 procedure TKambiInlineNode.DoReplaceNodes(ParentNode: TX3DNode;
@@ -810,7 +810,7 @@ begin
 
   FFdUrl := TMFString.Create(Self, true, 'url', []);
    FdUrl.ChangeAlways := chEverything;
-   FdUrl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
+   FdUrl.AddNotification({$ifdef FPC}@{$endif} EventUrlReceive);
   AddField(FFdUrl);
 
   DefaultContainerField := 'parts';
@@ -889,7 +889,7 @@ begin
   DefaultContainerField := 'children';
 
   EventSet_Fraction.AddNotification(
-    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+    {$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
 class function TOrientationInterpolator2DNode.ClassX3DType: string;

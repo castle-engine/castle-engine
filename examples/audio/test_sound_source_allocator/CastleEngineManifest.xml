@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="test_sound_source_allocator"
+  lazarus_project="test_sound_source_allocator.lpi"
+  build_using_lazbuild="true"
+>
+  <data exists="false"/>
+</project>

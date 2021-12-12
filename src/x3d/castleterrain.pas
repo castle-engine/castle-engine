@@ -122,15 +122,15 @@ type
     property ImageURL: string read FImageURL;
 
     property ImageHeightScale: Single
-      read FImageHeightScale write FImageHeightScale default 1.0;
+      read FImageHeightScale write FImageHeightScale {$ifdef FPC}default 1.0{$endif};
 
     property ImageRepeat: boolean
       read FImageRepeat write FImageRepeat default false;
 
-    property ImageX1: Single read FImageX1 write FImageX1 default -1;
-    property ImageY1: Single read FImageY1 write FImageY1 default -1;
-    property ImageX2: Single read FImageX2 write FImageX2 default 1;
-    property ImageY2: Single read FImageY2 write FImageY2 default 1;
+    property ImageX1: Single read FImageX1 write FImageX1 {$ifdef FPC}default -1{$endif};
+    property ImageY1: Single read FImageY1 write FImageY1 {$ifdef FPC}default -1{$endif};
+    property ImageX2: Single read FImageX2 write FImageX2 {$ifdef FPC}default 1{$endif};
+    property ImageY2: Single read FImageY2 write FImageY2 {$ifdef FPC}default 1{$endif};
   end;
 
   { Terrain (height for each X, Y) data calculated from CastleScript
@@ -207,7 +207,7 @@ type
       (The fact that it's a float is just a simple trick to allow smooth
       transitions from x to x+1. In fact, it's executed like
       Trunc(Octaves) * some noises + Frac(Octaves) * some last noise.) }
-    property Octaves: Single read FOctaves write FOctaves default 4.0;
+    property Octaves: Single read FOctaves write FOctaves {$ifdef FPC}default 4.0{$endif};
 
     { How noise amplitude changes, when frequency doubles.
       When we double frequency, amplitude is divided by this.
@@ -229,14 +229,14 @@ type
       just see a lot of noise. And values < 1.0 are really nonsense,
       they make more frequency noise even more visible, which means that
       the terrain is dominated by noise. }
-    property Smoothness: Single read FSmoothness write FSmoothness default 2.0;
+    property Smoothness: Single read FSmoothness write FSmoothness {$ifdef FPC}default 2.0{$endif};
 
     { Amplitude and frequency of the first noise octave.
       Amplitude scales the height of the result, and Frequency scales
       the size of the bumps.
       @groupBegin }
-    property Amplitude: Single read FAmplitude write FAmplitude default 1.0;
-    property Frequency: Single read FFrequency write FFrequency default 1.0;
+    property Amplitude: Single read FAmplitude write FAmplitude {$ifdef FPC}default 1.0{$endif};
+    property Frequency: Single read FFrequency write FFrequency {$ifdef FPC}default 1.0{$endif};
     { @groupEnd }
 
     { How integer noise is interpolated to get smooth float noise.
@@ -292,7 +292,7 @@ type
       This is called "threshold" in Musgrave's dissertation (see algorithm
       in section 2.3.2.5 "A Large Scale Terrain Model"). }
     property Heterogeneous: Single
-      read FHeterogeneous write FHeterogeneous default 0.0;
+      read FHeterogeneous write FHeterogeneous {$ifdef FPC}default 0.0{$endif};
   end;
 
   { Terrain data from a grid of values with specified width * height.
@@ -334,11 +334,11 @@ type
     { Specify where terrain is located, for @link(Height) method.
       These do not affect GridHeight method.
       @groupBegin }
-    property GridX1: Single read FGridX1 write FGridX1 default 0;
-    property GridY1: Single read FGridY1 write FGridY1 default 0;
-    property GridX2: Single read FGridX2 write FGridX2 default 1;
-    property GridY2: Single read FGridY2 write FGridY2 default 1;
-    property GridHeightScale: Single read FGridHeightScale write FGridHeightScale default 1;
+    property GridX1: Single read FGridX1 write FGridX1 {$ifdef FPC}default 0{$endif};
+    property GridY1: Single read FGridY1 write FGridY1 {$ifdef FPC}default 0{$endif};
+    property GridX2: Single read FGridX2 write FGridX2 {$ifdef FPC}default 1{$endif};
+    property GridY2: Single read FGridY2 write FGridY2 {$ifdef FPC}default 1{$endif};
+    property GridHeightScale: Single read FGridHeightScale write FGridHeightScale {$ifdef FPC}default 1{$endif};
     { @groupEnd }
   end;
 
@@ -494,9 +494,9 @@ var
   var
     P, PX, PY: PVector3;
   begin
-    P  := Coord.Ptr(Idx(I, J));
-    PX := Coord.Ptr(Idx(I + 1, J));
-    PY := Coord.Ptr(Idx(I, J + 1));
+    P  := PVector3(Coord.Ptr(Idx(I, J)));
+    PX := PVector3(Coord.Ptr(Idx(I + 1, J)));
+    PY := PVector3(Coord.Ptr(Idx(I, J + 1)));
     Normal := TVector3.CrossProduct(
       (PY^ - P^),
       (PX^ - P^)).Normalize;
@@ -637,8 +637,8 @@ begin
     begin
       PX := PX mod FImage.Width;
       PY := PY mod FImage.Height;
-      if PX < 0 then PX += FImage.Width;
-      if PY < 0 then PY += FImage.Height;
+      if PX < 0 then PX := PX + FImage.Width;
+      if PY < 0 then PY := PY + FImage.Height;
     end else
     begin
       ClampVar(PX, 0, FImage.Width  - 1);
@@ -683,7 +683,7 @@ begin
   Result := inherited;
   FXVariable.Value := X;
   FYVariable.Value := Y;
-  Result += (FFunction.Execute as TCasScriptFloat).Value;
+  Result := Result + (FFunction.Execute as TCasScriptFloat).Value;
 end;
 
 { TTerrainNoise ------------------------------------------------------------ }
@@ -762,7 +762,7 @@ var
     if Heterogeneous = 0 then
       Exit(NoiseMethod(X * F, Y * F, OctaveNumber + Seed) * A);
 
-    NoiseAccumulator /= Heterogeneous;
+    NoiseAccumulator := NoiseAccumulator / Heterogeneous;
     { Following Musgrave's dissertation, we should now force
       NoiseAccumulator to <0, 1> range.
       We know our NoiseMethod is always positive, and we require
@@ -770,7 +770,7 @@ var
       So we already know NoiseAccumulator is always >= 0. }
     MinVar(NoiseAccumulator, 1);
 
-    NoiseAccumulator *= NoiseMethod(X * F, Y * F, OctaveNumber + Seed);
+    NoiseAccumulator := NoiseAccumulator * NoiseMethod(X * F, Y * F, OctaveNumber + Seed);
 
     Result := NoiseAccumulator * A;
   end;
@@ -787,14 +787,14 @@ begin
   NoiseAccumulator := Heterogeneous;
   for I := 1 to Trunc(Octaves) do
   begin
-    Result += NextOctave(I);
-    F *= 2;
-    A /= Smoothness;
+    Result := Result + NextOctave(I);
+    F := F * 2;
+    A := A / Smoothness;
   end;
 
   { Add last octave's remainder.
     Just like a normal octave, but multiply by Frac(Octaves). }
-  Result += Frac(Octaves) * NextOctave(Trunc(Octaves) + 1);
+  Result := Result + Frac(Octaves) * NextOctave(Trunc(Octaves) + 1);
 end;
 
 { TTerrainGrid ------------------------------------------------------------- }

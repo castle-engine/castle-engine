@@ -48,10 +48,10 @@ begin
   MoveX := (Window.Width div 2) - BaseWidth div 2;
   MoveY := (Window.Height div 2) - BaseHeight div 2;
   { Now translate such that MapX, MapY is in the middle. }
-  MoveX -= MapX * BaseWidth;
-  MoveY -= MapY * (BaseHeight div 2);
+  MoveX := MoveX - MapX * BaseWidth;
+  MoveY := MoveY - MapY * (BaseHeight div 2);
   if Odd(MapY) then
-    MoveX -= BaseWidth div 2;
+    MoveX := MoveX - (BaseWidth div 2);
 end;
 
 end.

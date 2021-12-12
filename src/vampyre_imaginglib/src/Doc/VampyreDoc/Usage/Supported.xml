@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Supported Compilers and Platforms</title>
+  <chapter>
+    <title>Supported Compilers and Platforms</title>
+    <par>
+      Main development language is <b>Object Pascal</b> and two
+      main supported compilers are <b>Borland/CodeGear/Embarcadero Delphi</b> and <b>Free Pascal</b>.
+      <b>Kylix</b> worked too but latest versions were not tested 
+      (IDE won't work well in current Linux distros). 
+      <b>C++ Builder</b> crashes on internal error.
+      Other Pascal compilers like GPC or TMT were not tested (probably won't work).
+      Supported platforms are now <b>Windows</b>, <b>Linux</b>, <b>Mac OS X</b> (Intel), <b>FreeBSD</b>
+      (some other Unix systems most probably too).
+      Imaging was tested on 32bit <b>x86</b>
+      and 64bit <b>AMD64</b> (Linux64 and Win64 using Free Pascal)
+      CPU architectures.
+      It could work on some big endian machines too (except some file format loaders
+      that assume little endian) but I can't test it on any.
+    </par>
+
+    <par>
+      Following table contains information about which compilers have
+      been tested and whether Imaging was successfully compiled by them.
+    </par>
+
+    <table>
+      <title>Object Pascal Compilers</title>
+      <row>
+        <th>Compiler Name and Version</th>
+        <th>Info</th>
+      </row>
+      <row>
+        <td><keyword>Delphi 6/7/2006/2007/2009/2010 (Win32)</keyword></td>
+        <td>Tested and everything compiled successfully (Delphi 2005, and TurboDelphi
+            should work too, older probably not)</td>
+      </row>
+      <row>
+        <td><keyword>Free Pascal 2.2.4 (Win32/Win64, Linux, FreeBSD, Mac OS X)</keyword></td>
+        <td>Tested and everything compiled successfully</td>
+      </row>
+      <row>
+        <td><keyword>Lazarus 0.9.28 (Win32/Win64, Linux, FreeBSD, Mac OS X)</keyword></td>
+        <td>Tested and everything compiled successfully</td>
+      </row>
+      <row>
+        <td><keyword>Kylix 3 (Linux)</keyword></td>
+        <td>Tested and everything compiled successfully (previous library versions,
+            Kylix is not tested anymore - won't work well in current Linux distros)</td>
+      </row>
+      <row>
+        <td><keyword>C++ Builder 6/2006 (Win32)</keyword></td>
+        <td>Tested but crashed during compilation (internal compiler error)</td>
+      </row>
+    </table>    
+
+  </chapter>
+</doc>

@@ -201,7 +201,7 @@ type
     property Environment: TCasScriptEnvironment read FEnvironment write FEnvironment;
   end;
 
-  TCasScriptExpressionList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCasScriptExpression>)
+  TCasScriptExpressionList = class({$ifdef FPC}specialize{$endif} TObjectList<TCasScriptExpression>)
   public
     procedure AddArray(const A: array of TCasScriptExpression); deprecated 'use AddRange';
     procedure AddList(const Source: TCasScriptExpressionList); deprecated 'use AddRange';
@@ -261,7 +261,7 @@ type
   TCasScriptValueClassArray = array of TCasScriptValueClass;
   TCasScriptValuesArray = array of TCasScriptValue;
 
-  TCasScriptValueList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCasScriptValue>)
+  TCasScriptValueList = class({$ifdef FPC}specialize{$endif} TObjectList<TCasScriptValue>)
   public
     procedure AddArray(const A: array of TCasScriptValue); deprecated 'use AddRange';
     { Find an item by Name. @nil if not found. }
@@ -336,8 +336,8 @@ type
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to zero. }
-    constructor Create(const AWriteable: boolean; const AValue: Int64); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: boolean; const AValue: Int64); reintroduce; overload;
+    constructor Create(const AWriteable: boolean); reintroduce; overload; override;
     destructor Destroy; override;
 
     property Value: Int64 read FValue write SetValue;
@@ -410,8 +410,8 @@ type
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to zero. }
-    constructor Create(const AWriteable: boolean; const AValue: Float); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: boolean; const AValue: Float); reintroduce; overload;
+    constructor Create(const AWriteable: boolean); reintroduce; overload; override;
 
     property Value: Float read FValue write SetValue;
 
@@ -443,8 +443,8 @@ type
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to false. }
-    constructor Create(const AWriteable: boolean; const AValue: boolean); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: boolean; const AValue: boolean); reintroduce; overload;
+    constructor Create(const AWriteable: boolean); reintroduce; overload; override;
 
     property Value: boolean read FValue write SetValue;
 
@@ -476,8 +476,8 @@ type
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to ''. }
-    constructor Create(const AWriteable: boolean; const AValue: string); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: boolean; const AValue: string); reintroduce; overload;
+    constructor Create(const AWriteable: boolean); reintroduce; overload; override;
 
     property Value: string read FValue write SetValue;
 
@@ -874,7 +874,7 @@ type
     property Body: TCasScriptExpression read FBody write FBody;
   end;
 
-  TCasScriptUserFunctionList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCasScriptUserFunction>)
+  TCasScriptUserFunctionList = class({$ifdef FPC}specialize{$endif} TObjectList<TCasScriptUserFunction>)
     function IndexOfName(const FunctionName: string): Integer;
   end;
 
@@ -1374,8 +1374,12 @@ end;
 
 class procedure TCasScriptInteger.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
-  BoolTo01: array [boolean] of Int64 = (0, 1);
+  BoolTo01: array [boolean] of Int64 {$ifdef FPC}= (0, 1){$endif};
 begin
+  {$ifndef FPC}
+  BoolTo01[false] := 0;
+  BoolTo01[true] := 1;
+  {$endif}
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := BoolTo01[TCasScriptBoolean(Arguments[0]).Value];
 end;
@@ -1739,8 +1743,12 @@ end;
 
 class procedure TCasScriptFloat.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
-  BoolTo01: array [boolean] of Float = (0, 1);
+  BoolTo01: array [boolean] of Float {$ifdef FPC} = (0, 1){$endif};
 begin
+  {$ifndef FPC}
+  BoolTo01[false] := 0;
+  BoolTo01[true] := 1;
+  {$endif}
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := BoolTo01[TCasScriptBoolean(Arguments[0]).Value];
 end;
@@ -2002,8 +2010,12 @@ end;
 
 class procedure TCasScriptString.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
-  BoolTo01: array [boolean] of string = ('false', 'true');
+  BoolTo01: array [boolean] of string {$ifdef FPC}= ('false', 'true'){$endif};
 begin
+  {$ifndef FPC}
+  BoolTo01[false] := 'false';
+  BoolTo01[true] := 'true';
+  {$endif}
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
   TCasScriptString(AResult).Value := BoolTo01[TCasScriptBoolean(Arguments[0]).Value];
 end;
@@ -2805,132 +2817,132 @@ begin
 end;
 
 initialization
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptSequence(nil).HandleSequence, TCasScriptSequence, [TCasScriptValue], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptAssignment(nil).HandleAssignment, TCasScriptAssignment, [TCasScriptValue, TCasScriptValue], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptSequence{$ifdef FPC}(nil){$endif}.HandleSequence, TCasScriptSequence, [TCasScriptValue], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptAssignment{$ifdef FPC}(nil){$endif}.HandleAssignment, TCasScriptAssignment, [TCasScriptValue, TCasScriptValue], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptIf(nil).HandleIf, TCasScriptIf, [TCasScriptBoolean, TCasScriptValue, TCasScriptValue], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptWhen(nil).HandleWhen, TCasScriptWhen, [TCasScriptBoolean, TCasScriptValue], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptWhile(nil).HandleWhile, TCasScriptWhile, [TCasScriptBoolean, TCasScriptValue], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFor(nil).HandleFor, TCasScriptFor, [TCasScriptInteger, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptCoalesce(nil).HandleCoalesce, TCasScriptCoalesce, [TCasScriptString], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptIf{$ifdef FPC}(nil){$endif}.HandleIf, TCasScriptIf, [TCasScriptBoolean, TCasScriptValue, TCasScriptValue], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptWhen{$ifdef FPC}(nil){$endif}.HandleWhen, TCasScriptWhen, [TCasScriptBoolean, TCasScriptValue], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptWhile{$ifdef FPC}(nil){$endif}.HandleWhile, TCasScriptWhile, [TCasScriptBoolean, TCasScriptValue], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFor{$ifdef FPC}(nil){$endif}.HandleFor, TCasScriptFor, [TCasScriptInteger, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptCoalesce{$ifdef FPC}(nil){$endif}.HandleCoalesce, TCasScriptCoalesce, [TCasScriptString], true);
 
   { Register handlers for TCasScriptInteger for functions in
     CastleScriptCoreFunctions. }
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleAdd, TCasScriptAdd, [TCasScriptInteger], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleSubtract, TCasScriptSubtract, [TCasScriptInteger], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleNegate, TCasScriptNegate, [TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleAdd, TCasScriptAdd, [TCasScriptInteger], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleSubtract, TCasScriptSubtract, [TCasScriptInteger], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleNegate, TCasScriptNegate, [TCasScriptInteger], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleMultiply, TCasScriptMultiply, [TCasScriptInteger], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleDivide, TCasScriptDivide, [TCasScriptInteger], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleModulo, TCasScriptModulo, [TCasScriptInteger, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandlePower, TCasScriptPower, [TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleMultiply, TCasScriptMultiply, [TCasScriptInteger], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleDivide, TCasScriptDivide, [TCasScriptInteger], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleModulo, TCasScriptModulo, [TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandlePower, TCasScriptPower, [TCasScriptInteger, TCasScriptInteger], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleMax, TCasScriptMax, [TCasScriptInteger], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleMin, TCasScriptMin, [TCasScriptInteger], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleSqr, TCasScriptSqr, [TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleSgn, TCasScriptSgn, [TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleAbs, TCasScriptAbs, [TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleRandom, TCasScriptRandom, [TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleMax, TCasScriptMax, [TCasScriptInteger], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleMin, TCasScriptMin, [TCasScriptInteger], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleSqr, TCasScriptSqr, [TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleSgn, TCasScriptSgn, [TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleAbs, TCasScriptAbs, [TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleRandom, TCasScriptRandom, [TCasScriptInteger], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleGreater, TCasScriptGreater, [TCasScriptInteger, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleLesser, TCasScriptLesser, [TCasScriptInteger, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleGreaterEq, TCasScriptGreaterEq, [TCasScriptInteger, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleLesserEq, TCasScriptLesserEq, [TCasScriptInteger, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleEqual, TCasScriptEqual, [TCasScriptInteger, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).HandleNotEqual, TCasScriptNotEqual, [TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleGreater, TCasScriptGreater, [TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleLesser, TCasScriptLesser, [TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleGreaterEq, TCasScriptGreaterEq, [TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleLesserEq, TCasScriptLesserEq, [TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleEqual, TCasScriptEqual, [TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleNotEqual, TCasScriptNotEqual, [TCasScriptInteger, TCasScriptInteger], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).ConvertFromInt   , TCasScriptInt, [TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).ConvertFromFloat , TCasScriptInt, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).ConvertFromBool  , TCasScriptInt, [TCasScriptBoolean], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptInteger(nil).ConvertFromString, TCasScriptInt, [TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.ConvertFromInt   , TCasScriptInt, [TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.ConvertFromFloat , TCasScriptInt, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.ConvertFromBool  , TCasScriptInt, [TCasScriptBoolean], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.ConvertFromString, TCasScriptInt, [TCasScriptString], false);
 
   { Register handlers for TCasScriptFloat for functions in
     CastleScriptCoreFunctions. }
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleAdd, TCasScriptAdd, [TCasScriptFloat], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleSubtract, TCasScriptSubtract, [TCasScriptFloat], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleMultiply, TCasScriptMultiply, [TCasScriptFloat], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleDivide, TCasScriptDivide, [TCasScriptFloat], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleLerp, TCasScriptLerp, [TCasScriptFloat, TCasScriptFloat, TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleNegate, TCasScriptNegate, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleModulo, TCasScriptModulo, [TCasScriptFloat, TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleSin, TCasScriptSin, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleCos, TCasScriptCos, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleTan, TCasScriptTan, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleCotan, TCasScriptCotan, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleArcSin, TCasScriptArcSin, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleArcCos, TCasScriptArcCos, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleArcTan, TCasScriptArcTan, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleArcCotan, TCasScriptArcCotan, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleSinh, TCasScriptSinh, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleCosh, TCasScriptCosh, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleTanh, TCasScriptTanh, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleCotanh, TCasScriptCotanh, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleLog2, TCasScriptLog2, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleLn, TCasScriptLn, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleLog, TCasScriptLog, [TCasScriptFloat, TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandlePower2, TCasScriptPower2, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleExp, TCasScriptExp, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandlePower, TCasScriptPower, [TCasScriptFloat, TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleSqr, TCasScriptSqr, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleSqrt, TCasScriptSqrt, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleMax, TCasScriptMax, [TCasScriptFloat], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleMin, TCasScriptMin, [TCasScriptFloat], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleSgn, TCasScriptSgn, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleAbs, TCasScriptAbs, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleRandom, TCasScriptRandom, [], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleCeil, TCasScriptCeil, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleFloor, TCasScriptFloor, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleRound, TCasScriptRound, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleGreater, TCasScriptGreater, [TCasScriptFloat, TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleLesser, TCasScriptLesser, [TCasScriptFloat, TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleGreaterEq, TCasScriptGreaterEq, [TCasScriptFloat, TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleLesserEq, TCasScriptLesserEq, [TCasScriptFloat, TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleEqual, TCasScriptEqual, [TCasScriptFloat, TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).HandleNotEqual, TCasScriptNotEqual, [TCasScriptFloat, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleAdd, TCasScriptAdd, [TCasScriptFloat], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleSubtract, TCasScriptSubtract, [TCasScriptFloat], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleMultiply, TCasScriptMultiply, [TCasScriptFloat], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleDivide, TCasScriptDivide, [TCasScriptFloat], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleLerp, TCasScriptLerp, [TCasScriptFloat, TCasScriptFloat, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleNegate, TCasScriptNegate, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleModulo, TCasScriptModulo, [TCasScriptFloat, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleSin, TCasScriptSin, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleCos, TCasScriptCos, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleTan, TCasScriptTan, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleCotan, TCasScriptCotan, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleArcSin, TCasScriptArcSin, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleArcCos, TCasScriptArcCos, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleArcTan, TCasScriptArcTan, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleArcCotan, TCasScriptArcCotan, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleSinh, TCasScriptSinh, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleCosh, TCasScriptCosh, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleTanh, TCasScriptTanh, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleCotanh, TCasScriptCotanh, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleLog2, TCasScriptLog2, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleLn, TCasScriptLn, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleLog, TCasScriptLog, [TCasScriptFloat, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandlePower2, TCasScriptPower2, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleExp, TCasScriptExp, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandlePower, TCasScriptPower, [TCasScriptFloat, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleSqr, TCasScriptSqr, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleSqrt, TCasScriptSqrt, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleMax, TCasScriptMax, [TCasScriptFloat], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleMin, TCasScriptMin, [TCasScriptFloat], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleSgn, TCasScriptSgn, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleAbs, TCasScriptAbs, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleRandom, TCasScriptRandom, [], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleCeil, TCasScriptCeil, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleFloor, TCasScriptFloor, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleRound, TCasScriptRound, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleGreater, TCasScriptGreater, [TCasScriptFloat, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleLesser, TCasScriptLesser, [TCasScriptFloat, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleGreaterEq, TCasScriptGreaterEq, [TCasScriptFloat, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleLesserEq, TCasScriptLesserEq, [TCasScriptFloat, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleEqual, TCasScriptEqual, [TCasScriptFloat, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleNotEqual, TCasScriptNotEqual, [TCasScriptFloat, TCasScriptFloat], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).ConvertFromInt   , TCasScriptFloatFun, [TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).ConvertFromFloat , TCasScriptFloatFun, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).ConvertFromBool  , TCasScriptFloatFun, [TCasScriptBoolean], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFloat(nil).ConvertFromString, TCasScriptFloatFun, [TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.ConvertFromInt   , TCasScriptFloatFun, [TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.ConvertFromFloat , TCasScriptFloatFun, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.ConvertFromBool  , TCasScriptFloatFun, [TCasScriptBoolean], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.ConvertFromString, TCasScriptFloatFun, [TCasScriptString], false);
 
   { Register handlers for TCasScriptBoolean for functions in
     CastleScriptCoreFunctions. }
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).HandleOr, TCasScriptOr, [TCasScriptBoolean], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).HandleAnd, TCasScriptAnd, [TCasScriptBoolean], true);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).HandleNot, TCasScriptNot, [TCasScriptBoolean], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.HandleOr, TCasScriptOr, [TCasScriptBoolean], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.HandleAnd, TCasScriptAnd, [TCasScriptBoolean], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.HandleNot, TCasScriptNot, [TCasScriptBoolean], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).HandleGreater, TCasScriptGreater, [TCasScriptBoolean, TCasScriptBoolean], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).HandleLesser, TCasScriptLesser, [TCasScriptBoolean, TCasScriptBoolean], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).HandleGreaterEq, TCasScriptGreaterEq, [TCasScriptBoolean, TCasScriptBoolean], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).HandleLesserEq, TCasScriptLesserEq, [TCasScriptBoolean, TCasScriptBoolean], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).HandleEqual, TCasScriptEqual, [TCasScriptBoolean, TCasScriptBoolean], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).HandleNotEqual, TCasScriptNotEqual, [TCasScriptBoolean, TCasScriptBoolean], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.HandleGreater, TCasScriptGreater, [TCasScriptBoolean, TCasScriptBoolean], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.HandleLesser, TCasScriptLesser, [TCasScriptBoolean, TCasScriptBoolean], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.HandleGreaterEq, TCasScriptGreaterEq, [TCasScriptBoolean, TCasScriptBoolean], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.HandleLesserEq, TCasScriptLesserEq, [TCasScriptBoolean, TCasScriptBoolean], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.HandleEqual, TCasScriptEqual, [TCasScriptBoolean, TCasScriptBoolean], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.HandleNotEqual, TCasScriptNotEqual, [TCasScriptBoolean, TCasScriptBoolean], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).ConvertFromInt   , TCasScriptBool, [TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).ConvertFromFloat , TCasScriptBool, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).ConvertFromBool  , TCasScriptBool, [TCasScriptBoolean], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptBoolean(nil).ConvertFromString, TCasScriptBool, [TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.ConvertFromInt   , TCasScriptBool, [TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.ConvertFromFloat , TCasScriptBool, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.ConvertFromBool  , TCasScriptBool, [TCasScriptBoolean], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptBoolean{$ifdef FPC}(nil){$endif}.ConvertFromString, TCasScriptBool, [TCasScriptString], false);
 
   { Register handlers for TCasScriptString for functions in
     CastleScriptCoreFunctions. }
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).HandleAdd, TCasScriptAdd, [TCasScriptString, TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.HandleAdd, TCasScriptAdd, [TCasScriptString, TCasScriptString], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).HandleGreater, TCasScriptGreater, [TCasScriptString, TCasScriptString], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).HandleLesser, TCasScriptLesser, [TCasScriptString, TCasScriptString], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).HandleGreaterEq, TCasScriptGreaterEq, [TCasScriptString, TCasScriptString], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).HandleLesserEq, TCasScriptLesserEq, [TCasScriptString, TCasScriptString], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).HandleEqual, TCasScriptEqual, [TCasScriptString, TCasScriptString], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).HandleNotEqual, TCasScriptNotEqual, [TCasScriptString, TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.HandleGreater, TCasScriptGreater, [TCasScriptString, TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.HandleLesser, TCasScriptLesser, [TCasScriptString, TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.HandleGreaterEq, TCasScriptGreaterEq, [TCasScriptString, TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.HandleLesserEq, TCasScriptLesserEq, [TCasScriptString, TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.HandleEqual, TCasScriptEqual, [TCasScriptString, TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.HandleNotEqual, TCasScriptNotEqual, [TCasScriptString, TCasScriptString], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).ConvertFromInt   , TCasScriptStringFun, [TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).ConvertFromFloat , TCasScriptStringFun, [TCasScriptFloat], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).ConvertFromBool  , TCasScriptStringFun, [TCasScriptBoolean], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).ConvertFromString, TCasScriptStringFun, [TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.ConvertFromInt   , TCasScriptStringFun, [TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.ConvertFromFloat , TCasScriptStringFun, [TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.ConvertFromBool  , TCasScriptStringFun, [TCasScriptBoolean], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.ConvertFromString, TCasScriptStringFun, [TCasScriptString], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).HandleWriteln, TCasScriptWriteln, [TCasScriptString], false);
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptString(nil).HandleCharacterFromCode, TCasScriptCharacterFromCode, [TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.HandleWriteln, TCasScriptWriteln, [TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptString{$ifdef FPC}(nil){$endif}.HandleCharacterFromCode, TCasScriptCharacterFromCode, [TCasScriptInteger], false);
 
-  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptShortcut(nil).Handle, TCasScriptShortcut, [TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptShortcut{$ifdef FPC}(nil){$endif}.Handle, TCasScriptShortcut, [TCasScriptString], false);
 finalization
   FreeAndNil(FFunctionHandlers);
 end.

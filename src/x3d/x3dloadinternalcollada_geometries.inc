@@ -24,7 +24,7 @@ type
     destructor Destroy; override;
   end;
 
-  TColladaGeometryList = class ({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaGeometry>)
+  TColladaGeometryList = class ({$ifdef FPC}specialize{$endif} TObjectList<TColladaGeometry>)
   public
     { Find item with given Name, @nil if not found. }
     function Find(const Name: string): TColladaGeometry;

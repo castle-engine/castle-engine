@@ -44,7 +44,7 @@
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
-        <Filename Value="model_3d_with_2d_controls.lpr"/>
+        <Filename Value="model_3d_with_2d_controls.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

@@ -464,7 +464,7 @@ end;
 constructor TNurbsOrientationInterpolatorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  EventSet_Fraction.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+  EventSet_Fraction.AddNotification({$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
 function TNurbsOrientationInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -916,7 +916,7 @@ end;
 constructor TNurbsPositionInterpolatorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  EventSet_Fraction.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+  EventSet_Fraction.AddNotification({$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
 class function TNurbsPositionInterpolatorNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -974,7 +974,7 @@ end;
 constructor TNurbsSurfaceInterpolatorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  EventSet_Fraction.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+  EventSet_Fraction.AddNotification({$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
 function TNurbsSurfaceInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

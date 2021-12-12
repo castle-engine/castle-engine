@@ -46,9 +46,9 @@
     { X3D field "weight". } { }
     public property FdWeight: TMFDouble read FFdWeight;
     { Set X3D field "weight". } { }
-    procedure SetWeight(const Value: array of Double);
+    procedure SetWeight(const Value: array of Double); overload;
     { Set X3D field "weight". } { }
-    procedure SetWeight(const Value: TDoubleList);
+    procedure SetWeight(const Value: TDoubleList); overload;
 
     strict private FFdClosed: TSFBool;
     { X3D field "closed". } { }
@@ -60,9 +60,9 @@
     { X3D field "knot". } { }
     public property FdKnot: TMFDouble read FFdKnot;
     { Set X3D field "knot". } { }
-    procedure SetKnot(const Value: array of Double);
+    procedure SetKnot(const Value: array of Double); overload;
     { Set X3D field "knot". } { }
-    procedure SetKnot(const Value: TDoubleList);
+    procedure SetKnot(const Value: TDoubleList); overload;
 
     strict private FFdOrder: TSFInt32;
     { X3D field "order". } { }

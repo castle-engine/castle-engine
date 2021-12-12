@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -12,28 +12,72 @@
 
   ----------------------------------------------------------------------------
 }
-
 { Useful things from FPC RTL defined for Delphi. }
 
 // This whole file is only used for Delphi, FPC already has this.
 {$ifndef FPC}
-
 {$ifdef read_interface}
-
 const
   LineEnding = SLineBreak;
 
-type
-  SizeInt = Integer;
+  {$ifdef MSWINDOWS}
+  // https://community.embarcadero.com/article/technical-articles/149-tools/13303-detecting-plugnplay-hardware-changes
+  DBT_DEVICEARRIVAL = $8000;
+  DBT_DEVICEQUERYREMOVE = $8001;
+  DBT_DEVICEQUERYREMOVEFAILED = $8002;
+  DBT_DEVICEREMOVEPENDING = $8003;
+  DBT_DEVICEREMOVECOMPLETE = $8004;
+  DBT_DEVICETYPESPECIFIC = $8005;
+  DBT_CONFIGCHANGED = $0018;
 
+  DBT_DEVTYP_DEVICEINTERFACE = $00000005;
+  {$endif}
+
+  {$ifdef UNIX}
+  StdInputHandle  = 0;
+  StdOutputHandle = 1;
+  StdErrorHandle  = 2;
+  {$endif}
+
+type
+  SizeInt = NativeInt;
+  SizeUInt = NativeUInt;
   QWord = UInt64;
   PQWord = PUInt64;
-
   PtrInt = NativeInt;
   PtrUInt = NativeUInt;
-
+  WINBOOL = longbool;
   TGetVendorNameEvent  = function: string;
   TGetAppNameEvent  = function: string;
+  TEventType = (etCustom, etInfo, etWarning, etError, etDebug);
+  TEventTypes = Set of TEventType;
+
+  {$ifndef MSWINDOWS}
+  DWord = LongWord;
+  PDWord = ^DWord;
+  {$endif}
+
+  { TOwnerStream from FPC }
+  TOwnerStream = Class(TStream)
+  protected
+    FOwner : Boolean;
+    FSource : TStream;
+  public
+    constructor Create(ASource : TStream);
+    destructor Destroy; override;
+    property Source : TStream Read FSource;
+    property SourceOwner : Boolean Read Fowner Write FOwner;
+  end;
+
+  {$ifdef MSWINDOWS}
+  DEV_BROADCAST_DEVICEINTERFACE = record
+    dbcc_size: DWORD;
+    dbcc_devicetype: DWORD;
+    dbcc_reserved: DWORD;
+    dbcc_classguid: TGuid;
+    dbcc_name: array [0..0] of Char;
+  end;
+  {$endif}
 
 var
   OnGetVendorName      : TGetVendorNameEvent;
@@ -43,15 +87,27 @@ function GetMem(const Size: Integer): Pointer;
 function VendorName: string;
 function ApplicationName: string;
 function GetAppConfigDir(Global : Boolean) : String;
-
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
-
 function StrToQWord(const S: String): QWord;
-
 function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
-{$endif read_interface}
+procedure FillByte(var X; Count: SizeInt; Value: Byte);
+procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
+function StrToDWord(const S: String): DWord;
 
+{$endif read_interface}
 {$ifdef read_implementation}
+
+constructor TOwnerStream.Create(ASource: TStream);
+begin
+  FSource:=ASource;
+end;
+
+destructor TOwnerStream.Destroy;
+begin
+  If FOwner then
+    FreeAndNil(FSource);
+  inherited Destroy;
+end;
 
 function GetMem(const Size: Integer): Pointer;
 begin
@@ -76,6 +132,7 @@ begin
     Result:=ChangeFileExt(ExtractFileName(Paramstr(0)),'');
 end;
 
+{$ifdef MSWINDOWS}
 { Copied from FPC RTL (same license as Castle Game Engine) and adjusted }
 function GetWindowsSpecialDirUnicode(ID: Integer; CreateIfNotExists: Boolean = True): UnicodeString;
 var
@@ -91,14 +148,17 @@ function GetWindowsSpecialDir(ID: Integer; CreateIfNotExists: Boolean = True): S
 begin
   Result := String(GetWindowsSpecialDirUnicode(ID, CreateIfNotExists));
 end;
-
-function DGetAppConfigDir(Global : Boolean) : String;
-begin
-  Result:=ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
-end;
+{$endif}
 
 { Copied from FPC RTL (same license as Castle Game Engine) }
 function GetAppConfigDir(Global : Boolean) : String;
+{$ifdef MSWINDOWS}
+
+  function DGetAppConfigDir(Global : Boolean) : String;
+  begin
+    Result:=ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
+  end;
+
 begin
   If Global then
     Result:=GetWindowsSpecialDir(CSIDL_COMMON_APPDATA)
@@ -112,24 +172,35 @@ begin
     end
   else
     Result:=IncludeTrailingPathDelimiter(DGetAppConfigDir(Global));
+{$endif}
+
+{$ifdef UNIX}
+begin
+  // TODO: simplest implementation hardcoded now, look how FPC implements it
+  if Global then
+    Result := '/etc/' + ApplicationName + PathDelim
+  else
+    Result := IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME')) +
+      '.config' + PathDelim +
+      ApplicationName + PathDelim;
+{$endif}
 end;
 
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
-
 var pc,pcc,lastpc : pchar;
     strcount      : integer;
     ResStr,
     CompStr       : string;
     Found         : Boolean;
     sc            : sizeint;
-
 begin
+  if S = '' then
+    Exit; // early exit, rest of code assumes S is not empty, doing CompStr[1]
+
   sc := length(OldPattern);
   if sc <> length(NewPattern) then
     raise exception.Create('Amount of search and replace strings don''t match');
-
   dec(sc);
-
   if rfIgnoreCase in Flags then
     begin
     CompStr:=AnsiUpperCase(S);
@@ -138,12 +209,10 @@ begin
     end
   else
     CompStr := s;
-
   ResStr := '';
   pc := @CompStr[1];
   pcc := @s[1];
   lastpc := pc+Length(S);
-
   while pc < lastpc do
     begin
     Found := False;
@@ -181,21 +250,18 @@ begin
 end;
 
 Function isMatch(level : integer;inputstr,wilds : string; CWild, CinputWord: SizeInt;MaxInputword,maxwilds : SizeInt; Out EOS : Boolean) : Boolean;
-
   function WildisQuestionmark : boolean;
 begin
     Result:=CWild <= MaxWilds;
     if Result then
       Result:= Wilds[CWild]='?';
   end;
-
   function WildisStar : boolean;
   begin
     Result:=CWild <= MaxWilds;
     if Result then
       Result:= Wilds[CWild]='*';
   end;
-
 begin
   EOS:=False;
   Result:=True;
@@ -257,12 +323,10 @@ begin
 end;
 
 function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
-
 var
   i: SizeInt;
   MaxinputWord, MaxWilds: SizeInt; { Length of inputStr and Wilds }
   eos : Boolean;
-
 begin
   Result:=true;
   if Wilds = inputStr then
@@ -290,6 +354,29 @@ begin
     end;
   Result:=isMatch(1,inputStr,wilds,1,1,MaxinputWord, MaxWilds,EOS);
 end;
-{$endif read_implementation}
 
+procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
+var
+  PX, PEnd: PDWord;
+begin
+  PX := @X;
+  PEnd := Pointer(PtrUInt(PX) + SizeOf(DWord) * Count);
+  while PX <> PEnd do
+  begin
+    PX^ := Value;
+    Inc(PX);
+  end;
+end;
+
+procedure FillByte(var X; Count: SizeInt; Value: Byte);
+begin
+  FillChar(X, Count, Value);
+end;
+
+function StrToDWord(const S: String): DWord;
+begin
+  Result := StrToUInt64(S);
+end;
+
+{$endif read_implementation}
 {$endif not FPC}

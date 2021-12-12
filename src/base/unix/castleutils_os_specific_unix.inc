@@ -32,7 +32,8 @@ begin
  NewLength := 100;
  repeat
   SetLength(Result, NewLength);
-  ReadLinkResult := FpReadlink(PChar(FileName), Pointer(Result), NewLength);
+  ReadLinkResult := {$ifdef FPC} FpReadlink {$else} ReadLink {$endif}
+    (PAnsiChar(FileName), Pointer(Result), NewLength);
 
   OSCheck( ReadLinkResult <> -1, 'readlink' );
 

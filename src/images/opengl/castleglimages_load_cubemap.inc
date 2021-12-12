@@ -17,6 +17,7 @@
 
 {$ifdef read_interface}
 
+{$ifdef read_interface_func}
 function IsCubeMapTextureSized(const Size: Cardinal): boolean; overload;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal; overload;
 
@@ -69,6 +70,7 @@ procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
   PositiveZ, NegativeZ: TEncodedImage;
   CompositeForMipmaps: TCompositeImage;
   Mipmaps: boolean);
+{$endif read_interface_func}
 
 {$endif read_interface}
 

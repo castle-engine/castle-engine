@@ -95,7 +95,7 @@ begin
     ToggleMouseLookButton := TCastleButton.Create(Application);
     ToggleMouseLookButton.Caption := 'Mouse Look (F4)';
     ToggleMouseLookButton.Toggle := true;
-    ToggleMouseLookButton.OnClick := @ToggleMouseLookButtonClick;
+    ToggleMouseLookButton.OnClick := {$ifdef FPC}@{$endif}ToggleMouseLookButtonClick;
     ToggleMouseLookButton.Left := ControlsMargin;
     ToggleMouseLookButton.Bottom := NextButtonBottom;
     Window.Controls.InsertFront(ToggleMouseLookButton);
@@ -112,7 +112,7 @@ begin
       See also https://castle-engine.io/manual_cross_platform.php }
     ExitButton := TCastleButton.Create(Application);
     ExitButton.Caption := 'Exit (Escape)';
-    ExitButton.OnClick := @ExitButtonClick;
+    ExitButton.OnClick := {$ifdef FPC}@{$endif}ExitButtonClick;
     ExitButton.Left := ControlsMargin;
     ExitButton.Bottom := NextButtonBottom;
     Window.Controls.InsertFront(ExitButton);
@@ -122,7 +122,7 @@ begin
   RenderDebugCreaturesButton := TCastleButton.Create(Application);
   RenderDebugCreaturesButton.Caption := 'Creatures Debug Visualization';
   RenderDebugCreaturesButton.Toggle := true;
-  RenderDebugCreaturesButton.OnClick := @RenderDebugCreaturesButtonClick;
+  RenderDebugCreaturesButton.OnClick := {$ifdef FPC}@{$endif}RenderDebugCreaturesButtonClick;
   RenderDebugCreaturesButton.Left := ControlsMargin;
   RenderDebugCreaturesButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(RenderDebugCreaturesButton);
@@ -131,7 +131,7 @@ begin
   RenderDebugItemsButton := TCastleButton.Create(Application);
   RenderDebugItemsButton.Caption := 'Items Debug Visualization';
   RenderDebugItemsButton.Toggle := true;
-  RenderDebugItemsButton.OnClick := @RenderDebugItemsButtonClick;
+  RenderDebugItemsButton.OnClick := {$ifdef FPC}@{$endif}RenderDebugItemsButtonClick;
   RenderDebugItemsButton.Left := ControlsMargin;
   RenderDebugItemsButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(RenderDebugItemsButton);
@@ -139,7 +139,7 @@ begin
 
   ScrenshotButton := TCastleButton.Create(Application);
   ScrenshotButton.Caption := 'Screenshot (F5)';
-  ScrenshotButton.OnClick := @ScreenshotButtonClick;
+  ScrenshotButton.OnClick := {$ifdef FPC}@{$endif}ScreenshotButtonClick;
   ScrenshotButton.Left := ControlsMargin;
   ScrenshotButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(ScrenshotButton);
@@ -147,7 +147,7 @@ begin
 
   AddCreatureButton := TCastleButton.Create(Application);
   AddCreatureButton.Caption := 'Add creature (F9)';
-  AddCreatureButton.OnClick := @AddCreatureButtonClick;
+  AddCreatureButton.OnClick := {$ifdef FPC}@{$endif}AddCreatureButtonClick;
   AddCreatureButton.Left := ControlsMargin;
   AddCreatureButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddCreatureButton);
@@ -155,7 +155,7 @@ begin
 
   AddItemButton := TCastleButton.Create(Application);
   AddItemButton.Caption := 'Add item (F10)';
-  AddItemButton.OnClick := @AddItemButtonClick;
+  AddItemButton.OnClick := {$ifdef FPC}@{$endif}AddItemButtonClick;
   AddItemButton.Left := ControlsMargin;
   AddItemButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddItemButton);
@@ -163,7 +163,7 @@ begin
 
   AttackButton := TCastleButton.Create(Application);
   AttackButton.Caption := 'Attack (Ctrl)';
-  AttackButton.OnClick := @AttackButtonClick;
+  AttackButton.OnClick := {$ifdef FPC}@{$endif}AttackButtonClick;
   AttackButton.Left := ControlsMargin;
   AttackButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AttackButton);
@@ -282,7 +282,7 @@ procedure TPlayerHUD.Render;
         Gun.AmmoLoaded,
         GunResource.AttackAmmoCapacity
       ]);
-      UIFont.Print(10, ContainerHeight - 220, Green, AmmoStr);
+      GetUIFont.Print(10, ContainerHeight - 220, Green, AmmoStr);
     end;
   end;
 
@@ -304,17 +304,17 @@ begin
     (ContainerWidth, ContainerHeight) position is top-right corner.
     You can take font measurements by UIFont.RowHeight or UIFont.TextWidth
     to adjust initial position as needed. }
-  Y := Y - (UIFont.RowHeight + ControlsMargin);
-  UIFont.Print(ControlsMargin, Y, Yellow,
+  Y := Y - (GetUIFont.RowHeight + ControlsMargin);
+  GetUIFont.Print(ControlsMargin, Y, Yellow,
     Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
   DisplayCurrentAmmo;
 
   { show FPS }
-  UIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
+  GetUIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
     'FPS: ' + Window.Fps.ToString, hpRight, vpTop);
 
-  Y := Y - (UIFont.RowHeight + InventoryImageSize);
+  Y := Y - (GetUIFont.RowHeight + InventoryImageSize);
 
   { Mark currently chosen item. You can change currently selected item by
     Input_InventoryPrevious, Input_InventoryNext (by default: [ ] keys or mouse
@@ -345,7 +345,7 @@ begin
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S := S + Format(' (%d)', [Player.Inventory[I].Quantity]);
-    UIFont.Print(X, Y - UIFont.RowHeight, Yellow, S);
+    GetUIFont.Print(X, Y - GetUIFont.RowHeight, Yellow, S);
   end;
 
   { Simple color effects over the screen:

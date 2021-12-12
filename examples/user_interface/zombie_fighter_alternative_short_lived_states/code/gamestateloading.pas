@@ -75,7 +75,7 @@ begin
   LoadingFinished := false;
   FakeLoadingAdditionalSteps := 0;
   UpdateProgress(0);
-  WaitForRenderAndCall(@DoLoadSomething1);
+  WaitForRenderAndCall({$ifdef FPC}@{$endif}DoLoadSomething1);
 end;
 
 procedure TStateLoading.UpdateProgress(const Progress: Single);
@@ -89,7 +89,7 @@ begin
   Sleep(100);
 
   UpdateProgress(0.25);
-  WaitForRenderAndCall(@DoLoadSomething2);
+  WaitForRenderAndCall({$ifdef FPC}@{$endif}DoLoadSomething2);
 end;
 
 procedure TStateLoading.DoLoadSomething2(Sender: TObject);
@@ -98,7 +98,7 @@ begin
   Sleep(100);
 
   UpdateProgress(0.5);
-  WaitForRenderAndCall(@DoLoadSomethingSmall);
+  WaitForRenderAndCall({$ifdef FPC}@{$endif}DoLoadSomethingSmall);
 end;
 
 procedure TStateLoading.DoLoadSomethingSmall(Sender: TObject);
@@ -113,9 +113,9 @@ begin
     { Finished loading. Using WaitForRenderAndCall(@DoFinish)
       means that user can see the value "100%", otherwise it would never get drawn,
       and the last loading frame would always show "97%". }
-    WaitForRenderAndCall(@DoLoadingFinish)
+    WaitForRenderAndCall({$ifdef FPC}@{$endif}DoLoadingFinish)
   else
-    WaitForRenderAndCall(@DoLoadSomethingSmall); // call this again, to load next step
+    WaitForRenderAndCall({$ifdef FPC}@{$endif}DoLoadSomethingSmall); // call this again, to load next step
 end;
 
 procedure TStateLoading.DoLoadingFinish(Sender: TObject);

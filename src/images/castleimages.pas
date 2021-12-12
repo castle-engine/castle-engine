@@ -67,14 +67,19 @@
 unit CastleImages;
 
 {$include castleconf.inc}
-{$ifdef CASTLE_OBJFPC} {$modeswitch nestedprocvars}{$H+} {$endif}
+{$ifdef FPC} {$modeswitch nestedprocvars}{$H+} {$endif}
 
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections,
+  {$ifdef FPC}
   { FPImage and related units }
   FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM, FPWriteXPM,
   FPReadJPEG, FPWriteJPEG, FPReadPNM, FPReadPNG, FPWritePNG,
+  {$else}
+  { Delphi units }
+  Vcl.Imaging.PngImage,
+  {$endif}
   { CGE units }
   CastleInternalPng, CastleUtils, CastleVectors, CastleRectangles,
   CastleFileFilters, CastleClassUtils, CastleColors;
@@ -112,6 +117,7 @@ type
 
   EImageDrawError = class(Exception);
 
+  {$ifdef FPC}
   { An internal class to communicate image data
     between CastleImages and fcl-image efficiently.
     @exclude }
@@ -123,6 +129,7 @@ type
     property Colors8Bit[X, Y: Integer]: TFPCompactImgRGBA8BitValue
       read GetColors8Bit write SetColors8Bit;
   end;
+  {$endif}
 
   { Abstract class for an image with unspecified, possibly compressed,
     memory format. The idea is that both uncompressed images (TCastleImage)
@@ -132,7 +139,9 @@ type
     FWidth, FHeight, FDepth: Cardinal;
     FURL: string;
     procedure NotImplemented(const AMethodName: string);
+  {$ifdef FPC}
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); virtual;
+  {$endif}
   protected
     { Operate on this by Get/Realloc/FreeMem.
       It's always freed and nil'ed in destructor. }
@@ -220,9 +229,11 @@ type
     { Mirror image vertically. }
     procedure FlipVertical; virtual; abstract;
 
+    {$ifdef FPC}
     { Convert image contents to FpImage instance.
       The resulting instance is owned by the caller. }
     function ToFpImage: TInternalCastleFpImage; virtual;
+    {$endif}
   end;
 
   { Resize interpolation modes, see TCastleImage.Resize and TCastleImage.MakeResized. }
@@ -405,8 +416,10 @@ type
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); virtual;
 
+    {$ifdef FPC}
     function MakeResizedToFpImage(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation): TInternalCastleFpImage;
+    {$endif FPC}
 
     function GetColors(const X, Y, Z: Integer): TCastleColor; virtual;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); virtual;
@@ -493,7 +506,7 @@ type
       Caller is responsible for checking the correctness of given
       X, Y, Z coordinates. For speed, we may not check them inside (so nasty
       memory errors will occur in case of invalid coordinates). }
-    property Colors [X, Y, Z: Integer]: TCastleColor read GetColors write SetColors;
+    property Colors [const X, Y, Z: Integer]: TCastleColor read GetColors write SetColors;
 
     procedure SetColorRGB(const X, Y: Integer; const v: TVector3);
       deprecated 'use Colors[X, Y, 0] to get or set colors';
@@ -764,10 +777,10 @@ type
 
       @groupBegin }
     procedure DrawFrom(Source: TCastleImage; const X, Y: Integer;
-      const Mode: TDrawMode = dmBlend);
+      const Mode: TDrawMode = dmBlend); overload;
     procedure DrawFrom(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
-      const Mode: TDrawMode = dmBlend);
+      const Mode: TDrawMode = dmBlend); overload;
     procedure DrawTo(Destination: TCastleImage; const X, Y: Integer;
       const Mode: TDrawMode = dmBlend);
     { @groupEnd }
@@ -900,9 +913,9 @@ type
     { @groupEnd }
   end;
 
-  TCastleImageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleImage>;
+  TCastleImageList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleImage>;
 
-  TEncodedImageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TEncodedImage>;
+  TEncodedImageList = {$ifdef FPC}specialize{$endif} TObjectList<TEncodedImage>;
 
   { Possible compression of textures for GPU.
     The compressed texture formats may be automatically created for you by CGE,
@@ -1121,7 +1134,9 @@ type
   private
     function GetPixels: PVector3Byte;
     function GetPixelsArray: PVector3ByteArray;
+    {$ifdef FPC}
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
+    {$endif FPC}
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1131,7 +1146,7 @@ type
   public
     { Pointer to pixels. Same as RawPixels, only typecasted to PVector3Byte. }
     property Pixels: PVector3Byte read GetPixels;
-    property RGBPixels: PVector3Byte read GetPixels; deprecated 'use Pixels';
+    property RGBPixels: PVector3Byte read GetPixels; {$ifdef FPC} deprecated 'use Pixels'; {$endif}
     { Pointer to pixels. Same as RawPixels, only typecasted to PVector3ByteArray. }
     property PixelsArray: PVector3ByteArray read GetPixelsArray;
 
@@ -1172,7 +1187,9 @@ type
 
     function ToGrayscale: TGrayscaleImage;
 
+    {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
+    {$endif FPC}
 
     { Draw horizontal line. Must be y1 <= y2, else it is NOOP. }
     procedure HorizontalLine(const x1, x2, y: Integer;
@@ -1233,7 +1250,9 @@ type
     FPremultipliedAlpha: boolean;
     function GetPixels: PVector4Byte;
     function GetPixelsArray: PVector4ByteArray;
+    {$ifdef FPC}
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
+    {$endif}
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1243,7 +1262,7 @@ type
   public
     { Pointer to pixels. Same as RawPixels, only typecasted to PVector4Byte. }
     property Pixels: PVector4Byte read GetPixels;
-    property AlphaPixels: PVector4Byte read GetPixels; deprecated 'use Pixels';
+    {$ifdef FPC}property AlphaPixels: PVector4Byte read GetPixels; deprecated 'use Pixels';{$endif}
     { Pointer to pixels. Same as RawPixels, only typecasted to PVector4ByteArray. }
     property PixelsArray: PVector4ByteArray read GetPixelsArray;
 
@@ -1294,8 +1313,9 @@ type
 
     { Flatten to grayscale and remove alpha channel. }
     function ToGrayscaleImage: TGrayscaleImage;
-
+    {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
+    {$endif}
 
     { Premultiply the RGB channel with alpha, to make it faster
       to use this image as source for TCastleImage.DrawTo and
@@ -1339,7 +1359,7 @@ type
   public
     { Pointer to pixels. Same as RawPixels, only typecasted to PVector3. }
     property Pixels: PVector3 read GetPixels;
-    property RGBFloatPixels: PVector3 read GetPixels; deprecated 'use Pixels';
+    property RGBFloatPixels: PVector3 read GetPixels; {$ifdef FPC} deprecated 'use Pixels'; {$endif}
     { Pointer to pixels. Same as RawPixels, only typecasted to PVector3Array. }
     property PixelsArray: PVector3Array read GetPixelsArray;
 
@@ -1354,8 +1374,8 @@ type
     procedure Clear(const Pixel: TVector4Byte); overload; override;
     function IsClear(const Pixel: TVector4Byte): boolean; overload; override;
 
-    procedure Clear(const Pixel: TVector3); overload; reintroduce;
-    function IsClear(const Pixel: TVector3): boolean; overload; reintroduce;
+    procedure Clear(const Pixel: TVector3); reintroduce; overload;
+    function IsClear(const Pixel: TVector3): boolean; reintroduce; overload;
 
     { Converts TRGBFloatImage to TRGBImage.
       Colors in pixels are simply rounded using @link(Vector3Byte).
@@ -1385,7 +1405,9 @@ type
     FColorWhenTreatedAsAlpha: TVector3Byte;
     function GetPixels: PByte;
     function GetPixelsArray: PByteArray;
+    {$ifdef FPC}
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
+    {$endif}
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1395,7 +1417,7 @@ type
   public
     { Pointer to pixels. Same as RawPixels, only typecasted to PByte. }
     property Pixels: PByte read GetPixels;
-    property GrayscalePixels: PByte read GetPixels; deprecated 'use Pixels';
+    property GrayscalePixels: PByte read GetPixels; {$ifdef FPC} deprecated 'use Pixels'; {$endif}
     { Pointer to pixels. Same as RawPixels, only typecasted to PByteArray. }
     property PixelsArray: PByteArray read GetPixelsArray;
 
@@ -1410,8 +1432,8 @@ type
     procedure Clear(const Pixel: TVector4Byte); override;
     function IsClear(const Pixel: TVector4Byte): boolean; override;
 
-    procedure Clear(const Pixel: Byte); reintroduce;
-    function IsClear(const Pixel: Byte): boolean; reintroduce;
+    procedure Clear(const Pixel: Byte); reintroduce; overload;
+    function IsClear(const Pixel: Byte): boolean; reintroduce; overload;
 
     { Every pixels value is halved (divided by 2).
       This is done by simple bitshift, so you can be sure that all
@@ -1424,7 +1446,9 @@ type
       (where the contents will be copied to alpha, and intensity set to white). }
     function ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
 
+    {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
+    {$endif}
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
@@ -1480,7 +1504,9 @@ type
   private
     function GetPixels: PVector2Byte;
     function GetPixelsArray: PVector2ByteArray;
+    {$ifdef FPC}
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
+    {$endif}
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1490,12 +1516,15 @@ type
   public
     { Pointer to pixels. Same as RawPixels, only typecasted to PVector2Byte. }
     property Pixels: PVector2Byte read GetPixels;
-    property GrayscaleAlphaPixels: PVector2Byte read GetPixels; deprecated 'use Pixels';
+    property GrayscaleAlphaPixels: PVector2Byte read GetPixels; {$ifdef FPC}deprecated 'use Pixels'; {$endif}
     { Pointer to pixels. Same as RawPixels, only typecasted to PVector2ByteArray. }
     property PixelsArray: PVector2ByteArray read GetPixelsArray;
 
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
+
+    { Remove alpha channel. }
+    function ToGrayscaleImage: TGrayscaleImage;
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector2Byte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PVector2ByteArray;
@@ -1505,15 +1534,17 @@ type
     procedure Clear(const Pixel: TVector4Byte); override;
     function IsClear(const Pixel: TVector4Byte): boolean; override;
 
-    procedure Clear(const Pixel: TVector2Byte); reintroduce;
-    function IsClear(const Pixel: TVector2Byte): boolean; reintroduce;
+    procedure Clear(const Pixel: TVector2Byte); reintroduce; overload;
+    function IsClear(const Pixel: TVector2Byte): boolean; reintroduce; overload;
 
     function HasAlpha: boolean; override;
 
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
 
+    {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
+    {$endif}
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
@@ -1791,7 +1822,7 @@ const
   ('AUTO', 'NONE', 'TEST', 'BLENDING');
 
 type
-  TTextureCompressionInfo = object
+  TTextureCompressionInfo = {$ifdef FPC} object {$else} record {$endif}
     Name: string;
     RequiresPowerOf2: boolean;
     AlphaChannel: TAlphaChannel;
@@ -1961,23 +1992,26 @@ function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
 
 implementation
 
-uses ExtInterpolation, FPCanvas, FPImgCanv,
+uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
+  {$ifdef USE_VAMPYRE_IMAGING} Imaging, ImagingClasses, ImagingTypes, {$endif}
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
   CastleCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils;
 
 { parts ---------------------------------------------------------------------- }
 
-{$I castleimages_file_formats.inc}
+{$I castleimages_vampyre_imaging.inc}
+{$I castleimages_file_formats.inc} // must be included after castleimages_vampyre_imaging.inc
 {$I castleimages_draw.inc}
 {$I castleimages_paint.inc}
 {$I castleimages_bmp.inc}
 {$I castleimages_libpng.inc}
 {$I castleimages_fpimage.inc}
+{$I castleimages_loading_saving_func.inc}
+{$I castleimages_vcl_imaging.inc}
 {$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
 {$I castleimages_ppm.inc}
 {$I castleimages_ipl.inc}
 {$I castleimages_rgbe_fileformat.inc}
-{$I castleimages_external_tool.inc}
 {$I castleimages_composite.inc}
 
 { Colors ------------------------------------------------------------------ }
@@ -2214,7 +2248,7 @@ var
     end;
   end;
 
-{$ifdef CASTLE_OBJFPC}
+{$ifdef FPC}
 
 type
   TMakeLineFunction = procedure is nested;
@@ -2266,16 +2300,25 @@ procedure TCastleImage.Resize(ResizeWidth, ResizeHeight: Cardinal;
   const ProgressTitle: string);
 var
   NewPixels: Pointer;
+{$ifdef FPC}
   NewFpImage: TInternalCastleFpImage;
+{$endif FPC}
 begin
   if (Interpolation >= Low(TResizeInterpolationFpImage)) and
      (Interpolation <= High(TResizeInterpolationFpImage)) then
   begin
+    {$ifdef FPC}
     // TODO; ProgressTitle not supported for this
     NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
     try
       FromFpImage(NewFpImage);
     finally FreeAndNil(NewFpImage) end;
+    {$else FPC}
+    WritelnWarning('Resizing with interpolation %d not supported with Delphi, falling back to bilinear', [
+      Ord(Interpolation)
+    ]);
+    Resize(ResizeWidth, ResizeHeight, riBilinear, ProgressTitle);
+    {$endif FPC}
   end else
   begin
     if ((ResizeWidth <> 0) and (ResizeWidth <> Width)) or
@@ -2289,7 +2332,7 @@ begin
       InternalResize(PixelSize,
         RawPixels, Rect, Width, Height,
         NewPixels, CastleRectangles.Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
-        Interpolation, {$ifdef CASTLE_OBJFPC}@{$endif} MixColors, ProgressTitle);
+        Interpolation, {$ifdef FPC}@{$endif} MixColors, ProgressTitle);
       FreeMemNiling(FRawPixels);
 
       FRawPixels := NewPixels;
@@ -2302,18 +2345,27 @@ end;
 function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
   const ProgressTitle: string): TCastleImage;
+{$ifdef FPC}
 var
   NewFpImage: TInternalCastleFpImage;
+{$endif FPC}
 begin
   if (Interpolation >= Low(TResizeInterpolationFpImage)) and
      (Interpolation <= High(TResizeInterpolationFpImage)) then
   begin
+    {$ifdef FPC}
     // TODO; ProgressTitle not supported for this
     NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
     try
       // since we request our own class as output, CreateFromFpImage must return some TCastleImage
       Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]) as TCastleImage;
     finally FreeAndNil(NewFpImage) end;
+    {$else FPC}
+    WritelnWarning('Resizing with interpolation %d not supported with Delphi, falling back to bilinear', [
+      Ord(Interpolation)
+    ]);
+    Result := MakeResized(ResizeWidth, ResizeHeight, riBilinear, ProgressTitle);
+    {$endif FPC}
   end else
   begin
     { Make both ResizeTo* non-zero. }
@@ -2327,7 +2379,7 @@ begin
         InternalResize(PixelSize,
                  RawPixels,        Rect,        Width,        Height,
           Result.RawPixels, Result.Rect, Result.Width, Result.Height,
-          Interpolation, {$ifdef CASTLE_OBJFPC}@{$endif} MixColors, ProgressTitle);
+          Interpolation, {$ifdef FPC}@{$endif} MixColors, ProgressTitle);
     except Result.Free; raise end;
   end;
 end;
@@ -2356,7 +2408,7 @@ type
     InternalResize(PixelSize,
       RawPixels, SourceRect, Width, Height,
       NewPixels, DestRect, ResizeWidth, ResizeHeight,
-      Interpolation, {$ifdef CASTLE_OBJFPC}@{$endif} MixColors, '');
+      Interpolation, {$ifdef FPC}@{$endif} MixColors, '');
   end;
 
 var
@@ -2398,8 +2450,8 @@ begin
     DestYs.Data[3] := ResizeHeight;
 
     NewPixels := GetMem(ResizeWidth * ResizeHeight * PixelSize);
-    for X in TPart do
-      for Y in TPart do
+    for X := Low(TPart) to High(TPart) do
+      for Y := Low(TPart) to High(TPart) do
         ResizePart(X, Y);
     FreeMemNiling(FRawPixels);
 
@@ -2591,15 +2643,15 @@ end;
 
 procedure TCastleImage.Grayscale;
 begin
-  ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorGrayscaleByte);
+  ModulateRGB({$ifdef FPC}@{$endif} ColorGrayscaleByte);
 end;
 
 procedure TCastleImage.ConvertToChannelRGB(Channel: Integer);
 begin
   case Channel of
-    0: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorRedConvertByte);
-    1: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorGreenConvertByte);
-    2: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorBlueConvertByte);
+    0: ModulateRGB({$ifdef FPC}@{$endif} ColorRedConvertByte);
+    1: ModulateRGB({$ifdef FPC}@{$endif} ColorGreenConvertByte);
+    2: ModulateRGB({$ifdef FPC}@{$endif} ColorBlueConvertByte);
     else raise EInternalError.Create(
       'ConvertToChannelRGB: Channel must be 0, 1 or 2');
   end;
@@ -2608,9 +2660,9 @@ end;
 procedure TCastleImage.StripToChannelRGB(Channel: Integer);
 begin
   case Channel of
-    0: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorRedStripByte);
-    1: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorGreenStripByte);
-    2: ModulateRGB({$ifdef CASTLE_OBJFPC}@{$endif} ColorBlueStripByte);
+    0: ModulateRGB({$ifdef FPC}@{$endif} ColorRedStripByte);
+    1: ModulateRGB({$ifdef FPC}@{$endif} ColorGreenStripByte);
+    2: ModulateRGB({$ifdef FPC}@{$endif} ColorBlueStripByte);
     else raise EInternalError.Create(
       'StripToChannelRGB: Channel must be 0, 1 or 2');
   end;
@@ -4090,10 +4142,25 @@ end;
 procedure TGrayscaleImage.Assign(const Source: TCastleImage);
 var
   RgbaPtr: PVector4Byte;
+  GaPtr: PVector2Byte;
   RgbPtr: PVector3Byte absolute RgbaPtr;
   SelfPtr: PByte;
   I: Cardinal;
 begin
+  if Source is TGrayscaleAlphaImage then
+  begin
+    SetSize(Source);
+    SelfPtr := Pixels;
+    GaPtr := TGrayscaleAlphaImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      SelfPtr^ := GaPtr^.Data[0];
+      Inc(SelfPtr);
+      Inc(GaPtr);
+    end;
+    URL := Source.URL;
+  end else
+
   if Source is TRGBAlphaImage then
   begin
     SetSize(Source);
@@ -4336,6 +4403,13 @@ begin
   Pixel^.Data[1] := Clamped(Round(C.Data[3]         * 255), Low(Byte), High(Byte));
 end;
 
+function TGrayscaleAlphaImage.ToGrayscaleImage: TGrayscaleImage;
+begin
+  Result := TGrayscaleImage.Create(0, 0);
+  Result.Assign(Self);
+  Result.URL := URL + '[ToGrayscaleImage]';
+end;
+
 { RGBE <-> 3 Single color conversion --------------------------------- }
 
 const
@@ -4439,7 +4513,7 @@ end;
 
 type
   { List of TLoadImageEvent methods. }
-  TLoadImageEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TLoadImageEvent>)
+  TLoadImageEventList = class({$ifdef FPC}specialize{$endif} TList<TLoadImageEvent>)
     procedure Execute(var URL: string);
   end;
 
@@ -4487,10 +4561,32 @@ begin
       'ImageAddAlphaVar not possible for this image class: ' + Img.ClassName);
 end;
 
+procedure ImageStripAlphaVar(var Img: TEncodedImage);
+var
+  NewImg: TCastleImage;
+begin
+  if Img is TRGBAlphaImage then
+  begin
+    NewImg := TRGBAlphaImage(Img).ToRGBImage;
+    FreeAndNil(Img);
+    Img := NewImg;
+  end else
+  if Img is TGrayscaleAlphaImage then
+  begin
+    NewImg := TGrayscaleAlphaImage(Img).ToGrayscaleImage;
+    FreeAndNil(Img);
+    Img := NewImg;
+  end;
+
+  if Img.HasAlpha then
+    raise EInternalError.Create(
+      'ImageStripAlphaVar not possible for this image class: ' + Img.ClassName);
+end;
+
 function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = [])
-  :TEncodedImage;
+  :TEncodedImage; overload;
 
   { ClassAllowed is only a shortcut to global utility. }
   function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
@@ -4543,7 +4639,29 @@ begin
                ClassAllowed(TGrayscaleAlphaImage) or
                ( ClassAllowed(TGPUCompressedImage) and
                  (ImageFormatInfos[StreamFormat].LoadedClasses = lcG_GA_RGB_RGBA_GPUCompressed) ) then
-              Result := Load(Stream, AllowedImageClasses) else
+            begin
+              Result := Load(Stream, AllowedImageClasses);
+
+              { Important for Vampyre Imaging Library, to make code like
+                "LoadImage('a.png', [TRGBImage]) as TRGBImage" work.
+                Testcase: examples/fps_game.
+                Other image loaders honor AllowedImageClasses,
+                but Load_VampyreImaging doesn't (for now).
+
+                TODO: It would be more optimal to do this in Load_VampyreImaging.
+                Although maybe this fallback can also stay, maybe even be extended to work always,
+                regardless of LoadedClasses (and maybe remove the LoadedClasses value then?). }
+              if not ClassAllowed(TEncodedImageClass(Result.ClassType)) then
+              begin
+                if (Result is TRGBAlphaImage) and ClassAllowed(TRGBImage) then
+                  ImageStripAlphaVar(Result)
+                else
+                if (Result is TGrayscaleAlphaImage) and ClassAllowed(TGrayscaleImage) then
+                  ImageStripAlphaVar(Result)
+                else
+                  raise EUnableToLoadImage.Create('LoadEncodedImage cannot satisfy the requested output format. Use less restrictive AllowedImageClasses argument.');
+              end;
+            end else
             if ClassAllowed(TRGBFloatImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
@@ -4706,7 +4824,7 @@ end;
 { LoadImage ------------------------------------------------------------------ }
 
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage; overload;
 var
   E: TEncodedImage;
 begin
@@ -4753,8 +4871,8 @@ end;
 function LoadImage(const URL: string;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation;
-  const Options: TLoadImageOptions = []): TCastleImage;
+  const Interpolation: TResizeInterpolation = riBilinear;
+  const Options: TLoadImageOptions = []): TCastleImage; overload;
 var
   E: TEncodedImage;
 begin
@@ -4768,7 +4886,7 @@ end;
 
 { SaveImage on TEncodedImage ---------------------------------------------------- }
 
-procedure SaveImage(const Img: TEncodedImage; const Format: TImageFormat; Stream: TStream);
+procedure SaveImage(const Img: TEncodedImage; const Format: TImageFormat; Stream: TStream); overload;
 var
   ImgRGB: TRGBImage;
   Save: TImageSaveFunc;
@@ -4931,7 +5049,21 @@ end;
 initialization
   RegisterMimeTypes;
   InitializeImagesFileFilters;
-  {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
+
+  { If LibPng *can* be available (the LibPng unit is available at compile-time),
+    do InitializePNGUsingLibpng.
+
+    This is determined by "CASTLE_PNG_DYNAMIC or CASTLE_PNG_STATIC"
+    (at most one of them can be defined, castleconf.inc guarantees it).
+
+    However, we actually don't want to call InitializePNGUsingLibpng when
+    CASTLE_PNG_DYNAMIC is defined, but without ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION.
+    This would mean that InitializePNGUsingLibpng can only do now a warning
+    "LibPng not initialized" which would be confusing on platforms without
+    ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION (like Android) that initialize LibPng
+    later, and call InitializePNGUsingLibpng from LoadPng. }
+
+  {$if (defined(CASTLE_PNG_DYNAMIC) and defined(ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION)) or defined(CASTLE_PNG_STATIC)}
   InitializePNGUsingLibpng;
   {$endif}
   LoadImageEvents := TLoadImageEventList.Create;

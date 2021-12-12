@@ -37,14 +37,14 @@ type
   TMd3Triangle = record
     Indexes: array [0..2] of LongWord;
   end;
-  TMd3TriangleList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMd3Triangle>;
+  TMd3TriangleList = {$ifdef FPC}specialize{$endif} TStructList<TMd3Triangle>;
 
   TMd3Vertex = record
     Position: array [0..2] of SmallInt;
     Normal: SmallInt;
   end;
   PMd3Vertex = ^TMd3Vertex;
-  TMd3VertexList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMd3Vertex>;
+  TMd3VertexList = {$ifdef FPC}specialize{$endif} TStructList<TMd3Vertex>;
 
   TMd3TexCoord = TVector2;
   TMd3TexCoordList = TVector2List;
@@ -77,7 +77,7 @@ type
     VertexesInFrameCount: Cardinal;
   end;
 
-  TMd3SurfaceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMd3Surface>;
+  TMd3SurfaceList = {$ifdef FPC}specialize{$endif} TObjectList<TMd3Surface>;
 
   { MD3 (Quake3 engine model format) reader. }
   TObject3DMD3 = class
@@ -452,7 +452,7 @@ var
   begin
     Result := TCoordinateNode.Create('', BaseUrl);
     Result.FdPoint.Items.Count := VertexesInFrameCount;
-    V := Vertexes.Ptr(VertexesInFrameCount * FrameNumber);
+    V := PMd3Vertex(Vertexes.Ptr(VertexesInFrameCount * FrameNumber));
     for I := 0 to VertexesInFrameCount - 1 do
     begin
       Result.FdPoint.Items.List^[I] := Vector3(
@@ -473,7 +473,7 @@ var
   begin
     Result := TTextureCoordinateNode.Create('', BaseUrl);
     Result.FdPoint.Items.Count := TextureCoords.Count;
-    V := TextureCoords.L;
+    V := PVector2(TextureCoords.L);
     for I := 0 to TextureCoords.Count - 1 do
     begin
       Result.FdPoint.Items.List^[I] := Vector2(V^[0], 1-V^[1]);

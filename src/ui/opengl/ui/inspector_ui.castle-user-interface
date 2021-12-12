@@ -119,6 +119,7 @@
             "$$ClassName" : "TBorder",
             "Top" : 3.0000000000000000E+001
           },
+          "EnableDragging" : true,
           "FullSize" : true,
           "HorizontalAnchorParent" : "hpRight",
           "HorizontalAnchorSelf" : "hpRight",
@@ -537,6 +538,7 @@
             "Bottom" : 3.0000000000000000E+001,
             "Top" : 3.0000000000000000E+001
           },
+          "EnableDragging" : true,
           "FullSize" : true,
           "Name" : "ScrollView3",
           "ScrollArea" : {
@@ -594,6 +596,7 @@
                       "Green" : 1.0000000000000000E+000,
                       "Red" : 1.0000000000000000E+000
                     },
+                    "EnableParentDragging" : true,
                     "Height" : 3.0000000000000000E+001,
                     "Image" : {
                       "$$ClassName" : "TCastleImagePersistent"
@@ -728,6 +731,7 @@
             "$$ClassName" : "TBorder",
             "Top" : 3.0000000000000000E+001
           },
+          "EnableDragging" : true,
           "FullSize" : true,
           "Name" : "ScrollView4",
           "ScrollArea" : {
@@ -852,7 +856,7 @@
               },
               "Name" : "LabelInspectorHelp",
               "Text" : [
-                "Press F12 to close inspector."
+                "Press XXX to close inspector."
               ],
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"

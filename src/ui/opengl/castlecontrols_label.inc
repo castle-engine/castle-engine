@@ -113,16 +113,16 @@
       total vertical padding is the sum @code(PaddingVertical + Padding).
       @groupBegin }
     property PaddingHorizontal: Single
-      read FPaddingHorizontal write SetPaddingHorizontal default 0;
+      read FPaddingHorizontal write SetPaddingHorizontal {$ifdef FPC}default 0{$endif};
     property PaddingVertical: Single
-      read FPaddingVertical write SetPaddingVertical default 0;
+      read FPaddingVertical write SetPaddingVertical {$ifdef FPC}default 0{$endif};
     property Padding: Single
-      read FPadding write SetPadding default 0;
+      read FPadding write SetPadding {$ifdef FPC}default 0{$endif};
     { @groupEnd }
 
     { Extra spacing between lines.
       May be negative to squeeze lines tighter together. }
-    property LineSpacing: Single read FLineSpacing write FLineSpacing default DefaultLineSpacing;
+    property LineSpacing: Single read FLineSpacing write FLineSpacing {$ifdef FPC}default DefaultLineSpacing{$endif};
 
     { Does the text use HTML markup.
       This allows to easily change colors or use bold, italic text.
@@ -137,8 +137,10 @@
       for a code how to do it. }
     property Html: boolean read FHtml write SetHtml default false;
 
+    {$ifdef FPC}
     property Tags: boolean read FHtml write SetHtml stored false default false;
       deprecated 'use Html instead';
+    {$endif}
 
     { Draw frame around the text. Frame uses theme image tiLabel,
       see TCastleTheme.Images if you want to customize it. }
@@ -147,7 +149,7 @@
     { If non-zero, limit the width of resulting label.
       The text will be broken in the middle of lines, to make it fit
       (together with @link(PaddingHorizontal)) inside MaxWidth. }
-    property MaxWidth: Single read FMaxWidth write SetMaxWidth default 0;
+    property MaxWidth: Single read FMaxWidth write SetMaxWidth {$ifdef FPC}default 0{$endif};
 
     { Horizontal alignment of the text. }
     property Alignment: THorizontalPosition
@@ -193,7 +195,7 @@ begin
   inherited;
 
   FText := TStringList.Create;
-  TStringList(FText).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} TextChange;
+  TStringList(FText).OnChange := {$ifdef FPC}@{$endif} TextChange;
   {$warnings off}
   if Theme.DefaultLabelWhite then
   {$warnings on}
@@ -254,7 +256,10 @@ procedure TCastleLabel.PreferredSize(var PreferredWidth, PreferredHeight: Single
 var
   TextToRender: TRichText;
   TextToRenderWidth: Single;
-  TextToRenderCount: Cardinal;
+  { FPC: TStrings.Count is Integer, TObjectList.Count is SizeInt
+    Delphi: TStrings.Count is Integer, TObjectList.Count is Integer so we use
+    TListSize in TextToRenderCount }
+  TextToRenderCount: TListSize;
   PaddingHorizontalScaled, PaddingVerticalScaled, LineSpacingScaled: Single;
   US: Single;
 begin
@@ -277,12 +282,17 @@ begin
     US := UIScale;
     PaddingHorizontalScaled := US * (PaddingHorizontal + Padding);
     PaddingVerticalScaled := US * (PaddingVertical + Padding);
-    LineSpacingScaled := US * LineSpacing;
+    { When text is empty there is 0 lines so we need check that
+      not simply LineSpacingScaled * (TextToRenderCount - 1)}
+    if TextToRenderCount = 0 then
+      LineSpacingScaled := 0
+    else
+      LineSpacingScaled := US * LineSpacing * (TextToRenderCount - 1);
 
     PreferredWidth := TextToRenderWidth + 2 * PaddingHorizontalScaled;
     PreferredHeight :=
       Font.RowHeight * TextToRenderCount +
-      LineSpacingScaled * (TextToRenderCount - 1) +
+      LineSpacingScaled +
       2 * PaddingVerticalScaled +
       { This additional Font.Descend is actually always an empty space on top of
         the text. So we do not have to increase PreferredHeight by this Font.Descend,
@@ -463,15 +473,19 @@ end;
 
 function TCastleLabel.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    // Note that Caption expresses the same thing as Text, but easier to access
-    'Text', 'Caption', 'ColorPersistent', 'Html':
-      Result := [psBasic];
-    'Alignment', 'VerticalAlignment', 'LineSpacing', 'AutoSize':
-      Result := [psBasic, psLayout];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  // Note that Caption expresses the same thing as Text, but easier to access
+  if (PropertyName = 'Text') or
+     (PropertyName = 'Caption') or
+     (PropertyName = 'ColorPersistent') or
+     (PropertyName = 'Html') then
+    Result := [psBasic]
+  else if (PropertyName = 'Alignment') or
+          (PropertyName = 'VerticalAlignment') or
+          (PropertyName = 'LineSpacing') or
+          (PropertyName = 'AutoSize') then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleLabel.SetPaddingHorizontal(const Value: Single);

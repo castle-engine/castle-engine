@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2020 Michalis Kamburelis.
+  Copyright 2003-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,7 +18,7 @@ unit CastleSceneCore;
 
 {$I castleconf.inc}
 {$I octreeconf.inc}
-{$modeswitch nestedprocvars}{$H+}
+{$ifdef FPC}{$modeswitch nestedprocvars}{$H+}{$endif}
 
 interface
 
@@ -369,7 +369,7 @@ type
       not at other times.
 
       Example usage:
-      @includeCode(../../examples/short_api_samples/animation_stop_notification/animation_stop_notification.lpr) }
+      @includeCode(../../examples/short_api_samples/animation_stop_notification/animation_stop_notification.dpr) }
     StopNotification: TStopAnimationEvent;
 
     { Time, in seconds, when this animation fades-in (and the previous
@@ -462,7 +462,7 @@ type
         Internal for TCastleSceneCore: list of generated textures
         (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
         along with their shape. }
-      TGeneratedTextureList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TGeneratedTexture>)
+      TGeneratedTextureList = class({$ifdef FPC}specialize{$endif} TStructList<TGeneratedTexture>)
       public
         function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
         function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
@@ -470,8 +470,8 @@ type
         procedure UpdateShadowMaps(LightNode: TAbstractLightNode);
       end;
 
-      TProximitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
-      TTimeDependentList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTimeDependentFunctionality>)
+      TProximitySensorInstanceList = {$ifdef FPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
+      TTimeDependentList = class({$ifdef FPC}specialize{$endif} TObjectList<TTimeDependentFunctionality>)
         procedure AddIfNotExists(const Item: TTimeDependentFunctionality);
       end;
 
@@ -483,7 +483,7 @@ type
         Name: string;
       end;
       PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
-      TCompiledScriptHandlerInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
+      TCompiledScriptHandlerInfoList = {$ifdef FPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
 
       TExposedTransform = class
       strict private
@@ -504,12 +504,12 @@ type
         procedure Synchronize;
         class function X3dNameToPascal(const Prefix, S: String): String; static;
       end;
-      TExposedTransformList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TExposedTransform>;
+      TExposedTransformList = {$ifdef FPC}specialize{$endif} TObjectList<TExposedTransform>;
 
   protected
     type
-      TVisibilitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TVisibilitySensorInstance>;
-      TVisibilitySensors = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
+      TVisibilitySensorInstanceList = {$ifdef FPC}specialize{$endif} TObjectList<TVisibilitySensorInstance>;
+      TVisibilitySensors = class({$ifdef FPC}specialize{$endif} TDictionary<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
       public
         destructor Destroy; override;
         { Remove everything are released owned stuff.
@@ -706,7 +706,7 @@ type
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
   private
   type
-    TAbstractViewpointNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAbstractViewpointNode>;
+    TAbstractViewpointNodeList = {$ifdef FPC}specialize{$endif} TObjectList<TAbstractViewpointNode>;
   var
     FShapesActiveCount: Cardinal;
     FShapesActiveVisibleCount: Cardinal;
@@ -933,8 +933,8 @@ type
       This is calculated every time now (in the future it may be optimized
       to recalculate only when WorldTransform changed, e.g. using
       FWorldTransformAndInverseId). }
-    function GetCameraLocal(out CameraVectors: TCameraVectors): boolean;
-    function GetCameraLocal(out CameraLocalPosition: TVector3): boolean;
+    function GetCameraLocal(out CameraVectors: TCameraVectors): boolean; overload;
+    function GetCameraLocal(out CameraLocalPosition: TVector3): boolean; overload;
 
     function PointingDevicePressRelease(const DoPress: boolean;
       const Distance: Single; const CancelAction: boolean): boolean;
@@ -1110,7 +1110,7 @@ type
       https://castle-engine.io/manual_scene.php#section_many_instances
     }
     procedure Load(const ARootNode: TX3DRootNode; const AOwnsRootNode: boolean;
-      const AOptions: TSceneLoadOptions = []);
+      const AOptions: TSceneLoadOptions = []); overload;
 
     { Load the 3D model from given URL.
 
@@ -1126,9 +1126,9 @@ type
       If you all you care about is loading normal files, then just pass
       a normal filename (absolute or relative to the current directory)
       as the URL parameter. }
-    procedure Load(const AURL: string; const AOptions: TSceneLoadOptions = []);
+    procedure Load(const AURL: string; const AOptions: TSceneLoadOptions = []); overload;
     procedure Load(const AURL: string; const AllowStdIn: boolean;
-      const AResetTime: boolean = true); deprecated 'use Load with (AURL: string, AOptions: TSceneLoadOptions) parameters. AllowStdIn is not implemented anymore.';
+      const AResetTime: boolean = true); overload; deprecated 'use Load with (AURL: string, AOptions: TSceneLoadOptions) parameters. AllowStdIn is not implemented anymore.';
 
     { Save the current 3D model (X3D nodes graph) to the given file (URL).
 
@@ -1911,6 +1911,7 @@ type
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const ProgressStep: boolean; const Params: TPrepareParams); override;
 
+    {$ifdef FPC}
     { Static scene will not be automatically notified about the changes
       to the field values. This means that TX3DField.Send and
       TX3DField.Changed will not notify this scene. This makes a
@@ -1928,6 +1929,7 @@ type
       so it's best to adjust this before @link(Load). }
     property Static: boolean read FStatic write SetStatic default false;
       deprecated 'do not use this; optimization done by this is really negligible; leave ProcessEvents=false for static scenes';
+    {$endif}
 
     { Nice scene caption. Uses the "title" of WorldInfo
       node inside the VRML/X3D scene. If there is no WorldInfo node
@@ -1982,11 +1984,11 @@ type
     { TimeSensor of this animation. @nil if this name not found.
       See e.g. examples/3d_rendering_processing/listen_on_x3d_events.lpr
       for an example of using this. }
-    function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
+    function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode; overload;
 
     { TimeSensor of this animation, by animation index (index
       on AnimationsList). @nil if this index not found. }
-    function AnimationTimeSensor(const Index: Integer): TTimeSensorNode;
+    function AnimationTimeSensor(const Index: Integer): TTimeSensorNode; overload;
 
     function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
 
@@ -2122,6 +2124,7 @@ type
       0 if not found. }
     function AnimationDuration(const AnimationName: string): TFloatTime;
 
+    {$ifdef FPC}
     { The prefix of an X3D TimeSensor node name to treat it as a "named animation".
       Named animation are used by methods @link(AnimationsList), @link(PlayAnimation),
       and @link(AnimationDuration), @link(HasAnimation).
@@ -2136,6 +2139,7 @@ type
     property AnimationPrefix: string
       read FAnimationPrefix write FAnimationPrefix;
       deprecated 'this property did not prove to be of much use; report if you need it, otherwise it may be removed one day';
+    {$endif}
 
     { Currently played animation by @link(PlayAnimation), or @nil.
 
@@ -2203,8 +2207,10 @@ type
       TCastleProfilerTime use this URL to report loading and preparation times). }
     function Clone(const AOwner: TComponent): TCastleSceneCore;
 
+    {$ifdef FPC}
     { @deprecated Deprecated name for @link(URL). }
     property FileName: string read FURL write SetURL; deprecated;
+    {$endif}
 
     procedure InternalIncShapesHash;
     property InternalShapesHash: TShapesHash read FShapesHash;
@@ -2219,7 +2225,7 @@ type
       was playing. Otherwise, it would be applied even when starting
       the initial animation. }
     property DefaultAnimationTransition: Single
-      read FDefaultAnimationTransition write FDefaultAnimationTransition default 0.0;
+      read FDefaultAnimationTransition write FDefaultAnimationTransition {$ifdef FPC}default 0.0{$endif};
 
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -2230,7 +2236,7 @@ type
 
     { Controls the time speed (if TimePlaying is @true):
       1.0 means that 1 second  of real time equals to 1 unit of world time. }
-    property TimePlayingSpeed: Single read FTimePlayingSpeed write FTimePlayingSpeed default 1.0;
+    property TimePlayingSpeed: Single read FTimePlayingSpeed write FTimePlayingSpeed {$ifdef FPC}default 1.0{$endif};
 
     { Which spatial structures (octrees) should be created and used.
 
@@ -2457,12 +2463,14 @@ type
     property AnimateSkipTicks: Cardinal read FAnimateSkipTicks write SetAnimateSkipTicks
       default 0;
 
+    {$ifdef FPC}
     { Easily turn the scene into a simple primitive, like sphere or box or plane.
       Changing this to something else than pgNone
       reloads the scene (calls @link(Load) with a new X3D graph). }
     property PrimitiveGeometry: TPrimitiveGeometry
       read FPrimitiveGeometry write SetPrimitiveGeometry default pgNone;
       deprecated 'use TCastleBox, TCastleSphere, TCastlePlane for these primitives';
+    {$endif}
 
     { If AutoAnimation is set, this animation will be automatically played.
       It is useful to determine the initial animation, played once the model
@@ -2813,7 +2821,7 @@ var
 begin
   Index := IndexOfTextureNode(TextureNode);
   if Index <> -1 then
-    Result := Ptr(Index) else
+    Result := PGeneratedTexture(Ptr(Index)) else
     Result := nil;
 end;
 
@@ -2857,7 +2865,7 @@ begin
         WritelnWarning('X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different X3D shapes. This is incorrect, as we don''t know from which shape should environment be captured');
     end else
     begin
-      GenTex := Add;
+      GenTex := PGeneratedTexture(Add);
       GenTex^.TextureNode := Tex;
 
       if Tex is TGeneratedCubeMapTextureNode then
@@ -2926,7 +2934,7 @@ begin
 
   // create ChildObserver
   ChildObserver := TFreeNotificationObserver.Create(nil);
-  ChildObserver.OnFreeNotification := @ChildFreeNotification;
+  ChildObserver.OnFreeNotification := {$ifdef FPC}@{$endif}ChildFreeNotification;
   ChildObserver.Observed := Child;
 end;
 
@@ -2994,7 +3002,7 @@ begin
   }
 end;
 
-class function TCastleSceneCore.TExposedTransform.X3dNameToPascal(const Prefix, S: String): String; static;
+class function TCastleSceneCore.TExposedTransform.X3dNameToPascal(const Prefix, S: String): String; {$ifdef FPC}static;{$endif}
 const
   AllowedChars = ['a'..'z', 'A'..'Z', '0'..'9', '_'];
   AllowedCharsFirst = AllowedChars - ['0'..'9'];
@@ -3050,7 +3058,9 @@ end;
 procedure TDetectAffectedFields.FindRoutesAndInterpolators;
 begin
   if ParentScene.RootNode <> nil then
-    ParentScene.RootNode.EnumerateNodes(TX3DNode, @FindRoutesAndInterpolatorsEnumerate, false);
+    ParentScene.RootNode.EnumerateNodes(TX3DNode,
+      {$ifdef FPC}@{$endif}FindRoutesAndInterpolatorsEnumerate,
+      false);
 end;
 
 procedure TDetectAffectedFields.FindRoutesAndInterpolatorsEnumerate(Node: TX3DNode);
@@ -3219,7 +3229,7 @@ begin
   FAutoAnimationLoop := true;
 
   FExposeTransforms := TStringList.Create;
-  TStringList(FExposeTransforms).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} ExposeTransformsChange;
+  TStringList(FExposeTransforms).OnChange := {$ifdef FPC}@{$endif} ExposeTransformsChange;
   FExposedTransforms := TExposedTransformList.Create(true);
 
   { We could call here ScheduleChangedAll (or directly ChangedAll),
@@ -3271,6 +3281,7 @@ begin
     FreeAndNil(FRootNode) else
   begin
     { This will call RootNode.UnregisterScene. }
+    {$ifdef FPC}
     {$warnings off}
     { consciously using deprecated feature; in the future,
       we will just explicitly call
@@ -3278,6 +3289,10 @@ begin
       here. }
     Static := true;
     {$warnings on}
+    {$else}
+      if RootNode <> nil then
+        RootNode.UnregisterScene;
+    {$endif}
     FRootNode := nil;
   end;
 
@@ -3401,8 +3416,8 @@ end;
 
 procedure TCastleSceneCore.UpdateAutoAnimation(const StopIfPlaying: Boolean);
 begin
-  // when csLoading, delay this to Loaded
-  if not (csLoading in ComponentState) then
+  // when IsLoading, delay this to Loaded
+  if not IsLoading then
   begin
     if AutoAnimation <> '' then
     begin
@@ -3685,7 +3700,7 @@ function TChangedAllTraverser.Traverse(
       Traverser.Active := Active;
 
       TransformNode.TraverseIntoChildren(StateStack, TX3DNode,
-        @Traverser.Traverse, ParentInfo);
+        {$ifdef FPC}@{$endif}Traverser.Traverse, ParentInfo);
     finally FreeAndNil(Traverser) end;
 
     TraverseIntoChildren := false;
@@ -3714,8 +3729,8 @@ function TChangedAllTraverser.Traverse(
         Traverser.ParentScene := ParentScene;
         Traverser.ShapesGroup := ChildGroup;
         Traverser.Active := Active and (I = SwitchNode.FdWhichChoice.Value);
-        ChildNode.TraverseInternal(StateStack, TX3DNode, @Traverser.Traverse,
-          ParentInfo);
+        ChildNode.TraverseInternal(StateStack, TX3DNode,
+          {$ifdef FPC}@{$endif}Traverser.Traverse, ParentInfo);
       finally FreeAndNil(Traverser) end;
     end;
 
@@ -3758,8 +3773,8 @@ function TChangedAllTraverser.Traverse(
         Traverser.ParentScene := ParentScene;
         Traverser.ShapesGroup := ChildGroup;
         Traverser.Active := Active and (Cardinal(I) = LODTree.Level);
-        ChildNode.TraverseInternal(StateStack, TX3DNode, @Traverser.Traverse,
-          ParentInfo);
+        ChildNode.TraverseInternal(StateStack, TX3DNode,
+          {$ifdef FPC}@{$endif}Traverser.Traverse, ParentInfo);
       finally FreeAndNil(Traverser) end;
     end;
 
@@ -3959,7 +3974,8 @@ begin
 
   { clear animation stuff, since any TTimeSensorNode may be freed soon }
   if PlayingAnimationNode <> nil then
-    PlayingAnimationNode.EventIsActive.RemoveNotification(@PlayingAnimationIsActive);
+    PlayingAnimationNode.EventIsActive.RemoveNotification(
+      {$ifdef FPC}@{$endif}PlayingAnimationIsActive);
   PlayingAnimationNode := nil;
   PlayingAnimationStopNotification := nil;
   FCurrentAnimation := nil;
@@ -4007,7 +4023,7 @@ begin
     if (Node.Scene <> nil) and
        (Node.Scene <> Self) and
        (not InternalNodeSharing) then
-      WritelnWarning('X3D node %s is already part of another TCastleScene instance. You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
+      WritelnWarning('X3D node %s is already part of another TCastleScene instance.' + ' You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
         [Node.NiceName]);
     Node.Scene := Self;
   end;
@@ -4075,7 +4091,7 @@ procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
 
     for I := 0 to GlobalLights.Count - 1 do
     begin
-      L := GlobalLights.Ptr(I);
+      L := PLightInstance(GlobalLights.Ptr(I));
       LNode := L^.Node;
 
       { TODO: for spot lights, it would be an optimization to also limit
@@ -4093,7 +4109,8 @@ procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
   procedure EnumerateNodes;
   begin
     if RootNode <> nil then
-      RootNode.EnumerateNodes(TX3DNode, @ChangedAllEnumerateCallback, false);
+      RootNode.EnumerateNodes(TX3DNode,
+        {$ifdef FPC}@{$endif}ChangedAllEnumerateCallback, false);
   end;
 
   procedure DetectAffectedFields;
@@ -4132,7 +4149,8 @@ begin
   try
 
   if LogChanges then
-    WritelnLog('X3D changes', 'ChangedAll (OnlyAdditions: %s)', [BoolToStr(OnlyAdditions, true)]);
+    WritelnLog('X3D changes', 'ChangedAll (OnlyAdditions: %s)',
+      [BoolToStr(OnlyAdditions, true)]);
 
   { TODO:
     We ignore OnlyAdditions now.
@@ -4191,7 +4209,8 @@ begin
           is safe }
         Traverser.ShapesGroup := TShapeTreeGroup(FShapes);
         Traverser.Active := true;
-        RootNode.Traverse(TX3DNode, @Traverser.Traverse);
+        RootNode.Traverse(TX3DNode,
+          {$ifdef FPC}@{$endif}Traverser.Traverse);
       finally FreeAndNil(Traverser) end;
 
       AddGlobalLights;
@@ -4205,7 +4224,7 @@ begin
     { Wait until loading finished before calling ExposeTransformsChange.
       Otherwise we would create new TCastleTransform children in ExposeTransformsChange,
       instead of reusing existing ones. }
-    if not (csLoading in ComponentState) then
+    if not IsLoading then
       ExposeTransformsChange(nil);
 
     { Call DoGeometryChanged here, as our new shapes are added.
@@ -4245,7 +4264,8 @@ begin
 
     Note that clearing GeneratedTextures was already done at the beginning
     of ChangedAll (as part of BeforeNodesFree(true) call). }
-  Shapes.EnumerateTextures(@GeneratedTextures.AddShapeTexture);
+  Shapes.EnumerateTextures(
+    {$ifdef FPC}@{$endif}GeneratedTextures.AddShapeTexture);
 
   if ScheduleHeadlightOnFromNavigationInfoInChangedAll then
   begin
@@ -4353,7 +4373,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
       Shapes := @NewShapes;
 
       TransformNode.TraverseIntoChildren(
-        StateStack, TX3DNode, @Self.TransformChangeTraverse, ParentInfo);
+        StateStack, TX3DNode,
+        {$ifdef FPC}@{$endif}Self.TransformChangeTraverse, ParentInfo);
     finally Shapes := OldShapes end;
 
     TraverseIntoChildren := false;
@@ -4387,7 +4408,9 @@ function TTransformChangeHelper.TransformChangeTraverse(
         if ChildInactive then Inc(Inactive);
 
         SwitchNode.FdChildren[I].TraverseInternal(
-          StateStack, TX3DNode, @Self.TransformChangeTraverse, ParentInfo);
+          StateStack, TX3DNode,
+          {$ifdef FPC}@{$endif}Self.TransformChangeTraverse,
+          ParentInfo);
 
         if ChildInactive then Dec(Inactive);
       end;
@@ -4433,7 +4456,9 @@ function TTransformChangeHelper.TransformChangeTraverse(
         if Cardinal(I) <> ShapeLOD.Level then Inc(Inactive);
 
         LODNode.FdChildren[I].TraverseInternal(
-          StateStack, TX3DNode, @Self.TransformChangeTraverse, ParentInfo);
+          StateStack, TX3DNode,
+          {$ifdef FPC}@{$endif}Self.TransformChangeTraverse,
+          ParentInfo);
 
         if Cardinal(I) <> ShapeLOD.Level then Dec(Inactive);
       end;
@@ -4676,7 +4701,8 @@ begin
         TransformChangeHelper.Inactive := 0;
 
         TransformNode.TraverseInternal(TraverseStack, TX3DNode,
-          @TransformChangeHelper.TransformChangeTraverse, nil);
+          {$ifdef FPC}@{$endif}TransformChangeHelper.TransformChangeTraverse,
+          nil);
 
         if TransformChangeHelper.AnythingChanged then
           DoVisibleChanged := true;
@@ -4752,7 +4778,8 @@ begin
       TransformChangeHelper.Inside := false;
       TransformChangeHelper.Inactive := 0;
 
-      RootNode.Traverse(TX3DNode, @TransformChangeHelper.TransformChangeTraverse);
+      RootNode.Traverse(TX3DNode,
+        {$ifdef FPC}@{$endif}TransformChangeHelper.TransformChangeTraverse);
 
       if TransformChangeHelper.AnythingChanged then
         DoVisibleChanged := true;
@@ -4919,7 +4946,7 @@ var
       if Shape.State.Lights <> nil then
         for J := 0 to Shape.State.Lights.Count - 1 do
         begin
-          LightInstance := Shape.State.Lights.Ptr(J);
+          LightInstance := PLightInstance(Shape.State.Lights.Ptr(J));
           if LightInstance^.Node = LightNode then
           begin
             LightNode.UpdateLightInstance(LightInstance^);
@@ -4965,7 +4992,7 @@ var
       for a testcase. }
     for I := 0 to GlobalLights.Count - 1 do
     begin
-      L := GlobalLights.Ptr(I);
+      L := PLightInstance(GlobalLights.Ptr(I));
       if L^.Node = ANode then
         L^.Node.UpdateLightInstance(L^);
     end;
@@ -5911,10 +5938,10 @@ begin
       Progress.Init(TrianglesCount(false), ProgressTitle, true);
       try
         TriangleOctreeToAdd := Result;
-        FillOctree({$ifdef CASTLE_OBJFPC} @ {$endif} AddTriangleToOctreeProgress);
+        FillOctree({$ifdef FPC} @ {$endif} AddTriangleToOctreeProgress);
       finally Progress.Fini end;
     end else
-      FillOctree({$ifdef CASTLE_OBJFPC} @ {$endif} Result.AddItemTriangle);
+      FillOctree({$ifdef FPC} @ {$endif} Result.AddItemTriangle);
   except Result.Free; raise end;
 
   finally Dec(InternalDirty) end;
@@ -6021,7 +6048,8 @@ begin
       Seeker.OnlyPerspective := OnlyPerspective;
       Seeker.ViewpointDescription := ViewpointDescription;
       Result := TAbstractViewpointNode(
-        RootNode.Traverse(TAbstractViewpointNode, @Seeker.Seek));
+        RootNode.Traverse(TAbstractViewpointNode,
+        {$ifdef FPC}@{$endif}Seeker.Seek));
     finally FreeAndNil(Seeker) end;
   end;
 
@@ -6088,9 +6116,9 @@ begin
   if (frTextureDataInNodes in Resources) and (RootNode <> nil) then
   begin
     RootNode.EnumerateNodes(TAbstractTexture2DNode,
-      @FreeResources_UnloadTextureData, false);
+      {$ifdef FPC}@{$endif}FreeResources_UnloadTextureData, false);
     RootNode.EnumerateNodes(TAbstractTexture3DNode,
-      @FreeResources_UnloadTexture3DData, false);
+      {$ifdef FPC}@{$endif}FreeResources_UnloadTexture3DData, false);
   end;
 
   if frShadowVolume in Resources then
@@ -6101,13 +6129,18 @@ end;
 
 procedure TCastleSceneCore.ScriptsInitializeCallback(Node: TX3DNode);
 begin
+  // TODO: Delphi Support
+  {$ifdef FPC}
   // Node.Scene must be set in order for TScriptNode.SetInitialized to work
   Assert(Node.Scene = Self);
   TScriptNode(Node).Initialized := true;
+  {$endif}
 end;
 
 procedure TCastleSceneCore.ScriptsInitialize;
 begin
+  // TODO: Delphi Support
+  {$ifdef FPC}
   if RootNode <> nil then
   begin
     BeginChangesSchedule;
@@ -6120,15 +6153,21 @@ begin
       RootNode.EnumerateNodes(TScriptNode, @ScriptsInitializeCallback, false);
     finally EndChangesSchedule end;
   end;
+  {$endif}
 end;
 
 procedure TCastleSceneCore.ScriptsFinalizeCallback(Node: TX3DNode);
 begin
+  // TODO: Delphi Support
+  {$ifdef FPC}
   TScriptNode(Node).Initialized := false;
+  {$endif}
 end;
 
 procedure TCastleSceneCore.ScriptsFinalize;
 begin
+  // TODO: Delphi Support
+  {$ifdef FPC}
   if RootNode <> nil then
   begin
     BeginChangesSchedule;
@@ -6138,6 +6177,7 @@ begin
       RootNode.EnumerateNodes(TScriptNode, @ScriptsFinalizeCallback, false);
     finally EndChangesSchedule end;
   end;
+  {$endif}
 end;
 
 procedure TCastleSceneCore.SetProcessEvents(const Value: boolean);
@@ -6704,9 +6744,10 @@ begin
         PlayingAnimationStopNotification(Self, PlayingAnimationNode);
         PlayingAnimationStopNotification := nil;
       end;
-      PlayingAnimationNode.EventIsActive.RemoveNotification(@PlayingAnimationIsActive);
+      PlayingAnimationNode.EventIsActive.RemoveNotification(
+        {$ifdef FPC}@{$endif}PlayingAnimationIsActive);
     end;
-    Assert(PlayingAnimationStopNotification = nil);
+    Assert({$ifndef FPC}@{$endif}PlayingAnimationStopNotification = nil);
 
     { If calling PlayAnimation on already-playing node,
       we have to make sure it actually starts playing from the start.
@@ -6815,7 +6856,8 @@ begin
         NewPlayingAnimationForward,
         NewPlayingAnimationInitialTime);
 
-      PlayingAnimationNode.EventIsActive.AddNotification(@PlayingAnimationIsActive);
+      PlayingAnimationNode.EventIsActive.AddNotification(
+        {$ifdef FPC}@{$endif}PlayingAnimationIsActive);
       PlayingAnimationStopNotification := NewPlayingAnimationStopNotification;
     end;
   end;
@@ -6977,14 +7019,18 @@ var
 begin
   for I := 0 to Node.RoutesCount - 1 do
     Node.Routes[I].ResetLastEventTime;
+  // TODO: Delphi Support
+  {$ifdef FPC}
   if Node is TAbstractScriptNode then
     TAbstractScriptNode(Node).ResetLastEventTimes;
+  {$endif}
 end;
 
 procedure TCastleSceneCore.ResetTime(const NewValue: TFloatTime);
 begin
   if RootNode <> nil then
-    RootNode.EnumerateNodes(@ResetLastEventTime, false);
+    RootNode.EnumerateNodes({$ifdef FPC}@{$endif}ResetLastEventTime,
+     false);
   InternalSetTime(NewValue, 0, true);
 end;
 
@@ -7435,7 +7481,7 @@ procedure TCastleSceneCore.RegisterCompiledScript(const HandlerName: string;
 var
   HandlerInfo: PCompiledScriptHandlerInfo;
 begin
-  HandlerInfo := CompiledScriptHandlers.Add;
+  HandlerInfo := PCompiledScriptHandlerInfo(CompiledScriptHandlers.Add);
   HandlerInfo^.Handler := Handler;
   HandlerInfo^.Name := HandlerName;
 end;
@@ -7764,13 +7810,13 @@ begin
 end;
 
 procedure TCastleSceneCore.CameraTransition(const Navigation: TCastleNavigation;
-  const APosition, ADirection, AUp: TVector3); overload;
+  const APosition, ADirection, AUp: TVector3);
 begin
   CameraTransition(Navigation.Camera, APosition, ADirection, AUp);
 end;
 
 procedure TCastleSceneCore.CameraTransition(const Navigation: TCastleNavigation;
-  const APosition, ADirection, AUp, GravityUp: TVector3); overload;
+  const APosition, ADirection, AUp, GravityUp: TVector3);
 begin
   CameraTransition(Navigation.Camera, APosition, ADirection, AUp, GravityUp);
 end;
@@ -7836,7 +7882,8 @@ procedure TCastleSceneCore.ValidateMainLightForShadows;
   begin
     FMainLightForShadowsExists := false;
     if RootNode <> nil then
-      RootNode.Traverse(TAbstractPunctualLightNode, @SearchMainLightForShadows);
+      RootNode.Traverse(TAbstractPunctualLightNode,
+        {$ifdef FPC}@{$endif}SearchMainLightForShadows);
   end;
 
 begin
@@ -8027,7 +8074,8 @@ begin
     begin
       OldForceTeleport := ForceTeleportTransitions;
       ForceTeleportTransitions := true;
-    end;
+    end else
+      OldForceTeleport := false; // silence warning
 
     if FViewpointsArray[Idx] = FViewpointStack.Top then
       FViewpointsArray[Idx].Bound := false;
@@ -8199,13 +8247,16 @@ begin
     try
       //Enum.Parent := Self;
       Enum.List := Result;
+      {$ifdef FPC}
       {$warnings off} // knowingly using deprecated, to keep it working
       Enum.AnimationPrefix := AnimationPrefix;
       {$warnings on}
+      {$endif}
       { OnlyActive = false, to also find animations under inactive Switch clauses.
         Since the Switch.WhichChoice may change at runtime,
         while the animations list should stay constant. }
-      RootNode.EnumerateNodes(TTimeSensorNode, @Enum.Enumerate, false);
+      RootNode.EnumerateNodes(TTimeSensorNode,
+        {$ifdef FPC}@{$endif}Enum.Enumerate, false);
 
       { recognize named animations also from IMPORTed node names.
         This alllows to import and rename animations, which is useful. }
@@ -8448,7 +8499,7 @@ begin
 
     if NewPlayingAnimationUse then
     begin
-      WritelnWarning('StopNotification callback of an old animation initialized another animation, bypassing the CurrentAnimation. The StopAnimation will not actually stop the animation, and the StopNotification callback of the CurrentAnimation is now overridden so we cannot call it anymore.');
+      WritelnWarning('StopNotification callback of an old animation initialized another animation, bypassing the CurrentAnimation. ' + 'The StopAnimation will not actually stop the animation, and the StopNotification callback of the CurrentAnimation is now overridden so we cannot call it anymore.');
       Exit(false);
     end;
   end;
@@ -8515,8 +8566,10 @@ begin
       TODO: this could be done much more efficiently,
       we only need to free proxies on text nodes. }
     ChangedAll;
-    RootNode.EnumerateNodes(TTextNode, @FontChanged_TextNode, false);
-    RootNode.EnumerateNodes(TAsciiTextNode_1, @FontChanged_AsciiTextNode_1, false);
+    RootNode.EnumerateNodes(TTextNode,
+      {$ifdef FPC}@{$endif}FontChanged_TextNode, false);
+    RootNode.EnumerateNodes(TAsciiTextNode_1,
+      {$ifdef FPC}@{$endif}FontChanged_AsciiTextNode_1, false);
   end;
 end;
 
@@ -8531,12 +8584,15 @@ end;
 function TCastleSceneCore.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'URL', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop', 'DefaultAnimationTransition', 'Spatial':
-      Result := [psBasic];
+  if (PropertyName = 'URL') or
+    (PropertyName = 'ProcessEvents') or
+    (PropertyName = 'AutoAnimation') or
+    (PropertyName = 'AutoAnimationLoop') or
+    (PropertyName = 'DefaultAnimationTransition') or
+    (PropertyName = 'Spatial') then
+      Result := [psBasic]
     else
       Result := inherited PropertySections(PropertyName);
-  end;
 end;
 
 procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);

@@ -20,10 +20,11 @@ unit X3DCastleScript;
 
 interface
 
-uses X3DFields, CastleScript, CastleUtils, CastleClassUtils, X3DTime;
+uses X3DFields, {$ifdef FPC}CastleScript,{$endif} CastleUtils, CastleClassUtils, X3DTime;
 
 {$define read_interface}
 
+{$ifdef FPC}
 type
   TCasScriptX3DValueList = class(TCasScriptValueList)
   private
@@ -94,9 +95,12 @@ procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
   FieldOrEvent: TX3DFieldOrEvent; var LastEventTime: TX3DTime;
   const Time: TX3DTime);
 
+{$endif FPC}
 {$undef read_interface}
 
 implementation
+
+{$ifdef FPC}
 
 uses SysUtils, X3DNodes, CastleLog, CastleScriptVectors,
   CastleVectors, CastleScriptImages, CastleScriptArrays;
@@ -563,5 +567,7 @@ begin
   for I := 0 to Count - 1 do
     FLastEventTimes.List^[I] := TX3DTime.Oldest;
 end;
+
+{$endif FPC}
 
 end.

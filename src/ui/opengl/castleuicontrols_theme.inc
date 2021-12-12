@@ -183,6 +183,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    {$ifdef FPC}
     { Theme images, represented as TCastleImage.
       Although they all have sensible defaults, you can also change them
       at any time. Simply create TCastleImage instance (e.g. by LoadImage
@@ -193,6 +194,7 @@
       The alpha channel of the image, if any, is automatically correctly used
       (for alpha test or alpha blending, see TDrawableImage). }
     property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages; deprecated 'use ImagesPersistent[...].Image';
+    {$endif}
 
     { Images used to draw UI controls by default.
 
@@ -209,6 +211,7 @@
       @url(https://en.wikipedia.org/wiki/9-slice_scaling 9-slice scaling). }
     property ImagesPersistent[const ImageType: TThemeImage]: TCastleImagePersistent read GetImagePersistent;
 
+    {$ifdef FPC}
     property OwnsImages[const ImageType: TThemeImage]: boolean read GetOwnsImages write SetOwnsImages; deprecated 'use ImagesPersistent[...].OwnsImage';
 
     { Corners that determine how image on @link(Images) is stretched when
@@ -220,6 +223,7 @@
       left. }
     property Corners[const ImageType: TThemeImage]: TVector4 read GetCorners write SetCorners;
       deprecated 'use ImagesPersistent[...].ProtectedSides';
+    {$endif FPC}
 
     { Draw the selected theme image on screen.
 
@@ -233,13 +237,13 @@
         to do this just scale the given Rect parameter yourself.)
     }
     procedure Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
-      const UIScale: Single = 1.0);
+      const UIScale: Single = 1.0); overload;
     procedure Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
-      const UIScale: Single; const Color: TCastleColor);
+      const UIScale: Single; const Color: TCastleColor); overload;
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
-      const UIScale: Single = 1.0);
+      const UIScale: Single = 1.0); overload;
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
-      const UIScale: Single; const Color: TCastleColor);
+      const UIScale: Single; const Color: TCastleColor); overload;
 
     { Font used by dialogs.
       Leave @nil to use @link(TCastleContainer.DefaultFont). }
@@ -251,12 +255,14 @@
     { Set dialogs theme to light. }
     procedure DialogsLight;
 
+    {$ifdef FPC}
     property LoadingTextColor: TCastleColor
       read LoadingColor write LoadingColor;
       deprecated 'use LoadingColor';
     property LoadingImageForWindowHeight: Single
       read LoadingUIReferenceHeight write LoadingUIReferenceHeight;
       deprecated 'use LoadingUIReferenceHeight';
+    {$endif}
   end;
 
 { Theme that you can customize, used by default by all UI controls. }
@@ -293,7 +299,7 @@ begin
 
   FOwnsMessageFont := true;
 
-  for T in TThemeImage do
+  for T := Low(TThemeImage) to High(TThemeImage) do
   begin
     FImagesPersistent[T] := TCastleImagePersistent.Create;
     FImagesPersistent[T].OwnsImage := false;
@@ -364,7 +370,7 @@ destructor TCastleTheme.Destroy;
 var
   T: TThemeImage;
 begin
-  for T in TThemeImage do
+  for T := Low(TThemeImage) to High(TThemeImage) do
     FreeAndNil(FImagesPersistent[T]);
 
   if OwnsMessageFont then

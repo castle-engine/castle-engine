@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2020-2020 Andrzej Kilijański (and3md)
 
   This file is part of "Castle Game Engine".
@@ -28,7 +28,7 @@ function LoadImageAsNode(const Stream: TStream; const BaseUrl, MimeType: String)
 
 implementation
 
-uses CastleImages, CastleLog, CastleURIUtils, CastleStringUtils,
+uses Generics.Collections, CastleImages, CastleLog, CastleURIUtils, CastleStringUtils,
   CastleTextureImages, CastleVectors;
 
 type
@@ -83,7 +83,7 @@ end;
 procedure TImageAsX3DModelLoader.ReadImportSettings;
 var
   SettingsMap: TStringStringMap;
-  Setting: TStringStringMap.TDictionaryPair;
+  Setting: {$ifdef FPC}TStringStringMap.TDictionaryPair{$else}TPair<string, string>{$endif};
 begin
   FLeft := 0;
   FBottom := 0;
@@ -225,7 +225,7 @@ constructor TImageAsX3DModelLoader.Create(const Stream: TStream; const BaseUrl, 
 begin
   inherited Create;
 
-  FImage := LoadImage(Stream, MimeType, []);
+  FImage := LoadEncodedImage(Stream, MimeType, []);
   FBaseUrl := BaseUrl;
   FDisplayUrl := URIDisplay(FBaseUrl);
 

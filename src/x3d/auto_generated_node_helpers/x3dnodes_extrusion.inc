@@ -84,9 +84,9 @@
     { X3D field "crossSection". } { }
     public property FdCrossSection: TMFVec2f read FFdCrossSection;
     { Set X3D field "crossSection". } { }
-    procedure SetCrossSection(const Value: array of TVector2);
+    procedure SetCrossSection(const Value: array of TVector2); overload;
     { Set X3D field "crossSection". } { }
-    procedure SetCrossSection(const Value: TVector2List);
+    procedure SetCrossSection(const Value: TVector2List); overload;
 
     strict private FFdEndCap: TSFBool;
     { X3D field "endCap". } { }
@@ -98,17 +98,17 @@
     { X3D field "orientation". } { }
     public property FdOrientation: TMFRotation read FFdOrientation;
     { Set X3D field "orientation". } { }
-    procedure SetOrientation(const Value: array of TVector4);
+    procedure SetOrientation(const Value: array of TVector4); overload;
     { Set X3D field "orientation". } { }
-    procedure SetOrientation(const Value: TVector4List);
+    procedure SetOrientation(const Value: TVector4List); overload;
 
     strict private FFdScale: TMFVec2f;
     { X3D field "scale". } { }
     public property FdScale: TMFVec2f read FFdScale;
     { Set X3D field "scale". } { }
-    procedure SetScale(const Value: array of TVector2);
+    procedure SetScale(const Value: array of TVector2); overload;
     { Set X3D field "scale". } { }
-    procedure SetScale(const Value: TVector2List);
+    procedure SetScale(const Value: TVector2List); overload;
 
     strict private FFdSolid: TSFBool;
     { X3D field "solid". } { }
@@ -118,9 +118,9 @@
     { X3D field "spine". } { }
     public property FdSpine: TMFVec3f read FFdSpine;
     { Set X3D field "spine". } { }
-    procedure SetSpine(const Value: array of TVector3);
+    procedure SetSpine(const Value: array of TVector3); overload;
     { Set X3D field "spine". } { }
-    procedure SetSpine(const Value: TVector3List);
+    procedure SetSpine(const Value: TVector3List); overload;
 
     strict private FFdTexCoord: TSFNode;
     { X3D field "texCoord". } { }

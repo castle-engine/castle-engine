@@ -160,7 +160,7 @@ type
     constructor Create(const AOwner: TComponent;
       const ACaption: string;
       const AName: string;
-      const AGroup: TInputGroup); overload;
+      const AGroup: TInputGroup); reintroduce; overload;
 
     procedure MakeDefault;
 
@@ -171,7 +171,7 @@ type
       It always copies "current" properties (Key1, Key2, KeyString,
       MouseButtonUse, MouseButton, MouseButton2Use, MouseButton2, MouseWheel),
       and optionally (if CopyDefaults) also copies the DefaultXxx properties. }
-    procedure Assign(Source: TInputShortcut; CopyDefaults: boolean); reintroduce;
+    procedure Assign(Source: TInputShortcut; CopyDefaults: boolean); reintroduce; overload;
 
     { Set keys/mouse buttons of this shortcut.
 
@@ -189,7 +189,7 @@ type
       AKeyString: String = '';
       const AMouseButtonUse: boolean = false;
       const AMouseButton: TCastleMouseButton = buttonLeft;
-      const AMouseWheel: TMouseWheelDirection = mwNone);
+      const AMouseWheel: TMouseWheelDirection = mwNone); reintroduce; overload;
 
     { Set keys/mouse buttons of this shortcut.
       Sets only the "current" properties (e.g. it changes @link(Key1),
@@ -317,8 +317,10 @@ type
       You can set this to '' to indicate that no character shortcut is assigned. }
     property KeyString: String read FKeyString write SetKeyString;
 
+    {$ifdef FPC}
     property Character: Char read GetCharacter write SetCharacter;
       deprecated 'use KeyString';
+    {$endif}
 
     { Mouse shortcut for given command. You can set MouseButtonUse to @false
       if you don't want to use this.
@@ -382,7 +384,7 @@ type
 
   { Group of TInputShortcut, to easily manage (search, load, save...)
     the inputs. }
-  TInputShortcutList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInputShortcut>)
+  TInputShortcutList = class({$ifdef FPC}specialize{$endif} TObjectList<TInputShortcut>)
   public
     { Find shortcut by name, returns @nil if not found. }
     function FindName(const Name: string): TInputShortcut;
@@ -882,7 +884,7 @@ begin
     I.SaveToConfig(Config, ConfigPath);
 end;
 
-function SortInputShortcut(constref A, B: TInputShortcut): Integer;
+function SortInputShortcut({$ifdef FPC}constref{$else}const{$endif} A, B: TInputShortcut): Integer;
 begin
   Result := A.GroupOrder - B.GroupOrder;
   { since TFPSList.Sort is not stable, we use Index to keep order predictable
@@ -893,7 +895,7 @@ end;
 
 procedure TInputShortcutList.LoadFromConfig(const Config: TCastleConfig; ConfigPath: String);
 type
-  TInputShortcutComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TInputShortcut>;
+  TInputShortcutComparer = {$ifdef FPC}specialize{$endif} TComparer<TInputShortcut>;
 var
   I: TInputShortcut;
   ConflictDescription: string;
@@ -905,8 +907,8 @@ begin
     raise EInternalError.Create(
       'Default key/mouse shortcuts layout has conflicts: ' + ConflictDescription);
 
-  for G in TInputGroupNotLocal do
-    InputsGroup(G).Sort(TInputShortcutComparer.Construct(@SortInputShortcut));
+  for G := Low(TInputGroupNotLocal) to High(TInputGroupNotLocal) do
+    InputsGroup(G).Sort(TInputShortcutComparer.Construct({$ifdef FPC}@{$endif}SortInputShortcut));
 
   // add slash at the end of ConfigPath, if necessary
   if (ConfigPath <> '') and (ConfigPath[Length(ConfigPath)] <> '/') then
@@ -976,7 +978,7 @@ begin
   if (not UnitInitialized) and (not UnitFinalization) then
   begin
     FInputsAll := TInputShortcutList.Create(true);
-    for G in TInputGroupNotLocal do
+    for G := Low(TInputGroupNotLocal) to High(TInputGroupNotLocal) do
       FInputsGroup[G] := TInputShortcutList.Create(false);
     UnitInitialized := true;
   end;
@@ -999,7 +1001,7 @@ var
   G: TInputGroupNotLocal;
 begin
   UnitFinalization := true;
-  for G in TInputGroupNotLocal do
+  for G := Low(TInputGroupNotLocal) to High(TInputGroupNotLocal) do
     FreeAndNil(FInputsGroup[G]);
   FreeAndNil(FInputsAll);
 end;

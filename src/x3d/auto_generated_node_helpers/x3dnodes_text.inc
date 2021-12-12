@@ -46,9 +46,9 @@
     { X3D field "length". } { }
     public property FdLength: TMFFloat read FFdLength;
     { Set X3D field "length". } { }
-    procedure SetLength(const Value: array of Single);
+    procedure SetLength(const Value: array of Single); overload;
     { Set X3D field "length". } { }
-    procedure SetLength(const Value: TSingleList);
+    procedure SetLength(const Value: TSingleList); overload;
 
     strict private FFdMaxExtent: TSFFloat;
     { X3D field "maxExtent". } { }
@@ -66,9 +66,9 @@
     { X3D field "string". } { }
     public property FdString: TMFString read FFdString;
     { Set X3D field "string". } { }
-    procedure SetString(const Value: array of string);
+    procedure SetString(const Value: array of string); overload;
     { Set X3D field "string". } { }
-    procedure SetString(const Value: TCastleStringList);
+    procedure SetString(const Value: TCastleStringList); overload;
 
     strict private FEventLineBounds: TMFVec2fEvent;
     { X3D out event "lineBounds". } { }

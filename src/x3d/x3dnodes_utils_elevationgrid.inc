@@ -95,7 +95,10 @@ begin
         (TTextureCoordinateNode(FdTexCoord.Value).FdPoint.Count >=
           XDim * ZDim);
       if TexCoordProvided then
-        IFS.FdTexCoord.Value := FdTexCoord.Value else
+      begin
+        IFS.FdTexCoord.Value := FdTexCoord.Value;
+        TexCoords := nil; // just silence Delphi warning
+      end else
       begin
         IFS.FdTexCoord.Value := TTextureCoordinateNode.Create('', BaseUrl);
         TexCoords := TTextureCoordinateNode(IFS.FdTexCoord.Value).FdPoint.Items;
@@ -157,3 +160,4 @@ function TElevationGridNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
+

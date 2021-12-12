@@ -110,7 +110,10 @@ begin
     ['-i', RcName[Plugin], '-o', ResName],
     WindresOutput, WindresStatus);
   if WindresStatus <> 0 then
-    raise Exception.Create('windres failed, cannot create Windows resource');
+  begin
+    WritelnWarning('Executing windres failed, cannot create Windows resource - exe will not have icon/metadata');
+    Exit(false);
+  end;
 
   CheckRenameFile(
     OutputResourcesPath + ResName,
@@ -121,7 +124,7 @@ begin
     FinalOutputResourcePath + ResName,
     FinalOutputResourcePath + ChangeFileExt(DeprecatedRcName[Plugin], '.res'));
 
-  WritelnVerbose('Generated ' + ResName + ', make sure you include it in your .lpr source file like this:');
+  WritelnVerbose('Generated ' + ResName + ', make sure you include it in your dpr/lpr source file like this:');
   WritelnVerbose('  {$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R ' + ResName + '} {$endif}');
 end;
 

@@ -17,7 +17,8 @@
 
 {$ifdef read_interface}
 
-type
+{$ifdef read_interface_type}
+// type - don't add type delphi can't parse it correctly
   { Image that can be easily loaded from URL (possibly reusing a cache),
     drawn, and serialized to/from file.
 
@@ -174,7 +175,7 @@ type
       for UI scaling, see @link(TCastleContainer.UIScaling)
       and @link(TCastleUserInterface.UIScale). }
     property ScaleCorners: Single
-      read FScaleCorners write SetScaleCorners default 1;
+      read FScaleCorners write SetScaleCorners {$ifdef FPC}default 1{$endif};
 
     { Color tint of the image. This simply multiplies the image RGBA components,
       just like @link(TDrawableImage.Color). By default this is opaque white,
@@ -241,7 +242,7 @@ type
       read FSmoothScaling write SetSmoothScaling default true;
 
     { Rotation in radians. Default value 0. }
-    property Rotation: Single read FRotation write SetRotation default 0;
+    property Rotation: Single read FRotation write SetRotation {$ifdef FPC}default 0{$endif};
 
     { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
     property Clip: boolean read FClip write SetClip default false;
@@ -262,7 +263,7 @@ type
   {$I auto_generated_persistent_vectors/tcastleimagepersistent_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
-
+{$endif read_interface_type}
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -278,7 +279,7 @@ begin
   FScaleCorners := 1;
   FScaleFromUrl := 1;
 
-  FProtectedSides := TBorder.Create(@ProtectedSidesChange);
+  FProtectedSides := TBorder.Create({$ifdef FPC}@{$endif}ProtectedSidesChange);
   CreateDrawableImage;
 
   {$define read_implementation_constructor}

@@ -69,7 +69,7 @@ begin
     Vector3(0, -1, 0),
     Vector3(0, 0, 1));
 
-  ButtonBack.OnClick := @ClickBack;
+  ButtonBack.OnClick := {$ifdef FPC}@{$endif}ClickBack;
 end;
 
 procedure TStatePlay.Resume;

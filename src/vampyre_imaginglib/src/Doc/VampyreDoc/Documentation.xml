@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="Xsl/doc2html.xsl"?>
+<doc>
+  <title>Documentation</title>
+  <chapter>
+    <title>Documentation</title>
+    <par>This section contains hand-written (keyboard-typed)
+    Imaging library documentation.</par>
+    <linklist>
+      <title>In This Section</title>
+      <lslink url="Introduction/Introduction.xml">Introduction</lslink>
+      <lslink url="Usage/LibUsage.xml">Using Library</lslink>
+      <lslink url="Extensions/Extensions.xml">Extensions</lslink>
+      <lslink url="Procedures/Procedures.xml">How To ... </lslink>
+      <lslink url="DataFormats/DataFormats.xml">Supported Data Formats</lslink>
+      <lslink url="FileFormats/FileFormats.xml">Supported File Formats</lslink>
+      <lslink url="Demos/Demos.xml">Demos</lslink>
+    
+    <!--  <lslink url="VampyreDoc/VampyreDoc.xml">VampyreDoc Tool</lslink> -->
+    
+    </linklist>
+  </chapter>
+</doc>

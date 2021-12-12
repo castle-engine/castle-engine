@@ -21,9 +21,7 @@ ColorInterpolator : X3DInterpolatorNode {
   MFColor [in,out] keyValue      []
     range: [0,1]
     change: chNone
-    field-generate-more: false
   SFColor [out]    value_changed
-    field-generate-more: false
 }
 
 # See https://castle-engine.io/x3d_implementation_interpolation.php
@@ -31,9 +29,7 @@ ColorSetInterpolator : X3DInterpolatorNode {
   auto-generate-more: true
   MFColor  [in,out]  keyValue           []
     change: chNone
-    field-generate-more: false
   MFColor  [out]     value_changed
-    field-generate-more: false
 }
 
 CoordinateInterpolator : X3DInterpolatorNode {
@@ -41,9 +37,7 @@ CoordinateInterpolator : X3DInterpolatorNode {
   MFVec3f [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
-    field-generate-more: false
   MFVec3f [out]    value_changed
-    field-generate-more: false
 }
 
 CoordinateInterpolator2D : X3DInterpolatorNode {
@@ -51,9 +45,7 @@ CoordinateInterpolator2D : X3DInterpolatorNode {
   MFVec2f [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
-    field-generate-more: false
   MFVec2f [out]    value_changed
-    field-generate-more: false
 }
 
 # Note: X3D spec doesn't say this descends from X3DChildNode,
@@ -76,9 +68,7 @@ NormalInterpolator : X3DInterpolatorNode {
   MFVec3f [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
-    field-generate-more: false
   MFVec3f [out]    value_changed
-    field-generate-more: false
 }
 
 OrientationInterpolator : X3DInterpolatorNode {
@@ -86,9 +76,7 @@ OrientationInterpolator : X3DInterpolatorNode {
   MFRotation [in,out] keyValue      []
     range: [-1,1] or (-Inf,Inf)
     change: chNone
-    field-generate-more: false
   SFRotation [out]    value_changed
-    field-generate-more: false
 }
 
 PositionInterpolator : X3DInterpolatorNode {
@@ -96,9 +84,7 @@ PositionInterpolator : X3DInterpolatorNode {
   MFVec3f [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
-    field-generate-more: false
   SFVec3f [out]    value_changed
-    field-generate-more: false
 }
 
 PositionInterpolator2D : X3DInterpolatorNode {
@@ -106,9 +92,7 @@ PositionInterpolator2D : X3DInterpolatorNode {
   MFVec2f [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
-    field-generate-more: false
   SFVec2f [out]    value_changed
-    field-generate-more: false
 }
 
 ScalarInterpolator : X3DInterpolatorNode {
@@ -116,9 +100,7 @@ ScalarInterpolator : X3DInterpolatorNode {
   MFFloat [in,out] keyValue      []
     range: (-Inf,Inf)
     change: chNone
-    field-generate-more: false
   SFFloat [out]    value_changed
-    field-generate-more: false
 }
 
 SplinePositionInterpolator : X3DInterpolatorNode {
@@ -180,7 +162,5 @@ VectorInterpolator : X3DInterpolatorNode {
   auto-generate-more: true
   MFFloat  [in,out]  keyValue           []
     change: chNone
-    field-generate-more: false
   MFFloat  [out]     value_changed
-    field-generate-more: false
 }

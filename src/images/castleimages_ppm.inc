@@ -36,7 +36,7 @@
   Returns '' if we're standing at the end of file.
   Ignores PPM comments (# ... to the nearest #10 or #13) before token. }
 function ReadPPMToken(Stream: TStream): string;
-var c: char;
+var c: AnsiChar;
 begin
  try
   result:='';
@@ -45,14 +45,14 @@ begin
   repeat
    c := StreamReadChar(Stream);
    if c = '#' then { omit comment }
-    repeat c := StreamReadChar(Stream) until c in [#10, #13];
-  until not (c in WhiteSpaces);
+    repeat c := StreamReadChar(Stream) until CharInSet(c, [#10, #13]);
+  until not (CharInSet(c, WhiteSpaces));
 
   {read token, until whitespace}
   result := c;
   repeat
    c := StreamReadChar(Stream);
-   if c in WhiteSpaces then
+   if CharInSet(c, WhiteSpaces) then
     break else
     result := result+c;
   until false;
@@ -63,7 +63,7 @@ end;
 
 function LoadPPM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-var magic: array[0..1]of char;
+var magic: array[0..1]of AnsiChar;
     IsBinary: boolean;
     MaxColVal: integer;
     x, y: Cardinal;

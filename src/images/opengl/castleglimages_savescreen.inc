@@ -17,7 +17,8 @@
 
 {$ifdef read_interface}
 
-type
+{$ifdef read_interface_type}
+//type - don't add type Delphi can't parse it correctly
   TColorBuffer = (
     cbFront,
     cbBack,
@@ -37,6 +38,9 @@ type
   This is only possible if you have double-buffered window, of course.
 }
 
+{$endif read_interface_type}
+
+{$ifdef read_interface_func}
 { Save the current color buffer contents to image.
 
   The suffix "NoFlush" is there to remind you that this
@@ -70,6 +74,7 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
 function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   const ReadBuffer: TColorBuffer;
   const SmoothScaling: boolean = false): TDrawableImage;
+{$endif read_interface_func}
 
 {$endif read_interface}
 

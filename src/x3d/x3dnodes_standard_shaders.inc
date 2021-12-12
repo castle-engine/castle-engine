@@ -351,7 +351,7 @@ begin
 
   FFdUrl := TMFString.Create(Self, true, 'url', []);
    FdUrl.ChangeAlways := chEverything; { TODO - something more optimized }
-   FdUrl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
+   FdUrl.AddNotification({$ifdef FPC}@{$endif} EventUrlReceive);
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 

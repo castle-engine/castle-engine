@@ -111,13 +111,13 @@ begin
   begin
     if FSourceFont <> nil then
     begin
-      FSourceFont.RemoveFontSizeChangeNotification(@SubFontFontSizeChange);
+      FSourceFont.RemoveFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FSourceFont.RemoveFreeNotification(Self);
     end;
     FSourceFont := Value;
     if FSourceFont <> nil then
     begin
-      FSourceFont.AddFontSizeChangeNotification(@SubFontFontSizeChange);
+      FSourceFont.AddFontSizeChangeNotification({$ifdef FPC}@{$endif}SubFontFontSizeChange);
       FSourceFont.FreeNotification(Self);
     end;
 

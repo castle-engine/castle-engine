@@ -39,9 +39,9 @@
     { X3D field "index". } { }
     public property FdIndex: TMFInt32 read FFdIndex;
     { Set X3D field "index". } { }
-    procedure SetIndex(const Value: array of LongInt);
+    procedure SetIndex(const Value: array of LongInt); overload;
     { Set X3D field "index". } { }
-    procedure SetIndex(const Value: TLongIntList);
+    procedure SetIndex(const Value: TLongIntList); overload;
 
 {$endif read_interface}
 

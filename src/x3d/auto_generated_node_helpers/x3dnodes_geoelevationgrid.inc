@@ -120,17 +120,17 @@
     { X3D field "geoSystem". } { }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: TCastleStringList);
+    procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdHeight: TMFDouble;
     { X3D field "height". } { }
     public property FdHeight: TMFDouble read FFdHeight;
     { Set X3D field "height". } { }
-    procedure SetHeight(const Value: array of Double);
+    procedure SetHeight(const Value: array of Double); overload;
     { Set X3D field "height". } { }
-    procedure SetHeight(const Value: TDoubleList);
+    procedure SetHeight(const Value: TDoubleList); overload;
 
     strict private FFdNormalPerVertex: TSFBool;
     { X3D field "normalPerVertex". } { }

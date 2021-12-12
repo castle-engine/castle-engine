@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="physics_2d_collisions"
   game_units="GameInitialize"
-  standalone_source="physics_2d_collisions.lpr"
+  standalone_source="physics_2d_collisions.dpr"
   qualified_name="io.castleengine.physics.twod.collisions"
 >
   <compiler_options>

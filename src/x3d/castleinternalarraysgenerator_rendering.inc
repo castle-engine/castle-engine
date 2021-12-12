@@ -347,6 +347,7 @@ begin
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     if FacesNeeded then
     begin
       Arrays.Faces := TFaceIndexesList.Create;
@@ -357,6 +358,7 @@ begin
         Arrays.Faces.L[I].IndexEnd := ((I div 3) + 1) * 3 -1;
       end;
     end;
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 end;
 
@@ -401,7 +403,7 @@ begin
     GenerateVertex(I + 1);
     GenerateVertex(I + 2);
 
-    I += 3;
+    Inc(I, 3);
   end;
 end;
 
@@ -486,13 +488,15 @@ begin
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
-  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  Geometry.InternalMakeCoordRanges(State,
+    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
 
 procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if BeginIndex + 2 < EndIndex then
   begin
     Arrays.Counts.Add(EndIndex - BeginIndex);
@@ -509,11 +513,12 @@ begin
       end;
     end;
   end;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TTriangleFanSetGenerator.GenerateCoordinate;
 begin
-  Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif}GenerateCoordsRange);
 end;
 
 procedure TTriangleFanSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -715,13 +720,15 @@ begin
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
-  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  Geometry.InternalMakeCoordRanges(State,
+    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
 
 procedure TTriangleStripSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if BeginIndex + 2 < EndIndex then
   begin
     Arrays.Counts.Add(EndIndex - BeginIndex);
@@ -738,11 +745,13 @@ begin
       end;
     end;
   end;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TTriangleStripSetGenerator.GenerateCoordinate;
 begin
-  Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State,
+    {$ifdef FPC}@{$endif}GenerateCoordsRange);
 end;
 
 procedure TTriangleStripSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -1024,7 +1033,7 @@ begin
       GenerateVertex(I + 3);
     end;
 
-    I += 4;
+    Inc(I, 4);
   end;
 end;
 
@@ -1035,10 +1044,12 @@ procedure TAbstractLineSetGenerator.PrepareIndexesCoordsRange(
 var
   I: Integer;
 begin
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   Arrays.Counts.Add(EndIndex - BeginIndex);
   if CoordIndex <> nil then
     for I := BeginIndex to EndIndex - 1 do
       IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TAbstractLineSetGenerator.PrepareIndexesPrimitives;
@@ -1047,7 +1058,8 @@ begin
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
-  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  Geometry.InternalMakeCoordRanges(State,
+    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
 
 procedure TAbstractLineSetGenerator.GenerateCoordsRange(
@@ -1062,7 +1074,8 @@ end;
 
 procedure TAbstractLineSetGenerator.GenerateCoordinate;
 begin
-  Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State,
+    {$ifdef FPC}@{$endif}GenerateCoordsRange);
 end;
 
 { TIndexedLineSet_1Generator -------------------------------------------------- }

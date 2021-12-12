@@ -78,7 +78,7 @@ begin
 
   MimeType := URIMimeType(Url);
 
-  Messaging.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
+  Messaging.OnReceive.Add({$ifdef FPC}@{$endif} HandleDownloadMessages);
   Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName, HttpPostDataStr]);
   Contents := TMemoryStream.Create;
 
@@ -175,7 +175,7 @@ destructor THttpAndroidReader.Destroy;
 begin
   if Status = dsDownloading then
     Messaging.Send(['download-interrupt', IntToStr(DownloadId)]);
-  Messaging.OnReceive.Remove({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
+  Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} HandleDownloadMessages);
   inherited;
 end;
 

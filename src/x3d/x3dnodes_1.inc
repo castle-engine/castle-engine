@@ -2327,7 +2327,7 @@ begin
   Enumerator := TVRML1SeparatorEnumerator.Create;
   try
     Enumerator.State := StateStack.Top;
-    DirectEnumerateActive({$ifdef CASTLE_OBJFPC}@{$endif} Enumerator.Enumerate);
+    DirectEnumerateActive({$ifdef FPC}@{$endif} Enumerator.Enumerate);
   finally FreeAndNil(Enumerator) end;
 end;
 

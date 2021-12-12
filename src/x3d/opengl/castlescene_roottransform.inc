@@ -181,7 +181,7 @@ constructor TCastleRootTransform.Create(AOwner: TComponent);
 begin
   inherited;
   MainSceneObserver := TFreeNotificationObserver.Create(Self);
-  MainSceneObserver.OnFreeNotification := @MainSceneFreeNotification;
+  MainSceneObserver.OnFreeNotification := {$ifdef FPC}@{$endif}MainSceneFreeNotification;
   FUseHeadlight := hlMainScene;
 end;
 
@@ -219,10 +219,10 @@ begin
 
     if FMainScene <> nil then
     begin
-      FMainScene.OnBoundViewpointVectorsChanged := @MainScene_BoundViewpointVectorsChanged;
-      FMainScene.OnBoundNavigationInfoFieldsChanged := @MainScene_BoundNavigationInfoChanged;
-      FMainScene.ViewpointStack.OnBoundChanged := @MainScene_BoundViewpointChanged;
-      FMainScene.NavigationInfoStack.OnBoundChanged := @MainScene_BoundNavigationInfoChanged;
+      FMainScene.OnBoundViewpointVectorsChanged := {$ifdef FPC}@{$endif}MainScene_BoundViewpointVectorsChanged;
+      FMainScene.OnBoundNavigationInfoFieldsChanged := {$ifdef FPC}@{$endif}MainScene_BoundNavigationInfoChanged;
+      FMainScene.ViewpointStack.OnBoundChanged := {$ifdef FPC}@{$endif}MainScene_BoundViewpointChanged;
+      FMainScene.NavigationInfoStack.OnBoundChanged := {$ifdef FPC}@{$endif}MainScene_BoundNavigationInfoChanged;
     end;
 
     { Setting MainScene may change lights, if MainScene determines the headlight
@@ -304,12 +304,11 @@ end;
 
 function TCastleRootTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'MainScene', 'UseHeadlight':
-      Result := [psBasic];
+  if (PropertyName = 'MainScene') or
+     (PropertyName = 'UseHeadlight') then
+      Result := [psBasic]
     else
       Result := inherited PropertySections(PropertyName);
-  end;
 end;
 
 {$endif read_implementation}

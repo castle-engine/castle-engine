@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -56,7 +56,7 @@ begin
   inherited;
 
   ButtonMenu := DesignedComponent('ButtonMenu') as TCastleButton;
-  ButtonMenu.OnClick := @ClickMenu;
+  ButtonMenu.OnClick := {$ifdef FPC}@{$endif}ClickMenu;
 
   { Play menu music }
   SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');

@@ -34,7 +34,7 @@
   TSoundEngine = class(TSoundAllocator)
   private
     type
-      TInternalSoundBuffersList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalSoundBuffer>;
+      TInternalSoundBuffersList = {$ifdef FPC}specialize{$endif} TObjectList<TInternalSoundBuffer>;
     var
       FInformation: string;
       FDevice: string;
@@ -128,8 +128,10 @@
 
       In case of OpenAL backend, this also implies that OpenAL library is loaded. }
     property IsContextOpenSuccess: boolean read FIsContextOpenSuccess;
+    {$ifdef FPC}
     property ALActive: boolean read FIsContextOpenSuccess;
       deprecated 'use IsContextOpenSuccess';
+    {$endif}
 
     { Did we attempt to initialize sound rendering context.
       This indicates that ContextOpen was called,
@@ -137,10 +139,12 @@
       Contrary to IsContextOpenSuccess,
       this @italic(doesn't care if ContextOpen was a success). }
     property IsContextOpen: boolean read FIsContextOpen;
+    {$ifdef FPC}
     property ALInitialized: Boolean read FIsContextOpen; deprecated 'use IsContextOpen';
 
     property SoundInitializationReport: string read FInformation;
       deprecated 'use Information';
+    {$endif}
 
     { Multiline information about the currently initialized
       sound backend (OpenAL, FMOD etc.). }
@@ -291,7 +295,7 @@
       the sound 3D position.
       Instead of this method, use TCastleSoundSource
       (attached to some TCastleTransform) for spatial sounds to control their 3D position. }
-    procedure Play(const ASound: TCastleSound);
+    procedure Play(const ASound: TCastleSound); overload;
 
     { Play given sound.
 
@@ -311,7 +315,7 @@
       the sound 3D position.
       Instead of this method, use TCastleSoundSource
       (attached to some TCastleTransform) for spatial sounds to control their 3D position. }
-    procedure Play(const PlayingSound: TCastlePlayingSound);
+    procedure Play(const PlayingSound: TCastlePlayingSound); overload;
 
     { Internal, a bit more flexible, variant of @link(Play). @exclude }
     procedure InternalPlay(const PlayingSound: TCastlePlayingSound;
@@ -368,14 +372,16 @@
       read GetLogSoundLoading write SetLogSoundLoading;
 
     { Newly played sounds will have @code(TInternalSoundSource.Pitch) multiplied by this. }
+    {$ifdef FPC}
     property InitialPitchMultiplier: Single read FInitialPitchMultiplier write FInitialPitchMultiplier default 1.0;
       deprecated 'use TCastlePlayingSound and set TCastlePlayingSound.Pitch before playing, to influence initial pitch; this property is not reliable when combined with TCastlePlayingSound.Pitch usage';
+    {$endif FPC}
 
     { Sound volume, affects all sounds (effects and music).
       This must always be within 0..1 range.
       0.0 means that there are no effects (this case should be optimized). }
     property Volume: Single read FVolume write SetVolume
-      default DefaultVolume;
+      {$ifdef FPC}default DefaultVolume{$endif};
 
     { Sound output device, used when initializing sound context.
 
@@ -397,12 +403,14 @@
       do ContextClose and then ContextOpen again. This behaves correctly.) }
     property Enabled: boolean read FEnabled write SetEnabled default DefaultEnabled;
 
+    {$ifdef FPC}
     property Enable: boolean read FEnabled write SetEnabled default DefaultEnabled; deprecated 'Use Enabled';
+    {$endif}
 
     { How does the distance affect spatial sounds (with @link(TCastleSoundSource.Spatial)).
       See TSoundDistanceModel for the description of possible options. }
     property DistanceModel: TSoundDistanceModel
-      read FDistanceModel write SetDistanceModel default DefaultDistanceModel;
+      read FDistanceModel write SetDistanceModel {$ifdef FPC}default DefaultDistanceModel{$endif};
 
     { Emphasize or deemphasize the Doppler effect.
       See https://en.wikipedia.org/wiki/Doppler_effect and CGE demo
@@ -414,12 +422,14 @@
       Value 1 makes a correct Doppler effect if the distance in your world of 1 unit
       corresponds to 1 meter.
       Larger values allow to emphasize the effect more. }
-    property DopplerFactor: Single read FDopplerFactor write SetDopplerFactor default 0.0;
+    property DopplerFactor: Single read FDopplerFactor write SetDopplerFactor {$ifdef FPC}default 0.0{$endif};
 
+    {$ifdef FPC}
     property DefaultRolloffFactor: Single read FDefaultRolloffFactor write FDefaultRolloffFactor;
       deprecated 'does nothing now; use SoundEngine.DistanceModel, TCastleSound.ReferenceDistance, TCastleSound.MaxDistance to control sound rolloff (spatialization)';
     property DefaultReferenceDistance: Single read FDefaultReferenceDistance write FDefaultReferenceDistance;
       deprecated 'does nothing now; use SoundEngine.DistanceModel, TCastleSound.ReferenceDistance, TCastleSound.MaxDistance to control sound rolloff (spatialization)';
+    {$endif}
   end;
 
 {$endif read_interface}
@@ -452,11 +462,11 @@ begin
   // Config.AddSaveListener(@SaveToConfig);
 
   ApplicationProperties.OnInitializeJavaActivity.Add(
-    {$ifdef CASTLE_OBJFPC}@{$endif} ReinitializeJavaActivity);
+    {$ifdef FPC}@{$endif} ReinitializeJavaActivity);
   ApplicationProperties.OnPause.Add(
-    {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationPause);
+    {$ifdef FPC}@{$endif} ApplicationPause);
   ApplicationProperties.OnResume.Add(
-    {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationResume);
+    {$ifdef FPC}@{$endif} ApplicationResume);
 end;
 
 destructor TSoundEngine.Destroy;
@@ -464,11 +474,11 @@ begin
   if ApplicationProperties(false) <> nil then
   begin
     ApplicationProperties(false).OnInitializeJavaActivity.Remove(
-      {$ifdef CASTLE_OBJFPC}@{$endif} ReinitializeJavaActivity);
+      {$ifdef FPC}@{$endif} ReinitializeJavaActivity);
     ApplicationProperties(false).OnPause.Remove(
-      {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationPause);
+      {$ifdef FPC}@{$endif} ApplicationPause);
     ApplicationProperties(false).OnResume.Remove(
-      {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationResume);
+      {$ifdef FPC}@{$endif} ApplicationResume);
   end;
 
   // automatic loading/saving is more troublesome than it's worth
@@ -674,14 +684,18 @@ begin
       { Note: the InitialPitchMultiplier will be effectively overridden
         by TCastlePlayingSound.InternalFinalPitch on various changes,
         which is why we deprecated InitialPitchMultiplier. }
+      {$ifdef FPC}
       {$warnings off} // using deprecated to keep it working
       Result.Pitch   := Parameters.Pitch * InitialPitchMultiplier;
       {$warnings on}
+      {$endif}
       Result.Volume  := Parameters.Volume;
+      {$ifdef FPC}
       {$warnings off} // using unportable symbols knowingly
       Result.MinGain := Parameters.MinGain;
       Result.MaxGain := Parameters.MaxGain;
       {$warnings on}
+      {$endif}
       Result.Offset  := Parameters.Offset;
       Result.Spatial := Parameters.Spatial;
 

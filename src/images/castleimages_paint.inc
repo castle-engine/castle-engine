@@ -1929,7 +1929,7 @@ var
   x1, y1, x2, y2: integer;
   aFinished: boolean;
   Flood: array of boolean;
-  function isFloodColor(const ax, ay: integer): boolean; {$IFDEF SUPPORTS_INLINE}Inline;{$ENDIF}
+  function isFloodColor(const ax, ay: integer): boolean; {$ifdef FPC}{$IFDEF SUPPORTS_INLINE}Inline;{$ENDIF}{$endif}
   begin
     if (ax >= 0) and (ay >=0) and (ax <= Width) and (ay <= Height) then
     begin

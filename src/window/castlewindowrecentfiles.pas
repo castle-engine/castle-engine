@@ -89,7 +89,7 @@ begin
   if Number = 10 then
     S := '1_0' else
     S := IntToStr(Number);
-  S += '. ' + SQuoteMenuEntryCaption(URICaption(URL));
+  S := S + '. ' + SQuoteMenuEntryCaption(URICaption(URL));
 
   inherited Create(S, AIntData);
 end;

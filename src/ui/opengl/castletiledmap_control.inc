@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2015-2018 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -153,7 +153,7 @@ type
     { URL (or just filename) of the Tiled map file (TMX). }
     property URL: String read FURL write SetURL;
 
-    property Scale: Single read FScale write SetScale default 1;
+    property Scale: Single read FScale write SetScale {$ifdef FPC}default 1{$endif};
 
     { Show objects like polylines and points on the map. }
     property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible default true;

@@ -27,6 +27,8 @@
 }
 unit CastleXMLUtils;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, DOM, CastleDownload,
@@ -1010,7 +1012,7 @@ end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: boolean);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(SysUtils.BoolToStr(Value, true)));
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(BoolToStr(Value, true)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Integer);

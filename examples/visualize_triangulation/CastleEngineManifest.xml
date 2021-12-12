@@ -7,6 +7,6 @@
   - https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples
 -->
 
-<project name="visualize_triangulation" standalone_source="visualize_triangulation.lpr">
+<project name="visualize_triangulation" standalone_source="visualize_triangulation.dpr">
   <data exists="false" />
 </project>

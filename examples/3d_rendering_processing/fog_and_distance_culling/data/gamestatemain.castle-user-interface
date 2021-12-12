@@ -1,0 +1,114 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "AutoCamera" : true,
+      "AutoNavigation" : true,
+      "Camera" : {
+        "$$ClassName" : "TCastleCamera",
+        "GravityUpPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Y" : -4.3711388286737929E-008,
+          "Z" : 1.0000000000000000E+000
+        },
+        "InitialDirectionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 9.2274945974349976E-001,
+          "Y" : 3.8540035486221313E-001,
+          "Z" : 7.3272190093121026E-008
+        },
+        "InitialPositionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -2.5312177658081055E+001,
+          "Y" : 1.5919895172119141E+001,
+          "Z" : 4.0398397445678711E+000
+        },
+        "InitialUpPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -3.7809556374668318E-008,
+          "Y" : -1.1764608842668167E-007,
+          "Z" : 1.0000000000000000E+000
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "Name" : "Orthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective",
+          "Name" : "Perspective"
+        },
+        "ProjectionNear" : 1.5000000596046448E-001
+      },
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "MainScene" : "MainScene",
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "Name" : "PhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "MainScene",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "URL" : "castle-data:/fog_culling_final.x3dv"
+          }
+        ]
+      },
+      "Name" : "MainViewport"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 5.0196081399917603E-001,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "Frame" : true,
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "LabelInfo",
+      "Padding" : 1.0000000000000000E+001,
+      "Text" : [
+        "Rendered Shapes:",
+        "Fog culling:  (toggle by Ctrl+F)",
+        "Frustum culling of each shape: %s (toggle by Ctrl+C)"
+      ],
+      "VerticalAnchorDelta" : 1.0000000000000000E+001
+    }
+  ]
+}

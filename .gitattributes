@@ -12,10 +12,14 @@
 # and that you create new lines with Unix line endings).
 
 *.inc linguist-language=Pascal text eol=auto
-*.pas text eol=auto
+*.lpr linguist-language=Pascal text eol=auto
+*.dpr linguist-language=Pascal text eol=auto
+*.pas linguist-language=Pascal text eol=auto
+
 *.lpk text eol=auto
 *.xml text eol=auto
 *.dpk text eol=auto
+
 # Even on Windows, shell scripts line endings must be Unix, to work with Cygwin's bash.
 *.sh text eol=lf
 *gradlew text eol=lf

@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="test_bump_mapping_standalone.lpr"/>
+        <Filename Value="test_bump_mapping_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

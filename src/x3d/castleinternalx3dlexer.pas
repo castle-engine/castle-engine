@@ -100,7 +100,7 @@ const
 type
   TX3DEncoding = (xeClassic, xeXML);
 
-  TX3DVersion = object
+  TX3DVersion = record
     Major, Minor: Integer;
     function FileExtension(const Encoding: TX3DEncoding;
       const ForceConvertingToX3D: boolean = false): string;
@@ -406,7 +406,7 @@ function ArrayPosX3DKeywords(const s: string; out Index: TX3DKeyword): boolean;
 var
   I: TX3DKeyword;
 begin
-  for I := Low(X3DKeywords) to High(X3DKeywords) do
+  for I {$ifdef FPC}:= Low(X3DKeywords) to High(X3DKeywords) {$else}in X3DKeywords{$endif} do
     if X3DKeywordsName[I] = s then
     begin
       Index := I;
@@ -732,7 +732,7 @@ begin
     if NextChar = -1 then
       raise EX3DLexerError.Create(Self,
         'Unexpected end of file in the middle of string token');
-    if not (Chr(NextChar) in ['"', '\']) then
+    if not CharInSet(Chr(NextChar), ['"', '\']) then
     begin
       WritelnWarning('X3D', 'Invalid X3D file: Invalid sequence in a string: "\%s". Backslash must be followed by another backslash or double quote, for SFString and MFString (in X3D classic (VRML) encoding) and for MFString (in X3D XML encoding).',
         [Chr(NextChar)]);
@@ -926,7 +926,7 @@ function TX3DLexer.NextToken: TX3DToken;
      '-','+','.','0'..'9':ReadFloatOrInteger(FirstBlackChr);
      '"':ReadString;
      else
-      if FirstBlackChr in VRMLNameFirstChars then
+      if CharInSet(FirstBlackChr, VRMLNameFirstChars) then
        ReadNameOrKeyword(FirstBlackChr) else
        raise EX3DLexerError.Create(Self, Format('Illegal character in stream : %s (#%d)',
          [FirstBlackChr, Ord(FirstBlackChr)]));

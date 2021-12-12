@@ -51,7 +51,7 @@ var
   alGetDoublev : procedure( param:TALenum; data:PALdouble  ); cdecl;
 
   { State retrieval. }
-  alGetString : function( param:TALenum ):PChar; cdecl;
+  alGetString : function( param:TALenum ):PAnsiChar; cdecl;
 
   { State retrieval through return value ( for compatibility ). }
   alGetBoolean : function( param:TALenum ):TALboolean; cdecl;
@@ -70,20 +70,20 @@ var
     Obtain the address of a function (usually an extension)
     with the name fname. All addresses are context-independent.
   }
-  alIsExtensionPresent : function( fname:PChar ):TALboolean; cdecl;
+  alIsExtensionPresent : function( fname:PAnsiChar ):TALboolean; cdecl;
 
   {
     Extension support.
     Obtain the address of a function (usually an extension)
     with the name fname. All addresses are context-independent.
   }
-  alGetProcAddress : function( fname:PChar ):Pointer; cdecl;
+  alGetProcAddress : function( fname:PAnsiChar ):Pointer; cdecl;
 
   {
     Extension support.
     Obtain the integer value of an enumeration (usually an extension) with the name ename.
   }
-  alGetEnumValue : function( ename:PChar ):TALenum; cdecl;
+  alGetEnumValue : function( ename:PAnsiChar ):TALenum; cdecl;
 
   {*
    * LISTENER

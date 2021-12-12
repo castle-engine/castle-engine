@@ -57,7 +57,7 @@
       of the progress bar doesn't fit on the screen, as this property
       positions the middle of the progress bar. }
     property YPosition: Single read FYPosition write FYPosition
-      default TProgressUserInterface.DefaultBarYPosition;
+      {$ifdef FPC}default TProgressUserInterface.DefaultBarYPosition{$endif};
   end;
 
 {$endif read_interface}
@@ -145,7 +145,7 @@ begin
   begin
     { No trimming needs to be done. Add dots at the end, if we have space. }
     if Font.TextWidth(Text + Dots) < MaxWidth then
-      Text += Dots;
+      Text := Text + Dots;
     Exit;
   end;
 

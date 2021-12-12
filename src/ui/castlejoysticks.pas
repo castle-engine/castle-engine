@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2015-2019 Tomasz Wojtyś, Michalis Kamburelis.
   Based on zgl_joystick.pas by Andrey Kemka.
 
@@ -71,7 +71,7 @@ type
 
   PJoy = TJoystick deprecated 'use TJoystick';
 
-  TJoystickList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TJoystick>;
+  TJoystickList = {$ifdef FPC}specialize{$endif} TObjectList<TJoystick>;
 
 const
   { TODO: Deprecate these constants at some point, in favor of simpler joystick API like @link(TJoystick.Axis). }
@@ -413,6 +413,8 @@ begin
     FJoysticks := TJoysticks.Create;
   Result := FJoysticks;
 end;
+
+{$ifndef FPC}initialization{$endif}
 
 finalization
   FreeAndNil(FJoysticks);

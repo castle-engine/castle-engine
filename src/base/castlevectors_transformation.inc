@@ -112,7 +112,7 @@ type
 
   PTransformation = ^TTransformation;
 
-  TTransformationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TTransformation>)
+  TTransformationList = class({$ifdef FPC}specialize{$endif} TStructList<TTransformation>)
   end;
 
 {$endif read_interface}

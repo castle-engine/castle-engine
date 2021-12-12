@@ -94,7 +94,7 @@
                             read FAccessoryControl write SetAccessoryControl default nil;
   end;
 
-  TCastleTableViewCellList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleTableViewCell>;
+  TCastleTableViewCellList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleTableViewCell>;
 
   { Data source used in @link(TCastleTableView). Implement this interface to
     populate data into the TableView. }

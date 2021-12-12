@@ -32,9 +32,9 @@
     { X3D field "mode". } { }
     property Mode: String read GetMode write SetMode;
     { Set X3D field "parameter". } { }
-    procedure SetParameter(const Value: array of Single);
+    procedure SetParameter(const Value: array of Single); overload;
     { Set X3D field "parameter". } { }
-    procedure SetParameter(const Value: TSingleList);
+    procedure SetParameter(const Value: TSingleList); overload;
 
 {$endif read_interface}
 

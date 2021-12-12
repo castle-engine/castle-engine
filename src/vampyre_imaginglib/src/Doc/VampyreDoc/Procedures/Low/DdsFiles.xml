@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Loading and Saving DDS Files</title>
+  <chapter>
+    <title>Loading and Saving DDS Files</title>
+    <par>
+      DirectDraw Surface is Microsoft's file format for storing textures.
+      You can find information on this file format and on its Imaging support
+      in <link url="../FileFormats/Dds.xml">Supported File Formats/DDS</link>
+      section. This section shows how to perform
+      some load/save operations specific for DDS files (cube map and volume texture support).
+      Each example consists of description of a action you want to do and
+      code listing in which the action is carried out by Imaging.
+    </par>
+
+    <scap>Example 1: Simple Loading and Saving</scap>
+    <par>
+      You have single texture without mipmaps and you want to load it and
+      save it.
+    </par>
+    
+    <code>
+uses
+  ImagingTypes, Imaging;
+var
+  Img: <ref>TImageData</ref>;
+begin
+  // call this before using any TImageData record
+  <ref>InitImage</ref>(Img);
+  // load texture from file
+  <ref>LoadImageFromFile</ref>('X:\images\tex01.dds', Img);
+  ...
+  // do something with the image
+  ...
+  // save the image to file
+  <ref>SaveImageToFile</ref>('X:\images\tex02.dds', Img);
+  // memory occupied by the image is freed
+  <ref>FreeImage</ref>(Img);
+end.
+    </code>
+
+
+    <scap>Example 2: Loading and Saving Mipmapped Texture</scap>
+    <par>
+      You have single texture with mipmaps and you want to load it and
+      save it.
+    </par>
+
+    <warn>
+      Imaging saves mipmaps in the same order as you send them to
+      <keyword>SaveMultiImageTo*</keyword> functions in <icode>Images</icode> parameter.
+      Mipmap dimensions (next level has width and height of the previous level divided by two)
+      and format (must be same as the main image's) are automatically adjusted
+      during saving.
+    </warn>
+    
+    <code>
+uses
+  ImagingTypes, Imaging;
+var
+  ImgArray: <ref>TDynImageDataArray</ref>;
+  MipMapLevels: LongInt;
+begin
+  // load texture from file
+  <ref>LoadMultiImageFromFile</ref>('X:\images\tex01mip.dds', ImgArray);
+  // get the number of mipmap levels in the loaded DDS file
+  // in this case it is equal to Length(ImgArray)
+  MipMapLevels := <ref>GetOption</ref>(<ref>ImagingDDSLoadedMipMapCount</ref>);
+  ...
+  // do something with the image
+  ...
+  // save the texture with mipmaps to file, number of mipmaps saved to
+  // file will be Length(ImgArray)
+  <ref>SaveMultiImageToFile</ref>('X:\images\tex02mip.dds', ImgArray);
+  // memory occupied by the images is freed
+  <ref>FreeImagesInArray</ref>(ImgArray);
+end.
+    </code>
+
+
+    <scap>Example 3: Loading and Saving Mipmapped Cube Map</scap>
+    <par>
+      You have cubic environment map with mipmaps and you want to load it and
+      save it.
+      The cube faces in DDS files are written in this order: positive x, negative x,
+      positive y, negative y, positive z, negative z.
+      Each face is written with its main image
+      followed by any mipmap levels. All faces must be the same size
+      and have the same number of mipmap levels.
+    </par>
+    <warn>
+      Imaging saves cube faces and mipmaps in the same order as you send them to
+      <keyword>SaveMultiImageTo*</keyword> functions in <icode>Images</icode> parameter.
+      Make sure that number of images you send to saving functions is equal to
+      NumberOfFaces * MipMapLevels where these two values are defined by options
+      interface (see code below). If the number of images is not right then DDS is
+      saved as simple 2D texture.
+      Mipmap dimensions (next level has width and height of the previous level divided by two)
+      and format (must be same as the main image's) are automatically adjusted
+      during saving.
+    </warn>
+    <code>
+uses
+  ImagingTypes, Imaging;
+var
+  ImgArray: <ref>TDynImageDataArray</ref>;
+  MipMapLevels, Faces: LongInt;
+  IsCubeMap: Boolean;
+begin
+  // load texture from file
+  <ref>LoadMultiImageFromFile</ref>('X:\images\tex01cubemip.dds', ImgArray);
+  // get the number of mipmap levels in the loaded DDS file
+  // in this case it is equal to Length(ImgArray) div Faces
+  MipMapLevels := <ref>GetOption</ref>(<ref>ImagingDDSLoadedMipMapCount</ref>);
+  // check whether we have loaded cube map
+  IsCubeMap := Boolean(<ref>GetOption</ref>(<ref>ImagingDDSLoadedCubeMap</ref>));
+  // get the number of cube faces in the loaded DDS file
+  // Length(ImgArray) = Faces * MipMapLevels
+  Faces := <ref>GetOption</ref>(<ref>ImagingDDSLoadedDepth</ref>);
+  ...
+  // do something with the image
+  ...
+  // tell Imaging how many mipmap levels next DDS file should have (for each face)
+  <ref>SetOption</ref>(<ref>ImagingDDSSaveMipMapCount</ref>, MipMapLevels);
+  // tell Imaging that the next DDS file should be cubic environment map
+  <ref>SetOption</ref>(<ref>ImagingDDSSaveCubeMap</ref>, IsCubeMap);
+  // tell Imaging how many faces next DDS file should have
+  <ref>SetOption</ref>(<ref>ImagingDDSSaveDepth</ref>, Faces);
+  // save the cube map with mipmaps to file
+  <ref>SaveMultiImageToFile</ref>('X:\images\tex02cubemip.dds', ImgArray);
+  // memory occupied by the images is freed
+  <ref>FreeImagesInArray</ref>(ImgArray);
+end.
+    </code>
+
+    <scap>Example 4: Loading and Saving Mipmapped Volume Texture</scap>
+    <par>
+      You have volume texture with mipmaps and you want to load it and
+      save it.
+      For volumes without mipmaps,
+      each depth slice is written to the file in order.
+      If mipmaps are included, all depth slices for a given mipmap
+      level are written together, with each level
+      containing half as many slices as the previous level
+      with a minimum of 1. Volume textures do not support
+      DXTn compression as of DirectX 9.0.
+    </par>
+    <warn>
+      Imaging saves volume slices and mipmaps in the same order as you send them to
+      <keyword>SaveMultiImageTo*</keyword> functions in <icode>Images</icode> parameter.
+      Make sure that number of images you send to saving functions is right
+      (it is not NumberOfFaces * MipMapLevels!).
+      If the number of images is not right then DDS is
+      saved as simple 2D texture.
+      Mipmap dimensions (next level has width and height of the previous level divided by two)
+      and format (must be same as the main image's) are automatically adjusted
+      during saving.
+    </warn>
+    <code>
+uses
+  ImagingTypes, Imaging;
+var
+  ImgArray: <ref>TDynImageDataArray</ref>;
+  MipMapLevels, Slices: LongInt;
+  IsVolume: Boolean;
+begin
+  // load texture from file
+  <ref>LoadMultiImageFromFile</ref>('X:\images\tex01volmip.dds', ImgArray);
+  // get the number of mipmap levels in the loaded DDS file
+  // in this case it is NOT equal to Length(ImgArray) div Slices
+  MipMapLevels := <ref>GetOption</ref>(<ref>ImagingDDSLoadedMipMapCount</ref>);
+  // check whether we have loaded volume texture 
+  IsVolume := Boolean(<ref>GetOption</ref>(<ref>ImagingDDSLoadedVolume</ref>));
+  // get the number of volume slices in the loaded DDS file
+  // Length(ImgArray) &lt;&gt; Slices * MipMapLevels
+  Slices := <ref>GetOption</ref>(<ref>ImagingDDSLoadedDepth</ref>);
+  ...
+  // do something with the image
+  ...
+  // tell Imaging how many mipmap levels next DDS file should have
+  <ref>SetOption</ref>(<ref>ImagingDDSSaveMipMapCount</ref>, MipMapLevels);
+  // tell Imaging that the next DDS file should be volume texture
+  <ref>SetOption</ref>(<ref>ImagingDDSSaveVolume</ref>, IsVolume);
+  // tell Imaging how many slices next DDS file should have
+  <ref>SetOption</ref>(<ref>ImagingDDSSaveDepth</ref>, Slices);
+  // save the volume texture with mipmaps to file
+  <ref>SaveMultiImageToFile</ref>('X:\images\tex02volmip.dds', ImgArray);
+  // memory occupied by the images is freed
+  <ref>FreeImagesInArray</ref>(ImgArray);
+end.
+    </code>
+
+
+  </chapter>
+</doc>

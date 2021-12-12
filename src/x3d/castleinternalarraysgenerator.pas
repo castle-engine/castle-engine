@@ -294,8 +294,8 @@ begin
   for I := 0 to CopyCount - 1 do
   begin
     Move(Source^, Target^, SourceItemSize);
-    PtrUInt(Source) += SourceItemSize;
-    PtrUInt(Target) += TargetItemSize;
+    PtrUInt(Source) := PtrUInt(Source) + SourceItemSize;
+    PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
   end;
 end;
 
@@ -328,6 +328,7 @@ begin
     raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
       [Indexes.Count, CopyCount]);
 
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to CopyCount - 1 do
   begin
     Index := Indexes.L[I];
@@ -341,8 +342,9 @@ begin
       and especially dynamic shading like radiance_transfer. }
     Move(Pointer(PtrUInt(Source) + PtrUInt(Index) * PtrUInt(SourceItemSize))^,
       Target^, SourceItemSize);
-    PtrUInt(Target) += TargetItemSize;
+    PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
   end;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 { Like AssignToInterleaved, but there is only one Source value,
@@ -356,7 +358,7 @@ begin
   for I := 0 to CopyCount - 1 do
   begin
     Move(Source^, Target^, SourceItemSize);
-    PtrUInt(Target) += TargetItemSize;
+    PtrUInt(Target) := PtrUInt(Target) + TargetItemSize;
   end;
 end;
 
@@ -459,9 +461,9 @@ type
       4th texture coordinate, working only when texture coord is
       normal 2D coord. }
     function GetTextureCoord(IndexNum: integer;
-      const TextureUnit: Cardinal; out Tex: TVector4): boolean;
+      const TextureUnit: Cardinal; out Tex: TVector4): boolean; overload;
     function GetTextureCoord(IndexNum: integer;
-      const TextureUnit: Cardinal; out Tex: TVector2): boolean;
+      const TextureUnit: Cardinal; out Tex: TVector2): boolean; overload;
 
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
 
@@ -703,7 +705,7 @@ type
     constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
   end;
 
-  TX3DVertexAttributeNodes = specialize TObjectList<TAbstractVertexAttributeNode>;
+  TX3DVertexAttributeNodes = {$ifdef FPC}specialize{$endif} TObjectList<TAbstractVertexAttributeNode>;
 
   { Handle GLSL custom attributes from X3D "attrib" field.
     Descendants don't have to do anything, this just works
@@ -957,6 +959,7 @@ end;
 
 procedure TArraysGenerator.GenerateVertex(IndexNum: integer);
 begin
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if CoordIndex <> nil then
   begin
     if Arrays.Indexes = nil then
@@ -964,6 +967,7 @@ begin
       ArrayIndexNum := CoordIndex.Items.L[IndexNum];
   end else
     ArrayIndexNum := IndexNum;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 function TArraysGenerator.GetVertex(IndexNum: integer): TVector3;
@@ -972,9 +976,11 @@ begin
     of the programmer. }
   Assert(IndexNum < CoordCount);
 
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if CoordIndex <> nil then
     Result := Coord.ItemsSafe[CoordIndex.Items.L[IndexNum]] else
     Result := Coord.Items.L[IndexNum];
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 function TArraysGenerator.CoordCount: Integer;
@@ -1217,7 +1223,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
           if (ProjectorValue <> nil) and
              (ProjectorValue is TAbstractPunctualLightNode) then
           begin
-            Result := @TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
+            Result := {$ifdef FPC}@{$endif}TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
           end else
             WritelnWarning('X3D', 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
         end else
@@ -1226,11 +1232,11 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
           ProjectorValue := TProjectedTextureCoordinateNode(GeneratorNode).FdProjector.Value;
           if ProjectorValue is TAbstractPunctualLightNode then // checks also ProjectorValue <> nil
           begin
-            Result := @TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
+            Result := {$ifdef FPC}@{$endif}TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
           end else
           if ProjectorValue is TAbstractViewpointNode then // checks also ProjectorValue <> nil
           begin
-            Result := @TAbstractViewpointNode(ProjectorValue).GetProjectorMatrix;
+            Result := {$ifdef FPC}@{$endif}TAbstractViewpointNode(ProjectorValue).GetProjectorMatrix;
           end else
             WritelnWarning('X3D', 'ProjectedTextureCoordinate.projector is NULL or incorrect');
         end else
@@ -1521,7 +1527,7 @@ function TAbstractTextureCoordinateGenerator.GetTextureCoord(
           Result[3] := 1;
         end;
       else WritelnWarning('X3D', Format('Generating on CPU texture coordinates with %d not implemented yet',
-        [TexCoord.Generation]));
+        [Integer(TexCoord.Generation)]));
     end;
   end;
 
@@ -1558,6 +1564,7 @@ begin
 
     if Arrays.TexCoords[TextureUnit].Generation = tgExplicit then
     begin
+      {$ifndef FPC}{$POINTERMATH ON}{$endif}
       case TexImplementation of
         tcTexIndexed:
           { tcTexIndexed is set only if
@@ -1573,6 +1580,7 @@ begin
           SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, IndexNum);
         else raise EInternalError.Create('TAbstractTextureCoordinateGenerator.GetTextureCoord?');
       end;
+      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
     end else
       Tex := GenerateTexCoord(Arrays.TexCoords[TextureUnit]);
   end;
@@ -1648,9 +1656,10 @@ begin
       It would require extra iteration instead of simple "IndexesFromCoordIndex.Assign"
       to create IndexedTriangleSetNode.
   }
-
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if TexImplementation = tcTexIndexed then
     DoTexCoord(TexCoordIndex.Items.L[IndexNum]);
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
@@ -1666,12 +1675,14 @@ procedure TAbstractMaterial1Generator.UpdateMat1Implementation;
 
   function IndexListNotEmpty(MFIndexes: TMFLong): boolean;
   begin
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     Result :=
       (MFIndexes.Count > 0) and
       { For VRML 1.0, [-1] value is default for materialIndex
         and should be treated as "empty", as far as I understand
         the spec. }
       (not ((MFIndexes.Count = 1) and (MFIndexes.Items.L[0] = -1)));
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
 begin
@@ -1747,7 +1758,9 @@ begin
     miPerFace:
       FaceMaterial1Color := GetMaterial1Color(RangeNumber);
     miPerFaceMatIndexed:
+      {$ifndef FPC}{$POINTERMATH ON}{$endif}
       FaceMaterial1Color := GetMaterial1Color(MaterialIndex.Items.L[RangeNumber]);
+      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
     else ;
   end;
 end;
@@ -1885,6 +1898,7 @@ begin
   if (Normals = nil) or (NormalIndex = nil) then
     Exit;
 
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   case NormalBinding of
     BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
       if (NormalIndex.Count > 0) and (NormalIndex.Items.L[0] >= 0) then
@@ -1901,6 +1915,7 @@ begin
       if (NormalIndex.Count > 0) and (NormalIndex.Items.L[0] >= 0) then
         Result := niPerFaceNormalIndexed;
   end;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
   { If no normals are provided (for VRML 1.0, this means that last Normal
     node was empty, or it's the default empty node from VRML1DefaultState)
@@ -1911,15 +1926,18 @@ end;
 
 function TAbstractNormalGenerator.NormalsSafe(const Index: Integer): TVector3;
 begin
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if Index < Normals.Count then
     Result := Normals.L[Index]
   else
     Result := TVector3.Zero;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TAbstractNormalGenerator.GetNormal(
   IndexNum: Integer; RangeNumber: Integer; out N: TVector3);
 begin
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   case NorImplementation of
     niOverall:
       N := Normals.L[0];
@@ -1939,6 +1957,7 @@ begin
       raise EInternalError.CreateFmt('NorImplementation unknown (probably niNone, and not overridden GetNormal) in class %s',
         [ClassName]);
   end;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 function TAbstractNormalGenerator.NormalsFlat: boolean;
@@ -2039,6 +2058,7 @@ procedure TAbstractFogGenerator.GenerateVertex(
 
   function GetFogCoord: Single;
   begin
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     { make IndexNum independent of coordIndex, always work like index to coords }
     if CoordIndex <> nil then
       IndexNum := CoordIndex.Items.L[IndexNum];
@@ -2049,12 +2069,14 @@ procedure TAbstractFogGenerator.GenerateVertex(
     if FogCoord.Count <> 0 then
       Result := FogCoord.Last else
       Result := 0; //< some default
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
   function GetFogVolumetric: Single;
   var
     Position, Projected: TVector3;
   begin
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     { calculate global vertex position }
     if CoordIndex <> nil then
       Position := Coord.Items.L[CoordIndex.Items.L[IndexNum]] else
@@ -2072,7 +2094,8 @@ procedure TAbstractFogGenerator.GenerateVertex(
       - Result = FogVolumetricVisibilityStart + X -> X
         (so that Result = FogVolumetricVisibilityStart +
         FogVisibilityRangeScaled -> FogVisibilityRangeScaled) }
-    Result -= FogVolumetricVisibilityStart;
+    Result := Result - FogVolumetricVisibilityStart;
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
   procedure SetFog(const Fog: Single);

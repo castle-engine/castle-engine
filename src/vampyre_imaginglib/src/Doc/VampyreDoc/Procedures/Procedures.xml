@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>How to ... </title>
+  <chapter>
+    <title>How to ... </title>
+    <par>Here you can find information how to perform some
+    basic actions using Imaging library.</par>
+    <linklist>
+      <title>In This Section</title>
+      <lslink url="Low/Low.xml">Low Level Interface</lslink>
+      <lslink url="High/High.xml">High Level Interface</lslink>
+      <lslink url="Components/ProcComp.xml">VCL/LCL Classes</lslink>
+      <lslink url="Canvas.xml">Canvas Class Tips</lslink>
+    </linklist>
+    
+  </chapter>
+</doc>

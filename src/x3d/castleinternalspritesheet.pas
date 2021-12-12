@@ -29,8 +29,8 @@ type
   TCastleSpriteSheetAnimation = class;
   TCastleSpriteSheetFrame = class;
 
-  TCastleSpriteSheetAnimationList = specialize TObjectList<TCastleSpriteSheetAnimation>;
-  TCastleSpriteSheetFrameList = specialize TObjectList<TCastleSpriteSheetFrame>;
+  TCastleSpriteSheetAnimationList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleSpriteSheetAnimation>;
+  TCastleSpriteSheetFrameList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleSpriteSheetFrame>;
 
   TCastleSpriteSheetAbstractAtlasGen = class;
 
@@ -102,8 +102,8 @@ type
     { Returns true if spritesheet was modified }
     function IsModified: Boolean;
 
-    procedure Load(const URL: String);
-    procedure Load(const Stream: TStream; const BaseUrl: String);
+    procedure Load(const URL: String); overload;
+    procedure Load(const Stream: TStream; const BaseUrl: String); overload;
     { Saves file to castle sprite sheet. If SaveSaveCopy = true then don't clears
       Modified state, don't change URL, don't save image paths }
     procedure Save(const AURL: String; const SaveCopy: Boolean = false);
@@ -212,13 +212,15 @@ type
 
     function FrameCount: Integer;
     function FrameIndex(const Frame: TCastleSpriteSheetFrame): Integer;
-    function AddFrame: TCastleSpriteSheetFrame;
+    function AddFrame: TCastleSpriteSheetFrame; overload;
     function AddFrameCopy(const SrcFrame: TCastleSpriteSheetFrame
         ): TCastleSpriteSheetFrame;
-    function AddFrame(const FrameImageURL: String): TCastleSpriteSheetFrame;
+    function AddFrame(const FrameImageURL: String):
+      TCastleSpriteSheetFrame; overload;
     function AddFrame(const SourceImage: TCastleImage; const DestX, DestY,
         AFrameWidth, AFrameHeight, SourceX, SourceY,
-        SourceWidthToCopy, SourceHeightToCopy: Integer): TCastleSpriteSheetFrame;
+        SourceWidthToCopy, SourceHeightToCopy: Integer):
+        TCastleSpriteSheetFrame; overload;
     function AllFramesHasTheSameSize: Boolean;
     procedure RemoveFrame(const Frame: TCastleSpriteSheetFrame);
     procedure MoveFrameLeft(const Frame: TCastleSpriteSheetFrame);
@@ -231,7 +233,7 @@ type
     function GetBigestFrameSize(const MaxWidth, MaxHeight: Integer): TVector2Integer;
 
     property Name: String read FName write SetName;
-    property Frame[Index: Integer]: TCastleSpriteSheetFrame read GetFrame;
+    property Frame[const Index: Integer]: TCastleSpriteSheetFrame read GetFrame;
     property FramesPerSecond: Single read FFramesPerSecond write SetFramesPerSecond;
   end;
 
@@ -285,21 +287,21 @@ type
     { Currently only reset to full frame size }
     procedure UpdateTrimming;
   public
-    constructor Create(const Animation: TCastleSpriteSheetAnimation);
+    constructor Create(const Animation: TCastleSpriteSheetAnimation); overload;
     { Construct full/deep copy of SrcFrame }
     constructor Create(const Animation: TCastleSpriteSheetAnimation;
-        const SrcFrame: TCastleSpriteSheetFrame);
+        const SrcFrame: TCastleSpriteSheetFrame); overload;
     destructor Destroy; override;
 
     function HasFrameImage: Boolean;
 
     { Copies image and sets frame size. }
-    procedure SetFrameImage(const SourceImage: TCastleImage);
+    procedure SetFrameImage(const SourceImage: TCastleImage); overload;
 
     { Copies a fragment of the image and sets the image parameters }
     procedure SetFrameImage(const SourceImage: TCastleImage; const DestX, DestY,
         AFrameWidth, AFrameHeight, SourceX, SourceY,
-        SourceWidthToCopy, SourceHeightToCopy: Integer);
+        SourceWidthToCopy, SourceHeightToCopy: Integer); overload;
 
     procedure DrawToImage(const DestImage: TCastleImage; const DestX, DestY,
         SourceX, SourceY, SourceWidthToDraw, SourceHeightToDraw: Integer);
@@ -314,8 +316,10 @@ type
 
     procedure SaveFrameImage(const URL: String);
 
-    class function FlipYCoordToCGE(StarlingY, ImageHeight:Integer): Integer;
-    class function FlipYCoordToCGE(StarlingY, Height, ImageHeight:Integer): Integer;
+    class function FlipYCoordToCGE(StarlingY, ImageHeight:Integer):
+      Integer; overload;
+    class function FlipYCoordToCGE(StarlingY, Height, ImageHeight:Integer):
+      Integer; overload;
 
     property XInAtlas: Integer read FXInAtlas write SetXInAtlas;
     property YInAtlas: Integer read FYInAtlas write SetYInAtlas;
@@ -463,8 +467,8 @@ type
         LoadForEdit: Boolean);
     destructor Destroy; override;
 
-    procedure Load(const SpriteSheet: TCastleSpriteSheet);
-    function Load: TCastleSpriteSheet;
+    procedure Load(const SpriteSheet: TCastleSpriteSheet); overload;
+    function Load: TCastleSpriteSheet; overload;
   end;
 
   TCastleSpriteSheetXMLExporter = class
@@ -531,6 +535,7 @@ var
   Tri: TTriangleSetNode;
   Tex: TAbstractTextureNode;
   TexProperties: TTexturePropertiesNode;
+  FdUrl: String;
 begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
   FRoot.Meta['source'] := ExtractURIName(FSpriteSheet.URL);
@@ -559,9 +564,11 @@ begin
     Tex := TImageTextureNode.Create;
     { Check is this file loaded from Starling in that case use LoadedAtlasPath }
     if FSpriteSheet.URL <> '' then
-      TImageTextureNode(Tex).FdUrl.Send(ExtractURIPath(FSpriteSheet.URL) + FSpriteSheet.RelativeAtlasPath)
+      FdUrl := ExtractURIPath(FSpriteSheet.URL) + FSpriteSheet.RelativeAtlasPath
     else
-      TImageTextureNode(Tex).FdUrl.Send(FSpriteSheet.LoadedAtlasPath);
+      FdUrl := FSpriteSheet.LoadedAtlasPath;
+
+    TImageTextureNode(Tex).FdUrl.Send(FdUrl);
     TImageTextureNode(Tex).RepeatS := false;
     TImageTextureNode(Tex).RepeatT := false;
     TImageTextureNode(Tex).TextureProperties := TexProperties;
@@ -2125,7 +2132,7 @@ end;
 procedure TCastleSpriteSheetLoader.ReadImportSettings;
 var
   SettingsMap: TStringStringMap;
-  Setting: TStringStringMap.TDictionaryPair;
+  Setting: {$ifdef FPC}TStringStringMap.TDictionaryPair{$else}TPair<String, String>{$endif};
 begin
   // default values
   FFramesPerSecond := DefaultSpriteSheetFramesPerSecond;
@@ -2298,6 +2305,7 @@ begin
   ReadImportSettings;
 
   LastAnimationName := '';
+  CurrentAnimation := nil;
 
   Doc := nil;
   try
@@ -2378,7 +2386,7 @@ begin
   case FAnimationNaming of
     anStrictUnderscore:
       begin
-        UnderscorePos := rpos('_', AnimationName);
+        UnderscorePos := BackPos('_', AnimationName);
 
         { Check characters after underscore is number if not don't change name. }
         AnimationNameLength := Length(AnimationName);
@@ -2393,7 +2401,11 @@ begin
       end;
     anTralingNumber:
       begin
+        {$ifdef FPC}
         RemoveTrailingChars(AnimationName, ['0'..'9']);
+        {$else}
+        AnimationName.TrimRight(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+        {$endif}
 
         if AnimationName <> '_' then // do not remove underscore if it's the only character in name
           AnimationName := SuffixRemove('_', AnimationName, false);

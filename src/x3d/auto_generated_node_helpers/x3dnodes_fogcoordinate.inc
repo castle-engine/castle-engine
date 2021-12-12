@@ -33,9 +33,9 @@
     { X3D field "depth". } { }
     public property FdDepth: TMFFloat read FFdDepth;
     { Set X3D field "depth". } { }
-    procedure SetDepth(const Value: array of Single);
+    procedure SetDepth(const Value: array of Single); overload;
     { Set X3D field "depth". } { }
-    procedure SetDepth(const Value: TSingleList);
+    procedure SetDepth(const Value: TSingleList); overload;
 
 {$endif read_interface}
 

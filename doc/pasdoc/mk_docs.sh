@@ -119,6 +119,7 @@ if (( $# == 0 )); then
               '(' -iwholename '*/compatibility/*' ')' -or \
               '(' -iwholename '*/deprecated_units/*' ')' -or \
               '(' -iwholename '*/pasgltf/*' ')' -or \
+              '(' -iwholename '*/vampyre_imaginglib/*' ')' -or \
               '(' -iwholename '*/x3d/nodes_specification/*' ')' -or \
               '(' -iwholename '*fonts/castletexturefont_*.pas' ')' \
             ')' \

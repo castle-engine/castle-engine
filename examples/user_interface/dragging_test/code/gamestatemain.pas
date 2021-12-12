@@ -78,13 +78,13 @@ begin
 
   ButtonDragSimple := TCastleButton.Create(FreeAtStop);
   ButtonDragSimple.Caption := 'Drag by tracking Motion events';
-  ButtonDragSimple.OnClick := @ClickDragSimple;
+  ButtonDragSimple.OnClick := {$ifdef FPC}@{$endif}ClickDragSimple;
   ButtonDragSimple.Toggle := true;
   Buttons.InsertFront(ButtonDragSimple);
 
   ButtonDragMouseLook := TCastleButton.Create(FreeAtStop);
   ButtonDragMouseLook.Caption := 'Drag by MouseLook logic (hide mouse, pretend drag area is unbounded)';
-  ButtonDragMouseLook.OnClick := @ClickDragMouseLook;
+  ButtonDragMouseLook.OnClick := {$ifdef FPC}@{$endif}ClickDragMouseLook;
   ButtonDragMouseLook.Toggle := true;
   Buttons.InsertFront(ButtonDragMouseLook);
 

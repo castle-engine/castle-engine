@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="sprite_sheets_demo"
-  standalone_source="sprite_sheets_demo_standalone.lpr"
+  standalone_source="sprite_sheets_demo_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.sprite.sheets.demo"
   caption="Sprite Sheets Demo"

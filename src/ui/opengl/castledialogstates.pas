@@ -224,7 +224,7 @@ type
   strict private
     procedure ButtonOKClick(Sender: TObject);
   protected
-    procedure InitializeButtons(var Buttons: TButtonArray); override;
+    procedure InitializeButtons(var Buttons: TStateDialog.TButtonArray); override;
   public
     function Press(const Event: TInputPressRelease): boolean; override;
   end;
@@ -237,7 +237,7 @@ type
     procedure ButtonYesClick(Sender: TObject);
     procedure ButtonNoClick(Sender: TObject);
   protected
-    procedure InitializeButtons(var Buttons: TButtonArray); override;
+    procedure InitializeButtons(var Buttons: TStateDialog.TButtonArray); override;
   public
     function Press(const Event: TInputPressRelease): boolean; override;
     { User answer to the dialog question, defined when @link(Answered). }
@@ -253,7 +253,7 @@ type
     FAnswer: char;
     procedure ButtonClick(Sender: TObject);
   protected
-    procedure InitializeButtons(var Buttons: TButtonArray); override;
+    procedure InitializeButtons(var Buttons: TStateDialog.TButtonArray); override;
   public
     ButtonCaptions: array of string;
     ButtonChars: array of char;
@@ -277,7 +277,7 @@ type
     function GetAnswer: string;
     procedure SetAnswer(const Value: string);
   protected
-    procedure InitializeButtons(var Buttons: TButtonArray); override;
+    procedure InitializeButtons(var Buttons: TStateDialog.TButtonArray); override;
     function DrawInputText: boolean; override;
   public
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -464,11 +464,11 @@ end;
 
 { TStateDialogOK ------------------------------------------------------------- }
 
-procedure TStateDialogOK.InitializeButtons(var Buttons: TButtonArray);
+procedure TStateDialogOK.InitializeButtons(var Buttons: TStateDialog.TButtonArray);
 begin
   SetLength(Buttons, 1);
   Buttons[0] := TCastleButton.Create(Self);
-  Buttons[0].OnClick := @ButtonOKClick;
+  Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonOKClick;
   Buttons[0].Caption := 'OK';
 end;
 
@@ -491,16 +491,16 @@ end;
 
 { TStateDialogYesNo ---------------------------------------------------------- }
 
-procedure TStateDialogYesNo.InitializeButtons(var Buttons: TButtonArray);
+procedure TStateDialogYesNo.InitializeButtons(var Buttons: TStateDialog.TButtonArray);
 begin
   SetLength(Buttons, 2);
 
   Buttons[0] := TCastleButton.Create(Self);
-  Buttons[0].OnClick := @ButtonNoClick;
+  Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonNoClick;
   Buttons[0].Caption := 'No';
 
   Buttons[1] := TCastleButton.Create(Self);
-  Buttons[1].OnClick := @ButtonYesClick;
+  Buttons[1].OnClick := {$ifdef FPC}@{$endif}ButtonYesClick;
   Buttons[1].Caption := 'Yes';
 end;
 
@@ -538,7 +538,7 @@ end;
 
 { TStateDialogChoice ---------------------------------------------------------- }
 
-procedure TStateDialogChoice.InitializeButtons(var Buttons: TButtonArray);
+procedure TStateDialogChoice.InitializeButtons(var Buttons: TStateDialog.TButtonArray);
 var
   I: Integer;
 begin
@@ -548,7 +548,7 @@ begin
   for I := 0 to High(ButtonCaptions) do
   begin
     Buttons[I] := TCastleButton.Create(Self);
-    Buttons[I].OnClick := @ButtonClick;
+    Buttons[I].OnClick := {$ifdef FPC}@{$endif}ButtonClick;
     Buttons[I].Caption := ButtonCaptions[I];
     Buttons[I].Tag := Ord(ButtonChars[I]);
   end;
@@ -585,24 +585,24 @@ end;
 
 { TStateDialogInput ---------------------------------------------------------- }
 
-procedure TStateDialogInput.InitializeButtons(var Buttons: TButtonArray);
+procedure TStateDialogInput.InitializeButtons(var Buttons: TStateDialog.TButtonArray);
 begin
   if CanCancel then
   begin
     SetLength(Buttons, 2);
 
     Buttons[0] := TCastleButton.Create(Self);
-    Buttons[0].OnClick := @ButtonCancelClick;
+    Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonCancelClick;
     Buttons[0].Caption := 'Cancel';
 
     Buttons[1] := TCastleButton.Create(Self);
-    Buttons[1].OnClick := @ButtonOKClick;
+    Buttons[1].OnClick := {$ifdef FPC}@{$endif}ButtonOKClick;
     Buttons[1].Caption := 'OK';
   end else
   begin
     SetLength(Buttons, 1);
     Buttons[0] := TCastleButton.Create(Self);
-    Buttons[0].OnClick := @ButtonOKClick;
+    Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonOKClick;
     Buttons[0].Caption := 'OK';
   end;
 end;
@@ -687,7 +687,7 @@ begin
   end else
   if (Event.EventType = itKey) and
      (Event.KeyString <> '') and
-     (Event.KeyCharacter in AllowedChars) and
+     CharInSet(Event.KeyCharacter, AllowedChars) and
      ((MaxLength = 0) or (Length(InputText) < MaxLength)) then
   begin
     InputText := InputText + Event.KeyString;

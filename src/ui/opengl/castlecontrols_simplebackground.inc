@@ -30,8 +30,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    property Width default 0;
-    property Height default 0;
+    property Width {$ifdef FPC}default 0{$endif};
+    property Height {$ifdef FPC}default 0{$endif};
     { Background color. By default, this is black color with opaque alpha. }
     property Color: TCastleColor read FColor write SetColor;
   end deprecated 'use TCastleRectangleControl with FullSize=true; note that by default it has White color, while TCastleSimpleBackground has by default Black color.';

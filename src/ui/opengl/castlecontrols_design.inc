@@ -92,7 +92,7 @@ constructor TCastleDesign.Create(AOwner: TComponent);
 begin
   inherited;
   FDesignObserver := TFreeNotificationObserver.Create(Self);
-  FDesignObserver.OnFreeNotification := @DesignFreeNotification;
+  FDesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif}DesignFreeNotification;
   FStretchWhenNotLoaded := true;
 end;
 
@@ -172,12 +172,11 @@ end;
 function TCastleDesign.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'URL', 'Stretch':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'URL') or
+     (PropertyName = 'Stretch') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

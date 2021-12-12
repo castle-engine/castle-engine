@@ -17,7 +17,8 @@
 
 {$ifdef read_interface}
 
-type
+{$ifdef read_interface_type}
+//type - don't add type Delphi can't parse that correctly
   { }
   TTextureWrap2D = packed record
     Data: packed array [0..1] of TGLenum;
@@ -28,12 +29,17 @@ type
     Data: packed array [0..2] of TGLenum;
     class operator {$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap3D): boolean;
   end;
+{$endif read_interface_type}
 
+{$ifdef read_interface_const}
 const
   Texture2DRepeat: TTextureWrap2D = (Data: (GL_REPEAT, GL_REPEAT));
+{$endif read_interface_const}
 
+{$ifdef read_interface_func}
 { Return wrap GL_CLAMP_TO_EDGE in both directions. }
 function Texture2DClampToEdge: TTextureWrap2D;
+{$endif read_interface_func}
 
 {$endif read_interface}
 

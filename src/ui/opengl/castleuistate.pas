@@ -194,7 +194,7 @@ type
     class procedure Push(const NewState: TUIState);
 
     { Pop the current top-most state, reversing the @link(Push) operation. }
-    class procedure Pop;
+    class procedure Pop; overload;
 
     { Pop the current top-most state, reversing the @link(Push) operation,
       also checking whether the current top-most state is as expected.
@@ -202,7 +202,7 @@ type
       Makes a warning, and does nothing, if the current top-most state
       is different than indicated. This is usually a safer (more chance
       to easily catch bugs) version of Pop than the parameter-less version. }
-    class procedure Pop(const CurrentTopMostState: TUIState);
+    class procedure Pop(const CurrentTopMostState: TUIState); overload;
 
     { Count of states in the state stack.
       State stack is managed using Start / Push / Pop. }
@@ -373,9 +373,9 @@ type
     }
     procedure InsertUserInterface(const ADesignUrl: String;
       const FinalOwner: TComponent;
-      out Ui: TCastleUserInterface; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
+      out Ui: TCastleUserInterface; out UiOwner: TComponent); overload; deprecated 'instead of this, set DesignUrl in constructor';
     procedure InsertUserInterface(const ADesignUrl: String;
-      const FinalOwner: TComponent; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
+      const FinalOwner: TComponent; out UiOwner: TComponent); overload; deprecated 'instead of this, set DesignUrl in constructor';
 
     { Wait until the render event happens (to redraw current state),
       and then call Event.
@@ -486,7 +486,7 @@ type
     property FullSize default true;
   end;
 
-  TUIStateList = class(specialize TObjectList<TUIState>);
+  TUIStateList = class({$ifdef FPC}specialize{$endif} TObjectList<TUIState>);
 
 implementation
 
@@ -743,7 +743,7 @@ begin
   FWaitingForRender := TNotifyEventList.Create;
   FCallBeforeUpdate := TNotifyEventList.Create;
   FStartContainerObserver := TFreeNotificationObserver.Create(Self);
-  FStartContainerObserver.OnFreeNotification := @StartContainerFreeNotification;
+  FStartContainerObserver.OnFreeNotification := {$ifdef FPC}@{$endif}StartContainerFreeNotification;
 end;
 
 constructor TUIState.CreateUntilStopped;

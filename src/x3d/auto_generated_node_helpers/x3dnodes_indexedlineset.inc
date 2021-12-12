@@ -84,9 +84,9 @@
     { X3D field "colorIndex". } { }
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
     { Set X3D field "colorIndex". } { }
-    procedure SetColorIndex(const Value: array of LongInt);
+    procedure SetColorIndex(const Value: array of LongInt); overload;
     { Set X3D field "colorIndex". } { }
-    procedure SetColorIndex(const Value: TLongIntList);
+    procedure SetColorIndex(const Value: TLongIntList); overload;
 
     strict private FFdColorPerVertex: TSFBool;
     { X3D field "colorPerVertex". } { }
@@ -98,9 +98,9 @@
     { X3D field "coordIndex". } { }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     { Set X3D field "coordIndex". } { }
-    procedure SetCoordIndex(const Value: array of LongInt);
+    procedure SetCoordIndex(const Value: array of LongInt); overload;
     { Set X3D field "coordIndex". } { }
-    procedure SetCoordIndex(const Value: TLongIntList);
+    procedure SetCoordIndex(const Value: TLongIntList); overload;
 
 {$endif read_interface}
 

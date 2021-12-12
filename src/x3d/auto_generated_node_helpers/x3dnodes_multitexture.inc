@@ -50,25 +50,25 @@
     { X3D field "function". } { }
     public property FdFunction: TMFString read FFdFunction;
     { Set X3D field "function". } { }
-    procedure SetFunction(const Value: array of string);
+    procedure SetFunction(const Value: array of string); overload;
     { Set X3D field "function". } { }
-    procedure SetFunction(const Value: TCastleStringList);
+    procedure SetFunction(const Value: TCastleStringList); overload;
 
     strict private FFdMode: TMFString;
     { X3D field "mode". } { }
     public property FdMode: TMFString read FFdMode;
     { Set X3D field "mode". } { }
-    procedure SetMode(const Value: array of string);
+    procedure SetMode(const Value: array of string); overload;
     { Set X3D field "mode". } { }
-    procedure SetMode(const Value: TCastleStringList);
+    procedure SetMode(const Value: TCastleStringList); overload;
 
     strict private FFdSource: TMFString;
     { X3D field "source". } { }
     public property FdSource: TMFString read FFdSource;
     { Set X3D field "source". } { }
-    procedure SetSource(const Value: array of string);
+    procedure SetSource(const Value: array of string); overload;
     { Set X3D field "source". } { }
-    procedure SetSource(const Value: TCastleStringList);
+    procedure SetSource(const Value: TCastleStringList); overload;
 
     strict private FFdTexture: TMFNode;
     { X3D field "texture". } { }

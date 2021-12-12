@@ -20,8 +20,8 @@
   strict protected
     { Get or set the number of items, see @link(Count).
       @groupBegin }
-    function GetCount: SizeInt; virtual; abstract;
-    procedure SetCount(const Value: SizeInt); virtual; abstract;
+    function GetCount: TListSize; virtual; abstract;
+    procedure SetCount(const Value: TListSize); virtual; abstract;
     { @groupEnd }
   public
     { Number of items in this field.
@@ -29,7 +29,7 @@
       Remember that increasing this generally sets new items to undefined
       values (see SetCount documentation of particular descendant for docs).
       So you usually want to initialize them afterwards to something correct. }
-    property Count: SizeInt read GetCount write SetCount;
+    property Count: TListSize read GetCount write SetCount;
   end;
 
 {$endif read_interface}

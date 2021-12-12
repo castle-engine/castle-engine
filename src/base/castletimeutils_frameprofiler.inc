@@ -83,8 +83,8 @@ type
 
     Use this class only through the singleton instance @link(FrameProfiler).
 
-    The easiest way to enable this and view the data is through TCastleInspector.
-    Just use F12 in a debug build.
+    The easiest way to enable this and view the data is through
+    Castle Game Engine inspector. Just press F8 in a debug build to view it.
   }
   TCastleFrameProfiler = class
   private
@@ -154,8 +154,8 @@ type
       SummaryTime are times of particular things within this frame.
       @groupBegin }
     function SummaryTotalFrameTime: TFloatTime;
-    function SummaryTime(const FrameMetric: TFrameMetric): TFloatTime;
-    function SummaryTime(const UserMetric: String): TFloatTime;
+    function SummaryTime(const FrameMetric: TFrameMetric): TFloatTime; overload;
+    function SummaryTime(const UserMetric: String): TFloatTime; overload;
     { @groupEnd }
 
     { Notification when the summary is available, i.e. we have gathered FramesForSummary frames. }
@@ -224,10 +224,17 @@ begin
      CurrentFrameStarted[IndexFrameMetric(fmUpdateGeneratedTextures)] then
     Exit; // do not measure rendering times inside fmUpdateGeneratedTextures, they make output confusing
 
-  Assert(CurrentFrameStarted[Metric]);
-  FramesTimes[CurrentFrame, Metric] := FramesTimes[CurrentFrame, Metric] +
-    CurrentFrameStart[Metric].ElapsedTime;
-  CurrentFrameStarted[Metric] := false;
+  if not CurrentFrameStarted[Metric] then
+  begin
+    WritelnWarning('Frame metric %d not started. Possible cause: called FrameProfiler.Enabled between Start/Stop, this can be ignored.', [
+      Metric
+    ]);
+  end else
+  begin
+    FramesTimes[CurrentFrame, Metric] := FramesTimes[CurrentFrame, Metric] +
+      CurrentFrameStart[Metric].ElapsedTime;
+    CurrentFrameStarted[Metric] := false;
+  end;
 end;
 
 function TCastleFrameProfiler.SummaryTotalFrameTime: TFloatTime;

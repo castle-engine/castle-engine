@@ -204,7 +204,9 @@
     constructor Create;
     destructor Destroy; override;
     property X3DName: string read FX3DName write FX3DName;
+    {$ifdef FPC}
     property Name: string read FX3DName write FX3DName; deprecated 'use X3DName';
+    {$endif}
     property InterfaceDeclarations: TX3DInterfaceDeclarationList
       read FInterfaceDeclarations;
 
@@ -221,7 +223,7 @@
     property BaseUrl: string read FBaseUrl write FBaseUrl;
   end;
 
-  TX3DPrototypeBaseList = class(specialize TObjectList<TX3DPrototypeBase>);
+  TX3DPrototypeBaseList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DPrototypeBase>);
 
   TX3DPrototype = class(TX3DPrototypeBase)
   strict private
@@ -618,7 +620,7 @@ begin
   for I := 0 to Child.EventsCount - 1 do
     ExpandEvent(Child.Events[I]);
 
-  Child.DirectEnumerateAll({$ifdef CASTLE_OBJFPC}@{$endif} Self.InstantiateIsClauses);
+  Child.DirectEnumerateAll({$ifdef FPC}@{$endif} Self.InstantiateIsClauses);
 end;
 
 function TX3DPrototypeNode.PrepareInstantiateIsClause(
@@ -628,7 +630,7 @@ begin
   if not (Child.NeedsInstantiateIsClause or (Child is TInlineNode)) then
   begin
     Child.NeedsInstantiateIsClause := true;
-    Child.DirectEnumerateAll({$ifdef CASTLE_OBJFPC}@{$endif} Self.PrepareInstantiateIsClause);
+    Child.DirectEnumerateAll({$ifdef FPC}@{$endif} Self.PrepareInstantiateIsClause);
   end;
 end;
 

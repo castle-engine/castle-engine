@@ -186,41 +186,41 @@
     { X3D field "articulationParameterDesignatorArray". } { }
     public property FdArticulationParameterDesignatorArray: TMFInt32 read FFdArticulationParameterDesignatorArray;
     { Set X3D field "articulationParameterDesignatorArray". } { }
-    procedure SetArticulationParameterDesignatorArray(const Value: array of LongInt);
+    procedure SetArticulationParameterDesignatorArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterDesignatorArray". } { }
-    procedure SetArticulationParameterDesignatorArray(const Value: TLongIntList);
+    procedure SetArticulationParameterDesignatorArray(const Value: TLongIntList); overload;
 
     strict private FFdArticulationParameterChangeIndicatorArray: TMFInt32;
     { X3D field "articulationParameterChangeIndicatorArray". } { }
     public property FdArticulationParameterChangeIndicatorArray: TMFInt32 read FFdArticulationParameterChangeIndicatorArray;
     { Set X3D field "articulationParameterChangeIndicatorArray". } { }
-    procedure SetArticulationParameterChangeIndicatorArray(const Value: array of LongInt);
+    procedure SetArticulationParameterChangeIndicatorArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterChangeIndicatorArray". } { }
-    procedure SetArticulationParameterChangeIndicatorArray(const Value: TLongIntList);
+    procedure SetArticulationParameterChangeIndicatorArray(const Value: TLongIntList); overload;
 
     strict private FFdArticulationParameterIdPartAttachedToArray: TMFInt32;
     { X3D field "articulationParameterIdPartAttachedToArray". } { }
     public property FdArticulationParameterIdPartAttachedToArray: TMFInt32 read FFdArticulationParameterIdPartAttachedToArray;
     { Set X3D field "articulationParameterIdPartAttachedToArray". } { }
-    procedure SetArticulationParameterIdPartAttachedToArray(const Value: array of LongInt);
+    procedure SetArticulationParameterIdPartAttachedToArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterIdPartAttachedToArray". } { }
-    procedure SetArticulationParameterIdPartAttachedToArray(const Value: TLongIntList);
+    procedure SetArticulationParameterIdPartAttachedToArray(const Value: TLongIntList); overload;
 
     strict private FFdArticulationParameterTypeArray: TMFInt32;
     { X3D field "articulationParameterTypeArray". } { }
     public property FdArticulationParameterTypeArray: TMFInt32 read FFdArticulationParameterTypeArray;
     { Set X3D field "articulationParameterTypeArray". } { }
-    procedure SetArticulationParameterTypeArray(const Value: array of LongInt);
+    procedure SetArticulationParameterTypeArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterTypeArray". } { }
-    procedure SetArticulationParameterTypeArray(const Value: TLongIntList);
+    procedure SetArticulationParameterTypeArray(const Value: TLongIntList); overload;
 
     strict private FFdArticulationParameterArray: TMFFloat;
     { X3D field "articulationParameterArray". } { }
     public property FdArticulationParameterArray: TMFFloat read FFdArticulationParameterArray;
     { Set X3D field "articulationParameterArray". } { }
-    procedure SetArticulationParameterArray(const Value: array of Single);
+    procedure SetArticulationParameterArray(const Value: array of Single); overload;
     { Set X3D field "articulationParameterArray". } { }
-    procedure SetArticulationParameterArray(const Value: TSingleList);
+    procedure SetArticulationParameterArray(const Value: TSingleList); overload;
 
     strict private FFdCenter: TSFVec3f;
     { X3D field "center". } { }

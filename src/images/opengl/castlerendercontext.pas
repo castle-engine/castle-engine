@@ -21,7 +21,7 @@ unit CastleRenderContext;
 interface
 
 uses SysUtils, Generics.Collections,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleUtils, CastleVectors, CastleRectangles, CastleGLShaders, CastleColors;
 
 type
@@ -78,7 +78,7 @@ type
   TRenderContext = class
   strict private
     type
-      TScissorList = class(specialize TObjectList<TScissor>)
+      TScissorList = class({$ifdef FPC}specialize{$endif} TObjectList<TScissor>)
       public
         FFinalScissor: TRectangle; // only defined when Count <> 0
         procedure Update;
@@ -132,7 +132,7 @@ type
       Do not access this property directly, unless you make direct
       OpenGL/OpenGLES calls. In normal circumstances, engine API
       (like DrawPrimitive2D or TCastleScene) set this automatically. }
-    property LineWidth: Single read FLineWidth write SetLineWidth default 1;
+    property LineWidth: Single read FLineWidth write SetLineWidth {$ifdef FPC}default 1{$endif};
 
     { The rendered point size.
       Never call OpenGL glPointSize directly.
@@ -140,7 +140,7 @@ type
       Do not access this property directly, unless you make direct
       OpenGL/OpenGLES calls. In normal circumstances, engine API
       (like DrawPrimitive2D or TCastleScene) set this automatically. }
-    property PointSize: Single read FPointSize write SetPointSize default 1;
+    property PointSize: Single read FPointSize write SetPointSize {$ifdef FPC}default 1{$endif};
 
     { Global ambient lighting. This is added to every 3D object color,
       multiplied by material ambient.
@@ -182,10 +182,12 @@ type
     property FrontFaceCcw: boolean read FFrontFaceCcw write SetFrontFaceCcw
       default true;
 
+    {$ifdef FPC}
     { Are color buffer channels changed by rendering. }
     property ColorMask: boolean
       read GetColorMask write SetColorMask default true;
       deprecated 'use ColorChannels';
+    {$endif}
 
     { Which color buffer channels are written by rendering.
       This affects all rendering, including @link(TDrawableImage.Draw).
@@ -323,7 +325,7 @@ begin
   for B in Buffers do
     Mask := Mask or ClearBufferMask[B];
   if Mask <> 0 then
-    {$ifndef OpenGLES} GL {$else} CastleGL {$endif}.GLClear(Mask);
+    {$ifndef OpenGLES} {$ifdef FPC} GL {$else} OpenGL {$endif} {$else} CastleGL {$endif}.GLClear(Mask);
 end;
 
 procedure TRenderContext.SetLineWidth(const Value: Single);
@@ -508,7 +510,7 @@ end;
 
 procedure TRenderContext.UpdateViewport;
 begin
-  {$ifndef OpenGLES} GL {$else} CastleGL {$endif}
+  {$ifndef OpenGLES} {$ifdef FPC} GL {$else} OpenGL {$endif} {$else} CastleGL {$endif}
     .glViewport(
       FViewport.Left   + FViewportDelta.X,
       FViewport.Bottom + FViewportDelta.Y,

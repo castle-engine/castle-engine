@@ -21,9 +21,9 @@ unit CastleScreenEffects;
 interface
 
 uses SysUtils, Classes,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleGLShaders, CastleUIControls, X3DNodes, CastleGLImages,
-  CastleRectangles, CastleScene, CastleTransform, CastleCameras;
+  CastleRectangles, CastleScene, CastleTransform, CastleCameras, CastleGLUtils;
 
 { Standard GLSL vertex shader for screen effect.
   @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
@@ -248,7 +248,7 @@ type
       to make it clear that it's completely independent from
       @link(TCastleAbstractRootTransform.TimeScale). }
     property ScreenEffectsTimeScale: Single
-      read FScreenEffectsTimeScale write FScreenEffectsTimeScale default 1;
+      read FScreenEffectsTimeScale write FScreenEffectsTimeScale {$ifdef FPC}default 1{$endif};
 
     { Enable or disable all screen effects added by AddScreenEffect.
       When this is @true, particular screen effects can still be enabled/disabled
@@ -264,7 +264,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext, CastleRenderOptions;
+uses CastleUtils, CastleLog, CastleRenderContext, CastleRenderOptions;
 
 function ScreenEffectVertex: string;
 begin
@@ -279,11 +279,11 @@ begin
   if GLFeatures.FBOMultiSampling then
   begin
     if GLFeatures.CurrentMultiSampling > 1 then
-      Result +=
+      Result := Result +
         '#define MULTI_SAMPLING' +NL +
         '#define MULTI_SAMPLING_' + IntToStr(GLFeatures.CurrentMultiSampling) +NL;
     if not (GLFeatures.CurrentMultiSampling in [1, 2, 4, 8, 16]) then
-      WritelnWarning('Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. This may indicate that your GPU is very new or very weird. Please submit this as a bug (see https://castle-engine.io/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
+      WritelnWarning('Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. ' + 'This may indicate that your GPU is very new or very weird. Please submit this as a bug (see https://castle-engine.io/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
         [GLFeatures.CurrentMultiSampling]));
   end;
   Result := Result + ({$I screen_effect_library.glsl.inc} + NL);

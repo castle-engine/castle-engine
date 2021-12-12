@@ -90,7 +90,7 @@ end;
 
 type
   { Represents the full language JSON file containing all translated strings. }
-  TFileLoaderJSONList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TGenericCollection<TFileLoaderJSONEntry>;
+  TFileLoaderJSONList = {$ifdef FPC}specialize{$endif} TGenericCollection<TFileLoaderJSONEntry>;
 
 { LoadLanguageFiles ---------------------------------------------------------- }
 

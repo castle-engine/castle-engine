@@ -201,93 +201,93 @@ begin
   if ALLibrary <> nil then
   begin
     { alXxx functions -------------------------------------------------------- }
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alEnable) := ALLibrary.Symbol('alEnable');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alDisable) := ALLibrary.Symbol('alDisable');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alIsEnabled) := ALLibrary.Symbol('alIsEnabled');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetBooleanv) := ALLibrary.Symbol('alGetBooleanv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetIntegerv) := ALLibrary.Symbol('alGetIntegerv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetFloatv) := ALLibrary.Symbol('alGetFloatv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetDoublev) := ALLibrary.Symbol('alGetDoublev');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetString) := ALLibrary.Symbol('alGetString');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetBoolean) := ALLibrary.Symbol('alGetBoolean');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetInteger) := ALLibrary.Symbol('alGetInteger');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetFloat) := ALLibrary.Symbol('alGetFloat');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetDouble) := ALLibrary.Symbol('alGetDouble');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetError) := ALLibrary.Symbol('alGetError');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alIsExtensionPresent) := ALLibrary.Symbol('alIsExtensionPresent');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetProcAddress) := ALLibrary.Symbol('alGetProcAddress');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetEnumValue) := ALLibrary.Symbol('alGetEnumValue');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alListenerf) := ALLibrary.Symbol('alListenerf');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alListeneri) := ALLibrary.Symbol('alListeneri');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alListener3f) := ALLibrary.Symbol('alListener3f');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alListenerfv) := ALLibrary.Symbol('alListenerfv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetListeneri) := ALLibrary.Symbol('alGetListeneri');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetListenerf) := ALLibrary.Symbol('alGetListenerf');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetListenerfv) := ALLibrary.Symbol('alGetListenerfv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetListener3f) := ALLibrary.Symbol('alGetListener3f');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGenSources) := ALLibrary.Symbol('alGenSources');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alDeleteSources) := ALLibrary.Symbol('alDeleteSources');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alIsSource) := ALLibrary.Symbol('alIsSource');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourcei) := ALLibrary.Symbol('alSourcei');
+    Pointer({$ifndef FPC}@{$endif} alEnable) := ALLibrary.Symbol('alEnable');
+    Pointer({$ifndef FPC}@{$endif} alDisable) := ALLibrary.Symbol('alDisable');
+    Pointer({$ifndef FPC}@{$endif} alIsEnabled) := ALLibrary.Symbol('alIsEnabled');
+    Pointer({$ifndef FPC}@{$endif} alGetBooleanv) := ALLibrary.Symbol('alGetBooleanv');
+    Pointer({$ifndef FPC}@{$endif} alGetIntegerv) := ALLibrary.Symbol('alGetIntegerv');
+    Pointer({$ifndef FPC}@{$endif} alGetFloatv) := ALLibrary.Symbol('alGetFloatv');
+    Pointer({$ifndef FPC}@{$endif} alGetDoublev) := ALLibrary.Symbol('alGetDoublev');
+    Pointer({$ifndef FPC}@{$endif} alGetString) := ALLibrary.Symbol('alGetString');
+    Pointer({$ifndef FPC}@{$endif} alGetBoolean) := ALLibrary.Symbol('alGetBoolean');
+    Pointer({$ifndef FPC}@{$endif} alGetInteger) := ALLibrary.Symbol('alGetInteger');
+    Pointer({$ifndef FPC}@{$endif} alGetFloat) := ALLibrary.Symbol('alGetFloat');
+    Pointer({$ifndef FPC}@{$endif} alGetDouble) := ALLibrary.Symbol('alGetDouble');
+    Pointer({$ifndef FPC}@{$endif} alGetError) := ALLibrary.Symbol('alGetError');
+    Pointer({$ifndef FPC}@{$endif} alIsExtensionPresent) := ALLibrary.Symbol('alIsExtensionPresent');
+    Pointer({$ifndef FPC}@{$endif} alGetProcAddress) := ALLibrary.Symbol('alGetProcAddress');
+    Pointer({$ifndef FPC}@{$endif} alGetEnumValue) := ALLibrary.Symbol('alGetEnumValue');
+    Pointer({$ifndef FPC}@{$endif} alListenerf) := ALLibrary.Symbol('alListenerf');
+    Pointer({$ifndef FPC}@{$endif} alListeneri) := ALLibrary.Symbol('alListeneri');
+    Pointer({$ifndef FPC}@{$endif} alListener3f) := ALLibrary.Symbol('alListener3f');
+    Pointer({$ifndef FPC}@{$endif} alListenerfv) := ALLibrary.Symbol('alListenerfv');
+    Pointer({$ifndef FPC}@{$endif} alGetListeneri) := ALLibrary.Symbol('alGetListeneri');
+    Pointer({$ifndef FPC}@{$endif} alGetListenerf) := ALLibrary.Symbol('alGetListenerf');
+    Pointer({$ifndef FPC}@{$endif} alGetListenerfv) := ALLibrary.Symbol('alGetListenerfv');
+    Pointer({$ifndef FPC}@{$endif} alGetListener3f) := ALLibrary.Symbol('alGetListener3f');
+    Pointer({$ifndef FPC}@{$endif} alGenSources) := ALLibrary.Symbol('alGenSources');
+    Pointer({$ifndef FPC}@{$endif} alDeleteSources) := ALLibrary.Symbol('alDeleteSources');
+    Pointer({$ifndef FPC}@{$endif} alIsSource) := ALLibrary.Symbol('alIsSource');
+    Pointer({$ifndef FPC}@{$endif} alSourcei) := ALLibrary.Symbol('alSourcei');
 
     { alSource3i possibily not present in older < 1.1 OpenAL implementations,
       in particular in Loki versions. Handle gracefully: set to @nil, allowing
       programs that don't use alSource3i to still work. }
     try
-      Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSource3i) := ALLibrary.Symbol('alSource3i');
+      Pointer({$ifndef FPC}@{$endif} alSource3i) := ALLibrary.Symbol('alSource3i');
     except
       on EDynLibError do alSource3i := nil;
     end;
 
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourcef) := ALLibrary.Symbol('alSourcef');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSource3f) := ALLibrary.Symbol('alSource3f');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourcefv) := ALLibrary.Symbol('alSourcefv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetSourcei) := ALLibrary.Symbol('alGetSourcei');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetSourcef) := ALLibrary.Symbol('alGetSourcef');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetSourcefv) := ALLibrary.Symbol('alGetSourcefv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourcePlayv) := ALLibrary.Symbol('alSourcePlayv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourceStopv) := ALLibrary.Symbol('alSourceStopv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourceRewindv) := ALLibrary.Symbol('alSourceRewindv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourcePausev) := ALLibrary.Symbol('alSourcePausev');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourcePlay) := ALLibrary.Symbol('alSourcePlay');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourcePause) := ALLibrary.Symbol('alSourcePause');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourceRewind) := ALLibrary.Symbol('alSourceRewind');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourceStop) := ALLibrary.Symbol('alSourceStop');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGenBuffers) := ALLibrary.Symbol('alGenBuffers');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alDeleteBuffers) := ALLibrary.Symbol('alDeleteBuffers');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alIsBuffer) := ALLibrary.Symbol('alIsBuffer');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alBufferData) := ALLibrary.Symbol('alBufferData');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetBufferi) := ALLibrary.Symbol('alGetBufferi');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetBufferf) := ALLibrary.Symbol('alGetBufferf');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourceQueueBuffers) := ALLibrary.Symbol('alSourceQueueBuffers');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alSourceUnqueueBuffers) := ALLibrary.Symbol('alSourceUnqueueBuffers');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alDopplerFactor) := ALLibrary.Symbol('alDopplerFactor');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alDopplerVelocity) := ALLibrary.Symbol('alDopplerVelocity');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alDistanceModel) := ALLibrary.Symbol('alDistanceModel');
+    Pointer({$ifndef FPC}@{$endif} alSourcef) := ALLibrary.Symbol('alSourcef');
+    Pointer({$ifndef FPC}@{$endif} alSource3f) := ALLibrary.Symbol('alSource3f');
+    Pointer({$ifndef FPC}@{$endif} alSourcefv) := ALLibrary.Symbol('alSourcefv');
+    Pointer({$ifndef FPC}@{$endif} alGetSourcei) := ALLibrary.Symbol('alGetSourcei');
+    Pointer({$ifndef FPC}@{$endif} alGetSourcef) := ALLibrary.Symbol('alGetSourcef');
+    Pointer({$ifndef FPC}@{$endif} alGetSourcefv) := ALLibrary.Symbol('alGetSourcefv');
+    Pointer({$ifndef FPC}@{$endif} alSourcePlayv) := ALLibrary.Symbol('alSourcePlayv');
+    Pointer({$ifndef FPC}@{$endif} alSourceStopv) := ALLibrary.Symbol('alSourceStopv');
+    Pointer({$ifndef FPC}@{$endif} alSourceRewindv) := ALLibrary.Symbol('alSourceRewindv');
+    Pointer({$ifndef FPC}@{$endif} alSourcePausev) := ALLibrary.Symbol('alSourcePausev');
+    Pointer({$ifndef FPC}@{$endif} alSourcePlay) := ALLibrary.Symbol('alSourcePlay');
+    Pointer({$ifndef FPC}@{$endif} alSourcePause) := ALLibrary.Symbol('alSourcePause');
+    Pointer({$ifndef FPC}@{$endif} alSourceRewind) := ALLibrary.Symbol('alSourceRewind');
+    Pointer({$ifndef FPC}@{$endif} alSourceStop) := ALLibrary.Symbol('alSourceStop');
+    Pointer({$ifndef FPC}@{$endif} alGenBuffers) := ALLibrary.Symbol('alGenBuffers');
+    Pointer({$ifndef FPC}@{$endif} alDeleteBuffers) := ALLibrary.Symbol('alDeleteBuffers');
+    Pointer({$ifndef FPC}@{$endif} alIsBuffer) := ALLibrary.Symbol('alIsBuffer');
+    Pointer({$ifndef FPC}@{$endif} alBufferData) := ALLibrary.Symbol('alBufferData');
+    Pointer({$ifndef FPC}@{$endif} alGetBufferi) := ALLibrary.Symbol('alGetBufferi');
+    Pointer({$ifndef FPC}@{$endif} alGetBufferf) := ALLibrary.Symbol('alGetBufferf');
+    Pointer({$ifndef FPC}@{$endif} alSourceQueueBuffers) := ALLibrary.Symbol('alSourceQueueBuffers');
+    Pointer({$ifndef FPC}@{$endif} alSourceUnqueueBuffers) := ALLibrary.Symbol('alSourceUnqueueBuffers');
+    Pointer({$ifndef FPC}@{$endif} alDopplerFactor) := ALLibrary.Symbol('alDopplerFactor');
+    Pointer({$ifndef FPC}@{$endif} alDopplerVelocity) := ALLibrary.Symbol('alDopplerVelocity');
+    Pointer({$ifndef FPC}@{$endif} alDistanceModel) := ALLibrary.Symbol('alDistanceModel');
 
     {$ifdef OPENAL_DEPRECATED}
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetBufferiv) := ALLibrary.Symbol('alGetBufferiv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetBufferfv) := ALLibrary.Symbol('alGetBufferfv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetSourceiv) := ALLibrary.Symbol('alGetSourceiv');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alGetListeneriv) := ALLibrary.Symbol('alGetListeneriv');
+    Pointer({$ifndef FPC}@{$endif} alGetBufferiv) := ALLibrary.Symbol('alGetBufferiv');
+    Pointer({$ifndef FPC}@{$endif} alGetBufferfv) := ALLibrary.Symbol('alGetBufferfv');
+    Pointer({$ifndef FPC}@{$endif} alGetSourceiv) := ALLibrary.Symbol('alGetSourceiv');
+    Pointer({$ifndef FPC}@{$endif} alGetListeneriv) := ALLibrary.Symbol('alGetListeneriv');
     {$endif OPENAL_DEPRECATED}
 
     { alcXxx functions ---------------------------------------- }
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcCreateContext) := ALLibrary.Symbol('alcCreateContext');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcMakeContextCurrent) := ALLibrary.Symbol('alcMakeContextCurrent');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcProcessContext) := ALLibrary.Symbol('alcProcessContext');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcSuspendContext) := ALLibrary.Symbol('alcSuspendContext');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcDestroyContext) := ALLibrary.Symbol('alcDestroyContext');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcGetError) := ALLibrary.Symbol('alcGetError');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcGetCurrentContext) := ALLibrary.Symbol('alcGetCurrentContext');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcOpenDevice) := ALLibrary.Symbol('alcOpenDevice');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcCloseDevice) := ALLibrary.Symbol('alcCloseDevice');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcIsExtensionPresent) := ALLibrary.Symbol('alcIsExtensionPresent');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcGetProcAddress) := ALLibrary.Symbol('alcGetProcAddress');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcGetEnumValue) := ALLibrary.Symbol('alcGetEnumValue');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcGetContextsDevice) := ALLibrary.Symbol('alcGetContextsDevice');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcGetString) := ALLibrary.Symbol('alcGetString');
-    Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} alcGetIntegerv) := ALLibrary.Symbol('alcGetIntegerv');
+    Pointer({$ifndef FPC}@{$endif} alcCreateContext) := ALLibrary.Symbol('alcCreateContext');
+    Pointer({$ifndef FPC}@{$endif} alcMakeContextCurrent) := ALLibrary.Symbol('alcMakeContextCurrent');
+    Pointer({$ifndef FPC}@{$endif} alcProcessContext) := ALLibrary.Symbol('alcProcessContext');
+    Pointer({$ifndef FPC}@{$endif} alcSuspendContext) := ALLibrary.Symbol('alcSuspendContext');
+    Pointer({$ifndef FPC}@{$endif} alcDestroyContext) := ALLibrary.Symbol('alcDestroyContext');
+    Pointer({$ifndef FPC}@{$endif} alcGetError) := ALLibrary.Symbol('alcGetError');
+    Pointer({$ifndef FPC}@{$endif} alcGetCurrentContext) := ALLibrary.Symbol('alcGetCurrentContext');
+    Pointer({$ifndef FPC}@{$endif} alcOpenDevice) := ALLibrary.Symbol('alcOpenDevice');
+    Pointer({$ifndef FPC}@{$endif} alcCloseDevice) := ALLibrary.Symbol('alcCloseDevice');
+    Pointer({$ifndef FPC}@{$endif} alcIsExtensionPresent) := ALLibrary.Symbol('alcIsExtensionPresent');
+    Pointer({$ifndef FPC}@{$endif} alcGetProcAddress) := ALLibrary.Symbol('alcGetProcAddress');
+    Pointer({$ifndef FPC}@{$endif} alcGetEnumValue) := ALLibrary.Symbol('alcGetEnumValue');
+    Pointer({$ifndef FPC}@{$endif} alcGetContextsDevice) := ALLibrary.Symbol('alcGetContextsDevice');
+    Pointer({$ifndef FPC}@{$endif} alcGetString) := ALLibrary.Symbol('alcGetString');
+    Pointer({$ifndef FPC}@{$endif} alcGetIntegerv) := ALLibrary.Symbol('alcGetIntegerv');
 
     { --------------------------------------------------------------------------
       ALC_xxx constants depending on Sample Implementation or not }

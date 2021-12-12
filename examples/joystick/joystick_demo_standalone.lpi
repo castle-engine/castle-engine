@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="joystick_demo_standalone.lpr"/>
+        <Filename Value="joystick_demo_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

@@ -171,10 +171,10 @@ type
     { Load manifest file.
       @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
     constructor CreateFromUrl(const ManifestUrl: String);
-    { Guess values for the manifest, using AName as the project name.
+    { Guess values for the manifest.
       @param APath Project path, must be absolute.
-      @param AName Guessed project name. }
-    constructor CreateGuess(const APath, AName: String);
+      @param AStandaloneSource Guessed StandaloneSource value. Project Name will be derived from it too. }
+    constructor CreateGuess(const APath, AStandaloneSource: String);
 
     destructor Destroy; override;
 
@@ -403,17 +403,17 @@ begin
   FDataPath := InclPathDelim(FPath + DataName);
 end;
 
-constructor TCastleManifest.CreateGuess(const APath, AName: String);
+constructor TCastleManifest.CreateGuess(const APath, AStandaloneSource: String);
 begin
   Create(APath);
 
   FDataPath := InclPathDelim(Path + DataName);
-  FName := AName;
+  FName := DeleteFileExt(AStandaloneSource);
   FCaption := FName;
   FQualifiedName := DefaultQualifiedName(FName);
   FExecutableName := FName;
   FCompiler := DefaultCompiler;
-  FStandaloneSource := FName + '.lpr';
+  FStandaloneSource := AStandaloneSource;
   FLazarusProject := FName + '.lpi';
   FDelphiProject := FName + '.dproj';
   FVersion := TProjectVersion.Create(OwnerComponent);

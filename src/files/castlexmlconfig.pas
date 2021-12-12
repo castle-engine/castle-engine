@@ -30,7 +30,7 @@ type
 
   TCastleConfigEvent = procedure (const Config: TCastleConfig) of object;
 
-  TCastleConfigEventList = class(specialize TList<TCastleConfigEvent>)
+  TCastleConfigEventList = class({$ifdef FPC}specialize{$endif} TList<TCastleConfigEvent>)
   public
     { Call all items. }
     procedure ExecuteAll(const Config: TCastleConfig);
@@ -58,7 +58,7 @@ type
     FOnLoad, FOnSave: TCastleConfigEventList;
     FLoaded: boolean;
     { Load empty config. This loads a clear content, without any saved
-      settings, but it takes care to set @link(Loaded) to @true,
+      settings, but it takes care to set @link(IsLoaded) to @true,
       run OnLoad listeners and so on. Useful if your default config
       is broken for some reason (e.g. file corruption),
       but you want to override it and just get into a state
@@ -297,6 +297,7 @@ type
       but creates the necessary elements along the way as needed. }
     function MakePathElement(const APath: string): TDOMElement;
 
+    {$ifdef FPC}
     { For a given path, return corresponding children elements of a given
       DOM element of XML tree. For example, you have an XML like this:
 
@@ -322,6 +323,7 @@ type
       Never returns @nil. }
     function PathChildren(const APath: string; const ChildName: string): TDOMNodeList;
       deprecated 'use PathChildrenIterator';
+    {$endif}
 
     { For a given path, return iterator for elements of a given name.
 
@@ -406,12 +408,12 @@ type
     procedure RemoveSaveListener(const Listener: TCastleConfigEvent);
     { @groupEnd }
 
-    property Loaded: boolean read FLoaded;
+    property IsLoaded: boolean read FLoaded;
 
     { Load the current persistent data (user preferences, savegames etc.).
 
       All these methods call the listeners (from AddLoadListener).
-      All these methods update the @link(Loaded) property and the URL property.
+      All these methods update the @link(IsLoaded) property and the URL property.
       All these methods are secured to never raise exception in case of a currupted
       config file -- in this case, they silently load an empty config
       (but keep the new URL, so that following
@@ -962,18 +964,21 @@ begin
     { create child if necessary }
     if NewResult = nil then
     begin
-      NewResult := Document.CreateElement(UTF8Decode(PathComponent));
+      NewResult := Document.CreateElement({$ifdef FPC}UTF8Decode({$endif}PathComponent{$ifdef FPC}){$endif});
       Result.AppendChild(NewResult);
     end;
     Result := NewResult;
   end;
 end;
 
+{$ifdef FPC}
 function TCastleConfig.PathChildren(const APath: string;
   const ChildName: string): TDOMNodeList;
 begin
   Result := PathElement(APath, true).GetElementsByTagName(UTF8Decode(ChildName));
 end;
+{$endif}
+
 
 function TCastleConfig.PathChildrenIterator(const APath: string;
   const ChildName: string): TXMLElementIterator;
@@ -1037,7 +1042,7 @@ end;
 
 procedure TCastleConfig.AddLoadListener(const Listener: TCastleConfigEvent);
 begin
-  if Loaded then
+  if IsLoaded then
     Listener(Self);
   FOnLoad.Add(Listener);
 end;

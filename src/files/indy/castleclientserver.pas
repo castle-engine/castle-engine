@@ -237,7 +237,7 @@ uses
   begin
     if not IsInitialised then
     begin
-      ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif}Update);
+      ApplicationProperties.OnUpdate.Add({$ifdef FPC}@{$endif}Update);
       IsInitialised := true;
     end;
   end;

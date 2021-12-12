@@ -377,8 +377,14 @@ var
 
   var
     C: TUnicodeChar;
+    {$ifdef FPC}
     TextPtr: PChar;
     CharLen: Integer;
+    {$else}
+    TextIndex: Integer;
+    NextTextIndex: Integer;
+    TextLength: Integer;
+    {$endif}
   begin
     { first pass, to render Outline. }
 
@@ -426,11 +432,22 @@ var
     ScreenX := X;
     ScreenY := Y;
 
+    {$ifdef FPC}
     TextPtr := PChar(S);
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
     while (C > 0) and (CharLen > 0) do
+    {$else}
+    TextIndex := 1;
+    TextLength := Length(S);
+    while (TextIndex <= TextLength) do
+    {$endif}
     begin
+      {$ifdef FPC}
       Inc(TextPtr, CharLen);
+      {$else}
+      C := GetUTF32Char(S, TextIndex, NextTextIndex);
+      TextIndex := NextTextIndex;
+      {$endif}
 
       G := Font.Glyph(C);
       if G <> nil then
@@ -444,11 +461,13 @@ var
           else
           *)
             GlyphDraw(0, 0);
-        ScreenX += G.AdvanceX + Outline * 2;
-        ScreenY += G.AdvanceY;
+        ScreenX := ScreenX + G.AdvanceX + Outline * 2;
+        ScreenY := ScreenY + G.AdvanceY;
       end;
 
+      {$ifdef FPC}
       C := UTF8CharacterToUnicode(TextPtr, CharLen);
+      {$endif}
     end;
   end;
 
@@ -481,11 +500,14 @@ begin
         DisplayChars := MaxDisplayChars;
         for I := 0 to Strings.Count - 1 do
         begin
-          if UTF8Length(Strings[I]) < DisplayChars then
+          if {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(Strings[I]) < DisplayChars then
             Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale)
           else
-            Print(StringPosX(I), StringPosY(I), UTF8Copy(Strings[I], 1, DisplayChars), XScale, YScale);
-          Dec(DisplayChars, UTF8Length(Strings[I]));
+            Print(StringPosX(I), StringPosY(I),
+              {$ifdef FPC}UTF8Copy{$else}UTF32Copy{$endif}(Strings[I],
+              1, DisplayChars), XScale, YScale);
+          Dec(DisplayChars,
+            {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(Strings[I]));
           if DisplayChars <= 0 then
             Break;
         end;
@@ -605,7 +627,7 @@ constructor TFontStyleNode.Create(const AX3DName: string = ''; const ABaseUrl: s
 begin
   inherited;
   FCustomFontObserver := TFreeNotificationObserver.Create(nil);
-  FCustomFontObserver.OnFreeNotification := @CustomFontFreeNotification;
+  FCustomFontObserver.OnFreeNotification := {$ifdef FPC}@{$endif}CustomFontFreeNotification;
 end;
 
 destructor TFontStyleNode.Destroy;

@@ -108,7 +108,7 @@ type
   end;
   PFace = ^TFace;
 
-  TFaceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFace>;
+  TFaceList = {$ifdef FPC}specialize{$endif} TStructList<TFace>;
 
 function CreateNormals(CoordIndex: TLongintList;
   Vertices: TVector3List;
@@ -135,7 +135,7 @@ var
     while I < CoordIndex.Count do
     begin
       ThisFaceNum := Faces.Count;
-      ThisFace := Faces.Add;
+      ThisFace := PFace(Faces.Add);
 
       ThisFace^.StartIndex := I;
       while (I < CoordIndex.Count) and (CoordIndex[I] >= 0) do
@@ -366,7 +366,8 @@ begin
         Calculator.CoordIndex := Node.CoordIndexField.Items else
         Calculator.CoordIndex := nil;
       Calculator.Normals := Result;
-      Node.InternalCoordPolygons(State, @Calculator.Polygon);
+      Node.InternalCoordPolygons(State,
+        {$ifdef FPC}@{$endif}Calculator.Polygon);
     finally FreeAndNil(Calculator) end;
 
     Result.Normalize;

@@ -44,17 +44,17 @@
     { X3D field "keyValue". } { }
     public property FdKeyValue: TMFVec2f read FFdKeyValue;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of TVector2);
+    procedure SetKeyValue(const Value: array of TVector2); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TVector2List);
+    procedure SetKeyValue(const Value: TVector2List); overload;
 
     strict private FFdKeyVelocity: TMFVec2f;
     { X3D field "keyVelocity". } { }
     public property FdKeyVelocity: TMFVec2f read FFdKeyVelocity;
     { Set X3D field "keyVelocity". } { }
-    procedure SetKeyVelocity(const Value: array of TVector2);
+    procedure SetKeyVelocity(const Value: array of TVector2); overload;
     { Set X3D field "keyVelocity". } { }
-    procedure SetKeyVelocity(const Value: TVector2List);
+    procedure SetKeyVelocity(const Value: TVector2List); overload;
 
     strict private FFdNormalizeVelocity: TSFBool;
     { X3D field "normalizeVelocity". } { }

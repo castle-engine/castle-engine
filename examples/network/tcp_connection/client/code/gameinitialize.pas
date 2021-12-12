@@ -91,7 +91,7 @@ begin
   MyButton.Caption := 'Create client';
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -210);
-  MyButton.OnClick := @TClickHandler(nil).CreateClick;
+  MyButton.OnClick := {$ifdef FPC}@{$endif} TClickHandler {$ifdef FPC}(nil){$endif}.CreateClick;
   Window.Controls.InsertFront(MyButton);
 
   SendEdit := TCastleEdit.Create(Application);
@@ -103,7 +103,7 @@ begin
   MyButton.Caption := 'Send';
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -360);
-  MyButton.OnClick := @TClickHandler(nil).SendClick;
+  MyButton.OnClick := {$ifdef FPC}@{$endif} TClickHandler {$ifdef FPC}(nil){$endif}.SendClick;
   Window.Controls.InsertFront(MyButton);
 
   MyLabel := TCastleLabel.Create(Application);
@@ -126,9 +126,9 @@ begin
   FClient.Hostname := AHost;
   FClient.Port := APort;
 
-  FClient.OnConnected := @OnConnected;
-  FClient.OnDisconnected := @OnDisconnected;
-  FClient.OnMessageRecieved := @OnMessageRecieved;
+  FClient.OnConnected := {$ifdef FPC}@{$endif} OnConnected;
+  FClient.OnDisconnected := {$ifdef FPC}@{$endif} OnDisconnected;
+  FClient.OnMessageRecieved := {$ifdef FPC}@{$endif} OnMessageRecieved;
 
   FClient.Connect;
 end;
@@ -175,7 +175,7 @@ initialization
   ApplicationProperties.ApplicationName := 'client';
 
   { initialize Application callbacks }
-  Application.OnInitialize := @ApplicationInitialize;
+  Application.OnInitialize := {$ifdef FPC}@{$endif} ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
   Window := TCastleWindowBase.Create(Application);

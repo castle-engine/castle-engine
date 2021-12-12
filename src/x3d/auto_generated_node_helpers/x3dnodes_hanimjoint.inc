@@ -66,9 +66,9 @@
     { X3D field "llimit". } { }
     public property FdLlimit: TMFFloat read FFdLlimit;
     { Set X3D field "llimit". } { }
-    procedure SetLlimit(const Value: array of Single);
+    procedure SetLlimit(const Value: array of Single); overload;
     { Set X3D field "llimit". } { }
-    procedure SetLlimit(const Value: TSingleList);
+    procedure SetLlimit(const Value: TSingleList); overload;
 
     strict private FFdName: TSFString;
     { X3D field "name". } { }
@@ -98,25 +98,25 @@
     { X3D field "skinCoordIndex". } { }
     public property FdSkinCoordIndex: TMFInt32 read FFdSkinCoordIndex;
     { Set X3D field "skinCoordIndex". } { }
-    procedure SetSkinCoordIndex(const Value: array of LongInt);
+    procedure SetSkinCoordIndex(const Value: array of LongInt); overload;
     { Set X3D field "skinCoordIndex". } { }
-    procedure SetSkinCoordIndex(const Value: TLongIntList);
+    procedure SetSkinCoordIndex(const Value: TLongIntList); overload;
 
     strict private FFdSkinCoordWeight: TMFFloat;
     { X3D field "skinCoordWeight". } { }
     public property FdSkinCoordWeight: TMFFloat read FFdSkinCoordWeight;
     { Set X3D field "skinCoordWeight". } { }
-    procedure SetSkinCoordWeight(const Value: array of Single);
+    procedure SetSkinCoordWeight(const Value: array of Single); overload;
     { Set X3D field "skinCoordWeight". } { }
-    procedure SetSkinCoordWeight(const Value: TSingleList);
+    procedure SetSkinCoordWeight(const Value: TSingleList); overload;
 
     strict private FFdStiffness: TMFFloat;
     { X3D field "stiffness". } { }
     public property FdStiffness: TMFFloat read FFdStiffness;
     { Set X3D field "stiffness". } { }
-    procedure SetStiffness(const Value: array of Single);
+    procedure SetStiffness(const Value: array of Single); overload;
     { Set X3D field "stiffness". } { }
-    procedure SetStiffness(const Value: TSingleList);
+    procedure SetStiffness(const Value: TSingleList); overload;
 
     strict private FFdTranslation: TSFVec3f;
     { X3D field "translation". } { }
@@ -128,9 +128,9 @@
     { X3D field "ulimit". } { }
     public property FdUlimit: TMFFloat read FFdUlimit;
     { Set X3D field "ulimit". } { }
-    procedure SetUlimit(const Value: array of Single);
+    procedure SetUlimit(const Value: array of Single); overload;
     { Set X3D field "ulimit". } { }
-    procedure SetUlimit(const Value: TSingleList);
+    procedure SetUlimit(const Value: TSingleList); overload;
 
 {$endif read_interface}
 
