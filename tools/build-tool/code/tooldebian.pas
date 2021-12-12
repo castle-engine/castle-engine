@@ -119,7 +119,7 @@ begin
   // Calculate binaries size
 
   BinariesSize := 0;
-  FindFiles(PackageDirLocal + PathToExecutableLocal, '*', false, {$ifdef CASTLE_OBJFPC}@{$endif} FoundFile, [ffRecursive]);
+  FindFiles(PackageDirLocal + PathToExecutableLocal, '*', false, {$ifdef FPC}@{$endif}FoundFile, [ffRecursive]);
 
   // Copy or generate XPM icon
 
