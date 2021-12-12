@@ -690,7 +690,7 @@ end;
 constructor TLoggerNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  FEventWrite.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventWriteReceive);
+  FEventWrite.AddNotification({$ifdef FPC}@{$endif} EventWriteReceive);
 end;
 
 destructor TLoggerNode.Destroy;
@@ -766,7 +766,7 @@ begin
 
   FEventIn := TXFAnyEvent.Create(Self, 'in', true);
   AddEvent(FEventIn);
-  FEventIn.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventInReceive);
+  FEventIn.AddNotification({$ifdef FPC}@{$endif} EventInReceive);
 
   FEventOut := TXFAnyEvent.Create(Self, 'out', true);
   AddEvent(FEventOut);
@@ -931,8 +931,8 @@ end;
 constructor TTogglerNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  FdStatus.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenDisabled;
-  FdNotStatus.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenDisabled;
+  FdStatus.OnInputIgnore := {$ifdef FPC}@{$endif} IgnoreWhenDisabled;
+  FdNotStatus.OnInputIgnore := {$ifdef FPC}@{$endif} IgnoreWhenDisabled;
 end;
 
 function TTogglerNode.IgnoreWhenDisabled(const ChangingField: TX3DField; const Event: TX3DEvent;
@@ -948,23 +948,23 @@ begin
   inherited;
 
   FFdStatus := TSFBool.Create(Self, true, 'status', false);
-   FdStatus.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventStatusReceive);
+   FdStatus.AddNotification({$ifdef FPC}@{$endif} EventStatusReceive);
   AddField(FFdStatus);
 
   FFdNotStatus := TSFBool.Create(Self, true, 'notStatus', true);
-   FdNotstatus.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventNotStatusReceive);
+   FdNotstatus.AddNotification({$ifdef FPC}@{$endif} EventNotStatusReceive);
   AddField(FFdNotStatus);
 
   FEventToggle := TXFAnyEvent.Create(Self, 'toggle', true);
-  FEventToggle.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventToggleReceive);
+  FEventToggle.AddNotification({$ifdef FPC}@{$endif} EventToggleReceive);
   AddEvent(FEventToggle);
 
   FEventSet := TXFAnyEvent.Create(Self, 'set', true);
-   EventSet.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSetReceive);
+   EventSet.AddNotification({$ifdef FPC}@{$endif} EventSetReceive);
   AddEvent(FEventSet);
 
   FEventReset := TXFAnyEvent.Create(Self, 'reset', true);
-   EventReset.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventResetReceive);
+   EventReset.AddNotification({$ifdef FPC}@{$endif} EventResetReceive);
   AddEvent(FEventReset);
 
   FEventChanged := TSFBoolEvent.Create(Self, 'changed', false);

@@ -73,7 +73,7 @@
     property CaptionTranslate: Boolean read FCaptionTranslate write FCaptionTranslate default true;
     { Margin between checkbox square and a text @link(Caption). }
     property CaptionMargin: Single read FCaptionMargin write SetCaptionMargin
-      default DefaultCaptionMargin;
+      {$ifdef FPC}default DefaultCaptionMargin{$endif};
 
     { Event sent when @link(Checked) value was changed by a user click.
       Note that this is @italic(not) called when you change @link(Checked)
@@ -82,10 +82,10 @@
     { Should our size be determined by checkbox image size and caption. }
     property AutoSize: Boolean read FAutoSize write SetAutoSize default true;
     { Caption font size. }
-    property FontSize: Single read FFontSize write SetFontSize default 0.0;
+    property FontSize: Single read FFontSize write SetFontSize {$ifdef FPC}default 0.0{$endif};
     { Size of the square checkbox. }
     property CheckboxSize: Single read FCheckboxSize write SetCheckboxSize
-      default DefaultCheckboxSize;
+      {$ifdef FPC}default DefaultCheckboxSize{$endif};
 
     { Font used for the caption.
       When this is @nil then the @link(TCastleContainer.DefaultFont) is used,
@@ -340,14 +340,15 @@ end;
 function TCastleCheckbox.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Caption', 'Checked', 'CustomFont', 'FontSize':
-      Result := [psBasic];
-    'AutoSize':
-      Result := [psLayout];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Caption') or
+     (PropertyName = 'Checked') or
+     (PropertyName = 'CustomFont') or
+     (PropertyName = 'FontSize') then
+    Result := [psBasic]
+  else if (PropertyName = 'AutoSize') then
+    Result := [psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleCheckbox.DoChange;

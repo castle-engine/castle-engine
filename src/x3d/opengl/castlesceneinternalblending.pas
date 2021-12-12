@@ -18,7 +18,7 @@
 unit CastleSceneInternalBlending;
 
 {$I castleconf.inc}
-{$modeswitch nestedprocvars}{$H+}
+{$ifdef FPC}{$modeswitch nestedprocvars}{$H+}{$endif}
 
 interface
 
@@ -62,7 +62,7 @@ procedure ShapesFilterBlending(
 implementation
 
 uses SysUtils,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleLog, X3DNodes, CastleScene, CastleTimeUtils, CastleRenderContext;
 
 { Given blending name (as defined by X3D BlendMode node spec,
@@ -82,7 +82,7 @@ uses SysUtils,
 }
 function BlendingFactorNameToStr(S: string;
   out Factor: TBlendingSourceFactor;
-  var NeedsConstColor, NeedsConstAlpha: boolean): boolean;
+  var NeedsConstColor, NeedsConstAlpha: boolean): boolean; overload;
 const
   FactorNames: array [TBlendingSourceFactor] of string =
   (
@@ -151,7 +151,7 @@ end;
 
 function BlendingFactorNameToStr(S: string;
   out Factor: TBlendingDestinationFactor;
-  var NeedsConstColor, NeedsConstAlpha: boolean): boolean;
+  var NeedsConstColor, NeedsConstAlpha: boolean): boolean; overload;
 const
   FactorNames: array [TBlendingDestinationFactor] of string =
   (
@@ -220,8 +220,6 @@ end;
 
 { TBlendingRenderer ---------------------------------------------------------- }
 
-{$define Scene := TCastleScene(SceneCore)}
-
 constructor TBlendingRenderer.Create(const AScene: TCastleSceneCore);
 begin
   inherited Create;
@@ -230,12 +228,12 @@ end;
 
 function TBlendingRenderer.DefaultSourceFactor: TBlendingSourceFactor;
 begin
-  Result := Scene.RenderOptions.BlendingSourceFactor;
+  Result := TCastleScene(SceneCore).RenderOptions.BlendingSourceFactor;
 end;
 
 function TBlendingRenderer.DefaultDestinationFactor: TBlendingDestinationFactor;
 begin
-  Result := Scene.RenderOptions.BlendingDestinationFactor;
+  Result := TCastleScene(SceneCore).RenderOptions.BlendingDestinationFactor;
 end;
 
 procedure TBlendingRenderer.RenderBegin;
@@ -331,18 +329,36 @@ procedure ShapesFilterBlending(
   const TestShapeVisibility: TTestShapeVisibility;
   const FilteredShapes: TShapeList; const UseBlending: boolean);
 
+  {$ifdef FPC}
   procedure AddToList(const Shape: TShape);
+  {$else}
+  function CaptureAddToList: TShapeTraverseFunc;
+  begin
+    Result := procedure(const Shape: TShape)
+  {$endif}
   begin
     if TGLShape(Shape).UseBlending = UseBlending then
       FilteredShapes.Add(Shape);
   end;
+  {$ifndef FPC}
+  end;
+  {$endif}
 
+  {$ifdef FPC}
   procedure AddToListIfTested(const Shape: TShape);
+  {$else}
+  function CaptureAddToListIfTested: TShapeTraverseFunc;
+  begin
+    Result := procedure(const Shape: TShape)
+  {$endif}
   begin
     if (TGLShape(Shape).UseBlending = UseBlending) and
        TestShapeVisibility(TGLShape(Shape)) then
       FilteredShapes.Add(Shape);
   end;
+  {$ifndef FPC}
+  end;
+  {$endif}
 
 begin
   //FrameProfiler.Start(fmRenderShapesFilterBlending);
@@ -353,8 +369,8 @@ begin
   FilteredShapes.Capacity := Tree.MaxShapesCount;
 
   if Assigned(TestShapeVisibility) then
-    Tree.Traverse(@AddToListIfTested, OnlyActive, OnlyVisible, OnlyCollidable) else
-    Tree.Traverse(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
+    Tree.Traverse({$ifdef FPC}{$ifdef FPC}@{$endif}AddToListIfTested{$else}CaptureAddToListIfTested(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable) else
+    Tree.Traverse({$ifdef FPC}{$ifdef FPC}@{$endif}AddToList{$else}CaptureAddToList(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable);
   //FrameProfiler.Stop(fmRenderShapesFilterBlending);
 end;
 

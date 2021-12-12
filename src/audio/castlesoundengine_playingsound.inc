@@ -135,7 +135,7 @@
       and finally by a master @link(TSoundEngine.Volume SoundEngine.Volume).
 
       Any value > 0 is allowed. }
-    property Volume: Single read FVolume write SetVolume default 1.0;
+    property Volume: Single read FVolume write SetVolume {$ifdef FPC}default 1.0{$endif};
 
     { Sound playing speed.
 
@@ -144,7 +144,7 @@
       (if the sound is played through @link(TCastleSoundSource)).
 
       Any value > 0 is allowed. }
-    property Pitch: Single read FPitch write SetPitch default 1.0;
+    property Pitch: Single read FPitch write SetPitch {$ifdef FPC}default 1.0{$endif};
 
     { Playback time of this sound, expressed in seconds.
 
@@ -294,15 +294,15 @@ begin
   Assert(ASource <> nil);
   Assert(ASource.Buffer = FSound.InternalBuffer);
   FSource := ASource;
-  FSource.OnRelease := @SourceRelease;
+  FSource.OnRelease := {$ifdef FPC}@{$endif}SourceRelease;
 
-  FSound.InternalAddChangeNotification(@SoundChangeDuringPlayback);
+  FSound.InternalAddChangeNotification({$ifdef FPC}@{$endif}SoundChangeDuringPlayback);
 end;
 
 procedure TCastlePlayingSound.SourceRelease(Source: TInternalSoundSource);
 begin
   // FSound must always exist during playback, since we stop playback when FSound is freed.
-  FSound.InternalRemoveChangeNotification(@SoundChangeDuringPlayback);
+  FSound.InternalRemoveChangeNotification({$ifdef FPC}@{$endif}SoundChangeDuringPlayback);
 
   Assert(Source = FSource); // we should only ever get callback about current FSource
   Source.OnRelease := nil;

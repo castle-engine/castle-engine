@@ -49,7 +49,7 @@
     procedure InternalChangedField(const Field: TX3DField); overload;
   end;
 
-  TX3DEventsEngineList = class(specialize TObjectList<TX3DEventsEngine>)
+  TX3DEventsEngineList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DEventsEngine>)
   end;
 
 {$endif read_interface}

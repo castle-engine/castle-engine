@@ -26,7 +26,7 @@ type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
     DesignedButton1: TCastleDesign;
     DesignedButton1Button: TCastleButton;
@@ -119,8 +119,8 @@ begin
   DesignedButton2Button := DesignedButton2.FindRequiredComponent('RootButton') as TCastleButton;
 
   { Attach events }
-  DesignedButton1Button.OnClick := @ClickDesignedButton1;
-  DesignedButton2Button.OnClick := @ClickDesignedButton2;
+  DesignedButton1Button.OnClick := {$ifdef FPC}@{$endif} ClickDesignedButton1;
+  DesignedButton2Button.OnClick := {$ifdef FPC}@{$endif} ClickDesignedButton2;
 
   { Load and instantiate table row UI many times }
   TableRowTemplate := TSerializedComponent.Create('castle-data:/table_row.castle-user-interface');

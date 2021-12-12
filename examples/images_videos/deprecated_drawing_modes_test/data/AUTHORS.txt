@@ -1,0 +1,13 @@
+1G.png
+1GA.png
+1RGB.png
+1RGBA.png
+2G.png
+2GA.png
+2RGB.png
+2RGBA.png
+AUTHORS.txt
+Legend.png
+na.png:
+
+  CC0 by EugeneLoza

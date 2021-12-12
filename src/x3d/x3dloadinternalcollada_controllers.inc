@@ -25,7 +25,7 @@ type
 
   { List of Collada controllers. Read from <library_controllers>, used by
     <instance_controller>. }
-  TColladaControllerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaController>)
+  TColladaControllerList = class({$ifdef FPC}specialize{$endif} TObjectList<TColladaController>)
   public
     { Find a TColladaController with given Name, @nil if not found. }
     function Find(const Name: string): TColladaController;

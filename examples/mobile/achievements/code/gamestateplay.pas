@@ -74,8 +74,8 @@ begin
   CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
   ButtonShowAchievements := DesignedComponent('ButtonShowAchievements') as TCastleButton;
 
-  CheckboxCameraFollow.OnChange := @ChangeCheckboxCameraFollow;
-  ButtonShowAchievements.OnClick := @ClickShowAchievements;
+  CheckboxCameraFollow.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxCameraFollow;
+  ButtonShowAchievements.OnClick := {$ifdef FPC}@{$endif} ClickShowAchievements;
 end;
 
 procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);

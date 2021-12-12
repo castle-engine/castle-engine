@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -208,8 +208,8 @@ type
     { Is the 2D point inside the 2D projection of the box.
       2D projection (of point and box) is obtained by rejecting
       the IgnoreIndex coordinate (must be 0, 1 or 2). }
-    function Contains2D(const Point: TVector3; const IgnoreIndex: Integer): boolean; overload;
-    function PointInside2D(const Point: TVector3; const IgnoreIndex: Integer): boolean; overload; deprecated 'use Contains2D method';
+    function Contains2D(const Point: TVector3; const IgnoreIndex: T3DAxis): boolean; overload;
+    function PointInside2D(const Point: TVector3; const IgnoreIndex: T3DAxis): boolean; overload; deprecated 'use Contains2D method';
 
     { Add another box to our box.
       This calculates the smallest box that encloses both the current box,
@@ -381,7 +381,7 @@ type
       (must be 0, 1 or 2).
       Circle center is assumed to be in (0, 0).
       0 if box is empty. }
-    function Radius2D(const IgnoreIndex: Integer): Single;
+    function Radius2D(const IgnoreIndex: T3DAxis): Single;
 
     { Check for collision between box and sphere, fast @italic(but not
       entirely correct).
@@ -548,7 +548,7 @@ const
   EmptyBox3D: TBox3D = (Data: ((Data: (0, 0, 0)), (Data: (-1, -1, -1)))) deprecated 'use TBox3D.Empty';
 
 type
-  TBox3DList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TBox3D>;
+  TBox3DList = {$ifdef FPC}specialize{$endif} TStructList<TBox3D>;
 
 { Construct TBox3D value from a minimum and maximum 3D point. }
 function Box3D(const p0, p1: TVector3): TBox3D;
@@ -949,7 +949,7 @@ begin
 end;
 
 function TBox3D.Contains2D(const Point: TVector3;
-  const IgnoreIndex: Integer): boolean;
+  const IgnoreIndex: T3DAxis): boolean;
 begin
   if IsEmpty then Exit(false);
   case IgnoreIndex of
@@ -962,7 +962,11 @@ begin
     2: Result :=
          (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]) and
          (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]);
-    else Contains2D_InvalidIgnoreIndex;
+    else
+      begin
+        Contains2D_InvalidIgnoreIndex;
+        Result :=  false; // just silence Delphi warning
+      end;
   end;
 end;
 
@@ -972,7 +976,7 @@ begin
 end;
 
 function TBox3D.PointInside2D(const Point: TVector3;
-  const IgnoreIndex: Integer): boolean;
+  const IgnoreIndex: T3DAxis): boolean;
 begin
   Result := Contains2D(Point, IgnoreIndex);
 end;
@@ -1769,7 +1773,7 @@ begin
     ]));
 end;
 
-function TBox3D.Radius2D(const IgnoreIndex: Integer): Single;
+function TBox3D.Radius2D(const IgnoreIndex: T3DAxis): Single;
 begin
   if IsEmpty then
     Result := 0 else
@@ -1793,7 +1797,11 @@ begin
            Vector2(Data[1].Data[0], Data[1].Data[1]).LengthSqr,
            Vector2(Data[0].Data[0], Data[1].Data[1]).LengthSqr
          ]);
-      else RaiseRadius2DInvalidIgnoreIndex;
+      else
+        begin
+          RaiseRadius2DInvalidIgnoreIndex;
+          Result :=  0; // just silence Delphi warning
+        end;
     end;
 
     Result := Sqrt(Result);
@@ -2410,7 +2418,7 @@ begin
     Calculator.VertsStride := VertsStride;
     Calculator.Verts := Verts;
     result := CalculateBoundingBox(
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetVertexNotTransform, VertsCount);
+      {$ifdef FPC} @ {$endif} Calculator.GetVertexNotTransform, VertsCount);
   finally Calculator.Free end;
 end;
 
@@ -2427,7 +2435,7 @@ begin
     Calculator.Verts := Verts;
     Calculator.PMatrix := @Transform;
     result := CalculateBoundingBox(
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetVertexTransform, VertsCount);
+      {$ifdef FPC} @ {$endif} Calculator.GetVertexTransform, VertsCount);
   finally Calculator.Free end;
 end;
 
@@ -2523,7 +2531,7 @@ begin
     result := CalculateBoundingBoxFromIndices(
       GetVertIndex,
       VertsIndicesCount,
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetTransformed);
+      {$ifdef FPC} @ {$endif} Calculator.GetTransformed);
   finally Calculator.Free end;
 end;
 

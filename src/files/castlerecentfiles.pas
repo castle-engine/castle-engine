@@ -55,9 +55,9 @@ type
       So this method will always call AbsoluteURI (which will eventually
       call ExpandFileName on filename inside, and make sure it has appropriate
       protocol) on the given URL. }
-    procedure Add(const URL: String); virtual;
+    procedure Add(const URL: String); overload; virtual;
 
-    procedure Add(const URL: String; const Ignored: Boolean); deprecated 'use Add(URL)';
+    procedure Add(const URL: String; const Ignored: Boolean); overload; deprecated 'use Add(URL)';
 
     { Remove URL. }
     procedure Remove(const URL: String);

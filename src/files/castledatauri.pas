@@ -97,9 +97,7 @@ type
 
 implementation
 
-uses {$ifdef FPC} Base64,
-  {$else} System.NetEncoding,
-  {$endif}
+uses Base64,
   CastleURIUtils, CastleStringUtils, CastleClassUtils, CastleLog;
 
 { TODO: We treat non-base64 data verbatim, not interpreting %xx hex encoding
@@ -201,7 +199,7 @@ begin
         ValidCharset := SEnding(Part, Length('charset=') + 1) else
         WritelnWarning('Data URI', Format('Invalid part "%s" (expected "base64" or "charset=...")', [Part]));
     end else
-    if Value[PosNow] in [',', ' '] then
+    if CharInSet(Value[PosNow], [',', ' ']) then
     begin
       if Value[PosNow] = ' ' then
         WritelnWarning('Data URI', 'Header terminated by space, which is invalid (you should terminate with a comma)');
@@ -223,9 +221,7 @@ function TDataURI.Stream: TStream;
 var
   MemStream: TMemoryStream;
   Contents: string;
-  {$ifdef FPC}
   DecodingStream: TBase64DecodingStream;
-  {$endif}
 begin
   if Valid then
   begin
@@ -233,11 +229,12 @@ begin
     begin
       Contents := SEnding(URI, StreamBegin);
 
-      MemStream := MemoryStreamLoadFromString(Contents);
+      { Note: loads a 16-bit String into TMemoryStream on Delphi.
+        This is what TNetEncoding.Base64.Decode expects. }
+      MemStream := MemoryStreamLoadFromDefaultString(Contents);
 
       if Base64 then
       begin
-        {$ifdef FPC}
         DecodingStream := TBase64DecodingStream.Create(MemStream, bdmMIME);
         DecodingStream.SourceOwner := true;
         if ForceMemoryStream then
@@ -247,13 +244,6 @@ begin
           FreeAndNil(DecodingStream);
         end else
           FStream := DecodingStream;
-        {$else}
-        FStream := TMemoryStream.Create;
-        // TODO: should we call this repeatedly until the end?
-        TNetEncoding.Base64.Decode(MemStream, FStream);
-        FStream.Position := 0;
-        FreeAndNil(MemStream);
-        {$endif}
       end else
         FStream := MemStream;
     end;

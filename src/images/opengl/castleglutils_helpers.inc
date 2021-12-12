@@ -59,62 +59,53 @@ function glGetBoolean(pname: TGLEnum): TGLboolean;
 
 // Do not mark glColorv as "deprecated" for now. These have valid (although internal) usage.
 { }
-procedure glColorv(const v: TVector3ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+procedure glColorv(const v: TVector3Byte); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 { }
-procedure glColorv(const v: TVector4ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+procedure glColorv(const v: TVector4Byte); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 { }
-procedure glColorv(const v: TVector3f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+procedure glColorv(const v: TVector3); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 { }
-procedure glColorv(const v: TVector4f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+procedure glColorv(const v: TVector4); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 
 { }
-procedure glTranslatev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-procedure glTranslatev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glTranslatev(const V: TVector3); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 
 procedure glScalev(const V: Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-procedure glScalev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-procedure glScalev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glScalev(const V: TVector3); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 
-procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glRotatev(const Angle: TGLfloat;  const V: TVector3); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 
 procedure glClipPlane(plane: GLenum; const V: TVector4Double); overload;
 
 procedure glNormalv(const v: TVector3); overload;
 
-procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f); overload;
+procedure glMaterialv(face, pname: TGLEnum; const params: TVector4); overload;
 
-procedure glVertexv(const v: TVector2f); overload;
-procedure glVertexv(const v: TVector2i); overload;
-procedure glVertexv(const v: TVector3f); overload;
-procedure glVertexv(const v: TVector3i); overload;
-procedure glVertexv(const v: TVector4f); overload;
-procedure glVertexv(const v: TVector4i); overload;
+procedure glVertexv(const v: TVector2); overload;
+procedure glVertexv(const v: TVector3); overload;
+procedure glVertexv(const v: TVector4); overload;
 
-procedure glVertexv(const v: TVector2_Single); overload;
-procedure glVertexv(const v: TVector3_Single); overload;
-procedure glVertexv(const v: TVector4_Single); overload;
+procedure glTexCoordv(const v: TVector2); overload;
+procedure glTexCoordv(const v: TVector3); overload;
+procedure glTexCoordv(const v: TVector4); overload;
 
-procedure glTexCoordv(const v: TVector2f); overload;
-procedure glTexCoordv(const v: TVector3f); overload;
-procedure glTexCoordv(const v: TVector4f); overload;
+procedure glTexGenv(coord, pname: TGLenum; const params: TVector4); overload;
 
-procedure glTexGenv(coord, pname: TGLenum; const params: TVector4f); overload;
+procedure glLightv(light, pname: TGLEnum; const params: TVector4); overload;
+procedure glLightv(light, pname: TGLEnum; const params: TVector3); overload;
 
-procedure glLightv(light, pname: TGLEnum; const params: TVector4f); overload;
-procedure glLightv(light, pname: TGLEnum; const params: TVector3f); overload;
+procedure glLightModelv(pname: TGLenum; const params: TVector4); overload;
 
-procedure glLightModelv(pname: TGLenum; const params: TVector4f); overload;
-
-procedure glFogv(pname: TGLEnum; const params: TVector4f); overload;
+procedure glFogv(pname: TGLEnum; const params: TVector4); overload;
 
 // Do not mark as "deprecated" for now. These have valid (although internal) usage.
 { }
-procedure glMultMatrix(const m: TMatrix4f); overload; //deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glMultMatrix(const m: TMatrix4); overload; //deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 { }
-procedure glLoadMatrix(const m: TMatrix4f); overload; //deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glLoadMatrix(const m: TMatrix4); overload; //deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 
 { }
-procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
+procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4); overload;
 
 {$endif}
 
@@ -250,6 +241,13 @@ function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
 
 function BoolToGL(const Value: boolean): TGLboolean;
 
+{$ifndef ForceStandardGLSLApi}
+{ PGLcharARBOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
+  If string is empty, this returns @nil, otherwise it works just like
+  PGLcharARBOrNil(S): returns a Pointer(S) with appropriate type cast. }
+function PGLcharARBOrNil(const s: AnsiString): PGLcharARB;
+{$endif}
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -286,7 +284,7 @@ end;
 
 {$ifndef OpenGLES}
 
-procedure glColorv(const v: TVector3ub);
+procedure glColorv(const v: TVector3Byte);
 begin
   glColor3ubv(@v);
   {$warnings off} // consciously using deprecated in deprecated
@@ -294,7 +292,7 @@ begin
   {$warnings on}
 end;
 
-procedure glColorv(const v: TVector4ub);
+procedure glColorv(const v: TVector4Byte);
 begin
   glColor4ubv(@v);
   {$warnings off} // consciously using deprecated in deprecated
@@ -302,7 +300,7 @@ begin
   {$warnings on}
 end;
 
-procedure glColorv(const v: TVector3f);
+procedure glColorv(const v: TVector3);
 begin
   glColor3fv(@v);
   {$warnings off} // consciously using deprecated in deprecated
@@ -310,7 +308,7 @@ begin
   {$warnings on}
 end;
 
-procedure glColorv(const v: TVector4f);
+procedure glColorv(const v: TVector4);
 begin
   glColor4fv(@v);
   {$warnings off} // consciously using deprecated in deprecated
@@ -318,58 +316,44 @@ begin
   {$warnings on}
 end;
 
-procedure glTranslatev(const V: TVector3f); begin glTranslatef(V[0], V[1], V[2]); end;
-
-procedure glTranslatev(const V: TVector3_Single); begin glTranslatef(V.Data[0], V.Data[1], V.Data[2]); end;
+procedure glTranslatev(const V: TVector3); begin glTranslatef(V[0], V[1], V[2]); end;
 
 procedure glScalev(const V: Single); begin glScalef(V, V, V); end;
 
-procedure glScalev(const V: TVector3f); begin glScalef(V[0], V[1], V[2]); end;
+procedure glScalev(const V: TVector3); begin glScalef(V[0], V[1], V[2]); end;
 
-procedure glScalev(const V: TVector3_Single); begin glScalef(V.Data[0], V.Data[1], V.Data[2]); end;
-
-procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); begin glRotatef(Angle, V[0], V[1], V[2]); end;
-
-procedure glVertexv(const v: TVector2_Single);  begin glVertex2fv(@v.Data); end;
-
-procedure glVertexv(const v: TVector3_Single);  begin glVertex3fv(@v.Data); end;
-
-procedure glVertexv(const v: TVector4_Single);  begin glVertex4fv(@v.Data); end;
+procedure glRotatev(const Angle: TGLfloat;  const V: TVector3); begin glRotatef(Angle, V[0], V[1], V[2]); end;
 
 procedure glClipPlane(plane: GLenum; const V: TVector4Double);
 begin
-  GL.glClipPlane(plane, @V);
+  {$ifdef FPC}GL.{$else}OpenGL.{$endif}glClipPlane(plane, @V);
 end;
 
 procedure glNormalv(const v: TVector3); begin glNormal3fv(@v); end;
 
-procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f);  begin glMaterialfv(face, pname, @params); end;
+procedure glMaterialv(face, pname: TGLEnum; const params: TVector4);  begin glMaterialfv(face, pname, @params); end;
 
-procedure glVertexv(const v: TVector2f);  begin glVertex2fv(@v); end;
-procedure glVertexv(const v: TVector2i);  begin glVertex2iv(@v); end;
-procedure glVertexv(const v: TVector3f);  begin glVertex3fv(@v); end;
-procedure glVertexv(const v: TVector3i);  begin glVertex3iv(@v); end;
-procedure glVertexv(const v: TVector4f);  begin glVertex4fv(@v); end;
-procedure glVertexv(const v: TVector4i);  begin glVertex4iv(@v); end;
+procedure glVertexv(const v: TVector2);  begin glVertex2fv(@v); end;
+procedure glVertexv(const v: TVector3);  begin glVertex3fv(@v); end;
+procedure glVertexv(const v: TVector4);  begin glVertex4fv(@v); end;
 
-procedure glTexCoordv(const v: TVector2f);  begin glTexCoord2fv(@v); end;
-procedure glTexCoordv(const v: TVector3f);  begin glTexCoord3fv(@v); end;
-procedure glTexCoordv(const v: TVector4f);  begin glTexCoord4fv(@v); end;
+procedure glTexCoordv(const v: TVector2);  begin glTexCoord2fv(@v); end;
+procedure glTexCoordv(const v: TVector3);  begin glTexCoord3fv(@v); end;
+procedure glTexCoordv(const v: TVector4);  begin glTexCoord4fv(@v); end;
 
-procedure glTexGenv(coord, pname: TGLenum; const params: TVector4f);  begin glTexGenfv(coord, pname, @params); end;
+procedure glTexGenv(coord, pname: TGLenum; const params: TVector4);  begin glTexGenfv(coord, pname, @params); end;
 
-procedure glLightv(light, pname: TGLEnum; const params: TVector4f);  begin glLightfv(light, pname, @params); end;
-procedure glLightv(light, pname: TGLEnum; const params: TVector3f);  begin glLightfv(light, pname, @params); end;
+procedure glLightv(light, pname: TGLEnum; const params: TVector4);  begin glLightfv(light, pname, @params); end;
+procedure glLightv(light, pname: TGLEnum; const params: TVector3);  begin glLightfv(light, pname, @params); end;
 
-procedure glLightModelv(pname: TGLenum; const params: TVector4f); begin glLightModelfv(pname, @params); end;
-procedure glLightModelv(pname: TGLenum; const params: TVector4i); begin glLightModeliv(pname, @params); end;
+procedure glLightModelv(pname: TGLenum; const params: TVector4); overload; begin glLightModelfv(pname, @params); end;
 
-procedure glFogv(pname: TGLEnum; const params: TVector4f);  begin glFogfv(pname, @params); end;
+procedure glFogv(pname: TGLEnum; const params: TVector4);  begin glFogfv(pname, @params); end;
 
-procedure glMultMatrix(const m: TMatrix4f); begin glMultMatrixf(@m) end;
-procedure glLoadMatrix(const m: TMatrix4f); begin glLoadMatrixf(@m) end;
+procedure glMultMatrix(const m: TMatrix4); begin glMultMatrixf(@m) end;
+procedure glLoadMatrix(const m: TMatrix4); begin glLoadMatrixf(@m) end;
 
-procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTexEnvfv(target, pname, @params); end;
+procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4); begin glTexEnvfv(target, pname, @params); end;
 
 {$endif}
 
@@ -578,5 +562,10 @@ begin
     {$endif}
   end;
 end;
+
+{$ifndef ForceStandardGLSLApi}
+function PGLcharARBOrNil(const s: AnsiString): PGLcharARB;
+begin if s = '' then result := nil else result := PGLcharARB(s); end;
+{$endif}
 
 {$endif read_implementation}

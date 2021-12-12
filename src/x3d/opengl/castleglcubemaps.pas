@@ -20,12 +20,12 @@ unit CastleGLCubeMaps;
 
 interface
 
-uses {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+uses {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleCubeMaps, CastleImages, CastleCompositeImage,
   CastleGLImages, CastleTransform, CastleGLUtils;
 
 type
-  TCubeMapRenderEvent = procedure (const RenderParams: TRenderParams) of object; experimental;
+  TCubeMapRenderEvent = procedure (const RenderParams: TRenderParams) of object; {$ifdef FPC}experimental;{$endif}
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by
@@ -196,7 +196,7 @@ begin
       (on cube map, pixels have different solid angles),
       so below we divide by 4*Pi (sphere area, sum of solid angles for every
       pixel). }
-    SHVector[SHBasis] /= 4 * Pi;
+    SHVector[SHBasis] := SHVector[SHBasis] / (4 * Pi);
   end;
 end;
 

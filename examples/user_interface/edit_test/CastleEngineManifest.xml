@@ -2,7 +2,7 @@
 <project name="edit_test"
   caption="Edit Test"
   qualified_name="io.castleengine.edit.test"
-  standalone_source="edit_test.lpr"
+  standalone_source="edit_test.dpr"
   game_units="GameInitialize"
   author="Michalis Kamburelis"
 >

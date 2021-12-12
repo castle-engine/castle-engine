@@ -110,9 +110,9 @@
     { X3D field "height". } { }
     public property FdHeight: TMFFloat read FFdHeight;
     { Set X3D field "height". } { }
-    procedure SetHeight(const Value: array of Single);
+    procedure SetHeight(const Value: array of Single); overload;
     { Set X3D field "height". } { }
-    procedure SetHeight(const Value: TSingleList);
+    procedure SetHeight(const Value: TSingleList); overload;
 
     strict private FFdNormalPerVertex: TSFBool;
     { X3D field "normalPerVertex". } { }

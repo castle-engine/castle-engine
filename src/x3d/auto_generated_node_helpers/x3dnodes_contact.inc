@@ -64,9 +64,9 @@
     { X3D field "appliedParameters". } { }
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
     { Set X3D field "appliedParameters". } { }
-    procedure SetAppliedParameters(const Value: array of string);
+    procedure SetAppliedParameters(const Value: array of string); overload;
     { Set X3D field "appliedParameters". } { }
-    procedure SetAppliedParameters(const Value: TCastleStringList);
+    procedure SetAppliedParameters(const Value: TCastleStringList); overload;
 
     strict private FFdBody1: TSFNode;
     { X3D field "body1". } { }

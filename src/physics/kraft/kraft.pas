@@ -78,7 +78,9 @@ unit kraft;
    {$define BIG_ENDIAN}
   {$endif}
  {$endif}
-{$else}
+{$else} // Delphi
+ {$hints off} // added by CGE
+ {$warn SYMBOL_PLATFORM off} // added by CGE
  {$define LITTLE_ENDIAN}
  {$ifndef cpu64}
   {$define cpu32}
@@ -141,9 +143,9 @@ unit kraft;
     kraft.s:86938: Info:    	fadd s0,s0,s1
     kraft.pas(33101) Error: Error while assembling exitcode 1
 }
-{$if defined(VER3_3) and (defined(DARWIN) or defined(CPUARM) or defined(CPUAARCH64))}
+{$if defined(FPC) and defined(VER3_3) and (defined(DARWIN) or defined(CPUARM) or defined(CPUAARCH64))}
   {$undef caninline}
-{$endif}
+{$ifend}
 
 {-$define UseMoreCollisionGroups}
 
@@ -754,7 +756,7 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftQuickHull=class;
 
      PKraftQuickHullVector3D=^TKraftQuickHullVector3D;
-     TKraftQuickHullVector3D=object
+     TKraftQuickHullVector3D=record
       public
        x:double;
        y:double;
@@ -814,7 +816,7 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftQuickHullThreeVertices=array[0..2] of TKraftQuickHullVertex;
 
      PKraftQuickHullVertexList=^TKraftQuickHullVertexList;
-     TKraftQuickHullVertexList=object
+     TKraftQuickHullVertexList=record
       public
        Head:TKraftQuickHullVertex;
        Tail:TKraftQuickHullVertex;
@@ -829,7 +831,7 @@ type PKraftForceMode=^TKraftForceMode;
      end;
 
      PKraftQuickHullFaceList=^TKraftQuickHullFaceList;
-     TKraftQuickHullFaceList=object
+     TKraftQuickHullFaceList=record
       public
        Head:TKraftQuickHullFace;
        Tail:TKraftQuickHullFace;
@@ -1569,7 +1571,7 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftGJKClosestPoints=array[0..1] of TKraftVector3;
 
      PKraftGJK=^TKraftGJK;
-     TKraftGJK=object
+     TKraftGJK=record
       public
        Distance:TKraftScalar;
        Iterations:longint;
@@ -1670,7 +1672,7 @@ type PKraftForceMode=^TKraftForceMode;
      PKraftContactPairContactManifoldMode=^TKraftContactPairContactManifoldMode;
      TKraftContactPairContactManifoldMode=(kcpcmmVelocitySolver,kcpcmmPositionSolver,kcpcmmBaumgarte,kcpcmmTemporalCoherence);
 
-     TKraftContactPair=object
+     TKraftContactPair=record
       public
        Previous:PKraftContactPair;
        Next:PKraftContactPair;

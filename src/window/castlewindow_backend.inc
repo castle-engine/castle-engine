@@ -2,7 +2,9 @@
 
 { In various include files here, we dereference memory allocated
   with various libraries, so pointer checks will make false errors. }
-{$checkpointer off}
+{$ifdef FPC}
+  {$checkpointer off}
+{$endif}
 
 {$ifdef CASTLE_ENGINE_PLUGIN}
   {$I castlewindow_npapi.inc}

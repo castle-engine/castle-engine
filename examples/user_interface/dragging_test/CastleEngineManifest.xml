@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="dragging_test" 
-  standalone_source="dragging_test_standalone.lpr"
+  standalone_source="dragging_test_standalone.dpr"
   game_units="GameInitialize"
   caption="Dragging Test"
 >

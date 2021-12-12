@@ -32,7 +32,7 @@ type
 implementation
 
 uses CastleControls, CastleProgress, CastleWindowProgress, CastleImages,
-  CastleUIControls;
+  CastleUIControls, CastleViewport, CastleLevels;
 
 type
   TControl1 = class(TCastleUserInterface)
@@ -67,9 +67,9 @@ end;
 
 procedure TTestCastleWindowOpen.TestProgressFromOpen;
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
 begin
-  Window := TCastleWindow.Create(nil);
+  Window := TCastleWindowBase.Create(nil);
   try
     Window.Controls.InsertFront(TControl1.Create(Window));
     Window.Controls.InsertFront(TCastleButton.Create(Window));
@@ -110,9 +110,9 @@ end;
 
 procedure TTestCastleWindowOpen.TestSaveScreenFromOpen;
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
 begin
-  Window := TCastleWindow.Create(nil);
+  Window := TCastleWindowBase.Create(nil);
   try
     Window.Controls.InsertFront(TControl2.Create(Window));
     Window.Controls.InsertFront(TCastleButton.Create(Window));
@@ -131,27 +131,41 @@ begin
 end;
 
 type
+  TCastleWindowWithSceneManager = class(TCastleWindowBase)
+    SceneManager: TGameSceneManager;
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+constructor TCastleWindowWithSceneManager.Create(AOwner: TComponent);
+begin
+  inherited;
+  SceneManager := TGameSceneManager.Create(Self);
+  SceneManager.FullSize := true;
+  Controls.InsertFront(SceneManager);
+end;
+
+type
   TControl3 = class(TCastleUserInterface)
     procedure GLContextOpen; override;
   end;
 
 procedure TControl3.GLContextOpen;
 begin
-  (Application.MainWindow as TCastleWindow).SceneManager.LoadLevel('level_without_loading_image');
+  (Application.MainWindow as TCastleWindowWithSceneManager).SceneManager.LoadLevel('level_without_loading_image');
 end;
 
 procedure WindowOpen3(Container: TCastleContainer);
 begin
-  (Application.MainWindow as TCastleWindow).SceneManager.LoadLevel('level_without_loading_image');
+  (Application.MainWindow as TCastleWindowWithSceneManager).SceneManager.LoadLevel('level_without_loading_image');
 end;
 
 procedure TTestCastleWindowOpen.TestLoadLevelFromOpen;
 
   procedure DoTest(const WithButton: boolean);
   var
-    Window: TCastleWindow;
+    Window: TCastleWindowWithSceneManager;
   begin
-    Window := TCastleWindow.Create(nil);
+    Window := TCastleWindowWithSceneManager.Create(nil);
     try
       Window.Controls.InsertFront(TControl3.Create(Window));
       if WithButton then

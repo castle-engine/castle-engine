@@ -91,8 +91,8 @@ type
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
-    function CameraPositionInitial(const A: TCastleTransform): TVector3;
-    function CameraPositionInitial(const A: TCastleTransform; out TargetWorldPos: TVector3): TVector3;
+    function CameraPositionInitial(const A: TCastleTransform): TVector3; overload;
+    function CameraPositionInitial(const A: TCastleTransform; out TargetWorldPos: TVector3): TVector3; overload;
     { Returns MaxSingle if no limit.
       Note that CameraDir doesn't have to be normalized. }
     function CameraMaxDistanceToTarget(const A: TCastleTransform; const CameraLookPos: TVector3;
@@ -251,12 +251,13 @@ type
     { When @link(AimAvatar), this is avatar's rotation speed (in radians per second).
       Should make avatar rotation "catch up" (with some delay after camera rotation. }
     property AvatarRotationSpeed: Single read FAvatarRotationSpeed write FAvatarRotationSpeed
-      default DefaultAvatarRotationSpeed;
+      {$ifdef FPC}default DefaultAvatarRotationSpeed{$endif};
 
     { Camera position tracks the desired position with given speed (in units per second).
       This makes camera adjust to avatar moving (because of input, or because of gravity
       or other external code) and to not being blocked by the collider. }
-    property CameraSpeed: Single read FCameraSpeed write FCameraSpeed default DefaultCameraSpeed;
+    property CameraSpeed: Single read FCameraSpeed write FCameraSpeed
+      {$ifdef FPC}default DefaultCameraSpeed{$endif};
 
     { If not aaNone then rotating the camera also rotates (with some delay) the avatar,
       to face the same direction as the camera.
@@ -270,7 +271,7 @@ type
       set by @link(Init).
       It is not used outside of @link(Init). }
     property InitialHeightAboveTarget: Single read FInitialHeightAboveTarget write SetInitialHeightAboveTarget
-      default DefaultInitialHeightAboveTarget;
+      {$ifdef FPC}default DefaultInitialHeightAboveTarget{$endif};
 
     { Immediately (not with delay of CameraSpeed) update camera to never block avatar
       view by a wall, enemy etc. When it is @true, we avoid seeing an invalid geometry
@@ -284,28 +285,31 @@ type
       User can change it with Input_CameraCloser, Input_CameraFurther if you set these inputs
       to some key/mouse button/mouse wheel. }
     property DistanceToAvatarTarget: Single read FDistanceToAvatarTarget write SetDistanceToAvatarTarget
-      default DefaultDistanceToAvatarTarget;
+      {$ifdef FPC}default DefaultDistanceToAvatarTarget{$endif};
     { Speed with which Input_CameraCloser, Input_CameraFurther can change DistanceToAvatarTarget. }
     property CameraDistanceChangeSpeed: Single read FCameraDistanceChangeSpeed write FCameraDistanceChangeSpeed
-      default DefaultCameraDistanceChangeSpeed;
+      {$ifdef FPC}default DefaultCameraDistanceChangeSpeed{$endif};
     { Limit of the distance to avatar, used when changing DistanceToAvatarTarget,
       and also when deciding how to adjust camera to avoid collisions.
       @groupBegin }
     property MinDistanceToAvatarTarget: Single read FMinDistanceToAvatarTarget write FMinDistanceToAvatarTarget
-      default DefaultMinDistanceToAvatarTarget;
+      {$ifdef FPC}default DefaultMinDistanceToAvatarTarget{$endif};
     property MaxDistanceToAvatarTarget: Single read FMaxDistanceToAvatarTarget write FMaxDistanceToAvatarTarget
-      default DefaultMaxDistanceToAvatarTarget;
+      {$ifdef FPC}default DefaultMaxDistanceToAvatarTarget{$endif};
     { @groupEnd }
 
     { Speed of movement by keys. }
-    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default DefaultMoveSpeed;
+    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed
+      {$ifdef FPC}default DefaultMoveSpeed{$endif};
     { Speed of movement by keys, when crouching. }
-    property CrouchSpeed: Single read FCrouchSpeed write FCrouchSpeed default DefaultCrouchSpeed;
+    property CrouchSpeed: Single read FCrouchSpeed write FCrouchSpeed
+      {$ifdef FPC}default DefaultCrouchSpeed{$endif};
     { Speed of movement by keys, when running. }
-    property RunSpeed: Single read FRunSpeed write FRunSpeed default DefaultRunSpeed;
+    property RunSpeed: Single read FRunSpeed write FRunSpeed
+      {$ifdef FPC}default DefaultRunSpeed{$endif};
     { Speed of rotating by keys, in radians per second. }
     property RotationSpeed: Single read FRotationSpeed write FRotationSpeed
-      default DefaultRotationSpeed;
+      {$ifdef FPC}default DefaultRotationSpeed{$endif};
 
     { Animation when character is not moving, not rotating and not crouching.
       Default 'idle'. }
@@ -374,9 +378,9 @@ begin
   FAnimationCrouchRotate := DefaultAnimationCrouchRotate;
 
   FAvatarFreeObserver := TFreeNotificationObserver.Create(Self);
-  FAvatarFreeObserver.OnFreeNotification := @AvatarFreeNotification;
+  FAvatarFreeObserver.OnFreeNotification := {$ifdef FPC}@{$endif}AvatarFreeNotification;
   FAvatarHierarchyFreeObserver := TFreeNotificationObserver.Create(Self);
-  FAvatarHierarchyFreeObserver.OnFreeNotification := @AvatarHierarchyFreeNotification;
+  FAvatarHierarchyFreeObserver.OnFreeNotification := {$ifdef FPC}@{$endif}AvatarHierarchyFreeNotification;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -427,7 +431,7 @@ begin
   {$undef read_implementation_constructor}
 
   // override vector change method, to call Init in design mode when this changes
-  AvatarTargetPersistent.InternalSetValue := @MySetAvatarTargetForPersistent
+  AvatarTargetPersistent.InternalSetValue := {$ifdef FPC}@{$endif}MySetAvatarTargetForPersistent
 end;
 
 procedure TCastleThirdPersonNavigation.MySetAvatarTargetForPersistent(const AValue: TVector3);
@@ -1019,12 +1023,17 @@ end;
 
 function TCastleThirdPersonNavigation.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'CameraFollows', 'AvatarTarget', 'Avatar', 'AvatarHierarchy', 'Radius', 'AimAvatar', 'InitialHeightAboveTarget', 'DistanceToAvatarTarget':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'CameraFollows') or
+     (PropertyName = 'AvatarTarget') or
+     (PropertyName = 'Avatar') or
+     (PropertyName = 'AvatarHierarchy') or
+     (PropertyName = 'Radius') or
+     (PropertyName = 'AimAvatar') or
+     (PropertyName = 'InitialHeightAboveTarget') or
+     (PropertyName = 'DistanceToAvatarTarget') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleThirdPersonNavigation.AvatarFreeNotification(

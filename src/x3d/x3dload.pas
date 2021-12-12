@@ -114,7 +114,7 @@ end;
   of @code('my_model.x3d').
 }
 function LoadNode(const Url: string;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;
+  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; overload;
 
 { Load a scene as X3D node from TStream.
 
@@ -144,7 +144,7 @@ function LoadNode(const Url: string;
   in some cases.
 }
 function LoadNode(const Stream: TStream; BaseUrl: String; const MimeType: String;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;
+  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; overload;
 
 function Load3D(const Url: string;
   const AllowStdIn: boolean = false;

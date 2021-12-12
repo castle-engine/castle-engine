@@ -2,7 +2,7 @@
 <project name="localization_test"
   caption="Localization Test"
   qualified_name="io.castleengine.localization.gettext"
-  standalone_source="localization_test.lpr"
+  standalone_source="localization_test.dpr"
   game_units="GameInitialize"
   author="Michalis Kamburelis"
 >

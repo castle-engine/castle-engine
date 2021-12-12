@@ -33,49 +33,49 @@
     { X3D field "align". } { }
     public property FdAlign: TMFString read FFdAlign;
     { Set X3D field "align". } { }
-    procedure SetAlign(const Value: array of string);
+    procedure SetAlign(const Value: array of string); overload;
     { Set X3D field "align". } { }
-    procedure SetAlign(const Value: TCastleStringList);
+    procedure SetAlign(const Value: TCastleStringList); overload;
 
     strict private FFdOffset: TMFFloat;
     { X3D field "offset". } { }
     public property FdOffset: TMFFloat read FFdOffset;
     { Set X3D field "offset". } { }
-    procedure SetOffset(const Value: array of Single);
+    procedure SetOffset(const Value: array of Single); overload;
     { Set X3D field "offset". } { }
-    procedure SetOffset(const Value: TSingleList);
+    procedure SetOffset(const Value: TSingleList); overload;
 
     strict private FFdOffsetUnits: TMFString;
     { X3D field "offsetUnits". } { }
     public property FdOffsetUnits: TMFString read FFdOffsetUnits;
     { Set X3D field "offsetUnits". } { }
-    procedure SetOffsetUnits(const Value: array of string);
+    procedure SetOffsetUnits(const Value: array of string); overload;
     { Set X3D field "offsetUnits". } { }
-    procedure SetOffsetUnits(const Value: TCastleStringList);
+    procedure SetOffsetUnits(const Value: TCastleStringList); overload;
 
     strict private FFdScaleMode: TMFString;
     { X3D field "scaleMode". } { }
     public property FdScaleMode: TMFString read FFdScaleMode;
     { Set X3D field "scaleMode". } { }
-    procedure SetScaleMode(const Value: array of string);
+    procedure SetScaleMode(const Value: array of string); overload;
     { Set X3D field "scaleMode". } { }
-    procedure SetScaleMode(const Value: TCastleStringList);
+    procedure SetScaleMode(const Value: TCastleStringList); overload;
 
     strict private FFdSize: TMFFloat;
     { X3D field "size". } { }
     public property FdSize: TMFFloat read FFdSize;
     { Set X3D field "size". } { }
-    procedure SetSize(const Value: array of Single);
+    procedure SetSize(const Value: array of Single); overload;
     { Set X3D field "size". } { }
-    procedure SetSize(const Value: TSingleList);
+    procedure SetSize(const Value: TSingleList); overload;
 
     strict private FFdSizeUnits: TMFString;
     { X3D field "sizeUnits". } { }
     public property FdSizeUnits: TMFString read FFdSizeUnits;
     { Set X3D field "sizeUnits". } { }
-    procedure SetSizeUnits(const Value: array of string);
+    procedure SetSizeUnits(const Value: array of string); overload;
     { Set X3D field "sizeUnits". } { }
-    procedure SetSizeUnits(const Value: TCastleStringList);
+    procedure SetSizeUnits(const Value: TCastleStringList); overload;
 
 {$endif read_interface}
 

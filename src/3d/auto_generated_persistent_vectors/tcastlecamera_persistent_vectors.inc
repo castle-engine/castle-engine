@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FInitialPositionPersistent := TCastleVector3Persistent.Create;
-  FInitialPositionPersistent.InternalGetValue := @GetInitialPositionForPersistent;
-  FInitialPositionPersistent.InternalSetValue := @SetInitialPositionForPersistent;
+  FInitialPositionPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetInitialPositionForPersistent;
+  FInitialPositionPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetInitialPositionForPersistent;
   FInitialPositionPersistent.InternalDefaultValue := InitialPosition; // current value is default
 {$endif read_implementation_constructor}
 
@@ -113,8 +113,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FInitialDirectionPersistent := TCastleVector3Persistent.Create;
-  FInitialDirectionPersistent.InternalGetValue := @GetInitialDirectionForPersistent;
-  FInitialDirectionPersistent.InternalSetValue := @SetInitialDirectionForPersistent;
+  FInitialDirectionPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetInitialDirectionForPersistent;
+  FInitialDirectionPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetInitialDirectionForPersistent;
   FInitialDirectionPersistent.InternalDefaultValue := InitialDirection; // current value is default
 {$endif read_implementation_constructor}
 
@@ -175,8 +175,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FInitialUpPersistent := TCastleVector3Persistent.Create;
-  FInitialUpPersistent.InternalGetValue := @GetInitialUpForPersistent;
-  FInitialUpPersistent.InternalSetValue := @SetInitialUpForPersistent;
+  FInitialUpPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetInitialUpForPersistent;
+  FInitialUpPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetInitialUpForPersistent;
   FInitialUpPersistent.InternalDefaultValue := InitialUp; // current value is default
 {$endif read_implementation_constructor}
 
@@ -237,8 +237,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FGravityUpPersistent := TCastleVector3Persistent.Create;
-  FGravityUpPersistent.InternalGetValue := @GetGravityUpForPersistent;
-  FGravityUpPersistent.InternalSetValue := @SetGravityUpForPersistent;
+  FGravityUpPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetGravityUpForPersistent;
+  FGravityUpPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetGravityUpForPersistent;
   FGravityUpPersistent.InternalDefaultValue := GravityUp; // current value is default
 {$endif read_implementation_constructor}
 

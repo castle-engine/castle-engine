@@ -48,6 +48,7 @@ type
     function ToString: String; override;
   end;
 
+{$ifdef FPC}
 function UTF8CharacterLength(p: PChar): integer;
 function UTF8Length(const s: string): PtrInt; overload;
 function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt; overload;
@@ -99,9 +100,17 @@ function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): integer;
 }
 function UTF8ToHtmlEntities(const S: String): String;
 
+{$else}
+function GetUTF32Length(const Text: String): Integer;
+
+function GetUTF32Char(const Text: String; const Index: Integer; out NextCharIndex: Integer): TUnicodeChar;
+
+function UTF32Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
+{$endif FPC}
+
 implementation
 
-uses SysUtils;
+uses SysUtils{$ifndef FPC}, Character{$endif};
 
 { TUnicodeCharList ----------------------------------------------------------- }
 
@@ -114,16 +123,35 @@ end;
 procedure TUnicodeCharList.Add(const SampleText: string);
 var
   C: TUnicodeChar;
+  {$ifdef FPC}
   TextPtr: PChar;
   CharLen: Integer;
+  {$else}
+  TextIndex: Integer;
+  NextTextIndex: Integer;
+  TextLength: Integer;
+  {$endif}
 begin
+  {$ifdef FPC}
   TextPtr := PChar(SampleText);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
   while (C > 0) and (CharLen > 0) do
+  {$else}
+  TextIndex := 1;
+  TextLength := Length(SampleText);
+  while (TextIndex <= TextLength) do
+  {$endif}
   begin
+    {$ifdef FPC}
     Inc(TextPtr, CharLen);
+    {$else}
+    C := GetUTF32Char(SampleText, TextIndex, NextTextIndex);
+    TextIndex := NextTextIndex;
+    {$endif}
     Add(C);
+    {$ifdef FPC}
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    {$endif}
   end;
 end;
 
@@ -141,10 +169,11 @@ var
 begin
   Result := '';
   for C in Self do
-    Result := Result + UnicodeToUTF8(C);
+    Result := Result + {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif};
 end;
 
 { global --------------------------------------------------------------------- }
+{$ifdef FPC}
 
 function UTF8CharacterLength(p: PChar): integer;
 begin
@@ -396,5 +425,60 @@ begin
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 end;
+
+{$else FPC}
+
+function GetUTF32Length(const Text: String): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  I := 1;
+  while I <= Length(Text) do
+  begin
+    if IsSurrogate(Text, I) then
+    begin
+      Inc(I);
+    end;
+    Inc(Result);
+    Inc(I);
+  end;
+end;
+
+function GetUTF32Char(const Text: String; const Index: Integer; out NextCharIndex: Integer): TUnicodeChar;
+begin
+  NextCharIndex := Index + 1;
+
+  // check 4 byte char
+  if IsSurrogate(Text, Index) then
+  begin
+    Inc(NextCharIndex);
+  end;
+
+  Result := ConvertToUtf32(Text, Index);
+end;
+
+function UTF32Copy(const S: string; StartCharIndex, CharCount: PtrInt): String;
+var
+  I: Integer;
+  AddedChars: Integer;
+begin
+  I := StartCharIndex;
+  AddedChars := 0;
+  while (I <= Length(S)) or (AddedChars < CharCount) do
+  begin
+    if IsSurrogate(S, I) then
+    begin
+      Result := Result + S[I];
+      Inc(I);
+    end;
+
+    Result := Result + S[I]; // TODO: can be dangerous when string is not valid UTF16
+    Inc(AddedChars);
+    Inc(I);
+  end;
+end;
+
+{$endif FPC}
 
 end.

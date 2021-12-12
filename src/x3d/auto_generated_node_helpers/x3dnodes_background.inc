@@ -33,49 +33,49 @@
     { X3D field "backUrl". } { }
     public property FdBackUrl: TMFString read FFdBackUrl;
     { Set X3D field "backUrl". } { }
-    procedure SetBackUrl(const Value: array of string);
+    procedure SetBackUrl(const Value: array of string); overload;
     { Set X3D field "backUrl". } { }
-    procedure SetBackUrl(const Value: TCastleStringList);
+    procedure SetBackUrl(const Value: TCastleStringList); overload;
 
     strict private FFdBottomUrl: TMFString;
     { X3D field "bottomUrl". } { }
     public property FdBottomUrl: TMFString read FFdBottomUrl;
     { Set X3D field "bottomUrl". } { }
-    procedure SetBottomUrl(const Value: array of string);
+    procedure SetBottomUrl(const Value: array of string); overload;
     { Set X3D field "bottomUrl". } { }
-    procedure SetBottomUrl(const Value: TCastleStringList);
+    procedure SetBottomUrl(const Value: TCastleStringList); overload;
 
     strict private FFdFrontUrl: TMFString;
     { X3D field "frontUrl". } { }
     public property FdFrontUrl: TMFString read FFdFrontUrl;
     { Set X3D field "frontUrl". } { }
-    procedure SetFrontUrl(const Value: array of string);
+    procedure SetFrontUrl(const Value: array of string); overload;
     { Set X3D field "frontUrl". } { }
-    procedure SetFrontUrl(const Value: TCastleStringList);
+    procedure SetFrontUrl(const Value: TCastleStringList); overload;
 
     strict private FFdLeftUrl: TMFString;
     { X3D field "leftUrl". } { }
     public property FdLeftUrl: TMFString read FFdLeftUrl;
     { Set X3D field "leftUrl". } { }
-    procedure SetLeftUrl(const Value: array of string);
+    procedure SetLeftUrl(const Value: array of string); overload;
     { Set X3D field "leftUrl". } { }
-    procedure SetLeftUrl(const Value: TCastleStringList);
+    procedure SetLeftUrl(const Value: TCastleStringList); overload;
 
     strict private FFdRightUrl: TMFString;
     { X3D field "rightUrl". } { }
     public property FdRightUrl: TMFString read FFdRightUrl;
     { Set X3D field "rightUrl". } { }
-    procedure SetRightUrl(const Value: array of string);
+    procedure SetRightUrl(const Value: array of string); overload;
     { Set X3D field "rightUrl". } { }
-    procedure SetRightUrl(const Value: TCastleStringList);
+    procedure SetRightUrl(const Value: TCastleStringList); overload;
 
     strict private FFdTopUrl: TMFString;
     { X3D field "topUrl". } { }
     public property FdTopUrl: TMFString read FFdTopUrl;
     { Set X3D field "topUrl". } { }
-    procedure SetTopUrl(const Value: array of string);
+    procedure SetTopUrl(const Value: array of string); overload;
     { Set X3D field "topUrl". } { }
-    procedure SetTopUrl(const Value: TCastleStringList);
+    procedure SetTopUrl(const Value: TCastleStringList); overload;
 
 {$endif read_interface}
 

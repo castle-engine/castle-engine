@@ -33,9 +33,9 @@
     { X3D field "vertices". } { }
     public property FdVertices: TMFVec2f read FFdVertices;
     { Set X3D field "vertices". } { }
-    procedure SetVertices(const Value: array of TVector2);
+    procedure SetVertices(const Value: array of TVector2); overload;
     { Set X3D field "vertices". } { }
-    procedure SetVertices(const Value: TVector2List);
+    procedure SetVertices(const Value: TVector2List); overload;
 
     strict private FFdSolid: TSFBool;
     { X3D field "solid". } { }

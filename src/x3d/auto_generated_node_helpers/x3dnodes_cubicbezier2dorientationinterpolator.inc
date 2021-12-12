@@ -36,9 +36,9 @@
     { X3D field "keyValue". } { }
     public property FdKeyValue: TMFFloat read FFdKeyValue;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of Single);
+    procedure SetKeyValue(const Value: array of Single); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TSingleList);
+    procedure SetKeyValue(const Value: TSingleList); overload;
 
     strict private FFdAxis: TSFVec3f;
     { X3D field "axis". } { }

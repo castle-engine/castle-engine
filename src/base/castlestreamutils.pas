@@ -21,7 +21,7 @@ unit CastleStreamUtils;
 interface
 
 uses
-  Classes, CastleVectors;
+  Classes, CastleVectors, CastleUtils;
 
 type
   { Helper class for streams that allows to correctly read and write either little
@@ -87,9 +87,6 @@ type
   end;
 
 implementation
-
-uses
-  CastleUtils;
 
 { TStreamHelper -------------------------------------------------------------- }
 

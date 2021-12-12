@@ -71,7 +71,7 @@ procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
                     RoundUpToMultiply(FAccumBits[3], 8);
       iLayerType := PFD_MAIN_PLANE;             // Main Drawing Layer
     end;
-    PixelFormat := Windows.ChoosePixelFormat(h_Dc, pfd);
+    PixelFormat := Windows.ChoosePixelFormat(h_Dc, {$ifndef FPC}@{$endif}pfd);
     OSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
 
     { sprawdzamy czy dostalismy wymagane AlphaBits, DepthBits, StencilBits i
@@ -150,7 +150,7 @@ procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
           iPixelType := PFD_TYPE_RGBA;
           iLayerType := PFD_MAIN_PLANE;
         end;
-        PixelFormat := Windows.ChoosePixelFormat(Temp_h_Dc, pfd);
+        PixelFormat := Windows.ChoosePixelFormat(Temp_h_Dc, {$ifndef FPC}@{$endif}pfd);
         OSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
         OSCheck( SetPixelFormat(Temp_h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
 

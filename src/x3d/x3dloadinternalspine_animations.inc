@@ -34,7 +34,7 @@
     procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
   end;
 
-  TAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAnimation>)
+  TAnimationList = class({$ifdef FPC}specialize{$endif} TObjectList<TAnimation>)
     procedure Parse(const Json: TJSONObject;
       const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin;
       const NormalizeCurvesKeyValues: Boolean);

@@ -33,9 +33,9 @@
     { X3D field "replaceNames". } { }
     public property FdReplaceNames: TMFString read FFdReplaceNames;
     { Set X3D field "replaceNames". } { }
-    procedure SetReplaceNames(const Value: array of string);
+    procedure SetReplaceNames(const Value: array of string); overload;
     { Set X3D field "replaceNames". } { }
-    procedure SetReplaceNames(const Value: TCastleStringList);
+    procedure SetReplaceNames(const Value: TCastleStringList); overload;
 
     strict private FFdReplaceNodes: TMFNode;
     { X3D field "replaceNodes". } { }

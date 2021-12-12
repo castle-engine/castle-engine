@@ -33,9 +33,9 @@
     { X3D field "fanCount". } { }
     public property FdFanCount: TMFInt32 read FFdFanCount;
     { Set X3D field "fanCount". } { }
-    procedure SetFanCount(const Value: array of LongInt);
+    procedure SetFanCount(const Value: array of LongInt); overload;
     { Set X3D field "fanCount". } { }
-    procedure SetFanCount(const Value: TLongIntList);
+    procedure SetFanCount(const Value: TLongIntList); overload;
 
 {$endif read_interface}
 

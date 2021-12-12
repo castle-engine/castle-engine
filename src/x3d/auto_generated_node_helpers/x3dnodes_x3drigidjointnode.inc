@@ -50,9 +50,9 @@
     { X3D field "forceOutput". } { }
     public property FdForceOutput: TMFString read FFdForceOutput;
     { Set X3D field "forceOutput". } { }
-    procedure SetForceOutput(const Value: array of string);
+    procedure SetForceOutput(const Value: array of string); overload;
     { Set X3D field "forceOutput". } { }
-    procedure SetForceOutput(const Value: TCastleStringList);
+    procedure SetForceOutput(const Value: TCastleStringList); overload;
 
 {$endif read_interface}
 

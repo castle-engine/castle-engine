@@ -40,7 +40,7 @@ type
     procedure CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
   end;
 
-  TAtlasRegionList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAtlasRegion>;
+  TAtlasRegionList = {$ifdef FPC}specialize{$endif} TObjectList<TAtlasRegion>;
 
   TAtlasPage = class
   public
@@ -58,7 +58,7 @@ type
     procedure BuildNodes(const BaseUrl: string);
   end;
 
-  TAtlasPageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAtlasPage>;
+  TAtlasPageList = {$ifdef FPC}specialize{$endif} TObjectList<TAtlasPage>;
 
   TAtlas = class(TTextureLoader)
     Pages: TAtlasPageList;

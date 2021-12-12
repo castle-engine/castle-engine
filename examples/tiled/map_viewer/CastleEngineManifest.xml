@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="map_viewer"
-  standalone_source="map_viewer_standalone.lpr"
+  standalone_source="map_viewer_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.map.viewer"
 >

@@ -73,7 +73,7 @@ begin
   result := TParsedOptionList.Create;
   try
     Parameters.Parse(Options, OptionsCount,
-      {$ifdef CASTLE_OBJFPC} @ {$endif} ParseNextParam, result,
+      {$ifdef FPC} @ {$endif} ParseNextParam, result,
       ParseOnlyKnownOptions);
   except result.Free; raise end;
 end;

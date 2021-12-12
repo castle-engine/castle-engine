@@ -48,9 +48,9 @@
     { X3D field "url". } { }
     public property FdUrl: TMFString read FFdUrl;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: TCastleStringList);
+    procedure SetUrl(const Value: TCastleStringList); overload;
 
     strict private FFdCategory: TSFInt32;
     { X3D field "category". } { }

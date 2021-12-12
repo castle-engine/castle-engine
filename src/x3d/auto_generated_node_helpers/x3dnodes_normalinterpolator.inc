@@ -28,10 +28,18 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFVec3f;
+    { X3D field "keyValue". } { }
+    public property FdKeyValue: TMFVec3f read FFdKeyValue;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of TVector3);
+    procedure SetKeyValue(const Value: array of TVector3); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TVector3List);
+    procedure SetKeyValue(const Value: TVector3List); overload;
+
+    strict private FEventValue_changed: TMFVec3fEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TMFVec3fEvent read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -57,6 +65,13 @@ end;
 procedure TNormalInterpolatorNode.CreateNode;
 begin
   inherited;
+
+  FFdKeyValue := TMFVec3f.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chNone;
+  AddField(FFdKeyValue);
+
+  FEventValue_changed := TMFVec3fEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
 end;
 
 {$endif read_implementation}

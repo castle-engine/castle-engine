@@ -26,7 +26,7 @@ type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
     ButtonRandomizeColor: TCastleButton;
     SceneForEffects: TCastleScene;
@@ -105,7 +105,7 @@ begin
 
   CreateEffect(SceneForEffects);
 
-  ButtonRandomizeColor.OnClick := @ClickRandomizeColor;
+  ButtonRandomizeColor.OnClick := {$ifdef FPC}@{$endif} ClickRandomizeColor;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

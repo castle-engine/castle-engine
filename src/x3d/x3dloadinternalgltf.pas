@@ -36,6 +36,10 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
   CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors,
   CastleRenderOptions;
 
+{$ifndef FPC}
+{$POINTERMATH ON}
+{$endif}
+
 { This unit implements reading glTF into X3D.
   We're using PasGLTF from Bero: https://github.com/BeRo1985/pasgltf/
 
@@ -126,7 +130,7 @@ begin
   { The interpretation of RootPath lies on our side, in GetUri implementation.
     Just use it to store BaseUrl then. }
   RootPath := BaseUrl;
-  GetURI := @CastleGetUri;
+  GetURI := {$ifdef FPC}@{$endif}CastleGetUri;
 
   LoadFromStream(Stream);
 end;
@@ -161,7 +165,7 @@ type
     ShapesParent: TAbstractX3DGroupingNode;
   end;
 
-  TSkinToInitializeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinToInitialize>;
+  TSkinToInitializeList = {$ifdef FPC}specialize{$endif} TObjectList<TSkinToInitialize>;
 
 { TAnimation ----------------------------------------------------------------- }
 
@@ -179,7 +183,7 @@ type
     Path: TGltfSamplerPath;
   end;
 
-  TInterpolatorList = specialize TList<TInterpolator>;
+  TInterpolatorList = {$ifdef FPC}specialize{$endif} TList<TInterpolator>;
 
   { Information about created animation. }
   TAnimation = class
@@ -189,7 +193,7 @@ type
     destructor Destroy; override;
   end;
 
-  TAnimationList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAnimation>;
+  TAnimationList = {$ifdef FPC}specialize{$endif} TObjectList<TAnimation>;
 
 constructor TAnimation.Create;
 begin
@@ -368,7 +372,7 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
       if not Between(NodeIndex, 0, Transformations.Count - 1) then
         Exit; // warning about it was already done by ReadNodes
 
-      T := Transformations.Ptr(NodeIndex);
+      T := PTransformation(Transformations.Ptr(NodeIndex));
       T^ := ParentT;
       T^.Multiply(
         CurrentRotation[NodeIndex],
@@ -388,7 +392,7 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
       if not Between(RootNodeIndex, 0, Transformations.Count - 1) then
         Continue; // warning about it was already done by ReadScene
 
-      T := Transformations.Ptr(RootNodeIndex);
+      T := PTransformation(Transformations.Ptr(RootNodeIndex));
       T^.Init;
       T^.Multiply(
         CurrentRotation[RootNodeIndex],
@@ -727,40 +731,35 @@ var
 begin
   TypeString := TPasJSON.GetString(LightObject.Properties['type'], '');
 
-  case TypeString of
-    'directional':
-      begin
-        Light := TDirectionalLightNode.Create;
-        TDirectionalLightNode(Light).Direction := Vector3(0, 0, -1);
-      end;
+  if TypeString = 'directional' then
+  begin
+    Light := TDirectionalLightNode.Create;
+    TDirectionalLightNode(Light).Direction := Vector3(0, 0, -1);
+  end else
+  if TypeString = 'point' then
+    Light := TPointLightNode.Create
+  else
+  if TypeString = 'spot' then
+  begin
+    Light := TSpotLightNode.Create;
+    TSpotLightNode(Light).Direction := Vector3(0, 0, -1);
 
-    'point':
-      Light := TPointLightNode.Create;
-
-    'spot':
-      begin
-        Light := TSpotLightNode.Create;
-        TSpotLightNode(Light).Direction := Vector3(0, 0, -1);
-
-        SpotItem := LightObject.Properties['spot'];
-        if Assigned(SpotItem) and
-           (SpotItem is TPasJSONItemObject) then
-        begin
-          SpotObject := TPasJSONItemObject(SpotItem);
-          TSpotLightNode(Light).BeamWidth := TPasJSON.GetNumber(SpotObject.Properties['innerConeAngle'], DefaultBeamWidth);
-          TSpotLightNode(Light).CutOffAngle := TPasJSON.GetNumber(SpotObject.Properties['outerConeAngle'], DefaultCutOffAngle);
-        end else
-        begin
-          TSpotLightNode(Light).BeamWidth := DefaultBeamWidth;
-          TSpotLightNode(Light).CutOffAngle := DefaultCutOffAngle;
-        end;
-      end;
-
-    else
-      begin
-        WritelnWarning('Invalid glTF light type "%s"', [TypeString]);
-        Exit;
-      end;
+    SpotItem := LightObject.Properties['spot'];
+    if Assigned(SpotItem) and
+       (SpotItem is TPasJSONItemObject) then
+    begin
+      SpotObject := TPasJSONItemObject(SpotItem);
+      TSpotLightNode(Light).BeamWidth := TPasJSON.GetNumber(SpotObject.Properties['innerConeAngle'], DefaultBeamWidth);
+      TSpotLightNode(Light).CutOffAngle := TPasJSON.GetNumber(SpotObject.Properties['outerConeAngle'], DefaultCutOffAngle);
+    end else
+    begin
+      TSpotLightNode(Light).BeamWidth := DefaultBeamWidth;
+      TSpotLightNode(Light).CutOffAngle := DefaultCutOffAngle;
+    end;
+  end else
+  begin
+    WritelnWarning('Invalid glTF light type "%s"', [TypeString]);
+    Exit;
   end;
 
   Light.Global := true;
@@ -1030,7 +1029,7 @@ var
   end;
 
   procedure ReadTexture(const GltfTextureAtMaterial: TTexture;
-    out Texture: TAbstractX3DTexture2DNode; out TexMapping: String);
+    out Texture: TAbstractX3DTexture2DNode; out TexMapping: String); overload;
   var
     GltfTexture: TPasGLTF.TTexture;
     GltfImage: TPasGLTF.TImage;
@@ -1144,7 +1143,7 @@ var
   end;
 
   procedure ReadTexture(const GltfTextureAtMaterial: TPasGLTF.TMaterial.TTexture;
-    out Texture: TAbstractX3DTexture2DNode; out TexMapping: String);
+    out Texture: TAbstractX3DTexture2DNode; out TexMapping: String); overload;
   var
     TextureRec: TTexture;
   begin
@@ -1397,7 +1396,8 @@ var
     end;
   end;
 
-  procedure AccessorToVector4(const AccessorIndex: Integer; const Field: TVector4List; const ForVertex: Boolean);
+  procedure AccessorToVector4(const AccessorIndex: Integer; const Field: TVector4List;
+    const ForVertex: Boolean); overload;
   var
     Accessor: TPasGLTF.TAccessor;
     A: TPasGLTF.TVector4DynamicArray;
@@ -1414,7 +1414,8 @@ var
     end;
   end;
 
-  procedure AccessorToVector4(const AccessorIndex: Integer; const Field: TMFVec4f; const ForVertex: Boolean);
+  procedure AccessorToVector4(const AccessorIndex: Integer; const Field: TMFVec4f;
+    const ForVertex: Boolean); overload;
   begin
     AccessorToVector4(AccessorIndex, Field.Items, ForVertex);
   end;
@@ -1660,19 +1661,24 @@ var
       Shape.GenerateTangents;
 
     MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
-    case MetadataCollision of
-      'none': Shape.Collision := scNone;
-      'box': Shape.Collision := scBox;
-      '', 'default': Shape.Collision := scDefault;
-      else WritelnWarning('Invalid value for "CastleCollision" custom property, ignoring: %s', [MetadataCollision]);
-    end;
+    if MetadataCollision = 'none' then
+      Shape.Collision := scNone
+    else
+    if MetadataCollision = 'box' then
+      Shape.Collision := scBox
+    else
+    if (MetadataCollision = '') or (MetadataCollision = 'default') then
+      Shape.Collision := scDefault
+    else
+      WritelnWarning('Invalid value for "CastleCollision" custom property, ignoring: %s', [MetadataCollision]);
 
     // add to X3D
     ParentGroup.AddChildren(Shape);
     ReadMetadata(Primitive.Extras, Shape);
   end;
 
-  procedure ReadMesh(const Mesh: TPasGLTF.TMesh; const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadMesh(const Mesh: TPasGLTF.TMesh;
+    const ParentGroup: TAbstractX3DGroupingNode); overload;
   var
     Primitive: TPasGLTF.TMesh.TPrimitive;
     Group: TGroupNode;
@@ -1687,7 +1693,8 @@ var
       ReadPrimitive(Primitive, Group);
   end;
 
-  procedure ReadMesh(const MeshIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadMesh(const MeshIndex: Integer;
+    const ParentGroup: TAbstractX3DGroupingNode); overload;
   begin
     if Between(MeshIndex, 0, Document.Meshes.Count - 1) then
       ReadMesh(Document.Meshes[MeshIndex], ParentGroup)
@@ -1695,7 +1702,8 @@ var
       WritelnWarning('glTF', 'Mesh index invalid: %d', [MeshIndex]);
   end;
 
-  procedure ReadCamera(const Camera: TPasGLTF.TCamera; const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadCamera(const Camera: TPasGLTF.TCamera;
+    const ParentGroup: TAbstractX3DGroupingNode); overload;
   var
     OrthoViewpoint: TOrthoViewpointNode;
     Viewpoint: TViewpointNode;
@@ -1723,7 +1731,8 @@ var
     end;
   end;
 
-  procedure ReadCamera(const CameraIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
+  procedure ReadCamera(const CameraIndex: Integer;
+    const ParentGroup: TAbstractX3DGroupingNode); overload;
   begin
     if Between(CameraIndex, 0, Document.Cameras.Count - 1) then
       ReadCamera(Document.Cameras[CameraIndex], ParentGroup)
@@ -1857,6 +1866,10 @@ var
     TargetField: TX3DField;
     I: Integer;
   begin
+    // silence Delphi warnings
+    InterpolatePosition := nil;
+    InterpolateOrientation := nil;
+
     case Path of
       gsTranslation, gsScale:
         begin
@@ -2012,15 +2025,18 @@ var
       Sampler := Animation.Samplers[Channel.Sampler];
 
       // read channel Path
-      case Channel.Target.Path of
-        'translation': Path := gsTranslation;
-        'rotation'   : Path := gsRotation;
-        'scale'      : Path := gsScale;
-        else
-          begin
-            WritelnWarning('Animating "%s" not supported', [Channel.Target.Path]);
-            Continue;
-          end;
+      if Channel.Target.Path = 'translation' then
+        Path := gsTranslation
+      else
+      if Channel.Target.Path = 'rotation' then
+        Path := gsRotation
+      else
+      if Channel.Target.Path = 'scale' then
+        Path := gsScale
+      else
+      begin
+        WritelnWarning('Animating "%s" not supported', [Channel.Target.Path]);
+        Continue;
       end;
 
       // call ReadSampler with all information
@@ -2232,7 +2248,7 @@ var
     begin
       if (Shape.Material is TMaterialNode) or
          (Shape.Material is TPhysicalMaterialNode) then
-        WritelnWarning('TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. For now it is adviced to generate glTF with normals included for skinned meshes.');
+        WritelnWarning('TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. ' + 'For now it is adviced to generate glTF with normals included for skinned meshes.');
     end;
 
     // calculate Tangent
@@ -2254,7 +2270,7 @@ var
       if ( (Shape.Material is TMaterialNode) or
            (Shape.Material is TPhysicalMaterialNode) ) and
          ((Shape.Material as TAbstractOneSidedMaterialNode).NormalTexture <> nil) then
-        WritelnWarning('TODO: Tangent vectors are not provided for a skinned geometry (using lit material with normalmap), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. For now it is adviced to generate glTF with tangents included for skinned meshes.');
+        WritelnWarning('TODO: Tangent vectors are not provided for a skinned geometry (using lit material with normalmap), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. ' + 'For now it is adviced to generate glTF with tangents included for skinned meshes.');
     end;
 
     if (Shape.Geometry.InternalSkinJoints = nil) or
@@ -2341,9 +2357,9 @@ var
 
       MemoryTaken := CoordInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
       if NormalInterpolator <> nil then
-        MemoryTaken += NormalInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
+        MemoryTaken := MemoryTaken + NormalInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
       if TangentInterpolator <> nil then
-        MemoryTaken += TangentInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
+        MemoryTaken := MemoryTaken + TangentInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
       if MemoryTaken > 10 * 1024 * 1024 then // report only when memory usage > 10 MB
         WritelnLog('glTF', 'Memory occupied by precalculating "%s" animation: %s', [
           Anim.TimeSensor.X3DName,
@@ -2569,4 +2585,9 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
+{$ifndef FPC}
+{$POINTERMATH OFF}
+{$endif}
+
 end.
+

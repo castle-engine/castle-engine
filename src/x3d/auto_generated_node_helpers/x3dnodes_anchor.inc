@@ -42,17 +42,17 @@
     { X3D field "parameter". } { }
     public property FdParameter: TMFString read FFdParameter;
     { Set X3D field "parameter". } { }
-    procedure SetParameter(const Value: array of string);
+    procedure SetParameter(const Value: array of string); overload;
     { Set X3D field "parameter". } { }
-    procedure SetParameter(const Value: TCastleStringList);
+    procedure SetParameter(const Value: TCastleStringList); overload;
 
     strict private FFdUrl: TMFString;
     { X3D field "url". } { }
     public property FdUrl: TMFString read FFdUrl;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: TCastleStringList);
+    procedure SetUrl(const Value: TCastleStringList); overload;
 
 {$endif read_interface}
 

@@ -13,6 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$I castleconf.inc} // hide useless Delphi hints/warnings
+
 {$IFDEF FPC}
 {$MODE objfpc}
 {$H+}

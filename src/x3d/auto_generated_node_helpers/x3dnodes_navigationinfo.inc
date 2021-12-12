@@ -44,9 +44,9 @@
     { X3D field "avatarSize". } { }
     public property FdAvatarSize: TMFFloat read FFdAvatarSize;
     { Set X3D field "avatarSize". } { }
-    procedure SetAvatarSize(const Value: array of Single);
+    procedure SetAvatarSize(const Value: array of Single); overload;
     { Set X3D field "avatarSize". } { }
-    procedure SetAvatarSize(const Value: TSingleList);
+    procedure SetAvatarSize(const Value: TSingleList); overload;
 
     strict private FFdHeadlight: TSFBool;
     { X3D field "headlight". } { }
@@ -70,17 +70,17 @@
     { X3D field "transitionType". } { }
     public property FdTransitionType: TMFString read FFdTransitionType;
     { Set X3D field "transitionType". } { }
-    procedure SetTransitionType(const Value: array of string);
+    procedure SetTransitionType(const Value: array of string); overload;
     { Set X3D field "transitionType". } { }
-    procedure SetTransitionType(const Value: TCastleStringList);
+    procedure SetTransitionType(const Value: TCastleStringList); overload;
 
     strict private FFdType: TMFString;
     { X3D field "type". } { }
     public property FdType: TMFString read FFdType;
     { Set X3D field "type". } { }
-    procedure SetType(const Value: array of string);
+    procedure SetType(const Value: array of string); overload;
     { Set X3D field "type". } { }
-    procedure SetType(const Value: TCastleStringList);
+    procedure SetType(const Value: TCastleStringList); overload;
 
     strict private FFdVisibilityLimit: TSFFloat;
     { X3D field "visibilityLimit". } { }

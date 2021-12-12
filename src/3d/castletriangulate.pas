@@ -145,7 +145,8 @@ procedure TriangulateFace(
   function Previous(const I: Integer): Integer;
   begin
     Result := I - 1;
-    if Result = -1 then Result += Count;
+    if Result = -1 then
+      Result := Result + Count;
   end;
 
   function Next(const I: Integer): Integer;
@@ -212,7 +213,7 @@ var
     Searches to make sure we have a good non-colinear triangle around Middle.
     Returns false (and does log message) if not possible. }
   function EarAround(const Middle: Integer; out Previous, Next: Integer;
-    out EarDir: TVector3): boolean;
+    out EarDir: TVector3): boolean; overload;
   begin
     { Previous := previous from Middle, with different value. }
     Previous := Middle;
@@ -242,7 +243,7 @@ var
     Result := true;
   end;
 
-  function EarAround(const Middle: Integer; out Previous, Next: Integer): boolean;
+  function EarAround(const Middle: Integer; out Previous, Next: Integer): boolean; overload;
   var
     EarDirIgnored: TVector3;
   begin
@@ -302,7 +303,7 @@ var
       R0, RDirection: TVector2;
       X, T, XDirectionLenSqr, YDirectionLenSqr: Single;
     begin
-      Ray0 -= Origin;
+      Ray0 := Ray0 - Origin;
 
       { fix YDirection to be orthogonal to XDirection, to make sure projecting
         by TVector3.DotProduct is correct }
@@ -401,8 +402,8 @@ begin
     { calculate Center := average of all vertexes }
     Center := TVector3.Zero;
     for I := 0 to Count - 1 do
-      Center += Verts(I);
-    Center /= Count;
+      Center := Center + Verts(I);
+    Center := Center / Count;
 
     Outs := TBooleanList.Create;
     try
@@ -479,7 +480,7 @@ begin
               WritelnLog('Triangulation', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated.');
             if not FailureWarningDone then
             begin
-              WritelnWarning('Triangulator', 'Triangulation of concave polygon failed. Polygon is probably self-intersecting (not allowed by VRML / X3D). You can use Castle Game Engine tool in castle_game_engine/examples/visualize_triangulation/ to easily observe the polygon vertexes and triangulation process.');
+              WritelnWarning('Triangulator', 'Triangulation of concave polygon failed. ' + 'Polygon is probably self-intersecting (not allowed by VRML / X3D). You can use Castle Game Engine tool in castle_game_engine/examples/visualize_triangulation/ to easily observe the polygon vertexes and triangulation process.');
               FailureWarningDone := true;
             end;
             Break;
@@ -592,7 +593,7 @@ begin
     G.Vertices := Vertices;
     G.VerticesCount := VerticesCount;
     TriangulateFace(FaceIndices, Count,
-      @G.Generate, TriangulatorProc, AddToIndices);
+      {$ifdef FPC}@{$endif}G.Generate, TriangulatorProc, AddToIndices);
   finally FreeAndNil(G); end;
 end;
 
@@ -632,7 +633,8 @@ function IndexedConcavePolygonNormal(
   function Previous(const I: Integer): Integer;
   begin
     Result := I - 1;
-    if Result = -1 then Result += Count;
+    if Result = -1 then
+      Result := Result + Count;
   end;
 
   function Next(const I: Integer): Integer;
@@ -680,8 +682,8 @@ begin
   { calculate Center := average of all vertexes }
   Center := TVector3.Zero;
   for I := 0 to Count - 1 do
-    Center += Verts(I);
-  Center /= Count;
+    Center := Center + Verts(I);
+  Center := Center / Count;
 
   { P1 is the most distant vertex. }
   P1 := GetMostDistantVertex(Center);

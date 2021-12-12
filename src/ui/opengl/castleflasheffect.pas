@@ -54,7 +54,7 @@ type
     function Active: boolean;
   published
     property Duration: Single read FDuration write FDuration
-      default DefaultDuration;
+      {$ifdef FPC}default DefaultDuration{$endif};
 
     { Set this image to modulate the color with an image.
       The image is always stretched to cover our whole size. }
@@ -74,7 +74,7 @@ begin
   FDuration := DefaultDuration;
   FullSize := true;
   FImage := TCastleImagePersistent.Create;
-  FImage.OnChange := @ImageChanged;
+  FImage.OnChange := {$ifdef FPC}@{$endif}ImageChanged;
 end;
 
 destructor TCastleFlashEffect.Destroy;

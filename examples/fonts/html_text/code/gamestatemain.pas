@@ -25,7 +25,7 @@ type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelMain: TCastleLabel;
     ButtonHtml, ButtonWrap, ButtonAlignLeft, ButtonAlignMiddle, ButtonAlignRight: TCastleButton;
     ScrollView: TCastleScrollView;
@@ -82,11 +82,11 @@ begin
   ScrollView := DesignedComponent('ScrollView') as TCastleScrollView;
 
   { Assign buttons OnClick handlers }
-  ButtonHtml.OnClick := @ClickHtml;
-  ButtonWrap.OnClick := @ClickWrap;
-  ButtonAlignRight.OnClick := @ClickAlignRight;
-  ButtonAlignMiddle.OnClick := @ClickAlignMiddle;
-  ButtonAlignLeft.OnClick := @ClickAlignLeft;
+  ButtonHtml.OnClick := {$ifdef FPC}@{$endif} ClickHtml;
+  ButtonWrap.OnClick := {$ifdef FPC}@{$endif} ClickWrap;
+  ButtonAlignRight.OnClick := {$ifdef FPC}@{$endif} ClickAlignRight;
+  ButtonAlignMiddle.OnClick := {$ifdef FPC}@{$endif} ClickAlignMiddle;
+  ButtonAlignLeft.OnClick := {$ifdef FPC}@{$endif} ClickAlignLeft;
 end;
 
 procedure TStateMain.Resize;

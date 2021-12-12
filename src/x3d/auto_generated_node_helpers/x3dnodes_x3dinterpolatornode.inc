@@ -37,9 +37,9 @@
     { X3D field "key". } { }
     public property FdKey: TMFFloat read FFdKey;
     { Set X3D field "key". } { }
-    procedure SetKey(const Value: array of Single);
+    procedure SetKey(const Value: array of Single); overload;
     { Set X3D field "key". } { }
-    procedure SetKey(const Value: TSingleList);
+    procedure SetKey(const Value: TSingleList); overload;
 
 {$endif read_interface}
 

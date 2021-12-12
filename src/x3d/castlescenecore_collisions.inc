@@ -356,7 +356,7 @@ begin
       begin
         Result := TRayCollision.Create;
         Result.Distance := IntersectionDistance;
-        NewNode := Result.Add;
+        NewNode := PRayCollisionNode(Result.Add);
         NewNode^.Item := Self;
         NewNode^.Point := Intersection;
         NewNode^.Triangle := Triangle;
@@ -370,7 +370,7 @@ begin
         Result := TRayCollision.Create;
         Result.Distance := IntersectionDistance;
 
-        NewNode := Result.Add;
+        NewNode := PRayCollisionNode(Result.Add);
         NewNode^.Item := Self;
         NewNode^.Point := Intersection;
         NewNode^.Triangle := nil;

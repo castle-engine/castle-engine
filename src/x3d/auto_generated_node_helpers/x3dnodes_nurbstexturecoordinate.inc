@@ -42,17 +42,17 @@
     { X3D field "controlPoint". } { }
     public property FdControlPoint: TMFVec2f read FFdControlPoint;
     { Set X3D field "controlPoint". } { }
-    procedure SetControlPoint(const Value: array of TVector2);
+    procedure SetControlPoint(const Value: array of TVector2); overload;
     { Set X3D field "controlPoint". } { }
-    procedure SetControlPoint(const Value: TVector2List);
+    procedure SetControlPoint(const Value: TVector2List); overload;
 
     strict private FFdWeight: TMFFloat;
     { X3D field "weight". } { }
     public property FdWeight: TMFFloat read FFdWeight;
     { Set X3D field "weight". } { }
-    procedure SetWeight(const Value: array of Single);
+    procedure SetWeight(const Value: array of Single); overload;
     { Set X3D field "weight". } { }
-    procedure SetWeight(const Value: TSingleList);
+    procedure SetWeight(const Value: TSingleList); overload;
 
     strict private FFdUDimension: TSFInt32;
     { X3D field "uDimension". } { }
@@ -64,9 +64,9 @@
     { X3D field "uKnot". } { }
     public property FdUKnot: TMFDouble read FFdUKnot;
     { Set X3D field "uKnot". } { }
-    procedure SetUKnot(const Value: array of Double);
+    procedure SetUKnot(const Value: array of Double); overload;
     { Set X3D field "uKnot". } { }
-    procedure SetUKnot(const Value: TDoubleList);
+    procedure SetUKnot(const Value: TDoubleList); overload;
 
     strict private FFdUOrder: TSFInt32;
     { X3D field "uOrder". } { }
@@ -84,9 +84,9 @@
     { X3D field "vKnot". } { }
     public property FdVKnot: TMFDouble read FFdVKnot;
     { Set X3D field "vKnot". } { }
-    procedure SetVKnot(const Value: array of Double);
+    procedure SetVKnot(const Value: array of Double); overload;
     { Set X3D field "vKnot". } { }
-    procedure SetVKnot(const Value: TDoubleList);
+    procedure SetVKnot(const Value: TDoubleList); overload;
 
     strict private FFdVOrder: TSFInt32;
     { X3D field "vOrder". } { }

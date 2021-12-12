@@ -192,7 +192,7 @@ uses Math, CastleUtils;
 
 { TQuaternion ---------------------------------------------------------------- }
 
-class function TQuaternion.ZeroRotation: TQuaternion; static;
+class function TQuaternion.ZeroRotation: TQuaternion; {$ifdef FPC}static;{$endif}
 const
   R: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1));
 begin

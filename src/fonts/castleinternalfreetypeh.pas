@@ -52,10 +52,10 @@ unit CastleInternalFreeTypeH;
 
 interface
 
-{$packrecords c}
+{$ifdef FPC}{$packrecords c}{$endif}
 
 type
-  FT_Encoding = array[0..3] of char;
+  FT_Encoding = array[0..3] of Ansichar;
 
 const
   FT_FACE_FLAG_SCALABLE = 1 shl 0;
@@ -124,16 +124,16 @@ type
   FT_Bool = boolean;
   FT_FWord = smallint;
   FT_UFWord = word;
-  FT_Char = char;
+  FT_Char = AnsiChar;
   FT_Byte = byte;
-  FT_String = char;
+  FT_String = Ansichar;
   FT_Short = smallint;
   FT_UShort = word;
   FT_Int = longint;
   FT_UInt = longword;
   {$if defined(cpu64) and not(defined(win64) and defined(cpux86_64))}
   FT_Long = int64;
-  FT_ULong = qword;
+  FT_ULong = {$ifdef FPC} qword {$else} UInt64 {$endif};
   FT_Pos = int64;
   {$ELSE}
   FT_Long = longint;
@@ -148,9 +148,11 @@ type
   //FT_Offset = size_t;
   //FT_PtrDist = size_t;
 
-  FT_Render_Mode = (FT_RENDER_MODE_NORMAL, FT_RENDER_MODE_LIGHT,
+  {$ifndef FPC}{$MinEnumSize 4}{$endif}
+  FT_Render_Mode = (FT_RENDER_MODE_NORMAL = 0, FT_RENDER_MODE_LIGHT,
       FT_RENDER_MODE_MONO, FT_RENDER_MODE_LCD, FT_RENDER_MODE_LCD_V,
       FT_RENDER_MODE_MAX);
+  {$ifndef FPC}{$MinEnumSize 1}{$endif}
 
   FT_UnitVector_ = record
       x : FT_F2Dot14;
@@ -214,8 +216,8 @@ type
     pitch : integer;
     buffer : pointer;
     num_grays : shortint;
-    pixel_mode : char;
-    palette_mode : char;
+    pixel_mode : Ansichar;
+    palette_mode : Ansichar;
     palette : pointer;
   end;
 
@@ -223,7 +225,7 @@ type
     n_contours,
     n_points : smallint;
     points : PFT_Vector;
-    tags : pchar;
+    tags : PAnsiChar;
     contours : ^smallint;
     flags : integer;
   end;
@@ -319,8 +321,8 @@ type
     face_flags : FT_Long;
     style_flags : FT_Long;
     num_glyphs : FT_Long;
-    family_name : pchar;
-    style_name : pchar;
+    family_name : PAnsiChar;
+    style_name : PAnsiChar;
     num_fixed_sizes : FT_Int;
     available_sizes : PFT_Bitmap_Size;     // is array
     num_charmaps : FT_Int;
@@ -368,7 +370,7 @@ function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_U
 function FT_Init_FreeType(var alibrary: PFT_Library): integer; cdecl; external;
 function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: longint): integer; cdecl; external;
 function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint): integer; cdecl; external;
-function FT_New_Face(alibrary: PFT_Library; filepathname: PChar; face_index: integer; var aface: PFT_Face): integer; cdecl; external;
+function FT_New_Face(alibrary: PFT_Library; filepathname: PAnsiChar; face_index: integer; var aface: PFT_Face): integer; cdecl; external;
 function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl; external;
 function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl; external;
 procedure FT_Set_Transform(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl; external;
@@ -398,7 +400,7 @@ var
   FT_Init_FreeType: function(var alibrary: PFT_Library): integer; cdecl;
   FT_Load_Char: function(face: PFT_Face; charcode: FT_ULong; load_flags: longint): integer; cdecl;
   FT_Load_Glyph: function(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint): integer; cdecl;
-  FT_New_Face: function(alibrary: PFT_Library; filepathname: PChar; face_index: integer; var aface: PFT_Face): integer; cdecl;
+  FT_New_Face: function(alibrary: PFT_Library; filepathname: PAnsiChar; face_index: integer; var aface: PFT_Face): integer; cdecl;
   FT_Set_Char_Size: function(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl;
   FT_Set_Pixel_Sizes: function(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl;
   FT_Set_Transform: procedure(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl;
@@ -495,25 +497,25 @@ begin
 
   if FreeTypeLibrary <> nil then
   begin
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Done_Face) := FreeTypeLibrary.Symbol('FT_Done_Face');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Done_FreeType) := FreeTypeLibrary.Symbol('FT_Done_FreeType');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Get_Char_Index) := FreeTypeLibrary.Symbol('FT_Get_Char_Index');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Get_Kerning) := FreeTypeLibrary.Symbol('FT_Get_Kerning');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Init_FreeType) := FreeTypeLibrary.Symbol('FT_Init_FreeType');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Load_Char) := FreeTypeLibrary.Symbol('FT_Load_Char');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Load_Glyph) := FreeTypeLibrary.Symbol('FT_Load_Glyph');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_New_Face) := FreeTypeLibrary.Symbol('FT_New_Face');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Set_Char_Size) := FreeTypeLibrary.Symbol('FT_Set_Char_Size');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Set_Pixel_Sizes) := FreeTypeLibrary.Symbol('FT_Set_Pixel_Sizes');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Set_Transform) := FreeTypeLibrary.Symbol('FT_Set_Transform');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Outline_Decompose) := FreeTypeLibrary.Symbol('FT_Outline_Decompose');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Library_Version) := FreeTypeLibrary.Symbol('FT_Library_Version');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Get_Glyph) := FreeTypeLibrary.Symbol('FT_Get_Glyph');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Glyph_Copy) := FreeTypeLibrary.Symbol('FT_Glyph_Copy');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Glyph_To_Bitmap) := FreeTypeLibrary.Symbol('FT_Glyph_To_Bitmap');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Glyph_Transform) := FreeTypeLibrary.Symbol('FT_Glyph_Transform');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Done_Glyph) := FreeTypeLibrary.Symbol('FT_Done_Glyph');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Glyph_Get_CBox) := FreeTypeLibrary.Symbol('FT_Glyph_Get_CBox');
+    Pointer({$ifndef FPC}@{$endif} FT_Done_Face) := FreeTypeLibrary.Symbol('FT_Done_Face');
+    Pointer({$ifndef FPC}@{$endif} FT_Done_FreeType) := FreeTypeLibrary.Symbol('FT_Done_FreeType');
+    Pointer({$ifndef FPC}@{$endif} FT_Get_Char_Index) := FreeTypeLibrary.Symbol('FT_Get_Char_Index');
+    Pointer({$ifndef FPC}@{$endif} FT_Get_Kerning) := FreeTypeLibrary.Symbol('FT_Get_Kerning');
+    Pointer({$ifndef FPC}@{$endif} FT_Init_FreeType) := FreeTypeLibrary.Symbol('FT_Init_FreeType');
+    Pointer({$ifndef FPC}@{$endif} FT_Load_Char) := FreeTypeLibrary.Symbol('FT_Load_Char');
+    Pointer({$ifndef FPC}@{$endif} FT_Load_Glyph) := FreeTypeLibrary.Symbol('FT_Load_Glyph');
+    Pointer({$ifndef FPC}@{$endif} FT_New_Face) := FreeTypeLibrary.Symbol('FT_New_Face');
+    Pointer({$ifndef FPC}@{$endif} FT_Set_Char_Size) := FreeTypeLibrary.Symbol('FT_Set_Char_Size');
+    Pointer({$ifndef FPC}@{$endif} FT_Set_Pixel_Sizes) := FreeTypeLibrary.Symbol('FT_Set_Pixel_Sizes');
+    Pointer({$ifndef FPC}@{$endif} FT_Set_Transform) := FreeTypeLibrary.Symbol('FT_Set_Transform');
+    Pointer({$ifndef FPC}@{$endif} FT_Outline_Decompose) := FreeTypeLibrary.Symbol('FT_Outline_Decompose');
+    Pointer({$ifndef FPC}@{$endif} FT_Library_Version) := FreeTypeLibrary.Symbol('FT_Library_Version');
+    Pointer({$ifndef FPC}@{$endif} FT_Get_Glyph) := FreeTypeLibrary.Symbol('FT_Get_Glyph');
+    Pointer({$ifndef FPC}@{$endif} FT_Glyph_Copy) := FreeTypeLibrary.Symbol('FT_Glyph_Copy');
+    Pointer({$ifndef FPC}@{$endif} FT_Glyph_To_Bitmap) := FreeTypeLibrary.Symbol('FT_Glyph_To_Bitmap');
+    Pointer({$ifndef FPC}@{$endif} FT_Glyph_Transform) := FreeTypeLibrary.Symbol('FT_Glyph_Transform');
+    Pointer({$ifndef FPC}@{$endif} FT_Done_Glyph) := FreeTypeLibrary.Symbol('FT_Done_Glyph');
+    Pointer({$ifndef FPC}@{$endif} FT_Glyph_Get_CBox) := FreeTypeLibrary.Symbol('FT_Glyph_Get_CBox');
   end;
 end;
 

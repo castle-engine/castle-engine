@@ -85,7 +85,7 @@ constructor TAbstractScriptNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   AddFunctionality(TUrlFunctionality.Create(Self));
-  Fdurl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
+  Fdurl.AddNotification({$ifdef FPC}@{$endif} EventUrlReceive);
 
   { VRML 97 says this is RestrictedAccessTypes.
     X3D (both the general spec, and X3D classic encoding grammar,
@@ -339,9 +339,9 @@ begin
   inherited;
 
   if (IDecl.Event <> nil) and IDecl.Event.InEvent then
-    IDecl.Event.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} IDeclEventReceive) else
+    IDecl.Event.AddNotification({$ifdef FPC}@{$endif} IDeclEventReceive) else
   if (IDecl.Field <> nil) and IDecl.Field.Exposed then
-    IDecl.Field.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} IDeclEventReceive);
+    IDecl.Field.AddNotification({$ifdef FPC}@{$endif} IDeclEventReceive);
 end;
 
 procedure TScriptNode.IDeclEventReceive(

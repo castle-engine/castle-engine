@@ -2,7 +2,7 @@
 <project name="zombie_fighter"
   caption="Zombie Fighter"
   qualified_name="io.castleengine.zombie.fighter"
-  standalone_source="zombie_fighter_standalone.lpr"
+  standalone_source="zombie_fighter_standalone.dpr"
   game_units="GameInitialize"
   author="Michalis Kamburelis"
 >

@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="timer_test" standalone_source="timer_test.lpr">
+<project name="timer_test" standalone_source="timer_test.dpr">
   <data exists="false" />
 </project>

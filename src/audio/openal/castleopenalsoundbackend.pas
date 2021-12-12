@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -226,7 +226,7 @@ begin
   StreamedFile := TStreamedSoundFile.Create(Buffer.URL);
   Buffer.ReadStreamConfig(StreamedFile);
 
-  alCreateBuffers(StreamBuffersCount, ALBuffers);
+  alCreateBuffers(StreamBuffersCount, @ALBuffers[Low(ALBuffers)]);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alCreateBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
   try
@@ -250,7 +250,7 @@ begin
 
   Assert(NecessaryBuffers > 0);
   Assert(NecessaryBuffers <= StreamBuffersCount);
-  alSourceQueueBuffers(Source.ALSource, NecessaryBuffers, ALBuffers);
+  alSourceQueueBuffers(Source.ALSource, NecessaryBuffers, @ALBuffers[Low(ALBuffers)]);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceQueueBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
@@ -283,7 +283,7 @@ begin
     alSourceUnqueueBuffers(Source.ALSource, 1, @ALBuffer);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceUnqueueBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
-  alDeleteBuffers(StreamBuffersCount, ALBuffers);
+  alDeleteBuffers(StreamBuffersCount, @ALBuffers[Low(ALBuffers)]);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alDeleteBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
   FreeAndNil(StreamedFile);
@@ -959,10 +959,10 @@ begin
   { We don't do alcProcessContext/alcSuspendContext, no need
     (spec says that context is initially in processing state). }
 
+  Result := false;
   try
     //raise EOpenALError.Create('Test pretend OpenAL fails');
 
-    Result := false;
     FEFXSupported := false;
     Information := '';
     FALMajorVersion := 0;
@@ -979,7 +979,7 @@ begin
       ErrMessage := Format('OpenAL audio device "%s" is not available', [ADevice]);
       {$ifdef MSWINDOWS}
       if ADevice = '' then
-        ErrMessage := ErrMessage + '.' + NL + 'Note: It seems that even the default audio device is unavailable. Please check that you have all the necessary OpenAL DLL files present (alongside the exe file, or on $PATH). In case of standard Windows OpenAL implementation, you should have OpenAL32.dll and wrap_oal.dll present.';
+        ErrMessage := ErrMessage + '.' + NL + 'Note: It seems that even the default audio device is unavailable. ' + 'Please check that you have all the necessary OpenAL DLL files present (alongside the exe file, or on $PATH). In case of standard Windows OpenAL implementation, you should have OpenAL32.dll and wrap_oal.dll present.';
       {$endif}
       raise EOpenALError.Create(ErrMessage);
     end;

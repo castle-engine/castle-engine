@@ -6,6 +6,7 @@
   executable_name="castle_localization"
   game_units="GameInitialize"
   author="Benedikt Magnus"
+  standalone_source="localization_standalone.dpr"
   screen_orientation="portrait"
 >
   <localization>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>VampyreDoc Tool </title>
+  <chapter>
+    <title>VampyreDoc Tool</title>
+    <par>VampyreDoc is a tool ...</par>
+    <linklist>
+      <title>In This Section</title>
+      <lslink url="Usage.xml">Usage</lslink>
+      <lslink url="TagReference.xml">Tag Reference</lslink>
+    </linklist>
+  </chapter>
+</doc>

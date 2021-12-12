@@ -302,12 +302,14 @@ end;
 
 function TTriangleOctreeNode.ParentTree: TTriangleOctree;
 begin
- Result := TTriangleOctree(InternalParentTree);
+  Result := TTriangleOctree(InternalParentTree);
 end;
 
 function TTriangleOctreeNode.GetItems(ItemIndex: integer): PTriangle;
 begin
- result := ParentTree.Triangles.Ptr(ItemsIndices.L[ItemIndex]);
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
+  Result := PTriangle(ParentTree.Triangles.Ptr(ItemsIndices.L[ItemIndex]));
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 { TTriangleOctreeNode Collisions ------------------------------------------------------ }
@@ -576,10 +578,10 @@ function TTriangleOctree.StatisticsBonus: string;
 begin
   Result := NL;
   if Triangles.Count = 0 then
-    Result +=
+    Result := Result +
       '  Empty octree - no triangles defined.' + NL
   else
-    Result += Format(
+    Result := Result + Format(
       '  %d items (=triangles) defined for octree, %d items in octree''s leafs' + NL +
       '  - so each triangle is present in tree about %f times.' + NL,
       [ Triangles.Count, TotalItemsInLeafs, TotalItemsInLeafs / Triangles.Count] );
@@ -623,7 +625,7 @@ var
   I: Integer;
 begin
   for I := 0 to Triangles.Count - 1 do
-    EnumerateTriangleFunc(Triangles.Ptr(I));
+    EnumerateTriangleFunc(PTriangle(Triangles.Ptr(I)));
 end;
 
 function TTriangleOctree.TrianglesCount: Cardinal;

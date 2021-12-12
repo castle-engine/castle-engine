@@ -83,7 +83,7 @@ type
 
     We define this using ObjectPascal old-style "object", to have comfort
     and low-overhead at the same time. }
-  TFrustum = object
+  TFrustum = record
   private
     procedure NormalizePlanes;
   public
@@ -231,6 +231,8 @@ type
   PFrustum = ^TFrustum;
 
 implementation
+
+{$ifndef FPC}uses CastleUtils;{$endif}
 
 constructor TFrustum.Init(const Matrix: TMatrix4);
 begin

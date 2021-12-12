@@ -963,8 +963,8 @@ end;
 constructor TMovieTextureNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  FdStartTime.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenActive;
-  FdStopTime.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreStopTime;
+  FdStartTime.OnInputIgnore := {$ifdef FPC}@{$endif} IgnoreWhenActive;
+  FdStopTime.OnInputIgnore := {$ifdef FPC}@{$endif} IgnoreStopTime;
   FDuration := -1;
 
   AddFunctionality(TUrlFunctionality.Create(Self));
@@ -978,7 +978,7 @@ begin
   FTimeFunctionality.EventisActive:= EventisActive;
   FTimeFunctionality.EventisPaused := EventisPaused;
   FTimeFunctionality.EventelapsedTime := EventelapsedTime;
-  FTimeFunctionality.OnCycleInterval := {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
+  FTimeFunctionality.OnCycleInterval := {$ifdef FPC}@{$endif} GetCycleInterval;
 
   AddFunctionality(FTimeFunctionality);
 end;

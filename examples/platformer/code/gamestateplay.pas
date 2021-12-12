@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -502,8 +502,8 @@ begin
   RBody.AngularVelocity := Vector3(0, 0, 0);
   RBody.LockRotation := [0, 1, 2];
   RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := @PlayerCollisionEnter;
-  RBody.OnCollisionExit := @PlayerCollisionExit;
+  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
+  RBody.OnCollisionExit := {$ifdef FPC}@{$endif}PlayerCollisionExit;
 
   Collider := TCapsuleCollider.Create(RBody);
   Collider.Radius := ScenePlayer.BoundingBox.SizeX * 0.45; // little smaller than 50%
@@ -627,7 +627,7 @@ begin
   RBody.AngularVelocity := Vector3(0, 0, 0);
   RBody.LockRotation := [0, 1, 2];
   RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := @PlayerCollisionEnter;
+  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
 
   Collider := TSphereCollider.Create(RBody);
   Collider.Radius := EnemyScene.BoundingBox.SizeY * 0.45; // little smaller than 50%
@@ -1419,7 +1419,7 @@ begin
     Parameters.Loop := false;
     Parameters.Name := AnimationNameToPlayOnce;
     Parameters.Forward := true;
-    Parameters.StopNotification := @OnAnimationStop;
+    Parameters.StopNotification := {$ifdef FPC}@{$endif}OnAnimationStop;
     PlayerAnimationToLoop := AnimationNameToLoop;
     Scene.PlayAnimation(Parameters);
   finally

@@ -19,6 +19,15 @@ unit CastleLog;
 
 {$include castleconf.inc}
 
+{$ifndef PASDOC}
+  {$if (not defined(FPC)) and defined(MSWINDOWS) and defined(DEBUG)}
+    { Log using WinAPI OutputDebugString.
+      This is comfortably visible in Delphi IDE Event Log.
+      See https://stackoverflow.com/questions/11218434/how-to-view-output-of-outputdebugstring }
+    {$define CASTLE_LOG_TO_WINDOWS_EVENT_LOG}
+  {$endif}
+{$endif}
+
 interface
 
 uses Classes;
@@ -174,7 +183,7 @@ function LogOutput: String;
 const
   { How many last logs to preserve.
     Last logs are useful to read using @link(LastLog),
-    observe in inspector (press F12 in debug build),
+    observe in inspector (press F8 in debug build),
     and they serve as a buffer in case you call InitializeLog
     after something already did WritelnLog. }
   MaxLastLogCount = 10;
@@ -186,7 +195,7 @@ function LastLog(const Index: Integer): String;
 
 implementation
 
-uses SysUtils,
+uses {$ifdef CASTLE_LOG_TO_WINDOWS_EVENT_LOG} Windows, {$endif} SysUtils,
   CastleUtils, CastleApplicationProperties, CastleClassUtils, CastleTimeUtils,
   CastleStringUtils
   {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
@@ -376,6 +385,10 @@ begin
 
   {$ifdef ANDROID}
   AndroidLogRobust(alInfo, S);
+  {$endif}
+
+  {$ifdef CASTLE_LOG_TO_WINDOWS_EVENT_LOG}
+  OutputDebugString(PChar(S));
   {$endif}
 
   {$ifdef CASTLE_NINTENDO_SWITCH}

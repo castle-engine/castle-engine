@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="asynchronous_download"
-  standalone_source="asynchronous_download_standalone.lpr"
+  standalone_source="asynchronous_download_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.asynchronous.download"
 >

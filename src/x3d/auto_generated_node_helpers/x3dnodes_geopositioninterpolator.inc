@@ -36,9 +36,9 @@
     { X3D field "keyValue". } { }
     public property FdKeyValue: TMFVec3d read FFdKeyValue;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of TVector3Double);
+    procedure SetKeyValue(const Value: array of TVector3Double); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TVector3DoubleList);
+    procedure SetKeyValue(const Value: TVector3DoubleList); overload;
 
     strict private FEventGeovalue_changed: TSFVec3dEvent;
     { X3D out event "geovalue_changed". } { }
@@ -58,9 +58,9 @@
     { X3D field "geoSystem". } { }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: TCastleStringList);
+    procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
 {$endif read_interface}
 

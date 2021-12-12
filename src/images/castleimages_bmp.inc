@@ -15,25 +15,25 @@
 
 type
   TBitmapFileHeader = packed record
-    bfType: array[0..1]of char;
-    bfSize: LongWord;
+    bfType: array[0..1]of AnsiChar;
+    bfSize: UInt32;
     bfReserved1: Word;
     bfReserved2: Word;
-    bfOffBits: LongWord;
+    bfOffBits: UInt32;
   end;
 
   TBitmapInfoHeader = packed record
-    biSize: LongWord;
-    biWidth: Longint;
-    biHeight: Longint;
+    biSize: UInt32;
+    biWidth: Int32;
+    biHeight: Int32;
     biPlanes: Word;
     biBitCount: Word;
-    biCompression: LongWord;
-    biSizeImage: LongWord;
-    biXPelsPerMeter: Longint;
-    biYPelsPerMeter: Longint;
-    biClrUsed: LongWord;
-    biClrImportant: LongWord;
+    biCompression: UInt32;
+    biSizeImage: UInt32;
+    biXPelsPerMeter: Int32;
+    biYPelsPerMeter: Int32;
+    biClrUsed: UInt32;
+    biClrImportant: UInt32;
   end;
 
   TRGBQuad = packed record blue, green, red, reserved : byte end;
@@ -109,9 +109,11 @@ var fhead: TBitmapFileHeader;
         PutPaletteColor(bmprow^[bmpi], rgbrow^[bmpi]);
     16:for rgbi := 0 to ihead.biWidth-1 do
        begin
+        {$ifndef FPC}{$POINTERMATH ON}{$endif}
         rgbrow^[rgbi].Data[0] := FiveBitsToByte((PWord(bmprow)[rgbi] and $7C00) shr 10);
         rgbrow^[rgbi].Data[1] := FiveBitsToByte((PWord(bmprow)[rgbi] and $03E0) shr 5);
         rgbrow^[rgbi].Data[2] := FiveBitsToByte(PWord(bmprow)[rgbi] and $001F);
+        {$ifndef FPC}{$POINTERMATH OFF}{$endif}
        end;
     24:{ bmprow in 24 bit bitmap have almost the same format as rgbrow  -
          we only have to swap bgr to rgb }

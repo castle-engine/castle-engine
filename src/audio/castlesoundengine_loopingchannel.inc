@@ -53,7 +53,7 @@
   public
     const
       DefaultVolume = 1.0;
-      DefaultMusicVolume = 1.0 deprecated 'use DefaultVolume';
+      {$ifdef FPC}DefaultMusicVolume = 1.0 deprecated 'use DefaultVolume';{$endif}
 
     constructor Create(AnEngine: TRepoSoundEngine); reintroduce;
     destructor Destroy; override;
@@ -68,10 +68,12 @@
 
     { Volume. This must always be within 0..1 range.
       0.0 means that there is no music (this case should be optimized).}
-    property Volume: Single read GetVolume write SetVolume default DefaultVolume;
+    property Volume: Single read GetVolume write SetVolume {$ifdef FPC}default DefaultVolume{$endif};
 
+    {$ifdef FPC}
     property MusicVolume: Single read GetVolume write SetVolume default DefaultVolume;
       deprecated 'use Volume';
+    {$endif}
 
     property Pitch: Single read GetPitch write SetPitch;
   end;
@@ -124,7 +126,7 @@ begin
 
   if FAllocatedSource <> nil then
     FAllocatedSource.OnRelease :=
-      {$ifdef CASTLE_OBJFPC}@{$endif} AllocatedSourceRelease
+      {$ifdef FPC}@{$endif} AllocatedSourceRelease
   else
     WritelnWarning('Could not allocate sound source, to play looping sound %s', [
       Sound.Name
@@ -137,7 +139,7 @@ begin
   begin
     if FSound <> nil then
     begin
-      FSound.InternalRemoveChangeNotification(@SoundChange);
+      FSound.InternalRemoveChangeNotification({$ifdef FPC}@{$endif}SoundChange);
       FSound.RemoveFreeNotification(Self);
       if FAllocatedSource <> nil then
       begin
@@ -151,7 +153,7 @@ begin
 
     if FSound <> nil then
     begin
-      FSound.InternalAddChangeNotification(@SoundChange);
+      FSound.InternalAddChangeNotification({$ifdef FPC}@{$endif}SoundChange);
       FSound.FreeNotification(Self);
       AllocateSource;
     end;

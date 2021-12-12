@@ -141,14 +141,14 @@ begin
 
   ButtonLevelSimple := TCastleButton.Create(Application);
   ButtonLevelSimple.Caption := 'Simple Level (Plane Collider)';
-  ButtonLevelSimple.OnClick := @TEventHandler(nil).LoadLevelSimple;
+  ButtonLevelSimple.OnClick := {$ifdef FPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.LoadLevelSimple;
   ButtonLevelSimple.Anchor(hpLeft, 10);
   ButtonLevelSimple.Anchor(vpTop, -10);
   Window.Controls.InsertFront(ButtonLevelSimple);
 
   ButtonLevelComplex := TCastleButton.Create(Application);
   ButtonLevelComplex.Caption := 'Complex Level (Mesh Collider)';
-  ButtonLevelComplex.OnClick := @TEventHandler(nil).LoadLevelComplex;
+  ButtonLevelComplex.OnClick := {$ifdef FPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.LoadLevelComplex;
   ButtonLevelComplex.Anchor(hpLeft, 10);
   ButtonLevelComplex.Anchor(vpTop, -10 - ButtonLevelSimple.EffectiveHeight - 10);
   Window.Controls.InsertFront(ButtonLevelComplex);
@@ -156,7 +156,7 @@ end;
 
 procedure WindowRender(Container: TCastleContainer);
 begin
-  UIFont.PrintStrings(10, 10, Yellow, [
+  GetUIFont.PrintStrings(10, 10, Yellow, [
     Format('FPS: %s', [Container.Fps.ToString]),
     'Left mouse button - spawn box',
     'Right mouse button - spawn sphere',

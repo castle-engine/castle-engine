@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleUIControls, CastleUtils, CastleControls,
   CastleFonts, CastleTimeUtils, CastleVectors, CastleStringUtils,
-  CastleColors, CastleRectangles;
+  CastleColors, CastleRectangles, CastleClassUtils;
 
 type
   { Notifications displayed on the screen.
@@ -51,7 +51,7 @@ type
         Width: Single;
         Color: TCastleColor;
       end;
-      TNotificationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TNotification>)
+      TNotificationList = class({$ifdef FPC}specialize{$endif} TObjectList<TNotification>)
         procedure DeleteFirst(DelCount: Integer);
       end;
     var
@@ -63,6 +63,8 @@ type
     FHistory: TCastleStringList;
     FCollectHistory: boolean;
     FTextAlignment: THorizontalPosition;
+    FDesignTestMessagesInterval: Single;
+    FDesignTestMessagesTimeout: TFloatTime;
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
@@ -88,8 +90,8 @@ type
 
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
-
     procedure Render; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Color used to draw subsequent messages. Default value is white. }
     property Color: TCastleColor read FColor write FColor;
@@ -110,9 +112,9 @@ type
       so a message is normally visible only for the @code(Timeout - Fade) seconds,
       and then it starts fading out. }
     property Timeout: Single
-      read FTimeout write FTimeout default DefaultTimeout;
+      read FTimeout write FTimeout {$ifdef FPC}default DefaultTimeout{$endif};
 
-    property Fade: Single read FFade write FFade default DefaultFade;
+    property Fade: Single read FFade write FFade {$ifdef FPC}default DefaultFade{$endif};
 
     { Turn this on to have all the messages you pass to @link(Show) be collected
       inside @link(History) string list. @link(History) is expanded by @link(Show),
@@ -129,6 +131,13 @@ type
     { Alignment of the text inside. }
     property TextAlignment: THorizontalPosition
       read FTextAlignment write FTextAlignment default hpLeft;
+
+    { In design mode (within CGE editor) we can spawn test messages (so you can see how
+      the notifications look). This property determines how often we do it.
+      0 means to not do it. }
+    property DesignTestMessagesInterval: Single
+      read FDesignTestMessagesInterval write FDesignTestMessagesInterval
+      {$ifdef FPC}default 1{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
@@ -173,6 +182,8 @@ begin
   Timeout := DefaultTimeout;
   Fade := DefaultFade;
   FColor := White;
+  FDesignTestMessagesInterval := 1;
+  FDesignTestMessagesTimeout := FDesignTestMessagesInterval;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
@@ -266,17 +277,23 @@ end;
 
 procedure TCastleNotifications.Render;
 var
-  I: integer;
   SR: TFloatRectangle;
+
+  procedure ShowMessage(const MessageIndex, MessagesCount: Integer;
+    const MessageColor: TCastleColor; const Text: String);
+  begin
+    Font.PrintRect(FloatRectangle(SR.Left,
+      SR.Bottom + (MessagesCount - 1 - MessageIndex) * Font.RowHeight,
+      SR.Width, Font.RowHeight), MessageColor, Text,
+      TextAlignment, vpBottom);
+  end;
+
+var
+  I: integer;
 begin
   SR := RenderRect;
   for I := 0 to Messages.Count - 1 do
-  begin
-    Font.PrintRect(FloatRectangle(SR.Left,
-      SR.Bottom + (Messages.Count - 1 - I) * Font.RowHeight,
-      SR.Width, Font.RowHeight), Messages[i].Color, Messages[i].Text,
-      TextAlignment, vpBottom);
-  end;
+    ShowMessage(I, Messages.Count, Messages[I].Color, Messages[I].Text);
 end;
 
 procedure TCastleNotifications.Update(const SecondsPassed: Single;
@@ -305,6 +322,31 @@ begin
       Messages[I].Color := C;
       VisibleChange([chRectangle]);
     end;
+
+  if CastleDesignMode and (FDesignTestMessagesInterval <> 0) then
+  begin
+    FDesignTestMessagesTimeout := FDesignTestMessagesTimeout - SecondsPassed;
+    if FDesignTestMessagesTimeout < 0 then
+    begin
+      Show('Test Message in Design Mode at ' + DateTimeToAtStr(CastleNow));
+      FDesignTestMessagesTimeout := FDesignTestMessagesInterval;
+    end;
+  end;
+end;
+
+function TCastleNotifications.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'MaxMessages') or
+     (PropertyName = 'Timeout') or
+     (PropertyName = 'Fade') or
+     (PropertyName = 'CollectHistory') or
+     (PropertyName = 'TextAlignment') or
+     (PropertyName = 'DesignTestMessagesInterval') or
+     (PropertyName = 'ColorPersistent') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}

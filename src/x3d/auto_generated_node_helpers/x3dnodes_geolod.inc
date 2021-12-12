@@ -56,33 +56,33 @@
     { X3D field "child1Url". } { }
     public property FdChild1Url: TMFString read FFdChild1Url;
     { Set X3D field "child1Url". } { }
-    procedure SetChild1Url(const Value: array of string);
+    procedure SetChild1Url(const Value: array of string); overload;
     { Set X3D field "child1Url". } { }
-    procedure SetChild1Url(const Value: TCastleStringList);
+    procedure SetChild1Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild2Url: TMFString;
     { X3D field "child2Url". } { }
     public property FdChild2Url: TMFString read FFdChild2Url;
     { Set X3D field "child2Url". } { }
-    procedure SetChild2Url(const Value: array of string);
+    procedure SetChild2Url(const Value: array of string); overload;
     { Set X3D field "child2Url". } { }
-    procedure SetChild2Url(const Value: TCastleStringList);
+    procedure SetChild2Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild3Url: TMFString;
     { X3D field "child3Url". } { }
     public property FdChild3Url: TMFString read FFdChild3Url;
     { Set X3D field "child3Url". } { }
-    procedure SetChild3Url(const Value: array of string);
+    procedure SetChild3Url(const Value: array of string); overload;
     { Set X3D field "child3Url". } { }
-    procedure SetChild3Url(const Value: TCastleStringList);
+    procedure SetChild3Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild4Url: TMFString;
     { X3D field "child4Url". } { }
     public property FdChild4Url: TMFString read FFdChild4Url;
     { Set X3D field "child4Url". } { }
-    procedure SetChild4Url(const Value: array of string);
+    procedure SetChild4Url(const Value: array of string); overload;
     { Set X3D field "child4Url". } { }
-    procedure SetChild4Url(const Value: TCastleStringList);
+    procedure SetChild4Url(const Value: TCastleStringList); overload;
 
     strict private FFdGeoOrigin: TSFNode;
     { X3D field "geoOrigin". } { }
@@ -94,9 +94,9 @@
     { X3D field "geoSystem". } { }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: TCastleStringList);
+    procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdRange: TSFFloat;
     { X3D field "range". } { }
@@ -108,9 +108,9 @@
     { X3D field "rootUrl". } { }
     public property FdRootUrl: TMFString read FFdRootUrl;
     { Set X3D field "rootUrl". } { }
-    procedure SetRootUrl(const Value: array of string);
+    procedure SetRootUrl(const Value: array of string); overload;
     { Set X3D field "rootUrl". } { }
-    procedure SetRootUrl(const Value: TCastleStringList);
+    procedure SetRootUrl(const Value: TCastleStringList); overload;
 
     strict private FFdRootNode: TMFNode;
     { X3D field "rootNode". } { }

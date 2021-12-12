@@ -33,9 +33,9 @@
     { X3D field "vector". } { }
     public property FdVector: TMFVec3f read FFdVector;
     { Set X3D field "vector". } { }
-    procedure SetVector(const Value: array of TVector3);
+    procedure SetVector(const Value: array of TVector3); overload;
     { Set X3D field "vector". } { }
-    procedure SetVector(const Value: TVector3List);
+    procedure SetVector(const Value: TVector3List); overload;
 
 {$endif read_interface}
 

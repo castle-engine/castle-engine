@@ -214,10 +214,10 @@ function TComposedCubeMapTextureNode.LoadSides: boolean;
         WritelnWarning('VRML/X3D', 'ComposedCubeMapTexture cannot contain images compressed GPU-compression algorithms, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
         Result := false;
       end;
-    end;
 
-    { If any slice has full-range alpha, then assume whole texture does. }
-    AlphaMaxVar(FAlphaChannelData, SideTex.AlphaChannelFinal);
+      { If any slice has full-range alpha, then assume whole texture does. }
+      AlphaMaxVar(FAlphaChannelData, SideTex.AlphaChannelFinal);
+    end;
   end;
 
 begin

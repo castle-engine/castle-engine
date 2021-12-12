@@ -28,7 +28,7 @@ type
       OutlineHighQuality: boolean;
       TargetImage: TCastleImage;
     end;
-    TSavedPropertiesList = specialize TObjectList<TSavedProperties>;
+    TSavedPropertiesList = {$ifdef FPC}specialize{$endif} TObjectList<TSavedProperties>;
   var
     FMeasuredSize, FMeasuredRowHeight, FMeasuredRowHeightBase, FMeasuredDescend: Single;
     FOutline: Cardinal;
@@ -40,7 +40,7 @@ type
     FFontSizeNotifications: TNotifyEventList;
     procedure MakeMeasure;
     procedure GLContextCloseEvent(Sender: TObject);
-  strict protected
+  {$ifdef FPC}strict{$endif} protected
     { Calculate properties based on measuring the current font
       (with current @link(Size)).
       The default implementation in TCastleAbstractFont looks at TextHeight of sample texts
@@ -113,11 +113,11 @@ type
     procedure PrintRect(const Rect: TRectangle; const Color: TCastleColor;
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
-      const VerticalAlignment: TVerticalPosition);
+      const VerticalAlignment: TVerticalPosition); overload;
     procedure PrintRect(const Rect: TFloatRectangle; const Color: TCastleColor;
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
-      const VerticalAlignment: TVerticalPosition);
+      const VerticalAlignment: TVerticalPosition); overload;
 
     { Print text, aligning within given rectangle.
       Newlines within the text will be automatically honored,
@@ -130,14 +130,14 @@ type
       const VerticalAlignment: TVerticalPosition;
       const Html: boolean;
       const LineSpacing: Integer;
-      const TextHorizontalAlignment: THorizontalPosition = hpLeft);
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
     procedure PrintRectMultiline(const Rect: TFloatRectangle; const Color: TCastleColor;
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
       const VerticalAlignment: TVerticalPosition;
       const Html: boolean;
       const LineSpacing: Integer;
-      const TextHorizontalAlignment: THorizontalPosition = hpLeft);
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
 
     { The font may require some OpenGL resources for drawing.
       You can explicitly create them using PrepareResources (although it is never
@@ -310,22 +310,22 @@ type
       const LineSpacing: Single;
       const AlignHorizontal: THorizontalPosition;
       const AlignVertical: TVerticalPosition;
-      const Html: boolean = false): Integer;
+      const Html: boolean = false): Integer; overload;
     function PrintBrokenString(const Rect: TFloatRectangle; const Color: TCastleColor;
       const S: string;
       const LineSpacing: Single;
       const AlignHorizontal: THorizontalPosition;
       const AlignVertical: TVerticalPosition;
-      const Html: boolean = false): Integer;
+      const Html: boolean = false): Integer; overload;
     function PrintBrokenString(X0, Y0: Single; const Color: TCastleColor;
       const S: string; const MaxLineWidth: Single;
       const PositionsFirst: boolean;
       const LineSpacing: Single;
-      const Html: boolean = false): Integer;
+      const Html: boolean = false): Integer; overload;
     function PrintBrokenString(const S: string;
       const MaxLineWidth, X0, Y0: Single;
       const PositionsFirst: boolean;
-      const LineSpacing: Single): Integer; deprecated 'instead of this, use PrintBrokenString that takes explicit Color parameter';
+      const LineSpacing: Single): Integer; overload; deprecated 'instead of this, use PrintBrokenString that takes explicit Color parameter';
     { @groupEnd }
 
     { Outline size around the normal text.
@@ -405,13 +405,13 @@ begin
   inherited;
   FMeasuredSize := -1; // not measured at all
   FOutlineColor := Black;
-  ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+  ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}GLContextCloseEvent);
 end;
 
 destructor TCastleAbstractFont.Destroy;
 begin
   if ApplicationProperties <> nil then
-    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
+    ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef FPC}@{$endif}GLContextCloseEvent);
   GLContextClose;
   FreeAndNil(FPropertiesStack);
   FreeAndNil(FFontSizeNotifications);
@@ -588,8 +588,14 @@ var
   P: Integer;
   BreakInput, BreakOutput1, BreakOutput2, HardBreakOutput: string;
   C: TUnicodeChar;
+  {$ifdef FPC}
   BreakInputPtr: PChar;
   CharLen: Integer;
+  {$else}
+  TextIndex: Integer;
+  NextTextIndex: Integer;
+  TextLength: Integer;
+  {$endif}
 begin
   { break the strings on Broken list.
     We look at MaxLineWidth in pixels, taking into account that font
@@ -602,31 +608,60 @@ begin
     BreakInput := Broken[I];
 
     { Try breaking line number I. If it's empty, there's no need to break it. }
+    {$ifdef FPC}
     BreakInputPtr := PChar(BreakInput);
 
     C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
     if (C > 0) and (CharLen > 0) then
+    {$else}
+    TextIndex := 1;
+    TextLength := Length(BreakInput);
+    if TextLength > 0 then
+    {$endif}
     begin
       { the first character C is always considered to fit into BreakOutput1,
         regardless of MaxLineWidth --- after all, we have to place this character
         somewhere (otherwise we would have to reject this character
         or raise an error). }
+      {$ifdef FPC}
       Inc(BreakInputPtr, CharLen);
       LineWidthBytes := CharLen;
-      LineWidth := TextWidth(UnicodeToUTF8(C));
+      {$else}
+      C := GetUTF32Char(BreakInput, TextIndex, NextTextIndex);
+      TextIndex := NextTextIndex;
+      LineWidthBytes := TextIndex {TODO: maybe *2 to gets bytes};
+      {$endif}
+      LineWidth := TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
 
+      {$ifdef FPC}
       C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
       while (C > 0) and (CharLen > 0) and
             (LineWidth + TextWidth(UnicodeToUTF8(C)) <= MaxLineWidth) do
+      {$else}
+      while (TextIndex <= TextLength) and
+            (LineWidth + TextWidth(ConvertFromUtf32(C)) <= MaxLineWidth) do
+      {$endif}
       begin
+        {$ifdef FPC}
         Inc(BreakInputPtr, CharLen);
         LineWidthBytes += CharLen;
-        LineWidth += TextWidth(UnicodeToUTF8(C));
+        {$else}
+        C := GetUTF32Char(BreakInput, TextIndex, NextTextIndex);
+        Inc(LineWidthBytes, NextTextIndex - TextIndex); {TODO: maybe *2 to gets bytes};
+        TextIndex := NextTextIndex;
+        {$endif}
+        LineWidth := LineWidth + TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
 
+        {$ifdef FPC}
         C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
+        {$endif}
       end;
 
+      {$ifdef FPC}
       if (C > 0) and (CharLen > 0) then // then above loop stopped because we have to break
+      {$else}
+      if TextIndex <= TextLength then // TODO: check that carefully
+      {$endif}
       begin
         { HardBreakOutput is BreakOutput1 in case we don't find a whitespace
           on which to break }
@@ -705,7 +740,14 @@ begin
   begin
     { simple and fast implementation in case TRichText not needed }
 
-    HasScissorRect := RenderContext.FinalScissor(ScissorRect) and (not ScissorRect.IsEmpty);
+    { Check RenderContext <> nil, as this may be used for TCastleImage
+      drawing, testcase: font_draw_over_image.
+      TODO: better account for TCastleImage drawing,
+      it may be possible even when RenderContext <> nil,
+      and we should ignore scissors then. }
+    HasScissorRect := (RenderContext <> nil) and
+      RenderContext.FinalScissor(ScissorRect) and
+      (not ScissorRect.IsEmpty);
 
     for Line := 0 to Strs.Count - 1 do
     begin
@@ -779,7 +821,7 @@ begin
   try
     Text.Wrap(MaxLineWidth);
     if PositionsFirst then
-      Y0 -= (Text.Count-1) * (RowHeight + LineSpacing);
+      Y0 := Y0 - (Text.Count-1) * (RowHeight + LineSpacing);
     Text.Print(X0, Y0, Color, LineSpacing);
     Result := Text.Count;
   finally FreeAndNil(Text) end;

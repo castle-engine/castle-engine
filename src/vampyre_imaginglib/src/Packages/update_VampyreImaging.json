@@ -1,0 +1,21 @@
+{
+  "UpdateLazPackages" : [
+    {
+      "ForceNotify" : false,
+      "InternalVersion" : 1,
+      "Name" : "VampyreImagingPackageExt.lpk",
+      "Version" : "0.80.0.0"
+    },
+    {
+      "ForceNotify" : false,
+      "InternalVersion" : 1,
+      "Name" : "VampyreImagingPackage.lpk",
+      "Version" : "0.80.0.0"
+    }
+  ],
+  "UpdatePackageData" : {
+    "DisableInOPM" : false,
+    "DownloadZipURL" : "https://github.com/galfar/imaginglib/archive/v0.80.zip",
+    "Name" : "imaginglib"
+  }
+}

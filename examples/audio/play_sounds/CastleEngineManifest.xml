@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="play_sounds"
-  standalone_source="play_sounds_standalone.lpr"
+  standalone_source="play_sounds_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.play.sounds"
 >

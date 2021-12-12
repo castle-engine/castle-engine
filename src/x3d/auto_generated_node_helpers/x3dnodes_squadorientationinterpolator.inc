@@ -36,9 +36,9 @@
     { X3D field "keyValue". } { }
     public property FdKeyValue: TMFRotation read FFdKeyValue;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of TVector4);
+    procedure SetKeyValue(const Value: array of TVector4); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TVector4List);
+    procedure SetKeyValue(const Value: TVector4List); overload;
 
     strict private FFdNormalizeVelocity: TSFBool;
     { X3D field "normalizeVelocity". } { }

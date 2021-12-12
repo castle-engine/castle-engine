@@ -17,6 +17,7 @@
 
 {$ifdef read_interface}
 
+{$ifdef read_interface_func}
 { Save / restore OpenGL pixel store for unpacking / packing given TCastleImage.
   Before you pass this image to some OpenGL procedures
   (like glDrawPixels for unpacking, glReadPixels for packing),
@@ -28,6 +29,7 @@ procedure AfterUnpackImage(const Image: TCastleImage);
 procedure BeforePackImage(const Image: TCastleImage);
 procedure AfterPackImage(const Image: TCastleImage);
 { @groupEnd }
+{$endif read_interface_func}
 
 {$endif read_interface}
 

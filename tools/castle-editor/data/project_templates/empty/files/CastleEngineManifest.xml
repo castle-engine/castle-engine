@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="${PROJECT_NAME}"
-  standalone_source="${PROJECT_PASCAL_NAME}_standalone.lpr"
+  standalone_source="${PROJECT_PASCAL_NAME}_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="${PROJECT_QUALIFIED_NAME}"
   caption="${PROJECT_CAPTION}"

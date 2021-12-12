@@ -49,7 +49,7 @@ type
           const GroupPlayingSounds: TCastleVerticalGroup); reintroduce;
       end;
 
-      TPlayingSoundUiOwnerList = specialize TObjectList<TPlayingSoundUiOwner>;
+      TPlayingSoundUiOwnerList = {$ifdef FPC}specialize{$endif} TObjectList<TPlayingSoundUiOwner>;
 
     var
       PlayingSoundUiTemplate: TSerializedComponent;
@@ -124,19 +124,19 @@ begin
   LabelSoundName.Caption := URIDisplay(PlayingSound.Sound.URL, true);
 
   ButtonStop := FindRequiredComponent('ButtonStop') as TCastleButton;
-  ButtonStop.OnClick := @ClickStop;
+  ButtonStop.OnClick := {$ifdef FPC}@{$endif}ClickStop;
 
   SliderSoundVolume := FindRequiredComponent('SliderSoundVolume') as TCastleFloatSlider;
   SliderSoundVolume.Value := PlayingSound.Volume;
-  SliderSoundVolume.OnChange := @ChangeSliderSoundVolume;
+  SliderSoundVolume.OnChange := {$ifdef FPC}@{$endif}ChangeSliderSoundVolume;
 
   SliderSoundPitch := FindRequiredComponent('SliderSoundPitch') as TCastleFloatSlider;
   SliderSoundPitch.Value := PlayingSound.Pitch;
-  SliderSoundPitch.OnChange := @ChangeSliderSoundPitch;
+  SliderSoundPitch.OnChange := {$ifdef FPC}@{$endif}ChangeSliderSoundPitch;
 
   CheckboxLoop := FindRequiredComponent('CheckboxLoop') as TCastleCheckbox;
   CheckboxLoop.Checked := PlayingSound.Loop;
-  CheckboxLoop.OnChange := @ChangeCheckboxLoop;
+  CheckboxLoop.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxLoop;
 end;
 
 procedure TStateMain.TPlayingSoundUiOwner.ClickStop(Sender: TObject);
@@ -183,7 +183,7 @@ procedure TStateMain.Start;
         Exit;
       end;
     end;
-    Button.OnClick := @ClickPlayBuffer;
+    Button.OnClick := {$ifdef FPC}@{$endif}ClickPlayBuffer;
     GroupSoundBuffers.InsertFront(Button);
   end;
 
@@ -200,7 +200,7 @@ begin
 
   LabelPlayingSounds.Caption := Format('Currently playing sounds (max %d):',
     [SoundEngine.MaxAllocatedSources]);
-  ButtonExit.OnClick := @ClickExit;
+  ButtonExit.OnClick := {$ifdef FPC}@{$endif}ClickExit;
 
   { List the sound files to load.
     Hint: We could also use FindFiles from CastleFindFiles unit to automatically
@@ -247,7 +247,7 @@ begin
   { It's better to make PlayingSoundStop a method of TStateMain,
     not TPlayingSoundUiOwner, because when it occurs the whole instance
     of TPlayingSoundUiOwner (along with the UI) should be destroyed. }
-  PlayingSound.OnStop := @PlayingSoundStop;
+  PlayingSound.OnStop := {$ifdef FPC}@{$endif}PlayingSoundStop;
   SoundEngine.Play(PlayingSound);
 
   PlayingSoundUiOwner := TPlayingSoundUiOwner.Create(FreeAtStop, PlayingSound,

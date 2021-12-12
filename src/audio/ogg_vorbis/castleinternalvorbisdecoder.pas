@@ -210,7 +210,8 @@ begin
   Frequency := OggInfo^.rate;
 
   DurationRaw := ov_time_total(@VorbisFile, -1);
-  if Int64(DurationRaw) = OV_EINVAL then
+  if {$ifdef FPC} Int64(DurationRaw) {$else} {$ifndef CASTLE_TREMOLO}
+     Trunc(DurationRaw) {$else} DurationRaw {$endif} {$endif FPC} = OV_EINVAL then
   begin
     WritelnWarning('Cannot read OggVorbis duration, the requested bitstream may not be seekable');
     DurationRaw := 0;
@@ -301,6 +302,9 @@ var
   IgnoreFrequency: LongWord;
   IgnoreDuration: TFloatTime;
 begin
+  // Seek is also used to track current position, but we don't track it
+  Result := 0;
+
   if (Origin = soCurrent  ) and (Offset = 0) then
     { nothing needs to be done, ok }
     Exit;
@@ -314,7 +318,6 @@ begin
   end;
 
   raise EStreamNotImplementedSeek.Create('TOggVorbisStream.Seek not supported for these arguments (only seeking to current or beginning position are allowed)');
-  Result := 0; // just to get rid of warning
 end;
 
 class function TOggVorbisStream.ReadStream(const Url: string; const Stream: TStream;
@@ -325,5 +328,5 @@ begin
 end;
 
 initialization
-  RegisterSoundFormat('audio/ogg', @TOggVorbisStream(nil).ReadStream);
+  RegisterSoundFormat('audio/ogg', {$ifdef FPC}@{$endif}TOggVorbisStream{$ifdef FPC}(nil){$endif}.ReadStream);
 end.

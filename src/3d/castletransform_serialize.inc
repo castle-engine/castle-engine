@@ -21,7 +21,7 @@
 { Save / load TCastleTransform (or descendant) to a .castle-transform file.
 
   An example:
-  @includeCode(../../examples/short_api_samples/transform_save_load/transform_save_load.lpr) }
+  @includeCode(../../examples/short_api_samples/transform_save_load/transform_save_load.dpr) }
 procedure TransformSave(const T: TCastleTransform; const Url: String);
 function TransformLoad(const Url: String; const Owner: TComponent): TCastleTransform;
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project
   name="fps_game"
-  standalone_source="fps_game.lpr"
+  standalone_source="fps_game.dpr"
   game_units="GameInitialize"
   caption="FPS Game Example"
   qualified_name="io.castleengine.fps.game"

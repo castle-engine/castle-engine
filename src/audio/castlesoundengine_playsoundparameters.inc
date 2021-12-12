@@ -54,13 +54,17 @@
     { Offset is a position in time of the sound. }
     Offset: Single;
 
+    {$ifdef FPC}
     property Gain: Single read Volume write Volume; deprecated 'use Volume';
     property Looping: Boolean read Loop write Loop; deprecated 'use Loop';
+    {$endif}
 
     { See TCastleSound.Priority for range and meaning. }
-    property Priority: Single read FPriority write SetPriority default 0.5;
+    property Priority: Single read FPriority write SetPriority {$ifdef FPC}default 0.5{$endif};
 
+    {$ifdef FPC}
     property Importance: Cardinal read GetImportance write SetImportance; deprecated 'use Priority (with priorities as float, in 0..1 range)';
+    {$endif}
     constructor Create;
   end;
 

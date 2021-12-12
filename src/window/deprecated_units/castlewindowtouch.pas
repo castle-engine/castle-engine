@@ -43,6 +43,7 @@ type
     (and much more flexible) to use TCastleWindowBase,
     add there TCastleViewport and TCastleTouchNavigation manually.
   }
+  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
   TCastleWindowTouch = class(TCastleWindow)
   strict private
     FTouchNavigation: TCastleTouchNavigation;
@@ -71,7 +72,7 @@ type
       read GetAutomaticExamineTouchCtl write SetAutomaticExamineTouchCtl
       default DefaultAutomaticExamineTouchCtl;
   end deprecated 'use TCastleWindowBase and add TCastleTouchNavigation (and maybe set ControlMouseDragMode=true)';
-
+  {$endif CASTLE_DEPRECATED_WINDOW_CLASSES}
 const
   etciNone = tiNone deprecated;
   etciCtlWalkCtlRotate = tiWalkRotate deprecated;
@@ -91,6 +92,7 @@ implementation
 uses SysUtils, CastleUtils;
 
 { TCastleWindowTouch --------------------------------------------------------- }
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
 
 constructor TCastleWindowTouch.Create(AOwner: TComponent);
 begin
@@ -141,5 +143,7 @@ procedure TCastleWindowTouch.SetAutomaticExamineTouchCtl(const Value: TTouchInte
 begin
   FTouchNavigation.AutoExamineTouchInterface := Value;
 end;
+
+{$endif CASTLE_DEPRECATED_WINDOW_CLASSES}
 
 end.

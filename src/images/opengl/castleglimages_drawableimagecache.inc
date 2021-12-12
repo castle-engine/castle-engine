@@ -33,7 +33,7 @@ type
         URL: string;
         DrawableImage: TDrawableImage;
       end;
-      TCachedDrawableImageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCachedDrawableImage>;
+      TCachedDrawableImageList = {$ifdef FPC}specialize{$endif} TObjectList<TCachedDrawableImage>;
     var
       Cached: TCachedDrawableImageList;
   public

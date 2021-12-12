@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FAxisOfRotationPersistent := TCastleVector3Persistent.Create;
-  FAxisOfRotationPersistent.InternalGetValue := @GetAxisOfRotationForPersistent;
-  FAxisOfRotationPersistent.InternalSetValue := @SetAxisOfRotationForPersistent;
+  FAxisOfRotationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAxisOfRotationForPersistent;
+  FAxisOfRotationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAxisOfRotationForPersistent;
   FAxisOfRotationPersistent.InternalDefaultValue := AxisOfRotation; // current value is default
 {$endif read_implementation_constructor}
 

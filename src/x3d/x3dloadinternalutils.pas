@@ -93,24 +93,47 @@ const
   function DoEncodeUTF8(const S: String): String;
   var
     C: TUnicodeChar;
+    {$ifdef FPC}
     TextPtr: PChar;
     CharLen: Integer;
+    {$else}
+    TextIndex: Integer;
+    NextTextIndex: Integer;
+    TextLength: Integer;
+    {$endif}
+
   begin
     Result := '';
+
+    {$ifdef FPC}
     TextPtr := PChar(S);
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
     while (C > 0) and (CharLen > 0) do
+    {$else}
+    TextIndex := 1;
+    TextLength := Length(S);
+    while (TextIndex <= TextLength) do
+    {$endif}
     begin
+      {$ifdef FPC}
       Inc(TextPtr, CharLen);
+      {$else}
+      C := GetUTF32Char(S, TextIndex, NextTextIndex);
+      TextIndex := NextTextIndex;
+      {$endif}
+
       { We use $ to mark encoded chars, so we need to encode it too.
         Note that we don't worry NonAllowedFirstChars,
         since we add prefix EncodedPrefix anyway, so S[1]
         is not the first character in the final encoded X3D name. }
-      if (C < 128) and (Chr(C) <> '$') and (not (Chr(C) in NonAllowedChars)) then
-        Result += Chr(C)
+      if (C < 128) and (Chr(C) <> '$') and (not CharInSet(Chr(C), NonAllowedChars)) then
+        Result := Result + Chr(C)
       else
-        Result += '$' + IntToStr(C) + '$';
+        Result := Result + '$' + IntToStr(C) + '$';
+
+      {$ifdef FPC}
       C := UTF8CharacterToUnicode(TextPtr, CharLen);
+      {$endif}
     end;
   end;
 
@@ -151,11 +174,15 @@ function DecodeX3DName(const S: String): String;
           Exit(S);
         end;
 
+        {$ifdef FPC}
         Result += UnicodeToUTF8(CharCode);
+        {$else}
+        Result := Result + Chr(CharCode);
+        {$endif}
         I := EndingDollar + 1;
       end else
       begin
-        Result += S[I];
+        Result := Result + S[I];
         Inc(I);
       end;
     end;

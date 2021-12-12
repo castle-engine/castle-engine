@@ -38,8 +38,10 @@
     function Release(const Event: TInputPressRelease): boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    {$ifdef FPC}
     property IsOn: boolean read FChecked write SetChecked default false;
       deprecated 'use Checked instead, consistent with LCL TCheckBox.Checked';
+    {$endif}
   published
     { Switch state. }
     property Checked: boolean read FChecked write SetChecked default false;
@@ -48,8 +50,8 @@
       Note that this is @italic(not) called when you change @link(Checked)
       property programmatically by setting the property. }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
-    property Width default DefaultSwitchControlWidth;
-    property Height default DefaultSwitchControlHeight;
+    property Width {$ifdef FPC}default DefaultSwitchControlWidth{$endif};
+    property Height {$ifdef FPC}default DefaultSwitchControlHeight{$endif};
   end;
 
 {$endif read_interface}

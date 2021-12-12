@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="942">
+    <Files Count="945">
       <Item1>
         <Filename Value="../src/3d/auto_generated_persistent_vectors/tcastlecamera_persistent_vectors.inc"/>
         <Type Value="Include"/>
@@ -1087,7 +1087,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item248>
       <Item249>
-        <Filename Value="../src/images/castleimages_external_tool.inc"/>
+        <Filename Value="../src/images/opengl/castleglutils_delphi_wgl.inc"/>
         <Type Value="Include"/>
       </Item249>
       <Item250>
@@ -3858,17 +3858,29 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item939>
       <Item940>
-        <Filename Value="../src/ui/opengl/ui/inspector_ui.castle-user-interface.inc"/>
+        <Filename Value="../src/images/castleimages_loading_saving_func.inc"/>
         <Type Value="Include"/>
       </Item940>
       <Item941>
-        <Filename Value="../src/ui/opengl/castleinternalinspectorutils.pas"/>
-        <UnitName Value="CastleInternalInspectorUtils"/>
+        <Filename Value="../src/images/castleimages_vampyre_imaging.inc"/>
+        <Type Value="Include"/>
       </Item941>
       <Item942>
-        <Filename Value="../src/images/castleimages_astc.inc"/>
+        <Filename Value="../src/images/castleimages_vcl_imaging.inc"/>
         <Type Value="Include"/>
       </Item942>
+      <Item943>
+        <Filename Value="../src/ui/opengl/ui/inspector_ui.castle-user-interface.inc"/>
+        <Type Value="Include"/>
+      </Item943>
+      <Item944>
+        <Filename Value="../src/ui/opengl/castleinternalinspectorutils.pas"/>
+        <UnitName Value="CastleInternalInspectorUtils"/>
+      </Item944>
+      <Item945>
+        <Filename Value="../src/images/castleimages_astc.inc"/>
+        <Type Value="Include"/>
+      </Item945>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

@@ -29,7 +29,7 @@ const
 
   { The first SH basis function is actually constant.
     This is sometimes useful. }
-  SHBasis0 = 1 / (2 * Sqrt(Pi));
+  SHBasis0 = 1 / (2 * {$ifdef FPC}Sqrt(Pi){$else}1.772453850905516{$endif});
 
 { Calculate spherical harmonic basis function for given arguments.
 
@@ -204,7 +204,7 @@ begin
       M := LM - ReachedLM - L - 1;
       Break;
     end;
-    ReachedLM += Integer(2*L+1);
+    ReachedLM := ReachedLM + Integer(2*L+1);
     Inc(L);
   until false;
 end;
@@ -246,7 +246,7 @@ begin
     SHVector[LM] := 0;
     for Side := Low(Side) to High(Side) do
       for Pixel := 0 to Sqr(CubeMapSize) - 1 do
-        SHVector[LM] += (Map[Side, Pixel]/255) * SHBasisMap[LM, Side, Pixel];
+        SHVector[LM] := SHVector[LM] + (Map[Side, Pixel]/255) * SHBasisMap[LM, Side, Pixel];
 
     { SHVector[LM] is now calculated for all sphere points.
       We want this to be integral over a sphere, so normalize now.
@@ -256,7 +256,7 @@ begin
       so below we divide by 4*Pi (sphere area, sum of solid angles for every
       pixel). }
 
-    SHVector[LM] /= 4 * Pi;
+    SHVector[LM] := SHVector[LM] / (4 * Pi);
   end;
 end;
 

@@ -55,11 +55,12 @@
 
     { Used to check that the one and only instance of current class type is Self.
       This is a simpler overload of SingleInstanceOfBehavior. }
-    procedure SingleInstanceOfBehavior;
+    procedure SingleInstanceOfBehavior; overload;
 
     { Used to check that the one and only instance of BehaviorClass in Parent
       is Self. }
-    procedure SingleInstanceOfBehavior(const BehaviorClass: TCastleBehaviorClass);
+    procedure SingleInstanceOfBehavior(
+      const BehaviorClass: TCastleBehaviorClass); overload;
   public
     { Parent TCastleTransform of this behavior.
       Change it by doing @link(TCastleTransform.AddBehavior),

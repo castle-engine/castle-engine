@@ -17,7 +17,8 @@
 
 {$ifdef read_interface}
 
-type
+{$ifdef read_interface_type}
+//type - don't add this Delphi can't parse it correctly
   EFramebufferError = class(Exception);
   EFramebufferSizeTooLow = class(EFramebufferError);
   EFramebufferInvalid  = class(EFramebufferError);
@@ -257,6 +258,7 @@ type
     function SaveScreen(const ImageClass: TCastleImageClass;
       const Rect: TRectangle): TCastleImage;
   end;
+{$endif read_interface_type}
 
 {$endif read_interface}
 
@@ -635,7 +637,7 @@ begin
         gsExtension: Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
         {$endif}
         gsStandard : Status := glCheckFramebufferStatus   (GL_FRAMEBUFFER    );
-        else ;
+        else Status := GL_FRAMEBUFFER_UNSUPPORTED; // FBO not supported by OpenGL(ES) implementation
       end;
       case Status of
         GL_FRAMEBUFFER_COMPLETE: Success := true;

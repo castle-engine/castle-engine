@@ -188,7 +188,7 @@ type
     Integer: Int64; //< for vtInteger
   end;
 
-  TX3DTokenInfoList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DTokenInfo>)
+  TX3DTokenInfoList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DTokenInfo>)
     procedure AssertEqual(const TestCase: TTestCase; SecondValue: TX3DTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;
@@ -1539,12 +1539,23 @@ const
   procedure Assertions(Node: TX3DRootNode);
   var
     StringField: TMFString;
+    Text: TTextNode;
+    Shape: TShapeNode;
+    Touch: TTouchSensorNode;
   begin
-    StringField := ((Node.FdChildren[0] as TShapeNode).FdGeometry.Value as TTextNode).FdString;
-    AssertTrue(StringField.Count = 2);
-    AssertTrue(StringField.Items[0] = ValidString);
-    AssertTrue(StringField.Items[1] = ValidString2);
-    AssertTrue((Node.FdChildren[1] as TTouchSensorNode).FdDescription.Value = ValidString);
+    AssertEquals(2, Node.FdChildren.Count);
+    AssertTrue(Node.FdChildren[0] is TShapeNode);
+    AssertTrue(Node.FdChildren[1] is TTouchSensorNode);
+
+    Shape := Node.FdChildren[0] as TShapeNode;
+    Touch := Node.FdChildren[1] as TTouchSensorNode;
+    Text := Shape.Geometry as TTextNode;
+
+    StringField := Text.FdString;
+    AssertEquals(2, StringField.Count);
+    AssertEquals(ValidString, StringField.Items[0]);
+    AssertEquals(ValidString2, StringField.Items[1]);
+    AssertEquals(ValidString, Touch.Description);
   end;
 
 var
@@ -1565,6 +1576,8 @@ begin
     Save3D(Node, TempStream, '', '', xeClassic, true);
     FreeAndNil(Node);
 
+    //Writeln(StreamToString(TempStream)); // useful to debug
+
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
     Assertions(Node);
@@ -1573,6 +1586,8 @@ begin
     TempStream.Size := 0;
     Save3D(Node, TempStream, '', '', xeXML, true);
     FreeAndNil(Node);
+
+    //Writeln(StreamToString(TempStream)); // useful to debug
 
     TempStream.Position := 0;
     Node := LoadX3DXmlStream(TempStream);

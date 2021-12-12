@@ -96,7 +96,7 @@ type
     property ImageMargin: Cardinal read FImageMargin write SetImageMargin default 0;
     { Spacing between characters when rendering the font.
       This is independent from @link(ImageMargin). }
-    property DisplayMargin: Single read FDisplayMargin write SetDisplayMargin default 2;
+    property DisplayMargin: Single read FDisplayMargin write SetDisplayMargin {$ifdef FPC}default 2{$endif};
   end;
 
   TSimpleTextureFont = TCastleBitmapFont deprecated 'use TCastleBitmapFont';
@@ -306,8 +306,15 @@ var
   ImageX, ImageY, ScreenX, ScreenY, InitialMargin: Single;
   CharIndex: Integer;
   C: TUnicodeChar;
+  I: Integer;
+  {$ifdef FPC}
   TextPtr: PChar;
-  I, CharLen: Integer;
+  CharLen: Integer;
+  {$else}
+  TextIndex: Integer;
+  NextTextIndex: Integer;
+  TextLength: Integer;
+  {$endif}
 begin
   if TargetImage = nil then
   begin
@@ -332,14 +339,24 @@ begin
     Testcase: font_from_texture.lpr using null_terminator_0.png font. }
   InitialMargin := Floor(ScaledDisplayMargin / 2);
 
+  I := 0;
+  {$ifdef FPC}
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  I := 0;
   while (C > 0) and (CharLen > 0) do
+  {$else}
+  TextIndex := 1;
+  TextLength := Length(S);
+  while (TextIndex <= TextLength) do
+  {$endif}
   begin
+    {$ifdef FPC}
     Inc(TextPtr, CharLen);
-
-    CharIndex := C - Ord(' ');
+    {$else}
+    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    TextIndex := NextTextIndex;
+    {$endif}
+    CharIndex := C - Ord(' ');  // TODO: check that
     ImageX := CharIndex mod FImageColumns;
     ImageY := CharIndex div FImageColumns;
     if ImageY < ImageRows then
@@ -357,7 +374,9 @@ begin
         FloatRectangle(ImageX, ImageY, CharWidth, CharHeight));
     end;
 
+    {$ifdef FPC}
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    {$endif}
   end;
 
   if TargetImage = nil then
@@ -396,12 +415,14 @@ end;
 
 function TCastleBitmapFont.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'ImageUrl', 'ImageColumns', 'ImageRows', 'ImageMargin', 'DisplayMargin':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'ImageUrl') or
+     (PropertyName = 'ImageColumns') or
+     (PropertyName = 'ImageRows') or
+     (PropertyName = 'ImageMargin') or
+     (PropertyName = 'DisplayMargin') then
+      Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

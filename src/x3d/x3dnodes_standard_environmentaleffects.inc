@@ -179,7 +179,7 @@
 constructor TAbstractBackgroundNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  Eventset_bind.AddNotification({$ifdef FPC}@{$endif} EventSet_BindReceive);
 end;
 
 function TAbstractBackgroundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -299,7 +299,7 @@ const
 constructor TFogNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  Eventset_bind.AddNotification({$ifdef FPC}@{$endif} EventSet_BindReceive);
   AddFunctionality(TFogNode.TFogNodeFogFunctionality.Create(Self));
 end;
 
@@ -343,6 +343,7 @@ var
       ftLinear: F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
       ftExp   : F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
       ftNone  : F := 1;
+      else raise EInternalError.Create('AFogType?');
     end;
     Color := Lerp(F, FdColor.Value, Color);
   end;

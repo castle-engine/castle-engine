@@ -54,11 +54,11 @@ const
 procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: boolean = false); overload;
 procedure DrawRectangle(const R: TFloatRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: boolean = false); overload;
 
 { Draw a rectangle frame.
 
@@ -70,12 +70,12 @@ procedure DrawRectangleOutline(const R: TRectangle; const Color: TCastleColor;
   const LineWidth: Single = 1;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: boolean = false); overload;
 procedure DrawRectangleOutline(const R: TFloatRectangle; const Color: TCastleColor;
   const LineWidth: Single = 1;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: boolean = false); overload;
 
 { Draw a circle. It may be scaled differently in X than Y, thus resembling an ellipse.
 
@@ -89,14 +89,14 @@ procedure DrawCircle(const Middle: TVector2Integer;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: boolean = false); overload;
 procedure DrawCircle(const Middle: TVector2;
   const HorizontalRadius, VerticalRadius: Single;
   const Color: TCastleColor;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: boolean = false); overload;
 
 { Draw a circle outline. It may be scaled differently in X than Y, thus resembling an ellipse.
 
@@ -111,7 +111,7 @@ procedure DrawCircleOutline(const Middle: TVector2Integer;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: boolean = false); overload;
 procedure DrawCircleOutline(const Middle: TVector2;
   const HorizontalRadius, VerticalRadius: Single;
   const Color: TCastleColor;
@@ -119,7 +119,7 @@ procedure DrawCircleOutline(const Middle: TVector2;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: boolean = false); overload;
 
 { Draw a simple 2D primitive with a given color.
   This can be used to draw a series of points, lines or triangles,
@@ -154,7 +154,7 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
   const ForceBlending: boolean = false;
   const LineWidth: Single = 1;
-  const PointSize: Cardinal = 1);
+  const PointSize: Cardinal = 1); overload;
 procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const Points: array of TVector2;
   const Color: TCastleColor;
@@ -162,7 +162,7 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
   const ForceBlending: boolean = false;
   const LineWidth: Single = 1;
-  const PointSize: Cardinal = 1);
+  const PointSize: Cardinal = 1); overload;
 
 { Draw primitive, using a stipple (pattern) for line rendering.
   Note that the stipple is ignored on mobile (OpenGLES). }
@@ -174,7 +174,7 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
   const ForceBlending: boolean = false;
   const LineWidth: Single = 1;
-  const PointSize: Cardinal = 1);
+  const PointSize: Cardinal = 1); overload;
 
 { Draw a rectangle that modulates colors underneath,
   making nice animation to AFadeColor while FadeIntensity changes from 1.0
@@ -204,10 +204,10 @@ procedure GLFadeRectangleDark(const Rect: TFloatRectangle;
   const FadeIntensity: Single); overload;
 procedure GLFadeRectangleLight(const Rect: TRectangle;
   const AFadeColor: TCastleColor;
-  const FadeIntensity: Single);
+  const FadeIntensity: Single); overload;
 procedure GLFadeRectangleLight(const Rect: TFloatRectangle;
   const AFadeColor: TCastleColor;
-  const FadeIntensity: Single);
+  const FadeIntensity: Single); overload;
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
   const AFadeColor: TVector3;
   const FadeIntensity: Single); overload; deprecated 'use GLFadeRectangleDark, or TCastleFlashEffect with Dark = true';

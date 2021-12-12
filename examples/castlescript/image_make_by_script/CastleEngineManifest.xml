@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="image_make_by_script"
-  standalone_source="image_make_by_script.lpr"
+  standalone_source="image_make_by_script.dpr"
   caption="Make Image by CastleScript"
 >
   <compiler_options>

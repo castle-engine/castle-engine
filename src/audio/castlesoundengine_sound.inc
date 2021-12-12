@@ -34,7 +34,7 @@
   TCastleSoundChangeEvent = procedure (const Sender: TCastleSound; const Change: TSoundChange) of object;
 
   { @exclude Used with TCastleSound notifications (TCastleSound.InternalAddChangeNotification). }
-  TCastleSoundChangeEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TCastleSoundChangeEvent>)
+  TCastleSoundChangeEventList = class({$ifdef FPC}specialize{$endif} TList<TCastleSoundChangeEvent>)
   public
     procedure ExecuteAll(const Sender: TCastleSound; const Change: TSoundChange);
   end;
@@ -105,14 +105,14 @@
       to be audible, even when it's far away from the listener.
 
       It must be in [0, 1] range. By default it is 0. }
-    property MinGain: Single read FMinGain write SetMinGain default 0.0; platform { this feature is only available with OpenAL sound backend };
+    property MinGain: Single read FMinGain write SetMinGain {$ifdef FPC}default 0.0; platform { this feature is only available with OpenAL sound backend }{$endif};
 
     { Force a maximum sound loudness, despite what volume would
       be calculated by the spatialization. This can be used to limit sound volume,
       regardless of the distance attenuation calculation.
 
       It must be in [0, 1] range. By default it is 1. }
-    property MaxGain: Single read FMaxGain write SetMaxGain default 1.0; platform { this feature is only available with OpenAL sound backend };
+    property MaxGain: Single read FMaxGain write SetMaxGain {$ifdef FPC}default 1.0; platform { this feature is only available with OpenAL sound backend }{$endif};
 
     { Duration of the sound, in seconds. -1 if not loaded yet.
       The sound is loaded once you set @link(URL) and don't get any loading exceptions. }
@@ -169,7 +169,7 @@
       while values > 1 are allowed,
       but some sound backends (like OpenAL) may clip the resulting sound volume
       (after all volume influences, including spatial calculations are done) to 1.0. }
-    property Volume: Single read FVolume write SetVolume default 1.0;
+    property Volume: Single read FVolume write SetVolume {$ifdef FPC}default 1.0{$endif};
 
     { Sound playing speed.
 
@@ -182,7 +182,7 @@
       Each doubling equals a pitch shift of 12 semitones (one octave increase).
 
       Any value > 0 is allowed. }
-    property Pitch: Single read FPitch write SetPitch default 1.0;
+    property Pitch: Single read FPitch write SetPitch {$ifdef FPC}default 1.0{$endif};
 
     { How important is the sound, between 0.0 (least important) to 1.0 (most important).
 
@@ -198,19 +198,19 @@
       as it satisfies a number of important points: it defines easy to remember min/max (0 and 1),
       it is agnostic to the underlying precision (e.g. it has to map to 257 levels in FMOD,
       100 levels in Wwise). Also, "higher is more important" seems just more natural. }
-    property Priority: Single read FPriority write SetPriority default 0.5;
+    property Priority: Single read FPriority write SetPriority {$ifdef FPC}default 0.5{$endif};
 
     { Spatial sound is fully audible (with @link(Volume)) at this distance.
       See TSoundDistanceModel for a description how distance affects the sound volume. }
     property ReferenceDistance: Single read FReferenceDistance write SetReferenceDistance
-      default DefaultReferenceDistance;
+      {$ifdef FPC}default DefaultReferenceDistance{$endif};
 
     { Distance at which sound volume stops attenuating.
       For the linear distance model (@link(TSoundEngine.DistanceModel SoundEngine.DistanceModel) = dmLinear)
       this is also a distance at which sound volume drops to zero (completely silent).
       See TSoundDistanceModel for a description how distance affects the sound volume. }
     property MaxDistance: Single read FMaxDistance write SetMaxDistance
-      default DefaultMaxDistance;
+      {$ifdef FPC}default DefaultMaxDistance{$endif};
   end;
 
 {$endif read_interface}
@@ -274,12 +274,16 @@ end;
 
 function TCastleSound.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'URL', 'Stream', 'Volume', 'Pitch', 'Priority', 'ReferenceDistance', 'MaxDistance':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'URL') or
+     (PropertyName = 'Stream') or
+     (PropertyName = 'Volume') or
+     (PropertyName = 'Pitch') or
+     (PropertyName = 'Priority') or
+     (PropertyName = 'ReferenceDistance') or
+     (PropertyName = 'MaxDistance') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleSound.ReloadBuffer;
@@ -327,7 +331,7 @@ begin
   if FStream <> Value then
   begin
     FStream := Value;
-    if not (csLoading in ComponentState) then
+    if not IsLoading then
       ReloadBuffer;
   end;
 end;
@@ -337,7 +341,7 @@ begin
   if FURL <> Value then
   begin
     FURL := Value;
-    if not (csLoading in ComponentState) then
+    if not IsLoading then
       ReloadBuffer;
   end;
 end;
