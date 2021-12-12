@@ -303,7 +303,7 @@ examples-delphi:
 	$(FIND) ./examples/ \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./examples/castlescript/image_make_by_script -prune ')' -o \
-	  '(' -path ./examples/localization/deprecated_custom -prune ')' -o \
+	  '(' -path ./examples/localization -prune ')' -o \
 	  '(' -path ./examples/network/custom_url_handler -prune ')' -o \
 	  '(' -path ./examples/research_special_rendering_methods -prune ')' -o \
 	  '(' -path ./examples/visualize_triangulation -prune ')' -o \
