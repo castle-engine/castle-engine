@@ -31,7 +31,6 @@
     inStep
   );
 
-
   { Basis for all nodes interpolating (animating) values. }
   TAbstractInterpolatorNode = class(TAbstractChildNode)
   strict protected
@@ -47,64 +46,45 @@
   {$I auto_generated_node_helpers/x3dnodes_x3dinterpolatornode.inc}
   end;
 
-  { Basis for all nodes interpolating (animating) a single value. }
-  {$ifdef CASTLE_OBJFPC}generic{$endif}
-  TAbstractSingleInterpolatorNode<
-    TInterpolatedValue,
-    TKeyValue,
-    TKeyValueEvent> = class(TAbstractInterpolatorNode)
+  { Common base class for all implemented interpolator nodes. }
+  {$ifdef FPC}generic{$endif}
+  TAbstractCommonInterpolatorNode<
+    TOutputField: TX3DField> = class(TAbstractInterpolatorNode)
   strict private
-    function KeyValue(Index: Integer): TInterpolatedValue;
+    FEventValue_changed: TX3DEvent;
+    FTempFields: array of TOutputField;
+    FTempFieldsUsed: TListSize;
+    { Check is Index < KeyValueCount.
+      Makes warning when returning false. }
+    function CheckKeyValue(const Index: TListSize): Boolean;
     procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   strict protected
-    function InterpolatorDefault: TInterpolatedValue; virtual;
-    function InterpolatorLerp(const A: Single;
-      const V1, V2: TInterpolatedValue): TInterpolatedValue; virtual; abstract;
+    { Values count determines allowed indexes for InterpolatorLerp, InterpolatorSet. }
+    function KeyValueCount: TListSize; virtual; abstract;
+    { Set Target.Value to Lerp(A, KeyValue[Index1], KeyValue[Index2]).
+      Index1 and Index2 are for sure valid (between 0 and KeyValueCount-1). }
+    procedure InterpolatorLerp(const Target: TOutputField;
+      const A: Single; const Index1, Index2: Integer); virtual; abstract;
+    { Set Target.Value to KeyValue[Index].
+      Index is for sure valid (between 0 and KeyValueCount-1). }
+    procedure InterpolatorSet(const Target: TOutputField; const Index: Integer); virtual; abstract;
+    { Create TOutputField instance, to send it by EventValue_Changed. }
+    function CreateOutputField: TOutputField; virtual; abstract;
   public
-    procedure CreateNode; override;
-
-    strict private FFdKeyValue: TKeyValue;
-    public property FdKeyValue: TKeyValue read FFdKeyValue;
-
-    { Event out } { }
-    strict private FEventValue_changed: TKeyValueEvent;
-    public property EventValue_changed: TKeyValueEvent read FEventValue_changed;
-  end;
-
-  { Basis for all nodes interpolating (animating) an array of values. }
-  {$ifdef CASTLE_OBJFPC}generic{$endif}
-  TAbstractArrayInterpolatorNode<
-    TKeyValue,
-    TKeyValueEvent> = class(TAbstractInterpolatorNode)
-  strict private
-    function KeyValue(const Index, KeyCount: Integer): TKeyValue;
-    function KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TKeyValue;
-    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
-      const Time: TX3DTime);
-  strict protected
-    procedure InterpolatorLerp(const Target: TKeyValue;
-      const Fraction: Single; const F1, F2: TKeyValue;
-      const Index1, Index2, ACount: Integer); virtual;
-  public
-    procedure CreateNode; override;
-
-    strict private FFdKeyValue: TKeyValue;
-    public property FdKeyValue: TKeyValue read FFdKeyValue;
-
-    { Event out } { }
-    strict private FEventValue_changed: TKeyValueEvent;
-    public property EventValue_changed: TKeyValueEvent read FEventValue_changed;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    destructor Destroy; override;
   end;
 
   { Interpolate (animate) a single color. }
-  TColorInterpolatorNode = class(specialize TAbstractSingleInterpolatorNode<
-    TVector3,
-    TMFColor,
-    TSFColorEvent>)
+  TColorInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TSFVec3f>)
   strict protected
-    function InterpolatorLerp(const A: Single;
-      const V1, V2: TVector3): TVector3; override;
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TSFVec3f; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TSFVec3f; const Index: Integer); override;
+    function CreateOutputField: TSFVec3f; override;
 
   {$I auto_generated_node_helpers/x3dnodes_colorinterpolator.inc}
   end;
@@ -112,31 +92,48 @@
   { Interpolate (animate) a set of colors,
     for example to animate a set of @link(TBackgroundNode)
     or @link(TColorNode) colors. }
-  TColorSetInterpolatorNode = class(specialize TAbstractArrayInterpolatorNode<
-    TMFColor,
-    TMFColorEvent>)
+  TColorSetInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TMFColor>)
+  strict private
+    function FrameValues: TListSize;
   strict protected
-    procedure InterpolatorLerp(const Target: TMFColor;
-      const Fraction: Single; const F1, F2: TMFColor;
-      const Index1, Index2, ACount: Integer); override;
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TMFColor; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TMFColor; const Index: Integer); override;
+    function CreateOutputField: TMFColor; override;
 
   {$I auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc}
   end;
 
   { Interpolate (animate) a set of 3D positions,
     for example to animate @link(TCoordinateNode coordinates) of a mesh. }
-  TCoordinateInterpolatorNode = class(specialize TAbstractArrayInterpolatorNode<
-    TMFVec3f,
-    TMFVec3fEvent>)
+  TCoordinateInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TMFVec3f>)
+  strict private
+    function FrameValues: TListSize;
+  strict protected
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TMFVec3f; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TMFVec3f; const Index: Integer); override;
+    function CreateOutputField: TMFVec3f; override;
 
   {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
   end;
 
   { Interpolate (animate) a set of 2D positions,
     for example to animate 2D texture coordinates. }
-  TCoordinateInterpolator2DNode = class(specialize TAbstractArrayInterpolatorNode<
-    TMFVec2f,
-    TMFVec2fEvent>)
+  TCoordinateInterpolator2DNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TMFVec2f>)
+  strict private
+    function FrameValues: TListSize;
+  strict protected
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TMFVec2f; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TMFVec2f; const Index: Integer); override;
+    function CreateOutputField: TMFVec2f; override;
 
   {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
   end;
@@ -149,64 +146,71 @@
   end;
 
   { Interpolate (animate) a set of 3D directions, for example normal vectors. }
-  TNormalInterpolatorNode = class(specialize TAbstractArrayInterpolatorNode<
-    TMFVec3f,
-    TMFVec3fEvent>)
+  TNormalInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TMFVec3f>)
+  strict private
+    function FrameValues: TListSize;
   strict protected
-    procedure InterpolatorLerp(const Target: TMFVec3f;
-      const Fraction: Single; const F1, F2: TMFVec3f;
-      const Index1, Index2, ACount: Integer); override;
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TMFVec3f; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TMFVec3f; const Index: Integer); override;
+    function CreateOutputField: TMFVec3f; override;
 
   {$I auto_generated_node_helpers/x3dnodes_normalinterpolator.inc}
   end;
 
   { Interpolate (animate) an orientation,
     for example to animate @link(TTransformNode.Rotation). }
-  TOrientationInterpolatorNode = class(specialize TAbstractSingleInterpolatorNode<
-    TVector4,
-    TMFRotation,
-    TSFRotationEvent>)
+  TOrientationInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TSFRotation>)
   strict protected
-    function InterpolatorLerp(const A: Single;
-      const V1, V2: TVector4): TVector4; override;
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TSFRotation; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TSFRotation; const Index: Integer); override;
+    function CreateOutputField: TSFRotation; override;
 
   {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator.inc}
   end;
 
   { Interpolate (animate) a 3D position,
     for example to animate @link(TTransformNode.Translation). }
-  TPositionInterpolatorNode = class(specialize TAbstractSingleInterpolatorNode<
-    TVector3,
-    TMFVec3f,
-    TSFVec3fEvent>)
+  TPositionInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TSFVec3f>)
   strict protected
-    function InterpolatorLerp(const A: Single;
-      const V1, V2: TVector3): TVector3; override;
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TSFVec3f; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TSFVec3f; const Index: Integer); override;
+    function CreateOutputField: TSFVec3f; override;
 
   {$I auto_generated_node_helpers/x3dnodes_positioninterpolator.inc}
   end;
 
   { Interpolate (animate) a 2D position. }
-  TPositionInterpolator2DNode = class(specialize TAbstractSingleInterpolatorNode<
-    TVector2,
-    TMFVec2f,
-    TSFVec2fEvent>)
+  TPositionInterpolator2DNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TSFVec2f>)
   strict protected
-    function InterpolatorLerp(const A: Single;
-      const V1, V2: TVector2): TVector2; override;
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TSFVec2f; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TSFVec2f; const Index: Integer); override;
+    function CreateOutputField: TSFVec2f; override;
 
   {$I auto_generated_node_helpers/x3dnodes_positioninterpolator2d.inc}
   end;
 
   { Interpolate (animate) a single floating-point value,
     for example to animate @link(TMaterialNode.Transparency). }
-  TScalarInterpolatorNode = class(specialize TAbstractSingleInterpolatorNode<
-    Single,
-    TMFFloat,
-    TSFFloatEvent>)
+  TScalarInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TSFFloat>)
   strict protected
-    function InterpolatorLerp(const A: Single;
-      const V1, V2: Single): Single; override;
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TSFFloat; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TSFFloat; const Index: Integer); override;
+    function CreateOutputField: TSFFloat; override;
 
   {$I auto_generated_node_helpers/x3dnodes_scalarinterpolator.inc}
   end;
@@ -237,9 +241,16 @@
 
   { Interpolate (animate) a set of floats, for example to animate
     @link(TElevationGridNode) heights. }
-  TVectorInterpolatorNode = class(specialize TAbstractArrayInterpolatorNode<
-    TMFFloat,
-    TMFFloatEvent>)
+  TVectorInterpolatorNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TMFFloat>)
+  strict private
+    function FrameValues: TListSize;
+  strict protected
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TMFFloat; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TMFFloat; const Index: Integer); override;
+    function CreateOutputField: TMFFloat; override;
 
   {$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
   end;
@@ -276,281 +287,428 @@ begin
   ResultI.Interpolation := Interpolation;
 end;
 
-{ TAbstractSingleInterpolatorNode -------------------------------------------- }
+{ TAbstractCommonInterpolatorNode -------------------------------------------- }
 
-function TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
-  TInterpolatedValue,
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  KeyValue(Index: Integer): TInterpolatedValue;
+constructor TAbstractCommonInterpolatorNode
+  {$ifndef FPC}<TOutputField>{$endif} .
+  Create(const AX3DName, ABaseUrl: String);
 begin
-  if Index < FdKeyValue.Items.Count then
-    Result := FdKeyValue.Items.List^[Index]
-  else
-    Result := InterpolatorDefault;
+  inherited;
+  FEventValue_changed := AnyEvent('value_changed', true);
+  EventSet_Fraction.AddNotification(
+    {$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
-procedure TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
-  TInterpolatedValue,
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
+destructor TAbstractCommonInterpolatorNode
+  {$ifndef FPC}<TOutputField>{$endif} .
+  Destroy;
+var
+  I: TListSize;
+begin
+  for I := 0 to High(FTempFields) do
+    FreeAndNil(FTempFields[I]);
+  inherited;
+end;
+
+function TAbstractCommonInterpolatorNode
+  {$ifndef FPC}<TOutputField>{$endif} .
+  CheckKeyValue(const Index: TListSize): Boolean;
+begin
+  Result := Index < KeyValueCount;
+  if not Result then
+    WritelnWarning('Not enough key values for interpolator %d', [NiceName]);
+end;
+
+procedure TAbstractCommonInterpolatorNode
+  {$ifndef FPC}<TOutputField>{$endif} .
   EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   T: Single;
-  OutputValue: TInterpolatedValue;
   KeyCount, Range: Integer;
+  TempFieldIndex: TListSize;
+  OutputField: TOutputField;
 begin
-  if not EventValue_Changed.SendNeeded then Exit;
+  if not FEventValue_Changed.SendNeeded then Exit;
 
   KeyCount := FdKey.Items.Count;
   if KeyCount = 0 then
   begin
-    // Interpolator nodes containing no keys in the key field
-    // shall not produce any events.
+    { Interpolator nodes containing no keys in the key field
+       shall not produce any events.
+
+       Moreover, in case of array interpolators (like TColorInterpolatorNode)
+       the "div KeyCount" used to calculate FrameValues would cause errors. }
     Exit;
   end;
 
-  Assert(Value is TSFFloat, 'EventSet_FractionReceive (for single-value field) can only process SFFloat input events');
-  Assert(not IsNan((Value as TSFFloat).Value), 'EventSet_FractionReceive (for single-value field) cannot handle fraction = NaN');
-  Range := KeyRange((Value as TSFFloat).Value, T);
-  if Range = 0 then
-    OutputValue := KeyValue(0)
-  else
-  if Range = KeyCount then
-    OutputValue := KeyValue(KeyCount - 1)
-  else
-  begin
-    case Interpolation of
-      inLinear: OutputValue := InterpolatorLerp(T, KeyValue(Range - 1), KeyValue(Range));
-      inStep  : OutputValue := KeyValue(Range - 1);
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('TAbstractSingleInterpolatorNode:Interpolation?');
-      {$endif}
+  { FTempFields serves as a pool of ready field instances created by CreateOutputField.
+    It is expanded when necessary. }
+  TempFieldIndex := FTempFieldsUsed;
+  Inc(FTempFieldsUsed);
+  try
+    if FTempFieldsUsed > Length(FTempFields) then
+    begin
+      SetLength(FTempFields, FTempFieldsUsed);
+      {$ifndef FPC} Assert(FTempFields[TempFieldIndex] = nil); {$endif}
+      FTempFields[TempFieldIndex] := CreateOutputField;
     end;
+    OutputField := FTempFields[TempFieldIndex];
+    {$ifndef FPC} Assert(OutputField <> nil); {$endif}
+
+    Assert(Value is TSFFloat, 'EventSet_FractionReceive can only process SFFloat input events');
+    Assert(not IsNan((Value as TSFFloat).Value), 'EventSet_FractionReceive cannot handle fraction = NaN');
+    Range := KeyRange((Value as TSFFloat).Value, T);
+    if Range = 0 then
+    begin
+      if not CheckKeyValue(0) then Exit;
+      InterpolatorSet(OutputField, 0);
+    end else
+    if Range = KeyCount then
+    begin
+      if not CheckKeyValue(KeyCount - 1) then Exit;
+      InterpolatorSet(OutputField, KeyCount - 1);
+    end else
+    begin
+      case Interpolation of
+        inLinear:
+          begin
+            if not CheckKeyValue(Range) then Exit;
+            InterpolatorLerp(OutputField, T, Range - 1, Range);
+          end;
+        inStep:
+          begin
+            if not CheckKeyValue(Range - 1) then Exit;
+            InterpolatorSet(OutputField, Range - 1);
+          end;
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('TAbstractCommonInterpolatorNode:Interpolation?');
+        {$endif}
+      end;
+    end;
+
+    OutputField.InternalPartialSend := Value.InternalPartialSend;
+    FEventValue_Changed.Send(OutputField, Time);
+  finally
+    Dec(FTempFieldsUsed);
   end;
-
-  EventValue_Changed.Send(OutputValue, Time, Value.InternalPartialSend);
 end;
 
-procedure TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
-  TInterpolatedValue,
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  CreateNode;
+{ TColorInterpolatorNode ----------------------------------------------------- }
+
+function TColorInterpolatorNode.KeyValueCount: TListSize;
 begin
-  inherited;
-
-  FFdKeyValue := TKeyValue.Create(Self, true, 'keyValue', []);
-  AddField(FFdKeyValue);
-
-  FEventValue_changed := TKeyValueEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  EventSet_Fraction.AddNotification(
-    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+  Result := FdKeyValue.Items.Count;
 end;
 
-function TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
-  TInterpolatedValue,
-  TKeyValue,
-  TKeyValueEvent>{$endif}
-  .InterpolatorDefault: TInterpolatedValue;
+procedure TColorInterpolatorNode.InterpolatorLerp(const Target: TSFVec3f;
+  const A: Single; const Index1, Index2: Integer);
 begin
-  FillChar(Result, SizeOf(Result), 0);
+  Target.Value := LerpRgbInHsv(A,
+    FdKeyValue.Items.List^[Index1],
+    FdKeyValue.Items.List^[Index2]);
 end;
 
-// function TAbstractSingleInterpolatorNode.InterpolatorLerp(const A: Single;
-//   const V1, V2: TInterpolatedValue): TInterpolatedValue;
-// begin
-//   Result := Lerp(A, V1, V2);
-// end;
-
-{ TAbstractArrayInterpolatorNode --------------------------------------------- }
-
-function TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  KeyValue(const Index, KeyCount: Integer): TKeyValue;
-var
-  FrameValues: Integer;
+procedure TColorInterpolatorNode.InterpolatorSet(const Target: TSFVec3f; const Index: Integer);
 begin
-  FrameValues := FdKeyValue.Items.Count div KeyCount;
+  Target.Value := FdKeyValue.Items.List^[Index];
+end;
 
+function TColorInterpolatorNode.CreateOutputField: TSFVec3f;
+begin
   // We pass Self as ParentNode to
   // TKeyValue.CreateUndefined.
   // This is not required, ParentNode could be @nil and everything
   // will work Ok, but setting ParentNode allows InstantReality Logger node
   // to display "sending node" information, useful for debugging.
-  Result := TKeyValue.CreateUndefined(Self, false, '');
 
-  if (Index + 1) * FrameValues <= FdKeyValue.Items.Count then
-  begin
-    Result.Items.AddSubRange(FdKeyValue.Items, Index * FrameValues, FrameValues);
-  end else
-    WritelnWarning('VRML/X3D', Format('Not enough keyValue items for %s interpolator',
-      [X3DType]));
-end;
-
-function TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TKeyValue;
-var
-  FrameValues: Integer;
-begin
-  // This actually knows that Index2 = Index1 + 1, but assumes only
-  // Index2 > Index1
-
-  FrameValues := FdKeyValue.Items.Count div KeyCount;
-  Result := TKeyValue.CreateUndefined(Self, false, '');
-
-  if (Index2 + 1) * FrameValues <= FdKeyValue.Items.Count then
-  begin
-    InterpolatorLerp(Result, T, FdKeyValue, FdKeyValue,
-      Index1 * FrameValues, Index2 * FrameValues, FrameValues);
-  end else
-    WritelnWarning('VRML/X3D', Format('Not enough keyValue items for %s interpolator',
-      [X3DType]));
-end;
-
-procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
-var
-  KeyCount: Integer;
-  T: Single;
-  OutputValue: TKeyValue;
-  Range: Integer;
-begin
-  if not EventValue_Changed.SendNeeded then Exit;
-
-  KeyCount := FdKey.Items.Count;
-  if KeyCount = 0 then
-  begin
-    // Interpolator nodes containing no keys in the key field
-    // shall not produce any events.
-    // Moreover, "div KeyCount" would cause errors if we would try
-    // to get some KeyValue or KeyValueLerp.
-    Exit;
-  end;
-
-  Assert(Value is TSFFloat, 'EventSet_FractionReceive (for multiple-value field) can only process SFFloat input events');
-  Assert(not IsNan((Value as TSFFloat).Value), 'EventSet_FractionReceive (for multiple-value field) cannot handle fraction = NaN');
-  Range := KeyRange((Value as TSFFloat).Value, T);
-  if Range = 0 then
-    OutputValue := KeyValue(0, KeyCount)
-  else
-  if Range = KeyCount then
-    OutputValue := KeyValue(KeyCount - 1, KeyCount)
-  else
-  begin
-    case Interpolation of
-      inLinear: OutputValue := KeyValueLerp(T, Range - 1, Range, KeyCount);
-      inStep  : OutputValue := KeyValue(Range - 1, KeyCount);
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('TAbstractSingleInterpolatorNode:Interpolation?');
-      {$endif}
-    end;
-  end;
-
-  OutputValue.InternalPartialSend := Value.InternalPartialSend;
-  try
-    EventValue_Changed.Send(OutputValue, Time);
-  finally
-    FreeAndNil(OutputValue);
-  end;
-end;
-
-procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  CreateNode;
-begin
-  inherited;
-
-  FFdKeyValue := TKeyValue.Create(Self, true, 'keyValue', []);
-  AddField(FFdKeyValue);
-
-  FEventValue_changed := TKeyValueEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  EventSet_Fraction.AddNotification(
-    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
-end;
-
-procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
-  InterpolatorLerp(const Target: TKeyValue;
-  const Fraction: Single; const F1, F2: TKeyValue;
-  const Index1, Index2, ACount: Integer);
-begin
-  Target.Items.AssignLerp(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
-end;
-
-{ TColorInterpolatorNode ----------------------------------------------------- }
-
-function TColorInterpolatorNode.InterpolatorLerp(const A: Single;
-  const V1, V2: TVector3): TVector3;
-begin
-  Result := LerpRgbInHsv(A, V1, V2);
+  Result := TSFColor.CreateUndefined(Self, false, '');
 end;
 
 { TColorSetInterpolatorNode -------------------------------------------------- }
 
-procedure TColorSetInterpolatorNode.InterpolatorLerp(const Target: TMFColor;
-  const Fraction: Single; const F1, F2: TMFColor;
-  const Index1, Index2, ACount: Integer);
+function TColorSetInterpolatorNode.FrameValues: TListSize;
 begin
-  Target.Items.AssignLerpRgbInHsv(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
+  Result := FdKeyValue.Count div FdKey.Count;
+end;
+
+function TColorSetInterpolatorNode.KeyValueCount: TListSize;
+begin
+  Result := FdKeyValue.Items.Count div FrameValues;
+end;
+
+procedure TColorSetInterpolatorNode.InterpolatorLerp(const Target: TMFColor; const A: Single;
+  const Index1, Index2: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.AssignLerpRgbInHsv(A, FdKeyValue.Items, FdKeyValue.Items,
+    Index1 * FV, Index2 * FV, FrameValues);
+end;
+
+procedure TColorSetInterpolatorNode.InterpolatorSet(const Target: TMFColor; const Index: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.Clear;
+  Target.Items.AddSubRange(FdKeyValue.Items, Index * FV, FV);
+end;
+
+function TColorSetInterpolatorNode.CreateOutputField: TMFColor;
+begin
+  Result := TMFColor.CreateUndefined(Self, false, '');
+end;
+
+{ TCoordinateInterpolatorNode ---------------------------------------------------- }
+
+function TCoordinateInterpolatorNode.FrameValues: TListSize;
+begin
+  Result := FdKeyValue.Count div FdKey.Count;
+end;
+
+function TCoordinateInterpolatorNode.KeyValueCount: TListSize;
+begin
+  Result := FdKeyValue.Items.Count div FrameValues;
+end;
+
+procedure TCoordinateInterpolatorNode.InterpolatorLerp(const Target: TMFVec3f; const A: Single;
+  const Index1, Index2: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.AssignLerpRange(A, FdKeyValue.Items, FdKeyValue.Items,
+    Index1 * FV, Index2 * FV, FrameValues);
+end;
+
+procedure TCoordinateInterpolatorNode.InterpolatorSet(const Target: TMFVec3f; const Index: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.Clear;
+  Target.Items.AddSubRange(FdKeyValue.Items, Index * FV, FV);
+end;
+
+function TCoordinateInterpolatorNode.CreateOutputField: TMFVec3f;
+begin
+  Result := TMFVec3f.CreateUndefined(Self, false, '');
+end;
+
+{ TCoordinateInterpolator2DNode ---------------------------------------------------- }
+
+function TCoordinateInterpolator2DNode.FrameValues: TListSize;
+begin
+  Result := FdKeyValue.Count div FdKey.Count;
+end;
+
+function TCoordinateInterpolator2DNode.KeyValueCount: TListSize;
+begin
+  Result := FdKeyValue.Items.Count div FrameValues;
+end;
+
+procedure TCoordinateInterpolator2DNode.InterpolatorLerp(const Target: TMFVec2f; const A: Single;
+  const Index1, Index2: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.AssignLerpRange(A, FdKeyValue.Items, FdKeyValue.Items,
+    Index1 * FV, Index2 * FV, FrameValues);
+end;
+
+procedure TCoordinateInterpolator2DNode.InterpolatorSet(const Target: TMFVec2f; const Index: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.Clear;
+  Target.Items.AddSubRange(FdKeyValue.Items, Index * FV, FV);
+end;
+
+function TCoordinateInterpolator2DNode.CreateOutputField: TMFVec2f;
+begin
+  Result := TMFVec2f.CreateUndefined(Self, false, '');
 end;
 
 { TNormalInterpolatorNode -------------------------------------------------- }
 
-procedure TNormalInterpolatorNode.InterpolatorLerp(
-  const Target: TMFVec3f;
-  const Fraction: Single; const F1, F2: TMFVec3f;
-  const Index1, Index2, ACount: Integer);
+function TNormalInterpolatorNode.FrameValues: TListSize;
 begin
-  Target.Items.AssignLerpNormalize(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
+  Result := FdKeyValue.Count div FdKey.Count;
+end;
+
+function TNormalInterpolatorNode.KeyValueCount: TListSize;
+begin
+  Result := FdKeyValue.Items.Count div FrameValues;
+end;
+
+procedure TNormalInterpolatorNode.InterpolatorLerp(const Target: TMFVec3f; const A: Single;
+  const Index1, Index2: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.AssignLerpNormalize(A, FdKeyValue.Items, FdKeyValue.Items,
+    Index1 * FV, Index2 * FV, FrameValues);
+end;
+
+procedure TNormalInterpolatorNode.InterpolatorSet(const Target: TMFVec3f; const Index: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.Clear;
+  Target.Items.AddSubRange(FdKeyValue.Items, Index * FV, FV);
+end;
+
+function TNormalInterpolatorNode.CreateOutputField: TMFVec3f;
+begin
+  Result := TMFVec3f.CreateUndefined(Self, false, '');
 end;
 
 { TOrientationInterpolatorNode -------------------------------------------------- }
 
-function TOrientationInterpolatorNode.InterpolatorLerp(const A: Single;
-  const V1, V2: TVector4): TVector4;
+function TOrientationInterpolatorNode.KeyValueCount: TListSize;
+begin
+  Result := FdKeyValue.Items.Count;
+end;
+
+procedure TOrientationInterpolatorNode.InterpolatorLerp(const Target: TSFRotation;
+  const A: Single; const Index1, Index2: Integer);
 begin
   { In my tests, NLerp works as good as SLerp here.
     Although NLerp doesn't guarantee constant velocity, and should be
     faster --- neither of these qualities seem to be noticeable
     in practice. }
-  Result := SLerp(A, V1, V2);
+  Target.Value := SLerp(A,
+    FdKeyValue.Items.List^[Index1],
+    FdKeyValue.Items.List^[Index2]);
+end;
+
+procedure TOrientationInterpolatorNode.InterpolatorSet(const Target: TSFRotation; const Index: Integer);
+begin
+  Target.Value := FdKeyValue.Items.List^[Index];
+end;
+
+function TOrientationInterpolatorNode.CreateOutputField: TSFRotation;
+begin
+  Result := TSFRotation.CreateUndefined(Self, false, '');
 end;
 
 { TPositionInterpolatorNode -------------------------------------------------- }
 
-function TPositionInterpolatorNode.InterpolatorLerp(const A: Single;
-  const V1, V2: TVector3): TVector3;
+function TPositionInterpolatorNode.KeyValueCount: TListSize;
 begin
-  Result := Lerp(A, V1, V2);
+  Result := FdKeyValue.Items.Count;
+end;
+
+procedure TPositionInterpolatorNode.InterpolatorLerp(const Target: TSFVec3f;
+  const A: Single; const Index1, Index2: Integer);
+begin
+  Target.Value := Lerp(A,
+    FdKeyValue.Items.List^[Index1],
+    FdKeyValue.Items.List^[Index2]);
+end;
+
+procedure TPositionInterpolatorNode.InterpolatorSet(const Target: TSFVec3f; const Index: Integer);
+begin
+  Target.Value := FdKeyValue.Items.List^[Index];
+end;
+
+function TPositionInterpolatorNode.CreateOutputField: TSFVec3f;
+begin
+  Result := TSFVec3f.CreateUndefined(Self, false, '');
 end;
 
 { TPositionInterpolator2DNode -------------------------------------------------- }
 
-function TPositionInterpolator2DNode.InterpolatorLerp(const A: Single;
-  const V1, V2: TVector2): TVector2;
+function TPositionInterpolator2DNode.KeyValueCount: TListSize;
 begin
-  Result := Lerp(A, V1, V2);
+  Result := FdKeyValue.Items.Count;
+end;
+
+procedure TPositionInterpolator2DNode.InterpolatorLerp(const Target: TSFVec2f;
+  const A: Single; const Index1, Index2: Integer);
+begin
+  Target.Value := Lerp(A,
+    FdKeyValue.Items.List^[Index1],
+    FdKeyValue.Items.List^[Index2]);
+end;
+
+procedure TPositionInterpolator2DNode.InterpolatorSet(const Target: TSFVec2f; const Index: Integer);
+begin
+  Target.Value := FdKeyValue.Items.List^[Index];
+end;
+
+function TPositionInterpolator2DNode.CreateOutputField: TSFVec2f;
+begin
+  Result := TSFVec2f.CreateUndefined(Self, false, '');
 end;
 
 { TScalarInterpolatorNode -------------------------------------------------- }
 
-function TScalarInterpolatorNode.InterpolatorLerp(const A: Single;
-  const V1, V2: Single): Single;
+function TScalarInterpolatorNode.KeyValueCount: TListSize;
 begin
-  Result := Lerp(A, V1, V2);
+  Result := FdKeyValue.Items.Count;
 end;
+
+procedure TScalarInterpolatorNode.InterpolatorLerp(const Target: TSFFloat;
+  const A: Single; const Index1, Index2: Integer);
+begin
+  Target.Value := Lerp(A,
+    FdKeyValue.Items.List^[Index1],
+    FdKeyValue.Items.List^[Index2]);
+end;
+
+procedure TScalarInterpolatorNode.InterpolatorSet(const Target: TSFFloat; const Index: Integer);
+begin
+  Target.Value := FdKeyValue.Items.List^[Index];
+end;
+
+function TScalarInterpolatorNode.CreateOutputField: TSFFloat;
+begin
+  Result := TSFFloat.CreateUndefined(Self, false, '');
+end;
+
+{ TVectorInterpolatorNode ---------------------------------------------------- }
+
+function TVectorInterpolatorNode.FrameValues: TListSize;
+begin
+  Result := FdKeyValue.Count div FdKey.Count;
+end;
+
+function TVectorInterpolatorNode.KeyValueCount: TListSize;
+begin
+  Result := FdKeyValue.Items.Count div FrameValues;
+end;
+
+procedure TVectorInterpolatorNode.InterpolatorLerp(const Target: TMFFloat; const A: Single;
+  const Index1, Index2: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.AssignLerpRange(A, FdKeyValue.Items, FdKeyValue.Items,
+    Index1 * FV, Index2 * FV, FrameValues);
+end;
+
+procedure TVectorInterpolatorNode.InterpolatorSet(const Target: TMFFloat; const Index: Integer);
+var
+  FV: TListSize;
+begin
+  FV := FrameValues;
+  Target.Items.Clear;
+  Target.Items.AddSubRange(FdKeyValue.Items, Index * FV, FV);
+end;
+
+function TVectorInterpolatorNode.CreateOutputField: TMFFloat;
+begin
+  Result := TMFFloat.CreateUndefined(Self, false, '');
+end;
+
+{ registration --------------------------------------------------------------- }
 
 procedure RegisterInterpolationNodes;
 begin

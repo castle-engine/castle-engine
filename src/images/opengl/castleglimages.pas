@@ -63,28 +63,67 @@ unit CastleGLImages;
 interface
 
 uses SysUtils, Generics.Collections, Classes,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
   CastleTextureImages, CastleVideos, CastleCompositeImage, CastleRectangles,
   CastleGLShaders, CastleColors, CastleUtils, CastleRenderOptions;
 
 {$define read_interface}
 
-{$I castleglimages_miscellaneous.inc}
-{$I castleglimages_filter.inc}
-{$I castleglimages_wrap.inc}
-{$I castleglimages_drawableimage.inc}
-{$I castleglimages_drawableimagecache.inc}
-{$I castleglimages_persistentimage.inc}
-{$I castleglimages_load_2d.inc}
-{$I castleglimages_load_3d.inc}
-{$I castleglimages_load_cubemap.inc}
-{$I castleglimages_savescreen.inc}
-{$I castleglimages_rendertotexture.inc}
-{$I castleglimages_texturememoryprofiler.inc}
-{$I castleglimages_video.inc}
-{$I castleglimages_sprite.inc}
-{$I castleglimages_packing.inc}
+  {$define read_interface_type}
+    type
+    {$I castleglimages_miscellaneous.inc}
+    {$I castleglimages_filter.inc}
+    {$I castleglimages_wrap.inc}
+    {$I castleglimages_drawableimage.inc}
+    {$I castleglimages_drawableimagecache.inc}
+    {$I castleglimages_persistentimage.inc}
+    {$I castleglimages_load_2d.inc}
+    {$I castleglimages_load_3d.inc}
+    {$I castleglimages_load_cubemap.inc}
+    {$I castleglimages_savescreen.inc}
+    {$I castleglimages_rendertotexture.inc}
+    {$I castleglimages_texturememoryprofiler.inc}
+    {$I castleglimages_video.inc}
+    {$I castleglimages_sprite.inc}
+    {$I castleglimages_packing.inc}
+  {$undef read_interface_type}
+
+  {$define read_interface_const}
+    {$I castleglimages_miscellaneous.inc}
+    {$I castleglimages_filter.inc}
+    {$I castleglimages_wrap.inc}
+    {$I castleglimages_drawableimage.inc}
+    {$I castleglimages_drawableimagecache.inc}
+    {$I castleglimages_persistentimage.inc}
+    {$I castleglimages_load_2d.inc}
+    {$I castleglimages_load_3d.inc}
+    {$I castleglimages_load_cubemap.inc}
+    {$I castleglimages_savescreen.inc}
+    {$I castleglimages_rendertotexture.inc}
+    {$I castleglimages_texturememoryprofiler.inc}
+    {$I castleglimages_video.inc}
+    {$I castleglimages_sprite.inc}
+    {$I castleglimages_packing.inc}
+  {$undef read_interface_const}
+
+  {$define read_interface_func}
+    {$I castleglimages_miscellaneous.inc}
+    {$I castleglimages_filter.inc}
+    {$I castleglimages_wrap.inc}
+    {$I castleglimages_drawableimage.inc}
+    {$I castleglimages_drawableimagecache.inc}
+    {$I castleglimages_persistentimage.inc}
+    {$I castleglimages_load_2d.inc}
+    {$I castleglimages_load_3d.inc}
+    {$I castleglimages_load_cubemap.inc}
+    {$I castleglimages_savescreen.inc}
+    {$I castleglimages_rendertotexture.inc}
+    {$I castleglimages_texturememoryprofiler.inc}
+    {$I castleglimages_video.inc}
+    {$I castleglimages_sprite.inc}
+    {$I castleglimages_packing.inc}
+  {$undef read_interface_func}
 
 {$undef read_interface}
 

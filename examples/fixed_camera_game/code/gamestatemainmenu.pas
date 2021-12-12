@@ -117,13 +117,13 @@ end;
 constructor TStateMainMenu.TRiftMainMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  Add('New Game', @ClickNewGame);
-  Add('Replay Intro', @ClickIntro);
-  Add('Sound Options', @ClickSoundOptions);
+  Add('New Game', {$ifdef FPC}@{$endif} ClickNewGame);
+  Add('Replay Intro', {$ifdef FPC}@{$endif} ClickIntro);
+  Add('Sound Options', {$ifdef FPC}@{$endif} ClickSoundOptions);
   { on mobile, do not show quit -- users don't expect it,
     and also Application.Terminate cannot be used on iOS and Android. }
   if not ApplicationProperties.TouchDevice then
-    Add('Quit', @ClickQuit);
+    Add('Quit', {$ifdef FPC}@{$endif} ClickQuit);
 end;
 
 procedure TStateMainMenu.TRiftMainMenu.ClickIntro(Sender: TObject);
@@ -162,14 +162,14 @@ begin
   SoundDeviceArgument := TCastleOnScreenMenuItem.Create(Self);
   SoundDeviceArgument.Caption := 'Sound output device';
   SoundDeviceArgument.RightCaption := SoundEngine.DeviceCaption;
-  SoundDeviceArgument.OnClick := @ClickChangeDevice;
+  SoundDeviceArgument.OnClick := {$ifdef FPC}@{$endif} ClickChangeDevice;
 
   Add('Sound options:');
   Add(TSoundInfoMenuItem.Create(Self));
   Add(TSoundVolumeMenuItem.Create(Self));
   Add(TMusicVolumeMenuItem.Create(Self));
   Add(SoundDeviceArgument);
-  Add('Back to main menu', @ClickBack);
+  Add('Back to main menu', {$ifdef FPC}@{$endif} ClickBack);
 
   // select item 1 as default, because item 0 is the label
   CurrentItem := 1;
@@ -223,7 +223,7 @@ begin
     D.Caption := D.Device.Caption;
     Add(D);
   end;
-  Add('Cancel', @ClickBack);
+  Add('Cancel', {$ifdef FPC}@{$endif} ClickBack);
 
   // select item 1 as default, because item 0 is the label
   CurrentItem := 1;

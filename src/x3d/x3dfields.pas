@@ -22,8 +22,7 @@ interface
 
 uses Classes, SysUtils, DOM, Generics.Collections,
   CastleVectors, CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
-  CastleImages, CastleStringUtils,
-  X3DTime, CastleColors, CastleQuaternions;
+  CastleImages, CastleStringUtils, X3DTime, CastleColors, CastleQuaternions;
 
 {$define read_interface}
 
@@ -71,6 +70,8 @@ uses Math, Generics.Defaults,
 {$I castlefields_x3dsimplemultfield_descendants.inc}
 {$I castlefields_x3dfieldsmanager.inc}
 {$I castlefields_miscglobals.inc}
+
+initialization // empty but needed by Delphi
 
 finalization
   FreeAndNil(FX3DFieldsManager);

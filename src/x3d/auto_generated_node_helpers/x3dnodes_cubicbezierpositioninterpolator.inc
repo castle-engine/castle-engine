@@ -33,9 +33,9 @@
     { X3D field "keyValue". } { }
     public property FdKeyValue: TMFVec3f read FFdKeyValue;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of TVector3);
+    procedure SetKeyValue(const Value: array of TVector3); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TVector3List);
+    procedure SetKeyValue(const Value: TVector3List); overload;
 
     strict private FEventValue_changed: TSFVec3fEvent;
     { X3D out event "value_changed". } { }

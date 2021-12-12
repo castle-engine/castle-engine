@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Photoshop Document</title>
+  <chapter>
+    <title>Photoshop Document</title>
+    <par>
+      The .PSD (Photoshop Document) format stores an image with support
+      for most imaging options available in Adobe Photoshop program.
+      These include layers with masks, color spaces,
+      ICC profiles, transparency, text, alpha channels, etc.
+    </par>
+    <par>
+      Loading and saving of indexed, grayscale, RGB(A), HDR (FP32), and CMYK
+      (auto converted to RGB) images is supported. Non-HDR gray, RGB,
+      and CMYK images can have 8bit or 16bit color channels.
+      There is no support for loading mono images, duotone images are treated
+      like grayscale images, and multichannel and CIE Lab images are loaded as
+      RGB images but without actual conversion to RGB color space.
+      Also no layer information is loaded.
+    </par>
+    <par>
+      As of Imaging version 0.26.2 images with alpha channel can be 
+      saved using layers. That way when opened in Photoshop they 
+      have proper transparency, not alpha channel 
+      (will have one layer, RGB color channels, and transparency).
+      PSD files with layers are bigger because image has to be stored 
+      as background as well as layer data.
+      Therefore, RLE compression was implemented to keep the files smaller 
+      (Photoshop saves PSDs RLE compressed too by default).
+      Note that layers are not supported for floating point image data formats
+      since it's not supported by Photoshop itself.
+      Saving of layers can also be disabled 
+      (will be opened in PS as background raster with RGBA channels) 
+      using appropriate option.    
+    </par>
+    
+    <table>
+      <title>Photoshop Document File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+        <th>Loading</th>
+        <th>Saving</th>
+      </row>
+      <row>
+        <td>8 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>24 bit RGB</td>
+        <td><icode>ifR8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>48 bit RGB</td>
+        <td><icode>ifR16G16B16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit ARGB</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>64 bit ARGB</td>
+        <td><icode>ifA16R16G16B16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>8 bit grayscale</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit grayscale</td>
+        <td><icode>ifGray16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit grayscale + alpha</td>
+        <td><icode>ifA8Gray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit grayscale + alpha</td>
+        <td><icode>ifA16Gray16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit R FP32</td>
+        <td><icode>ifR32F</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>128 bit ARGB FP32</td>
+        <td><icode>ifA32B32G32R32F</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>other types</td>
+        <td><icode>depends on type</icode></td>
+        <td>Yes/No</td><td>No</td>
+      </row>
+    </table>
+    
+    <par>
+      When working with PSD files you can find useful some options
+      which can be set by <ref>SetOption</ref> function and their current values
+      can be get by <ref>GetOption</ref> function.
+      Or you can set them by modifying properties of <ref>TPSDFileFormat</ref>
+      class.
+    </par>
+    
+    <table>
+      <title>Options Related to PSD Files</title>
+      <row>
+        <th>OptionId</th>
+        <th>Allowed Values</th>
+        <th>Usage</th>
+      </row>
+      <row>
+        <td><ref>ImagingPSDSaveAsLayer</ref></td>
+        <td><b>0 (false)</b> or <b>1 (true)</b></td>
+        <td>If enabled image data is saved as layer of PSD file. This is required
+            to get proper transparency when opened in Photoshop for images with
+            alpha data (will be opened with one layer, RGB color channels, and transparency).
+            If you don't need this Photoshop compatibility turn this option off as you'll get
+            smaller file (will be opened in PS as background raster with RGBA channels)
+            Default value is <b>1 (true)</b>. </td>
+      </row>
+    </table>
+    
+  </chapter>
+</doc>

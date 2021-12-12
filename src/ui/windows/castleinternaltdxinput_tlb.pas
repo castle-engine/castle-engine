@@ -49,8 +49,8 @@ unit CastleInternalTDxInput_TLB;
 {$VARPROPSETTER ON}
 interface
 
-uses Windows, ActiveX, Classes, {Graphics, }OleServer, {StdVCL, }Variants;
-  
+uses Windows, ActiveX, Classes, {Graphics, }{$ifdef FPC}OleServer,{$else}Vcl.OleServer,{$endif} {StdVCL, }Variants;
+
 
 // *********************************************************************//
 // GUIDS declared in the TypeLibrary. Following prefixes are used:        

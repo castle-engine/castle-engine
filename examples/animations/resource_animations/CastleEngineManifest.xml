@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="resource_animations"
-  standalone_source="resource_animations_standalone.lpr"
+  standalone_source="resource_animations_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.resource.animations"
   caption="Demo of creature animations defined in resource.xml"

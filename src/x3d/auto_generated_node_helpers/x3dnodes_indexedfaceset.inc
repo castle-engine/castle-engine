@@ -62,9 +62,9 @@
     { X3D field "colorIndex". } { }
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
     { Set X3D field "colorIndex". } { }
-    procedure SetColorIndex(const Value: array of LongInt);
+    procedure SetColorIndex(const Value: array of LongInt); overload;
     { Set X3D field "colorIndex". } { }
-    procedure SetColorIndex(const Value: TLongIntList);
+    procedure SetColorIndex(const Value: TLongIntList); overload;
 
     strict private FFdConvex: TSFBool;
     { X3D field "convex". } { }
@@ -76,9 +76,9 @@
     { X3D field "coordIndex". } { }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     { Set X3D field "coordIndex". } { }
-    procedure SetCoordIndex(const Value: array of LongInt);
+    procedure SetCoordIndex(const Value: array of LongInt); overload;
     { Set X3D field "coordIndex". } { }
-    procedure SetCoordIndex(const Value: TLongIntList);
+    procedure SetCoordIndex(const Value: TLongIntList); overload;
 
     strict private FFdCreaseAngle: TSFFloat;
     { X3D field "creaseAngle". } { }
@@ -90,17 +90,17 @@
     { X3D field "normalIndex". } { }
     public property FdNormalIndex: TMFInt32 read FFdNormalIndex;
     { Set X3D field "normalIndex". } { }
-    procedure SetNormalIndex(const Value: array of LongInt);
+    procedure SetNormalIndex(const Value: array of LongInt); overload;
     { Set X3D field "normalIndex". } { }
-    procedure SetNormalIndex(const Value: TLongIntList);
+    procedure SetNormalIndex(const Value: TLongIntList); overload;
 
     strict private FFdTexCoordIndex: TMFInt32;
     { X3D field "texCoordIndex". } { }
     public property FdTexCoordIndex: TMFInt32 read FFdTexCoordIndex;
     { Set X3D field "texCoordIndex". } { }
-    procedure SetTexCoordIndex(const Value: array of LongInt);
+    procedure SetTexCoordIndex(const Value: array of LongInt); overload;
     { Set X3D field "texCoordIndex". } { }
-    procedure SetTexCoordIndex(const Value: TLongIntList);
+    procedure SetTexCoordIndex(const Value: TLongIntList); overload;
 
 {$endif read_interface}
 

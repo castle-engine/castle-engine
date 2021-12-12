@@ -296,9 +296,9 @@
     { X3D field "fresnelBlend". } { }
     property FresnelBlend: Single read GetFresnelBlend write SetFresnelBlend;
     { Set X3D field "textureTransformEnabled". } { }
-    procedure SetTextureTransformEnabled(const Value: array of boolean);
+    procedure SetTextureTransformEnabled(const Value: array of boolean); overload;
     { Set X3D field "textureTransformEnabled". } { }
-    procedure SetTextureTransformEnabled(const Value: TBooleanList);
+    procedure SetTextureTransformEnabled(const Value: TBooleanList); overload;
 
 {$endif read_interface}
 

@@ -34,12 +34,12 @@ type
     procedure DoClick; override;
   end;
 
-  TResourceButtonList = specialize TObjectList<TResourceButton>;
+  TResourceButtonList = {$ifdef FPC}specialize{$endif} TObjectList<TResourceButton>;
 
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     ButtonLoadResourceXml: TCastleButton;
@@ -114,8 +114,8 @@ begin
   CheckboxShowDebug := DesignedComponent('CheckboxShowDebug') as TCastleCheckbox;
   GroupResources := DesignedComponent('GroupResources') as TCastleVerticalGroup;
 
-  ButtonLoadResourceXml.OnClick := @ClickButtonLoadResourceXml;
-  CheckboxShowDebug.OnChange := @ChangedCheckboxShowDebug;
+  ButtonLoadResourceXml.OnClick := {$ifdef FPC}@{$endif}ClickButtonLoadResourceXml;
+  CheckboxShowDebug.OnChange := {$ifdef FPC}@{$endif}ChangedCheckboxShowDebug;
 
   { initialize global Resources list contents }
   Resources.LoadFromFiles;

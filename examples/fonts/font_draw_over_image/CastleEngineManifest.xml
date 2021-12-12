@@ -2,7 +2,7 @@
 <project name="font_draw_over_image"
   caption="Draw text on an image"
   qualified_name="io.castleengine.font.draw.over.image"
-  standalone_source="font_draw_over_image.lpr"
+  standalone_source="font_draw_over_image.dpr"
   author="Michalis Kamburelis"
 >
   <compiler_options>

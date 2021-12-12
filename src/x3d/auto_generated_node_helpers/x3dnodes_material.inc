@@ -195,11 +195,11 @@
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflSpecular". } { }
-    procedure SetReflSpecular(const Value: array of TCastleColorRGB);
+    procedure SetReflSpecular(const Value: array of TCastleColorRGB); overload;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflSpecular". } { }
-    procedure SetReflSpecular(const Value: TVector3List);
+    procedure SetReflSpecular(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
@@ -209,11 +209,11 @@
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflDiffuse". } { }
-    procedure SetReflDiffuse(const Value: array of TCastleColorRGB);
+    procedure SetReflDiffuse(const Value: array of TCastleColorRGB); overload;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflDiffuse". } { }
-    procedure SetReflDiffuse(const Value: TVector3List);
+    procedure SetReflDiffuse(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
@@ -223,11 +223,11 @@
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transSpecular". } { }
-    procedure SetTransSpecular(const Value: array of TCastleColorRGB);
+    procedure SetTransSpecular(const Value: array of TCastleColorRGB); overload;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transSpecular". } { }
-    procedure SetTransSpecular(const Value: TVector3List);
+    procedure SetTransSpecular(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
@@ -237,11 +237,11 @@
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transDiffuse". } { }
-    procedure SetTransDiffuse(const Value: array of TCastleColorRGB);
+    procedure SetTransDiffuse(const Value: array of TCastleColorRGB); overload;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transDiffuse". } { }
-    procedure SetTransDiffuse(const Value: TVector3List);
+    procedure SetTransDiffuse(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}

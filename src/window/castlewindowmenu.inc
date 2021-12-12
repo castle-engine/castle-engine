@@ -73,7 +73,7 @@
     property ParentMenuPosition: Cardinal read FParentMenuPosition;
   end;
 
-  TMenuEntryList = specialize TObjectList<TMenuEntry>;
+  TMenuEntryList = {$ifdef FPC}specialize{$endif} TObjectList<TMenuEntry>;
 
   TMenuEntryWithCaption = class(TMenuEntry)
   private
@@ -277,8 +277,10 @@
     property Key: TKey read FKey write FKey default keyNone;
     { @groupEnd }
 
+    {$ifdef FPC}
     property CharKey: Char read GetCharKey write SetCharKey;
       deprecated 'use KeyString';
+    {$endif}
 
     { Modifiers (shift, ctrl and such) required to activate this menu item.
       These have to be pressed along with @link(Key) or @link(KeyString).
@@ -306,9 +308,9 @@
       appended. }
     function CaptionWithKey: string;
 
-    constructor Create(const ACaption: String; AIntData: Integer);
-    constructor Create(const ACaption: String; AIntData: Integer; AKeyString: String);
-    constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey);
+    constructor Create(const ACaption: String; AIntData: Integer); overload;
+    constructor Create(const ACaption: String; AIntData: Integer; AKeyString: String); overload;
+    constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey); overload;
 
     destructor Destroy; override;
   end;
@@ -348,11 +350,11 @@
     function DoClick: boolean; override;
 
     constructor Create(const ACaption: String; AIntData: Integer;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: boolean); overload;
     constructor Create(const ACaption: String; AIntData: Integer; const AKeyString: String;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: boolean); overload;
     constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: boolean); overload;
   end;
 
   { Menu radio item. Similar to TMenuItemChecked, but it belongs to a group and
@@ -375,11 +377,11 @@
     procedure DoAutoCheckedToggle; override;
   public
     constructor Create(const ACaption: String; AIntData: Integer;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: boolean); overload;
     constructor Create(const ACaption: String; AIntData: Integer; const AKeyString: String;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: boolean); overload;
     constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: boolean); overload;
 
     destructor Destroy; override;
 
@@ -402,7 +404,7 @@
     properties. Instead always use methods defined here.
     TODO: This should not descend from TObjectList<TMenuItemRadio> then,
     it should contain it privately. }
-  TMenuItemRadioGroup = class(specialize TObjectList<TMenuItemRadio>)
+  TMenuItemRadioGroup = class({$ifdef FPC}specialize{$endif} TObjectList<TMenuItemRadio>)
   private
     FSelected: TMenuItemRadio;
     procedure SetSelected(Value: TMenuItemRadio);
@@ -658,7 +660,11 @@ var
   Entry: TMenuEntry;
   P: TCastleWindowBase;
 begin
+  {$ifdef FPC}
   Entry := FEntries.ExtractIndex(Index);
+  {$else}
+  Entry := FEntries.Extract(FEntries[Index]);
+  {$endif}
 
   { update changed FParentMenuPosition values }
   for I := Index to Count - 1 do
@@ -777,7 +783,7 @@ var KeyStr: string;
 begin
  Result := Caption;
  if KeyToString(KeyStr) then
-  Result += ' [' + KeyStr + ']';
+  Result := Result + ' [' + KeyStr + ']';
 end;
 
 constructor TMenuItem.Create(const ACaption: String; AIntData: Integer);

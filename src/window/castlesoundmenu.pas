@@ -130,7 +130,7 @@ begin
 
   FSlider := TMenuVolumeSlider.Create(Self);
   FSlider.Value := SoundEngine.Volume;
-  FSlider.OnChange := @SliderValueChanged;
+  FSlider.OnChange := {$ifdef FPC}@{$endif} SliderValueChanged;
   InsertFront(FSlider);
 end;
 
@@ -153,7 +153,7 @@ begin
 
   FSlider := TMenuVolumeSlider.Create(Self);
   FSlider.Value := SoundEngine.LoopingChannel[0].Volume;
-  FSlider.OnChange := @SliderValueChanged;
+  FSlider.OnChange := {$ifdef FPC}@{$endif} SliderValueChanged;
   InsertFront(FSlider);
 end;
 

@@ -98,8 +98,8 @@ const
     Cube diameter = sqrt(sqr(cube size) + sqr(cube face diameter)),
     and cube face diameter = sqrt(2) * cube size.
     This gives constants below. }
-  SphereRadiusToCubeSize = 2 / Sqrt(3);
-  CubeSizeToSphereRadius = Sqrt(3) / 2;
+  SphereRadiusToCubeSize = 2 / {$ifdef FPC}Sqrt(3){$else}1.732050807568877{$endif};
+  CubeSizeToSphereRadius = {$ifdef FPC}Sqrt(3){$else}1.732050807568877{$endif} / 2;
 
 { TBackground ------------------------------------------------------------ }
 
@@ -533,8 +533,8 @@ const
 
     ColorCount := Node.FdSkyColor.Count;
     AngleCount := Node.FdSkyAngle.Count;
-    Color := Node.FdSkyColor.Items.L;
-    Angle := Node.FdSkyAngle.Items.L;
+    Color := PVector3(Node.FdSkyColor.Items.L);
+    Angle := PSingle(Node.FdSkyAngle.Items.L);
 
     if ColorCount <= 0 then
     begin
@@ -554,8 +554,9 @@ const
 
     Assert(ColorCount >= 1);
     Assert(AngleCount + 1 = ColorCount);
-
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     ClearColor := Vector4(Color[0], 1.0);
+
     UseClearColor := ColorCount = 1;
 
     if ColorCount > 1 then
@@ -584,6 +585,7 @@ const
       if Angle[AngleCount - 1] <= GroundHighestAngle + 0.01 then
         RenderLastStack(Color[ColorCount - 1], Pi);
     end;
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
   procedure RenderGround;
@@ -595,8 +597,8 @@ const
   begin
     ColorCount := Node.FdGroundColor.Count;
     AngleCount := Node.FdGroundAngle.Count;
-    Color := Node.FdGroundColor.Items.L;
-    Angle := Node.FdGroundAngle.Items.L;
+    Color := PVector3(Node.FdGroundColor.Items.L);
+    Angle := PSingle(Node.FdGroundAngle.Items.L);
 
     if AngleCount <> 0 then
     begin
@@ -611,10 +613,12 @@ const
 
       NeedsSphere;
 
+      {$ifndef FPC}{$POINTERMATH ON}{$endif}
       RenderFirstStack(Color[0], Pi,
                        Color[1], Pi - Angle[0]);
       for I := 1 to AngleCount - 1 do
         RenderNextStack(Color[I + 1], Pi - Angle[I]);
+      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
     end;
   end;
 

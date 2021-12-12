@@ -46,7 +46,7 @@ var
   CleanAll: Boolean = false;
   WaitForProcessId: TProcessId = 0;
   GuiErrors: Boolean = false;
-  OverrideCompiler: TCompiler = coFpc;
+  OverrideCompiler: TCompiler = DefaultCompiler;
 
 const
   Options: array [0..22] of TOption =

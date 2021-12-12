@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="third_person_camera"
-  standalone_source="third_person_camera_standalone.lpr"
+  standalone_source="third_person_camera_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.third.person.camera"
 >

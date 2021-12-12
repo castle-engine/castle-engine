@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2015-2018 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -31,7 +31,9 @@ unit CastleTiledMap;
 interface
 
 uses
-  Classes, SysUtils, DOM, XMLRead, base64, zstream, Generics.Collections,
+  Classes, SysUtils, DOM, XMLRead, base64,
+  {$ifdef FPC} zstream {$else} { from Vampyre } DZLib {$endif},
+  Generics.Collections,
   CastleVectors, CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils,
   CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages,
   CastleRectangles, CastleClassUtils, CastleRenderOptions;

@@ -111,7 +111,7 @@ unit CastleInternalRenderer;
 interface
 
 uses Classes, SysUtils, Generics.Collections,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleUtils, CastleVectors, X3DFields, X3DNodes, CastleColors,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
@@ -139,7 +139,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureImageCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureImageCache>;
+  TTextureImageCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureImageCache>;
 
   TTextureVideoCache = class
     { Full URL of used texture image. Empty ('') if not known
@@ -153,7 +153,7 @@ type
     References: Cardinal;
     GLVideo: TGLVideo3D;
   end;
-  TTextureVideoCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureVideoCache>;
+  TTextureVideoCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureVideoCache>;
 
   TTextureCubeMapCache = class
     { Full URL of used texture image. Empty ('') if not known
@@ -164,7 +164,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureCubeMapCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureCubeMapCache>;
+  TTextureCubeMapCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureCubeMapCache>;
 
   TTexture3DCache = class
     { Full URL of used texture image. Empty ('') if not known
@@ -176,7 +176,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTexture3DCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTexture3DCache>;
+  TTexture3DCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTexture3DCache>;
 
   { Cached depth or float texture.
     For now, depth and float textures require the same fields. }
@@ -188,7 +188,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureDepthOrFloatCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureDepthOrFloatCache>;
+  TTextureDepthOrFloatCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureDepthOrFloatCache>;
 
   TX3DRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
@@ -242,7 +242,7 @@ type
     function ToString: String; override;
   end;
 
-  TShapeCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeCache>;
+  TShapeCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeCache>;
 
   TX3DGLSLProgram = class;
 
@@ -261,7 +261,7 @@ type
     destructor Destroy; override;
   end;
 
-  TShaderProgramCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShaderProgramCache>;
+  TShaderProgramCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TShaderProgramCache>;
 
   TGLRenderer = class;
 
@@ -277,6 +277,8 @@ type
     a single instance of this cache inside @link(GLContextCache). }
   TGLRendererContextCache = class
   private
+    FFreeWhenEmpty: Boolean;
+    FFreeWhenEmptyInstanceToNil: PObject;
     TextureImageCaches: TTextureImageCacheList;
     TextureVideoCaches: TTextureVideoCacheList;
     TextureCubeMapCaches: TTextureCubeMapCacheList;
@@ -284,6 +286,13 @@ type
     TextureDepthOrFloatCaches: TTextureDepthOrFloatCacheList;
     ShapeCaches: array [{ DisableSharedCache } Boolean] of TShapeCacheList;
     ProgramCaches: TShaderProgramCacheList;
+
+    function Empty: Boolean;
+
+    { If we are empty, and FFreeWhenEmpty, then free self.
+      Beware: calling this procedure may free the current instance.
+      Do not access anything from this instance after calling this method. }
+    procedure CheckFreeWhenEmpty;
 
     { Load given texture to OpenGL, using our cache.
 
@@ -392,6 +401,16 @@ type
       Shader: TShader; const ShapeNiceName: string): TShaderProgramCache;
 
     procedure Program_DecReference(var ProgramCache: TShaderProgramCache);
+
+    { Free (and Self <> nil) when the cache will be empty (maybe immediately,
+      maybe later).
+
+      Beware: calling this procedure may free the current instance.
+      Do not access anything from this instance after calling this method.
+
+      After this procedure, any Xxx_DecReference call also may free
+      the cache instance. }
+    procedure FreeWhenEmpty(const InstanceToNil: PObject);
   end;
 
   {$I castleinternalrenderer_resource.inc}
@@ -768,14 +787,14 @@ begin
   TextureCubeMapCaches := TTextureCubeMapCacheList.Create;
   Texture3DCaches := TTexture3DCacheList.Create;
   TextureDepthOrFloatCaches := TTextureDepthOrFloatCacheList.Create;
-  for B in Boolean do
+  for B := Low(Boolean) to High(Boolean) do
     ShapeCaches[B] := TShapeCacheList.Create;
   ProgramCaches := TShaderProgramCacheList.Create;
 end;
 
 destructor TGLRendererContextCache.Destroy;
 
-{ $define ONLY_WARN_ON_CACHE_LEAK}
+{.$define ONLY_WARN_ON_CACHE_LEAK}
 
 {$ifdef ONLY_WARN_ON_CACHE_LEAK}
   procedure Assert(const B: boolean; const S: string = '');
@@ -823,7 +842,7 @@ begin
     FreeAndNil(TextureDepthOrFloatCaches);
   end;
 
-  for B in Boolean do
+  for B := Low(Boolean) to High(Boolean) do
     if ShapeCaches[B] <> nil then
     begin
       Assert(ShapeCaches[B].Count = 0, Format('%d references to shapes still exist on ShapeCaches[%s] when freeing TGLRendererContextCache', [
@@ -937,6 +956,7 @@ begin
         glFreeTexture(TextureImageCaches[I].GLName);
         TextureImageCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1016,6 +1036,7 @@ begin
         FreeAndNil(TextureVideoCaches[I].GLVideo);
         TextureVideoCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1102,6 +1123,7 @@ begin
         glFreeTexture(TextureCubeMapCaches[I].GLName);
         TextureCubeMapCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1183,6 +1205,7 @@ begin
         glFreeTexture(Texture3DCaches[I].GLName);
         Texture3DCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1323,6 +1346,7 @@ begin
         glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
         TextureDepthOrFloatCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1412,6 +1436,7 @@ begin
         glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
         TextureDepthOrFloatCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1526,6 +1551,7 @@ begin
     if ShapeCache.References = 0 then
       Caches.Delete(I);
     ShapeCache := nil;
+    CheckFreeWhenEmpty;
   end else
     raise EInternalError.Create(
       'TGLRendererContextCache.Shape_DecReference: no reference found');
@@ -1601,12 +1627,45 @@ begin
       if ProgramCache.References = 0 then
         ProgramCaches.Delete(I);
       ProgramCache := nil;
+      CheckFreeWhenEmpty;
       Exit;
     end;
   end;
 
   raise EInternalError.Create(
     'TGLRendererContextCache.Program_DecReference: no reference found');
+end;
+
+function TGLRendererContextCache.Empty: Boolean;
+begin
+  Result :=
+    (TextureImageCaches.Count = 0) and
+    (TextureVideoCaches.Count = 0) and
+    (TextureCubeMapCaches.Count = 0) and
+    (Texture3DCaches.Count = 0) and
+    (TextureDepthOrFloatCaches.Count = 0) and
+    (ShapeCaches[false].Count = 0) and
+    (ShapeCaches[true].Count = 0) and
+    (ProgramCaches.Count = 0);
+end;
+
+procedure TGLRendererContextCache.CheckFreeWhenEmpty;
+begin
+  if FFreeWhenEmpty and Empty then
+  begin
+    FFreeWhenEmptyInstanceToNil^ := nil; // sets global GLContextCache to nil
+    Self.Destroy;
+  end;
+end;
+
+procedure TGLRendererContextCache.FreeWhenEmpty(const InstanceToNil: PObject);
+begin
+  if Self <> nil then // hack to allow calling on nil instance, like standard Free
+  begin
+    FFreeWhenEmptyInstanceToNil := InstanceToNil;
+    FFreeWhenEmpty := true;
+    CheckFreeWhenEmpty;
+  end;
 end;
 
 { TGLRenderer ---------------------------------------------------------- }
@@ -1832,7 +1891,7 @@ end;
 
 procedure TGLRenderer.Prepare(Shape: TX3DRendererShape);
 begin
-  Shape.EnumerateTextures(@PrepareTexture);
+  Shape.EnumerateTextures({$ifdef FPC}@{$endif}PrepareTexture);
 end;
 
 procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
@@ -2241,12 +2300,14 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
     I: Integer;
     Lights: TLightInstancesList;
   begin
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     Lights := Shape.State.Lights;
     if Lights <> nil then
       for I := 0 to Lights.Count - 1 do
         if Lights.L[I].Node is TEnvironmentLightNode then
           Exit(true);
     Result := false;
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
   function ShapeMaybeUsesShadowMaps(const Shape: TX3DRendererShape): boolean;
@@ -2313,7 +2374,7 @@ begin
   if PhongShading then
     Shader.ShapeRequiresShaders := true;
 
-  Shader.ShapeBoundingBox := {$ifdef CASTLE_OBJFPC}@{$endif} Shape.BoundingBox;
+  Shader.ShapeBoundingBox := {$ifdef FPC}@{$endif} Shape.BoundingBox;
   Shader.ShadowSampling := RenderOptions.ShadowSampling;
   RenderShapeLineProperties(Shape, Shader);
 end;
@@ -2705,7 +2766,7 @@ var
     if (GLFeatures.MaxClipPlanes > 0) and (ClipPlanes <> nil) then
       for I := 0 to ClipPlanes.Count - 1 do
       begin
-        ClipPlane := ClipPlanes.Ptr(I);
+        ClipPlane := PClipPlane(ClipPlanes.Ptr(I));
         if ClipPlane^.Node.FdEnabled.Value then
         begin
           Assert(ClipPlanesEnabled < GLFeatures.MaxClipPlanes);
@@ -2725,7 +2786,7 @@ var
   var
     I: Integer;
   begin
-    for I := 0 to ClipPlanesEnabled - 1 do
+    for I := 0 to Integer(ClipPlanesEnabled) - 1 do
       Shader.DisableClipPlane(I);
     ClipPlanesEnabled := 0; { not really needed, but for safety... }
   end;
@@ -2803,8 +2864,6 @@ begin
     FreeAndNil(MeshRenderer);
   end;
 end;
-
-{$define MeshRenderer := TMeshRenderer(ExposedMeshRenderer) }
 
 procedure TGLRenderer.RenderShapeShaders(const Shape: TX3DRendererShape;
   const Shader: TShader;
@@ -2901,7 +2960,7 @@ begin
   end;
 
   RenderShapeTextures(Shape, Shader, Lighting,
-    GeneratorClass, MeshRenderer, UsedGLSLTexCoordsNeeded);
+    GeneratorClass, TMeshRenderer(ExposedMeshRenderer), UsedGLSLTexCoordsNeeded);
 end;
 
 procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
@@ -3056,14 +3115,14 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
   var
     I: Integer;
   begin
-    for I := 0 to TexCoordsNeeded - 1 do
+    for I := 0 to Integer(TexCoordsNeeded) - 1 do
       DisableTexture(I);
   end;
 
 begin
   RenderTexturesBegin;
   try
-    RenderShapeInside(Shape, Shader, Lighting, GeneratorClass, MeshRenderer);
+    RenderShapeInside(Shape, Shader, Lighting, GeneratorClass, TMeshRenderer(ExposedMeshRenderer));
   finally RenderTexturesEnd end;
 end;
 
@@ -3103,7 +3162,7 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
 
       ItemSize := SizeOf(TVector3) * 2;
       if Tangents <> nil then
-        ItemSize += SizeOf(TVector3);
+        ItemSize := ItemSize + SizeOf(TVector3);
       Size := Count * ItemSize;
 
       if (Cache.VboAllocatedUsage = GL_STREAM_DRAW) and
@@ -3129,23 +3188,23 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
               for I := 0 to Count - 1 do
               begin
                 PVector3(NewCoord)^ := Coords.List^[I];
-                PtrUInt(NewCoord) += SizeOf(TVector3);
+                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
                 PVector3(NewCoord)^ := Normals.List^[I];
-                PtrUInt(NewCoord) += SizeOf(TVector3);
+                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
                 PVector3(NewCoord)^ := Tangents.List^[I];
-                PtrUInt(NewCoord) += SizeOf(TVector3);
+                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
               end;
             end else
             begin
               for I := 0 to Count - 1 do
               begin
                 PVector3(NewCoord)^ := Coords.List^[I];
-                PtrUInt(NewCoord) += SizeOf(TVector3);
+                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
                 PVector3(NewCoord)^ := Normals.List^[I];
-                PtrUInt(NewCoord) += SizeOf(TVector3);
+                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
               end;
             end;
 
@@ -3222,8 +3281,8 @@ begin
   { initialize TBaseCoordinateRenderer.Arrays now }
   if GeneratorClass <> nil then
   begin
-    Assert(MeshRenderer is TBaseCoordinateRenderer);
-    CoordinateRenderer := TBaseCoordinateRenderer(MeshRenderer);
+    Assert(TMeshRenderer(ExposedMeshRenderer) is TBaseCoordinateRenderer);
+    CoordinateRenderer := TBaseCoordinateRenderer(ExposedMeshRenderer);
 
     { calculate Shape.Cache }
     if Shape.Cache = nil then
@@ -3267,8 +3326,8 @@ begin
     CoordinateRenderer.Lighting := Lighting;
   end;
 
-  MeshRenderer.PrepareRenderShape := RenderMode in [rmPrepareRenderSelf, rmPrepareRenderClones];
-  MeshRenderer.Render;
+  TMeshRenderer(ExposedMeshRenderer).PrepareRenderShape := RenderMode in [rmPrepareRenderSelf, rmPrepareRenderClones];
+  TMeshRenderer(ExposedMeshRenderer).Render;
 
   if (GeneratorClass <> nil) and GLFeatures.VertexBufferObject then
   begin

@@ -29,7 +29,7 @@ unit CastleScriptParser;
 
 interface
 
-uses CastleScript, CastleScriptLexer, Math;
+uses CastleScript, CastleScriptLexer, Math, CastleUtils;
 
 type
   { Error when parsing CastleScript expression. }
@@ -129,12 +129,12 @@ function ParseProgram(const S: string;
 
 implementation
 
-uses SysUtils, CastleScriptCoreFunctions, CastleUtils;
+uses SysUtils, CastleScriptCoreFunctions;
 
 function Expression(
   const Lexer: TCasScriptLexer;
   Environment: TCasScriptEnvironment;
-  const Variables: array of TCasScriptValue): TCasScriptExpression; forward;
+  const Variables: array of TCasScriptValue): TCasScriptExpression; forward; overload;
 
 function NonAssignmentExpression(
   const Lexer: TCasScriptLexer;
@@ -329,7 +329,7 @@ end;
 function Expression(
   const Lexer: TCasScriptLexer;
   Environment: TCasScriptEnvironment;
-  const Variables: TCasScriptValueList): TCasScriptExpression;
+  const Variables: TCasScriptValueList): TCasScriptExpression; overload;
 begin
   Result := Expression(Lexer, Environment, Variables.ToArray);
 end;
@@ -337,7 +337,7 @@ end;
 function Expression(
   const Lexer: TCasScriptLexer;
   Environment: TCasScriptEnvironment;
-  const Variables: array of TCasScriptValue): TCasScriptExpression;
+  const Variables: array of TCasScriptValue): TCasScriptExpression; overload;
 
   function PossiblyAssignmentExpression: TCasScriptExpression;
   { How to parse this?

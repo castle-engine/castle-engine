@@ -35,7 +35,7 @@ type
     property Patterns: TStringList read FPatterns;
   end;
 
-  TFileFilterList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TFileFilter>)
+  TFileFilterList = class({$ifdef FPC}specialize{$endif} TObjectList<TFileFilter>)
   private
     FDefaultFilter: Integer;
   public

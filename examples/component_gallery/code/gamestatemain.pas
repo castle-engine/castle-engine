@@ -81,7 +81,7 @@ begin
   begin
     PageButtons[I] := DesignedComponent('Button' + PageNames[I]) as TCastleButton;
     PageButtons[I].Tag := I; // use button's tag to store page index
-    PageButtons[I].OnClick := @ClickPageButton;
+    PageButtons[I].OnClick := {$ifdef FPC}@{$endif}ClickPageButton;
     Pages[I] := DesignedComponent('Page' + PageNames[I]) as TCastleUserInterface;
   end;
 
@@ -89,7 +89,7 @@ begin
   PageButtons2 := DesignedComponent('PageButtons2') as TCastleDesign;
   ButtonToggle := PageButtons2.FindRequiredComponent('ButtonToggle') as TCastleButton;
 
-  ButtonToggle.OnClick := @ClickToggle;
+  ButtonToggle.OnClick := {$ifdef FPC}@{$endif}ClickToggle;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

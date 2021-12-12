@@ -105,8 +105,10 @@ type
       (TCastleTransform instances) to the world. }
     property SceneURL: string read FSceneURL write FSceneURL;
 
+    {$ifdef FPC}
     { @deprecated Deprecated name for SceneURL. }
     property SceneFileName: string read FSceneURL write FSceneURL; deprecated;
+    {$endif}
 
     { Nice name of the level for user. This should be user-friendly,
       so it can use spaces, non-English letters and such.
@@ -199,7 +201,7 @@ type
       Technically, this is used for TProgressUserInterface.BarYPosition. }
     property LoadingBarYPosition: Single
       read FLoadingBarYPosition write FLoadingBarYPosition
-      default TProgressUserInterface.DefaultBarYPosition;
+      {$ifdef FPC}default TProgressUserInterface.DefaultBarYPosition{$endif};
 
     { Placeholder detection method. See TPlaceholderName, and see
       @link(TLevel.Load) for a description when we use placeholders.
@@ -246,7 +248,7 @@ type
     property MusicSound: TCastleSound read FMusicSound write FMusicSound;
   end;
 
-  TLevelInfoList = class(specialize TObjectList<TLevelInfo>)
+  TLevelInfoList = class({$ifdef FPC}specialize{$endif} TObjectList<TLevelInfo>)
   private
     { How many TLevel have references to our children by
       TLevel.Info? }
@@ -273,8 +275,8 @@ type
       to read TLevelInfo.Played values from user preferences file.
 
       @groupBegin }
-    procedure LoadFromFiles(const LevelsPath: string);
-    procedure LoadFromFiles;
+    procedure LoadFromFiles(const LevelsPath: string); overload;
+    procedure LoadFromFiles; overload;
     { @groupEnd }
 
     { Add a single level information from the XML file at given location.
@@ -432,8 +434,8 @@ type
       with creatures and items, using placeholders.
 
       @groupBegin }
-    procedure Load(const LevelName: string);
-    procedure Load(const AInfo: TLevelInfo);
+    procedure Load(const LevelName: string); overload;
+    procedure Load(const AInfo: TLevelInfo); overload;
     { @groupEnd }
 
     { Level logic and state. }
@@ -522,8 +524,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure LoadLevel(const LevelName: string);
-    procedure LoadLevel(const AInfo: TLevelInfo);
+    procedure LoadLevel(const LevelName: string); overload;
+    procedure LoadLevel(const AInfo: TLevelInfo); overload;
     function Logic: TLevelLogic;
     function Info: TLevelInfo;
     procedure UnloadLevel;
@@ -552,9 +554,9 @@ type
       @groupBegin }
     function LoadLevelScene(const URL: string;
       const PrepareForCollisions: boolean;
-      const SceneClass: TCastleSceneClass): TCastleScene; deprecated 'create and prepare TCastleScene instance directly';
+      const SceneClass: TCastleSceneClass): TCastleScene; overload; deprecated 'create and prepare TCastleScene instance directly';
     function LoadLevelScene(const URL: string;
-      const PrepareForCollisions: boolean): TCastleScene; deprecated 'create and prepare TCastleScene instance directly';
+      const PrepareForCollisions: boolean): TCastleScene; overload; deprecated 'create and prepare TCastleScene instance directly';
     { @groupEnd }
 
     { Handle a placeholder named in external modeler.
@@ -622,7 +624,7 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-  TLevelLogicClasses = class(specialize TDictionary<string, TLevelLogicClass>)
+  TLevelLogicClasses = class({$ifdef FPC}specialize{$endif} TDictionary<string, TLevelLogicClass>)
   strict private
     function GetItems(const AKey: string): TLevelLogicClass;
     procedure SetItems(const AKey: string; const AValue: TLevelLogicClass);
@@ -947,7 +949,8 @@ var
     begin
       { Set MoveLimit to Items.MainScene.BoundingBox, and make maximum up larger. }
       NewMoveLimit := Items.MainScene.BoundingBox;
-      NewMoveLimit.Data[1].Data[Items.GravityCoordinate] +=
+      NewMoveLimit.Data[1].Data[Items.GravityCoordinate] :=
+      NewMoveLimit.Data[1].Data[Items.GravityCoordinate] +
         4 * (NewMoveLimit.Data[1].Data[Items.GravityCoordinate] -
              NewMoveLimit.Data[0].Data[Items.GravityCoordinate]);
       Items.MoveLimit := NewMoveLimit;
@@ -1463,7 +1466,7 @@ end;
 procedure TLevelLogic.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
-  FTime += SecondsPassed;
+  FTime := FTime + SecondsPassed;
 end;
 
 function TLevelLogic.Placeholder(const Shape: TShape;
@@ -1610,11 +1613,11 @@ begin
 
   S := Format('Level name "%s" is not found on the Levels list', [AName]);
   if Count = 0 then
-    S += '.' + NL + NL + 'Warning: there are no levels available on the list at all. This means that the game data was not correctly installed (as we did not find any level.xml files defining any levels). Or the developer forgot to call Levels.LoadFromFiles.';
+    S := S + '.' + NL + NL + 'Warning: there are no levels available on the list at all. This means that the game data was not correctly installed (as we did not find any level.xml files defining any levels). Or the developer forgot to call Levels.LoadFromFiles.';
   raise Exception.Create(S);
 end;
 
-function IsSmallerByNumber(constref A, B: TLevelInfo): Integer;
+function IsSmallerByNumber({$ifdef FPC}constref{$else}const{$endif} A, B: TLevelInfo): Integer;
 begin
   Result := A.Number - B.Number;
 end;
@@ -1660,7 +1663,8 @@ end;
 
 procedure TLevelInfoList.LoadFromFiles(const LevelsPath: string);
 begin
-  FindFiles(LevelsPath, 'level.xml', false, @AddFromInfo, [ffRecursive]);
+  FindFiles(LevelsPath, 'level.xml', false,
+    {$ifdef FPC}@{$endif}AddFromInfo, [ffRecursive]);
 end;
 
 procedure TLevelInfoList.LoadFromFiles;
@@ -1671,9 +1675,9 @@ end;
 
 procedure TLevelInfoList.SortByNumber;
 type
-  TLevelInfoComparer = specialize TComparer<TLevelInfo>;
+  TLevelInfoComparer = {$ifdef FPC}specialize{$endif} TComparer<TLevelInfo>;
 begin
-  Sort(TLevelInfoComparer.Construct(@IsSmallerByNumber));
+  Sort(TLevelInfoComparer.Construct({$ifdef FPC}@{$endif}IsSmallerByNumber));
 end;
 
 { TLevelLogicClasses --------------------------------------------------------- }

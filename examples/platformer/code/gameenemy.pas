@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -38,7 +38,7 @@ type
     procedure CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
   end;
 
-  TEnemyList = specialize TObjectList<TEnemy>;
+  TEnemyList = {$ifdef FPC}specialize{$endif} TObjectList<TEnemy>;
 
 implementation
 
@@ -60,7 +60,7 @@ begin
   inherited;
   Scene := Parent as TCastleScene; // TEnemy can only be added as behavior to TCastleScene
   Scene.PlayAnimation('walk', true);
-  Scene.RigidBody.OnCollisionEnter := @CollisionEnter;
+  Scene.RigidBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
   { In editor you can change scale to -1 1 1 to change enemy inital direction }
   if Scene.Scale.X < 0 then
     MoveDirection := 1;

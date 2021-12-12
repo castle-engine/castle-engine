@@ -138,7 +138,8 @@
       CopyState: TX3DNodeDeepCopyState): TX3DInterfaceDeclaration;
   end;
 
-  TX3DInterfaceDeclarationList = class(specialize TObjectList<TX3DInterfaceDeclaration>)
+  TX3DInterfaceDeclarationList = class({$ifdef FPC}specialize{$endif}
+    TObjectList<TX3DInterfaceDeclaration>)
   public
     { Find field or event with given Name.
       @nil if not found. }

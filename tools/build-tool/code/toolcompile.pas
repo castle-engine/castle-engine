@@ -75,12 +75,6 @@ var
     (official "FPC for iOS" installation). }
   FpcVersionForIPhoneSimulator: string = 'auto';
 
-implementation
-
-uses SysUtils, Process,
-  CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
-  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo;
-
 const
   { Paths with units and include files that are for all OSes and all compilers.
 
@@ -100,7 +94,8 @@ const
 
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
-  EnginePaths: array [0..37] of String = (
+
+  EnginePaths: array [0..44] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -138,7 +133,15 @@ const
     'physics',
     'physics/kraft',
     'pasgltf',
-    'deprecated_units'
+    'deprecated_units',
+    { Vampyre Imaging Library }
+    'vampyre_imaginglib/src/Source',
+    'vampyre_imaginglib/src/Source/JpegLib',
+    'vampyre_imaginglib/src/Source/ZLib',
+    'vampyre_imaginglib/src/Extras/Extensions',
+    'vampyre_imaginglib/src/Extensions/J2KObjects',
+    'vampyre_imaginglib/src/Extensions/LibTiff',
+    'vampyre_imaginglib/src/Extensions'
   );
 
   { Additional include/units paths, only for Delphi. }
@@ -146,6 +149,19 @@ const
     'compatibility/delphi-only',
     'compatibility/delphi-only/fcl-json'
   );
+
+  { Paths for library (object) files.
+    For FPC these are passed using -Fl. }
+  EngineLibraryPaths: array [0..1] of String = (
+    'vampyre_imaginglib/src/Extensions/J2KObjects',
+    'vampyre_imaginglib/src/Extensions/LibTiff/Compiled'
+  );
+
+implementation
+
+uses SysUtils, Process,
+  CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
+  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo;
 
 type
   TFpcVersionForIPhoneSimulatorChecked = class
@@ -233,7 +249,7 @@ var
   procedure DeleteFilesRecursive(const Mask: string);
   begin
     FindFiles(Directory, Mask, false,
-      {$ifdef CASTLE_OBJFPC}@{$endif} Helper.DeleteFoundFile, [ffRecursive]);
+      {$ifdef FPC}@{$endif} Helper.DeleteFoundFile, [ffRecursive]);
   end;
 
 begin
@@ -337,13 +353,22 @@ var
       end;
   end;
 
+  procedure AddEngineLibraryPaths;
+  var
+    S: String;
+  begin
+    if CastleEngineSrc <> '' then
+      for S in EngineLibraryPaths do
+        FpcOptions.Add('-Fl' + CastleEngineSrc + S);
+  end;
+
   procedure AddLibraryPaths;
   var
-    I: Integer;
+    S: String;
   begin
     if LibraryPaths <> nil then
-      for I := 0 to LibraryPaths.Count - 1 do
-        FpcOptions.Add('-Fl' + LibraryPaths[I]);
+      for S in LibraryPaths do
+        FpcOptions.Add('-Fl' + S);
   end;
 
   function IsIOS: boolean;
@@ -455,6 +480,7 @@ begin
 
     AddEngineSearchPaths;
     AddSearchPaths;
+    AddEngineLibraryPaths;
     AddLibraryPaths;
 
     { Specify the compilation options explicitly,
@@ -464,20 +490,9 @@ begin
     FpcOptions.Add('-l');
     FpcOptions.Add('-vwn');
     FpcOptions.Add('-Ci');
-    if GetEnvironmentVariable('CASTLE_ENGINE_TEST_DELPHI_MODE') = 'true' then
-    begin
-      FpcOptions.Add('-Mdelphi');
-      FpcOptions.Add('-Sm-');
-      FpcOptions.Add('-Sc-');
-      // Also define it, to allow eventually doing
-      // {$ifdef CASTLE_ENGINE_TEST_DELPHI_MODE}... in code.
-      FpcOptions.Add('-dCASTLE_ENGINE_TEST_DELPHI_MODE');
-    end else
-    begin
-      FpcOptions.Add('-Mobjfpc');
-      FpcOptions.Add('-Sm');
-      FpcOptions.Add('-Sc');
-    end;
+    FpcOptions.Add('-Mobjfpc');
+    FpcOptions.Add('-Sm');
+    FpcOptions.Add('-Sc');
     FpcOptions.Add('-Sg');
     FpcOptions.Add('-Si');
     FpcOptions.Add('-Sh');
@@ -804,6 +819,12 @@ var
     OutPath: String;
   begin
     OutPath := CompilationOutputPath(coDelphi, OS, CPU, WorkingDirectory);
+    { Looks like DCCxxx cannot handle parameters with spaces? Answers
+        Fatal: F1026 File not found: 'Game.dpr'
+      for
+        -NUC:\Users\michalis\Documents\Castle Game Engine Projects\my-new-project-delphi3d\castle-engine-output\compilation\delphi\x86_64-win64\
+      Workaround: pass relative paths. }
+    OutPath := ExtractRelativePath(InclPathDelim(WorkingDirectory), OutPath);
     DccOptions.Add('-NU' + OutPath);
     DccOptions.Add('-NH' + OutPath);
     DccOptions.Add('-NO' + OutPath);

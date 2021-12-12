@@ -56,12 +56,16 @@ type
       between Init and Fini. }
     UsedWindow: TCastleWindowBase;
     SavedMode: TGLMode;
+    {$ifdef FPC}
     function GetWindow: TCastleWindowBase;
     procedure SetWindow(const Value: TCastleWindowBase);
+    {$endif}
   public
+    {$ifdef FPC}
     { @deprecated Using this is deprecated, you should rather assign to
       Application.MainWindow. }
     property Window: TCastleWindowBase read GetWindow write SetWindow; deprecated;
+    {$endif}
 
     procedure Init(Progress: TProgress); override;
     procedure Update(Progress: TProgress); override;
@@ -83,6 +87,7 @@ uses SysUtils, CastleUtils, CastleKeysMouse, CastleRenderingCamera;
 
 { TWindowProgressInterface  ------------------------------------------------ }
 
+{$ifdef FPC}
 function TWindowProgressInterface.GetWindow: TCastleWindowBase;
 begin
   Result := Application.MainWindow;
@@ -92,6 +97,7 @@ procedure TWindowProgressInterface.SetWindow(const Value: TCastleWindowBase);
 begin
   Application.MainWindow := Value;
 end;
+{$endif}
 
 procedure TWindowProgressInterface.Init(Progress: TProgress);
 begin

@@ -244,17 +244,17 @@ procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);
 { Find a range within "key" field corresponding to given Fraction.
   Returns the index of @bold(right) range delimiter.
   So for normal ranges (between two values of "key" field) it's
-  always between 1 and FdKey.Count - 1. Result 0 indicates we're
-  before the left limit, and result equal FdKey.Count indicates
+  always between 1 and Key.Count - 1. Result 0 indicates we're
+  before the left limit, and result equal Key.Count indicates
   we're after right limit.
 
-  Result is always between 0 and FdKey.Count.
+  Result is always between 0 and Key.Count.
 
   Output T is the value between 0..1 indicating where within
   the range we are. It's undefined when Result is 0 or Key.Count
   (indicating we're outside limits).
 
-  Call this only when FdKey.Count > 0.
+  Call this only when Key.Count > 0.
 
   This is useful to interpreting TAbstractInterpolatorNode.KeyRange
   and such fields. }

@@ -30,7 +30,7 @@ type
     destructor Destroy; override;
   end;
 
-  TColladaPrimitiveList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaPrimitive>;
+  TColladaPrimitiveList = {$ifdef FPC}specialize{$endif} TObjectList<TColladaPrimitive>;
 
 {$endif read_interface}
 

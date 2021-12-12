@@ -300,7 +300,7 @@ end;
 
 destructor TPrecalcCurve.Destroy;
 begin
- FreeMemNiling(Pixels);
+ FreeMemNiling(Pointer(Pixels));
 end;
 
 function TPrecalcCurve.EndOfPixels: boolean;
@@ -318,7 +318,7 @@ end;
 procedure TPrecalcCurve.SkipPixels(SkipCount: Cardinal);
 begin
  Assert(SkipCount <= PixelsCount-PixelsDone);
- NextPixelNum += SkipCount;
+ NextPixelNum := NextPixelNum + SkipCount;
 end;
 
 procedure TPrecalcCurve.Reset;
@@ -420,7 +420,7 @@ begin
 
  InitStepData(StepData, APixels, SizeX, SizeY);
  HilbertCurve(true, 0, Level,
-   {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
+   {$ifdef FPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
 class function THilbertCurve.SFCName: string;
@@ -438,12 +438,16 @@ begin
  MaxSize := Max(SizeX, SizeY);
  Level := 0;
  Power3Level := 1; { = zawsze 3^Level }
- while Power3Level < MaxSize do begin Inc(Level); Power3Level *= 3 end;
+ while Power3Level < MaxSize do
+ begin
+   Inc(Level);
+   Power3Level := Power3Level * 3
+ end;
  Assert((Level = 0) or (NatNatPower(3, Level-1) < Max(SizeX, SizeY)));
 
  InitStepData(StepData, APixels, SizeX, SizeY);
  PeanoCurve(false, 0, Level,
-   {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
+   {$ifdef FPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
 class function TPeanoCurve.SFCName: string;
@@ -464,11 +468,12 @@ begin
 end;
 
 function AllSFCurveClassesNames: string;
-var i: Integer;
+var
+  i: Integer;
 begin
- result := '"'+AvailableSFCurveClasses[0].SFCName+'"';
- for i := 1 to High(AvailableSFCurveClasses) do
-  result += ', "'+AvailableSFCurveClasses[i].SFCName+'"';
+  result := '"'+AvailableSFCurveClasses[0].SFCName+'"';
+  for i := 1 to High(AvailableSFCurveClasses) do
+    Result := Result + ', "'+AvailableSFCurveClasses[i].SFCName+'"';
 end;
 
 end.

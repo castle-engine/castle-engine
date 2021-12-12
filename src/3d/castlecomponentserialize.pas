@@ -30,6 +30,11 @@ interface
 
 uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo;
 
+{$ifndef FPC}
+Resourcestring
+  SErrNoVariantSupport          = 'No variant support for properties. Please use the variants unit in your project and recompile';
+{$endif}
+
 type
   EInvalidComponentFile = class(Exception);
 
@@ -64,7 +69,7 @@ type
       (we cannot get it using RTTI for now). }
     IsDeprecated: Boolean;
   end;
-  TRegisteredComponents = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredComponent>;
+  TRegisteredComponents = {$ifdef FPC}specialize{$endif} TObjectList<TRegisteredComponent>;
 
 { Register a component that can be serialized and edited using CGE editor.
 
@@ -72,8 +77,8 @@ type
   the TRegisteredComponent instance becomes internally owned in this unit
   (do not free it yourself). }
 procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
-  const Caption: String);
-procedure RegisterSerializableComponent(const C: TRegisteredComponent);
+  const Caption: String); overload;
+procedure RegisterSerializableComponent(const C: TRegisteredComponent); overload;
 
 { Read-only list of currently registered
   (using @link(RegisterSerializableComponent)) components. }
@@ -187,7 +192,7 @@ type
         InstanceProperty: PPropInfo;
         PropertyValue: String;
       end;
-      TResolveObjectPropertyList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TResolveObjectProperty>;
+      TResolveObjectPropertyList = {$ifdef FPC}specialize{$endif} TObjectList<TResolveObjectProperty>;
 
       { Handle reading custom things during TCastleComponent.CustomSerialization. }
       TSerializationProcessReader = class(TSerializationProcess)
@@ -195,10 +200,10 @@ type
         Reader: TCastleJsonReader;
         CurrentlyReading: TJsonObject;
         procedure ReadWrite(const Key: String;
-          const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
-          const ListClear: TListClearEvent); override;
+          const ListEnumerate: TSerializationProcess.TListEnumerateEvent; const ListAdd: TSerializationProcess.TListAddEvent;
+          const ListClear: TSerializationProcess.TListClearEvent); override;
       end;
-      TSerializationProcessReaderList = specialize TObjectList<TSerializationProcessReader>;
+      TSerializationProcessReaderList = {$ifdef FPC}specialize{$endif} TObjectList<TSerializationProcessReader>;
 
     var
       FDeStreamer: TMyJsonDeStreamer;
@@ -261,8 +266,8 @@ begin
 end;
 
 procedure TCastleJsonReader.TSerializationProcessReader.ReadWrite(const Key: String;
-  const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
-  const ListClear: TListClearEvent);
+  const ListEnumerate: TSerializationProcess.TListEnumerateEvent; const ListAdd: TSerializationProcess.TListAddEvent;
+  const ListClear: TSerializationProcess.TListClearEvent);
 var
   JsonChildren: TJsonArray;
   JsonChild: TJsonObject;
@@ -370,7 +375,7 @@ procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
   begin
     // calculate P (position of last digit)
     P := Length(NewName) + 1;
-    while (P > 1) and (NewName[P - 1] in ['0'..'9']) do
+    while (P > 1) and CharInSet(NewName[P - 1], ['0'..'9']) do
       Dec(P);
 
     // calculate NameWithoutNumber, Number
@@ -399,8 +404,8 @@ var
   TI: PTypeInfo;
   NewName: TJsonStringType;
 begin
-  TI := Info^.PropType;
-  if (TI^.Kind in [tkSString, tkLString, tkAString]) and
+  TI := Info^.PropType{$ifndef FPC}^{$endif};
+  if (TI^.Kind in [{$ifdef FPC} tkSString, tkLString, tkAString {$else} tkUString {$endif}]) and
      (Info^.Name = 'Name') then
   begin
     { We handle setting Name ourselves, this way we can change the Name
@@ -492,10 +497,10 @@ begin
 
   FDeStreamer := TMyJsonDeStreamer.Create(nil);
   FDeStreamer.Reader := Self;
-  FDeStreamer.BeforeReadObject := @BeforeReadObject;
-  FDeStreamer.AfterReadObject := @AfterReadObject;
-  FDeStreamer.OnRestoreProperty := @RestoreProperty;
-  FDeStreamer.OnGetObject := @ReaderGetObject;
+  FDeStreamer.BeforeReadObject := {$ifdef FPC}@{$endif}BeforeReadObject;
+  FDeStreamer.AfterReadObject := {$ifdef FPC}@{$endif}AfterReadObject;
+  FDeStreamer.OnRestoreProperty := {$ifdef FPC}@{$endif}RestoreProperty;
+  FDeStreamer.OnGetObject := {$ifdef FPC}@{$endif}ReaderGetObject;
 
   ResolveObjectProperties := TResolveObjectPropertyList.Create(true);
 
@@ -610,10 +615,11 @@ type
         Writer: TCastleJsonWriter;
         CurrentlyWriting: TJsonObject;
         procedure ReadWrite(const AKey: String;
-          const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
-          const ListClear: TListClearEvent); override;
+          const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
+          const ListAdd: TSerializationProcess.TListAddEvent;
+          const ListClear: TSerializationProcess.TListClearEvent); override;
       end;
-      TSerializationProcessWriterList = specialize TObjectList<TSerializationProcessWriter>;
+      TSerializationProcessWriterList = {$ifdef FPC}specialize{$endif} TObjectList<TSerializationProcessWriter>;
 
     var
       FStreamer: TJsonStreamer;
@@ -647,12 +653,13 @@ begin
 end;
 
 procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWrite(const AKey: String;
-  const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
-  const ListClear: TListClearEvent);
+  const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
+  const ListAdd: TSerializationProcess.TListAddEvent;
+  const ListClear: TSerializationProcess.TListClearEvent);
 begin
   CurrentlyWritingArray := nil; // will be created on-demand
   Key := AKey;
-  ListEnumerate(@WriteItem);
+  ListEnumerate({$ifdef FPC}@{$endif}WriteItem);
 end;
 
 constructor TCastleJsonWriter.Create;
@@ -672,9 +679,9 @@ begin
     jsoDateTimeAsString,
     jsoCheckEmptyDateTime
   ];
-  Streamer.BeforeStreamObject := @BeforeStreamObject;
-  Streamer.AfterStreamObject := @AfterStreamObject;
-  Streamer.OnStreamProperty := @StreamProperty;
+  Streamer.BeforeStreamObject := {$ifdef FPC}@{$endif}BeforeStreamObject;
+  Streamer.AfterStreamObject := {$ifdef FPC}@{$endif}AfterStreamObject;
+  Streamer.OnStreamProperty := {$ifdef FPC}@{$endif}StreamProperty;
 
   SerializationProcessPool := TSerializationProcessWriterList.Create(true);
 end;
@@ -773,7 +780,7 @@ begin
 end;
 
 class function TCastleJsonWriter.HasDefaultValue(
-  const Instance: TPersistent; const PropInfo: PPropInfo): Boolean; static;
+  const Instance: TPersistent; const PropInfo: PPropInfo): Boolean; {$ifdef FPC}static;{$endif}
 
 { Implemented looking closely at what standard FPC writer does,
   3.0.4/fpcsrc/rtl/objpas/classes/writer.inc ,
@@ -792,7 +799,7 @@ var
 begin
   Result := false; // for unknown types, assume false
 
-  PropType := PropInfo^.PropType;
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
   DefValue := PropInfo^.Default;
   { $80000000 means that there's no default value (in case of Single or String,
     you need to specify it by "nodefault") }
@@ -818,10 +825,17 @@ begin
         DefMethodValue.Code := nil;
         Result := SameMethods(MethodValue, DefMethodValue);
       end;
+{$ifdef FPC}
     tkSString, tkLString, tkAString:
       begin
         Result := (GetStrProp(Instance, PropInfo) = '') and DefValueUse;
       end;
+{$else}
+    tkString, tkLString:
+      begin
+        Result := (GetAnsiStrProp(Instance, PropInfo) = '') and DefValueUse;
+      end;
+{$endif}
     tkWString:
       begin
         Result := (GetWideStrProp(Instance, PropInfo) = '') and DefValueUse;
@@ -837,7 +851,11 @@ begin
           raise EWriteError.Create(SErrNoVariantSupport);
         VarValue := tvardata(GetVariantProp(Instance, PropInfo));
         FillChar(DefVarValue,sizeof(DefVarValue),0);
+        {$ifdef FPC}
         Result := CompareByte(VarValue,DefVarValue,sizeof(VarValue)) = 0;
+        {$else}
+        Result := CompareMem(@VarValue, @DefVarValue, sizeof(VarValue));
+        {$endif}
       end;
     tkClass:
       begin
@@ -863,16 +881,18 @@ begin
             ((C.ClassType = TBorder) and TBorder(C).HasDefaultValue)
           );
       end;
-    tkInt64, tkQWord:
+    tkInt64{$ifdef FPC}, tkQWord{$endif}:
       begin
         Result := GetInt64Prop(Instance, PropInfo) = 0;
       end;
+{$ifdef FPC}
     tkBool:
       begin
         BoolValue := GetOrdProp(Instance, PropInfo)<>0;
         DefBoolValue := DefValue <> 0;
         Result := (BoolValue = DefBoolValue) and DefValueUse;
       end;
+{$endif}
     else ;
   end;
 end;

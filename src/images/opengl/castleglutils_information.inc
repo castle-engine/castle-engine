@@ -84,9 +84,9 @@ const
         '  Buggy Texture Size Above 2048: %s' + NL +
         '  Buggy Shader Bump Mapping num_steps: %s',
         [ Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
-          PChar(glGetString(GL_VENDOR)),
+          PAnsiChar(glGetString(GL_VENDOR)),
           VendorTypeToStr(Version.VendorType),
-          PChar(glGetString(GL_RENDERER)),
+          PAnsiChar(glGetString(GL_RENDERER)),
           BoolToStr(Version.Fglrx, true),
           BoolToStr(Version.Mesa, true),
 
@@ -171,7 +171,7 @@ begin
 
     '--------' + NL +
     'Version:' + NL +
-    '  Version string: ' +PChar(glGetString(GL_VERSION)) + NL +
+    '  Version string: ' + PAnsiChar(glGetString(GL_VERSION)) + NL +
     VersionReport(GLVersion) + NL +
     VendorReport(GLVersion) + NL +
     NL +
@@ -223,7 +223,7 @@ begin
     '  Depth textures: ' + BoolToStr(GLFeatures.TextureDepth, true) + NL +
     '  Packed depth + stencil: ' + BoolToStr(GLFeatures.PackedDepthStencil, true) + NL +
     NL +
-    '  All extensions: ' +PChar(glGetString(GL_EXTENSIONS)) + NL +
+    '  All extensions: ' +PAnsiChar(glGetString(GL_EXTENSIONS)) + NL +
     NL +
 
     '---------------------------' + NL +
@@ -246,7 +246,8 @@ begin
       +GetInteger(GL_ACCUM_ALPHA_BITS) + NL +
     '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) + NL +
     {$endif}
-    '  Multi-sampling (full-screen anti-aliasing) possible: ' + BoolToStr(GLFeatures.Multisample, true) + NL +
+    '  Multi-sampling (full-screen anti-aliasing) possible: ' +
+    BoolToStr(GLFeatures.Multisample, true) + NL +
     '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' + NL +
     NL +
 

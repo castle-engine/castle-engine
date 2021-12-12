@@ -317,7 +317,7 @@ begin
 end;
 
 procedure TCompositeImage.LoadFromStream(Stream: TStream; const URL: string;
-  MimeType: string;
+  MimeType: string  = '';
   const Options: TLoadImageOptions = []);
 var
   Handler: TCompositeFormatHandler;

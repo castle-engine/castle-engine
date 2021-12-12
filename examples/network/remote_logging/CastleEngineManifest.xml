@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="remote_logging"
-  standalone_source="remote_logging_standalone.lpr"
+  standalone_source="remote_logging_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.remote.logging"
 >

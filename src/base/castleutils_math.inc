@@ -17,16 +17,29 @@
 
 {$ifdef read_interface}
 
+{ When using FPC, and Extended = Double, you cannot overload
+  for both Double and Extended as they are just equal.
+  Extended is just alias for Double.
+
+  Delphi, even when Extended = Double, still treats Extended
+  like a different type, for choosing overloads.
+  It even requires Extended overloads e.g. for MinVar(Extended, ...). }
+{$ifndef PASDOC}
+  {$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
+    {$define EXTENDED_OVERLOADS}
+  {$endif}
+{$endif}
+
 { Swap variables values.
   @groupBegin }
 procedure SwapValues(var a, b: Byte    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: QWord   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure SwapValues(var a, b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure SwapValues(var a, b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure SwapValues(var a, b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 procedure SwapValues(var a, b: char    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -37,11 +50,11 @@ procedure SwapValues(var a, b: Pointer ); overload; {$ifdef SUPPORTS_INLINE} inl
   by eventually swapping them.
   @groupBegin }
 procedure OrderUp(var Smaller, Larger: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure OrderUp(var Smaller, Larger: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure OrderUp(var Smaller, Larger: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(var Smaller, Larger: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure OrderUp(var Smaller, Larger: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure OrderUp(var Smaller, Larger: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
@@ -49,11 +62,11 @@ procedure OrderUp(var Smaller, Larger: Extended); overload; {$ifdef SUPPORTS_INL
 { Assign the smaller value from X, Y to Smaller variable, the other one
   to Larger variable.
   @groupBegin }
-procedure OrderUp(x, y: Integer;  var Smaller, Larger: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure OrderUp(x, y: Cardinal; var Smaller, Larger: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure OrderUp(x, y: Single;   var Smaller, Larger: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure OrderUp(x, y: Double;   var Smaller, Larger: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure OrderUp(x, y: Int32 ; var Smaller, Larger: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: UInt32; var Smaller, Larger: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: Single; var Smaller, Larger: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: Double; var Smaller, Larger: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+{$ifdef EXTENDED_OVERLOADS}
 procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
@@ -63,13 +76,12 @@ procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); overload; {$if
   since you don't have to do anything when A is already smaller.
   @groupBegin }
 procedure MinVar(var a: Word    ; const b: Word    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-//procedure MinVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} // same as Cardinal
 procedure MinVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinVar(var a: Integer ; const b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinVar(var a: Cardinal; const b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Int32   ; const b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: UInt32  ; const b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure MinVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
@@ -79,16 +91,25 @@ procedure MinVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS
   since you don't have to do anything when A is already larger.
   @groupBegin }
 procedure MaxVar(var a: Word    ; const b: Word    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-//procedure MaxVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} // same as Cardinal
 procedure MaxVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MaxVar(var a: Integer ; const b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MaxVar(var a: Cardinal; const b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Int32   ; const b: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: UInt32  ; const b: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure MaxVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
+
+{$ifndef FPC}
+{$ifndef MSWINDOWS}
+// TODO: why is this necessary on Linux with Delphi? What is Integer, Cardinal then?
+procedure MaxVar(var a: LongInt ; const b: LongInt ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: LongInt ; const b: LongInt ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+{$endif}
+{$endif}
 
 type
   { Index of axis in 3D. }
@@ -101,8 +122,8 @@ function IndexMin(const a0, a1, a2: Double): T3DAxis; overload; {$ifdef SUPPORTS
 { @groupEnd }
 
 function Between(const a, vBegin, vEnd: Int64   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: Integer ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: cardinal): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Int32   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: UInt32  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Between(const a, vBegin, vEnd: Float   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Between(const a, vBegin, vEnd: Char    ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
@@ -110,30 +131,30 @@ function RoundClamp255(const A: Single): Byte; {$ifdef SUPPORTS_INLINE} inline; 
 
 function Clamped(const a, vBegin, vEnd: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: QWord   ): QWord   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Clamped(const a, vBegin, vEnd: Integer ): Integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Clamped(const a, vBegin, vEnd: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: Int32   ): Int32   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: UInt32  ): UInt32  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 function Clamped(const a, vBegin, vEnd: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
 procedure ClampVar(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: QWord   ; const vBegin, vEnd: QWord   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure ClampVar(var a: Integer ; const vBegin, vEnd: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Int32   ; const vBegin, vEnd: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: UInt32  ; const vBegin, vEnd: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure ClampVar(var a: Extended; const vBegin, vEnd: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
 procedure Clamp(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
-procedure Clamp(var a: Integer ; const vBegin, vEnd: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
-procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: Int32   ; const vBegin, vEnd: Int32   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: UInt32  ; const vBegin, vEnd: UInt32  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 {$endif}
 
@@ -161,11 +182,11 @@ function ChangeIntCycle(value, change, maxValue: Integer): Integer;
 
 { Linear interpolation between two values. Returns @code((1-A)*L + A*H).
   @groupBegin }
-function Lerp(const a: Single; const l, h: Integer): Single;  overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Lerp(const a: Single; const l, h: Cardinal): Single; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Lerp(const a: Single; const l, h: Int32   ): Single; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Lerp(const a: Single; const l, h: UInt32  ): Single; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Lerp(const a, l, h: Single): Single;                 overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Lerp(const a: Double; const l, h: Integer): Double;  overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Lerp(const a: Double; const l, h: Cardinal): Double; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Lerp(const a: Double; const l, h: Int32   ): Double; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Lerp(const a: Double; const l, h: UInt32  ): Double; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Lerp(const a, l, h: Double): Double;                 overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
@@ -370,15 +391,42 @@ function Swap64(Value: QWord): QWord;
 function SwapEndian(const Value: Single): Single; overload;
 function SwapEndian(const Value: Double): Double; overload;
 
+{$ifndef FPC}
+function NtoLE(const Value: Word): Word; overload;
+function NtoLE(const Value: DWord): DWord; overload;
+function NtoLE(const Value: QWord): QWord; overload;
+function NtoLE(const Value: Int64): Int64; overload;
+{$endif}
+
 function NtoLE(const Value: Single): Single; overload;
 function NtoLE(const Value: Double): Double; overload;
+
+{$ifndef FPC}
+function NtoBE(const Value: Word): Word; overload;
+function NtoBE(const Value: DWord): DWord; overload;
+function NtoBE(const Value: QWord): QWord; overload;
+function NtoBE(const Value: Int64): Int64; overload;
+{$endif}
 
 function NtoBE(const Value: Single): Single; overload;
 function NtoBE(const Value: Double): Double; overload;
 
+{$ifndef FPC}
+function LEtoN(const Value: Word): Word; overload;
+function LEtoN(const Value: DWord): DWord; overload;
+function LEtoN(const Value: QWord): QWord; overload;
+function LEtoN(const Value: Int64): Int64; overload;
+{$endif}
+
 function LEtoN(const Value: Single): Single; overload;
 function LEtoN(const Value: Double): Double; overload;
 
+{$ifndef FPC}
+function BEtoN(const Value: Word): Word; overload;
+function BEtoN(const Value: DWord): DWord; overload;
+function BEtoN(const Value: QWord): QWord; overload;
+function BEtoN(const Value: Int64): Int64; overload;
+{$endif}
 function BEtoN(const Value: Single): Single; overload;
 function BEtoN(const Value: Double): Double; overload;
 { @groupEnd }
@@ -391,56 +439,63 @@ type
 
 {$ifdef read_implementation}
 
-procedure SwapValues(var a, b: Byte);     var Tmp: Byte;     begin Tmp := A; A := B; B := Tmp; end;
-procedure SwapValues(var a, b: Int64);    var Tmp: Int64;    begin Tmp := A; A := B; B := Tmp; end;
-procedure SwapValues(var a, b: QWord);    var Tmp: QWord;    begin Tmp := A; A := B; B := Tmp; end;
-procedure SwapValues(var a, b: Integer);  var Tmp: Integer;  begin Tmp := A; A := B; B := Tmp; end;
-procedure SwapValues(var a, b: Cardinal); var Tmp: Cardinal; begin Tmp := A; A := B; B := Tmp; end;
-procedure SwapValues(var a, b: Single);   var Tmp: Single;   begin Tmp := A; A := B; B := Tmp; end;
-procedure SwapValues(var a, b: Double);   var Tmp: Double;   begin Tmp := A; A := B; B := Tmp; end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure SwapValues(var a, b: Byte);   var Tmp: Byte;   begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Int64);  var Tmp: Int64;  begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: QWord);  var Tmp: QWord;  begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Int32);  var Tmp: Int32;  begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: UInt32); var Tmp: UInt32; begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Single); var Tmp: Single; begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Double); var Tmp: Double; begin Tmp := A; A := B; B := Tmp; end;
+{$ifdef EXTENDED_OVERLOADS}
 procedure SwapValues(var a, b: Extended); var Tmp: Extended; begin Tmp := A; A := B; B := Tmp; end;
 {$endif}
 procedure SwapValues(var a, b: char);     var Tmp: char;     begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Pointer);  var Tmp: Pointer;  begin Tmp := A; A := B; B := Tmp; end;
 
-procedure OrderUp(var Smaller, Larger: Int64);    begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
-procedure OrderUp(var Smaller, Larger: Integer);  begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
-procedure OrderUp(var Smaller, Larger: Cardinal); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
-procedure OrderUp(var Smaller, Larger: Single);   begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
-procedure OrderUp(var Smaller, Larger: Double);   begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure OrderUp(var Smaller, Larger: Int64);  begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: Int32);  begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: UInt32); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: Single); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: Double); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+{$ifdef EXTENDED_OVERLOADS}
 procedure OrderUp(var Smaller, Larger: Extended); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
 {$endif}
 
-procedure OrderUp(x, y: Integer;  var Smaller, Larger: Integer);  begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
-procedure OrderUp(x, y: Cardinal; var Smaller, Larger: Cardinal); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: Int32;  var Smaller, Larger: Int32);  begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: UInt32; var Smaller, Larger: UInt32); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 procedure OrderUp(x, y: Single;   var Smaller, Larger: Single);   begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 procedure OrderUp(x, y: Double;   var Smaller, Larger: Double);   begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 {$endif}
 
-procedure MinVar(var a: Word    ; const b: Word    ); begin if B < A then A := B end;
-//procedure MinVar(var a: LongWord; const b: LongWord); begin if B < A then A := B end; // same as Cardinal
-procedure MinVar(var a: Int64   ; const b: Int64   ); begin if B < A then A := B end;
-procedure MinVar(var a: Integer ; const b: Integer ); begin if B < A then A := B end;
-procedure MinVar(var a: Cardinal; const b: Cardinal); begin if B < A then A := B end;
-procedure MinVar(var a: Single  ; const b: Single  ); begin if B < A then A := B end;
-procedure MinVar(var a: Double  ; const b: Double  ); begin if B < A then A := B end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure MinVar(var a: Word   ; const b: Word   ); begin if B < A then A := B end;
+procedure MinVar(var a: Int64  ; const b: Int64  ); begin if B < A then A := B end;
+procedure MinVar(var a: Int32  ; const b: Int32  ); begin if B < A then A := B end;
+procedure MinVar(var a: UInt32 ; const b: UInt32 ); begin if B < A then A := B end;
+procedure MinVar(var a: Single ; const b: Single ); begin if B < A then A := B end;
+procedure MinVar(var a: Double ; const b: Double ); begin if B < A then A := B end;
+{$ifdef EXTENDED_OVERLOADS}
 procedure MinVar(var a: Extended; const b: Extended); begin if B < A then A := B end;
 {$endif}
 
-procedure MaxVar(var a: Word    ; const b: Word    ); begin if B > A then A := B end;
-//procedure MaxVar(var a: LongWord; const b: LongWord); begin if B > A then A := B end; // same as Cardinal
-procedure MaxVar(var a: Int64   ; const b: Int64   ); begin if B > A then A := B end;
-procedure MaxVar(var a: Integer ; const b: Integer ); begin if B > A then A := B end;
-procedure MaxVar(var a: Cardinal; const b: Cardinal); begin if B > A then A := B end;
-procedure MaxVar(var a: Single  ; const b: Single  ); begin if B > A then A := B end;
-procedure MaxVar(var a: Double  ; const b: Double  ); begin if B > A then A := B end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure MaxVar(var a: Word  ; const b: Word  ); begin if B > A then A := B end;
+procedure MaxVar(var a: Int64 ; const b: Int64 ); begin if B > A then A := B end;
+procedure MaxVar(var a: Int32 ; const b: Int32 ); begin if B > A then A := B end;
+procedure MaxVar(var a: UInt32; const b: UInt32); begin if B > A then A := B end;
+procedure MaxVar(var a: Single; const b: Single); begin if B > A then A := B end;
+procedure MaxVar(var a: Double; const b: Double); begin if B > A then A := B end;
+{$ifdef EXTENDED_OVERLOADS}
 procedure MaxVar(var a: Extended; const b: Extended); begin if B > A then A := B end;
+{$endif}
+
+{$ifndef FPC}
+{$ifndef MSWINDOWS}
+procedure MaxVar(var a: LongInt ; const b: LongInt ); begin if B > A then A := B end;
+procedure MinVar(var a: LongInt ; const b: LongInt ); begin if B < A then A := B end;
+procedure MaxVar(var a: LongWord; const b: LongWord); begin if B > A then A := B end;
+procedure MinVar(var a: LongWord; const b: LongWord); begin if B < A then A := B end;
+{$endif}
 {$endif}
 
 function IndexMax(const a0, a1, a2: Double): T3DAxis;
@@ -466,7 +521,7 @@ begin
 end;
 
 function Between(const a, vBegin, vEnd: Int64): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: Integer): boolean;  begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Int32): boolean;  begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: cardinal): boolean; begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: Float): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: Char): boolean;     begin Result := (vBegin <= a) and (a <= vend) end;
@@ -497,7 +552,7 @@ begin
     result := a;
 end;
 
-function Clamped(const a, vBegin, vEnd: Integer): Integer;
+function Clamped(const a, vBegin, vEnd: Int32): Int32;
 begin
   if a < vBegin then result := vBegin else
   if a > vEnd then result := vEnd else
@@ -525,7 +580,7 @@ begin
     result := a;
 end;
 
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 function Clamped(const a, vBegin, vEnd: Extended): Extended;
 begin
   if a < vBegin then result := vBegin else
@@ -546,7 +601,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-procedure ClampVar(var a: Integer;  const vBegin, vEnd: Integer);
+procedure ClampVar(var a: Int32;  const vBegin, vEnd: Int32);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -570,7 +625,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure ClampVar(var a: Extended; const vBegin, vEnd: Extended);
 begin
   if a < vBegin then a := vBegin else
@@ -584,7 +639,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-procedure Clamp(var a: Integer;  const vBegin, vEnd: Integer);
+procedure Clamp(var a: Int32;  const vBegin, vEnd: Int32);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -608,7 +663,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 procedure Clamp(var a: Extended; const vBegin, vEnd: Extended);
 begin
   if a < vBegin then a := vBegin else
@@ -641,12 +696,12 @@ begin
 end;
 
 { Lerp : l + (h-l) * a = l + a*h - a*l = (1-a) *l + a*h }
-function Lerp(const a: Single; const l, h: Integer): Single;  begin result := l + (h-l) * a; end;
-function Lerp(const a: Single; const l, h: Cardinal): Single; begin result := l + (h-l) * a; end;
-function Lerp(const a, l, h: Single): Single;                 begin result := l + (h-l) * a; end;
-function Lerp(const a: Double; const l, h: Integer): Double;  begin result := l + (h-l) * a; end;
-function Lerp(const a: Double; const l, h: Cardinal): Double; begin result := l + (h-l) * a; end;
-function Lerp(const a, l, h: Double): Double;                 begin result := l + (h-l) * a; end;
+function Lerp(const a: Single; const l, h: Int32): Single;  begin result := l + (h-l) * a; end;
+function Lerp(const a: Single; const l, h: UInt32): Single; begin result := l + (h-l) * a; end;
+function Lerp(const a, l, h: Single): Single;               begin result := l + (h-l) * a; end;
+function Lerp(const a: Double; const l, h: Int32): Double;  begin result := l + (h-l) * a; end;
+function Lerp(const a: Double; const l, h: UInt32): Double; begin result := l + (h-l) * a; end;
+function Lerp(const a, l, h: Double): Double;               begin result := l + (h-l) * a; end;
 
 function AngleLerp(T, Angle1, Angle2: Single): Single;
 begin
@@ -1119,6 +1174,47 @@ begin
   PQWord(@Result)^ := Swap64(PQWord(@Value)^);
 end;
 
+
+{$ifndef FPC}
+  function NtoLE(const Value: Word): Word;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function NtoLE(const Value: DWord): DWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap32(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function NtoLE(const Value: QWord): QWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function NtoLE(const Value: Int64): Int64; overload;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+{$endif}
+
+
 function NtoLE(const Value: Single): Single;
 begin
 {$ifdef ENDIAN_BIG}
@@ -1136,6 +1232,47 @@ begin
   Result := Value;
 {$endif ENDIAN_BIG}
 end;
+
+{$ifndef FPC}
+  function NtoBE(const Value: Word): Word;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+  function NtoBE(const Value: DWord): DWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap32(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+
+  function NtoBE(const Value: QWord): QWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+  function NtoBE(const Value: Int64): Int64;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+{$endif}
+
 
 function NtoBE(const Value: Single): Single;
 begin
@@ -1155,6 +1292,46 @@ begin
 {$endif ENDIAN_BIG}
 end;
 
+{$ifndef FPC}
+  function LEtoN(const Value: Word): Word;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function LEtoN(const Value: DWord): DWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap32(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function LEtoN(const Value: QWord): QWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function LEtoN(const Value: Int64): Int64;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+
+{$endif FPC}
+
 function LEtoN(const Value: Single): Single;
 begin
 {$ifdef ENDIAN_BIG}
@@ -1172,6 +1349,47 @@ begin
   Result := Value;
 {$endif ENDIAN_BIG}
 end;
+
+{$ifndef FPC}
+
+  function BEtoN(const Value: Word): Word;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+  function BEtoN(const Value: DWord): DWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap32(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+  function BEtoN(const Value: QWord): QWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+  function BEtoN(const Value: Int64): Int64;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+{$endif}
+
 
 function BEtoN(const Value: Single): Single;
 begin

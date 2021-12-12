@@ -17,6 +17,7 @@
 
 {$ifdef read_interface}
 
+{$ifdef read_interface_func}
 { Comfortably load a 3D texture.
   Think about this as doing glTexImage3D(...) for you.
   It also sets texture minification, magnification filters and creates
@@ -58,6 +59,7 @@
 procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
   const Image: TEncodedImage;
   Filter: TTextureFilter; CompositeForMipmaps: TCompositeImage);
+{$endif read_interface_func}
 
 {$endif read_interface}
 

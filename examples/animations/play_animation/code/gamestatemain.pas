@@ -28,7 +28,7 @@ type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
     Viewport: TCastleViewport;
     Scene: TCastleScene;
@@ -100,17 +100,17 @@ begin
   SceneAnimationButtons := DesignedComponent('SceneAnimationButtons') as TCastleUserInterface;
 
   { attach events }
-  ButtonOpen3D.OnClick := @ClickButtonOpen3D;
-  ButtonOpen2DSpine.OnClick := @ClickButtonOpen2DSpine;
-  ButtonOpen2DStarling.OnClick := @ClickButtonOpen2DStarling;
-  ButtonOpen2DCocos2d.OnClick := @ClickButtonOpen2DCocos2d;
-  ButtonOpen2DImage.OnClick := @ClickButtonOpen2DImage;
-  ButtonOpenDialog.OnClick := @ClickButtonOpenDialog;
-  SliderFPSLoadOpt.OnChange := @ChangedStarlingOptions;
-  CheckboxAnimationNamingLoadOpt.OnChange := @ChangedStarlingOptions;
-  SliderScale.OnChange := @ChangedScale;
-  CheckboxMagFilterNearest.OnChange := @ChangedTextureMagOptions;
-  CheckboxMinFilterNearest.OnChange := @ChangedTextureMinOptions;
+  ButtonOpen3D.OnClick := {$ifdef FPC}@{$endif} ClickButtonOpen3D;
+  ButtonOpen2DSpine.OnClick := {$ifdef FPC}@{$endif} ClickButtonOpen2DSpine;
+  ButtonOpen2DStarling.OnClick := {$ifdef FPC}@{$endif} ClickButtonOpen2DStarling;
+  ButtonOpen2DCocos2d.OnClick := {$ifdef FPC}@{$endif} ClickButtonOpen2DCocos2d;
+  ButtonOpen2DImage.OnClick := {$ifdef FPC}@{$endif} ClickButtonOpen2DImage;
+  ButtonOpenDialog.OnClick := {$ifdef FPC}@{$endif} ClickButtonOpenDialog;
+  SliderFPSLoadOpt.OnChange := {$ifdef FPC}@{$endif} ChangedStarlingOptions;
+  CheckboxAnimationNamingLoadOpt.OnChange := {$ifdef FPC}@{$endif} ChangedStarlingOptions;
+  SliderScale.OnChange := {$ifdef FPC}@{$endif} ChangedScale;
+  CheckboxMagFilterNearest.OnChange := {$ifdef FPC}@{$endif} ChangedTextureMagOptions;
+  CheckboxMinFilterNearest.OnChange := {$ifdef FPC}@{$endif} ChangedTextureMinOptions;
 
   // pretend ButtonOpen2DSpine was clicked
   ClickButtonOpen2DSpine(nil);
@@ -137,7 +137,7 @@ procedure TStateMain.OpenScene(const Url: String);
     begin
       Button := TCastleButton.Create(Self);
       Button.Caption := AnimationName;
-      Button.OnClick := @ClickButtonPlayAnimation;
+      Button.OnClick := {$ifdef FPC}@{$endif} ClickButtonPlayAnimation;
       SceneAnimationButtons.InsertFront(Button);
     end;
   end;

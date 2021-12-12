@@ -18,7 +18,7 @@
 {$ifdef read_interface}
   { Node with key field and set_fraction event. Like interpolators,
     but not only (e.g. IntegerSequencer). }
-  TKeyedNode = object
+  TKeyedNode = record
     EventSet_Fraction: TSFFloatEvent;
     Key: TMFFloat;
     Node: TAbstractChildNode;
@@ -69,7 +69,7 @@
       const NormalizeCurvesKeyValues: Boolean); override;
   end;
 
-  TSlotTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSlotTimeline>)
+  TSlotTimelineList = class({$ifdef FPC}specialize{$endif} TObjectList<TSlotTimeline>)
   end;
 {$endif}
 

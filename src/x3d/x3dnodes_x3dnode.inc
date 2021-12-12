@@ -46,7 +46,7 @@
     property Parent: TX3DNode read FParent;
   end;
 
-  TNodeFunctionalityList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TNodeFunctionality>;
+  TNodeFunctionalityList = {$ifdef FPC}specialize{$endif} TObjectList<TNodeFunctionality>;
 
   TNodeFunctionalityClass = class of TNodeFunctionality;
 
@@ -303,7 +303,7 @@
 
       All fields on this list are owned by this instance.
       @groupBegin }
-    property Fields [Index: Integer]: TX3DField read GetFields;
+    property Fields [const Index: Integer]: TX3DField read GetFields;
     function FieldsCount: Integer;
     procedure AddField(const Value: TX3DField);
     function IndexOfField(const AName: string): Integer;
@@ -312,7 +312,7 @@
     { Explicit events (that is, not exposed by some field) of this node.
       For exposed events, see each field's property ExposedEvents.
       @groupBegin }
-    property Events [Index: Integer]: TX3DEvent read GetEvents;
+    property Events [const Index: Integer]: TX3DEvent read GetEvents;
     function EventsCount: Integer;
     procedure AddEvent(const Value: TX3DEvent);
     function IndexOfEvent(const AName: string): Integer;
@@ -374,7 +374,7 @@
       is already equal to NewChildren, it does nothing.
 
       @groupBegin }
-    property VRML1Children [I: Integer]: TX3DNode read GetVRML1Child write SetVRML1Child;
+    property VRML1Children [const I: Integer]: TX3DNode read GetVRML1Child write SetVRML1Child;
     function VRML1ChildrenCount: integer;
     { @groupEnd }
 
@@ -404,7 +404,7 @@
       list.
 
       @groupBegin }
-    property VRML1Parents [I: Integer] :TX3DNode read GetVRML1Parent;
+    property VRML1Parents [const I: Integer] :TX3DNode read GetVRML1Parent;
     function VRML1ParentsCount: integer;
     { @groupEnd }
 
@@ -485,7 +485,9 @@
       http://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ).
       We don't want to confuse these two properties. }
     property X3DName: string read FX3DName write FX3DName;
+    {$ifdef FPC}
     property NodeName: string read FX3DName write FX3DName; deprecated 'use X3DName';
+    {$endif FPC}
 
     { Base URL for all URLs inside our fields.
       Used everywhere as a base for relative URLs, to handle fields that refer
@@ -502,8 +504,10 @@
       like Inline or ImageTexture immediately after parsing them. }
     property BaseUrl: string read FBaseUrl write FBaseUrl;
 
+    {$ifdef FPC}
     { Old deprecated name for BaseUrl. @deprecated }
     property WWWBasePath: string read FBaseUrl write FBaseUrl; deprecated;
+    {$endif}
 
     { Returns an absolute path, assuming that RelativePath is relative
       path from BaseUrl or that RelativePath is already absolute. }
@@ -869,20 +873,20 @@
     function RemoveChildrenWithMatchingName(
       const Wildcard: string; IgnoreCase: Boolean): Cardinal;
 
-    property Prototypes [Index: Integer]: TX3DPrototypeBase read GetPrototypes;
+    property Prototypes [const Index: Integer]: TX3DPrototypeBase read GetPrototypes;
     function PrototypesCount: Integer;
     procedure AddPrototype(const Value: TX3DPrototypeBase);
 
-    property Routes [Index: Integer]: TX3DRoute read GetRoutes;
+    property Routes [const Index: Integer]: TX3DRoute read GetRoutes;
     function RoutesCount: Integer;
-    procedure AddRoute(const Value: TX3DRoute);
-    procedure AddRoute(const Source, Destination: TX3DFieldOrEvent);
+    procedure AddRoute(const Value: TX3DRoute); overload;
+    procedure AddRoute(const Source, Destination: TX3DFieldOrEvent); overload;
 
-    property ImportsList [Index: Integer]: TX3DImport read GetImports;
+    property ImportsList [const Index: Integer]: TX3DImport read GetImports;
     function ImportsCount: Integer;
     procedure AddImport(const Value: TX3DImport);
 
-    property ExportsList [Index: Integer]: TX3DExport read GetExports;
+    property ExportsList [const Index: Integer]: TX3DExport read GetExports;
     function ExportsCount: Integer;
     procedure AddExport(const Value: TX3DExport);
 
@@ -1110,7 +1114,7 @@
     property TimeFunctionality: TTimeDependentFunctionality read FTimeFunctionality;
   end;
 
-  TX3DNodeList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DNode>)
+  TX3DNodeList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DNode>)
     { Find node by name, @nil if not found.
 
       For empty node name, always returns @nil. This follows the definition
@@ -1129,8 +1133,8 @@
 
     procedure AddIfNotExists(const Node: TX3DNode);
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
-    procedure Assign(const Source: TX3DNodeList);
-    procedure Assign(const Source: array of TX3DNode);
+    procedure Assign(const Source: TX3DNodeList); overload;
+    procedure Assign(const Source: array of TX3DNode); overload;
   end;
 
 {$endif read_interface}
@@ -1609,7 +1613,7 @@ type
     ParentInfo := @ParentInfoForChildren;
     try
       Result := Child.DirectEnumerateActiveForTraverse(
-        {$ifdef CASTLE_OBJFPC}@{$endif} EnumerateChildrenFunction, StateStack);
+        {$ifdef FPC}@{$endif} EnumerateChildrenFunction, StateStack);
     finally
       ParentInfo := ParentInfoForChildren.ParentInfo;
     end;
@@ -1981,7 +1985,7 @@ var
     AttrIndex, Index: Integer;
   begin
     { enumerate over all attributes }
-    for AttrIndex := 0 to Element.Attributes.Length - 1 do
+    for AttrIndex := 0 to Integer(Element.Attributes.Length) - 1 do
     begin
       AttrNode := Element.Attributes[AttrIndex];
       Assert(AttrNode.NodeType = ATTRIBUTE_NODE);
@@ -2216,7 +2220,7 @@ type
   begin
     Result := nil;
     Proc(Child);
-    Child.DirectEnumerate({$ifdef CASTLE_OBJFPC}@{$endif} Self.EnumerateChildrenFunction, OnlyActive);
+    Child.DirectEnumerate({$ifdef FPC}@{$endif} Self.EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TX3DNode.EnumerateNodes(
@@ -2245,7 +2249,7 @@ type
   begin
     Result := nil;
     if Child is NodeClass then Proc(Child);
-    Child.DirectEnumerate({$ifdef CASTLE_OBJFPC}@{$endif} Self.EnumerateChildrenFunction, OnlyActive);
+    Child.DirectEnumerate({$ifdef FPC}@{$endif} Self.EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TX3DNode.EnumerateNodes(nodeClass: TX3DNodeClass;
@@ -2278,7 +2282,7 @@ type
     if (Child is NodeClass) and
        (Child.X3DName = SeekNodeName) then
       Proc(Child);
-    Child.DirectEnumerate({$ifdef CASTLE_OBJFPC}@{$endif} Self.EnumerateChildrenFunction, OnlyActive);
+    Child.DirectEnumerate({$ifdef FPC}@{$endif} Self.EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TX3DNode.EnumerateNodes(NodeClass: TX3DNodeClass;
@@ -2310,7 +2314,7 @@ type
     Result := Proc(Child);
     if Result <> nil then Exit;
 
-    Result := Child.DirectEnumerate({$ifdef CASTLE_OBJFPC}@{$endif} Self.Callback, OnlyActive);
+    Result := Child.DirectEnumerate({$ifdef FPC}@{$endif} Self.Callback, OnlyActive);
   end;
 
 function TX3DNode.SearchNodes(
@@ -2346,7 +2350,7 @@ begin
   Helper := TFindNodeHelper.Create;
   try
     Helper.NodeClass := FindClass;
-    Result := TX3DNode(SearchNodes({$ifdef CASTLE_OBJFPC}@{$endif} Helper.Callback, OnlyActive));
+    Result := TX3DNode(SearchNodes({$ifdef FPC}@{$endif} Helper.Callback, OnlyActive));
   finally FreeAndNil(Helper) end;
 end;
 
@@ -2380,7 +2384,7 @@ begin
   try
     Helper.NodeClass := FindClass;
     Helper.NodeName := FindName;
-    Result := TX3DNode(SearchNodes({$ifdef CASTLE_OBJFPC}@{$endif} Helper.Callback, OnlyActive));
+    Result := TX3DNode(SearchNodes({$ifdef FPC}@{$endif} Helper.Callback, OnlyActive));
   finally FreeAndNil(Helper) end;
 end;
 
@@ -2424,7 +2428,7 @@ function TX3DNode.TryFindNodeState(
 var
   Res: TTryFindNodeStateResult;
 begin
-  Res := TTryFindNodeStateResult(Traverse(NodeClass, {$ifdef CASTLE_OBJFPC}@{$endif} TryFindNodeStateTraverse));
+  Res := TTryFindNodeStateResult(Traverse(NodeClass, {$ifdef FPC}@{$endif} TryFindNodeStateTraverse));
   Result := Res <> nil;
   if Result then
   begin
@@ -2462,7 +2466,7 @@ var
   Res: TTryFindNodeTransformResult;
 begin
   Res := TTryFindNodeTransformResult(Traverse(NodeClass,
-    {$ifdef CASTLE_OBJFPC}@{$endif} TryFindNodeTransformTraverse));
+    {$ifdef FPC}@{$endif} TryFindNodeTransformTraverse));
   Result := Res <> nil;
   if Result then
   begin
@@ -2558,7 +2562,7 @@ begin
   Helper := TIsNodePresentHelper.Create;
   try
     Helper.SeekNode := Node;
-    Result := SearchNodes({$ifdef CASTLE_OBJFPC}@{$endif} Helper.Callback, OnlyActive) <> nil;
+    Result := SearchNodes({$ifdef FPC}@{$endif} Helper.Callback, OnlyActive) <> nil;
   finally FreeAndNil(Helper) end;
 end;
 
@@ -2578,7 +2582,7 @@ var
 begin
   C := TNodesCountHelper.Create;
   try
-    EnumerateNodes(NodeClass, {$ifdef CASTLE_OBJFPC}@{$endif} C.CountNode, CountOnlyActiveNodes);
+    EnumerateNodes(NodeClass, {$ifdef FPC}@{$endif} C.CountNode, CountOnlyActiveNodes);
     result := C.Counter;
   finally C.Free end;
 end;
@@ -3031,7 +3035,7 @@ begin
   try
     Helper.Wildcard := Wildcard;
     Helper.IgnoreCase := IgnoreCase;
-    Result := EnumerateReplaceChildren({$ifdef CASTLE_OBJFPC}@{$endif} Helper.DoIt);
+    Result := EnumerateReplaceChildren({$ifdef FPC}@{$endif} Helper.DoIt);
   finally FreeAndNil(Helper) end;
 end;
 
@@ -3462,7 +3466,7 @@ end;
 
 procedure TX3DNode.UnregisterScene;
 begin
-  EnumerateNodes(TX3DNode, {$ifdef CASTLE_OBJFPC}@{$endif} UnregisterSceneCallback, false);
+  EnumerateNodes(TX3DNode, {$ifdef FPC}@{$endif} UnregisterSceneCallback, false);
 end;
 
 function TX3DNode.FieldSetByEvent(const Event: TX3DEvent): TX3DField;

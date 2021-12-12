@@ -158,7 +158,7 @@ begin
   while Tnts.Count < InitialTntsCount do
     NewTnt(0.0);
 
-  TimerSpawnTnts.OnTimer := @DoTimerSpawnTnts;
+  TimerSpawnTnts.OnTimer := {$ifdef FPC}@{$endif}DoTimerSpawnTnts;
 
   SetupPhysicsStaticPlane(SceneLevel);
   //SetupPhysicsStaticMesh(SceneLevel); // mesh collider not reliable on this

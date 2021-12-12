@@ -82,7 +82,7 @@ type
   { Information about ray collision with a single 3D object.
     Everything (Point, RayOrigin, RayDirection) is expressed
     in the parent coordinate system of this TCastleTransform (in @link(Item)). }
-  TRayCollisionNode = object
+  TRayCollisionNode = record
   public
     { Colliding object. }
     Item: TCastleTransform;
@@ -141,7 +141,7 @@ type
     containers that contain given collision.
 
     This is never an empty list when returned by RayCollision. }
-  TRayCollision = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TRayCollisionNode>)
+  TRayCollision = class({$ifdef FPC}specialize{$endif} TStructList<TRayCollisionNode>)
   public
     { Distance, in world coordinate system, from the current
       camera to the picked point. The suggested usage is to decide if player
@@ -156,14 +156,14 @@ type
     Distance: Single;
 
     { Index of node with given Item, -1 if none. }
-    function IndexOfItem(const Item: TCastleTransform): Integer;
+    function IndexOfItem(const Item: TCastleTransform): Integer; overload;
 
     { Index of node with given ItemClass, -1 if none. }
-    function IndexOfItem(const ItemClass: TCastleTransformClass): Integer;
+    function IndexOfItem(const ItemClass: TCastleTransformClass): Integer; overload;
   end;
 
   { Detailed information about collision with a single 3D object. }
-  TCollisionDetailsItem = object
+  TCollisionDetailsItem = record
   public
     { Colliding 3D object. }
     Item: TCastleTransform;
@@ -182,7 +182,7 @@ type
     containers that contain given collision.
 
     This is never an empty list when returned by XxxCollision method. }
-  TCollisionDetails = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCollisionDetailsItem>)
+  TCollisionDetails = class({$ifdef FPC}specialize{$endif} TStructList<TCollisionDetailsItem>)
   public
     { Index of node with given Item. }
     function IndexOfItem(const Item: TCastleTransform): Integer;
@@ -238,7 +238,7 @@ type
     property Owner: TCastleTransform read FOwner;
   public
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
-    property Items[I: Integer]: TCastleTransform read GetItem write SetItem; default;
+    property Items[const I: Integer]: TCastleTransform read GetItem write SetItem; default;
 
     function First: TCastleTransform;
     function Last: TCastleTransform;
@@ -650,12 +650,12 @@ type
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; overload; virtual;
     function LocalMoveCollision(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; overload; virtual;
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; virtual;
@@ -737,12 +737,13 @@ type
         (Data: (0, 0, 1))
       );
 
-    var
+    class var
       { Default value of @link(TCastleTransform.Orientation) for new instances.
         By default @link(otUpYDirectionZ), matching glTF orientation
         (as exported from Blender and other software). }
-      DefaultOrientation: TOrientationType; static;
+      DefaultOrientation: TOrientationType;
 
+    var
       { Workaround for descendants where BoundingBox may suddenly change
         but their logic depends on stable (not suddenly changing) Middle.
         If InternalMiddleForceBox then we will use given InternalMiddleForceBoxValue
@@ -810,7 +811,7 @@ type
     procedure Add(const Item: TCastleTransform);
     procedure Insert(const Index: Integer; const Item: TCastleTransform);
     procedure Remove(const Item: TCastleTransform);
-    property Items[I: Integer]: TCastleTransform read GetItem write SetItem; default;
+    property Items[const I: Integer]: TCastleTransform read GetItem write SetItem; default;
     function Count: Integer;
     procedure Clear;
     procedure Exchange(const Index1, Index2: Integer);
@@ -921,7 +922,7 @@ type
       The rendering transformation, frustum, and filtering
       is specified inside TRenderParams class.
       This method should only update @code(TRenderParams.Statistics). }
-    procedure Render(const Params: TRenderParams); virtual; overload;
+    procedure Render(const Params: TRenderParams); overload; virtual;
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); overload;
       deprecated 'use Render method without an explicit Frustum parameter, it is in Params.Frustum now';
@@ -1356,8 +1357,10 @@ type
       Returns @nil (Distance is undefined in this case) if nothing was hit.
       Use @link(Ray) for a more advanced version of this, with more complicated result.
       @groupBegin }
-    function RayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
-    function RayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
+    function RayCast(const RayOrigin,
+      RayDirection: TVector3): TCastleTransform; overload;
+    function RayCast(const RayOrigin, RayDirection: TVector3;
+      out Distance: Single): TCastleTransform; overload;
     { @groupEnd }
 
     { Is this object's bounding volume (@link(BoundingBox))
@@ -1430,7 +1433,7 @@ type
       TODO: In CGE 7.x this will be deprecated, and you will be adviced
       to always use physics, through @link(TCastleTransform.RigidBody),
       to have realistic gravity. }
-    property FallSpeed: Single read FFallSpeed write FFallSpeed default 0;
+    property FallSpeed: Single read FFallSpeed write FFallSpeed {$ifdef FPC}default 0{$endif};
 
     { Growing (raising from crouching to normal standing position)
       speed, in units per second.
@@ -1441,7 +1444,7 @@ type
 
       This is relevant only if @link(Gravity) and PreferredHeight <> 0.
       0 means no growing. }
-    property GrowSpeed: Single read FGrowSpeed write FGrowSpeed default 0;
+    property GrowSpeed: Single read FGrowSpeed write FGrowSpeed {$ifdef FPC}default 0{$endif};
 
     { The preferred height of the object @link(Middle) above the ground,
       when the object is standing on the ground firmly.
@@ -1501,7 +1504,7 @@ type
       above the ground). You can override these two methods to use a different
       approach, and then ignore MiddleHeight completely. }
     property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
-      default DefaultMiddleHeight;
+      {$ifdef FPC}default DefaultMiddleHeight{$endif};
 
     { Transformation (from local to outside) as a matrix.
       This matrix represents a concise version of properties like @link(Translation),
@@ -1777,8 +1780,10 @@ type
     }
     property RigidBody: TRigidBody read FRigidBody write SetRigidBody;
 
+    {$ifdef FPC}
     property Position: TVector3 read FTranslation write SetTranslation;
       deprecated 'use Translation';
+    {$endif}
 
     { Direction the creature is facing, and up vector.
       These properties provide an alternative way to get and set the @link(Rotation)
@@ -2174,8 +2179,10 @@ type
       Returns @nil (Distance is undefined in this case) if nothing was hit.
       Use @link(WorldRay) for a more advanced version of this, with more complicated result.
       @groupBegin }
-    function WorldRayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
-    function WorldRayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
+    function WorldRayCast(const RayOrigin, RayDirection: TVector3;
+      out Distance: Single): TCastleTransform; overload;
+    function WorldRayCast(const RayOrigin,
+      RayDirection: TVector3): TCastleTransform; overload;
     { @groupEnd }
 
     { Check whether something collides with axis-aligned box in 3D.
@@ -2317,7 +2324,7 @@ type
     property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
 
     { Time scale used when not @link(Paused). }
-    property TimeScale: Single read FTimeScale write FTimeScale default 1;
+    property TimeScale: Single read FTimeScale write FTimeScale {$ifdef FPC}default 1{$endif};
 
     { Pausing means that no events (key, mouse, update) are processed.
       So time doesn't move, and input is not processed.
@@ -2483,7 +2490,7 @@ procedure TCollisionDetails.Add(const Item: TCastleTransform);
 var
   NewItem: PCollisionDetailsItem;
 begin
-  NewItem := inherited Add();
+  NewItem := PCollisionDetailsItem(inherited Add());
   NewItem^.Item := Item;
 end;
 
@@ -2616,7 +2623,7 @@ begin
 
   if RegisteredGLContextCloseListener then
   begin
-    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
+    ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef FPC}@{$endif}GLContextCloseEvent);
     RegisteredGLContextCloseListener := false;
   end;
   GLContextClose;
@@ -2694,7 +2701,7 @@ begin
   if FWorld <> Value then
   begin
     if FWorld <> nil then
-      raise ECannotAddToAnotherWorld.Create('Cannot add object existing in one TCastleRootTransform to another. This usually means that your object is part of "Viewport1.Items", and you are adding it to "Viewport2.Items". You have to remove it from "Viewport1.Items" first, or set both "Viewport1.Items" and "Viewport2.Items" to be equal.');
+      raise ECannotAddToAnotherWorld.Create('Cannot add object existing in one TCastleRootTransform to another. ' + 'This usually means that your object is part of "Viewport1.Items", and you are adding it to "Viewport2.Items". You have to remove it from "Viewport1.Items" first, or set both "Viewport1.Items" and "Viewport2.Items" to be equal.');
     ChangeWorld(Value);
   end else
     Inc(FWorldReferences);
@@ -2712,7 +2719,7 @@ begin
   Assert(Value <> nil);
   Assert(FWorldReferences > 0);
   if FWorld <> Value then
-    WritelnWarning('TCastleTransform.RemoveFromWorld: Removing from World you were not part of. This probably means that you added one TCastleTransform instance to multiple TCastleRootTransform trees, which is not allowed. Always remove TCastleTransform from previous viewport (e.g. by "Viewport1.Items.Remove(xxx)") before adding to the new viewport.');
+    WritelnWarning('TCastleTransform.RemoveFromWorld: Removing from World you were not part of. ' + 'This probably means that you added one TCastleTransform instance to multiple TCastleRootTransform trees, which is not allowed. Always remove TCastleTransform from previous viewport (e.g. by "Viewport1.Items.Remove(xxx)") before adding to the new viewport.');
 
   Dec(FWorldReferences);
   if FWorldReferences = 0 then
@@ -3069,7 +3076,7 @@ begin
   if not RegisteredGLContextCloseListener then
   begin
     RegisteredGLContextCloseListener := true;
-    ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+    ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}GLContextCloseEvent);
   end;
 end;
 
@@ -3786,13 +3793,13 @@ procedure TCastleTransform.CustomSerialization(const SerializationProcess: TSeri
 begin
   inherited;
   SerializationProcess.ReadWrite('Children',
-    @SerializeChildrenEnumerate,
-    @SerializeChildrenAdd,
-    @SerializeChildrenClear);
+    {$ifdef FPC}@{$endif}SerializeChildrenEnumerate,
+    {$ifdef FPC}@{$endif}SerializeChildrenAdd,
+    {$ifdef FPC}@{$endif}SerializeChildrenClear);
   SerializationProcess.ReadWrite('Behaviors',
-    @SerializeBehaviorsEnumerate,
-    @SerializeBehaviorsAdd,
-    @SerializeBehaviorsClear);
+    {$ifdef FPC}@{$endif}SerializeBehaviorsEnumerate,
+    {$ifdef FPC}@{$endif}SerializeBehaviorsAdd,
+    {$ifdef FPC}@{$endif}SerializeBehaviorsClear);
 end;
 
 procedure TCastleTransform.SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -3843,18 +3850,17 @@ end;
 
 function TCastleTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Exists':
-      Result := [psBasic];
-    'CenterPersistent',
-    'RotationPersistent',
-    'ScalePersistent',
-    'ScaleOrientationPersistent',
-    'TranslationPersistent':
-      Result := [psBasic, psLayout];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Exists') then
+      Result := [psBasic]
+  else
+  if (PropertyName = 'CenterPersistent') or
+     (PropertyName = 'RotationPersistent') or
+     (PropertyName = 'ScalePersistent') or
+     (PropertyName = 'ScaleOrientationPersistent') or
+     (PropertyName = 'TranslationPersistent') then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { We try hard to keep FOnlyTranslation return fast, and return with true.
@@ -4126,7 +4132,7 @@ begin
   FPhysicsProperties.RootTransform := Self;
 
   FMainCameraObserver := TFreeNotificationObserver.Create(Self);
-  FMainCameraObserver.OnFreeNotification := @MainCameraFreeNotification;
+  FMainCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif}MainCameraFreeNotification;
 
   FTimeScale := 1;
   FMoveLimit := TBox3D.Empty;
@@ -4188,7 +4194,7 @@ begin
   Result := not SegmentCollision(Pos1, Pos2,
     { Ignore transparent materials, this means that creatures can see through
       glass --- even though they can't walk through it. }
-    @TBaseTrianglesOctree(nil).IgnoreTransparentItem,
+    {$ifdef FPC}@{$endif}TBaseTrianglesOctree{$ifdef FPC}(nil){$endif}.IgnoreTransparentItem,
     true);
 end;
 
@@ -4358,7 +4364,7 @@ function StrToOrientationType(const S: String): TOrientationType;
 begin
   if S = 'default' then
     Exit(TCastleTransform.DefaultOrientation);
-  for Result in TOrientationType do
+  for Result := Low(TOrientationType) to High(TOrientationType) do
     if OrientationNames[Result] = S then
       Exit;
   raise Exception.CreateFmt('Invalid orientation name "%s"', [S]);

@@ -94,8 +94,10 @@ type
     { Resource to draw @link(Image). }
     function DrawableImage: TDrawableImage;
 
+    {$ifdef FPC}
     property GLImage: TDrawableImage read DrawableImage;
       deprecated 'use DrawableImage';
+    {$endif}
 
     { Create item. This is how you should create new TInventoryItem instances.
       It is analogous to TCreatureResource.CreateCreature, but now for items.
@@ -214,11 +216,11 @@ type
     { A time within AttackAnimation at at which TItemWeapon.Attack
       method will be called, which actually hits the enemy. }
     property AttackTime: Single read FAttackTime write FAttackTime
-      default DefaultAttackTime;
+      {$ifdef FPC}default DefaultAttackTime{$endif};
 
     { A time within ReloadAnimation at at which TItemWeapon.AmmoLoaded is actually refilled. }
     property ReloadTime: Single read FReloadTime write FReloadTime
-      default DefaultReloadTime;
+      {$ifdef FPC}default DefaultReloadTime{$endif};
 
     { Sound when attack starts. This is played when attack animation starts,
       and it means that we already checked that you have necessary ammunition
@@ -255,12 +257,12 @@ type
       done if one of these properties is non-zero. They must be >= 0.
       @groupBegin }
     property AttackDamageConst: Single read FAttackDamageConst write FAttackDamageConst
-      default DefaultAttackDamageConst;
+      {$ifdef FPC}default DefaultAttackDamageConst{$endif};
     property AttackDamageRandom: Single read FAttackDamageRandom write FAttackDamageRandom
-      default DefaultAttackDamageRandom;
+      {$ifdef FPC}default DefaultAttackDamageRandom{$endif};
     property AttackKnockbackDistance: Single
       read FAttackKnockbackDistance write FAttackKnockbackDistance
-      default DefaultAttackKnockbackDistance;
+      {$ifdef FPC}default DefaultAttackKnockbackDistance{$endif};
     { @groupEnd }
 
     { Does the immediate attack is shooting.
@@ -451,7 +453,7 @@ type
     @link(TAliveWithInventory.DropItem).
     They make sure that items are correctly stacked, and that
     TInventoryItem.Owner3D and memory management is good. }
-  TInventory = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInventoryItem>)
+  TInventory = class({$ifdef FPC}specialize{$endif} TObjectList<TInventoryItem>)
   private
     FOwner3D: TAliveWithInventory;
   protected

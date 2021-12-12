@@ -19,12 +19,12 @@
 {$ifdef read_interface}
 
 type
-  TNodeAvailableInLibrary = object
+  TNodeAvailableInLibrary = record
     Element: TDOMElement;
     Handled: boolean;
   end;
   PNodeAvailableInLibrary = ^TNodeAvailableInLibrary;
-  TNodeAvailableInLibraryList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TNodeAvailableInLibrary>;
+  TNodeAvailableInLibraryList = {$ifdef FPC}specialize{$endif} TStructList<TNodeAvailableInLibrary>;
 
 {$endif read_interface}
 
@@ -107,7 +107,7 @@ begin
     try
       while I.GetNext do
       begin
-        NodeAvail := LibraryNodesAvailable.Add;
+        NodeAvail := PNodeAvailableInLibrary(LibraryNodesAvailable.Add);
         NodeAvail^.Handled := false;
         NodeAvail^.Element := I.Current;
       end;

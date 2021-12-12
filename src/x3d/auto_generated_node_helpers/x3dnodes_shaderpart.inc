@@ -30,9 +30,9 @@
     procedure SetShaderType(const Value: TShaderType);
   public
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: TCastleStringList);
+    procedure SetUrl(const Value: TCastleStringList); overload;
     { X3D field "type". } { }
     property ShaderType: TShaderType read GetShaderType write SetShaderType;
 

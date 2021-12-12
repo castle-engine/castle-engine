@@ -816,18 +816,20 @@ begin
   AssertTrue(Box.Contains2D(Vector3(2, 3, 10), 2));
   AssertTrue(not Box.Contains2D(Vector3(2, 3, 10), 0));
   AssertTrue(not Box.Contains2D(Vector3(2, 3, 10), 1));
-  try
-    Box.Contains2D(Vector3(2, 3, 10), 3);
-    Fail('Above Contains2D with IgnoreIndex = 3 should raise exception');
-  except end;
+  // This is disallowed at compile-time now, as argument is T3DAxis
+  // try
+  //   Box.Contains2D(Vector3(2, 3, 10), 3);
+  //   Fail('Above Contains2D with IgnoreIndex = 3 should raise exception');
+  // except end;
 
   AssertSameValue(Sqrt(Sqr(5) + Sqr(6)), Box.Radius2D(0), 0.01);
   AssertSameValue(Sqrt(Sqr(4) + Sqr(6)), Box.Radius2D(1), 0.01);
   AssertSameValue(Sqrt(Sqr(4) + Sqr(5)), Box.Radius2D(2), 0.01);
-  try
-    Box.Radius2D(3);
-    Fail('Above Radius2D with IgnoreIndex = 3 should raise exception');
-  except end;
+  // This is disallowed at compile-time now, as argument is T3DAxis
+  // try
+  //   Box.Radius2D(3);
+  //   Fail('Above Radius2D with IgnoreIndex = 3 should raise exception');
+  // except end;
 
   AssertSameValue(Sqrt(Sqr(4) + Sqr(5) + Sqr(6)), Box.Radius, 0.01);
 

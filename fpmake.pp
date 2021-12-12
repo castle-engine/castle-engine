@@ -417,6 +417,16 @@ begin
     P.Targets.AddUnit('PasGLTF.pas');
     P.Targets.AddUnit('PasJSON.pas');
 
+    { Vampyre Imaging Library.
+      We do not list particular units, as it simpler, and listing units is not necessary. }
+    P.SourcePath.Add('src' + PathDelim + 'vampyre_imaginglib' + PathDelim + 'src' + PathDelim + 'Source');
+    P.SourcePath.Add('src' + PathDelim + 'vampyre_imaginglib' + PathDelim + 'src' + PathDelim + 'Source' + PathDelim + 'JpegLib');
+    P.SourcePath.Add('src' + PathDelim + 'vampyre_imaginglib' + PathDelim + 'src' + PathDelim + 'Source' + PathDelim + 'ZLib');
+    P.SourcePath.Add('src' + PathDelim + 'vampyre_imaginglib' + PathDelim + 'src' + PathDelim + 'Extras' + PathDelim + 'Extensions');
+    P.SourcePath.Add('src' + PathDelim + 'vampyre_imaginglib' + PathDelim + 'src' + PathDelim + 'Extensions' + PathDelim + 'J2KObjects');
+    P.SourcePath.Add('src' + PathDelim + 'vampyre_imaginglib' + PathDelim + 'src' + PathDelim + 'Extensions' + PathDelim + 'LibTiff');
+    P.SourcePath.Add('src' + PathDelim + 'vampyre_imaginglib' + PathDelim + 'src' + PathDelim + 'Extensions');
+
     Run;
   end;
 end.

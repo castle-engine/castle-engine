@@ -168,8 +168,15 @@
         (Value parameter in TX3DEventReceive callback),
         in case they correspond to a fading-in or fading-out animation. }
       FPartialSend: TPartialSend;
-      FPartialSendIgnore: Cardinal; static;
 
+      {$ifndef FPC}
+      function GetInternalPartialSend: TPartialSend;
+      procedure SetInternalPartialSend(const Value: TPartialSend);
+      {$endif}
+    class var
+      FPartialSendIgnore: Cardinal;
+
+    var
       { Used by fields that have their value affected by the fading-in/fading-out
         animation. }
       PartialReceived: TPartialReceived;
@@ -341,7 +348,7 @@
       parsing (like names for TSFEnum and TSFBitMask) or allowed
       future values (like TSFFloat.MustBeNonnegative).
     }
-    function Equals(SecondValue: TX3DField): boolean; virtual; reintroduce;
+    function Equals(SecondValue: TX3DField): boolean; reintroduce; virtual;
 
     { Compare value of this field, with other field, fast.
 
@@ -543,7 +550,7 @@
         @item(Otherwise, we will just set the fields value.
           And then notify the scenes (including events engine).)
       ) }
-    procedure Send(Value: TX3DField);
+    procedure Send(Value: TX3DField); overload;
 
     { Notifications when exposed field received new value through VRML/X3D event.
       Use only for exposed fields.
@@ -571,7 +578,8 @@
     { @exclude Internal routine, needed by animation blending. }
     procedure InternalRemovePartial;
     { @exclude Internal property, needed by animation blending. }
-    property InternalPartialSend: TPartialSend read FPartialSend write FPartialSend;
+    property InternalPartialSend: TPartialSend {$ifdef FPC} read FPartialSend
+      write FPartialSend {$else} read GetInternalPartialSend write SetInternalPartialSend {$endif};
     { @exclude Internal property, needed by animation code.
       Saves the current field value,
       to be used as "value when this field is not animated". }
@@ -582,7 +590,7 @@
     procedure InternalRestoreSaveValue;
   end;
 
-  TX3DFieldList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
+  TX3DFieldList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DField>)
   strict private
     function GetByName(const AName: string): TX3DField;
   public
@@ -781,17 +789,17 @@ begin
     begin
       if ExposedEventsLinked then
         FExposedEvents[true].AddNotification(
-          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive)
+          {$ifdef FPC}@{$endif} ExposedEventReceive)
       else
         FExposedEvents[true].RemoveNotification(
-          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
+          {$ifdef FPC}@{$endif} ExposedEventReceive);
     end;
   end;
 end;
 
 class function TX3DField.ExposedEventsFieldClass: TX3DFieldClass;
 begin
-  Result := TX3DFieldClass(ClassType);
+  Result := {$ifdef FPC} TX3DFieldClass(ClassType) {$else} Self {$endif};
 end;
 
 class function TX3DField.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -824,12 +832,12 @@ begin
 
       if ExposedEventsLinked then
         FExposedEvents[true].AddNotification(
-          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
+          {$ifdef FPC}@{$endif} ExposedEventReceive);
     end else
     begin
       if ExposedEventsLinked then
         FExposedEvents[true].RemoveNotification(
-          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
+          {$ifdef FPC}@{$endif} ExposedEventReceive);
 
       FreeAndNil(FExposedEvents[false]);
       FreeAndNil(FExposedEvents[true]);
@@ -1057,7 +1065,7 @@ procedure TX3DField.AssignValue(Source: TX3DField);
         PartialReceived.PartialValue, Source);
     end;
     Assert(PartialReceived.ToBeApplied); // we have initialized PartialReceived.PartialValue
-    PartialReceived.Partial += PartialSend.Partial;
+    PartialReceived.Partial := PartialReceived.Partial + PartialSend.Partial;
     // note that we can add duplicates to PartialSend.AffectedFields, that's OK
     PartialSend.AffectedFields.Add(Self);
   end;
@@ -1185,6 +1193,18 @@ begin
   FExposedEvents[false].RemoveNotification(Notification);
 end;
 
+{$ifndef FPC}
+function TX3DField.GetInternalPartialSend: TPartialSend;
+begin
+  Result := FPartialSend;
+end;
+
+procedure TX3DField.SetInternalPartialSend(const Value: TPartialSend);
+begin
+  FPartialSend := Value;
+end;
+{$endif}
+
 { TX3DFieldList ------------------------------------------------------------- }
 
 function TX3DFieldList.IndexOfName(const AName: string): integer;
@@ -1228,7 +1248,10 @@ begin
     Result := IndexOfName(Copy(EventName, 1,
       Length(EventName) - Length(ChangedSuffix)));
   end else
+  begin
     Result := -1;
+    InEvent := false; // unused, silence Delphi warning
+  end;
 
   { check is field really exposed now }
   if (Result <> -1) and (not Items[Result].Exposed) then

@@ -124,7 +124,7 @@ function Vector2Integer(const X, Y: Integer): TVector2Integer; inline;
 function Vector3Integer(const X, Y, Z: Integer): TVector3Integer; inline;
 function Vector4Integer(const X, Y, Z, W: Integer): TVector4Integer; inline;
 
-function Vector2(const V: TVector2Integer): TVector2; overload; inline;
+function Vector2(const V: TVector2Integer): TVector2; overload; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
 (*
 Not defined for now, it's not obvious whether this is the most intuitive Lerp.

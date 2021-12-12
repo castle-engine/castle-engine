@@ -111,7 +111,7 @@ type
         function Summary(const Indent: String): String;
       end;
 
-      TTimeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTime>;
+      TTimeList = {$ifdef FPC}specialize{$endif} TObjectList<TTime>;
 
       TTimes = class(TTimeList)
         procedure Sort;
@@ -257,9 +257,9 @@ end;
 
 procedure TCastleProfiler.TTimes.Sort;
 type
-  TTimeComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TTime>;
+  TTimeComparer = {$ifdef FPC}specialize{$endif} TComparer<TTime>;
 begin
-  inherited Sort(TTimeComparer.Construct({$ifdef CASTLE_OBJFPC}@{$endif} TimeSort));
+  inherited Sort(TTimeComparer.Construct({$ifdef FPC}@{$endif} TimeSort));
 end;
 
 function TCastleProfiler.TTimes.Summary(const Indent: String): String;

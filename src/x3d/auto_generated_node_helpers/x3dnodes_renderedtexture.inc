@@ -32,17 +32,17 @@
     procedure SetRepeatR(const Value: Boolean);
   public
     { Set X3D field "dimensions". } { }
-    procedure SetDimensions(const Value: array of LongInt);
+    procedure SetDimensions(const Value: array of LongInt); overload;
     { Set X3D field "dimensions". } { }
-    procedure SetDimensions(const Value: TLongIntList);
+    procedure SetDimensions(const Value: TLongIntList); overload;
     { X3D field "textureProperties". } { }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
     { X3D field "repeatR". } { }
     property RepeatR: Boolean read GetRepeatR write SetRepeatR;
     { Set X3D field "depthMap". } { }
-    procedure SetDepthMap(const Value: array of boolean);
+    procedure SetDepthMap(const Value: array of boolean); overload;
     { Set X3D field "depthMap". } { }
-    procedure SetDepthMap(const Value: TBooleanList);
+    procedure SetDepthMap(const Value: TBooleanList); overload;
 
 {$endif read_interface}
 

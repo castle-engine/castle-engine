@@ -36,7 +36,7 @@ uses SysUtils, Classes, Generics.Collections, Contnrs,
 
 implementation
 
-uses Math,
+uses Math, {$ifndef FPC} Character,{$endif}
   CastleGLUtils, CastleUtils, CastleComponentSerialize, CastleInternalRichText,
   CastleLog, CastleURIUtils, CastleRenderContext;
 

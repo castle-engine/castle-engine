@@ -57,8 +57,8 @@ begin
   ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
 
   { attach events }
-  ButtonNewGame.OnClick := @ClickNewGame;
-  ButtonQuit.OnClick := @ClickQuit;
+  ButtonNewGame.OnClick := {$ifdef FPC}@{$endif}ClickNewGame;
+  ButtonQuit.OnClick := {$ifdef FPC}@{$endif}ClickQuit;
 
   // on some platforms, showing "Quit" button is not standard
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;

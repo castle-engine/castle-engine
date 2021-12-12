@@ -58,9 +58,9 @@
       The final length, returned here, is
 
       @unorderedList(
-        @item(In case of TAudioClipNode: sound duration divided by @link(TAudioClipNode.Pitch).)
+        @item(In case of TAudioClipNode: sound duration divided by @link(TAbstractSoundSourceNode.Pitch).)
 
-        @item(In case of TMovieTextureNode: movie duration divided by @link(MovieTexture.Speed).)
+        @item(In case of TMovieTextureNode: movie duration divided by @link(TMovieTextureNode.Speed).)
 
         @item(In case of TTimeSensorNode: just @link(TTimeSensorNode.CycleInterval).)
       ) }
@@ -657,8 +657,8 @@ begin
 
   AddFunctionality(FTimeFunctionality);
 
-  FdStartTime.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenActive;
-  FdStopTime.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreStopTime;
+  FdStartTime.OnInputIgnore := {$ifdef FPC}@{$endif} IgnoreWhenActive;
+  FdStopTime.OnInputIgnore := {$ifdef FPC}@{$endif} IgnoreStopTime;
 end;
 
 function TAbstractTimeDependentNode.IgnoreWhenActive(
@@ -706,12 +706,12 @@ begin
   { set FTimeFunctionality properties }
   FTimeFunctionality.FdEnabled := FdEnabled;
   FTimeFunctionality.EventCycleTime := EventCycleTime;
-  FTimeFunctionality.OnCycleInterval := {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
+  FTimeFunctionality.OnCycleInterval := {$ifdef FPC}@{$endif} GetCycleInterval;
 
   { On receiving new elapsedTime, we send other continuous events. }
-  EventElapsedTime.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventElapsedTimeReceive);
+  EventElapsedTime.AddNotification({$ifdef FPC}@{$endif} EventElapsedTimeReceive);
 
-  FdCycleInterval.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenActive;
+  FdCycleInterval.OnInputIgnore := {$ifdef FPC}@{$endif} IgnoreWhenActive;
 
   { cycleTime_changed name is used e.g. by
     www.web3d.org/x3d/content/examples/Basic/StudentProjects/WallClock.x3d }

@@ -17,7 +17,11 @@ unit CastleInternalPng;
   {$I castleinternalpng_static.inc}
 
 {$elseif defined(CASTLE_PNG_DYNAMIC)}
-  {$info PNG loading with dynamic Libpng (fallback on FPImage)}
+  {$ifdef FPC}
+    {$info PNG loading with dynamic Libpng (fallback on FPImage)}
+  {$else}
+    {$message Hint 'PNG loading with dynamic Libpng (fallback on FPImage)'}
+  {$endif}
   {$I castleinternalpng_dynamic.inc}
 
 {$else}

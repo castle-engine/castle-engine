@@ -2,7 +2,7 @@
 <project name="simple_3d_demo"
   caption="Simple 3D Demo"
   qualified_name="io.castleengine.simple.threed.demo"
-  standalone_source="simple_3d_demo_standalone.lpr"
+  standalone_source="simple_3d_demo_standalone.dpr"
   game_units="GameInitialize"
 >
   <version value="1.0" code="1" />

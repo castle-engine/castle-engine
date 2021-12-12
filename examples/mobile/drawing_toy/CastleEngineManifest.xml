@@ -2,7 +2,7 @@
 <project name="drawing_toy"
   caption="Drawing Toy"
   qualified_name="io.castleengine.drawing.toy"
-  standalone_source="drawing_toy_standalone.lpr"
+  standalone_source="drawing_toy_standalone.dpr"
   game_units="GameInitialize"
 >
   <package>

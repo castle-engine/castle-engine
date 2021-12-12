@@ -40,7 +40,7 @@
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
-        <Filename Value="load_model_and_camera_manually.lpr"/>
+        <Filename Value="load_model_and_camera_manually.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

@@ -68,7 +68,7 @@ var
   PropType: PTypeInfo;
 begin
   Name := PropInfo^.Name;
-  PropType := PropInfo^.PropType;
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
 
   Result := true;
   case PropType^.Kind of
@@ -76,14 +76,18 @@ begin
       Value := IntToStr(GetOrdProp(PropObject, PropInfo));
     tkEnumeration:
       Value := GetEnumName(PropType, GetOrdProp(PropObject, PropInfo));
+{$ifndef FPUNONE}
     tkFloat:
       Value := FloatToStrDot(GetFloatProp(PropObject, PropInfo));
+{$endif}
     //tkSet: TODO
     tkChar:
       Value := Char(GetOrdProp(PropObject, PropInfo));
-    tkSString,
-    tkLString,
-    tkAString:
+{$ifdef FPC}
+    tkSString, tkLString, tkAString:
+{$else}
+    tkString, tkLString:
+{$endif}
       Value := GetStrProp(PropObject, PropInfo);
     tkWString:
       Value := UTF8Encode(GetWideStrProp(PropObject, PropInfo));
@@ -93,12 +97,16 @@ begin
       Value := ObjectToString(GetObjectProp(PropObject, PropInfo));
     tkWChar:
       Value := UTF8Encode(WideChar(GetOrdProp(PropObject, PropInfo)));
+{$ifdef FPC}
     tkBool:
       Value := BoolToStr(GetOrdProp(PropObject, PropInfo) <> 0, true);
+{$endif}
     tkInt64:
       Value := IntToStr(GetOrdProp(PropObject, PropInfo));
+{$ifdef FPC}
     tkQWord:
       Value := IntToStr(GetOrdProp(PropObject, PropInfo));
+{$endif}
     //tkObject:
     // tkArray,
     // tkRecord,
@@ -109,8 +117,10 @@ begin
     // tkMethod:
     tkUString :
       Value := UTF8Encode(GetWideStrProp(PropObject, PropInfo));
+{$ifdef FPC}
     tkUChar:
       Value := UTF8Encode(UnicodeChar(GetOrdProp(PropObject, PropInfo)));
+{$endif}
     else
       Result := false;
   end;

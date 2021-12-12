@@ -102,10 +102,10 @@ begin
     Enemies.Add(Enemy);
   end;
 
-  CheckboxCameraFollows.OnChange := @ChangeCheckboxCameraFollows;
-  CheckboxAimAvatar.OnChange := @ChangeCheckboxAimAvatar;
-  CheckboxDebugAvatarColliders.OnChange := @ChangeCheckboxDebugAvatarColliders;
-  CheckboxImmediatelyFixBlockedCamera.OnChange := @ChangeCheckboxImmediatelyFixBlockedCamera;
+  CheckboxCameraFollows.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxCameraFollows;
+  CheckboxAimAvatar.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxAimAvatar;
+  CheckboxDebugAvatarColliders.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxDebugAvatarColliders;
+  CheckboxImmediatelyFixBlockedCamera.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxImmediatelyFixBlockedCamera;
 
   { Make SceneAvatar collide using a sphere.
     Sphere is more useful than default bounding box for avatars and creatures

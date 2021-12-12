@@ -143,7 +143,7 @@ type
     MimeTypeEvent: TUrlMimeTypeEvent;
   end;
 
-  TRegisteredProtocols = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredProtocol>)
+  TRegisteredProtocols = class({$ifdef FPC}specialize{$endif} TObjectList<TRegisteredProtocol>)
     { @nil if not found. }
     function Find(const Protocol: String): TRegisteredProtocol;
 
@@ -198,51 +198,51 @@ begin
     // register default protocols handled in this unit
     {$if defined(ANDROID)}
     FRegisteredProtocols.Add('http', nil, nil, THttpAndroidReader,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('https', nil, nil, THttpAndroidReader,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     {$elseif defined(HAS_FP_HTTP_CLIENT)}
     FRegisteredProtocols.Add('http', nil, nil, TFpHttpClientReader,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('https', nil, nil, TFpHttpClientReader,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     {$endif}
     FRegisteredProtocols.Add('',
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.Write, nil,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Read,
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Write, nil,
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('file',
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.Write, nil,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Read,
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Write, nil,
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     {$if defined(ANDROID)}
     FRegisteredProtocols.Add('assets',
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCastleAndroidAssets{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read, nil, nil,
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('castle-android-assets',
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCastleAndroidAssets{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read, nil, nil,
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     {$endif}
     FRegisteredProtocols.Add('castle-data', nil, nil, nil,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('data',
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlData{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlData{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlData{$ifdef FPC}(nil){$endif}.Read, nil, nil,
+      {$ifdef FPC}@{$endif} TUrlData{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('ecmascript',
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlEcmaScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlEcmaScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.Read, nil, nil,
+      {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('javascript',
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlEcmaScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlEcmaScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.Read, nil, nil,
+      {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('castlescript',
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCastleScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCastleScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.Read, nil, nil,
+      {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('kambiscript',
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCastleScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCastleScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.Read, nil, nil,
+      {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('compiled',
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCompiled{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCompiled{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType);
+      {$ifdef FPC}@{$endif} TUrlCompiled{$ifdef FPC}(nil){$endif}.Read, nil, nil,
+      {$ifdef FPC}@{$endif} TUrlCompiled{$ifdef FPC}(nil){$endif}.MimeType);
   end;
   Result := FRegisteredProtocols;
 end;
@@ -250,13 +250,13 @@ end;
 procedure RegisterUrlProtocol(const Protocol: String;
   const ReadEvent: TUrlReadEvent;
   const WriteEvent: TUrlWriteEvent;
-  const AsynchronousReader: TUrlAsynchronousReaderClass;
+  const AsynchronousReader: TUrlAsynchronousReaderClass = nil;
   const DetectMimeTypeFromExtension: Boolean = true);
 var
   MimeTypeEvent: TUrlMimeTypeEvent;
 begin
   if DetectMimeTypeFromExtension then
-    MimeTypeEvent := {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.MimeType
+    MimeTypeEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType
   else
     MimeTypeEvent := nil;
   RegisteredProtocols.Add(Protocol, ReadEvent, WriteEvent, AsynchronousReader, MimeTypeEvent);

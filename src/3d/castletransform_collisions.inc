@@ -56,6 +56,9 @@ function TCastleTransform.LocalMoveCollision(
 var
   I: Integer;
 begin
+  Result := true;
+  NewPos := ProposedNewPos;
+
   if GetCollides then
   begin
     { We call MoveCollision with separate ProposedNewPos and NewPos
@@ -87,10 +90,6 @@ begin
         if not Result then Exit;
       end;
     end;
-  end else
-  begin
-    Result := true;
-    NewPos := ProposedNewPos;
   end;
 end;
 
@@ -237,7 +236,7 @@ begin
 
     if Result <> nil then
     begin
-      NewNode := Result.Add;
+      NewNode := PRayCollisionNode(Result.Add);
       PreviousNode := @(Result.List^[Result.Count - 2]);
       NewNode^.Item := Self;
       NewNode^.Point := PreviousNode^.Point;

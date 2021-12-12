@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../Xsl/doc2html.xsl"?>
+<doc>
+  <title>How to ... (Low Level)</title>
+  <chapter>
+    <title>How to ... (Low Level)</title>
+    <par>Here you can find information how to perform some
+    basic actions using Imaging library.</par>
+    <linklist>
+      <title>In This Section</title>
+      <lslink url="Loading.xml">Loading Images</lslink>
+      <lslink url="Saving.xml">Saving Images</lslink>
+      <lslink url="Manipulating.xml">Manipulating Images</lslink>
+      <lslink url="UsingDll.xml">Using dll/so access</lslink>
+      <lslink url="DdsFiles.xml">Loading and Saving DDS Files</lslink>
+    </linklist>
+    
+  </chapter>
+</doc>

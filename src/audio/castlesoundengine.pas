@@ -52,9 +52,9 @@ implementation
 uses XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleLog, CastleProgress, CastleInternalVorbisFile,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
-  CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties,
-  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} CastleOpenALSoundBackend, {$endif}
-  CastleComponentSerialize;
+  CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}, CastleOpenALSoundBackend{$endif}
+  , CastleComponentSerialize;
 
 {$define read_implementation}
 {$I castlesoundengine_miscellaneous.inc} // must be first, as defines some internal globals

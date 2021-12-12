@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>High Level Interface</title>
+  <chapter>
+    <title>High Level Interface</title>
+    <par>Imaging's high level interface is set of classes build on top
+    of low level interface
+    implemented in <ref>ImagingClasses.pas</ref> unit.
+    It is <b>Object Pascal</b> only, therefore it is not accessible
+    from other programming languages (although creating high level interface
+    for other languages using low level interface imported from dll/so should not
+    be difficult).</par>
+
+    <par>High level interface
+    consists of the base class <ref>TBaseImage</ref> with two descendant classes.
+    The first is <ref>TSingleImage</ref> and it is high level wrapper to <ref>TImageData</ref>
+    structure. The second is <ref>TMultiImage</ref> and it is wrapper to 
+    <ref>TDynImageDataArray</ref> array.</par>
+    
+    <par>These classes provide access to all members of underlying structures
+    trough properties. This access is read/write so you can for example
+    convert image to another format by setting <icode>Format</icode> property
+    to new value. You can also assign single image to multi image and vice versa.
+    Some image manipulation functions are integrated into high level interface.
+    However, you can use even those that are not integrated
+    with high level images classes. You can find information
+    how to do this and more in the following pages.</par>
+    
+    <linklist>
+      <title>Information about usage of the high level interface</title>   
+      <lslink url="../Procedures/Procedures.xml">How To ... </lslink>
+      <lslink url="../Demos/Pascal.xml">Object Pascal Demos</lslink>
+    </linklist>   
+   
+  </chapter>
+</doc>

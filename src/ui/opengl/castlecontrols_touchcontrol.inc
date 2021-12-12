@@ -61,7 +61,7 @@
     property Position: TCastleTouchPosition
       read FPosition write SetPosition default tpManual;
 
-    property Scale: Single read FScale write SetScale default 1;
+    property Scale: Single read FScale write SetScale {$ifdef FPC}default 1{$endif};
   end deprecated 'use TCastleTouchNavigation';
 
 {$endif read_interface}

@@ -48,9 +48,9 @@
     { X3D field "order". } { }
     public property FdOrder: TMFInt32 read FFdOrder;
     { Set X3D field "order". } { }
-    procedure SetOrder(const Value: array of LongInt);
+    procedure SetOrder(const Value: array of LongInt); overload;
     { Set X3D field "order". } { }
-    procedure SetOrder(const Value: TLongIntList);
+    procedure SetOrder(const Value: TLongIntList); overload;
 
 {$endif read_interface}
 

@@ -37,7 +37,7 @@ type
     OpenProject: TCastleOpenDialog;
     ImageLogo: TImage;
     LabelTitle: TLabel;
-    PanelWarningFpcLazarus: TPanel;
+    PanelWarningMissingCompiler: TPanel;
     PopupMenuRecentProjects: TPopupMenu;
     procedure ButtonPreferencesClick(Sender: TObject);
     procedure ButtonNewClick(Sender: TObject);
@@ -51,7 +51,7 @@ type
     CommandLineHandled: Boolean;
     procedure MenuItemRecentClick(Sender: TObject);
     procedure OpenProjectFromCommandLine;
-    procedure UpdateWarningFpcLazarus;
+    procedure UpdateWarningMissingCompiler;
     { Open ProjectForm.
       ManifestUrl may be absolute or relative here. }
     procedure ProjectOpen(ManifestUrl: string);
@@ -179,7 +179,7 @@ end;
 procedure TChooseProjectForm.ButtonPreferencesClick(Sender: TObject);
 begin
   PreferencesForm.ShowModal;
-  UpdateWarningFpcLazarus;
+  UpdateWarningMissingCompiler;
 end;
 
 procedure TChooseProjectForm.ButtonOpenRecentClick(Sender: TObject);
@@ -262,30 +262,35 @@ procedure TChooseProjectForm.FormShow(Sender: TObject);
 begin
   ButtonOpenRecent.Enabled := RecentProjects.URLs.Count <> 0;
   OpenProjectFromCommandLine;
-  UpdateWarningFpcLazarus;
+  UpdateWarningMissingCompiler;
 end;
 
-procedure TChooseProjectForm.UpdateWarningFpcLazarus;
+procedure TChooseProjectForm.UpdateWarningMissingCompiler;
 
-  function FpcOrLazarusMissing: Boolean;
+  function CompilerFound: Boolean;
   begin
-    Result := true;
+    Result := false;
     try
       FindExeFpcCompiler;
       FpcVersion;
-      FindExeLazarusIDE;
-      Result := false;
+      Result := true;
     except
       { FindExeFpcCompiler or FindExeLazarusIDE exit with EExecutableNotFound,
         but FpcVersion may fail with any Exception unfortunately
         (it runs external process, and many things can go wrong). }
       on E: Exception do
+      begin
         WritelnLog('FPC or Lazarus not detected, or cannot run FPC to get version: ' + ExceptMessage(E));
+
+        { if FPC failed, try to find Delphi }
+        if FindDelphiPath(false) <> '' then
+          Result := true;
+      end;
     end;
   end;
 
 begin
-  PanelWarningFpcLazarus.Visible := FpcOrLazarusMissing;
+  PanelWarningMissingCompiler.Visible := not CompilerFound;
 end;
 
 procedure TChooseProjectForm.MenuItemRecentClick(Sender: TObject);

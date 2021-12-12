@@ -72,7 +72,7 @@ begin
         [I,
          Container.Touches[I].FingerIndex,
          Container.Touches[I].Position.ToString ]));
-    UIFont.PrintStrings(10, 10, Yellow, S, false, 2);
+    FallbackFont.PrintStrings(10, 10, Yellow, S, false, 2);
   finally FreeAndNil(S) end;
 end;
 

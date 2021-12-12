@@ -64,11 +64,11 @@ begin
   ButtonPlayOrthogonal := DesignedComponent('ButtonPlayOrthogonal') as TCastleButton;
   ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
 
-  ButtonPlayHexagonal.OnClick := @ClickHexagonal;
-  ButtonPlayIsometricStaggered.OnClick := @ClickIsometricStaggered;
-  ButtonPlayIsometric.OnClick := @ClickIsometric;
-  ButtonPlayOrthogonal.OnClick := @ClickOrthogonal;
-  ButtonQuit.OnClick := @ClickQuit;
+  ButtonPlayHexagonal.OnClick := {$ifdef FPC}@{$endif}ClickHexagonal;
+  ButtonPlayIsometricStaggered.OnClick := {$ifdef FPC}@{$endif}ClickIsometricStaggered;
+  ButtonPlayIsometric.OnClick := {$ifdef FPC}@{$endif}ClickIsometric;
+  ButtonPlayOrthogonal.OnClick := {$ifdef FPC}@{$endif}ClickOrthogonal;
+  ButtonQuit.OnClick := {$ifdef FPC}@{$endif}ClickQuit;
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 end;
 

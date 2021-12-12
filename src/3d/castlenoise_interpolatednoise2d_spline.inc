@@ -11,8 +11,8 @@ begin
   X3 := X2 + 1;
   Y3 := Y2 + 1;
 
-  XFrac := Frac(X); if XFrac < 0 then XFrac += 1;
-  YFrac := Frac(Y); if YFrac < 0 then YFrac += 1;
+  XFrac := Frac(X); if XFrac < 0 then XFrac := XFrac + 1;
+  YFrac := Frac(Y); if YFrac < 0 then YFrac := YFrac + 1;
 
   Result := CatmullRom(
     CatmullRom( IntegerNoise(X0, Y0, Seed), IntegerNoise(X1, Y0, Seed), IntegerNoise(X2, Y0, Seed), IntegerNoise(X3, Y0, Seed), XFrac),

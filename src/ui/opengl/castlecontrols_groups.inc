@@ -56,8 +56,8 @@
     property FrameColor: TCastleColor read FFrameColor write SetFrameColor;
   published
     property Frame: boolean read FFrame write SetFrame default false;
-    property Padding: Single read FPadding write SetPadding default DefaultPadding;
-    property Spacing: Single read FSpacing write SetSpacing default DefaultSpacing;
+    property Padding: Single read FPadding write SetPadding {$ifdef FPC}default DefaultPadding{$endif};
+    property Spacing: Single read FSpacing write SetSpacing {$ifdef FPC}default DefaultSpacing{$endif};
 
     { Whether the control's size is automatically adjusted to wrap children
       tightly.

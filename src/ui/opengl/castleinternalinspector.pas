@@ -14,7 +14,7 @@
 }
 
 { Inspect Castle Game Engine state at runtime (TCastleInspector).
-  Invoke this automatically in debug builds by F12 (see @link(TCastleContainer.InspectorKey)). }
+  Invoke this automatically in debug builds by F8 (see @link(TCastleContainer.InputInspector)). }
 unit CastleInternalInspector;
 
 {$I castleconf.inc}
@@ -28,7 +28,7 @@ uses Classes, Generics.Collections, TypInfo,
 type
   { Inspect Castle Game Engine state.
     Show log, current UI and viewports state.
-    Invoke this automatically in debug builds by F12 (see @link(TCastleContainer.InspectorKey)). }
+    Invoke this automatically in debug builds by F8 (see @link(TCastleContainer.InputInspector)). }
   TCastleInspector = class(TCastleUserInterfaceFont)
   strict private
     const
@@ -387,7 +387,9 @@ var
     end;
 
     HierarchyButton.Caption := Caption;
-    HierarchyButton.Tag := PtrUInt(C);
+    { TComponent.Tag is a (signed) PtrInt in FPC, (signed) NativeInt in Delphi,
+      so typecast to PtrInt to avoid range check errors. }
+    HierarchyButton.Tag := PtrInt(C);
 
     Inc(RowIndex);
   end;
@@ -567,6 +569,7 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
   var
     I: Integer;
   begin
+    Result := nil;
     for I := Container.Controls.Count - 1 downto 0 do
       if Container.Controls[I] <> Self then
       begin
@@ -614,9 +617,9 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
     C: TComponent;
   begin
     case AutoSelect of
-     asNothing: C := nil;
      asUi: C := HoverUserInterface(Container.MousePosition);
      asTransform: C := HoverTransform(Container.MousePosition);
+     else Exit; // on asNothing, just Exit
    end;
    { do not change SelectedComponent to nil, this avoids e.g. unselecting UI when going into
      asTransform mode for a short time. }
@@ -627,15 +630,19 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
 const
   { Delay between updating properties. }
   UpdatePropertiesValuesInterval = 0.5;
+var
+  InspectorInputStr: String;
 begin
   inherited;
   UpdateHierarchy(nil);
 
   LabelProfilerHeader.Caption := 'Profiler | Current FPS: ' + Container.Fps.ToString;
 
-  LabelInspectorHelp.Exists := Container.InspectorKey <> keyNone;
+  InspectorInputStr := Container.InputInspector.ToString;
+  LabelInspectorHelp.Exists := InspectorInputStr <> '';
   if LabelInspectorHelp.Exists then
-    LabelInspectorHelp.Caption := 'Press ' + KeyToStr(Container.InspectorKey) + ' to hide inspector';
+    LabelInspectorHelp.Caption := 'Hide inspector by ' + NL +
+      '  ' + InspectorInputStr + '.';
 
   UpdateAutoSelect;
 
@@ -991,7 +998,7 @@ begin
   Assert(Between(CurrentDataCount, 1, ProfilerDataCount));
 
   { Allocate all necessary memory for TVector2 arrays }
-  for Metric in TProfilerMetric do
+  for Metric := Low(TProfilerMetric) to High(TProfilerMetric) do
     SetLength(Triangles[Metric], 6 * (CurrentDataCount - 1));
   SetLength(PointsFps, CurrentDataCount);
 
@@ -1020,7 +1027,7 @@ begin
 
     PointsFps[Next.Index] := Vector2(X2, Lerp(Next.Fps, RR.Bottom, RR.Top));
 
-    for Metric in TProfilerMetric do
+    for Metric := Low(TProfilerMetric) to High(TProfilerMetric) do
     begin
       Y1 := Lerp(Previous.TimeSum[Metric], RR.Bottom, RR.Top);
       Y2 := Lerp(Next.TimeSum[Metric], RR.Bottom, RR.Top);
@@ -1036,7 +1043,7 @@ begin
 
   Assert(Next.Index + 1 = CurrentDataCount);
 
-  for Metric in TProfilerMetric do
+  for Metric := Low(TProfilerMetric) to High(TProfilerMetric) do
     DrawPrimitive2D(pmTriangles, Triangles[Metric], Colors[Metric]);
 
   DrawPrimitive2D(pmLineStrip, PointsFps, ColorFpsHex);

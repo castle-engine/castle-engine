@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="creature_behaviors"
-  standalone_source="creature_behaviors_standalone.lpr"
+  standalone_source="creature_behaviors_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.creature.behaviors"
   caption="Creature Behaviors"

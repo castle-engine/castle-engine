@@ -135,7 +135,7 @@ type
         Composite: TCompositeImage;
         AlphaChannel: TAlphaChannel;
       end;
-      TCachedTextureList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCachedTexture>;
+      TCachedTextureList = {$ifdef FPC}specialize{$endif} TObjectList<TCachedTexture>;
     var
       CachedTextures: TCachedTextureList;
   public

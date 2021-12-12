@@ -33,9 +33,9 @@
     { X3D field "color". } { }
     public property FdColor: TMFColor read FFdColor;
     { Set X3D field "color". } { }
-    procedure SetColor(const Value: array of TCastleColorRGB);
+    procedure SetColor(const Value: array of TCastleColorRGB); overload;
     { Set X3D field "color". } { }
-    procedure SetColor(const Value: TVector3List);
+    procedure SetColor(const Value: TVector3List); overload;
 
 {$endif read_interface}
 

@@ -103,7 +103,7 @@ type
     property Attacker: TCastleAliveBehavior read FAttacker write SetAttacker;
   published
     { Current Life. The object is considered "dead" when this is <= 0. }
-    property Life: Single read FLife write FLife default DefaultLife;
+    property Life: Single read FLife write FLife {$ifdef FPC}default DefaultLife{$endif};
 
     { Maximum amount of life.
       Can be also used for information (to display on player HUDs and such).
@@ -113,7 +113,7 @@ type
       to account for special game mechanisms,
       like "magic life boost to make health temporarily larger than normal".
       It is up to your game whether such situation will actually happen. }
-    property MaxLife: Single read FMaxLife write FMaxLife default DefaultLife;
+    property MaxLife: Single read FMaxLife write FMaxLife {$ifdef FPC}default DefaultLife{$endif};
   end;
 
 {$endif read_interface}
@@ -128,7 +128,7 @@ begin
   FLife := DefaultLife;
   FMaxLife := DefaultLife;
   FAttackerObserver := TFreeNotificationObserver.Create(Self);
-  FAttackerObserver.OnFreeNotification := @AttackerFreeNotification;
+  FAttackerObserver.OnFreeNotification := {$ifdef FPC}@{$endif}AttackerFreeNotification;
 end;
 
 procedure TCastleAliveBehavior.ParentChanged;
@@ -165,12 +165,11 @@ end;
 function TCastleAliveBehavior.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Life', 'MaxLife':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Life') or
+     (PropertyName = 'MaxLife') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 function TCastleAliveBehavior.Dead: Boolean;

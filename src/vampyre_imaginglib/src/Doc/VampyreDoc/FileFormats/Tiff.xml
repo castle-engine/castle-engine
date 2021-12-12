@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Tagged Image File Format</title>
+  <chapter>
+    <title>Tagged Image File Format</title>
+    <par>
+      TIFF is a flexible and adaptable file format.
+      It can handle multiple images and data in a single file through the
+      inclusion of "tags" in the file header.
+      Tags can indicate the basic geometry of the image, such as its size,
+      or define how the image data is arranged and whether various image compression
+      options are used.
+      For example, TIFF can be used as a container for JPEG and RLE
+      compressed images.
+      The ability to store image data in a
+      lossless format makes TIFF files a useful method for archiving images.
+      Other TIFF file options include multiple layers or pages.
+    </par>
+    <par>
+      Currently Imaging uses LibTiff C library to load and save TIFFs.
+      It can read and write most types of TIFF files.
+      But it is currently available only in Delphi (uses LibTiffDelphi object files)
+      and it can make your compiled binaries quite big (almost 400 KiB size increase
+      when compiled with TIFF support).
+      
+      If you don't need TIFF support and want smaller exe instead you 
+      can disable it by uncommenting <icode>{$DEFINE DONT_LINK_TIFF}</icode>
+      line in in <ref>ImagingExtras.pas</ref> unit.
+    </par>
+    
+    <par>
+      Native Object Pascal TIFF support is planned for some future Imaging release.
+    </par>
+    
+    <table>
+      <title>Tagged Image File Format File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+        <th>Loading</th>
+        <th>Saving</th>
+      </row>
+      <row>
+        <td>8 bit indexed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>24 bit RGB</td>
+        <td><icode>ifR8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>48 bit RGB</td>
+        <td><icode>ifR16G16B16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit ARGB</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>64 bit ARGB</td>
+        <td><icode>ifA16R16G16B16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>8 bit grayscale</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit grayscale</td>
+        <td><icode>ifGray16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit grayscale + alpha</td>
+        <td><icode>ifA8Gray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit grayscale + alpha</td>
+        <td><icode>ifA16Gray16</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit grayscale</td>
+        <td><icode>ifGray32</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit R FP16</td>
+        <td><icode>ifR16F</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>64 bit ARGB FP16</td>
+        <td><icode>ifA16R16G16B16F</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit R FP32</td>
+        <td><icode>ifR32F</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>128 bit ARGB FP32</td>
+        <td><icode>ifA32B32G32R32F</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>other types</td>
+        <td><icode>depends on type</icode></td>
+        <td>Yes/No</td><td>No</td>
+      </row>
+    </table>
+  </chapter>
+</doc>

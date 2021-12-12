@@ -116,12 +116,12 @@ end;
 
 function TCastlePlane.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'SizePersistent', 'Axis', 'DoubleSided':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'SizePersistent') or
+     (PropertyName = 'Axis') or
+     (PropertyName = 'DoubleSided') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastlePlane.SetSize(const Value: TVector2);

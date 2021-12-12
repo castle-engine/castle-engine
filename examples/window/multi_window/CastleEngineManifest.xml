@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="multi_window" standalone_source="multi_window.lpr">
+<project name="multi_window" standalone_source="multi_window.dpr">
   <data exists="false" />
 </project>

@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2018 Michalis Kamburelis.
+  Copyright 2000-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,7 +74,7 @@ procedure Strings_AddSplittedString(Strings: TStrings;
 
 { Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
   See [http://www.freepascal.org/mantis/view.php?id=6699] }
-procedure Strings_SetText(SList: TStrings; const S: string);
+procedure Strings_SetText(SList: TStrings; const S: String);
 
 { Make sure we don't have more than MaxCount strings on a list.
   Removes the last strings if necessary. }
@@ -90,16 +90,27 @@ function StreamReadLongWord(Stream: TStream): LongWord;
 procedure StreamWriteByte(Stream: TStream; const Value: Byte);
 function StreamReadByte(Stream: TStream): Byte;
 
-{ Write string contents, as 8-bit string (AnsiString), to stream.
-  This isn't a procedure to encode a string within a binary stream,
-  this only writes string contents (Length(S) bytes) into the stream.
-  Versions with "ln" append newline.
+{ Write string contents, encoded as 8-bit (UTF-8), to stream.
+  Versions with "Ln" suffix append a newline.
   Versions without Stream parameter write to StdOutStream.
+
+  Note: When compiled with Delphi, overloaded versions that take
+  Delphi 16-bit String convert it to 8-bit AnsiString,
+  and still write 8-bit. So the output stream contents are the same,
+  in both FPC and Delphi.
+
   @groupBegin }
-procedure WriteStr(Stream: TStream; const S: AnsiString); overload;
-procedure WritelnStr(Stream: TStream; const S: AnsiString); overload;
+procedure WriteStr(const Stream: TStream; const S: AnsiString); overload;
+procedure WritelnStr(const Stream: TStream; const S: AnsiString); overload;
 procedure WriteStr(const S: AnsiString); overload;
 procedure WritelnStr(const S: AnsiString); overload;
+
+{$ifndef FPC}
+procedure WriteStr(const Stream: TStream; const S: String); overload;
+procedure WritelnStr(const Stream: TStream; const S: String); overload;
+procedure WriteStr(const S: String); overload;
+procedure WritelnStr(const S: String); overload;
+{$endif}
 { @groupEnd }
 
 { Read one character from stream.
@@ -168,28 +179,45 @@ procedure ReadGrowingStream(const GrowingStream, DestStream: TStream;
 
 { Read a growing stream, and returns it's contents as a string.
   A "growing stream" is a stream that we can only read
-  sequentially, no seeks allowed, and size is unknown until we hit the end. }
-function ReadGrowingStreamToString(const GrowingStream: TStream): String;
+  sequentially, no seeks allowed, and size is unknown until we hit the end.
+  Works on 8-bit strings, i.e. AnsiStrings. }
+function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
 
 { Encode / decode a string in a binary stream. Records string length (4 bytes),
   then the string contents (Length(S) bytes).
+  Works on 8-bit strings, i.e. AnsiStrings.
   @groupBegin }
-procedure StreamWriteString(Stream: TStream; const s: string);
-function StreamReadString(Stream: TStream): string;
+procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
+function StreamReadString(const Stream: TStream): AnsiString;
 { @groupEnd }
 
 { Convert whole Stream to a string.
   Changes Stream.Position to 0 and then reads Stream.Size bytes,
-  so be sure that Stream.Size is usable. }
-function StreamToString(Stream: TStream): string;
+  so be sure that Stream.Size is usable.
+  Works on 8-bit strings, i.e. AnsiStrings. }
+function StreamToString(const Stream: TStream): AnsiString;
 
-{ Set contents of TMemoryStream to given string.
+{ Set contents of TMemoryStream to given string, in UTF-8 encoding.
   If Rewind then the position is reset to the beginning,
-  otherwise it stays at the end. }
+  otherwise it stays at the end.
+
+  Works on 8-bit strings, i.e. AnsiStrings. }
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: string; const Rewind: boolean = true); overload;
+  const S: AnsiString; const Rewind: boolean = true); overload;
 function MemoryStreamLoadFromString(
-  const S: string; const Rewind: boolean = true): TMemoryStream; overload;
+  const S: AnsiString; const Rewind: boolean = true): TMemoryStream; overload;
+
+{ Set contents of TMemoryStream to given string,
+  in UTF-8 or UTF-16 (matching default String) encoding.
+  If Rewind then the position is reset to the beginning,
+  otherwise it stays at the end.
+
+  On FPC, works with 8-bit strings (AnsiStrings) and is equivalent to MemoryStreamLoadFromString8.
+  On Delphi, works with 16-bit strings (UnicodeString), so the resulting stream size is 2x larger. }
+procedure MemoryStreamLoadFromDefaultString(const Stream: TMemoryStream;
+  const S: String; const Rewind: boolean = true); overload;
+function MemoryStreamLoadFromDefaultString(
+  const S: String; const Rewind: boolean = true): TMemoryStream; overload;
 
 type
   EStreamNotImplemented = class(Exception);
@@ -437,6 +465,7 @@ type
       end;
     var
       FNonVisualComponents: TComponentList;
+      FIsLoading: Boolean;
     function GetNonVisualComponents(const Index: Integer): TComponent;
     procedure SerializeNonVisualComponentsEnumerate(const Proc: TGetChildProc);
     procedure SerializeNonVisualComponentsAdd(const C: TComponent);
@@ -548,6 +577,12 @@ type
 
       @seealso AddNonVisualComponent }
     function NonVisualComponentsEnumerate: TNonVisualComponentsEnumerator;
+
+    { Is the component during deserialization now.
+
+      Note: We can't use @code(csLoading in ComponentState) because in Delphi
+      it is not possible to control it from CastleComponentSerialize. }
+    property IsLoading: Boolean read FIsLoading;
   end;
 
 { Enumerate all properties that are possible to translate in this component
@@ -670,19 +705,19 @@ type
   { Extended TObjectStack for Castle Game Engine. }
   TCastleObjectStack = class(Contnrs.TObjectStack)
   private
-    function GetCapacity: Integer;
-    procedure SetCapacity(const Value: Integer);
+    function GetCapacity: TListSize;
+    procedure SetCapacity(const Value: TListSize);
   public
-    property Capacity: Integer read GetCapacity write SetCapacity;
+    property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectQueue for Castle Game Engine. }
   TCastleObjectQueue = class(Contnrs.TObjectQueue)
   private
-    function GetCapacity: Integer;
-    procedure SetCapacity(const Value: Integer);
+    function GetCapacity: TListSize;
+    procedure SetCapacity(const Value: TListSize);
   public
-    property Capacity: Integer read GetCapacity write SetCapacity;
+    property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectList for Castle Game Engine. }
@@ -751,7 +786,7 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
-  TNotifyEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TNotifyEvent>)
+  TNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TNotifyEvent>)
   public
     { Call all (non-nil) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
@@ -878,7 +913,9 @@ type
 
 implementation
 
-uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
+uses
+  {$ifdef UNIX} {$ifdef FPC} Unix, {$endif} {$endif}
+  {$ifdef MSWINDOWS} Windows, {$endif}
   StrUtils, Math {$ifdef FPC}, StreamIO, RTTIUtils {$endif}, TypInfo;
 
 { TStrings helpers ------------------------------------------------------- }
@@ -919,7 +956,7 @@ begin
   Strings.Append(SEnding(S, Done + 1));
 end;
 
-procedure Strings_SetText(SList: TStrings; const S: string);
+procedure Strings_SetText(SList: TStrings; const S: String);
 begin
   if Length(S) = 1 then
     SList.Text := S + LineEnding else
@@ -954,12 +991,12 @@ begin
   Stream.ReadBuffer(Result, SizeOf(Result));
 end;
 
-procedure WriteStr(Stream: TStream; const S: AnsiString);
+procedure WriteStr(const Stream: TStream; const S: AnsiString);
 begin
   Stream.WriteBuffer(Pointer(S)^, Length(S));
 end;
 
-procedure WritelnStr(Stream: TStream; const S: AnsiString);
+procedure WritelnStr(const Stream: TStream; const S: AnsiString);
 begin
   WriteStr(Stream, S);
   WriteStr(Stream, nl);
@@ -974,6 +1011,32 @@ procedure WritelnStr(const S: AnsiString);
 begin
   WritelnStr(StdOutStream, S);
 end;
+
+{$ifndef FPC}
+{$warnings off}
+
+procedure WriteStr(const Stream: TStream; const S: String);
+begin
+  WriteStr(Stream, AnsiString(S));
+end;
+
+procedure WritelnStr(const Stream: TStream; const S: String);
+begin
+  WritelnStr(Stream, AnsiString(S));
+end;
+
+procedure WriteStr(const S: String);
+begin
+  WriteStr(AnsiString(S));
+end;
+
+procedure WritelnStr(const S: String);
+begin
+  WritelnStr(AnsiString(S));
+end;
+
+{$warnings on}
+{$endif}
 
 function StreamReadChar(Stream: TStream): AnsiChar;
 begin
@@ -1101,7 +1164,7 @@ begin
   if ResetDestStreamPosition then DestStream.Position := 0;
 end;
 
-function ReadGrowingStreamToString(const GrowingStream: TStream): String;
+function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
 const
   BufferSize = 10000;
 var
@@ -1117,7 +1180,7 @@ begin
   until false;
 end;
 
-procedure StreamWriteString(Stream: TStream; const s: string);
+procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
 var
   L: Integer;
 begin
@@ -1127,7 +1190,7 @@ begin
   if L > 0 then Stream.WriteBuffer(S[1], L);
 end;
 
-function StreamReadString(Stream: TStream): string;
+function StreamReadString(const Stream: TStream): AnsiString;
 var
   L: Integer;
 begin
@@ -1137,7 +1200,7 @@ begin
   if L > 0 then Stream.ReadBuffer(Result[1], L);
 end;
 
-function StreamToString(Stream: TStream): string;
+function StreamToString(const Stream: TStream): AnsiString;
 begin
   SetLength(Result, Stream.Size);
   Stream.Position := 0;
@@ -1145,7 +1208,7 @@ begin
 end;
 
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: string; const Rewind: boolean);
+  const S: AnsiString; const Rewind: boolean);
 begin
   Stream.Size := Length(S);
   if S <> '' then
@@ -1155,7 +1218,26 @@ begin
   end;
 end;
 
-function MemoryStreamLoadFromString(const S: string; const Rewind: boolean): TMemoryStream;
+function MemoryStreamLoadFromString(const S: AnsiString; const Rewind: boolean): TMemoryStream;
+begin
+  Result := TMemoryStream.Create;
+  try
+    MemoryStreamLoadFromString(Result, S, Rewind);
+  except FreeAndNil(Result); raise end;
+end;
+
+procedure MemoryStreamLoadFromDefaultString(const Stream: TMemoryStream;
+  const S: String; const Rewind: boolean);
+begin
+  Stream.Size := Length(S) * SizeOf(Char);
+  if S <> '' then
+  begin
+    Stream.WriteBuffer(S[1], Length(S) * SizeOf(Char));
+    if Rewind then Stream.Position := 0;
+  end;
+end;
+
+function MemoryStreamLoadFromDefaultString(const S: String; const Rewind: boolean): TMemoryStream;
 begin
   Result := TMemoryStream.Create;
   try
@@ -1377,7 +1459,7 @@ begin
     if LongWord(Count) < BufferSize then
     begin
       FillBuffer;
-      CopyCount := Min(Count, BufferEnd - BufferPos);
+      CopyCount := Min(LongWord(Count), BufferEnd - BufferPos);
       Move(Buffer^[0], PChar(@LocalBuffer)[Result], CopyCount);
       BufferPos := BufferPos + CopyCount;
       Result := Result + LongInt(CopyCount);
@@ -1556,15 +1638,16 @@ procedure TCastleComponent.InternalLoading;
 begin
   {$ifdef FPC}
   Loading;
-  {$else}
-  // TODO:
-  // How do we implement this in Delphi?
-  // ComponentState := ComponentState + [csLoading];
   {$endif}
+  FIsLoading := true;
 end;
 
 procedure TCastleComponent.InternalLoaded;
 begin
+  FIsLoading := false;
+
+  { We need to call Loaded because some things can be delayed to run after
+    loading for example TCastleSceneCore.UpdateAutoAnimation() }
   Loaded;
 end;
 
@@ -1583,12 +1666,12 @@ begin
     // reading Name would set Caption.
     // During loading, we assume that all component properties are to be deserialized from file,
     // and InternalText should not be automatically modified.
-    (not (csLoading in ComponentState)) and
+    (not IsLoading) and
     (Name = InternalText) and
-    // Do not update InternalText when Owner has csLoading.
+    // Do not update InternalText when Owner is during deserialization.
     ( (Owner = nil) or
-      (not (Owner is TComponent)) or
-      (not (csLoading in TComponent(Owner).ComponentState)));
+      (not (Owner is TCastleComponent)) or
+      (not TCastleComponent(Owner).IsLoading));
   // Note that this can raise exception is Value is not a valid name.
   inherited SetName(Value);
   if ChangeInternalText then
@@ -1642,9 +1725,9 @@ end;
 procedure TCastleComponent.CustomSerialization(const SerializationProcess: TSerializationProcess);
 begin
   SerializationProcess.ReadWrite('NonVisualComponents',
-    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsEnumerate,
-    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsAdd,
-    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsClear);
+    {$ifdef FPC}@{$endif} SerializeNonVisualComponentsEnumerate,
+    {$ifdef FPC}@{$endif} SerializeNonVisualComponentsAdd,
+    {$ifdef FPC}@{$endif} SerializeNonVisualComponentsClear);
 end;
 
 procedure TCastleComponent.SerializeNonVisualComponentsEnumerate(const Proc: TGetChildProc);
@@ -1718,7 +1801,7 @@ begin
     try
       GetChildrenHandler.TranslatePropertyEvent := TranslatePropertyEvent;
       TCastleComponent(C).GetChildren(
-        {$ifdef CASTLE_OBJFPC}@{$endif} GetChildrenHandler.TranslatePropertiesOnChild, nil);
+        {$ifdef FPC}@{$endif} GetChildrenHandler.TranslatePropertiesOnChild, nil);
     finally FreeAndNil(GetChildrenHandler) end;
   end;
 
@@ -1793,24 +1876,24 @@ end;
 
 { TCastleObjectStack ------------------------------------------------------------ }
 
-function TCastleObjectStack.GetCapacity: Integer;
+function TCastleObjectStack.GetCapacity: TListSize;
 begin
   Result := List.Capacity;
 end;
 
-procedure TCastleObjectStack.SetCapacity(const Value: Integer);
+procedure TCastleObjectStack.SetCapacity(const Value: TListSize);
 begin
   List.Capacity := Value;
 end;
 
 { TCastleObjectQueue ------------------------------------------------------------ }
 
-function TCastleObjectQueue.GetCapacity: Integer;
+function TCastleObjectQueue.GetCapacity: TListSize;
 begin
   Result := List.Capacity;
 end;
 
-procedure TCastleObjectQueue.SetCapacity(const Value: Integer);
+procedure TCastleObjectQueue.SetCapacity(const Value: TListSize);
 begin
   List.Capacity := Value;
 end;

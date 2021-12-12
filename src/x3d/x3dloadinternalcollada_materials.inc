@@ -18,7 +18,7 @@
 type
   { Collada materials. Data contains TColladaEffect, which is a reference
     to Effects list (it is not owned by this TColladaMaterialsMap). }
-  TColladaMaterialsMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TColladaEffect>;
+  TColladaMaterialsMap = {$ifdef FPC}specialize{$endif} TDictionary<string, TColladaEffect>;
 
 var
   { List of Collada materials. Collada material is just a reference

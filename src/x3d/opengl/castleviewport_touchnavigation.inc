@@ -150,7 +150,7 @@ type
       read FControlMouseDragMode write SetControlMouseDragMode default false;
 
     { Visual scale of the device. }
-    property Scale: Single read FScale write SetScale default 1.0;
+    property Scale: Single read FScale write SetScale {$ifdef FPC}default 1.0{$endif};
   end;
 
 {$endif read_interface}
@@ -180,7 +180,7 @@ begin
     Tx := 0; Ty := 0; Tz := 0; TLength := 0;
     Rx := 0; Ry := 0; Rz := 0; RAngle := 0;
 
-    for RightSide in Boolean do
+    for RightSide := Low(Boolean) to High(Boolean) do
       if FControl[RightSide] <> nil then
       begin
         FControl[RightSide].GetSensorTranslation(Tx, Ty, Tz, TLength);
@@ -365,7 +365,7 @@ begin
   if FScale <> Value then
   begin
     FScale := Value;
-    for RightSide in Boolean do
+    for RightSide := Low(Boolean) to High(Boolean) do
       if FControl[RightSide] <> nil then
         FControl[RightSide].Scale := FScale;
   end;

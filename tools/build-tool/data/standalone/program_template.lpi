@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="${LAZARUS_PROJECT_ALL_UNITS_COUNT}">
       <Unit0>
-        <Filename Value="${EXPLICIT_STANDALONE_LPR}"/>
+        <Filename Value="${EXPLICIT_STANDALONE_SOURCE}"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
 ${LAZARUS_PROJECT_ALL_UNITS}    </Units>

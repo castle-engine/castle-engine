@@ -108,12 +108,12 @@ type
     { Size of the text, given as height of a single line of text.
       See https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-CD/Part01/components/text.html#FontStyle
       for an illustrative image. }
-    property Size: Single read FSize write SetSize default 1.0;
+    property Size: Single read FSize write SetSize {$ifdef FPC}default 1.0{$endif};
 
     { Spacing between lines of text, to make lines more distant (with values > 1) or more squeezed (with values < 1).
       See https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-CD/Part01/components/text.html#FontStyle
       for an illustrative image. }
-    property Spacing: Single read FSpacing write SetSpacing default 1.0;
+    property Spacing: Single read FSpacing write SetSpacing {$ifdef FPC}default 1.0{$endif};
 
     { Adjust the font. }
     property CustomFont: TCastleFont read FCustomFont write SetCustomFont;
@@ -141,7 +141,7 @@ begin
   { default properties values }
   Material := pmUnlit;
   FText := TCastleStringList.Create;
-  (FText as TCastleStringList).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} TextChange;
+  (FText as TCastleStringList).OnChange := {$ifdef FPC}@{$endif} TextChange;
   FCaptionTranslate := true;
   FDoubleSided := true;
   FSize := 1;
@@ -150,7 +150,7 @@ begin
   FVerticalAlignment := vpBottom;
 
   FCustomFontObserver := TFreeNotificationObserver.Create(Self);
-  FCustomFontObserver.OnFreeNotification := @CustomFontFreeNotification;
+  FCustomFontObserver.OnFreeNotification := {$ifdef FPC}@{$endif}CustomFontFreeNotification;
 end;
 
 destructor TCastleText.Destroy;
@@ -161,13 +161,17 @@ end;
 
 function TCastleText.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Caption', 'Text', 'DoubleSided', 'Size', 'Spacing', 'Alignment', 'VerticalAlignment',
-    'CustomFont':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Caption') or
+     (PropertyName = 'Text') or
+     (PropertyName = 'DoubleSided') or
+     (PropertyName = 'Size') or
+     (PropertyName = 'Spacing') or
+     (PropertyName = 'Alignment') or
+     (PropertyName = 'VerticalAlignment') or
+     (PropertyName = 'CustomFont') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 function TCastleText.GetCaption: String;
@@ -304,10 +308,12 @@ begin
   if FCustomFont <> Value then
   begin
     if FCustomFont <> nil then
-      FCustomFont.RemoveFontSizeChangeNotification(@CustomFontSizeChanged);
+      FCustomFont.RemoveFontSizeChangeNotification(
+        {$ifdef FPC}@{$endif}CustomFontSizeChanged);
     FCustomFont := Value;
     if FCustomFont <> nil then
-      FCustomFont.AddFontSizeChangeNotification(@CustomFontSizeChanged);
+      FCustomFont.AddFontSizeChangeNotification(
+        {$ifdef FPC}@{$endif}CustomFontSizeChanged);
 
     // modify X3D nodes
     FontStyleNode.CustomFont := Value;

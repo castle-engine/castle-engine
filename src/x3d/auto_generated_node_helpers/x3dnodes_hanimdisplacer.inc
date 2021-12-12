@@ -38,17 +38,17 @@
     { X3D field "coordIndex". } { }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     { Set X3D field "coordIndex". } { }
-    procedure SetCoordIndex(const Value: array of LongInt);
+    procedure SetCoordIndex(const Value: array of LongInt); overload;
     { Set X3D field "coordIndex". } { }
-    procedure SetCoordIndex(const Value: TLongIntList);
+    procedure SetCoordIndex(const Value: TLongIntList); overload;
 
     strict private FFdDisplacements: TMFVec3f;
     { X3D field "displacements". } { }
     public property FdDisplacements: TMFVec3f read FFdDisplacements;
     { Set X3D field "displacements". } { }
-    procedure SetDisplacements(const Value: array of TVector3);
+    procedure SetDisplacements(const Value: array of TVector3); overload;
     { Set X3D field "displacements". } { }
-    procedure SetDisplacements(const Value: TVector3List);
+    procedure SetDisplacements(const Value: TVector3List); overload;
 
     strict private FFdName: TSFString;
     { X3D field "name". } { }

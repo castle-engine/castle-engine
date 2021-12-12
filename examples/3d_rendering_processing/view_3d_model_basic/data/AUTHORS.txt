@@ -1,0 +1,17 @@
+car.blend
+and associated textures/car*.png:
+
+    Copyright by Paweł Wojciechowicz.
+
+    From Cat-astrophe Games http://cat-astrophe-games.com/ ,
+    from our new game "Sad Sam" --- watch out for it at the beginning of 2017!
+
+    Shared on the same terms as the rest of Castle Game Engine
+    (GPL >= 2 or LGPL >= 2 with static linking exception, see COPYING.txt).
+    Thanks!
+
+tunnel_road.jpg
+
+    Copyright crack.com (creators of "Golgotha" game, never released).
+    From http://opengameart.org/content/golgotha-textures-tunnelroadjpg
+    License: CC0 (public domain)

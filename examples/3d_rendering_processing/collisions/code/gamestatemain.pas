@@ -29,7 +29,7 @@ type
     type
       TTestMode = (tmMove, tmBox, tmSphere, tmRay);
     var
-      { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+      { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
       LabelFps: TCastleLabel;
       TransformMoving: TCastleTransform;
       SceneMovingBox: TCastleScene;
@@ -89,10 +89,10 @@ begin
   ButtonTestRay := DesignedComponent('ButtonTestRay') as TCastleButton;
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
 
-  ButtonTestMove.OnClick := @ClickTestMove;
-  ButtonTestBox.OnClick := @ClickTestBox;
-  ButtonTestSphere.OnClick := @ClickTestSphere;
-  ButtonTestRay.OnClick := @ClickTestRay;
+  ButtonTestMove.OnClick := {$ifdef FPC}@{$endif}ClickTestMove;
+  ButtonTestBox.OnClick := {$ifdef FPC}@{$endif}ClickTestBox;
+  ButtonTestSphere.OnClick := {$ifdef FPC}@{$endif}ClickTestSphere;
+  ButtonTestRay.OnClick := {$ifdef FPC}@{$endif}ClickTestRay;
 
   SetTestMode(tmMove);
 end;

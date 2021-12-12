@@ -168,7 +168,7 @@ uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,
   CastleVideos, X3DTime, CastleTransform, CastleMaterialProperties,
-  CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
+  {$ifdef FPC}CastleScript, X3DCastleScript, {$endif} CastleInternalOctree, CastleCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   CastleTextureFontData, CastleRenderOptions, CastleProjection, CastleBehaviors;
 
@@ -214,7 +214,8 @@ type
   {$I x3dnodes_standard_h-anim.inc}
   {$I x3dnodes_standard_nurbs.inc}
   {$I x3dnodes_standard_dis.inc}
-  {$I x3dnodes_standard_scripting.inc}
+  // TODO: Delphi CastleScript
+  {$ifdef FPC}{$I x3dnodes_standard_scripting.inc}{$endif}
   {$I x3dnodes_standard_eventutilities.inc}
   {$I x3dnodes_standard_shaders.inc}
   {$I x3dnodes_standard_cadgeometry.inc}
@@ -278,7 +279,7 @@ uses
 
   Math, X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
-  CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
+  CastleLog, {$ifdef FPC}CastleScriptParser,{$endif} CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
   CastleSoundBase, CastleTriangles, X3DLoadInternalUtils;
 
@@ -351,7 +352,8 @@ uses
 {$I x3dnodes_standard_h-anim.inc}
 {$I x3dnodes_standard_nurbs.inc}
 {$I x3dnodes_standard_dis.inc}
-{$I x3dnodes_standard_scripting.inc}
+// TODO: Delphi CastleScript
+{$ifdef FPC}{$I x3dnodes_standard_scripting.inc}{$endif}
 {$I x3dnodes_standard_eventutilities.inc}
 {$I x3dnodes_standard_shaders.inc}
 {$I x3dnodes_standard_cadgeometry.inc}
@@ -419,9 +421,9 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_coordinatedouble.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
-{$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}
-{$I auto_generated_node_helpers/x3dnodes_cubicbezierpositioninterpolator.inc}
-{$I auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc}
+{$ifdef FPC}{$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}{$endif}
+{$ifdef FPC}{$I auto_generated_node_helpers/x3dnodes_cubicbezierpositioninterpolator.inc}{$endif}
+{$ifdef FPC}{$I auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc}{$endif}
 {$I auto_generated_node_helpers/x3dnodes_cylinder.inc}
 {$I auto_generated_node_helpers/x3dnodes_cylindersensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_directionallight.inc}
@@ -565,7 +567,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_screeneffect.inc}
 {$I auto_generated_node_helpers/x3dnodes_screenfontstyle.inc}
 {$I auto_generated_node_helpers/x3dnodes_screengroup.inc}
-{$I auto_generated_node_helpers/x3dnodes_script.inc}
+// TODO: Delphi Castle Scirpt
+{$ifdef FPC}{$I auto_generated_node_helpers/x3dnodes_script.inc}{$endif}
 {$I auto_generated_node_helpers/x3dnodes_shaderpart.inc}
 {$I auto_generated_node_helpers/x3dnodes_shaderprogram.inc}
 {$I auto_generated_node_helpers/x3dnodes_shadertexture.inc}
@@ -634,7 +637,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dcolornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dcoordinatenode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}
+{$ifdef FPC}{$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}{$endif}
 {$I auto_generated_node_helpers/x3dnodes_x3ddampernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3ddirectionallightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc}
@@ -670,7 +673,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dpunctuallightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3drigidjointnode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3dscriptnode.inc}
+// TODO: Delphi Castle Script
+{$ifdef FPC}{$I auto_generated_node_helpers/x3dnodes_x3dscriptnode.inc}{$endif}
 {$I auto_generated_node_helpers/x3dnodes_x3dsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsequencernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dshadernode.inc}
@@ -736,7 +740,10 @@ initialization
   RegisterLightingNodes;
   RegisterTexturingNodes;
   RegisterInterpolationNodes;
+  // TODO: Delphi support
+  {$ifdef FPC}
   RegisterInterpolationCubicBezierNodes;
+  {$endif}
   RegisterPointingDeviceSensorNodes;
   RegisterKeyDeviceSensorNodes;
   RegisterEnvironmentalSensorNodes;
@@ -746,7 +753,10 @@ initialization
   RegisterHAnimNodes;
   RegisterNURBSNodes;
   RegisterDISNodes;
+  // TODO: Delphi support
+  {$ifdef FPC}
   RegisterScriptingNodes;
+  {$endif}
   RegisterEventUtilitiesNodes;
   RegisterShadersNodes;
   RegisterCADGeometryNodes;

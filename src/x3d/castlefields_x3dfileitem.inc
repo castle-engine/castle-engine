@@ -19,6 +19,12 @@
     a prototype etc. We need a common base class for all such things
     to store PositionInParent. }
   TX3DFileItem = class(TPersistent)
+  {$ifndef FPC} // TODO: these things are used as interfaces for Delphi generics, so they have to implement _AddRef etc.
+  public
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+    function QueryInterface(const IID: TGUID; out Obj): Hresult; virtual; stdcall;
+  {$endif}
   private
     FPositionInParent: Integer;
 
@@ -74,7 +80,7 @@
     function SaveToXml: TSaveToXmlMethod; virtual;
   end;
 
-  TX3DFileItemList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DFileItem>)
+  TX3DFileItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DFileItem>)
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
@@ -99,9 +105,30 @@ begin
   Result := sxChildElement;
 end;
 
+{$ifndef FPC}
+function TX3DFileItem._AddRef: Integer;
+begin
+  Result := -1;
+end;
+
+function TX3DFileItem._Release: Integer;
+begin
+  Result := -1;
+end;
+
+function TX3DFileItem.QueryInterface(const IID: TGUID; out Obj): Hresult;
+begin
+  if GetInterface(IID, Obj) then
+    Result := S_OK
+  else
+    Result := E_NOINTERFACE;
+end;
+{$endif}
+
 { TX3DFileItemList --------------------------------------------------------- }
 
-function IsSmallerPositionInParent(constref A, B: TX3DFileItem): Integer;
+function IsSmallerPositionInParent(
+  {$ifdef FPC}constref{$else}const{$endif} A, B: TX3DFileItem): Integer;
 begin
   Result := A.PositionInParent - B.PositionInParent;
   if Result = 0 then
@@ -110,9 +137,10 @@ end;
 
 procedure TX3DFileItemList.SortPositionInParent;
 type
-  TX3DFileItemComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TX3DFileItem>;
+  TX3DFileItemComparer = {$ifdef FPC}specialize{$endif} TComparer<TX3DFileItem>;
 begin
-  Sort(TX3DFileItemComparer.Construct(@IsSmallerPositionInParent));
+  Sort(TX3DFileItemComparer.Construct(
+    {$ifdef FPC}@{$endif}IsSmallerPositionInParent));
 end;
 
 procedure TX3DFileItemList.SaveToStream(Writer: TX3DWriter);

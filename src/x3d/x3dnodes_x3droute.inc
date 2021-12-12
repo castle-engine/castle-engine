@@ -179,7 +179,7 @@
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DRoute;
   end;
 
-  TX3DRouteList = class(specialize TObjectList<TX3DRoute>);
+  TX3DRouteList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DRoute>);
 
 {$endif read_interface}
 
@@ -275,12 +275,12 @@ procedure TX3DRoute.UnsetEnding(
   RemoveFromDestructionNotification: boolean);
 begin
   if (Event <> nil) and (not DestEnding) then
-    Event.RemoveNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventReceive);
+    Event.RemoveNotification({$ifdef FPC}@{$endif} EventReceive);
 
   if Node <> nil then
   begin
     if RemoveFromDestructionNotification then
-      Node.RemoveDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification);
+      Node.RemoveDestructionNotification({$ifdef FPC}@{$endif} DestructionNotification);
     Node := nil;
   end;
 
@@ -360,7 +360,7 @@ begin
         DestinationEvent.X3DName, DestinationEvent.FieldClass.X3DType ]);
 
   if (Event <> nil) and (not DestEnding) then
-    Event.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventReceive);
+    Event.AddNotification({$ifdef FPC}@{$endif} EventReceive);
 end;
 
 procedure TX3DRoute.SetEnding(const NodeName, FieldOrEventName: string;
@@ -393,7 +393,7 @@ begin
         PrototypeInstanceSourceNode. }
     end;
 
-    Node.AddDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification);
+    Node.AddDestructionNotification({$ifdef FPC}@{$endif} DestructionNotification);
 
     FieldOrEvent := Node.FieldOrEvent(FieldOrEventName);
     if FieldOrEvent = nil then
@@ -435,7 +435,7 @@ begin
 
   try
     Node := NewNode;
-    Node.AddDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification);
+    Node.AddDestructionNotification({$ifdef FPC}@{$endif} DestructionNotification);
 
     SetEndingInternal(Node, FieldOrEvent, Event, DestEnding);
   except

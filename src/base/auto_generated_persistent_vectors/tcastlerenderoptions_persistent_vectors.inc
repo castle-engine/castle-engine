@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FWireframeColorPersistent := TCastleColorRGBPersistent.Create;
-  FWireframeColorPersistent.InternalGetValue := @GetWireframeColorForPersistent;
-  FWireframeColorPersistent.InternalSetValue := @SetWireframeColorForPersistent;
+  FWireframeColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWireframeColorForPersistent;
+  FWireframeColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWireframeColorForPersistent;
   FWireframeColorPersistent.InternalDefaultValue := WireframeColor; // current value is default
 {$endif read_implementation_constructor}
 

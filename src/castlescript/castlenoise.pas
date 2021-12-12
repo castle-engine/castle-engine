@@ -80,7 +80,7 @@ uses Math, CastleCurves;
   values are equal. }
 
 const
-  Primes: array [0..99] of array [0..4] of LongWord = (
+  Primes: array [0..99] of array [0..4] of UInt32 = (
     (1301, 314159, 15731, 789221, 1376312589),
     { Following rows were generated. See gen_primes.lpr to know how }
     (1847, 423307, 10139, 1249603, 1665650897),
@@ -184,29 +184,32 @@ const
     (1201, 219977, 10937, 2862599, 1111733503)
   );
 
-function IntegerNoiseCore(const X, Y, Z: LongInt; const Seed: Cardinal): LongWord;
+function IntegerNoiseCore(const X, Y, Z: LongInt; const Seed: Cardinal): UInt32;
+type
+  TUInt32Array = array [0..High(Integer) div SizeOf(UInt32) - 1] of UInt32;
+  PUInt32Array = ^TUInt32Array;
 var
   N: LongWord;
-  PPrimes: PLongWord;
+  PPrimes: PUInt32Array;
 {$I norqcheckbegin.inc}
 begin
   { Choose our primes row from Primes table. }
   PPrimes := @Primes[Seed mod (High(Primes)+1)];
 
-  N := LongWord(x) + LongWord(y) * PPrimes[0] + LongWord(z) * PPrimes[1];
+  N := UInt32(x) + UInt32(y) * PPrimes^[0] + UInt32(z) * PPrimes^[1];
   N := N xor (N shl 13);
-  Result := (n * (n * n * PPrimes[2] + PPrimes[3]) + PPrimes[4]);
+  Result := (n * (n * n * PPrimes^[2] + PPrimes^[3]) + PPrimes^[4]);
 end;
 {$I norqcheckend.inc}
 
-function IntegerNoise(const X, Y, Z: LongInt; const Seed: Cardinal): Single;
+function IntegerNoise(const X, Y, Z: LongInt; const Seed: Cardinal): Single; overload;
 begin
-  Result := IntegerNoiseCore(X, Y, Z, Seed) / High(LongWord);
+  Result := IntegerNoiseCore(X, Y, Z, Seed) / High(UInt32);
 end;
 
-function IntegerNoise(const X, Y: LongInt; const Seed: Cardinal): Single;
+function IntegerNoise(const X, Y: LongInt; const Seed: Cardinal): Single; overload;
 begin
-  Result := IntegerNoiseCore(X, Y, 0, Seed) / High(LongWord);
+  Result := IntegerNoiseCore(X, Y, 0, Seed) / High(UInt32);
 end;
 
 { Interpolated noise for 2D coords ------------------------------------------- }

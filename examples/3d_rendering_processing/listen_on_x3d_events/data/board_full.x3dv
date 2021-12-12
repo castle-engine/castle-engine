@@ -1,0 +1,33 @@
+#X3D V4.0 utf8
+PROFILE Interchange
+
+# A composition of 5 glTF files,
+# with additional TouchSensor nodes to detect clicks on each of 4 pieces.
+# Written by hand.
+
+Inline { url "board.gltf" }
+
+Group {
+  children [
+    DEF TouchSensorPiece1 TouchSensor { }
+    Inline { url "piece1.gltf" }
+  ]
+}
+Group {
+  children [
+    DEF TouchSensorPiece2 TouchSensor { }
+    Inline { url "piece2.gltf" }
+  ]
+}
+Group {
+  children [
+    DEF TouchSensorPiece3 TouchSensor { }
+    Inline { url "piece3.gltf" }
+  ]
+}
+Group {
+  children [
+    DEF TouchSensorPiece4 TouchSensor { }
+    Inline { url "piece4.gltf" }
+  ]
+}

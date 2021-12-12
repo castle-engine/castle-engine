@@ -54,32 +54,32 @@ begin
 
   ButtonHeadlightOn := TCastleButton.Create(Self);
   ButtonHeadlightOn.Caption := 'Headlight: On';
-  ButtonHeadlightOn.OnClick := @ClickOn;
+  ButtonHeadlightOn.OnClick := {$ifdef FPC}@{$endif} ClickOn;
   InsertFront(ButtonHeadlightOn);
 
   ButtonHeadlightOff := TCastleButton.Create(Self);
   ButtonHeadlightOff.Caption := 'Headlight: Off';
-  ButtonHeadlightOff.OnClick := @ClickOff;
+  ButtonHeadlightOff.OnClick := {$ifdef FPC}@{$endif} ClickOff;
   InsertFront(ButtonHeadlightOff);
 
   ButtonHeadlightDirectional := TCastleButton.Create(Self);
   ButtonHeadlightDirectional.Caption := 'Headlight Type: Directional (Like Sun)';
-  ButtonHeadlightDirectional.OnClick := @ClickDirectional;
+  ButtonHeadlightDirectional.OnClick := {$ifdef FPC}@{$endif} ClickDirectional;
   InsertFront(ButtonHeadlightDirectional);
 
   ButtonHeadlightSpot := TCastleButton.Create(Self);
   ButtonHeadlightSpot.Caption := 'Headlight Type: Spot (Cone with Direction)';
-  ButtonHeadlightSpot.OnClick := @ClickSpot;
+  ButtonHeadlightSpot.OnClick := {$ifdef FPC}@{$endif} ClickSpot;
   InsertFront(ButtonHeadlightSpot);
 
   ButtonHeadlightSpotSharp := TCastleButton.Create(Self);
   ButtonHeadlightSpotSharp.Caption := 'Headlight Type: Spot (Cone with Direction), Sharp Edge';
-  ButtonHeadlightSpotSharp.OnClick := @ClickSpotSharp;
+  ButtonHeadlightSpotSharp.OnClick := {$ifdef FPC}@{$endif} ClickSpotSharp;
   InsertFront(ButtonHeadlightSpotSharp);
 
   ButtonHeadlightPoint := TCastleButton.Create(Self);
   ButtonHeadlightPoint.Caption := 'Headlight Type: Point (Uniform In All Directions)';
-  ButtonHeadlightPoint.OnClick := @ClickPoint;
+  ButtonHeadlightPoint.OnClick := {$ifdef FPC}@{$endif} ClickPoint;
   InsertFront(ButtonHeadlightPoint);
 end;
 
@@ -159,7 +159,6 @@ begin
     Change camera properties to be good for walking. }
   Viewport.NavigationType := ntWalk;
   Viewport.WalkNavigation.MoveSpeed := 5;
-  Viewport.WalkNavigation.GravityUp := Vector3(0, 1, 0);
 
   { Make (initially) headlight "on".
     Default value of UseHeadlight is hlMainScene, which makes it dependent

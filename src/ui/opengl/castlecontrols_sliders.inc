@@ -53,10 +53,10 @@
     procedure Render; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   published
-    property Width default DefaultSliderWidth;
-    property Height default DefaultSliderHeight;
+    property Width {$ifdef FPC}default DefaultSliderWidth{$endif};
+    property Height {$ifdef FPC}default DefaultSliderHeight{$endif};
 
-    property SmallFont default true;
+    {$ifdef FPC}property SmallFont default true;{$endif}
 
     { Display the current value as text on the slider,
       right next to the @link(Caption).
@@ -91,11 +91,11 @@
     const
       DefaultMin = 0.0;
       DefaultMax = 1.0;
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent); overload; override;
     { An easy way to construct float slider. }
     constructor Create(AOwner: TComponent;
       const ValuePointer: PSingle; const AMin, AMax: Single;
-      const AOnChange: TNotifyEvent);
+      const AOnChange: TNotifyEvent); reintroduce; overload;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -104,13 +104,13 @@
       to @link(Min) and @link(Max) range. }
     function RoundAndClamp(const AValue: Single): Single;
   published
-    property Min: Single read FMin write SetMin default DefaultMin;
-    property Max: Single read FMax write SetMax default DefaultMax;
+    property Min: Single read FMin write SetMin {$ifdef FPC}default DefaultMin{$endif};
+    property Max: Single read FMax write SetMax {$ifdef FPC}default DefaultMax{$endif};
 
     { Current value. Usually within @link(Min) and @link(Max) range,
       although the general code should be ready for handle any value here
       (to work even during changes to @link(Min) and @link(Max) properties). }
-    property Value: Single read FValue write SetValue default DefaultMin;
+    property Value: Single read FValue write SetValue {$ifdef FPC}default DefaultMin{$endif};
 
     { If non-zero, we force the value selected by user to be a multiple
       of this value (clamped to @link(Min), @link(Max) range).
@@ -143,11 +143,11 @@
     const
       DefaultMin = 0;
       DefaultMax = 10;
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent); overload; override;
     { An easy way to construct integer slider. }
     constructor Create(AOwner: TComponent;
       const ValuePointer: PInteger; const AMin, AMax: Integer;
-      const AOnChange: TNotifyEvent);
+      const AOnChange: TNotifyEvent); reintroduce; overload;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -174,7 +174,7 @@ begin
   FDisplayValue := true;
   Width := DefaultSliderWidth;
   Height := DefaultSliderHeight;
-  SmallFont := true;
+  {$ifdef FPC}SmallFont := true;{$endif}
 end;
 
 procedure TCastleAbstractSlider.Render;

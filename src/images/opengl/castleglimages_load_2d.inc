@@ -22,8 +22,8 @@
   Adjusting image sizes to load them as textures.
   Usually you don't need these functions, LoadGLTexture* and TDrawableImage
   and such call it automatically when needed. }
-
-type
+{$ifdef read_interface_type}
+// type - don't add type Delphi can't parse it correctly
   TTextureSizing = (
     { Texture size does not have to be a power of two
       (unless GLFeatures.TextureNonPowerOfTwo = @false, in which case all textures
@@ -38,7 +38,9 @@ type
       It is affected by GLTextureScale, we can scale it. }
     tsScalablePowerOf2
   );
+{$endif read_interface_type}
 
+{$ifdef read_interface_func}
 { Resize the image to a size accepted as GL_TEXTURE_2D texture size
   for OpenGL. It tries to resize to a larger size, not smaller,
   to avoid losing image information.
@@ -58,16 +60,16 @@ type
 
   @groupBegin }
 procedure ResizeForTextureSize(var r: TCastleImage; const Sizing: TTextureSizing);
-function ResizeToTextureSize(const r: TCastleImage; const Sizing: TTextureSizing): TCastleImage;
-function ResizeToTextureSize(const Size: Cardinal; const Sizing: TTextureSizing): Cardinal;
+function ResizeToTextureSize(const r: TCastleImage; const Sizing: TTextureSizing): TCastleImage; overload;
+function ResizeToTextureSize(const Size: Cardinal; const Sizing: TTextureSizing): Cardinal; overload;
 { @groupEnd }
 
 { Does image have proper size for 2D OpenGL texture.
   See ResizeForTextureSize. Note that this checks glGet(GL_MAX_TEXTURE_SIZE),
   so requires initialized OpenGL context. }
-function IsTextureSized(const r: TEncodedImage; const Sizing: TTextureSizing): boolean;
+function IsTextureSized(const r: TEncodedImage; const Sizing: TTextureSizing): boolean; overload;
 
-function IsTextureSized(const Width, Height: Cardinal; const Sizing: TTextureSizing): boolean;
+function IsTextureSized(const Width, Height: Cardinal; const Sizing: TTextureSizing): boolean; overload;
 
 var
   { Scaling for all textures loaded to OpenGL.
@@ -180,9 +182,14 @@ procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId; const image: TEn
     because appropriate OpenGL extensions are not available, or such).) }
 function GLDecompressTexture(Image: TGPUCompressedImage): TCastleImage;
 
-type
-  ECannotSaveTextureContents = class(Exception);
+{$endif read_interface_func}
 
+{$ifdef read_interface_type}
+//type - don't add type Delphi can't parse it correctly
+  ECannotSaveTextureContents = class(Exception);
+{$endif read_interface_type}
+
+{$ifdef read_interface_func}
 { Save OpenGL texture contents to TCastleImage.
   @bold(Size of the texture must match the Image size,
   otherwise terrible things (writing over unallocated memory) will happen).
@@ -190,6 +197,7 @@ type
   @raises(ECannotSaveTextureContents If we cannot get texture contents
     (not supported on OpenGLES).) }
 procedure SaveTextureContents(const Image: TCastleImage; const Texture: TGLTextureId);
+{$endif read_interface_func}
 
 {$endif read_interface}
 

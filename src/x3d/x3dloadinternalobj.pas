@@ -124,36 +124,41 @@ begin
     { See https://en.wikipedia.org/wiki/Wavefront_.obj_file#Texture_options
       and http://paulbourke.net/dataformats/mtl/
       for texture options spec. }
-    case Token of
-      '-blendu': ReadBoolean(BlendU);
-      '-blendv': ReadBoolean(BlendV);
-      '-clamp': ReadBoolean(Clamp);
-      '-cc': ReadBoolean(ColorCorrection);
-      '-boost', '-texres', '-imfchan':
-        begin
-          // skip 1 next token
-          NextToken(S, SeekPos);
-        end;
-      '-mm':
-        begin
-          // skip 2 next tokens
-          NextToken(S, SeekPos);
-          NextToken(S, SeekPos);
-        end;
-      '-o': ReadVector3(Offset);
-      '-s': ReadVector3(Scale);
-      '-t': ReadVector3(Turbulence);
-      '-bm': ReadSingle(BumpMultiplier);
-      else
-        begin
-          if URL <> '' then
-            WritelnWarning('Texture line contains more than one URL (submit a CGE bug): "%s", "%s"', [
-              URL,
-              Token
-            ]);
-          URL := Token;
-        end;
-    end;
+    if Token = '-blendu' then
+      ReadBoolean(BlendU)
+    else if Token = '-blendv' then
+      ReadBoolean(BlendV)
+    else if Token = '-clamp' then
+      ReadBoolean(Clamp)
+    else if Token = '-cc' then
+      ReadBoolean(ColorCorrection)
+    else if (Token = '-boost') or (Token = '-texres') or (Token = '-imfchan') then
+    begin
+      // skip 1 next token
+      NextToken(S, SeekPos);
+    end else if Token = '-mm' then
+    begin
+      // skip 2 next tokens
+      NextToken(S, SeekPos);
+      NextToken(S, SeekPos);
+    end else if Token = '-o' then
+      ReadVector3(Offset)
+    else if Token = '-s' then
+      ReadVector3(Scale)
+    else if Token = '-t' then
+      ReadVector3(Turbulence)
+    else if Token = '-bm' then
+      ReadSingle(BumpMultiplier)
+    else
+      begin
+        if URL <> '' then
+          WritelnWarning('Texture line contains more than one URL (submit a CGE bug): "%s", "%s"', [
+            URL,
+            Token
+          ]);
+        URL := Token;
+      end;
+
   until false;
 end;
 
@@ -203,7 +208,7 @@ type
     constructor Create(const AName: string);
   end;
 
-  TWavefrontMaterialList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWavefrontMaterial>)
+  TWavefrontMaterialList = class({$ifdef FPC}specialize{$endif} TObjectList<TWavefrontMaterial>)
     { Find material with given name, @nil if not found. }
     function TryFindName(const Name: string): TWavefrontMaterial;
   end;
@@ -220,7 +225,7 @@ type
     destructor Destroy; override;
   end;
 
-  TWavefrontFaceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWavefrontFace>;
+  TWavefrontFaceList = {$ifdef FPC}specialize{$endif} TObjectList<TWavefrontFace>;
 
   { 3D model in OBJ file format. }
   TObject3DOBJ = class

@@ -33,9 +33,9 @@
     { X3D field "lineSegments". } { }
     public property FdLineSegments: TMFVec2f read FFdLineSegments;
     { Set X3D field "lineSegments". } { }
-    procedure SetLineSegments(const Value: array of TVector2);
+    procedure SetLineSegments(const Value: array of TVector2); overload;
     { Set X3D field "lineSegments". } { }
-    procedure SetLineSegments(const Value: TVector2List);
+    procedure SetLineSegments(const Value: TVector2List); overload;
 
 {$endif read_interface}
 

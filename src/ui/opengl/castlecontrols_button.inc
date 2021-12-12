@@ -170,8 +170,8 @@
       This is useful when you have a row of buttons (typical for toolbar),
       and you want them to have the same height, and their captions
       to be displayed at the same level, regardless of their images sizes. }
-    property MinImageWidth: Single read FMinImageWidth write FMinImageWidth default 0;
-    property MinImageHeight: Single read FMinImageHeight write FMinImageHeight default 0;
+    property MinImageWidth: Single read FMinImageWidth write FMinImageWidth {$ifdef FPC}default 0{$endif};
+    property MinImageHeight: Single read FMinImageHeight write FMinImageHeight {$ifdef FPC}default 0{$endif};
 
     { For multi-line @link(Caption), the horizontal alignment of the lines. }
     property TextAlignment: THorizontalPosition
@@ -198,7 +198,7 @@
     { For multi-line @link(Caption), the extra spacing between lines.
       May also be negative to squeeze lines tighter. }
     property LineSpacing: Single read FLineSpacing write SetLineSpacing
-      default DefaultLineSpacing;
+      {$ifdef FPC}default DefaultLineSpacing{$endif};
 
     { Enable HTML tags in the @link(Caption).
       This allows to easily change colors or use bold, italic text.
@@ -232,7 +232,7 @@
     property Image: TCastleImagePersistent read FImage;
 
     { Scaling of @link(Image). }
-    property ImageScale: Single read FImageScale write SetImageScale default 1.0;
+    property ImageScale: Single read FImageScale write SetImageScale {$ifdef FPC}default 1.0{$endif};
 
     { Background image on the pressed button. See @link(CustomBackground) for details. }
     property CustomBackgroundPressed: TCastleImagePersistent read FCustomBackgroundPressed;
@@ -249,11 +249,11 @@
 
     { Horizontal distance between text or @link(Image) and the button border. }
     property PaddingHorizontal: Single
-      read FPaddingHorizontal write SetPaddingHorizontal default DefaultPaddingHorizontal;
+      read FPaddingHorizontal write SetPaddingHorizontal {$ifdef FPC}default DefaultPaddingHorizontal{$endif};
 
     { Vertical distance between text or @link(Image) and the button border. }
     property PaddingVertical: Single
-      read FPaddingVertical write SetPaddingVertical default DefaultPaddingVertical;
+      read FPaddingVertical write SetPaddingVertical {$ifdef FPC}default DefaultPaddingVertical{$endif};
 
     { When AutoSize is @true (the default) then button sizes are automatically
       calculated when you change the @link(Caption) and @link(Image).
@@ -283,8 +283,8 @@
       a minimal width/height of the button. This is useful if you want
       to use auto-size (to make sure that the content fits inside),
       but you want to force filling some space. }
-    property MinWidth: Single read FMinWidth write SetMinWidth default 0;
-    property MinHeight: Single read FMinHeight write SetMinHeight default 0;
+    property MinWidth: Single read FMinWidth write SetMinWidth {$ifdef FPC}default 0{$endif};
+    property MinHeight: Single read FMinHeight write SetMinHeight {$ifdef FPC}default 0{$endif};
 
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
 
@@ -318,7 +318,7 @@
 
     { Distance between text and @link(Image). Unused if @link(Image) not set. }
     property ImageMargin: Single read FImageMargin write SetImageMargin
-      default DefaultImageMargin;
+      {$ifdef FPC}default DefaultImageMargin{$endif};
 
     { Enabled button can be focused and clicked, is not grayed-out. }
     property Enabled: boolean read FEnabled write SetEnabled default true;
@@ -368,15 +368,15 @@ begin
   FVerticalAlignment := vpMiddle;
 
   FImage := TCastleImagePersistent.Create;
-  FImage.OnChange := @ImageChanged;
+  FImage.OnChange := {$ifdef FPC}@{$endif}ImageChanged;
   FCustomBackgroundPressed := TCastleImagePersistent.Create;
-  FCustomBackgroundPressed.OnChange := @CustomBackgroundImageChanged;
+  FCustomBackgroundPressed.OnChange := {$ifdef FPC}@{$endif}CustomBackgroundImageChanged;
   FCustomBackgroundDisabled := TCastleImagePersistent.Create;
-  FCustomBackgroundDisabled.OnChange := @CustomBackgroundImageChanged;
+  FCustomBackgroundDisabled.OnChange := {$ifdef FPC}@{$endif}CustomBackgroundImageChanged;
   FCustomBackgroundFocused := TCastleImagePersistent.Create;
-  FCustomBackgroundFocused.OnChange := @CustomBackgroundImageChanged;
+  FCustomBackgroundFocused.OnChange := {$ifdef FPC}@{$endif}CustomBackgroundImageChanged;
   FCustomBackgroundNormal := TCastleImagePersistent.Create;
-  FCustomBackgroundNormal.OnChange := @CustomBackgroundImageChanged;
+  FCustomBackgroundNormal.OnChange := {$ifdef FPC}@{$endif}CustomBackgroundImageChanged;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
@@ -492,7 +492,7 @@ begin
       CustomBackgroundImage.ScaleCorners := UIScale;
       CustomBackgroundImage.Draw(SR);
       CustomBackgroundImage.Color := OriginalColor;
-      CustomBackgroundImage.OnChange := @CustomBackgroundImageChanged;
+      CustomBackgroundImage.OnChange := {$ifdef FPC}@{$endif}CustomBackgroundImageChanged;
     end else
     begin
       if Pressed then
@@ -1084,18 +1084,34 @@ end;
 function TCastleButton.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Caption', 'TextAlignment', 'Alignment', 'VerticalAlignment', 'LineSpacing', 'Html',
-    'TintPressed', 'TintDisabled', 'TintFocused', 'TintNormal',
-    'Image', 'ImageScale', 'ImageLayout', 'ImageMargin',
-    'CustomTextColorUse', 'CustomTextColorPersistent','Toggle', 'Pressed',
-    'Enabled':
-      Result := [psBasic];
-    'AutoSize', 'AutoSizeWidth', 'AutoSizeHeight', 'PaddingHorizontal', 'PaddingVertical':
-      Result := [psBasic, psLayout];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Caption') or
+     (PropertyName = 'TextAlignment') or
+     (PropertyName = 'Alignment') or
+     (PropertyName = 'VerticalAlignment') or
+     (PropertyName = 'LineSpacing') or
+     (PropertyName = 'Html') or
+     (PropertyName = 'TintPressed') or
+     (PropertyName = 'TintDisabled') or
+     (PropertyName = 'TintFocused') or
+     (PropertyName = 'TintNormal') or
+     (PropertyName = 'Image') or
+     (PropertyName = 'ImageScale') or
+     (PropertyName = 'ImageLayout') or
+     (PropertyName = 'ImageMargin') or
+     (PropertyName = 'CustomTextColorUse') or
+     (PropertyName = 'CustomTextColorPersistent') or
+     (PropertyName = 'Toggle') or
+     (PropertyName = 'Pressed') or
+     (PropertyName = 'Enabled') then
+    Result := [psBasic]
+  else if (PropertyName = 'AutoSize') or
+          (PropertyName = 'AutoSizeWidth') or
+          (PropertyName = 'AutoSizeHeight') or
+          (PropertyName = 'PaddingHorizontal') or
+          (PropertyName = 'PaddingVertical') then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleButton.TranslateProperties(

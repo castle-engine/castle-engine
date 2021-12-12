@@ -36,7 +36,7 @@ type
 
   { Line of text with processing commands.
     @exclude Internal type for TRichText. }
-  TTextLine = class(specialize TObjectList<TTextProperty>)
+  TTextLine = class({$ifdef FPC}specialize{$endif} TObjectList<TTextProperty>)
   strict private
     FWidthKnown: boolean;
     FWidth: Single;
@@ -47,7 +47,7 @@ type
         Color: TCastleColor;
         Size: Single;
       end;
-      TFontStateList = specialize TObjectList<TFontState>;
+      TFontStateList = {$ifdef FPC}specialize{$endif} TObjectList<TFontState>;
 
       TPrintState = class
         Color: TCastleColor;
@@ -130,7 +130,7 @@ type
     Note that TRichText instance is always tied to a corresponding
     TCastleFontFamily used to render it. @bold(Through the lifetime of TRichText,
     we assume that size and other properties of this font remain constant.) }
-  TRichText = class(specialize TObjectList<TTextLine>)
+  TRichText = class({$ifdef FPC}specialize{$endif} TObjectList<TTextLine>)
   strict private
     FWidthKnown: boolean;
     { Known max line width, e.g. calculated by @link(Wrap).
@@ -146,9 +146,9 @@ type
     procedure EndProcessing(var State: TTextLine.TPrintState);
   public
     constructor Create(const AFont: TCastleAbstractFont;
-      const Text: TStrings; const Html: boolean);
+      const Text: TStrings; const Html: boolean); overload;
     constructor Create(const AFont: TCastleAbstractFont;
-      const S: string; const Html: boolean);
+      const S: string; const Html: boolean); overload;
     destructor Destroy; override;
     function Width: Single;
     procedure Wrap(const MaxWidth: Single);
@@ -161,7 +161,9 @@ type
 
 implementation
 
-uses SysUtils, StrUtils, Math,
+// TODO: Delphi Serialize
+
+uses SysUtils, StrUtils, Math, {$ifndef FPC} Character,{$endif}
   CastleUtils, CastleStringUtils, CastleLog, CastleUnicode, CastleComponentSerialize;
 
 { TPrintState ---------------------------------------------------------------- }
@@ -182,19 +184,19 @@ var
 begin
   if MaxDisplayChars <> -1 then
   begin
-    L := UTF8Length(S);
+    L := {$ifdef FPC}UTF8Length(S){$else}GetUTF32Length(S){$endif};
     if MaxDisplayChars >= L then
     begin
-      MaxDisplayChars -= L;
+      MaxDisplayChars := MaxDisplayChars - L;
       Font.Print(X0, Y0, State.Color, S);
     end else
     begin
-      Font.Print(X0, Y0, State.Color, UTF8Copy(S, 1, MaxDisplayChars));
+      Font.Print(X0, Y0, State.Color, {$ifdef FPC}UTF8Copy{$else}UTF32Copy{$endif}(S, 1, MaxDisplayChars));
       MaxDisplayChars := 0;
     end;
   end else
     Font.Print(X0, Y0, State.Color, S);
-  X0 += Font.TextWidth(S);
+  X0 := X0 + Font.TextWidth(S);
 end;
 
 function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TTextLine.TPrintState;
@@ -202,7 +204,7 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
   const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine;
 
   { Split line in the middle of this TTextPropertyString. }
-  procedure BreakLine(const PropWidthBytes: Integer);
+  procedure BreakLine(const MaximumChars: Integer);
   var
     NewProp: TTextPropertyString;
     ExtractedProp: TTextProperty;
@@ -210,7 +212,7 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
     P: Integer;
   begin
     { We have to break this line now. }
-    P := BackCharsPos(WhiteSpaces, Copy(S, 1, PropWidthBytes));
+    P := BackCharsPos(WhiteSpaces, Copy(S, 1, MaximumChars));
     if P > 0 then
     begin
       BreakOutput1 := Copy(S, 1, P - 1);
@@ -224,7 +226,7 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
           if LineIsNonEmptyAlready then // calculated by looking at CurrentWidth <> 0 when TTextPropertyString.Wrap starts
             BreakOutput1 := ''
           else
-            BreakOutput1 := Copy(S, 1, PropWidthBytes);
+            BreakOutput1 := Copy(S, 1, MaximumChars);
 
         In effect, if we have "blablah<b>foobar</b>", we would prefer to break
         "blablah" + newline + "<b>foobar</b>" (if this would make both lines fit in MaxWidth)
@@ -237,7 +239,7 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
         So the line should should be typically long in Japanese and it should
         be broken where it doesn't fit (not earlier, when bold/non-bold changes).
       }
-      BreakOutput1 := Copy(S, 1, PropWidthBytes);
+      BreakOutput1 := Copy(S, 1, MaximumChars);
       BreakOutput2 := SEnding(S, Length(BreakOutput1) + 1);
     end;
 
@@ -260,39 +262,71 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
   end;
 
 var
-  PropWidthBytes: Integer;
   C: TUnicodeChar;
+  {$ifdef FPC}
+  PropWidthBytes: Integer;
   SPtr: PChar;
   CharLen: Integer;
+  {$else}
+  TextIndex: Integer;
+  NextTextIndex: Integer;
+  TextLength: Integer;
+  {$endif}
 begin
   Result := nil;
+  {$ifdef FPC}
   SPtr := PChar(S);
-
   { If S is empty, there's no need to break it. }
   C := UTF8CharacterToUnicode(SPtr, CharLen);
   if (C > 0) and (CharLen > 0) then
+  {$else}
+  TextIndex := 1;
+  TextLength := Length(S);
+  if TextLength > 0 then
+  {$endif}
   begin
     { the first character C is always considered to fit into BreakOutput1,
       regardless of MaxWidth --- after all, we have to place this character
       somewhere (otherwise we would have to reject this character
       or raise an error). }
+    {$ifdef FPC}
     Inc(SPtr, CharLen);
     PropWidthBytes := CharLen;
-    CurrentWidth += Font.TextWidth(UnicodeToUTF8(C));
+    {$else}
+    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    TextIndex := NextTextIndex;
+    {$endif}
+    CurrentWidth := CurrentWidth + Font.TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
 
+    {$ifdef FPC}
     C := UTF8CharacterToUnicode(SPtr, CharLen);
     while (C > 0) and (CharLen > 0) and
           (CurrentWidth + Font.TextWidth(UnicodeToUTF8(C)) <= MaxWidth) do
+    {$else}
+    while (TextIndex <= TextLength) and
+          (CurrentWidth + Font.TextWidth(ConvertFromUtf32(C)) <= MaxWidth) do
+    {$endif}
     begin
+      {$ifdef FPC}
       Inc(SPtr, CharLen);
       PropWidthBytes += CharLen;
-      CurrentWidth += Font.TextWidth(UnicodeToUTF8(C));
+      {$else}
+      C := GetUTF32Char(S, TextIndex, NextTextIndex);
+      TextIndex := NextTextIndex;
+      {$endif}
+      CurrentWidth := CurrentWidth + Font.TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
 
+      {$ifdef FPC}
       C := UTF8CharacterToUnicode(SPtr, CharLen);
+      {$endif}
     end;
 
+    {$ifdef FPC}
     if (C > 0) and (CharLen > 0) then // then above loop stopped because we have to break
-      BreakLine(PropWidthBytes);
+    {$else}
+    if TextIndex <= TextLength then
+    {$endif}
+      BreakLine({$ifdef FPC} PropWidthBytes {$else} TextIndex {$endif});
   end;
 end;
 
@@ -303,7 +337,7 @@ end;
 
 function TTextPropertyString.DisplayChars(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Cardinal;
 begin
-  Result := UTF8Length(S);
+  Result := {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(S);
 end;
 
 { TTextPropertyCommand -------------------------------------------------------- }
@@ -450,7 +484,7 @@ begin
   FWidthKnown := true;
   FWidth := 0;
   for I := 0 to Count - 1 do
-    FWidth += Items[I].Width(FFont, State);
+    FWidth := FWidth + Items[I].Width(FFont, State);
   Result := FWidth;
 end;
 
@@ -460,7 +494,7 @@ var
 begin
   Result := 0;
   for I := 0 to Count - 1 do
-    Result += Items[I].DisplayChars(FFont, State);
+    Result := Result + Items[I].DisplayChars(FFont, State);
 end;
 
 function TTextLine.KnownWidth: Single;
@@ -657,7 +691,7 @@ var
     begin
       if not TryStrToInt64(NumStr, SizeRead) then
         Exit(false);
-      if S[I] in ['+', '-'] then
+      if CharInSet(S[I], ['+', '-']) then
         { size is relative to 3.
           See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font }
         HtmlSize := Clamped(3 + SizeRead, 1, 7)
@@ -787,7 +821,7 @@ begin
   while I <= SLength do
   begin
     { for speed, quickly test and move on if this isn't any special character }
-    if S[I] in ['<', '&'] then
+    if CharInSet(S[I], ['<', '&']) then
     begin
       { handle line-breaking elements specially here }
       if SubstringStartsHere(SLowerCase, I, '<p>', NextChar) then
@@ -925,7 +959,7 @@ begin
   State := BeginProcessing(Black { any color });
   try
     for I := 0 to Count - 1 do
-      Result += Items[I].DisplayChars(State);
+      Result := Result + Items[I].DisplayChars(State);
   finally EndProcessing(State) end;
 end;
 

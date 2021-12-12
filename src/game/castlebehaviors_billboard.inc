@@ -81,12 +81,10 @@ end;
 
 function TCastleBillboard.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'AxisOfRotationPersistent':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'AxisOfRotationPersistent') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleBillboard.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);

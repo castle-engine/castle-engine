@@ -100,7 +100,7 @@ type
     { Scene URL, only when each animation is inside a separate 3D file.
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
-    property URL: string read FURL write FURL; deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';
+    property URL: string read FURL write FURL; {$ifdef FPC}deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';{$endif}
 
     { Animation name (like for @link(TCastleSceneCore.PlayAnimation)),
       which is equal to TimeSensor node name.
@@ -113,15 +113,17 @@ type
 
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
+
     property AnimationName: string read FAnimationName write FAnimationName;
+    {$ifdef FPC}
     property TimeSensor: string read FAnimationName write FAnimationName;
       deprecated 'use AnimationName';
-
+    {$endif}
     property Name: string read FName;
     property Required: boolean read FRequired;
   end;
 
-  T3DResourceAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<T3DResourceAnimation>)
+  T3DResourceAnimationList = class({$ifdef FPC}specialize{$endif} TObjectList<T3DResourceAnimation>)
     { Find an animation by name.
       @raises Exception if not found. }
     function FindName(const AName: string): T3DResourceAnimation;
@@ -284,9 +286,9 @@ type
         See @link(TCastleTransform.PrepareResources) for more comments.)
 
       @groupBegin }
-    procedure Prepare(const Params: TPrepareParams; const GravityUp: TVector3);
+    procedure Prepare(const Params: TPrepareParams; const GravityUp: TVector3); overload;
       deprecated 'use Prepare overload without the GravityUp parameter';
-    procedure Prepare(const Params: TPrepareParams);
+    procedure Prepare(const Params: TPrepareParams); overload;
     procedure Release;
     { @groupEnd }
 
@@ -345,7 +347,7 @@ type
       except our default value is non-zero, and by default TCastleTransform.Gravity
       and TCastleTransform.PreferredHeight are already sensible for creatures/items. }
     property FallSpeed: Single
-      read FFallSpeed write FFallSpeed default DefaultFallSpeed;
+      read FFallSpeed write FFallSpeed {$ifdef FPC}default DefaultFallSpeed{$endif};
 
     { The speed (in units per second) of growing.
 
@@ -360,7 +362,7 @@ type
       except the default value is non-zero, and by default TCastleTransform.Gravity
       and TCastleTransform.PreferredHeight are already sensible for creatures/items. }
     property GrowSpeed: Single
-      read FGrowSpeed write FGrowSpeed default DefaultGrowSpeed;
+      read FGrowSpeed write FGrowSpeed {$ifdef FPC}default DefaultGrowSpeed{$endif};
 
     property ReceiveShadowVolumes: boolean
       read FReceiveShadowVolumes write FReceiveShadowVolumes
@@ -371,7 +373,7 @@ type
 
     { See @link(TCastleSceneCore.DefaultAnimationTransition) }
     property DefaultAnimationTransition: Single
-      read FDefaultAnimationTransition write FDefaultAnimationTransition default 0.0;
+      read FDefaultAnimationTransition write FDefaultAnimationTransition {$ifdef FPC}default 0.0{$endif};
 
     { See @link(TCastleTransform.Orientation), by default this is @link(TCastleTransform.DefaultOrientation).
 
@@ -454,7 +456,7 @@ type
 
   T3DResourceClass = class of T3DResource;
 
-  T3DResourceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<T3DResource>)
+  T3DResourceList = class({$ifdef FPC}specialize{$endif} TObjectList<T3DResource>)
   private
     ResourceXmlReload: boolean;
     procedure AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -483,8 +485,8 @@ type
         but you don't want to recreate existing resource instances.)
 
       @groupBegin }
-    procedure LoadFromFiles(const Path: string; const Reload: boolean = false);
-    procedure LoadFromFiles(const Reload: boolean = false);
+    procedure LoadFromFiles(const Path: string; const Reload: boolean = false); overload;
+    procedure LoadFromFiles(const Reload: boolean = false); overload;
     { @groupEnd }
 
     { Load a single resource from resource.xml file.
@@ -533,7 +535,7 @@ const
 { TResourceClasses ---------------------------------------------------------- }
 
 type
-  TResourceClasses = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, T3DResourceClass>)
+  TResourceClasses = class({$ifdef FPC}specialize{$endif} TDictionary<string, T3DResourceClass>)
   strict private
     function GetItems(const AKey: string): T3DResourceClass;
     procedure SetItems(const AKey: string; const AValue: T3DResourceClass);
@@ -1151,7 +1153,8 @@ begin
   if not Reload then
     Clear;
   ResourceXmlReload := Reload;
-  FindFiles(Path, 'resource.xml', false, @AddFromInfo, [ffRecursive]);
+  FindFiles(Path, 'resource.xml', false,
+    {$ifdef FPC}@{$endif}AddFromInfo, [ffRecursive]);
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Reload: boolean);
@@ -1302,6 +1305,8 @@ begin
     FResources := T3DResourceList.Create(true);
   Result := FResources;
 end;
+
+initialization // Empty but Delphi need that
 
 finalization
   UnitFinalization := true;

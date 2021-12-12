@@ -224,7 +224,7 @@ begin
   end;
   if UpdateInitialized then
   begin
-    ApplicationProperties.OnUpdate.Remove({$ifdef CASTLE_OBJFPC}@{$endif}Update);
+    ApplicationProperties.OnUpdate.Remove({$ifdef FPC}@{$endif}Update);
     UpdateInitialized := false;
   end;
   FreeAndNil(FHttpPostData);
@@ -373,7 +373,7 @@ begin
 
   if not UpdateInitialized then
   begin
-    ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif}Update);
+    ApplicationProperties.OnUpdate.Add({$ifdef FPC}@{$endif}Update);
     UpdateInitialized := true;
   end;
 

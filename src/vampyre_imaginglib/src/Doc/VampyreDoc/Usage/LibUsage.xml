@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Using Library</title>
+  <chapter>
+    <title>Using Library</title>
+    <par>You can find information on supported compilers and platforms,
+    Imaging installation and compilation, and other topics in this section.</par>
+    
+    <linklist>
+      <title>In This Section</title>
+      <lslink url="Supported.xml">Supported Compilers and Platforms</lslink>
+      <lslink url="Install.xml">Install and Compile</lslink>
+      <lslink url="LowLevel.xml">Low Level Interface</lslink>
+      <lslink url="HighLevel.xml">High Level Interface</lslink>
+      <lslink url="Components.xml">VCL/LCL Classes</lslink>
+      <lslink url="CanvasUsage.xml">Using Canvas Class</lslink>
+    </linklist>
+
+  </chapter>
+</doc>

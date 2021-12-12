@@ -44,23 +44,23 @@ uses
 
 type
   { Dictionary (LocalizationID/TranslatedText as String/String) for storing all translated strings of the current language. }
-  TLanguageDictionary = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, String>;
+  TLanguageDictionary = {$ifdef FPC}specialize{$endif} TDictionary<String, String>;
 
   { Procedure of a file loader called by CastleLocalization to fill the language dictionary from a file stream. }
   TFileLoaderAction = procedure(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
   { Dictionaty (FileExtension/FileLoaderAction as String/TFileLoaderAction) to connect the known file loaders with it's file extensions.}
-  TFileLoaderDictionary = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, TFileLoaderAction>;
+  TFileLoaderDictionary = {$ifdef FPC}specialize{$endif} TDictionary<String, TFileLoaderAction>;
 
   { Called by CastleLocalization to all subscribed procedures when a new language is set. }
   TOnLocalizationUpdatedEvent = procedure of object;
-  TOnLocalizationUpdatedEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnLocalizationUpdatedEvent>;
+  TOnLocalizationUpdatedEventList = {$ifdef FPC}specialize{$endif} TList<TOnLocalizationUpdatedEvent>;
 
   { Called by CastleLocalization to all subscribed components when a new language is set. }
   TOnUpdateLocalizationEvent = procedure(const ALocalizedText: String) of object;
-  TOnUpdateLocalizationEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnUpdateLocalizationEvent>;
+  TOnUpdateLocalizationEventList = {$ifdef FPC}specialize{$endif} TList<TOnUpdateLocalizationEvent>;
 
   { List (dictionary) for the localization IDs of all subscribed components. }
-  TLocalizationIDList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TOnUpdateLocalizationEvent, String>;
+  TLocalizationIDList = {$ifdef FPC}specialize{$endif} TDictionary<TOnUpdateLocalizationEvent, String>;
 
 type
   { Interface for custom user classes using the localization.

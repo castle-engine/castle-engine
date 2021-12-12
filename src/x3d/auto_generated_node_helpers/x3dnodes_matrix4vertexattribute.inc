@@ -27,9 +27,9 @@
 
   public
     { Set X3D field "value". } { }
-    procedure SetValue(const Value: array of TMatrix4);
+    procedure SetValue(const Value: array of TMatrix4); overload;
     { Set X3D field "value". } { }
-    procedure SetValue(const Value: TMatrix4List);
+    procedure SetValue(const Value: TMatrix4List); overload;
 
 {$endif read_interface}
 

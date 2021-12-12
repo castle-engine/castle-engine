@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -64,11 +64,11 @@ begin
   ButtonMusic := DesignedComponent('ButtonMusic') as TCastleButton;
   ButtonSources := DesignedComponent('ButtonSources') as TCastleButton;
 
-  ButtonMenu.OnClick := @ClickMenu;
-  ButtonCGE.OnClick := @ClickCGE;
-  ButtonGraphics.OnClick := @ClickGraphics;
-  ButtonMusic.OnClick := @ClickMusic;
-  ButtonSources.OnClick := @ClickSources;
+  ButtonMenu.OnClick := {$ifdef FPC}@{$endif}ClickMenu;
+  ButtonCGE.OnClick := {$ifdef FPC}@{$endif}ClickCGE;
+  ButtonGraphics.OnClick := {$ifdef FPC}@{$endif}ClickGraphics;
+  ButtonMusic.OnClick := {$ifdef FPC}@{$endif}ClickMusic;
+  ButtonSources.OnClick := {$ifdef FPC}@{$endif}ClickSources;
 end;
 
 procedure TStateCredits.ClickMenu(Sender: TObject);
