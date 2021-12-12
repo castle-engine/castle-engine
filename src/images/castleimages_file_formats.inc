@@ -200,8 +200,6 @@ procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
 
 procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream); forward;
 
-procedure SaveXPM(const Img: TEncodedImage; const Stream: TStream); forward;
-
 { Detecting class ------------------------------------------------------------ }
 
 function DetectClassJPG(const Stream: TStream): TEncodedImageClass;
