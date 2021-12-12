@@ -308,7 +308,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext;
+uses CastleUtils, CastleLog, CastleRenderContext;
 
 function ScreenEffectVertex: string;
 begin
