@@ -562,7 +562,7 @@ end;
 constructor TAbstractBindableNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  EventIsBound.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventIsBoundReceive);
+  EventIsBound.AddNotification({$ifdef FPC}@{$endif} EventIsBoundReceive);
   FTransform := TMatrix4.Identity;
   FTransformScale := 1;
 end;

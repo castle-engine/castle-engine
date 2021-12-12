@@ -258,7 +258,7 @@ end;
 constructor TAbstractTouchSensorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  EventTouchTime.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventTouchTimeReceive);
+  EventTouchTime.AddNotification({$ifdef FPC}@{$endif} EventTouchTimeReceive);
 end;
 
 procedure TAbstractTouchSensorNode.EventTouchTimeReceive(

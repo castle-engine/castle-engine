@@ -34,8 +34,8 @@ type
     type
       TFile = class;
       TDirectory = class;
-      TFiles = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TFile>;
-      TDirectories = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TDirectory>;
+      TFiles = {$ifdef FPC}specialize{$endif} TObjectList<TFile>;
+      TDirectories = {$ifdef FPC}specialize{$endif} TObjectList<TDirectory>;
 
       TEntry = class
       private
@@ -129,7 +129,7 @@ procedure TDirectoryInformation.TDirectory.Generate(const PathURL: String);
 begin
   Directories.Clear;
   Files.Clear;
-  FindFiles(PathURL, '*', true, {$ifdef CASTLE_OBJFPC}@{$endif} AddEntry, []);
+  FindFiles(PathURL, '*', true, {$ifdef FPC}@{$endif} AddEntry, []);
 end;
 
 constructor TDirectoryInformation.TDirectory.Create;

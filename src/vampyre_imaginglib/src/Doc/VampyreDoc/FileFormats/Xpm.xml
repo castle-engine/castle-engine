@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>X Window Pixmap Image</title>
+  <chapter>
+    <title>X Window Pixmap Image</title>
+    <par>
+      X Pixmap is an ASCII-text-based image format used by the X Window System.
+      It was created in 1989 at the INRIA, France, and was later enhanced.
+      It is intended primarily for creating icon pixmaps,
+      and supports transparent color.
+      It has a simple structure.
+      It can be created and manipulated using any text editor
+      and can be included in a C language file.
+    </par>
+    <par>
+      Imaging supports loading and saving of XPM files (not XPM2 or XBM).
+    </par>
+    
+    <table>
+      <title>XPM File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+      </row>
+      <row>
+        <td>Indexed, custom number of colors</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+      </row>
+    </table>
+
+  </chapter>
+</doc>

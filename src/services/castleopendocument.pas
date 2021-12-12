@@ -133,7 +133,7 @@ uses
     {$ifdef MSWINDOWS} Windows, {$endif}
     {$ifdef DARWIN} MacOSAll, {$endif}
   {$endif}
-  SysUtils, Classes, Process,
+  SysUtils, Classes, {$ifdef FPC}Process,{$else}ShellApi,{$endif}
   CastleURIUtils, CastleUtils, CastleFilesUtils, CastleLog, CastleMessaging;
 
 { lcl/lclstrconsts.pas ------------------------------------------------------- }
@@ -168,13 +168,21 @@ begin
   {$ELSE}
   if Win32Platform = VER_PLATFORM_WIN32_NT then
   begin
+    {$ifdef FPC}
     ws := UTF8Decode(AURL);
+    {$else}
+    ws := AURL;
+    {$endif}
     Result := ShellExecuteW(0, 'open', PWideChar(ws), nil, nil, SW_SHOWNORMAL) > 32;
   end
   else
   begin
+    {$ifdef FPC}
     ans := Utf8ToAnsi(AURL); // utf8 must be converted to Windows Ansi-codepage
-    Result := ShellExecute(0, 'open', PAnsiChar(ans), nil, nil, SW_SHOWNORMAL) > 32;
+    {$else}
+    ans := AnsiString(AURL);
+    {$endif}
+    Result := ShellExecuteA(0, 'open', PAnsiChar(ans), nil, nil, SW_SHOWNORMAL) > 32;
   end;
   {$ENDIF}
 end;

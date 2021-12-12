@@ -22,7 +22,9 @@ unit CastleShapes;
 
 {$I octreeconf.inc}
 
+{$ifdef FPC}
 {$modeswitch nestedprocvars}{$H+}
+{$endif}
 
 interface
 
@@ -59,7 +61,8 @@ type
   TShape = class;
   TShapeList = class;
 
-  TShapeTraverseFunc = procedure (const Shape: TShape) is nested;
+  TShapeTraverseFunc = {$ifndef FPC}reference to{$endif} procedure
+    (const Shape: TShape){$ifdef FPC} is nested{$endif};
 
   TEnumerateShapeTexturesFunction = function (Shape: TShape;
     Texture: TAbstractTextureNode): Pointer of object;
@@ -721,7 +724,7 @@ type
     procedure InternalAfterChange;
   end;
 
-  TShapeTreeList = specialize TObjectList<TShapeTree>;
+  TShapeTreeList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeTree>;
 
   { Internal (non-leaf) node of the TShapeTree.
     This is practically just a list of other children
@@ -737,7 +740,9 @@ type
   TShapeTreeGroup = class(TShapeTree)
   strict private
     FChildren: TShapeTreeList;
-    procedure ChildrenChanged(Sender: TObject; constref Item: TShapeTree; Action: TCollectionNotification);
+    procedure ChildrenChanged(Sender: TObject;
+      {$ifdef FPC}constref{$else}const{$endif} Item: TShapeTree;
+      Action: TCollectionNotification);
   private
     function MaxShapesCountCore: Integer; override;
     procedure TraverseCore(const Func: TShapeTraverseFunc;
@@ -952,19 +957,22 @@ type
     property Current: TShape read FCurrent;
   end deprecated{ 'use Tree.TraverseList(...)'};
 
-  TShapeList = class(specialize TObjectList<TShape>)
+  TShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TShape>)
   strict private
     SortPosition: TVector3;
-    function IsSmallerFrontToBack(constref A, B: TShape): Integer;
-    function IsSmallerBackToFront3D(constref A, B: TShape): Integer;
-    function IsSmallerBackToFront2D(constref A, B: TShape): Integer;
+    function IsSmallerFrontToBack(
+      {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
+    function IsSmallerBackToFront3D(
+      {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
+    function IsSmallerBackToFront2D(
+      {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
   public
-    constructor Create;
+    constructor Create; overload;
 
     { Constructor that initializes list contents by traversing given tree. }
     constructor Create(const Tree: TShapeTree; const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); deprecated 'use Tree.TraverseList(...)';
+      const OnlyCollidable: boolean = false); overload; deprecated 'use Tree.TraverseList(...)';
 
     { Sort shapes by distance to given Position point, closest first. }
     procedure SortFrontToBack(const Position: TVector3);
@@ -1027,7 +1035,7 @@ type
     when only mesh names are stored in VRML/X3D exported files),
     in which case it can be a mesh name. }
   TPlaceholderName = function (const Shape: TShape): string;
-  TPlaceholderNames = class(specialize TDictionary<string, TPlaceholderName>)
+  TPlaceholderNames = class({$ifdef FPC}specialize{$endif} TDictionary<string, TPlaceholderName>)
   strict private
     function GetItems(const AKey: string): TPlaceholderName;
     procedure SetItems(const AKey: string; const AValue: TPlaceholderName);
@@ -1162,9 +1170,9 @@ var
   OnlyVisible: Boolean;
   OnlyCollidable: Boolean;
 begin
-  for OnlyActive in Boolean do
-    for OnlyVisible in Boolean do
-      for OnlyCollidable in Boolean do
+  for OnlyActive := Low(Boolean) to High(Boolean) do
+    for OnlyVisible := Low(Boolean) to High(Boolean) do
+      for OnlyCollidable := Low(Boolean) to High(Boolean) do
         FreeAndNil(CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable]);
   inherited;
 end;
@@ -1257,7 +1265,7 @@ begin
   end;
 end;
 
-class function TShapeTree.AssociatedShape(const Node: TX3DNode; const Index: Integer): TShapeTree; static;
+class function TShapeTree.AssociatedShape(const Node: TX3DNode; const Index: Integer): TShapeTree; {$ifdef FPC}static;{$endif}
 begin
   if Node.InternalSceneShape.ClassType = TShapeTreeList then
     Result := TShapeTreeList(Node.InternalSceneShape)[Index]
@@ -1265,7 +1273,7 @@ begin
     Result := TShapeTree(Node.InternalSceneShape);
 end;
 
-class function TShapeTree.AssociatedShapesCount(const Node: TX3DNode): Integer; static;
+class function TShapeTree.AssociatedShapesCount(const Node: TX3DNode): Integer; {$ifdef FPC}static;{$endif}
 begin
   if Node.InternalSceneShape = nil then
     Result := 0
@@ -1286,11 +1294,26 @@ begin
 end;
 
 function TShapeTree.TraverseList(const OnlyActive, OnlyVisible, OnlyCollidable: Boolean): TShapeList;
+var
+  ResultShapeList: TShapeList; //Delphi need that
 
+  {$ifdef FPC}
   procedure AddToList(const Shape: TShape);
+ {$else}
+  { We use delphi anonymous type here, see:
+   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
+   Without CaptureAddToList function Delphi gets
+   [dcc32 Error] E2555 Cannot capture symbol error }
+  function CaptureAddToList: TShapeTraverseFunc;
   begin
-    Result.Add(Shape);
+    Result := procedure(const Shape: TShape)
+  {$endif}
+  begin
+    {$ifdef FPC}Result{$else}ResultShapeList{$endif}.Add(Shape);
   end;
+  {$ifndef FPC}
+    end;
+  {$endif}
 
 var
   CurrentShapesHash: TShapesHash;
@@ -1298,13 +1321,15 @@ var
   { Call TraverseCore, gather shapes to a new list. }
   procedure TraverseCoreToList;
   begin
-    Result := TShapeList.Create;
+    ResultShapeList := TShapeList.Create;
+    Result := ResultShapeList;
     { Set Capacity, to make AddToList calls faster.
       Note that we use MaxShapesCount instead of ShapesCount,
       since MaxShapesCount is usually instant, while ShapesCount...
       now ShapesCount depends on TraverseList, so it would cause infinite loop. }
     Result.Capacity := MaxShapesCount;
-    TraverseCore(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
+    TraverseCore({$ifdef FPC}@{$endif} {$ifdef FPC}AddToList{$else} CaptureAddToList(){$endif},
+      OnlyActive, OnlyVisible, OnlyCollidable);
     CachedChildrenListHash[OnlyActive, OnlyVisible, OnlyCollidable] := CurrentShapesHash;
     CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable] := Result;
   end;
@@ -2138,10 +2163,12 @@ begin
         Progress.Init(TrianglesCount(false), ProgressTitle, true);
         try
           TriangleOctreeToAdd := Result;
-          LocalTriangulate(false, @AddTriangleToOctreeProgress);
+          LocalTriangulate(false,
+            {$ifdef FPC}@{$endif}AddTriangleToOctreeProgress);
         finally Progress.Fini end;
       end else
-        LocalTriangulate(false, @Result.AddItemTriangle);
+        LocalTriangulate(false,
+          {$ifdef FPC}@{$endif}Result.AddItemTriangle);
     end;
   except Result.Free; raise end;
 
@@ -2203,10 +2230,12 @@ function TShape.AlphaChannel: TAlphaChannel;
       if Node.FdTransparency.Items.Count = 0 then
         result := TMaterialInfo.DefaultTransparency > SingleEpsilon else
       begin
+        {$ifndef FPC}{$POINTERMATH ON}{$endif}
         for i := 0 to Node.FdTransparency.Items.Count-1 do
           if Node.FdTransparency.Items.L[i] <= SingleEpsilon then
             Exit(false);
         result := true;
+        {$ifndef FPC}{$POINTERMATH OFF}{$endif}
       end;
     end;
 
@@ -2539,9 +2568,9 @@ function TShape.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFuncti
       Result := nil;
   end;
 
-  function HandleIDecls(IDecls: TX3DInterfaceDeclarationList): Pointer; forward;
+  function HandleIDecls(IDecls: TX3DInterfaceDeclarationList): Pointer; overload; forward;
 
-  function HandleIDecls(Nodes: TMFNode): Pointer;
+  function HandleIDecls(Nodes: TMFNode): Pointer; overload;
   var
     I: Integer;
   begin
@@ -2553,7 +2582,7 @@ function TShape.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFuncti
     end;
   end;
 
-  function HandleIDecls(Nodes: TX3DNodeList): Pointer;
+  function HandleIDecls(Nodes: TX3DNodeList): Pointer; overload;
   var
     I: Integer;
   begin
@@ -2756,6 +2785,7 @@ begin
     end;
   end;
 
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   Lights := State.Lights;
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
@@ -2769,6 +2799,7 @@ begin
       Result := HandleIDecls(Lights.L[I].Node.FdEffects);
       if Result <> nil then Exit;
     end;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
   if State.Effects <> nil then
     HandleIDecls(State.Effects);
@@ -2798,7 +2829,8 @@ begin
   Helper := TUsesTextureHelper.Create;
   try
     Helper.Node := Node;
-    Result := EnumerateTextures(@Helper.HandleTexture) <> nil;
+    Result := EnumerateTextures(
+      {$ifdef FPC}@{$endif}Helper.HandleTexture) <> nil;
   finally Helper.Free end;
 end;
 
@@ -2946,10 +2978,12 @@ var
     end else
       TexCoord := UnknownTexCoord;
 
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     if Arrays.Faces <> nil then
       Face := Arrays.Faces.L[RangeBeginIndex + I1]
     else
       Face := UnknownFaceIndex;
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
     TriangleEvent(Self, Position, Normal, TexCoord, Face);
   end;
@@ -2967,7 +3001,7 @@ var
           while I + 2 < Count do
           begin
             Triangle(I, I + 1, I + 2);
-            I += 3;
+            Inc(I, 3);
           end;
         end;
       {$ifndef OpenGLES}
@@ -2978,7 +3012,7 @@ var
           begin
             Triangle(I, I + 1, I + 2);
             Triangle(I, I + 2, I + 3);
-            I += 4;
+            Inc(I, 4);
           end;
         end;
       {$endif}
@@ -3023,7 +3057,7 @@ begin
       for I := 0 to Arrays.Counts.Count - 1 do
       begin
         TriangulateRange(Arrays.Counts[I]);
-        RangeBeginIndex += Arrays.Counts[I];
+        RangeBeginIndex := RangeBeginIndex + Arrays.Counts[I];
       end;
   finally FreeAndNil(Arrays) end;
 end;
@@ -3054,7 +3088,7 @@ begin
   try
     TR.Transform := @(State.Transformation.Transform);
     TR.TriangleEvent := TriangleEvent;
-    LocalTriangulate(OverTriangulate, @TR.LocalNewTriangle);
+    LocalTriangulate(OverTriangulate, {$ifdef FPC}@{$endif}TR.LocalNewTriangle);
   finally FreeAndNil(TR) end;
 end;
 
@@ -3126,7 +3160,7 @@ constructor TShapeTreeGroup.Create(const AParentScene: TX3DEventsEngine);
 begin
   inherited;
   FChildren := TShapeTreeList.Create(true);
-  FChildren.OnNotify := {$ifdef CASTLE_OBJFPC}@{$endif} ChildrenChanged;
+  FChildren.OnNotify := {$ifdef FPC}@{$endif} ChildrenChanged;
 end;
 
 destructor TShapeTreeGroup.Destroy;
@@ -3135,8 +3169,8 @@ begin
   inherited;
 end;
 
-procedure TShapeTreeGroup.ChildrenChanged(Sender: TObject;
-  constref Item: TShapeTree; Action: TCollectionNotification);
+procedure TShapeTreeGroup.ChildrenChanged(Sender: TObject; {$ifdef FPC}
+  constref{$else}const{$endif} Item: TShapeTree; Action: TCollectionNotification);
 begin
   if Action = cnAdded then
     Item.FParent := Self;
@@ -3171,7 +3205,7 @@ var
 begin
   Result := 0;
   for I := 0 to FChildren.Count - 1 do
-    Result += FChildren.Items[I].MaxShapesCount;
+    Result := Result + FChildren.Items[I].MaxShapesCount;
 end;
 
 function TShapeTreeGroup.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer;
@@ -3204,7 +3238,7 @@ var
 begin
   Result := Indent + ClassName + NL;
   for I := 0 to FChildren.Count - 1 do
-    Result += FChildren[I].DebugInfo(Indent + Format('  %3d:', [I]));
+    Result := Result + FChildren[I].DebugInfo(Indent + Format('  %3d:', [I]));
 end;
 
 { TShapeTreeSwitch ------------------------------------------------------- }
@@ -3327,7 +3361,7 @@ begin
 
   Result := Indent + ClassName + ' (' + TransformNodeName + ')' + NL;
   for I := 0 to Children.Count - 1 do
-    Result += Children[I].DebugInfo(Indent + Format('  %3d:', [I]));
+    Result := Result + Children[I].DebugInfo(Indent + Format('  %3d:', [I]));
 end;
 
 { TShapeTreeLOD ------------------------------------------------------- }
@@ -3666,10 +3700,23 @@ end;
 constructor TShapeList.Create(const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 
+  {$ifdef FPC}
   procedure AddToList(const Shape: TShape);
+  {$else}
+  { We use delphi anonymous type here, see:
+   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
+   Without CaptureHereShapeRemove function Delphi gets
+   [dcc32 Error] E2555 Cannot capture symbol error }
+  function CaptureAddToList: TShapeTraverseFunc;
+  begin
+    Result := procedure(const Shape: TShape)
+  {$endif}
   begin
     Add(Shape);
   end;
+  {$ifndef FPC}
+  end;
+  {$endif}
 
 begin
   Create;
@@ -3681,24 +3728,27 @@ begin
   { This method uses Tree.Traverse that uses Tree.TraverseList that creates a list,
     iterates over it, and here we add results to another list...
     This is clearly a waste of time. That's why this method is deprecated. }
-  Tree.Traverse(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
+  Tree.Traverse({$ifdef FPC}@{$endif} {$ifdef FPC}AddToList{$else} CaptureAddToList(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable);
 end;
 
 type
-  TShapeComparer = specialize TComparer<TShape>;
+  TShapeComparer = {$ifdef FPC}specialize{$endif} TComparer<TShape>;
 
-function TShapeList.IsSmallerFrontToBack(constref A, B: TShape): Integer;
+function TShapeList.IsSmallerFrontToBack(
+  {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
 begin
   { To revert the order, we revert the order of A and B as passed to CompareBackToFront3D. }
   Result := TBox3D.CompareBackToFront3D(B.BoundingBox, A.BoundingBox, SortPosition);
 end;
 
-function TShapeList.IsSmallerBackToFront3D(constref A, B: TShape): Integer;
+function TShapeList.IsSmallerBackToFront3D(
+  {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
 begin
   Result := TBox3D.CompareBackToFront3D(A.BoundingBox, B.BoundingBox, SortPosition);
 end;
 
-function TShapeList.IsSmallerBackToFront2D(constref A, B: TShape): Integer;
+function TShapeList.IsSmallerBackToFront2D(
+  {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
 begin
   Result := TBox3D.CompareBackToFront2D(A.BoundingBox, B.BoundingBox);
 end;
@@ -3706,7 +3756,7 @@ end;
 procedure TShapeList.SortFrontToBack(const Position: TVector3);
 begin
   SortPosition := Position;
-  Sort(TShapeComparer.Construct(@IsSmallerFrontToBack));
+  Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerFrontToBack));
 end;
 
 procedure TShapeList.SortBackToFront(const Position: TVector3;
@@ -3714,9 +3764,9 @@ procedure TShapeList.SortBackToFront(const Position: TVector3;
 begin
   SortPosition := Position;
   if Distance3D then
-    Sort(TShapeComparer.Construct(@IsSmallerBackToFront3D))
+    Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3D))
   else
-    Sort(TShapeComparer.Construct(@IsSmallerBackToFront2D));
+    Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront2D));
 end;
 
 { TPlaceholderNames ------------------------------------------------------- }

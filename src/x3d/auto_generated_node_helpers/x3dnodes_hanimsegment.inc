@@ -72,9 +72,9 @@
     { X3D field "momentsOfInertia". } { }
     public property FdMomentsOfInertia: TMFFloat read FFdMomentsOfInertia;
     { Set X3D field "momentsOfInertia". } { }
-    procedure SetMomentsOfInertia(const Value: array of Single);
+    procedure SetMomentsOfInertia(const Value: array of Single); overload;
     { Set X3D field "momentsOfInertia". } { }
-    procedure SetMomentsOfInertia(const Value: TSingleList);
+    procedure SetMomentsOfInertia(const Value: TSingleList); overload;
 
     strict private FFdName: TSFString;
     { X3D field "name". } { }

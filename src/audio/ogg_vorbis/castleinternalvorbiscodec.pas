@@ -4,7 +4,12 @@
 unit CastleInternalVorbisCodec;
 
 {$I castleconf.inc}
-{$packrecords C}
+{$ifdef FPC}
+  {$packrecords C}
+{$else}
+  {$ALIGN 4}
+{$endif}
+
 
 interface
 

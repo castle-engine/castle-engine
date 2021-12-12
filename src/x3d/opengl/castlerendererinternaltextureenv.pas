@@ -55,7 +55,7 @@ type
   TSourcePerChannel = array [TChannel] of TColorSource;
 
   { How to mix the current texture color into the fragment color. }
-  TTextureEnv = object
+  TTextureEnv = record
   public
     { How to calculate given fragment channel using this texture unit.
       Returned values correspond to parameters of
@@ -97,10 +97,10 @@ type
       MultiTexture.function values.
       This does not setup any OpenGL state, it only calculates fields
       of this object. }
-    constructor Init(const Mode, SourceStr, FunctionStr: string);
+    constructor Init(const Mode, SourceStr, FunctionStr: string); overload;
 
     { Calculate values based on simple OpenGL mode value. }
-    constructor Init(const Mode: TCombine);
+    constructor Init(const Mode: TCombine); overload;
 
     function Hash: LongWord;
   end;
@@ -111,13 +111,13 @@ uses SysUtils, CastleStringUtils, CastleLog;
 
 { Simple type constructors, for ease of coding.
   Versions with only 1 argument set both channel (rgb and alpha) to the same. }
-function CombinePerChannel(const RGB, Alpha: TCombine): TCombinePerChannel;
+function CombinePerChannel(const RGB, Alpha: TCombine): TCombinePerChannel; overload;
 begin
   Result[cRGB] := RGB;
   Result[cAlpha] := Alpha;
 end;
 
-function CombinePerChannel(const Value: TCombine): TCombinePerChannel;
+function CombinePerChannel(const Value: TCombine): TCombinePerChannel; overload;
 begin
   Result := CombinePerChannel(Value, Value);
 end;

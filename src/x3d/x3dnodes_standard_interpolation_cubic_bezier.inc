@@ -12,13 +12,13 @@
 
   ----------------------------------------------------------------------------
 }
-
+{$ifdef FPC}
 {$ifdef read_interface}
   TAbstractCubicBezierInterpolatorNode = class(TAbstractInterpolatorNode)
   strict private
     type
       TCalculatedCurve2D = array [0..10] of TVector2;
-      TCalculatedCurve2DList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCalculatedCurve2D>;
+      TCalculatedCurve2DList = {$ifdef FPC}specialize{$endif} TStructList<TCalculatedCurve2D>;
     var
       FCalculatedCurves: TCalculatedCurve2DList;
       CubicBezierValueWarningDone: boolean;
@@ -58,7 +58,7 @@
   end;
 
   { Basis for all nodes interpolating (animating) an array of values using cubic Bezier curve. }
-  {$ifdef CASTLE_OBJFPC}generic{$endif}
+  {$ifdef FPC}generic{$endif}
   TAbstractCubicBezierArrayInterpolatorNode<
     // TInterpolatedValue, // unused for now
     TKeyValue,
@@ -111,7 +111,8 @@
   { Interpolate (animate) a set of 3D vertices,
     using cubic Bezier curve instead of linear interpolation.
     See https://castle-engine.io/x3d_implementation_interpolation_extensions.php . }
-  TCubicBezierCoordinateInterpolatorNode = class(specialize TAbstractCubicBezierArrayInterpolatorNode<
+  TCubicBezierCoordinateInterpolatorNode = class({$ifdef FPC}specialize{$endif}
+    TAbstractCubicBezierArrayInterpolatorNode<
     // TVector3, // unused for now
     TMFVec3f,
     TMFVec3fEvent>)
@@ -125,7 +126,7 @@
 
 class function TAbstractCubicBezierInterpolatorNode.KeyRangeArray2D(
   Key: array of TVector2;
-  const Fraction: Single; out T: Single): Integer; static;
+  const Fraction: Single; out T: Single): Integer; {$ifdef FPC}static;{$endif}
 var
   KeyCount, A, B: Integer;
 begin
@@ -186,7 +187,7 @@ end;
 class function TAbstractCubicBezierInterpolatorNode.CubicBezierPercent(
   const T: Single;
   const ControlPoints: TVector4;
-  const Curve: TCalculatedCurve2D): Single; static;
+  const Curve: TCalculatedCurve2D): Single; {$ifdef FPC}static;{$endif}
 var
   Range: Integer;
   FractionBetweenCurvePoints: Single;
@@ -207,7 +208,7 @@ end;
 
 class procedure TAbstractCubicBezierInterpolatorNode.CalculatedCurve2D(
   const KeyValue: TVector4;
-  out Curve: TCalculatedCurve2D); static;
+  out Curve: TCalculatedCurve2D); {$ifdef FPC}static;{$endif}
 var
   CurvePoints: TCubicBezier2DPoints;
   I: Integer;
@@ -242,7 +243,7 @@ var
 begin
   { Call CubicBezierPercent, using ready FCalculatedCurves
     if possible. }
-  ControlPointPtr := FdControlPoints.Items.Ptr(ControlPointsIndex);
+  ControlPointPtr := PVector4(FdControlPoints.Items.Ptr(ControlPointsIndex));
   if (FCalculatedCurves <> nil) and
      (FCalculatedCurves.Count = FdControlPoints.Count) then
   begin
@@ -278,16 +279,16 @@ end;
 
 { TAbstractCubicBezierArrayInterpolatorNode --------------------------------------------- }
 
-constructor TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+constructor TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
   TKeyValue,
   TKeyValueEvent>{$endif} .Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   EventSet_Fraction.AddNotification(
-    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+    {$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
-procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
   TKeyValue,
   TKeyValueEvent>{$endif} .
   CreateNode;
@@ -301,7 +302,7 @@ begin
   AddEvent(FEventValue_changed);
 end;
 
-function TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+function TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
   TKeyValue,
   TKeyValueEvent>{$endif} .
   KeyValue(const Index, KeyCount: Integer): TKeyValue;
@@ -325,7 +326,7 @@ begin
       [X3DType]));
 end;
 
-function TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+function TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
   TKeyValue,
   TKeyValueEvent>{$endif} .
   KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TKeyValue;
@@ -347,7 +348,7 @@ begin
       [X3DType]));
 end;
 
-procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
   TKeyValue,
   TKeyValueEvent>{$endif} .
   EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
@@ -391,14 +392,14 @@ begin
   end;
 end;
 
-procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef FPC} <
   TKeyValue,
   TKeyValueEvent>{$endif} .
   InterpolatorLerp(const Target: TKeyValue;
   const Fraction: Single; const F1, F2: TKeyValue;
   const Index1, Index2, ACount: Integer);
 begin
-  Target.Items.AssignLerp(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
+  Target.Items.AssignLerpRange(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
 end;
 
 { TCubicBezier2DOrientationInterpolatorNode ---------------------------------- }
@@ -407,7 +408,7 @@ constructor TCubicBezier2DOrientationInterpolatorNode.Create(const AX3DName, ABa
 begin
   inherited;
   EventSet_Fraction.AddNotification(
-    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+    {$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
 procedure TCubicBezier2DOrientationInterpolatorNode.EventSet_FractionReceive(
@@ -455,7 +456,7 @@ constructor TCubicBezierPositionInterpolatorNode.Create(const AX3DName, ABaseUrl
 begin
   inherited;
   EventSet_Fraction.AddNotification(
-    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+    {$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
 procedure TCubicBezierPositionInterpolatorNode.EventSet_FractionReceive(
@@ -509,3 +510,5 @@ begin
 end;
 
 {$endif read_implementation}
+
+{$endif FPC}

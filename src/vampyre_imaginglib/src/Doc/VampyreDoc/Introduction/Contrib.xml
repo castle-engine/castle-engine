@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Contributions</title>
+  <chapter>
+    <title>Contributions</title>
+    <par>
+      Several modifications and extensions contributed by Imaging users are
+      included in release packages
+      (located in <keyword>(Imaging Root)\Extras\Contrib</keyword> directory).
+      Currently they are:
+    </par>
+
+    <table>
+      <tr><th>Name</th><th>Description</th></tr>
+      <tr>
+        <td><b>ExtraGIF</b></td>
+        <td>Modification that provides extra functionality targeting
+        <b>GIF</b> file format. Adds new self-animating TGraphic class
+        and full frame information. Created by Sergey Galezdinov
+        for <link url="http://qip.ru/en">QIP</link> messenger.
+        More info in included readme file.</td>
+      </tr>
+      <tr>
+        <td><b>NIF Loader</b></td>
+        <td>File format extension that reads texture from version 3 <b>NIF</b>
+          3D models (ST: Bridge Commander). Author: Delfi.</td>
+      </tr>
+      <tr>
+        <td><b>hq2x for Pascal</b></td>
+        <td>
+        Pascal translation of great
+        <link url="http://www.hiend3d.com/hq2x.html">h2qx magnification filter</link>.
+        Demo showing how to use it with Imaging is included.
+        Translated to Pascal by Jeremy Darling.
+        </td>
+      </tr>
+    </table>
+    
+    <par>
+      Also many <b>thanks</b> to all those who sent bug reports, fixes, diff patches,
+      new functions, and feedback of any kind.
+    </par>
+    
+  </chapter>
+</doc>

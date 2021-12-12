@@ -2,7 +2,7 @@
 <project name="test_local_characters"
   caption="CGE Local Characters"
   qualified_name="io.sourceforge.castleengine.test.local.characters"
-  standalone_source="test_local_characters_standalone.lpr"
+  standalone_source="test_local_characters_standalone.dpr"
   game_units="GameInitialize"
   author="Michalis Kamburelis"
 >

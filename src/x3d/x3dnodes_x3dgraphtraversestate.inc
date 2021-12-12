@@ -28,7 +28,9 @@
     { Nodes that affect how following nodes are rendered,
       mostly for VRML 1.0 state. }
     property VRML1State: TVRML1State read FVRML1State;
+    {$ifdef FPC}
     property LastNodes: TVRML1State read FVRML1State; deprecated 'use VRML1State';
+    {$endif}
   public
     { Lights active in this state.
 
@@ -87,9 +89,9 @@
 
     { Primary texture that determines RGB color and opacity.
       See @link(TAppearanceNode.MainTexture) for definition. }
-    function MainTexture: TAbstractTextureNode;
+    function MainTexture: TAbstractTextureNode; overload;
     function MainTexture(const GeometryForTexCoord: TAbstractGeometryNode;
-      out TexCoordIndex: Integer): TAbstractTextureNode;
+      out TexCoordIndex: Integer): TAbstractTextureNode; overload;
 
     { Returns BlendMode for this state, or @nil if not present. }
     function BlendMode: TBlendModeNode;
@@ -337,7 +339,7 @@ function TX3DGraphTraverseState.AddClipPlane: PClipPlane;
 begin
   if ClipPlanes = nil then
     ClipPlanes := TClipPlaneList.Create;
-  Result := ClipPlanes.Add();
+  Result := PClipPlane(ClipPlanes.Add());
 end;
 
 procedure TX3DGraphTraverseState.Assign(Source: TX3DGraphTraverseState);

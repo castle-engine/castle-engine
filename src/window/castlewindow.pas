@@ -137,7 +137,7 @@
       TCastleWindowBase.OnMenuClick when user clicks some menu item.
       Other backends (XLIB for now) ignore MainMenu.
 
-      See @code(castle_game_engine/examples/window/window_menu.lpr)
+      See @code(examples/window/window_menu/)
       for an example how to use the menu.)
 
     @item(Changing screen resolution and bit depth,
@@ -303,7 +303,7 @@ uses {$define read_interface_uses}
   { FPC units }
   SysUtils, Classes, Generics.Collections, CustApp,
   { Castle Game Engine units }
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
@@ -430,7 +430,7 @@ type
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
     function TouchesCount: Integer; override;
-    function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; override;
     function SettingMousePositionCausesMotion: Boolean; override;
   end deprecated 'do not descend from this, instead use custom TUIState descendants';
 
@@ -477,7 +477,9 @@ type
       of MaxWidth etc. }
     FRealWidth, FRealHeight: Integer;
     FOnCloseQuery: TContainerEvent;
+    {$ifdef FPC}
     FOnTimer: TContainerEvent;
+    {$endif}
     FOnDropFiles: TDropFilesFunc;
     { FFullScreenWanted is the value set by FullScreen property by the user.
       FFullScreenBackend is the last value of FullScreen known to the backend
@@ -574,8 +576,8 @@ type
     { Convert window position from the usual window system convention,
       where (0,0) is left-top, and the window has size FRealWidth/FRealHeight,
       to CGE convention where (0,0) is left-bottom. }
-    function LeftTopToCastle(const V: TVector2): TVector2;
-    function LeftTopToCastle(const X, Y: Single): TVector2;
+    function LeftTopToCastle(const V: TVector2): TVector2; overload;
+    function LeftTopToCastle(const X, Y: Single): TVector2; overload;
 
     { Convert window position from the CGE convention to window system
       convention where (0,0) is left-top, also rounding it.
@@ -995,7 +997,7 @@ type
       "how to scale the user-interface", where 96 (DefaultDpi) is default.
       So do not depend that it is actually related to the physical monitor size.
       See https://developer.gnome.org/gdk2/stable/GdkScreen.html#gdk-screen-set-resolution . }
-    property Dpi: Single read FDpi write FDpi default DefaultDpi;
+    property Dpi: Single read FDpi write FDpi {$ifdef FPC}default DefaultDpi{$endif};
 
     { Window position on the screen. If one (or both) of them is equal
       to WindowPositionCenter at the initialization (Open) time,
@@ -1128,7 +1130,7 @@ type
       Indexed from 0 to TouchesCount - 1.
       @seealso TouchesCount
       @seealso TTouch }
-    property Touches[Index: Integer]: TTouch read GetTouches;
+    property Touches[const Index: Integer]: TTouch read GetTouches;
 
     { Count of currently active touches (mouse or fingers pressed) on the screen.
       @seealso Touches }
@@ -1395,6 +1397,7 @@ type
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
 
+    {$ifdef FPC}
     { Required number of bits in color channels of accumulation buffer.
       Color channel is 0..3: red, green, blue, alpha.
       Zero means that given channel of accumulation buffer is not needed,
@@ -1411,6 +1414,7 @@ type
       buffer. It may not be supported by some backends (e.g. now LCL backend,
       the default backend on macOS, doesn't support it). }
     property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits; deprecated;
+    {$endif FPC}
 
     { Name of the icon for this window used by GTK 2 backend.
 
@@ -1497,8 +1501,10 @@ type
       using @code(Controls.InsertBack(MyBackgroundControl);). }
     property OnRender: TContainerEvent read GetOnRender write SetOnRender;
 
+    {$ifdef FPC}
     { @deprecated Deprecated name for OnRender. }
     property OnDraw: TContainerEvent read GetOnRender write SetOnRender; deprecated;
+    {$endif}
 
     { Always called right before EventRender (OnRender).
       These two events, EventBeforeRender (OnBeforeRender) and EventRender (OnRender),
@@ -1621,6 +1627,7 @@ type
       OnUpdate and other events of a window that displays a modal box. }
     property OnUpdate: TContainerEvent read GetOnUpdate write SetOnUpdate;
 
+    {$ifdef FPC}
     { @deprecated Deprecated name for OnUpdate. }
     property OnIdle: TContainerEvent read GetOnUpdate write SetOnUpdate; deprecated;
 
@@ -1643,6 +1650,7 @@ type
       Under Lazarus, you can of course also use LCL timers. }
     property OnTimer: TContainerEvent read FOnTimer write FOnTimer;
       deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
+    {$endif FPC}
 
     { Called when user drag and drops file(s) on the window.
       In case of macOS bundle, this is also called when user opens a document
@@ -1694,7 +1702,7 @@ type
       can assign other MainMenu values while not Closed, but only values
       <>nil. I.e. you can't set MainMenu to nil if you called Open
       with MainMenu <> nil.
-      See @code(castle_game_engine/examples/window/window_menu.lpr)
+      See @code(examples/window/window_menu/)
       for demo of changing value of MainMenu while window is not Closed.
 
       Note that MainMenu.Enabled is honoured (as well as Enabled
@@ -1727,8 +1735,10 @@ type
       we call this window's event. }
     property OnMenuClick: TMenuClickFunc read FOnMenuClick write FOnMenuClick;
 
+    {$ifdef FPC}
     { Deprecated name for OnMenuClick. }
     property OnMenuCommand: TMenuClickFunc read FOnMenuClick write FOnMenuClick; deprecated;
+    {$endif}
 
     { @section(Mouse state) -------------------------------------------------- }
 
@@ -1747,8 +1757,10 @@ type
 
     property Closed: boolean read FClosed default true;
 
+    {$ifdef FPC}
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
       deprecated 'do not set this, engine will override this. Set TCastleUserInterface.Cursor of your UI controls to control the Cursor.';
+    {$endif}
 
     { Mouse cursor appearance over this window.
       See TMouseCursor for a list of possible values and their meanings.
@@ -1829,7 +1841,7 @@ type
         this fallback mechanism, to code which OpenGL context features
         may be turned off.)
     }
-    procedure Open;
+    procedure Open; overload;
 
     { Open the window with OpenGL context, allowing you to lower
       the OpenGL context requirements and retry.
@@ -1856,7 +1868,7 @@ type
       @raises(EGLContextNotPossible If it's not possible to obtain
         requested OpenGL context, and the @code(Retry) callback
         returned @false.) }
-    procedure Open(const Retry: TGLContextRetryOpenFunc);
+    procedure Open(const Retry: TGLContextRetryOpenFunc); overload;
 
     { Close window.
 
@@ -2157,9 +2169,9 @@ type
       Alpha always remains unchanged.
 
       @groupBegin }
-    function ColorDialog(var Color: TCastleColor): boolean;
-    function ColorDialog(var Color: TVector3): boolean;
-    function ColorDialog(var Color: TVector3Byte): boolean;
+    function ColorDialog(var Color: TCastleColor): boolean; overload;
+    function ColorDialog(var Color: TVector3): boolean; overload;
+    function ColorDialog(var Color: TVector3Byte): boolean; overload;
     { @groupEnd }
 
     { Show some information and just ask to press "OK",
@@ -2214,7 +2226,7 @@ type
       slowdowns, and you will not see anything better). }
     property FpsCaptionUpdateDelay: Single
       read FFpsCaptionUpdateDelay write FFpsCaptionUpdateDelay
-      default DefaultFpsCaptionUpdateDelay;
+      {$ifdef FPC}default DefaultFpsCaptionUpdateDelay{$endif};
 
     { Configure some options typically used by "demo" applications. }
     procedure SetDemoOptions(const ASwapFullScreen_Key: TKey;
@@ -2303,9 +2315,17 @@ type
       deprecated 'create TCastleViewport and use TCastleViewport.NavigationType';
   end deprecated 'use TCastleWindowBase and create instance of TCastleViewport explicitly';
 
+  {$else}
+
+  { In the future, TCastleWindowBase should be renamed to just TCastleWindow.
+    The "Base" suffix is just a temporary measure, as we transition from older
+    TCastleWindow with predefined SceneManager.
+    You can try it right now with this line. }
+  //TCastleWindow = TCastleWindowBase;
+
   {$endif}
 
-  TWindowList = class(specialize TObjectList<TCastleWindowBase>)
+  TWindowList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleWindowBase>)
   private
     { Call wszystkie OnUpdate / OnTimer for all windows on this list.
       Using Application.OpenWindows.DoUpdate / DoTimer  is a simplest
@@ -2430,8 +2450,8 @@ type
       and call OnRender on all necessary windows.
       This allows some backends to easily do everything that typically needs
       to be done continuosly (without the need for any message from the outside). }
-    procedure UpdateAndRenderEverything(out WasAnyRendering: boolean);
-    procedure UpdateAndRenderEverything;
+    procedure UpdateAndRenderEverything(out WasAnyRendering: boolean); overload;
+    procedure UpdateAndRenderEverything; overload;
 
     procedure MarkSleeping;
 
@@ -2450,18 +2470,19 @@ type
       application work. }
     procedure CloseAllOpenWindows;
 
+    {$ifdef FPC}
     function GetVersion: string;
     procedure SetVersion(const Value: string);
-
     function GetTouchDevice: boolean;
     procedure SetTouchDevice(const Value: boolean);
     function GetLimitFPS: Single;
     procedure SetLimitFPS(const Value: Single);
+    {$endif}
     function GetMainContainer: TCastleContainer;
   protected
     { Override TCustomApplication to pass TCustomApplication.Log
       to CastleLog logger. }
-    procedure DoLog(EventType : TEventType; const Msg : String); override;
+    procedure DoLog(EventType: TEventType; const Msg: String); override;
     { Every backend must override this. TCustomApplication will
       automatically catch exceptions occuring inside DoRun. }
     procedure DoRun; override;
@@ -2561,6 +2582,7 @@ type
       @seealso TCastleWindowBase.OnUpdate }
     property OnUpdate: TUpdateFunc read FOnUpdate write FOnUpdate;
 
+    {$ifdef FPC}
     { @deprecated Deprecated name for OnUpdate. }
     property OnIdle: TUpdateFunc read FOnUpdate write FOnUpdate; deprecated;
 
@@ -2576,6 +2598,7 @@ type
     property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec default 1000;
       deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
     { @groupEnd }
+    {$endif FPC}
 
     { Main window used for various purposes.
       On targets when only one TCastleWindowBase instance makes sense
@@ -2738,12 +2761,14 @@ type
     { Are we using OpenGLES for rendering. }
     function OpenGLES: Boolean;
 
+    {$ifdef FPC}
     property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
       deprecated 'use ApplicationProperties.LimitFps';
     property Version: string read GetVersion write SetVersion;
       deprecated 'use ApplicationProperties.Version';
     property TouchDevice: boolean read GetTouchDevice write SetTouchDevice;
       deprecated 'use ApplicationProperties.TouchDevice';
+    {$endif FPC}
   end;
 
   { @deprecated Deprecated name for TCastleApplication. }
@@ -2794,7 +2819,7 @@ uses CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
-  X3DLoad, Math;
+  {$ifdef FPC}X3DLoad, {$endif}Math;
 
 {$define read_implementation}
 
@@ -2932,7 +2957,7 @@ begin
   CreateBackend;
 
   if Messaging <> nil then
-    Messaging.OnReceive.Add(@MessageReceived);
+    Messaging.OnReceive.Add({$ifdef FPC}@{$endif}MessageReceived);
 end;
 
 destructor TCastleWindowBase.Destroy;
@@ -2948,7 +2973,7 @@ begin
   end;
 
   if Messaging <> nil then
-    Messaging.OnReceive.Remove(@MessageReceived);
+    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif}MessageReceived);
 
   FreeAndNil(FContainer);
   FreeAndNil(FTouches);
@@ -3397,6 +3422,36 @@ begin
 
     FrameProfiler.Start(fmRenderSwapFlush);
     if DoubleBuffer then SwapBuffers else glFlush;
+
+    { Keep this check inside fmRenderSwapFlush measurement.
+
+      Naive explanation (seems wrong, see below):
+      On Windows, SwapBuffers may execute immediately,
+      but then the next OpenGL call actually waits for it to finish
+      (see https://www.freelists.org/post/visionegg/swap-buffers-returns-immediately-for-2D-Textures-in-OpenGL-20,1 ).
+      So if this is outside fmRenderSwapFlush, fmRenderSwapFlush would be usually
+      zero, and most of the frame time would not be covered by anything we measure
+      in FrameProfiler.
+
+      The above explanation is however proven wrong by:
+
+      in -dRELEASE builds, without CheckGLErrors call at all,
+      fmRenderSwapFlush times are OK, nicely non-zero reasonable.
+      I.e. we don't have the problem of fmRenderSwapFlush = zero in -dRELEASE
+      builds, and we should -> if the above explanation was all that happens.
+      If the above explanation was right, then we should also measure
+      the next GL command (like RenderContext.Clear at the start
+      of TCastleContainer.EventRender), but we don't need to.
+
+      Tested (both debug and release observations above) on
+        Version string: 4.6.0 NVIDIA 425.46
+        Vendor: NVIDIA Corporation
+        Renderer: GeForce GTX 1050 Ti/PCIe/SSE2
+    }
+    {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW}
+    CheckGLErrors('End of TCastleWindowBase.DoRender');
+    {$endif}
+
     FrameProfiler.Stop(fmRenderSwapFlush);
 
     if AutoRedisplay then Invalidate;
@@ -3404,8 +3459,6 @@ begin
     Fps._RenderEnd;
     FrameProfiler.Stop(fmRender);
   end;
-
-  {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowBase.DoRender'); {$endif}
 end;
 
 procedure TCastleWindowBase.DoKeyDown(const Key: TKey; const KeyString: string);
@@ -3580,10 +3633,12 @@ end;
 procedure TCastleWindowBase.DoTimer;
 begin
   MakeCurrent;
+  {$ifdef FPC}
   {$warnings off} // keep deprecated working
   if Assigned(OnTimer) then
     OnTimer(Container);
   {$warnings on}
+  {$endif}
 end;
 
 procedure TCastleWindowBase.DoMenuClick(Item: TMenuItem);
@@ -3626,7 +3681,7 @@ function TCastleWindowBase.AllowSuspendForInput: boolean;
 begin
   {$warnings off} // keep deprecated working - OnTimer
   Result := Container.AllowSuspendForInput and
-    not (Invalidated or Assigned(OnUpdate) or Assigned(OnTimer) or FpsShowOnCaption);
+    not (Invalidated or Assigned(OnUpdate) {$ifdef FPC}or Assigned(OnTimer){$endif} or FpsShowOnCaption);
   {$warnings on}
 end;
 
@@ -3990,19 +4045,19 @@ const
     end =
   ( ( pOptions: @GeometryOptions;
       Count: High(GeometryOptions)+1;
-      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} GeometryOptionProc),
+      OptionProc: {$ifdef FPC} @ {$endif} GeometryOptionProc),
     ( pOptions: @ScreenGeometryOptions;
       Count: High(ScreenGeometryOptions) + 1;
-      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} ScreenGeometryOptionProc),
+      OptionProc: {$ifdef FPC} @ {$endif} ScreenGeometryOptionProc),
     ( pOptions: @DisplayOptions;
       Count: High(DisplayOptions) + 1;
-      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} DisplayOptionProc),
+      OptionProc: {$ifdef FPC} @ {$endif} DisplayOptionProc),
     ( pOptions: nil;
       Count: 0;
       OptionProc: nil),
     ( pOptions: @LimitFpsOptions;
       Count: High(LimitFpsOptions) + 1;
-      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} LimitFpsOptionProc)
+      OptionProc: {$ifdef FPC} @ {$endif} LimitFpsOptionProc)
   );
 
 var
@@ -4099,18 +4154,18 @@ begin
    Result := 'double buffered' else
    Result := 'single buffered';
  if ColorBits > 0 then
-   Result += Format(', with RGB colors bits (%d, %d, %d) (total %d color bits)', [RedBits, GreenBits, BlueBits, ColorBits]);
+   Result := Result + Format(', with RGB colors bits (%d, %d, %d) (total %d color bits)', [RedBits, GreenBits, BlueBits, ColorBits]);
  if DepthBits > 0 then
-   Result += Format(', with %d-bits sized depth buffer', [DepthBits]);
+   Result := Result + Format(', with %d-bits sized depth buffer', [DepthBits]);
  if StencilBits > 0 then
-   Result += Format(', with %d-bits sized stencil buffer', [StencilBits]);
+   Result := Result + Format(', with %d-bits sized stencil buffer', [StencilBits]);
  if AlphaBits > 0 then
-   Result += Format(', with %d-bits sized alpha channel', [AlphaBits]);
+   Result := Result + Format(', with %d-bits sized alpha channel', [AlphaBits]);
  if not FAccumBits.IsZero then
-   Result += Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
+   Result := Result + Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
     [FAccumBits[0], FAccumBits[1], FAccumBits[2], FAccumBits[3]]);
  if MultiSampling > 1 then
-   Result += Format(', with multisampling (%d samples)', [MultiSampling]);
+   Result := Result + Format(', with multisampling (%d samples)', [MultiSampling]);
 end;
 
 procedure TCastleWindowBase.CheckRequestedBufferAttributes(
@@ -4251,7 +4306,7 @@ begin
     FFullScreenWanted := Value;
 
     if FDuringOpen and Value then
-      WriteLnWarning('Window', 'TCastleWindowBase.FullScreen is changed during the initial Application.OnInitialize / OnOpen / OnResize events. This works, but is unoptimal (the window will start non-fullscreen and will only change to fullscreen later). Usually you should rather initialize "Window.FullScreen" in the main unit "initialization" section.');
+      WriteLnWarning('Window', 'TCastleWindowBase.FullScreen is changed during the initial Application.OnInitialize / OnOpen / OnResize events. This works, but is unoptimal (the window will start non-fullscreen and will only change to fullscreen later). ' + 'Usually you should rather initialize "Window.FullScreen" in the main unit "initialization" section.');
 
     { When the window is Closed, updating FFullScreenBackend is trivial
       and can be done automatically. Otherwise, it is delated
@@ -4668,7 +4723,7 @@ begin
   FTimerMilisec := 1000;
   FDefaultWindowClass := TCastleWindowBase;
   CreateBackend;
-  OnMainContainer := @GetMainContainer;
+  OnMainContainer := {$ifdef FPC}@{$endif}GetMainContainer;
 end;
 
 destructor TCastleApplication.Destroy;
@@ -4693,16 +4748,6 @@ begin
   DestroyBackend;
   FreeAndNil(FOpenWindows);
   inherited;
-end;
-
-function TCastleApplication.GetLimitFPS: Single;
-begin
-  Result := ApplicationProperties.LimitFPS;
-end;
-
-procedure TCastleApplication.SetLimitFPS(const Value: Single);
-begin
-  ApplicationProperties.LimitFPS := Value;
 end;
 
 function TCastleApplication.GetMainContainer: TCastleContainer;
@@ -4962,7 +5007,7 @@ begin
   {$warnings off} // keep deprecated working - OnTimer
   Result := not (
     Assigned(OnUpdate) or
-    Assigned(OnTimer) or
+    {$ifdef FPC}Assigned(OnTimer) or{$endif}
     (ApplicationProperties.OnUpdate.Count <> 0));
   {$warnings on}
   if not Result then Exit;
@@ -4991,11 +5036,11 @@ function TCastleApplication.VideoSettingsDescribe: string;
 begin
   Result := '';
   if VideoResize then
-    Result += Format('  Screen size :  %dx%d', [VideoResizeWidth, VideoResizeHeight]) + nl;
+    Result := Result + Format('  Screen size :  %dx%d', [VideoResizeWidth, VideoResizeHeight]) + nl;
   if VideoColorBits <> 0 then
-    Result += Format('  Color bits per pixel : %d', [VideoColorBits]) + nl;
+    Result := Result + Format('  Color bits per pixel : %d', [VideoColorBits]) + nl;
   if VideoFrequency <> 0 then
-    Result += Format('  Display frequency : %d', [VideoFrequency]) + nl;
+    Result := Result + Format('  Display frequency : %d', [VideoFrequency]) + nl;
 
   if Result = '' then
     Result := '  No display settings change' + nl;
@@ -5079,16 +5124,31 @@ end;
     the stacktrace). }
 procedure TCastleApplication.HandleException(Sender: TObject);
 
+  {$ifndef FPC}
+  function ExceptionBackTrace(const E: TObject): String;
+  begin
+    if E is Exception then
+      Result := Exception(E).StackTrace
+    else
+      Result := '';
+  end;
+  {$endif}
+
   procedure DefaultShowException(ExceptObject: TObject; ExceptAddr: Pointer);
   var
     OriginalObj: TObject;
     OriginalAddr: Pointer;
+    {$ifdef FPC}
     OriginalFrameCount: Longint;
     OriginalFrame: Pointer;
+    {$endif}
     ErrMessage: string;
     ContinueApp: Boolean;
   begin
-    ErrMessage := ExceptMessage(ExceptObject) + NL + NL + DumpExceptionBackTraceToString;
+    ErrMessage := ExceptMessage(ExceptObject) + NL + NL +
+      {$ifdef FPC} DumpExceptionBackTraceToString
+      {$else} ExceptionBackTrace(ExceptObject)
+      {$endif};
     { in case the following code, trying to handle the exception with nice GUI,
       will fail and crash horribly -- make sure to log the exception. }
     WritelnLog('Exception', ErrMessage);
@@ -5101,11 +5161,14 @@ procedure TCastleApplication.HandleException(Sender: TObject);
          Prevent the loop with just crash in this case. }
        (not Theme.InternalMessageFallbackLook) then
     begin
+      OriginalObj := ExceptObject;
+      OriginalAddr := ExceptAddr;
+      {$ifdef FPC}
+      OriginalFrameCount := ExceptFrameCount;
+      OriginalFrame := ExceptFrames;
+      {$endif}
+      ContinueApp := false; // initialize, in case MessageYesNo will make exception
       try
-        OriginalObj := ExceptObject;
-        OriginalAddr := ExceptAddr;
-        OriginalFrameCount := ExceptFrameCount;
-        OriginalFrame := ExceptFrames;
         Theme.InternalMessageFallbackLook := true;
         ContinueApp := GuessedMainWindow.MessageYesNo(
           'An error occurred. Try to continue the application?' + NL + NL +
@@ -5115,12 +5178,15 @@ procedure TCastleApplication.HandleException(Sender: TObject);
         on E: TObject do
         begin
           WritelnWarning('Exception', 'Exception ' + E.ClassName + ' occurred in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
-          ExceptProc(OriginalObj, OriginalAddr, OriginalFrameCount, OriginalFrame);
+          // TODO: ExceptProc on Delphi:
+          {$ifdef FPC}
+          ExceptProc(OriginalObj, OriginalAddr {$ifdef FPC}, OriginalFrameCount, OriginalFrame{$endif});
           WritelnWarning('Exception', 'And below is a report about the exception within exception handler.');
           ExceptProc(SysUtils.ExceptObject, SysUtils.ExceptAddr, SysUtils.ExceptFrameCount, SysUtils.ExceptFrames);
           { Setting ErrorAddr avoids HeapTrc outputting looong useless output
             (since memory leaks are normal when you exit with Halt(...)
             and no finalization blocks are run). }
+          {$endif}
           ErrorAddr := OriginalAddr;
           Halt(1);
         end;
@@ -5144,7 +5210,10 @@ procedure TCastleApplication.HandleException(Sender: TObject);
       raise ExceptObject at ExceptAddr;
       }
       { this works best: }
+      // TODO: ExceptProc
+      {$ifdef FPC}
       ExceptProc(ExceptObject, ExceptAddr, ExceptFrameCount, ExceptFrames);
+      {$endif}
       Halt(1);
     end;
   end;
@@ -5242,6 +5311,18 @@ begin
   Result := {$ifdef OpenGLES} true {$else} false {$endif};
 end;
 
+{$ifdef FPC}
+
+function TCastleApplication.GetLimitFPS: Single;
+begin
+  Result := ApplicationProperties.LimitFPS;
+end;
+
+procedure TCastleApplication.SetLimitFPS(const Value: Single);
+begin
+  ApplicationProperties.LimitFPS := Value;
+end;
+
 function TCastleApplication.GetVersion: string;
 begin
   Result := ApplicationProperties.Version;
@@ -5261,6 +5342,8 @@ procedure TCastleApplication.SetTouchDevice(const Value: boolean);
 begin
   ApplicationProperties.TouchDevice := Value;
 end;
+
+{$endif}
 
 { global --------------------------------------------------------------------- }
 

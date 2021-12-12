@@ -1289,8 +1289,8 @@ end;
 constructor TIndexedLineSetNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  Eventset_colorIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_ColorIndexReceive);
-  Eventset_coordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_CoordIndexReceive);
+  Eventset_colorIndex.AddNotification({$ifdef FPC}@{$endif} EventSet_ColorIndexReceive);
+  Eventset_coordIndex.AddNotification({$ifdef FPC}@{$endif} EventSet_CoordIndexReceive);
 end;
 
 class function TIndexedLineSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1364,7 +1364,7 @@ end;
 constructor TIndexedTriangleFanSetNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
+  Eventset_index.AddNotification({$ifdef FPC}@{$endif} EventSet_IndexReceive);
 end;
 
 function TIndexedTriangleFanSetNode.CoordIndexField: TMFLong;
@@ -1390,7 +1390,7 @@ end;
 constructor TIndexedTriangleSetNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
+  Eventset_index.AddNotification({$ifdef FPC}@{$endif} EventSet_IndexReceive);
 end;
 
 function TIndexedTriangleSetNode.CoordIndexField: TMFLong;
@@ -1416,7 +1416,7 @@ end;
 constructor TIndexedTriangleStripSetNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
+  Eventset_index.AddNotification({$ifdef FPC}@{$endif} EventSet_IndexReceive);
 end;
 
 function TIndexedTriangleStripSetNode.CoordIndexField: TMFLong;
@@ -1523,8 +1523,8 @@ begin
   FdVector.Items.Count := Len;
   if Len = 0 then Exit;
 
-  Source := List.L;
-  Dest := FdVector.Items.L;
+  Source := PVector4(List.L);
+  Dest := PVector3(FdVector.Items.L);
   for I := 0 to Len - 1 do
   begin
     // convert tangents to right-handed

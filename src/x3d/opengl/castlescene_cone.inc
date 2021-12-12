@@ -33,10 +33,10 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Cone bottom radius. }
-    property BottomRadius: Single read FBottomRadius write SetBottomRadius default 1;
+    property BottomRadius: Single read FBottomRadius write SetBottomRadius {$ifdef FPC}default 1{$endif};
 
     { Cone height. }
-    property Height: Single read FHeight write SetHeight default 2;
+    property Height: Single read FHeight write SetHeight {$ifdef FPC}default 2{$endif};
 
     { When this is @true, the object is visible (and lit) from both sides. }
     property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default false;
@@ -76,12 +76,14 @@ end;
 
 function TCastleCone.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'BottomRadius', 'Height', 'DoubleSided', 'Bottom', 'Side':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'BottomRadius') or
+     (PropertyName = 'Height') or
+     (PropertyName = 'DoubleSided') or
+     (PropertyName = 'Bottom') or
+     (PropertyName = 'Side') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleCone.SetBottomRadius(const Value: Single);

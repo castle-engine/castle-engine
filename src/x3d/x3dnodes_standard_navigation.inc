@@ -139,8 +139,8 @@
       effectively disabled, in a consistent way (without changing the
       @code(Enabled) field).
     }
-    procedure CollideAsBox(const Box: TBox3D);
-    procedure CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
+    procedure CollideAsBox(const Box: TBox3D); overload;
+    procedure CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D); overload;
 
   {$I auto_generated_node_helpers/x3dnodes_collision.inc}
   end;
@@ -181,7 +181,11 @@
   strict private
     function GetFieldOfViewDefault(const Index: Integer): Single;
     function GetFieldOfView(const Index: Integer): Single;
-    procedure SetFieldOfView(const Index: Integer; const Value: Single);
+    procedure SetFieldOfView(const Index: Integer; const Value: Single); overload;
+    { Special setter because delphi can't work with overloaded procedures in properties.
+      More info:
+      https://docwiki.embarcadero.com/RADStudio/Sydney/en/E2271_Property_getters_and_setters_cannot_be_overloaded_(Delphi) }
+    procedure SetFieldOfViewDelphiCompat(const Index: Integer; const Value: Single);
   strict protected
     function PositionField: TSFVec3f; override;
   public
@@ -199,16 +203,20 @@
         @item 3 index is "max y" (default value 1)
       )
     }
-    property FieldOfView [Index: Integer]: Single read GetFieldOfView write SetFieldOfView;
+    property FieldOfView [const Index: Integer]: Single read GetFieldOfView write SetFieldOfView;
 
     { Field of view - minimum X. -1 by default. @seealso FieldOfView }
-    property FieldOfViewMinX: Single index 0 read GetFieldOfView write SetFieldOfView;
+    property FieldOfViewMinX: Single index 0 read GetFieldOfView
+      write SetFieldOfViewDelphiCompat;
     { Field of view - minimum Y. -1 by default. @seealso FieldOfView }
-    property FieldOfViewMinY: Single index 1 read GetFieldOfView write SetFieldOfView;
+    property FieldOfViewMinY: Single index 1 read GetFieldOfView
+      write SetFieldOfViewDelphiCompat;
     { Field of view - maximum X. 1 by default. @seealso FieldOfView }
-    property FieldOfViewMaxX: Single index 2 read GetFieldOfView write SetFieldOfView;
+    property FieldOfViewMaxX: Single index 2 read GetFieldOfView
+      write SetFieldOfViewDelphiCompat;
     { Field of view - maximum Y. 1 by default. @seealso FieldOfView }
-    property FieldOfViewMaxY: Single index 3 read GetFieldOfView write SetFieldOfView;
+    property FieldOfViewMaxY: Single index 3 read GetFieldOfView
+      write SetFieldOfViewDelphiCompat;
 
     class function ProjectionType: TProjectionType; override;
     function ProjectionMatrix: TMatrix4; override;
@@ -273,7 +281,7 @@ const
 constructor TAbstractViewpointNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  Eventset_bind.AddNotification({$ifdef FPC}@{$endif} EventSet_BindReceive);
   FdOrientation.ChangeAlways := chViewpointVectors;
   FdDirection.ChangeAlways := chViewpointVectors;
   FdUp.ChangeAlways := chViewpointVectors;
@@ -607,7 +615,7 @@ end;
 constructor TNavigationInfoNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  Eventset_bind.AddNotification({$ifdef FPC}@{$endif} EventSet_BindReceive);
 end;
 
 procedure TNavigationInfoNode.EventSet_BindReceive(
@@ -675,6 +683,12 @@ begin
   FdFieldOfView.Items[Index] := Value;
   FdFieldOfView.Changed;
 end;
+
+procedure TOrthoViewpointNode.SetFieldOfViewDelphiCompat(const Index: Integer; const Value: Single);
+begin
+  SetFieldOfView(Index, Value);
+end;
+
 
 class function TOrthoViewpointNode.InternalFieldOfView(
   const AFieldOfView: TFloatRectangle;

@@ -37,7 +37,7 @@ unit CastleInternalFreeType;
 
 interface
 
-uses sysutils, classes, FPImgCmn,
+uses SysUtils, Classes, Types, {$ifdef FPC}FPImgCmn,{$endif}
   CastleInternalFreeTypeH, CastleUnicode, CastleUtils;
 
 { TODO : take resolution in account to find the size }
@@ -206,7 +206,7 @@ var
 
 implementation
 
-{$IFDEF win32}uses dos;{$ENDIF}
+{$ifdef FPC}{$IFDEF win32}uses dos;{$ENDIF}{$endif}
 
 procedure FTError (Event:string; Err:integer);
 begin
@@ -265,15 +265,15 @@ end;}
 { TMgrFont }
 
 constructor TMgrFont.Create (aMgr:TFontManager; afilename:string; anindex:integer);
-
 begin
   inherited create;
   Filename := afilename;
   Mgr := aMgr;
   FSizes := TList.create;
   LastSize := nil;
+
   Try
-    FTCheck(FT_New_Face (aMgr.FTLib, pchar(afilename), anindex, font),format (sErrLoadFont,[anindex,afilename]));
+    FTCheck(FT_New_Face (aMgr.FTLib, PAnsiChar(AnsiString(afilename)), anindex, font),format (sErrLoadFont,[anindex,afilename]));
     //WriteFT_Face(font);
   except
     Font:=Nil;
@@ -382,7 +382,7 @@ end;
 procedure TFontManager.SetSearchPath (AValue : string);
   procedure AddPath (apath : string);
   begin
-    FPaths.Add (IncludeTrailingBackslash(Apath));
+    FPaths.Add (IncludeTrailingPathDelimiter(Apath));
   end;
 var p : integer;
 begin
@@ -605,9 +605,16 @@ function TFontManager.MakeString (FontId:integer; Text:string; size:integer; ang
 var g : PMgrGlyph;
     bm : PFT_BitmapGlyph;
     gl : PFT_Glyph;
-    prevIndex, prevx, c, r, rx, cl : integer;
+    prevIndex, prevx, c, r, rx : integer;
     uc : TUnicodeChar;
-    pc : pchar;
+    {$ifdef FPC}
+    pc : PChar;
+    cl: Integer;
+    {$else}
+    TextIndex: Integer;
+    NextIndex: Integer;
+    TextLength: Integer;
+    {$endif}
     pre, adv, pos, kern : FT_Vector;
     buf : CastleUtils.PByteArray;
     reverse : boolean;
@@ -620,7 +627,11 @@ begin
   else
     begin
     InitMakeString (FontID, Size);
+    {$ifdef FPC}
     c := UTF8Length(text);
+    {$else}
+    c := GetUTF32Length(text); // Returns number of chars (not bytes) in Delphi Unicode
+    {$endif}
     result := TStringBitmaps.Create(c);
     if (CurRenderMode = FT_RENDER_MODE_MONO) then
       result.FMode := btBlackWhite
@@ -633,16 +644,27 @@ begin
     pos.y := 0;
     pre.x := 0;
     pre.y := 0;
-    pc := pchar(text);
     r := -1;
     // get the unicode for the character. Also performed at the end of the while loop.
+    {$ifdef FPC}
+    pc := PChar(text);
     uc := UTF8CharacterToUnicode (pc, cl);
     while (uc>0) and (cl>0) do
+    {$else}
+    TextIndex := 1;
+    TextLength := Length(Text);
+    while (TextIndex <= TextLength) do
+    {$endif}
     begin
+      {$ifdef FPC}
+        // increment pchar by character length
+        inc (pc, cl);
+      {$else}
+        uc := GetUTF32Char(Text, TextIndex, NextIndex);
+        TextIndex := NextIndex;
+      {$endif}
       // retrieve loaded glyph
       g := GetGlyph (uc);
-      // increment pchar by character length
-      inc (pc, cl);
       inc (r);
       // check kerning
       if UseKerning and (g^.glyphindex <>0) and (PrevIndex <> 0) then
@@ -681,7 +703,7 @@ begin
           if reverse then
             begin
             pitch := -bitmap.pitch;
-            getmem (data, pitch*height);
+            {$ifndef FPC}System.{$endif}getmem (data, pitch*height);
             for rx := height-1 downto 0 do
               move (buf^[rx*pitch], data^[(height-rx-1)*pitch], pitch);
             end
@@ -689,7 +711,7 @@ begin
             begin
             pitch := bitmap.pitch;
             rx := pitch*height;
-            getmem (data, rx);
+            {$ifndef FPC}System.{$endif}getmem (data, rx);
             move (buf^[0], data^[0], rx);
             end;
           end;
@@ -707,27 +729,36 @@ begin
       // finish rendered glyph
       FT_Done_Glyph (gl);
       // Get the next unicode
+      {$ifdef FPC}
       uc := UTF8CharacterToUnicode (pc, cl);
+      {$endif FPC}
     end;
     result.FText := Text;
     result.CalculateGlobals;
     end;
 end;
 
-function TFontManager.MakeString (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
+function TFontManager.MakeString(FontId: Integer; Text: String; Size: Integer): TStringBitmaps;
 var g : PMgrGlyph;
     bm : PFT_BitmapGlyph;
     gl : PFT_Glyph;
-    e, prevIndex, prevx, r, rx, cl : integer;
-    uc : TUnicodeChar;
+    e, prevIndex, prevx, r, rx : integer;
+    {$ifdef FPC}
+    cl : integer;
     pc : pchar;
+    {$else}
+    TextIndex: Integer;
+    NextIndex: Integer;
+    TextLength: Integer;
+    {$endif}
+    uc : TUnicodeChar;
     pos, kern : FT_Vector;
     buf : CastleUtils.PByteArray;
     reverse : boolean;
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);
-  result := TStringBitmaps.Create(UTF8Length(Text));
+  result := TStringBitmaps.Create({$ifdef FPC}UTF8Length(Text){$else}GetUTF32Length(Text){$endif});
   if (CurRenderMode = FT_RENDER_MODE_MONO) then
     result.FMode := btBlackWhite
   else
@@ -736,16 +767,27 @@ begin
   prevx := 0;
   pos.x := 0;
   pos.y := 0;
-  pc := pchar(text);
   r := -1;
   // get the unicode for the character. Also performed at the end of the while loop.
+  {$ifdef FPC}
+  pc := pchar(text);
   uc := UTF8CharacterToUnicode (pc, cl);
   while (cl>0) and (uc>0) do
+  {$else}
+  TextIndex := 1;
+  TextLength := Length(Text);
+  while (TextIndex <= TextLength) do
+  {$endif}
   begin
+    {$ifdef FPC}
+      // increment pchar by character length
+      inc (pc, cl);
+    {$else}
+      uc := GetUTF32Char(Text, TextIndex, NextIndex);
+      TextIndex := NextIndex;
+    {$endif}
     // retrieve loaded glyph
     g := GetGlyph (uc);
-    // increment pchar by character length
-    inc (pc, cl);
     inc (r);
     // check kerning
     if UseKerning and (g^.glyphindex <>0) and (PrevIndex <> 0) then
@@ -779,7 +821,7 @@ begin
         if reverse then
           begin
           pitch := -bitmap.pitch;
-          getmem (data, pitch*height);
+          {$ifndef FPC}System.{$endif}getmem (data, pitch*height);
           for rx := height-1 downto 0 do
             move (buf^[rx*pitch], data^[(height-rx-1)*pitch], pitch);
           end
@@ -787,7 +829,7 @@ begin
           begin
           pitch := bitmap.pitch;
           rx := pitch*height;
-          getmem (data, rx);
+          {$ifndef FPC}System.{$endif}getmem (data, rx);
           move (buf^[0], data^[0], rx);
           end;
         end;
@@ -803,7 +845,9 @@ begin
     // finish rendered glyph
     FT_Done_Glyph (gl);
     // Get the next unicode
+    {$ifdef FPC}
     uc := UTF8CharacterToUnicode (pc, cl);
+    {$endif}
   end;  // while
   result.FText := Text;
   result.CalculateGlobals;
@@ -948,7 +992,7 @@ end;
 {$ifdef win32}
 procedure SetWindowsFontPath;
 begin
-  DefaultSearchPath := includetrailingbackslash(GetEnv('windir')) + 'fonts';
+  DefaultSearchPath := IncludeTrailingPathDelimiter({$ifdef FPC}GetEnv{$else}GetEnvironmentVariable{$endif}('windir')) + 'fonts';
 end;
 {$endif}
 

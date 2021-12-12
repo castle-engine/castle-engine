@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="Xsl/doc2html.xsl"?>
+<doc>
+  <title>Reference</title>
+  <chapter>
+    <title>Reference</title>
+    <par>Here you can find Imaging reference documentation
+    generated from source code and comments.</par>
+    <br />
+    <br />
+    <br />
+    <lslink url="refentry">Enter Imaging Reference</lslink>
+    <br />
+    <br />
+  </chapter>
+</doc>

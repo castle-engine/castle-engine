@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="bookmarks_xml_demo" standalone_source="bookmarks_xml_demo.lpr">
+<project name="bookmarks_xml_demo" standalone_source="bookmarks_xml_demo.dpr">
   <data exists="false" />
 </project>

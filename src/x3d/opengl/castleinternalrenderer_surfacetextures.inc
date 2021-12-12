@@ -25,8 +25,8 @@ private
     If Node is nil, or it's corresponding OpenGL resource is not initialized
     for whatever reason --- returns 0. }
   function GLTexture2D(Node: TAbstractTextureNode;
-    out TextureHasAlpha: boolean): TGLTextureId;
-  function GLTexture2D(Node: TAbstractTextureNode): TGLTextureId;
+    out TextureHasAlpha: boolean): TGLTextureId; overload;
+  function GLTexture2D(Node: TAbstractTextureNode): TGLTextureId; overload;
 
   { If this Shape uses a normal map, use it for bump mapping. }
   procedure BumpMappingEnable(const Shape: TX3DRendererShape;

@@ -36,33 +36,33 @@
     { X3D field "groundAngle". } { }
     public property FdGroundAngle: TMFFloat read FFdGroundAngle;
     { Set X3D field "groundAngle". } { }
-    procedure SetGroundAngle(const Value: array of Single);
+    procedure SetGroundAngle(const Value: array of Single); overload;
     { Set X3D field "groundAngle". } { }
-    procedure SetGroundAngle(const Value: TSingleList);
+    procedure SetGroundAngle(const Value: TSingleList); overload;
 
     strict private FFdGroundColor: TMFColor;
     { X3D field "groundColor". } { }
     public property FdGroundColor: TMFColor read FFdGroundColor;
     { Set X3D field "groundColor". } { }
-    procedure SetGroundColor(const Value: array of TCastleColorRGB);
+    procedure SetGroundColor(const Value: array of TCastleColorRGB); overload;
     { Set X3D field "groundColor". } { }
-    procedure SetGroundColor(const Value: TVector3List);
+    procedure SetGroundColor(const Value: TVector3List); overload;
 
     strict private FFdSkyAngle: TMFFloat;
     { X3D field "skyAngle". } { }
     public property FdSkyAngle: TMFFloat read FFdSkyAngle;
     { Set X3D field "skyAngle". } { }
-    procedure SetSkyAngle(const Value: array of Single);
+    procedure SetSkyAngle(const Value: array of Single); overload;
     { Set X3D field "skyAngle". } { }
-    procedure SetSkyAngle(const Value: TSingleList);
+    procedure SetSkyAngle(const Value: TSingleList); overload;
 
     strict private FFdSkyColor: TMFColor;
     { X3D field "skyColor". } { }
     public property FdSkyColor: TMFColor read FFdSkyColor;
     { Set X3D field "skyColor". } { }
-    procedure SetSkyColor(const Value: array of TCastleColorRGB);
+    procedure SetSkyColor(const Value: array of TCastleColorRGB); overload;
     { Set X3D field "skyColor". } { }
-    procedure SetSkyColor(const Value: TVector3List);
+    procedure SetSkyColor(const Value: TVector3List); overload;
 
     strict private FFdTransparency: TSFFloat;
     { X3D field "transparency". } { }

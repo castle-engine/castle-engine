@@ -21,7 +21,7 @@ unit CastleCubeMaps;
 interface
 
 uses Math,
-  CastleVectors, CastleCompositeImage;
+  CastleVectors, CastleCompositeImage, CastleUtils;
 
 type
   TCubeMapSide = CastleCompositeImage.TCubeMapSide;
@@ -101,7 +101,7 @@ function CubeMapSolidAngle(const Side: TCubeMapSide;
 
 implementation
 
-uses SysUtils, CastleUtils;
+uses SysUtils;
 
 { Note: CubeMapSolidAngle assumes that implementation of this actually
   returns the position of the middle of the pixel. That is, it assumes
@@ -163,7 +163,7 @@ begin
   if not TryPlaneRayIntersection(SideIntersect,
     SidePlane, TVector3.Zero, Dir) then
     raise Exception.CreateFmt('DirectionToCubeMap: direction (%s) doesn''t hit it''s cube map side (%d)',
-      [Dir.ToRawString, Side]);
+      [Dir.ToRawString, Integer(Side)]);
 
   { We're not interested in this coord, this is either 1 or -1.
     Having this non-zero would break TVector3.DotProduct (projecting to Side/Up)
@@ -226,7 +226,7 @@ begin
   if not TryPlaneRayIntersection(SideIntersect,
     SidePlane, TVector3.Zero, Dir) then
     raise Exception.CreateFmt('DirectionToCubeMap: direction (%s) doesn''t hit it''s cube map side (%d)',
-      [Dir.ToRawString, Side[0]]);
+      [Dir.ToRawString, Integer(Side[0])]);
 
   { We're not interested in this coord, this is either 1 or -1.
     Having this non-zero would break TVector3.DotProduct (projecting to Side/Up)

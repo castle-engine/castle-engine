@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -66,20 +66,20 @@ begin
 
   { Find components, by name, that we need to access from code }
   ButtonMenu := DesignedComponent('ButtonMenu') as TCastleButton;
-  ButtonMenu.OnClick := @ClickMenu;
+  ButtonMenu.OnClick := {$ifdef FPC}@{$endif}ClickMenu;
 
   VolumeGroup := DesignedComponent('HorizontalGroupVolume') as TCastleHorizontalGroup;
   for I := 1 to VolumeGroup.ControlsCount - 1 do
   begin
     Button := VolumeGroup.Controls[I] as TCastleButton;
-    Button.OnClick := @ClickVolume;
+    Button.OnClick := {$ifdef FPC}@{$endif}ClickVolume;
   end;
 
   MusicGroup := DesignedComponent('HorizontalGroupMusic') as TCastleHorizontalGroup;
   for I := 1 to MusicGroup.ControlsCount - 1 do
   begin
     Button := MusicGroup.Controls[I] as TCastleButton;
-    Button.OnClick := @ClickMusic;
+    Button.OnClick := {$ifdef FPC}@{$endif}ClickMusic;
   end;
 
   SetVolume(UserConfig.GetFloat('volume', 1.0));

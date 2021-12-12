@@ -57,7 +57,7 @@
     procedure Restore;
   end;
 
-  TBoneList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBone>)
+  TBoneList = class({$ifdef FPC}specialize{$endif} TObjectList<TBone>)
     { Find bone by name.
       @raises ESpineReadError If bone does not exist. }
     function Find(const BoneName: string): TBone;

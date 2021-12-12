@@ -43,7 +43,10 @@ type
     this class. We will move the position within this stream ourselves. }
   TTextReader = class(TTextReaderWriter)
   private
-    ReadBuf: string;
+    { For now, Stream.Read call assumes that ReadBuf is 8-bit.
+      Changing ReadBuf to String on Delphi would break e.g. Spine atlas reading,
+      TTextReader.Readln would be garbage. }
+    ReadBuf: AnsiString;
     { Try to read more data from underlying stream and add it to ReadBuf.
       Returns if we succeded, @false means that the stream ends.
       When it returns @true, you can be sure that Length(ReadBuf) increased. }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="expose_transformations_demo"
-  standalone_source="expose_transformations_demo_standalone.lpr"
+  standalone_source="expose_transformations_demo_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.expose.transformations.demo"
   caption="ExposeTransforms test"

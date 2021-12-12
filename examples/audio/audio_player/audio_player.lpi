@@ -34,7 +34,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="audio_player.lpr"/>
+        <Filename Value="audio_player.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

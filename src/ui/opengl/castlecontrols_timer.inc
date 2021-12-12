@@ -71,12 +71,12 @@ begin
   inherited;
   if IntervalSeconds <> 0 then
   begin
-    IntervalRemaining -= SecondsPassed;
+    IntervalRemaining := IntervalRemaining - SecondsPassed;
     if CounteractDelays then
     begin
       while IntervalRemaining < 0 do
       begin
-        IntervalRemaining += IntervalSeconds;
+        IntervalRemaining := IntervalRemaining + IntervalSeconds;
         DoTimer;
       end;
     end else
@@ -97,12 +97,11 @@ end;
 function TCastleTimer.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'IntervalSeconds', 'CounteractDelays':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'IntervalSeconds') or
+     (PropertyName = 'CounteractDelays') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

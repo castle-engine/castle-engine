@@ -64,7 +64,7 @@ procedure TLogHandler.LogCallback(const Message: String);
     Request.Url := Url;
     Request.HttpPostData.Values[ParameterKey] := ParameterValue;
     Request.HttpMethod := hmPost;
-    Request.OnFinish := @HttpPostFinish;
+    Request.OnFinish := {$ifdef FPC}@{$endif} HttpPostFinish;
     Request.Start;
   end;
 

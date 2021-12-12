@@ -84,9 +84,9 @@
     { X3D field "data". } { }
     public property FdData: TMFInt32 read FFdData;
     { Set X3D field "data". } { }
-    procedure SetData(const Value: array of LongInt);
+    procedure SetData(const Value: array of LongInt); overload;
     { Set X3D field "data". } { }
-    procedure SetData(const Value: TLongIntList);
+    procedure SetData(const Value: TLongIntList); overload;
 
     strict private FFdDataLength: TSFInt32;
     { X3D field "dataLength". } { }

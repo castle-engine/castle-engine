@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,8 +21,11 @@ unit CastleGLUtils;
 
 interface
 
-uses SysUtils, Math, Matrix, Generics.Collections,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+uses
+  // needed by castleglutils_delphi_wgl.inc
+  {$ifndef FPC} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
+  SysUtils, Math, {$ifdef FPC} Matrix, {$endif} Generics.Collections,
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions;
 
@@ -36,6 +39,7 @@ uses SysUtils, Math, Matrix, Generics.Collections,
 {$I castleglutils_information.inc}
 {$I castleglutils_mipmaps.inc}
 {$I castleglutils_ext_framebuffer_blit.inc}
+{$I castleglutils_delphi_wgl.inc}
 
 {$undef read_interface}
 
@@ -55,6 +59,7 @@ uses
 {$I castleglutils_information.inc}
 {$I castleglutils_mipmaps.inc}
 {$I castleglutils_ext_framebuffer_blit.inc}
+{$I castleglutils_delphi_wgl.inc}
 
 { initialization, finalization ----------------------------------------------- }
 

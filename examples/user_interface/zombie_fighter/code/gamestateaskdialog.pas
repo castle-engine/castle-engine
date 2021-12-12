@@ -87,8 +87,8 @@ begin
   else
     ImageEnemy.URL := 'castle-data:/enemy_images/Female-Zombie-300px.png';
 
-  ButtonRun.OnClick := @ClickRun;
-  ButtonFight.OnClick := @ClickFight;
+  ButtonRun.OnClick := {$ifdef FPC}@{$endif}ClickRun;
+  ButtonFight.OnClick := {$ifdef FPC}@{$endif}ClickFight;
 
   { Set own size to be equal to designed dialog in ask_dialog.castle-user-interface,
     that has explicit Width and Height set in editor. }

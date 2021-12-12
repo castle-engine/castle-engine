@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2015-2021 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -36,7 +36,7 @@ type
       end;
 
       { List of properties. }
-      TPropertyList = class(specialize TObjectList<TProperty>)
+      TPropertyList = class({$ifdef FPC}specialize{$endif} TObjectList<TProperty>)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       end;
@@ -126,7 +126,7 @@ type
         function Position: TVector2;
       end;
 
-      TTiledObjectList = specialize TObjectList<TTiledObject>;
+      TTiledObjectList = {$ifdef FPC}specialize{$endif} TObjectList<TTiledObject>;
 
       TLayer = class
       private
@@ -177,7 +177,7 @@ type
       end;
 
       { List of layers. }
-      TLayerList = specialize TObjectList<TLayer>;
+      TLayerList = {$ifdef FPC}specialize{$endif} TObjectList<TLayer>;
 
       { Single frame of animation. }
       TFrame = class
@@ -194,7 +194,7 @@ type
       { Contains a list of animation frames.
         As of Tiled 0.10, each tile can have exactly one animation associated with it.
         In the future, there could be support for multiple named animations on a tile. }
-      TAnimation = class(specialize TObjectList<TFrame>)
+      TAnimation = class({$ifdef FPC}specialize{$endif} TObjectList<TFrame>)
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       end;
@@ -223,7 +223,7 @@ type
       end;
 
       { Tiles list. }
-      TTileList = specialize TObjectList<TTile>;
+      TTileList = {$ifdef FPC}specialize{$endif} TObjectList<TTile>;
 
       TTerrain = class
         { The name of the terrain type. }
@@ -235,7 +235,7 @@ type
 
       { This element defines an array of terrain types, which can be referenced from
         the terrain attribute of the tile element. }
-      TTerrainTypes = specialize TObjectList<TTerrain>;
+      TTerrainTypes = {$ifdef FPC}specialize{$endif} TObjectList<TTerrain>;
 
       { Tileset definition. }
       TTileset = class
@@ -282,7 +282,7 @@ type
       end;
 
       { List of tilesets. }
-      TTilesetList = specialize TObjectList<TTileset>;
+      TTilesetList = {$ifdef FPC}specialize{$endif} TObjectList<TTileset>;
 
       TMapOrientation = (
         moOrthogonal,
@@ -426,13 +426,11 @@ begin
   try
     while I.GetNext do
     begin
-      case LowerCase(I.Current.TagName) of
-        'property':
-          begin
-            NewProperty := TProperty.Create;
-            NewProperty.Load(I.Current, BaseUrl);
-            Add(NewProperty);
-          end;
+      if LowerCase(I.Current.TagName) = 'property' then
+      begin
+        NewProperty := TProperty.Create;
+        NewProperty.Load(I.Current, BaseUrl);
+        Add(NewProperty);
       end;
     end;
   finally FreeAndNil(I) end;
@@ -530,16 +528,28 @@ var
 begin
   Encoding := etNone;
   Compression := ctNone;
+
   if Element.AttributeString('encoding', TmpStr) then
-    case TmpStr of
-      'base64': Encoding := etBase64;
-      'csv': Encoding := etCSV;
-    end;
+  begin
+    if TmpStr = 'base64' then
+      Encoding := etBase64
+    else
+    if TmpStr = 'csv' then
+      Encoding := etCSV
+    else
+      WritelnWarning('Invalid Tiled encoding "%s"', [TmpStr]);
+  end;
+
   if Element.AttributeString('compression', TmpStr) then
-    case TmpStr of
-      'gzip': Compression := ctGzip;
-      'zlib': Compression := ctZLib;
-    end;
+  begin
+    if TmpStr = 'gzip' then
+      Compression := ctGzip
+    else
+    if TmpStr = 'zlib' then
+      Compression := ctZLib
+    else
+      WritelnWarning('Invalid Tiled compression "%s"', [TmpStr]);
+  end;
 
   case Encoding of
     etNone: ReadEncodingNone;
@@ -580,13 +590,11 @@ begin
   try
     while I.GetNext do
     begin
-      case LowerCase(I.Current.TagName) of
-        'data':
-          begin
-            if Data = nil then
-              Data := TData.Create;
-            Data.Load(I.Current, BaseUrl);
-          end;
+      if LowerCase(I.Current.TagName) = 'data' then
+      begin
+        if Data = nil then
+          Data := TData.Create;
+        Data.Load(I.Current, BaseUrl);
       end;
     end;
   finally FreeAndNil(I) end;
@@ -630,13 +638,11 @@ begin
   try
     while I.GetNext do
     begin
-      case LowerCase(I.Current.TagName) of
-        'frame':
-          begin
-            NewFrame := TFrame.Create;
-            NewFrame.Load(I.Current, BaseUrl);
-            Add(NewFrame);
-          end;
+      if LowerCase(I.Current.TagName) = 'frame' then
+      begin
+        NewFrame := TFrame.Create;
+        NewFrame.Load(I.Current, BaseUrl);
+        Add(NewFrame);
       end;
     end;
   finally FreeAndNil(I) end;
@@ -667,7 +673,7 @@ end;
 procedure TTiledMap.TTile.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
-  TmpStr: string;
+  TmpStr, LowerTagName: string;
   SPosition: Integer;
 begin
   if Element.AttributeString('id', TmpStr) then
@@ -687,16 +693,21 @@ begin
   try
     while I.GetNext do
     begin
-      case LowerCase(I.Current.TagName) of
-        'properties': Properties.Load(I.Current, BaseUrl);
-        'image': Image.Load(I.Current, BaseUrl);
-        'animation': Animation.Load(I.Current, BaseUrl);
-        'objectgroup':
-          begin
-            if ObjectGroup = nil then
-              ObjectGroup := TObjectGroupLayer.Create;
-            ObjectGroup.Load(I.Current, BaseUrl);
-          end;
+      LowerTagName := LowerCase(I.Current.TagName8);
+      if LowerTagName = 'properties' then
+        Properties.Load(I.Current, BaseUrl)
+      else
+      if LowerTagName = 'image' then
+        Image.Load(I.Current, BaseUrl)
+      else
+      if LowerTagName = 'animation' then
+        Animation.Load(I.Current, BaseUrl)
+      else
+      if LowerTagName = 'objectgroup' then
+      begin
+        if ObjectGroup = nil then
+          ObjectGroup := TObjectGroupLayer.Create;
+        ObjectGroup.Load(I.Current, BaseUrl);
       end;
     end;
   finally FreeAndNil(I) end;
@@ -751,6 +762,8 @@ var
     until false;
   end;
 
+var
+  LowerTagName: String;
 begin
   Width := 0;
   Height := 0;
@@ -787,22 +800,28 @@ begin
   try
     while I.GetNext do
     begin
-      case LowerCase(I.Current.TagName) of
-        'properties': Properties.Load(I.Current, BaseUrl);
-        'point': Primitive := topPoint;
-        'ellipse': Primitive := topEllipse;
-        'polygon':
-          begin
-            Primitive := topPolygon;
-            ReadPoints(I.Current.AttributeStringDef('points', ''), Points);
-          end;
-        'polyline':
-          begin
-            Primitive := topPolyLine;
-            ReadPoints(I.Current.AttributeStringDef('points', ''), Points);
-          end;
-        'image': Image.Load(I.Current, BaseUrl);
-      end;
+      LowerTagName := LowerCase(I.Current.TagName8);
+      if LowerTagName = 'properties' then
+        Properties.Load(I.Current, BaseUrl)
+      else
+      if LowerTagName = 'point' then
+        Primitive := topPoint
+      else
+      if LowerTagName = 'ellipse' then
+        Primitive := topEllipse
+      else
+      if LowerTagName = 'polygon' then
+      begin
+        Primitive := topPolygon;
+        ReadPoints(I.Current.AttributeStringDef('points', ''), Points);
+      end else
+      if LowerTagName = 'polyline' then
+      begin
+        Primitive := topPolyLine;
+        ReadPoints(I.Current.AttributeStringDef('points', ''), Points);
+      end else
+      if LowerTagName = 'image' then
+        Image.Load(I.Current, BaseUrl);
     end;
   finally FreeAndNil(I) end;
 end;
@@ -830,7 +849,7 @@ end;
 procedure TTiledMap.TLayer.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
-  TmpStr: string;
+  TmpStr, LowerTagName: string;
 begin
   Opacity := 1;
   Visible := True;
@@ -843,8 +862,8 @@ begin
   Name := Element.AttributeStringDef('name', '');
   if Element.AttributeString('opacity', TmpStr) then
     Opacity := StrToFloatDot(TmpStr);
-  if Element.GetAttribute('visible') = '0' then
-    Visible := False;
+  if Element.AttributeStringDef('visible', '1') = '0' then
+    Visible := false;
   OffsetX := Element.AttributeSingleDef('offsetx', 0);
   OffsetY := Element.AttributeSingleDef('offsety', 0);
 
@@ -852,14 +871,15 @@ begin
   try
     while I.GetNext do
     begin
-      case LowerCase(I.Current.TagName) of
-        'properties': Properties.Load(I.Current, BaseUrl);
-        'data':
-          begin
-            if Data = nil then
-              Data := TData.Create;
-            Data.Load(I.Current, BaseUrl);
-          end;
+      LowerTagName := LowerCase(I.Current.TagName8);
+      if LowerTagName = 'properties' then
+        Properties.Load(I.Current, BaseUrl)
+      else
+      if LowerTagName = 'data' then
+      begin
+        if Data = nil then
+          Data := TData.Create;
+        Data.Load(I.Current, BaseUrl);
       end;
     end;
   finally FreeAndNil(I) end;
@@ -889,24 +909,25 @@ begin
   DrawOrder := odoTopDown;
 
   if Element.AttributeString('draworder', TmpStr) then
-    case TmpStr of
-      'index': DrawOrder := odoIndex;
-      'topdown': DrawOrder := odoTopDown;
-    end;
+  begin
+    if TmpStr = 'index' then
+      DrawOrder := odoIndex
+    else
+    if TmpStr = 'topdown' then
+      DrawOrder := odoTopDown;
+  end;
 
   I := TXMLElementIterator.Create(Element);
   try
     while I.GetNext do
     begin
-      case LowerCase(I.Current.TagName) of
-        'object':
-          begin
-            NewObject := TTiledObject.Create;
-            NewObject.Load(I.Current, BaseUrl);
-            if not Assigned(Objects) then
-              Objects := TTiledObjectList.Create;
-            Objects.Add(NewObject);
-          end;
+      if  LowerCase(I.Current.TagName) = 'object' then
+      begin
+        NewObject := TTiledObject.Create;
+        NewObject.Load(I.Current, BaseUrl);
+        if not Assigned(Objects) then
+          Objects := TTiledObjectList.Create;
+        Objects.Add(NewObject);
       end;
     end;
   finally FreeAndNil(I) end;
@@ -930,13 +951,11 @@ begin
   try
     while I.GetNext do
     begin
-      case LowerCase(I.Current.TagName) of
-        'image':
-          begin
-            if Image = nil then
-              Image := TImage.Create;
-            Image.Load(I.Current, BaseUrl);
-          end;
+      if LowerCase(I.Current.TagName) = 'image' then
+      begin
+        if Image = nil then
+          Image := TImage.Create;
+        Image.Load(I.Current, BaseUrl);
       end;
     end;
   finally FreeAndNil(I) end;
@@ -1023,7 +1042,7 @@ procedure TTiledMap.TTileset.Load(const Element: TDOMElement; const BaseUrl: Str
 var
   I: TXMLElementIterator;
   NewTile: TTile;
-  TmpStr: string;
+  TmpStr, LowerTagName: string;
 begin
   TileOffset := TVector2Integer.Zero;
   Spacing := 0;
@@ -1070,20 +1089,23 @@ begin
   try
     while I.GetNext do
     begin
-      case LowerCase(I.Current.TagName) of
-        'tileoffset':
-          begin
-            TileOffset[0] := I.Current.AttributeIntegerDef('x', 0);
-            TileOffset[1] := I.Current.AttributeIntegerDef('y', 0);
-          end;
-        'properties': Properties.Load(I.Current, BaseUrl);
-        'image': Image.Load(I.Current, BaseUrl);
-        'tile':
-          begin
-            NewTile := TTile.Create;
-            NewTile.Load(I.Current, BaseUrl);
-            Tiles.Add(NewTile);
-          end;
+      LowerTagName := LowerCase(I.Current.TagName8);
+      if LowerTagName = 'tileoffset' then
+      begin
+        TileOffset[0] := I.Current.AttributeIntegerDef('x', 0);
+        TileOffset[1] := I.Current.AttributeIntegerDef('y', 0);
+      end else
+      if LowerTagName = 'properties' then
+        Properties.Load(I.Current, BaseUrl)
+      else
+      if LowerTagName = 'image' then
+        Image.Load(I.Current, BaseUrl)
+      else
+      if LowerTagName = 'tile' then
+      begin
+        NewTile := TTile.Create;
+        NewTile.Load(I.Current, BaseUrl);
+        Tiles.Add(NewTile);
       end;
     end;
   finally FreeAndNil(I) end;
@@ -1123,7 +1145,7 @@ end;
 
 procedure TTiledMap.LoadTMXFileInternal(const Doc: TXMLDocument);
 var
-  TmpStr: string;
+  TmpStr, LowerTagName: string;
   I: TXMLElementIterator;
   NewLayer: TLayer;
   NewTileset: TTileset;
@@ -1134,12 +1156,21 @@ begin
   if Doc.DocumentElement.AttributeString('version', TmpStr) then
     FVersion := TmpStr;
   if Doc.DocumentElement.AttributeString('orientation', TmpStr) then
-    case TmpStr of
-      'orthogonal': FOrientation := moOrthogonal;
-      'isometric': FOrientation := moIsometric;
-      'staggered': FOrientation := moIsometricStaggered;
-      'hexagonal': FOrientation := moHexagonal;
-    end;
+  begin
+    if TmpStr = 'orthogonal' then
+      FOrientation := moOrthogonal
+    else
+    if TmpStr = 'isometric' then
+      FOrientation := moIsometric
+    else
+    if TmpStr = 'staggered' then
+      FOrientation := moIsometricStaggered
+    else
+    if TmpStr = 'hexagonal' then
+      FOrientation := moHexagonal
+    else
+      WritelnWarning('Invalid orientation "%s" in Tiled map file (TMX)', [TmpStr]);
+  end;
   if Doc.DocumentElement.AttributeString('width', TmpStr) then
     FWidth := StrToInt(TmpStr);
   if Doc.DocumentElement.AttributeString('height', TmpStr) then
@@ -1151,58 +1182,75 @@ begin
   if Doc.DocumentElement.AttributeString('hexsidelength', TmpStr) then
     FHexSideLength := StrToInt(TmpStr);
   if Doc.DocumentElement.AttributeString('staggeraxis', TmpStr) then
-    case TmpStr of
-      'x': FStaggerAxis := saX;
-      'y': FStaggerAxis := saY;
-      else WritelnWarning('Invalid staggeraxis "%s" in Tiled map file (TMX)', [TmpStr]);
-    end;
+  begin
+    if TmpStr = 'x' then
+      FStaggerAxis := saX
+    else
+    if TmpStr = 'y' then
+      FStaggerAxis := saY
+    else
+      WritelnWarning('Invalid staggeraxis "%s" in Tiled map file (TMX)', [TmpStr]);
+  end;
   if Doc.DocumentElement.AttributeString('staggerindex', TmpStr) then
-    case TmpStr of
-      'odd': FStaggerIndex := siOdd;
-      'even': FStaggerIndex := siEven;
-      else WritelnWarning('Invalid staggerindex "%s" in Tiled map file (TMX)', [TmpStr]);
-    end;
+  begin
+    if TmpStr = 'odd' then
+      FStaggerIndex := siOdd
+    else
+    if TmpStr = 'even' then
+      FStaggerIndex := siEven
+    else
+      WritelnWarning('Invalid staggerindex "%s" in Tiled map file (TMX)', [TmpStr]);
+  end;
   if Doc.DocumentElement.AttributeString('backgroundcolor', TmpStr) then
     FBackgroundColor := TiledToColor(TmpStr);
   if Doc.DocumentElement.AttributeString('renderorder', TmpStr) then
-    case TmpStr of
-      'right-down': FRenderOrder := mroRightDown;
-      'right-up': FRenderOrder := mroRightUp;
-      'left-down': FRenderOrder := mroLeftDown;
-      'left-up': FRenderOrder := mroLeftUp;
-    end;
+  begin
+    if TmpStr = 'right-down' then
+      FRenderOrder := mroRightDown
+    else
+    if TmpStr = 'right-up' then
+      FRenderOrder := mroRightUp
+    else
+    if TmpStr = 'left-down' then
+      FRenderOrder := mroLeftDown
+    else
+    if TmpStr = 'left-up' then
+      FRenderOrder := mroLeftUp
+    else
+      WritelnWarning('Invalid renderOrder "%s" in Tiled map file (TMX)', [TmpStr]);
+  end;
   // Parse map children
   I := TXMLElementIterator.Create(Doc.DocumentElement);
   try
     while I.GetNext do
     begin
-      case LowerCase(I.Current.TagName) of
-        'tileset':
-          begin
-            NewTileset := TTileset.Create;
-            NewTileset.Load(I.Current, BaseUrl);
-            FTilesets.Add(NewTileset);
-          end;
-        'layer':
-          begin
-            NewLayer := TLayer.Create;
-            NewLayer.Load(I.Current, BaseUrl);
-            FLayers.Add(NewLayer);
-          end;
-        'objectgroup':
-          begin
-            NewLayer := TObjectGroupLayer.Create;
-            NewLayer.Load(I.Current, BaseUrl);
-            FLayers.Add(NewLayer);
-          end;
-        'imagelayer':
-          begin
-            NewLayer := TImageLayer.Create;
-            NewLayer.Load(I.Current, BaseUrl);
-            FLayers.Add(NewLayer);
-          end;
-        'properties': FProperties.Load(I.Current, BaseUrl);
-      end;
+      LowerTagName := LowerCase(I.Current.TagName8);
+      if LowerTagName = 'tileset' then
+      begin
+        NewTileset := TTileset.Create;
+        NewTileset.Load(I.Current, BaseUrl);
+        FTilesets.Add(NewTileset);
+      end else
+      if LowerTagName = 'layer' then
+      begin
+        NewLayer := TLayer.Create;
+        NewLayer.Load(I.Current, BaseUrl);
+        FLayers.Add(NewLayer);
+      end else
+      if LowerTagName = 'objectgroup' then
+      begin
+        NewLayer := TObjectGroupLayer.Create;
+        NewLayer.Load(I.Current, BaseUrl);
+        FLayers.Add(NewLayer);
+      end else
+      if LowerTagName = 'imagelayer' then
+      begin
+        NewLayer := TImageLayer.Create;
+        NewLayer.Load(I.Current, BaseUrl);
+        FLayers.Add(NewLayer);
+      end else
+      if LowerTagName = 'properties' then
+        FProperties.Load(I.Current, BaseUrl);
     end;
   finally FreeAndNil(I) end;
 end;
@@ -1267,7 +1315,7 @@ begin
   case Orientation of
     moIsometric:
       begin
-        Y -= (Width - 1) * TileHeight / 2;
+        Y := Y - (Width - 1) * TileHeight / 2;
         ResultYPlusX  := X / (TileWidth  / 2);
         ResultYMinusX := Y / (TileHeight / 2) - 1; // not sure why this -1 at end is needed...
         TilePosition.Data[0] := Floor((ResultYPlusX - ResultYMinusX) / 2);

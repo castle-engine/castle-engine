@@ -33,9 +33,9 @@
     { X3D field "clipBoundary". } { }
     public property FdClipBoundary: TMFFloat read FFdClipBoundary;
     { Set X3D field "clipBoundary". } { }
-    procedure SetClipBoundary(const Value: array of Single);
+    procedure SetClipBoundary(const Value: array of Single); overload;
     { Set X3D field "clipBoundary". } { }
-    procedure SetClipBoundary(const Value: TSingleList);
+    procedure SetClipBoundary(const Value: TSingleList); overload;
 
 {$endif read_interface}
 

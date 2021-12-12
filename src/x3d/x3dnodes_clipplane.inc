@@ -22,7 +22,7 @@
   end;
   PClipPlane = ^TClipPlane;
 
-  TClipPlaneList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TClipPlane>)
+  TClipPlaneList = class({$ifdef FPC}specialize{$endif} TStructList<TClipPlane>)
   public
     { Find record with given TClipPlaneNode, returns -1 if not found. }
     function IndexOfNode(Node: TClipPlaneNode): Integer;

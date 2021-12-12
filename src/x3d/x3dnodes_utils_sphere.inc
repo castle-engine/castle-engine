@@ -83,7 +83,7 @@ begin
   BottomCircleIndex := Coord.Count;
   Coord.Count := Coord.Count + QuadricSlices + 1;
   StackCircle(1, StackRadius, StackHeight);
-  GenerateCircle(QuadricSlices, StackRadius, StackHeight, Coord.Ptr(BottomCircleIndex));
+  GenerateCircle(QuadricSlices, StackRadius, StackHeight, PVector3(Coord.Ptr(BottomCircleIndex)));
   Coord[Coord.Count - 1] := Coord.List^[BottomCircleIndex];
   Normal.Count := Normal.Count + QuadricSlices + 1;
   for I := 0 to QuadricSlices - 1 do
@@ -114,7 +114,7 @@ begin
     CircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices + 1;
     StackCircle(StackNum, StackRadius, StackHeight);
-    GenerateCircle(QuadricSlices, StackRadius, StackHeight, Coord.Ptr(CircleIndex));
+    GenerateCircle(QuadricSlices, StackRadius, StackHeight, PVector3(Coord.Ptr(CircleIndex)));
     Coord[Coord.Count - 1] := Coord.List^[CircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
@@ -215,7 +215,7 @@ begin
   BottomCircleIndex := Coord.Count;
   Coord.Count := Coord.Count + QuadricSlices;
   StackCircle(1, StackRadius, StackHeight);
-  GenerateCircle(QuadricSlices, StackRadius, StackHeight, Coord.Ptr(BottomCircleIndex));
+  GenerateCircle(QuadricSlices, StackRadius, StackHeight, PVector3(Coord.Ptr(BottomCircleIndex)));
 
   { Bottom stack, from triangles }
   StackFaceIndex := CoordIndex.Count;
@@ -236,7 +236,7 @@ begin
     CircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices;
     StackCircle(StackNum, StackRadius, StackHeight);
-    GenerateCircle(QuadricSlices, StackRadius, StackHeight, Coord.Ptr(CircleIndex));
+    GenerateCircle(QuadricSlices, StackRadius, StackHeight, PVector3(Coord.Ptr(CircleIndex)));
 
     { Next stack, from quads (but we only need to add 3 lines) }
     StackFaceIndex := CoordIndex.Count;

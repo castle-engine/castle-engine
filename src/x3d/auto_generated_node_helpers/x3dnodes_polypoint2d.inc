@@ -33,9 +33,9 @@
     { X3D field "point". } { }
     public property FdPoint: TMFVec2f read FFdPoint;
     { Set X3D field "point". } { }
-    procedure SetPoint(const Value: array of TVector2);
+    procedure SetPoint(const Value: array of TVector2); overload;
     { Set X3D field "point". } { }
-    procedure SetPoint(const Value: TVector2List);
+    procedure SetPoint(const Value: TVector2List); overload;
 
 {$endif read_interface}
 

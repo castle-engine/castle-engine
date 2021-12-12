@@ -33,9 +33,9 @@
     { X3D field "value". } { }
     public property FdValue: TMFFloat read FFdValue;
     { Set X3D field "value". } { }
-    procedure SetValue(const Value: array of Single);
+    procedure SetValue(const Value: array of Single); overload;
     { Set X3D field "value". } { }
-    procedure SetValue(const Value: TSingleList);
+    procedure SetValue(const Value: TSingleList); overload;
 
 {$endif read_interface}
 

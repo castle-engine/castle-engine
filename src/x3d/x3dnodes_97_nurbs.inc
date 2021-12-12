@@ -510,7 +510,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+  EventSet_Fraction.AddNotification({$ifdef FPC}@{$endif} EventSet_FractionReceive);
 end;
 
 class function TNurbsPositionInterpolatorNode_2.ClassX3DType: string;

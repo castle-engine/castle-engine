@@ -56,8 +56,8 @@
       usually assumes that all MFNode children are non-nil.
       (As VRML/X3D spec don't really allow NULL items inside MFNode fields.)
       @groupBegin }
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
+    function GetCount: TListSize; override;
+    procedure SetCount(const Value: TListSize); override;
     { @groupEnd }
   public
     { Construct a field allowing any children class.
@@ -81,11 +81,13 @@
       const AnAllowedChildrenFunctionality: TNodeFunctionalityClass); overload;
     destructor Destroy; override;
 
-    procedure Replace(Index: Integer; Node: TX3DNode);
+    procedure Replace(const Index: Integer; Node: TX3DNode);
 
     { Items of this field. }
-    property Items[Index: Integer]: TX3DNode read GetItems write Replace; default;
+    property Items[const Index: Integer]: TX3DNode read GetItems write Replace; default;
+    {$ifdef FPC}
     property ItemsArray[Index: Integer]: TX3DNode read GetItems; deprecated 'use Items (default array property)';
+    {$endif}
 
     { Lists of items in this field.
       Do not modify this list explicitly. Use only methods in this class
@@ -107,8 +109,8 @@
       explanation. }
     function Extract(Index: Integer): TX3DNode;
     procedure Clear;
-    procedure AssignItems(const SourceItems: TX3DNodeList);
-    procedure AssignItems(const SourceItems: array of TX3DNode);
+    procedure AssignItems(const SourceItems: TX3DNodeList); overload;
+    procedure AssignItems(const SourceItems: array of TX3DNode); overload;
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
@@ -310,12 +312,12 @@ begin
   Result := sxChildElement;
 end;
 
-function TMFNode.GetCount: SizeInt;
+function TMFNode.GetCount: TListSize;
 begin
   Result := FItems.Count;
 end;
 
-procedure TMFNode.SetCount(const Value: SizeInt);
+procedure TMFNode.SetCount(const Value: TListSize);
 var
   I: Integer;
 begin
@@ -372,7 +374,7 @@ begin
   FItems.Delete(Index);
 end;
 
-procedure TMFNode.Replace(Index: Integer; Node: TX3DNode);
+procedure TMFNode.Replace(const Index: Integer; Node: TX3DNode);
 begin
   if FItems[Index] <> Node then
   begin
@@ -622,7 +624,7 @@ begin
     { AExposed = false below, because not needed otherwise. }
     FieldValue := TMFNode.CreateUndefined(ParentNode, false, X3DName);
     try
-      FieldValue.FItems.AddRange(AValue);
+      FieldValue.AssignItems(AValue);
       Send(FieldValue);
     finally FreeAndNil(FieldValue) end;
   end else

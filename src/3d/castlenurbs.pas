@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2009-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -654,7 +654,7 @@ begin
 
       for I := 1 to Point.Count - 1 do
       begin
-        V := Point.Ptr(I);
+        V := PVector3(Point.Ptr(I));
         W := Weight.List^[I];
         if W = 0 then W := 1;
 

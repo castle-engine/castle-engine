@@ -198,7 +198,7 @@ begin
   for I := 0 to FAllocatedSources.Count - 1 do
     FAllocatedSources[I] := TInternalSoundSource.Create(Backend);
 
-  ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif} Update);
+  ApplicationProperties.OnUpdate.Add({$ifdef FPC}@{$endif} Update);
 end;
 
 procedure TSoundAllocator.ContextCloseCore;
@@ -225,7 +225,7 @@ begin
   end;
 
   if ApplicationProperties(false) <> nil then
-    ApplicationProperties(false).OnUpdate.Remove({$ifdef CASTLE_OBJFPC}@{$endif} Update);
+    ApplicationProperties(false).OnUpdate.Remove({$ifdef FPC}@{$endif} Update);
 end;
 
 function TSoundAllocator.AllocateSound(

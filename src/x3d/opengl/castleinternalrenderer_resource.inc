@@ -43,7 +43,7 @@
     procedure Unprepare; virtual;
   end;
 
-  TResourceRendererList = class(specialize TObjectList<TResourceRenderer>)
+  TResourceRendererList = class({$ifdef FPC}specialize{$endif} TObjectList<TResourceRenderer>)
   private
     InsideUnprepareAll: Cardinal;
   public
@@ -91,7 +91,7 @@ destructor TResourceRenderer.Destroy;
 begin
   if NodeDestructionNotificationActive then
   begin
-    Node.RemoveDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} NodeDestructionNotification);
+    Node.RemoveDestructionNotification({$ifdef FPC}@{$endif} NodeDestructionNotification);
     NodeDestructionNotificationActive := false;
   end;
   inherited;
@@ -103,7 +103,7 @@ begin
     PrepareCore(State);
     if not NodeDestructionNotificationActive then
     begin
-      Node.AddDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} NodeDestructionNotification);
+      Node.AddDestructionNotification({$ifdef FPC}@{$endif} NodeDestructionNotification);
       NodeDestructionNotificationActive := true;
     end;
   except
@@ -126,7 +126,7 @@ procedure TResourceRenderer.Unprepare;
 begin
   if NodeDestructionNotificationActive then
   begin
-    Node.RemoveDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} NodeDestructionNotification);
+    Node.RemoveDestructionNotification({$ifdef FPC}@{$endif} NodeDestructionNotification);
     NodeDestructionNotificationActive := false;
   end;
 end;

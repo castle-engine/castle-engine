@@ -22,8 +22,8 @@ unit CastleSceneInternalShape;
 interface
 
 uses X3DNodes, X3DFields, CastleImages,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleInternalRenderer, CastleRenderOptions;
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  CastleGLUtils, CastleInternalRenderer, CastleRenderOptions;
 
 type
   { Shape within a scene rendered using OpenGL.
@@ -94,7 +94,7 @@ function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOpti
 
 implementation
 
-uses CastleScene, CastleVectors, CastleGLUtils;
+uses CastleScene, CastleVectors;
 
 { TGLShape --------------------------------------------------------------- }
 

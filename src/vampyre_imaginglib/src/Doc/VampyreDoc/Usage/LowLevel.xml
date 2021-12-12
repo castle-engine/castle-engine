@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Low Level Interface</title>
+  <chapter>
+    <title>Low Level Interface</title>
+    <par>
+      Imaging's low level interface is set of functions operating
+      on <ref>TImageData</ref> structure and <ref>TDynImageDataArray</ref>.
+      These functions are implemented in <ref>Imaging.pas</ref> unit
+      and you can find how to use them in
+      <link url="../Procedures/Procedures.xml">How To ... </link> section.
+      You can also look at <link url="../Demos/Demos.xml">Demos</link> section.
+      Low level interface is accessible from programming languages other
+      than <b>Object Pascal</b>. Information on this can be found in
+      <link url="../Procedures/Low/UsingDll.xml">Using dll/so Access</link> section.
+    </par>
+    
+    <note>
+      There are more functions in Imaging that are not part of low level interface
+      but can be freely used with it. Ulike those, low level interface functions are
+      provided for other programming languages too.
+      Look at <ref>Imaging.pas</ref>, <ref>ImagingFormats.pas</ref>, and other units
+      for more functions.
+    </note>
+
+    <par>
+      Here is the table with all low level interface functions currently available.
+    </par>
+
+    <table>
+      <!-- General Functions  -->
+      <row><th>General Functions</th></row>
+      <row><td><ref>InitImage</ref></td></row>
+      <row><td><ref>NewImage</ref></td></row>
+      <row><td><ref>TestImage</ref></td></row>
+      <row><td><ref>FreeImage</ref></td></row>
+      <row><td><ref>FreeImagesInArray</ref></td></row>
+      <row><td><ref>TestImagesInArray</ref></td></row>
+      <row><td><ref>DetermineFileFormat</ref></td></row>
+      <row><td><ref>DetermineStreamFormat</ref></td></row>
+      <row><td><ref>DetermineMemoryFormat</ref></td></row>
+      <row><td><ref>IsFileFormatSupported</ref></td></row>
+      <row><td><ref>EnumFileFormats</ref></td></row>
+
+
+      <!-- Loading Functions  -->
+      <row><th>Loading Functions</th></row>
+      <row><td><ref>LoadImageFromFile</ref></td></row>
+      <row><td><ref>LoadImageFromStream</ref></td></row>
+      <row><td><ref>LoadImageFromMemory</ref></td></row>
+      <row><td><ref>LoadMultiImageFromFile</ref></td></row>
+      <row><td><ref>LoadMultiImageFromStream</ref></td></row>
+      <row><td><ref>LoadMultiImageFromMemory</ref></td></row>
+
+
+      <!-- Saving Functions  -->
+      <row><th>Saving Functions</th></row>
+      <row><td><ref>SaveImageToFile</ref></td></row>
+      <row><td><ref>SaveImageToStream</ref></td></row>
+      <row><td><ref>SaveImageToMemory</ref></td></row>
+      <row><td><ref>SaveMultiImageToFile</ref></td></row>
+      <row><td><ref>SaveMultiImageToStream</ref></td></row>
+      <row><td><ref>SaveMultiImageToMemory</ref></td></row>
+
+
+      <!-- Manipulation Functions  -->
+      <row><th>Manipulation Functions</th></row>
+      <row><td><ref>CloneImage</ref></td></row>
+      <row><td><ref>ConvertImage</ref></td></row>
+      <row><td><ref>FlipImage</ref></td></row>
+      <row><td><ref>MirrorImage</ref></td></row>
+      <row><td><ref>ResizeImage</ref></td></row>
+      <row><td><ref>SwapChannels</ref></td></row>
+      <row><td><ref>ReduceColors</ref></td></row>
+      <row><td><ref>GenerateMipMaps</ref></td></row>
+      <row><td><ref>MapImageToPalette</ref></td></row>
+      <row><td><ref>SplitImage</ref></td></row>
+      <row><td><ref>MakePaletteForImages</ref></td></row>
+      <row><td><ref>RotateImage</ref></td></row>
+      
+
+      <!-- Drawing/Pixel Functions  -->
+      <row><th>Drawing/Pixel Functions</th></row>
+      <row><td><ref>CopyRect</ref></td></row>
+      <row><td><ref>FillRect</ref></td></row>
+      <row><td><ref>ReplaceColor</ref></td></row>
+      <row><td><ref>StretchRect</ref></td></row>
+      <row><td><ref>GetPixelDirect</ref></td></row>
+      <row><td><ref>SetPixelDirect</ref></td></row>
+      <row><td><ref>GetPixel32</ref></td></row>
+      <row><td><ref>SetPixel32</ref></td></row>
+      <row><td><ref>GetPixelFP</ref></td></row>
+      <row><td><ref>SetPixelFP</ref></td></row>
+
+
+      <!-- Palette Functions  -->
+      <row><th>Palette Functions</th></row>
+      <row><td><ref>NewPalette</ref></td></row>
+      <row><td><ref>FreePalette</ref></td></row>
+      <row><td><ref>CopyPalette</ref></td></row>      
+      <row><td><ref>FindColor</ref></td></row>
+      <row><td><ref>FillGrayscalePalette</ref></td></row>
+      <row><td><ref>FillCustomPalette</ref></td></row>
+      <row><td><ref>SwapChannelsOfPalette</ref></td></row>
+
+
+      <!-- Options Functions  -->
+      <row><th>Options Functions</th></row>
+      <row><td><ref>SetOption</ref></td></row>
+      <row><td><ref>GetOption</ref></td></row>
+      <row><td><ref>PushOptions</ref></td></row>
+      <row><td><ref>PopOptions</ref></td></row>
+
+      <!-- Image Format Functions  -->
+      <row><th>Image Format Functions</th></row>
+      <row><td><ref>GetImageFormatInfo</ref></td></row>
+      <row><td><ref>GetPixelsSize</ref></td></row>
+      
+      <!-- IO Functions  -->
+      <row><th>IO Functions</th></row>
+      <row><td><ref>SetUserFileIO</ref></td></row>
+      <row><td><ref>ResetFileIO</ref></td></row>
+
+    </table>
+
+    <par>
+      You can find other functions in <link url="../Reference.xml">Reference</link>
+      but they are not available for other languages thus they are not
+      part of the low level interface. Some of them are even dangerous to use
+      if you do not know what you are doing.
+    </par>
+     
+  </chapter>
+</doc>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="custom_component"
-  standalone_source="custom_component_standalone.lpr"
+  standalone_source="custom_component_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.custom.component"
   caption="Custom Component Demo"

@@ -1,5 +1,5 @@
-{
-  Copyright 2004-2018 Michalis Kamburelis.
+﻿{
+  Copyright 2004-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,13 +17,15 @@
 unit CastleCurves;
 
 {$I castleconf.inc}
+{$ifdef FPC}
 {$modeswitch nestedprocvars}{$H+}
+{$endif}
 
 interface
 
 uses SysUtils, Classes, Generics.Collections, DOM,
-  CastleVectors, CastleBoxes, CastleUtils, CastleScript,
-  CastleClassUtils, CastleFrustum;
+  CastleVectors, CastleBoxes, CastleUtils, {$ifdef FPC}CastleScript,{$endif}
+  CastleClassUtils, CastleFrustum, X3DNodes;
 
 type
   ECurveFileInvalid = class(Exception);
@@ -33,19 +35,24 @@ type
   TCurve = class
   private
     FTBegin, FTEnd: Single;
-    FDefaultSegments: Cardinal;
   protected
     procedure LoadFromElement(const E: TDOMElement); virtual;
     procedure SaveToStream(const Stream: TStream); virtual;
   public
+    const
+      DefaultSegments = 32;
+
+    constructor Create;
+
     { The valid range of curve function argument. Must be TBegin <= TEnd.
       @groupBegin }
-    property TBegin: Single read FTBegin write FTBegin default 0;
-    property TEnd: Single read FTEnd write FTEnd default 1;
+    property TBegin: Single read FTBegin write FTBegin {$ifdef FPC}default 0{$endif};
+    property TEnd: Single read FTEnd write FTEnd {$ifdef FPC}default 1{$endif};
     { @groupEnd }
 
     { Curve function, for each parameter value determine the 3D point.
-      This determines the actual shape of the curve. }
+      This determines the actual shape of the curve.
+      This is the simplest approach to calculate points on a curve. }
     function Point(const t: Float): TVector3; virtual; abstract;
     function Point2D(const t: Float): TVector2;
 
@@ -53,14 +60,7 @@ type
       This is simply a more specialized version of @link(Point),
       it scales the argument such that you get Point(TBegin) for I = 0
       and you get Point(TEnd) for I = Segments. }
-    function PointOfSegment(i, Segments: Cardinal): TVector3;
-
-    { Default number of segments, used when rendering by T3D interface
-      (that is, @code(Render(Frustum, TransparentGroup...)) method.) }
-    property DefaultSegments: Cardinal
-      read FDefaultSegments write FDefaultSegments default 10;
-
-    constructor Create;
+    function PointOfSegment(const i, Segments: Cardinal): TVector3;
 
     { Load the first curve defined in given XML file.
       Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
@@ -68,9 +68,13 @@ type
     class function LoadFromFile(const URL: string): TCurve;
 
     function BoundingBox: TBox3D; virtual; abstract;
+
+    { Represent this curve as an X3D geometry node,
+      that you can use to visualize this. }
+    function GeometryNode(const Segments: Cardinal = DefaultSegments): TAbstractGeometryNode;
   end;
 
-  TCurveList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCurve>)
+  TCurveList = class({$ifdef FPC}specialize{$endif} TObjectList<TCurve>)
   public
     { Load curves definitions from a simple XML file.
       Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
@@ -83,6 +87,7 @@ type
     procedure SaveToFile(const URL: string);
   end;
 
+  {$ifdef FPC}
   { Curve defined by explicitly giving functions for
     Point(t) = x(t), y(t), z(t) as CastleScript expressions. }
   TCasScriptCurve = class(TCurve)
@@ -129,6 +134,7 @@ type
 
     destructor Destroy; override;
   end;
+  {$endif FPC}
 
   { A basic abstract class for curves determined my some set of ControlPoints.
     Note: it is @italic(not) defined in this class any correspondence between
@@ -173,11 +179,13 @@ type
     { Constructor. }
     constructor Create;
 
+    {$ifdef FPC}
     { Calculate initial control points by sampling given TCasScriptCurve,
       with analytical curve equation.
       TBegin and TEnd are copied from CasScriptCurve. }
     constructor CreateFromEquation(CasScriptCurve: TCasScriptCurve;
       ControlPointsCount: Cardinal);
+    {$endif}
 
     destructor Destroy; override;
 
@@ -187,7 +195,7 @@ type
 
   TControlPointsCurveClass = class of TControlPointsCurve;
 
-  TControlPointsCurveList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TControlPointsCurve>;
+  TControlPointsCurveList = {$ifdef FPC}specialize{$endif} TObjectList<TControlPointsCurve>;
 
   TCubicBezier2DPoints = array [0..3] of TVector2;
   TCubicBezier3DPoints = array [0..3] of TVector3;
@@ -204,12 +212,6 @@ type
 
     ControlPoints.Count may be 1 (in general,
     for TControlPointsCurve, it must be >= 2).
-
-    You can use this to calculate points on a curve, you cannot render the curve
-    out-of-the-box with this class.
-    For a portable and renderable curves consider using
-    X3D NURBS nodes (wrapped in a TCastleScene) instead.
-    Or convert this curve to a TLineSetNode X3D node.
   }
   TPiecewiseCubicBezier = class(TControlPointsCurve)
   strict private
@@ -284,7 +286,7 @@ function ConvexHullIndexes(Points: TVector3List): TIntegerList; forward;
 
 { TCurve ------------------------------------------------------------ }
 
-function TCurve.PointOfSegment(i, Segments: Cardinal): TVector3;
+function TCurve.PointOfSegment(const i, Segments: Cardinal): TVector3;
 begin
   Result := Point(TBegin + (i/Segments) * (TEnd-TBegin));
 end;
@@ -294,7 +296,6 @@ begin
   inherited;
   FTBegin := 0;
   FTEnd := 1;
-  FDefaultSegments := 10;
 end;
 
 procedure TCurve.LoadFromElement(const E: TDOMElement);
@@ -333,6 +334,24 @@ begin
   finally FreeAndNil(List) end;
 end;
 
+function TCurve.GeometryNode(const Segments: Cardinal = DefaultSegments): TAbstractGeometryNode;
+var
+  Coord: TCoordinateNode;
+  LineSet: TLineSetNode;
+  I: Integer;
+begin
+  Coord := TCoordinateNode.Create;
+  Coord.FdPoint.Items.Clear;
+  for I := 0 to Segments do
+    Coord.FdPoint.Items.Add(Point(I / Segments));
+
+  LineSet := TLineSetNode.Create;
+  LineSet.SetVertexCount([Segments + 1]);
+  LineSet.Coord := Coord;
+
+  Result := LineSet;
+end;
+
 { TCurveList ---------------------------------------------------- }
 
 procedure TCurveList.LoadFromFile(const URL: string);
@@ -356,8 +375,10 @@ begin
         CurveTypeStr := I.Current.AttributeString('type');
         if SameText(CurveTypeStr, TPiecewiseCubicBezier.ClassName) then
           Curve := TPiecewiseCubicBezier.Create else
+        {$ifdef FPC}
         if SameText(CurveTypeStr, TCasScriptCurve.ClassName) then
           Curve := TCasScriptCurve.Create else
+        {$endif}
           raise ECurveFileInvalid.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
         Curve.LoadFromElement(I.Current);
         if Curve is TControlPointsCurve then
@@ -388,7 +409,7 @@ begin
 end;
 
 { TCasScriptCurve ------------------------------------------------------------ }
-
+{$ifdef FPC}
 procedure TCasScriptCurve.SetTVariable(AValue: TCasScriptFloat);
 begin
   if FTVariable = AValue then Exit;
@@ -495,6 +516,7 @@ begin
   inherited SaveToStream(Stream);
   // TODO: save TCasScriptCurve specifics
 end;
+{$endif FPC}
 
 { TControlPointsCurve ------------------------------------------------ }
 
@@ -505,7 +527,7 @@ end;
 
 procedure TControlPointsCurve.UpdateControlPoints;
 begin
-  FBoundingBox := CalculateBoundingBox(ControlPoints.L,
+  FBoundingBox := CalculateBoundingBox(PVector3(ControlPoints.L),
     ControlPoints.Count, 0);
 end;
 
@@ -548,6 +570,7 @@ begin
   FBoundingBox := TBox3D.Empty;
 end;
 
+{$ifdef FPC}
 constructor TControlPointsCurve.CreateFromEquation(
   CasScriptCurve: TCasScriptCurve; ControlPointsCount: Cardinal);
 var
@@ -561,6 +584,7 @@ begin
     ControlPoints.List^[i] := CasScriptCurve.PointOfSegment(i, ControlPointsCount-1);
   UpdateControlPoints;
 end;
+{$endif}
 
 destructor TControlPointsCurve.Destroy;
 begin
@@ -726,7 +750,7 @@ procedure TPiecewiseCubicBezier.UpdateControlPoints;
 
   procedure UpdateBoundingBox;
   begin
-    FBoundingBox := CalculateBoundingBox(ConvexHullPoints.L,
+    FBoundingBox := CalculateBoundingBox(PVector3(ConvexHullPoints.L),
       ConvexHullPoints.Count, 0);
   end;
 
@@ -802,13 +826,13 @@ type
     Arguments[IndexOfRightValue] to the [0..1] range.
     IOW, this is the curve-specific equation, with all boring special cases
     eliminated. }
-  TCurveSegmentFunction = function (const IndexOfRightValue: Integer;
-    const XInSegment: Single): Single is nested;
+  TCurveSegmentFunction = {$ifndef FPC}reference to{$endif} function (const IndexOfRightValue: Integer;
+    const XInSegment: Single): Single{$ifdef FPC} is nested{$endif};
 
 { General spline calculation, using SegmentFunction for a curve-specific equation. }
 function CalculateSpline(const X: Single; const Loop: boolean;
   const Arguments, Values: TSingleList;
-  const SegmentFunction: TCurveSegmentFunction): Single;
+  SegmentFunction: TCurveSegmentFunction): Single;
 
   { Calculate assuming that X is between [First..Last], and Count > 1. }
   function CalculateInRange(const X: Single): Single;
@@ -874,8 +898,17 @@ end;
 function CatmullRomSpline(const X: Single; const Loop: boolean;
   const Arguments: TSingleList;
   const Values: TSingleList): Single;
-
+{$ifdef FPC}
   function CatmullRomSegment(const I: Integer; const XInSegment: Single): Single;
+{$else}
+  { We use delphi anonymous type here, see:
+   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
+   Without CaptureCatmullRomSegment function Delphi gets
+   [dcc32 Error] E2555 Cannot capture symbol error }
+  function CaptureCatmullRomSegment: TCurveSegmentFunction;
+  begin
+    Result :=  function (const I: Integer; const XInSegment: Single): Single
+{$endif}
   var
     C: Integer;
     V0, V1, V2, V3: Single;
@@ -903,12 +936,14 @@ function CatmullRomSpline(const X: Single; const Loop: boolean;
 
     Result := CatmullRom(V0, V1, V2, V3, XInSegment);
   end;
-
+{$ifndef FPC}
+  end;
+{$endif}
 begin
   if Arguments.Count <> Values.Count then
     raise Exception.Create('CatmullRomSpline: Arguments and Values lists must have equal count');
   Result := CalculateSpline(X, Loop, Arguments, Values,
-    {$ifdef CASTLE_OBJFPC}@{$endif} CatmullRomSegment);
+    {$ifdef FPC}@{$endif} {$ifdef FPC}CatmullRomSegment{$else} CaptureCatmullRomSegment(){$endif});
 end;
 
 function Hermite(const V0, V1, Tangent0, Tangent1, X: Single): Single;
@@ -928,19 +963,32 @@ end;
 function HermiteSpline(const X: Single; const Loop: boolean;
   const Arguments, Values, Tangents: TSingleList): Single;
 
+  {$ifdef FPC}
   function HermiteSegment(const I: Integer; const XInSegment: Single): Single;
+  {$else}
+  { We use delphi anonymous type here, see:
+   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
+   Without CaptureHermiteSegment function Delphi gets
+   [dcc32 Error] E2555 Cannot capture symbol error }
+  function CaptureHermiteSegment: TCurveSegmentFunction;
+  begin
+    Result :=  function (const I: Integer; const XInSegment: Single): Single
+  {$endif}
   begin
     Result := Hermite(
       Values  .List^[I - 1], Values  .List^[I],
       Tangents.List^[I - 1], Tangents.List^[I], XInSegment);
   end;
-
+  {$ifndef FPC}
+  end;
+  {$endif}
 begin
   if (Arguments.Count <> Values.Count) or
      (Arguments.Count <> Tangents.Count) then
     raise Exception.Create('HermiteSpline: Arguments and Values and Tangents lists must have equal count');
+
   Result := CalculateSpline(X, Loop, Arguments, Values,
-    {$ifdef CASTLE_OBJFPC}@{$endif} HermiteSegment);
+    {$ifdef FPC}@{$endif} {$ifdef FPC}HermiteSegment{$else}CaptureHermiteSegment(){$endif});
 end;
 
 function HermiteTense(const V0, V1, X: Single): Single;
@@ -957,17 +1005,29 @@ end;
 function HermiteTenseSpline(const X: Single; const Loop: boolean;
   const Arguments, Values: TSingleList): Single;
 
+  {$ifdef FPC}
   function HermiteTenseSegment(const I: Integer; const XInSegment: Single): Single;
+  {$else}
+  { We use delphi anonymous type here, see:
+   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
+   Without CaptureHermiteTenseSegment function Delphi gets
+   [dcc32 Error] E2555 Cannot capture symbol error }
+  function CaptureHermiteTenseSegment: TCurveSegmentFunction;
+  begin
+    Result :=  function (const I: Integer; const XInSegment: Single): Single
+  {$endif}
   begin
     Result := HermiteTense(
       Values.List^[I - 1], Values.List^[I], XInSegment);
   end;
-
+  {$ifndef FPC}
+  end;
+  {$endif}
 begin
   if Arguments.Count <> Values.Count then
     raise Exception.Create('HermiteTenseSpline: Arguments and Values lists must have equal count');
   Result := CalculateSpline(X, Loop, Arguments, Values,
-    {$ifdef CASTLE_OBJFPC}@{$endif} HermiteTenseSegment);
+    {$ifdef FPC}@{$endif} {$ifdef FPC}HermiteTenseSegment{$else}CaptureHermiteTenseSegment(){$endif});
 end;
 
 { Calculate the convex hull ignoring Z coordinates of pixels.

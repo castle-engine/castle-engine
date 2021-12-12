@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FColorPersistent := TCastleColorPersistent.Create;
-  FColorPersistent.InternalGetValue := @GetColorForPersistent;
-  FColorPersistent.InternalSetValue := @SetColorForPersistent;
+  FColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetColorForPersistent;
+  FColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetColorForPersistent;
   FColorPersistent.InternalDefaultValue := Color; // current value is default
 {$endif read_implementation_constructor}
 
@@ -113,8 +113,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FOutlineColorPersistent := TCastleColorPersistent.Create;
-  FOutlineColorPersistent.InternalGetValue := @GetOutlineColorForPersistent;
-  FOutlineColorPersistent.InternalSetValue := @SetOutlineColorForPersistent;
+  FOutlineColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetOutlineColorForPersistent;
+  FOutlineColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetOutlineColorForPersistent;
   FOutlineColorPersistent.InternalDefaultValue := OutlineColor; // current value is default
 {$endif read_implementation_constructor}
 

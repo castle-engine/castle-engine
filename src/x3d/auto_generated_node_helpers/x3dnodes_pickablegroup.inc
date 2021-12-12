@@ -36,9 +36,9 @@
     { X3D field "objectType". } { }
     public property FdObjectType: TMFString read FFdObjectType;
     { Set X3D field "objectType". } { }
-    procedure SetObjectType(const Value: array of string);
+    procedure SetObjectType(const Value: array of string); overload;
     { Set X3D field "objectType". } { }
-    procedure SetObjectType(const Value: TCastleStringList);
+    procedure SetObjectType(const Value: TCastleStringList); overload;
 
     strict private FFdPickable: TSFBool;
     { X3D field "pickable". } { }

@@ -55,6 +55,7 @@ begin
   SoundMenuCurrentItemChanged := FindRequiredComponent('SoundMenuCurrentItemChanged') as TCastleSound;
 end;
 
+initialization
 finalization
   FreeAndNil(AllSounds);
 end.

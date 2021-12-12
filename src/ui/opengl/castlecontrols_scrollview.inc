@@ -83,13 +83,13 @@
     function ScrollMax: Single;
   published
     { Speed of scrolling by arrow keys, in pixels (before UI scaling) per second. }
-    property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed default DefaultKeyScrollSpeed;
+    property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed {$ifdef FPC}default DefaultKeyScrollSpeed{$endif};
     { Speed of scrolling by mouse wheel, in pixels (before UI scaling) per event. }
-    property WheelScrollSpeed: Single read FWheelScrollSpeed write FWheelScrollSpeed default DefaultWheelScrollSpeed;
+    property WheelScrollSpeed: Single read FWheelScrollSpeed write FWheelScrollSpeed {$ifdef FPC}default DefaultWheelScrollSpeed{$endif};
     { Width of the scroll bar.
       Value of 0 means to use global default
       in @link(TCastleTheme.ScrollBarWidth Theme.ScrollBarWidth). }
-    property ScrollBarWidth: Single read FScrollBarWidth write FScrollBarWidth default 0;
+    property ScrollBarWidth: Single read FScrollBarWidth write FScrollBarWidth {$ifdef FPC}default 0{$endif};
     { Position of the scroll bar.
       @definitionList(
         @itemLabel(@false)
@@ -123,7 +123,7 @@
       it can correspond to anything you want.
       You handle @link(TCastleScrollViewManual.OnChange) yourself,
       and interpret this value in whatever way you want. }
-    property Scroll: Single read FScroll write SetScroll default 0;
+    property Scroll: Single read FScroll write SetScroll {$ifdef FPC}default 0{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc}
@@ -207,11 +207,11 @@
     { How much @link(Scroll) is represented by the height of the scrollbar slider.
       Among other things, this determines how much @link(Scroll) changes
       in response to Page Up and Page Down keys. }
-    property PageSize: Single read GetPageSize write SetPageSize default DefaultPageSize;
+    property PageSize: Single read GetPageSize write SetPageSize {$ifdef FPC}default DefaultPageSize{$endif};
 
     { How much @link(Scroll) is represented by the height of the entire scrollbar
       (that is, the height of this @link(TCastleScrollViewCustom) instance). }
-    property CompleteSize: Single read GetCompleteSize write SetCompleteSize default DefaultCompleteSize;
+    property CompleteSize: Single read GetCompleteSize write SetCompleteSize {$ifdef FPC}default DefaultCompleteSize{$endif};
   end;
 
 {$endif read_interface}

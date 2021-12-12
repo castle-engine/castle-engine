@@ -24,7 +24,7 @@ uses SysUtils, Math,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleVectors, CastleTransform, X3DNodes, CastleTimeUtils, CastleViewport,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleUtils;
 
 var
   Window: TCastleWindowBase;
@@ -100,7 +100,7 @@ end;
 
 procedure WindowRender(Container: TCastleContainer);
 begin
-  UIFont.Print(10, 10, Yellow, 'FPS: ' + Container.Fps.ToString);
+  GetUIFont.Print(10, 10, Yellow, 'FPS: ' + Container.Fps.ToString);
 end;
 
 procedure WindowUpdate(Container: TCastleContainer);

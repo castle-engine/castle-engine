@@ -17,7 +17,7 @@
 unit CastleInternalShadowMaps;
 
 {$I castleconf.inc}
-{$modeswitch nestedprocvars}{$H+}
+{$ifdef FPC}{$modeswitch nestedprocvars}{$H+}{$endif}
 
 interface
 
@@ -63,7 +63,7 @@ type
   end;
   PLight = ^TLight;
 
-  TLightList = class(specialize TStructList<TLight>)
+  TLightList = class({$ifdef FPC}specialize{$endif} TStructList<TLight>)
   public
     DefaultShadowMapSize: Cardinal;
     ShadowMapShaders: array [boolean, 0..1] of TComposedShaderNode;
@@ -90,11 +90,13 @@ var
   I: Integer;
   LightUniqueName: string;
 begin
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to Count - 1 do
-    if L[I].Light = Light then Exit(Ptr(I));
+    if L[I].Light = Light then Exit(PLight(Ptr(I)));
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
   { add a new TLight record }
-  Result := Add;
+  Result := PLight(Add);
   Result^.Light := Light;
   Result^.ShadowReceiversBox := TBox3D.Empty;
 
@@ -259,7 +261,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
       OldCount := Coords.Count;
       Coords.Count := NewCount;
 
-      for I := OldCount to NewCount - 1 do
+      for I := OldCount to Integer(NewCount) - 1 do
       begin
         NewTexCoordGen := TTextureCoordinateGeneratorNode.Create;
         NewTexCoordGen.FdMode.Value := 'BOUNDS';
@@ -586,8 +588,8 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
              to be sure to capture shadow casters exactly at the begin/end
              of projection range (like a box side exactly at the beginning
              of ShadowCastersBox range in demo_models/shadow_spot_simple.wrl). }
-        ProjectionFar *= 2.0;
-        ProjectionNear /= 2.0;
+        ProjectionFar := ProjectionFar * 2.0;
+        ProjectionNear := ProjectionNear / 2.0;
 
         { final correction of auto-calculated projectionNear: must be > 0,
           and preferably > some epsilon of projectionFar (to avoid depth
@@ -657,16 +659,41 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
   const DefaultShadowMapSize: Cardinal);
 var
   Lights: TLightList;
-
+  {$ifdef FPC}
   procedure HereShapeRemove(const Shape: TShape);
+  {$else}
+  { We use delphi anonymous type here, see:
+   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
+   Without CaptureHereShapeRemove function Delphi gets
+   [dcc32 Error] E2555 Cannot capture symbol error }
+  function CaptureHereShapeRemove: TShapeTraverseFunc;
+  begin
+    Result := procedure(const Shape: TShape)
+  {$endif}
   begin
     Lights.ShapeRemove(Shape);
   end;
+{$ifndef FPC}
+  end;
+{$endif}
 
+  {$ifdef FPC}
   procedure HereShapeAdd(const Shape: TShape);
+  {$else}
+  { We use delphi anonymous type here, see:
+   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
+   Without CaptureHereShapeRemove function Delphi gets
+   [dcc32 Error] E2555 Cannot capture symbol error }
+  function CaptureHereShapeAdd: TShapeTraverseFunc;
+  begin
+    Result := procedure(const Shape: TShape)
+  {$endif}
   begin
     Lights.ShapeAdd(Shape);
   end;
+{$ifndef FPC}
+  end;
+{$endif}
 
 var
   L: PLight;
@@ -693,7 +720,9 @@ begin
       to the same light node. And shapes may have multiple GeneratedShadowMap,
       if they receive shadow from more then one light. So it was too easy
       to remove a shadow map (or projector) that we have just added... }
-    Shapes.Traverse(@HereShapeRemove, false);
+    Shapes.Traverse(
+      {$ifdef FPC}@{$endif} {$ifdef FPC}HereShapeRemove{$else}CaptureHereShapeRemove(){$endif},
+      false);
 
     if Enable then
     begin
@@ -702,13 +731,17 @@ begin
 
       { calculate Lights.LightsCastingOnEverything first }
       Lights.LightsCastingOnEverything := TX3DNodeList.Create(false);
-      Model.EnumerateNodes(TAbstractPunctualLightNode, @Lights.HandleLightCastingOnEverything, false);
+      Model.EnumerateNodes(TAbstractPunctualLightNode,
+        {$ifdef FPC}@{$endif}Lights.HandleLightCastingOnEverything,
+        false);
 
-      Shapes.Traverse(@HereShapeAdd, false);
+      Shapes.Traverse(
+        {$ifdef FPC}@{$endif} {$ifdef FPC}HereShapeAdd{$else}CaptureHereShapeAdd(){$endif},
+        false);
 
       for I := 0 to Lights.Count - 1 do
       begin
-        L := Lights.Ptr(I);
+        L := PLight(Lights.Ptr(I));
 
         Lights.HandleLightAutomaticProjection(L^);
 

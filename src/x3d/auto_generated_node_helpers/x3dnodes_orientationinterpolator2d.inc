@@ -30,9 +30,9 @@
     procedure SetAxis(const Value: TVector3);
   public
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of Single);
+    procedure SetKeyValue(const Value: array of Single); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TSingleList);
+    procedure SetKeyValue(const Value: TSingleList); overload;
     { X3D field "axis". } { }
     property Axis: TVector3 read GetAxis write SetAxis;
 

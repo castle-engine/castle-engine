@@ -33,7 +33,7 @@ type
         ImageCorroded: TDrawableImage;
         destructor Destroy; override;
       end;
-      TIntroPartList = specialize TObjectList<TIntroPart>;
+      TIntroPartList = {$ifdef FPC}specialize{$endif} TObjectList<TIntroPart>;
     var
       IntroPart: Integer;
       IntroPartTime: Single;

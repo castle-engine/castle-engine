@@ -29,9 +29,9 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of TVector3);
+    procedure SetKeyValue(const Value: array of TVector3); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TVector3List);
+    procedure SetKeyValue(const Value: TVector3List); overload;
 
 {$endif read_interface}
 

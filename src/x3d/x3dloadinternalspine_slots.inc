@@ -18,10 +18,10 @@
 {$ifdef read_interface}
   TSlotList = class;
 
-  TUnlitMaterialNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TUnlitMaterialNode>;
+  TUnlitMaterialNodeList = {$ifdef FPC}specialize{$endif} TObjectList<TUnlitMaterialNode>;
 
-  TColorInterpolatorNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColorInterpolatorNode>;
-  TScalarInterpolatorNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TScalarInterpolatorNode>;
+  TColorInterpolatorNodeList = {$ifdef FPC}specialize{$endif} TObjectList<TColorInterpolatorNode>;
+  TScalarInterpolatorNodeList = {$ifdef FPC}specialize{$endif} TObjectList<TScalarInterpolatorNode>;
 
   TSlot = class
   public
@@ -55,7 +55,7 @@
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
   end;
 
-  TSlotList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSlot>)
+  TSlotList = class({$ifdef FPC}specialize{$endif} TObjectList<TSlot>)
     { Find slot by name.
       @raises ESpineReadError If slot does not exist. }
     function Find(const SlotName: string): TSlot;
@@ -104,8 +104,8 @@ end;
 procedure TSlot.BuildNodes(const BaseUrl: string;
   const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
 var
-  IsWeightedMeshAttachmentExisted: Boolean = False;
-  IsOtherAttachmentExisted: Boolean = False;
+  IsWeightedMeshAttachmentExisted: Boolean {$ifdef FPC}= False{$endif};
+  IsOtherAttachmentExisted: Boolean {$ifdef FPC}= False{$endif};
 
   { Node for a single AttachmentName. Never @nil. }
   function AttachmentNode(const AttachmentName: string): TAbstractChildNode;
@@ -178,6 +178,12 @@ var
 var
   I: Integer;
 begin
+  {$ifndef FPC}
+  // can't initialize local variables in Delphi
+  IsWeightedMeshAttachmentExisted := false;
+  IsOtherAttachmentExisted := false;
+  {$endif}
+
   Node := TTransformNode.Create('SlotTransform_' + Name, BaseUrl);
   Node.FdTranslation.Value := Vector3(0, 0, DrawOrder * DrawOrderZ);
   NodeUsedAsChild := true;

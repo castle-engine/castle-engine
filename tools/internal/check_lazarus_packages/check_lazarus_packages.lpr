@@ -66,6 +66,7 @@ var
 begin
   inherited Create;
   Files := TCastleStringList.Create;
+  Files.CaseSensitive := FileNameCaseSensitive;
 
   FLpkFileName := ALpkFileName;
   Doc := URLReadXML(FLpkFileName);
@@ -76,9 +77,9 @@ begin
     begin
       FileElement := FilesElement.Child('Item' + IntToStr(I));
       FileName := FileElement.Child('Filename').AttributeString('Value');
-      if not IsPrefix('../src/', FileName, false) then
+      if not IsPrefix('../src/', FileName, not FileNameCaseSensitive) then
         PackageWarning('All filenames in lpk must be in CGE src, invalid: %s', [FileName]);
-      FileName := PrefixRemove('../src/', FileName, false);
+      FileName := PrefixRemove('../src/', FileName, not FileNameCaseSensitive);
       Files.Append(FileName);
     end;
   finally FreeAndNil(Doc) end;
@@ -100,9 +101,9 @@ begin
   FileName := SReplaceChars(FileName, PathDelim, '/'); // replace backslashes with slashes on Windows
 
   CgePrefix := CgePathExpanded + 'src/';
-  if not IsPrefix(CgePrefix, FileName, false) then
+  if not IsPrefix(CgePrefix, FileName, not FileNameCaseSensitive) then
     PackageWarning('All found files must be in CGE src, invalid: %s', [FileName]);
-  FileName := PrefixRemove(CgePrefix, FileName, false);
+  FileName := PrefixRemove(CgePrefix, FileName, not FileNameCaseSensitive);
 
   RequiredFilesList.Append(FileName);
 end;
@@ -116,9 +117,9 @@ begin
   FileName := SReplaceChars(FileName, PathDelim, '/'); // replace backslashes with slashes on Windows
 
   CgePrefix := CgePathExpanded + 'src/';
-  if not IsPrefix(CgePrefix, FileName, false) then
+  if not IsPrefix(CgePrefix, FileName, not FileNameCaseSensitive) then
     PackageWarning('All found files must be in CGE src, invalid: %s', [FileName]);
-  FileName := PrefixRemove(CgePrefix, FileName, false);
+  FileName := PrefixRemove(CgePrefix, FileName, not FileNameCaseSensitive);
 
   I := RequiredFilesList.IndexOf(FileName);
   if I = -1 then
@@ -133,8 +134,8 @@ procedure TLazarusPackage.CheckFiles(const RequiredFiles, ExcludedFromRequiredFi
     I: Integer;
   begin
     for I := 0 to High(OptionalFiles) do
-      if IsPrefix(OptionalFiles[I] + PathDelim, FileName, false) or
-         IsPrefix(OptionalFiles[I] + '/', FileName, false) then // accept / also on Windows
+      if IsPrefix(OptionalFiles[I] + PathDelim, FileName, not FileNameCaseSensitive) or
+         IsPrefix(OptionalFiles[I] + '/', FileName, not FileNameCaseSensitive) then // accept / also on Windows
         Exit(true);
     Result := false;
   end;
@@ -144,6 +145,7 @@ var
   FindPath: String;
 begin
   RequiredFilesList := TCastleStringList.Create;
+  RequiredFilesList.CaseSensitive := FileNameCaseSensitive;
   for I := 0 to High(RequiredFiles) do
   begin
     FindPath := CgePathExpanded + 'src' + PathDelim + RequiredFiles[I] + PathDelim;

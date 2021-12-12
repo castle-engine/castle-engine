@@ -34,10 +34,10 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Cylinder radius. }
-    property Radius: Single read FRadius write SetRadius default 1;
+    property Radius: Single read FRadius write SetRadius {$ifdef FPC}default 1{$endif};
 
     { Cylinder height. }
-    property Height: Single read FHeight write SetHeight default 2;
+    property Height: Single read FHeight write SetHeight {$ifdef FPC}default 2{$endif};
 
     { When this is @true, the object is visible (and lit) from both sides. }
     property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default false;
@@ -83,12 +83,15 @@ end;
 
 function TCastleCylinder.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Radius', 'Height', 'DoubleSided', 'Bottom', 'Side', 'Top':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Radius') or
+     (PropertyName = 'Height') or
+     (PropertyName = 'DoubleSided') or
+     (PropertyName = 'Bottom') or
+     (PropertyName = 'Side') or
+     (PropertyName = 'Top') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleCylinder.SetRadius(const Value: Single);

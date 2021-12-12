@@ -30,7 +30,7 @@ type
     const
       DownloadsCount = 3;
     var
-      { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+      { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
       LabelDownload: array [1..DownloadsCount] of TCastleLabel;
       ProgressDownload: array [1..DownloadsCount] of TCastleRectangleControl;
       ButtonStartDownloads, ButtonAbortDownloads: TCastleButton;
@@ -53,7 +53,7 @@ var
 implementation
 
 uses SysUtils, Math,
-  {$ifndef VER3_0} OpenSSLSockets, {$endif} // https support
+  {$ifdef FPC} {$ifndef VER3_0} OpenSSLSockets, {$endif} {$endif} // https support
   CastleComponentSerialize, CastleUtils, CastleStringUtils, CastleLog,
   CastleURIUtils;
 
@@ -80,8 +80,8 @@ begin
   ProgressDownload[3] := DesignedComponent('ProgressDownload3') as TCastleRectangleControl;
   LabelStatus := DesignedComponent('LabelStatus') as TCastleLabel;
 
-  ButtonStartDownloads.OnClick := @ClickStartDownloads;
-  ButtonAbortDownloads.OnClick := @ClickAbortDownloads;
+  ButtonStartDownloads.OnClick := {$ifdef FPC}@{$endif} ClickStartDownloads;
+  ButtonAbortDownloads.OnClick := {$ifdef FPC}@{$endif} ClickAbortDownloads;
 
   UpdateDownloadState;
 end;
@@ -114,7 +114,7 @@ begin
     FreeAndNil(Download[I]);
     Download[I] := TCastleDownload.Create(Self);
     Download[I].Url := Urls[I];
-    Download[I].OnFinish := @DownloadFinish;
+    Download[I].OnFinish := {$ifdef FPC}@{$endif} DownloadFinish;
 
     { Without soForceMemoryStream, returns as soon as possible with
       any stream class. This may give you e.g.:

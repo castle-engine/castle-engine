@@ -28,10 +28,18 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFRotation;
+    { X3D field "keyValue". } { }
+    public property FdKeyValue: TMFRotation read FFdKeyValue;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of TVector4);
+    procedure SetKeyValue(const Value: array of TVector4); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TVector4List);
+    procedure SetKeyValue(const Value: TVector4List); overload;
+
+    strict private FEventValue_changed: TSFRotationEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -57,6 +65,13 @@ end;
 procedure TOrientationInterpolatorNode.CreateNode;
 begin
   inherited;
+
+  FFdKeyValue := TMFRotation.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chNone;
+  AddField(FFdKeyValue);
+
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
 end;
 
 {$endif read_implementation}

@@ -295,12 +295,14 @@ var
     end;
 
   begin
+    {$ifdef FPC}
     {$warnings off}
     if RenderOptions.CustomShader <> nil then
     {$warnings on}
       // right now CustomShader <> nil means "rendering to shadow map", so no need for any colors
       MaterialUnlitExplicit(White)
     else
+    {$endif}
     if RenderOptions.Mode = rmSolidColor then
       { In case of rmSolidColor, force using unlit with RenderOptions.SolidColor.
         Note that castlerenderer_materials.inc made sure that Lightning = false
@@ -984,11 +986,13 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
     linking the shader). }
   procedure InitializeLightingModel;
   begin
+    {$ifdef FPC}
     {$warnings off}
     if RenderOptions.CustomShader <> nil then
       Shader.LightingModel := lmUnlit
     else
     {$warnings on}
+    {$endif}
     if RenderOptions.Mode = rmSolidColor then
       Shader.LightingModel := lmUnlit
     else
@@ -1018,6 +1022,7 @@ begin
 
   InitializeLightingModel;
 
+  {$ifdef FPC}
   {$warnings off}
   if RenderOptions.CustomShader <> nil then
   begin
@@ -1028,6 +1033,7 @@ begin
       CurrentMeshShader := RenderOptions.CustomShader as TX3DShaderProgramBase;
   end else
   {$warnings on}
+  {$endif}
   begin
     { Finalize Shader settings, before calculating Shader.CodeHash }
     if (Shape.Node <> nil) and
@@ -1049,7 +1055,7 @@ begin
     begin
       { calculate and use Shape.ProgramCache[Renderer.Pass].ShaderProgram }
       if (Shape.ProgramCache[Renderer.Pass] = nil) or
-         (Shape.ProgramCache[Renderer.Pass].Hash <> Shader.CodeHash) then
+         (not(Shape.ProgramCache[Renderer.Pass].Hash = Shader.CodeHash)) then
       begin
         if LogRenderer then
           WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d, pass: %d)',

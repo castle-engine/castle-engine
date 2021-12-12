@@ -33,7 +33,7 @@ type
         procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
       end;
     var
-      { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+      { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
       LabelFps: TCastleLabel;
       MainViewport: TCastleViewport;
 
@@ -58,7 +58,7 @@ procedure TStateMain.TRotateBehavior.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 begin
   inherited;
-  LifeTime += SecondsPassed;
+  LifeTime := LifeTime + SecondsPassed;
   Parent.Rotation := Vector4(0, 0, 1, LifeTime);
 end;
 

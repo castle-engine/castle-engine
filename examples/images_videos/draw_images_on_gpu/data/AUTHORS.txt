@@ -1,0 +1,4 @@
+boss-preview.png:
+  CC-BY 3.0
+  by Balmer, collaborators: Redshrike
+  from https://opengameart.org/content/bosses-and-monsters-spritesheets-ars-notoria

@@ -321,7 +321,7 @@ type
       or if user was signed-in in this application previously). }
     property OnStatusChanged: TNotifyEvent read FOnStatusChanged write FOnStatusChanged;
     property OnSignedInChanged: TNotifyEvent read FOnStatusChanged write FOnStatusChanged stored false;
-      deprecated 'use OnStatusChanged';
+      {$ifdef FPC}deprecated 'use OnStatusChanged';{$endif}
     { Event received in response to @link(RequestPlayerBestScore). }
     property OnPlayerBestScoreReceived: TPlayerBestScoreEvent read FOnPlayerBestScoreReceived write FOnPlayerBestScoreReceived;
     { Event received in response to @link(ShowSaveGames). }
@@ -339,16 +339,18 @@ uses SysUtils,
 constructor TGameService.Create(AOwner: TComponent);
 begin
   inherited;
-  Messaging.OnReceive.Add(@MessageReceived);
-  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
+  Messaging.OnReceive.Add({$ifdef FPC}@{$endif} MessageReceived);
+  ApplicationProperties.OnInitializeJavaActivity.Add(
+    {$ifdef FPC}@{$endif} ReinitializeJavaActivity);
 end;
 
 destructor TGameService.Destroy;
 begin
   if Messaging <> nil then
-    Messaging.OnReceive.Remove(@MessageReceived);
+    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
   if ApplicationProperties(false) <> nil then
-    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove(
+      {$ifdef FPC}@{$endif} ReinitializeJavaActivity);
   inherited;
 end;
 

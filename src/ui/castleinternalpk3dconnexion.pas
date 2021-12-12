@@ -331,7 +331,7 @@ type
       procedure CopyToSettings(var Settings: TEmulationSettings);
       procedure SetFromSettings(const Settings: TEmulationSettings);
       property CustomEmulations[AIndex: TEmulationAxis]: TEmulationAxisSetting read GetCustomEmulations write SetCustomEmulations;
-   published
+   //published
       property EmulationType: TEmulationType read FEmulationType write FEmulationType;
       property LastResult: HResult read FLastResult;
       property Loaded: boolean read FLoaded;

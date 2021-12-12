@@ -350,8 +350,8 @@ var
 procedure GLInformationInitialize;
 begin
   FreeAndNil(GLVersion);
-  GLVersion := TGLVersion.Create(PChar(glGetString(GL_VERSION)),
-    PChar(glGetString(GL_VENDOR)), PChar(glGetString(GL_RENDERER)));
+  GLVersion := TGLVersion.Create( PGLChar(glGetString(GL_VERSION)),
+    PGLChar(glGetString(GL_VENDOR)), PGLChar(glGetString(GL_RENDERER)));
 
   FreeAndNil(GLFeatures);
   GLFeatures := TGLFeatures.Create;
@@ -411,11 +411,12 @@ constructor TGLFeatures.Create;
   end;
 
 var
-  SupportedExtensions: string;
+  SupportedExtensions: AnsiString;
 begin
   inherited;
 
   {$ifndef OpenGLES}
+  {$ifdef FPC}
   FVersion_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
   FVersion_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
   FVersion_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
@@ -427,7 +428,21 @@ begin
   FVersion_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2;
   FVersion_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3;
   FVersion_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0;
-
+  {$else}
+  // TODO: Delphi OpenGLext has only InitOpenGLext
+  FVersion_1_2 := GLVersion.AtLeast(1, 2);
+  FVersion_1_3 := GLVersion.AtLeast(1, 3);
+  FVersion_1_4 := GLVersion.AtLeast(1, 4);
+  FVersion_1_5 := GLVersion.AtLeast(1, 5);
+  FVersion_2_0 := GLVersion.AtLeast(2, 0);
+  FVersion_2_1 := GLVersion.AtLeast(2, 1);
+  FVersion_3_0 := GLVersion.AtLeast(3, 0);
+  FVersion_3_1 := GLVersion.AtLeast(3, 1);
+  FVersion_3_2 := GLVersion.AtLeast(3, 2);
+  FVersion_3_3 := GLVersion.AtLeast(3, 3);
+  FVersion_4_0 := GLVersion.AtLeast(4, 0);
+  InitOpenGLext; // TODO: check that later
+  {$endif}
   FARB_window_pos := Load_GL_ARB_window_pos;
   FMESA_window_pos := Load_GL_MESA_window_pos;
 
@@ -579,7 +594,7 @@ begin
   end else
     FCurrentMultiSampling := 1;
 
-  SupportedExtensions := PChar(glGetString(GL_EXTENSIONS));
+  SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
 
   FPackedDepthStencil :=
     {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_packed_depth_stencil', SupportedExtensions)
@@ -768,10 +783,10 @@ end;
 
 constructor TGLMemoryInfo.Create;
 var
-  SupportedExtensions: string;
+  SupportedExtensions: AnsiString;
 begin
   inherited;
-  SupportedExtensions := PChar(glGetString(GL_EXTENSIONS));
+  SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
   ExtensionNVidia := glext_ExtensionSupported('GL_NVX_gpu_memory_info', SupportedExtensions);
   ExtensionATI := glext_ExtensionSupported('GL_ATI_meminfo', SupportedExtensions);
   Refresh;

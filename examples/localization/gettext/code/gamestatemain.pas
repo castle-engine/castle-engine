@@ -153,12 +153,12 @@ begin
   Viewport.Items.MainScene := Scene;
 
   { assign callbacks }
-  ButtonSwitchEnglish.OnClick := @ClickButtonEnglish;
-  ButtonSwitchGerman.OnClick := @ClickButtonGerman;
-  ButtonSwitchPolish.OnClick := @ClickButtonPolish;
-  ButtonSwitchRussian.OnClick := @ClickButtonRussian;
-  ButtonSwitchUkrainian.OnClick := @ClickButtonUkrainian;
-  ButtonMessage.OnClick := @ClickButtonMessage;
+  ButtonSwitchEnglish.OnClick := {$ifdef FPC}@{$endif} ClickButtonEnglish;
+  ButtonSwitchGerman.OnClick := {$ifdef FPC}@{$endif} ClickButtonGerman;
+  ButtonSwitchPolish.OnClick := {$ifdef FPC}@{$endif} ClickButtonPolish;
+  ButtonSwitchRussian.OnClick := {$ifdef FPC}@{$endif} ClickButtonRussian;
+  ButtonSwitchUkrainian.OnClick := {$ifdef FPC}@{$endif} ClickButtonUkrainian;
+  ButtonMessage.OnClick := {$ifdef FPC}@{$endif} ClickButtonMessage;
 end;
 
 procedure TStateMain.Start;
@@ -168,7 +168,7 @@ begin
   { Make sure the font contains all international characters.
     TFontStyleNode.OnFont is used by TTextNode.
     Everything else uses UIFont (by default). }
-  TFontStyleNode.OnFont := @GetFont;
+  TFontStyleNode.OnFont := {$ifdef FPC}@{$endif} GetFont;
   UIFont := TCastleFont.Create(Self);
   (UIFont as TCastleFont).Load(TextureFont_DejaVuSans_50, false);
   UIFont.Size := 20;

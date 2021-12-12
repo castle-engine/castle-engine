@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="shader-effects"
-  standalone_source="shader_effects_standalone.lpr"
+  standalone_source="shader_effects_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.shader.effects"
   caption="Shader Effects Demo"

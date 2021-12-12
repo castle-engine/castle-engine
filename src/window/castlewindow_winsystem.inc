@@ -206,7 +206,7 @@ begin
   begin
     { No messages to us, so call update/timer/render on everything. }
     UpdateAndRenderEverything(WasAnyRendering);
-    if Terminated then Exit;
+    if Terminated then Exit(false);
 
     { If we do not do anything in any Application Update/Timer
       (this is checked by AllowSuspendForInput),

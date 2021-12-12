@@ -67,6 +67,8 @@ type
       GL_BGR            = $80E0;
       GL_BGRA           = $80E1;
 
+      GL_RGB8           = $8051;
+      GL_SRGB8          = $8C41;
       GL_R16            = $822A;
       GL_RG8            = $822B;
       GL_RG             = $8227;
@@ -385,7 +387,7 @@ begin
       if ValuePadding <> 0 then
         Stream.Seek(ValuePadding, soFromCurrent);
 
-      Key := PChar(@(KeyAndValue[0]));
+      Key := PAnsiChar(@(KeyAndValue[0]));
       SetLength(Value, KeyAndValueByteSize - Length(Key) - 1);
       if Length(Value) > 0 then
       begin
@@ -499,7 +501,15 @@ begin
   if (Header.GlType = GL_UNSIGNED_BYTE) and
      (Header.GlTypeSize = 1) and
      (Header.GlFormat = GL_RGB) and
-     (Header.GlInternalFormat = GL_RGB) and
+     ( (Header.GlInternalFormat = GL_RGB) or
+       (Header.GlInternalFormat = GL_RGB8) or
+        { TODO: for now SRGB8 is read the same way,
+          we ignore information that it is in sRGB color-space.
+          Whether the image is assumed to be in sRGB or linear color-space
+          depends in CGE on the image function (whether it is placed in
+          e.g. TPhysicalMaterial.BaseTexture or NormalTexture)
+          and global @link(GammaCorrection) variable. }
+       (Header.GlInternalFormat = GL_SRGB8) ) and
      (Header.GlBaseInternalFormat = GL_RGB) then
   begin
     ReadRGB(Stream);

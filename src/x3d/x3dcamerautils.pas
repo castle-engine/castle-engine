@@ -53,11 +53,11 @@ function MakeCameraStr(const Version: TX3DCameraVersion;
   the returned node. }
 function MakeCameraNode(const Version: TX3DCameraVersion;
   const BaseUrl: string;
-  const Position, Direction, Up, GravityUp: TVector3): TAbstractChildNode;
+  const Position, Direction, Up, GravityUp: TVector3): TAbstractChildNode; overload;
 function MakeCameraNode(const Version: TX3DCameraVersion;
   const BaseUrl: string;
   const Position, Direction, Up, GravityUp: TVector3;
-  out ViewpointNode: TAbstractViewpointNode): TAbstractChildNode;
+  out ViewpointNode: TAbstractViewpointNode): TAbstractChildNode; overload;
 
 { Make camera node (like MakeCameraNode) that makes the whole box
   nicely visible (like CameraViewpointForWholeScene). }

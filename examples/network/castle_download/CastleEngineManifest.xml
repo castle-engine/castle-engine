@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="castle_download"
-  standalone_source="castle_download.lpr">
+  standalone_source="castle_download.dpr">
   <dependencies>
     <dependency name="Https" /> <!-- read https links -->
   </dependencies>

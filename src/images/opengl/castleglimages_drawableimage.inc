@@ -17,7 +17,8 @@
 
 {$ifdef read_interface}
 
-type
+{$ifdef read_interface_type}
+// type - don't add type Delphi can't parse that correctly
   TGLRenderToTexture = class;
 
   { Image that can be drawn.
@@ -81,7 +82,7 @@ type
       end;
       PVboStorage = ^TVboStorage;
 
-    var
+    class var
       { Static OpenGL resources, used by all TDrawableImage instances.
         Instead of using the same TVboStorage for all TDrawableImage.Draw calls,
         we rotate between a number of TVboStorage, each with it's own VBOs.
@@ -104,15 +105,15 @@ type
         This makes a huge speedup for drawing UI on Raspberry Pi OpenGLES
         without X.
       }
-      VboStorage: array [0..9] of TVboStorage; static;
-      VboStorageNext: Cardinal; static;
+      VboStorage: array [0..9] of TVboStorage;
+      VboStorageNext: Cardinal;
       { Point VBO contents, reused in every Draw. }
-      Points: array of TPoint; static;
-      Indexes: array of {$ifdef GLIndexesShort} Word {$else} LongWord {$endif}; static;
+      Points: array of TPoint;
+      Indexes: array of {$ifdef GLIndexesShort} Word {$else} LongWord {$endif};
 
       { Used only in shader pipeline }
-      Programs: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TImageProgram; static;
-
+      Programs: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TImageProgram;
+    var
       TextureHasOnlyAlpha: boolean;
       FWidth: Cardinal;
       FHeight: Cardinal;
@@ -165,7 +166,8 @@ type
     procedure SetRepeatT(const Value: Boolean);
     procedure SetURL(const Value: String);
   private
-    StaticResourcesReady: boolean; static;
+    class var
+      StaticResourcesReady: boolean;
     { Create / destroy static stuff for rendering. }
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
@@ -414,7 +416,7 @@ type
       for UI scaling, see @link(TCastleContainer.UIScaling)
       and @link(TCastleUserInterface.UIScale). }
     property ScaleCorners: Single
-      read FScaleCorners write FScaleCorners default 1;
+      read FScaleCorners write FScaleCorners {$ifdef FPC}default 1{$endif};
 
     { Draw the image on the screen, divided into 3x3 parts for corners,
       sides, and inside.
@@ -534,6 +536,7 @@ type
       is possible, but costly. }
     property SmoothScaling: boolean read FSmoothScaling write SetSmoothScaling;
 
+    {$ifdef FPC}
     property ScalingPossible: boolean read FSmoothScaling write SetSmoothScaling;
       deprecated 'use SmoothScaling';
 
@@ -544,6 +547,7 @@ type
     { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterY: Single read GetCenterY write SetCenterY default 0.5;
       deprecated 'use RotationCenter';
+    {$endif}
 
     { Center of rotation.
       Expressed as a fraction within the drawn ScreenRectangle,
@@ -555,7 +559,7 @@ type
       Hint: use function like ArcTan2 from Math unit to convert 2D direction
       into a rotation angle. }
     property Rotation: Single
-      read FRotation write FRotation default 0;
+      read FRotation write FRotation {$ifdef FPC}default 0{$endif};
 
     { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
     property Clip: boolean read FClip write FClip;
@@ -660,11 +664,14 @@ type
     { @groupEnd }
   end;
 
+  {$ifdef FPC}
   TGLImageManaged = TDrawableImage deprecated 'use TDrawableImage';
   TGLImageOnDemand = TDrawableImage deprecated 'use TDrawableImage';
   TGLImageCore = TDrawableImage deprecated 'use TDrawableImage';
   TGLImage = TDrawableImage deprecated 'use TDrawableImage';
+  {$endif}
 
+  {$endif read_interface_type}
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -713,7 +720,7 @@ begin
   // note that above Create will call virtual Load() which will already set our FImage
   FOwnsImage := AOwnsImage;
   ApplicationProperties.OnGLContextCloseObject.Add(
-    {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
+    {$ifdef FPC}@{$endif} GLContextCloseEvent);
 end;
 
 constructor TDrawableImage.Create(const AURL: string;
@@ -760,7 +767,7 @@ begin
 
   if ApplicationProperties <> nil then
     ApplicationProperties.OnGLContextCloseObject.Remove(
-      {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
+      {$ifdef FPC}@{$endif} GLContextCloseEvent);
 
   RenderToImageFree;
   GLContextClose;
@@ -827,7 +834,7 @@ begin
   FImage := AImage;
 end;
 
-class function TDrawableImage.UseShaders: Boolean; static;
+class function TDrawableImage.UseShaders: Boolean;
 begin
   Result := GLFeatures.Shaders <> gsNone;
 end;
@@ -855,9 +862,9 @@ begin
   if UseShaders then
   begin
     { create programs }
-    for AlphaTestShader in boolean do
-      for ClipLineShader in boolean do
-        for ColorTreatment in TColorTreatment do
+    for AlphaTestShader := Low(boolean) to High(boolean) do
+      for ClipLineShader := Low(boolean) to High(boolean) do
+        for ColorTreatment := Low(TColorTreatment) to High(TColorTreatment) do
           if Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog = nil then
           begin
             VS := Iff(ClipLineShader, '#define CLIP_LINE' + NL, '') +
@@ -903,9 +910,9 @@ begin
   { free below regardless of UseShaders,
     to avoid memory leaks in case we toggle GLFeatures.EnableFixedFunction at runtime }
   // if UseShaders then
-  for AlphaTestShader in boolean do
-    for ClipLineShader in boolean do
-      for ColorTreatment in TColorTreatment do
+  for AlphaTestShader := Low(boolean) to High(boolean) do
+    for ClipLineShader := Low(boolean) to High(boolean) do
+      for ColorTreatment := Low(TColorTreatment) to High(TColorTreatment) do
         FreeAndNil(Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog);
 
   StaticResourcesReady := false;
@@ -1310,9 +1317,11 @@ begin
   Draw(ScreenRect, ImageRect);
 end;
 
-{$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
-  {$optimization OFF}
-  {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (begin)}
+{$ifdef FPC}
+  {$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
+    {$optimization OFF}
+    {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (begin)}
+  {$endif}
 {$endif}
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
@@ -1428,9 +1437,11 @@ end;
 { Turn optimizations back on.
   FPC $push / $pop unfortunately doesn't save/restore optimization level,
   so we restore it if -dBUGGY_AARCH64_OPTIMIZATIONS. }
-{$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
-  {$optimization ON}
-  {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (end)}
+{$ifdef FPC}
+  {$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
+    {$optimization ON}
+    {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (end)}
+  {$endif}
 {$endif}
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;

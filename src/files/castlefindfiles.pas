@@ -39,7 +39,7 @@ type
     Size: Int64; //< This may be 0 in case of non-local file
   end;
 
-  TFileInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFileInfo>;
+  TFileInfoList = {$ifdef FPC}specialize{$endif} TStructList<TFileInfo>;
 
   { Called for each file found.
     StopSearch is always initially @false, you can change it to @true to stop
@@ -522,7 +522,7 @@ var
 begin
   FileMethodWrapper.FileMethod := FileMethod;
   Result := FindFiles(Path, Mask, FindDirectories,
-    {$ifdef CASTLE_OBJFPC}@{$endif} FoundFileProcToMethod,
+    {$ifdef FPC}@{$endif} FoundFileProcToMethod,
     @FileMethodWrapper, Options);
 end;
 
@@ -580,7 +580,7 @@ begin
   Helper := TSearchFileHardHelper.Create;
   try
     Helper.Base := Base;
-    FindFiles(Path + '*', false, {$ifdef CASTLE_OBJFPC}@{$endif}Helper.Callback, []);
+    FindFiles(Path + '*', false, {$ifdef FPC}@{$endif}Helper.Callback, []);
     Result := Helper.IsFound;
     if Result then
       NewBase := Helper.Found;
@@ -610,7 +610,7 @@ begin
   Helper := TFindFirstFileHelper.Create;
   try
     FindFiles(Path, Mask, FindDirectories,
-      {$ifdef CASTLE_OBJFPC}@{$endif} Helper.Callback, Options);
+      {$ifdef FPC}@{$endif} Helper.Callback, Options);
     Result := Helper.IsFound;
     if Result then
       FileInfo := Helper.FoundFile;

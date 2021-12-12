@@ -75,7 +75,7 @@
       end;
 
       { List of TSoundInfo. }
-      TSoundInfoList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundInfo>)
+      TSoundInfoList = class({$ifdef FPC}specialize{$endif} TObjectList<TSoundInfo>)
       public
         { Index of sound with given TSoundInfo.Name, or -1 if not found. }
         function IndexOfName(const SoundName: String): Integer;
@@ -120,13 +120,13 @@
         ParentGroup: TSoundGroup;
       end;
 
-      TSoundGroupList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundGroup>)
+      TSoundGroupList = class({$ifdef FPC}specialize{$endif} TObjectList<TSoundGroup>)
       public
         { Index of group with given TSoundGroup.Name, or -1 if not found. }
         function IndexOfName(const GroupName: String): Integer;
       end;
 
-      TLoopingChannelList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLoopingChannel>;
+      TLoopingChannelList = {$ifdef FPC}specialize{$endif} TObjectList<TLoopingChannel>;
 
     var
       FSoundImportanceNames: TStringList;
@@ -197,8 +197,10 @@
     }
     property RepositoryURL: string read FRepositoryURL write SetRepositoryURL;
 
+    {$ifdef FPC}
     { Deprecated name for RepositoryURL. @deprecated }
     property SoundsFileName: string read FRepositoryURL write SetRepositoryURL; deprecated 'use RepositoryURL';
+    {$endif}
 
     { Reload the RepositoryURL and all referenced buffers.
       Useful as a tool for game designers, to reload the sounds XML file
@@ -227,6 +229,7 @@
     }
     function SoundFromName(const SoundName: string; const Required: boolean = true): TCastleSound;
 
+    {$ifdef FPC}
     { Sound importance names and values.
       Each item is a name (as a string) and a value (that is stored in Objects
       property of the item as a pointer; add new importances by
@@ -257,6 +260,7 @@
       to play music. Set it to @nil to stop playing music.
       This is just a shortcut for @link(LoopingChannel LoopingChannel[0]). }
     property MusicPlayer: TLoopingChannel read GetMusicPlayer; deprecated 'use LoopingChannel[0]';
+    {$endif FPC}
 
     { Comfortable way to play and control looping non-spatial sounds, like music tracks, ambience.
 
@@ -465,6 +469,8 @@ begin
     WritelnWarning('Sound "%s": "gain" has been deprecated in sounds XML, use "volume" now', [Name]);
   end else
     Sound.Volume := Element.AttributeSingleDef('volume', 1);
+
+  {$ifdef FPC}
   {$warnings off} // using unportable symbols knowingly
   Sound.MinGain := Element.AttributeSingleDef('min_gain', 0);
   Sound.MaxGain := Element.AttributeSingleDef('max_gain', 1);
@@ -479,12 +485,15 @@ begin
     Sound.MaxGain := 1;
   end;
   {$warnings on}
+  {$endif}
 
   if Element.AttributeString('default_importance', ImportanceStr) then
   begin
     WritelnWarning('Sound "%s": Use "priority" (float, in 0..1 range) instead of "importance" in sounds XML file', [
       Name
     ]);
+
+    {$ifdef FPC}
     {$warnings off} // using deprecated, to keep it working
     SoundImportanceIndex := ASoundEngine.SoundImportanceNames.IndexOf(ImportanceStr);
     if SoundImportanceIndex = -1 then
@@ -493,6 +502,8 @@ begin
       Sound.Priority := ImportanceToPriority(
         PtrUInt(ASoundEngine.SoundImportanceNames.Objects[SoundImportanceIndex]));
     {$warnings on}
+    {$endif}
+
   end else
     Sound.Priority := Element.AttributeSingleDef('priority', 0.5);
 
@@ -528,6 +539,8 @@ begin
     there's no definite reason actually to not let them ignore case. }
   FSoundImportanceNames := TStringList.Create;
   FSoundImportanceNames.CaseSensitive := true;
+
+  {$ifdef FPC}
   {$warnings off} // using deprecated to keep it working
   AddSoundImportanceName('max', MaxSoundImportance);
   AddSoundImportanceName('level_event', LevelEventSoundImportance);
@@ -536,6 +549,7 @@ begin
   AddSoundImportanceName('minor_non_spatial', MinorNonSpatialSoundImportance);
   AddSoundImportanceName('default', DefaultSoundImportance);
   {$warnings on}
+  {$endif}
 
   FSoundGroups := TSoundGroupList.Create;
 
@@ -797,11 +811,13 @@ begin
   end;
 end;
 
+{$ifdef FPC}
 procedure TRepoSoundEngine.AddSoundImportanceName(const Name: string;
   Importance: Integer);
 begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
 end;
+{$endif}
 
 procedure TRepoSoundEngine.PrepareResources;
 begin
@@ -816,15 +832,18 @@ begin
   {$warnings on}
 
   Volume := Config.GetFloat('sound/volume', DefaultVolume);
+  {$ifdef FPC}
   {$warnings off} // using deprecated from deprecated
   MusicPlayer.Volume := Config.GetFloat('sound/music/volume',
     TLoopingChannel.DefaultVolume);
   {$warnings on}
+  {$endif}
 end;
 
 procedure TRepoSoundEngine.SaveToConfig(const Config: TCastleConfig);
 begin
   Config.SetDeleteFloat('sound/volume', Volume, DefaultVolume);
+  {$ifdef FPC}
   {$warnings off} // using deprecated from deprecated
   { This may be called from destructors and the like, so better check
     that MusicPlayer is not nil. }
@@ -832,6 +851,7 @@ begin
     Config.SetDeleteFloat('sound/music/volume',
       MusicPlayer.Volume, TLoopingChannel.DefaultVolume);
   {$warnings on}
+  {$endif}
 
   {$warnings off} // using deprecated from deprecated
   inherited;

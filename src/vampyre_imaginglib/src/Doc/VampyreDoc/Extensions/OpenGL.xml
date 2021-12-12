@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>OpenGL Textures</title>
+  <chapter>
+    <title>OpenGL Textures</title>
+    <par>
+      This extensions contains functions for loading and saving
+      <keyword>OpenGL</keyword> textures
+      using Imaging and for converting images to textures and vice versa.
+      You need <keyword>OpenGL</keyword> headers for
+      <keyword>Object Pascal</keyword> to be able to compile this extension.
+      Headers from 
+      <keyword>Delphi GL</keyword> (<icode>dglOpenGL.pas</icode>),
+      <keyword>JEDI-SDL</keyword> (<icode>gl.pas</icode>), and 
+      <keyword>GLScene</keyword> (<icode>OpenGL1x.pas</icode>)
+      were tested and they work.
+      Extension is implemented in <ref>ImagingOpenGL.pas</ref> unit located
+      in <keyword>(ImagingRoot)\Source\Extensions</keyword> directory.
+      To use it simply add this unit to <icode>uses</icode> list of your program.
+      Currently only 2D textures are supported, DXTC/S3TC and 3Dc compressed, and
+      floating point textures are created if supported by hardware.
+    </par>
+
+    <par>
+      Here is the table with <keyword>OpenGL</keyword> functions
+      currently available.
+      There is also Imaging <keyword>OpenGL</keyword> demo you can look at
+      for inspiration <link url="../Demos/Pascal.xml#opengldemo">Object Pascal OpenGL Demo</link>.
+    </par>
+
+    <table>
+      <title>Imaging OpenGL extension functions</title>
+      <row><th>Loading Functions</th></row>
+      <row><td><ref>LoadGLTextureFromFile</ref></td></row>
+      <row><td><ref>LoadGLTextureFromStream</ref></td></row>
+      <row><td><ref>LoadGLTextureFromMemory</ref></td></row>
+      <row><th>Saving Functions</th></row>
+      <row><td><ref>SaveGLTextureToFile</ref></td></row>
+      <row><td><ref>SaveGLTextureToStream</ref></td></row>
+      <row><td><ref>SaveGLTextureToMemory</ref></td></row>
+      <row><th>Conversion Functions</th></row>
+      <row><td><ref>CreateGLTextureFromImage</ref></td></row>
+      <row><td><ref>CreateGLTextureFromMultiImage</ref></td></row>
+      <row><td><ref>CreateImageFromGLTexture</ref></td></row>
+      <row><td><ref>CreateMultiImageFromGLTexture</ref></td></row>
+      <row><th>Other Functions</th></row>
+      <row><td><ref>GetGLTextureCaps</ref></td></row>
+      <row><td><ref>GetGLProcAddress</ref></td></row>
+      <row><td><ref>IsGLExtensionSupported</ref></td></row>
+      <row><td><ref>ImageFormatToGL</ref></td></row>
+    </table>
+
+    <note>
+      All <keyword>OpenGL</keyword> textures created by Imaging functions
+      have default parameters set - that means that no
+      <icode>glTexParameter</icode> calls are made so default filtering,
+      wrapping, and other parameters are used. Created textures
+      are left bound by <icode>glBindTexture</icode> when function is exited.
+    </note>
+
+
+  </chapter>
+</doc>

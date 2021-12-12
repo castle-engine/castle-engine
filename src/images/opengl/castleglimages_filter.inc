@@ -17,7 +17,8 @@
 
 {$ifdef read_interface}
 
-type
+{$ifdef read_interface_type}
+// type - don't add type Delphi can't parse that correctly
   { We recommend using CastleRenderOptions unit to get these types.
     But for backward compatibility, they are also available here. }
   TMinificationFilter = CastleRenderOptions.TMinificationFilter;
@@ -31,7 +32,9 @@ type
     procedure DisableMipmaps;
     class operator {$ifdef FPC}={$else}Equal{$endif} (const V1, V2: TTextureFilter): boolean;
   end;
+{$endif read_interface_type}
 
+{$ifdef read_interface_func}
 function TextureFilter(const Minification: TMinificationFilter;
   const Magnification: TMagnificationFilter): TTextureFilter;
 
@@ -43,7 +46,9 @@ function TextureFilter(const Minification: TMinificationFilter;
     glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, ...);
   #) }
 procedure SetTextureFilter(const Target: TGLenum; const Filter: TTextureFilter);
+{$endif read_interface_func}
 
+{$ifdef read_interface_const}
 const
   { We recommend using CastleRenderOptions unit to get these constants.
     But for backward compatibility, they are also available here. }
@@ -55,6 +60,7 @@ const
   minLinearMipmapLinear   = CastleRenderOptions.minLinearMipmapLinear;
   magNearest              = CastleRenderOptions.magNearest;
   magLinear               = CastleRenderOptions.magLinear;
+{$endif read_interface_const}
 
 {$endif read_interface}
 

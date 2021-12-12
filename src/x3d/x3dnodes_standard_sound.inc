@@ -89,15 +89,15 @@ constructor TAudioClipNode.Create(const AX3DName: string; const ABaseUrl: string
 begin
   inherited;
 
-  FTimeFunctionality.OnCycleInterval := {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
+  FTimeFunctionality.OnCycleInterval := {$ifdef FPC}@{$endif} GetCycleInterval;
 
   PlayingSound := TCastlePlayingSoundSource.Create(nil);
   PlayingSound.Sound := TCastleSound.Create(PlayingSound);
 
-  EventIsActive.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} UpdatePlayingEvent);
-  EventIsPaused.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} UpdatePlayingEvent);
+  EventIsActive.AddNotification({$ifdef FPC}@{$endif} UpdatePlayingEvent);
+  EventIsPaused.AddNotification({$ifdef FPC}@{$endif} UpdatePlayingEvent);
 
-  SoundEngine.OnOpenClose.Add({$ifdef CASTLE_OBJFPC}@{$endif} SoundOpenClose);
+  SoundEngine.OnOpenClose.Add({$ifdef FPC}@{$endif} SoundOpenClose);
 
   AddFunctionality(TUrlFunctionality.Create(Self));
 end;
@@ -105,7 +105,7 @@ end;
 destructor TAudioClipNode.Destroy;
 begin
   FreeAndNil(PlayingSound);
-  SoundEngine.OnOpenClose.Remove({$ifdef CASTLE_OBJFPC}@{$endif} SoundOpenClose);
+  SoundEngine.OnOpenClose.Remove({$ifdef FPC}@{$endif} SoundOpenClose);
   inherited;
 end;
 
@@ -167,7 +167,9 @@ procedure TAudioClipNode.UpdatePlaying;
     if (ParentFieldsCount <> 0) and
        (ParentFields[0].ParentNode <> nil) and
        (ParentFields[0].ParentNode is TSoundNode) then
-      Result := TSoundNode(ParentFields[0].ParentNode);
+      Result := TSoundNode(ParentFields[0].ParentNode)
+    else
+      Result := nil;
   end;
 
 var
@@ -277,7 +279,7 @@ end;
 constructor TSoundNode.Create(const AX3DName: string; const ABaseUrl: string);
 begin
   inherited;
-  FdLocation.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventLocationReceive);
+  FdLocation.AddNotification({$ifdef FPC}@{$endif} EventLocationReceive);
   FTransform := TMatrix4.Identity;
   FTransformScale := 1;
 

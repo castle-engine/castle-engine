@@ -16,8 +16,8 @@
 { Part of CastleGLImages unit: videos rendered in OpenGL. }
 
 {$ifdef read_interface}
-
-type
+{$ifdef read_interface_type}
+// type - don't add type delphi can't parse it correctly when some types are forward declared
   { Video as a sequence of OpenGL textures that can be easily played.
     Use TGLVideo3D to have a list of normal OpenGL textures,
     e.g. for rendering video as texture on free 3D objects.
@@ -100,6 +100,7 @@ type
     function GLImageFromTime(const Time: TFloatTime): TDrawableImage;
       deprecated 'use DrawableImageFromTime';
   end;
+{$endif read_interface_type}
 
 {$endif read_interface}
 

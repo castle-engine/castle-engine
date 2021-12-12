@@ -1,0 +1,457 @@
+/*************************************
+            Main elements
+**************************************/
+
+body
+{
+  color: #000000;
+  font-family: Arial, Sans-serif;
+  font-size: 10pt;
+  margin-left: 12pt;
+  margin-top: 12pt;
+  text-align: left;
+}
+
+/*************************************
+           Headers & Captions
+**************************************/
+
+.title
+{
+  display: block;
+  margin-bottom: 10pt;
+  font-size: 220%;
+  font-weight: bold;
+  font-style: normal;
+  color: Navy;
+  border-left-color: activecaption;
+  border-left-style: groove;
+  border-left-width: medium;
+  border-top: medium groove activecaption;
+  padding-left: 5pt;
+}
+
+.subtopic1
+{
+  display: block;
+  margin-top: 20pt;
+  margin-bottom: 6pt;
+  font-size: 160%;
+  font-weight: bold;
+  font-style: normal;
+  border: none;
+  border-top: medium groove activecaption;
+}
+
+.subtopic2
+{
+  display: block;
+  margin-top: 18pt;
+  margin-bottom: 6pt;
+  font-size: 125%;
+  font-weight: bold;
+  font-style: normal;
+  color: #000000;
+  border: none;
+}
+
+.caption
+{
+  display: block;
+  margin-top: 12pt;
+  margin-bottom: 6pt;
+  font-size: 100%;
+  font-weight: bold;
+  font-style: normal;
+  border: none;
+}
+
+/*************************************
+              Lists
+**************************************/
+
+ul, ol
+{
+  margin: 0pt;
+  padding: 0pt;
+} 
+
+.orderedlist
+{ 
+  display: block;
+  list-style: outside decimal;
+  font-weight: normal;
+  font-style: normal;
+  margin-top: 6pt;
+  margin-bottom: 3pt;
+  padding-left: 6pt;
+}
+
+.bullet
+{
+  display: block;
+  list-style-image: url(bullet.png);
+  list-style-position: outside;
+  font-weight: normal;
+  font-style: normal;
+  margin-top: 6pt;
+  padding-left: 6pt;
+}
+
+.list
+{
+  display: block;
+  list-style-type: none;
+  list-style-image: none;
+  list-style-position: outside;
+  font-weight: normal;
+  font-style: normal;
+  margin-top: 5pt;
+  margin-bottom: 5pt;
+  margin-left: 0pt;
+}
+
+.li, li
+{  
+  display: list-item;
+  color: black;
+  font-weight: normal;
+  list-style-position: outside;
+  font-size: 100%;
+  margin-top: 0pt;
+  margin-bottom: 3pt;
+  margin-left: 24pt;
+}
+
+.tasklist
+{
+  display: block;
+  list-style: decimal outside;
+  font-weight: normal;
+  font-style: normal;
+}
+
+/*************************************
+               Menues
+**************************************/
+
+.menupath
+{
+  color: #4682B4;
+}
+
+.menuitem
+{
+  color: #4682B4;
+  font-weight: bold;
+}
+
+/*************************************
+         Tip, Note, Warning
+**************************************/
+
+.ntwpara
+{
+  display: inline;
+  font-weight: normal;
+  font-style: normal;
+  margin-left: 3pt;
+  color: black;
+}
+
+.tip 
+{
+  display: block;
+  font-weight: bold;
+  font-style: normal;
+  margin-top: 8pt;
+  margin-bottom: 8pt;
+  list-style-position: outside;
+  list-style-type: none;
+  margin-left: 23pt;
+  text-indent: -24pt;
+}
+
+.note
+{
+  display: block;
+  font-weight: bold;
+  font-style: normal;
+  margin-top: 8pt;
+  margin-bottom: 8pt;
+  list-style-position: outside;
+  list-style-type: none;
+  margin-left: 29pt;
+  text-indent: -31pt;
+  color: Navy;
+}
+
+.warning 
+{
+  display: block;
+  font-weight: bold;
+  font-style: normal;
+  margin-top: 8pt;
+  margin-bottom: 8pt;
+  list-style-position: outside;
+  list-style-type: none;
+  margin-left: 47pt;
+  text-indent: -49pt;
+  color: #B22222;
+}
+
+/*************************************
+            Syntax & Code
+**************************************/
+
+.keyword
+{
+  font-size: 100%;
+  font-weight: bold;
+  font-family: Courier New, Courier;
+}
+
+.keyboard
+{
+  font-size: 83%;
+  font-family: Arial;
+  font-style: normal;
+  color: #767676;
+  text-transform: uppercase;
+}
+
+.codeinline, .keyinput
+{
+  font-size: 100%;
+  font-weight: normal;
+  font-style: normal;
+  color: #001095;
+  font-family: Courier New, Courier;
+}
+
+.syntax 
+{
+  font-size: 100%;
+  color: #001095;
+  font-family: Courier New, Courier;
+  margin-top: 3pt;
+  margin-bottom: 0pt;
+  padding-top: 3pt;
+  padding-left: 5pt;
+  padding-right: 5pt;
+  padding-bottom: 3pt;
+  background-color: #F5F5F5;
+  overflow: visible;
+  visibility: visible;
+}
+
+/*************************************
+                Links
+**************************************/
+
+a
+{
+  text-decoration: none;
+}
+
+.linklist
+{
+  display: block;
+  margin-top: 12pt;
+  margin-bottom: 8pt;
+  font-weight: bold;
+  font-size: 100%;
+  color: Navy;
+}
+
+.listedlink
+{
+  color: blue;
+  font-weight: normal;
+  font-size: 100%;
+}
+
+.linklistitem
+{
+  display: list-item;
+  list-style-type: none;
+  margin-top: 1pt;
+  margin-left: 24pt;
+}
+
+.listedlink a
+{  
+  color: blue;
+  font-weight: normal;
+  font-size: 100%;
+  text-decoration: underline;
+}
+
+.link a
+{
+  display: inline;
+  text-decoration: none;
+  color: #316AC5;
+  border-bottom: 0.5pt dashed #B0C4DE;
+  padding-bottom: 0.35pt;
+}
+
+/*************************************
+               Images
+**************************************/
+
+.imageblock
+{
+  display: block;
+  margin-left: 18pt;
+  margin-top: 12pt;
+  margin-bottom: 12pt;
+}
+
+.imageinline
+{
+  display: inline;
+}
+
+/*************************************
+                Tables
+**************************************/
+
+.tabletitle
+{
+  font-size: 90%;
+  font-weight: bold;
+  font-style: italic;
+  display: inline;
+  margin-top: 6pt;
+}
+
+.table
+{
+  display: table;
+  font-size: 93%;
+  font-weight: normal;
+  text-align: left;
+  margin-top: 3pt;
+  margin-bottom: 10pt;
+  border-top: 1.25pt solid Silver;
+  border-bottom: 1.25pt solid Silver;
+}
+
+.tablepara
+{
+  display: block;
+  margin-top: 1pt;
+  margin-bottom: 1pt;
+  font-size: 100%;
+  margin-left: 3pt;
+  margin-right: 3pt;
+}
+
+.tr
+{
+  display: table-row;
+  vertical-align: top;
+}
+
+.th
+{
+  vertical-align: bottom;
+  font-weight: bold;
+  display: table-cell;
+  padding-left: 4pt;
+  font-size: 100%;
+}
+
+.td
+{
+  display: table-cell;
+  vertical-align: top;
+  border-top: 1pt solid Silver;
+}
+
+/*************************************
+               Other
+**************************************/
+
+.para 
+{
+  display: block;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  font-size: 100%;
+  font-weight: normal;
+  font-style: normal;
+  color: #000000;
+}
+
+.s 
+{
+  display: block;  
+  margin-bottom: 2pt;
+}
+
+.footer
+{
+  border-top: 1px solid silver;
+  display: block;
+  font-size: 80%;
+}
+
+/*************************************
+                TOC
+**************************************/
+
+.tocbody
+{
+  margin-left: -12pt;
+  margin-top: -6pt;
+}
+
+.toctitle
+{
+  margin: 5pt;
+  font-size: 120%;
+  display: block;
+  text-align: center; 
+  font-weight: bold;
+}
+
+.toc a
+{  
+  color: blue;
+}
+
+.toc a:hover
+{  
+  color: #FFFFFF;
+  background-color: #C23333;
+}
+
+.toc ul
+{
+  display: block;
+  list-style-image: none;
+  list-style-type: none;
+  list-style-position: outside;
+  margin-top: 1pt;
+  margin-bottom: 2pt;
+  margin-left: 0pt;
+  border-left: solid 1px #F0F0F0;
+}
+
+.toc li
+{
+  list-style-image: url(path.png);
+  margin-top: 0pt;
+  margin-bottom: 1pt;
+  margin-left: 16pt;
+}
+
+
+
+
+
+
+
+

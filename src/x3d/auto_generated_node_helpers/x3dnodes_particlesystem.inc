@@ -100,9 +100,9 @@
     { X3D field "colorKey". } { }
     public property FdColorKey: TMFFloat read FFdColorKey;
     { Set X3D field "colorKey". } { }
-    procedure SetColorKey(const Value: array of Single);
+    procedure SetColorKey(const Value: array of Single); overload;
     { Set X3D field "colorKey". } { }
-    procedure SetColorKey(const Value: TSingleList);
+    procedure SetColorKey(const Value: TSingleList); overload;
 
     strict private FFdEmitter: TSFNode;
     { X3D field "emitter". } { }
@@ -132,9 +132,9 @@
     { X3D field "texCoordKey". } { }
     public property FdTexCoordKey: TMFFloat read FFdTexCoordKey;
     { Set X3D field "texCoordKey". } { }
-    procedure SetTexCoordKey(const Value: array of Single);
+    procedure SetTexCoordKey(const Value: array of Single); overload;
     { Set X3D field "texCoordKey". } { }
-    procedure SetTexCoordKey(const Value: TSingleList);
+    procedure SetTexCoordKey(const Value: TSingleList); overload;
 
 {$endif read_interface}
 

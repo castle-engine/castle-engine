@@ -19,7 +19,7 @@
 
 type
   { List of @link(TVector2Double). }
-  TVector2DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector2Double>)
+  TVector2DoubleList = class({$ifdef FPC}specialize{$endif} TStructList<TVector2Double>)
   public
     function ToVector2: TVector2List;
 
@@ -38,7 +38,7 @@ type
   end;
 
   { List of @link(TVector3Double). }
-  TVector3DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector3Double>)
+  TVector3DoubleList = class({$ifdef FPC}specialize{$endif} TStructList<TVector3Double>)
   public
     function ToVector3: TVector3List;
 
@@ -57,7 +57,7 @@ type
   end;
 
   { List of @link(TVector4Double). }
-  TVector4DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector4Double>)
+  TVector4DoubleList = class({$ifdef FPC}specialize{$endif} TStructList<TVector4Double>)
   public
     function ToVector4: TVector4List;
 
@@ -76,7 +76,7 @@ type
   end;
 
   { List of @link(TMatrix3Double). }
-  TMatrix3DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix3Double>)
+  TMatrix3DoubleList = class({$ifdef FPC}specialize{$endif} TStructList<TMatrix3Double>)
   public
     function ToMatrix3: TMatrix3List;
 
@@ -95,7 +95,7 @@ type
   end;
 
   { List of @link(TMatrix4Double). }
-  TMatrix4DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix4Double>)
+  TMatrix4DoubleList = class({$ifdef FPC}specialize{$endif} TStructList<TMatrix4Double>)
   public
     function ToMatrix4: TMatrix4List;
 

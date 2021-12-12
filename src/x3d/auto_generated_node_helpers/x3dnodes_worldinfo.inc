@@ -36,9 +36,9 @@
     { X3D field "info". } { }
     public property FdInfo: TMFString read FFdInfo;
     { Set X3D field "info". } { }
-    procedure SetInfo(const Value: array of string);
+    procedure SetInfo(const Value: array of string); overload;
     { Set X3D field "info". } { }
-    procedure SetInfo(const Value: TCastleStringList);
+    procedure SetInfo(const Value: TCastleStringList); overload;
 
     strict private FFdTitle: TSFString;
     { X3D field "title". } { }

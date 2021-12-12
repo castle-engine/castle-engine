@@ -456,7 +456,7 @@ type
   TFloatRectangleArray = packed array [0..MaxInt div SizeOf(TFloatRectangle) - 1] of TFloatRectangle;
   PFloatRectangleArray = ^TFloatRectangleArray;
 
-  TRectangleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TRectangle>)
+  TRectangleList = class({$ifdef FPC}specialize{$endif} TStructList<TRectangle>)
   public
     { Index of the first rectangle that contains point (X, Y).
       Returns -1 if not found. }
@@ -464,7 +464,7 @@ type
     function FindRectangle(const Point: TVector2): Integer; overload;
   end;
 
-  TFloatRectangleList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFloatRectangle>;
+  TFloatRectangleList = {$ifdef FPC}specialize{$endif} TStructList<TFloatRectangle>;
 
 function Rectangle(const Left, Bottom: Integer;
   const Width, Height: Cardinal): TRectangle; overload;
@@ -753,7 +753,10 @@ begin
   if Width > 0 then
   begin
     Result.Width  := Round(Width  * Factor);
-    Result.Left   := Left   + (Width  - Result.Width ) div 2;
+    if Width > Result.Width then
+      Result.Left   := Left   + (Width  - Result.Width ) div 2
+    else
+      Result.Left   := Left   - (Result.Width - Width) div 2
   end else
   begin
     Result.Width  := Width;
@@ -763,7 +766,10 @@ begin
   if Height > 0 then
   begin
     Result.Height := Round(Height * Factor);
-    Result.Bottom := Bottom + (Height - Result.Height) div 2;
+    if Height > Result.Height then
+      Result.Bottom := Bottom + (Height - Result.Height) div 2
+    else
+      Result.Bottom := Bottom - (Result.Height - Height) div 2;
   end else
   begin
     Result.Height := Height;

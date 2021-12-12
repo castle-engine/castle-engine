@@ -72,7 +72,7 @@ type
     property ShadowedImage: TDrawableImage read FShadowedImage;
   end;
 
-  TLocationList = class(specialize TObjectList<TLocation>)
+  TLocationList = class({$ifdef FPC}specialize{$endif} TObjectList<TLocation>)
   public
     StartLocation: TLocation;
 
@@ -254,6 +254,7 @@ begin
       [StartLocationName]);
 end;
 
+initialization
 finalization
   FreeAndNil(Locations);
 end.

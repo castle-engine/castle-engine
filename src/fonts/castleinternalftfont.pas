@@ -31,9 +31,10 @@ unit CastleInternalFtFont;
 
 interface
 
-uses SysUtils, Classes, FPCanvas, fpimgcmn,
+uses SysUtils, Classes, {$ifdef FPC}FPCanvas, fpimgcmn,{$endif}
   CastleInternalFreeType, CastleInternalFreeTypeH, CastleUtils;
 
+{$ifdef FPC}
 type
 
   FreeTypeFontException = class (TFPFontException);
@@ -73,6 +74,7 @@ type
     property Angle : real read FAngle write FAngle;
   end;
 
+{$endif}
 var
   FontMgr : TFontManager;
 
@@ -83,7 +85,7 @@ procedure DoneEngine;
 
 implementation
 
-uses fpimage;
+{$ifdef FPC} uses fpimage; {$endif}
 
 procedure InitEngine;
 
@@ -98,6 +100,7 @@ begin
     FontMgr.Free;
 end;
 
+{$ifdef FPC}
 constructor TFreeTypeFont.Create;
 begin
   inherited;
@@ -317,6 +320,10 @@ begin
     end;
 end;
 
+{$endif FPC}
+
+// https://stackoverflow.com/questions/2301355/delphi-and-finalization-in-a-unit
+{$ifndef FPC}initialization{$endif}
 
 finalization
   DoneEngine;

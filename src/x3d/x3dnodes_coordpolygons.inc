@@ -42,7 +42,7 @@ begin
   Polygonizer := TTriangleFanSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
@@ -55,7 +55,7 @@ begin
   Polygonizer := TTriangleFanSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
@@ -94,7 +94,7 @@ begin
   Polygonizer := TTriangleStripSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
@@ -107,7 +107,7 @@ begin
   Polygonizer := TTriangleStripSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
@@ -120,7 +120,7 @@ begin
   Polygonizer := TTriangleStripSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
@@ -225,7 +225,7 @@ begin
   Polygonizer := TIndexedFaceSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
@@ -238,6 +238,6 @@ begin
   Polygonizer := TIndexedFaceSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;

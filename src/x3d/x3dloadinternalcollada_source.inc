@@ -58,7 +58,7 @@ type
     function AssignToVectorST(const Value: TVector2List): boolean;
   end;
 
-  TColladaSourceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaSource>)
+  TColladaSourceList = class({$ifdef FPC}specialize{$endif} TObjectList<TColladaSource>)
   public
     { Find a TColladaSource with given Name, @nil if not found. }
     function Find(const Name: string): TColladaSource;
@@ -107,7 +107,8 @@ begin
     Exit(false);
   end;
 
-  MinCount := Offset + Stride * (Count - 1) + MaxValue([XIndex, YIndex, ZIndex]) + 1;
+  MinCount := Offset + Stride * (Count - 1) +
+    {$ifndef FPC}MaxIntValue{$else}MaxIntValue{$endif}([XIndex, YIndex, ZIndex]) + 1;
   Result := Floats.Count >= MinCount;
   if not Result then
   begin

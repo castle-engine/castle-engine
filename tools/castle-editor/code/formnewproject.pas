@@ -97,7 +97,7 @@ begin
   EditLocation.Directory := NewProjectDir;
 
   EditProjectName.Text := 'my-new-project';
-
+  EditProjectCaption.Text := 'My New Project';
   EditStateName.Text := 'Main';
 
   AdjustStateNameUi;

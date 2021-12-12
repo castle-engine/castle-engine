@@ -159,9 +159,9 @@ begin
   Button.Left := 10;
   Button.Bottom := 10;
   Button.Image.URL := 'castle-data:/sample_button_icon.png';
-  Button.OnClick := @TEventsHandler(nil).ButtonClick;
-  Button.OnInternalMouseEnter := @TEventsHandler(nil).MouseEnter;
-  Button.OnInternalMouseLeave := @TEventsHandler(nil).MouseLeave;
+  Button.OnClick := {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.ButtonClick;
+  Button.OnInternalMouseEnter := {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.MouseEnter;
+  Button.OnInternalMouseLeave := {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.MouseLeave;
   Window.Controls.InsertFront(Button);
 
   Image := TCastleImageControl.Create(Window);
@@ -184,8 +184,8 @@ begin
   //Image2.SmoothScaling := false;
   Image2.Clip := TestClip;
   Image2.ClipLine := TestClipLine;
-  Image2.OnInternalMouseEnter := @TEventsHandler(nil).MouseEnter;
-  Image2.OnInternalMouseLeave := @TEventsHandler(nil).MouseLeave;
+  Image2.OnInternalMouseEnter := {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.MouseEnter;
+  Image2.OnInternalMouseLeave := {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.MouseLeave;
   Window.Controls.InsertFront(Image2);
 
   ImageInsideMenu := TCastleImageControl.Create(Window);
@@ -198,29 +198,29 @@ begin
   SliderRotation.Min := -Pi;
   SliderRotation.Max := Pi;
   SliderRotation.Value := 0;
-  SliderRotation.OnChange := @TEventsHandler(nil).RotationChange;
+  SliderRotation.OnChange := {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.RotationChange;
 
   ButtonDemo := TCastleButton.Create(Window);
   ButtonDemo.Caption := 'Button inside an on-screen menu';
-  ButtonDemo.OnClick := @TEventsHandler(nil).ButtonDemoClick;
+  ButtonDemo.OnClick := {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.ButtonDemoClick;
 
   OnScreenMenu := TCastleOnScreenMenu.Create(Window);
-  OnScreenMenu.Add('Clickable item', @TEventsHandler(nil).ClickableItemClick);
-  OnScreenMenu.Add('Another clickable item', @TEventsHandler(nil).ClickableItemClick);
+  OnScreenMenu.Add('Clickable item', {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.ClickableItemClick);
+  OnScreenMenu.Add('Another clickable item', {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.ClickableItemClick);
   OnScreenMenu.Add('Non-clickable item');
   OnScreenMenu.Add('Item with image', ImageInsideMenu);
   OnScreenMenu.Add('Item with button', ButtonDemo);
   OnScreenMenu.Add('Slider to test images rotation', SliderRotation);
   OnScreenMenu.Add('UI Scale x2 (UIScaling := usExplicitScale, UIExplicitScale := 2.0)',
-    @TEventsHandler(nil).UIScalingExplicitTwiceClick);
+    {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.UIScalingExplicitTwiceClick);
   OnScreenMenu.Add('UI Scale /2 (UIScaling := usExplicitScale, UIExplicitScale := 0.5)',
-    @TEventsHandler(nil).UIScalingExplicitHalfClick);
+    {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.UIScalingExplicitHalfClick);
   OnScreenMenu.Add('Do not Scale UI (UIScaling := usExplicitScale, UIExplicitScale := 1.0)',
-    @TEventsHandler(nil).UIScalingExplicitNormalClick);
+    {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.UIScalingExplicitNormalClick);
   OnScreenMenu.Add('UI Scale adjust to window size (usEncloseReferenceSize);',
-    @TEventsHandler(nil).UIScalingEncloseReferenceClick);
+    {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.UIScalingEncloseReferenceClick);
   OnScreenMenu.Add('UI Scale adjust to window size (usFitReferenceSize);',
-    @TEventsHandler(nil).UIScalingFitReferenceClick);
+    {$ifdef FPC}@{$endif}TEventsHandler{$ifdef FPC}(nil){$endif}.UIScalingFitReferenceClick);
   OnScreenMenu.Left := 10;
   OnScreenMenu.Anchor(vpTop, -10);
   Window.Controls.InsertFront(OnScreenMenu);

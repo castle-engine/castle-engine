@@ -113,7 +113,7 @@ type
     procedure ReadFromStream(Stream: TStream; EndPos: Int64);
   end;
 
-  TMaterial3dsList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMaterial3ds>)
+  TMaterial3dsList = class({$ifdef FPC}specialize{$endif} TObjectList<TMaterial3ds>)
   public
     { Index of material with given name. If material doesn't exist,
       it will be added. }
@@ -229,9 +229,9 @@ type
       Stream: TStream; const ChunkEndPos: Int64); override;
   end;
 
-  TTrimesh3dsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTrimesh3ds>;
-  TCamera3dsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCamera3ds>;
-  TLight3dsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLight3ds>;
+  TTrimesh3dsList = {$ifdef FPC}specialize{$endif} TObjectList<TTrimesh3ds>;
+  TCamera3dsList = {$ifdef FPC}specialize{$endif} TObjectList<TCamera3ds>;
+  TLight3dsList = {$ifdef FPC}specialize{$endif} TObjectList<TLight3ds>;
 
   { 3DS loader. }
   TScene3DS = class
@@ -851,8 +851,8 @@ end;
 
 destructor TTrimesh3ds.Destroy;
 begin
-  FreeMemNiling(Verts);
-  FreeMemNiling(Faces);
+  FreeMemNiling(Pointer(Verts));
+  FreeMemNiling(Pointer(Faces));
   inherited;
 end;
 

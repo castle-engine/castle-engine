@@ -138,9 +138,9 @@
     { X3D field "forces". } { }
     public property FdForces: TMFVec3f read FFdForces;
     { Set X3D field "forces". } { }
-    procedure SetForces(const Value: array of TVector3);
+    procedure SetForces(const Value: array of TVector3); overload;
     { Set X3D field "forces". } { }
-    procedure SetForces(const Value: TVector3List);
+    procedure SetForces(const Value: TVector3List); overload;
 
     strict private FFdGeometry: TMFNode;
     { X3D field "geometry". } { }
@@ -192,9 +192,9 @@
     { X3D field "torques". } { }
     public property FdTorques: TMFVec3f read FFdTorques;
     { Set X3D field "torques". } { }
-    procedure SetTorques(const Value: array of TVector3);
+    procedure SetTorques(const Value: array of TVector3); overload;
     { Set X3D field "torques". } { }
-    procedure SetTorques(const Value: TVector3List);
+    procedure SetTorques(const Value: TVector3List); overload;
 
     strict private FFdUseFiniteRotation: TSFBool;
     { X3D field "useFiniteRotation". } { }

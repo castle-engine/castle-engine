@@ -16,7 +16,7 @@
 { Spine weighted mesh timelines. }
 
 {$ifdef read_interface}
-  TWeightedMeshVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSingleList>)
+  TWeightedMeshVertexList = class({$ifdef FPC}specialize{$endif} TObjectList<TSingleList>)
   end;
 
   TWeightedMeshTimeline = class
@@ -33,7 +33,7 @@
     procedure BuildNodes(const MaxAnimationTime: Single; const Container: TX3DRootNode);
   end;
 
-  TWeightedMeshTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWeightedMeshTimeline>)
+  TWeightedMeshTimelineList = class({$ifdef FPC}specialize{$endif} TObjectList<TWeightedMeshTimeline>)
   end;
 {$endif}
 
@@ -73,10 +73,12 @@ procedure TWeightedMeshTimeline.Parse;
   var
     I, J: Integer;
     Value: Single;
-    IsRotationRequired: Boolean = False;
-    IsCurved: Boolean = False;
+    IsRotationRequired: Boolean;
+    IsCurved: Boolean;
     IsTimeframeTooLow: Boolean;
   begin
+    IsRotationRequired := False;
+    IsCurved := False;
     // For bone timelines
     for I := 0 to AffectedBoneTimelines.Count - 1 do
     begin
@@ -231,6 +233,8 @@ procedure TWeightedMeshTimeline.Parse;
             // time instead for accurary result
             if BoneTimeline.Curve then
             begin
+              T1 := 0;
+              T2 := 0;
               for K := BoneTimeline.BackupTime.Count - 2 downto 0 do
               begin
                 if (Timeframe > BoneTimeline.BackupTime[K]) then
@@ -360,6 +364,8 @@ procedure TWeightedMeshTimeline.Parse;
             // time instead for accurary result
             if AffectedDeformTimeline.Curve then
             begin
+              T1 := 0;
+              T2 := 0;
               for K := AffectedDeformTimeline.BackupTime.Count - 2 downto 0 do
               begin
                 if (Timeframe > AffectedDeformTimeline.BackupTime[K]) then

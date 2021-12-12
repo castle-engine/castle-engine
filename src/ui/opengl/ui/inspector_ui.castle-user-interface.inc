@@ -121,6 +121,7 @@
 '            "$$ClassName" : "TBorder",' + LineEnding +
 '            "Top" : 3.0000000000000000E+001' + LineEnding +
 '          },' + LineEnding +
+'          "EnableDragging" : true,' + LineEnding +
 '          "FullSize" : true,' + LineEnding +
 '          "HorizontalAnchorParent" : "hpRight",' + LineEnding +
 '          "HorizontalAnchorSelf" : "hpRight",' + LineEnding +
@@ -539,6 +540,7 @@
 '            "Bottom" : 3.0000000000000000E+001,' + LineEnding +
 '            "Top" : 3.0000000000000000E+001' + LineEnding +
 '          },' + LineEnding +
+'          "EnableDragging" : true,' + LineEnding +
 '          "FullSize" : true,' + LineEnding +
 '          "Name" : "ScrollView3",' + LineEnding +
 '          "ScrollArea" : {' + LineEnding +
@@ -596,6 +598,7 @@
 '                      "Green" : 1.0000000000000000E+000,' + LineEnding +
 '                      "Red" : 1.0000000000000000E+000' + LineEnding +
 '                    },' + LineEnding +
+'                    "EnableParentDragging" : true,' + LineEnding +
 '                    "Height" : 3.0000000000000000E+001,' + LineEnding +
 '                    "Image" : {' + LineEnding +
 '                      "$$ClassName" : "TCastleImagePersistent"' + LineEnding +
@@ -730,6 +733,7 @@
 '            "$$ClassName" : "TBorder",' + LineEnding +
 '            "Top" : 3.0000000000000000E+001' + LineEnding +
 '          },' + LineEnding +
+'          "EnableDragging" : true,' + LineEnding +
 '          "FullSize" : true,' + LineEnding +
 '          "Name" : "ScrollView4",' + LineEnding +
 '          "ScrollArea" : {' + LineEnding +
@@ -854,7 +858,7 @@
 '              },' + LineEnding +
 '              "Name" : "LabelInspectorHelp",' + LineEnding +
 '              "Text" : [' + LineEnding +
-'                "Press F12 to close inspector."' + LineEnding +
+'                "Press XXX to close inspector."' + LineEnding +
 '              ],' + LineEnding +
 '              "VerticalAnchorParent" : "vpTop",' + LineEnding +
 '              "VerticalAnchorSelf" : "vpTop"' + LineEnding +

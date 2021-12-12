@@ -254,10 +254,10 @@ function ParseString(const S: string; var I: Integer): string;
 var
   Start: Integer;
 begin
-  if (I <= Length(S)) and not (S[I] in WhiteSpaces) then
+  if (I <= Length(S)) and not CharInSet(S[I], WhiteSpaces) then
   begin
     Start := I;
-    repeat Inc(I) until not ((I <= Length(S)) and not (S[I] in WhiteSpaces));
+    repeat Inc(I) until not ((I <= Length(S)) and not CharInSet(S[I], WhiteSpaces));
     Result := CopyPos(S, Start, I - 1);
   end else
     Result := '';

@@ -165,7 +165,7 @@ end;
 
 function StrToActivity(const Value: String): TUserActivity;
 begin
-  for Result in TUserActivity do
+  for Result := Low(TUserActivity) to High(TUserActivity) do
     if ActivityToStr(Result) = Value then
       Exit;
   raise Exception.CreateFmt('Activity name invalid: "%s"', [Value]);
@@ -184,7 +184,7 @@ end;
 
 function StrToActivityConfidence(const Value: String): TUserActivityConfidence;
 begin
-  for Result in TUserActivityConfidence do
+  for Result := Low(TUserActivityConfidence) to High(TUserActivityConfidence) do
     if ActivityConfidenceToStr(Result) = Value then
       Exit;
   raise Exception.CreateFmt('Activity confidence name invalid: "%s"', [Value]);
@@ -229,13 +229,13 @@ end;
 constructor TActivityRecognition.Create(AOwner: TComponent);
 begin
   inherited;
-  Messaging.OnReceive.Add(@MessageReceived);
+  Messaging.OnReceive.Add({$ifdef FPC}@{$endif} MessageReceived);
 end;
 
 destructor TActivityRecognition.Destroy;
 begin
   if Messaging <> nil then
-    Messaging.OnReceive.Remove(@MessageReceived);
+    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
   inherited;
 end;
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="game_3d_sound"
-  standalone_source="game_3d_sound_standalone.lpr"
+  standalone_source="game_3d_sound_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.game3dsound"
   caption="3D Sound Game Demo"

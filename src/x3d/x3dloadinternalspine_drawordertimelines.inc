@@ -34,7 +34,7 @@
       const Container: TX3DRootNode);
   end;
 
-  TDrawOrderTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TDrawOrderTimeline>)
+  TDrawOrderTimelineList = class({$ifdef FPC}specialize{$endif} TObjectList<TDrawOrderTimeline>)
   strict private
     FMaxTime: Single;
   public
@@ -117,8 +117,8 @@ begin
 end;
 
 type
-  TSlotsByDrawOrder = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<Integer, TSlot>;
-  TSlotsToFloatDrawOrder = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TSlot, Single>;
+  TSlotsByDrawOrder = {$ifdef FPC}specialize{$endif} TDictionary<Integer, TSlot>;
+  TSlotsToFloatDrawOrder = {$ifdef FPC}specialize{$endif} TDictionary<TSlot, Single>;
 
 procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray; const Slots: TSlotList);
 
@@ -172,7 +172,7 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray; const Slots: TSlo
     I, J, LastUnchangedDrawOrder, FollowingUnchangedDrawOrder,
       FirstChanged, LastChanged, NextUnchangedSlot: Integer;
     SlotsOrdered, SlotsUnchanged: TSlotList;
-    SlotByDrawOrderPair: TSlotsByDrawOrder.TDictionaryPair;
+    SlotByDrawOrderPair: {$ifdef FPC}TSlotsByDrawOrder.TDictionaryPair{$else}TPair<Integer, TSlot>{$endif};
   begin
     SlotsOrdered := nil;
     SlotsUnchanged := nil;
@@ -235,7 +235,7 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray; const Slots: TSlo
     Timeline: TDrawOrderTimeline;
     SlotName: string;
     Slot: TSlot;
-    SlotsToFloatDrawOrderPair: TSlotsToFloatDrawOrder.TDictionaryPair;
+    SlotsToFloatDrawOrderPair: {$ifdef FPC}TSlotsToFloatDrawOrder.TDictionaryPair{$else}TPair<TSlot, Single>{$endif};
   begin
     SlotsByDrawOrder := nil;
     SlotsToFloatDrawOrder := nil;

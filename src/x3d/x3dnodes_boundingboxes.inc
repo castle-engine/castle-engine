@@ -108,9 +108,9 @@ begin
     Calculator.Geometry := Geometry;
     Calculator.WasSomeValidIndex := false;
     Result := CalculateBoundingBoxFromIndices(
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetIndex,
+      {$ifdef FPC} @ {$endif} Calculator.GetIndex,
       CoordIndex.Count,
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
+      {$ifdef FPC} @ {$endif} Calculator.GetVertexFromIndex,
       State.Transformation.Transform);
     if not Calculator.WasSomeValidIndex then
       Result := TBox3D.Empty;
@@ -135,9 +135,9 @@ begin
     Calculator.Geometry := Geometry;
     Calculator.WasSomeValidIndex := false;
     Result := CalculateBoundingBoxFromIndices(
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetIndex,
+      {$ifdef FPC} @ {$endif} Calculator.GetIndex,
       CoordIndex.Count,
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex);
+      {$ifdef FPC} @ {$endif} Calculator.GetVertexFromIndex);
     if not Calculator.WasSomeValidIndex then
       Result := TBox3D.Empty;
   finally Calculator.Free end;
@@ -160,7 +160,7 @@ end;
 function Coords_LocalBoundingBox(State: TX3DGraphTraverseState;
   Coord: TMFVec3f): TBox3D;
 begin
-  Result := CalculateBoundingBox(Coord.Items.L,
+  Result := CalculateBoundingBox(PVector3(Coord.Items.L),
     Coord.Items.Count, 0);
 end;
 
@@ -580,7 +580,7 @@ begin
       E.SpineTransformVar(I, LastY, LastZ, Transform);
       for J := 0 to FdCrossSection.Count - 1 do
       begin
-        Point2d := FdCrossSection.Items.Ptr(J);
+        Point2d := PVector2(FdCrossSection.Items.Ptr(J));
         Result.Include(Transform.MultPoint(
           Vector3(Point2d^[0], 0, Point2d^[1])));
       end;
@@ -607,7 +607,7 @@ begin
       E.SpineTransformVar(I, LastY, LastZ, Transform);
       for J := 0 to FdCrossSection.Count - 1 do
       begin
-        Point2d := FdCrossSection.Items.Ptr(J);
+        Point2d := PVector2(FdCrossSection.Items.Ptr(J));
         Result.Include(State.Transformation.Transform.MultPoint(
           Transform.MultPoint(
             Vector3(Point2d^[0], 0, Point2d^[1]))));

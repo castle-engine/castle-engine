@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  # on each push and manual trigger
+  push:  
+    branches: [ master ]
+    paths-ignore: [ "**/Readme.md" ]
+  workflow_dispatch:    
+
+jobs:
+  build:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest, windows-latest, macos-latest]
+        # currently stable=2.0.12 with setup-lazarus@v3.0.2 
+        lazarus-versions: [stable]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Lazarus
+        uses: gcarreno/setup-lazarus@v3.0.2
+        with:
+          lazarus-version: ${{ matrix.lazarus-versions }}          
+      - name: Print Lazarus version
+        run: lazbuild --version
+      - name: Build Demos 
+        shell: bash        
+        run:  |          
+          cd Demos/ObjectPascal           
+          
+          lazbuild "Benchmark/Bench.lpi"    
+          lazbuild "VampConvert/VampConvert.lpi"
+                    
+          if [ "$RUNNER_OS" != "macOS" ]; then                                 
+              lazbuild "LCLImager/lclimager.lpi"          
+              lazbuild "ImageBrowser/ImgBrowser.lpi"                        
+          fi
+                    
+          if [ "$RUNNER_OS" == "Windows" ]; then
+              lazbuild "OpenGLDemo/OpenGLDemo.lpi"                    
+              lazbuild "D3DDemo/D3DDemo.lpi"  
+              lazbuild "SDLDemo/SDLDemo.lpi" 
+          fi    
+      - name: List Demos Bin directory
+        shell: bash
+        run:  ls Demos/Bin            
+      - name:  Run tests
+        shell: bash
+        run:   |          
+          cd Demos/Bin 
+          if [ "$RUNNER_OS" == "Linux" ]; then
+              ./Bench
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+              ./Bench.exe
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+              ./Bench
+          fi           
+      - uses: actions/upload-artifact@v2
+        with:
+          name: demo-binaries-${{ matrix.operating-system }}
+          path: Demos/Bin            
+          if-no-files-found: error

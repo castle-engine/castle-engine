@@ -293,18 +293,18 @@ function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Extended;
   const ValueAsString: string = '';
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean;
+  const Html: boolean = false): boolean; overload;
 function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Single;
   const ValueAsString: string = '';
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean;
+  const Html: boolean = false): boolean; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Double;
   const ValueAsString: string = '';
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean;
+  const Html: boolean = false): boolean; overload;
 {$endif not EXTENDED_EQUALS_DOUBLE}
 { @groupEnd }
 
@@ -409,7 +409,7 @@ end;
 { MessageOK ------------------------------------------------------------------ }
 
 procedure MessageOK(Window: TCastleWindowBase; const SArray: array of string;
-  const Alignment: THorizontalPosition;
+  const Alignment: THorizontalPosition = DefaultAlign;
   const Html: boolean = false);
 var
   TextList: TStringList;
@@ -422,7 +422,7 @@ begin
 end;
 
 procedure MessageOK(Window: TCastleWindowBase; const s: string;
-  const Alignment: THorizontalPosition;
+  const Alignment: THorizontalPosition = DefaultAlign;
   const Html: boolean = false);
 var
   TextList: TStringList;
@@ -435,7 +435,7 @@ begin
 end;
 
 procedure MessageOK(Window: TCastleWindowBase; TextList: TStringList;
-  const Alignment: THorizontalPosition;
+  const Alignment: THorizontalPosition = DefaultAlign;
   const Html: boolean = false);
 var
   State: TStateDialogOK;

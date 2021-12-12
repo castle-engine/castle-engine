@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Using Canvas Class</title>
+  <chapter>
+    <title>Using Canvas Class</title>
+    
+    <par>
+      Class <ref>TImagingCanvas</ref> in <ref>ImagingCanvases.pas</ref>
+      unit allows library user to draw onto image and apply various effects.
+      Base canvas class works for all image data formats with direct pixel access
+      (so not for compressed formats).
+      Because of this some operations are slower (sometimes a lot)
+      than implementation optimized for just one data format
+      (as it is done for example in Graphics32 library).
+    </par>
+    
+    <par>
+      Descendants optimized for specific data formats can be created.
+      Currently there is only most basic <ref>TFastARGB32Canvas</ref> class
+      for <icode>ifA8R8G8B8</icode> images.
+    </par>
+    
+    <par>
+      Canvas can be created for both low and high level images.
+      Image data is only referenced by canvas.
+      If you change image data size (like format conversion or resizing)
+      you must update canvas by calling <icode>UpdateCanvasState</icode>
+      method so that canvas can update its helper structures depending
+      on size of the data (like scanline pointers).
+      You only need to update the canvas when size of image data
+      changes, not after setting pixels or drawing outside of the canvas
+      (like using <ref>CopyRect</ref> function).
+    </par>
+    
+    <par>
+      Currently Canvas class has these features:
+    </par>
+    
+    <blist>
+      <li>Set pen and fill color in 32bit and FP format. Set
+          pen width and pen/fill mode (supported only in few functions).</li>
+      <li>Set and get pixel colors.</li>
+      <li>Clipping against custom rectangle.</li>
+      <li>Draw lines, framed rectangles, and ellipses.</li>
+      <li>Fill rectangles with solid color or with blending.</li>
+      <li>Draw part of canvas onto another canvas.</li>
+      <li>Stretch part of canvas onto another canvas with filtering (bilinear/bicubic/nearest).</li>
+      <li>Drawing (Draw/StretchDraw/FillRect) with blending.
+          Several source and destination blending factors are supported
+          (so you can get alpha blending, adding, modulate, ...).</li>
+      <li>Linear filters (convolution) with custom kernels and some predefined.</li>
+      <li>Nonlinear filters with custom functions and some predefined (min, max, median).</li>
+      <li>Point filters with custom functions and some predefined (contrast, gamma, thresholding, brightness, 
+        premultiply alpha, ...).</li>
+    </blist>
+    
+    <par>
+      You can find some canvas usage code in Tips article linked bellow
+      and in the demos. There is still a lot of functions that can be added to
+      canvas and hopefully they will be.
+    </par>
+
+    <linklist>
+      <title>More Canvas Info</title>
+      <lslink url="..\Procedures\Canvas.xml">Canvas Class Tips</lslink>
+      <lslink url="..\Demos\Pascal.xml#ibrowser">VCL Image Browser Demo</lslink>
+      <lslink url="..\Demos\Pascal.xml#lclimager">LCL Imager Demo</lslink>
+    </linklist>
+
+  </chapter>
+</doc>

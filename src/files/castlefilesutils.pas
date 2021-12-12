@@ -85,7 +85,7 @@ unit CastleFilesUtils;
 interface
 
 uses {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef UNIX} BaseUnix, Unix, {$endif}
+  {$ifdef UNIX} {$ifdef FPC} BaseUnix, Unix, {$endif} {$endif}
   SysUtils, CastleUtils;
 
 type
@@ -903,7 +903,7 @@ begin
   try
     Handler.SourcePath := SourcePath;
     Handler.DestinationPath := DestinationPath;
-    FindFiles(SourcePath, '*', false, {$ifdef CASTLE_OBJFPC}@{$endif} Handler.FoundFile, [ffRecursive]);
+    FindFiles(SourcePath, '*', false, {$ifdef FPC}@{$endif} Handler.FoundFile, [ffRecursive]);
   finally FreeAndNil(Handler) end;
 end;
 
@@ -1130,6 +1130,7 @@ var
 begin
   Result := HomePath;
 
+  {$ifdef FPC}
   Exe := FindExe('xdg-user-dir');
   if Exe = '' then
     Exit;
@@ -1141,14 +1142,18 @@ begin
     if (Dir <> '') and DirectoryExists(Dir) then
       Result := InclPathDelim(Dir);
   end else
+  {$endif}
+
     WritelnWarning('xdg-user-dir call failed');
 end;
 {$endif}
 
 {$ifndef FPC}
-{ Get temporary FileName, also creating this file, using WinAPI.
+
+{ Get temporary FileName, also creating this file.
   There seems to be no cross-platform function for this in Delphi. }
-function GetTempFileNameWindows(const Prefix: AnsiString): AnsiString;
+function GetTempFileNameDelphi(const Prefix: AnsiString): AnsiString;
+{$ifdef MSWINDOWS}
 var
   MyPath, MyFileName: array [0..MAX_PATH] of AnsiChar;
 begin
@@ -1157,16 +1162,22 @@ begin
   OSCheck(GetTempPathA(SizeOf(MyPath), MyPath) <> 0);
   OSCheck(GetTempFileNameA(MyPath, PAnsiChar(Prefix), 0, MyFileName) <> 0);
   Result := MyFileName;
+{$endif}
+{$ifdef UNIX}
+begin
+  // TODO: trivial impl for Delphi on Linux
+  Result := '/tmp/' + Prefix;
+{$endif}
 end;
 
 function GetTempFileNameCheck: string;
 begin
-  Result := GetTempFileNameWindows(ApplicationName);
+  Result := GetTempFileNameDelphi(ApplicationName);
 end;
 
 function GetTempFileNamePrefix: string;
 begin
-  Result := GetTempFileNameWindows(ApplicationName);
+  Result := GetTempFileNameDelphi(ApplicationName);
 end;
 {$else}
 
@@ -1318,7 +1329,8 @@ begin
     {$else} ParamStr(0)
     {$endif};
 
-  {$ifdef LINUX}
+  {$if defined(LINUX) and defined(FPC)}
+  // TODO: we could port this to Delphi
   { Under Linux, try to use /proc/getpid()/exe.
     This is more reliable than ParamStr(0),
     as ParamStr(0) is set by the calling process,

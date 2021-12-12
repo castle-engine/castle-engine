@@ -105,7 +105,7 @@ begin
     tms.tms_utime, tms.tms_stime, clock() values are nonsense!
     This is not FPC bug as I tested this with C program too. }
 
-  Result.Value := FpTimes(Dummy);
+  Result.Value := {$ifdef FPC} FpTimes {$else} Times {$endif} (Dummy);
 {$endif}
 end;
 

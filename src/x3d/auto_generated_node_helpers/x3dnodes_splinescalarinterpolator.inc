@@ -44,17 +44,17 @@
     { X3D field "keyValue". } { }
     public property FdKeyValue: TMFFloat read FFdKeyValue;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of Single);
+    procedure SetKeyValue(const Value: array of Single); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TSingleList);
+    procedure SetKeyValue(const Value: TSingleList); overload;
 
     strict private FFdKeyVelocity: TMFFloat;
     { X3D field "keyVelocity". } { }
     public property FdKeyVelocity: TMFFloat read FFdKeyVelocity;
     { Set X3D field "keyVelocity". } { }
-    procedure SetKeyVelocity(const Value: array of Single);
+    procedure SetKeyVelocity(const Value: array of Single); overload;
     { Set X3D field "keyVelocity". } { }
-    procedure SetKeyVelocity(const Value: TSingleList);
+    procedure SetKeyVelocity(const Value: TSingleList); overload;
 
     strict private FFdNormalizeVelocity: TSFBool;
     { X3D field "normalizeVelocity". } { }

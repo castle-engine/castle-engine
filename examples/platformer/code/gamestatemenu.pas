@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -63,11 +63,11 @@ begin
   ButtonCredits := DesignedComponent('ButtonCredits') as TCastleButton;
   ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
 
-  ButtonPlay.OnClick := @ClickPlay;
-  ButtonOptions.OnClick := @ClickOptions;
-  ButtonCredits.OnClick := @ClickCredits;
+  ButtonPlay.OnClick := {$ifdef FPC}@{$endif}ClickPlay;
+  ButtonOptions.OnClick := {$ifdef FPC}@{$endif}ClickOptions;
+  ButtonCredits.OnClick := {$ifdef FPC}@{$endif}ClickCredits;
 
-  ButtonQuit.OnClick := @ClickQuit;
+  ButtonQuit.OnClick := {$ifdef FPC}@{$endif}ClickQuit;
   // Hide "Quit" button on mobile/console platforms, where users don't expect such button
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 

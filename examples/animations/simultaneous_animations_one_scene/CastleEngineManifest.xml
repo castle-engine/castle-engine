@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="simultaneous_animations_one_scene"
-  standalone_source="simultaneous_animations_one_scene_standalone.lpr"
+  standalone_source="simultaneous_animations_one_scene_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.examples.simultaneous.animations.one.scene"
   caption="Simultaneous Animations in One Scene"

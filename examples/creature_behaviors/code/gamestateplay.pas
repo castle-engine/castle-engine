@@ -101,7 +101,7 @@ constructor TCastleCameraTransform.Create(AOwner: TComponent);
 begin
   inherited;
   FCameraObserver := TFreeNotificationObserver.Create(Self);
-  FCameraObserver.OnFreeNotification := @CameraFreeNotification;
+  FCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
 end;
 
 procedure TCastleCameraTransform.SetCamera(const Value: TCastleCamera);

@@ -665,10 +665,10 @@ function URIValidProtocol(const P: String): Boolean;
 var
   I: Integer;
 begin
-  Result := (P <> '') and (P[1] in ProtocolFirstChar);
+  Result := (P <> '') and CharInSet(P[1], ProtocolFirstChar);
   if Result then
     for I := 2 to Length(P) do
-      if not (P[I] in ProtocolChar) then
+      if not CharInSet(P[I], ProtocolChar) then
         Exit(false);
 end;
 
@@ -855,6 +855,26 @@ function FilenameToURISafe(FileName: string): string;
   We also make sure to call ExpandFileName,
   and so we don't need checks for IsAbsFilename. }
 
+  { Like ExpandFileName, but
+    - guarantees that if input ends with directory separator,
+      then output will end with it too.
+      This is necessary on Delphi+Posix.
+    - for S = '', outputs current dir. }
+  function ExpandFileNameFixed(const S: String): String;
+  begin
+    if S = '' then
+      Exit(InclPathDelim(GetCurrentDir));
+
+    Result := ExpandFileName(S);
+    {$ifndef FPC}
+    if (S <> '') and
+       CharInSet(S[Length(S)], AllowDirectorySeparators) and
+       ( (Result = '') or
+         (not CharInSet(Result[Length(Result)], AllowDirectorySeparators) ) ) then
+      Result := InclPathDelim(Result);
+    {$endif}
+  end;
+
 const
   SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
   ALPHA = ['A'..'Z', 'a'..'z'];
@@ -865,10 +885,11 @@ var
   I: Integer;
   FilenamePart: string;
 begin
-  FileName := ExpandFileName(FileName);
+  FileName := ExpandFileNameFixed(FileName);
 
   Result := 'file:';
 
+  Assert(Filename <> '');
   if Filename[1] <> PathDelim then
     Result := Result + '///'
   else
@@ -1003,14 +1024,28 @@ end;
 function ExtractURIName(const URL: string): string;
 var
   URLWithoutAnchor: String;
+  {$ifndef FPC} I: Integer; {$endif}
 begin
   URLWithoutAnchor := URIDeleteAnchor(URL, DefaultRecognizeEvenEscapedHash);
+  {$ifdef FPC}
   Result := ExtractFileName(URLWithoutAnchor);
+  {$else}
+  { In Delphi, / separator in paths is not recognized, so we cannot use ExtractFilePath.
+    TODO: our own solution should be just used for both compilers.
+    Need autotests to confirm it behaves the same, on both platforms. }
+
+  I := BackCharsPos(['/'], URLWithoutAnchor);
+  if I <> 0 then
+    Result := SEnding(URLWithoutAnchor, I + 1)
+  else
+    Result := '';
+  {$endif}
 end;
 
 function ExtractURIPath(const URL: string): string;
 var
   URLWithoutAnchor: String;
+  {$ifndef FPC} I: Integer; {$endif}
 begin
   { While on non-Windows ExtractFilePath would work on full URL as well,
     but on Windows the ":" inside anchor (like
@@ -1018,7 +1053,19 @@ begin
     would cause trouble: it would be considered a drive letter separator,
     and change the result. }
   URLWithoutAnchor := URIDeleteAnchor(URL, DefaultRecognizeEvenEscapedHash);
+  {$ifdef FPC}
   Result := ExtractFilePath(URLWithoutAnchor);
+  {$else}
+  { In Delphi, / separator in paths is not recognized, so we cannot use ExtractFilePath.
+    TODO: our own solution should be just used for both compilers.
+    Need autotests to confirm it behaves the same, on both platforms. }
+
+  I := BackCharsPos(['/'], URLWithoutAnchor);
+  if I <> 0 then
+    Result := Copy(URLWithoutAnchor, 1, I)
+  else
+    Result := URLWithoutAnchor;
+  {$endif}
 end;
 
 function URIIncludeSlash(const URL: String): String;

@@ -137,22 +137,22 @@ type
 
       @unorderedList(
         @item(seRaise (default), then EDynLibError will be raised.)
-	@item(seReturnNil, then return @nil (and continue, ignoring error).)
-	@item(seWarnAndReturnNil, then write warning (using WarningWrite)
-	  and return @nil (and continue, ignoring error).
+        @item(seReturnNil, then return @nil (and continue, ignoring error).)
+        @item(seWarnAndReturnNil, then write warning (using WarningWrite)
+          and return @nil (and continue, ignoring error).
 
           This is useful for debugging : you can easily open the library and after
-	  one run of the program you can see what symbols (that you requested)
-	  were missing from the library. This is useful when you have a library
-	  but you are not sure whether it is compatible and contains all the
-	  symbols that you want.)
+          one run of the program you can see what symbols (that you requested)
+          were missing from the library. This is useful when you have a library
+          but you are not sure whether it is compatible and contains all the
+          symbols that you want.)
       )
 
       @raises(EDynLibError If SymbolName doesn't exist and
         SymbolError is seRaise.)
 
     }
-    function Symbol(SymbolName: PChar): Pointer;
+    function Symbol(const SymbolName: PChar): Pointer;
   end;
 
 var
@@ -243,7 +243,7 @@ begin
     Result := Self.Create(AName, Handle);
 end;
 
-function TDynLib.Symbol(SymbolName: PChar): Pointer;
+function TDynLib.Symbol(const SymbolName: PChar): Pointer;
 
   function ErrStr: string;
   begin

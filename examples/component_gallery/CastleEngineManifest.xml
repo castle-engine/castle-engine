@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="cge-component-gallery"
-  standalone_source="cge_component_gallery_standalone.lpr"
+  standalone_source="cge_component_gallery_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.component.gallery"
   caption="Castle Game Engine Components"

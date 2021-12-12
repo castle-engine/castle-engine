@@ -146,7 +146,11 @@ function Timer: TTimerResult;
 var
   tv: TTimeval;
 begin
+  {$ifdef FPC}
   FpGettimeofday(@tv, nil);
+  {$else}
+  Gettimeofday(tv, nil);
+  {$endif}
 
   { We can fit whole TTimeval inside QWord, no problem. }
   Result.Value := QWord(tv.tv_sec) * 1000000 + QWord(tv.tv_usec);
