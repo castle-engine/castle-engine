@@ -369,7 +369,7 @@ type
       not at other times.
 
       Example usage:
-      @includeCode(../../examples/short_api_samples/animation_stop_notification/animation_stop_notification.lpr) }
+      @includeCode(../../examples/short_api_samples/animation_stop_notification/animation_stop_notification.dpr) }
     StopNotification: TStopAnimationEvent;
 
     { Time, in seconds, when this animation fades-in (and the previous

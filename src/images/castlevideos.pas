@@ -49,7 +49,7 @@ type
     playing...).
 
     See example program
-    @code(castle_game_engine/examples/images_videos/simple_video_editor.lpr)
+    @code(examples/images_videos/simple_video_editor/)
     in our engine for example of a simple movie player/editor implemented on top
     of this class. }
   TVideo = class

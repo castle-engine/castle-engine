@@ -137,7 +137,7 @@
       TCastleWindowBase.OnMenuClick when user clicks some menu item.
       Other backends (XLIB for now) ignore MainMenu.
 
-      See @code(castle_game_engine/examples/window/window_menu.lpr)
+      See @code(examples/window/window_menu/)
       for an example how to use the menu.)
 
     @item(Changing screen resolution and bit depth,
@@ -1702,7 +1702,7 @@ type
       can assign other MainMenu values while not Closed, but only values
       <>nil. I.e. you can't set MainMenu to nil if you called Open
       with MainMenu <> nil.
-      See @code(castle_game_engine/examples/window/window_menu.lpr)
+      See @code(examples/window/window_menu/)
       for demo of changing value of MainMenu while window is not Closed.
 
       Note that MainMenu.Enabled is honoured (as well as Enabled

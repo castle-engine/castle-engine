@@ -95,7 +95,7 @@ type
     @unorderedList(
       @item(Explanation with an example:
         https://castle-engine.io/manual_2d_user_interface.php#section_viewport)
-      @item(Example in engine sources: examples/3d_rendering_processing/multiple_viewports.lpr)
+      @item(Example in engine sources: examples/3d_rendering_processing/multiple_viewports/)
       @item(Example in engine sources: examples/fps_game/)
     )
   }
