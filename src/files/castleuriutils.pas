@@ -410,9 +410,9 @@ function Unescape(const S: String): String;
   function HexValue(C: Char): Integer;
   begin
     case C of
-      '0'..'9': Result := Ord(C) - ord('0');
-      'A'..'F': Result := Ord(C) - (ord('A') - 10);
-      'a'..'f': Result := Ord(C) - (ord('a') - 10);
+      '0'..'9': Result := Ord(C) - Ord('0');
+      'A'..'F': Result := Ord(C) - (Ord('A') - 10);
+      'a'..'f': Result := Ord(C) - (Ord('a') - 10);
     else
       Result := 0;
     end;
