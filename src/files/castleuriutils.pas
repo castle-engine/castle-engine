@@ -387,7 +387,7 @@ function RelativeToCastleDataURL(const URL: String; out WasInsideData: Boolean):
   @exclude }
 function InternalUriEscape(const S: String; const Allowed: TSysCharSet): String;
 
-{ Decode string encoded by percent encoding (https://en.wikipedia.org/wiki/Percent-encoding)
+{ Decode string encoded by percent encoding (https://en.wikipedia.org/wiki/Percent-encoding )
   @exclude }
 function InternalUriUnescape(const S: String): String;
 
@@ -959,7 +959,8 @@ function FilenameToURISafe(FileName: string): string;
     - guarantees that if input ends with directory separator,
       then output will end with it too.
       This is necessary on Delphi+Posix.
-    - for S = '', outputs current dir. }
+    - for S = '', outputs current dir.
+    - converts drive letter to uppercase like FPC }
   function ExpandFileNameFixed(const S: String): String;
   begin
     if S = '' then
@@ -967,11 +968,18 @@ function FilenameToURISafe(FileName: string): string;
 
     Result := ExpandFileName(S);
     {$ifndef FPC}
-    if (S <> '') and
-       CharInSet(S[Length(S)], AllowDirectorySeparators) and
+    if (S <> '') then
+    begin
+      if CharInSet(S[Length(S)], AllowDirectorySeparators) and
        ( (Result = '') or
          (not CharInSet(Result[Length(Result)], AllowDirectorySeparators) ) ) then
-      Result := InclPathDelim(Result);
+        Result := InclPathDelim(Result);
+
+      { FPC converts drive letter to uppercase so we want have the same
+        behavior on delphi }
+      if (Length(Result) > 2) and (not IsSurrogate(Result[1])) and (Result[2] = ':') then
+        Result[1] := TCharacter.ToUpper(Result[1]);
+    end;
     {$endif}
   end;
 
