@@ -132,6 +132,39 @@ begin
   Assert('myfile.html' = URI.Document);
 end;
 
+procedure TestURIEncodeDecode;
+var
+  FilenamePart: String;
+  FilenamePartPercent: String;
+  FilenamePartUnescaped: String;
+const
+  SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
+  ALPHA = ['A'..'Z', 'a'..'z'];
+  DIGIT = ['0'..'9'];
+  Unreserved = ALPHA + DIGIT + ['-', '.', '_', '~'];
+  ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
+begin
+  FilenamePart := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars æma Ÿrebak ¿mija w¹¿ królik.txt';
+  FilenamePartPercent := InternalUriEscape(FilenamePart, ValidPathChars);
+  Assert(FilenamePartPercent = 'C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt');
+  FilenamePartUnescaped := InternalUriUnescape(FilenamePartPercent);
+  Assert(FilenamePart = FilenamePartUnescaped);
+end;
+
+procedure TestFilenameToURISafe;
+var
+  Filename: String;
+  FilenameAsUri: String;
+  FilenameFromUri: String;
+begin
+  Filename := 'C:\Users\cge\AppData\Local\test_local_filename_chars\config with Polish chars æma Ÿrebak ¿mija w¹¿ królik.txt';
+  FilenameAsUri := FilenameToURISafe(Filename);
+  Assert(FilenameAsUri = 'file:///C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt');
+  FilenameFromUri := URIToFilenameSafe(FilenameAsUri);
+  Assert(Filename = FilenameFromUri);
+end;
+
+
 procedure TestTextRead;
 begin
   Writeln('test txt file reading: ', FileToString('castle-data:/test-file.txt'));
@@ -266,6 +299,8 @@ begin
   TestRects;
   TestPaths;
   TestURI;
+  TestURIEncodeDecode;
+  TestFilenameToURISafe;
   TestTextRead;
   TestXmlRead;
   TestImage;
