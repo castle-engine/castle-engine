@@ -1,4 +1,4 @@
-{
+ï»¿{
   Copyright 2020-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -175,17 +175,17 @@ begin
   {$endif}
 
   {$ifdef MSWINDOWS}
-  Filename := 'C:\Users\cge\AppData\Local\test_local_filename_chars\config with Polish chars æma Ÿrebak ¿mija w¹¿ królik.txt';
+  Filename := 'C:\Users\cge\AppData\Local\test_local_filename_chars\config with Polish chars Ä‡ma Åºrebak Å¼mija wÄ…Å¼ krÃ³lik.txt';
   {$endif}
   {$ifdef UNIX}
-  Filename := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars æma Ÿrebak ¿mija w¹¿ królik.txt';
+  Filename := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars Ä‡ma Åºrebak Å¼mija wÄ…Å¼ krÃ³lik.txt';
   {$endif}
   FilenameAsUri := FilenameToURISafe(Filename);
   Assert(FilenameAsUri = 'file:///C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt');
   FilenameFromUri := URIToFilenameSafe(FilenameAsUri);
   Assert(Filename = FilenameFromUri);
 
-  FilenamePart := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars æma Ÿrebak ¿mija w¹¿ królik.txt';
+  FilenamePart := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars Ä‡ma Åºrebak Å¼mija wÄ…Å¼ krÃ³lik.txt';
   FilenamePartPercent := InternalUriEscape(FilenamePart, ValidPathChars);
   Assert(FilenamePartPercent = 'C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt');
   FilenamePartUnescaped := InternalUriUnescape(FilenamePartPercent);
