@@ -398,55 +398,109 @@ implementation
 uses SysUtils, URIParser,
   CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils,
   CastleInternalDirectoryInformation, CastleFindFiles, CastleDownload
-  {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
+  {$ifdef CASTLE_NINTENDO_SWITCH}, CastleInternalNxBase {$endif}
+  {$ifndef FPC}, Character{$endif};
 
 { Escape and Unescape --------------------------------------------------------
   Copied from URIParser, as they are internal there.
 }
 
-function Unescape(const s: String): String;
+function Unescape(const S: String): String;
 
-  function HexValue(c: Char): Integer;
+  function HexValue(C: Char): Integer;
   begin
-    case c of
-      '0'..'9': Result := ord(c) - ord('0');
-      'A'..'F': Result := ord(c) - (ord('A') - 10);
-      'a'..'f': Result := ord(c) - (ord('a') - 10);
+    case C of
+      '0'..'9': Result := Ord(C) - ord('0');
+      'A'..'F': Result := Ord(C) - (ord('A') - 10);
+      'a'..'f': Result := Ord(C) - (ord('a') - 10);
     else
       Result := 0;
     end;
   end;
 
 var
-  i, RealLength: Integer;
+  I, J: Integer;
+  {$ifdef FPC}
+  RealLength: Integer;
   P: PChar;
+  {$else}
+  Utf8Char: RawByteString;
+  Utf16Char: String;
+  {$endif}
 begin
+  I := 1;
+  {$ifdef FPC}
   SetLength(Result, Length(s));
-  i := 1;
   P := PChar(Result);  { use PChar to prevent numerous calls to UniqueString }
   RealLength := 0;
-  while i <= Length(s) do
+  while i <= Length(S) do
   begin
-    if s[i] = '%' then
+    if S[I] = '%' then
     begin
-      P[RealLength] := Chr(HexValue(s[i + 1]) shl 4 or HexValue(s[i + 2]));
-      Inc(i, 3);
+      P[RealLength] := Chr(HexValue(S[I + 1]) shl 4 or HexValue(S[I + 2]));
+      Inc(I, 3);
     end else
     begin
-      P[RealLength] := s[i];
-      Inc(i);
+      P[RealLength] := S[I];
+      Inc(I);
     end;
     Inc(RealLength);
   end;
   SetLength(Result, RealLength);
+  {$else}
+  if S = '' then
+    Exit('');
+
+  while I <= Length(S) do
+  begin
+    if IsSurrogate(S, I) then
+    begin
+      { I don't think that should ever happen. If so, we simply add
+        such a character. }
+      Result := Result + S[I];
+      if I <> Length(S) then
+      begin
+        Result := Result + S[I + 1];
+      end;
+      Inc(I);
+    end else
+    if S[I] = '%' then
+    begin
+      { We need support here a case when more than one "%" block make one UTF16
+        character }
+      Utf8Char := '';
+      J := I;
+      while J <= Length(S) do
+      begin
+        Utf8Char := Utf8Char + AnsiChar(HexValue(S[J + 1]) shl 4 or HexValue(S[J + 2]));
+        Inc(J, 3);
+        if S[J] <> '%' then
+          Break;
+      end;
+      I := J - 1; { -1 becouse incrementation on the loop end }
+      Utf16Char :=  UTF8ToString(Utf8Char);
+      Result := Result + Utf16Char;
+    end else
+      Result := Result + S[I];
+
+    Inc(I);
+  end;
+  {$endif}
 end;
 
 function Escape(const s: String; const Allowed: TSysCharSet): String;
 var
   i, L: Integer;
+  {$ifdef FPC}
   P: PChar;
+  {$else}
+  J: Integer;
+  Utf16Char: String; // String here becouse somtimes UTF-16 char can be two wide chars
+  UTF8Char: UTF8String;
+  {$endif}
 begin
   L := Length(s);
+  {$ifdef FPC}
   for i := 1 to Length(s) do
     if not CharInSet(s[i], Allowed) then Inc(L,2);
   if L = Length(s) then
@@ -463,11 +517,49 @@ begin
     begin
       P^ := '%'; Inc(P);
       StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
-    end
-    else
+    end else
       P^ := s[i];
     Inc(P);
   end;
+  {$else}
+  if L = 0 then
+    Exit('');
+
+  I := 1;
+  while I <= L do
+  begin
+    if IsSurrogate(S, I) then
+    begin
+      { Check the string is complete (Is there the second char?) }
+      if I < L then
+      begin
+        Utf16Char := S[I] + S[I + 1];
+        UTF8Char := UTF8String(Utf16Char);
+        for J := 1 to Length(UTF8Char) do
+        begin
+          Result := Result + '%' + Format('%.2x', [ord(UTF8Char[J])]);
+        end;
+      end;
+      Inc(I);
+    end else
+    begin
+      if not CharInSet(s[i], Allowed) then
+      begin
+        // Not surrogate but also not allowed
+        UTF8Char := UTF8String(S[I]);
+        for J := 1 to Length(UTF8Char) do
+        begin
+          Result := Result + '%' + Format('%.2x', [ord(UTF8Char[J])]);
+        end;
+      end else
+      begin
+        Result := Result + S[I];
+      end;
+    end;
+
+    Inc(I);
+  end;
+  {$endif FPC}
 end;
 
 { other routines ------------------------------------------------------------- }
@@ -883,7 +975,7 @@ const
   ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
 var
   I: Integer;
-  FilenamePart: string;
+  FilenamePart: String;
 begin
   FileName := ExpandFileNameFixed(FileName);
 
