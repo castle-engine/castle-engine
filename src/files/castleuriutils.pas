@@ -20,7 +20,7 @@ unit CastleURIUtils;
 
 interface
 
-uses Classes,
+uses SysUtils, Classes,
   CastleStringUtils;
 
 { Extracts #anchor from URI. On input, URI contains full URI.
@@ -383,6 +383,14 @@ function ResolveCastleDataURL(const URL: String): String;
   If the URL does not point to a file in data, it is returned untouched. }
 function RelativeToCastleDataURL(const URL: String; out WasInsideData: Boolean): String;
 
+{ Encode string by using percent encoding (https://en.wikipedia.org/wiki/Percent-encoding)
+  @exclude }
+function InternalUriEscape(const S: String; const Allowed: TSysCharSet): String;
+
+{ Decode string encoded by percent encoding (https://en.wikipedia.org/wiki/Percent-encoding)
+  @exclude }
+function InternalUriUnescape(const S: String): String;
+
 var
   { On systems where filesystems are usually case-sensitive (Unix),
     accept also 'castle-data:/xxx` URLs that have different case than the actual files.
@@ -395,17 +403,17 @@ var
 
 implementation
 
-uses SysUtils, URIParser,
+uses URIParser,
   CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils,
   CastleInternalDirectoryInformation, CastleFindFiles, CastleDownload
   {$ifdef CASTLE_NINTENDO_SWITCH}, CastleInternalNxBase {$endif}
   {$ifndef FPC}, Character{$endif};
 
 { Escape and Unescape --------------------------------------------------------
-  Copied from URIParser, as they are internal there.
+  Copied from URIParser and fixed for Delphi, as they are internal there.
 }
 
-function Unescape(const S: String): String;
+function InternalUriUnescape(const S: String): String;
 
   function HexValue(C: Char): Integer;
   begin
@@ -488,7 +496,7 @@ begin
   {$endif}
 end;
 
-function Escape(const s: String; const Allowed: TSysCharSet): String;
+function InternalUriEscape(const S: String; const Allowed: TSysCharSet): String;
 var
   i, L: Integer;
   {$ifdef FPC}
@@ -1000,7 +1008,7 @@ begin
     end;
   end;
   {$warnings on}
-  FilenamePart := Escape(FilenamePart, ValidPathChars);
+  FilenamePart := InternalUriEscape(FilenamePart, ValidPathChars);
 
   Result := Result + FilenamePart;
 end;
@@ -1320,7 +1328,7 @@ function ResolveCastleDataUrl(const Url: String): String;
 
     H := TFixCaseHandler.Create;
     try
-      Parts := SplitString(Unescape(RelativeToData), '/');
+      Parts := SplitString(InternalUriUnescape(RelativeToData), '/');
       try
         for I := 0 to Parts.Count - 1 do
         begin
