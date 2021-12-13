@@ -132,11 +132,14 @@ begin
   Assert('myfile.html' = URI.Document);
 end;
 
-procedure TestURIEncodeDecode;
+procedure TestPercentEncoding;
 var
   FilenamePart: String;
   FilenamePartPercent: String;
   FilenamePartUnescaped: String;
+  Filename: String;
+  FilenameAsUri: String;
+  FilenameFromUri: String;
 const
   SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
   ALPHA = ['A'..'Z', 'a'..'z'];
@@ -144,24 +147,49 @@ const
   Unreserved = ALPHA + DIGIT + ['-', '.', '_', '~'];
   ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
 begin
+  {$ifdef MSWINDOWS}
+  AssertEquals('file:///C:/foo%254d.txt', FilenameToURISafe('c:\foo%4d.txt'));
+  AssertEquals('C:\fooM.txt', URIToFilenameSafe('file:///C:/foo%4d.txt'));
+  AssertEquals('C:\foo%.txt', URIToFilenameSafe('file:///C:/foo%25.txt'));
+  {$endif}
+  {$ifdef UNIX}
+  AssertEquals('file:///foo%254d.txt', FilenameToURISafe('/foo%4d.txt'));
+  AssertEquals('/fooM.txt', URIToFilenameSafe('file:///foo%4d.txt'));
+  AssertEquals('/foo%.txt', URIToFilenameSafe('file:///foo%25.txt'));
+  {$endif}
+
+  { Always URIToFilenameSafe and FilenameToURISafe should reverse each other. }
+  {$ifdef MSWINDOWS}
+  AssertEquals('C:\foo%4d.txt', URIToFilenameSafe(FilenameToURISafe('c:\foo%4d.txt')));
+  { Actually this would be valid too:
+    AssertEquals('file:///C:/foo%4d.txt', FilenameToURISafe(URIToFilenameSafe('file:///C:/foo%4d.txt')));
+    But it's Ok that %4d gets converted to M, as char "M" is safe inside URI. }
+  AssertEquals('file:///C:/fooM.txt', FilenameToURISafe(URIToFilenameSafe('file:///C:/foo%4d.txt')));
+  {$endif}
+  {$ifdef UNIX}
+  AssertEquals('/foo%4d.txt', URIToFilenameSafe(FilenameToURISafe('/foo%4d.txt')));
+  { Actually this would be valid too:
+    AssertEquals('file:///foo%25.txt', FilenameToURISafe(URIToFilenameSafe('file:///foo%25.txt')));
+    But it's Ok that %4d gets converted to M, as char "M" is safe inside URI. }
+  AssertEquals('file:///fooM.txt', FilenameToURISafe(URIToFilenameSafe('file:///foo%4d.txt')));
+  {$endif}
+
+  {$ifdef MSWINDOWS}
+  Filename := 'C:\Users\cge\AppData\Local\test_local_filename_chars\config with Polish chars æma Ÿrebak ¿mija w¹¿ królik.txt';
+  {$endif}
+  {$ifdef UNIX}
+  Filename := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars æma Ÿrebak ¿mija w¹¿ królik.txt';
+  {$endif}
+  FilenameAsUri := FilenameToURISafe(Filename);
+  Assert(FilenameAsUri = 'file:///C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt');
+  FilenameFromUri := URIToFilenameSafe(FilenameAsUri);
+  Assert(Filename = FilenameFromUri);
+
   FilenamePart := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars æma Ÿrebak ¿mija w¹¿ królik.txt';
   FilenamePartPercent := InternalUriEscape(FilenamePart, ValidPathChars);
   Assert(FilenamePartPercent = 'C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt');
   FilenamePartUnescaped := InternalUriUnescape(FilenamePartPercent);
   Assert(FilenamePart = FilenamePartUnescaped);
-end;
-
-procedure TestFilenameToURISafe;
-var
-  Filename: String;
-  FilenameAsUri: String;
-  FilenameFromUri: String;
-begin
-  Filename := 'C:\Users\cge\AppData\Local\test_local_filename_chars\config with Polish chars æma Ÿrebak ¿mija w¹¿ królik.txt';
-  FilenameAsUri := FilenameToURISafe(Filename);
-  Assert(FilenameAsUri = 'file:///C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt');
-  FilenameFromUri := URIToFilenameSafe(FilenameAsUri);
-  Assert(Filename = FilenameFromUri);
 end;
 
 
@@ -293,14 +321,14 @@ begin
   TimeStart := Timer;
   InitializeLog;
 
+
   TestLog;
   TestVectors;
   TestColors;
   TestRects;
   TestPaths;
   TestURI;
-  TestURIEncodeDecode;
-  TestFilenameToURISafe;
+  TestPercentEncoding;
   TestTextRead;
   TestXmlRead;
   TestImage;
