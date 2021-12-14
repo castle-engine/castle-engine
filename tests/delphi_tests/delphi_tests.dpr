@@ -133,6 +133,7 @@ begin
 end;
 
 procedure TestPercentEncoding;
+{$ifdef MSWINDOWS}
 var
   FilenamePart: String;
   FilenamePartPercent: String;
@@ -146,6 +147,7 @@ const
   DIGIT = ['0'..'9'];
   Unreserved = ALPHA + DIGIT + ['-', '.', '_', '~'];
   ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
+{$endif}
 begin
   {$ifdef MSWINDOWS}
   AssertEquals('file:///c:/foo%254d.txt', FilenameToURISafe('c:\foo%4d.txt'));
@@ -176,10 +178,6 @@ begin
 
   {$ifdef MSWINDOWS}
   Filename := 'C:\Users\cge\AppData\Local\test_local_filename_chars\config with Polish chars ćma źrebak żmija wąż królik.txt';
-  {$endif}
-  {$ifdef UNIX}
-  Filename := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars ćma źrebak żmija wąż królik.txt';
-  {$endif}
   FilenameAsUri := FilenameToURISafe(Filename);
   Assert(FilenameAsUri = 'file:///C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt');
   FilenameFromUri := URIToFilenameSafe(FilenameAsUri);
@@ -190,6 +188,7 @@ begin
   Assert(FilenamePartPercent = 'C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt');
   FilenamePartUnescaped := InternalUriUnescape(FilenamePartPercent);
   Assert(FilenamePart = FilenamePartUnescaped);
+  {$endif}
 end;
 
 
