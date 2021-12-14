@@ -20,7 +20,8 @@ unit TestCastleURIUtils;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
+  Classes, SysUtils{$ifndef CASTLE_TESTER}, FpcUnit, TestUtils, TestRegistry
+  , CastleTestCase{$else}, CastleTester{$endif};
 
 type
   TTestURIUtils = class(TCastleTestCase)
@@ -123,9 +124,9 @@ begin
   { FilenameToURISafe must percent-encode,
     URIToFilenameSafe must decode it back. }
   {$ifdef MSWINDOWS}
-  AssertEquals('file:///C:/foo%254d.txt', FilenameToURISafe('c:\foo%4d.txt'));
-  AssertEquals('C:\fooM.txt', URIToFilenameSafe('file:///C:/foo%4d.txt'));
-  AssertEquals('C:\foo%.txt', URIToFilenameSafe('file:///C:/foo%25.txt'));
+  AssertFilenamesEqual('file:///C:/foo%254d.txt', FilenameToURISafe('c:\foo%4d.txt'));
+  AssertFilenamesEqual('C:\fooM.txt', URIToFilenameSafe('file:///C:/foo%4d.txt'));
+  AssertFilenamesEqual('C:\foo%.txt', URIToFilenameSafe('file:///C:/foo%25.txt'));
   {$endif}
   {$ifdef UNIX}
   AssertEquals('file:///foo%254d.txt', FilenameToURISafe('/foo%4d.txt'));
@@ -135,11 +136,11 @@ begin
 
   { Always URIToFilenameSafe and FilenameToURISafe should reverse each other. }
   {$ifdef MSWINDOWS}
-  AssertEquals('C:\foo%4d.txt', URIToFilenameSafe(FilenameToURISafe('c:\foo%4d.txt')));
+  AssertFilenamesEqual('C:\foo%4d.txt', URIToFilenameSafe(FilenameToURISafe('c:\foo%4d.txt')));
   { Actually this would be valid too:
     AssertEquals('file:///C:/foo%4d.txt', FilenameToURISafe(URIToFilenameSafe('file:///C:/foo%4d.txt')));
     But it's Ok that %4d gets converted to M, as char "M" is safe inside URI. }
-  AssertEquals('file:///C:/fooM.txt', FilenameToURISafe(URIToFilenameSafe('file:///C:/foo%4d.txt')));
+  AssertFilenamesEqual('file:///C:/fooM.txt', FilenameToURISafe(URIToFilenameSafe('file:///C:/foo%4d.txt')));
   {$endif}
   {$ifdef UNIX}
   AssertEquals('/foo%4d.txt', URIToFilenameSafe(FilenameToURISafe('/foo%4d.txt')));
@@ -299,6 +300,8 @@ begin
   AssertEquals('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo#skin:default', DeleteURIExt('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json#skin:default'));
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestURIUtils);
+{$endif}
 end.

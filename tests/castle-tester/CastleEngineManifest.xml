@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="castle-tester"
+  standalone_source="castle_tester_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="com.mycompany.castletester"
+  caption="Castle Tester"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+      <path value="../../tests/code" />
+    </search_paths>
+    <custom_options>
+      <option>-dCASTLE_TESTER</option>
+    </custom_options>	
+  </compiler_options>
+</project>

@@ -1,0 +1,14 @@
+# Files ignored by GIT version control
+
+# Build tool (and compiler) temporary output
+castle-engine-output
+
+# Unix executable
+castle-tester
+# Windows executable
+castle-tester.exe
+# Library files placed alongside Windows executable
+*.dll
+
+# May contain secret data (your Android keystore username and password)
+AndroidAntProperties.txt
