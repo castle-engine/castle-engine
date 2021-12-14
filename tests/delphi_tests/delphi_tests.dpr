@@ -148,7 +148,7 @@ const
   ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
 begin
   {$ifdef MSWINDOWS}
-  AssertEquals('file:///C:/foo%254d.txt', FilenameToURISafe('c:\foo%4d.txt'));
+  AssertEquals('file:///c:/foo%254d.txt', FilenameToURISafe('c:\foo%4d.txt'));
   AssertEquals('C:\fooM.txt', URIToFilenameSafe('file:///C:/foo%4d.txt'));
   AssertEquals('C:\foo%.txt', URIToFilenameSafe('file:///C:/foo%25.txt'));
   {$endif}
@@ -160,7 +160,7 @@ begin
 
   { Always URIToFilenameSafe and FilenameToURISafe should reverse each other. }
   {$ifdef MSWINDOWS}
-  AssertEquals('C:\foo%4d.txt', URIToFilenameSafe(FilenameToURISafe('c:\foo%4d.txt')));
+  AssertEquals('c:\foo%4d.txt', URIToFilenameSafe(FilenameToURISafe('c:\foo%4d.txt')));
   { Actually this would be valid too:
     AssertEquals('file:///C:/foo%4d.txt', FilenameToURISafe(URIToFilenameSafe('file:///C:/foo%4d.txt')));
     But it's Ok that %4d gets converted to M, as char "M" is safe inside URI. }
