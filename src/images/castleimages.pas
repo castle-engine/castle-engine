@@ -4639,9 +4639,25 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       if (Result is TRGBAlphaImage) and ClassAllowed(TRGBImage) then
         ImageStripAlphaVar(Result)
       else
+      if (Result is TRGBAlphaImage) and ClassAllowed(TGrayscaleImage) then
+      begin
+        ImageStripAlphaVar(Result);
+        ImageRGBToGrayscaleVar(Result);
+      end else
+      {TODO if (Result is TRGBAlphaImage) and ClassAllowed(TGrayscaleAlphaImage) then
+      begin
+        ImageRGBToGrayscaleVar(Result); // extend ImageRGBToGrayscaleVar to handle this case, rename to sthg like ImageToGrayscaleXxxVar
+      end else}
+      if (Result is TRGBAlphaImage) and ClassAllowed(TRGBFloatImage) then
+      begin
+        ImageStripAlphaVar(Result);
+        ImageRGBToFloatVar(Result);
+      end else
+
       if (Result is TGrayscaleAlphaImage) and ClassAllowed(TGrayscaleImage) then
         ImageStripAlphaVar(Result)
       else
+
       if (Result is TRGBImage) and ClassAllowed(TRGBFloatImage) then
         ImageRGBToFloatVar(Result)
       else
@@ -4656,6 +4672,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       if (Result is TRGBImage) and ClassAllowed(TRGBAlphaImage) then
         ImageAddAlphaVar(Result)
       else
+
       if (Result is TGrayscaleImage) and ClassAllowed(TGrayscaleAlphaImage) then
         ImageAddAlphaVar(Result)
       else

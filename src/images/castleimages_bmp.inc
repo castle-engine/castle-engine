@@ -222,27 +222,12 @@ begin
 
      { We always allocate Result most matching to file format
        (biBitCount = 32 is RGBA, else RGB).
-
-       We also check AllowedImageClasses, to see if they can
-       be satisfied. There's no point in loading if we would later
-       be unable to convert to requested class.
-
-       However, actual conversion to satisfy AllowedImageClasses
-       (adding/stripping alpha channel) will be done (if needed) later,
-       after reading BMP file. }
+       We let LoadEncodedImage to later fix the output type
+       to satisfy AllowedImageClasses. }
      if biBitCount = 32 then
-     begin
-       if ClassAllowed(TRGBAlphaImage) or
-          ClassAllowed(TRGBImage) then
-         Result := TRGBAlphaImage.Create(biWidth, biHeight) else
-         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (with alpha channel) to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
-     end else
-     begin
-       if ClassAllowed(TRGBImage) or
-          ClassAllowed(TRGBAlphaImage) then
-         Result := TRGBImage.Create(biWidth, biHeight) else
-         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (without alpha channel) to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
-     end;
+       Result := TRGBAlphaImage.Create(biWidth, biHeight)
+     else
+       Result := TRGBImage.Create(biWidth, biHeight);
 
      for i := 0 to biHeight - 1 do
      begin
@@ -251,23 +236,6 @@ begin
       with Stream do Position := Position + DivRoundUp(rowLength, 4)*4 - rowLength;
       if rowsGoingUp then rownum := i else rownum := biHeight-i-1;
       WriteRow(TCastleImage(Result).RowPtr(rownum), rowData);
-     end;
-
-     { Convert now to satisfy AllowedImageClasses }
-     if (Result is TRGBAlphaImage) and
-        (not ClassAllowed(TRGBAlphaImage)) then
-     begin
-       NewResult := TRGBAlphaImage(Result).ToRGBImage;
-       FreeAndNil(Result);
-       Result := NewResult;
-     end;
-
-     if (Result is TRGBImage) and
-        (not ClassAllowed(TRGBImage)) then
-     begin
-       NewResult := TRGBImage(Result).ToRGBAlphaImage;
-       FreeAndNil(Result);
-       Result := NewResult;
      end;
 
     finally
