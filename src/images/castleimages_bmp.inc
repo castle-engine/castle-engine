@@ -143,10 +143,10 @@ var fhead: TBitmapFileHeader;
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
-var i: integer;
-    rowsGoingUp: boolean;
-    rowdata: PByteArray;
-    NewResult: TEncodedImage;
+var
+  i: integer;
+  rowsGoingUp: boolean;
+  rowdata: PByteArray;
 begin
  try
   { read and check headers }
