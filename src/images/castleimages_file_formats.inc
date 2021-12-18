@@ -559,7 +559,7 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/astc', '', '', '', '', '');
       ExtsCount: 1; Exts: ('astc', '', '');
-      Load: @LoadASTC;
+      Load: {$ifdef FPC}@{$endif}LoadASTC;
       Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
       DetectClass: nil;
     ),

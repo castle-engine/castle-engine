@@ -49,40 +49,72 @@ var
     BlockSizeString: String;
   begin
     BlockSizeString := Info.BlockdimX.ToString + 'x' + Info.BlockdimY.ToString + 'x' + Info.BlockdimZ.ToString;
-    case BlockSizeString of
-      '4x4x1': Result := tcASTC_4x4_RGBA;
-      '5x4x1': Result := tcASTC_5x4_RGBA;
-      '5x5x1': Result := tcASTC_5x5_RGBA;
-      '6x5x1': Result := tcASTC_6x5_RGBA;
-      '6x6x1': Result := tcASTC_6x6_RGBA;
-      '8x5x1': Result := tcASTC_8x5_RGBA;
-      '8x6x1': Result := tcASTC_8x6_RGBA;
-      '8x8x1': Result := tcASTC_8x8_RGBA;
-      '10x5x1': Result := tcASTC_10x5_RGBA;
-      '10x6x1': Result := tcASTC_10x6_RGBA;
-      '10x8x1': Result := tcASTC_10x8_RGBA;
-      '10x10x1': Result := tcASTC_10x10_RGBA;
-      '12x10x1': Result := tcASTC_12x10_RGBA;
-      '12x12x1': Result := tcASTC_12x12_RGBA;
-      { WARNING: There doesn't seem to be any way to tell which color space
-        was encoded inside the ASTC file }
-      {tcASTC_4x4_SRGB8_ALPHA8,
-      tcASTC_5x4_SRGB8_ALPHA8,
-      tcASTC_5x5_SRGB8_ALPHA8,
-      tcASTC_6x5_SRGB8_ALPHA8,
-      tcASTC_6x6_SRGB8_ALPHA8,
-      tcASTC_8x5_SRGB8_ALPHA8,
-      tcASTC_8x6_SRGB8_ALPHA8,
-      tcASTC_8x8_SRGB8_ALPHA8,
-      tcASTC_10x5_SRGB8_ALPHA8,
-      tcASTC_10x6_SRGB8_ALPHA8,
-      tcASTC_10x8_SRGB8_ALPHA8,
-      tcASTC_10x10_SRGB8_ALPHA8,
-      tcASTC_12x10_SRGB8_ALPHA8,
-      tcASTC_12x12_SRGB8_ALPHA8}
-      else
-        raise EInvalidASTC.Create('Unexpected block size in ASTC: ' + BlockSizeString);
-    end;
+
+    if BlockSizeString = '4x4x1' then
+      Result := tcASTC_4x4_RGBA
+    else
+    if BlockSizeString = '5x4x1'then
+      Result := tcASTC_5x4_RGBA
+    else
+    if BlockSizeString = '5x5x1'then
+      Result := tcASTC_5x5_RGBA
+    else
+    if BlockSizeString = '6x5x1'then
+      Result := tcASTC_6x5_RGBA
+    else
+    if BlockSizeString = '6x6x1'then
+      Result := tcASTC_6x6_RGBA
+    else
+    if BlockSizeString = '8x5x1'then
+      Result := tcASTC_8x5_RGBA
+    else
+    if BlockSizeString = '8x6x1'then
+      Result := tcASTC_8x6_RGBA
+    else
+    if BlockSizeString = '8x8x1'then
+      Result := tcASTC_8x8_RGBA
+    else
+    if BlockSizeString = '10x5x1'then
+      Result := tcASTC_10x5_RGBA
+    else
+    if BlockSizeString = '10x6x1'then
+      Result := tcASTC_10x6_RGBA
+    else
+    if BlockSizeString = '10x8x1'then
+      Result := tcASTC_10x8_RGBA
+    else
+    if BlockSizeString = '10x10x1'then
+      Result := tcASTC_10x10_RGBA
+    else
+    if BlockSizeString = '12x10x1'then
+      Result := tcASTC_12x10_RGBA
+    else
+    if BlockSizeString = '12x12x1'then
+      Result := tcASTC_12x12_RGBA
+    else
+      raise EInvalidASTC.Create('Unexpected block size in ASTC: ' + BlockSizeString);
+
+    { TODO: There doesn't seem to be any way to tell which color space
+      was encoded inside the ASTC file.
+      So we never set Result to
+
+        tcASTC_4x4_SRGB8_ALPHA8,
+        tcASTC_5x4_SRGB8_ALPHA8,
+        tcASTC_5x5_SRGB8_ALPHA8,
+        tcASTC_6x5_SRGB8_ALPHA8,
+        tcASTC_6x6_SRGB8_ALPHA8,
+        tcASTC_8x5_SRGB8_ALPHA8,
+        tcASTC_8x6_SRGB8_ALPHA8,
+        tcASTC_8x8_SRGB8_ALPHA8,
+        tcASTC_10x5_SRGB8_ALPHA8,
+        tcASTC_10x6_SRGB8_ALPHA8,
+        tcASTC_10x8_SRGB8_ALPHA8,
+        tcASTC_10x10_SRGB8_ALPHA8,
+        tcASTC_12x10_SRGB8_ALPHA8,
+        tcASTC_12x12_SRGB8_ALPHA8
+
+      But for now, we also don't use SRGB texture GPU types in CGE,
+      we do gamma correction to pow in GLSL instead, for max portability. }
   end;
 
 begin
@@ -119,4 +151,3 @@ begin
      on E: ECheckFailed do raise EInvalidASTC.Create('Wrong ASTC: ' + E.Message);
   end;
 end;
-
