@@ -1353,6 +1353,9 @@ type
   private
     function GetPixels: PVector3;
     function GetPixelsArray: PVector3Array;
+    {$ifdef FPC}
+    procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
+    {$endif}
   protected
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
@@ -1383,6 +1386,9 @@ type
       precision in float format but also clamps color components
       to 0..1. }
     function ToRGBImage: TRGBImage;
+    {$ifdef FPC}
+    function ToFpImage: TInternalCastleFpImage; override;
+    {$endif}
 
     { Every component (red, green, blue) of every pixel
       is multiplied by Scale. }
