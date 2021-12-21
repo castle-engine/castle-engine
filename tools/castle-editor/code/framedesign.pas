@@ -3061,30 +3061,22 @@ var
   var
     DestinationName: String;
   begin
-    { TODO: In theory we could replicate the movement in UI controls tree
-      by doing a movement in nodes tree using:
-
-        tnsRight: Src.MoveTo(Dst, naAddChild);
-        tnsBottom: Src.MoveTo(Dst, naInsertBehind);
-        tnsTop: Src.MoveTo(Dst, naInsert);
-
-      However:
-
-      - It is error prone. It's safer to do the operation in UI controls tree,
-        and then show the resulting tree using this method.
-        This way, in case we do something unexpected,
-        at least the "shown tree" will reflect the "actual tree".
-
-      - Also, this way we workaround a problem (at least with GTK2 backend):
-        Dragging the same item right after dropping it doesn't work.
-        So it is easiest to deselect it.
-        Which already happens when we do UpdateDesign.
-    }
-
-    UpdateDesign;
     case ControlsTreeNodeUnderMouseSide of
-      tnsRight: DestinationName := DstComponent.Name;
-      tnsBottom, tnsTop: DestinationName := TComponent(Dst.Parent.Data).Name;
+      tnsRight:
+        begin
+          Src.MoveTo(Dst, naAddChild);
+          DestinationName := DstComponent.Name;
+        end;
+      tnsBottom:
+        begin
+          Src.MoveTo(Dst, naInsertBehind);
+          DestinationName := TComponent(Dst.Parent.Data).Name;
+        end;
+      tnsTop:
+        begin
+          Src.MoveTo(Dst, naInsert);
+          DestinationName := TComponent(Dst.Parent.Data).Name;
+        end;
     end;
     ModifiedOutsideObjectInspector('Drag''n''drop ' + SrcComponent.Name + ' into ' +
       DestinationName, ucHigh);
@@ -3194,7 +3186,6 @@ var
 
 begin
   Src := ControlsTree.Selected;
-  //Dst := ControlsTree.GetNodeAt(X,Y);
   Dst := ControlsTreeNodeUnderMouse;
   { Paranoidally check ControlsTreeAllowDrag again.
     It happens that Src is nil, in my tests. }
@@ -3208,6 +3199,11 @@ begin
       MoveUserInterface(
         TCastleUserInterface(SrcComponent),
         TCastleUserInterface(DstComponent));
+      { Fixes selection after drag'n'drop.
+        I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
+        is changed to nil but in TTreeNode.Selected stays true. That's why we see
+        selection but TTreeView.Selected state is incorect }
+      ControlsTree.Selected := Src;
     end else
     if (SrcComponent is TCastleTransform) and
        (DstComponent is TCastleTransform) then
@@ -3215,6 +3211,11 @@ begin
       MoveTransform(
         TCastleTransform(SrcComponent),
         TCastleTransform(DstComponent));
+      { Fixes selection after drag'n'drop.
+        I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
+        is changed to nil but in TTreeNode.Selected stays true. That's why we see
+        selection but TTreeView.Selected state is incorect }
+      ControlsTree.Selected := Src;
     end;
   end;
 end;
