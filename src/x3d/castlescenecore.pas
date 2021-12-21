@@ -8683,10 +8683,6 @@ end;
 procedure TCastleSceneCore.SetExposeTransforms(const Value: TStrings);
 begin
   FExposeTransforms.Assign(Value);
-
-  // otherwise changing TCastleSceneCore.ExposeTransforms would not update CGE editor hierarchy view
-  if not (csTransient in ComponentStyle) then
-    InternalCastleDesignInvalidate := true;
 end;
 
 procedure TCastleSceneCore.ExposeTransformsChange(Sender: TObject);
@@ -8743,6 +8739,10 @@ begin
       TransformChild := TCastleTransform.Create(Owner);
       TransformChild.Name := TransformNamePascal;
       Add(TransformChild);
+
+      // otherwise changing TCastleSceneCore.ExposeTransforms would not update CGE editor hierarchy view
+      if not (csTransient in ComponentStyle) then
+        InternalCastleDesignInvalidate := true;
     end;
 
     // create TExposedTransform
