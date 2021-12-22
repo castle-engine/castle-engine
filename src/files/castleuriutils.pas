@@ -427,11 +427,12 @@ function InternalUriUnescape(const S: String): String;
   end;
 
 var
-  I, J: Integer;
+  I: Integer;
   {$ifdef FPC}
   RealLength: Integer;
   P: PChar;
   {$else}
+  J: Integer;
   Utf8Char: RawByteString;
   Utf16Char: String;
   {$endif}
