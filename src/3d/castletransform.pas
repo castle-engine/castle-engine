@@ -2762,10 +2762,6 @@ begin
       if ListenPressRelease then
         FWorld.RegisterPressRelease(Self);
     end;
-
-    // otherwise changing TCastleSceneCore.ExposeTransforms would not update CGE editor hierarchy view
-    if not (csTransient in ComponentStyle) then
-      InternalCastleDesignInvalidate := true;
   end;
 end;
 
