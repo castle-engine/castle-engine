@@ -179,13 +179,13 @@ begin
   {$ifdef MSWINDOWS}
   Filename := 'C:\Users\cge\AppData\Local\test_local_filename_chars\config with Polish chars ćma źrebak żmija wąż królik.txt';
   FilenameAsUri := FilenameToURISafe(Filename);
-  Assert(FilenameAsUri = 'file:///C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt');
+  Assert('file:///C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt' = FilenameAsUri);
   FilenameFromUri := URIToFilenameSafe(FilenameAsUri);
   Assert(Filename = FilenameFromUri);
 
   FilenamePart := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars ćma źrebak żmija wąż królik.txt';
   FilenamePartPercent := InternalUriEscape(FilenamePart, ValidPathChars);
-  Assert(FilenamePartPercent = 'C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt');
+  Assert('C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt' = FilenamePartPercent);
   FilenamePartUnescaped := InternalUriUnescape(FilenamePartPercent);
   Assert(FilenamePart = FilenamePartUnescaped);
   {$endif}
