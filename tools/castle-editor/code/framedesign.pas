@@ -2596,6 +2596,9 @@ begin
   InternalCastleDesignInvalidate := false;
 end;
 
+type
+  EHierarchyValidationFailed = class(Exception);
+
 function TDesignFrame.ValidateHierarchy: Boolean;
 const
   ExceptionMessage: String = 'Hierarchy view desynchronized with CGE internal hierarchy. 1. Please submit a bug, this should never happen. 2. To workaround it for now, save and reopen the design file.';
@@ -2612,11 +2615,11 @@ const
 
     { Check component caption and pointer in tree node }
     if (NonVisualComponentNode.Data <> Pointer(C)) or (NonVisualComponentNode.Text <> S) then
-      raise Exception.Create(ExceptionMessage);
+      raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
     { Check tree node in node tree component map }
     if TreeNodeMap[C] <> NonVisualComponentNode then
-      raise Exception.Create(ExceptionMessage);
+      raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
     I := 0;
     if C is TCastleComponent then
@@ -2627,7 +2630,7 @@ const
         begin
           { Check tree node has enough number of child items }
           if NonVisualComponentNode.Count < I + 1 then
-            raise Exception.Create(ExceptionMessage);
+            raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
           { Check child and its children }
           VerifyNonVisualComponent(NonVisualComponentNode.Items[I], Child);
@@ -2637,7 +2640,7 @@ const
 
       { Check maybe there are more tree items than components }
       if NonVisualComponentNode.Count > I then
-        raise Exception.Create(ExceptionMessage);
+        raise EHierarchyValidationFailed.Create(ExceptionMessage);
     end;
   end;
 
@@ -2654,13 +2657,13 @@ const
     begin
       { Check tree node has enough number of child items }
       if Parent.Count < 1 then
-        raise Exception.Create(ExceptionMessage);
+        raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
       { First child should be grouping tree node, check text and data }
       GroupingNode := Parent.Items[0];
       Result := 0;
       if (GroupingNode.Text <> 'Non-Visual Components') or (GroupingNode.Data <> nil) then
-        raise Exception.Create(ExceptionMessage);
+        raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
       I := 0;
       for Child in C.NonVisualComponentsEnumerate do
@@ -2669,7 +2672,7 @@ const
         begin
           { Check tree node has enough number of child items }
           if GroupingNode.Count < I + 1 then
-            raise Exception.Create(ExceptionMessage);
+            raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
           { Check child and child children }
           VerifyNonVisualComponent(GroupingNode.Items[I], Child);
@@ -2679,7 +2682,7 @@ const
 
       { Check maybe there are more tree items than components }
       if GroupingNode.Count > I then
-        raise Exception.Create(ExceptionMessage);
+        raise EHierarchyValidationFailed.Create(ExceptionMessage);
     end else
       Result := -1;
   end;
@@ -2697,7 +2700,7 @@ const
     begin
       { Check tree node has enough number of child items }
       if Parent.Count < LastCheckedChildNodeIndex + 2 then
-        raise Exception.Create(ExceptionMessage);
+        raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
       { LastCheckedChildNodeIndex + 1 should be grouping tree node, check
         text and data }
@@ -2705,7 +2708,7 @@ const
       Result := 0;
 
       if (GroupingNode.Text <> 'Behaviors') or (GroupingNode.Data <> nil) then
-        raise Exception.Create(ExceptionMessage);
+        raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
       I := 0;
       for Child in T.BehaviorsEnumerate do
@@ -2714,7 +2717,7 @@ const
         begin
           { Check tree node has enough number of child items }
           if GroupingNode.Count < I + 1 then
-            raise Exception.Create(ExceptionMessage);
+            raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
           { Check child and child children }
            VerifyNonVisualComponent(GroupingNode.Items[I], Child);
@@ -2724,7 +2727,7 @@ const
 
       { Check maybe there are more tree items than components }
       if GroupingNode.Count > I then
-        raise Exception.Create(ExceptionMessage);
+        raise EHierarchyValidationFailed.Create(ExceptionMessage);
     end else
       Result := LastCheckedChildNodeIndex;
   end;
@@ -2743,11 +2746,11 @@ const
 
     { Check component caption and pointer in tree node }
     if (TransformNode.Data <> Pointer(T)) or (TransformNode.Text <> S) then
-      raise Exception.Create(ExceptionMessage);
+      raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
     { Check tree node in node tree component map }
     if TreeNodeMap[T] <> TransformNode then
-      raise Exception.Create(ExceptionMessage);
+      raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
     LastCheckedChildNodeIndex := VerifyNonVisualComponentsSection(TransformNode, T);
     LastCheckedChildNodeIndex := VerifyBehaviorsSection(LastCheckedChildNodeIndex,
@@ -2763,7 +2766,7 @@ const
       begin
         { Check tree node has enough number of child items }
         if TransformNode.Count < NodeIndex + 1 then
-          raise Exception.Create(ExceptionMessage);
+          raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
         { Check child and its children }
         VerifyTransform(TransformNode.Items[NodeIndex], T[I]);
@@ -2786,11 +2789,11 @@ const
 
     { Check component caption and pointer in tree node }
     if (ControlNode.Data <> Pointer(C)) or (ControlNode.Text <> S) then
-      raise Exception.Create(ExceptionMessage);
+      raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
     { Check tree node in node tree component map }
     if TreeNodeMap[C] <> ControlNode then
-      raise Exception.Create(ExceptionMessage);
+      raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
     LastCheckedChildNodeIndex := VerifyNonVisualComponentsSection(ControlNode, C);
     { VerifyNonVisualComponentsSection returns -1 when no non visual component
@@ -2803,7 +2806,7 @@ const
       begin
         { Check tree node has enough number of child items }
         if ControlNode.Count < NodeIndex + 1 then
-          raise Exception.Create(ExceptionMessage);
+          raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
         { Check child and its children }
         VerifyControl(ControlNode.Items[NodeIndex], C.Controls[I]);
@@ -2819,7 +2822,7 @@ const
       begin
         { Check tree node has enough number of child items }
         if ControlNode.Count < NodeIndex + 1 then
-          raise Exception.Create(ExceptionMessage);
+          raise EHierarchyValidationFailed.Create(ExceptionMessage);
 
         { Check Items transform and its children }
         VerifyTransform(ControlNode.Items[NodeIndex], Viewport.Items);
@@ -2829,7 +2832,7 @@ const
 
     { Check maybe there are more tree items than controls }
     if ControlNode.Count > NodeIndex then
-      raise Exception.Create(ExceptionMessage);
+      raise EHierarchyValidationFailed.Create(ExceptionMessage);
   end;
 
 begin
@@ -2851,7 +2854,7 @@ begin
     else
       VerifyNonVisualComponent(ControlsTree.Items[0], DesignRoot);
   except
-    on E:Exception do
+    on E:EHierarchyValidationFailed do
     begin
       Result := false;
       WritelnWarning(E.Message);
