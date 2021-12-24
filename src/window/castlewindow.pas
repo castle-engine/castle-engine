@@ -2319,9 +2319,8 @@ type
 
   { In the future, TCastleWindowBase should be renamed to just TCastleWindow.
     The "Base" suffix is just a temporary measure, as we transition from older
-    TCastleWindow with predefined SceneManager.
-    You can try it right now with this line. }
-  //TCastleWindow = TCastleWindowBase;
+    TCastleWindow with predefined SceneManager. }
+  TCastleWindow = TCastleWindowBase;
 
   {$endif}
 
