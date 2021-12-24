@@ -132,7 +132,7 @@ end;
 
 procedure TPreferencesForm.UpdateAutoDetectedLabels;
 var
-  FpcExe, FpcVer, LazarusExe, DelphiPath, VSCodeExe: String;
+  FpcExe, FpcVer, LazarusExe, LazarusVer, DelphiPath, VSCodeExe: String;
 begin
   FpcExe := '';
   try
@@ -154,8 +154,10 @@ begin
   LazarusExe := '';
   try
     LazarusExe := FindExeLazarusIDE;
+    LazarusVer := LazarusVersion.ToString;
     LabelLazarusAutoDetected.Caption :=
-      'Lazarus executable: ' + LazarusExe;
+      'Lazarus executable: ' + LazarusExe + NL +
+      'Lazarus version: ' + LazarusVer;
   except
     on E: EExecutableNotFound do
     begin
@@ -344,9 +346,7 @@ var
     LazbuildExe, LazbuildOutput, PackageFileName, CommandLog: String;
     LazbuildExitStatus: integer;
   begin
-    LazbuildExe := FindExeLazarus('lazbuild');
-    if LazbuildExe = '' then
-      raise EExecutableNotFound.Create('Cannot find "lazbuild" program. Make sure it is installed, and set Lazarus location in CGE editor "Preferences".');
+    LazbuildExe := FindExeLazbuild;
 
     PackageFileName := CastleEnginePath + 'packages' + PathDelim + Name + '.lpk';
 
