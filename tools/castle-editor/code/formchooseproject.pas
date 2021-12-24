@@ -275,12 +275,12 @@ procedure TChooseProjectForm.UpdateWarningMissingCompiler;
       FpcVersion;
       Result := true;
     except
-      { FindExeFpcCompiler or FindExeLazarusIDE exit with EExecutableNotFound,
+      { FindExeFpcCompiler exits with EExecutableNotFound,
         but FpcVersion may fail with any Exception unfortunately
         (it runs external process, and many things can go wrong). }
       on E: Exception do
       begin
-        WritelnLog('FPC or Lazarus not detected, or cannot run FPC to get version: ' + ExceptMessage(E));
+        WritelnLog('FPC not found, or cannot run FPC to get version: ' + ExceptMessage(E));
 
         { if FPC failed, try to find Delphi }
         if FindDelphiPath(false) <> '' then
