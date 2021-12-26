@@ -104,6 +104,21 @@ begin
 end;
 
 procedure TTestURIUtils.TestPercentEncoding;
+{$ifdef MSWINDOWS}
+var
+  FilenamePart: String;
+  FilenamePartPercent: String;
+  FilenamePartUnescaped: String;
+  Filename: String;
+  FilenameAsUri: String;
+  FilenameFromUri: String;
+const
+  SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
+  ALPHA = ['A'..'Z', 'a'..'z'];
+  DIGIT = ['0'..'9'];
+  Unreserved = ALPHA + DIGIT + ['-', '.', '_', '~'];
+  ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
+{$endif}
 begin
   { FilenameToURISafe must percent-encode,
     URIToFilenameSafe must decode it back. }
@@ -132,6 +147,20 @@ begin
     AssertEquals('file:///foo%25.txt', FilenameToURISafe(URIToFilenameSafe('file:///foo%25.txt')));
     But it's Ok that %4d gets converted to M, as char "M" is safe inside URI. }
   AssertEquals('file:///fooM.txt', FilenameToURISafe(URIToFilenameSafe('file:///foo%4d.txt')));
+  {$endif}
+
+  {$ifdef MSWINDOWS}
+  Filename := 'C:\Users\cge\AppData\Local\test_local_filename_chars\config with Polish chars ćma źrebak żmija wąż królik.txt';
+  FilenameAsUri := FilenameToURISafe(Filename);
+  AssertEquals('file:///C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt', FilenameAsUri);
+  FilenameFromUri := URIToFilenameSafe(FilenameAsUri);
+  AssertEquals(Filename, FilenameFromUri);
+
+  FilenamePart := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars ćma źrebak żmija wąż królik.txt';
+  FilenamePartPercent := InternalUriEscape(FilenamePart, ValidPathChars);
+  AssertEquals('C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt', FilenamePartPercent);
+  FilenamePartUnescaped := InternalUriUnescape(FilenamePartPercent);
+  AssertEquals(FilenamePart, FilenamePartUnescaped);
   {$endif}
 end;
 

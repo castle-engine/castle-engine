@@ -92,6 +92,10 @@ begin
     else
       CopyWhole(Result);
   finally FreeAndNil(Img) end;
+
+  { TODO: honor AllowedImageClasses, to fix the loaded data type
+    using Vampyre transformations, *before* LoadEncodedImage
+    sees it. LoadEncodedImage will also fix the loaded data type, but it is slower. }
 end;
 
 procedure Save_VampyreImaging(const CastleImage: TEncodedImage; const Stream: TStream; const Ext: String);

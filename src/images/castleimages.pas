@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1353,6 +1353,9 @@ type
   private
     function GetPixels: PVector3;
     function GetPixelsArray: PVector3Array;
+    {$ifdef FPC}
+    procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
+    {$endif}
   protected
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
@@ -1383,6 +1386,9 @@ type
       precision in float format but also clamps color components
       to 0..1. }
     function ToRGBImage: TRGBImage;
+    {$ifdef FPC}
+    function ToFpImage: TInternalCastleFpImage; override;
+    {$endif}
 
     { Every component (red, green, blue) of every pixel
       is multiplied by Scale. }
@@ -1873,34 +1879,34 @@ const
     { TODO: unconfirmed RequiresPowerOf2 for ETC1. } { }
     (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.ktx'),
 
-    (Name: 'ASTC_4x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_5x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_5x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_6x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_6x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_8x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_8x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_8x8_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_10x5_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_10x6_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_10x8_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_10x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_12x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_12x12_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_4x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_5x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_5x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_6x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_6x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_8x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_8x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_8x8_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_10x5_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_10x6_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_10x8_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_10x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_12x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
-    (Name: 'ASTC_12x12_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx')
+    (Name: 'ASTC_4x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_5x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_5x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_6x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_6x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_8x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_8x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_8x8_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_10x5_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_10x6_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_10x8_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_10x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_12x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_12x12_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_4x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_5x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_5x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_6x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_6x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_8x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_8x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_8x8_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_10x5_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_10x6_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_10x8_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_10x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_12x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc'),
+    (Name: 'ASTC_12x12_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.astc')
   );
 
 { Convert TTextureCompression enum to string. }
@@ -1995,7 +2001,8 @@ implementation
 uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   {$ifdef USE_VAMPYRE_IMAGING} Imaging, ImagingClasses, ImagingTypes, {$endif}
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
-  CastleCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils;
+  CastleCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils,
+  CastleStreamUtils;
 
 { parts ---------------------------------------------------------------------- }
 
@@ -2003,6 +2010,7 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
 {$I castleimages_file_formats.inc} // must be included after castleimages_vampyre_imaging.inc
 {$I castleimages_draw.inc}
 {$I castleimages_paint.inc}
+{$I castleimages_astc.inc}
 {$I castleimages_bmp.inc}
 {$I castleimages_libpng.inc}
 {$I castleimages_fpimage.inc}
@@ -3082,7 +3090,8 @@ end;
 function TGPUCompressedImage.Decompress: TCastleImage;
 begin
   if Assigned(DecompressTexture) then
-    Result := DecompressTexture(Self) else
+    Result := DecompressTexture(Self)
+  else
     raise ECannotDecompressTexture.Create('Cannot decompress GPU-compressed texture: no decompressor initialized');
 end;
 
@@ -4530,96 +4539,154 @@ var
 
 { LoadEncodedImage ----------------------------------------------------------- }
 
-
-{ Make sure the image has an alpha channel.
-  If image doesn't have an alpha channel (it is TRGBImage or TGrayscaleImage),
-  we will create new image instance (respectively, TRGBAlphaImage or TGrayscaleAlphaImage)
-  that adds an alpha channel. The newly created alpha channel will have constant opaque alpha,
-  except in the special case of TGrayscaleImage with TGrayscaleImage.TreatAsAlpha = @true
-  (where the contents will be copied to alpha, and intensity set to white).
-
-  If the image already had an alpha channel, then just return it. }
-procedure ImageAddAlphaVar(var Img: TEncodedImage);
-var
-  NewImg: TCastleImage;
-begin
-  if Img is TRGBImage then
-  begin
-    NewImg := TRGBImage(Img).ToRGBAlphaImage;
-    FreeAndNil(Img);
-    Img := NewImg;
-  end else
-  if Img is TGrayscaleImage then
-  begin
-    NewImg := TGrayscaleImage(Img).ToGrayscaleAlphaImage;
-    FreeAndNil(Img);
-    Img := NewImg;
-  end;
-
-  if not Img.HasAlpha then
-    raise EInternalError.Create(
-      'ImageAddAlphaVar not possible for this image class: ' + Img.ClassName);
-end;
-
-procedure ImageStripAlphaVar(var Img: TEncodedImage);
-var
-  NewImg: TCastleImage;
-begin
-  if Img is TRGBAlphaImage then
-  begin
-    NewImg := TRGBAlphaImage(Img).ToRGBImage;
-    FreeAndNil(Img);
-    Img := NewImg;
-  end else
-  if Img is TGrayscaleAlphaImage then
-  begin
-    NewImg := TGrayscaleAlphaImage(Img).ToGrayscaleImage;
-    FreeAndNil(Img);
-    Img := NewImg;
-  end;
-
-  if Img.HasAlpha then
-    raise EInternalError.Create(
-      'ImageStripAlphaVar not possible for this image class: ' + Img.ClassName);
-end;
-
 function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
   const AllowedImageClasses: array of TEncodedImageClass;
-  const Options: TLoadImageOptions = [])
-  :TEncodedImage; overload;
+  const Options: TLoadImageOptions = []): TEncodedImage; overload;
 
-  { ClassAllowed is only a shortcut to global utility. }
-  function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
-  begin
-    Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
-  end;
+  procedure FixImageClass;
 
-  { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }
-  procedure ImageGrayscaleVar(var Image: TEncodedImage);
-  var
-    NewImage: TGrayscaleImage;
-  begin
-    NewImage := (Image as TRGBImage).ToGrayscale;
-    FreeAndNil(Image);
-    Image := NewImage;
-  end;
+    { ClassAllowed is only a shortcut to global utility. }
+    function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
+    begin
+      Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
+    end;
 
-  procedure ImageRGBToFloatVar(var Image: TEncodedImage);
-  var
-    NewResult: TEncodedImage;
-  begin
-    NewResult := (Image as TRGBImage).ToRGBFloat;
-    Image.Free;
-    Image := NewResult;
-  end;
+    { Make sure the image has an alpha channel.
+      If image doesn't have an alpha channel (it is TRGBImage or TGrayscaleImage),
+      we will create new image instance (respectively, TRGBAlphaImage or TGrayscaleAlphaImage)
+      that adds an alpha channel. The newly created alpha channel will have constant opaque alpha,
+      except in the special case of TGrayscaleImage with TGrayscaleImage.TreatAsAlpha = @true
+      (where the contents will be copied to alpha, and intensity set to white).
 
-  procedure ImageRGBToGrayscaleVar(var Image: TEncodedImage);
-  var
-    NewResult: TEncodedImage;
+      If the image already had an alpha channel, then just return it. }
+    procedure ImageAddAlphaVar(var Img: TEncodedImage);
+    var
+      NewImg: TCastleImage;
+    begin
+      if Img is TRGBImage then
+      begin
+        NewImg := TRGBImage(Img).ToRGBAlphaImage;
+        FreeAndNil(Img);
+        Img := NewImg;
+      end else
+      if Img is TGrayscaleImage then
+      begin
+        NewImg := TGrayscaleImage(Img).ToGrayscaleAlphaImage;
+        FreeAndNil(Img);
+        Img := NewImg;
+      end;
+
+      if not Img.HasAlpha then
+        raise EInternalError.Create(
+          'ImageAddAlphaVar not possible for this image class: ' + Img.ClassName);
+    end;
+
+    procedure ImageStripAlphaVar(var Img: TEncodedImage);
+    var
+      NewImg: TCastleImage;
+    begin
+      if Img is TRGBAlphaImage then
+      begin
+        NewImg := TRGBAlphaImage(Img).ToRGBImage;
+        FreeAndNil(Img);
+        Img := NewImg;
+      end else
+      if Img is TGrayscaleAlphaImage then
+      begin
+        NewImg := TGrayscaleAlphaImage(Img).ToGrayscaleImage;
+        FreeAndNil(Img);
+        Img := NewImg;
+      end;
+
+      if Img.HasAlpha then
+        raise EInternalError.Create(
+          'ImageStripAlphaVar not possible for this image class: ' + Img.ClassName);
+    end;
+
+    procedure ImageRGBToFloatVar(var Image: TEncodedImage);
+    var
+      NewResult: TEncodedImage;
+    begin
+      NewResult := (Image as TRGBImage).ToRGBFloat;
+      Image.Free;
+      Image := NewResult;
+    end;
+
+    { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }
+    procedure ImageRGBToGrayscaleVar(var Image: TEncodedImage);
+    var
+      NewResult: TEncodedImage;
+    begin
+      NewResult := (Image as TRGBImage).ToGrayscale;
+      Image.Free;
+      Image := NewResult;
+    end;
+
+    { Input: TGPUCompressedImage, output: anything else than TGPUCompressedImage. }
+    procedure ImageDecompressVar(var Image: TEncodedImage);
+    var
+      NewResult: TEncodedImage;
+    begin
+      NewResult := (Image as TGPUCompressedImage).Decompress;
+      Image.Free;
+      Image := NewResult;
+    end;
+
   begin
-    NewResult := (Image as TRGBImage).ToGrayscale;
-    Image.Free;
-    Image := NewResult;
+    if not ClassAllowed(TEncodedImageClass(Result.ClassType)) then
+    begin
+      if Result is TGPUCompressedImage then
+      begin
+        ImageDecompressVar(Result);
+        if ClassAllowed(TEncodedImageClass(Result.ClassType)) then
+          Exit; // ClassAllowed was fixed by just decompressing GPU image, testcase: castle-view-image
+      end;
+
+      if (Result is TRGBAlphaImage) and ClassAllowed(TRGBImage) then
+        ImageStripAlphaVar(Result)
+      else
+      if (Result is TRGBAlphaImage) and ClassAllowed(TGrayscaleImage) then
+      begin
+        ImageStripAlphaVar(Result);
+        ImageRGBToGrayscaleVar(Result);
+      end else
+      {TODO if (Result is TRGBAlphaImage) and ClassAllowed(TGrayscaleAlphaImage) then
+      begin
+        ImageRGBToGrayscaleVar(Result); // extend ImageRGBToGrayscaleVar to handle this case, rename to sthg like ImageToGrayscaleXxxVar
+      end else}
+      if (Result is TRGBAlphaImage) and ClassAllowed(TRGBFloatImage) then
+      begin
+        ImageStripAlphaVar(Result);
+        ImageRGBToFloatVar(Result);
+      end else
+
+      if (Result is TGrayscaleAlphaImage) and ClassAllowed(TGrayscaleImage) then
+        ImageStripAlphaVar(Result)
+      else
+
+      if (Result is TRGBImage) and ClassAllowed(TRGBFloatImage) then
+        ImageRGBToFloatVar(Result)
+      else
+      if (Result is TRGBImage) and ClassAllowed(TGrayscaleImage) then
+        ImageRGBToGrayscaleVar(Result)
+      else
+      if (Result is TRGBImage) and ClassAllowed(TGrayscaleAlphaImage) then
+      begin
+        ImageRGBToGrayscaleVar(Result);
+        ImageAddAlphaVar(Result);
+      end else
+      if (Result is TRGBImage) and ClassAllowed(TRGBAlphaImage) then
+        ImageAddAlphaVar(Result)
+      else
+
+      if (Result is TGrayscaleImage) and ClassAllowed(TGrayscaleAlphaImage) then
+        ImageAddAlphaVar(Result)
+      else
+        raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot satisfy the requested output format, we got %s, but we want %s. Use less restrictive AllowedImageClasses argument.', [
+          Result.ClassName,
+          LoadEncodedImageParams(AllowedImageClasses)
+        ]);
+    end;
   end;
 
 var
@@ -4630,126 +4697,26 @@ begin
     if Assigned(ImageFormatInfos[StreamFormat].Load) then
     begin
       Load := ImageFormatInfos[StreamFormat].Load;
-      case ImageFormatInfos[StreamFormat].LoadedClasses of
-        lcG_GA_RGB_RGBA, lcG_GA_RGB_RGBA_GPUCompressed:
-          begin
-            if ClassAllowed(TRGBImage) or
-               ClassAllowed(TRGBAlphaImage) or
-               ClassAllowed(TGrayscaleImage) or
-               ClassAllowed(TGrayscaleAlphaImage) or
-               ( ClassAllowed(TGPUCompressedImage) and
-                 (ImageFormatInfos[StreamFormat].LoadedClasses = lcG_GA_RGB_RGBA_GPUCompressed) ) then
-            begin
-              Result := Load(Stream, AllowedImageClasses);
+      Result := Load(Stream, AllowedImageClasses);
 
-              { Important for Vampyre Imaging Library, to make code like
-                "LoadImage('a.png', [TRGBImage]) as TRGBImage" work.
-                Testcase: examples/fps_game.
-                Other image loaders honor AllowedImageClasses,
-                but Load_VampyreImaging doesn't (for now).
+      { Fix the loaded image class.
+        Although loaders should also attempt to do it inside (with better speed),
+        but it is not required, e.g. Load_VampyreImaging ignores AllowedImageClasses value.
+        And we want code like
 
-                TODO: It would be more optimal to do this in Load_VampyreImaging.
-                Although maybe this fallback can also stay, maybe even be extended to work always,
-                regardless of LoadedClasses (and maybe remove the LoadedClasses value then?). }
-              if not ClassAllowed(TEncodedImageClass(Result.ClassType)) then
-              begin
-                if (Result is TRGBAlphaImage) and ClassAllowed(TRGBImage) then
-                  ImageStripAlphaVar(Result)
-                else
-                if (Result is TGrayscaleAlphaImage) and ClassAllowed(TGrayscaleImage) then
-                  ImageStripAlphaVar(Result)
-                else
-                  raise EUnableToLoadImage.Create('LoadEncodedImage cannot satisfy the requested output format. Use less restrictive AllowedImageClasses argument.');
-              end;
-            end else
-            if ClassAllowed(TRGBFloatImage) then
-            begin
-              Result := Load(Stream, [TRGBImage]);
-              ImageRGBToFloatVar(Result);
-            end else
-              raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
-          end;
-        lcRGB_RGBA:
-          begin
-            if ClassAllowed(TRGBImage) or
-               ClassAllowed(TRGBAlphaImage) then
-              Result := Load(Stream, AllowedImageClasses) else
-            if ClassAllowed(TGrayscaleImage) then
-            begin
-              Result := Load(Stream, [TRGBImage]);
-              ImageRGBToGrayscaleVar(Result);
-            end else
-{ TODO:     if ClassAllowed(TGrayscaleAlphaImage) then
-              ... }
-            if ClassAllowed(TRGBFloatImage) then
-            begin
-              Result := Load(Stream, [TRGBImage]);
-              ImageRGBToFloatVar(Result);
-            end else
-              raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
-          end;
-        lcRGB:
-          begin
-            Result := Load(Stream, [TRGBImage]);
-            Assert(Result is TRGBImage);
+          LoadImage('a.png', [TRGBImage]) as TRGBImage
 
-            if not (ClassAllowed(TRGBImage)) then
-            begin
-              if ClassAllowed(TRGBAlphaImage) then
-              begin
-                ImageAddAlphaVar(Result);
-              end else
-              if ClassAllowed(TGrayscaleImage) then
-              begin
-                ImageGrayscaleVar(Result);
-              end else
-              { TODO:
-              if ClassAllowed(TGrayscaleAlphaImage) then
-              begin
-                ImageAddAlphaVar(Result);
-                ImageGrayscaleAlphaVar(Result);
-              end else }
-              if ClassAllowed(TRGBFloatImage) then
-              begin
-                ImageRGBToFloatVar(Result);
-              end else
-                raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
-            end;
-          end;
-        lcRGB_RGBFloat:
-          begin
-            if ClassAllowed(TRGBFloatImage) or
-               ClassAllowed(TRGBImage) then
-              Result := LoadRGBE(Stream, AllowedImageClasses) else
-            begin
-              Result := LoadRGBE(Stream, [TRGBImage]);
-              if ClassAllowed(TRGBAlphaImage) then
-              begin
-                ImageAddAlphaVar(Result);
-              end else
-              if ClassAllowed(TGrayscaleImage) then
-              begin
-                ImageGrayscaleVar(Result);
-              end else
-              if ClassAllowed(TGrayscaleAlphaImage) then
-              begin
-                ImageGrayscaleVar(Result);
-                ImageAddAlphaVar(Result);
-              end else
-                raise EUnableToLoadImage.CreateFmt('LoadEncodedImage: RGBE format cannot be loaded to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
-            end;
-          end;
-        {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('LoadEncodedImage: LoadedClasses?');
-        {$endif}
-      end;
+        to always work, testcase: examples/fps_game.
+      }
+      FixImageClass;
     end else
     begin
-      raise EImageFormatNotSupported.Create('Can''t load image format "'+
-        ImageFormatInfos[StreamFormat].FormatName+'"');
+      raise EImageFormatNotSupported.CreateFmt('Can''t load image format "%s"', [
+        ImageFormatInfos[StreamFormat].FormatName
+      ]);
     end;
 
-    { This may be implemented at lower level, inside particular image loaders,
+    { TODO: This flip may be implemented at lower level, inside particular image loaders,
       some day. It would have 0 cost then. }
     if liFlipVertically in Options then
       Result.FlipVertical;

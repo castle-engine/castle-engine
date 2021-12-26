@@ -477,6 +477,8 @@ type
 
   TCastleControlCustom = TCastleControlBase deprecated 'use TCastleControlBase';
 
+  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
+
   { Same as TGameSceneManager, redefined only to work as a sub-component
     of TCastleControl, otherwise Lazarus fails to update the uses clause
     correctly and you cannot edit the events of CastleControl1.SceneManager
@@ -546,6 +548,15 @@ type
     property ShadowVolumesRender: boolean
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
   end deprecated 'use TCastleControlBase and create instance of TCastleViewport explicitly';
+
+  {$else}
+
+  { In the future, TCastleControlBase should be renamed to just TCastleControl.
+    The "Base" suffix is just a temporary measure, as we transition from older
+    TCastleControl with predefined SceneManager. }
+  TCastleControl = TCastleControlBase;
+
+  {$endif}
 
   { Same as TCastle2DSceneManager, redefined only to work as a sub-component
     of TCastleControl, otherwise Lazarus fails to update the uses clause
@@ -1290,6 +1301,8 @@ end;
 
 { TCastleControl ----------------------------------------------------------- }
 
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
+
 constructor TCastleControl.Create(AOwner: TComponent);
 begin
   inherited;
@@ -1375,6 +1388,8 @@ procedure TCastleControl.SetOnCameraChanged(const Value: TNotifyEvent);
 begin
   SceneManager.OnCameraChanged := Value;
 end;
+
+{$endif CASTLE_DEPRECATED_WINDOW_CLASSES}
 
 { TCastle2DControl ----------------------------------------------------------- }
 

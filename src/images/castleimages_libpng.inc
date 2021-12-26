@@ -616,10 +616,12 @@ var
 
   { Allocates Result to given class and applies libpng transforms to
     make resulting data matching given Result class.
-    Does this (and returns @true) only if ImageClass is allowed. }
-  function TransformPng(ImageClass: TCastleImageClass): boolean;
+
+    When CheckTargetClass, it checks (and returns @true only when it is OK)
+    whether ImageClass is in AllowedImageClasses. }
+  function TransformPng(const ImageClass: TCastleImageClass; const CheckTargetClass: Boolean = true): boolean;
   begin
-    Result := ClassAllowed(ImageClass);
+    Result := (not CheckTargetClass) or ClassAllowed(ImageClass);
 
     if Result then
     begin
@@ -707,14 +709,16 @@ begin
        if not TransformPng(TRGBAlphaImage) then
        if not TransformPng(TGrayscaleImage) then
        if not TransformPng(TRGBImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
+         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+         TransformPng(TGrayscaleAlphaImage, false);
      end else
      begin
        if not TransformPng(TGrayscaleImage) then
        if not TransformPng(TGrayscaleAlphaImage) then
        if not TransformPng(TRGBImage) then
        if not TransformPng(TRGBAlphaImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
+         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+         TransformPng(TGrayscaleImage, false);
      end;
    end else
    begin
@@ -724,14 +728,16 @@ begin
        if not TransformPng(TRGBImage) then
        if not TransformPng(TGrayscaleAlphaImage) then
        if not TransformPng(TGrayscaleImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
+         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+         TransformPng(TRGBAlphaImage, false);
      end else
      begin
        if not TransformPng(TRGBImage) then
        if not TransformPng(TRGBAlphaImage) then
        if not TransformPng(TGrayscaleImage) then
        if not TransformPng(TGrayscaleAlphaImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
+         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+         TransformPng(TRGBImage, false);
      end;
    end;
 

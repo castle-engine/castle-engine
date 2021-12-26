@@ -32,6 +32,7 @@
   <auto_generated_textures>
     <compress>
       <format name="DXT1_RGB" />
+      <format name="ASTC_8x8_RGBA" />
     </compress>
 
     <include path="example_level/textures/*" recursive="True" />
