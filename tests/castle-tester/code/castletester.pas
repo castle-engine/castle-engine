@@ -157,7 +157,7 @@ procedure TCastleTestCase.AssertFalse(const Msg: String;
   const ACondition: Boolean; ErrorAddr: Pointer);
 begin
   if not Assigned(ErrorAddr) then
-    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
 
 
   AssertTrue(Msg, not ACondition, ErrorAddr);
