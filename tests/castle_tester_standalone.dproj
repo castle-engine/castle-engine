@@ -82,6 +82,12 @@
         <Cfg_2>true</Cfg_2>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+        <Cfg_2_Win32>true</Cfg_2_Win32>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win64)'!=''">
         <Cfg_2_Win64>true</Cfg_2_Win64>
         <CfgParent>Cfg_2</CfgParent>
@@ -101,7 +107,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>..\..\src/base;..\..\src/common_includes;..\..\src/base/android;..\..\src/base/windows;..\..\src/base/unix;..\..\src/base/opengl;..\..\src/fonts;..\..\src/fonts/opengl;..\..\src/window;..\..\src/window/gtk;..\..\src/window/windows;..\..\src/window/unix;..\..\src/window/deprecated_units;..\..\src/images;..\..\src/images/opengl;..\..\src/images/opengl/glsl/generated-pascal;..\..\src/3d;..\..\src/3d/opengl;..\..\src/x3d;..\..\src/x3d/opengl;..\..\src/x3d/opengl/glsl/generated-pascal;..\..\src/audio;..\..\src/audio/fmod;..\..\src/audio/openal;..\..\src/audio/ogg_vorbis;..\..\src/files;..\..\src/files/indy;..\..\src/castlescript;..\..\src/ui;..\..\src/ui/windows;..\..\src/ui/opengl;..\..\src/game;..\..\src/services;..\..\src/services/opengl;..\..\src/physics;..\..\src/physics/kraft;..\..\src/pasgltf;..\..\src/deprecated_units;..\..\src/vampyre_imaginglib/src/Source;..\..\src/vampyre_imaginglib/src/Source/JpegLib;..\..\src/vampyre_imaginglib/src/Source/ZLib;..\..\src/vampyre_imaginglib/src/Extras/Extensions;..\..\src/vampyre_imaginglib/src/Extensions/J2KObjects;..\..\src/vampyre_imaginglib/src/Extensions/LibTiff;..\..\src/vampyre_imaginglib/src/Extensions;..\..\src/compatibility/delphi-only;..\..\src/compatibility/delphi-only/fcl-json;code/;..\code;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\src/base;..\src/common_includes;..\src/base/android;..\src/base/windows;..\src/base/unix;..\src/base/opengl;..\src/fonts;..\src/fonts/opengl;..\src/window;..\src/window/gtk;..\src/window/windows;..\src/window/unix;..\src/window/deprecated_units;..\src/images;..\src/images/opengl;..\src/images/opengl/glsl/generated-pascal;..\src/3d;..\src/3d/opengl;..\src/x3d;..\src/x3d/opengl;..\src/x3d/opengl/glsl/generated-pascal;..\src/audio;..\src/audio/fmod;..\src/audio/openal;..\src/audio/ogg_vorbis;..\src/files;..\src/files/indy;..\src/castlescript;..\src/ui;..\src/ui/windows;..\src/ui/opengl;..\src/game;..\src/services;..\src/services/opengl;..\src/physics;..\src/physics/kraft;..\src/pasgltf;..\src/deprecated_units;..\src/vampyre_imaginglib/src/Source;..\src/vampyre_imaginglib/src/Source/JpegLib;..\src/vampyre_imaginglib/src/Source/ZLib;..\src/vampyre_imaginglib/src/Extras/Extensions;..\src/vampyre_imaginglib/src/Extensions/J2KObjects;..\src/vampyre_imaginglib/src/Extensions/LibTiff;..\src/vampyre_imaginglib/src/Extensions;..\src/compatibility/delphi-only;..\src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\compilation\delphi</DCC_DcuOutput>
         <DCC_Define>CASTLE_TESTER;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
@@ -187,6 +193,11 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_OSX64)'!=''">
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <Manifest_File>(None)</Manifest_File>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <VerInfo_Locale>1033</VerInfo_Locale>

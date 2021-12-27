@@ -1,16 +1,13 @@
-Automatic tests of Castle Game Engine.
+# Castle Tester
 
-Using [FPCUnit](http://camelos.sourceforge.net/fpcUnit.html).
+Using [Castle Game Engine](https://castle-engine.io/).
 
-Compile and run them from Lazarus to see a result in a nice GUI window.
+## Building
 
-Or compile and run a console version (this doesn't require Lazarus LCL):
+Compile by:
 
-```
-cd tests/
-./compile_console.sh
-# runs all
-./test_castle_game_engine -a
-# runs only CastleTransform tests
-./test_castle_game_engine --suite=TTestCastleTransform
-```
+- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+
+- Or use [CGE command-line build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool). Run `castle-engine compile` in this directory.
+
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `castle_tester_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
