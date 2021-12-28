@@ -20,7 +20,8 @@ unit TestCastleComponentSerialize;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleComponentSerialize = class(TCastleTestCase)
@@ -28,17 +29,19 @@ type
     procedure TestEmptyCaption;
     procedure TestSaveLoad1;
     procedure TestSaveLoad2;
+    {$ifdef FPC}
     procedure TestDeserializeObjectReferences;
+    {$endif}
     procedure TestDepth;
   end;
 
 implementation
 
 uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
-  CastleUIControls, CastleControls, CastleUtils, CastleSceneManager,
-  CastleScene,
+  CastleUIControls, CastleControls, CastleUtils, {$ifdef FPC}CastleSceneManager,{$endif}
+  CastleScene{$ifdef FPC},
   { needed to deserialize castle-data:/designs/test_object_references.castle-user-interface }
-  Castle2DSceneManager;
+  Castle2DSceneManager{$endif};
 
 { TMyComponent -------------------------------------------------------------- }
 
@@ -95,13 +98,13 @@ begin
   // FScaleComponent.InternalDefaultValue := FScale; // current value is default
 
   FPositionPersistent := TCastleVector3Persistent.Create;
-  FPositionPersistent.InternalGetValue := @GetPosition;
-  FPositionPersistent.InternalSetValue := @SetPosition;
+  FPositionPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetPosition;
+  FPositionPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetPosition;
   FPositionPersistent.InternalDefaultValue := FPosition; // current value is default
 
   FScalePersistent := TCastleVector3Persistent.Create;
-  FScalePersistent.InternalGetValue := @GetScale;
-  FScalePersistent.InternalSetValue := @SetScale;
+  FScalePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetScale;
+  FScalePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetScale;
   FScalePersistent.InternalDefaultValue := FScale; // current value is default
 end;
 
@@ -273,6 +276,7 @@ begin
   finally FreeAndNil(UiOwner) end;
 end;
 
+{$ifdef FPC}
 procedure TTestCastleComponentSerialize.TestDeserializeObjectReferences;
 var
   UiOwner: TComponent;
@@ -297,6 +301,8 @@ begin
     AssertTrue(Sm3.MainScene = nil);
   finally FreeAndNil(UiOwner) end;
 end;
+{$endif FPC}
+
 
 procedure TTestCastleComponentSerialize.TestDepth;
 { Internally, CastleComponentSerialize must increase SerializationProcessPool
@@ -333,7 +339,7 @@ begin
 
     TempFileName := GetTempFileNameCheck;
     ComponentSave(RootLabel, TempFileName);
-    Writeln('TTestCastleComponentSerialize.TestDepth: Saved to ' + TempFileName);
+    TestLog('TTestCastleComponentSerialize.TestDepth: Saved to ' + TempFileName);
   finally FreeAndNil(UiOwner) end;
 
   { Now load, and see if we have the same structure }
@@ -363,7 +369,9 @@ begin
 end;
 
 initialization
+{$ifndef CASTLE_TESTER}
   RegisterTest(TTestCastleComponentSerialize);
+{$endif}
   RegisterSerializableComponent(TMyComponent, 'My Test Component');
   RegisterSerializableComponent(TComponent, 'Component (Basic)');
 end.
