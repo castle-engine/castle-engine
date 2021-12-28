@@ -38,7 +38,7 @@ implementation
 
 {$define CASTLE_TESTER}
 
-uses SysUtils, TestCastleURIUtils, TestCastleBoxes, TestCastleVectors;
+uses SysUtils, TestCastleURIUtils, TestCastleBoxes, TestCastleVectors, TestCastleCameras;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -69,6 +69,7 @@ begin
   Tester.AddTestCase(TTestURIUtils.Create);
   Tester.AddTestCase(TTestCastleBoxes.Create);
   Tester.AddTestCase(TTestCastleVectors.Create);
+  Tester.AddTestCase(TTestCameras.Create);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

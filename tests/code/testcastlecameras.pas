@@ -20,10 +20,11 @@ unit TestCastleCameras;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
+  Classes, SysUtils{$ifndef CASTLE_TESTER}, FpcUnit, TestUtils, TestRegistry{$else}
+  , CastleTester{$endif};
 
 type
-  TTestCameras = class(TTestCase)
+  TTestCameras = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
     procedure TestToOrientationAndBack;
     procedure TestOrientationFromBasicAxes;
     procedure TestInput;
@@ -163,6 +164,7 @@ procedure TTestCameras.TestInput;
     const IgnoreAllInputs, MouseNavigation: boolean);
   begin
     AssertTrue(C.Input = Input);
+    {$ifdef FPC}
     {$warnings off}
     { Consciously using here deprecated IgnoreAllInputs
       and MouseNavigation (to test it's still Ok) }
@@ -170,6 +172,7 @@ procedure TTestCameras.TestInput;
     if C is TExamineCamera then
       AssertTrue(TExamineCamera(C).MouseNavigation = MouseNavigation);
     {$warnings on}
+    {$endif}
   end;
 
 var
@@ -181,12 +184,14 @@ begin
     AssertCamera(E, TCamera.DefaultInput, false, true);
     E.Input := [];
     AssertCamera(E, [], true, false);
+    {$ifdef FPC}
     {$warnings off}
     { Consciously using here deprecated IgnoreAllInputs and MouseNavigation (to test it's still Ok) }
     E.MouseNavigation := true;
     AssertCamera(E, [ciMouseDragging], false, true);
     E.IgnoreAllInputs := true;
     {$warnings on}
+    {$endif}
     AssertCamera(E, [], true, false);
     E.Input := [ciNormal];
     AssertCamera(E, [ciNormal], false, false);
@@ -199,16 +204,20 @@ begin
     AssertCamera(W, [], true, false);
     W.Input := W.Input + [ciMouseDragging];
     AssertCamera(W, [ciMouseDragging], false, true);
+    {$ifdef FPC}
     {$warnings off}
     { Consciously using here deprecated IgnoreAllInputs (to test it's still Ok) }
     W.IgnoreAllInputs := true;
     {$warnings on}
     AssertCamera(W, [], true, false);
+    {$endif}
     W.Input := [ciNormal];
     AssertCamera(W, [ciNormal], false, false);
   finally FreeAndNil(W) end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
  RegisterTest(TTestCameras);
+{$endif}
 end.
