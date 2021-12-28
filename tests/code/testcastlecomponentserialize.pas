@@ -339,7 +339,9 @@ begin
 
     TempFileName := GetTempFileNameCheck;
     ComponentSave(RootLabel, TempFileName);
-    TestLog('TTestCastleComponentSerialize.TestDepth: Saved to ' + TempFileName);
+    {$ifdef CASTLE_TESTER}TestLog{$else}Writeln{$endif}(
+      'TTestCastleComponentSerialize.TestDepth: Saved to ' + TempFileName);
+
   finally FreeAndNil(UiOwner) end;
 
   { Now load, and see if we have the same structure }
