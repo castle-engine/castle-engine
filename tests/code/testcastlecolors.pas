@@ -24,8 +24,8 @@ unit TestCastleColors;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase, CastleVectors, CastleColors;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase, {$else}CastleTester,{$endif} CastleVectors, CastleColors;
 
 type
   TTestCastleColors = class(TCastleTestCase)
@@ -129,6 +129,8 @@ begin
   AssertVectorEquals(LerpRgbInHsv(1, BlackRGB, PureRed), PureRed);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleColors);
+{$endif}
 end.

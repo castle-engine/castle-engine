@@ -20,7 +20,7 @@ unit TestCastleClassUtils;
 interface
 
 uses Classes, SysUtils, Generics.Collections, {$ifndef CASTLE_TESTER}FpcUnit,
-  TestUtils, TestRegistry,CastleTestCase,{$else}CastleTester, {$endif}
+  TestUtils, TestRegistry, CastleTestCase,{$else}CastleTester, {$endif}
   CastleUtils, CastleClassUtils;
 
 type

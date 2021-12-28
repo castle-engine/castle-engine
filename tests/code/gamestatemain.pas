@@ -40,7 +40,7 @@ implementation
 
 uses SysUtils,
   TestCastleURIUtils, TestCastleBoxes, TestCastleVectors, TestCastleCameras,
-  TestCastleClassUtils;
+  TestCastleClassUtils, TestCastleColors;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -73,6 +73,7 @@ begin
   Tester.AddTestCase(TTestCastleVectors.Create);
   Tester.AddTestCase(TTestCameras.Create);
   Tester.AddTestCase(TTestCastleClassUtils.Create);
+  Tester.AddTestCase(TTestCastleColors.Create);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
