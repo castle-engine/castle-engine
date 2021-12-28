@@ -147,11 +147,14 @@ end;
 procedure TTestCastleClassUtils.TestBufferedReadStream;
 var i: Integer;
 begin
+// TODO: Delphi
+{$ifdef FPC}
  for i := 1 to 20 do
  begin
   BufferSize := i;
   TestIndirectReadStream({$ifdef FPC}@{$endif}BufferedReadStreamFromStream);
  end;
+{$endif}
 end;
 
 procedure TTestCastleClassUtils.TestObjectsListSort;
