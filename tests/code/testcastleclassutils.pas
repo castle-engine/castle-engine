@@ -19,8 +19,9 @@ unit TestCastleClassUtils;
 
 interface
 
-uses Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, Generics.Collections,
-  CastleTestCase, CastleUtils, CastleClassUtils;
+uses Classes, SysUtils, Generics.Collections, {$ifndef CASTLE_TESTER}FpcUnit,
+  TestUtils, TestRegistry,CastleTestCase,{$else}CastleTester, {$endif}
+  CastleUtils, CastleClassUtils;
 
 type
   TStreamFromStreamFunc = function(Stream: TStream): TPeekCharStream of object;
@@ -49,7 +50,7 @@ type
     S: string;
   end;
 
-  TFooList = class(specialize TObjectList<TFoo>)
+  TFooList = class({$ifdef FPC}specialize{$endif} TObjectList<TFoo>)
   public
     procedure SortFoo;
   end;
@@ -66,16 +67,16 @@ begin
   S := AnS;
 end;
 
-function IsFooSmaller(constref A, B: TFoo): Integer;
+function IsFooSmaller({$ifdef FPC}constref{$else}const{$endif} A, B: TFoo): Integer;
 begin
   Result := A.I - B.I;
 end;
 
 procedure TFooList.SortFoo;
 type
-  TFooComparer = specialize TComparer<TFoo>;
+  TFooComparer = {$ifdef FPC}specialize{$endif} TComparer<TFoo>;
 begin
-  Sort(TFooComparer.Construct(@IsFooSmaller));
+  Sort(TFooComparer.Construct({$ifdef FPC}@{$endif}IsFooSmaller));
 end;
 
 { TTestCastleClassUtils ------------------------------------------------------- }
@@ -134,7 +135,7 @@ end;
 
 procedure TTestCastleClassUtils.TestStreamPeekChar;
 begin
- TestIndirectReadStream(@SimplePeekCharFromStream);
+ TestIndirectReadStream({$ifdef FPC}@{$endif}SimplePeekCharFromStream);
 end;
 
 function TTestCastleClassUtils.BufferedReadStreamFromStream(Stream: TStream):
@@ -149,7 +150,7 @@ begin
  for i := 1 to 20 do
  begin
   BufferSize := i;
-  TestIndirectReadStream(@BufferedReadStreamFromStream);
+  TestIndirectReadStream({$ifdef FPC}@{$endif}BufferedReadStreamFromStream);
  end;
 end;
 
@@ -194,24 +195,24 @@ begin
     O1 := TObj.Create;
     O2 := TObj.Create;
     O3 := TObj.Create;
-    AssertTrue(A.IndexOf(@O1.Dummy) = -1);
-    AssertTrue(A.IndexOf(@O2.Dummy) = -1);
-    AssertTrue(A.IndexOf(@O3.Dummy) = -1);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O1.Dummy) = -1);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O2.Dummy) = -1);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O3.Dummy) = -1);
 
-    A.Add(@O1.Dummy);
-    AssertTrue(A.IndexOf(@O1.Dummy) = 0);
-    AssertTrue(A.IndexOf(@O2.Dummy) = -1);
-    AssertTrue(A.IndexOf(@O3.Dummy) = -1);
+    A.Add({$ifdef FPC}@{$endif}O1.Dummy);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O1.Dummy) = 0);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O2.Dummy) = -1);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O3.Dummy) = -1);
 
-    A.Add(@O2.Dummy);
-    AssertTrue(A.IndexOf(@O1.Dummy) = 0);
-    AssertTrue(A.IndexOf(@O2.Dummy) = 1);
-    AssertTrue(A.IndexOf(@O3.Dummy) = -1);
+    A.Add({$ifdef FPC}@{$endif}O2.Dummy);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O1.Dummy) = 0);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O2.Dummy) = 1);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O3.Dummy) = -1);
 
-    A.Remove(@O1.Dummy);
-    AssertTrue(A.IndexOf(@O1.Dummy) = -1);
-    AssertTrue(A.IndexOf(@O2.Dummy) = 0);
-    AssertTrue(A.IndexOf(@O3.Dummy) = -1);
+    A.Remove({$ifdef FPC}@{$endif}O1.Dummy);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O1.Dummy) = -1);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O2.Dummy) = 0);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}O3.Dummy) = -1);
 
     FreeAndNil(O1);
     FreeAndNil(O2);
@@ -299,15 +300,15 @@ end;
 
 procedure TTestCastleClassUtils.TestLineColumn_SimplePeekCharStream;
 begin
-  TestLineColumnStreamCore(@SimplePeekCharFromStream);
+  TestLineColumnStreamCore({$ifdef FPC}@{$endif}SimplePeekCharFromStream);
 end;
 
 procedure TTestCastleClassUtils.TestLineColumn_BufferedReadStream;
 begin
   BufferSize := DefaultReadBufferSize; // assign before using BufferedReadStreamFromStream
-  TestLineColumnStreamCore(@BufferedReadStreamFromStream);
+  TestLineColumnStreamCore({$ifdef FPC}@{$endif}BufferedReadStreamFromStream);
   BufferSize := 1; // assign before using BufferedReadStreamFromStream
-  TestLineColumnStreamCore(@BufferedReadStreamFromStream);
+  TestLineColumnStreamCore({$ifdef FPC}@{$endif}BufferedReadStreamFromStream);
 end;
 
 procedure TTestCastleClassUtils.TestForIn;
@@ -354,6 +355,8 @@ begin
   FreeAndNil(C3);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleClassUtils);
+{$endif}
 end.
