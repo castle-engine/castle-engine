@@ -38,7 +38,7 @@ implementation
 
 {$define CASTLE_TESTER}
 
-uses SysUtils, TestCastleURIUtils;
+uses SysUtils, TestCastleURIUtils, TestCastleBoxes, TestCastleVectors;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -56,7 +56,6 @@ end;
 procedure TStateMain.Start;
 var
   TestC: TCastleTestCase;
-  TestURIUtils: TTestURIUtils;
 begin
   inherited;
 
@@ -67,8 +66,9 @@ begin
   Tester := TCastleTester.Create(FreeAtStop);
   TestC := TCastleTestCase.Create;
   Tester.AddTestCase(TestC);
-  TestURIUtils := TTestURIUtils.Create;
-  Tester.AddTestCase(TestURIUtils);
+  Tester.AddTestCase(TTestURIUtils.Create);
+  Tester.AddTestCase(TTestCastleBoxes.Create);
+  Tester.AddTestCase(TTestCastleVectors.Create);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
