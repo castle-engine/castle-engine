@@ -85,7 +85,10 @@ type
 
     function CompareFileName(Expected, Actual: String): Boolean;
 
+    procedure TestLog(Text: String);
+
     property CurrentTestName: String read FCurrentTestName;
+
   end;
 
 
@@ -462,6 +465,11 @@ begin
       ReturnAddress
       {$endif};
   end;
+end;
+
+procedure TCastleTestCase.TestLog(Text: String);
+begin
+  WritelnLog(Text);
 end;
 
 procedure TCastleTestCase.TestTestCase;
