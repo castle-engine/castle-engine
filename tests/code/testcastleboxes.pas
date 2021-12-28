@@ -20,8 +20,8 @@ unit TestCastleBoxes;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  Classes, SysUtils{$ifndef CASTLE_TESTER}, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}, CastleTester{$endif};
 
 type
   TTestCastleBoxes = class(TCastleTestCase)
@@ -837,6 +837,8 @@ begin
   AssertSameValue(Sqrt(Sqr(1) + Sqr(10) + Sqr(3)), Box2.Diagonal, 0.01);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleBoxes);
+{$endif}
 end.

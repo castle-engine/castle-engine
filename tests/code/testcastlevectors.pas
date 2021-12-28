@@ -22,8 +22,8 @@ unit TestCastleVectors;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVectors,
-  CastleTestCase;
+  Classes, SysUtils{$ifndef CASTLE_TESTER}, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}, CastleTester{$endif}, CastleVectors;
 
 type
   TTestCastleVectors = class(TCastleTestCase)
@@ -551,20 +551,20 @@ procedure TTestCastleVectors.TestMatrixMultiplication;
 var
   M1, M2, M3, Result1, Result2: TMatrix4;
 begin
-  M1.Data[0] := Vector4(1, 0, 0, 0).Data;
-  M1.Data[1] := Vector4(0, 1, 0, 0).Data;
-  M1.Data[2] := Vector4(0, 0, 1, 0).Data;
-  M1.Data[3] := Vector4(-0.31, 1.26, -0.03, 1).Data;
+  M1.Data[0] := TMatrix4.TIndexArray(Vector4(1, 0, 0, 0).Data);
+  M1.Data[1] := TMatrix4.TIndexArray(Vector4(0, 1, 0, 0).Data);
+  M1.Data[2] := TMatrix4.TIndexArray(Vector4(0, 0, 1, 0).Data);
+  M1.Data[3] := TMatrix4.TIndexArray(Vector4(-0.31, 1.26, -0.03, 1).Data);
 
-  M2.Data[0] := Vector4( 0.58,  0.75, 0.31, 0.00).Data;
-  M2.Data[1] := Vector4(-0.81,  0.52, 0.26, 0.00).Data;
-  M2.Data[2] := Vector4( 0.03, -0.40, 0.92, 0.00).Data;
-  M2.Data[3] := Vector4( 0.00,  0.00, 0.00, 1.00).Data;
+  M2.Data[0] := TMatrix4.TIndexArray(Vector4( 0.58,  0.75, 0.31, 0.00).Data);
+  M2.Data[1] := TMatrix4.TIndexArray(Vector4(-0.81,  0.52, 0.26, 0.00).Data);
+  M2.Data[2] := TMatrix4.TIndexArray(Vector4( 0.03, -0.40, 0.92, 0.00).Data);
+  M2.Data[3] := TMatrix4.TIndexArray(Vector4( 0.00,  0.00, 0.00, 1.00).Data);
 
-  M3.Data[0] := Vector4(1.00, 0.00, 0.00,  0.31).Data;
-  M3.Data[1] := Vector4(0.00, 1.00, 0.00, -1.26).Data;
-  M3.Data[2] := Vector4(0.00, 0.00, 1.00,  0.03).Data;
-  M3.Data[3] := Vector4(0.00, 0.00, 0.00,  1.00).Data;
+  M3.Data[0] := TMatrix4.TIndexArray(Vector4(1.00, 0.00, 0.00,  0.31).Data);
+  M3.Data[1] := TMatrix4.TIndexArray(Vector4(0.00, 1.00, 0.00, -1.26).Data);
+  M3.Data[2] := TMatrix4.TIndexArray(Vector4(0.00, 0.00, 1.00,  0.03).Data);
+  M3.Data[3] := TMatrix4.TIndexArray(Vector4(0.00, 0.00, 0.00,  1.00).Data);
 
   Result1 := M1 * M2;
   Result2 := M1 * M2;
@@ -584,13 +584,13 @@ procedure TTestCastleVectors.TestMatrixTranspose;
 var
   M1, M2: TMatrix3;
 begin
-  M1.Data[0] := Vector3(1, 2, 3).Data;
-  M1.Data[1] := Vector3(4, 5, 6).Data;
-  M1.Data[2] := Vector3(7, 8, 9).Data;
+  M1.Data[0] := TMatrix3.TIndexArray(Vector3(1, 2, 3).Data);
+  M1.Data[1] := TMatrix3.TIndexArray(Vector3(4, 5, 6).Data);
+  M1.Data[2] := TMatrix3.TIndexArray(Vector3(7, 8, 9).Data);
 
-  M2.Data[0] := Vector3(1, 4, 7).Data;
-  M2.Data[1] := Vector3(2, 5, 8).Data;
-  M2.Data[2] := Vector3(3, 6, 9).Data;
+  M2.Data[0] := TMatrix3.TIndexArray(Vector3(1, 4, 7).Data);
+  M2.Data[1] := TMatrix3.TIndexArray(Vector3(2, 5, 8).Data);
+  M2.Data[2] := TMatrix3.TIndexArray(Vector3(3, 6, 9).Data);
 
   M1 := M1.Transpose;
   AssertTrue(TMatrix3.PerfectlyEquals(M1, M2));
@@ -1124,6 +1124,8 @@ NormalMatrix (ModelViewToNormalMatrix determinant 0.000100) 0.05 0.04 0.00
   AssertTrue(TMatrix3.Equals(ModelViewToNormalMatrix(Mv2), Norml1Approx, 0.01));
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleVectors);
+{$endif}
 end.
