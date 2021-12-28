@@ -16,13 +16,15 @@
 
 unit TestCastleCubeMaps;
 
+{$ifdef FPC}
 {$mode objfpc}{$H+}
+{$endif}
 
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  Classes, SysUtils, Generics.Collections, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCubeMap = class(TCastleTestCase)
@@ -52,18 +54,23 @@ begin
 end;
 
 type
-  generic TTester<T> = class
+  TTesterSingle = class
     procedure DoTest(const TestCase: TCastleTestCase);
   end;
-  TTesterSingle = specialize TTester<Single>;
-  TTesterDouble = specialize TTester<Double>;
-  TTesterExtended = specialize TTester<Extended>;
 
-procedure TTester.DoTest(const TestCase: TCastleTestCase);
+  TTesterDouble = class
+    procedure DoTest(const TestCase: TCastleTestCase);
+  end;
+
+  TTesterExtended = class
+    procedure DoTest(const TestCase: TCastleTestCase);
+  end;
+
+procedure TTesterSingle.DoTest(const TestCase: TCastleTestCase);
 var
   Side: TCubeMapSide;
   Pixel: Cardinal;
-  SphereArea, SphereArea2: T;
+  SphereArea, SphereArea2: Single;
 begin
   SphereArea := 0;
   SphereArea2 := 0;
@@ -71,8 +78,116 @@ begin
   for Side := Low(Side) to High(Side) do
     for Pixel := 0 to Sqr(CubeMapSize) - 1 do
     begin
-      SphereArea += CubeMapSolidAngle(Side, Pixel);
-      SphereArea2 += (4 * Pi)/(6*Sqr(CubeMapSize));
+      SphereArea := SphereArea + CubeMapSolidAngle(Side, Pixel);
+      SphereArea2 := SphereArea2 + (4 * Pi)/(6*Sqr(CubeMapSize));
+    end;
+
+  { I use SphereArea2 only to test the accuracy of addition:
+    remember that even if CubeMapSolidAngle would be perfect,
+    adding "6*Sqr(CubeMapSize)" values together always has some precision
+    error accumulated.
+
+    Results comparing SphereArea2 with (4 * Pi) (accuracy of addition):
+
+    Single:
+      12.566516876220703
+      12.566370614359173
+            | - difference here
+
+    Double:
+      12.566370614359418
+      12.566370614359173
+                     | - difference here
+
+    Extended:
+      12.566370614359173
+      12.566370614359173
+
+                         | no visible difference of these digits.
+                           Looked at 30 first decimal digits,
+                           still no difference.
+  }
+
+{
+  Writeln(Format('%g', [SphereArea]));
+//  Writeln(Format('%g', [SphereArea2]));
+  Writeln(Format('%g', [4 * Pi]));
+}
+
+  { CubeMapSolidAngle is a gross approximation now, so we allow quite large
+    error. }
+  TestCase.AssertSameValue(4 * Pi, SphereArea, 0.02);
+end;
+
+
+procedure TTesterDouble.DoTest(const TestCase: TCastleTestCase);
+var
+  Side: TCubeMapSide;
+  Pixel: Cardinal;
+  SphereArea, SphereArea2: Double;
+begin
+  SphereArea := 0;
+  SphereArea2 := 0;
+
+  for Side := Low(Side) to High(Side) do
+    for Pixel := 0 to Sqr(CubeMapSize) - 1 do
+    begin
+      SphereArea := SphereArea + CubeMapSolidAngle(Side, Pixel);
+      SphereArea2 := SphereArea2 + (4 * Pi)/(6*Sqr(CubeMapSize));
+    end;
+
+  { I use SphereArea2 only to test the accuracy of addition:
+    remember that even if CubeMapSolidAngle would be perfect,
+    adding "6*Sqr(CubeMapSize)" values together always has some precision
+    error accumulated.
+
+    Results comparing SphereArea2 with (4 * Pi) (accuracy of addition):
+
+    Single:
+      12.566516876220703
+      12.566370614359173
+            | - difference here
+
+    Double:
+      12.566370614359418
+      12.566370614359173
+                     | - difference here
+
+    Extended:
+      12.566370614359173
+      12.566370614359173
+
+                         | no visible difference of these digits.
+                           Looked at 30 first decimal digits,
+                           still no difference.
+  }
+
+{
+  Writeln(Format('%g', [SphereArea]));
+//  Writeln(Format('%g', [SphereArea2]));
+  Writeln(Format('%g', [4 * Pi]));
+}
+
+  { CubeMapSolidAngle is a gross approximation now, so we allow quite large
+    error. }
+  TestCase.AssertSameValue(4 * Pi, SphereArea, 0.02);
+end;
+
+
+procedure TTesterExtended.DoTest(const TestCase: TCastleTestCase);
+var
+  Side: TCubeMapSide;
+  Pixel: Cardinal;
+  SphereArea, SphereArea2: Extended;
+begin
+  SphereArea := 0;
+  SphereArea2 := 0;
+
+  for Side := Low(Side) to High(Side) do
+    for Pixel := 0 to Sqr(CubeMapSize) - 1 do
+    begin
+      SphereArea := SphereArea + CubeMapSolidAngle(Side, Pixel);
+      SphereArea2 := SphereArea2 + (4 * Pi)/(6*Sqr(CubeMapSize));
     end;
 
   { I use SphereArea2 only to test the accuracy of addition:
@@ -131,6 +246,9 @@ begin
   TE.Free;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCubeMap);
+{$endif}
+
 end.

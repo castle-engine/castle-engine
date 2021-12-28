@@ -17,10 +17,10 @@ unit TestCastleGenericLists;
 
 interface
 
-uses FpcUnit, TestUtils, TestRegistry;
+uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry{$else}CastleTester{$endif};
 
 type
-  TTestGenericLists = class(TTestCase)
+  TTestGenericLists = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
   published
     procedure TestList;
     procedure TestMap;
@@ -108,6 +108,8 @@ begin
   end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestGenericLists);
+{$endif}
 end.

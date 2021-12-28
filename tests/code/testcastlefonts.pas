@@ -18,8 +18,8 @@ unit TestCastleFonts;
 
 interface
 
-uses FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleFonts = class(TCastleTestCase)
@@ -182,9 +182,9 @@ begin
   ADescend := 0;
 
   // make the values valid for current size
-  ARowHeight *= Size / ForSize;
-  ARowHeightBase *= Size / ForSize;
-  ADescend *= Size / ForSize;
+  ARowHeight := ARowHeight * (Size / ForSize);
+  ARowHeightBase := ARowHeightBase * (Size / ForSize);
+  ADescend := ADescend * (Size / ForSize);
 end;
 
 procedure TTestCastleFonts.TestOverrideFont;
@@ -332,6 +332,8 @@ begin
   FreeAndNil(CF);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleFonts);
+{$endif}
 end.

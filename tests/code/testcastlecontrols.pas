@@ -20,7 +20,8 @@ unit TestCastleControls;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleControls = class(TCastleTestCase)
@@ -114,6 +115,8 @@ begin
   finally FreeAndNil(C) end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleControls);
+{$endif}
 end.

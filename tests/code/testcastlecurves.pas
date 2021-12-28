@@ -19,7 +19,8 @@ unit TestCastleCurves;
 
 interface
 
-uses FpcUnit, TestUtils, TestRegistry, CastleTestCase;
+uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase
+  {$else}CastleTester{$endif};
 
 type
   TTestCastleCurves = class(TCastleTestCase)
@@ -51,6 +52,8 @@ begin
   finally FreeAndNil(Curve) end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleCurves);
+{$endif}
 end.

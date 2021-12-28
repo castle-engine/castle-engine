@@ -40,7 +40,12 @@ implementation
 
 uses SysUtils,
   TestCastleURIUtils, TestCastleBoxes, TestCastleVectors, TestCastleCameras,
-  TestCastleClassUtils, TestCastleColors, TestCastleComponentSerialize;
+  TestCastleClassUtils, TestCastleColors, TestCastleComponentSerialize,
+  TestCastleCompositeImage, TestCastleControls, TestCastleCubeMaps,
+  TestCastleCurves, TestCastleFilesUtils, TestCastleFonts, TestCastleFrustum,
+  TestCastleGame, {$ifdef FPC}TestCastleGenericLists, {$endif}
+  TestCastleGLVersion, TestCastleImages, TestCastleImagesDraw,
+  TestCastleKeysMouse, TestCastleOpeningAndRendering3D{, TestCastleParameters};
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -75,6 +80,21 @@ begin
   Tester.AddTestCase(TTestCastleClassUtils.Create);
   Tester.AddTestCase(TTestCastleColors.Create);
   Tester.AddTestCase(TTestCastleComponentSerialize.Create);
+  //Tester.AddTestCase(TTestCastleCompositeImage.Create);
+  Tester.AddTestCase(TTestCastleControls.Create);
+  Tester.AddTestCase(TTestCubeMap.Create);
+  Tester.AddTestCase(TTestCastleCurves.Create);
+  //Tester.AddTestCase(TTestCastleFilesUtils.Create);
+  Tester.AddTestCase(TTestCastleFonts.Create);
+  Tester.AddTestCase(TTestCastleFrustum.Create);
+  Tester.AddTestCase(TTestGame.Create);
+  {$ifdef FPC}Tester.AddTestCase(TTestGenericLists.Create);{$endif}
+  Tester.AddTestCase(TTestGLVersion.Create);
+  Tester.AddTestCase(TTestImages.Create);
+  Tester.AddTestCase(TTestImagesDraw.Create);
+  Tester.AddTestCase(TTestKeysMouse.Create);
+  Tester.AddTestCase(TTestOpeningAndRendering3D.Create);
+  //Tester.AddTestCase(TTestParsingParameters
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

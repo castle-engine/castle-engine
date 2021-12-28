@@ -19,8 +19,8 @@ unit TestCastleGame;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestGame = class(TCastleTestCase)
@@ -143,7 +143,7 @@ begin
   AssertTrue(Levels[0].Demo = true);
   AssertTrue(Levels[0].TitleHint = 'Title Hint');
   AssertTrue(Levels[0].DefaultPlayed = true);
-  AssertTrue(Levels[0].PlaceholderName = PlaceholderNames['blender']);
+  AssertTrue({$ifndef FPC}@{$endif}Levels[0].PlaceholderName = {$ifndef FPC}@{$endif}PlaceholderNames['blender']);
   AssertTrue(not Levels[0].LoadingImage.IsEmpty);
   AssertTrue(Levels[0].LoadingImage.Width = 16);
   AssertTrue(Levels[0].LoadingImage.Height = 16);
@@ -178,12 +178,12 @@ begin
     Player.LoadFromFile('data/game/player.xml');
 
     AssertFloat(Player.KnockBackSpeed, 1.2);
-    AssertFloat(Player.Camera.HeadBobbingTime, 9.1);
+    AssertFloat(Player.WalkNavigation.HeadBobbingTime, 9.1);
     AssertFloat(Player.HeadBobbing, 2.3);
     AssertFloat(Player.SickProjectionSpeed, 4.5);
-    AssertFloat(Player.Camera.JumpMaxHeight, 3.4);
-    AssertFloat(Player.Camera.JumpHorizontalSpeedMultiply, 5.6);
-    AssertFloat(Player.Camera.JumpTime, 7.8);
+    AssertFloat(Player.WalkNavigation.JumpMaxHeight, 3.4);
+    AssertFloat(Player.WalkNavigation.JumpHorizontalSpeedMultiply, 5.6);
+    AssertFloat(Player.WalkNavigation.JumpTime, 7.8);
     AssertFloat(Player.FallMinHeightToSound, 6.7);
     AssertSound(Player.FallSound, 'test_sound_1');
     AssertFloat(Player.FallMinHeightToDamage, 8.9);
@@ -200,11 +200,13 @@ begin
     // ignore resulting RemovePlayer
 
     { some properties are applied to Camera with delay }
-    AssertFloat(Player.Camera.HeadBobbing, 2.3);
+    AssertFloat(Player.WalkNavigation.HeadBobbing, 2.3);
 
   finally FreeAndNil(Player) end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestGame);
+{$endif}
 end.

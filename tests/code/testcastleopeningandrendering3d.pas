@@ -20,16 +20,16 @@ unit TestCastleOpeningAndRendering3D;
 
 interface
 
-uses FpcUnit, TestUtils, TestRegistry,
-  CastleFilesUtils, CastleFindFiles,
-  CastleTestCase, CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
+uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase,
+  {$else}CastleTester,{$endif} CastleFilesUtils, CastleFindFiles,
+  CastleWindow, CastleSceneCore, CastleScene, CastleViewport;
 
 type
   TTestOpeningAndRendering3D = class(TCastleTestCase)
   private
     { Available only during Test1 }
     Window: TCastleWindowBase;
-    SceneManager: TCastleSceneManager;
+    Viewport: TCastleViewport;
     Scene: TCastleScene;
     RecreateSceneEachTime: boolean;
 
@@ -56,6 +56,7 @@ implementation
 uses SysUtils, StrUtils,
   CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog, CastleApplicationProperties;
 
+
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
   if RecreateSceneEachTime then
@@ -63,16 +64,16 @@ begin
     //Write('Recreating scene... ');
 
     FreeAndNil(Scene);
-    AssertTrue(SceneManager.MainScene = nil);
-    AssertTrue(SceneManager.Items.Count = 0);
+    AssertTrue(Viewport.Items.MainScene = nil);
+    AssertTrue(Viewport.Items.Count = 0);
 
     Scene := TCastleScene.Create(Window);
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ProcessEvents := true;
 
-    SceneManager := TCastleSceneManager.Create(Window);
-    SceneManager.Items.Add(Scene);
-    SceneManager.MainScene := Scene;
+    Viewport := TCastleSceneManager.Create(Window);
+    Viewport.Items.Add(Scene);
+    Viewport.Items.MainScene := Scene;
   end;
 
   //Writeln('Testing "' + FileName + '"');
@@ -81,14 +82,14 @@ begin
     Scene.Load(nil, true) else
     Scene.Load(FileName);
 
-  SceneManager.Navigation.Free;
+  Viewport.Navigation.Free;
   // camera should be nil now (thanks to free notification),
   // and no new camera should be automatically created yet.
-  AssertTrue(SceneManager.Navigation = nil);
-  SceneManager.RequiredNavigation;
+  AssertTrue(Viewport.Navigation = nil);
+  Viewport.RequiredNavigation;
 
-  SceneManager.ClearCameras;
-  AssertTrue(SceneManager.Navigation = nil);
+  Viewport.ClearCameras;
+  AssertTrue(Viewport.Navigation = nil);
 
   { Force preparing and using OpenGL resources for the scene.
     This way we also check that next Load frees them Ok. }
@@ -100,6 +101,7 @@ begin
     the error. }
   CheckGLErrors;
 end;
+
 
 procedure TTestOpeningAndRendering3D.TestSceneFromEnum(const FileInfo: TFileInfo; var StopSearch: boolean);
 var
@@ -124,7 +126,7 @@ procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachT
 
     procedure DoMask(const Mask: string);
     begin
-      FindFiles(Path, Mask, false, @TestSceneFromEnum, [ffRecursive]);
+      FindFiles(Path, Mask, false, {$ifdef FPC}@{$endif}TestSceneFromEnum, [ffRecursive]);
     end;
 
   begin
@@ -150,11 +152,11 @@ begin
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ProcessEvents := true;
 
-    SceneManager := TCastleSceneManager.Create(Window);
-    SceneManager.Items.Add(Scene);
-    SceneManager.MainScene := Scene;
+    Viewport := TCastleViewport.Create(Window);
+    Viewport.Items.Add(Scene);
+    Viewport.Items.MainScene := Scene;
 
-    Window.Controls.InsertFront(SceneManager);
+    Window.Controls.InsertFront(Viewport);
     Window.Open;
 
     TestScene('');
@@ -166,14 +168,14 @@ begin
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'www' + PathDelim + 'htdocs');
     {$endif CASTLE_ENGINE_TRUNK_AVAILABLE}
 
-    ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+    ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
     try
       { e.g. tests that auto_normals_indexed_geometry.x3dv makes no warnings when generating
         arrays for rendering. }
       TestScene('castle-data:/auto_normals_indexed_geometry.x3dv');
       TestScene('castle-data:/auto_normals_indexed_geometry_full.obj');
     finally
-      ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+      ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
     end;
 
     Window.Close;
@@ -186,6 +188,8 @@ begin
   TestOpenAndRender(true);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestOpeningAndRendering3D);
+{$endif}
 end.

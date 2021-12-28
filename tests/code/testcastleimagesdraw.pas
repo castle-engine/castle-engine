@@ -21,8 +21,8 @@ unit TestCastleImagesDraw;
 interface
 
 uses
-  FpcUnit, TestUtils, TestRegistry,
-  CastleImages, CastleTestCase;
+  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase,{$else}
+  CastleTester, {$endif}CastleImages;
 
 type
   TTestImagesDraw = class(TCastleTestCase)
@@ -50,7 +50,7 @@ implementation
 
 uses SysUtils, CastleVectors, CastleColors;
 
-function TTestImagesDraw.BlendBytes(const Dest, Source, Opacity: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function TTestImagesDraw.BlendBytes(const Dest, Source, Opacity: Byte): Byte; {$ifdef FPC}{$ifdef SUPPORTS_INLINE} inline; {$endif}{$endif}
 var
   W: Word;
 begin
@@ -61,7 +61,7 @@ begin
   Result := W;
 end;
 
-function TTestImagesDraw.AddBytes(const Dest, Source, Opacity: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function TTestImagesDraw.AddBytes(const Dest, Source, Opacity: Byte): Byte; {$ifdef FPC}{$ifdef SUPPORTS_INLINE} inline; {$endif}{$endif}
 var
   W: Word;
 begin
@@ -70,7 +70,7 @@ begin
   Result := W;
 end;
 
-function TTestImagesDraw.AddBytesPremultiplied(const Dest, Source: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function TTestImagesDraw.AddBytesPremultiplied(const Dest, Source: Byte): Byte; {$ifdef FPC}{$ifdef SUPPORTS_INLINE} inline; {$endif}{$endif}
 var
   W: Word;
 begin
@@ -398,6 +398,8 @@ begin
   AssertVectorEquals(Vector2Byte(AddBytesPremultiplied(203, 202), 128), GrayAlpha.PixelPtr(1, 1)^);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestImagesDraw);
+{$endif}
 end.

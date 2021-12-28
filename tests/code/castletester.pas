@@ -2,7 +2,8 @@ unit CastleTester;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections, Rtti, CastleVectors, CastleBoxes;
+uses SysUtils, Classes, Generics.Collections, Rtti, CastleVectors, CastleBoxes,
+  CastleFrustum, CastleImages;
 
 const
   { Epsilon used by default when compating Single (Single-precision float values).
@@ -34,8 +35,10 @@ type
     FNotifyAssertFail: TNotifyAssertFail;
     FCurrentTestName: String;
   public
-    procedure TestTestCase;
     constructor Create;
+
+    procedure Setup; virtual;
+    procedure TearDown; virtual;
 
     procedure Fail(const Msg: String; ErrorAddr: Pointer = nil);
     procedure AssertTrue(const ACondition: Boolean); overload;
@@ -77,15 +80,35 @@ type
     procedure AssertVectorEquals(const Expected, Actual: TVector4;
       const Epsilon: Single; ErrorAddr: Pointer = nil); overload;
 
+    { Check that 3D planes (defined by equation Ax+By+Cz+D=0) are equal.
+      The vectors must be a component-wise multiplication of each other. }
+    procedure AssertPlaneEquals(const Expected, Actual: TVector4;
+      const Epsilon: Single; ErrorAddr: Pointer = nil); overload;
+    procedure AssertPlaneEquals(const Expected, Actual: TVector4;
+      ErrorAddr: Pointer = nil); overload;
+
+
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D;
       ErrorAddr: Pointer = nil); overload;
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; const Epsilon: Double;
+      ErrorAddr: Pointer = nil); overload;
+
+    procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage;
+      ErrorAddr: Pointer = nil);
+
+    procedure AssertFrustumEquals(const Expected, Actual: TFrustum;
+      const Epsilon: Single; ErrorAddr: Pointer = nil); overload;
+    procedure AssertFrustumEquals(const Expected, Actual: TFrustum;
       ErrorAddr: Pointer = nil); overload;
 
 
     function CompareFileName(Expected, Actual: String): Boolean;
 
     procedure TestLog(Text: String);
+
+    procedure TestTestCase;
+
+    procedure OnWarningRaiseException(const Category, S: string);
 
     property CurrentTestName: String read FCurrentTestName;
 
@@ -165,18 +188,23 @@ var
 begin
   // raise Exception.Create('Test Return Adress') at {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  RttiType := FRttiContext.GetType(TestCase.ClassInfo);
+  TestCase.Setup;
+  try
+    RttiType := FRttiContext.GetType(TestCase.ClassInfo);
 
-  for RttiMethod in RttiType.GetMethods do
-  begin
-    if (RttiMethod.MethodKind in [mkProcedure, mkFunction]) and
-      (Length(RttiMethod.GetParameters) = 0) and
-      (pos('TEST', UpperCase(RttiMethod.Name)) = 1) then
+    for RttiMethod in RttiType.GetMethods do
     begin
-      TestCase.FCurrentTestName := RttiMethod.Name;
-      RttiMethod.Invoke(TestCase, []);
-    end;
+      if (RttiMethod.MethodKind in [mkProcedure, mkFunction]) and
+        (Length(RttiMethod.GetParameters) = 0) and
+        (pos('TEST', UpperCase(RttiMethod.Name)) = 1) then
+      begin
+        TestCase.FCurrentTestName := RttiMethod.Name;
+        RttiMethod.Invoke(TestCase, []);
+      end;
 
+    end;
+  finally
+    TestCase.TearDown;
   end;
 end;
 
@@ -275,6 +303,69 @@ begin
     {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif});
 end;
 
+procedure TCastleTestCase.AssertFrustumEquals(const Expected, Actual: TFrustum;
+  ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+  AssertFrustumEquals(Expected, Actual, SingleEpsilon, ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertImagesEqual(const Expected,
+  Actual: TRGBAlphaImage; ErrorAddr: Pointer);
+var
+  ExpectedPtr, ActualPtr: PVector4Byte;
+  I: Integer;
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  // Overloaded version with AErrorAddrs is missing for fpcunit AssertEquals
+  AssertEquals(Expected.Width, Actual.Width{, AErrorAddrs});
+  AssertEquals(Expected.Height, Actual.Height{, AErrorAddrs});
+  AssertEquals(Expected.Depth, Actual.Depth{, AErrorAddrs});
+  ExpectedPtr := Expected.Pixels;
+  ActualPtr := Actual.Pixels;
+  for I := 1 to Actual.Width * Actual.Height * Actual.Depth do
+  begin
+    AssertVectorEquals(ExpectedPtr^, ActualPtr^, ErrorAddr);
+    Inc(ExpectedPtr);
+    Inc(ActualPtr);
+  end;
+end;
+
+procedure TCastleTestCase.AssertFrustumEquals(const Expected, Actual: TFrustum;
+  const Epsilon: Single; ErrorAddr: Pointer);
+var
+  I: TFrustumPlane;
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  try
+    AssertEquals(Expected.ZFarInfinity, Actual.ZFarInfinity);
+
+    if Expected.ZFarInfinity then
+    begin
+      for I := Low(I) to Pred(High(I)) do
+        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], Epsilon);
+    end else
+    begin
+      for I := Low(I) to High(I) do
+        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], Epsilon);
+    end;
+  except
+    on E: Exception do
+    begin
+      Fail(Format('Expected frustum (%s) does not equal actual (%s). The underlying difference exception: %s', [
+        Expected.ToString('  '),
+        Actual.ToString('  '),
+        E.Message
+      ]), ErrorAddr);
+    end;
+  end;
+end;
+
 procedure TCastleTestCase.AssertMatrixEquals(const Expected, Actual: TMatrix4;
   const Epsilon: Single; ErrorAddr: Pointer);
 var
@@ -301,6 +392,56 @@ begin
        Actual.ToRawString('    '),
        DifferenceEpsilon,
        Epsilon
+      ]), ErrorAddr);
+  end;
+end;
+
+procedure TCastleTestCase.AssertPlaneEquals(const Expected, Actual: TVector4;
+  ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
+  AssertPlaneEquals(Expected, Actual, SingleEpsilon, ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertPlaneEquals(const Expected, Actual: TVector4;
+  const Epsilon: Single; ErrorAddr: Pointer);
+var
+  MaxE, MaxA: Integer;
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
+
+  MaxE := MaxAbsVectorCoord(Expected);
+  MaxA := MaxAbsVectorCoord(Actual);
+
+  if MaxE <> MaxA then
+    Fail(Format('Planes (TVector4) are not equal, their maximum component index differs. Expected: %s, actual: %s',
+      [Expected.ToRawString, Actual.ToRawString]), ErrorAddr);
+
+  if IsZero(Expected[MaxE], Epsilon) and
+     IsZero(  Actual[MaxA], Epsilon) then
+  begin
+    if not (Expected.IsZero(Epsilon) and Actual.IsZero(Epsilon)) then
+      Fail(Format('Planes (TVector4) are not equal, they should be both zero since maximum component is zero. Expected: %s, actual: %s',
+        [Expected.ToRawString, Actual.ToRawString]), ErrorAddr);
+  end else
+  if IsZero(Expected[MaxE], Epsilon) or
+     IsZero(  Actual[MaxA], Epsilon) then
+  begin
+    Fail(Format('Planes (TVector4) are not equal, one of them has zero maximum component, the other not. Expected: %s, actual: %s',
+      [Expected.ToRawString, Actual.ToRawString]), ErrorAddr);
+  end else
+  begin
+    if not TVector4.Equals(
+      Expected,
+      Actual * (Expected[MaxE] / Actual[MaxA]),
+      Epsilon
+    ) then
+      Fail(Format('Planes (TVector4) are not equal, they are not multiplied version of each other. Expected: %s, actual: %s. After trying to bring them closer, actual is %s', [
+        Expected.ToRawString,
+        Actual.ToRawString,
+        (Actual * (Expected[MaxE] / Actual[MaxA])).ToRawString
       ]), ErrorAddr);
   end;
 end;
@@ -467,6 +608,25 @@ begin
   end;
 end;
 
+procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
+begin
+  raise Exception.CreateFmt(ClassName +
+    ': received a warning, and any warning here is an error: %s: %s',
+    [Category,
+    S]
+  );
+end;
+
+procedure TCastleTestCase.Setup;
+begin
+
+end;
+
+procedure TCastleTestCase.TearDown;
+begin
+
+end;
+
 procedure TCastleTestCase.TestLog(Text: String);
 begin
   WritelnLog(Text);
@@ -474,7 +634,7 @@ end;
 
 procedure TCastleTestCase.TestTestCase;
 begin
-  WritelnLog('TestTestCase');
+  TestLog('TestTestCase');
   //AssertTrue(false);
 end;
 

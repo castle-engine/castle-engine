@@ -19,8 +19,8 @@ unit TestCastleKeysMouse;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestKeysMouse = class(TCastleTestCase)
@@ -128,6 +128,8 @@ begin
   AssertTrue(KeyToStr(keyF11, [mkCtrl], true) = 'Command+F11');
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestKeysMouse);
+{$endif}
 end.

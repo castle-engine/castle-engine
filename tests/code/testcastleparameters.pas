@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestParsingParameters" -*-
+﻿// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestParsingParameters" -*-
 {
   Copyright 2004-2021 Michalis Kamburelis.
 
@@ -21,8 +21,8 @@ unit TestCastleParameters;
 
 interface
 
-uses Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleParameters, CastleUtils;
+uses Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  {$else}CastleTester,{$endif} CastleParameters, CastleUtils;
 
 type
   TParsedOption = record
@@ -32,9 +32,9 @@ type
     SeparateArgs: TSeparateArgs;
   end;
   PParsedOption = ^TParsedOption;
-  TParsedOptionList = specialize TStructList<TParsedOption>;
+  TParsedOptionList = {$ifdef FPC}specialize{$endif} TStructList<TParsedOption>;
 
-  TTestParsingParameters = class(TTestCase)
+  TTestParsingParameters = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
   private
     procedure AssertParsEqual(const ParsValues: array of string; const ParsTestName: string);
     procedure AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;
@@ -54,7 +54,7 @@ var
   ParsedArray: TParsedOptionList absolute Data;
   LastItem: PParsedOption;
 begin
-  LastItem := ParsedArray.Add;
+  LastItem := PParsedOption(ParsedArray.Add);
   LastItem^.OptionNum := OptionNum;
   LastItem^.HasArgument := HasArgument;
   LastItem^.Argument := Argument;
@@ -68,7 +68,7 @@ end;
   @groupBegin }
 function ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
-  ParseOnlyKnownOptions: boolean = false): TParsedOptionList;
+  ParseOnlyKnownOptions: boolean = false): TParsedOptionList; overload;
 begin
   result := TParsedOptionList.Create;
   try
@@ -79,7 +79,7 @@ begin
 end;
 
 function ParseParameters(
-  const Options: array of TOption; ParseOnlyKnownOptions: boolean = false): TParsedOptionList;
+  const Options: array of TOption; ParseOnlyKnownOptions: boolean = false): TParsedOptionList; overload;
 begin
  result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownOptions);
 end;

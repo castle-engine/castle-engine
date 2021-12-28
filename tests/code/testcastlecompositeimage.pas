@@ -20,10 +20,10 @@ unit TestCastleCompositeImage;
 interface
 
 uses
-  FpcUnit, TestUtils, TestRegistry;
+  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry{$else}CastleTester{$endif};
 
 type
-  TTestCastleCompositeImage = class(TTestCase)
+  TTestCastleCompositeImage = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
   published
     procedure TestLoadSave;
     procedure TestLoadSaveS3TC;
@@ -202,6 +202,8 @@ begin
   TestImage('data/images/metal_decal_dxt5.dds', true);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
  RegisterTest(TTestCastleCompositeImage);
+{$endif}
 end.

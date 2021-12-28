@@ -20,8 +20,8 @@ unit TestCastleFilesUtils;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleFilesUtils = class(TCastleTestCase)
@@ -36,7 +36,7 @@ type
 implementation
 
 uses CastleUtils, CastleFindFiles, CastleFilesUtils, CastleTimeUtils
-  {$ifdef UNIX}, BaseUnix {$endif};
+  {$ifdef UNIX}, BaseUnix {$endif}{$ifndef FPC}, IOUtils{$endif};
 
 procedure TTestCastleFilesUtils.TestPathDelim;
 begin
@@ -82,11 +82,11 @@ end;
 procedure TTestCastleFilesUtils.TestExeName;
 begin
   try
-    {$push} // knowingly using deprecated below, for test
-    {$warnings off}
+    {$ifdef FPC}{$push} // knowingly using deprecated below, for test
+    {$warnings off}{$endif}
 //    Writeln('ExeName: '+ ExeName);
     ExeName;
-    {$pop}
+    {$ifdef FPC}{$pop}{$endif}
   except
     on E: EExeNameNotAvailable do
     begin
@@ -127,9 +127,16 @@ end;
 procedure TTestCastleFilesUtils.TestGetTempDir;
 begin
 //  Writeln('TempDir: ', GetTempDir);
+  {$ifdef FPC}
   GetTempDir; // ignore result, just make sure it doesn't raise errors
+  {$else}
+  TPath.GetTempPath;
+  {$endif}
 end;
 
+
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleFilesUtils);
+{$endif}
 end.
