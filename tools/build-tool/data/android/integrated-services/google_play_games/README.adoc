@@ -1,0 +1,22 @@
+## google_play_games
+
+Enable the https://developers.google.com/games/services/[Google Play Games Services]. Use the https://castle-engine.io/apidoc/html/CastleGameService.TGameService.html[TGameService] class from the https://castle-engine.io/apidoc/html/CastleGameService.html[CastleGameService] unit in Pascal to initialize and use it, for example to sign-in, _send scores and achievements, view achievements and leaderboards, load and save savegames in the cloud_.
+
+Requires:
+
+* Using this service requires using also `google_play_services`
+* You must create a project in _"Game Services"_ section of the _"Google Developer Console"_. This will give you a special "app_id" for your project. In order for the integration to work, you need to specify this app_id in our link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml], like this:
++
+[,xml]
+----
+<android project_type="integrated">
+  <services>
+    <service name="google_play_services" />
+    <service name="google_play_games">
+      <parameter key="app_id" value="PASTE-APP-ID-HERE" />
+    </service>
+  </services>
+</android>
+----
++
+After this, you need to call from Pascal code `GameService.Initialize` to connect to _Google Play Games_ when you want (usually, at the beginning of your game: from `TCastleApplication.OnInitialize`).

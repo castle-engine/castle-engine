@@ -1,0 +1,3 @@
+## vibrate
+
+Allows to vibrate the device. Use the https://castle-engine.io/apidoc/html/CastleOpenDocument.html#Vibrate[Vibrate] procedure from https://castle-engine.io/apidoc/html/CastleOpenDocument.html[CastleOpenDocument] unit to cause vibration from Object Pascal code.

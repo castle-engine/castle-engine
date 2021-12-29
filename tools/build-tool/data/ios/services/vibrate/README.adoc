@@ -1,0 +1,19 @@
+## vibrate
+
+This service enables vibrations on iOS.
+
+Request this service in https://castle-engine.io/project_manifest[CastleEngineManifest.xml] like this:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<project name="..." game_units="...">
+  <ios>
+    <services>
+      <service name="vibrate" />
+    </services>
+  </ios>
+</project>
+----
+
+Then use https://castle-engine.io/apidoc-unstable/html/CastleOpenDocument.html#Vibrate[Vibrate] procedure from the https://castle-engine.io/apidoc-unstable/html/CastleOpenDocument.html[CastleOpenDocument] unit in your application.

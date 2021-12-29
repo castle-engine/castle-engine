@@ -1,0 +1,3 @@
+## filter_out_low_end_devices
+
+**Deprecated**: Old hacky way to disable your application on old Android devices.

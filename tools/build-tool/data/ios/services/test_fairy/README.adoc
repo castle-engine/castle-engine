@@ -1,4 +1,4 @@
-# test_fairy
+## test_fairy
 
 This service integrates _Castle Game Engine_ applications with [Test Fairy](https://www.testfairy.com/). It's a nice way to distribute mobile applications to your testers, gather logs, feedback etc.
 
@@ -12,16 +12,17 @@ Use the `CastleTestFairy` unit and call `TTestFairy.InitializeRemoteLogging;` to
 
 Note about `CastleTestFairy` unit: on iOS, use it *only* if you use `test_fairy` service, otherwise the code will not even link.
 
-## Parameters
+### Parameters
 
 You need to specify additional parameters inside `CastleEngineManifest.xml` when using this service:
 
-~~~~xml
+[source,xml]
+----
 <service name="test_fairy">
   <parameter key="domain" value="xxxxxx" />
   <parameter key="sdk_app_token" value="SDK-yyyyyy" />
 </service>
-~~~~
+----
 
 The "domain" parameter above is the initial component of your TestFairy domain name. E.g. if you login to `https://catgames.testfairy.com/` , then use `<parameter name="domain" name="catgames" />`.
 
