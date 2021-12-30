@@ -1,6 +1,28 @@
 body {
   /* Override Bootstrap to add Inter https://fonts.google.com/specimen/Inter */
   font-family: Inter,"Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  /* Override Bootstrap 14px */
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Makes reading much easier, like on
+   https://docs.asciidoctor.org/asciidoc/latest/macros/audio-and-video/
+   https://castle-engine.io/build_tool */
+p {
+  margin-bottom: 16px;
+}
+
+/* Override Bootstrap default:
+
+   Remove "Courier New",
+   "Courier New" bold width doesn't match regular "Courier New",
+   this hurts our CommonSurfaceShader view on x3d_implementation_texturing_extensions.php .
+   It is also not nice on Linux according to
+   https://github.com/twbs/bootstrap/issues/18609
+*/
+code, kbd, pre, samp {
+  font-family: monospace !important;
 }
 
 @media only screen and (max-width : 767px) {
@@ -59,17 +81,6 @@ div.thumbs_cell_with_text_or_movie {
 /* Our <pre> must break, otherwise our right sidebar is shifted and looks bad */
 pre {
   white-space: pre-wrap;
-}
-
-/* Override Bootstrap default:
-   Remove "Courier New", add "Liberation Mono".
-   "Courier New" bold width doesn't match regular "Courier New",
-   this hurts our CommonSurfaceShader view on x3d_implementation_texturing_extensions.php .
-   It is also not nice on Linux according to
-   https://github.com/twbs/bootstrap/issues/18609
-*/
-code, kbd, pre, samp {
-  font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
 }
 
 a.kscript_func_docs { text-decoration: underline; }
@@ -257,6 +268,20 @@ article.post .entry-content ul {
 article.post .entry-content ol.list-no-margin,
 article.post .entry-content ul.list-no-margin {
   margin-bottom: 0 !important;
+}
+
+.message_404 {
+  font-size: large;
+  text-align: center;
+}
+
+.message_404 p {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+.docs_improve_hint {
+  font-style: italic;
 }
 
 /* main page stuff ----------------------------------------------------------- */
