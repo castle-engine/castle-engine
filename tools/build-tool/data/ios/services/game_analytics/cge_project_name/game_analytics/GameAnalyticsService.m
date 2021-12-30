@@ -17,7 +17,7 @@
 /* Game Analytics https://gameanalytics.com/ integration with Castle Game Engine.
 
    See https://castle-engine.io/
-   and https://github.com/castle-engine/castle-engine/wiki/iOS-Services
+   and https://castle-engine.io/ios-Services
    for information about Castle Game Engine and services on iOS.
 
    See https://gameanalytics.com/docs/ios-sdk

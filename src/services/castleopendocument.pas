@@ -36,7 +36,7 @@ resourcestring
   For example, it will support the market:// URLs on Android.
 
   To use this on Android, declare your Android project type as "integrated",
-  see https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine . }
+  see https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine . }
 function OpenURL(AURL: String): Boolean;
 
 { Open a local file or directory.
@@ -48,7 +48,7 @@ function OpenDocument(APath: String): Boolean;
 
   This works only on Android and iOS right now.
   For Android, you need to declare the project type as "integrated":
-  See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .
+  See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine .
 
   @param(Title The short title of the share.)
   @param(Subject Used as an email subject, and any other app on Android
@@ -67,7 +67,7 @@ procedure ShareText(const Title, Subject, Content: string);
 
       To include the necessary integration code in your Android project,
       you must declare your Android project type as "integrated".
-      See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .
+      See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine .
     )
     @item(On iOS, ApplicationId has to be the "Apple ID" number of your application
       (you can see it e.g. in https://itunesconnect.apple.com/ page of your application).
@@ -82,7 +82,7 @@ procedure OpenApplicationStore(const ApplicationId: string);
   To include the necessary integration code in your Android project,
   declare your Android project type as "integrated" with
   the "vibrate" service inside CastleEngineManifest.xml.
-  See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine . }
+  See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine . }
 procedure Vibrate(const Miliseconds: Cardinal);
 
 { Simple on-screen notification using Android "toast" call.
@@ -90,7 +90,7 @@ procedure Vibrate(const Miliseconds: Cardinal);
   This is available only on Android right now, ignored elsewhere.
   To include the necessary integration code in your Android project,
   you must declare your Android project type as "integrated".
-  See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine . }
+  See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine . }
 procedure OnScreenNotification(const Message: string);
   deprecated 'This is Android-specific and probably will not be ever supported on other platforms. Better use CGE UI to make cros-platform UI notifications, like TCastleNotifications or just TCastleLabel with animated color/background.';
 

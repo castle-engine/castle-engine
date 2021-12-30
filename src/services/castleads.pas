@@ -78,7 +78,7 @@ type
         declare your Android project type as "integrated" with
         the appropriate services (admob, chartboost, startapp, heyzap...)
         inside CastleEngineManifest.xml .
-        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .)
+        See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine .)
     )
   }
   TAds = class(TComponent)

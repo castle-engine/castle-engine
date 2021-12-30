@@ -55,11 +55,11 @@ type
       @item(Include the necessary integration code in your Android / iOS project.
 
         For iOS, add the "activity_regonition" service inside CastleEngineManifest.xml.
-        See https://github.com/castle-engine/castle-engine/wiki/iOS-Services
+        See https://castle-engine.io/ios-Services
         and https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/ios/services/activity_recognition/README.md .
 
         Build your project with the Castle Game Engine build tool:
-        https://github.com/castle-engine/castle-engine/wiki/Build-Tool .)
+        https://castle-engine.io/build_tool .)
 
       @item(Create an instance of this class. Only a single instance of this class is allowed.)
 

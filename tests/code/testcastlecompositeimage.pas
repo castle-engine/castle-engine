@@ -127,7 +127,7 @@ begin
       on regular Linux/x86_64, and even using *the same* Docker image
       as used by Jenkins.
       That is, doing inside Docker image
-      (see https://github.com/castle-engine/castle-engine/wiki/Docker )
+      (see https://castle-engine.io/docker )
 
         source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools
         source /usr/local/fpclazarus/bin/setup.sh trunk && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests

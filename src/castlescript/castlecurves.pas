@@ -60,7 +60,7 @@ type
     function PointOfSegment(const i, Segments: Cardinal): TVector3;
 
     { Load the first curve defined in given XML file.
-      Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
+      Hint: use https://castle-engine.io/curves_tool to design curves
       visually. }
     class function LoadFromFile(const URL: string): TCurve;
 
@@ -74,12 +74,12 @@ type
   TCurveList = class({$ifdef FPC}specialize{$endif} TObjectList<TCurve>)
   public
     { Load curves definitions from a simple XML file.
-      Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
+      Hint: use https://castle-engine.io/curves_tool to design curves
       visually. }
     procedure LoadFromFile(const URL: string);
 
     { Save curve definitions to a simple XML file.
-      Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
+      Hint: use https://castle-engine.io/curves_tool to design curves
       visually. }
     procedure SaveToFile(const URL: string);
   end;

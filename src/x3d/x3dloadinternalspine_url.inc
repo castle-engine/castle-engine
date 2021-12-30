@@ -14,7 +14,7 @@
 }
 
 { Extract extra information from Spine URL.
-  See https://github.com/castle-engine/castle-engine/wiki/Spine .
+  See https://castle-engine.io/spine .
   For example for URL 'my_animation.json#skin:my_skin_name,atlas:my_atlas_name',
   it returns 'my_skin_name' as SkinName,
   and returns 'my_atlas_name' as CustomAtlasName. }

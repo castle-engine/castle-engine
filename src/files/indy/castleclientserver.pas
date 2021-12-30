@@ -18,7 +18,7 @@
   See https://castle-engine.io/manual_network.php#section_multi_player .
 
   On Android, it requires adding
-  @url(https://github.com/castle-engine/castle-engine/wiki/Android-Services
+  @url(https://castle-engine.io/android-Services
   client_server service in your project).
   On other platforms, it requires having @url(http://www.indyproject.org/ Indy) available. }
 unit CastleClientServer;

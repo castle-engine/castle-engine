@@ -610,7 +610,7 @@ begin
         end;
       cmValgrind:
         begin
-          { See https://github.com/castle-engine/castle-engine/wiki/Profiling-Using-Valgrind
+          { See https://castle-engine.io/profiling_using_valgrind
             for reasons of Valgrind options. }
           FpcOptions.Add('-gv');
           FpcOptions.Add('-gl');
@@ -640,7 +640,7 @@ begin
       FpcOptions.Add('-CpARMV7A');
 
       { Necessary to work fast.
-        See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#notes-about-compiling-with-hard-floats--cfvfpv3 }
+        See https://castle-engine.io/android-FAQ#notes-about-compiling-with-hard-floats--cfvfpv3 }
       FpcOptions.Add('-CfVFPV3');
 
       { This allows to "sacrifice precision for performance"

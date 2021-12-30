@@ -54,7 +54,7 @@ type
 
     To make this work, on Android you need to declare your Android project type
     as "integrated" (this is actually the default now).
-    See https://github.com/castle-engine/castle-engine/wiki/Android-Services .
+    See https://castle-engine.io/android-Services .
     For iOS it is always enabled.
 
     All the communication is asynchronous on all platforms -- Pascal code sends a message,

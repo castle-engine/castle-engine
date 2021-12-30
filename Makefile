@@ -128,7 +128,7 @@ build-using-fpmake:
 	fi
 
 # Full test that fpmake compilation process works
-# (see https://github.com/castle-engine/castle-engine/wiki/FpMake )
+# (see https://castle-engine.io/fpmake )
 .PHONY: test-fpmake
 test-fpmake: build-using-fpmake
 # Test fpmake with --nofpccfg, to make sure our dependencies in fpmake.pp are correct

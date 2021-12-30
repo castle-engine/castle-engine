@@ -410,7 +410,7 @@ var
 
   procedure CalculateSigningProperties(var PackageMode: TCompilationMode);
   const
-    WWW = 'https://github.com/castle-engine/castle-engine/wiki/Android';
+    WWW = 'https://castle-engine.io/android';
 
     procedure LoadSigningProperties(const FileName: string);
     var
