@@ -936,6 +936,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       'Directory',
       'Compressed zip',
       'Compressed tar.gz',
+      'Debian Package (DEB)',
       'Android APK',
       'Android App Bundle (AAB)',
       'iOS Xcode Project',
