@@ -2,7 +2,7 @@
 set -e
 
 # Compile CGE library for 4 iOS targets.
-# See https://github.com/castle-engine/castle-engine/wiki/iOS
+# See https://castle-engine.io/ios
 
 # Configurable variables -----------------------------------------------------
 

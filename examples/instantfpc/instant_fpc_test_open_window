@@ -4,7 +4,7 @@
 
   To make this work,
   - install FPC, which should include the instantfpc binary
-  - install CGE using FpMake/FpPkg following https://github.com/castle-engine/castle-engine/wiki/FpMake
+  - install CGE using FpMake/FpPkg following https://castle-engine.io/fpmake
 }
 
 uses CastleParameters, CastleWindow, CastleControls, CastleColors, CastleUIControls;

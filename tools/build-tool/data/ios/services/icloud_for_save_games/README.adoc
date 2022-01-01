@@ -1,0 +1,3 @@
+## iCloud for savegames
+
+This service enhances the `apple_game_center` service to be able to store savegames in the cloud. See the `apple_game_center` documentation above.

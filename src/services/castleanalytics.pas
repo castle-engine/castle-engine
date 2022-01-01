@@ -36,11 +36,11 @@ type
     On Android or iOS. You will need to also add appropriate "service" to your application,
     like @code(game_analytics) or @code(google_analytics) to have the integration code
     automatically included. See Android services
-    ( https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine )
+    ( https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine )
     and iOS services
-    ( https://github.com/castle-engine/castle-engine/wiki/iOS-Services )
+    ( https://castle-engine.io/ios-Services )
     and CastleEngineManifest.xml docs
-    ( https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples ).
+    ( https://castle-engine.io/project_manifest ).
 
     Usage:
 

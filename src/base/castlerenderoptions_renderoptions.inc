@@ -439,7 +439,7 @@ type
       More precisely: if this is @true, all shapes with
       transparent materials or textures with non-trivial (not only yes/no)
       alpha channel will be rendered using blending.
-      See https://github.com/castle-engine/castle-engine/wiki/Blending
+      See https://castle-engine.io/blending
       for details how it works.
 
       If this is @false, everything will be rendered as opaque. }
@@ -451,7 +451,7 @@ type
       for specific shapes using @link(TBlendModeNode).
       See https://castle-engine.io/x3d_extensions.php#section_ext_blending for details of TBlendModeNode.
 
-      See https://github.com/castle-engine/castle-engine/wiki/Blending
+      See https://castle-engine.io/blending
       for details how it works.
 
       @groupBegin }
@@ -501,7 +501,7 @@ type
       The shapes obscured by other shapes will not be rendered.
       This makes sense when in your view, many shapes are typically obscured by others.
 
-      See the https://github.com/castle-engine/castle-engine/wiki/Occlusion-Query
+      See the https://castle-engine.io/occlusion_query
       for details how does this work.
 
       This is ignored if HierarchicalOcclusionQuery.

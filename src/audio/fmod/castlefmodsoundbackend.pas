@@ -14,7 +14,7 @@
 }
 
 { Sound engine backend using FMOD.
-  See https://github.com/castle-engine/castle-engine/wiki/FMOD
+  See https://castle-engine.io/fmod
   about using FMOD with CGE.
 }
 unit CastleFMODSoundBackend;

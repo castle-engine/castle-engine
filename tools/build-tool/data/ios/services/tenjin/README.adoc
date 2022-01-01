@@ -1,39 +1,30 @@
 # tenjin
 
-This service integrates your iOS project with [Tenjin](https://www.tenjin.com/), an install attribution service.
+This service integrates your iOS project with https://www.tenjin.com/[Tenjin], an install attribution service.
 
 See https://docs.tenjin.com/ for an overview of what Tenjin offers. It is a commercial service, although can be used for free with some limits.
 
-You will need to:
-
-- Create an account on https://www.tenjin.com/ , add your game (for Android), and get the API key from https://www.tenjin.io/dashboard/docs (this is similar as for iOS).
-
-- You also need to allow Tenjin to verify purchases done on Google Play. See https://docs.tenjin.com/en/send-events/android.html , section _"Purchase Events"_.
-
-- You also need to download latest release from https://github.com/tenjin/tenjin-android-sdk/releases, unpack it somewhere. Indicate the location of the directory that contains the `tenjin.aar` and `tenjin.jar` files using the parameter `library_path` shown below. (It can be a directory relative to your project, or an absolute path.)
+You will need to create an account on https://www.tenjin.com/ , add your game (for iOS), and get the API key from https://www.tenjin.io/dashboard/docs .
 
 ## Declare in CastleEngineManifest.xml
 
-Declare it like this in [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples):
+Declare it like this in link:https://castle-engine.io/project_manifest[CastleEngineManifest.xml]:
 
-~~~~xml
+[source,xml]
+----
 <?xml version="1.0" encoding="utf-8"?>
 <project name="..." game_units="...">
-  <android min_sdk_version="21">
+  <ios>
     <services>
       <service name="tenjin">
-        <parameter key="library_path" value="tenjin-android-sdk/" />
+        <parameter key="user_tracking_usage_description" value="Installation statistics help us improve the game" />
       </service>
     </services>
-  </android>
+  </ios>
 </project>
-~~~~
+----
 
-In this example:
-
-- we use Android `tenjin` service and set its parameters
-
-- we bump Android `min_sdk_version` to 21, as required by Tenjin (you can bump it higher if needed, but it must be at least 21).
+The `user_tracking_usage_description` value is specified for Apple [NSUserTrackingUsageDescription](https://developer.apple.com/documentation/bundleresources/information_property_list/nsusertrackingusagedescription), it is shown to the user by the iOS, to explain why Tenjin needs to identify user for statistics.
 
 ## Use from Pascal
 
@@ -45,7 +36,8 @@ Then initialize the analytics reporting. Make sure to ask users for permission t
 
 Like this:
 
-```pascal
+[source,pascal]
+----
 var
   MyTenjin: TCastleTenjin;
 
@@ -56,6 +48,6 @@ begin
   MyTenjin := TCastleTenjin.Create(Application);
   MyTenjin.Initialize('YOUR-TENJIN-API-KEY');
 end;
-```
+----
 
 Optionally you can also send custom events to Tenjin. Just call from anywhere `MyTenjin.SendEvent('event_name');`.

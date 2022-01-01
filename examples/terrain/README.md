@@ -4,7 +4,7 @@ Terrain generation and visualization toy using Castle Game Engine
 ( https://castle-engine.io/ ).
 
 Compile using Castle Game Engine build tool
-( https://github.com/castle-engine/castle-engine/wiki/Build-Tool ).
+( https://castle-engine.io/build_tool ).
 You can just run `make` to compile a normal executable for current system
 (Linux, Windows etc.). Other targets are available, e.g. run `make android`
 to create an Android application.

@@ -36,7 +36,7 @@ type
       @item(To include the necessary integration code in your Android project,
         declare your Android project type as "integrated" with
         the "giftiz" component inside CastleEngineManifest.xml.
-        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .)
+        See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine .)
     ) }
   TGiftiz = class(TComponent)
   public

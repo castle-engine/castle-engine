@@ -68,13 +68,13 @@ type
 
         For Android, declare your project type as "integrated" and add
         the "google_play_games" service inside CastleEngineManifest.xml.
-        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .
+        See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine .
 
         For iOS, add the "apple_game_center" service inside CastleEngineManifest.xml.
-        See https://github.com/castle-engine/castle-engine/wiki/iOS-Project-Services-Integrated-with-Castle-Game-Engine .
+        See https://castle-engine.io/ios-Project-Services-Integrated-with-Castle-Game-Engine .
 
         Build your project with the Castle Game Engine build tool:
-        https://github.com/castle-engine/castle-engine/wiki/Build-Tool .)
+        https://castle-engine.io/build_tool .)
 
       @item(Create an instance of this class. Only a single instance of this class is allowed.)
 

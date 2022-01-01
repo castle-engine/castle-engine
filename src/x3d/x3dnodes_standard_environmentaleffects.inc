@@ -343,7 +343,9 @@ var
       ftLinear: F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
       ftExp   : F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
       ftNone  : F := 1;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('AFogType?');
+      {$endif}
     end;
     Color := Lerp(F, FdColor.Value, Color);
   end;

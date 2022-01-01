@@ -14,7 +14,7 @@
 }
 
 { In-app purchases (TInAppPurchases).
-  See https://github.com/castle-engine/castle-engine/wiki/In-app-Purchases
+  See https://castle-engine.io/in_app_purchases
   for detailed instructions how to use this. }
 unit CastleInAppPurchases;
 
@@ -107,7 +107,7 @@ type
   end;
 
   { Manage in-app purchases in your game.
-    See https://github.com/castle-engine/castle-engine/wiki/In-app-Purchases
+    See https://castle-engine.io/in_app_purchases
     for detailed instructions how to use this. }
   TInAppPurchases = class(TComponent)
   private

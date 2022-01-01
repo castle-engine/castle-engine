@@ -1,0 +1,9 @@
+## game_analytics
+
+Integration with the https://gameanalytics.com/[Game Analytics].
+
+From you game Pascal code, use https://castle-engine.io/apidoc/html/CastleAnalytics.TAnalytics.html[TAnalytics class in the CastleAnalytics unit]. Initialize them with https://castle-engine.io/apidoc/html/CastleAnalytics.TAnalytics.html#InitializeGameAnalytics[InitializeGameAnalytics method] and send events to the analytics service using various methods like https://castle-engine.io/apidoc/html/CastleAnalytics.TAnalytics.html#Event[Event]. *Also, all the purchases done using `in_app_purchases` service are automatically send to analytics, with correct price and currency.*
+
+Note that you _can_ have both _Game Analytics_ and _Google Analytics_ initialized at the same time. We will send all events to both of them.
+
+This service uses CocoaPods, so make sure you have CocoaPods installed. See https://castle-engine.io/ios_services .

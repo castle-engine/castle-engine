@@ -9,6 +9,6 @@ sound backends).
 For normal CGE users:
 
 You shall not use FMOD like this in your own applications.
-Instead follow https://github.com/castle-engine/castle-engine/wiki/FMOD#activating-fmod-in-cge
+Instead follow https://castle-engine.io/fmod#activating-fmod-in-cge
 and call `UseFMODSoundBackend` to make our sound API (everything in `CastleSoundEngine`)
 use FMOD underneath.

@@ -1,0 +1,5 @@
+## ogg_vorbis
+
+This integrates your project with Tremolo to allow loading and playing OggVorbis music on iOS.
+
+_This service is automatically added to your project if it has a dependency on OggVorbis, which in turn is automatic if your game data includes some `.ogg` file._ So there's seldom a need to request this service explicitly.

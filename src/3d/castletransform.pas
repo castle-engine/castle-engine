@@ -834,7 +834,7 @@ type
       looking at their bounding boxes (the sorting is not recursive).
 
       Calling this method makes sense if you use
-      @url(https://github.com/castle-engine/castle-engine/wiki/Blending blending)
+      @url(https://castle-engine.io/blending blending)
       and multiple partially-transparent objects may
       be visible at the same place on the screen.
       Sorting avoids artifacts when rendering.

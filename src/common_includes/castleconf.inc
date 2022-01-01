@@ -272,7 +272,7 @@
 (*Whether we use OpenGL ES or normal OpenGL.
   OpenGL ES is generally for mobile devices.
   For testing, you can also use OpenGL ES on normal desktop OSes
-  (see https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#testing-mobile-opengl-es-rendering-without-an-android
+  (see https://castle-engine.io/android-FAQ#testing-mobile-opengl-es-rendering-without-an-android
   for instructions how to install OpenGL ES on desktop).
 
   CGE units that directly access OpenGL(ES) should use this line:
@@ -416,7 +416,7 @@
 
       It will be added to your Windows package by the build tool automatically when
       you run "castle-engine package ..."
-      See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
+      See https://castle-engine.io/build_tool .
       It will also be placed alongside your .exe when you do "castle-engine compile ...".
 
     - On macOS, see https://castle-engine.io/macosx_requirements.php .

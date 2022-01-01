@@ -2106,11 +2106,11 @@ var
   DestinationRelativeFileNameSlashes, Contents, Ext: string;
   BinaryFile: boolean;
 begin
-  { Do not copy README.md, most services define it and would just overwrite each other.
+  { Do not copy README.adoc, most services define it and would just overwrite each other.
     It is for informational purposes in CGE sources.
     Similarly do not copy CastleEngineService.xml, most services define it,
     it is internal info for build tool. }
-  if SameText(DestinationRelativeFileName, 'README.md') or
+  if SameText(DestinationRelativeFileName, 'README.adoc') or
      SameText(DestinationRelativeFileName, 'CastleEngineService.xml') then
     Exit;
 

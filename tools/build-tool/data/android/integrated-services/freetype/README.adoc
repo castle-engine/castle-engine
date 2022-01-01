@@ -1,0 +1,19 @@
+## FreeType (reading font files) for Android
+
+Enable loading the `.ttf`, `.otf` font files on Android (and other font formats handled by the https://www.freetype.org/ library).
+
+You usually do not need to do anything to use this, as the service will be automatically included in projects where `.ttf`, `.otf` files are found in `data`.
+
+### FreeType Source code used
+
+The exact source code of this library is on https://github.com/castle-engine/android-freetype .
+
+Forked from https://github.com/cdave1/freetype2-android .
+
+Update the library files (SO) like this:
+
+----
+git clone https://github.com/castle-engine/android-freetype
+cd android-freetype/
+make build
+----

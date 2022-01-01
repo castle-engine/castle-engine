@@ -1,0 +1,7 @@
+## game_analytics
+
+Enable the http://www.gameanalytics.com/[Game Analytics] analytics of your apps. Use the https://castle-engine.io/apidoc/html/CastleAnalytics.TAnalytics.html[TAnalytics] class from the https://castle-engine.io/apidoc/html/CastleAnalytics.html[CastleAnalytics] unit to initialize and send data to the analytics from your Pascal code. Also, all the purchases done using `google_in_app_purchases` service are automatically send to analytics, with correct price and currency.
+
+* Using this service requires using also using the `google_play_services` service.
+* The core of this service is a closed-source library distributed by GameAnalytics. It will be automatically downloaded using the _Gradle_ build system on the first build, so you don't have to do anything.
+* This service requires that you increase the `min_sdk_version` to 10 or higher in your link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml] file. The `min_sdk_version` is specified at the `<android>` element.

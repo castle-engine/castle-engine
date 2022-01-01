@@ -42,9 +42,9 @@ procedure URIGetAnchor(const URI: string; out Anchor: string;
 { Calculate #anchor from an URI, and split it into a key-value map.
 
   This supports special CGE syntax within URL anchor to specify loading parameters for
-  @url(https://github.com/castle-engine/castle-engine/wiki/Spine Spine),
-  @url(https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets sprite sheets),
-  @url(https://github.com/castle-engine/castle-engine/wiki/Images images).
+  @url(https://castle-engine.io/spine Spine),
+  @url(https://castle-engine.io/sprite_sheets sprite sheets),
+  @url(https://castle-engine.io/using_images images).
 
   On output, the key-value pairs from anchor are saved in TStringStringMap.
   The SettingsFromAnchor is always cleared at the beginning.

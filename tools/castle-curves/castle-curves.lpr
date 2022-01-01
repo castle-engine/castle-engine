@@ -14,7 +14,7 @@
 }
 
 { Create and edit curves.
-  Docs are at https://github.com/castle-engine/castle-engine/wiki/Curves-tool }
+  Docs are at https://castle-engine.io/curves_tool }
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 {$I castleconf.inc}
@@ -69,7 +69,7 @@ var
   SceneMove: TVector2;
 
 const
-  CurvesToolURL = 'https://github.com/castle-engine/castle-engine/wiki/Curves-tool';
+  CurvesToolURL = 'https://castle-engine.io/curves_tool';
   DonateURL = 'https://castle-engine.io/donate.php';
 
 { Call this always when SelectedPoint or SelectedCurve or (any) contents of
@@ -738,7 +738,7 @@ begin
           TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) + NL +
           NL +
           'Full documentation on' + NL +
-          'https://github.com/castle-engine/castle-engine/wiki/Curves-tool' + NL +
+          'https://castle-engine.io/curves_tool' + NL +
           NL +
           ApplicationProperties.Description);
         Halt;

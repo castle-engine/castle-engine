@@ -1,4 +1,4 @@
-# write_extenal_storage
+## write_extenal_storage
 
 This service asks user for permissions to write Android _"external storage"_.
 

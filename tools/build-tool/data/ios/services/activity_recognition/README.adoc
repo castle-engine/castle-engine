@@ -4,9 +4,10 @@ This service enables activity recognition (whether user is walking, running, cyc
 
 ## Manifest
 
-Request this service in [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples) like this:
+Request this service in link:https://castle-engine.io/project_manifest[CastleEngineManifest.xml] like this:
 
-~~~~xml
+[source,xml]
+----
 <?xml version="1.0" encoding="utf-8"?>
 <project name="..." game_units="...">
   <ios>
@@ -18,4 +19,4 @@ Request this service in [CastleEngineManifest.xml](https://github.com/castle-eng
     </services>
   </ios>
 </project>
-~~~~
+----

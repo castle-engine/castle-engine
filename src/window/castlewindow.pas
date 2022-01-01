@@ -177,7 +177,7 @@ unit CastleWindow;
 
 { You can define one of the CASTLE_WINDOW_xxx symbols to use
   a specific CastleWindow backend.
-  See https://github.com/castle-engine/castle-engine/wiki/CastleWindow-backends
+  See https://castle-engine.io/castlewindow_backends
   for the documentation of available backends.
 
   If you don't define any such symbol,
