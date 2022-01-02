@@ -57,7 +57,7 @@ castle-game-engine-*.fpm
 /doc/pasdoc/cache/
 /doc/pasdoc/html/
 /doc/pasdoc/latex/
-/doc/pasdoc/simplexml/
+/doc/pasdoc/php/
 /doc/reference/
 /examples/3d_rendering_processing/anisotropic_filtering/anisotropic_filtering
 /examples/3d_rendering_processing/build_3d_object_by_code/build_3d_object_by_code

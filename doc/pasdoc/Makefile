@@ -1,6 +1,6 @@
 # Main targets to gen final docs ----------------------------------------
 
-.PHONY: default html pdf latex simplexml
+.PHONY: default html pdf latex php
 
 # html is shown on https://castle-engine.io/apidoc/html/
 default: html
@@ -28,7 +28,7 @@ html:
 # Just some shortcuts to "Helpful targets" below
 latex: latex/docs.tex
 pdf: latex/docs.pdf
-simplexml: simplexml/docs.xml
+php: php/docs.php
 
 # Helpful targets to gen docs ----------------------------------------
 
@@ -48,8 +48,8 @@ latex/docs.pdf: latex/docs.tex
 	      latex/docs.out \
 	      latex/docs.toc
 
-simplexml/docs.xml:
-	./mk_docs.sh simplexml
+php/docs.php:
+	./mk_docs.sh php
 
 # Cleaning ------------------------------------------------------------
 
@@ -59,7 +59,7 @@ clean-cache:
 	rm -fR cache/
 
 clean: clean-cache
-	rm -Rf html/ latex/ simplexml/ ../reference/
+	rm -Rf html/ latex/ php/ ../reference/
 
 # upload ---------------------------------------------------------------------
 
