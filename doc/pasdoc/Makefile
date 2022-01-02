@@ -1,6 +1,6 @@
 # Main targets to gen final docs ----------------------------------------
 
-.PHONY: default html pdf ps rtf latex
+.PHONY: default html pdf latex simplexml
 
 # html is shown on https://castle-engine.io/apidoc/html/
 default: html
@@ -26,27 +26,16 @@ html:
 	      ../reference/
 
 # Just some shortcuts to "Helpful targets" below
-pdf: latex/docs.pdf
-ps: latex/docs.ps
-rtf: latex2rtf/docs.rtf
 latex: latex/docs.tex
+pdf: latex/docs.pdf
+simplexml: simplexml/docs.xml
 
 # Helpful targets to gen docs ----------------------------------------
-
-latex2rtf/docs.tex:
-	./mk_docs.sh latex2rtf
-
-latex2rtf/docs.rtf: latex2rtf/docs.tex
-	cd latex2rtf; latex2rtf docs.tex
 
 latex/docs.tex:
 	./mk_docs.sh latex
 
 TEX_BATCH_OPTS := --file-line-error-style -interaction=nonstopmode
-
-latex/docs.dvi: latex/docs.tex
-	-cd latex; latex $(TEX_BATCH_OPTS) docs.tex
-	-cd latex; latex $(TEX_BATCH_OPTS) docs.tex
 
 # At the end of pdf generating, we clean useless junk
 # (because it's quite large, and I may want to upload latex/
@@ -59,8 +48,8 @@ latex/docs.pdf: latex/docs.tex
 	      latex/docs.out \
 	      latex/docs.toc
 
-latex/docs.ps: latex/docs.dvi
-	cd latex; dvips docs.dvi -o docs.ps
+simplexml/docs.xml:
+	./mk_docs.sh simplexml
 
 # Cleaning ------------------------------------------------------------
 
@@ -70,7 +59,7 @@ clean-cache:
 	rm -fR cache/
 
 clean: clean-cache
-	rm -Rf html/ latex/ latex2rtf/ ../reference/
+	rm -Rf html/ latex/ simplexml/ ../reference/
 
 # upload ---------------------------------------------------------------------
 
