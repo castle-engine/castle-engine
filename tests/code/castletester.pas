@@ -34,23 +34,33 @@ type
   private
     FNotifyAssertFail: TNotifyAssertFail;
     FCurrentTestName: String;
+
+    function PrepareCustomMsg(const Msg: String): String;
   public
     constructor Create;
 
     procedure Setup; virtual;
     procedure TearDown; virtual;
 
-    procedure Fail(const Msg: String; ErrorAddr: Pointer = nil);
+    procedure Fail(const Msg: String; const ErrorAddr: Pointer = nil);
     procedure AssertTrue(const ACondition: Boolean); overload;
     procedure AssertTrue(const Msg: String; const ACondition: Boolean;
       ErrorAddr: Pointer = nil); overload;
     procedure AssertFalse(const ACondition: Boolean); overload;
     procedure AssertFalse(const Msg: String; const ACondition: Boolean;
       ErrorAddr: Pointer = nil); overload;
-    procedure AssertFilenamesEqual(Expected, Actual: String);
-    procedure AssertEquals(Expected, Actual: String); overload;
-    procedure AssertEquals(Expected, Actual: Boolean); overload;
-    procedure AssertEquals(Expected, Actual: Single); overload;
+    procedure AssertFilenamesEqual(const Expected, Actual: String);
+    procedure AssertEquals(const Expected, Actual: String); overload;
+    procedure AssertEquals(const Expected, Actual: Boolean); overload;
+    procedure AssertEquals(const Expected, Actual: Single); overload;
+    procedure AssertEquals(const Expected, Actual: Integer); overload;
+    procedure AssertEquals(const Msg: String; const Expected, Actual: Integer;
+      ErrorAddr: Pointer = nil); overload;
+    procedure AssertEquals(const Msg, Expected, Actual: String;
+      ErrorAddr: Pointer = nil); overload;
+    procedure AssertEquals(const Msg: String; const Expected, Actual: Boolean;
+      ErrorAddr: Pointer = nil); overload;
+
 
     procedure AssertSameValue(const Expected, Actual: Single;
       ErrorAddr: Pointer = nil); overload;
@@ -225,16 +235,15 @@ end;
 
 { TCastleTestCase }
 
-procedure TCastleTestCase.AssertEquals(Expected, Actual: String);
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: String);
 begin
-  AssertTrue('Expected: ' + Expected + ' Actual: ' + Actual, Expected = Actual,
+  AssertEquals('', Expected, Actual,
     {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
 end;
 
-procedure TCastleTestCase.AssertEquals(Expected, Actual: Boolean);
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: Boolean);
 begin
-  AssertTrue('Expected: ' + BoolToStr(Expected, true) + ' Actual: ' +
-    BoolToStr(Actual, true), Expected = Actual,
+  AssertEquals('', Expected, Actual,
     {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
 end;
 
@@ -273,7 +282,7 @@ begin
   AssertBoxesEqual(Expected, Actual, SingleEpsilon, ErrorAddr);
 end;
 
-procedure TCastleTestCase.AssertEquals(Expected, Actual: Single);
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: Single);
 begin
   AssertTrue('Expected: ' + FloatToStr(Expected) + ' Actual: ' +
     FloatToStr(Actual), SameValue(Expected, Actual, SingleEpsilon),
@@ -296,7 +305,7 @@ begin
     {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif});
 end;
 
-procedure TCastleTestCase.AssertFilenamesEqual(Expected, Actual: String);
+procedure TCastleTestCase.AssertFilenamesEqual(const Expected, Actual: String);
 begin
   AssertTrue('Expected: ' + Expected + ' Actual: ' + Actual,
     CompareFileName(Expected, Actual),
@@ -467,7 +476,7 @@ begin
 end;
 
 procedure TCastleTestCase.AssertTrue(const Msg: String;
-  const ACondition: Boolean;  ErrorAddr: Pointer);
+  const ACondition: Boolean; ErrorAddr: Pointer);
 begin
   if not Assigned(ErrorAddr) then
     ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
@@ -588,7 +597,7 @@ begin
   FName := ClassName;
 end;
 
-procedure TCastleTestCase.Fail(const Msg: String; ErrorAddr: Pointer);
+procedure TCastleTestCase.Fail(const Msg: String; const ErrorAddr: Pointer);
 begin
   if Assigned(FNotifyAssertFail) then
     FNotifyAssertFail(CurrentTestName, Msg);
@@ -617,6 +626,13 @@ begin
   );
 end;
 
+function TCastleTestCase.PrepareCustomMsg(const Msg: String): String;
+begin
+  Result := Trim(Msg);
+  if Length(Result) > 0 then
+    Result := '"' + Result + '" ';
+end;
+
 procedure TCastleTestCase.Setup;
 begin
 
@@ -639,5 +655,41 @@ begin
 end;
 
 
+
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: Integer);
+begin
+  AssertEquals('', Expected, Actual,
+    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
+end;
+
+procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
+  Actual: Integer; ErrorAddr: Pointer = nil);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + IntToStr(Expected) +
+    ' Actual: ' + IntToStr(Actual), Expected = Actual, ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertEquals(const Msg, Expected, Actual: String;
+  ErrorAddr: Pointer = nil);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + Expected +
+    ' Actual: ' + Actual, Expected = Actual, ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
+  Actual: Boolean; ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + BoolToStr(Expected, true) + ' Actual: ' +
+    BoolToStr(Actual, true), Expected = Actual, ErrorAddr);
+end;
 
 end.
