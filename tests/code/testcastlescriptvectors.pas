@@ -22,8 +22,8 @@ unit TestCastleScriptVectors;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleScriptVectors = class(TCastleTestCase)
@@ -272,6 +272,8 @@ begin
   end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleScriptVectors);
+{$endif}
 end.

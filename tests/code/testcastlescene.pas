@@ -20,10 +20,11 @@ unit TestCastleScene;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry
+    {$else}CastleTester{$endif};
 
 type
-  TTestScene = class(TTestCase)
+  TTestScene = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
   published
     procedure TestScene;
   end;
@@ -74,6 +75,8 @@ begin
  finally FreeAndNil(EmptyScene) end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
  RegisterTest(TTestScene);
+{$endif}
 end.

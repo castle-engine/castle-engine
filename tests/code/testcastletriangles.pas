@@ -20,7 +20,8 @@ unit TestCastleTriangles;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleTriangles = class(TCastleTestCase)
@@ -106,6 +107,8 @@ begin
   AssertTrue('42', T.IsValid);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleTriangles);
+{$endif}
 end.

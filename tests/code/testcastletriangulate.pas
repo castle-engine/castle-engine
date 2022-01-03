@@ -22,8 +22,9 @@ unit TestCastleTriangulate;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVectors,
-  CastleTriangulate, CastleTriangles, CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase, {$else}CastleTester, {$endif} CastleVectors,
+  CastleTriangulate, CastleTriangles;
 
 type
   TTestCastleTriangulate = class(TCastleTestCase)
@@ -72,9 +73,11 @@ procedure TTestCastleTriangulate.Face(const Tri: TVector3Integer);
 var
   V0, V1, V2, EarNormal: TVector3;
 begin
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   V0 := Vertexes[Tri[0]];
   V1 := Vertexes[Tri[1]];
   V2 := Vertexes[Tri[2]];
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   EarNormal := TriangleDirection(V0, V1, V2);
   AssertTrue(not EarNormal.IsZero);
 end;
@@ -88,12 +91,13 @@ procedure TTestCastleTriangulate.TestTriangulateFace;
   begin
     Vertexes := @AVertexes;
     CountVertexes := High(AVertexes) + 1;
-
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     if RevertOrder then
       for I := 0 to CountVertexes div 2 - 1 do
         SwapValues(Vertexes[I], Vertexes[CountVertexes - 1 - I]);
 
-     TriangulateFace(nil, CountVertexes, PVector3Array(Vertexes), CountVertexes, @Face, 0);
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+     TriangulateFace(nil, CountVertexes, PVector3Array(Vertexes), CountVertexes, {$ifdef FPC}@{$endif}Face, 0);
   end;
 
 type
@@ -470,7 +474,7 @@ var
 begin
   { Warnings from CastleTriangulate mean that polygon cannot be triangulated.
     They mean errors for tests below, that *must* pass. }
-  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
     GenerateCircle(16, Polygon_Circle);
 
@@ -487,10 +491,12 @@ begin
     { TODO: test that results are same as hardcoded results? }
 
   finally
-    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleTriangulate);
+{$endif}
 end.

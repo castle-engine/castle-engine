@@ -22,8 +22,8 @@ unit TestCastleSceneCore;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase, CastleSceneCore, X3DNodes;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif}, CastleSceneCore, X3DNodes;
 
 type
   TTestSceneCore = class(TCastleTestCase)
@@ -66,7 +66,7 @@ type
 implementation
 
 uses X3DLoad, CastleVectors, CastleShapes,
-  CastleTimeUtils, CastleStringUtils, X3DFields, CastleSceneManager, CastleBoxes,
+  CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
   CastleURIUtils;
 
@@ -164,10 +164,10 @@ procedure TTestSceneCore.TestIterator;
         SI := TShapeTreeIterator.Create(Scene.Shapes, OnlyActive);
         for I := 0 to List.Count - 1 do
         begin
-          Check(SI.GetNext, 'SI.GetNext');
-          Check(SI.Current = List[I], 'SI.Current');
+          AssertTrue('SI.GetNext', SI.GetNext);
+          AssertTrue('SI.Current', SI.Current = List[I]);
         end;
-        Check(not SI.GetNext, 'not SI.GetNext');
+        AssertTrue('not SI.GetNext', not SI.GetNext);
 
 //        writeln('done for ', FileName, ' active: ', OnlyActive, ' count is ', List.Count);
 
@@ -268,24 +268,27 @@ var
     SearchingForDescription := Description;
     AssertTrue(Scene.RootNode <> nil);
     Result := TAbstractViewpointNode(
-      Scene.RootNode.SearchNodes(@SearchingForDescriptionCallback, true));
+      Scene.RootNode.SearchNodes({$ifdef FPC}@{$endif}SearchingForDescriptionCallback, true));
     AssertTrue(Result <> nil);
   end;
 
 var
   Viewpoint: TAbstractViewpointNode;
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
   FakeRemoveMe: TRemoveType;
 begin
-  SceneManager := TCastleSceneManager.Create(nil);
+  Viewport := TCastleSceneManager.Create(nil);
   try
+    Viewport.FullSize := true;
+    Viewport.AutoCamera := true;
+    Viewport.AutoNavigation := true;
     Scene := TCastleScene.Create(nil);
     try
       Scene.URL := 'castle-data:/city_from_bugreport_38.x3dv';
       Scene.ProcessEvents := true;
       Scene.Spatial := [ssRendering, ssDynamicCollisions];
-      SceneManager.Items.Add(Scene);
-      SceneManager.MainScene := Scene;
+      Viewport.Items.Add(Scene);
+      Viewport.Items.MainScene := Scene;
 
       Scene.InternalCameraChanged;
       FakeRemoveMe := rtNone;
@@ -298,7 +301,7 @@ begin
       FakeRemoveMe := rtNone;
       Scene.Update(1, FakeRemoveMe);
     finally FreeAndNil(Scene) end;
-  finally FreeAndNil(SceneManager) end;
+  finally FreeAndNil(Viewport) end;
 end;
 
 procedure TTestSceneCore.TestManifold;
@@ -336,7 +339,7 @@ var
   Node: TX3DRootNode;
   Scene1, Scene2: TCastleScene;
 begin
-  ApplicationProperties.OnWarning.Add(@NodeMultipleTimesWarning);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}NodeMultipleTimesWarning);
   try
     try
       Node := nil;
@@ -359,7 +362,7 @@ begin
       on ENodeMultipleTimes do ; { good, silence this for the sake of test }
     end;
   finally
-    ApplicationProperties.OnWarning.Remove(@NodeMultipleTimesWarning);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}NodeMultipleTimesWarning);
   end;
 end;
 
@@ -368,8 +371,10 @@ var
   Node: TX3DRootNode;
   Scene1, Scene2, SceneTemplate: TCastleScene;
 begin
-  // When using Static=true, it is allowed to have the same TX3DRootNode reused:
+  { When using Static=true (FPC only because Static is deprecated),
+    it is allowed to have the same TX3DRootNode reused: }
 
+  {$ifdef FPC}
   Node := nil;
   Scene1 := nil;
   Scene2 := nil;
@@ -387,6 +392,7 @@ begin
     // Note: you must free Node after freeing Scene1,2
     FreeAndNil(Node);
   end;
+  {$endif}
 
   // Using DeepCopy you can overcome this limitation:
 
@@ -426,7 +432,7 @@ procedure TTestSceneCore.TestSpineUtf8Names;
 var
   Scene: TCastleScene;
 begin
-  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
     Scene := TCastleScene.Create(nil);
     try
@@ -434,7 +440,7 @@ begin
       Scene.Load('castle-data:/spine/unholy_transition/phone.json');
     finally FreeAndNil(Scene) end;
   finally
-    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
 end;
 
@@ -496,7 +502,7 @@ end;
 
 procedure TTestSceneCore.LoadSceneRequireWarning(const Scene: TCastleSceneCore; const Url: String);
 begin
-  ApplicationProperties.OnWarning.Add(@OnWarningFlag);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningFlag);
   try
     WarningFlag := false;
     Scene.Load(Url);
@@ -504,7 +510,7 @@ begin
       Fail(Format('Expected to get some warning during loading of "%s"',
         [URIDisplay(Url)]));
   finally
-    ApplicationProperties.OnWarning.Remove(@OnWarningFlag);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningFlag);
   end;
 end;
 
@@ -669,7 +675,7 @@ procedure TTestSceneCore.TestUnassociate;
 var
   Box: TCastleBox;
 begin
-  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
     Box := TCastleBox.Create(nil);
     try
@@ -677,7 +683,7 @@ begin
       Box.Material := pmPhysical;
     finally FreeAndNil(Box) end;
   finally
-    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
 end;
 
@@ -687,7 +693,7 @@ var
   NewMaterial: TMaterialNode;
   Scene: TCastleScene;
 begin
-  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
     Scene := TCastleScene.Create(nil);
     try
@@ -703,7 +709,7 @@ begin
       Shape.Material := NewMaterial;
     finally FreeAndNil(Scene) end;
   finally
-    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
 end;
 
@@ -715,7 +721,7 @@ var
   NewMaterial: TUnlitMaterialNode;
   Scene: TCastleScene;
 begin
-  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
     Scene := TCastleScene.Create(nil);
     try
@@ -755,7 +761,7 @@ begin
       AssertEquals(1, TShapeTree.AssociatedShapesCount(Shape2.Appearance));
     finally FreeAndNil(Scene) end;
   finally
-    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
 end;
 
@@ -768,7 +774,7 @@ var
   SharedAppearance: TAppearanceNode;
   Scene: TCastleScene;
 begin
-  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
     Scene := TCastleScene.Create(nil);
     try
@@ -817,7 +823,7 @@ begin
       AssertTrue(OldMaterial = nil);
     finally FreeAndNil(Scene) end;
   finally
-    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
 end;
 
@@ -829,7 +835,7 @@ var
   NewAppearance: TAppearanceNode;
   Scene: TCastleScene;
 begin
-  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
     Scene := TCastleScene.Create(nil);
     try
@@ -870,10 +876,12 @@ begin
       AssertEquals(1, TShapeTree.AssociatedShapesCount(NewAppearance.Material));
     finally FreeAndNil(Scene) end;
   finally
-    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestSceneCore);
+{$endif}
 end.

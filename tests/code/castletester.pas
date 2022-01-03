@@ -113,6 +113,7 @@ type
 
 
     function CompareFileName(Expected, Actual: String): Boolean;
+    function GetTempDirectory: String;
 
     procedure TestLog(Text: String);
 
@@ -156,7 +157,7 @@ implementation
 
 { TCastleTester }
 
-uses CastleLog, TypInfo, Math, CastleUtils;
+uses CastleLog, TypInfo, Math, {$ifndef FPC}IOUtils,{$endif} CastleUtils;
 
 procedure TCastleTester.AddTestCase(const TestCase: TCastleTestCase);
 begin
@@ -615,6 +616,15 @@ begin
       ReturnAddress
       {$endif};
   end;
+end;
+
+function TCastleTestCase.GetTempDirectory: String;
+begin
+  {$ifdef FPC}
+  Result := GetTempDir;
+  {$else}
+  Result := TPath.GetTempPath;
+  {$endif}
 end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);

@@ -20,7 +20,8 @@ unit TestCastleSoundEngine;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleSoundEngine = class(TCastleTestCase)
@@ -71,7 +72,7 @@ end;
 
 procedure TTestCastleSoundEngine.TestNotPcmEncodingWarning;
 begin
-  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
     if SoundEngine.IsContextOpenSuccess then
     begin
@@ -91,7 +92,7 @@ begin
     end else
       Writeln('OpenAL cannot be initialized, TestNotPcmEncodingWarning doesn''t really do anything');
   finally
-    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
 end;
 
@@ -102,8 +103,10 @@ begin
   Params := TPlaySoundParameters.Create;
   try
     AssertSameValue(0.5, Params.Priority);
-    AssertTrue(Params.Importance > 0);
+    {$ifdef FPC}AssertTrue(Params.Importance > 0);{$endif}
 
+    { Importance is deprecated and availble only in FPC }
+    {$ifdef FPC}
     Params.Importance := 0;
     AssertSameValue(0.0, Params.Priority);
     AssertEquals(0.0, Params.Importance);
@@ -119,9 +122,12 @@ begin
     Params.Importance := DefaultSoundImportance;
     AssertSameValue(0.01, Params.Priority, 0.001);
     AssertEquals(DefaultSoundImportance, Params.Importance);
+    {$endif}
   finally FreeAndNil(Params) end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleSoundEngine);
+{$endif}
 end.

@@ -20,7 +20,8 @@ unit TestCastleScript;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleScript = class(TCastleTestCase)
@@ -610,6 +611,8 @@ begin
   AssertEquals('poip', StringExpression('coalesce('''' + '''', ''poip'')'));
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleScript);
+{$endif}
 end.

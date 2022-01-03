@@ -20,8 +20,8 @@ unit TestCastleRandom;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif} ;
 
 type
   { Test CastleRandom unit. }
@@ -38,13 +38,17 @@ uses CastleRandom;
 procedure TTestCastleRandom.TestHash;
 begin
   // Zero string hash
-  AssertEquals(%00000000000000000000000000000000, StringToHash(''));
+  AssertEquals({$ifdef FPC}%00000000000000000000000000000000{$else}0{$endif},
+    StringToHash(''));
   // Short string hash
-  AssertEquals(%01001001001101000010111110101111, StringToHash('1'));
+  AssertEquals({$ifdef FPC}%01001001001101000010111110101111{$else}$49342FAF{$endif},
+    StringToHash('1'));
   // Zero seed hash
-  AssertEquals(%11100000010001101011001110011100, StringToHash('String to hash test'));
+  AssertEquals({$ifdef FPC}%11100000010001101011001110011100{$else}$E046B39C{$endif},
+    StringToHash('String to hash test'));
   // Seeded hash
-  AssertEquals(%01111101100111100000101011011100, StringToHash('String to hash test', $9747b28c));
+  AssertEquals({$ifdef FPC}%01111101100111100000101011011100{$else}$7D9E0ADC{$endif},
+    StringToHash('String to hash test', $9747b28c));
 end;
 
 procedure TTestCastleRandom.TestRandom;
@@ -71,14 +75,15 @@ begin
    is random, and therefore there's always a tiny chance that it'll fail the test}
   Sum := 0;
   for I := 0 to SumTests do
-    Sum += Rnd.Random;
+    Sum := Sum + Rnd.Random;
   //checking random against shot noise (with extended margin, just in case)
   AssertTrue('Random is on average 0.5', Abs(Sum / (SumTests) - 0.5) <= 2 / Sqrt(SumTests));
 
   FreeAndNil(Rnd);
 end;
 
-
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleRandom);
+{$endif}
 end.

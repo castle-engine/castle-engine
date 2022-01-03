@@ -21,8 +21,8 @@ unit TestCastleUIControls;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase, CastleUIControls;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase,{$else}CastleTester,{$endif} CastleUIControls;
 
 type
   TTestCastleUIControls = class(TCastleTestCase)
@@ -158,12 +158,14 @@ begin
     for C in T do
     begin
       AssertVectorEquals(C.AnchorDelta, Vector2(Y, 0));
-      Y += 1;
+      Y := Y + 1;
     end;
     AssertSameValue(Y, 4);
   finally FreeAndNil(Owner) end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleUIControls);
+{$endif}
 end.

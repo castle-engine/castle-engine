@@ -16,15 +16,16 @@
 
 unit TestCastleStringUtils;
 
-{$mode objfpc}{$H+}
+{$ifdef FPC}{$mode objfpc}{$H+}{$endif}
 
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils,
+  TestRegistry{$else}CastleTester{$endif};
 
 type
-  TTestCastleStringUtils = class(TTestCase)
+  TTestCastleStringUtils = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
   published
     procedure TestIntToStrBase;
     procedure TestDeFormat;
@@ -36,7 +37,7 @@ type
     procedure TestCastleStringList;
     procedure TestCastleStringListNewlinesInside;
     procedure TestSReplacePatterns;
-    procedure TestGetFileFilter;
+    {$ifdef FPC}procedure TestGetFileFilter;{$endif}
     procedure TestSplitString;
     procedure TestTrimEndingNewline;
     procedure TestAddMultiLine;
@@ -366,6 +367,7 @@ begin
   finally FreeAndNil(SMap) end;
 end;
 
+{$ifdef FPC}
 procedure TTestCastleStringUtils.TestGetFileFilter;
 var
   Exts: TStringList;
@@ -398,6 +400,7 @@ begin
   AssertEquals('Pascal files', GetFileFilterName('Pascal files'));
   AssertEquals('Pascal files', GetFileFilterName('Pascal files ()|'));
 end;
+{$endif}
 
 procedure TTestCastleStringUtils.TestSplitString;
 
@@ -474,6 +477,8 @@ begin
   finally FreeAndNil(SList) end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleStringUtils);
+{$endif}
 end.

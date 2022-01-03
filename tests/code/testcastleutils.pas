@@ -22,7 +22,8 @@ unit TestCastleUtils;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleUtils = class(TCastleTestCase)
@@ -60,6 +61,7 @@ uses
   {$ifdef UNIX} Unix, BaseUnix, {$endif}
   Math, CastleUtils, CastleTimeUtils, CastleVectors;
 
+{$ifdef FPC}
 { TODO: This macro should be remade to a generic class.
 
   This macro depends on parameters (define other macros with these names):
@@ -122,6 +124,8 @@ uses
 }
 
 {$warnings off} // knowingly using deprecated, to check they are working
+
+{$endif FPC}
 
 procedure TTestCastleUtils.TestMilisecTime;
 const t1: TMilisecTime = High(TMilisecTime) - 10;
@@ -785,6 +789,8 @@ begin
   AssertEquals(1, B);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleUtils);
+{$endif}
 end.

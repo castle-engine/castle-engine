@@ -19,7 +19,8 @@ unit TestCastleTransform;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleTransform = class(TCastleTestCase)
@@ -1446,7 +1447,7 @@ begin
     for C in T do
     begin
       AssertVectorEquals(C.Translation, Vector3(1, Y, 0));
-      Y += 1;
+      Y := Y + 1;
     end;
     AssertSameValue(Y, 4);
   finally FreeAndNil(Owner) end;
@@ -1496,6 +1497,8 @@ begin
   FreeAndNil(B3);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleTransform);
+{$endif}
 end.

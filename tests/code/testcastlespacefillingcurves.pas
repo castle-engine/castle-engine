@@ -22,8 +22,8 @@ unit TestCastleSpaceFillingCurves;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestSpaceFillingCurves = class(TCastleTestCase)
@@ -76,7 +76,7 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
      { na koncu caly obrazek powinien byc czerwony }
      AssertTrue(Img.IsClear(Red4Byte));
     except
-     OutFileName := GetTempDir + '/test_space_filling_curves.ppm';
+     OutFileName := GetTempDirectory + '/test_space_filling_curves.ppm';
      SaveImage(Img, OutFileName);
      Writeln(Format('and it failed at curveClass %s, Width %d, Height %d',
        [CurveClass.ClassName, Width, Height]), nl,
@@ -106,6 +106,8 @@ begin
  TestCurves(0, 10);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
  RegisterTest(TTestSpaceFillingCurves);
+{$endif}
 end.
