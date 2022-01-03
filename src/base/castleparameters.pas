@@ -88,7 +88,7 @@ const
 
 type
   TOptionSeparateArgument = oaRequiredSeparateFirst .. oaRequiredSeparateLast;
-  TSeparateArgs = array[1..RequiredSeparateLastCount]of string;
+  TSeparateArgs = array[1..RequiredSeparateLastCount] of string;
 
 const
   EmptySeparateArgs: TSeparateArgs = ('','','', '','','', '','','');

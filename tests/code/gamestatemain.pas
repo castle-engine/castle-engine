@@ -45,7 +45,7 @@ uses SysUtils,
   TestCastleCurves, TestCastleFilesUtils, TestCastleFonts, TestCastleFrustum,
   TestCastleGame, {$ifdef FPC}TestCastleGenericLists, {$endif}
   TestCastleGLVersion, TestCastleImages, TestCastleImagesDraw,
-  TestCastleKeysMouse, TestCastleOpeningAndRendering3D{, TestCastleParameters};
+  TestCastleKeysMouse, TestCastleOpeningAndRendering3D, TestCastleParameters;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -94,7 +94,7 @@ begin
   Tester.AddTestCase(TTestImagesDraw.Create);
   Tester.AddTestCase(TTestKeysMouse.Create);
   Tester.AddTestCase(TTestOpeningAndRendering3D.Create);
-  //Tester.AddTestCase(TTestParsingParameters
+  Tester.AddTestCase(TTestParsingParameters.Create);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

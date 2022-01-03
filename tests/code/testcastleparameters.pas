@@ -73,7 +73,7 @@ begin
   result := TParsedOptionList.Create;
   try
     Parameters.Parse(Options, OptionsCount,
-      {$ifdef FPC} @ {$endif} ParseNextParam, result,
+      {$ifdef FPC}@{$endif}ParseNextParam, result,
       ParseOnlyKnownOptions);
   except result.Free; raise end;
 end;
@@ -81,59 +81,63 @@ end;
 function ParseParameters(
   const Options: array of TOption; ParseOnlyKnownOptions: boolean = false): TParsedOptionList; overload;
 begin
- result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownOptions);
+ result := ParseParameters(@Options, High(Options) + 1, ParseOnlyKnownOptions);
 end;
 
 procedure TTestParsingParameters.AssertParsEqual(const ParsValues: array of string;
   const ParsTestName: string);
 var
-  i: Integer;
+  I: Integer;
 begin
   AssertEquals('Parameters Count at ' + ParsTestName, High(ParsValues), Parameters.High);
-  for i := 0 to Parameters.High do
-    AssertEquals('Parameters Values at ' + ParsTestName, Parameters[i], ParsValues[i]);
+  for I := 0 to Parameters.High do
+    AssertEquals('Parameters Values at ' + ParsTestName, Parameters[I], ParsValues[I]);
 end;
 
 procedure TTestParsingParameters.AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;
   const ParsedPars2: array of TParsedOption; const ParsTestName: string);
 var
-  i, j: Integer;
+  I, J: Integer;
 begin
   AssertEquals('Count at ' + ParsTestName, High(ParsedPars2), ParsedPars1.Count - 1);
-  for i := 0 to ParsedPars1.Count - 1 do
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
+  for I := 0 to ParsedPars1.Count - 1 do
   begin
-    AssertEquals('OptionNum at '   + ParsTestName, ParsedPars1.L[i].OptionNum  , ParsedPars2[i].OptionNum  );
-    AssertEquals('HasArgument at ' + ParsTestName, ParsedPars1.L[i].HasArgument, ParsedPars2[i].HasArgument);
-    AssertEquals('Argument at '    + ParsTestName, ParsedPars1.L[i].Argument   , ParsedPars2[i].Argument   );
-    for j := Low(TSeparateArgs) to High(TSeparateArgs) do
-      AssertEquals('SeparateArgs at ' + ParsTestName, ParsedPars1.L[i].SeparateArgs[j], ParsedPars2[i].SeparateArgs[j]);
+    AssertEquals('OptionNum at '   + ParsTestName, ParsedPars1.L[I].OptionNum  , ParsedPars2[I].OptionNum  );
+    AssertEquals('HasArgument at ' + ParsTestName, ParsedPars1.L[I].HasArgument, ParsedPars2[I].HasArgument);
+    AssertEquals('Argument at '    + ParsTestName, ParsedPars1.L[I].Argument   , ParsedPars2[I].Argument   );
+    for J := Low(TSeparateArgs) to High(TSeparateArgs) do
+      AssertEquals('SeparateArgs at ' + ParsTestName, ParsedPars1.L[I].SeparateArgs[J], ParsedPars2[I].SeparateArgs[J]);
   end;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TTestParsingParameters.TestParsingParameters;
 
-  function DynParsedOptionArrayToStr(const name: string;
-    v: TParsedOptionList): string;
+  function DynParsedOptionArrayToStr(const Name: string;
+    V: TParsedOptionList): string;
   var
-    i: Integer;
+    I: Integer;
   begin
-    Result := name + nl;
-    for i := 0 to v.Count - 1 do
-      Result += Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',  [
-        i,
-        v.L[i].OptionNum,
-        BoolToStr(v.L[i].HasArgument, true),
-        v.L[i].Argument
-      ]) + nl;
+    Result := Name + NL;
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
+    for I := 0 to v.Count - 1 do
+      Result := Result + Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',  [
+        I,
+        v.L[I].OptionNum,
+        BoolToStr(v.L[I].HasArgument, true),
+        v.L[I].Argument
+      ]) + NL;
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
-  function ParsToStr: string;
+  function ParsToStr: String;
   var
-    i: Integer;
+    I: Integer;
   begin
-    result := 'Params now = ' + nl;
-    for i := 0 to Parameters.High do
-      result += Format('  ParStr(%d) = "%s"', [i, Parameters[i]]) + nl;
+    Result := 'Params now = ' + NL;
+    for I := 0 to Parameters.High do
+      Result := Result + Format('  ParStr(%d) = "%s"', [I, Parameters[I]]) + NL;
   end;
 
   procedure CheckPars(const TestName: string; const StartPars: array of string;
@@ -199,9 +203,6 @@ procedure TTestParsingParameters.TestParsingParameters;
   end;
 
 const
-
-  {$define EmptySeparateArgs:=('','','', '','','', '','','')}
-
   { Pars1_2 ------------------------------------------------------------ }
 
   Pars1_2Question: array[0..4]of string =
@@ -214,8 +215,8 @@ const
     (Short:'a'; Long:'ala'; Argument: oaNone)
   );
   Pars1Answer: array[0..1]of TParsedOption = (
-    (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:2; HasArgument: true; Argument:'cygan'; SeparateArgs: EmptySeparateArgs)
+    (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:2; HasArgument: true; Argument:'cygan'; SeparateArgs: ('','','', '','','', '','',''))
   );
   Pars1Rest: array[0..2]of string = ('--zero-niewazne', 'ala', 'teresa');
 
@@ -225,8 +226,8 @@ const
     (Short:'a'; Long:'ala'; Argument: oaNone)
   );
   Pars2Answer: array[0..1]of TParsedOption = (
-    (OptionNum:0; HasArgument: true; Argument:'teresa'; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:1; HasArgument: true; Argument:'cygan'; SeparateArgs: EmptySeparateArgs)
+    (OptionNum:0; HasArgument: true; Argument:'teresa'; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:1; HasArgument: true; Argument:'cygan'; SeparateArgs: ('','','', '','','', '','',''))
   );
   Pars2Rest: array[0..1]of string = ('--zero-niewazne', 'ala');
 
@@ -242,9 +243,9 @@ const
     (Short:'l'; Long:'lollobrygida'; Argument: oaOptional)
   );
   Pars3Answer: array[0..2]of TParsedOption = (
-    (OptionNum:3; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:3; HasArgument: true; Argument:'foo nie=l'; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs)
+    (OptionNum:3; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:3; HasArgument: true; Argument:'foo nie=l'; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','',''))
   );
   Pars3Rest: array[0..4]of string = ('-l=no', 'ala', 'teresa', '--kot=cygan', '--');
 
@@ -259,8 +260,8 @@ const
     (Short:'a'; Long:'ala spacja'; Argument: oaNone)
   );
   Pars4Answer: array[0..1]of TParsedOption = (
-    (OptionNum:2; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs)
+    (OptionNum:2; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','',''))
   );
 
   Pars5: array[0..2]of TOption = (
@@ -269,7 +270,7 @@ const
     (Short:'a'; Long:'ala spacja'; Argument: oaRequired)
   );
   Pars5Answer: array[0..0]of TParsedOption = (
-    (OptionNum:2; HasArgument: true; Argument:'--kot'; SeparateArgs: EmptySeparateArgs)
+    (OptionNum:2; HasArgument: true; Argument:'--kot'; SeparateArgs: ('','','', '','','', '','',''))
   );
 
   { Pars6 ------------------------------------------------------------ }
@@ -285,8 +286,8 @@ const
     not supported when ParseOnlyKnownOptions).
     Jednak '--ala spacja' powinno zostac sparsowane i usuniete, oraz '-m'. }
   Pars6_OnlyKnown_Answer: array[0..1]of TParsedOption = (
-    (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs)
+    (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','',''))
   );
   Pars6_OnlyKnown_Rest: array[0..2]of string =
   ('--zero-niewazne', '-ma', '--kot');
@@ -322,7 +323,6 @@ const
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'k'; Long:'kot'; Argument: oaNone)
   );
-  {$define Pars10Answer:=[]}
   Pars10Rest: array[0..0]of string = ('--kot=blah');
 
   { Pars11 ------------------------------------------------------------ }
@@ -384,7 +384,6 @@ const
   Pars16: array[0..0]of TOption = (
     (Short:'b'; Long:'ble'; Argument: oaRequired3Separate)
   );
-  {$define Pars16Answer:=[]}
   Pars16Rest: array[0..2]of string = ('ble', '-', '');
 
   { Pars17 ------------------------------------------------------------ }
@@ -406,12 +405,12 @@ const
     (Short:'c'; Long:'cycek'; Argument: oaRequired)
   );
   Pars18Answer: array[0..5]of TParsedOption = (
-    (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:2; HasArgument: true; Argument:'--rere'; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:2; HasArgument: true; Argument:'foo'; SeparateArgs: EmptySeparateArgs)
+    (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:2; HasArgument: true; Argument:'--rere'; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:2; HasArgument: true; Argument:'foo'; SeparateArgs: ('','','', '','','', '','',''))
   );
   Pars18Rest: array[0..1]of string = ('-zero', 'blabla');
 
@@ -437,9 +436,9 @@ const
     (Short:'s'; Long:'something'; Argument: oaNone)
   );
   Pars20_OnlyKnown_Answer: array[0..2]of TParsedOption = (
-    (OptionNum:2; HasArgument: true; Argument:'xyz'; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:3; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
-    (OptionNum:1; HasArgument: true; Argument:'2'; SeparateArgs: EmptySeparateArgs)
+    (OptionNum:2; HasArgument: true; Argument:'xyz'; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:3; HasArgument: false; Argument:''; SeparateArgs: ('','','', '','','', '','','')),
+    (OptionNum:1; HasArgument: true; Argument:'2'; SeparateArgs: ('','','', '','','', '','',''))
   );
   Pars20_OnlyKnown_Rest: array[0..4]of string = ('--bar', '-sb=xyz', '--foo', '--', '--1');
 
@@ -454,7 +453,7 @@ const
     (Short:#0; Long:'dark'; Argument: oaNone)
   );
   Pars21Answer: array[0..0]of TParsedOption = (
-    (OptionNum:1; HasArgument: true; Argument:'12'; SeparateArgs: EmptySeparateArgs)
+    (OptionNum:1; HasArgument: true; Argument:'12'; SeparateArgs: ('','','', '','','', '','',''))
   );
   Pars21Rest: array[0..0]of string = ('glplotter.exe');
 
@@ -470,14 +469,14 @@ begin
   CheckParsFail('7', Pars7Question, Pars7, EInvalidShortOption, 'Invalid short option character "k" in parameter "-k"');
   CheckParsFail('8', Pars8Question, Pars8, EInvalidParams, 'Invalid empty parameter "--=ala spacja"');
   CheckParsFail('9', Pars9Question, Pars9, EMissingOptionArgument, 'Missing argument for option --kot');
-  CheckPars('10', Pars10Question, Pars10, Pars10Answer, Pars10Rest, false);
+  CheckPars('10', Pars10Question, Pars10, [], Pars10Rest, false);
   CheckParsFail('11', Pars11Question, Pars11, EExcessiveOptionArgument, 'Excessive argument for option --kot');
   CheckParsFail('12', Pars12Question, Pars12, EInvalidParams, 'Invalid empty parameter "-=blah"');
 
   CheckPars('13', Pars13Question, Pars13, Pars13Answer, Pars13Rest, false);
   CheckPars('14', Pars14Question, Pars14, Pars14Answer, Pars14Rest, false);
   CheckParsFail('15', Pars15Question, Pars15, EMissingOptionArgument, 'Not enough arguments for option --ble, this option needs 4 arguments but we have only 3');
-  CheckPars('16', Pars16Question, Pars16, Pars16Answer, Pars16Rest, false);
+  CheckPars('16', Pars16Question, Pars16, [], Pars16Rest, false);
   CheckParsFail('17', Pars17Question, Pars17, EInvalidShortOption, 'Invalid short option character "#0 (null char)" in parameter "-'#0'"');
   CheckPars('18', Pars18Question, Pars18, Pars18Answer, Pars18Rest, false);
   CheckParsFail('19', Pars19Question, Pars19, EExcessiveOptionArgument, 'Option --baba requires 2 arguments, you cannot give them using the form --option=argument, you must give all the arguments as separate parameters');
@@ -506,6 +505,8 @@ begin
   );
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
  RegisterTest(TTestParsingParameters);
+ {$endif}
 end.
