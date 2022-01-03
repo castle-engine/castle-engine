@@ -28,7 +28,6 @@ html:
 # Just some shortcuts to "Helpful targets" below
 latex: latex/docs.tex
 pdf: latex/docs.pdf
-php: php/docs.php
 
 # Helpful targets to gen docs ----------------------------------------
 
@@ -48,8 +47,13 @@ latex/docs.pdf: latex/docs.tex
 	      latex/docs.out \
 	      latex/docs.toc
 
-php/docs.php:
+# PHP update -----------------------------------------------------------------
+
+# Generate PHP map, copy it to cge-www repo (you should commit it there).
+.PHONY: php
+php:
 	./mk_docs.sh php
+	cp -f php/docs.php ../../../cge-www/htdocs/apidoc_map_latest.php
 
 # Cleaning ------------------------------------------------------------
 
