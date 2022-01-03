@@ -1,8 +1,8 @@
 ## test_fairy
 
-This service integrates _Castle Game Engine_ applications with [Test Fairy](https://www.testfairy.com/). It's a nice way to distribute mobile applications to your testers, gather logs, feedback etc.
+This service integrates _Castle Game Engine_ applications with https://www.testfairy.com/[Test Fairy]. It's a nice way to distribute mobile applications to your testers, gather logs, feedback etc.
 
-Using this service is *not* necessary to use [Test Fairy](https://www.testfairy.com/) in a basic way. That is, you can distribute your apps through TestFairy without integrating their SDK.
+Using this service is *not* necessary to use https://www.testfairy.com/[Test Fairy] in a basic way. That is, you can distribute your apps through TestFairy without integrating their SDK.
 
 Still, using this service enhances the experience. You will receive logs, videos, user can submit feedback (from the mobile application to your TestFairy application) and more. There's no need to do anything on the Pascal side, you merely use this service.
 
