@@ -33,7 +33,7 @@
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Name" : "VerticalGroup1",
-      "Spacing" : 6.0000000000000000E+001,
+      "Spacing" : 2.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "$Children" : [
@@ -68,7 +68,7 @@
           "Name" : "LabelCurrentTest",
           "Text" : [
           ],
-          "VerticalAnchorDelta" : -8.2000000000000000E+001,
+          "VerticalAnchorDelta" : -4.2000000000000000E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -78,10 +78,32 @@
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "HorizontalGroupButtons",
           "Spacing" : 5.0000000000000000E+001,
-          "VerticalAnchorDelta" : -1.4200000000000000E+002,
+          "VerticalAnchorDelta" : -6.2000000000000000E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Select tests",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonSelectTests",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
             {
               "$$ClassName" : "TCastleButton",
               "Caption" : "Start",
@@ -97,6 +119,7 @@
               "CustomBackgroundPressed" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
+              "HorizontalAnchorDelta" : 1.8600000000000000E+002,
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
@@ -119,11 +142,72 @@
               "CustomBackgroundPressed" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
-              "HorizontalAnchorDelta" : 1.1900000000000000E+002,
+              "HorizontalAnchorDelta" : 3.0500000000000000E+002,
               "Image" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },
               "Name" : "ButtonStopTests",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleCheckbox",
+              "Caption" : "Stop on first fail",
+              "CheckboxColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "HorizontalAnchorDelta" : 4.2100000000000000E+002,
+              "Name" : "CheckboxStopOnFail",
+              "TextColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleHorizontalGroup",
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "HorizontalGroupButtons1",
+          "Spacing" : 5.0000000000000000E+001,
+          "VerticalAnchorDelta" : -1.2100000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Green" : 8.0784314870834351E-001
+              },
+              "Name" : "LabelTestPassed",
+              "Text" : [
+                "0"
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 5.0980392843484879E-002,
+                "Green" : 5.0980392843484879E-002,
+                "Red" : 7.7647060155868530E-001
+              },
+              "HorizontalAnchorDelta" : 6.3000000000000000E+001,
+              "Name" : "LabelTestFailed",
+              "Text" : [
+                "0"
+              ],
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
             }
@@ -131,7 +215,7 @@
         },
         {
           "$$ClassName" : "TCastleScrollView",
-          "Height" : 5.0000000000000000E+002,
+          "Height" : 2.5000000000000000E+002,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "ScrollView1",
@@ -151,10 +235,41 @@
               }
             ]
           },
-          "VerticalAnchorDelta" : -2.4100000000000000E+002,
+          "VerticalAnchorDelta" : -1.6300000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "Width" : 1.2000000000000000E+003
+        },
+        {
+          "$$ClassName" : "TCastleViewport",
+          "Camera" : {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic",
+              "Name" : "Orthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective",
+              "Name" : "Perspective"
+            }
+          },
+          "Height" : 3.5000000000000000E+002,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Items" : {
+            "$$ClassName" : "TCastleRootTransform",
+            "Name" : "Items",
+            "PhysicsProperties" : {
+              "$$ClassName" : "TPhysicsProperties",
+              "Name" : "PhysicsProperties"
+            }
+          },
+          "Name" : "TestViewport",
+          "VerticalAnchorDelta" : -4.3300000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 7.0000000000000000E+002
         }
       ]
     }

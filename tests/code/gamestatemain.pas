@@ -17,12 +17,17 @@ type
   private
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
+    LabelTestPassed: TCastleLabel;
+    LabelTestFailed: TCastleLabel;
 
     ButtonStartTests: TCastleButton;
 
     Tester: TCastleTester;
 
     procedure ClickStartTests(Sender: TObject);
+
+    procedure TestPassedCountChanged(const TestCount: Integer);
+    procedure TestFailedCountChanged(const TestCount: Integer);
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -51,7 +56,8 @@ uses SysUtils,
   TestCastleScriptVectors{$endif} TestCastleSoundEngine,
   TestCastleSpaceFillingCurves, TestCastleStringUtils, TestCastleTimeUtils,
   TestCastleTransform, TestCastleTriangles, TestCastleTriangulate,
-  TestCastleUIControls, {TestCastleUtils,} TestCastleUtilsLists;
+  TestCastleUIControls, {TestCastleUtils,} TestCastleUtilsLists,
+  TestCastleVideos, TestCastleWindow;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -75,15 +81,19 @@ begin
   { Find components, by name, that we need to access from code }
   ButtonStartTests := DesignedComponent('ButtonStartTests') as TCastleButton;
   ButtonStartTests.OnClick := {$ifdef FPC}@{$endif}ClickStartTests;
+  LabelTestPassed := DesignedComponent('LabelTestPassed') as TCastleLabel;
+  LabelTestFailed := DesignedComponent('LabelTestFailed') as TCastleLabel;
 
   { Commented test cases need fixes in delphi }
 
   Tester := TCastleTester.Create(FreeAtStop);
+  Tester.NotifyTestPassedChanged := {$ifdef FPC}@{$endif}TestPassedCountChanged;
+  Tester.NotifyTestFailedChanged := {$ifdef FPC}@{$endif}TestFailedCountChanged;
+
   TestC := TCastleTestCase.Create;
   Tester.AddTestCase(TestC);
   Tester.AddTestCase(TTestURIUtils.Create);
   Tester.AddTestCase(TTestCastleBoxes.Create);
-  Tester.AddTestCase(TTestCastleVectors.Create);
   Tester.AddTestCase(TTestCameras.Create);
   Tester.AddTestCase(TTestCastleClassUtils.Create);
   Tester.AddTestCase(TTestCastleColors.Create);
@@ -120,7 +130,23 @@ begin
   Tester.AddTestCase(TTestCastleUIControls.Create);
   //Tester.AddTestCase(TTestCastleUtils.Create); - TODO: FPC definitions
   Tester.AddTestCase(TTestBasicLists.Create);
+  Tester.AddTestCase(TTestCastleVectors.Create);
+  //Tester.AddTestCase(TTestWindow.Create);
 
+  { Add registered test cases here }
+
+  { Scans all tests }
+  Tester.Scan;
+end;
+
+procedure TStateMain.TestFailedCountChanged(const TestCount: Integer);
+begin
+  LabelTestFailed.Caption := IntToStr(TestCount);
+end;
+
+procedure TStateMain.TestPassedCountChanged(const TestCount: Integer);
+begin
+  LabelTestPassed.Caption := IntToStr(TestCount);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
