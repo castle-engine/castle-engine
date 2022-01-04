@@ -20,8 +20,8 @@ unit TestCastleVideos;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVideos,
-  CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif}, CastleVideos;
 
 type
   TTestVideos = class(TCastleTestCase)
@@ -69,6 +69,8 @@ begin
   finally FreeAndNil(Video) end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
  RegisterTest(TTestVideos);
+{$endif}
 end.

@@ -76,7 +76,7 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
      { na koncu caly obrazek powinien byc czerwony }
      AssertTrue(Img.IsClear(Red4Byte));
     except
-     OutFileName := GetTempDirectory + '/test_space_filling_curves.ppm';
+     OutFileName := {$ifndef CASTLE_TESTER}GetTempDir{$else}GetTempDirectory{$endif} + '/test_space_filling_curves.ppm';
      SaveImage(Img, OutFileName);
      Writeln(Format('and it failed at curveClass %s, Width %d, Height %d',
        [CurveClass.ClassName, Width, Height]), nl,

@@ -19,7 +19,8 @@ unit TestCastleWindow;
 
 interface
 
-uses FpcUnit, TestUtils, TestRegistry, CastleTestCase;
+uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase
+     {$else}CastleTester{$endif};
 
 type
   TTestWindow = class(TCastleTestCase)
@@ -45,8 +46,9 @@ implementation
 uses SysUtils, Classes, Math,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
-  CastleCameras, CastleSceneManager, CastleVectors,
-  CastleTransform, CastleScene, CastleApplicationProperties, CastleUIState;
+  CastleCameras, {$ifdef FPC}CastleSceneManager,{$endif} CastleVectors,
+  CastleTransform, CastleScene, CastleApplicationProperties, CastleUIState,
+  CastleViewport;
 
 procedure TTestWindow.Test1;
 var
@@ -276,7 +278,7 @@ var
   Box: TCastleBox;
   Viewport: TCastleViewport;
 begin
-  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
     Window := TCastleWindowBase.Create(nil);
     try
@@ -303,7 +305,7 @@ begin
       finally FreeAndNil(Viewport) end;
     finally FreeAndNil(Window) end;
   finally
-    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
 end;
 
@@ -553,6 +555,8 @@ begin
   Application.MainWindow := nil;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestWindow);
+{$endif}
 end.
