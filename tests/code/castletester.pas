@@ -3,7 +3,7 @@ unit CastleTester;
 interface
 
 uses SysUtils, Classes, Generics.Collections, Rtti, CastleVectors, CastleBoxes,
-  CastleFrustum, CastleImages;
+  CastleFrustum, CastleImages, CastleRectangles, CastleWindow, CastleViewport;
 
 const
   { Epsilon used by default when compating Single (Single-precision float values).
@@ -23,21 +23,63 @@ type
   TNotifyAssertFail = procedure (const TestName, Msg: String) of object;
   TNotifyTestExecuted = procedure (const Name: String) of object;
   TNotifyTestCaseExecuted = procedure (const Name: String) of object;
+  TNotifyTestCountChanged = procedure (const TestCount: Integer) of object;
+
+  TCastleTesterMode = (
+    ctmDesktop, // tester runs in UI application on desktop (Linux, Windows, MacOS)
+    ctmConsole, // tester runs in console
+    ctmMobile,  // tester runs on Android or iOs
+    ctmWeb // for testing
+  );
+
+  TCastleTester = class;
+  TCastleTestCase = class;
 
   TCastleTest = class
+  strict private
+    FTestCase: TCastleTestCase;
+    FRttiMethod: TRttiMethod;
+    FEnabled: Boolean;
 
+    procedure SetEnabled(NewValue: Boolean);
+  public
+    Name: String;
+
+    constructor Create(const ATestCase: TCastleTestCase; const AName: String;
+      const ARttiMethod: TRttiMethod);
+
+    procedure Run;
+
+    property Enabled: Boolean read FEnabled write SetEnabled;
   end;
 
   TCastleTestCase = class
   strict private
     FName: String;
+
+    { Object list for tests }
+    FTestList: {$ifdef FPC}specialize{$endif} TObjectList<TCastleTest>;
+
+    function GetTest(const Index: Integer): TCastleTest;
   private
     FNotifyAssertFail: TNotifyAssertFail;
     FCurrentTestName: String;
 
+    FWindowForTest: TCastleWindowBase;
+    { Viewport from MainWindow in Desktop or Mobile mode or viewport from
+      FWindowForViewportTest when Console Mode }
+    FViewportForTest: TCastleViewport;
+    { Window for Viewport when tester in Console mode }
+    FWindowForViewportTest: TCastleWindowBase;
+    { TCastleTester that runs test case }
+    FCastleTester: TCastleTester;
+
     function PrepareCustomMsg(const Msg: String): String;
   public
+    Enabled: Boolean;
+
     constructor Create;
+    destructor Destroy; override;
 
     procedure Setup; virtual;
     procedure TearDown; virtual;
@@ -60,7 +102,6 @@ type
       ErrorAddr: Pointer = nil); overload;
     procedure AssertEquals(const Msg: String; const Expected, Actual: Boolean;
       ErrorAddr: Pointer = nil); overload;
-
 
     procedure AssertSameValue(const Expected, Actual: Single;
       ErrorAddr: Pointer = nil); overload;
@@ -100,11 +141,16 @@ type
 
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D;
       ErrorAddr: Pointer = nil); overload;
-    procedure AssertBoxesEqual(const Expected, Actual: TBox3D; const Epsilon: Double;
-      ErrorAddr: Pointer = nil); overload;
+    procedure AssertBoxesEqual(const Expected, Actual: TBox3D;
+      const Epsilon: Double; ErrorAddr: Pointer = nil); overload;
 
     procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage;
       ErrorAddr: Pointer = nil);
+
+    procedure AssertRectsEqual(const Expected, Actual: TRectangle;
+      ErrorAddr: Pointer = nil); overload;
+    procedure AssertRectsEqual(const Expected, Actual: TFloatRectangle;
+      ErrorAddrs: Pointer = nil); overload;
 
     procedure AssertFrustumEquals(const Expected, Actual: TFrustum;
       const Epsilon: Single; ErrorAddr: Pointer = nil); overload;
@@ -117,40 +163,121 @@ type
 
     procedure TestLog(Text: String);
 
-    procedure TestTestCase;
-
     procedure OnWarningRaiseException(const Category, S: string);
 
+    { Method that facilitates the creation of the window for the test
+      it will be freed when test methond ends but if you need test
+      window destroying call DestroyWindowForTest }
+    function CreateWindowForTest: TCastleWindowBase;
+    procedure DestroyWindowForTest;
+
+    { If you don't need window for testing you can simply get a viewport.
+      This view port is automatically cleaned when test method ends.
+      In UI mode it's in main window }
+    function GetTestingViewport: TCastleViewport;
+
+    { Used by TCastleTester.Scan to add tests }
+    function AddTest(const AName: String;
+      const ARttiMethod: TRttiMethod): TCastleTest;
+
+    { Clears test list }
+    procedure ClearTests;
+
+    function TestCount: Integer;
+    function EnabledTestCount: Integer;
+
+    property Test[const Index: Integer]: TCastleTest read GetTest;
+
     property CurrentTestName: String read FCurrentTestName;
+
+  published
+    procedure TestTestCase;
 
   end;
 
 
   TCastleTester = class (TComponent)
   strict private
+    { Rtti context to run all test methods }
     FRttiContext: TRttiContext;
+
+    { Object list for test cases }
     FTestCaseList: {$ifdef FPC}specialize{$endif} TObjectList<TCastleTestCase>;
+
+    { Test app window when tester runs in UI mode or nil in console mode }
+    FUIWindow: TCastleWindowBase;
+
+    { Flag to stop on first test fail }
+    FStopOnFirstFail: Boolean;
+
+    FTestsCount: Integer;
+    FTestPassedCount: Integer;
+    FTestFailedCount: Integer;
+
+    procedure SetNotifyAssertFail(const ANotifyAssertFail: TNotifyAssertFail);
+
+    { Runs test case using RTTI }
+    procedure ScanTestCase(TestCase: TCastleTestCase);
+
+    procedure SetTestCount(const NewTestCount: Integer);
+
+    procedure SetTestPassedCount(const NewTestCount: Integer);
+    procedure SetTestFailedCount(const NewTestCount: Integer);
+
+  private
+    { Callbacks to change UI }
     FNotifyTestExecuted: TNotifyTestExecuted;
     FNotifyTestCaseExecuted: TNotifyTestCaseExecuted;
     FNotifyAssertFail: TNotifyAssertFail;
-    procedure SetNotifyAssertFail(const ANotifyAssertFail: TNotifyAssertFail);
-
-    procedure RunTestCase(TestCase: TCastleTestCase);
-
+    FNotifyTestCountChanged: TNotifyTestCountChanged;
+    FNotifyTestPassedChanged: TNotifyTestCountChanged;
+    FNotifyTestFailedChanged: TNotifyTestCountChanged;
+    FNotifyEnabledTestCountChanged: TNotifyEvent;
   public
     constructor Create(AOwner: TComponent);
     destructor Destroy; override;
 
     procedure AddTestCase(const TestCase: TCastleTestCase);
 
+    procedure Scan;
     procedure Run;
+
+    { Returns tester mode (UI or Console) }
+    function Mode: TCastleTesterMode;
+
+    property StopOnFirstFail: Boolean read FStopOnFirstFail
+      write FStopOnFirstFail default true;
+
+    property TestsCount: Integer read FTestsCount;
+    property TestPassedCount: Integer read FTestPassedCount
+      write SetTestPassedCount;
+    property TestFailedCount: Integer read FTestFailedCount
+      write SetTestFailedCount;
 
     property NotifyTestExecuted: TNotifyTestExecuted read FNotifyTestExecuted
       write FNotifyTestExecuted;
     property NotifyTestCaseExecuted: TNotifyTestCaseExecuted
       read FNotifyTestCaseExecuted write FNotifyTestCaseExecuted;
+
+    { Callback after test fail }
     property NotifyAssertFail: TNotifyAssertFail read FNotifyAssertFail
       write SetNotifyAssertFail;
+
+    { Callback after test count changed }
+    property NotifyTestCountChanged: TNotifyTestCountChanged
+      read FNotifyTestCountChanged write FNotifyTestCountChanged;
+
+    { Callback after passed test count changed }
+    property NotifyTestPassedChanged: TNotifyTestCountChanged
+      read FNotifyTestPassedChanged write FNotifyTestPassedChanged;
+
+    { Callback after failed test count changed }
+    property NotifyTestFailedChanged: TNotifyTestCountChanged
+      read FNotifyTestFailedChanged write FNotifyTestFailedChanged;
+
+    { Callback after enabled test count changed }
+    property NotifyEnabledTestCountChanged: TNotifyEvent
+      read FNotifyEnabledTestCountChanged write FNotifyEnabledTestCountChanged;
   end;
 
 implementation
@@ -159,15 +286,19 @@ implementation
 
 uses CastleLog, TypInfo, Math, {$ifndef FPC}IOUtils,{$endif} CastleUtils;
 
+
 procedure TCastleTester.AddTestCase(const TestCase: TCastleTestCase);
 begin
   FTestCaseList.Add(TestCase);
   TestCase.FNotifyAssertFail := FNotifyAssertFail;
+  TestCase.FCastleTester := Self;
 end;
 
 constructor TCastleTester.Create(AOwner: TComponent);
 begin
   inherited;
+
+  StopOnFirstFail := true;
 
   FTestCaseList := {$ifdef FPC}specialize{$endif} TObjectList<TCastleTestCase>.Create;
   FRttiContext := TRttiContext.Create;
@@ -180,22 +311,82 @@ begin
   inherited;
 end;
 
+function TCastleTester.Mode: TCastleTesterMode;
+begin
+  if FUIWindow = nil then
+    Result := ctmConsole
+  else
+    {$if defined(ANDROID) or defined(iPHONESIM) or defined(iOS)}
+    Result := ctmMobile;
+    {$else}
+    Result := ctmDesktop;
+    {$endif}
+end;
+
 procedure TCastleTester.Run;
+var
+  I, J: Integer;
+  TestCase: TCastleTestCase;
+  Test: TCastleTest;
+begin
+  FUIWindow := Application.MainWindow;
+
+  for I := 0 to FTestCaseList.Count -1 do
+  begin
+    TestCase := FTestCaseList[I];
+    if TestCase.Enabled then
+    begin
+      for J := 0 to TestCase.TestCount -1 do
+      begin
+        Test := TestCase.Test[J];
+        if Test.Enabled then
+        begin
+          try
+            Test.Run;
+            TestPassedCount := TestPassedCount + 1;
+          except
+            on E: EAssertionFailedError do
+            begin
+              TestFailedCount := TestFailedCount + 1;
+              if FStopOnFirstFail then
+                raise;
+            end;
+            on E: Exception do
+            begin
+              // TODO: warnning here when we don't stop on first Exception.
+              if FStopOnFirstFail then
+                raise;
+            end;
+          end;
+        end;
+      end;
+    end;
+
+  end;
+    
+end;
+
+procedure TCastleTester.Scan;
 var
   I: Integer;
   TestCase: TCastleTestCase;
 begin
+  FTestsCount := 0;
+
   for I := 0 to FTestCaseList.Count -1 do
   begin
     TestCase := FTestCaseList[I];
-    RunTestCase(TestCase);
+    TestCase.ClearTests;
+    ScanTestCase(TestCase);
+    SetTestCount(TestCase.TestCount);
   end;
 end;
 
-procedure TCastleTester.RunTestCase(TestCase: TCastleTestCase);
+procedure TCastleTester.ScanTestCase(TestCase: TCastleTestCase);
 var
   RttiType: TRttiType;
   RttiMethod: TRttiMethod;
+  Test: TCastleTest;
 begin
   // raise Exception.Create('Test Return Adress') at {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
@@ -209,8 +400,9 @@ begin
         (Length(RttiMethod.GetParameters) = 0) and
         (pos('TEST', UpperCase(RttiMethod.Name)) = 1) then
       begin
-        TestCase.FCurrentTestName := RttiMethod.Name;
-        RttiMethod.Invoke(TestCase, []);
+        //TestCase.FCurrentTestName := RttiMethod.Name;
+        //RttiMethod.Invoke(TestCase, []);
+        TestCase.AddTest(RttiMethod.Name, RttiMethod);
       end;
 
     end;
@@ -234,6 +426,30 @@ begin
   end;
 end;
 
+procedure TCastleTester.SetTestCount(const NewTestCount: Integer);
+begin
+  FTestsCount := NewTestCount;
+
+  if Assigned(FNotifyTestCountChanged) then
+    FNotifyTestCountChanged(FTestsCount);
+end;
+
+procedure TCastleTester.SetTestFailedCount(const NewTestCount: Integer);
+begin
+  FTestFailedCount := NewTestCount;
+
+  if Assigned(FNotifyTestFailedChanged) then
+    FNotifyTestFailedChanged(FTestFailedCount);
+end;
+
+procedure TCastleTester.SetTestPassedCount(const NewTestCount: Integer);
+begin
+  FTestPassedCount := NewTestCount;
+
+  if Assigned(FNotifyTestPassedChanged) then
+    FNotifyTestPassedChanged(FTestPassedCount);
+end;
+
 { TCastleTestCase }
 
 procedure TCastleTestCase.AssertEquals(const Expected, Actual: String);
@@ -246,6 +462,13 @@ procedure TCastleTestCase.AssertEquals(const Expected, Actual: Boolean);
 begin
   AssertEquals('', Expected, Actual,
     {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
+end;
+
+function TCastleTestCase.AddTest(const AName: String;
+  const ARttiMethod: TRttiMethod): TCastleTest;
+begin
+  Result := TCastleTest.Create(Self, AName, ARttiMethod);
+  FTestList.Add(Result);
 end;
 
 procedure TCastleTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D;
@@ -412,6 +635,28 @@ begin
   if ErrorAddr = nil then
     ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
   AssertPlaneEquals(Expected, Actual, SingleEpsilon, ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertRectsEqual(const Expected,
+  Actual: TFloatRectangle; ErrorAddrs: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
+
+  if not Expected.Equals(Actual) then
+    Fail(Format('Expected rect (%s) does not equal actual (%s)',
+      [Expected.ToString, Actual.ToString]), ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertRectsEqual(const Expected, Actual: TRectangle;
+  ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
+
+  if not Expected.Equals(Actual) then
+    Fail(Format('Expected rect (%s) does not equal actual (%s)',
+      [Expected.ToString, Actual.ToString]), ErrorAddr);
 end;
 
 procedure TCastleTestCase.AssertPlaneEquals(const Expected, Actual: TVector4;
@@ -584,6 +829,11 @@ begin
   AssertTrue('', ACondition, {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif});
 end;
 
+procedure TCastleTestCase.ClearTests;
+begin
+  FTestList.Clear;
+end;
+
 function TCastleTestCase.CompareFileName(Expected, Actual: String): Boolean;
 begin
   {$ifdef MSWINDOWS}
@@ -596,6 +846,35 @@ end;
 constructor TCastleTestCase.Create;
 begin
   FName := ClassName;
+  FTestList := {$ifdef FPC}specialize{$endif} TObjectList<TCastleTest>.Create;
+  Enabled := true;
+end;
+
+function TCastleTestCase.CreateWindowForTest: TCastleWindowBase;
+begin
+
+end;
+
+destructor TCastleTestCase.Destroy;
+begin
+  FreeAndNil(FTestList);
+  inherited;
+end;
+
+procedure TCastleTestCase.DestroyWindowForTest;
+begin
+
+end;
+
+function TCastleTestCase.EnabledTestCount: Integer;
+var
+  I: Integer;
+begin
+  for I := 0 to FTestList.Count -1 do
+  begin
+    if FTestList[I].Enabled then
+      Inc(Result);
+  end;
 end;
 
 procedure TCastleTestCase.Fail(const Msg: String; const ErrorAddr: Pointer);
@@ -627,6 +906,16 @@ begin
   {$endif}
 end;
 
+function TCastleTestCase.GetTest(const Index: Integer): TCastleTest;
+begin
+  Result := FTestList[Index];
+end;
+
+function TCastleTestCase.GetTestingViewport: TCastleViewport;
+begin
+
+end;
+
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
 begin
   raise Exception.CreateFmt(ClassName +
@@ -651,6 +940,11 @@ end;
 procedure TCastleTestCase.TearDown;
 begin
 
+end;
+
+function TCastleTestCase.TestCount: Integer;
+begin
+  Result := FTestList.Count;
 end;
 
 procedure TCastleTestCase.TestLog(Text: String);
@@ -700,6 +994,34 @@ begin
 
   AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + BoolToStr(Expected, true) + ' Actual: ' +
     BoolToStr(Actual, true), Expected = Actual, ErrorAddr);
+end;
+
+{ TCastleTest }
+
+constructor TCastleTest.Create(const ATestCase: TCastleTestCase;
+  const AName: String; const ARttiMethod: TRttiMethod);
+begin
+  FTestCase := ATestCase;
+  Name := AName;
+  FEnabled := true;
+  FRttiMethod := ARttiMethod;
+end;
+
+procedure TCastleTest.Run;
+begin
+  FTestCase.FCurrentTestName := Name;
+  FRttiMethod.Invoke(FTestCase, []);
+end;
+
+procedure TCastleTest.SetEnabled(NewValue: Boolean);
+begin
+  if FEnabled = NewValue then
+    Exit;
+
+  FEnabled := NewValue;
+
+  if Assigned(FTestCase.FCastleTester.FNotifyEnabledTestCountChanged) then
+    FTestCase.FCastleTester.FNotifyEnabledTestCountChanged(Self);
 end;
 
 end.
