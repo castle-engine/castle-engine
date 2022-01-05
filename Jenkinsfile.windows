@@ -1,5 +1,5 @@
 /* -*- mode: groovy -*-
-  Confgure how to run our job in Jenkins.
+  Configure how to run our job in Jenkins.
   This runs on Windows.
   See https://castle-engine.io/cloud_builds_jenkins .
 */
