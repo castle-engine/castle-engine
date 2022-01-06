@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="12"/>
     <General>
       <Flags>
         <SaveClosedFiles Value="False"/>
         <LRSInOutputDirectory Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InIDEConfig"/>
-      <MainUnit Value="0"/>
       <Title Value="test_castle_game_engine"/>
     </General>
     <BuildModes Count="1">
@@ -16,15 +16,12 @@
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
-      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default"/>
+      </Modes>
     </RunParams>
     <RequiredPackages Count="5">
       <Item1>
@@ -43,7 +40,7 @@
         <PackageName Value="FCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="58">
+    <Units Count="60">
       <Unit0>
         <Filename Value="test_castle_game_engine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -51,10 +48,12 @@
       <Unit1>
         <Filename Value="code/testcastleboxes.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TestCastleBoxes"/>
       </Unit1>
       <Unit2>
         <Filename Value="code/testcastlecameras.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TestCastleCameras"/>
       </Unit2>
       <Unit3>
         <Filename Value="code/testcastleclassutils.pas"/>
@@ -255,6 +254,7 @@
       <Unit52>
         <Filename Value="code/testsysutils.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TestSysUtils"/>
       </Unit52>
       <Unit53>
         <Filename Value="code/testx3dfields.pas"/>
@@ -276,6 +276,16 @@
         <Filename Value="code/common/castletestcase.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit57>
+      <Unit58>
+        <Filename Value="code/testtoolfpcversion.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestToolFpcVersion"/>
+      </Unit58>
+      <Unit59>
+        <Filename Value="../tools/common-code/toolfpcversion.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolFpcVersion"/>
+      </Unit59>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -285,7 +295,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="../src/common_includes;code"/>
-      <OtherUnitFiles Value="code;code/common"/>
+      <OtherUnitFiles Value="code;code/common;../tools/common-code"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
