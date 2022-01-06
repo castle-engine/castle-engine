@@ -26,6 +26,7 @@ type
     procedure ParseVersion(const S: String);
   public
     Major, Minor, Release: Integer;
+    ReleaseRemark: String;
     function AtLeast(const AMajor, AMinor, ARelease: Integer): boolean;
     function ToString: String; override;
   end;
@@ -79,13 +80,14 @@ end;
 
 function TToolVersion.ToString: String;
 begin
-  Result := Format('%d.%d.%d', [Major, Minor, Release]);
+  Result := Format('%d.%d.%d', [Major, Minor, Release]) + ReleaseRemark;
 end;
 
 procedure TToolVersion.ParseVersion(const S: String);
 var
   Token: String;
   SeekPos: Integer;
+  I, ErrorCode, TempRelease: Integer;
 begin
   SeekPos := 1;
 
@@ -105,7 +107,23 @@ begin
     WritelnWarning('Failed to query version: no release number in "%s", assuming 0', [S]);
     Release := 0;
   end else
-    Release := StrToInt(Token);
+  begin
+    Val(Token, Release, ErrorCode);
+    if ErrorCode <> 0 then // this is a case of versions like 2.2.0RC1 which contain additional ReleaseRemark after the integer digit
+    begin
+      I := 0;
+      repeat
+        Inc(I);
+        Val(Copy(Token, 1, I), TempRelease, ErrorCode);
+        if ErrorCode = 0 then
+          Release := TempRelease; // workaround the fact that if ErrorCode <> 0 the value of TempRelease is undefined, here we use the latest successful value only in case there were no conversion errors
+      until ErrorCode <> 0; //or I >= Length(Token) - no need, as we guarantee by the condition above that ErrorCode <> 0 for full Token
+      if I = 1 then // this means that the first character of Token is not a digit
+        raise Exception.Create('Unable to parse "' + Token + '" as a Release version')
+      else
+        ReleaseRemark := Copy(Token, I, Length(Token));
+    end;
+  end;
 end;
 
 { TFpcVersion ---------------------------------------------------------------- }
