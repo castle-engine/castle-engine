@@ -4,6 +4,7 @@ add
 align
 alignment
 alpha
+amplitude
 anchor
 angle
 animation
@@ -142,6 +143,7 @@ fps
 frame
 framebuffer
 frames
+frequency
 frustum
 fullscreen
 functions

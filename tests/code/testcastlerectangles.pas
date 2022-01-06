@@ -31,6 +31,7 @@ type
     procedure TestCollidesDisc;
     procedure TestAdd;
     // procedure TestRightTop;
+    procedure TestAlign;
   end;
 
 implementation
@@ -239,6 +240,25 @@ begin
   AssertSameValue(1000, R.Top);
 end;
 }
+
+procedure TTestRectangles.TestAlign;
+var
+  WindowRect, ImageRect, TextRect: TRectangle;
+  UIScale: Single;
+begin
+  WindowRect := Rectangle(0, 0, 1920, 1080);
+  ImageRect := Rectangle(0, 0, 237, 50);
+  UIScale := 1.2;
+  TextRect := ImageRect.
+    ScaleAroundCenter(UIScale).
+    Align(hpMiddle, WindowRect, hpMiddle).
+    Align(vpMiddle, WindowRect, vpMiddle);
+  // Writeln(TextRect.ToString); // 818x510 284x60
+  AssertEquals(818, TextRect.Left);
+  AssertEquals(510, TextRect.Bottom);
+  AssertEquals(284, TextRect.Width);
+  AssertEquals(60, TextRect.Height);
+end;
 
 initialization
   RegisterTest(TTestRectangles);

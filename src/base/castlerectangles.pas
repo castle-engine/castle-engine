@@ -844,13 +844,17 @@ begin
   Result := OtherRect.Left + X;
   case ThisPosition of
     hpLeft  : ;
-    hpMiddle: Result := Result - Width div 2;
-    hpRight : Result := Result - Width;
+    { Integer cast to avoid Arithmetic overflow (FPC 3.3.1-9828-g983fbff871 [2022/01/02], Linux/x86_64),
+      testcase in TTestRectangles.TestAlign. }
+    hpMiddle: Result := Result - Integer(Width) div 2;
+    hpRight : Result := Result - Integer(Width);
   end;
   case OtherPosition of
     hpLeft  : ;
-    hpMiddle: Result := Result + OtherRect.Width div 2;
-    hpRight : Result := Result + OtherRect.Width;
+    { Integer cast to avoid Range check error (FPC 3.3.1-9828-g983fbff871 [2022/01/02], Linux/x86_64),
+      testcase in TTestRectangles.TestAlign. }
+    hpMiddle: Result := Result + Integer(OtherRect.Width) div 2;
+    hpRight : Result := Result + Integer(OtherRect.Width);
   end;
 end;
 
@@ -863,13 +867,13 @@ begin
   Result := OtherRect.Bottom + Y;
   case ThisPosition of
     vpBottom: ;
-    vpMiddle: Result := Result - Height div 2;
-    vpTop   : Result := Result - Height;
+    vpMiddle: Result := Result - Integer(Height) div 2;
+    vpTop   : Result := Result - Integer(Height);
   end;
   case OtherPosition of
     vpBottom: ;
-    vpMiddle: Result := Result + OtherRect.Height div 2;
-    vpTop   : Result := Result + OtherRect.Height;
+    vpMiddle: Result := Result + Integer(OtherRect.Height) div 2;
+    vpTop   : Result := Result + Integer(OtherRect.Height);
   end;
 end;
 

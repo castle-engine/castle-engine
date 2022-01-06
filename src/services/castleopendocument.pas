@@ -133,7 +133,7 @@ uses
     {$ifdef MSWINDOWS} Windows, {$endif}
     {$ifdef DARWIN} MacOSAll, {$endif}
   {$endif}
-  SysUtils, Classes, {$ifdef FPC}Process,{$else}ShellApi,{$endif}
+  SysUtils, Classes, {$ifdef FPC} Process, {$else} ShellApi, {$endif}
   CastleURIUtils, CastleUtils, CastleFilesUtils, CastleLog, CastleMessaging;
 
 { lcl/lclstrconsts.pas ------------------------------------------------------- }
