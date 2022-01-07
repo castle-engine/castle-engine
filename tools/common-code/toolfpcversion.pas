@@ -21,11 +21,12 @@ interface
 type
   TToolVersion = class
   protected
-    { Get Major,Minor,Release from S.
+    { Get Major,Minor,Release,ReleaseRemark from S.
       Raise exception if it doesn't start with necessary numbers. }
     procedure ParseVersion(const S: String);
   public
     Major, Minor, Release: Integer;
+    ReleaseRemark: String;
     function AtLeast(const AMajor, AMinor, ARelease: Integer): boolean;
     function ToString: String; override;
   end;
@@ -79,33 +80,45 @@ end;
 
 function TToolVersion.ToString: String;
 begin
-  Result := Format('%d.%d.%d', [Major, Minor, Release]);
+  Result := Format('%d.%d.%d', [Major, Minor, Release]) + ReleaseRemark;
 end;
 
 procedure TToolVersion.ParseVersion(const S: String);
+const
+  { Major / Minor / Release are separated by dots.
+    ReleaseRemark is whatever follows after Release, it may be 'rc2'.
+
+    So using NextToken to just scan for digits is most reliable and simple.
+    It means that resulting Token is either '', or a valid integer that should
+    be handled by StrToInt OK (well, if it fits in Integer range). }
+  NonDigits = AllChars - ['0'..'9'];
 var
   Token: String;
   SeekPos: Integer;
 begin
   SeekPos := 1;
 
-  Token := NextToken(S, SeekPos, ['.', '-']);
+  Token := NextToken(S, SeekPos, NonDigits);
   if Token = '' then
     raise Exception.CreateFmt('Failed to query version: no major number in "%s"', [S]);
   Major := StrToInt(Token);
 
-  Token := NextToken(S, SeekPos, ['.', '-']);
+  Token := NextToken(S, SeekPos, NonDigits);
   if Token = '' then
     raise Exception.CreateFmt('Failed to query version: no minor number in "%s"', [S]);
   Minor := StrToInt(Token);
 
-  Token := NextToken(S, SeekPos, ['.', '-']);
+  Token := NextToken(S, SeekPos, NonDigits);
   if Token = '' then
   begin
     WritelnWarning('Failed to query version: no release number in "%s", assuming 0', [S]);
     Release := 0;
   end else
     Release := StrToInt(Token);
+
+  { Use "SeekPos - 1", as after NextToken the SeekPos points to
+    the character right after the ending character that was in NonDigits. }
+  ReleaseRemark := SEnding(S, SeekPos - 1);
 end;
 
 { TFpcVersion ---------------------------------------------------------------- }
