@@ -33,36 +33,45 @@ uses SysUtils,
   CastleFilesUtils, CastleURIUtils;
 
 type
+  { Descendant of TToolVersion, just to expose protected ParseVersion.
+    We actually don't need to make it public here, it's enough that TTestVersionParsing
+    is in the same unit as TTestToolFpcVersion.TestVersionParsing that uses it. }
   TTestVersionParsing = class(TToolVersion)
-  public
-    function TestParsing(const VersionString: String): Boolean;
+  // public
+  //   procedure ParseVersion(const S: String);
   end;
 
-function TTestVersionParsing.TestParsing(const VersionString: String): Boolean;
-begin
-  ParseVersion(VersionString);
-  Result := ToString = VersionString;
-end;
+// procedure procedure TTestVersionParsing.ParseVersion(const S: String);
+// begin
+//   inherited;
+// end;
 
 procedure TTestToolFpcVersion.TestVersionParsing;
 var
   VersionParsing: TTestVersionParsing;
+
+  procedure TestParsing(const Ver: String);
+  begin
+    VersionParsing.ParseVersion(Ver);
+    AssertEquals(Ver, VersionParsing.ToString);
+  end;
+
 begin
   VersionParsing := TTestVersionParsing.Create;
   try
-    AssertTrue(VersionParsing.TestParsing('2.2.0RC1'));
+    TestParsing('2.2.0RC1');
     AssertEquals(2, VersionParsing.Major);
     AssertEquals(2, VersionParsing.Minor);
     AssertEquals(0, VersionParsing.Release);
     AssertEquals('RC1', VersionParsing.ReleaseRemark);
 
-    AssertTrue(VersionParsing.TestParsing('2.2.0RC2'));
+    TestParsing('2.2.0RC2');
     AssertEquals(2, VersionParsing.Major);
     AssertEquals(2, VersionParsing.Minor);
     AssertEquals(0, VersionParsing.Release);
     AssertEquals('RC2', VersionParsing.ReleaseRemark);
 
-    AssertTrue(VersionParsing.TestParsing('123.456.789'));
+    TestParsing('123.456.789');
     AssertEquals(123, VersionParsing.Major);
     AssertEquals(456, VersionParsing.Minor);
     AssertEquals(789, VersionParsing.Release);
