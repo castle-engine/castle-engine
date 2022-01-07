@@ -107,18 +107,6 @@
     class procedure SetCurrent(const Value: TCastleView); static;
     class function GetCurrentTop: TCastleView; static;
     class function GetStateStack(const Index: Integer): TCastleView; static;
-  protected
-    { The container size is always known: we assume that view will be part
-      of GetMainContainer, if the view not yet started.
-
-      So the view knows container size, regardless if we are between Start / Stop,
-      regardless if the TCastleView is already added to some TCastleContainer.Children.
-      This makes all other routines, like ParentRect, EffectiveRect, EffectiveWidth,
-      EffectiveHeight also work. }
-    function ContainerWidth: Cardinal; override;
-    function ContainerHeight: Cardinal; override;
-    function ContainerRect: TRectangle; override;
-    function ContainerSizeKnown: boolean; override;
 
     { Container in which view is started (if view is started)
       or on which we predict it will be started (if view is not started yet).
@@ -132,6 +120,20 @@
       When the view has started, then @link(Container) property (from
       ancestor, see TCastleUserInterface.Container) is equal to this. }
     function PredictedContainer: TCastleContainer;
+  protected
+    { The container size is always known: we assume that view will be part
+      of GetMainContainer, if the view not yet started.
+
+      So the view knows container size, regardless if we are between Start / Stop,
+      regardless if the TCastleView is already added to some TCastleContainer.Children.
+      This makes all other routines, like ParentRect, EffectiveRect, EffectiveWidth,
+      EffectiveHeight also work. }
+    function ContainerWidth: Cardinal; override;
+    function ContainerHeight: Cardinal; override;
+    function ContainerRect: TRectangle; override;
+    function ContainerSizeKnown: boolean; override;
+
+    function StateContainer: TCastleContainer; deprecated 'use StartContainer to get the container in which we are already started, use GetMainContainer to get global central container';
 
     { Container in which view is started (if view is started)
       or nil (if view is not started yet).
@@ -542,6 +544,11 @@ begin
 
   { Through InternalStop, above always sets FStartContainer to nil }
   Assert(FStartContainer = nil);
+end;
+
+function TCastleView.StateContainer: TCastleContainer;
+begin
+  Result := PredictedContainer;
 end;
 
 function TCastleView.PredictedContainer: TCastleContainer;
