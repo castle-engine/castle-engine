@@ -583,19 +583,23 @@ begin
 end;
 
 procedure TCastleView.StopIfStarted;
+var
+  SavedContainer: TCastleContainer;
 begin
   if (FStartContainer <> nil) and
      (FStartContainer.FViewStack <> nil) and
      (FStartContainer.FViewStack.IndexOf(Self) <> -1) then
   begin
-    if FStartContainer.FViewStack.Last = Self then
+    SavedContainer := FStartContainer;
+
+    if SavedContainer.FViewStack.Last = Self then
       Pause;
-    InternalStop;
-    FStartContainer.FViewStack.Remove(Self);
+    InternalStop; // this clears FStartContainer
+    SavedContainer.FViewStack.Remove(Self);
     { deallocate empty FViewStack. Doing this here allows to deallocate
       FViewStack only once all views finished gracefully. }
-    if FStartContainer.FViewStack.Count = 0 then
-      FreeAndNil(FStartContainer.FViewStack);
+    if SavedContainer.FViewStack.Count = 0 then
+      FreeAndNil(SavedContainer.FViewStack);
   end;
 end;
 
