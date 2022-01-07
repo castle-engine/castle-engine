@@ -212,8 +212,15 @@ type
     property GLInitialized: boolean read FGLInitialized;
   public
     class var
-      { Central control where user-interface states (TUIState) are added.
-        You do not need to set this if you don't use TUIState. }
+      { Central control.
+
+        This is only important now if you use deprecated way of setting TCastleView,
+        using class properties/methods TUIState.Current, TUIState.Push.
+        If instead you use new way of setting TCastleView,
+        using container properties/methods TCastleContainer.Current, TCastleContainer.Push,
+        then this value isn't useful.
+
+        This means that in new applications, you probably have no need to set this value. }
       MainControl: TCastleControlBase;
 
     constructor Create(AOwner: TComponent); override;
