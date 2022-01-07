@@ -224,7 +224,7 @@ type
       (like TCastleViewport, TCastleButton and much more) to this list.
       We will pass events to these controls, draw them etc.
       See @link(TCastleContainer.Controls) for details. }
-    function Controls: TChildrenControls;
+    function Controls: TInternalChildrenControls;
 
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
     procedure Invalidate; override;
@@ -1286,7 +1286,7 @@ begin
   Result := Container.Rect;
 end;
 
-function TCastleControlBase.Controls: TChildrenControls;
+function TCastleControlBase.Controls: TInternalChildrenControls;
 begin
   Result := Container.Controls;
 end;

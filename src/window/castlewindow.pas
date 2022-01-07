@@ -1788,7 +1788,7 @@ type
 
     { List of user-interface controls currently active.
       See @link(TCastleContainer.Controls) for details. }
-    function Controls: TChildrenControls;
+    function Controls: TInternalChildrenControls;
 
     { Is the OpenGL context initialized. This is equivalent to @code(not Closed),
       which means we are between an @link(Open) and @link(Close) calls. }
@@ -4404,7 +4404,7 @@ end;
 {$endif}
 {$endif}
 
-function TCastleWindowBase.Controls: TChildrenControls;
+function TCastleWindowBase.Controls: TInternalChildrenControls;
 begin
   Result := Container.Controls;
 end;
