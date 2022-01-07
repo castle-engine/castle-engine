@@ -113,7 +113,6 @@ type
       FBackgroundScreenshot: boolean;
       FPopOnAnswered: boolean;
       FDialog: TDialog; // non-nil only between Start and Stop
-      FOverrrideContainer: TCastleContainer;
     function GetCaption: string;
     procedure SetCaption(const Value: string);
     function GetInputText: string;
@@ -121,7 +120,6 @@ type
   protected
     type
       TButtonArray = array of TCastleButton;
-    function StateContainer: TCastleContainer; override;
     procedure InitializeButtons(var Buttons: TButtonArray); virtual;
     function DrawInputText: boolean; virtual;
     procedure DoAnswered;
@@ -204,14 +202,6 @@ type
       This is usually most natural. }
     property PopOnAnswered: boolean
       read FPopOnAnswered write FPopOnAnswered default true;
-
-    { Force state to use indicated TCastleContainer to insert itself and get screenshot.
-      By default it uses
-      @link(TCastleApplication.MainWindow Application.MainWindow)
-      if you use CastleWindow or
-      @link(TCastleControlBase.MainControl) if you use CastleControl. }
-    property OverrrideContainer: TCastleContainer
-      read FOverrrideContainer write FOverrrideContainer;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc}
@@ -407,7 +397,7 @@ begin
       BackgroundImage := TCastleImageControl.Create(FreeAtStop);
       BackgroundImage.Stretch := true;
       BackgroundImage.FullSize := true;
-      BackgroundImage.Image := StateContainer.SaveScreen;
+      BackgroundImage.Image := StartContainer.SaveScreen;
       InsertFront(BackgroundImage);
     end;
 
@@ -436,14 +426,6 @@ begin
   // remove FDialog, to clearly reinsert it at next Start call
   RemoveControl(FDialog);
   inherited;
-end;
-
-function TStateDialog.StateContainer: TCastleContainer;
-begin
-  if OverrrideContainer <> nil then
-    Result := OverrrideContainer
-  else
-    Result := inherited;
 end;
 
 procedure TStateDialog.InitializeButtons(var Buttons: TButtonArray);

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -369,7 +369,7 @@ uses SysUtils,
 
 { MessageCore ---------------------------------------------------------------- }
 
-{ Show a modal dialod window. Uses TGLMode to temporarily replace
+{ Show a modal dialog window. Uses TGLMode to temporarily replace
   normal event processing (on this Window),
   to wait until the dialog is answered by the user. }
 procedure MessageCore(const Window: TCastleWindowBase; const State: TStateDialog);
@@ -380,7 +380,7 @@ begin
 
   State.BackgroundScreenshot := true;
   State.PopOnAnswered := false;
-  State.OverrrideContainer := Window.Container;
+  // State.OverrrideContainer := Window.Container; // TODO no longer available
   State.Start; // get a screenshot before TGLMode.CreateReset
 
   { Using @NoClose below allows to safely use MessageXxx inside own OnCloseQuery,

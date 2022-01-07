@@ -21,31 +21,31 @@
     See https://castle-engine.io/manual_2d_user_interface.php#section_ui_state
     for an overview of using TCastleView.
 
-    In simple cases, only one state is @italic(current) at a given time,
-    and it can be get or set using the @link(TCastleView.Current) property.
-    In more complex cases, you can use @link(TCastleView.Push) and @link(TCastleView.Pop)
-    to build a stack of states, and in effect multiple states are active at the same time.
-    All of the states on stack are @italic(started), but only the top-most is @italic(resumed).
+    In a given container (like a window), in the simple case only one TCastleView is @italic(current) at a given time,
+    and it can be get or set using the @link(TCastleContainer.View) property.
+    In more complex cases, you can use @link(TCastleContainer.PushView) and @link(TCastleContainer.PopView)
+    to build a stack of views, and in effect multiple views are active at the same time.
+    All of the views on stack are @italic(started), but only the top-most is @italic(resumed).
 
-    Each state has @link(Start) and @link(Stop)
-    methods that you can override to perform work when state becomes
-    part of the current state stack, or stops being part of it.
+    Each TCastleView has @link(Start) and @link(Stop)
+    methods that you can override to perform work when view becomes
+    part of the current view stack, or stops being part of it.
     You can also override @link(Resume) and @link(Pause) methods,
-    to perform work when the state becomes the top-most state or is no longer
-    the top-most state. The distinction becomes important once you play
-    around with pushing/popping states.
+    to perform work when the view becomes the top-most view or is no longer
+    the top-most view. The distinction becomes important once you play
+    around with pushing/popping view.
 
-    To define state user interface:
+    To define view user interface:
 
     @orderedList(
       @item(It is simplest to set @link(DesignUrl)
         to the design file you created using @url(https://castle-engine.io/manual_editor.php CGE editor).
         Such user interface controls will be created right before @link(Start)
-        and destroyed right after @link(Stop) (so the state UI always "resets"
-        when state starts).)
+        and destroyed right after @link(Stop) (so the view UI always "resets"
+        when view starts).)
 
-      @item(You can always create more UI controls and add them to the state at any point.
-        The state is a @link(TCastleUserInterface) descendant and you can add UI to it
+      @item(You can always create more UI controls and add them to the view at any point.
+        The view is a @link(TCastleUserInterface) descendant and you can add UI to it
         just by using @link(TCastleUserInterface.InsertFront).
 
         UI children can be added anytime you want, e.g. in @link(Start) or in overridden
@@ -56,11 +56,11 @@
         destroyed at @link(Stop).)
     )
 
-    Current state is placed on the list of container controls.
-    This way state is notified about UI events, and can react to them.
-    Note that our children will handle events @italic(before) the state itself
+    Current view is placed on the list of container controls.
+    This way view is notified about UI events, and can react to them.
+    Note that our children will handle events @italic(before) the view itself
     is notified about them, following @link(TCastleUserInterface) events behavior.
-    This way state can:
+    This way view can:
 
     @unorderedList(
       @item(React to @link(TCastleUserInterface.Press Press),
@@ -70,7 +70,7 @@
     )
 
     See the TCastleUserInterface class for a lot of useful methods that you can
-    override in your state descendants to capture various events. }
+    override in your view descendants to capture various events. }
   TCastleView = class(TCastleUserInterface)
   private
     FStartContainer: TCastleContainer;
@@ -89,10 +89,10 @@
     FDesignPreloaded: TCastleUserInterface;
     FDesignPreloadedOwner: TComponent;
 
-    procedure InternalStart;
+    procedure InternalStart(const AContainer: TCastleContainer);
     procedure InternalStop;
     procedure StartContainerFreeNotification(const Sender: TFreeNotificationObserver);
-    { Stop yourself and remove from FStateStack, if present there. }
+    { Stop yourself and remove from FViewStack, if present there. }
     procedure StopIfStarted;
 
     { Design* private routines }
@@ -103,17 +103,16 @@
     procedure PreloadDesign;
     procedure UnPreloadDesign;
 
-    class var FStateStack: TCastleViewList;
-    class var FDisableStackChange: Cardinal;
     class function GetCurrent: TCastleView; static;
     class procedure SetCurrent(const Value: TCastleView); static;
     class function GetCurrentTop: TCastleView; static;
     class function GetStateStack(const Index: Integer): TCastleView; static;
   protected
-    { As the state knows about the container it will be put in (StateContainer),
-      the state size is always known.
-      It is known regardless if we are between Start / Stop,
-      regardless if the state is already added to some Container.Items.
+    { The container size is always known: we assume that view will be part
+      of GetMainContainer, if the view not yet started.
+
+      So the view knows container size, regardless if we are between Start / Stop,
+      regardless if the TCastleView is already added to some TCastleContainer.Children.
       This makes all other routines, like ParentRect, EffectiveRect, EffectiveWidth,
       EffectiveHeight also work. }
     function ContainerWidth: Cardinal; override;
@@ -121,102 +120,51 @@
     function ContainerRect: TRectangle; override;
     function ContainerSizeKnown: boolean; override;
 
-    { Container on which state works. By default, this is
+    { Container in which view is started (if view is started)
+      or on which we predict it will be started (if view is not started yet).
+
+      If view is not started yet,
+      this is
       @link(TCastleApplication.MainWindow Application.MainWindow)
       if you use CastleWindow or
       @link(TCastleControlBase.MainControl) if you use CastleControl.
-      When the state is current, then @link(Container) property (from
-      ancestor, see TCastleUserInterface.Container) is equal to this. }
-    function StateContainer: TCastleContainer; virtual;
 
-    { Position on @code(StateContainer.Controls) where we insert this state.
-      By default, state is inserted as the front-most control, so position is equal
-      to @code(StateContainer.Controls.Count). }
-    function InsertAtPosition: Integer; virtual;
+      When the view has started, then @link(Container) property (from
+      ancestor, see TCastleUserInterface.Container) is equal to this. }
+    function PredictedContainer: TCastleContainer;
+
+    { Container in which view is started (if view is started)
+      or nil (if view is not started yet).
+
+      This is just like @link(Container) property (from
+      ancestor, see TCastleUserInterface.Container) but it is
+      already assigned even during @link(Start) and @link(Stop). }
+    property StartContainer: TCastleContainer read FStartContainer;
 
     { Assign this component as owner for your controls,
       to make them freed during nearest @link(Stop). }
     function FreeAtStop: TComponent;
   public
-    { When @true, state operations will send a log to CastleLog. }
+    { When @true, view operations will send a log to CastleLog. }
     class var Log: boolean;
 
-    { Current state. Simply assign to this property to change the current state.
-
-      In case multiple states are active (only possible
-      if you used the @link(Push) method), this property returns the @italic(bottom) state
-      (use @link(CurrentTop) to get @italic(top) state).
-      Setting this property resets whole state stack.
-
-      @bold(When is it allowed to change the state?)
-
-      While in theory you can change current state stack (assigning @link(TCastleView.Current)
-      or using @link(TCastleView.Push) / @link(TCastleView.Pop)) at any moment,
-      but remember that stopping the state frees also the state UI.
-      So you should not change the current state stack within events/overriden methods
-      of classes like TCastleUserInterface, TCastleTransform, TCastleBehavior
-      that could be destroyed by the state stop.
-
-      The simpler advise is: @italic(Assign to @link(TCastleView.Current) or use @link(TCastleView.Push) / @link(TCastleView.Pop)
-      only from the overridden TCastleView methods.
-      Like TMyState.Update or TMyState.Press).
-
-      Note that you cannot change current state stack when another change is in progress.
-      That is, you cannot change state from within TMyState.Start/Resume/Pause/Stop.
-    }
-    class property Current: TCastleView read GetCurrent write SetCurrent;
-
-    { The top-most state.
-
-      In case you used @link(Push), this returns the top-most (most recently pushed) state.
-
-      If there is only one (or none) state, e.g. because you never used @link(Push),
-      then this property returns the same thing as @link(Current). }
-    class property CurrentTop: TCastleView read GetCurrentTop;
-
-    { Pushing the state adds it at the top of the state stack,
-      this makes new state to be displayed on top of previous ones.
-
-      The state known as @link(Current) is conceptually at the bottom of state stack, always.
-      When it is nil, then pushing new state sets the @link(Current) state.
-      Otherwise @link(Current) state is left as-it-is, new state is added on top. }
-    class procedure Push(const NewState: TCastleView);
-
-    { Pop the current top-most state, reversing the @link(Push) operation. }
-    class procedure Pop; overload;
-
-    { Pop the current top-most state, reversing the @link(Push) operation,
-      also checking whether the current top-most state is as expected.
-
-      Makes a warning, and does nothing, if the current top-most state
-      is different than indicated. This is usually a safer (more chance
-      to easily catch bugs) version of Pop than the parameter-less version. }
-    class procedure Pop(const CurrentTopMostState: TCastleView); overload;
-
-    { Count of states in the state stack.
-      State stack is managed using Start / Push / Pop. }
-    class function StateStackCount: Integer;
-
-    { Access any state within the state stack.
-      Use with indexes between 0 and StateStackCount - 1.
-      State stack is managed using Start / Push / Pop. }
-    class property StateStack [const Index: Integer]: TCastleView read GetStateStack;
-
-    { Create an instance of the state.
-      You willl typically create one instance of each state class
-      (like TStateMain, TStatePlay) at the application initialization
+    { Create an instance of the view.
+      You willl typically create one instance of each view class
+      (like TViewMain, TViewPlay) at the application initialization
       (e.g. in Application.OnInitialize callback), like
 
       @longCode(#
-        StateMainMenu := TStateMainMenu.Create(Application);
-        StatePlay := TStatePlay.Create(Application);
+        ViewMainMenu := TViewMainMenu.Create(Application);
+        ViewPlay := TViewPlay.Create(Application);
       #)
 
-      Later you switch between states using @link(Current) or @link(Push) or @link(Pop),
+      Later you switch between views using @link(TCastleContainer.View) or
+      @link(TCastleContainer.PushView) or
+      @link(TCastleContainer.PopView),
       like this:
 
       @longCode(#
-        TCastleView.Current := StateMain;
+        Container.View := ViewMain;
       #)
 
       See https://castle-engine.io/manual_2d_user_interface.php and numerous engine examples.
@@ -225,103 +173,106 @@
     destructor Destroy; override;
 
     { Create the instance TCastleView that will be automatically freed when
-      the state is stopped.
-      This allows alternative usage of states (as opposed to the ones described in @link(Create)
-      docs), where you create short-lived instances of state classes.
+      the view is stopped.
+      This allows alternative usage of views (as opposed to the ones described in @link(Create)
+      docs), where you create short-lived instances of view classes.
       Use it like this:
 
       @longCode(#
-        TCastleView.Current := TStateMain.CreateUntilStopped;
+        Container.View := TViewMain.CreateUntilStopped;
       #)
 
       The advantages:
 
       @unorderedList(
         @item(You don't need to worry
-          that some state field value will "survive" with an invalid value after
+          that some view field value will "survive" with an invalid value after
           @link(Stop). So you don't need to clear everything in @link(Stop)
           or initialize everything in @link(Start), instead you can depend
           that @link(Start) happens only once right after the constructor,
           so the instance fields are clear.)
 
-        @item(You avoid having global variables, keeping singletons of each state class.
+        @item(You avoid having global variables, keeping singletons of each view class.
           So the code is a little safer.)
 
         @item(You can reintroduce your own constructor to require some parameters,
-          instead of exposing state parameters as public fields/properties.)
+          instead of exposing view parameters as public fields/properties.)
       )
 
-      The disadvantage is that you cannot store in state fields anything
-      that should "survive" the state @link(Stop).
-      You can instead use "class variables" in state class, or any global variable.
+      The disadvantage is that you cannot store in view fields anything
+      that should "survive" the view @link(Stop).
+      You can instead use "class variables" in view class, or any global variable.
     }
     constructor CreateUntilStopped;
 
-    { Executed when state becomes active, it's now part of the state stack.
+    { Executed when view becomes active, it's now part of the view stack.
 
-      Started state is part of the StateStack, and will soon become
-      running (top-most on the stack). When the state is set to be current,
-      by @code(TCastleView.Current := MyState), this happens:
+      Started view is part of the ViewStack, and will soon become
+      running (top-most on the stack). When the view is set to be current,
+      by @code(Container.View := MyView), this happens:
 
       @orderedList(
-        @item(MyState is pushed as the top-most state on state stack.)
-        @item(MyState.Start is called.)
-        @item(MyState is added to the @code(StateContainer.Controls) list,
-          so the state methods GLContextOpen and Resize are called
+        @item(MyView is pushed as the top-most view on view stack.)
+        @item(MyView.Start is called.)
+        @item(MyView is added to the @link(TCastleContainer.Controls) list
+          (using the container where you set @link(TCastleContainer.PushView),
+          @link(TCastleContainer.View)).
+          This also means that the view methods GLContextOpen and Resize are called
           (as for all normal TCastleUserInterface instances).)
         @item(MyStar.Resume is called.)
       ) }
     procedure Start; virtual;
 
-    { Executed when state is no longer active, no longer part of state stack.
+    { Executed when view is no longer active, no longer part of view stack.
 
-      When the state stops becoming active, this happens:
+      When the view stops becoming active, this happens:
 
       @orderedList(
-        @item(MyState.Pause is called.)
-        @item(MyState is removed from the
-          @code(StateContainer.Controls) list.
-          So the state method GLContextClose is called
+        @item(MyView.Pause is called.)
+        @item(MyView is removed from the
+          @code(TCastleContainer.Controls) list
+          (using the container to which we were added).
+          So the view method GLContextClose is called
           (as for all normal TCastleUserInterface instances).)
-        @item(MyState.Stop is called.)
-        @item(MyState is removed from the on state stack.)
+        @item(MyView.Stop is called.)
+        @item(MyView is removed from the on view stack.)
       )
 
-      This is always called to finalize the started state.
-      When the state is destroyed, it's @link(Pause) and @link(Stop)
+      This is always called to finalize the started view.
+      When the view is destroyed, it's @link(Pause) and @link(Stop)
       are called too, so you can use this method to reliably finalize whatever
       you initialized in @link(Start). }
     procedure Stop; virtual;
 
-    { Executed when state is now the top-most state. See @link(Start) and @link(Stop)
-      docs about state lifecycle methods.
+    { Executed when view is now the top-most view. See @link(Start) and @link(Stop)
+      docs about view lifecycle methods.
       This is called after @link(Start), it is also called
-      when you pop another state, making this state the top-most. }
+      when you pop another view, making this view the top-most. }
     procedure Resume; virtual;
 
-    { Executed when state is no longer the top-most state. See @link(Start) and @link(Stop)
-      docs about state lifecycle methods.
+    { Executed when view is no longer the top-most view. See @link(Start) and @link(Stop)
+      docs about view lifecycle methods.
       This is called before @link(Stop), it is also called
-      when another state is pushed over this state, so this stops
-      being the the top-most state. }
+      when another view is pushed over this view, so this stops
+      being the the top-most view. }
     procedure Pause; virtual;
 
     procedure Finish; virtual; deprecated 'use Stop';
 
-    { State is right now part of the state stack, which means
+    { View is right now part of the view stack, which means
       it's between @link(Start) and @link(Stop) calls.
-      The state is added to the stack before the @link(Start) call,
+      The view is added to the stack before the @link(Start) call,
       and removed after the @link(Stop) call, so this returns @true
       during all the methods --- @link(Start), @link(Resume), @link(Pause), @link(Stop). }
     function Active: boolean;
 
-    { Prevents passing mouse/keyboard events to the UI states underneath.
+    { Prevents passing mouse/keyboard events to the UI views underneath.
 
       More precisely, when this property is @true, then the
       @link(Press), @link(Release) and @link(Motion) events are marked as
-      "handled" in this UI state. This means that they will not be processed
-      further, by UI controls under this state, in particular by UI states
-      that are underneath this state in @italic(state stack) (created
+      "handled" in this UI view. This means that they will not be processed
+      further, by UI controls under this view, in particular by UI views
+      that are underneath this view in @italic(view stack) (created
       by @link(Push) method). They will also not be passed to final container
       (TCastleWindowBase, TCastleControlBase) callbacks like
       TCastleWindowBase.OnPress (as these callbacks are always used at the end,
@@ -344,7 +295,7 @@
       It is not the only way to load a .castle-user-interface file,
       a more general approach is to use @link(UserInterfaceLoad) from
       @link(CastleComponentSerialize) unit, and manually call InsertFront
-      to add it to the state UI.
+      to add it to the view UI.
 
       The loaded UI is returned under the @code(Ui) parameter,
       unless you use an overloaded version that omits this parameter.
@@ -358,7 +309,7 @@
       The UiOwner, in turn, is owned by the FinalOwner.
       You typically use this method inside overridden @link(Start),
       and as FinalOwner you pass @link(FreeAtStop) -- this way the user interface
-      is freed when the state is stopped.
+      is freed when the view is stopped.
     }
     procedure InsertUserInterface(const ADesignUrl: String;
       const FinalOwner: TComponent;
@@ -366,16 +317,16 @@
     procedure InsertUserInterface(const ADesignUrl: String;
       const FinalOwner: TComponent; out UiOwner: TComponent); overload; deprecated 'instead of this, set DesignUrl in constructor';
 
-    { Wait until the render event happens (to redraw current state),
+    { Wait until the render event happens (to redraw current view),
       and then call Event.
 
       The scheduled Event will be called at the @link(Update) time.
 
-      If the state stopped before the scheduled events fired,
+      If the view stopped before the scheduled events fired,
       then the remaining events are ignored.
-      That is, the scheduled events are cleared every time you start the state.
+      That is, the scheduled events are cleared every time you start the view.
 
-      One use-case of this is to show a loading state,
+      One use-case of this is to show a loading view,
       where you load things, but also update the loading progress from time to time.
       Be careful in this case to not call this @italic(too often),
       as then your loading time will be tied to rendering time.
@@ -387,7 +338,7 @@
     procedure WaitForRenderAndCall(const Event: TNotifyEvent);
 
     { Load a designed user interface (from .castle-user-interface file)
-      when this state is started.
+      when this view is started.
       You typically set this property in overridden constructor, and in effect
       the given design file will be loaded right before @link(Start) and it will be freed
       right after @link(Stop).
@@ -395,21 +346,21 @@
       Typical use-case looks like this:
 
       @longCode(#
-      constructor TStatePlay.Create(AOwner: TComponent);
+      constructor TViewPlay.Create(AOwner: TComponent);
       begin
         inherited;
-        DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
-        // DesignPreload := true; // to make future "TCastleView.Current := StatePlay" faster
+        DesignUrl := 'castle-data:/gameviewplay.castle-user-interface';
+        // DesignPreload := true; // to make future "Container.View := ViewPlay" faster
       end;
 
-      procedure TStatePlay.Start;
+      procedure TViewPlay.Start;
       begin
         inherited;
         MyButton := DesignedComponent('MyButton') as TCastleButton;
       end;
       #)
 
-      You can also modify this property when the state has already started
+      You can also modify this property when the view has already started
       (after @link(Start) and before @link(Stop)) in which case
       the previous design will be freed and new one will be loaded immediately.
 
@@ -417,9 +368,9 @@
 
       Note that this is not the only way to load a .castle-user-interface file.
       A more general approach is to use @link(UserInterfaceLoad),
-      and call @link(InsertFront) to add it to the state UI.
+      and call @link(InsertFront) to add it to the view UI.
       Using this property just adds some comfortable automatic behavior
-      (state is freed at stop, and you can use comfortable
+      (view is freed at stop, and you can use comfortable
       @link(DesignedComponent) or @link(DesignPreload)).
 
       @seealso DesignPreload
@@ -428,27 +379,27 @@
     property DesignUrl: String read FDesignUrl write SetDesignUrl;
 
     { Preload the design file (specified in @link(DesignUrl)) as soon as possible,
-      making starting the state much faster.
+      making starting the view much faster.
       Using this property means that we "preload" the design file,
       to cache the referenced images / TCastleScene instances etc. as soon as possible,
-      to make the future loading of this design (when state starts) very quick.
+      to make the future loading of this design (when view starts) very quick.
 
       Typically you set this property in overridden TCastleView constructor,
       right after (or before, it doesn't matter) setting DesignUrl.
       It will mean that constructor takes a longer time (which typically means
       that Application.OnInitialize takes a longer time) but in exchange
-      future starting of the state (when you do e.g. @code(TCastleView.Current := StateXxx)
-      or @code(TCastleView.Push(StateXxx)) will be much faster.
+      future starting of the view (when you do e.g. @code(Container.View := ViewXxx)
+      or @code(Container.PushView(ViewXxx)) will be much faster.
 
       No functional difference should be visible, regardless of the @link(DesignPreload)
-      value. Internally the designed component is added/removed from state at the same time.
+      value. Internally the designed component is added/removed from view at the same time.
       So think of this property as pure optimization -- you decide whether to slow down
-      the state constructor, or state start.
+      the view constructor, or view start.
 
       @seealso DesignUrl }
     property DesignPreload: Boolean read FDesignPreload write SetDesignPreload default false;
 
-    { When the DesignUrl is set, and the state is started, you can use this method to find
+    { When the DesignUrl is set, and the view is started, you can use this method to find
       loaded components. Like this:
 
       @longCode(#
@@ -465,6 +416,14 @@
       in this case T would not be used as searching criteria, so it would
       be just another way to express "as" cast. }
     // generic function DesignedComponent<T: TComponent>(const ComponentName: String): T; overload;
+
+    class property Current: TCastleView read GetCurrent write SetCurrent; deprecated 'use Container.View';
+    class property CurrentTop: TCastleView read GetCurrentTop; deprecated 'use Container.FrontView';
+    class procedure Push(const NewState: TCastleView); deprecated 'use Container.PushView';
+    class procedure Pop; overload; deprecated 'use Container.PopView';
+    class procedure Pop(const CurrentTopMostState: TCastleView); overload; deprecated 'use Container.PopView';
+    class function StateStackCount: Integer; deprecated 'use Container.ViewStackCount';
+    class property StateStack [const Index: Integer]: TCastleView read GetStateStack; deprecated 'use Container.ViewStack';
   published
     { TCastleView control makes most sense when it is FullSize,
       filling the whole window.
@@ -481,13 +440,20 @@
 
 {$ifdef read_implementation}
 
-{ Changing state during state Start/Stop/Push/Pop is not reliable,
-  e.g. doing TCastleView.Push during another TCastleView.Push will not result
-  in proper stack. }
-procedure ErrorStackChangeDisabled(const Message: String);
+procedure ErrorDesignLoaded;
 begin
-  raise EInternalError.Create(Message);
+  raise Exception.Create('DesignedComponent can only be used if the desing was loaded, which means that TCastleView has started and DesignUrl is not empty');
 end;
+
+function RequireMainContainer: TCastleContainer;
+begin
+  Result := GetMainContainer;
+  if Result = nil then
+    raise Exception.Create('Assign Application.MainWindow (if you use CastleWindow) or TCastleControl.MainControl (if you use CastleControl) before starting TCastleView');
+end;
+
+
+{ TSerializedComponentHelper ------------------------------------------------- }
 
 type
   { Helper methods extending TSerializedComponent.
@@ -507,137 +473,6 @@ end;
 
 { TCastleView --------------------------------------------------------------------- }
 
-class function TCastleView.GetCurrent: TCastleView;
-begin
-  if (FStateStack = nil) or
-     (FStateStack.Count = 0) then
-    Result := nil else
-    Result := FStateStack[0];
-end;
-
-class function TCastleView.GetCurrentTop: TCastleView;
-begin
-  if (FStateStack = nil) or
-     (FStateStack.Count = 0) then
-    Result := nil
-  else
-    Result := FStateStack[FStateStack.Count - 1];
-end;
-
-class procedure TCastleView.SetCurrent(const Value: TCastleView);
-begin
-  { exit early if there's nothing to do }
-  if (StateStackCount = 0) and (Value = nil) then
-    Exit;
-  if (StateStackCount = 1) and (FStateStack[0] = Value) then
-    Exit;
-
-  if FDisableStackChange <> 0 then
-    ErrorStackChangeDisabled('Cannot change TCastleView.Current from inside of TCastleView.Start/Resume/Pause/Stop');
-
-  { Remove and finish topmost state.
-    The loop is written to work even when some state Stop method
-    changes states. }
-  while StateStackCount <> 0 do
-    Pop;
-  { deallocate empty FStateStack }
-  if Value = nil then
-    FreeAndNil(FStateStack);
-
-  Push(Value);
-end;
-
-class procedure TCastleView.Push(const NewState: TCastleView);
-begin
-  if NewState <> nil then
-  begin
-    if FDisableStackChange <> 0 then
-      ErrorStackChangeDisabled('Cannot call TCastleView.Push from inside of TCastleView.Start/Resume/Pause/Stop');
-
-    Inc(FDisableStackChange);
-    try
-      { pause previous top-most state }
-      if (FStateStack <> nil) and
-         (FStateStack.Count <> 0) then
-        FStateStack.Last.Pause;
-
-      { create FStateStack on demand now }
-      if FStateStack = nil then
-        FStateStack := TCastleViewList.Create(false);
-      FStateStack.Add(NewState);
-      NewState.InternalStart;
-      NewState.Resume;
-    finally
-      Dec(FDisableStackChange)
-    end;
-  end;
-end;
-
-class procedure TCastleView.Pop;
-var
-  TopState: TCastleView;
-begin
-  if FDisableStackChange <> 0 then
-    ErrorStackChangeDisabled('Cannot call TCastleView.Pop from inside of TCastleView.Start/Resume/Pause/Stop');
-
-  Inc(FDisableStackChange);
-  try
-    TopState := FStateStack.Last;
-    TopState.Pause;
-    TopState.InternalStop;
-    if TopState = FStateStack.Last then
-      FStateStack.Delete(FStateStack.Count - 1)
-    else
-      WritelnWarning('State', 'Topmost state is no longer topmost after its Stop method. Do not change state stack from state Stop methods.');
-
-    if TopState.FFreeWhenStopped then
-      FreeAndNil(TopState);
-
-    { resume new top-most state }
-    if (FStateStack <> nil) and
-       (FStateStack.Count <> 0) then
-      FStateStack.Last.Resume;
-  finally
-    Dec(FDisableStackChange)
-  end;
-end;
-
-class procedure TCastleView.Pop(const CurrentTopMostState: TCastleView);
-begin
-  if (FStateStack = nil) or (FStateStack.Count = 0) then
-  begin
-    WritelnWarning('State', 'Cannot pop UI state, that stack is empty');
-    Exit;
-  end;
-  if FStateStack.Last <> CurrentTopMostState then
-  begin
-    WritelnWarning('State', 'Cannot pop UI state, top-most state is expected to be ' + CurrentTopMostState.ClassName + ', but is ' + FStateStack.Last.ClassName);
-    Exit;
-  end;
-
-  Pop;
-end;
-
-class function TCastleView.StateStackCount: Integer;
-begin
-  if FStateStack = nil then
-    Result := 0 else
-    Result := FStateStack.Count;
-end;
-
-class function TCastleView.GetStateStack(const Index: Integer): TCastleView;
-begin
-  if FStateStack = nil then
-    raise EInternalError.CreateFmt('TCastleView.GetStateStack: state stack is empty, cannot get state index %d',
-      [Index]);
-  Result := FStateStack[Index];
-end;
-
-function TCastleView.InsertAtPosition: Integer;
-begin
-  Result := StateContainer.Controls.Count;
-end;
-
 function TCastleView.FreeAtStop: TComponent;
 begin
   if FFreeAtStop = nil then
@@ -645,40 +480,40 @@ begin
   Result := FFreeAtStop;
 end;
 
-procedure TCastleView.InternalStart;
+procedure TCastleView.InternalStart(const AContainer: TCastleContainer);
 var
   TimeStart: TCastleProfilerTime;
 begin
-  TimeStart := Profiler.Start('Started state ' + Name + ': ' + ClassName);
+  TimeStart := Profiler.Start('Started view ' + Name + ': ' + ClassName);
 
   FWaitingForRender.Clear;
   FCallBeforeUpdate.Clear;
 
   { typically, the Start method will initialize some stuff,
     making the 1st SecondsPassed non-representatively large. }
-  StateContainer.Fps.ZeroNextSecondsPassed;
+  AContainer.Fps.ZeroNextSecondsPassed;
 
-  FStartContainer := StateContainer;
+  FStartContainer := AContainer;
   FStartContainerObserver.Observed := FStartContainer;
 
   LoadDesign;
 
   Start;
   { actually insert, this will also call GLContextOpen and Resize.
-    However, check first that we're still the current state,
-    to safeguard from the fact that Start changed state
-    (like the loading state, that changes to play state immediately in start). }
-  if FStateStack.IndexOf(Self) <> -1 then
-    StateContainer.Controls.Insert(InsertAtPosition, Self);
+    However, check first that we're still the current view,
+    to safeguard from the fact that Start changed view
+    (like the loading view, that changes to play view immediately in start). }
+  if AContainer.FViewStack.IndexOf(Self) <> -1 then
+    AContainer.Controls.InsertFront(Self);
 
   Profiler.Stop(TimeStart, Log);
 end;
 
 procedure TCastleView.InternalStop;
 begin
-  // when container is csDestroying, the StateContainer.Controls may be invalid
-  if not (csDestroying in StateContainer.ComponentState) then
-    StateContainer.Controls.Remove(Self);
+  // when container is csDestroying, the FStartContainer.Controls may be invalid
+  if not (csDestroying in FStartContainer.ComponentState) then
+    FStartContainer.Controls.Remove(Self);
 
   Stop;
 
@@ -693,7 +528,7 @@ begin
   FreeAndNil(FFreeAtStop);
 
   if Log then
-    WritelnLog('UIState', 'Stopped state ' + Name + ': ' + ClassName);
+    WritelnLog('TCastleView', 'Stopped: ' + Name + ': ' + ClassName);
 end;
 
 procedure TCastleView.StartContainerFreeNotification(
@@ -709,12 +544,12 @@ begin
   Assert(FStartContainer = nil);
 end;
 
-function TCastleView.StateContainer: TCastleContainer;
+function TCastleView.PredictedContainer: TCastleContainer;
 begin
   if FStartContainer <> nil then
     { between Start and Stop, be sure to return the same thing
-      from StateContainer method. Also makes it working when Application
-      is nil when destroying state from CastleWindow finalization. }
+      from PredictedContainer method. Also makes it working when Application
+      is nil when destroying view from CastleWindow finalization. }
     Result := FStartContainer
   else
   begin
@@ -742,17 +577,18 @@ end;
 
 procedure TCastleView.StopIfStarted;
 begin
-  if (FStateStack <> nil) and
-     (FStateStack.IndexOf(Self) <> -1) then
+  if (FStartContainer <> nil) and
+     (FStartContainer.FViewStack <> nil) and
+     (FStartContainer.FViewStack.IndexOf(Self) <> -1) then
   begin
-    if FStateStack.Last = Self then
+    if FStartContainer.FViewStack.Last = Self then
       Pause;
     InternalStop;
-    FStateStack.Remove(Self);
-    { deallocate empty FStateStack. Doing this here allows to deallocate
-      FStateStack only once all states finished gracefully. }
-    if FStateStack.Count = 0 then
-      FreeAndNil(FStateStack);
+    FStartContainer.FViewStack.Remove(Self);
+    { deallocate empty FViewStack. Doing this here allows to deallocate
+      FViewStack only once all views finished gracefully. }
+    if FStartContainer.FViewStack.Count = 0 then
+      FreeAndNil(FStartContainer.FViewStack);
   end;
 end;
 
@@ -769,13 +605,13 @@ end;
 procedure TCastleView.Resume;
 begin
   if Log then
-    WritelnLog('UIState', 'Resuming state ' + Name + ': ' + ClassName);
+    WritelnLog('TCastleView', 'Resuming: ' + Name + ': ' + ClassName);
 end;
 
 procedure TCastleView.Pause;
 begin
   if Log then
-    WritelnLog('UIState', 'Paused state ' + Name + ': ' + ClassName);
+    WritelnLog('TCastleView', 'Paused: ' + Name + ': ' + ClassName);
 end;
 
 procedure TCastleView.Start;
@@ -801,8 +637,7 @@ end;
 
 function TCastleView.Active: boolean;
 begin
-  Result := (FStateStack <> nil) and
-            (FStateStack.IndexOf(Self) <> -1);
+  Result := FStartContainer <> nil;
 end;
 
 function TCastleView.Press(const Event: TInputPressRelease): boolean;
@@ -834,15 +669,15 @@ begin
 
   if FCallBeforeUpdate.Count <> 0 then // optimize away common case
   begin
-    { In case of using CreateUntilStopped state, you cannot change state
+    { In case of using CreateUntilStopped view, you cannot change view
       in the middle of FCallBeforeUpdate.ExecuteAll,
       as it would free the array that is being iterated over. }
-    if FFreeWhenStopped then Inc(FDisableStackChange);
+    if FFreeWhenStopped then Inc(FStartContainer.FDisableStackChange);
     try
       FCallBeforeUpdate.ExecuteAll(Self);
       FCallBeforeUpdate.Clear;
     finally
-      if FFreeWhenStopped then Dec(FDisableStackChange);
+      if FFreeWhenStopped then Dec(FStartContainer.FDisableStackChange);
     end;
   end;
 end;
@@ -947,11 +782,6 @@ begin
   end;
 end;
 
-procedure ErrorDesignLoaded;
-begin
-  raise Exception.Create('DesignedComponent can only be used if the desing was loaded, which means that TCastleView has started and DesignUrl is not empty');
-end;
-
 (*
 { FPC 3.2.0 error:
     Error: function header doesn't match the previous declaration "DesignedComponent$1(const AnsiString):T;"
@@ -988,17 +818,17 @@ end;
 
 function TCastleView.ContainerWidth: Cardinal;
 begin
-  Result := StateContainer.Width;
+  Result := PredictedContainer.Width;
 end;
 
 function TCastleView.ContainerHeight: Cardinal;
 begin
-  Result := StateContainer.Height;
+  Result := PredictedContainer.Height;
 end;
 
 function TCastleView.ContainerRect: TRectangle;
 begin
-  Result := StateContainer.Rect;
+  Result := PredictedContainer.Rect;
 end;
 
 function TCastleView.ContainerSizeKnown: boolean;
@@ -1009,9 +839,49 @@ end;
 function TCastleView.UIScale: Single;
 begin
   if EnableUIScaling then
-    Result := StateContainer.UIScale
+    Result := PredictedContainer.UIScale
   else
     Result := 1.0;
+end;
+
+class function TCastleView.GetCurrent: TCastleView;
+begin
+  Result := RequireMainContainer.View;
+end;
+
+class function TCastleView.GetCurrentTop: TCastleView;
+begin
+  Result := RequireMainContainer.FrontView;
+end;
+
+class procedure TCastleView.SetCurrent(const Value: TCastleView);
+begin
+  RequireMainContainer.View := Value;
+end;
+
+class procedure TCastleView.Push(const NewState: TCastleView);
+begin
+  RequireMainContainer.Push(NewState);
+end;
+
+class procedure TCastleView.Pop;
+begin
+  RequireMainContainer.Pop;
+end;
+
+class procedure TCastleView.Pop(const CurrentTopMostState: TCastleView);
+begin
+  RequireMainContainer.Pop(CurrentTopMostState);
+end;
+
+class function TCastleView.StateStackCount: Integer;
+begin
+  Result := RequireMainContainer.ViewStackCount;
+end;
+
+class function TCastleView.GetStateStack(const Index: Integer): TCastleView;
+begin
+  Result := RequireMainContainer.ViewStack[Index];
 end;
 
 {$endif read_implementation}
