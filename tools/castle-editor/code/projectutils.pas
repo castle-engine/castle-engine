@@ -180,7 +180,9 @@ begin
   end;
 
   MyRunCommandIndir(URIToFilenameSafe(ProjectDirUrl), BuildToolExe,
-    ['generate-program'], BuildToolOutput, BuildToolStatus);
+    ['generate-program'], BuildToolOutput, BuildToolStatus, nil, nil,
+    // prevent from blinking console on Windows
+    [rcNoConsole]);
   if BuildToolStatus <> 0 then
   begin
     WarningBox(Format('Generating program with the build tool failed with status code %d and output: "%s"',
