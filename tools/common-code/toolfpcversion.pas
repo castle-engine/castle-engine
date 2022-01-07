@@ -108,6 +108,7 @@ begin
     Release := 0;
   end else
   begin
+    ReleaseRemark := '';
     Val(Token, Release, ErrorCode);
     if ErrorCode <> 0 then // this is a case of versions like 2.2.0RC1 which contain additional ReleaseRemark after the integer digit
     begin

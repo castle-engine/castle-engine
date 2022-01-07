@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestSysUtils" -*-
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestToolFpcVersion" -*-
 {
   Copyright 2015-2021 Michalis Kamburelis.
 
@@ -29,7 +29,8 @@ type
 
 implementation
 
-uses CastleFilesUtils, CastleURIUtils;
+uses SysUtils,
+  CastleFilesUtils, CastleURIUtils;
 
 type
   TTestVersionParsing = class(TToolVersion)
@@ -48,9 +49,25 @@ var
   VersionParsing: TTestVersionParsing;
 begin
   VersionParsing := TTestVersionParsing.Create;
-  AssertTrue(VersionParsing.TestParsing('2.2.0RC1'));
-  AssertTrue(VersionParsing.TestParsing('2.2.0RC2'));
-  VersionParsing.Free;
+  try
+    AssertTrue(VersionParsing.TestParsing('2.2.0RC1'));
+    AssertEquals(2, VersionParsing.Major);
+    AssertEquals(2, VersionParsing.Minor);
+    AssertEquals(0, VersionParsing.Release);
+    AssertEquals('RC1', VersionParsing.ReleaseRemark);
+
+    AssertTrue(VersionParsing.TestParsing('2.2.0RC2'));
+    AssertEquals(2, VersionParsing.Major);
+    AssertEquals(2, VersionParsing.Minor);
+    AssertEquals(0, VersionParsing.Release);
+    AssertEquals('RC2', VersionParsing.ReleaseRemark);
+
+    AssertTrue(VersionParsing.TestParsing('123.456.789'));
+    AssertEquals(123, VersionParsing.Major);
+    AssertEquals(456, VersionParsing.Minor);
+    AssertEquals(789, VersionParsing.Release);
+    AssertEquals('', VersionParsing.ReleaseRemark);
+  finally FreeAndNil(VersionParsing) end;
 end;
 
 initialization
