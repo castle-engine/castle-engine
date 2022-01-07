@@ -21,7 +21,7 @@ interface
 type
   TToolVersion = class
   protected
-    { Get Major,Minor,Release from S.
+    { Get Major,Minor,Release,ReleaseRemark from S.
       Raise exception if it doesn't start with necessary numbers. }
     procedure ParseVersion(const S: String);
   public
@@ -84,47 +84,41 @@ begin
 end;
 
 procedure TToolVersion.ParseVersion(const S: String);
+const
+  { Major / Minor / Release are separated by dots.
+    ReleaseRemark is whatever follows after Release, it may be 'rc2'.
+
+    So using NextToken to just scan for digits is most reliable and simple.
+    It means that resulting Token is either '', or a valid integer that should
+    be handled by StrToInt OK (well, if it fits in Integer range). }
+  NonDigits = AllChars - ['0'..'9'];
 var
   Token: String;
   SeekPos: Integer;
-  I, ErrorCode, TempRelease: Integer;
 begin
   SeekPos := 1;
 
-  Token := NextToken(S, SeekPos, ['.', '-']);
+  Token := NextToken(S, SeekPos, NonDigits);
   if Token = '' then
     raise Exception.CreateFmt('Failed to query version: no major number in "%s"', [S]);
   Major := StrToInt(Token);
 
-  Token := NextToken(S, SeekPos, ['.', '-']);
+  Token := NextToken(S, SeekPos, NonDigits);
   if Token = '' then
     raise Exception.CreateFmt('Failed to query version: no minor number in "%s"', [S]);
   Minor := StrToInt(Token);
 
-  Token := NextToken(S, SeekPos, ['.', '-']);
+  Token := NextToken(S, SeekPos, NonDigits);
   if Token = '' then
   begin
     WritelnWarning('Failed to query version: no release number in "%s", assuming 0', [S]);
     Release := 0;
   end else
-  begin
-    ReleaseRemark := '';
-    Val(Token, Release, ErrorCode);
-    if ErrorCode <> 0 then // this is a case of versions like 2.2.0RC1 which contain additional ReleaseRemark after the integer digit
-    begin
-      I := 0;
-      repeat
-        Inc(I);
-        Val(Copy(Token, 1, I), TempRelease, ErrorCode);
-        if ErrorCode = 0 then
-          Release := TempRelease; // workaround the fact that if ErrorCode <> 0 the value of TempRelease is undefined, here we use the latest successful value only in case there were no conversion errors
-      until ErrorCode <> 0; //or I >= Length(Token) - no need, as we guarantee by the condition above that ErrorCode <> 0 for full Token
-      if I = 1 then // this means that the first character of Token is not a digit
-        raise Exception.Create('Unable to parse "' + Token + '" as a Release version')
-      else
-        ReleaseRemark := Copy(Token, I, Length(Token));
-    end;
-  end;
+    Release := StrToInt(Token);
+
+  { Use "SeekPos - 1", as after NextToken the SeekPos points to
+    the character right after the ending character that was in NonDigits. }
+  ReleaseRemark := SEnding(S, SeekPos - 1);
 end;
 
 { TFpcVersion ---------------------------------------------------------------- }
