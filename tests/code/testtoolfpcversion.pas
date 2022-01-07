@@ -47,6 +47,8 @@ type
 // end;
 
 procedure TTestToolFpcVersion.TestVersionParsing;
+{ See https://github.com/castle-engine/castle-engine/pull/356 for various example
+  version numbers }
 var
   VersionParsing: TTestVersionParsing;
 
@@ -59,6 +61,31 @@ var
 begin
   VersionParsing := TTestVersionParsing.Create;
   try
+    TestParsing('1.6.4');
+    AssertEquals(1, VersionParsing.Major);
+    AssertEquals(6, VersionParsing.Minor);
+    AssertEquals(4, VersionParsing.Release);
+    AssertEquals('', VersionParsing.ReleaseRemark);
+
+    TestParsing('2.2.0');
+    AssertEquals(2, VersionParsing.Major);
+    AssertEquals(2, VersionParsing.Minor);
+    AssertEquals(0, VersionParsing.Release);
+    AssertEquals('', VersionParsing.ReleaseRemark);
+
+    TestParsing('0.9.30.2');
+    AssertEquals(0, VersionParsing.Major);
+    AssertEquals(9, VersionParsing.Minor);
+    AssertEquals(30, VersionParsing.Release);
+    AssertEquals('.2', VersionParsing.ReleaseRemark);
+
+    // Ignore this failure -- we read Major and Minor OK, but ReleaseRemark is not correct in this case
+    // TestParsing('1.0RC2');
+    // AssertEquals(1, VersionParsing.Major);
+    // AssertEquals(0, VersionParsing.Minor);
+    // AssertEquals(0, VersionParsing.Release);
+    // AssertEquals('RC2', VersionParsing.ReleaseRemark);
+
     TestParsing('2.2.0RC1');
     AssertEquals(2, VersionParsing.Major);
     AssertEquals(2, VersionParsing.Minor);
