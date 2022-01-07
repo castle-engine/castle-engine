@@ -344,7 +344,6 @@ begin
     P.Targets.AddUnit('castleonscreenmenu.pas');
     P.Targets.AddUnit('castletiledmap.pas');
     P.Targets.AddUnit('castleuicontrols.pas');
-    P.Targets.AddUnit('castleuistate.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'window');
     P.Targets.AddUnit('castleinternalwindowmodes.pas');
@@ -360,6 +359,7 @@ begin
     end;
 
     P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'deprecated_units');
+    P.Targets.AddUnit('castleuistate.pas');
     P.Targets.AddUnit('castlewindowmodes.pas');
     P.Targets.AddUnit('castlewindowtouch.pas');
 

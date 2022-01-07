@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,28 +13,17 @@
   ----------------------------------------------------------------------------
 }
 
-{ UI state (TUIState). }
-unit CastleUIState;
+{$ifdef read_interface}
 
-{$I castleconf.inc}
+//type
 
-interface
-
-uses Classes, Generics.Collections,
-  CastleConfig, CastleKeysMouse, CastleImages, CastleUIControls, CastleClassUtils,
-  CastleGLImages, CastleVectors, CastleRectangles, CastleComponentSerialize;
-
-type
-  TUIStateList = class;
-
-  { UI state, to manage the state of your game UI.
-    See also
-    https://castle-engine.io/manual_2d_user_interface.php#section_ui_state
-    for an overview of using TUIState.
+  { "View" represents the current state of your application user interface.
+    See https://castle-engine.io/manual_2d_user_interface.php#section_ui_state
+    for an overview of using TCastleView.
 
     In simple cases, only one state is @italic(current) at a given time,
-    and it can be get or set using the @link(TUIState.Current) property.
-    In more complex cases, you can use @link(TUIState.Push) and @link(TUIState.Pop)
+    and it can be get or set using the @link(TCastleView.Current) property.
+    In more complex cases, you can use @link(TCastleView.Push) and @link(TCastleView.Pop)
     to build a stack of states, and in effect multiple states are active at the same time.
     All of the states on stack are @italic(started), but only the top-most is @italic(resumed).
 
@@ -82,7 +71,7 @@ type
 
     See the TCastleUserInterface class for a lot of useful methods that you can
     override in your state descendants to capture various events. }
-  TUIState = class(TCastleUserInterface)
+  TCastleView = class(TCastleUserInterface)
   private
     FStartContainer: TCastleContainer;
     FStartContainerObserver: TFreeNotificationObserver;
@@ -114,12 +103,12 @@ type
     procedure PreloadDesign;
     procedure UnPreloadDesign;
 
-    class var FStateStack: TUIStateList;
+    class var FStateStack: TCastleViewList;
     class var FDisableStackChange: Cardinal;
-    class function GetCurrent: TUIState; static;
-    class procedure SetCurrent(const Value: TUIState); static;
-    class function GetCurrentTop: TUIState; static;
-    class function GetStateStack(const Index: Integer): TUIState; static;
+    class function GetCurrent: TCastleView; static;
+    class procedure SetCurrent(const Value: TCastleView); static;
+    class function GetCurrentTop: TCastleView; static;
+    class function GetStateStack(const Index: Integer): TCastleView; static;
   protected
     { As the state knows about the container it will be put in (StateContainer),
       the state size is always known.
@@ -161,21 +150,21 @@ type
 
       @bold(When is it allowed to change the state?)
 
-      While in theory you can change current state stack (assigning @link(TUIState.Current)
-      or using @link(TUIState.Push) / @link(TUIState.Pop)) at any moment,
+      While in theory you can change current state stack (assigning @link(TCastleView.Current)
+      or using @link(TCastleView.Push) / @link(TCastleView.Pop)) at any moment,
       but remember that stopping the state frees also the state UI.
       So you should not change the current state stack within events/overriden methods
       of classes like TCastleUserInterface, TCastleTransform, TCastleBehavior
       that could be destroyed by the state stop.
 
-      The simpler advise is: @italic(Assign to @link(TUIState.Current) or use @link(TUIState.Push) / @link(TUIState.Pop)
-      only from the overridden TUIState methods.
+      The simpler advise is: @italic(Assign to @link(TCastleView.Current) or use @link(TCastleView.Push) / @link(TCastleView.Pop)
+      only from the overridden TCastleView methods.
       Like TMyState.Update or TMyState.Press).
 
       Note that you cannot change current state stack when another change is in progress.
       That is, you cannot change state from within TMyState.Start/Resume/Pause/Stop.
     }
-    class property Current: TUIState read GetCurrent write SetCurrent;
+    class property Current: TCastleView read GetCurrent write SetCurrent;
 
     { The top-most state.
 
@@ -183,7 +172,7 @@ type
 
       If there is only one (or none) state, e.g. because you never used @link(Push),
       then this property returns the same thing as @link(Current). }
-    class property CurrentTop: TUIState read GetCurrentTop;
+    class property CurrentTop: TCastleView read GetCurrentTop;
 
     { Pushing the state adds it at the top of the state stack,
       this makes new state to be displayed on top of previous ones.
@@ -191,7 +180,7 @@ type
       The state known as @link(Current) is conceptually at the bottom of state stack, always.
       When it is nil, then pushing new state sets the @link(Current) state.
       Otherwise @link(Current) state is left as-it-is, new state is added on top. }
-    class procedure Push(const NewState: TUIState);
+    class procedure Push(const NewState: TCastleView);
 
     { Pop the current top-most state, reversing the @link(Push) operation. }
     class procedure Pop; overload;
@@ -202,7 +191,7 @@ type
       Makes a warning, and does nothing, if the current top-most state
       is different than indicated. This is usually a safer (more chance
       to easily catch bugs) version of Pop than the parameter-less version. }
-    class procedure Pop(const CurrentTopMostState: TUIState); overload;
+    class procedure Pop(const CurrentTopMostState: TCastleView); overload;
 
     { Count of states in the state stack.
       State stack is managed using Start / Push / Pop. }
@@ -211,7 +200,7 @@ type
     { Access any state within the state stack.
       Use with indexes between 0 and StateStackCount - 1.
       State stack is managed using Start / Push / Pop. }
-    class property StateStack [const Index: Integer]: TUIState read GetStateStack;
+    class property StateStack [const Index: Integer]: TCastleView read GetStateStack;
 
     { Create an instance of the state.
       You willl typically create one instance of each state class
@@ -227,7 +216,7 @@ type
       like this:
 
       @longCode(#
-        TUIState.Current := StateMain;
+        TCastleView.Current := StateMain;
       #)
 
       See https://castle-engine.io/manual_2d_user_interface.php and numerous engine examples.
@@ -235,14 +224,14 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Create the instance TUIState that will be automatically freed when
+    { Create the instance TCastleView that will be automatically freed when
       the state is stopped.
       This allows alternative usage of states (as opposed to the ones described in @link(Create)
       docs), where you create short-lived instances of state classes.
       Use it like this:
 
       @longCode(#
-        TUIState.Current := TStateMain.CreateUntilStopped;
+        TCastleView.Current := TStateMain.CreateUntilStopped;
       #)
 
       The advantages:
@@ -272,7 +261,7 @@ type
 
       Started state is part of the StateStack, and will soon become
       running (top-most on the stack). When the state is set to be current,
-      by @code(TUIState.Current := MyState), this happens:
+      by @code(TCastleView.Current := MyState), this happens:
 
       @orderedList(
         @item(MyState is pushed as the top-most state on state stack.)
@@ -351,7 +340,7 @@ type
     { Load and show a user interface from a .castle-user-interface file,
       designed in Castle Game Engine Editor.
 
-      This is an utility method, loading a UI in a typical way into the TUIState.
+      This is an utility method, loading a UI in a typical way into the TCastleView.
       It is not the only way to load a .castle-user-interface file,
       a more general approach is to use @link(UserInterfaceLoad) from
       @link(CastleComponentSerialize) unit, and manually call InsertFront
@@ -410,7 +399,7 @@ type
       begin
         inherited;
         DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
-        // DesignPreload := true; // to make future "TUIState.Current := StatePlay" faster
+        // DesignPreload := true; // to make future "TCastleView.Current := StatePlay" faster
       end;
 
       procedure TStatePlay.Start;
@@ -444,12 +433,12 @@ type
       to cache the referenced images / TCastleScene instances etc. as soon as possible,
       to make the future loading of this design (when state starts) very quick.
 
-      Typically you set this property in overridden TUIState constructor,
+      Typically you set this property in overridden TCastleView constructor,
       right after (or before, it doesn't matter) setting DesignUrl.
       It will mean that constructor takes a longer time (which typically means
       that Application.OnInitialize takes a longer time) but in exchange
-      future starting of the state (when you do e.g. @code(TUIState.Current := StateXxx)
-      or @code(TUIState.Push(StateXxx)) will be much faster.
+      future starting of the state (when you do e.g. @code(TCastleView.Current := StateXxx)
+      or @code(TCastleView.Push(StateXxx)) will be much faster.
 
       No functional difference should be visible, regardless of the @link(DesignPreload)
       value. Internally the designed component is added/removed from state at the same time.
@@ -477,7 +466,7 @@ type
       be just another way to express "as" cast. }
     // generic function DesignedComponent<T: TComponent>(const ComponentName: String): T; overload;
   published
-    { TUIState control makes most sense when it is FullSize,
+    { TCastleView control makes most sense when it is FullSize,
       filling the whole window.
 
       This way it always captures events on the whole container.
@@ -486,15 +475,14 @@ type
     property FullSize default true;
   end;
 
-  TUIStateList = class({$ifdef FPC}specialize{$endif} TObjectList<TUIState>);
+  TCastleViewList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleView>);
 
-implementation
+{$endif read_interface}
 
-uses SysUtils,
-  CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog;
+{$ifdef read_implementation}
 
 { Changing state during state Start/Stop/Push/Pop is not reliable,
-  e.g. doing TUIState.Push during another TUIState.Push will not result
+  e.g. doing TCastleView.Push during another TCastleView.Push will not result
   in proper stack. }
 procedure ErrorStackChangeDisabled(const Message: String);
 begin
@@ -517,9 +505,9 @@ begin
   Result := ComponentLoad(Owner) as TCastleUserInterface;
 end;
 
-{ TUIState --------------------------------------------------------------------- }
+{ TCastleView --------------------------------------------------------------------- }
 
-class function TUIState.GetCurrent: TUIState;
+class function TCastleView.GetCurrent: TCastleView;
 begin
   if (FStateStack = nil) or
      (FStateStack.Count = 0) then
@@ -527,7 +515,7 @@ begin
     Result := FStateStack[0];
 end;
 
-class function TUIState.GetCurrentTop: TUIState;
+class function TCastleView.GetCurrentTop: TCastleView;
 begin
   if (FStateStack = nil) or
      (FStateStack.Count = 0) then
@@ -536,7 +524,7 @@ begin
     Result := FStateStack[FStateStack.Count - 1];
 end;
 
-class procedure TUIState.SetCurrent(const Value: TUIState);
+class procedure TCastleView.SetCurrent(const Value: TCastleView);
 begin
   { exit early if there's nothing to do }
   if (StateStackCount = 0) and (Value = nil) then
@@ -545,7 +533,7 @@ begin
     Exit;
 
   if FDisableStackChange <> 0 then
-    ErrorStackChangeDisabled('Cannot change TUIState.Current from inside of TUIState.Start/Resume/Pause/Stop');
+    ErrorStackChangeDisabled('Cannot change TCastleView.Current from inside of TCastleView.Start/Resume/Pause/Stop');
 
   { Remove and finish topmost state.
     The loop is written to work even when some state Stop method
@@ -559,12 +547,12 @@ begin
   Push(Value);
 end;
 
-class procedure TUIState.Push(const NewState: TUIState);
+class procedure TCastleView.Push(const NewState: TCastleView);
 begin
   if NewState <> nil then
   begin
     if FDisableStackChange <> 0 then
-      ErrorStackChangeDisabled('Cannot call TUIState.Push from inside of TUIState.Start/Resume/Pause/Stop');
+      ErrorStackChangeDisabled('Cannot call TCastleView.Push from inside of TCastleView.Start/Resume/Pause/Stop');
 
     Inc(FDisableStackChange);
     try
@@ -575,7 +563,7 @@ begin
 
       { create FStateStack on demand now }
       if FStateStack = nil then
-        FStateStack := TUIStateList.Create(false);
+        FStateStack := TCastleViewList.Create(false);
       FStateStack.Add(NewState);
       NewState.InternalStart;
       NewState.Resume;
@@ -585,12 +573,12 @@ begin
   end;
 end;
 
-class procedure TUIState.Pop;
+class procedure TCastleView.Pop;
 var
-  TopState: TUIState;
+  TopState: TCastleView;
 begin
   if FDisableStackChange <> 0 then
-    ErrorStackChangeDisabled('Cannot call TUIState.Pop from inside of TUIState.Start/Resume/Pause/Stop');
+    ErrorStackChangeDisabled('Cannot call TCastleView.Pop from inside of TCastleView.Start/Resume/Pause/Stop');
 
   Inc(FDisableStackChange);
   try
@@ -614,7 +602,7 @@ begin
   end;
 end;
 
-class procedure TUIState.Pop(const CurrentTopMostState: TUIState);
+class procedure TCastleView.Pop(const CurrentTopMostState: TCastleView);
 begin
   if (FStateStack = nil) or (FStateStack.Count = 0) then
   begin
@@ -630,34 +618,34 @@ begin
   Pop;
 end;
 
-class function TUIState.StateStackCount: Integer;
+class function TCastleView.StateStackCount: Integer;
 begin
   if FStateStack = nil then
     Result := 0 else
     Result := FStateStack.Count;
 end;
 
-class function TUIState.GetStateStack(const Index: Integer): TUIState;
+class function TCastleView.GetStateStack(const Index: Integer): TCastleView;
 begin
   if FStateStack = nil then
-    raise EInternalError.CreateFmt('TUIState.GetStateStack: state stack is empty, cannot get state index %d',
+    raise EInternalError.CreateFmt('TCastleView.GetStateStack: state stack is empty, cannot get state index %d',
       [Index]);
   Result := FStateStack[Index];
 end;
 
-function TUIState.InsertAtPosition: Integer;
+function TCastleView.InsertAtPosition: Integer;
 begin
   Result := StateContainer.Controls.Count;
 end;
 
-function TUIState.FreeAtStop: TComponent;
+function TCastleView.FreeAtStop: TComponent;
 begin
   if FFreeAtStop = nil then
     FFreeAtStop := TComponent.Create(Self);
   Result := FFreeAtStop;
 end;
 
-procedure TUIState.InternalStart;
+procedure TCastleView.InternalStart;
 var
   TimeStart: TCastleProfilerTime;
 begin
@@ -686,7 +674,7 @@ begin
   Profiler.Stop(TimeStart, Log);
 end;
 
-procedure TUIState.InternalStop;
+procedure TCastleView.InternalStop;
 begin
   // when container is csDestroying, the StateContainer.Controls may be invalid
   if not (csDestroying in StateContainer.ComponentState) then
@@ -708,7 +696,7 @@ begin
     WritelnLog('UIState', 'Stopped state ' + Name + ': ' + ClassName);
 end;
 
-procedure TUIState.StartContainerFreeNotification(
+procedure TCastleView.StartContainerFreeNotification(
   const Sender: TFreeNotificationObserver);
 begin
   { If FStartContainer is being freed, we need to stop now.
@@ -721,7 +709,7 @@ begin
   Assert(FStartContainer = nil);
 end;
 
-function TUIState.StateContainer: TCastleContainer;
+function TCastleView.StateContainer: TCastleContainer;
 begin
   if FStartContainer <> nil then
     { between Start and Stop, be sure to return the same thing
@@ -732,11 +720,11 @@ begin
   begin
     Result := GetMainContainer;
     if Result = nil then
-      raise Exception.Create('Assign Application.MainWindow (if you use CastleWindow) or TCastleControl.MainControl (if you use CastleControl) before starting TUIState');
+      raise Exception.Create('Assign Application.MainWindow (if you use CastleWindow) or TCastleControl.MainControl (if you use CastleControl) before starting TCastleView');
   end;
 end;
 
-constructor TUIState.Create(AOwner: TComponent);
+constructor TCastleView.Create(AOwner: TComponent);
 begin
   inherited;
   FullSize := true;
@@ -746,13 +734,13 @@ begin
   FStartContainerObserver.OnFreeNotification := {$ifdef FPC}@{$endif}StartContainerFreeNotification;
 end;
 
-constructor TUIState.CreateUntilStopped;
+constructor TCastleView.CreateUntilStopped;
 begin
   Create(nil);
   FFreeWhenStopped := true;
 end;
 
-procedure TUIState.StopIfStarted;
+procedure TCastleView.StopIfStarted;
 begin
   if (FStateStack <> nil) and
      (FStateStack.IndexOf(Self) <> -1) then
@@ -768,7 +756,7 @@ begin
   end;
 end;
 
-destructor TUIState.Destroy;
+destructor TCastleView.Destroy;
 begin
   StopIfStarted;
   UnLoadDesign;
@@ -778,21 +766,21 @@ begin
   inherited;
 end;
 
-procedure TUIState.Resume;
+procedure TCastleView.Resume;
 begin
   if Log then
     WritelnLog('UIState', 'Resuming state ' + Name + ': ' + ClassName);
 end;
 
-procedure TUIState.Pause;
+procedure TCastleView.Pause;
 begin
   if Log then
     WritelnLog('UIState', 'Paused state ' + Name + ': ' + ClassName);
 end;
 
-procedure TUIState.Start;
+procedure TCastleView.Start;
 begin
-  { Do not place here any logic, to make sure TUIState works reliably even when
+  { Do not place here any logic, to make sure TCastleView works reliably even when
     descendant doesn't have "inherited" call.
     While we don't guarantee that our classes generally work OK in such situations
     (you should always call "inherited" unless documented otherwise),
@@ -800,42 +788,42 @@ begin
     errors occur. }
 end;
 
-procedure TUIState.Stop;
+procedure TCastleView.Stop;
 begin
-  { Do not place here any logic, to make sure TUIState works reliably even when
+  { Do not place here any logic, to make sure TCastleView works reliably even when
     descendant doesn't have "inherited" call.
     Same as in Start. }
 end;
 
-procedure TUIState.Finish;
+procedure TCastleView.Finish;
 begin
 end;
 
-function TUIState.Active: boolean;
+function TCastleView.Active: boolean;
 begin
   Result := (FStateStack <> nil) and
             (FStateStack.IndexOf(Self) <> -1);
 end;
 
-function TUIState.Press(const Event: TInputPressRelease): boolean;
+function TCastleView.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;
 end;
 
-function TUIState.Release(const Event: TInputPressRelease): boolean;
+function TCastleView.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;
 end;
 
-function TUIState.Motion(const Event: TInputMotion): boolean;
+function TCastleView.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;
 end;
 
-procedure TUIState.Update(const SecondsPassed: Single;
+procedure TCastleView.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 begin
   inherited;
@@ -859,7 +847,7 @@ begin
   end;
 end;
 
-procedure TUIState.InsertUserInterface(const ADesignUrl: String;
+procedure TCastleView.InsertUserInterface(const ADesignUrl: String;
   const FinalOwner: TComponent;
   out Ui: TCastleUserInterface; out UiOwner: TComponent);
 begin
@@ -868,7 +856,7 @@ begin
   InsertFront(Ui);
 end;
 
-procedure TUIState.InsertUserInterface(const ADesignUrl: String;
+procedure TCastleView.InsertUserInterface(const ADesignUrl: String;
   const FinalOwner: TComponent; out UiOwner: TComponent);
 var
   Ui: TCastleUserInterface;
@@ -879,19 +867,19 @@ begin
   // ignore the returned Ui reference
 end;
 
-procedure TUIState.Render;
+procedure TCastleView.Render;
 begin
   inherited;
   FCallBeforeUpdate.AddRange(FWaitingForRender);
   FWaitingForRender.Clear;
 end;
 
-procedure TUIState.WaitForRenderAndCall(const Event: TNotifyEvent);
+procedure TCastleView.WaitForRenderAndCall(const Event: TNotifyEvent);
 begin
   FWaitingForRender.Add(Event);
 end;
 
-procedure TUIState.LoadDesign;
+procedure TCastleView.LoadDesign;
 begin
   if DesignUrl <> '' then
   begin
@@ -904,13 +892,13 @@ begin
   end;
 end;
 
-procedure TUIState.UnLoadDesign;
+procedure TCastleView.UnLoadDesign;
 begin
   FreeAndNil(FDesignLoadedOwner);
   FDesignLoaded := nil; // freeing FDesignLoadedOwner must have freed this too
 end;
 
-procedure TUIState.PreloadDesign;
+procedure TCastleView.PreloadDesign;
 begin
   if DesignUrl <> '' then
   begin
@@ -923,7 +911,7 @@ begin
   end;
 end;
 
-procedure TUIState.UnPreloadDesign;
+procedure TCastleView.UnPreloadDesign;
 begin
   { Note that it doesn't matter whether this FDesignPreloaded was used to load
     currently created FDesignLoaded or not.
@@ -934,7 +922,7 @@ begin
   FreeAndNil(FDesignPreloadedSerialized);
 end;
 
-procedure TUIState.SetDesignUrl(const Value: String);
+procedure TCastleView.SetDesignUrl(const Value: String);
 begin
   if FDesignUrl <> Value then
   begin
@@ -948,7 +936,7 @@ begin
   end;
 end;
 
-procedure TUIState.SetDesignPreload(const Value: Boolean);
+procedure TCastleView.SetDesignPreload(const Value: Boolean);
 begin
   if FDesignPreload <> Value then
   begin
@@ -961,7 +949,7 @@ end;
 
 procedure ErrorDesignLoaded;
 begin
-  raise Exception.Create('DesignedComponent can only be used if the desing was loaded, which means that TUIState has started and DesignUrl is not empty');
+  raise Exception.Create('DesignedComponent can only be used if the desing was loaded, which means that TCastleView has started and DesignUrl is not empty');
 end;
 
 (*
@@ -969,7 +957,7 @@ end;
     Error: function header doesn't match the previous declaration "DesignedComponent$1(const AnsiString):T;"
     Error: Found declaration: DesignedComponent$1(const AnsiString):T;
 }
-generic function TUIState.DesignedComponent<T: TComponent>(const ComponentName: String): T;
+generic function TCastleView.DesignedComponent<T: TComponent>(const ComponentName: String): T;
 begin
   if FDesignLoaded = nil then
     ErrorDesignLoaded;
@@ -979,7 +967,7 @@ end;
 { FPC 3.2.0 error:
     Error: Global Generic template references static symtable
   This works OK in a smaller testcase. }
-generic function TUIState.DesignedComponent<T>(const ComponentName: String): T;
+generic function TCastleView.DesignedComponent<T>(const ComponentName: String): T;
 begin
   if FDesignLoaded = nil then
     ErrorDesignLoaded;
@@ -991,34 +979,34 @@ begin
 end;
 *)
 
-function TUIState.DesignedComponent(const ComponentName: String): TComponent;
+function TCastleView.DesignedComponent(const ComponentName: String): TComponent;
 begin
   if FDesignLoaded = nil then
     ErrorDesignLoaded;
   Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
 end;
 
-function TUIState.ContainerWidth: Cardinal;
+function TCastleView.ContainerWidth: Cardinal;
 begin
   Result := StateContainer.Width;
 end;
 
-function TUIState.ContainerHeight: Cardinal;
+function TCastleView.ContainerHeight: Cardinal;
 begin
   Result := StateContainer.Height;
 end;
 
-function TUIState.ContainerRect: TRectangle;
+function TCastleView.ContainerRect: TRectangle;
 begin
   Result := StateContainer.Rect;
 end;
 
-function TUIState.ContainerSizeKnown: boolean;
+function TCastleView.ContainerSizeKnown: boolean;
 begin
   Result := true;
 end;
 
-function TUIState.UIScale: Single;
+function TCastleView.UIScale: Single;
 begin
   if EnableUIScaling then
     Result := StateContainer.UIScale
@@ -1026,4 +1014,4 @@ begin
     Result := 1.0;
 end;
 
-end.
+{$endif read_implementation}

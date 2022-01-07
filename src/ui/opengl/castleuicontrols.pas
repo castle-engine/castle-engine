@@ -37,6 +37,7 @@ type
   {$I castleuicontrols_container.inc}
   {$I castleuicontrols_userinterface.inc}
   {$I castleuicontrols_userinterfacelist.inc}
+  {$I castleuicontrols_view.inc}
   {$I castleuicontrols_internalchildrencontrols.inc}
   {$I castleuicontrols_deprecated.inc}
   {$I castleuicontrols_theme.inc} // ends the "type" clause
@@ -61,6 +62,7 @@ uses DOM, TypInfo, Math,
 {$I castleuicontrols_container.inc}
 {$I castleuicontrols_userinterface.inc}
 {$I castleuicontrols_userinterfacelist.inc}
+{$I castleuicontrols_view.inc}
 {$I castleuicontrols_internalchildrencontrols.inc}
 {$I castleuicontrols_deprecated.inc}
 {$I castleuicontrols_theme.inc}

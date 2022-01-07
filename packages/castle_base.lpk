@@ -1599,7 +1599,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item375>
       <Item376>
-        <Filename Value="../src/ui/opengl/castleuistate.pas"/>
+        <Filename Value="../src/deprecated_units/castleuistate.pas"/>
         <UnitName Value="CastleUIState"/>
       </Item376>
       <Item377>
