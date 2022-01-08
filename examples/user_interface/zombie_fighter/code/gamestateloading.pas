@@ -121,7 +121,7 @@ end;
 procedure TStateLoading.DoLoadingFinish(Sender: TObject);
 begin
   { Finished loading, go to StatePlay }
-  TUIState.Current := StatePlay;
+  Container.View := StatePlay;
 end;
 
 end.

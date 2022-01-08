@@ -51,7 +51,7 @@ begin
   {$endregion 'Castle State Creation'}
 
   { initialize first state }
-  TUIState.Current := StateMainMenu;
+  Window.Container.View := StateMainMenu;
 end;
 
 initialization

@@ -87,18 +87,18 @@ begin
     When StateAskDialog is active, we do *not* want to forcefully capture input
     (it would allow user to move by mouse dragging when StateAskDialog is open).
     So we set this in Resume, and turn off in Pause. }
-  StateContainer.ForceCaptureInput := MainViewport.Navigation;
+  StartContainer.ForceCaptureInput := MainViewport.Navigation;
 end;
 
 procedure TStatePlay.Pause;
 begin
-  StateContainer.ForceCaptureInput := nil;
+  StartContainer.ForceCaptureInput := nil;
   inherited;
 end;
 
 procedure TStatePlay.ClickBack(Sender: TObject);
 begin
-  TUIState.Current := StateMainMenu;
+  Container.View := StateMainMenu;
 end;
 
 function TStatePlay.Press(const Event: TInputPressRelease): boolean;
@@ -117,7 +117,7 @@ begin
          (Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material')) then
     begin
       StateAskDialog.Male := Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material';
-      TUIState.Push(StateAskDialog);
+      Container.PushView(StateAskDialog);
     end;
   end;
 end;

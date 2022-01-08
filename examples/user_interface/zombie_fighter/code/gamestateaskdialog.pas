@@ -99,14 +99,14 @@ procedure TStateAskDialog.TZombieDialog.ClickRun(Sender: TObject);
 begin
   { As this is just a demo, there's no actual "running",
     we just return to StatePlay. }
-  TUIState.Pop(StateAskDialog);
+  Container.PopView(StateAskDialog);
 end;
 
 procedure TStateAskDialog.TZombieDialog.ClickFight(Sender: TObject);
 begin
   { As this is just a demo, there's no actual "fighting",
     we just return to StatePlay. }
-  TUIState.Pop(StateAskDialog);
+  Container.PopView(StateAskDialog);
 end;
 
 { TStateAskDialog ------------------------------------------------------------ }
