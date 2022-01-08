@@ -31,6 +31,11 @@
       TextureProperties: TTexturePropertiesNode;
       out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
 
+    procedure HandleTextureProperties(
+      TextureProperties: TTexturePropertiesNode;
+      out Filter: TTextureFilter; out BoundaryModeS: TGLenum;
+      out Anisotropy: TGLfloat; out GUITexture: boolean);
+
     { Decide if this class can handle given texture Node. }
     class function IsClassForTextureNode(
       ANode: TAbstractTextureNode): boolean; virtual; abstract;
@@ -511,6 +516,14 @@ begin
   end;
 end;
 
+procedure TGLTextureNode.HandleTextureProperties(
+  TextureProperties: TTexturePropertiesNode; out Filter: TTextureFilter; out
+  BoundaryModeS: TGLenum; out Anisotropy: TGLfloat; out GUITexture: boolean);
+begin
+  HandleTextureProperties(TextureProperties, Filter, Anisotropy, GUITexture);
+  BoundaryModeS := GL_MIRRORED_REPEAT;
+end;
+
 class function TGLTextureNode.ClassForTextureNode(
   ANode: TAbstractTextureNode): TGLTextureNodeClass;
 
@@ -878,15 +891,16 @@ procedure TGLImageTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
+  BoundaryModeS: TGLenum;
   TextureWrap: TTextureWrap2D;
   GUITexture, FlipVertically: boolean;
 begin
   { HandledNode already made sure IsTextureImage = @true }
 
-  HandleTextureProperties(TextureNode.TextureProperties,
-    Filter, Anisotropy, GUITexture);
+  HandleTextureProperties(TextureNode.TextureProperties, Filter,
+    BoundaryModeS, Anisotropy, GUITexture);
 
-  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.RepeatS);
+  TextureWrap.Data[0] := BoundaryModeS; //TextureRepeatToGL(TextureNode.RepeatS);
   TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.RepeatT);
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
