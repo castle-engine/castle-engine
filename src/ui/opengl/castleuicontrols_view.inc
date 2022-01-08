@@ -872,17 +872,17 @@ end;
 
 class procedure TCastleView.Push(const NewState: TCastleView);
 begin
-  RequireMainContainer.Push(NewState);
+  RequireMainContainer.PushView(NewState);
 end;
 
 class procedure TCastleView.Pop;
 begin
-  RequireMainContainer.Pop;
+  RequireMainContainer.PopView;
 end;
 
 class procedure TCastleView.Pop(const CurrentTopMostState: TCastleView);
 begin
-  RequireMainContainer.Pop(CurrentTopMostState);
+  RequireMainContainer.PopView(CurrentTopMostState);
 end;
 
 class function TCastleView.StateStackCount: Integer;

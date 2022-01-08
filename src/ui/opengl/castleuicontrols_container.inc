@@ -734,9 +734,9 @@
 
     { The view in the front (top-most view on the stack).
 
-      In case you used @link(Push), this returns the top-most (most recently pushed) view.
+      In case you used @link(PushView), this returns the top-most (most recently pushed) view.
 
-      If there is only one (or none) view, e.g. because you never used @link(Push),
+      If there is only one (or none) view, e.g. because you never used @link(PushView),
       then this property returns the same thing as @link(View). }
     property FrontView: TCastleView read GetFrontView;
 
@@ -746,26 +746,26 @@
       The view known as @link(View) is conceptually at the bottom of view stack, always.
       When it is nil, then pushing new view sets the @link(View) view.
       Otherwise @link(View) view is left as-it-is, new view is added on top. }
-    procedure Push(const NewView: TCastleView);
+    procedure PushView(const NewView: TCastleView);
 
-    { Pop the current top-most view, reversing the @link(Push) operation. }
-    procedure Pop; overload;
+    { Pop the current top-most view, reversing the @link(PushView) operation. }
+    procedure PopView; overload;
 
-    { Pop the current top-most view, reversing the @link(Push) operation,
+    { Pop the current top-most view, reversing the @link(PushView) operation,
       also checking whether the current top-most view is as expected.
 
       Makes a warning, and does nothing, if the current top-most view
       is different than indicated. This is usually a safer (more chance
-      to easily catch bugs) version of Pop than the parameter-less version. }
-    procedure Pop(const CheckFrontView: TCastleView); overload;
+      to easily catch bugs) version of PopView than the parameter-less version. }
+    procedure PopView(const CheckFrontView: TCastleView); overload;
 
     { Count of views in the view stack.
-      View stack is managed using Start / Push / Pop. }
+      View stack is managed using @link(View) / @link(PushView) / @link(PopView). }
     function ViewStackCount: Integer;
 
     { Access any view within the view stack.
       Use with indexes between 0 and ViewStackCount - 1.
-      View stack is managed using Start / Push / Pop. }
+      View stack is managed using @link(View) / @link(PushView) / @link(PopView). }
     property ViewStack [const Index: Integer]: TCastleView read GetViewStack;
   end;
 
@@ -2363,15 +2363,15 @@ begin
     The loop is written to work even when some view Stop method
     changes views. }
   while ViewStackCount <> 0 do
-    Pop;
+    PopView;
   { deallocate empty FViewStack }
   if Value = nil then
     FreeAndNil(FViewStack);
 
-  Push(Value);
+  PushView(Value);
 end;
 
-procedure TCastleContainer.Push(const NewView: TCastleView);
+procedure TCastleContainer.PushView(const NewView: TCastleView);
 begin
   if NewView <> nil then
   begin
@@ -2397,7 +2397,7 @@ begin
   end;
 end;
 
-procedure TCastleContainer.Pop;
+procedure TCastleContainer.PopView;
 var
   SavedFrontView: TCastleView;
 begin
@@ -2426,7 +2426,7 @@ begin
   end;
 end;
 
-procedure TCastleContainer.Pop(const CheckFrontView: TCastleView);
+procedure TCastleContainer.PopView(const CheckFrontView: TCastleView);
 begin
   if (FViewStack = nil) or (FViewStack.Count = 0) then
   begin
@@ -2439,7 +2439,7 @@ begin
     Exit;
   end;
 
-  Pop;
+  PopView;
 end;
 
 function TCastleContainer.ViewStackCount: Integer;
