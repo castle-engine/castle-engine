@@ -3,7 +3,7 @@ object Form1: TForm1
   Height = 624
   Top = 198
   Width = 1043
-  ActiveControl = Browser
+  ActiveControl = CastleControl
   Caption = 'Form1'
   ClientHeight = 624
   ClientWidth = 1043
@@ -11,7 +11,7 @@ object Form1: TForm1
   OnCreate = FormCreate
   Position = poDesktopCenter
   LCLVersion = '2.0.0.4'
-  object Browser: TCastleControlBase
+  object CastleControl: TCastleControlBase
     Left = 0
     Height = 624
     Top = 0

@@ -22,16 +22,17 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  CastleControl, CastleControls, CastleOnScreenMenu;
+  CastleControl, CastleControls, CastleOnScreenMenu,
+  GameViewMain;
 
 type
   TForm1 = class(TForm)
-    Browser: TCastleControlBase;
+    CastleControl: TCastleControlBase;
     procedure FormCreate(Sender: TObject);
-    procedure OnScreenMenu1Click(Sender: TObject);
-    procedure MainButtonClick(Sender: TObject);
   private
-    OnScreenMenu1: TCastleOnScreenMenu;
+    ViewMain: TViewMain;
+    procedure MenuClick(Sender: TObject);
+    procedure MainButtonClick(Sender: TObject);
   end;
 
 var
@@ -57,61 +58,31 @@ procedure TForm1.FormCreate(Sender: TObject);
     Theme.ImagesPersistent[tiTooltip].ProtectedSides.AllSides := 9;
   end;
 
-  { Add user interface designed by CGE editor.
-    This is the most advised way to design UI. }
-  procedure AddUserInterfaceDesigned;
-  var
-    UiRoot: TCastleUserInterface;
-    UiOwner: TComponent;
-    MainButton: TCastleButton;
-  begin
-    { UiOwner will own (free) the UI loaded by UserInterfaceLoad,
-      and will also be useful to find UI items by name,
-      like "UiOwner.FindRequiredComponent". }
-    UiOwner := TComponent.Create(Self);
-
-    UiRoot := UserInterfaceLoad('castle-data:/main.castle-user-interface', UiOwner);
-    Browser.Controls.InsertFront(UiRoot);
-
-    MainButton := UiOwner.FindRequiredComponent('MainButton') as TCastleButton;
-    MainButton.OnClick := @MainButtonClick;
-  end;
-
-  { Add additional user interface elements created manually,
-    by code, just to show that we can. }
-  procedure AddUserInterfaceFromCode;
-  var
-    Button: TCastleButton;
-  begin
-    Button := TCastleButton.Create(Self);
-    Button.Caption := 'Button added from code';
-    Button.Anchor(hpRight, -10);
-    Button.Anchor(vpBottom, 120);
-    Browser.Controls.InsertFront(Button);
-
-    OnScreenMenu1 := TCastleOnScreenMenu.Create(Self);
-    OnScreenMenu1.Bottom := 140;
-    OnScreenMenu1.Left := 400;
-    OnScreenMenu1.Add('one', @OnScreenMenu1Click);
-    OnScreenMenu1.Add('two', @OnScreenMenu1Click);
-    OnScreenMenu1.Add('three', @OnScreenMenu1Click);
-    Browser.Controls.InsertFront(OnScreenMenu1);
-  end;
-
 begin
+  { This corresponds to the Application.OnInitialize contents of
+    a TCastleWindow-based application.
+    We do
+    - some one-time initialization,
+    - create TCastleView instances,
+    - set one TCastleView instance as current using "CastleControl.View := ..." }
+
   AdjustTheme;
-  AddUserInterfaceDesigned;
-  AddUserInterfaceFromCode;
+
+  ViewMain := TViewMain.Create(Self);
+  ViewMain.OnMenuClick := @MenuClick;
+  ViewMain.OnMainButtonClick := @MainButtonClick;
+
+  CastleControl.Container.View := ViewMain;
 end;
 
-procedure TForm1.OnScreenMenu1Click(Sender: TObject);
+procedure TForm1.MenuClick(Sender: TObject);
 begin
-  ShowMessage(Format('Clicked menu item %d.', [OnScreenMenu1.CurrentItem]));
+  ShowMessage(Format('Clicked menu item %s.', [(Sender as TCastleOnScreenMenuItem).Caption]));
 end;
 
 procedure TForm1.MainButtonClick(Sender: TObject);
 begin
-  ShowMessage('Button clicked !');
+  ShowMessage('Main button clicked.');
 end;
 
 initialization
