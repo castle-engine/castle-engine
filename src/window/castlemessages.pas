@@ -378,10 +378,38 @@ var
 begin
   // WritelnLogMultiline('Message', TextList.Text);
 
+  { TODO:
+    This way of starting the State manually is a hack.
+
+    This hack avoids calling InternalStart / InternalStop,
+    which modify container state stack (we don't want this)
+    and do other useful things (we don't need it *for now*) like
+
+    - handling WaitingForRender
+    - handilng DesignUrl
+    - freeing FFreeAtStop
+    - setting FStartContainer
+
+    A cleaner way would to use it like a proper state.
+    - set State.PopOnAnswered := true;
+    - do not call
+        State.Start;
+        ...
+        Window.Controls.InsertFront(State);
+      explicitly.
+    - do call
+        Window.Container.View := State;
+
+    Problem of the cleaner solution: it means we'll change container FViewStack,
+    wel'll do stop (and later start) on the user TCastleView descendants.
+    We don't want this, MessageOK (esp. when it is used to display a debug message
+    in case of unhandled exception on mobile) should avoid calling user code of states
+    (as user states may be in bad state). }
+
   State.BackgroundScreenshot := true;
   State.PopOnAnswered := false;
-  // State.OverrrideContainer := Window.Container; // TODO no longer available
-  State.Start; // get a screenshot before TGLMode.CreateReset
+  State.SaveScreenIfNecessary(Window.Container); // get a screenshot before TGLMode.CreateReset
+  State.Start;
 
   { Using @NoClose below allows to safely use MessageXxx inside own OnCloseQuery,
     like "if MessageYesNo('Are you sure ?') then Window.Close;" }

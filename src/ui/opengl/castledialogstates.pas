@@ -89,7 +89,7 @@ unit CastleDialogStates;
 interface
 
 uses Classes, Math,
-  CastleGLUtils, CastleUtils,
+  CastleGLUtils, CastleUtils, CastleImages,
   CastleStringUtils, CastleVectors, CastleKeysMouse, CastleControls,
   CastleRectangles, CastleUIState, CastleColors, CastleUIControls,
   CastleFonts, CastleInternalRichText, CastleTimeUtils;
@@ -113,6 +113,7 @@ type
       FBackgroundScreenshot: boolean;
       FPopOnAnswered: boolean;
       FDialog: TDialog; // non-nil only between Start and Stop
+      FUnusedSaveScreen: TCastleImage;
     function GetCaption: string;
     procedure SetCaption(const Value: string);
     function GetInputText: string;
@@ -132,6 +133,12 @@ type
     procedure Start; override;
     procedure Stop; override;
     property InterceptInput default true;
+
+    { Save screen @italic(now) to be used by subsequent @link(Start).
+      Does a screenshot only if our current properties (@link(Background),
+      @link(BackgroundScreenshot), @link(BackgroundColor)) indicate screenshot is needed.
+      It allows to make a screenshot earlier than at @link(Start) call. }
+    procedure SaveScreenIfNecessary(const AContainer: TCastleContainer);
 
     { When user answers the dialog, this is set to @true.
       The state also normally does TUIState.Pop, so there's no need to check
@@ -321,8 +328,7 @@ type
 
 implementation
 
-uses SysUtils,
-  CastleImages;
+uses SysUtils;
 
 {$define read_implementation}
 {$I castledialogstates_dialog.inc}
@@ -350,6 +356,7 @@ end;
 destructor TStateDialog.Destroy;
 begin
   FreeAndNil(FText);
+  FreeAndNil(FUnusedSaveScreen);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc}
@@ -377,6 +384,14 @@ begin
   FDialog.InputText := Value;
 end;
 
+procedure TStateDialog.SaveScreenIfNecessary(const AContainer: TCastleContainer);
+begin
+  if Background and BackgroundScreenshot and (BackgroundColor[3] <> 1) then
+  begin
+    FUnusedSaveScreen := AContainer.SaveScreen;
+  end;
+end;
+
 procedure TStateDialog.Start;
 const
   MinButtonWidth = 100; //< OK button looks too small without this
@@ -397,7 +412,12 @@ begin
       BackgroundImage := TCastleImageControl.Create(FreeAtStop);
       BackgroundImage.Stretch := true;
       BackgroundImage.FullSize := true;
-      BackgroundImage.Image := StartContainer.SaveScreen;
+      if FUnusedSaveScreen <> nil then
+      begin
+        BackgroundImage.Image := FUnusedSaveScreen;
+        FUnusedSaveScreen := nil;
+      end else
+        BackgroundImage.Image := StartContainer.SaveScreen;
       InsertFront(BackgroundImage);
     end;
 
