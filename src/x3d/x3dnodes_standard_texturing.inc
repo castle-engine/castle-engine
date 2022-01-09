@@ -1371,33 +1371,96 @@ begin
 end;
 
 function TTexturePropertiesNode.GetBoundaryModeS: TBoundaryMode;
+var
+  S: string;
 begin
+  S := UpperCase(FdBoundaryModeS.Value);
 
+  if S = 'REPEAT' then Result := bmRepeat else
+  if S = 'CLAMP' then Result := bmClamp else
+  if S = 'CLAMP_TO_EDGE' then Result := bmClampToEdge else
+  if S = 'CLAMP_TO_BOUNDARY' then Result := bmClampToBoundary else
+  if S = 'MIRRORED_REPEAT' then Result := bmMirroredRepeat else
+
+  begin
+    Result := bmRepeat;
+    WritelnWarning('VRML/X3D', Format('Unknown boundary mode "%s"', [S]));
+  end;
 end;
 
 procedure TTexturePropertiesNode.SetBoundaryModeS(const AValue: TBoundaryMode);
+const
+  Names: array [TBoundaryMode] of string = (
+    'CLAMP',
+    'CLAMP_TO_EDGE',
+    'CLAMP_TO_BOUNDARY',
+    'MIRRORED_REPEAT',
+    'REPEAT'
+  );
 begin
-
+  FdBoundaryModeS.Send(Names[Value]);
 end;
 
 function TTexturePropertiesNode.GetBoundaryModeT: TBoundaryMode;
+var
+  S: string;
 begin
+  S := UpperCase(FdBoundaryModeT.Value);
 
+  if S = 'REPEAT' then Result := bmRepeat else
+  if S = 'CLAMP' then Result := bmClamp else
+  if S = 'CLAMP_TO_EDGE' then Result := bmClampToEdge else
+  if S = 'CLAMP_TO_BOUNDARY' then Result := bmClampToBoundary else
+  if S = 'MIRRORED_REPEAT' then Result := bmMirroredRepeat else
+
+  begin
+    Result := bmRepeat;
+    WritelnWarning('VRML/X3D', Format('Unknown boundary mode "%s"', [S]));
+  end;
 end;
 
 procedure TTexturePropertiesNode.SetBoundaryModeT(const AValue: TBoundaryMode);
+const
+  Names: array [TBoundaryMode] of string = (
+    'CLAMP',
+    'CLAMP_TO_EDGE',
+    'CLAMP_TO_BOUNDARY',
+    'MIRRORED_REPEAT',
+    'REPEAT'
+  );
 begin
-
+  FdBoundaryModeT.Send(Names[Value]);
 end;
 
 function TTexturePropertiesNode.GetBoundaryModeR: TBoundaryMode;
+var
+  S: string;
 begin
+  S := UpperCase(FdBoundaryModeR.Value);
 
+  if S = 'REPEAT' then Result := bmRepeat else
+  if S = 'CLAMP' then Result := bmClamp else
+  if S = 'CLAMP_TO_EDGE' then Result := bmClampToEdge else
+  if S = 'CLAMP_TO_BOUNDARY' then Result := bmClampToBoundary else
+  if S = 'MIRRORED_REPEAT' then Result := bmMirroredRepeat else
+
+  begin
+    Result := bmRepeat;
+    WritelnWarning('VRML/X3D', Format('Unknown boundary mode "%s"', [S]));
+  end;
 end;
 
 procedure TTexturePropertiesNode.SetBoundaryModeR(const AValue: TBoundaryMode);
+const
+  Names: array [TBoundaryMode] of string = (
+    'CLAMP',
+    'CLAMP_TO_EDGE',
+    'CLAMP_TO_BOUNDARY',
+    'MIRRORED_REPEAT',
+    'REPEAT'
+  );
 begin
-
+  FdBoundaryModeR.Send(Names[Value]);
 end;
 
 procedure TTextureTransformNode.CreateNode;
