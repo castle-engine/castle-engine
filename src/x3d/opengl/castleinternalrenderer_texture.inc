@@ -21,7 +21,7 @@
   TBoundaryMode = (
     bmClamp,
     bmClampToEdge,
-    bmClamptoBoundary,
+    bmClampToBoundary,
     bmMirroredRepeat,
     bmRepeat
   );
