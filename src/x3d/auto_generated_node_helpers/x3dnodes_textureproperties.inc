@@ -57,11 +57,11 @@
     { X3D field "borderWidth". } { }
     property BorderWidth: Integer read GetBorderWidth write SetBorderWidth;
     { X3D field "boundaryModeS". } { }
-    property BoundaryModeS: String read GetBoundaryModeS write SetBoundaryModeS;
+    //property BoundaryModeS: String read GetBoundaryModeS write SetBoundaryModeS;
     { X3D field "boundaryModeT". } { }
-    property BoundaryModeT: String read GetBoundaryModeT write SetBoundaryModeT;
+    //property BoundaryModeT: String read GetBoundaryModeT write SetBoundaryModeT;
     { X3D field "boundaryModeR". } { }
-    property BoundaryModeR: String read GetBoundaryModeR write SetBoundaryModeR;
+    //property BoundaryModeR: String read GetBoundaryModeR write SetBoundaryModeR;
     { X3D field "textureCompression". } { }
     property TextureCompression: String read GetTextureCompression write SetTextureCompression;
     { X3D field "texturePriority". } { }
