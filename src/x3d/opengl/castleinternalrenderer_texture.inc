@@ -33,7 +33,8 @@
 
     procedure HandleTextureProperties(
       TextureProperties: TTexturePropertiesNode;
-      out Filter: TTextureFilter; out BoundaryModeS: TGLenum;
+      out Filter: TTextureFilter; out BoundaryModeS: GLenum;
+      out BoundaryModeT: GLenum; out BoundaryModeR: GLenum;
       out Anisotropy: TGLfloat; out GUITexture: boolean);
 
     { Decide if this class can handle given texture Node. }
@@ -518,10 +519,21 @@ end;
 
 procedure TGLTextureNode.HandleTextureProperties(
   TextureProperties: TTexturePropertiesNode; out Filter: TTextureFilter; out
-  BoundaryModeS: TGLenum; out Anisotropy: TGLfloat; out GUITexture: boolean);
+  BoundaryModeS: GLenum; out BoundaryModeT: GLenum; out BoundaryModeR: GLenum;
+  out Anisotropy: TGLfloat; out GUITexture: boolean);
+const
+  BoundaryModeGL: array [TBoundaryMode] of GLenum = (
+    GL_CLAMP,
+    GL_CLAMP_TO_EDGE,
+    GL_REPEAT,             // bmClampToBoundary (no cooresp. GL mode)
+    GL_MIRRORED_REPEAT,
+    GL_REPEAT
+  );
 begin
   HandleTextureProperties(TextureProperties, Filter, Anisotropy, GUITexture);
-  BoundaryModeS := GL_MIRRORED_REPEAT;
+  BoundaryModeS := BoundaryModeGL[TextureProperties.BoundaryModeS];
+  BoundaryModeT := BoundaryModeGL[TextureProperties.BoundaryModeT];
+  BoundaryModeR := BoundaryModeGL[TextureProperties.BoundaryModeT];
 end;
 
 class function TGLTextureNode.ClassForTextureNode(
@@ -892,16 +904,18 @@ var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
   BoundaryModeS: TGLenum;
+  BoundaryModeT: TGLenum;
+  BoundaryModeR: TGLenum; // not used here
   TextureWrap: TTextureWrap2D;
   GUITexture, FlipVertically: boolean;
 begin
   { HandledNode already made sure IsTextureImage = @true }
 
   HandleTextureProperties(TextureNode.TextureProperties, Filter,
-    BoundaryModeS, Anisotropy, GUITexture);
+    BoundaryModeS, BoundaryModeT, BoundaryModeR, Anisotropy, GUITexture);
 
   TextureWrap.Data[0] := BoundaryModeS; //TextureRepeatToGL(TextureNode.RepeatS);
-  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.RepeatT);
+  TextureWrap.Data[1] := BoundaryModeT; //TextureRepeatToGL(TextureNode.RepeatT);
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
