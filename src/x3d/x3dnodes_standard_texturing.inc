@@ -492,6 +492,12 @@
     procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
     function GetMagnificationFilter: TAutoMagnificationFilter;
     procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
+    function GetBoundaryModeS: TBoundaryMode;
+    procedure SetBoundaryModeS(const AValue: TBoundaryMode);
+    function GetBoundaryModeT: TBoundaryMode;
+    procedure SetBoundaryModeT(const AValue: TBoundaryMode);
+    function GetBoundaryModeR: TBoundaryMode;
+    procedure SetBoundaryModeR(const AValue: TBoundaryMode);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -537,6 +543,15 @@
 
     property MinificationFilter: TAutoMinificationFilter
       read GetMinificationFilter write SetMinificationFilter;
+
+    property BoundaryModeS: TBoundaryMode
+      read GetBoundaryModeS write SetBoundaryModeS;
+
+    property BoundaryModeT: TBoundaryMode
+      read GetBoundaryModeT write SetBoundaryModeT;
+
+    property BoundaryModeR: TBoundaryMode
+      read GetBoundaryModeR write SetBoundaryModeR;
 
     {$I auto_generated_node_helpers/x3dnodes_textureproperties.inc}
   end;
@@ -1353,6 +1368,36 @@ const
   );
 begin
   FdMagnificationFilter.Send(Names[Value]);
+end;
+
+function TTexturePropertiesNode.GetBoundaryModeS: TBoundaryMode;
+begin
+
+end;
+
+procedure TTexturePropertiesNode.SetBoundaryModeS(const AValue: TBoundaryMode);
+begin
+
+end;
+
+function TTexturePropertiesNode.GetBoundaryModeT: TBoundaryMode;
+begin
+
+end;
+
+procedure TTexturePropertiesNode.SetBoundaryModeT(const AValue: TBoundaryMode);
+begin
+
+end;
+
+function TTexturePropertiesNode.GetBoundaryModeR: TBoundaryMode;
+begin
+
+end;
+
+procedure TTexturePropertiesNode.SetBoundaryModeR(const AValue: TBoundaryMode);
+begin
+
 end;
 
 procedure TTextureTransformNode.CreateNode;

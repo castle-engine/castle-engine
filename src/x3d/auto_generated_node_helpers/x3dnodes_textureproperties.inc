@@ -32,12 +32,15 @@
     procedure SetBorderColor(const Value: TCastleColor);
     function GetBorderWidth: Integer;
     procedure SetBorderWidth(const Value: Integer);
+    { manual edit: reimplemented getters/setters in castleinternalrenderer_texture.inc
+      Can these setters/getters be removed manually here?
     function GetBoundaryModeS: String;
     procedure SetBoundaryModeS(const Value: String);
     function GetBoundaryModeT: String;
     procedure SetBoundaryModeT(const Value: String);
     function GetBoundaryModeR: String;
     procedure SetBoundaryModeR(const Value: String);
+    }
     function GetTextureCompression: String;
     procedure SetTextureCompression(const Value: String);
     function GetTexturePriority: Single;
@@ -104,6 +107,7 @@ begin
   FdBorderWidth.Send(Value);
 end;
 
+{
 function TTexturePropertiesNode.GetBoundaryModeS: String;
 begin
   Result := FdBoundaryModeS.Value;
@@ -133,6 +137,7 @@ procedure TTexturePropertiesNode.SetBoundaryModeR(const Value: String);
 begin
   FdBoundaryModeR.Send(Value);
 end;
+}
 
 function TTexturePropertiesNode.GetTextureCompression: String;
 begin
