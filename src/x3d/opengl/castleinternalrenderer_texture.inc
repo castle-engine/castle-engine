@@ -16,16 +16,6 @@
 
 {$ifdef read_interface}
 
-  { X3D boundary modes for S, T, R texture coordinates. }
-  { Should be shifted to CastleRenderOptions later? }
-  TBoundaryMode = (
-    bmClamp,
-    bmClampToEdge,
-    bmClampToBoundary,
-    bmMirroredRepeat,
-    bmRepeat
-  );
-
   { }
   TGLTextureNode = class;
 
