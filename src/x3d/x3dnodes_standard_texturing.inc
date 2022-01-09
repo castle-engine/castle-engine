@@ -493,11 +493,11 @@
     function GetMagnificationFilter: TAutoMagnificationFilter;
     procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
     function GetBoundaryModeS: TBoundaryMode;
-    procedure SetBoundaryModeS(const AValue: TBoundaryMode);
+    procedure SetBoundaryModeS(const Value: TBoundaryMode);
     function GetBoundaryModeT: TBoundaryMode;
-    procedure SetBoundaryModeT(const AValue: TBoundaryMode);
+    procedure SetBoundaryModeT(const Value: TBoundaryMode);
     function GetBoundaryModeR: TBoundaryMode;
-    procedure SetBoundaryModeR(const AValue: TBoundaryMode);
+    procedure SetBoundaryModeR(const Value: TBoundaryMode);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -1388,7 +1388,7 @@ begin
   end;
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeS(const AValue: TBoundaryMode);
+procedure TTexturePropertiesNode.SetBoundaryModeS(const Value: TBoundaryMode);
 const
   Names: array [TBoundaryMode] of string = (
     'CLAMP',
@@ -1419,7 +1419,7 @@ begin
   end;
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeT(const AValue: TBoundaryMode);
+procedure TTexturePropertiesNode.SetBoundaryModeT(const Value: TBoundaryMode);
 const
   Names: array [TBoundaryMode] of string = (
     'CLAMP',
@@ -1450,7 +1450,7 @@ begin
   end;
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeR(const AValue: TBoundaryMode);
+procedure TTexturePropertiesNode.SetBoundaryModeR(const Value: TBoundaryMode);
 const
   Names: array [TBoundaryMode] of string = (
     'CLAMP',
