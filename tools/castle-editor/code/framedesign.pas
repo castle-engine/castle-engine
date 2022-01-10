@@ -2010,12 +2010,20 @@ begin
 end;
 
 procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
+var
+  SavedErrorBox: String;
 begin
   { process PendingErrorBox }
   if PendingErrorBox <> '' then
   begin
-    ErrorBox(PendingErrorBox);
+    SavedErrorBox := PendingErrorBox;
+    { Clear PendingErrorBoxthis *before* doing ErrorBox, as on WinAPI,
+      the CastleControlUpdate will keep occurring underneath the box,
+      and we would spawn ~infinite number of ErrorBox.
+      This can happen e.g. in case of invalid CastleSettings.xml file,
+      that sets PendingErrorBox. }
     PendingErrorBox := '';
+    ErrorBox(SavedErrorBox);
   end;
 
   if InternalCastleDesignInvalidate then
