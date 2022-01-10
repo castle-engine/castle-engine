@@ -19,6 +19,7 @@ type
     LabelFps: TCastleLabel;
     LabelTestPassed: TCastleLabel;
     LabelTestFailed: TCastleLabel;
+    CheckboxStopOnFail: TCastleCheckbox;
 
     ButtonStartTests: TCastleButton;
 
@@ -63,6 +64,7 @@ uses SysUtils,
 
 procedure TStateMain.ClickStartTests(Sender: TObject);
 begin
+  Tester.StopOnFirstFail := CheckboxStopOnFail.Checked;
   Tester.Run;
 end;
 
@@ -83,6 +85,7 @@ begin
   ButtonStartTests.OnClick := {$ifdef FPC}@{$endif}ClickStartTests;
   LabelTestPassed := DesignedComponent('LabelTestPassed') as TCastleLabel;
   LabelTestFailed := DesignedComponent('LabelTestFailed') as TCastleLabel;
+  CheckboxStopOnFail := DesignedComponent('CheckboxStopOnFail') as TCastleCheckbox;
 
   { Commented test cases need fixes in delphi }
 
