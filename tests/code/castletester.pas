@@ -262,6 +262,9 @@ type
     { Returns tester mode (UI or Console) }
     function Mode: TCastleTesterMode;
 
+    function EnabledTestCount: Integer;
+
+    { Stop testing on first fail or run all tests }
     property StopOnFirstFail: Boolean read FStopOnFirstFail
       write FStopOnFirstFail default true;
 
@@ -333,7 +336,7 @@ end;
 
 function TCastleTester.IsNextTestToRun: Boolean;
 begin
-  Result := (FLastRunningTestIndex < FTestsToRun.Count - 1);
+  Result := (FLastRunningTestIndex < FTestsToRun.Count);
 end;
 
 function TCastleTester.Mode: TCastleTesterMode;
@@ -374,6 +377,8 @@ begin
 
   TestPassedCount := 0;
   TestFailedCount := 0;
+  if Assigned(FNotifyEnabledTestCountChanged) then
+    NotifyEnabledTestCountChanged(Self);
 end;
 
 procedure TCastleTester.Run;
@@ -389,8 +394,8 @@ end;
 
 procedure TCastleTester.RunNextTest;
 begin
-  Inc(FLastRunningTestIndex);
   RunTest(FTestsToRun[FLastRunningTestIndex]);
+  Inc(FLastRunningTestIndex);
 end;
 
 procedure TCastleTester.RunTest(Test: TCastleTest);
@@ -429,7 +434,7 @@ begin
     TestCase := FTestCaseList[I];
     TestCase.ClearTests;
     ScanTestCase(TestCase);
-    SetTestCount(TestCase.TestCount);
+    SetTestCount(TestsCount + TestCase.TestCount);
   end;
 end;
 
@@ -499,6 +504,21 @@ begin
 
   if Assigned(FNotifyTestPassedChanged) then
     FNotifyTestPassedChanged(FTestPassedCount);
+end;
+
+function TCastleTester.EnabledTestCount: Integer;
+var
+  I: Integer;
+  TestCase: TCastleTestCase;
+begin
+  Result := 0;
+
+  for I := 0 to FTestCaseList.Count -1 do
+  begin
+    TestCase := FTestCaseList[I];
+    if TestCase.Enabled then
+      Inc(Result, TestCase.EnabledTestCount);
+  end;
 end;
 
 { TCastleTestCase }
@@ -921,6 +941,8 @@ function TCastleTestCase.EnabledTestCount: Integer;
 var
   I: Integer;
 begin
+  Result := 0;
+
   for I := 0 to FTestList.Count -1 do
   begin
     if FTestList[I].Enabled then

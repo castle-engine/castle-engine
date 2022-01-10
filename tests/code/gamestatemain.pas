@@ -34,6 +34,7 @@ type
 
     procedure TestPassedCountChanged(const TestCount: Integer);
     procedure TestFailedCountChanged(const TestCount: Integer);
+    procedure EnabledTestCountChanged(Sender: TObject);
 
     procedure StartTesting;
     procedure StopTesting(const AMessage: String;
@@ -91,6 +92,12 @@ begin
   DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
 end;
 
+procedure TStateMain.EnabledTestCountChanged(Sender: TObject);
+begin
+  ButtonSelectTests.Caption := 'Select tests (' + IntToStr(Tester.EnabledTestCount) +
+  '/' + IntToStr(Tester.TestsCount) + ')';
+end;
+
 procedure TStateMain.Start;
 var
   TestC: TCastleTestCase;
@@ -122,6 +129,7 @@ begin
     flexible in a variety of applications }
   Tester.NotifyTestPassedChanged := {$ifdef FPC}@{$endif}TestPassedCountChanged;
   Tester.NotifyTestFailedChanged := {$ifdef FPC}@{$endif}TestFailedCountChanged;
+  Tester.NotifyEnabledTestCountChanged := {$ifdef FPC}@{$endif}EnabledTestCountChanged;
 
   { Commented test cases need fixes in delphi }
 
@@ -172,6 +180,8 @@ begin
 
   { Scans all tests }
   Tester.Scan;
+  { First prepare to count acctualy selected tests }
+  Tester.PrepareTestListToRun;
 end;
 
 procedure TStateMain.StartTesting;
@@ -222,7 +232,7 @@ begin
         on E:Exception do
         begin
           { In case of UI application we don't want any unhandled exceptions }
-          StopTesting('Unhalted exception: ' + E.Message);
+          StopTesting('Unhalted exception: ' + E.Message, true);
         end;
       end;
     end else
