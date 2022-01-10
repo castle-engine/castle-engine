@@ -240,6 +240,8 @@
           "Name" : "ScrollView1",
           "ScrollArea" : {
             "$$ClassName" : "TInternalCastleScrollArea",
+            "AutoSizeToChildren" : true,
+            "FullSize" : true,
             "Name" : "ScrollArea",
             "$Children" : [
               {
@@ -250,7 +252,9 @@
                 },
                 "Name" : "LabelFailedTests",
                 "Text" : [
-                ]
+                ],
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop"
               }
             ]
           },

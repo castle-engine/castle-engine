@@ -21,6 +21,7 @@ type
     LabelCurrentTest: TCastleLabel;
     LabelTestPassed: TCastleLabel;
     LabelTestFailed: TCastleLabel;
+    LabelFailedTests: TCastleLabel;
     CheckboxStopOnFail: TCastleCheckbox;
     ButtonStartTests: TCastleButton;
     ButtonStopTests: TCastleButton;
@@ -36,6 +37,8 @@ type
     procedure TestFailedCountChanged(const TestCount: Integer);
     procedure EnabledTestCountChanged(Sender: TObject);
     procedure TestExecuted(const Name: String);
+    procedure AssertFailed(const TestName, Msg: String);
+    procedure LogFailedAssertion(const AMessage: String);
 
     procedure StartTesting;
     procedure StopTesting(const AMessage: String;
@@ -57,7 +60,7 @@ implementation
 {$define CASTLE_TESTER}
 
 uses SysUtils,
-  CastleColors,
+  CastleColors, CastleUtils,
   TestCastleURIUtils, TestCastleBoxes, TestCastleVectors, TestCastleCameras,
   TestCastleClassUtils, TestCastleColors, TestCastleComponentSerialize,
   TestCastleCompositeImage, TestCastleControls, TestCastleCubeMaps,
@@ -74,6 +77,11 @@ uses SysUtils,
   TestCastleVideos, TestCastleWindow;
 
 { TStateMain ----------------------------------------------------------------- }
+
+procedure TStateMain.AssertFailed(const TestName, Msg: String);
+begin
+  LogFailedAssertion(TestName + ': ' + Msg);
+end;
 
 procedure TStateMain.ClickStartTests(Sender: TObject);
 begin
@@ -99,6 +107,14 @@ begin
   '/' + IntToStr(Tester.TestsCount) + ')';
 end;
 
+procedure TStateMain.LogFailedAssertion(const AMessage: String);
+begin
+  if LabelFailedTests.Caption = '' then
+    LabelFailedTests.Caption :=  AMessage
+  else
+    LabelFailedTests.Caption := LabelFailedTests.Caption + NL + AMessage;
+end;
+
 procedure TStateMain.Start;
 var
   TestC: TCastleTestCase;
@@ -120,6 +136,7 @@ begin
   LabelTestFailed := DesignedComponent('LabelTestFailed') as TCastleLabel;
   LabelMessage := DesignedComponent('LabelMessage') as TCastleLabel;
   LabelCurrentTest := DesignedComponent('LabelCurrentTest') as TCastleLabel;
+  LabelFailedTests := DesignedComponent('LabelFailedTests') as TCastleLabel;
   CheckboxStopOnFail := DesignedComponent('CheckboxStopOnFail') as TCastleCheckbox;
 
   { Make sure the tests are not running }
@@ -132,6 +149,7 @@ begin
   Tester.NotifyTestFailedChanged := {$ifdef FPC}@{$endif}TestFailedCountChanged;
   Tester.NotifyEnabledTestCountChanged := {$ifdef FPC}@{$endif}EnabledTestCountChanged;
   Tester.NotifyTestCaseExecuted := {$ifdef FPC}@{$endif}TestExecuted;
+  Tester.NotifyAssertFail := {$ifdef FPC}@{$endif}AssertFailed;
 
   { Commented test cases need fixes in delphi }
 
@@ -201,6 +219,10 @@ begin
   RunTests := false;
 
   LabelMessage.Caption := AMessage;
+
+  { If some test ends with unhalted exception we want it on our error list }
+  if Exception then
+    LogFailedAssertion(AMessage);
 
   if (Tester.TestFailedCount > 0) or (Exception) then
     LabelMessage.Color := HexToColor('C60D0D')
