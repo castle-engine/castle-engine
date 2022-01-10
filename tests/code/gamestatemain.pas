@@ -17,23 +17,33 @@ type
   private
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
+    LabelMessage: TCastleLabel;
+    LabelCurrentTest: TCastleLabel;
     LabelTestPassed: TCastleLabel;
     LabelTestFailed: TCastleLabel;
     CheckboxStopOnFail: TCastleCheckbox;
-
     ButtonStartTests: TCastleButton;
+    ButtonStopTests: TCastleButton;
+    ButtonSelectTests: TCastleButton;
 
     Tester: TCastleTester;
+    RunTests: Boolean;
 
     procedure ClickStartTests(Sender: TObject);
+    procedure ClickStopTests(Sender: TObject);
 
     procedure TestPassedCountChanged(const TestCount: Integer);
     procedure TestFailedCountChanged(const TestCount: Integer);
 
+    procedure StartTesting;
+    procedure StopTesting(const AMessage: String;
+      const Exception: Boolean = false);
+
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+    procedure Update(const SecondsPassed: Single;
+      var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
@@ -45,6 +55,7 @@ implementation
 {$define CASTLE_TESTER}
 
 uses SysUtils,
+  CastleColors,
   TestCastleURIUtils, TestCastleBoxes, TestCastleVectors, TestCastleCameras,
   TestCastleClassUtils, TestCastleColors, TestCastleComponentSerialize,
   TestCastleCompositeImage, TestCastleControls, TestCastleCubeMaps,
@@ -65,7 +76,13 @@ uses SysUtils,
 procedure TStateMain.ClickStartTests(Sender: TObject);
 begin
   Tester.StopOnFirstFail := CheckboxStopOnFail.Checked;
-  Tester.Run;
+  Tester.PrepareTestListToRun;
+  StartTesting;
+end;
+
+procedure TStateMain.ClickStopTests(Sender: TObject);
+begin
+  StopTesting('Testing aborted by user', false);
 end;
 
 constructor TStateMain.Create(AOwner: TComponent);
@@ -83,15 +100,30 @@ begin
   { Find components, by name, that we need to access from code }
   ButtonStartTests := DesignedComponent('ButtonStartTests') as TCastleButton;
   ButtonStartTests.OnClick := {$ifdef FPC}@{$endif}ClickStartTests;
+
+  ButtonStopTests := DesignedComponent('ButtonStopTests') as TCastleButton;
+  ButtonStopTests.OnClick := {$ifdef FPC}@{$endif}ClickStopTests;
+  ButtonStopTests.Enabled := false;
+
+  ButtonSelectTests := DesignedComponent('ButtonSelectTests') as TCastleButton;
+  ButtonSelectTests.Enabled := true;
+
   LabelTestPassed := DesignedComponent('LabelTestPassed') as TCastleLabel;
   LabelTestFailed := DesignedComponent('LabelTestFailed') as TCastleLabel;
+  LabelMessage := DesignedComponent('LabelMessage') as TCastleLabel;
+  LabelCurrentTest := DesignedComponent('LabelCurrentTest') as TCastleLabel;
   CheckboxStopOnFail := DesignedComponent('CheckboxStopOnFail') as TCastleCheckbox;
 
-  { Commented test cases need fixes in delphi }
+  { Make sure the tests are not running }
+  RunTests := false;
 
   Tester := TCastleTester.Create(FreeAtStop);
+  { We can just set values in Update but I think callbacks interface is more
+    flexible in a variety of applications }
   Tester.NotifyTestPassedChanged := {$ifdef FPC}@{$endif}TestPassedCountChanged;
   Tester.NotifyTestFailedChanged := {$ifdef FPC}@{$endif}TestFailedCountChanged;
+
+  { Commented test cases need fixes in delphi }
 
   TestC := TCastleTestCase.Create;
   Tester.AddTestCase(TestC);
@@ -142,6 +174,32 @@ begin
   Tester.Scan;
 end;
 
+procedure TStateMain.StartTesting;
+begin
+  RunTests := true;
+  LabelMessage.Caption := 'Processing...';
+  LabelMessage.Color := HexToColor('00CE00');
+  ButtonStartTests.Enabled := false;
+  ButtonStopTests.Enabled := true;
+  ButtonSelectTests.Enabled := false;
+end;
+
+procedure TStateMain.StopTesting(const AMessage: String; const Exception: Boolean = false);
+begin
+  RunTests := false;
+
+  LabelMessage.Caption := AMessage;
+
+  if (Tester.TestFailedCount > 0) or (Exception) then
+    LabelMessage.Color := HexToColor('C60D0D')
+  else
+    LabelMessage.Color := HexToColor('00CE00');
+
+  ButtonStartTests.Enabled := true;
+  ButtonStopTests.Enabled := false;
+  ButtonSelectTests.Enabled := true;
+end;
+
 procedure TStateMain.TestFailedCountChanged(const TestCount: Integer);
 begin
   LabelTestFailed.Caption := IntToStr(TestCount);
@@ -154,6 +212,25 @@ end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
+  if RunTests then
+  begin
+    if Tester.IsNextTestToRun then
+    begin
+      try
+        TEster.RunNextTest;
+      except
+        on E:Exception do
+        begin
+          { In case of UI application we don't want any unhandled exceptions }
+          StopTesting('Unhalted exception: ' + E.Message);
+        end;
+      end;
+    end else
+    begin
+      StopTesting('Testing finished');
+    end;
+  end;
+
   inherited;
 end;
 

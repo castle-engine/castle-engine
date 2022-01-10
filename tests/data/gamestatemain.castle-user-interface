@@ -33,7 +33,7 @@
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Name" : "VerticalGroup1",
-      "Spacing" : 2.0000000000000000E+001,
+      "Spacing" : 1.2000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "$Children" : [
@@ -59,6 +59,25 @@
           "$$ClassName" : "TCastleLabel",
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 8.8235294818878174E-001,
+            "Green" : 8.8235294818878174E-001,
+            "Red" : 8.8235294818878174E-001
+          },
+          "FontSize" : 2.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelMessage",
+          "Text" : [
+            " "
+          ],
+          "VerticalAnchorDelta" : -3.4000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 7.5686275959014893E-001,
             "Green" : 7.5686275959014893E-001,
             "Red" : 7.5686275959014893E-001
@@ -68,7 +87,7 @@
           "Name" : "LabelCurrentTest",
           "Text" : [
           ],
-          "VerticalAnchorDelta" : -4.2000000000000000E+001,
+          "VerticalAnchorDelta" : -6.8000000000000000E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -78,7 +97,7 @@
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "HorizontalGroupButtons",
           "Spacing" : 5.0000000000000000E+001,
-          "VerticalAnchorDelta" : -6.2000000000000000E+001,
+          "VerticalAnchorDelta" : -8.0000000000000000E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -178,7 +197,7 @@
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "HorizontalGroupButtons1",
           "Spacing" : 5.0000000000000000E+001,
-          "VerticalAnchorDelta" : -1.2100000000000000E+002,
+          "VerticalAnchorDelta" : -1.3100000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -235,7 +254,7 @@
               }
             ]
           },
-          "VerticalAnchorDelta" : -1.6300000000000000E+002,
+          "VerticalAnchorDelta" : -1.6500000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "Width" : 1.2000000000000000E+003
@@ -266,7 +285,7 @@
             }
           },
           "Name" : "TestViewport",
-          "VerticalAnchorDelta" : -4.3300000000000000E+002,
+          "VerticalAnchorDelta" : -4.2700000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "Width" : 7.0000000000000000E+002
