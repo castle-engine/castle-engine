@@ -372,6 +372,8 @@ begin
     end;
   end;
 
+  TestPassedCount := 0;
+  TestFailedCount := 0;
 end;
 
 procedure TCastleTester.Run;
