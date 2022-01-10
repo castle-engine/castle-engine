@@ -50,6 +50,8 @@ type
 
     procedure Run;
 
+    function GetFullName: String;
+
     property Enabled: Boolean read FEnabled write SetEnabled;
   end;
 
@@ -276,6 +278,7 @@ type
 
     property NotifyTestExecuted: TNotifyTestExecuted read FNotifyTestExecuted
       write FNotifyTestExecuted;
+
     property NotifyTestCaseExecuted: TNotifyTestCaseExecuted
       read FNotifyTestCaseExecuted write FNotifyTestCaseExecuted;
 
@@ -402,6 +405,9 @@ procedure TCastleTester.RunTest(Test: TCastleTest);
 begin
   if not Test.Enabled then
     Exit;
+
+  if Assigned(FNotifyTestCaseExecuted) then
+    FNotifyTestCaseExecuted(Test.GetFullName);
 
   try
     Test.Run;
@@ -1078,6 +1084,11 @@ begin
   Name := AName;
   FEnabled := true;
   FRttiMethod := ARttiMethod;
+end;
+
+function TCastleTest.GetFullName: String;
+begin
+  Result:= FTestCase.ClassName + '.' + Name;
 end;
 
 procedure TCastleTest.Run;

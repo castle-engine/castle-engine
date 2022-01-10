@@ -35,6 +35,7 @@ type
     procedure TestPassedCountChanged(const TestCount: Integer);
     procedure TestFailedCountChanged(const TestCount: Integer);
     procedure EnabledTestCountChanged(Sender: TObject);
+    procedure TestExecuted(const Name: String);
 
     procedure StartTesting;
     procedure StopTesting(const AMessage: String;
@@ -130,6 +131,7 @@ begin
   Tester.NotifyTestPassedChanged := {$ifdef FPC}@{$endif}TestPassedCountChanged;
   Tester.NotifyTestFailedChanged := {$ifdef FPC}@{$endif}TestFailedCountChanged;
   Tester.NotifyEnabledTestCountChanged := {$ifdef FPC}@{$endif}EnabledTestCountChanged;
+  Tester.NotifyTestCaseExecuted := {$ifdef FPC}@{$endif}TestExecuted;
 
   { Commented test cases need fixes in delphi }
 
@@ -208,6 +210,11 @@ begin
   ButtonStartTests.Enabled := true;
   ButtonStopTests.Enabled := false;
   ButtonSelectTests.Enabled := true;
+end;
+
+procedure TStateMain.TestExecuted(const Name: String);
+begin
+  LabelCurrentTest.Caption := Name;
 end;
 
 procedure TStateMain.TestFailedCountChanged(const TestCount: Integer);
