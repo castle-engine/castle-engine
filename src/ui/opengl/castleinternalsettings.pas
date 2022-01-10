@@ -346,7 +346,7 @@ begin
         NewFontFamily.Italic := LoadFontSettings(E.Child('italic', false));
         NewFontFamily.BoldItalic := LoadFontSettings(E.Child('bold_italic', false));
         if NewFontFamily.Regular = nil then
-          raise EInvalidSettingsXml.Create('The <default_font> specified in CastleSettings.xml does not have a <regular> variant');
+          raise EInvalidSettingsXml.Create('The <default_font> specified in CastleSettings.xml does not have "url" attribute (for simple fonts, like TCastleFont, that are not TCastleFontFamily) nor a <regular> variant (for TCastleFontFamily fonts)');
         NewDefaultFont := NewFontFamily;
       end;
     end;
