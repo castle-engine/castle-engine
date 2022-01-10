@@ -233,6 +233,9 @@ type
     FNotifyTestPassedChanged: TNotifyTestCountChanged;
     FNotifyTestFailedChanged: TNotifyTestCountChanged;
     FNotifyEnabledTestCountChanged: TNotifyEvent;
+
+    procedure RunTest(Test: TCastleTest);
+
   public
     constructor Create(AOwner: TComponent);
     destructor Destroy; override;
@@ -241,6 +244,7 @@ type
 
     procedure Scan;
     procedure Run;
+    procedure RunNextTest;
 
     { Returns tester mode (UI or Console) }
     function Mode: TCastleTesterMode;
@@ -337,33 +341,40 @@ begin
     if TestCase.Enabled then
     begin
       for J := 0 to TestCase.TestCount -1 do
-      begin
-        Test := TestCase.Test[J];
-        if Test.Enabled then
-        begin
-          try
-            Test.Run;
-            TestPassedCount := TestPassedCount + 1;
-          except
-            on E: EAssertionFailedError do
-            begin
-              TestFailedCount := TestFailedCount + 1;
-              if FStopOnFirstFail then
-                raise;
-            end;
-            on E: Exception do
-            begin
-              // TODO: warnning here when we don't stop on first Exception.
-              if FStopOnFirstFail then
-                raise;
-            end;
-          end;
-        end;
-      end;
+        RunTest(TestCase.Test[J]);
     end;
 
   end;
     
+end;
+
+procedure TCastleTester.RunNextTest;
+begin
+
+end;
+
+procedure TCastleTester.RunTest(Test: TCastleTest);
+begin
+  if not Test.Enabled then
+    Exit;
+
+  try
+    Test.Run;
+    TestPassedCount := TestPassedCount + 1;
+  except
+    on E: EAssertionFailedError do
+    begin
+      TestFailedCount := TestFailedCount + 1;
+      if FStopOnFirstFail then
+        raise;
+    end;
+    on E: Exception do
+    begin
+      // TODO: warnning here when we don't stop on first Exception.
+      if FStopOnFirstFail then
+        raise;
+    end;
+  end;
 end;
 
 procedure TCastleTester.Scan;
