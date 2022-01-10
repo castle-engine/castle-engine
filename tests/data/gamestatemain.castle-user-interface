@@ -222,7 +222,6 @@
           "ScrollArea" : {
             "$$ClassName" : "TInternalCastleScrollArea",
             "AutoSizeToChildren" : true,
-            "FullSize" : true,
             "Name" : "ScrollArea",
             "$Children" : [
               {
