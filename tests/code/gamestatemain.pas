@@ -16,7 +16,6 @@ type
   TStateMain = class(TUIState)
   private
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
-    LabelFps: TCastleLabel;
     LabelMessage: TCastleLabel;
     LabelCurrentTest: TCastleLabel;
     LabelTestPassed: TCastleLabel;
@@ -161,11 +160,11 @@ begin
   Tester.AddTestCase(TTestCastleClassUtils.Create);
   Tester.AddTestCase(TTestCastleColors.Create);
   Tester.AddTestCase(TTestCastleComponentSerialize.Create);
-  //Tester.AddTestCase(TTestCastleCompositeImage.Create);
+  // Tester.AddTestCase(TTestCastleCompositeImage.Create); //
   Tester.AddTestCase(TTestCastleControls.Create);
   Tester.AddTestCase(TTestCubeMap.Create);
   Tester.AddTestCase(TTestCastleCurves.Create);
-  //Tester.AddTestCase(TTestCastleFilesUtils.Create);
+  // Tester.AddTestCase(TTestCastleFilesUtils.Create); //
   Tester.AddTestCase(TTestCastleFonts.Create);
   Tester.AddTestCase(TTestCastleFrustum.Create);
   Tester.AddTestCase(TTestGame.Create);
@@ -174,24 +173,24 @@ begin
   Tester.AddTestCase(TTestImages.Create);
   Tester.AddTestCase(TTestImagesDraw.Create);
   Tester.AddTestCase(TTestKeysMouse.Create);
-  //Tester.AddTestCase(TTestOpeningAndRendering3D.Create);
-  //Tester.AddTestCase(TTestParsingParameters.Create);
+  // Tester.AddTestCase(TTestOpeningAndRendering3D.Create); //
+  // Tester.AddTestCase(TTestParsingParameters.Create); //
   Tester.AddTestCase(TTestCastleQuaternions.Create);
   Tester.AddTestCase(TTestCastleRandom.Create);
   Tester.AddTestCase(TTestRectangles.Create);
   Tester.AddTestCase(TTestScene.Create);
-  //Tester.AddTestCase(TTestSceneCore.Create); // a lot of CastleScript errors
+  // Tester.AddTestCase(TTestSceneCore.Create); // a lot of CastleScript errors
   {$ifdef FPC}Tester.AddTestCase(TTestCastleScript.Create);{$endif}
   {$ifdef FPC}Tester.AddTestCase(TTestCastleScriptVectors.Create);{$endif}
-  //Tester.AddTestCase(TTestCastleSoundEngine.Create); // works but a lot of expetions
+  // Tester.AddTestCase(TTestCastleSoundEngine.Create); // works but a lot of exceptions
   Tester.AddTestCase(TTestSpaceFillingCurves.Create);
-  //Tester.AddTestCase(TTestCastleStringUtils.Create); // function SCompressWhiteSpace(const S: string): string; not working
+  Tester.AddTestCase(TTestCastleStringUtils.Create); // function SCompressWhiteSpace(const S: string): string; not working
   Tester.AddTestCase(TTestCastleTimeUtils.Create);
   Tester.AddTestCase(TTestCastleTransform.Create);
   Tester.AddTestCase(TTestCastleTriangles.Create);
   Tester.AddTestCase(TTestCastleTriangulate.Create);
   Tester.AddTestCase(TTestCastleUIControls.Create);
-  //Tester.AddTestCase(TTestCastleUtils.Create); - TODO: FPC definitions
+  // Tester.AddTestCase(TTestCastleUtils.Create); - TODO: FPC definitions
   Tester.AddTestCase(TTestBasicLists.Create);
   Tester.AddTestCase(TTestCastleVectors.Create);
   //Tester.AddTestCase(TTestWindow.Create);
