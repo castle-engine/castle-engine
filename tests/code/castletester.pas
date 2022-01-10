@@ -1034,7 +1034,7 @@ end;
 procedure TCastleTestCase.TestTestCase;
 begin
   TestLog('TestTestCase');
-  //AssertTrue(false);
+  //AssertTrue('Just testing failing', false);
 end;
 
 
@@ -1093,7 +1093,7 @@ end;
 
 procedure TCastleTest.Run;
 begin
-  FTestCase.FCurrentTestName := Name;
+  FTestCase.FCurrentTestName := GetFullName;
   FRttiMethod.Invoke(FTestCase, []);
 end;
 
