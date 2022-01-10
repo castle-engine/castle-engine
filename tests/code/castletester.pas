@@ -204,6 +204,10 @@ type
     { Object list for test cases }
     FTestCaseList: {$ifdef FPC}specialize{$endif} TObjectList<TCastleTestCase>;
 
+    { Object list for test that should be executed }
+    FTestsToRun: {$ifdef FPC}specialize{$endif} TList<TCastleTest>;
+    FLastRunningTestIndex: Integer;
+
     { Test app window when tester runs in UI mode or nil in console mode }
     FUIWindow: TCastleWindowBase;
 
@@ -216,10 +220,12 @@ type
 
     procedure SetNotifyAssertFail(const ANotifyAssertFail: TNotifyAssertFail);
 
-    { Runs test case using RTTI }
+    { Scans test case using RTTI }
     procedure ScanTestCase(TestCase: TCastleTestCase);
 
     procedure SetTestCount(const NewTestCount: Integer);
+
+    procedure RunTest(Test: TCastleTest);
 
     procedure SetTestPassedCount(const NewTestCount: Integer);
     procedure SetTestFailedCount(const NewTestCount: Integer);
@@ -234,16 +240,23 @@ type
     FNotifyTestFailedChanged: TNotifyTestCountChanged;
     FNotifyEnabledTestCountChanged: TNotifyEvent;
 
-    procedure RunTest(Test: TCastleTest);
-
   public
     constructor Create(AOwner: TComponent);
     destructor Destroy; override;
 
+    { Adds testcase to tester }
     procedure AddTestCase(const TestCase: TCastleTestCase);
-
+    { Scans added test cases }
     procedure Scan;
+    { Prepares list of tests to run }
+    procedure PrepareTestListToRun;
+
+    { Running all test in one loop - good for console because blocks UI }
     procedure Run;
+
+    { Returns true when there is next test to run }
+    function IsNextTestToRun: Boolean;
+    { Runs next test, good for UI apps, can raise exceptions }
     procedure RunNextTest;
 
     { Returns tester mode (UI or Console) }
@@ -306,13 +319,21 @@ begin
 
   FTestCaseList := {$ifdef FPC}specialize{$endif} TObjectList<TCastleTestCase>.Create;
   FRttiContext := TRttiContext.Create;
+
+  FTestsToRun := {$ifdef FPC}specialize{$endif} TList<TCastleTest>.Create;
 end;
 
 destructor TCastleTester.Destroy;
 begin
   FRttiContext.Free;
+  FreeAndNil(FTestsToRun);
   FreeAndNil(FTestCaseList);
   inherited;
+end;
+
+function TCastleTester.IsNextTestToRun: Boolean;
+begin
+  Result := (FLastRunningTestIndex < FTestsToRun.Count - 1);
 end;
 
 function TCastleTester.Mode: TCastleTesterMode;
@@ -327,13 +348,15 @@ begin
     {$endif}
 end;
 
-procedure TCastleTester.Run;
+procedure TCastleTester.PrepareTestListToRun;
 var
   I, J: Integer;
   TestCase: TCastleTestCase;
   Test: TCastleTest;
 begin
+  FLastRunningTestIndex := 0;
   FUIWindow := Application.MainWindow;
+  FTestsToRun.Clear;
 
   for I := 0 to FTestCaseList.Count -1 do
   begin
@@ -341,16 +364,31 @@ begin
     if TestCase.Enabled then
     begin
       for J := 0 to TestCase.TestCount -1 do
-        RunTest(TestCase.Test[J]);
+      begin
+        Test := TestCase.Test[J];
+        if Test.Enabled then
+          FTestsToRun.Add(Test);
+      end;
     end;
-
   end;
-    
+
+end;
+
+procedure TCastleTester.Run;
+var
+  I: Integer;
+begin
+  FUIWindow := Application.MainWindow;
+  FLastRunningTestIndex := 0;
+
+  for I := 0 to FTestsToRun.Count -1 do
+    RunTest(FTestsToRun[I]);
 end;
 
 procedure TCastleTester.RunNextTest;
 begin
-
+  Inc(FLastRunningTestIndex);
+  RunTest(FTestsToRun[FLastRunningTestIndex]);
 end;
 
 procedure TCastleTester.RunTest(Test: TCastleTest);
