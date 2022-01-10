@@ -19,10 +19,11 @@ unit TestCastleWindowOpen;
 
 interface
 
-uses Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleWindow;
+uses Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  {$else}CastleTester{$endif}, CastleWindow;
 
 type
-  TTestCastleWindowOpen = class(TTestCase)
+  TTestCastleWindowOpen = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
   published
     procedure TestProgressFromOpen;
     procedure TestSaveScreenFromOpen;
@@ -189,6 +190,8 @@ begin
   DoTest(true);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleWindowOpen);
+{$endif}
 end.

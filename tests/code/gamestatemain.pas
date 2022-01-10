@@ -73,7 +73,9 @@ uses SysUtils,
   TestCastleSpaceFillingCurves, TestCastleStringUtils, TestCastleTimeUtils,
   TestCastleTransform, TestCastleTriangles, TestCastleTriangulate,
   TestCastleUIControls, {TestCastleUtils,} TestCastleUtilsLists,
-  TestCastleVideos, TestCastleWindow;
+  TestCastleVideos, TestCastleWindow, TestCastleWindowOpen, TestCastleXMLUtils,
+  TestCompiler, TestGenericsCollections{$ifdef FPC}, TestFGL, TestFPImage,
+  TestOldFPCBugs{$endif}, TestSysUtils, TestX3DFields;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -193,7 +195,16 @@ begin
   // Tester.AddTestCase(TTestCastleUtils.Create); - TODO: FPC definitions
   Tester.AddTestCase(TTestBasicLists.Create);
   Tester.AddTestCase(TTestCastleVectors.Create);
-  //Tester.AddTestCase(TTestWindow.Create);
+  Tester.AddTestCase(TTestWindow.Create);
+  // Tester.AddTestCase(TTestCastleWindowOpen.Create); // tests need changes
+  Tester.AddTestCase(TTestCastleXMLUtils.Create);
+  Tester.AddTestCase(TTestCompiler.Create);
+  Tester.AddTestCase(TTestGenericsCollections.Create);
+  {$ifdef FPC}Tester.AddTestCase(TTestFGL.Create);{$endif}
+  {$ifdef FPC}Tester.AddTestCase(TTestFPImage.Create);{$endif}
+  {$ifdef FPC}Tester.AddTestCase(TTestOldFPCBugs.Create);{$endif}
+  Tester.AddTestCase(TTestSysUtils.Create);
+  Tester.AddTestCase(TTestX3DFields.Create);
 
   { Add registered test cases here }
 

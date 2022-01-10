@@ -20,8 +20,8 @@ unit TestCastleXMLUtils;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleXMLUtils = class(TCastleTestCase)
@@ -102,6 +102,8 @@ begin
   finally FreeAndNil(Doc); end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleXMLUtils);
+{$endif}
 end.

@@ -22,16 +22,19 @@ interface
 {$I castleconf.inc}
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry
+  {$else}CastleTester{$endif};
 
 type
-  TTestCompiler = class(TTestCase)
+  TTestCompiler = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
     procedure TestIs;
     procedure TestSinglePrecision;
     procedure TestSizes;
   end;
 
 implementation
+
+uses CastleUtils;
 
 type
   TFruit = class
@@ -109,6 +112,8 @@ begin
     {$endif}, SizeOf(Extended));
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCompiler);
+{$endif}
 end.

@@ -20,8 +20,8 @@ unit TestX3DFields;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase, X3DFields, X3DTime;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif}, X3DFields, X3DTime;
 
 type
   TTestX3DFields = class(TCastleTestCase)
@@ -57,25 +57,25 @@ begin
 
     E := TSFInt32Event.Create(Node, 'my field', true);
     try
-      E.AddNotification(@Check123);
+      E.AddNotification({$ifdef FPC}@{$endif}Check123);
       Counter := 0;
       E.Send(123);
       AssertEquals(1, Counter);
 
       { adding the same notification callback is OK,
         and makes the callback called twice }
-      E.AddNotification(@Check123);
+      E.AddNotification({$ifdef FPC}@{$endif}Check123);
       Counter := 0;
       E.Send(123);
       AssertEquals(2, Counter);
 
       { removing the notification removes only 1 copy of it }
-      E.RemoveNotification(@Check123);
+      E.RemoveNotification({$ifdef FPC}@{$endif}Check123);
       Counter := 0;
       E.Send(123);
       AssertEquals(1, Counter);
 
-      E.RemoveNotification(@Check123);
+      E.RemoveNotification({$ifdef FPC}@{$endif}Check123);
       Counter := 0;
       E.Send(123);
       AssertEquals(0, Counter);
@@ -83,6 +83,8 @@ begin
   finally FreeAndNil(Scene) end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestX3DFields);
+{$endif}
 end.

@@ -58,7 +58,9 @@ begin
   try
     Window.Open;
     Window.Close;
-  finally FreeAndNil(Window) end;
+  finally
+    FreeAndNil(Window)
+  end;
 end;
 
 procedure TTestWindow.TestNotifications;
@@ -398,9 +400,20 @@ var
   Window: TCastleWindowBase;
   SomeState: TUIState;
 begin
+  {$ifdef CASTLE_TESTER}
+  if not IsConsoleMode then
+    Fail('Curretnly we can test TUIState only in console mode.');
+  {$endif}
+
+  {$ifndef CASTLE_TESTER}
   Window := TCastleWindowBase.Create(nil);
+  {$else}
+  Window := CreateWindowForTest;
+  {$endif}
   try
+    {$ifndef CASTLE_TESTER}
     Application.MainWindow := Window;
+    {$endif}
 
     Window.Open;
     SomeState := TUIState.Create(Window);
@@ -411,10 +424,16 @@ begin
       - stopping of SomeState
       - closing of Window
     }
+    {$ifndef CASTLE_TESTER}
     FreeAndNil(Window);
+    {$else}
+    DestroyWindowForTest;
+    {$endif}
   end;
 
+  {$ifndef CASTLE_TESTER}
   Application.MainWindow := nil;
+  {$endif}
 end;
 
 type
@@ -458,9 +477,20 @@ var
   Window: TCastleWindowBase;
   StateTesting: TStateTestingSize;
 begin
+  {$ifdef CASTLE_TESTER}
+  if not IsConsoleMode then
+    Fail('Curretnly we can test TUIState only in console mode.');
+  {$endif}
+
+  {$ifndef CASTLE_TESTER}
   Window := TCastleWindowBase.Create(nil);
+  {$else}
+  Window := CreateWindowForTest;
+  {$endif}
   try
+    {$ifndef CASTLE_TESTER}
     Application.MainWindow := Window;
+    {$endif}
 
     Window.Open;
     Window.Container.UIScaling := usEncloseReferenceSize;
@@ -480,10 +510,15 @@ begin
 
     TUIState.Current := StateTesting;
   finally
+    {$ifndef CASTLE_TESTER}
     FreeAndNil(Window);
+    {$else}
+    DestroyWindowForTest;
+    {$endif}
   end;
-
+  {$ifndef CASTLE_TESTER}
   Application.MainWindow := nil;
+  {$endif}
 end;
 
 type
@@ -527,9 +562,20 @@ var
   Window: TCastleWindowBase;
   StateTesting: TStateTestingSize2;
 begin
+  {$ifdef CASTLE_TESTER}
+  if not IsConsoleMode then
+    Fail('Curretnly we can test TUIState only in console mode.');
+  {$endif}
+
+  {$ifndef CASTLE_TESTER}
   Window := TCastleWindowBase.Create(nil);
+  {$else}
+  Window := CreateWindowForTest;
+  {$endif}
   try
+    {$ifndef CASTLE_TESTER}
     Application.MainWindow := Window;
+    {$endif}
 
     Window.Width := 200;
     Window.Height := 400;
@@ -549,10 +595,16 @@ begin
 
     TUIState.Current := StateTesting;
   finally
+    {$ifndef CASTLE_TESTER}
     FreeAndNil(Window);
+    {$else}
+    DestroyWindowForTest;
+    {$endif}
   end;
 
+  {$ifndef CASTLE_TESTER}
   Application.MainWindow := nil;
+  {$endif}
 end;
 
 {$ifndef CASTLE_TESTER}

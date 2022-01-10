@@ -168,7 +168,7 @@ type
     procedure OnWarningRaiseException(const Category, S: string);
 
     { Method that facilitates the creation of the window for the test
-      it will be freed when test methond ends but if you need test
+      it will be freed when test method ends but if you need test
       window destroying call DestroyWindowForTest }
     function CreateWindowForTest: TCastleWindowBase;
     procedure DestroyWindowForTest;
@@ -181,6 +181,8 @@ type
     { Used by TCastleTester.Scan to add tests }
     function AddTest(const AName: String;
       const ARttiMethod: TRttiMethod): TCastleTest;
+
+    function IsConsoleMode: Boolean;
 
     { Clears test list }
     procedure ClearTests;
@@ -925,11 +927,16 @@ begin
   FName := ClassName;
   FTestList := {$ifdef FPC}specialize{$endif} TObjectList<TCastleTest>.Create;
   Enabled := true;
+  FWindowForTest := nil;
 end;
 
 function TCastleTestCase.CreateWindowForTest: TCastleWindowBase;
 begin
-
+  FWindowForTest := TCastleWindowBase.Create(nil);
+  if FCastleTester.Mode = ctmConsole then
+  begin
+    Application.MainWindow := FWindowForTest;
+  end;
 end;
 
 destructor TCastleTestCase.Destroy;
@@ -940,7 +947,11 @@ end;
 
 procedure TCastleTestCase.DestroyWindowForTest;
 begin
-
+  FreeAndNil(FWindowForTest);
+  if FCastleTester.Mode = ctmConsole then
+  begin
+    Application.MainWindow := nil;
+  end;
 end;
 
 function TCastleTestCase.EnabledTestCount: Integer;
@@ -993,6 +1004,11 @@ end;
 function TCastleTestCase.GetTestingViewport: TCastleViewport;
 begin
 
+end;
+
+function TCastleTestCase.IsConsoleMode: Boolean;
+begin
+  Result := (FCastleTester.Mode = ctmConsole);
 end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
@@ -1094,7 +1110,13 @@ end;
 procedure TCastleTest.Run;
 begin
   FTestCase.FCurrentTestName := GetFullName;
-  FRttiMethod.Invoke(FTestCase, []);
+  try
+    FRttiMethod.Invoke(FTestCase, []);
+  finally
+    { Some tests need a new window after running test we check should it be
+      freed }
+    FTestCase.DestroyWindowForTest;
+  end;
 end;
 
 procedure TCastleTest.SetEnabled(NewValue: Boolean);

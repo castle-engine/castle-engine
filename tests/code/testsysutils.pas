@@ -19,8 +19,8 @@ unit TestSysUtils;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestSysUtils = class(TCastleTestCase)
@@ -90,6 +90,8 @@ begin
   AssertTrue(not DirectoryExists(URIToFilenameSafe('castle-data:/test-not-existing.xml')));
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestSysUtils);
+{$endif}
 end.

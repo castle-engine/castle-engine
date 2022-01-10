@@ -20,10 +20,11 @@ unit TestGenericsCollections;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, Generics.Collections;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  {$else}CastleTester,{$endif} Generics.Collections;
 
 type
-  TTestGenericsCollections = class(TTestCase)
+  TTestGenericsCollections = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
     procedure Test1;
     procedure TestFreeingManually;
     procedure TestAddingLists;
@@ -52,7 +53,7 @@ begin
 end;
 
 type
-  TAppleList = class(specialize TObjectList<TApple>)
+  TAppleList = class({$ifdef FPC}specialize{$endif} TObjectList<TApple>)
     procedure Pack;
   end;
 
@@ -147,14 +148,14 @@ begin
   finally FreeAndNil(Apples) end;
 end;
 
-function CompareApples(constref Left, Right: TApple): Integer;
+function CompareApples({$ifdef FPC}constref{$else}const{$endif} Left, Right: TApple): Integer;
 begin
   Result := AnsiCompareStr(Left.Name, Right.Name);
 end;
 
 procedure TTestGenericsCollections.TestSort;
 type
-  TAppleComparer = specialize TComparer<TApple>;
+  TAppleComparer = {$ifdef FPC}specialize{$endif} TComparer<TApple>;
 var
   A: TApple;
   L: TAppleList;
@@ -173,7 +174,7 @@ begin
     A.Name := '22';
     L.Add(A);
 
-    L.Sort(TAppleComparer.Construct(@CompareApples));
+    L.Sort(TAppleComparer.Construct({$ifdef FPC}@{$endif}CompareApples));
 
     AssertEquals(3, L.Count);
     AssertEquals('11', L[0].Name);
@@ -218,7 +219,7 @@ begin
 end;
 
 type
-  TAppleDictionary = specialize TDictionary<string, TApple>;
+  TAppleDictionary = {$ifdef FPC}specialize{$endif} TDictionary<string, TApple>;
 
 procedure TTestGenericsCollections.TestMapTryGetValue;
 var
@@ -258,7 +259,7 @@ type
   TMyRecord = packed record
     A, B: Integer;
   end;
-  TMyRecordList = specialize TList<TMyRecord>;
+  TMyRecordList = {$ifdef FPC}specialize{$endif} TList<TMyRecord>;
 var
   List: TMyRecordList;
   R1, R2, R: TMyRecord;
@@ -331,7 +332,7 @@ end;
 procedure TTestGenericsCollections.TestVectorsList;
 type
   TMyVector = packed array [0..1] of Single;
-  TMyVectorList = specialize TList<TMyVector>;
+  TMyVectorList = {$ifdef FPC}specialize{$endif} TList<TMyVector>;
 var
   List: TMyVectorList;
   R1, R2, R: TMyVector;
@@ -413,7 +414,7 @@ end;
 procedure TTestGenericsCollections.TestMethodsList;
 type
   TMyMethod = procedure (A: Integer) of object;
-  TMyMethodList = specialize TList<TMyMethod>;
+  TMyMethodList = {$ifdef FPC}specialize{$endif} TList<TMyMethod>;
 
   procedure AssertMethodsEqual(const M1, M2: TMyMethod);
   begin
@@ -432,38 +433,38 @@ begin
 
   List := TMyMethodList.Create;
   try
-    List.Add(@C1.Foo);
-    List.Add(@C2.Foo);
-    List.Add(@C2.Foo);
+    List.Add({$ifdef FPC}@{$endif}C1.Foo);
+    List.Add({$ifdef FPC}@{$endif}C2.Foo);
+    List.Add({$ifdef FPC}@{$endif}C2.Foo);
 
     AssertEquals(3, List.Count);
-    M := @C1.Foo;
+    M := {$ifdef FPC}@{$endif}C1.Foo;
     AssertMethodsEqual(List[0], M);
-    M := @C2.Foo;
+    M := {$ifdef FPC}@{$endif}C2.Foo;
     AssertMethodsEqual(List[1], M);
     AssertMethodsEqual(List[2], M);
 
     List.Delete(2);
 
     AssertEquals(2, List.Count);
-    M := @C1.Foo;
+    M := {$ifdef FPC}@{$endif}C1.Foo;
     AssertMethodsEqual(List[0], M);
-    M := @C2.Foo;
+    M := {$ifdef FPC}@{$endif}C2.Foo;
     AssertMethodsEqual(List[1], M);
 
-    AssertEquals(0, List.IndexOf(@C1.Foo));
-    AssertEquals(1, List.IndexOf(@C2.Foo));
+    AssertEquals(0, List.IndexOf({$ifdef FPC}@{$endif}C1.Foo));
+    AssertEquals(1, List.IndexOf({$ifdef FPC}@{$endif}C2.Foo));
 
-    AssertEquals(-1, List.IndexOf(@C3.Foo));
+    AssertEquals(-1, List.IndexOf({$ifdef FPC}@{$endif}C3.Foo));
 
-    List.Remove(@C1.Foo);
+    List.Remove({$ifdef FPC}@{$endif}C1.Foo);
     AssertEquals(1, List.Count);
-    M := @C2.Foo;
+    M := {$ifdef FPC}@{$endif}C2.Foo;
     AssertMethodsEqual(List[0], M);
 
-    List.Remove(@C3.Foo); // does nothing, no such item
+    List.Remove({$ifdef FPC}@{$endif}C3.Foo); // does nothing, no such item
     AssertEquals(1, List.Count);
-    M := @C2.Foo;
+    M := {$ifdef FPC}@{$endif}C2.Foo;
     AssertMethodsEqual(List[0], M);
   finally FreeAndNil(List) end;
 
@@ -473,7 +474,7 @@ begin
 end;
 
 type
-  TStringStringMap = class(specialize TDictionary<string, string>)
+  TStringStringMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, string>)
   end;
 
 procedure TTestGenericsCollections.TestTryGetValueNil;
@@ -498,6 +499,8 @@ begin
   finally FreeAndNil(Map) end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestGenericsCollections);
+{$endif}
 end.
