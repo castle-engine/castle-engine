@@ -37,6 +37,8 @@ type
 
   {$M+} // Generate type info
 
+  { TCastleTest }
+
   TCastleTest = class
   strict private
     FTestCase: TCastleTestCase;
@@ -51,6 +53,10 @@ type
       const ARttiMethod: TRttiMethod);
 
     procedure Run;
+    { Runs TestCase.Setup }
+    procedure Setup;
+    { Runs TestCase.TearDown }
+    procedure TearDown;
 
     function GetFullName: String;
 
@@ -459,6 +465,7 @@ end;
 
 procedure TCastleTester.RunTest(Test: TCastleTest);
 begin
+  // raise Exception.Create('Test Return Adress') at {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
   if not Test.Enabled then
     Exit;
 
@@ -466,8 +473,13 @@ begin
     FNotifyTestCaseExecuted(Test.GetFullName);
 
   try
-    Test.Run;
-    TestPassedCount := TestPassedCount + 1;
+    Test.Setup;
+    try
+      Test.Run;
+      TestPassedCount := TestPassedCount + 1;
+    finally
+      Test.TearDown;
+    end;
   except
     on E: EAssertionFailedError do
     begin
@@ -504,28 +516,17 @@ procedure TCastleTester.ScanTestCase(TestCase: TCastleTestCase);
 var
   RttiType: TRttiType;
   RttiMethod: TRttiMethod;
-  Test: TCastleTest;
 begin
-  // raise Exception.Create('Test Return Adress') at {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+  RttiType := FRttiContext.GetType(TestCase.ClassInfo);
 
-  TestCase.Setup;
-  try
-    RttiType := FRttiContext.GetType(TestCase.ClassInfo);
-
-    for RttiMethod in RttiType.GetMethods do
+  for RttiMethod in RttiType.GetMethods do
+  begin
+    if (RttiMethod.MethodKind in [mkProcedure, mkFunction]) and
+      (Length(RttiMethod.GetParameters) = 0) and
+      (pos('TEST', UpperCase(RttiMethod.Name)) = 1) then
     begin
-      if (RttiMethod.MethodKind in [mkProcedure, mkFunction]) and
-        (Length(RttiMethod.GetParameters) = 0) and
-        (pos('TEST', UpperCase(RttiMethod.Name)) = 1) then
-      begin
-        //TestCase.FCurrentTestName := RttiMethod.Name;
-        //RttiMethod.Invoke(TestCase, []);
-        TestCase.AddTest(RttiMethod.Name, RttiMethod);
-      end;
-
+      TestCase.AddTest(RttiMethod.Name, RttiMethod);
     end;
-  finally
-    TestCase.TearDown;
   end;
 end;
 
@@ -1275,6 +1276,16 @@ begin
       freed }
     FTestCase.DestroyWindowForTest;
   end;
+end;
+
+procedure TCastleTest.Setup;
+begin
+  FTestCase.Setup;
+end;
+
+procedure TCastleTest.TearDown;
+begin
+  FTestCase.TearDown;
 end;
 
 procedure TCastleTest.SetEnabled(NewValue: Boolean);
