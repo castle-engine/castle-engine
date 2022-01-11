@@ -1,15 +1,8 @@
 # Cars Demo
 
-Demo of TCastleScene, TCastleViewport and related functionality.
-Follow the manual pages that document creation of this demo:
-https://castle-engine.io/manual_load_3d.php
-https://castle-engine.io/manual_scene.php
-
-TODO: The manual describes an approach to create this without editor,
-in a single file. This example present a new approach,
-
-- using editor to design some basic things, like the MainViewport, RoadScene
-- code is added to code/gamestatemain.pas
+Demo of accessing `TCastleScene`, `TCastleViewport` and related concepts using Pascal code.
+Follow the manual page https://castle-engine.io/viewport_and_scenes_from_code that describes creation
+of this example.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
