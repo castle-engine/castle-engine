@@ -419,13 +419,13 @@
       be just another way to express "as" cast. }
     // generic function DesignedComponent<T: TComponent>(const ComponentName: String): T; overload;
 
-    class property Current: TCastleView read GetCurrent write SetCurrent; deprecated 'use Container.View';
-    class property CurrentTop: TCastleView read GetCurrentTop; deprecated 'use Container.FrontView';
+    class property Current: TCastleView read GetCurrent write SetCurrent; {$ifdef FPC}deprecated 'use Container.View';{$endif}
+    class property CurrentTop: TCastleView read GetCurrentTop; {$ifdef FPC}deprecated 'use Container.FrontView';{$endif}
     class procedure Push(const NewState: TCastleView); deprecated 'use Container.PushView';
     class procedure Pop; overload; deprecated 'use Container.PopView';
     class procedure Pop(const CurrentTopMostState: TCastleView); overload; deprecated 'use Container.PopView';
     class function StateStackCount: Integer; deprecated 'use Container.ViewStackCount';
-    class property StateStack [const Index: Integer]: TCastleView read GetStateStack; deprecated 'use Container.ViewStack';
+    class property StateStack [const Index: Integer]: TCastleView read GetStateStack; {$ifdef FPC}deprecated 'use Container.ViewStack';{$endif}
   published
     { TCastleView control makes most sense when it is FullSize,
       filling the whole window.
