@@ -23,8 +23,8 @@ unit TestX3DNodes;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase,
-  CastleVectors, X3DNodes;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif}, CastleVectors, X3DNodes;
 
 type
   TTestX3DNodes = class(TCastleTestCase)
@@ -189,11 +189,11 @@ type
   end;
 
   TX3DTokenInfoList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DTokenInfo>)
-    procedure AssertEqual(const TestCase: TTestCase; SecondValue: TX3DTokenInfoList);
+    procedure AssertEqual(const TestCase: {$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif}; SecondValue: TX3DTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;
 
-procedure TX3DTokenInfoList.AssertEqual(const TestCase: TTestCase;
+procedure TX3DTokenInfoList.AssertEqual(const TestCase: {$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif};
   SecondValue: TX3DTokenInfoList);
 
   procedure AssertEqualTokens(const T1, T2: TX3DTokenInfo);
@@ -301,7 +301,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       First.ReadFromFile(FileName);
 
       Node := LoadX3DClassic(FileName, false);
-      NewFile := InclPathDelim(GetTempDir) + 'test_castle_game_engine.x3dv';
+      NewFile := InclPathDelim({$ifndef CASTLE_TESTER}GetTempDir{$else}GetTempDirectory{$endif}) + 'test_castle_game_engine.x3dv';
       Save3D(Node, NewFile, ApplicationName, '', xeClassic, false);
 
       Second := TX3DTokenInfoList.Create;
@@ -547,7 +547,7 @@ begin
     TPositionInterpolatorNode,
     TProximitySensorNode,
     TScalarInterpolatorNode,
-    TScriptNode,
+    {$ifdef FPC}TScriptNode,{$endif}
     TShapeNode,
     TSoundNode,
     //TSphereNode,
@@ -955,16 +955,16 @@ begin
   M2 := TMyObject.Create;
   M3 := TMyObject.Create;
   try
-    A.Add(@M1.Foo);
-    A.Add(@M2.Foo);
-    A.Add(@M3.Foo);
-    AssertTrue(A.IndexOf(@M1.Foo) = 0);
-    AssertTrue(A.IndexOf(@M2.Foo) = 1);
-    AssertTrue(A.IndexOf(@M3.Foo) = 2);
-    A.Remove(@M2.Foo);
-    AssertTrue(A.IndexOf(@M1.Foo) = 0);
-    AssertTrue(A.IndexOf(@M2.Foo) = -1);
-    AssertTrue(A.IndexOf(@M3.Foo) = 1);
+    A.Add({$ifdef FPC}@{$endif}M1.Foo);
+    A.Add({$ifdef FPC}@{$endif}M2.Foo);
+    A.Add({$ifdef FPC}@{$endif}M3.Foo);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}M1.Foo) = 0);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}M2.Foo) = 1);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}M3.Foo) = 2);
+    A.Remove({$ifdef FPC}@{$endif}M2.Foo);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}M1.Foo) = 0);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}M2.Foo) = -1);
+    AssertTrue(A.IndexOf({$ifdef FPC}@{$endif}M3.Foo) = 1);
   finally
     FreeAndNil(A);
     FreeAndNil(M1);
@@ -1694,7 +1694,7 @@ begin
     '      durationBetweenConst + random() * durationBetweenRandom2;' + #10 +
     '    startLight2 := startLight1AndAudio + blink2Start)' + #10 +
     '') =
-    '"castlescript:&#xA;function initialize(time)&#xA;  { set up first thunder in the future }&#xA;  startLight1AndAudio :=  time +&#xA;    durationBetweenConst + random() * durationBetweenRandom1;&#xA;  startLight2 := startLight1AndAudio + ' + 'blink2Start&#xA;&#xA;function forceThunderNow(value, time)&#xA;  when (value,&#xA;    startLight1AndAudio := time;&#xA;    startLight2 := startLight1AndAudio + blink2Start)&#xA;&#xA;function light2Active(value, time)&#xA;  when (and(not(value), not(audioActive)),&#xA;    { Once everything finished (2nd light blink and sound) finished,&#xA;      set up next thunder in the future.&#xA;      We can only do it once everything finished, as X3D spec says that&#xA;      &apos;Any set_startTime events to an active time-dependent node are ignored.&apos; }&#xA;    startLight1AndAudio := startLight1AndAudio +&#xA;      durationBetweenConst + random() * durationBetweenRandom2;&#xA;    startLight2 := startLight1AndAudio + blink2Start)&#xA;&#xA;function ' + 'audioActive(value, time)&#xA;  when (and(not(value), not(light2Active)),&#xA;    { Exactly like light2Active. We have to watch for both light2Active&#xA;      and audioActive, as we don&apos;t know which one takes longer: light blinking&#xA;      or audio sound. }&#xA;    startLight1AndAudio := startLight1AndAudio +&#xA;      durationBetweenConst + random() * durationBetweenRandom2;&#xA;    startLight2 := startLight1AndAudio + blink2Start)&#xA;"');
+    '"castlescript:&#xA;function initialize(time)&#xA;  { set up first thunder in the future }&#xA;  '+'startLight1AndAudio :=  time +&#xA;    durationBetweenConst + random() * durationBetweenRandom1;&#xA;  startLight2 := startLight1AndAudio + ' + 'blink2Start&#xA;&#xA;function forceThunderNow(value, time)&#xA;  when (value,&#xA;    startLight1AndAudio := time;&#xA;    startLight2 := '+'startLight1AndAudio + blink2Start)&#xA;&#xA;function light2Active(value, time)&#xA;  when (and(not(value), not(audioActive)),&#xA;    ' + '{ Once everything finished (2nd light blink and sound) finished,&#xA;      set up next thunder in the future.&#xA;      ' + 'We can only do it once everything finished, as X3D spec says that&#xA;      &apos;Any set_startTime events to an active time-dependent node are ignored.&apos; }&#xA;    startLight1AndAudio := startLight1AndAudio +&#xA;      ' + 'durationBetweenConst + random() * durationBetweenRandom2;&#xA;  ' + '  startLight2 := startLight1AndAudio + blink2Start)&#xA;&#xA;function ' + 'audioActive(value, time)&#xA;  when (and(not(value), not(light2Active)),&#xA;    ' + '{ Exactly like light2Active. We have to watch for both light2Active&#xA;      and audioActive, as we don&apos;t know which one takes longer: light blinking&#xA;      or audio sound. }&#xA;    ' + 'startLight1AndAudio := startLight1AndAudio +&#xA;      durationBetweenConst + random() * durationBetweenRandom2;&#xA;   ' + ' startLight2 := startLight1AndAudio + blink2Start)&#xA;"');
 end;
 
 procedure TTestX3DNodes.TestOrthoViewpointFieldOfView;
@@ -1842,7 +1842,7 @@ end;
 
 procedure TTestX3DNodes.TestWeakLinkUnusedWarning;
 begin
-  ApplicationProperties.OnWarning.Add(@WeakLinkUnusedWarning);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}WeakLinkUnusedWarning);
   try
     try
       LoadNode('castle-data:/warning_when_new_node_as_shadow_map_light.x3dv');
@@ -1851,7 +1851,7 @@ begin
       on EWeakLinkUnused do ; { good, silence this for the sake of test }
     end;
   finally
-    ApplicationProperties.OnWarning.Remove(@WeakLinkUnusedWarning);
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}WeakLinkUnusedWarning);
   end;
 end;
 
@@ -2162,6 +2162,8 @@ begin
   FreeAndNil(N);
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestX3DNodes);
+{$endif}
 end.
