@@ -137,8 +137,6 @@ begin
   finally FreeAndNil(G) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestGLVersion);
-{$endif}
 end.

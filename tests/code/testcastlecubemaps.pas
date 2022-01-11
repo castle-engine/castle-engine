@@ -246,9 +246,6 @@ begin
   TE.Free;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCubeMap);
-{$endif}
-
 end.

@@ -90,8 +90,6 @@ begin
   AssertTrue(not DirectoryExists(URIToFilenameSafe('castle-data:/test-not-existing.xml')));
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestSysUtils);
-{$endif}
 end.

@@ -108,8 +108,6 @@ begin
   end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestGenericLists);
-{$endif}
 end.

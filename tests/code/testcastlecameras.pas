@@ -216,8 +216,6 @@ begin
   finally FreeAndNil(W) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
- RegisterTest(TTestCameras);
-{$endif}
+  RegisterTest(TTestCameras);
 end.

@@ -452,8 +452,6 @@ begin
   FreeAndNil(F);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
  RegisterTest(TTestBasicLists);
-{$endif}
 end.

@@ -82,8 +82,6 @@ begin
   FreeAndNil(Rnd);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleRandom);
-{$endif}
 end.

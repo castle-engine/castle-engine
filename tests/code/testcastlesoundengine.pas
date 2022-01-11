@@ -126,8 +126,6 @@ begin
   finally FreeAndNil(Params) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleSoundEngine);
-{$endif}
 end.

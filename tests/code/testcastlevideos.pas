@@ -69,8 +69,6 @@ begin
   finally FreeAndNil(Video) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
  RegisterTest(TTestVideos);
-{$endif}
 end.

@@ -272,8 +272,6 @@ begin
   end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleScriptVectors);
-{$endif}
 end.

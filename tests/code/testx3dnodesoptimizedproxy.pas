@@ -310,8 +310,6 @@ begin
   end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
- RegisterTest(TTestX3DNodesOptimizedProxy);
-{$endif}
+  RegisterTest(TTestX3DNodesOptimizedProxy);
 end.

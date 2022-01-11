@@ -205,8 +205,6 @@ begin
   finally FreeAndNil(Player) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestGame);
-{$endif}
 end.

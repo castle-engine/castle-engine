@@ -789,8 +789,6 @@ begin
   AssertEquals(1, B);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleUtils);
-{$endif}
 end.

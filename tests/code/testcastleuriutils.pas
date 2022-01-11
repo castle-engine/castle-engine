@@ -300,8 +300,6 @@ begin
   AssertEquals('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo#skin:default', DeleteURIExt('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json#skin:default'));
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestURIUtils);
-{$endif}
 end.

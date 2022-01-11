@@ -115,8 +115,6 @@ begin
   finally FreeAndNil(C) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleControls);
-{$endif}
 end.

@@ -111,8 +111,6 @@ begin
   finally FreeAndNil(Transform) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleQuaternions);
-{$endif}
 end.

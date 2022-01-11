@@ -1497,8 +1497,6 @@ begin
   FreeAndNil(B3);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleTransform);
-{$endif}
 end.

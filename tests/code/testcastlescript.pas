@@ -611,8 +611,6 @@ begin
   AssertEquals('poip', StringExpression('coalesce('''' + '''', ''poip'')'));
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleScript);
-{$endif}
 end.

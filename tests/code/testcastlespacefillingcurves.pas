@@ -106,8 +106,6 @@ begin
  TestCurves(0, 10);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
  RegisterTest(TTestSpaceFillingCurves);
-{$endif}
 end.

@@ -75,8 +75,6 @@ begin
  finally FreeAndNil(EmptyScene) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
  RegisterTest(TTestScene);
-{$endif}
 end.

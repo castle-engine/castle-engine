@@ -188,8 +188,6 @@ begin
   TestOpenAndRender(true);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestOpeningAndRendering3D);
-{$endif}
 end.

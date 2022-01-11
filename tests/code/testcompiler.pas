@@ -112,8 +112,6 @@ begin
     {$endif}, SizeOf(Extended));
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCompiler);
-{$endif}
 end.

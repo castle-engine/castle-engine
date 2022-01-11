@@ -52,8 +52,6 @@ begin
   finally FreeAndNil(Curve) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleCurves);
-{$endif}
 end.

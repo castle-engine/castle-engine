@@ -202,8 +202,6 @@ begin
   TestImage('data/images/metal_decal_dxt5.dds', true);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
- RegisterTest(TTestCastleCompositeImage);
-{$endif}
+  RegisterTest(TTestCastleCompositeImage);
 end.

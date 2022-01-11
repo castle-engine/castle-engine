@@ -128,8 +128,6 @@ begin
   AssertTrue(KeyToStr(keyF11, [mkCtrl], true) = 'Command+F11');
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestKeysMouse);
-{$endif}
 end.

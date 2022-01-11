@@ -107,8 +107,6 @@ begin
   AssertTrue('42', T.IsValid);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleTriangles);
-{$endif}
 end.

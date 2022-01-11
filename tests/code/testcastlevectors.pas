@@ -1124,8 +1124,6 @@ NormalMatrix (ModelViewToNormalMatrix determinant 0.000100) 0.05 0.04 0.00
   AssertTrue(TMatrix3.Equals(ModelViewToNormalMatrix(Mv2), Norml1Approx, 0.01));
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleVectors);
-{$endif}
 end.

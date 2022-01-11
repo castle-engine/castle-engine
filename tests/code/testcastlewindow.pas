@@ -607,8 +607,6 @@ begin
   {$endif}
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestWindow);
-{$endif}
 end.

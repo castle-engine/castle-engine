@@ -190,8 +190,6 @@ begin
   DoTest(true);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleWindowOpen);
-{$endif}
 end.

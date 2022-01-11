@@ -477,8 +477,6 @@ begin
   finally FreeAndNil(SList) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleStringUtils);
-{$endif}
 end.

@@ -499,8 +499,6 @@ begin
   finally FreeAndNil(Map) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestGenericsCollections);
-{$endif}
 end.

@@ -495,8 +495,6 @@ begin
   end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleTriangulate);
-{$endif}
 end.

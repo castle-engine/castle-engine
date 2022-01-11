@@ -371,9 +371,7 @@ begin
 end;
 
 initialization
-{$ifndef CASTLE_TESTER}
   RegisterTest(TTestCastleComponentSerialize);
-{$endif}
   RegisterSerializableComponent(TMyComponent, 'My Test Component');
   RegisterSerializableComponent(TComponent, 'Component (Basic)');
 end.

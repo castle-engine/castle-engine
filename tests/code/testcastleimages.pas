@@ -361,8 +361,6 @@ begin
   finally FreeAndNil(Img) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
- RegisterTest(TTestImages);
-{$endif}
+  RegisterTest(TTestImages);
 end.

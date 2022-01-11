@@ -358,8 +358,6 @@ begin
   FreeAndNil(C3);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleClassUtils);
-{$endif}
 end.
