@@ -2162,8 +2162,6 @@ begin
   FreeAndNil(N);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestX3DNodes);
-{$endif}
 end.

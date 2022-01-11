@@ -199,6 +199,7 @@ type
 
   end;
 
+  TCastleTestCaseClass = class of TCastleTestCase;
 
   TCastleTester = class (TComponent)
   strict private
@@ -250,6 +251,9 @@ type
 
     { Adds testcase to tester }
     procedure AddTestCase(const TestCase: TCastleTestCase);
+    { Adds registered testcases to tester }
+    procedure AddRegisteredTestCases;
+
     { Scans added test cases }
     procedure Scan;
     { Prepares list of tests to run }
@@ -305,12 +309,32 @@ type
       read FNotifyEnabledTestCountChanged write FNotifyEnabledTestCountChanged;
   end;
 
+  procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
+
 implementation
 
 { TCastleTester }
 
 uses CastleLog, TypInfo, Math, {$ifndef FPC}IOUtils,{$endif} CastleUtils;
 
+var
+  FRegisteredTestCaseList: {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>;
+
+
+procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
+begin
+  FRegisteredTestCaseList.Add(CastleTestCaseClass);
+end;
+
+procedure TCastleTester.AddRegisteredTestCases;
+var
+  I: Integer;
+begin
+  for I := 0 to FRegisteredTestCaseList.Count - 1 do
+  begin
+    AddTestCase(FRegisteredTestCaseList[I].Create);
+  end;
+end;
 
 procedure TCastleTester.AddTestCase(const TestCase: TCastleTestCase);
 begin
@@ -1129,5 +1153,11 @@ begin
   if Assigned(FTestCase.FCastleTester.FNotifyEnabledTestCountChanged) then
     FTestCase.FCastleTester.FNotifyEnabledTestCountChanged(Self);
 end;
+
+initialization
+  FRegisteredTestCaseList := {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>.Create;
+
+finalization
+  FreeAndNil(FRegisteredTestCaseList);
 
 end.

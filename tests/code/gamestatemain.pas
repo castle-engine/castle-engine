@@ -156,6 +156,10 @@ begin
   { Commented test cases need fixes in delphi }
 
   TestC := TCastleTestCase.Create;
+
+  Tester.AddRegisteredTestCases;
+
+  (*
   Tester.AddTestCase(TestC);
   Tester.AddTestCase(TTestURIUtils.Create);
   Tester.AddTestCase(TTestCastleBoxes.Create);
@@ -207,7 +211,7 @@ begin
   Tester.AddTestCase(TTestSysUtils.Create);
   Tester.AddTestCase(TTestX3DFields.Create);
   Tester.AddTestCase(TTestX3DNodes.Create);
-  Tester.AddTestCase(TTestX3DNodesOptimizedProxy.Create);
+  Tester.AddTestCase(TTestX3DNodesOptimizedProxy.Create);  *)
 
   { Add registered test cases here }
 
