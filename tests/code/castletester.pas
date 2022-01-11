@@ -42,15 +42,21 @@ type
   TCastleTest = class
   strict private
     FTestCase: TCastleTestCase;
+    {$ifdef FPC}
+    FMethodPointer: CodePointer;
+    {$else}
     FRttiMethod: TRttiMethod;
+    {$endif}
     FEnabled: Boolean;
 
     procedure SetEnabled(NewValue: Boolean);
   public
     Name: String;
 
+
     constructor Create(const ATestCase: TCastleTestCase; const AName: String;
-      const ARttiMethod: TRttiMethod);
+      {$ifdef FPC}const AMethodPointer: CodePointer{$else}
+      const ARttiMethod: TRttiMethod{$endif});
 
     procedure Run;
     { Runs TestCase.Setup }
@@ -214,7 +220,8 @@ type
 
     { Used by TCastleTester.Scan to add tests }
     function AddTest(const AName: String;
-      const ARttiMethod: TRttiMethod): TCastleTest;
+      {$ifdef FPC}const AMethodPointer: CodePointer{$else}
+      const ARttiMethod: TRttiMethod{$endif}): TCastleTest;
 
     function IsConsoleMode: Boolean;
 
@@ -351,7 +358,7 @@ implementation
 
 { TCastleTester }
 
-uses CastleLog, TypInfo, Math, {$ifndef FPC}IOUtils,{$endif} CastleUtils;
+uses CastleLog, TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} CastleUtils;
 
 var
   FRegisteredTestCaseList: {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>;
@@ -514,9 +521,29 @@ end;
 
 procedure TCastleTester.ScanTestCase(TestCase: TCastleTestCase);
 var
+  {$ifdef FPC}
+  MethodList: TStringList;
+  AMethodName: String;
+  {$else}
   RttiType: TRttiType;
   RttiMethod: TRttiMethod;
+  {$endif}
 begin
+  {$ifdef FPC}
+  MethodList := TStringList.Create;
+  try
+    GetMethodList(TestCase, MethodList);
+
+    for AMethodName in MethodList do
+    begin
+      if (pos('TEST', UpperCase(AMethodName)) = 1) then
+        TestCase.AddTest(AMethodName, TestCase.MethodAddress(AMethodName));
+    end;
+
+  finally
+    FreeAndNil(MethodList);
+  end;
+  {$else}
   RttiType := FRttiContext.GetType(TestCase.ClassInfo);
 
   for RttiMethod in RttiType.GetMethods do
@@ -528,6 +555,7 @@ begin
       TestCase.AddTest(RttiMethod.Name, RttiMethod);
     end;
   end;
+  {$endif}
 end;
 
 procedure TCastleTester.SetNotifyAssertFail(
@@ -599,9 +627,11 @@ begin
 end;
 
 function TCastleTestCase.AddTest(const AName: String;
-  const ARttiMethod: TRttiMethod): TCastleTest;
+  {$ifdef FPC}const AMethodPointer: CodePointer{$else}
+      const ARttiMethod: TRttiMethod{$endif}): TCastleTest;
 begin
-  Result := TCastleTest.Create(Self, AName, ARttiMethod);
+  Result := TCastleTest.Create(Self, AName, {$ifdef FPC}AMethodPointer{$else}
+  ARttiMethod{$endif});
   FTestList.Add(Result);
 end;
 
@@ -1253,12 +1283,17 @@ end;
 { TCastleTest }
 
 constructor TCastleTest.Create(const ATestCase: TCastleTestCase;
-  const AName: String; const ARttiMethod: TRttiMethod);
+  const AName: String; {$ifdef FPC}const AMethodPointer: CodePointer{$else}
+      const ARttiMethod: TRttiMethod{$endif});
 begin
   FTestCase := ATestCase;
   Name := AName;
   FEnabled := true;
+  {$ifdef FPC}
+  FMethodPointer := AMethodPointer;
+  {$else}
   FRttiMethod := ARttiMethod;
+  {$endif}
 end;
 
 function TCastleTest.GetFullName: String;
@@ -1267,10 +1302,23 @@ begin
 end;
 
 procedure TCastleTest.Run;
+{$ifdef FPC}
+var
+  Method: TMethod;
+type
+  TCastleTestFunc = procedure() of object;
+
+{$endif}
 begin
   FTestCase.FCurrentTestName := GetFullName;
   try
+    {$ifdef FPC}
+    Method.Code := FMethodPointer;
+    Method.Data := Pointer(FTestCase);
+    TCastleTestFunc(Method);
+    {$else}
     FRttiMethod.Invoke(FTestCase, []);
+    {$endif}
   finally
     { Some tests need a new window after running test we check should it be
       freed }

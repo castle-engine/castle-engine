@@ -157,6 +157,8 @@ begin
 
   Tester.AddRegisteredTestCases;
 
+  //Tester.AddTestCase(TTestWindow.Create);
+
   (*
   TestC := TCastleTestCase.Create;
   Tester.AddTestCase(TestC);
@@ -210,7 +212,7 @@ begin
   Tester.AddTestCase(TTestSysUtils.Create);
   Tester.AddTestCase(TTestX3DFields.Create);
   Tester.AddTestCase(TTestX3DNodes.Create);
-  Tester.AddTestCase(TTestX3DNodesOptimizedProxy.Create);  *)
+  Tester.AddTestCase(TTestX3DNodesOptimizedProxy.Create); *)
 
   { Add registered test cases here }
 
