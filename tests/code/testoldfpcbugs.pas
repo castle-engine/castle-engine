@@ -22,10 +22,11 @@ unit TestOldFPCBugs;
 interface
 
 uses
-  FpcUnit, TestUtils, TestRegistry;
+  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry
+  {$else}CastleTester{$endif};
 
 type
-  TTestOldFPCBugs = class(TTestCase)
+  TTestOldFPCBugs = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
   published
     procedure TestInherited;
     procedure TestMethodPass;

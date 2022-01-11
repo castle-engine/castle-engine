@@ -35,7 +35,7 @@ type
     procedure TestPassedCountChanged(const TestCount: Integer);
     procedure TestFailedCountChanged(const TestCount: Integer);
     procedure EnabledTestCountChanged(Sender: TObject);
-    procedure TestExecuted(const Name: String);
+    procedure TestExecuted(const AName: String);
     procedure AssertFailed(const TestName, Msg: String);
     procedure LogFailedAssertion(const AMessage: String);
 
@@ -69,7 +69,7 @@ uses SysUtils,
   TestCastleKeysMouse, TestCastleOpeningAndRendering3D, TestCastleParameters,
   TestCastleQuaternions, TestCastleRandom, TestCastleRectangles,
   TestCastleScene, TestCastleSceneCore, {$ifdef FPC}TestCastleScript,
-  TestCastleScriptVectors{$endif} TestCastleSoundEngine,
+  TestCastleScriptVectors,{$endif} TestCastleSoundEngine,
   TestCastleSpaceFillingCurves, TestCastleStringUtils, TestCastleTimeUtils,
   TestCastleTransform, TestCastleTriangles, TestCastleTriangulate,
   TestCastleUIControls, {TestCastleUtils,} TestCastleUtilsLists,
@@ -155,11 +155,10 @@ begin
 
   { Commented test cases need fixes in delphi }
 
-  TestC := TCastleTestCase.Create;
-
   Tester.AddRegisteredTestCases;
 
   (*
+  TestC := TCastleTestCase.Create;
   Tester.AddTestCase(TestC);
   Tester.AddTestCase(TTestURIUtils.Create);
   Tester.AddTestCase(TTestCastleBoxes.Create);
@@ -251,9 +250,9 @@ begin
   ButtonSelectTests.Enabled := true;
 end;
 
-procedure TStateMain.TestExecuted(const Name: String);
+procedure TStateMain.TestExecuted(const AName: String);
 begin
-  LabelCurrentTest.Caption := Name;
+  LabelCurrentTest.Caption := AName;
 end;
 
 procedure TStateMain.TestFailedCountChanged(const TestCount: Integer);

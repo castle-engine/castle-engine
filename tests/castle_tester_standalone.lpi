@@ -33,7 +33,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="6">
+    <Units Count="5">
       <Unit0>
         <Filename Value="castle_tester_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -56,10 +56,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="GameStateMain"/>
       </Unit4>
-      <Unit5>
-        <Filename Value="../code/testcastleuriutils.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -68,8 +64,8 @@
       <Filename Value="castle-tester"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="code;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="code;../code"/>
+      <IncludeFiles Value="../src/common_includes;code;$(ProjOutDir)"/>
+      <OtherUnitFiles Value="code"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
@@ -94,9 +90,6 @@
         <ShowHints Value="False"/>
       </Verbosity>
       <CustomOptions Value="-dCASTLE_TESTER"/>
-      <OtherDefines Count="1">
-        <Define0 Value="CASTLE_TESTER"/>
-      </OtherDefines>
     </Other>
   </CompilerOptions>
   <Debugging>

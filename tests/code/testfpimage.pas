@@ -20,8 +20,8 @@ unit TestFPImage;
 interface
 
 uses
-  FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestFPImage = class(TCastleTestCase)

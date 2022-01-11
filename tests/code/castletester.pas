@@ -35,6 +35,8 @@ type
   TCastleTester = class;
   TCastleTestCase = class;
 
+  {$M+} // Generate type info
+
   TCastleTest = class
   strict private
     FTestCase: TCastleTestCase;
@@ -54,6 +56,8 @@ type
 
     property Enabled: Boolean read FEnabled write SetEnabled;
   end;
+
+  { TCastleTestCase }
 
   TCastleTestCase = class
   strict private
@@ -98,11 +102,17 @@ type
     procedure AssertEquals(const Expected, Actual: Boolean); overload;
     procedure AssertEquals(const Expected, Actual: Single); overload;
     procedure AssertEquals(const Expected, Actual: Integer); overload;
+    procedure AssertEquals(const Expected, Actual: Cardinal); overload;
+    procedure AssertEquals(const Expected, Actual: Int64); overload;
     procedure AssertEquals(const Msg: String; const Expected, Actual: Integer;
       ErrorAddr: Pointer = nil); overload;
     procedure AssertEquals(const Msg, Expected, Actual: String;
       ErrorAddr: Pointer = nil); overload;
     procedure AssertEquals(const Msg: String; const Expected, Actual: Boolean;
+      ErrorAddr: Pointer = nil); overload;
+    procedure AssertEquals(const Msg: String; const Expected, Actual: Cardinal;
+      ErrorAddr: Pointer = nil); overload;
+    procedure AssertEquals(const Msg: String; const Expected, Actual: Int64;
       ErrorAddr: Pointer = nil); overload;
 
     procedure AssertSameValue(const Expected, Actual: Single;
@@ -140,6 +150,24 @@ type
     procedure AssertPlaneEquals(const Expected, Actual: TVector4;
       ErrorAddr: Pointer = nil); overload;
 
+    { TODO: Need to have different names to avoid FPC errors "duplicate ASM label",
+      see https://bugs.freepascal.org/view.php?id=32188 }
+    procedure AssertVectorEqualsDouble(const Expected, Actual: TVector2Double;
+      ErrorAddr: Pointer = nil); overload;
+    procedure AssertVectorEqualsDouble(const Expected, Actual: TVector3Double;
+      ErrorAddr: Pointer = nil); overload;
+    procedure AssertVectorEqualsDouble(const Expected, Actual: TVector4Double;
+      ErrorAddr: Pointer = nil); overload;
+    procedure AssertVectorEqualsDouble(const Expected, Actual: TVector2Double;
+      const Epsilon: Single; ErrorAddr: Pointer = nil); overload;
+    procedure AssertVectorEqualsDouble(const Expected, Actual: TVector3Double;
+      const Epsilon: Single; ErrorAddr: Pointer = nil); overload;
+    procedure AssertVectorEqualsDouble(const Expected, Actual: TVector4Double;
+      const Epsilon: Single; ErrorAddr: Pointer = nil); overload;
+    procedure AssertSameValue(const Expected, Actual: Double;
+      ErrorAddr: Pointer = nil); overload;
+    procedure AssertSameValue(const Expected, Actual: Double;
+      const Epsilon: Double; ErrorAddr: Pointer = nil); overload;
 
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D;
       ErrorAddr: Pointer = nil); overload;
@@ -198,6 +226,8 @@ type
     procedure TestTestCase;
 
   end;
+
+  {$M-}
 
   TCastleTestCaseClass = class of TCastleTestCase;
 
@@ -740,6 +770,78 @@ begin
   AssertPlaneEquals(Expected, Actual, SingleEpsilon, ErrorAddr);
 end;
 
+procedure TCastleTestCase.AssertVectorEqualsDouble(const Expected,
+  Actual: TVector2Double; ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  AssertVectorEqualsDouble(Expected, Actual, DoubleEpsilon, ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertVectorEqualsDouble(const Expected,
+  Actual: TVector3Double; ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  AssertVectorEqualsDouble(Expected, Actual, DoubleEpsilon, ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertVectorEqualsDouble(const Expected,
+  Actual: TVector4Double; ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  AssertVectorEqualsDouble(Expected, Actual, DoubleEpsilon, ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertVectorEqualsDouble(const Expected,
+  Actual: TVector2Double; const Epsilon: Single; ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  if not TVector2Double.Equals(Expected, Actual, Epsilon) then
+    Fail(Format('Vectors (TVector2Double) are not equal: expected: %s, actual: %s',
+      [Expected.ToRawString, Actual.ToRawString]), ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertVectorEqualsDouble(const Expected,
+  Actual: TVector3Double; const Epsilon: Single; ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  if not TVector3Double.Equals(Expected, Actual, Epsilon) then
+    Fail(Format('Vectors (TVector3Double) are not equal: expected: %s, actual: %s',
+      [Expected.ToRawString, Actual.ToRawString]), ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertVectorEqualsDouble(const Expected,
+  Actual: TVector4Double; const Epsilon: Single; ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  if not TVector4Double.Equals(Expected, Actual, Epsilon) then
+    Fail(Format('Vectors (TVector4Double) are not equal: expected: %s, actual: %s',
+      [Expected.ToRawString, Actual.ToRawString]), ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertSameValue(const Expected, Actual: Double;
+  ErrorAddr: Pointer);
+begin
+
+end;
+
+procedure TCastleTestCase.AssertSameValue(const Expected, Actual: Double;
+  const Epsilon: Double; ErrorAddr: Pointer);
+begin
+
+end;
+
 procedure TCastleTestCase.AssertRectsEqual(const Expected,
   Actual: TFloatRectangle; ErrorAddrs: Pointer);
 begin
@@ -804,8 +906,8 @@ begin
   end;
 end;
 
-procedure TCastleTestCase.AssertSameValue(const Expected, Actual,
-  Epsilon: Single; ErrorAddr: Pointer);
+procedure TCastleTestCase.AssertSameValue(const Expected, Actual: Single;
+  const Epsilon: Single; ErrorAddr: Pointer);
 begin
   if not Assigned(ErrorAddr) then
     ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
@@ -1085,6 +1187,18 @@ begin
     {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
 end;
 
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: Cardinal);
+begin
+  AssertEquals('', Expected, Actual,
+    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
+end;
+
+procedure TCastleTestCase.AssertEquals(const Expected, Actual: Int64);
+begin
+  AssertEquals('', Expected, Actual,
+    {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif});
+end;
+
 procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
   Actual: Integer; ErrorAddr: Pointer = nil);
 begin
@@ -1113,6 +1227,26 @@ begin
 
   AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + BoolToStr(Expected, true) + ' Actual: ' +
     BoolToStr(Actual, true), Expected = Actual, ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
+  Actual: Cardinal; ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + IntToStr(Expected) +
+    ' Actual: ' + IntToStr(Actual), Expected = Actual, ErrorAddr);
+end;
+
+procedure TCastleTestCase.AssertEquals(const Msg: String; const Expected,
+  Actual: Int64; ErrorAddr: Pointer);
+begin
+  if ErrorAddr = nil then
+    ErrorAddr := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
+
+  AssertTrue(PrepareCustomMsg(Msg) + 'Expected: ' + IntToStr(Expected) +
+    ' Actual: ' + IntToStr(Actual), Expected = Actual, ErrorAddr);
 end;
 
 { TCastleTest }
