@@ -75,7 +75,8 @@ uses SysUtils,
   TestCastleUIControls, {TestCastleUtils,} TestCastleUtilsLists,
   TestCastleVideos, TestCastleWindow, TestCastleWindowOpen, TestCastleXMLUtils,
   TestCompiler, TestGenericsCollections{$ifdef FPC}, TestFGL, TestFPImage,
-  TestOldFPCBugs{$endif}, TestSysUtils, TestX3DFields, TestX3DNodes;
+  TestOldFPCBugs{$endif}, TestSysUtils, TestX3DFields, TestX3DNodes,
+  TestX3DNodesOptimizedProxy;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -206,6 +207,7 @@ begin
   Tester.AddTestCase(TTestSysUtils.Create);
   Tester.AddTestCase(TTestX3DFields.Create);
   Tester.AddTestCase(TTestX3DNodes.Create);
+  Tester.AddTestCase(TTestX3DNodesOptimizedProxy.Create);
 
   { Add registered test cases here }
 

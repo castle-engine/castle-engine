@@ -20,8 +20,8 @@ unit TestX3DNodesOptimizedProxy;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVectors, X3DNodes,
-  CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif}, CastleVectors, X3DNodes;
 
 type
   TTestX3DNodesOptimizedProxy = class(TCastleTestCase)
@@ -310,6 +310,8 @@ begin
   end;
 end;
 
+{$ifndef CASTLE_TESTER}
 initialization
  RegisterTest(TTestX3DNodesOptimizedProxy);
+{$endif}
 end.
