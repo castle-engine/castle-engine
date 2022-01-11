@@ -107,6 +107,10 @@ var
   Window: TCastleWindowBase;
   Parent, Child1, Child2: TCastleUserInterface;
 begin
+  {$ifndef FPC}
+  Fail('This test make RuntimeError in CastleTester in Delphi.');
+  {$endif}
+
   Window := nil;
   Parent := nil;
   Child1 := nil;
@@ -171,6 +175,7 @@ begin
   end;
 end;
 
+
 procedure TTestWindow.TestFocus;
 var
   Window: TCastleWindowBase;
@@ -216,11 +221,11 @@ var
   begin
     Window.InternalFakeMotion(InputMotion(Window.MousePosition, Pos, [], 0));
     Window.Container.UpdateFocusAndMouseCursor;
-    (* Useful to test current Focus value:
+    { Useful to test current Focus value:
     Writeln('Focus now ', Window.Container.Focus.Count);
     for C in Window.Container.Focus do
       Writeln('  ', C.Name, ':', C.ClassName);
-    *)
+    }
   end;
 
 begin
