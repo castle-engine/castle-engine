@@ -1336,11 +1336,6 @@ procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
-{$IFDEF FPC}
-function  GetOpenFileName(var OpenFile: TOpenFilenameW): Bool; stdcall; external 'comdlg32.dll' name 'GetOpenFileNameW';  // WideVersion
-function  GetSaveFileName(var OpenFile: TOpenFilenameW): Bool; stdcall; external 'comdlg32.dll' name 'GetSaveFileNameW';  // WideVersion
-{$ENDIF}
-
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
@@ -1569,8 +1564,8 @@ begin
   Mode := TGLModeFrozenScreen.Create(Self);
   try
     if OpenDialog then
-      Result := GetOpenFileName(Struct) else
-      Result := GetSaveFileName(Struct);
+      Result := GetOpenFileNameW(LPOPENFILENAME(@Struct)) else
+      Result := GetSaveFileNameW(LPOPENFILENAME(@Struct));
   finally Mode.Free end;
 
   if Result then
