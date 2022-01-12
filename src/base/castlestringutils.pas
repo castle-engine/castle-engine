@@ -951,6 +951,11 @@ function CharSetToStr(const SetVariable: TSetOfChars): string;
   PChar(S): returns a Pointer(S) with appropriate type cast. }
 function PCharOrNil(const s: string): PChar;
 
+{ PWideCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
+  If string is empty, this returns @nil, otherwise it works just like
+  PWideChar(S): returns a Pointer(S) with appropriate type cast. }
+function PWideCharOrNil(const s: WideString): PWideChar;
+
 { PAnsiCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
   If string is empty, this returns @nil, otherwise it works just like
   PAnsiChar(S): returns a Pointer(S) with appropriate type cast. }
@@ -2573,6 +2578,9 @@ end;
 
 function PCharOrNil(const s: string): PChar;
 begin if s = '' then result := nil else result := PChar(s); end;
+
+function PWideCharOrNil(const s: WideString): PWideChar;
+begin if s = '' then result := nil else result := PWideChar(s); end;
 
 function PAnsiCharOrNil(const s: AnsiString): PAnsiChar;
 begin if s = '' then result := nil else result := PAnsiChar(s); end;
