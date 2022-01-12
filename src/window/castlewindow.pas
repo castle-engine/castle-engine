@@ -4674,13 +4674,17 @@ end;
 
 function TCastleWindow.GetNavigationType: TNavigationType;
 begin
+  {$warnings off}
   Result := SceneManager.NavigationType;
+  {$warnings on}
 end;
 
 procedure TCastleWindow.SetNavigationType(const Value: TNavigationType);
 begin
+  {$warnings off}
   SceneManager.NavigationType := Value;
   NavigationInfoChanged;
+  {$warnings on}
 end;
 
 {$endif CASTLE_DEPRECATED_WINDOW_CLASSES}

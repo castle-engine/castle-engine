@@ -736,7 +736,7 @@ type
       that is similar to your configuration. }
     property NavigationType: TNavigationType
       read GetNavigationType write SetNavigationType
-      default ntNone;
+      default ntNone; deprecated 'create own instances of TCastleNavigation descendants to change the navigation';
 
     { Convert 2D position on the viewport into 3D "world coordinates",
       by colliding camera ray with a plane parallel to the viewport at given Depth.
@@ -1149,7 +1149,7 @@ type
       By default it is @false, which means that you control @link(Navigation) on your own.
     }
     property AutoNavigation: Boolean
-      read FAutoNavigation write SetAutoNavigation default false;
+      read FAutoNavigation write SetAutoNavigation default false; deprecated 'unless you implement an X3D browser, it is better to configure Navigation explicitly';
 
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
@@ -1881,8 +1881,10 @@ var
   AspectRatio: Single;
   M: TMatrix4;
 begin
+  {$warnings off} // using deprecated to keep it working
   if AutoNavigation and (Navigation = nil) then
     AssignDefaultNavigation; // create Navigation if necessary
+  {$warnings on}
 
   EnsureCameraDetected;
 
@@ -2780,7 +2782,9 @@ begin
     Navigation := NewNavigation;
     { make sure it's in ntExamine mode (as we possibly reuse old navigation,
       by reusing InternalExamineNavigation, so we're not sure what state it's in. }
+    {$warnings off} // using deprecated to keep it working
     NavigationType := ntExamine;
+    {$warnings on}
   end;
   Result := Navigation as TCastleExamineNavigation;
 end;
@@ -2817,7 +2821,9 @@ begin
     Navigation := NewNavigation;
     { make sure it's in ntWalk mode (as we possibly reuse old navigation,
       by reusing InternalWalkNavigation, so we're not sure what state it's in. }
+    {$warnings off} // using deprecated to keep it working
     NavigationType := ntWalk;
+    {$warnings on}
   end;
   Result := Navigation as TCastleWalkNavigation;
 end;
@@ -2965,7 +2971,9 @@ begin
       Navigation := InternalWalkNavigation;
     {$warnings on}
 
+    {$warnings off} // using deprecated to keep it working
     NavigationType := Nav;
+    {$warnings on}
     Scene.InternalUpdateNavigation(Navigation, Box);
   end else
   begin
@@ -3741,11 +3749,13 @@ end;
 
 procedure TCastleViewport.MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
 begin
+  {$warnings off} // using deprecated to keep it working
   if AutoNavigation and (Navigation <> nil) then
   begin
     NavigationType := Items.MainScene.NavigationTypeFromNavigationInfo;
     Items.MainScene.InternalUpdateNavigation(Navigation, Items.BoundingBox);
   end;
+  {$warnings on}
   BoundNavigationInfoChanged;
 end;
 

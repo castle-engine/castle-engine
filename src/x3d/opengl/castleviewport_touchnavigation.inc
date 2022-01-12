@@ -195,11 +195,13 @@ begin
     end;
   end;
 
+  {$warnings off} // ignore using deprecated NavigationType
   if (Viewport <> nil) and
      (FLastSeenNavigationType <> Viewport.NavigationType) then
   begin
     UpdateAutoTouchInterface; // will update FLastSeenNavigationType
   end;
+  {$warnings on}
 end;
 
 procedure TCastleTouchNavigation.SetTouchInterface(const Value: TTouchInterface);
@@ -285,7 +287,9 @@ procedure TCastleTouchNavigation.UpdateAutoTouchInterface;
 begin
   if (Viewport <> nil) and AutoTouchInterface then
   begin
+    {$warnings off} // ignore using deprecated NavigationType
     FLastSeenNavigationType := Viewport.NavigationType;
+    {$warnings on}
     case FLastSeenNavigationType of
       ntNone:      TouchInterface := tiNone;
       ntWalk:      TouchInterface := FAutoWalkTouchInterface;

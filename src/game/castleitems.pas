@@ -1090,6 +1090,7 @@ begin
         ReloadDone := true;
         ReloadNow;
       end;
+    else ;
   end;
 
   { advance to next State, if necessary }
@@ -1113,6 +1114,7 @@ begin
         FState := wsReady;
         FStateChangeTime := LifeTime;
       end;
+    else ;
   end;
 
   { update animation frame to display }
