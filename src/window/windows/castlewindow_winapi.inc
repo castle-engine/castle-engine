@@ -1336,6 +1336,43 @@ procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
+type
+  {$EXTERNALSYM tagOFNW}
+  tagOFNW = record
+    lStructSize: DWORD;
+    hWndOwner: HWND;
+    hInstance: HINST;
+    lpstrFilter: LPCWSTR;
+    lpstrCustomFilter: LPWSTR;
+    nMaxCustFilter: DWORD;
+    nFilterIndex: DWORD;
+    lpstrFile: LPWSTR;
+    nMaxFile: DWORD;
+    lpstrFileTitle: LPWSTR;
+    nMaxFileTitle: DWORD;
+    lpstrInitialDir: LPCWSTR;
+    lpstrTitle: LPCWSTR;
+    Flags: DWORD;
+    nFileOffset: Word;
+    nFileExtension: Word;
+    lpstrDefExt: LPCWSTR;
+    lCustData: LPARAM;
+    lpfnHook: function(Wnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): UINT_PTR stdcall;
+    lpTemplateName: LPCWSTR;
+    pvReserved: Pointer;
+    dwReserved: DWORD;
+    FlagsEx: DWORD;
+  end;
+  {$EXTERNALSYM tagOFN}
+  tagOFN = tagOFNW;
+  TOpenFilenameW = tagOFNW;
+  TOpenFilename = TOpenFilenameW;
+
+{$IFDEF FPC}
+function  GetOpenFileName(var OpenFile: TOpenFilename): Bool; stdcall; external 'comdlg32.dll' name 'GetOpenFileNameW';  // WideVersion
+function  GetSaveFileName(var OpenFile: TOpenFilename): Bool; stdcall; external 'comdlg32.dll' name 'GetSaveFileNameW';  // WideVersion
+{$ENDIF}
+
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
@@ -1423,7 +1460,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
 
 var
   Struct: TOpenFileName;
-  FileNameBuffer: array [0..6000] of char;
+  FileNameBuffer: array [0..Pred(MAX_PATH+10)] of widechar;
   {$ifndef FPC}FileNameString: String;{$endif}
   FilePath: string;
   Mode: TGLModeFrozenScreen;
@@ -1460,13 +1497,13 @@ begin
     in the form 'subdir1/file' or './subdir1/file' (maybe it does not understand
     that those paths are relative to current dir ??), so I'm always expanding paths. }
   FilePath := ExpandFilePath(FilePath);
-  Struct.lpstrInitialDir := PCharOrNil(FilePath);
+  Struct.lpstrInitialDir := PWideCharOrNil(FilePath);
 
  { tests:
    InfoWrite('current dir : "' + GetCurrentDir + '"');
    InfoWrite('dialog box InitialDir : "' + FilePath + '"');}
 
-  Struct.lpstrTitle := PCharOrNil(Title);
+  Struct.lpstrTitle := PWideCharOrNil(Title);
   Struct.Flags := OFN_NOCHANGEDIR or OFN_HIDEREADONLY;
   if OpenDialog then
     Struct.Flags := Struct.Flags or OFN_FILEMUSTEXIST else
@@ -1474,7 +1511,7 @@ begin
 
   if FileFilters <> nil then
   begin
-    Struct.lpstrFilter := PChar(MakeStrFilter(FileFilters));
+    Struct.lpstrFilter := PWideCharOrNil(MakeStrFilter(FileFilters));
     Struct.nFilterIndex := FileFilters.DefaultFilter + 1;
 
     if not OpenDialog then
@@ -1536,7 +1573,7 @@ begin
         FileNameBuffer := DeleteFileExt(FileNameBuffer);
         {$else}
         if StrLen(FileNameBuffer) > 0 then
-          SetString(FileNameString, PChar(@FileNameBuffer[0]), StrLen(FileNameBuffer))
+          SetString(FileNameString, PWideChar(@FileNameBuffer[0]), StrLen(FileNameBuffer))
         else
           FileNameString := '';
 
@@ -1556,7 +1593,7 @@ begin
 
           Also note that unregistered extensions are treated somewhat differently.
           Unfortunately, lpstrDefExt will append then, instead of leaving filename alone. }
-        Struct.lpstrDefExt := PChar(SEnding(CurrentFileNameExt, 2));
+        Struct.lpstrDefExt := PWideCharOrNil(SEnding(CurrentFileNameExt, 2));
       end;
     end;
   end;
@@ -1564,12 +1601,12 @@ begin
   Mode := TGLModeFrozenScreen.Create(Self);
   try
     if OpenDialog then
-      Result := GetOpenFileName({$ifdef FPC}@{$endif}Struct) else
-      Result := GetSaveFileName({$ifdef FPC}@{$endif}Struct);
+      Result := GetOpenFileName(Struct) else
+      Result := GetSaveFileName(Struct);
   finally Mode.Free end;
 
   if Result then
-    FileName := FileNameBuffer else
+    FileName := widestring(FileNameBuffer) else
   begin
     if CommDlgExtendedError <> 0 then
       raise Exception.CreateFmt('GetOpen/SaveFileName failed with error %d',
