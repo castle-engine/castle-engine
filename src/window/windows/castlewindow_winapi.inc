@@ -1339,8 +1339,6 @@ end;
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
-  { TODO: Use Unicode version of WinAPI (W suffix) here. }
-
   { Make path absolute. Same as ExpandFileName, but knows that
     FilePath contains only a path and will always work as it should.
     (Delphi's and FPC's do not guarantee correct ExpandFileName result
