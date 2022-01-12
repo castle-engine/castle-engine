@@ -1423,7 +1423,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
 
 var
   Struct: TOpenFileNameW;
-  FileNameBuffer: array [0..Pred(MAX_PATH+10)] of widechar;
+  FileNameBuffer: array [0..6000] of widechar;
   {$ifndef FPC}FileNameString: String;{$endif}
   FilePath: string;
   Mode: TGLModeFrozenScreen;
@@ -1564,8 +1564,8 @@ begin
   Mode := TGLModeFrozenScreen.Create(Self);
   try
     if OpenDialog then
-      Result := GetOpenFileNameW(LPOPENFILENAME(@Struct)) else
-      Result := GetSaveFileNameW(LPOPENFILENAME(@Struct));
+      Result := GetOpenFileNameW({$ifdef FPC}@{$endif}Struct) else
+      Result := GetSaveFileNameW({$ifdef FPC}@{$endif}Struct);
   finally Mode.Free end;
 
   if Result then
