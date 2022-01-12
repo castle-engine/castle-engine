@@ -1336,41 +1336,9 @@ procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
-type
-  {$EXTERNALSYM tagOFNW}
-  tagOFNW = record
-    lStructSize: DWORD;
-    hWndOwner: HWND;
-    hInstance: HINST;
-    lpstrFilter: LPCWSTR;
-    lpstrCustomFilter: LPWSTR;
-    nMaxCustFilter: DWORD;
-    nFilterIndex: DWORD;
-    lpstrFile: LPWSTR;
-    nMaxFile: DWORD;
-    lpstrFileTitle: LPWSTR;
-    nMaxFileTitle: DWORD;
-    lpstrInitialDir: LPCWSTR;
-    lpstrTitle: LPCWSTR;
-    Flags: DWORD;
-    nFileOffset: Word;
-    nFileExtension: Word;
-    lpstrDefExt: LPCWSTR;
-    lCustData: LPARAM;
-    lpfnHook: function(Wnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): UINT_PTR stdcall;
-    lpTemplateName: LPCWSTR;
-    pvReserved: Pointer;
-    dwReserved: DWORD;
-    FlagsEx: DWORD;
-  end;
-  {$EXTERNALSYM tagOFN}
-  tagOFN = tagOFNW;
-  TOpenFilenameW = tagOFNW;
-  TOpenFilename = TOpenFilenameW;
-
 {$IFDEF FPC}
-function  GetOpenFileName(var OpenFile: TOpenFilename): Bool; stdcall; external 'comdlg32.dll' name 'GetOpenFileNameW';  // WideVersion
-function  GetSaveFileName(var OpenFile: TOpenFilename): Bool; stdcall; external 'comdlg32.dll' name 'GetSaveFileNameW';  // WideVersion
+function  GetOpenFileName(var OpenFile: TOpenFilenameW): Bool; stdcall; external 'comdlg32.dll' name 'GetOpenFileNameW';  // WideVersion
+function  GetSaveFileName(var OpenFile: TOpenFilenameW): Bool; stdcall; external 'comdlg32.dll' name 'GetSaveFileNameW';  // WideVersion
 {$ENDIF}
 
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
@@ -1459,7 +1427,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
   end;
 
 var
-  Struct: TOpenFileName;
+  Struct: TOpenFileNameW;
   FileNameBuffer: array [0..Pred(MAX_PATH+10)] of widechar;
   {$ifndef FPC}FileNameString: String;{$endif}
   FilePath: string;
