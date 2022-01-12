@@ -736,7 +736,7 @@ type
       that is similar to your configuration. }
     property NavigationType: TNavigationType
       read GetNavigationType write SetNavigationType
-      default ntNone; deprecated 'create own instances of TCastleNavigation descendants to change the navigation';
+      default ntNone; {$ifdef FPC}deprecated 'create own instances of TCastleNavigation descendants to change the navigation';{$endif}
 
     { Convert 2D position on the viewport into 3D "world coordinates",
       by colliding camera ray with a plane parallel to the viewport at given Depth.
@@ -1149,7 +1149,7 @@ type
       By default it is @false, which means that you control @link(Navigation) on your own.
     }
     property AutoNavigation: Boolean
-      read FAutoNavigation write SetAutoNavigation default false; deprecated 'unless you implement an X3D browser, it is better to configure Navigation explicitly';
+      read FAutoNavigation write SetAutoNavigation default false; {$ifdef FPC}deprecated 'unless you implement an X3D browser, it is better to configure Navigation explicitly';{$endif}
 
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
