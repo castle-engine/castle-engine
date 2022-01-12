@@ -179,9 +179,9 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  if Event.IsKey('c') then
+  if Event.IsKey(keyR) then
   begin
-    CarTransforms[1].Exists := not CarTransforms[1].Exists;
+    RoadScene.Exists := not RoadScene.Exists;
     Exit(true);
   end;
 
