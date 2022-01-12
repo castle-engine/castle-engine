@@ -1616,7 +1616,7 @@ begin
       SpriteSheetEditorForm.Close; // not needed on GTK2, maybe add ifdef?
     end;
 
-    Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
+    Release; // do not call MenuItemDesignClose, to avoid OnCloseQuery
     ChooseProjectForm.Show;
   end;
 end;
