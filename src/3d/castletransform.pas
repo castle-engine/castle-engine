@@ -32,6 +32,8 @@ type
   {$I castletransform_transformlist.inc}
   {$I castletransform_transform.inc}
   {$I castletransform_abstractroottransform.inc}
+  {$I castletransform_design.inc}
+  {$I castletransform_reference.inc}
 
 {$I castletransform_physics.inc}
 {$I castletransform_serialize.inc}
@@ -40,7 +42,8 @@ type
 
 implementation
 
-uses CastleLog, CastleQuaternions, X3DTriangles, CastleApplicationProperties;
+uses CastleLog, CastleQuaternions, X3DTriangles, CastleApplicationProperties,
+  CastleURIUtils;
 
 {$define read_implementation}
 {$I castletransform_initial_types.inc}
@@ -52,6 +55,8 @@ uses CastleLog, CastleQuaternions, X3DTriangles, CastleApplicationProperties;
 {$I castletransform_transformlist.inc}
 {$I castletransform_transform.inc}
 {$I castletransform_abstractroottransform.inc}
+{$I castletransform_design.inc}
+{$I castletransform_reference.inc}
 {$I castletransform_miscellaneous_globals.inc}
 {$undef read_implementation}
 
@@ -59,4 +64,6 @@ initialization
   TCastleTransform.DefaultOrientation := otUpYDirectionZ;
   GlobalIdentityMatrix := TMatrix4.Identity;
   RegisterSerializableComponent(TCastleTransform, 'Transform');
+  RegisterSerializableComponent(TCastleTransformDesign, 'Transform Design (Use Another castle-transform File)');
+  RegisterSerializableComponent(TCastleTransformReference, 'Reference Another Transform');
 end.

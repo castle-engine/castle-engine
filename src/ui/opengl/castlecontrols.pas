@@ -121,7 +121,7 @@ initialization
   RegisterSerializableComponent(TCastleScrollViewManual, 'Scroll View Manual');
   RegisterSerializableComponent(TCastleCheckbox, 'Checkbox');
   RegisterSerializableComponent(TCastleSwitchControl, 'Switch');
-  RegisterSerializableComponent(TCastleDesign, 'Design (Reference Another castle-user-interface File)');
+  RegisterSerializableComponent(TCastleDesign, 'Design (Use Another castle-user-interface File)');
 finalization
   FinalizationUIFonts;
   FinalizationClipboard;

@@ -129,7 +129,6 @@ contains
   castleopendocument in '..\..\src\services\castleopendocument.pas',
   castleinternalgeometryarrays in '..\..\src\3d\castleinternalgeometryarrays.pas',
   castletriangulate in '..\..\src\3d\castletriangulate.pas',
-  castletransformextra in '..\..\src\game\castletransformextra.pas',
   castleinternalrenderer in '..\..\src\x3d\opengl\castleinternalrenderer.pas',
   castlerendererinternallights in '..\..\src\x3d\opengl\castlerendererinternallights.pas',
   castlerendererinternalshader in '..\..\src\x3d\opengl\castlerendererinternalshader.pas',

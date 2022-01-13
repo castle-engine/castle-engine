@@ -47,7 +47,7 @@ uses SysUtils, Classes, TypInfo, Forms,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
-  CastleTiledMap, CastleGLImages, CastleStringUtils, CastleTransformExtra,
+  CastleTiledMap, CastleGLImages, CastleStringUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts;
 
 {$define read_implementation}

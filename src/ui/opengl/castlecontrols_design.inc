@@ -20,7 +20,7 @@
     (by the @link(URL) property).
 
     The file should be in the format created by Castle Game Engine Editor
-    (see CastleComponentSerialize unit) with .castle-user-interface extension. }
+    (serialized by CastleComponentSerialize routines) with .castle-user-interface extension. }
   TCastleDesign = class(TCastleUserInterface)
   strict private
     FDesign: TCastleUserInterface;
