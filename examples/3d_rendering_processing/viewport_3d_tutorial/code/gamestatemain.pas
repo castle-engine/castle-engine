@@ -58,8 +58,6 @@ begin
   { Find components, by name, that we need to access from code }
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
   WalkNavigation1 := DesignedComponent('WalkNavigation1') as TCastleWalkNavigation;
-
-  WalkNavigation1.MouseLook := true;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -74,24 +72,8 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TStateMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
-
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
-  begin
-    // DoSomething;
-    Exit(true); // key was handled
-  end;
-  }
+  if Event.IsMouseButton(buttonRight) then
+    WalkNavigation1.MouseLook := not WalkNavigation1.MouseLook;
 end;
 
 end.

@@ -9,9 +9,9 @@
         "$$ClassName" : "TCastleCamera",
         "InitialDirectionPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 5.7415705919265747E-001,
-          "Y" : 2.4400508280564281E-008,
-          "Z" : -8.1874519586563110E-001
+          "X" : 5.1960802078247070E-001,
+          "Y" : 9.9777217599239520E-009,
+          "Z" : -8.5440480709075928E-001
         },
         "InitialPositionPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
@@ -21,6 +21,7 @@
         },
         "InitialUpPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 2.9802318834981634E-008,
           "Z" : 2.9802322387695312E-008
         },
         "Name" : "Camera",
