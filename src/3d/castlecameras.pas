@@ -1466,6 +1466,7 @@ type
     FMouseLook: boolean;
     procedure SetMouseLook(const Value: boolean);
   protected
+    function UsingMouseLook: Boolean;
     procedure ProcessMouseLookDelta(const Delta: TVector2); virtual;
   public
     const
@@ -1481,7 +1482,11 @@ type
 
       This also makes mouse cursor of Container hidden, and forces
       mouse position to the middle of the window
-      (to avoid the situation when mouse movement is blocked by screen borders). }
+      (to avoid the situation when mouse movement is blocked by screen borders).
+
+      Setting this property at design-time (in CGE editor) does not activate
+      the mouse look in CGE editor.
+      It only controls the mouse look once the application is running. }
     property MouseLook: boolean read FMouseLook write SetMouseLook default false;
 
     { Mouse look sensitivity, if @link(MouseLook) is working.
@@ -4006,7 +4011,7 @@ procedure TCastleMouseLookNavigation.Update(const SecondsPassed: Single;
 
   procedure MouseLookUpdate;
   begin
-    if MouseLook and (Container <> nil) then
+    if UsingMouseLook and (Container <> nil) then
       Container.MouseLookUpdate;
   end;
 
@@ -4020,12 +4025,13 @@ begin
   if FMouseLook <> Value then
   begin
     FMouseLook := Value;
-    if FMouseLook then
-      Cursor := mcForceNone
-    else
+    if UsingMouseLook then
+    begin
+      Cursor := mcForceNone;
+      if Container <> nil then
+        Container.MouseLookPress;
+    end else
       Cursor := mcDefault;
-    if Container <> nil then
-      Container.MouseLookPress;
   end;
 end;
 
@@ -4058,7 +4064,7 @@ begin
   if Result or (Event.FingerIndex <> 0) then Exit;
 
   if (niNormal in Input) and
-    MouseLook and
+    UsingMouseLook and
     Container.Focused and
     ContainerSizeKnown and
     (not Camera.Animation) then
@@ -4066,6 +4072,11 @@ begin
     HandleMouseLook;
     Exit;
   end;
+end;
+
+function TCastleMouseLookNavigation.UsingMouseLook: Boolean;
+begin
+  Result := MouseLook and not CastleDesignMode;
 end;
 
 { TCastleWalkNavigation ---------------------------------------------------------------- }
@@ -4485,7 +4496,7 @@ end;
 
 function TCastleWalkNavigation.ReallyEnableMouseDragging: boolean;
 begin
-  Result := (inherited ReallyEnableMouseDragging) and not MouseLook;
+  Result := (inherited ReallyEnableMouseDragging) and not UsingMouseLook;
 end;
 
 procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
@@ -5462,7 +5473,7 @@ begin
     // ReallyEnableMouseDragging and
     (MouseDragMode = mdRotate) and
     (not Camera.Animation) and
-    (not MouseLook) then
+    (not UsingMouseLook) then
   begin
     HandleMouseDrag;
     Result := ExclusiveEvents;
@@ -5495,7 +5506,7 @@ begin
      (PropertyName = 'MouseDragMode') or
      (PropertyName = 'RotationHorizontalSpeed') or
      (PropertyName = 'RotationVerticalSpeed') or
-     // 'MouseLook', // hard to get out of it, as it captures mouse
+     (PropertyName = 'MouseLook') or
      (PropertyName = 'MouseLookHorizontalSensitivity') or
      (PropertyName = 'MouseLookVerticalSensitivity') or
      (PropertyName = 'InvertVerticalMouseLook') then
