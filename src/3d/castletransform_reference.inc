@@ -109,11 +109,19 @@ begin
         HasParent would be faster, but would depend on FParent, and we don't want to depend on it
         when things may have multiple parents. }
       if HasChild(Value, Self) then
-        raise Exception.CreateFmt('Cannot make a reference to %s (%s), as it is a parent of %s (TCastleTransformReference)', [
-          Value.Name,
-          Value.ClassName,
-          Name
-        ]);
+      begin
+        if Value = Self then
+          raise Exception.CreateFmt('TCastleTransformReference (%s) cannot have a Reference set to itself', [
+            Name
+          ])
+        else
+          raise Exception.CreateFmt('Cannot make a reference to %s (%s), as it is a parent of %s (TCastleTransformReference)', [
+            Value.Name,
+            Value.ClassName,
+            Name
+          ]);
+      end;
+
       if (Value.World <> nil) and (World <> nil) and (Value.World <> World) then
         raise Exception.CreateFmt('Cannot make a reference to %s (%s), as it is in a different viewport than %s (TCastleTransformReference)', [
           Value.Name,
