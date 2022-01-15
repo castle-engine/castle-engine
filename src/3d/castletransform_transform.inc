@@ -91,6 +91,7 @@
       FExcludeFromGlobalLights, FExcludeFromStatistics,
         FInternalExcludeFromParentBoundingVolume: boolean;
       FWorld: TCastleAbstractRootTransform;
+      { How many times this is a child in the FWorld, counting all possible paths in transformation tree. }
       FWorldReferences: Cardinal;
       FList: TCastleTransformList;
       FBehaviors: TComponentList;
@@ -127,6 +128,15 @@
       FLastParentWorldTransformation: TTransformation;
       FLastParentWorldTransformationId: Cardinal;
 
+      { "Meaningul" parent is a parent that competes to be a value of FParent (UniqueParent property).
+        This allows to avoid TCastleTransformReference from being considered
+        a meaningful parent, so that transforms under TCastleTransformReference
+        can still have useful FParent, Parent, UniqueParent, WorldTransform and more
+        (so that they work e.g. in editor nicely, with physics nicely etc.)
+
+        This can change only after construction, before any children are actually added to this. }
+      MeaningfulParent: Boolean;
+
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
     procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -161,15 +171,31 @@
     procedure InternalTransformation(out T: TTransformation);
     { Update our FWorldTransformation, FWorldTransformationId. }
     procedure UpdateWorldTransformation;
-    { Return non-nil parent, making sure it's valid. }
+    { Return non-nil parent, making sure it's valid.
+      It's equivalent to @link(UniqueParent), except it makes exception instead of returning @nil. }
     function Parent: TCastleTransform;
     procedure WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
-    { Change to new world, or (if not needed) just increase FWorldReferences.
+
+    { Update FWorld, FWorldReferences.
+      This is recursively called on all children as well.
       Value must not be @nil. }
     procedure AddToWorld(const Value: TCastleAbstractRootTransform);
-    { Decrease FWorldReferences, then (if needed) change world to @nil.
+    { Update FWorld, FWorldReferences.
+      This is recursively called on all children as well.
       Value must not be @nil. }
     procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
+
+    { Add a new parent.
+      Updates FParent, FWorld, FWorldReferences.
+      This is not recursively called on all children -- only the AddToWorld, a subset of this, is recursive.
+      NewParent must not be @nil. }
+    procedure AddParent(const NewParent: TCastleTransform);
+    { Remove parent, previously added by AddParent.
+      Updates FParent, FWorld, FWorldReferences.
+      This is not recursively called on all children -- only the RemoveFromWorld, a subset of this, is recursive.
+      OldParent must not be @nil. }
+    procedure RemoveParent(const OldParent: TCastleTransform);
+
     procedure RemoveBehaviorIndex(const BehaviorIndex: Integer);
     procedure SetListenPressRelease(const Value: Boolean);
     function GetBehaviors(const Index: Integer): TCastleBehavior;
@@ -528,15 +554,30 @@
     procedure Exchange(const Index1, Index2: Integer);
     { @groupEnd }
 
-    { Return parent TCastleTransform, but only if this TCastleTransform
-      is a child of exactly one other TCastleTransform.
+    { Return parent TCastleTransform.
+      It ignores (never returns) parents caused by referencing transform in TCastleTransformReference.
+      If there is (or was, at some point) more than 1 parent (not counting parents
+      caused by TCastleTransformReference) then it may return nil, or any of the existing parents
+      -- it is undefined which exactly.
 
-      In general, the same TCastleTransform instance may be used
+      In simple cases, one TCastleTransform is just a child of one other
+      TCastleTransform, and then this property returns this obvios parent.
+
+      In general, one TCastleTransform instance may be used
       multiple times as a child of other TCastleTransform instances
-      (as long as they are all within the same TCastleViewport),
-      in which case this property is @nil.
+      (as long as they are all within the same TCastleViewport).
+      The parent TCastleTransform instances may include TCastleTransformReference
+      (this allows to create multiple references to one TCastleTransform from editor)
+      but in general any parents are allowed
+      (when you use code, you can just insert TCastleTransform as a child of other TCastleTransform,
+      without the need for TCastleTransformReference).
 
-      It is also @nil if this is the root transform, not added to any parent. }
+      This property indicates the one parent that is @italic(not) TCastleTransformReference.
+      If there are multiple such parents (this is impossible at design-time in editor,
+      but it is possible at runtime if you add/remove TCastleTransform children by code)
+      then this returns @nil or any of existing parents.
+
+      It is @nil if this is just the root transform, not added to any parent. }
     property UniqueParent: TCastleTransform read FParent;
 
     { Sort objects back-to-front @italic(right now)
@@ -1752,6 +1793,7 @@ begin
   FOnlyTranslation := true;
   FScale := NoScale;
   FOrientation := DefaultOrientation;
+  MeaningfulParent := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
@@ -1874,6 +1916,41 @@ begin
   if FList <> nil then // when one list is within another, this may be called during own destruction by TCastleTransformList.Notify
     for I := 0 to List.Count - 1 do
       List[I].RemoveFromWorld(Value);
+end;
+
+procedure TCastleTransform.AddParent(const NewParent: TCastleTransform);
+begin
+  { Assign FParent before calling AddToWorld
+    (that may cause PhysicsChangeWorldAttach that may use Parent).
+    We check MeaningfulParent, so that adding children to TCastleTransformReference
+    will not change parent. }
+  if NewParent.MeaningfulParent then
+    FParent := NewParent;
+
+  if NewParent.World <> nil then
+    AddToWorld(NewParent.World);
+
+  FreeNotification(NewParent);
+end;
+
+procedure TCastleTransform.RemoveParent(const OldParent: TCastleTransform);
+begin
+  if (OldParent.World <> nil) and
+     { It is possible that "World <> OldParent.World" when Self is getting
+       freed and has World set to nil in constructor already. }
+     (World = OldParent.World) then
+    RemoveFromWorld(OldParent.World);
+
+  { Clear FParent only if previous parent matched OldParent.
+    This way removing from TCastleTransformReference will not change FParent. }
+  if FParent = OldParent then
+    FParent := nil;
+
+  { Do not call RemoveFreeNotification when OldParent is equal to World,
+    this would prevent getting notification when FWorld is set to nil in
+    TCastleTransform.Notification. }
+  if World <> OldParent then
+    RemoveFreeNotification(OldParent);
 end;
 
 procedure TCastleTransform.ChangeWorld(const Value: TCastleAbstractRootTransform);
@@ -2412,26 +2489,28 @@ end;
 
 function TCastleTransform.Parent: TCastleTransform;
 begin
-  if FWorldReferences <> 1 then
-  begin
-    if FWorldReferences = 0 then
-      raise ENotAddedToWorld.Create('Parent (and WorldTransform) not available: This instance is not yet added to Viewport.Items')
-    else
-      raise EMultipleReferencesInWorld.Create('Parent (and WorldTransform) not available: This instance is added multiple times to Viewport.Items, it does not have a single Parent value');
-  end;
+  { We no longer check here FWorldReferences = 1.
+    As FWorldReferences > 1 even when we're child of 1 normal transform
+    and multiple TCastleTransformReference.
+
+    Also, this makes UniqueParent a simple property that just returns FParent
+    without checking for nil.
+    Otherwise, UniqueParent had to return FParent or nil, depending on FWorldReferences,
+    making things more complicated. }
+
   if FParent = nil then
   begin
     if Self = World then
       raise ETransformParentUndefined.Create('Parent not available: This is the root node (World)')
     else
-      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to Viewport.Items (it lost link to Parent)');
+      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to Viewport.Items (references through TCastleTransformReference are not counted here). To have a UniqueParent, add it only once (you can still use TCastleTransformReference to have more instances).');
   end;
   Result := FParent;
 end;
 
 function TCastleTransform.HasWorldTransform: boolean;
 begin
-  Result := (Self = World) or ((FWorldReferences = 1) and (FParent <> nil));
+  Result := (Self = World) or (FParent <> nil);
 end;
 
 procedure TCastleTransform.UpdateWorldTransformation;

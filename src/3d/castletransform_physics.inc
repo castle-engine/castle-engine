@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2021 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -773,8 +773,8 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 begin
   Assert(FKraftBody = nil, 'Kraft body is initialized!');
 
-  if Transform.FWorldReferences > 1 then
-    raise EMultipleReferencesInWorld.Create('Do not use RigidBody physics with objects (TCastleScene or TCastleTransform) inserted multiple times into the Viewport.Items');
+  if Transform.UniqueParent = nil then
+    raise EMultipleReferencesInWorld.Create('Cannot use physics with TCastleTransform instances inserted multiple times into the Viewport.Items. Use TCastleTransformReference to refer to the TCastleTransform multiple times, or clone the instance instead of referencing it multiple times.');
 
   FTransform := Transform;
   RecreateKraftInstance;

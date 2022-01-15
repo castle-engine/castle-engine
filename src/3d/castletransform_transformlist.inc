@@ -54,35 +54,8 @@ begin
     B := TCastleTransform(Ptr);
 
     case Action of
-      lnAdded:
-        begin
-          { assign FParent before calling AddToWorld
-            (that may cause PhysicsChangeWorldAttach that may use Parent). }
-          B.FParent := Owner;
-          if Owner.World <> nil then
-            B.AddToWorld(Owner.World);
-          { Register Owner to be notified of item destruction. }
-          B.FreeNotification(Owner);
-        end;
-      lnExtracted, lnDeleted:
-        begin
-          if (Owner.World <> nil) and
-             { It is possible that "B.World <> Owner.World" when B is getting
-               freed and has World set to nil in constructor already. }
-             (B.World = Owner.World) then
-            B.RemoveFromWorld(Owner.World);
-          { It may seem that setting Parent to nil is not really needed,
-            nothing should use it when FWorldReferences <> 1.
-            But what if FWorldReferences was > 1
-            but then it goes back FWorldReferences = 1, we don't want to suddenly
-            use FParent that was not watched (it may be invalid reference by now). }
-          B.FParent := nil;
-          { Do not call RemoveFreeNotification when Owner is equal to B.World,
-            this would prevent getting notification when to nil FWorld in
-            TCastleTransform.Notification. }
-          if B.World <> Owner then
-            B.RemoveFreeNotification(Owner);
-        end;
+      lnAdded: B.AddParent(Owner);
+      lnExtracted, lnDeleted: B.RemoveParent(Owner);
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TCastleTransformList.Notify action?');
       {$endif}

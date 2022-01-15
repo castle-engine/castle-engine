@@ -65,6 +65,10 @@ begin
     This way we avoid serializing it easily. }
   FReferenceWrapper := TCastleTransform.Create(Self);
   FReferenceWrapper.SetTransient;
+  { This means that TCastleTransformReference will not modify children's UniqueParent,
+    which in turn means it will nicely work in CGE editor (both the referenced
+    transform directly, and the one wrapped in TCastleTransformReference). }
+  FReferenceWrapper.MeaningfulParent := false;
   Add(FReferenceWrapper);
 end;
 
