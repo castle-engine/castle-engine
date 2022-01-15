@@ -173,7 +173,7 @@
     procedure UpdateWorldTransformation;
     { Return non-nil parent, making sure it's valid.
       It's equivalent to @link(UniqueParent), except it makes exception instead of returning @nil. }
-    function Parent: TCastleTransform;
+    function CheckParent: TCastleTransform;
     procedure WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
 
     { Update FWorld, FWorldReferences.
@@ -2487,7 +2487,7 @@ begin
   Result := FWorldTransformation.InverseTransform;
 end;
 
-function TCastleTransform.Parent: TCastleTransform;
+function TCastleTransform.CheckParent: TCastleTransform;
 begin
   { We no longer check here FWorldReferences = 1.
     As FWorldReferences > 1 even when we're child of 1 normal transform
@@ -2534,7 +2534,7 @@ begin
   if not IsWorld then
   begin
     // first, update FLastParentWorldTransform*
-    Par := Parent;
+    Par := CheckParent;
     Par.UpdateWorldTransformation;
     if FLastParentWorldTransformationId <> Par.FWorldTransformationId then
     begin

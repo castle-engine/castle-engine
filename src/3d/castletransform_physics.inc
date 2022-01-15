@@ -1017,7 +1017,7 @@ procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPass
   begin
     Shape := FCollider.FKraftShape;
 
-    LocalTransform := Transform.Parent.WorldInverseTransform *
+    LocalTransform := Transform.CheckParent.WorldInverseTransform *
       MatrixFromKraft(Shape.InterpolatedWorldTransform);
 
     MatrixDecompose(LocalTransform, Translation, Rotation, Scale);
