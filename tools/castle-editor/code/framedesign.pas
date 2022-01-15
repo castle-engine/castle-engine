@@ -1766,7 +1766,7 @@ procedure TDesignFrame.DuplicateComponent;
     ComponentString: String;
     InsertIndex: Integer;
   begin
-    ParentComp := Selected.UniqueParent;
+    ParentComp := Selected.Parent;
     if ParentComp = nil then
     begin
       ErrorBox('To duplicate, select component with exactly one parent');
@@ -3449,24 +3449,24 @@ var
         begin
           if not ContainsRecursive(Src, Dst) then
           begin
-            if Src.UniqueParent <> nil then
-              Src.UniqueParent.Remove(Src);
+            if Src.Parent <> nil then
+              Src.Parent.Remove(Src);
             Dst.Add(Src);
             Refresh;
           end;
         end;
       tnsBottom, tnsTop:
         begin
-          if (Dst.UniqueParent <> nil) and
-             not ContainsRecursive(Src, Dst.UniqueParent) then
+          if (Dst.Parent <> nil) and
+             not ContainsRecursive(Src, Dst.Parent) then
           begin
-            if Src.UniqueParent <> nil then
-              Src.UniqueParent.Remove(Src);
-            Index := Dst.UniqueParent.List.IndexOf(Dst);
+            if Src.Parent <> nil then
+              Src.Parent.Remove(Src);
+            Index := Dst.Parent.List.IndexOf(Dst);
             Assert(Index <> -1);
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
-            Dst.UniqueParent.Insert(Index, Src);
+            Dst.Parent.Insert(Index, Src);
             Refresh;
           end;
         end;

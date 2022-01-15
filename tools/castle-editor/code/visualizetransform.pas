@@ -193,7 +193,7 @@ begin
     VisualizePick.Exists := Result;
     if Result then
     begin
-      // Intersection is in UniqueParent coordinate space, i.e. ignores our gizmo scale
+      // Intersection is in Parent coordinate space, i.e. ignores our gizmo scale
       VisualizePick.Translation := OutsideToLocal(Intersection);
       WritelnLog('VisualizePick with %s', [Intersection.ToString]);
       WritelnLog('Line 1: %s %s, line 2 %s %s', [
@@ -256,7 +256,7 @@ function TVisualizeTransform.TGizmoScene.LocalRayCollision(
 begin
   Result := inherited;
   { Hack to make picking of the gizmo work even when gizmo is obscured
-    by other TCastleTransform (including bbox of UniqueParent, which is what
+    by other TCastleTransform (including bbox of Parent, which is what
     we actually want to transform).
     Hacking Distance to be smallest possible means that it "wins"
     when TCastleTransform.LocalRayCollision desides which collision
@@ -324,15 +324,15 @@ var
   begin
     if GizmoScalingAssumeScale then
     begin
-      OldScale := UniqueParent.Scale;
-      UniqueParent.Scale := GizmoScalingAssumeScaleValue;
+      OldScale := Parent.Scale;
+      Parent.Scale := GizmoScalingAssumeScaleValue;
     end;
   end;
 
   procedure EndWorldTransform;
   begin
     if GizmoScalingAssumeScale then
-      UniqueParent.Scale := OldScale;
+      Parent.Scale := OldScale;
   end;
 
   function GetPerspectiveGizmoScale(const Camera: TCastleCamera; const BaseGizmoScale: Single): Single;
@@ -418,7 +418,7 @@ begin
     begin
       { We just want gizmo is about 15% of effective height }
       GizmoScale := 0.15 * Camera.Orthographic.EffectiveHeight;
-      ScaleUniform := UniqueParent.WorldToLocalDistance(GizmoScale);
+      ScaleUniform := Parent.WorldToLocalDistance(GizmoScale);
     end else
     begin
       GizmoScale := 0.25 {TODO:* Camera.Perspective.EffeectiveFieldOfViewVertical};
@@ -506,7 +506,7 @@ begin
           During a single drag, we behave like Scale is constant.
           Gizmo will be correctly scaled when you release. }
         GizmoScalingAssumeScale := true;
-        GizmoScalingAssumeScaleValue := UniqueParent.Scale;
+        GizmoScalingAssumeScaleValue := Parent.Scale;
       end;
       GizmoDragging := true;
       // keep tracking pointing device events, by TCastleViewport.CapturePointingDevice mechanism
@@ -542,23 +542,23 @@ begin
           begin
             Diff := NewPick - LastPick;
             { Our gizmo display and interaction is affected by existing
-              UniqueParent.Rotation although the UniqueParent.Translation
+              Parent.Rotation although the Parent.Translation
               is applied before rotation technically.
               So we need to manually multiply Diff by curent rotation. }
-            Diff := RotatePointAroundAxis(UniqueParent.Rotation, Diff);
+            Diff := RotatePointAroundAxis(Parent.Rotation, Diff);
             if DraggingCoord >= 0 then
               { We need to apply only scale in 1 axis,
                 https://forum.castle-engine.io/t/creating-a-non-linear-strategic-adventure/403/22 }
-              Diff := Diff * UniqueParent.Scale[DraggingCoord]
+              Diff := Diff * Parent.Scale[DraggingCoord]
             else
-              Diff := Diff * UniqueParent.Scale;
-            UniqueParent.Translation := UniqueParent.Translation + Diff;
+              Diff := Diff * Parent.Scale;
+            Parent.Translation := Parent.Translation + Diff;
           end;
         voRotate:
           begin
             DiffAngle := NewPickAngle - LastPickAngle;
-            UniqueParent.Rotation := (
-              QuatFromAxisAngle(UniqueParent.Rotation) *
+            Parent.Rotation := (
+              QuatFromAxisAngle(Parent.Rotation) *
               QuatFromAxisAngle(TVector3.One[DraggingCoord], DiffAngle)).
               ToAxisAngle;
           end;
@@ -569,14 +569,14 @@ begin
                 Diff[I] := 1
               else
                 Diff[I] := NewPick[I] / LastPick[I];
-            UniqueParent.Scale := UniqueParent.Scale * Diff;
+            Parent.Scale := Parent.Scale * Diff;
           end;
       end;
 
       { No point in updating LastPick or LastPickAngle:
         it remains the same, as it is expressed
         in local coordinate system, which we just changed by changing
-        UniqueParent.Translation. }
+        Parent.Translation. }
 
       // update our gizmo size, as we moved ourselves
       UpdateSize;

@@ -324,10 +324,10 @@ begin
     - Spatialize value changes
   }
 
-  if Scene <> SoundSourceTransform.UniqueParent then
+  if Scene <> SoundSourceTransform.Parent then
   begin
-    if SoundSourceTransform.UniqueParent <> nil then
-      SoundSourceTransform.UniqueParent.Remove(SoundSourceTransform);
+    if SoundSourceTransform.Parent <> nil then
+      SoundSourceTransform.Parent.Remove(SoundSourceTransform);
     if Scene <> nil then
       Scene.Add(SoundSourceTransform);
   end;

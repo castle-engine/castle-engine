@@ -130,11 +130,11 @@ begin
   if Camera <> nil then
   begin
     GetView(P, D, U);
-    if UniqueParent <> nil then
+    if Parent <> nil then
     begin
-      P := UniqueParent.LocalToWorld(P);
-      D := UniqueParent.LocalToWorldDirection(D);
-      U := UniqueParent.LocalToWorldDirection(U);
+      P := Parent.LocalToWorld(P);
+      D := Parent.LocalToWorldDirection(D);
+      U := Parent.LocalToWorldDirection(U);
     end;
     Camera.SetView(P, D, U);
   end;
@@ -148,11 +148,11 @@ begin
   if Camera  <> nil then
   begin
     Camera.GetView(P, D, U);
-    if UniqueParent <> nil then
+    if Parent <> nil then
     begin
-      P := UniqueParent.WorldToLocal(P);
-      D := UniqueParent.WorldToLocalDirection(D);
-      U := UniqueParent.WorldToLocalDirection(U);
+      P := Parent.WorldToLocal(P);
+      D := Parent.WorldToLocalDirection(D);
+      U := Parent.WorldToLocalDirection(U);
     end;
     Inc(InsideSynchronizeFromCamera);
     SetView(P, D, U);  // this causes ChangedTransform which causes SynchronizeToCamera

@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2020, 2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -830,7 +830,7 @@ var
     TargetDir := Camera.Direction;
     if AimAvatar = aaHorizontal then
       TargetDir := ToGravityPlane(TargetDir, Camera.GravityUp);
-    TargetDir := A.UniqueParent.WorldToLocalDirection(TargetDir);
+    TargetDir := A.Parent.WorldToLocalDirection(TargetDir);
 
     Angle := AngleRadBetweenVectors(TargetDir, A.Direction);
     if Angle > AngleEpsilon then

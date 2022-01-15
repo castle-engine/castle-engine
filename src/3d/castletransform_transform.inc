@@ -128,10 +128,10 @@
       FLastParentWorldTransformation: TTransformation;
       FLastParentWorldTransformationId: Cardinal;
 
-      { "Meaningul" parent is a parent that competes to be a value of FParent (UniqueParent property).
+      { "Meaningul" parent is a parent that competes to be a value of Parent.
         This allows to avoid TCastleTransformReference from being considered
         a meaningful parent, so that transforms under TCastleTransformReference
-        can still have useful FParent, Parent, UniqueParent, WorldTransform and more
+        can still have useful Parent, WorldTransform and more
         (so that they work e.g. in editor nicely, with physics nicely etc.)
 
         This can change only after construction, before any children are actually added to this. }
@@ -172,7 +172,7 @@
     { Update our FWorldTransformation, FWorldTransformationId. }
     procedure UpdateWorldTransformation;
     { Return non-nil parent, making sure it's valid.
-      It's equivalent to @link(UniqueParent), except it makes exception instead of returning @nil. }
+      It's equivalent to @link(Parent), except it makes exception instead of returning @nil. }
     function CheckParent: TCastleTransform;
     procedure WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
 
@@ -578,7 +578,9 @@
       then this returns @nil or any of existing parents.
 
       It is @nil if this is just the root transform, not added to any parent. }
-    property UniqueParent: TCastleTransform read FParent;
+    property Parent: TCastleTransform read FParent;
+
+    {$ifdef FPC}property UniqueParent: TCastleTransform read FParent; deprecated 'use Parent';{$endif}
 
     { Sort objects back-to-front @italic(right now)
       following one of the blending sorting algorithms.
@@ -899,7 +901,7 @@
 
       This is expressed in the parent coordinate system
       (so it is close to the @link(Translation) value, but moved up, following GravityUp).
-      It ignores parent transformations (using @code(Transform.UniqueParent.LocalToWorld(Transform.Middle))
+      It ignores parent transformations (using @code(Transform.Parent.LocalToWorld(Transform.Middle))
       to convert this to world coordinates. }
     function Middle: TVector3; virtual;
 
@@ -2047,12 +2049,12 @@ function TCastleTransform.Height(const MyPosition: TVector3;
 var
   MyPositionWorld: TVector3;
 begin
-  MyPositionWorld := UniqueParent.LocalToWorld(MyPosition);
+  MyPositionWorld := Parent.LocalToWorld(MyPosition);
   Disable;
   try
     Result := World.WorldHeight(MyPositionWorld, AboveHeight, AboveGround);
     if Result then
-      AboveHeight := UniqueParent.WorldToLocalDistance(AboveHeight);
+      AboveHeight := Parent.WorldToLocalDistance(AboveHeight);
   finally Enable end;
 end;
 
@@ -2060,8 +2062,8 @@ function TCastleTransform.LineOfSight(const Pos1, Pos2: TVector3): boolean;
 var
   Pos1World, Pos2World: TVector3;
 begin
-  Pos1World := UniqueParent.LocalToWorld(Pos1);
-  Pos2World := UniqueParent.LocalToWorld(Pos2);
+  Pos1World := Parent.LocalToWorld(Pos1);
+  Pos2World := Parent.LocalToWorld(Pos2);
   Disable;
   try
     Result := World.WorldLineOfSight(Pos1World, Pos2World);
@@ -2077,10 +2079,10 @@ var
   OldBox, NewBox: TBox3D;
   OldPosWorld, ProposedNewPosWorld, NewPosWorld: TVector3;
 begin
-  Assert(UniqueParent <> nil, 'Need to know world transformation before MoveAllowed');
+  Assert(Parent <> nil, 'Need to know world transformation before MoveAllowed');
 
-  OldPosWorld := UniqueParent.LocalToWorld(OldPos);
-  ProposedNewPosWorld := UniqueParent.LocalToWorld(ProposedNewPos);
+  OldPosWorld := Parent.LocalToWorld(OldPos);
+  ProposedNewPosWorld := Parent.LocalToWorld(ProposedNewPos);
 
   { Save bounding volume information before calling Disable, as Disable makes
     bounding volume empty }
@@ -2090,7 +2092,7 @@ begin
   OldBox := WorldBoundingBox;
   NewBox := OldBox.Translate(ProposedNewPosWorld - OldPosWorld);
 
-  SpRadiusWorld := UniqueParent.LocalToWorldDistance(SpRadius);
+  SpRadiusWorld := Parent.LocalToWorldDistance(SpRadius);
 
   Disable;
   try
@@ -2099,7 +2101,7 @@ begin
   finally Enable end;
 
   if Result then
-    NewPos := UniqueParent.WorldToLocal(NewPosWorld);
+    NewPos := Parent.WorldToLocal(NewPosWorld);
 end;
 
 function TCastleTransform.MoveAllowed(const OldPos, NewPos: TVector3;
@@ -2129,8 +2131,8 @@ function TCastleTransform.Ray(
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
 begin
-  RayOriginWorld := UniqueParent.LocalToWorld(RayOrigin);
-  RayDirectionWorld := UniqueParent.LocalToWorldDirection(RayDirection);
+  RayOriginWorld := Parent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := Parent.LocalToWorldDirection(RayDirection);
   Disable;
   try
     Result := World.WorldRay(RayOriginWorld, RayDirectionWorld);
@@ -2141,8 +2143,8 @@ function TCastleTransform.RayCast(const RayOrigin, RayDirection: TVector3): TCas
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
 begin
-  RayOriginWorld := UniqueParent.LocalToWorld(RayOrigin);
-  RayDirectionWorld := UniqueParent.LocalToWorldDirection(RayDirection);
+  RayOriginWorld := Parent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := Parent.LocalToWorldDirection(RayDirection);
   Disable;
   try
     Result := World.WorldRayCast(RayOriginWorld, RayDirectionWorld);
@@ -2153,13 +2155,13 @@ function TCastleTransform.RayCast(const RayOrigin, RayDirection: TVector3; out D
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
 begin
-  RayOriginWorld := UniqueParent.LocalToWorld(RayOrigin);
-  RayDirectionWorld := UniqueParent.LocalToWorldDirection(RayDirection);
+  RayOriginWorld := Parent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := Parent.LocalToWorldDirection(RayDirection);
   Disable;
   try
     Result := World.WorldRayCast(RayOriginWorld, RayDirectionWorld, Distance);
     if Result <> nil then
-      Distance := UniqueParent.WorldToLocalDistance(Distance);
+      Distance := Parent.WorldToLocalDistance(Distance);
   finally Enable end;
 end;
 
@@ -2493,17 +2495,17 @@ begin
     As FWorldReferences > 1 even when we're child of 1 normal transform
     and multiple TCastleTransformReference.
 
-    Also, this makes UniqueParent a simple property that just returns FParent
+    Also, this makes Parent a simple property that just returns FParent
     without checking for nil.
-    Otherwise, UniqueParent had to return FParent or nil, depending on FWorldReferences,
-    making things more complicated. }
+    Otherwise, Parent would have to be a function that returns FParent or nil,
+    depending on FWorldReferences, making things more complicated. }
 
   if FParent = nil then
   begin
     if Self = World then
       raise ETransformParentUndefined.Create('Parent not available: This is the root node (World)')
     else
-      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to Viewport.Items (references through TCastleTransformReference are not counted here). To have a UniqueParent, add it only once (you can still use TCastleTransformReference to have more instances).');
+      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to Viewport.Items (references through TCastleTransformReference are not counted here). To have a Parent, add it only once (you can still use TCastleTransformReference to have more instances).');
   end;
   Result := FParent;
 end;

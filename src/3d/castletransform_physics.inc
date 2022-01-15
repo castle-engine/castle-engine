@@ -773,7 +773,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 begin
   Assert(FKraftBody = nil, 'Kraft body is initialized!');
 
-  if Transform.UniqueParent = nil then
+  if Transform.Parent = nil then
     raise EMultipleReferencesInWorld.Create('Cannot use physics with TCastleTransform instances inserted multiple times into the Viewport.Items. Use TCastleTransformReference to refer to the TCastleTransform multiple times, or clone the instance instead of referencing it multiple times.');
 
   FTransform := Transform;
@@ -1102,9 +1102,9 @@ begin
     Exit(nil);
   end;
 
-  RayOriginWorld := FTransform.UniqueParent.LocalToWorld(RayOrigin);
-  RayDirectionWorld := FTransform.UniqueParent.LocalToWorldDirection(RayDirection);
-  RayMaxDistanceWorld := FTransform.UniqueParent.LocalToWorldDistance(MaxDistance);
+  RayOriginWorld := FTransform.Parent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := FTransform.Parent.LocalToWorldDirection(RayDirection);
+  RayMaxDistanceWorld := FTransform.Parent.LocalToWorldDistance(MaxDistance);
 
   { We use ksfRayCastable flag to not hit to caster shape. }
   OldShapeFlags := Collider.FKraftShape.Flags;
@@ -1120,7 +1120,7 @@ begin
 
     if Hit then
     begin
-      Distance := FTransform.UniqueParent.WorldToLocalDistance(ResultingDistance);
+      Distance := FTransform.Parent.WorldToLocalDistance(ResultingDistance);
       Result := TRigidBody(Shape.RigidBody.UserData).FTransform;
     end else
       Result := nil;

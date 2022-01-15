@@ -329,8 +329,8 @@ function TCastleSoundSource.GetSoundPosition(const SoundHeight: Single): TVector
 begin
   Result := LerpLegsMiddle(SoundHeight);
   if (Parent <> nil) and
-     (Parent.UniqueParent <> nil) then // make sound position in world coordinates
-    Result := Parent.UniqueParent.LocalToWorld(Result);
+     (Parent.Parent <> nil) then // make sound position in world coordinates
+    Result := Parent.Parent.LocalToWorld(Result);
 end;
 
 procedure TCastleSoundSource.Play(const ASound: TCastleSound);
