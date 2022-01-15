@@ -48,6 +48,28 @@ implementation
 uses SysUtils,
   CastleBoxes, X3DNodes, CastleUtils;
 
+{ TCarBehavior --------------------------------------------------------------- }
+
+type
+  TCarBehavior = class(TCastleBehavior)
+  public
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+  end;
+
+procedure TCarBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+var
+  T: TVector3;
+begin
+  T := Parent.Translation;
+  { Thanks to multiplying by SecondsPassed, it is a time-based operation,
+    and will always move 40 units / per second along the +Z axis. }
+  T := T + Vector3(0, 0, 40) * SecondsPassed;
+  { Wrap the Z position, to move in a loop }
+  if T.Z > 70 then
+    T.Z := -50;
+  Parent.Translation := T;
+end;
+
 { TStateMain ----------------------------------------------------------------- }
 
 constructor TStateMain.Create(AOwner: TComponent);
@@ -154,35 +176,16 @@ begin
     CarTransforms[I].Translation := Vector3(
        (Random(4) - 2) * 6, 0, RandomFloatRange(-70, 50));
     CarTransforms[I].Add(CarScene);
+    CarTransforms[I].AddBehavior(TCarBehavior.Create(FreeAtStop));
     MainViewport.Items.Add(CarTransforms[I]);
   end;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
-
-  procedure UpdateCarTransform(const CarTransform: TCastleTransform);
-  var
-    T: TVector3;
-  begin
-    T := CarTransform.Translation;
-    { Thanks to multiplying by SecondsPassed, it is a time-based operation,
-      and will always move 40 units / per second along the +Z axis. }
-    T := T + Vector3(0, 0, 40) * Container.Fps.SecondsPassed;
-    { Wrap the Z position, to move in a loop }
-    if T.Z > 70 then
-      T.Z := -50;
-    CarTransform.Translation := T;
-  end;
-
-var
-  I: Integer;
 begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-
-  for I := Low(CarTransforms) to High(CarTransforms) do
-    UpdateCarTransform(CarTransforms[I]);
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
