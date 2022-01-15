@@ -48,7 +48,7 @@
     See the @link(RigidBody) for a proper rigid-bidy simulation,
     with correct gravity model and collisions with other rigid bodies. }
   TCastleTransform = class(TCastleComponent)
-  private
+  strict private
     type
       TEnumerator = record
       strict private
@@ -94,7 +94,6 @@
       { How many times this is a child in the FWorld, counting all possible paths in transformation tree. }
       FWorldReferences: Cardinal;
       FList: TCastleTransformList;
-      FBehaviors: TComponentList;
       FParent: TCastleTransform;
       FCollisionSphereRadius: Single;
       FListenPressRelease: Boolean;
@@ -114,7 +113,6 @@
       FFallSpeed: Single;
       FGrowSpeed: Single;
       FMiddleHeight: Single;
-      FRigidBody: TRigidBody;
       FOrientation: TOrientationType;
       FOnlyTranslation: boolean;
 
@@ -127,15 +125,6 @@
 
       FLastParentWorldTransformation: TTransformation;
       FLastParentWorldTransformationId: Cardinal;
-
-      { "Meaningul" parent is a parent that competes to be a value of Parent.
-        This allows to avoid TCastleTransformReference from being considered
-        a meaningful parent, so that transforms under TCastleTransformReference
-        can still have useful Parent, WorldTransform and more
-        (so that they work e.g. in editor nicely, with physics nicely etc.)
-
-        This can change only after construction, before any children are actually added to this. }
-      MeaningfulParent: Boolean;
 
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
@@ -171,10 +160,23 @@
     procedure InternalTransformation(out T: TTransformation);
     { Update our FWorldTransformation, FWorldTransformationId. }
     procedure UpdateWorldTransformation;
-    { Return non-nil parent, making sure it's valid.
-      It's equivalent to @link(Parent), except it makes exception instead of returning @nil. }
-    function CheckParent: TCastleTransform;
     procedure WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
+    procedure RemoveBehaviorIndex(const BehaviorIndex: Integer);
+    procedure SetListenPressRelease(const Value: Boolean);
+    function GetBehaviors(const Index: Integer): TCastleBehavior;
+    procedure GLContextCloseEvent(Sender: TObject);
+  private
+    { "Meaningul" parent is a parent that competes to be a value of Parent.
+      This allows to avoid TCastleTransformReference from being considered
+      a meaningful parent, so that transforms under TCastleTransformReference
+      can still have useful Parent, WorldTransform and more
+      (so that they work e.g. in editor nicely, with physics nicely etc.)
+
+      This can change only after construction, before any children are actually added to this. }
+    MeaningfulParent: Boolean;
+
+    FBehaviors: TComponentList;
+    FRigidBody: TRigidBody;
 
     { Update FWorld, FWorldReferences.
       This is recursively called on all children as well.
@@ -196,10 +198,9 @@
       OldParent must not be @nil. }
     procedure RemoveParent(const OldParent: TCastleTransform);
 
-    procedure RemoveBehaviorIndex(const BehaviorIndex: Integer);
-    procedure SetListenPressRelease(const Value: Boolean);
-    function GetBehaviors(const Index: Integer): TCastleBehavior;
-    procedure GLContextCloseEvent(Sender: TObject);
+    { Return non-nil parent, making sure it's valid.
+      It's equivalent to @link(Parent), except it makes exception instead of returning @nil. }
+    function CheckParent: TCastleTransform;
   protected
     { Call this when doing anything that allocates GL resources.
       This will make sure GLContextClose will get called. }

@@ -91,10 +91,9 @@ procedure TCastleTransformReference.SetReference(const Value: TCastleTransform);
     if Parent = Child then
       Exit(true);
 
-    if Parent.FList <> nil then
-      for I := 0 to Parent.List.Count - 1 do
-        if HasChild(Parent.List[I], Child) then
-          Exit(true);
+    for I := 0 to Parent.Count - 1 do
+      if HasChild(Parent[I], Child) then
+        Exit(true);
 
     Result := false;
   end;
