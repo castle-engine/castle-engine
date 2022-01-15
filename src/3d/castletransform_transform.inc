@@ -2506,7 +2506,7 @@ begin
     if Self = World then
       raise ETransformParentUndefined.Create('Parent not available: This is the root node (World)')
     else
-      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to Viewport.Items (references through TCastleTransformReference are not counted here). To have a Parent, add it only once (you can still use TCastleTransformReference to have more instances).');
+      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to Viewport.Items' + ' (references through TCastleTransformReference are not counted here). To have a Parent, add it only once (you can still use TCastleTransformReference to have more instances).');
   end;
   Result := FParent;
 end;
