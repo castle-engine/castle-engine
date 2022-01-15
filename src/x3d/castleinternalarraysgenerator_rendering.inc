@@ -13,6 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
+
+const
+  BoundaryModeNames: array [TBoundaryMode] of string = (
+    'CLAMP',
+    'CLAMP_TO_EDGE',
+    'CLAMP_TO_BOUNDARY',
+    'MIRRORED_REPEAT',
+    'REPEAT'
+  );
+
 { TArraysGenerator descendants implementing nodes in X3D "Rendering"
   component. }
 
