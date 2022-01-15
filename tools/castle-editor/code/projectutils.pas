@@ -110,8 +110,8 @@ procedure AddMacroXmlQuote(const Macros: TStringStringMap; const MacroName: Stri
   function XmlQuote(const S: String): String;
   begin
     Result := SReplacePatterns(S,
-      ['&', '<', '>'],
-      ['&amp;', '&lt;', '&gt;'],
+      ['&', '<', '>', '"'],
+      ['&amp;', '&lt;', '&gt;', '&quot;'],
       false { IgnoreCase; can be false, it doesn't matter, as our patterns are not letters }
     );
   end;
