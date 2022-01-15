@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -241,6 +241,10 @@
     { Camera information for renderer. }
     RenderingCamera: TRenderingCamera;
 
+    { Are we traversing now only inside parents with MeaningfulParent,
+      i.e. outside of TCastleTransformReference.Reference. }
+    InMeaningfulParent: Boolean;
+
     constructor Create;
 
     { Lights that shine on given 3D object. }
@@ -394,6 +398,7 @@ begin
   Transform := @GlobalIdentityMatrix;
   InverseTransform := @GlobalIdentityMatrix;
   TransformIdentity := true;
+  InMeaningfulParent := true;
 end;
 
 function TRenderParams.RenderTransform: TMatrix4;

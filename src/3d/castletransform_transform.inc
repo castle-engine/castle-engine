@@ -495,6 +495,19 @@
       InternalMiddleForceBox: boolean;
       { @exclude }
       InternalMiddleForceBoxValue: TBox3D;
+      { Make the transform rendered and (TODO) processed only within parents
+        that are MeaningfulParent, which means: do not enter TCastleTransformReference.Reference.
+        This is useful for debug transforms to visualize selection/gizmos to transform
+        in CGE editor.
+        It is not a complete implementation (right now it only really blocks rendering)
+        and it's generally a hack, in the future visualizing selection/gizmos
+        in CGE editor should probably not be put as parents of non-debug transforms.
+
+        This is quite internal hack for CGE editor and you should not use this
+        in your own programs.
+        It may (and probably will) disappear at some point.
+        @exclude }
+      InternalExistsOnlyInMeaningfulParents: Boolean;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2716,60 +2729,73 @@ var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
   NewParamsTransformation: TTransformation;
-  OldParamsTransformIdentity: boolean;
+  OldParamsTransformIdentity, OldInMeaningfulParent: Boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
 begin
-  T := Translation;
-  if FOnlyTranslation and T.IsZero then
-    LocalRender(Params)
-  else
+  OldInMeaningfulParent := Params.InMeaningfulParent;
+  Params.InMeaningfulParent := Params.InMeaningfulParent and
+    { We look at Parent.MeaningfulParent, not Self.MeaningfulParent,
+      because CGE editor visualizations on TCastleTransformReference.Reference
+      should still be rendered. }
+    //((Parent = nil) or Parent.MeaningfulParent);
+    MeaningfulParent;
+
+  if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
-    //FrameProfiler.Start(fmRenderTransform);
-
-    OldParamsTransformIdentity := Params.TransformIdentity;
-    OldParamsTransform         := Params.Transform;
-    OldParamsInverseTransform  := Params.InverseTransform;
-    OldFrustum                 := Params.Frustum;
-
-    NewParamsTransformation.Transform        := OldParamsTransform^;
-    NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
-    NewFrustumValue                          := OldFrustum^;
-
-    Params.TransformIdentity := false;
-    Params.Transform        := @NewParamsTransformation.Transform;
-    Params.InverseTransform := @NewParamsTransformation.InverseTransform;
-    Params.Frustum          := @NewFrustumValue;
-
-    { Update NewXxx to apply the transformation defined by this TCastleTransform.
-      LocalRender expects Frustum in local coordinates (without transformation),
-      so we subtract transformation below. }
-    if FOnlyTranslation then
+    T := Translation;
+    if FOnlyTranslation and T.IsZero then
     begin
-      NewParamsTransformation.Translate(T);
-      NewFrustumValue.MoveVar(-T);
+      LocalRender(Params);
     end else
     begin
-      InternalTransformationMult(NewParamsTransformation);
-      if IsNan(NewParamsTransformation.Transform.Data[0, 0]) then
-        WarningMatrixNan(NewParamsTransformation.Transform);
-      NewFrustumValue := NewFrustumValue.TransformByInverse(Transform);
-      // 2x slower: NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
+      //FrameProfiler.Start(fmRenderTransform);
+
+      OldParamsTransformIdentity := Params.TransformIdentity;
+      OldParamsTransform         := Params.Transform;
+      OldParamsInverseTransform  := Params.InverseTransform;
+      OldFrustum                 := Params.Frustum;
+
+      NewParamsTransformation.Transform        := OldParamsTransform^;
+      NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
+      NewFrustumValue                          := OldFrustum^;
+
+      Params.TransformIdentity := false;
+      Params.Transform        := @NewParamsTransformation.Transform;
+      Params.InverseTransform := @NewParamsTransformation.InverseTransform;
+      Params.Frustum          := @NewFrustumValue;
+
+      { Update NewXxx to apply the transformation defined by this TCastleTransform.
+        LocalRender expects Frustum in local coordinates (without transformation),
+        so we subtract transformation below. }
+      if FOnlyTranslation then
+      begin
+        NewParamsTransformation.Translate(T);
+        NewFrustumValue.MoveVar(-T);
+      end else
+      begin
+        InternalTransformationMult(NewParamsTransformation);
+        if IsNan(NewParamsTransformation.Transform.Data[0, 0]) then
+          WarningMatrixNan(NewParamsTransformation.Transform);
+        NewFrustumValue := NewFrustumValue.TransformByInverse(Transform);
+        // 2x slower: NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
+      end;
+
+      //FrameProfiler.Stop(fmRenderTransform);
+      LocalRender(Params);
+      //FrameProfiler.Start(fmRenderTransform);
+
+      { Restore OldXxx values.
+        They can be restored fast, thanks to using pointers to matrix/frustum. }
+      Params.TransformIdentity := OldParamsTransformIdentity;
+      Params.Transform         := OldParamsTransform;
+      Params.InverseTransform  := OldParamsInverseTransform;
+      Params.Frustum           := OldFrustum;
+      //FrameProfiler.Stop(fmRenderTransform);
     end;
-
-    //FrameProfiler.Stop(fmRenderTransform);
-
-    LocalRender(Params);
-
-    //FrameProfiler.Start(fmRenderTransform);
-    { Restore OldXxx values.
-      They can be restored fast, thanks to using pointers to matrix/frustum. }
-    Params.TransformIdentity := OldParamsTransformIdentity;
-    Params.Transform         := OldParamsTransform;
-    Params.InverseTransform  := OldParamsInverseTransform;
-    Params.Frustum           := OldFrustum;
-    //FrameProfiler.Stop(fmRenderTransform);
   end;
+
+  Params.InMeaningfulParent := OldInMeaningfulParent;
 end;
 
 procedure TCastleTransform.RenderShadowVolume(

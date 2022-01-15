@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -275,6 +275,7 @@ var
 {$endif DEBUG_GIZMO_PICK}
 begin
   inherited Create(AOwner);
+  InternalExistsOnlyInMeaningfulParents := true;
 
   {$ifdef DEBUG_GIZMO_PICK}
   VisualizePick := TCastleScene.Create(Self);
