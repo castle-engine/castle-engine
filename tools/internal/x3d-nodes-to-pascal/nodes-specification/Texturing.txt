@@ -129,11 +129,14 @@ TextureProperties : X3DNode {
   SFInt32     [in,out] borderWidth         0
     range: [0,1]
   SFString    [in,out] boundaryModeS       "REPEAT"
-    range: [see Table 18.7]
+    range: ["CLAMP", "CLAMP_TO_EDGE", "CLAMP_TO_BOUNDARY", "MIRRORED_REPEAT", "REPEAT"]
+    enumerated-type: TBoundaryMode BoundaryModeNames bmRepeat
   SFString    [in,out] boundaryModeT       "REPEAT"
-    range: [see Table 18.7]
+    range: ["CLAMP", "CLAMP_TO_EDGE", "CLAMP_TO_BOUNDARY", "MIRRORED_REPEAT", "REPEAT"]
+    enumerated-type: TBoundaryMode BoundaryModeNames bmRepeat
   SFString    [in,out] boundaryModeR       "REPEAT"
-    range: [see Table 18.7]
+    range: ["CLAMP", "CLAMP_TO_EDGE", "CLAMP_TO_BOUNDARY", "MIRRORED_REPEAT", "REPEAT"]
+    enumerated-type: TBoundaryMode BoundaryModeNames bmRepeat
   SFString    [in,out] magnificationFilter "FASTEST"
     range: [see Table 18.8]
   SFString    [in,out] minificationFilter  "FASTEST"

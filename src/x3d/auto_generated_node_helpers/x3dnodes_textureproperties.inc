@@ -32,12 +32,12 @@
     procedure SetBorderColor(const Value: TCastleColor);
     function GetBorderWidth: Integer;
     procedure SetBorderWidth(const Value: Integer);
-    function GetBoundaryModeS: String;
-    procedure SetBoundaryModeS(const Value: String);
-    function GetBoundaryModeT: String;
-    procedure SetBoundaryModeT(const Value: String);
-    function GetBoundaryModeR: String;
-    procedure SetBoundaryModeR(const Value: String);
+    function GetBoundaryModeS: TBoundaryMode;
+    procedure SetBoundaryModeS(const Value: TBoundaryMode);
+    function GetBoundaryModeT: TBoundaryMode;
+    procedure SetBoundaryModeT(const Value: TBoundaryMode);
+    function GetBoundaryModeR: TBoundaryMode;
+    procedure SetBoundaryModeR(const Value: TBoundaryMode);
     function GetTextureCompression: String;
     procedure SetTextureCompression(const Value: String);
     function GetTexturePriority: Single;
@@ -54,11 +54,11 @@
     { X3D field "borderWidth". } { }
     property BorderWidth: Integer read GetBorderWidth write SetBorderWidth;
     { X3D field "boundaryModeS". } { }
-    property BoundaryModeS: String read GetBoundaryModeS write SetBoundaryModeS;
+    property BoundaryModeS: TBoundaryMode read GetBoundaryModeS write SetBoundaryModeS;
     { X3D field "boundaryModeT". } { }
-    property BoundaryModeT: String read GetBoundaryModeT write SetBoundaryModeT;
+    property BoundaryModeT: TBoundaryMode read GetBoundaryModeT write SetBoundaryModeT;
     { X3D field "boundaryModeR". } { }
-    property BoundaryModeR: String read GetBoundaryModeR write SetBoundaryModeR;
+    property BoundaryModeR: TBoundaryMode read GetBoundaryModeR write SetBoundaryModeR;
     { X3D field "textureCompression". } { }
     property TextureCompression: String read GetTextureCompression write SetTextureCompression;
     { X3D field "texturePriority". } { }
@@ -104,34 +104,34 @@ begin
   FdBorderWidth.Send(Value);
 end;
 
-function TTexturePropertiesNode.GetBoundaryModeS: String;
+function TTexturePropertiesNode.GetBoundaryModeS: TBoundaryMode;
 begin
-  Result := FdBoundaryModeS.Value;
+  Result := TBoundaryMode(FdBoundaryModeS.EnumValue);
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeS(const Value: String);
+procedure TTexturePropertiesNode.SetBoundaryModeS(const Value: TBoundaryMode);
 begin
-  FdBoundaryModeS.Send(Value);
+  FdBoundaryModeS.SendEnumValue(Ord(Value));
 end;
 
-function TTexturePropertiesNode.GetBoundaryModeT: String;
+function TTexturePropertiesNode.GetBoundaryModeT: TBoundaryMode;
 begin
-  Result := FdBoundaryModeT.Value;
+  Result := TBoundaryMode(FdBoundaryModeT.EnumValue);
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeT(const Value: String);
+procedure TTexturePropertiesNode.SetBoundaryModeT(const Value: TBoundaryMode);
 begin
-  FdBoundaryModeT.Send(Value);
+  FdBoundaryModeT.SendEnumValue(Ord(Value));
 end;
 
-function TTexturePropertiesNode.GetBoundaryModeR: String;
+function TTexturePropertiesNode.GetBoundaryModeR: TBoundaryMode;
 begin
-  Result := FdBoundaryModeR.Value;
+  Result := TBoundaryMode(FdBoundaryModeR.EnumValue);
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeR(const Value: String);
+procedure TTexturePropertiesNode.SetBoundaryModeR(const Value: TBoundaryMode);
 begin
-  FdBoundaryModeR.Send(Value);
+  FdBoundaryModeR.SendEnumValue(Ord(Value));
 end;
 
 function TTexturePropertiesNode.GetTextureCompression: String;
