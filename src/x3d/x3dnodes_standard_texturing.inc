@@ -492,66 +492,18 @@
     procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
     function GetMagnificationFilter: TAutoMagnificationFilter;
     procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
-    function GetBoundaryModeS: TBoundaryMode;
-    procedure SetBoundaryModeS(const Value: TBoundaryMode);
-    function GetBoundaryModeT: TBoundaryMode;
-    procedure SetBoundaryModeT(const Value: TBoundaryMode);
-    function GetBoundaryModeR: TBoundaryMode;
-    procedure SetBoundaryModeR(const Value: TBoundaryMode);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdAnisotropicDegree: TSFFloat;
-    public property FdAnisotropicDegree: TSFFloat read FFdAnisotropicDegree;
-
-    strict private FFdBorderColor: TSFColorRGBA;
-    public property FdBorderColor: TSFColorRGBA read FFdBorderColor;
-
-    strict private FFdBorderWidth: TSFInt32;
-    public property FdBorderWidth: TSFInt32 read FFdBorderWidth;
-
-    strict private FFdBoundaryModeS: TSFString;
-    public property FdBoundaryModeS: TSFString read FFdBoundaryModeS;
-
-    strict private FFdBoundaryModeT: TSFString;
-    public property FdBoundaryModeT: TSFString read FFdBoundaryModeT;
-
-    strict private FFdBoundaryModeR: TSFString;
-    public property FdBoundaryModeR: TSFString read FFdBoundaryModeR;
-
     strict private FFdMagnificationFilter: TSFString;
     public property FdMagnificationFilter: TSFString read FFdMagnificationFilter;
 
     strict private FFdMinificationFilter: TSFString;
     public property FdMinificationFilter: TSFString read FFdMinificationFilter;
 
-    strict private FFdTextureCompression: TSFString;
-    public property FdTextureCompression: TSFString read FFdTextureCompression;
-
-    strict private FFdTexturePriority: TSFFloat;
-    public property FdTexturePriority: TSFFloat read FFdTexturePriority;
-
-    strict private FFdGenerateMipMaps: TSFBool;
-    public property FdGenerateMipMaps: TSFBool read FFdGenerateMipMaps;
-
-    strict private FFdGUITexture: TSFBool;
-    public property FdGUITexture: TSFBool read FFdGUITexture;
-
     property MagnificationFilter: TAutoMagnificationFilter
       read GetMagnificationFilter write SetMagnificationFilter;
 
     property MinificationFilter: TAutoMinificationFilter
       read GetMinificationFilter write SetMinificationFilter;
-
-    property BoundaryModeS: TBoundaryMode
-      read GetBoundaryModeS write SetBoundaryModeS;
-
-    property BoundaryModeT: TBoundaryMode
-      read GetBoundaryModeT write SetBoundaryModeT;
-
-    property BoundaryModeR: TBoundaryMode
-      read GetBoundaryModeR write SetBoundaryModeR;
 
     {$I auto_generated_node_helpers/x3dnodes_textureproperties.inc}
   end;
@@ -1202,77 +1154,14 @@ begin
   Result := 'TextureCoordinateGenerator';
 end;
 
-procedure TTexturePropertiesNode.CreateNode;
-begin
-  inherited;
-
-  FFdAnisotropicDegree := TSFFloat.Create(Self, true, 'anisotropicDegree', 1.0);
-   FdAnisotropicDegree.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdAnisotropicDegree);
-  { X3D specification comment: [1,Inf) }
-
-  FFdBorderColor := TSFColorRGBA.Create(Self, true, 'borderColor', Vector4(0, 0, 0, 0));
-   FdBorderColor.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdBorderColor);
-  { X3D specification comment: [0,1] }
-
-  FFdBorderWidth := TSFInt32.Create(Self, true, 'borderWidth', 0);
-   FdBorderWidth.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdBorderWidth);
-  { X3D specification comment: [0,1] }
-
-  FFdBoundaryModeS := TSFString.Create(Self, true, 'boundaryModeS', 'REPEAT');
-   FdBoundaryModeS.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdBoundaryModeS);
-  { X3D specification comment: [see Table 18.7] }
-
-  FFdBoundaryModeT := TSFString.Create(Self, true, 'boundaryModeT', 'REPEAT');
-   FdBoundaryModeT.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdBoundaryModeT);
-  { X3D specification comment: [see Table 18.7] }
-
-  FFdBoundaryModeR := TSFString.Create(Self, true, 'boundaryModeR', 'REPEAT');
-   FdBoundaryModeR.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdBoundaryModeR);
-  { X3D specification comment: [see Table 18.7] }
-
-  FFdMagnificationFilter := TSFString.Create(Self, true, 'magnificationFilter', 'FASTEST');
-   FdMagnificationFilter.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdMagnificationFilter);
-  { X3D specification comment: [see Table 18.8] }
-
-  FFdMinificationFilter := TSFString.Create(Self, true, 'minificationFilter', 'FASTEST');
-   FdMinificationFilter.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdMinificationFilter);
-  { X3D specification comment: [see Table 18.9] }
-
-  FFdTextureCompression := TSFString.Create(Self, true, 'textureCompression', 'FASTEST');
-   FdTextureCompression.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdTextureCompression);
-  { X3D specification comment: [see Table 18.10] }
-
-  FFdTexturePriority := TSFFloat.Create(Self, true, 'texturePriority', 0);
-   FdTexturePriority.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdTexturePriority);
-  { X3D specification comment: [0,1] }
-
-  FFdGenerateMipMaps := TSFBool.Create(Self, false, 'generateMipMaps', false);
-   FdGenerateMipMaps.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdGenerateMipMaps);
-
-  FFdGUITexture := TSFBool.Create(Self, false, 'guiTexture', false);
-   FdGUITexture.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdGUITexture);
-
-  { X3D XML spec (edition 2) mistakenly claims it should be
-    "lineProperties", which is nonsense... I set this to "textureProperties". }
-  DefaultContainerField := 'textureProperties';
-end;
-
-class function TTexturePropertiesNode.ClassX3DType: string;
-begin
-  Result := 'TextureProperties';
-end;
+const
+  BoundaryModeNames: array [TBoundaryMode] of string = (
+    'CLAMP',
+    'CLAMP_TO_EDGE',
+    'CLAMP_TO_BOUNDARY',
+    'MIRRORED_REPEAT',
+    'REPEAT'
+  );
 
 function TTexturePropertiesNode.GetMinificationFilter: TAutoMinificationFilter;
 var
@@ -1368,99 +1257,6 @@ const
   );
 begin
   FdMagnificationFilter.Send(Names[Value]);
-end;
-
-function TTexturePropertiesNode.GetBoundaryModeS: TBoundaryMode;
-var
-  S: string;
-begin
-  S := UpperCase(FdBoundaryModeS.Value);
-
-  if S = 'REPEAT' then Result := bmRepeat else
-  if S = 'CLAMP' then Result := bmClamp else
-  if S = 'CLAMP_TO_EDGE' then Result := bmClampToEdge else
-  if S = 'CLAMP_TO_BOUNDARY' then Result := bmClampToBoundary else
-  if S = 'MIRRORED_REPEAT' then Result := bmMirroredRepeat else
-
-  begin
-    Result := bmRepeat;
-    WritelnWarning('VRML/X3D', Format('Unknown boundary mode "%s"', [S]));
-  end;
-end;
-
-procedure TTexturePropertiesNode.SetBoundaryModeS(const Value: TBoundaryMode);
-const
-  Names: array [TBoundaryMode] of string = (
-    'CLAMP',
-    'CLAMP_TO_EDGE',
-    'CLAMP_TO_BOUNDARY',
-    'MIRRORED_REPEAT',
-    'REPEAT'
-  );
-begin
-  FdBoundaryModeS.Send(Names[Value]);
-end;
-
-function TTexturePropertiesNode.GetBoundaryModeT: TBoundaryMode;
-var
-  S: string;
-begin
-  S := UpperCase(FdBoundaryModeT.Value);
-
-  if S = 'REPEAT' then Result := bmRepeat else
-  if S = 'CLAMP' then Result := bmClamp else
-  if S = 'CLAMP_TO_EDGE' then Result := bmClampToEdge else
-  if S = 'CLAMP_TO_BOUNDARY' then Result := bmClampToBoundary else
-  if S = 'MIRRORED_REPEAT' then Result := bmMirroredRepeat else
-
-  begin
-    Result := bmRepeat;
-    WritelnWarning('VRML/X3D', Format('Unknown boundary mode "%s"', [S]));
-  end;
-end;
-
-procedure TTexturePropertiesNode.SetBoundaryModeT(const Value: TBoundaryMode);
-const
-  Names: array [TBoundaryMode] of string = (
-    'CLAMP',
-    'CLAMP_TO_EDGE',
-    'CLAMP_TO_BOUNDARY',
-    'MIRRORED_REPEAT',
-    'REPEAT'
-  );
-begin
-  FdBoundaryModeT.Send(Names[Value]);
-end;
-
-function TTexturePropertiesNode.GetBoundaryModeR: TBoundaryMode;
-var
-  S: string;
-begin
-  S := UpperCase(FdBoundaryModeR.Value);
-
-  if S = 'REPEAT' then Result := bmRepeat else
-  if S = 'CLAMP' then Result := bmClamp else
-  if S = 'CLAMP_TO_EDGE' then Result := bmClampToEdge else
-  if S = 'CLAMP_TO_BOUNDARY' then Result := bmClampToBoundary else
-  if S = 'MIRRORED_REPEAT' then Result := bmMirroredRepeat else
-
-  begin
-    Result := bmRepeat;
-    WritelnWarning('VRML/X3D', Format('Unknown boundary mode "%s"', [S]));
-  end;
-end;
-
-procedure TTexturePropertiesNode.SetBoundaryModeR(const Value: TBoundaryMode);
-const
-  Names: array [TBoundaryMode] of string = (
-    'CLAMP',
-    'CLAMP_TO_EDGE',
-    'CLAMP_TO_BOUNDARY',
-    'MIRRORED_REPEAT',
-    'REPEAT'
-  );
-begin
-  FdBoundaryModeR.Send(Names[Value]);
 end;
 
 procedure TTextureTransformNode.CreateNode;

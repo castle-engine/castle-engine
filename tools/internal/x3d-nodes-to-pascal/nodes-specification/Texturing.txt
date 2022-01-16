@@ -122,6 +122,7 @@ TextureCoordinateGenerator : X3DSingleTextureCoordinateNode {
 }
 
 TextureProperties : X3DNode {
+  auto-generate-more: true
   SFFloat     [in,out] anisotropicDegree   1.0
     range: [1,Inf)
   SFColorRGBA [in,out] borderColor         0 0 0 0
