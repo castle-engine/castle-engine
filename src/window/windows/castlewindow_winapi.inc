@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1154,7 +1154,7 @@ begin
   { main point : create the window }
   H_wnd := CreateWindowExW(dwExStyle,
     PWideChar(Application.WndClassName),
-    PWideChar(UTF8Decode(GetWholeCaption)),
+    PWideChar(StringToUtf16(GetWholeCaption)),
     dwStyle,
     windowRect.left, windowRect.top,
     windowRect.right-windowRect.left, windowRect.Bottom-windowRect.top,
@@ -1328,7 +1328,7 @@ begin
   FCaption[Part] := Value;
   if h_Wnd <> 0 then
   begin
-    SetWindowTextW(h_Wnd, PWideChar(UTF8Decode(GetWholeCaption)));
+    SetWindowTextW(h_Wnd, PWideChar(StringToUtf16(GetWholeCaption)));
   end;
 end;
 

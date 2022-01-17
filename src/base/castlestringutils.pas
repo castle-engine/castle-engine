@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2021 Michalis Kamburelis.
+  Copyright 2000-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -985,6 +985,13 @@ procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
 function TrimEndingNewline(const S: String): String;
 
 function SizeToStr(const Value: Int64): String;
+
+{ Convert String to UTF-16 (UnicodeString).
+  On Delphi (more generally: on compilers where String is already UnicodeString, which is UTF-16),
+  this does nothing.
+  On FPC (more generally: on compilers where String is AnsiString with UTF-8 encoding),
+  this converts UTF-8 into UTF-16 UnicodeString. }
+function StringToUtf16(const Src: String): UnicodeString; inline;
 
 const
   { }
@@ -2689,6 +2696,11 @@ begin
 
   // too verbose
   //Result += Format(' (%d bytes)', [Value]);
+end;
+
+function StringToUtf16(const Src: String): UnicodeString;
+begin
+  Result := {$if SizeOf(char) = 2} Src {$else} UTF8Decode(Src) {$ifend};
 end;
 
 end.

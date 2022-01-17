@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2018 Michalis Kamburelis.
+  Copyright 2013-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -128,7 +128,7 @@ procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
         { create Temp_H_wnd }
         Temp_H_wnd := CreateWindowExW(WS_EX_APPWINDOW or WS_EX_WINDOWEDGE,
           PWideChar(Application.WndClassName),
-          PWideChar(UTF8Decode(GetWholeCaption + ' - temporary window for wgl')),
+          PWideChar(StringToUtf16(GetWholeCaption + ' - temporary window for wgl')),
           WS_OVERLAPPEDWINDOW or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
           0, 0, 100, 100,
           0 { no parent window }, 0 { no menu }, hInstance,
