@@ -66,8 +66,6 @@ end;
 
 {$warnings on}
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleTimeUtils);
-{$endif}
 end.
