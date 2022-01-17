@@ -12,7 +12,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIState
+  CastleWindow, CastleLog, CastleUIState, CastleParameters, CastleConsoleTester
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStateMain
@@ -20,6 +20,7 @@ uses SysUtils,
 
 var
   Window: TCastleWindowBase;
+  ConsoleTester: TCastleConsoleTester;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
@@ -41,17 +42,31 @@ begin
 end;
 
 initialization
-  { Initialize Application.OnInitialize. }
-  Application.OnInitialize := @ApplicationInitialize;
+  if Parameters.IndexOf('--console') = -1 then
+  begin
 
-  { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
-  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
-  Application.MainWindow := Window;
+    { Initialize Application.OnInitialize. }
+    Application.OnInitialize := @ApplicationInitialize;
+
+    { Create and assign Application.MainWindow. }
+    Window := TCastleWindowBase.Create(Application);
+    Window.ParseParameters; // allows to control window size / fullscreen on the command-line
+    Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.
     Most of your game initialization should happen inside ApplicationInitialize.
     In particular, it is not allowed to read files before ApplicationInitialize
     (because in case of non-desktop platforms,
     some necessary resources may not be prepared yet). }
+  end
+  else
+    begin
+      InitializeLog;
+      ConsoleTester := TCastleConsoleTester.Create;
+      try
+        ConsoleTester.Run;
+      finally
+        FreeAndNil(ConsoleTester);
+      end;
+    end;
 end.
