@@ -1094,6 +1094,7 @@ begin
   begin
     Application.MainWindow := FWindowForTest;
   end;
+  Result := FWindowForTest;
 end;
 
 destructor TCastleTestCase.Destroy;
