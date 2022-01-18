@@ -2,11 +2,8 @@
 <!-- This manifest will be merged with main integrated/AndroidManifest.xml
      by the build tool. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Required by Game Analytics 2.x. -->
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="18" />
+    <!-- Required by Game Analytics, see https://gameanalytics.com/docs/s/article/Android-SDK-Setup . -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
     <!-- Note: there's no need to worry about orientation changes
          as warned by https://github.com/GameAnalytics/GA-SDK-ANDROID/wiki/Configure%20Android%20Studio ,
