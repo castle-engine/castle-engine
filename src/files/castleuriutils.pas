@@ -483,7 +483,7 @@ begin
       begin
         Utf8Char := Utf8Char + AnsiChar(HexValue(S[J + 1]) shl 4 or HexValue(S[J + 2]));
         Inc(J, 3);
-        if S[J] <> '%' then
+        if (J > Length(S)) or (S[J] <> '%') then
           Break;
       end;
       I := J - 1; { -1 becouse incrementation on the loop end }
