@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -145,7 +145,13 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   begin
     ToolExe := FindExeCastleTool('CompressonatorCLI');
     { otherwise, assume it's on $PATH }
-    TryToolExePath(ToolExe, 'CompressonatorCLI', C);
+    if ToolExe = '' then
+      ToolExe := FindExe('CompressonatorCLI');
+    if ToolExe = '' then
+      // on Linux, new released on https://github.com/GPUOpen-Tools/Compressonator/releases have it lowercase
+      ToolExe := FindExe('compressonatorcli');
+    if ToolExe = '' then
+      raise ECannotFindTool.Create('CompressonatorCLI', C);
 
     TempPrefix := GetTempFileNamePrefix;
 
