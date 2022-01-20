@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -476,6 +476,7 @@ begin
   // Note that Caption expresses the same thing as Text, but easier to access
   if (PropertyName = 'Text') or
      (PropertyName = 'Caption') or
+     (PropertyName = 'MaxWidth') or
      (PropertyName = 'ColorPersistent') or
      (PropertyName = 'Html') then
     Result := [psBasic]
