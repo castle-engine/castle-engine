@@ -142,13 +142,16 @@ function AdbExe(const Required: boolean = true): string;
 const
   ExeName = 'adb';
   BundleName = 'SDK';
-  EnvVarName = 'ANDROID_HOME';
+  EnvVarName1 = 'ANDROID_SDK_ROOT';
+  EnvVarName2 = 'ANDROID_HOME';
 var
   Env: string;
 begin
   Result := '';
-  { try to find in $ANDROID_HOME }
-  Env := GetEnvironmentVariable(EnvVarName);
+  { try to find in $ANDROID_SDK_ROOT or (deprecated) $ANDROID_HOME }
+  Env := GetEnvironmentVariable(EnvVarName1);
+  if Env = '' then
+    GetEnvironmentVariable(EnvVarName2);
   if Env <> '' then
   begin
     Result := AddExeExtension(InclPathDelim(Env) + 'platform-tools' + PathDelim + ExeName);
@@ -157,7 +160,7 @@ begin
   end;
   { try to find on $PATH }
   if Result = '' then
-    Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
+    Result := FinishExeSearch(ExeName, BundleName, EnvVarName1, Required);
 end;
 
 function AndroidPackageFile(const Project: TCastleProject;
