@@ -323,6 +323,8 @@ cleanexamples:
 
 .PHONY: examples-laz
 examples-laz:
+	lazbuild src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
+	lazbuild src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
 	lazbuild packages/castle_base.lpk
 	lazbuild packages/castle_window.lpk
 	lazbuild packages/castle_components.lpk

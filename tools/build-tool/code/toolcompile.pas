@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -973,26 +973,26 @@ procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
   const WorkingDirectory, LazarusProjectFile: string);
 var
   LazbuildOptions: TCastleStringList;
+
+  procedure LazbuildAddPackage(const LpkFileName: String);
+  begin
+    LazbuildOptions.Clear;
+    LazbuildOptions.Add('--add-package-link');
+    LazbuildOptions.Add(CastleEnginePath + LpkFileName);
+    RunLazbuild(WorkingDirectory, LazbuildOptions);
+  end;
+
 begin
   LazbuildOptions := TCastleStringList.Create;
   try
     // register CGE packages first
     if CastleEnginePath <> '' then
     begin
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_base.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
-
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_window.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
-
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_components.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
+      LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk');
+      LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk');
+      LazbuildAddPackage('packages/castle_base.lpk');
+      LazbuildAddPackage('packages/castle_window.lpk');
+      LazbuildAddPackage('packages/castle_components.lpk');
     end;
 
     LazbuildOptions.Clear;
