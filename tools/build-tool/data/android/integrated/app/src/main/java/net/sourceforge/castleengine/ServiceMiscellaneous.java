@@ -14,6 +14,7 @@ import android.view.KeyEvent;
 
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 /**
  * Integration of various Android small stuff with
