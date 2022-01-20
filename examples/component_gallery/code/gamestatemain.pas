@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,14 +27,17 @@ type
   TStateMain = class(TUIState)
   private
     const
-      PagesCount = 3;
+      PagesCount = 6;
 
       { Suffixes of component names in the design,
         to find ButtonXxx and PageXxx matching controls. }
       PageNames: array [1..PagesCount] of String = (
         'Intro',
-        'Buttons',
-        'Buttons2'
+        'EmptyRectangle',
+        'ColorRectangle',
+        'Label',
+        'Button',
+        'Button2'
       );
 
     var
@@ -85,8 +88,8 @@ begin
     Pages[I] := DesignedComponent('Page' + PageNames[I]) as TCastleUserInterface;
   end;
 
-  { Find components inside TCastleDesigns, this needs 2 steps }
-  PageButtons2 := DesignedComponent('PageButtons2') as TCastleDesign;
+  { Find components inside TCastleDesigns (this needs 2 steps - first find the TCastleDesign) }
+  PageButtons2 := DesignedComponent('PageButton2') as TCastleDesign;
   ButtonToggle := PageButtons2.FindRequiredComponent('ButtonToggle') as TCastleButton;
 
   ButtonToggle.OnClick := {$ifdef FPC}@{$endif}ClickToggle;
@@ -103,16 +106,23 @@ procedure TStateMain.ClickPageButton(Sender: TObject);
 var
   I, CurrentPage: Integer;
   PageButton: TCastleButton;
+  PageLabel: TCastleLabel;
 begin
   PageButton := Sender as TCastleButton;
   CurrentPage := PageButton.Tag;
   for I := 1 to PagesCount do
   begin
     PageButtons[I].Pressed := I = CurrentPage;
-    if I = CurrentPage then
-      PageButtons[I].CustomTextColor := White
-    else
-      PageButtons[I].CustomTextColor := Black;
+    // adjust color of 1st label inside the button
+    if (PageButtons[I].ControlsCount >= 1) and
+       (PageButtons[I].Controls[0] is TCastleLabel) then
+    begin
+      PageLabel := PageButtons[I].Controls[0] as TCastleLabel;
+      if I = CurrentPage then
+        PageLabel.Color := White
+      else
+        PageLabel.Color := Black;
+    end;
     Pages[I].Exists := I = CurrentPage;
   end;
 end;
