@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -83,7 +83,7 @@ type
       DefautVersionCode = 1;
       { iOS requires version display to be <> '' }
       DefautVersionDisplayValue = '0.1';
-      DefaultAndroidCompileSdkVersion = 29;
+      DefaultAndroidCompileSdkVersion = 30;
       DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
       { See https://castle-engine.io/android-FAQ#what-android-devices-are-supported
         for reasons behind this minimal version. }
