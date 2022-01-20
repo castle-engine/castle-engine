@@ -3,7 +3,7 @@
   <!-- Following https://gameanalytics.com/docs/s/article/Android-SDK-Setup -->
   <dependencies>
     <dependency>implementation 'com.gameanalytics.sdk:gameanalytics-android:6.2.6+'</dependency>
-    <dependency>compile 'com.google.android.gms:play-services-base:10.2.1'</dependency>
-    <dependency>compile 'com.android.support:appcompat-v7:24.2.0'</dependency>
+    <dependency>implementation 'com.google.android.gms:play-services-base:10.2.1'</dependency>
+    <dependency>implementation 'com.android.support:appcompat-v7:24.2.0'</dependency>
   </dependencies>
 </build_gradle_merge>
