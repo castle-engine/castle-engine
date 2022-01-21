@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -482,7 +482,8 @@ type
   { Same as TGameSceneManager, redefined only to work as a sub-component
     of TCastleControl, otherwise Lazarus fails to update the uses clause
     correctly and you cannot edit the events of CastleControl1.SceneManager
-    subcomponent. }
+    subcomponent.
+    @exclude Internal }
   TControlGameSceneManager = class(TGameSceneManager)
   end;
 
@@ -561,7 +562,8 @@ type
   { Same as TCastle2DSceneManager, redefined only to work as a sub-component
     of TCastleControl, otherwise Lazarus fails to update the uses clause
     correctly and you cannot edit the events of CastleControl1.SceneManager
-    subcomponent. }
+    subcomponent.
+    @exclude Internal }
   TControl2DSceneManager = class(TCastle2DSceneManager)
   end;
 
