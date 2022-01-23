@@ -394,7 +394,7 @@ type
   { Frame names in starling file can be named freely, but in the case of our loader,
     we have to define what is the next frame of the animation and what should
     be recognized as a separate animation.
-    See https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets }
+    See https://castle-engine.io/sprite_sheets }
   TAnimationNaming = (
     { Default behavior for Castle Sprite Sheet and Starling. It treats
       as animation frames only those subtextures whose names ends with

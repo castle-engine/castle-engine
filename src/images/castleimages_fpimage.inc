@@ -141,6 +141,26 @@ begin
     end;
 end;
 
+procedure TRGBFloatImage.FromFpImage(const FPImage: TInternalCastleFpImage);
+var
+  X, Y: Integer;
+  ResultPixels: PVector3;
+  Color: TFPCompactImgRGBA8BitValue;
+begin
+  SetSize(FPImage.Width, FPImage.Height);
+
+  ResultPixels := Pixels;
+  for Y := FPImage.Height - 1 downto 0 do
+    for X := 0 to FPImage.Width - 1 do
+    begin
+      Color := FPImage.Colors8Bit[X, Y];
+      ResultPixels^.Data[0] := Color.R / 255;
+      ResultPixels^.Data[1] := Color.G / 255;
+      ResultPixels^.Data[2] := Color.B / 255;
+      Inc(ResultPixels);
+    end;
+end;
+
 { Convert TInternalCastleFpImage to the best TCastleImage class. }
 function CreateFromFpImage(const FPImage: TInternalCastleFpImage;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
@@ -373,6 +393,31 @@ begin
         Color.G := P^.Data[1];
         Color.B := P^.Data[2];
         Color.A := P^.Data[3];
+        Result.Colors8Bit[X, Y] := Color;
+        Inc(P);
+      end;
+  except FreeAndNil(Result); raise end;
+end;
+
+function TRGBFloatImage.ToFpImage: TInternalCastleFpImage;
+var
+  X, Y: Integer;
+  P: PVector3;
+  Col: TVector3Byte;
+  Color: TFPCompactImgRGBA8BitValue;
+begin
+  Result := CreateFpImage(Width, Height);
+  try
+    Result.UsePalette := false;
+    P := Pixels;
+    for Y := Result.Height - 1 downto 0 do
+      for X := 0 to Result.Width - 1 do
+      begin
+        Col := Vector3Byte(P^);
+        Color.R := Col.Data[0];
+        Color.G := Col.Data[1];
+        Color.B := Col.Data[2];
+        Color.A := $FF;
         Result.Colors8Bit[X, Y] := Color;
         Inc(P);
       end;

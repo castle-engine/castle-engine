@@ -24,8 +24,8 @@ uses Classes;
 
 type
   { Facebook SDK integration.
-    On Android ( https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine#facebook )
-    and on iOS ( https://github.com/castle-engine/castle-engine/wiki/iOS-Services#facebook ).
+    On Android ( https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine#facebook )
+    and on iOS ( https://castle-engine.io/ios-Services#facebook ).
   }
   TFacebook = class(TComponent)
   public

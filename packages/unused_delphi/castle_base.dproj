@@ -258,7 +258,6 @@
         <DCCReference Include="..\..\src\services\castleopendocument.pas"/>
         <DCCReference Include="..\..\src\3d\castleinternalgeometryarrays.pas"/>
         <DCCReference Include="..\..\src\3d\castletriangulate.pas"/>
-        <DCCReference Include="..\..\src\game\castletransformextra.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castleinternalrenderer.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castlerendererinternallights.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castlerendererinternalshader.pas"/>

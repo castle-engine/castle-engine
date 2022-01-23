@@ -183,7 +183,7 @@ end;
 procedure TStateMain.ClickButtonOpen2DStarling(Sender: TObject);
 begin
   { When using Starling files you can specify some options, as URL anchors.
-    See https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets .
+    See https://castle-engine.io/sprite_sheets .
 
     The sample Starling file below is based on one of many great assets by Kenney,
     check https://kenney.nl/ for more. }
@@ -199,7 +199,7 @@ procedure TStateMain.ClickButtonOpen2DImage(Sender: TObject);
 begin
   { You can open normal images in TCastleScene, optionaly you can set rect
     from image in anchor (left, bottom, width, height).
-    See https://github.com/castle-engine/castle-engine/wiki/Images . }
+    See https://castle-engine.io/using_images . }
 
   { Full image }
   //OpenScene('castle-data:/starling/character_zombie_atlas.png');

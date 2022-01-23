@@ -68,7 +68,7 @@ type
         OldCustomCursor: TRGBAlphaImage;
         OldSwapFullScreen_Key: TKey;
         OldClose_KeyString: String;
-        OldControls: TChildrenControls;
+        OldControls: TInternalChildrenControls;
         OldAutomaticTouchControl: boolean;
         procedure WindowOpen(Container: TCastleContainer);
         procedure WindowClose(Container: TCastleContainer);
@@ -286,7 +286,7 @@ begin
   oldSwapFullScreen_Key := Window.SwapFullScreen_Key;
   oldClose_KeyString := Window.Close_KeyString;
 
-  OldControls := TChildrenControls.Create(nil);
+  OldControls := TInternalChildrenControls.Create(nil);
   OldControls.Assign(Window.Controls);
   OldControls.BeginDisableContextOpenClose;
 

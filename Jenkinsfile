@@ -1,6 +1,6 @@
 /* -*- mode: groovy -*-
-  Confgure how to run our job in Jenkins.
-  See https://github.com/castle-engine/castle-engine/wiki/Cloud-Builds-(Jenkins) .
+  Configure how to run our job in Jenkins.
+  See https://castle-engine.io/cloud_builds_jenkins .
 */
 
 pipeline {

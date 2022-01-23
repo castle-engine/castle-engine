@@ -1,0 +1,49 @@
+## libpng (efficient reading of PNG files) for Android
+
+This service adds the `libpng` library to the Android project, which allows CGE to read/write PNG files more efficiently.
+
+You usually do not need to do anything to use this, as the service will be automatically included in projects where .png files are found in `data`.
+
+Though you can also request this service explicitly in link:https://castle-engine.io/project_manifest[CastleEngineManifest.xml]. You can request it only for Android:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<project name="..." game_units="...">
+  <android>
+    <services>
+      <service name="png" />
+    </services>
+  </android>
+</project>
+----
+
+Or you can request the equivalent on all platforms using `dependencies`:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<project name="..." game_units="...">
+  <dependencies>
+    <dependency name="Png" />
+  </dependencies>
+</project>
+----
+
+### Source code
+
+The exact source code of this library is on
+
+  https://github.com/castle-engine/libpng-android
+
+Forked from https://github.com/julienr/libpng-android .
+
+Which is based on the official libpng code: http://www.libpng.org/pub/png/libpng.html .
+
+Update the library files (SO) just like this:
+
+----
+git clone https://github.com/castle-engine/libpng-android
+cd libpng-android/
+make build
+----

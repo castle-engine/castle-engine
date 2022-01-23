@@ -1,0 +1,298 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Camera" : {
+        "$$ClassName" : "TCastleCamera",
+        "InitialDirectionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 5.1960802078247070E-001,
+          "Y" : 9.9777217599239520E-009,
+          "Z" : -8.5440480709075928E-001
+        },
+        "InitialPositionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -3.2378509521484375E+001,
+          "Y" : 7.8191194534301758E+000,
+          "Z" : 3.4164638519287109E+001
+        },
+        "InitialUpPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 2.9802318834981634E-008,
+          "Z" : 2.9802322387695312E-008
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "Name" : "Orthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective",
+          "Name" : "Perspective"
+        }
+      },
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "MainScene" : "SceneRoad",
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "Name" : "PhysicsProperties"
+        },
+        "UseHeadlight" : "hlOn",
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "wheels_turning",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneCar",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0222171783447266E+001,
+              "Z" : -2.1952888488769531E+001
+            },
+            "URL" : "castle-data:/car.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "wheels_turning",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneCar1",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0021486282348633E+001
+            },
+            "URL" : "castle-data:/car.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "wheels_turning",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneCar2",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 1.6878410339355469E+001
+            },
+            "URL" : "castle-data:/car.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "wheels_turning",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneCar3",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -9.1533327102661133E+000,
+              "Z" : 1.7425312042236328E+001
+            },
+            "URL" : "castle-data:/car.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "wheels_turning",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneCar4",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 3.2659477233886719E+001
+            },
+            "URL" : "castle-data:/car.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "wheels_turning",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneCar5",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "URL" : "castle-data:/car.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "wheels_turning",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneCar6",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : -2.4668655395507812E+001
+            },
+            "URL" : "castle-data:/car.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneRoad",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "URL" : "castle-data:/road_with_lights.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneRoad2",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -4.8894283294677734E+001
+            },
+            "URL" : "castle-data:/road.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneRoad3",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.3821681976318359E+001
+            },
+            "URL" : "castle-data:/road.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneRoad4",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -2.4470634460449219E+001
+            },
+            "URL" : "castle-data:/road.gltf"
+          }
+        ]
+      },
+      "Name" : "Viewport1",
+      "Navigation" : "WalkNavigation1",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleWalkNavigation",
+          "MoveSpeed" : 1.0000000000000000E+001,
+          "Name" : "WalkNavigation1",
+          "PreferredHeight" : 4.0000000000000000E+000
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    }
+  ]
+}

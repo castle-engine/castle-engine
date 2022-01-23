@@ -1,7 +1,7 @@
 { Compile Castle Game Engine by fpmake.
   This can be used to compile and install the engine units.
 
-  See https://github.com/castle-engine/castle-engine/wiki/FpMake
+  See https://castle-engine.io/fpmake
   for the detailed instructions.
 }
 
@@ -168,6 +168,7 @@ begin
     P.Targets.AddUnit('castlescenemanager.pas');
     P.Targets.AddUnit('castlesoundallocator.pas');
     P.Targets.AddUnit('castleshaders.pas');
+    P.Targets.AddUnit('castletransformextra.pas');
     P.Targets.AddUnit('castlewarnings.pas');
     if Defaults.OS in AllWindowsOSes then
       P.Targets.AddUnit('castlewindowsfonts.pas');
@@ -282,7 +283,6 @@ begin
     P.Targets.AddUnit('castlelevels.pas');
     P.Targets.AddUnit('castleplayer.pas');
     P.Targets.AddUnit('castleresources.pas');
-    P.Targets.AddUnit('castletransformextra.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'images');
     P.Targets.AddUnit('castlecompositeimage.pas');

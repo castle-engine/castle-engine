@@ -1,0 +1,22 @@
+## facebook
+
+Integrates your application with https://developers.facebook.com/docs/android/[Facebook Core SDK].
+
+This integration allows to use Facebook Analytics. Various events are logged automatically (like starting the application or making a purchase). You can also log custom events (only _"level achieved"_ for now) by `TFacebook.LogAchievedLevel('level_name')` in Pascal (see `CastleFacebook` unit).
+
+You need to link the application to a Facebook application on http://developers.facebook.com/ :
+
+* In `CastleEngineManifest.xml`, you need to specify Facebook Application Id, like this:
++
+[,xml]
+----
+  <service name="facebook">
+    <parameter key="app_id" value="11223344" />
+  </service>
+----
+
+* Fill the necessary information in the Facebook application settings. In particular:
++
+You need to provide to Facebook a "key hash" derived from your application signing keys. See the https://developers.facebook.com/docs/app-events/getting-started-app-events-android , section _"3. Add Your Development and Release Key Hashes"_.
++
+Do also steps mentioned there in _"4. Tell Us about Your Android Project"_.

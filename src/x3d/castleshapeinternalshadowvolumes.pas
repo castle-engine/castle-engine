@@ -170,7 +170,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleShapes, X3DNodes, CastleLog, CastleTransformExtra, CastleTransform,
+  CastleShapes, X3DNodes, CastleLog, CastleTransform,
   CastleRenderOptions;
 
 constructor TShapeShadowVolumes.Create(const AShape: TObject);

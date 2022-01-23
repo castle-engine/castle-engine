@@ -152,6 +152,12 @@ PASDOC_INCLUDE_DIRS="\
   --include window/gtk/
 "
 
+if [ "${PASDOC_FORMAT}" = 'html' ]; then
+  FORMAT_OPTIONS='--use-tipue-search'
+else
+  FORMAT_OPTIONS=''
+fi
+
 # Run pasdoc.
 #
 # Filter result through grep.
@@ -183,7 +189,7 @@ pasdoc \
   --html-body-end ../doc/pasdoc/html-parts/body-end.html \
   --css ../doc/pasdoc/html-parts/cge-pasdoc.css \
   --description=../src/x3d/x3dnodes_documentation.txt \
-  --use-tipue-search \
+  $FORMAT_OPTIONS \
   | \
   grep --ignore-case --invert-match --fixed-strings \
     --regexp='Tag "groupbegin" is not implemented yet, ignoring' \

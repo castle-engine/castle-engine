@@ -1,5 +1,5 @@
 { FMOD API expressed in Pascal, for Castle Game Engine.
-  See https://github.com/castle-engine/castle-engine/wiki/FMOD
+  See https://castle-engine.io/fmod
   about using FMOD with CGE.
 
   Based on FMOD 2.00.01, fmod.h and fmod_common.h header files.

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,8 +42,15 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionOutputCopyAll: TAction;
+    ActionOutputCopySelected: TAction;
+    ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemOutputCopyAll: TMenuItem;
+    MenuItemOutputCopySelected: TMenuItem;
+    MenuItemSeparator12312123123: TMenuItem;
+    MenuItemOutputClean: TMenuItem;
     MenuItemUIOutput: TMenuItem;
     MenuItemUIWarnings: TMenuItem;
     MenuItemUIFiles: TMenuItem;
@@ -141,6 +148,7 @@ type
     MenuItemDesignNewTransform: TMenuItem;
     MenuItemDesignNewUserInterfaceRect: TMenuItem;
     ShellListPopupMenu: TPopupMenu;
+    OutputPopup: TPopupMenu;
     ShellTreePopupMenu: TPopupMenu;
     SaveDesignDialog: TCastleSaveDialog;
     MenuItemSaveAsDesign: TMenuItem;
@@ -181,6 +189,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionOutputCleanExecute(Sender: TObject);
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionEditAssociatedUnitExecute(Sender: TObject);
     procedure ActionEditUnitExecute(Sender: TObject);
@@ -191,6 +200,9 @@ type
     procedure ActionNewUnitHereStateExecute(Sender: TObject);
     procedure ActionNewUnitStateExecute(Sender: TObject);
     procedure ActionOpenProjectCodeExecute(Sender: TObject);
+    procedure ActionOutputCopyAllExecute(Sender: TObject);
+    procedure ActionOutputCopySelectedExecute(Sender: TObject);
+    procedure ActionOutputCopySelectedUpdate(Sender: TObject);
     procedure ActionRegenerateProjectExecute(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
@@ -367,7 +379,7 @@ uses TypInfo, LCLType,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleClassUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait;
+  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait, ToolFpcVersion;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -525,6 +537,11 @@ begin
   SpriteSheetEditorForm.NewSpriteSheet;
 end;
 
+procedure TProjectForm.ActionOutputCleanExecute(Sender: TObject);
+begin
+  ListOutput.Clear;
+end;
+
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
 begin
   { Refresh contents of selected dir, and tree of subdirectories,
@@ -616,6 +633,26 @@ begin
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
+end;
+
+procedure TProjectForm.ActionOutputCopyAllExecute(Sender: TObject);
+begin
+  Clipboard.AsText := ListOutput.Items.Text;
+end;
+
+procedure TProjectForm.ActionOutputCopySelectedExecute(Sender: TObject);
+begin
+  { Although ActionOutputCopySelectedUpdate should secure from it too,
+    but check it in case ActionOutputCopySelectedUpdate doesn't run often enough. }
+  if ListOutput.ItemIndex <> -1 then
+  begin
+    Clipboard.AsText := ListOutput.Items[ListOutput.ItemIndex];
+  end;
+end;
+
+procedure TProjectForm.ActionOutputCopySelectedUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := ListOutput.ItemIndex <> -1;
 end;
 
 procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
@@ -1579,7 +1616,7 @@ begin
       SpriteSheetEditorForm.Close; // not needed on GTK2, maybe add ifdef?
     end;
 
-    Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
+    Release; // do not call MenuItemDesignClose, to avoid OnCloseQuery
     ChooseProjectForm.Show;
   end;
 end;
@@ -1784,30 +1821,31 @@ begin
       begin
         Exe := FindExeLazarusIDE;
 
-        { It would be cleaner to use LPI file, like this:
+        if ProjectLazarus = '' then
+        begin
+          WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+        end else
+        if not LazarusVersion.AtLeast(2, 2, 0) then
+        begin
+          { Before Lazarus 2.2, that brought fix to https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/39338 ,
+            using LPI on the command-line didn't work OK.
 
-            if ProjectLazarus <> '' then
-              // pass both project name, and particular filename, to open file within this project.
-              RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName])
-            else
-            begin
-              WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-              RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
-            end;
+            Lazarus < 2.2 opens LPI as a regular XML file then, without changing the project.
+            Moreover:
+            - using LPR doesn't change the project either
+            - using *only* LPI asks to change the project, even if it's already the current project
+              (so we cannot fix the problem by executing it twice in a row, once with LPI once with PAS
+              -- it would show dialog box every time)
+          }
 
-          But it doesn't work: Lazarus opens LPI as a regular XML file then,
-          without changing the project.
-          There seems to be no solution:
-          - using LPR doesn't change the project either
-          - using *only* LPI asks to change the project, even if it's already the current project
-            (so we cannot fix the problem by executing it twice in a row, once with LPI once with PAS
-            -- it would show dialog box every time)
-        }
-
-        // if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
-        //   WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-
-        RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+          WritelnWarning('Lazarus is older than 2.2, file will be opened without changing Lazarus project.');
+          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+        end else
+        begin
+          // pass both project name, and particular filename, to open file within this project.
+          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName])
+        end;
       end;
     ceDelphi:
       begin

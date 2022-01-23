@@ -177,7 +177,7 @@ unit CastleWindow;
 
 { You can define one of the CASTLE_WINDOW_xxx symbols to use
   a specific CastleWindow backend.
-  See https://github.com/castle-engine/castle-engine/wiki/CastleWindow-backends
+  See https://castle-engine.io/castlewindow_backends
   for the documentation of available backends.
 
   If you don't define any such symbol,
@@ -1788,7 +1788,7 @@ type
 
     { List of user-interface controls currently active.
       See @link(TCastleContainer.Controls) for details. }
-    function Controls: TChildrenControls;
+    function Controls: TInternalChildrenControls;
 
     { Is the OpenGL context initialized. This is equivalent to @code(not Closed),
       which means we are between an @link(Open) and @link(Close) calls. }
@@ -2319,9 +2319,8 @@ type
 
   { In the future, TCastleWindowBase should be renamed to just TCastleWindow.
     The "Base" suffix is just a temporary measure, as we transition from older
-    TCastleWindow with predefined SceneManager.
-    You can try it right now with this line. }
-  //TCastleWindow = TCastleWindowBase;
+    TCastleWindow with predefined SceneManager. }
+  TCastleWindow = TCastleWindowBase;
 
   {$endif}
 
@@ -4405,7 +4404,7 @@ end;
 {$endif}
 {$endif}
 
-function TCastleWindowBase.Controls: TChildrenControls;
+function TCastleWindowBase.Controls: TInternalChildrenControls;
 begin
   Result := Container.Controls;
 end;
@@ -4675,13 +4674,17 @@ end;
 
 function TCastleWindow.GetNavigationType: TNavigationType;
 begin
+  {$warnings off}
   Result := SceneManager.NavigationType;
+  {$warnings on}
 end;
 
 procedure TCastleWindow.SetNavigationType(const Value: TNavigationType);
 begin
+  {$warnings off}
   SceneManager.NavigationType := Value;
   NavigationInfoChanged;
+  {$warnings on}
 end;
 
 {$endif CASTLE_DEPRECATED_WINDOW_CLASSES}

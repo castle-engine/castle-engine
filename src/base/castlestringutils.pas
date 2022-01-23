@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2021 Michalis Kamburelis.
+  Copyright 2000-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -951,6 +951,11 @@ function CharSetToStr(const SetVariable: TSetOfChars): string;
   PChar(S): returns a Pointer(S) with appropriate type cast. }
 function PCharOrNil(const s: string): PChar;
 
+{ PWideCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
+  If string is empty, this returns @nil, otherwise it works just like
+  PWideChar(S): returns a Pointer(S) with appropriate type cast. }
+function PWideCharOrNil(const s: WideString): PWideChar;
+
 { PAnsiCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
   If string is empty, this returns @nil, otherwise it works just like
   PAnsiChar(S): returns a Pointer(S) with appropriate type cast. }
@@ -980,6 +985,13 @@ procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
 function TrimEndingNewline(const S: String): String;
 
 function SizeToStr(const Value: Int64): String;
+
+{ Convert String to UTF-16 (UnicodeString).
+  On Delphi (more generally: on compilers where String is already UnicodeString, which is UTF-16),
+  this does nothing.
+  On FPC (more generally: on compilers where String is AnsiString with UTF-8 encoding),
+  this converts UTF-8 into UTF-16 UnicodeString. }
+function StringToUtf16(const Src: String): UnicodeString; inline;
 
 const
   { }
@@ -2574,6 +2586,9 @@ end;
 function PCharOrNil(const s: string): PChar;
 begin if s = '' then result := nil else result := PChar(s); end;
 
+function PWideCharOrNil(const s: WideString): PWideChar;
+begin if s = '' then result := nil else result := PWideChar(s); end;
+
 function PAnsiCharOrNil(const s: AnsiString): PAnsiChar;
 begin if s = '' then result := nil else result := PAnsiChar(s); end;
 
@@ -2681,6 +2696,11 @@ begin
 
   // too verbose
   //Result += Format(' (%d bytes)', [Value]);
+end;
+
+function StringToUtf16(const Src: String): UnicodeString;
+begin
+  Result := {$if SizeOf(char) = 2} Src {$else} UTF8Decode(Src) {$ifend};
 end;
 
 end.

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -610,7 +610,7 @@ begin
         end;
       cmValgrind:
         begin
-          { See https://github.com/castle-engine/castle-engine/wiki/Profiling-Using-Valgrind
+          { See https://castle-engine.io/profiling_using_valgrind
             for reasons of Valgrind options. }
           FpcOptions.Add('-gv');
           FpcOptions.Add('-gl');
@@ -640,7 +640,7 @@ begin
       FpcOptions.Add('-CpARMV7A');
 
       { Necessary to work fast.
-        See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#notes-about-compiling-with-hard-floats--cfvfpv3 }
+        See https://castle-engine.io/android-FAQ#notes-about-compiling-with-hard-floats--cfvfpv3 }
       FpcOptions.Add('-CfVFPV3');
 
       { This allows to "sacrifice precision for performance"
@@ -973,26 +973,26 @@ procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
   const WorkingDirectory, LazarusProjectFile: string);
 var
   LazbuildOptions: TCastleStringList;
+
+  procedure LazbuildAddPackage(const LpkFileName: String);
+  begin
+    LazbuildOptions.Clear;
+    LazbuildOptions.Add('--add-package-link');
+    LazbuildOptions.Add(CastleEnginePath + LpkFileName);
+    RunLazbuild(WorkingDirectory, LazbuildOptions);
+  end;
+
 begin
   LazbuildOptions := TCastleStringList.Create;
   try
     // register CGE packages first
     if CastleEnginePath <> '' then
     begin
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_base.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
-
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_window.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
-
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_components.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
+      LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk');
+      LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk');
+      LazbuildAddPackage('packages/castle_base.lpk');
+      LazbuildAddPackage('packages/castle_window.lpk');
+      LazbuildAddPackage('packages/castle_components.lpk');
     end;
 
     LazbuildOptions.Clear;

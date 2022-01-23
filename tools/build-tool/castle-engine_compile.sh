@@ -5,7 +5,7 @@ set -euo pipefail
 # ----------------------------------------------------------------------------
 # Compile the Castle Game Engine build tool
 # ("castle-engine" binary, "castle-engine.exe" on Windows).
-# See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
+# See https://castle-engine.io/build_tool .
 #
 # Call this script from its directory, like this:
 #

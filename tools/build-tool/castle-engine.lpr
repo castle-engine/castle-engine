@@ -230,7 +230,7 @@ begin
             CPUOptionHelp + NL +
             NL+
             'Full documentation on' + NL +
-            'https://github.com/castle-engine/castle-engine/wiki/Build-Tool' + NL +
+            'https://castle-engine.io/build_tool' + NL +
             NL+
             ApplicationProperties.Description);
           Halt;

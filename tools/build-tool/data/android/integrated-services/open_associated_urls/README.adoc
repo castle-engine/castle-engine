@@ -1,0 +1,3 @@
+## open_associated_urls
+
+See example usage in https://github.com/castle-engine/view3dscene-mobile/blob/master/CastleEngineManifest.xml .

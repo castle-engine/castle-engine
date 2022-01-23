@@ -38,10 +38,10 @@ In short:
 
 - Our [editor](https://castle-engine.io/manual_editor.php) is used to design and build your applications.
 
-- Our [build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool) is used to build your applications from the command-line.
+- Our [build tool](https://castle-engine.io/build_tool) is used to build your applications from the command-line.
 
     Both the build tool and editor use the project settings
-    from the [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples)
+    from the [CastleEngineManifest.xml](https://castle-engine.io/project_manifest)
     file.
 
 - You can also use Lazarus ( https://www.lazarus-ide.org/ ).
@@ -56,7 +56,7 @@ In short:
     - packages/castle_window.lpk
 
 - You can also use FPC fpmake / fppkg.
-  See https://github.com/castle-engine/castle-engine/wiki/FpMake
+  See https://castle-engine.io/fpmake
 
 License
 -------

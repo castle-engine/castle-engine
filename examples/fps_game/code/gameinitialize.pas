@@ -606,7 +606,7 @@ begin
     { up } Vector3(0, 0, 1), false
   );
   { Allow user to actually edit this view, e.g. by mouse scroll. }
-  ExtraViewport.NavigationType := ntExamine;
+  ExtraViewport.Navigation := TCastleExamineNavigation.Create(Application);
 
   { Assign callbacks to some window events.
     Note about initial events: Window.Open calls OnOpen and first OnResize events,

@@ -834,11 +834,11 @@ begin
   if not UseThirdPerson then
   try
     GetView(P, D, U);
-    if UniqueParent <> nil then
+    if Parent <> nil then
     begin
-      P := UniqueParent.LocalToWorld(P);
-      D := UniqueParent.LocalToWorldDirection(D);
-      U := UniqueParent.LocalToWorldDirection(U);
+      P := Parent.LocalToWorld(P);
+      D := Parent.LocalToWorldDirection(D);
+      U := Parent.LocalToWorldDirection(U);
     end;
     Navigation.Camera.SetView(P, D, U);
   except
@@ -855,11 +855,11 @@ begin
   if not UseThirdPerson then
   try
     Navigation.Camera.GetView(P, D, U);
-    if UniqueParent <> nil then
+    if Parent <> nil then
     begin
-      P := UniqueParent.WorldToLocal(P);
-      D := UniqueParent.WorldToLocalDirection(D);
-      U := UniqueParent.WorldToLocalDirection(U);
+      P := Parent.WorldToLocal(P);
+      D := Parent.WorldToLocalDirection(D);
+      U := Parent.WorldToLocalDirection(U);
     end;
     Inc(InsideSynchronizeFromCamera);
     SetView(P, D, U);

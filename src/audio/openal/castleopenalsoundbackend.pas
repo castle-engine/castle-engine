@@ -1143,7 +1143,9 @@ begin
   case SoundLoading of
     slComplete : Result := TOpenALSoundBufferBackend.Create(Self);
     slStreaming: Result := TOpenALStreamBufferBackend.Create(Self);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TOpenALSoundEngineBackend.CreateBuffer: Invalid SoundLoading');
+    {$endif}
   end;
   {$else}
   Result := TOpenALSoundBufferBackend.Create(Self);

@@ -48,6 +48,28 @@ implementation
 uses SysUtils,
   CastleBoxes, X3DNodes, CastleUtils;
 
+{ TCarBehavior --------------------------------------------------------------- }
+
+type
+  TCarBehavior = class(TCastleBehavior)
+  public
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+  end;
+
+procedure TCarBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+var
+  T: TVector3;
+begin
+  T := Parent.Translation;
+  { Thanks to multiplying by SecondsPassed, it is a time-based operation,
+    and will always move 40 units / per second along the +Z axis. }
+  T := T + Vector3(0, 0, 40) * SecondsPassed;
+  { Wrap the Z position, to move in a loop }
+  if T.Z > 70 then
+    T.Z := -50;
+  Parent.Translation := T;
+end;
+
 { TStateMain ----------------------------------------------------------------- }
 
 constructor TStateMain.Create(AOwner: TComponent);
@@ -58,63 +80,74 @@ end;
 
 procedure TStateMain.Start;
 
-  function CreateBoxesScene: TCastleScene;
-  const
-    WallHeight = 5;
+  function CreateAdditionalMesh: TCastleScene;
   var
-    RoadBox: TBox3D;
-    RootNode: TX3DRootNode;
+    Coord: TCoordinateNode;
+    TexCoord: TTextureCoordinateNode;
+    IndexedFaceSet: TIndexedFaceSetNode;
+    BaseTexture: TImageTextureNode;
+    Material: TPhysicalMaterialNode;
     Appearance: TAppearanceNode;
-    Material: TMaterialNode;
-    Shape1, Shape2: TShapeNode;
-    Box1, Box2: TBoxNode;
-    Transform1, Transform2: TTransformNode;
+    Shape: TShapeNode;
+    Transform: TTransformNode;
+    RootNode: TX3DRootNode;
   begin
-    { The created geometry will automatically adjust to the bounding box
-      of the road 3D model. }
-    RoadBox := RoadScene.BoundingBox;
-    if RoadBox.IsEmpty then
-      raise Exception.Create('Invalid road 3D model: empty bounding box');
+    Coord := TCoordinateNode.Create;
+    Coord.SetPoint([
+      Vector3(-15.205387, -66.775894, -0.092525),
+      Vector3(9.317978, -66.775894, -0.092525),
+      Vector3(-15.205387, -68.674622, -0.092525),
+      Vector3(9.317978, -68.674622, -0.092525),
+      Vector3(9.317978, -78.330063, 3.456294),
+      Vector3(-15.205387, -78.330063, 3.456294),
+      Vector3(9.317978, -80.814240, 7.241702),
+      Vector3(-15.205387, -80.814240, 7.241702)
+    ]);
 
-    Material := TMaterialNode.Create;
-    { Yellow (we could have also used YellowRGB constant from CastleColors unit) }
-    Material.DiffuseColor := Vector3(1, 1, 0);
-    Material.Transparency := 0.75;
+    TexCoord := TTextureCoordinateNode.Create;
+    TexCoord.SetPoint([
+      Vector2(0.0001, 0.9964),
+      Vector2(1.0000, 0.9964),
+      Vector2(1.0000, 0.8541),
+      Vector2(0.0001, 0.8541),
+      Vector2(0.0001, 0.7118),
+      Vector2(1.0000, 0.7118),
+      Vector2(1.0000, 0.5695),
+      Vector2(0.0001, 0.5695),
+      Vector2(0.0001, 0.5695),
+      Vector2(1.0000, 0.5695),
+      Vector2(1.0000, 0.4272),
+      Vector2(0.0001, 0.4272)
+    ]);
+
+    IndexedFaceSet := TIndexedFaceSetNode.Create;
+    IndexedFaceSet.Coord := Coord;
+    IndexedFaceSet.TexCoord := TexCoord;
+    IndexedFaceSet.SetTexCoordIndex([0, 1, 2, 3, -1, 4, 5, 6, 7, -1, 8, 9, 10, 11, -1]);
+    IndexedFaceSet.SetCoordIndex([0, 1, 3, 2, -1, 2, 3, 4, 5, -1, 5, 4, 6, 7, -1]);
+    IndexedFaceSet.Solid := false; // make it visible from both sides
+
+    BaseTexture := TImageTextureNode.Create;
+    BaseTexture.SetUrl(['castle-data:/textures/tunnel_road.jpg']);
+
+    Material := TPhysicalMaterialNode.Create;
+    Material.BaseTexture := BaseTexture;
+    Material.BaseColor := Vector3(1, 1, 0); // yellow
 
     Appearance := TAppearanceNode.Create;
     Appearance.Material := Material;
 
-    { Note: you could use TBoxNode.CreateWithTransform shortcut method
-      to create Box1, Shape1, Transform1 in one instruction.
-      But we show the longer version below, as it's easier to understand. }
+    Shape := TShapeNode.Create;
+    Shape.Geometry := IndexedFaceSet;
+    Shape.Appearance := Appearance;
 
-    Box1 := TBoxNode.Create('box_1_geometry');
-    Box1.Size := Vector3(0.5, WallHeight, RoadBox.Size.Z);
-
-    Shape1 := TShapeNode.Create('box_1_shape');
-    Shape1.Appearance := Appearance;
-    Shape1.Geometry := Box1;
-
-    Transform1 := TTransformNode.Create('box_1_transform');
-    Transform1.Translation := Vector3(RoadBox.Min.X, WallHeight / 2, RoadBox.Center.Z);
-    Transform1.AddChildren(Shape1);
-
-    Box2 := TBoxNode.Create('box_2_geometry');
-    Box2.Size := Vector3(0.5, WallHeight, RoadBox.Size.Z);
-
-    Shape2 := TShapeNode.Create('box_2_shape');
-    { Reuse the same Appearance node for another shape.
-      This is perfectly allowed (the X3D is actually a graph, not a tree). }
-    Shape2.Appearance := Appearance;
-    Shape2.Geometry := Box2;
-
-    Transform2 := TTransformNode.Create('box_2_transform');
-    Transform2.Translation := Vector3(RoadBox.Max.X, WallHeight / 2, RoadBox.Center.Z);
-    Transform2.AddChildren(Shape2);
+    Transform := TTransformNode.Create;
+    Transform.Translation := Vector3(0, 0, 0);
+    Transform.Rotation := Vector4(1, 0, 0, -Pi / 2);
+    Transform.AddChildren(Shape);
 
     RootNode := TX3DRootNode.Create;
-    RootNode.AddChildren(Transform1);
-    RootNode.AddChildren(Transform2);
+    RootNode.AddChildren(Transform);
 
     Result := TCastleScene.Create(FreeAtStop);
     Result.Load(RootNode, true);
@@ -130,7 +163,7 @@ begin
   RoadScene := DesignedComponent('RoadScene') as TCastleScene;
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
 
-  MainViewport.Items.Add(CreateBoxesScene);
+  MainViewport.Items.Add(CreateAdditionalMesh);
 
   CarScene := TCastleScene.Create(FreeAtStop);
   CarScene.Load('castle-data:/car.gltf');
@@ -143,35 +176,16 @@ begin
     CarTransforms[I].Translation := Vector3(
        (Random(4) - 2) * 6, 0, RandomFloatRange(-70, 50));
     CarTransforms[I].Add(CarScene);
+    CarTransforms[I].AddBehavior(TCarBehavior.Create(FreeAtStop));
     MainViewport.Items.Add(CarTransforms[I]);
   end;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
-
-  procedure UpdateCarTransform(const CarTransform: TCastleTransform);
-  var
-    T: TVector3;
-  begin
-    T := CarTransform.Translation;
-    { Thanks to multiplying by SecondsPassed, it is a time-based operation,
-      and will always move 40 units / per second along the +Z axis. }
-    T := T + Vector3(0, 0, 40) * Container.Fps.SecondsPassed;
-    { Wrap the Z position, to move in a loop }
-    if T.Z > 70 then
-      T.Z := -50;
-    CarTransform.Translation := T;
-  end;
-
-var
-  I: Integer;
 begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-
-  for I := Low(CarTransforms) to High(CarTransforms) do
-    UpdateCarTransform(CarTransforms[I]);
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
@@ -179,9 +193,9 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  if Event.IsKey('c') then
+  if Event.IsKey(keyR) then
   begin
-    CarTransforms[1].Exists := not CarTransforms[1].Exists;
+    RoadScene.Exists := not RoadScene.Exists;
     Exit(true);
   end;
 

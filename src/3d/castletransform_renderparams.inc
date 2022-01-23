@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -241,6 +241,10 @@
     { Camera information for renderer. }
     RenderingCamera: TRenderingCamera;
 
+    { Are we traversing now only inside parents with MeaningfulParent,
+      i.e. outside of TCastleTransformReference.Reference. }
+    InMeaningfulParent: Boolean;
+
     constructor Create;
 
     { Lights that shine on given 3D object. }
@@ -248,6 +252,34 @@
 
     function RenderTransform: TMatrix4; deprecated 'use Transform';
     function RenderTransformIdentity: boolean; deprecated 'use TransformIdentity';
+  end;
+
+  { Information that a TCastleTransform object needs to prepare rendering.
+
+    This is @bold(mostly an internal class). You should not need to create it,
+    you should not need to read anything inside or deal with this class otherwise.
+
+    The only official usage allowed is to pass an instance of this class
+    taken from @link(TCastleViewport.PrepareParams)
+    as a parameter to @link(TCastleTransform.PrepareResources) and friends
+    like @link(T3DResource.Prepare). You should treat this class as a "black box"
+    in normal applications. }
+  TPrepareParams = class
+    { Include a headlight, or global lights that shine on all
+      scenes (see @link(TCastleViewport.UseGlobalLights)).
+
+      It is not necessary to define this (it may be @nil).
+      And all the lighting is dynamic, so of course you can always
+      turn on / off things like a headlight during the game.
+      However, passing here the appropriate lights will mean that the shaders
+      are immediately prepared for the current lighting.
+
+      @exclude }
+    InternalBaseLights: TAbstractLightInstancesList;
+
+    { World fog, in any, to prepare for.
+      @exclude }
+    InternalGlobalFog: TAbstractFogNode;
   end;
 
 {$endif read_interface}
@@ -366,6 +398,7 @@ begin
   Transform := @GlobalIdentityMatrix;
   InverseTransform := @GlobalIdentityMatrix;
   TransformIdentity := true;
+  InMeaningfulParent := true;
 end;
 
 function TRenderParams.RenderTransform: TMatrix4;

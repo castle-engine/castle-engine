@@ -1,0 +1,9 @@
+## in_app_purchases
+
+Allows to sell products within the iOS application, through the _Apple AppStore_.
+
+In your game, use the https://castle-engine.io/apidoc/html/CastleInAppPurchases.TInAppPurchases.html[TInAppPurchases class from the CastleInAppPurchases unit] to communicate with the AppStore, requesting information about the products, purchasing etc. See https://castle-engine.io/in_app_purchases[manual about implementing in-app purchases].
+
+You need (paid) Apple developer account to use this. And you will need to sign some legal forms to enable in-app purchases. See the https://developer.apple.com/in-app-purchase/[Apple documentation] for all the details. And you will need to configure the products that can be purchased on the https://itunesconnect.apple.com/[Apple iTunes Connect website].
+
+Be sure to check that the capability _"In-App Purchase"_ is also _Enabled_ for given _App ID_, in your _Apple Developer Account_.

@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2021 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -132,7 +132,7 @@ end;
 
 procedure TPreferencesForm.UpdateAutoDetectedLabels;
 var
-  FpcExe, FpcVer, LazarusExe, DelphiPath, VSCodeExe: String;
+  FpcExe, FpcVer, LazarusExe, LazarusVer, DelphiPath, VSCodeExe: String;
 begin
   FpcExe := '';
   try
@@ -154,8 +154,10 @@ begin
   LazarusExe := '';
   try
     LazarusExe := FindExeLazarusIDE;
+    LazarusVer := LazarusVersion.ToString;
     LabelLazarusAutoDetected.Caption :=
-      'Lazarus executable: ' + LazarusExe;
+      'Lazarus executable: ' + LazarusExe + NL +
+      'Lazarus version: ' + LazarusVer;
   except
     on E: EExecutableNotFound do
     begin
@@ -339,16 +341,14 @@ procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
 var
   ExecutionLog: String;
 
-  procedure RegisterPackage(const Name: String);
+  procedure RegisterPackage(const LpkFileName: String);
   var
     LazbuildExe, LazbuildOutput, PackageFileName, CommandLog: String;
     LazbuildExitStatus: integer;
   begin
-    LazbuildExe := FindExeLazarus('lazbuild');
-    if LazbuildExe = '' then
-      raise EExecutableNotFound.Create('Cannot find "lazbuild" program. Make sure it is installed, and set Lazarus location in CGE editor "Preferences".');
+    LazbuildExe := FindExeLazbuild;
 
-    PackageFileName := CastleEnginePath + 'packages' + PathDelim + Name + '.lpk';
+    PackageFileName := CastleEnginePath + LpkFileName;
 
     MyRunCommandIndir(
       GetCurrentDir { no better directory, but also should not matter },
@@ -370,11 +370,15 @@ begin
   ExecutionLog := 'Lazarus packages registed successfully.' + NL + NL +
     'Executed the following commands:';
   try
-    RegisterPackage('castle_base');
-    RegisterPackage('castle_window');
-    RegisterPackage('castle_components');
-    RegisterPackage('alternative_castle_window_based_on_lcl');
-    RegisterPackage('castle_indy');
+    RegisterPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk');
+    RegisterPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk');
+
+    RegisterPackage('packages/castle_base.lpk');
+    RegisterPackage('packages/castle_window.lpk');
+    RegisterPackage('packages/castle_components.lpk');
+    RegisterPackage('packages/alternative_castle_window_based_on_lcl.lpk');
+    RegisterPackage('packages/castle_indy.lpk');
+
     ShowMessage(ExecutionLog);
   except
     on E: Exception do

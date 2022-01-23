@@ -6,15 +6,16 @@
   align="right"/>)
 
 @italic(Castle Game Engine) https://castle-engine.io/
-is a powerful 3D and 2D open-source game engine for Object Pascal.
+is a cross-platform 3D and 2D open-source game engine for Object Pascal.
+We support FPC/Lazarus and Delphi.
 
 This is the engine API reference. It lists all available units, classes,
 and documents everything.
 
 See our website for more documentation:
 @unorderedList(
-  @item Getting started: https://castle-engine.io/documentation.php
   @item Manual: https://castle-engine.io/manual_intro.php
+  @item Guide to creating game data: https://castle-engine.io/creating_data_intro.php
 )
 
 Support the engine development on Patreon: https://www.patreon.com/castleengine

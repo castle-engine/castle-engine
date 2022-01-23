@@ -4,6 +4,7 @@ add
 align
 alignment
 alpha
+amplitude
 anchor
 angle
 animation
@@ -137,11 +138,13 @@ flash
 float
 flying
 focused
+forward
 font
 fps
 frame
 framebuffer
 frames
+frequency
 frustum
 fullscreen
 functions

@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -83,9 +83,9 @@ type
       DefautVersionCode = 1;
       { iOS requires version display to be <> '' }
       DefautVersionDisplayValue = '0.1';
-      DefaultAndroidCompileSdkVersion = 29;
+      DefaultAndroidCompileSdkVersion = 31;
       DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
-      { See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#what-android-devices-are-supported
+      { See https://castle-engine.io/android-FAQ#what-android-devices-are-supported
         for reasons behind this minimal version. }
       ReallyMinSdkVersion = 16;
       DefaultAndroidMinSdkVersion = ReallyMinSdkVersion;
@@ -204,7 +204,7 @@ type
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property Icons: TImageFileNames read FIcons;
     property LaunchImages: TImageFileNames read FLaunchImages;
-    { iOS launch image storyboard (see https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples#launch-images-for-now-only-for-ios ).
+    { iOS launch image storyboard (see https://castle-engine.io/project_manifest#launch-images-for-now-only-for-ios ).
       Never @nil (but check Path <> '' before actually using it). }
     property LaunchImageStoryboard: TLaunchImageStoryboard read FLaunchImageStoryboard;
     property SearchPaths: TStringList read FSearchPaths;

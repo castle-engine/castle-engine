@@ -33,6 +33,7 @@ uses
   TestGenericsCollections,
   TestOldFPCBugs,
   TestFPImage,
+  TestToolFpcVersion,
 
   { Testing CGE units }
   TestCastleUtils,

@@ -60,6 +60,10 @@ function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean = true): String;
   @raises EExecutableNotFound When the exe is not found and ExceptionWhenMissing. }
 function FindExeLazarusIDE(const ExceptionWhenMissing: Boolean = true): String;
 
+{ Find lazbuild.
+  @raises EExecutableNotFound When the exe is not found and ExceptionWhenMissing. }
+function FindExeLazbuild(const ExceptionWhenMissing: Boolean = true): String;
+
 { Find the path of Delphi installation.
   Ends with PathDelim.
 
@@ -160,6 +164,14 @@ begin
   if (Result = '') and ExceptionWhenMissing then
     // Note: FormProject using this message also for ErrorBox, so make sure it looks sensible.
     raise EExecutableNotFound.Create('Cannot find "lazarus" or "lazarus-ide" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
+end;
+
+function FindExeLazbuild(const ExceptionWhenMissing: Boolean): String;
+begin
+  Result := FindExeLazarus('lazbuild');
+  if (Result = '') and ExceptionWhenMissing then
+    // Note: FormProject using this message also for ErrorBox, so make sure it looks sensible.
+    raise EExecutableNotFound.Create('Cannot find "lazbuild" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
 end;
 
 function FindDelphiPath(const ExceptionWhenMissing: Boolean; out AppExe: String): String;

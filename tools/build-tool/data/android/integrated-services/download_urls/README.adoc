@@ -1,0 +1,27 @@
+## download_urls
+
+This service allows to download from `http` and `https` on Android.
+
+Add it to your link:https://castle-engine.io/project_manifest[CastleEngineManifest.xml]:
+
+[source,xml]
+----
+<android>
+  <services>
+    <service name="download_urls" />
+  </services>
+</android>
+----
+
+Then you can use our Pascal API (https://castle-engine.io/manual_network.php[Download and TCastleDownload]) to download resources from `http` and `https` on Android, just like on other platforms.
+
+Note: This service is automatically used if your project already declares that it needs to download `https` like this:
+
+[source,xml]
+----
+<dependencies>
+  <dependency name="Https" /> <!-- read https links -->
+</dependencies>
+----
+
+In you declare a dependency on `https`, there's no need to request the `download_urls` service on Android explicitly.

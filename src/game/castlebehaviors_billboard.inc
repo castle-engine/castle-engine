@@ -99,18 +99,18 @@ begin
   if Parent.HasWorldTransform and
      { this condition is not obvious from HasWorldTransform,
        as TCastleAbstractRootTransform also has world transform }
-     (Parent.UniqueParent <> nil) and
+     (Parent.Parent <> nil) and
      (Parent.World <> nil) and
      (Parent.World.MainCamera <> nil) then
   begin
     Camera := Parent.World.MainCamera;
 
-    { The transformation which interests us is the whole Parent.UniqueParent transformation,
+    { The transformation which interests us is the whole Parent.Parent transformation,
       and the Parent.Translation.
       We will modify the rotation.
 
     WorldInverseTransform := TranslationMatrix(-Parent.Translation) *
-      Parent.UniqueParent.WorldInverseTransform;
+      Parent.Parent.WorldInverseTransform;
 
     // calculate vector from (0, 0, 0) to camera Position, in local coords
     DirectionToCamera := WorldInverseTransform.MultPoint(Camera.Position);
@@ -118,7 +118,7 @@ begin
     More optimized version (just revert translation directly,
     instead of as a matrix): }
 
-    DirectionToCamera := Parent.UniqueParent.WorldToLocal(Camera.Position)
+    DirectionToCamera := Parent.Parent.WorldToLocal(Camera.Position)
       - Parent.Translation;
 
     Parent.Center := TVector3.Zero; // no other value makes sense for billboard implementation
@@ -129,7 +129,7 @@ begin
         DirectionToCamera,
         { Note that here we don't care about Parent.Translation,
           because we only transform direction. }
-        Parent.UniqueParent.WorldToLocalDirection(Camera.Up)
+        Parent.Parent.WorldToLocalDirection(Camera.Up)
       );
     end else
     begin

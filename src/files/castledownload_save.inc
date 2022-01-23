@@ -37,7 +37,7 @@ type
   On Android, you should use the "write_external_storage"
   service to be able to write storage files (e.g. to SD card).
   This means files accessed by the 'file' protocol.
-  See https://github.com/castle-engine/castle-engine/wiki/Android-Services .
+  See https://castle-engine.io/android-Services .
 
   @raises(ESaveError In case of problems saving this URL.)
 

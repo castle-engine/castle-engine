@@ -105,6 +105,21 @@ end;
 
 { global routines ------------------------------------------------------------ }
 
+procedure AddMacroXmlQuote(const Macros: TStringStringMap; const MacroName: String);
+
+  function XmlQuote(const S: String): String;
+  begin
+    Result := SReplacePatterns(S,
+      ['&', '<', '>', '"'],
+      ['&amp;', '&lt;', '&gt;', '&quot;'],
+      false { IgnoreCase; can be false, it doesn't matter, as our patterns are not letters }
+    );
+  end;
+
+begin
+  Macros.Add('${XmlQuote(' + MacroName + ')}', XmlQuote(Macros['${' + MacroName + '}']));
+end;
+
 procedure CopyTemplate(const ProjectDirUrl: String;
   const TemplateName, ProjectName, ProjectCaption, MainState: String);
 var
@@ -135,6 +150,12 @@ begin
     Macros.Add('${MAIN_STATE}', MainState);
     Macros.Add('${MAIN_STATE_LOWERCASE}', LowerCase(MainState));
 
+    { Generate versions of some macros with xml_quote function. }
+    AddMacroXmlQuote(Macros, 'PROJECT_NAME');
+    AddMacroXmlQuote(Macros, 'PROJECT_QUALIFIED_NAME');
+    AddMacroXmlQuote(Macros, 'PROJECT_PASCAL_NAME');
+    AddMacroXmlQuote(Macros, 'PROJECT_CAPTION');
+
     CopyProcess := TTemplateCopyProcess.Create;
     try
       CopyProcess.TemplateUrl := TemplateUrl;
@@ -159,7 +180,9 @@ begin
   end;
 
   MyRunCommandIndir(URIToFilenameSafe(ProjectDirUrl), BuildToolExe,
-    ['generate-program'], BuildToolOutput, BuildToolStatus);
+    ['generate-program'], BuildToolOutput, BuildToolStatus, nil, nil,
+    // prevent from blinking console on Windows
+    [rcNoConsole]);
   if BuildToolStatus <> 0 then
   begin
     WarningBox(Format('Generating program with the build tool failed with status code %d and output: "%s"',

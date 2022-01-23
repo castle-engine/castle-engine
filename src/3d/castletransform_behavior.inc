@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,7 +36,7 @@
     own transformation, children and it cannot render something.
     If this is too limiting, remember you can always implement more powerful behaviors
     by creating TCastleTransform descendants instead of TCastleBehavior descendants,
-    and accessing the @link(TCastleTransform.UniqueParent) from a child.
+    and accessing the @link(TCastleTransform.Parent) from a child.
   }
   TCastleBehavior = class(TCastleComponent)
   private

@@ -86,7 +86,7 @@
 function MakeWinapiMenuCore(Menu: TMenu;
   MenuBar: boolean; ParentAllowsEnabled: boolean): HMenu;
 
-  function SMnemonicsToWin(const S: string): string;
+  function SMnemonicsToWin(const S: string): UnicodeString;
   var
     SPos, ResultPos: Integer;
   begin
@@ -135,16 +135,17 @@ function MakeWinapiMenuCore(Menu: TMenu;
   begin
     { I'm casting MakeWinapiMenu result (:HMenu)
       to UINT to avoid range check errors }
-    OSCheck( AppendMenu(Result,
+    OSCheck( AppendMenuW(Result,
       MF_STRING or MF_POPUP or EnabledFlag(Menu.Enabled and ParentAllowsEnabled),
       UINT(MakeWinapiMenuCore(Menu, false, true)),
-      PChar(SMnemonicsToWin(Menu.Caption))) );
+      PWideChar(SMnemonicsToWin(Menu.Caption))) );
   end;
 
   procedure AppendGLMenuItem(MenuItem: TMenuItem; ParentAllowsEnabled: boolean);
   var
     Flags: UInt;
-    KeyStr, S: string;
+    KeyStr: String;
+    WinMenuCaption: UnicodeString;
   begin
     Flags := MF_STRING or EnabledFlag(MenuItem.Enabled and ParentAllowsEnabled);
 
@@ -161,11 +162,11 @@ function MakeWinapiMenuCore(Menu: TMenu;
     { Don't use here MenuItem.CaptionWithKey.
       Instead use #9 to delimit key names.
       This way our key shortcuts will be drawn nicely. }
-    S := SMnemonicsToWin(MenuItem.Caption);
+    WinMenuCaption := SMnemonicsToWin(MenuItem.Caption);
     if MenuItem.KeyToString(KeyStr) then
-      S := S + #9 + KeyStr;
+      WinMenuCaption := WinMenuCaption + #9 + UnicodeString(KeyStr);
 
-    OSCheck( AppendMenu(Result, Flags, MenuItem.SmallId, PChar(S)) );
+    OSCheck( AppendMenuW(Result, Flags, MenuItem.SmallId, PWideChar(WinMenuCaption)) );
 
     if (MenuItem is TMenuItemRadio) and TMenuItemRadio(MenuItem).Checked then
       OSCheck( CheckMenuRadioItem(Result,

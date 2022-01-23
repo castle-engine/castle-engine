@@ -1,0 +1,5 @@
+## photo_service
+
+Integration with PhotoLibrary.
+
+Use the Pascal class `TPhotoService` (use `CastlePhotoService` unit) to store your image into the system Photos app.

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -142,13 +142,16 @@ function AdbExe(const Required: boolean = true): string;
 const
   ExeName = 'adb';
   BundleName = 'SDK';
-  EnvVarName = 'ANDROID_HOME';
+  EnvVarName1 = 'ANDROID_SDK_ROOT';
+  EnvVarName2 = 'ANDROID_HOME';
 var
   Env: string;
 begin
   Result := '';
-  { try to find in $ANDROID_HOME }
-  Env := GetEnvironmentVariable(EnvVarName);
+  { try to find in $ANDROID_SDK_ROOT or (deprecated) $ANDROID_HOME }
+  Env := GetEnvironmentVariable(EnvVarName1);
+  if Env = '' then
+    GetEnvironmentVariable(EnvVarName2);
   if Env <> '' then
   begin
     Result := AddExeExtension(InclPathDelim(Env) + 'platform-tools' + PathDelim + ExeName);
@@ -157,7 +160,7 @@ begin
   end;
   { try to find on $PATH }
   if Result = '' then
-    Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
+    Result := FinishExeSearch(ExeName, BundleName, EnvVarName1, Required);
 end;
 
 function AndroidPackageFile(const Project: TCastleProject;
@@ -410,7 +413,17 @@ var
 
   procedure CalculateSigningProperties(var PackageMode: TCompilationMode);
   const
-    WWW = 'https://github.com/castle-engine/castle-engine/wiki/Android';
+    SigningPropertiesFile = 'AndroidSigningProperties.txt';
+    WWW = 'https://castle-engine.io/android_faq#_signing_a_release_apk';
+    MissingSigningSuffix =
+      '  See ' + WWW + ' for documentation how to create and use keys to sign release Android APK / AAB.' + NL +
+      '  Falling back to creating debug apk.';
+    MissingSigningInfo =
+      'Key information (key.store, key.alias, key.store.password, key.alias.password) to sign release Android package not found inside "' + SigningPropertiesFile + '" file.' + NL +
+      MissingSigningSuffix;
+    MissingSigningFile =
+      'Information about the keys to sign release Android package not found, because "' + SigningPropertiesFile + '" file does not exist.' + NL +
+      MissingSigningSuffix;
 
     procedure LoadSigningProperties(const FileName: string);
     var
@@ -425,7 +438,7 @@ var
             (S.IndexOfName('key.store.password') = -1) or
             (S.IndexOfName('key.alias.password') = -1)) then
         begin
-          WritelnWarning('Android', 'Key information (key.store, key.alias, key.store.password, key.alias.password) to sign release Android package not found inside "' + FileName + '" file. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
+          WritelnWarning('Android', MissingSigningInfo);
           PackageMode := cmDebug;
         end;
         if PackageMode <> cmDebug then
@@ -470,26 +483,18 @@ var
       finally FreeAndNil(S) end;
     end;
 
-  const
-    SourceAntPropertiesOld = 'AndroidAntProperties.txt';
-    SourceAntProperties = 'AndroidSigningProperties.txt';
   begin
     KeyStore := '';
     KeyAlias := '';
     KeyStorePassword := '';
     KeyAliasPassword := '';
-    if RegularFileExists(Project.Path + SourceAntProperties) then
+    if RegularFileExists(Project.Path + SigningPropertiesFile) then
     begin
-      LoadSigningProperties(Project.Path + SourceAntProperties);
-    end else
-    if RegularFileExists(Project.Path + SourceAntPropertiesOld) then
-    begin
-      LoadSigningProperties(Project.Path + SourceAntPropertiesOld);
-      WritelnWarning('Deprecated', 'Using deprecated configuration file name "' + SourceAntPropertiesOld + '". Rename it to "' + SourceAntProperties + '".');
+      LoadSigningProperties(Project.Path + SigningPropertiesFile);
     end else
     if PackageMode <> cmDebug then
     begin
-      WritelnWarning('Android', 'Information about the keys to sign release Android package not found, because "' + SourceAntProperties + '" file does not exist. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
+      WritelnWarning('Android', MissingSigningFile);
       PackageMode := cmDebug;
     end;
   end;

@@ -3,7 +3,7 @@ Libraries (dll files) required by Castle Game Engine
 
 You need to distribute them together with your Windows 32-bit programs,
 alongside the exe file. You can use our build tool (see
-https://github.com/castle-engine/castle-engine/wiki/Build-Tool )
+https://castle-engine.io/build_tool )
 to easily package your programs together with their dependendent libraries.
 
 Note that not all programs require all the libraries.

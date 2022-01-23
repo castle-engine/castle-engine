@@ -262,9 +262,9 @@ begin
     LogFont.lfCharSet := DEFAULT_CHARSET;
     StrCopy(@LogFont.lfFaceName, PChar(FontName));
     InternalInfo.UserEnumProc := EnumProc;
-    EnumFontFamiliesEx(Dc, {$ifdef FPC} @ {$endif} LogFont,
-      { TODO: temporary, I just make this unchecked } @EnumFontFamExProc_ByObject,
-      Integer(@InternalInfo), 0);
+    EnumFontFamiliesEx(Dc, {$ifdef FPC}@{$endif} LogFont,
+      {$ifdef FPC}@{$endif} EnumFontFamExProc_ByObject,
+      LPARAM(@InternalInfo), 0);
   finally ReleaseDC(0, DC) end;
 end;
 

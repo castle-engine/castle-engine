@@ -166,6 +166,12 @@ begin
   try
     RGBERow := GetMem(SizeOf(TVector4Byte) * RGBEWidth);
     try
+      { We implement 2 possible output types:
+        - TRGBFloatImage (preferred, but only possible if TRGBFloatImage is in AllowedImageClasses)
+        - or TRGBImage (used regardless of AllowedImageClasses;
+          if AllowedImageClasses doesn't allow even TRGBImage, we rely in LoadEncodedImage
+          to fix output type)
+      }
       if ClassAllowed(TRGBFloatImage) then
       begin
         Result := TRGBFloatImage.Create(RGBEWidth, RGBEHeight);
@@ -177,7 +183,6 @@ begin
             FloatRow^[x] := VectorRGBETo3Single(RGBERow^[x]);
         end;
       end else
-      if ClassAllowed(TRGBImage) then
       begin
         Result := TRGBImage.Create(RGBEWidth, RGBEHeight);
         for y := result.Height-1 downto 0 do
@@ -187,8 +192,7 @@ begin
           for x := 0 to result.Width - 1 do
             ByteRow^[x] := Vector3Byte( VectorRGBETo3Single(RGBERow^[x]) );
         end;
-      end else
-        raise EUnableToLoadImage.CreateFmt('Cannot load RGBE file to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
+      end;
     finally FreeMemNiling(Pointer(RGBERow)) end;
   except Result.Free; raise end;
 end;

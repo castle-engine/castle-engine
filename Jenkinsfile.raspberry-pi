@@ -1,7 +1,7 @@
 /* -*- mode: groovy -*-
-  Confgure how to run our job in Jenkins.
+  Configure how to run our job in Jenkins.
   This runs on Windows.
-  See https://github.com/castle-engine/castle-engine/wiki/Cloud-Builds-(Jenkins) .
+  See https://castle-engine.io/cloud_builds_jenkins .
 */
 
 library 'cag-shared-jenkins-library'

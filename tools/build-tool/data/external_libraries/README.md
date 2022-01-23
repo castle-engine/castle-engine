@@ -6,4 +6,4 @@ They are especially useful on Windows, where searching (or compiling yourself) t
 
 You can manually copy these libraries to your projects (or to some directory listed on $PATH, this way they are visible by all projects).
 
-You can also use our build tool https://github.com/castle-engine/castle-engine/wiki/Build-Tool to package your projects. In this case, you should define an environment variable $CASTLE_ENGINE_PATH pointing to the directory that has "castle_game_engine/" or "castle-engine/" subdirectory and then the build tool will automatically copy the necessary DLL files (for appropriate platform) when packaging your project.
+You can also use our build tool https://castle-engine.io/build_tool to package your projects. In this case, you should define an environment variable $CASTLE_ENGINE_PATH pointing to the directory that has "castle_game_engine/" or "castle-engine/" subdirectory and then the build tool will automatically copy the necessary DLL files (for appropriate platform) when packaging your project.

@@ -128,7 +128,7 @@ build-using-fpmake:
 	fi
 
 # Full test that fpmake compilation process works
-# (see https://github.com/castle-engine/castle-engine/wiki/FpMake )
+# (see https://castle-engine.io/fpmake )
 .PHONY: test-fpmake
 test-fpmake: build-using-fpmake
 # Test fpmake with --nofpccfg, to make sure our dependencies in fpmake.pp are correct
@@ -226,9 +226,10 @@ EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
 .PHONY: test-editor-template
 test-editor-template:
 	$(SED) --in-place=.backup \
-	  -e 's|standalone_source="$${PROJECT_PASCAL_NAME}_standalone.dpr"||' \
-	  -e 's|qualified_name="$${PROJECT_QUALIFIED_NAME}"||' \
-	  -e 's|$${PROJECT_NAME}|test_template_project_name|' \
+	  -e 's|standalone_source="$${XmlQuote(PROJECT_PASCAL_NAME)}_standalone.dpr"||' \
+	  -e 's|$${XmlQuote(PROJECT_QUALIFIED_NAME)}|test.project.castle.engine.io|' \
+	  -e 's|$${XmlQuote(PROJECT_CAPTION)}|Test Template Project Caption|' \
+	  -e 's|$${XmlQuote(PROJECT_NAME)}|test_template_project_name|' \
 	  $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml
 	$(SED)  --in-place=.backup \
 	  -e 's|$${PROJECT_NAME}|test_template_project_name|' \
@@ -322,6 +323,8 @@ cleanexamples:
 
 .PHONY: examples-laz
 examples-laz:
+	lazbuild src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
+	lazbuild src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
 	lazbuild packages/castle_base.lpk
 	lazbuild packages/castle_window.lpk
 	lazbuild packages/castle_components.lpk

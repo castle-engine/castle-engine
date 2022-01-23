@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -224,7 +224,7 @@ type
       (like TCastleViewport, TCastleButton and much more) to this list.
       We will pass events to these controls, draw them etc.
       See @link(TCastleContainer.Controls) for details. }
-    function Controls: TChildrenControls;
+    function Controls: TInternalChildrenControls;
 
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
     procedure Invalidate; override;
@@ -477,10 +477,13 @@ type
 
   TCastleControlCustom = TCastleControlBase deprecated 'use TCastleControlBase';
 
+  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
+
   { Same as TGameSceneManager, redefined only to work as a sub-component
     of TCastleControl, otherwise Lazarus fails to update the uses clause
     correctly and you cannot edit the events of CastleControl1.SceneManager
-    subcomponent. }
+    subcomponent.
+    @exclude Internal }
   TControlGameSceneManager = class(TGameSceneManager)
   end;
 
@@ -547,10 +550,20 @@ type
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
   end deprecated 'use TCastleControlBase and create instance of TCastleViewport explicitly';
 
+  {$else}
+
+  { In the future, TCastleControlBase should be renamed to just TCastleControl.
+    The "Base" suffix is just a temporary measure, as we transition from older
+    TCastleControl with predefined SceneManager. }
+  TCastleControl = TCastleControlBase;
+
+  {$endif}
+
   { Same as TCastle2DSceneManager, redefined only to work as a sub-component
     of TCastleControl, otherwise Lazarus fails to update the uses clause
     correctly and you cannot edit the events of CastleControl1.SceneManager
-    subcomponent. }
+    subcomponent.
+    @exclude Internal }
   TControl2DSceneManager = class(TCastle2DSceneManager)
   end;
 
@@ -1275,7 +1288,7 @@ begin
   Result := Container.Rect;
 end;
 
-function TCastleControlBase.Controls: TChildrenControls;
+function TCastleControlBase.Controls: TInternalChildrenControls;
 begin
   Result := Container.Controls;
 end;
@@ -1289,6 +1302,8 @@ begin
 end;
 
 { TCastleControl ----------------------------------------------------------- }
+
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
 
 constructor TCastleControl.Create(AOwner: TComponent);
 begin
@@ -1375,6 +1390,8 @@ procedure TCastleControl.SetOnCameraChanged(const Value: TNotifyEvent);
 begin
   SceneManager.OnCameraChanged := Value;
 end;
+
+{$endif CASTLE_DEPRECATED_WINDOW_CLASSES}
 
 { TCastle2DControl ----------------------------------------------------------- }
 

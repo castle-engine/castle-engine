@@ -89,7 +89,7 @@ type
     Contrary to profilers like Valgrind or Gprof
     (see
     https://castle-engine.io/manual_optimization.php#section_profiling ,
-    https://github.com/castle-engine/castle-engine/wiki/Profiling-Using-Valgrind ),
+    https://castle-engine.io/profiling_using_valgrind ),
     this profiler does not automatically gather everything.
     On the other hand, this profiler works on all platforms supported by CGE,
     and is trivial to use.

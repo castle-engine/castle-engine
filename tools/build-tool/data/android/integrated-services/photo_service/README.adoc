@@ -1,0 +1,5 @@
+## photo_service
+
+Operations with native picture gallery.
+
+Use the Pascal class `TPhotoService` (use `CastlePhotoService` unit) to store your image into Pictures folder in the system gallery. Using this service automatically adds the `WRITE_EXTERNAL_STORAGE` permission.

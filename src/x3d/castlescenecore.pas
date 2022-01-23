@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2021 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -8739,6 +8739,10 @@ begin
       TransformChild := TCastleTransform.Create(Owner);
       TransformChild.Name := TransformNamePascal;
       Add(TransformChild);
+
+      // otherwise changing TCastleSceneCore.ExposeTransforms would not update CGE editor hierarchy view
+      if not (csTransient in ComponentStyle) then
+        InternalCastleDesignInvalidate := true;
     end;
 
     // create TExposedTransform
