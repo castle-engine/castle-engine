@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2021 Michalis Kamburelis.
+  Copyright 2015-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,15 +32,12 @@
     procedure SetBorderColor(const Value: TCastleColor);
     function GetBorderWidth: Integer;
     procedure SetBorderWidth(const Value: Integer);
-    { manual edit: reimplemented getters/setters in castleinternalrenderer_texture.inc
-      Can these setters/getters be removed manually here?
     function GetBoundaryModeS: String;
     procedure SetBoundaryModeS(const Value: String);
     function GetBoundaryModeT: String;
     procedure SetBoundaryModeT(const Value: String);
     function GetBoundaryModeR: String;
     procedure SetBoundaryModeR(const Value: String);
-    }
     function GetTextureCompression: String;
     procedure SetTextureCompression(const Value: String);
     function GetTexturePriority: Single;
@@ -57,11 +54,11 @@
     { X3D field "borderWidth". } { }
     property BorderWidth: Integer read GetBorderWidth write SetBorderWidth;
     { X3D field "boundaryModeS". } { }
-    //property BoundaryModeS: String read GetBoundaryModeS write SetBoundaryModeS;
+    property BoundaryModeS: String read GetBoundaryModeS write SetBoundaryModeS;
     { X3D field "boundaryModeT". } { }
-    //property BoundaryModeT: String read GetBoundaryModeT write SetBoundaryModeT;
+    property BoundaryModeT: String read GetBoundaryModeT write SetBoundaryModeT;
     { X3D field "boundaryModeR". } { }
-    //property BoundaryModeR: String read GetBoundaryModeR write SetBoundaryModeR;
+    property BoundaryModeR: String read GetBoundaryModeR write SetBoundaryModeR;
     { X3D field "textureCompression". } { }
     property TextureCompression: String read GetTextureCompression write SetTextureCompression;
     { X3D field "texturePriority". } { }
@@ -107,7 +104,6 @@ begin
   FdBorderWidth.Send(Value);
 end;
 
-{
 function TTexturePropertiesNode.GetBoundaryModeS: String;
 begin
   Result := FdBoundaryModeS.Value;
@@ -137,7 +133,6 @@ procedure TTexturePropertiesNode.SetBoundaryModeR(const Value: String);
 begin
   FdBoundaryModeR.Send(Value);
 end;
-}
 
 function TTexturePropertiesNode.GetTextureCompression: String;
 begin
