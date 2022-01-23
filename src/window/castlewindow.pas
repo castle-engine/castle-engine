@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -440,10 +440,13 @@ type
 
   { Window to render everything (3D or 2D) with Castle Game Engine.
 
-    Add the user-interface controls to the @link(Controls) property.
+    You should use this with TUIState, following https://castle-engine.io/manual_state_events.php
+    and the rest of CGE manual.
+    All user interface creation and event handling should be inside some state.
+
+    Deprecated: You can also add any user-interface controls to the @link(Controls) property.
     User-interface controls are any @link(TCastleUserInterface) descendants,
     like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
-
     Use events like @link(OnPress) to react to events.
     Use event @link(OnUpdate) to do something continuously.
 
@@ -451,8 +454,11 @@ type
     @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
 
     If you're looking for an analogous Lazarus component
-    (that does basically the same, but can be placed on a Lazarus form)
-    see @link(TCastleControlBase) component. }
+    (that can be placed on a Lazarus form)
+    see @link(TCastleControlBase) component.
+    Note that you cannot use both TCastleControlBase and TCastleWindowBase
+    within the same application.
+    See https://castle-engine.io/control_on_form . }
   TCastleWindowBase = class(TComponent)
 
   { Include CastleWindow-backend-specific parts of TCastleWindowBase class.

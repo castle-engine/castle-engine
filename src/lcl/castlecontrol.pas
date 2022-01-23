@@ -46,16 +46,25 @@ const
 type
   { Control to render everything (3D or 2D) with Castle Game Engine.
 
-    Add the user-interface controls to the @link(Controls) property.
+    See https://castle-engine.io/control_on_form for a documentation
+    how to use this.
+
+    You can use this with TUIState, following https://castle-engine.io/control_on_form instructions.
+    In this case, all user interface creation and event handling should
+    be inside some state.
+
+    You can also add any user-interface controls to the @link(Controls) property.
     User-interface controls are any @link(TCastleUserInterface) descendants,
     like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
-
     Use events like @link(OnPress) to react to events.
     Use event @link(OnUpdate) to do something continuously.
 
     By default, the control is filled with simple color from
     @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
-  }
+
+    This control is an alternative to rendering things using TCastleWindowBase.
+    Note that you cannot use both TCastleControlBase and TCastleWindowBase
+    within the same application. }
   TCastleControlBase = class(TCustomOpenGLControl)
   strict private
     type
