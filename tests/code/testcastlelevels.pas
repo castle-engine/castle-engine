@@ -19,8 +19,8 @@ unit TestCastleLevels;
 
 interface
 
-uses Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+uses Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleLevels = class(TCastleTestCase)

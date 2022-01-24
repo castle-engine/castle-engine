@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestUnicode" -*-
+﻿// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestUnicode" -*-
 {
   Copyright 2020-2021 Michalis Kamburelis.
 
@@ -20,8 +20,8 @@ unit TestCastleUnicode;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase;
+  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestUnicode = class(TCastleTestCase)

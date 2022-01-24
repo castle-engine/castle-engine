@@ -61,7 +61,6 @@ uses
   {$ifdef UNIX} Unix, BaseUnix, {$endif}
   Math, CastleUtils, CastleTimeUtils, CastleVectors;
 
-{$ifdef FPC}
 { TODO: This macro should be remade to a generic class.
 
   This macro depends on parameters (define other macros with these names):
@@ -87,7 +86,8 @@ uses
   which means that SpeedTest_DoFasterCycle is actually 2x slower than
   SpeedTest_DoSlowerCycle.
 }
-
+{$ifdef FPC}
+{$MACRO ON}
 {$define SpeedTest_Declare:=
   {$ifndef NO_SPEED_TESTS}
   var
@@ -122,10 +122,9 @@ uses
 	                 (SpeedTest_Time1-SpeedTest_Time0)]));
   {$endif not NO_SPEED_TESTS}
 }
+{$endif FPC}
 
 {$warnings off} // knowingly using deprecated, to check they are working
-
-{$endif FPC}
 
 procedure TTestCastleUtils.TestMilisecTime;
 const t1: TMilisecTime = High(TMilisecTime) - 10;
