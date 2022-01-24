@@ -1084,7 +1084,7 @@ implementation
 uses SysUtils, DOM, Math,
   CastleFilesUtils, CastleGLUtils,
   CastleProgress, CastleGameNotifications, CastleUIControls;
-{$warning on}
+{$warnings on}
 
 var
   DisableCreatures: Cardinal;
