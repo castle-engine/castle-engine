@@ -70,6 +70,11 @@ procedure TTestCastleWindowOpen.TestProgressFromOpen;
 var
   Window: TCastleWindowBase;
 begin
+  {$ifdef CASTLE_TESTER}
+  if not IsConsoleMode then
+    Fail('Curretnly we can test window progress only in console mode.');
+  {$endif}
+
   Window := TCastleWindowBase.Create(nil);
   try
     Window.Controls.InsertFront(TControl1.Create(Window));
@@ -113,6 +118,11 @@ procedure TTestCastleWindowOpen.TestSaveScreenFromOpen;
 var
   Window: TCastleWindowBase;
 begin
+  {$ifdef CASTLE_TESTER}
+  if not IsConsoleMode then
+    Fail('Curretnly we can test window progress only in console mode.');
+  {$endif}
+
   Window := TCastleWindowBase.Create(nil);
   try
     Window.Controls.InsertFront(TControl2.Create(Window));
@@ -186,6 +196,11 @@ procedure TTestCastleWindowOpen.TestLoadLevelFromOpen;
   end;
 
 begin
+  {$ifdef CASTLE_TESTER}
+  if not IsConsoleMode then
+    Fail('Curretnly we can test window progress only in console mode.');
+  {$endif}
+
   DoTest(false);
   DoTest(true);
 end;
