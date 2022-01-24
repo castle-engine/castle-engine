@@ -45,8 +45,7 @@ end;
 
 procedure TCastleConsoleTester.Log(const AMessage: String);
 begin
-  //WritelnLog(AMessage);
-  Writeln(AMessage);
+  WritelnLog(AMessage);
 end;
 
 procedure TCastleConsoleTester.Run;
@@ -62,8 +61,8 @@ begin
   if FTester.TestFailedCount = 0 then
     Log('All tests passed.');
 
-  Writeln('Press <enter> to quit...');
-  Readln;
+  //Log('Press <enter> to quit...');
+  //Readln;
 end;
 
 procedure TCastleConsoleTester.TestExecuted(const AName: String);
