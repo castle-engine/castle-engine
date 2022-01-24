@@ -107,10 +107,6 @@ var
   Window: TCastleWindowBase;
   Parent, Child1, Child2: TCastleUserInterface;
 begin
-  {$ifndef FPC}
-  Fail('This test make RuntimeError in CastleTester in Delphi.');
-  {$endif}
-
   Window := nil;
   Parent := nil;
   Child1 := nil;
@@ -124,7 +120,6 @@ begin
 
     Parent := TCastleUserInterface.Create(nil);
     Window.Controls.InsertFront(Parent);
-
     Child1 := TCastleUserInterface.Create(nil);
     Child2 := TCastleUserInterface.Create(nil);
 
