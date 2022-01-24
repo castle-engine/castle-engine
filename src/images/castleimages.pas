@@ -535,13 +535,9 @@ type
       Remember that resizing may change RawPixels pointer, so all pointers
       that you aquired using functions like
       RawPixels, Pixels, PixelsArray, RowPtr, PixelPtr
-      may be invalid after calling Resize.
-
-      If ProgressTitle <> '' this will call Progress.Init/Step/Fini
-      from CastleProgress to indicate progress of operation. }
+      may be invalid after calling Resize. }
     procedure Resize(ResizeWidth, ResizeHeight: Cardinal;
-      const Interpolation: TResizeInterpolation = riBilinear;
-      const ProgressTitle: string = '');
+      const Interpolation: TResizeInterpolation = riBilinear);
 
     { Change Width and Height and appropriately stretch image contents.
 
@@ -573,14 +569,9 @@ type
 
       As with @link(Resize) method, when the parameter ResizeTo* is 0
       it means to use current Width/Height.
-      So e.g. using MakeResized(0, 0) is the same thing as using CreateCopy.
-
-      As with @link(Resize),
-      if ProgressTitle <> '' this will call Progress.Init/Step/Fini
-      from CastleProgress to indicate progress of operation. }
+      So e.g. using MakeResized(0, 0) is the same thing as using CreateCopy. }
     function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
-      const Interpolation: TResizeInterpolation = riBilinear;
-      const ProgressTitle: string = ''): TCastleImage;
+      const Interpolation: TResizeInterpolation = riBilinear): TCastleImage;
 
     { Mirror image horizotally (that is right edge is swapped with left edge). }
     procedure FlipHorizontal;
@@ -2184,8 +2175,7 @@ procedure InternalResize(PixelSize: Cardinal;
   const SourceData: Pointer; const SourceRect: TRectangle; const SourceWidth, SourceHeight: Cardinal;
   const DestinData: Pointer; const DestinRect: TRectangle; const DestinWidth, DestinHeight: Cardinal;
   const Interpolation: TResizeInterpolationInternal;
-  const MixColors: TMixColorsFunction;
-  const ProgressTitle: string);
+  const MixColors: TMixColorsFunction);
 var
   DestinY: Integer;
 
@@ -2258,56 +2248,22 @@ var
     end;
   end;
 
-{$ifdef FPC}
-
-type
-  TMakeLineFunction = procedure is nested;
-var
-  MakeLine: TMakeLineFunction;
 begin
   case Interpolation of
-    riNearest : MakeLine := @MakeLineNearest;
-    riBilinear: MakeLine := @MakeLineBilinear;
+    riNearest:
+      for DestinY := DestinRect.Bottom to DestinRect.Top - 1 do
+        MakeLineNearest;
+    riBilinear:
+      for DestinY := DestinRect.Bottom to DestinRect.Top - 1 do
+        MakeLineBilinear;
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Unknown Interpolation for InternalResize');
     {$endif}
   end;
-
-{$else}
-
-  { In Delphi mode, nested procedural variables are not supported.
-    Just define a local MakeLine procedure. }
-  procedure MakeLine;
-  begin
-    case Interpolation of
-      riNearest : MakeLineNearest;
-      riBilinear: MakeLineBilinear;
-      else raise EInternalError.Create('Unknown Interpolation for InternalResize');
-    end;
-  end;
-
-begin
-{$endif}
-  if ProgressTitle = '' then
-  begin
-    for DestinY := DestinRect.Bottom to DestinRect.Top - 1 do
-      MakeLine;
-  end else
-  begin
-    Progress.Init(DestinHeight, ProgressTitle);
-    try
-      for DestinY := DestinRect.Bottom to DestinRect.Top - 1 do
-      begin
-        MakeLine;
-        Progress.Step;
-      end;
-    finally Progress.Fini end;
-  end;
 end;
 
 procedure TCastleImage.Resize(ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation;
-  const ProgressTitle: string);
+  const Interpolation: TResizeInterpolation);
 var
   NewPixels: Pointer;
 {$ifdef FPC}
@@ -2318,7 +2274,6 @@ begin
      (Interpolation <= High(TResizeInterpolationFpImage)) then
   begin
     {$ifdef FPC}
-    // TODO; ProgressTitle not supported for this
     NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
     try
       FromFpImage(NewFpImage);
@@ -2327,7 +2282,7 @@ begin
     WritelnWarning('Resizing with interpolation %d not supported with Delphi, falling back to bilinear', [
       Ord(Interpolation)
     ]);
-    Resize(ResizeWidth, ResizeHeight, riBilinear, ProgressTitle);
+    Resize(ResizeWidth, ResizeHeight, riBilinear);
     {$endif FPC}
   end else
   begin
@@ -2342,7 +2297,7 @@ begin
       InternalResize(PixelSize,
         RawPixels, Rect, Width, Height,
         NewPixels, CastleRectangles.Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
-        Interpolation, {$ifdef FPC}@{$endif} MixColors, ProgressTitle);
+        Interpolation, {$ifdef FPC}@{$endif} MixColors);
       FreeMemNiling(FRawPixels);
 
       FRawPixels := NewPixels;
@@ -2353,8 +2308,7 @@ begin
 end;
 
 function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation;
-  const ProgressTitle: string): TCastleImage;
+  const Interpolation: TResizeInterpolation): TCastleImage;
 {$ifdef FPC}
 var
   NewFpImage: TInternalCastleFpImage;
@@ -2364,7 +2318,6 @@ begin
      (Interpolation <= High(TResizeInterpolationFpImage)) then
   begin
     {$ifdef FPC}
-    // TODO; ProgressTitle not supported for this
     NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
     try
       // since we request our own class as output, CreateFromFpImage must return some TCastleImage
@@ -2374,7 +2327,7 @@ begin
     WritelnWarning('Resizing with interpolation %d not supported with Delphi, falling back to bilinear', [
       Ord(Interpolation)
     ]);
-    Result := MakeResized(ResizeWidth, ResizeHeight, riBilinear, ProgressTitle);
+    Result := MakeResized(ResizeWidth, ResizeHeight, riBilinear);
     {$endif FPC}
   end else
   begin
@@ -2389,7 +2342,7 @@ begin
         InternalResize(PixelSize,
                  RawPixels,        Rect,        Width,        Height,
           Result.RawPixels, Result.Rect, Result.Width, Result.Height,
-          Interpolation, {$ifdef FPC}@{$endif} MixColors, ProgressTitle);
+          Interpolation, {$ifdef FPC}@{$endif} MixColors);
     except Result.Free; raise end;
   end;
 end;
@@ -2418,7 +2371,7 @@ type
     InternalResize(PixelSize,
       RawPixels, SourceRect, Width, Height,
       NewPixels, DestRect, ResizeWidth, ResizeHeight,
-      Interpolation, {$ifdef FPC}@{$endif} MixColors, '');
+      Interpolation, {$ifdef FPC}@{$endif} MixColors);
   end;
 
 var
