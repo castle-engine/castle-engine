@@ -1,6 +1,6 @@
 // -*- compile-command: "castle-engine compile --mode=release && castle-engine run -- ../../../" -*-
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -210,13 +210,12 @@ begin
   try
     Lpk.CheckFiles([
      'common_includes',
-     '3d',
+     'transform',
      'audio',
      'base',
      'castlescript',
      'files',
      'fonts',
-     'game',
      'images',
      'pasgltf',
      'physics',

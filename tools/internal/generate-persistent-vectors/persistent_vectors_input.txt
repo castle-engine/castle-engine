@@ -52,23 +52,23 @@
 
 ../../../src/ui/opengl/ TCastleTiledMapControl Origin TVector2
 
-../../../src/3d/ TCastleTransform Center TVector3
-../../../src/3d/ TCastleTransform Rotation TVector4
-../../../src/3d/ TCastleTransform Scale TVector3
-../../../src/3d/ TCastleTransform ScaleOrientation TVector4
-../../../src/3d/ TCastleTransform Translation TVector3
+../../../src/transform/ TCastleTransform Center TVector3
+../../../src/transform/ TCastleTransform Rotation TVector4
+../../../src/transform/ TCastleTransform Scale TVector3
+../../../src/transform/ TCastleTransform ScaleOrientation TVector4
+../../../src/transform/ TCastleTransform Translation TVector3
 
-../../../src/3d/ TCastleCamera InitialPosition TVector3
-../../../src/3d/ TCastleCamera InitialDirection TVector3
-../../../src/3d/ TCastleCamera InitialUp TVector3
-../../../src/3d/ TCastleCamera GravityUp TVector3
-../../../src/3d/ TCastleThirdPersonNavigation AvatarTarget TVector3
+../../../src/transform/ TCastleCamera InitialPosition TVector3
+../../../src/transform/ TCastleCamera InitialDirection TVector3
+../../../src/transform/ TCastleCamera InitialUp TVector3
+../../../src/transform/ TCastleCamera GravityUp TVector3
+../../../src/transform/ TCastleThirdPersonNavigation AvatarTarget TVector3
 
-../../../src/3d/ TCastleOrthographic Origin TVector2
+../../../src/transform/ TCastleOrthographic Origin TVector2
+
+../../../src/transform/ TCastleBillboard AxisOfRotation TVector3
 
 ../../../src/x3d/opengl/ TCastleViewport BackgroundColor TCastleColor
 ../../../src/x3d/opengl/ TCastleAbstractPrimitive Color TCastleColor
 ../../../src/x3d/opengl/ TCastleBox Size TVector3
 ../../../src/x3d/opengl/ TCastlePlane Size TVector2
-
-../../../src/game/ TCastleBillboard AxisOfRotation TVector3
