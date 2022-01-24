@@ -54,6 +54,11 @@ procedure TTestWindow.Test1;
 var
   Window: TCastleWindowBase;
 begin
+  {$ifdef CASTLE_TESTER}
+  if IsMobileMode then
+    Fail('Tests that creates windows cannot be run on mobile.');
+  {$endif}
+
   Window := TCastleWindowBase.Create(nil);
   try
     Window.Open;
@@ -68,6 +73,11 @@ var
   Window: TCastleWindowBase;
   C: TCastleButton;
 begin
+  {$ifdef CASTLE_TESTER}
+  if IsMobileMode then
+    Fail('Tests that creates windows cannot be run on mobile.');
+  {$endif}
+
   Window := TCastleWindowBase.Create(nil);
   try
     C := TCastleButton.Create(Window);
@@ -107,6 +117,11 @@ var
   Window: TCastleWindowBase;
   Parent, Child1, Child2: TCastleUserInterface;
 begin
+  {$ifdef CASTLE_TESTER}
+  if IsMobileMode then
+    Fail('Tests that creates windows cannot be run on mobile.');
+  {$endif}
+
   Window := nil;
   Parent := nil;
   Child1 := nil;
@@ -224,6 +239,11 @@ var
   end;
 
 begin
+  {$ifdef CASTLE_TESTER}
+  if IsMobileMode then
+    Fail('Tests that creates windows cannot be run on mobile.');
+  {$endif}
+
   Window := TCastleWindowBase.Create(nil);
   try
     Window.Width := 800;
@@ -347,6 +367,11 @@ var
 var
   Window: TCastleWindowBase;
 begin
+  {$ifdef CASTLE_TESTER}
+  if IsMobileMode then
+    Fail('Tests that creates windows cannot be run on mobile.');
+  {$endif}
+
   Window := TCastleWindowBase.Create(nil);
   try
     Window.Width := 300;
