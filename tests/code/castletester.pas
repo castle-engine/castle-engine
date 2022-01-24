@@ -219,6 +219,7 @@ type
       const ARttiMethod: TRttiMethod{$endif}): TCastleTest;
 
     function IsConsoleMode: Boolean;
+    function IsMobileMode: Boolean;
 
     { Clears test list }
     procedure ClearTests;
@@ -1159,6 +1160,11 @@ end;
 function TCastleTestCase.IsConsoleMode: Boolean;
 begin
   Result := (FCastleTester.Mode = ctmConsole);
+end;
+
+function TCastleTestCase.IsMobileMode: Boolean;
+begin
+  Result := (FCastleTester.Mode = ctmMobile);
 end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
