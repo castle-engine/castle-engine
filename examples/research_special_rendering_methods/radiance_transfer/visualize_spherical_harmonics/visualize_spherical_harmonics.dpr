@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,7 +18,7 @@ program visualize_spherical_harmonics;
 uses SysUtils, Classes, Math,
   CastleFrustum, CastleVectors, CastleBoxes, CastleWindow, CastleUIControls,
   CastleClassUtils, CastleUtils, CastleFilesUtils, CastleControls,
-  CastleGLUtils, CastleCameras, CastleSphereSampling, CastleSphericalHarmonics,
+  CastleGLUtils, CastleCameras, CastleInternalSphereSampling, CastleInternalSphericalHarmonics,
   CastleViewport, CastleScene, X3DNodes, CastleShapes,
   CastleStringUtils, CastleKeysMouse, CastleColors, CastleTransform,
   SceneUtilities;

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,7 +53,7 @@
   so we can save some computation). PdfValue is needed for importance sampling.
 }
 
-unit CastleSphereSampling;
+unit CastleInternalSphereSampling;
 
 {$I castleconf.inc}
 
@@ -64,7 +64,7 @@ uses CastleVectors, CastleUtils;
 { Convert from PhiTheta representation of (hemi)sphere direction to
   XYZ representation.
 
-  See the beginning of this unit's documentation, CastleSphereSampling,
+  See the beginning of this unit's documentation, CastleInternalSphereSampling,
   for more precise description of XYZ representation. }
 function PhiThetaToXYZ(const PhiTheta: TVector2; const SphereRadius: Single)
   :TVector3; overload;

@@ -2002,7 +2002,7 @@ implementation
 uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   {$ifdef USE_VAMPYRE_IMAGING} Imaging, ImagingClasses, ImagingTypes, {$endif}
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
-  CastleCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils,
+  CastleInternalCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils,
   CastleStreamUtils;
 {$warnings on}
 

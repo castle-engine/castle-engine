@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -361,7 +361,7 @@ begin
   FImagesPersistent[tiSquarePressedBackground].Image := SquarePressedBackground;
 
   FImagesPersistent[tiDisclosure].Image := Disclosure;
-  FImagesPersistent[tiLoading].Image := CastleControlsImages.Loading;
+  FImagesPersistent[tiLoading].Image := CastleInternalControlsImages.Loading;
   FImagesPersistent[tiEdit].Image := Edit;
   FImagesPersistent[tiEdit].ProtectedSides.AllSides := 2;
 end;

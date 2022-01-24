@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -65,7 +65,7 @@ interface
 uses SysUtils, Generics.Collections, Classes,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
-  CastleTextureImages, CastleVideos, CastleCompositeImage, CastleRectangles,
+  CastleTextureImages, CastleVideos, CastleInternalCompositeImage, CastleRectangles,
   CastleGLShaders, CastleColors, CastleUtils, CastleRenderOptions;
 
 {$define read_interface}

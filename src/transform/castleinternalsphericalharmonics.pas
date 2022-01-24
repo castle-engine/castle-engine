@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,13 +14,13 @@
 }
 
 { Spherical harmonic basis functions. }
-unit CastleSphericalHarmonics;
+unit CastleInternalSphericalHarmonics;
 
 {$I castleconf.inc}
 
 interface
 
-uses CastleVectors, CastleUtils, Math, CastleCubeMaps;
+uses CastleVectors, CastleUtils, Math, CastleInternalCubeMaps;
 
 const
   { How many basis can SHBasis calculate. LM for SHBasis must be within
@@ -82,7 +82,7 @@ procedure SHVectorFromCubeMap(var SHVector: array of Single;
 
 implementation
 
-uses CastleSphereSampling;
+uses CastleInternalSphereSampling;
 
 function SHBasis(const LM: Cardinal; const PhiTheta: TVector2): Float;
 

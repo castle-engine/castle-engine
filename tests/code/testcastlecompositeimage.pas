@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleCompositeImage" -*-
 {
-  Copyright 2009-2021 Michalis Kamburelis.
+  Copyright 2009-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,7 +31,7 @@ type
 
 implementation
 
-uses SysUtils, CastleVectors, CastleImages, CastleCompositeImage, Classes;
+uses SysUtils, CastleVectors, CastleImages, CastleInternalCompositeImage, Classes;
 
 procedure TTestCastleCompositeImage.TestLoadSave;
 

@@ -104,8 +104,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleComponentSerialize"/>
       </Item7>
       <Item8>
-        <Filename Value="../src/transform/castlecubemaps.pas"/>
-        <UnitName Value="CastleCubeMaps"/>
+        <Filename Value="../src/transform/castleinternalcubemaps.pas"/>
+        <UnitName Value="CastleInternalCubeMaps"/>
       </Item8>
       <Item9>
         <Filename Value="../src/transform/castlefrustum.pas"/>
@@ -150,16 +150,16 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleSectors"/>
       </Item18>
       <Item19>
-        <Filename Value="../src/transform/castlespacefillingcurves.pas"/>
-        <UnitName Value="CastleSpaceFillingCurves"/>
+        <Filename Value="../src/transform/castleinternalspacefillingcurves.pas"/>
+        <UnitName Value="CastleInternalSpaceFillingCurves"/>
       </Item19>
       <Item20>
-        <Filename Value="../src/transform/castlespheresampling.pas"/>
-        <UnitName Value="CastleSphereSampling"/>
+        <Filename Value="../src/transform/castleinternalspheresampling.pas"/>
+        <UnitName Value="CastleInternalSphereSampling"/>
       </Item20>
       <Item21>
-        <Filename Value="../src/transform/castlesphericalharmonics.pas"/>
-        <UnitName Value="CastleSphericalHarmonics"/>
+        <Filename Value="../src/transform/castleinternalsphericalharmonics.pas"/>
+        <UnitName Value="CastleInternalSphericalHarmonics"/>
       </Item21>
       <Item22>
         <Filename Value="../src/transform/castlethirdpersonnavigation.pas"/>
@@ -813,8 +813,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleConfig"/>
       </Item179>
       <Item180>
-        <Filename Value="../src/files/castledatauri.pas"/>
-        <UnitName Value="CastleDataURI"/>
+        <Filename Value="../src/files/castleinternaldatauri.pas"/>
+        <UnitName Value="CastleInternalDataUri"/>
       </Item180>
       <Item181>
         <Filename Value="../src/files/castledownload.pas"/>
@@ -1092,19 +1092,19 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleResources"/>
       </Item247>
       <Item248>
-        <Filename Value="../src/images/castlecompositeimage.pas"/>
-        <UnitName Value="CastleCompositeImage"/>
+        <Filename Value="../src/images/castleinternalcompositeimage.pas"/>
+        <UnitName Value="CastleInternalCompositeImage"/>
       </Item248>
       <Item249>
-        <Filename Value="../src/images/castlecompositeimage_dds.inc"/>
+        <Filename Value="../src/images/castleinternalcompositeimage_dds.inc"/>
         <Type Value="Include"/>
       </Item249>
       <Item250>
-        <Filename Value="../src/images/castlecompositeimage_format_handler.inc"/>
+        <Filename Value="../src/images/castleinternalcompositeimage_format_handler.inc"/>
         <Type Value="Include"/>
       </Item250>
       <Item251>
-        <Filename Value="../src/images/castlecompositeimage_ktx.inc"/>
+        <Filename Value="../src/images/castleinternalcompositeimage_ktx.inc"/>
         <Type Value="Include"/>
       </Item251>
       <Item252>
@@ -1591,11 +1591,11 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item371>
       <Item372>
-        <Filename Value="../src/ui/opengl/castlecontrolsimages.pas"/>
-        <UnitName Value="CastleControlsImages"/>
+        <Filename Value="../src/ui/opengl/castleinternalcontrolsimages.pas"/>
+        <UnitName Value="CastleInternalControlsImages"/>
       </Item372>
       <Item373>
-        <Filename Value="../src/ui/opengl/castlecontrolsimages.image_data"/>
+        <Filename Value="../src/ui/opengl/castleinternalcontrolsimages.image_data"/>
         <Type Value="Text"/>
       </Item373>
       <Item374>

@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2018 Michalis Kamburelis.
+  Copyright 2009-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
 }
 
 { Composite (like KTX or DDS) image file format handling (TCompositeImage). }
-unit CastleCompositeImage;
+unit CastleInternalCompositeImage;
 
 {$I castleconf.inc}
 
@@ -266,9 +266,9 @@ uses SysUtils, Math,
   CastleUtils, CastleClassUtils, CastleLog, CastleStringUtils,
   CastleVectors, CastleDownload, CastleURIUtils;
 
-{$I castlecompositeimage_format_handler.inc}
-{$I castlecompositeimage_dds.inc}
-{$I castlecompositeimage_ktx.inc}
+{$I castleinternalcompositeimage_format_handler.inc}
+{$I castleinternalcompositeimage_dds.inc}
+{$I castleinternalcompositeimage_ktx.inc}
 
 { TCompositeImage ------------------------------------------------------------------ }
 

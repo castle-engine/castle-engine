@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2020 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -168,7 +168,7 @@ uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,
   CastleVideos, X3DTime, CastleTransform, CastleMaterialProperties,
-  {$ifdef FPC}CastleScript, X3DCastleScript, {$endif} CastleInternalOctree, CastleCompositeImage,
+  {$ifdef FPC}CastleScript, X3DCastleScript, {$endif} CastleInternalOctree, CastleInternalCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   CastleTextureFontData, CastleRenderOptions, CastleProjection, CastleBehaviors;
 
@@ -279,7 +279,7 @@ uses
 
   Math, X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
-  CastleLog, {$ifdef FPC}CastleScriptParser,{$endif} CastleDataURI, URIParser, CastleDownload,
+  CastleLog, {$ifdef FPC}CastleScriptParser,{$endif} CastleInternalDataUri, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
   CastleSoundBase, CastleTriangles, X3DLoadInternalUtils;
 

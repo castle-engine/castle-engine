@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018, 2022 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@ unit CastleInternalGLCubeMaps;
 interface
 
 uses {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleVectors, CastleCubeMaps, CastleImages, CastleCompositeImage,
+  CastleVectors, CastleInternalCubeMaps, CastleImages, CastleInternalCompositeImage,
   CastleGLImages, CastleTransform, CastleGLUtils;
 
 type
@@ -113,7 +113,7 @@ procedure GLCaptureCubeMapTexture(
 
 implementation
 
-uses SysUtils, CastleSphericalHarmonics, CastleRectangles, CastleRenderContext,
+uses SysUtils, CastleInternalSphericalHarmonics, CastleRectangles, CastleRenderContext,
   CastleProjection, CastleScene;
 
 procedure SHVectorGLCapture(

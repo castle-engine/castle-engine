@@ -186,7 +186,7 @@
         <DCCReference Include="..\..\src\files\castlefindfiles.pas"/>
         <DCCReference Include="..\..\src\images\castleimages.pas"/>
         <DCCReference Include="..\..\src\images\castleinternalpng.pas"/>
-        <DCCReference Include="..\..\src\images\castlecompositeimage.pas"/>
+        <DCCReference Include="..\..\src\images\castleinternalcompositeimage.pas"/>
         <DCCReference Include="..\..\src\images\opengl\castleglshaders.pas"/>
         <DCCReference Include="..\..\src\images\opengl\castlerendercontext.pas"/>
         <DCCReference Include="..\..\src\images\opengl\castleglutils.pas"/>
@@ -264,9 +264,9 @@
         <DCCReference Include="..\..\src\x3d\opengl\castlerendererinternaltextureenv.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castlescreeneffects.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castleinternalglcubemaps.pas"/>
-        <DCCReference Include="..\..\src\3d\castlecubemaps.pas"/>
-        <DCCReference Include="..\..\src\3d\castlesphericalharmonics.pas"/>
-        <DCCReference Include="..\..\src\3d\castlespheresampling.pas"/>
+        <DCCReference Include="..\..\src\3d\castleinternalcubemaps.pas"/>
+        <DCCReference Include="..\..\src\3d\castleinternalsphericalharmonics.pas"/>
+        <DCCReference Include="..\..\src\3d\castleinternalspheresampling.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castlesceneinternalshape.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castleinternalbackground.pas"/>
         <DCCReference Include="..\..\src\3d\opengl\castleinternalglshadowvolumes.pas"/>

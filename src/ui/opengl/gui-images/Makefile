@@ -1,13 +1,13 @@
 .PHONY: all clean
 
-ALL_UNITS=../castlecontrolsimages.pas
+ALL_UNITS=../castleinternalcontrolsimages.pas
 
 all: $(ALL_UNITS)
 
 clean:
 	rm -f $(ALL_UNITS)
 
-../castlecontrolsimages.pas: Panel.png PanelSeparator.png \
+../castleinternalcontrolsimages.pas: Panel.png PanelSeparator.png \
   Tooltip.png TooltipRounded.png \
   ButtonPressed.png ButtonDisabled.png ButtonFocused.png ButtonNormal.png \
   WindowDark.png WindowGray.png WindowDarkTransparent.png \
@@ -19,7 +19,7 @@ clean:
   Crosshair1.png Crosshair2.png ScrollbarSlider.png \
   Checkmark.png Disclosure.png SquareEmpty.png SquarePressedBackground.png SquareChecked.png \
   Loading.png Edit.png
-	image-to-pascal --output .. CastleControlsImages \
+	image-to-pascal --output .. CastleInternalControlsImages \
 	  Panel.png WindowDarkTransparent.png Slider.png \
 	  Tooltip.png TooltipRounded.png \
 	  ButtonPressed.png ButtonDisabled.png ButtonFocused.png ButtonNormal.png \

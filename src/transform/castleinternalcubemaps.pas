@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,17 +14,17 @@
 }
 
 { Utilities for cube (environment) maps. }
-unit CastleCubeMaps;
+unit CastleInternalCubeMaps;
 
 {$I castleconf.inc}
 
 interface
 
 uses Math,
-  CastleVectors, CastleCompositeImage, CastleUtils;
+  CastleVectors, CastleInternalCompositeImage, CastleUtils;
 
 type
-  TCubeMapSide = CastleCompositeImage.TCubeMapSide;
+  TCubeMapSide = CastleInternalCompositeImage.TCubeMapSide;
 
   TCubeMapInfo = record
     Dir, Up, Side: TVector3;

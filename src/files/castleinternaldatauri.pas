@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 { Reading data URI scheme (TDataURI). }
-unit CastleDataURI;
+unit CastleInternalDataUri;
 
 {$I castleconf.inc}
 

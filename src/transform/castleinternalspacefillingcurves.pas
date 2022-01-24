@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,7 +15,7 @@
 
 { Generate space-filling curves (TSwapScanCurve, THilbertCurve, TPeanoCurve).
   These are sequences of points that completely fill some 2D space. }
-unit CastleSpaceFillingCurves;
+unit CastleInternalSpaceFillingCurves;
 
 {$I castleconf.inc}
 

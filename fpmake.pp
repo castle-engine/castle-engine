@@ -106,7 +106,7 @@ begin
     P.Targets.AddUnit('castleboxes.pas');
     P.Targets.AddUnit('castlecameras.pas');
     P.Targets.AddUnit('castlethirdpersonnavigation.pas');
-    P.Targets.AddUnit('castlecubemaps.pas');
+    P.Targets.AddUnit('castleinternalcubemaps.pas');
     P.Targets.AddUnit('castlefrustum.pas');
     P.Targets.AddUnit('castleinternalgeometryarrays.pas');
     P.Targets.AddUnit('castleinternaloctree.pas');
@@ -116,9 +116,9 @@ begin
     P.Targets.AddUnit('castlerays.pas');
     P.Targets.AddUnit('castlerenderingcamera.pas');
     P.Targets.AddUnit('castlesectors.pas');
-    P.Targets.AddUnit('castlespacefillingcurves.pas');
-    P.Targets.AddUnit('castlespheresampling.pas');
-    P.Targets.AddUnit('castlesphericalharmonics.pas');
+    P.Targets.AddUnit('castleinternalspacefillingcurves.pas');
+    P.Targets.AddUnit('castleinternalspheresampling.pas');
+    P.Targets.AddUnit('castleinternalsphericalharmonics.pas');
     P.Targets.AddUnit('castletransform.pas');
     P.Targets.AddUnit('castletriangles.pas');
     P.Targets.AddUnit('castletriangulate.pas');
@@ -278,7 +278,7 @@ begin
     P.Targets.AddUnit('castleinternalrichtext.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'images');
-    P.Targets.AddUnit('castlecompositeimage.pas');
+    P.Targets.AddUnit('castleinternalcompositeimage.pas');
     P.Targets.AddUnit('castleimages.pas');
     P.Targets.AddUnit('castleinternalpng.pas');
     P.Targets.AddUnit('castletextureimages.pas');
@@ -293,7 +293,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'files');
     P.Targets.AddUnit('castlecomponentserialize.pas');
     P.Targets.AddUnit('castleconfig.pas');
-    P.Targets.AddUnit('castledatauri.pas');
+    P.Targets.AddUnit('castleinternaldatauri.pas');
     P.Targets.AddUnit('castledownload.pas');
     P.Targets.AddUnit('castlefilefilters.pas');
     P.Targets.AddUnit('castlefilesutils.pas');
@@ -328,7 +328,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlecontrols.pas');
-    P.Targets.AddUnit('castlecontrolsimages.pas');
+    P.Targets.AddUnit('castleinternalcontrolsimages.pas');
     P.Targets.AddUnit('castledialogstates.pas');
     P.Targets.AddUnit('castleflasheffect.pas');
     P.Targets.AddUnit('castleinputs.pas');

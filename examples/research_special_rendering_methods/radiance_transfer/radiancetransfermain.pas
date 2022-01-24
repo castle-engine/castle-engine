@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2020, 2022 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,7 +33,7 @@ uses SysUtils, Classes, Math,
   CastleVectors, X3DNodes, CastleWindow, CastleShapes,
   CastleClassUtils, CastleUtils,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleViewport,
-  CastleFilesUtils, CastleLog, CastleSphericalHarmonics, CastleImages,
+  CastleFilesUtils, CastleLog, CastleInternalSphericalHarmonics, CastleImages,
   CastleInternalGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
   CastleApplicationProperties, CastleControls, CastleTransform, X3DFields,
   SceneUtilities;

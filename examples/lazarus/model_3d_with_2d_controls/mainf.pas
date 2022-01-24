@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,7 +40,7 @@ var
 implementation
 
 uses CastleSceneCore, CastleUtils, CastleImages, CastleVectors,
-  CastleControlsImages, CastleUIControls, CastleComponentSerialize;
+  CastleInternalControlsImages, CastleUIControls, CastleComponentSerialize;
 
 { TForm1 --------------------------------------------------------------------- }
 
@@ -50,7 +50,7 @@ procedure TForm1.FormCreate(Sender: TObject);
   procedure AdjustTheme;
   begin
     { Change the tooltip image to have rounded corners,
-      using a predefined TooltipRounded image from CastleControlsImages
+      using a predefined TooltipRounded image from CastleInternalControlsImages
       unit. You could also use load and use your own image,
       e.g. by LoadImage. }
     Theme.ImagesPersistent[tiTooltip].Image := TooltipRounded;

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
 }
 
 { This is a simple demo of the recursive space filling curves implemented in the
-  CastleSpaceFillingCurves unit.
+  CastleInternalSpaceFillingCurves unit.
 
   Always run with at least 2 command-line params:
     curve-type (may be "peano" or "hilbert" for now)
@@ -37,7 +37,7 @@ program draw_space_filling_curve;
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils, CastleWindow, CastleUtils, CastleGLUtils, CastleParameters,
-  CastleImages, CastleVectors, Math, CastleSpaceFillingCurves, CastleStringUtils, CastleGLImages,
+  CastleImages, CastleVectors, Math, CastleInternalSpaceFillingCurves, CastleStringUtils, CastleGLImages,
   CastleKeysMouse, CastleColors;
 
 var

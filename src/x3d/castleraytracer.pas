@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,7 +37,7 @@ interface
 
 uses Classes,
   CastleVectors, CastleImages, CastleRays, CastleProjection, CastleUtils,
-  X3DTriangles, CastleShapes, X3DNodes, CastleSpaceFillingCurves, CastleTriangles;
+  X3DTriangles, CastleShapes, X3DNodes, CastleInternalSpaceFillingCurves, CastleTriangles;
 
 type
   { }
@@ -234,7 +234,7 @@ type
 implementation
 
 uses SysUtils, Math,
-  CastleSphereSampling, CastleTimeUtils, CastleColors, CastleRenderOptions;
+  CastleInternalSphereSampling, CastleTimeUtils, CastleColors, CastleRenderOptions;
 
 { RayDirection calculations ----------------------------------------------------- }
 

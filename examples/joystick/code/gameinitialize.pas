@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2016-2019 Tomasz Wojtyś, Michalis Kamburelis.
+  Copyright 2016-2019, 2022 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleVectors, CastleWindow, CastleControls, CastleOnScreenMenu,
-  CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
+  CastleImages, CastleFilesUtils, CastleColors,
   CastleUIControls, CastleNotifications, CastleLog, CastleJoysticks,
   CastleApplicationProperties, CastleUtils;
 

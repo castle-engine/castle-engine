@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2018 Michalis Kamburelis.
+  Copyright 2013-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,7 +28,7 @@ implementation
 
 uses SysUtils,
   CastleVectors, CastleControls, CastleOnScreenMenu,
-  CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
+  CastleInternalControlsImages, CastleImages, CastleFilesUtils, CastleColors,
   CastleUIControls, CastleNotifications, CastleLog, CastleApplicationProperties;
 
 var
