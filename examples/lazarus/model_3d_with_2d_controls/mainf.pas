@@ -40,7 +40,7 @@ var
 implementation
 
 uses CastleSceneCore, CastleUtils, CastleImages, CastleVectors,
-  CastleInternalControlsImages, CastleUIControls, CastleComponentSerialize;
+  CastleUIControls, CastleComponentSerialize;
 
 { TForm1 --------------------------------------------------------------------- }
 
@@ -53,7 +53,7 @@ procedure TForm1.FormCreate(Sender: TObject);
       using a predefined TooltipRounded image from CastleInternalControlsImages
       unit. You could also use load and use your own image,
       e.g. by LoadImage. }
-    Theme.ImagesPersistent[tiTooltip].Image := TooltipRounded;
+    Theme.ImagesPersistent[tiTooltip].Url := 'castle-data:/TooltipRounded.png';
     Theme.ImagesPersistent[tiTooltip].ProtectedSides.AllSides := 9;
   end;
 
