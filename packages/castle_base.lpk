@@ -1063,7 +1063,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleCreatures"/>
       </Item241>
       <Item242>
-        <Filename Value="../src/x3d/castledebugtransform.pas"/>
+        <Filename Value="../src/x3d/opengl/castledebugtransform.pas"/>
         <UnitName Value="CastleDebugTransform"/>
       </Item242>
       <Item243>
