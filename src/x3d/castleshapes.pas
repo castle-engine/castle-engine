@@ -61,8 +61,7 @@ type
   TShape = class;
   TShapeList = class;
 
-  TShapeTraverseFunc = {$ifndef FPC}reference to{$endif} procedure
-    (const Shape: TShape){$ifdef FPC} is nested{$endif};
+  TShapeTraverseFunc = procedure (const  Shape: TShape) of object;
 
   TEnumerateShapeTexturesFunction = function (Shape: TShape;
     Texture: TAbstractTextureNode): Pointer of object;
@@ -966,6 +965,9 @@ type
       {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
     function IsSmallerBackToFront2D(
       {$ifdef FPC}constref{$else}const{$endif} A, B: TShape): Integer;
+  private
+    { Like regular Add, but parameter is "const" to satisfy TShapeTraverseFunc signature. }
+    procedure AddConst(const S: TShape);
   public
     constructor Create; overload;
 
@@ -1297,41 +1299,18 @@ end;
 
 function TShapeTree.TraverseList(const OnlyActive, OnlyVisible, OnlyCollidable: Boolean): TShapeList;
 var
-  ResultShapeList: TShapeList; //Delphi need that
-
-  {$ifdef FPC}
-  procedure AddToList(const Shape: TShape);
- {$else}
-  { We use delphi anonymous type here, see:
-   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
-   Without CaptureAddToList function Delphi gets
-   [dcc32 Error] E2555 Cannot capture symbol error }
-  function CaptureAddToList: TShapeTraverseFunc;
-  begin
-    Result := procedure(const Shape: TShape)
-  {$endif}
-  begin
-    {$ifdef FPC}Result{$else}ResultShapeList{$endif}.Add(Shape);
-  end;
-  {$ifndef FPC}
-    end;
-  {$endif}
-
-var
   CurrentShapesHash: TShapesHash;
 
   { Call TraverseCore, gather shapes to a new list. }
   procedure TraverseCoreToList;
   begin
-    ResultShapeList := TShapeList.Create;
-    Result := ResultShapeList;
+    Result := TShapeList.Create;
     { Set Capacity, to make AddToList calls faster.
       Note that we use MaxShapesCount instead of ShapesCount,
       since MaxShapesCount is usually instant, while ShapesCount...
       now ShapesCount depends on TraverseList, so it would cause infinite loop. }
     Result.Capacity := MaxShapesCount;
-    TraverseCore({$ifdef FPC}@{$endif} {$ifdef FPC}AddToList{$else} CaptureAddToList(){$endif},
-      OnlyActive, OnlyVisible, OnlyCollidable);
+    TraverseCore({$ifdef FPC}@{$endif} Result.AddConst, OnlyActive, OnlyVisible, OnlyCollidable);
     CachedChildrenListHash[OnlyActive, OnlyVisible, OnlyCollidable] := CurrentShapesHash;
     CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable] := Result;
   end;
@@ -3701,25 +3680,6 @@ end;
 
 constructor TShapeList.Create(const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
-
-  {$ifdef FPC}
-  procedure AddToList(const Shape: TShape);
-  {$else}
-  { We use delphi anonymous type here, see:
-   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
-   Without CaptureHereShapeRemove function Delphi gets
-   [dcc32 Error] E2555 Cannot capture symbol error }
-  function CaptureAddToList: TShapeTraverseFunc;
-  begin
-    Result := procedure(const Shape: TShape)
-  {$endif}
-  begin
-    Add(Shape);
-  end;
-  {$ifndef FPC}
-  end;
-  {$endif}
-
 begin
   Create;
   { Set Capacity, to make following operations faster.
@@ -3730,7 +3690,12 @@ begin
   { This method uses Tree.Traverse that uses Tree.TraverseList that creates a list,
     iterates over it, and here we add results to another list...
     This is clearly a waste of time. That's why this method is deprecated. }
-  Tree.Traverse({$ifdef FPC}@{$endif} {$ifdef FPC}AddToList{$else} CaptureAddToList(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable);
+  Tree.Traverse({$ifdef FPC}@{$endif} AddConst, OnlyActive, OnlyVisible, OnlyCollidable);
+end;
+
+procedure TShapeList.AddConst(const S: TShape);
+begin
+  Add(S);
 end;
 
 type

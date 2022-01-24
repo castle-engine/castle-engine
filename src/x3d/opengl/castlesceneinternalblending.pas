@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -328,38 +328,10 @@ procedure ShapesFilterBlending(
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
   const TestShapeVisibility: TTestShapeVisibility;
   const FilteredShapes: TShapeList; const UseBlending: boolean);
-
-  {$ifdef FPC}
-  procedure AddToList(const Shape: TShape);
-  {$else}
-  function CaptureAddToList: TShapeTraverseFunc;
-  begin
-    Result := procedure(const Shape: TShape)
-  {$endif}
-  begin
-    if TGLShape(Shape).UseBlending = UseBlending then
-      FilteredShapes.Add(Shape);
-  end;
-  {$ifndef FPC}
-  end;
-  {$endif}
-
-  {$ifdef FPC}
-  procedure AddToListIfTested(const Shape: TShape);
-  {$else}
-  function CaptureAddToListIfTested: TShapeTraverseFunc;
-  begin
-    Result := procedure(const Shape: TShape)
-  {$endif}
-  begin
-    if (TGLShape(Shape).UseBlending = UseBlending) and
-       TestShapeVisibility(TGLShape(Shape)) then
-      FilteredShapes.Add(Shape);
-  end;
-  {$ifndef FPC}
-  end;
-  {$endif}
-
+var
+  List: TShapeList;
+  Shape: TShape;
+  I: Integer;
 begin
   //FrameProfiler.Start(fmRenderShapesFilterBlending);
 
@@ -368,9 +340,26 @@ begin
   { Set Capacity to max value at the beginning, to speed adding items later. }
   FilteredShapes.Capacity := Tree.MaxShapesCount;
 
+  List := Tree.TraverseList(OnlyActive, OnlyVisible, OnlyCollidable);
+
   if Assigned(TestShapeVisibility) then
-    Tree.Traverse({$ifdef FPC}{$ifdef FPC}@{$endif}AddToListIfTested{$else}CaptureAddToListIfTested(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable) else
-    Tree.Traverse({$ifdef FPC}{$ifdef FPC}@{$endif}AddToList{$else}CaptureAddToList(){$endif}, OnlyActive, OnlyVisible, OnlyCollidable);
+  begin
+    for I := 0 to List.Count - 1 do
+    begin
+      Shape := List[I];
+      if (TGLShape(Shape).UseBlending = UseBlending) and TestShapeVisibility(TGLShape(Shape)) then
+        FilteredShapes.Add(Shape);
+    end;
+  end else
+  begin
+    for I := 0 to List.Count - 1 do
+    begin
+      Shape := List[I];
+      if TGLShape(Shape).UseBlending = UseBlending then
+        FilteredShapes.Add(Shape);
+    end;
+  end;
+
   //FrameProfiler.Stop(fmRenderShapesFilterBlending);
 end;
 

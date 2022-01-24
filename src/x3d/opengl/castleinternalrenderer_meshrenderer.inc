@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2020 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -367,9 +367,9 @@ begin
 
       if CurrentMeshShader <> nil then
       begin
-        CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ModelView);
+        CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ShapeModelView);
         CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(RenderContext.ProjectionMatrix);
-        CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
+        CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ShapeModelView));
 
         FinalizeLightingModel;
 

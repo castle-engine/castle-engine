@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,8 +74,8 @@ type
       This also creates shadow map and texture generator nodes for this light. }
     function FindLight(Light: TAbstractPunctualLightNode): PLight;
 
-    procedure ShapeRemove(Shape: TShape);
-    procedure ShapeAdd(Shape: TShape);
+    procedure ShapeRemove(const Shape: TShape);
+    procedure ShapeAdd(const Shape: TShape);
 
     { Finish calculating light's projectionXxx parameters,
       and assign them to the light node. }
@@ -141,10 +141,10 @@ end;
 
 { If this shape was processed by some ShapeAdd previously,
   removed the ProjectedTextureCoordinate and GeneratedShadowMap nodes we added. }
-procedure TLightList.ShapeRemove(Shape: TShape);
+procedure TLightList.ShapeRemove(const Shape: TShape);
 
   { Remove old GeneratedShadowMap nodes that we added. }
-  procedure RemoveOldShadowMap(Texture: TMFNode);
+  procedure RemoveOldShadowMap(const Texture: TMFNode);
   var
     I: Integer;
   begin
@@ -157,7 +157,7 @@ procedure TLightList.ShapeRemove(Shape: TShape);
   end;
 
   { Remove old ProjectedTextureCoordinate nodes that we added. }
-  procedure RemoveOldTexGen(TexCoord: TMFNode);
+  procedure RemoveOldTexGen(const TexCoord: TMFNode);
   var
     I: Integer;
   begin
@@ -184,7 +184,7 @@ begin
   end;
 end;
 
-procedure TLightList.ShapeAdd(Shape: TShape);
+procedure TLightList.ShapeAdd(const Shape: TShape);
 
   { Add ShadowMap to the textures used by the shape.
     Always converts Texture to TMultiTextureNode, to add the shadow map
@@ -659,43 +659,6 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
   const DefaultShadowMapSize: Cardinal);
 var
   Lights: TLightList;
-  {$ifdef FPC}
-  procedure HereShapeRemove(const Shape: TShape);
-  {$else}
-  { We use delphi anonymous type here, see:
-   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
-   Without CaptureHereShapeRemove function Delphi gets
-   [dcc32 Error] E2555 Cannot capture symbol error }
-  function CaptureHereShapeRemove: TShapeTraverseFunc;
-  begin
-    Result := procedure(const Shape: TShape)
-  {$endif}
-  begin
-    Lights.ShapeRemove(Shape);
-  end;
-{$ifndef FPC}
-  end;
-{$endif}
-
-  {$ifdef FPC}
-  procedure HereShapeAdd(const Shape: TShape);
-  {$else}
-  { We use delphi anonymous type here, see:
-   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
-   Without CaptureHereShapeRemove function Delphi gets
-   [dcc32 Error] E2555 Cannot capture symbol error }
-  function CaptureHereShapeAdd: TShapeTraverseFunc;
-  begin
-    Result := procedure(const Shape: TShape)
-  {$endif}
-  begin
-    Lights.ShapeAdd(Shape);
-  end;
-{$ifndef FPC}
-  end;
-{$endif}
-
-var
   L: PLight;
   I: Integer;
 begin
@@ -720,9 +683,7 @@ begin
       to the same light node. And shapes may have multiple GeneratedShadowMap,
       if they receive shadow from more then one light. So it was too easy
       to remove a shadow map (or projector) that we have just added... }
-    Shapes.Traverse(
-      {$ifdef FPC}@{$endif} {$ifdef FPC}HereShapeRemove{$else}CaptureHereShapeRemove(){$endif},
-      false);
+    Shapes.Traverse({$ifdef FPC}@{$endif} Lights.ShapeRemove, false);
 
     if Enable then
     begin
@@ -735,9 +696,7 @@ begin
         {$ifdef FPC}@{$endif}Lights.HandleLightCastingOnEverything,
         false);
 
-      Shapes.Traverse(
-        {$ifdef FPC}@{$endif} {$ifdef FPC}HereShapeAdd{$else}CaptureHereShapeAdd(){$endif},
-        false);
+      Shapes.Traverse({$ifdef FPC}@{$endif} Lights.ShapeAdd, false);
 
       for I := 0 to Lights.Count - 1 do
       begin

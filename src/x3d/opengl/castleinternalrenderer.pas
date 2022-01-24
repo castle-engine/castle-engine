@@ -421,6 +421,9 @@ type
   { Shape that can be rendered. }
   TX3DRendererShape = class(TShape)
   private
+    { Set to SceneModelView combined with particular shape transformation. }
+    ShapeModelView: TMatrix4;
+
     { Generate VBO if needed, and reload VBO contents.
       Assumes GLVertexBufferObject is true.
 
@@ -445,8 +448,9 @@ type
 
     Cache: TShapeCache;
 
-    { Assign this each time before passing this shape to RenderShape. }
-    ModelView: TMatrix4;
+    { Assign this each time before passing this shape to RenderShape.
+      Should contai camera and scene transformation (but not particular shape transformation). }
+    SceneModelView: TMatrix4;
 
     { Assign this each time before passing this shape to RenderShape. }
     Fog: TFogFunctionality;
@@ -2420,9 +2424,7 @@ begin
     by RenderMaterialsBegin,
     as MaterialSpecularColor must be already set during Shader.EnableLight. }
 
-  { Shape.ModelView is not yet multiplied by State.Transform,
-    and it contains only camera and scene transform. }
-  Shader.SceneModelView := Shape.ModelView;
+  Shader.SceneModelView := Shape.SceneModelView;
 
   { When lighting is off (for either shaders or fixed-function),
     there is no point in setting up lights. }
@@ -2806,7 +2808,7 @@ begin
   end;
   {$endif}
 
-    Shape.ModelView := Shape.ModelView * Shape.State.Transformation.Transform;
+    Shape.ShapeModelView := Shape.SceneModelView * Shape.State.Transformation.Transform;
     RenderShapeCreateMeshRenderer(Shape, Shader, Lighting);
 
   {$ifndef OpenGLES}
