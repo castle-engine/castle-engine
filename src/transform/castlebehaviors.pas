@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2021 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,7 +35,7 @@ uses Classes, Generics.Collections,
 implementation
 
 uses SysUtils, Math,
-  CastleUtils, CastleLog, CastleScene, CastleBoxes, CastleComponentSerialize,
+  CastleUtils, CastleLog, CastleBoxes, CastleComponentSerialize,
   CastleCameras;
 
 {$define read_implementation}

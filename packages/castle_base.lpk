@@ -8,8 +8,8 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/3d;../src/x3d/opengl/glsl/generated-pascal;../src/x3d/opengl;../src/x3d;../src/base/opengl;../src/images/opengl;../src/images/opengl/glsl/generated-pascal;../src/images;../src/x3d/auto_generated_node_helpers;../src/ui/opengl;../src/deprecated_units;../src/files;../src/game;../src/fonts/opengl"/>
-        <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game;../src/services;../src/services/opengl;../src/3d/opengl;../src/base/opengl;../src/images/opengl;../src/fonts/opengl;../src/physics/kraft;../src/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units"/>
+        <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/x3d/opengl/glsl/generated-pascal;../src/x3d/opengl;../src/x3d;../src/base/opengl;../src/images/opengl;../src/images/opengl/glsl/generated-pascal;../src/images;../src/x3d/auto_generated_node_helpers;../src/ui/opengl;../src/deprecated_units;../src/files;../src/fonts/opengl"/>
+        <OtherUnitFiles Value="../src/base;../src/transform;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/services;../src/services/opengl;../src/transform/opengl;../src/base/opengl;../src/images/opengl;../src/fonts/opengl;../src/physics/kraft;../src/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
@@ -76,161 +76,161 @@ See https://castle-engine.io/license.php for details.
     <Version Major="6" Minor="5"/>
     <Files Count="962">
       <Item1>
-        <Filename Value="../src/3d/auto_generated_persistent_vectors/tcastlecamera_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlecamera_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item1>
       <Item2>
-        <Filename Value="../src/3d/auto_generated_persistent_vectors/tcastleorthographic_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleorthographic_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item2>
       <Item3>
-        <Filename Value="../src/3d/auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item3>
       <Item4>
-        <Filename Value="../src/3d/auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item4>
       <Item5>
-        <Filename Value="../src/3d/castleboxes.pas"/>
+        <Filename Value="../src/transform/castleboxes.pas"/>
         <UnitName Value="CastleBoxes"/>
       </Item5>
       <Item6>
-        <Filename Value="../src/3d/castlecameras.pas"/>
+        <Filename Value="../src/transform/castlecameras.pas"/>
         <UnitName Value="CastleCameras"/>
       </Item6>
       <Item7>
-        <Filename Value="../src/3d/castlecomponentserialize.pas"/>
+        <Filename Value="../src/transform/castlecomponentserialize.pas"/>
         <UnitName Value="CastleComponentSerialize"/>
       </Item7>
       <Item8>
-        <Filename Value="../src/3d/castlecubemaps.pas"/>
+        <Filename Value="../src/transform/castlecubemaps.pas"/>
         <UnitName Value="CastleCubeMaps"/>
       </Item8>
       <Item9>
-        <Filename Value="../src/3d/castlefrustum.pas"/>
+        <Filename Value="../src/transform/castlefrustum.pas"/>
         <UnitName Value="CastleFrustum"/>
       </Item9>
       <Item10>
-        <Filename Value="../src/3d/castleinternalgeometryarrays.pas"/>
+        <Filename Value="../src/transform/castleinternalgeometryarrays.pas"/>
         <UnitName Value="CastleInternalGeometryArrays"/>
       </Item10>
       <Item11>
-        <Filename Value="../src/3d/castleinternaloctree.pas"/>
+        <Filename Value="../src/transform/castleinternaloctree.pas"/>
         <UnitName Value="CastleInternalOctree"/>
       </Item11>
       <Item12>
-        <Filename Value="../src/3d/castlenoise_interpolatednoise2d_linear_cosine.inc"/>
+        <Filename Value="../src/transform/castlenoise_interpolatednoise2d_linear_cosine.inc"/>
         <Type Value="Include"/>
       </Item12>
       <Item13>
-        <Filename Value="../src/3d/castlenoise_interpolatednoise2d_spline.inc"/>
+        <Filename Value="../src/transform/castlenoise_interpolatednoise2d_spline.inc"/>
         <Type Value="Include"/>
       </Item13>
       <Item14>
-        <Filename Value="../src/3d/castlenurbs.pas"/>
+        <Filename Value="../src/transform/castlenurbs.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleNURBS"/>
       </Item14>
       <Item15>
-        <Filename Value="../src/3d/castlequaternions.pas"/>
+        <Filename Value="../src/transform/castlequaternions.pas"/>
         <UnitName Value="CastleQuaternions"/>
       </Item15>
       <Item16>
-        <Filename Value="../src/3d/castlerays.pas"/>
+        <Filename Value="../src/transform/castlerays.pas"/>
         <UnitName Value="CastleRays"/>
       </Item16>
       <Item17>
-        <Filename Value="../src/3d/castlerenderingcamera.pas"/>
+        <Filename Value="../src/transform/castlerenderingcamera.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleRenderingCamera"/>
       </Item17>
       <Item18>
-        <Filename Value="../src/3d/castlesectors.pas"/>
+        <Filename Value="../src/transform/castlesectors.pas"/>
         <UnitName Value="CastleSectors"/>
       </Item18>
       <Item19>
-        <Filename Value="../src/3d/castlespacefillingcurves.pas"/>
+        <Filename Value="../src/transform/castlespacefillingcurves.pas"/>
         <UnitName Value="CastleSpaceFillingCurves"/>
       </Item19>
       <Item20>
-        <Filename Value="../src/3d/castlespheresampling.pas"/>
+        <Filename Value="../src/transform/castlespheresampling.pas"/>
         <UnitName Value="CastleSphereSampling"/>
       </Item20>
       <Item21>
-        <Filename Value="../src/3d/castlesphericalharmonics.pas"/>
+        <Filename Value="../src/transform/castlesphericalharmonics.pas"/>
         <UnitName Value="CastleSphericalHarmonics"/>
       </Item21>
       <Item22>
-        <Filename Value="../src/3d/castlethirdpersonnavigation.pas"/>
+        <Filename Value="../src/transform/castlethirdpersonnavigation.pas"/>
         <UnitName Value="CastleThirdPersonNavigation"/>
       </Item22>
       <Item23>
-        <Filename Value="../src/3d/castletransform.pas"/>
+        <Filename Value="../src/transform/castletransform.pas"/>
         <UnitName Value="CastleTransform"/>
       </Item23>
       <Item24>
-        <Filename Value="../src/3d/castletransform_abstractroottransform.inc"/>
+        <Filename Value="../src/transform/castletransform_abstractroottransform.inc"/>
         <Type Value="Include"/>
       </Item24>
       <Item25>
-        <Filename Value="../src/3d/castletransform_behavior.inc"/>
+        <Filename Value="../src/transform/castletransform_behavior.inc"/>
         <Type Value="Include"/>
       </Item25>
       <Item26>
-        <Filename Value="../src/3d/castletransform_collisions.inc"/>
+        <Filename Value="../src/transform/castletransform_collisions.inc"/>
         <Type Value="Include"/>
       </Item26>
       <Item27>
-        <Filename Value="../src/3d/castletransform_design.inc"/>
+        <Filename Value="../src/transform/castletransform_design.inc"/>
         <Type Value="Include"/>
       </Item27>
       <Item28>
-        <Filename Value="../src/3d/castletransform_initial_types.inc"/>
+        <Filename Value="../src/transform/castletransform_initial_types.inc"/>
         <Type Value="Include"/>
       </Item28>
       <Item29>
-        <Filename Value="../src/3d/castletransform_miscellaneous_globals.inc"/>
+        <Filename Value="../src/transform/castletransform_miscellaneous_globals.inc"/>
         <Type Value="Include"/>
       </Item29>
       <Item30>
-        <Filename Value="../src/3d/castletransform_physics.inc"/>
+        <Filename Value="../src/transform/castletransform_physics.inc"/>
         <Type Value="Include"/>
       </Item30>
       <Item31>
-        <Filename Value="../src/3d/castletransform_reference.inc"/>
+        <Filename Value="../src/transform/castletransform_reference.inc"/>
         <Type Value="Include"/>
       </Item31>
       <Item32>
-        <Filename Value="../src/3d/castletransform_renderparams.inc"/>
+        <Filename Value="../src/transform/castletransform_renderparams.inc"/>
         <Type Value="Include"/>
       </Item32>
       <Item33>
-        <Filename Value="../src/3d/castletransform_serialize.inc"/>
+        <Filename Value="../src/transform/castletransform_serialize.inc"/>
         <Type Value="Include"/>
       </Item33>
       <Item34>
-        <Filename Value="../src/3d/castletransform_transform.inc"/>
+        <Filename Value="../src/transform/castletransform_transform.inc"/>
         <Type Value="Include"/>
       </Item34>
       <Item35>
-        <Filename Value="../src/3d/castletransform_transformlist.inc"/>
+        <Filename Value="../src/transform/castletransform_transformlist.inc"/>
         <Type Value="Include"/>
       </Item35>
       <Item36>
-        <Filename Value="../src/3d/castletriangles.pas"/>
+        <Filename Value="../src/transform/castletriangles.pas"/>
         <UnitName Value="CastleTriangles"/>
       </Item36>
       <Item37>
-        <Filename Value="../src/3d/castletriangles_istrianglespherecollision.inc"/>
+        <Filename Value="../src/transform/castletriangles_istrianglespherecollision.inc"/>
         <Type Value="Include"/>
       </Item37>
       <Item38>
-        <Filename Value="../src/3d/castletriangulate.pas"/>
+        <Filename Value="../src/transform/castletriangulate.pas"/>
         <UnitName Value="CastleTriangulate"/>
       </Item38>
       <Item39>
-        <Filename Value="../src/3d/opengl/castleinternalglshadowvolumes.pas"/>
+        <Filename Value="../src/transform/opengl/castleinternalglshadowvolumes.pas"/>
         <UnitName Value="CastleInternalGLShadowVolumes"/>
       </Item39>
       <Item40>
@@ -1034,28 +1034,27 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalRichText"/>
       </Item234>
       <Item235>
-        <Filename Value="../src/game/auto_generated_persistent_vectors/tcastlebillboard_persistent_vectors.inc"/>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlebillboard_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item235>
       <Item236>
-        <Filename Value="../src/game/castlebehaviors.pas"/>
-        <AddToUsesPkgSection Value="False"/>
+        <Filename Value="../src/transform/castlebehaviors.pas"/>
         <UnitName Value="CastleBehaviors"/>
       </Item236>
       <Item237>
-        <Filename Value="../src/game/castlebehaviors_alive.inc"/>
+        <Filename Value="../src/transform/castlebehaviors_alive.inc"/>
         <Type Value="Include"/>
       </Item237>
       <Item238>
-        <Filename Value="../src/game/castlebehaviors_billboard.inc"/>
+        <Filename Value="../src/transform/castlebehaviors_billboard.inc"/>
         <Type Value="Include"/>
       </Item238>
       <Item239>
-        <Filename Value="../src/game/castlebehaviors_moveattack.inc"/>
+        <Filename Value="../src/transform/castlebehaviors_moveattack.inc"/>
         <Type Value="Include"/>
       </Item239>
       <Item240>
-        <Filename Value="../src/game/castlebehaviors_soundsource.inc"/>
+        <Filename Value="../src/transform/castlebehaviors_soundsource.inc"/>
         <Type Value="Include"/>
       </Item240>
       <Item241>
@@ -1064,7 +1063,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleCreatures"/>
       </Item241>
       <Item242>
-        <Filename Value="../src/game/castledebugtransform.pas"/>
+        <Filename Value="../src/x3d/castledebugtransform.pas"/>
         <UnitName Value="CastleDebugTransform"/>
       </Item242>
       <Item243>

@@ -95,7 +95,7 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..44] of String = (
+  EnginePaths: array [0..43] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -112,8 +112,8 @@ const
     'images',
     'images/opengl',
     'images/opengl/glsl/generated-pascal',
-    '3d',
-    '3d/opengl',
+    'transform',
+    'transform/opengl',
     'x3d',
     'x3d/opengl',
     'x3d/opengl/glsl/generated-pascal',
@@ -127,7 +127,6 @@ const
     'ui',
     'ui/windows',
     'ui/opengl',
-    'game',
     'services',
     'services/opengl',
     'physics',
