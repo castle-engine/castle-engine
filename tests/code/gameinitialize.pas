@@ -12,7 +12,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIState, CastleParameters, CastleConsoleTester
+  CastleWindow, CastleLog, CastleUIState, CastleParameters
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStateMain
@@ -20,7 +20,6 @@ uses SysUtils,
 
 var
   Window: TCastleWindowBase;
-  ConsoleTester: TCastleConsoleTester;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
@@ -58,15 +57,6 @@ initialization
     In particular, it is not allowed to read files before ApplicationInitialize
     (because in case of non-desktop platforms,
     some necessary resources may not be prepared yet). }
-  end
-  else
-    begin
-      InitializeLog;
-      ConsoleTester := TCastleConsoleTester.Create;
-      try
-        ConsoleTester.Run;
-      finally
-        FreeAndNil(ConsoleTester);
-      end;
-    end;
+  end else
+    InitializeLog;
 end.
