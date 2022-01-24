@@ -72,6 +72,7 @@ castle-game-engine-*.fpm
 /examples/3d_rendering_processing/fog_and_distance_culling/fog_and_distance_culling
 /examples/3d_rendering_processing/listen_on_x3d_events/listen_on_x3d_events
 /examples/3d_rendering_processing/multiple_viewports/multiple_viewports
+/examples/3d_rendering_processing/position_from_world/position_from_world
 /examples/3d_rendering_processing/render_3d_to_image/render_3d_to_image
 /examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad/render_3d_to_texture_and_use_as_quad
 /examples/3d_rendering_processing/shader_effects/shader-effects

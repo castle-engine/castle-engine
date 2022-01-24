@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2021 Michalis Kamburelis.
+  Copyright 2009-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -888,9 +888,27 @@ type
 
     { Invert @link(PositionTo2DWorld), converting the "world coordinates" (the coordinate
       space seen by TCastleTransform / TCastleScene inside viewport @link(Items))
-      into final screen position. }
+      into final screen position.
+
+      Just like @link(PositionTo2DWorld),
+      this assumes that camera "up vector" is +Y, and it is looking along the negative Z
+      axis. It also assumes orthographic projection (@link(TCastleCamera.ProjectionType Camera.ProjectionType)
+      equal @link(ptOrthographic)).
+      These are default camera direction, up and projection types set
+      by @link(Setup2D). }
     function PositionFrom2DWorld(const WorldPosition: TVector2;
       const ContainerCoordinates: Boolean): TVector2;
+
+    { Project 3D coordinates (the coordinate
+      space seen by TCastleTransform / TCastleScene inside viewport @link(Items))
+      into 2D position on the viewport UI.
+
+      The resulting position is relative to this viewport control
+      and it is expressed in coordinates after UI scaling.
+      IOW, if the size of this control is @link(EffectiveWidth) = 100,
+      then Position.X between 0 and 100 reflects the visible range of this control.
+      This is like using ContainerCoordinates = @false with PositionToRay. }
+    function PositionFromWorld(const WorldPosition: TVector3): TVector2;
 
     { Prepare resources, to make various methods (like @link(Render)) execute fast.
       Call it only when rendering context is initialized (ApplicationProperties.IsGLContextOpen).
@@ -3209,6 +3227,21 @@ begin
     Result := LocalToContainerPosition(P)
   else
     Result := P;
+end;
+
+function TCastleViewport.PositionFromWorld(const WorldPosition: TVector3): TVector2;
+var
+  Matrix: TMatrix4;
+  P: TVector3;
+begin
+  PositionToPrerequisites;
+
+  Matrix := Camera.ProjectionMatrix * Camera.Matrix;
+  P := Matrix.MultPoint(WorldPosition);
+  Result := Vector2(
+    MapRange(P.X, -1, 1, 0, EffectiveWidth ),
+    MapRange(P.Y, -1, 1, 0, EffectiveHeight)
+  );
 end;
 
 procedure TCastleViewport.SetItems(const Value: TCastleRootTransform);
