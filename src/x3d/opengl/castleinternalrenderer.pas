@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2020 Michalis Kamburelis.
+  Copyright 2002-2020, 2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -115,7 +115,7 @@ uses Classes, SysUtils, Generics.Collections,
   CastleUtils, CastleVectors, X3DFields, X3DNodes, CastleColors,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
-  CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage,
+  CastleShapes, CastleInternalGLCubeMaps, CastleClassUtils, CastleCompositeImage,
   CastleInternalGeometryArrays, CastleInternalArraysGenerator, CastleRendererInternalShader,
   CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform, CastleRenderOptions;
 

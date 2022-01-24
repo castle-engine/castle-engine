@@ -3153,8 +3153,8 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item761>
       <Item762>
-        <Filename Value="../src/x3d/opengl/castleglcubemaps.pas"/>
-        <UnitName Value="CastleGLCubeMaps"/>
+        <Filename Value="../src/x3d/opengl/castleinternalglcubemaps.pas"/>
+        <UnitName Value="CastleInternalGLCubeMaps"/>
       </Item762>
       <Item763>
         <Filename Value="../src/x3d/opengl/castleinternalbackground.pas"/>

@@ -263,7 +263,7 @@
         <DCCReference Include="..\..\src\x3d\opengl\castlerendererinternalshader.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castlerendererinternaltextureenv.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castlescreeneffects.pas"/>
-        <DCCReference Include="..\..\src\x3d\opengl\castleglcubemaps.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castleinternalglcubemaps.pas"/>
         <DCCReference Include="..\..\src\3d\castlecubemaps.pas"/>
         <DCCReference Include="..\..\src\3d\castlesphericalharmonics.pas"/>
         <DCCReference Include="..\..\src\3d\castlespheresampling.pas"/>

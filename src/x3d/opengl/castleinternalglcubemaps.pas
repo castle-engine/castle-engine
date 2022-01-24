@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2018, 2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
 }
 
 { OpenGL utilities for cube (environment) maps. }
-unit CastleGLCubeMaps;
+unit CastleInternalGLCubeMaps;
 
 {$I castleconf.inc}
 

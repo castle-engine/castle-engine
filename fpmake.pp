@@ -395,7 +395,7 @@ begin
     P.Targets.AddUnit('x3dtriangles.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'x3d' + PathDelim + 'opengl');
-    P.Targets.AddUnit('castleglcubemaps.pas');
+    P.Targets.AddUnit('castleinternalglcubemaps.pas');
     P.Targets.AddUnit('castleinternalbackground.pas');
     P.Targets.AddUnit('castleinternalbatchshapes.pas');
     P.Targets.AddUnit('castleinternalrenderer.pas');
