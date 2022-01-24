@@ -100,7 +100,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleCameras"/>
       </Item6>
       <Item7>
-        <Filename Value="../src/transform/castlecomponentserialize.pas"/>
+        <Filename Value="../src/files/castlecomponentserialize.pas"/>
         <UnitName Value="CastleComponentSerialize"/>
       </Item7>
       <Item8>
@@ -398,7 +398,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleDynLib"/>
       </Item80>
       <Item81>
-        <Filename Value="../src/base/castlefilefilters.pas"/>
+        <Filename Value="../src/files/castlefilefilters.pas"/>
         <UnitName Value="CastleFileFilters"/>
       </Item81>
       <Item82>
@@ -1400,7 +1400,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleGiftiz"/>
       </Item324>
       <Item325>
-        <Filename Value="../src/ui/castleinputs.pas"/>
+        <Filename Value="../src/ui/opengl/castleinputs.pas"/>
         <UnitName Value="CastleInputs"/>
       </Item325>
       <Item326>

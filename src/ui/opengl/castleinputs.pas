@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2018, 2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -214,7 +214,7 @@ type
 
     { Looking at Container's currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
-    function IsPressed(Container: TCastleContainer): boolean; overload;
+    function IsPressed(const Container: TCastleContainer): boolean; overload;
 
     { Check does given Key or AKeyString correspond to this input shortcut.
       If Key = keyNone and AString = '', result is always @false. }
@@ -603,7 +603,7 @@ begin
     ( MouseButton2Use and (MouseButton2 in MousePressed) );
 end;
 
-function TInputShortcut.IsPressed(Container: TCastleContainer): boolean;
+function TInputShortcut.IsPressed(const Container: TCastleContainer): boolean;
 begin
   Result := IsPressed(Container.Pressed, Container.MousePressed);
 end;
