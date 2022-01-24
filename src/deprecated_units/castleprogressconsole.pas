@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,7 +39,8 @@
   see ProgressVideo unit, that displays progress on terminal by FPC's
   Video unit.
 }
-unit CastleProgressConsole;
+unit CastleProgressConsole
+  deprecated 'use TUIState and WaitForRenderAndCall to display progress of loading operations';
 
 {$I castleconf.inc}
 

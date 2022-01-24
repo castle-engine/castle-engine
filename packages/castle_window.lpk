@@ -59,7 +59,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleMessages"/>
       </Item2>
       <Item3>
-        <Filename Value="../src/window/castlesoundmenu.pas"/>
+        <Filename Value="../src/window/deprecated_units/castlesoundmenu.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleSoundMenu"/>
       </Item3>
       <Item4>
@@ -107,7 +108,8 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item14>
       <Item15>
-        <Filename Value="../src/window/castlewindowprogress.pas"/>
+        <Filename Value="../src/window/deprecated_units/castlewindowprogress.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleWindowProgress"/>
       </Item15>
       <Item16>

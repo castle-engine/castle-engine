@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2018 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,7 +16,8 @@
 { Global instance for @link(Notifications).
   It also captures CastleScript calls of @code(writeln()), to display
   them as notifications. }
-unit CastleGameNotifications;
+unit CastleGameNotifications
+  deprecated 'create own instance of TCastleNotifications instead of relying in singleton in this unit';
 
 {$I castleconf.inc}
 

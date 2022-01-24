@@ -426,11 +426,13 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleParameters"/>
       </Item87>
       <Item88>
-        <Filename Value="../src/base/castleprogress.pas"/>
+        <Filename Value="../src/deprecated_units/castleprogress.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleProgress"/>
       </Item88>
       <Item89>
-        <Filename Value="../src/base/castleprogressconsole.pas"/>
+        <Filename Value="../src/deprecated_units/castleprogressconsole.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleProgressConsole"/>
       </Item89>
       <Item90>
@@ -1037,6 +1039,7 @@ See https://castle-engine.io/license.php for details.
       </Item235>
       <Item236>
         <Filename Value="../src/game/castlebehaviors.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleBehaviors"/>
       </Item236>
       <Item237>
@@ -1056,7 +1059,8 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item240>
       <Item241>
-        <Filename Value="../src/game/castlecreatures.pas"/>
+        <Filename Value="../src/deprecated_units/castlecreatures.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleCreatures"/>
       </Item241>
       <Item242>
@@ -1064,23 +1068,28 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleDebugTransform"/>
       </Item242>
       <Item243>
-        <Filename Value="../src/game/castlegamenotifications.pas"/>
+        <Filename Value="../src/deprecated_units/castlegamenotifications.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGameNotifications"/>
       </Item243>
       <Item244>
-        <Filename Value="../src/game/castleitems.pas"/>
+        <Filename Value="../src/deprecated_units/castleitems.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleItems"/>
       </Item244>
       <Item245>
-        <Filename Value="../src/game/castlelevels.pas"/>
+        <Filename Value="../src/deprecated_units/castlelevels.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleLevels"/>
       </Item245>
       <Item246>
-        <Filename Value="../src/game/castleplayer.pas"/>
+        <Filename Value="../src/deprecated_units/castleplayer.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastlePlayer"/>
       </Item246>
       <Item247>
-        <Filename Value="../src/game/castleresources.pas"/>
+        <Filename Value="../src/deprecated_units/castleresources.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleResources"/>
       </Item247>
       <Item248>
@@ -1450,7 +1459,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item338>
       <Item339>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc"/>
+        <Filename Value="../src/deprecated_units/auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item339>
       <Item340>
@@ -1619,8 +1628,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleNotifications"/>
       </Item380>
       <Item381>
-        <Filename Value="../src/ui/opengl/castleonscreenmenu.pas"/>
-        <HasRegisterProc Value="True"/>
+        <Filename Value="../src/deprecated_units/castleonscreenmenu.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleOnScreenMenu"/>
       </Item381>
       <Item382>

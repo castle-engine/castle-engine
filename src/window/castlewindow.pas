@@ -297,6 +297,10 @@ unit CastleWindow;
 
 interface
 
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
+{$warnings off} // CastleWindow is using deprecated CastleLevels in this case, see https://castle-engine.io/wp/2021/12/27/tcastlewindow-scenemanager-removal-of-a-deprecated-property-soon/
+{$endif}
+
 uses {$define read_interface_uses}
   {$I castlewindow_backend.inc}
   {$undef read_interface_uses}
@@ -313,6 +317,10 @@ uses {$define read_interface_uses}
   {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES},
   CastleCameras, X3DNodes, CastleScene, CastleViewport, CastleLevels
   {$endif};
+
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
+{$warnings on} // CastleWindow is using deprecated CastleLevels in this case, see https://castle-engine.io/wp/2021/12/27/tcastlewindow-scenemanager-removal-of-a-deprecated-property-soon/
+{$endif}
 
 {$define read_interface}
 

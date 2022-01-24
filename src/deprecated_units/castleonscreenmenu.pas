@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2018 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,8 @@
 }
 
 { On-screen menu displayed in OpenGL (TCastleOnScreenMenu). }
-unit CastleOnScreenMenu;
+unit CastleOnScreenMenu
+  deprecated 'use TCastleVerticalGroup with buttons, sliders inside to desing on-screen menus';
 
 {$I castleconf.inc}
 

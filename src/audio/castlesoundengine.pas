@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -49,12 +49,14 @@ type
 
 implementation
 
+{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
 uses XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleLog, CastleProgress, CastleInternalVorbisFile,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}, CastleOpenALSoundBackend{$endif}
   , CastleComponentSerialize;
+{$warnings on}
 
 {$define read_implementation}
 {$I castlesoundengine_miscellaneous.inc} // must be first, as defines some internal globals

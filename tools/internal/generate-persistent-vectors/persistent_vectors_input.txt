@@ -6,11 +6,11 @@
 ../../../src/ui/opengl/ TStateDialog BackgroundColor TCastleColor
 ../../../src/ui/opengl/ TCastleScrollViewCustom TintScrollBarInactive TCastleColor
 
-../../../src/ui/opengl/ TCastleOnScreenMenu CurrentItemBorderColor1 TCastleColor
-../../../src/ui/opengl/ TCastleOnScreenMenu CurrentItemBorderColor2 TCastleColor
-../../../src/ui/opengl/ TCastleOnScreenMenu CurrentItemColor TCastleColor
-../../../src/ui/opengl/ TCastleOnScreenMenu NonCurrentItemColor TCastleColor
-../../../src/ui/opengl/ TCastleOnScreenMenu NonFocusableItemColor TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu CurrentItemBorderColor1 TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu CurrentItemBorderColor2 TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu CurrentItemColor TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu NonCurrentItemColor TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu NonFocusableItemColor TCastleColor
 
 ../../../src/ui/opengl/ TCastleButton TintPressed  TCastleColor
 ../../../src/ui/opengl/ TCastleButton TintDisabled TCastleColor

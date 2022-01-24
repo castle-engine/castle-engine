@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2018 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,8 @@
 }
 
 { Items, things that can be picked up, carried and used. }
-unit CastleItems;
+unit CastleItems
+  deprecated 'express items logic as TCastleBehavior';
 
 {$I castleconf.inc}
 

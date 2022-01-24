@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,8 @@
 }
 
 { Progress bar functionality (TProgress, global variable Progress). }
-unit CastleProgress;
+unit CastleProgress
+  deprecated 'use TUIState and WaitForRenderAndCall to display progress of loading operations';
 
 {$I castleconf.inc}
 

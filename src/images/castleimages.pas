@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1998,11 +1998,13 @@ function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
 
 implementation
 
+{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
 uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   {$ifdef USE_VAMPYRE_IMAGING} Imaging, ImagingClasses, ImagingTypes, {$endif}
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
   CastleCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils,
   CastleStreamUtils;
+{$warnings on}
 
 { parts ---------------------------------------------------------------------- }
 

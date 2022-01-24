@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,12 +20,14 @@ unit CastleControls;
 
 interface
 
+{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
 uses Classes, Generics.Collections,
   CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleProgress, CastleTimeUtils, CastleInternalRichText, CastleGLUtils,
   CastleURIUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils,
   CastleRenderContext;
+{$warnings on}
 
 type
   {$define read_interface}

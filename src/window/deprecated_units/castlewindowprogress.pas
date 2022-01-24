@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2018, 2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,14 +33,17 @@
   @longCode(#  Progress.Init; try.....finally Progress.Fini; end; #) }
 
 
-unit CastleWindowProgress;
+unit CastleWindowProgress
+  deprecated 'use TUIState and WaitForRenderAndCall to display progress of loading operations';
 
 {$I castleconf.inc}
 
 interface
 
+{$warnings off} // using deprecated CastleProgress in deprecated
 uses CastleWindow, CastleProgress, CastleInternalWindowModes,
   CastleImages, CastleGLImages, CastleUIControls, CastleControls;
+{$warnings on}
 
 type
   { Progress bar rendered on OpenGL context (TCastleWindow).
@@ -50,7 +53,10 @@ type
     when progress bar starts --- we gracefully avoid showing any progress. }
   TWindowProgressInterface = class(TProgressUserInterface)
   private
+    {$warnings off} // using deprecated TCastleProgressBar in deprecated
     Bar: TCastleProgressBar;
+    {$warnings on}
+
     { Window used to render the progress bar, or nil if none.
       Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
@@ -80,8 +86,7 @@ var
 
 implementation
 
-{$warnings off}
-// TODO: This unit temporarily uses RenderingCamera singleton.
+{$warnings off} // using deprecated CastleRenderingCamera in deprecated
 uses SysUtils, CastleUtils, CastleKeysMouse, CastleRenderingCamera;
 {$warnings on}
 
@@ -114,7 +119,9 @@ begin
 
   if UsedWindow = nil then Exit;
 
+  {$warnings off} // using deprecated in deprecated
   Bar := TCastleProgressBar.Create(nil);
+  {$warnings on}
   Bar.Progress := Progress;
 
   if Image <> nil then

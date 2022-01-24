@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2020 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,7 +15,8 @@
 
 { Loading of typical 3D game level with placeholders (TLevel),
   management of available game levels (TLevelInfo, @link(Levels)). }
-unit CastleLevels;
+unit CastleLevels
+  deprecated 'design levels as a collection of TCastleTransform descendans, like TCastleScene, without resource.xml necessary';
 
 {$I castleconf.inc}
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1052,9 +1052,11 @@ var
 
 implementation
 
+{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
 uses Generics.Defaults,
   CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog,
   CastleStringUtils, CastleInternalArraysGenerator, CastleURIUtils;
+{$warnings on}
 
 const
   UnknownTexCoord: TTriangle4 = (Data: (

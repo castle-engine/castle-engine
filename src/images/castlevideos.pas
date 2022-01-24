@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -414,9 +414,11 @@ const
 
 implementation
 
+{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
 uses Classes, {$ifndef FPC} Windows, ShellApi, {$endif} CastleClassUtils, CastleUtils, Math, CastleStringUtils,
   CastleLog, CastleFilesUtils, CastleProgress, CastleTextureImages,
   CastleDownload, CastleURIUtils, CastleFindFiles;
+{$warnings on}
 
 { TVideo --------------------------------------------------------------------- }
 

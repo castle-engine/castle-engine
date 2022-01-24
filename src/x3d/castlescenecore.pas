@@ -25,7 +25,7 @@ interface
 uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleBoxes, CastleTriangles, X3DFields, X3DNodes,
   CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
-  CastleProgress, CastleInternalOctree, CastleInternalShapeOctree,
+  CastleInternalOctree, CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, CastleTimeUtils,
   CastleTransform, CastleInternalShadowMaps, CastleProjection;
 
@@ -2562,9 +2562,11 @@ var
 
 implementation
 
+{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
 uses Math, DateUtils,
-  X3DCameraUtils, CastleStringUtils, CastleLog,
+  CastleProgress, X3DCameraUtils, CastleStringUtils, CastleLog,
   X3DLoad, CastleURIUtils, CastleQuaternions;
+{$warnings on}
 
 {$define read_implementation}
 {$I castlescenecore_physics.inc}

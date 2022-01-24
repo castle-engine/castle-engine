@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2018 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,8 @@
   Note that you @italic(do not) need this unit in many normal cases when dealing with animations.
   It is generally simpler and more adviced to use TCastleScene and TCastleScene.PlayAnimation
   to play animations, see https://castle-engine.io/manual_scene.php . }
-unit CastleResources;
+unit CastleResources
+  deprecated 'manage scenes and their animations using TCastleScene';
 
 {$I castleconf.inc}
 

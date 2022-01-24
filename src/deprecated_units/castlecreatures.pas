@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2018 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,17 +14,20 @@
 }
 
 { Creatures. }
-unit CastleCreatures;
+unit CastleCreatures
+  deprecated 'express creature AI as TCastleBehavior';
 
 {$I castleconf.inc}
 
 interface
 
+{$warnings off} // using deprecated CastleResources in deprecated
 uses Classes, Generics.Collections,
   CastleVectors, CastleBoxes, CastleClassUtils, CastleUtils, CastleScene,
   CastleStringUtils, CastleResources, CastleXMLConfig, CastleTransform,
   CastleTransformExtra, CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
   CastleDebugTransform, CastleSectors, CastleBehaviors;
+{$warnings on}
 
 type
   TCreatureState = type Integer;
@@ -1077,9 +1080,11 @@ var
 
 implementation
 
+{$warnings off} // using deprecated CastleProgress, CastleGameNotifications in deprecated
 uses SysUtils, DOM, Math,
   CastleFilesUtils, CastleGLUtils,
   CastleProgress, CastleGameNotifications, CastleUIControls;
+{$warning on}
 
 var
   DisableCreatures: Cardinal;

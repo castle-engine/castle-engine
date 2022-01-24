@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -58,7 +58,7 @@
       positions the middle of the progress bar. }
     property YPosition: Single read FYPosition write FYPosition
       {$ifdef FPC}default TProgressUserInterface.DefaultBarYPosition{$endif};
-  end;
+  end deprecated 'use own UI to display progress bar (e.g. one rectangle using WidthFraction within a bigger rectangle)';
 
 {$endif read_interface}
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2018 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,8 @@
 }
 
 { Menu items (suitable for TCastleOnScreenMenu) to control the TRepoSoundEngine. }
-unit CastleSoundMenu;
+unit CastleSoundMenu
+  deprecated 'use TCastleVerticalGroup with buttons, sliders to control volume using UI';
 
 {$I castleconf.inc}
 
