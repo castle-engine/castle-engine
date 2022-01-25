@@ -378,6 +378,8 @@ clean: cleanexamples
 	  packages/alternative_castle_window_based_on_lcl.pas \
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
+	  tests/castle-tester \
+	  tests/castle-tester.exe \
 	  examples/fonts/font_draw_over_image_output.png \
 	  examples/short_api_samples/transform_save_load/aaa.castle-transform
 	$(MAKE) -C doc/man/man1/ clean
@@ -439,15 +441,15 @@ tests:
 # Run in debug mode
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- -a
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
 # Run in debug mode without LibPng
 # (useful to test image processing, e.g. TTestImages.TestLoadImage, using fcl-image, which matters for mobile now)
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- -a
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
 # Run in release mode, since all tests must pass the same when optimizations are enabled
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=release --compiler-option=-dNO_WINDOW_SYSTEM compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- -a
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
 
 # eof ------------------------------------------------------------
