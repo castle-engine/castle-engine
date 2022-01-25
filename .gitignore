@@ -205,6 +205,7 @@ castle-game-engine-*.fpm
 /src/deprecated_library/ios-output/
 /src/deprecated_library/libcastleengine.dylib
 /src/deprecated_library/libcastleengine.so
+/tests/castle-tester
 /tests/test_castle_game_engine
 /tools/build-tool/castle-engine
 /tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
