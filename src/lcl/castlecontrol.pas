@@ -21,6 +21,10 @@ unit CastleControl;
 
 interface
 
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
+{$warnings off} // CastleControl is using deprecated CastleLevels in this case, see https://castle-engine.io/wp/2021/12/27/tcastlewindow-scenemanager-removal-of-a-deprecated-property-soon/
+{$endif}
+
 uses
   Classes, SysUtils,
   StdCtrls, OpenGLContext, Controls, Forms, LCLVersion, LCLType,
@@ -28,6 +32,10 @@ uses
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
   CastleImages, CastleGLVersion, CastleLCLUtils, CastleViewport,
   CastleGLImages, Castle2DSceneManager, CastleApplicationProperties;
+
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
+{$warnings on}
+{$endif}
 
 { Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
   (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
