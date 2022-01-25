@@ -3103,9 +3103,11 @@ begin
       Result := [psBasic]
   else
   if (PropertyName = 'CenterPersistent') or
-     (PropertyName = 'RotationPersistent') or
+     (PropertyName = 'ScaleOrientationPersistent') then
+    Result := [psLayout]
+  else
+  if (PropertyName = 'RotationPersistent') or
      (PropertyName = 'ScalePersistent') or
-     (PropertyName = 'ScaleOrientationPersistent') or
      (PropertyName = 'TranslationPersistent') then
     Result := [psBasic, psLayout]
   else
