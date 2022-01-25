@@ -16,13 +16,16 @@ type
     public
       constructor Create;
       destructor Destroy; override;
-      procedure Run;
+
+      procedure Run(const ATestCaseToRun: String = '');
+
+      class function GetTestCaseNameFromParameters: String;
   end;
 
 
 implementation
 
-uses CastleLog;
+uses CastleLog, CastleParameters;
 
 { TCastleConsoleTester }
 
@@ -48,14 +51,14 @@ begin
   WritelnLog(AMessage);
 end;
 
-procedure TCastleConsoleTester.Run;
+procedure TCastleConsoleTester.Run(const ATestCaseToRun: String);
 begin
   FTester.AddRegisteredTestCases;
   Log('Scaning tests...');
   FTester.Scan;
   Log('Found ' + IntToStr(Ftester.EnabledTestCount) + ' tests.');
   Log('Preparing tests...');
-  FTester.PrepareTestListToRun;
+  FTester.PrepareTestListToRun(ATestCaseToRun);
   Log('Running tests...');
   FTester.Run;
   if FTester.TestFailedCount = 0 then
@@ -63,6 +66,23 @@ begin
 
   //Log('Press <enter> to quit...');
   //Readln;
+end;
+
+class function TCastleConsoleTester.GetTestCaseNameFromParameters: String;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to Parameters.Count - 1 do
+  begin
+    if Pos('--suite=', Parameters[I]) = 1 then
+    begin
+      Result := Parameters[I];
+      Delete(Result, 1, 8);
+      Exit(trim(Result));
+    end;
+  end;
+
 end;
 
 procedure TCastleConsoleTester.TestExecuted(const AName: String);

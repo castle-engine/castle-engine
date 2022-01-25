@@ -314,8 +314,9 @@ type
 
     { Scans added test cases }
     procedure Scan;
-    { Prepares list of tests to run }
-    procedure PrepareTestListToRun;
+
+    { Prepares list of tests to run - choosen test case or all for '' }
+    procedure PrepareTestListToRun(const ATestCaseName: String = '');
 
     { Running all test in one loop - good for console because blocks UI }
     procedure Run;
@@ -436,7 +437,7 @@ begin
     {$endif}
 end;
 
-procedure TCastleTester.PrepareTestListToRun;
+procedure TCastleTester.PrepareTestListToRun(const ATestCaseName: String);
 var
   I, J: Integer;
   TestCase: TCastleTestCase;
@@ -449,6 +450,11 @@ begin
   for I := 0 to FTestCaseList.Count -1 do
   begin
     TestCase := FTestCaseList[I];
+
+    if ATestCaseName <> '' then
+      if UpperCase(TestCase.ClassName) <> UpperCase(ATestCaseName) then
+        continue;
+
     if TestCase.Enabled then
     begin
       for J := 0 to TestCase.TestCount -1 do
