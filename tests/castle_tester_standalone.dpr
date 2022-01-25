@@ -46,10 +46,9 @@ begin
 
       ConsoleTester := TCastleConsoleTester.Create;
       try
-        ConsoleTester.Run;
+        ConsoleTester.Run(ConsoleTester.GetTestCaseNameFromParameters);
       finally
         FreeAndNil(ConsoleTester);
       end;
   end;
-
 end.

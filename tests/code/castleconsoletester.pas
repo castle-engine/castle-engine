@@ -17,8 +17,10 @@ type
       constructor Create;
       destructor Destroy; override;
 
+      { Runs all tests or only one test case when ATestCaseToRun <> '' }
       procedure Run(const ATestCaseToRun: String = '');
 
+      { Parsing --suite=xx parameter and returns only value (xx) }
       class function GetTestCaseNameFromParameters: String;
   end;
 
@@ -82,7 +84,6 @@ begin
       Exit(trim(Result));
     end;
   end;
-
 end;
 
 procedure TCastleConsoleTester.TestExecuted(const AName: String);

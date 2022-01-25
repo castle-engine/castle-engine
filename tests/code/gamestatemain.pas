@@ -178,8 +178,6 @@ begin
 end;
 
 procedure TStateMain.Start;
-var
-  TestC: TCastleTestCase;
 begin
   inherited;
 
@@ -213,68 +211,18 @@ begin
   Tester.NotifyTestCaseExecuted := {$ifdef FPC}@{$endif}TestExecuted;
   Tester.NotifyAssertFail := {$ifdef FPC}@{$endif}AssertFailed;
 
-  { Commented test cases need fixes in delphi }
 
+  { You can add all Registered tests by calling AddRegisteredTestCases }
   Tester.AddRegisteredTestCases;
 
-  //Tester.AddTestCase(TTestWindow.Create);
-
+  { Or add only one test case by code eg. }
   (*
-  TestC := TCastleTestCase.Create;
-  Tester.AddTestCase(TestC);
   Tester.AddTestCase(TTestURIUtils.Create);
   Tester.AddTestCase(TTestCastleBoxes.Create);
   Tester.AddTestCase(TTestCameras.Create);
   Tester.AddTestCase(TTestCastleClassUtils.Create);
   Tester.AddTestCase(TTestCastleColors.Create);
-  Tester.AddTestCase(TTestCastleComponentSerialize.Create);
-  // Tester.AddTestCase(TTestCastleCompositeImage.Create); //
-  Tester.AddTestCase(TTestCastleControls.Create);
-  Tester.AddTestCase(TTestCubeMap.Create);
-  Tester.AddTestCase(TTestCastleCurves.Create);
-  // Tester.AddTestCase(TTestCastleFilesUtils.Create); //
-  Tester.AddTestCase(TTestCastleFonts.Create);
-  Tester.AddTestCase(TTestCastleFrustum.Create);
-  Tester.AddTestCase(TTestGame.Create);
-  {$ifdef FPC}Tester.AddTestCase(TTestGenericLists.Create);{$endif}
-  Tester.AddTestCase(TTestGLVersion.Create);
-  Tester.AddTestCase(TTestImages.Create);
-  Tester.AddTestCase(TTestImagesDraw.Create);
-  Tester.AddTestCase(TTestKeysMouse.Create);
-  // Tester.AddTestCase(TTestOpeningAndRendering3D.Create); //
-  // Tester.AddTestCase(TTestParsingParameters.Create); //
-  Tester.AddTestCase(TTestCastleQuaternions.Create);
-  Tester.AddTestCase(TTestCastleRandom.Create);
-  Tester.AddTestCase(TTestRectangles.Create);
-  Tester.AddTestCase(TTestScene.Create);
-  // Tester.AddTestCase(TTestSceneCore.Create); // a lot of CastleScript errors
-  {$ifdef FPC}Tester.AddTestCase(TTestCastleScript.Create);{$endif}
-  {$ifdef FPC}Tester.AddTestCase(TTestCastleScriptVectors.Create);{$endif}
-  // Tester.AddTestCase(TTestCastleSoundEngine.Create); // works but a lot of exceptions
-  Tester.AddTestCase(TTestSpaceFillingCurves.Create);
-  Tester.AddTestCase(TTestCastleStringUtils.Create); // function SCompressWhiteSpace(const S: string): string; not working
-  Tester.AddTestCase(TTestCastleTimeUtils.Create);
-  Tester.AddTestCase(TTestCastleTransform.Create);
-  Tester.AddTestCase(TTestCastleTriangles.Create);
-  Tester.AddTestCase(TTestCastleTriangulate.Create);
-  Tester.AddTestCase(TTestCastleUIControls.Create);
-  // Tester.AddTestCase(TTestCastleUtils.Create); - TODO: FPC definitions
-  Tester.AddTestCase(TTestBasicLists.Create);
-  Tester.AddTestCase(TTestCastleVectors.Create);
-  Tester.AddTestCase(TTestWindow.Create);
-  // Tester.AddTestCase(TTestCastleWindowOpen.Create); // tests need changes
-  Tester.AddTestCase(TTestCastleXMLUtils.Create);
-  Tester.AddTestCase(TTestCompiler.Create);
-  Tester.AddTestCase(TTestGenericsCollections.Create);
-  {$ifdef FPC}Tester.AddTestCase(TTestFGL.Create);{$endif}
-  {$ifdef FPC}Tester.AddTestCase(TTestFPImage.Create);{$endif}
-  {$ifdef FPC}Tester.AddTestCase(TTestOldFPCBugs.Create);{$endif}
-  Tester.AddTestCase(TTestSysUtils.Create);
-  Tester.AddTestCase(TTestX3DFields.Create);
-  Tester.AddTestCase(TTestX3DNodes.Create);
-  Tester.AddTestCase(TTestX3DNodesOptimizedProxy.Create); *)
-
-  { Add registered test cases here }
+  Tester.AddTestCase(TTestCastleComponentSerialize.Create); *)
 
   { Scans all tests }
   Tester.Scan;
