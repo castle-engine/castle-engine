@@ -260,7 +260,6 @@ begin
   AssertEquals(60, TextRect.Height);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestRectangles);
 end.
