@@ -171,7 +171,8 @@ castle-game-engine-*.fpm
 /examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field
 /examples/research_special_rendering_methods/shadow_fields/shadow_fields
 /examples/research_special_rendering_methods/transform_feedback/transform_feedback
-/examples/screen_effects_demo/screen_effects_demo
+/examples/screen_effects/screen_effects_demo/screen_effects_demo
+/examples/screen_effects/screen_effects_blending/screen_effects_blending
 /examples/short_api_samples/animation_stop_notification/animation_stop_notification
 /examples/short_api_samples/metadata/metadata_use
 /examples/short_api_samples/save_screen_rgba/save_screen_rgba

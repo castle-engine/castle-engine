@@ -23,7 +23,8 @@ interface
 uses SysUtils, Classes,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleGLShaders, CastleUIControls, X3DNodes, CastleGLImages,
-  CastleRectangles, CastleScene, CastleTransform, CastleCameras, CastleGLUtils;
+  CastleRectangles, CastleScene, CastleTransform, CastleCameras, CastleGLUtils,
+  CastleRenderOptions;
 
 { Standard GLSL vertex shader for screen effect.
   @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
@@ -123,6 +124,9 @@ type
         TexCoord: TVector2;
       end;
     var
+      FBlending: Boolean;
+      FBlendingSourceFactor: TBlendingSourceFactor;
+      FBlendingDestinationFactor: TBlendingDestinationFactor;
       { Scene containing screen effects }
       ScreenEffectsScene: TCastleScene;
       ScreenEffectsRoot: TX3DRootNode;
@@ -181,6 +185,46 @@ type
     { @exclude }
     function InternalExtraScreenEffectsNeedDepth: Boolean; virtual;
   public
+    const
+      DefaultBlendingSourceFactor = bsSrcAlpha;
+      DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
+
+    { Use blending when drawing the result of this screen effect on the screen.
+      This is useful if the screen effect writes some non-trivial (not equal 1.0)
+      alpha values to the color buffer, and in the end you want to use these
+      alpha values for blending with the screen contents underneath the TCastleScreenEffect.
+      
+      Note that, in order to preserve the alpha values during the screen effect,
+      the screen effect color buffer must have some alpha storage.
+      Make sure that your @link(TCastleWindowBase) or @link(TCastleControlBase)
+      request alpha storage, e.g. by setting @code(Window.AlphaBits := 1)
+      in the "initialization" section of the typical GameInitialize unit.
+      This way the screen effect color buffer is also guaranteed to have alpha storage.
+      
+      When rendering things with alpha inside the TCastleScreenEffect
+      (that is, when TCastleScreenEffect children use blending)
+      remember that the initial screen effect color buffer contents are undefined.
+      You have to make sure they are defined -- e.g. by always drawing something
+      opaque in TCastleScreenEffect (e.g. using TCastleRectangleControl as the first
+      TCastleScreenEffect child) or filling the contents with something define
+      (e.g. using @link(TCastleSimpleBackground) as the first
+      TCastleScreenEffect child, to set all pixels to specified RGBA value.)
+      
+      See the examples/screen_effects/screen_effects_blending for demo. }
+    property Blending: Boolean read FBlending write FBlending default false;
+
+    { Blending source factor, if we use @link(Blending). }
+    property BlendingSourceFactor: TBlendingSourceFactor
+      read FBlendingSourceFactor
+      write FBlendingSourceFactor
+      default DefaultBlendingSourceFactor;
+
+    { Blending destination factor, if we use @link(Blending). }
+    property BlendingDestinationFactor: TBlendingDestinationFactor
+      read FBlendingDestinationFactor
+      write FBlendingDestinationFactor
+      default DefaultBlendingDestinationFactor;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -264,7 +308,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleLog, CastleRenderContext, CastleRenderOptions;
+uses CastleUtils, CastleLog, CastleRenderContext;
 
 function ScreenEffectVertex: string;
 begin
@@ -324,6 +368,9 @@ begin
   inherited;
   FScreenEffectsTimeScale := 1;
   FScreenEffectsEnable := true;
+  FBlending := false;
+  FBlendingSourceFactor := DefaultBlendingSourceFactor;
+  FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
 end;
 
 destructor TCastleScreenEffects.Destroy;
@@ -639,7 +686,7 @@ var
 
   procedure RenderWithScreenEffectsCore;
 
-    procedure RenderOneEffect(Shader: TGLSLProgram);
+    procedure RenderOneEffect(Shader: TGLSLProgram; const RenderToScreen: Boolean);
     var
       BoundTextureUnits: Cardinal;
       AttribVertex, AttribTexCoord: TGLSLAttribute;
@@ -696,7 +743,14 @@ var
       AttribTexCoord.EnableArrayVector2(SizeOf(TScreenPoint),
         OffsetUInt(ScreenPoint[0].TexCoord, ScreenPoint[0]));
 
-      glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+      if Blending and RenderToScreen then
+      begin
+        GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
+        glEnable(GL_BLEND);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glDisable(GL_BLEND);
+      end else
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
       AttribVertex.DisableArray;
       AttribTexCoord.DisableArray;
@@ -724,7 +778,7 @@ var
     begin
       ScreenEffectRTT.RenderBegin;
       ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
-      RenderOneEffect(GetScreenEffect(I));
+      RenderOneEffect(GetScreenEffect(I), false);
       ScreenEffectRTT.RenderEnd;
 
       SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
@@ -733,7 +787,7 @@ var
     { the last effect gets a texture, and renders straight into screen }
     RenderContext.ViewportDelta := TVector2Integer.Zero;
     RenderContext.Viewport := RenderRect.Round;
-    RenderOneEffect(GetScreenEffect(CurrentScreenEffectsCount - 1));
+    RenderOneEffect(GetScreenEffect(CurrentScreenEffectsCount - 1), true);
   end;
 
   procedure EndRenderingToTexture;
