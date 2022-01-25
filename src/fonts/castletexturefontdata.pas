@@ -319,8 +319,10 @@ var
   end;
 
   function FileNameContainsNonAsciiCharacters(const FileName: String): Boolean;
+  {$ifndef FPC}
   var
     I:Integer;
+  {$endif}
   begin
     {$ifdef FPC}
     Result := CharsPos(AllChars - SimpleAsciiCharacters, FileName) <> 0;
