@@ -33,7 +33,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending,
-  CastleInternalBatchShapes, CastleRenderOptions, CastleTimeUtils;
+  CastleInternalBatchShapes, CastleRenderOptions, CastleTimeUtils, CastleImages;
 
 {$define read_interface}
 
@@ -573,6 +573,7 @@ const
 {$I castlescene_plane.inc}
 {$I castlescene_cone.inc}
 {$I castlescene_cylinder.inc}
+{$I castlescene_imagetransform.inc}
 {$undef read_interface}
 
 implementation
@@ -580,7 +581,7 @@ implementation
 {$warnings off}
 // TODO: This unit temporarily uses RenderingCamera singleton,
 // to keep TBasicRenderParams working for backward compatibility.
-uses CastleGLVersion, CastleImages, CastleLog,
+uses CastleGLVersion, CastleLog,
   CastleStringUtils, CastleApplicationProperties,
   CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes,
   CastleComponentSerialize, CastleRenderContext, CastleFilesUtils;
@@ -595,6 +596,7 @@ uses CastleGLVersion, CastleImages, CastleLog,
 {$I castlescene_plane.inc}
 {$I castlescene_cone.inc}
 {$I castlescene_cylinder.inc}
+{$I castlescene_imagetransform.inc}
 {$undef read_implementation}
 
 procedure Register;
@@ -2253,6 +2255,7 @@ initialization
   RegisterSerializableComponent(TCastleText, 'Text');
   RegisterSerializableComponent(TCastleCone, 'Cone');
   RegisterSerializableComponent(TCastleCylinder, 'Cylinder');
+  RegisterSerializableComponent(TCastleImageTransform, 'Image');
 finalization
   GLContextCache.FreeWhenEmpty(@GLContextCache);
 end.

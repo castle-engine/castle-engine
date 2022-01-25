@@ -85,6 +85,8 @@ uses SysUtils, Classes, Math, Generics.Collections,
   CastleFileFilters, CastleClassUtils, CastleColors;
 
 type
+  { TODO: This should be merged with TAlphaMode, these types say the same. }
+  { How is the alpha channel of an image treated. }
   TAutoAlphaChannel = (acAuto, acNone, acTest, acBlending);
   { See TCastleImage.AlphaChannel. }
   TAlphaChannel = acNone .. acBlending;

@@ -2138,15 +2138,45 @@ var
     end;
   end;
 
+  function AddImage(const Url: String): TCastleTransform;
+  var
+    ImageTransform: TCastleImageTransform;
+  begin
+    ImageTransform := AddComponent(Viewport.Items, TCastleImageTransform, nil) as TCastleImageTransform;
+    ImageTransform.Url := Url;
+    Result := ImageTransform;
+  end;
+
+  function AddScene(const Url: String): TCastleTransform;
+  var
+    Scene: TCastleScene;
+  begin
+    Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
+    Scene.Url := Url;
+    Result := Scene;
+  end;
+
+  function AddSound(const Url: String): TCastleTransform;
+  var
+    Transform: TCastleTransform;
+    SoundSource: TCastleSoundSource;
+    Sound: TCastleSound;
+  begin
+    Transform := AddComponent(Viewport.Items, TCastleTransform, nil) as TCastleTransform;
+    SoundSource := AddComponent(Transform, TCastleSoundSource, nil) as TCastleSoundSource;
+    Sound := AddComponent(SoundSource, TCastleSound, nil) as TCastleSound;
+    Sound.Url := Url;
+    SoundSource.Sound := Sound;
+    Result := Transform;
+  end;
+
 var
   ShellList: TCastleShellListView;
   SelectedFileName: String;
-  SelectedURL: String;
+  SelectedUrl: String;
   UI: TCastleUserInterface;
-  Transform: TCastleTransform;
   DropPos: TVector3;
-  SoundSource: TCastleSoundSource;
-  Sound: TCastleSound;
+  Transform: TCastleTransform;
 begin
   if Source is TCastleShellListView then
   begin
@@ -2154,7 +2184,7 @@ begin
     if ShellList.Selected <> nil then
     begin
       SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
-      SelectedURL := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+      SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
 
       UI := FDesignerLayer.HoverUserInterface(Vector2(X, Y));
       if not (UI is TCastleViewport) then
@@ -2164,19 +2194,15 @@ begin
       if not DropPosition(DropPos) then
         Exit;
 
-      if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
-      begin
-        Transform := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
-        (Transform as TCastleScene).URL := SelectedURL;
-      end else
-      if TFileFilterList.Matches(LoadSound_FileFilters, SelectedURL) then
-      begin
-        Transform := AddComponent(Viewport.Items, TCastleTransform, nil) as TCastleTransform;
-        SoundSource := AddComponent(Transform, TCastleSoundSource, nil) as TCastleSoundSource;
-        Sound := AddComponent(SoundSource, TCastleSound, nil) as TCastleSound;
-        Sound.URL := SelectedURL;
-        SoundSource.Sound := Sound;
-      end else
+      if LoadImage_FileFilters.Matches(SelectedUrl) then
+        Transform := AddImage(SelectedUrl)
+      else
+      if TFileFilterList.Matches(LoadScene_FileFilters, SelectedUrl) then
+        Transform := AddScene(SelectedUrl)
+      else
+      if TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl) then
+        Transform := AddSound(SelectedUrl)
+      else
         Exit; // cannot drop such file type
 
       Transform.Translation := DropPos;

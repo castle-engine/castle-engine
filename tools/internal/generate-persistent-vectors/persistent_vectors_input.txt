@@ -72,3 +72,9 @@
 ../../../src/x3d/opengl/ TCastleAbstractPrimitive Color TCastleColor
 ../../../src/x3d/opengl/ TCastleBox Size TVector3
 ../../../src/x3d/opengl/ TCastlePlane Size TVector2
+
+../../../src/x3d/opengl/ TCastleImageTransform Pivot TVector2
+../../../src/x3d/opengl/ TCastleImageTransform Size TVector2
+../../../src/x3d/opengl/ TCastleImageTransform RepeatImage TVector2
+../../../src/x3d/opengl/ TCastleImageTransform Shift TVector2
+../../../src/x3d/opengl/ TCastleImageTransform Color TCastleColor
