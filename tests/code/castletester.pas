@@ -1,4 +1,23 @@
 unit CastleTester;
+{
+  Copyright 2022 Michalis Kamburelis, Andrzej Kilijański, Dean Zobec,
+    Michael Van Canneyt
+
+  API structure (for compatibility) and some of functions from
+  fpcunit (part of Free Component Library (FCL)) by Dean Zobec, Michael Van Canneyt
+  See https://wiki.lazarus.freepascal.org/fpcunit for more info.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
 
 interface
 
@@ -29,7 +48,7 @@ type
     ctmDesktop, // tester runs in UI application on desktop (Linux, Windows, MacOS)
     ctmConsole, // tester runs in console
     ctmMobile,  // tester runs on Android or iOs
-    ctmWeb // for testing
+    ctmWeb // in the future, for the Web target
   );
 
   TCastleTester = class;
@@ -50,7 +69,6 @@ type
   public
     Name: String;
 
-
     constructor Create(const ATestCase: TCastleTestCase; const AName: String;
       {$ifdef FPC}const AMethodPointer: CodePointer{$else}
       const ARttiMethod: TRttiMethod{$endif});
@@ -61,6 +79,7 @@ type
     { Runs TestCase.TearDown }
     procedure TearDown;
 
+    { Test case name with test name }
     function GetFullName: String;
 
     property Enabled: Boolean read FEnabled write SetEnabled;
@@ -196,6 +215,8 @@ type
 
 
     function CompareFileName(Expected, Actual: String): Boolean;
+
+    { Function that works in Delphi and FPC }
     function GetTempDirectory: String;
 
     procedure TestLog(Text: String);
@@ -232,7 +253,6 @@ type
     property CurrentTestName: String read FCurrentTestName;
 
   published
-    procedure TestTestCase;
 
   end;
   {$M-}
@@ -1202,14 +1222,6 @@ procedure TCastleTestCase.TestLog(Text: String);
 begin
   WritelnLog(Text);
 end;
-
-procedure TCastleTestCase.TestTestCase;
-begin
-  TestLog('TestTestCase');
-  //AssertTrue('Just testing failing', false);
-end;
-
-
 
 procedure TCastleTestCase.AssertEquals(const Expected, Actual: Integer);
 begin
