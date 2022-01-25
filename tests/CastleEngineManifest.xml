@@ -2,7 +2,7 @@
 <project name="castle-tester"
   standalone_source="castle_tester_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="io.castle-engine.castletester"
+  qualified_name="io.castleengine.castletester"
   caption="Castle Tester"
 >
   <compiler_options>
