@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -343,7 +343,9 @@ begin
   if (PropertyName = 'Caption') or
      (PropertyName = 'Checked') or
      (PropertyName = 'CustomFont') or
-     (PropertyName = 'FontSize') then
+     (PropertyName = 'FontSize') or
+     (PropertyName = 'CheckboxColorPersistent') or
+     (PropertyName = 'TextColorPersistent') then
     Result := [psBasic]
   else if (PropertyName = 'AutoSize') then
     Result := [psLayout]

@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -419,7 +419,14 @@ function TCastleEdit.PropertySections(const PropertyName: String): TPropertySect
 begin
   if (PropertyName = 'Text') or
      (PropertyName = 'Alignment') or
-     (PropertyName = 'Enabled') then
+     (PropertyName = 'Enabled') or
+     (PropertyName = 'Placeholder') or
+     (PropertyName = 'PasswordChar') or
+     (PropertyName = 'MaxLength') or
+     (PropertyName = 'FocusedColorPersistent') or
+     (PropertyName = 'UnfocusedColorPersistent') or
+     (PropertyName = 'PlaceholderColorPersistent') or
+     (PropertyName = 'BackgroundColorPersistent') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
