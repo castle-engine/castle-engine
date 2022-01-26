@@ -34,6 +34,7 @@ pipeline {
     stage('Check Dependencies') {
       steps {
         dir ('tools/internal/check_units_dependencies/') {
+          sh 'echo $PATH'
           sh 'make'
         }
       }
