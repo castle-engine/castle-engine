@@ -57,6 +57,7 @@ object ImportAtlasForm: TImportAtlasForm
     Width = 104
     Anchors = [akTop, akRight]
     BorderSpacing.Top = 4
+    MaxValue = 1000
     MinValue = 1
     TabOrder = 1
     Value = 2
