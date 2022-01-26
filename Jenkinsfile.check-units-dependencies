@@ -21,8 +21,16 @@ pipeline {
        According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
        this should be supported. */
     CASTLE_ENGINE_PATH = "${WORKSPACE}"
+    PATH = "${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/"
   }
   stages {
+    stage('Build Tools') {
+      steps {
+        sh 'rm -Rf installed/'
+        sh 'mkdir -p installed/'
+        sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+      }
+    }
     stage('Check Dependencies') {
       steps {
         dir ('tools/internal/check_units_dependencies/') {
