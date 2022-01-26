@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,7 +17,14 @@
 {$ifdef read_interface}
 
   { Possible shape type, for @link(TCastleShape.ShapeType). }
-  TShapeType = (stRectangle, stCircle);
+  TShapeType = (
+    stRectangle,
+    stCircle,
+    stTriangleUp,
+    stTriangleDown,
+    stTriangleRight,
+    stTriangleLeft
+  );
 
   { Draw a simple shape (rectangle, circle) with given color and optional outline. }
   TCastleShape = class(TCastleUserInterface)
@@ -44,6 +51,7 @@
 
     { The outline color, used if @link(Outline). By default, opaque black. }
     property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
+      deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';
 
     { Determines the drawing method of the outline, used if @link(Outline).
 
@@ -81,7 +89,8 @@
           Advantage: thick OutlineWidth works reliably.)
       )
     }
-    property OutlineThick: boolean read FOutlineThick write SetOutlineThick;
+    property OutlineThick: boolean read FOutlineThick write SetOutlineThick default false;
+      deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';
 
     { The outline width, used if @link(Outline).
       It is affected by UI scaling.
@@ -91,12 +100,15 @@
       to be supported. In particular they will almost never work on mobile (OpenGLES).)
       Change OutlineThick to @true to have reliable thick outlines. }
     property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth {$ifdef FPC}default 1.0{$endif};
-  published
-    property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
-
-    property Filled: boolean read FFilled write SetFilled default true;
+      deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';
 
     property Outline: boolean read FOutline write SetOutline default false;
+      deprecated 'leave this always false; do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';
+
+    property Filled: boolean read FFilled write SetFilled default true;
+      deprecated 'leave this always true; do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';
+  published
+    property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc}
@@ -197,12 +209,13 @@ end;
 
 procedure TCastleShape.Render;
 var
-  SR: TFloatRectangle;
+  RR: TFloatRectangle;
   OutlineW, OutlineIn, OutlineOut: Integer;
 begin
   inherited;
-  SR := RenderRect;
+  RR := RenderRect;
 
+  {$warnings off} // using deprecated to keep it working
   if Filled and Outline and OutlineThick then
   begin
     { special case when we use OutlineThick drawing mode }
@@ -214,37 +227,60 @@ begin
     case ShapeType of
       stRectangle:
         begin
-          DrawRectangle(SR.Grow(OutlineOut), OutlineColor);
-          DrawRectangle(SR.Grow(OutlineIn ), Color);
+          DrawRectangle(RR.Grow(OutlineOut), OutlineColor);
+          DrawRectangle(RR.Grow(OutlineIn ), Color);
         end;
       stCircle   :
         begin
-          DrawCircle(SR.Center, SR.Width / 2 + OutlineOut, SR.Height / 2 + OutlineOut, OutlineColor);
-          DrawCircle(SR.Center, SR.Width / 2 + OutlineIn , SR.Height / 2 + OutlineIn , Color);
+          DrawCircle(RR.Center, RR.Width / 2 + OutlineOut, RR.Height / 2 + OutlineOut, OutlineColor);
+          DrawCircle(RR.Center, RR.Width / 2 + OutlineIn , RR.Height / 2 + OutlineIn , Color);
         end;
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
-      {$endif}
+      else WritelnWarning('TCastleShape.Render: Outline not implemented for this ShapeType. Do not use deprecated Outline.');
     end;
   end else
+  {$warnings on}
   begin
     if Filled then
       case ShapeType of
-        stRectangle: DrawRectangle(SR, Color);
-        stCircle   : DrawCircle(SR.Center, SR.Width / 2, SR.Height / 2, Color);
+        stRectangle: DrawRectangle(RR, Color);
+        stCircle   : DrawCircle(RR.Center, RR.Width / 2, RR.Height / 2, Color);
+        stTriangleUp:
+          DrawPrimitive2D(pmTriangles, [
+            Vector2(RR.Left, RR.Bottom),
+            Vector2(RR.Right, RR.Bottom),
+            Vector2((RR.Left + RR.Right) / 2, RR.Top)
+          ], Color);
+        stTriangleDown:
+          DrawPrimitive2D(pmTriangles, [
+            Vector2(RR.Right, RR.Top),
+            Vector2(RR.Left, RR.Top),
+            Vector2((RR.Left + RR.Right) / 2, RR.Bottom)
+          ], Color);
+        stTriangleRight:
+          DrawPrimitive2D(pmTriangles, [
+            Vector2(RR.Left, RR.Bottom),
+            Vector2(RR.Right, (RR.Top + RR.Bottom) / 2),
+            Vector2(RR.Left, RR.Top)
+          ], Color);
+        stTriangleLeft:
+          DrawPrimitive2D(pmTriangles, [
+            Vector2(RR.Right, RR.Top),
+            Vector2(RR.Left, (RR.Top + RR.Bottom) / 2),
+            Vector2(RR.Right, RR.Bottom)
+          ], Color);
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
         {$endif}
       end;
 
+    {$warnings off} // using deprecated to keep it working
     if Outline then
       case ShapeType of
-        stRectangle: DrawRectangleOutline(SR, OutlineColor, UIScale * OutlineWidth);
-        stCircle   : DrawCircleOutline(SR.Center, SR.Width / 2, SR.Height / 2, OutlineColor, UIScale * OutlineWidth);
-        {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
-        {$endif}
+        stRectangle: DrawRectangleOutline(RR, OutlineColor, UIScale * OutlineWidth);
+        stCircle   : DrawCircleOutline(RR.Center, RR.Width / 2, RR.Height / 2, OutlineColor, UIScale * OutlineWidth);
+        else WritelnWarning('TCastleShape.Render: Outline not implemented for this ShapeType. Do not use deprecated Outline.');
       end;
+    {$warnings on}
   end;
 end;
 

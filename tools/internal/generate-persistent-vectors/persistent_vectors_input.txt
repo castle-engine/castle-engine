@@ -40,7 +40,6 @@
 ../../../src/ui/opengl/ TCastleLabel FrameColor TCastleColor
 
 ../../../src/ui/opengl/ TCastleShape Color TCastleColor
-../../../src/ui/opengl/ TCastleShape OutlineColor TCastleColor
 
 ../../../src/ui/opengl/ TCastleEdit FocusedColor TCastleColor
 ../../../src/ui/opengl/ TCastleEdit UnfocusedColor TCastleColor
