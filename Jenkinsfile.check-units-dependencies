@@ -21,7 +21,6 @@ pipeline {
        According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
        this should be supported. */
     CASTLE_ENGINE_PATH = "${WORKSPACE}"
-    PATH = "${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/"
   }
   stages {
     stage('Build Tools') {
@@ -34,8 +33,7 @@ pipeline {
     stage('Check Dependencies') {
       steps {
         dir ('tools/internal/check_units_dependencies/') {
-          sh 'echo $PATH'
-          sh 'make'
+          sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" && make'
         }
       }
     }
