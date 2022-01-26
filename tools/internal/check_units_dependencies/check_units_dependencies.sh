@@ -25,13 +25,8 @@ find . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or \
 
 # Calculate temp file location.
 # Work regardless if $HOME/tmp is created.
-if [ -d "$HOME/tmp" ]; then
-  TMP_PAS_LIST="$HOME/tmp/test-cge-units-dependencies_all_units.txt"
-  TMP_LOG="$HOME/tmp/cge_check_units_dependencies.log"
-else
-  TMP_PAS_LIST="/tmp/test-cge-units-dependencies_all_units.txt"
-  TMP_LOG="/tmp/cge_check_units_dependencies.log"
-fi
+TMP_PAS_LIST="${CASTLE_ENGINE_PATH}/test-cge-units-dependencies_all_units.txt"
+TMP_LOG="${CASTLE_ENGINE_PATH}/cge_check_units_dependencies.log"
 
 # clean previous log
 rm -f "${TMP_LOG}"
