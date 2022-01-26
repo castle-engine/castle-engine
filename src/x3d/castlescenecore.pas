@@ -1981,9 +1981,7 @@ type
       @seealso PlayAnimation }
     function HasAnimation(const AnimationName: string): boolean;
 
-    { TimeSensor of this animation. @nil if this name not found.
-      See e.g. examples/3d_rendering_processing/listen_on_x3d_events.lpr
-      for an example of using this. }
+    { TimeSensor of this animation. @nil if this name not found. }
     function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode; overload;
 
     { TimeSensor of this animation, by animation index (index

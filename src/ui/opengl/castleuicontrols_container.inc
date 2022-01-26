@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -351,10 +351,10 @@
       @link(TDrawableImage), when it is surrounded by
       @link(TDrawableImage.RenderToImageBegin)
       and @link(TDrawableImage.RenderToImageEnd).
-      See example ../../../examples/3d_rendering_processing/render_3d_to_image.lpr.
+      See CGE examples/viewport_and_scenes/render_3d_to_image/ .
 
       It can also be used with more low-level @link(TGLRenderToTexture).
-      See example ../../../examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad.lpr.
+      See CGE examples/viewport_and_scenes/render_3d_to_texture_and_use_as_quad/ .
 
       This is a good method to render the UI control off-screen.
       It can render any UI control, including e.g. TCastleViewport

@@ -2298,11 +2298,8 @@ type
 
       This is nice for simple 3D model browsers, but usually for games you
       don't want to use this method --- it's more flexible to create TCastleScene
-      yourself, and add it to scene manager yourself, see engine examples like
-      examples/3d_rendering_processing/view_3d_model_basic.lpr .
-
-      See manual for explanation:
-      https://castle-engine.io/manual_load_3d.php }
+      yourself, and add it to viewport yourself, see engine docs
+      https://castle-engine.io/viewport_and_scenes . }
     procedure Load(const SceneURL: string);
       deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);

@@ -93,10 +93,9 @@ type
     For examples of using multiple viewports see:
 
     @unorderedList(
-      @item(Explanation with an example:
-        https://castle-engine.io/manual_2d_user_interface.php#section_viewport)
-      @item(Example in engine sources: examples/3d_rendering_processing/multiple_viewports/)
-      @item(Example in engine sources: examples/fps_game/)
+      @item(Docs: https://castle-engine.io/multiple_viewports_to_display_one_world )
+      @item(CGE example: examples/viewport_and_scenes/multiple_viewports/)
+      @item(CGE example: examples/fps_game/)
     )
   }
   TCastleViewport = class(TCastleScreenEffects)

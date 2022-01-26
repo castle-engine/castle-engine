@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2020 Michalis Kamburelis.
+  Copyright 2012-2020, 2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -361,8 +361,7 @@ begin
     To create more fancy effects, you can use our GLSL screen effects API.
     See https://castle-engine.io/x3d_extensions_screen_effects.php .
     They can be even set up completely in VRML/X3D file (no need for ObjectPascal
-    code). Engine example examples/3d_rendering_processing/multiple_viewports.lpr
-    shows how to set them up in code. }
+    code). CGE examples/screen_effects_demo/ shows how to set them up in code. }
   if Player.Swimming = psUnderWater then
     DrawRectangle(ParentRect, Vector4(0, 0, 0.1, 0.5));
   if Player.Dead then
@@ -587,8 +586,7 @@ begin
   { Create extra viewport to observe the world.
     You can always add additional viewports.
     Each viewport has it's own camera and navigation.
-    See
-    examples/3d_rendering_processing/multiple_viewports and
+    See CGE examples/viewport_and_scenes/multiple_viewports ,
     examples/user_interface/zombie_fighter/ for more examples of custom viewports. }
   ExtraViewport := TCastleViewport.Create(Application);
   ExtraViewport.Items := Viewport.Items; // share the same world as Viewport

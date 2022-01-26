@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -93,7 +93,7 @@
       you probably do not want to use this property. Instead
       observe when @link(IsActive) changed to @false, by registering
       a callback on @code(EventIsActive.AddNotification).
-      See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
+      See the CGE examples/viewport_and_scenes/listen_on_x3d_events/ .
       Or, even better (simpler and more reliable) register a stop
       notification using @link(TPlayAnimationParameters.StopNotification) with
       @link(TCastleSceneCore.PlayAnimation).
