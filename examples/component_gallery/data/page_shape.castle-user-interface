@@ -1,0 +1,219 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "GroupRoot",
+  "VerticalAnchorParent" : "vpTop",
+  "VerticalAnchorSelf" : "vpTop",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "Label1",
+      "Text" : [
+        "Draw circles, ellipses, rectangles, triangles using TCastleShape.",
+        "",
+        "Note: for rectangles, specialized TCastleRectangleControl is more commonly used."
+      ],
+      "VerticalAnchorDelta" : -1.8344848632812500E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleUserInterface",
+      "Height" : 6.2000000000000000E+002,
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "FaceShapes",
+      "VerticalAnchorDelta" : -7.1428588867187500E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 6.9000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleShape",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 0.0000000000000000E+000,
+            "Green" : 0.0000000000000000E+000
+          },
+          "Height" : 5.5000000000000000E+002,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Shape2",
+          "ShapeType" : "stCircle",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 5.9000000000000000E+002,
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleShape",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 5.0980392843484879E-002,
+                "Green" : 9.6862745285034180E-001
+              },
+              "HorizontalAnchorDelta" : 1.5000006103515625E+002,
+              "Name" : "Shape1",
+              "ShapeType" : "stCircle",
+              "VerticalAnchorDelta" : 3.2000000000000000E+002
+            },
+            {
+              "$$ClassName" : "TCastleShape",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Alpha" : 5.0000000000000000E-001,
+                "Blue" : 0.0000000000000000E+000,
+                "Green" : 0.0000000000000000E+000,
+                "Red" : 5.0196081399917603E-001
+              },
+              "HorizontalAnchorDelta" : 4.7000006103515625E+002,
+              "Name" : "Shape6",
+              "ShapeType" : "stCircle",
+              "VerticalAnchorDelta" : 4.1000000000000000E+002
+            },
+            {
+              "$$ClassName" : "TCastleShape",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Alpha" : 5.0000000000000000E-001,
+                "Blue" : 0.0000000000000000E+000,
+                "Green" : 0.0000000000000000E+000,
+                "Red" : 5.0196081399917603E-001
+              },
+              "HorizontalAnchorDelta" : 3.0000061035156250E+001,
+              "Name" : "Shape7",
+              "ShapeType" : "stCircle",
+              "VerticalAnchorDelta" : 4.2000000000000000E+002
+            },
+            {
+              "$$ClassName" : "TCastleShape",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Green" : 0.0000000000000000E+000,
+                "Red" : 5.5294120311737061E-001
+              },
+              "HorizontalAnchorDelta" : 2.6000006103515625E+002,
+              "Name" : "Shape4",
+              "ShapeType" : "stCircle",
+              "VerticalAnchorDelta" : 1.6000000000000000E+002,
+              "Width" : 5.0000000000000000E+001
+            },
+            {
+              "$$ClassName" : "TCastleShape",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 5.0980392843484879E-002,
+                "Green" : 9.6862745285034180E-001
+              },
+              "HorizontalAnchorDelta" : 3.3000006103515625E+002,
+              "Name" : "Shape3",
+              "ShapeType" : "stCircle",
+              "VerticalAnchorDelta" : 3.2000000000000000E+002
+            },
+            {
+              "$$ClassName" : "TCastleShape",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.4509804546833038E-001,
+                "Green" : 2.7450981736183167E-001,
+                "Red" : 2.7843138575553894E-001
+              },
+              "Height" : 5.0000000000000000E+001,
+              "HorizontalAnchorDelta" : 1.6000006103515625E+002,
+              "Name" : "Shape5",
+              "VerticalAnchorDelta" : 7.0000000000000000E+001,
+              "Width" : 2.7000000000000000E+002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleUserInterface",
+      "Height" : 1.8000000000000000E+002,
+      "HorizontalAnchorDelta" : 2.5000000000000000E+002,
+      "Name" : "Group1",
+      "VerticalAnchorDelta" : -6.4142846679687500E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 8.1000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleShape",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 9.4117647409439087E-001,
+            "Green" : 7.9215687513351440E-001,
+            "Red" : 6.5098041296005249E-001
+          },
+          "Height" : 3.0000000000000000E+001,
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "Name" : "Shape8",
+          "VerticalAnchorDelta" : 8.0000000000000000E+001,
+          "Width" : 7.4000000000000000E+002
+        },
+        {
+          "$$ClassName" : "TCastleShape",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 9.4117647409439087E-001,
+            "Green" : 7.9215687513351440E-001,
+            "Red" : 6.5098041296005249E-001
+          },
+          "HorizontalAnchorParent" : "hpRight",
+          "HorizontalAnchorSelf" : "hpRight",
+          "Name" : "Shape9",
+          "ShapeType" : "stTriangleRight",
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleUserInterface",
+      "Height" : 5.6000000000000000E+002,
+      "HorizontalAnchorDelta" : 6.6000000000000000E+002,
+      "Name" : "Group2",
+      "VerticalAnchorDelta" : -1.2142858886718750E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 1.3000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleShape",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 9.4117647409439087E-001,
+            "Green" : 7.9215687513351440E-001,
+            "Red" : 6.5098041296005249E-001
+          },
+          "Height" : 5.0000000000000000E+002,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Shape10",
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 4.0000000000000000E+001
+        },
+        {
+          "$$ClassName" : "TCastleShape",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 9.4117647409439087E-001,
+            "Green" : 7.9215687513351440E-001,
+            "Red" : 6.5098041296005249E-001
+          },
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Shape11",
+          "ShapeType" : "stTriangleDown"
+        }
+      ]
+    }
+  ]
+}
