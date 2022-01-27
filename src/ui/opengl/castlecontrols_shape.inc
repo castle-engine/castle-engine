@@ -51,7 +51,7 @@
 
     { The outline color, used if @link(Outline). By default, opaque black. }
     property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
-      deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';
+      {$ifdef FPC}deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';{$endif}
 
     { Determines the drawing method of the outline, used if @link(Outline).
 
@@ -90,7 +90,7 @@
       )
     }
     property OutlineThick: boolean read FOutlineThick write SetOutlineThick default false;
-      deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';
+      {$ifdef FPC}deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';{$endif}
 
     { The outline width, used if @link(Outline).
       It is affected by UI scaling.
@@ -100,13 +100,13 @@
       to be supported. In particular they will almost never work on mobile (OpenGLES).)
       Change OutlineThick to @true to have reliable thick outlines. }
     property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth {$ifdef FPC}default 1.0{$endif};
-      deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';
+      {$ifdef FPC}deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';{$endif}
 
     property Outline: boolean read FOutline write SetOutline default false;
-      deprecated 'leave this always false; do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';
+      {$ifdef FPC}deprecated 'leave this always false; do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';{$endif}
 
     property Filled: boolean read FFilled write SetFilled default true;
-      deprecated 'leave this always true; do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';
+      {$ifdef FPC}deprecated 'leave this always true; do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';{$endif}
   published
     property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
 
