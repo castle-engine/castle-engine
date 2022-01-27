@@ -189,6 +189,8 @@ procedure SavePNM(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure SaveJP2(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure SaveTIFF(const Img: TEncodedImage; const Stream: TStream); forward;
 
 { Detecting class ------------------------------------------------------------ }
 
@@ -558,7 +560,7 @@ const
       MimeTypes: ('image/tiff', '', '', '', '', '', '');
       ExtsCount: 2; Exts: ('tiff', 'tif', '', '');
       Load: {$ifdef FPC}@{$endif}LoadTIFF;
-      Save: nil (*{$ifdef FPC}@{$endif}SaveTIFF*); SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveTIFF; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
     (*
@@ -576,7 +578,7 @@ const
       MimeTypes: ('image/jp2', 'image/jpeg2000', 'image/jpeg2000-image', 'image/x-jpeg2000-image', '', '', '');
       ExtsCount: 1; Exts: ('jp2', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadJP2;
-      Save: nil (*{$ifdef FPC}@{$endif}SaveJP2*); SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveJP2; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     )
     (*

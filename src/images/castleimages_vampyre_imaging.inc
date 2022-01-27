@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -166,7 +166,10 @@ begin
       CopyWhole(CastleImage);
     if Format in [ifR8G8B8, ifA8R8G8B8] then
       SwapChannels(Img.ImageDataPointer^, ChannelRed, ChannelBlue);
-    Img.SaveToStream(Ext, Stream);
+    if not Img.SaveToStream(Ext, Stream) then
+      raise EImageSaveError.CreateFmt('Cannot save image to file format %s using Vampyre Imaging', [
+        Ext
+      ]);
   finally FreeAndNil(Img) end;
 end;
 
