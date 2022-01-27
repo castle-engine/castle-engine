@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -108,17 +108,30 @@ begin
   {$endif}
 end;
 
-{ Load PNM image (PNM, PGM, PBM, PPM) through FpImage.
-  Note that for PPM, for now it's more advised to use our LoadPPM. }
+{ Load PNM image (PNM, PGM, PBM, PPM). }
 function LoadPNM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$elseif defined(FPC)}
+  // Known to fail on PPM like examples/images_videos/image_display/data/images/sky_red_left.ppm
+  // TODO: submit FPC bug
   Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create, ifPNM);
   {$else}
   raise EImageLoadError.Create('Cannot read PNM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  {$endif}
+end;
+
+function LoadBMP(const Stream: TStream;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+  {$elseif defined(FPC)}
+  Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderBMP.Create, ifBMP);
+  {$else}
+  raise EImageLoadError.Create('Cannot read BMP (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
 end;
 
@@ -195,8 +208,21 @@ procedure SavePNM(const Img: TEncodedImage; const Stream: TStream);
 begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Save_VampyreImaging(Img, Stream, 'pnm');
+  {$elseif defined(FPC)}
+  Save_FpImage(Img, Stream, TFPWriterPNM.Create);
   {$else}
-  raise EImageSaveError.Create('Cannot save PNM (Vampyre Imaging Library not available at compile-time)');
+  raise EImageSaveError.Create('Cannot save BMP (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  {$endif}
+end;
+
+procedure SaveBMP(const Img: TEncodedImage; const Stream: TStream);
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Save_VampyreImaging(Img, Stream, 'bmp');
+  {$elseif defined(FPC)}
+  Save_FpImage(Img, Stream, TFPWriterBMP.Create);
+  {$else}
+  raise EImageSaveError.Create('Cannot save BMP (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
 end;
 

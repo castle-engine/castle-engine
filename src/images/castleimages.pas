@@ -74,7 +74,10 @@ uses SysUtils, Classes, Math, Generics.Collections,
   {$ifdef FPC}
   { FPImage and related units }
   FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
-  FPReadJPEG, FPWriteJPEG, FPReadPNM, FPReadPNG, FPWritePNG,
+  FPReadBMP, FPWriteBMP,
+  FPReadJPEG, FPWriteJPEG,
+  FPReadPNM, FPWritePNM,
+  FPReadPNG, FPWritePNG,
   {$else}
   { Delphi units }
   Vcl.Imaging.PngImage,
@@ -2005,13 +2008,11 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
 {$I castleimages_draw.inc}
 {$I castleimages_paint.inc}
 {$I castleimages_astc.inc}
-{$I castleimages_bmp.inc}
 {$I castleimages_libpng.inc}
 {$I castleimages_fpimage.inc}
 {$I castleimages_loading_saving_func.inc}
 {$I castleimages_vcl_imaging.inc}
 {$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
-{$I castleimages_ppm.inc}
 {$I castleimages_ipl.inc}
 {$I castleimages_rgbe_fileformat.inc}
 {$I castleimages_composite.inc}
