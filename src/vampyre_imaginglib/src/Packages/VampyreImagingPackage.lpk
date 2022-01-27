@@ -29,12 +29,10 @@
           <ShowNotes Value="False"/>
           <ShowHints Value="False"/>
         </Verbosity>
-        <!-- Castle Game Engine removed: we don't want DONT_LINK_EXTRAS, we want all formats including TIFF.
         <CustomOptions Value="-dDONT_LINK_EXTRAS"/>
         <OtherDefines Count="1">
           <Define0 Value="DONT_LINK_EXTRAS"/>
         </OtherDefines>
-        -->
       </Other>
     </CompilerOptions>
     <Description Value="Vampyre Imaging Library Package for Lazarus. Imaging is image loading, saving, and manipulation library."/>
