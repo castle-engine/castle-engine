@@ -4617,6 +4617,16 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
           Exit; // ClassAllowed was fixed by just decompressing GPU image, testcase: castle-view-image
       end;
 
+      { The only practical convertion we can do with TRGBFloatImage is to make it non-float.
+        So try this, and let other convertions eventually convert it further
+        from TRGBImage to something else. }
+      if Result is TRGBFloatImage then
+      begin
+        ImageStripFloatVar(Result);
+        if ClassAllowed(TEncodedImageClass(Result.ClassType)) then
+          Exit; // ClassAllowed was fixed by converting to TRGBImage
+      end;
+
       if (Result is TRGBAlphaImage) and ClassAllowed(TRGBImage) then
         ImageStripAlphaVar(Result)
       else
@@ -4656,10 +4666,6 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
 
       if (Result is TGrayscaleImage) and ClassAllowed(TGrayscaleAlphaImage) then
         ImageAddAlphaVar(Result)
-      else
-
-      if (Result is TRGBFloatImage) and ClassAllowed(TRGBImage) then
-        ImageStripFloatVar(Result)
       else
 
         raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot satisfy the requested output format, we got %s, but we want %s. Use less restrictive AllowedImageClasses argument.', [
