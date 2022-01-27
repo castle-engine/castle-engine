@@ -238,9 +238,9 @@ begin
       else WritelnWarning('TCastleShape.Render: Outline not implemented for this ShapeType. Do not use deprecated Outline.');
     end;
   end else
-  {$warnings on}
   begin
     if Filled then
+  {$warnings on}
       case ShapeType of
         stRectangle: DrawRectangle(RR, Color);
         stCircle   : DrawCircle(RR.Center, RR.Width / 2, RR.Height / 2, Color);
