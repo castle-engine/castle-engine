@@ -67,6 +67,13 @@ begin
       ifDXT1: Result := TGPUCompressedImage.Create(Img.Width, Img.Height, 1, tcDxt1_RGBA);
       ifDXT3: Result := TGPUCompressedImage.Create(Img.Width, Img.Height, 1, tcDxt3);
       ifDXT5: Result := TGPUCompressedImage.Create(Img.Width, Img.Height, 1, tcDxt5);
+      // obtained e.g. when reading RGBE/HDR images
+      ifR32G32B32F:
+        begin
+          Result := TRGBFloatImage.Create(Img.Width, Img.Height);
+          SwapChannels(Img.ImageDataPointer^, ChannelRed, ChannelBlue);
+        end;
+      ifB32G32R32F: Result := TRGBFloatImage.Create(Img.Width, Img.Height);
       else
         begin
           WritelnLog('Converting Vampyre Imaging format %s -> %s', [
@@ -152,6 +159,9 @@ begin
       ]);
     end;
   end else
+  if CastleImage is TRGBFloatImage then
+    Format := ifR32G32B32F
+  else
   begin
     raise EImageSaveError.CreateFmt('Cannot save image with format %s using Vampyre Imaging', [
       CastleImage.ClassName
@@ -164,7 +174,7 @@ begin
       CopyRowsFlip(TCastleImage(CastleImage))
     else
       CopyWhole(CastleImage);
-    if Format in [ifR8G8B8, ifA8R8G8B8] then
+    if Format in [ifR8G8B8, ifA8R8G8B8, ifR32G32B32F] then
       SwapChannels(Img.ImageDataPointer^, ChannelRed, ChannelBlue);
     if not Img.SaveToStream(Ext, Stream) then
       raise EImageSaveError.CreateFmt('Cannot save image to file format %s using Vampyre Imaging', [

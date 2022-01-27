@@ -1578,10 +1578,10 @@ type
   Each component of V (red, green, blue) must be from range
   [0, +infinity), not merely from [0, 1].
   That is, V must have only nonnegative values. }
-function Vector3ToRGBE(const v: TVector3): TVector4Byte;
+function Vector3ToRGBE(const v: TVector3): TVector4Byte; deprecated 'RGBE compression should be internal in CGE or Vampyre';
 
 { Decode Red + Green + Blue + Exponent back into RGB (3 floats). }
-function VectorRGBETo3Single(const v: TVector4Byte): TVector3;
+function VectorRGBETo3Single(const v: TVector4Byte): TVector3; deprecated 'RGBE compression should be internal in CGE or Vampyre';
 
 { File formats managing ----------------------------------------------------- }
 
@@ -1797,6 +1797,7 @@ procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
 
   @groupBegin }
 function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
+  deprecated 'implement this logic yourself; the fact that this may return TRGBImage, disregarging possible alpha, is misleading';
 { @groupEnd }
 
 var
@@ -2022,7 +2023,6 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
 {$I castleimages_vcl_imaging.inc}
 {$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
 {$I castleimages_ipl.inc}
-{$I castleimages_rgbe_fileformat.inc}
 {$I castleimages_composite.inc}
 
 { Colors ------------------------------------------------------------------ }
@@ -4597,6 +4597,16 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       Image := NewResult;
     end;
 
+    { Input TRGBFloatImage, output: TRGBImage. }
+    procedure ImageStripFloatVar(var Image: TEncodedImage);
+    var
+      NewResult: TEncodedImage;
+    begin
+      NewResult := (Image as TRGBFloatImage).ToRGBImage;
+      Image.Free;
+      Image := NewResult;
+    end;
+
   begin
     if not ClassAllowed(TEncodedImageClass(Result.ClassType)) then
     begin
@@ -4647,6 +4657,11 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       if (Result is TGrayscaleImage) and ClassAllowed(TGrayscaleAlphaImage) then
         ImageAddAlphaVar(Result)
       else
+
+      if (Result is TRGBFloatImage) and ClassAllowed(TRGBImage) then
+        ImageStripFloatVar(Result)
+      else
+
         raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot satisfy the requested output format, we got %s, but we want %s. Use less restrictive AllowedImageClasses argument.', [
           Result.ClassName,
           LoadEncodedImageParams(AllowedImageClasses)

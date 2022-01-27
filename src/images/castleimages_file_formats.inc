@@ -96,7 +96,6 @@ type
   EInvalidBMP = class(EInvalidImageFormat);
   EInvalidPNG = class(EInvalidImageFormat);
   EInvalidIPL = class(EInvalidImageFormat);
-  EInvalidRGBE = class(EInvalidImageFormat);
   EInvalidASTC = class(EInvalidImageFormat);
 
 function LoadPNG(const Stream: TStream;
@@ -142,9 +141,7 @@ function LoadPNM(const Stream: TStream;
 function LoadIPL(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-{ Load RGBE image.
-  This low-level function can load to TRGBFloatImage (preserving image data)
-  or to TRGBImage (loosing floating point precision of RGBE format). }
+{ Load RGBE image. }
 function LoadRGBE(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
@@ -538,7 +535,7 @@ const
       Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
       DetectClass: nil;
     ),
-    ( FormatName: 'RGBE (RGB+Exponent) image';
+    ( FormatName: 'RGBE (Radiance, HDR) image';
       MimeTypesCount: 1;
       MimeTypes: ('image/vnd.radiance', '', '', '', '', '', '');
       ExtsCount: 3; Exts: ('rgbe', 'pic', 'hdr', '');

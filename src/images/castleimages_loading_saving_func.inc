@@ -135,6 +135,16 @@ begin
   {$endif}
 end;
 
+function LoadRGBE(const Stream: TStream;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)}
+  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+  {$else}
+  raise EImageLoadError.Create('Cannot read RGBE (Vampyre Imaging Library not available at compile-time)');
+  {$endif}
+end;
+
 { Saving image (format-specific) --------------------------------------------
 
   Each file format may have specialized SaveXxx that allows
@@ -229,5 +239,14 @@ begin
   Save_VampyreImaging(Img, Stream, 'tif');
   {$else}
   raise EImageSaveError.Create('Cannot save TIFF (Vampyre Imaging Library not available at compile-time)');
+  {$endif}
+end;
+
+procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream);
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Save_VampyreImaging(Img, Stream, 'hdr');
+  {$else}
+  raise EImageSaveError.Create('Cannot save RGBE (Vampyre Imaging Library not available at compile-time)');
   {$endif}
 end;
