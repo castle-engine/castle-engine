@@ -10,7 +10,7 @@
 } 
 
 { This unit contains image format loader/saver for Daggerfall
-  multi-image fomat CIF.}
+  multi-image format CIF.}
 unit ElderImageryCif;
 
 {$I ImagingOptions.inc}

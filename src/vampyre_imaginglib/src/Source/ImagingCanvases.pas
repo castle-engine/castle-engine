@@ -113,7 +113,7 @@ type
     TImagingCanvas works for all image data formats except special ones
     (compressed). Because of this its methods are quite slow (they usually work
     with colors in ifA32R32G32B32F format). If you want fast drawing you
-    can use one of fast canvas clases. These descendants of TImagingCanvas
+    can use one of fast canvas classes. These descendants of TImagingCanvas
     work only for few select formats (or only one) but they are optimized thus
     much faster.
   }
@@ -274,7 +274,7 @@ type
     procedure ModifyContrastBrightness(Contrast, Brightness: Single);
     { Gamma correction of individual color channels. Range is (0, +inf),
       1.0 means no change.}
-    procedure GammaCorection(Red, Green, Blue: Single);
+    procedure GammaCorrection(Red, Green, Blue: Single);
     { Inverts colors of all image pixels, makes negative image. Ignores alpha channel.}
     procedure InvertColors; virtual;
     { Simple single level thresholding with threshold level (in range [0, 1])
@@ -331,11 +331,11 @@ type
     property PixelsFP[X, Y: LongInt]: TColorFPRec read GetPixelFP write SetPixelFP;
     { Clipping rectangle of this canvas. No pixels outside this rectangle are
       altered by canvas methods if Clipping property is True. Clip rect gets
-      reseted when UpdateCanvasState is called.}
+      reset when UpdateCanvasState is called.}
     property ClipRect: TRect read FClipRect write SetClipRect;
     { Extended format information.}
     property FormatInfo: TImageFormatInfo read FFormatInfo;
-    { Indicates that this canvas is in valid state. If False canvas oprations
+    { Indicates that this canvas is in valid state. If False canvas operations
       may crash.}
     property Valid: Boolean read GetValid;
 
@@ -475,7 +475,7 @@ const
     Divisor: 1;
     Bias:    0);
 
-  { Kernel for 3x3 spharpening filter (Laplacian + original color).}
+  { Kernel for 3x3 sharpening filter (Laplacian + original color).}
   FilterSharpen3x3: TConvolutionFilter3x3 = (
     Kernel: ((-1, -1, -1),
              (-1,  9, -1),
@@ -483,7 +483,7 @@ const
     Divisor: 1;
     Bias:    0);
 
-  { Kernel for 5x5 spharpening filter (Laplacian + original color).}
+  { Kernel for 5x5 sharpening filter (Laplacian + original color).}
   FilterSharpen5x5: TConvolutionFilter5x5 = (
     Kernel: ((-1, -1, -1, -1, -1),
              (-1, -1, -1, -1, -1),
@@ -512,7 +512,7 @@ const
     Bias:    0);
 
   { Kernel for 3x3 contour enhancement filter.}
-  FilterTraceControur3x3: TConvolutionFilter3x3 = (
+  FilterTraceContour3x3: TConvolutionFilter3x3 = (
     Kernel: ((-6, -6, -2),
              (-1, 32, -1),
              (-6, -2, -6));
@@ -1575,7 +1575,7 @@ begin
             PosX := ClampInt(X + I - SizeDiv2, FClipRect.Left, FClipRect.Right - 1);
             SrcPointer := @PByteArray(TempImage.Bits)[PosY * WidthBytes + PosX * Bpp];
 
-            // Get pixels from neighbourhood of current pixel and add their
+            // Get pixels from neighborhood of current pixel and add their
             // colors to accumulators weighted by filter kernel values
             Pixel := FFormatInfo.GetPixelFP(SrcPointer, @FFormatInfo, TempImage.Palette);
             KernelValue := PUInt32Array(Kernel)[J * KernelSize + I];
@@ -1717,7 +1717,7 @@ begin
     Brightness / 100, 0);
 end;
 
-procedure TImagingCanvas.GammaCorection(Red, Green, Blue: Single);
+procedure TImagingCanvas.GammaCorrection(Red, Green, Blue: Single);
 begin
   PointTransform(TransformGamma, Red, Green, Blue);
 end;
@@ -2083,7 +2083,7 @@ finalization
     - Added FloodFill method.
     - Added GetHistogram method.
     - Fixed "Invalid FP operation" in AdjustColorLevels in FPC compiled exes
-      (thanks to Carlos Gonz�lez).
+      (thanks to Carlos Gonzalez).
     - Added TImagingCanvas.AdjustColorLevels method.
 
   -- 0.25.0 Changes/Bug Fixes ---------------------------------
@@ -2106,7 +2106,7 @@ finalization
   -- 0.19 Changes/Bug Fixes -----------------------------------
     - added TFastARGB32Canvas
     - added convolutions, hline, vline
-    - unit created, intial stuff added
+    - unit created, initial stuff added
 
 }
 

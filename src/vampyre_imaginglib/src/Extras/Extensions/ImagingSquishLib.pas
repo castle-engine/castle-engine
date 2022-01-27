@@ -9,7 +9,7 @@
   file, You can obtain one at https://mozilla.org/MPL/2.0.
 } 
 
-{ High quality DXTC compressor using Squish library (dynamicaly linked).}
+{ High quality DXTC compressor using Squish library (dynamically linked).}
 unit ImagingSquishLib;
 
 interface

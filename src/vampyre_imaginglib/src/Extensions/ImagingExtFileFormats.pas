@@ -46,7 +46,7 @@ const
   { Specifies JPEG 2000 output scaling. Since JPEG 2000 supports arbitrary Bit Depths,
     the default behaviour is to scale the images up to the next 8^n bit depth.
     This can be disabled by setting this option to False.
-    Defaul value is True. }
+    Default value is True. }
   ImagingJpeg2000ScaleOutput = 58;
   { Specifies compression scheme used when saving TIFF images. Supported values
     are 0 (Uncompressed), 1 (LZW), 2 (PackBits RLE), 3 (Deflate - ZLib), 4 (JPEG),

@@ -37,7 +37,6 @@ uses
   Graphics,
 {$ENDIF}
 {$IFDEF COMPONENT_SET_LCL}
-  InterfaceBase,
   GraphType,
   Graphics,
   LCLType,
@@ -48,18 +47,28 @@ uses
 type
   { Graphic class which uses Imaging to load images.
     It has standard TBitmap class as ancestor and it can
-    Assign also to/from TImageData structres and TBaseImage
-    classes. For saving is uses inherited TBitmap methods.
+    Assign also to/from TImageData structures and TBaseImage
+    classes. If you want to perfectly preserve the original pixel format
+    of the source image then these classes may not for you.
+
     This class is automatically registered to TPicture for all
     file extensions supported by Imaging (useful only for loading).
     If you just want to load images in various formats you can use this
-    class or simply use  TPicture.LoadFromXXX which will create this class
-    automatically. For TGraphic class that saves with Imaging look
+    class or simply use TPicture.LoadFromXXX which will create this class
+    automatically.
+
+    For saving it uses inherited TBitmap methods
+    (it saves the image in BMP format regardless of extension you request).
+    For TGraphic class that saves with Imaging look
     at TImagingGraphicForSave class.}
   TImagingGraphic = class(TBitmap)
   protected
-    procedure ReadDataFromStream(Stream: TStream); virtual;
     procedure AssignTo(Dest: TPersistent); override;
+    { Called by TFiler when reading and writing TPicture.Data property.
+      We need to override ReadData+WriteData otherwise inherited ones from
+      TBitmap would be called resulting in errors.}
+    procedure ReadData(Stream: TStream); override;
+    procedure WriteData(Stream: TStream); override;
   public
     constructor Create; override;
 
@@ -80,24 +89,31 @@ type
     { Copies the current image to TImageData structure.}
     procedure AssignToImageData(var ImageData: TImageData);
 
-  {$IFDEF FPC}
+  {$IFDEF COMPONENT_SET_LCL}
+    { Needed for TGraphic.LoadFromResourceName() to work.
+      We return RT_RCDATA here. Also for TImagingBitmap since
+      RT_BITMAP is stored differently than bitmap on disk (no BITMAPFILEHEADER).}
+    function GetResourceType: TResourceType; override;
+    { Used by TPicture.LoadFromStream to find the right TGraphic class for streams. }
     class function IsStreamFormatSupported(Stream: TStream): boolean; override;
   {$ENDIF}
   end;
 
   TImagingGraphicClass = class of TImagingGraphic;
 
-  { Base class for file format specific TGraphic classes that use
+  { Base (abstract) class for file format specific TGraphic classes that use
     Imaging for saving. Each descendant class can load all file formats
     supported by Imaging but save only one format (TImagingBitmap
-    for *.bmp, TImagingJpeg for *.jpg). Format specific classes also
-    allow easy access to Imaging options that affect saving of files
-    (they are properties here).}
+    for *.bmp, TImagingJpeg for *.jpg). The image is saved in this one file
+    format regardless of the extension you request).
+
+    Format specific classes also allow easy access to Imaging options that
+    affect saving of files (they are properties here).}
   TImagingGraphicForSave = class(TImagingGraphic)
   protected
     FDefaultFileExt: string;
     FSavingFormat: TImageFormat;
-    procedure WriteDataToStream(Stream: TStream); virtual;
+    procedure WriteData(Stream: TStream); override;
   public
     constructor Create; override;
     { Saves the current image to the stream. It is saved in the
@@ -195,20 +211,20 @@ type
 {$ENDIF}
 
 {$IFNDEF DONT_LINK_DDS}
-  { Compresssion type used when saving DDS files by TImagingDds.}
-  TDDSCompresion = (dcNone, dcDXT1, dcDXT3, dcDXT5);
+  { Compression type used when saving DDS files by TImagingDds.}
+  TDDSCompression = (dcNone, dcDXT1, dcDXT3, dcDXT5);
 
   { TImagingGraphic descendant for loading/saving DDS images.}
   TImagingDDS = class(TImagingGraphicForSave)
   protected
-    FCompression: TDDSCompresion;
+    FCompression: TDDSCompression;
   public
     constructor Create; override;
     procedure SaveToStream(Stream: TStream); override;
     class function GetFileFormat: TImageFileFormat; override;
     { You can choose compression type used when saving DDS file.
       dcNone means that file will be saved in the current bitmaps pixel format.}
-    property Compression: TDDSCompresion read FCompression write FCompression;
+    property Compression: TDDSCompression read FCompression write FCompression;
   end;
 {$ENDIF}
 
@@ -331,7 +347,7 @@ implementation
 uses
 {$IF Defined(LCL)}
   {$IF Defined(LCLGTK2)}
-    GLib2, GDK2, GTK2, GTK2Def, GTK2Proc,
+    InterfaceBase, GLib2, GDK2, GTK2, GTK2Def, GTK2Proc,
   {$IFEND}
 {$IFEND}
 {$IFNDEF DONT_LINK_BITMAP}
@@ -426,7 +442,7 @@ begin
 {$ENDIF}
 {$IFNDEF DONT_LINK_PNG}
   {$IFDEF COMPONENT_SET_LCL}
-    // Unregister Lazarus´ default PNG loader which crashes on some PNG files
+    // Unregister Lazarus default PNG loader which crashes on some PNG files
     TPicture.UnregisterGraphicClass(TPortableNetworkGraphic);
   {$ENDIF}
   RegisterFileFormat(TImagingPNG);
@@ -522,7 +538,7 @@ begin
 
   if (PF = pf8bit) and PaletteHasAlpha(Data.Palette, Info.PaletteEntries) then
   begin
-    // Some indexed images may have valid alpha data, dont lose it!
+    // Some indexed images may have valid alpha data, don't lose it!
     // (e.g. transparent 8bit PNG or GIF images)
     PF := pfCustom;
   end;
@@ -641,13 +657,14 @@ var
   LineLazBytes: LongInt;
 {$ENDIF}
 begin
+  Format := ifUnknown;
 {$IFDEF COMPONENT_SET_LCL}
   // In the current Lazarus 0.9.10 Bitmap.PixelFormat property is useless.
   // We cannot change bitmap's format by changing it (it will just release
   // old image but not convert it to new format) nor we can determine bitmaps's
   // current format (it is usually set to pfDevice). So bitmap's format is obtained
   // trough RawImage api and cannot be changed to mirror some Imaging format
-  // (so formats with no coresponding Imaging format cannot be saved now).
+  // (so formats with no corresponding Imaging format cannot be saved now).
 
   if RawImage_DescriptionFromBitmap(Bitmap.Handle, RawImage.Description) then
     case RawImage.Description.BitsPerPixel of
@@ -661,8 +678,6 @@ begin
       32: Format := ifA8R8G8B8;
       48: Format := ifR16G16B16;
       64: Format := ifA16R16G16B16;
-    else
-      Format := ifUnknown;
     end;
 {$ELSE}
   Format := PixelFormatToDataFormat(Bitmap.PixelFormat);
@@ -770,7 +785,7 @@ begin
           DstRect.Right - DstRect.Left, DstRect.Bottom - DstRect.Top, Left,
           Top, Right - Left, Bottom - Top, Bits, BitmapInfo, DIB_RGB_COLORS, SRCCOPY) <> Height then
         begin
-          // StretchDIBits may fail on some ocassions (error 487, http://support.microsoft.com/kb/269585).
+          // StretchDIBits may fail on some occasions (error 487, http://support.microsoft.com/kb/269585).
           // This fallback is slow but works every time. Thanks to Sergey Galezdinov for the fix.
           Bmp := TBitmap.Create;
           try
@@ -849,7 +864,7 @@ begin
       if (SrcBounds.Right = NewWidth) and (SrcBounds.Bottom = NewHeight) then
       try
         CloneImage(ImageData, DisplayImage);
-        // Swap R-B channels for GTK display compatability!
+        // Swap R-B channels for GTK display compatibility!
         SwapChannels(DisplayImage, ChannelRed, ChannelBlue);
         GDKDrawBitmap(DstCanvas.Handle, DstBounds.Left, DstBounds.Top,
           SrcBounds.Left, SrcBounds.Top, NewWidth, NewHeight, DisplayImage);
@@ -863,7 +878,7 @@ begin
         // Stretch pixels from old image to new one  TResizeFilter = (rfNearest, rfBilinear, rfBicubic);
         StretchRect(ImageData, SrcBounds.Left, SrcBounds.Top, SrcBounds.Right,
           SrcBounds.Bottom, DisplayImage, 0, 0, NewWidth, NewHeight, rfNearest);
-        // Swap R-B channels for GTK display compatability!
+        // Swap R-B channels for GTK display compatibility!
         SwapChannels(DisplayImage, ChannelRed, ChannelBlue);
         GDKDrawBitmap(DstCanvas.Handle, DstBounds.Left, DstBounds.Top, 0, 0,
           NewWidth, NewHeight, DisplayImage);
@@ -904,12 +919,27 @@ begin
   PixelFormat := pf24Bit;
 end;
 
-procedure TImagingGraphic.LoadFromStream(Stream: TStream);
+procedure TImagingGraphic.ReadData(Stream: TStream);
 begin
-  ReadDataFromStream(Stream);
+  // Here we need to skip ReadData+WriteData of TBitmap (and LCL TRasterBitmap)
+  // and go to the basics in TGraphic's ReadData+WriteData with just LoadFromStream
+  // and SaveToStream.
+  // Some VCL/LCL TGraphic classes also store size of the written data
+  // before the stream contents. However, the stream passed here
+  // from TReader.DefineBinaryProperty is already
+  // a memory stream capped to the size of binary property data.
+  // Picture.Data = <vaBinary><Size(TWriter)><TGraphicClassName(TPicture)><ImageBits(TImagingGraphicForSave)>
+  LoadFromStream(Stream);
 end;
 
-procedure TImagingGraphic.ReadDataFromStream(Stream: TStream);
+procedure TImagingGraphic.WriteData(Stream: TStream);
+begin
+  // This should never occur in the wild since IDE would create one of the descendants
+  // of TImagingGraphicForSave for specific format+extension when e.g. setting TPicture of TImage.
+  raise ENotImplemented.CreateFmt('Not implemented: Use TImagingGraphicForSave class for writing with TFiler.', []);
+end;
+
+procedure TImagingGraphic.LoadFromStream(Stream: TStream);
 var
   Image: TSingleImage;
 begin
@@ -941,7 +971,12 @@ begin
     inherited AssignTo(Dest);
 end;
 
-{$IFDEF FPC}
+{$IFDEF COMPONENT_SET_LCL}
+function TImagingGraphic.GetResourceType: TResourceType;
+begin
+  Result := RT_RCDATA;
+end;
+
 class function TImagingGraphic.IsStreamFormatSupported(Stream: TStream): Boolean;
 begin
   Result := DetermineStreamFormat(Stream) <> '';
@@ -991,7 +1026,12 @@ begin
   GetFileFormat.CheckOptionsValidity;
 end;
 
-procedure TImagingGraphicForSave.WriteDataToStream(Stream: TStream);
+procedure TImagingGraphicForSave.WriteData(Stream: TStream);
+begin
+  SaveToStream(Stream);
+end;
+
+procedure TImagingGraphicForSave.SaveToStream(Stream: TStream);
 var
   Image: TSingleImage;
 begin
@@ -1007,11 +1047,6 @@ begin
       Image.Free;
     end;
   end;
-end;
-
-procedure TImagingGraphicForSave.SaveToStream(Stream: TStream);
-begin
-  WriteDataToStream(Stream);
 end;
 
 {$IFDEF COMPONENT_SET_LCL}
@@ -1263,9 +1298,6 @@ finalization
 {
   File Notes:
 
-  -- TODOS ----------------------------------------------------
-    - nothing now
-
   -- 0.77.1 ---------------------------------------------------
     - Fixed bug in ConvertBitmapToData causing images from GTK2 bitmaps
       to have swapped RB channels.
@@ -1295,7 +1327,7 @@ finalization
   -- 0.24.1 Changes/Bug Fixes ---------------------------------
     - Fixed wrong IFDEF causing that Imaging wouldn't compile in Lazarus
       with GTK2 target.
-    - Added commnets with code for Lazarus rev. 11861+ regarding
+    - Added comments with code for Lazarus rev. 11861+ regarding
       RawImage interface. Replace current code with that in comments
       if you use Lazarus from SVN. New RawImage interface will be used by
       default after next Lazarus release. 
@@ -1317,7 +1349,7 @@ finalization
     - added procedures: ConvertImageToBitmap and ConvertBitmapToImage
 
   -- 0.17 Changes/Bug Fixes -----------------------------------
-    - LCL data to bitmap conversion didn´t work in Linux, fixed
+    - LCL data to bitmap conversion didn't work in Linux, fixed
     - added MNG file format
     - added JNG file format
 

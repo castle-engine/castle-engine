@@ -37,7 +37,7 @@ type
     FLossyAlpha: LongBool;
     FQuality: LongInt;
     FProgressive: LongBool;
-    FZLibStategy: Integer;
+    FZLibStrategy: Integer;
     function GetSupportedFormats: TImageFormats; override;
     procedure ConvertToSupported(var Image: TImageData;
       const Info: TImageFormatInfo); override;
@@ -54,7 +54,7 @@ type
       Default value is 5.}
     property PreFilter: LongInt read FPreFilter write FPreFilter;
     { Sets ZLib compression level used when saving images with lossless compression.
-      Allowed values are in range 0 (no compresstion) to 9 (best compression).
+      Allowed values are in range 0 (no compression) to 9 (best compression).
       Default value is 5.}
     property CompressLevel: LongInt read FCompressLevel write FCompressLevel;
     { Specifies whether MNG animation frames are saved with lossy or lossless
@@ -106,7 +106,7 @@ type
     JHDR-IEND streams (Note that there are MNG chunks
     like BASI which define images but does not contain image data itself,
     those are ignored).
-    Imaging saves MNG files as MNG-VLC (very low complexity) so it is basicaly
+    Imaging saves MNG files as MNG-VLC (very low complexity) so it is basically
     an array of image frames without MNG animation chunks. Frames can be saved
     as lossless PNG or lossy JNG images (look at TPNGFileFormat and
     TJNGFileFormat for info). Every frame can be in different data format.
@@ -167,7 +167,7 @@ const
     ifA16B16G16R16, ifBinary];
   NGLossyFormats: TImageFormats = [ifGray8, ifA8Gray8, ifR8G8B8, ifA8R8G8B8];
   PNGDefaultLoadAnimated = True;
-  NGDefaultZLibStartegy = 1; // Z_FILTERED
+  NGDefaultZLibStrategy = 1; // Z_FILTERED
 
   SPNGFormatName = 'Portable Network Graphics';
   SPNGMasks      = '*.png';
@@ -222,7 +222,7 @@ type
     Interlacing: Byte;            // 0 = single scan, 8 = progressive
     AlphaSampleDepth: Byte;       // 0, 1, 2, 4, 8, 16 if alpha compression is 0 (PNG)
                                   // 8 if alpha compression is 8 (JNG)
-    AlphaCompression: Byte;       // 0 = PNG graysscale IDAT, 8 = grayscale 8-bit JPEG
+    AlphaCompression: Byte;       // 0 = PNG grayscale IDAT, 8 = grayscale 8-bit JPEG
     AlphaFilter: Byte;            // 0 = PNG filter or no filter (JPEG)
     AlphaInterlacing: Byte;       // 0 = non interlaced
   end;
@@ -1863,7 +1863,7 @@ var
 
   procedure WriteGlobalMetaDataChunks(Frame: TFrameInfo);
   var
-    XRes, YRes: Single;
+    XRes, YRes: Double;
   begin
     if FileFormat.FMetadata.GetPhysicalPixelSize(ruDpm, XRes, YRes, True) then
     begin
@@ -2039,7 +2039,7 @@ begin
   LossyAlpha := FileFormat.FLossyAlpha;
   Quality := FileFormat.FQuality;
   Progressive := FileFormat.FProgressive;
-  ZLibStrategy := FileFormat.FZLibStategy;
+  ZLibStrategy := FileFormat.FZLibStrategy;
 end;
 
 { TAPNGAnimator class implementation }
@@ -2191,7 +2191,7 @@ begin
   FLossyCompression := NGDefaultLossyCompression;
   FQuality := NGDefaultQuality;
   FProgressive := NGDefaultProgressive;
-  FZLibStategy := NGDefaultZLibStartegy;
+  FZLibStrategy := NGDefaultZLibStrategy;
 end;
 
 procedure TNetworkGraphicsFileFormat.CheckOptionsValidity;
@@ -2290,7 +2290,7 @@ begin
   RegisterOption(ImagingPNGPreFilter, @FPreFilter);
   RegisterOption(ImagingPNGCompressLevel, @FCompressLevel);
   RegisterOption(ImagingPNGLoadAnimated, @FLoadAnimated);
-  RegisterOption(ImagingPNGZLibStrategy, @FZLibStategy);
+  RegisterOption(ImagingPNGZLibStrategy, @FZLibStrategy);
 end;
 
 function TPNGFileFormat.LoadData(Handle: TImagingHandle;

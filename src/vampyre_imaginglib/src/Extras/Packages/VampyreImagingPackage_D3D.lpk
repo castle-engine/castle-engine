@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="4">
+  <Package Version="5">
     <PathDelim Value="\"/>
     <Name Value="VampyreImagingPackage_D3D"/>
-    <Author Value="Marek Mauder (http://imaginglib.sourceforge.net)"/>
+    <Author Value="Marek Mauder (https://imaginglib.sourceforge.io)"/>
     <CompilerOptions>
       <Version Value="11"/>
       <PathDelim Value="\"/>
       <SearchPaths>
         <IncludeFiles Value="..\..\Source"/>
         <OtherUnitFiles Value="..\..\Extensions;..\..\Demos\ObjectPascal\Common"/>
-        <UnitOutputDirectory Value="..\..\Bin\Ppu\$(TargetCPU)-$(TargetOS)"/>
+        <UnitOutputDirectory Value="..\..\Bin\Dcu\$(TargetCPU)-$(TargetOS)\pkg-d3d"/>
       </SearchPaths>
+      <CodeGeneration>
+        <Optimizations>
+          <OptimizationLevel Value="2"/>
+        </Optimizations>
+      </CodeGeneration>
+      <Other>
+        <Verbosity>
+          <ShowNotes Value="False"/>
+          <ShowHints Value="False"/>
+        </Verbosity>
+      </Other>
     </CompilerOptions>
-    <Description Value="Vampyre Imaging Library Package for Lazarus - Addon for Direct3D."/>
-    <License Value="Imaging comes with two open source licenses from which you can choose the one which fits your needs best:
-* MPL - Mozilla Public License
-* LGPL - GNU Lesser General Public License"/>
-    <Version Minor="80"/>
+    <Description Value="Vampyre Imaging Library Package for Lazarus - Addon for Direct3D. Imaging is image loading, saving, and manipulation library."/>
+    <License Value="MPL 2.0 (GPL compatible) "/>
+    <Version Minor="82"/>
     <Files Count="3">
       <Item1>
         <Filename Value="..\..\Extensions\ImagingDirect3D9.pas"/>
@@ -32,6 +41,7 @@
         <UnitName Value="DXTypes"/>
       </Item3>
     </Files>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="2">
       <Item1>
         <PackageName Value="VampyreImagingPackage"/>

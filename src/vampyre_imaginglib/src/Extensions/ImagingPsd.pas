@@ -290,7 +290,7 @@ begin
     GetMem(PackedLine, MaxRLESize);
 
     try
-      // Image color chanels are stored separately in PSDs so we will load
+      // Image color channels are stored separately in PSDs so we will load
       // one by one and copy their data to appropriate addresses of dest image.
       for I := 0 to Header.Channels - 1 do
       begin
@@ -374,7 +374,7 @@ begin
       if Header.Mode = cmCMYK then
       begin
         // Convert CMYK images to RGB (alpha is ignored here). PSD stores CMYK
-        // channels in the way that first requires substraction from max channel value
+        // channels in the way that first requires subtraction from max channel value
         if ChannelPixelSize = 1 then
         begin
           PCol32 := Bits;
@@ -507,7 +507,7 @@ var
     if not SeparateChannelStorage then
     begin
       // This is for storing background merged image. There's only one
-      // compression flag and one RLE lenghts table for all channels
+      // compression flag and one RLE lengths table for all channels
       WordVal := Swap(Compression);
       GetIO.Write(Handle, @WordVal, SizeOf(WordVal));
       if Compression = CompressionRLE then
@@ -521,7 +521,7 @@ var
     begin
       if SeparateChannelStorage then
       begin
-        // Layer image data has compression flag and RLE lenghts table
+        // Layer image data has compression flag and RLE lengths table
         // independent for each channel
         WordVal := Swap(CompressionRLE);
         GetIO.Write(Handle, @WordVal, SizeOf(WordVal));
@@ -700,7 +700,7 @@ begin
         ChannelInfo.ChannelID := SwapEndianWord(I);
         if (I = Info.ChannelCount - 1) and Info.HasAlphaChannel then
           ChannelInfo.ChannelID := Swap(Word(-1));
-        ChannelInfo.Size := SwapEndianUInt32(ChannelDataSizes[I] + 2); // datasize (incl RLE table) + comp. flag
+        ChannelInfo.Size := SwapEndianUInt32(ChannelDataSizes[I] + 2); // data size (incl RLE table) + comp. flag
         Write(Handle, @ChannelInfo, SizeOf(ChannelInfo));
       end;
 

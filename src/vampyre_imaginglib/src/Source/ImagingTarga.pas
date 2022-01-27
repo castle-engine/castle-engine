@@ -129,7 +129,7 @@ var
   begin
     with GetIO, Images[0] do
     begin
-      // Alocates buffer large enough to hold the worst case
+      // Allocates buffer large enough to hold the worst case
       // RLE compressed data and reads then from input
       BufSize := Width * Height * FmtInfo.BytesPerPixel;
       BufSize := BufSize + BufSize div 2 + 1;

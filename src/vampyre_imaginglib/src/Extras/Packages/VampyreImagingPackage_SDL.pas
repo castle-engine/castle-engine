@@ -2,13 +2,13 @@
   This source is only used to compile and install the package.
  }
 
-unit VampyreImagingPackage_GR32;
+unit VampyreImagingPackage_SDL;
 
 {$warn 5023 off : no warning about unused units}
 interface
 
 uses
-  ImagingGraphics32;
+  sdl, ImagingSdl;
 
 implementation
 
