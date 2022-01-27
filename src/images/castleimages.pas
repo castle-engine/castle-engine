@@ -1300,6 +1300,8 @@ type
     class procedure MixColors(const OutputColor: Pointer;
        const Weights: TVector4; const AColors: TVector4Pointer); override;
 
+    procedure Assign(const Source: TCastleImage); override;
+
     { Remove alpha channel. }
     function ToRGBImage: TRGBImage;
 
@@ -1441,11 +1443,31 @@ type
       components are < 2^7 after this. }
     procedure HalfColors;
 
-    { Add an alpha channel.
-      The newly created alpha channel will have constant opaque alpha,
-      except in the special case of TGrayscaleImage.TreatAsAlpha = @true
-      (where the contents will be copied to alpha, and intensity set to white). }
+    { Add alpha channel.
+
+      If TreatAsAlpha = @false: add constant opaque alpha.
+
+      If TreatAsAlpha = @true: output alpha will be derived from source grayscale,
+      output intensity will be 1 (white). }
     function ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
+
+    { Convert to RGB.
+
+      If TreatAsAlpha = @false: expand grayscale->RGB.
+
+      If TreatAsAlpha = @true: in this case we discard alpha.
+      Resulting output is just white. While it may seem weird,
+      it is consistent with TreatAsAlpha = @true meaning -- the input contains alpha,
+      while output is TRGBImage that doesn't store alpha. }
+    function ToRGBImage: TRGBImage;
+
+    { Convert to RGBA.
+
+      If TreatAsAlpha = @false: expand grayscale->RGB, add opaque alpha.
+
+      If TreatAsAlpha = @true: output alpha will be derived from source grayscale,
+      output RGB will be white. }
+    function ToRGBAlphaImage: TRGBAlphaImage;
 
     {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
@@ -1526,6 +1548,10 @@ type
 
     { Remove alpha channel. }
     function ToGrayscaleImage: TGrayscaleImage;
+    { Remove alpha channel, expand grayscale->RGB. }
+    function ToRGBImage: TRGBImage;
+    { Expand grayscale->RGB. }
+    function ToRGBAlphaImage: TRGBAlphaImage;
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector2Byte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PVector2ByteArray;
@@ -3393,8 +3419,42 @@ var
   FloatPtr: PVector3;
   RgbaPtr: PVector4Byte;
   SelfPtr: PVector3Byte;
+  GaPtr: PVector2Byte;
+  GPtr: PByte;
   I: Cardinal;
 begin
+  if Source is TGrayscaleImage then
+  begin
+    SetSize(Source);
+    SelfPtr := Pixels;
+    GPtr := TGrayscaleImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      SelfPtr^[0] := GPtr^;
+      SelfPtr^[1] := GPtr^;
+      SelfPtr^[2] := GPtr^;
+      Inc(SelfPtr);
+      Inc(GPtr);
+    end;
+    URL := Source.URL;
+  end else
+
+  if Source is TGrayscaleAlphaImage then
+  begin
+    SetSize(Source);
+    SelfPtr := Pixels;
+    GaPtr := TGrayscaleAlphaImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      SelfPtr^[0] := GaPtr^[0];
+      SelfPtr^[1] := GaPtr^[0];
+      SelfPtr^[2] := GaPtr^[0];
+      Inc(SelfPtr);
+      Inc(GaPtr);
+    end;
+    URL := Source.URL;
+  end else
+
   if Source is TRGBAlphaImage then
   begin
     SetSize(Source);
@@ -3641,6 +3701,82 @@ begin
     Weights.Data[2] * Cols[2]^.Data[3] +
     Weights.Data[3] * Cols[3]^.Data[3]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
   {$I norqcheckend.inc}
+end;
+
+procedure TRGBAlphaImage.Assign(const Source: TCastleImage);
+var
+  FloatPtr: PVector3;
+  RgbPtr: PVector3Byte;
+  SelfPtr: PVector4Byte;
+  GaPtr: PVector2Byte;
+  GPtr: PByte;
+  I: Cardinal;
+begin
+  if Source is TGrayscaleImage then
+  begin
+    SetSize(Source);
+    SelfPtr := Pixels;
+    GPtr := TGrayscaleImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      SelfPtr^[0] := GPtr^;
+      SelfPtr^[1] := GPtr^;
+      SelfPtr^[2] := GPtr^;
+      SelfPtr^[3] := High(Byte);
+      Inc(SelfPtr);
+      Inc(GPtr);
+    end;
+    URL := Source.URL;
+  end else
+
+  if Source is TGrayscaleAlphaImage then
+  begin
+    SetSize(Source);
+    SelfPtr := Pixels;
+    GaPtr := TGrayscaleAlphaImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      SelfPtr^[0] := GaPtr^[0];
+      SelfPtr^[1] := GaPtr^[0];
+      SelfPtr^[2] := GaPtr^[0];
+      SelfPtr^[3] := GaPtr^[1];
+      Inc(SelfPtr);
+      Inc(GaPtr);
+    end;
+    URL := Source.URL;
+  end else
+
+  if Source is TRGBImage then
+  begin
+    SetSize(Source);
+    SelfPtr := Pixels;
+    RgbPtr := TRGBImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      Move(RgbPtr^, SelfPtr^, SizeOf(TVector3Byte));
+      SelfPtr^[3] := High(Byte);
+      Inc(SelfPtr);
+      Inc(RgbPtr);
+    end;
+    URL := Source.URL;
+  end else
+
+  if Source is TRGBFloatImage then
+  begin
+    SetSize(Source);
+    SelfPtr := Pixels;
+    FloatPtr := TRGBFloatImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      PVector3Byte(SelfPtr)^ := Vector3Byte(FloatPtr^);
+      SelfPtr^[3] := High(Byte);
+      Inc(SelfPtr);
+      Inc(FloatPtr);
+    end;
+    URL := Source.URL;
+  end else
+
+    inherited;
 end;
 
 function TRGBAlphaImage.ToRGBImage: TRGBImage;
@@ -4061,32 +4197,102 @@ end;
 
 function TGrayscaleImage.ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
 var
-  pg: PByte;
-  pa: PVector2Byte;
+  SourceG: PByte;
+  OutputGa: PVector2Byte;
   I: Cardinal;
 begin
   Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
   Result.URL := URL + '[ToGrayscaleAlphaImage]';
-  pg := Pixels;
-  pa := Result.Pixels;
+  SourceG := Pixels;
+  OutputGa := Result.Pixels;
 
   if TreatAsAlpha then
   begin
     for i := 1 to Width * Height * Depth do
     begin
-      pa^.Data[0] := High(Byte);
-      pa^.Data[1] := pg^;
-      Inc(pg);
-      Inc(pa);
+      OutputGa^.Data[0] := High(Byte);
+      OutputGa^.Data[1] := SourceG^;
+      Inc(SourceG);
+      Inc(OutputGa);
     end;
   end else
   begin
     for i := 1 to Width * Height * Depth do
     begin
-      pa^.Data[0] := pg^;
-      pa^.Data[1] := High(Byte);
-      Inc(pg);
-      Inc(pa);
+      OutputGa^.Data[0] := SourceG^;
+      OutputGa^.Data[1] := High(Byte);
+      Inc(SourceG);
+      Inc(OutputGa);
+    end;
+  end;
+end;
+
+function TGrayscaleImage.ToRGBImage: TRGBImage;
+var
+  SourceG: PByte;
+  OutputRgb: PVector3Byte;
+  I: Cardinal;
+begin
+  Result := TRGBImage.Create(Width, Height, Depth);
+  Result.URL := URL + '[ToRGBImage]';
+  SourceG := Pixels;
+  OutputRgb := Result.Pixels;
+
+  if TreatAsAlpha then
+  begin
+    for i := 1 to Width * Height * Depth do
+    begin
+      OutputRgb^.Data[0] := High(Byte);
+      OutputRgb^.Data[1] := High(Byte);
+      OutputRgb^.Data[2] := High(Byte);
+      Inc(SourceG);
+      Inc(OutputRgb);
+    end;
+  end else
+  begin
+    for i := 1 to Width * Height * Depth do
+    begin
+      OutputRgb^.Data[0] := SourceG^;
+      OutputRgb^.Data[1] := SourceG^;
+      OutputRgb^.Data[2] := SourceG^;
+      Inc(SourceG);
+      Inc(OutputRgb);
+    end;
+  end;
+end;
+
+function TGrayscaleImage.ToRGBAlphaImage: TRGBAlphaImage;
+var
+  SourceG: PByte;
+  OutputRgba: PVector4Byte;
+  I: Cardinal;
+begin
+  Result := TRGBAlphaImage.Create(Width, Height, Depth);
+  Result.URL := URL + '[ToRGBAlphaImage]';
+  SourceG := Pixels;
+  OutputRgba := Result.Pixels;
+
+  if TreatAsAlpha then
+  begin
+    for i := 1 to Width * Height * Depth do
+    begin
+      OutputRgba^.Data[0] := High(Byte);
+      OutputRgba^.Data[1] := High(Byte);
+      OutputRgba^.Data[2] := High(Byte);
+      OutputRgba^.Data[3] := SourceG^;
+      Inc(SourceG);
+      Inc(OutputRgba);
+    end;
+  end else
+  begin
+    for i := 1 to Width * Height * Depth do
+    begin
+      OutputRgba^.Data[0] := SourceG^;
+      OutputRgba^.Data[1] := SourceG^;
+      OutputRgba^.Data[2] := SourceG^;
+      OutputRgba^.Data[3] := High(Byte);
+      Inc(SourceG);
+      Inc(OutputRgba);
     end;
   end;
 end;
@@ -4384,6 +4590,20 @@ begin
   Result.URL := URL + '[ToGrayscaleImage]';
 end;
 
+function TGrayscaleAlphaImage.ToRGBImage: TRGBImage;
+begin
+  Result := TRGBImage.Create(0, 0);
+  Result.Assign(Self);
+  Result.URL := URL + '[ToRGBImage]';
+end;
+
+function TGrayscaleAlphaImage.ToRGBAlphaImage: TRGBAlphaImage;
+begin
+  Result := TRGBAlphaImage.Create(0, 0);
+  Result.Assign(Self);
+  Result.URL := URL + '[ToRGBAlphaImage]';
+end;
+
 { RGBE <-> 3 Single color conversion --------------------------------- }
 
 const
@@ -4607,6 +4827,12 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       Image := NewResult;
     end;
 
+    procedure ReplaceResult(const NewResult: TEncodedImage);
+    begin
+      FreeAndNil(Result);
+      Result := NewResult;
+    end;
+
   begin
     if not ClassAllowed(TEncodedImageClass(Result.ClassType)) then
     begin
@@ -4646,7 +4872,23 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       end else
 
       if (Result is TGrayscaleAlphaImage) and ClassAllowed(TGrayscaleImage) then
-        ImageStripAlphaVar(Result)
+        ReplaceResult(TGrayscaleAlphaImage(Result).ToGrayscaleImage)
+      else
+      if (Result is TGrayscaleAlphaImage) and ClassAllowed(TRGBAlphaImage) then
+        ReplaceResult(TGrayscaleAlphaImage(Result).ToRGBAlphaImage)
+      else
+      if (Result is TGrayscaleAlphaImage) and ClassAllowed(TRGBImage) then
+        ReplaceResult(TGrayscaleAlphaImage(Result).ToRGBImage)
+      else
+
+      if (Result is TGrayscaleImage) and ClassAllowed(TGrayscaleAlphaImage) then
+        ReplaceResult(TGrayscaleImage(Result).ToGrayscaleAlphaImage)
+      else
+      if (Result is TGrayscaleImage) and ClassAllowed(TRGBAlphaImage) then
+        ReplaceResult(TGrayscaleImage(Result).ToRGBAlphaImage)
+      else
+      if (Result is TGrayscaleImage) and ClassAllowed(TRGBImage) then
+        ReplaceResult(TGrayscaleImage(Result).ToRGBImage)
       else
 
       if (Result is TRGBImage) and ClassAllowed(TRGBFloatImage) then
@@ -4661,10 +4903,6 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
         ImageAddAlphaVar(Result);
       end else
       if (Result is TRGBImage) and ClassAllowed(TRGBAlphaImage) then
-        ImageAddAlphaVar(Result)
-      else
-
-      if (Result is TGrayscaleImage) and ClassAllowed(TGrayscaleAlphaImage) then
         ImageAddAlphaVar(Result)
       else
 
