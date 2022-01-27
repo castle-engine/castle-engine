@@ -22,10 +22,6 @@ unit CastleShapes;
 
 {$I octreeconf.inc}
 
-{$ifdef FPC}
-{$modeswitch nestedprocvars}{$H+}
-{$endif}
-
 interface
 
 uses SysUtils, Classes, Generics.Collections,

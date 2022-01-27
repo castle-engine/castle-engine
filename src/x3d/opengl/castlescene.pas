@@ -17,7 +17,6 @@
 unit CastleScene;
 
 {$I castleconf.inc}
-{$ifdef FPC}{$modeswitch nestedprocvars}{$H+}{$endif}
 
 { TComponent.Height is being hidden by TCastleCone.Height, TCastleCylinder.Height.
   This is OK. }

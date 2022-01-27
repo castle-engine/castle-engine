@@ -18,7 +18,6 @@
 unit FrameDesign;
 
 {$mode objfpc}{$H+}
-{$modeswitch nestedprocvars}
 
 interface
 

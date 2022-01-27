@@ -18,7 +18,6 @@ unit CastleSceneCore;
 
 {$I castleconf.inc}
 {$I octreeconf.inc}
-{$ifdef FPC}{$modeswitch nestedprocvars}{$H+}{$endif}
 
 interface
 

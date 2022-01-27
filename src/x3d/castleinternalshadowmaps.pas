@@ -17,7 +17,6 @@
 unit CastleInternalShadowMaps;
 
 {$I castleconf.inc}
-{$ifdef FPC}{$modeswitch nestedprocvars}{$H+}{$endif}
 
 interface
 
