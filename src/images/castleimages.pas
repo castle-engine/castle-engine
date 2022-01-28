@@ -1399,6 +1399,7 @@ type
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
        const Weights: TVector4; const AColors: TVector4Pointer); override;
+    procedure Assign(const Source: TCastleImage); override;
   end;
 
   { Grayscale image. Color is a simple Byte value. }
@@ -1406,8 +1407,10 @@ type
   private
     FTreatAsAlpha: boolean;
     FColorWhenTreatedAsAlpha: TVector3Byte;
+    FGrayscaleColorWhenTreatedAsAlpha: Byte;
     function GetPixels: PByte;
     function GetPixelsArray: PByteArray;
+    procedure SetColorWhenTreatedAsAlpha(const Value: TVector3Byte);
     {$ifdef FPC}
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
     {$endif}
@@ -1483,8 +1486,15 @@ type
     property TreatAsAlpha: boolean
       read FTreatAsAlpha write FTreatAsAlpha;
 
+    { Used for drawing/assigning when TreatAsAlpha is @true, and we need the base
+      (not alpha) color for some equation. }
     property ColorWhenTreatedAsAlpha: TVector3Byte
-      read FColorWhenTreatedAsAlpha write FColorWhenTreatedAsAlpha;
+      read FColorWhenTreatedAsAlpha write SetColorWhenTreatedAsAlpha;
+
+    { Automatically derived from ColorWhenTreatedAsAlpha by averaging RGB components
+      to calculate grayscale intensity. }
+    property GrayscaleColorWhenTreatedAsAlpha: Byte
+      read FGrayscaleColorWhenTreatedAsAlpha;
 
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
@@ -4022,6 +4032,12 @@ begin
   Pixel^ := Clamped(Round(GrayscaleValue(C) * 255), Low(Byte), High(Byte));
 end;
 
+procedure TGrayscaleImage.SetColorWhenTreatedAsAlpha(const Value: TVector3Byte);
+begin
+  FColorWhenTreatedAsAlpha := Value;
+  FGrayscaleColorWhenTreatedAsAlpha := GrayscaleValue(Value);
+end;
+
 { TGrayscaleAlphaImage ------------------------------------------------------------ }
 
 function TGrayscaleAlphaImage.GetPixels: PVector2Byte;
@@ -4416,6 +4432,19 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       else
       if (Result is TGrayscaleImage) and ClassAllowed(TRGBFloatImage) then
         ReplaceResult(TRGBFloatImage)
+      else
+
+      if (Result is TRGBFloatImage) and ClassAllowed(TRGBImage) then
+        ReplaceResult(TRGBImage)
+      else
+      if (Result is TRGBFloatImage) and ClassAllowed(TRGBAlphaImage) then
+        ReplaceResult(TRGBAlphaImage)
+      else
+      if (Result is TRGBFloatImage) and ClassAllowed(TGrayscaleImage) then
+        ReplaceResult(TGrayscaleImage)
+      else
+      if (Result is TRGBFloatImage) and ClassAllowed(TGrayscaleAlphaImage) then
+        ReplaceResult(TGrayscaleAlphaImage)
       else
 
         raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot satisfy the requested output format, we got %s, but we want %s. Use less restrictive AllowedImageClasses argument.', [

@@ -123,11 +123,10 @@ var
   end;
 
 begin
-  TargetRgb := Pixels;
-
   if Source is TGrayscaleImage then
   begin
     SetSize(Source);
+    TargetRgb := Pixels; // must be done after SetSize
     FromGrayscale;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -135,6 +134,7 @@ begin
   if Source is TGrayscaleAlphaImage then
   begin
     SetSize(Source);
+    TargetRgb := Pixels; // must be done after SetSize
     FromGrayscaleAlpha;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -142,6 +142,7 @@ begin
   if Source is TRGBAlphaImage then
   begin
     SetSize(Source);
+    TargetRgb := Pixels; // must be done after SetSize
     FromRGBAlpha;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -149,6 +150,7 @@ begin
   if Source is TRGBFloatImage then
   begin
     SetSize(Source);
+    TargetRgb := Pixels; // must be done after SetSize
     FromRGBFloat;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -239,11 +241,10 @@ var
   end;
 
 begin
-  TargetRgba := Pixels;
-
   if Source is TGrayscaleImage then
   begin
     SetSize(Source);
+    TargetRgba := Pixels; // must be done after SetSize
     FromGrayscale;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -251,6 +252,7 @@ begin
   if Source is TGrayscaleAlphaImage then
   begin
     SetSize(Source);
+    TargetRgba := Pixels; // must be done after SetSize
     FromGrayscaleAlpha;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -258,6 +260,7 @@ begin
   if Source is TRGBImage then
   begin
     SetSize(Source);
+    TargetRgba := Pixels; // must be done after SetSize
     FromRGB;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -265,6 +268,7 @@ begin
   if Source is TRGBFloatImage then
   begin
     SetSize(Source);
+    TargetRgba := Pixels; // must be done after SetSize
     FromRGBFloat;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -335,11 +339,10 @@ var
   end;
 
 begin
-  TargetG := Pixels;
-
   if Source is TGrayscaleAlphaImage then
   begin
     SetSize(Source);
+    TargetG := Pixels; // must be done after SetSize
     FromGrayscaleAlpha;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -347,6 +350,7 @@ begin
   if Source is TRGBAlphaImage then
   begin
     SetSize(Source);
+    TargetG := Pixels; // must be done after SetSize
     FromRGBAlpha;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -354,6 +358,7 @@ begin
   if Source is TRGBImage then
   begin
     SetSize(Source);
+    TargetG := Pixels; // must be done after SetSize
     FromRGB;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -361,6 +366,7 @@ begin
   if Source is TRGBFloatImage then
   begin
     SetSize(Source);
+    TargetG := Pixels; // must be done after SetSize
     FromRGBFloat;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -429,7 +435,7 @@ var
     begin
       for I := 1 to Width * Height * Depth do
       begin
-        TargetGa^.Data[0] := GrayscaleValue(TGrayscaleImage(Source).ColorWhenTreatedAsAlpha);
+        TargetGa^.Data[0] := TGrayscaleImage(Source).GrayscaleColorWhenTreatedAsAlpha;
         TargetGa^.Data[1] := SourceG^;
         Inc(SourceG);
         Inc(TargetGa);
@@ -447,11 +453,10 @@ var
   end;
 
 begin
-  TargetGa := Pixels;
-
   if Source is TRGBAlphaImage then
   begin
     SetSize(Source);
+    TargetGa := Pixels; // must be done after SetSize
     FromRGBAlpha;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -459,6 +464,7 @@ begin
   if Source is TRGBImage then
   begin
     SetSize(Source);
+    TargetGa := Pixels; // must be done after SetSize
     FromRGB;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -466,6 +472,7 @@ begin
   if Source is TRGBFloatImage then
   begin
     SetSize(Source);
+    TargetGa := Pixels; // must be done after SetSize
     FromRGBFloat;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
@@ -473,6 +480,128 @@ begin
   if Source is TGrayscaleImage then
   begin
     SetSize(Source);
+    TargetGa := Pixels; // must be done after SetSize
+    FromGrayscale;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+    inherited;
+end;
+
+{ TRGBFloatImage ------------------------------------------------------- }
+
+procedure TRGBFloatImage.Assign(const Source: TCastleImage);
+var
+  TargetFloatRgb: PVector3;
+
+  procedure FromRGBAlpha;
+  var
+    SourceRgba: PVector4Byte;
+    I: Cardinal;
+  begin
+    SourceRgba := TRGBAlphaImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetFloatRgb^ := Vector3(PVector3Byte(SourceRgba)^);
+      Inc(TargetFloatRgb);
+      Inc(SourceRgba);
+    end;
+  end;
+
+  procedure FromRGB;
+  var
+    SourceRgb: PVector3Byte;
+    I: Cardinal;
+  begin
+    SourceRgb := TRGBImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetFloatRgb^ := Vector3(SourceRgb^);
+      Inc(TargetFloatRgb);
+      Inc(SourceRgb);
+    end;
+  end;
+
+  procedure FromGrayscaleAlpha;
+  var
+    SourceGa: PVector2Byte;
+    I: Cardinal;
+  begin
+    SourceGa := TGrayscaleAlphaImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetFloatRgb^ := Vector3(
+        SourceGa^.Data[0] / High(Byte),
+        SourceGa^.Data[0] / High(Byte),
+        SourceGa^.Data[0] / High(Byte)
+      );
+      Inc(TargetFloatRgb);
+      Inc(SourceGa);
+    end;
+  end;
+
+  procedure FromGrayscale;
+  var
+    SourceG: PByte;
+    I: Cardinal;
+  begin
+    SourceG := TGrayscaleImage(Source).Pixels;
+    if TGrayscaleImage(Source).TreatAsAlpha then
+    begin
+      for I := 1 to Width * Height * Depth do
+      begin
+        TargetFloatRgb^ := Vector3(
+          TGrayscaleImage(Source).GrayscaleColorWhenTreatedAsAlpha / High(Byte),
+          TGrayscaleImage(Source).GrayscaleColorWhenTreatedAsAlpha / High(Byte),
+          TGrayscaleImage(Source).GrayscaleColorWhenTreatedAsAlpha / High(Byte)
+        );
+        Inc(TargetFloatRgb);
+        Inc(SourceG);
+      end;
+    end else
+    begin
+      for I := 1 to Width * Height * Depth do
+      begin
+        TargetFloatRgb^ := Vector3(
+          SourceG^ / High(Byte),
+          SourceG^ / High(Byte),
+          SourceG^ / High(Byte)
+        );
+        Inc(TargetFloatRgb);
+        Inc(SourceG);
+      end;
+    end;
+  end;
+
+begin
+  if Source is TRGBAlphaImage then
+  begin
+    SetSize(Source);
+    TargetFloatRgb := Pixels; // must be done after SetSize
+    FromRGBAlpha;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TRGBImage then
+  begin
+    SetSize(Source);
+    TargetFloatRgb := Pixels; // must be done after SetSize
+    FromRGB;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TGrayscaleAlphaImage then
+  begin
+    SetSize(Source);
+    TargetFloatRgb := Pixels; // must be done after SetSize
+    FromGrayscaleAlpha;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TGrayscaleImage then
+  begin
+    SetSize(Source);
+    TargetFloatRgb := Pixels; // must be done after SetSize
     FromGrayscale;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
