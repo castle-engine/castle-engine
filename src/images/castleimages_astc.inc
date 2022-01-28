@@ -1,3 +1,4 @@
+{%MainUnit castleimages.pas}
 {
   Copyright 2021-2021 Yevhen Loza, Michalis Kamburelis.
 

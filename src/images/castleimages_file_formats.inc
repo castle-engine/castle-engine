@@ -1,3 +1,4 @@
+{%MainUnit castleimages.pas}
 {
   Copyright 2001-2022 Michalis Kamburelis.
 

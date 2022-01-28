@@ -1,3 +1,5 @@
+{%MainUnit castleimages.pas}
+
 var NewColor: TVector3;
     p: PPixel;
     i: integer;

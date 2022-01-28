@@ -1,5 +1,6 @@
+{%MainUnit castleimages.pas}
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +15,7 @@
 }
 
 { Part of CastleGLUtils unit: compatibility stuff for Delphi. }
-{ TODO: make this cross-platform (e.g. Linux should also have them). }
+{ TODO: make some of this cross-platform (e.g. Linux should also have necessary Load_GL_Xxx). }
 
 {$ifndef FPC}
 {$ifdef MSWINDOWS}
