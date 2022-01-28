@@ -236,7 +236,7 @@ type
     {$ifdef FPC}
     { Convert image contents to FpImage instance.
       The resulting instance is owned by the caller. }
-    function ToFpImage: TInternalCastleFpImage; virtual;
+    function ToFpImage: TInternalCastleFpImage; virtual; deprecated 'interoperability with FpImage may be dropped in the future';
     {$endif}
   end;
 
@@ -1161,7 +1161,7 @@ type
 
     { Create a new TRGBAlphaImage instance with RGB contents copied from this
       image, and alpha fully opaque. }
-    function ToRGBAlphaImage: TRGBAlphaImage;
+    function ToRGBAlphaImage: TRGBAlphaImage; deprecated 'create TRGBAlphaImage and use TRGBAlphaImage.Assign';
 
     { Convert image to an TRGBFloatImage format.
 
@@ -1178,9 +1178,9 @@ type
       be expressed as simple 8-bit RGB. But by using this conversion
       you initially fill float image with data that does not have
       precision beyond standard 0..255 discreet range for each RGB component... }
-    function ToRGBFloat: TRGBFloatImage;
+    function ToRGBFloat: TRGBFloatImage; deprecated 'create TRGBFloatImage and use TRGBFloatImage.Assign';
 
-    function ToGrayscale: TGrayscaleImage;
+    function ToGrayscale: TGrayscaleImage; deprecated 'create TGrayscaleImage and use TGrayscaleImage.Assign';
 
     {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
@@ -1303,13 +1303,13 @@ type
     procedure Assign(const Source: TCastleImage); override;
 
     { Remove alpha channel. }
-    function ToRGBImage: TRGBImage;
+    function ToRGBImage: TRGBImage; deprecated 'create TRGBImage and use TRGBImage.Assign';
 
     { Flatten to grayscale. }
-    function ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
+    function ToGrayscaleAlphaImage: TGrayscaleAlphaImage; deprecated 'create TGrayscaleAlphaImage and use TGrayscaleAlphaImage.Assign';
 
     { Flatten to grayscale and remove alpha channel. }
-    function ToGrayscaleImage: TGrayscaleImage;
+    function ToGrayscaleImage: TGrayscaleImage; deprecated 'create TGrayscaleImage and use TGrayscaleImage.Assign';
     {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
     {$endif}
@@ -1382,7 +1382,7 @@ type
       So such conversion not only kills the floating-point
       precision in float format but also clamps color components
       to 0..1. }
-    function ToRGBImage: TRGBImage;
+    function ToRGBImage: TRGBImage; deprecated 'create TRGBImage and use TRGBImage.Assign';
     {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
     {$endif}
@@ -1448,26 +1448,8 @@ type
       If TreatAsAlpha = @false: add constant opaque alpha.
 
       If TreatAsAlpha = @true: output alpha will be derived from source grayscale,
-      output intensity will be 1 (white). }
-    function ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
-
-    { Convert to RGB.
-
-      If TreatAsAlpha = @false: expand grayscale->RGB.
-
-      If TreatAsAlpha = @true: in this case we discard alpha.
-      Resulting output is just white. While it may seem weird,
-      it is consistent with TreatAsAlpha = @true meaning -- the input contains alpha,
-      while output is TRGBImage that doesn't store alpha. }
-    function ToRGBImage: TRGBImage;
-
-    { Convert to RGBA.
-
-      If TreatAsAlpha = @false: expand grayscale->RGB, add opaque alpha.
-
-      If TreatAsAlpha = @true: output alpha will be derived from source grayscale,
-      output RGB will be white. }
-    function ToRGBAlphaImage: TRGBAlphaImage;
+      output intensity will be derived from ColorWhenTreatedAsAlpha. }
+    function ToGrayscaleAlphaImage: TGrayscaleAlphaImage; deprecated 'create TGrayscaleAlphaImage and use TGrayscaleAlphaImage.Assign';
 
     {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
@@ -1492,7 +1474,7 @@ type
           It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone.)
 
         @item(
-          When using @link(DrawFrom) / @link(DrawTo) methods.
+          When using @link(DrawFrom) / @link(DrawTo) methods or being assigned to something using @link(Assign).
           If @true, this image is drawn like an RGBA image,
           with constant RGB color ColorWhenTreatedAsAlpha, and alpha channel
           taken from contents of this image.)
@@ -1547,11 +1529,7 @@ type
     class function ColorComponentsCount: Cardinal; override;
 
     { Remove alpha channel. }
-    function ToGrayscaleImage: TGrayscaleImage;
-    { Remove alpha channel, expand grayscale->RGB. }
-    function ToRGBImage: TRGBImage;
-    { Expand grayscale->RGB. }
-    function ToRGBAlphaImage: TRGBAlphaImage;
+    function ToGrayscaleImage: TGrayscaleImage; deprecated 'create TGrayscaleImage and use TGrayscaleImage.Assign';
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector2Byte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PVector2ByteArray;
@@ -2050,6 +2028,7 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
 {$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
 {$I castleimages_ipl.inc}
 {$I castleimages_composite.inc}
+{$I castleimages_assign.inc}
 
 { Colors ------------------------------------------------------------------ }
 
@@ -2754,29 +2733,6 @@ begin
   raise EImageLerpInvalidClasses.Create('Mixing colors (TCastleImage.MixColors) not possible with the base TCastleImage class');
 end;
 
-procedure TCastleImage.Assign(const Source: TCastleImage);
-begin
-  if Source.ClassType = ClassType then
-  begin
-    SetSize(Source);
-    // if Source.RawPixels = nil, then we're already freed by SetSize above
-    if Source.RawPixels <> nil then
-      Move(Source.RawPixels^, RawPixels^, Size);
-    URL := Source.URL;
-  end else
-    raise EImageAssignmentError.CreateFmt('Cannot copy image contents from %s to %s',
-      [Source.ClassName, ClassName]);
-
-  { TODO: one day, this should just call
-      DrawFrom(Source, 0, 0, Source.Width, Source.Height, dmOverwrite);
-    instead of raising EImageAssignmentError.
-
-    TCastleImage.Assign will not even need to be virtual then.
-
-    However, for now, DrawFrom and friends do not handle the Z coordinate
-    (they only draw from/to Z = 0). }
-end;
-
 procedure TCastleImage.SaveToPascalCode(const ImageName: string;
   const ShowProgress: boolean;
   var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
@@ -3279,59 +3235,21 @@ type PPixel = PVector3Byte;
 {$I castleimages_modulatergb_implement.inc}
 
 function TRGBImage.ToRGBAlphaImage: TRGBAlphaImage;
-var
-  pi: PVector3Byte;
-  pa: PVector4Byte;
-  i: Cardinal;
 begin
-  Result := TRGBAlphaImage.Create(Width, Height, Depth);
-  pi := Pixels;
-  pa := Result.Pixels;
-  for i := 1 to Width * Height * Depth do
-  begin
-    Move(pi^, pa^, SizeOf(TVector3Byte));
-    pa^.Data[3] := High(Byte);
-    Inc(pi);
-    Inc(pa);
-  end;
+  Result := TRGBAlphaImage.Create;
+  Result.Assign(Self);
 end;
 
 function TRGBImage.ToRGBFloat: TRGBFloatImage;
-var
-  PFloat: PVector3;
-  PByte: PVector3Byte;
-  i: Cardinal;
 begin
-  result := TRGBFloatImage.Create(Width, Height, Depth);
-  try
-    PByte := Pixels;
-    PFloat := Result.Pixels;
-    for i := 1 to Width * Height * Depth do
-    begin
-      PFloat^ := Vector3(PByte^);
-      Inc(PByte);
-      Inc(PFloat);
-    end;
-  except Result.Free; raise end;
+  Result := TRGBFloatImage.Create;
+  Result.Assign(Self);
 end;
 
 function TRGBImage.ToGrayscale: TGrayscaleImage;
-var
-  pRGB: PVector3Byte;
-  pGrayscale: PByte;
-  I: Cardinal;
 begin
-  Result := TGrayscaleImage.Create(Width, Height, Depth);
-  try
-    pRGB := Pixels;
-    pGrayscale := Result.Pixels;
-    for i := 1 to Width * Height * Depth do
-    begin
-      pGrayscale^ := GrayscaleValue(pRGB^);
-      Inc(pRGB);
-      Inc(pGrayscale);
-    end;
-  except Result.Free; raise end;
+  Result := TGrayscaleImage.Create;
+  Result.Assign(Self);
 end;
 
 procedure TRGBImage.HorizontalLine(const x1, x2, y: Integer;
@@ -3412,78 +3330,6 @@ begin
     Weights.Data[2] * Cols[2]^.Data[2] +
     Weights.Data[3] * Cols[3]^.Data[2]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
   {$I norqcheckend.inc}
-end;
-
-procedure TRGBImage.Assign(const Source: TCastleImage);
-var
-  FloatPtr: PVector3;
-  RgbaPtr: PVector4Byte;
-  SelfPtr: PVector3Byte;
-  GaPtr: PVector2Byte;
-  GPtr: PByte;
-  I: Cardinal;
-begin
-  if Source is TGrayscaleImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    GPtr := TGrayscaleImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^[0] := GPtr^;
-      SelfPtr^[1] := GPtr^;
-      SelfPtr^[2] := GPtr^;
-      Inc(SelfPtr);
-      Inc(GPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-  if Source is TGrayscaleAlphaImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    GaPtr := TGrayscaleAlphaImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^[0] := GaPtr^[0];
-      SelfPtr^[1] := GaPtr^[0];
-      SelfPtr^[2] := GaPtr^[0];
-      Inc(SelfPtr);
-      Inc(GaPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-  if Source is TRGBAlphaImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    RgbaPtr := TRGBAlphaImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      Move(RgbaPtr^, SelfPtr^, SizeOf(TVector3Byte));
-      Inc(SelfPtr);
-      Inc(RgbaPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-  if Source is TRGBFloatImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    FloatPtr := TRGBFloatImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^ := Vector3Byte(FloatPtr^);
-      Inc(SelfPtr);
-      Inc(FloatPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-    inherited;
 end;
 
 { TRGBAlphaImage ------------------------------------------------------------ }
@@ -3703,101 +3549,22 @@ begin
   {$I norqcheckend.inc}
 end;
 
-procedure TRGBAlphaImage.Assign(const Source: TCastleImage);
-var
-  FloatPtr: PVector3;
-  RgbPtr: PVector3Byte;
-  SelfPtr: PVector4Byte;
-  GaPtr: PVector2Byte;
-  GPtr: PByte;
-  I: Cardinal;
-begin
-  if Source is TGrayscaleImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    GPtr := TGrayscaleImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^[0] := GPtr^;
-      SelfPtr^[1] := GPtr^;
-      SelfPtr^[2] := GPtr^;
-      SelfPtr^[3] := High(Byte);
-      Inc(SelfPtr);
-      Inc(GPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-  if Source is TGrayscaleAlphaImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    GaPtr := TGrayscaleAlphaImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^[0] := GaPtr^[0];
-      SelfPtr^[1] := GaPtr^[0];
-      SelfPtr^[2] := GaPtr^[0];
-      SelfPtr^[3] := GaPtr^[1];
-      Inc(SelfPtr);
-      Inc(GaPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-  if Source is TRGBImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    RgbPtr := TRGBImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      Move(RgbPtr^, SelfPtr^, SizeOf(TVector3Byte));
-      SelfPtr^[3] := High(Byte);
-      Inc(SelfPtr);
-      Inc(RgbPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-  if Source is TRGBFloatImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    FloatPtr := TRGBFloatImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      PVector3Byte(SelfPtr)^ := Vector3Byte(FloatPtr^);
-      SelfPtr^[3] := High(Byte);
-      Inc(SelfPtr);
-      Inc(FloatPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-    inherited;
-end;
-
 function TRGBAlphaImage.ToRGBImage: TRGBImage;
 begin
-  Result := TRGBImage.Create(0, 0);
+  Result := TRGBImage.Create;
   Result.Assign(Self);
-  Result.URL := URL + '[ToRGBImage]';
 end;
 
 function TRGBAlphaImage.ToGrayscaleImage: TGrayscaleImage;
 begin
-  Result := TGrayscaleImage.Create(0, 0);
+  Result := TGrayscaleImage.Create;
   Result.Assign(Self);
-  Result.URL := URL + '[ToGrayscaleImage]';
 end;
 
 function TRGBAlphaImage.ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
 begin
-  Result := TGrayscaleAlphaImage.Create(0, 0);
+  Result := TGrayscaleAlphaImage.Create;
   Result.Assign(Self);
-  Result.URL := URL + '[ToGrayscaleAlphaImage]';
 end;
 
 procedure TRGBAlphaImage.PremultiplyAlpha;
@@ -4004,7 +3771,7 @@ end;
 
 function TRGBFloatImage.ToRGBImage: TRGBImage;
 begin
-  Result := TRGBImage.Create(0, 0);
+  Result := TRGBImage.Create;
   Result.Assign(Self);
 end;
 
@@ -4196,105 +3963,9 @@ begin
 end;
 
 function TGrayscaleImage.ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
-var
-  SourceG: PByte;
-  OutputGa: PVector2Byte;
-  I: Cardinal;
 begin
-  Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
-  Result.URL := URL + '[ToGrayscaleAlphaImage]';
-  SourceG := Pixels;
-  OutputGa := Result.Pixels;
-
-  if TreatAsAlpha then
-  begin
-    for i := 1 to Width * Height * Depth do
-    begin
-      OutputGa^.Data[0] := High(Byte);
-      OutputGa^.Data[1] := SourceG^;
-      Inc(SourceG);
-      Inc(OutputGa);
-    end;
-  end else
-  begin
-    for i := 1 to Width * Height * Depth do
-    begin
-      OutputGa^.Data[0] := SourceG^;
-      OutputGa^.Data[1] := High(Byte);
-      Inc(SourceG);
-      Inc(OutputGa);
-    end;
-  end;
-end;
-
-function TGrayscaleImage.ToRGBImage: TRGBImage;
-var
-  SourceG: PByte;
-  OutputRgb: PVector3Byte;
-  I: Cardinal;
-begin
-  Result := TRGBImage.Create(Width, Height, Depth);
-  Result.URL := URL + '[ToRGBImage]';
-  SourceG := Pixels;
-  OutputRgb := Result.Pixels;
-
-  if TreatAsAlpha then
-  begin
-    for i := 1 to Width * Height * Depth do
-    begin
-      OutputRgb^.Data[0] := High(Byte);
-      OutputRgb^.Data[1] := High(Byte);
-      OutputRgb^.Data[2] := High(Byte);
-      Inc(SourceG);
-      Inc(OutputRgb);
-    end;
-  end else
-  begin
-    for i := 1 to Width * Height * Depth do
-    begin
-      OutputRgb^.Data[0] := SourceG^;
-      OutputRgb^.Data[1] := SourceG^;
-      OutputRgb^.Data[2] := SourceG^;
-      Inc(SourceG);
-      Inc(OutputRgb);
-    end;
-  end;
-end;
-
-function TGrayscaleImage.ToRGBAlphaImage: TRGBAlphaImage;
-var
-  SourceG: PByte;
-  OutputRgba: PVector4Byte;
-  I: Cardinal;
-begin
-  Result := TRGBAlphaImage.Create(Width, Height, Depth);
-  Result.URL := URL + '[ToRGBAlphaImage]';
-  SourceG := Pixels;
-  OutputRgba := Result.Pixels;
-
-  if TreatAsAlpha then
-  begin
-    for i := 1 to Width * Height * Depth do
-    begin
-      OutputRgba^.Data[0] := High(Byte);
-      OutputRgba^.Data[1] := High(Byte);
-      OutputRgba^.Data[2] := High(Byte);
-      OutputRgba^.Data[3] := SourceG^;
-      Inc(SourceG);
-      Inc(OutputRgba);
-    end;
-  end else
-  begin
-    for i := 1 to Width * Height * Depth do
-    begin
-      OutputRgba^.Data[0] := SourceG^;
-      OutputRgba^.Data[1] := SourceG^;
-      OutputRgba^.Data[2] := SourceG^;
-      OutputRgba^.Data[3] := High(Byte);
-      Inc(SourceG);
-      Inc(OutputRgba);
-    end;
-  end;
+  Result := TGrayscaleAlphaImage.Create;
+  Result.Assign(Self);
 end;
 
 function TGrayscaleImage.AlphaChannel(
@@ -4317,45 +3988,6 @@ begin
   end;
 
   Result := acTest;
-end;
-
-procedure TGrayscaleImage.Assign(const Source: TCastleImage);
-var
-  RgbaPtr: PVector4Byte;
-  GaPtr: PVector2Byte;
-  RgbPtr: PVector3Byte absolute RgbaPtr;
-  SelfPtr: PByte;
-  I: Cardinal;
-begin
-  if Source is TGrayscaleAlphaImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    GaPtr := TGrayscaleAlphaImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^ := GaPtr^.Data[0];
-      Inc(SelfPtr);
-      Inc(GaPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-  if Source is TRGBAlphaImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    RgbaPtr := TRGBAlphaImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^ := GrayscaleValue(RgbPtr^);
-      Inc(SelfPtr);
-      Inc(RgbaPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-    inherited;
 end;
 
 procedure TGrayscaleImage.InvertColors;
@@ -4525,31 +4157,6 @@ begin
   {$I norqcheckend.inc}
 end;
 
-procedure TGrayscaleAlphaImage.Assign(const Source: TCastleImage);
-var
-  RgbaPtr: PVector4Byte;
-  RgbPtr: PVector3Byte absolute RgbaPtr;
-  SelfPtr: PVector2Byte;
-  I: Cardinal;
-begin
-  if Source is TRGBAlphaImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    RgbaPtr := TRGBAlphaImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^.Data[0] := GrayscaleValue(RgbPtr^);
-      SelfPtr^.Data[1] := RgbaPtr^.Data[3];
-      Inc(SelfPtr);
-      Inc(RgbaPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-    inherited;
-end;
-
 procedure TGrayscaleAlphaImage.InvertColors;
 var
   I: Cardinal;
@@ -4585,23 +4192,8 @@ end;
 
 function TGrayscaleAlphaImage.ToGrayscaleImage: TGrayscaleImage;
 begin
-  Result := TGrayscaleImage.Create(0, 0);
+  Result := TGrayscaleImage.Create;
   Result.Assign(Self);
-  Result.URL := URL + '[ToGrayscaleImage]';
-end;
-
-function TGrayscaleAlphaImage.ToRGBImage: TRGBImage;
-begin
-  Result := TRGBImage.Create(0, 0);
-  Result.Assign(Self);
-  Result.URL := URL + '[ToRGBImage]';
-end;
-
-function TGrayscaleAlphaImage.ToRGBAlphaImage: TRGBAlphaImage;
-begin
-  Result := TRGBAlphaImage.Create(0, 0);
-  Result.Assign(Self);
-  Result.URL := URL + '[ToRGBAlphaImage]';
 end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }
@@ -4736,99 +4328,24 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
     end;
 
-    { Make sure the image has an alpha channel.
-      If image doesn't have an alpha channel (it is TRGBImage or TGrayscaleImage),
-      we will create new image instance (respectively, TRGBAlphaImage or TGrayscaleAlphaImage)
-      that adds an alpha channel. The newly created alpha channel will have constant opaque alpha,
-      except in the special case of TGrayscaleImage with TGrayscaleImage.TreatAsAlpha = @true
-      (where the contents will be copied to alpha, and intensity set to white).
-
-      If the image already had an alpha channel, then just return it. }
-    procedure ImageAddAlphaVar(var Img: TEncodedImage);
-    var
-      NewImg: TCastleImage;
-    begin
-      if Img is TRGBImage then
-      begin
-        NewImg := TRGBImage(Img).ToRGBAlphaImage;
-        FreeAndNil(Img);
-        Img := NewImg;
-      end else
-      if Img is TGrayscaleImage then
-      begin
-        NewImg := TGrayscaleImage(Img).ToGrayscaleAlphaImage;
-        FreeAndNil(Img);
-        Img := NewImg;
-      end;
-
-      if not Img.HasAlpha then
-        raise EInternalError.Create(
-          'ImageAddAlphaVar not possible for this image class: ' + Img.ClassName);
-    end;
-
-    procedure ImageStripAlphaVar(var Img: TEncodedImage);
-    var
-      NewImg: TCastleImage;
-    begin
-      if Img is TRGBAlphaImage then
-      begin
-        NewImg := TRGBAlphaImage(Img).ToRGBImage;
-        FreeAndNil(Img);
-        Img := NewImg;
-      end else
-      if Img is TGrayscaleAlphaImage then
-      begin
-        NewImg := TGrayscaleAlphaImage(Img).ToGrayscaleImage;
-        FreeAndNil(Img);
-        Img := NewImg;
-      end;
-
-      if Img.HasAlpha then
-        raise EInternalError.Create(
-          'ImageStripAlphaVar not possible for this image class: ' + Img.ClassName);
-    end;
-
-    procedure ImageRGBToFloatVar(var Image: TEncodedImage);
-    var
-      NewResult: TEncodedImage;
-    begin
-      NewResult := (Image as TRGBImage).ToRGBFloat;
-      Image.Free;
-      Image := NewResult;
-    end;
-
-    { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }
-    procedure ImageRGBToGrayscaleVar(var Image: TEncodedImage);
-    var
-      NewResult: TEncodedImage;
-    begin
-      NewResult := (Image as TRGBImage).ToGrayscale;
-      Image.Free;
-      Image := NewResult;
-    end;
-
     { Input: TGPUCompressedImage, output: anything else than TGPUCompressedImage. }
     procedure ImageDecompressVar(var Image: TEncodedImage);
     var
       NewResult: TEncodedImage;
     begin
       NewResult := (Image as TGPUCompressedImage).Decompress;
-      Image.Free;
+
+      FreeAndNil(Image);
       Image := NewResult;
     end;
 
-    { Input TRGBFloatImage, output: TRGBImage. }
-    procedure ImageStripFloatVar(var Image: TEncodedImage);
+    procedure ReplaceResult(const NewResultClass: TCastleImageClass);
     var
-      NewResult: TEncodedImage;
+      NewResult: TCastleImage;
     begin
-      NewResult := (Image as TRGBFloatImage).ToRGBImage;
-      Image.Free;
-      Image := NewResult;
-    end;
+      NewResult := NewResultClass.Create;
+      NewResult.Assign(Result as TCastleImage);
 
-    procedure ReplaceResult(const NewResult: TEncodedImage);
-    begin
       FreeAndNil(Result);
       Result := NewResult;
     end;
@@ -4843,67 +4360,62 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
           Exit; // ClassAllowed was fixed by just decompressing GPU image, testcase: castle-view-image
       end;
 
-      { The only practical convertion we can do with TRGBFloatImage is to make it non-float.
-        So try this, and let other convertions eventually convert it further
-        from TRGBImage to something else. }
-      if Result is TRGBFloatImage then
-      begin
-        ImageStripFloatVar(Result);
-        if ClassAllowed(TEncodedImageClass(Result.ClassType)) then
-          Exit; // ClassAllowed was fixed by converting to TRGBImage
-      end;
+      { For each possible Result class,
+        try various possible target classes we can convert to
+        (using castleimages_assign.inc)
+        in the order from the most preferred (sensible/losssless) conversion
+        to least preferred. }
 
       if (Result is TRGBAlphaImage) and ClassAllowed(TRGBImage) then
-        ImageStripAlphaVar(Result)
+        ReplaceResult(TRGBImage)
+      else
+      if (Result is TRGBAlphaImage) and ClassAllowed(TGrayscaleAlphaImage) then
+        ReplaceResult(TGrayscaleAlphaImage)
       else
       if (Result is TRGBAlphaImage) and ClassAllowed(TGrayscaleImage) then
-      begin
-        ImageStripAlphaVar(Result);
-        ImageRGBToGrayscaleVar(Result);
-      end else
-      {TODO if (Result is TRGBAlphaImage) and ClassAllowed(TGrayscaleAlphaImage) then
-      begin
-        ImageRGBToGrayscaleVar(Result); // extend ImageRGBToGrayscaleVar to handle this case, rename to sthg like ImageToGrayscaleXxxVar
-      end else}
-      if (Result is TRGBAlphaImage) and ClassAllowed(TRGBFloatImage) then
-      begin
-        ImageStripAlphaVar(Result);
-        ImageRGBToFloatVar(Result);
-      end else
-
-      if (Result is TGrayscaleAlphaImage) and ClassAllowed(TGrayscaleImage) then
-        ReplaceResult(TGrayscaleAlphaImage(Result).ToGrayscaleImage)
+        ReplaceResult(TGrayscaleImage)
       else
+      if (Result is TRGBAlphaImage) and ClassAllowed(TRGBFloatImage) then
+        ReplaceResult(TRGBFloatImage)
+      else
+
+      if (Result is TRGBImage) and ClassAllowed(TRGBAlphaImage) then
+        ReplaceResult(TRGBAlphaImage)
+      else
+      if (Result is TRGBImage) and ClassAllowed(TGrayscaleImage) then
+        ReplaceResult(TGrayscaleImage)
+      else
+      if (Result is TRGBImage) and ClassAllowed(TGrayscaleAlphaImage) then
+        ReplaceResult(TGrayscaleAlphaImage)
+      else
+      if (Result is TRGBImage) and ClassAllowed(TRGBFloatImage) then
+        ReplaceResult(TRGBFloatImage)
+      else
+
       if (Result is TGrayscaleAlphaImage) and ClassAllowed(TRGBAlphaImage) then
-        ReplaceResult(TGrayscaleAlphaImage(Result).ToRGBAlphaImage)
+        ReplaceResult(TRGBAlphaImage)
+      else
+      if (Result is TGrayscaleAlphaImage) and ClassAllowed(TGrayscaleImage) then
+        ReplaceResult(TGrayscaleImage)
       else
       if (Result is TGrayscaleAlphaImage) and ClassAllowed(TRGBImage) then
-        ReplaceResult(TGrayscaleAlphaImage(Result).ToRGBImage)
+        ReplaceResult(TRGBImage)
+      else
+      if (Result is TGrayscaleAlphaImage) and ClassAllowed(TRGBFloatImage) then
+        ReplaceResult(TRGBFloatImage)
       else
 
       if (Result is TGrayscaleImage) and ClassAllowed(TGrayscaleAlphaImage) then
-        ReplaceResult(TGrayscaleImage(Result).ToGrayscaleAlphaImage)
+        ReplaceResult(TGrayscaleAlphaImage)
       else
       if (Result is TGrayscaleImage) and ClassAllowed(TRGBAlphaImage) then
-        ReplaceResult(TGrayscaleImage(Result).ToRGBAlphaImage)
+        ReplaceResult(TRGBAlphaImage)
       else
       if (Result is TGrayscaleImage) and ClassAllowed(TRGBImage) then
-        ReplaceResult(TGrayscaleImage(Result).ToRGBImage)
+        ReplaceResult(TRGBImage)
       else
-
-      if (Result is TRGBImage) and ClassAllowed(TRGBFloatImage) then
-        ImageRGBToFloatVar(Result)
-      else
-      if (Result is TRGBImage) and ClassAllowed(TGrayscaleImage) then
-        ImageRGBToGrayscaleVar(Result)
-      else
-      if (Result is TRGBImage) and ClassAllowed(TGrayscaleAlphaImage) then
-      begin
-        ImageRGBToGrayscaleVar(Result);
-        ImageAddAlphaVar(Result);
-      end else
-      if (Result is TRGBImage) and ClassAllowed(TRGBAlphaImage) then
-        ImageAddAlphaVar(Result)
+      if (Result is TGrayscaleImage) and ClassAllowed(TRGBFloatImage) then
+        ReplaceResult(TRGBFloatImage)
       else
 
         raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot satisfy the requested output format, we got %s, but we want %s. Use less restrictive AllowedImageClasses argument.', [
