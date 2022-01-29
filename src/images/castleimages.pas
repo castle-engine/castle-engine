@@ -859,7 +859,7 @@ type
       when assignning.
 
       @raises(EImageAssignmentError If it's not possible to convert from
-        Source class to us. Not every possible conversion is implemented now.)
+        Source class to us.)
     }
     procedure Assign(const Source: TCastleImage); virtual;
 
