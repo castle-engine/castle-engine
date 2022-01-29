@@ -1416,6 +1416,8 @@ type
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
+    constructor Create; overload; override;
+
     { Pointer to pixels. Same as RawPixels, only typecasted to PByte. }
     property Pixels: PByte read GetPixels;
     property GrayscalePixels: PByte read GetPixels; {$ifdef FPC} deprecated 'use Pixels'; {$endif}
@@ -1479,15 +1481,17 @@ type
       )
     }
     property TreatAsAlpha: boolean
-      read FTreatAsAlpha write FTreatAsAlpha;
+      read FTreatAsAlpha write FTreatAsAlpha default false;
 
     { Used for drawing/assigning when TreatAsAlpha is @true, and we need the base
-      (not alpha) color for some equation. }
+      (not alpha) color for some equation.
+      By default white (255, 255, 255). }
     property ColorWhenTreatedAsAlpha: TVector3Byte
       read FColorWhenTreatedAsAlpha write SetColorWhenTreatedAsAlpha;
 
     { Automatically derived from ColorWhenTreatedAsAlpha by averaging RGB components
-      to calculate grayscale intensity. }
+      to calculate grayscale intensity.
+      By default 255. }
     property GrayscaleColorWhenTreatedAsAlpha: Byte
       read FGrayscaleColorWhenTreatedAsAlpha;
 
@@ -3870,6 +3874,13 @@ begin
 end;
 
 { TGrayscaleImage ------------------------------------------------------------ }
+
+constructor TGrayscaleImage.Create;
+begin
+  inherited;
+  FColorWhenTreatedAsAlpha := Vector3Byte(255, 255, 255);
+  FGrayscaleColorWhenTreatedAsAlpha := GrayscaleValue(FColorWhenTreatedAsAlpha);
+end;
 
 function TGrayscaleImage.GetPixels: PByte;
 begin
