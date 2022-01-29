@@ -429,14 +429,9 @@ type
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); virtual;
   public
     { Constructor without parameters creates image with Width = Height = Depth = 0
-      and RawPixels = nil, so IsEmpty will return @true.
-
-      Both constructors must be virtual, this allows to implement things
-      like TCastleImage.MakeCopy. }
+      and RawPixels = nil, so IsEmpty will return @true. }
     constructor Create; overload; virtual;
-    constructor Create(
-      const AWidth, AHeight: Cardinal;
-      const ADepth: Cardinal = 1); overload; virtual;
+    constructor Create(const AWidth, AHeight: Cardinal; const ADepth: Cardinal = 1); overload;
 
     { This is equivalent to SetSize(0, 0, 0).
       It sets Width = Height = 0 and RawPixels = nil. }
