@@ -7,6 +7,24 @@
       "$$ClassName" : "TCastleViewport",
       "Camera" : {
         "$$ClassName" : "TCastleCamera",
+        "InitialDirectionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -6.6432249546051025E-001,
+          "Y" : -1.1304710060358047E-001,
+          "Z" : 7.3884773254394531E-001
+        },
+        "InitialPositionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 1.3200036048889160E+001,
+          "Y" : 4.4784612655639648E+000,
+          "Z" : -1.8800390243530273E+001
+        },
+        "InitialUpPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -9.7634345293045044E-002,
+          "Y" : 9.9315142631530762E-001,
+          "Z" : 6.4170449972152710E-002
+        },
         "Name" : "Camera",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
