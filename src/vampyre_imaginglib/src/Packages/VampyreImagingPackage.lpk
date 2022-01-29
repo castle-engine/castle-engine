@@ -12,7 +12,6 @@
         <UnitOutputDirectory Value="../Bin/Dcu/$(TargetCPU)-$(TargetOS)/pkg"/>
       </SearchPaths>
       <Parsing>
-        <Style Value="1"/>
         <SyntaxOptions>
           <SyntaxMode Value="Delphi"/>
           <IncludeAssertionCode Value="True"/>
