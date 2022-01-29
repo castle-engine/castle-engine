@@ -9,7 +9,7 @@ object Form1: TForm1
   ClientWidth = 1043
   DesignTimePPI = 140
   OnCreate = FormCreate
-  Position = poDesktopCenter
+  Position = poScreenCenter
   LCLVersion = '2.0.0.4'
   object Browser: TCastleControlBase
     Left = 0
