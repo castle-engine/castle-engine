@@ -84,6 +84,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/view_3d_model_advanced/view_3d_model_advanced
 /examples/viewport_and_scenes/view_3d_model_basic/view_3d_model_basic
 /examples/viewport_and_scenes/viewport_3d_tutorial/my-new-project-3d
+/examples/viewport_and_scenes/transform_primitives/transform_primitives
 /examples/advanced_editor/advanced_loading_designs/advanced_loading_designs
 /examples/advanced_editor/custom_component/custom_component
 /examples/animations/animate_transform_by_code/animate_transform_by_code
