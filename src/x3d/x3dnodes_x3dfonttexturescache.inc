@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -107,7 +107,8 @@ begin
   Result.RepeatS := true;
   Result.RepeatT := true;
   { convert grayscale image with TreatAsAlpha to TGrayscaleAlphaImage }
-  Result.FdImage.Value := Font.Image.ToGrayscaleAlphaImage;
+  Result.FdImage.Value := TGrayscaleAlphaImage.Create;
+  Result.FdImage.Value.Assign(Font.Image);
   if Blending then
     Result.AlphaChannelField := acBlending
   else

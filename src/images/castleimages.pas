@@ -2183,9 +2183,8 @@ end;
 
 function TCastleImage.CreateCopy: TEncodedImage;
 begin
-  Result := TCastleImageClass(Self.ClassType).Create(Width, Height, Depth);
-  Move(RawPixels^, Result.RawPixels^, Size);
-  Result.FURL := URL;
+  Result := TCastleImageClass(Self.ClassType).Create;
+  TCastleImage(Result).Assign(Self);
 end;
 
 type
@@ -4639,10 +4638,11 @@ begin
             Save(Img, Stream) else
           if Img is TRGBFloatImage then
           begin
-            ImgRGB := TRGBFloatImage(Img).ToRGBImage;
+            ImgRGB := TRGBImage.Create;
             try
+              ImgRGB.Assign(TRGBFloatImage(Img));
               SaveImage(ImgRGB, Format, Stream);
-            finally ImgRGB.Free end;
+            finally FreeAndNil(ImgRGB) end;
           end else
             raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;
@@ -4657,10 +4657,11 @@ begin
             Save(Img, Stream) else
           if Img is TRGBFloatImage then
           begin
-            ImgRGB := TRGBFloatImage(Img).ToRGBImage;
+            ImgRGB := TRGBImage.Create;
             try
+              ImgRGB.Assign(TRGBFloatImage(Img));
               SaveImage(ImgRGB, Format, Stream);
-            finally ImgRGB.Free end;
+            finally FreeAndNil(ImgRGB) end;
           end else
             raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;

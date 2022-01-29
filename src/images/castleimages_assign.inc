@@ -371,6 +371,15 @@ begin
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
 
+  if Source is TGrayscaleImage then
+  begin
+    inherited;
+    { Copy additional properties. }
+    FTreatAsAlpha := TGrayscaleImage(Source).TreatAsAlpha;
+    FColorWhenTreatedAsAlpha := TGrayscaleImage(Source).ColorWhenTreatedAsAlpha;
+    FGrayscaleColorWhenTreatedAsAlpha := TGrayscaleImage(Source).GrayscaleColorWhenTreatedAsAlpha;
+  end else
+
     inherited;
 end;
 
