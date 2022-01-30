@@ -18,7 +18,10 @@ unit ImagingComponents;
 interface
 
 {$IF Defined(FPC) and Defined(LCL)}
-  {$DEFINE COMPONENT_SET_LCL}
+  { Castle Game Engine undefined -- this breaks image loading in CGE editor,
+    e.g. CGE logo.
+    TODO: investigate, submit bug or PR upstream. }
+  {.$DEFINE COMPONENT_SET_LCL}
 {$ELSEIF Defined(DELPHI)}
   {$DEFINE COMPONENT_SET_VCL}
 {$IFEND}

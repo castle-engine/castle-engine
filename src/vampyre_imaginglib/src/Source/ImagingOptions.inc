@@ -196,7 +196,10 @@
 {$IFEND}
 
 {$IFDEF FPC}
-  {$DEFINE COMPONENT_SET_LCL}
+  { Castle Game Engine undefined -- this breaks image loading in CGE editor,
+    e.g. CGE logo.
+    TODO: investigate, submit bug or PR upstream. }
+  {.$DEFINE COMPONENT_SET_LCL}
   {$UNDEF COMPONENT_SET_VCL}
 {$ENDIF}
 
