@@ -367,7 +367,7 @@ object PreferencesForm: TPreferencesForm
       Top = 474
       Width = 704
       BorderSpacing.Top = 8
-      Caption = 'In both the fields above: Choose the executable file of your editor, then add macros.'#10#10'Recognized macros:'#10'- ${PAS} - Pascal file to edit'#10'- ${STANDALONE_SOURCE} - Main program source code (lpr) for standalone platform'#10'- ${PROJECT_DIR} - Project directory'
+      Caption = 'In both the fields above: Choose the executable file of your editor, then add macros.'#10#10'Recognized macros:'#10'- ${PAS} - Pascal file to edit'#10'- ${STANDALONE_SOURCE} - Main program source code (dpr) for standalone platform'#10'- ${PROJECT_DIR} - Project directory'
       ParentColor = False
     end
     object EditCodeEditorCommand: TFileNameEdit
