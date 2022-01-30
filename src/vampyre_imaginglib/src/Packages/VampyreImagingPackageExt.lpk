@@ -92,22 +92,27 @@
       </Item14>
       <Item15>
         <Filename Value="..\Extensions\LibTiff\ImagingTiffLib.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="ImagingTiffLib"/>
       </Item15>
       <Item16>
         <Filename Value="..\Extensions\LibTiff\LibDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="LibDelphi"/>
       </Item16>
       <Item17>
         <Filename Value="..\Extensions\LibTiff\LibJpegDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="LibJpegDelphi"/>
       </Item17>
       <Item18>
         <Filename Value="..\Extensions\LibTiff\LibTiffDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="LibTiffDelphi"/>
       </Item18>
       <Item19>
         <Filename Value="..\Extensions\LibTiff\ZLibDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="ZLibDelphi"/>
       </Item19>
       <Item20>
