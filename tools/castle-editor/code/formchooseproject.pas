@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,21 +28,27 @@ uses
 type
   { Choose project (new or existing). }
   TChooseProjectForm = class(TForm)
-    ButtonPreferences: TBitBtn;
-    ButtonOpenRecent: TBitBtn;
-    ButtonNew: TBitBtn;
     ButtonOpen: TBitBtn;
+    ButtonOpenRecent: TBitBtn;
+    ButtonOpenExample: TBitBtn;
+    ButtonNew: TBitBtn;
+    ButtonPreferences: TBitBtn;
+    ButtonSupportUs: TBitBtn;
+    GroupBoxOpen: TGroupBox;
     Image1: TImage;
     Label1: TLabel;
     OpenProject: TCastleOpenDialog;
     ImageLogo: TImage;
     LabelTitle: TLabel;
+    PanelBottom: TPanel;
     PanelWarningMissingCompiler: TPanel;
     PopupMenuRecentProjects: TPopupMenu;
+    procedure ButtonOpenExampleClick(Sender: TObject);
     procedure ButtonPreferencesClick(Sender: TObject);
     procedure ButtonNewClick(Sender: TObject);
     procedure ButtonOpenClick(Sender: TObject);
     procedure ButtonOpenRecentClick(Sender: TObject);
+    procedure ButtonSupportUsClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -66,10 +72,10 @@ implementation
 
 {$R *.lfm}
 
-uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
+uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils, CastleOpenDocument,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
-  ToolCompilerInfo, ToolFpcVersion, ToolManifest,
+  ToolCompilerInfo, ToolFpcVersion, ToolManifest, ToolCommonUtils,
   FormProject, FormNewUnit;
 
 { TChooseProjectForm ------------------------------------------------------------- }
@@ -182,6 +188,17 @@ begin
   UpdateWarningMissingCompiler;
 end;
 
+procedure TChooseProjectForm.ButtonOpenExampleClick(Sender: TObject);
+begin
+  if CastleEnginePath <> '' then
+  begin
+    OpenProject.FileName := CastleEnginePath + 'examples' + PathDelim;
+  end else
+    WritelnWarning('Cannot find CGE directory');
+
+  ButtonOpenClick(nil);
+end;
+
 procedure TChooseProjectForm.ButtonOpenRecentClick(Sender: TObject);
 var
   MenuItem: TMenuItem;
@@ -213,6 +230,11 @@ begin
   end;
   PopupMenuRecentProjects.PopupComponent := ButtonOpenRecent;
   PopupMenuRecentProjects.Popup;
+end;
+
+procedure TChooseProjectForm.ButtonSupportUsClick(Sender: TObject);
+begin
+  OpenURL('https://patreon.com/castleengine/');
 end;
 
 procedure TChooseProjectForm.FormCreate(Sender: TObject);
