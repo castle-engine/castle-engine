@@ -3,6 +3,7 @@ object ChooseProjectForm: TChooseProjectForm
   Height = 670
   Top = 158
   Width = 928
+  BorderWidth = 8
   Caption = 'Choose Project | Castle Game Engine Editor'
   ClientHeight = 670
   ClientWidth = 928
@@ -19,13 +20,12 @@ object ChooseProjectForm: TChooseProjectForm
     Width = 912
     Align = alBottom
     AutoSize = True
-    BorderSpacing.Around = 8
     BevelOuter = bvNone
     ClientHeight = 80
     ClientWidth = 912
     TabOrder = 2
     object ButtonSupportUs: TBitBtn
-      Left = 728
+      Left = 736
       Height = 80
       Top = 0
       Width = 177
@@ -177,12 +177,12 @@ object ChooseProjectForm: TChooseProjectForm
       Left = 192
       Height = 60
       Top = 20
-      Width = 443
+      Width = 474
       Anchors = [akLeft, akBottom]
       AutoSize = True
       BorderSpacing.Left = 8
       ClientHeight = 60
-      ClientWidth = 443
+      ClientWidth = 474
       ParentFont = False
       TabOrder = 1
       object Image1: TImage
@@ -223,9 +223,9 @@ object ChooseProjectForm: TChooseProjectForm
         Left = 58
         Height = 44
         Top = 8
-        Width = 377
+        Width = 408
         BorderSpacing.Around = 7
-        Caption = 'Warning: Compiler (FPC or Delphi) not found.'#10'Install them, or configure in "Preferences".'
+        Caption = 'Warning: Compiler (FPC or Delphi) not found.'#10'Install a compiler and configure in "Preferences".'
         ParentFont = False
       end
     end
@@ -376,10 +376,10 @@ object ChooseProjectForm: TChooseProjectForm
     end
   end
   object ImageLogo: TImage
-    Left = 0
+    Left = 8
     Height = 256
-    Top = 0
-    Width = 928
+    Top = 8
+    Width = 912
     Align = alTop
     AutoSize = True
     Center = True
@@ -821,7 +821,7 @@ object ChooseProjectForm: TChooseProjectForm
     AnchorSideTop.Side = asrBottom
     Left = 345
     Height = 29
-    Top = 272
+    Top = 280
     Width = 239
     Align = alCustom
     Alignment = taCenter
@@ -838,7 +838,7 @@ object ChooseProjectForm: TChooseProjectForm
     AnchorSideTop.Side = asrBottom
     Left = 390
     Height = 70
-    Top = 309
+    Top = 317
     Width = 149
     AutoSize = True
     BorderSpacing.Top = 8
@@ -854,7 +854,7 @@ object ChooseProjectForm: TChooseProjectForm
     AnchorSideTop.Side = asrBottom
     Left = 205
     Height = 109
-    Top = 387
+    Top = 395
     Width = 519
     AutoSize = True
     BorderSpacing.Top = 8
