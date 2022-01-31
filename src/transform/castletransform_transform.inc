@@ -1392,7 +1392,19 @@
       const BecauseOfGravity: boolean;
       const EnableWallSliding: boolean = true): boolean;
 
-    { Translation (move) the children. Zero by default. }
+    { Translation (move) the children. Zero by default.
+
+      Note: This is a property that returns a record (TVector3 is a record).
+      If you want to change its value, make sure that you set the property using a property setter,
+      like this:
+
+      @longCode(#
+        Scene.Translation := Vector3(1, 2, 3);
+        Scene.Translation := Scene.Translation + Vector3(4, 5, 6);
+      #)
+
+      See https://castle-engine.io/coding_traps for a detailed discussion how to
+      set properties that are vectors in Pascal. }
     property Translation: TVector3 read FTranslation write SetTranslation;
 
     { Get or set the XY components of the translation.
@@ -1413,7 +1425,19 @@
       however as a special case the rotation value @code(TVector4.Zero) (so all components,
       axis and angle, are zero) is also allowed.
 
-      Rotation is done around @link(Center). }
+      Rotation is done around @link(Center).
+
+      Note: This is a property that returns a record (TVector4 is a record).
+      If you want to change its value, make sure that you set the property using a property setter,
+      like this:
+
+      @longCode(#
+        Scene.Rotation := Vector4(0, 0, 1, Pi / 10);
+        Scene.Rotation := Scene.Rotation + Vector4(0, 0, 0, Pi / 10);
+      #)
+
+      See https://castle-engine.io/coding_traps for a detailed discussion how to
+      set properties that are vectors in Pascal. }
     property Rotation: TVector4 read FRotation write SetRotation;
 
     { Scale in 3D. Scaling is done around @link(Center)
@@ -1455,7 +1479,18 @@
           If you really need to set zero scale, at least consider
           using @link(Collides) = @false.)
       )
-    }
+
+      Note: This is a property that returns a record (TVector3 is a record).
+      If you want to change its value, make sure that you set the property using a property setter,
+      like this:
+
+      @longCode(#
+        Scene.Scale := Vector3(5, 5, 5);
+        Scene.Scale := Scene.Scale * 1.5;
+      #)
+
+      See https://castle-engine.io/coding_traps for a detailed discussion how to
+      set properties that are vectors in Pascal. }
     property Scale: TVector3 read FScale write SetScale;
 
     { Orientation in which 3D @link(Scale) is performed. }
