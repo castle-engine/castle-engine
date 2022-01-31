@@ -1421,7 +1421,7 @@
       specify the rotation axis (does not need to be normalized, but must be non-zero),
       and the last component is the rotation angle @italic(in radians).
 
-      Note: the Rotation axis (first 3 components) must be non-zero,
+      Note: the Rotation axis (first 3 components) must not be a zero vector,
       however as a special case the rotation value @code(TVector4.Zero) (so all components,
       axis and angle, are zero) is also allowed.
 
