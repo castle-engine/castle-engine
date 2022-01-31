@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleVectors" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,6 +57,7 @@ type
     procedure TestRotatePointAroundAxis;
     procedure TestMakeVectorOrthogonal;
     procedure TestEpsilonInModelViewToNormalMatrix;
+    procedure TestInit;
   end;
 
 function RandomVector: TVector3;
@@ -1122,6 +1123,22 @@ NormalMatrix (ModelViewToNormalMatrix determinant 0.000100) 0.05 0.04 0.00
   );
   AssertTrue(TMatrix3.Equals(ModelViewToNormalMatrix(Mv1), Norml1Approx, 0.01));
   AssertTrue(TMatrix3.Equals(ModelViewToNormalMatrix(Mv2), Norml1Approx, 0.01));
+end;
+
+procedure TTestCastleVectors.TestInit;
+var
+  V2: TVector2;
+  V3: TVector3;
+  V4: TVector4;
+begin
+  V4.Init(1, 2, 3, 4);
+  AssertVectorEquals(Vector4(1, 2, 3, 4), V4);
+
+  V3.Init(11, 22, 33);
+  AssertVectorEquals(Vector3(11, 22, 33), V3);
+
+  V2.Init(111, 222);
+  AssertVectorEquals(Vector2(111, 222), V2);
 end;
 
 initialization

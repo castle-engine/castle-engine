@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2021 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1168,7 +1168,7 @@ begin
   Data[0] := X;
   Data[1] := Y;
   Data[2] := Z;
-  Data[3] := Z;
+  Data[3] := W;
 end;
 
 function TGenericVector4.ToString: string;
