@@ -69,7 +69,7 @@ begin
   {$endif}
   begin
     {$if defined(USE_VAMPYRE_IMAGING)} // fallback LibPng -> Vampyre
-    Save_VampyreImaging(Img, Stream, 'jpg');
+    Save_VampyreImaging(Img, Stream, 'png');
     {$elseif defined(FPC)} // fallback LibPng -> FpImage
     SavePNG_FPImage(Img, Stream);
     {$else}
