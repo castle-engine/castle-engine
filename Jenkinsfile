@@ -23,12 +23,19 @@ pipeline {
     CASTLE_ENGINE_PATH = "${WORKSPACE}"
   }
   stages {
+    stage('Cleanup') {
+      steps {
+        sh "repository_cleanup . --remove-unversioned"
+      }
+    }
+
+    /* Commands with default FPC version
+       (latest stable FPC, most of the time; see https://castle-engine.io/docker ). */
     stage('Build Tools (Default FPC)') {
       steps {
         sh 'make clean tools'
       }
     }
-
     stage('Build Examples (Default FPC)') {
       steps {
         /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
