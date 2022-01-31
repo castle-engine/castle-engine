@@ -24,7 +24,7 @@
 
     User code should not create instances of this class.
     The only way to have an instance of it, is to get a container,
-    by creating a @link(TCastleWindowBase) or @link(TCastleControlBase).
+    by creating a @link(TCastleWindow) or @link(TCastleControl).
     Then you can access @code(MyWindow.Container.Controls).
 
     User code should rarely need to use methods and properties of this class.

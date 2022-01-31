@@ -64,7 +64,7 @@ type
       @unorderedList(
         @item(When ContainerCoordinates = @true,
           then Position is relative to the whole container
-          (like TCastleWindowBase or TCastleControlBase).
+          (like TCastleWindow or TCastleControl).
 
           And it is expressed in real device coordinates,
           just like @link(TInputPressRelease.Position)
@@ -108,7 +108,7 @@ type
       @unorderedList(
         @item(When ContainerCoordinates = @true,
           the resulting rectangle is relative to the whole container
-          (like TCastleWindowBase or TCastleControlBase).
+          (like TCastleWindow or TCastleControl).
           And is expressed in real device coordinates.
 
           These are the same coordinates as expressed by @link(RenderRect)

@@ -12,7 +12,7 @@ Thanks to these classes, vectors and colors:
 - Can be saved/loaded using standard Lazarus/Delphi serialization (lfm, dfm)
   (Not yet working, a published TPersistent is not saved automatically in LFM.
   In the future, possibly we will upgrade them to TComponent,
-  or we will save a JSON serialization of TCastleControlBase.Controls in LFM,
+  or we will save a JSON serialization of TCastleControl.Controls in LFM,
   or we will figure out a way to serialize a bare TPersistent in LFM.)
 
 - Can be edited in Castle Game Engine Editor,

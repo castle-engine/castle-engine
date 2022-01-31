@@ -131,7 +131,7 @@ procedure WriteLogMultiline(const Category: string; const Message: string); depr
   we also call @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning).
   This allows to react to warnings e.g. by displaying a message dialog
   (like @code(ShowMessage) in Lazarus, or @link(MessageOK) in CastleMessages,
-  or @link(TCastleWindowBase.MessageOK)).
+  or @link(TCastleWindow.MessageOK)).
   Or by raising an exception, if you want to be strict about warnings. }
 procedure WritelnWarning(const Category: string; const Message: string); overload;
 procedure WritelnWarning(const Message: string); overload;

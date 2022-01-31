@@ -29,8 +29,8 @@ type
   TMain = class(TForm)
     ButtonLoad1: TButton;
     ButtonLoad2: TButton;
-    CastleControl2: TCastleControlBase;
-    CastleControl1: TCastleControlBase;
+    CastleControl2: TCastleControl;
+    CastleControl1: TCastleControl;
     LabelFps1: TLabel;
     LabelFps2: TLabel;
     OpenDialog: TCastleOpen3DDialog;
@@ -57,7 +57,7 @@ uses X3DLoad, CastleLCLUtils, CastleSceneCore;
 
 { TMain }
 
-{ Simple demo that two TCastleControlBase instances within the same application
+{ Simple demo that two TCastleControl instances within the same application
   work without problems, and share OpenGL resources.
   Try to open the same model (like X3D or glTF file), with same textures,
   in both controls:
@@ -65,7 +65,7 @@ uses X3DLoad, CastleLCLUtils, CastleSceneCore;
 
   Observe the FPS (Frames per second) counters of both controls.
   To test that our LimitFPS mechanism (that conserves your CPU)
-  works correctly for multiple TCastleControlBase components on a form,
+  works correctly for multiple TCastleControl components on a form,
   load a model that:
   1. Is easy to display. You will know it's an easy 3D model when
      the "only render" fps number will be very large.

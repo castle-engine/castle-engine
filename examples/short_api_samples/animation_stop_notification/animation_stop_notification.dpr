@@ -93,10 +93,10 @@ end;
 { application initialization ------------------------------------------------- }
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   StateMain: TStateMain;
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.Open;
   Application.MainWindow := Window;
 

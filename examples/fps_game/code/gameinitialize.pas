@@ -34,7 +34,7 @@ uses SysUtils, Classes,
   CastleLoadGltf, CastleSceneCore, CastleScene;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Level: TLevel;
   Player: TPlayer;
   Viewport: TCastleViewport;
@@ -77,7 +77,7 @@ begin
   inherited;
 
   { We use TCastleButton from CastleControls unit for buttons drawn using CGE.
-    If you would use Lazarus and TCastleControlBase (instead of TCastleWindowBase)
+    If you would use Lazarus and TCastleControl (instead of TCastleWindow)
     you can also consider using Lazarus standard buttons and other components
     on your form.
 
@@ -693,7 +693,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create a window. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   { Set default Window size, and parse command-line parameters
     that may also affect Window size. }
   Window.FullScreen := true; { by default we open in fullscreen }

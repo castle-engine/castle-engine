@@ -211,7 +211,7 @@ type
       DesignOwner: TComponent;
       FDesignerLayer: TDesignerLayer;
       FDesignModified: Boolean;
-      CastleControl: TCastleControlBase;
+      CastleControl: TCastleControl;
       TreeNodeMap: TTreeNodeMap;
       Mode: TMode;
       InsideToggleModeClick: Boolean;
@@ -510,7 +510,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
     end;
   end;
 
-  function MouseOverControl(const Control: TCastleControlBase): Boolean;
+  function MouseOverControl(const Control: TCastleControl): Boolean;
   var
     PosInClient: TPoint;
   begin
@@ -1063,7 +1063,7 @@ begin
   Inspector[itEvents].Filter := tkMethods;
   Inspector[itEvents].AnchorToNeighbour(akTop, 0, PanelEventsInfo);
 
-  CastleControl := TCastleControlBase.Create(Self);
+  CastleControl := TCastleControl.Create(Self);
   CastleControl.Parent := PanelMiddle;
   CastleControl.Align := alClient;
   CastleControl.OnResize := @CastleControlResize;

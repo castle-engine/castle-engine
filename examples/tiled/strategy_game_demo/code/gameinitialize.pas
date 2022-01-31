@@ -27,7 +27,7 @@ uses SysUtils,
   GameStateMainMenu, GameStatePlay, GameStateInstructions, GameStateWin;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 { routines ------------------------------------------------------------------- }
 
@@ -52,6 +52,6 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 end.

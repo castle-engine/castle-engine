@@ -9,7 +9,7 @@
 '   We only pass a size of the context (width, height),' + LineEnding +
 '   since we know that the viewport for 2D drawing is always the full context,' + LineEnding +
 '   with coordinates matching pixels.' + LineEnding +
-'   (TCastleWindowBase.EventRender even sets such projection matrix,' + LineEnding +
+'   (TCastleWindow.EventRender even sets such projection matrix,' + LineEnding +
 '   although we don''t depend on it for TDrawableImage rendering after all.)' + LineEnding +
 '   This allows us to simplify' + LineEnding +
 '     gl_Position = projection_matrix * vec4(vertex, 0.0, 1.0);' + LineEnding +

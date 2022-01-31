@@ -23,7 +23,7 @@ uses SysUtils,
   CastleViewport, CastleURIUtils;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Viewport: TCastleViewport;
   Image: TDrawableImage;
 
@@ -74,7 +74,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.Open;
 
   { Make the window invisible, as it will only be used as OpenGL context

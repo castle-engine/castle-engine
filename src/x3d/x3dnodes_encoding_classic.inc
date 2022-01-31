@@ -20,7 +20,7 @@
 const
   { File filters if you want to open a file and then
     pass it to LoadX3DClassic.
-    Suitable for TCastleWindowBase.FileDialog and such. }
+    Suitable for TCastleWindow.FileDialog and such. }
   LoadX3DClassic_FileFilters =
   'All files|*|' +
   '*VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz'

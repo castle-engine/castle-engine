@@ -1608,7 +1608,7 @@ function IsImageMimeType(const MimeType: string;
   to let him know which formats are supported (and by which extensions
   they are recognized). Although almost always a better way to show
   this to user is just to use SaveImage_FileFilters with a save dialog
-  like TCastleWindowBase.FileDialog,
+  like TCastleWindow.FileDialog,
   this shows file types in the open/save dialog,
   so it's most natural and convenient to user.
 

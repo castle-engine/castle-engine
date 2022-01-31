@@ -355,7 +355,6 @@ begin
     P.Targets.AddUnit('castlesoundmenu.pas');
     P.Targets.AddUnit('castlewindowmodes.pas');
     P.Targets.AddUnit('castlewindowprogress.pas');
-    P.Targets.AddUnit('castlewindowtouch.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'x3d');
     P.Targets.AddUnit('castleinternalarraysgenerator.pas');

@@ -22,12 +22,12 @@ type
   TFrameId = QWord;
 
   { Utility to measure frames per second, independent of actual
-    rendering API. For example, it can be easily "plugged" into TCastleWindowBase
-    (see TCastleWindowBase.Fps) or Lazarus GL control (see TCastleControlBase.Fps).
+    rendering API. For example, it can be easily "plugged" into TCastleWindow
+    (see TCastleWindow.Fps) or Lazarus GL control (see TCastleControl.Fps).
 
-    Things named "_" here are supposed to be internal to the TCastleWindowBase /
-    TCastleControlBase and such implementations. Other properties can be
-    controlled by the user of TCastleWindowBase / TCastleControlBase. }
+    Things named "_" here are supposed to be internal to the TCastleWindow /
+    TCastleControl and such implementations. Other properties can be
+    controlled by the user of TCastleWindow / TCastleControl. }
   TFramesPerSecond = class
   private
     FOnlyRenderFps: TFloatTime;
@@ -70,7 +70,7 @@ type
       This measures only time spend in @link(TCastleContainer.EventRender)
       method (and it's subordinates, like @link(TCastleUserInterface.Render),
       @link(TCastleScene.LocalRender),
-      @link(TCastleWindowBase.OnRender)).
+      @link(TCastleWindow.OnRender)).
       It does not take into account time spent on other activities,
       like "update" calls, and it doesn't take into account that frames are possibly
       not rendered all the time (when AutoRedisplay = @false).
@@ -90,8 +90,8 @@ type
       Anything can slow this down, not only long rendering,
       but also slow processing of other events (like "update" that does physics).
 
-      When @link(TCastleWindowBase.AutoRedisplay) or
-      @link(TCastleControlBase.AutoRedisplay) is @false,
+      When @link(TCastleWindow.AutoRedisplay) or
+      @link(TCastleControl.AutoRedisplay) is @false,
       this may be very low, since we may not
       render the frames all the time (we may sleep for some time,
       or perform updates without rendering).
@@ -109,8 +109,8 @@ type
 
     { Some of the frames were not rendered, because the scene and camera
       were not moving. This happens only when
-      @link(TCastleWindowBase.AutoRedisplay)
-      or @link(TCastleControlBase.AutoRedisplay) are @false,
+      @link(TCastleWindow.AutoRedisplay)
+      or @link(TCastleControl.AutoRedisplay) are @false,
       and it basically indicates that the @link(RealFps) value is not a useful
       indicator of your application speed.
 
@@ -149,10 +149,10 @@ type
     { Forces SecondsPassed for the next "update" call to be zero.
 
       This is useful if you just came back from some modal state,
-      like a modal dialog box (like TCastleWindowBase.FileDialog or modal boxes
+      like a modal dialog box (like TCastleWindow.FileDialog or modal boxes
       in CastleMessages -- they already call this method).
       SecondsPassed could be ridicoulously long in such case
-      (if our message loop is totally paused, as in TCastleWindowBase.FileDialog
+      (if our message loop is totally paused, as in TCastleWindow.FileDialog
       on Windows) or not relevant (if we do our message loop,
       but we display something entirely different, like CastleMessages).
       So it's best to pretend that SecondsPassed is 0.0,
@@ -181,7 +181,7 @@ type
       @code(TFramesPerSecond.FrameId),
       no need to have a TFramesPerSecond instance (which is usually
       accessed from TCastleContainer, like @link(TCastleContainer.Fps),
-      @link(TCastleWindowBase.Fps), @link(TCastleControlBase.Fps). }
+      @link(TCastleWindow.Fps), @link(TCastleControl.Fps). }
     class function FrameId: TFrameId;
   end;
 

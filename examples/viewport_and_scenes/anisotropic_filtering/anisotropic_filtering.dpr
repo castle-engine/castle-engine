@@ -55,14 +55,14 @@ begin
 end;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Viewport: TCastleViewport;
   Scene: TCastleScene;
   Node: TX3DRootNode;
 begin
   InitializeLog;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.Open;
 
   Viewport := TCastleViewport.Create(Application);

@@ -7,7 +7,7 @@ attribute vec2 tex_coord;
    We only pass a size of the context (width, height),
    since we know that the viewport for 2D drawing is always the full context,
    with coordinates matching pixels.
-   (TCastleWindowBase.EventRender even sets such projection matrix,
+   (TCastleWindow.EventRender even sets such projection matrix,
    although we don't depend on it for TDrawableImage rendering after all.)
    This allows us to simplify
      gl_Position = projection_matrix * vec4(vertex, 0.0, 1.0);

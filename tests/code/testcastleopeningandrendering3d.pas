@@ -28,7 +28,7 @@ type
   TTestOpeningAndRendering3D = class(TCastleTestCase)
   private
     { Available only during Test1 }
-    Window: TCastleWindowBase;
+    Window: TCastleWindow;
     SceneManager: TCastleSceneManager;
     Scene: TCastleScene;
     RecreateSceneEachTime: boolean;
@@ -144,7 +144,7 @@ procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachT
 begin
   RecreateSceneEachTime := ARecreateSceneEachTime;
 
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Scene := TCastleScene.Create(Window);
     Scene.Spatial := [ssRendering, ssDynamicCollisions];

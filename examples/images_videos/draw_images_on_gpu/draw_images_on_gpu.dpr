@@ -21,14 +21,14 @@ uses SysUtils,
   CastleFilesUtils, CastleImages, CastleRectangles, CastleVectors, CastleControls;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
   SourceImage, DestImage: TDrawableImage;
   DestImageInitial, DestImageFinal: TCastleImage;
   SourceImageControl: TCastleImageControl;
 begin
   try
-    Window := TCastleWindowBase.Create(Application);
+    Window := TCastleWindow.Create(Application);
     // uncomment these to test that viewport setting in RenderToImageBegin works
     // Window.Width := 100;
     // Window.Height := 100;

@@ -22,7 +22,7 @@ interface
 uses CastleWindow;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 implementation
 
@@ -332,7 +332,7 @@ initialization
 
   InitializeLog;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Application.MainWindow := Window;
   Application.OnInitialize := @ApplicationInitialize;

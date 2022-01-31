@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -413,7 +413,7 @@ begin
   inherited Create;
 
   if not ApplicationProperties.IsGLContextOpen then
-    raise EFramebufferError.Create('Cannot create TGLRenderToTexture when OpenGL context is not available. Do this later -- e.g. from events like TCastleControlBase.OnOpen, TCastleWindowBase.OnOpen, Application.OnInitialize, or after an explicit call to TCastleWindowBase.Open.');
+    raise EFramebufferError.Create('Cannot create TGLRenderToTexture when OpenGL context is not available. Do this later -- e.g. from events like TCastleControl.OnOpen, TCastleWindow.OnOpen, Application.OnInitialize, or after an explicit call to TCastleWindow.Open.');
 
   FTextureTarget := GL_TEXTURE_2D;
   FCompleteTextureTarget := GL_TEXTURE_2D;

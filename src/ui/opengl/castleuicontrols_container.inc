@@ -20,8 +20,8 @@
 
   { Abstract user interface container. Connects OpenGL context management
     code with Castle Game Engine controls (TCastleUserInterface, that is the basis
-    for all our 2D and 3D rendering). When you use TCastleWindowBase
-    (a window) or TCastleControlBase (Lazarus component), they provide
+    for all our 2D and 3D rendering). When you use TCastleWindow
+    (a window) or TCastleControl (Lazarus component), they provide
     you a non-abstract implementation of TCastleContainer.
 
     Basically, this class manages a @link(Controls) list.
@@ -120,7 +120,7 @@
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     { These should only be get/set by a container owner,
-      like TCastleWindowBase or TCastleControlBase.
+      like TCastleWindow or TCastleControl.
       @groupBegin }
     property OnOpen: TContainerEvent read FOnOpen write FOnOpen;
     property OnOpenObject: TContainerObjectEvent read FOnOpenObject write FOnOpenObject;
@@ -168,7 +168,7 @@
       to "fake" some event by calling these methods.
 
       Most of these methods are called automatically
-      by the container owner, like TCastleWindowBase or TCastleControlBase.
+      by the container owner, like TCastleWindow or TCastleControl.
       Some are called by @link(EventUpdate),
       which is special in this regard, as @link(EventUpdate) is not only
       responsible for calling @link(TCastleUserInterface.Update) on all @link(Controls),
@@ -407,7 +407,7 @@
       (or straight to an image file, like png).
 
       Note that only capturing from the double-buffered OpenGL
-      windows (which the default for our TCastleWindowBase and TCastleControlBase)
+      windows (which the default for our TCastleWindow and TCastleControl)
       is reliable. Internally, these methods may need to redraw the screen
       to the back buffer, because that's the only guaranteed way to capture
       OpenGL drawing (you have to capture the back buffer, before swap).
@@ -1575,7 +1575,7 @@ begin
   if Assigned(OnClose) then OnClose(Self);
 
   { call GLContextClose on controls before OnClose.
-    This may be called from Close, which may be called from TCastleWindowBase destructor,
+    This may be called from Close, which may be called from TCastleWindow destructor,
     so prepare for Controls being possibly nil now. }
   if Controls <> nil then
     for I := Controls.Count - 1 downto 0 do
@@ -1891,7 +1891,7 @@ function TCastleContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
           - Setting MousePosition sets mouse to the Middle,
             but this time no Motion is generated
           - player moved mouse to MiddleX+10. Although mouse was
-            positioned on Middle, TCastleWindowBase thinks that the mouse
+            positioned on Middle, TCastleWindow thinks that the mouse
             is still positioned on Middle-10, and I will get "+20" move
             for player (while I should get only "+10")
 
@@ -2235,7 +2235,7 @@ end;
 procedure TCastleContainer.LoadSettings(const SettingsUrl: String);
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    raise Exception.Create('Rendering context not open when calling TUIContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindowBase.OnOpen, TCastleControlBase.OnOpen');
+    raise Exception.Create('Rendering context not open when calling TUIContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindow.OnOpen, TCastleControl.OnOpen');
   SettingsLoad(Self, SettingsUrl);
 end;
 

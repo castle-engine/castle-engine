@@ -26,7 +26,7 @@ uses
 
 type
   TForm1 = class(TForm)
-    Control1: TCastleControlBase;
+    Control1: TCastleControl;
     procedure FormCreate(Sender: TObject);
   private
     Viewport: TCastleViewport;

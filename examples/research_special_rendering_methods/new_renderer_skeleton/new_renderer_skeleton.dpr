@@ -19,7 +19,7 @@
   In the future, Castle Game Engine should allow to "plug" a new renderer,
   such that the underlying renderer can be switched at runtime,
   and the public engine API stays the same.
-  So all the engine classes (like TCastleScene, TCastleViewport, TCastleWindowBase,
+  So all the engine classes (like TCastleScene, TCastleViewport, TCastleWindow,
   TCastleButton, TDrawableImage...) will work, regardless of the renderer.
 
   Also, you will then no longer need to initialize some semi-internal things

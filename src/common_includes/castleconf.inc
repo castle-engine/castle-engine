@@ -510,15 +510,6 @@
   The choice "which fields are seldom used" is purely subjective, and may change! }
 {.$define CASTLE_SLIM_NODES}
 
-{ Compatibility -------------------------------------------------------------- }
-
-{ Define deprecated CastleWindow classes.
-  These introduce dependencies on deprecated units like CastleLevels etc.
-  which can otherwise be usually avoided. }
-{$ifdef FPC}
-  {$define CASTLE_DEPRECATED_WINDOW_CLASSES}
-{$endif}
-
 { Vampyre Imaging ------------------------------------------------------------ }
 
 { Use Vampyre Imaging Library to support additional image formats.

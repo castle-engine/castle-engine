@@ -126,7 +126,7 @@
         <PackageName Value="castle_base"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="2">
       <Unit0>
         <Filename Value="castleengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -136,11 +136,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CastleWindow"/>
       </Unit1>
-      <Unit2>
-        <Filename Value="..\deprecated_units\castlewindowtouch.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="CastleWindowTouch"/>
-      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

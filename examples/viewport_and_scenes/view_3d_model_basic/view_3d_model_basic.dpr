@@ -15,7 +15,7 @@
 
 { Simplest demo of using our engine to load and render a model.
 
-  - Create TCastleWindowBase,
+  - Create TCastleWindow,
   - Create TCastleViewport (rectangular area within window to display scene),
   - Create and load TCastleScene (model loaded from file).
 
@@ -32,11 +32,11 @@ uses SysUtils,
   CastleWindow, CastleSceneCore, CastleScene, CastleViewport, CastleCameras, CastleVectors;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Viewport: TCastleViewport;
   Scene: TCastleScene;
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.Open;
 
   Viewport := TCastleViewport.Create(Application);

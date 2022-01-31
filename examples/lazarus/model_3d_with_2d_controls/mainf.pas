@@ -26,7 +26,7 @@ uses
 
 type
   TForm1 = class(TForm)
-    Browser: TCastleControlBase;
+    Browser: TCastleControl;
     procedure FormCreate(Sender: TObject);
     procedure OnScreenMenu1Click(Sender: TObject);
     procedure MainButtonClick(Sender: TObject);

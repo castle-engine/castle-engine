@@ -11,7 +11,7 @@ object Form1: TForm1
   OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '2.0.0.4'
-  object Browser: TCastleControlBase
+  object Browser: TCastleControl
     Left = 0
     Height = 624
     Top = 0

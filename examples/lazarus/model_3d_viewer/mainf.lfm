@@ -873,7 +873,7 @@ object Main: TMain
       }
     end
   end
-  object Browser: TCastleControlBase
+  object Browser: TCastleControl
     AnchorSideBottom.Control = PanelBottom
     Left = 0
     Height = 301

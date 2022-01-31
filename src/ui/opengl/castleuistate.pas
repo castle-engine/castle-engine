@@ -135,7 +135,7 @@ type
     { Container on which state works. By default, this is
       @link(TCastleApplication.MainWindow Application.MainWindow)
       if you use CastleWindow or
-      @link(TCastleControlBase.MainControl) if you use CastleControl.
+      @link(TCastleControl.MainControl) if you use CastleControl.
       When the state is current, then @link(Container) property (from
       ancestor, see TCastleUserInterface.Container) is equal to this. }
     function StateContainer: TCastleContainer; virtual;
@@ -334,8 +334,8 @@ type
       further, by UI controls under this state, in particular by UI states
       that are underneath this state in @italic(state stack) (created
       by @link(Push) method). They will also not be passed to final container
-      (TCastleWindowBase, TCastleControlBase) callbacks like
-      TCastleWindowBase.OnPress (as these callbacks are always used at the end,
+      (TCastleWindow, TCastleControl) callbacks like
+      TCastleWindow.OnPress (as these callbacks are always used at the end,
       when nothing else handled the event). }
     property InterceptInput: boolean read FInterceptInput write FInterceptInput
       default false;

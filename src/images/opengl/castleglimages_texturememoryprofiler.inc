@@ -176,7 +176,7 @@ var
   I: Integer;
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    WritelnWarning('Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TDrawableImage) too late, you should move their destruction to an event like TCastleWindowBase.OnClose or TCastleControlBase.OnGLContextClose.',
+    WritelnWarning('Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TDrawableImage) too late, you should move their destruction to an event like TCastleWindow.OnClose or TCastleControl.OnGLContextClose.',
       [TextureId]));
 
   if FEnabled then

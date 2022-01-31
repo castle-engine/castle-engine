@@ -42,7 +42,7 @@ type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Scene: TCastleScene;
   SceneLightVisualize, SceneLightVisualizeForMap: TCastleScene;
   MaterialLight, MaterialLightForMap: TUnlitMaterialNode;
@@ -371,7 +371,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
   Window.MainMenu := CreateMainMenu;
   Window.OnMenuClick := @MenuClick;

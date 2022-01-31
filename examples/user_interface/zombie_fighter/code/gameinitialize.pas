@@ -34,7 +34,7 @@ uses SysUtils, Classes, CastleControls, CastleUtils, CastleFilesUtils,
   {$endregion 'Castle Initialization Uses'};
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 procedure ApplicationInitialize;
 begin
@@ -57,6 +57,6 @@ end;
 initialization
   Application.OnInitialize := @ApplicationInitialize;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 end.

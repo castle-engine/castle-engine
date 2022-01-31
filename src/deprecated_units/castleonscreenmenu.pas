@@ -143,7 +143,7 @@ type
   { On-screen menu, with all menu items displayed on the screen,
     one under another. Often used for game "main menu" screen.
     Normal tools may prefer to use the normal menu bar
-    (@link(TCastleWindowBase.MainMenu), or normal Lazarus main menu)
+    (@link(TCastleWindow.MainMenu), or normal Lazarus main menu)
     instead of this.
 
     Each clickable menu item should be a TCastleOnScreenMenuItem descendant,

@@ -53,7 +53,7 @@ var
 
   Returns @nil if OnMainContainer not assigned (possible if you don't use
   CastleWindow or CastleControl), or OnMainContainer returns @nil
-  (possible if you don't set Application.MainWindow or TCastleControlBase.MainControl).
+  (possible if you don't set Application.MainWindow or TCastleControl.MainControl).
 
   @exclude }
 function GetMainContainer: TCastleContainer;

@@ -29,7 +29,7 @@ uses SysUtils, Math,
   CastleUIControls, CastleRectangles;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
   Video: TVideo;
   GLVideo: TGLVideo2D;
@@ -307,7 +307,7 @@ end;
 begin
   LoadAnimatedGifs := true;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   try
     Application.MainWindow := Window;

@@ -52,8 +52,8 @@ uses Classes, SysUtils,
       IndirectDependencyCheck('castlescript', 'transform') or
       IndirectDependencyCheck('x3d', 'pasgltf') or
       IndirectDependencyCheck('x3d', 'castlescript') or
-      IndirectDependencyCheck('window', 'x3d') or
-      IndirectDependencyCheck('lcl', 'x3d');
+      IndirectDependencyCheck('window', 'ui') or
+      IndirectDependencyCheck('lcl', 'ui');
   end;
 
 var

@@ -30,7 +30,7 @@
 
     { Image displayed when the application is initializing,
       during @link(TCastleApplication.OnInitialize Application.OnInitialize)
-      and @link(TCastleWindowBase.OnOpen Window.OnOpen).
+      and @link(TCastleWindow.OnOpen Window.OnOpen).
       And @link(TCastleUserInterface.GLContextOpen) for all initially present UI controls.
       This "loading image" is loaded and displayed first,
       so that user does not see a black screen while the resources are prepared.
@@ -158,7 +158,7 @@
       This is internally set and unset by the CastleWindow exception handler
       (you should not modify this yourself).
       It allows to request "fallback" drawing for
-      @link(TCastleWindowBase.MessageOK) and friends,
+      @link(TCastleWindow.MessageOK) and friends,
       or modal states by @link(TGLModeFrozenScreen).
 
       This means:

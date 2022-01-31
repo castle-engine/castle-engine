@@ -159,11 +159,11 @@ const
   'X3D classic (compressed) (*.x3dvz, *.x3dv.gz)|*.x3dvz;*.x3dv.gz';
 
 { File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
-  Suitable for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
+  Suitable for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
 function LoadScene_FileFilters: String;
 
 { File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
-  Suitable for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
+  Suitable for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
 function Load3D_FileFilters: String; deprecated 'use LoadScene_FileFilters';
 
 { Load various model formats as animation expressed by VRML/X3D sequence.
@@ -192,7 +192,7 @@ procedure Load3DSequence(
   out TimeLoop, TimeBackwards: boolean); deprecated 'use LoadNode instead of Load3DSequence';
 
 { File filters for files loaded by Load3DSequence, suitable
-  for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
+  for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
 function Load3DSequence_FileFilters: String; deprecated 'use LoadScene_FileFilters, and use LoadNode instead of Load3DSequence';
 
 const

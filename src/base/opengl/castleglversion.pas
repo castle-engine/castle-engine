@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,7 +16,7 @@
 { Checking OpenGL version, vendors and such (GLVersion).
   These should be initialized by calling GLInformationInitialize,
   which is done automatically when opening OpenGL context using
-  TCastleWindowBase or TCastleControlBase.
+  TCastleWindow or TCastleControl.
 }
 unit CastleGLVersion;
 

@@ -90,7 +90,7 @@ end;
 
 procedure TMainForm.Timer1Timer(Sender: TObject);
 begin
-  { When application doesn't use any TCastleWindowBase or TCastleControlBase,
+  { When application doesn't use any TCastleWindow or TCastleControl,
     this must be called manually to update some CGE state,
     e.g. detect unused sounds. }
   ApplicationProperties._Update;

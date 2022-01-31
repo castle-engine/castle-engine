@@ -998,7 +998,7 @@ begin
   if DoProgress then Progress.Init(PrepareCoreSteps, 'Loading ' + Name);
   try
     { It's important to do ReleaseCore after Progress.Init.
-      That is because Progress.Init may do TCastleWindowBase.SaveScreenToDisplayList,
+      That is because Progress.Init may do TCastleWindow.SaveScreenToDisplayList,
       and this may call Window.OnRender, and this may want to redraw
       the object (e.g. if creature of given resource already exists
       on the screen) and this requires Prepare to be already done.

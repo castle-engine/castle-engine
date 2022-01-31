@@ -751,7 +751,7 @@ type
       @unorderedList(
         @item(When ContainerCoordinates = @true,
           then Position is relative to the whole container
-          (like TCastleWindowBase or TCastleControlBase).
+          (like TCastleWindow or TCastleControl).
 
           And it is expressed in real device coordinates,
           just like @link(TInputPressRelease.Position)
@@ -784,7 +784,7 @@ type
       @unorderedList(
         @item(When ContainerCoordinates = @true,
           then Position is relative to the whole container
-          (like TCastleWindowBase or TCastleControlBase).
+          (like TCastleWindow or TCastleControl).
 
           And it is expressed in real device coordinates,
           just like @link(TInputPressRelease.Position)
@@ -821,7 +821,7 @@ type
       @unorderedList(
         @item(When ContainerCoordinates = @true,
           then Position is relative to the whole container
-          (like TCastleWindowBase or TCastleControlBase).
+          (like TCastleWindow or TCastleControl).
 
           And it is expressed in real device coordinates,
           just like @link(TInputPressRelease.Position)
@@ -860,7 +860,7 @@ type
       @unorderedList(
         @item(When ContainerCoordinates = @true,
           then Position is relative to the whole container
-          (like TCastleWindowBase or TCastleControlBase).
+          (like TCastleWindow or TCastleControl).
 
           And it is expressed in real device coordinates,
           just like @link(TInputPressRelease.Position)
@@ -1462,8 +1462,8 @@ begin
     pointer.
 
     And when Viewport is freed it sends a free notification
-    (this is also done in "inherited" destructor) to TCastleWindowBase instance,
-    which causes removing us from TCastleWindowBase.Controls list,
+    (this is also done in "inherited" destructor) to TCastleWindow instance,
+    which causes removing us from TCastleWindow.Controls list,
     which causes SetContainer(nil) call that tries to access Navigation.
 
     This scenario would cause segfault, as FNavigation pointer is invalid
@@ -3342,8 +3342,8 @@ begin
     raise Exception.Create('PrepareResources can only be called when rendering context is initialized.' + NL +
       'Various events and virtual methods can be used to wait for the context:' + NL +
       '- (if you use CastleWindow) Application.OnInitialize' + NL +
-      '- (if you use CastleWindow) TCastleWindowBase.OnOpen' + NL +
-      '- (if you use LCL CastleControl) TCastleControlBase.OnOpen' + NL +
+      '- (if you use CastleWindow) TCastleWindow.OnOpen' + NL +
+      '- (if you use LCL CastleControl) TCastleControl.OnOpen' + NL +
       '- TCastleUserInterface.GLContextOpen'
     );
 

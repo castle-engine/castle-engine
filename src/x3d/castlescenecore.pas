@@ -1628,7 +1628,7 @@ type
       See @link(Time) for details what is affected by this.
 
       This is automatically taken care of if you added this scene
-      to TCastleWindowBase.Controls or TCastleControlBase.Controls.
+      to TCastleWindow.Controls or TCastleControl.Controls.
       Then our @link(Update) takes care of doing the job,
       according to TimePlaying and TimePlayingSpeed.
 
@@ -2227,7 +2227,7 @@ type
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
       Our @link(Update) is usually automatically called (if you added this
-      scene to TCastleWindowBase.Controls or TCastleControlBase.Controls)
+      scene to TCastleWindow.Controls or TCastleControl.Controls)
       so you don't have to do anything to make this work. }
     property TimePlaying: boolean read FTimePlaying write FTimePlaying default true;
 

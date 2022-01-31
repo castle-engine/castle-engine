@@ -48,7 +48,7 @@
   redraw the screen to the back buffer, and call this function to capture
   back buffer @italic(before) swapping, since this is the only reliable
   way to capture OpenGL screen.
-  Just use TCastleWindowBase.SaveScreen to do it automatically.
+  Just use TCastleWindow.SaveScreen to do it automatically.
 
   Version with ImageClass can save to any image format from PixelsImageClasses.
 

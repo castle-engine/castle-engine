@@ -25,7 +25,7 @@ type
 const
   { Supported font file formats.
     Use these filters with LCL file dialog (easily set by FileFiltersToDialog)
-    or TCastleWindowBase.FileDialog. }
+    or TCastleWindow.FileDialog. }
   LoadFont_FileFilters =
   'All Files|*|' +
   '*All Font Files|*.ttf;*.otf|' +

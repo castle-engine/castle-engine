@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,8 +24,8 @@
   { Image that can be drawn.
     This image can be drawn in various rendering methods and events,
     e.g. inside overridden @link(TCastleUserInterface.Render) or from events
-    @link(TCastleWindowBase.OnRender) or
-    @link(TCastleControlBase.OnRender).
+    @link(TCastleWindow.OnRender) or
+    @link(TCastleControl.OnRender).
 
     See the manual about drawing using TDrawableImage:
     https://castle-engine.io/manual_2d_ui_custom_drawn.php .
@@ -505,8 +505,8 @@
       the image contents from @link(TEncodedImage) to GPU, which is not something
       you want to do every frame. Doing this occasionally,
       or during the loading/preparation stage, is OK.
-      Doing this often, e.g. during every @link(TCastleWindowBase.OnRender)
-      or @link(TCastleWindowBase.OnUpdate), will hurt your performance.
+      Doing this often, e.g. during every @link(TCastleWindow.OnRender)
+      or @link(TCastleWindow.OnUpdate), will hurt your performance.
       During the game, it's most efficient to treat the @link(TDrawableImage) instances
       as "constant" -- avoid changing their contents, avoid creating new ones. }
     procedure Load(const AImage: TEncodedImage); virtual;

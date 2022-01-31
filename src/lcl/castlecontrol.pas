@@ -21,21 +21,13 @@ unit CastleControl;
 
 interface
 
-{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-{$warnings off} // CastleControl is using deprecated CastleLevels in this case, see https://castle-engine.io/wp/2021/12/27/tcastlewindow-scenemanager-removal-of-a-deprecated-property-soon/
-{$endif}
-
 uses
   Classes, SysUtils,
   StdCtrls, OpenGLContext, Controls, Forms, LCLVersion, LCLType,
   CastleRectangles, CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils,
-  CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
-  CastleImages, CastleGLVersion, CastleLCLUtils, CastleViewport,
-  CastleGLImages, Castle2DSceneManager, CastleApplicationProperties;
-
-{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-{$warnings on}
-{$endif}
+  CastleUIControls,
+  CastleImages, CastleGLVersion, CastleLCLUtils,
+  CastleGLImages, CastleApplicationProperties;
 
 { Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
   (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
@@ -70,22 +62,22 @@ type
     By default, the control is filled with simple color from
     @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
 
-    This control is an alternative to rendering things using TCastleWindowBase.
-    Note that you cannot use both TCastleControlBase and TCastleWindowBase
+    This control is an alternative to rendering things using TCastleWindow.
+    Note that you cannot use both TCastleControl and TCastleWindow
     within the same application. }
-  TCastleControlBase = class(TCustomOpenGLControl)
+  TCastleControl = class(TCustomOpenGLControl)
   strict private
     type
       { Non-abstract implementation of TCastleContainer that cooperates with
-        TCastleControlBase. }
+        TCastleControl. }
       TContainer = class(TCastleContainer)
       private
-        Parent: TCastleControlBase;
+        Parent: TCastleControl;
       protected
         function GetMousePosition: TVector2; override;
         procedure SetMousePosition(const Value: TVector2); override;
       public
-        constructor Create(AParent: TCastleControlBase); reintroduce;
+        constructor Create(AParent: TCastleControl); reintroduce;
         procedure Invalidate; override;
         function GLInitialized: boolean; override;
         function Width: Integer; override;
@@ -231,7 +223,7 @@ type
     class var
       { Central control where user-interface states (TUIState) are added.
         You do not need to set this if you don't use TUIState. }
-      MainControl: TCastleControlBase;
+      MainControl: TCastleControl;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -456,7 +448,7 @@ type
       Note: As we need to continuously call the "update" event (to update animations
       and more), we listen on the Lazarus Application "idle" event,
       and tell it that we're never "done" with our work.
-      We do this only when at least one instance of TCastleControlBase
+      We do this only when at least one instance of TCastleControl
       is created, and never at design-time.
       This means that your own "idle" events (registered through LCL
       TApplicationProperties.OnIdle or Application.AddOnIdleHandler)
@@ -492,126 +484,13 @@ type
       default true;
   end;
 
-  TCastleControlCustom = TCastleControlBase deprecated 'use TCastleControlBase';
+  TCastleControlCustom = TCastleControl deprecated 'use TCastleControl';
 
-  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-
-  { Same as TGameSceneManager, redefined only to work as a sub-component
-    of TCastleControl, otherwise Lazarus fails to update the uses clause
-    correctly and you cannot edit the events of CastleControl1.SceneManager
-    subcomponent.
-    @exclude Internal }
-  TControlGameSceneManager = class(TGameSceneManager)
-  end;
-
-  { Control to render everything (3D or 2D) with Castle Game Engine,
-    with a default @link(TCastleSceneManager) instance already created for you.
-    Add your
-    game stuff (descending from @link(TCastleTransform), like @link(TCastleScene))
-    to the scene manager
-    available in @link(SceneManager) property. Add the rest (like 2D user-inteface)
-    to the @link(TCastleControlBase.Controls) property (from ancestor TCastleControlBase).
-
-    You can directly access the @link(SceneManager) and configure it however you like.
-
-    You have comfortable @link(Load) method that simply loads a single model
-    to your world.
-
-    Note that if you don't plan to use the default @link(SceneManager)
-    instance, then you should better create @link(TCastleControlBase) instead
-    of this class.
-
-    @deprecated This is deprecated, as such "control with default scene manager"
-    is an unnecessary API complication. Use instead TCastleControlBase
-    and just add there a TCastleViewport with FullSize = true, it is trivial. }
-  TCastleControl = class(TCastleControlBase)
-  private
-    FSceneManager: TControlGameSceneManager;
-
-    function GetShadowVolumes: boolean;
-    function GetShadowVolumesRender: boolean;
-    function GetOnCameraChanged: TNotifyEvent;
-    procedure SetShadowVolumes(const Value: boolean);
-    procedure SetShadowVolumesRender(const Value: boolean);
-    procedure SetOnCameraChanged(const Value: TNotifyEvent);
-  public
-    constructor Create(AOwner: TComponent); override;
-
-    { Load a single 3D model to your world
-      (removing other models, and resetting the camera).
-
-      This is nice for simple 3D model browsers, but usually for games you
-      don't want to use this method --- it's more flexible to create TCastleScene
-      yourself, and add it to scene manager yourself, see engine examples like
-      scene_manager_basic.lpr. }
-    procedure Load(const SceneURL: string);
-      deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
-    procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
-      deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
-
-    function MainScene: TCastleScene;
-    function Camera: TCastleCamera; deprecated 'use SceneManger.Camera or SceneManger.Navigation';
-  published
-    property SceneManager: TControlGameSceneManager read FSceneManager;
-
-    property OnCameraChanged: TNotifyEvent
-      read GetOnCameraChanged write SetOnCameraChanged;
-
-    { See @link(TCastleViewport.ShadowVolumes). }
-    property ShadowVolumes: boolean
-      read GetShadowVolumes write SetShadowVolumes
-      default TCastleViewport.DefaultShadowVolumes;
-
-    { See @link(TCastleViewport.ShadowVolumesRender). }
-    property ShadowVolumesRender: boolean
-      read GetShadowVolumesRender write SetShadowVolumesRender default false;
-  end deprecated 'use TCastleControlBase and create instance of TCastleViewport explicitly';
-
-  {$else}
-
-  { In the future, TCastleControlBase should be renamed to just TCastleControl.
-    The "Base" suffix is just a temporary measure, as we transition from older
-    TCastleControl with predefined SceneManager. }
-  TCastleControl = TCastleControlBase;
-
-  {$endif}
-
-  { Same as TCastle2DSceneManager, redefined only to work as a sub-component
-    of TCastleControl, otherwise Lazarus fails to update the uses clause
-    correctly and you cannot edit the events of CastleControl1.SceneManager
-    subcomponent.
-    @exclude Internal }
-  TControl2DSceneManager = class(TCastle2DSceneManager)
-  end;
-
-  { Control to render 2D games with Castle Game Engine,
-    with a default @code(TCastle2DSceneManager) instance already created for you.
-    This is the simplest way to render a game world with 2D controls above.
-    Add your
-    game stuff (like @code(TCastle2DScene))
-    to the scene manager
-    available in @link(SceneManager) property. Add the rest (like 2D user-inteface)
-    to the @link(TCastleControlBase.Controls) property (from ancestor TCastleControlBase).
-
-    You can directly access the @link(SceneManager) and configure it however you like.
-
-    Note that if you don't plan to use the default @link(SceneManager)
-    instance, then you should better create @link(TCastleControlBase) instead
-    of this class.
-
-    The difference between this and @link(TCastleControl) is that this provides
-    a scene manager descending from @code(TCastle2DSceneManager), which is a little more
-    comfortable for typical 2D games. See @code(TCastle2DSceneManager) description
-    for details. But in principle, you can use any of these control classes
-    to develop any mix of 3D or 2D game. }
-  TCastle2DControl = class(TCastleControlBase)
-  private
-    FSceneManager: TControl2DSceneManager;
-  public
-    constructor Create(AOwner: TComponent); override;
-  published
-    property SceneManager: TControl2DSceneManager read FSceneManager;
-  end deprecated 'use TCastleControlBase and create instance of TCastleViewport explicitly';
+  { Note: we need this deprecated class to be a separate class,
+    not just an alias for TCastleControl,
+    to be able to register it using RegisterNoIcon,
+    to support in old projects. }
+  TCastleControlBase = class (TCastleControl) end deprecated 'use TCastleControl';
 
 procedure Register;
 
@@ -624,8 +503,7 @@ property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
 implementation
 
 uses Math, Contnrs, LazUTF8, Clipbrd,
-  CastleGLUtils, CastleStringUtils, X3DLoad, CastleLog,
-  CastleControls, CastleRenderContext;
+  CastleControls, CastleGLUtils, CastleStringUtils, CastleLog, CastleRenderContext;
 
 // TODO: We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
@@ -637,13 +515,12 @@ uses Math, Contnrs, LazUTF8, Clipbrd,
 procedure Register;
 begin
   RegisterComponents('Castle', [
-    TCastleControlBase
+    TCastleControl
   ]);
   // register deprecated components in a way that they can be serialized, but are not visible on LCL palette
   RegisterNoIcon([
     {$warnings off}
-    TCastleControl,
-    TCastle2DControl
+    TCastleControlBase
     {$warnings on}
   ]);
 end;
@@ -720,7 +597,7 @@ type
 class procedure TCastleApplicationIdle.ApplicationIdle(Sender: TObject; var Done: Boolean);
 var
   I: Integer;
-  C: TCastleControlBase;
+  C: TCastleControl;
 begin
   { This should never be registered in design mode, to not conflict
     (by DoLimitFPS, or Done setting) with using Lazarus IDE. }
@@ -729,7 +606,7 @@ begin
   { Call DoUpdate for all TCastleControl instances. }
   for I := 0 to ControlsList.Count - 1 do
   begin
-    C := ControlsList[I] as TCastleControlBase;
+    C := ControlsList[I] as TCastleControl;
     C.DoUpdate;
   end;
   ApplicationProperties._Update;
@@ -750,7 +627,7 @@ begin
     (other TApplicationProperties.OnIdle) from working.
     See TApplication.Idle and TApplication.NotifyIdleHandler implementation
     in lcl/include/application.inc .
-    To at least allow all TCastleControlBase work, we use a central
+    To at least allow all TCastleControl work, we use a central
     ApplicationIdle callback (we don't use separate TApplicationProperties
     for each TCastleControl; in fact, we don't need TApplicationProperties
     at all). }
@@ -761,45 +638,45 @@ end;
 var
   ApplicationIdleSet: boolean;
 
-{ TCastleControlBase.TContainer ----------------------------------------------------- }
+{ TCastleControl.TContainer ----------------------------------------------------- }
 
-constructor TCastleControlBase.TContainer.Create(AParent: TCastleControlBase);
+constructor TCastleControl.TContainer.Create(AParent: TCastleControl);
 begin
   inherited Create(AParent); // AParent must be a component Owner to show published properties of container in LFM
   Parent := AParent;
 end;
 
-procedure TCastleControlBase.TContainer.Invalidate;
+procedure TCastleControl.TContainer.Invalidate;
 begin
   Parent.Invalidate;
 end;
 
-function TCastleControlBase.TContainer.GLInitialized: boolean;
+function TCastleControl.TContainer.GLInitialized: boolean;
 begin
   Result := Parent.GLInitialized;
 end;
 
-function TCastleControlBase.TContainer.Width: Integer;
+function TCastleControl.TContainer.Width: Integer;
 begin
   Result := Parent.Width;
 end;
 
-function TCastleControlBase.TContainer.Height: Integer;
+function TCastleControl.TContainer.Height: Integer;
 begin
   Result := Parent.Height;
 end;
 
-function TCastleControlBase.TContainer.GetMousePosition: TVector2;
+function TCastleControl.TContainer.GetMousePosition: TVector2;
 begin
   Result := Parent.MousePosition;
 end;
 
-procedure TCastleControlBase.TContainer.SetMousePosition(const Value: TVector2);
+procedure TCastleControl.TContainer.SetMousePosition(const Value: TVector2);
 begin
   Parent.MousePosition := Value;
 end;
 
-procedure TCastleControlBase.TContainer.SetInternalCursor(const Value: TMouseCursor);
+procedure TCastleControl.TContainer.SetInternalCursor(const Value: TMouseCursor);
 var
   NewCursor: TCursor;
 begin
@@ -813,7 +690,7 @@ begin
     Parent.Cursor := NewCursor;
 end;
 
-function TCastleControlBase.TContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
+function TCastleControl.TContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
   if Parent.MakeCurrent then
   begin
@@ -823,26 +700,26 @@ begin
   Result := SaveScreen_NoFlush(Rect, Parent.SaveScreenBuffer);
 end;
 
-function TCastleControlBase.TContainer.Dpi: Single;
+function TCastleControl.TContainer.Dpi: Single;
 begin
   Result := Screen.PixelsPerInch;
 end;
 
-procedure TCastleControlBase.TContainer.EventOpen(const OpenWindowsCount: Cardinal);
+procedure TCastleControl.TContainer.EventOpen(const OpenWindowsCount: Cardinal);
 begin
   inherited;
   if Assigned(Parent.FOnOpen) then
     Parent.FOnOpen(Parent);
 end;
 
-procedure TCastleControlBase.TContainer.EventClose(const OpenWindowsCount: Cardinal);
+procedure TCastleControl.TContainer.EventClose(const OpenWindowsCount: Cardinal);
 begin
   if Assigned(Parent.FOnClose) then
     Parent.FOnClose(Parent);
   inherited;
 end;
 
-function TCastleControlBase.TContainer.EventPress(const Event: TInputPressRelease): boolean;
+function TCastleControl.TContainer.EventPress(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   if (not Result) and Assigned(Parent.FOnPress) then
@@ -852,7 +729,7 @@ begin
   end;
 end;
 
-function TCastleControlBase.TContainer.EventRelease(const Event: TInputPressRelease): boolean;
+function TCastleControl.TContainer.EventRelease(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   if (not Result) and Assigned(Parent.FOnRelease) then
@@ -862,44 +739,44 @@ begin
   end;
 end;
 
-procedure TCastleControlBase.TContainer.EventUpdate;
+procedure TCastleControl.TContainer.EventUpdate;
 begin
   inherited;
   if Assigned(Parent.FOnUpdate) then
     Parent.FOnUpdate(Parent);
 end;
 
-procedure TCastleControlBase.TContainer.EventMotion(const Event: TInputMotion);
+procedure TCastleControl.TContainer.EventMotion(const Event: TInputMotion);
 begin
   inherited;
   if Assigned(Parent.FOnMotion) then
     Parent.FOnMotion(Parent, Event);
 end;
 
-procedure TCastleControlBase.TContainer.EventBeforeRender;
+procedure TCastleControl.TContainer.EventBeforeRender;
 begin
   inherited;
   if Assigned(Parent.FOnBeforeRender) then
     Parent.FOnBeforeRender(Parent);
 end;
 
-procedure TCastleControlBase.TContainer.EventRender;
+procedure TCastleControl.TContainer.EventRender;
 begin
   inherited;
   if Assigned(Parent.FOnRender) then
     Parent.FOnRender(Parent);
 end;
 
-procedure TCastleControlBase.TContainer.EventResize;
+procedure TCastleControl.TContainer.EventResize;
 begin
   inherited;
   if Assigned(Parent.FOnResize) then
     Parent.FOnResize(Parent);
 end;
 
-{ TCastleControlBase -------------------------------------------------- }
+{ TCastleControl -------------------------------------------------- }
 
-constructor TCastleControlBase.Create(AOwner: TComponent);
+constructor TCastleControl.Create(AOwner: TComponent);
 begin
   inherited;
   TabStop := true;
@@ -915,7 +792,7 @@ begin
   FContainer.Name := 'Container';
 
   if ControlsList.Count <> 0 then
-    SharedControl := ControlsList[0] as TCastleControlBase;
+    SharedControl := ControlsList[0] as TCastleControl;
   ControlsList.Add(Self);
 
   Invalidated := false;
@@ -927,7 +804,7 @@ begin
   end;
 end;
 
-destructor TCastleControlBase.Destroy;
+destructor TCastleControl.Destroy;
 begin
   if ApplicationIdleSet and
      (ControlsList <> nil) and
@@ -949,7 +826,7 @@ begin
   inherited;
 end;
 
-procedure TCastleControlBase.SetAutoRedisplay(const Value: boolean);
+procedure TCastleControl.SetAutoRedisplay(const Value: boolean);
 begin
   FAutoRedisplay := value;
   if Value then Invalidate;
@@ -957,9 +834,9 @@ end;
 
 { Initial idea was to do
 
-procedure TCastleControlBase.CreateHandle;
+procedure TCastleControl.CreateHandle;
 begin
-  Writeln('TCastleControlBase.CreateHandle ', GLInitialized,
+  Writeln('TCastleControl.CreateHandle ', GLInitialized,
     ' ', OnGLContextOpen <> nil);
   inherited CreateHandle;
   if not GLInitialized then
@@ -967,7 +844,7 @@ begin
     GLInitialized := true;
     Container.EventOpen;
   end;
-  Writeln('TCastleControlBase.CreateHandle end');
+  Writeln('TCastleControl.CreateHandle end');
 end;
 
 Reasoning: looking at implementation of OpenGLContext,
@@ -982,7 +859,7 @@ OpenGL context. Looking at implementation of GLGtkGlxContext
 we see that only during MakeCurrent the widget is guaranteed
 to be realized. }
 
-function TCastleControlBase.MakeCurrent(SaveOldToStack: boolean): boolean;
+function TCastleControl.MakeCurrent(SaveOldToStack: boolean): boolean;
 begin
   Result := inherited MakeCurrent(SaveOldToStack);
 
@@ -1001,7 +878,7 @@ begin
   end;
 end;
 
-procedure TCastleControlBase.DestroyHandle;
+procedure TCastleControl.DestroyHandle;
 begin
   if GLInitialized then
   begin
@@ -1012,7 +889,7 @@ begin
   inherited DestroyHandle;
 end;
 
-procedure TCastleControlBase.Resize;
+procedure TCastleControl.Resize;
 begin
   inherited;
 
@@ -1022,26 +899,26 @@ begin
     Container.EventResize;
 end;
 
-procedure TCastleControlBase.Invalidate;
+procedure TCastleControl.Invalidate;
 begin
   Invalidated := true;
   inherited;
 end;
 
-procedure TCastleControlBase.ReleaseAllKeysAndMouse;
+procedure TCastleControl.ReleaseAllKeysAndMouse;
 begin
   Pressed.Clear;
   Container.MousePressed := [];
 end;
 
-procedure TCastleControlBase.UpdateShiftState(const Shift: TShiftState);
+procedure TCastleControl.UpdateShiftState(const Shift: TShiftState);
 begin
   Pressed.Keys[keyShift] := ssShift in Shift;
   Pressed.Keys[keyAlt  ] := ssAlt   in Shift;
   Pressed.Keys[keyCtrl ] := ssCtrl  in Shift;
 end;
 
-procedure TCastleControlBase.KeyPressHandlerPress(Sender: TObject;
+procedure TCastleControl.KeyPressHandlerPress(Sender: TObject;
   const Event: TInputPressRelease);
 var
   NewEvent: TInputPressRelease;
@@ -1067,15 +944,15 @@ begin
   { The result of "Container.EventPress" (whether the key was handled)
     is for now not used anywhere.
     Passing it back to LCL is not possible, since we do not process keys
-    directly in TCastleControlBase.KeyDown, we wait for a matching
+    directly in TCastleControl.KeyDown, we wait for a matching
     UTFKeyPress. }
 end;
 
-procedure TCastleControlBase.KeyDown(var Key: Word; Shift: TShiftState);
+procedure TCastleControl.KeyDown(var Key: Word; Shift: TShiftState);
 begin
   { Do this before EventPress
     (would be nice to also do it after Pressed.KeyDown inside
-    TCastleControlBase.KeyPressHandlerPress, but ignore for now) }
+    TCastleControl.KeyPressHandlerPress, but ignore for now) }
   UpdateShiftState(Shift);
 
   inherited KeyDown(Key, Shift); { LCL OnKeyDown before our callbacks }
@@ -1093,13 +970,13 @@ begin
     Key := 0;
 end;
 
-procedure TCastleControlBase.UTF8KeyPress(var UTF8Key: TUTF8Char);
+procedure TCastleControl.UTF8KeyPress(var UTF8Key: TUTF8Char);
 begin
   inherited UTF8KeyPress(UTF8Key); { LCL OnUTF8KeyPress before our callbacks }
   FKeyPressHandler.UTF8KeyPress(UTF8Key);
 end;
 
-procedure TCastleControlBase.KeyUp(var Key: Word; Shift: TShiftState);
+procedure TCastleControl.KeyUp(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   MyKeyString: String;
@@ -1129,7 +1006,7 @@ begin
       Key := 0; // handled
 end;
 
-procedure TCastleControlBase.MouseDown(Button: Controls.TMouseButton;
+procedure TCastleControl.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: TCastleMouseButton;
@@ -1148,7 +1025,7 @@ begin
       ModifiersDown(Container.Pressed)));
 end;
 
-procedure TCastleControlBase.MouseUp(Button: Controls.TMouseButton;
+procedure TCastleControl.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: TCastleMouseButton;
@@ -1166,7 +1043,7 @@ begin
     Container.EventRelease(InputMouseButton(MousePosition, MyButton, 0));
 end;
 
-procedure TCastleControlBase.AggressiveUpdate;
+procedure TCastleControl.AggressiveUpdate;
 const
   MaxDesiredFPS = TCastleApplicationProperties.DefaultLimitFPS;
 var
@@ -1183,7 +1060,7 @@ begin
   end;
 end;
 
-procedure TCastleControlBase.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
+procedure TCastleControl.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
 begin
   { check GLInitialized, because it seems it can be called before GL context
     is created (on Windows) or after it's destroyed (sometimes on Linux).
@@ -1204,7 +1081,7 @@ begin
   inherited MouseMove(Shift, NewX, NewY);
 end;
 
-function TCastleControlBase.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
+function TCastleControl.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
   MousePos: TPoint): Boolean;
 begin
   Result := Container.EventPress(InputMouseWheel(MousePosition, WheelDelta/120, true,
@@ -1215,20 +1092,20 @@ begin
   Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
 end;
 
-procedure TCastleControlBase.DoUpdate;
+procedure TCastleControl.DoUpdate;
 begin
   if AutoRedisplay then Invalidate;
   FKeyPressHandler.Flush; // finish any pending key presses
   Container.EventUpdate;
 end;
 
-procedure TCastleControlBase.DoExit;
+procedure TCastleControl.DoExit;
 begin
   inherited;
   ReleaseAllKeysAndMouse;
 end;
 
-procedure TCastleControlBase.Paint;
+procedure TCastleControl.Paint;
 begin
   { Note that we don't call here inherited, instead doing everything ourselves. }
   if MakeCurrent then
@@ -1250,29 +1127,29 @@ begin
   end;
 end;
 
-function TCastleControlBase.SaveScreenBuffer: TColorBuffer;
+function TCastleControl.SaveScreenBuffer: TColorBuffer;
 begin
   if DoubleBuffered then
     Result := cbBack else
     Result := cbFront;
 end;
 
-procedure TCastleControlBase.SaveScreen(const URL: string);
+procedure TCastleControl.SaveScreen(const URL: string);
 begin
   Container.SaveScreen(URL);
 end;
 
-function TCastleControlBase.SaveScreen: TRGBImage;
+function TCastleControl.SaveScreen: TRGBImage;
 begin
   Result := Container.SaveScreen;
 end;
 
-function TCastleControlBase.SaveScreen(const SaveRect: TRectangle): TRGBImage;
+function TCastleControl.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
   Result := Container.SaveScreen(SaveRect);
 end;
 
-procedure TCastleControlBase.SetMousePosition(const Value: TVector2);
+procedure TCastleControl.SetMousePosition(const Value: TVector2);
 var
   NewCursorPos: TPoint;
 begin
@@ -1285,144 +1162,37 @@ begin
     Mouse.CursorPos := NewCursorPos;
 end;
 
-function TCastleControlBase.MousePressed: TCastleMouseButtons;
+function TCastleControl.MousePressed: TCastleMouseButtons;
 begin
   Result := Container.MousePressed;
 end;
 
-function TCastleControlBase.Pressed: TKeysPressed;
+function TCastleControl.Pressed: TKeysPressed;
 begin
   Result := Container.Pressed;
 end;
 
-function TCastleControlBase.Fps: TFramesPerSecond;
+function TCastleControl.Fps: TFramesPerSecond;
 begin
   Result := Container.Fps;
 end;
 
-function TCastleControlBase.Rect: TRectangle;
+function TCastleControl.Rect: TRectangle;
 begin
   Result := Container.Rect;
 end;
 
-function TCastleControlBase.Controls: TInternalChildrenControls;
+function TCastleControl.Controls: TInternalChildrenControls;
 begin
   Result := Container.Controls;
 end;
 
-class function TCastleControlBase.GetMainContainer: TCastleContainer;
+class function TCastleControl.GetMainContainer: TCastleContainer;
 begin
   if MainControl <> nil then
     Result := MainControl.Container
   else
     Result := nil;
-end;
-
-{ TCastleControl ----------------------------------------------------------- }
-
-{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-
-constructor TCastleControl.Create(AOwner: TComponent);
-begin
-  inherited;
-
-  FSceneManager := TControlGameSceneManager.Create(Self);
-  { SetSubComponent and Name setting (must be unique only within TCastleControl,
-    so no troubles) are necessary to store it in LFM and display in object inspector
-    nicely. }
-  FSceneManager.SetSubComponent(true);
-  FSceneManager.Name := 'SceneManager';
-  Controls.InsertFront(SceneManager);
-end;
-
-procedure TCastleControl.Load(const SceneURL: string);
-begin
-  {$warnings off} // using one deprecated from another
-  Load(LoadNode(SceneURL), true);
-  {$warnings on}
-end;
-
-procedure TCastleControl.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
-begin
-  { destroy MainScene and clear cameras, we will recreate it }
-  SceneManager.Items.MainScene.Free;
-  SceneManager.Items.MainScene := nil;
-  SceneManager.Items.Clear;
-  {$warnings off} // using one deprecated from another
-  SceneManager.ClearCameras;
-  {$warnings on}
-  Assert(SceneManager.Navigation = nil);
-
-  SceneManager.Items.MainScene := TCastleScene.Create(Self);
-  SceneManager.Items.MainScene.Load(ARootNode, OwnsRootNode);
-  SceneManager.Items.Add(SceneManager.Items.MainScene);
-
-  { initialize octrees titles }
-  SceneManager.Items.MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  SceneManager.Items.MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
-
-  { Adjust SceneManager.Navigation and SceneManager.Camera to latest scene }
-  SceneManager.AssignDefaultCamera;
-  SceneManager.AssignDefaultNavigation;
-  // AssignDefaultNavigation should satisfy this, and we need it for backward compatibility
-  Assert(SceneManager.Navigation <> nil);
-end;
-
-function TCastleControl.MainScene: TCastleScene;
-begin
-  Result := SceneManager.Items.MainScene;
-end;
-
-function TCastleControl.Camera: TCastleCamera;
-begin
-  Result := SceneManager.Camera;
-end;
-
-function TCastleControl.GetShadowVolumes: boolean;
-begin
-  Result := SceneManager.ShadowVolumes;
-end;
-
-procedure TCastleControl.SetShadowVolumes(const Value: boolean);
-begin
-  SceneManager.ShadowVolumes := Value;
-end;
-
-function TCastleControl.GetShadowVolumesRender: boolean;
-begin
-  Result := SceneManager.ShadowVolumesRender;
-end;
-
-procedure TCastleControl.SetShadowVolumesRender(const Value: boolean);
-begin
-  SceneManager.ShadowVolumesRender := Value;
-end;
-
-function TCastleControl.GetOnCameraChanged: TNotifyEvent;
-begin
-  Result := SceneManager.OnCameraChanged;
-end;
-
-procedure TCastleControl.SetOnCameraChanged(const Value: TNotifyEvent);
-begin
-  SceneManager.OnCameraChanged := Value;
-end;
-
-{$endif CASTLE_DEPRECATED_WINDOW_CLASSES}
-
-{ TCastle2DControl ----------------------------------------------------------- }
-
-constructor TCastle2DControl.Create(AOwner: TComponent);
-begin
-  inherited;
-
-  FSceneManager := TControl2DSceneManager.Create(Self);
-  { SetSubComponent and Name setting (must be unique only within TCastleControl,
-    so no troubles) are necessary to store it in LFM and display in object inspector
-    nicely. }
-  FSceneManager.SetSubComponent(true);
-  FSceneManager.Name := 'SceneManager';
-  Controls.InsertFront(SceneManager);
 end;
 
 { TLCLClipboard ----------------------------------------------------------- }
@@ -1455,7 +1225,7 @@ end;
 initialization
   ControlsList := TComponentList.Create(false);
   InitializeClipboard;
-  OnMainContainer := @TCastleControlBase(nil).GetMainContainer;
+  OnMainContainer := @TCastleControl(nil).GetMainContainer;
 finalization
   OnMainContainer := nil;
   FreeAndNil(ControlsList);

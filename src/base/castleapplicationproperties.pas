@@ -157,7 +157,7 @@ type
 
       The mechanism is implemented by occasionally sleeping
       (when we see that we render way faster than we need to).
-      So it's a global thing, not just a property of TCastleWindowBase or TCastleControlBase.
+      So it's a global thing, not just a property of TCastleWindow or TCastleControl.
 
       In some cases, this also means the "desired number of FPS".
       This happens when we may be clogged with events
@@ -169,20 +169,20 @@ type
       it is also capped (by 100.0).
 
       @unorderedList(
-        @item(Comments specifically about TCastleWindowBase:
+        @item(Comments specifically about TCastleWindow:
 
           This limits the number of TCastleApplication.ProcessMessage
           calls per second, in situations when we do not have to process any user input.
-          So we limit not only rendering (TCastleWindowBase.OnRender)
-          but also other animation processing (TCastleWindowBase.OnUpdate) calls per second.
+          So we limit not only rendering (TCastleWindow.OnRender)
+          but also other animation processing (TCastleWindow.OnUpdate) calls per second.
           See TCastleApplication.ProcessMessage.
 
           See TCastleWindow.ProcessMessage documentation about WaitToLimitFPS
           parameter, and see TCastleApplication.LimitFPS documentation.)
 
-        @item(Comments specifically about TCastleControlBase:
+        @item(Comments specifically about TCastleControl:
 
-          This mechanism is activated only when some TCastleControlBase
+          This mechanism is activated only when some TCastleControl
           component is used, and only when LCL idle is fired (so we have no pending
           events, as LCL idle is "lazy" and fires only when process is really idle),
           and not at Lazarus design time.)
@@ -192,10 +192,10 @@ type
 
     { Callbacks called when the OpenGL context is opened or closed.
       Use when you want to be notified about OpenGL context availability,
-      but cannot refer to a particular instance of TCastleControlBase or TCastleWindowBase.
+      but cannot refer to a particular instance of TCastleControl or TCastleWindow.
 
       Note that we may have many OpenGL contexts (many
-      TCastleWindowBase or TCastleControlBase instances) open simultaneously.
+      TCastleWindow or TCastleControl instances) open simultaneously.
       They all share OpenGL resources.
       OnGLContextOpen is called when first OpenGL context is open,
       that is: no previous context was open.
@@ -222,8 +222,8 @@ type
 
     { Callbacks called continuously when (at least one) window is open.
 
-      You can use this just like @link(TCastleControlBase.OnUpdate)
-      or @link(TCastleWindowBase.OnUpdate) or @link(TCastleApplication.OnUpdate). }
+      You can use this just like @link(TCastleControl.OnUpdate)
+      or @link(TCastleWindow.OnUpdate) or @link(TCastleApplication.OnUpdate). }
     property OnUpdate: TNotifyEventList read FOnUpdate;
 
     { Callbacks called when Android Java activity started.
@@ -239,7 +239,7 @@ type
           @link(TCastleApplication.OnInitialize)),
           but we need to reinitialize Java part.
 
-          Note that this is different from @link(TCastleWindowBase.OnOpen).
+          Note that this is different from @link(TCastleWindow.OnOpen).
           We lose OpenGL context often, actually every time user switches to another
           app, without having neither Java nor native threads killed.
         )

@@ -24,7 +24,7 @@ uses SysUtils, Classes, Math,
   SceneUtilities;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Viewport: TCastleViewport;
 
   LM: Cardinal = 0;
@@ -109,7 +109,7 @@ end;
 var
   M: TMenu;
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;

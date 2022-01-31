@@ -53,7 +53,7 @@ type
   end;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Viewport: TCastleViewport;
   TouchNavigation: TCastleTouchNavigation;
   Crosshair: TCrosshairManager;
@@ -94,7 +94,7 @@ begin
     if (flags and 2 {ecgeofLog}) > 0 then
       InitializeLog;
 
-    Window := TCastleWindowBase.Create(nil);
+    Window := TCastleWindow.Create(nil);
     Application.MainWindow := Window;
 
     Viewport := TCastleViewport.Create(Window);

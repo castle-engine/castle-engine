@@ -23,7 +23,7 @@ uses SysUtils, Classes,
   CastleKeysMouse, CastleViewport, CastleScene, X3DNodes;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 type
   { User interface component that draws a tiling texture. }
@@ -158,7 +158,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.Open;
 
   TilingBackground := TTilingBackground.Create(Application);

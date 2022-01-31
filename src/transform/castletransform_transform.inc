@@ -614,7 +614,7 @@
         )
         @item(
           In 3D, it may make sense to call this method even every frame
-          (like in every @link(TCastleWindowBase.OnUpdate)).
+          (like in every @link(TCastleWindow.OnUpdate)).
           Call it if you move or otherwise change the objects (changing their bounding boxes),
           or if the CameraPosition may change (note that CameraPosition is only
           relevant if BlendingSort = bs3D).

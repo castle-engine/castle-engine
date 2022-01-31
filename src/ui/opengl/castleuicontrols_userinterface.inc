@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -391,7 +391,7 @@
       rotating model in Examine mode, and many more.
 
       @param(SecondsPassed Should be calculated like TFramesPerSecond.SecondsPassed,
-        and usually it's in fact just taken from TCastleWindowBase.Fps.SecondsPassed.)
+        and usually it's in fact just taken from TCastleWindow.Fps.SecondsPassed.)
 
       This method may be used, among many other things, to continuously
       react to the fact that user pressed some key (or mouse button).
@@ -486,7 +486,7 @@
 
       In this class, this simply returns always @true.
 
-      @seeAlso TCastleWindowBase.AllowSuspendForInput }
+      @seeAlso TCastleWindow.AllowSuspendForInput }
     function AllowSuspendForInput: boolean; virtual;
 
     { Event called when the container (component or window with OpenGL context)
@@ -500,8 +500,8 @@
       GLContextOpen and GLContextClose.
 
       We also call this once when inserting into the controls list
-      (like @link(TCastleWindowBase.Controls) or
-      @link(TCastleControlBase.Controls) or inside parent TCastleUserInterface),
+      (like @link(TCastleWindow.Controls) or
+      @link(TCastleControl.Controls) or inside parent TCastleUserInterface),
       if inserting into the container/parent
       with already initialized OpenGL context. If inserting into the container/parent
       without OpenGL context initialized, it will be called later,
@@ -515,7 +515,7 @@
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual; deprecated 'use Resize';
 
     { Container of this control. When adding control to container's Controls
-      list (like TCastleWindowBase.Controls) container will automatically
+      list (like TCastleWindow.Controls) container will automatically
       set itself here, and when removing from container this will be changed
       back to @nil.
 
@@ -780,7 +780,7 @@
 
           The control always fills the whole parent.
           If the control is added directly to the container,
-          it will fill the whole container (TCastleWindowBase or TCastleControlBase).
+          it will fill the whole container (TCastleWindow or TCastleControl).
         )
         @item(
           Otherwise (when @link(FullSize) and @link(AutoSizeToChildren)
@@ -1002,7 +1002,7 @@
       since you only need to set anchor once (for example, right after creating
       the control). In contract, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindowBase.OnResize). }
+      like in @link(TCastleWindow.OnResize). }
     procedure Align(
       const ControlPosition: THorizontalPosition;
       const ContainerPosition: THorizontalPosition;
@@ -1023,7 +1023,7 @@
       since you only need to set anchor once (for example, right after creating
       the control). In contract, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindowBase.OnResize). }
+      like in @link(TCastleWindow.OnResize). }
     procedure Align(
       const ControlPosition: TVerticalPosition;
       const ContainerPosition: TVerticalPosition;
@@ -1039,7 +1039,7 @@
       the control call @code(Anchor(hpMiddle); Anchor(vpMiddle);).
       In contrast, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindowBase.OnResize). }
+      like in @link(TCastleWindow.OnResize). }
     procedure Center; deprecated 'use Anchor(hpMiddle); Anchor(vpMiddle); to reliably center the control';
 
     { UI scale of this control, derived from container
@@ -1162,7 +1162,7 @@
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
       You can also remove this from controls list (like
-      @link(TCastleWindowBase.Controls)), but often it's more comfortable
+      @link(TCastleWindow.Controls)), but often it's more comfortable
       to set this property to false. }
     property Exists: boolean read FExists write SetExists default true;
 
