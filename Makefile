@@ -333,6 +333,7 @@ examples-laz:
 	done
 	$(FIND) . \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
+	  '(' -path ./src/vampyre_imaginglib -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -iname '*.lpi' -exec ./tools/internal/lazbuild_retry '{}' ';' ')'
