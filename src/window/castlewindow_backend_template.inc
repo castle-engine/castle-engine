@@ -145,12 +145,6 @@ begin
   end;
 end;
 
-procedure TCastleWindow.SetCustomCursor(const Value: TRGBAlphaImage);
-begin
-  { TODO }
-  FCustomCursor := Value;
-end;
-
 function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
   Result := { TODO } true;

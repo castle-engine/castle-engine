@@ -393,7 +393,7 @@ type
     Used for various properties:
     TCastleUserInterface.Cursor, TCastleTransform.Cursor, TCastleWindow.Cursor.
 
-    mcDefault, mcNone, mcForceNone, mcCustom have somewhat special meanings.
+    mcDefault, mcNone, mcForceNone have somewhat special meanings.
     The rest are some cursor images will well-defined meanings for the user,
     their exact look may depend on current window manager theme etc.  }
   TMouseCursor = (
@@ -408,13 +408,7 @@ type
       This is in contrast to mcNone, that only hides the cursor if
       the currently focused control (under the mouse cursor) sets it. }
     mcForceNone,
-    { Use a custom cursor image in TCastleWindow.CustomCursor.
-
-      In normal circumstances, this should not be used for
-      TCastleUserInterface.Cursor, TCastleTransform.Cursor and others, as they have no way
-      to set TCastleWindow.CustomCursor. }
-    mcCustom,
-    { Standard arrow, indicates, well, that user can point / click something. }
+    { Standard arrow, indicates that user can point / click something. }
     mcStandard,
     { Indicates the program is busy and user should wait. }
     mcWait,

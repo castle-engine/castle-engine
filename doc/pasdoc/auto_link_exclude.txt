@@ -73,7 +73,6 @@ create
 current
 cursor
 curve
-customcursor
 data
 dds
 dead

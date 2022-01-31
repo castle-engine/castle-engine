@@ -344,12 +344,6 @@ begin
   end;
 end;
 
-procedure TCastleWindow.SetCustomCursor(const Value: TRGBAlphaImage);
-begin
-  FCustomCursor := Value;
-  { TODO }
-end;
-
 procedure TCastleWindow.UpdateCursor;
 
   function CreateNoneCursor: TCursor;
@@ -394,8 +388,7 @@ const
     XC_bottom_right_corner   // mcResizeBottomRight
   );
 begin
-  { TODO: for now mcCustom is treated like mcDefault }
-  if InternalCursor in [mcDefault, mcCustom] then
+  if InternalCursor = mcDefault then
   begin
     XUndefineCursor(Application.XDisplay, WindowXID);
   end else

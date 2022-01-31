@@ -534,7 +534,6 @@ type
     FContainer: TWindowContainer;
     {$warnings on}
     FCursor: TMouseCursor;
-    FCustomCursor: TRGBAlphaImage;
     FTouches: TTouchList;
     FNamedParameters: TCastleStringList;
     function GetColorBits: Cardinal;
@@ -546,7 +545,6 @@ type
     procedure SetCaption(const Part: TCaptionPart; const Value: string);
     function GetWholeCaption: string;
     procedure SetCursor(const Value: TMouseCursor);
-    procedure SetCustomCursor(const Value: TRGBAlphaImage);
     function GetOnOpen: TContainerEvent;
     procedure SetOnOpen(const Value: TContainerEvent);
     function GetOnOpenObject: TContainerObjectEvent;
@@ -606,7 +604,7 @@ type
       in OpenBackend:
 
         Width, Height, Left, Top
-        Cursor, CustomCursor,
+        Cursor,
         FullScreen
           (Note that FFullScreenWanted and FFullScreenBackend are always
           equal at this point, so you can read any of these fields.
@@ -1767,27 +1765,11 @@ type
 
     { Mouse cursor appearance over this window.
       See TMouseCursor for a list of possible values and their meanings.
-      TODO: for now, mcCustom is not handled anywhere.
 
       Note that this is for internal usage in the engine. In your applications,
-      you should set TCastleUserInterface.Cursor, never set this property directly. }
+      you should set TCastleUserInterface.Cursor on any UI control (including on TUIState),
+      never set this property directly. }
     property InternalCursor: TMouseCursor read FCursor write SetCursor default mcDefault;
-
-    { Image for cursor, used only when @link(Cursor) = mcCustom.
-      We will try hard to use any cursor image as appropriate, but on some platforms
-      cursor size may be limited (16 x 16 seems standard for GTK) and cursor
-      may be forced to monochrome.
-
-      Note that you still own the TRGBAlphaImage instance passed here --- you're
-      responsible for freeing it etc. If this is @nil, and @link(Cursor) = mcCustom,
-      then it will be treated like @link(Cursor) = mcDefault. (I don't raise error
-      in such case, as that would make changing both Cursor and CustomCursor values
-      unnecessarily tricky for the programmer.)
-
-      TODO: for now, this is not implemented. @link(Cursor) ignores mcCustom value,
-      under every CastleWindow backend... sorry, CustomCursor is only a plan. }
-    property CustomCursor: TRGBAlphaImage read FCustomCursor
-      write SetCustomCursor;
 
     { List of user-interface controls currently active.
       See @link(TCastleContainer.Controls) for details. }

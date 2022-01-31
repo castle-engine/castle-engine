@@ -107,9 +107,11 @@ private
     use predefined HCURSOR values and so is fast. SetCursor is guaranteed
     by WinAPI to return fast if called with already used cursor.
 
-    For mcDefault, and mcCustom, values in this array are undefined.
-    For mcNone, CursorHandle is 0 (this is what SetCursor always accepts
-    as invisible cursor). }
+    For mcDefault, value in this array is undefined.
+    (but 0 in practice, for now).
+
+    For mcNone and CursorHandles, CursorHandle is guaranteed 0
+    (this is what SetCursor always accepts as invisible cursor). }
   CursorHandles: array [TMouseCursor] of record
     Handle: HCURSOR;
   end;
@@ -833,8 +835,7 @@ begin
           It will install our window class cursor (or parent cursor)
           if in client area, or just do the right thing if outside client area.
           So it's suitable when wParm <> h_Wnd,
-          or we want mcDefault,
-          or we want mcCustom. }
+          or we want mcDefault. }
       end;
 
     WM_MOUSEWHEEL, WM_MOUSEHWHEEL:
@@ -1243,12 +1244,6 @@ begin
     if h_Wnd = WindowFromPoint(Point) then
       PostMessage(h_Wnd, WM_SETCURSOR, h_Wnd, 0 { not important});
   end;
-end;
-
-procedure TCastleWindow.SetCustomCursor(const Value: TRGBAlphaImage);
-begin
-  FCustomCursor := Value;
-  { TODO }
 end;
 
 procedure TCastleWindow.SetMousePosition(const Value: TVector2);

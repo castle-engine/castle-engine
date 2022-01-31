@@ -168,12 +168,6 @@ begin
     { TODO: call LibraryCallbackProc to change caption to GetWholeCaption };
 end;
 
-procedure TCastleWindow.SetCustomCursor(const Value: TRGBAlphaImage);
-begin
-  FCustomCursor := Value;
-  { TODO: call LibraryCallbackProc with custom cursor shape, if you want this }
-end;
-
 procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 begin
   if (not Closed) and Assigned(LibraryCallbackProc) then

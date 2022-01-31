@@ -65,7 +65,6 @@ type
           and SetWindowState will restore this. }
         OldMainMenuEnabled: boolean;
         OldCursor: TMouseCursor;
-        OldCustomCursor: TRGBAlphaImage;
         OldSwapFullScreen_Key: TKey;
         OldClose_KeyString: String;
         OldControls: TInternalChildrenControls;
@@ -279,7 +278,6 @@ begin
   if Window.MainMenu <> nil then
     oldMainMenuEnabled := Window.MainMenu.Enabled;
   OldCursor := Window.InternalCursor;
-  OldCustomCursor := Window.CustomCursor;
   oldSwapFullScreen_Key := Window.SwapFullScreen_Key;
   oldClose_KeyString := Window.Close_KeyString;
 
@@ -313,7 +311,6 @@ begin
   if Window.MainMenu <> nil then
     Window.MainMenu.Enabled := OldMainMenuEnabled;
   Window.InternalCursor := OldCursor;
-  Window.CustomCursor := OldCustomCursor;
   Window.SwapFullScreen_Key := oldSwapFullScreen_Key;
   Window.Close_KeyString := oldClose_KeyString;
 

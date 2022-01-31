@@ -539,7 +539,7 @@ end;
 procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
-  if not Closed then { TODO: use GetWholeCaption };
+  // GetWholeCaption is ignored on Android
 end;
 
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
@@ -547,15 +547,8 @@ begin
   if FCursor <> Value then
   begin
     FCursor := Value;
-    if not Closed then
-      { TODO UpdateCursor };
+    // Cursor is ignored on Android
   end;
-end;
-
-procedure TCastleWindow.SetCustomCursor(const Value: TRGBAlphaImage);
-begin
-  { TODO }
-  FCustomCursor := Value;
 end;
 
 function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
