@@ -89,7 +89,7 @@ var
 
 const
   AllowedExceptions: array [0..5] of String = (
-    'Category castlescript uses scene. Unit ./castlescript/castlecurves.pas uses X3DNodes check_units_dependencies.sh: Failure detected, we will continue but exit with non-zero status at the end',
+    'Category castlescript uses scene. Unit ./castlescript/castlecurves.pas uses X3DNodes',
     'Category transform uses scene. Unit ./transform/castlecameras.pas uses CastleViewport',
     'Category ui uses transform. Unit ./ui/castleinternalinspector.pas uses CastleCameras',
     'Category ui uses scene. Unit ./ui/castleinternalinspector.pas uses CastleScene',
