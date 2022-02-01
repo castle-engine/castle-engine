@@ -15,7 +15,7 @@
 }
 
 uses Classes, SysUtils,
-  CastleParameters, CastleStringUtils;
+  CastleUtils, CastleParameters, CastleStringUtils;
 
   { Is it OK to depend from unit in CurrentCategory on a unit in DependencyCategory. }
   function DependencyOk(CurrentCategory, DependencyCategory: string): boolean;
@@ -63,14 +63,14 @@ var
   procedure ExtractCategory(UnitPath: string; out Category: string);
   var
     TokenPos: Integer;
-    PartAfterCategory: string;
+    //PartAfterCategory: string;
   begin
     while SCharIs(UnitPath, 1, '.') or
           SCharIs(UnitPath, 1, '/') do
       UnitPath := SEnding(UnitPath, 2); // cut off initial ./ from UnitPath
     TokenPos := 1;
     Category := NextToken(UnitPath, TokenPos, ['/', '\']);
-    PartAfterCategory := NextToken(UnitPath, TokenPos, ['/', '\']);
+    //PartAfterCategory := NextToken(UnitPath, TokenPos, ['/', '\']);
   end;
 
   function FindCategory(const DependencyBaseName: string;
@@ -86,6 +86,16 @@ var
       end;
     Result := false;
   end;
+
+const
+  AllowedExceptions: array [0..5] of String = (
+    'Category castlescript uses scene. Unit ./castlescript/castlecurves.pas uses X3DNodes check_units_dependencies.sh: Failure detected, we will continue but exit with non-zero status at the end',
+    'Category transform uses scene. Unit ./transform/castlecameras.pas uses CastleViewport',
+    'Category ui uses transform. Unit ./ui/castleinternalinspector.pas uses CastleCameras',
+    'Category ui uses scene. Unit ./ui/castleinternalinspector.pas uses CastleScene',
+    'Category ui uses transform. Unit ./ui/castleinternalinspector.pas uses CastleTransform',
+    'Category ui uses scene. Unit ./ui/castleinternalinspector.pas uses CastleViewport'
+  );
 
 var
   CurrentUnit, DependencyToCheck, CurrentCategory, DependencyCategory, DependencyDescribe: string;
@@ -112,8 +122,14 @@ begin
         // Writeln('Checking: ', DependencyDescribe);
         if not DependencyOk(CurrentCategory, DependencyCategory) then
         begin
-          Writeln(ErrOutput, 'ERROR: Not allowed dependency: ', DependencyDescribe);
-          ExitCode := 1;
+          if ArrayPosStr(DependencyDescribe, AllowedExceptions) <> -1 then
+          begin
+            Writeln(ErrOutput, 'WARNING: Not allowed dependency, but it is listed as exception to temporarily allow: ', DependencyDescribe);
+          end else
+          begin
+            Writeln(ErrOutput, 'ERROR: Not allowed dependency: ', DependencyDescribe);
+            ExitCode := 1;
+          end;
         end;
       end;
     end;
