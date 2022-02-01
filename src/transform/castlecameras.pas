@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2021 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes,
   CastleVectors, CastleUtils, CastleKeysMouse, CastleBoxes, CastleQuaternions,
-  CastleFrustum, CastleUIControls, CastleRays, CastleProjection, CastleTimeUtils,
+  CastleFrustum, CastleUIControls, CastleInternalRays, CastleProjection, CastleTimeUtils,
   CastleInputs, CastleTriangles, CastleRectangles, CastleClassUtils,
   CastleInternalCameraGestures;
 

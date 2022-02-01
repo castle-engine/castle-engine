@@ -111,13 +111,13 @@ begin
     P.Targets.AddUnit('castleinternalgeometryarrays.pas');
     P.Targets.AddUnit('castleinternalglshadowvolumes.pas');
     P.Targets.AddUnit('castleinternaloctree.pas');
+    P.Targets.AddUnit('castleinternalrays.pas');
     P.Targets.AddUnit('castleinternalspacefillingcurves.pas');
     P.Targets.AddUnit('castleinternalspheresampling.pas');
     P.Targets.AddUnit('castleinternalsphericalharmonics.pas');
     P.Targets.AddUnit('castlenurbs.pas');
     P.Targets.AddUnit('castlequaternions.pas');
     P.Targets.AddUnit('castlerandom.pas');
-    P.Targets.AddUnit('castlerays.pas');
     P.Targets.AddUnit('castlerenderingcamera.pas');
     P.Targets.AddUnit('castlesectors.pas');
     P.Targets.AddUnit('castletransform.pas');

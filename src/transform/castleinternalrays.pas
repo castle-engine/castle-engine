@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,7 +17,7 @@
   This is used by ray-tracing (casting a ray for each image pixel)
   or when picking objects (what 3D object/point is indicated by
   the current mouse position). }
-unit CastleRays;
+unit CastleInternalRays;
 
 {$I castleconf.inc}
 

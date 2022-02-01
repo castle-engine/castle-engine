@@ -103,7 +103,7 @@ contains
   castlequaternions in '..\..\src\transform\castlequaternions.pas',
   castleboxes in '..\..\src\transform\castleboxes.pas',
   castlecameras in '..\..\src\transform\castlecameras.pas',
-  castlerays in '..\..\src\transform\castlerays.pas',
+  castleinternalrays in '..\..\src\transform\castleinternalrays.pas',
   castletransform in '..\..\src\transform\castletransform.pas',
   x3dcastlescript in '..\..\src\x3d\x3dcastlescript.pas',
   castleinternaloctree in '..\..\src\transform\castleinternaloctree.pas',

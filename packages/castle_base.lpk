@@ -1308,8 +1308,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleQuaternions"/>
       </Item301>
       <Item302>
-        <Filename Value="../src/transform/castlerays.pas"/>
-        <UnitName Value="CastleRays"/>
+        <Filename Value="../src/transform/castleinternalrays.pas"/>
+        <UnitName Value="CastleInternalRays"/>
       </Item302>
       <Item303>
         <Filename Value="../src/transform/castlerenderingcamera.pas"/>
