@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,7 +22,7 @@ unit X3DTriangles;
 interface
 
 uses SysUtils, Generics.Collections,
-  CastleVectors, CastleUtils, X3DNodes, CastleBoxes,
+  CastleVectors, CastleUtils, CastleBoxes,
   CastleInternalOctree, CastleTriangles;
 
 { TBaseTrianglesOctree ----------------------------------------------------------- }
@@ -481,25 +481,6 @@ type
     class function IgnoreForShadowRays(
       const Sender: TObject;
       const Triangle: PTriangle): boolean;
-
-    { Checks whether VRML Light (point or directional) lights at scene point
-      LightedPoint.
-
-      "Lights at scene" means that the light is turned on
-      (field "on" is @true) and between light source and a LightedPoint
-      nothing blocks the light (we check it by querying collisions using
-      the octree, ignoring transparent and non-shadow-casting triangles),
-      and the light source is on the same side of LightedPointPlane as
-      RenderDir.
-
-      TriangleToIgnore and IgnoreMarginAtStart work just like for
-      SegmentCollision. You should usually set TriangleToIgnore to the
-      triangle containing your LightedPoint and IgnoreMarginAtStart to @true,
-      to avoid detecting point as shadowing itself. }
-    function LightNotBlocked(const Light: TLightInstance;
-      const LightedPoint, LightedPointPlane, RenderDir: TVector3;
-      const TriangleToIgnore: PTriangle;
-      const IgnoreMarginAtStart: boolean): boolean;
 
     { Enumerate every triangle of this octree.
 
@@ -1287,41 +1268,6 @@ class function TBaseTrianglesOctree.IgnoreForShadowRays(
   const Triangle: PTriangle): boolean;
 begin
   Result := Triangle^.IgnoreForShadowRays;
-end;
-
-function TBaseTrianglesOctree.LightNotBlocked(const Light: TLightInstance;
-  const LightedPoint, LightedPointPlane, RenderDir: TVector3;
-  const TriangleToIgnore: PTriangle;
-  const IgnoreMarginAtStart: boolean): boolean;
-var LightPos: TVector3;
-begin
- if not Light.Node.FdOn.Value then result := false;
-
- if Light.Node is TAbstractDirectionalLightNode then
-  { Swiatlo directional oznacza ze swiatlo polozone jest tak bardzo
-    daleko ze wszystkie promienie od swiatla sa rownolegle.
-
-    Od pozycji LightedPoint odejmujemy wydluzone Direction swiatla.
-
-    3 * Box3DMaxSize(Octree.TreeRoot.Box) na pewno jest odlegloscia
-    ktora sprawi ze LightPos bedzie poza Octree.TreeRoot.Box
-    (bo gdyby nawet Octree.TreeRoot.Box byl szescianem to jego przekatna
-    ma dlugosc tylko Sqrt(2) * Sqrt(2) * Box3DMaxSize(Octree.TreeRoot.Box)
-    (= 2 * Box3DMaxSize(Octree.TreeRoot.Box))
-    W ten sposob otrzymujemy punkt ktory na pewno lezy POZA TreeRoot.Box
-    i jezeli nic nie zaslania drogi od Point do tego punktu to
-    znaczy ze swiatlo oswietla Intersection. }
-  LightPos := LightedPoint -
-    Light.Direction.AdjustToLength(3 * InternalTreeRoot.Box.MaxSize) else
-  LightPos := Light.Location;
-
- Result := (VectorsSamePlaneDirections(
-       LightPos - LightedPoint,
-       RenderDir,
-       LightedPointPlane)) and
-   (SegmentCollision(LightedPoint, LightPos,
-     false, TriangleToIgnore, IgnoreMarginAtStart,
-     {$ifdef FPC}@{$endif}IgnoreForShadowRays) = nil);
 end;
 
 { TOctreeIgnoreForShadowRaysAndOneItem -------------------------------------- }

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -328,13 +328,13 @@ type
     { current octree total statistics }
     FTotalLeafNodes, FTotalNonLeafNodes, FTotalItemsInLeafs: Int64;
   protected
-    property InternalTreeRoot: TOctreeNode read FTreeRoot;
-
     { Text appended to the @link(Statistics).
       In this class this returns ''.
       Every line, including the last one, must be terminated by a newline. }
     function StatisticsBonus: string; virtual;
   public
+    property InternalTreeRoot: TOctreeNode read FTreeRoot;
+
     { Maximum tree depth.
 
       Set this to zero to force RootNode to be a leaf

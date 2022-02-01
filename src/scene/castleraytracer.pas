@@ -236,6 +236,59 @@ implementation
 uses SysUtils, Math,
   CastleInternalSphereSampling, CastleTimeUtils, CastleColors, CastleRenderOptions;
 
+{ Checks whether Light (point or directional) shines at scene point
+  LightedPoint.
+
+  "Lights at scene" means that the light is turned on
+  (field "on" is @true) and between light source and a LightedPoint
+  nothing blocks the light (we check it by querying collisions using
+  the octree, ignoring transparent and non-shadow-casting triangles),
+  and the light source is on the same side of LightedPointPlane as
+  RenderDir.
+
+  TriangleToIgnore and IgnoreMarginAtStart work just like for
+  SegmentCollision. You should usually set TriangleToIgnore to the
+  triangle containing your LightedPoint and IgnoreMarginAtStart to @true,
+  to avoid detecting point as shadowing itself. }
+function OctreeLightNotBlocked(const Octree: TBaseTrianglesOctree;
+  const Light: TLightInstance;
+  const LightedPoint, LightedPointPlane, RenderDir: TVector3;
+  const TriangleToIgnore: PTriangle;
+  const IgnoreMarginAtStart: boolean): boolean;
+var
+  LightPos: TVector3;
+begin
+  if not Light.Node.FdOn.Value then
+    Exit(false);
+
+  if Light.Node is TAbstractDirectionalLightNode then
+    { Swiatlo directional oznacza ze swiatlo polozone jest tak bardzo
+      daleko ze wszystkie promienie od swiatla sa rownolegle.
+
+      Od pozycji LightedPoint odejmujemy wydluzone Direction swiatla.
+
+      3 * Box3DMaxSize(Octree.TreeRoot.Box) na pewno jest odlegloscia
+      ktora sprawi ze LightPos bedzie poza Octree.TreeRoot.Box
+      (bo gdyby nawet Octree.TreeRoot.Box byl szescianem to jego przekatna
+      ma dlugosc tylko Sqrt(2) * Sqrt(2) * Box3DMaxSize(Octree.TreeRoot.Box)
+      (= 2 * Box3DMaxSize(Octree.TreeRoot.Box))
+      W ten sposob otrzymujemy punkt ktory na pewno lezy POZA TreeRoot.Box
+      i jezeli nic nie zaslania drogi od Point do tego punktu to
+      znaczy ze swiatlo oswietla Intersection. }
+    LightPos := LightedPoint -
+      Light.Direction.AdjustToLength(3 * Octree.InternalTreeRoot.Box.MaxSize)
+  else
+    LightPos := Light.Location;
+
+  Result :=
+    VectorsSamePlaneDirections(
+      LightPos - LightedPoint,
+      RenderDir,
+      LightedPointPlane) and
+    (Octree.SegmentCollision(LightedPoint, LightPos, false, TriangleToIgnore, IgnoreMarginAtStart,
+      {$ifdef FPC}@{$endif} Octree.IgnoreForShadowRays) = nil);
+end;
+
 { RayDirection calculations ----------------------------------------------------- }
 
 { Calculate the transmitted ray created by hitting a ray
@@ -595,7 +648,7 @@ var
         side of the plane than from where RayDirection came.
         In such case the light shines on IntersectNode, but from the opposite
         side, so we will not add it here. }
-      Result := Octree.LightNotBlocked(Light,
+      Result := OctreeLightNotBlocked(Octree, Light,
         Intersection, IntersectNormal,
         -RayDirection, IntersectNode, true);
     end;
