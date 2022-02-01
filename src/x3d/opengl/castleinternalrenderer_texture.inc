@@ -531,9 +531,17 @@ const
   );
 begin
   HandleTextureProperties(TextureProperties, Filter, Anisotropy, GUITexture);
-  BoundaryModeS := BoundaryModeGL[TextureProperties.BoundaryModeS];
-  BoundaryModeT := BoundaryModeGL[TextureProperties.BoundaryModeT];
-  BoundaryModeR := BoundaryModeGL[TextureProperties.BoundaryModeT];
+  if TextureProperties <> nil then
+  begin
+    BoundaryModeS := BoundaryModeGL[TextureProperties.BoundaryModeS];
+    BoundaryModeT := BoundaryModeGL[TextureProperties.BoundaryModeT];
+    BoundaryModeR := BoundaryModeGL[TextureProperties.BoundaryModeR];
+  end else
+  begin
+    BoundaryModeS := BoundaryModeGL[bmRepeat];
+    BoundaryModeT := BoundaryModeGL[bmRepeat];
+    BoundaryModeR := BoundaryModeGL[bmRepeat];
+  end;
 end;
 
 class function TGLTextureNode.ClassForTextureNode(
