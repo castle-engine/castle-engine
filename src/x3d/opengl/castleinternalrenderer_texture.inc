@@ -525,7 +525,8 @@ const
   BoundaryModeGL: array [TBoundaryMode] of GLenum = (
     GL_CLAMP,
     GL_CLAMP_TO_EDGE,
-    GL_REPEAT,             // bmClampToBoundary (no cooresp. GL mode)
+    GL_CLAMP_TO_EDGE,             // bmClampToBoundary: Not supported, hence
+                                  // behave like bmClampToEdge.
     GL_MIRRORED_REPEAT,
     GL_REPEAT
   );
