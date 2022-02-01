@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2021 Michalis Kamburelis.
+  Copyright 2015-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -228,7 +228,7 @@ begin
   KeepInFront := true;
 
   UiOwner := TComponent.Create(Self);
-  Ui := StringToComponent({$I ui/inspector_ui.castle-user-interface.inc}, UiOwner)
+  Ui := StringToComponent({$I designs/inspector_ui.castle-user-interface.inc}, UiOwner)
     as TCastleUserInterface;
   InsertFront(Ui);
 
