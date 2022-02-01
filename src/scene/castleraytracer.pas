@@ -37,7 +37,8 @@ interface
 
 uses Classes,
   CastleVectors, CastleImages, CastleRays, CastleProjection, CastleUtils,
-  X3DTriangles, CastleShapes, X3DNodes, CastleInternalSpaceFillingCurves, CastleTriangles;
+  CastleInternalBaseTriangleOctree, CastleShapes, X3DNodes,
+  CastleInternalSpaceFillingCurves, CastleTriangles;
 
 type
   { }

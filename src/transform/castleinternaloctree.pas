@@ -15,7 +15,9 @@
 
 (*Base octree classes (TOctreeNode and TOctree) and utilities.
   Used by actual octrees in units like
-  @link(CastleInternalTriangleOctree) and @link(CastleInternalShapeOctree).
+  @link(CastleInternalTriangleOctree),
+  @link(CastleInternalBaseTriangleOctree),
+  @link(CastleInternalShapeOctree).
 
   Typical way to derive actual (non-abstract) octrees goes like this;
 

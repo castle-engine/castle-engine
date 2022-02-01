@@ -1,5 +1,5 @@
 {
-  Copyright 2005-2018 Michalis Kamburelis.
+  Copyright 2005-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,7 +33,7 @@ unit CastleInternalShapeOctree;
 interface
 
 uses SysUtils, CastleBoxes, CastleInternalOctree, CastleShapes, CastleVectors,
-  CastleUtils, X3DTriangles, CastleTriangles;
+  CastleUtils, CastleInternalBaseTriangleOctree, CastleTriangles;
 
 const
   { }

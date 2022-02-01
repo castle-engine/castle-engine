@@ -106,6 +106,7 @@ begin
     P.Targets.AddUnit('castleboxes.pas');
     P.Targets.AddUnit('castlecameras.pas');
     P.Targets.AddUnit('castlefrustum.pas');
+    P.Targets.AddUnit('castleinternalbasetriangleoctree.pas');
     P.Targets.AddUnit('castleinternalcubemaps.pas');
     P.Targets.AddUnit('castleinternalgeometryarrays.pas');
     P.Targets.AddUnit('castleinternalglshadowvolumes.pas');
@@ -119,7 +120,6 @@ begin
     P.Targets.AddUnit('castlerays.pas');
     P.Targets.AddUnit('castlerenderingcamera.pas');
     P.Targets.AddUnit('castlesectors.pas');
-    P.Targets.AddUnit('castlethirdpersonnavigation.pas');
     P.Targets.AddUnit('castletransform.pas');
     P.Targets.AddUnit('castletriangles.pas');
     P.Targets.AddUnit('castletriangulate.pas');
@@ -376,11 +376,11 @@ begin
     P.Targets.AddUnit('castleshapeinternalshadowvolumes.pas');
     P.Targets.AddUnit('castleshapes.pas');
     P.Targets.AddUnit('castleterrain.pas');
+    P.Targets.AddUnit('castlethirdpersonnavigation.pas');
     P.Targets.AddUnit('castleviewport.pas');
     P.Targets.AddUnit('x3dcamerautils.pas');
     P.Targets.AddUnit('x3dcastlescript.pas');
     P.Targets.AddUnit('x3dtime.pas');
-    P.Targets.AddUnit('x3dtriangles.pas');
 
     P.SourcePath.Add('src/scene/x3d');
     P.Targets.AddUnit('x3dnodes.pas');

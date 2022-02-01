@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -248,7 +248,7 @@ type
     { Shape containing this triangle.
       This is always an instance of TShape class, but due
       to unit dependencies it cannot be declared as such here.
-      Use X3DTriangles unit to have a "record helper" method that returns
+      Use CastleShapes unit to have a "record helper" method that returns
       a Shape as TShape instance. }
     InternalShape: TObject;
 

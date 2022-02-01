@@ -14,7 +14,7 @@
 }
 
 { Octrees that resolve collisions with TTriangle triangles (TBaseTrianglesOctree). }
-unit X3DTriangles;
+unit CastleInternalBaseTriangleOctree;
 
 {$I castleconf.inc}
 {$I octreeconf.inc}
@@ -628,7 +628,7 @@ function TBaseTrianglesOctreeNode.CommonSegment(
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 {$define SEGMENT_COLLISION}
-{$I x3dtriangles_raysegment_nonleaf.inc}
+{$I castleinternalbasetriangleoctree_raysegment_nonleaf.inc}
 {$undef SEGMENT_COLLISION}
 
 function TBaseTrianglesOctreeNode.CommonRay(
@@ -640,7 +640,7 @@ function TBaseTrianglesOctreeNode.CommonRay(
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
-{$I x3dtriangles_raysegment_nonleaf.inc}
+{$I castleinternalbasetriangleoctree_raysegment_nonleaf.inc}
 
 { TBaseTrianglesOctree --------------------------------------------------- }
 

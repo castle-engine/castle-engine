@@ -3947,11 +3947,11 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="X3DTime"/>
       </Item959>
       <Item960>
-        <Filename Value="../src/scene/x3dtriangles.pas"/>
-        <UnitName Value="X3DTriangles"/>
+        <Filename Value="../src/transform/castleinternalbasetriangleoctree.pas"/>
+        <UnitName Value="CastleInternalBaseTriangleOctree"/>
       </Item960>
       <Item961>
-        <Filename Value="../src/scene/x3dtriangles_raysegment_nonleaf.inc"/>
+        <Filename Value="../src/transform/castleinternalbasetriangleoctree_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
       </Item961>
       <Item962>

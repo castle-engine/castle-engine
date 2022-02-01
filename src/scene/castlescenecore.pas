@@ -25,8 +25,8 @@ uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleBoxes, CastleTriangles, X3DFields, X3DNodes,
   CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
   CastleInternalOctree, CastleInternalShapeOctree,
-  CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, CastleTimeUtils,
-  CastleTransform, CastleInternalShadowMaps, CastleProjection;
+  CastleKeysMouse, X3DTime, CastleCameras, CastleInternalBaseTriangleOctree,
+  CastleTimeUtils, CastleTransform, CastleInternalShadowMaps, CastleProjection;
 
 type
   { These are various features that may be freed by
