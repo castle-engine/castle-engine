@@ -142,7 +142,8 @@
     procedure SetTranslation(const Value: TVector3);
     function GetTranslationXY: TVector2;
     procedure SetTranslationXY(const Value: TVector2);
-    procedure SetRigidBody(const Value: TRigidBody);
+    procedure SetRigidBody(const Value: TCastleRigidBody);
+    function GetRigidBody: TCastleRigidBody;
     function GetDirection: TVector3;
     function GetUp: TVector3;
     procedure SetDirection(const Value: TVector3);
@@ -151,13 +152,8 @@
     function RotationToDirection(const ARotation: TVector4): TVector3;
     function RotationToUp(const ARotation: TVector4): TVector3;
     procedure UpdateSimpleGravity(const SecondsPassed: Single);
-    procedure UpdatePhysicsEngine(const SecondsPassed: Single);
     function GetItem(const I: Integer): TCastleTransform;
     procedure SetItem(const I: Integer; const Item: TCastleTransform);
-    procedure PhysicsDestroy;
-    procedure PhysicsNotification(AComponent: TComponent; Operation: TOperation);
-    procedure PhysicsChangeWorldDetach;
-    procedure PhysicsChangeWorldAttach;
     procedure InternalTransformationMult(var T: TTransformation);
     procedure InternalTransformation(out T: TTransformation);
     { Update our FWorldTransformation, FWorldTransformationId. }
@@ -188,7 +184,11 @@
     MeaningfulParent: Boolean;
 
     FBehaviors: TComponentList;
-    FRigidBody: TRigidBody;
+
+    { Some behaviors need know when castle transform is in world or not or
+      when it changes. They can register to those notifications. When list
+      is not created that means no behaviors need those notifications. }
+    FBehaviorsWorldChangeNotificationList: {$ifdef FPC}specialize{$endif} TList<TCastleBehavior>;
 
     { Update FWorld, FWorldReferences.
       This is recursively called on all children as well.
@@ -213,6 +213,9 @@
     { Return non-nil parent, making sure it's valid.
       It's equivalent to @link(Parent), except it makes exception instead of returning @nil. }
     function CheckParent: TCastleTransform;
+
+    procedure NotifyWorldAttach(const NewWorld: TCastleAbstractRootTransform);
+    procedure NotifyWorldDetach(const PreviousWorld: TCastleAbstractRootTransform);
   protected
     { Call this when doing anything that allocates GL resources.
       This will make sure GLContextClose will get called. }
@@ -1643,7 +1646,7 @@
       to be a rigid body. Breaking this rule will cause the
       @link(EMultipleReferencesInWorld) exception at an undefined time.
     }
-    property RigidBody: TRigidBody read FRigidBody write SetRigidBody;
+    property RigidBody: TCastleRigidBody read GetRigidBody write SetRigidBody;
 
     { @deprecated Deprecated name for Translation. }
     property Position: TVector3 read FTranslation write SetTranslation;
@@ -1811,6 +1814,12 @@
       Do not call this method in other contexts, it is only useful for "for..in" construction. }
     function BehaviorsEnumerate: TCastleBehaviorEnumerator;
 
+    procedure AddWorldChangeNotification(const Behavior: TCastleBehavior);
+    procedure RemoveWorldChangeNotification(const Behavior: TCastleBehavior);
+
+  published
+    { Is this object visible and colliding.
+
     { Does this object, and all it's parents up to the root, exist.
       This has undefined value in case you place this TCastleTransform instance
       (or any parent) many times within the viewport root,
@@ -1929,6 +1938,8 @@ begin
   FList := TCastleTransformList.Create(false);
   FList.FOwner := Self; // get notified about add/release, assign children World, Parent
   FBehaviors := TComponentList.Create(false);
+  FBehaviorsWorldChangeNotificationList := nil;
+
   FMiddleHeight := DefaultMiddleHeight;
   FOnlyTranslation := true;
   FScale := NoScale;
@@ -1954,8 +1965,6 @@ begin
   FreeAndNil(FPendingToRemove);
   FreeAndNil(FPendingToRemoveAndFree);
 
-  PhysicsDestroy;
-
   if RegisteredGLContextCloseListener then
   begin
     ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef FPC}@{$endif}GLContextCloseEvent);
@@ -1965,6 +1974,7 @@ begin
 
   FreeAndNil(FList);
   FreeAndNil(FBehaviors);
+  FreeAndNil(FBehaviorsWorldChangeNotificationList);
   { set to nil, to detach free notification }
   ChangeWorld(nil);
   inherited;
@@ -2124,7 +2134,7 @@ begin
       if ListenPressRelease then
         FWorld.UnregisterPressRelease(Self);
 
-      PhysicsChangeWorldDetach;
+      NotifyWorldDetach(FWorld);
 
       { Do not call RemoveFreeNotification when FWorld is also our list owner,
         this would prevent getting notification in TCastleTransform.Notification. }
@@ -2141,7 +2151,7 @@ begin
       //if FWorld <> Self then
       FWorld.FreeNotification(Self);
 
-      PhysicsChangeWorldAttach;
+      NotifyWorldAttach(FWorld);
 
       if ListenPressRelease then
         FWorld.RegisterPressRelease(Self);
@@ -2192,8 +2202,6 @@ begin
 
   if (Operation = opRemove) and (AComponent is TCastleTransform) and (List <> nil) then
     List.RemoveAll(AComponent);
-
-  PhysicsNotification(AComponent, Operation);
 end;
 
 function TCastleTransform.Height(const MyPosition: TVector3;
@@ -2546,7 +2554,7 @@ begin
 end;
 
 function TCastleTransform.PointingDeviceMove(const Pick: TRayCollisionNode;
-  const Distance: Single): boolean;
+  const Distance: Single): Boolean;
 begin
   { This event is not automatically passed to all children on List,
     instead the TCastleViewport has special logic which
@@ -2617,8 +2625,7 @@ begin
   { Disable physics and gravity in design mode (in the future we may add optional way to enable them) }
   if not CastleDesignMode then
   begin
-    UpdateSimpleGravity(SecondsPassed);
-    UpdatePhysicsEngine(SecondsPassed);
+      UpdateSimpleGravity(SecondsPassed);
   end;
 end;
 
@@ -2713,6 +2720,34 @@ begin
       ]);
   end;
   Result := FParent;
+end;
+
+procedure TCastleTransform.NotifyWorldAttach(
+  const NewWorld: TCastleAbstractRootTransform);
+var
+  I: Integer;
+begin
+  if FBehaviorsWorldChangeNotificationList = nil then
+    Exit;
+
+  for I := 0 to FBehaviorsWorldChangeNotificationList.Count - 1 do
+  begin
+    FBehaviorsWorldChangeNotificationList[I].WorldAttached(NewWorld);
+  end;
+end;
+
+procedure TCastleTransform.NotifyWorldDetach(
+  const PreviousWorld: TCastleAbstractRootTransform);
+var
+  I: Integer;
+begin
+  if FBehaviorsWorldChangeNotificationList = nil then
+    Exit;
+
+  for I := 0 to FBehaviorsWorldChangeNotificationList.Count - 1 do
+  begin
+    FBehaviorsWorldChangeNotificationList[I].WorldDetached(PreviousWorld);
+  end;
 end;
 
 function TCastleTransform.HasWorldTransform: boolean;
@@ -3599,6 +3634,25 @@ begin
   Result := TCastleBehaviorEnumerator.Create(Self);
 end;
 
+procedure TCastleTransform.AddWorldChangeNotification(
+  const Behavior: TCastleBehavior);
+begin
+  if FBehaviorsWorldChangeNotificationList = nil then
+    FBehaviorsWorldChangeNotificationList := {$ifdef FPC}specialize{$endif} TList<TCastleBehavior>.Create;
+
+  if FBehaviorsWorldChangeNotificationList.IndexOf(Behavior) = -1 then
+    FBehaviorsWorldChangeNotificationList.Add(Behavior);
+end;
+
+procedure TCastleTransform.RemoveWorldChangeNotification(
+  const Behavior: TCastleBehavior);
+begin
+  if FBehaviorsWorldChangeNotificationList = nil then
+    Exit;
+
+  FBehaviorsWorldChangeNotificationList.Remove(Behavior);
+end;
+
 procedure TCastleTransform.SetListenPressRelease(const Value: Boolean);
 begin
   if FListenPressRelease <> Value then
@@ -3627,6 +3681,7 @@ end;
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
 var
   ReasonWhyCannot: String;
+  OldParent: TCastleTransform;
 begin
   if Behavior.FParent <> Self then
   begin
@@ -3639,8 +3694,19 @@ begin
         ReasonWhyCannot
       ]);
     FBehaviors.Add(Behavior);
+    OldParent := Behavior.FParent;
     Behavior.FParent := Self;
     Behavior.ParentChanged; // call at end, when state is consistent
+
+    { Call WorldAttached directly }
+    if Behavior.NeedWorldChangeNotification then
+    begin
+      AddWorldChangeNotification(Behavior);
+
+      if (FWorld <> nil) and
+       ((OldParent = nil) or ((OldParent <> nil) and (OldParent.World <> FWorld))) then
+        Behavior.WorldAttached(FWorld);
+    end;
   end;
 end;
 
@@ -3649,9 +3715,15 @@ var
   Beh: TCastleBehavior;
 begin
   Beh := FBehaviors[BehaviorIndex] as TCastleBehavior;
+
+  { Call WorldDetached directly }
+  if Beh.NeedWorldChangeNotification and (FWorld <> nil) then
+    Beh.WorldDetached(FWorld);
+
   Beh.FParent := nil;
   FBehaviors.Delete(BehaviorIndex);
   Beh.ParentChanged; // call at end, when state is consistent
+  RemoveWorldChangeNotification(Beh);
 end;
 
 procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
