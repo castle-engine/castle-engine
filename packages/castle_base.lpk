@@ -3435,8 +3435,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="X3DCameraUtils"/>
       </Item831>
       <Item832>
-        <Filename Value="../src/scene/x3dcastlescript.pas"/>
-        <UnitName Value="X3DCastleScript"/>
+        <Filename Value="../src/scene/castleinternalx3dscript.pas"/>
+        <UnitName Value="CastleInternalX3DScript"/>
       </Item832>
       <Item833>
         <Filename Value="../src/scene/x3d/x3dfields.pas"/>

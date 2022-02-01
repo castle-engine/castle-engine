@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleScript utilities for usage as VRML/X3D scripts. }
-unit X3DCastleScript;
+{ CastleScript utilities for usage as X3D scripts. }
+unit CastleInternalX3DScript;
 
 {$I castleconf.inc}
 

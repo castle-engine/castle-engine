@@ -105,7 +105,7 @@ contains
   castlecameras in '..\..\src\transform\castlecameras.pas',
   castleinternalrays in '..\..\src\transform\castleinternalrays.pas',
   castletransform in '..\..\src\transform\castletransform.pas',
-  x3dcastlescript in '..\..\src\x3d\x3dcastlescript.pas',
+  castleinternalx3dscript in '..\..\src\scene\castleinternalx3dscript.pas',
   castleinternaloctree in '..\..\src\transform\castleinternaloctree.pas',
   castlebehaviors in '..\..\src\transform\castlebehaviors.pas',
   castlesectors in '..\..\src\transform\castlesectors.pas',

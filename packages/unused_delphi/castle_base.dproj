@@ -234,7 +234,7 @@
         <DCCReference Include="..\..\src\3d\castlecameras.pas"/>
         <DCCReference Include="..\..\src\3d\castleinternalrays.pas"/>
         <DCCReference Include="..\..\src\3d\castletransform.pas"/>
-        <DCCReference Include="..\..\src\x3d\x3dcastlescript.pas"/>
+        <DCCReference Include="..\..\src\scene\castleinternalx3dscript.pas"/>
         <DCCReference Include="..\..\src\3d\castleinternaloctree.pas"/>
         <DCCReference Include="..\..\src\game\castlebehaviors.pas"/>
         <DCCReference Include="..\..\src\3d\castlesectors.pas"/>

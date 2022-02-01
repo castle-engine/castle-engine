@@ -168,7 +168,8 @@ uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,
   CastleVideos, X3DTime, CastleTransform, CastleMaterialProperties,
-  {$ifdef FPC}CastleScript, X3DCastleScript, {$endif} CastleInternalOctree, CastleInternalCompositeImage,
+  {$ifdef FPC}CastleScript, CastleInternalX3DScript, {$endif} CastleInternalOctree,
+  CastleInternalCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   CastleTextureFontData, CastleRenderOptions, CastleProjection, CastleBehaviors;
 

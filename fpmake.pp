@@ -361,6 +361,7 @@ begin
     P.Targets.AddUnit('castleinternalspritesheet.pas');
     P.Targets.AddUnit('castleinternaltriangleoctree.pas');
     P.Targets.AddUnit('castleinternalx3dlexer.pas');
+    P.Targets.AddUnit('castleinternalx3dscript.pas');
     P.Targets.AddUnit('castlematerialproperties.pas');
     P.Targets.AddUnit('castleraytracer.pas');
     P.Targets.AddUnit('castlerendererinternallights.pas');
@@ -379,7 +380,6 @@ begin
     P.Targets.AddUnit('castlethirdpersonnavigation.pas');
     P.Targets.AddUnit('castleviewport.pas');
     P.Targets.AddUnit('x3dcamerautils.pas');
-    P.Targets.AddUnit('x3dcastlescript.pas');
     P.Targets.AddUnit('x3dtime.pas');
 
     P.SourcePath.Add('src/scene/x3d');
