@@ -397,13 +397,13 @@ begin
     P.Targets.AddUnit('x3dloadinternalutils.pas');
     P.Targets.AddUnit('castleloadgltf.pas');
 
-    P.SourcePath.Add('src/scene/loading/spine');
+    P.SourcePath.Add('src/scene/load/spine');
     P.Targets.AddUnit('x3dloadinternalspine.pas');
 
-    P.SourcePath.Add('src/scene/loading/collada');
+    P.SourcePath.Add('src/scene/load/collada');
     P.Targets.AddUnit('x3dloadinternalcollada.pas');
 
-    P.SourcePath.Add('src/scene/loading/pasgltf');
+    P.SourcePath.Add('src/scene/load/pasgltf');
     P.Targets.AddUnit('PasDblStrUtils.pas');
     P.Targets.AddUnit('PasGLTF.pas');
     P.Targets.AddUnit('PasJSON.pas');
