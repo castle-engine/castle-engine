@@ -485,7 +485,12 @@
     {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
   end;
 
-  { Boundary modes for S, T, R texture coordinates. }
+  { Boundary modes for S, T, R texture coordinates.
+
+    bmClampToBoundary:
+    We allow but don't handle X3D CLAMP_TO_BOUNDARY string and behave
+    like CLAMP_TO_EDGE. Handling would mean complicating implementation
+    for little gain. }
   TBoundaryMode = (
     bmClamp,
     bmClampToEdge,
