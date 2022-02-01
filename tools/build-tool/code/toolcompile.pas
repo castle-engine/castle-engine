@@ -95,7 +95,7 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..42] of String = (
+  EnginePaths: array [0..41] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -130,7 +130,6 @@ const
     'services',
     'physics',
     'physics/kraft',
-    'pasgltf',
     'deprecated_units',
     { Vampyre Imaging Library }
     'vampyre_imaginglib/src/Source',
