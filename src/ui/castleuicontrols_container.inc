@@ -422,7 +422,7 @@
     { Capture the current container (window) contents to an image with alpha.
 
       An example:
-      @includeCode(../../../examples/short_api_samples/save_screen_rgba/save_screen_rgba.dpr)
+      @includeCode(../../examples/short_api_samples/save_screen_rgba/save_screen_rgba.dpr)
       @groupBegin }
     function SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage; overload;
     function SaveScreenRgba: TRGBAlphaImage; overload;
