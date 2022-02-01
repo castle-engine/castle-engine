@@ -38,6 +38,10 @@
     and accessing the @link(TCastleTransform.Parent) from a child.
   }
   TCastleBehavior = class(TCastleComponent)
+  strict private
+    FNeedWorldChangeNotification: Boolean;
+
+    procedure SetNeedWorldChangeNotification(const Value: Boolean);
   private
     FParent: TCastleTransform;
   protected
@@ -51,6 +55,10 @@
     { Called after @link(Parent) changed, at the end of @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
+
+    procedure WorldAttached(const NewWorld: TCastleAbstractRootTransform); virtual;
+    procedure WorldDetached(const PreviousWorld: TCastleAbstractRootTransform); virtual;
+
 
     { Check can this behavior be added to NewParent.
       When this returns @false, it has to set also ReasonWhyCannot.
@@ -81,6 +89,8 @@
 
       @nil if this behavior is not yet added to a parent. }
     property Parent: TCastleTransform read FParent;
+    property NeedWorldChangeNotification: Boolean
+      read FNeedWorldChangeNotification write SetNeedWorldChangeNotification;
   end;
 
 {$endif read_interface}
@@ -118,12 +128,38 @@ end;
 
 { TCastleBehavior ------------------------------------------------------------ }
 
+procedure TCastleBehavior.SetNeedWorldChangeNotification(const Value: Boolean);
+begin
+  if (Parent <> nil) then
+  begin
+    if Value then
+      Parent.AddWorldChangeNotification(Self)
+    else
+      Parent.RemoveWorldChangeNotification(Self)
+  end;
+
+  FNeedWorldChangeNotification := Value;
+end;
+
 procedure TCastleBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
 end;
 
 procedure TCastleBehavior.ParentChanged;
 begin
+
+end;
+
+procedure TCastleBehavior.WorldAttached(
+  const NewWorld: TCastleAbstractRootTransform);
+begin
+
+end;
+
+procedure TCastleBehavior.WorldDetached(
+  const PreviousWorld: TCastleAbstractRootTransform);
+begin
+
 end;
 
 function TCastleBehavior.CanAttachToParent(const NewParent: TCastleTransform;

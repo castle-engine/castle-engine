@@ -261,6 +261,20 @@
 
     procedure SetExists(const Value: Boolean);
     procedure SetTrigger(const Value: Boolean);
+
+    { Connect this rigid body with Transform and Transform.World. }
+    procedure InitializeTransform(const Transform: TCastleTransform);
+    { Disconnect from Transform.World, if was connected. }
+    procedure DeinitializeTransform(const Transform: TCastleTransform);
+
+  protected
+    procedure ParentChanged; override;
+
+    procedure WorldAttached(const NewWorld: TCastleAbstractRootTransform); override;
+
+    procedure WorldDetached(const PreviousWorld: TCastleAbstractRootTransform); override;
+
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -270,11 +284,6 @@
       locks rotating along the X and Y axes. }
     procedure Setup2D;
 
-    { Connect this rigid body with Transform and Transform.World. }
-    procedure InitializeTransform(const Transform: TCastleTransform);
-    { Disconnect from Transform.World, if was connected. }
-    procedure DeinitializeTransform(const Transform: TCastleTransform);
-    procedure Update(const Transform: TCastleTransform; const SecondsPassed: Single);
 
     { Transformations that we collide with currently. }
     function GetCollidingTransforms: TCastleTransformList;
@@ -677,6 +686,8 @@ end;
 constructor TCastleRigidBody.Create(AOwner: TComponent);
 begin
   inherited;
+  { This behavior needs WorldAttached() WorldDetached() }
+  NeedWorldChangeNotification := true;
 
   // properties defaults
   FGravity := true;
@@ -698,20 +709,6 @@ end;
 
 destructor TCastleRigidBody.Destroy;
 begin
-  { In case TRigidBody is destroyed before the connected FTransform is destroyed
-    (testcase: physics_3d_demo exit), it is necessary to clear FTransform.FRigidBody.
-    This avoids having a dangling pointer in FTransform.FRigidBody to half-destroyed
-    instance.
-
-    Otherwise:
-    - "inherited" below calls TComponent free notification,
-    - which calls TCastleTransform.PhysicsNotification,
-    - which would (if FTransform.FRigidBody is not cleared)
-      call DeinitializeTransform on our instance, with FKraftBody = nil.
-  }
-  if FTransform <> nil then
-    FTransform.FRigidBody := nil;
-
   { The FKraftBody will be freed now if you free TRigidBody
     instance explicitly. In most other cases, DeinitializeTransform
     already freed FKraftBody and set it nil. }
@@ -1052,7 +1049,7 @@ begin
   FAngularVelocity := VectorFromKraft(FKraftBody.AngularVelocity);
 end;
 
-procedure TCastleRigidBody.Update(const Transform: TCastleTransform; const SecondsPassed: Single);
+procedure TCastleRigidBody.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
   // function TranslationFromMatrix(const M: TMatrix4): TVector3;
   // begin
@@ -1072,14 +1069,14 @@ procedure TCastleRigidBody.Update(const Transform: TCastleTransform; const Secon
   begin
     Shape := FCollider.FKraftShape;
 
-    LocalTransform := Transform.CheckParent.WorldInverseTransform *
+    LocalTransform := Parent.CheckParent.WorldInverseTransform *
       MatrixFromKraft(Shape.InterpolatedWorldTransform);
     if FCollider.FUseLocalTransform then
       LocalTransform := LocalTransform * FCollider.FLocalInverseTransform;
 
     MatrixDecompose(LocalTransform, Translation, Rotation, Scale);
-    Transform.Rotation := Rotation;
-    Transform.Translation := Translation;
+    Parent.Rotation := Rotation;
+    Parent.Translation := Translation;
 
     { This is an alternative version using Kraft to do matrix decomposition. }
     // Q := QuaternionFromMatrix4x4(MatrixToKraft(LocalTransform));
@@ -1090,10 +1087,19 @@ procedure TCastleRigidBody.Update(const Transform: TCastleTransform; const Secon
   end;
 
 begin
-  if (Transform.World <> nil) and (not Transform.World.EnablePhysics) then
+  inherited;
+
+  { Disable physics in design mode (in the future we may add optional way to enable them) }
+  if CastleDesignMode then
     Exit;
 
-  UpdateCollides(Transform);
+  if Parent = nil then
+    Exit;
+
+  if (Parent.World <> nil) and (not Parent.World.EnablePhysics) then
+    Exit;
+
+  UpdateCollides(Parent);
   if Dynamic then
   begin
     TransformationFromKraft;
@@ -1102,11 +1108,35 @@ begin
   if Animated then
   begin
     // TODO: check "if TransformChanged then" or such, don't do this every frame
-    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform))
+    FKraftBody.SetWorldTransformation(MatrixToKraft(Parent.WorldTransform))
 
     // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
     // or will this require recreating rigid body?
   end;
+end;
+
+procedure TCastleRigidBody.ParentChanged;
+begin
+  inherited;
+
+end;
+
+procedure TCastleRigidBody.WorldAttached(
+  const NewWorld: TCastleAbstractRootTransform);
+begin
+  inherited;
+
+  if NewWorld <> nil then
+    InitializeTransform(Parent);
+end;
+
+procedure TCastleRigidBody.WorldDetached(
+  const PreviousWorld: TCastleAbstractRootTransform);
+begin
+  inherited;
+
+  if FTransform <> nil then
+    DeinitializeTransform(Parent);
 end;
 
 function TCastleRigidBody.GetCollidingTransforms: TCastleTransformList;
@@ -1253,74 +1283,15 @@ end;
 
 { TCastleTransform ---------------------------------------------------------- }
 
-procedure TCastleTransform.SetRigidBody(const Value: TRigidBody);
+procedure TCastleTransform.SetRigidBody(const Value: TCastleRigidBody);
 begin
-  if FRigidBody <> Value then
-  begin
-    if FRigidBody <> nil then
-    begin
-      FRigidBody.RemoveFreeNotification(Self);
-      if World <> nil then
-        RigidBody.DeinitializeTransform(Self);
-    end;
-    FRigidBody := Value;
-    if FRigidBody <> nil then
-    begin
-      FRigidBody.FreeNotification(Self);
-      { For the same reason that TCastleTransform.PhysicsChangeWorld calls this,
-        also here call InitializeTransform, in case ChangeWorld happened
-        before SetRigidBody. }
-      if World <> nil then
-        RigidBody.InitializeTransform(Self);
-    end;
-  end;
+  if Value <> nil then
+    AddBehavior(Value);
 end;
 
-procedure TCastleTransform.PhysicsDestroy;
+function TCastleTransform.GetRigidBody: TCastleRigidBody;
 begin
-  { set to nil by SetRigidBody, to detach free notification }
-  RigidBody := nil;
-end;
-
-procedure TCastleTransform.UpdatePhysicsEngine(const SecondsPassed: Single);
-begin
-  if FRigidBody <> nil then
-    FRigidBody.Update(Self, SecondsPassed);
-end;
-
-procedure TCastleTransform.PhysicsNotification(AComponent: TComponent; Operation: TOperation);
-begin
-  if (Operation = opRemove) and (AComponent = FRigidBody) then
-    { set to nil by SetRigidBody to clean nicely }
-    RigidBody := nil;
-end;
-
-procedure TCastleTransform.PhysicsChangeWorldDetach;
-begin
-  { When removing 3D object from world, remove it also from physics engine world. }
-  if (RigidBody <> nil) and (RigidBody.FKraftBody <> nil) then
-    RigidBody.DeinitializeTransform(Self);
-end;
-
-procedure TCastleTransform.PhysicsChangeWorldAttach;
-begin
-  { Calling TRigidBody.InitializeTransform explicitly now
-    (instead of letting it happen in TRigidBody.Update)
-    makes sure that when TCastleAbstractRootTransform.Update will happen,
-    the physics engine will know
-    the initial position of this object during 1st simulation tick.
-
-    TODO: it's not really nice.
-    - If you change a transformation from now to TCastleAbstractRootTransform.Update,
-      then 1st simulation tick will have invalid transformation anyway.
-    - If you change some other rigid body parameter between now and
-      next FRigidBody.Update, then next FRigidBody would recreate Kraft
-      resources for this object (once it's implemented, by setting
-      FRecreateKraftInstance on every change),
-      which is needless (we create Kraft resources
-      for this transform 2 times in this case, instead of once). }
-  if RigidBody <> nil then
-    RigidBody.InitializeTransform(Self);
+  Result := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 end;
 
 { TCastleAbstractRootTransform ------------------------------------------------------------------- }
@@ -1343,7 +1314,7 @@ end;
 
 procedure TCastleAbstractRootTransform.DestroyPhysicsEngine;
 var
-  CastleRigidBody: TRigidBody;
+  CastleRigidBody: TCastleRigidBody;
   KraftRigidBody: TKraftRigidBody;
   NextKraftRigidBody: TKraftRigidBody;
 begin
@@ -1356,7 +1327,7 @@ begin
       NextKraftRigidBody := KraftRigidBody.RigidBodyNext;
       if Assigned(KraftRigidBody.UserData) then
       begin
-        CastleRigidBody := TRigidBody(KraftRigidBody.UserData);
+        CastleRigidBody := TCastleRigidBody(KraftRigidBody.UserData);
         CastleRigidBody.DeinitializeTransform(CastleRigidBody.FTransform);
       end;
       KraftRigidBody := NextKraftRigidBody;
