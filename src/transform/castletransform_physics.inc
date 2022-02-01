@@ -205,19 +205,16 @@
   TOnCollision = TCollisionEvent deprecated 'use TCollisionEvent';
 
   TRigidBodyList = {$ifdef FPC}specialize{$endif} TList<TRigidBody>;
+  TCastleRigidBodyList = {$ifdef FPC}specialize{$endif} TList<TCastleRigidBody>;
 
-  { Rigid body properties for the physics engine,
-    see @link(TCastleTransform.RigidBody).
-
-    TODO: For now all the properties of this class,
-    including the Collider and all properties of Collider,
-    must be assigned before setting TCastleTransform.RigidBody . }
-  TRigidBody = class(TComponent)
+  { Rigid body behavior for the physics engine,
+    see @link(TCastleTransform.RigidBody). }
+  TCastleRigidBody = class(TCastleBehavior)
   strict private
     { List of collisions from previous step. }
-    FPrevCollisions: TRigidBodyList;
+    FPrevCollisions: TCastleRigidBodyList;
     { List of collisions from current step. }
-    FCurrentCollisions: TRigidBodyList;
+    FCurrentCollisions: TCastleRigidBodyList;
 
     FOnCollisionEnter: TCollisionEvent;
     FOnCollisionStay: TCollisionEvent;
@@ -472,6 +469,9 @@
     property Exists: Boolean read FExists write SetExists default true;
   end;
 
+  TRigidBody = class(TCastleRigidBody)
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -674,7 +674,7 @@ end;
 
 { TRigidBody ----------------------------------------------------------------- }
 
-constructor TRigidBody.Create(AOwner: TComponent);
+constructor TCastleRigidBody.Create(AOwner: TComponent);
 begin
   inherited;
 
@@ -688,15 +688,15 @@ begin
 
   FKraftBody := nil;
   FCollisionList := TCastleTransformList.Create(false);
-  FPrevCollisions := TRigidBodyList.Create;
-  FCurrentCollisions := TRigidBodyList.Create;
+  FPrevCollisions := TCastleRigidBodyList.Create;
+  FCurrentCollisions := TCastleRigidBodyList.Create;
 
   FOnCollisionEnter := nil;
   FOnCollisionExit := nil;
   FTransform := nil;
 end;
 
-destructor TRigidBody.Destroy;
+destructor TCastleRigidBody.Destroy;
 begin
   { In case TRigidBody is destroyed before the connected FTransform is destroyed
     (testcase: physics_3d_demo exit), it is necessary to clear FTransform.FRigidBody.
@@ -724,7 +724,7 @@ begin
   inherited;
 end;
 
-procedure TRigidBody.Setup2D;
+procedure TCastleRigidBody.Setup2D;
 begin
   LockTranslation := [2];
   LockRotation := [0, 1];
@@ -739,7 +739,7 @@ begin
   if 2 in Locked then Result.Z := 0;
 end;
 
-procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
+procedure TCastleRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
   procedure RecreateKraftInstance;
   var
@@ -836,7 +836,7 @@ begin
   RecreateKraftInstance;
 end;
 
-procedure TRigidBody.DeinitializeTransform(const Transform: TCastleTransform);
+procedure TCastleRigidBody.DeinitializeTransform(const Transform: TCastleTransform);
 
   procedure RemoveSelfFromOtherRigidBodiesCollisionLists;
   var
@@ -899,7 +899,7 @@ begin
   FTransform := nil;
 end;
 
-procedure TRigidBody.PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
+procedure TCastleRigidBody.PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
 var
   ContactPairEdge: PKraftContactPairEdge;
   RBody: TRigidBody;
@@ -967,7 +967,7 @@ begin
   FPrevCollisions.AddRange(FCurrentCollisions);
 end;
 
-procedure TRigidBody.CheckPhysicsPostStepNeeded;
+procedure TCastleRigidBody.CheckPhysicsPostStepNeeded;
 begin
   if not Assigned(FKraftBody) then
     Exit;
@@ -978,7 +978,7 @@ begin
     FKraftBody.OnPostStep := nil;
 end;
 
-procedure TRigidBody.UpdateCollides(const Transform: TCastleTransform);
+procedure TCastleRigidBody.UpdateCollides(const Transform: TCastleTransform);
 const
   AllCollisionGroups = [
     Low (TKraftRigidBodyCollisionGroup)..
@@ -995,7 +995,7 @@ begin
   end;
 end;
 
-procedure TRigidBody.SetMaximalAngularVelocity(const AValue: Single);
+procedure TCastleRigidBody.SetMaximalAngularVelocity(const AValue: Single);
 begin
   FMaximalAngularVelocity := AValue;
   { Kraft uses max velocity for delta time which is physics update frequency. }
@@ -1003,7 +1003,7 @@ begin
     FKraftBody.MaximalAngularVelocity := AValue / FTransform.World.FKraftEngine.WorldFrequency;
 end;
 
-procedure TRigidBody.SetMaximalLinearVelocity(const AValue: Single);
+procedure TCastleRigidBody.SetMaximalLinearVelocity(const AValue: Single);
 begin
   FMaximalLinearVelocity := AValue;
   { Kraft uses max velocity for delta time which is physics update frequency. }
@@ -1011,39 +1011,39 @@ begin
     FKraftBody.MaximalLinearVelocity := AValue / FTransform.World.FKraftEngine.WorldFrequency;
 end;
 
-procedure TRigidBody.SetOnCollisionEnter(const AValue: TCollisionEvent);
+procedure TCastleRigidBody.SetOnCollisionEnter(const AValue: TCollisionEvent);
 begin
   FOnCollisionEnter := AValue;
   CheckPhysicsPostStepNeeded;
 end;
 
-procedure TRigidBody.SetOnCollisionStay(const AValue: TCollisionEvent);
+procedure TCastleRigidBody.SetOnCollisionStay(const AValue: TCollisionEvent);
 begin
   FOnCollisionStay := AValue;
   CheckPhysicsPostStepNeeded;
 end;
 
-procedure TRigidBody.SetOnCollisionExit(const AValue: TCollisionEvent);
+procedure TCastleRigidBody.SetOnCollisionExit(const AValue: TCollisionEvent);
 begin
   FOnCollisionExit := AValue;
   CheckPhysicsPostStepNeeded;
 end;
 
-procedure TRigidBody.SetAngularVelocityDamp(const AValue: Single);
+procedure TCastleRigidBody.SetAngularVelocityDamp(const AValue: Single);
 begin
   FAngularVelocityDamp := AValue;
   if FKraftBody <> nil then
     FKraftBody.AngularVelocityDamp := AValue;
 end;
 
-procedure TRigidBody.SetLinearVelocityDamp(const AValue: Single);
+procedure TCastleRigidBody.SetLinearVelocityDamp(const AValue: Single);
 begin
   FLinearVelocityDamp := AValue;
   if FKraftBody <> nil then
     FKraftBody.LinearVelocityDamp := AValue;
 end;
 
-procedure TRigidBody.SynchronizeFromKraft;
+procedure TCastleRigidBody.SynchronizeFromKraft;
 begin
   if FKraftBody = nil then
     Exit;
@@ -1052,7 +1052,7 @@ begin
   FAngularVelocity := VectorFromKraft(FKraftBody.AngularVelocity);
 end;
 
-procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPassed: Single);
+procedure TCastleRigidBody.Update(const Transform: TCastleTransform; const SecondsPassed: Single);
 
   // function TranslationFromMatrix(const M: TMatrix4): TVector3;
   // begin
@@ -1109,7 +1109,7 @@ begin
   end;
 end;
 
-function TRigidBody.GetCollidingTransforms: TCastleTransformList;
+function TCastleRigidBody.GetCollidingTransforms: TCastleTransformList;
 var
   ContactPairEdge: PKraftContactPairEdge;
   CastleTransform:TCastleTransform;
@@ -1132,7 +1132,7 @@ begin
   end;
 end;
 
-function TRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+function TCastleRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
   const MaxDistance: Single): TCastleTransform;
 var
   IgnoredDistance: Single;
@@ -1140,7 +1140,7 @@ begin
   Result := PhysicsRayCast(RayOrigin, RayDirection, MaxDistance, IgnoredDistance);
 end;
 
-function TRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+function TCastleRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
   const MaxDistance: Single; out Distance: Single): TCastleTransform;
 var
   Shape: TKraftShape;
@@ -1186,7 +1186,7 @@ begin
   end;
 end;
 
-procedure TRigidBody.SetLinearVelocity(const LVelocity: TVector3);
+procedure TCastleRigidBody.SetLinearVelocity(const LVelocity: TVector3);
 begin
   FLinearVelocity := LVelocity;
   if FKraftBody <> nil then
@@ -1197,7 +1197,7 @@ begin
   end;
 end;
 
-procedure TRigidBody.SetAngularVelocity(const AVelocity: TVector3);
+procedure TCastleRigidBody.SetAngularVelocity(const AVelocity: TVector3);
 begin
   FAngularVelocity := AVelocity;
   if FKraftBody <> nil then
@@ -1208,7 +1208,7 @@ begin
   end;
 end;
 
-procedure TRigidBody.SetExists(const Value: Boolean);
+procedure TCastleRigidBody.SetExists(const Value: Boolean);
 begin
   if FExists = Value then
     Exit;
@@ -1235,7 +1235,7 @@ begin
   end;
 end;
 
-procedure TRigidBody.SetTrigger(const Value: Boolean);
+procedure TCastleRigidBody.SetTrigger(const Value: Boolean);
 begin
   if FTrigger = Value then
     Exit;
