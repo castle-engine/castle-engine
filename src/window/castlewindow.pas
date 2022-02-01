@@ -2716,7 +2716,7 @@ uses CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
-  {$ifdef FPC}X3DLoad, {$endif}Math;
+  Math;
 
 {$define read_implementation}
 
