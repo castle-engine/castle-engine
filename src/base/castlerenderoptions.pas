@@ -218,15 +218,6 @@ type
   );
   TMagnificationFilter = magNearest..magLinear;
 
-  { Boundary modes for S, T, R texture coordinates. }
-  TBoundaryMode = (
-    bmClamp,
-    bmClampToEdge,
-    bmClampToBoundary,
-    bmMirroredRepeat,
-    bmRepeat
-  );
-
   TBlendingSourceFactor = (
     bsSrcAlpha,
     bsOneMinusSrcAlpha,

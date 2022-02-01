@@ -485,6 +485,15 @@
     {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
   end;
 
+  { Boundary modes for S, T, R texture coordinates. }
+  TBoundaryMode = (
+    bmClamp,
+    bmClampToEdge,
+    bmClampToBoundary,
+    bmMirroredRepeat,
+    bmRepeat
+  );
+
   { Adjust the texture application properties. }
   TTexturePropertiesNode = class(TAbstractNode)
   strict private
