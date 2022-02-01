@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2010-2019 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -73,6 +73,9 @@ type
     function GetHeadlightNode: TAbstractLightNode;
     procedure SetHeadlightNode(const Node: TAbstractLightNode);
     procedure MainSceneFreeNotification(const Sender: TFreeNotificationObserver);
+  protected
+    function IgnoreTransparentItem(
+      const Sender: TObject; const Triangle: PTriangle): Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -309,6 +312,12 @@ begin
       Result := [psBasic]
     else
       Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleRootTransform.IgnoreTransparentItem(
+  const Sender: TObject; const Triangle: PTriangle): Boolean;
+begin
+  Result := Triangle^.IsTransparent;
 end;
 
 {$endif read_implementation}

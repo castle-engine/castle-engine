@@ -43,6 +43,14 @@
     procedure DestroyPhysicsEngine;
     procedure RegisterPressRelease(const T: TCastleTransform);
     procedure UnregisterPressRelease(const T: TCastleTransform);
+  protected
+    { Ignore (return @true) transparent triangles
+      (with Material.Transparency > 0).
+
+      This is suitable for TTriangleIgnoreFunc function, you can pass
+      this to RayCollision and such. }
+    function IgnoreTransparentItem(
+      const Sender: TObject; const Triangle: PTriangle): Boolean; virtual; abstract;
   public
     OnCursorChange: TNotifyEvent;
 
@@ -460,7 +468,7 @@ begin
   Result := not SegmentCollision(Pos1, Pos2,
     { Ignore transparent materials, this means that creatures can see through
       glass --- even though they can't walk through it. }
-    {$ifdef FPC}@{$endif}TBaseTrianglesOctree{$ifdef FPC}(nil){$endif}.IgnoreTransparentItem,
+    {$ifdef FPC}@{$endif} IgnoreTransparentItem,
     true);
 end;
 

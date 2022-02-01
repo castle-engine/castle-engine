@@ -463,25 +463,6 @@ type
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
-    { Ignore (return @true) transparent triangles
-      (with Material.Transparency > 0).
-
-      This is suitable for TTriangleIgnoreFunc function, you can pass
-      this to RayCollision and such. }
-    class function IgnoreTransparentItem(
-      const Sender: TObject;
-      const Triangle: PTriangle): boolean;
-
-    { Ignore (return @true) transparent triangles
-      (with Material.Transparency > 0) and non-shadow-casting triangles
-      (with Appearance.shadowCaster = FALSE).
-
-      This is suitable for TTriangleIgnoreFunc function, you can pass
-      this to RayCollision and such. }
-    class function IgnoreForShadowRays(
-      const Sender: TObject;
-      const Triangle: PTriangle): boolean;
-
     { Enumerate every triangle of this octree.
 
       It passes to EnumerateTriangleFunc callback a Triangle.
@@ -500,23 +481,10 @@ type
     function TrianglesCount: Cardinal; virtual; abstract;
   end;
 
-  { Simple utility class to easily ignore all transparent, non-shadow-casting
-    triangles, and, additionally, one chosen triangle.
-    Useful for TrianglesToIgnoreFunc parameters of various
-    TBaseTrianglesOctree methods. }
-  TOctreeIgnoreForShadowRaysAndOneItem = class
-  public
-    OneItem: PTriangle;
-    function IgnoreItem(
-      const Sender: TObject;
-      const Triangle: PTriangle): boolean;
-    constructor Create(AOneItem: PTriangle);
-  end;
-
 implementation
 
 uses Math,
-  CastleStringUtils, CastleShapes;
+  CastleStringUtils;
 
 { TBaseTrianglesOctreeNode -----------------------------------------------
 
@@ -1254,36 +1222,6 @@ function TBaseTrianglesOctree.AssignNewTag: TMailboxTag;
 begin
  result := NextFreeTag;
  Inc(NextFreeTag);
-end;
-
-class function TBaseTrianglesOctree.IgnoreTransparentItem(
-  const Sender: TObject;
-  const Triangle: PTriangle): boolean;
-begin
-  Result := Triangle^.IsTransparent;
-end;
-
-class function TBaseTrianglesOctree.IgnoreForShadowRays(
-  const Sender: TObject;
-  const Triangle: PTriangle): boolean;
-begin
-  Result := Triangle^.IgnoreForShadowRays;
-end;
-
-{ TOctreeIgnoreForShadowRaysAndOneItem -------------------------------------- }
-
-function TOctreeIgnoreForShadowRaysAndOneItem.IgnoreItem(
-  const Sender: TObject;
-  const Triangle: PTriangle): boolean;
-begin
-  Result := (Triangle = OneItem) or Triangle^.IgnoreForShadowRays;
-end;
-
-constructor TOctreeIgnoreForShadowRaysAndOneItem.Create(
-  AOneItem: PTriangle);
-begin
-  inherited Create;
-  OneItem := AOneItem;
 end;
 
 end.

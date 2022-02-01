@@ -236,6 +236,51 @@ implementation
 uses SysUtils, Math,
   CastleInternalSphereSampling, CastleTimeUtils, CastleColors, CastleRenderOptions;
 
+{ TOctreeIgnoreForShadowRaysAndOneItem -------------------------------------- }
+
+type
+  { Simple utility class to easily ignore all transparent, non-shadow-casting
+    triangles, and, additionally, one chosen triangle.
+    Useful for TrianglesToIgnoreFunc parameters of various
+    TBaseTrianglesOctree methods. }
+  TOctreeIgnoreForShadowRaysAndOneItem = class
+  public
+    OneItem: PTriangle;
+    function IgnoreItem(const Sender: TObject; const Triangle: PTriangle): boolean;
+    constructor Create(AOneItem: PTriangle);
+  end;
+
+function TOctreeIgnoreForShadowRaysAndOneItem.IgnoreItem(
+  const Sender: TObject; const Triangle: PTriangle): boolean;
+begin
+  Result := (Triangle = OneItem) or Triangle^.IgnoreForShadowRays;
+end;
+
+constructor TOctreeIgnoreForShadowRaysAndOneItem.Create(
+  AOneItem: PTriangle);
+begin
+  inherited Create;
+  OneItem := AOneItem;
+end;
+
+type
+  TOctreeIgnoreForShadowRays = class
+    { Ignore (return @true) transparent triangles
+      (with Material.Transparency > 0) and non-shadow-casting triangles
+      (with Appearance.shadowCaster = FALSE).
+
+      This is suitable for TTriangleIgnoreFunc function, you can pass
+      this to RayCollision and such. }
+    class function IgnoreForShadowRays(
+      const Sender: TObject; const Triangle: PTriangle): boolean;
+  end;
+
+class function TOctreeIgnoreForShadowRays.IgnoreForShadowRays(
+  const Sender: TObject; const Triangle: PTriangle): boolean;
+begin
+  Result := Triangle^.IgnoreForShadowRays;
+end;
+
 { Checks whether Light (point or directional) shines at scene point
   LightedPoint.
 
@@ -286,7 +331,7 @@ begin
       RenderDir,
       LightedPointPlane) and
     (Octree.SegmentCollision(LightedPoint, LightPos, false, TriangleToIgnore, IgnoreMarginAtStart,
-      {$ifdef FPC}@{$endif} Octree.IgnoreForShadowRays) = nil);
+      {$ifdef FPC}@{$endif} TOctreeIgnoreForShadowRays {$ifdef FPC}(nil){$endif}.IgnoreForShadowRays) = nil);
 end;
 
 { RayDirection calculations ----------------------------------------------------- }
