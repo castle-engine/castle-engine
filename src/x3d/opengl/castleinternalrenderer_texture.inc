@@ -534,6 +534,12 @@ begin
   HandleTextureProperties(TextureProperties, Filter, Anisotropy, GUITexture);
   if TextureProperties <> nil then
   begin
+    if (TextureProperties.BoundaryModeS = bmClampToBoundary) or
+       (TextureProperties.BoundaryModeT = bmClampToBoundary) or
+       (TextureProperties.BoundaryModeR = bmClampToBoundary)
+    then
+      WritelnWarning('VRML/X3D', 'Boundary mode CLAMP_TO_BOUNDARY is not supported. Behaves like CLAMP_TO_EDGE.');
+
     BoundaryModeS := BoundaryModeGL[TextureProperties.BoundaryModeS];
     BoundaryModeT := BoundaryModeGL[TextureProperties.BoundaryModeT];
     BoundaryModeR := BoundaryModeGL[TextureProperties.BoundaryModeR];
