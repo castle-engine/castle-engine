@@ -61,7 +61,6 @@
 ../../../src/transform/ TCastleCamera InitialDirection TVector3
 ../../../src/transform/ TCastleCamera InitialUp TVector3
 ../../../src/transform/ TCastleCamera GravityUp TVector3
-../../../src/transform/ TCastleThirdPersonNavigation AvatarTarget TVector3
 
 ../../../src/transform/ TCastleOrthographic Origin TVector2
 
@@ -71,6 +70,7 @@
 ../../../src/scene/ TCastleAbstractPrimitive Color TCastleColor
 ../../../src/scene/ TCastleBox Size TVector3
 ../../../src/scene/ TCastlePlane Size TVector2
+../../../src/scene/ TCastleThirdPersonNavigation AvatarTarget TVector3
 
 ../../../src/scene/ TCastleImageTransform Pivot TVector2
 ../../../src/scene/ TCastleImageTransform Size TVector2

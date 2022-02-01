@@ -1227,7 +1227,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item281>
       <Item282>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc"/>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item282>
       <Item283>
@@ -1321,7 +1321,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleSectors"/>
       </Item304>
       <Item305>
-        <Filename Value="../src/transform/castlethirdpersonnavigation.pas"/>
+        <Filename Value="../src/scene/castlethirdpersonnavigation.pas"/>
         <UnitName Value="CastleThirdPersonNavigation"/>
       </Item305>
       <Item306>
