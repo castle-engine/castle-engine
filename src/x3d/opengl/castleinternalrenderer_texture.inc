@@ -30,7 +30,8 @@
       from repeatS and repeatT fields.
       @groupBegin }
     procedure HandleTextureProperties(
-      TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
+      TextureProperties: TTexturePropertiesNode;
+      RepeatS: GLenum; RepeatT: GLenum; RepeatR: GLenum;
       out Filter: TTextureFilter; out BoundaryModeS: GLenum;
       out BoundaryModeT: GLenum; out BoundaryModeR: GLenum;
       out Anisotropy: TGLfloat; out GUITexture: boolean);
@@ -455,7 +456,7 @@ end;
 
 procedure TGLTextureNode.HandleTextureProperties(
   TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
-  out Filter: TTextureFilter; out BoundaryModeS: GLenum; out
+  RepeatR: GLenum; out Filter: TTextureFilter; out BoundaryModeS: GLenum; out
   BoundaryModeT: GLenum; out BoundaryModeR: GLenum; out Anisotropy: TGLfloat;
   out GUITexture: boolean);
 const
@@ -544,11 +545,11 @@ begin
     Anisotropy := 1;
     GUITexture := false;
 
-    { Use repeatS and repeatT
+    { Use repeatS/T/R
       as no texture property node is provided. [see 18.2.3] }
     BoundaryModeS := RepeatS;
     BoundaryModeT := RepeatT;
-    BoundaryModeR := BoundaryModeGL[bmRepeat];
+    BoundaryModeR := RepeatR;
   end;
 end;
 
@@ -558,9 +559,11 @@ procedure TGLTextureNode.HandleTextureProperties(
   BoundaryModeT: GLenum; out Anisotropy: TGLfloat; out GUITexture: boolean);
 var
   dummy: GLenum;
+const
+  dummyRepeatMode = GL_REPEAT;
 begin
-  HandleTextureProperties(TextureProperties, RepeatS, RepeatT, Filter,
-    BoundaryModeS, BoundaryModeT, dummy, Anisotropy, GUITexture);
+  HandleTextureProperties(TextureProperties, RepeatS, RepeatT, dummyRepeatMode,
+    Filter, BoundaryModeS, BoundaryModeT, dummy, Anisotropy, GUITexture);
 end;
 
 procedure TGLTextureNode.HandleTextureProperties(
@@ -571,7 +574,8 @@ var
 const
   dummyRepeatMode = GL_REPEAT;
 begin
-  HandleTextureProperties(TextureProperties, dummyRepeatMode, dummyRepeatMode,
+  HandleTextureProperties(
+    TextureProperties, dummyRepeatMode, dummyRepeatMode, dummyRepeatMode,
     Filter, dummy[0], dummy[1], dummy[2], Anisotropy, GUITexture);
 end;
 
