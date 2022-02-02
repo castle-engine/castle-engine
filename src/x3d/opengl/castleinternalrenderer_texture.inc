@@ -1936,6 +1936,9 @@ procedure TGL3DTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
+  BoundaryModeS: TGLenum;
+  BoundaryModeT: TGLenum;
+  BoundaryModeR: TGLenum;
   GUITexture: boolean;
   TextureWrap: TTextureWrap3D;
 begin
@@ -1952,12 +1955,13 @@ begin
   if TextureNode.TextureImage = nil then Exit;
 
   HandleTextureProperties(TextureNode.TextureProperties,
-    Filter, Anisotropy, GUITexture);
+    TextureRepeatToGL(TextureNode.FdRepeatS.Value), TextureRepeatToGL(TextureNode.FdRepeatT.Value),
+    TextureRepeatToGL(TextureNode.FdRepeatR.Value), Filter, BoundaryModeS, BoundaryModeT, BoundaryModeR, Anisotropy, GUITexture);
 
   { calculate TextureWrap }
-  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.FdRepeatS.Value);
-  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.FdRepeatT.Value);
-  TextureWrap.Data[2] := TextureRepeatToGL(TextureNode.FdRepeatR.Value);
+  TextureWrap.Data[0] := BoundaryModeS;
+  TextureWrap.Data[1] := BoundaryModeT;
+  TextureWrap.Data[2] := BoundaryModeR;
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
