@@ -26,7 +26,9 @@
   protected
     { Calculate things from TextureProperties node.
       If TextureProperties = @nil, they are taken from defaults
-      (possibly in RenderOptions). }
+      (possibly in RenderOptions) and BoundaryModeS/-T are taken
+      from repeatS and repeatT fields.
+      @groupBegin }
     procedure HandleTextureProperties(
       TextureProperties: TTexturePropertiesNode;
       out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
@@ -41,6 +43,7 @@
       TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
       out Filter: TTextureFilter; out BoundaryModeS: GLenum;
       out BoundaryModeT: GLenum; out Anisotropy: TGLfloat; out GUITexture: boolean);
+    { @groupEnd }
 
     { Decide if this class can handle given texture Node. }
     class function IsClassForTextureNode(
