@@ -30,10 +30,6 @@
       from repeatS and repeatT fields.
       @groupBegin }
     procedure HandleTextureProperties(
-      TextureProperties: TTexturePropertiesNode;
-      out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
-
-    procedure HandleTextureProperties(
       TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
       out Filter: TTextureFilter; out BoundaryModeS: GLenum;
       out BoundaryModeT: GLenum; out BoundaryModeR: GLenum;
@@ -43,6 +39,10 @@
       TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
       out Filter: TTextureFilter; out BoundaryModeS: GLenum;
       out BoundaryModeT: GLenum; out Anisotropy: TGLfloat; out GUITexture: boolean);
+
+    procedure HandleTextureProperties(
+      TextureProperties: TTexturePropertiesNode;
+      out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
     { @groupEnd }
 
     { Decide if this class can handle given texture Node. }
@@ -454,8 +454,19 @@ begin
 end;
 
 procedure TGLTextureNode.HandleTextureProperties(
-  TextureProperties: TTexturePropertiesNode;
-  out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
+  TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
+  out Filter: TTextureFilter; out BoundaryModeS: GLenum; out
+  BoundaryModeT: GLenum; out BoundaryModeR: GLenum; out Anisotropy: TGLfloat;
+  out GUITexture: boolean);
+const
+  BoundaryModeGL: array [TBoundaryMode] of GLenum = (
+    GL_CLAMP,
+    GL_CLAMP_TO_EDGE,
+    GL_CLAMP_TO_EDGE,             // bmClampToBoundary: Not supported, hence
+                                  // behave like bmClampToEdge.
+    GL_MIRRORED_REPEAT,
+    GL_REPEAT
+  );
 
   { Convert TAutoMinificationFilter to TMinificationFilter,
     resolving the "default"/"fastest"/"nicest" aliases to specific values. }
@@ -517,32 +528,7 @@ begin
     Filter.Magnification := FinalMagnificationFilter(TextureProperties.MagnificationFilter);
     Anisotropy := TextureProperties.AnisotropicDegree;
     GUITexture := TextureProperties.GUITexture;
-  end else
-  begin
-    Filter := TextureFilter(Renderer.RenderOptions);
-    Anisotropy := 1;
-    GUITexture := false;
-  end;
-end;
 
-procedure TGLTextureNode.HandleTextureProperties(
-  TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
-  out Filter: TTextureFilter; out BoundaryModeS: GLenum; out
-  BoundaryModeT: GLenum; out BoundaryModeR: GLenum; out Anisotropy: TGLfloat;
-  out GUITexture: boolean);
-const
-  BoundaryModeGL: array [TBoundaryMode] of GLenum = (
-    GL_CLAMP,
-    GL_CLAMP_TO_EDGE,
-    GL_CLAMP_TO_EDGE,             // bmClampToBoundary: Not supported, hence
-                                  // behave like bmClampToEdge.
-    GL_MIRRORED_REPEAT,
-    GL_REPEAT
-  );
-begin
-  HandleTextureProperties(TextureProperties, Filter, Anisotropy, GUITexture);
-  if TextureProperties <> nil then
-  begin
     if (TextureProperties.BoundaryModeS = bmClampToBoundary) or
        (TextureProperties.BoundaryModeT = bmClampToBoundary) or
        (TextureProperties.BoundaryModeR = bmClampToBoundary)
@@ -554,6 +540,10 @@ begin
     BoundaryModeR := BoundaryModeGL[TextureProperties.BoundaryModeR];
   end else
   begin
+    Filter := TextureFilter(Renderer.RenderOptions);
+    Anisotropy := 1;
+    GUITexture := false;
+
     { Use repeatS and repeatT
       as no texture property node is provided. [see 18.2.3] }
     BoundaryModeS := RepeatS;
@@ -571,6 +561,18 @@ var
 begin
   HandleTextureProperties(TextureProperties, RepeatS, RepeatT, Filter,
     BoundaryModeS, BoundaryModeT, dummy, Anisotropy, GUITexture);
+end;
+
+procedure TGLTextureNode.HandleTextureProperties(
+  TextureProperties: TTexturePropertiesNode; out Filter: TTextureFilter; out
+  Anisotropy: TGLfloat; out GUITexture: boolean);
+var
+  dummy: array[0..2] of GLenum;
+const
+  dummyRepeatMode = GL_REPEAT;
+begin
+  HandleTextureProperties(TextureProperties, dummyRepeatMode, dummyRepeatMode,
+    Filter, dummy[0], dummy[1], dummy[2], Anisotropy, GUITexture);
 end;
 
 class function TGLTextureNode.ClassForTextureNode(
