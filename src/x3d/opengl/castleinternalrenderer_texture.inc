@@ -951,8 +951,8 @@ begin
     TextureRepeatToGL(TextureNode.RepeatS), TextureRepeatToGL(TextureNode.RepeatT),
     Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
 
-  TextureWrap.Data[0] := BoundaryModeS; //TextureRepeatToGL(TextureNode.RepeatS);
-  TextureWrap.Data[1] := BoundaryModeT; //TextureRepeatToGL(TextureNode.RepeatT);
+  TextureWrap.Data[0] := BoundaryModeS;
+  TextureWrap.Data[1] := BoundaryModeT;
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
