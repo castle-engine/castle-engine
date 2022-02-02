@@ -37,6 +37,11 @@
       out BoundaryModeT: GLenum; out BoundaryModeR: GLenum;
       out Anisotropy: TGLfloat; out GUITexture: boolean);
 
+    procedure HandleTextureProperties(
+      TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
+      out Filter: TTextureFilter; out BoundaryModeS: GLenum;
+      out BoundaryModeT: GLenum; out Anisotropy: TGLfloat; out GUITexture: boolean);
+
     { Decide if this class can handle given texture Node. }
     class function IsClassForTextureNode(
       ANode: TAbstractTextureNode): boolean; virtual; abstract;
@@ -554,6 +559,17 @@ begin
   end;
 end;
 
+procedure TGLTextureNode.HandleTextureProperties(
+  TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
+  out Filter: TTextureFilter; out BoundaryModeS: GLenum; out
+  BoundaryModeT: GLenum; out Anisotropy: TGLfloat; out GUITexture: boolean);
+var
+  dummy: GLenum;
+begin
+  HandleTextureProperties(TextureProperties, RepeatS, RepeatT, Filter,
+    BoundaryModeS, BoundaryModeT, dummy, Anisotropy, GUITexture);
+end;
+
 class function TGLTextureNode.ClassForTextureNode(
   ANode: TAbstractTextureNode): TGLTextureNodeClass;
 
@@ -923,7 +939,6 @@ var
   Anisotropy: TGLfloat;
   BoundaryModeS: TGLenum;
   BoundaryModeT: TGLenum;
-  BoundaryModeR: TGLenum; // not used here
   TextureWrap: TTextureWrap2D;
   GUITexture, FlipVertically: boolean;
 begin
@@ -931,7 +946,7 @@ begin
 
   HandleTextureProperties(TextureNode.TextureProperties,
     TextureRepeatToGL(TextureNode.RepeatS), TextureRepeatToGL(TextureNode.RepeatT),
-    Filter, BoundaryModeS, BoundaryModeT, BoundaryModeR, Anisotropy, GUITexture);
+    Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
 
   TextureWrap.Data[0] := BoundaryModeS; //TextureRepeatToGL(TextureNode.RepeatS);
   TextureWrap.Data[1] := BoundaryModeT; //TextureRepeatToGL(TextureNode.RepeatT);
