@@ -1032,16 +1032,19 @@ procedure TGLMovieTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
+  BoundaryModeS: TGLenum;
+  BoundaryModeT: TGLenum;
   TextureWrap: TTextureWrap2D;
   GUITexture: boolean;
 begin
   { HandledNode already made sure IsTextureVideo = @true }
 
   HandleTextureProperties(TextureNode.TextureProperties,
-    Filter, Anisotropy, GUITexture);
+    TextureRepeatToGL(TextureNode.RepeatS), TextureRepeatToGL(TextureNode.RepeatT),
+    Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
 
-  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.RepeatS);
-  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.RepeatT);
+  TextureWrap.Data[0] := BoundaryModeS;
+  TextureWrap.Data[1] := BoundaryModeT;
 
   SetTextureRGBFromImage(TextureNode.TextureVideo.Items[0]);
 
