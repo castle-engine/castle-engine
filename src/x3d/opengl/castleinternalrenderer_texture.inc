@@ -1134,13 +1134,16 @@ var
   InitialImage: TCastleImage;
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
+  BoundaryModeS: TGLenum;
+  BoundaryModeT: TGLenum;
   TextureWrap: TTextureWrap2D;
   NodeWidth, NodeHeight: Cardinal;
   GUITexture: boolean;
   Sizing: TTextureSizing;
 begin
   HandleTextureProperties(TextureNode.TextureProperties,
-    Filter, Anisotropy, GUITexture);
+    TextureRepeatToGL(TextureNode.FdRepeatS.Value), TextureRepeatToGL(TextureNode.FdRepeatT.Value),
+    Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
 
   { calculate Filter, Anisotropy, NeedsMipmaps }
   NeedsMipmaps := Filter.NeedsMipmaps;
@@ -1154,8 +1157,8 @@ begin
     NeedsMipmaps := false;
   end;
 
-  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.FdRepeatS.Value);
-  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.FdRepeatT.Value);
+  TextureWrap.Data[0] := BoundaryModeS;
+  TextureWrap.Data[1] := BoundaryModeT;
 
   { calculate Width, Height }
   if TextureNode.FdDimensions.Items.Count - 1 >= 0 then
