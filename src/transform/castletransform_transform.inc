@@ -546,27 +546,54 @@
       (when a creature moves, it checks for collision with other creatures,
       but it doesn't want to check for collisions with it's own bounding volume).
       @groupBegin }
-    procedure Disable;
-    procedure Enable;
+    procedure Disable; deprecated 'use Exists property with your own counter if necessary';
+    procedure Enable; deprecated 'use Exists property with your own counter if necessary';
     { @groupEnd }
 
-    { Operate on 3D objects contained in the list.
-      You can also operate directly on @link(List) instance.
+    { Add a child.
 
-      Note that adding and removing from this hierarchy is guaranteed to be fast,
-      so you can do it even in the middle of the game.
+      Note that adding the same child multiple times is allowed,
+      in general you can use the same TCastleTransform instance multiple times in one hierarchy
+      of TCastleRootTransform. }
+    procedure Add(const Item: TCastleTransform);
+
+    { Insert a child at a specific position on the children list.
+
+      Usually the order of children doesn't matter, so there's not much point
+      in using this method. You can as well use @link(Add).
+      In particular, for rendering opaque (3D or 2D objects) the front/back is decided by
+      the actual translation of the object in 3D, i.e. what is closer to the camera.
+      (In a typical 2D setup, larger Z values mean "closer to the camera".)
+      The position on the children list doesn't matter in this case.
+
+      However, the position matters in case of blending.
+      See https://castle-engine.io/blending .
+      For correct blending, when you have multiple partially-transparent scenes,
+      the partially-transparent objects must be sorted from back to front on the list.
+      So you should add them in the proper order, or insert on proper positions,
+      or use @link(SortBackToFront2D) on parent transformation. }
+    procedure Insert(const Index: Integer; const Item: TCastleTransform);
+
+    { Remove a child.
+
+      Note that adding and removing from the TCastleTransform hierarchy is guaranteed
+      to be fast, so you can do it even in the middle of the game.
       In particular calling @link(Remove) doesn't free rendering reasources
       of the removed scene,
-      so removing scene only to add it later to another TCastleViewport.Items is blazingly fast.
-      @groupBegin }
-    procedure Add(const Item: TCastleTransform);
-    procedure Insert(const Index: Integer; const Item: TCastleTransform);
+      so removing scene only to add it later to another TCastleViewport.Items is fast. }
     procedure Remove(const Item: TCastleTransform);
+
+    { List of current children. }
     property Items[const I: Integer]: TCastleTransform read GetItem write SetItem; default;
+
+    { Count of current children, to iterate over @link(Items) from 0 to Count-1. }
     function Count: Integer;
+
+    { Remove all children TCastleTransform instances. }
     procedure Clear;
+
+    { Exchange position of 2 children TCastleTransform instances. }
     procedure Exchange(const Index1, Index2: Integer);
-    { @groupEnd }
 
     { Return parent TCastleTransform.
       It ignores (never returns) parents caused by referencing transform in TCastleTransformReference.
@@ -2099,12 +2126,12 @@ var
   MyPositionWorld: TVector3;
 begin
   MyPositionWorld := Parent.LocalToWorld(MyPosition);
-  Disable;
+  {$warnings off} Disable; {$warnings on}
   try
     Result := World.WorldHeight(MyPositionWorld, AboveHeight, AboveGround);
     if Result then
       AboveHeight := Parent.WorldToLocalDistance(AboveHeight);
-  finally Enable end;
+  finally {$warnings off} Enable {$warnings on} end;
 end;
 
 function TCastleTransform.LineOfSight(const Pos1, Pos2: TVector3): boolean;
@@ -2113,10 +2140,10 @@ var
 begin
   Pos1World := Parent.LocalToWorld(Pos1);
   Pos2World := Parent.LocalToWorld(Pos2);
-  Disable;
+  {$warnings off} Disable; {$warnings on}
   try
     Result := World.WorldLineOfSight(Pos1World, Pos2World);
-  finally Enable end;
+  finally {$warnings off} Enable {$warnings on} end;
 end;
 
 function TCastleTransform.MoveAllowed(const OldPos, ProposedNewPos: TVector3;
@@ -2143,11 +2170,11 @@ begin
 
   SpRadiusWorld := Parent.LocalToWorldDistance(SpRadius);
 
-  Disable;
+  {$warnings off} Disable; {$warnings on}
   try
     Result := World.WorldMoveAllowed(OldPosWorld, ProposedNewPosWorld, NewPosWorld,
       Sp, SpRadiusWorld, OldBox, NewBox, BecauseOfGravity);
-  finally Enable end;
+  finally {$warnings off} Enable {$warnings on} end;
 
   if Result then
     NewPos := Parent.WorldToLocal(NewPosWorld);
@@ -2168,11 +2195,11 @@ begin
   OldBox := WorldBoundingBox;
   NewBox := OldBox.Translate(NewPos - OldPos);
 
-  Disable;
+  {$warnings off} Disable; {$warnings on}
   try
     Result := World.WorldMoveAllowed(OldPos, NewPos,
       Sp, SpRadius, OldBox, NewBox, BecauseOfGravity);
-  finally Enable end;
+  finally {$warnings off} Enable {$warnings on} end;
 end;
 
 function TCastleTransform.Ray(
@@ -2182,10 +2209,10 @@ var
 begin
   RayOriginWorld := Parent.LocalToWorld(RayOrigin);
   RayDirectionWorld := Parent.LocalToWorldDirection(RayDirection);
-  Disable;
+  {$warnings off} Disable; {$warnings on}
   try
     Result := World.WorldRay(RayOriginWorld, RayDirectionWorld);
-  finally Enable end;
+  finally {$warnings off} Enable {$warnings on} end;
 end;
 
 function TCastleTransform.RayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
@@ -2194,10 +2221,10 @@ var
 begin
   RayOriginWorld := Parent.LocalToWorld(RayOrigin);
   RayDirectionWorld := Parent.LocalToWorldDirection(RayDirection);
-  Disable;
+  {$warnings off} Disable; {$warnings on}
   try
     Result := World.WorldRayCast(RayOriginWorld, RayDirectionWorld);
-  finally Enable end;
+  finally {$warnings off} Enable {$warnings on} end;
 end;
 
 function TCastleTransform.RayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
@@ -2206,12 +2233,12 @@ var
 begin
   RayOriginWorld := Parent.LocalToWorld(RayOrigin);
   RayDirectionWorld := Parent.LocalToWorldDirection(RayDirection);
-  Disable;
+  {$warnings off} Disable; {$warnings on}
   try
     Result := World.WorldRayCast(RayOriginWorld, RayDirectionWorld, Distance);
     if Result <> nil then
       Distance := Parent.WorldToLocalDistance(Distance);
-  finally Enable end;
+  finally {$warnings off} Enable {$warnings on} end;
 end;
 
 { list stuff ---------------------------------------------------------------- }
