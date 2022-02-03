@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -300,8 +300,12 @@ type
     { Support for depth texture formats for glTexImage2d. }
     property TextureDepth: Boolean read FTextureDepth;
 
-    { GLSL shaders support. }
-    property Shaders: TGLSupport read FShaders;
+    { GLSL shaders support.
+
+      Note: Setting it is allowed for now, as a simple way to force non-shader
+      rendering, to test it.
+      You should not use this or rely it will be available in future versions. }
+    property Shaders: TGLSupport read FShaders write FShaders;
 
     { Enable OpenGL fixed-function rendering on desktops.
 
