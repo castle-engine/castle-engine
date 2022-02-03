@@ -1,6 +1,6 @@
 {%MainUnit castleinternalrenderer.pas}
 {
-  Copyright 2002-2020 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -758,6 +758,16 @@ begin
   if not GLFeatures.UseMultiTexturing then
     MinVar(TextureSlotsUsed, 1);
 
+  { TODO: Passing it to shader this way precludes ability to later change it
+    (e.g. in case some ROUTE animates MultiTexture.color/alpha, or Pascal code changes it)
+    without recompiling the shader.
+
+    Right now changes to MultiTexture.color/alpha will recompile the shader.
+
+    To make it efficient and corrent, this should be a uniform passed to shader.
+    This is low-priority due to low MultiTexture usage. }
+  Shader.MultiTextureColor := Vector4(TextureNode.Color, TextureNode.Alpha);
+
   for I := 0 to TextureSlotsUsed - InitialTextureSlotsUsed - 1 do
   begin
     ChildTex := TextureNode.FdTexture[I];
@@ -778,7 +788,8 @@ begin
       Env.Init(ModeStr, SourceStr, FunctionStr);
 
       if ChildTex is TMultiTextureNode then
-        WritelnWarning('VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node') else
+        WritelnWarning('VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node')
+      else
         Success := Renderer.GLTextureNodes.Enable(
           TAbstractTextureNode(ChildTex),
           InitialTextureSlotsUsed + I, Shader, Env);

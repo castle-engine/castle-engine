@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@ unit CastleRendererInternalShader;
 interface
 
 uses Generics.Collections,
-  CastleVectors, CastleGLShaders,
+  CastleVectors, CastleGLShaders, CastleColors,
   X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
   CastleRendererInternalTextureEnv, CastleStringUtils, CastleRenderOptions,
   CastleShapes, CastleRectangles, CastleTransform, CastleInternalGeometryArrays;
@@ -287,7 +287,7 @@ type
   public
     { Update Hash for this texture shader. }
     procedure Prepare(var Hash: TShaderCodeHash); virtual;
-    procedure Enable(const MainTextureMapping: Integer;
+    procedure Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
       var TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
         TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
@@ -311,13 +311,13 @@ type
     class var TextureEnvWarningDone: Boolean;
 
     { Mix texture colors into fragment color, based on TTextureEnv specification. }
-    class function TextureEnvMix(const AEnv: TTextureEnv;
+    class function TextureEnvMix(const AEnv: TTextureEnv; const MultiTextureColor: TCastleColor;
       const FragmentColor, CurrentTexture: string;
       const ATextureUnit: Cardinal): string;
   public
     { Update Hash for this texture shader. }
     procedure Prepare(var Hash: TShaderCodeHash); override;
-    procedure Enable(const MainTextureMapping: Integer;
+    procedure Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
       var TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
         TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
@@ -502,6 +502,9 @@ type
     MainTextureMapping: Integer;
 
     GammaCorrection: Boolean;
+
+    { In case MultiTexture is used to render this, this is MultiTexture.color+alpha value. }
+    MultiTextureColor: TCastleColor;
 
     constructor Create;
     destructor Destroy; override;
@@ -1540,7 +1543,7 @@ begin
 {$include norqcheckend.inc}
 end;
 
-procedure TTextureCoordinateShader.Enable(const MainTextureMapping: Integer;
+procedure TTextureCoordinateShader.Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
   var TextureApply, TextureColorDeclare,
     TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
@@ -1605,7 +1608,7 @@ begin
 {$include norqcheckend.inc}
 end;
 
-class function TTextureShader.TextureEnvMix(const AEnv: TTextureEnv;
+class function TTextureShader.TextureEnvMix(const AEnv: TTextureEnv; const MultiTextureColor: TCastleColor;
   const FragmentColor, CurrentTexture: string;
   const ATextureUnit: Cardinal): string;
 
@@ -1618,23 +1621,72 @@ class function TTextureShader.TextureEnvMix(const AEnv: TTextureEnv;
     end;
   end;
 
-var
-  { GLSL code to get Arg2 (what is coming from MultiTexture.source) }
-  Arg2: string;
-
-  { Channels is either
-    - '' (set all RGBA of FragmentColor),
-    - '.rgb' (set only RGB oif FragmentColor),
-    - '.a' (set only RGB oif FragmentColor). }
-  function CombineCode(const Combine: TCombine;
-    const SourceArgument: TTextureEnvArgument;
-    const Channels: string): string;
-  var
-    FragmentColorCh, CurrentTextureCh, Arg2Ch: string;
+  { GLSL code to express MultiTextureColor value. }
+  function MultiTextureColorStr: String;
   begin
-    FragmentColorCh := FragmentColor + Channels;
-    CurrentTextureCh := CurrentTexture + Channels;
-    Arg2Ch := Arg2 + Channels;
+    Result := FormatDot('vec4(%f, %f, %f, %f)', [
+      MultiTextureColor.Data[0],
+      MultiTextureColor.Data[1],
+      MultiTextureColor.Data[2],
+      MultiTextureColor.Data[3]
+    ]);
+  end;
+
+type
+  TChannels = (chAll, chRgb, chAlpha);
+
+  { GLSL code to update FragmentColor based on given Combine operation. }
+  function CombineCode(const Combine: TCombine;
+    const Source: TColorSource;
+    const SourceArgument: TTextureEnvArgument;
+    const Channels: TChannels): string;
+
+    { GLSL code to express given TColorSource value. }
+    function SourceStr(const Source: TColorSource): String;
+    begin
+      case Source of
+        csCurrentTexture : Result := CurrentTexture;
+        csPreviousTexture: Result := FragmentColor;
+        csMaterial       : Result := 'vec4(0.8, 0.8, 0.8, 1.0)'; // just Material.diffuseColor default
+        csConstant       : Result := MultiTextureColorStr;
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('SourceStr:TColorSource?');
+        {$endif}
+      end;
+    end;
+
+  var
+    FragmentColorCh, CurrentTextureCh, Arg2Ch, ChannelsStr, ChannelsFromScalar: string;
+    Arg2: string;
+  begin
+    { calculate Arg2, GLSL code that says "what is coming from MultiTexture.source" }
+    Arg2 := SourceStr(Source);
+
+    { calculate ChannelsStr, ChannelsFromScalar }
+    case Channels of
+      chAll  :
+        begin
+          ChannelsStr := ''; // set all RGBA of FragmentColor
+          ChannelsFromScalar := 'vec4';
+        end;
+      chRgb  :
+        begin
+          ChannelsStr := '.rgb'; // set only RGB of FragmentColor
+          ChannelsFromScalar := 'vec3';
+        end;
+      chAlpha:
+        begin
+          ChannelsStr := '.a'; // set only alpha of FragmentColor
+          ChannelsFromScalar := '';
+        end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('Channels?');
+      {$endif}
+    end;
+
+    FragmentColorCh := FragmentColor + ChannelsStr;
+    CurrentTextureCh := CurrentTexture + ChannelsStr;
+    Arg2Ch := Arg2 + ChannelsStr;
 
     { By default, set up simplest modulate operation.
       The "case" below may override this to something better. }
@@ -1642,37 +1694,39 @@ var
 
     case Combine of
       coModulate:
-        begin
-          if FragmentColor = Arg2 then
-            Result := FragmentColorCh + ' *= ' + CurrentTextureCh + ';'
-          else
-            Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' * ' + Arg2Ch + ';';
-        end;
+        if Arg2 = FragmentColor then
+          // optimize GLSL code
+          Result := FragmentColorCh + ' *= ' + CurrentTextureCh +  ';'
+        else
+          Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' * ' + Arg2Ch + ';';
       coReplace:
         begin
           if SourceArgument = ta0 then
             { mode is SELECTARG2 }
-            Result := FragmentColorCh + ' = ' + Arg2Ch + ';' else
+            Result := FragmentColorCh + ' = ' + Arg2Ch + ';'
+          else
             { assume CurrentTextureArgument = ta0, mode = REPLACE or SELECTARG1 }
             Result := FragmentColorCh + ' = ' + CurrentTextureCh + ';';
         end;
+      coAddSigned:
+        Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' + ' + Arg2Ch +
+          ' - ' + ChannelsFromScalar + '(0.5);';
       coAdd:
-        begin
-          if FragmentColor = Arg2 then
-            Result := FragmentColorCh + ' += ' + CurrentTextureCh + ';' else
-            Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' + ' + Arg2Ch + ';';
-        end;
+        if Arg2 = FragmentColor then
+          // optimize GLSL code
+          Result := FragmentColorCh + ' += ' + CurrentTextureCh + ';'
+        else
+          Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' + ' + Arg2Ch + ';';
       coSubtract:
         Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' - ' + Arg2Ch + ';';
       coBlend:
-        case AEnv.BlendAlphaSource of
-          csCurrentTexture:
-            Result := FragmentColorCh + ' = mix(' + FragmentColorCh + ', ' + CurrentTextureCh + ', ' + CurrentTexture + '.a);';
-          csPreviousTexture:
-            Result := FragmentColorCh + ' = mix(' + FragmentColorCh + ', ' + CurrentTextureCh + ', ' + FragmentColor + '.a);';
-          else
-            Warn('Not supported in GLSL pipeline: coBlend with BlendAlphaSource = %d', [Ord(AEnv.BlendAlphaSource)]);
-        end;
+        Result := FragmentColorCh + ' = mix(' + FragmentColorCh + ', ' +
+          CurrentTextureCh + ', ' + SourceStr(AEnv.BlendAlphaSource) + '.a);';
+      coDot3Rgb,
+      coDot3Rgba:
+        Result := FragmentColorCh + ' = ' + ChannelsFromScalar + '(dot(' +
+          '2 * (' + CurrentTexture + '.rgb - vec3(0.5)), ' +
+          '2 * (' + Arg2 + '.rgb - vec3(0.5))));';
       else
         Warn('Not supported in GLSL pipeline: combine value %d', [Ord(Combine)]);
     end;
@@ -1681,49 +1735,58 @@ var
 begin
   if AEnv.Disabled then Exit('');
 
-  // if AEnv.Source[cRGB] = csConstant then
-  //   { TODO: Fix new shader pipeline without deprecated gl_xxx usage:
-  //     We need to pass MultiTexture.color/factor as special
-  //     uniform, instead of using (per-unit) gl_TextureEnvColor.
-  //     Account for MultiTexture.color/factor inside TTextureEnv.Hash. }
-  //   Arg2 := Format('castle_TextureEnvColor%d', [ATextureUnit]);
-  //   Arg2 := 'castle_TextureEnvColor'; // maybe this is enough?
-  // else
+  { Note that we ignore AEnv.CurrentTextureArgument.
+    Which is OK -- it is always ta0 in practice, except for X3D "SELECTARG2" mode
+    (which for us is a special case of coReplace, detected looking at AEnv.SourceArgument).
 
-  { assume AEnv.Source[cRGB] = csPreviousTexture }
-  Arg2 := FragmentColor;
+    We know that AEnv.SourceArgument is always ta1, except
+    - it is taNone in case of X3D "REPLACE" mode (eqivalent "SELECTARG1")
+    - it is ta0    in case of X3D "SELECTARG2" mode
+
+    So, while we don't handle all *theoretically possible* cases of
+    AEnv.CurrentTextureArgument and AEnv.SourceArgument, we don't need to.
+    We detect and handle SELECTARG2 specially, in other cases
+    we assume
+    - AEnv.CurrentTextureArgument = ta0,
+    - AEnv.SourceArgument = ta1,
+    and this is enough to cover all *actually possible* (set by CastleRendererInternalTextureEnv)
+    cases.
+  }
 
   if (AEnv.Combine       [cRGB] = AEnv.Combine       [cAlpha]) and
+     (AEnv.Source        [cRGB] = AEnv.Source        [cAlpha]) and
      (AEnv.SourceArgument[cRGB] = AEnv.SourceArgument[cAlpha]) then
   begin
-    { When Combine and SourceArgument are equal, do it easily on all RGBA. }
-    Result := CombineCode(AEnv.Combine[cRGB], AEnv.SourceArgument[cRGB], '');
+    { Do the operation on whole RGBA. }
+    Result := CombineCode(AEnv.Combine[cRGB], AEnv.Source[cRGB], AEnv.SourceArgument[cRGB], chAll) + NL;
   end else
   begin
     Result :=
-      CombineCode(AEnv.Combine[cRGB]  , AEnv.SourceArgument[cRGB]  , '.rgb') + NL +
-      CombineCode(AEnv.Combine[cAlpha], AEnv.SourceArgument[cAlpha], '.a');
+      CombineCode(AEnv.Combine[cRGB]  , AEnv.Source[cRGB  ], AEnv.SourceArgument[cRGB]  , chRgb) + NL +
+      CombineCode(AEnv.Combine[cAlpha], AEnv.Source[cAlpha], AEnv.SourceArgument[cAlpha], chAlpha) + NL;
+  end;
+
+  if AEnv.Scale[cRGB] = AEnv.Scale[cAlpha] then
+  begin
+    { Do the scaling on whole RGBA. }
+    if AEnv.Scale[cRGB] <> 1 then
+      Result := Result + FragmentColor + ' *= ' + FloatToStrDot(AEnv.Scale[cRGB]) + ';' + NL;
+  end else
+  begin
+    if AEnv.Scale[cRGB] <> 1 then
+      Result := Result + FragmentColor + '.rgb *= ' + FloatToStrDot(AEnv.Scale[cRGB]) + ';' + NL;
+    if AEnv.Scale[cAlpha] <> 1 then
+      Result := Result + FragmentColor + '.a *= ' + FloatToStrDot(AEnv.Scale[cAlpha]) + ';' + NL;
   end;
 
   case AEnv.TextureFunction of
-    tfComplement    : Result := Result + FragmentColor + '.rgb = vec3(1.0) - ' + FragmentColor + '.rgb;';
-    tfAlphaReplicate: Result := Result + FragmentColor + '.rgb = vec3(' + FragmentColor + '.a);';
+    tfComplement    : Result := Result + FragmentColor + '.rgb = vec3(1.0) - ' + FragmentColor + '.rgb;' + NL;
+    tfAlphaReplicate: Result := Result + FragmentColor + '.rgb = vec3(' + FragmentColor + '.a);' + NL;
     else ;
   end;
-
-  if AEnv.Scale[cRGB] <> 1 then
-    Warn('Not supported in GLSL pipeline: Scale RGB = %f', [AEnv.Scale[cRGB]]);
-  if AEnv.Scale[cAlpha] <> 1 then
-    Warn('Not supported in GLSL pipeline: Scale Alpha = %f', [AEnv.Scale[cAlpha]]);
-
-  { TODO:
-    - CurrentTextureArgument, SourceArgument ignored (assumed ta0, ta1),
-      except for GL_REPLACE case
-    - NeedsConstantColor ignored
-  }
 end;
 
-procedure TTextureShader.Enable(const MainTextureMapping: Integer;
+procedure TTextureShader.Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
   var TextureApply, TextureColorDeclare,
     TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
@@ -1847,7 +1910,8 @@ begin
       Shader.Source.Append(Code, stFragment);
     finally FreeAndNil(Code) end;
 
-    TextureApply := TextureApply + TextureEnvMix(Env, 'fragment_color', 'texture_color', TextureUnit) + NL;
+    TextureApply := TextureApply + TextureEnvMix(Env, MultiTextureColor,
+      'fragment_color', 'texture_color', TextureUnit) + NL;
 
     if TextureType <> ttShader then
       TextureUniformsDeclare := TextureUniformsDeclare + Format('uniform %s %s;' + NL,
@@ -2004,6 +2068,7 @@ begin
   FLightingModel := lmPhong;
   MainTextureMapping := -1;
   GammaCorrection := false;
+  MultiTextureColor := White;
 end;
 
 procedure TShader.Initialize(const APhongShading: boolean);
@@ -2418,7 +2483,7 @@ const
     TextureUniformsSet := true;
 
     for I := 0 to TextureShaders.Count - 1 do
-      TextureShaders[I].Enable(MainTextureMapping,
+      TextureShaders[I].Enable(MainTextureMapping, MultiTextureColor,
         TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
         TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
@@ -3045,6 +3110,10 @@ function TShader.CodeHash: TShaderCodeHash;
     FCodeHash.AddInteger(Ord(GammaCorrection) * 347);
     FCodeHash.AddInteger(Ord(ToneMapping) * 331);
     FCodeHash.AddInteger(Ord(MainTextureMapping) * 839);
+    FCodeHash.AddFloat(MultiTextureColor.Data[0], 5821);
+    FCodeHash.AddFloat(MultiTextureColor.Data[1], 5827);
+    FCodeHash.AddFloat(MultiTextureColor.Data[2], 5839);
+    FCodeHash.AddFloat(MultiTextureColor.Data[3], 5843);
   end;
 
 begin
@@ -3094,6 +3163,29 @@ begin
   TextureShader.ShadowMapSize := ShadowMapSize;
   TextureShader.ShadowLight := ShadowLight;
   TextureShader.Shader := Self;
+
+  { Change csMaterial to csPreviousTexture on the 1st texture slot.
+    This fixes the problem of TTextureShader.TextureEnvMix:
+
+    - it has reliable definition of csPreviousTexture,
+      that also works for the 1st texture slot
+      (and means there "material base/alpha color", as we want).
+
+    - it has hacky definition of csMaterial,
+      that just returns hardcoded (0.8,0.8,0.8,1).
+      This is good enough for rare cases when MultiTexture really uses
+      source=DIFFUSE/SPECULAR.
+      It is bad for the common case when this is the 1st texture slot
+      (maybe even the only texture slot! when not using MultiTexture)
+      that should be multiplied by material/per-vertex color.
+  }
+  if TextureShaders.Count = 0 then
+  begin
+    if TextureShader.Env.Source[cRGB] = csMaterial then
+      TextureShader.Env.Source[cRGB] := csPreviousTexture;
+    if TextureShader.Env.Source[cAlpha] = csMaterial then
+      TextureShader.Env.Source[cAlpha] := csPreviousTexture;
+  end;
 
   TextureShaders.Add(TextureShader);
 
