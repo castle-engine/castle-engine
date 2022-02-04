@@ -2,7 +2,7 @@
 <project name="image_display"
   standalone_source="image_display_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.imagedisplay"
+  qualified_name="io.castleengine.image.display"
   caption="Test Image Loading and Displaying"
 >
   <compiler_options>

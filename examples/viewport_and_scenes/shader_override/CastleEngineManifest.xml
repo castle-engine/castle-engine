@@ -2,7 +2,7 @@
 <project name="shader_override"
   standalone_source="shader_override_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.shaderoverride"
+  qualified_name="io.castleengine.shader.override"
   caption="Override Shaders Demo"
 >
   <compiler_options>

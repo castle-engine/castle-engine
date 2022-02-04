@@ -2,7 +2,7 @@
 <project name="fog_and_distance_culling"
   standalone_source="fog_and_distance_culling_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.foganddistanceculling"
+  qualified_name="io.castleengine.fog.and.distance.culling"
   caption="Fog and Distance Culling"
 >
   <compiler_options>

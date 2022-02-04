@@ -2,7 +2,7 @@
 <project name="multiple_viewports"
   standalone_source="multiple_viewports_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.multipleviewports"
+  qualified_name="io.castleengine.multiple.viewports"
   caption="Multiple Viewports"
 >
   <compiler_options>

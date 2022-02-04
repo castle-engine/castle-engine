@@ -2,7 +2,7 @@
 <project name="transform_primitives"
   standalone_source="transform_primitives_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.transformprimitives"
+  qualified_name="io.castleengine.transform.primitives"
   caption="Primitives in Viewport"
 >
   <compiler_options>

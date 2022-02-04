@@ -2,7 +2,7 @@
 <project name="custom_cursor"
   standalone_source="custom_cursor_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.customcursor"
+  qualified_name="io.castleengine.custom.cursor"
   caption="Custom Cursor"
 >
   <compiler_options>

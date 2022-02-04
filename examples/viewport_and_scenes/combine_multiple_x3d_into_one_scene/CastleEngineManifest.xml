@@ -2,7 +2,7 @@
 <project name="combine_multiple_x3d_into_one_scene"
   standalone_source="combine_multiple_x3d_into_one_scene_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.combinemultiplex3dintoonescene"
+  qualified_name="io.castleengine.combine.multiple.x3d.into.one.scene"
   caption="Combine Multiple Models Into One Scene"
 >
   <compiler_options>

@@ -2,7 +2,7 @@
 <project name="my-new-project-3d"
   standalone_source="my_new_project_3d_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.mynewproject3d"
+  qualified_name="io.castleengine.viewport3d.tutorial"
   caption="My New Project"
 >
   <compiler_options>

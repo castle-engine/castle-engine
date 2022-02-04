@@ -2,7 +2,7 @@
 <project name="x3d_call_pascal_code"
   standalone_source="x3d_call_pascal_code_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.x3dcallpascalcode"
+  qualified_name="io.castleengine.x3d.call.pascal.code"
   caption="From X3D Call Pascal Code"
 >
   <compiler_options>
