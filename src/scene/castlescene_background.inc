@@ -34,7 +34,7 @@ type
     FSkyEquatorColor: TCastleColorRGB;
     FGroundBottomColor: TCastleColorRGB;
     FGroundEquatorColor: TCastleColorRGB;
-    FTextureBack, FTextureFront, FTextureLeft, FTextureRight, FTextureBottom, FTextureTop: String;
+    FTextureNegativeZ, FTexturePositiveZ, FTextureNegativeX, FTexturePositiveX, FTextureNegativeY, FTexturePositiveY: String;
     FSmoothEquator: Single;
 
     procedure UpdateRenderer;
@@ -43,12 +43,12 @@ type
     procedure SetSkyEquatorColor(const Value: TCastleColorRGB);
     procedure SetGroundBottomColor(const Value: TCastleColorRGB);
     procedure SetGroundEquatorColor(const Value: TCastleColorRGB);
-    procedure SetTextureBack(const Value: String);
-    procedure SetTextureFront(const Value: String);
-    procedure SetTextureLeft(const Value: String);
-    procedure SetTextureRight(const Value: String);
-    procedure SetTextureBottom(const Value: String);
-    procedure SetTextureTop(const Value: String);
+    procedure SetTextureNegativeZ(const Value: String);
+    procedure SetTexturePositiveZ(const Value: String);
+    procedure SetTextureNegativeX(const Value: String);
+    procedure SetTexturePositiveX(const Value: String);
+    procedure SetTextureNegativeY(const Value: String);
+    procedure SetTexturePositiveY(const Value: String);
     procedure SetSmoothEquator(const Value: Single);
   protected
     procedure Loaded; override;
@@ -83,35 +83,29 @@ type
     { Renderer used by viewport. @exclude }
     property InternalBackgroundRenderer: TBackgroundRenderer read FBackgroundRenderer;
   published
-    { Back background texture.
-      Displayed on -Z skybox face.
+    { Back (-Z) background texture.
       Orientation should match @url(https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-WD2/Part01/components/environmentalEffects.html#Background X3D Background node). }
-    property TextureBack: String read FTextureBack write SetTextureBack;
+    property TextureNegativeZ: String read FTextureNegativeZ write SetTextureNegativeZ;
 
-    { Front background texture.
-      Displayed on +Z skybox face.
+    { Front (+Z) background texture.
       Orientation should match @url(https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-WD2/Part01/components/environmentalEffects.html#Background X3D Background node). }
-    property TextureFront: String read FTextureFront write SetTextureFront;
+    property TexturePositiveZ: String read FTexturePositiveZ write SetTexturePositiveZ;
 
-    { Top background texture.
-      Displayed on +Y skybox face.
+    { Top (+Y) background texture.
       Orientation should match @url(https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-WD2/Part01/components/environmentalEffects.html#Background X3D Background node). }
-    property TextureTop: String read FTextureTop write SetTextureTop;
+    property TexturePositiveY: String read FTexturePositiveY write SetTexturePositiveY;
 
-    { Bottom background texture.
-      Displayed on -Y skybox face.
+    { Bottom (-Y) background texture.
       Orientation should match @url(https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-WD2/Part01/components/environmentalEffects.html#Background X3D Background node). }
-    property TextureBottom: String read FTextureBottom write SetTextureBottom;
+    property TextureNegativeY: String read FTextureNegativeY write SetTextureNegativeY;
 
-    { Left background texture.
-      Displayed on -X skybox face.
+    { Left (-X) background texture.
       Orientation should match @url(https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-WD2/Part01/components/environmentalEffects.html#Background X3D Background node). }
-    property TextureLeft: String read FTextureLeft write SetTextureLeft;
+    property TextureNegativeX: String read FTextureNegativeX write SetTextureNegativeX;
 
-    { Right background texture.
-      Displayed on +X skybox face.
+    { Right (+X) background texture.
       Orientation should match @url(https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-WD2/Part01/components/environmentalEffects.html#Background X3D Background node). }
-    property TextureRight: String read FTextureRight write SetTextureRight;
+    property TexturePositiveX: String read FTexturePositiveX write SetTexturePositiveX;
 
     { Make color transition from sky to ground less abrupt, adding a gradient
       from GroundEquatorColor to SkyEquatorColor.
@@ -166,12 +160,12 @@ begin
      (PropertyName = 'SkyEquatorColorPersistent') or
      (PropertyName = 'GroundBottomColorPersistent') or
      (PropertyName = 'GroundEquatorColorPersistent') or
-     (PropertyName = 'TextureBack') or
-     (PropertyName = 'TextureFront') or
-     (PropertyName = 'TextureLeft') or
-     (PropertyName = 'TextureRight') or
-     (PropertyName = 'TextureBottom') or
-     (PropertyName = 'TextureTop') or
+     (PropertyName = 'TextureNegativeZ') or
+     (PropertyName = 'TexturePositiveZ') or
+     (PropertyName = 'TextureNegativeX') or
+     (PropertyName = 'TexturePositiveX') or
+     (PropertyName = 'TextureNegativeY') or
+     (PropertyName = 'TexturePositiveY') or
      (PropertyName = 'SmoothEquator') then
     Result := [psBasic]
   else
@@ -206,28 +200,28 @@ begin
     ]);
   end;
 
-  if TextureBack <> '' then
-    FBackgroundNode.SetBackUrl([TextureBack])
+  if TextureNegativeZ <> '' then
+    FBackgroundNode.SetBackUrl([TextureNegativeZ])
   else
     FBackgroundNode.SetBackUrl([]);
-  if TextureFront <> '' then
-    FBackgroundNode.SetFrontUrl([TextureFront])
+  if TexturePositiveZ <> '' then
+    FBackgroundNode.SetFrontUrl([TexturePositiveZ])
   else
     FBackgroundNode.SetFrontUrl([]);
-  if TextureLeft <> '' then
-    FBackgroundNode.SetLeftUrl([TextureLeft])
+  if TextureNegativeX <> '' then
+    FBackgroundNode.SetLeftUrl([TextureNegativeX])
   else
     FBackgroundNode.SetLeftUrl([]);
-  if TextureRight <> '' then
-    FBackgroundNode.SetRightUrl([TextureRight])
+  if TexturePositiveX <> '' then
+    FBackgroundNode.SetRightUrl([TexturePositiveX])
   else
     FBackgroundNode.SetRightUrl([]);
-  if TextureBottom <> '' then
-    FBackgroundNode.SetBottomUrl([TextureBottom])
+  if TextureNegativeY <> '' then
+    FBackgroundNode.SetBottomUrl([TextureNegativeY])
   else
     FBackgroundNode.SetBottomUrl([]);
-  if TextureTop <> '' then
-    FBackgroundNode.SetTopUrl([TextureTop])
+  if TexturePositiveY <> '' then
+    FBackgroundNode.SetTopUrl([TexturePositiveY])
   else
     FBackgroundNode.SetTopUrl([]);
 
@@ -279,56 +273,56 @@ begin
   end;
 end;
 
-procedure TCastleBackground.SetTextureBack(const Value: String);
+procedure TCastleBackground.SetTextureNegativeZ(const Value: String);
 begin
-  if FTextureBack <> Value then
+  if FTextureNegativeZ <> Value then
   begin
-    FTextureBack := Value;
+    FTextureNegativeZ := Value;
     UpdateRendererOnceLoaded;
   end;
 end;
 
-procedure TCastleBackground.SetTextureFront(const Value: String);
+procedure TCastleBackground.SetTexturePositiveZ(const Value: String);
 begin
-  if FTextureFront <> Value then
+  if FTexturePositiveZ <> Value then
   begin
-    FTextureFront := Value;
+    FTexturePositiveZ := Value;
     UpdateRendererOnceLoaded;
   end;
 end;
 
-procedure TCastleBackground.SetTextureLeft(const Value: String);
+procedure TCastleBackground.SetTextureNegativeX(const Value: String);
 begin
-  if FTextureLeft <> Value then
+  if FTextureNegativeX <> Value then
   begin
-    FTextureLeft := Value;
+    FTextureNegativeX := Value;
     UpdateRendererOnceLoaded;
   end;
 end;
 
-procedure TCastleBackground.SetTextureRight(const Value: String);
+procedure TCastleBackground.SetTexturePositiveX(const Value: String);
 begin
-  if FTextureRight <> Value then
+  if FTexturePositiveX <> Value then
   begin
-    FTextureRight := Value;
+    FTexturePositiveX := Value;
     UpdateRendererOnceLoaded;
   end;
 end;
 
-procedure TCastleBackground.SetTextureBottom(const Value: String);
+procedure TCastleBackground.SetTextureNegativeY(const Value: String);
 begin
-  if FTextureBottom <> Value then
+  if FTextureNegativeY <> Value then
   begin
-    FTextureBottom := Value;
+    FTextureNegativeY := Value;
     UpdateRendererOnceLoaded;
   end;
 end;
 
-procedure TCastleBackground.SetTextureTop(const Value: String);
+procedure TCastleBackground.SetTexturePositiveY(const Value: String);
 begin
-  if FTextureTop <> Value then
+  if FTexturePositiveY <> Value then
   begin
-    FTextureTop := Value;
+    FTexturePositiveY := Value;
     UpdateRendererOnceLoaded;
   end;
 end;

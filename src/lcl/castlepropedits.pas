@@ -92,17 +92,17 @@ begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleFont,
     'URL', TFontURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureBack', TImageURLPropertyEditor);
+    'TextureNegativeX', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureFront', TImageURLPropertyEditor);
+    'TextureNegativeY', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureLeft', TImageURLPropertyEditor);
+    'TextureNegativeZ', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureRight', TImageURLPropertyEditor);
+    'TexturePositiveX', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureBottom', TImageURLPropertyEditor);
+    'TexturePositiveY', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureTop', TImageURLPropertyEditor);
+    'TexturePositiveZ', TImageURLPropertyEditor);
 
   { Improved float properties }
   RegisterPropertyEditor(TypeInfo(Single), nil, '', TCastleFloatPropertyEditor);
