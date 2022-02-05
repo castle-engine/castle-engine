@@ -157,7 +157,7 @@ type
       Symptoms: Parts of the cube map texture are uninitialized (left magenta).
       Reproducible with view3dscene on
       demo_models/cube_environment_mapping/cubemap_generated_in_dynamic_world.x3dv .
-      This is worse then BuggyFBOCubeMap, magenta is always seen at positiveX part
+      This is worse than BuggyFBOCubeMap, magenta is always seen at positiveX part
       of the cube map.
 
       Observed, and this workaround is needed, at least on:
