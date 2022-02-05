@@ -43,7 +43,15 @@ pipeline {
       steps {
         sh 'rm -Rf installed/'
         sh 'mkdir -p installed/'
-        sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+        /* TODO: do not use "make install" command, as somewhere the Windows path gets
+           messed up and in the end we have created files like this:
+
+           "tools/build-tool/data/E\357\200\272jworkspacecastle_game_engine_delphi_master/installed/share/castle-engine/android/integrated-services/google_play_games/app/src/main/java/net/sourceforge/castleengine/ServiceGooglePlayGames.java"
+        */
+        // sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+        sh 'make clean tools'
+        sh 'mkdir -p ${CASTLE_ENGINE_PATH}/installed/bin/'
+        sh 'cp tools/build-tool/castle-engine.exe ${CASTLE_ENGINE_PATH}/installed/bin/'
       }
     }
     stage('Check Delphi AutoTests (Win64)') {
