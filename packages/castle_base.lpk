@@ -3145,8 +3145,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleDebugTransform"/>
       </Item759>
       <Item760>
-        <Filename Value="../src/scene/castleinternalbackground.pas"/>
-        <UnitName Value="CastleInternalBackground"/>
+        <Filename Value="../src/scene/castleinternalbackgroundrenderer.pas"/>
+        <UnitName Value="CastleInternalBackgroundRenderer"/>
       </Item760>
       <Item761>
         <Filename Value="../src/scene/castleinternalbatchshapes.pas"/>

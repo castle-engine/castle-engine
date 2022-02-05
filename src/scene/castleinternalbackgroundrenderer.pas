@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2019 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Background under X3D scene (TBackground). }
-unit CastleInternalBackground;
+{ Rendering background (TBackgroundRenderer) based on X3D background node. }
+unit CastleInternalBackgroundRenderer;
 
 {$I castleconf.inc}
 
@@ -43,34 +43,18 @@ type
     This is an abstract class.
     Do not construct it explicitly.
     The only way to create non-abstract instances of this class
-    is to use @link(CreateBackground).
+    is to use @link(CreateBackgroundRenderer).
   }
-  TBackground = class abstract
-  public
-    { Calculate (or just confirm that Proposed value is still OK)
-      the sky sphere radius that fits nicely in your projection near/far.
+  TBackgroundRenderer = class abstract
+  private
+    { Calculate the sky sphere radius that fits nicely in given projection near/far.
 
       Background spheres (for sky and ground) are rendered at given radius.
       And inside these spheres, we have a cube (to apply background textures).
       Both spheres and cube must fit nicely within your projection near/far
-      to avoid any artifacts.
-
-      We first check is Proposed a good result value (it satisfies
-      the conditions, with some safety margin). If yes, then we return
-      exactly the Proposed value. Otherwise, we calculate new value
-      as an average in our range.
-      This way, if you already had sky sphere radius calculated
-      (and prepared some OpenGL resources for it),
-      and projection near/far changes very slightly
-      (e.g. because bounding box slightly changed), then you don't have
-      to recreate background --- if the old sky sphere radius is still OK,
-      then the old background resources are still OK.
-
-      Just pass Proposed = 0 (or anything else that is always outside
-      the range) if you don't need this feature. }
-    class function NearFarToSkySphereRadius(const zNear, zFar: Single;
-      const Proposed: Single = 0): Single;
-
+      to avoid any artifacts. }
+    class function NearFarToSkySphereRadius(const zNear, zFar: Single): Single;
+  public
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle;
@@ -81,8 +65,7 @@ type
 
 { Create background renderer.
   Returns @nil if this Node class is not supported. }
-function CreateBackground(const Node: TAbstractBackgroundNode;
-  const SkySphereRadius: Single): TBackground;
+function CreateBackgroundRenderer(const Node: TAbstractBackgroundNode): TBackgroundRenderer;
 
 implementation
 
@@ -91,6 +74,13 @@ uses Math,
   CastleRenderContext, CastleRenderOptions;
 
 const
+  { Background rendering doesn't use the same projection near/far as other content.
+    It is not necessary (background doesn't check depth at all, it has DepthTest=false)
+    and it makes things simpler (we can assume some box/sphere sizes
+    for background, we don't need to make them dependent on current projection near/far). }
+  BgProjectionNear = 1;
+  BgProjectionFar = 100;
+
   { Relation of a cube size and a radius of it's bounding sphere.
 
     Sphere surrounds the cube, such that 6 cube corners touch the sphere.
@@ -101,10 +91,9 @@ const
   SphereRadiusToCubeSize = 2 / {$ifdef FPC}Sqrt(3){$else}1.732050807568877{$endif};
   CubeSizeToSphereRadius = {$ifdef FPC}Sqrt(3){$else}1.732050807568877{$endif} / 2;
 
-{ TBackground ------------------------------------------------------------ }
+{ TBackgroundRenderer ------------------------------------------------------------ }
 
-class function TBackground.NearFarToSkySphereRadius(const zNear, zFar: Single;
-  const Proposed: Single): Single;
+class function TBackgroundRenderer.NearFarToSkySphereRadius(const zNear, zFar: Single): Single;
 
 { Conditions are ZNear < CubeSize/2, ZFar > SphereRadius.
   So conditions for radius are
@@ -114,43 +103,28 @@ class function TBackground.NearFarToSkySphereRadius(const zNear, zFar: Single;
   Note that 2 * CubeSizeToSphereRadius is Sqrt(3) =~ 1.7,
   so it's possible to choose
   ZNear <= ZFar that still yield no possible radius.
-
-  It would be possible to avoid whole need for this method
-  by setting projection matrix in our own render. But then,
-  you'd have to pass fovy and such parameters to the background renderer.
 }
 
 var
-  Min, Max, SafeMin, SafeMax: Single;
+  Min, Max: Single;
 begin
   Min := zNear * 2 * CubeSizeToSphereRadius;
   Max := zFar;
-
-  { The new sphere radius should be in [Min...Max].
-    For maximum safety (from floating point troubles), we require
-    that it's within slightly smaller "safe" range. }
-
-  SafeMin := Lerp(0.1, Min, Max);
-  SafeMax := Lerp(0.9, Min, Max);
-
-  if (Proposed >= SafeMin) and
-     (Proposed <= SafeMax) then
-    Result := Proposed else
-    Result := (Min + Max) / 2;
+  Result := (Min + Max) / 2;
 end;
 
-procedure TBackground.Render(const RenderingCamera: TRenderingCamera;
+procedure TBackgroundRenderer.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean;
   const RenderRect: TFloatRectangle;
   const CurrentProjection: TProjection);
 begin
 end;
 
-procedure TBackground.UpdateRotation(const Rotation: TVector4);
+procedure TBackgroundRenderer.UpdateRotation(const Rotation: TVector4);
 begin
 end;
 
-procedure TBackground.FreeResources;
+procedure TBackgroundRenderer.FreeResources;
 begin
 end;
 
@@ -161,7 +135,7 @@ type
     In overridden constructor, load Scene contents.
     You can also use ClearColor and UseClearColor if the background
     may be realized by simple clearing of the viewport with solid color. }
-  TBackgroundScene = class(TBackground)
+  TBackgroundScene = class(TBackgroundRenderer)
   protected
     Scene: TCastleScene;
     Params: TBasicRenderParams;
@@ -246,8 +220,7 @@ type
   strict private
     Transform: TTransformNode;
   public
-    constructor Create(const Node: TAbstract3DBackgroundNode;
-      const SkySphereRadius: Single);
+    constructor Create(const Node: TAbstract3DBackgroundNode);
     procedure UpdateRotation(const Rotation: TVector4); override;
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
@@ -256,7 +229,9 @@ type
   end;
 
 constructor TBackground3D.Create(
-  const Node: TAbstract3DBackgroundNode; const SkySphereRadius: Single);
+  const Node: TAbstract3DBackgroundNode);
+var
+  SkySphereRadius: Single;
 
   procedure RenderCubeSides;
   var
@@ -627,6 +602,7 @@ var
 begin
   inherited Create;
 
+  SkySphereRadius := NearFarToSkySphereRadius(BgProjectionNear, BgProjectionFar);
   SphereCreated := false;
 
   RootNode := TX3DRootNode.Create('', Node.BaseUrl);
@@ -654,22 +630,39 @@ procedure TBackground3D.Render(const RenderingCamera: TRenderingCamera;
   const CurrentProjection: TProjection);
 var
   SavedProjectionMatrix: TMatrix4;
+  AspectRatio: Single;
+  TempProjection: TProjection;
 begin
-  { The background rendering doesn't like custom orthographic Dimensions.
+  { Change projection.
+
+    Reason when ptOrthographic:
+    The background rendering doesn't like custom orthographic Dimensions.
     They could make the background sky box very small, such that it
     doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
-    testcase. So temporary set good perspective projection.}
+    testcase. So temporary set good perspective projection.
 
+    Reason in both cases:
+    We need to set our own BgProjectionNear/Far,
+    in order for SkySphereRadius be valid. }
+
+  SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+
+  AspectRatio := RenderRect.Width / RenderRect.Height;
   if CurrentProjection.ProjectionType = ptOrthographic then
   begin
-    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-    PerspectiveProjection(45, RenderRect.Width / RenderRect.Height,
-      CurrentProjection.ProjectionNear,
-      CurrentProjection.ProjectionFar);
-    inherited;
-    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+    RenderContext.ProjectionMatrix := PerspectiveProjectionMatrixDeg(
+      45, AspectRatio, BgProjectionNear, BgProjectionFar)
   end else
-    inherited;
+  begin
+    TempProjection := CurrentProjection;
+    TempProjection.ProjectionNear := BgProjectionNear;
+    TempProjection.ProjectionFar := BgProjectionFar;
+    RenderContext.ProjectionMatrix := TempProjection.Matrix(AspectRatio);
+  end;
+
+  inherited;
+
+  RenderContext.ProjectionMatrix := SavedProjectionMatrix;
 end;
 
 { TBackground2D --------------------------------------------------------------- }
@@ -791,11 +784,10 @@ end;
 
 { global routines ------------------------------------------------------------ }
 
-function CreateBackground(const Node: TAbstractBackgroundNode;
-  const SkySphereRadius: Single): TBackground;
+function CreateBackgroundRenderer(const Node: TAbstractBackgroundNode): TBackgroundRenderer;
 begin
   if Node is TAbstract3DBackgroundNode then
-    Result := TBackground3D.Create(TAbstract3DBackgroundNode(Node), SkySphereRadius)
+    Result := TBackground3D.Create(TAbstract3DBackgroundNode(Node))
   else
   if Node is TImageBackgroundNode then
     Result := TBackground2D.Create(TImageBackgroundNode(Node))

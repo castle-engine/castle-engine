@@ -27,7 +27,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils, CastleFonts,
-  CastleUtils, CastleSceneCore, CastleInternalRenderer, CastleInternalBackground,
+  CastleUtils, CastleSceneCore, CastleInternalRenderer, CastleInternalBackgroundRenderer,
   CastleGLUtils, CastleInternalShapeOctree, CastleInternalGLShadowVolumes, X3DFields,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
@@ -293,7 +293,7 @@ type
     function CreateShape(const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState;
       const ParentInfo: PTraversingInfo): TShape; override;
-    procedure InternalInvalidateBackground; override;
+    procedure InternalInvalidateBackgroundRenderer; override;
 
     procedure LocalRender(const Params: TRenderParams); override;
 
@@ -366,19 +366,21 @@ type
       (useful e.g. for Spine animations). }
     procedure Setup2D;
   private
-    FBackgroundSkySphereRadius: Single;
     { Node for which FBackground is currently prepared. }
     FBackgroundNode: TAbstractBindableNode;
-    { Cached Background value }
-    FBackground: TBackground;
-    { Is FBackground valid ? We can't use "nil" FBackground value to flag this
-      (bacause nil is valid value for Background function).
-      If not FBackgroundValid then FBackground must always be nil.
-      Never set FBackgroundValid to false directly - use InternalInvalidateBackground,
-      this will automatically call FreeAndNil(FBackground) before setting
-      FBackgroundValid to false. }
-    FBackgroundValid: boolean;
-    procedure SetBackgroundSkySphereRadius(const Value: Single);
+    { Cached BackgroundRenderer value }
+    FBackgroundRenderer: TBackgroundRenderer;
+    { Is FBackgroundRenderer valid?
+
+      We can't use "FBackgroundRenderer = nil" to detect this,
+      bacause nil is valid value for FBackgroundRenderer in case there's no
+      (supported) FBackgroundNode.
+
+      If not FBackgroundRendererValid then FBackgroundRenderer must always be nil.
+      Never set FBackgroundRendererValid to false directly - use InternalInvalidateBackgroundRenderer,
+      this will automatically call FreeAndNil(FBackgroundRenderer) before setting
+      FBackgroundRendererValid to false. }
+    FBackgroundRendererValid: boolean;
     procedure PrepareBackground;
   public
     { Internal hack to avoid checking frustum at rendering in some situations. }
@@ -388,13 +390,9 @@ type
 
     procedure FreeResources(Resources: TSceneFreeResources); override;
 
-    property BackgroundSkySphereRadius: Single
-      read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius
-      {$ifdef FPC}default 1{$endif};
-
-    { TBackground instance to render current background. Current background
-      is the top node on the BackgroundStack of this scene, following X3D
-      specifications, and can be animated.
+    { TBackgroundRenderer instance to render the background defined in this scene.
+      Current background is the top node on the BackgroundStack of this scene,
+      following X3D specifications, and can be animated.
       The TCastleViewport should use this to render background.
 
       You should not access the background this way in your own code.
@@ -413,11 +411,10 @@ type
       This instance is managed (automatically created/freed
       and so on) by this TCastleScene instance. It is cached
       (so that it's recreated only when relevant things change,
-      like VRML/X3D nodes affecting this background,
-      or changes to BackgroundSkySphereRadius, or OpenGL context is closed).
+      like X3D nodes affecting this background).
 
       @exclude }
-    function InternalBackground: TBackground;
+    function InternalBackgroundRenderer: TBackgroundRenderer;
 
     function Attributes: TCastleRenderOptions; deprecated 'use RenderOptions';
 
@@ -573,6 +570,7 @@ const
 {$I castlescene_cone.inc}
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
+{$I castlescene_background.inc}
 {$undef read_interface}
 
 implementation
@@ -596,6 +594,7 @@ uses CastleGLVersion, CastleLog,
 {$I castlescene_cone.inc}
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
+{$I castlescene_background.inc}
 {$undef read_implementation}
 
 procedure Register;
@@ -711,10 +710,9 @@ begin
 
   inherited Create(AOwner);
 
-  FBackgroundSkySphereRadius := 1.0;
-  FBackgroundValid := false;
+  FBackgroundRendererValid := false;
   FBackgroundNode := nil;
-  FBackground := nil;
+  FBackgroundRenderer := nil;
 
   FSceneFrustumCulling := true;
   FShapeFrustumCulling := true;
@@ -868,7 +866,7 @@ begin
 
   ScheduleUpdateGeneratedTextures;
 
-  InternalInvalidateBackground;
+  InternalInvalidateBackgroundRenderer;
 
   if OcclusionQueryUtilsRenderer <> nil then
     OcclusionQueryUtilsRenderer.GLContextClose;
@@ -2026,50 +2024,41 @@ end;
 
 { Background-related things -------------------------------------------------- }
 
-procedure TCastleScene.InternalInvalidateBackground;
+procedure TCastleScene.InternalInvalidateBackgroundRenderer;
 begin
-  FreeAndNil(FBackground);
+  FreeAndNil(FBackgroundRenderer);
   FBackgroundNode := nil;
-  FBackgroundValid := false;
-end;
-
-procedure TCastleScene.SetBackgroundSkySphereRadius(const Value: Single);
-begin
-  if Value <> FBackgroundSkySphereRadius then
-  begin
-    InternalInvalidateBackground;
-    FBackgroundSkySphereRadius := Value;
-  end;
+  FBackgroundRendererValid := false;
 end;
 
 procedure TCastleScene.PrepareBackground;
-{ Always after PrepareBackground => FBackgroundValid = true }
+{ Always after PrepareBackground => FBackgroundRendererValid = true }
 begin
-  if FBackgroundValid and (BackgroundStack.Top = FBackgroundNode) then
+  if FBackgroundRendererValid and (BackgroundStack.Top = FBackgroundNode) then
     Exit;
 
   { Background is created, but not suitable for current
     BackgroundStack.Top. So destroy it. }
-  if FBackgroundValid then
-    InternalInvalidateBackground;
+  if FBackgroundRendererValid then
+    InternalInvalidateBackgroundRenderer;
 
   if BackgroundStack.Top <> nil then
-    FBackground := CreateBackground(BackgroundStack.Top, BackgroundSkySphereRadius)
+    FBackgroundRenderer := CreateBackgroundRenderer(BackgroundStack.Top)
   else
-    FBackground := nil;
+    FBackgroundRenderer := nil;
 
   FBackgroundNode := BackgroundStack.Top;
-  FBackgroundValid := true;
+  FBackgroundRendererValid := true;
 end;
 
-function TCastleScene.InternalBackground: TBackground;
+function TCastleScene.InternalBackgroundRenderer: TBackgroundRenderer;
 var
   BackgroundNode: TAbstractBackgroundNode;
 begin
   PrepareBackground;
-  Result := FBackground;
+  Result := FBackgroundRenderer;
 
-  { If background transform changed, we have to update the FBackground
+  { If background transform changed, we have to update the FBackgroundRenderer
     scene. Note that we check Result <> nil always, since not every
     TAbstractBackgroundNode may be supported. }
   BackgroundNode := BackgroundStack.Top;
@@ -2185,8 +2174,8 @@ begin
   inherited;
 
   if (frBackgroundImageInNodes in Resources) and
-     (FBackground <> nil) then
-    FBackground.FreeResources;
+     (FBackgroundRenderer <> nil) then
+    FBackgroundRenderer.FreeResources;
 end;
 
 function TCastleScene.Clone(const AOwner: TComponent): TCastleScene;
@@ -2255,6 +2244,7 @@ initialization
   RegisterSerializableComponent(TCastleCone, 'Cone');
   RegisterSerializableComponent(TCastleCylinder, 'Cylinder');
   RegisterSerializableComponent(TCastleImageTransform, 'Image');
+  RegisterSerializableComponent(TCastleBackground, 'Background');
 finalization
   GLContextCache.FreeWhenEmpty(@GLContextCache);
 end.

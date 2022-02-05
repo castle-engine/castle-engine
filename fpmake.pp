@@ -350,7 +350,7 @@ begin
     P.SourcePath.Add('src/scene');
     P.Targets.AddUnit('castledebugtransform.pas');
     P.Targets.AddUnit('castleinternalarraysgenerator.pas');
-    P.Targets.AddUnit('castleinternalbackground.pas');
+    P.Targets.AddUnit('castleinternalbackgroundrenderer.pas');
     P.Targets.AddUnit('castleinternalbatchshapes.pas');
     P.Targets.AddUnit('castleinternalglcubemaps.pas');
     P.Targets.AddUnit('castleinternalnodeinterpolator.pas');

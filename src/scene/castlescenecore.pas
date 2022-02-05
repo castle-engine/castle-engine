@@ -970,7 +970,7 @@ type
     procedure InternalCameraChanged; virtual;
 
     { Background node changed. @exclude }
-    procedure InternalInvalidateBackground; virtual;
+    procedure InternalInvalidateBackgroundRenderer; virtual;
 
     property VisibilitySensors: TVisibilitySensors read FVisibilitySensors;
 
@@ -5361,7 +5361,7 @@ var
 
   procedure HandleChangeBackground;
   begin
-    InternalInvalidateBackground;
+    InternalInvalidateBackgroundRenderer;
     VisibleChangeHere([vcVisibleNonGeometry]);
   end;
 
@@ -8042,7 +8042,7 @@ begin
     raise EX3DNotFound.CreateFmt('Event name "%s" not found', [EventName]);
 end;
 
-procedure TCastleSceneCore.InternalInvalidateBackground;
+procedure TCastleSceneCore.InternalInvalidateBackgroundRenderer;
 begin
 end;
 

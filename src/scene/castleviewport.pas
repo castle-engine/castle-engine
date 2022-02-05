@@ -25,7 +25,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, X3DNodes, CastleInternalBaseTriangleOctree, CastleScene,
   CastleSceneCore, CastleCameras,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
-  CastleKeysMouse, CastleBoxes, CastleInternalBackground, CastleUtils, CastleClassUtils,
+  CastleKeysMouse, CastleBoxes, CastleInternalBackgroundRenderer, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
   CastleInputs, CastleRectangles, CastleColors, CastleComponentSerialize,
   CastleProjection, CastleScreenEffects;
@@ -162,6 +162,8 @@ type
       FCapturePointingDevice: TCastleTransform;
       FCapturePointingDeviceObserver: TFreeNotificationObserver;
       FLastSeenMainScene: TCastleScene; // only used by editor
+      FBackground: TCastleBackground;
+      FBackgroundObserver: TFreeNotificationObserver;
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -178,6 +180,8 @@ type
     procedure SetItems(const Value: TCastleRootTransform);
     function GetPaused: Boolean;
     procedure SetPaused(const Value: Boolean);
+    procedure SetBackground(const Value: TCastleBackground);
+    procedure BackgroundFreeNotification(const Sender: TFreeNotificationObserver);
 
     { Callbacks when MainCamera is notified that MainScene changes camera/navigation }
     procedure MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
@@ -208,7 +212,7 @@ type
       the actual mouse position should not be even visible to the user). }
     function GetMousePosition(out MousePosition: TVector2): Boolean;
 
-    procedure SetCapturePointingDevice(const AValue: TCastleTransform);
+    procedure SetCapturePointingDevice(const Value: TCastleTransform);
     { Once a TCastleTransform will handle a PointingDevicePress event,
       we make sure to pass subsequent PointingDeviceMove and PointingDeviceRelease to it too,
       before other TCastleTransform instances,
@@ -257,8 +261,7 @@ type
       If AutoNavigation then the @link(Navigation) is automatically created here,
       see @link(AssignDefaultNavigation).
 
-      This takes care to always update Camera.ProjectionMatrix,
-      Projection, MainScene.BackgroundSkySphereRadius. }
+      This takes care to always update Camera.ProjectionMatrix, Projection. }
     procedure ApplyProjection;
 
     { Render shadow quads for all the things rendered by @link(Render3D).
@@ -331,13 +334,6 @@ type
       This will change Params.Transparent, Params.InShadow and Params.ShadowVolumesReceivers
       as needed. Their previous values do not matter. }
     procedure RenderFromView3D(const Params: TRenderParams); virtual;
-
-    { The background used during rendering.
-      @nil if no background should be rendered.
-
-      The default implementation in this class does what is usually
-      most natural: return MainScene.InternalBackground, if MainScene assigned. }
-    function Background: TBackground; virtual;
 
     { Render one pass, with current camera and parameters (e.g. only transparent
       or only opaque shapes).
@@ -606,9 +602,11 @@ type
     { Statistics about last rendering frame. See TRenderStatistics docs. }
     function Statistics: TRenderStatistics;
 
-    { Background color, displayed behind the 3D world.
-      Unless the MainScene has a Background node defined, in which
-      case the Background (colored and/or textured) of the 3D scene is used.
+    { Background color.
+      Displayed only if @link(Background) is @nil and
+      @link(TCastleRootTransform.MainScene MainScene) doesn't define any background either.
+
+      Ignored if @link(Transparent).
 
       Dark gray (DefaultBackgroundColor) by default. }
     property BackgroundColor: TCastleColor
@@ -1018,20 +1016,27 @@ type
       as yellow blended polygons. }
     property ShadowVolumesRender: boolean read FShadowVolumesRender write FShadowVolumesRender default false;
 
-    { If yes then the scene background will be rendered wireframe,
-      over the background filled with BackgroundColor.
+    { Background (like a skybox) to display behind the @link(Items).
+      Displayed only when not @link(Transparent). }
+    property Background: TCastleBackground read FBackground write SetBackground;
+
+    { If @true then the background (from @link(Background) or
+      @link(TCastleRootTransform.MainScene MainScene)) will be rendered wireframe,
+      over the solid background filled with BackgroundColor.
       Useful for debugging when you want to see how your background
-      geometry looks like. }
+      geometry looks like.
+
+      Ignored if @link(Transparent). }
     property BackgroundWireframe: boolean
       read FBackgroundWireframe write FBackgroundWireframe default false;
 
-    { If yes then the viewport will not draw a background, letting the window contents
-      underneath be visible (on pixels which are not drawn by this viewport's @link(Items),
-      and on pixels which are drawn but with partially-transparent materials).
+    { If @true then the viewport will not draw a background and the UI underneath
+      will be visible.
+      The UI underneath is visible at pixels which are not covered by items on @link(Items),
+      and where items @link(Items) have partially-transparent materials.
 
-      In effect, the @link(BackgroundColor), @link(BackgroundWireframe),
-      and any background defined using X3D nodes (like @link(TBackgroundNode),
-      @link(TTextureBackgroundNode), @link(TImageBackgroundNode)) inside
+      If @true, the @link(Background), @link(BackgroundColor), @link(BackgroundWireframe),
+      and any background defined inside
       @link(TCastleRootTransform.MainScene MainScene) will be ignored. }
     property Transparent: boolean read FTransparent write FTransparent default false;
 
@@ -1434,6 +1439,9 @@ begin
   FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
   FCapturePointingDeviceObserver.OnFreeNotification := {$ifdef FPC}@{$endif}CapturePointingDeviceFreeNotification;
 
+  FBackgroundObserver := TFreeNotificationObserver.Create(Self);
+  FBackgroundObserver.OnFreeNotification := {$ifdef FPC}@{$endif}BackgroundFreeNotification;
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -1480,12 +1488,12 @@ begin
   inherited;
 end;
 
-procedure TCastleViewport.SetCapturePointingDevice(const AValue: TCastleTransform);
+procedure TCastleViewport.SetCapturePointingDevice(const Value: TCastleTransform);
 begin
-  if FCapturePointingDevice <> AValue then
+  if FCapturePointingDevice <> Value then
   begin
-    FCapturePointingDevice := AValue;
-    FCapturePointingDeviceObserver.Observed := AValue;
+    FCapturePointingDevice := Value;
+    FCapturePointingDeviceObserver.Observed := Value;
   end;
 end;
 
@@ -1493,6 +1501,21 @@ procedure TCastleViewport.CapturePointingDeviceFreeNotification(
   const Sender: TFreeNotificationObserver);
 begin
   CapturePointingDevice := nil;
+end;
+
+procedure TCastleViewport.SetBackground(const Value: TCastleBackground);
+begin
+  if FBackground <> Value then
+  begin
+    FBackground := Value;
+    FBackgroundObserver.Observed := Value;
+  end;
+end;
+
+procedure TCastleViewport.BackgroundFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  Background := nil;
 end;
 
 function TCastleViewport.FillsWholeContainer: boolean;
@@ -1928,15 +1951,6 @@ begin
   M := FProjection.Matrix(AspectRatio);
   Camera.ProjectionMatrix := M;
   RenderContext.ProjectionMatrix := M;
-
-  { Calculate BackgroundSkySphereRadius here,
-    using ProjectionFar that is *not* ZFarInfinity }
-  if Items.MainScene <> nil then
-    Items.MainScene.BackgroundSkySphereRadius :=
-      TBackground.NearFarToSkySphereRadius(
-        FProjection.ProjectionNear,
-        FProjection.ProjectionFarFinite,
-        Items.MainScene.BackgroundSkySphereRadius);
 end;
 
 function TCastleViewport.ItemsBoundingBox: TBox3D;
@@ -2179,14 +2193,6 @@ begin
 }
 end;
 
-function TCastleViewport.Background: TBackground;
-begin
-  if Items.MainScene <> nil then
-    Result := Items.MainScene.InternalBackground
-  else
-    Result := nil;
-end;
-
 function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): boolean;
 begin
   if Items.MainScene <> nil then
@@ -2371,15 +2377,16 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
     end else
     if not Transparent then
     begin
-      { Note that we clear cbColor regardless whether Background exists.
-        This is more reliable, in case Background rendering is transparent,
+      { Note that we clear cbColor regardless whether some BackgroundRenderer
+        is used in RenderBackground.
+        This is more reliable, in case BackgroundRenderer rendering is transparent,
 
-        - e.g. ImageBackground can be completely transparent or partially-transparent
+        - e.g. TImageBackgroundNode can be completely transparent or partially-transparent
           in a couple of ways. When ImageBackground.color has alpha < 1,
           when ImageBackground.texture is transparent,
           when ImageBackground.texture is NULL...
 
-        - likewise, Background can be transparent.
+        - likewise, TBackgroundNode rendering can be transparent.
           E.g. if one of the textures on 6 cube sides didn't load.
           Or when BackgroundWireframe.
       }
@@ -2397,13 +2404,20 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
 
   procedure RenderBackground;
   var
-    UsedBackground: TBackground;
+    BackgroundRenderer: TBackgroundRenderer;
   begin
     if Transparent then
       Exit;
 
-    UsedBackground := Background;
-    if UsedBackground <> nil then
+    if Background <> nil then
+      BackgroundRenderer := Background.InternalBackgroundRenderer
+    else
+    if Items.MainScene <> nil then
+      BackgroundRenderer := Items.MainScene.InternalBackgroundRenderer
+    else
+      BackgroundRenderer := nil;
+
+    if BackgroundRenderer <> nil then
     begin
       if GLFeatures.EnableFixedFunction then
       begin
@@ -2412,7 +2426,7 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
         {$endif}
       end;
       RenderingCamera.RotationOnly := true;
-      UsedBackground.Render(RenderingCamera, BackgroundWireframe, RenderRect, FProjection);
+      BackgroundRenderer.Render(RenderingCamera, BackgroundWireframe, RenderRect, FProjection);
       RenderingCamera.RotationOnly := false;
     end;
   end;
@@ -3358,11 +3372,11 @@ begin
 
   if ContainerSizeKnown then
   begin
-    { Apply projection now, it calculates
-      MainScene.BackgroundSkySphereRadius, which is used by MainScene.Background.
-      Otherwise our preparations of "prBackground" here would be useless,
-      as BackgroundSkySphereRadius will change later, and MainScene.Background
-      will have to be recreated. }
+    { TODO: This is possibly not necessary now.
+
+      It used to be necessary, to update MainScene.BackgroundSkySphereRadius,
+      and in effect make preparation of "prBackground" useful.
+      But we removed the need for MainScene.BackgroundSkySphereRadius. }
     ApplyProjection;
   end;
 
@@ -3826,7 +3840,9 @@ function TCastleViewport.PropertySections(const PropertyName: String): TProperty
 begin
   if (PropertyName = 'Transparent') or
      (PropertyName = 'Camera') or
-     (PropertyName = 'Navigation') then
+     (PropertyName = 'Navigation') or
+     (PropertyName = 'Background') or
+     (PropertyName = 'BackgroundColorPersistent') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

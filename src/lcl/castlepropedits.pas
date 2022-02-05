@@ -91,6 +91,18 @@ begin
     'URL', TSoundURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleFont,
     'URL', TFontURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TextureBack', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TextureFront', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TextureLeft', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TextureRight', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TextureBottom', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TextureTop', TImageURLPropertyEditor);
 
   { Improved float properties }
   RegisterPropertyEditor(TypeInfo(Single), nil, '', TCastleFloatPropertyEditor);
