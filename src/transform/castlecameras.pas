@@ -264,10 +264,10 @@ type
         )
       )
 
-      In every case, the resulting size is also multiplied by @link(Scale),
+      In all the cases, the resulting size is also multiplied by @link(Scale),
       by default 1.0.
 
-      In every case, you can read @link(EffectiveWidth) and @link(EffectiveHeight)
+      You can read @link(EffectiveWidth) and @link(EffectiveHeight)
       to learn the actual projection width and height, calculated using
       the above algorithm.
 
