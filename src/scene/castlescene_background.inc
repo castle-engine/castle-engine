@@ -27,6 +27,7 @@ type
   strict private
     FBackgroundNode: TBackgroundNode;
     FBackgroundRenderer: TBackgroundRenderer;
+    FPendingUpdateRenderer: Boolean; // used by Loaded
 
     { private fields reflecting public properties }
     FSkyTopColor: TCastleColorRGB;
@@ -34,7 +35,8 @@ type
     FGroundBottomColor: TCastleColorRGB;
     FGroundEquatorColor: TCastleColorRGB;
     FTextureBack, FTextureFront, FTextureLeft, FTextureRight, FTextureBottom, FTextureTop: String;
-    FPendingUpdateRenderer: Boolean; // used by Loaded
+    FSmoothEquator: Single;
+
     procedure UpdateRenderer;
     procedure UpdateRendererOnceLoaded;
     procedure SetSkyTopColor(const Value: TCastleColorRGB);
@@ -47,9 +49,13 @@ type
     procedure SetTextureRight(const Value: String);
     procedure SetTextureBottom(const Value: String);
     procedure SetTextureTop(const Value: String);
+    procedure SetSmoothEquator(const Value: Single);
   protected
     procedure Loaded; override;
   public
+    const
+      DefaultSmoothEquator = 0.025;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -107,6 +113,11 @@ type
       Orientation should match @url(https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-WD2/Part01/components/environmentalEffects.html#Background X3D Background node). }
     property TextureRight: String read FTextureRight write SetTextureRight;
 
+    { Make color transition from sky to ground less abrupt, adding a gradient
+      from GroundEquatorColor to SkyEquatorColor.
+      This property determines gradient size, in radians -- angle along the sky sphere. }
+    property SmoothEquator: Single read FSmoothEquator write SetSmoothEquator {$ifdef FPC}default DefaultSmoothEquator{$endif};
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlebackground_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -127,10 +138,9 @@ begin
   FSkyEquatorColor := WhiteRGB;
   FGroundBottomColor := BlackRGB;
   FGroundEquatorColor := GrayRGB;
+  FSmoothEquator := DefaultSmoothEquator;
 
   FBackgroundNode := TBackgroundNode.Create;
-  FBackgroundNode.SetSkyAngle([ Pi / 2 ]);
-  FBackgroundNode.SetGroundAngle([ Pi / 2 ]);
 
   UpdateRenderer;
 
@@ -161,7 +171,8 @@ begin
      (PropertyName = 'TextureLeft') or
      (PropertyName = 'TextureRight') or
      (PropertyName = 'TextureBottom') or
-     (PropertyName = 'TextureTop') then
+     (PropertyName = 'TextureTop') or
+     (PropertyName = 'SmoothEquator') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -178,8 +189,23 @@ procedure TCastleBackground.UpdateRenderer;
 begin
   FreeAndNil(FBackgroundRenderer);
 
-  FBackgroundNode.SetSkyColor([FSkyTopColor, FSkyEquatorColor]);
-  FBackgroundNode.SetGroundColor([FGroundBottomColor, FGroundEquatorColor]);
+  if FSmoothEquator <= 0 then
+  begin
+    FBackgroundNode.SetSkyColor([FSkyTopColor, FSkyEquatorColor]);
+    FBackgroundNode.SetGroundColor([FGroundBottomColor, FGroundEquatorColor]);
+    FBackgroundNode.SetSkyAngle([ Pi / 2 ]);
+    FBackgroundNode.SetGroundAngle([ Pi / 2 ]);
+  end else
+  begin
+    FBackgroundNode.SetSkyColor([FSkyTopColor, FSkyEquatorColor]);
+    FBackgroundNode.SetGroundColor([FGroundBottomColor, FGroundEquatorColor, FSkyEquatorColor]);
+    FBackgroundNode.SetSkyAngle([ Pi / 2 - FSmoothEquator / 2 ]);
+    FBackgroundNode.SetGroundAngle([
+      Pi / 2 - FSmoothEquator / 2,
+      Pi / 2 + FSmoothEquator / 2
+    ]);
+  end;
+
   if TextureBack <> '' then
     FBackgroundNode.SetBackUrl([TextureBack])
   else
@@ -303,6 +329,15 @@ begin
   if FTextureTop <> Value then
   begin
     FTextureTop := Value;
+    UpdateRendererOnceLoaded;
+  end;
+end;
+
+procedure TCastleBackground.SetSmoothEquator(const Value: Single);
+begin
+  if FSmoothEquator <> Value then
+  begin
+    FSmoothEquator := Value;
     UpdateRendererOnceLoaded;
   end;
 end;
