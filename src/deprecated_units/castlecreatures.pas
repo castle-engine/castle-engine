@@ -2690,13 +2690,17 @@ var
 
   function MissileMoveAllowed(const OldPos, NewPos: TVector3): boolean;
   begin
+    {$warnings off} // using deprecated in deprecated
     if (not Resource.HitsPlayer) and (Player <> nil) then Player.Disable;
+    {$warnings on}
     if not Resource.HitsCreatures then Inc(DisableCreatures);
     try
       Result := MoveAllowed(OldPos, NewPos, false);
     finally
       if not Resource.HitsCreatures then Dec(DisableCreatures);
+      {$warnings off} // using deprecated in deprecated
       if (not Resource.HitsPlayer) and (Player <> nil) then Player.Enable;
+      {$warnings on}
     end;
   end;
 
