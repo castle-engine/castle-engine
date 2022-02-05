@@ -210,7 +210,7 @@ type
 
       @unorderedList(
         @item(When both @link(Width) and @link(Height) are zero,
-          then the effetive projection width and height
+          then the effective projection width and height
           are based on the viewport width and height.
           That is, they will follow
           @link(TCastleUserInterface.EffectiveWidth TCastleViewport.EffectiveWidth)
@@ -219,7 +219,7 @@ type
         )
 
         @item(When exactly one of @link(Width) and @link(Height) is non-zero,
-          then it explicitly determines the projection width or height accordingily.
+          then it explicitly determines the projection width or height accordingly.
           This allows to easily display the same piece of the game world,
           regardless of the viewport size.
 
@@ -227,8 +227,8 @@ type
           of the viewport control.
         )
 
-        @item(When both @link(Width) and @link(Height) are non-zero, then
-          they determine the projection width and height.
+        @item(When both @link(Width) and @link(Height) are non-zero,
+          they would determine the projection width and height.
           This also allows to easily display the same piece of the game world,
           regardless of the viewport size.
 
@@ -236,8 +236,8 @@ type
             @item(When @link(Stretch) = @false (default), they determine the @italic(minimum)
               projection width and height along the given axis.
 
-              If the displayed viewport aspect ratio wil be different than given
-              @link(Width) and @link(Height) ratio, then these value will be
+              If the displayed viewport aspect ratio will be different than given
+              @link(Width) and @link(Height) ratio, then these values will be
               treated as minimum values, and they will be adjusted (one of them will be increased)
               for the purposes of rendering.
               You can read the @link(EffectiveWidth), @link(EffectiveHeight) to know
@@ -250,25 +250,25 @@ type
               to the left-bottom of the whole viewport.
               It points to the left-bottom of the rectangle of aspect ratio
               @link(Width) / @link(Height) within the viewport.
-              This way the enlarged viewport shows equal amount of additional space on the left and right
-              (or bottom and top) of the @link(Width) / @link(Height) rectangle within.
+              This way the enlarged viewport shows equal amount of additional space on the left and
+              the right (or bottom and top) of the @link(Width) / @link(Height) rectangle within.
             )
 
             @item(When @link(Stretch) = @true, these values are used directly,
               even if it means that aspect ratio of the projection
               will not reflect the aspect ratio of the viewport on screen.
 
-              This allows for some tricks, like @italic(Military Projection),
+              This allows to implement some tricks, like @italic(Military Projection),
               https://github.com/castle-engine/castle-engine/issues/290 .)
           )
         )
       )
 
-      In alll cases, the resulting size is also multiplied by @link(Scale),
+      In every case, the resulting size is also multiplied by @link(Scale),
       by default 1.0.
 
-      In all cases, you can read @link(EffectiveWidth) and @link(EffectiveHeight)
-      to know the actual projection width and height, calculated using
+      In every case, you can read @link(EffectiveWidth) and @link(EffectiveHeight)
+      to learn the actual projection width and height, calculated using
       the above algorithm.
 
       @groupBegin }
