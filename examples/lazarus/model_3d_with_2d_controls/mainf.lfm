@@ -1,23 +1,24 @@
 object Form1: TForm1
   Left = 227
-  Height = 624
+  Height = 535
   Top = 198
-  Width = 1043
+  Width = 894
   ActiveControl = Browser
   Caption = 'Form1'
-  ClientHeight = 624
-  ClientWidth = 1043
-  DesignTimePPI = 140
+  ClientHeight = 535
+  ClientWidth = 894
+  DesignTimePPI = 120
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.2.0.4'
   object Browser: TCastleControl
     Left = 0
-    Height = 624
+    Height = 535
     Top = 0
-    Width = 1043
+    Width = 894
     Align = alClient
-    Options = []
+    Options = [ocoRenderAtDesignTime]
     TabOrder = 0
+    DesignUrl = 'castle-data:/main.castle-user-interface'
   end
 end
