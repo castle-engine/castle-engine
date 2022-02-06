@@ -45,7 +45,13 @@ implementation
 
 uses CastleVectors, CastleSceneCore;
 
-{ Simple demo how to load 3D scene, and set camera and navigation explicitly. }
+{ Simple demo how to load 3D scene, and set camera and navigation explicitly.
+
+  Note: we do this by code, just for demo.
+  The setup here could be also just designed in CGE editor,
+  and loaded by TCastleControl.DesignUrl -- this is generally better than doing it by code,
+  as it means you can visually see what you're doing at development.
+}
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
