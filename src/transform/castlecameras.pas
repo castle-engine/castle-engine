@@ -228,7 +228,7 @@ type
         )
 
         @item(When both @link(Width) and @link(Height) are non-zero,
-          they would determine the projection width and height.
+          they determine the projection width and height following the algorithm outlined below.
           This also allows to easily display the same piece of the game world,
           regardless of the viewport size.
 
