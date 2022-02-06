@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -176,7 +176,8 @@ function StrToFloatDot(const S: String): Extended;
 function StrToFloatDefDot(Const S: String; const Default: Extended): Extended;
 
 var
-  { Are we inside Castle Game Engine designer mode. }
+  { Are we inside Castle Game Engine designer mode,
+    or (possible in case of TCastleControl) in Lazarus/Delphi form designer. }
   CastleDesignMode: Boolean;
 
   { Refresh UI of CGE editor, because hierarchy of UI/transforms changed. }

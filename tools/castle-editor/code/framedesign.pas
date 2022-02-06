@@ -4134,6 +4134,5 @@ end;
 initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
-  PropertyEditorsAdviceDataDirectory := true;
   CastleDesignMode := true;
 end.

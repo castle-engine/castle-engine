@@ -30,9 +30,6 @@ interface
 
 uses PropEdits;
 
-var
-  PropertyEditorsAdviceDataDirectory: Boolean;
-
 {$define read_interface}
 {$I castlepropedits_url.inc}
 {$undef read_interface}
@@ -42,13 +39,30 @@ procedure Register;
 implementation
 
 uses SysUtils, Classes, TypInfo, Forms,
-  ComponentEditors, LResources, Dialogs, Controls, LCLVersion,
+  ComponentEditors, LResources, Dialogs, Controls, LCLVersion, LazIDEIntf,
   OpenGLContext, Graphics,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
-  CastleTiledMap, CastleGLImages, CastleStringUtils,
+  CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts;
+
+function PropertyEditorsAdviceDataDirectory: Boolean;
+begin
+  { There's no reason to leave it false, in practice. }
+  Result := true;
+
+  if CastleDesignMode and
+     (LazarusIDE <> nil) and
+     (LazarusIDE.ActiveProject <> nil) then
+  begin
+    { Override ApplicationData interpretation, and castle-data:/xxx URL meaning.
+      This allows PropertyEditorsAdviceDataDirectory to work
+      inside Lazarus IDE, e.g. when setting TCastleControl.DesignUrl. }
+    ApplicationDataOverride := FilenameToURISafeUTF8(
+      InclPathDelim(LazarusIDE.ActiveProject.Directory) + 'data' + PathDelim);
+  end;
+end;
 
 {$define read_implementation}
 {$I castlepropedits_url.inc}
@@ -103,6 +117,8 @@ begin
     'TexturePositiveY', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
     'TexturePositiveZ', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleControl,
+    'DesignUrl', TDesignURLPropertyEditor);
 
   { Improved float properties }
   RegisterPropertyEditor(TypeInfo(Single), nil, '', TCastleFloatPropertyEditor);
