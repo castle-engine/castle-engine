@@ -59,6 +59,9 @@ type
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle;
       const CurrentProjection: TProjection); virtual;
+    { Change rotation.
+      Initially rotation is taken from TBackgroundNode.TransformRotation
+      (corresponds to the rotation of Background in the X3D file transformation). }
     procedure UpdateRotation(const Rotation: TVector4); virtual;
     procedure FreeResources; virtual;
   end;

@@ -82,3 +82,4 @@
 ../../../src/scene/ TCastleBackground SkyEquatorColor TCastleColorRGB
 ../../../src/scene/ TCastleBackground GroundBottomColor TCastleColorRGB
 ../../../src/scene/ TCastleBackground GroundEquatorColor TCastleColorRGB
+../../../src/scene/ TCastleBackground Rotation TVector4

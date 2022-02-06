@@ -36,6 +36,7 @@ type
     FGroundEquatorColor: TCastleColorRGB;
     FTextureNegativeZ, FTexturePositiveZ, FTextureNegativeX, FTexturePositiveX, FTextureNegativeY, FTexturePositiveY: String;
     FSmoothEquator: Single;
+    FRotation: TVector4;
 
     procedure UpdateRenderer;
     procedure UpdateRendererOnceLoaded;
@@ -50,6 +51,7 @@ type
     procedure SetTextureNegativeY(const Value: String);
     procedure SetTexturePositiveY(const Value: String);
     procedure SetSmoothEquator(const Value: Single);
+    procedure SetRotation(const Value: TVector4);
   protected
     procedure Loaded; override;
   public
@@ -79,6 +81,18 @@ type
       GroundBottomColor and GroundEquatorColor are displayed
       as a gradient on lower hemisphere around camera. }
     property GroundEquatorColor: TCastleColorRGB read FGroundEquatorColor write SetGroundEquatorColor;
+
+    { Rotate the background around any axis easily.
+      By default this is (0, 1, 0, 0) and often you will want to just
+      change the 4th rotation component, angle, to rotate around the Y axis.
+
+      Note that this is a vector property, see https://castle-engine.io/coding_traps
+      how to change it. This is valid:
+
+      @longCode(#
+      MyBackground.Rotation := Vector4(0, 1, 0, Pi / 4);
+      #) }
+    property Rotation: TVector4 read FRotation write SetRotation;
 
     { Renderer used by viewport. @exclude }
     property InternalBackgroundRenderer: TBackgroundRenderer read FBackgroundRenderer;
@@ -133,6 +147,7 @@ begin
   FGroundBottomColor := BlackRGB;
   FGroundEquatorColor := GrayRGB;
   FSmoothEquator := DefaultSmoothEquator;
+  FRotation := Vector4(0, 1, 0, 0);
 
   FBackgroundNode := TBackgroundNode.Create;
 
@@ -160,6 +175,7 @@ begin
      (PropertyName = 'SkyEquatorColorPersistent') or
      (PropertyName = 'GroundBottomColorPersistent') or
      (PropertyName = 'GroundEquatorColorPersistent') or
+     (PropertyName = 'RotationPersistent') or
      (PropertyName = 'TextureNegativeZ') or
      (PropertyName = 'TexturePositiveZ') or
      (PropertyName = 'TextureNegativeX') or
@@ -226,6 +242,7 @@ begin
     FBackgroundNode.SetTopUrl([]);
 
   FBackgroundRenderer := CreateBackgroundRenderer(FBackgroundNode);
+  FBackgroundRenderer.UpdateRotation(FRotation);
   FPendingUpdateRenderer := false;
 end;
 
@@ -333,6 +350,16 @@ begin
   begin
     FSmoothEquator := Value;
     UpdateRendererOnceLoaded;
+  end;
+end;
+
+procedure TCastleBackground.SetRotation(const Value: TVector4);
+begin
+  if not TVector4.PerfectlyEquals(FRotation, Value) then
+  begin
+    FRotation := Value;
+    if FBackgroundRenderer <> nil then
+      FBackgroundRenderer.UpdateRotation(Value);
   end;
 end;
 
