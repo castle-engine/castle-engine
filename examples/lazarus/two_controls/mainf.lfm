@@ -1,100 +1,64 @@
 object Main: TMain
   Left = 434
-  Height = 474
+  Height = 585
   Top = 173
-  Width = 617
+  Width = 1142
   Caption = 'Main'
-  ClientHeight = 474
-  ClientWidth = 617
-  DesignTimePPI = 140
-  OnCreate = FormCreate
-  LCLVersion = '1.8.0.6'
+  ClientHeight = 585
+  ClientWidth = 1142
+  DesignTimePPI = 120
+  LCLVersion = '2.2.0.4'
   object CastleControl2: TCastleControl
     AnchorSideLeft.Control = CastleControl1
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = LabelFps2
-    Left = 304
-    Height = 372
-    Top = 8
-    Width = 302
+    Left = 547
+    Height = 536
+    Top = 7
+    Width = 586
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Left = 8
-    BorderSpacing.Bottom = 8
+    BorderSpacing.Left = 7
+    BorderSpacing.Bottom = 7
+    Options = [ocoRenderAtDesignTime]
     TabOrder = 0
+    DesignUrl = 'castle-data:/main.castle-user-interface'
   end
   object CastleControl1: TCastleControl
     AnchorSideBottom.Control = LabelFps1
-    Left = 8
-    Height = 372
-    Top = 8
-    Width = 288
+    Left = 7
+    Height = 536
+    Top = 7
+    Width = 533
     Anchors = [akTop, akLeft, akBottom]
-    BorderSpacing.Bottom = 8
+    BorderSpacing.Bottom = 7
+    Options = [ocoRenderAtDesignTime]
     TabOrder = 1
-  end
-  object ButtonLoad1: TButton
-    AnchorSideTop.Control = CastleControl1
-    AnchorSideTop.Side = asrBottom
-    Left = 9
-    Height = 39
-    Top = 423
-    Width = 146
-    Anchors = [akLeft, akBottom]
-    AutoSize = True
-    BorderSpacing.Top = 8
-    Caption = 'Load 1st scene'
-    OnClick = ButtonLoad1Click
-    TabOrder = 2
-  end
-  object ButtonLoad2: TButton
-    AnchorSideLeft.Control = CastleControl1
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = CastleControl2
-    AnchorSideTop.Side = asrBottom
-    Left = 304
-    Height = 39
-    Top = 423
-    Width = 154
-    Anchors = [akLeft, akBottom]
-    AutoSize = True
-    BorderSpacing.Left = 8
-    BorderSpacing.Top = 8
-    Caption = 'Load 2nd scene'
-    OnClick = ButtonLoad2Click
-    TabOrder = 3
+    DesignUrl = 'castle-data:/main.castle-user-interface'
   end
   object LabelFps1: TLabel
-    AnchorSideBottom.Control = ButtonLoad1
     Left = 8
-    Height = 27
-    Top = 388
-    Width = 171
+    Height = 22
+    Top = 550
+    Width = 157
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Bottom = 8
+    BorderSpacing.Bottom = 7
     Caption = 'FPS: 123 (real: 456)'
-    ParentColor = False
   end
   object LabelFps2: TLabel
     AnchorSideLeft.Control = CastleControl1
     AnchorSideLeft.Side = asrBottom
-    AnchorSideBottom.Control = ButtonLoad2
-    Left = 304
-    Height = 27
-    Top = 388
-    Width = 171
+    Left = 547
+    Height = 22
+    Top = 550
+    Width = 157
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Left = 8
-    BorderSpacing.Bottom = 8
+    BorderSpacing.Left = 7
+    BorderSpacing.Bottom = 7
     Caption = 'FPS: 123 (real: 456)'
-    ParentColor = False
-  end
-  object OpenDialog: TCastleOpen3DDialog
-    left = 46
-    top = 112
   end
   object Timer: TTimer
     OnTimer = TimerTimer
-    left = 46
-    top = 36
+    Left = 39
+    Top = 31
   end
 end
