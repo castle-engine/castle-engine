@@ -2268,7 +2268,12 @@ begin
 end;
 
 type
-  TRegExprString = {$if FPC_FULLVERSION >= 30300} UnicodeString {$else} String {$endif};
+  TRegExprString = {$ifdef FPC}
+    {$if FPC_FULLVERSION >= 30300} UnicodeString {$else} String {$endif}
+  {$else}
+    String
+  {$endif};
+
   TRegExprCounter = class
   private
     Index: Integer;
