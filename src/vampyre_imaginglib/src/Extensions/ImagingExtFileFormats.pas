@@ -19,7 +19,23 @@ unit ImagingExtFileFormats;
 {$I ImagingOptions.inc}
 
 {.$DEFINE DONT_LINK_JPEG2000}    // link support for JPEG2000 images
-{.$DEFINE DONT_LINK_TIFF}        // link support for TIFF images
+
+{ Castle Game Engine: Disable libtiff on all platforms.
+  Because the implementation is not cross-platform enough:
+
+  - It is disabled on Arm (32-bit)
+
+  - It is uncomfortable to use on Anroid/iOS/NintendoSwitch where
+    we don't automatically distribute libtiff.
+    And lack of it means errors at startup, like this on Android:
+
+    E test_bump_mapping: MainActivity: JNI: Could not load libtest_bump_mapping_android.so, exception UnsatisfiedLinkError: dlopen failed: cannot locate symbol "TIFFNumberOfDirectories" referenced by "/data/app/~~Q2PlsieWYj2N3wYOOgQPeQ==/io.castleengine.test.bump.mapping-fDdlkPhP1GVaw7My9A7auw==/lib/arm64/libtest_bump_mapping_android.so"..
+
+  Devs can manually add ImagingTiff to their uses clause to bring back support for TIFF,
+  and use CASTLE_ENABLE_TIFF to register it in CastleImages handlers.
+}
+{$DEFINE DONT_LINK_TIFF}        // link support for TIFF images
+
 {.$DEFINE DONT_LINK_PSD}         // link support for PSD images
 {.$DEFINE DONT_LINK_PCX}         // link support for PCX images
 {.$DEFINE DONT_LINK_XPM}         // link support for XPM images
