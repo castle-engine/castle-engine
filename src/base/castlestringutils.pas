@@ -2268,18 +2268,19 @@ begin
 end;
 
 type
+  TRegExprString = {$if FPC_FULLVERSION >= 30300} UnicodeString {$else} String {$endif};
   TRegExprCounter = class
   private
     Index: Integer;
     ReplacementsDone: Cardinal;
     function ReplaceCallback(
-      {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): string;
+      {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): TRegExprString;
   end;
 
 function TRegExprCounter.ReplaceCallback(
-  {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): string;
+  {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): TRegExprString;
 var
-  MatchedText: string;
+  MatchedText: TRegExprString;
 begin
   MatchedText := {$ifdef FPC} ARegExpr.Match[1] {$else} Match.Groups[1].Value {$endif};
   Result := IntToStrZPad(Index, StrToInt(MatchedText));
