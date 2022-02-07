@@ -81,6 +81,16 @@ implementation
   {$UNDEF USE_LIBTIFF}
 {$IFEND}
 
+{ Castle Game Engine: disable libtiff on all mobile platforms,
+  as we don't automatically distribute libtiff.
+  And lack of it means errors at startup, like this:
+
+    E test_bump_mapping: MainActivity: JNI: Could not load libtest_bump_mapping_android.so, exception UnsatisfiedLinkError: dlopen failed: cannot locate symbol "TIFFNumberOfDirectories" referenced by "/data/app/~~Q2PlsieWYj2N3wYOOgQPeQ==/io.castleengine.test.bump.mapping-fDdlkPhP1GVaw7My9A7auw==/lib/arm64/libtest_bump_mapping_android.so"..
+}
+{$IF defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+  {$UNDEF USE_LIBTIFF}
+{$IFEND}
+
 uses
 {$IFDEF USE_LIBTIFF}
   ImagingTiffLib,
