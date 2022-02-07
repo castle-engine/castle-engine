@@ -79,6 +79,52 @@
     property MaxPhysicsTicksPerUpdate: Cardinal read FMaxPhysicsTicksPerUpdate write FMaxPhysicsTicksPerUpdate default DefaultMaxPhysicsTicksPerUpdate;
   end;
 
+  { Don't have any Kraft objects only describe shape }
+
+  { TCastleCollider }
+
+  TCastleCollider = class(TCastleBehavior)
+  private
+    FDensity, FMass, FRestitution, FFriction: Single;
+    FKraftShape: TKraftShape;
+    procedure InitializeKraft(const APhysics: TKraft;
+      const ARigidBody: TKraftRigidBody);
+  strict protected
+    function CreateKraftShape(const APhysics: TKraft;
+      const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
+  protected
+    procedure ParentChanged; override;
+  public
+    const
+      { Default for @link(Density). }
+      DefaultDensity = 1.0;
+      { Default for @link(Mass), zero means "use @link(Density) instead". }
+      DefaultMass = 0.0;
+      { Default for @link(Restitution). }
+      DefaultRestitution = 0.0;
+      { Default for @link(Friction). }
+      DefaultFriction = 0.5;
+
+    constructor Create(AOwner: TComponent); override;
+
+    { Density (per volume) in kg, this implicitly determines mass
+      (volume is automatically calculated by the physics engine).
+      If you instead prefer to explicitly set mass, set @link(Mass)
+      property to something non-zero. }
+    property Density: Single read FDensity write FDensity
+      {$ifdef FPC}default DefaultDensity{$endif};
+
+    { Mass in kg. When non-zero, this overrides the automatically calculated
+      mass from the volume and @link(Density). }
+    property Mass: Single read FMass write FMass
+      {$ifdef FPC}default DefaultMass{$endif};
+
+    property Restitution: Single read FRestitution write FRestitution
+      {$ifdef FPC}default DefaultRestitution{$endif};
+    property Friction: Single read FFriction write FFriction
+      {$ifdef FPC}default DefaultFriction{$endif};
+  end;
+
   { Shape used for collision detection of a rigid body @link(TRigidBody). }
   TCollider = class
   private
@@ -156,6 +202,7 @@
     property Scale: TVector3 read FScale write FScale; {$ifdef FPC}experimental;{$endif}
   end;
 
+
   { Collide as an infinite plane.
     Place this inside @link(TRigidBody.Collider) property. }
   TPlaneCollider = class(TCollider)
@@ -187,9 +234,28 @@
     Radius: Single;
   end;
 
+  { TCastleSphereCollider }
+
+  TCastleSphereCollider = class(TCastleCollider)
+  strict protected
+    function CreateKraftShape(const APhysics: TKraft;
+      const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  public
+    Radius: Single;
+  end;
+
   { Collide as a capsule.
     Place this inside @link(TRigidBody.Collider) property. }
   TCapsuleCollider = class(TCollider)
+  strict protected
+    function CreateKraftShape(const APhysics: TKraft;
+      const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  public
+    Radius: Single;
+    Height: Single;
+  end;
+
+  TCastleCapsuleCollider = class(TCastleCollider)
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -209,21 +275,40 @@
 
   { Rigid body behavior for the physics engine,
     see @link(TCastleTransform.RigidBody). }
+
+  { TCastleRigidBody }
+
   TCastleRigidBody = class(TCastleBehavior)
   strict private
-    { List of collisions from previous step. }
-    FPrevCollisions: TCastleRigidBodyList;
-    { List of collisions from current step. }
-    FCurrentCollisions: TCastleRigidBodyList;
+    type
+      TCastleRigidBodyState = (
+        crbsNotInitialized, // nothing is done
+        crbsNoCollider, // need initialize collider
+        crbsNoFinalization, // need FinishInitialization
+        crbsInitialized // ready to work
+        );
+    var
+      { Current rigid body state. }
+      FState: TCastleRigidBodyState;
+      { Castle collider behavior that was used to initialize rigid body }
+      FCastleCollider: TCastleCollider;
 
-    FOnCollisionEnter: TCollisionEvent;
-    FOnCollisionStay: TCollisionEvent;
-    FOnCollisionExit: TCollisionEvent;
+      { List of collisions from previous step. }
+      FPrevCollisions: TCastleRigidBodyList;
+      { List of collisions from current step. }
+      FCurrentCollisions: TCastleRigidBodyList;
+
+      FOnCollisionEnter: TCollisionEvent;
+      FOnCollisionStay: TCollisionEvent;
+      FOnCollisionExit: TCollisionEvent;
 
     procedure PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
     { Assign or unassign PhysicsPostStep in TKraftBody.OnPostStep when needed. }
     procedure CheckPhysicsPostStepNeeded;
+
+    function GetKraftShape: TKraftShape;
   private
+
     FKraftBody: TKraftRigidBody;
     FCollider: TCollider;
     FGravity: Boolean;
@@ -266,6 +351,21 @@
     procedure InitializeTransform(const Transform: TCastleTransform);
     { Disconnect from Transform.World, if was connected. }
     procedure DeinitializeTransform(const Transform: TCastleTransform);
+    { Returns TCastleCollider bahavior or nil when no collider behavior in
+      Parent or Parent = nil }
+    function GetCastleCollider: TCastleCollider;
+
+    { Initialize rigid body objects from physics engine }
+    procedure InitializeEngineRigidBody(const Transform: TCastleTransform);
+    { Initialize collider from physics engine }
+    function TryInitializeColliders: Boolean;
+    { Things to initialize after collider initialization }
+    procedure FinishInitialization(const Transform: TCastleTransform);
+    { Used by TCastleCollider when it's parent changes to handle case when
+      rigid body is added before collider behavior }
+    procedure CheckInitialization(const ACastleCollider: TCastleCollider);
+
+    procedure DeinitializeColliders;
 
   protected
     procedure ParentChanged; override;
@@ -528,6 +628,14 @@ begin
   Result := TKraftShapeCapsule.Create(APhysics, ARigidBody, Radius, Height);
 end;
 
+{ TCastleCapsuleCollider ----------------------------------------------------- }
+
+function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody): TKraftShape;
+begin
+  Result := TKraftShapeCapsule.Create(APhysics, ARigidBody, Radius, Height);
+end;
+
 { TPhysicsCollisionDetails --------------------------------------------------- }
 
 function TPhysicsCollisionDetails.OtherTransform: TCastleTransform;
@@ -645,6 +753,46 @@ begin
   inherited;
 end;
 
+{ TCastleCollider ------------------------------------------------------------ }
+
+procedure TCastleCollider.InitializeKraft(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody);
+begin
+  // FreeAndNil(FKraftShape); // do not free here, TKraftShape is owned by TKraftRigidBody
+  FKraftShape := CreateKraftShape(APhysics, ARigidBody);
+  // assign common TCollider properties to Kraft shape
+  FKraftShape.Density := Density;
+  FKraftShape.Restitution := Restitution;
+  FKraftShape.Friction := Friction;
+  if not FParent.Exists then
+    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
+end;
+
+procedure TCastleCollider.ParentChanged;
+var
+  CastleRigidBody: TCastleRigidBody;
+begin
+  inherited;
+
+  { Check there is a rigid body and we should try initialize collider.
+    This is the case when rigid body was added first to behaviors list }
+  if Parent <> nil then
+  begin
+    CastleRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    if CastleRigidBody <> nil then
+      CastleRigidBody.CheckInitialization(Self);
+  end else
+  begin
+    { Kraft shape is owned by Kraft rigid body }
+    FKraftShape := nil;
+  end;
+end;
+
+constructor TCastleCollider.Create(AOwner: TComponent);
+begin
+  inherited;
+end;
+
 { TPlaneCollider ------------------------------------------------------------- }
 
 function TPlaneCollider.CreateKraftShape(const APhysics: TKraft;
@@ -681,6 +829,15 @@ begin
   Result := TKraftShapeSphere.Create(APhysics, ARigidBody, Radius);
 end;
 
+{ TCastleSphereCollider ------------------------------------------------------ }
+
+function TCastleSphereCollider.CreateKraftShape(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody): TKraftShape;
+begin
+  Result := TKraftShapeSphere.Create(APhysics, ARigidBody, Radius);
+end;
+
+
 { TRigidBody ----------------------------------------------------------------- }
 
 constructor TCastleRigidBody.Create(AOwner: TComponent);
@@ -705,6 +862,7 @@ begin
   FOnCollisionEnter := nil;
   FOnCollisionExit := nil;
   FTransform := nil;
+  FState := crbsNotInitialized;
 end;
 
 destructor TCastleRigidBody.Destroy;
@@ -739,88 +897,11 @@ end;
 procedure TCastleRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
   procedure RecreateKraftInstance;
-  var
-    World: TCastleAbstractRootTransform;
-    V: TVector3;
   begin
-    World := Transform.World;
-    World.InitializePhysicsEngine;
+    InitializeEngineRigidBody(Transform);
 
-    FKraftBody := TKraftRigidBody.Create(World.FKraftEngine);
-    FKraftBody.UserData := Self;
-
-    if Dynamic then
-      FKraftBody.SetRigidBodyType(krbtDynamic)
-    else
-    if Animated then
-      FKraftBody.SetRigidBodyType(krbtKinematic)
-    else
-      FKraftBody.SetRigidBodyType(krbtStatic);
-
-    FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
-    FKraftBody.ForcedMass := Collider.Mass;
-    if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisX];
-    if 1 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisY];
-    if 2 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisZ];
-    if 0 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisX];
-    if 1 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisY];
-    if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
-    if not FExists then
-      FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
-
-    if FTrigger then
-      FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
-
-    // initialize Kraft shape
-    if Collider = nil then
-      raise EPhysicsError.Create('You must assign TRigidBody.Collider');
-    Collider.InitializeKraft(World.FKraftEngine, FKraftBody);
-
-    FKraftBody.Finish;
-
-    UpdateCollides(Transform);
-
-    if (not FAngularVelocity.IsPerfectlyZero) or
-       (not FLinearVelocity.IsPerfectlyZero) then
-    begin
-      { The behavior is more natural when we zero the XxxVelocity
-        components that are locked. (Otherwise testing e.g. Setup2D in a 3D
-        world makes a little unexpected motions). }
-
-      V := ZeroLockedComponents(FAngularVelocity, FLockRotation);
-      FKraftBody.AngularVelocity := VectorToKraft(V);
-
-      V := ZeroLockedComponents(FLinearVelocity, FLockTranslation);
-      FKraftBody.LinearVelocity := VectorToKraft(V);
-
-      FKraftBody.SetToAwake;
-    end;
-
-    FKraftBody.LinearVelocityDamp := FLinearVelocityDamp;
-    FKraftBody.MaximalLinearVelocity := FMaximalLinearVelocity / Transform.World.FKraftEngine.WorldFrequency;
-
-    FKraftBody.AngularVelocityDamp := FAngularVelocityDamp;
-    FKraftBody.MaximalAngularVelocity := FMaximalAngularVelocity / Transform.World.FKraftEngine.WorldFrequency;
-
-    // set initial transformation
-    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform));
-
-    { Synchronize Kraft rigid body and shapes (colliders) transform to make
-      collider position correct. Without the SynchronizeTransformIncludingShapes,
-      first (before physics step) TransformationFromKraft
-      would set weird TCastleTransform position.
-
-      Testcase: run physics_2d_collisions, press space (pause) and R (restart).
-      The plane should jump to predictable initial position (TPlane.Create).
-      Without the SynchronizeTransformIncludingShapes call, it jumps to
-      an incorrect position.
-
-      Also, because we use shape InterpolatedWorldTransform we need to store
-      it for correct result. }
-    FKraftBody.SynchronizeTransformIncludingShapes;
-    Collider.FKraftShape.StoreWorldTransform;
-
-    CheckPhysicsPostStepNeeded;
+    if TryInitializeColliders then
+      FinishInitialization(Transform);
   end;
 
 begin
@@ -889,11 +970,181 @@ begin
 
   FreeAndNil(FKraftBody);
 
-  { Collider.FKraftShape is owned by FKraftBody, it was automatically freed already }
-  if Collider <> nil then
-    Collider.FKraftShape := nil;
+  DeinitializeColliders;
 
   FTransform := nil;
+  FState := crbsNotInitialized;
+end;
+
+function TCastleRigidBody.GetCastleCollider: TCastleCollider;
+begin
+  if Parent <> nil then
+    Result := Parent.FindBehavior(TCastleCollider) as TCastleCollider
+  else
+    Result := nil;
+end;
+
+procedure TCastleRigidBody.InitializeEngineRigidBody(
+  const Transform: TCastleTransform);
+var
+  World: TCastleAbstractRootTransform;
+begin
+  World := Transform.World;
+  World.InitializePhysicsEngine;
+
+  FKraftBody := TKraftRigidBody.Create(World.FKraftEngine);
+  FKraftBody.UserData := Self;
+
+  if Dynamic then
+    FKraftBody.SetRigidBodyType(krbtDynamic)
+  else
+  if Animated then
+    FKraftBody.SetRigidBodyType(krbtKinematic)
+  else
+    FKraftBody.SetRigidBodyType(krbtStatic);
+
+  FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
+  if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisX];
+  if 1 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisY];
+  if 2 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisZ];
+  if 0 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisX];
+  if 1 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisY];
+  if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
+  if not FExists then
+    FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
+
+  if FTrigger then
+    FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
+
+  FState := crbsNoCollider;
+end;
+
+function TCastleRigidBody.TryInitializeColliders: Boolean;
+var
+  FCastleColliderFromTransform: TCastleCollider;
+begin
+  if FState = crbsNotInitialized then
+    raise Exception.Create('Trying to add collider but rigid body not initilized');
+
+  if Collider <> nil then
+  begin
+    Collider.InitializeKraft(Parent.World.FKraftEngine, FKraftBody);
+    FState := crbsNoFinalization;
+    Exit(true);
+  end;
+
+  FCastleColliderFromTransform := GetCastleCollider;
+  if FCastleCollider <> nil then
+  begin
+    // Trying to reinitialize rigid body with another collider currently we
+    // make exception here, but this is to do
+    raise Exception.Create('TODO: reinitialize rigid body with another collider');
+  end;
+
+  if FCastleColliderFromTransform = nil then
+  begin
+    FState := crbsNoCollider;
+    Exit(false);
+  end;
+
+  FCastleColliderFromTransform.InitializeKraft(Parent.World.FKraftEngine,
+    FKraftBody);
+
+  FCastleCollider := FCastleColliderFromTransform;
+  FState := crbsNoFinalization;
+  Result := true;
+end;
+
+procedure TCastleRigidBody.FinishInitialization(const Transform: TCastleTransform);
+var
+  V: TVector3;
+begin
+  if FState <> crbsNoFinalization then
+    raise Exception.Create('Trying finalize rigid body initialization');
+
+  if Collider <> nil then
+    FKraftBody.ForcedMass := Collider.Mass
+  else
+   FKraftBody.ForcedMass := FCastleCollider.Mass;
+
+  FKraftBody.Finish;
+
+  UpdateCollides(Transform);
+
+  if (not FAngularVelocity.IsPerfectlyZero) or
+     (not FLinearVelocity.IsPerfectlyZero) then
+  begin
+    { The behavior is more natural when we zero the XxxVelocity
+      components that are locked. (Otherwise testing e.g. Setup2D in a 3D
+      world makes a little unexpected motions). }
+
+    V := ZeroLockedComponents(FAngularVelocity, FLockRotation);
+    FKraftBody.AngularVelocity := VectorToKraft(V);
+
+    V := ZeroLockedComponents(FLinearVelocity, FLockTranslation);
+    FKraftBody.LinearVelocity := VectorToKraft(V);
+
+    FKraftBody.SetToAwake;
+  end;
+
+  FKraftBody.LinearVelocityDamp := FLinearVelocityDamp;
+  FKraftBody.MaximalLinearVelocity := FMaximalLinearVelocity / Transform.World.FKraftEngine.WorldFrequency;
+
+  FKraftBody.AngularVelocityDamp := FAngularVelocityDamp;
+  FKraftBody.MaximalAngularVelocity := FMaximalAngularVelocity / Transform.World.FKraftEngine.WorldFrequency;
+
+  // set initial transformation
+  FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform));
+
+  { Synchronize Kraft rigid body and shapes (colliders) transform to make
+    collider position correct. Without the SynchronizeTransformIncludingShapes,
+    first (before physics step) TransformationFromKraft
+    would set weird TCastleTransform position.
+
+    Testcase: run physics_2d_collisions, press space (pause) and R (restart).
+    The plane should jump to predictable initial position (TPlane.Create).
+    Without the SynchronizeTransformIncludingShapes call, it jumps to
+    an incorrect position.
+
+    Also, because we use shape InterpolatedWorldTransform we need to store
+    it for correct result. }
+  FKraftBody.SynchronizeTransformIncludingShapes;
+  GetKraftShape.StoreWorldTransform;
+
+  CheckPhysicsPostStepNeeded;
+  FState := crbsInitialized;
+end;
+
+procedure TCastleRigidBody.CheckInitialization(const ACastleCollider: TCastleCollider);
+begin
+  { FCastleCollider has pointer to castle collider behavior that was used to
+    initialize rigid body so we didn't need do anything. }
+  if FCastleCollider = ACastleCollider then
+    Exit;
+
+  if (FCastleCollider = nil) and (FState = crbsNoCollider) then
+  begin
+    if TryInitializeColliders then
+      FinishInitialization(Parent);
+  end;
+
+  if FCastleCollider <> ACastleCollider then
+    raise Exception.Create('TODO: reinitialization by other collider');
+end;
+
+procedure TCastleRigidBody.DeinitializeColliders;
+begin
+  { Collider.FKraftShape is owned by FKraftBody, it was automatically freed already }
+  if Collider <> nil then
+  begin
+    Collider.FKraftShape := nil;
+    FState := crbsNoCollider;
+  end else
+  if FCastleCollider <> nil then
+  begin
+    FCastleCollider.FKraftShape := nil;
+    FState := crbsNoCollider;
+  end;
 end;
 
 procedure TCastleRigidBody.PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
@@ -973,6 +1224,17 @@ begin
     FKraftBody.OnPostStep := {$ifdef FPC}@{$endif}PhysicsPostStep
   else
     FKraftBody.OnPostStep := nil;
+end;
+
+function TCastleRigidBody.GetKraftShape: TKraftShape;
+begin
+  if Collider <> nil then
+    Result := Collider.FKraftShape
+  else
+  if FCastleCollider <> nil then
+    Result := FCastleCollider.FKraftShape
+  else
+    Result := nil;
 end;
 
 procedure TCastleRigidBody.UpdateCollides(const Transform: TCastleTransform);
@@ -1067,7 +1329,7 @@ procedure TCastleRigidBody.Update(const SecondsPassed: Single; var RemoveMe: TRe
     Translation, Scale: TVector3;
     Rotation: TVector4;
   begin
-    Shape := FCollider.FKraftShape;
+    Shape := GetKraftShape;
 
     LocalTransform := Parent.CheckParent.WorldInverseTransform *
       MatrixFromKraft(Shape.InterpolatedWorldTransform);
@@ -1118,7 +1380,7 @@ end;
 procedure TCastleRigidBody.ParentChanged;
 begin
   inherited;
-
+  SingleInstanceOfBehavior;
 end;
 
 procedure TCastleRigidBody.WorldAttached(
@@ -1173,7 +1435,7 @@ end;
 function TCastleRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
   const MaxDistance: Single; out Distance: Single): TCastleTransform;
 var
-  Shape: TKraftShape;
+  Shape, RayShape: TKraftShape;
   ResultingDistance: TKraftScalar;
   Point: TKraftVector3;
   Normal: TKraftVector3;
@@ -1192,27 +1454,28 @@ begin
   RayOriginWorld := FTransform.Parent.LocalToWorld(RayOrigin);
   RayDirectionWorld := FTransform.Parent.LocalToWorldDirection(RayDirection);
   RayMaxDistanceWorld := FTransform.Parent.LocalToWorldDistance(MaxDistance);
+  Shape := GetKraftShape;
 
   { We use ksfRayCastable flag to not hit to caster shape. }
-  OldShapeFlags := Collider.FKraftShape.Flags;
+  OldShapeFlags := Shape.Flags;
   try
-    Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfRayCastable];
+    Shape.Flags := Shape.Flags - [ksfRayCastable];
     { Note: In Kraft, the distance parameters are called "time"
       (MaxTime, Time instead of more natural MaxDistance, Distance).
       But all research shows that it is actually "distance" and that is also how
       other physics engines call it.
       TODO: Check time depends on physics frequency? }
     Hit := FTransform.World.FKraftEngine.RayCast(VectorToKraft(RayOriginWorld),
-      VectorToKraft(RayDirectionWorld), RayMaxDistanceWorld, Shape, ResultingDistance, Point, Normal);
+      VectorToKraft(RayDirectionWorld), RayMaxDistanceWorld, RayShape, ResultingDistance, Point, Normal);
 
     if Hit then
     begin
       Distance := FTransform.Parent.WorldToLocalDistance(ResultingDistance);
-      Result := TRigidBody(Shape.RigidBody.UserData).FTransform;
+      Result := TRigidBody(RayShape.RigidBody.UserData).FTransform;
     end else
       Result := nil;
   finally
-    Collider.FKraftShape.Flags := OldShapeFlags;
+    Shape.Flags := OldShapeFlags;
   end;
 end;
 
@@ -1239,6 +1502,8 @@ begin
 end;
 
 procedure TCastleRigidBody.SetExists(const Value: Boolean);
+var
+  KraftShape: TKraftShape;
 begin
   if FExists = Value then
     Exit;
@@ -1253,14 +1518,16 @@ begin
       FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
   end;
 
-  if Assigned(Collider) and Assigned(Collider.FKraftShape) then
+  KraftShape := GetKraftShape;
+
+  if Assigned(KraftShape) then
   begin
     { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
     if FExists then
-      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision,
+      KraftShape.Flags := KraftShape.Flags + [ksfCollision,
         ksfRayCastable]
     else
-      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision,
+      KraftShape.Flags := KraftShape.Flags - [ksfCollision,
         ksfRayCastable];
   end;
 end;
@@ -1291,8 +1558,11 @@ begin
   if OldRigidBody = Value then
      Exit;
 
-  RemoveBehavior(OldRigidBody);
-  FreeAndNil(OldRigidBody);
+  if OldRigidBody <> nil then
+  begin
+    RemoveBehavior(OldRigidBody);
+    FreeAndNil(OldRigidBody);
+  end;
 
   if Value <> nil then
     AddBehavior(Value);

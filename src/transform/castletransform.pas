@@ -73,4 +73,7 @@ initialization
   RegisterSerializableComponent(TCastleTransformDesign, 'Transform Design (Use Another castle-transform File)');
   RegisterSerializableComponent(TCastleTransformReference, 'Reference Another Transform');
   RegisterSerializableComponent(TCastleCamera, 'Camera');
+  RegisterSerializableComponent(TCastleRigidBody, 'Rigid Body');
+  RegisterSerializableComponent(TCastleSphereCollider, 'Sphere Colllider');
+  RegisterSerializableComponent(TCastleCapsuleCollider, 'Sphere Colllider');
 end.
