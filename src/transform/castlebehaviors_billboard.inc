@@ -1,6 +1,6 @@
 {%MainUnit castlebehaviors.pas}
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,6 +32,9 @@ type
   TCastleBillboard = class(TCastleBehavior)
   strict private
     FAxisOfRotation: TVector3;
+  protected
+    function CanAttachToParent(const NewParent: TCastleTransform;
+      out ReasonWhyCannot: String): Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -139,6 +142,19 @@ begin
         { adjust direction, keep up constant } false
       );
     end;
+  end;
+end;
+
+function TCastleBillboard.CanAttachToParent(const NewParent: TCastleTransform;
+  out ReasonWhyCannot: String): Boolean;
+begin
+  Result := inherited;
+  if not Result then Exit;
+
+  if NewParent.FindBehavior(TCastleBillboard) <> nil then
+  begin
+    ReasonWhyCannot := 'Only one TCastleBillboard behavior can be added to a given TCastleTransform';
+    Result := false;
   end;
 end;
 

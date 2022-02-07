@@ -53,14 +53,28 @@
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
 
-    { Used to check that the one and only instance of current class type is Self.
-      This is a simpler overload of SingleInstanceOfBehavior. }
-    procedure SingleInstanceOfBehavior; overload;
+    { Check can this behavior be added to NewParent.
+      When this returns @false, it has to set also ReasonWhyCannot.
+      When overriding this, you can use e.g. this code to make sure we are the only
+      behavior of given class:
 
-    { Used to check that the one and only instance of BehaviorClass in Parent
-      is Self. }
-    procedure SingleInstanceOfBehavior(
-      const BehaviorClass: TCastleBehaviorClass); overload;
+      @longCode(#
+      function TCastleBillboard.CanAttachToParent(const NewParent: TCastleTransform;
+        out ReasonWhyCannot: String): Boolean;
+      begin
+        Result := inherited;
+        if not Result then Exit;
+
+        if NewParent.FindBehavior(TCastleBillboard) <> nil then
+        begin
+          ReasonWhyCannot := 'Only one TCastleBillboard behavior can be added to a given TCastleTransform';
+          Result := false;
+        end;
+      end;
+      #)
+    }
+    function CanAttachToParent(const NewParent: TCastleTransform;
+      out ReasonWhyCannot: String): Boolean; virtual;
   public
     { Parent TCastleTransform of this behavior.
       Change it by doing @link(TCastleTransform.AddBehavior),
@@ -113,41 +127,11 @@ procedure TCastleBehavior.ParentChanged;
 begin
 end;
 
-procedure TCastleBehavior.SingleInstanceOfBehavior;
+function TCastleBehavior.CanAttachToParent(const NewParent: TCastleTransform;
+  out ReasonWhyCannot: String): Boolean;
 begin
-  SingleInstanceOfBehavior(TCastleBehaviorClass(ClassType));
-end;
-
-procedure TCastleBehavior.SingleInstanceOfBehavior(
-  const BehaviorClass: TCastleBehaviorClass);
-var
-  HasSelf: Boolean;
-  Other: TCastleBehavior;
-  I: Integer;
-begin
-  HasSelf := false;
-  Other := nil;
-
-  for I := 0 to Parent.FBehaviors.Count - 1 do
-    if Parent.FBehaviors[I] is BehaviorClass then
-    begin
-      if Parent.FBehaviors[I] = Self then
-         HasSelf := true
-       else
-         Other := Parent.FBehaviors[I] as TCastleBehavior;
-    end;
-
-//  Other := Parent.FindBehavior(TCastleAliveBehavior);
-
-  if Other <> nil then
-    raise Exception.CreateFmt('Two instances of %s not allowed on one parent: %s %s', [
-      BehaviorClass.ClassName,
-      Name,
-      Other.Name
-    ]);
-
-  if not HasSelf then
-    raise Exception.CreateFmt('Self instance of %s not found on parent', [BehaviorClass.ClassName]);
+  ReasonWhyCannot := '';
+  Result := true;
 end;
 
 {$endif read_implementation}

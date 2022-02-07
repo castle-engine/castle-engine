@@ -3371,9 +3371,19 @@ begin
 end;
 
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
+var
+  ReasonWhyCannot: String;
 begin
   if Behavior.FParent <> Self then
   begin
+    if not Behavior.CanAttachToParent(Self, ReasonWhyCannot) then
+      raise Exception.CreateFmt('Cannot add behavior %s (%s) to %s (%s) because: %s', [
+        Behavior.Name,
+        Behavior.ClassName,
+        Name,
+        ClassName,
+        ReasonWhyCannot
+      ]);
     FBehaviors.Add(Behavior);
     Behavior.FParent := Self;
     Behavior.ParentChanged; // call at end, when state is consistent
