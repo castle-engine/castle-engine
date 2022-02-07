@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -314,6 +314,8 @@ begin
     if FCustomFont <> nil then
       FCustomFont.AddFontSizeChangeNotification(
         {$ifdef FPC}@{$endif}CustomFontSizeChanged);
+
+    FCustomFontObserver.Observed := Value;
 
     // modify X3D nodes
     FontStyleNode.CustomFont := Value;
