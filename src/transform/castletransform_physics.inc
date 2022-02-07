@@ -1284,7 +1284,16 @@ end;
 { TCastleTransform ---------------------------------------------------------- }
 
 procedure TCastleTransform.SetRigidBody(const Value: TCastleRigidBody);
+var
+  OldRigidBody: TCastleRigidBody;
 begin
+  OldRigidBody := GetRigidBody;
+  if OldRigidBody = Value then
+     Exit;
+
+  RemoveBehavior(OldRigidBody);
+  FreeAndNil(OldRigidBody);
+
   if Value <> nil then
     AddBehavior(Value);
 end;
