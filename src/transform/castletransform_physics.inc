@@ -86,7 +86,7 @@
   TCastleCollider = class(TCastleBehavior)
   private
     FDensity, FMass, FRestitution, FFriction: Single;
-    FKraftShape: TKraftShape;
+    FKraftShape: TKraftShape;  // owned by TKraftRigidBody
     procedure InitializeKraft(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody);
   strict protected
@@ -200,12 +200,23 @@
       Note: These properties may disappear soon from TCollider,
       and will only be in new (similar but not 100% compatible) TCastleCollider. }
     property Scale: TVector3 read FScale write FScale; {$ifdef FPC}experimental;{$endif}
-  end;
+  end deprecated 'use TCastleCollider';
 
 
   { Collide as an infinite plane.
     Place this inside @link(TRigidBody.Collider) property. }
   TPlaneCollider = class(TCollider)
+  strict protected
+    function CreateKraftShape(const APhysics: TKraft;
+      const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  public
+    Normal: TVector3;
+    Distance: Single;
+  end deprecated 'use TCastlePlaneCollider';
+
+  { Collide as an infinite plane.
+    Add this to transform behavior list. }
+  TCastlePlaneCollider = class(TCastleCollider)
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -222,7 +233,18 @@
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
   public
     Size: TVector3;
+  end deprecated 'use TCastleBoxCollider';
+
+  { Collide as a box.
+    Add this to transform behavior list. }
+  TCastleBoxCollider = class(TCastleCollider)
+  strict protected
+    function CreateKraftShape(const APhysics: TKraft;
+      const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  public
+    Size: TVector3;
   end;
+
 
   { Collide as a sphere.
     Place this inside @link(TRigidBody.Collider) property. }
@@ -232,10 +254,10 @@
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
   public
     Radius: Single;
-  end;
+  end deprecated 'use TCastleSphereCollider';
 
-  { TCastleSphereCollider }
-
+  { Collide as a sphere.
+    Add this to transform behavior list.}
   TCastleSphereCollider = class(TCastleCollider)
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
@@ -253,8 +275,10 @@
   public
     Radius: Single;
     Height: Single;
-  end;
+  end deprecated 'use TCastleCapsuleCollider';
 
+  { Collide as a capsule.
+    Add this to transform behavior list.}
   TCastleCapsuleCollider = class(TCastleCollider)
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
@@ -370,9 +394,9 @@
   protected
     procedure ParentChanged; override;
 
-    procedure WorldAttached(const NewWorld: TCastleAbstractRootTransform); override;
+    procedure WorldAfterAttach; override;
 
-    procedure WorldDetached(const PreviousWorld: TCastleAbstractRootTransform); override;
+    procedure WorldBeforeDetach; override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
@@ -764,7 +788,7 @@ begin
   FKraftShape.Density := Density;
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
-  if not FParent.Exists then
+  if not Parent.RigidBody.Exists then //
     FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
 end;
 
@@ -791,11 +815,25 @@ end;
 constructor TCastleCollider.Create(AOwner: TComponent);
 begin
   inherited;
+  // properties defaults
+  FDensity := DefaultDensity;
+  FMass := DefaultMass;
+  FRestitution := DefaultRestitution;
+  FFriction := DefaultFriction;
 end;
 
 { TPlaneCollider ------------------------------------------------------------- }
 
 function TPlaneCollider.CreateKraftShape(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody): TKraftShape;
+begin
+  Result := TKraftShapePlane.Create(APhysics, ARigidBody,
+    Plane(Vector3Norm(VectorToKraft(Normal)), Distance));
+end;
+
+{ TCastlePlaneCollider ------------------------------------------------------- }
+
+function TCastlePlaneCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
   Result := TKraftShapePlane.Create(APhysics, ARigidBody,
@@ -817,6 +855,25 @@ begin
   if (Size.X <= 0) or
      (Size.Y <= 0) or
      (Size.Z <= 0) then
+    raise EPhysicsError.Create('You must assign positive Size to TBoxCollider');
+  Result := TKraftShapeBox.Create(APhysics, ARigidBody, VectorToKraft(Size / 2));
+end;
+
+{ TCastleBoxCollider --------------------------------------------------------- }
+
+function TCastleBoxCollider.CreateKraftShape(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody): TKraftShape;
+begin
+  { Check it ourselves, otherwise Kraft will crash on such invalid box with segfault.
+    First Kraft raises nice
+      EKraftDegeneratedConvexHull.Create('Degenerated convex hull');
+    but then makes SIGSEGV at
+      fPhysics.fStaticAABBTree.DestroyProxy(fStaticAABBTreeProxy)
+    in TKraftShape.Destroy. }
+
+  if (Size[0] <= 0) or
+     (Size[1] <= 0) or
+     (Size[2] <= 0) then
     raise EPhysicsError.Create('You must assign positive Size to TBoxCollider');
   Result := TKraftShapeBox.Create(APhysics, ARigidBody, VectorToKraft(Size / 2));
 end;
@@ -986,10 +1043,7 @@ end;
 
 procedure TCastleRigidBody.InitializeEngineRigidBody(
   const Transform: TCastleTransform);
-var
-  World: TCastleAbstractRootTransform;
 begin
-  World := Transform.World;
   World.InitializePhysicsEngine;
 
   FKraftBody := TKraftRigidBody.Create(World.FKraftEngine);
@@ -1024,7 +1078,13 @@ var
   FCastleColliderFromTransform: TCastleCollider;
 begin
   if FState = crbsNotInitialized then
-    raise Exception.Create('Trying to add collider but rigid body not initilized');
+    raise Exception.Create(
+      'TryInitializeColliders: Trying to add collider but rigid body not initilized');
+
+  if (Collider <> nil) and (GetCastleCollider <> nil) then
+    raise Exception.Create(
+      'You can''t use TCollider and TCastleCollider in the same rigid body. ' +
+      NL + 'Remove deprecated RigidBody.Collider.');
 
   if Collider <> nil then
   begin
@@ -1065,7 +1125,7 @@ begin
   if Collider <> nil then
     FKraftBody.ForcedMass := Collider.Mass
   else
-   FKraftBody.ForcedMass := FCastleCollider.Mass;
+    FKraftBody.ForcedMass := FCastleCollider.Mass;
 
   FKraftBody.Finish;
 
@@ -1117,19 +1177,28 @@ end;
 
 procedure TCastleRigidBody.CheckInitialization(const ACastleCollider: TCastleCollider);
 begin
+  if Collider <> nil then
+    raise Exception.Create(
+      'You can''t use TCollider and TCastleCollider in the same rigid body. ' +
+      NL + 'Remove deprecated RigidBody.Collider.');
+
   { FCastleCollider has pointer to castle collider behavior that was used to
     initialize rigid body so we didn't need do anything. }
   if FCastleCollider = ACastleCollider then
     Exit;
 
-  if (FCastleCollider = nil) and (FState = crbsNoCollider) then
+  if (FState = crbsNoCollider) then
   begin
-    if TryInitializeColliders then
-      FinishInitialization(Parent);
-  end;
 
-  if FCastleCollider <> ACastleCollider then
-    raise Exception.Create('TODO: reinitialization by other collider');
+    if FCastleCollider = nil then
+    begin
+      if TryInitializeColliders then
+        FinishInitialization(Parent);
+    end;
+
+    if FCastleCollider <> ACastleCollider then
+      raise Exception.Create('TODO: reinitialization by other collider');
+  end;
 end;
 
 procedure TCastleRigidBody.DeinitializeColliders;
@@ -1383,17 +1452,15 @@ begin
   SingleInstanceOfBehavior;
 end;
 
-procedure TCastleRigidBody.WorldAttached(
-  const NewWorld: TCastleAbstractRootTransform);
+procedure TCastleRigidBody.WorldAfterAttach;
 begin
   inherited;
 
-  if NewWorld <> nil then
+  if World <> nil then
     InitializeTransform(Parent);
 end;
 
-procedure TCastleRigidBody.WorldDetached(
-  const PreviousWorld: TCastleAbstractRootTransform);
+procedure TCastleRigidBody.WorldBeforeDetach;
 begin
   inherited;
 
