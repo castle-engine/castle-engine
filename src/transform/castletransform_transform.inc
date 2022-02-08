@@ -2732,7 +2732,7 @@ begin
 
   for I := 0 to FBehaviorsWorldChangeNotificationList.Count - 1 do
   begin
-    FBehaviorsWorldChangeNotificationList[I].WorldAttached(NewWorld);
+    FBehaviorsWorldChangeNotificationList[I].WorldAfterAttach;
   end;
 end;
 
@@ -2746,7 +2746,7 @@ begin
 
   for I := 0 to FBehaviorsWorldChangeNotificationList.Count - 1 do
   begin
-    FBehaviorsWorldChangeNotificationList[I].WorldDetached(PreviousWorld);
+    FBehaviorsWorldChangeNotificationList[I].WorldBeforeDetach;
   end;
 end;
 
@@ -3705,7 +3705,7 @@ begin
 
       if (FWorld <> nil) and
        ((OldParent = nil) or ((OldParent <> nil) and (OldParent.World <> FWorld))) then
-        Behavior.WorldAttached(FWorld);
+        Behavior.WorldAfterAttach;
     end;
   end;
 end;
@@ -3718,7 +3718,7 @@ begin
 
   { Call WorldDetached directly }
   if Beh.NeedWorldChangeNotification and (FWorld <> nil) then
-    Beh.WorldDetached(FWorld);
+    Beh.WorldBeforeDetach;
 
   Beh.FParent := nil;
   FBehaviors.Delete(BehaviorIndex);
