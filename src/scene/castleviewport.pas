@@ -37,20 +37,6 @@ type
   TRender3DEvent = procedure (Viewport: TCastleViewport;
     const Params: TRenderParams) of object;
 
-  { Internal, special TRenderParams descendant that can return different
-    set of base lights for some scenes. Used to implement GlobalLights,
-    where MainScene and other objects need different lights.
-    @exclude. }
-  TManagerRenderParams = class(TRenderParams)
-  private
-    MainScene: TCastleTransform;
-    FBaseLights: array [boolean { is main scene }] of TLightInstancesList;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; override;
-  end;
-
   { Event for @link(TCastleViewport.OnProjection). }
   TProjectionEvent = procedure (var Parameters: TProjection) of object;
 
@@ -110,9 +96,18 @@ type
         Viewport: TCastleViewport;
         function SetupUniforms(var BoundTextureUnits: Cardinal): Boolean; override;
       end;
+      TViewportRenderParams = class(TRenderParams)
+      private
+        FBaseLights: TLightInstancesList;
+      public
+        constructor Create;
+        destructor Destroy; override;
+        function BaseLights: TAbstractLightInstancesList; override;
+      end;
+
     var
       FCamera: TCastleCamera;
-      FRenderParams: TManagerRenderParams;
+      FRenderParams: TViewportRenderParams;
       FPrepareParams: TPrepareParams;
       FBackgroundWireframe: boolean;
       FBackgroundColor: TCastleColor;
@@ -1337,25 +1332,23 @@ end;
 {$I castleviewport_serialize.inc}
 {$undef read_implementation}
 
-{ TManagerRenderParams ------------------------------------------------------- }
+{ TViewportRenderParams ------------------------------------------------------- }
 
-constructor TManagerRenderParams.Create;
+constructor TCastleViewport.TViewportRenderParams.Create;
 begin
   inherited;
-  FBaseLights[false] := TLightInstancesList.Create;
-  FBaseLights[true ] := TLightInstancesList.Create;
+  FBaseLights := TLightInstancesList.Create;
 end;
 
-destructor TManagerRenderParams.Destroy;
+destructor TCastleViewport.TViewportRenderParams.Destroy;
 begin
-  FreeAndNil(FBaseLights[false]);
-  FreeAndNil(FBaseLights[true ]);
+  FreeAndNil(FBaseLights);
   inherited;
 end;
 
-function TManagerRenderParams.BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList;
+function TCastleViewport.TViewportRenderParams.BaseLights: TAbstractLightInstancesList;
 begin
-  Result := FBaseLights[(Scene = MainScene) or Scene.ExcludeFromGlobalLights];
+  Result := FBaseLights;
 end;
 
 { TSSAOScreenEffect ---------------------------------------------------------- }
@@ -1410,7 +1403,7 @@ begin
   FBackgroundColor := DefaultBackgroundColor;
   FUseGlobalLights := DefaultUseGlobalLights;
   FUseGlobalFog := DefaultUseGlobalFog;
-  FRenderParams := TManagerRenderParams.Create;
+  FRenderParams := TViewportRenderParams.Create;
   FPrepareParams := TPrepareParams.Create;
   FShadowVolumes := DefaultShadowVolumes;
   FScreenSpaceReflectionsSurfaceGlossiness := DefaultScreenSpaceReflectionsSurfaceGlossiness;
@@ -2292,13 +2285,13 @@ function TCastleViewport.PrepareParams: TPrepareParams;
   as they may change the referenced PrepareParams.InternalBaseLights value.
 }
 begin
-  { We just reuse FRenderParams.FBaseLights[false] below as a temporary
+  { We just reuse FRenderParams.FBaseLights below as a temporary
     TLightInstancesList that we already have created. }
 
   { initialize FPrepareParams.InternalBaseLights }
-  FRenderParams.FBaseLights[false].Clear;
-  InitializeLights(FRenderParams.FBaseLights[false]);
-  FPrepareParams.InternalBaseLights := FRenderParams.FBaseLights[false];
+  FRenderParams.FBaseLights.Clear;
+  InitializeLights(FRenderParams.FBaseLights);
+  FPrepareParams.InternalBaseLights := FRenderParams.FBaseLights;
 
   { initialize FPrepareParams.InternalGlobalFog }
   if UseGlobalFog and
@@ -2427,6 +2420,8 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
     end;
   end;
 
+var
+  I: Integer;
 begin
   { TODO: Temporary compatibility cludge:
     Because some rendering code still depends on
@@ -2452,23 +2447,15 @@ begin
   FRenderParams.RenderingCamera := RenderingCamera;
   FillChar(FRenderParams.Statistics, SizeOf(FRenderParams.Statistics), #0);
 
-  FRenderParams.FBaseLights[false].Clear;
-  InitializeLights(FRenderParams.FBaseLights[false]);
-
-  // TODO: implement LightsShineEverywhere
-  if UseGlobalLights and
-     (Items.MainScene <> nil) and
-     (Items.MainScene.GlobalLights.Count <> 0) then
-  begin
-    FRenderParams.MainScene := Items.MainScene;
-    { For MainScene, BaseLights are only the ones calculated by InitializeLights }
-    FRenderParams.FBaseLights[true].Assign(FRenderParams.FBaseLights[false]);
-    { For others than MainScene, BaseLights are calculated by InitializeLights
-      summed with Items.MainScene.GlobalLights. }
-    FRenderParams.FBaseLights[false].AppendInWorldCoordinates(Items.MainScene.GlobalLights);
-  end else
-    { Do not use Params.FBaseLights[true] }
-    FRenderParams.MainScene := nil;
+  { Calculate FRenderParams.FBaseLights }
+  FRenderParams.FBaseLights.Clear;
+  { Add headlight }
+  InitializeLights(FRenderParams.FBaseLights);
+  { Add lights from all scenes with LightsShineEverywhere }
+  if Items.InternalScenesLightsShineEverywhere <> nil then
+    for I := 0 to Items.InternalScenesLightsShineEverywhere.Count - 1 do
+      FRenderParams.FBaseLights.AppendInWorldCoordinates(
+        Items.InternalScenesLightsShineEverywhere[I].InternalGlobalLights);
 
   { initialize FRenderParams.GlobalFog }
   if UseGlobalFog and

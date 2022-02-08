@@ -247,8 +247,8 @@
 
     constructor Create;
 
-    { Lights that shine on given 3D object. }
-    function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; virtual; abstract;
+    { Lights that shine on object (headlight and lights from all scenes with LightsShineEverywhere). }
+    function BaseLights: TAbstractLightInstancesList; virtual; abstract;
 
     function RenderTransform: TMatrix4; deprecated 'use Transform';
     function RenderTransformIdentity: boolean; deprecated 'use TransformIdentity';

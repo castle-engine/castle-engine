@@ -1935,9 +1935,9 @@ type
       (or it has empty title) then result is based on loaded URL. }
     function Caption: string;
 
-    { Global lights of this scene. Read-only. May be useful to render
-      other 3D objects with lights defined inside this scene. }
-    property GlobalLights: TLightInstancesList read FGlobalLights;
+    { Global lights of this scene. Read-only.
+      Useful to shine these lights on other scenes, if TCastleScene.LightsShineEverywhere. }
+    property InternalGlobalLights: TLightInstancesList read FGlobalLights;
 
     { Find a named X3D node (and a field or event within this node)
       in the current node graph. They search all nodes
@@ -3859,7 +3859,7 @@ begin
 
     { Add lights to GlobalLights }
     if Active and (TAbstractLightNode(Node).Scope = lsGlobal) then
-      ParentScene.GlobalLights.Add(
+      ParentScene.InternalGlobalLights.Add(
         TAbstractLightNode(Node).CreateLightInstance(StateStack.Top));
   end else
 
@@ -4088,9 +4088,9 @@ procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
     { Here we only deal with light scope = lsGlobal case.
       Other scopes are handled during traversing. }
 
-    for I := 0 to GlobalLights.Count - 1 do
+    for I := 0 to InternalGlobalLights.Count - 1 do
     begin
-      L := PLightInstance(GlobalLights.Ptr(I));
+      L := PLightInstance(InternalGlobalLights.Ptr(I));
       LNode := L^.Node;
 
       { TODO: for spot lights, it would be an optimization to also limit
@@ -4098,7 +4098,8 @@ procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
 
       if (LNode is TAbstractPositionalLightNode) and
          TAbstractPositionalLightNode(LNode).HasRadius then
-        AddLightRadius(L^, L^.Location, L^.Radius) else
+        AddLightRadius(L^, L^.Location, L^.Radius)
+      else
         AddLightEverywhere(L^);
     end;
   end;
@@ -4191,7 +4192,7 @@ begin
     FreeAndNil(FShapes);
     FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
-    GlobalLights.Clear;
+    InternalGlobalLights.Clear;
     FViewpointsArray.Clear;
     FAnimationsList.Clear;
     AnimationAffectedFields.Clear;
@@ -4505,7 +4506,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
 
     { Update also light state on GlobalLights list, in case other scenes
       depend on this light. Testcase: planets-demo. }
-    HandleLightsList(ParentScene.GlobalLights);
+    HandleLightsList(ParentScene.InternalGlobalLights);
 
     { force update of GeneratedShadowMap textures that used this light }
     ParentScene.GeneratedTextures.UpdateShadowMaps(LightNode);
@@ -4989,9 +4990,9 @@ var
       also have updated light location/direction.
       See https://sourceforge.net/p/castle-engine/discussion/general/thread/0bbaaf38/
       for a testcase. }
-    for I := 0 to GlobalLights.Count - 1 do
+    for I := 0 to InternalGlobalLights.Count - 1 do
     begin
-      L := PLightInstance(GlobalLights.Ptr(I));
+      L := PLightInstance(InternalGlobalLights.Ptr(I));
       if L^.Node = ANode then
         L^.Node.UpdateLightInstance(L^);
     end;

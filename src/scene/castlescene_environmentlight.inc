@@ -148,6 +148,7 @@ begin
 
   { internal stuff create }
   FEnvironmentLight := TEnvironmentLightNode.Create;
+  FEnvironmentLight.Global := true;
   LightNode := FEnvironmentLight;
 end;
 

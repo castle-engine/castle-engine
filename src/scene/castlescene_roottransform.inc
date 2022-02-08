@@ -66,6 +66,7 @@ type
     MainSceneObserver: TFreeNotificationObserver;
     FUseHeadlight: TUseHeadlight;
     FHeadlightNode: TAbstractLightNode;
+    FInternalScenesLightsShineEverywhere: TCastleSceneList;
     procedure SetMainScene(const Value: TCastleScene);
     procedure MainScene_BoundViewpointChanged(Sender: TObject);
     procedure MainScene_BoundViewpointVectorsChanged(Sender: TObject);
@@ -73,6 +74,9 @@ type
     function GetHeadlightNode: TAbstractLightNode;
     procedure SetHeadlightNode(const Node: TAbstractLightNode);
     procedure MainSceneFreeNotification(const Sender: TFreeNotificationObserver);
+  private
+    procedure RegisterLightsShineEverywhere(const S: TCastleScene);
+    procedure UnregisterLightsShineEverywhere(const S: TCastleScene);
   protected
     function IgnoreTransparentItem(
       const Sender: TObject; const Triangle: PTriangle): Boolean; override;
@@ -80,6 +84,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { @exclude
+      TCastleScene instances that have TCastleScene.LightsShineEverywhere.
+      May be @nil, equivalent to empty. }
+    property InternalScenesLightsShineEverywhere: TCastleSceneList read FInternalScenesLightsShineEverywhere;
 
     { Determines the headlight look, if we use a headlight
       (which is determined by the algorithm described at @link(UseHeadlight) and
@@ -205,6 +214,7 @@ begin
   MainScene := nil;
 
   FreeIfUnusedAndNil(FHeadlightNode);
+  FreeAndNil(FInternalScenesLightsShineEverywhere);
   inherited;
 end;
 
@@ -328,6 +338,31 @@ function TCastleRootTransform.IgnoreTransparentItem(
   const Sender: TObject; const Triangle: PTriangle): Boolean;
 begin
   Result := Triangle^.IsTransparent;
+end;
+
+procedure TCastleRootTransform.RegisterLightsShineEverywhere(const S: TCastleScene);
+begin
+  if FInternalScenesLightsShineEverywhere = nil then
+    FInternalScenesLightsShineEverywhere := TCastleSceneList.Create(false);
+  FInternalScenesLightsShineEverywhere.Add(S);
+end;
+
+procedure TCastleRootTransform.UnregisterLightsShineEverywhere(const S: TCastleScene);
+var
+  I: Integer;
+begin
+  if FInternalScenesLightsShineEverywhere = nil then
+    I := -1
+  else
+    I := FInternalScenesLightsShineEverywhere.IndexOf(S);
+
+  if I = -1 then
+  begin
+    WritelnWarning('Scene called UnregisterLightsShineEverywhere, but it was not on the list InternalScenesLightsShineEverywhere');
+    Exit;
+  end;
+
+  FInternalScenesLightsShineEverywhere.Delete(I);
 end;
 
 {$endif read_implementation}

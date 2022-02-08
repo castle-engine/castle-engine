@@ -574,7 +574,7 @@ type
     { ----------------------------------------------------------------- }
 
     { Available between RenderBegin / RenderEnd. }
-    LightsRenderer: TVRMLGLLightsRenderer;
+    LightsRenderer: TLightsRenderer;
 
     { Currently set fog parameters, during render. }
     FogFunctionality: TFogFunctionality;
@@ -2265,7 +2265,7 @@ begin
   Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
-  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent, RenderOptions.MaxLightsPerShape);
+  LightsRenderer := TLightsRenderer.Create(LightRenderEvent, RenderOptions.MaxLightsPerShape);
   LightsRenderer.RenderingCamera := RenderingCamera;
 end;
 

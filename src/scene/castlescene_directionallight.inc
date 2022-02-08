@@ -65,6 +65,7 @@ begin
 
   { internal stuff create }
   FDirectionalLight := TDirectionalLightNode.Create;
+  FDirectionalLight.Global := true;
   LightNode := FDirectionalLight;
 
   {$define read_implementation_constructor}

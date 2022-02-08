@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML/X3D lights OpenGL rendering. Internal for CastleRenderer. @exclude }
+{ X3D lights rendering. Internal for CastleInternalRenderer. @exclude }
 unit CastleRendererInternalLights;
 
 {$I castleconf.inc}
@@ -24,30 +24,28 @@ uses CastleVectors, CastleGLUtils, X3DNodes, CastleRendererInternalShader,
   CastleTransform;
 
 type
-  { Modify light's properties of the light right before it's rendered.
-    Currently, you can modify only the "on" state.
-
+  { Callback type for @link(TLightsRenderer.LightRenderEvent).
+    Modify whether the light is "on" right before it's rendered.
     By default, LightOn is the value of Light.LightNode.FdOn field.
-    You can change it if you want. }
+    This is useful to filter lights. }
   TLightRenderEvent = procedure (const Light: TLightInstance;
-    var LightOn: boolean) of object;
+    const IsBaseLight: Boolean; var LightOn: boolean) of object;
 
-  { Render lights to OpenGL.
-    Sets OpenGL lights properties, enabling and disabling them as needed.
-
-    This is smart, avoiding to configure the same light many times.
-    Remembers what VRML/X3D light is set on which OpenGL light,
-    and this way avoids needless reconfiguring of OpenGL lights.
-    This may speed up rendering, avoiding changing OpenGL state when not
-    necessary.
-    Assumes that nothing changes OpenGL light properties during our
-    lifetime. }
-  TVRMLGLLightsRenderer = class
+  { Render lights. }
+  TLightsRenderer = class
   private
     FLightRenderEvent: TLightRenderEvent;
     LightsKnown: boolean;
     LightsDone: array of PLightInstance;
     FMaxLightsPerShape: Cardinal;
+    { This avoids configuring the same light many times in case of fixed-function.
+
+      Remembers what X3D light is set on which OpenGL light,
+      and this way avoids needless reconfiguring of OpenGL lights.
+      This may speed up rendering, avoiding changing OpenGL state when not
+      necessary.
+      Assumes that nothing changes OpenGL light properties during our
+      lifetime. }
     function NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
   public
     { Statistics of how many OpenGL light setups were done
@@ -58,20 +56,30 @@ type
 
     RenderingCamera: TRenderingCamera;
 
-    constructor Create(const ALightRenderEvent: TLightRenderEvent; const AMaxLightsPerShape: Cardinal);
+    constructor Create(const ALightRenderEvent: TLightRenderEvent;
+      const AMaxLightsPerShape: Cardinal);
 
-    { Set OpenGL lights properties.
-      Sets OpenGL fixed-function pipeline lights,
-      enabling and disabling them as needed.
-      Lights are also passed to TShader, calling appropriate
-      TShader.EnableLight methods. So shader pipeline is also dealt with.
+    { Set lights properties.
 
-      Lights1 and Lights2 lists are simply glued inside.
-      Lights2 may be @nil (equal to being empty). }
-    procedure Render(const Lights1, Lights2: TLightInstancesList;
+      Handles:
+
+      - OpenGL fixed-function pipeline, if GLFeatures.EnableFixedFunction.
+        Enables/disables and sets parameters for fixed-function lights.
+
+      - Shader rendering using TShader.
+        Lights are passed to TShader.EnableLight.
+
+      Both BaseLights and SceneLights may be @nil,
+      which is equivalent to an empty list.
+
+      BaseLights, SceneLights lists are simply concatenated,
+      this renderer considers lights on both lists the same.
+      But TLightRenderEvent can apply different filtering on them.
+    }
+    procedure Render(const BaseLights, SceneLights: TLightInstancesList;
       const Shader: TShader);
 
-    { Process light source properties right before rendering the light.
+    { Modify whether light is "on" right before rendering the light.
 
       This event, if assigned, must be deterministic,
       based purely on light properties. For example, it's Ok to
@@ -88,7 +96,7 @@ uses SysUtils, Math,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleUtils;
 
-{ Set and enable OpenGL light properties based on VRML/X3D light.
+{ Set and enable OpenGL light properties based on X3D light.
 
   Requires that current OpenGL matrix is modelview.
   Always preserves the matrix value (by using up to one modelview
@@ -103,7 +111,7 @@ uses SysUtils, Math,
   then we set GL_SPOT_CUTOFF to 180 (indicates that light has no spot),
   but don't necessarily set GL_SPOT_DIRECTION or GL_SPOT_EXPONENT
   (as OpenGL will not use them anyway). }
-procedure glLightFromVRMLLight(
+procedure glLightFromX3DLight(
   glLightNum: Integer;
   const Light: TLightInstance;
   const RenderingCamera: TRenderingCamera);
@@ -219,9 +227,9 @@ begin
 {$endif}
 end;
 
-{ TVRMLGLLightsRenderer ----------------------------------------------- }
+{ TLightsRenderer ----------------------------------------------- }
 
-constructor TVRMLGLLightsRenderer.Create(
+constructor TLightsRenderer.Create(
   const ALightRenderEvent: TLightRenderEvent; const AMaxLightsPerShape: Cardinal);
 begin
   inherited Create;
@@ -233,7 +241,7 @@ begin
   SetLength(LightsDone, FMaxLightsPerShape);
 end;
 
-function TVRMLGLLightsRenderer.NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
+function TLightsRenderer.NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
 begin
   Result := not (
     LightsKnown and
@@ -257,13 +265,13 @@ begin
   Inc(Statistics[Result]);
 end;
 
-procedure TVRMLGLLightsRenderer.Render(
-  const Lights1, Lights2: TLightInstancesList;
+procedure TLightsRenderer.Render(
+  const BaseLights, SceneLights: TLightInstancesList;
   const Shader: TShader);
 var
   LightsEnabled: Cardinal;
 
-  procedure AddList(Lights: TLightInstancesList);
+  procedure AddList(const Lights: TLightInstancesList; const IsBaseLight: Boolean);
   var
     I: Integer;
     LightOn: boolean;
@@ -275,12 +283,12 @@ var
 
       LightOn := Light^.Node.FdOn.Value;
       if Assigned(LightRenderEvent) then
-        LightRenderEvent(Light^, LightOn);
+        LightRenderEvent(Light^, IsBaseLight, LightOn);
 
       if LightOn then
       begin
         if NeedRenderLight(LightsEnabled, Light) then
-          glLightFromVRMLLight(LightsEnabled, Light^, RenderingCamera);
+          glLightFromX3DLight(LightsEnabled, Light^, RenderingCamera);
         Shader.EnableLight(LightsEnabled, Light);
         Inc(LightsEnabled);
         if LightsEnabled >= FMaxLightsPerShape then Exit;
@@ -298,15 +306,15 @@ begin
   LightsEnabled := 0;
   if LightsEnabled >= FMaxLightsPerShape then Exit;
 
-  if Lights1 <> nil then
+  if BaseLights <> nil then
   begin
-    AddList(Lights1);
+    AddList(BaseLights, true);
     if LightsEnabled >= FMaxLightsPerShape then Exit;
   end;
 
-  if Lights2 <> nil then
+  if SceneLights <> nil then
   begin
-    AddList(Lights2);
+    AddList(SceneLights, false);
     if LightsEnabled >= FMaxLightsPerShape then Exit;
   end;
 
