@@ -6248,6 +6248,23 @@
           "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.1372549086809158E-001,
+            "Green" : 1.1372549086809158E-001,
+            "Red" : 8.5098040103912354E-001
+          },
+          "FontSize" : 2.0000000000000000E+001,
+          "Name" : "LabelPhysics",
+          "Text" : [
+            "Physics:"
+          ],
+          "VerticalAnchorDelta" : -1.4799999237060547E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
           "$$ClassName" : "TCastleCheckbox",
           "Caption" : "Camera Follows Player",
           "CheckboxColorPersistent" : {
@@ -6266,7 +6283,7 @@
             "Green" : 1.1372549086809158E-001,
             "Red" : 8.5098040103912354E-001
           },
-          "VerticalAnchorDelta" : -1.4800000190734863E+001,
+          "VerticalAnchorDelta" : -2.9599998474121094E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -6289,7 +6306,7 @@
             "Green" : 1.1372549086809158E-001,
             "Red" : 8.5098040103912354E-001
           },
-          "VerticalAnchorDelta" : -3.6799999237060547E+001,
+          "VerticalAnchorDelta" : -5.1599998474121094E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         }
@@ -6327,7 +6344,7 @@
                 "$$ClassName" : "TCastleImagePersistent",
                 "URL" : "castle-data:/ui/hud_heartFull.png"
               },
-              "HorizontalAnchorDelta" : 5.5000000000000000E+001,
+              "HorizontalAnchorDelta" : 5.4999996185302734E+001,
               "Name" : "ImageHitPoint2",
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -6338,7 +6355,7 @@
                 "$$ClassName" : "TCastleImagePersistent",
                 "URL" : "castle-data:/ui/hud_heartFull.png"
               },
-              "HorizontalAnchorDelta" : 1.1000000000000000E+002,
+              "HorizontalAnchorDelta" : 1.0999999237060547E+002,
               "Name" : "ImageHitPoint3",
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -6349,7 +6366,7 @@
                 "$$ClassName" : "TCastleImagePersistent",
                 "URL" : "castle-data:/ui/hud_heartFull.png"
               },
-              "HorizontalAnchorDelta" : 1.6500000000000000E+002,
+              "HorizontalAnchorDelta" : 1.6499998474121094E+002,
               "Name" : "ImageHitPoint4",
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -6358,7 +6375,7 @@
         },
         {
           "$$ClassName" : "TCastleHorizontalGroup",
-          "HorizontalAnchorDelta" : 2.4800000000000000E+002,
+          "HorizontalAnchorDelta" : 2.4799998474121094E+002,
           "Name" : "CoinGroup",
           "Spacing" : 1.0000000000000000E+001,
           "VerticalAnchorParent" : "vpMiddle",
