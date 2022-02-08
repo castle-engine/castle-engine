@@ -265,8 +265,8 @@
     like @link(T3DResource.Prepare). You should treat this class as a "black box"
     in normal applications. }
   TPrepareParams = class
-    { Include a headlight, or global lights that shine on all
-      scenes (see @link(TCastleViewport.UseGlobalLights)).
+    { Include a headlight and all lights that shine on all
+      scenes (thanks to @link(TCastleScene.LightsShineEverywhere)).
 
       It is not necessary to define this (it may be @nil).
       And all the lighting is dynamic, so of course you can always

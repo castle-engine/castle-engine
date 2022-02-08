@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="964">
+    <Files Count="972">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -3966,6 +3966,38 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlebackground_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item964>
+      <Item965>
+        <Filename Value="../src/scene/castlescene_abstractlight.inc"/>
+        <Type Value="Include"/>
+      </Item965>
+      <Item966>
+        <Filename Value="../src/scene/castlescene_pointlight.inc"/>
+        <Type Value="Include"/>
+      </Item966>
+      <Item967>
+        <Filename Value="../src/scene/castlescene_directionallight.inc"/>
+        <Type Value="Include"/>
+      </Item967>
+      <Item968>
+        <Filename Value="../src/scene/castlescene_spotlight.inc"/>
+        <Type Value="Include"/>
+      </Item968>
+      <Item969>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlepointlight_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item969>
+      <Item970>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastledirectionallight_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item970>
+      <Item971>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlespotlight_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item971>
+      <Item972>
+        <Filename Value="../src/scene/castlescene_environmentlight.inc"/>
+        <Type Value="Include"/>
+      </Item972>
     </Files>
     <RequiredPkgs Count="3">
       <Item1>

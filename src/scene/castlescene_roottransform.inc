@@ -135,7 +135,12 @@ type
           node descending from TAbstractBackgroundNode),
           it will be used.
 
-          Otherwise we render a background using @link(TCastleViewport.BackgroundColor).
+          This is overridden if you set @link(TCastleViewport.Background)
+          to non-nil. MainScene's background is ignored in this case.
+
+          When neither MainScene background is present,
+          nor @link(TCastleViewport.Background) is specified,
+          then we render a background using @link(TCastleViewport.BackgroundColor).
 
           Note that when @link(TCastleViewport.Transparent) is @true,
           we never render any background (neither from MainScene,
@@ -152,7 +157,11 @@ type
 
         @item(Determines the main light casting shadow volumes.)
 
-        @item(Determines lights shining on all scenes, if @link(TCastleViewport.UseGlobalLights).)
+        @item(Determines lights shining on all scenes,
+          as this scene has by default @link(TCastleScene.LightsShineEverywhere)
+          when you set it as MainScene.
+          This can also be achieved on any other scene,
+          by setting @link(TCastleScene.LightsShineEverywhere).)
 
         @item(Determines fog on all scenes, if @link(TCastleViewport.UseGlobalFog).)
 
@@ -226,6 +235,7 @@ begin
       FMainScene.OnBoundNavigationInfoFieldsChanged := {$ifdef FPC}@{$endif}MainScene_BoundNavigationInfoChanged;
       FMainScene.ViewpointStack.OnBoundChanged := {$ifdef FPC}@{$endif}MainScene_BoundViewpointChanged;
       FMainScene.NavigationInfoStack.OnBoundChanged := {$ifdef FPC}@{$endif}MainScene_BoundNavigationInfoChanged;
+      FMainScene.LightsShineEverywhere := true;
     end;
 
     { Setting MainScene may change lights, if MainScene determines the headlight

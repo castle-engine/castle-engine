@@ -1066,16 +1066,12 @@ type
     }
     property ClearDepth: boolean read FClearDepth write FClearDepth default true;
 
-    { Let MainScene.GlobalLights shine on every 3D object, not only
+    { Let lights in MainScene shine on every other TCastleScene, not only
       MainScene. This is an easy way to lit your whole world with lights
-      defined inside MainScene file. Be sure to set lights global=TRUE.
-
-      Note that for now this assumes that MainScene coordinates equal
-      world coordinates. This means that you should not transform
-      the MainScene, it should be placed inside @link(TCastleViewport.Items)
-      and not transformed by TCastleTransform. }
+      defined inside MainScene file. Be sure to set X3D lights global=TRUE. }
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default DefaultUseGlobalLights;
+      {$ifdef FPC} deprecated 'if you need to tweak this, then do not use MainScene; use regular TCastleScene and set LightsShineEverywhere as needed'; {$endif}
 
     { Let the fog defined in MainScene affect all objects, not only MainScene.
       This is consistent with @link(UseGlobalLights), that allows lights
@@ -2458,6 +2454,8 @@ begin
 
   FRenderParams.FBaseLights[false].Clear;
   InitializeLights(FRenderParams.FBaseLights[false]);
+
+  // TODO: implement LightsShineEverywhere
   if UseGlobalLights and
      (Items.MainScene <> nil) and
      (Items.MainScene.GlobalLights.Count <> 0) then

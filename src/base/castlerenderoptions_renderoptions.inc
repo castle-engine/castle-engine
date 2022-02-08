@@ -1,7 +1,7 @@
 {%MainUnit castlerenderoptions.pas}
 
 {
-  Copyright 2002-2020 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -328,11 +328,14 @@ type
 
       If false, only the headlight (depending on
       @link(TCastleRootTransform.UseHeadlight Viewport.Items.UseHeadlight))
-      and global lights from
-      @link(TCastleRootTransform.MainScene Viewport.Items.MainScene)
-      (depending on
-      @link(TCastleViewport.UseGlobalLights Viewport.UseGlobalLights))
+      and global lights defined by scenes with
+      @link(TCastleScene.LightsShineEverywhere)
       affect this scene.
+
+      TODO: If the scene on which you set this has also
+      @link(TCastleScene.LightsShineEverywhere),
+      then lights are still shown. So @link(TCastleScene.LightsShineEverywhere)
+      overrides this.
 
       This doesn't matter if @link(Lighting) is @false. }
     property SceneLights: boolean

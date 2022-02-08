@@ -1799,11 +1799,11 @@
       @noAutoLinkHere }
     property Visible: boolean read FVisible write FVisible default true;
 
-    { If this 3D object is rendered as part of TCastleViewport,
-      and @link(TCastleViewport.UseGlobalLights) is @true, then this property allows
-      to make an exception for this 3D object: even though
-      @link(TCastleViewport.UseGlobalLights) is @true,
-      do not use global lights @italic(for this 3D object).
+    { Avoid this object being affected by other scene's lights
+      (defined by other scenes with @link(TCastleScene.LightsShineEverywhere).
+      This property allows
+      to make an exception for this object: it will not receive lights
+      that are, by default, applied everywhere.
 
       Note that this is not applied recursively. Instead, it is checked at each TCastleTransform instance
       that checks TRenderParams.BaseLights. In practice, it is only checked at TCastleScene,

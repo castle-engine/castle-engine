@@ -4984,8 +4984,8 @@ var
     end;
 
     { Change light instance on GlobalLights list, if any.
-      This way other 3D scenes, using our lights by
-      @link(TCastleViewport.UseGlobalLights) feature,
+      This way other scenes, using our lights by
+      @link(TCastleScene.LightsShineEverywhere) feature,
       also have updated light location/direction.
       See https://sourceforge.net/p/castle-engine/discussion/general/thread/0bbaaf38/
       for a testcase. }

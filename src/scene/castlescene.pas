@@ -388,6 +388,8 @@ type
     { Internal override test visibility. }
     InternalVisibilityTest: TTestShapeVisibility;
 
+    LightsShineEverywhere: Boolean; // TODO
+
     procedure FreeResources(Resources: TSceneFreeResources); override;
 
     { TBackgroundRenderer instance to render the background defined in this scene.
@@ -571,6 +573,11 @@ const
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
 {$I castlescene_background.inc}
+{$I castlescene_abstractlight.inc}
+{$I castlescene_pointlight.inc}
+{$I castlescene_directionallight.inc}
+{$I castlescene_spotlight.inc}
+{$I castlescene_environmentlight.inc}
 {$undef read_interface}
 
 implementation
@@ -595,6 +602,11 @@ uses CastleGLVersion, CastleLog,
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
 {$I castlescene_background.inc}
+{$I castlescene_abstractlight.inc}
+{$I castlescene_pointlight.inc}
+{$I castlescene_directionallight.inc}
+{$I castlescene_spotlight.inc}
+{$I castlescene_environmentlight.inc}
 {$undef read_implementation}
 
 procedure Register;
@@ -2245,6 +2257,10 @@ initialization
   RegisterSerializableComponent(TCastleCylinder, 'Cylinder');
   RegisterSerializableComponent(TCastleImageTransform, 'Image');
   RegisterSerializableComponent(TCastleBackground, 'Background');
+  RegisterSerializableComponent(TCastlePointLight, 'Point Light');
+  RegisterSerializableComponent(TCastleDirectionalLight, 'Directional Light');
+  RegisterSerializableComponent(TCastleSpotLight, 'Spot Light');
+  RegisterSerializableComponent(TCastleEnvironmentLight, 'Environment Light');
 finalization
   GLContextCache.FreeWhenEmpty(@GLContextCache);
 end.
