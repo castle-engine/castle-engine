@@ -247,8 +247,8 @@
 
     constructor Create;
 
-    { Lights that shine on object (headlight and lights from all scenes with LightsShineEverywhere). }
-    function BaseLights: TAbstractLightInstancesList; virtual; abstract;
+    { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }
+    function GlobalLights: TAbstractLightInstancesList; virtual; abstract;
 
     function RenderTransform: TMatrix4; deprecated 'use Transform';
     function RenderTransformIdentity: boolean; deprecated 'use TransformIdentity';
@@ -266,7 +266,7 @@
     in normal applications. }
   TPrepareParams = class
     { Include a headlight and all lights that shine on all
-      scenes (thanks to @link(TCastleScene.LightsShineEverywhere)).
+      scenes (thanks to @link(TCastleScene.CastGlobalLights)).
 
       It is not necessary to define this (it may be @nil).
       And all the lighting is dynamic, so of course you can always
@@ -275,7 +275,7 @@
       are immediately prepared for the current lighting.
 
       @exclude }
-    InternalBaseLights: TAbstractLightInstancesList;
+    InternalGlobalLights: TAbstractLightInstancesList;
 
     { World fog, in any, to prepare for.
       @exclude }

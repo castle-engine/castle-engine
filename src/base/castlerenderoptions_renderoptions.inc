@@ -27,7 +27,7 @@ type
   TCastleRenderOptions = class(TComponent)
   strict private
     FLighting: boolean;
-    FSceneLights: boolean;
+    FReceiveSceneLights, FReceiveGlobalLights: boolean;
     FTextures: boolean;
     FMinificationFilter: TAutoMinificationFilter;
     FMagnificationFilter: TAutoMagnificationFilter;
@@ -313,33 +313,52 @@ type
       read FDebugHierOcclusionQueryResults
       write FDebugHierOcclusionQueryResults default false;
 
-    { @deprecated @exclude Old name for @link(SceneLights). }
+    { @deprecated @exclude Old name for @link(ReceiveSceneLights). }
     property UseSceneLights: boolean
-      read FSceneLights write FSceneLights default true;
+      read FReceiveSceneLights write FReceiveSceneLights default true;
+      {$ifdef FPC}deprecated 'use ReceiveSceneLights';{$endif}
+
+    { @deprecated @exclude Old name for @link(ReceiveSceneLights). }
+    property SceneLights: boolean
+      read FReceiveSceneLights write FReceiveSceneLights default true;
+      {$ifdef FPC}deprecated 'use ReceiveSceneLights';{$endif}
 
     { @deprecated @exclude Old name for @link(OcclusionQuery). }
     property UseOcclusionQuery: boolean
       read FOcclusionQuery write SetOcclusionQuery default false;
+      {$ifdef FPC}deprecated 'use OcclusionQuery';{$endif}
   published
     { Enable real-time lighting when rendering. }
     property Lighting: boolean read FLighting write FLighting default true;
 
-    { Use lights defined in this scene (in the model loaded to this TCastleScene).
+    { Use lights defined in this scene (in the model loaded to this TCastleScene)
+      to light the shapes in this scene.
 
-      If false, only the headlight (depending on
-      @link(TCastleRootTransform.UseHeadlight Viewport.Items.UseHeadlight))
-      and global lights defined by scenes with
-      @link(TCastleScene.LightsShineEverywhere)
-      affect this scene.
+      Note: This property controls whether lights defined within a model (TCastleScene)
+      affect the shapes in the same model.
+      In case of such lights, the value of @link(TCastleScene.CastGlobalLights)
+      and @link(GlobalLights) doesn't matter. Only this property, ReceiveSceneLights, controls
+      whether such lights work.
 
-      TODO: If the scene on which you set this has also
-      @link(TCastleScene.LightsShineEverywhere),
-      then lights are still shown. So @link(TCastleScene.LightsShineEverywhere)
-      overrides this.
+      The other lights are controlled by @link(ReceiveGlobalLights).
 
-      This doesn't matter if @link(Lighting) is @false. }
-    property SceneLights: boolean
-      read FSceneLights write FSceneLights default true;
+      This doesn't matter if @link(Lighting) is @false.
+      If both ReceiveSceneLights and ReceiveGlobalLights are @false,
+      then the scene receives no lighting at all. }
+    property ReceiveSceneLights: boolean
+      read FReceiveSceneLights write FReceiveSceneLights default true;
+
+    { Use lights defined in other scenes to light the shapes in this scene.
+
+      This property controls whether @italic(other) scenes with
+      @link(TCastleScene.CastGlobalLights),
+      as well as headlight, shine on this scene.
+
+      This doesn't matter if @link(Lighting) is @false.
+      If both ReceiveSceneLights and ReceiveGlobalLights are @false,
+      then the scene receives no lighting at all. }
+    property ReceiveGlobalLights: boolean
+      read FReceiveGlobalLights write FReceiveGlobalLights default true;
 
     { Use textures. }
     property Textures: boolean
@@ -532,7 +551,8 @@ begin
   inherited;
 
   FLighting := true;
-  FSceneLights := true;
+  FReceiveSceneLights := true;
+  FReceiveGlobalLights := true;
   FTextures := true;
   FMinificationFilter := minDefault;
   FMagnificationFilter := magDefault;
@@ -576,7 +596,8 @@ begin
   if Source is TCastleRenderOptions then
   begin
     Lighting := TCastleRenderOptions(Source).Lighting;
-    SceneLights := TCastleRenderOptions(Source).SceneLights;
+    ReceiveSceneLights := TCastleRenderOptions(Source).ReceiveSceneLights;
+    ReceiveGlobalLights := TCastleRenderOptions(Source).ReceiveGlobalLights;
     Textures := TCastleRenderOptions(Source).Textures;
     MinificationFilter := TCastleRenderOptions(Source).MinificationFilter;
     MagnificationFilter := TCastleRenderOptions(Source).MagnificationFilter;

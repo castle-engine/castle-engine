@@ -29,7 +29,7 @@ type
     By default, LightOn is the value of Light.LightNode.FdOn field.
     This is useful to filter lights. }
   TLightRenderEvent = procedure (const Light: TLightInstance;
-    const IsBaseLight: Boolean; var LightOn: boolean) of object;
+    const IsGlobalLight: Boolean; var LightOn: boolean) of object;
 
   { Render lights. }
   TLightsRenderer = class
@@ -69,14 +69,14 @@ type
       - Shader rendering using TShader.
         Lights are passed to TShader.EnableLight.
 
-      Both BaseLights and SceneLights may be @nil,
+      Both GlobalLights and SceneLights may be @nil,
       which is equivalent to an empty list.
 
-      BaseLights, SceneLights lists are simply concatenated,
+      GlobalLights, SceneLights lists are simply concatenated,
       this renderer considers lights on both lists the same.
       But TLightRenderEvent can apply different filtering on them.
     }
-    procedure Render(const BaseLights, SceneLights: TLightInstancesList;
+    procedure Render(const GlobalLights, SceneLights: TLightInstancesList;
       const Shader: TShader);
 
     { Modify whether light is "on" right before rendering the light.
@@ -266,12 +266,12 @@ begin
 end;
 
 procedure TLightsRenderer.Render(
-  const BaseLights, SceneLights: TLightInstancesList;
+  const GlobalLights, SceneLights: TLightInstancesList;
   const Shader: TShader);
 var
   LightsEnabled: Cardinal;
 
-  procedure AddList(const Lights: TLightInstancesList; const IsBaseLight: Boolean);
+  procedure AddList(const Lights: TLightInstancesList; const IsGlobalLight: Boolean);
   var
     I: Integer;
     LightOn: boolean;
@@ -283,7 +283,7 @@ var
 
       LightOn := Light^.Node.FdOn.Value;
       if Assigned(LightRenderEvent) then
-        LightRenderEvent(Light^, IsBaseLight, LightOn);
+        LightRenderEvent(Light^, IsGlobalLight, LightOn);
 
       if LightOn then
       begin
@@ -306,9 +306,9 @@ begin
   LightsEnabled := 0;
   if LightsEnabled >= FMaxLightsPerShape then Exit;
 
-  if BaseLights <> nil then
+  if GlobalLights <> nil then
   begin
-    AddList(BaseLights, true);
+    AddList(GlobalLights, true);
     if LightsEnabled >= FMaxLightsPerShape then Exit;
   end;
 

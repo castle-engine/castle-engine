@@ -66,7 +66,7 @@ type
     MainSceneObserver: TFreeNotificationObserver;
     FUseHeadlight: TUseHeadlight;
     FHeadlightNode: TAbstractLightNode;
-    FInternalScenesLightsShineEverywhere: TCastleSceneList;
+    FInternalScenesCastGlobalLights: TCastleSceneList;
     procedure SetMainScene(const Value: TCastleScene);
     procedure MainScene_BoundViewpointChanged(Sender: TObject);
     procedure MainScene_BoundViewpointVectorsChanged(Sender: TObject);
@@ -75,8 +75,8 @@ type
     procedure SetHeadlightNode(const Node: TAbstractLightNode);
     procedure MainSceneFreeNotification(const Sender: TFreeNotificationObserver);
   private
-    procedure RegisterLightsShineEverywhere(const S: TCastleScene);
-    procedure UnregisterLightsShineEverywhere(const S: TCastleScene);
+    procedure RegisterCastGlobalLights(const S: TCastleScene);
+    procedure UnregisterCastGlobalLights(const S: TCastleScene);
   protected
     function IgnoreTransparentItem(
       const Sender: TObject; const Triangle: PTriangle): Boolean; override;
@@ -86,9 +86,9 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { @exclude
-      TCastleScene instances that have TCastleScene.LightsShineEverywhere.
+      TCastleScene instances that have TCastleScene.CastGlobalLights.
       May be @nil, equivalent to empty. }
-    property InternalScenesLightsShineEverywhere: TCastleSceneList read FInternalScenesLightsShineEverywhere;
+    property InternalScenesCastGlobalLights: TCastleSceneList read FInternalScenesCastGlobalLights;
 
     { Determines the headlight look, if we use a headlight
       (which is determined by the algorithm described at @link(UseHeadlight) and
@@ -167,10 +167,10 @@ type
         @item(Determines the main light casting shadow volumes.)
 
         @item(Determines lights shining on all scenes,
-          as this scene has by default @link(TCastleScene.LightsShineEverywhere)
+          as this scene has by default @link(TCastleScene.CastGlobalLights)
           when you set it as MainScene.
           This can also be achieved on any other scene,
-          by setting @link(TCastleScene.LightsShineEverywhere).)
+          by setting @link(TCastleScene.CastGlobalLights).)
 
         @item(Determines fog on all scenes, if @link(TCastleViewport.UseGlobalFog).)
 
@@ -214,7 +214,7 @@ begin
   MainScene := nil;
 
   FreeIfUnusedAndNil(FHeadlightNode);
-  FreeAndNil(FInternalScenesLightsShineEverywhere);
+  FreeAndNil(FInternalScenesCastGlobalLights);
   inherited;
 end;
 
@@ -245,7 +245,7 @@ begin
       FMainScene.OnBoundNavigationInfoFieldsChanged := {$ifdef FPC}@{$endif}MainScene_BoundNavigationInfoChanged;
       FMainScene.ViewpointStack.OnBoundChanged := {$ifdef FPC}@{$endif}MainScene_BoundViewpointChanged;
       FMainScene.NavigationInfoStack.OnBoundChanged := {$ifdef FPC}@{$endif}MainScene_BoundNavigationInfoChanged;
-      FMainScene.LightsShineEverywhere := true;
+      FMainScene.CastGlobalLights := true;
     end;
 
     { Setting MainScene may change lights, if MainScene determines the headlight
@@ -340,29 +340,29 @@ begin
   Result := Triangle^.IsTransparent;
 end;
 
-procedure TCastleRootTransform.RegisterLightsShineEverywhere(const S: TCastleScene);
+procedure TCastleRootTransform.RegisterCastGlobalLights(const S: TCastleScene);
 begin
-  if FInternalScenesLightsShineEverywhere = nil then
-    FInternalScenesLightsShineEverywhere := TCastleSceneList.Create(false);
-  FInternalScenesLightsShineEverywhere.Add(S);
+  if FInternalScenesCastGlobalLights = nil then
+    FInternalScenesCastGlobalLights := TCastleSceneList.Create(false);
+  FInternalScenesCastGlobalLights.Add(S);
 end;
 
-procedure TCastleRootTransform.UnregisterLightsShineEverywhere(const S: TCastleScene);
+procedure TCastleRootTransform.UnregisterCastGlobalLights(const S: TCastleScene);
 var
   I: Integer;
 begin
-  if FInternalScenesLightsShineEverywhere = nil then
+  if FInternalScenesCastGlobalLights = nil then
     I := -1
   else
-    I := FInternalScenesLightsShineEverywhere.IndexOf(S);
+    I := FInternalScenesCastGlobalLights.IndexOf(S);
 
   if I = -1 then
   begin
-    WritelnWarning('Scene called UnregisterLightsShineEverywhere, but it was not on the list InternalScenesLightsShineEverywhere');
+    WritelnWarning('Scene called UnregisterCastGlobalLights, but it was not on the list InternalScenesCastGlobalLights');
     Exit;
   end;
 
-  FInternalScenesLightsShineEverywhere.Delete(I);
+  FInternalScenesCastGlobalLights.Delete(I);
 end;
 
 {$endif read_implementation}

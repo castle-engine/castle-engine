@@ -98,11 +98,11 @@ type
       end;
       TViewportRenderParams = class(TRenderParams)
       private
-        FBaseLights: TLightInstancesList;
+        FGlobalLights: TLightInstancesList;
       public
         constructor Create;
         destructor Destroy; override;
-        function BaseLights: TAbstractLightInstancesList; override;
+        function GlobalLights: TAbstractLightInstancesList; override;
       end;
 
     var
@@ -311,10 +311,10 @@ type
     function CalculateProjection: TProjection; virtual;
 
     { Prepare lights shining on everything.
-      BaseLights contents should be initialized here.
+      GlobalLights contents should be initialized here.
       The implementation in this class adds headlight determined
       by the @link(TCastleRootTransform.UseHeadlight Items.UseHeadlight) value. }
-    procedure InitializeLights(const Lights: TLightInstancesList); virtual;
+    procedure InitializeGlobalLights(const GlobalLights: TLightInstancesList); virtual;
 
     { Render everything from given camera view (as TRenderingCamera).
       Given RenderingCamera.Target says to where we generate the image.
@@ -1066,7 +1066,7 @@ type
       defined inside MainScene file. Be sure to set X3D lights global=TRUE. }
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default DefaultUseGlobalLights;
-      {$ifdef FPC} deprecated 'if you need to tweak this, then do not use MainScene; use regular TCastleScene and set LightsShineEverywhere as needed'; {$endif}
+      {$ifdef FPC} deprecated 'if you need to tweak this, then do not use MainScene; use regular TCastleScene and set CastGlobalLights as needed'; {$endif}
 
     { Let the fog defined in MainScene affect all objects, not only MainScene.
       This is consistent with @link(UseGlobalLights), that allows lights
@@ -1337,18 +1337,18 @@ end;
 constructor TCastleViewport.TViewportRenderParams.Create;
 begin
   inherited;
-  FBaseLights := TLightInstancesList.Create;
+  FGlobalLights := TLightInstancesList.Create;
 end;
 
 destructor TCastleViewport.TViewportRenderParams.Destroy;
 begin
-  FreeAndNil(FBaseLights);
+  FreeAndNil(FGlobalLights);
   inherited;
 end;
 
-function TCastleViewport.TViewportRenderParams.BaseLights: TAbstractLightInstancesList;
+function TCastleViewport.TViewportRenderParams.GlobalLights: TAbstractLightInstancesList;
 begin
-  Result := FBaseLights;
+  Result := FGlobalLights;
 end;
 
 { TSSAOScreenEffect ---------------------------------------------------------- }
@@ -2221,13 +2221,13 @@ begin
   Items.RenderShadowVolume(FShadowVolumeRenderer, true, TMatrix4.Identity);
 end;
 
-procedure TCastleViewport.InitializeLights(const Lights: TLightInstancesList);
+procedure TCastleViewport.InitializeGlobalLights(const GlobalLights: TLightInstancesList);
 var
   HI: TLightInstance;
 begin
   {$warnings off}
   if HeadlightInstance(HI) then
-    Lights.Add(HI);
+    GlobalLights.Add(HI);
   {$warnings on}
 end;
 
@@ -2282,16 +2282,16 @@ end;
 function TCastleViewport.PrepareParams: TPrepareParams;
 { Note: you cannot refer to PrepareParams inside
   the TCastleTransform.PrepareResources or TCastleTransform.Render implementation,
-  as they may change the referenced PrepareParams.InternalBaseLights value.
+  as they may change the referenced PrepareParams.InternalGlobalLights value.
 }
 begin
-  { We just reuse FRenderParams.FBaseLights below as a temporary
+  { We just reuse FRenderParams.FGlobalLights below as a temporary
     TLightInstancesList that we already have created. }
 
-  { initialize FPrepareParams.InternalBaseLights }
-  FRenderParams.FBaseLights.Clear;
-  InitializeLights(FRenderParams.FBaseLights);
-  FPrepareParams.InternalBaseLights := FRenderParams.FBaseLights;
+  { initialize FPrepareParams.InternalGlobalLights }
+  FRenderParams.FGlobalLights.Clear;
+  InitializeGlobalLights(FRenderParams.FGlobalLights);
+  FPrepareParams.InternalGlobalLights := FRenderParams.FGlobalLights;
 
   { initialize FPrepareParams.InternalGlobalFog }
   if UseGlobalFog and
@@ -2305,7 +2305,7 @@ end;
 
 function TCastleViewport.BaseLights: TLightInstancesList;
 begin
-  Result := PrepareParams.InternalBaseLights as TLightInstancesList;
+  Result := PrepareParams.InternalGlobalLights as TLightInstancesList;
 end;
 
 procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
@@ -2447,15 +2447,15 @@ begin
   FRenderParams.RenderingCamera := RenderingCamera;
   FillChar(FRenderParams.Statistics, SizeOf(FRenderParams.Statistics), #0);
 
-  { Calculate FRenderParams.FBaseLights }
-  FRenderParams.FBaseLights.Clear;
+  { Calculate FRenderParams.FGlobalLights }
+  FRenderParams.FGlobalLights.Clear;
   { Add headlight }
-  InitializeLights(FRenderParams.FBaseLights);
-  { Add lights from all scenes with LightsShineEverywhere }
-  if Items.InternalScenesLightsShineEverywhere <> nil then
-    for I := 0 to Items.InternalScenesLightsShineEverywhere.Count - 1 do
-      FRenderParams.FBaseLights.AppendInWorldCoordinates(
-        Items.InternalScenesLightsShineEverywhere[I].InternalGlobalLights);
+  InitializeGlobalLights(FRenderParams.FGlobalLights);
+  { Add lights from all scenes with CastGlobalLights }
+  if Items.InternalScenesCastGlobalLights <> nil then
+    for I := 0 to Items.InternalScenesCastGlobalLights.Count - 1 do
+      FRenderParams.FGlobalLights.AppendInWorldCoordinates(
+        Items.InternalScenesCastGlobalLights[I].InternalGlobalLights);
 
   { initialize FRenderParams.GlobalFog }
   if UseGlobalFog and

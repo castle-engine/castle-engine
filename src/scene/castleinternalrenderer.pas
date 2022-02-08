@@ -440,7 +440,7 @@ type
       be @nil, if it failed to link.
 
       Separate values for each rendering pass, since different rendering
-      passes probably have different BaseLights and so will require different
+      passes probably have different GlobalLights and so will require different
       shaders. This makes multi-pass rendering, like for shadow volumes,
       play nicely with shaders. Otherwise we could recreate shaders at each
       rendering pass. }
@@ -592,7 +592,7 @@ type
     FCache: TGLRendererContextCache;
 
     { Lights shining on all shapes, may be @nil. Set in each RenderBegin. }
-    BaseLights: TLightInstancesList;
+    GlobalLights: TLightInstancesList;
 
     { Rendering camera. Set in each RenderBegin, cleared in RenderEnd. }
     RenderingCamera: TRenderingCamera;
@@ -708,7 +708,7 @@ type
       when your OpenGL context is still active. }
     procedure UnprepareAll;
 
-    procedure RenderBegin(const ABaseLights: TLightInstancesList;
+    procedure RenderBegin(const AGlobalLights: TLightInstancesList;
       const ARenderingCamera: TRenderingCamera;
       const LightRenderEvent: TLightRenderEvent;
       const AInternalPass: TInternalRenderingPass;
@@ -2209,7 +2209,7 @@ begin
 end;
 
 procedure TGLRenderer.RenderBegin(
-  const ABaseLights: TLightInstancesList;
+  const AGlobalLights: TLightInstancesList;
   const ARenderingCamera: TRenderingCamera;
   const LightRenderEvent: TLightRenderEvent;
   const AInternalPass: TInternalRenderingPass;
@@ -2241,7 +2241,7 @@ procedure TGLRenderer.RenderBegin(
   end;
 
 begin
-  BaseLights := ABaseLights;
+  GlobalLights := AGlobalLights;
   RenderingCamera := ARenderingCamera;
   Assert(RenderingCamera <> nil);
 
@@ -2430,12 +2430,12 @@ begin
     there is no point in setting up lights. }
   if Lighting then
   begin
-    if RenderOptions.SceneLights then
+    if RenderOptions.ReceiveSceneLights then
       SceneLights := Shape.State.Lights
     else
       SceneLights := nil;
 
-    LightsRenderer.Render(BaseLights, SceneLights, Shader);
+    LightsRenderer.Render(GlobalLights, SceneLights, Shader);
   end;
 
   RenderShapeFog(Shape, Shader, Lighting);

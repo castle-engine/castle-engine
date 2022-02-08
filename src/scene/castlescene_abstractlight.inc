@@ -47,7 +47,7 @@ begin
   { internal stuff create }
   FScene := TCastleScene.Create(nil);
   FScene.SetTransient;
-  FScene.LightsShineEverywhere := true;
+  FScene.CastGlobalLights := true;
   Add(FScene);
 
   { build X3D nodes }

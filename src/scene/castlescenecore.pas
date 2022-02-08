@@ -1936,7 +1936,7 @@ type
     function Caption: string;
 
     { Global lights of this scene. Read-only.
-      Useful to shine these lights on other scenes, if TCastleScene.LightsShineEverywhere. }
+      Useful to shine these lights on other scenes, if TCastleScene.CastGlobalLights. }
     property InternalGlobalLights: TLightInstancesList read FGlobalLights;
 
     { Find a named X3D node (and a field or event within this node)
@@ -4986,7 +4986,7 @@ var
 
     { Change light instance on GlobalLights list, if any.
       This way other scenes, using our lights by
-      @link(TCastleScene.LightsShineEverywhere) feature,
+      @link(TCastleScene.CastGlobalLights) feature,
       also have updated light location/direction.
       See https://sourceforge.net/p/castle-engine/discussion/general/thread/0bbaaf38/
       for a testcase. }

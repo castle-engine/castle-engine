@@ -88,8 +88,7 @@
       FCursor: TMouseCursor;
       FCollidesWithMoving: boolean;
       Disabled: Cardinal;
-      FExcludeFromGlobalLights, FExcludeFromStatistics,
-        FInternalExcludeFromParentBoundingVolume: boolean;
+      FExcludeFromStatistics, FInternalExcludeFromParentBoundingVolume: boolean;
       FWorld: TCastleAbstractRootTransform;
       { How many times this is a child in the FWorld, counting all possible paths in transformation tree. }
       FWorldReferences: Cardinal;
@@ -1798,18 +1797,6 @@
 
       @noAutoLinkHere }
     property Visible: boolean read FVisible write FVisible default true;
-
-    { Avoid this object being affected by other scene's lights
-      (defined by other scenes with @link(TCastleScene.LightsShineEverywhere).
-      This property allows
-      to make an exception for this object: it will not receive lights
-      that are, by default, applied everywhere.
-
-      Note that this is not applied recursively. Instead, it is checked at each TCastleTransform instance
-      that checks TRenderParams.BaseLights. In practice, it is only checked at TCastleScene,
-      unless you do custom rendering on your own. }
-    property ExcludeFromGlobalLights: boolean
-      read FExcludeFromGlobalLights write FExcludeFromGlobalLights default false;
 
     { Exclude from rendering statistics in
       @link(TCastleViewport.Statistics). }

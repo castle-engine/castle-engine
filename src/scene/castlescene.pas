@@ -138,7 +138,7 @@ type
       FTempPrepareParams: TPrepareParams;
       { Camera position, in local scene coordinates, known during the Render call. }
       RenderCameraPosition: TVector3;
-      FLightsShineEverywhere: Boolean;
+      FCastGlobalLights: Boolean;
 
       { Used by LocalRenderInside }
       FilteredShapes: TShapeList;
@@ -284,21 +284,19 @@ type
       when you use shadow algorithm that requires
       you to make a first pass rendering the scene all shadowed. }
     procedure LightRenderInShadow(const Light: TLightInstance;
-      const IsBaseLight: Boolean; var LightOn: boolean);
+      const IsGlobalLight: Boolean; var LightOn: boolean);
 
-    { Turn off some base lights:
-
-      - Turn off base lights that are duplicated in SceneLights
-        (so we render our own lights through SceneLights, not BaseLights,
-        and so they work regardless of LightsShineEverywhere,
-        and are controled by RenderOptions.SceneLights)
-
-      - Turn off all base lights if not RenderOptions.GlobalLights. }
+    { Turn off global lights that are duplicated in current scene.
+      This way we render our own lights through SceneLights at each shape,
+      not through GlobalLights,
+      and so they work regardless of TCastleScene.CastGlobalLights
+      and RenderOptions.ReceiveGlobalLights,
+      and are controled by RenderOptions.ReceiveSceneLights. }
     procedure LightRender(const Light: TLightInstance;
-      const IsBaseLight: Boolean; var LightOn: boolean);
+      const IsGlobalLight: Boolean; var LightOn: boolean);
 
     function GetRenderOptions: TCastleRenderOptions;
-    procedure SetLightsShineEverywhere(const Value: Boolean);
+    procedure SetCastGlobalLights(const Value: Boolean);
   private
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
@@ -507,8 +505,8 @@ type
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
 
     { Lights defines by given scene shine on everything in the viewport, including all other TCastleScene. }
-    property LightsShineEverywhere: Boolean
-      read FLightsShineEverywhere write SetLightsShineEverywhere default false;
+    property CastGlobalLights: Boolean
+      read FCastGlobalLights write SetCastGlobalLights default false;
   end;
 
   TCastleSceneClass = class of TCastleScene;
@@ -535,10 +533,10 @@ type
     proper render params instance for you. }
   TBasicRenderParams = class(TRenderParams)
   public
-    FBaseLights: TLightInstancesList;
+    FGlobalLights: TLightInstancesList;
     constructor Create;
     destructor Destroy; override;
-    function BaseLights: TAbstractLightInstancesList; override;
+    function GlobalLights: TAbstractLightInstancesList; override;
   end;
 
 procedure Register;
@@ -1170,6 +1168,7 @@ procedure TCastleScene.LocalRenderInside(
 
 var
   LightRenderEvent: TLightRenderEvent;
+  GlobalLights: TLightInstancesList;
 begin
   { We update XxxVisible only for one value of Params.Transparent.
     Otherwise, we would increase it twice.
@@ -1209,8 +1208,12 @@ begin
   end;
   {$endif}
 
-  Renderer.RenderBegin(Params.BaseLights as TLightInstancesList,
-    Params.RenderingCamera,
+  if RenderOptions.ReceiveGlobalLights then
+    GlobalLights := Params.GlobalLights as TLightInstancesList
+  else
+    GlobalLights := nil;
+
+  Renderer.RenderBegin(GlobalLights, Params.RenderingCamera,
     LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
   try
     case RenderOptions.Mode of
@@ -1269,7 +1272,7 @@ procedure TCastleScene.PrepareResources(
   var
     ShapeList: TShapeList;
     Shape: TShape;
-    BaseLights: TLightInstancesList;
+    GlobalLights: TLightInstancesList;
     GoodParams, OwnParams: TPrepareParams;
     DummyCamera: TRenderingCamera;
     I: Integer;
@@ -1303,7 +1306,7 @@ procedure TCastleScene.PrepareResources(
       GoodParams := Params;
     end;
 
-    BaseLights := GoodParams.InternalBaseLights as TLightInstancesList;
+    GlobalLights := GoodParams.InternalGlobalLights as TLightInstancesList;
 
     { We need some non-nil TRenderingCamera instance to be able
       to render with lights. }
@@ -1319,7 +1322,7 @@ procedure TCastleScene.PrepareResources(
       DummyCamera.FromMatrix(TVector3.Zero,
         TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
 
-      Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
+      Renderer.RenderBegin(GlobalLights, DummyCamera, nil, 0, 0, 0);
 
       for Shape in ShapeList do
       begin
@@ -1615,7 +1618,7 @@ begin
       It's much simpler to just call PrepareResources at the beginning.
       The PrepareResources is already optimized to do nothing,
       if everything is ready. }
-    FTempPrepareParams.InternalBaseLights := Params.BaseLights;
+    FTempPrepareParams.InternalGlobalLights := Params.GlobalLights;
     FTempPrepareParams.InternalGlobalFog := Params.GlobalFog;
     PrepareResources([prRenderSelf], false, FTempPrepareParams);
 
@@ -1624,19 +1627,17 @@ begin
 end;
 
 procedure TCastleScene.LightRenderInShadow(const Light: TLightInstance;
-  const IsBaseLight: Boolean; var LightOn: boolean);
+  const IsGlobalLight: Boolean; var LightOn: boolean);
 begin
   if Light.Node.FdShadowVolumes.Value then
     LightOn := false;
-  LightRender(Light, IsBaseLight, LightOn);
+  LightRender(Light, IsGlobalLight, LightOn);
 end;
 
 procedure TCastleScene.LightRender(const Light: TLightInstance;
-  const IsBaseLight: Boolean; var LightOn: boolean);
+  const IsGlobalLight: Boolean; var LightOn: boolean);
 begin
-  if ExcludeFromGlobalLights and IsBaseLight then
-    LightOn := false;
-  if IsBaseLight and (Light.Node.Scene = Self) then
+  if IsGlobalLight and (Light.Node.Scene = Self) then
     LightOn := false;
 end;
 
@@ -2241,16 +2242,16 @@ begin
   begin
     if World <> nil then
     begin
-      if LightsShineEverywhere then
-        (World as TCastleRootTransform).UnregisterLightsShineEverywhere(Self);
+      if CastGlobalLights then
+        (World as TCastleRootTransform).UnregisterCastGlobalLights(Self);
     end;
 
     inherited;
 
     if World <> nil then
     begin
-      if LightsShineEverywhere then
-        (World as TCastleRootTransform).RegisterLightsShineEverywhere(Self);
+      if CastGlobalLights then
+        (World as TCastleRootTransform).RegisterCastGlobalLights(Self);
     end;
   end else
   begin
@@ -2258,17 +2259,17 @@ begin
   end;
 end;
 
-procedure TCastleScene.SetLightsShineEverywhere(const Value: Boolean);
+procedure TCastleScene.SetCastGlobalLights(const Value: Boolean);
 begin
-  if FLightsShineEverywhere <> Value then
+  if FCastGlobalLights <> Value then
   begin
-    FLightsShineEverywhere := Value;
+    FCastGlobalLights := Value;
     if World <> nil then
     begin
       if Value then
-        (World as TCastleRootTransform).RegisterLightsShineEverywhere(Self)
+        (World as TCastleRootTransform).RegisterCastGlobalLights(Self)
       else
-        (World as TCastleRootTransform).UnregisterLightsShineEverywhere(Self);
+        (World as TCastleRootTransform).UnregisterCastGlobalLights(Self);
     end;
   end;
 end;
@@ -2279,7 +2280,7 @@ end;
 constructor TBasicRenderParams.Create;
 begin
   inherited;
-  FBaseLights := TLightInstancesList.Create;
+  FGlobalLights := TLightInstancesList.Create;
   InShadow := false;
   ShadowVolumesReceivers := [false, true];
   { Transparent does not have good default value.
@@ -2294,13 +2295,13 @@ end;
 
 destructor TBasicRenderParams.Destroy;
 begin
-  FreeAndNil(FBaseLights);
+  FreeAndNil(FGlobalLights);
   inherited;
 end;
 
-function TBasicRenderParams.BaseLights: TAbstractLightInstancesList;
+function TBasicRenderParams.GlobalLights: TAbstractLightInstancesList;
 begin
-  Result := FBaseLights;
+  Result := FGlobalLights;
 end;
 
 var
