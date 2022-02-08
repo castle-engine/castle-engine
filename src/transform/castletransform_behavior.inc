@@ -56,8 +56,9 @@
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
 
-    procedure WorldAttached(const NewWorld: TCastleAbstractRootTransform); virtual;
-    procedure WorldDetached(const PreviousWorld: TCastleAbstractRootTransform); virtual;
+    procedure WorldAfterAttach; virtual;
+
+    procedure WorldBeforeDetach; virtual;
 
 
     { Check can this behavior be added to NewParent.
@@ -83,6 +84,8 @@
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; virtual;
   public
+    function World: TCastleAbstractRootTransform;
+
     { Parent TCastleTransform of this behavior.
       Change it by doing @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior).
@@ -150,14 +153,12 @@ begin
 
 end;
 
-procedure TCastleBehavior.WorldAttached(
-  const NewWorld: TCastleAbstractRootTransform);
+procedure TCastleBehavior.WorldAfterAttach;
 begin
 
 end;
 
-procedure TCastleBehavior.WorldDetached(
-  const PreviousWorld: TCastleAbstractRootTransform);
+procedure TCastleBehavior.WorldBeforeDetach;
 begin
 
 end;
@@ -167,6 +168,46 @@ function TCastleBehavior.CanAttachToParent(const NewParent: TCastleTransform;
 begin
   ReasonWhyCannot := '';
   Result := true;
+end;
+
+procedure TCastleBehavior.SingleInstanceOfBehavior(
+  const BehaviorClass: TCastleBehaviorClass);
+var
+  HasSelf: Boolean;
+  Other: TCastleBehavior;
+  I: Integer;
+begin
+  HasSelf := false;
+  Other := nil;
+
+  for I := 0 to Parent.FBehaviors.Count - 1 do
+    if Parent.FBehaviors[I] is BehaviorClass then
+    begin
+      if Parent.FBehaviors[I] = Self then
+         HasSelf := true
+       else
+         Other := Parent.FBehaviors[I] as TCastleBehavior;
+    end;
+
+//  Other := Parent.FindBehavior(TCastleAliveBehavior);
+
+  if Other <> nil then
+    raise Exception.CreateFmt('Two instances of %s not allowed on one parent: %s %s', [
+      BehaviorClass.ClassName,
+      Name,
+      Other.Name
+    ]);
+
+  if not HasSelf then
+    raise Exception.CreateFmt('Self instance of %s not found on parent', [BehaviorClass.ClassName]);
+end;
+
+function TCastleBehavior.World: TCastleAbstractRootTransform;
+begin
+  if Parent <> nil then
+    Result := Parent.World
+  else
+    Result := nil;
 end;
 
 {$endif read_implementation}
