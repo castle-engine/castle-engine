@@ -2575,7 +2575,18 @@ end;
 
 function TCastleTransform.HasWorldTransform: boolean;
 begin
-  Result := (Self = World) or (FParent <> nil);
+  { Check for "FWorld <> nil" is still necessary, otherwise a TCastleTransform
+    could satisfy this without having World assigned:
+    when it has a FParent, but FParent is not yet part of any World.
+
+    This matters, e.g. we activate FScene.ProcessEvents:=true
+    in TCastleAbstractLight.Create, at which point FScene has a parent
+    but the parent (TCastleAbstractLight instance) is not yet part of world.
+    SetProcessEvents calls GetCameraVectors that checks HasWorldTransform,
+    assuming that HasWorldTransform => implies World <> nil.
+
+    TODO: maybe just "FWorld <> nil" should be enough? }
+  Result := (FWorld <> nil) and ((Self = World) or (FParent <> nil));
 end;
 
 procedure TCastleTransform.UpdateWorldTransformation;
