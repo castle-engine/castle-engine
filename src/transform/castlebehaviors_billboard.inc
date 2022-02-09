@@ -47,7 +47,15 @@ type
       When non-zero, this axis is set as @link(TCastleTransform.Up).
 
       Similar to X3D @link(TBillboardNode.AxisOfRotation).
-      By default +Y (that is, (0, 1, 0)). }
+      By default +Y (that is, (0, 1, 0)).
+
+      Note that this axis is expressed in the coordinate system
+      of "parent of our parent" transform.
+      That is, if you have instance X of a TCastleTransform, with TCastleBehavior attached,
+      and it is a child of TCastleTransform instance Y,
+      then you can rotate Y and it effectively rotates also the billboard's
+      axis of rotation. The billboard still works correctly (it will rotate the X
+      to look at camera as much as possible, though it cannot change rotation on Y). }
     property AxisOfRotation: TVector3 read FAxisOfRotation write FAxisOfRotation;
 
   {$define read_interface_class}
