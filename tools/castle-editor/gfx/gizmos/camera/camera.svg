@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 576 576"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="camera.svg"
+   width="576"
+   height="576"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   inkscape:export-filename="/home/michalis/sources/castle-engine/castle-engine/tools/castle-editor/gfx/gizmos/camera/camera.png"
+   inkscape:export-xdpi="42.669998"
+   inkscape:export-ydpi="42.669998"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="0.56623785"
+     inkscape:cx="119.20786"
+     inkscape:cy="232.23456"
+     inkscape:window-width="1852"
+     inkscape:window-height="1043"
+     inkscape:window-x="68"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <!--! Font Awesome Pro 6.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+  <path
+     d="m 384,140.70724 v 288 c 0,26.51 -21.49,48 -48,48 H 48 c -26.51,0 -48,-21.49 -48,-48 v -288 c 0,-26.51 21.49,-47.999998 48,-47.999998 h 288 c 26.5,0 48,21.489998 48,47.999998 z m 192,15.5 v 256.9 c 0,25.5 -29.17,40.39 -50.39,25.79 L 416,363.40724 v -157.4 l 109.6,-75.56 c 21.3,-14.61 50.4,0.36 50.4,25.76 z"
+     id="path2" />
+</svg>
