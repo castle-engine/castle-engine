@@ -96,6 +96,7 @@ begin
   { internal stuff create }
   FSpotLight := TSpotLightNode.Create;
   LightNode := FSpotLight;
+  GizmoTextureUrl := InternalCastleDesignData + 'gizmos/light/light_spot.png';
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlespotlight_persistent_vectors.inc}

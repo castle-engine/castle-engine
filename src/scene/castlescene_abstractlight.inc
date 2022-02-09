@@ -23,12 +23,25 @@ type
   TCastleAbstractLight = class(TCastleTransform)
   strict private
     FScene: TCastleScene;
+    FGizmoQuadCoordinate: TCoordinateNode;
+    FGizmoQuadTextureCoordinate: TTextureCoordinateNode;
+    FGizmoQuad: TQuadSetNode;
+    FGizmoTexture: TImageTextureNode;
+    FGizmoMaterial: TUnlitMaterialNode;
+    FGizmoAppearance: TAppearanceNode;
+    FGizmoShape: TShapeNode;
+    FGizmoBillboard: TBillboardNode;
     FRootNode: TX3DRootNode;
+    FGizmoTextureUrl: String;
     FLightNode: TAbstractLightNode;
+    { For now just always constant and initialized from CastleDesignMode. }
+    Gizmo: Boolean;
     procedure SetLightNode(const Value: TAbstractLightNode);
+    procedure SetGizmoTextureUrl(const Value: String);
   protected
     { Descendants should set X3D light node here. }
     property LightNode: TAbstractLightNode read FLightNode write SetLightNode;
+    property GizmoTextureUrl: String read FGizmoTextureUrl write SetGizmoTextureUrl;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -41,6 +54,51 @@ type
 {$ifdef read_implementation}
 
 constructor TCastleAbstractLight.Create(AOwner: TComponent);
+
+  procedure BuidGizmo;
+  const
+    GizmoSize = 1;
+  begin
+    FGizmoQuadCoordinate := TCoordinateNode.Create;
+    FGizmoQuadCoordinate.SetPoint([
+      Vector3(-GizmoSize / 2, -GizmoSize / 2, 0),
+      Vector3( GizmoSize / 2, -GizmoSize / 2, 0),
+      Vector3( GizmoSize / 2,  GizmoSize / 2, 0),
+      Vector3(-GizmoSize / 2,  GizmoSize / 2, 0)
+    ]);
+
+    FGizmoQuadTextureCoordinate := TTextureCoordinateNode.Create;
+    FGizmoQuadTextureCoordinate.SetPoint([
+      Vector2(0, 0),
+      Vector2(1, 0),
+      Vector2(1, 1),
+      Vector2(0, 1)
+    ]);
+
+    FGizmoQuad := TQuadSetNode.Create;
+    FGizmoQuad.Coord := FGizmoQuadCoordinate;
+    FGizmoQuad.TexCoord := FGizmoQuadTextureCoordinate;
+
+    FGizmoTexture := TImageTextureNode.Create;
+    FGizmoTexture.RepeatS := false;
+    FGizmoTexture.RepeatT := false;
+
+    FGizmoMaterial := TUnlitMaterialNode.Create;
+    FGizmoMaterial.EmissiveTexture := FGizmoTexture;
+
+    FGizmoAppearance := TAppearanceNode.Create;
+    FGizmoAppearance.Material := FGizmoMaterial;
+
+    FGizmoShape := TShapeNode.Create;
+    FGizmoShape.Geometry := FGizmoQuad;
+    FGizmoShape.Appearance := FGizmoAppearance;
+
+    FGizmoBillboard := TBillboardNode.Create;
+    FGizmoBillboard.AddChildren(FGizmoShape);
+
+    FRootNode.AddChildren(FGizmoBillboard);
+  end;
+
 begin
   inherited;
 
@@ -50,9 +108,14 @@ begin
   FScene.CastGlobalLights := true;
   Add(FScene);
 
+  Gizmo := CastleDesignMode;
+
   { build X3D nodes }
   FRootNode := TX3DRootNode.Create;
+  if Gizmo then
+    BuidGizmo;
   FScene.Load(FRootNode, true);
+  FScene.ProcessEvents := true; // to process billboard
 end;
 
 destructor TCastleAbstractLight.Destroy;
@@ -70,6 +133,21 @@ begin
     FLightNode := Value;
     if FLightNode <> nil then
       FRootNode.AddChildren(FLightNode);
+  end;
+end;
+
+procedure TCastleAbstractLight.SetGizmoTextureUrl(const Value: String);
+begin
+  if FGizmoTextureUrl <> Value then
+  begin
+    FGizmoTextureUrl := Value;
+    if Gizmo then
+    begin
+      if FGizmoTextureUrl <> '' then
+        FGizmoTexture.SetUrl([FGizmoTextureUrl])
+      else
+        FGizmoTexture.SetUrl([]);
+    end;
   end;
 end;
 

@@ -67,6 +67,7 @@ begin
   FDirectionalLight := TDirectionalLightNode.Create;
   FDirectionalLight.Global := true;
   LightNode := FDirectionalLight;
+  GizmoTextureUrl := InternalCastleDesignData + 'gizmos/light/light_directional.png';
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastledirectionallight_persistent_vectors.inc}
