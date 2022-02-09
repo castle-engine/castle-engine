@@ -2425,6 +2425,9 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
     J: Integer;
     NewGlobalLight: PLightInstance;
   begin
+    if not SceneCastingLights.Exists then // TODO: Should check ExistsInRoot
+      Exit;
+
     for J := 0 to SceneCastingLights.InternalGlobalLights.Count - 1 do
     begin
       NewGlobalLight := FRenderParams.FGlobalLights.Add;
