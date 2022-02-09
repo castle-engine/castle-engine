@@ -2420,6 +2420,23 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
     end;
   end;
 
+  procedure AddGlobalLightsFromScene(const SceneCastingLights: TCastleScene);
+  var
+    J: Integer;
+    NewGlobalLight: PLightInstance;
+  begin
+    for J := 0 to SceneCastingLights.InternalGlobalLights.Count - 1 do
+    begin
+      NewGlobalLight := FRenderParams.FGlobalLights.Add;
+      NewGlobalLight^ := SceneCastingLights.InternalGlobalLights.List^[J];
+      { make NewGlobalLight^ in world coordinates }
+      NewGlobalLight^.Transform := SceneCastingLights.WorldTransform * NewGlobalLight^.Transform;
+      NewGlobalLight^.TransformScale := Approximate3DScale(SceneCastingLights.WorldTransform) * NewGlobalLight^.TransformScale;
+      NewGlobalLight^.WorldCoordinates := true;
+      NewGlobalLight^.Node.UpdateLightInstance(NewGlobalLight^);
+    end;
+  end;
+
 var
   I: Integer;
 begin
@@ -2454,8 +2471,7 @@ begin
   { Add lights from all scenes with CastGlobalLights }
   if Items.InternalScenesCastGlobalLights <> nil then
     for I := 0 to Items.InternalScenesCastGlobalLights.Count - 1 do
-      FRenderParams.FGlobalLights.AppendInWorldCoordinates(
-        Items.InternalScenesCastGlobalLights[I].InternalGlobalLights);
+      AddGlobalLightsFromScene(Items.InternalScenesCastGlobalLights[I]);
 
   { initialize FRenderParams.GlobalFog }
   if UseGlobalFog and
