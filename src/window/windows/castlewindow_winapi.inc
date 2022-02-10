@@ -1574,16 +1574,16 @@ function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
 
   function Vector3ToColorRef(const Value: TVector3): TColorRef;
   begin
-   Result := Windows.RGB(Clamped(Round(Value[0]*High(Byte)), 0, High(Byte)),
-                         Clamped(Round(Value[1]*High(Byte)), 0, High(Byte)),
-                         Clamped(Round(Value[2]*High(Byte)), 0, High(Byte)) );
+   Result := Windows.RGB(Clamped(Round(Value.X*High(Byte)), 0, High(Byte)),
+                         Clamped(Round(Value.Y*High(Byte)), 0, High(Byte)),
+                         Clamped(Round(Value.Z*High(Byte)), 0, High(Byte)) );
   end;
 
   function ColorRefToVector3(const Value: TColorRef): TVector3;
   begin
-   Result[0] := GetRValue(Value)/High(Byte);
-   Result[1] := GetGValue(Value)/High(Byte);
-   Result[2] := GetBValue(Value)/High(Byte);
+   Result.X := GetRValue(Value)/High(Byte);
+   Result.Y := GetGValue(Value)/High(Byte);
+   Result.Z := GetBValue(Value)/High(Byte);
   end;
 
 var
