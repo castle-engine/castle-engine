@@ -357,9 +357,9 @@ begin
   PositionScale := Scene.BoundingBox.Size;
   for I := 0 to 2 do
   begin
-    if PositionScale[I] = 0 then
-      PositionScale[I] := 1;
-    PositionShift[I] := Scene.BoundingBox.Data[0][I] / PositionScale[I];
+    if PositionScale.InternalData[I] = 0 then
+      PositionScale.InternalData[I] := 1;
+    PositionShift.InternalData[I] := Scene.BoundingBox.Data[0][I] / PositionScale[I];
   end;
 
   WritelnLog('To squeeze area into texture we use area_scale = %f', [AreaScale]);
@@ -486,9 +486,9 @@ begin
     Result := TVector3.Zero { element invalid, probably separate vertex } else
   begin
     Intensity := FullRenderIntensityTex.Pixels[ElemIndex]/255;
-    Result.Data[0] := Intensity;
-    Result.Data[1] := Intensity;
-    Result.Data[2] := Intensity;
+    Result.X := Intensity;
+    Result.Y := Intensity;
+    Result.Z := Intensity;
   end;
 end;
 

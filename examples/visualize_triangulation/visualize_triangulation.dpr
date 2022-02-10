@@ -229,8 +229,8 @@ begin
     visualized polygon }
   for I := 0 to 2 do
   begin
-    MinV.Data[I] := MinV.Data[I] - (MaxV.Data[I] - MinV.Data[I]) / 10;
-    MaxV.Data[I] := MaxV.Data[I] + (MaxV.Data[I] - MinV.Data[I]) / 10;
+    MinV.InternalData[I] := MinV.InternalData[I] - (MaxV.InternalData[I] - MinV.InternalData[I]) / 10;
+    MaxV.InternalData[I] := MaxV.InternalData[I] + (MaxV.InternalData[I] - MinV.InternalData[I]) / 10;
   end;
 end;
 
