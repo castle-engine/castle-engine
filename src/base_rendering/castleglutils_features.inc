@@ -410,8 +410,8 @@ constructor TGLFeatures.Create;
     V: packed array [0..1] of TGLInt;
   begin
     glGetIntegerv(Param, @V);
-    Result.Data[0] := V[0];
-    Result.Data[1] := V[1];
+    Result.X := V[0];
+    Result.Y := V[1];
   end;
 
 var

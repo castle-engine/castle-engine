@@ -339,8 +339,8 @@ var
 
   procedure AppendPixel(x, y: Cardinal);
   begin
-    APixels^[NextPixelToWriteNum].Data[0] := x;
-    APixels^[NextPixelToWriteNum].Data[1] := y;
+    APixels^[NextPixelToWriteNum].X := x;
+    APixels^[NextPixelToWriteNum].Y := y;
     Inc(NextPixelToWriteNum);
   end;
 
@@ -402,8 +402,8 @@ begin
 
   if Between(LastX, 0, SizeX-1) and Between(LastY, 0, SizeY-1) then
   begin
-   Pixels^[NextPixelToWriteNum].Data[0] := LastX;
-   Pixels^[NextPixelToWriteNum].Data[1] := LastY;
+   Pixels^[NextPixelToWriteNum].X := LastX;
+   Pixels^[NextPixelToWriteNum].Y := LastY;
    Inc(NextPixelToWriteNum);
   end;
  end;
