@@ -725,9 +725,9 @@ end;
 function TBox3D.Center: TVector3;
 begin
   CheckNonEmpty;
-  Result.Data[0] := (Data[0].X + Data[1].X) / 2;
-  Result.Data[1] := (Data[0].Y + Data[1].Y) / 2;
-  Result.Data[2] := (Data[0].Z + Data[1].Z) / 2;
+  Result.X := (Data[0].X + Data[1].X) / 2;
+  Result.Y := (Data[0].Y + Data[1].Y) / 2;
+  Result.Z := (Data[0].Z + Data[1].Z) / 2;
 end;
 
 function TBox3D.Middle: TVector3;
@@ -850,13 +850,13 @@ end;
 
 procedure TBox3D.ExpandMe(const AExpand: TVector3);
 begin
- Data[0].X := Data[0].X - AExpand.Data[0];
- Data[0].Y := Data[0].Y - AExpand.Data[1];
- Data[0].Z := Data[0].Z - AExpand.Data[2];
+ Data[0].X := Data[0].X - AExpand.X;
+ Data[0].Y := Data[0].Y - AExpand.Y;
+ Data[0].Z := Data[0].Z - AExpand.Z;
 
- Data[1].X := Data[1].X + AExpand.Data[0];
- Data[1].Y := Data[1].Y + AExpand.Data[1];
- Data[1].Z := Data[1].Z + AExpand.Data[2];
+ Data[1].X := Data[1].X + AExpand.X;
+ Data[1].Y := Data[1].Y + AExpand.Y;
+ Data[1].Z := Data[1].Z + AExpand.Z;
 end;
 
 function TBox3D.Grow(const AExpand: Single): TBox3D;
@@ -876,13 +876,13 @@ function TBox3D.Grow(const AExpand: TVector3): TBox3D;
 begin
   if IsEmpty then Exit(Empty);
 
-  Result.Data[0].X := Data[0].X - AExpand.Data[0];
-  Result.Data[0].Y := Data[0].Y - AExpand.Data[1];
-  Result.Data[0].Z := Data[0].Z - AExpand.Data[2];
+  Result.Data[0].X := Data[0].X - AExpand.X;
+  Result.Data[0].Y := Data[0].Y - AExpand.Y;
+  Result.Data[0].Z := Data[0].Z - AExpand.Z;
 
-  Result.Data[1].X := Data[1].X + AExpand.Data[0];
-  Result.Data[1].Y := Data[1].Y + AExpand.Data[1];
-  Result.Data[1].Z := Data[1].Z + AExpand.Data[2];
+  Result.Data[1].X := Data[1].X + AExpand.X;
+  Result.Data[1].Y := Data[1].Y + AExpand.Y;
+  Result.Data[1].Z := Data[1].Z + AExpand.Z;
 end;
 
 function TBox3D.Expand(const AExpand: Single): TBox3D;
@@ -2341,12 +2341,12 @@ begin
     Exit(TBox3D.Empty);
 
   Size := Size / 2;
-  Result.Data[0].X := Pt.Data[0] - Size;
-  Result.Data[0].Y := Pt.Data[1] - Size;
-  Result.Data[0].Z := Pt.Data[2] - Size;
-  Result.Data[1].X := Pt.Data[0] + Size;
-  Result.Data[1].Y := Pt.Data[1] + Size;
-  Result.Data[1].Z := Pt.Data[2] + Size;
+  Result.Data[0].X := Pt.X - Size;
+  Result.Data[0].Y := Pt.Y - Size;
+  Result.Data[0].Z := Pt.Z - Size;
+  Result.Data[1].X := Pt.X + Size;
+  Result.Data[1].Y := Pt.Y + Size;
+  Result.Data[1].Z := Pt.Z + Size;
 end;
 
 function Box3DAroundPoint(const Pt: TVector3; Size: TVector3): TBox3D;
@@ -2357,12 +2357,12 @@ begin
     Exit(TBox3D.Empty);
 
   Size := Size / 2;
-  Result.Data[0].X := Pt.Data[0] - Size.Data[0];
-  Result.Data[0].Y := Pt.Data[1] - Size.Data[1];
-  Result.Data[0].Z := Pt.Data[2] - Size.Data[2];
-  Result.Data[1].X := Pt.Data[0] + Size.Data[0];
-  Result.Data[1].Y := Pt.Data[1] + Size.Data[1];
-  Result.Data[1].Z := Pt.Data[2] + Size.Data[2];
+  Result.Data[0].X := Pt.X - Size.X;
+  Result.Data[0].Y := Pt.Y - Size.Y;
+  Result.Data[0].Z := Pt.Z - Size.Z;
+  Result.Data[1].X := Pt.X + Size.X;
+  Result.Data[1].Y := Pt.Y + Size.Y;
+  Result.Data[1].Z := Pt.Z + Size.Z;
 end;
 
 function CalculateBoundingBox(

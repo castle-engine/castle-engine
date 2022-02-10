@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1529,10 +1529,10 @@ begin
   begin
     // convert tangents to right-handed
     // slower: Dest^ := Source^.XYZ * Source^.W;
-    W := Source^.Data[3];
-    Dest^.Data[0] := Source^.Data[0] * W;
-    Dest^.Data[1] := Source^.Data[1] * W;
-    Dest^.Data[2] := Source^.Data[2] * W;
+    W := Source^.W;
+    Dest^.X := Source^.X * W;
+    Dest^.Y := Source^.Y * W;
+    Dest^.Z := Source^.Z * W;
     Inc(Source);
     Inc(Dest);
   end;

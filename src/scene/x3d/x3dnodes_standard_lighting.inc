@@ -537,7 +537,7 @@ begin
     calculate Side,
     and make Up orthogonal to Dir }
   Side := TVector3.CrossProduct(Dir, Up).Normalize;
-  Dir.NormalizeMe;
+  Dir := Dir.Normalize;
   Up := TVector3.CrossProduct(Side, Dir);
 end;
 

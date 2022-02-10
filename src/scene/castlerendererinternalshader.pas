@@ -1625,10 +1625,10 @@ class function TTextureShader.TextureEnvMix(const AEnv: TTextureEnv; const Multi
   function MultiTextureColorStr: String;
   begin
     Result := FormatDot('vec4(%f, %f, %f, %f)', [
-      MultiTextureColor.Data[0],
-      MultiTextureColor.Data[1],
-      MultiTextureColor.Data[2],
-      MultiTextureColor.Data[3]
+      MultiTextureColor.X,
+      MultiTextureColor.Y,
+      MultiTextureColor.Z,
+      MultiTextureColor.W
     ]);
   end;
 
@@ -3110,10 +3110,10 @@ function TShader.CodeHash: TShaderCodeHash;
     FCodeHash.AddInteger(Ord(GammaCorrection) * 347);
     FCodeHash.AddInteger(Ord(ToneMapping) * 331);
     FCodeHash.AddInteger(Ord(MainTextureMapping) * 839);
-    FCodeHash.AddFloat(MultiTextureColor.Data[0], 5821);
-    FCodeHash.AddFloat(MultiTextureColor.Data[1], 5827);
-    FCodeHash.AddFloat(MultiTextureColor.Data[2], 5839);
-    FCodeHash.AddFloat(MultiTextureColor.Data[3], 5843);
+    FCodeHash.AddFloat(MultiTextureColor.X, 5821);
+    FCodeHash.AddFloat(MultiTextureColor.Y, 5827);
+    FCodeHash.AddFloat(MultiTextureColor.Z, 5839);
+    FCodeHash.AddFloat(MultiTextureColor.W, 5843);
   end;
 
 begin

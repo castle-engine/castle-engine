@@ -4457,19 +4457,19 @@ end;
 
 function TCastleWindow.LeftTopToCastle(const V: TVector2): TVector2;
 begin
-  Result := LeftTopToCastle(V.Data[0], V.Data[1]);
+  Result := LeftTopToCastle(V.X, V.Y);
 end;
 
 function TCastleWindow.LeftTopToCastle(const X, Y: Single): TVector2;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := FRealHeight - 1 - Y;
+  Result.X := X;
+  Result.Y := FRealHeight - 1 - Y;
 end;
 
 function TCastleWindow.CastleToLeftTopInt(const V: TVector2): TVector2Integer;
 begin
-  Result.Data[0] := Floor(V.Data[0]);
-  Result.Data[1] := FRealHeight - 1 - Floor(V.Data[1]);
+  Result.X := Floor(V.X);
+  Result.Y := FRealHeight - 1 - Floor(V.Y);
 end;
 
 { TWindowList ------------------------------------------------------------ }

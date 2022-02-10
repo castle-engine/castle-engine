@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2018 Michalis Kamburelis.
+  Copyright 2009-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -517,7 +517,7 @@ var
       Normal := Normal + FaceNormal(0, -1);
     if (I > 0) and (J > 0) then
       Normal := Normal + FaceNormal(-1, -1);
-    Normal.NormalizeMe;
+    Normal := Normal.Normalize;
   end;
 
 var

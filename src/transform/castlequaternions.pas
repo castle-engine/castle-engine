@@ -74,12 +74,12 @@ type
     { Quaternion conjugation. This is just a fancy name for negating @code(Data.Vector).
       @groupBegin }
     function Conjugate: TQuaternion;
-    procedure ConjugateMe;
+    procedure ConjugateMe; deprecated 'use Q := Q.Conjugate';
     { @groupEnd }
 
     { Make the quaternion normalized. }
-    procedure NormalizeMe;
-    procedure Normalize; deprecated 'use NormalizeMe (consistent with TVector3.NormalizeMe and TQuaternion.ConjugateMe)';
+    function Normalize: TQuaternion;
+    procedure NormalizeMe; deprecated 'use Q := Q.Normalize';
 
     { Perform normalization but only if the quaternion is detected to be
       "significantly unnormalized". It checks if the quaternion needs
@@ -335,9 +335,19 @@ begin
     Data.Real);
 end;
 
-procedure TQuaternion.Normalize;
+function TQuaternion.Normalize: TQuaternion;
+var
+  Len: Single;
 begin
-  NormalizeMe;
+  Len := Data.Vector4.Length;
+  if Len <> 0 then
+  begin
+    Len := 1/Len;
+    Result.Data.Vector.X := Data.Vector.X * Len;
+    Result.Data.Vector.Y := Data.Vector.Y * Len;
+    Result.Data.Vector.Z := Data.Vector.Z * Len;
+    Result.Data.Real := Data.Real * Len;
+  end;
 end;
 
 procedure TQuaternion.NormalizeMe;
@@ -464,7 +474,7 @@ begin
     Result.Data.Vector4[2] := 0.25 * S;
   end;
 
-  Result.NormalizeMe;
+  Result := Result.Normalize;
 end;
 
 procedure MatrixDecompose(const Matrix: TMatrix4;
@@ -480,12 +490,12 @@ begin
   }
 
   // calculate Translation
-  Translation.Init(Matrix.Data[3, 0], Matrix.Data[3, 1], Matrix.Data[3, 2]);
+  Translation := Vector3(Matrix.Data[3, 0], Matrix.Data[3, 1], Matrix.Data[3, 2]);
 
   // calculate Scale
   for I := 0 to 2 do
   begin
-    Column.Init(Matrix.Data[I, 0], Matrix.Data[I, 1], Matrix.Data[I, 2]);
+    Column := Vector3(Matrix.Data[I, 0], Matrix.Data[I, 1], Matrix.Data[I, 2]);
     Scale.Data[I] := Column.Length;
   end;
 
@@ -580,7 +590,7 @@ begin
   end else
     Result.Data.Vector4 := Lerp(A, Q1.Data.Vector4, Q2.Data.Vector4);
 
-  Result.NormalizeMe;
+  Result := Result.Normalize;
 end;
 
 function NLerp(const A: Single; const Rot1, Rot2: TVector4;

@@ -136,8 +136,8 @@ function VectorMultiplyComponents(const V1, V2: TVector4): TVector4; overload; d
 function VectorProduct(const V1, V2: TVector3): TVector3; overload; deprecated 'use TVector3.CrossProduct';
 function Normalized(const V: TVector2): TVector2; overload; deprecated 'use V.Normalize method';
 function Normalized(const V: TVector3): TVector3; overload; deprecated 'use V.Normalize method';
-procedure NormalizeVar(var V: TVector2); overload; deprecated 'use V.NormalizeMe method';
-procedure NormalizeVar(var V: TVector3); overload; deprecated 'use V.NormalizeMe method';
+procedure NormalizeVar(var V: TVector2); overload; deprecated 'use V := V.Normalize';
+procedure NormalizeVar(var V: TVector3); overload; deprecated 'use V := V.Normalize';
 function MatrixMult(const M1, M2: TMatrix4): TMatrix4; overload; deprecated 'use * operator to multiply matrices';
 function MatrixMultPoint(const M: TMatrix4; const P: TVector2): TVector2; overload; deprecated 'use M.MultPoint method';
 function MatrixMultPoint(const M: TMatrix4; const P: TVector3): TVector3; overload; deprecated 'use M.MultPoint method';
@@ -385,12 +385,12 @@ end;
 
 procedure NormalizeVar(var V: TVector2);
 begin
-  V.NormalizeMe;
+  V := V.Normalize;
 end;
 
 procedure NormalizeVar(var V: TVector3);
 begin
-  V.NormalizeMe;
+  V := V.Normalize;
 end;
 
 function MatrixMult(const M1, M2: TMatrix4): TMatrix4;

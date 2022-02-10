@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -218,7 +218,7 @@ procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
 
     { When Result[1] is zero (straight cylinder), it's already normalized }
     if Result[1] <> 0 then
-      Result.NormalizeMe;
+      Result := Result.Normalize;
   end;
 
 var

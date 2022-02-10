@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -431,7 +431,7 @@ begin
       P1 := GetMostDistantVertex(Center);
       if not EarAround(P1, P0, P2, PolygonNormal) then Exit;
       Assert(not PolygonNormal.IsZero);
-      PolygonNormal.NormalizeMe;
+      PolygonNormal := PolygonNormal.Normalize;
 
       if LogTriangulation then
         WritelnLog('Triangulation', Format('Most distant vertex: %d. Triangle for PolygonNormal: %d - %d - %d. Polygon normal: %s',
@@ -497,7 +497,7 @@ begin
               Leave ValidEar = false, so it will not be actually returned. }
             Break;
           end;
-          EarNormal.NormalizeMe;
+          EarNormal := EarNormal.Normalize;
 
           ValidEar := true;
 
@@ -716,7 +716,7 @@ begin
     Exit(ResultForIncorrectPoly);
   end;
 
-  Result.NormalizeMe;
+  Result := Result.Normalize;
 end;
 
 function IndexedPolygonNormal(

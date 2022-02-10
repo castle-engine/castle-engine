@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2018 Michalis Kamburelis.
+  Copyright 2007-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -464,10 +464,10 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
           flip NearPlane. Also, calculations of other side planes should
           generate flipped planes. }
 
-        if (NearPlane.Data[0] * LightPosition.Data[0] +
-            NearPlane.Data[1] * LightPosition.Data[1] +
-            NearPlane.Data[2] * LightPosition.Data[2] +
-            NearPlane.Data[3] * LightPosition.Data[3]) > 0 then
+        if (NearPlane.X * LightPosition.X +
+            NearPlane.Y * LightPosition.Y +
+            NearPlane.Z * LightPosition.Z +
+            NearPlane.W * LightPosition.W) > 0 then
         begin
           NearPlane := -NearPlane;
           Result :=
@@ -503,9 +503,9 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
         NearPlane := TrianglePlane(
           FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ);
 
-        if (NearPlane.Data[0] * LightPosition.Data[0] +
-            NearPlane.Data[1] * LightPosition.Data[1] +
-            NearPlane.Data[2] * LightPosition.Data[2]) > 0 then
+        if (NearPlane.X * LightPosition.X +
+            NearPlane.Y * LightPosition.Y +
+            NearPlane.Z * LightPosition.Z) > 0 then
         begin
           Result :=
             InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, (FrustumNearPoints[0].XYZ + LightPosition3^))) and

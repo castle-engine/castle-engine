@@ -1212,7 +1212,7 @@ const
           DirectColor := DirectColor * Material.DiffuseColor;
 
           { calculate LightDirNorm (znormalizowane), NegatedLightDirNorm }
-          LightDirNorm.NormalizeMe;
+          LightDirNorm := LightDirNorm.Normalize;
           NegatedLightDirNorm := -LightDirNorm;
 
           { Wymnoz DirectColor

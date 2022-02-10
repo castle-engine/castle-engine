@@ -686,7 +686,7 @@ begin
   if Result.IsZero then
     Result := ResultForIncorrectPoly
   else
-    Result.NormalizeMe;
+    Result := Result.Normalize;
 end;
 
 function IndexedConvexPolygonArea(
@@ -1706,7 +1706,7 @@ begin
   else
     Tangent := TriangleCoord.Data[0] - DIn3D;
 
-  Tangent.NormalizeMe;
+  Tangent := Tangent.Normalize;
 
   Result := true;
 end;

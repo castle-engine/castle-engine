@@ -2701,8 +2701,8 @@ var
   OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
   APos, ADir, AUp: TVector3;
 begin
-  AInitialDirection.NormalizeMe;
-  AInitialUp.NormalizeMe;
+  AInitialDirection := AInitialDirection.Normalize;
+  AInitialUp := AInitialUp.Normalize;
   MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
 
   if TransformCurrentCamera then
@@ -5584,8 +5584,8 @@ var
   Rot1Quat, Rot2Quat: TQuaternion;
   Rot1CosAngle, Rot2CosAngle: Single;
 begin
-  Direction.NormalizeMe;
-  Up.NormalizeMe;
+  Direction := Direction.Normalize;
+  Up := Up.Normalize;
 
   { calculate Rot1Quat }
   Rot1Axis := TVector3.CrossProduct(DefaultDirection, Direction);
@@ -5600,7 +5600,7 @@ begin
     { Normalize *after* checking ZeroVector, otherwise normalization
       could change some almost-zero vector into a (practically random)
       vector of length 1. }
-    Rot1Axis.NormalizeMe;
+    Rot1Axis := Rot1Axis.Normalize;
   Rot1CosAngle := TVector3.DotProduct(DefaultDirection, Direction);
   Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
@@ -5611,7 +5611,7 @@ begin
     Calculating Rot2Axis below is a solution. }
   Rot2Axis := TVector3.CrossProduct(DefaultUpAfterRot1, Up);
 
-  (*We could now do Rot2Axis.NormalizeMe,
+  (*We could now do Rot2Axis := Rot2Axis.Normalize,
     after making sure it's not zero. Like
 
     { we need larger epsilon for ZeroVector below, in case
@@ -5622,7 +5622,7 @@ begin
       { Normalize *after* checking ZeroVector, otherwise normalization
         could change some almost-zero vector into a (practically random)
         vector of length 1. }
-      Rot2Axis.NormalizeMe;
+      Rot2Axis := Rot2Axis.Normalize;
 
     And later do
 

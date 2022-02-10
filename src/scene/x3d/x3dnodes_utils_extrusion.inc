@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -216,7 +216,7 @@ var
       Y := (SpinePoints.List^[I] - SpinePoints.List^[I - 1]);
       if not Y.IsZero then
       begin
-        Y.NormalizeMe;
+        Y := Y.Normalize;
         Exit;
       end;
     end;
@@ -279,7 +279,7 @@ var
     Y := SpinePoints.List^[1] - SpinePoints.List^[High - 1];
 
     if not Y.IsZero then
-      Y.NormalizeMe else
+      Y := Y.Normalize else
       FindFirstNonCoincident(Y);
 
     Z := TVector3.CrossProduct(
@@ -287,9 +287,9 @@ var
       (SpinePoints.List^[High - 1] - SpinePoints.List^[0]));
 
     if not Z.IsZero then
-      Z.NormalizeMe else
+      Z := Z.Normalize else
     if FindFirstNonColinear(Z) then
-      Z.NormalizeMe else
+      Z := Z.Normalize else
       Z := AllColinear(Y);
   end;
 
@@ -314,11 +314,11 @@ begin
     begin
       Y := (SpinePoints.List^[1] - SpinePoints.List^[0]);
       if not Y.IsZero then
-        Y.NormalizeMe else
+        Y := Y.Normalize else
         FindFirstNonCoincident(Y);
 
       if FindFirstNonColinear(Z) then
-        Z.NormalizeMe else
+        Z := Z.Normalize else
         Z := AllColinear(Y);
     end;
   end else
@@ -329,7 +329,7 @@ begin
     begin
       Y := (SpinePoints.List^[High] - SpinePoints.List^[High - 1]);
       if not Y.IsZero then
-        Y.NormalizeMe else
+        Y := Y.Normalize else
         Y := LastY;
 
       Z := LastZ;
@@ -343,7 +343,7 @@ begin
     Y := (SpinePoints.List^[Spine + 1] - SpinePoints.List^[Spine - 1]);
 
     if not Y.IsZero then
-      Y.NormalizeMe else
+      Y := Y.Normalize else
       Y := LastY;
 
     Z := TVector3.CrossProduct(
@@ -351,7 +351,7 @@ begin
       (SpinePoints.List^[Spine - 1] - SpinePoints.List^[Spine]));
 
     if not Z.IsZero then
-      Z.NormalizeMe else
+      Z := Z.Normalize else
       Z := LastZ;
   end;
 

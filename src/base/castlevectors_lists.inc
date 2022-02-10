@@ -277,7 +277,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    List^[I].NormalizeMe;
+    List^[I] := List^[I].Normalize;
 end;
 
 procedure TVector3List.MultiplyComponents(const V: TVector3);
@@ -316,8 +316,7 @@ begin
   Count := ACount;
   for I := 0 to Count - 1 do
   begin
-    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
-    List^[I].NormalizeMe;
+    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]).Normalize;
   end;
 end;
 

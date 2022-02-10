@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -107,8 +107,8 @@ begin
   for I := Low(V) to High(V) do
   begin
     V3D[I].Data[FAxis] := 0;
-    V3D[I].Data[C1] := V[I].Data[0];
-    V3D[I].Data[C2] := V[I].Data[1];
+    V3D[I].Data[C1] := V[I].X;
+    V3D[I].Data[C2] := V[I].Y;
   end;
 
   FCoordinateNode.SetPoint(V3D);

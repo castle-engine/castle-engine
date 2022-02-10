@@ -1461,8 +1461,8 @@ procedure TGLRenderedTextureNode.Update(
     //Up := keep current Up
 
     { calculate Side, and make Dir, Up normalized and orthogonal }
-    Dir.NormalizeMe;
-    //Up.NormalizeMe; // no need to
+    Dir := Dir.Normalize;
+    //Up := Up.Normalize; // no need to
     MakeVectorsOrthoOnTheirPlane(Up, Dir);
     Side := TVector3.CrossProduct(Dir, Up);
 

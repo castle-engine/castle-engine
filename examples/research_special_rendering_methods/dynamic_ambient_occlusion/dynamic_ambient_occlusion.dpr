@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2020 Michalis Kamburelis.
+  Copyright 2009-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -192,7 +192,7 @@ procedure CalculateElements;
 
       { Normalize all new normals }
       for I := 0 to Coord.Count - 1 do
-        ShapeElements[I].Normal.NormalizeMe;
+        ShapeElements[I].Normal := ShapeElements[I].Normal.Normalize;
     end else
     begin
       SetLength(Shapes[ShapeIndex].CoordToElement, 0);

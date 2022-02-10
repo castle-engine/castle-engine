@@ -1,5 +1,5 @@
 {
-  Copyright 2011-2018 Michalis Kamburelis.
+  Copyright 2011-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -113,7 +113,7 @@ begin
     like the ones calculated in TriangulateFace algorithm. }
   EarNormal := TriangleDirection(V0, V1, V2);
   Assert(not EarNormal.IsZero);
-  EarNormal.NormalizeMe;
+  EarNormal := EarNormal.Normalize;
 
   E1 := TVector3.CrossProduct(EarNormal, V0 - V1);
   E2 := TVector3.CrossProduct(EarNormal, V1 - V2);

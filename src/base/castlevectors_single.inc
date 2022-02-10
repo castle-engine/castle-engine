@@ -2162,7 +2162,7 @@ begin
   if N.IsZero then
     Exit(false); // ray parallel to axis, no sensible answer
 
-  // N.NormalizeMe; // it is not necessary to normalize for anything below
+  // N := N.Normalize; // it is not necessary to normalize for anything below
 
   // Dist := TVector3.DotProduct(N, Line0 - Ray0){ / N.Length}; // not needed in this approach
 

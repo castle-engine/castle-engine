@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -702,8 +702,8 @@ begin
     G := Glyph(C);
     if G <> nil then
     begin
-      Result.Data[0] := Result.Data[0] + G.AdvanceX;
-      Result.Data[1] := Result.Data[1] + G.AdvanceY;
+      Result.X := Result.X + G.AdvanceX;
+      Result.Y := Result.Y + G.AdvanceY;
     end;
 
     {$ifdef FPC}
