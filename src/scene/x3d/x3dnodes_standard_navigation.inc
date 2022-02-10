@@ -430,7 +430,7 @@ begin
 
       { plane of axisOfRotation }
       PlaneAxisDir := Parent.FdAxisOfRotation.Value;
-      PlaneAxis[3] := 0;
+      PlaneAxis.W := 0;
 
       { we want to have a rotation that changes TVector3.One[2]
         into BillboardToViewer. But the rotation axis is fixed

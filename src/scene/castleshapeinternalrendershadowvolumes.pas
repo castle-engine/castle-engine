@@ -126,15 +126,15 @@ var
   LightPos3: TVector3 absolute LightPos;
 begin
   { Below is the moment when we require that
-    if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
-    Otherwise we would have to divide here LightPos3 by LightPos[3].
+    if LightPos.W <> 0 then LightPos.W = 1 (not any other non-zero value).
+    Otherwise we would have to divide here LightPos3 by LightPos.W.
     Maybe in the future this requirement will be removed and we'll work
     for any LightPos in homogeneous coordinates, for now it's not really
     needed. }
-  Result[0] := Original[0] -  LightPos3[0];
-  Result[1] := Original[1] -  LightPos3[1];
-  Result[2] := Original[2] -  LightPos3[2];
-  Result[3] := 0;
+  Result.X := Original.X -  LightPos3.X;
+  Result.Y := Original.Y -  LightPos3.Y;
+  Result.Z := Original.Z -  LightPos3.Z;
+  Result.W := 0;
 end;
 
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(

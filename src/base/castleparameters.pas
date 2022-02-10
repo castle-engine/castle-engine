@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -700,9 +700,9 @@ end;
 
 function SeparateArgsToVector3(const v: TSeparateArgs): TVector3;
 begin
-  Result[0] := StrToFloatDot(v[1]);
-  Result[1] := StrToFloatDot(v[2]);
-  Result[2] := StrToFloatDot(v[3]);
+  Result.X := StrToFloatDot(v[1]);
+  Result.Y := StrToFloatDot(v[2]);
+  Result.Z := StrToFloatDot(v[3]);
 end;
 
 function SeparateArgsToVector3Single(const v: TSeparateArgs): TVector3;

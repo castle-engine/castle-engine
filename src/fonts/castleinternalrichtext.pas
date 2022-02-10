@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2021 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -659,12 +659,12 @@ var
     { we have to find ">, and have exactly 6 or 8 characters for color }
     Result := (EndPos = I + 6) or (EndPos = I + 8);
 
-    Color[0] := StrHexToInt(Copy(S, I    , 2)) / 255;
-    Color[1] := StrHexToInt(Copy(S, I + 2, 2)) / 255;
-    Color[2] := StrHexToInt(Copy(S, I + 4, 2)) / 255;
+    Color.X := StrHexToInt(Copy(S, I    , 2)) / 255;
+    Color.Y := StrHexToInt(Copy(S, I + 2, 2)) / 255;
+    Color.Z := StrHexToInt(Copy(S, I + 4, 2)) / 255;
     if EndPos = I + 8 then
-      Color[3] := StrHexToInt(Copy(S, I + 6, 2)) / 255 else
-      Color[3] := 1.0;
+      Color.W := StrHexToInt(Copy(S, I + 6, 2)) / 255 else
+      Color.W := 1.0;
   end;
 
   function ReadFontSize(const S: string; const I: Integer;

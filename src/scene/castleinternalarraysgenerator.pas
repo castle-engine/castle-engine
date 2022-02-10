@@ -1085,9 +1085,9 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
 
     begin
       FillChar(Gen, SizeOf(Gen), 0);
-      Gen[Coord] := (GenEnd - GenStart) / LocalBBoxSize[Coord];
-      Gen[3] :=
-        - LocalBBox.Data[0].Data[Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
+      Gen.InternalData[Coord] := (GenEnd - GenStart) / LocalBBoxSize[Coord];
+      Gen.InternalData[3] :=
+        - LocalBBox.Data[0].InternalData[Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
         + GenStart;
     end;
 
@@ -1505,26 +1505,26 @@ function TAbstractTextureCoordinateGenerator.GetTextureCoord(
       tgBounds2d:
         begin
           Vertex := GetVertex(IndexNum);
-          Result[0] := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[0]);
-          Result[1] := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[1]);
-          Result[2] := 0;
-          Result[3] := 1;
+          Result.X := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[0]);
+          Result.Y := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[1]);
+          Result.Z := 0;
+          Result.W := 1;
         end;
       tgBounds3d:
         begin
           Vertex := GetVertex(IndexNum);
-          Result[0] := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[0]);
-          Result[1] := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[1]);
-          Result[2] := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[2]);
-          Result[3] := 1;
+          Result.X := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[0]);
+          Result.Y := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[1]);
+          Result.Z := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[2]);
+          Result.W := 1;
         end;
       tgCoord:
         begin
           Vertex := GetVertex(IndexNum);
-          Result[0] := Vertex[0];
-          Result[1] := Vertex[1];
-          Result[2] := Vertex[2];
-          Result[3] := 1;
+          Result.X := Vertex.X;
+          Result.Y := Vertex.Y;
+          Result.Z := Vertex.Z;
+          Result.W := 1;
         end;
       else WritelnWarning('X3D', Format('Generating on CPU texture coordinates with %d not implemented yet',
         [Integer(TexCoord.Generation)]));
@@ -1593,8 +1593,8 @@ var
   Tex4f: TVector4;
 begin
   Result := GetTextureCoord(IndexNum, TextureUnit, Tex4f);
-  Tex[0] := Tex4f[0];
-  Tex[1] := Tex4f[1];
+  Tex.X := Tex4f.X;
+  Tex.Y := Tex4f.Y;
 end;
 
 procedure TAbstractTextureCoordinateGenerator.GenerateVertex(indexNum: integer);
@@ -2342,9 +2342,9 @@ begin
   if CalculateTangents then
   begin
     { calculate TriangleCoord }
-    TriangleCoord.Data[0] := GetVertex(TriangleIndex1);
-    TriangleCoord.Data[1] := GetVertex(TriangleIndex2);
-    TriangleCoord.Data[2] := GetVertex(TriangleIndex3);
+    TriangleCoord[0] := GetVertex(TriangleIndex1);
+    TriangleCoord[1] := GetVertex(TriangleIndex2);
+    TriangleCoord[2] := GetVertex(TriangleIndex3);
 
     if not (
       { calculate TriangleTexCoord }

@@ -137,9 +137,9 @@ procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
       SRemoveMnemonics(Item.Caption) + '" be checked ?');
     if Item.Checked then
       case Item.IntData of
-        25: begin Translation[0] := -0.5; Transform.Translation := Translation; end;
-        26: begin Translation[0] :=  0.0; Transform.Translation := Translation; end;
-        27: begin Translation[0] :=  0.5; Transform.Translation := Translation; end;
+        25: begin Translation.X := -0.5; Transform.Translation := Translation; end;
+        26: begin Translation.X :=  0.0; Transform.Translation := Translation; end;
+        27: begin Translation.X :=  0.5; Transform.Translation := Translation; end;
       end;
   end;
 
@@ -160,9 +160,9 @@ begin
         end;
     20: Window.Close;
 
-    21: begin Translation[1] :=  0.5; Transform.Translation := Translation; end;
-    22: begin Translation[1] :=    0; Transform.Translation := Translation; end;
-    23: begin Translation[1] := -0.5; Transform.Translation := Translation; end;
+    21: begin Translation.Y :=  0.5; Transform.Translation := Translation; end;
+    22: begin Translation.Y :=    0; Transform.Translation := Translation; end;
+    23: begin Translation.Y := -0.5; Transform.Translation := Translation; end;
 
     25..27: ChangeChecked(Item as TMenuItemRadio);
 

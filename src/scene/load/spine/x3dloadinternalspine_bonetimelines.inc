@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -228,8 +228,8 @@ begin
   begin
     PreviousTime := Time[I];
     NextTime     := Time[I + 1];
-    PreviousValue := Vector4(Vectors.List^[I    ].Data[0], Vectors.List^[I    ].Data[1], 0, 0);
-    NextValue     := Vector4(Vectors.List^[I + 1].Data[0], Vectors.List^[I + 1].Data[1], 0, 0);
+    PreviousValue := Vector4(Vectors.List^[I    ].X, Vectors.List^[I    ].Y, 0, 0);
+    NextValue     := Vector4(Vectors.List^[I + 1].X, Vectors.List^[I + 1].Y, 0, 0);
 
     if not (Json[I] is TJSONObject) then
     begin
@@ -341,11 +341,11 @@ procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
   begin
     { multiply setup pose transformation (scale) by key scale,
       as bone timeline is relative to setup pose }
-    Result[0] := InitialScale[0] * KeyScale[0];
-    Result[1] := InitialScale[1] * KeyScale[1];
-    { This must be 1.0, not something like (Result[0] + Result[1]) / 2,
+    Result.X := InitialScale.X * KeyScale.X;
+    Result.Y := InitialScale.Y * KeyScale.Y;
+    { This must be 1.0, not something like (Result.X + Result.Y) / 2,
       since scaling in Z will move the bone in front/back of the other bones. }
-    Result[2] := 1.0;
+    Result.Z := 1.0;
   end;
 
 var
@@ -400,8 +400,8 @@ var
   I: Integer;
 begin
   for I := 0 to Vectors.Count - 1 do
-    if (Vectors[I][0] <> 1) or
-       (Vectors[I][1] <> 1) then
+    if (Vectors[I].X <> 1) or
+       (Vectors[I].Y <> 1) then
       Exit(true);
   Result := false;
 end;

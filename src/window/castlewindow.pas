@@ -3702,9 +3702,9 @@ function TCastleWindow.ColorDialog(var Color: TVector3Byte): boolean;
 var
   ColorSingle: TVector3;
 begin
-  ColorSingle[0] := Color[0] / High(Byte);
-  ColorSingle[1] := Color[1] / High(Byte);
-  ColorSingle[2] := Color[2] / High(Byte);
+  ColorSingle.X := Color.X / High(Byte);
+  ColorSingle.Y := Color.Y / High(Byte);
+  ColorSingle.Z := Color.Z / High(Byte);
   Result := ColorDialog(ColorSingle);
   if Result then
     Color := Vector3Byte(ColorSingle);

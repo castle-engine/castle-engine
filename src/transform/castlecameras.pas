@@ -3346,8 +3346,8 @@ var
     if not RotationEnabled then Exit;
 
     if RotationAccelerate then
-      FRotationsAnim[coord] :=
-        Clamped(FRotationsAnim[coord] +
+      FRotationsAnim.InternalData[coord] :=
+        Clamped(FRotationsAnim.InternalData[coord] +
           RotationAccelerationSpeed * SecondsPassed * Direction,
           -MaxRotationSpeed, MaxRotationSpeed)
     else
@@ -3411,7 +3411,7 @@ begin
         if Inputs_Move[i, true ].IsPressed(Container) then
         begin
           MoveChangeVector := TVector3.Zero;
-          MoveChangeVector[I] := MoveChange;
+          MoveChangeVector.InternalData[I] := MoveChange;
           V.Translation := V.Translation + MoveChangeVector;
 
           HandleInput := not ExclusiveEvents;
@@ -3419,7 +3419,7 @@ begin
         if Inputs_Move[i, false].IsPressed(Container) then
         begin
           MoveChangeVector := TVector3.Zero;
-          MoveChangeVector[I] := -MoveChange;
+          MoveChangeVector.InternalData[I] := -MoveChange;
           V.Translation := V.Translation + MoveChangeVector;
 
           HandleInput := not ExclusiveEvents;
@@ -3488,7 +3488,7 @@ var
   V: TVector3;
 begin
   V := TVector3.Zero;
-  V[Coord] := MoveDistance;
+  V.InternalData[Coord] := MoveDistance;
   Translation := Translation + V;
 end;
 
@@ -5046,44 +5046,44 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     MoveSizeX := 0;
     MoveSizeY := 0;
 
-    if Abs(Delta[0]) < Tolerance then
-      Delta[0] := 0
+    if Abs(Delta.X) < Tolerance then
+      Delta.X := 0
     else
-      MoveSizeX := (Abs(Delta[0]) - Tolerance) * MouseDraggingMoveSpeed;
+      MoveSizeX := (Abs(Delta.X) - Tolerance) * MouseDraggingMoveSpeed;
 
-    if Abs(Delta[1]) < Tolerance then
-      Delta[1] := 0
+    if Abs(Delta.Y) < Tolerance then
+      Delta.Y := 0
     else
-      MoveSizeY := (Abs(Delta[1]) - Tolerance) * MouseDraggingMoveSpeed;
+      MoveSizeY := (Abs(Delta.Y) - Tolerance) * MouseDraggingMoveSpeed;
 
     if buttonLeft in Container.MousePressed then
     begin
-      if Delta[1] < -Tolerance then
+      if Delta.Y < -Tolerance then
         MoveHorizontal(-MoveSizeY * SecondsPassed, 1); { forward }
-      if Delta[1] > Tolerance then
+      if Delta.Y > Tolerance then
         MoveHorizontal(-MoveSizeY * SecondsPassed, -1); { backward }
 
-      if Abs(Delta[0]) > Tolerance then
-        RotateHorizontal(-Delta[0] * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
+      if Abs(Delta.X) > Tolerance then
+        RotateHorizontal(-Delta.X * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
     end
     else if buttonRight in Container.MousePressed then
     begin
-      if Delta[0] < -Tolerance then
+      if Delta.X < -Tolerance then
       begin
         RotateHorizontalForStrafeMove(HalfPi);
         MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife left }
         RotateHorizontalForStrafeMove(-HalfPi);
       end;
-      if Delta[0] > Tolerance then
+      if Delta.X > Tolerance then
       begin
         RotateHorizontalForStrafeMove(-HalfPi);
         MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife right }
         RotateHorizontalForStrafeMove(HalfPi);
       end;
 
-      if Delta[1] < -5 then
+      if Delta.Y < -5 then
         MoveVertical(-MoveSizeY * SecondsPassed, 1);    { fly up }
-      if Delta[1] > 5 then
+      if Delta.Y > 5 then
         MoveVertical(-MoveSizeY * SecondsPassed, -1);   { fly down }
     end;
   end;
@@ -5393,9 +5393,11 @@ begin
 
     Camera.ProjectionNear := Radius * RadiusToProjectionNear;
 
-    Pos[0] := Box.Data[0].X - AvgSize;
-    Pos[1] := (Box.Data[0].Y + Box.Data[1].Y) / 2;
-    Pos[2] := (Box.Data[0].Z + Box.Data[1].Z) / 2;
+    Pos := Vector3(
+      Box.Data[0].X - AvgSize,
+      (Box.Data[0].Y + Box.Data[1].Y) / 2,
+      (Box.Data[0].Z + Box.Data[1].Z) / 2
+    );
     Camera.Init(Pos,
       DefaultCameraDirection,
       DefaultCameraUp,
@@ -5447,8 +5449,8 @@ end;
 procedure TCastleWalkNavigation.ProcessMouseLookDelta(const Delta: TVector2);
 begin
   inherited;
-  RotateHorizontal(-Delta[0]);
-  RotateVertical(Delta[1]);
+  RotateHorizontal(-Delta.X);
+  RotateVertical(Delta.Y);
 end;
 
 function TCastleWalkNavigation.Motion(const Event: TInputMotion): boolean;
@@ -5726,9 +5728,9 @@ begin
     Offset := 2 * Box.AverageSize;
 
     if WantedDirectionPositive then
-      Position[WantedDirection] := Box.Data[0].Data[WantedDirection] - Offset
+      Position.InternalData[WantedDirection] := Box.Data[0].InternalData[WantedDirection] - Offset
     else
-      Position[WantedDirection] := Box.Data[1].Data[WantedDirection] + Offset;
+      Position.InternalData[WantedDirection] := Box.Data[1].InternalData[WantedDirection] + Offset;
   end;
 
   { GravityUp is just always equal Up here. }

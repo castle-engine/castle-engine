@@ -619,7 +619,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(ADefaultValue.TIndex) do
-    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+    Result.InternalData[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue.InternalData[I]);
 end;
 
 function TCastleConfig.GetVector2(const APath: string): TVector2;
@@ -627,7 +627,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(Result.TIndex) do
-    Result[I] := GetFloat(APath + VectorComponentPaths[I]);
+    Result.InternalData[I] := GetFloat(APath + VectorComponentPaths[I]);
 end;
 
 procedure TCastleConfig.SetVector2(const APath: string;
@@ -636,7 +636,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+    SetFloat(APath + VectorComponentPaths[I], AValue.InternalData[I]);
 end;
 
 procedure TCastleConfig.SetDeleteVector2(const APath: string;
@@ -645,7 +645,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue.InternalData[I], ADefaultValue.InternalData[I]);
 end;
 
 function TCastleConfig.GetVector3(const APath: string;
@@ -654,7 +654,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(ADefaultValue.TIndex) do
-    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+    Result.InternalData[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue.InternalData[I]);
 end;
 
 function TCastleConfig.GetVector3(const APath: string): TVector3;
@@ -662,7 +662,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(Result.TIndex) do
-    Result[I] := GetFloat(APath + VectorComponentPaths[I]);
+    Result.InternalData[I] := GetFloat(APath + VectorComponentPaths[I]);
 end;
 
 procedure TCastleConfig.SetVector3(const APath: string;
@@ -671,7 +671,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+    SetFloat(APath + VectorComponentPaths[I], AValue.InternalData[I]);
 end;
 
 procedure TCastleConfig.SetDeleteVector3(const APath: string;
@@ -680,7 +680,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue.InternalData[I], ADefaultValue.InternalData[I]);
 end;
 
 function TCastleConfig.GetVector4(const APath: string;
@@ -689,7 +689,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(ADefaultValue.TIndex) do
-    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+    Result.InternalData[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue.InternalData[I]);
 end;
 
 function TCastleConfig.GetVector4(const APath: string): TVector4;
@@ -697,7 +697,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(Result.TIndex) do
-    Result[I] := GetFloat(APath + VectorComponentPaths[I]);
+    Result.InternalData[I] := GetFloat(APath + VectorComponentPaths[I]);
 end;
 
 procedure TCastleConfig.SetVector4(const APath: string;
@@ -706,7 +706,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+    SetFloat(APath + VectorComponentPaths[I], AValue.InternalData[I]);
 end;
 
 procedure TCastleConfig.SetDeleteVector4(const APath: string;
@@ -715,7 +715,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue.InternalData[I], ADefaultValue.InternalData[I]);
 end;
 
 { deprecated get/set on vectors ---------------------------------------------- }
@@ -726,7 +726,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(ADefaultValue.TIndex) do
-    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+    Result.InternalData[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue.InternalData[I]);
 end;
 
 procedure TCastleConfig.SetValue(const APath: string;
@@ -735,7 +735,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+    SetFloat(APath + VectorComponentPaths[I], AValue.InternalData[I]);
 end;
 
 procedure TCastleConfig.SetDeleteValue(const APath: string;
@@ -744,7 +744,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue.InternalData[I], ADefaultValue.InternalData[I]);
 end;
 
 function TCastleConfig.GetValue(const APath: string;
@@ -753,7 +753,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(ADefaultValue.TIndex) do
-    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+    Result.InternalData[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue.InternalData[I]);
 end;
 
 procedure TCastleConfig.SetValue(const APath: string;
@@ -762,7 +762,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+    SetFloat(APath + VectorComponentPaths[I], AValue.InternalData[I]);
 end;
 
 procedure TCastleConfig.SetDeleteValue(const APath: string;
@@ -771,7 +771,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue.InternalData[I], ADefaultValue.InternalData[I]);
 end;
 
 function TCastleConfig.GetValue(const APath: string;
@@ -780,7 +780,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(ADefaultValue.TIndex) do
-    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+    Result.InternalData[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue.InternalData[I]);
 end;
 
 procedure TCastleConfig.SetValue(const APath: string;
@@ -789,7 +789,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+    SetFloat(APath + VectorComponentPaths[I], AValue.InternalData[I]);
 end;
 
 procedure TCastleConfig.SetDeleteValue(const APath: string;
@@ -798,7 +798,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(AValue.TIndex) do
-    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue.InternalData[I], ADefaultValue.InternalData[I]);
 end;
 
 { get/set colors ------------------------------------------------------------- }
@@ -823,7 +823,7 @@ begin
       Result := HexToColorRGB(Hex) else
     begin
       for I := 0 to High(ADefaultColor.TIndex) do
-        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+        Result.InternalData[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor.InternalData[I]), 0.0, 1.0);
     end;
   end;
 end;
@@ -842,7 +842,7 @@ begin
       Result := HexToColorRGB(Hex) else
     begin
       for I := 0 to High(Result.TIndex) do
-        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
+        Result.InternalData[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
     end;
   end;
 end;
@@ -882,7 +882,7 @@ begin
       Result := HexToColor(Hex) else
     begin
       for I := 0 to High(ADefaultColor.TIndex) do
-        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+        Result.InternalData[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor.InternalData[I]), 0.0, 1.0);
     end;
   end;
 end;
@@ -901,7 +901,7 @@ begin
       Result := HexToColor(Hex) else
     begin
       for I := 0 to High(Result.TIndex) do
-        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
+        Result.InternalData[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
     end;
   end;
 end;

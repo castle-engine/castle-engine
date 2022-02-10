@@ -218,9 +218,11 @@ var
 
   function RandomVector3: TVector3;
   begin
-   result[0] := Random*1000 -500.0;
-   result[1] := Random*1000 -500.0;
-   result[2] := Random*1000 -500.0;
+    Result := Vector3(
+      Random*1000 -500.0,
+      Random*1000 -500.0,
+      Random*1000 -500.0
+    );
   end;
 
 const VConst: TVector3 = (X: 1.0; Y: 2.0; Z: 3.0);
@@ -241,14 +243,14 @@ begin
   PlaneConstCoord := Random(3);
   PlaneConstVal := Random*1000 - 500;
   FillChar(Plane, SizeOf(Plane), 0);
-  Plane[PlaneConstCoord] := -1;
-  Plane[3] := PlaneConstVal;
+  Plane.InternalData[PlaneConstCoord] := -1;
+  Plane.InternalData[3] := PlaneConstVal;
 
   { czasami uczyn promien rownoleglym do [Simple]Plane (zeby zobaczyc
     czy sobie z tym radzi) }
   if Random(10) = 1 then
   begin
-   RayDirection[PlaneConstCoord] := 0;
+   RayDirection.InternalData[PlaneConstCoord] := 0;
    b1 := TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, RayOrigin, RayDirection);
    b2 := TryPlaneRayIntersection(I2, Plane, RayOrigin, RayDirection);
    Check( (not b1) and (not b2) ,'intersect with parallel plane');
@@ -520,9 +522,11 @@ end;
 
 function RandomVector: TVector3;
 begin
-  result[0] := Random*1000;
-  result[1] := Random*1000;
-  result[2] := Random*1000;
+  Result := Vector3(
+    Random*1000,
+    Random*1000,
+    Random*1000
+  );
 end;
 
 function RandomMatrix: TMatrix4;

@@ -2385,12 +2385,12 @@ type
   var
     SourceRect, DestRect: TRectangle;
   begin
-    SourceRect := CastleRectangles.Rectangle(SourceXs.Data[X], SourceYs.Data[Y],
-      SourceXs.Data[Integer(X) + 1] - SourceXs.Data[X],
-      SourceYs.Data[Integer(Y) + 1] - SourceYs.Data[Y]);
-    DestRect := CastleRectangles.Rectangle(DestXs.Data[X], DestYs.Data[Y],
-      DestXs.Data[Integer(X) + 1] - DestXs.Data[X],
-      DestYs.Data[Integer(Y) + 1] - DestYs.Data[Y]);
+    SourceRect := CastleRectangles.Rectangle(SourceXs.InternalData[X], SourceYs.InternalData[Y],
+      SourceXs.InternalData[Integer(X) + 1] - SourceXs.InternalData[X],
+      SourceYs.InternalData[Integer(Y) + 1] - SourceYs.InternalData[Y]);
+    DestRect := CastleRectangles.Rectangle(DestXs.InternalData[X], DestYs.InternalData[Y],
+      DestXs.InternalData[Integer(X) + 1] - DestXs.InternalData[X],
+      DestYs.InternalData[Integer(Y) + 1] - DestYs.InternalData[Y]);
     InternalResize(PixelSize,
       RawPixels, SourceRect, Width, Height,
       NewPixels, DestRect, ResizeWidth, ResizeHeight,

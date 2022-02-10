@@ -1945,7 +1945,7 @@ begin
 
   { take into account InternalDistort* properties }
   AspectRatio := InternalDistortViewAspect * Viewport.Width / Viewport.Height;
-  FProjection.PerspectiveAnglesRad[1] := InternalDistortFieldOfViewY * FProjection.PerspectiveAnglesRad[1];
+  FProjection.PerspectiveAnglesRad.Y := InternalDistortFieldOfViewY * FProjection.PerspectiveAnglesRad.Y;
 
   { Apply new FProjection values }
   M := FProjection.Matrix(AspectRatio);
@@ -2184,8 +2184,8 @@ begin
     'Near: %f' + NL +
     'Far: %f', [
     ProjectionTypeToStr(Result.ProjectionType),
-    Result.PerspectiveAngles[0],
-    Result.PerspectiveAngles[1],
+    Result.PerspectiveAngles.X,
+    Result.PerspectiveAngles.Y,
     Result.Dimensions.ToString,
     Result.ProjectionNear,
     Result.ProjectionFar

@@ -312,21 +312,21 @@ var
       XDirectionLenSqr := XDirection.LengthSqr;
       YDirectionLenSqr := YDirection.LengthSqr;
 
-      R0[0] := TVector3.DotProduct(Ray0, XDirection) / XDirectionLenSqr;
-      R0[1] := TVector3.DotProduct(Ray0, YDirection) / YDirectionLenSqr;
-      RDirection[0] := TVector3.DotProduct(RayDirection, XDirection) / XDirectionLenSqr;
-      RDirection[1] := TVector3.DotProduct(RayDirection, YDirection) / YDirectionLenSqr;
+      R0.X := TVector3.DotProduct(Ray0, XDirection) / XDirectionLenSqr;
+      R0.Y := TVector3.DotProduct(Ray0, YDirection) / YDirectionLenSqr;
+      RDirection.X := TVector3.DotProduct(RayDirection, XDirection) / XDirectionLenSqr;
+      RDirection.Y := TVector3.DotProduct(RayDirection, YDirection) / YDirectionLenSqr;
 
-      if IsZero(RDirection[1]) then Exit(false);
+      if IsZero(RDirection.Y) then Exit(false);
 
       { we're interested now in intersection on OX axis with ray.
         R0 + RDirection * T = (X, 0), so
         T = -R0.y / RDirection.y, and
         X = R0.x + RDirection.x * T }
-      T := - R0[1] / RDirection[1];
+      T := - R0.Y / RDirection.Y;
       if T < 0 then Exit(false);
 
-      X := R0[0] + RDirection[0] * T;
+      X := R0.X + RDirection.X * T;
       Result := (0 <= X) and (X <= 1);
     end;
 

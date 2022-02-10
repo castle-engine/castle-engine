@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -326,8 +326,8 @@ begin
   SetLength(PointsSingle, Length(Points));
   for I := 0 to Length(Points) - 1 do
     PointsSingle[I] := Vector2(
-      Points[I].Data[0],
-      Points[I].Data[1]);
+      Points[I].X,
+      Points[I].Y);
   DrawPrimitive2D(Mode, PointsSingle, Color,
     BlendingSourceFactor, BlendingDestinationFactor, ForceBlending,
     LineWidth, PointSize);
@@ -366,7 +366,7 @@ begin
   RenderContext.LineWidth := LineWidth;
   RenderContext.PointSize := PointSize;
 
-  Blending := ForceBlending or (Color[3] < 1);
+  Blending := ForceBlending or (Color.W < 1);
   if Blending then
   begin
     GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
@@ -561,13 +561,13 @@ begin
     else
       SinCos(2 * Pi * I / CircleSlices, NextSin, NextCos);
     CirclePoint[(I - 1) * 3    ] := Vector2(
-      Middle[0],
+      Middle.X,
       Middle[1]);
     CirclePoint[(I - 1) * 3 + 1] := Vector2(
-      Middle[0] + PreviousSin * HorizontalRadius,
+      Middle.X + PreviousSin * HorizontalRadius,
       Middle[1] + PreviousCos * VerticalRadius);
     CirclePoint[(I - 1) * 3 + 2] := Vector2(
-      Middle[0] + NextSin     * HorizontalRadius,
+      Middle.X + NextSin     * HorizontalRadius,
       Middle[1] + NextCos     * VerticalRadius);
     PreviousSin := NextSin;
     PreviousCos := NextCos;
@@ -608,7 +608,7 @@ begin
   begin
     SinCos(2 * Pi * I / (CircleSlices - 1), S, C);
     CirclePoint[I] := Vector2(
-      Middle[0] + S * HorizontalRadius,
+      Middle.X + S * HorizontalRadius,
       Middle[1] + C * VerticalRadius);
   end;
 

@@ -74,8 +74,20 @@ type
     var
       X, Y: TGenericScalar;
 
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y to change vector components.
+      Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
       deprecated 'use instead X, Y fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.TranslationXY.Data[0] := Scene.TranslationXY.Data[0] + 1"';
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector2): TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -101,7 +113,7 @@ type
       with a best precision possible. }
     function ToRawString: string;
 
-    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
       deprecated 'use instead X, Y fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.TranslationXY[0] := Scene.TranslationXY[0] + 1"';
 
     function Normalize: TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -178,8 +190,20 @@ type
     var
       X, Y, Z: TGenericScalar;
 
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
       deprecated 'use instead X, Y, Z fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Translation.Data[0] := Scene.Translation.Data[0] + 1"';
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector3): TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector3): TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -205,7 +229,7 @@ type
       with a best precision possible. }
     function ToRawString: string;
 
-    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
       deprecated 'use instead X, Y, Z fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.Translation[0] := Scene.Translation[0] + 1"';
 
     function Normalize: TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -319,8 +343,20 @@ type
     var
       X, Y, Z, W: TGenericScalar;
 
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z, W to change vector components.
+      Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
       deprecated 'use instead X, Y, Z, W fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Rotation.Data[0] := Scene.Rotation.Data[0] + 1"';
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z, W to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector4): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector4): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -346,7 +382,7 @@ type
       with a best precision possible. }
     function ToRawString: string;
 
-    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
       deprecated 'use instead X, Y, Z, W fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.Rotation[0] := Scene.Rotation[0] + 1"';
 
     function Length: TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -879,7 +915,7 @@ end;
 class function TGenericVector2.GetOne(const Index: TIndex): TGenericVector2;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result[Index] := 1.0;
+  Result.InternalData[Index] := 1.0;
 end;
 
 { TGenericVector3 ------------------------------------------------------------ }
@@ -1130,7 +1166,7 @@ end;
 class function TGenericVector3.GetOne(const Index: TIndex): TGenericVector3;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result[Index] := 1.0;
+  Result.InternalData[Index] := 1.0;
 end;
 
 { TGenericVector4 ------------------------------------------------------------ }
@@ -1383,7 +1419,7 @@ end;
 class function TGenericVector4.GetOne(const Index: TIndex): TGenericVector4;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result[Index] := 1.0;
+  Result.InternalData[Index] := 1.0;
 end;
 
 { TGenericMatrix2 ------------------------------------------------------------ }

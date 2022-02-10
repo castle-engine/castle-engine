@@ -31,15 +31,27 @@ type
     var
       X, Y: Integer;
 
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y to change vector components.
+      Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: Integer read GetItems write SetItems;
       deprecated 'use instead X, Y fields';
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: Integer read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: Integer read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Integer): TVector2Integer; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Integer): TVector2Integer; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Integer): TVector2Integer; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Integer read GetItems write SetItems; default;
+    property Items [const Index: TIndex]: Integer read GetItems write SetItems;
       deprecated 'use instead X, Y fields';
 
     function IsZero: boolean; inline;
@@ -60,15 +72,27 @@ type
     var
       X, Y, Z: Integer;
 
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: Integer read GetItems write SetItems;
       deprecated 'use instead X, Y, Z fields';
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: Integer read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: Integer read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Integer): TVector3Integer; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Integer): TVector3Integer; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Integer): TVector3Integer; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Integer read GetItems write SetItems; default;
+    property Items [const Index: TIndex]: Integer read GetItems write SetItems;
       deprecated 'use instead X, Y, Z fields';
 
     function IsZero: boolean; inline;
@@ -89,15 +113,27 @@ type
     var
       X, Y, Z, W: Integer;
 
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z, W to change vector components.
+      Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: Integer read GetItems write SetItems;
       deprecated 'use instead X, Y, Z, W fields';
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: Integer read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: Integer read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Integer): TVector4Integer; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Integer): TVector4Integer; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Integer): TVector4Integer; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Integer read GetItems write SetItems; default;
+    property Items [const Index: TIndex]: Integer read GetItems write SetItems;
       deprecated 'use instead X, Y, Z, W fields';
 
     function IsZero: boolean; inline;

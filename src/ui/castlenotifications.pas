@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -317,7 +317,7 @@ begin
     if TimerSeconds(TimerNow, Messages[I].Time) > TimeoutToFade then
     begin
       C := Messages[I].Color;
-      C[3] := MapRange(TimerSeconds(TimerNow, Messages[I].Time),
+      C.W := MapRange(TimerSeconds(TimerNow, Messages[I].Time),
         TimeoutToFade, Timeout, 1, 0);
       Messages[I].Color := C;
       VisibleChange([chRectangle]);

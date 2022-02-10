@@ -120,10 +120,10 @@ begin
   AssertBox3DPlaneCollision(
     Box, Vector4(1, 0, 0, 0), pcIntersecting);
 
-  Plane[0] := 0;
-  Plane[1] := 0;
-  Plane[2] := 1;
-  Plane[3] := 1.980401039E+00;
+  Plane.X := 0;
+  Plane.Y := 0;
+  Plane.Z := 1;
+  Plane.W := 1.980401039E+00;
   Box.Data[0].X :=  2.837333679E-01;
   Box.Data[0].Y := -9.844776917E+01;
   Box.Data[0].Z := -1.980401039E+00;
@@ -256,27 +256,27 @@ var
     for I := 0 to 2 do
       if Plane[I] > 0 then
       begin
-        VMin[I] := -BoxHalfSize[I];
-        VMax[I] :=  BoxHalfSize[I];
+        VMin.InternalData[I] := -BoxHalfSize[I];
+        VMax.InternalData[I] :=  BoxHalfSize[I];
       end else
       begin
-        VMin[I] :=  BoxHalfSize[I];
-        VMax[I] := -BoxHalfSize[I];
+        VMin.InternalData[I] :=  BoxHalfSize[I];
+        VMax.InternalData[I] := -BoxHalfSize[I];
       end;
 
     { If VMin is above the plane (plane equation is > 0), then VMax
       is also above, no need to test anything else. }
-    if Plane[0] * VMin[0] +
-       Plane[1] * VMin[1] +
-       Plane[2] * VMin[2] +
-       Plane[3] > Epsilon then
+    if Plane.X * VMin.X +
+       Plane.Y * VMin.Y +
+       Plane.Z * VMin.Z +
+       Plane.W > Epsilon then
       Exit(false);
 
     { So VMin is <= plane. So if VMax is >= 0, then there's a collision. }
-    Result :=  Plane[0] * VMax[0] +
-               Plane[1] * VMax[1] +
-               Plane[2] * VMax[2] +
-               Plane[3] >= Epsilon;
+    Result :=  Plane.X * VMax.X +
+               Plane.Y * VMax.Y +
+               Plane.Z * VMax.Z +
+               Plane.W >= Epsilon;
   end;
 
   function IsBox3DTriangleCollision(
@@ -310,7 +310,7 @@ var
       p2 := a * TriangleMoved.Data[2].Y - b * TriangleMoved.Data[2].Z;
       if p0<p2 then begin min := p0; max := p2; end else
                     begin min := p2; max := p0; end;
-      rad := fa * BoxHalfSize[1] + fb * BoxHalfSize[2];
+      rad := fa * BoxHalfSize.Y + fb * BoxHalfSize.Z;
       Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
@@ -322,7 +322,7 @@ var
       p1 := a * TriangleMoved.Data[1].Y - b * TriangleMoved.Data[1].Z;
       if p0<p1 then begin min := p0; max := p1; end else
                     begin min := p1; max := p0; end;
-      rad := fa * BoxHalfSize[1] + fb * BoxHalfSize[2];
+      rad := fa * BoxHalfSize.Y + fb * BoxHalfSize.Z;
       Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
@@ -335,7 +335,7 @@ var
       p2 := -a * TriangleMoved.Data[2].X + b * TriangleMoved.Data[2].Z;
       if p0<p2 then begin min := p0; max := p2; end else
                     begin min := p2; max := p0; end;
-      rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[2];
+      rad := fa * BoxHalfSize.X + fb * BoxHalfSize.Z;
       Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
@@ -347,7 +347,7 @@ var
       p1 := -a * TriangleMoved.Data[1].X + b * TriangleMoved.Data[1].Z;
       if p0<p1 then begin min := p0; max := p1; end else
                     begin min := p1; max := p0; end;
-      rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[2];
+      rad := fa * BoxHalfSize.X + fb * BoxHalfSize.Z;
       Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
@@ -360,7 +360,7 @@ var
       p2 := a * TriangleMoved.Data[2].X - b * TriangleMoved.Data[2].Y;
       if p2<p1 then begin min := p2; max := p1; end else
                     begin min := p1; max := p2; end;
-      rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[1];
+      rad := fa * BoxHalfSize.X + fb * BoxHalfSize.Y;
       Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
@@ -372,7 +372,7 @@ var
       p1 := a * TriangleMoved.Data[1].X - b * TriangleMoved.Data[1].Y;
       if p0<p1 then begin min := p0; max := p1; end else
                     begin min := p1; max := p0; end;
-      rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[1];
+      rad := fa * BoxHalfSize.X + fb * BoxHalfSize.Y;
       Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
@@ -401,8 +401,8 @@ var
     { calculate BoxCenter and BoxHalfSize }
     for I := 0 to 2 do
     begin
-      BoxCenter[I] := (Box.Data[0].Data[I] + Box.Data[1].Data[I]) / 2;
-      BoxHalfSize[I] := (Box.Data[1].Data[I] - Box.Data[0].Data[I]) / 2;
+      BoxCenter.InternalData[I] := (Box.Data[0].Data[I] + Box.Data[1].Data[I]) / 2;
+      BoxHalfSize.InternalData[I] := (Box.Data[1].Data[I] - Box.Data[0].Data[I]) / 2;
     end;
 
     { calculate TriangleMoved (Triangle shifted by -BoxCenter,
@@ -417,26 +417,26 @@ var
     TriangleEdges[2] := TriangleMoved.Data[0] - TriangleMoved.Data[2];
 
     { tests 3) }
-    EdgeAbs[0] := Abs(TriangleEdges[0].X);
-    EdgeAbs[1] := Abs(TriangleEdges[0].Y);
-    EdgeAbs[2] := Abs(TriangleEdges[0].Z);
-    if AXISTEST_X01(TriangleEdges[0].Z, TriangleEdges[0].Y, EdgeAbs[2], EdgeAbs[1]) then Exit(false);
-    if AXISTEST_Y02(TriangleEdges[0].Z, TriangleEdges[0].X, EdgeAbs[2], EdgeAbs[0]) then Exit(false);
-    if AXISTEST_Z12(TriangleEdges[0].Y, TriangleEdges[0].X, EdgeAbs[1], EdgeAbs[0]) then Exit(false);
+    EdgeAbs.X := Abs(TriangleEdges[0].X);
+    EdgeAbs.Y := Abs(TriangleEdges[0].Y);
+    EdgeAbs.Z := Abs(TriangleEdges[0].Z);
+    if AXISTEST_X01(TriangleEdges[0].Z, TriangleEdges[0].Y, EdgeAbs.Z, EdgeAbs.Y) then Exit(false);
+    if AXISTEST_Y02(TriangleEdges[0].Z, TriangleEdges[0].X, EdgeAbs.Z, EdgeAbs.X) then Exit(false);
+    if AXISTEST_Z12(TriangleEdges[0].Y, TriangleEdges[0].X, EdgeAbs.Y, EdgeAbs.X) then Exit(false);
 
-    EdgeAbs[0] := Abs(TriangleEdges[1].X);
-    EdgeAbs[1] := Abs(TriangleEdges[1].Y);
-    EdgeAbs[2] := Abs(TriangleEdges[1].Z);
-    if AXISTEST_X01(TriangleEdges[1].Z, TriangleEdges[1].Y, EdgeAbs[2], EdgeAbs[1]) then Exit(false);
-    if AXISTEST_Y02(TriangleEdges[1].Z, TriangleEdges[1].X, EdgeAbs[2], EdgeAbs[0]) then Exit(false);
-    if AXISTEST_Z0 (TriangleEdges[1].Y, TriangleEdges[1].X, EdgeAbs[1], EdgeAbs[0]) then Exit(false);
+    EdgeAbs.X := Abs(TriangleEdges[1].X);
+    EdgeAbs.Y := Abs(TriangleEdges[1].Y);
+    EdgeAbs.Z := Abs(TriangleEdges[1].Z);
+    if AXISTEST_X01(TriangleEdges[1].Z, TriangleEdges[1].Y, EdgeAbs.Z, EdgeAbs.Y) then Exit(false);
+    if AXISTEST_Y02(TriangleEdges[1].Z, TriangleEdges[1].X, EdgeAbs.Z, EdgeAbs.X) then Exit(false);
+    if AXISTEST_Z0 (TriangleEdges[1].Y, TriangleEdges[1].X, EdgeAbs.Y, EdgeAbs.X) then Exit(false);
 
-    EdgeAbs[0] := Abs(TriangleEdges[2].X);
-    EdgeAbs[1] := Abs(TriangleEdges[2].Y);
-    EdgeAbs[2] := Abs(TriangleEdges[2].Z);
-    if AXISTEST_X2 (TriangleEdges[2].Z, TriangleEdges[2].Y, EdgeAbs[2], EdgeAbs[1]) then Exit(false);
-    if AXISTEST_Y1 (TriangleEdges[2].Z, TriangleEdges[2].X, EdgeAbs[2], EdgeAbs[0]) then Exit(false);
-    if AXISTEST_Z12(TriangleEdges[2].Y, TriangleEdges[2].X, EdgeAbs[1], EdgeAbs[0]) then Exit(false);
+    EdgeAbs.X := Abs(TriangleEdges[2].X);
+    EdgeAbs.Y := Abs(TriangleEdges[2].Y);
+    EdgeAbs.Z := Abs(TriangleEdges[2].Z);
+    if AXISTEST_X2 (TriangleEdges[2].Z, TriangleEdges[2].Y, EdgeAbs.Z, EdgeAbs.Y) then Exit(false);
+    if AXISTEST_Y1 (TriangleEdges[2].Z, TriangleEdges[2].X, EdgeAbs.Z, EdgeAbs.X) then Exit(false);
+    if AXISTEST_Z12(TriangleEdges[2].Y, TriangleEdges[2].X, EdgeAbs.Y, EdgeAbs.X) then Exit(false);
 
     { tests 1)
       first test overlap in the (x,y,z)-directions
@@ -446,24 +446,24 @@ var
 
     { test in X-direction }
     FindMinMax(TriangleMoved.Data[0].X, TriangleMoved.Data[1].X, TriangleMoved.Data[2].X, min, max);
-    if (min >  boxhalfsize[0] + Epsilon) or
-       (max < -boxhalfsize[0] - Epsilon) then Exit(false);
+    if (min >  boxhalfsize.X + Epsilon) or
+       (max < -boxhalfsize.X - Epsilon) then Exit(false);
 
     { test in Y-direction }
     FindMinMax(TriangleMoved.Data[0].Y, TriangleMoved.Data[1].Y, TriangleMoved.Data[2].Y, min, max);
-    if (min >  boxhalfsize[1] + Epsilon) or
-       (max < -boxhalfsize[1] - Epsilon) then Exit(false);
+    if (min >  boxhalfsize.Y + Epsilon) or
+       (max < -boxhalfsize.Y - Epsilon) then Exit(false);
 
     { test in Z-direction }
     FindMinMax(TriangleMoved.Data[0].Z, TriangleMoved.Data[1].Z, TriangleMoved.Data[2].Z, min, max);
-    if (min >  boxhalfsize[2] + Epsilon) or
-       (max < -boxhalfsize[2] - Epsilon) then Exit(false);
+    if (min >  boxhalfsize.Z + Epsilon) or
+       (max < -boxhalfsize.Z - Epsilon) then Exit(false);
 
     { tests 2)
       test if the box intersects the plane of the triangle
       compute plane equation of triangle: normal*x+d=0 }
     PlaneDir := TVector3.CrossProduct(TriangleEdges[0], TriangleEdges[1]);
-    Plane[3] := -TVector3.DotProduct(PlaneDir, TriangleMoved.Data[0]);
+    Plane.W := -TVector3.DotProduct(PlaneDir, TriangleMoved.Data[0]);
     if not IsCenteredBox3DPlaneCollision(BoxHalfSize, Plane) then
       Exit(false);
 
@@ -673,8 +673,10 @@ procedure TTestCastleBoxes.TestBox3DTransform;
       Val1 := 50 - Random * 100;
       Val2 := 50 - Random * 100;
       OrderUp(Val1, Val2);
-      Result.Data[0].Data[I] := Val1;
-      Result.Data[1].Data[I] := Val2;
+      {$warnings off} // silence FPC warning about Normal uninitialized
+      Result.Data[0].InternalData[I] := Val1;
+      {$warnings on}
+      Result.Data[1].InternalData[I] := Val2;
     end;
   end;
 
@@ -744,7 +746,7 @@ begin
     Vector3(50, 60, 70)).MaximumPlane(Vector3(0, 0, -1)));
 
   AssertVectorEquals(Vector4(1, 1, 1,
-      { 50 + 60 + 70 + Result.Data[3] = 0 }
+      { 50 + 60 + 70 + Result.Data.W = 0 }
       - 50 - 60 - 70
     ), Box3D(
     Vector3(2, 3, 4),
@@ -768,7 +770,7 @@ begin
     Vector3(50, 60, 70)).MinimumPlane(Vector3(0, 0, 1)));
 
   AssertVectorEquals(Vector4(1, 1, 1,
-      { 2 + 3 + 4 + Result.Data[3] = 0 }
+      { 2 + 3 + 4 + Result.Data.W = 0 }
       - 2 - 3 - 4
     ), Box3D(
     Vector3(2, 3, 4),

@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -428,7 +428,7 @@ var
 begin
   MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
   for I := 0 to VectorGetCount - 1 do
-    MyResult.FValue[I] :=
+    MyResult.FValue.InternalData[I] :=
       Max( TSelfClass(Arguments[0]).FValue[I],
            TSelfClass(Arguments[1]).FValue[I] );
   MyResult.ValueAssigned := true;
@@ -444,7 +444,7 @@ var
 begin
   MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
   for I := 0 to VectorGetCount - 1 do
-    MyResult.FValue[I] :=
+    MyResult.FValue.InternalData[I] :=
       Min( TSelfClass(Arguments[0]).FValue[I],
            TSelfClass(Arguments[1]).FValue[I] );
   MyResult.ValueAssigned := true;
@@ -460,7 +460,7 @@ var
 begin
   MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
   for I := 0 to VectorGetCount - 1 do
-    MyResult.FValue[I] := TCasScriptFloat(Arguments[I]).Value;
+    MyResult.FValue.InternalData[I] := TCasScriptFloat(Arguments[I]).Value;
   MyResult.ValueAssigned := true;
 end;
 
@@ -498,7 +498,7 @@ begin
     raise ECasScriptError.CreateFmt('Invalid index %d for vector_set on %d-element vector',
       [Index, VectorGetCount]);
 
-  TSelfClass(Arguments[0]).FValue[Index] := TCasScriptFloat(Arguments[2]).Value;
+  TSelfClass(Arguments[0]).FValue.InternalData[Index] := TCasScriptFloat(Arguments[2]).Value;
   TSelfClass(Arguments[0]).ValueAssigned := true;
 
   AResult := Arguments[0];

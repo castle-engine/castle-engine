@@ -168,9 +168,9 @@ procedure TTestImages.TestRGBEToRGBTranslating;
   begin
    for i := 1 to 1000 do
    begin
-    rgb[0] := Random*UpperValue;
-    rgb[1] := Random*UpperValue;
-    rgb[2] := Random*UpperValue;
+    rgb.X := Random*UpperValue;
+    rgb.Y := Random*UpperValue;
+    rgb.Z := Random*UpperValue;
 
     rgbe := Vector3ToRGBE(rgb);
     newrgb := VectorRGBETo3Single(rgbe);

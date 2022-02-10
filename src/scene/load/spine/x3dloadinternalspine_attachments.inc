@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -211,10 +211,10 @@ end;
 procedure TRegionAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
 begin
   inherited;
-  XY[0] := Json.Get('x', 0.0);
-  XY[1] := Json.Get('y', 0.0);
-  Scale[0] := Json.Get('scaleX', 1.0);
-  Scale[1] := Json.Get('scaleY', 1.0);
+  XY.X := Json.Get('x', 0.0);
+  XY.Y := Json.Get('y', 0.0);
+  Scale.X := Json.Get('scaleX', 1.0);
+  Scale.Y := Json.Get('scaleY', 1.0);
   Rotation := Json.Get('rotation', 0.0);
   Width := Json.Get('width', 0);
   Height := Json.Get('height', 0);
@@ -236,8 +236,8 @@ begin
   Node := TTransformNode.Create(
     Format('Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
-  Node.Translation := Vector3(XY[0], XY[1], 0);
-  Node.Scale := Vector3(Scale[0], Scale[1], 1);
+  Node.Translation := Vector3(XY.X, XY.Y, 0);
+  Node.Scale := Vector3(Scale.X, Scale.Y, 1);
   Node.Rotation := Vector4(0, 0, 1, DegToRad(Rotation));
 
   Shape := TShapeNode.Create('', BaseUrl);
@@ -297,16 +297,16 @@ begin
     Format('Coordinate_Slot_%s_Attachment_%s', [SlotName, Name]), // name it, as ROUTE may lead to it
     Faces.BaseUrl);
   Rect[0] := Vector2(
-    MapRange(TexRect[0][0], 0, 1, -Width / 2, Width / 2),
-    MapRange(TexRect[0][1], 0, 1, -Height / 2, Height / 2));
+    MapRange(TexRect[0].X, 0, 1, -Width / 2, Width / 2),
+    MapRange(TexRect[0].Y, 0, 1, -Height / 2, Height / 2));
   Rect[1] := Vector2(
-    MapRange(TexRect[1][0], 0, 1, -Width / 2, Width / 2),
-    MapRange(TexRect[1][1], 0, 1, -Height / 2, Height / 2));
+    MapRange(TexRect[1].X, 0, 1, -Width / 2, Width / 2),
+    MapRange(TexRect[1].Y, 0, 1, -Height / 2, Height / 2));
   Coord.SetPoint([
-    Vector3(Rect[0][0], Rect[0][1], 0),
-    Vector3(Rect[1][0], Rect[0][1], 0),
-    Vector3(Rect[1][0], Rect[1][1], 0),
-    Vector3(Rect[0][0], Rect[1][1], 0)]);
+    Vector3(Rect[0].X, Rect[0].Y, 0),
+    Vector3(Rect[1].X, Rect[0].Y, 0),
+    Vector3(Rect[1].X, Rect[1].Y, 0),
+    Vector3(Rect[0].X, Rect[1].Y, 0)]);
   Faces.Coord := Coord;
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
@@ -376,7 +376,7 @@ begin
     Format('Coordinate_Slot_%s_Attachment_%s', [SlotName, Name]), // name it, as ROUTE may lead to it
     Faces.BaseUrl);
   for I := 0 to Vertices.Count - 1 do
-    Coord.FdPoint.Items.Add(Vector3(Vertices[I][0], Vertices[I][1], 0));
+    Coord.FdPoint.Items.Add(Vector3(Vertices[I].X, Vertices[I].Y, 0));
   Faces.Coord := Coord;
 
   { We do not guarantee correct rendering when model used
@@ -393,10 +393,10 @@ begin
     parts within the non-whitespace region (TexRect). Which is true
     in practice in all the examples. }
 
-  if ((TexRect[0][0] <> 0) or
-      (TexRect[1][0] <> 0) or
-      (TexRect[0][1] <> 1) or
-      (TexRect[1][1] <> 1)) and
+  if ((TexRect[0].X <> 0) or
+      (TexRect[1].X <> 0) or
+      (TexRect[0].Y <> 1) or
+      (TexRect[1].Y <> 1)) and
      SpineVerboseWarnings then
     WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "compress whitespace" option selected. '+'Rendering artifacts may occur if mesh faces use the texture in "whitespace" region --- in such case, export again with "compress whitespace" turned off at atlas generation.',
       [SlotName, Name]));
@@ -405,14 +405,14 @@ begin
     WritelnWarning('Spine ' + URIDisplay(BaseUrl), 'Atlas region is rotated, and is used for mesh attachment. This is not supported (texture will most likely be applied incorrectly), export atlas again with "Rotate" turned off.');
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
-  UVRangeX[0] := Min(TexCoord[0][0], TexCoord[2][0]);
-  UVRangeX[1] := Max(TexCoord[0][0], TexCoord[2][0]);
-  UVRangeY[0] := Min(TexCoord[0][1], TexCoord[2][1]);
-  UVRangeY[1] := Max(TexCoord[0][1], TexCoord[2][1]);
+  UVRangeX.X := Min(TexCoord[0].X, TexCoord[2].X);
+  UVRangeX.Y := Max(TexCoord[0].X, TexCoord[2].X);
+  UVRangeY.X := Min(TexCoord[0].Y, TexCoord[2].Y);
+  UVRangeY.Y := Max(TexCoord[0].Y, TexCoord[2].Y);
   for I := 0 to UVs.Count - 1 do
     TexCoordNode.FdPoint.Items.Add(Vector2(
-      MapRange(UVs[I][0], 0, 1, UVRangeX[0], UVRangeX[1]),
-      MapRange(UVs[I][1], 1, 0, UVRangeY[0], UVRangeY[1])
+      MapRange(UVs[I].X, 0, 1, UVRangeX.X, UVRangeX.Y),
+      MapRange(UVs[I].Y, 1, 0, UVRangeY.X, UVRangeY.Y)
     ));
   Faces.FdTexCoord.Value := TexCoordNode;
 end;
@@ -447,8 +447,8 @@ begin
     B := TMeshVertexBone.Create;
     Bones.Add(B);
     B.Bone := AllBones[BoneIndex];
-    B.V[0] := JsonArray[Index].AsFloat; Inc(Index);
-    B.V[1] := JsonArray[Index].AsFloat; Inc(Index);
+    B.V.X := JsonArray[Index].AsFloat; Inc(Index);
+    B.V.Y := JsonArray[Index].AsFloat; Inc(Index);
     B.Weight := JsonArray[Index].AsFloat; Inc(Index);
   end;
 end;

@@ -123,8 +123,8 @@ type
 
       @preformatted(
         Result.X * Triangle.Data[0] +
-        Result.Data[1] * Triangle.Data[1] +
-        Result.Data[2] * Triangle.Data[2] = Point
+        Result.Y * Triangle.Data[1] +
+        Result.Z * Triangle.Data[2] = Point
       )
 
       See also [http://en.wikipedia.org/wiki/Barycentric_coordinate_system_%28mathematics%29] }
@@ -604,7 +604,7 @@ var
 begin
   if VerticesStride = 0 then VerticesStride := SizeOf(TVector3);
   for i := 0 to 2 do
-    Tri.Data[i] := PVector3(PointerAdd(VerticesArray, VerticesStride*Integer(Indexes.Data[i])))^;
+    Tri.Data[i] := PVector3(PointerAdd(VerticesArray, VerticesStride*Integer(Indexes[i])))^;
   Result := Tri.Normal;
 end;
 
@@ -965,9 +965,9 @@ var
   B: TVector3;
 begin
   B := World.Triangle.Barycentric(Point);
-  Result := Normal.Data[0] * B[0] +
-            Normal.Data[1] * B[1] +
-            Normal.Data[2] * B[2];
+  Result := Normal[0] * B[0] +
+            Normal[1] * B[1] +
+            Normal[2] * B[2];
 end;
 
 function TTriangle.INormal(const Point: TVector3): TVector3;
@@ -1087,7 +1087,7 @@ begin
   (* dzialamy tak samo jak TrianglePlane tyle ze teraz uzywamy TriangleNormal
      zamiast TriangleNormalNotNorm *)
   ResultNormal := Normal;
-  Result.Data[3] :=
+  Result.W :=
     -ResultNormal.X * Data[0].X
     -ResultNormal.Y * Data[0].Y
     -ResultNormal.Z * Data[0].Z;
@@ -1169,17 +1169,17 @@ begin
 
   { Now calculate coordinates on 2D, following equations at wikipedia }
   Det :=
-    (Data[1].Data[C2] - Data[2].Data[C2]) * (Data[0].Data[C1] - Data[2].Data[C1]) +
-    (Data[0].Data[C2] - Data[2].Data[C2]) * (Data[2].Data[C1] - Data[1].Data[C1]);
-  Result.Data[0] := (
-    (Data[1].Data[C2] - Data[2].Data[C2]) * (  Point.Data[C1] - Data[2].Data[C1]) +
-    (  Point.Data[C2] - Data[2].Data[C2]) * (Data[2].Data[C1] - Data[1].Data[C1])
+    (Data[1][C2] - Data[2][C2]) * (Data[0][C1] - Data[2][C1]) +
+    (Data[0][C2] - Data[2][C2]) * (Data[2][C1] - Data[1][C1]);
+  Result.X := (
+    (Data[1][C2] - Data[2][C2]) * (  Point[C1] - Data[2][C1]) +
+    (  Point[C2] - Data[2][C2]) * (Data[2][C1] - Data[1][C1])
     ) / Det;
-  Result.Data[1] := (
-    (  Point.Data[C2] - Data[2].Data[C2]) * (Data[0].Data[C1] - Data[2].Data[C1]) +
-    (Data[2].Data[C2] - Data[0].Data[C2]) * (  Point.Data[C1] - Data[2].Data[C1])
+  Result.Y := (
+    (  Point[C2] - Data[2][C2]) * (Data[0][C1] - Data[2][C1]) +
+    (Data[2][C2] - Data[0][C2]) * (  Point[C1] - Data[2][C1])
     ) / Det;
-  Result.Data[2] := 1 - Result.Data[0] - Result.Data[1];
+  Result.Z := 1 - Result.X - Result.Y;
 end;
 
 function TTriangle3.GetItems(const Index: TIndex): TVector3;
@@ -1641,16 +1641,16 @@ begin
     MiddleIndex, (MiddleIndex + 1) mod 3 are farthest. }
 
   MiddleIndex := 2;
-  FarthestDistance := Abs(TriangleTexCoord.Data[0].Data[OtherCoord] - TriangleTexCoord.Data[1].Data[OtherCoord]);
+  FarthestDistance := Abs(TriangleTexCoord.Data[0][OtherCoord] - TriangleTexCoord.Data[1][OtherCoord]);
 
-  NewDistance := Abs(TriangleTexCoord.Data[1].Data[OtherCoord] - TriangleTexCoord.Data[2].Data[OtherCoord]);
+  NewDistance := Abs(TriangleTexCoord.Data[1][OtherCoord] - TriangleTexCoord.Data[2][OtherCoord]);
   if NewDistance > FarthestDistance then
   begin
     MiddleIndex := 0;
     FarthestDistance := NewDistance;
   end;
 
-  NewDistance := Abs(TriangleTexCoord.Data[2].Data[OtherCoord] - TriangleTexCoord.Data[0].Data[OtherCoord]);
+  NewDistance := Abs(TriangleTexCoord.Data[2][OtherCoord] - TriangleTexCoord.Data[0][OtherCoord]);
   if NewDistance > FarthestDistance then
   begin
     MiddleIndex := 1;
@@ -1669,15 +1669,15 @@ begin
   if IsTangent then
   begin
     { we want line Y = TriangleTexCoord.Data[0].Y. }
-    LineA[0] := 0;
-    LineA[1] := 1;
-    LineA[2] := -TriangleTexCoord.Data[0].Y;
+    LineA.X := 0;
+    LineA.Y := 1;
+    LineA.Z := -TriangleTexCoord.Data[0].Y;
   end else
   begin
     { we want line X = TriangleTexCoord.Data[0].X. }
-    LineA[0] := 1;
-    LineA[1] := 0;
-    LineA[2] := -TriangleTexCoord.Data[0].X;
+    LineA.X := 1;
+    LineA.Y := 0;
+    LineA.Z := -TriangleTexCoord.Data[0].X;
   end;
   LineBC := Line2DFrom2Points(
     TriangleTexCoord.Data[1], TriangleTexCoord.Data[2]);
@@ -1701,7 +1701,7 @@ begin
     (TriangleCoord.Data[1] * (1 - Alpha)) +
     (TriangleCoord.Data[2] * Alpha);
 
-  if D[SearchCoord] > TriangleTexCoord.Data[0].Data[SearchCoord] then
+  if D[SearchCoord] > TriangleTexCoord.Data[0][SearchCoord] then
     Tangent := DIn3D - TriangleCoord.Data[0]
   else
     Tangent := TriangleCoord.Data[0] - DIn3D;

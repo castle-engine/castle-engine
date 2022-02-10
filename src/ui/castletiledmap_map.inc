@@ -681,10 +681,10 @@ begin
   if Element.AttributeString('terrain', TmpStr) then
   begin
     SPosition := 1;
-    Terrain[0] := StrToInt(NextToken(TmpStr, SPosition, [',']));
-    Terrain[1] := StrToInt(NextToken(TmpStr, SPosition, [',']));
-    Terrain[2] := StrToInt(NextToken(TmpStr, SPosition, [',']));
-    Terrain[3] := StrToInt(NextToken(TmpStr, SPosition, [',']));
+    Terrain.X := StrToInt(NextToken(TmpStr, SPosition, [',']));
+    Terrain.Y := StrToInt(NextToken(TmpStr, SPosition, [',']));
+    Terrain.Z := StrToInt(NextToken(TmpStr, SPosition, [',']));
+    Terrain.W := StrToInt(NextToken(TmpStr, SPosition, [',']));
   end;
   if Element.AttributeString('probability', TmpStr) then
     Probability := StrToFloatDot(TmpStr);
@@ -740,9 +740,9 @@ var
   begin
     SeekPos := 1;
     Token := NextToken(S, SeekPos, [',']);
-    Result[0] := StrToFloatDot(Token);
+    Result.X := StrToFloatDot(Token);
     Token := NextToken(S, SeekPos, [',']);
-    Result[1] := StrToFloatDot(Token);
+    Result.Y := StrToFloatDot(Token);
     Token := NextToken(S, SeekPos, [',']);
     if Token <> '' then
       raise Exception.CreateFmt('Unexpected vector format in Tiled map: %s', [S]);
@@ -1092,8 +1092,8 @@ begin
       LowerTagName := LowerCase(I.Current.TagName8);
       if LowerTagName = 'tileoffset' then
       begin
-        TileOffset[0] := I.Current.AttributeIntegerDef('x', 0);
-        TileOffset[1] := I.Current.AttributeIntegerDef('y', 0);
+        TileOffset.X := I.Current.AttributeIntegerDef('x', 0);
+        TileOffset.Y := I.Current.AttributeIntegerDef('y', 0);
       end else
       if LowerTagName = 'properties' then
         Properties.Load(I.Current, BaseUrl)

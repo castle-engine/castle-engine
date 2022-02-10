@@ -2559,14 +2559,14 @@ end;
 
 function TCastleUserInterface.GetAnchorDelta: TVector2;
 begin
-  Result[0] := HorizontalAnchorDelta;
-  Result[1] := VerticalAnchorDelta;
+  Result.X := HorizontalAnchorDelta;
+  Result.Y := VerticalAnchorDelta;
 end;
 
 procedure TCastleUserInterface.SetAnchorDelta(const AValue: TVector2);
 begin
-  HorizontalAnchorDelta := AValue[0];
-  VerticalAnchorDelta := AValue[1];
+  HorizontalAnchorDelta := AValue.X;
+  VerticalAnchorDelta := AValue.Y;
 end;
 
 procedure TCastleUserInterface.Anchor(const AHorizontalAnchor: THorizontalPosition;

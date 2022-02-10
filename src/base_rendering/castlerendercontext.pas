@@ -319,7 +319,7 @@ begin
      not TVector4.PerfectlyEquals(FClearColor, ClearColor) then
   begin
     FClearColor := ClearColor;
-    glClearColor(FClearColor[0], FClearColor[1], FClearColor[2], FClearColor[3]);
+    glClearColor(FClearColor.X, FClearColor.Y, FClearColor.Z, FClearColor.W);
   end;
   Mask := 0;
   for B in Buffers do

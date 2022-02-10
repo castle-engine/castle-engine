@@ -799,7 +799,7 @@ const
 
     Box := Shape.BoundingBox;
     Position := Box.Center;
-    Position[Items.GravityCoordinate] := Box.Data[0].Data[Items.GravityCoordinate];
+    Position.InternalData[Items.GravityCoordinate] := Box.Data[0].Data[Items.GravityCoordinate];
 
     Direction := Info.PlaceholderReferenceDirection;
     Direction := Shape.State.Transformation.Transform.MultDirection(Direction);

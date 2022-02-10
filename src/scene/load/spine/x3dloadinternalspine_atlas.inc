@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -85,54 +85,54 @@ var
   OriginalSize: TVector2Integer;
 begin
   TextureXY := Vector2(
-    XY[0] / ImageWidth,
-    XY[1] / ImageHeight);
+    XY.X / ImageWidth,
+    XY.Y / ImageHeight);
 
   OriginalSize := Orig;
   { if not specified, assume Orig is equal Size. }
-  if OriginalSize[0] = 0 then
-    OriginalSize[0] := Size[0];
-  if OriginalSize[1] = 0 then
-    OriginalSize[1] := Size[1];
+  if OriginalSize.X = 0 then
+    OriginalSize.X := Size.X;
+  if OriginalSize.Y = 0 then
+    OriginalSize.Y := Size.Y;
 
-  TexRect[0][0] := Offset[0] / OriginalSize[0];
-  TexRect[0][1] := Offset[1] / OriginalSize[1];
-  TexRect[1][0] := (Offset[0] + Size[0]) / OriginalSize[0];
-  TexRect[1][1] := (Offset[1] + Size[1]) / OriginalSize[1];
+  TexRect[0].X := Offset.X / OriginalSize.X;
+  TexRect[0].Y := Offset.Y / OriginalSize.Y;
+  TexRect[1].X := (Offset.X + Size.X) / OriginalSize.X;
+  TexRect[1].Y := (Offset.Y + Size.Y) / OriginalSize.Y;
   if Rotate then
   begin
     TextureSize := Vector2(
-      Size[0] / ImageHeight,
-      Size[1] / ImageWidth);
-    TextureXY[1] :=
+      Size.X / ImageHeight,
+      Size.Y / ImageWidth);
+    TextureXY.Y :=
       { flip top-bottom }
-      1 - TextureXY[1]
+      1 - TextureXY.Y
       { move corner to bottom }
-      - TextureSize[0];
+      - TextureSize.X;
   end else
   begin
     TextureSize := Vector2(
-      Size[0] / ImageWidth,
-      Size[1] / ImageHeight);
-    TextureXY[1] :=
+      Size.X / ImageWidth,
+      Size.Y / ImageHeight);
+    TextureXY.Y :=
       { flip top-bottom }
-      1 - TextureXY[1]
+      1 - TextureXY.Y
       { move corner to bottom }
-      - TextureSize[1];
+      - TextureSize.Y;
   end;
 
   if Rotate then
   begin
-    TexCoord[0] := Vector2(TextureSize[1],              0);
-    TexCoord[1] := Vector2(TextureSize[1], TextureSize[0]);
-    TexCoord[2] := Vector2(             0, TextureSize[0]);
-    TexCoord[3] := Vector2(             0,              0);
+    TexCoord[0] := Vector2(TextureSize.Y,             0);
+    TexCoord[1] := Vector2(TextureSize.Y, TextureSize.X);
+    TexCoord[2] := Vector2(            0, TextureSize.X);
+    TexCoord[3] := Vector2(            0,             0);
   end else
   begin
-    TexCoord[0] := Vector2(             0,              0);
-    TexCoord[1] := Vector2(TextureSize[0],              0);
-    TexCoord[2] := Vector2(TextureSize[0], TextureSize[1]);
-    TexCoord[3] := Vector2(             0, TextureSize[1]);
+    TexCoord[0] := Vector2(            0,             0);
+    TexCoord[1] := Vector2(TextureSize.X,             0);
+    TexCoord[2] := Vector2(TextureSize.X, TextureSize.Y);
+    TexCoord[3] := Vector2(            0, TextureSize.Y);
   end;
 
   for I := 0 to 3 do
@@ -169,13 +169,13 @@ begin
 
   ReferenceImageWidth := 0;
   ReferenceImageHeight := 0;
-  if (Size[0] > 0) and (Size[1] > 0) then
+  if (Size.X > 0) and (Size.Y > 0) then
   begin
     { It's best to read reference sizes from .atlas file.
       This way you can scale the image underneath at any time, without changing
       the .atlas file, and it will render Ok. }
-    ReferenceImageWidth := Size[0];
-    ReferenceImageHeight := Size[1];
+    ReferenceImageWidth := Size.X;
+    ReferenceImageHeight := Size.Y;
   end else
   begin
     { Then the only way to calculate tex coords is to actually load the texture.
@@ -338,8 +338,8 @@ procedure TAtlas.Parse(const URL: string);
     begin
       if Split(ValueStr, ',', ValueStr0, ValueStr1) then
       try
-        Vector[0] := StrToInt(ValueStr0);
-        Vector[1] := StrToInt(ValueStr1);
+        Vector.X := StrToInt(ValueStr0);
+        Vector.Y := StrToInt(ValueStr1);
       except
         on E: EConvertError do
           raise ESpineReadError.CreateFmt('Invalid integer value in vector of 2 integers "%s": %s', [ValueStr, E.Message]);
@@ -366,7 +366,7 @@ procedure TAtlas.Parse(const URL: string);
         end;
         try
           for I := 0 to 3 do
-            Vector[I] := StrToInt(Tokens[I]);
+            Vector.InternalData[I] := StrToInt(Tokens[I]);
         except
           on E: EConvertError do
           begin
@@ -385,10 +385,10 @@ procedure TAtlas.Parse(const URL: string);
     Result := IsNameValueVector4Integer(Line, Name, Bounds);
     if Result then
     begin
-      V1[0] := Bounds[0];
-      V1[1] := Bounds[1];
-      V2[0] := Bounds[2];
-      V2[1] := Bounds[3];
+      V1.X := Bounds[0];
+      V1.Y := Bounds[1];
+      V2.X := Bounds[2];
+      V2.Y := Bounds[3];
     end;
   end;
 

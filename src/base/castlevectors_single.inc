@@ -1123,13 +1123,13 @@ function RotatePointAroundAxis(const AxisAngle: TVector4; const Point: TVector3)
 var
   Axis: TVector3 absolute AxisAngle;
 begin
-  Result := RotatePointAroundAxisRad(AxisAngle[3], Point, Axis);
+  Result := RotatePointAroundAxisRad(AxisAngle.W, Point, Axis);
 end;
 
 function MaxVectorCoord(const V: TVector2): integer;
 begin
   Result := 0;
-  if V.Y > V.Data[Result] then Result := 1;
+  if V.Y > V[Result] then Result := 1;
 end;
 
 function MaxVectorCoord(const V: TVector3): T3DAxis;
@@ -1138,29 +1138,29 @@ begin
   { order of comparisons is important. We start from 0, then 1 and 2,
     and change only when differ (>, not just >=). This way we
     guarantee that when values are equal, lower coordinate wins. }
-  if V.Y > V.Data[Result] then Result := 1;
-  if V.Z > V.Data[Result] then Result := 2;
+  if V.Y > V[Result] then Result := 1;
+  if V.Z > V[Result] then Result := 2;
 end;
 
 function MinVectorCoord(const V: TVector3): T3DAxis;
 begin
   Result := 0;
-  if V.Y < V.Data[Result] then Result := 1;
-  if V.Z < V.Data[Result] then Result := 2;
+  if V.Y < V[Result] then Result := 1;
+  if V.Z < V[Result] then Result := 2;
 end;
 
 function MaxVectorCoord(const V: TVector4): integer;
 begin
   Result := 0;
-  if V.Y > V.Data[Result] then Result := 1;
-  if V.Z > V.Data[Result] then Result := 2;
-  if V.W > V.Data[Result] then Result := 3;
+  if V.Y > V[Result] then Result := 1;
+  if V.Z > V[Result] then Result := 2;
+  if V.W > V[Result] then Result := 3;
 end;
 
 function MaxAbsVectorCoord(const V: TVector2): integer;
 begin
   Result := 0;
-  if Abs(V.Y) > Abs(V.Data[Result]) then Result := 1;
+  if Abs(V.Y) > Abs(V[Result]) then Result := 1;
 end;
 
 function MaxAbsVectorCoord(const V: TVector3): T3DAxis;
@@ -1249,65 +1249,65 @@ begin
   LineVector := TVector3.CrossProduct(Plane0Dir, Plane1Dir);
 
   NonZeroIndex := MaxAbsVectorCoord(LineVector);
-  if IsZero(LineVector.Data[NonZeroIndex]) then
+  if IsZero(LineVector[NonZeroIndex]) then
     raise EPlanesParallel.Create(
       'Unable to calculate intersection line of two planes ' +
       Plane0.ToRawString + ' and ' + Plane1.ToRawString + ' because ' +
       'planes are parallel');
 
-  { Since LineVector.Data[NonZeroIndex] <> 0, we know that we can find exactly
-    one point on this line by assuming that Point.Data[NonZeroIndex] = 0. }
-  Line0.Data[NonZeroIndex] := 0;
+  { Since LineVector[NonZeroIndex] <> 0, we know that we can find exactly
+    one point on this line by assuming that Point[NonZeroIndex] = 0. }
+  Line0.InternalData[NonZeroIndex] := 0;
   RestOf3DCoords(NonZeroIndex, Index1, Index2);
 
   { Now we must solve
-      Plane0.Data[Index1] * Line0.Data[Index1] + Plane0.Data[Index2] * Line0.Data[Index2] + Plane0.W = 0
-      Plane1.Data[Index1] * Line0.Data[Index1] + Plane1.Data[Index2] * Line0.Data[Index2] + Plane1.W = 0
-    We want to sum these two equations to eliminate Line0.Data[Index1]:
-      0                                 + Sum_Index2        * Line0.Data[Index2] + Sum_3        = 0
+      Plane0[Index1] * Line0[Index1] + Plane0[Index2] * Line0[Index2] + Plane0.W = 0
+      Plane1[Index1] * Line0[Index1] + Plane1[Index2] * Line0[Index2] + Plane1.W = 0
+    We want to sum these two equations to eliminate Line0[Index1]:
+                                         + Sum_Index2 *  Line0[Index2] + Sum_3   = 0
   }
-  if not IsZero(Plane0.Data[Index1]) then
+  if not IsZero(Plane0[Index1]) then
   begin
     PlaneWithNonZeroIndex1 := @Plane0;
-    PlaneMultiply := - Plane1.Data[Index1] / Plane0.Data[Index1];
-    Sum_Index2 := Plane0.Data[Index2] * PlaneMultiply + Plane1.Data[Index2];
+    PlaneMultiply := - Plane1[Index1] / Plane0[Index1];
+    Sum_Index2 := Plane0[Index2] * PlaneMultiply + Plane1[Index2];
     Sum_3      := Plane0.W      * PlaneMultiply + Plane1.W;
   end else
-  if not IsZero(Plane1.Data[Index1]) then
+  if not IsZero(Plane1[Index1]) then
   begin
     PlaneWithNonZeroIndex1 := @Plane1;
-    PlaneMultiply := - Plane0.Data[Index1] / Plane1.Data[Index1];
-    Sum_Index2 := Plane0.Data[Index2] + Plane1.Data[Index2] * PlaneMultiply;
+    PlaneMultiply := - Plane0[Index1] / Plane1[Index1];
+    Sum_Index2 := Plane0[Index2] + Plane1[Index2] * PlaneMultiply;
     Sum_3      := Plane0.W      + Plane1.W      * PlaneMultiply;
   end else
   begin
-    { If Plane0.Data[Index1] = Plane1.Data[Index1] = 0, this is simple.
-        Sum_Index2 := Plane0.Data[Index2] + Plane1.Data[Index2];
+    { If Plane0[Index1] = Plane1[Index1] = 0, this is simple.
+        Sum_Index2 := Plane0[Index2] + Plane1[Index2];
         Sum_3      := Plane0.W      + Plane1.W     ;
         PlaneWithNonZeroIndex1 := ???;
       But it's useless, because then I will not be able to calculate
-      Line0.Data[Index1] (after obtaining Line0.Data[Index2]).
+      Line0[Index1] (after obtaining Line0[Index2]).
       TODO -- some proof that this cannot happen for correct input ? }
     raise Exception.Create('Cannot calculate intersection line of two planes');
   end;
 
   { Now we know that
-      Sum_Index2 * Line0.Data[Index2] + Sum_3 = 0
-    Sum_Index2 must be <> 0, since we know that Line0.Data[Index2] must be uniquely
+      Sum_Index2 * Line0[Index2] + Sum_3 = 0
+    Sum_Index2 must be <> 0, since we know that Line0[Index2] must be uniquely
     determined ? Right ? TODO -- I'm not sure, how to prove this simply ?
   }
-  Line0.Data[Index2] := - Sum_3 / Sum_Index2;
+  Line0.InternalData[Index2] := - Sum_3 / Sum_Index2;
 
   { Note we have
-      PlaneWithNonZeroIndex1^.Data[Index1] * Line0.Data[Index1] +
-      PlaneWithNonZeroIndex1^.Data[Index2] * Line0.Data[Index2] +
+      PlaneWithNonZeroIndex1^[Index1] * Line0[Index1] +
+      PlaneWithNonZeroIndex1^[Index2] * Line0[Index2] +
       PlaneWithNonZeroIndex1^.W = 0
-    All is known except Line0.Data[Index1],
-    PlaneWithNonZeroIndex1^.Data[Index1] is for sure <> 0. }
+    All is known except Line0[Index1],
+    PlaneWithNonZeroIndex1^[Index1] is for sure <> 0. }
   Line0.Data[Index1] := -
-    (PlaneWithNonZeroIndex1^.Data[Index2] * Line0.Data[Index2] +
+    (PlaneWithNonZeroIndex1^[Index2] * Line0[Index2] +
      PlaneWithNonZeroIndex1^.W) /
-    PlaneWithNonZeroIndex1^.Data[Index1];
+    PlaneWithNonZeroIndex1^[Index1];
 end;
 
 function Lines2DIntersection(const Line0, Line1: TVector3): TVector2;
@@ -1506,12 +1506,12 @@ var
   Scale: Single;
 begin
   mc := MaxAbsVectorCoord(v1);
-  if IsZero(V1.Data[mc]) then Exit(true);
+  if IsZero(V1[mc]) then Exit(true);
 
-  Scale := V2.Data[mc] / V1.Data[mc];
+  Scale := V2[mc] / V1[mc];
   RestOf3DCoords(mc, c1, c2);
-  Result := SameValue(V1.Data[c1] * Scale, V2.Data[c1]) and
-            SameValue(V1.Data[c2] * Scale, V2.Data[c2]);
+  Result := SameValue(V1[c1] * Scale, V2[c1]) and
+            SameValue(V1[c2] * Scale, V2[c2]);
 end;
 
 procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3;
@@ -1591,7 +1591,7 @@ end;
 function IsLineParallelToSimplePlane(const lineVector: TVector3;
   const PlaneConstCoord: T3DAxis): boolean;
 begin
-  Result := IsZero(lineVector.Data[PlaneConstCoord]);
+  Result := IsZero(lineVector[PlaneConstCoord]);
 end;
 
 function AreParallelVectorsSameDirection(
@@ -1603,7 +1603,7 @@ begin
     must be non-zero. }
   Coord := MaxAbsVectorCoord(Vector1);
 
-  Result := (Vector1.Data[Coord] > 0) = (Vector2.Data[Coord] > 0);
+  Result := (Vector1[Coord] > 0) = (Vector2[Coord] > 0);
 end;
 
 function PointOnPlaneClosestToPoint(const Plane: TVector4; const Point: TVector3): TVector3;
@@ -1668,7 +1668,7 @@ end;
 function PointToSimplePlaneDistance(const point: TVector3;
   const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single): Single;
 begin
-  Result := Abs(point.Data[PlaneConstCoord]-PlaneConstValue);
+  Result := Abs(point[PlaneConstCoord]-PlaneConstValue);
 end;
 
 function PointOnLineClosestToPoint(
@@ -1845,7 +1845,7 @@ begin
   Result := not IsLineParallelToSimplePlane(RayDirection, PlaneConstCoord);
   if Result then
   begin
-    T := (PlaneConstValue-RayOrigin.Data[PlaneConstCoord]) / RayDirection.Data[PlaneConstCoord];
+    T := (PlaneConstValue-RayOrigin[PlaneConstCoord]) / RayDirection[PlaneConstCoord];
     Result := T >= 0;
   end;
 end;
@@ -1884,7 +1884,7 @@ begin
   Result := not IsLineParallelToSimplePlane(SegmentVector, PlaneConstCoord);
   if Result then
   begin
-    T := (PlaneConstValue-Pos1.Data[PlaneConstCoord]) / SegmentVector.Data[PlaneConstCoord];
+    T := (PlaneConstValue-Pos1[PlaneConstCoord]) / SegmentVector[PlaneConstCoord];
     Result := (T >= 0) and (T <= 1);
   end;
 end;
@@ -1897,8 +1897,8 @@ var
 begin
   { project points on the best axis-aligned plane }
   c := MaxAbsVectorCoord(Pos1 - Pos2);
-  Result := ((pos1.Data[c] <= intersection.Data[c]) and (intersection.Data[c] <= pos2.Data[c])) or
-            ((pos1.Data[c] >= intersection.Data[c]) and (intersection.Data[c] >= pos2.Data[c]));
+  Result := ((pos1[c] <= intersection[c]) and (intersection[c] <= pos2[c])) or
+            ((pos1[c] >= intersection[c]) and (intersection[c] >= pos2[c]));
 end;
 
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2): boolean;
@@ -1907,8 +1907,8 @@ var
 begin
   { project points on the best axis-aligned plane }
   c := MaxAbsVectorCoord(Pos1 - Pos2);
-  Result := ((pos1.Data[c] <= intersection.Data[c]) and (intersection.Data[c] <= pos2.Data[c])) or
-            ((pos1.Data[c] >= intersection.Data[c]) and (intersection.Data[c] >= pos2.Data[c]));
+  Result := ((pos1[c] <= intersection[c]) and (intersection[c] <= pos2[c])) or
+            ((pos1[c] >= intersection[c]) and (intersection[c] >= pos2[c]));
 end;
 
 function Line2DFrom2Points(const P1, P2: TVector2): TVector3;
@@ -1934,11 +1934,11 @@ begin
 
     So their dot product = 0.
 
-    Let Result.Data[AxisOther] = -1 and then we can construct
-    Result.Data[AxisGood] = LineVector.Data[AxisOther] / LineVector.Data[AxisGood].
+    Let Result[AxisOther] = -1 and then we can construct
+    Result[AxisGood] = LineVector[AxisOther] / LineVector[AxisGood].
   }
-  Result.Data[AxisOther] := -1;
-  Result.Data[AxisGood] := LineVector.Data[AxisOther] / LineVector.Data[AxisGood];
+  Result.InternalData[AxisOther] := -1;
+  Result.InternalData[AxisGood] := LineVector.InternalData[AxisOther] / LineVector[AxisGood];
   Result.Z := - (Result.X * Line0.X + Result.Y * Line0.Y);
 end;
 

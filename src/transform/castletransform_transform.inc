@@ -2896,7 +2896,7 @@ function Bottom(const Gravity: boolean; const GravityCoordinate: Integer;
 begin
   if Gravity then
     Result := 0 else
-    Result := BoundingBox.Data[0].Data[GravityCoordinate];
+    Result := BoundingBox.Data[0][GravityCoordinate];
 end;
 
 function TCastleTransform.Middle: TVector3;
@@ -2919,7 +2919,7 @@ begin
     besides moving, only rotates around it's own up axis). }
 
   Result := Translation;
-  Result.Data[GC] := Result.Data[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
+  Result.InternalData[GC] := Result.InternalData[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
 end;
 
 function TCastleTransform.PreferredHeight: Single;
@@ -2937,7 +2937,7 @@ begin
   if B.IsEmpty then
     Result := 0
   else
-    Result := MiddleHeight * (B.Data[1].Data[GC] - Bottom(Gravity, GC, B));
+    Result := MiddleHeight * (B.Data[1][GC] - Bottom(Gravity, GC, B));
 
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
   if Sphere(R) and (R > Result) then

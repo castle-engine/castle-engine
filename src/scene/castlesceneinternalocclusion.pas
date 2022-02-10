@@ -234,13 +234,13 @@ begin
 
   { Verts index in octal notation indicates which of 8 vertexes it is. }
   Verts[0] := Box.Data[0];
-  Verts[1] := Box.Data[0]; Verts[1][0] := Box.Data[1][0];
-  Verts[2] := Box.Data[0]; Verts[2][1] := Box.Data[1][1];
-  Verts[4] := Box.Data[0]; Verts[4][2] := Box.Data[1][2];
+  Verts[1] := Box.Data[0]; Verts[1].InternalData[0] := Box.Data[1][0];
+  Verts[2] := Box.Data[0]; Verts[2].InternalData[1] := Box.Data[1][1];
+  Verts[4] := Box.Data[0]; Verts[4].InternalData[2] := Box.Data[1][2];
 
-  Verts[3] := Box.Data[1]; Verts[3][2] := Box.Data[0][2];
-  Verts[5] := Box.Data[1]; Verts[5][1] := Box.Data[0][1];
-  Verts[6] := Box.Data[1]; Verts[6][0] := Box.Data[0][0];
+  Verts[3] := Box.Data[1]; Verts[3].InternalData[2] := Box.Data[0][2];
+  Verts[5] := Box.Data[1]; Verts[5].InternalData[1] := Box.Data[0][1];
+  Verts[6] := Box.Data[1]; Verts[6].InternalData[0] := Box.Data[0][0];
   Verts[7] := Box.Data[1];
 
   glBufferSubData(GL_ARRAY_BUFFER, 0, SizeOf(Verts), @Verts);

@@ -158,7 +158,7 @@ begin
   end;
 
   SidePlaneDir := CubeMapInfo[Side].Dir;
-  SidePlane[3] := -1;
+  SidePlane.W := -1;
 
   if not TryPlaneRayIntersection(SideIntersect,
     SidePlane, TVector3.Zero, Dir) then
@@ -168,7 +168,7 @@ begin
   { We're not interested in this coord, this is either 1 or -1.
     Having this non-zero would break TVector3.DotProduct (projecting to Side/Up)
     in following code. }
-  SideIntersect[SideCoord] := 0;
+  SideIntersect.InternalData[SideCoord] := 0;
 
   PixelX := Round(MapRange(
     TVector3.DotProduct(SideIntersect, CubeMapInfo[Side].Side),
@@ -221,7 +221,7 @@ begin
   Side[3] := Side[0];
 
   SidePlaneDir := CubeMapInfo[Side[0]].Dir;
-  SidePlane[3] := -1;
+  SidePlane.W := -1;
 
   if not TryPlaneRayIntersection(SideIntersect,
     SidePlane, TVector3.Zero, Dir) then
@@ -231,7 +231,7 @@ begin
   { We're not interested in this coord, this is either 1 or -1.
     Having this non-zero would break TVector3.DotProduct (projecting to Side/Up)
     in following code. }
-  SideIntersect[SideCoord] := 0;
+  SideIntersect.InternalData[SideCoord] := 0;
 
   PixelFX := MapRange(
     TVector3.DotProduct(SideIntersect, CubeMapInfo[Side[0]].Side),
@@ -255,19 +255,19 @@ begin
 
   PixelX[0] := PixelXTrunc;
   PixelY[0] := PixelYTrunc;
-  Ratio[0] := (1-PixelXFrac) * (1-PixelYFrac);
+  Ratio.X := (1-PixelXFrac) * (1-PixelYFrac);
 
   PixelX[1] := PixelXTrunc+1;
   PixelY[1] := PixelYTrunc;
-  Ratio[1] := PixelXFrac * (1-PixelYFrac);
+  Ratio.Y := PixelXFrac * (1-PixelYFrac);
 
   PixelX[2] := PixelXTrunc;
   PixelY[2] := PixelYTrunc+1;
-  Ratio[2] := (1-PixelXFrac) * PixelYFrac;
+  Ratio.Z := (1-PixelXFrac) * PixelYFrac;
 
   PixelX[3] := PixelXTrunc+1;
   PixelY[3] := PixelYTrunc+1;
-  Ratio[3] := PixelXFrac * PixelYFrac;
+  Ratio.W := PixelXFrac * PixelYFrac;
 
   { test: Writeln((Ratio[0] + Ratio[1] + Ratio[2] + Ratio[3]):1:10); }
 

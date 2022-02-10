@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -431,9 +431,9 @@ end;
 
 function TExtrusionNode.CrossSection3D(Index: integer): TVector3;
 begin
-  Result[0] := FdCrossSection.Items.List^[Index][0];
-  Result[1] := 0;
-  Result[2] := FdCrossSection.Items.List^[Index][1];
+  Result.X := FdCrossSection.Items.List^[Index].X;
+  Result.Y := 0;
+  Result.Z := FdCrossSection.Items.List^[Index].Y;
 end;
 
 function TExtrusionNode.SpineClosed: boolean;
@@ -551,11 +551,11 @@ var
     { Check ranges, to avoid dividing by zero (eventually the
       corresponding coord is set to a predictable zero :) ). }
     if FdCrossSection.Count > 1 then
-      Result[0] := CrossSectionIndex / (FdCrossSection.Count - 1) else
-      Result[0] := 0;
+      Result.X := CrossSectionIndex / (FdCrossSection.Count - 1) else
+      Result.X := 0;
     if E.High > 0 then
-      Result[1] := SpineIndex / E.High else
-      Result[1] := 0;
+      Result.Y := SpineIndex / E.High else
+      Result.Y := 0;
   end;
 
 var

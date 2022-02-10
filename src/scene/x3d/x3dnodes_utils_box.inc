@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,12 +47,12 @@ var
     begin
       if TextureSIsY then
       begin
-        Result[0] := T;
-        Result[1] := S;
+        Result.X := T;
+        Result.Y := S;
       end else
       begin
-        Result[0] := S;
-        Result[1] := T;
+        Result.X := S;
+        Result.Y := T;
       end;
     end;
 
@@ -78,19 +78,20 @@ var
 
     { Normal vector is constant for the whole rectangle }
     if ConstCoordValue > 0 then
-      N[ConstCoord] :=  1 else
-      N[ConstCoord] := -1;
-    N[C1] := 0;
-    N[C2] := 0;
+      N.InternalData[ConstCoord] :=  1
+    else
+      N.InternalData[ConstCoord] := -1;
+    N.InternalData[C1] := 0;
+    N.InternalData[C2] := 0;
 
     for I := 0 to Detail[C1] + 1 do
       for J := 0 to Detail[C2] + 1 do
       begin
         ThisIndex := Index + I * (Detail[C2] + 2) + J;
 
-        Coord.List^[ThisIndex][C1] := Lerp(I / (Detail[C1] + 1), X1, X2);
-        Coord.List^[ThisIndex][C2] := Lerp(J / (Detail[C2] + 1), Y1, Y2);
-        Coord.List^[ThisIndex][ConstCoord] := ConstCoordValue;
+        Coord.List^[ThisIndex].InternalData[C1] := Lerp(I / (Detail[C1] + 1), X1, X2);
+        Coord.List^[ThisIndex].InternalData[C2] := Lerp(J / (Detail[C2] + 1), Y1, Y2);
+        Coord.List^[ThisIndex].InternalData[ConstCoord] := ConstCoordValue;
 
         Normal.List^[ThisIndex] := N;
 
@@ -129,19 +130,19 @@ begin
     Although the code is written to support different Detail* values,
     just in case in the future it will be useful. }
   if OverTriangulate then
-    Detail[0] := Divisions else
-    Detail[0] := 0;
-  Detail[1] := Detail[0];
-  Detail[2] := Detail[0];
+    Detail.X := Divisions else
+    Detail.X := 0;
+  Detail.Y := Detail.X;
+  Detail.Z := Detail.X;
 
   Sizes := Sizes / 2;
 
-  MakeRect(0, -Sizes[0], +Sizes[1], -Sizes[2], 1, 0, 2, true);
-  MakeRect(0,  Sizes[0], -Sizes[1], -Sizes[2], 0, 1, 3, true);
-  MakeRect(1, -Sizes[1], -Sizes[0], -Sizes[2], 0, 0, 5);
-  MakeRect(1,  Sizes[1], +Sizes[0], -Sizes[2], 1, 1, 4);
-  MakeRect(2, -Sizes[2], +Sizes[0], -Sizes[1], 0, 0, 1);
-  MakeRect(2,  Sizes[2], -Sizes[0], -Sizes[1], 0, 0, 0);
+  MakeRect(0, -Sizes.X, +Sizes.Y, -Sizes.Z, 1, 0, 2, true);
+  MakeRect(0,  Sizes.X, -Sizes.Y, -Sizes.Z, 0, 1, 3, true);
+  MakeRect(1, -Sizes.Y, -Sizes.X, -Sizes.Z, 0, 0, 5);
+  MakeRect(1,  Sizes.Y, +Sizes.X, -Sizes.Z, 1, 1, 4);
+  MakeRect(2, -Sizes.Z, +Sizes.X, -Sizes.Y, 0, 0, 1);
+  MakeRect(2,  Sizes.Z, -Sizes.X, -Sizes.Y, 0, 0, 0);
 end;
 
 { Make a wireframe box. }
@@ -151,15 +152,15 @@ begin
   Sizes := Sizes / 2;
 
   Coord.AddRange([
-    Vector3(-Sizes[0], -Sizes[1], -Sizes[2]),
-    Vector3( Sizes[0], -Sizes[1], -Sizes[2]),
-    Vector3( Sizes[0],  Sizes[1], -Sizes[2]),
-    Vector3(-Sizes[0],  Sizes[1], -Sizes[2]),
+    Vector3(-Sizes.X, -Sizes.Y, -Sizes.Z),
+    Vector3( Sizes.X, -Sizes.Y, -Sizes.Z),
+    Vector3( Sizes.X,  Sizes.Y, -Sizes.Z),
+    Vector3(-Sizes.X,  Sizes.Y, -Sizes.Z),
 
-    Vector3(-Sizes[0], -Sizes[1],  Sizes[2]),
-    Vector3( Sizes[0], -Sizes[1],  Sizes[2]),
-    Vector3( Sizes[0],  Sizes[1],  Sizes[2]),
-    Vector3(-Sizes[0],  Sizes[1],  Sizes[2])
+    Vector3(-Sizes.X, -Sizes.Y,  Sizes.Z),
+    Vector3( Sizes.X, -Sizes.Y,  Sizes.Z),
+    Vector3( Sizes.X,  Sizes.Y,  Sizes.Z),
+    Vector3(-Sizes.X,  Sizes.Y,  Sizes.Z)
   ]);
 
   CoordIndex.AddRange([

@@ -445,33 +445,33 @@ begin
   if Trace > 0 then
   begin
     S := Sqrt(Trace + 1.0) * 2; // S=4*qw
-    Result.Data.Vector4[3] := 0.25 * S;
-    Result.Data.Vector4[0] := (Matrix.Data[1, 2] - Matrix.Data[2, 1]) / S;
-    Result.Data.Vector4[1] := (Matrix.Data[2, 0] - Matrix.Data[0, 2]) / S;
-    Result.Data.Vector4[2] := (Matrix.Data[0, 1] - Matrix.Data[1, 0]) / S;
+    Result.Data.Vector4.W := 0.25 * S;
+    Result.Data.Vector4.X := (Matrix.Data[1, 2] - Matrix.Data[2, 1]) / S;
+    Result.Data.Vector4.Y := (Matrix.Data[2, 0] - Matrix.Data[0, 2]) / S;
+    Result.Data.Vector4.Z := (Matrix.Data[0, 1] - Matrix.Data[1, 0]) / S;
   end else
   if (Matrix.Data[0, 0] > Matrix.Data[1, 1]) and (Matrix.Data[0, 0] > Matrix.Data[2, 2]) then
   begin
     S := Sqrt(1.0 + Matrix.Data[0, 0] - Matrix.Data[1, 1] - Matrix.Data[2, 2]) * 2; // S=4*qx
-    Result.Data.Vector4[3] := (Matrix.Data[1, 2] - Matrix.Data[2, 1]) / S;
-    Result.Data.Vector4[0] := 0.25 * S;
-    Result.Data.Vector4[1] := (Matrix.Data[1, 0] + Matrix.Data[0, 1]) / S;
-    Result.Data.Vector4[2] := (Matrix.Data[2, 0] + Matrix.Data[0, 2]) / S;
+    Result.Data.Vector4.W := (Matrix.Data[1, 2] - Matrix.Data[2, 1]) / S;
+    Result.Data.Vector4.X := 0.25 * S;
+    Result.Data.Vector4.Y := (Matrix.Data[1, 0] + Matrix.Data[0, 1]) / S;
+    Result.Data.Vector4.Z := (Matrix.Data[2, 0] + Matrix.Data[0, 2]) / S;
   end else
   if (Matrix.Data[1, 1] > Matrix.Data[2, 2]) then
   begin
     S := Sqrt(1.0 + Matrix.Data[1, 1] - Matrix.Data[0, 0] - Matrix.Data[2, 2]) * 2; // S=4*qy
-    Result.Data.Vector4[3] := (Matrix.Data[2, 0] - Matrix.Data[0, 2]) / S;
-    Result.Data.Vector4[0] := (Matrix.Data[1, 0] + Matrix.Data[0, 1]) / S;
-    Result.Data.Vector4[1] := 0.25 * S;
-    Result.Data.Vector4[2] := (Matrix.Data[2, 1] + Matrix.Data[1, 2]) / S;
+    Result.Data.Vector4.W := (Matrix.Data[2, 0] - Matrix.Data[0, 2]) / S;
+    Result.Data.Vector4.X := (Matrix.Data[1, 0] + Matrix.Data[0, 1]) / S;
+    Result.Data.Vector4.Y := 0.25 * S;
+    Result.Data.Vector4.Z := (Matrix.Data[2, 1] + Matrix.Data[1, 2]) / S;
   end else
   begin
     S := Sqrt(1.0 + Matrix.Data[2, 2] - Matrix.Data[0, 0] - Matrix.Data[1, 1]) * 2; // S=4*qz
-    Result.Data.Vector4[3] := (Matrix.Data[0, 1] - Matrix.Data[1, 0]) / S;
-    Result.Data.Vector4[0] := (Matrix.Data[2, 0] + Matrix.Data[0, 2]) / S;
-    Result.Data.Vector4[1] := (Matrix.Data[2, 1] + Matrix.Data[1, 2]) / S;
-    Result.Data.Vector4[2] := 0.25 * S;
+    Result.Data.Vector4.W := (Matrix.Data[0, 1] - Matrix.Data[1, 0]) / S;
+    Result.Data.Vector4.X := (Matrix.Data[2, 0] + Matrix.Data[0, 2]) / S;
+    Result.Data.Vector4.Y := (Matrix.Data[2, 1] + Matrix.Data[1, 2]) / S;
+    Result.Data.Vector4.Z := 0.25 * S;
   end;
 
   Result := Result.Normalize;
@@ -496,13 +496,13 @@ begin
   for I := 0 to 2 do
   begin
     Column := Vector3(Matrix.Data[I, 0], Matrix.Data[I, 1], Matrix.Data[I, 2]);
-    Scale.Data[I] := Column.Length;
+    Scale.InternalData[I] := Column.Length;
   end;
 
   // calculate Rotation
   for I := 0 to 2 do
     for J := 0 to 2 do
-      RotationMatrix.Data[I, J] := Matrix.Data[I, J] / Scale.Data[I];
+      RotationMatrix.Data[I, J] := Matrix.Data[I, J] / Scale[I];
   Quaternion := QuatFromRotationMatrix(RotationMatrix);
   Rotation := Quaternion.ToAxisAngle;
 end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -131,9 +131,9 @@ begin
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Value.List^[I][0] := Floats.List^[Offset + Stride * I + XIndex];
-    Value.List^[I][1] := Floats.List^[Offset + Stride * I + YIndex];
-    Value.List^[I][2] := Floats.List^[Offset + Stride * I + ZIndex];
+    Value.List^[I].X := Floats.List^[Offset + Stride * I + XIndex];
+    Value.List^[I].Y := Floats.List^[Offset + Stride * I + YIndex];
+    Value.List^[I].Z := Floats.List^[Offset + Stride * I + ZIndex];
   end;
 end;
 
@@ -185,8 +185,8 @@ begin
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Value.List^[I][0] := Floats.List^[Offset + Stride * I + SIndex];
-    Value.List^[I][1] := Floats.List^[Offset + Stride * I + TIndex];
+    Value.List^[I].X := Floats.List^[Offset + Stride * I + SIndex];
+    Value.List^[I].Y := Floats.List^[Offset + Stride * I + TIndex];
   end;
 end;
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2020 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -485,7 +485,7 @@ const
 
   function GetPerceivedBrightness(const C: TCastleColorRGB): Single;
   begin
-    Result := Sqrt(0.299 * Sqr(C[0]) + 0.587 * Sqr(C[1]) + 0.114 * Sqr(C[2]));
+    Result := Sqrt(0.299 * Sqr(C.X) + 0.587 * Sqr(C.Y) + 0.114 * Sqr(C.Z));
   end;
 
   procedure ConvertSpecularGlossinessToMetallicRoughness(
@@ -558,10 +558,10 @@ const
        (JSONItem is TPasJSONItemArray) and
        (TPasJSONItemArray(JSONItem).Count = 4) then
     begin
-      DiffuseFactor[0] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], 1);
-      DiffuseFactor[1] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], 1);
-      DiffuseFactor[2] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], 1);
-      DiffuseFactor[3] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[3], 1);
+      DiffuseFactor.X := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], 1);
+      DiffuseFactor.Y := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], 1);
+      DiffuseFactor.Z := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], 1);
+      DiffuseFactor.W := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[3], 1);
     end;
 
     DiffuseTexture.Init;
@@ -582,9 +582,9 @@ const
        (JSONItem is TPasJSONItemArray) and
        (TPasJSONItemArray(JSONItem).Count = 3) then
     begin
-      SpecularFactor[0] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], 1);
-      SpecularFactor[1] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], 1);
-      SpecularFactor[2] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], 1);
+      SpecularFactor.X := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], 1);
+      SpecularFactor.Y := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], 1);
+      SpecularFactor.Z := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], 1);
     end;
 
     SpecularGlossinessTexture.Init;
@@ -716,7 +716,7 @@ procedure TPunctualLights.ReadLight(const LightObject: TPasJSONItemObject);
     begin
       ColorArray := TPasJSONItemArray(Item);
       for I := 0 to Min(2, ColorArray.Count - 1) do
-        Result[I] := TPasJSON.GetNumber(ColorArray.Items[I], DefaultColor[I]);
+        Result.InternalData[I] := TPasJSON.GetNumber(ColorArray.Items[I], DefaultColor[I]);
     end;
   end;
 
@@ -1506,7 +1506,7 @@ var
     I: Integer;
   begin
     for I := 0 to TexCoord.Count - 1 do
-      TexCoord.List^[I].Data[1] := 1  - TexCoord.List^[I].Data[1];
+      TexCoord.List^[I].Y := 1  - TexCoord.List^[I].Y;
   end;
 
   procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive;
@@ -2151,10 +2151,10 @@ var
       end else
       begin
         SkinMatrix :=
-          JointMatrix.List^[VertexJoints.Data[0]] * VertexWeights.Data[0] +
-          JointMatrix.List^[VertexJoints.Data[1]] * VertexWeights.Data[1] +
-          JointMatrix.List^[VertexJoints.Data[2]] * VertexWeights.Data[2] +
-          JointMatrix.List^[VertexJoints.Data[3]] * VertexWeights.Data[3];
+          JointMatrix.List^[VertexJoints.X] * VertexWeights.X +
+          JointMatrix.List^[VertexJoints.Y] * VertexWeights.Y +
+          JointMatrix.List^[VertexJoints.Z] * VertexWeights.Z +
+          JointMatrix.List^[VertexJoints.W] * VertexWeights.W;
       end;
       AnimatedCoords.List^[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
       if AnimatedNormals <> nil then
