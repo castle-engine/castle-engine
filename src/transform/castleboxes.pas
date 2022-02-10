@@ -1503,10 +1503,10 @@ begin
     Exit(false);
 
   Result :=
-    BoxBool[Plane.Data[0] >= 0].X * Plane.Data[0] +
-    BoxBool[Plane.Data[1] >= 0].Y * Plane.Data[1] +
-    BoxBool[Plane.Data[2] >= 0].Z * Plane.Data[2] +
-    Plane.Data[3] < 0;
+    BoxBool[Plane.X >= 0].X * Plane.X +
+    BoxBool[Plane.Y >= 0].Y * Plane.Y +
+    BoxBool[Plane.Z >= 0].Z * Plane.Z +
+    Plane.W < 0;
 end;
 
 function TBox3D.PlaneCollisionOutside(
@@ -1674,26 +1674,26 @@ begin
   TriangleEdges[2] := TriangleMoved[0] - TriangleMoved[2];
 
   { tests 3) }
-  EdgeAbs.Data[0] := Abs(TriangleEdges[0].X);
-  EdgeAbs.Data[1] := Abs(TriangleEdges[0].Y);
-  EdgeAbs.Data[2] := Abs(TriangleEdges[0].Z);
-  if AXISTEST_X01(TriangleEdges[0].Z, TriangleEdges[0].Y, EdgeAbs.Data[2], EdgeAbs.Data[1]) then Exit(false);
-  if AXISTEST_Y02(TriangleEdges[0].Z, TriangleEdges[0].X, EdgeAbs.Data[2], EdgeAbs.Data[0]) then Exit(false);
-  if AXISTEST_Z12(TriangleEdges[0].Y, TriangleEdges[0].X, EdgeAbs.Data[1], EdgeAbs.Data[0]) then Exit(false);
+  EdgeAbs.X := Abs(TriangleEdges[0].X);
+  EdgeAbs.Y := Abs(TriangleEdges[0].Y);
+  EdgeAbs.Z := Abs(TriangleEdges[0].Z);
+  if AXISTEST_X01(TriangleEdges[0].Z, TriangleEdges[0].Y, EdgeAbs.Z, EdgeAbs.Y) then Exit(false);
+  if AXISTEST_Y02(TriangleEdges[0].Z, TriangleEdges[0].X, EdgeAbs.Z, EdgeAbs.X) then Exit(false);
+  if AXISTEST_Z12(TriangleEdges[0].Y, TriangleEdges[0].X, EdgeAbs.Y, EdgeAbs.X) then Exit(false);
 
-  EdgeAbs.Data[0] := Abs(TriangleEdges[1].X);
-  EdgeAbs.Data[1] := Abs(TriangleEdges[1].Y);
-  EdgeAbs.Data[2] := Abs(TriangleEdges[1].Z);
-  if AXISTEST_X01(TriangleEdges[1].Z, TriangleEdges[1].Y, EdgeAbs.Data[2], EdgeAbs.Data[1]) then Exit(false);
-  if AXISTEST_Y02(TriangleEdges[1].Z, TriangleEdges[1].X, EdgeAbs.Data[2], EdgeAbs.Data[0]) then Exit(false);
-  if AXISTEST_Z0 (TriangleEdges[1].Y, TriangleEdges[1].X, EdgeAbs.Data[1], EdgeAbs.Data[0]) then Exit(false);
+  EdgeAbs.X := Abs(TriangleEdges[1].X);
+  EdgeAbs.Y := Abs(TriangleEdges[1].Y);
+  EdgeAbs.Z := Abs(TriangleEdges[1].Z);
+  if AXISTEST_X01(TriangleEdges[1].Z, TriangleEdges[1].Y, EdgeAbs.Z, EdgeAbs.Y) then Exit(false);
+  if AXISTEST_Y02(TriangleEdges[1].Z, TriangleEdges[1].X, EdgeAbs.Z, EdgeAbs.X) then Exit(false);
+  if AXISTEST_Z0 (TriangleEdges[1].Y, TriangleEdges[1].X, EdgeAbs.Y, EdgeAbs.X) then Exit(false);
 
-  EdgeAbs.Data[0] := Abs(TriangleEdges[2].X);
-  EdgeAbs.Data[1] := Abs(TriangleEdges[2].Y);
-  EdgeAbs.Data[2] := Abs(TriangleEdges[2].Z);
-  if AXISTEST_X2 (TriangleEdges[2].Z, TriangleEdges[2].Y, EdgeAbs.Data[2], EdgeAbs.Data[1]) then Exit(false);
-  if AXISTEST_Y1 (TriangleEdges[2].Z, TriangleEdges[2].X, EdgeAbs.Data[2], EdgeAbs.Data[0]) then Exit(false);
-  if AXISTEST_Z12(TriangleEdges[2].Y, TriangleEdges[2].X, EdgeAbs.Data[1], EdgeAbs.Data[0]) then Exit(false);
+  EdgeAbs.X := Abs(TriangleEdges[2].X);
+  EdgeAbs.Y := Abs(TriangleEdges[2].Y);
+  EdgeAbs.Z := Abs(TriangleEdges[2].Z);
+  if AXISTEST_X2 (TriangleEdges[2].Z, TriangleEdges[2].Y, EdgeAbs.Z, EdgeAbs.Y) then Exit(false);
+  if AXISTEST_Y1 (TriangleEdges[2].Z, TriangleEdges[2].X, EdgeAbs.Z, EdgeAbs.X) then Exit(false);
+  if AXISTEST_Z12(TriangleEdges[2].Y, TriangleEdges[2].X, EdgeAbs.Y, EdgeAbs.X) then Exit(false);
 
   { tests 1)
     first test overlap in the (x,y,z)-directions
@@ -1816,12 +1816,12 @@ function TBox3D.SphereSimpleCollision(
   const SphereCenter: TVector3; const SphereRadius: Single): boolean;
 begin
   Result := (not IsEmpty) and
-    (SphereCenter.Data[0] >= Data[0].X - SphereRadius) and
-    (SphereCenter.Data[0] <= Data[1].X + SphereRadius) and
-    (SphereCenter.Data[1] >= Data[0].Y - SphereRadius) and
-    (SphereCenter.Data[1] <= Data[1].Y + SphereRadius) and
-    (SphereCenter.Data[2] >= Data[0].Z - SphereRadius) and
-    (SphereCenter.Data[2] <= Data[1].Z + SphereRadius);
+    (SphereCenter.X >= Data[0].X - SphereRadius) and
+    (SphereCenter.X <= Data[1].X + SphereRadius) and
+    (SphereCenter.Y >= Data[0].Y - SphereRadius) and
+    (SphereCenter.Y <= Data[1].Y + SphereRadius) and
+    (SphereCenter.Z >= Data[0].Z - SphereRadius) and
+    (SphereCenter.Z <= Data[1].Z + SphereRadius);
 end;
 
 function TBox3D.SphereCollision(
@@ -1854,14 +1854,14 @@ begin
     Ok, that's damn fast, but still a little slower than
     TBox3D.SphereSimpleCollision (that has 1 up to 6 comparisons and additions). }
 
-  if SphereCenter.Data[0] < Data[0].X then D := D + (Sqr(SphereCenter.Data[0] - Data[0].X)) else
-  if SphereCenter.Data[0] > Data[1].X then D := D + (Sqr(SphereCenter.Data[0] - Data[1].X));
+  if SphereCenter.X < Data[0].X then D := D + (Sqr(SphereCenter.X - Data[0].X)) else
+  if SphereCenter.X > Data[1].X then D := D + (Sqr(SphereCenter.X - Data[1].X));
 
-  if SphereCenter.Data[1] < Data[0].Y then D := D + (Sqr(SphereCenter.Data[1] - Data[0].Y)) else
-  if SphereCenter.Data[1] > Data[1].Y then D := D + (Sqr(SphereCenter.Data[1] - Data[1].Y));
+  if SphereCenter.Y < Data[0].Y then D := D + (Sqr(SphereCenter.Y - Data[0].Y)) else
+  if SphereCenter.Y > Data[1].Y then D := D + (Sqr(SphereCenter.Y - Data[1].Y));
 
-  if SphereCenter.Data[2] < Data[0].Z then D := D + (Sqr(SphereCenter.Data[2] - Data[0].Z)) else
-  if SphereCenter.Data[2] > Data[1].Z then D := D + (Sqr(SphereCenter.Data[2] - Data[1].Z));
+  if SphereCenter.Z < Data[0].Z then D := D + (Sqr(SphereCenter.Z - Data[0].Z)) else
+  if SphereCenter.Z > Data[1].Z then D := D + (Sqr(SphereCenter.Z - Data[1].Z));
 
   Result := D <= Sqr(SphereRadius);
 end;
@@ -1875,11 +1875,11 @@ begin
 
   D := 0;
 
-  if SphereCenter.Data[0] < Data[0].X then D := D + (Sqr(SphereCenter.Data[0] - Data[0].X)) else
-  if SphereCenter.Data[0] > Data[1].X then D := D + (Sqr(SphereCenter.Data[0] - Data[1].X));
+  if SphereCenter.X < Data[0].X then D := D + (Sqr(SphereCenter.X - Data[0].X)) else
+  if SphereCenter.X > Data[1].X then D := D + (Sqr(SphereCenter.X - Data[1].X));
 
-  if SphereCenter.Data[1] < Data[0].Y then D := D + (Sqr(SphereCenter.Data[1] - Data[0].Y)) else
-  if SphereCenter.Data[1] > Data[1].Y then D := D + (Sqr(SphereCenter.Data[1] - Data[1].Y));
+  if SphereCenter.Y < Data[0].Y then D := D + (Sqr(SphereCenter.Y - Data[0].Y)) else
+  if SphereCenter.Y > Data[1].Y then D := D + (Sqr(SphereCenter.Y - Data[1].Y));
 
   Result := D <= Sqr(SphereRadius);
 end;
@@ -2005,9 +2005,9 @@ var
 begin
   CheckNonEmpty;
 
-  XMin := Dir.Data[0] < 0;
-  YMin := Dir.Data[1] < 0;
-  ZMin := Dir.Data[2] < 0;
+  XMin := Dir.X < 0;
+  YMin := Dir.Y < 0;
+  ZMin := Dir.Z < 0;
 
   MinPoint := PointOnLineClosestToPoint(Point, Dir,
     Vector3(B[XMin].X, B[YMin].Y, B[ZMin].Z));
@@ -2499,12 +2499,12 @@ begin
     if Index >= 0 then
     begin
       ThisVertex := GetVertex(Index);
-      if ThisVertex.Data[0] < Result.Data[0].X then Result.Data[0].X := ThisVertex.Data[0];
-      if ThisVertex.Data[1] < Result.Data[0].Y then Result.Data[0].Y := ThisVertex.Data[1];
-      if ThisVertex.Data[2] < Result.Data[0].Z then Result.Data[0].Z := ThisVertex.Data[2];
-      if ThisVertex.Data[0] > Result.Data[1].X then Result.Data[1].X := ThisVertex.Data[0];
-      if ThisVertex.Data[1] > Result.Data[1].Y then Result.Data[1].Y := ThisVertex.Data[1];
-      if ThisVertex.Data[2] > Result.Data[1].Z then Result.Data[1].Z := ThisVertex.Data[2];
+      if ThisVertex.X < Result.Data[0].X then Result.Data[0].X := ThisVertex.X;
+      if ThisVertex.Y < Result.Data[0].Y then Result.Data[0].Y := ThisVertex.Y;
+      if ThisVertex.Z < Result.Data[0].Z then Result.Data[0].Z := ThisVertex.Z;
+      if ThisVertex.X > Result.Data[1].X then Result.Data[1].X := ThisVertex.X;
+      if ThisVertex.Y > Result.Data[1].Y then Result.Data[1].Y := ThisVertex.Y;
+      if ThisVertex.Z > Result.Data[1].Z then Result.Data[1].Z := ThisVertex.Z;
     end;
   end;
 end;

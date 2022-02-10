@@ -122,7 +122,7 @@ type
       interpolating values along the triangle, as they satisfy the equation:
 
       @preformatted(
-        Result.Data[0] * Triangle.Data[0] +
+        Result.X * Triangle.Data[0] +
         Result.Data[1] * Triangle.Data[1] +
         Result.Data[2] * Triangle.Data[2] = Point
       )
@@ -1068,16 +1068,16 @@ begin
   ResultDir := Direction;
   (* Punkt Data[0] musi lezec na plane Result. Wiec musi zachodzic
 
-     ResulrDir[0] * Data[0, 0] +
-     ResulrDir[1] * Data[0, 1] +
-     ResulrDir[2] * Data[0, 2]
-       + Result[3] = 0
+     ResulrDir.X * Data[0].X +
+     ResulrDir.Y * Data[0].Y +
+     ResulrDir.Z * Data[0].Z
+       + Result.W = 0
 
      Stad widac jak wyznaczyc Result[3]. *)
-  Result.Data[3] :=
-    -ResultDir.Data[0] * Data[0].X
-    -ResultDir.Data[1] * Data[0].Y
-    -ResultDir.Data[2] * Data[0].Z;
+  Result.W :=
+    -ResultDir.X * Data[0].X
+    -ResultDir.Y * Data[0].Y
+    -ResultDir.Z * Data[0].Z;
 end;
 
 function TTriangle3.NormalizedPlane: TVector4;
@@ -1088,9 +1088,9 @@ begin
      zamiast TriangleNormalNotNorm *)
   ResultNormal := Normal;
   Result.Data[3] :=
-    -ResultNormal.Data[0] * Data[0].X
-    -ResultNormal.Data[1] * Data[0].Y
-    -ResultNormal.Data[2] * Data[0].Z;
+    -ResultNormal.X * Data[0].X
+    -ResultNormal.Y * Data[0].Y
+    -ResultNormal.Z * Data[0].Z;
 end;
 
 function TTriangle3.Transform(const M: TMatrix4): TTriangle3;
