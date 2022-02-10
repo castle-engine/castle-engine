@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -193,8 +193,8 @@ begin
 
     Scale := Scale * Approximate3DScale(ScaleVector);
     UniformScale := UniformScale and
-      (ScaleVector.Data[0] = ScaleVector.Data[1]) and
-      (ScaleVector.Data[1] = ScaleVector.Data[2]);
+      (ScaleVector.X = ScaleVector.Y) and
+      (ScaleVector.Y = ScaleVector.Z);
   end;
 
   MultMatricesTranslation(Transform, InverseTransform, -Center);
@@ -240,8 +240,8 @@ begin
 
     Scale := Scale * Approximate3DScale(ScaleVector);
     UniformScale := UniformScale and
-      (ScaleVector.Data[0] = ScaleVector.Data[1]) and
-      (ScaleVector.Data[1] = ScaleVector.Data[2]);
+      (ScaleVector.X = ScaleVector.Y) and
+      (ScaleVector.Y = ScaleVector.Z);
   end;
 end;
 

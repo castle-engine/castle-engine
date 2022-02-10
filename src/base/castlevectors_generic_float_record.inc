@@ -1681,9 +1681,9 @@ end;
 
 class operator TGenericMatrix3.{$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix3; const V: TGenericVector3): TGenericVector3;
 begin
-  Result.Data[0] := M.Data[0, 0] * V.X + M.Data[1, 0] * V.Y + M.Data[2, 0] * V.Z;
-  Result.Data[1] := M.Data[0, 1] * V.X + M.Data[1, 1] * V.Y + M.Data[2, 1] * V.Z;
-  Result.Data[2] := M.Data[0, 2] * V.X + M.Data[1, 2] * V.Y + M.Data[2, 2] * V.Z;
+  Result.X := M.Data[0, 0] * V.X + M.Data[1, 0] * V.Y + M.Data[2, 0] * V.Z;
+  Result.Y := M.Data[0, 1] * V.X + M.Data[1, 1] * V.Y + M.Data[2, 1] * V.Z;
+  Result.Z := M.Data[0, 2] * V.X + M.Data[1, 2] * V.Y + M.Data[2, 2] * V.Z;
 end;
 
 class operator TGenericMatrix3.{$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix3): TGenericMatrix3;
@@ -1731,16 +1731,16 @@ end;
 
 function TGenericMatrix3.GetRows(const ARow: TIndex): TGenericVector3;
 begin
-  Result.Data[0] := Data[0, ARow];
-  Result.Data[1] := Data[1, ARow];
-  Result.Data[2] := Data[2, ARow];
+  Result.X := Data[0, ARow];
+  Result.Y := Data[1, ARow];
+  Result.Z := Data[2, ARow];
 end;
 
 procedure TGenericMatrix3.SetRows(const ARow: TIndex; const Value: TGenericVector3);
 begin
-  Data[0, ARow] := Value.Data[0];
-  Data[1, ARow] := Value.Data[1];
-  Data[2, ARow] := Value.Data[2];
+  Data[0, ARow] := Value.X;
+  Data[1, ARow] := Value.Y;
+  Data[2, ARow] := Value.Z;
 end;
 
 function TGenericMatrix3.GetColumns(const AColumn: TIndex): TGenericVector3;
@@ -1999,10 +1999,10 @@ end;
 
 function TGenericMatrix4.TransposeMultiply(const V: TGenericVector4): TGenericVector4;
 begin
-  Result.Data[0] := Data[0, 0] * V.X + Data[0, 1] * V.Y + Data[0, 2] * V.Z + Data[0, 3] * V.W;
-  Result.Data[1] := Data[1, 0] * V.X + Data[1, 1] * V.Y + Data[1, 2] * V.Z + Data[1, 3] * V.W;
-  Result.Data[2] := Data[2, 0] * V.X + Data[2, 1] * V.Y + Data[2, 2] * V.Z + Data[2, 3] * V.W;
-  Result.Data[3] := Data[3, 0] * V.X + Data[3, 1] * V.Y + Data[3, 2] * V.Z + Data[3, 3] * V.W;
+  Result.X := Data[0, 0] * V.X + Data[0, 1] * V.Y + Data[0, 2] * V.Z + Data[0, 3] * V.W;
+  Result.Y := Data[1, 0] * V.X + Data[1, 1] * V.Y + Data[1, 2] * V.Z + Data[1, 3] * V.W;
+  Result.Z := Data[2, 0] * V.X + Data[2, 1] * V.Y + Data[2, 2] * V.Z + Data[2, 3] * V.W;
+  Result.W := Data[3, 0] * V.X + Data[3, 1] * V.Y + Data[3, 2] * V.Z + Data[3, 3] * V.W;
 end;
 
 class operator TGenericMatrix4.{$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix4; const V: TGenericVector4): TGenericVector4;
@@ -2024,10 +2024,10 @@ begin
 
   Code expanded for the sake of speed:}
 
-  Result.Data[0] := M.Data[0, 0] * V.X + M.Data[1, 0] * V.Y + M.Data[2, 0] * V.Z + M.Data[3, 0] * V.W;
-  Result.Data[1] := M.Data[0, 1] * V.X + M.Data[1, 1] * V.Y + M.Data[2, 1] * V.Z + M.Data[3, 1] * V.W;
-  Result.Data[2] := M.Data[0, 2] * V.X + M.Data[1, 2] * V.Y + M.Data[2, 2] * V.Z + M.Data[3, 2] * V.W;
-  Result.Data[3] := M.Data[0, 3] * V.X + M.Data[1, 3] * V.Y + M.Data[2, 3] * V.Z + M.Data[3, 3] * V.W;
+  Result.X := M.Data[0, 0] * V.X + M.Data[1, 0] * V.Y + M.Data[2, 0] * V.Z + M.Data[3, 0] * V.W;
+  Result.Y := M.Data[0, 1] * V.X + M.Data[1, 1] * V.Y + M.Data[2, 1] * V.Z + M.Data[3, 1] * V.W;
+  Result.Z := M.Data[0, 2] * V.X + M.Data[1, 2] * V.Y + M.Data[2, 2] * V.Z + M.Data[3, 2] * V.W;
+  Result.W := M.Data[0, 3] * V.X + M.Data[1, 3] * V.Y + M.Data[2, 3] * V.Z + M.Data[3, 3] * V.W;
 end;
 
 class operator TGenericMatrix4.{$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix4): TGenericMatrix4;
@@ -2098,18 +2098,18 @@ end;
 
 function TGenericMatrix4.GetRows(const ARow: TIndex): TGenericVector4;
 begin
-  Result.Data[0] := Data[0, ARow];
-  Result.Data[1] := Data[1, ARow];
-  Result.Data[2] := Data[2, ARow];
-  Result.Data[3] := Data[3, ARow];
+  Result.X := Data[0, ARow];
+  Result.Y := Data[1, ARow];
+  Result.Z := Data[2, ARow];
+  Result.W := Data[3, ARow];
 end;
 
 procedure TGenericMatrix4.SetRows(const ARow: TIndex; const Value: TGenericVector4);
 begin
-  Data[0, ARow] := Value.Data[0];
-  Data[1, ARow] := Value.Data[1];
-  Data[2, ARow] := Value.Data[2];
-  Data[3, ARow] := Value.Data[3];
+  Data[0, ARow] := Value.X;
+  Data[1, ARow] := Value.Y;
+  Data[2, ARow] := Value.Z;
+  Data[3, ARow] := Value.W;
 end;
 
 function TGenericMatrix4.GetColumns(const AColumn: TIndex): TGenericVector4;
@@ -2251,9 +2251,9 @@ begin
   if @Pt = @Result then
     Writeln('TGenericMatrix4.MultPoint may be invalid: Argument and Result have the same address'); }
 
-  Result.Data[0] := Data[0, 0] * Pt.Data[0] + Data[1, 0] * Pt.Data[1] + Data[2, 0] * Pt.Data[2] + Data[3, 0];
-  Result.Data[1] := Data[0, 1] * Pt.Data[0] + Data[1, 1] * Pt.Data[1] + Data[2, 1] * Pt.Data[2] + Data[3, 1];
-  Result.Data[2] := Data[0, 2] * Pt.Data[0] + Data[1, 2] * Pt.Data[1] + Data[2, 2] * Pt.Data[2] + Data[3, 2];
+  Result.X := Data[0, 0] * Pt.X + Data[1, 0] * Pt.Y + Data[2, 0] * Pt.Z + Data[3, 0];
+  Result.Y := Data[0, 1] * Pt.X + Data[1, 1] * Pt.Y + Data[2, 1] * Pt.Z + Data[3, 1];
+  Result.Z := Data[0, 2] * Pt.X + Data[1, 2] * Pt.Y + Data[2, 2] * Pt.Z + Data[3, 2];
 
   { It looks strange, but the check below usually pays off.
 
@@ -2275,17 +2275,17 @@ begin
     (Data[3, 3] = 1)) then
   begin
     Divisor :=
-      Data[0, 3] * Pt.Data[0] +
-      Data[1, 3] * Pt.Data[1] +
-      Data[2, 3] * Pt.Data[2] +
+      Data[0, 3] * Pt.X +
+      Data[1, 3] * Pt.Y +
+      Data[2, 3] * Pt.Z +
       Data[3, 3];
     if Math.IsZero(Divisor) then
       RaisePositionTransformResultInvalid;
 
     Divisor := 1 / Divisor;
-    Result.Data[0] := Result.Data[0] * Divisor;
-    Result.Data[1] := Result.Data[1] * Divisor;
-    Result.Data[2] := Result.Data[2] * Divisor;
+    Result.X := Result.X * Divisor;
+    Result.Y := Result.Y * Divisor;
+    Result.Z := Result.Z * Divisor;
   end;
 end;
 
@@ -2294,14 +2294,14 @@ var
   V3: TGenericVector3;
   Res3D: TGenericVector3;
 begin
-  V3.Data[0] := Pt.Data[0];
-  V3.Data[1] := Pt.Data[1];
-  V3.Data[2] := 0;
+  V3.X := Pt.X;
+  V3.Y := Pt.Y;
+  V3.Z := 0;
 
   Res3D := MultPoint(V3);
 
-  Result.Data[0] := Res3D.Data[0];
-  Result.Data[1] := Res3D.Data[1];
+  Result.X := Res3D.X;
+  Result.Y := Res3D.Y;
 end;
 
 procedure TGenericMatrix4.RaiseDirectionTransformedResultInvalid(const Divisor: TGenericScalar);
@@ -2320,16 +2320,16 @@ begin
   if @Dir = @Result then
     Writeln('TGenericMatrix4.MultDirection may be invalid: Argument and Result have the same address'); }
 
-  Result.Data[0] := Data[0, 0] * Dir.Data[0] + Data[1, 0] * Dir.Data[1] + Data[2, 0] * Dir.Data[2];
-  Result.Data[1] := Data[0, 1] * Dir.Data[0] + Data[1, 1] * Dir.Data[1] + Data[2, 1] * Dir.Data[2];
-  Result.Data[2] := Data[0, 2] * Dir.Data[0] + Data[1, 2] * Dir.Data[1] + Data[2, 2] * Dir.Data[2];
+  Result.X := Data[0, 0] * Dir.X + Data[1, 0] * Dir.Y + Data[2, 0] * Dir.Z;
+  Result.Y := Data[0, 1] * Dir.X + Data[1, 1] * Dir.Y + Data[2, 1] * Dir.Z;
+  Result.Z := Data[0, 2] * Dir.X + Data[1, 2] * Dir.Y + Data[2, 2] * Dir.Z;
 
   if not (
     (Data[0, 3] = 0) and
     (Data[1, 3] = 0) and
     (Data[2, 3] = 0) ) then
   begin
-    Divisor := Data[0, 3] * Dir.Data[0] + Data[1, 3] * Dir.Data[1] + Data[2, 3] * Dir.Data[2];
+    Divisor := Data[0, 3] * Dir.X + Data[1, 3] * Dir.Y + Data[2, 3] * Dir.Z;
     if not Math.IsZero(Divisor) then
       RaiseDirectionTransformedResultInvalid(Divisor);
   end;
@@ -2340,14 +2340,14 @@ var
   V3: TGenericVector3;
   Res3D: TGenericVector3;
 begin
-  V3.Data[0] := Dir.Data[0];
-  V3.Data[1] := Dir.Data[1];
-  V3.Data[2] := 0;
+  V3.X := Dir.X;
+  V3.Y := Dir.Y;
+  V3.Z := 0;
 
   Res3D := MultDirection(V3);
 
-  Result.Data[0] := Res3D.Data[0];
-  Result.Data[1] := Res3D.Data[1];
+  Result.X := Res3D.X;
+  Result.Y := Res3D.Y;
 end;
 
 class function TGenericMatrix4.Equals(const M1, M2: TGenericMatrix4): boolean;

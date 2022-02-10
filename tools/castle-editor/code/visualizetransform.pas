@@ -379,10 +379,14 @@ var
     *)
 
     CameraPos := Camera.Position;
-    CameraNearPlane.XYZ := Camera.Direction;
-    { plane equation should yield 0 when used with point in front of camera }
-    CameraNearPlane.W := - TVector3.DotProduct(
-      CameraPos + Camera.Direction * AssumeNear * SceneSizeMultiplier, Camera.Direction);
+    CameraNearPlane := Vector4(
+      Camera.Direction,
+      { plane equation should yield 0 when used with point in front of camera }
+      - TVector3.DotProduct(
+          CameraPos + Camera.Direction * AssumeNear * SceneSizeMultiplier,
+          Camera.Direction
+        )
+    );
     if not TryPlaneLineIntersection(OneProjected3, CameraNearPlane, CameraPos, OneWorld - CameraPos) then
       Exit(1.0); // no valid value can be calculated
     if not TryPlaneLineIntersection(ZeroProjected3, CameraNearPlane, CameraPos, ZeroWorld - CameraPos) then
