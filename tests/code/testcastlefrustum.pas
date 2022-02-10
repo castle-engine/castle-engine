@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleFrustum" -*-
 {
-  Copyright 2005-2021 Michalis Kamburelis.
+  Copyright 2005-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,18 +75,18 @@ begin
 end;
 
 function RandomBox: TBox3D;
+var
+  I: Integer;
+  Val1, Val2: Single;
 begin
-  Result.Data[0].Data[0] := Random * 20 - 10;
-  Result.Data[0].Data[1] := Random * 20 - 10;
-  Result.Data[0].Data[2] := Random * 20 - 10;
-
-  Result.Data[1].Data[0] := Random * 20 - 10;
-  Result.Data[1].Data[1] := Random * 20 - 10;
-  Result.Data[1].Data[2] := Random * 20 - 10;
-
-  OrderUp(Result.Data[0].Data[0], Result.Data[1].Data[0]);
-  OrderUp(Result.Data[0].Data[1], Result.Data[1].Data[1]);
-  OrderUp(Result.Data[0].Data[2], Result.Data[1].Data[2]);
+  for I := 0 to 2 do
+  begin
+    Val1 := Random * 20 - 10;
+    Val2 := Random * 20 - 10;
+    OrderUp(Val1, Val2);
+    Result.Data[0].Data[I] := Val1;
+    Result.Data[1].Data[I] := Val2;
+  end;
 end;
 
 procedure TTestCastleFrustum.AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;

@@ -131,10 +131,10 @@ type
       DefaultInitialHeightAboveTarget = 1.0;
       DefaultDistanceToAvatarTarget = 4.0;
       DefaultAvatarRotationSpeed = 10;
-      DefaultAvatarTarget: TVector3 = (Data: (0, 2, 0));
+      DefaultAvatarTarget: TVector3 = (X: 0; Y: 2; Z: 0);
       DefaultCameraSpeed = 10;
       {$ifdef AVATAR_TARGET_FORWARD}
-      DefaultAvatarTargetForward: TVector3 = (Data: (0, 2, 0));
+      DefaultAvatarTargetForward: TVector3 = (X: 0; Y: 2; Z: 0);
       {$endif}
       DefaultMoveSpeed = 1.0;
       DefaultCrouchSpeed = 0.5;

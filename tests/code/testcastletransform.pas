@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleTransform" -*-
 {
-  Copyright 2012-2021 Michalis Kamburelis.
+  Copyright 2012-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -118,12 +118,12 @@ end;
 
 const
   Box0: TBox3D = (Data: (
-    (Data: (-1, -1, -1)),
-    (Data: (1, 1, 1))
+    (X: -1; Y: -1; Z: -1),
+    (X: 1; Y: 1; Z: 1)
   ));
   Box20: TBox3D = (Data: (
-    (Data: (19, -1, -1)),
-    (Data: (21, 1, 1))
+    (X: 19; Y: -1; Z: -1),
+    (X: 21; Y: 1; Z: 1)
   ));
 
 { TTestCastleTransform ---------------------------------------------------------------- }

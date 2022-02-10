@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleColors" -*-
 {
-  Copyright 2011-2021 Michalis Kamburelis.
+  Copyright 2011-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -86,8 +86,8 @@ end;
 
 procedure TTestCastleColors.TestLerpInHsv;
 const
-  PureRed: TVector3 = (Data: (1, 0, 0));
-  PureBlue: TVector3 = (Data: (0, 0, 1));
+  PureRed : TVector3 = (X: 1; Y: 0; Z: 0);
+  PureBlue: TVector3 = (X: 0; Y: 0; Z: 1);
 var
   I: Integer;
   C: TVector3;

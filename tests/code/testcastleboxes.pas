@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleBoxes" -*-
 {
-  Copyright 2007-2021 Michalis Kamburelis.
+  Copyright 2007-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -124,12 +124,12 @@ begin
   Plane[1] := 0;
   Plane[2] := 1;
   Plane[3] := 1.980401039E+00;
-  Box.Data[0].Data[0] :=  2.837333679E-01;
-  Box.Data[0].Data[1] := -9.844776917E+01;
-  Box.Data[0].Data[2] := -1.980401039E+00;
-  Box.Data[1].Data[0] :=  1.283623352E+02;
-  Box.Data[1].Data[1] :=  3.240192413E+00;
-  Box.Data[1].Data[2] :=  3.100979996E+01;
+  Box.Data[0].X :=  2.837333679E-01;
+  Box.Data[0].Y := -9.844776917E+01;
+  Box.Data[0].Z := -1.980401039E+00;
+  Box.Data[1].X :=  1.283623352E+02;
+  Box.Data[1].Y :=  3.240192413E+00;
+  Box.Data[1].Z :=  3.100979996E+01;
   AssertBox3DPlaneCollision(Box, Plane, pcIntersecting);
 end;
 
@@ -306,8 +306,8 @@ var
     var
       p0, p2, rad, min, max: Single;
     begin
-      p0 := a * TriangleMoved.Data[0].Data[1] - b * TriangleMoved.Data[0].Data[2];
-      p2 := a * TriangleMoved.Data[2].Data[1] - b * TriangleMoved.Data[2].Data[2];
+      p0 := a * TriangleMoved.Data[0].Y - b * TriangleMoved.Data[0].Z;
+      p2 := a * TriangleMoved.Data[2].Y - b * TriangleMoved.Data[2].Z;
       if p0<p2 then begin min := p0; max := p2; end else
                     begin min := p2; max := p0; end;
       rad := fa * BoxHalfSize[1] + fb * BoxHalfSize[2];
@@ -318,8 +318,8 @@ var
     var
       p0, p1, rad, min, max: Single;
     begin
-      p0 := a * TriangleMoved.Data[0].Data[1] - b * TriangleMoved.Data[0].Data[2];
-      p1 := a * TriangleMoved.Data[1].Data[1] - b * TriangleMoved.Data[1].Data[2];
+      p0 := a * TriangleMoved.Data[0].Y - b * TriangleMoved.Data[0].Z;
+      p1 := a * TriangleMoved.Data[1].Y - b * TriangleMoved.Data[1].Z;
       if p0<p1 then begin min := p0; max := p1; end else
                     begin min := p1; max := p0; end;
       rad := fa * BoxHalfSize[1] + fb * BoxHalfSize[2];
@@ -331,8 +331,8 @@ var
     var
       p0, p2, rad, min, max: Single;
     begin
-      p0 := -a * TriangleMoved.Data[0].Data[0] + b * TriangleMoved.Data[0].Data[2];
-      p2 := -a * TriangleMoved.Data[2].Data[0] + b * TriangleMoved.Data[2].Data[2];
+      p0 := -a * TriangleMoved.Data[0].X + b * TriangleMoved.Data[0].Z;
+      p2 := -a * TriangleMoved.Data[2].X + b * TriangleMoved.Data[2].Z;
       if p0<p2 then begin min := p0; max := p2; end else
                     begin min := p2; max := p0; end;
       rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[2];
@@ -343,8 +343,8 @@ var
     var
       p0, p1, rad, min, max: Single;
     begin
-      p0 := -a * TriangleMoved.Data[0].Data[0] + b * TriangleMoved.Data[0].Data[2];
-      p1 := -a * TriangleMoved.Data[1].Data[0] + b * TriangleMoved.Data[1].Data[2];
+      p0 := -a * TriangleMoved.Data[0].X + b * TriangleMoved.Data[0].Z;
+      p1 := -a * TriangleMoved.Data[1].X + b * TriangleMoved.Data[1].Z;
       if p0<p1 then begin min := p0; max := p1; end else
                     begin min := p1; max := p0; end;
       rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[2];
@@ -356,8 +356,8 @@ var
     var
       p1, p2, rad, min, max: Single;
     begin
-      p1 := a * TriangleMoved.Data[1].Data[0] - b * TriangleMoved.Data[1].Data[1];
-      p2 := a * TriangleMoved.Data[2].Data[0] - b * TriangleMoved.Data[2].Data[1];
+      p1 := a * TriangleMoved.Data[1].X - b * TriangleMoved.Data[1].Y;
+      p2 := a * TriangleMoved.Data[2].X - b * TriangleMoved.Data[2].Y;
       if p2<p1 then begin min := p2; max := p1; end else
                     begin min := p1; max := p2; end;
       rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[1];
@@ -368,8 +368,8 @@ var
     var
       p0, p1, rad, min, max: Single;
     begin
-      p0 := a * TriangleMoved.Data[0].Data[0] - b * TriangleMoved.Data[0].Data[1];
-      p1 := a * TriangleMoved.Data[1].Data[0] - b * TriangleMoved.Data[1].Data[1];
+      p0 := a * TriangleMoved.Data[0].X - b * TriangleMoved.Data[0].Y;
+      p1 := a * TriangleMoved.Data[1].X - b * TriangleMoved.Data[1].Y;
       if p0<p1 then begin min := p0; max := p1; end else
                     begin min := p1; max := p0; end;
       rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[1];
@@ -417,26 +417,26 @@ var
     TriangleEdges[2] := TriangleMoved.Data[0] - TriangleMoved.Data[2];
 
     { tests 3) }
-    EdgeAbs[0] := Abs(TriangleEdges[0].Data[0]);
-    EdgeAbs[1] := Abs(TriangleEdges[0].Data[1]);
-    EdgeAbs[2] := Abs(TriangleEdges[0].Data[2]);
-    if AXISTEST_X01(TriangleEdges[0].Data[2], TriangleEdges[0].Data[1], EdgeAbs[2], EdgeAbs[1]) then Exit(false);
-    if AXISTEST_Y02(TriangleEdges[0].Data[2], TriangleEdges[0].Data[0], EdgeAbs[2], EdgeAbs[0]) then Exit(false);
-    if AXISTEST_Z12(TriangleEdges[0].Data[1], TriangleEdges[0].Data[0], EdgeAbs[1], EdgeAbs[0]) then Exit(false);
+    EdgeAbs[0] := Abs(TriangleEdges[0].X);
+    EdgeAbs[1] := Abs(TriangleEdges[0].Y);
+    EdgeAbs[2] := Abs(TriangleEdges[0].Z);
+    if AXISTEST_X01(TriangleEdges[0].Z, TriangleEdges[0].Y, EdgeAbs[2], EdgeAbs[1]) then Exit(false);
+    if AXISTEST_Y02(TriangleEdges[0].Z, TriangleEdges[0].X, EdgeAbs[2], EdgeAbs[0]) then Exit(false);
+    if AXISTEST_Z12(TriangleEdges[0].Y, TriangleEdges[0].X, EdgeAbs[1], EdgeAbs[0]) then Exit(false);
 
-    EdgeAbs[0] := Abs(TriangleEdges[1].Data[0]);
-    EdgeAbs[1] := Abs(TriangleEdges[1].Data[1]);
-    EdgeAbs[2] := Abs(TriangleEdges[1].Data[2]);
-    if AXISTEST_X01(TriangleEdges[1].Data[2], TriangleEdges[1].Data[1], EdgeAbs[2], EdgeAbs[1]) then Exit(false);
-    if AXISTEST_Y02(TriangleEdges[1].Data[2], TriangleEdges[1].Data[0], EdgeAbs[2], EdgeAbs[0]) then Exit(false);
-    if AXISTEST_Z0 (TriangleEdges[1].Data[1], TriangleEdges[1].Data[0], EdgeAbs[1], EdgeAbs[0]) then Exit(false);
+    EdgeAbs[0] := Abs(TriangleEdges[1].X);
+    EdgeAbs[1] := Abs(TriangleEdges[1].Y);
+    EdgeAbs[2] := Abs(TriangleEdges[1].Z);
+    if AXISTEST_X01(TriangleEdges[1].Z, TriangleEdges[1].Y, EdgeAbs[2], EdgeAbs[1]) then Exit(false);
+    if AXISTEST_Y02(TriangleEdges[1].Z, TriangleEdges[1].X, EdgeAbs[2], EdgeAbs[0]) then Exit(false);
+    if AXISTEST_Z0 (TriangleEdges[1].Y, TriangleEdges[1].X, EdgeAbs[1], EdgeAbs[0]) then Exit(false);
 
-    EdgeAbs[0] := Abs(TriangleEdges[2].Data[0]);
-    EdgeAbs[1] := Abs(TriangleEdges[2].Data[1]);
-    EdgeAbs[2] := Abs(TriangleEdges[2].Data[2]);
-    if AXISTEST_X2 (TriangleEdges[2].Data[2], TriangleEdges[2].Data[1], EdgeAbs[2], EdgeAbs[1]) then Exit(false);
-    if AXISTEST_Y1 (TriangleEdges[2].Data[2], TriangleEdges[2].Data[0], EdgeAbs[2], EdgeAbs[0]) then Exit(false);
-    if AXISTEST_Z12(TriangleEdges[2].Data[1], TriangleEdges[2].Data[0], EdgeAbs[1], EdgeAbs[0]) then Exit(false);
+    EdgeAbs[0] := Abs(TriangleEdges[2].X);
+    EdgeAbs[1] := Abs(TriangleEdges[2].Y);
+    EdgeAbs[2] := Abs(TriangleEdges[2].Z);
+    if AXISTEST_X2 (TriangleEdges[2].Z, TriangleEdges[2].Y, EdgeAbs[2], EdgeAbs[1]) then Exit(false);
+    if AXISTEST_Y1 (TriangleEdges[2].Z, TriangleEdges[2].X, EdgeAbs[2], EdgeAbs[0]) then Exit(false);
+    if AXISTEST_Z12(TriangleEdges[2].Y, TriangleEdges[2].X, EdgeAbs[1], EdgeAbs[0]) then Exit(false);
 
     { tests 1)
       first test overlap in the (x,y,z)-directions
@@ -445,17 +445,17 @@ var
       the triangle against the AABB }
 
     { test in X-direction }
-    FindMinMax(TriangleMoved.Data[0].Data[0], TriangleMoved.Data[1].Data[0], TriangleMoved.Data[2].Data[0], min, max);
+    FindMinMax(TriangleMoved.Data[0].X, TriangleMoved.Data[1].X, TriangleMoved.Data[2].X, min, max);
     if (min >  boxhalfsize[0] + Epsilon) or
        (max < -boxhalfsize[0] - Epsilon) then Exit(false);
 
     { test in Y-direction }
-    FindMinMax(TriangleMoved.Data[0].Data[1], TriangleMoved.Data[1].Data[1], TriangleMoved.Data[2].Data[1], min, max);
+    FindMinMax(TriangleMoved.Data[0].Y, TriangleMoved.Data[1].Y, TriangleMoved.Data[2].Y, min, max);
     if (min >  boxhalfsize[1] + Epsilon) or
        (max < -boxhalfsize[1] - Epsilon) then Exit(false);
 
     { test in Z-direction }
-    FindMinMax(TriangleMoved.Data[0].Data[2], TriangleMoved.Data[1].Data[2], TriangleMoved.Data[2].Data[2], min, max);
+    FindMinMax(TriangleMoved.Data[0].Z, TriangleMoved.Data[1].Z, TriangleMoved.Data[2].Z, min, max);
     if (min >  boxhalfsize[2] + Epsilon) or
        (max < -boxhalfsize[2] - Epsilon) then Exit(false);
 
@@ -506,42 +506,42 @@ var
 begin
   Epsilon := 1e-5;
 
-  Box.Data[0].Data[0] := -7.721179485321045;
-  Box.Data[0].Data[1] := -3.115305423736572;
-  Box.Data[0].Data[2] := 26.886024475097656;
-  Box.Data[1].Data[0] := 0.283733367919922;
-  Box.Data[1].Data[1] := 3.240192413330078;
-  Box.Data[1].Data[2] := 28.947912216186523;
-  Triangle.Data[0].Data[0] := -7.759810924530029;
-  Triangle.Data[0].Data[1] := 6.43093835606123E-006;
-  Triangle.Data[0].Data[2] := 28.172618865966797;
-  Triangle.Data[1].Data[0] := -7.610710620880127;
-  Triangle.Data[1].Data[1] := -1.513858914375305;
-  Triangle.Data[1].Data[2] := 31.17262077331543;
-  Triangle.Data[2].Data[0] := -7.759810924530029;
-  Triangle.Data[2].Data[1] := 6.43093835606123E-006;
-  Triangle.Data[2].Data[2] := 31.17262077331543;
+  Box.Data[0].X := -7.721179485321045;
+  Box.Data[0].Y := -3.115305423736572;
+  Box.Data[0].Z := 26.886024475097656;
+  Box.Data[1].X := 0.283733367919922;
+  Box.Data[1].Y := 3.240192413330078;
+  Box.Data[1].Z := 28.947912216186523;
+  Triangle.Data[0].X := -7.759810924530029;
+  Triangle.Data[0].Y := 6.43093835606123E-006;
+  Triangle.Data[0].Z := 28.172618865966797;
+  Triangle.Data[1].X := -7.610710620880127;
+  Triangle.Data[1].Y := -1.513858914375305;
+  Triangle.Data[1].Z := 31.17262077331543;
+  Triangle.Data[2].X := -7.759810924530029;
+  Triangle.Data[2].Y := 6.43093835606123E-006;
+  Triangle.Data[2].Z := 31.17262077331543;
   (* DoTest('1', false
     { TODO:
       Not sure what the result should be... ? But it sure depends on the epsilon used in
       IsBox3DTriangleCollision. Test on Double values shows that this should be false.
     }); *)
 
-  Box.Data[0].Data[0] := 0.283733367919922;
-  Box.Data[0].Data[1] := -98.447769165039062;
-  Box.Data[0].Data[2] := -A;
-  Box.Data[1].Data[0] :=  128.36233520507812;
-  Box.Data[1].Data[1] := 3.240192413330078;
-  Box.Data[1].Data[2] := 31.009799957275391;
-  Triangle.Data[0].Data[0] := 25.288267135620117;
-  Triangle.Data[0].Data[1] := 8.671939849853516;
-  Triangle.Data[0].Data[2] := -A;
-  Triangle.Data[1].Data[0] := 16.125827789306641;
-  Triangle.Data[1].Data[1] := -21.297039031982422;
-  Triangle.Data[1].Data[2] := -A;
-  Triangle.Data[2].Data[0] := 19.586576461791992;
-  Triangle.Data[2].Data[1] := -26.554182052612305;
-  Triangle.Data[2].Data[2] := -A;
+  Box.Data[0].X := 0.283733367919922;
+  Box.Data[0].Y := -98.447769165039062;
+  Box.Data[0].Z := -A;
+  Box.Data[1].X :=  128.36233520507812;
+  Box.Data[1].Y := 3.240192413330078;
+  Box.Data[1].Z := 31.009799957275391;
+  Triangle.Data[0].X := 25.288267135620117;
+  Triangle.Data[0].Y := 8.671939849853516;
+  Triangle.Data[0].Z := -A;
+  Triangle.Data[1].X := 16.125827789306641;
+  Triangle.Data[1].Y := -21.297039031982422;
+  Triangle.Data[1].Z := -A;
+  Triangle.Data[2].X := 19.586576461791992;
+  Triangle.Data[2].Y := -26.554182052612305;
+  Triangle.Data[2].Z := -A;
 
   { Looks like for this test, even larger Epsilon is needed.
     At least under x86_64 (tested on Linux with fpc 2.2.4 and trunk on 2009-08-21,
@@ -567,56 +567,56 @@ begin
 
   Epsilon := OldEpsilon;
 
-  Box.Data[0].Data[0] := 0.283733367919922;
-  Box.Data[0].Data[1] := -47.603790283203125;
-  Box.Data[0].Data[2] := -A;
-  Box.Data[1].Data[0] := 64.323036193847656;
-  Box.Data[1].Data[1] := 3.240192413330078;
-  Box.Data[1].Data[2] := 14.514699935913086;
+  Box.Data[0].X := 0.283733367919922;
+  Box.Data[0].Y := -47.603790283203125;
+  Box.Data[0].Z := -A;
+  Box.Data[1].X := 64.323036193847656;
+  Box.Data[1].Y := 3.240192413330078;
+  Box.Data[1].Z := 14.514699935913086;
   { Triangle as before }
   DoTest('3', true);
 
-  Box.Data[0].Data[0] := 0.283733367919922;
-  Box.Data[0].Data[1] := -47.603790283203125;
-  Box.Data[0].Data[2] := -A;
-  Box.Data[1].Data[0] := 32.303382873535156;
-  Box.Data[1].Data[1] := -22.181798934936523;
-  Box.Data[1].Data[2] := 6.267149448394775;
+  Box.Data[0].X := 0.283733367919922;
+  Box.Data[0].Y := -47.603790283203125;
+  Box.Data[0].Z := -A;
+  Box.Data[1].X := 32.303382873535156;
+  Box.Data[1].Y := -22.181798934936523;
+  Box.Data[1].Z := 6.267149448394775;
   { Triangle as before }
   DoTest('4', true);
 
-  Box.Data[0].Data[0] := 16.293558120727539;
-  Box.Data[0].Data[1] := 3.240192413330078;
-  Box.Data[0].Data[2] := -A;
-  Box.Data[1].Data[0] := 24.298469543457031;
-  Box.Data[1].Data[1] := 9.59568977355957;
-  Box.Data[1].Data[2] := 0.081486582756042;
-  Triangle.Data[0].Data[0] := 25.288267135620117;
-  Triangle.Data[0].Data[1] := 8.671939849853516;
-  Triangle.Data[0].Data[2] := -A;
-  Triangle.Data[1].Data[0] := -0.731123030185699;
-  Triangle.Data[1].Data[1] := 32.452774047851562;
-  Triangle.Data[1].Data[2] := -A;
-  Triangle.Data[2].Data[0] := -0.382562607526779;
-  Triangle.Data[2].Data[1] := 26.646867752075195;
-  Triangle.Data[2].Data[2] := -A;
+  Box.Data[0].X := 16.293558120727539;
+  Box.Data[0].Y := 3.240192413330078;
+  Box.Data[0].Z := -A;
+  Box.Data[1].X := 24.298469543457031;
+  Box.Data[1].Y := 9.59568977355957;
+  Box.Data[1].Z := 0.081486582756042;
+  Triangle.Data[0].X := 25.288267135620117;
+  Triangle.Data[0].Y := 8.671939849853516;
+  Triangle.Data[0].Z := -A;
+  Triangle.Data[1].X := -0.731123030185699;
+  Triangle.Data[1].Y := 32.452774047851562;
+  Triangle.Data[1].Z := -A;
+  Triangle.Data[2].X := -0.382562607526779;
+  Triangle.Data[2].Y := 26.646867752075195;
+  Triangle.Data[2].Z := -A;
   DoTest('5', true);
 
-  Box.Data[0].Data[0] := -17.727319717407227;
-  Box.Data[0].Data[1] := 4.829066753387451;
-  Box.Data[0].Data[2] := 5.751677513122559;
-  Box.Data[1].Data[0] := -15.726092338562012;
-  Box.Data[1].Data[1] := 6.417941093444824;
-  Box.Data[1].Data[2] := 6.267149448394775;
-  Triangle.Data[0].Data[0] := -6.18981409072876;
-  Triangle.Data[0].Data[1] := 2.234785079956055;
-  Triangle.Data[0].Data[2] := 29.618535995483398;
-  Triangle.Data[1].Data[0] := -20.651203155517578;
-  Triangle.Data[1].Data[1] := 5.486495018005371;
-  Triangle.Data[1].Data[2] := -0.132393002510071;
-  Triangle.Data[2].Data[0] := -6.149000644683838;
-  Triangle.Data[2].Data[1] := 2.083860397338867;
-  Triangle.Data[2].Data[2] := 29.618535995483398;
+  Box.Data[0].X := -17.727319717407227;
+  Box.Data[0].Y := 4.829066753387451;
+  Box.Data[0].Z := 5.751677513122559;
+  Box.Data[1].X := -15.726092338562012;
+  Box.Data[1].Y := 6.417941093444824;
+  Box.Data[1].Z := 6.267149448394775;
+  Triangle.Data[0].X := -6.18981409072876;
+  Triangle.Data[0].Y := 2.234785079956055;
+  Triangle.Data[0].Z := 29.618535995483398;
+  Triangle.Data[1].X := -20.651203155517578;
+  Triangle.Data[1].Y := 5.486495018005371;
+  Triangle.Data[1].Z := -0.132393002510071;
+  Triangle.Data[2].X := -6.149000644683838;
+  Triangle.Data[2].Y := 2.083860397338867;
+  Triangle.Data[2].Z := 29.618535995483398;
   (* DoTest('6', false
     { TODO:
       Not sure what the result should be... ? But it sure depends on the epsilon used in
@@ -654,24 +654,27 @@ procedure TTestCastleBoxes.TestBox3DTransform;
     Result.Data[1] := BoxPoints[0];
     for I := 1 to High(BoxPoints) do
     begin
-      if BoxPoints[I].Data[0] < Result.Data[0].Data[0] then Result.Data[0].Data[0] := BoxPoints[I].Data[0];
-      if BoxPoints[I].Data[1] < Result.Data[0].Data[1] then Result.Data[0].Data[1] := BoxPoints[I].Data[1];
-      if BoxPoints[I].Data[2] < Result.Data[0].Data[2] then Result.Data[0].Data[2] := BoxPoints[I].Data[2];
-      if BoxPoints[I].Data[0] > Result.Data[1].Data[0] then Result.Data[1].Data[0] := BoxPoints[I].Data[0];
-      if BoxPoints[I].Data[1] > Result.Data[1].Data[1] then Result.Data[1].Data[1] := BoxPoints[I].Data[1];
-      if BoxPoints[I].Data[2] > Result.Data[1].Data[2] then Result.Data[1].Data[2] := BoxPoints[I].Data[2];
+      if BoxPoints[I].X < Result.Data[0].X then Result.Data[0].X := BoxPoints[I].X;
+      if BoxPoints[I].Y < Result.Data[0].Y then Result.Data[0].Y := BoxPoints[I].Y;
+      if BoxPoints[I].Z < Result.Data[0].Z then Result.Data[0].Z := BoxPoints[I].Z;
+      if BoxPoints[I].X > Result.Data[1].X then Result.Data[1].X := BoxPoints[I].X;
+      if BoxPoints[I].Y > Result.Data[1].Y then Result.Data[1].Y := BoxPoints[I].Y;
+      if BoxPoints[I].Z > Result.Data[1].Z then Result.Data[1].Z := BoxPoints[I].Z;
     end;
   end;
 
   function RandomBox: TBox3D;
   var
     I: Integer;
+    Val1, Val2: Single;
   begin
     for I := 0 to 2 do
     begin
-      Result.Data[0].Data[I] := 50 - Random * 100;
-      Result.Data[1].Data[I] := 50 - Random * 100;
-      OrderUp(Result.Data[0].Data[I], Result.Data[1].Data[I]);
+      Val1 := 50 - Random * 100;
+      Val2 := 50 - Random * 100;
+      OrderUp(Val1, Val2);
+      Result.Data[0].Data[I] := Val1;
+      Result.Data[1].Data[I] := Val2;
     end;
   end;
 
@@ -775,8 +778,8 @@ end;
 procedure TTestCastleBoxes.TestBox3DPointDistance;
 const
   Box: TBox3D = (Data: (
-    (Data: (1, 2, 3)),
-    (Data: (4, 5, 6))
+    (X: 1; Y: 2; Z: 3),
+    (X: 4; Y: 5; Z: 6)
   ));
   Epsilon = 0.0001;
 begin
@@ -805,12 +808,12 @@ end;
 procedure TTestCastleBoxes.Test2D;
 const
   Box: TBox3D = (Data: (
-    (Data: (1, 2, 3)),
-    (Data: (4, 5, 6))
+    (X: 1; Y: 2; Z: 3),
+    (X: 4; Y: 5; Z: 6)
   ));
   Box2: TBox3D = (Data: (
-    (Data: (1, 2, 3)),
-    (Data: (2, 5, 13))
+    (X: 1; Y: 2; Z: 3),
+    (X: 2; Y: 5; Z: 13)
   ));
 begin
   AssertTrue(Box.Contains2D(Vector3(2, 3, 10), 2));

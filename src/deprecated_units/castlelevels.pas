@@ -1528,7 +1528,7 @@ procedure TLevelInfo.LoadFromDocument;
   end;
 
 const
-  DefaultPlaceholderReferenceDirection: TVector3 = (Data: (1, 0, 0));
+  DefaultPlaceholderReferenceDirection: TVector3 = (X: 1; Y: 0; Z: 0);
 var
   LoadingImageURL: string;
   SoundName: string;
