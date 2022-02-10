@@ -233,7 +233,7 @@ begin
   BackRect[2].TexCoord1 := Vector2(0.0, 1.0);
   BackRect[3].TexCoord1 := Vector2(1.0, 1.0);
 
-  // Set sprites' tex coords and defalt position
+  // Set sprites' tex coords and default position
   for I := 0 to 3 do
   begin
     Rects[I, 0].Position := Vector4(0.0, 0.0, 0.0, 1.0);

@@ -25,7 +25,7 @@ uses SysUtils, Classes,
   CastleApplicationProperties;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Edit1, Edit2, EditNumbers: TCastleEdit;
   ButtonCopyText: TCastleButton;
 
@@ -123,7 +123,7 @@ end;
 initialization
   Application.OnInitialize := @ApplicationInitialize;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Window.OnResize := @WindowResize;
   Application.MainWindow := Window;

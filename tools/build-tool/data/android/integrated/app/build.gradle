@@ -24,6 +24,29 @@ android {
             // proguardFiles.add(file('proguard-rules.txt'))
         }
     }
+
+    /* Necessary, otherwise using androidx.core makes errors:
+
+    * What went wrong:
+    Execution failed for task ':app:mergeExtDexDebug'.
+    > Could not resolve all files for configuration ':app:debugRuntimeClasspath'.
+       > Failed to transform core-1.7.0.aar (androidx.core:core:1.7.0) to match attributes {artifactType=android-dex, dexing-enable-desugaring=false, dexing-incremental-transform=false, dexing-is-debuggable=true, dexing-min-sdk=16, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-runtime}.
+          > Execution failed for DexingNoClasspathTransform: C:\Users\michalis\.gradle\caches\transforms-3\fd3568d9c4b7646659f6c5510e5362f2\transformed\core-1.7.0-runtime.jar.
+             > Error while dexing.
+               The dependency contains Java 8 bytecode. Please enable desugaring by adding the following to build.gradle
+               android {
+                   compileOptions {
+                       sourceCompatibility 1.8
+                       targetCompatibility 1.8
+                   }
+               }
+               See https://developer.android.com/studio/write/java8-support.html for details. Alternatively, increase the minSdkVersion to 24 or above.
+
+    */
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
 }
 
 dependencies {
@@ -33,6 +56,11 @@ dependencies {
     // See https://developer.android.com/jetpack/androidx/releases/activity
     def activity_version = "1.1.0"
     implementation "androidx.activity:activity:$activity_version"
+
+    // For WindowInsetsControllerCompat
+    // See https://developer.android.com/jetpack/androidx/releases/core
+    def core_version = "1.7.0"
+    implementation "androidx.core:core:$core_version"
 
     // Do not change the line below, it is necessary for build.gradle merging to work.
     // MERGE-DEPENDENCIES

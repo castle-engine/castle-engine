@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <build_gradle_merge>
-  <!-- Following https://gameanalytics.com/docs/s/article/Android-SDK-Setup#Configure-Android-Studio -->
+  <!-- Following https://gameanalytics.com/docs/s/article/Android-SDK-Setup -->
   <dependencies>
-    <dependency>api 'com.gameanalytics.sdk:gameanalytics-android:4.3.4'</dependency>
+    <dependency>implementation 'com.gameanalytics.sdk:gameanalytics-android:6.2.6+'</dependency>
     <dependency>implementation 'com.google.android.gms:play-services-base:10.2.1'</dependency>
     <dependency>implementation 'com.android.support:appcompat-v7:24.2.0'</dependency>
   </dependencies>

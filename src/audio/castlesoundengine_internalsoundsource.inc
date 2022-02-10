@@ -247,7 +247,7 @@ begin
   if Assigned(OnRelease) then
   begin
     { Note that calling OnRelease may do anything, it may even reuse this sound
-      and set the OnRelease again. This is possible though TCastlePlayingSound:
+      and set the OnRelease again. This is possible when using TCastlePlayingSound:
       if in OnStop of one TCastlePlayingSound, you will start playing another
       TCastlePlayingSound, it may reuse the same TInternalSoundSource.
 

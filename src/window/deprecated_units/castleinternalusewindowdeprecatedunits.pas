@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2021 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,8 +25,7 @@ unit CastleInternalUseWindowDeprecatedUnits;
 
 interface
 
-uses
-  CastleWindowModes, CastleWindowTouch;
+uses CastleWindowModes, CastleSoundMenu, CastleWindowProgress;
 
 implementation
 

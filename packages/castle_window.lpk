@@ -49,7 +49,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="32">
+    <Files Count="31">
       <Item1>
         <Filename Value="../src/window/castleinternalwindowmodes.pas"/>
         <UnitName Value="CastleInternalWindowModes"/>
@@ -59,7 +59,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleMessages"/>
       </Item2>
       <Item3>
-        <Filename Value="../src/window/castlesoundmenu.pas"/>
+        <Filename Value="../src/window/deprecated_units/castlesoundmenu.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleSoundMenu"/>
       </Item3>
       <Item4>
@@ -107,7 +108,8 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item14>
       <Item15>
-        <Filename Value="../src/window/castlewindowprogress.pas"/>
+        <Filename Value="../src/window/deprecated_units/castlewindowprogress.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleWindowProgress"/>
       </Item15>
       <Item16>
@@ -177,11 +179,6 @@ See https://castle-engine.io/license.php for details.
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleWindowModes"/>
       </Item31>
-      <Item32>
-        <Filename Value="../src/window/deprecated_units/castlewindowtouch.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleWindowTouch"/>
-      </Item32>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

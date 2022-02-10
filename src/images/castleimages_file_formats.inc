@@ -1,5 +1,6 @@
+{%MainUnit castleimages.pas}
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,12 +28,8 @@ type
       Vampyre Imaging Library, or (Delphi) PngImage. }
     ifPNG,
 
-    { We handle uncompressed BMP images. }
-    ifBMP,
-
-    ifPPM,
-
     { Image formats below are supported by FPImage and/or Vampyre Imaging Library. }
+    ifBMP,
     ifJPEG,
     ifGIF,
     ifTGA,
@@ -77,7 +74,9 @@ type
     ifRGBE,
 
     ifIPL,
+    {$ifdef CASTLE_ENABLE_TIFF}
     ifTIFF,
+    {$endif}
     ifJP2
   );
   TImageFormats = set of TImageFormat;
@@ -99,9 +98,7 @@ type
 type
   EInvalidBMP = class(EInvalidImageFormat);
   EInvalidPNG = class(EInvalidImageFormat);
-  EInvalidPPM = class(EInvalidImageFormat);
   EInvalidIPL = class(EInvalidImageFormat);
-  EInvalidRGBE = class(EInvalidImageFormat);
   EInvalidASTC = class(EInvalidImageFormat);
 
 function LoadPNG(const Stream: TStream;
@@ -119,8 +116,10 @@ function LoadTGA(const Stream: TStream;
 {function LoadSGI(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;}
 
+{$ifdef CASTLE_ENABLE_TIFF}
 function LoadTIFF(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+{$endif}
 
 function LoadJP2(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
@@ -140,22 +139,14 @@ function LoadPSD(const Stream: TStream;
 function LoadPCX(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-{ Load PPM image.
-  Loads only the first image in .ppm file. }
-function LoadPPM(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
-
-{ Load PNM image (PNM, PGM, PBM, PPM) through FpImage.
-  Note that for PPM, for now it's more advised to use our LoadPPM. }
+{ Load PNM image (PNM, PGM, PBM, PPM). }
 function LoadPNM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 function LoadIPL(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-{ Load RGBE image.
-  This low-level function can load to TRGBFloatImage (preserving image data)
-  or to TRGBImage (loosing floating point precision of RGBE format). }
+{ Load RGBE image. }
 function LoadRGBE(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
@@ -197,16 +188,13 @@ procedure SaveGIF(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveTGA(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveXPM(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SavePNM(const Img: TEncodedImage; const Stream: TStream); forward;
-
-{ }
 procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream); forward;
-{ }
-procedure SavePPM(const Img: TEncodedImage; const Stream: TStream; const Binary: boolean); overload; forward;
-procedure SavePPM(const Img: TEncodedImage; const Stream: TStream); { binary = true } overload; forward;
-{ }
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
-
 procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure SaveJP2(const Img: TEncodedImage; const Stream: TStream); forward;
+{$ifdef CASTLE_ENABLE_TIFF}
+procedure SaveTIFF(const Img: TEncodedImage; const Stream: TStream); forward;
+{$endif}
 
 { Detecting class ------------------------------------------------------------ }
 
@@ -365,13 +353,13 @@ type
     TImageFormatInfo.MimeTypesCount must be >= 1,
     so each file format must have at least one
     (treated as "default" in some cases) MIME type. }
-  TImageFormatInfoMimeTypesCount = 1..6;
+  TImageFormatInfoMimeTypesCount = 1..7;
 
   { A type to index TImageFormatInfo.Exts array and also for TImageFormatInfo.ExtsCount.
     So TImageFormatInfo.Exts array is indexed from 1,
     and TImageFormatInfo.ExtsCount must be >= 1, so each file format must have at least one
     (treated as "default" in some cases) file extension. }
-  TImageFormatInfoExtsCount = 1..3;
+  TImageFormatInfoExtsCount = 1..4;
 
   { Record with information specific to TImageFormat. }
   TImageFormatInfo = record
@@ -451,8 +439,8 @@ const
     { Portable Network Graphic } { }
     ( FormatName: 'PNG image';
       MimeTypesCount: 1;
-      MimeTypes: ('image/png', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('png', '', '');
+      MimeTypes: ('image/png', '', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('png', '', '', '');
       { Regardless of using libpng or not, our PNG load/save can handle
         all possibilities. }
       Load: {$ifdef FPC}@{$endif}LoadPNG;
@@ -461,26 +449,17 @@ const
     ),
     ( FormatName: 'Windows BMP image';
       MimeTypesCount: 1;
-      MimeTypes: ('image/bmp', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('bmp', '', '');
+      MimeTypes: ('image/bmp', '', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('bmp', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadBMP;
       Save: {$ifdef FPC}@{$endif}SaveBMP; SavedClasses: scRGB;
-      DetectClass: nil;
-    ),
-    { Portable Pixel Map } { }
-    ( FormatName: 'PPM image';
-      MimeTypesCount: 1;
-      MimeTypes: ('image/x-portable-pixmap', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('ppm', '', '');
-      Load: {$ifdef FPC}@{$endif}LoadPPM;
-      Save: {$ifdef FPC}@{$endif}SavePPM; SavedClasses: scRGB;
       DetectClass: nil;
     ),
     { JFIF, JPEG File Interchange Format } { }
     ( FormatName: 'JPEG image';
       MimeTypesCount: 2;
-      MimeTypes: ('image/jpeg', 'image/jpg', '', '', '', '');
-      ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
+      MimeTypes: ('image/jpeg', 'image/jpg', '', '', '', '', '');
+      ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe', '');
       Load: {$ifdef FPC}@{$endif}LoadJPEG;
       Save: {$ifdef FPC}@{$endif}SaveJPEG; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: {$ifdef FPC}@{$endif}DetectClassJPG;
@@ -488,48 +467,48 @@ const
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
       MimeTypesCount: 1;
-      MimeTypes: ('image/gif', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('gif', '', '');
+      MimeTypes: ('image/gif', '', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('gif', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadGIF;
       Save: {$ifdef FPC}@{$endif}SaveGIF; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
     ( FormatName: 'TarGA image';
       MimeTypesCount: 2;
-      MimeTypes: ('image/x-targa', 'image/x-tga', '', '', '', '');
-      ExtsCount: 2; Exts: ('tga', 'tpic', '');
+      MimeTypes: ('image/x-targa', 'image/x-tga', '', '', '', '', '');
+      ExtsCount: 2; Exts: ('tga', 'tpic', '', '');
       Load: {$ifdef FPC}@{$endif}LoadTGA;
       Save: {$ifdef FPC}@{$endif}SaveTGA; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
     ( FormatName: 'XPM image';
       MimeTypesCount: 1;
-      MimeTypes: ('image/x-xpixmap', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('xpm', '', '');
+      MimeTypes: ('image/x-xpixmap', '', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('xpm', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadXPM;
       Save: {$ifdef FPC}@{$endif}SaveXPM; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
     ( FormatName: 'PSD image';
       MimeTypesCount: 4;
-      MimeTypes: ('image/photoshop', 'image/x-photoshop', 'image/psd', 'application/photoshop', '', '');
-      ExtsCount: 1; Exts: ('psd', '', '');
+      MimeTypes: ('image/photoshop', 'image/x-photoshop', 'image/psd', 'application/photoshop', '', '', '');
+      ExtsCount: 1; Exts: ('psd', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadPSD;
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     ),
     ( FormatName: 'ZSoft PCX image';
       MimeTypesCount: 5;
-      MimeTypes: ('image/pcx', 'application/pcx', 'application/x-pcx', 'image/x-pc-paintbrush', 'image/x-pcx', '');
-      ExtsCount: 1; Exts: ('pcx', '', '');
+      MimeTypes: ('image/pcx', 'application/pcx', 'application/x-pcx', 'image/x-pc-paintbrush', 'image/x-pcx', '', '');
+      ExtsCount: 1; Exts: ('pcx', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadPCX;
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     ),
     ( FormatName: 'PNM image';
       MimeTypesCount: 6;
-      MimeTypes: ('image/x-portable-anymap', 'image/x-portable-graymap', 'image/x-pgm', 'image/x-portable-bitmap', 'image/pbm', 'image/x-pbm');
-      ExtsCount: 3; Exts: ('pnm', 'pgm', 'pbm');
+      MimeTypes: ('image/x-portable-anymap', 'image/x-portable-graymap', 'image/x-pgm', 'image/x-portable-bitmap', 'image/pbm', 'image/x-pbm', 'image/x-portable-pixmap');
+      ExtsCount: 4; Exts: ('pnm', 'pgm', 'pbm', 'ppm');
       Load: {$ifdef FPC}@{$endif}LoadPNM;
       Save: {$ifdef FPC}@{$endif}SavePNM; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
@@ -538,8 +517,8 @@ const
     { Direct Draw Surface } { }
     ( FormatName: 'DDS image';
       MimeTypesCount: 1;
-      MimeTypes: ('image/x-dds', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('dds', '', '');
+      MimeTypes: ('image/x-dds', '', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('dds', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadDDS;
       Save: {$ifdef FPC}@{$endif}SaveDDS; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
       DetectClass: nil;
@@ -548,8 +527,8 @@ const
     { Khronos KTX } { }
     ( FormatName: 'Khronos KTX image';
       MimeTypesCount: 1;
-      MimeTypes: ('image/ktx', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('ktx', '', '');
+      MimeTypes: ('image/ktx', '', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('ktx', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadKTX;
       Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
       DetectClass: nil;
@@ -557,16 +536,16 @@ const
     { ASTC } { }
     ( FormatName: 'ASTC image';
       MimeTypesCount: 1;
-      MimeTypes: ('image/astc', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('astc', '', '');
+      MimeTypes: ('image/astc', '', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('astc', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadASTC;
       Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
       DetectClass: nil;
     ),
-    ( FormatName: 'RGBE (RGB+Exponent) image';
+    ( FormatName: 'RGBE (Radiance, HDR) image';
       MimeTypesCount: 1;
-      MimeTypes: ('image/vnd.radiance', '', '', '', '', '');
-      ExtsCount: 3; Exts: ('rgbe', 'pic', 'hdr');
+      MimeTypes: ('image/vnd.radiance', '', '', '', '', '', '');
+      ExtsCount: 3; Exts: ('rgbe', 'pic', 'hdr', '');
       Load: {$ifdef FPC}@{$endif}LoadRGBE;
       Save: {$ifdef FPC}@{$endif}SaveRGBE; SavedClasses: scRGB_RGBFloat;
       DetectClass: nil;
@@ -574,25 +553,27 @@ const
     ( FormatName: 'IPLab image';
       MimeTypesCount: 1;
       { ipl MIME type invented by Kambi, to make it unique to communicate image format for LoadImage } { }
-      MimeTypes: ('image/x-ipl', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('ipl', '', '');
+      MimeTypes: ('image/x-ipl', '', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('ipl', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadIPL;
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     ),
+    {$ifdef CASTLE_ENABLE_TIFF}
     ( FormatName: 'TIFF image';
       MimeTypesCount: 1;
-      MimeTypes: ('image/tiff', '', '', '', '', '');
-      ExtsCount: 2; Exts: ('tiff', 'tif', '');
+      MimeTypes: ('image/tiff', '', '', '', '', '', '');
+      ExtsCount: 2; Exts: ('tiff', 'tif', '', '');
       Load: {$ifdef FPC}@{$endif}LoadTIFF;
-      Save: nil (*{$ifdef FPC}@{$endif}SaveTIFF*); SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveTIFF; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
+    {$endif}
     (*
     ( FormatName: 'SGI image';
       MimeTypesCount: 3;
-      MimeTypes: ('image/sgi', 'image/x-sgi', 'image/x-sgi-rgba', '', '', '');
-      ExtsCount: 1; Exts: ('sgi', '', '');
+      MimeTypes: ('image/sgi', 'image/x-sgi', 'image/x-sgi-rgba', '', '', '', '');
+      ExtsCount: 1; Exts: ('sgi', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadSGI;
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
@@ -600,17 +581,17 @@ const
     *)
     ( FormatName: 'JPEG 2000 image';
       MimeTypesCount: 4;
-      MimeTypes: ('image/jp2', 'image/jpeg2000', 'image/jpeg2000-image', 'image/x-jpeg2000-image', '', '');
-      ExtsCount: 1; Exts: ('jp2', '', '');
+      MimeTypes: ('image/jp2', 'image/jpeg2000', 'image/jpeg2000-image', 'image/x-jpeg2000-image', '', '', '');
+      ExtsCount: 1; Exts: ('jp2', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadJP2;
-      Save: nil (*{$ifdef FPC}@{$endif}SaveJP2*); SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveJP2; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     )
     (*
     ( FormatName: 'EXR image';
       MimeTypesCount: 1;
-      MimeTypes: ('image/x-exr', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('exr', '', '');
+      MimeTypes: ('image/x-exr', '', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('exr', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadEXR;
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;

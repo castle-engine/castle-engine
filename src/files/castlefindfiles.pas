@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -114,6 +114,19 @@ type
   @param(FileProc Called on each file found.
     May be @nil (useful if you are only interested in the number of files found,
     returned by this function).)
+
+  @param(FileProcData Pointer passed to every call of FileProc.
+    This routine just passes FileProcData value as "Data" parameter to each FileProc call.
+    It is a pointer that may have absolutely any meaning you want,
+    and may point to any data structure you want,
+    it is useful to communicate information between the caller and the FileProc implementation.
+
+    If you don't need this, then just ignore the "Data" in your FileProc implementation,
+    and pass anything (like @nil) as FileProcData value.
+
+    Note that the overloaded version with FileMethod parameter doesn't have
+    any FileProcData, as in this case the instance that implements FileMethod
+    may carry any additional information necessary.)
 
   @param(Options A set of options. See TFindFilesOption for meaning
     of each option.)

@@ -14,7 +14,7 @@
 }
 
 { A simple program using CastleWindow.
-  Demonstrates the use of MainMenu in TCastleWindowBase.
+  Demonstrates the use of MainMenu in TCastleWindow.
 
   Shows
   - menu,
@@ -36,7 +36,7 @@ uses SysUtils,
   CastleViewport, CastleScene, X3DNodes;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   MenuHorizLeft, MenuHorizMiddle, MenuHorizRight: TMenuItemRadio;
   MainMenu, AlternativeMainMenu: TMenu;
 
@@ -197,7 +197,7 @@ var
   RadioGroup: TMenuItemRadioGroup;
   Viewport: TCastleViewport;
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;

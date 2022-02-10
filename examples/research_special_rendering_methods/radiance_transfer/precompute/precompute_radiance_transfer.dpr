@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,8 +18,8 @@
 program precompute_radiance_transfer;
 
 uses SysUtils, CastleUtils, CastleVectors, CastleSceneCore, X3DNodes, X3DLoad,
-  CastleSphereSampling, CastleProgress, CastleProgressConsole, CastleColors,
-  CastleSphericalHarmonics, CastleParameters, CastleTimeUtils, CastleShapes;
+  CastleInternalSphereSampling, CastleProgress, CastleProgressConsole, CastleColors,
+  CastleInternalSphericalHarmonics, CastleParameters, CastleTimeUtils, CastleShapes;
 
 var
   Scene: TCastleSceneCore;

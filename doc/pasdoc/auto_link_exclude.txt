@@ -73,7 +73,6 @@ create
 current
 cursor
 curve
-customcursor
 data
 dds
 dead
@@ -138,6 +137,7 @@ flash
 float
 flying
 focused
+forward
 font
 fps
 frame
@@ -298,6 +298,7 @@ rectangle
 rectangles
 rects
 red
+reference
 references
 register
 registered

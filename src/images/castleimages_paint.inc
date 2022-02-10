@@ -1,5 +1,6 @@
+{%MainUnit castleimages.pas}
 {
-  Copyright 2001-2018 Michalis Kamburelis, Yevhen Loza.
+  Copyright 2001-2022 Michalis Kamburelis, Yevhen Loza.
 
   This file is part of "Castle Game Engine".
 

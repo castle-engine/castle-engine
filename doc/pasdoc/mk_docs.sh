@@ -134,19 +134,19 @@ fi
 
 PASDOC_INCLUDE_DIRS="\
   --include common_includes/\
-  --include 3d/\
-  --include 3d/opengl/\
-  --include x3d/\
-  --include x3d/opengl/\
+  --include transform/\
+  --include scene/\
+  --include scene/load/\
+  --include scene/load/spine/\
+  --include scene/load/collada/\
+  --include scene/x3d/\
   --include audio/\
   --include base/\
   --include base/$TARGET_OS/\
-  --include base/opengl/\
+  --include base_rendering/\
   --include fonts/
   --include fonts/$TARGET_OS/\
-  --include fonts/opengl/\
   --include images/\
-  --include images/opengl/\
   --include window/\
   --include window/$TARGET_OS/\
   --include window/gtk/
@@ -188,7 +188,7 @@ pasdoc \
   --html-body-begin ../doc/pasdoc/html-parts/body-begin.html \
   --html-body-end ../doc/pasdoc/html-parts/body-end.html \
   --css ../doc/pasdoc/html-parts/cge-pasdoc.css \
-  --description=../src/x3d/x3dnodes_documentation.txt \
+  --description=../doc/pasdoc/x3dnodes_documentation.txt \
   $FORMAT_OPTIONS \
   | \
   grep --ignore-case --invert-match --fixed-strings \

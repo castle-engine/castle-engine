@@ -630,8 +630,8 @@ begin
       ptDecContrast:    FImageCanvas.ModifyContrastBrightness(-20, 0);
       ptIncBrightness:  FImageCanvas.ModifyContrastBrightness(0, 20);
       ptDecBrightness:  FImageCanvas.ModifyContrastBrightness(0, -20);
-      ptIncGamma:       FImageCanvas.GammaCorection(1.2, 1.2, 1.2);
-      ptDecGamma:       FImageCanvas.GammaCorection(0.8, 0.8, 0.8);
+      ptIncGamma:       FImageCanvas.GammaCorrection(1.2, 1.2, 1.2);
+      ptDecGamma:       FImageCanvas.GammaCorrection(0.8, 0.8, 0.8);
       ptThreshold:      FImageCanvas.Threshold(0.5, 0.5, 0.5);
       ptLevelsLow:      FImageCanvas.AdjustColorLevels(0.0, 0.5, 1.0);
       ptLevelsHigh:     FImageCanvas.AdjustColorLevels(0.35, 1.0, 0.9);

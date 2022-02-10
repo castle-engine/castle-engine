@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2016-2019 Tomasz Wojtyś, Michalis Kamburelis.
+  Copyright 2016-2019, 2022 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleVectors, CastleWindow, CastleControls, CastleOnScreenMenu,
-  CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
+  CastleImages, CastleFilesUtils, CastleColors,
   CastleUIControls, CastleNotifications, CastleLog, CastleJoysticks,
   CastleApplicationProperties, CastleUtils;
 
@@ -89,7 +89,7 @@ const
   );
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Notifications: TCastleNotifications;
   ButtonReinitialize: TCastleButton;
   OnScreenMenu: TCastleOnScreenMenu;
@@ -353,7 +353,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 end.

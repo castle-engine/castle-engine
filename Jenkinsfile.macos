@@ -36,6 +36,11 @@ pipeline {
         sh 'make --version'
       }
     }
+    stage('Cleanup') {
+      steps {
+        sh "repository_cleanup . --remove-unversioned"
+      }
+    }
     stage('Build Tools') {
       steps {
         sh 'rm -Rf ${CGE_INSTALL_PREFIX}'
@@ -61,6 +66,8 @@ pipeline {
     }
     stage('Build Lazarus Packages') {
       steps {
+        sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk'
+        sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk'
         sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk'
         sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk'
         sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk'

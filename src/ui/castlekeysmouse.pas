@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2001-2021 Michalis Kamburelis, Tomasz Wojtyś.
+  Copyright 2001-2022 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -391,9 +391,9 @@ const
 type
   { Look of the mouse cursor.
     Used for various properties:
-    TCastleUserInterface.Cursor, TCastleTransform.Cursor, TCastleWindowBase.Cursor.
+    TCastleUserInterface.Cursor, TCastleTransform.Cursor, TCastleWindow.Cursor.
 
-    mcDefault, mcNone, mcForceNone, mcCustom have somewhat special meanings.
+    mcDefault, mcNone, mcForceNone have somewhat special meanings.
     The rest are some cursor images will well-defined meanings for the user,
     their exact look may depend on current window manager theme etc.  }
   TMouseCursor = (
@@ -408,13 +408,7 @@ type
       This is in contrast to mcNone, that only hides the cursor if
       the currently focused control (under the mouse cursor) sets it. }
     mcForceNone,
-    { Use a custom cursor image in TCastleWindowBase.CustomCursor.
-
-      In normal circumstances, this should not be used for
-      TCastleUserInterface.Cursor, TCastleTransform.Cursor and others, as they have no way
-      to set TCastleWindowBase.CustomCursor. }
-    mcCustom,
-    { Standard arrow, indicates, well, that user can point / click something. }
+    { Standard arrow, indicates that user can point / click something. }
     mcStandard,
     { Indicates the program is busy and user should wait. }
     mcWait,
@@ -600,8 +594,8 @@ const
   ('none', 'up', 'down', 'left', 'right');
 
 { Determine simple mouse wheel direction from a Scroll and Vertical
-  parameters received from TCastleWindowBase.OnMouseWheel.
-  Assumes that Scroll <> 0, like TCastleWindowBase.OnMouseWheel guarantees. }
+  parameters received from TCastleWindow.OnMouseWheel.
+  Assumes that Scroll <> 0, like TCastleWindow.OnMouseWheel guarantees. }
 function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
 
 { Convert string value back to a key name, reversing KeyToStr.
@@ -689,7 +683,7 @@ type
       for EventType = itMouseButton (in case of mouse press/release).
 
       The position is relative to the whole container (rendering area
-      of TCastleWindowBase or TCastleControlBase). With left-bottom being
+      of TCastleWindow or TCastleControl). With left-bottom being
       (0,0) and X growing to the right and Y growing up.
       The position is in final device coordinates, i.e. it ignores
       @link(TCastleContainer.UIScaling).
@@ -698,8 +692,8 @@ type
       children.
 
       For normal backends that simply support a single mouse device,
-      this is just equivalent to TCastleWindowBase.MousePosition
-      and TCastleControlBase.MousePosition.
+      this is just equivalent to TCastleWindow.MousePosition
+      and TCastleControl.MousePosition.
 
       For multi-touch devices, this describes
       the position of the current finger (corresponding to FingerIndex).

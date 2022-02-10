@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestImages" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,7 +42,8 @@ type
 implementation
 
 uses SysUtils, Classes,
-  CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleURIUtils;
+  CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleURIUtils,
+  CastleInternalPng, CastleLog;
 
 procedure TTestImages.TestLoadImage;
 

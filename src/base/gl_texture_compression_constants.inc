@@ -1,5 +1,5 @@
 { Constants that specify texture compression for OpenGL.
-  Internal for both CastleCompositeImage (used by KTX reader)
+  Internal for both CastleInternalCompositeImage (used by KTX reader)
   and for CastleGLImage (used to load images to OpenGL / OpenGLES).
 }
 

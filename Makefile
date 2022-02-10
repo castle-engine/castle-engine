@@ -323,6 +323,8 @@ cleanexamples:
 
 .PHONY: examples-laz
 examples-laz:
+	lazbuild src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
+	lazbuild src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
 	lazbuild packages/castle_base.lpk
 	lazbuild packages/castle_window.lpk
 	lazbuild packages/castle_components.lpk
@@ -331,6 +333,7 @@ examples-laz:
 	done
 	$(FIND) . \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
+	  '(' -path ./src/vampyre_imaginglib -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -iname '*.lpi' -exec ./tools/internal/lazbuild_retry '{}' ';' ')'

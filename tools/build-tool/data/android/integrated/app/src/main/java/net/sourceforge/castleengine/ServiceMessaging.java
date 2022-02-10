@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 /**
@@ -68,7 +69,7 @@ public class ServiceMessaging extends ServiceAbstract
     /* Timer code inspired by
      * http://stackoverflow.com/questions/4597690/android-timer-how
      */
-    Handler timerHandler = new Handler();
+    Handler timerHandler = new Handler(Looper.getMainLooper());
     Runnable timerRunnable = new Runnable()
     {
         /**

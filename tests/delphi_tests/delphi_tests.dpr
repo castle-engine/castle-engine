@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,7 +31,7 @@ uses
   CastleUtils, CastleVectors, CastleColors, CastleStringUtils,
   CastleLog, CastleClassUtils, CastleProjection, CastleTimeUtils,
   CastleRectangles, CastleFindFiles, CastleFilesUtils,
-  CastleURIUtils, CastleXMLUtils, CastleImages, CastleDataUri,
+  CastleURIUtils, CastleXMLUtils, CastleImages, CastleInternalDataUri,
   CastleDownload, CastleInternalSoundFile, CastleSoundBase,
   { units specific to this project }
   CastleAssertions,

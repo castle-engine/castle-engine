@@ -16,8 +16,8 @@ _Optional notes to use Heyzap mediation:_ You can use Heyzap integration (SDK) t
 +
 [,xml]
 ----
-<dependency>compile(name:'AudienceNetwork', ext:'aar')</dependency>
-<dependency>compile(name:'unity-ads', ext:'aar')</dependency>
+<dependency>implementation(name:'AudienceNetwork', ext:'aar')</dependency>
+<dependency>implementation(name:'unity-ads', ext:'aar')</dependency>
 ----
 
 * Make the necessary modifications in the `+..../integrated-services/heyzap/app/src/main/AndroidManifest.xml+`. Make sure it contains only (and exactly!) the activities/permissions that Heyzap docs show you.
@@ -25,8 +25,8 @@ _Optional notes to use Heyzap mediation:_ You can use Heyzap integration (SDK) t
 +
 [,xml]
 ----
-<dependency>compile 'com.google.android.gms:play-services-ads:9.4.0'</dependency>
-<dependency>compile 'com.google.android.gms:play-services-location:9.4.0'</dependency>
+<dependency>implementation 'com.google.android.gms:play-services-ads:9.4.0'</dependency>
+<dependency>implementation 'com.google.android.gms:play-services-location:9.4.0'</dependency>
 ----
 
 * NOTE: that some ads SDK may require increasing the `min_sdk_version` in your link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml]. You will get a clear error message when building APK in case this is necessary. Currently, _Facebook Ads (Facebook Audience Network)_ requires min SDK >= 11.

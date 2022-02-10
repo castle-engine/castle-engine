@@ -45,7 +45,7 @@ type
   TDrawType = (dtNormal, dtElements, dtElementsIntensity, dtPass1, dtPass2);
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
   Scene: TCastleScene;
   SceneElements: TCastleScene;
@@ -884,7 +884,7 @@ begin
   ApplicationProperties.ApplicationName := 'dynamic_ambient_occlusion';
   InitializeLog;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Elements := TAOElementList.Create;
 

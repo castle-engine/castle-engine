@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2019 Michalis Kamburelis.
+  Copyright 2017-2019, 2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,7 +19,7 @@
   In the future, Castle Game Engine should allow to "plug" a new renderer,
   such that the underlying renderer can be switched at runtime,
   and the public engine API stays the same.
-  So all the engine classes (like TCastleScene, TCastleViewport, TCastleWindowBase,
+  So all the engine classes (like TCastleScene, TCastleViewport, TCastleWindow,
   TCastleButton, TDrawableImage...) will work, regardless of the renderer.
 
   Also, you will then no longer need to initialize some semi-internal things
@@ -141,7 +141,7 @@ begin
   ShapeList := Shapes.TraverseList(true, true);
   for Shape in ShapeList do
   begin
-    ShapeModelView := SceneModelView * Shape.State.Transform;
+    ShapeModelView := SceneModelView * Shape.State.Transformation.Transform;
     Writeln('Rendering shape: ', Shape.NiceName);
     Writeln('Projection matrix:');
     Writeln(ProjectionMatrix.ToString('    '));
@@ -209,7 +209,7 @@ begin
     );
 
     Scene := TCastleSceneVulkan.Create(Application);
-    Scene.Load('../../3d_rendering_processing/data/bridge_final.x3dv');
+    Scene.Load('castle-data:/car.gltf');
     Scene.PrepareResources([], false, nil);
 
     { Prepare rendering parameters

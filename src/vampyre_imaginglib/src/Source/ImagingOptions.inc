@@ -20,7 +20,7 @@
 
 
 (* File format support linking options.
-  Define formats which you don't want to be registred automatically (by adding
+  Define formats which you don't want to be registered automatically (by adding
   Imaging.pas unit to your uses clause).
   Default: most formats are registered = no symbols defined.
   Example: If you want to disable JPEG support just uncomment //{$DEFINE DONT_LINK_JPEG} line
@@ -196,7 +196,10 @@
 {$IFEND}
 
 {$IFDEF FPC}
-  {$DEFINE COMPONENT_SET_LCL}
+  { Castle Game Engine undefined -- this breaks image loading in CGE editor,
+    e.g. CGE logo.
+    TODO: investigate, submit bug or PR upstream. }
+  {.$DEFINE COMPONENT_SET_LCL}
   {$UNDEF COMPONENT_SET_VCL}
 {$ENDIF}
 

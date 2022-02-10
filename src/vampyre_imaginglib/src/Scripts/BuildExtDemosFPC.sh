@@ -1,29 +1,18 @@
 #!/bin/bash
 
-echo "Building Extension Demos using Free Pascal"
+# Ext. demos have some build and/or runtime dependencies like SDL or GL.
+# libsdl1.2-dev package should take care of both.
+echo "Building Extended Demos using Free Pascal"
+echo
 
-# Important! Set this dirs on your system 
-SDLDIR=""
-OPENGLDIR=""
+source ./Common.sh
 
-ROOTDIR=".."
-DEMOPATH="$ROOTDIR/Demos/ObjectPascal" 
-UNITS="-Fu$ROOTDIR/Source -Fu$ROOTDIR/Source/JpegLib -Fu$ROOTDIR/Source/ZLib
-  -Fu$DEMOPATH/Common -Fu$ROOTDIR/Source/Extensions -Fu$ROOTDIR/Extras/Extensions -Fu$SDLDIR -Fu$OPENGLDIR"
-INCLUDE="-Fi$ROOTDIR/Source -Fi$SDLDir -Fi$OPENGLDIR"
-LIBS="-Fl$ROOTDIR/Extras/Extensions/J2KObjects"
-OUTPUT="-FE$ROOTDIR/Demos/Bin"
-OPTIONS="-Sgi -OG2 -Xs"
+DEFINES="-dDONT_LINK_EXTRAS"
+UNITS="-Fu$ROOTDIR/Source -Fu$ROOTDIR/Source/JpegLib -Fu$ROOTDIR/Source/ZLib -Fu$ROOTDIR/Extensions -Fu$DEMOPATH/Common"  
 
-fpc $OPTIONS $OUTPUT "$DEMOPATH/SDLDemo/SDLDemo.dpr" $UNITS $INCLUDE $LIBS -oSDLDemo
-if test $? = 0; then
-fpc $OPTIONS $OUTPUT "$DEMOPATH/OpenGLDemo/OpenGLDemo.dpr" $UNITS $INCLUDE $LIBS -oOpenGLDemo
-fi
+DEMOCOUNT=2
 
-if test $? = 0; then 
-  echo "Extension demos successfuly build in Demos/Bin directory"
-else
-  echo "Error when building demos!"
-fi
+buildDemo "SDLDemo/SDLDemo.dpr" 
+buildDemo "OpenGLDemo/OpenGLDemo.dpr" 
 
-
+printResult

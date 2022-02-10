@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -95,28 +95,29 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..44] of String = (
+  EnginePaths: array [0..41] of String = (
     'base',
     'common_includes',
     'base/android',
     'base/windows',
     'base/unix',
-    'base/opengl',
+    'base_rendering',
+    'base_rendering/glsl/generated-pascal',
     'fonts',
-    'fonts/opengl',
     'window',
     'window/gtk',
     'window/windows',
     'window/unix',
     'window/deprecated_units',
     'images',
-    'images/opengl',
-    'images/opengl/glsl/generated-pascal',
-    '3d',
-    '3d/opengl',
-    'x3d',
-    'x3d/opengl',
-    'x3d/opengl/glsl/generated-pascal',
+    'transform',
+    'scene',
+    'scene/glsl/generated-pascal',
+    'scene/x3d',
+    'scene/load',
+    'scene/load/spine',
+    'scene/load/collada',
+    'scene/load/pasgltf',
     'audio',
     'audio/fmod',
     'audio/openal',
@@ -126,13 +127,9 @@ const
     'castlescript',
     'ui',
     'ui/windows',
-    'ui/opengl',
-    'game',
     'services',
-    'services/opengl',
     'physics',
     'physics/kraft',
-    'pasgltf',
     'deprecated_units',
     { Vampyre Imaging Library }
     'vampyre_imaginglib/src/Source',
@@ -973,26 +970,26 @@ procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
   const WorkingDirectory, LazarusProjectFile: string);
 var
   LazbuildOptions: TCastleStringList;
+
+  procedure LazbuildAddPackage(const LpkFileName: String);
+  begin
+    LazbuildOptions.Clear;
+    LazbuildOptions.Add('--add-package-link');
+    LazbuildOptions.Add(CastleEnginePath + LpkFileName);
+    RunLazbuild(WorkingDirectory, LazbuildOptions);
+  end;
+
 begin
   LazbuildOptions := TCastleStringList.Create;
   try
     // register CGE packages first
     if CastleEnginePath <> '' then
     begin
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_base.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
-
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_window.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
-
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_components.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
+      LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk');
+      LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk');
+      LazbuildAddPackage('packages/castle_base.lpk');
+      LazbuildAddPackage('packages/castle_window.lpk');
+      LazbuildAddPackage('packages/castle_components.lpk');
     end;
 
     LazbuildOptions.Clear;

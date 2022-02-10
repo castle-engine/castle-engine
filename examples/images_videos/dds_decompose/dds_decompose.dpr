@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2018 Michalis Kamburelis.
+  Copyright 2009-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,7 +17,7 @@
   See README.md for details. }
 program dds_decompose;
 
-uses SysUtils, CastleUtils, CastleImages, CastleCompositeImage, CastleLog,
+uses SysUtils, CastleUtils, CastleImages, CastleInternalCompositeImage, CastleLog,
   CastleStringUtils, CastleParameters, CastleURIUtils, CastleApplicationProperties;
 
 var

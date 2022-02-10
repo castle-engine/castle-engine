@@ -50,7 +50,7 @@ type
   TDynIntegerArray = array of Integer;
   TDynBooleanArray = array of Boolean;
   TDynStringArray = array of string;
-  
+
   TWordRec = packed record
     case Integer of
       0: (WordValue: Word);
@@ -133,14 +133,14 @@ procedure FreeMem(P: Pointer); {$IFDEF USE_INLINE}inline;{$ENDIF}
 function GetExceptObject: Exception; {$IFDEF USE_INLINE}inline;{$ENDIF}
 { Returns time value with microsecond resolution.}
 function GetTimeMicroseconds: Int64;
-{ Returns time value with milisecond resolution.}
+{ Returns time value with millisecond resolution.}
 function GetTimeMilliseconds: Int64;
 
 { Returns file extension (without "." dot)}
 function GetFileExt(const FileName: string): string;
 { Returns file name of application's executable.}
 function GetAppExe: string;
-{ Returns directory where application's exceutable is located without
+{ Returns directory where application's executable is located without
   path delimiter at the end.}
 function GetAppDir: string;
 { Works like SysUtils.ExtractFileName but supports '/' and '\' dir delimiters
@@ -162,7 +162,9 @@ function StrMaskMatch(const Subject, Mask: string; CaseSensitive: Boolean = Fals
 function BuildFileList(Path: string; Attr: LongInt; Files: TStrings;
   Options: TFileListOptions = []): Boolean;
 { Similar to RTL's Pos function but with optional Offset where search will start.
-  This function is in the RTL StrUtils unit but }
+  In recent FPC and Delphi XE3+ regular SysUtils.Pos has the Offset parameter as well.
+  This function is in the RTL StrUtils unit, it's here to depend on additional
+  unit for just this one function. }
 function PosEx(const SubStr, S: string; Offset: LongInt = 1): LongInt;
 { Same as PosEx but without case sensitivity.}
 function PosNoCase(const SubStr, S: string; Offset: LongInt = 1): LongInt; {$IFDEF USE_INLINE}inline;{$ENDIF}
@@ -181,13 +183,19 @@ function IntToStrFmt(const I: Int64): string; {$IFDEF USE_INLINE}inline;{$ENDIF}
   Uses current locale.}
 function FloatToStrFmt(const F: Double; Precision: Integer = 2): string; {$IFDEF USE_INLINE}inline;{$ENDIF}
 { Returns format settings for parsing floats (dot as decimal separator).
-  Useful when fomatting/parsing floats etc.}
+  Useful when formatting/parsing floats etc.}
 function GetFormatSettingsForFloats: TFormatSettings;
 { Returns True if S contains at least one of the substrings in SubStrs array. Case sensitive.}
 function ContainsAnySubStr(const S: string; const SubStrs: array of string): Boolean;
 { Extracts substring starting at IdxStart ending at IdxEnd.
   S[IdxEnd] is not included in the result.}
 function SubString(const S: string; IdxStart, IdxEnd: Integer): string; {$IFDEF USE_INLINE}inline;{$ENDIF}
+{ Similar to Trim() but removes only characters in a given set.
+  Part of FPC RTL here for Delphi compatibility. }
+function TrimSet(const S: string; const CharSet: TSysCharSet): string;
+{ Similar to TrimLeft() but removes only characters in a given set.
+  Part of FPC RTL here for Delphi compatibility. }
+function TrimLeftSet(const S: string; const CharSet:TSysCharSet): string;
 
 { Clamps integer value to range <Min, Max>}
 function ClampInt(Number: LongInt; Min, Max: LongInt): LongInt; {$IFDEF USE_INLINE}inline;{$ENDIF}
@@ -200,7 +208,7 @@ function ClampToWord(Value: LongInt): LongInt; {$IFDEF USE_INLINE}inline;{$ENDIF
 { Returns True if Num is power of 2.}
 function IsPow2(Num: LongInt): Boolean; {$IFDEF USE_INLINE}inline;{$ENDIF}
 { Returns next power of 2 greater than or equal to Num
-  (if Num itself is power of 2 then it retuns Num).}
+  (if Num itself is power of 2 then it returns Num).}
 function NextPow2(Num: LongInt): LongInt; {$IFDEF USE_INLINE}inline;{$ENDIF}
 { Raises 2 to the given integer power (in range [0, 30]).}
 function Pow2Int(Exponent: LongInt): LongInt; {$IFDEF USE_INLINE}inline;{$ENDIF}
@@ -236,28 +244,28 @@ function SameFloat(const A, B: Double; const Delta: Double = 0.000001): Boolean;
 
 { Switches Boolean value.}
 procedure Switch(var Value: Boolean); {$IFDEF USE_INLINE}inline;{$ENDIF}
-{ If Condition is True then TruePart is retured, otherwise
+{ If Condition is True then TruePart is returned, otherwise
   FalsePart is returned.}
 function Iff(Condition: Boolean; TruePart, FalsePart: Integer): Integer; overload; {$IFDEF USE_INLINE}inline;{$ENDIF}
-{ If Condition is True then TruePart is retured, otherwise
+{ If Condition is True then TruePart is returned, otherwise
   FalsePart is returned.}
 function IffUnsigned(Condition: Boolean; TruePart, FalsePart: Cardinal): Cardinal; overload; {$IFDEF USE_INLINE}inline;{$ENDIF}
-{ If Condition is True then TruePart is retured, otherwise
+{ If Condition is True then TruePart is returned, otherwise
   FalsePart is returned.}
 function Iff(Condition, TruePart, FalsePart: Boolean): Boolean; overload; {$IFDEF USE_INLINE}inline;{$ENDIF}
-{ If Condition is True then TruePart is retured, otherwise
+{ If Condition is True then TruePart is returned, otherwise
   FalsePart is returned.}
 function Iff(Condition: Boolean; const TruePart, FalsePart: string): string; overload; {$IFDEF USE_INLINE}inline;{$ENDIF}
-{ If Condition is True then TruePart is retured, otherwise
+{ If Condition is True then TruePart is returned, otherwise
   FalsePart is returned.}
 function Iff(Condition: Boolean; TruePart, FalsePart: Char): Char; overload; {$IFDEF USE_INLINE}inline;{$ENDIF}
-{ If Condition is True then TruePart is retured, otherwise
+{ If Condition is True then TruePart is returned, otherwise
   FalsePart is returned.}
 function Iff(Condition: Boolean; TruePart, FalsePart: Pointer): Pointer; overload; {$IFDEF USE_INLINE}inline;{$ENDIF}
-{ If Condition is True then TruePart is retured, otherwise
+{ If Condition is True then TruePart is returned, otherwise
   FalsePart is returned.}
 function Iff(Condition: Boolean; const TruePart, FalsePart: Int64): Int64; overload; {$IFDEF USE_INLINE}inline;{$ENDIF}
-{ If Condition is True then TruePart is retured, otherwise
+{ If Condition is True then TruePart is returned, otherwise
   FalsePart is returned.}
 function IffFloat(Condition: Boolean; TruePart, FalsePart: Single): Single; {$IFDEF USE_INLINE}inline;{$ENDIF}
 { Swaps two Boolean values}
@@ -339,9 +347,9 @@ function RectIntersects(const R1, R2: TRect): Boolean;
 { Ensures that rect's right>left and bottom>top. }
 procedure NormalizeRect(var R: TRect);
 
-{ Converts pixel size in micrometers to corrensponding DPI.}
+{ Converts pixel size in micrometers to corresponding DPI.}
 function PixelSizeToDpi(SizeInMicroMeters: Single): Single;
-{ Converts DPI to corrensponding pixel size in micrometers.}
+{ Converts DPI to corresponding pixel size in micrometers.}
 function DpiToPixelSize(Dpi: Single): Single;
 
 function FloatPoint(AX, AY: Single): TFloatPoint; {$IFDEF USE_INLINE}inline;{$ENDIF}
@@ -543,7 +551,7 @@ var
             Inc(KeyPos);
           end;
       end;
-    end;  
+    end;
 
     while (MaskPos <= MaskLen) and (AnsiChar(Mask[MaskPos]) in ['?', '*']) do
       Inc(MaskPos);
@@ -774,6 +782,35 @@ end;
 function SubString(const S: string; IdxStart, IdxEnd: Integer): string;
 begin
   Result := Copy(S, IdxStart, IdxEnd - IdxStart);
+end;
+
+function TrimSet(const S: string; const CharSet: TSysCharSet): string;
+var
+  I, L: Integer;
+begin
+  L := Length(S);
+  I := 1;
+  while (I <= L) and (S[I] in CharSet) do
+    Inc(I);
+  if I > L then
+    Result := ''
+  else
+  begin
+    while S[L] in CharSet do
+      Dec(L);
+    Result := Copy(S, I, L - I + 1);
+  end;
+end;
+
+function TrimLeftSet(const S: string; const CharSet: TSysCharSet): string;
+var
+  I, L: Integer;
+begin
+  L := Length(S);
+  I := 1;
+  while (I <= L) and (S[I] in CharSet) do
+    Inc(I);
+  Result := Copy(S, I, MaxInt);
 end;
 
 function ClampInt(Number: LongInt; Min, Max: LongInt): LongInt;
@@ -1708,7 +1745,7 @@ initialization
   -- 0.24.3 Changes/Bug Fixes -----------------------------------
     - Added GetTimeMilliseconds function.
     - Added IntToStrFmt and FloatToStrFmt helper functions.
-    
+
   -- 0.23 Changes/Bug Fixes -----------------------------------
     - Added RectInRect and RectIntersects functions
     - Added some string utils: StrToken, StrTokenEnd, PosEx, PosNoCase.
@@ -1727,7 +1764,7 @@ initialization
     - added BoundsToRect, ClipBounds, ClipCopyBounds, ClipStretchBounds functions
     - added MulDiv function
     - FreeAndNil is not inline anymore - caused AV in one program
-    
+
   -- 0.17 Changes/Bug Fixes -----------------------------------
 
     - GetAppExe didn't return absolute path in FreeBSD, fixed

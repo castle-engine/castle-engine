@@ -1,5 +1,6 @@
+{%MainUnit castleimages.pas}
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -431,7 +432,9 @@ var
 begin
   FPImage := nil;
   try
+    {$warnings off} // using deprecated in deprecated
     FPImage := Img.ToFpImage;
+    {$warnings on}
     try
       FPImage.SaveToStream(Stream, Writer);
       { FPImage.SaveToStream may raise any kind of Exception.
@@ -479,7 +482,9 @@ begin
   if ResizeWidth = 0 then ResizeWidth := Width;
   if ResizeHeight = 0 then ResizeHeight := Height;
 
+  {$warnings off} // using deprecated in deprecated
   FPImageSource := ToFpImage;
+  {$warnings on}
   try
     Interpolator := CreateInterpolation(Interpolation);
     try

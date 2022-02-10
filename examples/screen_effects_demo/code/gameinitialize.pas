@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,7 +30,7 @@ uses SysUtils,
   CastleRenderOptions, CastleVectors;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   LabelFPS: TCastleLabel;
 
   { 3 controls below have methods AddScreenEffect / RemoveScreenEffect
@@ -241,7 +241,7 @@ begin
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
-  { Insert almost-black background, otherwise (as Window is only TCastleWindowBase)
+  { Insert almost-black background, otherwise (as Window is only TCastleWindow)
     the background would be undefined. }
   Background := TCastleRectangleControl.Create(Application);
   Background.Color := Vector4(0.1, 0.1, 0.1, 1);
@@ -380,6 +380,6 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 end.

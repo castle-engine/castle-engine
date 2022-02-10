@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2021 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,7 +31,8 @@ uses
   CastleLocalization, CastleLocalizationFileLoader,
   CastleSceneManager, Castle3D, Castle2DSceneManager,
   CastleRenderer, CastleRendererBaseTypes, CastleGLContainer, CastleGLBoxes,
-  CastleSoundAllocator;
+  CastleSoundAllocator, CastleOnScreenMenu, CastleProgress, CastleProgressConsole,
+  CastleCreatures, CastleGameNotifications, CastleItems, CastleLevels, CastlePlayer, CastleResources;
 
 implementation
 

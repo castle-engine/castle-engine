@@ -23,7 +23,7 @@ type
   { Class for loading  ZSoft Paintbrush images known as PCX. It is old
     format which can store 1bit, 2bit, 4bit, 8bit, and 24bit (and 32bit but is
     probably non-standard) images. Only loading is supported (you can still come
-    accross some PCX files) but saving is not (I don't wont this venerable format
+    across some PCX files) but saving is not (I don't wont this venerable format
     to spread).}
   TPCXFileFormat = class(TImageFileFormat)
   protected
@@ -250,7 +250,7 @@ begin
       begin
         // Convert 2bit images to ifIndex8. Note that 2bit PCX images
         // usually use (from specs, I've never seen one myself) CGA palette
-        // which is not array of RGB tripplets. So 2bit PCXs are loaded but
+        // which is not array of RGB triplets. So 2bit PCXs are loaded but
         // their colors would be wrong
         Convert2To8(UncompData, Bits, Width, Height, Hdr.BytesPerLine, False);
       end

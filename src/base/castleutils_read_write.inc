@@ -72,7 +72,7 @@ procedure InfoWriteParts(const TitleFormat: string; const Messages: array of str
   (all our windows), since we use MB_TASKMODAL.
 
   Internal. Instead of these it's much better to use:
-  - TCastleWindowBase.MessageOK, TCastleWindowBase.MessageYesNo if you use
+  - TCastleWindow.MessageOK, TCastleWindow.MessageYesNo if you use
     CastleWindow.
   - or LCL dialog routines (like ShowMessage and everything in Dialogs unit)
     if you use LCL.

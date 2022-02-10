@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="4">
+  <Package Version="5">
     <Name Value="VampyreImagingPackage"/>
     <Type Value="RunAndDesignTime"/>
-    <Author Value="Marek Mauder (http://imaginglib.sourceforge.net)"/>
+    <Author Value="Marek Mauder (https://imaginglib.sourceforge.io)"/>
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../Source;../Source/JpegLib;../Source/ZLib"/>
         <OtherUnitFiles Value="../Source;../Source/JpegLib;../Source/ZLib"/>
-        <UnitOutputDirectory Value="../Bin/ppu/$(TargetCPU)-$(TargetOS)"/>
+        <UnitOutputDirectory Value="../Bin/Dcu/$(TargetCPU)-$(TargetOS)/pkg"/>
       </SearchPaths>
       <Parsing>
-        <Style Value="1"/>
         <SyntaxOptions>
           <SyntaxMode Value="Delphi"/>
           <IncludeAssertionCode Value="True"/>
@@ -25,16 +24,19 @@
         </Optimizations>
       </CodeGeneration>
       <Other>
+        <Verbosity>
+          <ShowNotes Value="False"/>
+          <ShowHints Value="False"/>
+        </Verbosity>
         <CustomOptions Value="-dDONT_LINK_EXTRAS"/>
+        <OtherDefines Count="1">
+          <Define0 Value="DONT_LINK_EXTRAS"/>
+        </OtherDefines>
       </Other>
     </CompilerOptions>
-    <Description Value="Vampyre Imaging Library Package for Lazarus
-"/>
-    <License Value="Imaging comes with two open source licenses from which you can choose the one which fits your needs best:
-* MPL - Mozilla Public License
-* LGPL - GNU Lesser General Public License
-"/>
-    <Version Minor="80"/>
+    <Description Value="Vampyre Imaging Library Package for Lazarus. Imaging is image loading, saving, and manipulation library."/>
+    <License Value="MPL 2.0 (GPL compatible) "/>
+    <Version Minor="82"/>
     <Files Count="18">
       <Item1>
         <Filename Value="../Source/Imaging.pas"/>
@@ -109,6 +111,7 @@
         <UnitName Value="ImagingRadiance"/>
       </Item18>
     </Files>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">
       <Item1>
         <PackageName Value="LCL"/>

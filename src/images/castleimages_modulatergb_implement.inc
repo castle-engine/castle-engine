@@ -1,3 +1,5 @@
+{%MainUnit castleimages.pas}
+
 var pvec: PPixel;
     i: Cardinal;
 begin

@@ -25,7 +25,7 @@ uses
 
 type
   TViewFileFrame = class(TFrame)
-    Control: TCastleControlBase;
+    Control: TCastleControl;
   private
     FURL, FSuccessMessage, FErrorMessage: String;
     LabelURL, LabelInformation: TCastleLabel;

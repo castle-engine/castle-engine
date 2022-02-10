@@ -19,6 +19,7 @@ See the [manual documenting the editor](https://castle-engine.io/manual_editor.p
 - Consider using `AutoSize` on the form itself too.
 - Adjust `BorderStyle` from `bsSizeable` to `bsSingle` if it's a small form that doesn't need to be resized (for larger forms, it's safer to allow resizing, even if you think you know the best size -- in case user will view it on a smaller monitor).
 - Adjust `Position` from "as designed" (usually "default" or "main form center" is more sensible).
+- Adjust `ShowInTaskBar`, this is important for selecting form on Windows in case of multiple windows.
 - Make sure closing the form with "X" (Alt + F4) works OK.
 - For a form you create manually, make sure it is freed at some point (preferably, not only at the end of application, if you can free it earlier; e.g. we don't want to have 100 of TProjectForm instances in memory after using the editor for a long time).
 - For a form created automatically, make sure you synchronize the line `Application.CreateForm(...);` from lpr with ../build-tool/data/custom_editor_template/castle_editor.lpr

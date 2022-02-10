@@ -2,6 +2,6 @@
 <build_gradle_merge>
   <!-- https://github.com/GameAnalytics/GA-SDK-Android/wiki/Download%20&%20Installation -->
   <repositories>
-    <repository>maven { url 'http://maven.gameanalytics.com/release' }</repository>
+    <repository>maven { url 'https://maven.gameanalytics.com/release' }</repository>
   </repositories>
 </build_gradle_merge>

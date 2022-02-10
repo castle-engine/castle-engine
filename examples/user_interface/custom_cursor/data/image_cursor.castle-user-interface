@@ -1,0 +1,16 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "SmoothScaling" : false,
+        "URL" : "castle-data:/image_cursor_data/dwarven_gauntlet_0.png"
+      },
+      "Name" : "ImageControl1",
+      "Stretch" : true
+    }
+  ]
+}

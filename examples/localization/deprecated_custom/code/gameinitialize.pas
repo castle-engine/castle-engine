@@ -44,7 +44,7 @@ type
   end;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   ImageTop: TImageLocalized;
 
 implementation
@@ -138,7 +138,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialise Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
 end.

@@ -32,7 +32,7 @@ uses SysUtils, Classes,
   {$endregion 'Castle Initialization Uses'};
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 { One-time initialization. }
 procedure ApplicationInitialize;
@@ -58,7 +58,7 @@ initialization
   Progress.UserInterface := WindowProgressInterface;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 end.

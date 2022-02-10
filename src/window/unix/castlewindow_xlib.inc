@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -67,7 +67,7 @@ private
   function KeySymToKey(ksym: TKeySym): TKey;
   { Seek on OpenWindows window with WindowXID = seekWindowXID.
     Returns nil if not found. }
-  function FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
+  function FindWindowXID(seekWindowXID: TWindow): TCastleWindow;
 
   { Initialize and check X display.
     Call this once you're sure that XDisplayName is set to
@@ -104,9 +104,9 @@ const
     ButtonPressMask or ButtonReleaseMask or PointerMotionMask {mouse events} or
     FocusChangeMask;
 
-{ TCastleWindowBase --------------------------------------------------------  }
+{ TCastleWindow --------------------------------------------------------  }
 
-procedure TCastleWindowBase.OpenBackend;
+procedure TCastleWindow.OpenBackend;
 
   procedure InitializeDpi;
   var
@@ -291,7 +291,7 @@ begin
   InitializeDpi;
 end;
 
-procedure TCastleWindowBase.CloseBackend;
+procedure TCastleWindow.CloseBackend;
 var
   dummy_event: TXEvent;
 begin
@@ -334,7 +334,7 @@ begin
   ContextDestroyEnd;
 end;
 
-procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -344,13 +344,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
-begin
-  FCustomCursor := Value;
-  { TODO }
-end;
-
-procedure TCastleWindowBase.UpdateCursor;
+procedure TCastleWindow.UpdateCursor;
 
   function CreateNoneCursor: TCursor;
   var
@@ -394,8 +388,7 @@ const
     XC_bottom_right_corner   // mcResizeBottomRight
   );
 begin
-  { TODO: for now mcCustom is treated like mcDefault }
-  if InternalCursor in [mcDefault, mcCustom] then
+  if InternalCursor = mcDefault then
   begin
     XUndefineCursor(Application.XDisplay, WindowXID);
   end else
@@ -414,7 +407,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 var
   P: TVector2Integer;
 begin
@@ -430,17 +423,17 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.CreateBackend;
+procedure TCastleWindow.CreateBackend;
 begin
   windowXID := None;
 
   { We don't do here anything depending on X server,
     and thus this doesn't require calling Application.InitializeXDisplay.
-    This way, merely calling TCastleWindowBase.Create
+    This way, merely calling TCastleWindow.Create
     doesn't require X server runnning. }
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
 var
   PValue: PChar;
   WindTitleProp: TXTextProperty;
@@ -458,54 +451,54 @@ begin
   end;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
  Result := true;
 end;
 
-procedure TCastleWindowBase.BackendMenuInitialize;
+procedure TCastleWindow.BackendMenuInitialize;
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.BackendMenuFinalize;
+procedure TCastleWindow.BackendMenuFinalize;
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   { does nothing }
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindow.MenuUpdateCheckedFast: boolean;
 begin
   Result := true; // MenuUpdateChecked does nothing, so yes, it's fast :)
 end;
 
-procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+procedure TCastleWindow.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { does nothing }
 end;
 
-function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
+function TCastleWindow.HandleXEvent(const Event: TXEvent): boolean;
 
   procedure X_KeyPress(const xEvent: TXKeyEvent);
   var
@@ -662,14 +655,14 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.UpdateFullScreenBackend;
+procedure TCastleWindow.UpdateFullScreenBackend;
 begin
   SimpleUpdateFullScreenBackend;
 end;
 
 { TCastleApplication ------------------------------------------------------- }
 
-function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
+function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindow;
 var
   i: integer;
 begin
@@ -844,7 +837,7 @@ end;
 
 function TCastleApplication.HandleXEvent(Event: TXEvent): boolean;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
   Result := false;
   if event._type = MappingNotify then
@@ -880,14 +873,6 @@ begin
   Result := 0;
 end;
 
-{$endif}
-
-{ TCastleWindow -------------------------------------------------------------- }
-
-{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-procedure TCastleWindow.NavigationInfoChanged;
-begin
-end;
 {$endif}
 
 { TWindowContainer ----------------------------------------------------------- }

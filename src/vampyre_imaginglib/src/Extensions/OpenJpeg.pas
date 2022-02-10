@@ -34,12 +34,13 @@
   PasOpenJpeg
   Free JPEG 2000 library for Delphi and Free Pascal
 
-  Headers translated to Object Pascal and C code precompliled
+  Headers translated to Object Pascal and C code precompiled
   by Marek Mauder (http://galfar.vevb.net)
   for Vampyre Imaging Library (http://imaginglib.sourceforge.net).
 
-  Supported compilers: Delphi, Free Pascal
-  Supported platforms (tested): Windows 32bit, Linux 32/64bit
+  Supported compilers and platforms:
+  Delphi: Windows 32b
+  FPC: Windows 32b, Linux 32+64b, OSX 32b
 
   OpenJpeg Homepage: http://www.openjpeg.org
   PasOpenJpeg Homepage: http://galfar.vevb.net/openjpeg
@@ -66,6 +67,7 @@ unit OpenJpeg;
 
 {$IFDEF FPC}
   { Free Pascal settings }
+  {$MODE OBJFPC}
   {$PACKRECORDS 8}
   {$PACKENUM 4}
 {$ELSE}

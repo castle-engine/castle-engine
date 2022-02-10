@@ -1,74 +1,85 @@
 ../../../src/base/ TCastleRenderOptions WireframeColor TCastleColorRGB
 
-../../../src/ui/opengl/ TCastleUserInterface BorderColor TCastleColor
+../../../src/ui/ TCastleUserInterface BorderColor TCastleColor
 
-../../../src/ui/opengl/ TCastleRectangleControl Color TCastleColor
-../../../src/ui/opengl/ TStateDialog BackgroundColor TCastleColor
-../../../src/ui/opengl/ TCastleScrollViewCustom TintScrollBarInactive TCastleColor
+../../../src/ui/ TCastleRectangleControl Color TCastleColor
+../../../src/ui/ TStateDialog BackgroundColor TCastleColor
+../../../src/ui/ TCastleScrollViewCustom TintScrollBarInactive TCastleColor
 
-../../../src/ui/opengl/ TCastleOnScreenMenu CurrentItemBorderColor1 TCastleColor
-../../../src/ui/opengl/ TCastleOnScreenMenu CurrentItemBorderColor2 TCastleColor
-../../../src/ui/opengl/ TCastleOnScreenMenu CurrentItemColor TCastleColor
-../../../src/ui/opengl/ TCastleOnScreenMenu NonCurrentItemColor TCastleColor
-../../../src/ui/opengl/ TCastleOnScreenMenu NonFocusableItemColor TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu CurrentItemBorderColor1 TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu CurrentItemBorderColor2 TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu CurrentItemColor TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu NonCurrentItemColor TCastleColor
+../../../src/deprecated_units/ TCastleOnScreenMenu NonFocusableItemColor TCastleColor
 
-../../../src/ui/opengl/ TCastleButton TintPressed  TCastleColor
-../../../src/ui/opengl/ TCastleButton TintDisabled TCastleColor
-../../../src/ui/opengl/ TCastleButton TintFocused  TCastleColor
-../../../src/ui/opengl/ TCastleButton TintNormal   TCastleColor
-../../../src/ui/opengl/ TCastleButton CustomTextColor TCastleColor
-../../../src/ui/opengl/ TCastleButton CustomColorPressed TCastleColor
-../../../src/ui/opengl/ TCastleButton CustomColorDisabled TCastleColor
-../../../src/ui/opengl/ TCastleButton CustomColorFocused TCastleColor
-../../../src/ui/opengl/ TCastleButton CustomColorNormal TCastleColor
+../../../src/ui/ TCastleButton TintPressed  TCastleColor
+../../../src/ui/ TCastleButton TintDisabled TCastleColor
+../../../src/ui/ TCastleButton TintFocused  TCastleColor
+../../../src/ui/ TCastleButton TintNormal   TCastleColor
+../../../src/ui/ TCastleButton CustomTextColor TCastleColor
+../../../src/ui/ TCastleButton CustomColorPressed TCastleColor
+../../../src/ui/ TCastleButton CustomColorDisabled TCastleColor
+../../../src/ui/ TCastleButton CustomColorFocused TCastleColor
+../../../src/ui/ TCastleButton CustomColorNormal TCastleColor
 
-../../../src/ui/opengl/ TCastleImageControl Color TCastleColor no-store
-../../../src/ui/opengl/ TCastleImageControl ClipLine TVector3 no-store
-../../../src/ui/opengl/ TCastleImageControl RotationCenter TVector2 no-store
+../../../src/ui/ TCastleImageControl Color TCastleColor no-store
+../../../src/ui/ TCastleImageControl ClipLine TVector3 no-store
+../../../src/ui/ TCastleImageControl RotationCenter TVector2 no-store
 
-../../../src/images/opengl/ TCastleImagePersistent Color TCastleColor
-../../../src/images/opengl/ TCastleImagePersistent ClipLine TVector3
-../../../src/images/opengl/ TCastleImagePersistent RotationCenter TVector2
+../../../src/base_rendering/ TCastleImagePersistent Color TCastleColor
+../../../src/base_rendering/ TCastleImagePersistent ClipLine TVector3
+../../../src/base_rendering/ TCastleImagePersistent RotationCenter TVector2
 
-../../../src/ui/opengl/ TCastleUserInterfaceFont OutlineColor TCastleColor
+../../../src/ui/ TCastleUserInterfaceFont OutlineColor TCastleColor
 
-../../../src/ui/opengl/ TCastleNotifications Color TCastleColor
+../../../src/ui/ TCastleNotifications Color TCastleColor
 
-../../../src/ui/opengl/ TCastlePackedGroup FrameColor TCastleColor
+../../../src/ui/ TCastlePackedGroup FrameColor TCastleColor
 
-../../../src/ui/opengl/ TCastleLabel Color TCastleColor
-../../../src/ui/opengl/ TCastleLabel FrameColor TCastleColor
+../../../src/ui/ TCastleLabel Color TCastleColor
+../../../src/ui/ TCastleLabel FrameColor TCastleColor
 
-../../../src/ui/opengl/ TCastleShape Color TCastleColor
-../../../src/ui/opengl/ TCastleShape OutlineColor TCastleColor
+../../../src/ui/ TCastleShape Color TCastleColor
 
-../../../src/ui/opengl/ TCastleEdit FocusedColor TCastleColor
-../../../src/ui/opengl/ TCastleEdit UnfocusedColor TCastleColor
-../../../src/ui/opengl/ TCastleEdit PlaceholderColor TCastleColor
-../../../src/ui/opengl/ TCastleEdit BackgroundColor TCastleColor
+../../../src/ui/ TCastleEdit FocusedColor TCastleColor
+../../../src/ui/ TCastleEdit UnfocusedColor TCastleColor
+../../../src/ui/ TCastleEdit PlaceholderColor TCastleColor
+../../../src/ui/ TCastleEdit BackgroundColor TCastleColor
 
-../../../src/ui/opengl/ TCastleCheckbox TextColor TCastleColor
-../../../src/ui/opengl/ TCastleCheckbox CheckboxColor TCastleColor
+../../../src/ui/ TCastleCheckbox TextColor TCastleColor
+../../../src/ui/ TCastleCheckbox CheckboxColor TCastleColor
 
-../../../src/ui/opengl/ TCastleTiledMapControl Origin TVector2
+../../../src/ui/ TCastleTiledMapControl Origin TVector2
 
-../../../src/3d/ TCastleTransform Center TVector3
-../../../src/3d/ TCastleTransform Rotation TVector4
-../../../src/3d/ TCastleTransform Scale TVector3
-../../../src/3d/ TCastleTransform ScaleOrientation TVector4
-../../../src/3d/ TCastleTransform Translation TVector3
+../../../src/transform/ TCastleTransform Center TVector3
+../../../src/transform/ TCastleTransform Rotation TVector4
+../../../src/transform/ TCastleTransform Scale TVector3
+../../../src/transform/ TCastleTransform ScaleOrientation TVector4
+../../../src/transform/ TCastleTransform Translation TVector3
 
-../../../src/3d/ TCastleCamera InitialPosition TVector3
-../../../src/3d/ TCastleCamera InitialDirection TVector3
-../../../src/3d/ TCastleCamera InitialUp TVector3
-../../../src/3d/ TCastleCamera GravityUp TVector3
-../../../src/3d/ TCastleThirdPersonNavigation AvatarTarget TVector3
+../../../src/transform/ TCastleCamera InitialPosition TVector3
+../../../src/transform/ TCastleCamera InitialDirection TVector3
+../../../src/transform/ TCastleCamera InitialUp TVector3
+../../../src/transform/ TCastleCamera GravityUp TVector3
 
-../../../src/3d/ TCastleOrthographic Origin TVector2
+../../../src/transform/ TCastleOrthographic Origin TVector2
 
-../../../src/x3d/opengl/ TCastleViewport BackgroundColor TCastleColor
-../../../src/x3d/opengl/ TCastleAbstractPrimitive Color TCastleColor
-../../../src/x3d/opengl/ TCastleBox Size TVector3
-../../../src/x3d/opengl/ TCastlePlane Size TVector2
+../../../src/transform/ TCastleBillboard AxisOfRotation TVector3
 
-../../../src/game/ TCastleBillboard AxisOfRotation TVector3
+../../../src/scene/ TCastleViewport BackgroundColor TCastleColor
+../../../src/scene/ TCastleAbstractPrimitive Color TCastleColor
+../../../src/scene/ TCastleBox Size TVector3
+../../../src/scene/ TCastlePlane Size TVector2
+../../../src/scene/ TCastleThirdPersonNavigation AvatarTarget TVector3
+
+../../../src/scene/ TCastleImageTransform Pivot TVector2
+../../../src/scene/ TCastleImageTransform Size TVector2
+../../../src/scene/ TCastleImageTransform RepeatImage TVector2
+../../../src/scene/ TCastleImageTransform Shift TVector2
+../../../src/scene/ TCastleImageTransform Color TCastleColor
+
+../../../src/scene/ TCastleBackground SkyTopColor TCastleColorRGB
+../../../src/scene/ TCastleBackground SkyEquatorColor TCastleColorRGB
+../../../src/scene/ TCastleBackground GroundBottomColor TCastleColorRGB
+../../../src/scene/ TCastleBackground GroundEquatorColor TCastleColorRGB
+../../../src/scene/ TCastleBackground Rotation TVector4

@@ -54,7 +54,7 @@ const
 '}';
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Viewport: TCastleViewport;
   VAOs, VBOs: array[0..1] of TGLint;
   RenderProgram, TransformFeedbackProgram: TGLSLProgram;
@@ -117,7 +117,7 @@ end;
 begin
   InitializeLog;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.Open;
 
   Viewport := TCastleViewport.Create(Application);

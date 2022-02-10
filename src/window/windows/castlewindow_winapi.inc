@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,12 +16,25 @@
 { CastleWindow backend using WinAPI, Windows-only.
 
   TODO:
+
   - Alt key presses are not perfectly detected.
     Is it even possible to cleanly catch VK_Alt key press in WinAPI?
     We would have to catch sys_keydown message but then we also
     block using standard Alt+F4 or Alt+Space? Another trouble:
     if you enter system menu by Alt+Down, we will not get Alt+Up?
+
   - Implement MainMenu.Enabled.
+
+  Note: We use Unicode version of WinAPI (W suffix) throughout the code.
+
+  - Why?
+    Following https://stackoverflow.com/questions/33714546/winapi-unicode-and-ansi-functions ,
+    this is available on all Windowses after Windows 95, 98 and ME,
+    and it is advised to use now (as the "A" routines just call "W" routines doing conversion underneath),
+    and using it is easier on Delphi (where String = UnicodeString),
+    and using it with both FPC and Delphi makes code simpler.
+
+  - Note: LCL win32 widgetset (used on 64-bit Windows too) still uses ANSI.
 }
 
 {$ifdef OpenGLES}
@@ -29,9 +42,6 @@
 {$else}
   {$I castlewindow_wgl.inc}
 {$endif}
-
-{ Create WinAPI window as Unicode (RegisterClassW). }
-{.$define CASTLE_WINAPI_UNICODE}
 
 {$ifdef read_interface_uses}
 { note: this unit's definitions conflict with other definitions used in this file
@@ -90,20 +100,19 @@ private
 private
   { Should we do ChangeDisplaySettings(nil, 0) when Destroy? }
   DisplaySettingsChanged: boolean;
-  WndClassName: {$ifdef CASTLE_WINAPI_UNICODE} UnicodeString {$else} String {$endif};
+  WndClassName: UnicodeString;
 
   { A private array, initialized in CreateBackend.
-    NameForLoadCursor are actually constant, taken from Windows unit,
-    but CursorHandle are loaded each time in CreateBackend.
-    Having them all loaded once makes sure that WM_SETCURSOR is able to
+    Having all cursor handles loaded makes sure that WM_SETCURSOR is able to
     use predefined HCURSOR values and so is fast. SetCursor is guaranteed
     by WinAPI to return fast if called with already used cursor.
 
-    For mcDefault, and mcCustom, values in this array are undefined.
-    For mcNone, CursorHandle is 0 (this is what SetCursor always accepts
-    as invisible cursor). }
+    For mcDefault, value in this array is undefined.
+    (but 0 in practice, for now).
+
+    For mcNone and CursorHandles, CursorHandle is guaranteed 0
+    (this is what SetCursor always accepts as invisible cursor). }
   CursorHandles: array [TMouseCursor] of record
-    NameForLoadCursor: LPCTSTR;
     Handle: HCURSOR;
   end;
 
@@ -174,7 +183,7 @@ begin
   result := LRESULT(msg.Result);
 end;
 
-{ TCastleWindowBase ------------------------------------------------- }
+{ TCastleWindow ------------------------------------------------- }
 
 const
   { Some constants missing from FPC's Windows unit. }
@@ -194,7 +203,7 @@ const
 
 { convert virtual key code (VK_xxx) to TKey. Returns keyNone if no conversion
   available. }
-function TCastleWindowBase.VirtualKeyToKey(VirtualKey: Byte): TKey;
+function TCastleWindow.VirtualKeyToKey(VirtualKey: Byte): TKey;
 var
   VirtualKeyToKeyResult: TKey absolute Result;
 
@@ -289,9 +298,9 @@ end;
 
 function TryHandlingMessage(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM): boolean;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
-  Window := TCastleWindowBase(GetWindowLongPtr(hWnd, GWL_USERDATA));
+  Window := TCastleWindow(GetWindowLongPtr(hWnd, GWL_USERDATA));
   Result := Application.FindWindow(Window) >= 0;
   if Result then
     Window.WindowProc(uMsg, wParm, lParm);
@@ -299,9 +308,9 @@ end;
 
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
-  Window := TCastleWindowBase(GetWindowLongPtr(hWnd, GWL_USERDATA));
+  Window := TCastleWindow(GetWindowLongPtr(hWnd, GWL_USERDATA));
   { Wszystkie hwnd jakie tu beda wpadac to beda nasze okna
     (it's only different for a plugin, but right now the plugin uses only TryHandlingMessage,
     not this). Ale zanim
@@ -320,11 +329,12 @@ begin
     Application.wndClassName). They don't set Get/SetWindowLongPtr, so Window here
     will be @nil in this case. }
   if Application.FindWindow(Window) >= 0 then
-    result := Window.WindowProc(uMsg, wParm, lParm) else
-    result := DefWindowProc(hWnd, uMsg, wParm, lParm);
+    result := Window.WindowProc(uMsg, wParm, lParm)
+  else
+    result := DefWindowProcW(hWnd, uMsg, wParm, lParm);
 end;
 
-function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
+function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
 { Note: the following Windows events may be called from CloseBackend
   (so they probably should check InCloseBackend):
@@ -410,7 +420,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
     The frequency of "key repeat" depends on user settings.
 
     And... that's completely OK. We still pass each WM_KEYDOWN to DoKeyDown.
-    This way our API (TCastleUserInterface.Press, TCastleWindowBase.OnPress)
+    This way our API (TCastleUserInterface.Press, TCastleWindow.OnPress)
     will generate repeated key presses.
     This is documented and desired (e.g. for implementing UI like edit box).
     User can check TInputPressRelease.KeyRepeated that is calculated
@@ -432,9 +442,8 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
          message corresponding to current WM_KEYDOWN message.
 
       Note PeekMessageW, not PeekMessage.
-      This is necessary (regardless of CASTLE_WINAPI_UNICODE being defined or not)
-      to receive UTF-16 for e.g. Polish chars. Otherwise looks like WM_CHAR
-      gets characters in ANSI encoding.
+      This is necessary to receive UTF-16 for e.g. Polish chars.
+      Otherwise WM_CHAR gets characters in ANSI encoding.
     }
 
     if PeekMessageW({$ifdef FPC}@{$endif}CharMsg, h_Wnd, WM_CHAR, WM_CHAR, PM_REMOVE) then
@@ -509,7 +518,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
       For Chinese you have a special window that allows to compose Chinese characters.
       Looks like they don't result in WM_KEYDOWN, only WM_CHAR.
       Tested with simplified Chinese input on Windows 10.
-      Note: It does *not* make WM_UNICHAR (regardless of CASTLE_WINAPI_UNICODE).
+      Note: It does *not* make WM_UNICHAR (regardless if we register using RegisterClassW or ANSI version).
 
     - A minor thing about Wine compatibility:
       It seems wine-1.5.30-1 lets WM_CHAR arrive without WM_KEYDOWN
@@ -546,10 +555,8 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
       Other applications can send us WM_UNICHAR, according to WinAPI docs.
     """
 
-    This means that we need to handle WM_CHAR in ANSI window (without CASTLE_WINAPI_UNICODE).
-    Only WM_CHAR will ever happen in such case.
     Testing in practice: I didn't find a way to cause WM_UNICHAR in either
-    ANSI or Unicode window.
+    ANSI or Unicode window (created with CreateWindowExW).
   }
   procedure Handle_WM_UNICHAR;
   var
@@ -614,11 +621,11 @@ begin
             some DoKeyUp/DoMouseUp (and these even cause BackendMakeCurrent), and no DoXxx
             should be done when the window is closing and releasing it's resources. }
           ReleaseAllKeysAndMouse;
-      { Don't Exit, let control flow to DefWindowProc. }
+      { Don't Exit, let control flow to DefWindowProcW. }
     WM_ACTIVATEAPP:
       begin
         Application.appActive := longbool(wParm);
-        {exit; <- allow DefWindowProc handle WM_ACTIVETAPP too,
+        {exit; <- allow DefWindowProcW handle WM_ACTIVETAPP too,
          since you can't say "we surely handled everything that should be done in
          reaction for this message"}
       end;
@@ -627,7 +634,7 @@ begin
     WM_KEYDOWN: begin Handle_WM_KEYDOWN; Exit end;
     WM_KEYUP: begin Handle_WM_KEYUP; Exit end;
     WM_CHAR: begin Handle_WM_CHAR; Exit end;
-    // WM_UNICHAR answers true, and doesn't call DefWindowProc, because we handled the message
+    // WM_UNICHAR answers true, and doesn't call DefWindowProcW, because we handled the message
     WM_UNICHAR: begin Handle_WM_UNICHAR; Exit(1); end;
 
     WM_SIZE:
@@ -689,12 +696,12 @@ begin
         result := WMSizingHandler(lParm, wParm, minWidth, minHeight, maxWidth, maxHeight);
         Exit;
       end;
-    { We do not capture WM_PAINT, let WM_PAINT fallback to DefWindowProc.
+    { We do not capture WM_PAINT, let WM_PAINT fallback to DefWindowProcW.
       WM_PAINT occurs also when there's a need to redraw window frame
       (which we don't care about, we don't draw custom window frame).
 
       If there's a need to actually redraw window contents,
-      then WM_PAINT will cause (immediately, it seems that DefWindowProc
+      then WM_PAINT will cause (immediately, it seems that DefWindowProcW
       will just call WndProc) WM_ERASEBKGND, and we want to capture WM_ERASEBKGND. }
     WM_ERASEBKGND:
       begin
@@ -824,12 +831,11 @@ begin
           Windows.SetCursor(Application.CursorHandles[InternalCursor].Handle);
           Exit(1);
         end;
-        { Otherwise we fall back on DefWindowProc.
+        { Otherwise we fall back on DefWindowProcW.
           It will install our window class cursor (or parent cursor)
           if in client area, or just do the right thing if outside client area.
           So it's suitable when wParm <> h_Wnd,
-          or we want mcDefault,
-          or we want mcCustom. }
+          or we want mcDefault. }
       end;
 
     WM_MOUSEWHEEL, WM_MOUSEHWHEEL:
@@ -885,7 +891,7 @@ begin
       end;
   end;
 
-  { The DefWindowProc may enter a modal loop in some cases, e.g. when
+  { The DefWindowProcW may enter a modal loop in some cases, e.g. when
     WM_NCLBUTTONDOWN initializes window resizing operation.
 
     This makes our normal message loop not working (although application
@@ -929,19 +935,25 @@ begin
   if DoEnableUpdatesFromWindowProc then Inc(EnableUpdatesFromWindowProc);
   if DoDisableUpdatesFromWindowProc then Inc(DisableUpdatesFromWindowProc);
   try
-    Result := DefWindowProc(h_Wnd, uMsg, wParm, lParm);
+    { Note: It is extremely important to use here DefWindowProcW.
+      If you use (ANSI, in FPC) DefWindowProc, then Windows will detect that
+      we want to use ANSI API (with 8-bit strings, not 16-bit)
+      which will make caption provided to CreateWindowExW expected to be encoded
+      as 8-bit (passing there a pointer to UTF-16 will be interpreted wrong,
+      as just 1 single letter). }
+    Result := DefWindowProcW(h_Wnd, uMsg, wParm, lParm);
   finally
     if DoEnableUpdatesFromWindowProc then Dec(EnableUpdatesFromWindowProc);
     if DoDisableUpdatesFromWindowProc then Dec(DisableUpdatesFromWindowProc);
   end;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
   Result := true;
 end;
 
-procedure TCastleWindowBase.BackendMenuFinalize;
+procedure TCastleWindow.BackendMenuFinalize;
 var
   Old_H_Menu: HMenu;
 begin
@@ -952,35 +964,35 @@ begin
   MainMenu.ClearHandles;
 end;
 
-procedure TCastleWindowBase.BackendMenuInitialize;
+procedure TCastleWindow.BackendMenuInitialize;
 begin
   OSCheck( SetMenu(H_Wnd, MakeWinapiMenu(MainMenu, true)), 'SetMenu');
 end;
 
-procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindow.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }
@@ -988,7 +1000,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+procedure TCastleWindow.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }
@@ -996,7 +1008,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.OpenBackend;
+procedure TCastleWindow.OpenBackend;
 
   // Get initial MousePosition, even before the first mouse move/down event.
   procedure GetInitialCursorPos(const ClientRect: TRect);
@@ -1059,9 +1071,6 @@ var
   H_Menu: HMenu;
   {$endif}
   ClientRect: TRect;
-  {$ifdef CASTLE_WINAPI_UNICODE}
-  CaptionUtf16: UnicodeString;
-  {$endif}
 begin
   {$ifdef CASTLE_ENGINE_PLUGIN}
   FLeft := PluginWindow.X;
@@ -1139,18 +1148,14 @@ begin
 
   { calculate H_Menu }
   if (MainMenu <> nil) and MainMenuVisible then
-    H_Menu := MakeWinapiMenu(MainMenu, true) else
+    H_Menu := MakeWinapiMenu(MainMenu, true)
+  else
     H_Menu := 0;
 
   { main point : create the window }
-  {$ifdef CASTLE_WINAPI_UNICODE}
-  CaptionUtf16 := UTF8Decode(GetWholeCaption);
   H_wnd := CreateWindowExW(dwExStyle,
-    PWideChar(Application.WndClassName), PWideChar(CaptionUtf16),
-    {$else}
-  H_wnd := CreateWindowEx(dwExStyle,
-    PChar(Application.WndClassName), PChar(GetWholeCaption),
-    {$endif}
+    PWideChar(Application.WndClassName),
+    PWideChar(StringToUtf16(GetWholeCaption)),
     dwStyle,
     windowRect.left, windowRect.top,
     windowRect.right-windowRect.left, windowRect.Bottom-windowRect.top,
@@ -1220,7 +1225,7 @@ begin
   RegisterForJoystickEvents;
 end;
 
-procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
 var
   Point: Windows.TPoint;
 begin
@@ -1241,13 +1246,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
-begin
-  FCustomCursor := Value;
-  { TODO }
-end;
-
-procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 
   { Perform similar function as WinAPI SetCursorPos (set cursor position,
     given absolute screen coordinates), but using SendInput WinAPI call.
@@ -1302,7 +1301,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.CloseBackend;
+procedure TCastleWindow.CloseBackend;
 begin
   InCloseBackend := true;
   try
@@ -1319,17 +1318,20 @@ begin
   finally InCloseBackend := false; end;
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
-  if h_Wnd <> 0 then SetWindowText(h_Wnd, PChar(GetWholeCaption));
+  if h_Wnd <> 0 then
+  begin
+    SetWindowTextW(h_Wnd, PWideChar(StringToUtf16(GetWholeCaption)));
+  end;
 end;
 
-procedure TCastleWindowBase.CreateBackend;
+procedure TCastleWindow.CreateBackend;
 begin
 end;
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
   { Make path absolute. Same as ExpandFileName, but knows that
@@ -1413,8 +1415,8 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
   end;
 
 var
-  Struct: TOpenFileName;
-  FileNameBuffer: array [0..6000] of char;
+  Struct: TOpenFileNameW;
+  FileNameBuffer: array [0..6000] of widechar;
   {$ifndef FPC}FileNameString: String;{$endif}
   FilePath: string;
   Mode: TGLModeFrozenScreen;
@@ -1451,13 +1453,13 @@ begin
     in the form 'subdir1/file' or './subdir1/file' (maybe it does not understand
     that those paths are relative to current dir ??), so I'm always expanding paths. }
   FilePath := ExpandFilePath(FilePath);
-  Struct.lpstrInitialDir := PCharOrNil(FilePath);
+  Struct.lpstrInitialDir := PWideCharOrNil(FilePath);
 
  { tests:
    InfoWrite('current dir : "' + GetCurrentDir + '"');
    InfoWrite('dialog box InitialDir : "' + FilePath + '"');}
 
-  Struct.lpstrTitle := PCharOrNil(Title);
+  Struct.lpstrTitle := PWideCharOrNil(Title);
   Struct.Flags := OFN_NOCHANGEDIR or OFN_HIDEREADONLY;
   if OpenDialog then
     Struct.Flags := Struct.Flags or OFN_FILEMUSTEXIST else
@@ -1465,7 +1467,7 @@ begin
 
   if FileFilters <> nil then
   begin
-    Struct.lpstrFilter := PChar(MakeStrFilter(FileFilters));
+    Struct.lpstrFilter := PWideCharOrNil(MakeStrFilter(FileFilters));
     Struct.nFilterIndex := FileFilters.DefaultFilter + 1;
 
     if not OpenDialog then
@@ -1527,7 +1529,7 @@ begin
         FileNameBuffer := DeleteFileExt(FileNameBuffer);
         {$else}
         if StrLen(FileNameBuffer) > 0 then
-          SetString(FileNameString, PChar(@FileNameBuffer[0]), StrLen(FileNameBuffer))
+          SetString(FileNameString, PWideChar(@FileNameBuffer[0]), StrLen(FileNameBuffer))
         else
           FileNameString := '';
 
@@ -1547,7 +1549,7 @@ begin
 
           Also note that unregistered extensions are treated somewhat differently.
           Unfortunately, lpstrDefExt will append then, instead of leaving filename alone. }
-        Struct.lpstrDefExt := PChar(SEnding(CurrentFileNameExt, 2));
+        Struct.lpstrDefExt := PWideCharOrNil(SEnding(CurrentFileNameExt, 2));
       end;
     end;
   end;
@@ -1555,12 +1557,12 @@ begin
   Mode := TGLModeFrozenScreen.Create(Self);
   try
     if OpenDialog then
-      Result := GetOpenFileName({$ifdef FPC}@{$endif}Struct) else
-      Result := GetSaveFileName({$ifdef FPC}@{$endif}Struct);
+      Result := GetOpenFileNameW({$ifdef FPC}@{$endif}Struct) else
+      Result := GetSaveFileNameW({$ifdef FPC}@{$endif}Struct);
   finally Mode.Free end;
 
   if Result then
-    FileName := FileNameBuffer else
+    FileName := widestring(FileNameBuffer) else
   begin
     if CommDlgExtendedError <> 0 then
       raise Exception.CreateFmt('GetOpen/SaveFileName failed with error %d',
@@ -1568,7 +1570,7 @@ begin
   end;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
 
   function Vector3ToColorRef(const Value: TVector3): TColorRef;
   begin
@@ -1630,7 +1632,7 @@ const
     'Information');
 *)
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
   CastleMessages.MessageOK(Self, S);
 
@@ -1649,7 +1651,7 @@ begin
   *)
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
+function TCastleWindow.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
   Result := CastleMessages.MessageYesNo(Self, S);
@@ -1666,7 +1668,7 @@ begin
   *)
 end;
 
-procedure TCastleWindowBase.UpdateFullScreenBackend;
+procedure TCastleWindow.UpdateFullScreenBackend;
 begin
   SimpleUpdateFullScreenBackend;
 end;
@@ -1744,38 +1746,36 @@ end;
 
 procedure TCastleApplication.CreateBackend;
 const
-  WinCursorNameFromCastle: array [mcStandard .. High(TMouseCursor)] of LPCTSTR = (
-    IDC_ARROW,  // mcStandard
-    IDC_WAIT,   // mcWait
-    IDC_IBEAM,  // mcText
-    IDC_HAND,   // mcHand
-    IDC_SIZENS, // mcResizeVertical
-    IDC_SIZEWE, // mcResizeHorizontal
-    IDC_SIZENWSE, // no IDC_SIZENW in Windows, // mcResizeTopLeft
-    IDC_SIZENS,   // no IDC_SIZEN  in Windows, // mcResizeTop
-    IDC_SIZENESW, // no IDC_SIZENE in Windows, // mcResizeTopRight
-    IDC_SIZEWE,   // no IDC_SIZEW  in Windows, // mcResizeLeft
-    IDC_SIZEWE,   // no IDC_SIZEE  in Windows, // mcResizeRight
-    IDC_SIZENESW, // no IDC_SIZESW in Windows, // mcResizeBottomLeft
-    IDC_SIZENS,   // no IDC_SIZES  in Windows, // mcResizeBottom
-    IDC_SIZENWSE  // no IDC_SIZESE in Windows, // mcResizeBottomRight
+  WinCursorNameFromCastle: array [mcStandard .. High(TMouseCursor)] of LPCWSTR = (
+    PWideChar(IDC_ARROW),  // mcStandard
+    PWideChar(IDC_WAIT),   // mcWait
+    PWideChar(IDC_IBEAM),  // mcText
+    PWideChar(IDC_HAND),   // mcHand
+    PWideChar(IDC_SIZENS), // mcResizeVertical
+    PWideChar(IDC_SIZEWE), // mcResizeHorizontal
+    PWideChar(IDC_SIZENWSE), // no IDC_SIZENW in Windows, // mcResizeTopLeft
+    PWideChar(IDC_SIZENS),   // no IDC_SIZEN  in Windows, // mcResizeTop
+    PWideChar(IDC_SIZENESW), // no IDC_SIZENE in Windows, // mcResizeTopRight
+    PWideChar(IDC_SIZEWE),   // no IDC_SIZEW  in Windows, // mcResizeLeft
+    PWideChar(IDC_SIZEWE),   // no IDC_SIZEE  in Windows, // mcResizeRight
+    PWideChar(IDC_SIZENESW), // no IDC_SIZESW in Windows, // mcResizeBottomLeft
+    PWideChar(IDC_SIZENS),   // no IDC_SIZES  in Windows, // mcResizeBottom
+    PWideChar(IDC_SIZENWSE)  // no IDC_SIZESE in Windows, // mcResizeBottomRight
   );
 var
-  WindowClass: {$ifdef CASTLE_WINAPI_UNICODE} TWndClassW {$else} TWndClass {$endif};
+  WindowClass: TWndClassW;
   C: TMouseCursor;
 begin
   RegisterClipboard(TWinApiClipboard.Create);
 
   appActive := true;
 
-  { Initialize NameForLoadCursor for CursorHandles.
+  { Initialize CursorHandles.
     We depend on the fact that CursorHandles is initially filled with zero,
-    so NameForLoadCursor is nil for the rest of TMouseCursor values. }
+    so Handle remains nil for the rest of TMouseCursor values
+    (not in WinCursorNameFromCastle). }
   for C := Low(WinCursorNameFromCastle) to High(WinCursorNameFromCastle) do
-  begin
-    CursorHandles[C].NameForLoadCursor := WinCursorNameFromCastle[C];
-    CursorHandles[C].Handle := LoadCursor(0, CursorHandles[C].NameForLoadCursor);
-  end;
+    CursorHandles[C].Handle := LoadCursorW(0, WinCursorNameFromCastle[C]);
 
   { create window class (WindowClass) }
 
@@ -1798,25 +1798,17 @@ begin
     programow.
     Jesli nie znajdzie ikonki w resource to zaladuj ikone ze zbioru Windowsa
     idi_application. }
-  WindowClass.hIcon := LoadIcon(hInstance, 'MAINICON');
-  if WindowClass.hIcon = 0 then WindowClass.hIcon := LoadIcon(0, IDI_APPLICATION);
-  WindowClass.hCursor := LoadCursor(0, IDC_ARROW);
-  {$ifdef CASTLE_WINAPI_UNICODE}
+  WindowClass.hIcon := LoadIconW(hInstance, 'MAINICON');
+  if WindowClass.hIcon = 0 then
+    WindowClass.hIcon := LoadIconW(0, PWideChar(IDI_APPLICATION));
+  WindowClass.hCursor := CursorHandles[mcStandard].Handle;
   WindowClass.lpszClassName := PWideChar(WndClassName);
   OSCheck( Windows.RegisterClassW(WindowClass) <> 0, 'RegisterClassW');
-  {$else}
-  WindowClass.lpszClassName := PChar(WndClassName);
-  OSCheck( Windows.RegisterClass(WindowClass) <> 0, 'RegisterClass');
-  {$endif}
 end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  {$ifdef CASTLE_WINAPI_UNICODE}
   OSCheck( Windows.UnregisterClassW(PWideChar(WndClassName), hInstance), 'UnregisterClassW');
-  {$else}
-  OSCheck( Windows.UnregisterClass(PChar(WndClassName), hInstance), 'UnregisterClass');
-  {$endif}
 end;
 
 procedure TCastleApplication.VideoReset;
@@ -1977,14 +1969,6 @@ function TCastleApplication.BackendName: string;
 begin
   Result := 'WinAPI';
 end;
-
-{ TCastleWindow -------------------------------------------------------------- }
-
-{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-procedure TCastleWindow.NavigationInfoChanged;
-begin
-end;
-{$endif}
 
 { TWindowContainer ----------------------------------------------------------- }
 

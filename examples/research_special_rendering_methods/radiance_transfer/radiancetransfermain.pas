@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2020 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,8 +33,8 @@ uses SysUtils, Classes, Math,
   CastleVectors, X3DNodes, CastleWindow, CastleShapes,
   CastleClassUtils, CastleUtils,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleViewport,
-  CastleFilesUtils, CastleLog, CastleSphericalHarmonics, CastleImages,
-  CastleGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
+  CastleFilesUtils, CastleLog, CastleInternalSphericalHarmonics, CastleImages,
+  CastleInternalGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
   CastleApplicationProperties, CastleControls, CastleTransform, X3DFields,
   SceneUtilities;
 
@@ -42,7 +42,7 @@ type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Scene: TCastleScene;
   SceneLightVisualize, SceneLightVisualizeForMap: TCastleScene;
   MaterialLight, MaterialLightForMap: TUnlitMaterialNode;
@@ -371,7 +371,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
   Window.MainMenu := CreateMainMenu;
   Window.OnMenuClick := @MenuClick;

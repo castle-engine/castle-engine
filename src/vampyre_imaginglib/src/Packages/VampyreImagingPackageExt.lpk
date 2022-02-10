@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="4">
+  <Package Version="5">
     <PathDelim Value="\"/>
     <Name Value="VampyreImagingPackageExt"/>
     <Type Value="RunAndDesignTime"/>
-    <Author Value="Marek Mauder (http://imaginglib.sourceforge.net)"/>
+    <Author Value="Marek Mauder (https://imaginglib.sourceforge.io)"/>
     <CompilerOptions>
       <Version Value="11"/>
       <PathDelim Value="\"/>
@@ -12,21 +12,27 @@
         <IncludeFiles Value="..\Source"/>
         <Libraries Value="..\Extensions\J2KObjects;..\Extensions\LibTiff\Compiled"/>
         <OtherUnitFiles Value="..\Extensions;..\Extensions\LibTiff"/>
-        <UnitOutputDirectory Value="..\Bin\ppu\$(TargetCPU)-$(TargetOS)\ext"/>
+        <UnitOutputDirectory Value="..\Bin\Dcu\$(TargetCPU)-$(TargetOS)\pkg-ext"/>
       </SearchPaths>
+      <CodeGeneration>
+        <Optimizations>
+          <OptimizationLevel Value="2"/>
+        </Optimizations>
+      </CodeGeneration>
       <Other>
+        <Verbosity>
+          <ShowNotes Value="False"/>
+          <ShowHints Value="False"/>
+        </Verbosity>
         <CustomOptions Value="-dFULL_FEATURE_SET"/>
         <OtherDefines Count="1">
           <Define0 Value="FULL_FEATURE_SET"/>
         </OtherDefines>
       </Other>
     </CompilerOptions>
-    <Description Value="Vampyre Imaging Library Package for Lazarus - Extensions"/>
-    <License Value="Imaging comes with two open source licenses from which you can choose the one which fits your needs best:
-* MPL - Mozilla Public License
-* LGPL - GNU Lesser General Public License
-"/>
-    <Version Minor="80"/>
+    <Description Value="Vampyre Imaging Library Package for Lazarus - Extensions. Imaging is image loading, saving, and manipulation library."/>
+    <License Value="MPL 2.0 (GPL compatible) "/>
+    <Version Minor="82"/>
     <Files Count="20">
       <Item1>
         <Filename Value="..\Extensions\ElderImagery.pas"/>
@@ -86,22 +92,27 @@
       </Item14>
       <Item15>
         <Filename Value="..\Extensions\LibTiff\ImagingTiffLib.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="ImagingTiffLib"/>
       </Item15>
       <Item16>
         <Filename Value="..\Extensions\LibTiff\LibDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="LibDelphi"/>
       </Item16>
       <Item17>
         <Filename Value="..\Extensions\LibTiff\LibJpegDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="LibJpegDelphi"/>
       </Item17>
       <Item18>
         <Filename Value="..\Extensions\LibTiff\LibTiffDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="LibTiffDelphi"/>
       </Item18>
       <Item19>
         <Filename Value="..\Extensions\LibTiff\ZLibDelphi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="ZLibDelphi"/>
       </Item19>
       <Item20>
@@ -110,6 +121,7 @@
         <UnitName Value="VampyreImagingPackageExtRegister"/>
       </Item20>
     </Files>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="2">
       <Item1>
         <PackageName Value="VampyreImagingPackage"/>

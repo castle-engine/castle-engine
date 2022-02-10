@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestWindow" -*-
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -50,9 +50,9 @@ uses SysUtils, Classes, Math,
 
 procedure TTestWindow.Test1;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Window.Open;
     Window.Close;
@@ -61,10 +61,10 @@ end;
 
 procedure TTestWindow.TestNotifications;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   C: TCastleButton;
 begin
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     C := TCastleButton.Create(Window);
     FreeAndNil(C);
@@ -100,7 +100,7 @@ end;
 
 procedure TTestWindow.TestAutoSizeToChildren;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Parent, Child1, Child2: TCastleUserInterface;
 begin
   Window := nil;
@@ -108,7 +108,7 @@ begin
   Child1 := nil;
   Child2 := nil;
   try
-    Window := TCastleWindowBase.Create(nil);
+    Window := TCastleWindow.Create(nil);
     Window.Width := 500;
     Window.Height := 500;
     Window.ResizeAllowed := raNotAllowed;
@@ -169,7 +169,7 @@ end;
 
 procedure TTestWindow.TestFocus;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   ManualButton, Button2: TCastleButton;
   OnScreenMenu1: TCastleOnScreenMenu;
   SceneManager1: TCastleSceneManager;
@@ -220,7 +220,7 @@ var
   end;
 
 begin
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Window.Width := 800;
     Window.Height := 800;
@@ -254,7 +254,7 @@ end;
 
 procedure TTestWindow.TestEventLoop;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
   procedure SimulateEventLoop(const T: TCastleTransform);
   var
@@ -278,7 +278,7 @@ var
 begin
   ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
   try
-    Window := TCastleWindowBase.Create(nil);
+    Window := TCastleWindow.Create(nil);
     try
       // for rendering, OpenGL context must be ready, with GLFeatures initialized
       Window.Visible := false;
@@ -341,9 +341,9 @@ var
   end;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Window.Width := 300;
     Window.Height := 300;
@@ -381,11 +381,11 @@ procedure TTestWindow.TestStateAutoStop;
 
   However, this was always working, it does *not* reproduce what
   https://github.com/castle-engine/castle-engine/issues/307 did.
-  There is TCastleControlBase that does
+  There is TCastleControl that does
 
     procedure TCastleForm.WindowOpen(Sender: TObject);
     begin
-      TCastleControlBase.MainControl := Window;
+      TCastleControl.MainControl := Window;
       CastleApp := TCastleApp.Create(Window);
       TUIState.Current := CastleApp;
       Window.Container.UIScaling := usNone;
@@ -393,10 +393,10 @@ procedure TTestWindow.TestStateAutoStop;
 }
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   SomeState: TUIState;
 begin
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Application.MainWindow := Window;
 
@@ -453,10 +453,10 @@ end;
 
 procedure TTestWindow.TestStateSize;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   StateTesting: TStateTestingSize;
 begin
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Application.MainWindow := Window;
 
@@ -522,10 +522,10 @@ end;
 
 procedure TTestWindow.TestStateSize2;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   StateTesting: TStateTestingSize2;
 begin
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Application.MainWindow := Window;
 

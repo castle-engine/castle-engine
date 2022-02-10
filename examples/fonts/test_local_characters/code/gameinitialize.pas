@@ -21,7 +21,7 @@ interface
 uses CastleWindow;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 implementation
 
@@ -317,7 +317,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 finalization

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,8 +42,15 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionOutputCopyAll: TAction;
+    ActionOutputCopySelected: TAction;
+    ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemOutputCopyAll: TMenuItem;
+    MenuItemOutputCopySelected: TMenuItem;
+    MenuItemSeparator12312123123: TMenuItem;
+    MenuItemOutputClean: TMenuItem;
     MenuItemUIOutput: TMenuItem;
     MenuItemUIWarnings: TMenuItem;
     MenuItemUIFiles: TMenuItem;
@@ -141,6 +148,7 @@ type
     MenuItemDesignNewTransform: TMenuItem;
     MenuItemDesignNewUserInterfaceRect: TMenuItem;
     ShellListPopupMenu: TPopupMenu;
+    OutputPopup: TPopupMenu;
     ShellTreePopupMenu: TPopupMenu;
     SaveDesignDialog: TCastleSaveDialog;
     MenuItemSaveAsDesign: TMenuItem;
@@ -181,6 +189,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionOutputCleanExecute(Sender: TObject);
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionEditAssociatedUnitExecute(Sender: TObject);
     procedure ActionEditUnitExecute(Sender: TObject);
@@ -191,6 +200,9 @@ type
     procedure ActionNewUnitHereStateExecute(Sender: TObject);
     procedure ActionNewUnitStateExecute(Sender: TObject);
     procedure ActionOpenProjectCodeExecute(Sender: TObject);
+    procedure ActionOutputCopyAllExecute(Sender: TObject);
+    procedure ActionOutputCopySelectedExecute(Sender: TObject);
+    procedure ActionOutputCopySelectedUpdate(Sender: TObject);
     procedure ActionRegenerateProjectExecute(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
@@ -525,6 +537,11 @@ begin
   SpriteSheetEditorForm.NewSpriteSheet;
 end;
 
+procedure TProjectForm.ActionOutputCleanExecute(Sender: TObject);
+begin
+  ListOutput.Clear;
+end;
+
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
 begin
   { Refresh contents of selected dir, and tree of subdirectories,
@@ -616,6 +633,26 @@ begin
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
+end;
+
+procedure TProjectForm.ActionOutputCopyAllExecute(Sender: TObject);
+begin
+  Clipboard.AsText := ListOutput.Items.Text;
+end;
+
+procedure TProjectForm.ActionOutputCopySelectedExecute(Sender: TObject);
+begin
+  { Although ActionOutputCopySelectedUpdate should secure from it too,
+    but check it in case ActionOutputCopySelectedUpdate doesn't run often enough. }
+  if ListOutput.ItemIndex <> -1 then
+  begin
+    Clipboard.AsText := ListOutput.Items[ListOutput.ItemIndex];
+  end;
+end;
+
+procedure TProjectForm.ActionOutputCopySelectedUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := ListOutput.ItemIndex <> -1;
 end;
 
 procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
@@ -1580,7 +1617,7 @@ begin
       SpriteSheetEditorForm.Close; // not needed on GTK2, maybe add ifdef?
     end;
 
-    Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
+    Release; // do not call MenuItemDesignClose, to avoid OnCloseQuery
     ChooseProjectForm.Show;
   end;
 end;

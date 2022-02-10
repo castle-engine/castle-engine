@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCubeMap" -*-
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,7 +33,7 @@ type
 
 implementation
 
-uses CastleVectors, CastleCubeMaps, Math;
+uses CastleVectors, CastleInternalCubeMaps, Math;
 
 procedure TTestCubeMap.TestReverse;
 var

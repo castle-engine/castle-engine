@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,7 +16,7 @@
 { CastleWindow backend that depends on external code to initialize
   OpenGL context.
   The external code must notify us about events by calling LibraryXxx methods,
-  like TCastleWindowBase.LibraryKeyDown or TCastleApplication.LibraryUpdate.
+  like TCastleWindow.LibraryKeyDown or TCastleApplication.LibraryUpdate.
   The external code will get notified about our events using LibraryCallbackProc. }
 
 {$ifdef read_interface_uses}
@@ -101,44 +101,44 @@ const
 var
   LibraryCallbackProc: TLibraryCallbackProc;
 
-{ TCastleWindowBase ---------------------------------------------------------- }
+{ TCastleWindow ---------------------------------------------------------- }
 
-procedure TCastleWindowBase.CreateBackend;
+procedure TCastleWindow.CreateBackend;
 begin
   { Nothing to do. }
 end;
 
-procedure TCastleWindowBase.OpenBackend;
+procedure TCastleWindow.OpenBackend;
 begin
   { We just assume that we already have OpenGL context initialized.
     Nothing to do. }
   Application.OpenWindowsAdd(Self);
 end;
 
-procedure TCastleWindowBase.SwapBuffers;
+procedure TCastleWindow.SwapBuffers;
 begin
   { The external code must take care of swapping buffers or doing glFlush. }
 end;
 
-procedure TCastleWindowBase.CloseBackend;
+procedure TCastleWindow.CloseBackend;
 begin
   { Nothing to do. }
 end;
 
-procedure TCastleWindowBase.Invalidate;
+procedure TCastleWindow.Invalidate;
 begin
   if not Closed then Invalidated := true;
   if Assigned(LibraryCallbackProc) then  // tell the parent window to repaint
     LibraryCallbackProc(ecgelibNeedsDisplay, 0, 0, nil);
 end;
 
-procedure TCastleWindowBase.BackendMakeCurrent;
+procedure TCastleWindow.BackendMakeCurrent;
 begin
   { Nothing to do, we assume external code makes sure this is always
     the current OpenGL context. }
 end;
 
-procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
 var
   CursorCode: cInt32;
 begin
@@ -161,20 +161,14 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
   if not Closed then
     { TODO: call LibraryCallbackProc to change caption to GetWholeCaption };
 end;
 
-procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
-begin
-  FCustomCursor := Value;
-  { TODO: call LibraryCallbackProc with custom cursor shape, if you want this }
-end;
-
-procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 begin
   if (not Closed) and Assigned(LibraryCallbackProc) then
   begin
@@ -187,7 +181,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.UpdateFullScreenBackend;
+procedure TCastleWindow.UpdateFullScreenBackend;
 begin
   { TODO: call LibraryCallbackProc to switch fullscreen mode }
   FFullScreenBackend := FFullScreenWanted;
@@ -195,75 +189,75 @@ end;
 
 { LibraryXxx methods --------------------------------------------------------- }
 
-procedure TCastleWindowBase.LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
+procedure TCastleWindow.LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
 begin
   DoMouseWheel(Scroll, Vertical);
 end;
 
-{ TCastleWindowBase menu ----------------------------------------------------
+{ TCastleWindow menu ----------------------------------------------------
   Does not do anything, this backend cannot manage the menu bar. }
 
-procedure TCastleWindowBase.BackendMenuInitialize;
+procedure TCastleWindow.BackendMenuInitialize;
 begin
 end;
 
-procedure TCastleWindowBase.BackendMenuFinalize;
+procedure TCastleWindow.BackendMenuFinalize;
 begin
 end;
 
-procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
 end;
 
-procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
 end;
 
-procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindow.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
 end;
 
-procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+procedure TCastleWindow.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
   Result := true;
 end;
 
-{ TCastleWindowBase dialogs ---------------------------------------------------------- }
+{ TCastleWindow dialogs ---------------------------------------------------------- }
 
 { Methods below should make native-looking dialog boxes. }
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
   { TODO } Result := false;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
 begin
   { TODO } Result := false;
 end;
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
   { TODO }
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
+function TCastleWindow.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
   { TODO } Result := true;
@@ -341,28 +335,6 @@ begin
   end;
 end;
 
-{ TCastleWindow -------------------------------------------------------------- }
-
-{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-procedure TCastleWindow.NavigationInfoChanged;
-var
-  NavValue: integer;
-begin
-  // send info to parent app (to update navigation buttons state)
-  if Assigned(LibraryCallbackProc) then
-  begin
-    case NavigationType of
-      ntWalk     : NavValue := 0;
-      ntFly      : NavValue := 1;
-      ntExamine  : NavValue := 2;
-      ntTurntable: NavValue := 3;
-      ntNone     : NavValue := 4;
-    end;
-    LibraryCallbackProc(ecgelibNavigationTypeChanged, NavValue, 0, nil);
-  end;
-end;
-{$endif}
-
 {$define read_implementation}
 
 procedure CheckMainWindow;
@@ -395,7 +367,7 @@ end;
 
 procedure CGEApp_ContextProperties(RedBits, GreenBits, BlueBits, AlphaBits, DepthBits, StencilBits, MultiSampling: PCInt); cdecl;
 var
-  W: TCastleWindowBase;
+  W: TCastleWindow;
 begin
   try
     CheckMainWindow;
@@ -515,7 +487,7 @@ end;
 
 procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 var
-  W: TCastleWindowBase;
+  W: TCastleWindow;
 begin
   try
     CheckMainWindow;

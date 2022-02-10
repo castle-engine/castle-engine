@@ -28,7 +28,7 @@ uses SysUtils, Classes, Math,
   CastleApplicationProperties, CastleRenderContext;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
   Curves: TControlPointsCurveList;
   { -1 (none selected) or in [0 .. Curves.Count-1].
@@ -735,7 +735,7 @@ begin
           HelpOptionHelp + NL +
           VersionOptionHelp + NL +
           NL +
-          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) + NL +
+          TCastleWindow.ParseParametersHelp(StandardParseOptions, true) + NL +
           NL +
           'Full documentation on' + NL +
           'https://castle-engine.io/curves_tool' + NL +
@@ -801,7 +801,7 @@ begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   InitializeLog;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Window.ParseParameters(StandardParseOptions);
   Parameters.Parse(Options, @OptionProc, nil);
