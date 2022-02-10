@@ -1146,9 +1146,9 @@ function TTriangle3.Barycentric(const Point: TVector3): TVector3;
 
   function Box3DSizes(const Box: TBox3D): TVector3;
   begin
-    Result.Data[0] := Box.Data[1].X - Box.Data[0].X;
-    Result.Data[1] := Box.Data[1].Y - Box.Data[0].Y;
-    Result.Data[2] := Box.Data[1].Z - Box.Data[0].Z;
+    Result.X := Box.Data[1].X - Box.Data[0].X;
+    Result.Y := Box.Data[1].Y - Box.Data[0].Y;
+    Result.Z := Box.Data[1].Z - Box.Data[0].Z;
   end;
 
   function TriangleBoundingBox: TBox3D;
@@ -1355,8 +1355,8 @@ begin
   S := 1/(2*Area)*(
       Tri.Data[0].Y*Tri.Data[2].X
     - Tri.Data[0].X*Tri.Data[2].Y
-    + (Tri.Data[2].Y - Tri.Data[0].Y) * P.Data[0]
-    + (Tri.Data[0].X - Tri.Data[2].X) * P.Data[1]);
+    + (Tri.Data[2].Y - Tri.Data[0].Y) * P.X
+    + (Tri.Data[0].X - Tri.Data[2].X) * P.Y);
 
   One := 1 + SingleEpsilon;
   if (S < -SingleEpsilon) or
@@ -1367,8 +1367,8 @@ begin
   T := 1/(2*Area)*(
       Tri.Data[0].X*Tri.Data[1].Y
     - Tri.Data[0].Y*Tri.Data[1].X
-    + (Tri.Data[0].Y - Tri.Data[1].Y) * P.Data[0]
-    + (Tri.Data[1].X - Tri.Data[0].X) * P.Data[1]);
+    + (Tri.Data[0].Y - Tri.Data[1].Y) * P.X
+    + (Tri.Data[1].X - Tri.Data[0].X) * P.Y);
 
   { We could check at the end just this:
       Result := (S > 0) and (T > 0) and (1 - S - T > 0);
@@ -1572,10 +1572,10 @@ var
   ResultDir: TVector3 absolute Result;
 begin
   ResultDir := TriangleDirection(p0, p1, p2);
-  Result.Data[3] :=
-    -ResultDir.Data[0] * p0.Data[0]
-    -ResultDir.Data[1] * p0.Data[1]
-    -ResultDir.Data[2] * p0.Data[2];
+  Result.W :=
+    -ResultDir.X * p0.X
+    -ResultDir.Y * p0.Y
+    -ResultDir.Z * p0.Z;
 end;
 
 function TriangleDir(const T: TTriangle3): TVector3;

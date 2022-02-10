@@ -1032,12 +1032,12 @@ begin
   for I := StartIndex to Points.Count - 1 do
   begin
     V := Points.List^[I];
-    MinVar(Data[0].X, V.Data[0]);
-    MaxVar(Data[1].X, V.Data[0]);
-    MinVar(Data[0].Y, V.Data[1]);
-    MaxVar(Data[1].Y, V.Data[1]);
-    MinVar(Data[0].Z, V.Data[2]);
-    MaxVar(Data[1].Z, V.Data[2]);
+    MinVar(Data[0].X, V.X);
+    MaxVar(Data[1].X, V.X);
+    MinVar(Data[0].Y, V.Y);
+    MaxVar(Data[1].Y, V.Y);
+    MinVar(Data[0].Z, V.Z);
+    MaxVar(Data[1].Z, V.Z);
   end;
 end;
 
@@ -1055,12 +1055,12 @@ begin
     for I := 1 to Points.Count - 1 do
     begin
       V := Points.List^[I];
-      MinVar(Result.Data[0].X, V.Data[0]);
-      MaxVar(Result.Data[1].X, V.Data[0]);
-      MinVar(Result.Data[0].Y, V.Data[1]);
-      MaxVar(Result.Data[1].Y, V.Data[1]);
-      MinVar(Result.Data[0].Z, V.Data[2]);
-      MaxVar(Result.Data[1].Z, V.Data[2]);
+      MinVar(Result.Data[0].X, V.X);
+      MaxVar(Result.Data[1].X, V.X);
+      MinVar(Result.Data[0].Y, V.Y);
+      MaxVar(Result.Data[1].Y, V.Y);
+      MinVar(Result.Data[0].Z, V.Z);
+      MaxVar(Result.Data[1].Z, V.Z);
     end;
   end;
 end;
@@ -1068,9 +1068,9 @@ end;
 function TBox3D.Size: TVector3;
 begin
   CheckNonEmpty;
-  Result.Data[0] := Data[1].X - Data[0].X;
-  Result.Data[1] := Data[1].Y - Data[0].Y;
-  Result.Data[2] := Data[1].Z - Data[0].Z;
+  Result.X := Data[1].X - Data[0].X;
+  Result.Y := Data[1].Y - Data[0].Y;
+  Result.Z := Data[1].Z - Data[0].Z;
 end;
 
 function TBox3D.Sizes: TVector3;
@@ -1469,16 +1469,16 @@ begin
     VMax.Data[I] := BoxBool[B].Data[I];
   end;
 
-  if Plane.Data[0] * VMin.Data[0] +
-     Plane.Data[1] * VMin.Data[1] +
-     Plane.Data[2] * VMin.Data[2] +
-     Plane.Data[3] > 0 then
+  if Plane.X * VMin.X +
+     Plane.Y * VMin.Y +
+     Plane.Z * VMin.Z +
+     Plane.W > 0 then
     Exit(pcOutside);
 
-  if Plane.Data[0] * VMax.Data[0] +
-     Plane.Data[1] * VMax.Data[1] +
-     Plane.Data[2] * VMax.Data[2] +
-     Plane.Data[3] < 0 then
+  if Plane.X * VMax.X +
+     Plane.Y * VMax.Y +
+     Plane.Z * VMax.Z +
+     Plane.W < 0 then
     Exit(pcInside);
 
   Result := pcIntersecting;
@@ -1518,10 +1518,10 @@ begin
     Exit(false);
 
   Result :=
-    BoxBool[Plane.Data[0] < 0].X * Plane.Data[0] +
-    BoxBool[Plane.Data[1] < 0].Y * Plane.Data[1] +
-    BoxBool[Plane.Data[2] < 0].Z * Plane.Data[2] +
-    Plane.Data[3] > 0;
+    BoxBool[Plane.X < 0].X * Plane.X +
+    BoxBool[Plane.Y < 0].Y * Plane.Y +
+    BoxBool[Plane.Z < 0].Z * Plane.Z +
+    Plane.W > 0;
 end;
 
 function TBox3D.IsTriangleCollision(const Triangle: TTriangle3): boolean;
@@ -1577,7 +1577,7 @@ var
     p2 := a * TriangleMoved[2].Y - b * TriangleMoved[2].Z;
     if p0<p2 then begin min := p0; max := p2; end else
                   begin min := p2; max := p0; end;
-    rad := fa * BoxHalfSize.Data[1] + fb * BoxHalfSize.Data[2];
+    rad := fa * BoxHalfSize.Y + fb * BoxHalfSize.Z;
     Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
@@ -1589,7 +1589,7 @@ var
     p1 := a * TriangleMoved[1].Y - b * TriangleMoved[1].Z;
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
-    rad := fa * BoxHalfSize.Data[1] + fb * BoxHalfSize.Data[2];
+    rad := fa * BoxHalfSize.Y + fb * BoxHalfSize.Z;
     Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
@@ -1602,7 +1602,7 @@ var
     p2 := -a * TriangleMoved[2].X + b * TriangleMoved[2].Z;
     if p0<p2 then begin min := p0; max := p2; end else
                   begin min := p2; max := p0; end;
-    rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[2];
+    rad := fa * BoxHalfSize.X + fb * BoxHalfSize.Z;
     Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
@@ -1614,7 +1614,7 @@ var
     p1 := -a * TriangleMoved[1].X + b * TriangleMoved[1].Z;
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
-    rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[2];
+    rad := fa * BoxHalfSize.X + fb * BoxHalfSize.Z;
     Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
@@ -1627,7 +1627,7 @@ var
     p2 := a * TriangleMoved[2].X - b * TriangleMoved[2].Y;
     if p2<p1 then begin min := p2; max := p1; end else
                   begin min := p1; max := p2; end;
-    rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[1];
+    rad := fa * BoxHalfSize.X + fb * BoxHalfSize.Y;
     Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
@@ -1639,7 +1639,7 @@ var
     p1 := a * TriangleMoved[1].X - b * TriangleMoved[1].Y;
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
-    rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[1];
+    rad := fa * BoxHalfSize.X + fb * BoxHalfSize.Y;
     Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
@@ -1703,18 +1703,18 @@ begin
 
   { test in X-direction }
   MinMax(TriangleMoved[0].X, TriangleMoved[1].X, TriangleMoved[2].X, TriMin, TriMax);
-  if (TriMin >  boxhalfsize.Data[0] + Epsilon) or
-     (TriMax < -boxhalfsize.Data[0] - Epsilon) then Exit(false);
+  if (TriMin >  boxhalfsize.X + Epsilon) or
+     (TriMax < -boxhalfsize.X - Epsilon) then Exit(false);
 
   { test in Y-direction }
   MinMax(TriangleMoved[0].Y, TriangleMoved[1].Y, TriangleMoved[2].Y, TriMin, TriMax);
-  if (TriMin >  boxhalfsize.Data[1] + Epsilon) or
-     (TriMax < -boxhalfsize.Data[1] - Epsilon) then Exit(false);
+  if (TriMin >  boxhalfsize.Y + Epsilon) or
+     (TriMax < -boxhalfsize.Y - Epsilon) then Exit(false);
 
   { test in Z-direction }
   MinMax(TriangleMoved[0].Z, TriangleMoved[1].Z, TriangleMoved[2].Z, TriMin, TriMax);
-  if (TriMin >  boxhalfsize.Data[2] + Epsilon) or
-     (TriMax < -boxhalfsize.Data[2] - Epsilon) then Exit(false);
+  if (TriMin >  boxhalfsize.Z + Epsilon) or
+     (TriMax < -boxhalfsize.Z - Epsilon) then Exit(false);
 
   { tests 2)
     test if the box intersects the plane of the triangle
@@ -1912,10 +1912,10 @@ begin
 *)
 
   { optimized version, just do this in one go: }
-  Result.Data[3] := - (
-    BoxBool[Direction.Data[0] >= 0].X * Result.Data[0] +
-    BoxBool[Direction.Data[1] >= 0].Y * Result.Data[1] +
-    BoxBool[Direction.Data[2] >= 0].Z * Result.Data[2]);
+  Result.W := - (
+    BoxBool[Direction.X >= 0].X * Result.X +
+    BoxBool[Direction.Y >= 0].Y * Result.Y +
+    BoxBool[Direction.Z >= 0].Z * Result.Z);
 end;
 
 function TBox3D.MinimumPlane(const Direction: TVector3): TVector4;
@@ -2306,17 +2306,17 @@ begin
 
   { If VMin is above the plane (plane equation is > 0), then VMax
     is also above, no need to test anything else. }
-  if Plane.Data[0] * VMin.Data[0] +
-     Plane.Data[1] * VMin.Data[1] +
-     Plane.Data[2] * VMin.Data[2] +
-     Plane.Data[3] > Epsilon then
+  if Plane.X * VMin.X +
+     Plane.Y * VMin.Y +
+     Plane.Z * VMin.Z +
+     Plane.W > Epsilon then
     Exit(false);
 
   { So VMin is <= plane. So if VMax is >= 0, then there's a collision. }
-  Result :=  Plane.Data[0] * VMax.Data[0] +
-             Plane.Data[1] * VMax.Data[1] +
-             Plane.Data[2] * VMax.Data[2] +
-             Plane.Data[3] >= -Epsilon;
+  Result :=  Plane.X * VMax.X +
+             Plane.Y * VMax.Y +
+             Plane.Z * VMax.Z +
+             Plane.W >= -Epsilon;
 end;
 
 function IsCenteredBox3DPlaneCollision(
@@ -2351,9 +2351,9 @@ end;
 
 function Box3DAroundPoint(const Pt: TVector3; Size: TVector3): TBox3D;
 begin
-  if (Size.Data[0] < 0) or
-     (Size.Data[1] < 0) or
-     (Size.Data[2] < 0) then
+  if (Size.X < 0) or
+     (Size.Y < 0) or
+     (Size.Z < 0) then
     Exit(TBox3D.Empty);
 
   Size := Size / 2;
@@ -2380,13 +2380,13 @@ begin
     for I := 1 to VertsCount - 1 do
     begin
       V := GetVertex(I);
-      MinVar(Result.Data[0].X, V.Data[0]);
-      MinVar(Result.Data[0].Y, V.Data[1]);
-      MinVar(Result.Data[0].Z, V.Data[2]);
+      MinVar(Result.Data[0].X, V.X);
+      MinVar(Result.Data[0].Y, V.Y);
+      MinVar(Result.Data[0].Z, V.Z);
 
-      MaxVar(Result.Data[1].X, V.Data[0]);
-      MaxVar(Result.Data[1].Y, V.Data[1]);
-      MaxVar(Result.Data[1].Z, V.Data[2]);
+      MaxVar(Result.Data[1].X, V.X);
+      MaxVar(Result.Data[1].Y, V.Y);
+      MaxVar(Result.Data[1].Z, V.Z);
     end;
   end;
 end;

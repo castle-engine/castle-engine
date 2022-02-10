@@ -1399,13 +1399,13 @@ procedure TGLRenderedTextureNode.Update(
     for Point in Points do
     begin
       PlaneShift := PlaneShift +
-        -Normal.Data[0] * Point.Data[0]
-        -Normal.Data[1] * Point.Data[1]
-        -Normal.Data[2] * Point.Data[2];
+        -Normal.X * Point.X
+        -Normal.Y * Point.Y
+        -Normal.Z * Point.Z;
     end;
     PlaneShift := PlaneShift / Points.Count;
 
-    Plane[3] := PlaneShift;
+    Plane.W := PlaneShift;
     Result := true;
   end;
 
