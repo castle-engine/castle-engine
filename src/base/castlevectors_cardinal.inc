@@ -31,15 +31,27 @@ type
     var
       X, Y: Cardinal;
 
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y to change vector components.
+      Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
       deprecated 'use instead X, Y fields';
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: Cardinal read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: Cardinal read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Cardinal): TVector2Cardinal; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
+    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
       deprecated 'use instead X, Y fields';
 
     function IsZero: boolean; inline;
@@ -60,15 +72,27 @@ type
     var
       X, Y, Z: Cardinal;
 
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
       deprecated 'use instead X, Y, Z fields';
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: Cardinal read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: Cardinal read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Cardinal): TVector3Cardinal; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
+    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
       deprecated 'use instead X, Y, Z fields';
 
     function IsZero: boolean; inline;
@@ -89,15 +113,27 @@ type
     var
       X, Y, Z, W: Cardinal;
 
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z, W to change vector components.
+      Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
       deprecated 'use instead X, Y, Z, W fields';
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z, W to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: Cardinal read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: Cardinal read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Cardinal): TVector4Cardinal; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
+    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
       deprecated 'use instead X, Y, Z, W fields';
 
     function IsZero: boolean; inline;

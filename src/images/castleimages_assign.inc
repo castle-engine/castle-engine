@@ -86,9 +86,9 @@ var
     SourceGa := TGrayscaleAlphaImage(Source).Pixels;
     for I := 1 to Width * Height * Depth do
     begin
-      TargetRgb^[0] := SourceGa^[0];
-      TargetRgb^[1] := SourceGa^[0];
-      TargetRgb^[2] := SourceGa^[0];
+      TargetRgb^.X := SourceGa^.X;
+      TargetRgb^.Y := SourceGa^.X;
+      TargetRgb^.Z := SourceGa^.X;
       Inc(TargetRgb);
       Inc(SourceGa);
     end;
@@ -173,7 +173,7 @@ var
     for I := 1 to Width * Height * Depth do
     begin
       PVector3Byte(TargetRgba)^ := Vector3Byte(SourceFloatRgb^);
-      TargetRgba^[3] := High(Byte);
+      TargetRgba^.W := High(Byte);
       Inc(TargetRgba);
       Inc(SourceFloatRgb);
     end;
@@ -188,7 +188,7 @@ var
     for I := 1 to Width * Height * Depth do
     begin
       Move(SourceRgb^, TargetRgba^, SizeOf(TVector3Byte));
-      TargetRgba^[3] := High(Byte);
+      TargetRgba^.W := High(Byte);
       Inc(TargetRgba);
       Inc(SourceRgb);
     end;
@@ -202,10 +202,10 @@ var
     SourceGa := TGrayscaleAlphaImage(Source).Pixels;
     for I := 1 to Width * Height * Depth do
     begin
-      TargetRgba^[0] := SourceGa^[0];
-      TargetRgba^[1] := SourceGa^[0];
-      TargetRgba^[2] := SourceGa^[0];
-      TargetRgba^[3] := SourceGa^[1];
+      TargetRgba^.X := SourceGa^.X;
+      TargetRgba^.Y := SourceGa^.X;
+      TargetRgba^.Z := SourceGa^.X;
+      TargetRgba^.W := SourceGa^.Y;
       Inc(TargetRgba);
       Inc(SourceGa);
     end;

@@ -276,7 +276,7 @@ begin
   begin
     ClampVar(PixelX[I], 0, CubeMapSize - 1);
     ClampVar(PixelY[I], 0, CubeMapSize - 1);
-    Pixel[I] := PixelY[I] * CubeMapSize + PixelX[I];
+    Pixel.InternalData[I] := PixelY[I] * CubeMapSize + PixelX[I];
   end;
 end;
 
