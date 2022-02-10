@@ -41,7 +41,7 @@ const
   Fuchsia: TCastleColor = (X: 1.0; Y: 0.0; Z: 1.0; W: 1.0);
   White  : TCastleColor = (X: 1.0; Y: 1.0; Z: 1.0; W: 1.0);
   Lime   : TCastleColor = (X: 0.0; Y: 1.0; Z: 0.0; W: 1.0);
-  Green  : TCastleColor = (X: 0.0; Y: 0.5; Z: 0.0; W: 1.0);
+  Green  : TCastleColor = (X: 0.0; Y: 1.0; Z: 0.0; W: 1.0);
   Navy   : TCastleColor = (X: 0.0; Y: 0.0; Z: 0.5; W: 1.0);
   Blue   : TCastleColor = (X: 0.0; Y: 0.0; Z: 1.0; W: 1.0);
   Aqua   : TCastleColor = (X: 0.0; Y: 1.0; Z: 1.0; W: 1.0);
@@ -60,7 +60,7 @@ const
   BlackRGB  : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 0.0);
   RedRGB    : TCastleColorRGB = (X: 1.0; Y: 0.0; Z: 0.0);
   YellowRGB : TCastleColorRGB = (X: 1.0; Y: 1.0; Z: 0.0);
-  GreenRGB  : TCastleColorRGB = (X: 0.0; Y: 0.5; Z: 0.0);
+  GreenRGB  : TCastleColorRGB = (X: 0.0; Y: 1.0; Z: 0.0);
   BlueRGB   : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 1.0);
   GrayRGB   : TCastleColorRGB = (X: 0.5; Y: 0.5; Z: 0.5);
 
@@ -71,7 +71,7 @@ const
   { Deprecated, use RedRGB. @deprecated }
   Red3Single    : TCastleColorRGB = (X: 1.0; Y: 0.0; Z: 0.0) deprecated;
   { Deprecated, use GreenRGB. @deprecated }
-  Green3Single  : TCastleColorRGB = (X: 0.0; Y: 0.5; Z: 0.0) deprecated;
+  Green3Single  : TCastleColorRGB = (X: 0.0; Y: 1.0; Z: 0.0) deprecated;
   { Deprecated, use BlueRGB. @deprecated }
   Blue3Single   : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 1.0) deprecated;
 
