@@ -899,9 +899,9 @@ function TBox3D.Contains(const Point: TVector3): boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
-    (Data[0].X <= Point.Data[0]) and (Point.Data[0] <=  Data[1].X) and
-    (Data[0].Y <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Y) and
-    (Data[0].Z <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Z);
+    (Data[0].X <= Point.X) and (Point.X <=  Data[1].X) and
+    (Data[0].Y <= Point.Y) and (Point.Y <=  Data[1].Y) and
+    (Data[0].Z <= Point.Z) and (Point.Z <=  Data[1].Z);
 end;
 
 { Causes FPC error:
@@ -912,9 +912,9 @@ function TBox3D.Contains(const Point: TVector3Double): boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
-    (Data[0].X <= Point.Data[0]) and (Point.Data[0] <=  Data[1].X) and
-    (Data[0].Y <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Y) and
-    (Data[0].Z <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Z);
+    (Data[0].X <= Point.X) and (Point.X <=  Data[1].X) and
+    (Data[0].Y <= Point.Y) and (Point.Y <=  Data[1].Y) and
+    (Data[0].Z <= Point.Z) and (Point.Z <=  Data[1].Z);
 end;
 }
 
@@ -944,8 +944,8 @@ function TBox3D.Contains2D(const Point: TVector2): boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
-    (Data[0].X <= Point.Data[0]) and (Point.Data[0] <=  Data[1].X) and
-    (Data[0].Y <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Y);
+    (Data[0].X <= Point.X) and (Point.X <=  Data[1].X) and
+    (Data[0].Y <= Point.Y) and (Point.Y <=  Data[1].Y);
 end;
 
 function TBox3D.Contains2D(const Point: TVector3;
@@ -954,14 +954,14 @@ begin
   if IsEmpty then Exit(false);
   case IgnoreIndex of
     0: Result :=
-         (Data[0].Y <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Y) and
-         (Data[0].Z <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Z);
+         (Data[0].Y <= Point.Y) and (Point.Y <=  Data[1].Y) and
+         (Data[0].Z <= Point.Z) and (Point.Z <=  Data[1].Z);
     1: Result :=
-         (Data[0].Z <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Z) and
-         (Data[0].X <= Point.Data[0]) and (Point.Data[0] <=  Data[1].X);
+         (Data[0].Z <= Point.Z) and (Point.Z <=  Data[1].Z) and
+         (Data[0].X <= Point.X) and (Point.X <=  Data[1].X);
     2: Result :=
-         (Data[0].X <= Point.Data[0]) and (Point.Data[0] <=  Data[1].X) and
-         (Data[0].Y <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Y);
+         (Data[0].X <= Point.X) and (Point.X <=  Data[1].X) and
+         (Data[0].Y <= Point.Y) and (Point.Y <=  Data[1].Y);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else
       begin
@@ -1007,12 +1007,12 @@ begin
     Data[1] := Point;
   end else
   begin
-    MinVar(Data[0].X, Point.Data[0]);
-    MaxVar(Data[1].X, Point.Data[0]);
-    MinVar(Data[0].Y, Point.Data[1]);
-    MaxVar(Data[1].Y, Point.Data[1]);
-    MinVar(Data[0].Z, Point.Data[2]);
-    MaxVar(Data[1].Z, Point.Data[2]);
+    MinVar(Data[0].X, Point.X);
+    MaxVar(Data[1].X, Point.X);
+    MinVar(Data[0].Y, Point.Y);
+    MaxVar(Data[1].Y, Point.Y);
+    MinVar(Data[0].Z, Point.Z);
+    MaxVar(Data[1].Z, Point.Z);
   end;
 end;
 
@@ -1929,10 +1929,10 @@ begin
   ResultDir := Direction;
 
   { optimized version, just do this in one go: }
-  Result.Data[3] := - (
-    BoxBool[Direction.Data[0] < 0].X * Result.Data[0] +
-    BoxBool[Direction.Data[1] < 0].Y * Result.Data[1] +
-    BoxBool[Direction.Data[2] < 0].Z * Result.Data[2]);
+  Result.W := - (
+    BoxBool[Direction.X < 0].X * Result.X +
+    BoxBool[Direction.Y < 0].Y * Result.Y +
+    BoxBool[Direction.Z < 0].Z * Result.Z);
 end;
 
 function TBox3D.MaximumCorner(const Direction: TVector3): TVector3;
@@ -1940,9 +1940,9 @@ var
   BoxBool: TBox3DBool absolute Data;
 begin
   CheckNonEmpty;
-  Result.Data[0] := BoxBool[Direction.Data[0] >= 0].X;
-  Result.Data[1] := BoxBool[Direction.Data[1] >= 0].Y;
-  Result.Data[2] := BoxBool[Direction.Data[2] >= 0].Z;
+  Result.X := BoxBool[Direction.X >= 0].X;
+  Result.Y := BoxBool[Direction.Y >= 0].Y;
+  Result.Z := BoxBool[Direction.Z >= 0].Z;
 end;
 
 function TBox3D.MinimumCorner(const Direction: TVector3): TVector3;
@@ -1950,9 +1950,9 @@ var
   BoxBool: TBox3DBool absolute Data;
 begin
   CheckNonEmpty;
-  Result.Data[0] := BoxBool[Direction.Data[0] < 0].X;
-  Result.Data[1] := BoxBool[Direction.Data[1] < 0].Y;
-  Result.Data[2] := BoxBool[Direction.Data[2] < 0].Z;
+  Result.X := BoxBool[Direction.X < 0].X;
+  Result.Y := BoxBool[Direction.Y < 0].Y;
+  Result.Z := BoxBool[Direction.Z < 0].Z;
 end;
 
 procedure TBox3D.PointDistances(const P: TVector3;
@@ -2080,9 +2080,9 @@ begin
   if IsEmpty then
     Result := EmptyBoxDistance else
     Result := Sqrt(
-      Sqr(Point.Data[0] - B[Point.Data[0] < (Data[0].X + Data[1].X) / 2].X) +
-      Sqr(Point.Data[1] - B[Point.Data[1] < (Data[0].Y + Data[1].Y) / 2].Y) +
-      Sqr(Point.Data[2] - B[Point.Data[2] < (Data[0].Z + Data[1].Z) / 2].Z)
+      Sqr(Point.X - B[Point.X < (Data[0].X + Data[1].X) / 2].X) +
+      Sqr(Point.Y - B[Point.Y < (Data[0].Y + Data[1].Y) / 2].Y) +
+      Sqr(Point.Z - B[Point.Z < (Data[0].Z + Data[1].Z) / 2].Z)
     );
 end;
 
