@@ -1175,16 +1175,16 @@ function TBox3D.Transform(
       { Calculate Result[0].Data[I], Result[1].Data[I] }
       for J := 0 to 2 do
       begin
-        A := Matrix.Data[J, I] * Data[0].Data[J];
-        B := Matrix.Data[J, I] * Data[1].Data[J];
+        A := Matrix.Data[J, I] * Data[0].InternalData[J];
+        B := Matrix.Data[J, I] * Data[1].InternalData[J];
         if A < B then
         begin
-          Result.Data[0].Data[I] := Result.Data[0].Data[I] + A;
-          Result.Data[1].Data[I] := Result.Data[1].Data[I] + B;
+          Result.Data[0].InternalData[I] := Result.Data[0].InternalData[I] + A;
+          Result.Data[1].InternalData[I] := Result.Data[1].InternalData[I] + B;
         end else
         begin
-          Result.Data[0].Data[I] := Result.Data[0].Data[I] + B;
-          Result.Data[1].Data[I] := Result.Data[1].Data[I] + A;
+          Result.Data[0].InternalData[I] := Result.Data[0].InternalData[I] + B;
+          Result.Data[1].InternalData[I] := Result.Data[1].InternalData[I] + A;
         end;
       end;
     end;
@@ -1198,7 +1198,8 @@ begin
      (Matrix.Data[1, 3] = 0) and
      (Matrix.Data[2, 3] = 0) and
      (Matrix.Data[3, 3] = 1) then
-    Result := Faster(Matrix) else
+    Result := Faster(Matrix)
+  else
     Result := Slower(Matrix);
 end;
 
@@ -1256,11 +1257,11 @@ var
 begin
   for I := 0 to 2 do
   begin
-    if Point.Data[I] < Data[0].Data[I] then
-      Point.Data[I] := Data[0].Data[I]
+    if Point.InternalData[I] < Data[0][I] then
+      Point.InternalData[I] := Data[0][I]
     else
-    if Point.Data[I] > Data[1].Data[I] then
-      Point.Data[I] := Data[1].Data[I];
+    if Point.InternalData[I] > Data[1][I] then
+      Point.InternalData[I] := Data[1][I];
   end;
 end;
 
@@ -1301,8 +1302,8 @@ var
       PlaneConstCoord, PlaneConstValue, RayOrigin, RayDirection) then
     begin
       RestOf3DCoords(PlaneConstCoord, c1, c2);
-      if Between(NowIntersection.Data[c1], Data[0].Data[c1], Data[1].Data[c1]) and
-         Between(NowIntersection.Data[c2], Data[0].Data[c2], Data[1].Data[c2]) then
+      if Between(NowIntersection[c1], Data[0][c1], Data[1][c1]) and
+         Between(NowIntersection[c2], Data[0][c2], Data[1][c2]) then
       begin
         if (not IntrProposed) or
            (NowIntersectionDistance < IntersectionDistance) then
@@ -1321,17 +1322,17 @@ begin
   IntrProposed := false;
   for I := 0 to 2 do
   begin
-    { wykorzystujemy ponizej fakt ze jezeli RayOrigin[i] < Data[0].Data[i] to na pewno
-      promien ktory przecinalby scianke Data[1].Data[i] pudelka przecinalby najpierw
-      tez inna scianke. Wiec jezeli RayOrigin[i] < Data[0].Data[i] to nie musimy sprawdzac
-      przeciecia z plaszczyzna Data[1].Data[i]. }
-    if RayOrigin.Data[i] < Data[0].Data[i] then
-      ProposeBoxIntr(i, Data[0].Data[i]) else
-    if RayOrigin.Data[i] > Data[1].Data[i] then
-      ProposeBoxIntr(i, Data[1].Data[i]) else
+    { wykorzystujemy ponizej fakt ze jezeli RayOrigin[i] < Data[0][i] to na pewno
+      promien ktory przecinalby scianke Data[1][i] pudelka przecinalby najpierw
+      tez inna scianke. Wiec jezeli RayOrigin[i] < Data[0][i] to nie musimy sprawdzac
+      przeciecia z plaszczyzna Data[1][i]. }
+    if RayOrigin[i] < Data[0][i] then
+      ProposeBoxIntr(i, Data[0][i]) else
+    if RayOrigin[i] > Data[1][i] then
+      ProposeBoxIntr(i, Data[1][i]) else
     begin
-      ProposeBoxIntr(i, Data[0].Data[i]);
-      ProposeBoxIntr(i, Data[1].Data[i]);
+      ProposeBoxIntr(i, Data[0][i]);
+      ProposeBoxIntr(i, Data[1][i]);
     end;
   end;
 end;
@@ -1401,8 +1402,8 @@ function TBox3D.SegmentCollision(
     begin
       RestOf3DCoords(PlaneConstCoord, c1, c2);
       Result :=
-        Between(NowIntersection.Data[c1], Data[0].Data[c1], Data[1].Data[c1]) and
-        Between(NowIntersection.Data[c2], Data[0].Data[c2], Data[1].Data[c2]);
+        Between(NowIntersection[c1], Data[0][c1], Data[1][c1]) and
+        Between(NowIntersection[c2], Data[0][c2], Data[1][c2]);
     end else
       Result := false;
   end;
@@ -1412,21 +1413,21 @@ var
 begin
   for I := 0 to 2 do
   begin
-    { wykorzystujemy ponizej fakt ze jezeli Segment1[i] < Data[0].Data[i] to na pewno
-      promien ktory przecinalby scianke Data[1].Data[i] pudelka przecinalby najpierw
-      tez inna scianke. Wiec jezeli Segment1[i] < Data[0].Data[i] to nie musimy sprawdzac
-      przeciecia z plaszczyzna Data[1].Data[i]. }
-    if Segment1.Data[i] < Data[0].Data[i] then
+    { wykorzystujemy ponizej fakt ze jezeli Segment1[i] < Data[0][i] to na pewno
+      promien ktory przecinalby scianke Data[1][i] pudelka przecinalby najpierw
+      tez inna scianke. Wiec jezeli Segment1[i] < Data[0][i] to nie musimy sprawdzac
+      przeciecia z plaszczyzna Data[1][i]. }
+    if Segment1[i] < Data[0][i] then
     begin
-      if IsCollisionWithBoxPlane(i, Data[0].Data[i]) then Exit(true);
+      if IsCollisionWithBoxPlane(i, Data[0][i]) then Exit(true);
     end else
-    if Segment1.Data[i] > Data[1].Data[i] then
+    if Segment1[i] > Data[1][i] then
     begin
-      if IsCollisionWithBoxPlane(i, Data[1].Data[i]) then Exit(true);
+      if IsCollisionWithBoxPlane(i, Data[1][i]) then Exit(true);
     end else
     begin
-      if IsCollisionWithBoxPlane(i, Data[0].Data[i]) then Exit(true);
-      if IsCollisionWithBoxPlane(i, Data[1].Data[i]) then Exit(true);
+      if IsCollisionWithBoxPlane(i, Data[0][i]) then Exit(true);
+      if IsCollisionWithBoxPlane(i, Data[1][i]) then Exit(true);
     end;
   end;
 
@@ -1454,19 +1455,19 @@ begin
     { Normal code:
     if Plane[I] >= 0 then
     begin
-      VMin[I] := Data[0].Data[I];
-      VMax[I] := Data[1].Data[I];
+      VMin[I] := Data[0][I];
+      VMax[I] := Data[1][I];
     end else
     begin
-      VMin[I] := Data[1].Data[I];
-      VMax[I] := Data[0].Data[I];
+      VMin[I] := Data[1][I];
+      VMax[I] := Data[0][I];
     end;
     }
 
     { Code optimized to avoid "if", instead doing table lookup by BoxBool }
-    B := Plane.Data[I] >= 0;
-    VMin.Data[I] := BoxBool[not B].Data[I];
-    VMax.Data[I] := BoxBool[B].Data[I];
+    B := Plane[I] >= 0;
+    VMin.InternalData[I] := BoxBool[not B][I];
+    VMax.InternalData[I] := BoxBool[B][I];
   end;
 
   if Plane.X * VMin.X +
@@ -1658,8 +1659,8 @@ begin
   { calculate BoxCenter and BoxHalfSize }
   for I := 0 to 2 do
   begin
-    BoxCenter.Data[I] := (Data[0].Data[I] + Data[1].Data[I]) / 2;
-    BoxHalfSize.Data[I] := (Data[1].Data[I] - Data[0].Data[I]) / 2;
+    BoxCenter.InternalData[I] := (Data[0][I] + Data[1][I]) / 2;
+    BoxHalfSize.InternalData[I] := (Data[1][I] - Data[0][I]) / 2;
   end;
 
   { calculate TriangleMoved (Triangle shifted by -BoxCenter,
@@ -1720,7 +1721,7 @@ begin
     test if the box intersects the plane of the triangle
     compute plane equation of triangle: normal*x+d=0 }
   PlaneDir := TVector3.CrossProduct(TriangleEdges[0], TriangleEdges[1]);
-  Plane.Data[3] := -TVector3.DotProduct(PlaneDir, TriangleMoved[0]);
+  Plane.W := -TVector3.DotProduct(PlaneDir, TriangleMoved[0]);
   if not {$ifdef IsTriangleCollision_DoublePrecision}
          IsCenteredBox3DPlaneCollisionDouble{$else}
          IsCenteredBox3DPlaneCollision{$endif}
@@ -1972,8 +1973,8 @@ begin
     We want to calculate distance to this point, so we do it by the way. }
   for I := 0 to 2 do
   begin
-    Dist0 := Sqr(P.Data[I] - Data[0].Data[I]);
-    Dist1 := Sqr(P.Data[I] - Data[1].Data[I]);
+    Dist0 := Sqr(P[I] - Data[0][I]);
+    Dist1 := Sqr(P[I] - Data[1][I]);
     if Dist0 < Dist1 then
     begin
       MinDistance := MinDistance + Dist0;
@@ -2022,19 +2023,19 @@ begin
     distances should be negated. }
   Coord := MaxAbsVectorCoord(Dir);
 
-  if Dir.Data[Coord] > 0 then
+  if Dir[Coord] > 0 then
   begin
     { So the distances to points that are *larger* on Coord are positive.
       Others should be negative. }
-    if MinPoint.Data[Coord] < Point.Data[Coord] then
+    if MinPoint[Coord] < Point[Coord] then
       MinDistance := -MinDistance;
-    if MaxPoint.Data[Coord] < Point.Data[Coord] then
+    if MaxPoint[Coord] < Point[Coord] then
       MaxDistance := -MaxDistance;
   end else
   begin
-    if MinPoint.Data[Coord] > Point.Data[Coord] then
+    if MinPoint[Coord] > Point[Coord] then
       MinDistance := -MinDistance;
-    if MaxPoint.Data[Coord] > Point.Data[Coord] then
+    if MaxPoint[Coord] > Point[Coord] then
       MaxDistance := -MaxDistance;
   end;
 
@@ -2063,10 +2064,10 @@ begin
   Result := 0;
   for I := 0 to 2 do
   begin
-    if Point.Data[I] < Data[0].Data[I] then
-      Result := Result + (Sqr(Point.Data[I] - Data[0].Data[I])) else
-    if Point.Data[I] > Data[1].Data[I] then
-      Result := Result + (Sqr(Point.Data[I] - Data[1].Data[I]));
+    if Point[I] < Data[0][I] then
+      Result := Result + (Sqr(Point[I] - Data[0][I])) else
+    if Point[I] > Data[1][I] then
+      Result := Result + (Sqr(Point[I] - Data[1][I]));
   end;
 
   Result := Sqrt(Result);
@@ -2144,8 +2145,8 @@ function TBox3D.OrthoProject(const Pos, Dir, Side, Up: TVector3): TFloatRectangl
     PDiff: TVector3;
   begin
     PDiff := P - Pos;
-    Result.Data[0] := TVector3.DotProduct(PDiff, Side);
-    Result.Data[1] := TVector3.DotProduct(PDiff, Up);
+    Result.InternalData[0] := TVector3.DotProduct(PDiff, Side);
+    Result.InternalData[1] := TVector3.DotProduct(PDiff, Up);
   end;
 
 var
@@ -2294,14 +2295,14 @@ var
   VMin, VMax: TVector3Double;
 begin
   for I := 0 to 2 do
-    if Plane.Data[I] > 0 then
+    if Plane[I] > 0 then
     begin
-      VMin.Data[I] := -BoxHalfSize.Data[I];
-      VMax.Data[I] :=  BoxHalfSize.Data[I];
+      VMin.InternalData[I] := -BoxHalfSize[I];
+      VMax.InternalData[I] :=  BoxHalfSize[I];
     end else
     begin
-      VMin.Data[I] :=  BoxHalfSize.Data[I];
-      VMax.Data[I] := -BoxHalfSize.Data[I];
+      VMin.InternalData[I] :=  BoxHalfSize[I];
+      VMax.InternalData[I] := -BoxHalfSize[I];
     end;
 
   { If VMin is above the plane (plane equation is > 0), then VMax

@@ -1304,7 +1304,7 @@ begin
       PlaneWithNonZeroIndex1^.W = 0
     All is known except Line0[Index1],
     PlaneWithNonZeroIndex1^[Index1] is for sure <> 0. }
-  Line0.Data[Index1] := -
+  Line0.InternalData[Index1] := -
     (PlaneWithNonZeroIndex1^[Index2] * Line0[Index2] +
      PlaneWithNonZeroIndex1^.W) /
     PlaneWithNonZeroIndex1^[Index1];
@@ -1973,7 +1973,7 @@ begin
     For maximum numeric stability, choose largest coordinate. }
   MaxCoord := MaxAbsVectorCoord(PlaneDir);
   PlanePoint := TVector3.Zero;
-  PlanePoint.Data[MaxCoord] := -Plane.W / Plane.Data[MaxCoord];
+  PlanePoint.InternalData[MaxCoord] := -Plane.W / Plane[MaxCoord];
 
   NewPlanePoint := Matrix.MultPoint(PlanePoint);
   NewPlaneDir := Matrix.MultDirection(PlaneDir);
@@ -2305,10 +2305,10 @@ var
 begin
   for i := 0 to 2 do
   begin
-    Result.Data[0, i] := NewX.Data[i];
-    Result.Data[1, i] := NewY.Data[i];
-    Result.Data[2, i] := NewZ.Data[i];
-    Result.Data[3, i] := NewOrigin.Data[i];
+    Result.Data[0, i] := NewX[i];
+    Result.Data[1, i] := NewY[i];
+    Result.Data[2, i] := NewZ[i];
+    Result.Data[3, i] := NewOrigin[i];
   end;
   { bottom row }
   Result.Data[0, 3] := 0;
@@ -2323,9 +2323,9 @@ var
 begin
   for i := 0 to 2 do
   begin
-    Result.Data[0, i] := NewX.Data[i];
-    Result.Data[1, i] := NewY.Data[i];
-    Result.Data[2, i] := NewZ.Data[i];
+    Result.Data[0, i] := NewX[i];
+    Result.Data[1, i] := NewY[i];
+    Result.Data[2, i] := NewZ[i];
   end;
   { right column }
   Result.Data[3, 0] := 0;
@@ -2355,9 +2355,9 @@ begin
     { Difference between TrasformToCoords and TransformFromCoords:
       up-left 3x3 matrix is applied in a transposed manner,
       compared with TrasformToCoords. }
-    Result.Data[i, 0] := OldX.Data[i];
-    Result.Data[i, 1] := OldY.Data[i];
-    Result.Data[i, 2] := OldZ.Data[i];
+    Result.Data[i, 0] := OldX[i];
+    Result.Data[i, 1] := OldY[i];
+    Result.Data[i, 2] := OldZ[i];
   end;
 
   { Another difference between TrasformToCoords and TransformFromCoords:
@@ -2384,9 +2384,9 @@ begin
     { Difference between TrasformToCoords and TransformFromCoords:
       up-left 3x3 matrix is applied in a transposed manner,
       compared with TrasformToCoords. }
-    Result.Data[i, 0] := OldX.Data[i];
-    Result.Data[i, 1] := OldY.Data[i];
-    Result.Data[i, 2] := OldZ.Data[i];
+    Result.Data[i, 0] := OldX[i];
+    Result.Data[i, 1] := OldY[i];
+    Result.Data[i, 2] := OldZ[i];
   end;
 
   { right column }
@@ -2457,9 +2457,9 @@ begin
 
   for i := 0 to 2 do
   begin
-    Result.Data[i, 0] := Side.Data[i];
-    Result.Data[i, 1] := Up.Data[i];
-    Result.Data[i, 2] := -Direction.Data[i]; { negate Direction, since it goes to -Z }
+    Result.Data[i, 0] := Side[i];
+    Result.Data[i, 1] := Up[i];
+    Result.Data[i, 2] := -Direction[i]; { negate Direction, since it goes to -Z }
   end;
 
   { bottom row and right column }
@@ -2486,9 +2486,9 @@ begin
 
   for i := 0 to 2 do
   begin
-    Result.Data[0, i] := Side.Data[i];
-    Result.Data[1, i] := Up.Data[i];
-    Result.Data[2, i] := -Direction.Data[i]; { negate Direction, since it goes to -Z }
+    Result.Data[0, i] := Side[i];
+    Result.Data[1, i] := Up[i];
+    Result.Data[2, i] := -Direction[i]; { negate Direction, since it goes to -Z }
   end;
 
   { bottom row and right column }
