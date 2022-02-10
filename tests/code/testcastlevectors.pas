@@ -138,7 +138,7 @@ end;
 procedure TTestCastleVectors.TestArea;
 const
   Tri: TTriangle3 = (Data: (
-    (Data: (0, 0, 0)),
+    (X: 0; Y: 0; Z: 0),
     (Data: (10, 0, 0)),
     (Data: (0, 25, 0)) ));
   CCWPoly: array [0..4] of TVector2 = (

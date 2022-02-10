@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,8 +19,8 @@
 
 type
   { Vector of 4 Pointers. }
-  TVector4Pointer = record
-    Data: packed array [0..3] of Pointer;
+  TVector4Pointer = packed record
+    X, Y, Z, W: Pointer;
   end;
 
   EPlanesParallel = class(Exception);

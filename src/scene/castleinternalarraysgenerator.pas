@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1129,15 +1129,15 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         Same for T.
         For R, X3D spec says that coords go backwards, so just SwapValues. }
 
-      SwapValues(Box.Data[0].Data[2], Box.Data[1].Data[2]);
+      SwapValues(Box.Data[0].Z, Box.Data[1].Z);
 
-      XStart := Box.Data[0].Data[0];
-      YStart := Box.Data[0].Data[1];
-      ZStart := Box.Data[0].Data[2];
+      XStart := Box.Data[0].X;
+      YStart := Box.Data[0].Y;
+      ZStart := Box.Data[0].Z;
 
-      XSize := Box.Data[1].Data[0] - Box.Data[0].Data[0];
-      YSize := Box.Data[1].Data[1] - Box.Data[0].Data[1];
-      ZSize := Box.Data[1].Data[2] - Box.Data[0].Data[2];
+      XSize := Box.Data[1].X - Box.Data[0].X;
+      YSize := Box.Data[1].Y - Box.Data[0].Y;
+      ZSize := Box.Data[1].Z - Box.Data[0].Z;
 
       Result[0] := Vector4(1 / XSize, 0, 0, - XStart / XSize);
       Result[1] := Vector4(0, 1 / YSize, 0, - YStart / YSize);

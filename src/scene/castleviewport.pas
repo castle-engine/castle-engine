@@ -366,7 +366,7 @@ type
       DefaultUseGlobalLights = true;
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
-      DefaultBackgroundColor: TVector4 = (Data: (0.1, 0.1, 0.1, 1));
+      DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
       Default2DProjectionFar = 1000.0;
       Default2DCameraZ = Default2DProjectionFar / 2;
       DefaultPrepareOptions = [prRenderSelf, prRenderClones, prBackground, prBoundingBox, prScreenEffects];
@@ -2194,6 +2194,8 @@ begin
 end;
 
 function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): boolean;
+var
+  AMainLightPosition3D: PVector3;
 begin
   if Items.MainScene <> nil then
   begin
@@ -2210,10 +2212,11 @@ begin
       This matters in case MainScene (that contains shadow-casting light) has some transformation. }
     if Result then
     begin
+      AMainLightPosition3D := PVector3(@AMainLightPosition);
       if AMainLightPosition.W = 0 then
-        AMainLightPosition.XYZ := Items.MainScene.LocalToWorldDirection(AMainLightPosition.XYZ)
+        AMainLightPosition3D^ := Items.MainScene.LocalToWorldDirection(AMainLightPosition3D^)
       else
-        AMainLightPosition.XYZ := Items.MainScene.LocalToWorld(AMainLightPosition.XYZ);
+        AMainLightPosition3D^ := Items.MainScene.LocalToWorld(AMainLightPosition3D^);
     end;
   end else
     Result := false;

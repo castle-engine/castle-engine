@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -314,7 +314,7 @@
 const
   FallbackProjectionNear = 1;
   FallbackProjectionFar = 100;
-  FallbackProjectionRectangle: TVector4 = (Data: (-10, -10, 10, 10));
+  FallbackProjectionRectangle: TVector4 = (X: -10; Y: -10; Z: 10; W: 10);
 
 { TAbstractLightNode --------------------------------------------------------- }
 

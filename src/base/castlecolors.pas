@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,48 +32,48 @@ const
     They follow the CSS colors constants
     [http://www.w3.org/TR/CSS21/syndata.html#color-units].
     @groupBegin }
-  Maroon : TCastleColor = (Data: ( 0.5 , 0.0 , 0.0 , 1.0));
-  Red    : TCastleColor = (Data: ( 1.0 , 0.0 , 0.0 , 1.0));
-  Orange : TCastleColor = (Data: ( 1.0 , 0.65, 0.0 , 1.0));
-  Yellow : TCastleColor = (Data: ( 1.0 , 1.0 , 0.0 , 1.0));
-  Olive  : TCastleColor = (Data: ( 0.5 , 0.5 , 0.0 , 1.0));
-  Purple : TCastleColor = (Data: ( 0.5 , 0.0 , 0.5 , 1.0));
-  Fuchsia: TCastleColor = (Data: ( 1.0 , 0.0 , 1.0 , 1.0));
-  White  : TCastleColor = (Data: ( 1.0 , 1.0 , 1.0 , 1.0));
-  Lime   : TCastleColor = (Data: ( 0.0 , 1.0 , 0.0 , 1.0));
-  Green  : TCastleColor = (Data: ( 0.0 , 0.5 , 0.0 , 1.0));
-  Navy   : TCastleColor = (Data: ( 0.0 , 0.0 , 0.5 , 1.0));
-  Blue   : TCastleColor = (Data: ( 0.0 , 0.0 , 1.0 , 1.0));
-  Aqua   : TCastleColor = (Data: ( 0.0 , 1.0 , 1.0 , 1.0));
-  Teal   : TCastleColor = (Data: ( 0.0 , 0.5 , 0.5 , 1.0));
-  Black  : TCastleColor = (Data: ( 0.0 , 0.0 , 0.0 , 1.0));
-  Silver : TCastleColor = (Data: ( 0.75, 0.75, 0.75, 1.0));
-  Gray   : TCastleColor = (Data: ( 0.5 , 0.5 , 0.5 , 1.0));
+  Maroon : TCastleColor = (X: 0.5; Y: 0.0; Z: 0.0; W: 1.0);
+  Red    : TCastleColor = (X: 1.0; Y: 0.0; Z: 0.0; W: 1.0);
+  Orange : TCastleColor = (X: 1.0; Y: 0.65; Z: 0.0; W: 1.0);
+  Yellow : TCastleColor = (X: 1.0; Y: 1.0; Z: 0.0; W: 1.0);
+  Olive  : TCastleColor = (X: 0.5; Y: 0.5; Z: 0.0; W: 1.0);
+  Purple : TCastleColor = (X: 0.5; Y: 0.0; Z: 0.5; W: 1.0);
+  Fuchsia: TCastleColor = (X: 1.0; Y: 0.0; Z: 1.0; W: 1.0);
+  White  : TCastleColor = (X: 1.0; Y: 1.0; Z: 1.0; W: 1.0);
+  Lime   : TCastleColor = (X: 0.0; Y: 1.0; Z: 0.0; W: 1.0);
+  Green  : TCastleColor = (X: 0.0; Y: 0.5; Z: 0.0; W: 1.0);
+  Navy   : TCastleColor = (X: 0.0; Y: 0.0; Z: 0.5; W: 1.0);
+  Blue   : TCastleColor = (X: 0.0; Y: 0.0; Z: 1.0; W: 1.0);
+  Aqua   : TCastleColor = (X: 0.0; Y: 1.0; Z: 1.0; W: 1.0);
+  Teal   : TCastleColor = (X: 0.0; Y: 0.5; Z: 0.5; W: 1.0);
+  Black  : TCastleColor = (X: 0.0; Y: 0.0; Z: 0.0; W: 1.0);
+  Silver : TCastleColor = (X: 0.75; Y: 0.75; Z: 0.75; W: 1.0);
+  Gray   : TCastleColor = (X: 0.5; Y: 0.5; Z: 0.5; W: 1.0);
   { @groupEnd }
 
   { Additional color constants. } { }
-  LightRed  : TCastleColor = (Data: ( 1.0 , 0.33, 0.33, 1.0));
-  LightGreen: TCastleColor = (Data: ( 0.33, 1.0 , 0.33, 1.0));
-  LightBlue : TCastleColor = (Data: ( 0.33, 0.33, 1.0 , 1.0));
+  LightRed  : TCastleColor = (X: 1.0; Y: 0.33; Z: 0.33; W: 1.0);
+  LightGreen: TCastleColor = (X: 0.33; Y: 1.0; Z: 0.33; W: 1.0);
+  LightBlue : TCastleColor = (X: 0.33; Y: 0.33; Z: 1.0; W: 1.0);
 
-  WhiteRGB  : TCastleColorRGB = (Data: ( 1.0 , 1.0 , 1.0));
-  BlackRGB  : TCastleColorRGB = (Data: ( 0.0 , 0.0 , 0.0));
-  RedRGB    : TCastleColorRGB = (Data: ( 1.0 , 0.0 , 0.0));
-  YellowRGB : TCastleColorRGB = (Data: ( 1.0 , 1.0 , 0.0));
-  GreenRGB  : TCastleColorRGB = (Data: ( 0.0 , 0.5 , 0.0));
-  BlueRGB   : TCastleColorRGB = (Data: ( 0.0 , 0.0 , 1.0));
-  GrayRGB   : TCastleColorRGB = (Data: ( 0.5 , 0.5 , 0.5));
+  WhiteRGB  : TCastleColorRGB = (X: 1.0; Y: 1.0; Z: 1.0);
+  BlackRGB  : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 0.0);
+  RedRGB    : TCastleColorRGB = (X: 1.0; Y: 0.0; Z: 0.0);
+  YellowRGB : TCastleColorRGB = (X: 1.0; Y: 1.0; Z: 0.0);
+  GreenRGB  : TCastleColorRGB = (X: 0.0; Y: 0.5; Z: 0.0);
+  BlueRGB   : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 1.0);
+  GrayRGB   : TCastleColorRGB = (X: 0.5; Y: 0.5; Z: 0.5);
 
   { Deprecated, use WhiteRGB. @deprecated }
-  White3Single  : TCastleColorRGB = (Data: ( 1.0 , 1.0 , 1.0)) deprecated;
+  White3Single  : TCastleColorRGB = (X: 1.0; Y: 1.0; Z: 1.0) deprecated;
   { Deprecated, use BlackRGB. @deprecated }
-  Black3Single  : TCastleColorRGB = (Data: ( 0.0 , 0.0 , 0.0)) deprecated;
+  Black3Single  : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 0.0) deprecated;
   { Deprecated, use RedRGB. @deprecated }
-  Red3Single    : TCastleColorRGB = (Data: ( 1.0 , 0.0 , 0.0)) deprecated;
+  Red3Single    : TCastleColorRGB = (X: 1.0; Y: 0.0; Z: 0.0) deprecated;
   { Deprecated, use GreenRGB. @deprecated }
-  Green3Single  : TCastleColorRGB = (Data: ( 0.0 , 0.5 , 0.0)) deprecated;
+  Green3Single  : TCastleColorRGB = (X: 0.0; Y: 0.5; Z: 0.0) deprecated;
   { Deprecated, use BlueRGB. @deprecated }
-  Blue3Single   : TCastleColorRGB = (Data: ( 0.0 , 0.0 , 1.0)) deprecated;
+  Blue3Single   : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 1.0) deprecated;
 
 { Calculate color intensity, for converting color to grayscale.
   @groupBegin }

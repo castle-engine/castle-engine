@@ -1059,9 +1059,9 @@ uses Generics.Defaults,
 
 const
   UnknownTexCoord: TTriangle4 = (Data: (
-    (Data: (0, 0, 0, 1)),
-    (Data: (0, 0, 0, 1)),
-    (Data: (0, 0, 0, 1))
+    (X: 0; Y: 0; Z: 0; W: 1),
+    (X: 0; Y: 0; Z: 0; W: 1),
+    (X: 0; Y: 0; Z: 0; W: 1)
   ));
 
 { TTriangleHelper ------------------------------------------------------------ }

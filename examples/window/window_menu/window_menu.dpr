@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -48,7 +48,7 @@ const
     (Data: (1, 1, 0)),
     (Data: (1, 1, 1)),
     (Data: (0.5, 0.5, 0.5)),
-    (Data: (0, 0, 0))
+    (X: 0; Y: 0; Z: 0)
   );
 
 var

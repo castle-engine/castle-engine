@@ -789,11 +789,11 @@ begin
     tylko jednego przypadku. Tak jest optymalniej czasowo. }
   for i := 0 to VertsCount-2 do
     Result := Result +
-              Verts^[i].Data[0] * Verts^[i+1].Data[1] -
-              Verts^[i].Data[1] * Verts^[i+1].Data[0];
+              Verts^[i].X * Verts^[i+1].Y -
+              Verts^[i].Y * Verts^[i+1].X;
   Result := Result +
-            Verts^[VertsCount-1].Data[0] * Verts^[0].Data[1] -
-            Verts^[VertsCount-1].Data[1] * Verts^[0].Data[0];
+            Verts^[VertsCount-1].X * Verts^[0].Y -
+            Verts^[VertsCount-1].Y * Verts^[0].X;
   Result := Result / 2;
 end;
 
@@ -1075,9 +1075,9 @@ begin
 
      Stad widac jak wyznaczyc Result[3]. *)
   Result.Data[3] :=
-    -ResultDir.Data[0] * Data[0].Data[0]
-    -ResultDir.Data[1] * Data[0].Data[1]
-    -ResultDir.Data[2] * Data[0].Data[2];
+    -ResultDir.Data[0] * Data[0].X
+    -ResultDir.Data[1] * Data[0].Y
+    -ResultDir.Data[2] * Data[0].Z;
 end;
 
 function TTriangle3.NormalizedPlane: TVector4;
@@ -1088,9 +1088,9 @@ begin
      zamiast TriangleNormalNotNorm *)
   ResultNormal := Normal;
   Result.Data[3] :=
-    -ResultNormal.Data[0] * Data[0].Data[0]
-    -ResultNormal.Data[1] * Data[0].Data[1]
-    -ResultNormal.Data[2] * Data[0].Data[2];
+    -ResultNormal.Data[0] * Data[0].X
+    -ResultNormal.Data[1] * Data[0].Y
+    -ResultNormal.Data[2] * Data[0].Z;
 end;
 
 function TTriangle3.Transform(const M: TMatrix4): TTriangle3;
@@ -1146,16 +1146,16 @@ function TTriangle3.Barycentric(const Point: TVector3): TVector3;
 
   function Box3DSizes(const Box: TBox3D): TVector3;
   begin
-    Result.Data[0] := Box.Data[1].Data[0] - Box.Data[0].Data[0];
-    Result.Data[1] := Box.Data[1].Data[1] - Box.Data[0].Data[1];
-    Result.Data[2] := Box.Data[1].Data[2] - Box.Data[0].Data[2];
+    Result.Data[0] := Box.Data[1].X - Box.Data[0].X;
+    Result.Data[1] := Box.Data[1].Y - Box.Data[0].Y;
+    Result.Data[2] := Box.Data[1].Z - Box.Data[0].Z;
   end;
 
   function TriangleBoundingBox: TBox3D;
   begin
-    MinMax(Data[0].Data[0], Data[1].Data[0], Data[2].Data[0], Result.Data[0].Data[0], Result.Data[1].Data[0]);
-    MinMax(Data[0].Data[1], Data[1].Data[1], Data[2].Data[1], Result.Data[0].Data[1], Result.Data[1].Data[1]);
-    MinMax(Data[0].Data[2], Data[1].Data[2], Data[2].Data[2], Result.Data[0].Data[2], Result.Data[1].Data[2]);
+    MinMax(Data[0].X, Data[1].X, Data[2].X, Result.Data[0].X, Result.Data[1].X);
+    MinMax(Data[0].Y, Data[1].Y, Data[2].Y, Result.Data[0].Y, Result.Data[1].Y);
+    MinMax(Data[0].Z, Data[1].Z, Data[2].Z, Result.Data[0].Z, Result.Data[1].Z);
   end;
 
 var
@@ -1347,16 +1347,16 @@ var
 begin
   { see http://stackoverflow.com/questions/2049582/how-to-determine-a-point-in-a-2d-triangle }
   Area := 1 / 2 * (
-    - Tri.Data[1].Data[1]*Tri.Data[2].Data[0]
-    + Tri.Data[0].Data[1]*(-Tri.Data[1].Data[0] + Tri.Data[2].Data[0])
-    + Tri.Data[0].Data[0]*(Tri.Data[1].Data[1] - Tri.Data[2].Data[1])
-    + Tri.Data[1].Data[0]*Tri.Data[2].Data[1]);
+    - Tri.Data[1].Y*Tri.Data[2].X
+    + Tri.Data[0].Y*(-Tri.Data[1].X + Tri.Data[2].X)
+    + Tri.Data[0].X*(Tri.Data[1].Y - Tri.Data[2].Y)
+    + Tri.Data[1].X*Tri.Data[2].Y);
 
   S := 1/(2*Area)*(
-      Tri.Data[0].Data[1]*Tri.Data[2].Data[0]
-    - Tri.Data[0].Data[0]*Tri.Data[2].Data[1]
-    + (Tri.Data[2].Data[1] - Tri.Data[0].Data[1]) * P.Data[0]
-    + (Tri.Data[0].Data[0] - Tri.Data[2].Data[0]) * P.Data[1]);
+      Tri.Data[0].Y*Tri.Data[2].X
+    - Tri.Data[0].X*Tri.Data[2].Y
+    + (Tri.Data[2].Y - Tri.Data[0].Y) * P.Data[0]
+    + (Tri.Data[0].X - Tri.Data[2].X) * P.Data[1]);
 
   One := 1 + SingleEpsilon;
   if (S < -SingleEpsilon) or
@@ -1365,10 +1365,10 @@ begin
     Exit(false);
 
   T := 1/(2*Area)*(
-      Tri.Data[0].Data[0]*Tri.Data[1].Data[1]
-    - Tri.Data[0].Data[1]*Tri.Data[1].Data[0]
-    + (Tri.Data[0].Data[1] - Tri.Data[1].Data[1]) * P.Data[0]
-    + (Tri.Data[1].Data[0] - Tri.Data[0].Data[0]) * P.Data[1]);
+      Tri.Data[0].X*Tri.Data[1].Y
+    - Tri.Data[0].Y*Tri.Data[1].X
+    + (Tri.Data[0].Y - Tri.Data[1].Y) * P.Data[0]
+    + (Tri.Data[1].X - Tri.Data[0].X) * P.Data[1]);
 
   { We could check at the end just this:
       Result := (S > 0) and (T > 0) and (1 - S - T > 0);
@@ -1386,14 +1386,14 @@ var
   Tri2D: TTriangle2;
 begin
   { project Tri on 2D }
-  Tri2D.Data[0].Data[0] := Tri.Data[0].Data[0];
-  Tri2D.Data[0].Data[1] := Tri.Data[0].Data[1];
+  Tri2D.Data[0].X := Tri.Data[0].X;
+  Tri2D.Data[0].Y := Tri.Data[0].Y;
 
-  Tri2D.Data[1].Data[0] := Tri.Data[1].Data[0];
-  Tri2D.Data[1].Data[1] := Tri.Data[1].Data[1];
+  Tri2D.Data[1].X := Tri.Data[1].X;
+  Tri2D.Data[1].Y := Tri.Data[1].Y;
 
-  Tri2D.Data[2].Data[0] := Tri.Data[2].Data[0];
-  Tri2D.Data[2].Data[1] := Tri.Data[2].Data[1];
+  Tri2D.Data[2].X := Tri.Data[2].X;
+  Tri2D.Data[2].Y := Tri.Data[2].Y;
 
   Result := IsPointWithinTriangle2D(P, Tri2D);
 end;
@@ -1505,14 +1505,14 @@ var
   Tri2D: TTriangle2;
 begin
   { project Tri on 2D }
-  Tri2D.Data[0].Data[0] := Tri.Data[0].Data[0];
-  Tri2D.Data[0].Data[1] := Tri.Data[0].Data[1];
+  Tri2D.Data[0].X := Tri.Data[0].X;
+  Tri2D.Data[0].Y := Tri.Data[0].Y;
 
-  Tri2D.Data[1].Data[0] := Tri.Data[1].Data[0];
-  Tri2D.Data[1].Data[1] := Tri.Data[1].Data[1];
+  Tri2D.Data[1].X := Tri.Data[1].X;
+  Tri2D.Data[1].Y := Tri.Data[1].Y;
 
-  Tri2D.Data[2].Data[0] := Tri.Data[2].Data[0];
-  Tri2D.Data[2].Data[1] := Tri.Data[2].Data[1];
+  Tri2D.Data[2].X := Tri.Data[2].X;
+  Tri2D.Data[2].Y := Tri.Data[2].Y;
 
   Result := IsTriangleSphereCollision2D(Tri2D, SphereCenter, SphereRadius);
 end;
@@ -1668,16 +1668,16 @@ begin
 
   if IsTangent then
   begin
-    { we want line Y = TriangleTexCoord.Data[0].Data[1]. }
+    { we want line Y = TriangleTexCoord.Data[0].Y. }
     LineA[0] := 0;
     LineA[1] := 1;
-    LineA[2] := -TriangleTexCoord.Data[0].Data[1];
+    LineA[2] := -TriangleTexCoord.Data[0].Y;
   end else
   begin
-    { we want line X = TriangleTexCoord.Data[0].Data[0]. }
+    { we want line X = TriangleTexCoord.Data[0].X. }
     LineA[0] := 1;
     LineA[1] := 0;
-    LineA[2] := -TriangleTexCoord.Data[0].Data[0];
+    LineA[2] := -TriangleTexCoord.Data[0].X;
   end;
   LineBC := Line2DFrom2Points(
     TriangleTexCoord.Data[1], TriangleTexCoord.Data[2]);
@@ -1692,10 +1692,10 @@ begin
     If Abs(LineBC[0]) is *smaller* then it means that B and C points
     are most different on 0 coord. }
   if Abs(LineBC[0]) < Abs(LineBC[1]) then
-    Alpha := (                            D[0] - TriangleTexCoord.Data[1].Data[0]) /
-             (TriangleTexCoord.Data[2].Data[0] - TriangleTexCoord.Data[1].Data[0]) else
-    Alpha := (                            D[1] - TriangleTexCoord.Data[1].Data[1]) /
-             (TriangleTexCoord.Data[2].Data[1] - TriangleTexCoord.Data[1].Data[1]);
+    Alpha := (                      D[0] - TriangleTexCoord.Data[1].X) /
+             (TriangleTexCoord.Data[2].X - TriangleTexCoord.Data[1].X) else
+    Alpha := (                      D[1] - TriangleTexCoord.Data[1].Y) /
+             (TriangleTexCoord.Data[2].Y - TriangleTexCoord.Data[1].Y);
 
   DIn3D :=
     (TriangleCoord.Data[1] * (1 - Alpha)) +

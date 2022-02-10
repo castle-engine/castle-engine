@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,25 +20,25 @@
 
 const
   { Vector with all components zero. }
-  ZeroVector2Single: TVector2 = (Data: (0, 0)) deprecated 'use TVector2.Zero';
-  ZeroVector3Single: TVector3 = (Data: (0, 0, 0)) deprecated 'use TVector3.Zero';
-  ZeroVector4Single: TVector4 = (Data: (0, 0, 0, 0)) deprecated 'use TVector4.Zero';
+  ZeroVector2Single: TVector2 = (X: 0; Y: 0) deprecated 'use TVector2.Zero';
+  ZeroVector3Single: TVector3 = (X: 0; Y: 0; Z: 0) deprecated 'use TVector3.Zero';
+  ZeroVector4Single: TVector4 = (X: 0; Y: 0; Z: 0; W: 0) deprecated 'use TVector4.Zero';
 
-  ZeroVector2Double: TVector2Double = (Data: (0, 0)) deprecated 'use TVector2Double.Zero';
-  ZeroVector3Double: TVector3Double = (Data: (0, 0, 0)) deprecated 'use TVector3Double.Zero';
-  ZeroVector4Double: TVector4Double = (Data: (0, 0, 0, 0)) deprecated 'use TVector4Double.Zero';
+  ZeroVector2Double: TVector2Double = (X: 0; Y: 0) deprecated 'use TVector2Double.Zero';
+  ZeroVector3Double: TVector3Double = (X: 0; Y: 0; Z: 0) deprecated 'use TVector3Double.Zero';
+  ZeroVector4Double: TVector4Double = (X: 0; Y: 0; Z: 0; W: 0) deprecated 'use TVector4Double.Zero';
 
-  ZeroVector2Byte: TVector2Byte = (Data: (0, 0)) deprecated 'use TVector2Byte.Zero';
-  ZeroVector3Byte: TVector3Byte = (Data: (0, 0, 0)) deprecated 'use TVector3Byte.Zero';
-  ZeroVector4Byte: TVector4Byte = (Data: (0, 0, 0, 0)) deprecated 'use TVector4Byte.Zero';
+  ZeroVector2Byte: TVector2Byte = (X: 0; Y: 0) deprecated 'use TVector2Byte.Zero';
+  ZeroVector3Byte: TVector3Byte = (X: 0; Y: 0; Z: 0) deprecated 'use TVector3Byte.Zero';
+  ZeroVector4Byte: TVector4Byte = (X: 0; Y: 0; Z: 0; W: 0) deprecated 'use TVector4Byte.Zero';
 
-  ZeroVector2Integer: TVector2Integer = (Data: (0, 0)) deprecated 'use TVector2Integer.Zero';
-  ZeroVector3Integer: TVector3Integer = (Data: (0, 0, 0)) deprecated 'use TVector3Integer.Zero';
-  ZeroVector4Integer: TVector4Integer = (Data: (0, 0, 0, 0)) deprecated 'use TVector4Integer.Zero';
+  ZeroVector2Integer: TVector2Integer = (X: 0; Y: 0) deprecated 'use TVector2Integer.Zero';
+  ZeroVector3Integer: TVector3Integer = (X: 0; Y: 0; Z: 0) deprecated 'use TVector3Integer.Zero';
+  ZeroVector4Integer: TVector4Integer = (X: 0; Y: 0; Z: 0; W: 0) deprecated 'use TVector4Integer.Zero';
 
-  ZeroVector2Cardinal: TVector2Cardinal = (Data: (0, 0)) deprecated 'use TVector2Cardinal.Zero';
-  ZeroVector3Cardinal: TVector3Cardinal = (Data: (0, 0, 0)) deprecated 'use TVector3Cardinal.Zero';
-  ZeroVector4Cardinal: TVector4Cardinal = (Data: (0, 0, 0, 0)) deprecated 'use TVector4Cardinal.Zero';
+  ZeroVector2Cardinal: TVector2Cardinal = (X: 0; Y: 0) deprecated 'use TVector2Cardinal.Zero';
+  ZeroVector3Cardinal: TVector3Cardinal = (X: 0; Y: 0; Z: 0) deprecated 'use TVector3Cardinal.Zero';
+  ZeroVector4Cardinal: TVector4Cardinal = (X: 0; Y: 0; Z: 0; W: 0) deprecated 'use TVector4Cardinal.Zero';
 
   ZeroMatrix2Single: TMatrix2 = (Data: ((0, 0), (0, 0))) deprecated 'use TMatrix2.Zero';
   ZeroMatrix3Single: TMatrix3 = (Data: ((0, 0, 0), (0, 0, 0), (0, 0, 0))) deprecated 'use TMatrix3.Zero';
@@ -57,19 +57,19 @@ const
   IdentityMatrix4Double: TMatrix4Double = (Data: ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) deprecated 'use TMatrix4Double.Identity';
 
   UnitVector2Single: array [TVector2.TIndex] of TVector2 = (
-    (Data: (1, 0)),
-    (Data: (0, 1))
+    (X: 1; Y: 0),
+    (X: 0; Y: 1)
   ) deprecated 'use TVector2.One';
   UnitVector3Single: array [TVector3.TIndex] of TVector3 = (
-    (Data: (1, 0, 0)),
-    (Data: (0, 1, 0)),
-    (Data: (0, 0, 1))
+    (X: 1; Y: 0; Z: 0),
+    (X: 0; Y: 1; Z: 0),
+    (X: 0; Y: 0; Z: 1)
   ) deprecated 'use TVector3.One';
   UnitVector4Single: array [TVector4.TIndex] of TVector4 = (
-    (Data: (1, 0, 0, 0)),
-    (Data: (0, 1, 0, 0)),
-    (Data: (0, 0, 1, 0)),
-    (Data: (0, 0, 0, 1))
+    (X: 1; Y: 0; Z: 0; W: 0),
+    (X: 0; Y: 1; Z: 0; W: 0),
+    (X: 0; Y: 0; Z: 1; W: 0),
+    (X: 0; Y: 0; Z: 0; W: 1)
   ) deprecated 'use TVector4.One';
 
 type

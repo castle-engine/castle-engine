@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,11 +27,12 @@ type
   strict private
     function GetItems(const Index: TIndex): Cardinal; inline;
     procedure SetItems(const Index: TIndex; const Value: Cardinal); inline;
-    function GetItemsInt(const Index: Integer): Cardinal; inline;
-    procedure SetItemsInt(const Index: Integer; const Value: Cardinal); inline;
   public
     var
-      Data: array [TIndex] of Cardinal;
+      X, Y: Cardinal;
+
+    property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
+      deprecated 'use instead X, Y fields';
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
@@ -39,8 +40,7 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
-    property X: Cardinal index 0 read GetItemsInt write SetItemsInt;
-    property Y: Cardinal index 1 read GetItemsInt write SetItemsInt;
+      deprecated 'use instead X, Y fields';
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Cardinal): boolean; static; inline;
@@ -56,11 +56,12 @@ type
   strict private
     function GetItems(const Index: TIndex): Cardinal; inline;
     procedure SetItems(const Index: TIndex; const Value: Cardinal); inline;
-    function GetItemsInt(const Index: Integer): Cardinal; inline;
-    procedure SetItemsInt(const Index: Integer; const Value: Cardinal); inline;
   public
     var
-      Data: array [TIndex] of Cardinal;
+      X, Y, Z: Cardinal;
+
+    property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
+      deprecated 'use instead X, Y, Z fields';
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
@@ -68,9 +69,7 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
-    property X: Cardinal index 0 read GetItemsInt write SetItemsInt;
-    property Y: Cardinal index 1 read GetItemsInt write SetItemsInt;
-    property Z: Cardinal index 2 read GetItemsInt write SetItemsInt;
+      deprecated 'use instead X, Y, Z fields';
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Cardinal): boolean; static; inline;
@@ -86,11 +85,12 @@ type
   strict private
     function GetItems(const Index: TIndex): Cardinal; inline;
     procedure SetItems(const Index: TIndex; const Value: Cardinal); inline;
-    function GetItemsInt(const Index: Integer): Cardinal; inline;
-    procedure SetItemsInt(const Index: Integer; const Value: Cardinal); inline;
   public
     var
-      Data: array [TIndex] of Cardinal;
+      X, Y, Z, W: Cardinal;
+
+    property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
+      deprecated 'use instead X, Y, Z, W fields';
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
@@ -98,10 +98,7 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
-    property X: Cardinal index 0 read GetItemsInt write SetItemsInt;
-    property Y: Cardinal index 1 read GetItemsInt write SetItemsInt;
-    property Z: Cardinal index 2 read GetItemsInt write SetItemsInt;
-    property W: Cardinal index 3 read GetItemsInt write SetItemsInt;
+      deprecated 'use instead X, Y, Z, W fields';
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Cardinal): boolean; static; inline;
@@ -132,56 +129,54 @@ function Vector4Cardinal(const X, Y, Z, W: Cardinal): TVector4Cardinal; inline;
 
 class operator TVector2Cardinal. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal;
 begin
-  Result.Data[0] := A.Data[0] + B.Data[0];
-  Result.Data[1] := A.Data[1] + B.Data[1];
+  Result.X := A.X + B.X;
+  Result.Y := A.Y + B.Y;
 end;
 
 class operator TVector2Cardinal. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal;
 begin
-  Result.Data[0] := A.Data[0] - B.Data[0];
-  Result.Data[1] := A.Data[1] - B.Data[1];
+  Result.X := A.X - B.X;
+  Result.Y := A.Y - B.Y;
 end;
 
 class operator TVector2Cardinal. {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Cardinal): TVector2Cardinal;
 begin
-  Result.Data[0] := - V.Data[0];
-  Result.Data[1] := - V.Data[1];
+  Result.X := - V.X;
+  Result.Y := - V.Y;
 end;
 
 function TVector2Cardinal.ToString: string;
 begin
-  Result := Format('%d %d', [Data[0], Data[1]]);
+  Result := Format('%d %d', [X, Y]);
 end;
 
 function TVector2Cardinal.GetItems(const Index: TIndex): Cardinal;
 begin
-  Result := Data[Index];
+  case Index of
+    0: Result := X;
+    1: Result := Y;
+  end;
 end;
 
 procedure TVector2Cardinal.SetItems(const Index: TIndex; const Value: Cardinal);
 begin
-  Data[Index] := Value;
-end;
-
-function TVector2Cardinal.GetItemsInt(const Index: Integer): Cardinal;
-begin
-  Result := Data[Index];
-end;
-
-procedure TVector2Cardinal.SetItemsInt(const Index: Integer; const Value: Cardinal);
-begin
-  Data[Index] := Value;
+  case Index of
+    0: X := Value;
+    1: Y := Value;
+  end;
 end;
 
 function TVector2Cardinal.IsZero: boolean;
 begin
-  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+  Result :=
+    (X = 0) and
+    (Y = 0);
 end;
 
 class function TVector2Cardinal.Equals(const V1, V2: TVector2Cardinal): boolean;
 begin
-  Result := (V1.Data[0] = V2.Data[0]) and
-            (V1.Data[1] = V2.Data[1]);
+  Result := (V1.X = V2.X) and
+            (V1.Y = V2.Y);
 end;
 
 class function TVector2Cardinal.Zero: TVector2Cardinal;
@@ -193,60 +188,61 @@ end;
 
 class operator TVector3Cardinal. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal;
 begin
-  Result.Data[0] := A.Data[0] + B.Data[0];
-  Result.Data[1] := A.Data[1] + B.Data[1];
-  Result.Data[2] := A.Data[2] + B.Data[2];
+  Result.X := A.X + B.X;
+  Result.Y := A.Y + B.Y;
+  Result.Z := A.Z + B.Z;
 end;
 
 class operator TVector3Cardinal. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal;
 begin
-  Result.Data[0] := A.Data[0] - B.Data[0];
-  Result.Data[1] := A.Data[1] - B.Data[1];
-  Result.Data[2] := A.Data[2] - B.Data[2];
+  Result.X := A.X - B.X;
+  Result.Y := A.Y - B.Y;
+  Result.Z := A.Z - B.Z;
 end;
 
 class operator TVector3Cardinal. {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Cardinal): TVector3Cardinal;
 begin
-  Result.Data[0] := - V.Data[0];
-  Result.Data[1] := - V.Data[1];
-  Result.Data[2] := - V.Data[2];
+  Result.X := - V.X;
+  Result.Y := - V.Y;
+  Result.Z := - V.Z;
 end;
 
 function TVector3Cardinal.ToString: string;
 begin
-  Result := Format('%d %d %d', [Data[0], Data[1], Data[2]]);
+  Result := Format('%d %d %d', [X, Y, Z]);
 end;
 
 function TVector3Cardinal.GetItems(const Index: TIndex): Cardinal;
 begin
-  Result := Data[Index];
+  case Index of
+    0: Result := X;
+    1: Result := Y;
+    2: Result := Z;
+  end;
 end;
 
 procedure TVector3Cardinal.SetItems(const Index: TIndex; const Value: Cardinal);
 begin
-  Data[Index] := Value;
-end;
-
-function TVector3Cardinal.GetItemsInt(const Index: Integer): Cardinal;
-begin
-  Result := Data[Index];
-end;
-
-procedure TVector3Cardinal.SetItemsInt(const Index: Integer; const Value: Cardinal);
-begin
-  Data[Index] := Value;
+  case Index of
+    0: X := Value;
+    1: Y := Value;
+    2: Z := Value;
+  end;
 end;
 
 function TVector3Cardinal.IsZero: boolean;
 begin
-  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+  Result :=
+    (X = 0) and
+    (Y = 0) and
+    (Z = 0);
 end;
 
 class function TVector3Cardinal.Equals(const V1, V2: TVector3Cardinal): boolean;
 begin
-  Result := (V1.Data[0] = V2.Data[0]) and
-            (V1.Data[1] = V2.Data[1]) and
-            (V1.Data[2] = V2.Data[2]);
+  Result := (V1.X = V2.X) and
+            (V1.Y = V2.Y) and
+            (V1.Z = V2.Z);
 end;
 
 class function TVector3Cardinal.Zero: TVector3Cardinal;
@@ -258,64 +254,68 @@ end;
 
 class operator TVector4Cardinal. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal;
 begin
-  Result.Data[0] := A.Data[0] + B.Data[0];
-  Result.Data[1] := A.Data[1] + B.Data[1];
-  Result.Data[2] := A.Data[2] + B.Data[2];
-  Result.Data[3] := A.Data[3] + B.Data[3];
+  Result.X := A.X + B.X;
+  Result.Y := A.Y + B.Y;
+  Result.Z := A.Z + B.Z;
+  Result.W := A.W + B.W;
 end;
 
 class operator TVector4Cardinal. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal;
 begin
-  Result.Data[0] := A.Data[0] - B.Data[0];
-  Result.Data[1] := A.Data[1] - B.Data[1];
-  Result.Data[2] := A.Data[2] - B.Data[2];
-  Result.Data[3] := A.Data[3] - B.Data[3];
+  Result.X := A.X - B.X;
+  Result.Y := A.Y - B.Y;
+  Result.Z := A.Z - B.Z;
+  Result.W := A.W - B.W;
 end;
 
 class operator TVector4Cardinal. {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Cardinal): TVector4Cardinal;
 begin
-  Result.Data[0] := - V.Data[0];
-  Result.Data[1] := - V.Data[1];
-  Result.Data[2] := - V.Data[2];
-  Result.Data[3] := - V.Data[3];
+  Result.X := - V.X;
+  Result.Y := - V.Y;
+  Result.Z := - V.Z;
+  Result.W := - V.W;
 end;
 
 function TVector4Cardinal.ToString: string;
 begin
-  Result := Format('%d %d %d %d', [Data[0], Data[1], Data[2], Data[3]]);
+  Result := Format('%d %d %d %d', [X, Y, Z, W]);
 end;
 
 function TVector4Cardinal.GetItems(const Index: TIndex): Cardinal;
 begin
-  Result := Data[Index];
+  case Index of
+    0: Result := X;
+    1: Result := Y;
+    2: Result := Z;
+    3: Result := W;
+  end;
 end;
 
 procedure TVector4Cardinal.SetItems(const Index: TIndex; const Value: Cardinal);
 begin
-  Data[Index] := Value;
-end;
-
-function TVector4Cardinal.GetItemsInt(const Index: Integer): Cardinal;
-begin
-  Result := Data[Index];
-end;
-
-procedure TVector4Cardinal.SetItemsInt(const Index: Integer; const Value: Cardinal);
-begin
-  Data[Index] := Value;
+  case Index of
+    0: X := Value;
+    1: Y := Value;
+    2: Z := Value;
+    3: W := Value;
+  end;
 end;
 
 function TVector4Cardinal.IsZero: boolean;
 begin
-  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+  Result :=
+    (X = 0) and
+    (Y = 0) and
+    (Z = 0) and
+    (W = 0);
 end;
 
 class function TVector4Cardinal.Equals(const V1, V2: TVector4Cardinal): boolean;
 begin
-  Result := (V1.Data[0] = V2.Data[0]) and
-            (V1.Data[1] = V2.Data[1]) and
-            (V1.Data[2] = V2.Data[2]) and
-            (V1.Data[3] = V2.Data[3]);
+  Result := (V1.X = V2.X) and
+            (V1.Y = V2.Y) and
+            (V1.Z = V2.Z) and
+            (V1.W = V2.W);
 end;
 
 class function TVector4Cardinal.Zero: TVector4Cardinal;
@@ -327,23 +327,23 @@ end;
 
 function Vector2Cardinal(const X, Y: Cardinal): TVector2Cardinal;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
+  Result.X := X;
+  Result.Y := Y;
 end;
 
 function Vector3Cardinal(const X, Y, Z: Cardinal): TVector3Cardinal;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
-  Result.Data[2] := Z;
+  Result.X := X;
+  Result.Y := Y;
+  Result.Z := Z;
 end;
 
 function Vector4Cardinal(const X, Y, Z, W: Cardinal): TVector4Cardinal;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
-  Result.Data[2] := Z;
-  Result.Data[3] := W;
+  Result.X := X;
+  Result.Y := Y;
+  Result.Z := Z;
+  Result.W := W;
 end;
 
 (*
@@ -351,23 +351,23 @@ Not used now, see TVector*Integer comments for Lerp.
 
 function Lerp(const A: Single; const V1, V2: TVector2Cardinal): TVector2Cardinal; overload;
 begin
-  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Cardinal));
-  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Cardinal));
+  Result.X := Clamped(Round(V1.X + A * (V2.X - V1.X)), 0, High(Cardinal));
+  Result.Y := Clamped(Round(V1.Y + A * (V2.Y - V1.Y)), 0, High(Cardinal));
 end;
 
 function Lerp(const A: Single; const V1, V2: TVector3Cardinal): TVector3Cardinal; overload;
 begin
-  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Cardinal));
-  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Cardinal));
-  Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), 0, High(Cardinal));
+  Result.X := Clamped(Round(V1.X + A * (V2.X - V1.X)), 0, High(Cardinal));
+  Result.Y := Clamped(Round(V1.Y + A * (V2.Y - V1.Y)), 0, High(Cardinal));
+  Result.Z := Clamped(Round(V1.Z + A * (V2.Z - V1.Z)), 0, High(Cardinal));
 end;
 
 function Lerp(const A: Single; const V1, V2: TVector4Cardinal): TVector4Cardinal; overload;
 begin
-  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Cardinal));
-  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Cardinal));
-  Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), 0, High(Cardinal));
-  Result.Data[3] := Clamped(Round(V1.Data[3] + A * (V2.Data[3] - V1.Data[3])), 0, High(Cardinal));
+  Result.X := Clamped(Round(V1.X + A * (V2.X - V1.X)), 0, High(Cardinal));
+  Result.Y := Clamped(Round(V1.Y + A * (V2.Y - V1.Y)), 0, High(Cardinal));
+  Result.Z := Clamped(Round(V1.Z + A * (V2.Z - V1.Z)), 0, High(Cardinal));
+  Result.W := Clamped(Round(V1.W + A * (V2.W - V1.W)), 0, High(Cardinal));
 end;
 *)
 

@@ -2141,8 +2141,8 @@ const
     @link(OrientationToDirection), @link(OrientationToUp).
     These match X3D default camera values.
     @groupBegin }
-  DefaultCameraDirection: TVector3 = (Data: (0, 0, -1));
-  DefaultCameraUp: TVector3 = (Data: (0, 1, 0));
+  DefaultCameraDirection: TVector3 = (X: 0; Y: 0; Z: -1);
+  DefaultCameraUp       : TVector3 = (X: 0; Y: 1; Z: 0);
   { @groupEnd }
 
   ciNormal        = niNormal        deprecated 'use niNormal';
@@ -4051,9 +4051,9 @@ function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): boolean;
     if not MouseChange.IsPerfectlyZero then
     begin
       if InvertVerticalMouseLook then
-        MouseChange.Data[1] := -MouseChange.Data[1];
-      MouseChange.Data[0] := MouseChange.Data[0] * MouseLookHorizontalSensitivity;
-      MouseChange.Data[1] := MouseChange.Data[1] * MouseLookVerticalSensitivity;
+        MouseChange.Y := -MouseChange.Y;
+      MouseChange.X := MouseChange.X * MouseLookHorizontalSensitivity;
+      MouseChange.Y := MouseChange.Y * MouseLookVerticalSensitivity;
       ProcessMouseLookDelta(MouseChange);
       Result := ExclusiveEvents;
     end;
@@ -5393,9 +5393,9 @@ begin
 
     Camera.ProjectionNear := Radius * RadiusToProjectionNear;
 
-    Pos[0] := Box.Data[0].Data[0] - AvgSize;
-    Pos[1] := (Box.Data[0].Data[1] + Box.Data[1].Data[1]) / 2;
-    Pos[2] := (Box.Data[0].Data[2] + Box.Data[1].Data[2]) / 2;
+    Pos[0] := Box.Data[0].X - AvgSize;
+    Pos[1] := (Box.Data[0].Y + Box.Data[1].Y) / 2;
+    Pos[2] := (Box.Data[0].Z + Box.Data[1].Z) / 2;
     Camera.Init(Pos,
       DefaultCameraDirection,
       DefaultCameraUp,

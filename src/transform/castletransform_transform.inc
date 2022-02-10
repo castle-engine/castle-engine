@@ -463,16 +463,16 @@
     const
       DefaultMiddleHeight = 0.5;
       DefaultDirection: array [TOrientationType] of TVector3 = (
-        (Data: (0,  0, -1)),
-        (Data: (0,  0, +1)),
-        (Data: (0, -1,  0)),
-        (Data: (1,  0,  0))
+        (X: 0; Y: 0; Z: -1),
+        (X: 0; Y: 0; Z: +1),
+        (X: 0; Y: -1; Z: 0),
+        (X: 1; Y: 0; Z: 0)
       );
       DefaultUp: array [TOrientationType] of TVector3 = (
-        (Data: (0, 1, 0)),
-        (Data: (0, 1, 0)),
-        (Data: (0, 0, 1)),
-        (Data: (0, 0, 1))
+        (X: 0; Y: 1; Z: 0),
+        (X: 0; Y: 1; Z: 0),
+        (X: 0; Y: 0; Z: 1),
+        (X: 0; Y: 0; Z: 1)
       );
 
     class var
@@ -1856,7 +1856,7 @@ end;
 { TCastleTransform ---------------------------------------------------------------- }
 
 const
-  NoScale: TVector3 = (Data: (1, 1, 1));
+  NoScale: TVector3 = (X: 1; Y: 1; Z: 1);
 
 constructor TCastleTransform.Create(AOwner: TComponent);
 begin
@@ -3242,7 +3242,7 @@ end;
 
 procedure TCastleTransform.SetTranslationXY(const Value: TVector2);
 begin
-  Translation := Vector3(Value, Translation.Data[2]);
+  Translation := Vector3(Value, Translation.Z);
 end;
 
 procedure TCastleTransform.Translate(const TranslationChange: TVector3);

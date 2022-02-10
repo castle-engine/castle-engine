@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -541,20 +541,20 @@ begin
   Result := TBox3D.Empty;
   if IsNotEmpty then
   begin
-    Result.Data[0].Data[0] := 0;
-    Result.Data[0].Data[2] := 0;
-    Result.Data[1].Data[0] := FdXSpacing.Value * (FdXDimension.Value - 1);
-    Result.Data[1].Data[2] := FdZSpacing.Value * (FdZDimension.Value - 1);
+    Result.Data[0].X := 0;
+    Result.Data[0].Z := 0;
+    Result.Data[1].X := FdXSpacing.Value * (FdXDimension.Value - 1);
+    Result.Data[1].Z := FdZSpacing.Value * (FdZDimension.Value - 1);
 
-    { now calculate Result[0].Data[1] and Result[1].Data[1] }
+    { now calculate Result.Data[0].Y and Result.Data[1].Y }
     Y := FdHeight.Items.List^[0];
-    Result.Data[0].Data[1] := Y;
-    Result.Data[1].Data[1] := Y;
+    Result.Data[0].Y := Y;
+    Result.Data[1].Y := Y;
     for I := 1 to FdXDimension.Value * FdZDimension.Value - 1 do
     begin
       Y := FdHeight.Items.List^[I];
-      MinVar(Result.Data[0].Data[1], Y);
-      MaxVar(Result.Data[1].Data[1], Y);
+      MinVar(Result.Data[0].Y, Y);
+      MaxVar(Result.Data[1].Y, Y);
     end;
   end;
 end;

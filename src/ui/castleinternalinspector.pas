@@ -941,12 +941,12 @@ const
   { Use instant_fpc_color_hex_to_pascal to easily convert hex colors to TCastleColor
     Pascal constants. }
   Colors: array [TProfilerMetric] of TCastleColor = (
-    (Data: (1.00, 1.00, 0.00, 1.00)), // hex: FFFF00
-    (Data: (0.48, 0.48, 0.00, 1.00)), // hex: 7A7A00
-    (Data: (0.40, 0.40, 1.00, 1.00)), // hex: 6767FF
-    (Data: (0.69, 0.69, 1.00, 1.00)) // hex: B1B1FF
+    (X:1.00; Y: 1.00; Z: 0.00; W: 1.00), // hex: FFFF00
+    (X:0.48; Y: 0.48; Z: 0.00; W: 1.00), // hex: 7A7A00
+    (X:0.40; Y: 0.40; Z: 1.00; W: 1.00), // hex: 6767FF
+    (X:0.69; Y: 0.69; Z: 1.00; W: 1.00) // hex: B1B1FF
   );
-  ColorFpsHex: TCastleColor = (Data: (0.00, 0.70, 0.00, 1.00)); // hex: 00B300
+  ColorFpsHex: TCastleColor = (X:0.00; Y: 0.70; Z: 0.00; W: 1.00); // hex: 00B300
 type
   TTimeSum = array [TProfilerMetric] of Single;
   TProfilerItemDraw = record

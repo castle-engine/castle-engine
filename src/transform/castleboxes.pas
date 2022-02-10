@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2021 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,9 +59,9 @@ type
     the larger coords. I.e. always
 
     @preformatted(
-      Data[0].Data[0] <= Data[1].Data[0] and
-      Data[0].Data[1] <= Data[1].Data[1] and
-      Data[0].Data[2] <= Data[1].Data[2]
+      Data[0].X <= Data[1].X and
+      Data[0].Y <= Data[1].Y and
+      Data[0].Z <= Data[1].Z
     )
 
     The only exception is the special value TBox3D.Empty.
@@ -88,7 +88,7 @@ type
 
       But actually it works a little faster, by utilizing the assumption
       that TBox3D.Empty is the only allowed value that breaks
-      @code(Data[0].Data[0] <= Data[1].Data[0]) rule. }
+      @code(Data[0].X <= Data[1].X) rule. }
     function IsEmpty: boolean;
 
     { The minimum 3D position within this box. Use only if not @link(IsEmpty),
@@ -545,7 +545,7 @@ const
     This is different than just bounding box with zero sizes,
     as bounding box with zero sizes still has some position.
     Empty bounding box doesn't contain any portion of 3D space. }
-  EmptyBox3D: TBox3D = (Data: ((Data: (0, 0, 0)), (Data: (-1, -1, -1)))) deprecated 'use TBox3D.Empty';
+  EmptyBox3D: TBox3D = (Data: ((X: 0; Y: 0; Z: 0), (X: -1; Y: -1; Z: -1))) deprecated 'use TBox3D.Empty';
 
 type
   TBox3DList = {$ifdef FPC}specialize{$endif} TStructList<TBox3D>;
@@ -697,22 +697,22 @@ end;
 
 class function TBox3D.Empty: TBox3D;
 const
-  R: TBox3D = (Data: ((Data: (0, 0, 0)), (Data: (-1, -1, -1))));
+  R: TBox3D = (Data: ((X: 0; Y: 0; Z: 0), (X: -1; Y: -1; Z: -1)));
 begin
   Result := R;
 end;
 
 function TBox3D.IsEmpty: boolean;
 begin
-  Result := Data[0].Data[0] > Data[1].Data[0];
+  Result := Data[0].X > Data[1].X;
 end;
 
 function TBox3D.IsEmptyOrZero: boolean;
 begin
-  Result := (Data[0].Data[0] > Data[1].Data[0]) or
-    ( (Data[0].Data[0] = Data[1].Data[0]) and
-      (Data[0].Data[1] = Data[1].Data[1]) and
-      (Data[0].Data[2] = Data[1].Data[2])
+  Result := (Data[0].X > Data[1].X) or
+    ( (Data[0].X = Data[1].X) and
+      (Data[0].Y = Data[1].Y) and
+      (Data[0].Z = Data[1].Z)
     );
 end;
 
@@ -725,9 +725,9 @@ end;
 function TBox3D.Center: TVector3;
 begin
   CheckNonEmpty;
-  Result.Data[0] := (Data[0].Data[0] + Data[1].Data[0]) / 2;
-  Result.Data[1] := (Data[0].Data[1] + Data[1].Data[1]) / 2;
-  Result.Data[2] := (Data[0].Data[2] + Data[1].Data[2]) / 2;
+  Result.Data[0] := (Data[0].X + Data[1].X) / 2;
+  Result.Data[1] := (Data[0].Y + Data[1].Y) / 2;
+  Result.Data[2] := (Data[0].Z + Data[1].Z) / 2;
 end;
 
 function TBox3D.Middle: TVector3;
@@ -739,9 +739,9 @@ function TBox3D.AverageSize: Single;
 begin
   CheckNonEmpty;
   Result := (
-    (Data[1].Data[0] - Data[0].Data[0]) +
-    (Data[1].Data[1] - Data[0].Data[1]) +
-    (Data[1].Data[2] - Data[0].Data[2])) / 3;
+    (Data[1].X - Data[0].X) +
+    (Data[1].Y - Data[0].Y) +
+    (Data[1].Z - Data[0].Z)) / 3;
 end;
 
 function TBox3D.AverageSize(const AllowZero: boolean;
@@ -750,9 +750,9 @@ begin
   if IsEmpty then
     Result := EmptyBoxSize else
   begin
-    Result := ((Data[1].Data[0] - Data[0].Data[0]) +
-               (Data[1].Data[1] - Data[0].Data[1]) +
-               (Data[1].Data[2] - Data[0].Data[2])) / 3;
+    Result := ((Data[1].X - Data[0].X) +
+               (Data[1].Y - Data[0].Y) +
+               (Data[1].Z - Data[0].Z)) / 3;
     if (not AllowZero) and (Result = 0) then
       Result := EmptyBoxSize;
   end;
@@ -762,9 +762,9 @@ function TBox3D.MaxSize: Single;
 begin
   CheckNonEmpty;
   Result := MaxValue([
-    Data[1].Data[0] - Data[0].Data[0],
-    Data[1].Data[1] - Data[0].Data[1],
-    Data[1].Data[2] - Data[0].Data[2]
+    Data[1].X - Data[0].X,
+    Data[1].Y - Data[0].Y,
+    Data[1].Z - Data[0].Z
   ]);
 end;
 
@@ -775,9 +775,9 @@ begin
     Result := EmptyBoxSize else
   begin
     Result := MaxValue([
-      Data[1].Data[0] - Data[0].Data[0],
-      Data[1].Data[1] - Data[0].Data[1],
-      Data[1].Data[2] - Data[0].Data[2]
+      Data[1].X - Data[0].X,
+      Data[1].Y - Data[0].Y,
+      Data[1].Z - Data[0].Z
     ]);
     if (not AllowZero) and (Result = 0) then
       Result := EmptyBoxSize;
@@ -792,9 +792,9 @@ begin
   if IsEmpty then
     Result := EmptyBoxArea else
   begin
-    A := Data[1].Data[0] - Data[0].Data[0];
-    B := Data[1].Data[1] - Data[0].Data[1];
-    C := Data[1].Data[2] - Data[0].Data[2];
+    A := Data[1].X - Data[0].X;
+    B := Data[1].Y - Data[0].Y;
+    C := Data[1].Z - Data[0].Z;
     Result := 2*A*B + 2*B*C + 2*A*C;
     if (not AllowZero) and (Result = 0) then
       Result := EmptyBoxArea;
@@ -806,9 +806,9 @@ begin
   CheckNonEmpty;
 
   Result := MinValue([
-    Data[1].Data[0] - Data[0].Data[0],
-    Data[1].Data[1] - Data[0].Data[1],
-    Data[1].Data[2] - Data[0].Data[2]
+    Data[1].X - Data[0].X,
+    Data[1].Y - Data[0].Y,
+    Data[1].Z - Data[0].Z
   ]);
 
   { Another version is below (but this is slower without any benefit...)
@@ -822,67 +822,67 @@ end;
 function TBox3D.SizeX: Single;
 begin
   CheckNonEmpty;
-  Result := Data[1].Data[0] - Data[0].Data[0];
+  Result := Data[1].X - Data[0].X;
 end;
 
 function TBox3D.SizeY: Single;
 begin
   CheckNonEmpty;
-  Result := Data[1].Data[1] - Data[0].Data[1];
+  Result := Data[1].Y - Data[0].Y;
 end;
 
 function TBox3D.SizeZ: Single;
 begin
   CheckNonEmpty;
-  Result := Data[1].Data[2] - Data[0].Data[2];
+  Result := Data[1].Z - Data[0].Z;
 end;
 
 procedure TBox3D.ExpandMe(const AExpand: Single);
 begin
- Data[0].Data[0] := Data[0].Data[0] - AExpand;
- Data[0].Data[1] := Data[0].Data[1] - AExpand;
- Data[0].Data[2] := Data[0].Data[2] - AExpand;
+ Data[0].X := Data[0].X - AExpand;
+ Data[0].Y := Data[0].Y - AExpand;
+ Data[0].Z := Data[0].Z - AExpand;
 
- Data[1].Data[0] := Data[1].Data[0] + AExpand;
- Data[1].Data[1] := Data[1].Data[1] + AExpand;
- Data[1].Data[2] := Data[1].Data[2] + AExpand;
+ Data[1].X := Data[1].X + AExpand;
+ Data[1].Y := Data[1].Y + AExpand;
+ Data[1].Z := Data[1].Z + AExpand;
 end;
 
 procedure TBox3D.ExpandMe(const AExpand: TVector3);
 begin
- Data[0].Data[0] := Data[0].Data[0] - AExpand.Data[0];
- Data[0].Data[1] := Data[0].Data[1] - AExpand.Data[1];
- Data[0].Data[2] := Data[0].Data[2] - AExpand.Data[2];
+ Data[0].X := Data[0].X - AExpand.Data[0];
+ Data[0].Y := Data[0].Y - AExpand.Data[1];
+ Data[0].Z := Data[0].Z - AExpand.Data[2];
 
- Data[1].Data[0] := Data[1].Data[0] + AExpand.Data[0];
- Data[1].Data[1] := Data[1].Data[1] + AExpand.Data[1];
- Data[1].Data[2] := Data[1].Data[2] + AExpand.Data[2];
+ Data[1].X := Data[1].X + AExpand.Data[0];
+ Data[1].Y := Data[1].Y + AExpand.Data[1];
+ Data[1].Z := Data[1].Z + AExpand.Data[2];
 end;
 
 function TBox3D.Grow(const AExpand: Single): TBox3D;
 begin
   if IsEmpty then Exit(Empty);
 
-  Result.Data[0].Data[0] := Data[0].Data[0] - AExpand;
-  Result.Data[0].Data[1] := Data[0].Data[1] - AExpand;
-  Result.Data[0].Data[2] := Data[0].Data[2] - AExpand;
+  Result.Data[0].X := Data[0].X - AExpand;
+  Result.Data[0].Y := Data[0].Y - AExpand;
+  Result.Data[0].Z := Data[0].Z - AExpand;
 
-  Result.Data[1].Data[0] := Data[1].Data[0] + AExpand;
-  Result.Data[1].Data[1] := Data[1].Data[1] + AExpand;
-  Result.Data[1].Data[2] := Data[1].Data[2] + AExpand;
+  Result.Data[1].X := Data[1].X + AExpand;
+  Result.Data[1].Y := Data[1].Y + AExpand;
+  Result.Data[1].Z := Data[1].Z + AExpand;
 end;
 
 function TBox3D.Grow(const AExpand: TVector3): TBox3D;
 begin
   if IsEmpty then Exit(Empty);
 
-  Result.Data[0].Data[0] := Data[0].Data[0] - AExpand.Data[0];
-  Result.Data[0].Data[1] := Data[0].Data[1] - AExpand.Data[1];
-  Result.Data[0].Data[2] := Data[0].Data[2] - AExpand.Data[2];
+  Result.Data[0].X := Data[0].X - AExpand.Data[0];
+  Result.Data[0].Y := Data[0].Y - AExpand.Data[1];
+  Result.Data[0].Z := Data[0].Z - AExpand.Data[2];
 
-  Result.Data[1].Data[0] := Data[1].Data[0] + AExpand.Data[0];
-  Result.Data[1].Data[1] := Data[1].Data[1] + AExpand.Data[1];
-  Result.Data[1].Data[2] := Data[1].Data[2] + AExpand.Data[2];
+  Result.Data[1].X := Data[1].X + AExpand.Data[0];
+  Result.Data[1].Y := Data[1].Y + AExpand.Data[1];
+  Result.Data[1].Z := Data[1].Z + AExpand.Data[2];
 end;
 
 function TBox3D.Expand(const AExpand: Single): TBox3D;
@@ -899,9 +899,9 @@ function TBox3D.Contains(const Point: TVector3): boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
-    (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]) and
-    (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]) and
-    (Data[0].Data[2] <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Data[2]);
+    (Data[0].X <= Point.Data[0]) and (Point.Data[0] <=  Data[1].X) and
+    (Data[0].Y <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Y) and
+    (Data[0].Z <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Z);
 end;
 
 { Causes FPC error:
@@ -912,9 +912,9 @@ function TBox3D.Contains(const Point: TVector3Double): boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
-    (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]) and
-    (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]) and
-    (Data[0].Data[2] <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Data[2]);
+    (Data[0].X <= Point.Data[0]) and (Point.Data[0] <=  Data[1].X) and
+    (Data[0].Y <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Y) and
+    (Data[0].Z <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Z);
 end;
 }
 
@@ -944,8 +944,8 @@ function TBox3D.Contains2D(const Point: TVector2): boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
-    (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]) and
-    (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]);
+    (Data[0].X <= Point.Data[0]) and (Point.Data[0] <=  Data[1].X) and
+    (Data[0].Y <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Y);
 end;
 
 function TBox3D.Contains2D(const Point: TVector3;
@@ -954,14 +954,14 @@ begin
   if IsEmpty then Exit(false);
   case IgnoreIndex of
     0: Result :=
-         (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]) and
-         (Data[0].Data[2] <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Data[2]);
+         (Data[0].Y <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Y) and
+         (Data[0].Z <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Z);
     1: Result :=
-         (Data[0].Data[2] <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Data[2]) and
-         (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]);
+         (Data[0].Z <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Z) and
+         (Data[0].X <= Point.Data[0]) and (Point.Data[0] <=  Data[1].X);
     2: Result :=
-         (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]) and
-         (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]);
+         (Data[0].X <= Point.Data[0]) and (Point.Data[0] <=  Data[1].X) and
+         (Data[0].Y <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Y);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else
       begin
@@ -990,12 +990,12 @@ begin
   if IsEmpty then
     Data := Box2.Data else
   begin
-    MinVar(Data[0].Data[0], box2.Data[0].Data[0]);
-    MaxVar(Data[1].Data[0], box2.Data[1].Data[0]);
-    MinVar(Data[0].Data[1], box2.Data[0].Data[1]);
-    MaxVar(Data[1].Data[1], box2.Data[1].Data[1]);
-    MinVar(Data[0].Data[2], box2.Data[0].Data[2]);
-    MaxVar(Data[1].Data[2], box2.Data[1].Data[2]);
+    MinVar(Data[0].X, box2.Data[0].X);
+    MaxVar(Data[1].X, box2.Data[1].X);
+    MinVar(Data[0].Y, box2.Data[0].Y);
+    MaxVar(Data[1].Y, box2.Data[1].Y);
+    MinVar(Data[0].Z, box2.Data[0].Z);
+    MaxVar(Data[1].Z, box2.Data[1].Z);
   end;
 end;
 
@@ -1007,12 +1007,12 @@ begin
     Data[1] := Point;
   end else
   begin
-    MinVar(Data[0].Data[0], Point.Data[0]);
-    MaxVar(Data[1].Data[0], Point.Data[0]);
-    MinVar(Data[0].Data[1], Point.Data[1]);
-    MaxVar(Data[1].Data[1], Point.Data[1]);
-    MinVar(Data[0].Data[2], Point.Data[2]);
-    MaxVar(Data[1].Data[2], Point.Data[2]);
+    MinVar(Data[0].X, Point.Data[0]);
+    MaxVar(Data[1].X, Point.Data[0]);
+    MinVar(Data[0].Y, Point.Data[1]);
+    MaxVar(Data[1].Y, Point.Data[1]);
+    MinVar(Data[0].Z, Point.Data[2]);
+    MaxVar(Data[1].Z, Point.Data[2]);
   end;
 end;
 
@@ -1032,12 +1032,12 @@ begin
   for I := StartIndex to Points.Count - 1 do
   begin
     V := Points.List^[I];
-    MinVar(Data[0].Data[0], V.Data[0]);
-    MaxVar(Data[1].Data[0], V.Data[0]);
-    MinVar(Data[0].Data[1], V.Data[1]);
-    MaxVar(Data[1].Data[1], V.Data[1]);
-    MinVar(Data[0].Data[2], V.Data[2]);
-    MaxVar(Data[1].Data[2], V.Data[2]);
+    MinVar(Data[0].X, V.Data[0]);
+    MaxVar(Data[1].X, V.Data[0]);
+    MinVar(Data[0].Y, V.Data[1]);
+    MaxVar(Data[1].Y, V.Data[1]);
+    MinVar(Data[0].Z, V.Data[2]);
+    MaxVar(Data[1].Z, V.Data[2]);
   end;
 end;
 
@@ -1055,12 +1055,12 @@ begin
     for I := 1 to Points.Count - 1 do
     begin
       V := Points.List^[I];
-      MinVar(Result.Data[0].Data[0], V.Data[0]);
-      MaxVar(Result.Data[1].Data[0], V.Data[0]);
-      MinVar(Result.Data[0].Data[1], V.Data[1]);
-      MaxVar(Result.Data[1].Data[1], V.Data[1]);
-      MinVar(Result.Data[0].Data[2], V.Data[2]);
-      MaxVar(Result.Data[1].Data[2], V.Data[2]);
+      MinVar(Result.Data[0].X, V.Data[0]);
+      MaxVar(Result.Data[1].X, V.Data[0]);
+      MinVar(Result.Data[0].Y, V.Data[1]);
+      MaxVar(Result.Data[1].Y, V.Data[1]);
+      MinVar(Result.Data[0].Z, V.Data[2]);
+      MaxVar(Result.Data[1].Z, V.Data[2]);
     end;
   end;
 end;
@@ -1068,9 +1068,9 @@ end;
 function TBox3D.Size: TVector3;
 begin
   CheckNonEmpty;
-  Result.Data[0] := Data[1].Data[0] - Data[0].Data[0];
-  Result.Data[1] := Data[1].Data[1] - Data[0].Data[1];
-  Result.Data[2] := Data[1].Data[2] - Data[0].Data[2];
+  Result.Data[0] := Data[1].X - Data[0].X;
+  Result.Data[1] := Data[1].Y - Data[0].Y;
+  Result.Data[2] := Data[1].Z - Data[0].Z;
 end;
 
 function TBox3D.Sizes: TVector3;
@@ -1080,15 +1080,15 @@ end;
 
 procedure TBox3D.GetAllPoints(AllPoints: PVector3Array);
 begin
-  AllPoints^[0] := Vector3(Data[0].Data[0], Data[0].Data[1], Data[0].Data[2]);
-  AllPoints^[1] := Vector3(Data[0].Data[0], Data[0].Data[1], Data[1].Data[2]);
-  AllPoints^[2] := Vector3(Data[0].Data[0], Data[1].Data[1], Data[0].Data[2]);
-  AllPoints^[3] := Vector3(Data[0].Data[0], Data[1].Data[1], Data[1].Data[2]);
+  AllPoints^[0] := Vector3(Data[0].X, Data[0].Y, Data[0].Z);
+  AllPoints^[1] := Vector3(Data[0].X, Data[0].Y, Data[1].Z);
+  AllPoints^[2] := Vector3(Data[0].X, Data[1].Y, Data[0].Z);
+  AllPoints^[3] := Vector3(Data[0].X, Data[1].Y, Data[1].Z);
 
-  AllPoints^[4] := Vector3(Data[1].Data[0], Data[0].Data[1], Data[0].Data[2]);
-  AllPoints^[5] := Vector3(Data[1].Data[0], Data[0].Data[1], Data[1].Data[2]);
-  AllPoints^[6] := Vector3(Data[1].Data[0], Data[1].Data[1], Data[0].Data[2]);
-  AllPoints^[7] := Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2]);
+  AllPoints^[4] := Vector3(Data[1].X, Data[0].Y, Data[0].Z);
+  AllPoints^[5] := Vector3(Data[1].X, Data[0].Y, Data[1].Z);
+  AllPoints^[6] := Vector3(Data[1].X, Data[1].Y, Data[0].Z);
+  AllPoints^[7] := Vector3(Data[1].X, Data[1].Y, Data[1].Z);
 end;
 
 procedure TBox3D.Corners(out AllPoints: TBoxCorners);
@@ -1123,13 +1123,13 @@ function TBox3D.Transform(
     Result.Data[1] := BoxPoints[0];
     for I := 1 to High(BoxPoints) do
     begin
-      if BoxPoints[I].Data[0] < Result.Data[0].Data[0] then Result.Data[0].Data[0] := BoxPoints[I].Data[0];
-      if BoxPoints[I].Data[1] < Result.Data[0].Data[1] then Result.Data[0].Data[1] := BoxPoints[I].Data[1];
-      if BoxPoints[I].Data[2] < Result.Data[0].Data[2] then Result.Data[0].Data[2] := BoxPoints[I].Data[2];
+      if BoxPoints[I].X < Result.Data[0].X then Result.Data[0].X := BoxPoints[I].X;
+      if BoxPoints[I].Y < Result.Data[0].Y then Result.Data[0].Y := BoxPoints[I].Y;
+      if BoxPoints[I].Z < Result.Data[0].Z then Result.Data[0].Z := BoxPoints[I].Z;
 
-      if BoxPoints[I].Data[0] > Result.Data[1].Data[0] then Result.Data[1].Data[0] := BoxPoints[I].Data[0];
-      if BoxPoints[I].Data[1] > Result.Data[1].Data[1] then Result.Data[1].Data[1] := BoxPoints[I].Data[1];
-      if BoxPoints[I].Data[2] > Result.Data[1].Data[2] then Result.Data[1].Data[2] := BoxPoints[I].Data[2];
+      if BoxPoints[I].X > Result.Data[1].X then Result.Data[1].X := BoxPoints[I].X;
+      if BoxPoints[I].Y > Result.Data[1].Y then Result.Data[1].Y := BoxPoints[I].Y;
+      if BoxPoints[I].Z > Result.Data[1].Z then Result.Data[1].Z := BoxPoints[I].Z;
     end;
   end;
 
@@ -1503,9 +1503,9 @@ begin
     Exit(false);
 
   Result :=
-    BoxBool[Plane.Data[0] >= 0].Data[0] * Plane.Data[0] +
-    BoxBool[Plane.Data[1] >= 0].Data[1] * Plane.Data[1] +
-    BoxBool[Plane.Data[2] >= 0].Data[2] * Plane.Data[2] +
+    BoxBool[Plane.Data[0] >= 0].X * Plane.Data[0] +
+    BoxBool[Plane.Data[1] >= 0].Y * Plane.Data[1] +
+    BoxBool[Plane.Data[2] >= 0].Z * Plane.Data[2] +
     Plane.Data[3] < 0;
 end;
 
@@ -1518,9 +1518,9 @@ begin
     Exit(false);
 
   Result :=
-    BoxBool[Plane.Data[0] < 0].Data[0] * Plane.Data[0] +
-    BoxBool[Plane.Data[1] < 0].Data[1] * Plane.Data[1] +
-    BoxBool[Plane.Data[2] < 0].Data[2] * Plane.Data[2] +
+    BoxBool[Plane.Data[0] < 0].X * Plane.Data[0] +
+    BoxBool[Plane.Data[1] < 0].Y * Plane.Data[1] +
+    BoxBool[Plane.Data[2] < 0].Z * Plane.Data[2] +
     Plane.Data[3] > 0;
 end;
 
@@ -1573,8 +1573,8 @@ var
   var
     p0, p2, rad, min, max: TScalar;
   begin
-    p0 := a * TriangleMoved[0].Data[1] - b * TriangleMoved[0].Data[2];
-    p2 := a * TriangleMoved[2].Data[1] - b * TriangleMoved[2].Data[2];
+    p0 := a * TriangleMoved[0].Y - b * TriangleMoved[0].Z;
+    p2 := a * TriangleMoved[2].Y - b * TriangleMoved[2].Z;
     if p0<p2 then begin min := p0; max := p2; end else
                   begin min := p2; max := p0; end;
     rad := fa * BoxHalfSize.Data[1] + fb * BoxHalfSize.Data[2];
@@ -1585,8 +1585,8 @@ var
   var
     p0, p1, rad, min, max: TScalar;
   begin
-    p0 := a * TriangleMoved[0].Data[1] - b * TriangleMoved[0].Data[2];
-    p1 := a * TriangleMoved[1].Data[1] - b * TriangleMoved[1].Data[2];
+    p0 := a * TriangleMoved[0].Y - b * TriangleMoved[0].Z;
+    p1 := a * TriangleMoved[1].Y - b * TriangleMoved[1].Z;
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
     rad := fa * BoxHalfSize.Data[1] + fb * BoxHalfSize.Data[2];
@@ -1598,8 +1598,8 @@ var
   var
     p0, p2, rad, min, max: TScalar;
   begin
-    p0 := -a * TriangleMoved[0].Data[0] + b * TriangleMoved[0].Data[2];
-    p2 := -a * TriangleMoved[2].Data[0] + b * TriangleMoved[2].Data[2];
+    p0 := -a * TriangleMoved[0].X + b * TriangleMoved[0].Z;
+    p2 := -a * TriangleMoved[2].X + b * TriangleMoved[2].Z;
     if p0<p2 then begin min := p0; max := p2; end else
                   begin min := p2; max := p0; end;
     rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[2];
@@ -1610,8 +1610,8 @@ var
   var
     p0, p1, rad, min, max: TScalar;
   begin
-    p0 := -a * TriangleMoved[0].Data[0] + b * TriangleMoved[0].Data[2];
-    p1 := -a * TriangleMoved[1].Data[0] + b * TriangleMoved[1].Data[2];
+    p0 := -a * TriangleMoved[0].X + b * TriangleMoved[0].Z;
+    p1 := -a * TriangleMoved[1].X + b * TriangleMoved[1].Z;
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
     rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[2];
@@ -1623,8 +1623,8 @@ var
   var
     p1, p2, rad, min, max: TScalar;
   begin
-    p1 := a * TriangleMoved[1].Data[0] - b * TriangleMoved[1].Data[1];
-    p2 := a * TriangleMoved[2].Data[0] - b * TriangleMoved[2].Data[1];
+    p1 := a * TriangleMoved[1].X - b * TriangleMoved[1].Y;
+    p2 := a * TriangleMoved[2].X - b * TriangleMoved[2].Y;
     if p2<p1 then begin min := p2; max := p1; end else
                   begin min := p1; max := p2; end;
     rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[1];
@@ -1635,8 +1635,8 @@ var
   var
     p0, p1, rad, min, max: TScalar;
   begin
-    p0 := a * TriangleMoved[0].Data[0] - b * TriangleMoved[0].Data[1];
-    p1 := a * TriangleMoved[1].Data[0] - b * TriangleMoved[1].Data[1];
+    p0 := a * TriangleMoved[0].X - b * TriangleMoved[0].Y;
+    p1 := a * TriangleMoved[1].X - b * TriangleMoved[1].Y;
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
     rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[1];
@@ -1674,26 +1674,26 @@ begin
   TriangleEdges[2] := TriangleMoved[0] - TriangleMoved[2];
 
   { tests 3) }
-  EdgeAbs.Data[0] := Abs(TriangleEdges[0].Data[0]);
-  EdgeAbs.Data[1] := Abs(TriangleEdges[0].Data[1]);
-  EdgeAbs.Data[2] := Abs(TriangleEdges[0].Data[2]);
-  if AXISTEST_X01(TriangleEdges[0].Data[2], TriangleEdges[0].Data[1], EdgeAbs.Data[2], EdgeAbs.Data[1]) then Exit(false);
-  if AXISTEST_Y02(TriangleEdges[0].Data[2], TriangleEdges[0].Data[0], EdgeAbs.Data[2], EdgeAbs.Data[0]) then Exit(false);
-  if AXISTEST_Z12(TriangleEdges[0].Data[1], TriangleEdges[0].Data[0], EdgeAbs.Data[1], EdgeAbs.Data[0]) then Exit(false);
+  EdgeAbs.Data[0] := Abs(TriangleEdges[0].X);
+  EdgeAbs.Data[1] := Abs(TriangleEdges[0].Y);
+  EdgeAbs.Data[2] := Abs(TriangleEdges[0].Z);
+  if AXISTEST_X01(TriangleEdges[0].Z, TriangleEdges[0].Y, EdgeAbs.Data[2], EdgeAbs.Data[1]) then Exit(false);
+  if AXISTEST_Y02(TriangleEdges[0].Z, TriangleEdges[0].X, EdgeAbs.Data[2], EdgeAbs.Data[0]) then Exit(false);
+  if AXISTEST_Z12(TriangleEdges[0].Y, TriangleEdges[0].X, EdgeAbs.Data[1], EdgeAbs.Data[0]) then Exit(false);
 
-  EdgeAbs.Data[0] := Abs(TriangleEdges[1].Data[0]);
-  EdgeAbs.Data[1] := Abs(TriangleEdges[1].Data[1]);
-  EdgeAbs.Data[2] := Abs(TriangleEdges[1].Data[2]);
-  if AXISTEST_X01(TriangleEdges[1].Data[2], TriangleEdges[1].Data[1], EdgeAbs.Data[2], EdgeAbs.Data[1]) then Exit(false);
-  if AXISTEST_Y02(TriangleEdges[1].Data[2], TriangleEdges[1].Data[0], EdgeAbs.Data[2], EdgeAbs.Data[0]) then Exit(false);
-  if AXISTEST_Z0 (TriangleEdges[1].Data[1], TriangleEdges[1].Data[0], EdgeAbs.Data[1], EdgeAbs.Data[0]) then Exit(false);
+  EdgeAbs.Data[0] := Abs(TriangleEdges[1].X);
+  EdgeAbs.Data[1] := Abs(TriangleEdges[1].Y);
+  EdgeAbs.Data[2] := Abs(TriangleEdges[1].Z);
+  if AXISTEST_X01(TriangleEdges[1].Z, TriangleEdges[1].Y, EdgeAbs.Data[2], EdgeAbs.Data[1]) then Exit(false);
+  if AXISTEST_Y02(TriangleEdges[1].Z, TriangleEdges[1].X, EdgeAbs.Data[2], EdgeAbs.Data[0]) then Exit(false);
+  if AXISTEST_Z0 (TriangleEdges[1].Y, TriangleEdges[1].X, EdgeAbs.Data[1], EdgeAbs.Data[0]) then Exit(false);
 
-  EdgeAbs.Data[0] := Abs(TriangleEdges[2].Data[0]);
-  EdgeAbs.Data[1] := Abs(TriangleEdges[2].Data[1]);
-  EdgeAbs.Data[2] := Abs(TriangleEdges[2].Data[2]);
-  if AXISTEST_X2 (TriangleEdges[2].Data[2], TriangleEdges[2].Data[1], EdgeAbs.Data[2], EdgeAbs.Data[1]) then Exit(false);
-  if AXISTEST_Y1 (TriangleEdges[2].Data[2], TriangleEdges[2].Data[0], EdgeAbs.Data[2], EdgeAbs.Data[0]) then Exit(false);
-  if AXISTEST_Z12(TriangleEdges[2].Data[1], TriangleEdges[2].Data[0], EdgeAbs.Data[1], EdgeAbs.Data[0]) then Exit(false);
+  EdgeAbs.Data[0] := Abs(TriangleEdges[2].X);
+  EdgeAbs.Data[1] := Abs(TriangleEdges[2].Y);
+  EdgeAbs.Data[2] := Abs(TriangleEdges[2].Z);
+  if AXISTEST_X2 (TriangleEdges[2].Z, TriangleEdges[2].Y, EdgeAbs.Data[2], EdgeAbs.Data[1]) then Exit(false);
+  if AXISTEST_Y1 (TriangleEdges[2].Z, TriangleEdges[2].X, EdgeAbs.Data[2], EdgeAbs.Data[0]) then Exit(false);
+  if AXISTEST_Z12(TriangleEdges[2].Y, TriangleEdges[2].X, EdgeAbs.Data[1], EdgeAbs.Data[0]) then Exit(false);
 
   { tests 1)
     first test overlap in the (x,y,z)-directions
@@ -1702,17 +1702,17 @@ begin
     the triangle against the AABB }
 
   { test in X-direction }
-  MinMax(TriangleMoved[0].Data[0], TriangleMoved[1].Data[0], TriangleMoved[2].Data[0], TriMin, TriMax);
+  MinMax(TriangleMoved[0].X, TriangleMoved[1].X, TriangleMoved[2].X, TriMin, TriMax);
   if (TriMin >  boxhalfsize.Data[0] + Epsilon) or
      (TriMax < -boxhalfsize.Data[0] - Epsilon) then Exit(false);
 
   { test in Y-direction }
-  MinMax(TriangleMoved[0].Data[1], TriangleMoved[1].Data[1], TriangleMoved[2].Data[1], TriMin, TriMax);
+  MinMax(TriangleMoved[0].Y, TriangleMoved[1].Y, TriangleMoved[2].Y, TriMin, TriMax);
   if (TriMin >  boxhalfsize.Data[1] + Epsilon) or
      (TriMax < -boxhalfsize.Data[1] - Epsilon) then Exit(false);
 
   { test in Z-direction }
-  MinMax(TriangleMoved[0].Data[2], TriangleMoved[1].Data[2], TriangleMoved[2].Data[2], TriMin, TriMax);
+  MinMax(TriangleMoved[0].Z, TriangleMoved[1].Z, TriangleMoved[2].Z, TriMin, TriMax);
   if (TriMin >  boxhalfsize.Data[2] + Epsilon) or
      (TriMax < -boxhalfsize.Data[2] - Epsilon) then Exit(false);
 
@@ -1753,9 +1753,9 @@ begin
   Result :=
     (not IsEmpty) and
     (not Box2.IsEmpty) and
-    (not ((Data[1].Data[0] < Box2.Data[0].Data[0]) or (Box2.Data[1].Data[0] < Data[0].Data[0]))) and
-    (not ((Data[1].Data[1] < Box2.Data[0].Data[1]) or (Box2.Data[1].Data[1] < Data[0].Data[1]))) and
-    (not ((Data[1].Data[2] < Box2.Data[0].Data[2]) or (Box2.Data[1].Data[2] < Data[0].Data[2])));
+    (not ((Data[1].X < Box2.Data[0].X) or (Box2.Data[1].X < Data[0].X))) and
+    (not ((Data[1].Y < Box2.Data[0].Y) or (Box2.Data[1].Y < Data[0].Y))) and
+    (not ((Data[1].Z < Box2.Data[0].Z) or (Box2.Data[1].Z < Data[0].Z)));
 end;
 
 function TBox3D.Radius: Single;
@@ -1764,14 +1764,14 @@ begin
     Result := 0
   else
     Result := Sqrt(MaxValue([
-      Vector3(Data[0].Data[0], Data[0].Data[1], Data[0].Data[2]).LengthSqr,
-      Vector3(Data[1].Data[0], Data[0].Data[1], Data[0].Data[2]).LengthSqr,
-      Vector3(Data[1].Data[0], Data[1].Data[1], Data[0].Data[2]).LengthSqr,
-      Vector3(Data[0].Data[0], Data[1].Data[1], Data[0].Data[2]).LengthSqr,
-      Vector3(Data[0].Data[0], Data[0].Data[1], Data[1].Data[2]).LengthSqr,
-      Vector3(Data[1].Data[0], Data[0].Data[1], Data[1].Data[2]).LengthSqr,
-      Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2]).LengthSqr,
-      Vector3(Data[0].Data[0], Data[1].Data[1], Data[1].Data[2]).LengthSqr
+      Vector3(Data[0].X, Data[0].Y, Data[0].Z).LengthSqr,
+      Vector3(Data[1].X, Data[0].Y, Data[0].Z).LengthSqr,
+      Vector3(Data[1].X, Data[1].Y, Data[0].Z).LengthSqr,
+      Vector3(Data[0].X, Data[1].Y, Data[0].Z).LengthSqr,
+      Vector3(Data[0].X, Data[0].Y, Data[1].Z).LengthSqr,
+      Vector3(Data[1].X, Data[0].Y, Data[1].Z).LengthSqr,
+      Vector3(Data[1].X, Data[1].Y, Data[1].Z).LengthSqr,
+      Vector3(Data[0].X, Data[1].Y, Data[1].Z).LengthSqr
     ]));
 end;
 
@@ -1782,22 +1782,22 @@ begin
   begin
     case IgnoreIndex of
       0: Result := MaxValue([
-           Vector2(Data[0].Data[1], Data[0].Data[2]).LengthSqr,
-           Vector2(Data[1].Data[1], Data[0].Data[2]).LengthSqr,
-           Vector2(Data[1].Data[1], Data[1].Data[2]).LengthSqr,
-           Vector2(Data[0].Data[1], Data[1].Data[2]).LengthSqr
+           Vector2(Data[0].Y, Data[0].Z).LengthSqr,
+           Vector2(Data[1].Y, Data[0].Z).LengthSqr,
+           Vector2(Data[1].Y, Data[1].Z).LengthSqr,
+           Vector2(Data[0].Y, Data[1].Z).LengthSqr
          ]);
       1: Result := MaxValue([
-           Vector2(Data[0].Data[2], Data[0].Data[0]).LengthSqr,
-           Vector2(Data[1].Data[2], Data[0].Data[0]).LengthSqr,
-           Vector2(Data[1].Data[2], Data[1].Data[0]).LengthSqr,
-           Vector2(Data[0].Data[2], Data[1].Data[0]).LengthSqr
+           Vector2(Data[0].Z, Data[0].X).LengthSqr,
+           Vector2(Data[1].Z, Data[0].X).LengthSqr,
+           Vector2(Data[1].Z, Data[1].X).LengthSqr,
+           Vector2(Data[0].Z, Data[1].X).LengthSqr
          ]);
       2: Result := MaxValue([
-           Vector2(Data[0].Data[0], Data[0].Data[1]).LengthSqr,
-           Vector2(Data[1].Data[0], Data[0].Data[1]).LengthSqr,
-           Vector2(Data[1].Data[0], Data[1].Data[1]).LengthSqr,
-           Vector2(Data[0].Data[0], Data[1].Data[1]).LengthSqr
+           Vector2(Data[0].X, Data[0].Y).LengthSqr,
+           Vector2(Data[1].X, Data[0].Y).LengthSqr,
+           Vector2(Data[1].X, Data[1].Y).LengthSqr,
+           Vector2(Data[0].X, Data[1].Y).LengthSqr
          ]);
       {$ifndef COMPILER_CASE_ANALYSIS}
       else
@@ -1816,12 +1816,12 @@ function TBox3D.SphereSimpleCollision(
   const SphereCenter: TVector3; const SphereRadius: Single): boolean;
 begin
   Result := (not IsEmpty) and
-    (SphereCenter.Data[0] >= Data[0].Data[0] - SphereRadius) and
-    (SphereCenter.Data[0] <= Data[1].Data[0] + SphereRadius) and
-    (SphereCenter.Data[1] >= Data[0].Data[1] - SphereRadius) and
-    (SphereCenter.Data[1] <= Data[1].Data[1] + SphereRadius) and
-    (SphereCenter.Data[2] >= Data[0].Data[2] - SphereRadius) and
-    (SphereCenter.Data[2] <= Data[1].Data[2] + SphereRadius);
+    (SphereCenter.Data[0] >= Data[0].X - SphereRadius) and
+    (SphereCenter.Data[0] <= Data[1].X + SphereRadius) and
+    (SphereCenter.Data[1] >= Data[0].Y - SphereRadius) and
+    (SphereCenter.Data[1] <= Data[1].Y + SphereRadius) and
+    (SphereCenter.Data[2] >= Data[0].Z - SphereRadius) and
+    (SphereCenter.Data[2] <= Data[1].Z + SphereRadius);
 end;
 
 function TBox3D.SphereCollision(
@@ -1854,14 +1854,14 @@ begin
     Ok, that's damn fast, but still a little slower than
     TBox3D.SphereSimpleCollision (that has 1 up to 6 comparisons and additions). }
 
-  if SphereCenter.Data[0] < Data[0].Data[0] then D := D + (Sqr(SphereCenter.Data[0] - Data[0].Data[0])) else
-  if SphereCenter.Data[0] > Data[1].Data[0] then D := D + (Sqr(SphereCenter.Data[0] - Data[1].Data[0]));
+  if SphereCenter.Data[0] < Data[0].X then D := D + (Sqr(SphereCenter.Data[0] - Data[0].X)) else
+  if SphereCenter.Data[0] > Data[1].X then D := D + (Sqr(SphereCenter.Data[0] - Data[1].X));
 
-  if SphereCenter.Data[1] < Data[0].Data[1] then D := D + (Sqr(SphereCenter.Data[1] - Data[0].Data[1])) else
-  if SphereCenter.Data[1] > Data[1].Data[1] then D := D + (Sqr(SphereCenter.Data[1] - Data[1].Data[1]));
+  if SphereCenter.Data[1] < Data[0].Y then D := D + (Sqr(SphereCenter.Data[1] - Data[0].Y)) else
+  if SphereCenter.Data[1] > Data[1].Y then D := D + (Sqr(SphereCenter.Data[1] - Data[1].Y));
 
-  if SphereCenter.Data[2] < Data[0].Data[2] then D := D + (Sqr(SphereCenter.Data[2] - Data[0].Data[2])) else
-  if SphereCenter.Data[2] > Data[1].Data[2] then D := D + (Sqr(SphereCenter.Data[2] - Data[1].Data[2]));
+  if SphereCenter.Data[2] < Data[0].Z then D := D + (Sqr(SphereCenter.Data[2] - Data[0].Z)) else
+  if SphereCenter.Data[2] > Data[1].Z then D := D + (Sqr(SphereCenter.Data[2] - Data[1].Z));
 
   Result := D <= Sqr(SphereRadius);
 end;
@@ -1875,11 +1875,11 @@ begin
 
   D := 0;
 
-  if SphereCenter.Data[0] < Data[0].Data[0] then D := D + (Sqr(SphereCenter.Data[0] - Data[0].Data[0])) else
-  if SphereCenter.Data[0] > Data[1].Data[0] then D := D + (Sqr(SphereCenter.Data[0] - Data[1].Data[0]));
+  if SphereCenter.Data[0] < Data[0].X then D := D + (Sqr(SphereCenter.Data[0] - Data[0].X)) else
+  if SphereCenter.Data[0] > Data[1].X then D := D + (Sqr(SphereCenter.Data[0] - Data[1].X));
 
-  if SphereCenter.Data[1] < Data[0].Data[1] then D := D + (Sqr(SphereCenter.Data[1] - Data[0].Data[1])) else
-  if SphereCenter.Data[1] > Data[1].Data[1] then D := D + (Sqr(SphereCenter.Data[1] - Data[1].Data[1]));
+  if SphereCenter.Data[1] < Data[0].Y then D := D + (Sqr(SphereCenter.Data[1] - Data[0].Y)) else
+  if SphereCenter.Data[1] > Data[1].Y then D := D + (Sqr(SphereCenter.Data[1] - Data[1].Y));
 
   Result := D <= Sqr(SphereRadius);
 end;
@@ -1898,9 +1898,9 @@ begin
 (*
   { calculate box corner that intersects resulting plane:
     just choose appropriate coords using Direction. }
-  P[0] := BoxBool[Direction[0] >= 0].Data[0];
-  P[1] := BoxBool[Direction[1] >= 0].Data[1];
-  P[2] := BoxBool[Direction[2] >= 0].Data[2];
+  P[0] := BoxBool[Direction[0] >= 0].X;
+  P[1] := BoxBool[Direction[1] >= 0].Y;
+  P[2] := BoxBool[Direction[2] >= 0].Z;
 
   { calculate 4th plane component.
     Plane must intersect P, so
@@ -1913,9 +1913,9 @@ begin
 
   { optimized version, just do this in one go: }
   Result.Data[3] := - (
-    BoxBool[Direction.Data[0] >= 0].Data[0] * Result.Data[0] +
-    BoxBool[Direction.Data[1] >= 0].Data[1] * Result.Data[1] +
-    BoxBool[Direction.Data[2] >= 0].Data[2] * Result.Data[2]);
+    BoxBool[Direction.Data[0] >= 0].X * Result.Data[0] +
+    BoxBool[Direction.Data[1] >= 0].Y * Result.Data[1] +
+    BoxBool[Direction.Data[2] >= 0].Z * Result.Data[2]);
 end;
 
 function TBox3D.MinimumPlane(const Direction: TVector3): TVector4;
@@ -1930,9 +1930,9 @@ begin
 
   { optimized version, just do this in one go: }
   Result.Data[3] := - (
-    BoxBool[Direction.Data[0] < 0].Data[0] * Result.Data[0] +
-    BoxBool[Direction.Data[1] < 0].Data[1] * Result.Data[1] +
-    BoxBool[Direction.Data[2] < 0].Data[2] * Result.Data[2]);
+    BoxBool[Direction.Data[0] < 0].X * Result.Data[0] +
+    BoxBool[Direction.Data[1] < 0].Y * Result.Data[1] +
+    BoxBool[Direction.Data[2] < 0].Z * Result.Data[2]);
 end;
 
 function TBox3D.MaximumCorner(const Direction: TVector3): TVector3;
@@ -1940,9 +1940,9 @@ var
   BoxBool: TBox3DBool absolute Data;
 begin
   CheckNonEmpty;
-  Result.Data[0] := BoxBool[Direction.Data[0] >= 0].Data[0];
-  Result.Data[1] := BoxBool[Direction.Data[1] >= 0].Data[1];
-  Result.Data[2] := BoxBool[Direction.Data[2] >= 0].Data[2];
+  Result.Data[0] := BoxBool[Direction.Data[0] >= 0].X;
+  Result.Data[1] := BoxBool[Direction.Data[1] >= 0].Y;
+  Result.Data[2] := BoxBool[Direction.Data[2] >= 0].Z;
 end;
 
 function TBox3D.MinimumCorner(const Direction: TVector3): TVector3;
@@ -1950,9 +1950,9 @@ var
   BoxBool: TBox3DBool absolute Data;
 begin
   CheckNonEmpty;
-  Result.Data[0] := BoxBool[Direction.Data[0] < 0].Data[0];
-  Result.Data[1] := BoxBool[Direction.Data[1] < 0].Data[1];
-  Result.Data[2] := BoxBool[Direction.Data[2] < 0].Data[2];
+  Result.Data[0] := BoxBool[Direction.Data[0] < 0].X;
+  Result.Data[1] := BoxBool[Direction.Data[1] < 0].Y;
+  Result.Data[2] := BoxBool[Direction.Data[2] < 0].Z;
 end;
 
 procedure TBox3D.PointDistances(const P: TVector3;
@@ -2010,9 +2010,9 @@ begin
   ZMin := Dir.Data[2] < 0;
 
   MinPoint := PointOnLineClosestToPoint(Point, Dir,
-    Vector3(B[XMin].Data[0], B[YMin].Data[1], B[ZMin].Data[2]));
+    Vector3(B[XMin].X, B[YMin].Y, B[ZMin].Z));
   MaxPoint := PointOnLineClosestToPoint(Point, Dir,
-    Vector3(B[not XMin].Data[0], B[not YMin].Data[1], B[not ZMin].Data[2]));
+    Vector3(B[not XMin].X, B[not YMin].Y, B[not ZMin].Z));
 
   MinDistance := PointsDistance(Point, MinPoint);
   MaxDistance := PointsDistance(Point, MaxPoint);
@@ -2080,9 +2080,9 @@ begin
   if IsEmpty then
     Result := EmptyBoxDistance else
     Result := Sqrt(
-      Sqr(Point.Data[0] - B[Point.Data[0] < (Data[0].Data[0] + Data[1].Data[0]) / 2].Data[0]) +
-      Sqr(Point.Data[1] - B[Point.Data[1] < (Data[0].Data[1] + Data[1].Data[1]) / 2].Data[1]) +
-      Sqr(Point.Data[2] - B[Point.Data[2] < (Data[0].Data[2] + Data[1].Data[2]) / 2].Data[2])
+      Sqr(Point.Data[0] - B[Point.Data[0] < (Data[0].X + Data[1].X) / 2].X) +
+      Sqr(Point.Data[1] - B[Point.Data[1] < (Data[0].Y + Data[1].Y) / 2].Y) +
+      Sqr(Point.Data[2] - B[Point.Data[2] < (Data[0].Z + Data[1].Z) / 2].Z)
     );
 end;
 
@@ -2108,9 +2108,9 @@ function TBox3D.Diagonal: Single;
 begin
   if IsEmpty then
     Result := 0 else
-    Result := Sqrt(Sqr(Data[1].Data[0] - Data[0].Data[0]) +
-                   Sqr(Data[1].Data[1] - Data[0].Data[1]) +
-                   Sqr(Data[1].Data[2] - Data[0].Data[2]));
+    Result := Sqrt(Sqr(Data[1].X - Data[0].X) +
+                   Sqr(Data[1].Y - Data[0].Y) +
+                   Sqr(Data[1].Z - Data[0].Z));
 end;
 
 function TBox3D.RectangleXY: TFloatRectangle;
@@ -2118,10 +2118,10 @@ begin
   if IsEmpty then
     Exit(TFloatRectangle.Empty) else
   begin
-    Result.Left   := Data[0].Data[0];
-    Result.Bottom := Data[0].Data[1];
-    Result.Width  := Data[1].Data[0] - Data[0].Data[0];
-    Result.Height := Data[1].Data[1] - Data[0].Data[1];
+    Result.Left   := Data[0].X;
+    Result.Bottom := Data[0].Y;
+    Result.Width  := Data[1].X - Data[0].X;
+    Result.Height := Data[1].Y - Data[0].Y;
   end;
 end;
 
@@ -2130,10 +2130,10 @@ begin
   if IsEmpty then
     Exit(TFloatRectangle.Empty) else
   begin
-    Result.Left   := Data[0].Data[0];
-    Result.Bottom := Data[0].Data[2];
-    Result.Width  := Data[1].Data[0] - Data[0].Data[0];
-    Result.Height := Data[1].Data[2] - Data[0].Data[2];
+    Result.Left   := Data[0].X;
+    Result.Bottom := Data[0].Z;
+    Result.Width  := Data[1].X - Data[0].X;
+    Result.Height := Data[1].Z - Data[0].Z;
   end;
 end;
 
@@ -2191,15 +2191,15 @@ begin
 
     For speed, we don't look at bounding box Middle, only at it's min point.
     The assumption here is that shape is 2D, so
-      BoundingBox.Data[0].Data[2] = BoundingBox.Data[1].Data[2] = BoundingBox.Center[2] . }
+      BoundingBox.Data[0].Z = BoundingBox.Data[1].Z = BoundingBox.Center[2] . }
 
   if (not A.IsEmpty) and
     ( B.IsEmpty or
-      ( A.Data[0].Data[2] < B.Data[0].Data[2] )) then
+      ( A.Data[0].Z < B.Data[0].Z )) then
     Result := -1 else
   if (not B.IsEmpty) and
     ( A.IsEmpty or
-      ( B.Data[0].Data[2] < A.Data[0].Data[2] )) then
+      ( B.Data[0].Z < A.Data[0].Z )) then
     Result :=  1 else
     Result :=  0;
 end;
@@ -2211,12 +2211,12 @@ begin
   if Box2.IsEmpty then
     Result := Box1 else
   begin
-    Result.Data[0].Data[0] := Math.Min(Box1.Data[0].Data[0], Box2.Data[0].Data[0]);
-    Result.Data[1].Data[0] := Math.Max(Box1.Data[1].Data[0], Box2.Data[1].Data[0]);
-    Result.Data[0].Data[1] := Math.Min(Box1.Data[0].Data[1], Box2.Data[0].Data[1]);
-    Result.Data[1].Data[1] := Math.Max(Box1.Data[1].Data[1], Box2.Data[1].Data[1]);
-    Result.Data[0].Data[2] := Math.Min(Box1.Data[0].Data[2], Box2.Data[0].Data[2]);
-    Result.Data[1].Data[2] := Math.Max(Box1.Data[1].Data[2], Box2.Data[1].Data[2]);
+    Result.Data[0].X := Math.Min(Box1.Data[0].X, Box2.Data[0].X);
+    Result.Data[1].X := Math.Max(Box1.Data[1].X, Box2.Data[1].X);
+    Result.Data[0].Y := Math.Min(Box1.Data[0].Y, Box2.Data[0].Y);
+    Result.Data[1].Y := Math.Max(Box1.Data[1].Y, Box2.Data[1].Y);
+    Result.Data[0].Z := Math.Min(Box1.Data[0].Z, Box2.Data[0].Z);
+    Result.Data[1].Z := Math.Max(Box1.Data[1].Z, Box2.Data[1].Z);
   end;
 end;
 
@@ -2341,12 +2341,12 @@ begin
     Exit(TBox3D.Empty);
 
   Size := Size / 2;
-  Result.Data[0].Data[0] := Pt.Data[0] - Size;
-  Result.Data[0].Data[1] := Pt.Data[1] - Size;
-  Result.Data[0].Data[2] := Pt.Data[2] - Size;
-  Result.Data[1].Data[0] := Pt.Data[0] + Size;
-  Result.Data[1].Data[1] := Pt.Data[1] + Size;
-  Result.Data[1].Data[2] := Pt.Data[2] + Size;
+  Result.Data[0].X := Pt.Data[0] - Size;
+  Result.Data[0].Y := Pt.Data[1] - Size;
+  Result.Data[0].Z := Pt.Data[2] - Size;
+  Result.Data[1].X := Pt.Data[0] + Size;
+  Result.Data[1].Y := Pt.Data[1] + Size;
+  Result.Data[1].Z := Pt.Data[2] + Size;
 end;
 
 function Box3DAroundPoint(const Pt: TVector3; Size: TVector3): TBox3D;
@@ -2357,12 +2357,12 @@ begin
     Exit(TBox3D.Empty);
 
   Size := Size / 2;
-  Result.Data[0].Data[0] := Pt.Data[0] - Size.Data[0];
-  Result.Data[0].Data[1] := Pt.Data[1] - Size.Data[1];
-  Result.Data[0].Data[2] := Pt.Data[2] - Size.Data[2];
-  Result.Data[1].Data[0] := Pt.Data[0] + Size.Data[0];
-  Result.Data[1].Data[1] := Pt.Data[1] + Size.Data[1];
-  Result.Data[1].Data[2] := Pt.Data[2] + Size.Data[2];
+  Result.Data[0].X := Pt.Data[0] - Size.Data[0];
+  Result.Data[0].Y := Pt.Data[1] - Size.Data[1];
+  Result.Data[0].Z := Pt.Data[2] - Size.Data[2];
+  Result.Data[1].X := Pt.Data[0] + Size.Data[0];
+  Result.Data[1].Y := Pt.Data[1] + Size.Data[1];
+  Result.Data[1].Z := Pt.Data[2] + Size.Data[2];
 end;
 
 function CalculateBoundingBox(
@@ -2380,13 +2380,13 @@ begin
     for I := 1 to VertsCount - 1 do
     begin
       V := GetVertex(I);
-      MinVar(Result.Data[0].Data[0], V.Data[0]);
-      MinVar(Result.Data[0].Data[1], V.Data[1]);
-      MinVar(Result.Data[0].Data[2], V.Data[2]);
+      MinVar(Result.Data[0].X, V.Data[0]);
+      MinVar(Result.Data[0].Y, V.Data[1]);
+      MinVar(Result.Data[0].Z, V.Data[2]);
 
-      MaxVar(Result.Data[1].Data[0], V.Data[0]);
-      MaxVar(Result.Data[1].Data[1], V.Data[1]);
-      MaxVar(Result.Data[1].Data[2], V.Data[2]);
+      MaxVar(Result.Data[1].X, V.Data[0]);
+      MaxVar(Result.Data[1].Y, V.Data[1]);
+      MaxVar(Result.Data[1].Z, V.Data[2]);
     end;
   end;
 end;
@@ -2499,12 +2499,12 @@ begin
     if Index >= 0 then
     begin
       ThisVertex := GetVertex(Index);
-      if ThisVertex.Data[0] < Result.Data[0].Data[0] then Result.Data[0].Data[0] := ThisVertex.Data[0];
-      if ThisVertex.Data[1] < Result.Data[0].Data[1] then Result.Data[0].Data[1] := ThisVertex.Data[1];
-      if ThisVertex.Data[2] < Result.Data[0].Data[2] then Result.Data[0].Data[2] := ThisVertex.Data[2];
-      if ThisVertex.Data[0] > Result.Data[1].Data[0] then Result.Data[1].Data[0] := ThisVertex.Data[0];
-      if ThisVertex.Data[1] > Result.Data[1].Data[1] then Result.Data[1].Data[1] := ThisVertex.Data[1];
-      if ThisVertex.Data[2] > Result.Data[1].Data[2] then Result.Data[1].Data[2] := ThisVertex.Data[2];
+      if ThisVertex.Data[0] < Result.Data[0].X then Result.Data[0].X := ThisVertex.Data[0];
+      if ThisVertex.Data[1] < Result.Data[0].Y then Result.Data[0].Y := ThisVertex.Data[1];
+      if ThisVertex.Data[2] < Result.Data[0].Z then Result.Data[0].Z := ThisVertex.Data[2];
+      if ThisVertex.Data[0] > Result.Data[1].X then Result.Data[1].X := ThisVertex.Data[0];
+      if ThisVertex.Data[1] > Result.Data[1].Y then Result.Data[1].Y := ThisVertex.Data[1];
+      if ThisVertex.Data[2] > Result.Data[1].Z then Result.Data[1].Z := ThisVertex.Data[2];
     end;
   end;
 end;
@@ -2541,23 +2541,23 @@ end;
 
 function TriangleBoundingBox(const T: TTriangle3): TBox3D;
 begin
-  MinMax(T.Data[0].Data[0], T.Data[1].Data[0], T.Data[2].Data[0], Result.Data[0].Data[0], Result.Data[1].Data[0]);
-  MinMax(T.Data[0].Data[1], T.Data[1].Data[1], T.Data[2].Data[1], Result.Data[0].Data[1], Result.Data[1].Data[1]);
-  MinMax(T.Data[0].Data[2], T.Data[1].Data[2], T.Data[2].Data[2], Result.Data[0].Data[2], Result.Data[1].Data[2]);
+  MinMax(T.Data[0].X, T.Data[1].X, T.Data[2].X, Result.Data[0].X, Result.Data[1].X);
+  MinMax(T.Data[0].Y, T.Data[1].Y, T.Data[2].Y, Result.Data[0].Y, Result.Data[1].Y);
+  MinMax(T.Data[0].Z, T.Data[1].Z, T.Data[2].Z, Result.Data[0].Z, Result.Data[1].Z);
 end;
 
 function BoundingBox3DFromSphere(const Center: TVector3;
   const Radius: Single): TBox3D;
 begin
   Result.Data[0] := Center;
-  Result.Data[0].Data[0] := Result.Data[0].Data[0] - Radius;
-  Result.Data[0].Data[1] := Result.Data[0].Data[1] - Radius;
-  Result.Data[0].Data[2] := Result.Data[0].Data[2] - Radius;
+  Result.Data[0].X := Result.Data[0].X - Radius;
+  Result.Data[0].Y := Result.Data[0].Y - Radius;
+  Result.Data[0].Z := Result.Data[0].Z - Radius;
 
   Result.Data[1] := Center;
-  Result.Data[1].Data[0] := Result.Data[1].Data[0] + Radius;
-  Result.Data[1].Data[1] := Result.Data[1].Data[1] + Radius;
-  Result.Data[1].Data[2] := Result.Data[1].Data[2] + Radius;
+  Result.Data[1].X := Result.Data[1].X + Radius;
+  Result.Data[1].Y := Result.Data[1].Y + Radius;
+  Result.Data[1].Z := Result.Data[1].Z + Radius;
 end;
 
 end.

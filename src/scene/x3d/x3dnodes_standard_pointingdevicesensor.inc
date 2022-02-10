@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2021 Michalis Kamburelis.
+  Copyright 2007-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -484,9 +484,9 @@ begin
     Translation := Translation + FdOffset.Value;
 
     if FdMinPosition.Value[0] <= FdMaxPosition.Value[0] then
-      ClampVar(Translation.Data[0], FdMinPosition.Value[0], FdMaxPosition.Value[0]);
+      ClampVar(Translation.X, FdMinPosition.Value[0], FdMaxPosition.Value[0]);
     if FdMinPosition.Value[1] <= FdMaxPosition.Value[1] then
-      ClampVar(Translation.Data[1], FdMinPosition.Value[1], FdMaxPosition.Value[1]);
+      ClampVar(Translation.Y, FdMinPosition.Value[1], FdMaxPosition.Value[1]);
 
     EventTranslation_changed.Send(Translation, Time);
     WasTranslation := true;

@@ -176,7 +176,7 @@
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
-      DefaultBlendingConstantColor: TVector4 = (Data: (1, 1, 1, 1));
+      DefaultBlendingConstantColor: TVector4 = (X: 1; Y: 1; Z: 1; W: 1);
 
     { Prepare image for drawing.
 

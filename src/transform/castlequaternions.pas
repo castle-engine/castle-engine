@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -121,7 +121,7 @@ type
   end;
 
 const
-  QuatIdentityRot: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1))
+  QuatIdentityRot: TQuaternion = (Data: (Vector: (X: 0; Y: 0; Z: 0); Real: 1))
     deprecated 'use TQuaternion.ZeroRotation';
 
 { Calculate unit quaternion representing rotation around Axis
@@ -194,7 +194,7 @@ uses Math, CastleUtils;
 
 class function TQuaternion.ZeroRotation: TQuaternion; {$ifdef FPC}static;{$endif}
 const
-  R: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1));
+  R: TQuaternion = (Data: (Vector: (X: 0; Y: 0; Z: 0); Real: 1));
 begin
   Result := R;
 end;
@@ -230,7 +230,7 @@ function TQuaternion.ToAxisAngle: TVector4;
 var
   Axis: TVector3 absolute Result;
 begin
-  ToAxisAngle(Axis, Result.Data[3]);
+  ToAxisAngle(Axis, Result.W);
 end;
 
 function TQuaternion.Conjugate: TQuaternion;
@@ -296,9 +296,9 @@ end;
 function TQuaternion.ToRotationMatrix: TMatrix4;
 begin
   Result := QuatToRotationMatrix(
-    Data.Vector.Data[0],
-    Data.Vector.Data[1],
-    Data.Vector.Data[2],
+    Data.Vector.X,
+    Data.Vector.Y,
+    Data.Vector.Z,
     Data.Real);
 end;
 
@@ -329,9 +329,9 @@ end;
 function TQuaternion.ToRotationMatrix3: TMatrix3;
 begin
   Result := QuatToRotationMatrix3(
-    Data.Vector.Data[0],
-    Data.Vector.Data[1],
-    Data.Vector.Data[2],
+    Data.Vector.X,
+    Data.Vector.Y,
+    Data.Vector.Z,
     Data.Real);
 end;
 
@@ -348,9 +348,9 @@ begin
   if Len <> 0 then
   begin
     Len := 1/Len;
-    Data.Vector.Data[0] := Data.Vector.Data[0] * Len;
-    Data.Vector.Data[1] := Data.Vector.Data[1] * Len;
-    Data.Vector.Data[2] := Data.Vector.Data[2] * Len;
+    Data.Vector.X := Data.Vector.X * Len;
+    Data.Vector.Y := Data.Vector.Y * Len;
+    Data.Vector.Z := Data.Vector.Z * Len;
     Data.Real := Data.Real * Len;
   end;
 end;
@@ -372,9 +372,9 @@ begin
     if Len <> 0 then
     begin
       Len := 1/Len;
-      Data.Vector.Data[0] := Data.Vector.Data[0] * Len;
-      Data.Vector.Data[1] := Data.Vector.Data[1] * Len;
-      Data.Vector.Data[2] := Data.Vector.Data[2] * Len;
+      Data.Vector.X := Data.Vector.X * Len;
+      Data.Vector.Y := Data.Vector.Y * Len;
+      Data.Vector.Z := Data.Vector.Z * Len;
       Data.Real := Data.Real * Len;
     end;
   end;
@@ -419,7 +419,7 @@ function QuatFromAxisAngle(const AxisAngle: TVector4;
 var
   Axis: TVector3 absolute AxisAngle;
 begin
-  Result := QuatFromAxisAngle(Axis, AxisAngle.Data[3], NormalizeAxis);
+  Result := QuatFromAxisAngle(Axis, AxisAngle.W, NormalizeAxis);
 end;
 
 function QuatFromRotationMatrix(const Matrix: TMatrix3): TQuaternion;
@@ -563,7 +563,7 @@ begin
       idle <-> use_phone_loop (SLerp called by TSFRotation.AssignLerp) }
 
   if TVector3.PerfectlyEquals(Rot1Axis, Rot2Axis) then
-    Result := Vector4(Rot1Axis, AngleLerp(A, Rot1.Data[3], Rot2.Data[3]))
+    Result := Vector4(Rot1Axis, AngleLerp(A, Rot1.W, Rot2.W))
   else
     Result := SLerp(A,
       QuatFromAxisAngle(Rot1, true),

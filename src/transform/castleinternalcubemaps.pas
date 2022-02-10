@@ -40,14 +40,14 @@ const
     orientation (see http://www.opengl.org/registry/specs/ARB/texture_cube_map.txt),
     so it's straighforward to use this for OpenGL cube maps. }
   CubeMapInfo: array [TCubeMapSide] of TCubeMapInfo =
-  ( (Dir: (Data: ( 1,  0, 0)); Up: (Data: (0, -1, 0)); Side: (Data: ( 0, 0,-1)); ScreenX: 3; ScreenY: 0),
-    (Dir: (Data: (-1,  0, 0)); Up: (Data: (0, -1, 0)); Side: (Data: ( 0, 0, 1)); ScreenX: 1; ScreenY: 0),
+  ( (Dir: (X: 1; Y:  0; Z: 0); Up: (X:0; Y: -1; Z: 0); Side: (X: 0; Y: 0; Z:-1); ScreenX: 3; ScreenY: 0),
+    (Dir: (X:-1; Y:  0; Z: 0); Up: (X:0; Y: -1; Z: 0); Side: (X: 0; Y: 0; Z: 1); ScreenX: 1; ScreenY: 0),
 
-    (Dir: (Data: ( 0,  1, 0)); Up: (Data: (0, 0,  1)); Side: (Data: ( 1, 0, 0)); ScreenX: 2; ScreenY: -1),
-    (Dir: (Data: ( 0, -1, 0)); Up: (Data: (0, 0, -1)); Side: (Data: ( 1, 0, 0)); ScreenX: 2; ScreenY: +1),
+    (Dir: (X: 0; Y:  1; Z: 0); Up: (X:0; Y: 0; Z:  1); Side: (X: 1; Y: 0; Z: 0); ScreenX: 2; ScreenY: -1),
+    (Dir: (X: 0; Y: -1; Z: 0); Up: (X:0; Y: 0; Z: -1); Side: (X: 1; Y: 0; Z: 0); ScreenX: 2; ScreenY: +1),
 
-    (Dir: (Data: ( 0, 0,  1)); Up: (Data: (0, -1, 0)); Side: (Data: ( 1, 0, 0)); ScreenX: 2; ScreenY: 0),
-    (Dir: (Data: ( 0, 0, -1)); Up: (Data: (0, -1, 0)); Side: (Data: (-1, 0, 0)); ScreenX: 0; ScreenY: 0)
+    (Dir: (X: 0; Y: 0; Z:  1); Up: (X:0; Y: -1; Z: 0); Side: (X: 1; Y: 0; Z: 0); ScreenX: 2; ScreenY: 0),
+    (Dir: (X: 0; Y: 0; Z: -1); Up: (X:0; Y: -1; Z: 0); Side: (X:-1; Y: 0; Z: 0); ScreenX: 0; ScreenY: 0)
   );
 
 { Direction corresponding to given cube map side and pixel number.

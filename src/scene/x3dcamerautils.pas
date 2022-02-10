@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,12 +32,12 @@ const
   { Standard camera settings given by VRML/X3D specifications.
     @groupBegin }
   DefaultX3DCameraPosition: array [TX3DCameraVersion] of TVector3 =
-    ( (Data: (0, 0, 1)),
-      (Data: (0, 0, 10))
+    ( (X: 0; Y: 0; Z: 1),
+      (X: 0; Y: 0; Z: 10)
     );
-  DefaultX3DCameraDirection: TVector3 = (Data: (0, 0, -1));
-  DefaultX3DCameraUp: TVector3 = (Data: (0, 1, 0));
-  DefaultX3DGravityUp: TVector3 = (Data: (0, 1, 0));
+  DefaultX3DCameraDirection: TVector3 = (X: 0; Y: 0; Z: -1);
+  DefaultX3DCameraUp       : TVector3 = (X: 0; Y: 1; Z: 0);
+  DefaultX3DGravityUp      : TVector3 = (X: 0; Y: 1; Z: 0);
   { @groupEnd }
 
 { Construct string with VRML/X3D node defining camera with given
@@ -333,7 +333,7 @@ begin
   NavigationNode.FdType.Items.Clear;
   NavigationNode.FdType.Items.Add(NavigationType);
   NavigationNode.FdAvatarSize.Items.Clear;
-  NavigationNode.FdAvatarSize.Items.AddRange(AvatarSize.Data);
+  NavigationNode.FdAvatarSize.Items.AddRange([AvatarSize.X, AvatarSize.Y, AvatarSize.Z]);
   NavigationNode.FdHeadlight.Value := Headlight;
   NavigationNode.FdSpeed.Value := WalkSpeed;
   NavigationNode.FdVisibilityLimit.Value := VisibilityLimit;

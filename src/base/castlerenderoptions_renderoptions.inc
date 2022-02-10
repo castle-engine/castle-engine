@@ -1,7 +1,7 @@
 {%MainUnit castlerenderoptions.pas}
 
 {
-  Copyright 2002-2020 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -129,7 +129,7 @@ type
       { Default value of @link(TCastleRenderOptions.BlendingSort). }
       DefaultBlendingSort = bs3D;
 
-      DefaultWireframeColor: TCastleColorRGB = (Data: (0, 0, 0));
+      DefaultWireframeColor: TCastleColorRGB = (X: 0; Y: 0; Z: 0);
 
       DefaultSolidWireframeScale = 1;
       DefaultSolidWireframeBias = 1;

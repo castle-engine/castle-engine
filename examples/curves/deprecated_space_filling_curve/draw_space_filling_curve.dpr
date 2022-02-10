@@ -45,7 +45,7 @@ var
   CurveImage: TRGBImage;
 const
   CurveCol: TVector3Byte = (Data: (255, 255, 255));
-  CurveImageBGCol: TVector4Byte = (Data: (0, 0, 0, 0));
+  CurveImageBGCol: TVector4Byte = (X: 0; Y: 0; Z: 0; W: 0);
 
 { CastleWindow callbacks ------------------------------------------------------- }
 
