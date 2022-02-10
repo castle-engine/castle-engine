@@ -583,6 +583,9 @@
       so removing scene only to add it later to another TCastleViewport.Items is fast. }
     procedure Remove(const Item: TCastleTransform);
 
+    { Remove a child, by index on the @link(Items) list. }
+    procedure Delete(const Index: Integer);
+
     { List of current children. }
     property Items[const I: Integer]: TCastleTransform read GetItem write SetItem; default;
 
@@ -2276,6 +2279,13 @@ begin
     Ignore it -- removing from a nil list doesn't require doing anything. }
   if List <> nil then
     List.Remove(Item);
+end;
+
+procedure TCastleTransform.Delete(const Index: Integer);
+begin
+  { As in Remove, check "List <> nil" }
+  if List <> nil then
+    List.Delete(Index);
 end;
 
 procedure TCastleTransform.Clear;
