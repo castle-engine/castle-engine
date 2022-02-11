@@ -2807,7 +2807,7 @@ procedure TSFVec2f.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.TIndex) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;
@@ -2930,7 +2930,7 @@ procedure TSFVec3f.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.TIndex) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;
@@ -3057,7 +3057,7 @@ procedure TSFVec4f.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.TIndex) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;
@@ -3184,7 +3184,7 @@ procedure TSFVec2d.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.TIndex) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;
@@ -3299,7 +3299,7 @@ procedure TSFVec3d.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.TIndex) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;
@@ -3414,7 +3414,7 @@ procedure TSFVec4d.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.TIndex) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;
