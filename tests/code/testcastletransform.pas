@@ -52,6 +52,9 @@ type
     procedure TestPassCombine;
     procedure TestForIn;
     procedure TestForInBehaviors;
+    procedure TestRemoveDelayed;
+    procedure TestRemoveDelayed_Destructor;
+    procedure TestRemoveDelayed_EarlyFree;
   end;
 
 implementation
@@ -1494,6 +1497,134 @@ begin
   FreeAndNil(B1);
   FreeAndNil(B2);
   FreeAndNil(B3);
+end;
+
+  procedure FakeUpdate(const T: TCastleTransform);
+  var
+    IgnoreRemoveMe: TRemoveType;
+  begin
+    IgnoreRemoveMe := rtNone;
+    T.Update(1/60, IgnoreRemoveMe);
+  end;
+
+  procedure FakeRender(const T: TCastleTransform);
+  var
+    Params: TBasicRenderParams;
+  begin
+    Params := TBasicRenderParams.Create;
+    try
+      T.Render(Params);
+    finally FreeAndNil(Params) end;
+  end;
+
+procedure TTestCastleTransform.TestRemoveDelayed;
+var
+  T1, T2, T3: TCastleTransform;
+begin
+  T1 := TCastleTransform.Create(nil);
+  T2 := TCastleTransform.Create(nil);
+  T3 := TCastleTransform.Create(nil);
+
+  T1.Add(T2);
+  T1.Add(T3);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T2);
+  AssertTrue(T1[1] = T3);
+
+  T1.RemoveDelayed(T2);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T2);
+  AssertTrue(T1[1] = T3);
+
+  T1.RemoveDelayed(T2);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T2);
+  AssertTrue(T1[1] = T3);
+
+  FakeUpdate(T1);
+  AssertEquals(1, T1.Count);
+  AssertTrue(T1[0] = T3);
+
+  T1.Add(T2);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T3);
+  AssertTrue(T1[1] = T2);
+
+  FakeRender(T1);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T3);
+  AssertTrue(T1[1] = T2);
+
+  T1.RemoveDelayed(T2);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T3);
+  AssertTrue(T1[1] = T2);
+
+  FakeRender(T1);
+  AssertEquals(1, T1.Count);
+  AssertTrue(T1[0] = T3);
+
+  T1.Add(T2);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T3);
+  AssertTrue(T1[1] = T2);
+
+  T1.RemoveDelayed(T2, true);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T3);
+  AssertTrue(T1[1] = T2);
+
+  FakeRender(T1);
+  AssertEquals(1, T1.Count);
+  AssertTrue(T1[0] = T3);
+
+  FreeAndNil(T1);
+  FreeAndNil(T3);
+end;
+
+procedure TTestCastleTransform.TestRemoveDelayed_Destructor;
+var
+  T1, T2, T3: TCastleTransform;
+begin
+  T1 := TCastleTransform.Create(nil);
+  T2 := TCastleTransform.Create(nil);
+  T3 := TCastleTransform.Create(nil);
+
+  T1.Add(T2);
+  T1.Add(T3);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T2);
+  AssertTrue(T1[1] = T3);
+
+  T1.RemoveDelayed(T2, true);
+  T1.RemoveDelayed(T3, true);
+
+  // test that T1 destructor frees T2, T3
+  FreeAndNil(T1);
+end;
+
+procedure TTestCastleTransform.TestRemoveDelayed_EarlyFree;
+var
+  T1, T2, T3: TCastleTransform;
+begin
+  T1 := TCastleTransform.Create(nil);
+  T2 := TCastleTransform.Create(nil);
+  T3 := TCastleTransform.Create(nil);
+
+  T1.Add(T2);
+  T1.Add(T3);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T2);
+  AssertTrue(T1[1] = T3);
+
+  // test that explicit freeing of things scheduled for removal is OK
+  FreeAndNil(T2);
+  FreeAndNil(T3);
+
+  FakeUpdate(T1);
+  AssertEquals(0, T1.Count);
+
+  FreeAndNil(T1);
 end;
 
 initialization
