@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2020 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -319,7 +319,7 @@ begin
      not TVector4.PerfectlyEquals(FClearColor, ClearColor) then
   begin
     FClearColor := ClearColor;
-    glClearColor(FClearColor[0], FClearColor[1], FClearColor[2], FClearColor[3]);
+    glClearColor(FClearColor.X, FClearColor.Y, FClearColor.Z, FClearColor.W);
   end;
   Mask := 0;
   for B in Buffers do
@@ -538,8 +538,8 @@ begin
   if not FViewport.Equals(Value) then
   begin
     if (GLFeatures <> nil) and
-       ((FViewport.Width > GLFeatures.MaxViewportDimensions.Data[0]) or
-        (FViewport.Height > GLFeatures.MaxViewportDimensions.Data[1])) then
+       ((FViewport.Width > GLFeatures.MaxViewportDimensions.X) or
+        (FViewport.Height > GLFeatures.MaxViewportDimensions.Y)) then
       WarningViewportTooLarge;
 
     FViewport := Value;

@@ -25,7 +25,7 @@ uses
 
 const
   VertexArray: packed array[0..2] of TVector2 = (
-    (Data: (-1, 0)), (Data: (1, 0)), (Data: (0, 1))
+    (X: -1; Y: 0), (X: 1; Y: 0), (X: 0; Y: 1)
   );
   TransformFeedbackVertexShaderSource: String =
 '#version 330' + NL +

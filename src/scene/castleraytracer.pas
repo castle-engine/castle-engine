@@ -428,11 +428,11 @@ var
     Dimensions := Image.Dimensions;
     for I := 0 to 2 do
     begin
-      PixelInt[I] := Round(Pixel[I] - 0.5);
+      PixelInt.InternalData[I] := Round(Pixel[I] - 0.5);
       if RepeatCoord[I] then
-        PixelInt[I] := DivUnsignedModulo(PixelInt[I], Dimensions[I])
+        PixelInt.InternalData[I] := DivUnsignedModulo(PixelInt[I], Dimensions[I])
       else
-        PixelInt[I] := Clamped(PixelInt[I], 0, Dimensions[I] - 1);
+        PixelInt.InternalData[I] := Clamped(PixelInt[I], 0, Dimensions[I] - 1);
     end;
     Result := Image.Colors[PixelInt[0], PixelInt[1], PixelInt[2]];
   end;
@@ -485,9 +485,9 @@ var
     for I := 0 to 1 do
     begin
       if RepeatCoord[I] then
-        Pixel.Data[I] := FloatModulo(Pixel.Data[I], Dimensions[I])
+        Pixel.InternalData[I] := FloatModulo(Pixel[I], Dimensions[I])
       else
-        Pixel.Data[I] := Clamped(Pixel.Data[I], 0, Dimensions[I]);
+        Pixel.InternalData[I] := Clamped(Pixel[I], 0, Dimensions[I]);
     end;
 
     for I := 0 to 1 do
@@ -496,7 +496,7 @@ var
       // it will not filter 100% nicely on the border pixels
       PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
       PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
-      PixelFrac[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
+      PixelFrac.InternalData[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
     end;
 
     Result :=
@@ -539,7 +539,7 @@ begin
       begin
         Image := TCastleImage(EncodedImage);
         TexCoord3D := TexCoord.ToPosition;
-        Pixel.Init(
+        Pixel := Vector3(
           TexCoord3D[0] * Image.Width,
           TexCoord3D[1] * Image.Height,
           TexCoord3D[2] * Image.Depth
@@ -1212,7 +1212,7 @@ const
           DirectColor := DirectColor * Material.DiffuseColor;
 
           { calculate LightDirNorm (znormalizowane), NegatedLightDirNorm }
-          LightDirNorm.NormalizeMe;
+          LightDirNorm := LightDirNorm.Normalize;
           NegatedLightDirNorm := -LightDirNorm;
 
           { Wymnoz DirectColor

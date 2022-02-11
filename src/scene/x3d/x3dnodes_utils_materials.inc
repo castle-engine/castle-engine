@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -72,15 +72,15 @@
         thus it has a default value of
         @code(DefaultAmbientIntensity * DefaultiffuseColor = (0.2 * 0.8, 0.2 * 0.8, 0.2 * 0.8)).
       }
-      DefaultAmbientColor: TVector3 = (Data: (0.2, 0.2, 0.2));
+      DefaultAmbientColor: TVector3 = (X: 0.2; Y: 0.2; Z: 0.2);
       DefaultAmbientIntensity = 0.2;
-      DefaultDiffuseColor: TVector3 = (Data: (0.8, 0.8, 0.8));
-      DefaultSpecularColor: TVector3 = (Data: (0, 0, 0));
-      DefaultEmissiveColor: TVector3 = (Data: (0, 0, 0));
+      DefaultDiffuseColor: TVector3 = (X: 0.8; Y: 0.8; Z: 0.8);
+      DefaultSpecularColor: TVector3 = (X: 0; Y: 0; Z: 0);
+      DefaultEmissiveColor: TVector3 = (X: 0; Y: 0; Z: 0);
       DefaultShininess = 0.2;
       DefaultShininessExp = DefaultShininess * 128;
-      DefaultReflectionColor: TVector3 = (Data: (0, 0, 0));
-      DefaultTransmissionColor: TVector3 = (Data: (0, 0, 0));
+      DefaultReflectionColor: TVector3 = (X: 0; Y: 0; Z: 0);
+      DefaultTransmissionColor: TVector3 = (X: 0; Y: 0; Z: 0);
       DefaultReflSpecularExp = 1000000;
       DefaultTransSpecularExp = 1000000;
 

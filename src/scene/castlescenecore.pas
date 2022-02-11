@@ -7344,18 +7344,18 @@ begin
       APosition := PSI.InverseTransform.MultPoint(CameraVectors.Position);
 
       NewIsActive :=
-        (APosition[0] >= ProxNode.FdCenter.Value[0] - ProxNode.FdSize.Value[0] / 2) and
-        (APosition[0] <= ProxNode.FdCenter.Value[0] + ProxNode.FdSize.Value[0] / 2) and
-        (APosition[1] >= ProxNode.FdCenter.Value[1] - ProxNode.FdSize.Value[1] / 2) and
-        (APosition[1] <= ProxNode.FdCenter.Value[1] + ProxNode.FdSize.Value[1] / 2) and
-        (APosition[2] >= ProxNode.FdCenter.Value[2] - ProxNode.FdSize.Value[2] / 2) and
-        (APosition[2] <= ProxNode.FdCenter.Value[2] + ProxNode.FdSize.Value[2] / 2) and
+        (APosition.X >= ProxNode.FdCenter.Value.X - ProxNode.FdSize.Value.X / 2) and
+        (APosition.X <= ProxNode.FdCenter.Value.X + ProxNode.FdSize.Value.X / 2) and
+        (APosition.Y >= ProxNode.FdCenter.Value.Y - ProxNode.FdSize.Value.Y / 2) and
+        (APosition.Y <= ProxNode.FdCenter.Value.Y + ProxNode.FdSize.Value.Y / 2) and
+        (APosition.Z >= ProxNode.FdCenter.Value.Z - ProxNode.FdSize.Value.Z / 2) and
+        (APosition.Z <= ProxNode.FdCenter.Value.Z + ProxNode.FdSize.Value.Z / 2) and
         { ... and the box is not empty, which for ProximitySensor
           is signalled by any size <= 0 (yes, equal 0 also means empty).
           We check this at the end, as this is the least common situation? }
-        (ProxNode.FdSize.Value[0] > 0) and
-        (ProxNode.FdSize.Value[1] > 0) and
-        (ProxNode.FdSize.Value[2] > 0);
+        (ProxNode.FdSize.Value.X > 0) and
+        (ProxNode.FdSize.Value.Y > 0) and
+        (ProxNode.FdSize.Value.Z > 0);
 
       if NewIsActive <> PSI.IsActive then
       begin
@@ -8141,16 +8141,16 @@ begin
       NavigationType := 'EXAMINE';
   end;
 
-  AvatarSize[0] := Navigation.Radius;
+  AvatarSize.X := Navigation.Radius;
   if Walk <> nil then begin
     WalkSpeed := Walk.MoveSpeed;
-    AvatarSize[1] := Walk.PreferredHeight;
-    AvatarSize[2] := Walk.ClimbHeight;
+    AvatarSize.Y := Walk.PreferredHeight;
+    AvatarSize.Z := Walk.ClimbHeight;
   end
   else begin
     WalkSpeed := 0;
-    AvatarSize[1] := 0;
-    AvatarSize[2] := 0;
+    AvatarSize.Y := 0;
+    AvatarSize.Z := 0;
   end;
   VisibilityLimit := 0;
 

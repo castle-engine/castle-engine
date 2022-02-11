@@ -601,9 +601,9 @@ begin
       fPhysics.fStaticAABBTree.DestroyProxy(fStaticAABBTreeProxy)
     in TKraftShape.Destroy. }
 
-  if (Size[0] <= 0) or
-     (Size[1] <= 0) or
-     (Size[2] <= 0) then
+  if (Size.X <= 0) or
+     (Size.Y <= 0) or
+     (Size.Z <= 0) then
     raise EPhysicsError.Create('You must assign positive Size to TBoxCollider');
   Result := TKraftShapeBox.Create(APhysics, ARigidBody, VectorToKraft(Size / 2));
 end;
@@ -678,9 +678,9 @@ function ZeroLockedComponents(const V: TVector3;
   const Locked: T3DCoords): TVector3;
 begin
   Result := V;
-  if 0 in Locked then Result[0] := 0;
-  if 1 in Locked then Result[1] := 0;
-  if 2 in Locked then Result[2] := 0;
+  if 0 in Locked then Result.X := 0;
+  if 1 in Locked then Result.Y := 0;
+  if 2 in Locked then Result.Z := 0;
 end;
 
 procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);

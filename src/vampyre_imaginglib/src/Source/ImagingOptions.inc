@@ -241,4 +241,5 @@
   {$warn IMPLICIT_STRING_CAST_LOSS off}
   {$warn COMBINING_SIGNED_UNSIGNED off}
   {$warn COMBINING_SIGNED_UNSIGNED64 off}
+  {$warn WIDECHAR_REDUCED off}
 {$endif}

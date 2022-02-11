@@ -568,7 +568,7 @@ end;
 
 procedure TTiledMap.TImage.Load(const Element: TDOMElement; const BaseUrl: String);
 const
-  DefaultTrans: TCastleColorRGB = (Data: (1.0, 0.0, 1.0)); {Fuchsia}
+  DefaultTrans: TCastleColorRGB = (X: 1.0; Y: 0.0; Z: 1.0); {Fuchsia}
 var
   I: TXMLElementIterator;
   TmpStr: string;
@@ -681,10 +681,10 @@ begin
   if Element.AttributeString('terrain', TmpStr) then
   begin
     SPosition := 1;
-    Terrain[0] := StrToInt(NextToken(TmpStr, SPosition, [',']));
-    Terrain[1] := StrToInt(NextToken(TmpStr, SPosition, [',']));
-    Terrain[2] := StrToInt(NextToken(TmpStr, SPosition, [',']));
-    Terrain[3] := StrToInt(NextToken(TmpStr, SPosition, [',']));
+    Terrain.X := StrToInt(NextToken(TmpStr, SPosition, [',']));
+    Terrain.Y := StrToInt(NextToken(TmpStr, SPosition, [',']));
+    Terrain.Z := StrToInt(NextToken(TmpStr, SPosition, [',']));
+    Terrain.W := StrToInt(NextToken(TmpStr, SPosition, [',']));
   end;
   if Element.AttributeString('probability', TmpStr) then
     Probability := StrToFloatDot(TmpStr);
@@ -740,9 +740,9 @@ var
   begin
     SeekPos := 1;
     Token := NextToken(S, SeekPos, [',']);
-    Result[0] := StrToFloatDot(Token);
+    Result.X := StrToFloatDot(Token);
     Token := NextToken(S, SeekPos, [',']);
-    Result[1] := StrToFloatDot(Token);
+    Result.Y := StrToFloatDot(Token);
     Token := NextToken(S, SeekPos, [',']);
     if Token <> '' then
       raise Exception.CreateFmt('Unexpected vector format in Tiled map: %s', [S]);
@@ -1092,8 +1092,8 @@ begin
       LowerTagName := LowerCase(I.Current.TagName8);
       if LowerTagName = 'tileoffset' then
       begin
-        TileOffset[0] := I.Current.AttributeIntegerDef('x', 0);
-        TileOffset[1] := I.Current.AttributeIntegerDef('y', 0);
+        TileOffset.X := I.Current.AttributeIntegerDef('x', 0);
+        TileOffset.Y := I.Current.AttributeIntegerDef('y', 0);
       end else
       if LowerTagName = 'properties' then
         Properties.Load(I.Current, BaseUrl)
@@ -1296,10 +1296,10 @@ end;
 function TTiledMap.TilePositionValid(const TilePosition: TVector2Integer): Boolean;
 begin
   Result :=
-    (TilePosition.Data[0] >= 0) and
-    (TilePosition.Data[0] < Width) and
-    (TilePosition.Data[1] >= 0) and
-    (TilePosition.Data[1] < Height);
+    (TilePosition.X >= 0) and
+    (TilePosition.X < Width) and
+    (TilePosition.Y >= 0) and
+    (TilePosition.Y < Height);
 end;
 
 function TTiledMap.PositionToTile(const Position: TVector2;
@@ -1309,8 +1309,8 @@ var
   RowIncreaseY: Single;
 begin
   { unpack vector, for simpler code and for speed }
-  X := Position.Data[0];
-  Y := Position.Data[1];
+  X := Position.X;
+  Y := Position.Y;
 
   case Orientation of
     moIsometric:
@@ -1318,8 +1318,8 @@ begin
         Y := Y - (Width - 1) * TileHeight / 2;
         ResultYPlusX  := X / (TileWidth  / 2);
         ResultYMinusX := Y / (TileHeight / 2) - 1; // not sure why this -1 at end is needed...
-        TilePosition.Data[0] := Floor((ResultYPlusX - ResultYMinusX) / 2);
-        TilePosition.Data[1] := Floor((ResultYPlusX + ResultYMinusX) / 2);
+        TilePosition.X := Floor((ResultYPlusX - ResultYMinusX) / 2);
+        TilePosition.Y := Floor((ResultYPlusX + ResultYMinusX) / 2);
       end;
     moIsometricStaggered:
       begin
@@ -1327,11 +1327,11 @@ begin
         { TODO: This doesn't have smart logic to account for diagonals.
           To hide this fact, we do "- 0.25" below, to at least match correct tile
           when we're over it's center. }
-        TilePosition.Data[1] := Floor(Y / (TileHeight / 2) - 0.25);
-        if (not Odd(TilePosition.Data[1])) xor (StaggerIndex <> siOdd) then
-          TilePosition.Data[0] := Floor(X / TileWidth - 0.5)
+        TilePosition.Y := Floor(Y / (TileHeight / 2) - 0.25);
+        if (not Odd(TilePosition.Y)) xor (StaggerIndex <> siOdd) then
+          TilePosition.X := Floor(X / TileWidth - 0.5)
         else
-          TilePosition.Data[0] := Floor(X / TileWidth);
+          TilePosition.X := Floor(X / TileWidth);
       end;
     moHexagonal:
       begin
@@ -1341,17 +1341,17 @@ begin
           As such, this works sensibly only for large HexSideLength,
           when TileHeight - HexSideLength is small. }
         RowIncreaseY := TileHeight - (TileHeight - HexSideLength) / 2;
-        TilePosition.Data[1] := Floor(Y / RowIncreaseY);
-        if (not Odd(TilePosition.Data[1])) xor (StaggerIndex <> siOdd) then
-          TilePosition.Data[0] := Floor(X / TileWidth - 0.5)
+        TilePosition.Y := Floor(Y / RowIncreaseY);
+        if (not Odd(TilePosition.Y)) xor (StaggerIndex <> siOdd) then
+          TilePosition.X := Floor(X / TileWidth - 0.5)
         else
-          TilePosition.Data[0] := Floor(X / TileWidth);
+          TilePosition.X := Floor(X / TileWidth);
       end;
     // As a fallback, unsupported modes are as orthogonal
     else
       begin
-        TilePosition.Data[0] := Floor(X / TileWidth);
-        TilePosition.Data[1] := Floor(Y / TileHeight);
+        TilePosition.X := Floor(X / TileWidth);
+        TilePosition.Y := Floor(Y / TileHeight);
       end;
   end;
   Result := TilePositionValid(TilePosition);
@@ -1363,8 +1363,8 @@ var
   RowIncreaseY: Single;
 begin
   { unpack vector, for simpler code and for speed }
-  X := TilePosition.Data[0];
-  Y := TilePosition.Data[1];
+  X := TilePosition.X;
+  Y := TilePosition.Y;
 
   case Orientation of
     moIsometric:
@@ -1463,8 +1463,8 @@ begin
      TVector2Integer.Equals(Tile1, Tile2) then
     Exit(false);
 
-  XDiff := Tile1.Data[0] - Tile2.Data[0];
-  YDiff := Tile1.Data[1] - Tile2.Data[1];
+  XDiff := Tile1.X - Tile2.X;
+  YDiff := Tile1.Y - Tile2.Y;
 
   case Orientation of
     moIsometricStaggered:

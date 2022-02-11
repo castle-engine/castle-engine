@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -135,9 +135,9 @@ begin
   Assert(KeyCount > 0);
   Assert(not IsNan(Fraction));
 
-  if Fraction <= Key[0].Data[0] then
+  if Fraction <= Key[0].X then
     Result := 0 else
-  if Fraction >= Key[KeyCount - 1].Data[0] then
+  if Fraction >= Key[KeyCount - 1].X then
     Result := KeyCount else
   begin
     { Then for sure we're between two Key values.
@@ -171,14 +171,14 @@ begin
         between A and B. }
       Assert(A < Result);
       Assert(Result < B);
-      if Fraction <= Key[Result].Data[0] then
+      if Fraction <= Key[Result].X then
         B := Result else
         A := Result;
     end;
     Result := B;
 
-    if Key[B].Data[0] > Key[A].Data[0] then
-      T := (Fraction - Key[A].Data[0]) / (Key[B].Data[0] - Key[A].Data[0])
+    if Key[B].X > Key[A].X then
+      T := (Fraction - Key[A].X) / (Key[B].X - Key[A].X)
     else
       T := 0;
   end;
@@ -196,14 +196,14 @@ begin
   Range := KeyRangeArray2D(Curve, T, FractionBetweenCurvePoints);
 
   if Range = 0 then
-    Result := Curve[0].Data[1]
+    Result := Curve[0].Y
   else
   if Range = High(Curve) + 1 then
-    Result := Curve[High(Curve)].Data[1]
+    Result := Curve[High(Curve)].Y
   else
     Result := Lerp(FractionBetweenCurvePoints,
-      Curve[Range - 1].Data[1],
-      Curve[Range].Data[1]);
+      Curve[Range - 1].Y,
+      Curve[Range].Y);
 end;
 
 class procedure TAbstractCubicBezierInterpolatorNode.CalculatedCurve2D(

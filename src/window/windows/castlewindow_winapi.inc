@@ -1453,13 +1453,13 @@ begin
     in the form 'subdir1/file' or './subdir1/file' (maybe it does not understand
     that those paths are relative to current dir ??), so I'm always expanding paths. }
   FilePath := ExpandFilePath(FilePath);
-  Struct.lpstrInitialDir := PWideCharOrNil(FilePath);
+  Struct.lpstrInitialDir := PWideCharOrNil(StringToUtf16(FilePath));
 
  { tests:
    InfoWrite('current dir : "' + GetCurrentDir + '"');
    InfoWrite('dialog box InitialDir : "' + FilePath + '"');}
 
-  Struct.lpstrTitle := PWideCharOrNil(Title);
+  Struct.lpstrTitle := PWideCharOrNil(StringToUtf16(Title));
   Struct.Flags := OFN_NOCHANGEDIR or OFN_HIDEREADONLY;
   if OpenDialog then
     Struct.Flags := Struct.Flags or OFN_FILEMUSTEXIST else
@@ -1467,7 +1467,7 @@ begin
 
   if FileFilters <> nil then
   begin
-    Struct.lpstrFilter := PWideCharOrNil(MakeStrFilter(FileFilters));
+    Struct.lpstrFilter := PWideCharOrNil(StringToUtf16(MakeStrFilter(FileFilters)));
     Struct.nFilterIndex := FileFilters.DefaultFilter + 1;
 
     if not OpenDialog then
@@ -1520,7 +1520,7 @@ begin
         to ignore extension then; either way, both exits are wrong, since user can very
         easily save a file with data format and extension not related).
       }
-      CurrentFileNameExt := ExtractFileExt(FileNameBuffer);
+      CurrentFileNameExt := ExtractFileExt(Utf16ToString(FileNameBuffer));
       CurrentFormatIndex := SearchFirstPatternWithExtension(CurrentFileNameExt);
       if CurrentFormatIndex <> -1 then
       begin
@@ -1549,7 +1549,7 @@ begin
 
           Also note that unregistered extensions are treated somewhat differently.
           Unfortunately, lpstrDefExt will append then, instead of leaving filename alone. }
-        Struct.lpstrDefExt := PWideCharOrNil(SEnding(CurrentFileNameExt, 2));
+        Struct.lpstrDefExt := PWideCharOrNil(StringToUtf16(SEnding(CurrentFileNameExt, 2)));
       end;
     end;
   end;
@@ -1562,7 +1562,7 @@ begin
   finally Mode.Free end;
 
   if Result then
-    FileName := widestring(FileNameBuffer) else
+    FileName := Utf16ToString(FileNameBuffer) else
   begin
     if CommDlgExtendedError <> 0 then
       raise Exception.CreateFmt('GetOpen/SaveFileName failed with error %d',
@@ -1574,16 +1574,16 @@ function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
 
   function Vector3ToColorRef(const Value: TVector3): TColorRef;
   begin
-   Result := Windows.RGB(Clamped(Round(Value[0]*High(Byte)), 0, High(Byte)),
-                         Clamped(Round(Value[1]*High(Byte)), 0, High(Byte)),
-                         Clamped(Round(Value[2]*High(Byte)), 0, High(Byte)) );
+   Result := Windows.RGB(Clamped(Round(Value.X*High(Byte)), 0, High(Byte)),
+                         Clamped(Round(Value.Y*High(Byte)), 0, High(Byte)),
+                         Clamped(Round(Value.Z*High(Byte)), 0, High(Byte)) );
   end;
 
   function ColorRefToVector3(const Value: TColorRef): TVector3;
   begin
-   Result[0] := GetRValue(Value)/High(Byte);
-   Result[1] := GetGValue(Value)/High(Byte);
-   Result[2] := GetBValue(Value)/High(Byte);
+   Result.X := GetRValue(Value)/High(Byte);
+   Result.Y := GetGValue(Value)/High(Byte);
+   Result.Z := GetBValue(Value)/High(Byte);
   end;
 
 var

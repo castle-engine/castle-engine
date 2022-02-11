@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -49,9 +49,9 @@ begin
       but this is an optimized version. }
     for I := 0 to QuadricSlices - 1 do
     begin
-      Points^[0] := 0;
-      Points^[1] := Height;
-      Points^[2] := 0;
+      Points^.X := 0;
+      Points^.Y := Height;
+      Points^.Z := 0;
       Inc(Points);
     end;
   end;
@@ -203,22 +203,22 @@ procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
   begin
     SinCos((Angle / QuadricSlices) * 2 * Pi, AngleSin, AngleCos);
 
-    Result[0] := -AngleSin;
+    Result.X := -AngleSin;
 
     if TopRadius = 0 then
       { Why? Draw a ortho view of cone, and note that two triangles are
         similar, and notice a proportion
-        1 / Height = Result[1] / BottomRadius. }
-      Result[1] := BottomRadius / Height else
+        1 / Height = Result.Y / BottomRadius. }
+      Result.Y := BottomRadius / Height else
       { This assumes that BottomRadius = TopRadius.
         It's Ok, this procedure is used now only for straight cylinder
         or a cone. }
-      Result[1] := 0;
-    Result[2] := -AngleCos;
+      Result.Y := 0;
+    Result.Z := -AngleCos;
 
-    { When Result[1] is zero (straight cylinder), it's already normalized }
-    if Result[1] <> 0 then
-      Result.NormalizeMe;
+    { When Result.Y is zero (straight cylinder), it's already normalized }
+    if Result.Y <> 0 then
+      Result := Result.Normalize;
   end;
 
 var

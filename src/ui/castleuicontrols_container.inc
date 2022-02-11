@@ -156,7 +156,7 @@
     function SettingMousePositionCausesMotion: Boolean; virtual;
   public
     const
-      DefaultBackgroundColor: TVector4 = (Data: (0.1, 0.1, 0.1, 1));
+      DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;

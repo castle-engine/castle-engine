@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -329,7 +329,7 @@ begin
   if GravityTransform then
     GravityUp := Transform.MultDirection(GravityUp).Normalize
   else
-    GravityUp.NormalizeMe;
+    GravityUp := GravityUp.Normalize;
 
   Assert(SameValue(CamDir.LengthSqr, 1.0, 0.0001));
   Assert(SameValue(CamUp.LengthSqr, 1.0, 0.0001));
@@ -412,8 +412,8 @@ begin
         but Transformation.InverseTransform may contain scaling,
         so be sure to normalize again the result.
         For safety, also call MakeVectorsOrthoOnTheirPlane. }
-      LocalDirection.NormalizeMe;
-      LocalUp.NormalizeMe;
+      LocalDirection := LocalDirection.Normalize;
+      LocalUp := LocalUp.Normalize;
       MakeVectorsOrthoOnTheirPlane(LocalDirection, LocalUp);
 
       NewX := TVector3.CrossProduct(LocalDirection, LocalUp);
@@ -430,7 +430,7 @@ begin
 
       { plane of axisOfRotation }
       PlaneAxisDir := Parent.FdAxisOfRotation.Value;
-      PlaneAxis[3] := 0;
+      PlaneAxis.W := 0;
 
       { we want to have a rotation that changes TVector3.One[2]
         into BillboardToViewer. But the rotation axis is fixed
@@ -782,14 +782,14 @@ class function TViewpointNode.InternalFieldOfView(FieldOfView: Single;
 
   procedure CalculateFovWidth;
   begin
-    Result.Data[0] := AdjustViewAngleRadToAspectRatio(
-      Result.Data[1], ViewportWidth / ViewportHeight);
+    Result.X := AdjustViewAngleRadToAspectRatio(
+      Result.Y, ViewportWidth / ViewportHeight);
   end;
 
   procedure CalculateFovHeight;
   begin
-    Result.Data[1] := AdjustViewAngleRadToAspectRatio(
-      Result.Data[0], ViewportHeight / ViewportWidth);
+    Result.Y := AdjustViewAngleRadToAspectRatio(
+      Result.X, ViewportHeight / ViewportWidth);
   end;
 
 begin
@@ -800,20 +800,20 @@ begin
         ClampVar(FieldOfView, 0.01, Pi - 0.01);
         if ViewportWidth < ViewportHeight then
         begin
-          Result.Data[0] := FieldOfView;
+          Result.X := FieldOfView;
           CalculateFovHeight;
-          if Result.Data[1] > Pi then
+          if Result.Y > Pi then
           begin
-            Result.Data[1] := Pi;
+            Result.Y := Pi;
             CalculateFovWidth;
           end;
         end else
         begin
-          Result.Data[1] := FieldOfView;
+          Result.Y := FieldOfView;
           CalculateFovWidth;
-          if Result.Data[0] > Pi then
+          if Result.X > Pi then
           begin
-            Result.Data[0] := Pi;
+            Result.X := Pi;
             CalculateFovHeight;
           end;
         end;
@@ -822,22 +822,22 @@ begin
       begin
         if ViewportWidth > ViewportHeight then
         begin
-          Result.Data[0] := FieldOfView;
+          Result.X := FieldOfView;
           CalculateFovHeight;
         end else
         begin
-          Result.Data[1] := FieldOfView;
+          Result.Y := FieldOfView;
           CalculateFovWidth;
         end;
       end;
     faHorizontal:
       begin
-        Result.Data[0] := FieldOfView;
+        Result.X := FieldOfView;
         CalculateFovHeight;
       end;
     faVertical:
       begin
-        Result.Data[1] := FieldOfView;
+        Result.Y := FieldOfView;
         CalculateFovWidth;
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}

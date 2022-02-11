@@ -630,9 +630,9 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
 
   const
     GenerationVectorsIdentity: TTextureGenerationVectors =
-    ( (Data: (1, 0, 0, 0)),
-      (Data: (0, 1, 0, 0)),
-      (Data: (0, 0, 1, 0)) );
+    ( (X:1; Y: 0; Z: 0; W: 0),
+      (X:0; Y: 1; Z: 0; W: 0),
+      (X:0; Y: 0; Z: 1; W: 0) );
     ProjectorScalingMatrix: TMatrix4 = (Data:
     ( (0.5,   0,   0, 0),
       (  0, 0.5,   0, 0),
@@ -858,7 +858,7 @@ end;
 procedure TTextureCoordinateRenderer.RenderCoordinateEnd;
 {$ifndef OpenGLES}
 const
-  DefaultTexCoord: TVector4 = (Data: (0, 0, 0, 1));
+  DefaultTexCoord: TVector4 = (X:0; Y: 0; Z: 0; W: 1);
 {$endif}
 var
   I: Integer;

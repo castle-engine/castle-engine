@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -135,13 +135,14 @@ begin
 
   for I := 0 to TriangleCount - 1 do
   begin
-    for J := 0 to 2 do
-      Stream.ReadLE(NormalVector.Data[J]);
+    Stream.ReadLE(NormalVector.X);
+    Stream.ReadLE(NormalVector.Y);
+    Stream.ReadLE(NormalVector.Z);
     for J := 0 to 2 do
     begin
-      Stream.ReadLE(Triangle.Data[J].Data[0]);
-      Stream.ReadLE(Triangle.Data[J].Data[1]);
-      Stream.ReadLE(Triangle.Data[J].Data[2]);
+      Stream.ReadLE(Triangle.Data[J].X);
+      Stream.ReadLE(Triangle.Data[J].Y);
+      Stream.ReadLE(Triangle.Data[J].Z);
     end;
     { we read and ignore for now the TriangleAttribute,
       see https://en.wikipedia.org/wiki/STL_%28file_format%29 for it's meaning }

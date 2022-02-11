@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -88,19 +88,19 @@ begin
     Transform := Json.Find('transform', jtObject) as TJSONObject;
     if Transform = nil then
       raise ESpineReadError.CreateFmt('Missing "transform" of Dragon Bones bone "%s"', [Name]);
-    XY[0] := Transform.Get('x', 0.0);
-    XY[1] := Transform.Get('y', 0.0);
-    Scale[0] := Transform.Get('scX', 1.0);
-    Scale[1] := Transform.Get('scY', 1.0);
+    XY.X := Transform.Get('x', 0.0);
+    XY.Y := Transform.Get('y', 0.0);
+    Scale.X := Transform.Get('scX', 1.0);
+    Scale.Y := Transform.Get('scY', 1.0);
     Rotation := Json.Get('rotation', 0.0); // TODO: is this the correct name in Dragon Bones?
     InheritScale := Json.Get('inheritScale', true); // TODO: is this the correct name in Dragon Bones?
     InheritRotation := Json.Get('inheritRotation', true); // TODO: is this the correct name in Dragon Bones?
   end else
   begin
-    XY[0] := Json.Get('x', 0.0);
-    XY[1] := Json.Get('y', 0.0);
-    Scale[0] := Json.Get('scaleX', 1.0);
-    Scale[1] := Json.Get('scaleY', 1.0);
+    XY.X := Json.Get('x', 0.0);
+    XY.Y := Json.Get('y', 0.0);
+    Scale.X := Json.Get('scaleX', 1.0);
+    Scale.Y := Json.Get('scaleY', 1.0);
     Rotation := Json.Get('rotation', 0.0);
     InheritScale := Json.Get('inheritScale', true);
     InheritRotation := Json.Get('inheritRotation', true);
@@ -140,8 +140,8 @@ end;
 procedure TBone.BuildNodes(const BaseUrl: string);
 begin
   Node := TTransformNode.Create('Bone_' + Name, BaseUrl);
-  Node.FdTranslation.Value := Vector3(XY[0], XY[1], 0);
-  Node.FdScale.Value := Vector3(Scale[0], Scale[1], 1);
+  Node.FdTranslation.Value := Vector3(XY.X, XY.Y, 0);
+  Node.FdScale.Value := Vector3(Scale.X, Scale.Y, 1);
   Node.FdRotation.Value := Vector4(0, 0, 1, DegToRad(Rotation));
   if Parent <> nil then
   begin
@@ -161,8 +161,8 @@ begin
   if Parent <> nil then
   begin
     WorldXY := Vector2(
-      WorldXY[0] * Parent.WorldMatrix[0, 0] + WorldXY[1] * Parent.WorldMatrix[0, 1],
-      WorldXY[0] * Parent.WorldMatrix[1, 0] + WorldXY[1] * Parent.WorldMatrix[1, 1]);
+      WorldXY.X * Parent.WorldMatrix[0, 0] + WorldXY.Y * Parent.WorldMatrix[0, 1],
+      WorldXY.X * Parent.WorldMatrix[1, 0] + WorldXY.Y * Parent.WorldMatrix[1, 1]);
     WorldXY := WorldXY + Parent.WorldXY;
     if InheritScale then
       WorldScale := WorldScale * Parent.WorldScale;
@@ -171,23 +171,23 @@ begin
   end;
 
   SinCos(DegToRad(WorldRotation), S, C);
-  WorldMatrix[0, 0] :=  C * WorldScale[0];
-  WorldMatrix[0, 1] := -S * WorldScale[1];
-  WorldMatrix[1, 0] :=  S * WorldScale[0];
-  WorldMatrix[1, 1] :=  C * WorldScale[1];
+  WorldMatrix[0, 0] :=  C * WorldScale.X;
+  WorldMatrix[0, 1] := -S * WorldScale.Y;
+  WorldMatrix[1, 0] :=  S * WorldScale.X;
+  WorldMatrix[1, 1] :=  C * WorldScale.Y;
 
   { inverse of 2D rotation matrix is it's transposition. Also, invert scale }
-  WorldMatrixInverse[0, 0] :=  C / WorldScale[0];
-  WorldMatrixInverse[1, 0] := -S / WorldScale[1];
-  WorldMatrixInverse[0, 1] :=  S / WorldScale[0];
-  WorldMatrixInverse[1, 1] :=  C / WorldScale[1];
+  WorldMatrixInverse[0, 0] :=  C / WorldScale.X;
+  WorldMatrixInverse[1, 0] := -S / WorldScale.Y;
+  WorldMatrixInverse[0, 1] :=  S / WorldScale.X;
+  WorldMatrixInverse[1, 1] :=  C / WorldScale.Y;
 end;
 
 function TBone.ToWorldSpace(const V: TVector2): TVector2;
 begin
   Result := Vector2(
-    V[0] * WorldMatrix[0, 0] + V[1] * WorldMatrix[0, 1],
-    V[0] * WorldMatrix[1, 0] + V[1] * WorldMatrix[1, 1]);
+    V.X * WorldMatrix[0, 0] + V.Y * WorldMatrix[0, 1],
+    V.X * WorldMatrix[1, 0] + V.Y * WorldMatrix[1, 1]);
   Result := Result + WorldXY;
 end;
 
@@ -195,8 +195,8 @@ function TBone.ToLocalSpace(V: TVector2): TVector2;
 begin
   V := V - WorldXY;
   Result := Vector2(
-    V[0] * WorldMatrixInverse[0, 0] + V[1] * WorldMatrixInverse[0, 1],
-    V[0] * WorldMatrixInverse[1, 0] + V[1] * WorldMatrixInverse[1, 1]);
+    V.X * WorldMatrixInverse[0, 0] + V.Y * WorldMatrixInverse[0, 1],
+    V.X * WorldMatrixInverse[1, 0] + V.Y * WorldMatrixInverse[1, 1]);
 end;
 
 function TBone.ToLocalSpace(const V: TVector3): TVector3;

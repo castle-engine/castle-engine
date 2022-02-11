@@ -176,7 +176,7 @@
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
-      DefaultBlendingConstantColor: TVector4 = (Data: (1, 1, 1, 1));
+      DefaultBlendingConstantColor: TVector4 = (X: 1; Y: 1; Z: 1; W: 1);
 
     { Prepare image for drawing.
 
@@ -1606,22 +1606,22 @@ end;
 
 function TDrawableImage.GetCenterX: Single;
 begin
-  Result := FRotationCenter.Data[0];
+  Result := FRotationCenter.X;
 end;
 
 function TDrawableImage.GetCenterY: Single;
 begin
-  Result := FRotationCenter.Data[1];
+  Result := FRotationCenter.Y;
 end;
 
 procedure TDrawableImage.SetCenterX(const Value: Single);
 begin
-  FRotationCenter.Data[0] := Value;
+  FRotationCenter.X := Value;
 end;
 
 procedure TDrawableImage.SetCenterY(const Value: Single);
 begin
-  FRotationCenter.Data[1] := Value;
+  FRotationCenter.Y := Value;
 end;
 
 procedure TDrawableImage.SetRepeatS(const Value: Boolean);

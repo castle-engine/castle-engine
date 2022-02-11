@@ -200,11 +200,11 @@ type
       DefaultMenuKeyPreviousItem = keyArrowUp;
       DefaultMenuKeySelectItem = keyEnter;
 
-      DefaultCurrentItemBorderColor1: TCastleColor = (Data: (1.0, 1.0, 1.0, 1.0)) { White  }; { }
-      DefaultCurrentItemBorderColor2: TCastleColor = (Data: (0.5, 0.5, 0.5, 1.0)) { Gray   }; { }
-      DefaultCurrentItemColor       : TCastleColor = (Data: (1.0, 1.0, 0.0, 1.0)) { Yellow }; { }
-      DefaultNonCurrentItemColor    : TCastleColor = (Data: (1.0, 1.0, 1.0, 1.0)) { White  }; { }
-      DefaultNonFocusableItemColor  : TCastleColor = (Data: (0.75, 0.75, 0.75, 1.0)) { Light Gray }; { }
+      DefaultCurrentItemBorderColor1: TCastleColor = (X: 1.0; Y:  1.0; Z:  1.0; W: 1.0) { White  }; { }
+      DefaultCurrentItemBorderColor2: TCastleColor = (X: 0.5; Y:  0.5; Z:  0.5; W: 1.0) { Gray   }; { }
+      DefaultCurrentItemColor       : TCastleColor = (X: 1.0; Y:  1.0; Z:  0.0; W: 1.0) { Yellow }; { }
+      DefaultNonCurrentItemColor    : TCastleColor = (X: 1.0; Y:  1.0; Z:  1.0; W: 1.0) { White  }; { }
+      DefaultNonFocusableItemColor  : TCastleColor = (X:0.75; Y: 0.75; Z: 0.75; W: 1.0) { Light Gray }; { }
 
       DefaultRegularSpaceBetweenItems = 10;
       DefaultBackgroundOpacityNotFocused = 0.4;

@@ -23,39 +23,73 @@
     function TGenericVector3 {$ifndef FPC}<T>{$endif}.Length: T;
     begin
       Result := Sqrt(
-        (Data[0] * Data[0]) +
-        (Data[1] * Data[1]) +
-        (Data[2] * Data[2])
+        (X * X) +
+        (Y * Y) +
+        (Z * Z)
       );
     end;
 
   Delphi wants to check the correctness when reading the generic,
-  and it will not allow artihmetic operations on Data[0],
+  and it will not allow artihmetic operations on X,
   and it cannot narrow the type to something where artihmetic operations are OK.
   See
   https://stackoverflow.com/questions/40059579/arithmetic-operations-with-generic-types-in-delphi
 
   Under FPC it works, it seems that FPC checks Sqrt() correctness only later.
-  But FPC doesn't allow "Sqr(Data[0])" too, so it's possible that the lack
+  But FPC doesn't allow "Sqr(X)" too, so it's possible that the lack
   of an early Sqrt check is just an FPC bug.
+
+  ----------------------------------------------------------------------------
+  Note: We avoid introducing in these records *any* method that changes
+  the current record value. E.g.
+
+  - X, Y, Z cannot be properties, esp. they cannot be properties with setters.
+    They have to be simple fields.
+
+  - Likewise we don't want a method like "Init" that modifies current record.
+
+  The only way to change the record should be through direct field access.
+
+  Why? Because it was leading to traps.
+
+    S.Translation.X := S.Translation.X + 10; // when X is a setter
+    S.Translation.Init;
+
+  .. would compile, but actually be incorrect, as you (potentially -- depending
+  on optimization) modify only the temporary record value.
 *)
 
 type
   { Vector of 2 floating-point values.
     @seealso TGenericVector3 }
-  TGenericVector2 = record
+  TGenericVector2 = packed record
   public
+    const
+      Count = 2;
     type
-      TIndex = 0..1;
+      TIndex = 0..Count - 1;
   strict private
     function GetItems(const Index: TIndex): TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    function GetItemsInt(const Index: Integer): TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class function GetOne(const Index: TIndex): TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif} static;
   public
     var
-      Data: array [TIndex] of TGenericScalar;
+      X, Y: TGenericScalar;
+
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.TranslationXY.Data[0] := Scene.TranslationXY.Data[0] + 1"';{$endif}
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector2): TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -67,7 +101,9 @@ type
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector2): TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
-    procedure Init(const X, Y: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
+    procedure Init(const AX, AY: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
+      deprecated 'initialize instead like "V := Vector2(X, Y)"; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.TranslationXY.Init(X, Y)"';
+
     function ToString: string;
 
     { Convert to string using the most precise (not always easily readable
@@ -79,12 +115,13 @@ type
       with a best precision possible. }
     function ToRawString: string;
 
-    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
-    property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
-    property Y: TGenericScalar index 1 read GetItemsInt write SetItemsInt;
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.TranslationXY[0] := Scene.TranslationXY[0] + 1"';{$endif}
 
     function Normalize: TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure NormalizeMe; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
+      deprecated 'normalize instead like "V := V.Normalize"; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.TranslationXY.NormalizeMe"';
+
     function Length: TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
     { Vector length squared.
@@ -143,19 +180,34 @@ type
     The actual type of TGenericScalar is
     Single or Double for (respectively) @link(TVector3) or @link(TVector3Double).
   }
-  TGenericVector3 = record
+  TGenericVector3 = packed record
   public
+    const
+      Count = 3;
     type
-      TIndex = 0..2;
+      TIndex = 0..Count - 1;
   strict private
     function GetItems(const Index: TIndex): TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    function GetItemsInt(const Index: Integer): TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class function GetOne(const Index: TIndex): TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif} static;
   public
     var
-      Data: array [TIndex] of TGenericScalar;
+      X, Y, Z: TGenericScalar;
+
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y, Z fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Translation.Data[0] := Scene.Translation.Data[0] + 1"';{$endif}
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector3): TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector3): TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -167,7 +219,9 @@ type
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector3): TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
-    procedure Init(const X, Y, Z: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
+    procedure Init(const AX, AY, AZ: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
+      deprecated 'initialize instead like "V := Vector3(X, Y, Z)"; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Translation.Init(X, Y, Z)"';
+
     function ToString: string;
 
     { Convert to string using the most precise (not always easily readable
@@ -179,13 +233,13 @@ type
       with a best precision possible. }
     function ToRawString: string;
 
-    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
-    property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
-    property Y: TGenericScalar index 1 read GetItemsInt write SetItemsInt;
-    property Z: TGenericScalar index 2 read GetItemsInt write SetItemsInt;
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y, Z fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.Translation[0] := Scene.Translation[0] + 1"';{$endif}
 
     function Normalize: TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure NormalizeMe; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
+      deprecated 'normalize instead like "V := V.Normalize"; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Translation.NormalizeMe"';
+
     function Length: TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
     { Vector length squared.
@@ -271,23 +325,44 @@ type
 
   { Vector of 4 floating-point values.
     @seealso TGenericVector3 }
-  TGenericVector4 = record
+  TGenericVector4 = packed record
   public
+    const
+      Count = 4;
     type
-      TIndex = 0..3;
+      TIndex = 0..Count - 1;
   strict private
     function GetItems(const Index: TIndex): TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    function GetItemsInt(const Index: Integer): TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class function GetOne(const Index: TIndex): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif} static;
     function GetXYZ: TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     function GetXY: TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    procedure SetXYZ(const AValue: TGenericVector3); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    procedure SetXY(const AValue: TGenericVector2); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
+    { Commented out, as these are a trap, like
+
+        // DO NOT USE, this is not reliable:
+        Scene.Rotation.XY := ...
+        Scene.Rotation.XYZ := ..
+    }
+    // procedure SetXYZ(const AValue: TGenericVector3); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
+    // procedure SetXY(const AValue: TGenericVector2); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
   public
     var
-      Data: array [TIndex] of TGenericScalar;
+      X, Y, Z, W: TGenericScalar;
+
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z, W to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Rotation.Data[0] := Scene.Rotation.Data[0] + 1"';{$endif}
+
+    { @exclude
+      Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z, W to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property InternalData [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector4): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector4): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -299,7 +374,9 @@ type
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector4): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
-    procedure Init(const X, Y, Z, W: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
+    procedure Init(const AX, AY, AZ, AW: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
+      deprecated 'initialize instead like "V := Vector4(X, Y, Z, W)"; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Rotation.Init(X, Y, Z, W)"';
+
     function ToString: string;
 
     { Convert to string using the most precise (not always easily readable
@@ -311,11 +388,8 @@ type
       with a best precision possible. }
     function ToRawString: string;
 
-    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
-    property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
-    property Y: TGenericScalar index 1 read GetItemsInt write SetItemsInt;
-    property Z: TGenericScalar index 2 read GetItemsInt write SetItemsInt;
-    property W: TGenericScalar index 3 read GetItemsInt write SetItemsInt;
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.Rotation[0] := Scene.Rotation[0] + 1"';{$endif}
 
     function Length: TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
@@ -358,11 +432,11 @@ type
 
     { Get first 3 components as a 3D vector.
       This simply rejects the 4th component. }
-    property XYZ: TGenericVector3 read GetXYZ write SetXYZ;
+    property XYZ: TGenericVector3 read GetXYZ {write SetXYZ};
 
     { Get first 2 components as a 2D vector.
       This simply rejects the remaining vector components. }
-    property XY: TGenericVector2 read GetXY write SetXY;
+    property XY: TGenericVector2 read GetXY {write SetXY};
 
     { Linear interpolation between two vector values.
       Works analogous to @link(TGenericVector3.Lerp TVector3.Lerp) }
@@ -655,38 +729,38 @@ uses Math,
 
 class operator TGenericVector2. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2;
 begin
-  Result.Data[0] := A.Data[0] + B.Data[0];
-  Result.Data[1] := A.Data[1] + B.Data[1];
+  Result.X := A.X + B.X;
+  Result.Y := A.Y + B.Y;
 end;
 
 class operator TGenericVector2. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector2): TGenericVector2;
 begin
-  Result.Data[0] := A.Data[0] - B.Data[0];
-  Result.Data[1] := A.Data[1] - B.Data[1];
+  Result.X := A.X - B.X;
+  Result.Y := A.Y - B.Y;
 end;
 
 class operator TGenericVector2. {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector2): TGenericVector2;
 begin
-  Result.Data[0] := - V.Data[0];
-  Result.Data[1] := - V.Data[1];
+  Result.X := - V.X;
+  Result.Y := - V.Y;
 end;
 
 class operator TGenericVector2. {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
 begin
-  Result.Data[0] := V.Data[0] * Scalar;
-  Result.Data[1] := V.Data[1] * Scalar;
+  Result.X := V.X * Scalar;
+  Result.Y := V.Y * Scalar;
 end;
 
 class operator TGenericVector2. {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector2): TGenericVector2;
 begin
-  Result.Data[0] := V.Data[0] * Scalar;
-  Result.Data[1] := V.Data[1] * Scalar;
+  Result.X := V.X * Scalar;
+  Result.Y := V.Y * Scalar;
 end;
 
 class operator TGenericVector2. {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector2): TGenericVector2;
 begin
-  Result.Data[0] := V1.Data[0] * V2.Data[0];
-  Result.Data[1] := V1.Data[1] * V2.Data[1];
+  Result.X := V1.X * V2.X;
+  Result.Y := V1.Y * V2.Y;
 end;
 
 class operator TGenericVector2. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
@@ -694,44 +768,45 @@ var
   ScalarInv: TGenericScalar;
 begin
   ScalarInv := 1 / Scalar; // multiplication is faster than division, so invert once
-  Result.Data[0] := V.Data[0] * ScalarInv;
-  Result.Data[1] := V.Data[1] * ScalarInv;
+  Result.X := V.X * ScalarInv;
+  Result.Y := V.Y * ScalarInv;
 end;
 
-procedure TGenericVector2.Init(const X, Y: TGenericScalar);
+procedure TGenericVector2.Init(const AX, AY: TGenericScalar);
 begin
-  Data[0] := X;
-  Data[1] := Y;
+  X := AX;
+  Y := AY;
 end;
 
 function TGenericVector2.ToString: string;
 begin
-  Result := FormatDot('%f %f', [Data[0], Data[1]]);
+  Result := FormatDot('%f %f', [X, Y]);
 end;
 
 function TGenericVector2.ToRawString: string;
 begin
-  Result := FormatDot('%g %g', [Data[0], Data[1]]);
+  Result := FormatDot('%g %g', [X, Y]);
 end;
 
 function TGenericVector2.GetItems(const Index: TIndex): TGenericScalar;
 begin
-  Result := Data[Index];
+  case Index of
+    0: Result := X;
+    1: Result := Y;
+    { We use here numbers, not strings, for internal errors.
+      Reason: avoid implicit try..finally clause,
+      this method must be fast. }
+    {$ifndef FPC} else raise EInternalError.Create(202202111); {$endif}
+  end;
 end;
 
 procedure TGenericVector2.SetItems(const Index: TIndex; const Value: TGenericScalar);
 begin
-  Data[Index] := Value;
-end;
-
-function TGenericVector2.GetItemsInt(const Index: Integer): TGenericScalar;
-begin
-  Result := Data[Index];
-end;
-
-procedure TGenericVector2.SetItemsInt(const Index: Integer; const Value: TGenericScalar);
-begin
-  Data[Index] := Value;
+  case Index of
+    0: X := Value;
+    1: Y := Value;
+    {$ifndef FPC} else raise EInternalError.Create(202202112); {$endif}
+  end;
 end;
 
 function TGenericVector2.Normalize: TGenericVector2;
@@ -740,12 +815,12 @@ var
 begin
   L := Length;
   if L = 0 then
-    Result.Data := Data
+    Result := Self
   else
   begin
     L := 1 / L;
-    Result.Data[0] := Data[0] * L;
-    Result.Data[1] := Data[1] * L;
+    Result.X := X * L;
+    Result.Y := Y * L;
   end;
 end;
 
@@ -757,24 +832,24 @@ begin
   if L <> 0 then
   begin
     L := 1 / L;
-    Data[0] := Data[0] * L;
-    Data[1] := Data[1] * L;
+    X := X * L;
+    Y := Y * L;
   end;
 end;
 
 function TGenericVector2.Length: TGenericScalar;
 begin
   Result := Sqrt(
-    (Data[0] * Data[0]) +
-    (Data[1] * Data[1])
+    (X * X) +
+    (Y * Y)
   );
 end;
 
 function TGenericVector2.LengthSqr: TGenericScalar;
 begin
   Result :=
-    (Data[0] * Data[0]) +
-    (Data[1] * Data[1]);
+    (X * X) +
+    (Y * Y);
 end;
 
 function TGenericVector2.AdjustToLength(const NewLength: TGenericScalar): TGenericVector2;
@@ -785,60 +860,62 @@ end;
 class function TGenericVector2.DotProduct(const V1, V2: TGenericVector2): TGenericScalar;
 begin
   Result :=
-    V1.Data[0] * V2.Data[0] +
-    V1.Data[1] * V2.Data[1];
+    V1.X * V2.X +
+    V1.Y * V2.Y;
 end;
 
 function TGenericVector2.Abs: TGenericVector2;
 begin
-  Result.Data[0] := System.Abs(Data[0]);
-  Result.Data[1] := System.Abs(Data[1]);
+  Result.X := System.Abs(X);
+  Result.Y := System.Abs(Y);
 end;
 
 function TGenericVector2.IsZero: boolean;
 begin
   Result :=
-    Math.IsZero(Data[0]) and
-    Math.IsZero(Data[1]);
+    Math.IsZero(X) and
+    Math.IsZero(Y);
 end;
 
 function TGenericVector2.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(Data[0]) < Epsilon) and
-            (System.Abs(Data[1]) < Epsilon);
+  Result := (System.Abs(X) < Epsilon) and
+            (System.Abs(Y) < Epsilon);
 end;
 
 function TGenericVector2.IsPerfectlyZero: boolean;
 begin
-  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+  Result :=
+    (X = 0) and
+    (Y = 0);
 end;
 
 class function TGenericVector2.Equals(const V1, V2: TGenericVector2): boolean;
 begin
   Result :=
-    SameValue(V1.Data[0], V2.Data[0]) and
-    SameValue(V1.Data[1], V2.Data[1]);
+    SameValue(V1.X, V2.X) and
+    SameValue(V1.Y, V2.Y);
 end;
 
 class function TGenericVector2.Equals(const V1, V2: TGenericVector2; const Epsilon: TGenericScalar): boolean;
 begin
   if Epsilon = 0 then
-    Result := (V1.Data[0] = V2.Data[0]) and
-              (V1.Data[1] = V2.Data[1]) else
-    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < Epsilon) and
-              (System.Abs(V1.Data[1]-V2.Data[1]) < Epsilon);
+    Result := (V1.X = V2.X) and
+              (V1.Y = V2.Y) else
+    Result := (System.Abs(V1.X-V2.X) < Epsilon) and
+              (System.Abs(V1.Y-V2.Y) < Epsilon);
 end;
 
 class function TGenericVector2.PerfectlyEquals(const V1, V2: TGenericVector2): boolean;
 begin
-  Result := (V1.Data[0] = V2.Data[0]) and
-            (V1.Data[1] = V2.Data[1]);
+  Result := (V1.X = V2.X) and
+            (V1.Y = V2.Y);
 end;
 
 class function TGenericVector2.Lerp(const A: TGenericScalar; const V1, V2: TGenericVector2): TGenericVector2;
 begin
-  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
-  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
+  Result.X := V1.X + A * (V2.X - V1.X);
+  Result.Y := V1.Y + A * (V2.Y - V1.Y);
 end;
 
 class function TGenericVector2.Zero: TGenericVector2;
@@ -849,51 +926,51 @@ end;
 class function TGenericVector2.GetOne(const Index: TIndex): TGenericVector2;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result[Index] := 1.0;
+  Result.InternalData[Index] := 1.0;
 end;
 
 { TGenericVector3 ------------------------------------------------------------ }
 
 class operator TGenericVector3. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector3): TGenericVector3;
 begin
-  Result.Data[0] := A.Data[0] + B.Data[0];
-  Result.Data[1] := A.Data[1] + B.Data[1];
-  Result.Data[2] := A.Data[2] + B.Data[2];
+  Result.X := A.X + B.X;
+  Result.Y := A.Y + B.Y;
+  Result.Z := A.Z + B.Z;
 end;
 
 class operator TGenericVector3. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector3): TGenericVector3;
 begin
-  Result.Data[0] := A.Data[0] - B.Data[0];
-  Result.Data[1] := A.Data[1] - B.Data[1];
-  Result.Data[2] := A.Data[2] - B.Data[2];
+  Result.X := A.X - B.X;
+  Result.Y := A.Y - B.Y;
+  Result.Z := A.Z - B.Z;
 end;
 
 class operator TGenericVector3. {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector3): TGenericVector3;
 begin
-  Result.Data[0] := - V.Data[0];
-  Result.Data[1] := - V.Data[1];
-  Result.Data[2] := - V.Data[2];
+  Result.X := - V.X;
+  Result.Y := - V.Y;
+  Result.Z := - V.Z;
 end;
 
 class operator TGenericVector3. {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
 begin
-  Result.Data[0] := V.Data[0] * Scalar;
-  Result.Data[1] := V.Data[1] * Scalar;
-  Result.Data[2] := V.Data[2] * Scalar;
+  Result.X := V.X * Scalar;
+  Result.Y := V.Y * Scalar;
+  Result.Z := V.Z * Scalar;
 end;
 
 class operator TGenericVector3. {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector3): TGenericVector3;
 begin
-  Result.Data[0] := V.Data[0] * Scalar;
-  Result.Data[1] := V.Data[1] * Scalar;
-  Result.Data[2] := V.Data[2] * Scalar;
+  Result.X := V.X * Scalar;
+  Result.Y := V.Y * Scalar;
+  Result.Z := V.Z * Scalar;
 end;
 
 class operator TGenericVector3. {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector3): TGenericVector3;
 begin
-  Result.Data[0] := V1.Data[0] * V2.Data[0];
-  Result.Data[1] := V1.Data[1] * V2.Data[1];
-  Result.Data[2] := V1.Data[2] * V2.Data[2];
+  Result.X := V1.X * V2.X;
+  Result.Y := V1.Y * V2.Y;
+  Result.Z := V1.Z * V2.Z;
 end;
 
 class operator TGenericVector3. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
@@ -901,46 +978,46 @@ var
   ScalarInv: TGenericScalar;
 begin
   ScalarInv := 1 / Scalar; // multiplication is faster than division, so invert once
-  Result.Data[0] := V.Data[0] * ScalarInv;
-  Result.Data[1] := V.Data[1] * ScalarInv;
-  Result.Data[2] := V.Data[2] * ScalarInv;
+  Result.X := V.X * ScalarInv;
+  Result.Y := V.Y * ScalarInv;
+  Result.Z := V.Z * ScalarInv;
 end;
 
-procedure TGenericVector3.Init(const X, Y, Z: TGenericScalar);
+procedure TGenericVector3.Init(const AX, AY, AZ: TGenericScalar);
 begin
-  Data[0] := X;
-  Data[1] := Y;
-  Data[2] := Z;
+  X := AX;
+  Y := AY;
+  Z := AZ;
 end;
 
 function TGenericVector3.ToString: string;
 begin
-  Result := FormatDot('%f %f %f', [Data[0], Data[1], Data[2]]);
+  Result := FormatDot('%f %f %f', [X, Y, Z]);
 end;
 
 function TGenericVector3.ToRawString: string;
 begin
-  Result := FormatDot('%g %g %g', [Data[0], Data[1], Data[2]]);
+  Result := FormatDot('%g %g %g', [X, Y, Z]);
 end;
 
 function TGenericVector3.GetItems(const Index: TIndex): TGenericScalar;
 begin
-  Result := Data[Index];
+  case Index of
+    0: Result := X;
+    1: Result := Y;
+    2: Result := Z;
+    {$ifndef FPC} else raise EInternalError.Create(202202113); {$endif}
+  end;
 end;
 
 procedure TGenericVector3.SetItems(const Index: TIndex; const Value: TGenericScalar);
 begin
-  Data[Index] := Value;
-end;
-
-function TGenericVector3.GetItemsInt(const Index: Integer): TGenericScalar;
-begin
-  Result := Data[Index];
-end;
-
-procedure TGenericVector3.SetItemsInt(const Index: Integer; const Value: TGenericScalar);
-begin
-  Data[Index] := Value;
+  case Index of
+    0: X := Value;
+    1: Y := Value;
+    2: Z := Value;
+    {$ifndef FPC} else raise EInternalError.Create(202202114); {$endif}
+  end;
 end;
 
 function TGenericVector3.Normalize: TGenericVector3;
@@ -949,13 +1026,13 @@ var
 begin
   L := Length;
   if L = 0 then
-    Result.Data := Data
+    Result := Self
   else
   begin
     L := 1 / L;
-    Result.Data[0] := Data[0] * L;
-    Result.Data[1] := Data[1] * L;
-    Result.Data[2] := Data[2] * L;
+    Result.X := X * L;
+    Result.Y := Y * L;
+    Result.Z := Z * L;
   end;
 end;
 
@@ -967,27 +1044,27 @@ begin
   if L <> 0 then
   begin
     L := 1 / L;
-    Data[0] := Data[0] * L;
-    Data[1] := Data[1] * L;
-    Data[2] := Data[2] * L;
+    X := X * L;
+    Y := Y * L;
+    Z := Z * L;
   end;
 end;
 
 function TGenericVector3.Length: TGenericScalar;
 begin
   Result := Sqrt(
-    (Data[0] * Data[0]) +
-    (Data[1] * Data[1]) +
-    (Data[2] * Data[2])
+    (X * X) +
+    (Y * Y) +
+    (Z * Z)
   );
 end;
 
 function TGenericVector3.LengthSqr: TGenericScalar;
 begin
   Result :=
-    (Data[0] * Data[0]) +
-    (Data[1] * Data[1]) +
-    (Data[2] * Data[2]);
+    (X * X) +
+    (Y * Y) +
+    (Z * Z);
 end;
 
 function TGenericVector3.AdjustToLength(const NewLength: TGenericScalar): TGenericVector3;
@@ -997,98 +1074,101 @@ end;
 
 class function TGenericVector3.CrossProduct(const V1, V2: TGenericVector3): TGenericVector3;
 begin
-  Result.Data[0] := V1.Data[1] * V2.Data[2] - V1.Data[2] * V2.Data[1];
-  Result.Data[1] := V1.Data[2] * V2.Data[0] - V1.Data[0] * V2.Data[2];
-  Result.Data[2] := V1.Data[0] * V2.Data[1] - V1.Data[1] * V2.Data[0];
+  Result.X := V1.Y * V2.Z - V1.Z * V2.Y;
+  Result.Y := V1.Z * V2.X - V1.X * V2.Z;
+  Result.Z := V1.X * V2.Y - V1.Y * V2.X;
 end;
 
 class function TGenericVector3.DotProduct(const V1, V2: TGenericVector3): TGenericScalar;
 begin
   Result :=
-    V1.Data[0] * V2.Data[0] +
-    V1.Data[1] * V2.Data[1] +
-    V1.Data[2] * V2.Data[2];
+    V1.X * V2.X +
+    V1.Y * V2.Y +
+    V1.Z * V2.Z;
 end;
 
 function TGenericVector3.Abs: TGenericVector3;
 begin
-  Result.Data[0] := System.Abs(Data[0]);
-  Result.Data[1] := System.Abs(Data[1]);
-  Result.Data[2] := System.Abs(Data[2]);
+  Result.X := System.Abs(X);
+  Result.Y := System.Abs(Y);
+  Result.Z := System.Abs(Z);
 end;
 
 function TGenericVector3.Min: TGenericScalar;
 begin
-  Result := MinValue(Data);
+  Result := MinValue([X, Y, Z]);
 end;
 
 function TGenericVector3.Max: TGenericScalar;
 begin
-  Result := MaxValue(Data);
+  Result := MaxValue([X, Y, Z]);
 end;
 
 function TGenericVector3.Average: TGenericScalar;
 begin
-  Result := (Data[0] + Data[1] + Data[2]) / 3;
+  Result := (X + Y + Z) / 3;
 end;
 
 function TGenericVector3.IsZero: boolean;
 begin
   Result :=
-    Math.IsZero(Data[0]) and
-    Math.IsZero(Data[1]) and
-    Math.IsZero(Data[2]);
+    Math.IsZero(X) and
+    Math.IsZero(Y) and
+    Math.IsZero(Z);
 end;
 
 function TGenericVector3.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(Data[0]) < Epsilon) and
-            (System.Abs(Data[1]) < Epsilon) and
-            (System.Abs(Data[2]) < Epsilon);
+  Result := (System.Abs(X) < Epsilon) and
+            (System.Abs(Y) < Epsilon) and
+            (System.Abs(Z) < Epsilon);
 end;
 
 function TGenericVector3.IsPerfectlyZero: boolean;
 begin
-  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+  Result :=
+    (X = 0) and
+    (Y = 0) and
+    (Z = 0);
 end;
 
 class function TGenericVector3.Equals(const V1, V2: TGenericVector3): boolean;
 begin
   Result :=
-    SameValue(V1.Data[0], V2.Data[0]) and
-    SameValue(V1.Data[1], V2.Data[1]) and
-    SameValue(V1.Data[2], V2.Data[2]);
+    SameValue(V1.X, V2.X) and
+    SameValue(V1.Y, V2.Y) and
+    SameValue(V1.Z, V2.Z);
 end;
 
 class function TGenericVector3.Equals(const V1, V2: TGenericVector3; const Epsilon: TGenericScalar): boolean;
 begin
   if Epsilon = 0 then
-    Result := (V1.Data[0] = V2.Data[0]) and
-              (V1.Data[1] = V2.Data[1]) and
-              (V1.Data[2] = V2.Data[2]) else
-    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < Epsilon) and
-              (System.Abs(V1.Data[1]-V2.Data[1]) < Epsilon) and
-              (System.Abs(V1.Data[2]-V2.Data[2]) < Epsilon);
+    Result := (V1.X = V2.X) and
+              (V1.Y = V2.Y) and
+              (V1.Z = V2.Z) else
+    Result := (System.Abs(V1.X-V2.X) < Epsilon) and
+              (System.Abs(V1.Y-V2.Y) < Epsilon) and
+              (System.Abs(V1.Z-V2.Z) < Epsilon);
 end;
 
 class function TGenericVector3.PerfectlyEquals(const V1, V2: TGenericVector3): boolean;
 begin
-  Result := (V1.Data[0] = V2.Data[0]) and
-            (V1.Data[1] = V2.Data[1]) and
-            (V1.Data[2] = V2.Data[2]);
+  Result := (V1.X = V2.X) and
+            (V1.Y = V2.Y) and
+            (V1.Z = V2.Z);
 end;
 
 function TGenericVector3.XY: TGenericVector2;
 begin
-  Result.Data[0] := Data[0];
-  Result.Data[1] := Data[1];
+  Result.X := X;
+  Result.Y := Y;
 end;
 
 class function TGenericVector3.Lerp(const A: TGenericScalar; const V1, V2: TGenericVector3): TGenericVector3;
 begin
-  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
-  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
-  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
+  Result.X := V1.X + A * (V2.X - V1.X);
+  Result.Y := V1.Y + A * (V2.Y - V1.Y);
+  Result.Z := V1.Z + A * (V2.Z - V1.Z);
 end;
 
 class function TGenericVector3.Zero: TGenericVector3;
@@ -1099,57 +1179,57 @@ end;
 class function TGenericVector3.GetOne(const Index: TIndex): TGenericVector3;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result[Index] := 1.0;
+  Result.InternalData[Index] := 1.0;
 end;
 
 { TGenericVector4 ------------------------------------------------------------ }
 
 class operator TGenericVector4. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector4): TGenericVector4;
 begin
-  Result.Data[0] := A.Data[0] + B.Data[0];
-  Result.Data[1] := A.Data[1] + B.Data[1];
-  Result.Data[2] := A.Data[2] + B.Data[2];
-  Result.Data[3] := A.Data[3] + B.Data[3];
+  Result.X := A.X + B.X;
+  Result.Y := A.Y + B.Y;
+  Result.Z := A.Z + B.Z;
+  Result.W := A.W + B.W;
 end;
 
 class operator TGenericVector4. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector4): TGenericVector4;
 begin
-  Result.Data[0] := A.Data[0] - B.Data[0];
-  Result.Data[1] := A.Data[1] - B.Data[1];
-  Result.Data[2] := A.Data[2] - B.Data[2];
-  Result.Data[3] := A.Data[3] - B.Data[3];
+  Result.X := A.X - B.X;
+  Result.Y := A.Y - B.Y;
+  Result.Z := A.Z - B.Z;
+  Result.W := A.W - B.W;
 end;
 
 class operator TGenericVector4. {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector4): TGenericVector4;
 begin
-  Result.Data[0] := - V.Data[0];
-  Result.Data[1] := - V.Data[1];
-  Result.Data[2] := - V.Data[2];
-  Result.Data[3] := - V.Data[3];
+  Result.X := - V.X;
+  Result.Y := - V.Y;
+  Result.Z := - V.Z;
+  Result.W := - V.W;
 end;
 
 class operator TGenericVector4. {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
 begin
-  Result.Data[0] := V.Data[0] * Scalar;
-  Result.Data[1] := V.Data[1] * Scalar;
-  Result.Data[2] := V.Data[2] * Scalar;
-  Result.Data[3] := V.Data[3] * Scalar;
+  Result.X := V.X * Scalar;
+  Result.Y := V.Y * Scalar;
+  Result.Z := V.Z * Scalar;
+  Result.W := V.W * Scalar;
 end;
 
 class operator TGenericVector4. {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector4): TGenericVector4;
 begin
-  Result.Data[0] := V.Data[0] * Scalar;
-  Result.Data[1] := V.Data[1] * Scalar;
-  Result.Data[2] := V.Data[2] * Scalar;
-  Result.Data[3] := V.Data[3] * Scalar;
+  Result.X := V.X * Scalar;
+  Result.Y := V.Y * Scalar;
+  Result.Z := V.Z * Scalar;
+  Result.W := V.W * Scalar;
 end;
 
 class operator TGenericVector4. {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector4): TGenericVector4;
 begin
-  Result.Data[0] := V1.Data[0] * V2.Data[0];
-  Result.Data[1] := V1.Data[1] * V2.Data[1];
-  Result.Data[2] := V1.Data[2] * V2.Data[2];
-  Result.Data[3] := V1.Data[3] * V2.Data[3];
+  Result.X := V1.X * V2.X;
+  Result.Y := V1.Y * V2.Y;
+  Result.Z := V1.Z * V2.Z;
+  Result.W := V1.W * V2.W;
 end;
 
 class operator TGenericVector4. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
@@ -1157,67 +1237,69 @@ var
   ScalarInv: TGenericScalar;
 begin
   ScalarInv := 1 / Scalar; // multiplication is faster than division, so invert once
-  Result.Data[0] := V.Data[0] * ScalarInv;
-  Result.Data[1] := V.Data[1] * ScalarInv;
-  Result.Data[2] := V.Data[2] * ScalarInv;
-  Result.Data[3] := V.Data[3] * ScalarInv;
+  Result.X := V.X * ScalarInv;
+  Result.Y := V.Y * ScalarInv;
+  Result.Z := V.Z * ScalarInv;
+  Result.W := V.W * ScalarInv;
 end;
 
-procedure TGenericVector4.Init(const X, Y, Z, W: TGenericScalar);
+procedure TGenericVector4.Init(const AX, AY, AZ, AW: TGenericScalar);
 begin
-  Data[0] := X;
-  Data[1] := Y;
-  Data[2] := Z;
-  Data[3] := W;
+  X := AX;
+  Y := AY;
+  Z := AZ;
+  W := AW;
 end;
 
 function TGenericVector4.ToString: string;
 begin
-  Result := FormatDot('%f %f %f %f', [Data[0], Data[1], Data[2], Data[3]]);
+  Result := FormatDot('%f %f %f %f', [X, Y, Z, W]);
 end;
 
 function TGenericVector4.ToRawString: string;
 begin
-  Result := FormatDot('%g %g %g %g', [Data[0], Data[1], Data[2], Data[3]]);
+  Result := FormatDot('%g %g %g %g', [X, Y, Z, W]);
 end;
 
 function TGenericVector4.GetItems(const Index: TIndex): TGenericScalar;
 begin
-  Result := Data[Index];
+  case Index of
+    0: Result := X;
+    1: Result := Y;
+    2: Result := Z;
+    3: Result := W;
+    {$ifndef FPC} else raise EInternalError.Create(202202115); {$endif}
+  end;
 end;
 
 procedure TGenericVector4.SetItems(const Index: TIndex; const Value: TGenericScalar);
 begin
-  Data[Index] := Value;
-end;
-
-function TGenericVector4.GetItemsInt(const Index: Integer): TGenericScalar;
-begin
-  Result := Data[Index];
-end;
-
-procedure TGenericVector4.SetItemsInt(const Index: Integer; const Value: TGenericScalar);
-begin
-  Data[Index] := Value;
+  case Index of
+    0: X := Value;
+    1: Y := Value;
+    2: Z := Value;
+    3: W := Value;
+    {$ifndef FPC} else raise EInternalError.Create(202202116); {$endif}
+  end;
 end;
 
 function TGenericVector4.Length: TGenericScalar;
 begin
   Result := Sqrt(
-    (Data[0] * Data[0]) +
-    (Data[1] * Data[1]) +
-    (Data[2] * Data[2]) +
-    (Data[3] * Data[3])
+    (X * X) +
+    (Y * Y) +
+    (Z * Z) +
+    (W * W)
   );
 end;
 
 function TGenericVector4.LengthSqr: TGenericScalar;
 begin
   Result :=
-    (Data[0] * Data[0]) +
-    (Data[1] * Data[1]) +
-    (Data[2] * Data[2]) +
-    (Data[3] * Data[3]);
+    (X * X) +
+    (Y * Y) +
+    (Z * Z) +
+    (W * W);
 end;
 
 function TGenericVector4.AdjustToLength(const NewLength: TGenericScalar): TGenericVector4;
@@ -1228,114 +1310,120 @@ end;
 class function TGenericVector4.DotProduct(const V1, V2: TGenericVector4): TGenericScalar;
 begin
   Result :=
-    V1.Data[0] * V2.Data[0] +
-    V1.Data[1] * V2.Data[1] +
-    V1.Data[2] * V2.Data[2] +
-    V1.Data[3] * V2.Data[3];
+    V1.X * V2.X +
+    V1.Y * V2.Y +
+    V1.Z * V2.Z +
+    V1.W * V2.W;
 end;
 
 function TGenericVector4.Abs: TGenericVector4;
 begin
-  Result.Data[0] := System.Abs(Data[0]);
-  Result.Data[1] := System.Abs(Data[1]);
-  Result.Data[2] := System.Abs(Data[2]);
-  Result.Data[3] := System.Abs(Data[3]);
+  Result.X := System.Abs(X);
+  Result.Y := System.Abs(Y);
+  Result.Z := System.Abs(Z);
+  Result.W := System.Abs(W);
 end;
 
 function TGenericVector4.IsZero: boolean;
 begin
   Result :=
-    Math.IsZero(Data[0]) and
-    Math.IsZero(Data[1]) and
-    Math.IsZero(Data[2]) and
-    Math.IsZero(Data[3]);
+    Math.IsZero(X) and
+    Math.IsZero(Y) and
+    Math.IsZero(Z) and
+    Math.IsZero(W);
 end;
 
 function TGenericVector4.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(Data[0]) < Epsilon) and
-            (System.Abs(Data[1]) < Epsilon) and
-            (System.Abs(Data[2]) < Epsilon) and
-            (System.Abs(Data[3]) < Epsilon);
+  Result := (System.Abs(X) < Epsilon) and
+            (System.Abs(Y) < Epsilon) and
+            (System.Abs(Z) < Epsilon) and
+            (System.Abs(W) < Epsilon);
 end;
 
 function TGenericVector4.IsPerfectlyZero: boolean;
 begin
-  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+  Result :=
+    (X = 0) and
+    (Y = 0) and
+    (Z = 0) and
+    (W = 0);
 end;
 
 class function TGenericVector4.Equals(const V1, V2: TGenericVector4): boolean;
 begin
   Result :=
-    SameValue(V1.Data[0], V2.Data[0]) and
-    SameValue(V1.Data[1], V2.Data[1]) and
-    SameValue(V1.Data[2], V2.Data[2]) and
-    SameValue(V1.Data[3], V2.Data[3]);
+    SameValue(V1.X, V2.X) and
+    SameValue(V1.Y, V2.Y) and
+    SameValue(V1.Z, V2.Z) and
+    SameValue(V1.W, V2.W);
 end;
 
 class function TGenericVector4.Equals(const V1, V2: TGenericVector4; const Epsilon: TGenericScalar): boolean;
 begin
   if Epsilon = 0 then
-    Result := (V1.Data[0] = V2.Data[0]) and
-              (V1.Data[1] = V2.Data[1]) and
-              (V1.Data[2] = V2.Data[2]) and
-              (V1.Data[3] = V2.Data[3]) else
-    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < Epsilon) and
-              (System.Abs(V1.Data[1]-V2.Data[1]) < Epsilon) and
-              (System.Abs(V1.Data[2]-V2.Data[2]) < Epsilon) and
-              (System.Abs(V1.Data[3]-V2.Data[3]) < Epsilon);
+    Result := (V1.X = V2.X) and
+              (V1.Y = V2.Y) and
+              (V1.Z = V2.Z) and
+              (V1.W = V2.W) else
+    Result := (System.Abs(V1.X-V2.X) < Epsilon) and
+              (System.Abs(V1.Y-V2.Y) < Epsilon) and
+              (System.Abs(V1.Z-V2.Z) < Epsilon) and
+              (System.Abs(V1.W-V2.W) < Epsilon);
 end;
 
 class function TGenericVector4.PerfectlyEquals(const V1, V2: TGenericVector4): boolean;
 begin
-  Result := (V1.Data[0] = V2.Data[0]) and
-            (V1.Data[1] = V2.Data[1]) and
-            (V1.Data[2] = V2.Data[2]) and
-            (V1.Data[3] = V2.Data[3]);
+  Result := (V1.X = V2.X) and
+            (V1.Y = V2.Y) and
+            (V1.Z = V2.Z) and
+            (V1.W = V2.W);
 end;
 
 function TGenericVector4.ToPosition: TGenericVector3;
 var
   Inv: TGenericScalar;
 begin
-  Inv := 1 / Data[3];
-  Result.Data[0] := Data[0] * Inv;
-  Result.Data[1] := Data[1] * Inv;
-  Result.Data[2] := Data[2] * Inv;
+  Inv := 1 / W;
+  Result.X := X * Inv;
+  Result.Y := Y * Inv;
+  Result.Z := Z * Inv;
 end;
 
 function TGenericVector4.GetXYZ: TGenericVector3;
 begin
-  Result.Data[0] := Data[0];
-  Result.Data[1] := Data[1];
-  Result.Data[2] := Data[2];
+  Result.X := X;
+  Result.Y := Y;
+  Result.Z := Z;
 end;
 
 function TGenericVector4.GetXY: TGenericVector2;
 begin
-  Result.Data[0] := Data[0];
-  Result.Data[1] := Data[1];
+  Result.X := X;
+  Result.Y := Y;
 end;
 
+{
 procedure TGenericVector4.SetXY(const AValue: TGenericVector2);
 begin
-  Data[0] := AValue.Data[0];
-  Data[1] := AValue.Data[1];
+  X := AValue.X;
+  Y := AValue.Y;
 end;
 
 procedure TGenericVector4.SetXYZ(const AValue: TGenericVector3);
 begin
-  Data[0] := AValue.Data[0];
-  Data[1] := AValue.Data[1];
-  Data[2] := AValue.Data[2];
+  X := AValue.X;
+  Y := AValue.Y;
+  Z := AValue.Z;
 end;
+}
 
 class function TGenericVector4.Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4;
 begin
-  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
-  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
-  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
-  Result.Data[3] := V1.Data[3] + A * (V2.Data[3] - V1.Data[3]);
+  Result.X := V1.X + A * (V2.X - V1.X);
+  Result.Y := V1.Y + A * (V2.Y - V1.Y);
+  Result.Z := V1.Z + A * (V2.Z - V1.Z);
+  Result.W := V1.W + A * (V2.W - V1.W);
 end;
 
 class function TGenericVector4.Zero: TGenericVector4;
@@ -1346,7 +1434,7 @@ end;
 class function TGenericVector4.GetOne(const Index: TIndex): TGenericVector4;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result[Index] := 1.0;
+  Result.InternalData[Index] := 1.0;
 end;
 
 { TGenericMatrix2 ------------------------------------------------------------ }
@@ -1398,8 +1486,8 @@ end;
 
 class operator TGenericMatrix2.{$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix2; const V: TGenericVector2): TGenericVector2;
 begin
-  Result.Data[0] := M.Data[0, 0] * V.Data[0] + M.Data[1, 0] * V.Data[1];
-  Result.Data[1] := M.Data[0, 1] * V.Data[0] + M.Data[1, 1] * V.Data[1];
+  Result.X := M.Data[0, 0] * V.X + M.Data[1, 0] * V.Y;
+  Result.Y := M.Data[0, 1] * V.X + M.Data[1, 1] * V.Y;
 end;
 
 class operator TGenericMatrix2.{$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix2): TGenericMatrix2;
@@ -1438,32 +1526,24 @@ end;
 
 function TGenericMatrix2.GetRows(const ARow: TIndex): TGenericVector2;
 begin
-  Result.Data[0] := Data[0, ARow];
-  Result.Data[1] := Data[1, ARow];
+  Result.X := Data[0, ARow];
+  Result.Y := Data[1, ARow];
 end;
 
 procedure TGenericMatrix2.SetRows(const ARow: TIndex; const Value: TGenericVector2);
 begin
-  Data[0, ARow] := Value.Data[0];
-  Data[1, ARow] := Value.Data[1];
+  Data[0, ARow] := Value.X;
+  Data[1, ARow] := Value.Y;
 end;
 
 function TGenericMatrix2.GetColumns(const AColumn: TIndex): TGenericVector2;
 begin
-  {$ifdef FPC}
-  Result.Data := Data[AColumn];
-  {$else}
-  Result := TGenericVector2(Data[AColumn]); // more dirty, but necessary
-  {$endif}
+  Result := TGenericVector2(Data[AColumn]); // TODO: should not require a typecast
 end;
 
 procedure TGenericMatrix2.SetColumns(const AColumn: TIndex; const Value: TGenericVector2);
 begin
-  {$ifdef FPC}
-  Data[AColumn] := Value.Data;
-  {$else}
-  TGenericVector2(Data[AColumn]) := Value; // more dirty, but necessary
-  {$endif}
+  TGenericVector2(Data[AColumn]) := Value; // TODO: should not require a typecast
 end;
 
 function MatrixDet2x2(const a1, a2, b1, b2: TGenericScalar): TGenericScalar;
@@ -1652,9 +1732,9 @@ end;
 
 class operator TGenericMatrix3.{$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix3; const V: TGenericVector3): TGenericVector3;
 begin
-  Result.Data[0] := M.Data[0, 0] * V.Data[0] + M.Data[1, 0] * V.Data[1] + M.Data[2, 0] * V.Data[2];
-  Result.Data[1] := M.Data[0, 1] * V.Data[0] + M.Data[1, 1] * V.Data[1] + M.Data[2, 1] * V.Data[2];
-  Result.Data[2] := M.Data[0, 2] * V.Data[0] + M.Data[1, 2] * V.Data[1] + M.Data[2, 2] * V.Data[2];
+  Result.X := M.Data[0, 0] * V.X + M.Data[1, 0] * V.Y + M.Data[2, 0] * V.Z;
+  Result.Y := M.Data[0, 1] * V.X + M.Data[1, 1] * V.Y + M.Data[2, 1] * V.Z;
+  Result.Z := M.Data[0, 2] * V.X + M.Data[1, 2] * V.Y + M.Data[2, 2] * V.Z;
 end;
 
 class operator TGenericMatrix3.{$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix3): TGenericMatrix3;
@@ -1702,34 +1782,26 @@ end;
 
 function TGenericMatrix3.GetRows(const ARow: TIndex): TGenericVector3;
 begin
-  Result.Data[0] := Data[0, ARow];
-  Result.Data[1] := Data[1, ARow];
-  Result.Data[2] := Data[2, ARow];
+  Result.X := Data[0, ARow];
+  Result.Y := Data[1, ARow];
+  Result.Z := Data[2, ARow];
 end;
 
 procedure TGenericMatrix3.SetRows(const ARow: TIndex; const Value: TGenericVector3);
 begin
-  Data[0, ARow] := Value.Data[0];
-  Data[1, ARow] := Value.Data[1];
-  Data[2, ARow] := Value.Data[2];
+  Data[0, ARow] := Value.X;
+  Data[1, ARow] := Value.Y;
+  Data[2, ARow] := Value.Z;
 end;
 
 function TGenericMatrix3.GetColumns(const AColumn: TIndex): TGenericVector3;
 begin
-  {$ifdef FPC}
-  Result.Data := Data[AColumn];
-  {$else}
-  Result := TGenericVector3(Data[AColumn]); // more dirty, but necessary
-  {$endif}
+  Result := TGenericVector3(Data[AColumn]); // TODO: should not require a typecast
 end;
 
 procedure TGenericMatrix3.SetColumns(const AColumn: TIndex; const Value: TGenericVector3);
 begin
-  {$ifdef FPC}
-  Data[AColumn] := Value.Data;
-  {$else}
-  TGenericVector3(Data[AColumn]) := Value; // more dirty, but necessary
-  {$endif}
+  TGenericVector3(Data[AColumn]) := Value; // TODO: should not require a typecast
 end;
 
 function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: TGenericScalar): TGenericScalar;
@@ -1978,10 +2050,10 @@ end;
 
 function TGenericMatrix4.TransposeMultiply(const V: TGenericVector4): TGenericVector4;
 begin
-  Result.Data[0] := Data[0, 0] * V.Data[0] + Data[0, 1] * V.Data[1] + Data[0, 2] * V.Data[2] + Data[0, 3] * V.Data[3];
-  Result.Data[1] := Data[1, 0] * V.Data[0] + Data[1, 1] * V.Data[1] + Data[1, 2] * V.Data[2] + Data[1, 3] * V.Data[3];
-  Result.Data[2] := Data[2, 0] * V.Data[0] + Data[2, 1] * V.Data[1] + Data[2, 2] * V.Data[2] + Data[2, 3] * V.Data[3];
-  Result.Data[3] := Data[3, 0] * V.Data[0] + Data[3, 1] * V.Data[1] + Data[3, 2] * V.Data[2] + Data[3, 3] * V.Data[3];
+  Result.X := Data[0, 0] * V.X + Data[0, 1] * V.Y + Data[0, 2] * V.Z + Data[0, 3] * V.W;
+  Result.Y := Data[1, 0] * V.X + Data[1, 1] * V.Y + Data[1, 2] * V.Z + Data[1, 3] * V.W;
+  Result.Z := Data[2, 0] * V.X + Data[2, 1] * V.Y + Data[2, 2] * V.Z + Data[2, 3] * V.W;
+  Result.W := Data[3, 0] * V.X + Data[3, 1] * V.Y + Data[3, 2] * V.Z + Data[3, 3] * V.W;
 end;
 
 class operator TGenericMatrix4.{$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix4; const V: TGenericVector4): TGenericVector4;
@@ -2003,10 +2075,10 @@ begin
 
   Code expanded for the sake of speed:}
 
-  Result.Data[0] := M.Data[0, 0] * V.Data[0] + M.Data[1, 0] * V.Data[1] + M.Data[2, 0] * V.Data[2] + M.Data[3, 0] * V.Data[3];
-  Result.Data[1] := M.Data[0, 1] * V.Data[0] + M.Data[1, 1] * V.Data[1] + M.Data[2, 1] * V.Data[2] + M.Data[3, 1] * V.Data[3];
-  Result.Data[2] := M.Data[0, 2] * V.Data[0] + M.Data[1, 2] * V.Data[1] + M.Data[2, 2] * V.Data[2] + M.Data[3, 2] * V.Data[3];
-  Result.Data[3] := M.Data[0, 3] * V.Data[0] + M.Data[1, 3] * V.Data[1] + M.Data[2, 3] * V.Data[2] + M.Data[3, 3] * V.Data[3];
+  Result.X := M.Data[0, 0] * V.X + M.Data[1, 0] * V.Y + M.Data[2, 0] * V.Z + M.Data[3, 0] * V.W;
+  Result.Y := M.Data[0, 1] * V.X + M.Data[1, 1] * V.Y + M.Data[2, 1] * V.Z + M.Data[3, 1] * V.W;
+  Result.Z := M.Data[0, 2] * V.X + M.Data[1, 2] * V.Y + M.Data[2, 2] * V.Z + M.Data[3, 2] * V.W;
+  Result.W := M.Data[0, 3] * V.X + M.Data[1, 3] * V.Y + M.Data[2, 3] * V.Z + M.Data[3, 3] * V.W;
 end;
 
 class operator TGenericMatrix4.{$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix4): TGenericMatrix4;
@@ -2077,36 +2149,28 @@ end;
 
 function TGenericMatrix4.GetRows(const ARow: TIndex): TGenericVector4;
 begin
-  Result.Data[0] := Data[0, ARow];
-  Result.Data[1] := Data[1, ARow];
-  Result.Data[2] := Data[2, ARow];
-  Result.Data[3] := Data[3, ARow];
+  Result.X := Data[0, ARow];
+  Result.Y := Data[1, ARow];
+  Result.Z := Data[2, ARow];
+  Result.W := Data[3, ARow];
 end;
 
 procedure TGenericMatrix4.SetRows(const ARow: TIndex; const Value: TGenericVector4);
 begin
-  Data[0, ARow] := Value.Data[0];
-  Data[1, ARow] := Value.Data[1];
-  Data[2, ARow] := Value.Data[2];
-  Data[3, ARow] := Value.Data[3];
+  Data[0, ARow] := Value.X;
+  Data[1, ARow] := Value.Y;
+  Data[2, ARow] := Value.Z;
+  Data[3, ARow] := Value.W;
 end;
 
 function TGenericMatrix4.GetColumns(const AColumn: TIndex): TGenericVector4;
 begin
-  {$ifdef FPC}
-  Result.Data := Data[AColumn];
-  {$else}
-  Result := TGenericVector4(Data[AColumn]); // more dirty, but necessary
-  {$endif}
+  Result := TGenericVector4(Data[AColumn]); // TODO: should not require a typecast
 end;
 
 procedure TGenericMatrix4.SetColumns(const AColumn: TIndex; const Value: TGenericVector4);
 begin
-  {$ifdef FPC}
-  Data[AColumn] := Value.Data;
-  {$else}
-  TGenericVector4(Data[AColumn]) := Value; // more dirty, but necessary
-  {$endif}
+  TGenericVector4(Data[AColumn]) := Value; // TODO: should not require a typecast
 end;
 
 function TGenericMatrix4.Determinant: TGenericScalar;
@@ -2238,9 +2302,9 @@ begin
   if @Pt = @Result then
     Writeln('TGenericMatrix4.MultPoint may be invalid: Argument and Result have the same address'); }
 
-  Result.Data[0] := Data[0, 0] * Pt.Data[0] + Data[1, 0] * Pt.Data[1] + Data[2, 0] * Pt.Data[2] + Data[3, 0];
-  Result.Data[1] := Data[0, 1] * Pt.Data[0] + Data[1, 1] * Pt.Data[1] + Data[2, 1] * Pt.Data[2] + Data[3, 1];
-  Result.Data[2] := Data[0, 2] * Pt.Data[0] + Data[1, 2] * Pt.Data[1] + Data[2, 2] * Pt.Data[2] + Data[3, 2];
+  Result.X := Data[0, 0] * Pt.X + Data[1, 0] * Pt.Y + Data[2, 0] * Pt.Z + Data[3, 0];
+  Result.Y := Data[0, 1] * Pt.X + Data[1, 1] * Pt.Y + Data[2, 1] * Pt.Z + Data[3, 1];
+  Result.Z := Data[0, 2] * Pt.X + Data[1, 2] * Pt.Y + Data[2, 2] * Pt.Z + Data[3, 2];
 
   { It looks strange, but the check below usually pays off.
 
@@ -2262,17 +2326,17 @@ begin
     (Data[3, 3] = 1)) then
   begin
     Divisor :=
-      Data[0, 3] * Pt.Data[0] +
-      Data[1, 3] * Pt.Data[1] +
-      Data[2, 3] * Pt.Data[2] +
+      Data[0, 3] * Pt.X +
+      Data[1, 3] * Pt.Y +
+      Data[2, 3] * Pt.Z +
       Data[3, 3];
     if Math.IsZero(Divisor) then
       RaisePositionTransformResultInvalid;
 
     Divisor := 1 / Divisor;
-    Result.Data[0] := Result.Data[0] * Divisor;
-    Result.Data[1] := Result.Data[1] * Divisor;
-    Result.Data[2] := Result.Data[2] * Divisor;
+    Result.X := Result.X * Divisor;
+    Result.Y := Result.Y * Divisor;
+    Result.Z := Result.Z * Divisor;
   end;
 end;
 
@@ -2281,14 +2345,14 @@ var
   V3: TGenericVector3;
   Res3D: TGenericVector3;
 begin
-  V3.Data[0] := Pt.Data[0];
-  V3.Data[1] := Pt.Data[1];
-  V3.Data[2] := 0;
+  V3.X := Pt.X;
+  V3.Y := Pt.Y;
+  V3.Z := 0;
 
   Res3D := MultPoint(V3);
 
-  Result.Data[0] := Res3D.Data[0];
-  Result.Data[1] := Res3D.Data[1];
+  Result.X := Res3D.X;
+  Result.Y := Res3D.Y;
 end;
 
 procedure TGenericMatrix4.RaiseDirectionTransformedResultInvalid(const Divisor: TGenericScalar);
@@ -2307,16 +2371,16 @@ begin
   if @Dir = @Result then
     Writeln('TGenericMatrix4.MultDirection may be invalid: Argument and Result have the same address'); }
 
-  Result.Data[0] := Data[0, 0] * Dir.Data[0] + Data[1, 0] * Dir.Data[1] + Data[2, 0] * Dir.Data[2];
-  Result.Data[1] := Data[0, 1] * Dir.Data[0] + Data[1, 1] * Dir.Data[1] + Data[2, 1] * Dir.Data[2];
-  Result.Data[2] := Data[0, 2] * Dir.Data[0] + Data[1, 2] * Dir.Data[1] + Data[2, 2] * Dir.Data[2];
+  Result.X := Data[0, 0] * Dir.X + Data[1, 0] * Dir.Y + Data[2, 0] * Dir.Z;
+  Result.Y := Data[0, 1] * Dir.X + Data[1, 1] * Dir.Y + Data[2, 1] * Dir.Z;
+  Result.Z := Data[0, 2] * Dir.X + Data[1, 2] * Dir.Y + Data[2, 2] * Dir.Z;
 
   if not (
     (Data[0, 3] = 0) and
     (Data[1, 3] = 0) and
     (Data[2, 3] = 0) ) then
   begin
-    Divisor := Data[0, 3] * Dir.Data[0] + Data[1, 3] * Dir.Data[1] + Data[2, 3] * Dir.Data[2];
+    Divisor := Data[0, 3] * Dir.X + Data[1, 3] * Dir.Y + Data[2, 3] * Dir.Z;
     if not Math.IsZero(Divisor) then
       RaiseDirectionTransformedResultInvalid(Divisor);
   end;
@@ -2327,14 +2391,14 @@ var
   V3: TGenericVector3;
   Res3D: TGenericVector3;
 begin
-  V3.Data[0] := Dir.Data[0];
-  V3.Data[1] := Dir.Data[1];
-  V3.Data[2] := 0;
+  V3.X := Dir.X;
+  V3.Y := Dir.Y;
+  V3.Z := 0;
 
   Res3D := MultDirection(V3);
 
-  Result.Data[0] := Res3D.Data[0];
-  Result.Data[1] := Res3D.Data[1];
+  Result.X := Res3D.X;
+  Result.Y := Res3D.Y;
 end;
 
 class function TGenericMatrix4.Equals(const M1, M2: TGenericMatrix4): boolean;

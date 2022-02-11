@@ -2141,8 +2141,8 @@ const
     @link(OrientationToDirection), @link(OrientationToUp).
     These match X3D default camera values.
     @groupBegin }
-  DefaultCameraDirection: TVector3 = (Data: (0, 0, -1));
-  DefaultCameraUp: TVector3 = (Data: (0, 1, 0));
+  DefaultCameraDirection: TVector3 = (X: 0; Y: 0; Z: -1);
+  DefaultCameraUp       : TVector3 = (X: 0; Y: 1; Z: 0);
   { @groupEnd }
 
   ciNormal        = niNormal        deprecated 'use niNormal';
@@ -2701,8 +2701,8 @@ var
   OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
   APos, ADir, AUp: TVector3;
 begin
-  AInitialDirection.NormalizeMe;
-  AInitialUp.NormalizeMe;
+  AInitialDirection := AInitialDirection.Normalize;
+  AInitialUp := AInitialUp.Normalize;
   MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
 
   if TransformCurrentCamera then
@@ -3346,8 +3346,8 @@ var
     if not RotationEnabled then Exit;
 
     if RotationAccelerate then
-      FRotationsAnim[coord] :=
-        Clamped(FRotationsAnim[coord] +
+      FRotationsAnim.InternalData[coord] :=
+        Clamped(FRotationsAnim.InternalData[coord] +
           RotationAccelerationSpeed * SecondsPassed * Direction,
           -MaxRotationSpeed, MaxRotationSpeed)
     else
@@ -3411,7 +3411,7 @@ begin
         if Inputs_Move[i, true ].IsPressed(Container) then
         begin
           MoveChangeVector := TVector3.Zero;
-          MoveChangeVector[I] := MoveChange;
+          MoveChangeVector.InternalData[I] := MoveChange;
           V.Translation := V.Translation + MoveChangeVector;
 
           HandleInput := not ExclusiveEvents;
@@ -3419,7 +3419,7 @@ begin
         if Inputs_Move[i, false].IsPressed(Container) then
         begin
           MoveChangeVector := TVector3.Zero;
-          MoveChangeVector[I] := -MoveChange;
+          MoveChangeVector.InternalData[I] := -MoveChange;
           V.Translation := V.Translation + MoveChangeVector;
 
           HandleInput := not ExclusiveEvents;
@@ -3488,7 +3488,7 @@ var
   V: TVector3;
 begin
   V := TVector3.Zero;
-  V[Coord] := MoveDistance;
+  V.InternalData[Coord] := MoveDistance;
   Translation := Translation + V;
 end;
 
@@ -4051,9 +4051,9 @@ function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): boolean;
     if not MouseChange.IsPerfectlyZero then
     begin
       if InvertVerticalMouseLook then
-        MouseChange.Data[1] := -MouseChange.Data[1];
-      MouseChange.Data[0] := MouseChange.Data[0] * MouseLookHorizontalSensitivity;
-      MouseChange.Data[1] := MouseChange.Data[1] * MouseLookVerticalSensitivity;
+        MouseChange.Y := -MouseChange.Y;
+      MouseChange.X := MouseChange.X * MouseLookHorizontalSensitivity;
+      MouseChange.Y := MouseChange.Y * MouseLookVerticalSensitivity;
       ProcessMouseLookDelta(MouseChange);
       Result := ExclusiveEvents;
     end;
@@ -5046,44 +5046,44 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     MoveSizeX := 0;
     MoveSizeY := 0;
 
-    if Abs(Delta[0]) < Tolerance then
-      Delta[0] := 0
+    if Abs(Delta.X) < Tolerance then
+      Delta.X := 0
     else
-      MoveSizeX := (Abs(Delta[0]) - Tolerance) * MouseDraggingMoveSpeed;
+      MoveSizeX := (Abs(Delta.X) - Tolerance) * MouseDraggingMoveSpeed;
 
-    if Abs(Delta[1]) < Tolerance then
-      Delta[1] := 0
+    if Abs(Delta.Y) < Tolerance then
+      Delta.Y := 0
     else
-      MoveSizeY := (Abs(Delta[1]) - Tolerance) * MouseDraggingMoveSpeed;
+      MoveSizeY := (Abs(Delta.Y) - Tolerance) * MouseDraggingMoveSpeed;
 
     if buttonLeft in Container.MousePressed then
     begin
-      if Delta[1] < -Tolerance then
+      if Delta.Y < -Tolerance then
         MoveHorizontal(-MoveSizeY * SecondsPassed, 1); { forward }
-      if Delta[1] > Tolerance then
+      if Delta.Y > Tolerance then
         MoveHorizontal(-MoveSizeY * SecondsPassed, -1); { backward }
 
-      if Abs(Delta[0]) > Tolerance then
-        RotateHorizontal(-Delta[0] * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
+      if Abs(Delta.X) > Tolerance then
+        RotateHorizontal(-Delta.X * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
     end
     else if buttonRight in Container.MousePressed then
     begin
-      if Delta[0] < -Tolerance then
+      if Delta.X < -Tolerance then
       begin
         RotateHorizontalForStrafeMove(HalfPi);
         MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife left }
         RotateHorizontalForStrafeMove(-HalfPi);
       end;
-      if Delta[0] > Tolerance then
+      if Delta.X > Tolerance then
       begin
         RotateHorizontalForStrafeMove(-HalfPi);
         MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife right }
         RotateHorizontalForStrafeMove(HalfPi);
       end;
 
-      if Delta[1] < -5 then
+      if Delta.Y < -5 then
         MoveVertical(-MoveSizeY * SecondsPassed, 1);    { fly up }
-      if Delta[1] > 5 then
+      if Delta.Y > 5 then
         MoveVertical(-MoveSizeY * SecondsPassed, -1);   { fly down }
     end;
   end;
@@ -5393,9 +5393,11 @@ begin
 
     Camera.ProjectionNear := Radius * RadiusToProjectionNear;
 
-    Pos[0] := Box.Data[0].Data[0] - AvgSize;
-    Pos[1] := (Box.Data[0].Data[1] + Box.Data[1].Data[1]) / 2;
-    Pos[2] := (Box.Data[0].Data[2] + Box.Data[1].Data[2]) / 2;
+    Pos := Vector3(
+      Box.Data[0].X - AvgSize,
+      (Box.Data[0].Y + Box.Data[1].Y) / 2,
+      (Box.Data[0].Z + Box.Data[1].Z) / 2
+    );
     Camera.Init(Pos,
       DefaultCameraDirection,
       DefaultCameraUp,
@@ -5447,8 +5449,8 @@ end;
 procedure TCastleWalkNavigation.ProcessMouseLookDelta(const Delta: TVector2);
 begin
   inherited;
-  RotateHorizontal(-Delta[0]);
-  RotateVertical(Delta[1]);
+  RotateHorizontal(-Delta.X);
+  RotateVertical(Delta.Y);
 end;
 
 function TCastleWalkNavigation.Motion(const Event: TInputMotion): boolean;
@@ -5584,8 +5586,8 @@ var
   Rot1Quat, Rot2Quat: TQuaternion;
   Rot1CosAngle, Rot2CosAngle: Single;
 begin
-  Direction.NormalizeMe;
-  Up.NormalizeMe;
+  Direction := Direction.Normalize;
+  Up := Up.Normalize;
 
   { calculate Rot1Quat }
   Rot1Axis := TVector3.CrossProduct(DefaultDirection, Direction);
@@ -5600,7 +5602,7 @@ begin
     { Normalize *after* checking ZeroVector, otherwise normalization
       could change some almost-zero vector into a (practically random)
       vector of length 1. }
-    Rot1Axis.NormalizeMe;
+    Rot1Axis := Rot1Axis.Normalize;
   Rot1CosAngle := TVector3.DotProduct(DefaultDirection, Direction);
   Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
@@ -5611,7 +5613,7 @@ begin
     Calculating Rot2Axis below is a solution. }
   Rot2Axis := TVector3.CrossProduct(DefaultUpAfterRot1, Up);
 
-  (*We could now do Rot2Axis.NormalizeMe,
+  (*We could now do Rot2Axis := Rot2Axis.Normalize,
     after making sure it's not zero. Like
 
     { we need larger epsilon for ZeroVector below, in case
@@ -5622,7 +5624,7 @@ begin
       { Normalize *after* checking ZeroVector, otherwise normalization
         could change some almost-zero vector into a (practically random)
         vector of length 1. }
-      Rot2Axis.NormalizeMe;
+      Rot2Axis := Rot2Axis.Normalize;
 
     And later do
 
@@ -5726,9 +5728,9 @@ begin
     Offset := 2 * Box.AverageSize;
 
     if WantedDirectionPositive then
-      Position[WantedDirection] := Box.Data[0].Data[WantedDirection] - Offset
+      Position.InternalData[WantedDirection] := Box.Data[0].InternalData[WantedDirection] - Offset
     else
-      Position[WantedDirection] := Box.Data[1].Data[WantedDirection] + Offset;
+      Position.InternalData[WantedDirection] := Box.Data[1].InternalData[WantedDirection] + Offset;
   end;
 
   { GravityUp is just always equal Up here. }

@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,27 +20,33 @@
 type
   { Vector of 2 Byte values.
     @seealso TVector3Byte }
-  TVector2Byte = record
+  TVector2Byte = packed record
   public
     type
       TIndex = 0..1;
   strict private
     function GetItems(const Index: TIndex): Byte; inline;
     procedure SetItems(const Index: TIndex; const Value: Byte); inline;
-    function GetItemsInt(const Index: Integer): Byte; inline;
-    procedure SetItemsInt(const Index: Integer; const Value: Byte); inline;
   public
     var
-      Data: array [TIndex] of Byte;
+      X, Y: Byte;
+
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property Data [const Index: TIndex]: Byte read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y fields';{$endif}
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: Byte read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Byte): TVector2Byte; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Byte): TVector2Byte; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Byte): TVector2Byte; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
-    property X: Byte index 0 read GetItemsInt write SetItemsInt;
-    property Y: Byte index 1 read GetItemsInt write SetItemsInt;
+    property Items [const Index: TIndex]: Byte read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Byte): boolean; static; inline;
@@ -49,28 +55,33 @@ type
   end;
 
   { Vector of 3 Byte values. }
-  TVector3Byte = record
+  TVector3Byte = packed record
   public
     type
       TIndex = 0..2;
   strict private
     function GetItems(const Index: TIndex): Byte; inline;
     procedure SetItems(const Index: TIndex; const Value: Byte); inline;
-    function GetItemsInt(const Index: Integer): Byte; inline;
-    procedure SetItemsInt(const Index: Integer; const Value: Byte); inline;
   public
     var
-      Data: array [TIndex] of Byte;
+      X, Y, Z: Byte;
+
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property Data [const Index: TIndex]: Byte read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y, Z fields';{$endif}
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: Byte read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Byte): TVector3Byte; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Byte): TVector3Byte; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Byte): TVector3Byte; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
-    property X: Byte index 0 read GetItemsInt write SetItemsInt;
-    property Y: Byte index 1 read GetItemsInt write SetItemsInt;
-    property Z: Byte index 2 read GetItemsInt write SetItemsInt;
+    property Items [const Index: TIndex]: Byte read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y, Z fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Byte): boolean; static; inline;
@@ -79,29 +90,33 @@ type
   end;
 
   { Vector of 4 Byte values. }
-  TVector4Byte = record
+  TVector4Byte = packed record
   public
     type
       TIndex = 0..3;
   strict private
     function GetItems(const Index: TIndex): Byte; inline;
     procedure SetItems(const Index: TIndex; const Value: Byte); inline;
-    function GetItemsInt(const Index: Integer): Byte; inline;
-    procedure SetItemsInt(const Index: Integer; const Value: Byte); inline;
   public
     var
-      Data: array [TIndex] of Byte;
+      X, Y, Z, W: Byte;
+
+    { Access (get, set) vector components by index.
+      We discourage using it. Use X, Y, Z, W to change vector components.
+      Use AsArray to access it by index, read-only. }
+    property Data [const Index: TIndex]: Byte read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields';{$endif}
+
+    { Get vector components by index. }
+    property AsArray [const Index: TIndex]: Byte read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Byte): TVector4Byte; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Byte): TVector4Byte; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Byte): TVector4Byte; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
-    property X: Byte index 0 read GetItemsInt write SetItemsInt;
-    property Y: Byte index 1 read GetItemsInt write SetItemsInt;
-    property Z: Byte index 2 read GetItemsInt write SetItemsInt;
-    property W: Byte index 3 read GetItemsInt write SetItemsInt;
+    property Items [const Index: TIndex]: Byte read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Byte): boolean; static; inline;
@@ -151,56 +166,56 @@ function Lerp(const A: Single; const V1, V2: TVector4Byte): TVector4Byte; overlo
 
 class operator TVector2Byte. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Byte): TVector2Byte;
 begin
-  Result.Data[0] := A.Data[0] + B.Data[0];
-  Result.Data[1] := A.Data[1] + B.Data[1];
+  Result.X := A.X + B.X;
+  Result.Y := A.Y + B.Y;
 end;
 
 class operator TVector2Byte. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Byte): TVector2Byte;
 begin
-  Result.Data[0] := A.Data[0] - B.Data[0];
-  Result.Data[1] := A.Data[1] - B.Data[1];
+  Result.X := A.X - B.X;
+  Result.Y := A.Y - B.Y;
 end;
 
 class operator TVector2Byte. {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Byte): TVector2Byte;
 begin
-  Result.Data[0] := - V.Data[0];
-  Result.Data[1] := - V.Data[1];
+  Result.X := - V.X;
+  Result.Y := - V.Y;
 end;
 
 function TVector2Byte.ToString: string;
 begin
-  Result := Format('%d %d', [Data[0], Data[1]]);
+  Result := Format('%d %d', [X, Y]);
 end;
 
 function TVector2Byte.GetItems(const Index: TIndex): Byte;
 begin
-  Result := Data[Index];
+  case Index of
+    0: Result := X;
+    1: Result := Y;
+    {$ifndef FPC} else raise EInternalError.Create(202202117); {$endif}
+  end;
 end;
 
 procedure TVector2Byte.SetItems(const Index: TIndex; const Value: Byte);
 begin
-  Data[Index] := Value;
-end;
-
-function TVector2Byte.GetItemsInt(const Index: Integer): Byte;
-begin
-  Result := Data[Index];
-end;
-
-procedure TVector2Byte.SetItemsInt(const Index: Integer; const Value: Byte);
-begin
-  Data[Index] := Value;
+  case Index of
+    0: X := Value;
+    1: Y := Value;
+    {$ifndef FPC} else raise EInternalError.Create(202202118); {$endif}
+  end;
 end;
 
 function TVector2Byte.IsZero: boolean;
 begin
-  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+  Result :=
+    (X = 0) and
+    (Y = 0);
 end;
 
 class function TVector2Byte.Equals(const V1, V2: TVector2Byte): boolean;
 begin
-  Result := (V1.Data[0] = V2.Data[0]) and
-            (V1.Data[1] = V2.Data[1]);
+  Result := (V1.X = V2.X) and
+            (V1.Y = V2.Y);
 end;
 
 class function TVector2Byte.Zero: TVector2Byte;
@@ -212,60 +227,63 @@ end;
 
 class operator TVector3Byte. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Byte): TVector3Byte;
 begin
-  Result.Data[0] := A.Data[0] + B.Data[0];
-  Result.Data[1] := A.Data[1] + B.Data[1];
-  Result.Data[2] := A.Data[2] + B.Data[2];
+  Result.X := A.X + B.X;
+  Result.Y := A.Y + B.Y;
+  Result.Z := A.Z + B.Z;
 end;
 
 class operator TVector3Byte. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Byte): TVector3Byte;
 begin
-  Result.Data[0] := A.Data[0] - B.Data[0];
-  Result.Data[1] := A.Data[1] - B.Data[1];
-  Result.Data[2] := A.Data[2] - B.Data[2];
+  Result.X := A.X - B.X;
+  Result.Y := A.Y - B.Y;
+  Result.Z := A.Z - B.Z;
 end;
 
 class operator TVector3Byte. {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Byte): TVector3Byte;
 begin
-  Result.Data[0] := - V.Data[0];
-  Result.Data[1] := - V.Data[1];
-  Result.Data[2] := - V.Data[2];
+  Result.X := - V.X;
+  Result.Y := - V.Y;
+  Result.Z := - V.Z;
 end;
 
 function TVector3Byte.ToString: string;
 begin
-  Result := Format('%d %d %d', [Data[0], Data[1], Data[2]]);
+  Result := Format('%d %d %d', [X, Y, Z]);
 end;
 
 function TVector3Byte.GetItems(const Index: TIndex): Byte;
 begin
-  Result := Data[Index];
+  case Index of
+    0: Result := X;
+    1: Result := Y;
+    2: Result := Z;
+    {$ifndef FPC} else raise EInternalError.Create(202202119); {$endif}
+  end;
 end;
 
 procedure TVector3Byte.SetItems(const Index: TIndex; const Value: Byte);
 begin
-  Data[Index] := Value;
-end;
-
-function TVector3Byte.GetItemsInt(const Index: Integer): Byte;
-begin
-  Result := Data[Index];
-end;
-
-procedure TVector3Byte.SetItemsInt(const Index: Integer; const Value: Byte);
-begin
-  Data[Index] := Value;
+  case Index of
+    0: X := Value;
+    1: Y := Value;
+    2: Z := Value;
+    {$ifndef FPC} else raise EInternalError.Create(2022021110); {$endif}
+  end;
 end;
 
 function TVector3Byte.IsZero: boolean;
 begin
-  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+  Result :=
+    (X = 0) and
+    (Y = 0) and
+    (Z = 0);
 end;
 
 class function TVector3Byte.Equals(const V1, V2: TVector3Byte): boolean;
 begin
-  Result := (V1.Data[0] = V2.Data[0]) and
-            (V1.Data[1] = V2.Data[1]) and
-            (V1.Data[2] = V2.Data[2]);
+  Result := (V1.X = V2.X) and
+            (V1.Y = V2.Y) and
+            (V1.Z = V2.Z);
 end;
 
 class function TVector3Byte.Zero: TVector3Byte;
@@ -277,64 +295,70 @@ end;
 
 class operator TVector4Byte. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Byte): TVector4Byte;
 begin
-  Result.Data[0] := A.Data[0] + B.Data[0];
-  Result.Data[1] := A.Data[1] + B.Data[1];
-  Result.Data[2] := A.Data[2] + B.Data[2];
-  Result.Data[3] := A.Data[3] + B.Data[3];
+  Result.X := A.X + B.X;
+  Result.Y := A.Y + B.Y;
+  Result.Z := A.Z + B.Z;
+  Result.W := A.W + B.W;
 end;
 
 class operator TVector4Byte. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Byte): TVector4Byte;
 begin
-  Result.Data[0] := A.Data[0] - B.Data[0];
-  Result.Data[1] := A.Data[1] - B.Data[1];
-  Result.Data[2] := A.Data[2] - B.Data[2];
-  Result.Data[3] := A.Data[3] - B.Data[3];
+  Result.X := A.X - B.X;
+  Result.Y := A.Y - B.Y;
+  Result.Z := A.Z - B.Z;
+  Result.W := A.W - B.W;
 end;
 
 class operator TVector4Byte. {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Byte): TVector4Byte;
 begin
-  Result.Data[0] := - V.Data[0];
-  Result.Data[1] := - V.Data[1];
-  Result.Data[2] := - V.Data[2];
-  Result.Data[3] := - V.Data[3];
+  Result.X := - V.X;
+  Result.Y := - V.Y;
+  Result.Z := - V.Z;
+  Result.W := - V.W;
 end;
 
 function TVector4Byte.ToString: string;
 begin
-  Result := Format('%d %d %d %d', [Data[0], Data[1], Data[2], Data[3]]);
+  Result := Format('%d %d %d %d', [X, Y, Z, W]);
 end;
 
 function TVector4Byte.GetItems(const Index: TIndex): Byte;
 begin
-  Result := Data[Index];
+  case Index of
+    0: Result := X;
+    1: Result := Y;
+    2: Result := Z;
+    3: Result := W;
+    {$ifndef FPC} else raise EInternalError.Create(2022021111); {$endif}
+  end;
 end;
 
 procedure TVector4Byte.SetItems(const Index: TIndex; const Value: Byte);
 begin
-  Data[Index] := Value;
-end;
-
-function TVector4Byte.GetItemsInt(const Index: Integer): Byte;
-begin
-  Result := Data[Index];
-end;
-
-procedure TVector4Byte.SetItemsInt(const Index: Integer; const Value: Byte);
-begin
-  Data[Index] := Value;
+  case Index of
+    0: X := Value;
+    1: Y := Value;
+    2: Z := Value;
+    3: W := Value;
+    {$ifndef FPC} else raise EInternalError.Create(2022021112); {$endif}
+  end;
 end;
 
 function TVector4Byte.IsZero: boolean;
 begin
-  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+  Result :=
+    (X = 0) and
+    (Y = 0) and
+    (Z = 0) and
+    (W = 0);
 end;
 
 class function TVector4Byte.Equals(const V1, V2: TVector4Byte): boolean;
 begin
-  Result := (V1.Data[0] = V2.Data[0]) and
-            (V1.Data[1] = V2.Data[1]) and
-            (V1.Data[2] = V2.Data[2]) and
-            (V1.Data[3] = V2.Data[3]);
+  Result := (V1.X = V2.X) and
+            (V1.Y = V2.Y) and
+            (V1.Z = V2.Z) and
+            (V1.W = V2.W);
 end;
 
 class function TVector4Byte.Zero: TVector4Byte;
@@ -346,86 +370,86 @@ end;
 
 function Vector2Byte(const X, Y: Byte): TVector2Byte;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
+  Result.X := X;
+  Result.Y := Y;
 end;
 
 function Vector3Byte(const X, Y, Z: Byte): TVector3Byte;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
-  Result.Data[2] := Z;
+  Result.X := X;
+  Result.Y := Y;
+  Result.Z := Z;
 end;
 
 function Vector4Byte(const X, Y, Z, W: Byte): TVector4Byte;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
-  Result.Data[2] := Z;
-  Result.Data[3] := W;
+  Result.X := X;
+  Result.Y := Y;
+  Result.Z := Z;
+  Result.W := W;
 end;
 
 function Vector2Byte(const V: TVector2): TVector2Byte;
 begin
-  Result.Data[0] := Clamped(Round(V.Data[0] * 255), Low(Byte), High(Byte));
-  Result.Data[1] := Clamped(Round(V.Data[1] * 255), Low(Byte), High(Byte));
+  Result.X := Clamped(Round(V.X * 255), Low(Byte), High(Byte));
+  Result.Y := Clamped(Round(V.Y * 255), Low(Byte), High(Byte));
 end;
 
 function Vector3Byte(const V: TVector3): TVector3Byte;
 begin
-  Result.Data[0] := Clamped(Round(V.Data[0] * 255), Low(Byte), High(Byte));
-  Result.Data[1] := Clamped(Round(V.Data[1] * 255), Low(Byte), High(Byte));
-  Result.Data[2] := Clamped(Round(V.Data[2] * 255), Low(Byte), High(Byte));
+  Result.X := Clamped(Round(V.X * 255), Low(Byte), High(Byte));
+  Result.Y := Clamped(Round(V.Y * 255), Low(Byte), High(Byte));
+  Result.Z := Clamped(Round(V.Z * 255), Low(Byte), High(Byte));
 end;
 
 function Vector4Byte(const V: TVector4): TVector4Byte;
 begin
-  Result.Data[0] := Clamped(Round(V.Data[0] * 255), Low(Byte), High(Byte));
-  Result.Data[1] := Clamped(Round(V.Data[1] * 255), Low(Byte), High(Byte));
-  Result.Data[2] := Clamped(Round(V.Data[2] * 255), Low(Byte), High(Byte));
-  Result.Data[3] := Clamped(Round(V.Data[3] * 255), Low(Byte), High(Byte));
+  Result.X := Clamped(Round(V.X * 255), Low(Byte), High(Byte));
+  Result.Y := Clamped(Round(V.Y * 255), Low(Byte), High(Byte));
+  Result.Z := Clamped(Round(V.Z * 255), Low(Byte), High(Byte));
+  Result.W := Clamped(Round(V.W * 255), Low(Byte), High(Byte));
 end;
 
 function Vector2(const V: TVector2Byte): TVector2;
 begin
-  Result.Data[0] := V.Data[0] / 255;
-  Result.Data[1] := V.Data[1] / 255;
+  Result.X := V.X / 255;
+  Result.Y := V.Y / 255;
 end;
 
 function Vector3(const V: TVector3Byte): TVector3;
 begin
-  Result.Data[0] := V.Data[0] / 255;
-  Result.Data[1] := V.Data[1] / 255;
-  Result.Data[2] := V.Data[2] / 255;
+  Result.X := V.X / 255;
+  Result.Y := V.Y / 255;
+  Result.Z := V.Z / 255;
 end;
 
 function Vector4(const V: TVector4Byte): TVector4;
 begin
-  Result.Data[0] := V.Data[0] / 255;
-  Result.Data[1] := V.Data[1] / 255;
-  Result.Data[2] := V.Data[2] / 255;
-  Result.Data[3] := V.Data[3] / 255;
+  Result.X := V.X / 255;
+  Result.Y := V.Y / 255;
+  Result.Z := V.Z / 255;
+  Result.W := V.W / 255;
 end;
 
 function Lerp(const A: Single; const V1, V2: TVector2Byte): TVector2Byte;
 begin
-  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Byte));
-  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Byte));
+  Result.X := Clamped(Round(V1.X + A * (V2.X - V1.X)), 0, High(Byte));
+  Result.Y := Clamped(Round(V1.Y + A * (V2.Y - V1.Y)), 0, High(Byte));
 end;
 
 function Lerp(const A: Single; const V1, V2: TVector3Byte): TVector3Byte;
 begin
-  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Byte));
-  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Byte));
-  Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), 0, High(Byte));
+  Result.X := Clamped(Round(V1.X + A * (V2.X - V1.X)), 0, High(Byte));
+  Result.Y := Clamped(Round(V1.Y + A * (V2.Y - V1.Y)), 0, High(Byte));
+  Result.Z := Clamped(Round(V1.Z + A * (V2.Z - V1.Z)), 0, High(Byte));
 end;
 
 function Lerp(const A: Single; const V1, V2: TVector4Byte): TVector4Byte;
 begin
-  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Byte));
-  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Byte));
-  Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), 0, High(Byte));
-  Result.Data[3] := Clamped(Round(V1.Data[3] + A * (V2.Data[3] - V1.Data[3])), 0, High(Byte));
+  Result.X := Clamped(Round(V1.X + A * (V2.X - V1.X)), 0, High(Byte));
+  Result.Y := Clamped(Round(V1.Y + A * (V2.Y - V1.Y)), 0, High(Byte));
+  Result.Z := Clamped(Round(V1.Z + A * (V2.Z - V1.Z)), 0, High(Byte));
+  Result.W := Clamped(Round(V1.W + A * (V2.W - V1.W)), 0, High(Byte));
 end;
 
 {$endif read_implementation}

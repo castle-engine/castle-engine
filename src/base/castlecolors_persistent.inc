@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -110,17 +110,17 @@ end;
 
 function TCastleColorRGBPersistent.GetRed: Single;
 begin
-  Result := Value.Data[0];
+  Result := Value.X;
 end;
 
 function TCastleColorRGBPersistent.GetGreen: Single;
 begin
-  Result := Value.Data[1];
+  Result := Value.Y;
 end;
 
 function TCastleColorRGBPersistent.GetBlue: Single;
 begin
-  Result := Value.Data[2];
+  Result := Value.Z;
 end;
 
 procedure TCastleColorRGBPersistent.SetRed(const AValue: Single);
@@ -128,7 +128,7 @@ var
   V: TCastleColorRGB;
 begin
   V := Value;
-  V.Data[0] := AValue;
+  V.X := AValue;
   Value := V;
 end;
 
@@ -137,7 +137,7 @@ var
   V: TCastleColorRGB;
 begin
   V := Value;
-  V.Data[1] := AValue;
+  V.Y := AValue;
   Value := V;
 end;
 
@@ -146,23 +146,23 @@ var
   V: TCastleColorRGB;
 begin
   V := Value;
-  V.Data[2] := AValue;
+  V.Z := AValue;
   Value := V;
 end;
 
 function TCastleColorRGBPersistent.RedIsStored: Boolean;
 begin
-  Result := Value.Data[0] <> InternalDefaultValue.Data[0];
+  Result := Value.X <> InternalDefaultValue.X;
 end;
 
 function TCastleColorRGBPersistent.GreenIsStored: Boolean;
 begin
-  Result := Value.Data[1] <> InternalDefaultValue.Data[1];
+  Result := Value.Y <> InternalDefaultValue.Y;
 end;
 
 function TCastleColorRGBPersistent.BlueIsStored: Boolean;
 begin
-  Result := Value.Data[2] <> InternalDefaultValue.Data[2];
+  Result := Value.Z <> InternalDefaultValue.Z;
 end;
 
 function TCastleColorRGBPersistent.HasDefaultValue: Boolean;
@@ -184,22 +184,22 @@ end;
 
 function TCastleColorPersistent.GetRed: Single;
 begin
-  Result := Value.Data[0];
+  Result := Value.X;
 end;
 
 function TCastleColorPersistent.GetGreen: Single;
 begin
-  Result := Value.Data[1];
+  Result := Value.Y;
 end;
 
 function TCastleColorPersistent.GetBlue: Single;
 begin
-  Result := Value.Data[2];
+  Result := Value.Z;
 end;
 
 function TCastleColorPersistent.GetAlpha: Single;
 begin
-  Result := Value.Data[3];
+  Result := Value.W;
 end;
 
 procedure TCastleColorPersistent.SetRed(const AValue: Single);
@@ -207,7 +207,7 @@ var
   V: TCastleColor;
 begin
   V := Value;
-  V.Data[0] := AValue;
+  V.X := AValue;
   Value := V;
 end;
 
@@ -216,7 +216,7 @@ var
   V: TCastleColor;
 begin
   V := Value;
-  V.Data[1] := AValue;
+  V.Y := AValue;
   Value := V;
 end;
 
@@ -225,7 +225,7 @@ var
   V: TCastleColor;
 begin
   V := Value;
-  V.Data[2] := AValue;
+  V.Z := AValue;
   Value := V;
 end;
 
@@ -234,28 +234,28 @@ var
   V: TCastleColor;
 begin
   V := Value;
-  V.Data[3] := AValue;
+  V.W := AValue;
   Value := V;
 end;
 
 function TCastleColorPersistent.RedIsStored: Boolean;
 begin
-  Result := Value.Data[0] <> InternalDefaultValue.Data[0];
+  Result := Value.X <> InternalDefaultValue.X;
 end;
 
 function TCastleColorPersistent.GreenIsStored: Boolean;
 begin
-  Result := Value.Data[1] <> InternalDefaultValue.Data[1];
+  Result := Value.Y <> InternalDefaultValue.Y;
 end;
 
 function TCastleColorPersistent.BlueIsStored: Boolean;
 begin
-  Result := Value.Data[2] <> InternalDefaultValue.Data[2];
+  Result := Value.Z <> InternalDefaultValue.Z;
 end;
 
 function TCastleColorPersistent.AlphaIsStored: Boolean;
 begin
-  Result := Value.Data[3] <> InternalDefaultValue.Data[3];
+  Result := Value.W <> InternalDefaultValue.W;
 end;
 
 function TCastleColorPersistent.HasDefaultValue: Boolean;

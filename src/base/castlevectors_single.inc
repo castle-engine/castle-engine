@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2020 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -769,23 +769,23 @@ function SmoothTowards(const Source, Target: TVector3;
 
 function SwapEndian(const V: TVector2): TVector2;
 begin
-  Result.Data[0] := SwapEndian(V.Data[0]);
-  Result.Data[1] := SwapEndian(V.Data[1]);
+  Result.X := SwapEndian(V.X);
+  Result.Y := SwapEndian(V.Y);
 end;
 
 function SwapEndian(const V: TVector3): TVector3;
 begin
-  Result.Data[0] := SwapEndian(V.Data[0]);
-  Result.Data[1] := SwapEndian(V.Data[1]);
-  Result.Data[2] := SwapEndian(V.Data[2]);
+  Result.X := SwapEndian(V.X);
+  Result.Y := SwapEndian(V.Y);
+  Result.Z := SwapEndian(V.Z);
 end;
 
 function SwapEndian(const V: TVector4): TVector4;
 begin
-  Result.Data[0] := SwapEndian(V.Data[0]);
-  Result.Data[1] := SwapEndian(V.Data[1]);
-  Result.Data[2] := SwapEndian(V.Data[2]);
-  Result.Data[3] := SwapEndian(V.Data[3]);
+  Result.X := SwapEndian(V.X);
+  Result.Y := SwapEndian(V.Y);
+  Result.Z := SwapEndian(V.Z);
+  Result.W := SwapEndian(V.W);
 end;
 
 function NtoLE(const V: TVector2): TVector2;
@@ -927,12 +927,12 @@ procedure NormalizePlaneVar(var V: TVector4);
 var
   Len: Single;
 begin
-  Len := Sqrt( Sqr(V.Data[0]) + Sqr(V.Data[1]) + Sqr(V.Data[2]) );
+  Len := Sqrt( Sqr(V.X) + Sqr(V.Y) + Sqr(V.Z) );
   Len := 1 / Len;
-  V.Data[0] := V.Data[0] * Len;
-  V.Data[1] := V.Data[1] * Len;
-  V.Data[2] := V.Data[2] * Len;
-  V.Data[3] := V.Data[3] * Len;
+  V.X := V.X * Len;
+  V.Y := V.Y * Len;
+  V.Z := V.Z * Len;
+  V.W := V.W * Len;
 end;
 
 function CosAngleBetweenVectors(const V1, V2: TVector3): Single;
@@ -1026,9 +1026,9 @@ begin
   if L <> 0 then
   begin
     L := 1 / L;
-    X := Axis.Data[0] * L;
-    Y := Axis.Data[1] * L;
-    Z := Axis.Data[2] * L;
+    X := Axis.X * L;
+    Y := Axis.Y * L;
+    Z := Axis.Z * L;
   end else
   begin
     { In case vector has zero length (so it's just zero),
@@ -1038,17 +1038,17 @@ begin
     Exit(Point);
   end;
 
-  Result.Data[0] := (CosAngle + (1 - CosAngle) * x * x)     * Point.Data[0]
-                 + ((1 - CosAngle) * x * y - z * SinAngle)  * Point.Data[1]
-                 + ((1 - CosAngle) * x * z + y * SinAngle)  * Point.Data[2];
+  Result.X := (CosAngle + (1 - CosAngle) * x * x)     * Point.X
+            + ((1 - CosAngle) * x * y - z * SinAngle)  * Point.Y
+            + ((1 - CosAngle) * x * z + y * SinAngle)  * Point.Z;
 
-  Result.Data[1] := ((1 - CosAngle) * x * y + z * SinAngle)  * Point.Data[0]
-                 + (CosAngle + (1 - CosAngle) * y * y)       * Point.Data[1]
-                 + ((1 - CosAngle) * y * z - x * SinAngle)   * Point.Data[2];
+  Result.Y := ((1 - CosAngle) * x * y + z * SinAngle)  * Point.X
+            + (CosAngle + (1 - CosAngle) * y * y)       * Point.Y
+            + ((1 - CosAngle) * y * z - x * SinAngle)   * Point.Z;
 
-  Result.Data[2] := ((1 - CosAngle) * x * z - y * SinAngle)  * Point.Data[0]
-                 + ((1 - CosAngle) * y * z + x * SinAngle)   * Point.Data[1]
-                 + (CosAngle + (1 - CosAngle) * z * z)       * Point.Data[2];
+  Result.Z := ((1 - CosAngle) * x * z - y * SinAngle)  * Point.X
+            + ((1 - CosAngle) * y * z + x * SinAngle)   * Point.Y
+            + (CosAngle + (1 - CosAngle) * z * z)       * Point.Z;
 end;
 
 function RotatePointAroundAxis90(const Point: TVector3; const Axis: TVector3): TVector3;
@@ -1063,26 +1063,26 @@ begin
   if L <> 0 then
   begin
     L := 1 / L;
-    X := Axis.Data[0] * L;
-    Y := Axis.Data[1] * L;
-    Z := Axis.Data[2] * L;
+    X := Axis.X * L;
+    Y := Axis.Y * L;
+    Z := Axis.Z * L;
   end else
   begin
     WarningZeroVectorNonZeroAngle;
     Exit(Point);
   end;
 
-  Result.Data[0] := (    x * x) * Point.Data[0]
-                  + (x * y - z) * Point.Data[1]
-                  + (x * z + y) * Point.Data[2];
+  Result.X := (    x * x) * Point.X
+            + (x * y - z) * Point.Y
+            + (x * z + y) * Point.Z;
 
-  Result.Data[1] := (x * y + z) * Point.Data[0]
-                  + (    y * y) * Point.Data[1]
-                  + (y * z - x) * Point.Data[2];
+  Result.Y := (x * y + z) * Point.X
+            + (    y * y) * Point.Y
+            + (y * z - x) * Point.Z;
 
-  Result.Data[2] := (x * z - y) * Point.Data[0]
-                  + (y * z + x) * Point.Data[1]
-                  + (    z * z) * Point.Data[2];
+  Result.Z := (x * z - y) * Point.X
+            + (y * z + x) * Point.Y
+            + (    z * z) * Point.Z;
 end;
 
 function RotatePointAroundAxisMinus90(const Point: TVector3; const Axis: TVector3): TVector3;
@@ -1097,39 +1097,39 @@ begin
   if L <> 0 then
   begin
     L := 1 / L;
-    X := Axis.Data[0] * L;
-    Y := Axis.Data[1] * L;
-    Z := Axis.Data[2] * L;
+    X := Axis.X * L;
+    Y := Axis.Y * L;
+    Z := Axis.Z * L;
   end else
   begin
     WarningZeroVectorNonZeroAngle;
     Exit(Point);
   end;
 
-  Result.Data[0] := (    x * x) * Point.Data[0]
-                  + (x * y + z) * Point.Data[1]
-                  + (x * z - y) * Point.Data[2];
+  Result.X := (    x * x) * Point.X
+            + (x * y + z) * Point.Y
+            + (x * z - y) * Point.Z;
 
-  Result.Data[1] := (x * y - z) * Point.Data[0]
-                  + (    y * y) * Point.Data[1]
-                  + (y * z + x) * Point.Data[2];
+  Result.Y := (x * y - z) * Point.X
+            + (    y * y) * Point.Y
+            + (y * z + x) * Point.Z;
 
-  Result.Data[2] := (x * z + y) * Point.Data[0]
-                  + (y * z - x) * Point.Data[1]
-                  + (    z * z) * Point.Data[2];
+  Result.Z := (x * z + y) * Point.X
+            + (y * z - x) * Point.Y
+            + (    z * z) * Point.Z;
 end;
 
 function RotatePointAroundAxis(const AxisAngle: TVector4; const Point: TVector3): TVector3;
 var
   Axis: TVector3 absolute AxisAngle;
 begin
-  Result := RotatePointAroundAxisRad(AxisAngle[3], Point, Axis);
+  Result := RotatePointAroundAxisRad(AxisAngle.W, Point, Axis);
 end;
 
 function MaxVectorCoord(const V: TVector2): integer;
 begin
   Result := 0;
-  if V.Data[1] > V.Data[Result] then Result := 1;
+  if V.Y > V[Result] then Result := 1;
 end;
 
 function MaxVectorCoord(const V: TVector3): T3DAxis;
@@ -1138,29 +1138,29 @@ begin
   { order of comparisons is important. We start from 0, then 1 and 2,
     and change only when differ (>, not just >=). This way we
     guarantee that when values are equal, lower coordinate wins. }
-  if V.Data[1] > V.Data[Result] then Result := 1;
-  if V.Data[2] > V.Data[Result] then Result := 2;
+  if V.Y > V[Result] then Result := 1;
+  if V.Z > V[Result] then Result := 2;
 end;
 
 function MinVectorCoord(const V: TVector3): T3DAxis;
 begin
   Result := 0;
-  if V.Data[1] < V.Data[Result] then Result := 1;
-  if V.Data[2] < V.Data[Result] then Result := 2;
+  if V.Y < V[Result] then Result := 1;
+  if V.Z < V[Result] then Result := 2;
 end;
 
 function MaxVectorCoord(const V: TVector4): integer;
 begin
   Result := 0;
-  if V.Data[1] > V.Data[Result] then Result := 1;
-  if V.Data[2] > V.Data[Result] then Result := 2;
-  if V.Data[3] > V.Data[Result] then Result := 3;
+  if V.Y > V[Result] then Result := 1;
+  if V.Z > V[Result] then Result := 2;
+  if V.W > V[Result] then Result := 3;
 end;
 
 function MaxAbsVectorCoord(const V: TVector2): integer;
 begin
   Result := 0;
-  if Abs(V.Data[1]) > Abs(V.Data[Result]) then Result := 1;
+  if Abs(V.Y) > Abs(V[Result]) then Result := 1;
 end;
 
 function MaxAbsVectorCoord(const V: TVector3): T3DAxis;
@@ -1168,9 +1168,9 @@ var
   Max, New: Single;
 begin
   Result := 0;
-  Max := Abs(V.Data[0]);
-  New := Abs(V.Data[1]); if New > Max then begin Result := 1; Max := New; end;
-  New := Abs(V.Data[2]); if New > Max then begin Result := 2; { Max := New; not needed anymore } end;
+  Max := Abs(V.X);
+  New := Abs(V.Y); if New > Max then begin Result := 1; Max := New; end;
+  New := Abs(V.Z); if New > Max then begin Result := 2; { Max := New; not needed anymore } end;
 end;
 
 function MaxAbsVectorCoord(const V: TVector4): integer;
@@ -1178,10 +1178,10 @@ var
   Max, New: Single;
 begin
   Result := 0;
-  Max := Abs(V.Data[0]);
-  New := Abs(V.Data[1]); if New > Max then begin Result := 1; Max := New; end;
-  New := Abs(V.Data[2]); if New > Max then begin Result := 2; Max := New; end;
-  New := Abs(V.Data[3]); if New > Max then begin Result := 3; { Max := New; not needed anymore } end;
+  Max := Abs(V.X);
+  New := Abs(V.Y); if New > Max then begin Result := 1; Max := New; end;
+  New := Abs(V.Z); if New > Max then begin Result := 2; Max := New; end;
+  New := Abs(V.W); if New > Max then begin Result := 3; { Max := New; not needed anymore } end;
 end;
 
 procedure SortAbsVectorCoord(const V: TVector3;
@@ -1189,10 +1189,10 @@ procedure SortAbsVectorCoord(const V: TVector3;
 begin
   Max := MaxAbsVectorCoord(V);
   case Max of
-    0: if Abs(V.Data[1]) >= Abs(V.Data[2]) then begin Middle := 1; Min := 2; end else begin Middle := 2; Min := 1; end;
-    1: if Abs(V.Data[0]) >= Abs(V.Data[2]) then begin Middle := 0; Min := 2; end else begin Middle := 2; Min := 0; end;
+    0: if Abs(V.Y) >= Abs(V.Z) then begin Middle := 1; Min := 2; end else begin Middle := 2; Min := 1; end;
+    1: if Abs(V.X) >= Abs(V.Z) then begin Middle := 0; Min := 2; end else begin Middle := 2; Min := 0; end;
     else {2: }
-       if Abs(V.Data[0]) >= Abs(V.Data[1]) then begin Middle := 0; Min := 1; end else begin Middle := 1; Min := 0; end;
+       if Abs(V.X) >= Abs(V.Y) then begin Middle := 0; Min := 1; end else begin Middle := 1; Min := 0; end;
   end;
 end;
 
@@ -1249,108 +1249,108 @@ begin
   LineVector := TVector3.CrossProduct(Plane0Dir, Plane1Dir);
 
   NonZeroIndex := MaxAbsVectorCoord(LineVector);
-  if IsZero(LineVector.Data[NonZeroIndex]) then
+  if IsZero(LineVector[NonZeroIndex]) then
     raise EPlanesParallel.Create(
       'Unable to calculate intersection line of two planes ' +
       Plane0.ToRawString + ' and ' + Plane1.ToRawString + ' because ' +
       'planes are parallel');
 
-  { Since LineVector.Data[NonZeroIndex] <> 0, we know that we can find exactly
-    one point on this line by assuming that Point.Data[NonZeroIndex] = 0. }
-  Line0.Data[NonZeroIndex] := 0;
+  { Since LineVector[NonZeroIndex] <> 0, we know that we can find exactly
+    one point on this line by assuming that Point[NonZeroIndex] = 0. }
+  Line0.InternalData[NonZeroIndex] := 0;
   RestOf3DCoords(NonZeroIndex, Index1, Index2);
 
   { Now we must solve
-      Plane0.Data[Index1] * Line0.Data[Index1] + Plane0.Data[Index2] * Line0.Data[Index2] + Plane0.Data[3] = 0
-      Plane1.Data[Index1] * Line0.Data[Index1] + Plane1.Data[Index2] * Line0.Data[Index2] + Plane1.Data[3] = 0
-    We want to sum these two equations to eliminate Line0.Data[Index1]:
-      0                                 + Sum_Index2        * Line0.Data[Index2] + Sum_3        = 0
+      Plane0[Index1] * Line0[Index1] + Plane0[Index2] * Line0[Index2] + Plane0.W = 0
+      Plane1[Index1] * Line0[Index1] + Plane1[Index2] * Line0[Index2] + Plane1.W = 0
+    We want to sum these two equations to eliminate Line0[Index1]:
+                                         + Sum_Index2 *  Line0[Index2] + Sum_3   = 0
   }
-  if not IsZero(Plane0.Data[Index1]) then
+  if not IsZero(Plane0[Index1]) then
   begin
     PlaneWithNonZeroIndex1 := @Plane0;
-    PlaneMultiply := - Plane1.Data[Index1] / Plane0.Data[Index1];
-    Sum_Index2 := Plane0.Data[Index2] * PlaneMultiply + Plane1.Data[Index2];
-    Sum_3      := Plane0.Data[3]      * PlaneMultiply + Plane1.Data[3];
+    PlaneMultiply := - Plane1[Index1] / Plane0[Index1];
+    Sum_Index2 := Plane0[Index2] * PlaneMultiply + Plane1[Index2];
+    Sum_3      := Plane0.W      * PlaneMultiply + Plane1.W;
   end else
-  if not IsZero(Plane1.Data[Index1]) then
+  if not IsZero(Plane1[Index1]) then
   begin
     PlaneWithNonZeroIndex1 := @Plane1;
-    PlaneMultiply := - Plane0.Data[Index1] / Plane1.Data[Index1];
-    Sum_Index2 := Plane0.Data[Index2] + Plane1.Data[Index2] * PlaneMultiply;
-    Sum_3      := Plane0.Data[3]      + Plane1.Data[3]      * PlaneMultiply;
+    PlaneMultiply := - Plane0[Index1] / Plane1[Index1];
+    Sum_Index2 := Plane0[Index2] + Plane1[Index2] * PlaneMultiply;
+    Sum_3      := Plane0.W      + Plane1.W      * PlaneMultiply;
   end else
   begin
-    { If Plane0.Data[Index1] = Plane1.Data[Index1] = 0, this is simple.
-        Sum_Index2 := Plane0.Data[Index2] + Plane1.Data[Index2];
-        Sum_3      := Plane0.Data[3]      + Plane1.Data[3]     ;
+    { If Plane0[Index1] = Plane1[Index1] = 0, this is simple.
+        Sum_Index2 := Plane0[Index2] + Plane1[Index2];
+        Sum_3      := Plane0.W      + Plane1.W     ;
         PlaneWithNonZeroIndex1 := ???;
       But it's useless, because then I will not be able to calculate
-      Line0.Data[Index1] (after obtaining Line0.Data[Index2]).
+      Line0[Index1] (after obtaining Line0[Index2]).
       TODO -- some proof that this cannot happen for correct input ? }
     raise Exception.Create('Cannot calculate intersection line of two planes');
   end;
 
   { Now we know that
-      Sum_Index2 * Line0.Data[Index2] + Sum_3 = 0
-    Sum_Index2 must be <> 0, since we know that Line0.Data[Index2] must be uniquely
+      Sum_Index2 * Line0[Index2] + Sum_3 = 0
+    Sum_Index2 must be <> 0, since we know that Line0[Index2] must be uniquely
     determined ? Right ? TODO -- I'm not sure, how to prove this simply ?
   }
-  Line0.Data[Index2] := - Sum_3 / Sum_Index2;
+  Line0.InternalData[Index2] := - Sum_3 / Sum_Index2;
 
   { Note we have
-      PlaneWithNonZeroIndex1^.Data[Index1] * Line0.Data[Index1] +
-      PlaneWithNonZeroIndex1^.Data[Index2] * Line0.Data[Index2] +
-      PlaneWithNonZeroIndex1^.Data[3] = 0
-    All is known except Line0.Data[Index1],
-    PlaneWithNonZeroIndex1^.Data[Index1] is for sure <> 0. }
-  Line0.Data[Index1] := -
-    (PlaneWithNonZeroIndex1^.Data[Index2] * Line0.Data[Index2] +
-     PlaneWithNonZeroIndex1^.Data[3]) /
-    PlaneWithNonZeroIndex1^.Data[Index1];
+      PlaneWithNonZeroIndex1^[Index1] * Line0[Index1] +
+      PlaneWithNonZeroIndex1^[Index2] * Line0[Index2] +
+      PlaneWithNonZeroIndex1^.W = 0
+    All is known except Line0[Index1],
+    PlaneWithNonZeroIndex1^[Index1] is for sure <> 0. }
+  Line0.InternalData[Index1] := -
+    (PlaneWithNonZeroIndex1^[Index2] * Line0[Index2] +
+     PlaneWithNonZeroIndex1^.W) /
+    PlaneWithNonZeroIndex1^[Index1];
 end;
 
 function Lines2DIntersection(const Line0, Line1: TVector3): TVector2;
 var
   Ratio, Divide: Single;
 begin
-  { Only one from Line0.Data[0], Line0.Data[1] may be zero.
+  { Only one from Line0.X, Line0.Y may be zero.
     Take larger one for numerical stability. }
-  if Abs(Line0.Data[0]) > Abs(Line0.Data[1]) then
+  if Abs(Line0.X) > Abs(Line0.Y) then
   begin
-    Ratio := Line1.Data[0] / Line0.Data[0];
+    Ratio := Line1.X / Line0.X;
 
     { we have equations
-        Line0.Data[0] * x + Line0.Data[1] * y + Line0.Data[2] = 0
-        Line1.Data[0] * x + Line1.Data[1] * y + Line1.Data[2] = 0
+        Line0.X * x + Line0.Y * y + Line0.Z = 0
+        Line1.X * x + Line1.Y * y + Line1.Z = 0
       Multiply first equation by Ratio and subtract to 2nd one:
-        y * (Line0.Data[1] * Ratio - Line1.Data[1]) + Line0.Data[2] * Ratio - Line1.Data[2] = 0 }
-    Divide := Line0.Data[1] * Ratio - Line1.Data[1];
+        y * (Line0.Y * Ratio - Line1.Y) + Line0.Z * Ratio - Line1.Z = 0 }
+    Divide := Line0.Y * Ratio - Line1.Y;
     if Divide = 0 then
       raise ELinesParallel.Create('Lines are parallel, Lines2DIntersection not possible');
-    Result.Data[1] := - (Line0.Data[2] * Ratio - Line1.Data[2]) / Divide;
-    Result.Data[0] := - (Line0.Data[1] * Result.Data[1] + Line0.Data[2]) / Line0.Data[0];
+    Result.Y := - (Line0.Z * Ratio - Line1.Z) / Divide;
+    Result.X := - (Line0.Y * Result.Y + Line0.Z) / Line0.X;
   end else
   begin
-    Ratio := Line1.Data[1] / Line0.Data[1];
+    Ratio := Line1.Y / Line0.Y;
 
     { we have equations
-        Line0.Data[0] * x + Line0.Data[1] * y + Line0.Data[2] = 0
-        Line1.Data[0] * x + Line1.Data[1] * y + Line1.Data[2] = 0
+        Line0.X * x + Line0.Y * y + Line0.Z = 0
+        Line1.X * x + Line1.Y * y + Line1.Z = 0
       Multiply first equation by Ratio and subtract to 2nd one:
-        x * (Line0.Data[0] * Ratio - Line1.Data[0]) + Line0.Data[2] * Ratio - Line1.Data[2] = 0 }
-    Divide := Line0.Data[0] * Ratio - Line1.Data[0];
+        x * (Line0.X * Ratio - Line1.X) + Line0.Z * Ratio - Line1.Z = 0 }
+    Divide := Line0.X * Ratio - Line1.X;
     if Divide = 0 then
       raise ELinesParallel.Create('Lines are parallel, Lines2DIntersection not possible');
-    Result.Data[0] := - (Line0.Data[2] * Ratio - Line1.Data[2]) / Divide;
-    Result.Data[1] := - (Line0.Data[0] * Result.Data[0] + Line0.Data[2]) / Line0.Data[1];
+    Result.X := - (Line0.Z * Ratio - Line1.Z) / Divide;
+    Result.Y := - (Line0.X * Result.X + Line0.Z) / Line0.Y;
   end;
 
   { tests: (checking should write zeros)
   Writeln('intersection 2d: ', Line0.ToString, ' ',
     Line1.ToString, ' gives ', Result.ToString, ' checking: ',
-    FloatToNiceStr(Line0.Data[0] * Result.Data[0] + Line0.Data[1] * Result.Data[1] + Line0.Data[2]), ' ',
-    FloatToNiceStr(Line1.Data[0] * Result.Data[0] + Line1.Data[1] * Result.Data[1] + Line1.Data[2])); }
+    FloatToNiceStr(Line0.X * Result.X + Line0.Y * Result.Y + Line0.Z), ' ',
+    FloatToNiceStr(Line1.X * Result.X + Line1.Y * Result.Y + Line1.Z)); }
 end;
 
 function ThreePlanesIntersectionPoint(
@@ -1375,43 +1375,43 @@ begin
     Math says: old plane equation is OK for point (x, y, z) if and only if
     new plane equation is OK for (x, y, z) + Move. Therefore
       Ax + By + Cz + D = 0 iff
-      A * (x + Move.Data[0]) + B * (y + Move.Data[1]) + C * (z + Move.Data[2]) + NewD = 0
+      A * (x + Move.X) + B * (y + Move.Y) + C * (z + Move.Z) + NewD = 0
     The 2nd equation can be rewritten as
-      Ax + By + Cz + NewD + A * Move.Data[0] + B * Move.Data[1] + C * Move.Data[2] = 0
+      Ax + By + Cz + NewD + A * Move.X + B * Move.Y + C * Move.Z = 0
     so
-      NewD = D - (A * Move.Data[0] + B * Move.Data[1] + C * Move.Data[2]);
+      NewD = D - (A * Move.X + B * Move.Y + C * Move.Z);
   }
 
   Result := Plane;
-  Result.Data[3] := Result.Data[3] - (
-    Plane.Data[0] * Move.Data[0] +
-    Plane.Data[1] * Move.Data[1] +
-    Plane.Data[2] * Move.Data[2]);
+  Result.W := Result.W - (
+    Plane.X * Move.X +
+    Plane.Y * Move.Y +
+    Plane.Z * Move.Z);
 end;
 
 procedure PlaneMoveVar(var Plane: TVector4; const Move: TVector3);
 begin
-  Plane.Data[3] := Plane.Data[3] - (
-    Plane.Data[0] * Move.Data[0] +
-    Plane.Data[1] * Move.Data[1] +
-    Plane.Data[2] * Move.Data[2]);
+  Plane.W := Plane.W - (
+    Plane.X * Move.X +
+    Plane.Y * Move.Y +
+    Plane.Z * Move.Z);
 end;
 
 function PlaneAntiMove(const Plane: TVector4;
   const Move: TVector3): TVector4;
 begin
   { Like PlaneMove, but Move vector is negated.
-    So we just do "Result.Data[3] +=" instead of "Result.Data[3] -=". }
+    So we just do "Result.W +=" instead of "Result.W -=". }
 
   Result := Plane;
-  Result.Data[3] := Result.Data[3] + (
+  Result.W := Result.W + (
     { Use parenthesis to group this expression, this way it's calculated
       in a similar order to PlaneMove, which increses it's numerical
       stability. Confirmed by TTestCastleVectors.TestPlaneMoveRandom,
       if you have these parenthesis you can have smaller epsilon to compare). }
-    Plane.Data[0] * Move.Data[0] +
-    Plane.Data[1] * Move.Data[1] +
-    Plane.Data[2] * Move.Data[2]);
+    Plane.X * Move.X +
+    Plane.Y * Move.Y +
+    Plane.Z * Move.Z);
 end;
 
 function VectorsSamePlaneDirections(const V1, V2: TVector3;
@@ -1439,8 +1439,8 @@ function PointsSamePlaneSides(const p1, p2: TVector3; const Plane: TVector4): bo
 var
   p1Side, p2Side: Single;
 begin
-  p1Side := p1.Data[0]*Plane.Data[0] + p1.Data[1]*Plane.Data[1] + p1.Data[2]*Plane.Data[2] + Plane.Data[3];
-  p2Side := p2.Data[0]*Plane.Data[0] + p2.Data[1]*Plane.Data[1] + p2.Data[2]*Plane.Data[2] + Plane.Data[3];
+  p1Side := p1.X*Plane.X + p1.Y*Plane.Y + p1.Z*Plane.Z + Plane.W;
+  p2Side := p2.X*Plane.X + p2.Y*Plane.Y + p2.Z*Plane.Z + Plane.W;
   Result := IsZero(p1Side) or IsZero(p2Side) or ((p1Side > 0) = (p2Side > 0));
 end;
 
@@ -1455,25 +1455,25 @@ end;
 function PointsDistance(const V1, V2: TVector2): Single;
 begin
   { Result := Sqrt(PointsDistanceSqr(V1, V2));, expanded for speed }
-  Result := Sqrt( Sqr(V2.Data[0]-V1.Data[0]) + Sqr(V2.Data[1]-V1.Data[1]) );
+  Result := Sqrt( Sqr(V2.X-V1.X) + Sqr(V2.Y-V1.Y) );
 end;
 
 function PointsDistance(const V1, V2: TVector3): Single;
 begin
   { Result := Sqrt(PointsDistanceSqr(V1, V2));, expanded for speed }
-  Result := Sqrt( Sqr(V2.Data[0]-V1.Data[0]) + Sqr(V2.Data[1]-V1.Data[1]) + Sqr(V2.Data[2]-V1.Data[2]) );
+  Result := Sqrt( Sqr(V2.X-V1.X) + Sqr(V2.Y-V1.Y) + Sqr(V2.Z-V1.Z) );
 end;
 
 function PointsDistanceSqr(const V1, V2: TVector3): Single;
 begin
   { Result := (v2 - v1).LengthSqr;, expanded for speed }
-  Result := Sqr(V2.Data[0]-V1.Data[0]) + Sqr(V2.Data[1]-V1.Data[1]) + Sqr(V2.Data[2]-V1.Data[2]);
+  Result := Sqr(V2.X-V1.X) + Sqr(V2.Y-V1.Y) + Sqr(V2.Z-V1.Z);
 end;
 
 function PointsDistanceSqr(const V1, V2: TVector2): Single;
 begin
   { Result := (v2 - v1).LengthSqr;, expanded for speed }
-  Result := Sqr(V2.Data[0]-V1.Data[0]) + Sqr(V2.Data[1]-V1.Data[1]);
+  Result := Sqr(V2.X-V1.X) + Sqr(V2.Y-V1.Y);
 end;
 
 function PointsDistance2DSqr(const V1, V2: TVector3; const IgnoreIndex: Integer): Single;
@@ -1482,9 +1482,9 @@ begin
   Result := 0; // Make the Delphi Compiler Happy
 {$ENDIF}
   case IgnoreIndex of
-    0: Result := Sqr(V2.Data[1] - V1.Data[1]) + Sqr(V2.Data[2] - V1.Data[2]);
-    1: Result := Sqr(V2.Data[2] - V1.Data[2]) + Sqr(V2.Data[0] - V1.Data[0]);
-    2: Result := Sqr(V2.Data[0] - V1.Data[0]) + Sqr(V2.Data[1] - V1.Data[1]);
+    0: Result := Sqr(V2.Y - V1.Y) + Sqr(V2.Z - V1.Z);
+    1: Result := Sqr(V2.Z - V1.Z) + Sqr(V2.X - V1.X);
+    2: Result := Sqr(V2.X - V1.X) + Sqr(V2.Y - V1.Y);
     else PointsDistance2DSqr_InvalidIgnoreIndex;
   end;
 end;
@@ -1506,12 +1506,12 @@ var
   Scale: Single;
 begin
   mc := MaxAbsVectorCoord(v1);
-  if IsZero(V1.Data[mc]) then Exit(true);
+  if IsZero(V1[mc]) then Exit(true);
 
-  Scale := V2.Data[mc] / V1.Data[mc];
+  Scale := V2[mc] / V1[mc];
   RestOf3DCoords(mc, c1, c2);
-  Result := SameValue(V1.Data[c1] * Scale, V2.Data[c1]) and
-            SameValue(V1.Data[c2] * Scale, V2.Data[c2]);
+  Result := SameValue(V1[c1] * Scale, V2[c1]) and
+            SameValue(V1[c2] * Scale, V2[c2]);
 end;
 
 procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3;
@@ -1557,28 +1557,28 @@ end;
 function AnyOrthogonalVector(const V: TVector3): TVector3;
 begin
   { This uses a simple trick to make an orthogonal vector:
-    if you take @code(Result := (V.Data[1], -V.Data[0], 0)) then the dot product
+    if you take @code(Result := (V.Y, -V.X, 0)) then the dot product
     between the Result and V is zero, so they are orthogonal.
     There's also a small check needed to use a similar but different version
-    when the only non-zero component of V is V.Data[2]. }
+    when the only non-zero component of V is V.Z. }
 
-  if IsZero(V.Data[0]) and IsZero(V.Data[1]) then
+  if IsZero(V.X) and IsZero(V.Y) then
   begin
-    Result.Data[0] := 0;
-    Result.Data[1] := V.Data[2];
-    Result.Data[2] := -V.Data[1];
+    Result.X := 0;
+    Result.Y := V.Z;
+    Result.Z := -V.Y;
   end else
   begin
-    Result.Data[0] := V.Data[1];
-    Result.Data[1] := -V.Data[0];
-    Result.Data[2] := 0;
+    Result.X := V.Y;
+    Result.Y := -V.X;
+    Result.Z := 0;
   end;
 end;
 
 function AnyOrthogonalVector(const V: TVector2): TVector2;
 begin
-  Result.Data[0] :=  V.Data[1];
-  Result.Data[1] := -V.Data[0];
+  Result.X :=  V.Y;
+  Result.Y := -V.X;
 end;
 
 function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): boolean;
@@ -1591,7 +1591,7 @@ end;
 function IsLineParallelToSimplePlane(const lineVector: TVector3;
   const PlaneConstCoord: T3DAxis): boolean;
 begin
-  Result := IsZero(lineVector.Data[PlaneConstCoord]);
+  Result := IsZero(lineVector[PlaneConstCoord]);
 end;
 
 function AreParallelVectorsSameDirection(
@@ -1603,7 +1603,7 @@ begin
     must be non-zero. }
   Coord := MaxAbsVectorCoord(Vector1);
 
-  Result := (Vector1.Data[Coord] > 0) = (Vector2.Data[Coord] > 0);
+  Result := (Vector1[Coord] > 0) = (Vector2[Coord] > 0);
 end;
 
 function PointOnPlaneClosestToPoint(const Plane: TVector4; const Point: TVector3): TVector3;
@@ -1625,10 +1625,10 @@ begin
   }
 
   D := -(
-    Plane.Data[0] * Point.Data[0] +
-    Plane.Data[1] * Point.Data[1] +
-    Plane.Data[2] * Point.Data[2] +
-    Plane.Data[3] ) /
+    Plane.X * Point.X +
+    Plane.Y * Point.Y +
+    Plane.Z * Point.Z +
+    Plane.W ) /
     PlaneDir.LengthSqr;
   Result := Point + PlaneDir * D;
 end;
@@ -1637,38 +1637,38 @@ function PointToPlaneDistanceSqr(const Point: TVector3;
   const Plane: TVector4): Single;
 begin
   Result :=
-    Sqr(Plane.Data[0] * Point.Data[0] +
-        Plane.Data[1] * Point.Data[1] +
-        Plane.Data[2] * Point.Data[2] +
-        Plane.Data[3]) /
-    (Sqr(Plane.Data[0]) + Sqr(Plane.Data[1]) + Sqr(Plane.Data[2]));
+    Sqr(Plane.X * Point.X +
+        Plane.Y * Point.Y +
+        Plane.Z * Point.Z +
+        Plane.W) /
+    (Sqr(Plane.X) + Sqr(Plane.Y) + Sqr(Plane.Z));
 end;
 
 function PointToNormalizedPlaneDistance(const Point: TVector3;
   const Plane: TVector4): Single;
 begin
   Result :=
-    Abs(Plane.Data[0] * Point.Data[0] +
-        Plane.Data[1] * Point.Data[1] +
-        Plane.Data[2] * Point.Data[2] +
-        Plane.Data[3]);
+    Abs(Plane.X * Point.X +
+        Plane.Y * Point.Y +
+        Plane.Z * Point.Z +
+        Plane.W);
 end;
 
 function PointToPlaneDistance(const Point: TVector3;
   const Plane: TVector4): Single;
 begin
   Result :=
-    Abs(Plane.Data[0] * Point.Data[0] +
-        Plane.Data[1] * Point.Data[1] +
-        Plane.Data[2] * Point.Data[2] +
-        Plane.Data[3]) /
-    Sqrt(Sqr(Plane.Data[0]) + Sqr(Plane.Data[1]) + Sqr(Plane.Data[2]));
+    Abs(Plane.X * Point.X +
+        Plane.Y * Point.Y +
+        Plane.Z * Point.Z +
+        Plane.W) /
+    Sqrt(Sqr(Plane.X) + Sqr(Plane.Y) + Sqr(Plane.Z));
 end;
 
 function PointToSimplePlaneDistance(const point: TVector3;
   const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single): Single;
 begin
-  Result := Abs(point.Data[PlaneConstCoord]-PlaneConstValue);
+  Result := Abs(point[PlaneConstCoord]-PlaneConstValue);
 end;
 
 function PointOnLineClosestToPoint(
@@ -1712,9 +1712,9 @@ begin
    lineVector[2]*(point[2]-line0[2]);
 
    And we can calculate d now. *)
-  d := (lineVector.Data[0] * (point.Data[0]-line0.Data[0]) +
-        lineVector.Data[1] * (point.Data[1]-line0.Data[1]) +
-        lineVector.Data[2] * (point.Data[2]-line0.Data[2]) ) / lineVector.LengthSqr;
+  d := (lineVector.X * (point.X-line0.X) +
+        lineVector.Y * (point.Y-line0.Y) +
+        lineVector.Z * (point.Z-line0.Z) ) / lineVector.LengthSqr;
   Result := line0 + lineVector * d;
 end;
 
@@ -1723,8 +1723,8 @@ function PointOnLineClosestToPoint(
 var
   d: Single;
 begin
-  d := (lineVector.Data[0] * (point.Data[0]-line0.Data[0]) +
-        lineVector.Data[1] * (point.Data[1]-line0.Data[1]) ) / lineVector.LengthSqr;
+  d := (lineVector.X * (point.X-line0.X) +
+        lineVector.Y * (point.Y-line0.Y) ) / lineVector.LengthSqr;
   Result := line0 + lineVector * d;
 end;
 
@@ -1743,7 +1743,7 @@ begin
   if not IsZero(Dot) then
   begin
     Result := true;
-    t := -(plane.Data[0]*line0.Data[0] + plane.Data[1]*line0.Data[1] + plane.Data[2]*line0.Data[2] + plane.Data[3])/Dot;
+    t := -(plane.X*line0.X + plane.Y*line0.Y + plane.Z*line0.Z + plane.W)/Dot;
   end else
     Result := false;
 end;
@@ -1845,7 +1845,7 @@ begin
   Result := not IsLineParallelToSimplePlane(RayDirection, PlaneConstCoord);
   if Result then
   begin
-    T := (PlaneConstValue-RayOrigin.Data[PlaneConstCoord]) / RayDirection.Data[PlaneConstCoord];
+    T := (PlaneConstValue-RayOrigin[PlaneConstCoord]) / RayDirection[PlaneConstCoord];
     Result := T >= 0;
   end;
 end;
@@ -1884,7 +1884,7 @@ begin
   Result := not IsLineParallelToSimplePlane(SegmentVector, PlaneConstCoord);
   if Result then
   begin
-    T := (PlaneConstValue-Pos1.Data[PlaneConstCoord]) / SegmentVector.Data[PlaneConstCoord];
+    T := (PlaneConstValue-Pos1[PlaneConstCoord]) / SegmentVector[PlaneConstCoord];
     Result := (T >= 0) and (T <= 1);
   end;
 end;
@@ -1897,8 +1897,8 @@ var
 begin
   { project points on the best axis-aligned plane }
   c := MaxAbsVectorCoord(Pos1 - Pos2);
-  Result := ((pos1.Data[c] <= intersection.Data[c]) and (intersection.Data[c] <= pos2.Data[c])) or
-            ((pos1.Data[c] >= intersection.Data[c]) and (intersection.Data[c] >= pos2.Data[c]));
+  Result := ((pos1[c] <= intersection[c]) and (intersection[c] <= pos2[c])) or
+            ((pos1[c] >= intersection[c]) and (intersection[c] >= pos2[c]));
 end;
 
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2): boolean;
@@ -1907,8 +1907,8 @@ var
 begin
   { project points on the best axis-aligned plane }
   c := MaxAbsVectorCoord(Pos1 - Pos2);
-  Result := ((pos1.Data[c] <= intersection.Data[c]) and (intersection.Data[c] <= pos2.Data[c])) or
-            ((pos1.Data[c] >= intersection.Data[c]) and (intersection.Data[c] >= pos2.Data[c]));
+  Result := ((pos1[c] <= intersection[c]) and (intersection[c] <= pos2[c])) or
+            ((pos1[c] >= intersection[c]) and (intersection[c] >= pos2[c]));
 end;
 
 function Line2DFrom2Points(const P1, P2: TVector2): TVector3;
@@ -1934,12 +1934,12 @@ begin
 
     So their dot product = 0.
 
-    Let Result.Data[AxisOther] = -1 and then we can construct
-    Result.Data[AxisGood] = LineVector.Data[AxisOther] / LineVector.Data[AxisGood].
+    Let Result[AxisOther] = -1 and then we can construct
+    Result[AxisGood] = LineVector[AxisOther] / LineVector[AxisGood].
   }
-  Result.Data[AxisOther] := -1;
-  Result.Data[AxisGood] := LineVector.Data[AxisOther] / LineVector.Data[AxisGood];
-  Result.Data[2] := - (Result.Data[0] * Line0.Data[0] + Result.Data[1] * Line0.Data[1]);
+  Result.InternalData[AxisOther] := -1;
+  Result.InternalData[AxisGood] := LineVector.InternalData[AxisOther] / LineVector[AxisGood];
+  Result.Z := - (Result.X * Line0.X + Result.Y * Line0.Y);
 end;
 
 function IsSpheresCollision(const Sphere1Center: TVector3; const Sphere1Radius: Single;
@@ -1973,11 +1973,11 @@ begin
     For maximum numeric stability, choose largest coordinate. }
   MaxCoord := MaxAbsVectorCoord(PlaneDir);
   PlanePoint := TVector3.Zero;
-  PlanePoint.Data[MaxCoord] := -Plane.Data[3] / Plane.Data[MaxCoord];
+  PlanePoint.InternalData[MaxCoord] := -Plane.W / Plane[MaxCoord];
 
   NewPlanePoint := Matrix.MultPoint(PlanePoint);
   NewPlaneDir := Matrix.MultDirection(PlaneDir);
-  Result.Data[3] := -TVector3.DotProduct(NewPlanePoint, NewPlaneDir);
+  Result.W := -TVector3.DotProduct(NewPlanePoint, NewPlaneDir);
 end;
 
 function IsTunnelSphereCollision(const Tunnel1, Tunnel2: TVector3;
@@ -2058,15 +2058,15 @@ begin
     Expand this, and use to calculate T: we get a quadratic equation for T.
     A * T^2 + B * T + C = 0. }
   RayOriginMinusCenter := RayOrigin - SphereCenter;
-  A := Sqr(RayDirection.Data[0]) +
-       Sqr(RayDirection.Data[1]) +
-       Sqr(RayDirection.Data[2]);
-  B := 2 * RayDirection.Data[0] * RayOriginMinusCenter.Data[0] +
-       2 * RayDirection.Data[1] * RayOriginMinusCenter.Data[1] +
-       2 * RayDirection.Data[2] * RayOriginMinusCenter.Data[2];
-  C := Sqr(RayOriginMinusCenter.Data[0]) +
-       Sqr(RayOriginMinusCenter.Data[1]) +
-       Sqr(RayOriginMinusCenter.Data[2]) - Sqr(SphereRadius);
+  A := Sqr(RayDirection.X) +
+       Sqr(RayDirection.Y) +
+       Sqr(RayDirection.Z);
+  B := 2 * RayDirection.X * RayOriginMinusCenter.X +
+       2 * RayDirection.Y * RayOriginMinusCenter.Y +
+       2 * RayDirection.Z * RayOriginMinusCenter.Z;
+  C := Sqr(RayOriginMinusCenter.X) +
+       Sqr(RayOriginMinusCenter.Y) +
+       Sqr(RayOriginMinusCenter.Z) - Sqr(SphereRadius);
 
   Result := TryRayIntersectionQuadraticEquation(T, A, B, C);
   if Result then
@@ -2118,18 +2118,18 @@ begin
     And CC gets additional "- CylinderRadius^2".
   }
 
-  AA := Sqr(B.Data[1])*Sqr(Y.Data[2]) + Sqr(B.Data[0])*Sqr(Y.Data[2]) - 2*B.Data[1]*B.Data[2]*Y.Data[1]*Y.Data[2]
-    + 2*B.Data[0]*B.Data[2]*Y.Data[0]*Y.Data[2] + Sqr(B.Data[2])*Sqr(Y.Data[1]) + Sqr(B.Data[0])*Sqr(Y.Data[1])
-    - 2*B.Data[0]*B.Data[1]*Y.Data[0]*Y.Data[1] + Sqr(B.Data[2])*Sqr(Y.Data[0]) + Sqr(B.Data[1])*Sqr(Y.Data[0]);
+  AA := Sqr(B.Y)*Sqr(Y.Z) + Sqr(B.X)*Sqr(Y.Z) - 2*B.Y*B.Z*Y.Y*Y.Z
+    + 2*B.X*B.Z*Y.X*Y.Z + Sqr(B.Z)*Sqr(Y.Y) + Sqr(B.X)*Sqr(Y.Y)
+    - 2*B.X*B.Y*Y.X*Y.Y + Sqr(B.Z)*Sqr(Y.X) + Sqr(B.Y)*Sqr(Y.X);
 
-  BB := 2*Sqr(B.Data[1])*X.Data[2]*Y.Data[2] + 2*Sqr(B.Data[0])*X.Data[2]*Y.Data[2] - 2*B.Data[1]*B.Data[2]*X.Data[1]*Y.Data[2]
-      + 2*B.Data[0]*B.Data[2]*X.Data[0]*Y.Data[2] - 2*B.Data[1]*B.Data[2]*X.Data[2]*Y.Data[1] + 2*Sqr(B.Data[2])*X.Data[1]*Y.Data[1]
-      + 2*Sqr(B.Data[0])*X.Data[1]*Y.Data[1] - 2*B.Data[0]*B.Data[1]*X.Data[0]*Y.Data[1] + 2*B.Data[0]*B.Data[2]*X.Data[2]*Y.Data[0]
-      - 2*B.Data[0]*B.Data[1]*X.Data[1]*Y.Data[0] + 2*Sqr(B.Data[2])*X.Data[0]*Y.Data[0] + 2*Sqr(B.Data[1])*X.Data[0]*Y.Data[0];
+  BB := 2*Sqr(B.Y)*X.Z*Y.Z + 2*Sqr(B.X)*X.Z*Y.Z - 2*B.Y*B.Z*X.Y*Y.Z
+      + 2*B.X*B.Z*X.X*Y.Z - 2*B.Y*B.Z*X.Z*Y.Y + 2*Sqr(B.Z)*X.Y*Y.Y
+      + 2*Sqr(B.X)*X.Y*Y.Y - 2*B.X*B.Y*X.X*Y.Y + 2*B.X*B.Z*X.Z*Y.X
+      - 2*B.X*B.Y*X.Y*Y.X + 2*Sqr(B.Z)*X.X*Y.X + 2*Sqr(B.Y)*X.X*Y.X;
 
-  CC := Sqr(B.Data[1])*Sqr(X.Data[2]) + Sqr(B.Data[0])*Sqr(X.Data[2]) - 2*B.Data[1]*B.Data[2]*X.Data[1]*X.Data[2]
-    + 2*B.Data[0]*B.Data[2]*X.Data[0]*X.Data[2] + Sqr(B.Data[2])*Sqr(X.Data[1]) + Sqr(B.Data[0])*Sqr(X.Data[1])
-    - 2*B.Data[0]*B.Data[1]*X.Data[0]*X.Data[1] + Sqr(B.Data[2])*Sqr(X.Data[0]) + Sqr(B.Data[1])*Sqr(X.Data[0])
+  CC := Sqr(B.Y)*Sqr(X.Z) + Sqr(B.X)*Sqr(X.Z) - 2*B.Y*B.Z*X.Y*X.Z
+    + 2*B.X*B.Z*X.X*X.Z + Sqr(B.Z)*Sqr(X.Y) + Sqr(B.X)*Sqr(X.Y)
+    - 2*B.X*B.Y*X.X*X.Y + Sqr(B.Z)*Sqr(X.X) + Sqr(B.Y)*Sqr(X.X)
     - Sqr(CylinderRadius);
 
   Result := TryRayIntersectionQuadraticEquation(T, AA, BB, CC);
@@ -2162,7 +2162,7 @@ begin
   if N.IsZero then
     Exit(false); // ray parallel to axis, no sensible answer
 
-  // N.NormalizeMe; // it is not necessary to normalize for anything below
+  // N := N.Normalize; // it is not necessary to normalize for anything below
 
   // Dist := TVector3.DotProduct(N, Line0 - Ray0){ / N.Length}; // not needed in this approach
 
@@ -2204,9 +2204,9 @@ end;
 function TranslationMatrix(const Transl: TVector3): TMatrix4;
 begin
   Result := TMatrix4.Identity;
-  Result.Data[3, 0] := Transl.Data[0];
-  Result.Data[3, 1] := Transl.Data[1];
-  Result.Data[3, 2] := Transl.Data[2];
+  Result.Data[3, 0] := Transl.X;
+  Result.Data[3, 1] := Transl.Y;
+  Result.Data[3, 2] := Transl.Z;
 end;
 
 function TranslationMatrix(const X, Y, Z: Single): TMatrix4;
@@ -2235,14 +2235,14 @@ procedure TranslationMatrices(const Transl: TVector3;
   out Matrix, InvertedMatrix: TMatrix4);
 begin
   Matrix := TMatrix4.Identity;
-  Matrix.Data[3, 0] := Transl.Data[0];
-  Matrix.Data[3, 1] := Transl.Data[1];
-  Matrix.Data[3, 2] := Transl.Data[2];
+  Matrix.Data[3, 0] := Transl.X;
+  Matrix.Data[3, 1] := Transl.Y;
+  Matrix.Data[3, 2] := Transl.Z;
 
   InvertedMatrix := TMatrix4.Identity;
-  InvertedMatrix.Data[3, 0] := -Transl.Data[0];
-  InvertedMatrix.Data[3, 1] := -Transl.Data[1];
-  InvertedMatrix.Data[3, 2] := -Transl.Data[2];
+  InvertedMatrix.Data[3, 0] := -Transl.X;
+  InvertedMatrix.Data[3, 1] := -Transl.Y;
+  InvertedMatrix.Data[3, 2] := -Transl.Z;
 end;
 
 procedure MultMatrixTranslation(var M: TMatrix4;
@@ -2251,10 +2251,10 @@ var
   NewColumn: TVector4;
 begin
   NewColumn := M.Columns[3];
-  NewColumn.Data[0] := NewColumn.Data[0] + (M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2]);
-  NewColumn.Data[1] := NewColumn.Data[1] + (M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2]);
-  NewColumn.Data[2] := NewColumn.Data[2] + (M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2]);
-  NewColumn.Data[3] := NewColumn.Data[3] + (M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2]);
+  NewColumn.X := NewColumn.X + (M.Data[0, 0] * Transl.X + M.Data[1, 0] * Transl.Y + M.Data[2, 0] * Transl.Z);
+  NewColumn.Y := NewColumn.Y + (M.Data[0, 1] * Transl.X + M.Data[1, 1] * Transl.Y + M.Data[2, 1] * Transl.Z);
+  NewColumn.Z := NewColumn.Z + (M.Data[0, 2] * Transl.X + M.Data[1, 2] * Transl.Y + M.Data[2, 2] * Transl.Z);
+  NewColumn.W := NewColumn.W + (M.Data[0, 3] * Transl.X + M.Data[1, 3] * Transl.Y + M.Data[2, 3] * Transl.Z);
   M.Columns[3] := NewColumn;
 end;
 
@@ -2266,36 +2266,36 @@ var
   OldLastRow: TVector4 absolute NewColumn;
 begin
   NewColumn := M.Columns[3];
-  NewColumn.Data[0] := NewColumn.Data[0] + (M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2]);
-  NewColumn.Data[1] := NewColumn.Data[1] + (M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2]);
-  NewColumn.Data[2] := NewColumn.Data[2] + (M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2]);
-  NewColumn.Data[3] := NewColumn.Data[3] + (M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2]);
+  NewColumn.X := NewColumn.X + (M.Data[0, 0] * Transl.X + M.Data[1, 0] * Transl.Y + M.Data[2, 0] * Transl.Z);
+  NewColumn.Y := NewColumn.Y + (M.Data[0, 1] * Transl.X + M.Data[1, 1] * Transl.Y + M.Data[2, 1] * Transl.Z);
+  NewColumn.Z := NewColumn.Z + (M.Data[0, 2] * Transl.X + M.Data[1, 2] * Transl.Y + M.Data[2, 2] * Transl.Z);
+  NewColumn.W := NewColumn.W + (M.Data[0, 3] * Transl.X + M.Data[1, 3] * Transl.Y + M.Data[2, 3] * Transl.Z);
   M.Columns[3] := NewColumn;
 
-  OldLastRow.Data[0] := MInvert.Data[0, 3];
-  OldLastRow.Data[1] := MInvert.Data[1, 3];
-  OldLastRow.Data[2] := MInvert.Data[2, 3];
-  OldLastRow.Data[3] := MInvert.Data[3, 3];
+  OldLastRow.X := MInvert.Data[0, 3];
+  OldLastRow.Y := MInvert.Data[1, 3];
+  OldLastRow.Z := MInvert.Data[2, 3];
+  OldLastRow.W := MInvert.Data[3, 3];
 
-  MInvert.Data[0, 0] := MInvert.Data[0, 0] - Transl.Data[0] * OldLastRow.Data[0];
-  MInvert.Data[1, 0] := MInvert.Data[1, 0] - Transl.Data[0] * OldLastRow.Data[1];
-  MInvert.Data[2, 0] := MInvert.Data[2, 0] - Transl.Data[0] * OldLastRow.Data[2];
-  MInvert.Data[3, 0] := MInvert.Data[3, 0] - Transl.Data[0] * OldLastRow.Data[3];
-  MInvert.Data[0, 1] := MInvert.Data[0, 1] - Transl.Data[1] * OldLastRow.Data[0];
-  MInvert.Data[1, 1] := MInvert.Data[1, 1] - Transl.Data[1] * OldLastRow.Data[1];
-  MInvert.Data[2, 1] := MInvert.Data[2, 1] - Transl.Data[1] * OldLastRow.Data[2];
-  MInvert.Data[3, 1] := MInvert.Data[3, 1] - Transl.Data[1] * OldLastRow.Data[3];
-  MInvert.Data[0, 2] := MInvert.Data[0, 2] - Transl.Data[2] * OldLastRow.Data[0];
-  MInvert.Data[1, 2] := MInvert.Data[1, 2] - Transl.Data[2] * OldLastRow.Data[1];
-  MInvert.Data[2, 2] := MInvert.Data[2, 2] - Transl.Data[2] * OldLastRow.Data[2];
-  MInvert.Data[3, 2] := MInvert.Data[3, 2] - Transl.Data[2] * OldLastRow.Data[3];
+  MInvert.Data[0, 0] := MInvert.Data[0, 0] - Transl.X * OldLastRow.X;
+  MInvert.Data[1, 0] := MInvert.Data[1, 0] - Transl.X * OldLastRow.Y;
+  MInvert.Data[2, 0] := MInvert.Data[2, 0] - Transl.X * OldLastRow.Z;
+  MInvert.Data[3, 0] := MInvert.Data[3, 0] - Transl.X * OldLastRow.W;
+  MInvert.Data[0, 1] := MInvert.Data[0, 1] - Transl.Y * OldLastRow.X;
+  MInvert.Data[1, 1] := MInvert.Data[1, 1] - Transl.Y * OldLastRow.Y;
+  MInvert.Data[2, 1] := MInvert.Data[2, 1] - Transl.Y * OldLastRow.Z;
+  MInvert.Data[3, 1] := MInvert.Data[3, 1] - Transl.Y * OldLastRow.W;
+  MInvert.Data[0, 2] := MInvert.Data[0, 2] - Transl.Z * OldLastRow.X;
+  MInvert.Data[1, 2] := MInvert.Data[1, 2] - Transl.Z * OldLastRow.Y;
+  MInvert.Data[2, 2] := MInvert.Data[2, 2] - Transl.Z * OldLastRow.Z;
+  MInvert.Data[3, 2] := MInvert.Data[3, 2] - Transl.Z * OldLastRow.W;
 end;
 
 function TransformToCoords(const V, NewX, NewY, NewZ: TVector3): TVector3;
 begin
-  Result.Data[0] := V.Data[0] * NewX.Data[0] + V.Data[1] * NewY.Data[0] + V.Data[2] * NewZ.Data[0];
-  Result.Data[1] := V.Data[0] * NewX.Data[1] + V.Data[1] * NewY.Data[1] + V.Data[2] * NewZ.Data[1];
-  Result.Data[2] := V.Data[0] * NewX.Data[2] + V.Data[1] * NewY.Data[2] + V.Data[2] * NewZ.Data[2];
+  Result.X := V.X * NewX.X + V.Y * NewY.X + V.Z * NewZ.X;
+  Result.Y := V.X * NewX.Y + V.Y * NewY.Y + V.Z * NewZ.Y;
+  Result.Z := V.X * NewX.Z + V.Y * NewY.Z + V.Z * NewZ.Z;
 end;
 
 function TransformToCoordsMatrix(const NewOrigin,
@@ -2305,10 +2305,10 @@ var
 begin
   for i := 0 to 2 do
   begin
-    Result.Data[0, i] := NewX.Data[i];
-    Result.Data[1, i] := NewY.Data[i];
-    Result.Data[2, i] := NewZ.Data[i];
-    Result.Data[3, i] := NewOrigin.Data[i];
+    Result.Data[0, i] := NewX[i];
+    Result.Data[1, i] := NewY[i];
+    Result.Data[2, i] := NewZ[i];
+    Result.Data[3, i] := NewOrigin[i];
   end;
   { bottom row }
   Result.Data[0, 3] := 0;
@@ -2323,9 +2323,9 @@ var
 begin
   for i := 0 to 2 do
   begin
-    Result.Data[0, i] := NewX.Data[i];
-    Result.Data[1, i] := NewY.Data[i];
-    Result.Data[2, i] := NewZ.Data[i];
+    Result.Data[0, i] := NewX[i];
+    Result.Data[1, i] := NewY[i];
+    Result.Data[2, i] := NewZ[i];
   end;
   { right column }
   Result.Data[3, 0] := 0;
@@ -2355,9 +2355,9 @@ begin
     { Difference between TrasformToCoords and TransformFromCoords:
       up-left 3x3 matrix is applied in a transposed manner,
       compared with TrasformToCoords. }
-    Result.Data[i, 0] := OldX.Data[i];
-    Result.Data[i, 1] := OldY.Data[i];
-    Result.Data[i, 2] := OldZ.Data[i];
+    Result.Data[i, 0] := OldX[i];
+    Result.Data[i, 1] := OldY[i];
+    Result.Data[i, 2] := OldZ[i];
   end;
 
   { Another difference between TrasformToCoords and TransformFromCoords:
@@ -2384,9 +2384,9 @@ begin
     { Difference between TrasformToCoords and TransformFromCoords:
       up-left 3x3 matrix is applied in a transposed manner,
       compared with TrasformToCoords. }
-    Result.Data[i, 0] := OldX.Data[i];
-    Result.Data[i, 1] := OldY.Data[i];
-    Result.Data[i, 2] := OldZ.Data[i];
+    Result.Data[i, 0] := OldX[i];
+    Result.Data[i, 1] := OldY[i];
+    Result.Data[i, 2] := OldZ[i];
   end;
 
   { right column }
@@ -2457,9 +2457,9 @@ begin
 
   for i := 0 to 2 do
   begin
-    Result.Data[i, 0] := Side.Data[i];
-    Result.Data[i, 1] := Up.Data[i];
-    Result.Data[i, 2] := -Direction.Data[i]; { negate Direction, since it goes to -Z }
+    Result.Data[i, 0] := Side[i];
+    Result.Data[i, 1] := Up[i];
+    Result.Data[i, 2] := -Direction[i]; { negate Direction, since it goes to -Z }
   end;
 
   { bottom row and right column }
@@ -2486,9 +2486,9 @@ begin
 
   for i := 0 to 2 do
   begin
-    Result.Data[0, i] := Side.Data[i];
-    Result.Data[1, i] := Up.Data[i];
-    Result.Data[2, i] := -Direction.Data[i]; { negate Direction, since it goes to -Z }
+    Result.Data[0, i] := Side[i];
+    Result.Data[1, i] := Up[i];
+    Result.Data[2, i] := -Direction[i]; { negate Direction, since it goes to -Z }
   end;
 
   { bottom row and right column }
@@ -2541,13 +2541,13 @@ begin
   FillChar(Result, SizeOf(Result), 0);
   {$endif}
 
-  Result.Data[0, 0] := Sqr(V.Data[0]);
-  Result.Data[1, 1] := Sqr(V.Data[1]);
-  Result.Data[2, 2] := Sqr(V.Data[2]);
+  Result.Data[0, 0] := Sqr(V.X);
+  Result.Data[1, 1] := Sqr(V.Y);
+  Result.Data[2, 2] := Sqr(V.Z);
 
-  Result.Data[0, 1] := V.Data[0] * V.Data[1]; Result.Data[1, 0] := Result.Data[0, 1];
-  Result.Data[0, 2] := V.Data[0] * V.Data[2]; Result.Data[2, 0] := Result.Data[0, 2];
-  Result.Data[1, 2] := V.Data[1] * V.Data[2]; Result.Data[2, 1] := Result.Data[1, 2];
+  Result.Data[0, 1] := V.X * V.Y; Result.Data[1, 0] := Result.Data[0, 1];
+  Result.Data[0, 2] := V.X * V.Z; Result.Data[2, 0] := Result.Data[0, 2];
+  Result.Data[1, 2] := V.Y * V.Z; Result.Data[2, 1] := Result.Data[1, 2];
 
   { Fill the last row and column like an identity matrix.
     Note that FillDWord above already took care of zeros. }
@@ -2557,9 +2557,9 @@ end;
 function ScalingMatrix(const ScaleFactor: TVector3): TMatrix4;
 begin
   Result := TMatrix4.Identity;
-  Result.Data[0, 0] := ScaleFactor.Data[0];
-  Result.Data[1, 1] := ScaleFactor.Data[1];
-  Result.Data[2, 2] := ScaleFactor.Data[2];
+  Result.Data[0, 0] := ScaleFactor.X;
+  Result.Data[1, 1] := ScaleFactor.Y;
+  Result.Data[2, 2] := ScaleFactor.Z;
 end;
 
 procedure ScalingMatrices(const ScaleFactor: TVector3;
@@ -2567,20 +2567,20 @@ procedure ScalingMatrices(const ScaleFactor: TVector3;
   out Matrix, InvertedMatrix: TMatrix4);
 begin
   Matrix := TMatrix4.Identity;
-  Matrix.Data[0, 0] := ScaleFactor.Data[0];
-  Matrix.Data[1, 1] := ScaleFactor.Data[1];
-  Matrix.Data[2, 2] := ScaleFactor.Data[2];
+  Matrix.Data[0, 0] := ScaleFactor.X;
+  Matrix.Data[1, 1] := ScaleFactor.Y;
+  Matrix.Data[2, 2] := ScaleFactor.Z;
 
   InvertedMatrix := TMatrix4.Identity;
   if not
     (InvertedMatrixIdentityIfNotExists and
-      ( IsZero(ScaleFactor.Data[0]) or
-        IsZero(ScaleFactor.Data[1]) or
-        IsZero(ScaleFactor.Data[2]) )) then
+      ( IsZero(ScaleFactor.X) or
+        IsZero(ScaleFactor.Y) or
+        IsZero(ScaleFactor.Z) )) then
   begin
-    InvertedMatrix.Data[0, 0] := 1 / ScaleFactor.Data[0];
-    InvertedMatrix.Data[1, 1] := 1 / ScaleFactor.Data[1];
-    InvertedMatrix.Data[2, 2] := 1 / ScaleFactor.Data[2];
+    InvertedMatrix.Data[0, 0] := 1 / ScaleFactor.X;
+    InvertedMatrix.Data[1, 1] := 1 / ScaleFactor.Y;
+    InvertedMatrix.Data[2, 2] := 1 / ScaleFactor.Z;
   end;
 end;
 
@@ -2616,19 +2616,19 @@ begin
   Result.Data[1, 2] := Result.Data[1, 2] +    - Result.Data[1, 2]  * C;
   Result.Data[2, 2] := Result.Data[2, 2] + (1 - Result.Data[2, 2]) * C;
 
-  NormAxis.Data[0] := NormAxis.Data[0] * S;
-  NormAxis.Data[1] := NormAxis.Data[1] * S;
-  NormAxis.Data[2] := NormAxis.Data[2] * S;
+  NormAxis.X := NormAxis.X * S;
+  NormAxis.Y := NormAxis.Y * S;
+  NormAxis.Z := NormAxis.Z * S;
 
   { Add M3 (from OpenGL matrix equations) }
-  Result.Data[1, 0] := Result.Data[1, 0] + -NormAxis.Data[2];
-  Result.Data[2, 0] := Result.Data[2, 0] +  NormAxis.Data[1];
+  Result.Data[1, 0] := Result.Data[1, 0] + -NormAxis.Z;
+  Result.Data[2, 0] := Result.Data[2, 0] +  NormAxis.Y;
 
-  Result.Data[0, 1] := Result.Data[0, 1] +  NormAxis.Data[2];
-  Result.Data[2, 1] := Result.Data[2, 1] + -NormAxis.Data[0];
+  Result.Data[0, 1] := Result.Data[0, 1] +  NormAxis.Z;
+  Result.Data[2, 1] := Result.Data[2, 1] + -NormAxis.X;
 
-  Result.Data[0, 2] := Result.Data[0, 2] + -NormAxis.Data[1];
-  Result.Data[1, 2] := Result.Data[1, 2] +  NormAxis.Data[0];
+  Result.Data[0, 2] := Result.Data[0, 2] + -NormAxis.Y;
+  Result.Data[1, 2] := Result.Data[1, 2] +  NormAxis.X;
 end;
 
 procedure RotationMatricesRad(const AxisAngle: TVector4;
@@ -2636,7 +2636,7 @@ procedure RotationMatricesRad(const AxisAngle: TVector4;
 var
   Axis: TVector3 absolute AxisAngle;
 begin
-  RotationMatricesRad(AxisAngle.Data[3], Axis, Matrix, InvertedMatrix);
+  RotationMatricesRad(AxisAngle.W, Axis, Matrix, InvertedMatrix);
 end;
 
 procedure RotationMatricesRad(const AngleRad: Single;
@@ -2676,21 +2676,21 @@ begin
   { Up to this point, calculated Matrix is also good for InvertedMatrix }
   InvertedMatrix := Matrix;
 
-  NormAxis.Data[0] := NormAxis.Data[0] * S;
-  NormAxis.Data[1] := NormAxis.Data[1] * S;
-  NormAxis.Data[2] := NormAxis.Data[2] * S;
+  NormAxis.X := NormAxis.X * S;
+  NormAxis.Y := NormAxis.Y * S;
+  NormAxis.Z := NormAxis.Z * S;
 
   { Now add M3 to Matrix, and subtract M3 from InvertedMatrix.
     That's because for the inverted rotation, AngleSin is negated,
     so the M3 should be subtracted. }
-  V := -NormAxis.Data[2]; Matrix.Data[1, 0] := Matrix.Data[1, 0] + V; InvertedMatrix.Data[1, 0] := InvertedMatrix.Data[1, 0] - V;
-  V :=  NormAxis.Data[1]; Matrix.Data[2, 0] := Matrix.Data[2, 0] + V; InvertedMatrix.Data[2, 0] := InvertedMatrix.Data[2, 0] - V;
+  V := -NormAxis.Z; Matrix.Data[1, 0] := Matrix.Data[1, 0] + V; InvertedMatrix.Data[1, 0] := InvertedMatrix.Data[1, 0] - V;
+  V :=  NormAxis.Y; Matrix.Data[2, 0] := Matrix.Data[2, 0] + V; InvertedMatrix.Data[2, 0] := InvertedMatrix.Data[2, 0] - V;
 
-  V :=  NormAxis.Data[2]; Matrix.Data[0, 1] := Matrix.Data[0, 1] + V; InvertedMatrix.Data[0, 1] := InvertedMatrix.Data[0, 1] - V;
-  V := -NormAxis.Data[0]; Matrix.Data[2, 1] := Matrix.Data[2, 1] + V; InvertedMatrix.Data[2, 1] := InvertedMatrix.Data[2, 1] - V;
+  V :=  NormAxis.Z; Matrix.Data[0, 1] := Matrix.Data[0, 1] + V; InvertedMatrix.Data[0, 1] := InvertedMatrix.Data[0, 1] - V;
+  V := -NormAxis.X; Matrix.Data[2, 1] := Matrix.Data[2, 1] + V; InvertedMatrix.Data[2, 1] := InvertedMatrix.Data[2, 1] - V;
 
-  V := -NormAxis.Data[1]; Matrix.Data[0, 2] := Matrix.Data[0, 2] + V; InvertedMatrix.Data[0, 2] := InvertedMatrix.Data[0, 2] - V;
-  V :=  NormAxis.Data[0]; Matrix.Data[1, 2] := Matrix.Data[1, 2] + V; InvertedMatrix.Data[1, 2] := InvertedMatrix.Data[1, 2] - V;
+  V := -NormAxis.Y; Matrix.Data[0, 2] := Matrix.Data[0, 2] + V; InvertedMatrix.Data[0, 2] := InvertedMatrix.Data[0, 2] - V;
+  V :=  NormAxis.X; Matrix.Data[1, 2] := Matrix.Data[1, 2] + V; InvertedMatrix.Data[1, 2] := InvertedMatrix.Data[1, 2] - V;
 end;
 
 function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3): TMatrix4;
@@ -2719,14 +2719,14 @@ begin
   { convert Float to Single once }
   S := AngleSin;
   C := AngleCos;
-  Result.Data[0] := Point.Data[0] * C - Point.Data[1] * S;
-  Result.Data[1] := Point.Data[0] * S + Point.Data[1] * C;
+  Result.X := Point.X * C - Point.Y * S;
+  Result.Y := Point.X * S + Point.Y * C;
 end;
 
 function RotationNegate(const Rotation: TVector4): TVector4;
 begin
   Result := Rotation;
-  Result.Data[3] := -Result.Data[3];
+  Result.W := -Result.W;
 end;
 
 function Approximate3DScale(const X, Y, Z: Single): Single;
@@ -2745,7 +2745,7 @@ end;
 
 function Approximate3DScale(const V: TVector3): Single;
 begin
-  Result := Approximate3DScale(V.Data[0], V.Data[1], V.Data[2]);
+  Result := Approximate3DScale(V.X, V.Y, V.Z);
 end;
 
 function Approximate3DScale(const M: TMatrix4): Single;
@@ -2773,7 +2773,7 @@ end;
 
 function Approximate2DScale(const V: TVector2): Single;
 begin
-  Result := Approximate2DScale(V.Data[0], V.Data[1]);
+  Result := Approximate2DScale(V.X, V.Y);
 end;
 
 function SmoothTowards(const Source, Target, SecondsPassed,

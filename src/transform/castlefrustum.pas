@@ -1,5 +1,5 @@
 {
-  Copyright 2005-2018 Michalis Kamburelis.
+  Copyright 2005-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -240,42 +240,42 @@ begin
     Note that position of bottom and top planes in array Frustum is swapped
     in my code. }
 
-  Planes[fpLeft].Data[0] := Matrix.Data[0, 3] + Matrix.Data[0, 0];
-  Planes[fpLeft].Data[1] := Matrix.Data[1, 3] + Matrix.Data[1, 0];
-  Planes[fpLeft].Data[2] := Matrix.Data[2, 3] + Matrix.Data[2, 0];
-  Planes[fpLeft].Data[3] := Matrix.Data[3, 3] + Matrix.Data[3, 0];
+  Planes[fpLeft].X := Matrix.Data[0, 3] + Matrix.Data[0, 0];
+  Planes[fpLeft].Y := Matrix.Data[1, 3] + Matrix.Data[1, 0];
+  Planes[fpLeft].Z := Matrix.Data[2, 3] + Matrix.Data[2, 0];
+  Planes[fpLeft].W := Matrix.Data[3, 3] + Matrix.Data[3, 0];
 
-  Planes[fpRight].Data[0] := Matrix.Data[0, 3] - Matrix.Data[0, 0];
-  Planes[fpRight].Data[1] := Matrix.Data[1, 3] - Matrix.Data[1, 0];
-  Planes[fpRight].Data[2] := Matrix.Data[2, 3] - Matrix.Data[2, 0];
-  Planes[fpRight].Data[3] := Matrix.Data[3, 3] - Matrix.Data[3, 0];
+  Planes[fpRight].X := Matrix.Data[0, 3] - Matrix.Data[0, 0];
+  Planes[fpRight].Y := Matrix.Data[1, 3] - Matrix.Data[1, 0];
+  Planes[fpRight].Z := Matrix.Data[2, 3] - Matrix.Data[2, 0];
+  Planes[fpRight].W := Matrix.Data[3, 3] - Matrix.Data[3, 0];
 
-  Planes[fpBottom].Data[0] := Matrix.Data[0, 3] + Matrix.Data[0, 1];
-  Planes[fpBottom].Data[1] := Matrix.Data[1, 3] + Matrix.Data[1, 1];
-  Planes[fpBottom].Data[2] := Matrix.Data[2, 3] + Matrix.Data[2, 1];
-  Planes[fpBottom].Data[3] := Matrix.Data[3, 3] + Matrix.Data[3, 1];
+  Planes[fpBottom].X := Matrix.Data[0, 3] + Matrix.Data[0, 1];
+  Planes[fpBottom].Y := Matrix.Data[1, 3] + Matrix.Data[1, 1];
+  Planes[fpBottom].Z := Matrix.Data[2, 3] + Matrix.Data[2, 1];
+  Planes[fpBottom].W := Matrix.Data[3, 3] + Matrix.Data[3, 1];
 
-  Planes[fpTop].Data[0] := Matrix.Data[0, 3] - Matrix.Data[0, 1];
-  Planes[fpTop].Data[1] := Matrix.Data[1, 3] - Matrix.Data[1, 1];
-  Planes[fpTop].Data[2] := Matrix.Data[2, 3] - Matrix.Data[2, 1];
-  Planes[fpTop].Data[3] := Matrix.Data[3, 3] - Matrix.Data[3, 1];
+  Planes[fpTop].X := Matrix.Data[0, 3] - Matrix.Data[0, 1];
+  Planes[fpTop].Y := Matrix.Data[1, 3] - Matrix.Data[1, 1];
+  Planes[fpTop].Z := Matrix.Data[2, 3] - Matrix.Data[2, 1];
+  Planes[fpTop].W := Matrix.Data[3, 3] - Matrix.Data[3, 1];
 
-  Planes[fpNear].Data[0] := Matrix.Data[0, 3] + Matrix.Data[0, 2];
-  Planes[fpNear].Data[1] := Matrix.Data[1, 3] + Matrix.Data[1, 2];
-  Planes[fpNear].Data[2] := Matrix.Data[2, 3] + Matrix.Data[2, 2];
-  Planes[fpNear].Data[3] := Matrix.Data[3, 3] + Matrix.Data[3, 2];
+  Planes[fpNear].X := Matrix.Data[0, 3] + Matrix.Data[0, 2];
+  Planes[fpNear].Y := Matrix.Data[1, 3] + Matrix.Data[1, 2];
+  Planes[fpNear].Z := Matrix.Data[2, 3] + Matrix.Data[2, 2];
+  Planes[fpNear].W := Matrix.Data[3, 3] + Matrix.Data[3, 2];
 
-  Planes[fpFar].Data[0] := Matrix.Data[0, 3] - Matrix.Data[0, 2];
-  Planes[fpFar].Data[1] := Matrix.Data[1, 3] - Matrix.Data[1, 2];
-  Planes[fpFar].Data[2] := Matrix.Data[2, 3] - Matrix.Data[2, 2];
-  Planes[fpFar].Data[3] := Matrix.Data[3, 3] - Matrix.Data[3, 2];
+  Planes[fpFar].X := Matrix.Data[0, 3] - Matrix.Data[0, 2];
+  Planes[fpFar].Y := Matrix.Data[1, 3] - Matrix.Data[1, 2];
+  Planes[fpFar].Z := Matrix.Data[2, 3] - Matrix.Data[2, 2];
+  Planes[fpFar].W := Matrix.Data[3, 3] - Matrix.Data[3, 2];
 
   { If Planes[fpFar] has really exactly zero vector,
     then far plane is in infinity. }
   ZFarInfinity :=
-    (Planes[fpFar].Data[0] = 0) and
-    (Planes[fpFar].Data[1] = 0) and
-    (Planes[fpFar].Data[2] = 0);
+    (Planes[fpFar].X = 0) and
+    (Planes[fpFar].Y = 0) and
+    (Planes[fpFar].Z = 0);
 
   NormalizePlanes;
 end;
@@ -414,10 +414,10 @@ begin
   for fp := Low(fp) to LastPlane do
   begin
    { This is not a true distance since this is signed }
-   Distance := Planes[fp].Data[0] * SphereCenter.Data[0] +
-               Planes[fp].Data[1] * SphereCenter.Data[1] +
-               Planes[fp].Data[2] * SphereCenter.Data[2] +
-               Planes[fp].Data[3];
+   Distance := Planes[fp].X * SphereCenter.X +
+               Planes[fp].Y * SphereCenter.Y +
+               Planes[fp].Z * SphereCenter.Z +
+               Planes[fp].W;
 
    SqrRealDistance := Sqr(Distance);
 
@@ -453,10 +453,10 @@ begin
   for fp := Low(fp) to LastPlane do
   begin
    { This is not a true distance since this is signed }
-   Distance := Planes[fp].Data[0] * SphereCenter.Data[0] +
-               Planes[fp].Data[1] * SphereCenter.Data[1] +
-               Planes[fp].Data[2] * SphereCenter.Data[2] +
-               Planes[fp].Data[3];
+   Distance := Planes[fp].X * SphereCenter.X +
+               Planes[fp].Y * SphereCenter.Y +
+               Planes[fp].Z * SphereCenter.Z +
+               Planes[fp].W;
 
    SqrRealDistance := Sqr(Distance);
 
@@ -581,18 +581,18 @@ function TFrustum.DirectionInside(const Direction: TVector3): boolean;
 begin
   { First we check fpTop, since this (usually?) has the highest chance
     of failing (when Direction is direction of sun high in the sky) }
-  Result := ( Planes[fpTop].Data[0] * Direction.Data[0] +
-              Planes[fpTop].Data[1] * Direction.Data[1] +
-              Planes[fpTop].Data[2] * Direction.Data[2] >= 0 ) and
-            ( Planes[fpLeft].Data[0] * Direction.Data[0] +
-              Planes[fpLeft].Data[1] * Direction.Data[1] +
-              Planes[fpLeft].Data[2] * Direction.Data[2] >= 0 ) and
-            ( Planes[fpRight].Data[0] * Direction.Data[0] +
-              Planes[fpRight].Data[1] * Direction.Data[1] +
-              Planes[fpRight].Data[2] * Direction.Data[2] >= 0 ) and
-            ( Planes[fpBottom].Data[0] * Direction.Data[0] +
-              Planes[fpBottom].Data[1] * Direction.Data[1] +
-              Planes[fpBottom].Data[2] * Direction.Data[2] >= 0 );
+  Result := ( Planes[fpTop].X * Direction.X +
+              Planes[fpTop].Y * Direction.Y +
+              Planes[fpTop].Z * Direction.Z >= 0 ) and
+            ( Planes[fpLeft].X * Direction.X +
+              Planes[fpLeft].Y * Direction.Y +
+              Planes[fpLeft].Z * Direction.Z >= 0 ) and
+            ( Planes[fpRight].X * Direction.X +
+              Planes[fpRight].Y * Direction.Y +
+              Planes[fpRight].Z * Direction.Z >= 0 ) and
+            ( Planes[fpBottom].X * Direction.X +
+              Planes[fpBottom].Y * Direction.Y +
+              Planes[fpBottom].Z * Direction.Z >= 0 );
 end;
 
 function TFrustum.Transform(const M: TMatrix4): TFrustum;

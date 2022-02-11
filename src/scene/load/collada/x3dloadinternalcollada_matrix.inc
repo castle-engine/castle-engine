@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -69,7 +69,7 @@ var
         WritelnWarning('Collada', 'Unexpected end of data of <lookat>');
         Exit(false);
       end;
-      Vector[I] := StrToFloatDot(Token);
+      Vector.InternalData[I] := StrToFloatDot(Token);
     end;
   end;
 

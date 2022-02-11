@@ -2449,8 +2449,8 @@ begin
     Result := TVector2.Zero;
 
   RA := RectWithAnchors;
-  Result.Data[0] := Result.Data[0] + RA.Left;
-  Result.Data[1] := Result.Data[1] + RA.Bottom;
+  Result.X := Result.X + RA.Left;
+  Result.Y := Result.Y + RA.Bottom;
 end;
 
 function TCastleUserInterface.LocalToContainerTranslationShiftBorder: TVector2;
@@ -2458,8 +2458,8 @@ begin
   Result := LocalToContainerTranslation;
   if FBorder.Exists then // optimize common case
   begin
-    Result.Data[0] := Result.Data[0] + FBorder.TotalLeft   * UIScale;
-    Result.Data[1] := Result.Data[1] + FBorder.TotalBottom * UIScale;
+    Result.X := Result.X + FBorder.TotalLeft   * UIScale;
+    Result.Y := Result.Y + FBorder.TotalBottom * UIScale;
   end;
 end;
 
@@ -2559,14 +2559,14 @@ end;
 
 function TCastleUserInterface.GetAnchorDelta: TVector2;
 begin
-  Result[0] := HorizontalAnchorDelta;
-  Result[1] := VerticalAnchorDelta;
+  Result.X := HorizontalAnchorDelta;
+  Result.Y := VerticalAnchorDelta;
 end;
 
 procedure TCastleUserInterface.SetAnchorDelta(const AValue: TVector2);
 begin
-  HorizontalAnchorDelta := AValue[0];
-  VerticalAnchorDelta := AValue[1];
+  HorizontalAnchorDelta := AValue.X;
+  VerticalAnchorDelta := AValue.Y;
 end;
 
 procedure TCastleUserInterface.Anchor(const AHorizontalAnchor: THorizontalPosition;

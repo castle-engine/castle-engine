@@ -97,6 +97,8 @@
       FCollisionSphereRadius: Single;
       FListenPressRelease: Boolean;
       RegisteredGLContextCloseListener: Boolean;
+      FPendingToRemove: TComponentList;
+      FPendingToRemoveAndFree: TComponentList;
 
       // transformation
       FCenter: TVector3;
@@ -164,6 +166,7 @@
     procedure SetListenPressRelease(const Value: Boolean);
     function GetBehaviors(const Index: Integer): TCastleBehavior;
     procedure GLContextCloseEvent(Sender: TObject);
+    procedure PendingRemovals;
   private
     { "Meaningul" parent is a parent that competes to be a value of Parent.
       This allows to avoid TCastleTransformReference from being considered
@@ -462,16 +465,16 @@
     const
       DefaultMiddleHeight = 0.5;
       DefaultDirection: array [TOrientationType] of TVector3 = (
-        (Data: (0,  0, -1)),
-        (Data: (0,  0, +1)),
-        (Data: (0, -1,  0)),
-        (Data: (1,  0,  0))
+        (X: 0; Y: 0; Z: -1),
+        (X: 0; Y: 0; Z: +1),
+        (X: 0; Y: -1; Z: 0),
+        (X: 1; Y: 0; Z: 0)
       );
       DefaultUp: array [TOrientationType] of TVector3 = (
-        (Data: (0, 1, 0)),
-        (Data: (0, 1, 0)),
-        (Data: (0, 0, 1)),
-        (Data: (0, 0, 1))
+        (X: 0; Y: 1; Z: 0),
+        (X: 0; Y: 1; Z: 0),
+        (X: 0; Y: 0; Z: 1),
+        (X: 0; Y: 0; Z: 1)
       );
 
     class var
@@ -581,6 +584,35 @@
       of the removed scene,
       so removing scene only to add it later to another TCastleViewport.Items is fast. }
     procedure Remove(const Item: TCastleTransform);
+
+    { Use this to remove (and possibly free) the child, but not immediately.
+
+      The actual removal (and freeing, if FreeItem) will be done at some crucial points:
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item Right before we render children.
+        @item Right before we loop over children in the @link(Update) method.
+        @item Right after we loop over children in the @link(Update) method.
+        @item From our destructor.
+      )
+
+      This allows to use this method safely even in the middle of iteration
+      over TCastleTransform children. For example you can use it from @link(Update) method,
+      from any TCastleTransform.Update or TCastleUserInterface.Update (including TUIState.Update).
+
+      Note: It is not a problem if the child scheduled to be removed
+      will also be removed (or even freed) directly e.g. by just calling @code(Free) on it.
+      We ignore removal of items that are no longer
+      our children, and we automatically remove the child from "pending to remove" list
+      if it is freed. You only need to be careful in case you add the same TCastleTransform
+      instance multiple times to the same parent
+      (see https://castle-engine.io/viewport_and_scenes_from_code#_multiple_instances_of_the_same_scene )
+      as then each removal removes one instance (not all) of the child from parent. }
+    procedure RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
+
+    { Remove a child, by index on the @link(Items) list. }
+    procedure Delete(const Index: Integer);
 
     { List of current children. }
     property Items[const I: Integer]: TCastleTransform read GetItem write SetItem; default;
@@ -1840,7 +1872,7 @@ end;
 { TCastleTransform ---------------------------------------------------------------- }
 
 const
-  NoScale: TVector3 = (Data: (1, 1, 1));
+  NoScale: TVector3 = (X: 1; Y: 1; Z: 1);
 
 constructor TCastleTransform.Create(AOwner: TComponent);
 begin
@@ -1870,6 +1902,10 @@ begin
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
   {$undef read_implementation_destructor}
+
+  PendingRemovals;
+  FreeAndNil(FPendingToRemove);
+  FreeAndNil(FPendingToRemoveAndFree);
 
   PhysicsDestroy;
 
@@ -2265,6 +2301,13 @@ begin
     List.Remove(Item);
 end;
 
+procedure TCastleTransform.Delete(const Index: Integer);
+begin
+  { As in Remove, check "List <> nil" }
+  if List <> nil then
+    List.Delete(Index);
+end;
+
 procedure TCastleTransform.Clear;
 begin
   List.Clear;
@@ -2329,6 +2372,7 @@ var
 begin
   if GetVisible then
   begin
+    PendingRemovals;
     for I := 0 to List.Count - 1 do
       List[I].Render(Params);
   end;
@@ -2461,6 +2505,8 @@ procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRe
     Item: TCastleTransform;
     RemoveItem: TRemoveType;
   begin
+    PendingRemovals;
+
     I := 0;
     while I < List.Count do
     begin
@@ -2475,6 +2521,8 @@ procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRe
       end else
         Inc(I);
     end;
+
+    PendingRemovals;
   end;
 
 begin
@@ -2884,7 +2932,7 @@ function Bottom(const Gravity: boolean; const GravityCoordinate: Integer;
 begin
   if Gravity then
     Result := 0 else
-    Result := BoundingBox.Data[0].Data[GravityCoordinate];
+    Result := BoundingBox.Data[0][GravityCoordinate];
 end;
 
 function TCastleTransform.Middle: TVector3;
@@ -2907,7 +2955,7 @@ begin
     besides moving, only rotates around it's own up axis). }
 
   Result := Translation;
-  Result.Data[GC] := Result.Data[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
+  Result.InternalData[GC] := Result.InternalData[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
 end;
 
 function TCastleTransform.PreferredHeight: Single;
@@ -2925,7 +2973,7 @@ begin
   if B.IsEmpty then
     Result := 0
   else
-    Result := MiddleHeight * (B.Data[1].Data[GC] - Bottom(Gravity, GC, B));
+    Result := MiddleHeight * (B.Data[1][GC] - Bottom(Gravity, GC, B));
 
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
   if Sphere(R) and (R > Result) then
@@ -3230,7 +3278,7 @@ end;
 
 procedure TCastleTransform.SetTranslationXY(const Value: TVector2);
 begin
-  Translation := Vector3(Value, Translation.Data[2]);
+  Translation := Vector3(Value, Translation.Z);
 end;
 
 procedure TCastleTransform.Translate(const TranslationChange: TVector3);
@@ -3434,6 +3482,47 @@ begin
   begin
     Result := BehaviorClass.Create(Self);
     AddBehavior(Result);
+  end;
+end;
+
+procedure TCastleTransform.PendingRemovals;
+var
+  I: Integer;
+  Item: TCastleTransform;
+begin
+  { We iterate downto, and still check that index is valid.
+    That is because removing/freeing may call some virtual methods,
+    and may in turn cause removal/free of other items,
+    even items on the pending list.
+    They may also add new items to this list. }
+
+  if FPendingToRemove <> nil then
+    for I := FPendingToRemove.Count - 1 downto 0 do
+      if I < FPendingToRemove.Count then
+      begin
+        Item := FPendingToRemove[I] as TCastleTransform;
+        Remove(Item);
+        FPendingToRemove.Remove(Item);
+      end;
+
+  if FPendingToRemoveAndFree <> nil then
+    for I := FPendingToRemoveAndFree.Count - 1 downto 0 do
+      if I < FPendingToRemoveAndFree.Count then
+        FPendingToRemoveAndFree[I].Free; // this will remove it from children, and from FPendingToRemoveAndFree
+end;
+
+procedure TCastleTransform.RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
+begin
+  if FreeItem then
+  begin
+    if FPendingToRemoveAndFree = nil then
+      FPendingToRemoveAndFree := TComponentList.Create(false);
+    FPendingToRemoveAndFree.Add(Item);
+  end else
+  begin
+    if FPendingToRemove = nil then
+      FPendingToRemove := TComponentList.Create(false);
+    FPendingToRemove.Add(Item);
   end;
 end;
 

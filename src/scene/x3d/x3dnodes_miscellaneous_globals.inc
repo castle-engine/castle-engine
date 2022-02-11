@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,11 +16,11 @@
 {$ifdef read_interface}
 
 const
-  DefaultMaterial_1AmbientColor: TVector3 = (Data: (0.2, 0.2, 0.2)) deprecated 'use TPhongMaterialInfo.DefaultAmbientColor';
+  DefaultMaterial_1AmbientColor: TVector3 = (X: 0.2; Y: 0.2; Z: 0.2) deprecated 'use TPhongMaterialInfo.DefaultAmbientColor';
   DefaultMaterialAmbientIntensity = 0.2 deprecated 'use TPhongMaterialInfo.DefaultAmbientIntensity';
-  DefaultMaterialDiffuseColor: TVector3 = (Data: (0.8, 0.8, 0.8)) deprecated 'use TPhongMaterialInfo.DefaultDiffuseColor';
-  DefaultMaterialSpecularColor: TVector3 = (Data: (0, 0, 0)) deprecated 'use TPhongMaterialInfo.DefaultSpecularColor';
-  DefaultMaterialEmissiveColor: TVector3 = (Data: (0, 0, 0)) deprecated 'use TPhongMaterialInfo.DefaultEmissiveColor';
+  DefaultMaterialDiffuseColor: TVector3 = (X: 0.8; Y: 0.8; Z: 0.8) deprecated 'use TPhongMaterialInfo.DefaultDiffuseColor';
+  DefaultMaterialSpecularColor: TVector3 = (X: 0; Y: 0; Z: 0) deprecated 'use TPhongMaterialInfo.DefaultSpecularColor';
+  DefaultMaterialEmissiveColor: TVector3 = (X: 0; Y: 0; Z: 0) deprecated 'use TPhongMaterialInfo.DefaultEmissiveColor';
   DefaultMaterialShininess = 0.2 deprecated 'use TPhongMaterialInfo.DefaultShininess';
   DefaultMaterialTransparency = 0.0 deprecated 'use TPhongMaterialInfo.DefaultTransparency';
   DefaultMaterialMirror = 0.0 deprecated 'use TPhongMaterialInfo.DefaultMirror';

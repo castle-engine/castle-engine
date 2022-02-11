@@ -243,18 +243,18 @@ var
     procedure RenderTextureSide(const Side: TBackgroundSide);
     const
       Coords: array [TBackgroundSide, 0..3] of TVector3 =
-      ( ((Data: ( 1, -1,  1)), (Data: (-1, -1,  1)), (Data: (-1,  1,  1)), (Data: ( 1,  1,  1))), {back}
-        ((Data: (-1, -1,  1)), (Data: ( 1, -1,  1)), (Data: ( 1, -1, -1)), (Data: (-1, -1, -1))), {bottom}
-        ((Data: (-1, -1, -1)), (Data: ( 1, -1, -1)), (Data: ( 1,  1, -1)), (Data: (-1,  1, -1))), {front}
-        ((Data: (-1, -1,  1)), (Data: (-1, -1, -1)), (Data: (-1,  1, -1)), (Data: (-1,  1,  1))), {left}
-        ((Data: ( 1, -1, -1)), (Data: ( 1, -1,  1)), (Data: ( 1,  1,  1)), (Data: ( 1,  1, -1))), {right}
-        ((Data: (-1,  1, -1)), (Data: ( 1,  1, -1)), (Data: ( 1,  1,  1)), (Data: (-1,  1,  1)))  {top}
+      ( ((X: 1; Y: -1; Z:  1), (X:-1; Y: -1; Z:  1), (X:-1; Y:  1; Z:  1), (X: 1; Y:  1; Z:  1)), {back}
+        ((X:-1; Y: -1; Z:  1), (X: 1; Y: -1; Z:  1), (X: 1; Y: -1; Z: -1), (X:-1; Y: -1; Z: -1)), {bottom}
+        ((X:-1; Y: -1; Z: -1), (X: 1; Y: -1; Z: -1), (X: 1; Y:  1; Z: -1), (X:-1; Y:  1; Z: -1)), {front}
+        ((X:-1; Y: -1; Z:  1), (X:-1; Y: -1; Z: -1), (X:-1; Y:  1; Z: -1), (X:-1; Y:  1; Z:  1)), {left}
+        ((X: 1; Y: -1; Z: -1), (X: 1; Y: -1; Z:  1), (X: 1; Y:  1; Z:  1), (X: 1; Y:  1; Z: -1)), {right}
+        ((X:-1; Y:  1; Z: -1), (X: 1; Y:  1; Z: -1), (X: 1; Y:  1; Z:  1), (X:-1; Y:  1; Z:  1))  {top}
       );
       TexCoords: array [0..3] of TVector2 = (
-        (Data: (0, 0)),
-        (Data: (1, 0)),
-        (Data: (1, 1)),
-        (Data: (0, 1))
+        (X: 0; Y: 0),
+        (X: 1; Y: 0),
+        (X: 1; Y: 1),
+        (X: 0; Y: 1)
       );
     var
       Shape: TShapeNode;

@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,9 +24,9 @@ procedure ReadLibraryLights(LibraryE: TDOMElement);
   function ReadAttenuation(E: TDOMElement): TVector3;
   begin
     Result := Vector3(1, 0, 0);
-    ReadChildFloat(E, 'constant_attenuation', Result.Data[0]);
-    ReadChildFloat(E, 'linear_attenuation', Result.Data[1]);
-    ReadChildFloat(E, 'quadratic_attenuation', Result.Data[2]);
+    ReadChildFloat(E, 'constant_attenuation', Result.X);
+    ReadChildFloat(E, 'linear_attenuation', Result.Y);
+    ReadChildFloat(E, 'quadratic_attenuation', Result.Z);
   end;
 
 var

@@ -129,7 +129,7 @@ type
       { Default value of @link(TCastleRenderOptions.BlendingSort). }
       DefaultBlendingSort = bs3D;
 
-      DefaultWireframeColor: TCastleColorRGB = (Data: (0, 0, 0));
+      DefaultWireframeColor: TCastleColorRGB = (X: 0; Y: 0; Z: 0);
 
       DefaultSolidWireframeScale = 1;
       DefaultSolidWireframeBias = 1;

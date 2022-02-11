@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,9 +33,9 @@
       const pt: TVector3; const box: TBox3D): boolean;
     begin
       if box.IsEmpty then exit(false);
-      result := Between(pt[0], Box.Data[0].Data[0] - 0.001, Box.Data[1].Data[0] + 0.001) and
-                Between(pt[1], Box.Data[0].Data[1] - 0.001, Box.Data[1].Data[1] + 0.001) and
-                Between(pt[2], Box.Data[0].Data[2] - 0.001, Box.Data[1].Data[2] + 0.001);
+      result := Between(pt[0], Box.Data[0].X - 0.001, Box.Data[1].X + 0.001) and
+                Between(pt[1], Box.Data[0].Y - 0.001, Box.Data[1].Y + 0.001) and
+                Between(pt[2], Box.Data[0].Z - 0.001, Box.Data[1].Z + 0.001);
     end;
 
   var
@@ -89,7 +89,7 @@
      for i := 0 to 2 do
       with PlaneIntersects[i] do
       begin
-       if SameValue(Box.Data[1].Data[I], Box.Data[0].Data[I]) then
+       if SameValue(Box.Data[1].InternalData[I], Box.Data[0].InternalData[I]) then
        begin
          { This means that the Box is practically flat, so all 3 planes
            (Box.Data[0].Data[I], MiddlePoint[I], Box.Data[1].Data[I]) are practically

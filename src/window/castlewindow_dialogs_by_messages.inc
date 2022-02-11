@@ -14,9 +14,9 @@ var
   NewColor: TVector3;
 begin
   Result := false;
-  if not MessageInputQuery(Self, 'Input Red value:'  , NewColor.Data[0]) then Exit;
-  if not MessageInputQuery(Self, 'Input Green value:', NewColor.Data[1]) then Exit;
-  if not MessageInputQuery(Self, 'Input Blue value:' , NewColor.Data[2]) then Exit;
+  if not MessageInputQuery(Self, 'Input Red value:'  , NewColor.X) then Exit;
+  if not MessageInputQuery(Self, 'Input Green value:', NewColor.Y) then Exit;
+  if not MessageInputQuery(Self, 'Input Blue value:' , NewColor.Z) then Exit;
 
   Result := true;
   Color := NewColor;

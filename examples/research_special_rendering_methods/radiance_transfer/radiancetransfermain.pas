@@ -151,9 +151,9 @@ begin
     Result := TVector3.Zero;
     for I := 0 to Min(RadianceTransferVertexSize, LightSHBasisCount) - 1 do
     begin
-      Result.Data[0] += RadianceTransferPtr[I].Data[0] * LightSHBasis[I];
-      Result.Data[1] += RadianceTransferPtr[I].Data[1] * LightSHBasis[I];
-      Result.Data[2] += RadianceTransferPtr[I].Data[2] * LightSHBasis[I];
+      Result.X += RadianceTransferPtr[I].X * LightSHBasis[I];
+      Result.Y += RadianceTransferPtr[I].Y * LightSHBasis[I];
+      Result.Z += RadianceTransferPtr[I].Z * LightSHBasis[I];
     end;
   end;
 end;
@@ -217,7 +217,8 @@ procedure Update(Container: TCastleContainer);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPos.Data[Coord] += Change * Window.Fps.SecondsPassed *
+    LightPos.Data[Coord] := LightPos.Data[Coord] +
+     Change * Window.Fps.SecondsPassed *
       { scale by Box3DAvgSize, to get similar move on all models }
       Scene.BoundingBox.AverageSize;
     Window.Invalidate;
@@ -330,9 +331,9 @@ begin
   begin
     LightRadius := Scene.BoundingBox.AverageSize;
     LightPos := Scene.BoundingBox.Center;
-    LightPos.Data[0] +=
-      Scene.BoundingBox.Data[1].Data[0] -
-      Scene.BoundingBox.Data[0].Data[0] + LightRadius;
+    LightPos.X +=
+      Scene.BoundingBox.Data[1].X -
+      Scene.BoundingBox.Data[0].X + LightRadius;
   end;
 
   Background := TCastleRectangleControl.Create(Application);

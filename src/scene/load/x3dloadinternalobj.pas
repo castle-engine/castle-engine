@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -450,8 +450,8 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
     SeekPos: integer;
   begin
     SeekPos := 1;
-    result[0] := StrToFloatDot(NextToken(line, SeekPos));
-    result[1] := StrToFloatDot(NextToken(line, SeekPos));
+    result.X := StrToFloatDot(NextToken(line, SeekPos));
+    result.Y := StrToFloatDot(NextToken(line, SeekPos));
     { nie uzywamy DeFormat - bo tex coord w OBJ moze byc 3d (z trzema
       parametrami) a my uzywamy i tak tylko dwoch pierwszych }
   end;

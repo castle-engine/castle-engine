@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,13 +42,13 @@ var
 
 const
   Colors: array [0..6] of TCastleColorRGB =
-  ( (Data: (1, 0, 0)),
-    (Data: (0, 1, 0)),
-    (Data: (0, 0, 1)),
-    (Data: (1, 1, 0)),
-    (Data: (1, 1, 1)),
-    (Data: (0.5, 0.5, 0.5)),
-    (Data: (0, 0, 0))
+  ( (X: 1; Y: 0; Z: 0),
+    (X: 0; Y: 1; Z: 0),
+    (X: 0; Y: 0; Z: 1),
+    (X: 1; Y: 1; Z: 0),
+    (X: 1; Y: 1; Z: 1),
+    (X: 0.5; Y: 0.5; Z: 0.5),
+    (X: 0; Y: 0; Z: 0)
   );
 
 var
@@ -137,9 +137,9 @@ procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
       SRemoveMnemonics(Item.Caption) + '" be checked ?');
     if Item.Checked then
       case Item.IntData of
-        25: begin Translation[0] := -0.5; Transform.Translation := Translation; end;
-        26: begin Translation[0] :=  0.0; Transform.Translation := Translation; end;
-        27: begin Translation[0] :=  0.5; Transform.Translation := Translation; end;
+        25: begin Translation.X := -0.5; Transform.Translation := Translation; end;
+        26: begin Translation.X :=  0.0; Transform.Translation := Translation; end;
+        27: begin Translation.X :=  0.5; Transform.Translation := Translation; end;
       end;
   end;
 
@@ -160,9 +160,9 @@ begin
         end;
     20: Window.Close;
 
-    21: begin Translation[1] :=  0.5; Transform.Translation := Translation; end;
-    22: begin Translation[1] :=    0; Transform.Translation := Translation; end;
-    23: begin Translation[1] := -0.5; Transform.Translation := Translation; end;
+    21: begin Translation.Y :=  0.5; Transform.Translation := Translation; end;
+    22: begin Translation.Y :=    0; Transform.Translation := Translation; end;
+    23: begin Translation.Y := -0.5; Transform.Translation := Translation; end;
 
     25..27: ChangeChecked(Item as TMenuItemRadio);
 

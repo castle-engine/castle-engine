@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -126,15 +126,15 @@ var
   LightPos3: TVector3 absolute LightPos;
 begin
   { Below is the moment when we require that
-    if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
-    Otherwise we would have to divide here LightPos3 by LightPos[3].
+    if LightPos.W <> 0 then LightPos.W = 1 (not any other non-zero value).
+    Otherwise we would have to divide here LightPos3 by LightPos.W.
     Maybe in the future this requirement will be removed and we'll work
     for any LightPos in homogeneous coordinates, for now it's not really
     needed. }
-  Result[0] := Original[0] -  LightPos3[0];
-  Result[1] := Original[1] -  LightPos3[1];
-  Result[2] := Original[2] -  LightPos3[2];
-  Result[3] := 0;
+  Result.X := Original.X -  LightPos3.X;
+  Result.Y := Original.Y -  LightPos3.Y;
+  Result.Z := Original.Z -  LightPos3.Z;
+  Result.W := 0;
 end;
 
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
@@ -258,10 +258,10 @@ var
       TriangleTransformed.Data[1] := Transform.MultPoint(T.Data[1]);
       TriangleTransformed.Data[2] := Transform.MultPoint(T.Data[2]);
       Plane := TriangleTransformed.Plane;
-      Result := (Plane.Data[0] * LightPos.Data[0] +
-                 Plane.Data[1] * LightPos.Data[1] +
-                 Plane.Data[2] * LightPos.Data[2] +
-                 Plane.Data[3] * LightPos.Data[3]) > 0;
+      Result := (Plane.X * LightPos.X +
+                 Plane.Y * LightPos.Y +
+                 Plane.Z * LightPos.Z +
+                 Plane.W * LightPos.W) > 0;
       if Result then RenderCaps(TriangleTransformed);
     end;
 
@@ -380,7 +380,7 @@ var
       { Caps are always needed, doesn't depend on zpass/zfail.
         Well, for dark cap we can avoid them if the light is directional. }
       LightCap := true;
-      DarkCap := LightPos.Data[3] <> 0;
+      DarkCap := LightPos.W <> 0;
 
       glBegin(GL_TRIANGLES);
     end;
@@ -398,7 +398,7 @@ var
     TrianglePtr := PTriangle3(Triangles.List);
 
     { If light is directional, no need to render dark cap }
-    DarkCap := DarkCap and (LightPos.Data[3] <> 0);
+    DarkCap := DarkCap and (LightPos.W <> 0);
 
     if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
       OpaqueTrianglesBegin else

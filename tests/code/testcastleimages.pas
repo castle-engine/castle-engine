@@ -150,7 +150,7 @@ end;
 
 procedure TTestImages.TestVector3ToRGBE;
 const
-  RightRGBE: TVector4Byte= (Data: (154, 10, 51, 127));
+  RightRGBE: TVector4Byte= (X: 154; Y: 10; Z: 51; W: 127);
 var
   NewRGBE: TVector4Byte;
 begin
@@ -168,9 +168,9 @@ procedure TTestImages.TestRGBEToRGBTranslating;
   begin
    for i := 1 to 1000 do
    begin
-    rgb[0] := Random*UpperValue;
-    rgb[1] := Random*UpperValue;
-    rgb[2] := Random*UpperValue;
+    rgb.X := Random*UpperValue;
+    rgb.Y := Random*UpperValue;
+    rgb.Z := Random*UpperValue;
 
     rgbe := Vector3ToRGBE(rgb);
     newrgb := VectorRGBETo3Single(rgbe);

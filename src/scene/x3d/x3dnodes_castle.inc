@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -418,8 +418,8 @@ end;
 procedure TKambiHeadLightNode.CreateNode;
 const
   HeadLightDefaultAmbientIntensity = 0;
-  HeadLightDefaultAttenuation: TVector3 = (Data: (1, 0, 0));
-  HeadLightDefaultColor: TVector3 = (Data: (1, 1, 1));
+  HeadLightDefaultAttenuation: TVector3 = (X: 1; Y: 0; Z: 0);
+  HeadLightDefaultColor: TVector3 = (X: 1; Y: 1; Z: 1);
   HeadLightDefaultIntensity = 1.0;
   HeadLightDefaultSpot = false;
   HeadLightDefaultSpotCutOffAngle = Pi / 4;

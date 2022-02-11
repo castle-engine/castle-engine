@@ -222,9 +222,9 @@ begin
     have the same behavior (no need to invert angle sign for Y coord,
     as with RestOf3DCoords). }
   RestOf3DCoordsCycle(Coord, C1, C2);
-  PointProjected[0] := Intersection[C1];
-  PointProjected[1] := Intersection[C2];
-  Angle := ArcTan2(PointProjected[1], PointProjected[0]);
+  PointProjected.X := Intersection[C1];
+  PointProjected.Y := Intersection[C2];
+  Angle := ArcTan2(PointProjected.Y, PointProjected.X);
   Result := true;
 end;
 
@@ -312,8 +312,8 @@ procedure TVisualizeTransform.TGizmoScene.UpdateSize;
 
   function Projected(const V, X, Y: TVector3): TVector2;
   begin
-    Result[0] := TVector3.DotProduct(V, X);
-    Result[1] := TVector3.DotProduct(V, Y);
+    Result.X := TVector3.DotProduct(V, X);
+    Result.Y := TVector3.DotProduct(V, Y);
   end;
 
 var
@@ -379,10 +379,14 @@ var
     *)
 
     CameraPos := Camera.Position;
-    CameraNearPlane.XYZ := Camera.Direction;
-    { plane equation should yield 0 when used with point in front of camera }
-    CameraNearPlane.W := - TVector3.DotProduct(
-      CameraPos + Camera.Direction * AssumeNear * SceneSizeMultiplier, Camera.Direction);
+    CameraNearPlane := Vector4(
+      Camera.Direction,
+      { plane equation should yield 0 when used with point in front of camera }
+      - TVector3.DotProduct(
+          CameraPos + Camera.Direction * AssumeNear * SceneSizeMultiplier,
+          Camera.Direction
+        )
+    );
     if not TryPlaneLineIntersection(OneProjected3, CameraNearPlane, CameraPos, OneWorld - CameraPos) then
       Exit(1.0); // no valid value can be calculated
     if not TryPlaneLineIntersection(ZeroProjected3, CameraNearPlane, CameraPos, ZeroWorld - CameraPos) then
@@ -567,9 +571,9 @@ begin
           begin
             for I := 0 to 2 do
               if IsZero(LastPick[I]) then
-                Diff[I] := 1
+                Diff.InternalData[I] := 1
               else
-                Diff[I] := NewPick[I] / LastPick[I];
+                Diff.InternalData[I] := NewPick[I] / LastPick[I];
             Parent.Scale := Parent.Scale * Diff;
           end;
       end;

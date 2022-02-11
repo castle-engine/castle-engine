@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -89,23 +89,23 @@ end;
 
 procedure DecodeX3DColor(const Pixel: LongWord; var GA: TVector2Byte);
 begin
-  GA[0] := (pixel shr 8) and $FF;
-  GA[1] := pixel and $FF;
+  GA.X := (pixel shr 8) and $FF;
+  GA.Y := pixel and $FF;
 end;
 
 procedure DecodeX3DColor(const Pixel: LongWord; var RGB: TVector3Byte);
 begin
-  RGB[0] := (pixel shr 16) and $FF;
-  RGB[1] := (pixel shr 8) and $FF;
-  RGB[2] := pixel and $FF;
+  RGB.X := (pixel shr 16) and $FF;
+  RGB.Y := (pixel shr 8) and $FF;
+  RGB.Z := pixel and $FF;
 end;
 
 procedure DecodeX3DColor(const Pixel: LongWord; var RGBA: TVector4Byte);
 begin
-  RGBA[0] := (pixel shr 24) and $FF;
-  RGBA[1] := (pixel shr 16) and $FF;
-  RGBA[2] := (pixel shr 8) and $FF;
-  RGBA[3] := pixel and $FF;
+  RGBA.X := (pixel shr 24) and $FF;
+  RGBA.Y := (pixel shr 16) and $FF;
+  RGBA.Z := (pixel shr 8) and $FF;
+  RGBA.W := pixel and $FF;
 end;
 
 { We have to turn range checking off, because converting from LongInt
