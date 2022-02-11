@@ -64,8 +64,10 @@ type
     @seealso TGenericVector3 }
   TGenericVector2 = packed record
   public
+    const
+      Count = 2;
     type
-      TIndex = 0..1;
+      TIndex = 0..Count - 1;
   strict private
     function GetItems(const Index: TIndex): TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -180,8 +182,10 @@ type
   }
   TGenericVector3 = packed record
   public
+    const
+      Count = 3;
     type
-      TIndex = 0..2;
+      TIndex = 0..Count - 1;
   strict private
     function GetItems(const Index: TIndex): TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -323,8 +327,10 @@ type
     @seealso TGenericVector3 }
   TGenericVector4 = packed record
   public
+    const
+      Count = 4;
     type
-      TIndex = 0..3;
+      TIndex = 0..Count - 1;
   strict private
     function GetItems(const Index: TIndex): TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -787,6 +793,10 @@ begin
   case Index of
     0: Result := X;
     1: Result := Y;
+    { We use here numbers, not strings, for internal errors.
+      Reason: avoid implicit try..finally clause,
+      this method must be fast. }
+    {$ifndef FPC} else raise EInternalError.Create(202202111); {$endif}
   end;
 end;
 
@@ -795,6 +805,7 @@ begin
   case Index of
     0: X := Value;
     1: Y := Value;
+    {$ifndef FPC} else raise EInternalError.Create(202202112); {$endif}
   end;
 end;
 
@@ -995,6 +1006,7 @@ begin
     0: Result := X;
     1: Result := Y;
     2: Result := Z;
+    {$ifndef FPC} else raise EInternalError.Create(202202113); {$endif}
   end;
 end;
 
@@ -1004,6 +1016,7 @@ begin
     0: X := Value;
     1: Y := Value;
     2: Z := Value;
+    {$ifndef FPC} else raise EInternalError.Create(202202114); {$endif}
   end;
 end;
 
@@ -1255,6 +1268,7 @@ begin
     1: Result := Y;
     2: Result := Z;
     3: Result := W;
+    {$ifndef FPC} else raise EInternalError.Create(202202115); {$endif}
   end;
 end;
 
@@ -1265,6 +1279,7 @@ begin
     1: Y := Value;
     2: Z := Value;
     3: W := Value;
+    {$ifndef FPC} else raise EInternalError.Create(202202116); {$endif}
   end;
 end;
 

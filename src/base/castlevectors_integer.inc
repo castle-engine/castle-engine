@@ -207,6 +207,7 @@ begin
   case Index of
     0: Result := X;
     1: Result := Y;
+    {$ifndef FPC} else raise EInternalError.Create(2022021113); {$endif}
   end;
 end;
 
@@ -215,6 +216,7 @@ begin
   case Index of
     0: X := Value;
     1: Y := Value;
+    {$ifndef FPC} else raise EInternalError.Create(2022021114); {$endif}
   end;
 end;
 
@@ -270,6 +272,7 @@ begin
     0: Result := X;
     1: Result := Y;
     2: Result := Z;
+    {$ifndef FPC} else raise EInternalError.Create(2022021115); {$endif}
   end;
 end;
 
@@ -279,6 +282,7 @@ begin
     0: X := Value;
     1: Y := Value;
     2: Z := Value;
+    {$ifndef FPC} else raise EInternalError.Create(2022021116); {$endif}
   end;
 end;
 
@@ -340,6 +344,7 @@ begin
     1: Result := Y;
     2: Result := Z;
     3: Result := W;
+    {$ifndef FPC} else raise EInternalError.Create(2022021117); {$endif}
   end;
 end;
 
@@ -350,6 +355,7 @@ begin
     1: Y := Value;
     2: Z := Value;
     3: W := Value;
+    {$ifndef FPC} else raise EInternalError.Create(2022021118); {$endif}
   end;
 end;
 
