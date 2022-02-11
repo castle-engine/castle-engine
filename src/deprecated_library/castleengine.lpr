@@ -352,9 +352,9 @@ begin
     if not CGE_VerifyScene('CGE_GetBoundingBox') then exit;
 
     BBox := Viewport.Items.MainScene.BoundingBox;
-    pfXMin^ := BBox.Data[0].Data[0]; pfXMax^ := BBox.Data[1].Data[0];
-    pfYMin^ := BBox.Data[0].Data[1]; pfYMax^ := BBox.Data[1].Data[1];
-    pfZMin^ := BBox.Data[0].Data[2]; pfZMax^ := BBox.Data[1].Data[2];
+    pfXMin^ := BBox.Data[0].X; pfXMax^ := BBox.Data[1].X;
+    pfYMin^ := BBox.Data[0].Y; pfYMax^ := BBox.Data[1].Y;
+    pfZMin^ := BBox.Data[0].Z; pfZMax^ := BBox.Data[1].Z;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
@@ -369,10 +369,10 @@ begin
     if not CGE_VerifyWindow('CGE_GetViewCoords') then exit;
 
     Viewport.Camera.GetView(Pos, Dir, Up, GravityUp);
-    pfPosX^ := Pos[0]; pfPosY^ := Pos[1]; pfPosZ^ := Pos[2];
-    pfDirX^ := Dir[0]; pfDirY^ := Dir[1]; pfDirZ^ := Dir[2];
-    pfUpX^ := Up[0]; pfUpY^ := Up[1]; pfUpZ^ := Up[2];
-    pfGravX^ := GravityUp[0]; pfGravY^ := GravityUp[1]; pfGravZ^ := GravityUp[2];
+    pfPosX^ := Pos.X; pfPosY^ := Pos.Y; pfPosZ^ := Pos.Z;
+    pfDirX^ := Dir.X; pfDirY^ := Dir.Y; pfDirZ^ := Dir.Z;
+    pfUpX^ := Up.X; pfUpY^ := Up.Y; pfUpZ^ := Up.Z;
+    pfGravX^ := GravityUp.X; pfGravY^ := GravityUp.Y; pfGravZ^ := GravityUp.Z;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
@@ -387,10 +387,10 @@ begin
   try
     if not CGE_VerifyWindow('CGE_MoveViewToCoords') then exit;
 
-    Pos[0] := fPosX; Pos[1] := fPosY; Pos[2] := fPosZ;
-    Dir[0] := fDirX; Dir[1] := fDirY; Dir[2] := fDirZ;
-    Up[0] := fUpX; Up[1] := fUpY; Up[2] := fUpZ;
-    GravityUp[0] := fGravX; GravityUp[1] := fGravY; GravityUp[2] := fGravZ;
+    Pos.X := fPosX; Pos.Y := fPosY; Pos.Z := fPosZ;
+    Dir.X := fDirX; Dir.Y := fDirY; Dir.Z := fDirZ;
+    Up.X := fUpX; Up.Y := fUpY; Up.Z := fUpZ;
+    GravityUp.X := fGravX; GravityUp.Y := fGravY; GravityUp.Z := fGravZ;
     if bAnimated then
       Viewport.Camera.AnimateTo(Pos, Dir, Up, 0.5)
     else
