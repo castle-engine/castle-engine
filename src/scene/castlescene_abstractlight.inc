@@ -73,6 +73,7 @@ begin
     FGizmoImage := TCastleImageTransform.Create(nil);
     FGizmoImage.Size := Vector2(1, 1);
     FGizmoImage.Color := HexToColor('FC9C2D');
+    FGizmoImage.SetTransient;
     Add(FGizmoImage);
 
     FGizmoBillboard := TCastleBillboard.Create(nil);
@@ -80,6 +81,7 @@ begin
     FGizmoImage.AddBehavior(FGizmoBillboard);
 
     FGizmoScene := TCastleScene.Create(nil);
+    FGizmoScene.SetTransient;
     Add(FGizmoScene);
   end;
 end;
