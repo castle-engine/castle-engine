@@ -382,13 +382,13 @@ begin
   Element := PAOElement(Elements.List);
   for I := 0 to Elements.Count - 1 do
   begin
-    PositionArea^[0] := ClampedCheck(Element^.Position[0] / PositionScale[0] - PositionShift[0]);
-    PositionArea^[1] := ClampedCheck(Element^.Position[1] / PositionScale[1] - PositionShift[1]);
-    PositionArea^[2] := ClampedCheck(Element^.Position[2] / PositionScale[2] - PositionShift[2]);
-    PositionArea^[3] := ClampedCheck(Element^.Area / AreaScale);
-    Normal^[0] := ClampedCheck(Element^.Normal[0] / 2 + 0.5);
-    Normal^[1] := ClampedCheck(Element^.Normal[1] / 2 + 0.5);
-    Normal^[2] := ClampedCheck(Element^.Normal[2] / 2 + 0.5);
+    PositionArea^.X := ClampedCheck(Element^.Position.X / PositionScale.X - PositionShift.X);
+    PositionArea^.Y := ClampedCheck(Element^.Position.Y / PositionScale.Y - PositionShift.Y);
+    PositionArea^.Z := ClampedCheck(Element^.Position.Z / PositionScale.Z - PositionShift.Z);
+    PositionArea^.W := ClampedCheck(Element^.Area / AreaScale);
+    Normal^.X := ClampedCheck(Element^.Normal.X / 2 + 0.5);
+    Normal^.Y := ClampedCheck(Element^.Normal.Y / 2 + 0.5);
+    Normal^.Z := ClampedCheck(Element^.Normal.Z / 2 + 0.5);
     Inc(Element);
     Inc(PositionArea);
     Inc(Normal);
@@ -402,13 +402,13 @@ begin
     and can be easily detected by changing the special value below. }
   for I := Elements.Count to Sqr(ElementsTexSize) - 1 do
   begin
-    PositionArea^[0] := 255;
-    PositionArea^[1] := 0;
-    PositionArea^[2] := 0;
-    PositionArea^[3] := 255;
-    Normal^[0] := 255;
-    Normal^[1] := 0;
-    Normal^[2] := 0;
+    PositionArea^.X := 255;
+    PositionArea^.Y := 0;
+    PositionArea^.Z := 0;
+    PositionArea^.W := 255;
+    Normal^.X := 255;
+    Normal^.Y := 0;
+    Normal^.Z := 0;
     Inc(Element);
     Inc(PositionArea);
     Inc(Normal);

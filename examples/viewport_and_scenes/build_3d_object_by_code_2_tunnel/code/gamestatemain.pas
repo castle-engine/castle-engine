@@ -103,15 +103,15 @@ function BuildNode: TX3DRootNode;
     begin
       for i := 1 to FloorPoints do
       begin
-        pt[i][0] := -1 + (i-1)/(FloorPoints-1)*2; // this is x-location of the floor vertexes
-        pt[i][1] := 0;                            // y = 0
-        pt[i][2] := 0;                            // z = 0
+        pt[i].X := -1 + (i-1)/(FloorPoints-1)*2; // this is x-location of the floor vertexes
+        pt[i].Y := 0;                            // y = 0
+        pt[i].Z := 0;                            // z = 0
       end;
       for i := FloorPoints+1 to MaxPoints do
       begin
-        pt[i][0] := 1 - (i-FloorPoints)/(MaxPoints-FloorPoints+1)*2;  //x and y of the vertexes
-        pt[i][1] := 1 - sqr(sqr(abs(pt[i][0])));
-        pt[i][2] := 0;                            // z = 0
+        pt[i].X := 1 - (i-FloorPoints)/(MaxPoints-FloorPoints+1)*2;  //x and y of the vertexes
+        pt[i].Y := 1 - sqr(sqr(abs(pt[i].X)));
+        pt[i].Z := 0;                            // z = 0
       end;
     end;
   end;
@@ -124,12 +124,12 @@ function BuildNode: TX3DRootNode;
     with NextSection do
       for i := 1 to MaxPoints do
       begin
-        pt[i][0] := median[0]+((CoreSection.pt[i][0])*cos(angle) + (CoreSection.pt[i][2])*sin(angle))*width;
-        pt[i][2] := median[2]+((CoreSection.pt[i][2])*cos(angle) + (CoreSection.pt[i][0])*sin(angle))*width;
-        pt[i][1] := median[1]+(CoreSection.pt[i][1])*height;
+        pt[i].X := median.X+((CoreSection.pt[i].X)*cos(angle) + (CoreSection.pt[i].Z)*sin(angle))*width;
+        pt[i].Z := median.Z+((CoreSection.pt[i].Z)*cos(angle) + (CoreSection.pt[i].X)*sin(angle))*width;
+        pt[i].Y := median.Y+(CoreSection.pt[i].Y)*height;
         inc(NIndex);
         index[i] := NIndex;
-        Coords.FdPoint.Items.Add(Vector3(pt[i][0], pt[i][1], pt[i][2]));
+        Coords.FdPoint.Items.Add(Vector3(pt[i].X, pt[i].Y, pt[i].Z));
       end;
   end;
 
@@ -161,9 +161,9 @@ function BuildNode: TX3DRootNode;
     begin
       { determine next section parameters }
       NextSection.angle := LastSection.angle+(Random-0.5)/10;
-      NextSection.median[0] := LastSection.median[0]+sin(NextSection.angle);
-      NextSection.median[1] := LastSection.median[1]-(Random-0.5)/3;
-      NextSection.median[2] := LastSection.median[2]-cos(NextSection.angle);
+      NextSection.median.X := LastSection.median.X+sin(NextSection.angle);
+      NextSection.median.Y := LastSection.median.Y-(Random-0.5)/3;
+      NextSection.median.Z := LastSection.median.Z-cos(NextSection.angle);
       NextSection.width := LastSection.width+(Random-0.5)/3;
       if NextSection.width < 1 then NextSection.width:=1;
       if NextSection.width > 3 then NextSection.width:=3;
@@ -188,9 +188,9 @@ function BuildNode: TX3DRootNode;
 
     { make first section to start with }
     //first set parameters
-    LastSection.median[0] := 0;
-    LastSection.median[1] := -2;
-    LastSection.median[2] := 2;
+    LastSection.median.X := 0;
+    LastSection.median.Y := -2;
+    LastSection.median.Z := 2;
     LastSection.width := 1+Random*2;
     LastSection.height := 2+Random*2;
     LastSection.angle := 0;
