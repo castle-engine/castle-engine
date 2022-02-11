@@ -32,7 +32,8 @@ uses SysUtils, Classes, Generics.Collections,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending,
-  CastleInternalBatchShapes, CastleRenderOptions, CastleTimeUtils, CastleImages;
+  CastleInternalBatchShapes, CastleRenderOptions, CastleTimeUtils, CastleImages,
+  CastleBehaviors;
 
 {$define read_interface}
 

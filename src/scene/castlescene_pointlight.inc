@@ -82,6 +82,7 @@ begin
   FPointLight := TPointLightNode.Create;
   LightNode := FPointLight;
   GizmoTextureUrl := InternalCastleDesignData + 'gizmos/light/light_point.png';
+  GizmoSceneUrl := InternalCastleDesignData + 'gizmos/light/light_point.glb';
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlepointlight_persistent_vectors.inc}
