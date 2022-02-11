@@ -150,6 +150,11 @@ type
     GlobalLights: TLightInstancesList;
     OwnsGlobalLights: boolean;
 
+    property BaseLights: TLightInstancesList read GlobalLights write GlobalLights;
+      {$ifdef FPC}deprecated 'use GlobalLights';{$endif}
+    property OwnsBaseLights: Boolean read OwnsGlobalLights write OwnsGlobalLights;
+      {$ifdef FPC}deprecated 'use BaseLights';{$endif}
+
     procedure Execute; override;
     destructor Destroy; override;
   end;

@@ -316,6 +316,8 @@ type
       by the @link(TCastleRootTransform.UseHeadlight Items.UseHeadlight) value. }
     procedure InitializeGlobalLights(const GlobalLights: TLightInstancesList); virtual;
 
+    procedure InitializeLights(const GlobalLights: TLightInstancesList); deprecated 'use InitializeGlobalLights';
+
     { Render everything from given camera view (as TRenderingCamera).
       Given RenderingCamera.Target says to where we generate the image.
       This method must take care of making many rendering passes
@@ -2232,6 +2234,11 @@ begin
   if HeadlightInstance(HI) then
     GlobalLights.Add(HI);
   {$warnings on}
+end;
+
+procedure TCastleViewport.InitializeLights(const GlobalLights: TLightInstancesList);
+begin
+  InitializeGlobalLights(GlobalLights);
 end;
 
 function TCastleViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
