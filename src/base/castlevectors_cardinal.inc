@@ -35,7 +35,7 @@ type
       We discourage using it. Use X, Y to change vector components.
       Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      deprecated 'use instead X, Y fields';
+      {$ifdef FPC}deprecated 'use instead X, Y fields';{$endif}
 
     { @exclude
       Access (get, set) vector components by index.
@@ -52,7 +52,7 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      deprecated 'use instead X, Y fields';
+      {$ifdef FPC}deprecated 'use instead X, Y fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Cardinal): boolean; static; inline;
@@ -76,7 +76,7 @@ type
       We discourage using it. Use X, Y, Z to change vector components.
       Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      deprecated 'use instead X, Y, Z fields';
+      {$ifdef FPC}deprecated 'use instead X, Y, Z fields';{$endif}
 
     { @exclude
       Access (get, set) vector components by index.
@@ -93,7 +93,7 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      deprecated 'use instead X, Y, Z fields';
+      {$ifdef FPC}deprecated 'use instead X, Y, Z fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Cardinal): boolean; static; inline;
@@ -117,7 +117,7 @@ type
       We discourage using it. Use X, Y, Z, W to change vector components.
       Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      deprecated 'use instead X, Y, Z, W fields';
+      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields';{$endif}
 
     { @exclude
       Access (get, set) vector components by index.
@@ -134,7 +134,7 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      deprecated 'use instead X, Y, Z, W fields';
+      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Cardinal): boolean; static; inline;

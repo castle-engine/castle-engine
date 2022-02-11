@@ -78,7 +78,7 @@ type
       We discourage using it. Use X, Y to change vector components.
       Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      deprecated 'use instead X, Y fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.TranslationXY.Data[0] := Scene.TranslationXY.Data[0] + 1"';
+      {$ifdef FPC}deprecated 'use instead X, Y fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.TranslationXY.Data[0] := Scene.TranslationXY.Data[0] + 1"';{$endif}
 
     { @exclude
       Access (get, set) vector components by index.
@@ -114,7 +114,7 @@ type
     function ToRawString: string;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      deprecated 'use instead X, Y fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.TranslationXY[0] := Scene.TranslationXY[0] + 1"';
+      {$ifdef FPC}deprecated 'use instead X, Y fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.TranslationXY[0] := Scene.TranslationXY[0] + 1"';{$endif}
 
     function Normalize: TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure NormalizeMe; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -194,7 +194,7 @@ type
       We discourage using it. Use X, Y, Z to change vector components.
       Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      deprecated 'use instead X, Y, Z fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Translation.Data[0] := Scene.Translation.Data[0] + 1"';
+      {$ifdef FPC}deprecated 'use instead X, Y, Z fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Translation.Data[0] := Scene.Translation.Data[0] + 1"';{$endif}
 
     { @exclude
       Access (get, set) vector components by index.
@@ -230,7 +230,7 @@ type
     function ToRawString: string;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      deprecated 'use instead X, Y, Z fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.Translation[0] := Scene.Translation[0] + 1"';
+      {$ifdef FPC}deprecated 'use instead X, Y, Z fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.Translation[0] := Scene.Translation[0] + 1"';{$endif}
 
     function Normalize: TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure NormalizeMe; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -347,7 +347,7 @@ type
       We discourage using it. Use X, Y, Z, W to change vector components.
       Use AsArray to access it by index, read-only. }
     property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      deprecated 'use instead X, Y, Z, W fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Rotation.Data[0] := Scene.Rotation.Data[0] + 1"';
+      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Rotation.Data[0] := Scene.Rotation.Data[0] + 1"';{$endif}
 
     { @exclude
       Access (get, set) vector components by index.
@@ -383,7 +383,7 @@ type
     function ToRawString: string;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      deprecated 'use instead X, Y, Z, W fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.Rotation[0] := Scene.Rotation[0] + 1"';
+      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.Rotation[0] := Scene.Rotation[0] + 1"';{$endif}
 
     function Length: TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
