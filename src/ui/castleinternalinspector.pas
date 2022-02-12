@@ -536,7 +536,7 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
 
         is not present in "if" below. }
 
-      if C.GetExists then
+      if C.Exists then
       begin
         { First try to find children, with TestWithBorder=false (so it doesn't detect
           control if we merely point at its border). This allows to find controls

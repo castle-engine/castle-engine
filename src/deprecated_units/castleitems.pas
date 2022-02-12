@@ -1295,7 +1295,7 @@ var
   Player: TAliveWithInventory;
 begin
   inherited;
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
   LifeTime := LifeTime + SecondsPassed;
 

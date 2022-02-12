@@ -24,7 +24,7 @@
     { How many shapes were rendered (send to OpenGL)
       versus all shapes that were potentially visible.
       Potentially visible shapes are the ones with
-      TShape.Visible inside a 3D object with TCastleTransform.GetExists.
+      TShape.Visible inside a TCastleTransform with TCastleTransform.Exists.
 
       When ShapesRendered is much smaller than ShapesVisible,
       it means that the algorithm for removing invisible scene parts

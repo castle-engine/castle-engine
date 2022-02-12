@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,7 +74,7 @@ type
       (the rest of 3D world is treated as static, does not interact with
       elevators / doors or such).
 
-      Only relevant if GetCollides. Non-colliding objects never push others. }
+      Only relevant if CheckCollides. Non-colliding objects never push others. }
     property Pushes: boolean read FPushes write FPushes default true;
 
     { If @link(Pushes) is @true, this determines how pushing actually works.
@@ -364,7 +364,7 @@ procedure TCastleMoving.BeforeTimeIncrease(
   function BoundingBoxAssumeTranslation(
     const AssumeTranslation: TVector3): TBox3D;
   begin
-    if GetCollides then
+    if CheckCollides then
       Result := (inherited BoundingBox).Translate(AssumeTranslation) else
       Result := TBox3D.Empty;
   end;
@@ -374,7 +374,7 @@ procedure TCastleMoving.BeforeTimeIncrease(
     const Pos: TVector3; const Radius: Single;
     const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
   begin
-    Result := GetCollides;
+    Result := CheckCollides;
     if Result then
     begin
       { We use the same trick as in TCastleTransform.MoveCollision to
@@ -390,7 +390,7 @@ procedure TCastleMoving.BeforeTimeIncrease(
     const Box: TBox3D;
     const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
   begin
-    Result := GetCollides;
+    Result := CheckCollides;
     if Result then
     begin
       { We use the same trick as in TCastleTransform.MoveCollision to
@@ -409,7 +409,7 @@ var
   SphereRadius: Single;
   Item: TCastleTransform;
 begin
-  if GetCollides and Pushes then
+  if CheckCollides and Pushes then
   begin
     CurrentTranslation := GetTranslationFromTime(AnimationTime);
     NewTranslation := GetTranslationFromTime(NewAnimationTime);
@@ -683,7 +683,7 @@ var
   CurrentKnockBackDistance: Single;
 begin
   inherited;
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
   FLifeTime := FLifeTime + SecondsPassed;
 

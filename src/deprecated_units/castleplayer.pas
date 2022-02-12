@@ -555,7 +555,7 @@ end;
 
 procedure TPlayer.TBox.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
-  if GetExists then
+  if Exists then
     UpdateBox;
   inherited;
 end;
@@ -1152,7 +1152,7 @@ const
   FadeOutSpeed = 2.0;
 begin
   inherited;
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
   SynchronizeFromCamera;
 

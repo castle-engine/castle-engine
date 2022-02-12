@@ -1035,11 +1035,6 @@ type
         using this variable (e.g. Render routines will exit immediately
         when InternalDirty <> 0).
 
-        Note: in the future, we could replace this by just Enable/Disable
-        feature on TCastleTransform. But it's not so trivial now, as Enable/Disable
-        makes even *too much* things non-existing, e.g. GetCollides
-        may return false, LocalBoundingBox may be empty etc.
-
         @exclude }
       InternalDirty: Cardinal;
 
@@ -3570,7 +3565,7 @@ end;
 
 function TCastleSceneCore.LocalBoundingBox: TBox3D;
 begin
-  if GetExists then
+  if Exists then
   begin
     if not (fvLocalBoundingBox in Validities) then
     begin
@@ -6233,7 +6228,7 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if Result or (not GetExists) or (Event.EventType <> itKey) then Exit;
+  if Result or (not Exists) or (Event.EventType <> itKey) then Exit;
 
   if ProcessEvents then
   begin
@@ -6258,7 +6253,7 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if Result or (not GetExists) or (Event.EventType <> itKey) then Exit;
+  if Result or (not Exists) or (Event.EventType <> itKey) then Exit;
 
   if ProcessEvents then
   begin
@@ -6292,7 +6287,7 @@ var
   OverItem: PTriangle;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result or (not Exists) then Exit;
 
   OverItem := Pick.Triangle;
 
@@ -7140,7 +7135,7 @@ var
   SP: Single;
 begin
   inherited;
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
   { in case the same scene is present many times on Viewport.Items list,
     do not process it's Update() many times (would cause time to move too fast). }

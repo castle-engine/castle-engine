@@ -1600,7 +1600,7 @@ begin
   { This is usually called by LocalRender(Params) that probably
     already did tests below. But it may also be called directly,
     so do the checks below anyway. (The checks are trivial, so no speed harm.) }
-  if GetVisible and
+  if CheckVisible and
      (InternalDirty = 0) and
      (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
   begin
@@ -1678,7 +1678,7 @@ var
   T: TMatrix4;
   ForceOpaque: boolean;
 begin
-  if GetVisible and CastShadowVolumes then
+  if CheckVisible and CastShadowVolumes then
   begin
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 
@@ -2015,7 +2015,7 @@ begin
   inherited;
 
   if InternalEnableRendering and
-     GetVisible and
+     CheckVisible and
      (InternalDirty = 0) and
      (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
   begin

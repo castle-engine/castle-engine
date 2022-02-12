@@ -1493,7 +1493,7 @@ end;
 
 function TCreature.GetCollides: boolean;
 begin
-  Result := (inherited GetCollides) and
+  Result := (inherited CheckCollides) and
     (Resource.CollidesWhenDead or (not Dead));
 end;
 
@@ -1614,9 +1614,9 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
 
 begin
   inherited;
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
-  { In this case (when GetExists, regardless of DebugTimeStopForCreatures),
+  { In this case (when Exists, regardless of DebugTimeStopForCreatures),
     TCastleAlive.Update changed LifeTime.
     And LifeTime is used to choose animation frame in GetChild.
     So the creature constantly changes, even when it's
@@ -1653,7 +1653,7 @@ end;
 
 function TCreature.Sphere(out ARadius: Single): boolean;
 begin
-  Result := GetExists and (not Dead);
+  Result := Exists and (not Dead);
   ARadius := Radius;
 end;
 
@@ -2480,7 +2480,7 @@ var
   E: TCastleTransform;
 begin
   inherited;
-  if (not GetExists) or DebugTimeStopForCreatures then Exit;
+  if (not Exists) or DebugTimeStopForCreatures then Exit;
 
   { eventually turn off InternalMiddleForceBox }
   InternalMiddleForceBox := InternalMiddleForceBox and (LifeTime <= InternalMiddleForceBoxTime);
@@ -2689,9 +2689,15 @@ var
   Player: TCastleTransform;
 
   function MissileMoveAllowed(const OldPos, NewPos: TVector3): boolean;
+  var
+    SavedPlayerExists: Boolean;
   begin
     {$warnings off} // using deprecated in deprecated
-    if (not Resource.HitsPlayer) and (Player <> nil) then Player.Disable;
+    if (not Resource.HitsPlayer) and (Player <> nil) then
+    begin
+      SavedPlayerExists := Player.Exists;
+      Player.Exists := false;
+    end;
     {$warnings on}
     if not Resource.HitsCreatures then Inc(DisableCreatures);
     try
@@ -2699,7 +2705,8 @@ var
     finally
       if not Resource.HitsCreatures then Dec(DisableCreatures);
       {$warnings off} // using deprecated in deprecated
-      if (not Resource.HitsPlayer) and (Player <> nil) then Player.Enable;
+      if (not Resource.HitsPlayer) and (Player <> nil) then
+        Player.Exists := SavedPlayerExists;
       {$warnings on}
     end;
   end;
@@ -2712,7 +2719,7 @@ var
   C: TCreature;
 begin
   inherited;
-  if (not GetExists) or DebugTimeStopForCreatures then Exit;
+  if (not Exists) or DebugTimeStopForCreatures then Exit;
 
   if Dead then
   begin
@@ -2758,7 +2765,7 @@ begin
         if World[I] is TCreature then
         begin
           C := TCreature(World[I]);
-          if (C <> Self) and C.GetCollides and
+          if (C <> Self) and C.CheckCollides and
             C.BoundingBox.SphereSimpleCollision(Middle, Radius) then
           begin
             HitCreature(C);
@@ -2845,7 +2852,7 @@ procedure TStillCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemo
 
 begin
   inherited;
-  if (not GetExists) or DebugTimeStopForCreatures then Exit;
+  if (not Exists) or DebugTimeStopForCreatures then Exit;
 
   if Dead then
   begin

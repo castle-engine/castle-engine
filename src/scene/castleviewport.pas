@@ -1825,17 +1825,23 @@ var
   var
     RemoveItem: TRemoveType;
   begin
-    RemoveItem := rtNone;
+    {$warnings off} // keep deprecated GetExists working
+    Items.Exists := Items.GetExists;
+    {$warnings on}
+    if Items.Exists then
+    begin
+      RemoveItem := rtNone;
 
-    { Note that Items.Update do not take HandleInput
-      parameter, as it would not be controllable for them: 3D objects do not
-      have strict front-to-back order, so we would not know in what order
-      call their Update methods, so we have to let many Items handle keys anyway.
-      So, it's consistent to just treat 3D objects as "cannot definitely
-      mark keys/mouse as handled". }
+      { Note that Items.Update do not take HandleInput
+        parameter, as it would not be controllable for them: 3D objects do not
+        have strict front-to-back order, so we would not know in what order
+        call their Update methods, so we have to let many Items handle keys anyway.
+        So, it's consistent to just treat 3D objects as "cannot definitely
+        mark keys/mouse as handled". }
 
-    Items.Update(SecondsPassedScaled, RemoveItem);
-    { we ignore RemoveItem --- main Items list cannot be removed }
+      Items.Update(SecondsPassedScaled, RemoveItem);
+      { we ignore RemoveItem --- main Items list cannot be removed }
+    end;
   end;
 
   procedure UpdateVisibleChange;
@@ -2435,7 +2441,7 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
     J: Integer;
     NewGlobalLight: PLightInstance;
   begin
-    if not SceneCastingLights.Exists then // TODO: Should check ExistsInRoot
+    if not SceneCastingLights.ExistsInRoot then
       Exit;
 
     for J := 0 to SceneCastingLights.InternalGlobalLights.Count - 1 do
@@ -3481,7 +3487,7 @@ function TCastleViewport.PointingDevicePress: Boolean;
 
     function CallPress(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
     begin
-      if not Pick.Item.GetExists then // prevent calling Pick.Item.PointingDeviceXxx when item GetExists=false
+      if not Pick.Item.Exists then // prevent calling Pick.Item.PointingDeviceXxx when item Exists=false
         Result := false
       else
         Result := Pick.Item.PointingDevicePress(Pick, Distance);
@@ -3575,7 +3581,7 @@ function TCastleViewport.PointingDeviceRelease: Boolean;
 
     function CallRelease(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
     begin
-      if not Pick.Item.GetExists then // prevent calling Pick.Item.PointingDeviceXxx when item GetExists=false
+      if not Pick.Item.Exists then // prevent calling Pick.Item.PointingDeviceXxx when item Exists=false
         Result := false
       else
         Result := Pick.Item.PointingDeviceRelease(Pick, Distance, false);
@@ -3630,7 +3636,7 @@ function TCastleViewport.PointingDeviceMove: boolean;
 
     function CallMove(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
     begin
-      if not Pick.Item.GetExists then // prevent calling Pick.Item.PointingDeviceXxx when item GetExists=false
+      if not Pick.Item.Exists then // prevent calling Pick.Item.PointingDeviceXxx when item Exists=false
         Result := false
       else
         Result := Pick.Item.PointingDeviceMove(Pick, Distance);

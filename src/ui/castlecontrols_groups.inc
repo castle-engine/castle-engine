@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -329,7 +329,7 @@ begin
   for I := 0 to ControlsCount - 1 do
   begin
     C := Controls[I];
-    if not C.GetExists then Continue;
+    if not C.Exists then Continue;
 
     if LeftToRight then
       C.Anchor(hpLeft, W)
@@ -402,7 +402,7 @@ begin
   for I := 0 to ControlsCount - 1 do
   begin
     C := Controls[I];
-    if not C.GetExists then Continue;
+    if not C.Exists then Continue;
 
     case Alignment of
       hpLeft  : AlignmentDelta := Padding;

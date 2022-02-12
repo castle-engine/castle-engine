@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -180,7 +180,7 @@ end;
 procedure TCastleCameraTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
-  if not GetExists then Exit;
+  if not Exists then Exit;
   SynchronizeFromCamera;
 end;
 

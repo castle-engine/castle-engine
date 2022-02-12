@@ -111,11 +111,7 @@
       (everything inside this @link(TCastleAbstractRootTransform)).
 
       This checks collision with all objects that have @link(Collides)
-      and @link(Exists) equal @true.
-      To be more exact, it checks @link(GetCollides) virtual method,
-      which by default returns @link(Collides) property and @link(GetExists),
-      and @link(GetExists) in turn by default checks @link(Exists) property
-      and whether the object is not between @link(Disable) and @link(Enable).
+      and @link(Exists) equal @true (using @link(CheckCollides)).
 
       If your query originates from some existing TCastleTransform instance,
       you should prefer to instead use @link(TCastleTransform.MoveAllowed)
@@ -134,11 +130,7 @@
       (everything inside this @link(TCastleAbstractRootTransform)).
 
       This checks collision with all objects that have @link(Collides)
-      and @link(Exists) equal @true.
-      To be more exact, it checks @link(GetCollides) virtual method,
-      which by default returns @link(Collides) property and @link(GetExists),
-      and @link(GetExists) in turn by default checks @link(Exists) property
-      and whether the object is not between @link(Disable) and @link(Enable).
+      and @link(Exists) equal @true (using @link(CheckCollides)).
 
       If your query originates from some existing TCastleTransform instance,
       you should prefer to instead use @link(TCastleTransform.MoveAllowed)
@@ -158,11 +150,7 @@
       (everything inside this @link(TCastleAbstractRootTransform)).
 
       This checks collision with all objects that have @link(Collides)
-      and @link(Exists) equal @true.
-      To be more exact, it checks @link(GetCollides) virtual method,
-      which by default returns @link(Collides) property and @link(GetExists),
-      and @link(GetExists) in turn by default checks @link(Exists) property
-      and whether the object is not between @link(Disable) and @link(Enable).
+      and @link(Exists) equal @true (using @link(CheckCollides)).
 
       If your query originates from some existing TCastleTransform instance,
       you should prefer to instead use @link(TCastleTransform.MoveAllowed)
@@ -177,11 +165,7 @@
       (everything inside this @link(TCastleAbstractRootTransform)).
 
       This checks collision with all objects that have @link(Collides)
-      and @link(Exists) equal @true.
-      To be more exact, it checks @link(GetCollides) virtual method,
-      which by default returns @link(Collides) property and @link(GetExists),
-      and @link(GetExists) in turn by default checks @link(Exists) property
-      and whether the object is not between @link(Disable) and @link(Enable). }
+      and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
 
     { What is hit by this ray.
@@ -190,11 +174,7 @@
       (everything inside this @link(TCastleAbstractRootTransform)).
 
       This checks collision with all objects that have @link(Collides)
-      and @link(Exists) equal @true.
-      To be more exact, it checks @link(GetCollides) virtual method,
-      which by default returns @link(Collides) property and @link(GetExists),
-      and @link(GetExists) in turn by default checks @link(Exists) property
-      and whether the object is not between @link(Disable) and @link(Enable). }
+      and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
 
     { What is hit by this ray.
@@ -216,11 +196,7 @@
       (everything inside this @link(TCastleAbstractRootTransform)).
 
       This checks collision with all objects that have @link(Collides)
-      and @link(Exists) equal @true.
-      To be more exact, it checks @link(GetCollides) virtual method,
-      which by default returns @link(Collides) property and @link(GetExists),
-      and @link(GetExists) in turn by default checks @link(Exists) property
-      and whether the object is not between @link(Disable) and @link(Enable). }
+      and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldBoxCollision(const Box: TBox3D): boolean;
 
     { Check whether something collides with a line segment.
@@ -229,11 +205,7 @@
       (everything inside this @link(TCastleAbstractRootTransform)).
 
       This checks collision with all objects that have @link(Collides)
-      and @link(Exists) equal @true.
-      To be more exact, it checks @link(GetCollides) virtual method,
-      which by default returns @link(Collides) property and @link(GetExists),
-      and @link(GetExists) in turn by default checks @link(Exists) property
-      and whether the object is not between @link(Disable) and @link(Enable). }
+      and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldSegmentCollision(const Pos1, Pos2: TVector3): boolean;
 
     { Check whether something collides with a sphere.
@@ -242,11 +214,7 @@
       (everything inside this @link(TCastleAbstractRootTransform)).
 
       This checks collision with all objects that have @link(Collides)
-      and @link(Exists) equal @true.
-      To be more exact, it checks @link(GetCollides) virtual method,
-      which by default returns @link(Collides) property and @link(GetExists),
-      and @link(GetExists) in turn by default checks @link(Exists) property
-      and whether the object is not between @link(Disable) and @link(Enable). }
+      and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
 
     { Check whether something collides with a sphere in 2D
@@ -256,11 +224,7 @@
       (everything inside this @link(TCastleAbstractRootTransform)).
 
       This checks collision with all objects that have @link(Collides)
-      and @link(Exists) equal @true.
-      To be more exact, it checks @link(GetCollides) virtual method,
-      which by default returns @link(Collides) property and @link(GetExists),
-      and @link(GetExists) in turn by default checks @link(Exists) property
-      and whether the object is not between @link(Disable) and @link(Enable). }
+      and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
       const Details: TCollisionDetails = nil): boolean;
 
@@ -271,11 +235,7 @@
       (everything inside this @link(TCastleAbstractRootTransform)).
 
       This checks collision with all objects that have @link(Collides)
-      and @link(Exists) equal @true.
-      To be more exact, it checks @link(GetCollides) virtual method,
-      which by default returns @link(Collides) property and @link(GetExists),
-      and @link(GetExists) in turn by default checks @link(Exists) property
-      and whether the object is not between @link(Disable) and @link(Enable). }
+      and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
 
     { Yoo can temporarily disable physics (no transformations will be updated
