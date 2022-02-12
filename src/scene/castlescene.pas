@@ -1169,7 +1169,7 @@ procedure TCastleScene.LocalRenderInside(
 
 var
   LightRenderEvent: TLightRenderEvent;
-  GlobalLights: TLightInstancesList;
+  ReceivedGlobalLights: TLightInstancesList;
 begin
   { We update XxxVisible only for one value of Params.Transparent.
     Otherwise, we would increase it twice.
@@ -1210,11 +1210,11 @@ begin
   {$endif}
 
   if RenderOptions.ReceiveGlobalLights then
-    GlobalLights := Params.GlobalLights as TLightInstancesList
+    ReceivedGlobalLights := Params.GlobalLights as TLightInstancesList
   else
-    GlobalLights := nil;
+    ReceivedGlobalLights := nil;
 
-  Renderer.RenderBegin(GlobalLights, Params.RenderingCamera,
+  Renderer.RenderBegin(ReceivedGlobalLights, Params.RenderingCamera,
     LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
   try
     case RenderOptions.Mode of
@@ -1273,7 +1273,7 @@ procedure TCastleScene.PrepareResources(
   var
     ShapeList: TShapeList;
     Shape: TShape;
-    GlobalLights: TLightInstancesList;
+    ReceivedGlobalLights: TLightInstancesList;
     GoodParams, OwnParams: TPrepareParams;
     DummyCamera: TRenderingCamera;
     I: Integer;
@@ -1307,7 +1307,7 @@ procedure TCastleScene.PrepareResources(
       GoodParams := Params;
     end;
 
-    GlobalLights := GoodParams.InternalGlobalLights as TLightInstancesList;
+    ReceivedGlobalLights := GoodParams.InternalGlobalLights as TLightInstancesList;
 
     { We need some non-nil TRenderingCamera instance to be able
       to render with lights. }
@@ -1323,7 +1323,7 @@ procedure TCastleScene.PrepareResources(
       DummyCamera.FromMatrix(TVector3.Zero,
         TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
 
-      Renderer.RenderBegin(GlobalLights, DummyCamera, nil, 0, 0, 0);
+      Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0);
 
       for Shape in ShapeList do
       begin

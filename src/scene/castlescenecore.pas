@@ -1938,6 +1938,9 @@ type
     { Global lights of this scene. Read-only.
       Useful to shine these lights on other scenes, if TCastleScene.CastGlobalLights. }
     property InternalGlobalLights: TLightInstancesList read FGlobalLights;
+    {$ifdef FPC}
+    property GlobalLights: TLightInstancesList read FGlobalLights; deprecated;
+    {$endif}
 
     { Find a named X3D node (and a field or event within this node)
       in the current node graph. They search all nodes
