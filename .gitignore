@@ -91,7 +91,7 @@ castle-game-engine-*.fpm
 /examples/animations/animate_transform_by_code_2/animate_transform_by_code_2
 /examples/animations/expose_transformations_to_animate_children/expose_transformations_demo
 /examples/animations/play_animation/play_animation
-/examples/animations/resource_animations/resource_animations
+/examples/animations/deprecated_resource_animations/resource_animations
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
 /examples/audio/audio_player/audio_player
 /examples/audio/doppler_demo/doppler_demo
@@ -182,7 +182,7 @@ castle-game-engine-*.fpm
 /examples/sprite_sheets/sprite_sheets_demo/sprite_sheets_demo
 /examples/terrain/terrain
 /examples/test_local_filename_chars/test_local_filename_chars
-/examples/third_person_camera/third_person_camera
+/examples/third_person_navigation/third_person_navigation
 /examples/tiled/map_viewer/map_viewer
 /examples/tiled/strategy_game_demo/strategy_game_demo
 /examples/user_interface/custom_cursor/custom_cursor

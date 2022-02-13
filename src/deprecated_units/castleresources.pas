@@ -592,7 +592,7 @@ begin
       result after some animation run and modified scene.
       This would cause creature radius change.
 
-      Testcase: examples/animations/resource_animations,
+      Testcase: examples/animations/deprecated_resource_animations,
       load same resource 2x in a row,
       bounding sphere should not change. }
     InitialBox := Scene.BoundingBox;

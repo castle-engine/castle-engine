@@ -567,16 +567,16 @@ var
 begin
   Navigation := TPlayer(Owner).Navigation;
 
-  B.Data[0].Data[0] := -Navigation.Radius;
-  B.Data[0].Data[1] := -Navigation.Radius;
-  B.Data[0].Data[2] := -Navigation.Radius;
+  B.Data[0].X := -Navigation.Radius;
+  B.Data[0].Y := -Navigation.Radius;
+  B.Data[0].Z := -Navigation.Radius;
 
   if World <> nil then
-    B.Data[0].Data[World.GravityCoordinate] := -Navigation.PreferredHeight;
+    B.Data[0].InternalData[World.GravityCoordinate] := -Navigation.PreferredHeight;
 
-  B.Data[1].Data[0] := Navigation.Radius;
-  B.Data[1].Data[1] := Navigation.Radius;
-  B.Data[1].Data[2] := Navigation.Radius;
+  B.Data[1].X := Navigation.Radius;
+  B.Data[1].Y := Navigation.Radius;
+  B.Data[1].Z := Navigation.Radius;
 
   { We adjust TransformNode.Scale, not Box.Size, because this is faster:
     no need to rebuild box proxy. }

@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="third_person_camera"/>
+      <Title Value="third_person_navigation"/>
     </General>
     <RequiredPackages Count="2">
       <Item1>
@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="6">
       <Unit0>
-        <Filename Value="third_person_camera_standalone.dpr"/>
+        <Filename Value="third_person_navigation_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -55,7 +55,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="third_person_camera"/>
+      <Filename Value="third_person_navigation"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code/"/>

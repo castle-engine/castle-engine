@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleResources" -*-
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,7 +47,8 @@ begin
   MyCreature := nil;
 
   try
-    Res := TStillCreatureResource.Create('KnightCreatedFromCodeTest');
+    Res := TStillCreatureResource.Create(nil);
+    Res.Name := 'KnightCreatedFromCodeTest';
     Res.ModelURL := 'castle-data:/knight_resource/knight.gltf';
     Res.Animations.FindName('idle').AnimationName := 'Idle';
 
