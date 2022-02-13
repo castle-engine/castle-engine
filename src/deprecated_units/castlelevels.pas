@@ -810,7 +810,7 @@ const
 
     Box := Shape.BoundingBox;
     Position := Box.Center;
-    Position.InternalData[Items.GravityCoordinate] := Box.Data[0].Data[Items.GravityCoordinate];
+    Position.InternalData[Items.GravityCoordinate] := Box.Data[0].InternalData[Items.GravityCoordinate];
 
     Direction := Info.PlaceholderReferenceDirection;
     Direction := Shape.State.Transformation.Transform.MultDirection(Direction);
@@ -961,10 +961,10 @@ var
     begin
       { Set MoveLimit to Items.MainScene.BoundingBox, and make maximum up larger. }
       NewMoveLimit := Items.MainScene.BoundingBox;
-      NewMoveLimit.Data[1].Data[Items.GravityCoordinate] :=
-      NewMoveLimit.Data[1].Data[Items.GravityCoordinate] +
-        4 * (NewMoveLimit.Data[1].Data[Items.GravityCoordinate] -
-             NewMoveLimit.Data[0].Data[Items.GravityCoordinate]);
+      NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] :=
+      NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] +
+        4 * (NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] -
+             NewMoveLimit.Data[0].InternalData[Items.GravityCoordinate]);
       Items.MoveLimit := NewMoveLimit;
     end;
 
