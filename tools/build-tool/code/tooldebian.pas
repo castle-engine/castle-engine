@@ -100,6 +100,7 @@ var
   ShareDirLocal, ShareDirUrl: String;
   PackageDirLocal, PackageDirUrl: String;
   ImageMagickExe: String;
+  ManifestFreeDesktopComment: String;
 begin
   PackageDirLocal := TempPath + PackageFileName;
   PackageDirUrl := StringReplace(PackageDirLocal, PathDelim, '/', [rfReplaceAll]);
@@ -171,6 +172,15 @@ begin
     'Comment=' + Manifest.FreeDesktopComment
   );
 
+  if Trim(Manifest.Author) = '' then
+    WriteLnWarning('No author was provided in Manifest file. This field is recommended to build a Debian package.');
+  if Trim(Manifest.FreeDesktopComment) = '' then
+  begin
+    WriteLnWarning('No "comment" was provided in Manifest file. This field is required to build a Debian package. Autoreplacing with "No comment provided".');
+    ManifestFreeDesktopComment := 'No comment provided';
+  end else
+    ManifestFreeDesktopComment := Manifest.FreeDesktopComment;
+
   CreateDirCheck(PackageDirLocal + PathDelim + 'DEBIAN');
   StringToFile(
     PackageDirUrl + '/DEBIAN/control',
@@ -183,7 +193,7 @@ begin
     'Installed-Size: ' + IntToStr(BinariesSize div 1024) + NL +
     'Depends: libopenal1, libpng16-16, zlib1g, libvorbis0a, libvorbisfile3, libfreetype6, libgl1-mesa-dri, libgtk2.0-0' + NL +
     'Description: ' + Manifest.Caption + NL +
-    ' ' + Manifest.FreeDesktopComment + NL //final new line
+    ' ' + ManifestFreeDesktopComment + NL //final new line
   );
 
   // Post-installation running - assign executable permissions
