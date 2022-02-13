@@ -36,6 +36,11 @@
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
+    { Does this node act as a headlight.
+      Set and used internally in CGE.
+      @exclude }
+    InternalHeadlight: Boolean;
+
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
     { Create TLightInstance record describing this light node under given

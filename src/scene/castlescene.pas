@@ -1638,7 +1638,23 @@ end;
 procedure TCastleScene.LightRender(const Light: TLightInstance;
   const IsGlobalLight: Boolean; var LightOn: boolean);
 begin
-  if IsGlobalLight and (Light.Node.Scene = Self) then
+  if IsGlobalLight and
+    (*Do not filter out headlight nodes, even if they belong to current scene.
+      Headlight nodes are always considered "global lights" and are not present
+      on our InternalGlobalLights list, so we don't want to filter them out here.
+
+      Testcase: castle-game, with "Tower" level that defines in basic_castle_final.x3dv
+      headlight like this:
+
+        NavigationInfo {
+          headlight TRUE
+          headlightNode DirectionalLight {
+            ...
+          }
+        }
+    *)
+    (not Light.Node.InternalHeadlight) and
+    (Light.Node.Scene = Self) then
     LightOn := false;
 end;
 

@@ -2254,6 +2254,7 @@ var
     Position, Direction, Up: TVector3;
   begin
     Assert(Node <> nil);
+    Node.InternalHeadlight := true;
 
     HC.GetView(Position, Direction, Up);
 
