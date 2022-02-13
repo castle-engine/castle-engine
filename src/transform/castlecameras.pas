@@ -2257,7 +2257,7 @@ const
       Max(DefaultPreferredHeight, Radius * RadiusToPreferredHeightMin)
     This way, in case of models that are small, but still follow the standard "1 unit = 1 meter",
     the PreferredHeight will not get weirdly small, it will be DefaultPreferredHeight.
-    Testcase: examples/third_person_camera/data/level/level-dungeon.gltf open with view3dscene.
+    Testcase: examples/third_person_navigation/data/level/level-dungeon.gltf open with view3dscene.
   }
   RadiusToPreferredHeightMin = 4.0;
 

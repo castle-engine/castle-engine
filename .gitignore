@@ -182,7 +182,7 @@ castle-game-engine-*.fpm
 /examples/sprite_sheets/sprite_sheets_demo/sprite_sheets_demo
 /examples/terrain/terrain
 /examples/test_local_filename_chars/test_local_filename_chars
-/examples/third_person_camera/third_person_camera
+/examples/third_person_navigation/third_person_navigation
 /examples/tiled/map_viewer/map_viewer
 /examples/tiled/strategy_game_demo/strategy_game_demo
 /examples/user_interface/custom_cursor/custom_cursor

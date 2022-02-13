@@ -15,7 +15,7 @@
 { Do not specify program name below.
   It is not used anyway, and this way allows developer
   to change standalone_source in CastleEngineManifest.xml easier. }
-// program third_person_camera_standalone;
+// program third_person_navigation_standalone;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 

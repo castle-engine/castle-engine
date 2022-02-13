@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'third_person_camera';
-  ApplicationProperties.Caption := 'third_person_camera';
+  ApplicationProperties.ApplicationName := 'third_person_navigation';
+  ApplicationProperties.Caption := 'Third-person navigation';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
