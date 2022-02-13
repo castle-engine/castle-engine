@@ -576,7 +576,7 @@
 
     { @deprecated You can override it, to control existence.
       @link(Exists) is synchronized with this. }
-    function GetExists: boolean; virtual;
+    function GetExists: boolean; virtual; deprecated 'set Exists instead of overriding this';
 
     { Does this control capture events under this container position.
       The default implementation simply checks whether Position

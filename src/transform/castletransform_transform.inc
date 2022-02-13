@@ -532,7 +532,7 @@
 
     { @deprecated You can override it, to control existence.
       @link(Exists) is synchronized with this. }
-    function GetExists: boolean; virtual;
+    function GetExists: boolean; virtual; deprecated 'set Exists instead of overriding this';
 
     { Does the item really collide. Trivial shortcut for checking @link(Collides) and @link(Exists). }
     function CheckCollides: Boolean;
