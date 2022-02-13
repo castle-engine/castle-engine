@@ -543,7 +543,6 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GetExists: boolean; override;
 
     { The Item owned by this TItemOnWorld instance. Never @nil. }
     property Item: TInventoryItem read FItem;
@@ -617,10 +616,6 @@ type
   end;
 
   TItemOnWorldExistsEvent = function(const Item: TItemOnWorld): boolean of object;
-
-var
-  { Global callback to control items on level existence. }
-  OnItemOnWorldExists: TItemOnWorldExistsEvent;
 
 implementation
 
@@ -1335,12 +1330,6 @@ begin
   Result := Item;
   Result.FOwner3D := nil;
   FItem := nil;
-end;
-
-function TItemOnWorld.GetExists: boolean;
-begin
-  Result := (inherited GetExists) and
-    ((not Assigned(OnItemOnWorldExists)) or OnItemOnWorldExists(Self));
 end;
 
 { TAliveWithInventory ------------------------------------------------------ }

@@ -574,9 +574,9 @@
     { Remove all child controls added by @link(InsertFront) or @link(InsertBack). }
     procedure ClearControls;
 
-    { @deprecated You can override it, to control existence.
-      @link(Exists) is synchronized with this. }
-    function GetExists: boolean; virtual; deprecated 'set Exists instead of overriding this';
+    {$ifdef FPC}
+    property GetExists: Boolean read FExists; deprecated 'use Exists';
+    {$endif}
 
     { Does this control capture events under this container position.
       The default implementation simply checks whether Position
@@ -1956,11 +1956,6 @@ end;
 procedure TCastleUserInterface.GLContextClose;
 begin
   FGLInitialized := false;
-end;
-
-function TCastleUserInterface.GetExists: boolean;
-begin
-  Result := FExists;
 end;
 
 procedure TCastleUserInterface.DoInternalMouseEnter;

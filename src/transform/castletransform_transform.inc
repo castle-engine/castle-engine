@@ -530,9 +530,9 @@
     function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
 
-    { @deprecated You can override it, to control existence.
-      @link(Exists) is synchronized with this. }
-    function GetExists: boolean; virtual; deprecated 'set Exists instead of overriding this';
+    {$ifdef FPC}
+    property GetExists: Boolean read FExists; deprecated 'use Exists';
+    {$endif}
 
     { Does the item really collide. Trivial shortcut for checking @link(Collides) and @link(Exists). }
     function CheckCollides: Boolean;
@@ -1946,11 +1946,6 @@ begin
   end;
 end;
 
-function TCastleTransform.GetExists: boolean;
-begin
-  Result := FExists;
-end;
-
 function TCastleTransform.CheckCollides: boolean;
 begin
   {$warnings off} // using deprecated to keep it working
@@ -2545,10 +2540,6 @@ procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRe
     while I < List.Count do
     begin
       Item := List[I];
-
-      {$warnings off} // keep deprecated GetExists working
-      Item.Exists := Item.GetExists;
-      {$warnings on}
       if Item.Exists then
       begin
         RemoveItem := rtNone;

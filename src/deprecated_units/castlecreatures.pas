@@ -906,7 +906,6 @@ type
 
     constructor Create(AOwner: TComponent; const AMaxLife: Single); reintroduce; virtual;
     destructor Destroy; override;
-    function GetExists: boolean; override;
     function GetCollides: boolean; override;
 
     property Resource: TCreatureResource read FResource;
@@ -1075,9 +1074,6 @@ type
 var
   DebugTimeStopForCreatures: boolean = false;
 
-  { Global callback to control creatures existence. }
-  OnCreatureExists: TCreatureExistsEvent;
-
 implementation
 
 {$warnings off} // using deprecated CastleProgress, CastleGameNotifications in deprecated
@@ -1085,9 +1081,6 @@ uses SysUtils, DOM, Math,
   CastleFilesUtils, CastleGLUtils,
   CastleProgress, CastleGameNotifications, CastleUIControls;
 {$warnings on}
-
-var
-  DisableCreatures: Cardinal;
 
 { TCreatureResource -------------------------------------------------------------- }
 
@@ -1483,12 +1476,6 @@ begin
 
   FResourceFrame := TResourceFrame.Create(Self);
   Add(FResourceFrame);
-end;
-
-function TCreature.GetExists: boolean;
-begin
-  Result := (inherited GetExists) and (DisableCreatures = 0) and
-    ((not Assigned(OnCreatureExists)) or OnCreatureExists(Self));
 end;
 
 function TCreature.GetCollides: boolean;
@@ -2699,11 +2686,13 @@ var
       Player.Exists := false;
     end;
     {$warnings on}
-    if not Resource.HitsCreatures then Inc(DisableCreatures);
+    // TODO
+    // if not Resource.HitsCreatures then Inc(DisableCreatures);
     try
       Result := MoveAllowed(OldPos, NewPos, false);
     finally
-      if not Resource.HitsCreatures then Dec(DisableCreatures);
+      // TODO
+      // if not Resource.HitsCreatures then Dec(DisableCreatures);
       {$warnings off} // using deprecated in deprecated
       if (not Resource.HitsPlayer) and (Player <> nil) then
         Player.Exists := SavedPlayerExists;

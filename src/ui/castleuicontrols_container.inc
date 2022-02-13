@@ -1207,10 +1207,6 @@ procedure TCastleContainer.EventUpdate;
     I: Integer;
     Dummy: boolean;
   begin
-    {$warnings off} // synchronize, to keep deprecated working
-    C.Exists := C.GetExists;
-    {$warnings on}
-
     if PassEvents(C, false) then
     begin
       { go downward, from front to back.

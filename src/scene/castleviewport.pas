@@ -1825,9 +1825,6 @@ var
   var
     RemoveItem: TRemoveType;
   begin
-    {$warnings off} // keep deprecated GetExists working
-    Items.Exists := Items.GetExists;
-    {$warnings on}
     if Items.Exists then
     begin
       RemoveItem := rtNone;
