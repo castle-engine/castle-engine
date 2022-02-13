@@ -3830,7 +3830,7 @@ procedure TCastleViewport.MainSceneAndCamera_BoundViewpointVectorsChanged(Sender
 begin
   { TODO: It may be useful to enable camera animation by some specific property,
     like AnimateCameraByViewpoint (that works even when AutoCamera = false,
-    as we advise for new scene managers). }
+    as we advise for new viewports). }
   if AutoCamera { or AnimateCameraByViewpoint } then
     Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
 end;
