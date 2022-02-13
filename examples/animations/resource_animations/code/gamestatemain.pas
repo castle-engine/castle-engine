@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -98,7 +98,8 @@ procedure TStateMain.Start;
   var
     Res: TStillCreatureResource;
   begin
-    Res := TStillCreatureResource.Create('KnightCreatedFromCodeTest');
+    Res := TStillCreatureResource.Create(nil);
+    Res.Name := 'KnightCreatedFromCodeTest';
     Res.ModelURL := 'castle-data:/knight_single_gltf/knight.gltf';
     Res.Animations.FindName('idle').AnimationName := 'Idle';
     Resources.Add(Res);
