@@ -167,6 +167,12 @@ type
     function GetPlayer: TCastleTransform; virtual; abstract;
     function GetSectors: TSectorList; virtual; abstract;
     function RootTransform: TCastleRootTransform; virtual; abstract;
+    { All creatures are children of this.
+      Allows to easily hide them. }
+    function CreaturesRoot: TCastleTransform; virtual; abstract;
+    { All items are children of this.
+      Allows to easily hide them. }
+    function ItemsRoot: TCastleTransform; virtual; abstract;
     { Parameters to prepare rendering for,
       see @link(TCastleViewport.PrepareParams). }
     function PrepareParams: TPrepareParams; virtual; abstract;

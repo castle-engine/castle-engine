@@ -1189,7 +1189,7 @@ begin
   Scale := RandomFloatRange(ScaleMin, ScaleMax);
   Result.Scale := Vector3(Scale, Scale, Scale);
 
-  RootTransform.Add(Result);
+  ALevel.CreaturesRoot.Add(Result);
 end;
 
 function TCreatureResource.CreateCreature(
@@ -2678,6 +2678,7 @@ var
   function MissileMoveAllowed(const OldPos, NewPos: TVector3): boolean;
   var
     SavedPlayerExists: Boolean;
+    SavedCreaturesRootExists: Boolean;
   begin
     {$warnings off} // using deprecated in deprecated
     if (not Resource.HitsPlayer) and (Player <> nil) then
@@ -2686,13 +2687,16 @@ var
       Player.Exists := false;
     end;
     {$warnings on}
-    // TODO
-    // if not Resource.HitsCreatures then Inc(DisableCreatures);
+    if not Resource.HitsCreatures then
+    begin
+      SavedCreaturesRootExists := Level.CreaturesRoot.Exists;
+      Level.CreaturesRoot.Exists := false;
+    end;
     try
       Result := MoveAllowed(OldPos, NewPos, false);
     finally
-      // TODO
-      // if not Resource.HitsCreatures then Dec(DisableCreatures);
+      if not Resource.HitsCreatures then
+        Level.CreaturesRoot.Exists := SavedCreaturesRootExists;
       {$warnings off} // using deprecated in deprecated
       if (not Resource.HitsPlayer) and (Player <> nil) then
         Player.Exists := SavedPlayerExists;

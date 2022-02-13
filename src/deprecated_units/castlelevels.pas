@@ -322,6 +322,7 @@ type
     var
       FViewport: TCastleViewport;
       FInternalLogic: TLevelInternalLogic;
+      FCreaturesRoot, FItemsRoot: TCastleTransform;
       FLogic: TLevelLogic;
       FInfo: TLevelInfo;
       LevelResourcesPrepared: boolean;
@@ -352,6 +353,8 @@ type
     function GetPlayer: TCastleTransform; override;
     function GetSectors: TSectorList; override;
     function RootTransform: TCastleRootTransform; override;
+    function CreaturesRoot: TCastleTransform; override;
+    function ItemsRoot: TCastleTransform; override;
     function PrepareParams: TPrepareParams; override;
     function FreeAtUnload: TComponent; override;
 
@@ -755,6 +758,16 @@ begin
   Result := Viewport.Items;
 end;
 
+function TLevel.CreaturesRoot: TCastleTransform;
+begin
+  Result := FCreaturesRoot;
+end;
+
+function TLevel.ItemsRoot: TCastleTransform;
+begin
+  Result := FItemsRoot;
+end;
+
 function TLevel.PrepareParams: TPrepareParams;
 begin
   Result := Viewport.PrepareParams;
@@ -887,7 +900,11 @@ begin
     remain untouched. }
   FreeAndNil(FFreeAtUnload);
 
-  FLogic := nil; { we freed FLogic above, since it is always owned by FFreeAtUnload }
+  { We freed FLogic etc. above, since they are always owned by FFreeAtUnload.
+    To be safe, set them to nil. }
+  FLogic := nil;
+  FCreaturesRoot := nil;
+  FItemsRoot := nil;
 
   { save PreviousResources, before Info is overridden with new level.
     This allows us to keep PreviousResources while new resources are required,
@@ -1061,6 +1078,12 @@ begin
 
     { add FInternalLogic to Items }
     Items.Add(FInternalLogic);
+
+    { add CreaturesRoot, ItemsRoot to Items }
+    FCreaturesRoot := TCastleTransform.Create(FreeAtUnload);
+    Items.Add(FCreaturesRoot);
+    FItemsRoot := TCastleTransform.Create(FreeAtUnload);
+    Items.Add(FItemsRoot);
 
     { add FLogic (new Info.LogicClass instance) }
     FLogic := Info.LogicClass.Create(FreeAtUnload, Self, Items.MainScene, Info.Element);

@@ -809,7 +809,7 @@ begin
   Result.GrowSpeed := Resource.GrowSpeed;
   Result.CastShadowVolumes := Resource.CastShadowVolumes;
 
-  RootTransform.Add(Result);
+  ALevel.ItemsRoot.Add(Result);
 end;
 
 procedure TInventoryItem.Use;
