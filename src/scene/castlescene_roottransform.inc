@@ -169,7 +169,7 @@ type
         @item(Determines lights shining on all scenes,
           as this scene has by default @link(TCastleScene.CastGlobalLights)
           when you set it as MainScene.
-          This can also be achieved on any other scene,
+          This can also be achieved on any other scene too,
           by setting @link(TCastleScene.CastGlobalLights).)
 
         @item(Determines fog on all scenes, if @link(TCastleViewport.UseGlobalFog).)
@@ -245,7 +245,6 @@ begin
       FMainScene.OnBoundNavigationInfoFieldsChanged := {$ifdef FPC}@{$endif}MainScene_BoundNavigationInfoChanged;
       FMainScene.ViewpointStack.OnBoundChanged := {$ifdef FPC}@{$endif}MainScene_BoundViewpointChanged;
       FMainScene.NavigationInfoStack.OnBoundChanged := {$ifdef FPC}@{$endif}MainScene_BoundNavigationInfoChanged;
-      FMainScene.CastGlobalLights := true;
     end;
 
     { Setting MainScene may change lights, if MainScene determines the headlight

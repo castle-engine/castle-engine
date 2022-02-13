@@ -2455,7 +2455,7 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
   end;
 
 var
-  I: Integer;
+  SceneCastingLights: TCastleScene;
 begin
   { TODO: Temporary compatibility cludge:
     Because some rendering code still depends on
@@ -2485,10 +2485,14 @@ begin
   FRenderParams.FGlobalLights.Clear;
   { Add headlight }
   InitializeGlobalLights(FRenderParams.FGlobalLights);
+  { Add lights from MainScene  }
+  if Items.MainScene <> nil then
+    AddGlobalLightsFromScene(Items.MainScene);
   { Add lights from all scenes with CastGlobalLights }
   if Items.InternalScenesCastGlobalLights <> nil then
-    for I := 0 to Items.InternalScenesCastGlobalLights.Count - 1 do
-      AddGlobalLightsFromScene(Items.InternalScenesCastGlobalLights[I]);
+    for SceneCastingLights in Items.InternalScenesCastGlobalLights do
+      if Items.MainScene <> SceneCastingLights then // MainScene is already accounted for above
+        AddGlobalLightsFromScene(SceneCastingLights);
 
   { initialize FRenderParams.GlobalFog }
   if UseGlobalFog and
