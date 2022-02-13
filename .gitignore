@@ -91,7 +91,7 @@ castle-game-engine-*.fpm
 /examples/animations/animate_transform_by_code_2/animate_transform_by_code_2
 /examples/animations/expose_transformations_to_animate_children/expose_transformations_demo
 /examples/animations/play_animation/play_animation
-/examples/animations/resource_animations/resource_animations
+/examples/animations/deprecated_resource_animations/resource_animations
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
 /examples/audio/audio_player/audio_player
 /examples/audio/doppler_demo/doppler_demo
