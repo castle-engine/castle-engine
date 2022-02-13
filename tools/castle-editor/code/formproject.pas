@@ -47,6 +47,7 @@ type
     ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemEdit: TMenuItem;
     MenuItemOutputCopyAll: TMenuItem;
     MenuItemOutputCopySelected: TMenuItem;
     MenuItemSeparator12312123123: TMenuItem;
