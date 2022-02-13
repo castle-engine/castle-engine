@@ -85,6 +85,11 @@
     FKraftShape: TKraftShape;
     FParent: TRigidBody;
     FDensity, FMass, FRestitution, FFriction: Single;
+    FLocalTransform: TMatrix4;
+    FLocalInverseTransform: TMatrix4;
+    FTranslation: TVector3;
+    FRotation: TVector4;
+    FScale: TVector3;
     procedure InitializeKraft(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody);
   strict protected
@@ -130,6 +135,15 @@
       {$ifdef FPC}default DefaultRestitution{$endif};
     property Friction: Single read FFriction write FFriction
       {$ifdef FPC}default DefaultFriction{$endif};
+
+    { Local translation applied to the collider shape. }
+    property Translation: TVector3 read FTranslation write FTranslation;
+
+    { Local rotation applied to the collider shape. }
+    property Rotation: TVector4 read FRotation write FRotation;
+
+    { Local scale applied to the collider shape. }
+    property Scale: TVector3 read FScale write FScale;
   end;
 
   { Collide as an infinite plane.
@@ -555,6 +569,11 @@ begin
   FMass := DefaultMass;
   FRestitution := DefaultRestitution;
   FFriction := DefaultFriction;
+  FScale := Vector3(1, 1, 1);
+
+  { Will be updated in TCollider.InitializeKraft to reflect FKraftShape.LocalTransform }
+  FLocalTransform := TMatrix4.Identity;
+  FLocalInverseTransform := TMatrix4.Identity;
 
   FParent := AParent;
   FreeAndNil(FParent.FCollider);
@@ -563,6 +582,8 @@ end;
 
 procedure TCollider.InitializeKraft(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody);
+var
+  T: TTransformation;
 begin
   // FreeAndNil(FKraftShape); // do not free here, TKraftShape is owned by TKraftRigidBody
   FKraftShape := CreateKraftShape(APhysics, ARigidBody);
@@ -572,6 +593,13 @@ begin
   FKraftShape.Friction := Friction;
   if not FParent.Exists then
     FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
+
+  { initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
+  T.Init;
+  T.Multiply(Rotation, Scale, Translation);
+  FLocalTransform := T.Transform;
+  FLocalInverseTransform := T.InverseTransform;
+  FKraftShape.LocalTransform := MatrixToKraft(FLocalTransform);
 end;
 
 destructor TCollider.Destroy;
@@ -1018,7 +1046,13 @@ procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPass
     Shape := FCollider.FKraftShape;
 
     LocalTransform := Transform.CheckParent.WorldInverseTransform *
-      MatrixFromKraft(Shape.InterpolatedWorldTransform);
+      MatrixFromKraft(Shape.InterpolatedWorldTransform) *
+      { TODO: This doesn't work reliably. See physics_3d_demo with
+        BoxCollider.Translation := Vector3(0, 1, 0);
+        Also this should be optimized, as this multiplication would be done every frame,
+        but usually FLocalInverseTransform is identity if one didn't use
+        TCollider.Translation/Rotation/Scale. }
+      FCollider.FLocalInverseTransform;
 
     MatrixDecompose(LocalTransform, Translation, Rotation, Scale);
     Transform.Rotation := Rotation;
