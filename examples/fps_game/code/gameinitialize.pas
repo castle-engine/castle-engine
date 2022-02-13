@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2020, 2022 Michalis Kamburelis.
+  Copyright 2012-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -218,7 +218,7 @@ var
 begin
   Translation := Player.Translation + Player.Direction * 10;
   { increase default height, as dropping from above looks better }
-  Translation.Data[1] := Translation.Data[1] + 5;
+  Translation.Y := Translation.Y + 5;
   Direction := Player.Direction; { by default creature is facing back to player }
   CreatureResource := Resources.FindName('Knight') as TCreatureResource;
   { CreateCreature creates TCreature instance and adds it to Viewport.Items }
@@ -237,7 +237,7 @@ var
 begin
   Translation := Player.Translation + Player.Direction * 10;
   { increase default height, as dropping from above looks better }
-  Translation.Data[1] := Translation.Data[1] + 5;
+  Translation.Y := Translation.Y + 5;
   ItemResource := Resources.FindName('MedKit') as TItemResource;
   { ItemResource.CreateItem(<quantity>) creates new TInventoryItem instance.
     PutOnWorld method creates TItemOnWorld (that "wraps" the TInventoryItem

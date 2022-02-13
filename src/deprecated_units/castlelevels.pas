@@ -699,11 +699,22 @@ destructor TLevel.Destroy;
 begin
   if Info <> nil then
   begin
-    { we check LevelResourcesPrepared, to avoid calling
-      Info.LevelResources.Release when Info.LevelResources.Prepare
-      was not called (which may happen if there was an exception if LoadCore
-      at MainScene.Load(SceneURL). }
-    if (Info.LevelResources <> nil) and LevelResourcesPrepared then
+    if (Info.LevelResources <> nil) and
+       { check LevelResourcesPrepared, to avoid calling
+         Info.LevelResources.Release when Info.LevelResources.Prepare
+         was not called (which may happen if there was an exception if LoadCore
+         at MainScene.Load(SceneURL). }
+       LevelResourcesPrepared and
+       { check "Resources <> nil" is a hack to avoid calling Release
+         on T3DResource when all T3DResource were already freed in CastleResources
+         unit finalization.
+         Testcase: darkest_before_dawn.
+
+         TODO: This is not a general solution -- it would be better to implement in T3DResourceList
+         a way to observe freeing of T3DResource, maybe even make T3DResource a TComponent
+         and then make T3DResourceList as TComponentList. T3DResourceList should automatically
+         remove items freed elsewhere. }
+       (Resources <> nil) then
       Info.LevelResources.Release;
 
     Dec(FLevels.References);

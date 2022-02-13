@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,8 +43,7 @@
   In this case you should use this unit and instantiate the
   user-interface classes yourself, and you need to
   @italic(organize your whole game using TUIState classes).
-  See https://castle-engine.io/manual_2d_user_interface.php#section_ui_state
-  about how to use @link(TUIState). Like this:
+  See https://castle-engine.io/states about how to use @link(TUIState). Like this:
 
   @longCode(#
   type

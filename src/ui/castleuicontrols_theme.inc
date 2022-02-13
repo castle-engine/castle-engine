@@ -109,14 +109,14 @@
       when application is loading (before proper CGE UI can be displayed).
       By default, LoadingBackgroundColor is black, and LoadingColor is white.
 
-      See https://castle-engine.io/manual_2d_user_interface.php#section_loading_image for
+      See https://castle-engine.io/loading_image for
       an example how to set loading image. }
     LoadingBackgroundColor, LoadingColor: TCastleColor;
 
     { Adjust loading image following the UI scaling determined by these properties.
       They determine for what window reference size was the loading image prepared.
       The loading image is whatever you set at @code(ImagesPersistent[tiLoading]).
-      See https://castle-engine.io/manual_2d_user_interface.php#section_loading_image for
+      See https://castle-engine.io/loading_image for
       an example how to set loading image.
 
       These properties deliberately match the behavior of

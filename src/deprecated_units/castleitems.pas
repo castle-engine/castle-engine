@@ -65,7 +65,7 @@ type
       of this resource by CreateItem. }
     function ItemClass: TInventoryItemClass; virtual;
   public
-    constructor Create(const AName: string); override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
@@ -195,7 +195,7 @@ type
       DefaultAttackKnockbackDistance = 0.0;
       DefaultAttackShoot = false;
 
-    constructor Create(const AName: string); override;
+    constructor Create(AOwner: TComponent); override;
 
     { Sound to make on equipping. Each weapon can have it's own
       equipping sound. }
@@ -629,7 +629,7 @@ uses SysUtils, Math,
 
 { TItemResource ------------------------------------------------------------ }
 
-constructor TItemResource.Create(const AName: string);
+constructor TItemResource.Create(AOwner: TComponent);
 begin
   inherited;
   FBaseAnimation := T3DResourceAnimation.Create(Self, 'base');
@@ -725,7 +725,7 @@ end;
 
 { TItemWeaponResource ------------------------------------------------------------ }
 
-constructor TItemWeaponResource.Create(const AName: string);
+constructor TItemWeaponResource.Create(AOwner: TComponent);
 begin
   inherited;
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');
