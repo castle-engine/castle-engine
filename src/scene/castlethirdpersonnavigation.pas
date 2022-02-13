@@ -583,9 +583,11 @@ function TCastleThirdPersonNavigation.CameraMaxDistanceToTarget(
   const CameraDir: TVector3): Single;
 var
   CollisionDistance: Single;
+  SavedAExists: Boolean;
 begin
   Result := MaxSingle;
-  A.Disable;
+  SavedAExists := A.Exists;
+  A.Exists := false;
   try
     if A.World.WorldRayCast(CameraLookPos, -CameraDir, CollisionDistance) <> nil then
     begin
@@ -595,7 +597,7 @@ begin
         Then use MinDistanceToAvatarTarget. }
       Result := Max(MinDistanceToAvatarTarget, CollisionDistance - Radius);
     end;
-  finally A.Enable end;
+  finally A.Exists := SavedAExists end;
 end;
 
 procedure TCastleThirdPersonNavigation.Init;
