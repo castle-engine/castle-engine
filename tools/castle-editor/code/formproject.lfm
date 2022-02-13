@@ -1,7 +1,7 @@
 object ProjectForm: TProjectForm
-  Left = 546
+  Left = 2239
   Height = 506
-  Top = 273
+  Top = 258
   Width = 914
   Caption = ' my-project | Castle Game Engine'
   ClientHeight = 476
@@ -291,9 +291,16 @@ object ProjectForm: TProjectForm
         Caption = 'Save As ...'
         OnClick = MenuItemSaveAsDesignClick
       end
-      object MenuItemSeparator150: TMenuItem
+      object MenuItemSeparator1300: TMenuItem
         Caption = '-'
       end
+      object MenuItemDesignClose: TMenuItem
+        Caption = 'Close'
+        OnClick = MenuItemDesignCloseClick
+      end
+    end
+    object MenuItemEdit: TMenuItem
+      Caption = 'Edit'
       object MenuItemDesignAddUserInterface: TMenuItem
         Caption = 'Add User Interface'
       end
@@ -343,13 +350,6 @@ object ProjectForm: TProjectForm
         Caption = 'Delete Component'
         ShortCut = 16430
         OnClick = MenuItemDesignDeleteComponentClick
-      end
-      object MenuItemSeparator1300: TMenuItem
-        Caption = '-'
-      end
-      object MenuItemDesignClose: TMenuItem
-        Caption = 'Close'
-        OnClick = MenuItemDesignCloseClick
       end
     end
     object MenuItemCode: TMenuItem
