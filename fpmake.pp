@@ -222,7 +222,6 @@ begin
     P.Targets.AddUnit('castlephotoservice.pas');
     P.Targets.AddUnit('castleopendocument.pas');
     P.Targets.AddUnit('castletenjin.pas');
-    P.Targets.AddUnit('castlegiftiz.pas');
 
     if Defaults.OS = Android then
     begin
