@@ -1493,7 +1493,7 @@ end;
 
 function TCreature.GetCollides: boolean;
 begin
-  Result := (inherited CheckCollides) and
+  Result := (inherited GetCollides) and
     (Resource.CollidesWhenDead or (not Dead));
 end;
 
