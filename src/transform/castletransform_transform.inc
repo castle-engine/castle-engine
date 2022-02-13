@@ -1251,6 +1251,7 @@
       to always use physics, through @link(TCastleTransform.RigidBody),
       to have realistic gravity. }
     property Gravity: boolean read FGravity write FGravity default false;
+      {$ifdef FPC}deprecated 'use physics (TCastleRigidBody, TCastleCollider) to make things affected by gravity';{$endif}
 
     { Falling speed, in units per second, for @link(Gravity).
 
@@ -1261,6 +1262,7 @@
       to always use physics, through @link(TCastleTransform.RigidBody),
       to have realistic gravity. }
     property FallSpeed: Single read FFallSpeed write FFallSpeed {$ifdef FPC}default 0{$endif};
+      {$ifdef FPC}deprecated 'use physics (TCastleRigidBody, TCastleCollider) to make things affected by gravity';{$endif}
 
     { Growing (raising from crouching to normal standing position)
       speed, in units per second.
@@ -1272,6 +1274,7 @@
       This is relevant only if @link(Gravity) and PreferredHeight <> 0.
       0 means no growing. }
     property GrowSpeed: Single read FGrowSpeed write FGrowSpeed {$ifdef FPC}default 0{$endif};
+      {$ifdef FPC}deprecated 'use physics (TCastleRigidBody, TCastleCollider) to make things affected by gravity';{$endif}
 
     { The preferred height of the object @link(Middle) above the ground,
       when the object is standing on the ground firmly.
@@ -1283,6 +1286,7 @@
       This may be dynamic (may change during creature lifetime,
       so you can make the creature duck or grow if you want). }
     function PreferredHeight: Single; virtual;
+      {$ifdef FPC}deprecated 'use physics (TCastleRigidBody, TCastleCollider) to make things affected by gravity';{$endif}
 
     { How high are creature eyes in the model.
       Value 0 means that eyes are at the bottom of the model,
@@ -2957,7 +2961,13 @@ begin
     besides moving, only rotates around it's own up axis). }
 
   Result := Translation;
+  { Using deprecated in deprecated.
+    This should be simpler at some point:
+      Result.InternalData[GC] := Lerp(MiddleHeight, B.Data[0][GC], B.Data[1][GC]);
+  }
+  {$warnings off}
   Result.InternalData[GC] := Result.InternalData[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
+  {$warnings on}
 end;
 
 function TCastleTransform.PreferredHeight: Single;
@@ -2975,7 +2985,9 @@ begin
   if B.IsEmpty then
     Result := 0
   else
+    {$warnings off} // using deprecated in deprecated
     Result := MiddleHeight * (B.Data[1][GC] - Bottom(Gravity, GC, B));
+    {$warnings on}
 
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
   if Sphere(R) and (R > Result) then
@@ -2987,6 +2999,7 @@ begin
   {$endif}
 end;
 
+{$warnings off} // keep deprecated working
 procedure TCastleTransform.UpdateSimpleGravity(const SecondsPassed: Single);
 
   procedure DoGravity(const PreferredHeight: Single);
@@ -3114,6 +3127,7 @@ begin
       DoGravity(PH);
   end;
 end;
+{$warnings on}
 
 procedure TCastleTransform.Fall(const FallHeight: Single);
 begin
