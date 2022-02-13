@@ -490,10 +490,8 @@ function PointOnLineClosestToLine(
 
 { Functions to create common 4x4 matrices used in 3D graphics.
 
-  These functions generate the same matrices that are made by corresponding
-  OpenGL (gl or glu) functions. So rotations will be generated in the same
-  fashion, etc. For exact specification of what matrices they create see
-  OpenGL specification for routines glTranslate, glScale, glRotate.
+  These functions generate the same matrices as old OpenGL fixed-function was using.
+  They work in right-handed coordinate system, just like X3D, glTF and OpenGL.
 
   Functions named Matrices below generate both normal and inverted matrices.
   For example, function RotationMatrices returns two matrices that you
@@ -695,6 +693,8 @@ function ScalingMatrix(const ScaleFactor: TVector3): TMatrix4;
 procedure ScalingMatrices(const ScaleFactor: TVector3;
   InvertedMatrixIdentityIfNotExists: boolean;
   out Matrix, InvertedMatrix: TMatrix4);
+
+function RotationMatrix(const AxisAngle: TVector4): TMatrix4; overload;
 
 function RotationMatrixRad(const AngleRad: Single; const Axis: TVector3): TMatrix4; overload;
 function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3): TMatrix4; overload; deprecated 'use radians for everything throughout CGE';
@@ -2582,6 +2582,13 @@ begin
     InvertedMatrix.Data[1, 1] := 1 / ScaleFactor.Y;
     InvertedMatrix.Data[2, 2] := 1 / ScaleFactor.Z;
   end;
+end;
+
+function RotationMatrix(const AxisAngle: TVector4): TMatrix4;
+var
+  Axis: TVector3 absolute AxisAngle;
+begin
+  Result := RotationMatrixRad(AxisAngle.W, Axis);
 end;
 
 function RotationMatrixRad(const AngleRad: Single;
