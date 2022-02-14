@@ -2759,6 +2759,7 @@ begin
     'function ' +ImageName+ ': ' +ClassName+ ';' +nl + nl;
 
   CodeImplementation := CodeImplementation +
+    '{$warn 5027 off}' + NL + // To avoid 'Note: Local variable "..." is assigned but never used'
     'var' + NL +
     '  F' +ImageName+ ': ' +ClassName+ ';' + NL +
     'const' + NL +
