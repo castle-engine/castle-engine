@@ -794,6 +794,11 @@ function TInventoryItem.PutOnWorld(
 var
   RootTransform: TCastleRootTransform;
 begin
+  if ALevel.ItemsRoot = nil then
+    raise Exception.CreateFmt('Cannot add item "%s" to level, as the level is not loaded yet. Execute TLevel.Load first', [
+      Name
+    ]);
+
   RootTransform := ALevel.RootTransform;
 
   Result := TItemOnWorld.Create(ALevel.FreeAtUnload);

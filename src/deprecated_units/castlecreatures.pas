@@ -1159,6 +1159,11 @@ var
   Scale: Single;
   RootTransform: TCastleRootTransform;
 begin
+  if ALevel.CreaturesRoot = nil then
+    raise Exception.CreateFmt('Cannot add creature "%s" to level, as the level is not loaded yet. Execute TLevel.Load first', [
+      Name
+    ]);
+
   RootTransform := ALevel.RootTransform;
 
   { This is only needed if you did not add creature to <resources>.
