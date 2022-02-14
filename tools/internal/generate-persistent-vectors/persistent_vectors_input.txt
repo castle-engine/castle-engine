@@ -57,6 +57,8 @@
 ../../../src/transform/ TCastleTransform ScaleOrientation TVector4
 ../../../src/transform/ TCastleTransform Translation TVector3
 
+../../../src/transform/ TCastlePlaneCollider Normal TVector3
+../../../src/transform/ TCastleBoxCollider Size TVector3
 ../../../src/transform/ TCastleCamera GravityUp TVector3
 
 ../../../src/transform/ TCastleOrthographic Origin TVector2
