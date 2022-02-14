@@ -1393,6 +1393,7 @@ begin
   FUseGlobalFog := DefaultUseGlobalFog;
   FRenderParams := TViewportRenderParams.Create;
   FPrepareParams := TPrepareParams.Create;
+  FRenderWithoutScreenEffectsRenderingCamera := TRenderingCamera.Create;
   FShadowVolumes := DefaultShadowVolumes;
   FScreenSpaceReflectionsSurfaceGlossiness := DefaultScreenSpaceReflectionsSurfaceGlossiness;
   FClearDepth := true;
@@ -1418,8 +1419,6 @@ begin
 
   FBackgroundObserver := TFreeNotificationObserver.Create(Self);
   FBackgroundObserver.OnFreeNotification := {$ifdef FPC}@{$endif}BackgroundFreeNotification;
-
-  FRenderWithoutScreenEffectsRenderingCamera := TRenderingCamera.Create;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
