@@ -84,7 +84,7 @@ type
     procedure DrawLight(const RenderParams: TRenderParams);
   public
     procedure Render; override;
-    procedure Render3D(const Params: TRenderParams); override;
+    procedure RenderOnePass(const Params: TRenderParams); override;
   end;
 
 procedure TMyViewport.DrawLight(const RenderParams: TRenderParams);
@@ -184,7 +184,7 @@ begin
   inherited;
 end;
 
-procedure TMyViewport.Render3D(const Params: TRenderParams);
+procedure TMyViewport.RenderOnePass(const Params: TRenderParams);
 begin
   if (not Params.Transparent) and (true in Params.ShadowVolumesReceivers) then
   begin

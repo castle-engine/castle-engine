@@ -434,10 +434,8 @@
       This is @bold(mostly an internal method). You should not need to override
       it during normal engine usage. If you render everything using TCastleScene,
       then rendering shadow volumes is also automatically handled by TCastleScene. }
-    procedure LocalRenderShadowVolume(
-      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4); virtual;
+    procedure LocalRenderShadowVolume(const Params: TRenderParams;
+      const ShadowVolumeRenderer: TBaseShadowVolumeRenderer); virtual;
 
     { Can we use simple @link(Translation) to express our whole transformation
       (IOW, we have no scaling, no rotation).
@@ -758,17 +756,10 @@
       It does shadow volumes culling inside (so ShadowVolumeRenderer should
       have FrustumCullingInit already initialized).
 
-      ParentTransform and ParentTransformIsIdentity describe the transformation
-      of this object in the world.
-      TCastleTransform objects may be organized in a hierarchy when
-      parent transforms it's children. When ParentTransformIsIdentity,
-      ParentTransform must be TMatrix4.Identity (it's not guaranteed
-      that when ParentTransformIsIdentity = @true, Transform value will be
-      ignored !). }
-    procedure RenderShadowVolume(
-      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4);
+      Params.Transform,InverseTransform,TransformIdentity describe the transformation,
+      just like for @link(Render). }
+    procedure RenderShadowVolume(const Params: TRenderParams;
+      const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 
     { Prepare resources, making various methods (like rendering and such)
       to execute fast.
@@ -2407,18 +2398,15 @@ begin
   end;
 end;
 
-procedure TCastleTransform.LocalRenderShadowVolume(
-  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4);
+procedure TCastleTransform.LocalRenderShadowVolume(const Params: TRenderParams;
+  const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 var
   I: Integer;
 begin
   if Exists and CastShadowVolumes then
   begin
     for I := 0 to List.Count - 1 do
-      List[I].RenderShadowVolume(ShadowVolumeRenderer,
-        ParentTransformIsIdentity, ParentTransform);
+      List[I].RenderShadowVolume(Params, ShadowVolumeRenderer);
   end;
 end;
 
@@ -2895,6 +2883,7 @@ begin
       OldParamsTransform         := Params.Transform;
       OldParamsInverseTransform  := Params.InverseTransform;
       OldFrustum                 := Params.Frustum;
+      Assert(OldFrustum <> nil);
 
       NewParamsTransformation.Transform        := OldParamsTransform^;
       NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
@@ -2938,25 +2927,64 @@ begin
   Params.InMeaningfulParent := OldInMeaningfulParent;
 end;
 
-procedure TCastleTransform.RenderShadowVolume(
-  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4);
+procedure TCastleTransform.RenderShadowVolume(const Params: TRenderParams;
+  const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 var
   T: TVector3;
+  OldParamsTransform, OldParamsInverseTransform: PMatrix4;
+  NewParamsTransformation: TTransformation;
+  OldParamsTransformIdentity: Boolean;
+  OldFrustum: PFrustum;
+  NewFrustumValue: TFrustum;
 begin
-  if FOnlyTranslation then
+  T := Translation;
+  if FOnlyTranslation and T.IsZero then
   begin
-    T := Translation;
-    if T.IsZero then
-      LocalRenderShadowVolume(ShadowVolumeRenderer,
-        ParentTransformIsIdentity, ParentTransform)
-    else
-      LocalRenderShadowVolume(ShadowVolumeRenderer,
-        false, TranslationMatrix(T) * ParentTransform);
+    LocalRenderShadowVolume(Params, ShadowVolumeRenderer);
   end else
-    LocalRenderShadowVolume(ShadowVolumeRenderer,
-      false, Transform * ParentTransform);
+  begin
+    { TODO: This is a copy-paste of transformation algorithm from TCastleTransform.Render. }
+
+    OldParamsTransformIdentity := Params.TransformIdentity;
+    OldParamsTransform         := Params.Transform;
+    OldParamsInverseTransform  := Params.InverseTransform;
+    OldFrustum                 := Params.Frustum;
+    Assert(OldFrustum <> nil);
+
+    NewParamsTransformation.Transform        := OldParamsTransform^;
+    NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
+    NewFrustumValue                          := OldFrustum^;
+
+    Params.TransformIdentity := false;
+    Params.Transform        := @NewParamsTransformation.Transform;
+    Params.InverseTransform := @NewParamsTransformation.InverseTransform;
+    Params.Frustum          := @NewFrustumValue;
+
+    { Update NewXxx to apply the transformation defined by this TCastleTransform.
+      LocalRender expects Frustum in local coordinates (without transformation),
+      so we subtract transformation below. }
+    if FOnlyTranslation then
+    begin
+      NewParamsTransformation.Translate(T);
+      NewFrustumValue.MoveVar(-T);
+    end else
+    begin
+      InternalTransformationMult(NewParamsTransformation);
+      if IsNan(NewParamsTransformation.Transform.Data[0, 0]) then
+        WarningMatrixNan(NewParamsTransformation.Transform);
+      NewFrustumValue := NewFrustumValue.TransformByInverse(Transform);
+      // 2x slower: NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
+    end;
+
+    LocalRenderShadowVolume(Params, ShadowVolumeRenderer);
+
+    { Restore OldXxx values.
+      They can be restored fast, thanks to using pointers to matrix/frustum. }
+    Params.TransformIdentity := OldParamsTransformIdentity;
+    Params.Transform         := OldParamsTransform;
+    Params.InverseTransform  := OldParamsInverseTransform;
+    Params.Frustum           := OldFrustum;
+  end;
 end;
 
 function Bottom(const Gravity: boolean; const GravityCoordinate: Integer;

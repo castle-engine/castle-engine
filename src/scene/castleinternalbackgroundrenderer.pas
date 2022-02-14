@@ -200,12 +200,17 @@ begin
   if UseClearColor then
     RenderContext.Clear([cbColor], ClearColor);
 
-  { We don't calculate correct Frustum (accounting for the fact that camera
+  { We don't calculate correct Params.Frustum (accounting for the fact that camera
     is rotated but never shifted during 3D background rendering) now.
     But also frustum culling for this would not be very useful,
-    so just disable it. }
-  Scene.InternalIgnoreFrustum := true;
+    so just disable it by leaving Params.Frustum = nil. }
+  //Params.Frustum := nil; // this is actually the default, we never set Params.Frustum
+  Assert(Params.Frustum = nil);
 
+  { Scene.Render in this case should call Scene.LocalRender straight away,
+    as Scene has no transformation.
+    And that's good, the TCastleTransform.Render could not handle any transformation
+    as Params.Frustum is nil.  }
   Params.Transparent := false; Scene.Render(Params);
   Params.Transparent := true ; Scene.Render(Params);
 end;

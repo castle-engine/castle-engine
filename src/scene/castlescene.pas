@@ -351,10 +351,8 @@ type
       Faces (both shadow quads and caps) are rendered such that
       CCW <=> you're looking at it from outside
       (i.e. it's considered front face of this shadow volume). }
-    procedure LocalRenderShadowVolume(
-      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4); override;
+    procedure LocalRenderShadowVolume(const Params: TRenderParams;
+      const ShadowVolumeRenderer: TBaseShadowVolumeRenderer); override;
 
     procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
   public
@@ -398,8 +396,6 @@ type
     FBackgroundRendererValid: boolean;
     procedure PrepareBackground;
   public
-    { Internal hack to avoid checking frustum at rendering in some situations. }
-    InternalIgnoreFrustum: boolean;
     { Internal override test visibility. }
     InternalVisibilityTest: TTestShapeVisibility;
 
@@ -597,14 +593,10 @@ const
 
 implementation
 
-{$warnings off}
-// TODO: This unit temporarily uses RenderingCamera singleton,
-// to keep TBasicRenderParams working for backward compatibility.
 uses CastleGLVersion, CastleLog,
   CastleStringUtils, CastleApplicationProperties,
-  CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes,
+  CastleShapeInternalRenderShadowVolumes,
   CastleComponentSerialize, CastleRenderContext, CastleFilesUtils;
-{$warnings on}
 
 {$define read_implementation}
 {$I castlescene_roottransform.inc}
@@ -1065,7 +1057,9 @@ procedure TCastleScene.LocalRenderInside(
     VisibilitySensorsPair: {$ifdef FPC}TVisibilitySensors.TDictionaryPair{$else}TPair<TVisibilitySensorNode, TVisibilitySensorInstanceList>{$endif};
   begin
     { optimize for common case: exit early if nothing to do }
-    if VisibilitySensors.Count = 0 then Exit;
+    if (VisibilitySensors.Count = 0) or
+       (Params.Frustum = nil) then
+      Exit;
 
     if ProcessEvents then
     begin
@@ -1673,10 +1667,8 @@ end;
 
 { Shadow volumes ------------------------------------------------------------- }
 
-procedure TCastleScene.LocalRenderShadowVolume(
-  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4);
+procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams;
+  const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 var
   SceneBox, ShapeBox: TBox3D;
   SVRenderer: TGLShadowVolumeRenderer;
@@ -1693,8 +1685,8 @@ begin
 
     { calculate and check SceneBox }
     SceneBox := LocalBoundingBox;
-    if not ParentTransformIsIdentity then
-      SceneBox := SceneBox.Transform(ParentTransform);
+    if not Params.TransformIdentity then
+      SceneBox := SceneBox.Transform(Params.Transform^);
     SVRenderer.InitCaster(SceneBox);
     if SVRenderer.CasterShadowPossiblyVisible then
     begin
@@ -1704,16 +1696,17 @@ begin
       for Shape in ShapeList do
       begin
         ShapeBox := Shape.BoundingBox;
-        if not ParentTransformIsIdentity then
-          ShapeBox := ShapeBox.Transform(ParentTransform);
+        if not Params.TransformIdentity then
+          ShapeBox := ShapeBox.Transform(Params.Transform^);
         SVRenderer.InitCaster(ShapeBox);
         if SVRenderer.CasterShadowPossiblyVisible then
         begin
-          if ParentTransformIsIdentity then
-            T :=                   Shape.State.Transformation.Transform
+          if Params.TransformIdentity then
+            T :=                     Shape.State.Transformation.Transform
           else
-            T := ParentTransform * Shape.State.Transformation.Transform;
+            T := Params.Transform^ * Shape.State.Transformation.Transform;
           Shape.InternalShadowVolumes.RenderSilhouetteShadowVolume(
+            Params,
             SVRenderer.LightPosition, T,
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
@@ -2033,13 +2026,12 @@ begin
        (not ExcludeFromStatistics) then
       Inc(Params.Statistics.ScenesVisible);
 
-    if FSceneFrustumCulling and not InternalIgnoreFrustum then
+    if FSceneFrustumCulling and
+       (Params.Frustum <> nil) and
+       (not Params.Frustum^.Box3DCollisionPossibleSimple(LocalBoundingBox)) then
     begin
-      if not Params.Frustum^.Box3DCollisionPossibleSimple(LocalBoundingBox) then
-      begin
-        FrameProfiler.Stop(fmRenderScene);
-        Exit;
-      end;
+      FrameProfiler.Stop(fmRenderScene);
+      Exit;
     end;
 
     if (not Params.Transparent) and
@@ -2053,7 +2045,7 @@ begin
     if Assigned(InternalVisibilityTest) then
       LocalRenderOutside(InternalVisibilityTest, Params)
     else
-    if InternalIgnoreFrustum then
+    if Params.Frustum = nil then
       LocalRenderOutside(nil, Params)
     else
     if (InternalOctreeRendering <> nil) and ShapeFrustumCulling then
@@ -2297,8 +2289,6 @@ begin
     We just set them here to capture most 3D objects
     (as using TBasicRenderParams for anything is a discouraged hack anyway). }
   Transparent := false;
-  RenderingCamera := CastleRenderingCamera.RenderingCamera;
-  Frustum := @RenderingCamera.Frustum;
 end;
 
 destructor TBasicRenderParams.Destroy;

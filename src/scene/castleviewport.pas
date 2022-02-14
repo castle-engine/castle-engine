@@ -34,7 +34,7 @@ type
   TCastleViewport = class;
   TCastleSceneManager = class;
 
-  TRender3DEvent = procedure (Viewport: TCastleViewport;
+  TRenderOnePassEvent = procedure (Viewport: TCastleViewport;
     const Params: TRenderParams) of object;
 
   { Event for @link(TCastleViewport.OnProjection). }
@@ -111,7 +111,6 @@ type
       FPrepareParams: TPrepareParams;
       FBackgroundWireframe: boolean;
       FBackgroundColor: TCastleColor;
-      FOnRender3D: TRender3DEvent;
       FUseGlobalLights, FUseGlobalFog: boolean;
       FApproximateActivation: boolean;
       FDefaultVisibilityLimit: Single;
@@ -159,6 +158,8 @@ type
       FLastSeenMainScene: TCastleScene; // only used by editor
       FBackground: TCastleBackground;
       FBackgroundObserver: TFreeNotificationObserver;
+      // reused between frames for speed
+      FRenderWithoutScreenEffectsRenderingCamera: TRenderingCamera;
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -259,11 +260,11 @@ type
       This takes care to always update Camera.ProjectionMatrix, Projection. }
     procedure ApplyProjection;
 
-    { Render shadow quads for all the things rendered by @link(Render3D).
+    { Render shadow quads for all the things rendered by @link(RenderOnePass).
       You can use here ShadowVolumeRenderer instance, which is guaranteed
       to be initialized with TGLShadowVolumeRenderer.InitFrustumAndLight,
       so you can do shadow volumes culling. }
-    procedure RenderShadowVolume;
+    procedure RenderShadowVolume(const Params: TRenderParams);
 
     { Detect position/direction of the main light that produces shadows.
       Looks at MainScene.InternalMainLightForShadows.
@@ -336,7 +337,9 @@ type
       or only opaque shapes).
       All current camera settings are saved in RenderParams.RenderingCamera.
       @param(Params Rendering parameters, see @link(TRenderParams).) }
-    procedure Render3D(const Params: TRenderParams); virtual;
+    procedure RenderOnePass(const Params: TRenderParams); virtual;
+
+    procedure Render3D(const Params: TRenderParams); virtual; deprecated 'use RenderOnePass';
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -984,12 +987,6 @@ type
     property Navigation: TCastleNavigation read FNavigation write SetNavigation
       stored IsStoredNavigation;
 
-    {$ifdef FPC}
-    { See Render3D method. }
-    property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
-      deprecated 'do not customize rendering with this; instead add TCastleUserInterface descendants where you can override TCastleUserInterface.Render to do custom rendering';
-    {$endif}
-
     { Should we render with shadow volumes.
       You can change this at any time, to switch rendering shadows on/off.
 
@@ -1311,20 +1308,11 @@ var
 
 implementation
 
-{$warnings off}
-// TODO: This unit temporarily uses RenderingCamera singleton,
-// to keep it working for backward compatibility.
 uses DOM, Math,
-  CastleRenderingCamera,
   CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
   CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
   CastleRenderContext, CastleApplicationProperties;
-{$warnings on}
-
-procedure Register;
-begin
-end;
 
 {$define read_implementation}
 {$I castleviewport_touchnavigation.inc}
@@ -1431,6 +1419,8 @@ begin
   FBackgroundObserver := TFreeNotificationObserver.Create(Self);
   FBackgroundObserver.OnFreeNotification := {$ifdef FPC}@{$endif}BackgroundFreeNotification;
 
+  FRenderWithoutScreenEffectsRenderingCamera := TRenderingCamera.Create;
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -1470,6 +1460,7 @@ begin
 
   FreeAndNil(FRenderParams);
   FreeAndNil(FPrepareParams);
+  FreeAndNil(FRenderWithoutScreenEffectsRenderingCamera);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -2216,15 +2207,22 @@ end;
 
 procedure TCastleViewport.Render3D(const Params: TRenderParams);
 begin
-  Params.Frustum := @Params.RenderingCamera.Frustum;
-  Items.Render(Params);
-  if Assigned(FOnRender3D) then
-    FOnRender3D(Self, Params);
 end;
 
-procedure TCastleViewport.RenderShadowVolume;
+procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
 begin
-  Items.RenderShadowVolume(FShadowVolumeRenderer, true, TMatrix4.Identity);
+  {$warnings off} // keep deprecated working
+  Render3D(Params);
+  {$warnings on}
+
+  Params.Frustum := @Params.RenderingCamera.Frustum;
+  Items.Render(Params);
+end;
+
+procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
+begin
+  Params.Frustum := @Params.RenderingCamera.Frustum;
+  Items.RenderShadowVolume(Params, FShadowVolumeRenderer);
 end;
 
 procedure TCastleViewport.InitializeGlobalLights(const GlobalLights: TLightInstancesList);
@@ -2332,14 +2330,16 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
 
     Params.InShadow := false;
 
-    Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
-    Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
+    Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
+    Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
   end;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4);
   begin
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
-    FShadowVolumeRenderer.Render(Params, {$ifdef FPC}@{$endif}Render3D, {$ifdef FPC}@{$endif}RenderShadowVolume, ShadowVolumesRender);
+    FShadowVolumeRenderer.Render(Params,
+      {$ifdef FPC}@{$endif}RenderOnePass,
+      {$ifdef FPC}@{$endif}RenderShadowVolume, ShadowVolumesRender);
   end;
 
 var
@@ -2455,13 +2455,6 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
 var
   SceneCastingLights: TCastleScene;
 begin
-  { TODO: Temporary compatibility cludge:
-    Because some rendering code still depends on
-    the CastleRenderingCamera.RenderingCamera singleton being initialized,
-    so initialize it from current parameter. }
-  if RenderingCamera <> CastleRenderingCamera.RenderingCamera then
-    CastleRenderingCamera.RenderingCamera.Assign(RenderingCamera);
-
   RenderClear;
   RenderBackground;
 
@@ -2512,7 +2505,15 @@ procedure TCastleViewport.RenderWithoutScreenEffects;
     Always call ApplyProjection before this, to set correct
     projection matrix. }
   procedure RenderOnScreen(ACamera: TCastleCamera);
+  var
+    RenderingCamera: TRenderingCamera;
   begin
+    { We reuse FRenderWithoutScreenEffectsRenderingCamera,
+      but to be clean (to not use it when it's not really initialized)
+      this is the only place where we refer to FRenderWithoutScreenEffectsRenderingCamera field.
+      Rest of code should get RenderingCamera by parameters. }
+    RenderingCamera := FRenderWithoutScreenEffectsRenderingCamera;
+
     RenderingCamera.Target := rtScreen;
     RenderingCamera.FromCameraObject(ACamera);
 
@@ -3399,11 +3400,6 @@ begin
       But we removed the need for MainScene.BackgroundSkySphereRadius. }
     ApplyProjection;
   end;
-
-  { RenderingCamera properties must be already set,
-    since PrepareResources may do some operations on texture gen modes
-    in WORLDSPACE*. }
-  RenderingCamera.FromCameraObject(Camera);
 
   if DisplayProgressTitle <> '' then
   begin

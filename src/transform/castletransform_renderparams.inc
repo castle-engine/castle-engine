@@ -235,7 +235,11 @@
 
     { Camera frustum in local coordinates. Local for the TCastleTransform instance
       receiving this TRenderParams as @link(TCastleTransform.LocalRender)
-      parameter. }
+      parameter, so it may be different from RenderingCamera.Frustum.
+
+      As a special exception, it can be @nil, but only when TCastleScene.LocalRender
+      is called (this happens from TBackgroundScene.Render).
+      The TCastleScene.LocalRender should ignore frustum when it is @nil. }
     Frustum: PFrustum;
 
     { Camera information for renderer. }

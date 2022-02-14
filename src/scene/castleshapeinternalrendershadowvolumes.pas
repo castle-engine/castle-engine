@@ -20,7 +20,7 @@ unit CastleShapeInternalRenderShadowVolumes;
 interface
 
 uses CastleVectors, CastleShapeInternalShadowVolumes,
-  CastleTriangles;
+  CastleTriangles, CastleTransform;
 
 type
   TRenderShapeShadowVolumes = class helper for TShapeShadowVolumes
@@ -56,6 +56,7 @@ type
       ignored, since the volume is always closed by a single point in infinity.
     }
     procedure RenderSilhouetteShadowVolume(
+      const Params: TRenderParams;
       const LightPos: TVector4;
       const Transform: TMatrix4;
       const LightCap, DarkCap: boolean;
@@ -64,19 +65,15 @@ type
 
 implementation
 
-{$warnings off}
-// TODO: This unit temporarily uses RenderingCamera singleton,
-// to keep it working for backward compatibility.
 uses SysUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleRenderingCamera, CastleGLUtils, CastleUtils, CastleShapes, CastleImages,
+  CastleGLUtils, CastleUtils, CastleShapes, CastleImages,
   CastleRenderContext;
-{$warnings on}
 
 {$ifndef OpenGLES}
 { Rendering in this unit for now uses fixed-function pipeline,
   and it requires fixed-function matrix set up. }
-procedure PushMatrix;
+procedure PushMatrix(const Params: TRenderParams);
 var
   CameraMatrix: PMatrix4;
 begin
@@ -84,10 +81,10 @@ begin
   glPushMatrix;
   glLoadMatrix(RenderContext.ProjectionMatrix);
 
-  if RenderingCamera.RotationOnly then
-    CameraMatrix := @RenderingCamera.RotationMatrix
+  if Params.RenderingCamera.RotationOnly then
+    CameraMatrix := @Params.RenderingCamera.RotationMatrix
   else
-    CameraMatrix := @RenderingCamera.Matrix;
+    CameraMatrix := @Params.RenderingCamera.Matrix;
 
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix;
@@ -138,6 +135,7 @@ begin
 end;
 
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
+  const Params: TRenderParams;
   const LightPos: TVector4;
   const Transform: TMatrix4;
   const LightCap, DarkCap: boolean;
@@ -436,7 +434,7 @@ begin
 
   Triangles := TrianglesListShadowCasters;
 
-  PushMatrix;
+  PushMatrix(Params);
 
   TrianglesPlaneSide := TBooleanList.Create;
   try
