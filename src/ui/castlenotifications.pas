@@ -144,19 +144,10 @@ type
   {$undef read_interface_class}
   end;
 
-procedure Register;
-
 implementation
 
 uses Math,
   CastleLog, CastleComponentSerialize;
-
-procedure Register;
-begin
-  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
-  RegisterComponents('Castle', [TCastleNotifications]);
-  {$endif}
-end;
 
 { TNotificationList ---------------------------------------------------------- }
 

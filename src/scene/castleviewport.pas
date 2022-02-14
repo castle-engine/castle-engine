@@ -1293,8 +1293,6 @@ type
     property AutoNavigation default true;
   end {$ifdef FPC}deprecated 'use TCastleViewport to render scenes. To have the same initial behavior, set FullSize, AutoCamera and AutoNavigation to true'{$endif};
 
-procedure Register;
-
 var
   { Key/mouse combination to interact with clickable things in 3D world.
     More precisely, this input will activate pointing device sensors in VRML/X3D,

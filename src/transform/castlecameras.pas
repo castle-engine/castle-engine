@@ -2262,20 +2262,11 @@ const
   { Multiply world bounding box AverageSize by this to get sensible radius. }
   WorldBoxSizeToRadius = 0.005;
 
-procedure Register;
-
 implementation
 
 uses Math,
   CastleStringUtils, CastleLog, CastleViewport,
   CastleComponentSerialize;
-
-procedure Register;
-begin
-  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
-  RegisterComponents('Castle', [TCastleExamineNavigation, TCastleWalkNavigation]);
-  {$endif}
-end;
 
 { TCastle2DNavigation -------------------------------------------------------- }
 

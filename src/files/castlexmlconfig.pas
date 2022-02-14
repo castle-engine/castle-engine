@@ -472,19 +472,10 @@ type
     { @groupEnd }
   end;
 
-procedure Register;
-
 implementation
 
 uses //Base64,
   CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils;
-
-procedure Register;
-begin
-  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
-  RegisterComponents('Castle', [TCastleConfig]);
-  {$endif}
-end;
 
 { TCastleConfigEventList ----------------------------------------------------- }
 

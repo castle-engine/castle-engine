@@ -803,7 +803,6 @@ See https://castle-engine.io/license.php for details.
       </Item175>
       <Item176>
         <Filename Value="../src/files/castlexmlconfig.pas"/>
-        <HasRegisterProc Value="True"/>
         <UnitName Value="CastleXMLConfig"/>
       </Item176>
       <Item177>
@@ -3198,7 +3197,6 @@ See https://castle-engine.io/license.php for details.
       </Item773>
       <Item774>
         <Filename Value="../src/scene/castlescene.pas"/>
-        <HasRegisterProc Value="True"/>
         <UnitName Value="CastleScene"/>
       </Item774>
       <Item775>
@@ -3259,7 +3257,6 @@ See https://castle-engine.io/license.php for details.
       </Item788>
       <Item789>
         <Filename Value="../src/scene/castleviewport.pas"/>
-        <HasRegisterProc Value="True"/>
         <UnitName Value="CastleViewport"/>
       </Item789>
       <Item790>

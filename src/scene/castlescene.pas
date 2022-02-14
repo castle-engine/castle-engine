@@ -540,8 +540,6 @@ type
     function GlobalLights: TAbstractLightInstancesList; override;
   end;
 
-procedure Register;
-
 var
   { Global OpenGL context cache.
     This caches common things, like textures, shapes, and much more.
@@ -625,13 +623,6 @@ uses CastleGLVersion, CastleLog,
 {$I castlescene_spotlight.inc}
 {$I castlescene_environmentlight.inc}
 {$undef read_implementation}
-
-procedure Register;
-begin
-  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
-  RegisterComponents('Castle', [TCastleScene]);
-  {$endif}
-end;
 
 { TGLSceneShape -------------------------------------------------------------- }
 
