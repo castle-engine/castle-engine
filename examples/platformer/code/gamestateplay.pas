@@ -1971,6 +1971,8 @@ begin
 end;
 
 function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
+var
+  CastleCollider: TCastleCapsuleCollider;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -2000,6 +2002,24 @@ begin
     PauseGame;
     TUIState.Push(StatePause);
     Exit(true);
+  end;
+
+  if Event.IsKey(keyEqual) then
+  begin
+    CastleCollider := ScenePlayer.FindBehavior(TCastleCapsuleCollider) as TCastleCapsuleCollider;
+    if CastleCollider <> nil then
+    begin
+      CastleCollider.Height := CastleCollider.Height + 10;
+    end;
+  end;
+
+  if Event.IsKey(keyMinus) then
+  begin
+    CastleCollider := ScenePlayer.FindBehavior(TCastleCapsuleCollider) as TCastleCapsuleCollider;
+    if CastleCollider <> nil then
+    begin
+      CastleCollider.Height := CastleCollider.Height - 10;
+    end;
   end;
 end;
 
