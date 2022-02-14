@@ -66,6 +66,8 @@ uses CastleLog, CastleApplicationProperties, CastleURIUtils, CastleInternalRays,
 {$I castletransform_camera_utils.inc}
 {$undef read_implementation}
 
+var
+  R: TRegisteredComponent;
 initialization
   TCastleTransform.DefaultOrientation := otUpYDirectionZ;
   GlobalIdentityMatrix := TMatrix4.Identity;
@@ -74,6 +76,13 @@ initialization
   RegisterSerializableComponent(TCastleTransformReference, 'Reference Another Transform');
   RegisterSerializableComponent(TCastleCamera, 'Camera');
   RegisterSerializableComponent(TCastleRigidBody, 'Rigid Body');
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleRigidBody;
+  R.Caption := 'Rigid Body (2D)';
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleRigidBody{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  RegisterSerializableComponent(R);
+  RegisterSerializableComponent(TCastleBoxCollider, 'Box Colllider');
+  RegisterSerializableComponent(TCastleCapsuleCollider, 'Capsule Colllider');
+  RegisterSerializableComponent(TCastlePlaneCollider, 'Plane Colllider');
   RegisterSerializableComponent(TCastleSphereCollider, 'Sphere Colllider');
-  RegisterSerializableComponent(TCastleCapsuleCollider, 'Sphere Colllider');
 end.
