@@ -8584,14 +8584,14 @@ function TCastleSceneCore.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'URL') or
-    (PropertyName = 'ProcessEvents') or
-    (PropertyName = 'AutoAnimation') or
-    (PropertyName = 'AutoAnimationLoop') or
-    (PropertyName = 'DefaultAnimationTransition') or
-    (PropertyName = 'Spatial') then
-      Result := [psBasic]
-    else
-      Result := inherited PropertySections(PropertyName);
+     (PropertyName = 'ProcessEvents') or
+     (PropertyName = 'AutoAnimation') or
+     (PropertyName = 'AutoAnimationLoop') or
+     (PropertyName = 'DefaultAnimationTransition') or
+     (PropertyName = 'Spatial') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
