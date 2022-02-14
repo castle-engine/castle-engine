@@ -593,8 +593,8 @@ const
 
 implementation
 
-uses CastleGLVersion, CastleLog,
-  CastleStringUtils, CastleApplicationProperties,
+uses Math,
+  CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
   CastleShapeInternalRenderShadowVolumes,
   CastleComponentSerialize, CastleRenderContext, CastleFilesUtils;
 

@@ -31,16 +31,14 @@ type
     { For now just always constant and initialized from CastleDesignMode. }
     FGizmo: Boolean;
     FGizmoScene: TCastleScene;
-    FGizmoSceneUrl: String;
-    property Gizmo: Boolean read FGizmo;
     procedure SetLightNode(const Value: TAbstractLightNode);
     procedure SetGizmoTextureUrl(const Value: String);
-    procedure SetGizmoSceneUrl(const Value: String);
   protected
     { Descendants should set X3D light node here. }
     property LightNode: TAbstractLightNode read FLightNode write SetLightNode;
     property GizmoTextureUrl: String read FGizmoTextureUrl write SetGizmoTextureUrl;
-    property GizmoSceneUrl: String read FGizmoSceneUrl write SetGizmoSceneUrl;
+    property GizmoScene: TCastleScene read FGizmoScene;
+    property Gizmo: Boolean read FGizmo;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -53,6 +51,17 @@ type
 {$ifdef read_implementation}
 
 constructor TCastleAbstractLight.Create(AOwner: TComponent);
+
+  procedure InternalTransform(const T: TCastleTransform);
+  begin
+    T.SetTransient;
+    T.InternalExcludeFromParentBoundingVolume := true;
+    T.Pickable := false;
+    T.Collides := false;
+    T.CastShadowVolumes := false;
+    T.ExcludeFromStatistics := true;
+  end;
+
 begin
   inherited;
 
@@ -73,7 +82,7 @@ begin
     FGizmoImage := TCastleImageTransform.Create(nil);
     FGizmoImage.Size := Vector2(1, 1);
     FGizmoImage.Color := HexToColor('FC9C2D');
-    FGizmoImage.SetTransient;
+    InternalTransform(FGizmoImage);
     Add(FGizmoImage);
 
     FGizmoBillboard := TCastleBillboard.Create(nil);
@@ -81,7 +90,7 @@ begin
     FGizmoImage.AddBehavior(FGizmoBillboard);
 
     FGizmoScene := TCastleScene.Create(nil);
-    FGizmoScene.SetTransient;
+    InternalTransform(FGizmoScene);
     Add(FGizmoScene);
   end;
 end;
@@ -114,16 +123,6 @@ begin
     FGizmoTextureUrl := Value;
     if Gizmo then
       FGizmoImage.Url := FGizmoTextureUrl;
-  end;
-end;
-
-procedure TCastleAbstractLight.SetGizmoSceneUrl(const Value: String);
-begin
-  if FGizmoSceneUrl <> Value then
-  begin
-    FGizmoSceneUrl := Value;
-    if Gizmo then
-      FGizmoScene.Url := FGizmoSceneUrl;
   end;
 end;
 

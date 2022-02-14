@@ -28,6 +28,8 @@ type
     { Same thing as FLightNode, but with proper type. }
     FSpotLight: TSpotLightNode;
 
+    FGizmoCoord: TCoordinateNode;
+
     FColor: TCastleColorRGB;
     FAttenuation: TVector3;
     FIntensity: Single;
@@ -41,10 +43,11 @@ type
     procedure SetRadius(const Value: Single);
     procedure SetBeamWidth(const Value: Single);
     procedure SetCutOffAngle(const Value: Single);
+    procedure UpdateGizmoCoord;
   public
     const
-      DefaultBeamWidth = Pi / 4;
-      DefaultCutOffAngle = Pi / 2;
+      DefaultBeamWidth = Pi / 2;
+      DefaultCutOffAngle = Pi / 4;
       DefaultRadius = 100.0;
 
     constructor Create(AOwner: TComponent); override;
@@ -66,11 +69,23 @@ type
       Set to -1 to have no limit. }
     property Radius: Single read FRadius write SetRadius {$ifdef FPC}default DefaultRadius{$endif};
 
-    { Angle within which the spot light has maximum intensity. }
+    { Angle within which the spot light has maximum intensity.
+
+      If this is >= CutOffAngle (which is the default case), then the light
+      has maximum intensity  within CutOffAngle, and zero intensity outside CutOffAngle,
+      and there it no smooth falloff.
+
+      You need to make BeamWidth < CutOffAngle to have a smooth falloff at the egdes
+      of the spot light. }
     property BeamWidth: Single read FBeamWidth write SetBeamWidth {$ifdef FPC}default DefaultBeamWidth{$endif};
 
     { Angle within which the spot light has any intensity.
-      The light intensity falls off between BeamWidth and CutOffAngle, and is zero outside of CutOffAngle. }
+
+      If BeamWidth < CutOffAngle then the light intensity falls off smoothly
+      between BeamWidth and CutOffAngle.
+
+      The light intensity is always zero outside of CutOffAngle,
+      regardless of the BeamWidth value. }
     property CutOffAngle: Single read FCutOffAngle write SetCutOffAngle {$ifdef FPC}default DefaultCutOffAngle{$endif};
 
   {$define read_interface_class}
@@ -83,6 +98,37 @@ type
 {$ifdef read_implementation}
 
 constructor TCastleSpotLight.Create(AOwner: TComponent);
+
+  function BuildNode: TX3DRootNode;
+  var
+    Coord: TCoordinateNode;
+    LineSet: TLineSetNode;
+    Material: TUnlitMaterialNode;
+    Appearance: TAppearanceNode;
+    Shape: TShapeNode;
+  begin
+    Coord := TCoordinateNode.Create;
+    FGizmoCoord := Coord;
+    UpdateGizmoCoord;
+
+    LineSet := TLineSetNode.Create;
+    LineSet.Coord := Coord;
+    LineSet.SetVertexCount([2, 2, 2, 2]);
+
+    Material := TUnlitMaterialNode.Create;
+    Material.EmissiveColor := HexToColorRGB('FC9C2D');
+
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+
+    Shape := TShapeNode.Create;
+    Shape.Geometry := LineSet;
+    Shape.Appearance := Appearance;
+
+    Result := TX3DRootNode.Create;
+    Result.AddChildren(Shape);
+  end;
+
 begin
   inherited;
 
@@ -96,7 +142,12 @@ begin
   { internal stuff create }
   FSpotLight := TSpotLightNode.Create;
   LightNode := FSpotLight;
-  GizmoTextureUrl := InternalCastleDesignData + 'gizmos/light/light_spot.png';
+
+  if Gizmo then
+  begin
+    GizmoTextureUrl := InternalCastleDesignData + 'gizmos/light/light_spot.png';
+    GizmoScene.Load(BuildNode, true);
+  end;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlespotlight_persistent_vectors.inc}
@@ -167,7 +218,27 @@ begin
   begin
     FCutOffAngle := Value;
     FSpotLight.CutOffAngle := Value;
+    if Gizmo then
+      UpdateGizmoCoord;
   end;
+end;
+
+procedure TCastleSpotLight.UpdateGizmoCoord;
+const
+  { Length of gizmo line.
+    We need to do AdjustToLength later, otherwise the lines could be ~infinite
+    of case of CutOffAngle = Pi / 2. }
+  D = 10.0;
+var
+  Shift: Single;
+begin
+  Shift := Tan(CutOffAngle) * D;
+  FGizmoCoord.SetPoint([
+    Vector3(0, 0, 0), Vector3(0,  Shift, -D).AdjustToLength(D),
+    Vector3(0, 0, 0), Vector3(0, -Shift, -D).AdjustToLength(D),
+    Vector3(0, 0, 0), Vector3( Shift, 0, -D).AdjustToLength(D),
+    Vector3(0, 0, 0), Vector3(-Shift, 0, -D).AdjustToLength(D)
+  ]);
 end;
 
 {$define read_implementation_methods}
