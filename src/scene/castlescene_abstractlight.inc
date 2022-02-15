@@ -31,6 +31,7 @@ type
     { For now just always constant and initialized from CastleDesignMode. }
     FGizmo: Boolean;
     FGizmoScene: TCastleScene;
+    FGizmoSelect: TCastleBox;
     procedure SetLightNode(const Value: TAbstractLightNode);
     procedure SetGizmoTextureUrl(const Value: String);
   protected
@@ -62,6 +63,8 @@ constructor TCastleAbstractLight.Create(AOwner: TComponent);
     T.ExcludeFromStatistics := true;
   end;
 
+const
+  GizmoSize = 1.0;
 begin
   inherited;
 
@@ -79,8 +82,18 @@ begin
 
   if Gizmo then
   begin
+    // This allows user to select light by clicking in CGE editor
+    FGizmoSelect := TCastleBox.Create(nil);
+    FGizmoSelect.Size := Vector3(GizmoSize, GizmoSize, GizmoSize);
+    InternalTransform(FGizmoSelect);
+    FGizmoSelect.Visible := false;
+    // to make picking natural, restore to default these values, after InternalTransform modified them
+    FGizmoSelect.Pickable := true;
+    FGizmoSelect.InternalExcludeFromParentBoundingVolume := false;
+    Add(FGizmoSelect);
+
     FGizmoImage := TCastleImageTransform.Create(nil);
-    FGizmoImage.Size := Vector2(1, 1);
+    FGizmoImage.Size := Vector2(GizmoSize, GizmoSize);
     FGizmoImage.Color := HexToColor('FC9C2D');
     InternalTransform(FGizmoImage);
     Add(FGizmoImage);
