@@ -56,6 +56,10 @@
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
 
+    procedure ParentAfterAttach; virtual;
+
+    procedure ParentBeforeDetach; virtual;
+
     procedure WorldAfterAttach; virtual;
 
     procedure WorldBeforeDetach; virtual;
@@ -149,6 +153,16 @@ begin
 end;
 
 procedure TCastleBehavior.ParentChanged;
+begin
+
+end;
+
+procedure TCastleBehavior.ParentAfterAttach;
+begin
+
+end;
+
+procedure TCastleBehavior.ParentBeforeDetach;
 begin
 
 end;

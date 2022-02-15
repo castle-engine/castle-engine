@@ -3696,6 +3696,7 @@ begin
     FBehaviors.Add(Behavior);
     OldParent := Behavior.FParent;
     Behavior.FParent := Self;
+    Behavior.ParentAfterAttach;
     Behavior.ParentChanged; // call at end, when state is consistent
 
     { Call WorldAttached directly }
@@ -3719,6 +3720,8 @@ begin
   { Call WorldDetached directly }
   if Beh.NeedWorldChangeNotification and (FWorld <> nil) then
     Beh.WorldBeforeDetach;
+
+  Beh.ParentBeforeDetach;
 
   Beh.FParent := nil;
   FBehaviors.Delete(BehaviorIndex);
