@@ -38,6 +38,7 @@ type
     FColor: TCastleColor;
     FSmoothScaling: Boolean;
     FAlphaChannel: TAutoAlphaChannel;
+    FMipmaps: Boolean;
 
     { Update X3D TCoordinateNode, TTextureCoordinateNode. }
     procedure UpdateCoordinateNodes;
@@ -49,6 +50,7 @@ type
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     procedure SetUrl(const Value: String);
+    procedure SetMipmaps(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -107,6 +109,16 @@ type
       When empty, no image is loaded and this is invisible. }
     property Url: String read FUrl write SetUrl;
 
+    { Mipmaps make the image look good when it scaled to be @italic(much)
+      smaller on the screen. Using mipmaps also forces the image to have
+      power-of-2 size (it will be resized to power-of-2 if necessary).
+
+      Mipmaps typically make sense for 3D objects,
+      when the camera may move arbitrarily far from the object.
+      For 2D games, you usually don't want to use mipmaps, as you often want to avoid
+      scaling the image to be power-of-2. }
+    property Mipmaps: Boolean read FMipmaps write SetMipmaps default false;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagetransform_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -147,7 +159,7 @@ begin
     This seems like a better default (otherwise the resizing underneath
     may cause longer loading time, and loss of quality, if not expected).
     Consistent with X3DLoadInternalImage. }
-  FTexPropertiesNode.GuiTexture := true;
+  FTexPropertiesNode.GuiTexture := not FMipmaps;
 
   FTextureNode := TImageTextureNode.Create;
   FTextureNode.RepeatS := false; // correspoding to default FRepeatImage and FShift, UpdateCoordinateNodes may change it
@@ -368,6 +380,16 @@ begin
   begin
     FAlphaChannel := Value;
     FAppearanceNode.AlphaMode := AlphaChannelToMode[Value];
+    FScene.ChangedAll; // TODO ChangedAll should not be needed
+  end;
+end;
+
+procedure TCastleImageTransform.SetMipmaps(const Value: Boolean);
+begin
+  if FMipmaps <> Value then
+  begin
+    FMipmaps := Value;
+    FTexPropertiesNode.GuiTexture := not FMipmaps;
     FScene.ChangedAll; // TODO ChangedAll should not be needed
   end;
 end;
