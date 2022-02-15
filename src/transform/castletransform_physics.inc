@@ -1,4 +1,4 @@
-{%MainUnit castletransform.pas}
+﻿{%MainUnit castletransform.pas}
 {
   Copyright 2017-2022 Michalis Kamburelis.
 
@@ -569,7 +569,7 @@ begin
   FMass := DefaultMass;
   FRestitution := DefaultRestitution;
   FFriction := DefaultFriction;
-  FScale := Vector3(1, 1, 1);
+  FScale := CastleVectors.Vector3(1, 1, 1);
 
   { Will be updated in TCollider.InitializeKraft to reflect FKraftShape.LocalTransform }
   FLocalTransform := TMatrix4.Identity;
