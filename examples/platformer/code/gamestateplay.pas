@@ -1972,7 +1972,8 @@ end;
 
 function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 var
-  CastleCollider: TCastleCapsuleCollider;
+  CastleCapsuleCollider: TCastleCapsuleCollider;
+  CastleCollider: TCastleCollider;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -2006,20 +2007,38 @@ begin
 
   if Event.IsKey(keyEqual) then
   begin
-    CastleCollider := ScenePlayer.FindBehavior(TCastleCapsuleCollider) as TCastleCapsuleCollider;
-    if CastleCollider <> nil then
+    CastleCapsuleCollider := ScenePlayer.FindBehavior(TCastleCapsuleCollider) as TCastleCapsuleCollider;
+    if CastleCapsuleCollider <> nil then
     begin
-      CastleCollider.Height := CastleCollider.Height + 10;
+      CastleCapsuleCollider.Height := CastleCapsuleCollider.Height + 10;
     end;
   end;
 
   if Event.IsKey(keyMinus) then
   begin
-    CastleCollider := ScenePlayer.FindBehavior(TCastleCapsuleCollider) as TCastleCapsuleCollider;
+    CastleCapsuleCollider := ScenePlayer.FindBehavior(TCastleCapsuleCollider) as TCastleCapsuleCollider;
+    if CastleCapsuleCollider <> nil then
+    begin
+      CastleCapsuleCollider.Height := CastleCapsuleCollider.Height - 10;
+    end;
+  end;
+
+  if Event.IsKey(keyO) then
+  begin
+    CastleCollider := ScenePlayer.FindBehavior(TCastleCollider) as TCastleCollider;
     if CastleCollider <> nil then
     begin
-      CastleCollider.Height := CastleCollider.Height - 10;
+      ScenePlayer.RemoveBehavior(CastleCollider);
+      FreeAndNil(CastleCollider);
+      {CastleCapsuleCollider := TCastleCapsuleCollider.Create(ScenePlayer);
+      CastleCapsuleCollider.Radius := ScenePlayer.BoundingBox.SizeX * 0.45; // little smaller than 50%
+      CastleCapsuleCollider.Height := ScenePlayer.BoundingBox.SizeY - CastleCapsuleCollider.Radius * 2;
+      CastleCapsuleCollider.Friction := 0.25;
+      CastleCapsuleCollider.Restitution := 0.0001;
+      CastleCapsuleCollider.Mass := 50;
+      ScenePlayer.AddBehavior(CastleCapsuleCollider);}
     end;
+
   end;
 end;
 
