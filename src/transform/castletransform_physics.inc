@@ -102,7 +102,8 @@
     { Notify CastleRigidBody that kraft shape need be recreated }
     procedure ShapeChangedNotifyRigidBody;
   protected
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
+    procedure ParentBeforeDetach; override;
   public
     const
       { Default for @link(Density). }
@@ -869,15 +870,15 @@ begin
   Assert(ACastleRigidBody.FKraftBody <> nil,
   'Trying initialize kraft shape when rigid body not initialized!');
 
+  ACastleRigidBody.DeinitializeColliders;
   { If shape count is > 0 we need delete previous shape. }
-  if ACastleRigidBody.FKraftBody.ShapeCount > 0 then
+  {if ACastleRigidBody.FKraftBody.ShapeCount > 0 then
   begin
     Assert(ACastleRigidBody.FKraftBody.ShapeCount = 1, 'More than one shape in rigid body.');
     Assert(ACastleRigidBody.FKraftBody.ShapeFirst <> FKraftShape, 'Mixed kraft shapes');
     FreeAndNil(FKraftShape);
-  end;
+  end;}
 
-  // FreeAndNil(FKraftShape); // do not free here, TKraftShape is owned by TKraftRigidBody
   FKraftShape := CreateKraftShape(APhysics, ACastleRigidBody.FKraftBody);
   // assign common TCollider properties to Kraft shape
   FKraftShape.Density := Density;
@@ -935,12 +936,11 @@ begin
   end;
 end;
 
-procedure TCastleCollider.ParentChanged;
+procedure TCastleCollider.ParentAfterAttach;
 var
   CastleRigidBody: TCastleRigidBody;
 begin
   inherited;
-
   { Check there is a rigid body and we should try initialize collider.
     This is the case when rigid body was added first to behaviors list }
   if Parent <> nil then
@@ -948,10 +948,20 @@ begin
     CastleRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
     if CastleRigidBody <> nil then
       CastleRigidBody.CheckInitialization(Self);
-  end else
+  end;
+end;
+
+procedure TCastleCollider.ParentBeforeDetach;
+var
+  CastleRBody: TCastleRigidBody;
+begin
+  inherited;
+
+  CastleRBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if CastleRBody <> nil then
   begin
-    { Kraft shape is owned by Kraft rigid body }
-    FKraftShape := nil;
+    // deinitialize collider
+    CastleRBody.DeinitializeColliders;
   end;
 end;
 
@@ -1238,14 +1248,14 @@ begin
 
   Assert(not ((Transform.World.FKraftEngine = nil) and (FKraftBody <> nil)), 'KraftBody should not live longer than KraftEngine!');
 
+  DeinitializeColliders;
+
   { Deinitialize rigid body when it's in collision with other rigid body make
     this body will be dangling pointer on it's FPrevCollisions list.
     So other rigid body can crash when it try to send FOnCollisionExit event. }
   RemoveSelfFromOtherRigidBodiesCollisionLists;
 
   FreeAndNil(FKraftBody);
-
-  DeinitializeColliders;
 
   FTransform := nil;
   FState := crbsNotInitialized;
@@ -1314,9 +1324,9 @@ begin
 
   if (FCastleCollider <> CastleColliderFromTransform) and (FCastleCollider <> nil) then
   begin
-    // Trying to reinitialize rigid body with another collider currently we
-    // make exception here, but this is to do
-    raise Exception.Create('TODO: reinitialize rigid body with another collider');
+    // Trying to initialize rigid body with another collider without deinitialization
+    // of the currrent one - this is a bug in our physics if will occurr
+    raise Exception.Create('Reinitialize with new collider but old one not deinitialized.');
   end;
 
   if CastleColliderFromTransform = nil then
@@ -1414,7 +1424,11 @@ begin
     end;
 
     if FCastleCollider <> ACastleCollider then
-      raise Exception.Create('TODO: reinitialization by other collider');
+    begin
+      { Trying to initialize rigid body with another collider without deinitialization
+        of the currrent one - this is a bug in our physics if will occurr }
+      raise Exception.Create('Reinitialize with new collider but old one not deinitialized.');
+    end;
   end;
 end;
 
@@ -1428,7 +1442,14 @@ begin
   end else
   if FCastleCollider <> nil then
   begin
-    FCastleCollider.FKraftShape := nil;
+    if FKraftBody.ShapeCount > 0 then
+    begin
+      Assert(FKraftBody.ShapeCount = 1, 'More than one shape in rigid body.');
+      Assert(FKraftBody.ShapeFirst <> FCastleCollider.FKraftShape, 'Mixed kraft shapes');
+      FreeAndNil(FCastleCollider.FKraftShape);
+    end;
+    Assert(FCastleCollider.FKraftShape = nil, 'Mixed kraft shapes');
+    FCastleCollider := nil;
     FState := crbsNoCollider;
   end;
 end;
@@ -1632,6 +1653,9 @@ procedure TCastleRigidBody.Update(const SecondsPassed: Single; var RemoveMe: TRe
   begin
     Shape := GetKraftShape;
 
+    if Shape = nil then
+      Exit;
+
     LocalTransform := Parent.CheckParent.WorldInverseTransform *
       MatrixFromKraft(Shape.InterpolatedWorldTransform);
     if FCollider.FUseLocalTransform then
@@ -1696,8 +1720,11 @@ procedure TCastleRigidBody.WorldBeforeDetach;
 begin
   inherited;
 
-  if FTransform <> nil then
+  if Parent <> nil then
+  begin
+    Assert(Parent = FTransform, 'FTransform should be Parent');
     DeinitializeTransform(Parent);
+  end;
 end;
 
 function TCastleRigidBody.GetCollidingTransforms: TCastleTransformList;
@@ -1746,19 +1773,23 @@ begin
   if FTransform = nil then
   begin
     WritelnWarning(
-      'Attempt to cast a ray from TRigidBody not connected to TCastleTransform. Maybe you forgot to assign to TCastleTransform.RigidBody?');
+      'Attempt to cast a ray from TCastleRigidBody not connected to TCastleTransform. Maybe you forgot to assign to TCastleTransform.RigidBody?');
     Exit(nil);
   end;
+
+  Shape := GetKraftShape;
 
   RayOriginWorld := FTransform.Parent.LocalToWorld(RayOrigin);
   RayDirectionWorld := FTransform.Parent.LocalToWorldDirection(RayDirection);
   RayMaxDistanceWorld := FTransform.Parent.LocalToWorldDistance(MaxDistance);
-  Shape := GetKraftShape;
+
 
   { We use ksfRayCastable flag to not hit to caster shape. }
-  OldShapeFlags := Shape.Flags;
+  if Shape <> nil then
+    OldShapeFlags := Shape.Flags;
   try
-    Shape.Flags := Shape.Flags - [ksfRayCastable];
+    if Shape <> nil then
+      Shape.Flags := Shape.Flags - [ksfRayCastable];
     { Note: In Kraft, the distance parameters are called "time"
       (MaxTime, Time instead of more natural MaxDistance, Distance).
       But all research shows that it is actually "distance" and that is also how
@@ -1774,7 +1805,8 @@ begin
     end else
       Result := nil;
   finally
-    Shape.Flags := OldShapeFlags;
+    if Shape <> nil then
+      Shape.Flags := OldShapeFlags;
   end;
 end;
 
