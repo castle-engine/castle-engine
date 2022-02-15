@@ -877,19 +877,19 @@ var
     Enemy: TCastleAlive;
     {$warnings on}
     WeaponBoundingBox: TBox3D;
-    RootTransform: TCastleRootTransform;
+    CreaturesRoot: TCastleTransform;
   begin
     { Attacker.Direction may be multiplied by something here for long-range weapons }
     WeaponBoundingBox := Attacker.BoundingBox.Translate(Attacker.Direction);
-    RootTransform := Level.RootTransform;
     { Tests: Writeln('WeaponBoundingBox is ', WeaponBoundingBox.ToNiceStr); }
-    { TODO: we would prefer to use RootTransform.BoxCollision for this,
+    CreaturesRoot := Level.CreaturesRoot;
+    { TODO: we would prefer to use CreaturesRoot.BoxCollision for this,
       but we need to know which creature was hit. }
-    for I := 0 to RootTransform.Count - 1 do
+    for I := 0 to CreaturesRoot.Count - 1 do
       {$warnings off} // using deprecated in deprecated
-      if RootTransform[I] is TCastleAlive then
+      if CreaturesRoot[I] is TCastleAlive then
       begin
-        Enemy := TCastleAlive(RootTransform[I]);
+        Enemy := TCastleAlive(CreaturesRoot[I]);
         { Tests: Writeln('Creature bbox is ', C.BoundingBox.ToNiceStr); }
         if (Enemy <> Attacker) and
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then
