@@ -94,7 +94,7 @@ begin
 
     FGizmoImage := TCastleImageTransform.Create(nil);
     FGizmoImage.Size := Vector2(GizmoSize, GizmoSize);
-    FGizmoImage.Color := HexToColor('FC9C2D');
+    FGizmoImage.Mipmaps := true;
     InternalTransform(FGizmoImage);
     Add(FGizmoImage);
 
