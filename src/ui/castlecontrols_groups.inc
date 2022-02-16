@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -169,8 +169,33 @@ end;
 procedure TCastlePackedGroup.BeforeRender;
 begin
   inherited;
-  { We prefer to pack inside PreferredSize, to set size early correctly.
-    But in case group has FullSize, the PreferredSize may never be called. }
+
+  { We usually pack children inside TCastleXxxGroup.PreferredSize,
+    to set size early correctly.
+    That is, usually TCastleXxxGroup.PreferredSize calls PackChildren.
+
+    But in case group has FullSize=true, or AutoSizeWidth=AutoSizeHeight=false,
+    then PackChildren is not called from TCastleXxxGroup.PreferredSize.
+    And that's good, we don't want to call PackChildren then.
+    Because
+
+    - PackChildren adjusts children layout using anchors,
+      that refer to parent (group) sizes.
+
+    - using PackChildren from TCastleXxxGroup.PreferredSize means that children
+      need to know group size during TCastleXxxGroup.PreferredSize.
+      But the group size is now in the middle of being calculated...
+      so this causes warning "UI control ... encountered an endless loop
+      when trying to calculate it's size".
+
+    But in case of FullSize=true or AutoSizeWidth=AutoSizeHeight=false
+    the warning is actually not justified.
+    Group can calculate its size in this case *without calling PackChildren*.
+    And it does, so no loop occurs.
+
+    So in cases when we don't need to know FInsideWidth, FInsideHeight
+    during PreferredSize, we defer the call to PackChildren. }
+
   PackChildren;
 end;
 
@@ -192,11 +217,33 @@ end;
 procedure TCastlePackedGroup.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 begin
   inherited;
-  PackChildren;
-  if FAutoSizeWidth then
-    PreferredWidth  := FInsideWidth  * UIScale;
-  if FAutoSizeHeight then
-    PreferredHeight := FInsideHeight * UIScale;
+  if FAutoSizeWidth or FAutoSizeHeight then
+  begin
+    { When AutoSizeWidth = AutoSizeHeight = false,
+      then we don't need to know FInsideWidth/Height here,
+      and then we don't need to call PackChildren here.
+      It would actually cause problems: as it would that we mistakenly detect as
+      "UI calculation loop" something that is not:
+
+      - when TCastleXxxGroup uses WidthFraction <> 0 and HeightFraction <> 0
+      - and it has a child that uses WidthFraction <> 0 and HeightFraction <> 0
+    }
+    PackChildren;
+    if FAutoSizeWidth then
+      PreferredWidth  := FInsideWidth  * UIScale;
+    if FAutoSizeHeight then
+      PreferredHeight := FInsideHeight * UIScale;
+  end;
+
+  { Note that we don't set "FPackingValid := false" otherwise
+    (when "if FAutoSizeWidth or FAutoSizeHeight" is not satisfied).
+
+    As PreferredSize is called very often, calling "FPackingValid := false"
+    here would mean that we do "DoPackChildren" very often,
+    defeating the purpose of FPackingValid flag (which tries to conserve
+    DoPackChildren calls).
+
+    The "FPackingValid := false" will be set at resize and other events. }
 end;
 
 procedure TCastlePackedGroup.EditorAllowResize(
@@ -282,6 +329,10 @@ function TCastlePackedGroup.PropertySections(
 begin
   if (PropertyName = 'Spacing') then
     Result := [psBasic, psLayout]
+  else
+  if (PropertyName = 'AutoSizeWidth') or
+     (PropertyName = 'AutoSizeHeight') then
+    Result := [psLayout]
   else
     Result := inherited PropertySections(PropertyName);
 end;
