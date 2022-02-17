@@ -3068,24 +3068,28 @@ end;
 
 procedure TCastleViewport.PositionToPrerequisites;
 begin
-  if not FProjection.Initialized then
-  begin
-    if (EffectiveWidth = 0) or
-       (EffectiveHeight = 0) then
-      raise Exception.Create('Cannot use TCastleViewport.PositionToXxx when viewport has effectively empty size. ' + 'The typical solution is to add TCastleViewport to some UI hierarchy, like "Window.Container.InsertFront(MyViewport)", although you could also set TCastleViewport.Width/Height explicitly.');
+  { Note that we need to call this every time before PositionToXxx,
+    not just only once (in case ApplyProjection did not yet happen).
+    That's because Camera settings, that determine how CalculateProjection calculates
+    FProjection, may change at any moment, e.g. when doing a sequence
 
-    EnsureCameraDetected;
+      ViewPort.PositionToCameraPlane(...);
+      Camera.Orthographic.Scale := Camera.Orthographic.Scale * ...;
+      ViewPort.PositionToCameraPlane(...);
+  }
+  if (EffectiveWidth = 0) or
+     (EffectiveHeight = 0) then
+    raise Exception.Create('Cannot use TCastleViewport.PositionToXxx when viewport has effectively empty size. ' + 'The typical solution is to add TCastleViewport to some UI hierarchy, like "Window.Container.InsertFront(MyViewport)", although you could also set TCastleViewport.Width/Height explicitly.');
 
-    FProjection := CalculateProjection;
-    {$ifdef FPC}
-    {$warnings off} // using deprecated to keep it working
-    if Assigned(OnProjection) then
-      OnProjection(FProjection);
-    {$warnings on}
-    {$endif}
+  EnsureCameraDetected;
 
-    Assert(FProjection.Initialized);
-  end;
+  FProjection := CalculateProjection;
+  {$ifdef FPC}
+  {$warnings off} // using deprecated to keep it working
+  if Assigned(OnProjection) then
+    OnProjection(FProjection);
+  {$warnings on}
+  {$endif}
 end;
 
 procedure TCastleViewport.PositionToRay(const Position: TVector2;

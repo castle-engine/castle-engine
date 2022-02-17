@@ -68,7 +68,7 @@ type
     function Matrix(const AspectRatio: Single): TMatrix4;
 
     { Detect whether any sensible projection values are initialized. }
-    function Initialized: Boolean;
+    function Initialized: Boolean; deprecated 'this should not be necessary anymore';
   end;
 
 { Calculate second viewing angle for perspective projection.
