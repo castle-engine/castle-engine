@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2019 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -101,9 +101,12 @@ begin
       else raise Exception.Create('CPU not supported on Windows');
     end;
   if WindresExe = '' then
-    raise Exception.Create('Cannot find "windres" executable on $PATH.' + NL +
-      '- On Windows, it should be installed along with FPC (Free Pascal Compiler), so just make sure FPC is installed and available on $PATH.' + NL +
+  begin
+    WritelnWarning('Cannot find "windres" executable on $PATH. Windows EXE will not have icon/metadata information.' + NL +
+      '- On Windows, "windres" should be installed along with FPC (Free Pascal Compiler). Make sure FPC is installed and available on $PATH. You can also install it with MinGW, https://www.mingw-w64.org/ .' + NL +
       '- On Linux, "windres" is usually available as part of MinGW, so search for the package with "mingw" and "binutils" in the name. On latest Debian it is "binutils-mingw-w64".');
+    Exit(false);
+  end;
 
   ResName := ChangeFileExt(RcName[Plugin], '.res');
   RunCommandIndirPassthrough(OutputResourcesPath, WindresExe,
@@ -111,7 +114,7 @@ begin
     WindresOutput, WindresStatus);
   if WindresStatus <> 0 then
   begin
-    WritelnWarning('Executing windres failed, cannot create Windows resource - exe will not have icon/metadata');
+    WritelnWarning('Executing "windres" failed. Windows EXE will not have icon/metadata information.');
     Exit(false);
   end;
 
