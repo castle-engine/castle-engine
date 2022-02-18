@@ -2308,7 +2308,14 @@ end;
 
 function TCastleTransform.Count: Integer;
 begin
-  Result := List.Count;
+  { Free notifications may want to iterate over some children from a TCastleTransform
+    that is being freed, and has List = nil now.
+    This happens for lights in designs, when we remove the light or close the design.
+    Behave as if we don't have children then. }
+  if List <> nil then
+    Result := List.Count
+  else
+    Result := 0;
 end;
 
 procedure TCastleTransform.Remove(const Item: TCastleTransform);
