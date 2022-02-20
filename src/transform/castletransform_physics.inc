@@ -1052,9 +1052,7 @@ procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPass
 
     LocalTransform := Transform.CheckParent.WorldInverseTransform *
       MatrixFromKraft(Shape.InterpolatedWorldTransform) *
-      { TODO: This doesn't work reliably. See physics_3d_demo with
-        BoxCollider.Translation := Vector3(0, 1, 0);
-        Also this should be optimized, as this multiplication would be done every frame,
+      { TODO: This should be optimized, as this multiplication would be done every frame,
         but usually FLocalInverseTransform is identity if one didn't use
         TCollider.Translation/Rotation/Scale. }
       FCollider.FLocalInverseTransform;
