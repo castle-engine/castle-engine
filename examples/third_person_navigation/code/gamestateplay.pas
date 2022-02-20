@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,6 +22,7 @@ uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleCameras,
   CastleTransform, CastleInputs, CastleThirdPersonNavigation, CastleDebugTransform,
+  CastleSceneCore,
   GameEnemy;
 
 type
@@ -32,7 +33,7 @@ type
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     ThirdPersonNavigation: TCastleThirdPersonNavigation;
-    SceneAvatar: TCastleScene;
+    SceneAvatar, SceneLevel: TCastleScene;
     CheckboxCameraFollows: TCastleCheckbox;
     CheckboxAimAvatar: TCastleCheckbox;
     CheckboxDebugAvatarColliders: TCastleCheckbox;
@@ -73,6 +74,35 @@ begin
 end;
 
 procedure TStatePlay.Start;
+
+  procedure UsePhysicsForAvatarGravity;
+  var
+    LevelBody: TRigidBody;
+    LevelCollider: TMeshCollider;
+    AvatarBody: TRigidBody;
+    AvatarCollider: TBoxCollider;
+  begin
+    LevelBody := TRigidBody.Create(FreeAtStop);
+    LevelBody.Dynamic := false;
+
+    LevelCollider := TMeshCollider.Create(LevelBody);
+    LevelCollider.Scene := SceneLevel;
+    LevelCollider.Restitution := 0.3;
+
+    SceneLevel.RigidBody := LevelBody;
+
+    AvatarBody := TRigidBody.Create(FreeAtStop);
+    AvatarBody.LockRotation := [0, 2];
+
+    AvatarCollider := TBoxCollider.Create(AvatarBody);
+    AvatarCollider.Size := Vector3(1, 2, 1);
+    AvatarCollider.Translation := Vector3(0, 1, 0);
+    AvatarCollider.Restitution := 0.3;
+    AvatarCollider.Density := 100.0;
+
+    SceneAvatar.RigidBody := AvatarBody;
+  end;
+
 var
   SoldierScene: TCastleScene;
   Enemy: TEnemy;
@@ -85,6 +115,7 @@ begin
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
   ThirdPersonNavigation := DesignedComponent('ThirdPersonNavigation') as TCastleThirdPersonNavigation;
   SceneAvatar := DesignedComponent('SceneAvatar') as TCastleScene;
+  SceneLevel := DesignedComponent('SceneLevel') as TCastleScene;
   CheckboxCameraFollows := DesignedComponent('CheckboxCameraFollows') as TCastleCheckbox;
   CheckboxAimAvatar := DesignedComponent('CheckboxAimAvatar') as TCastleCheckbox;
   CheckboxDebugAvatarColliders := DesignedComponent('CheckboxDebugAvatarColliders') as TCastleCheckbox;
@@ -107,6 +138,24 @@ begin
   CheckboxDebugAvatarColliders.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxDebugAvatarColliders;
   CheckboxImmediatelyFixBlockedCamera.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxImmediatelyFixBlockedCamera;
 
+  { TODO: This code does not define USE_PHYSICS_FOR_AVATAR_GRAVITY,
+    and uses CGE old physics using TCastleTransform.Gravity.
+    We no longer advise using TCastleTransform.Gravity in general,
+    and advise to realize gravity using only "full" physics engine like Kraft,
+    using TCastleRigidBody / TCastleCollider.
+
+    We work on making this applicable to 3rd-person avatar too,
+    so that you could enable UsePhysicsForAvatarGravity (and actually design
+    the physics in CGE editor).
+    For now, you can use deprecated TCastleTransform.Gravity for avatar.
+
+    Most likely, this will be made possible by enabling TRigidBody.Dynamic and
+    TRigidBody.Animated to be both @true. }
+  {.$define USE_PHYSICS_FOR_AVATAR_GRAVITY}
+
+  {$ifdef USE_PHYSICS_FOR_AVATAR_GRAVITY}
+  UsePhysicsForAvatarGravity;
+  {$else}
   { Make SceneAvatar collide using a sphere.
     Sphere is more useful than default bounding box for avatars and creatures
     that move in the world, look ahead, can climb stairs etc. }
@@ -121,6 +170,7 @@ begin
   SceneAvatar.Gravity := true;
   SceneAvatar.GrowSpeed := 10.0;
   SceneAvatar.FallSpeed := 10.0;
+  {$endif}
 
   { Visualize SceneAvatar bounding box, sphere, middle point, direction etc. }
   DebugAvatar := TDebugTransform.Create(FreeAtStop);
