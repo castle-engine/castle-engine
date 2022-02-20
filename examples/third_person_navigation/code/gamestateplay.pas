@@ -138,7 +138,18 @@ begin
   CheckboxDebugAvatarColliders.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxDebugAvatarColliders;
   CheckboxImmediatelyFixBlockedCamera.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxImmediatelyFixBlockedCamera;
 
-  {$define USE_PHYSICS_FOR_AVATAR_GRAVITY}
+  { TODO: This code does not define USE_PHYSICS_FOR_AVATAR_GRAVITY,
+    and uses CGE old physics using TCastleTransform.Gravity.
+    We no longer advise using TCastleTransform.Gravity in general,
+    and advise to realize gravity using only "full" physics engine like Kraft,
+    using TCastleRigidBody / TCastleCollider.
+
+    We work on making this applicable to 3rd-person avatar too,
+    so that you could enable UsePhysicsForAvatarGravity (and actually design
+    the physics in CGE editor).
+    For now, you can use deprecated TCastleTransform.Gravity for avatar. }
+  {.$define USE_PHYSICS_FOR_AVATAR_GRAVITY}
+
   {$ifdef USE_PHYSICS_FOR_AVATAR_GRAVITY}
   UsePhysicsForAvatarGravity;
   {$else}
