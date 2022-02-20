@@ -61,7 +61,9 @@ var
   VerStringTable: TVersionStringTable;
   VerTranslationInfo: TVerTranslationInfo;
   ResManifest: TGenericResource;
+  ResManifestType, ResManifestName: TResourceDesc;
   ResIconGroup: TGroupIconResource;
+  ResIconGroupName: TResourceDesc;
   ManifestStream, IconStream: TStream;
 begin
   // For now, the .res files are only used on Windows
@@ -123,10 +125,11 @@ begin
     VerTranslationInfo.Codepage := 1200; // Unicode
     VerRes.VarFileInfo.Add(VerTranslationInfo);
 
-    ResManifest := TGenericResource.Create(
-      TResourceDesc.Create(RT_MANIFEST),
-      TResourceDesc.Create(1)
-    );
+    ResManifestType := TResourceDesc.Create(RT_MANIFEST);
+    ResManifestName := TResourceDesc.Create(1);
+    ResManifest := TGenericResource.Create(ResManifestType, ResManifestName);
+    FreeAndNil(ResManifestType);
+    FreeAndNil(ResManifestName); // the TResourceDesc can be freed right after usage
     ManifestStream := TStringStream.Create(OutputManifest);
     ResManifest.SetCustomRawDataStream(ManifestStream);
     Res.Add(ResManifest);
@@ -135,7 +138,9 @@ begin
     FullIcoPath := CombinePaths(Project.Path, IcoPath);
     if IcoPath <> '' then
     begin
-      ResIconGroup := TGroupIconResource.Create(nil, TResourceDesc.Create('MAINICON'));
+      ResIconGroupName := TResourceDesc.Create('MAINICON');
+      ResIconGroup := TGroupIconResource.Create(nil, ResIconGroupName);
+      FreeAndNil(ResIconGroupName);
       IconStream := Download(FilenameToURISafe(FullIcoPath));
       ResIconGroup.SetCustomItemDataStream(IconStream);
       Res.Add(ResIconGroup);
