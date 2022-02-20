@@ -61,14 +61,20 @@ var
   VerStringTable: TVersionStringTable;
   VerTranslationInfo: TVerTranslationInfo;
   ResManifest: TGenericResource;
+  ResManifestType, ResManifestName: TResourceDesc;
   ResIconGroup: TGroupIconResource;
-  IconStream: TStream;
+  ResIconGroupName: TResourceDesc;
+  ManifestStream, IconStream: TStream;
 begin
   // For now, the .res files are only used on Windows
   Result := OS in AllWindowsOSes;
   if not Result then Exit;
 
   OutputManifest := Project.ReplaceMacros(ManifestTemplate);
+
+  { nil local variables, to easily finalize them later in one finally..end clause }
+  ManifestStream := nil;
+  IconStream := nil;
 
   Res := TResources.Create;
   try
@@ -85,8 +91,12 @@ begin
       This way we can construct this in a cross-platform way,
       without any additional intermediate RC files,
       and generate RES without any external tools (like windres).
-      To understand how RC -> map into fcl-res classes it's best to read
-      fcl-res source code, esp.  rcparser.y.
+      To understand how RC -> map into fcl-res classes
+
+      - read fcl-res source code, esp. rcparser.y.
+
+      - https://www.freepascal.org/docs-html/current/fclres/basic%20usage.html
+        is very helpful to understand fcl-res classes.
     }
 
     VerRes := TVersionResource.Create;
@@ -115,18 +125,22 @@ begin
     VerTranslationInfo.Codepage := 1200; // Unicode
     VerRes.VarFileInfo.Add(VerTranslationInfo);
 
-    ResManifest := TGenericResource.Create(
-      TResourceDesc.Create(RT_MANIFEST),
-      TResourceDesc.Create(1)
-    );
-    ResManifest.SetCustomRawDataStream(TStringStream.Create(OutputManifest));
+    ResManifestType := TResourceDesc.Create(RT_MANIFEST);
+    ResManifestName := TResourceDesc.Create(1);
+    ResManifest := TGenericResource.Create(ResManifestType, ResManifestName);
+    FreeAndNil(ResManifestType);
+    FreeAndNil(ResManifestName); // the TResourceDesc can be freed right after usage
+    ManifestStream := TStringStream.Create(OutputManifest);
+    ResManifest.SetCustomRawDataStream(ManifestStream);
     Res.Add(ResManifest);
 
     IcoPath := Project.Icons.FindExtension(['.ico']);
     FullIcoPath := CombinePaths(Project.Path, IcoPath);
     if IcoPath <> '' then
     begin
-      ResIconGroup := TGroupIconResource.Create;
+      ResIconGroupName := TResourceDesc.Create('MAINICON');
+      ResIconGroup := TGroupIconResource.Create(nil, ResIconGroupName);
+      FreeAndNil(ResIconGroupName);
       IconStream := Download(FilenameToURISafe(FullIcoPath));
       ResIconGroup.SetCustomItemDataStream(IconStream);
       Res.Add(ResIconGroup);
@@ -135,7 +149,16 @@ begin
 
     ResFilename := FinalOutputResourcePath + 'castle-auto-generated-resources.res';
     Res.WriteToFile(ResFilename);
-  finally FreeAndNil(Res) end;
+  finally
+    FreeAndNil(Res);
+    { Free streams.
+      We need to do this, passing them to SetCustomItemDataStream / SetCustomItemDataStream
+      doesn't make them owned by Res.
+      This is confirmed with testing with HeapTrc, and reading docs
+      https://www.freepascal.org/docs-html/current/fclres/basic%20usage.html. }
+    FreeAndNil(ManifestStream);
+    FreeAndNil(IconStream);
+  end;
 
   WritelnVerbose('Generated ' + ExtractFileName(ResFilename) + ', make sure you include it in your dpr/lpr source file like this:');
   WritelnVerbose('  {$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R ' + ExtractFileName(ResFilename) + '} {$endif}');

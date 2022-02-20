@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -234,9 +234,9 @@ procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle2(
   const TriIndices: TVector3Integer);
 begin
   AddTriangleIndexes(
-    TriIndices.Data[0],
-    TriIndices.Data[1],
-    TriIndices.Data[2]
+    TriIndices.X,
+    TriIndices.Y,
+    TriIndices.Z
   );
 end;
 
