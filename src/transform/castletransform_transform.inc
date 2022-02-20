@@ -1888,9 +1888,6 @@ end;
 
 { TCastleTransform ---------------------------------------------------------------- }
 
-const
-  NoScale: TVector3 = (X: 1; Y: 1; Z: 1);
-
 constructor TCastleTransform.Create(AOwner: TComponent);
 begin
   inherited;

@@ -249,6 +249,9 @@
 
 {$ifdef read_implementation}
 
+const
+  NoScale: TVector3 = (X: 1; Y: 1; Z: 1);
+
 { TRayCollision --------------------------------------------------------------- }
 
 function TRayCollision.IndexOfItem(const Item: TCastleTransform): Integer;
