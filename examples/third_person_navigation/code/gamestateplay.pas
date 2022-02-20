@@ -147,7 +147,10 @@ begin
     We work on making this applicable to 3rd-person avatar too,
     so that you could enable UsePhysicsForAvatarGravity (and actually design
     the physics in CGE editor).
-    For now, you can use deprecated TCastleTransform.Gravity for avatar. }
+    For now, you can use deprecated TCastleTransform.Gravity for avatar.
+
+    Most likely, this will be made possible by enabling TRigidBody.Dynamic and
+    TRigidBody.Animated to be both @true. }
   {.$define USE_PHYSICS_FOR_AVATAR_GRAVITY}
 
   {$ifdef USE_PHYSICS_FOR_AVATAR_GRAVITY}
