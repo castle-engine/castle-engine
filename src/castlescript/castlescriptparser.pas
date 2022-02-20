@@ -149,7 +149,8 @@ function NonAssignmentExpression(
       tokMinus: Result := TCasScriptSubtract;
 
       tokMultiply: Result := TCasScriptMultiply;
-      tokDivide: Result := TCasScriptDivide;
+      tokFloatDivide: Result := TCasScriptFloatDivide;
+      tokIntDivide: Result := TCasScriptIntDivide;
       tokPower: Result := TCasScriptPower;
       tokModulo: Result := TCasScriptModulo;
 
@@ -166,7 +167,7 @@ function NonAssignmentExpression(
   end;
 
 const
-  FactorOperator = [tokMultiply, tokDivide, tokPower, tokModulo];
+  FactorOperator = [tokMultiply, tokFloatDivide, tokIntDivide, tokPower, tokModulo];
   TermOperator = [tokPlus, tokMinus];
   ComparisonOperator = [tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual];
 

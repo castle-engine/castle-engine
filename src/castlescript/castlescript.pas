@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -304,7 +304,7 @@ type
     class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 
     class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleIntDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleModulo(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandlePower(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 
@@ -359,7 +359,7 @@ type
     class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleFloatDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleModulo(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -1217,7 +1217,7 @@ begin
       TCasScriptInteger(AResult).Value * TCasScriptInteger(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptInteger.HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleIntDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
 begin
@@ -1459,7 +1459,7 @@ begin
       TCasScriptFloat(AResult).Value * TCasScriptFloat(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleFloatDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
 begin
@@ -2833,7 +2833,7 @@ initialization
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleNegate, TCasScriptNegate, [TCasScriptInteger], false);
 
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleMultiply, TCasScriptMultiply, [TCasScriptInteger], true);
-  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleDivide, TCasScriptDivide, [TCasScriptInteger], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleIntDivide, TCasScriptIntDivide, [TCasScriptInteger], true);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandleModulo, TCasScriptModulo, [TCasScriptInteger, TCasScriptInteger], false);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptInteger{$ifdef FPC}(nil){$endif}.HandlePower, TCasScriptPower, [TCasScriptInteger, TCasScriptInteger], false);
 
@@ -2861,7 +2861,7 @@ initialization
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleAdd, TCasScriptAdd, [TCasScriptFloat], true);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleSubtract, TCasScriptSubtract, [TCasScriptFloat], true);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleMultiply, TCasScriptMultiply, [TCasScriptFloat], true);
-  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleDivide, TCasScriptDivide, [TCasScriptFloat], true);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleFloatDivide, TCasScriptFloatDivide, [TCasScriptFloat], true);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleLerp, TCasScriptLerp, [TCasScriptFloat, TCasScriptFloat, TCasScriptFloat], false);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleNegate, TCasScriptNegate, [TCasScriptFloat], false);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptFloat{$ifdef FPC}(nil){$endif}.HandleModulo, TCasScriptModulo, [TCasScriptFloat, TCasScriptFloat], false);
