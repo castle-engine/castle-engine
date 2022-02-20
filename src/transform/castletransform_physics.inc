@@ -363,7 +363,12 @@
           They are under the control of the physics engine.
           You can still reliably read them.
 
-          Also, the value @link(Animated) is ignored in this case.
+          Keep @link(Animated) as @false in this case.
+          Right now, @link(Animated) doesn't actually matter when @name is @true,
+          but don't depend on it.
+          In the future, we may enable to set @link(Animated)
+          to @true, to allow you to explicitly transform objects that are still
+          under control of physics.
         )
 
         @itemLabel false
