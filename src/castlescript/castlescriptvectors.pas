@@ -588,7 +588,7 @@ begin
 
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleMultiply, TCasScriptMultiply, [TSelfClass, TCasScriptFloat], false);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleMultiply, TCasScriptMultiply, [TCasScriptFloat, TSelfClass], false);
-  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleDivide, TCasScriptDivide, [TSelfClass, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleDivide, TCasScriptFloatDivide, [TSelfClass, TCasScriptFloat], false);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleLerp, TCasScriptLerp, [TCasScriptFloat, TSelfClass, TSelfClass], false);
 
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleMax, TCasScriptMax, [TSelfClass, TSelfClass], false);
@@ -962,7 +962,7 @@ begin
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleMultiply, TCasScriptMultiply, [TCasScriptFloat, TSelfClass], false);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleMultiply, TCasScriptMultiply, [TSelfClass, TCasScriptVecXxx], false);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleMultiply, TCasScriptMultiply, [TSelfClass], true);
-  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleDivide, TCasScriptDivide, [TSelfClass, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleDivide, TCasScriptFloatDivide, [TSelfClass, TCasScriptFloat], false);
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleLerp, TCasScriptLerp, [TCasScriptFloat, TSelfClass, TSelfClass], false);
 
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} HandleEqual, TCasScriptEqual, [TSelfClass, TSelfClass], false);

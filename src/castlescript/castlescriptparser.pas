@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -149,7 +149,8 @@ function NonAssignmentExpression(
       tokMinus: Result := TCasScriptSubtract;
 
       tokMultiply: Result := TCasScriptMultiply;
-      tokDivide: Result := TCasScriptDivide;
+      tokFloatDivide: Result := TCasScriptFloatDivide;
+      tokIntDivide: Result := TCasScriptIntDivide;
       tokPower: Result := TCasScriptPower;
       tokModulo: Result := TCasScriptModulo;
 
@@ -166,9 +167,7 @@ function NonAssignmentExpression(
   end;
 
 const
-  SErrWrongFactor = 'wrong factor (expected identifier, constant, "-", "(" or function name)';
-
-  FactorOperator = [tokMultiply, tokDivide, tokPower, tokModulo];
+  FactorOperator = [tokMultiply, tokFloatDivide, tokIntDivide, tokPower, tokModulo];
   TermOperator = [tokPlus, tokMinus];
   ComparisonOperator = [tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual];
 
@@ -270,8 +269,7 @@ const
               Result.Environment := Environment;
             finally FParams.Free end;
           end;
-        else raise ECasScriptParserError.Create(Lexer, SErrWrongFactor +
-          ', but got "' + Lexer.TokenDescription + '"');
+        else raise ECasScriptParserError.Create(Lexer, 'Incorrect expression factor: "' + Lexer.TokenDescription + '"');
       end;
     except Result.FreeByParentExpression; raise end;
   end;
@@ -588,7 +586,11 @@ begin
   except
     on E: ECasScriptSyntaxError do
     begin
-      E.Message := 'Error when parsing constant expression: ' + E.Message;
+      if Trim(S) = '' then
+        // special message in this case, to be friendly to humans
+        E.Message := 'Empty string is not a valid float value'
+      else
+        E.Message := 'Error when parsing constant float expression: ' + E.Message;
       raise;
     end;
   end;

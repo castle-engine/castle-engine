@@ -16,7 +16,18 @@
 {$ifdef read_interface}
 
 type
-  { Plane with configurable size, position and material. }
+  { Plane with configurable size, position and material.
+
+    The plane is actually just a rectangle with specified @link(Size).
+    It is centered around the point (0,0,0).
+
+    The plane is parallel to the given @link(Axis), by default the Axis is 1 (Y)
+    -- which means that the plane acts like a floor in a typical 3D setup.
+    If you want a rectangle visible in typical 2D setup (where X goes to the right,
+    Y goes up), change the @link(Axis) to 2 (Z).
+
+    You can translate, rotate, scale the plane freely, as it is a TCastleTransform,
+    and can be a child of other TCastleTransform instances too. }
   TCastlePlane = class(TCastleAbstractPrimitive)
   strict private
     FQuadSetNode: TQuadSetNode;
@@ -34,7 +45,17 @@ type
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Size of the plane in XZ plane. By default (2, 2). }
+    { Size of the plane. By default (2, 2).
+
+      The coordinates affected by this property depend on current @link(Axis) value.
+      That is:
+
+      @unorderedList(
+        @item Axis = 0 means that this property determines the size in Y and Z (in this order).
+        @item Axis = 1 means that this property determines the size in X and Z (in this order).
+        @item Axis = 2 means that this property determines the size in X and Y (in this order).
+      )
+     }
     property Size: TVector2 read FSize write SetSize;
   published
     { Axis where the plane is constant.
