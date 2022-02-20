@@ -346,6 +346,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Destroy any associations of this object with current OpenGL context.
       For example, release any allocated texture names.
@@ -2193,6 +2194,15 @@ end;
 procedure TCastleScene.Setup2D;
 begin
   RenderOptions.BlendingSort := bs2D;
+end;
+
+function TCastleScene.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'RenderOptions') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TBasicRenderParams --------------------------------------------------------- }

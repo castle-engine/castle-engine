@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,6 +31,7 @@
 type
   { Property editor for floats, improves standard TFloatPropertyEditor. }
   TCastleFloatPropertyEditor = class(TFloatPropertyEditor)
+  public
     {$ifdef LCL_HAS_DEFAULT_VALUE}
     { Determines whether the object inspector shows
       the current property state as default or not (bold).
@@ -41,6 +42,11 @@ type
       TODO: Submit to fix on LCL. }
     function GetDefaultValue: String; override;
     {$endif}
+
+    { In addition to ancestor features (interprets float, with dot or current locale DecimalSeparator)
+      this also interprets floats from CastleScript expressions,
+      so you can write e.g. "pi / 2". }
+    procedure SetValue(const NewValue: String); override;
   end;
 
 {$ifdef LCL_HAS_DEFAULT_VALUE}
@@ -62,3 +68,13 @@ begin
 end;
 {$endif}
 
+procedure TCastleFloatPropertyEditor.SetValue(const NewValue: String);
+begin
+  try
+    inherited SetValue(NewValue);
+  except
+    // if ancestor could not interpret NewValue, try to interpret it as CastleScript expression
+    on EConvertError do
+      SetFloatValue(ParseConstantFloatExpression(NewValue));
+  end;
+end;
