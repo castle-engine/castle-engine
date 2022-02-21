@@ -857,6 +857,8 @@ begin
   { Assign StopTime and StartTime. }
   StopTime := 0;
   StartTime := Scene.Time - InitialTime;
+  { Make sure to apply new animation in nearest BeforeRender, to not render the old state even for 1 frame }
+  Scene.InternalNeedsUpdateTimeDependent := true;
 
   { Enable the "ignore" mechanism again, to follow X3D spec. }
   Dec(InternalNeverIgnore);

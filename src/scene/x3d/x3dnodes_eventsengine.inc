@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,6 +37,16 @@
       when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
     procedure InternalMoveShapeAssociations(const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); virtual; abstract;
   public
+    { @exclude
+      Make sure to update time-dependent nodes (calling TTimeDependentFunctionality.SetTime
+      on all of them) in nearest InternalSetTime,
+      and also make sure to call InternalSetTime at the beginning of nearest LocalRender.
+      This is useful to call when you start new animation by TTimeSensorNode.Start.
+
+      (when you start new animation by PlayAnimation, then a similar mechanism
+      is activated by internal NewPlayingAnimationUse). }
+    InternalNeedsUpdateTimeDependent: Boolean;
+
     function GetBackgroundStack: TX3DBindableStackBasic; virtual; abstract;
     function GetFogStack: TX3DBindableStackBasic; virtual; abstract;
     function GetNavigationInfoStack: TX3DBindableStackBasic; virtual; abstract;

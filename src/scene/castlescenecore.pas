@@ -6971,6 +6971,11 @@ begin
         so a stopped animation will *not* send any events after StopAnimation
         (making it useful to call ResetAnimationState right after StopAnimation call). }
       UpdateNewPlayingAnimation(NeedsUpdateTimeDependent);
+      if InternalNeedsUpdateTimeDependent then
+      begin
+        NeedsUpdateTimeDependent := true;
+        InternalNeedsUpdateTimeDependent := false;
+      end;
       UpdateTimeDependentListIfVisible(NeedsUpdateTimeDependent);
       UpdateHumanoidSkin;
       { Process TransformationDirty at the end of increasing time, to apply scheduled
@@ -8632,6 +8637,11 @@ procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 
 begin
   inherited;
+  { Make sure to apply animation started by PlayAnimation or TTimeSensorNode.Start
+    before rendering, so that the model never shows the outdated state (e.g. T-pose
+    that was default, or was set by ResetAnimationState, right before starting new animation). }
+  if InternalNeedsUpdateTimeDependent or NewPlayingAnimationUse then
+    InternalSetTime(FTimeNow.Seconds, 0, false);
   RenderingCameraChanged(Params.RenderingCamera);
 end;
 
