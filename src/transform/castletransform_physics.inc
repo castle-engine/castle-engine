@@ -116,6 +116,8 @@
       DefaultFriction = 0.5;
 
     constructor Create(AOwner: TComponent); override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Density (per volume) in kg, this implicitly determines mass
       (volume is automatically calculated by the physics engine).
@@ -243,6 +245,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+
     property Normal: TVector3 read FNormal write SetNormal;
   published
     property Distance: Single read FDistance write SetDistance;
@@ -278,6 +282,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+
     property Size: TVector3 read FSize write SetSize;
   published
     {$define read_interface_class}
@@ -312,6 +318,8 @@
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  public
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property Radius: Single read FRadius write SetRadius;
   end;
@@ -342,6 +350,8 @@
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  public
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property Radius: Single read FRadius write SetRadius;
     property Height: Single read FHeight write SetHeight;
@@ -506,6 +516,8 @@
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single; out Distance: Single): TCastleTransform; overload;
     { @groupEnd }
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
     property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
@@ -739,6 +751,16 @@ function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
   Result := TKraftShapeCapsule.Create(APhysics, ARigidBody, FRadius, FHeight);
+end;
+
+function TCastleCapsuleCollider.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'Radius') or
+     (PropertyName = 'Height') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TPhysicsCollisionDetails --------------------------------------------------- }
@@ -975,6 +997,18 @@ begin
   FFriction := DefaultFriction;
 end;
 
+function TCastleCollider.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'Density') or
+     (PropertyName = 'Friction') or
+     (PropertyName = 'Mass') or
+     (PropertyName = 'Restitution') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 { TPlaneCollider ------------------------------------------------------------- }
 
 function TPlaneCollider.CreateKraftShape(const APhysics: TKraft;
@@ -1025,6 +1059,16 @@ begin
   {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
+end;
+
+function TCastlePlaneCollider.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'NormalPersistent') or
+     (PropertyName = 'Distance') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}
@@ -1094,6 +1138,15 @@ begin
   inherited;
 end;
 
+function TCastleBoxCollider.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if PropertyName = 'SizePersistent' then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -1121,6 +1174,15 @@ function TCastleSphereCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
   Result := TKraftShapeSphere.Create(APhysics, ARigidBody, FRadius);
+end;
+
+function TCastleSphereCollider.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if PropertyName = 'Radius' then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TRigidBody ----------------------------------------------------------------- }
@@ -1808,6 +1870,21 @@ begin
     if Shape <> nil then
       Shape.Flags := OldShapeFlags;
   end;
+end;
+
+function TCastleRigidBody.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'Dynamic') or
+     (PropertyName = 'Animated') or
+     (PropertyName = 'Trigger') or
+     (PropertyName = 'Gravity') or
+     (PropertyName = 'LockTranslation') or
+     (PropertyName = 'Exists') or
+     (PropertyName = 'LockRotation') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleRigidBody.SetLinearVelocity(const LVelocity: TVector3);
