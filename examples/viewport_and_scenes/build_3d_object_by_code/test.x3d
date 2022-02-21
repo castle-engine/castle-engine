@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 4.0//EN" "http://www.web3d.org/specifications/x3d-4.0.dtd">
+<X3D profile="Interchange" version="4.0"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"
+     xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-4.0.xsd">
+<head>
+	<meta name="generator" content="build_3d_object_by_code" />
+</head>
+<Scene>
+	<Shape>
+		<Appearance>
+			<Material />
+		</Appearance>
+		<Sphere
+			radius="2" />
+	</Shape>
+	<Transform
+		translation="2 0 0">
+		<Shape>
+			<Appearance>
+				<Material />
+			</Appearance>
+			<IndexedFaceSet
+				coordIndex="0 1 2 3 0 -1 4 5 6 7 4">
+				<Coordinate
+					point="0 0 0 1 0 0 1 1 0 0 1 0 0 0 0.5 1 0 0.5 1 1 0.5 0 1 0.5" />
+			</IndexedFaceSet>
+		</Shape>
+	</Transform>
+</Scene>
+</X3D>

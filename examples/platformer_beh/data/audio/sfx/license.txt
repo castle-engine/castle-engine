@@ -1,0 +1,11 @@
+Castle Game Engine Platformer Demo SFX by Andrzej "Akimaze" Kilijański
+https://akimaze.com
+License CC0
+
+Files:
+coin.wav
+hit_enemy.wav
+hurt.wav
+jump.wav
+power_up.wav
+shot.wav
