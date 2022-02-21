@@ -77,6 +77,7 @@ end;
 {$I castlepropedits_image.inc}
 {$I castlepropedits_float.inc}
 {$I castlepropedits_exposetransforms.inc}
+{$I castlepropedits_rangeset.inc}
 
 procedure Register;
 begin
@@ -155,6 +156,11 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
+
+  RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockTranslation',
+    TRangeSetPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockRotation',
+    TRangeSetPropertyEditor);
 end;
 
 initialization
