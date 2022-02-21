@@ -1000,7 +1000,7 @@ end;
 procedure TCastleJsonWriter.StreamProperty(Sender: TObject;
   AObject: TObject; Info: PPropInfo; var Res: TJsonData);
 var
-  SetValue, I: Integer;
+  ValueOfSet, I: Integer;
 begin
   if Info^.Name = 'Name' then
   begin
@@ -1049,11 +1049,11 @@ begin
   // Custom support of T3DCoords
   if (Info^.PropType^.Kind = tkSet) and (Info^.PropType^.Name = 'T3DCoords')  then
   begin
-    SetValue := GetOrdProp(AObject, Info);
+    ValueOfSet := GetOrdProp(AObject, Info);
     FreeAndNil(Res);
     Res := TJSONArray.Create;
     for I := Low(T3DCoords) to High(T3DCoords) do
-      if (I in T3DCoords(SetValue)) then
+      if (I in T3DCoords(ValueOfSet)) then
         TJSONArray(Res).Add(I)
   end;
 end;
