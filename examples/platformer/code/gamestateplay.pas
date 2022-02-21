@@ -2030,16 +2030,28 @@ begin
     begin
       ScenePlayer.RemoveBehavior(CastleCollider);
       FreeAndNil(CastleCollider);
-      {CastleCapsuleCollider := TCastleCapsuleCollider.Create(ScenePlayer);
-      CastleCapsuleCollider.Radius := ScenePlayer.BoundingBox.SizeX * 0.45; // little smaller than 50%
-      CastleCapsuleCollider.Height := ScenePlayer.BoundingBox.SizeY - CastleCapsuleCollider.Radius * 2;
-      CastleCapsuleCollider.Friction := 0.25;
-      CastleCapsuleCollider.Restitution := 0.0001;
-      CastleCapsuleCollider.Mass := 50;
-      ScenePlayer.AddBehavior(CastleCapsuleCollider);}
     end;
 
   end;
+
+  if Event.IsKey(keyK) then
+  begin
+    CastleCollider := ScenePlayer.FindBehavior(TCastleCollider) as TCastleCollider;
+    if CastleCollider <> nil then
+    begin
+      ScenePlayer.RemoveBehavior(CastleCollider);
+      FreeAndNil(CastleCollider);
+    end;
+
+    CastleCapsuleCollider := TCastleCapsuleCollider.Create(ScenePlayer);
+    CastleCapsuleCollider.Radius := ScenePlayer.BoundingBox.SizeX * 0.45; // little smaller than 50%
+    CastleCapsuleCollider.Height := ScenePlayer.BoundingBox.SizeY - CastleCapsuleCollider.Radius * 2;
+    CastleCapsuleCollider.Friction := 0.25;
+    CastleCapsuleCollider.Restitution := 0.0001;
+    CastleCapsuleCollider.Mass := 50;
+    ScenePlayer.AddBehavior(CastleCapsuleCollider);
+  end;
+
 end;
 
 end.
