@@ -999,6 +999,8 @@ end;
 
 procedure TCastleJsonWriter.StreamProperty(Sender: TObject;
   AObject: TObject; Info: PPropInfo; var Res: TJsonData);
+var
+  SetValue, I: Integer;
 begin
   if Info^.Name = 'Name' then
   begin
@@ -1042,6 +1044,17 @@ begin
     //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because it has default value');
     FreeAndNil(Res);
     Exit;
+  end;
+
+  // Custom support of T3DCoords
+  if (Info^.PropType^.Kind = tkSet) and (Info^.PropType^.Name = 'T3DCoords')  then
+  begin
+    SetValue := GetOrdProp(AObject, Info);
+    FreeAndNil(Res);
+    Res := TJSONArray.Create;
+    for I := Low(T3DCoords) to High(T3DCoords) do
+      if (I in T3DCoords(SetValue)) then
+        TJSONArray(Res).Add(I)
   end;
 end;
 
