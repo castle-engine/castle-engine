@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<TextureAtlas imagePath="player.png">
-  <SubTexture x="0" y="914" fps="8" name="idle_1" width="80" height="110"/>
-  <SubTexture x="80" y="914" fps="8" name="walk_1" width="80" height="110"/>
-  <SubTexture x="160" y="914" name="walk_2" width="80" height="110"/>
-  <SubTexture x="240" y="914" fps="8" name="jump_1" width="80" height="110"/>
-  <SubTexture x="320" y="914" fps="8" name="fall_1" width="80" height="110"/>
-  <SubTexture x="400" y="914" fps="4" name="hurt_1" width="80" height="110"/>
-</TextureAtlas>
