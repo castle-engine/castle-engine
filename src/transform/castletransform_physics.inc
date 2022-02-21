@@ -465,8 +465,6 @@
 
     class procedure CreateComponent2D(Sender: TObject);
   protected
-    procedure ParentChanged; override;
-
     procedure WorldAfterAttach; override;
 
     procedure WorldBeforeDetach; override;
@@ -1762,12 +1760,6 @@ begin
     // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
     // or will this require recreating rigid body?
   end;
-end;
-
-procedure TCastleRigidBody.ParentChanged;
-begin
-  inherited;
-  SingleInstanceOfBehavior;
 end;
 
 procedure TCastleRigidBody.WorldAfterAttach;
