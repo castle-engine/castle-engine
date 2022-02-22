@@ -41,6 +41,30 @@
     Scene: TCastleSceneCore;
   end;
 
+  { Collide as a mesh, constructed from the given scene shapes.
+    Add this behavior to your Scene }
+  TCastleMeshCollider = class(TCastleCollider)
+  strict private
+    Mesh: TKraftMesh;
+    procedure AddTriangle(Shape: TObject;
+      const Position: TTriangle3;
+      const Normal: TTriangle3; const TexCoord: TTriangle4;
+      const Face: TFaceIndex);
+  strict protected
+    function CreateKraftShape(const APhysics: TKraft;
+      const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  public
+    { Mesh which is used to collide.
+      It does not have to be convex.
+
+      The @link(TCastleTransform.Collides Scene.Collides) and
+      @link(TCastleTransform.GetCollides Scene.GetCollides) do not matter here.
+      Using the TCollisionNode inside Scene matters (so the scene may collide
+      as something different than it's visible, see
+      https://castle-engine.io/x3d_implementation_navigation.php ). }
+    Scene: TCastleSceneCore;
+  end;
+
 (*
   TODO:
   For now TConvexHullCollider is commented out, as:
@@ -128,6 +152,50 @@ begin
 
   Result := TKraftShapeMesh.Create(APhysics, ARigidBody, Mesh);
 end;
+
+{ TCastleMeshCollider -------------------------------------------------------- }
+
+procedure TCastleMeshCollider.AddTriangle(Shape: TObject;
+  const Position: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
+  const Face: TFaceIndex);
+begin
+  { TODO: it's probably not optimal to call AddTriangle
+    for each triangle, we should instead call Load with a list. }
+
+  Mesh.AddTriangle(
+    Mesh.AddVertex(VectorToKraft(Position.Data[0])),
+    Mesh.AddVertex(VectorToKraft(Position.Data[1])),
+    Mesh.AddVertex(VectorToKraft(Position.Data[2])),
+    Mesh.AddNormal(VectorToKraft(Normal.Data[0])),
+    Mesh.AddNormal(VectorToKraft(Normal.Data[1])),
+    Mesh.AddNormal(VectorToKraft(Normal.Data[2]))
+  );
+end;
+
+function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody): TKraftShape;
+var
+  ShapesList: TShapeList;
+  I: Integer;
+begin
+  if Scene = nil then
+    raise Exception.Create('You must assign a TMeshCollider.Scene to determine the mesh triangles');
+
+  Mesh := TKraftMesh.Create(APhysics);
+
+  ShapesList := Scene.Shapes.TraverseList(true);
+  for I := 0 to ShapesList.Count - 1 do
+    if ShapesList[I].Collidable then
+      ShapesList[I].Triangulate(false, {$ifdef FPC}@{$endif}AddTriangle);
+
+  if Mesh.CountVertices = 0 then
+    raise Exception.Create('The scene assigned to TMeshCollider.Scene is empty (no collidable triangles)');
+  Mesh.Finish;
+
+  Result := TKraftShapeMesh.Create(APhysics, ARigidBody, Mesh);
+end;
+
 
 { TConvexHullCollider ------------------------------------------------------------- }
 
