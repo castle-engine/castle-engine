@@ -419,10 +419,10 @@
       See https://castle-engine.io/build_tool .
       It will also be placed alongside your .exe when you do "castle-engine compile ...".
 
-    - On macOS, see https://castle-engine.io/macosx_requirements.php .
+    - On macOS, see https://castle-engine.io/macos .
 
     - On Android, we have a "png" service with libpng included.
-      See tools/build-tool/data/android/integrated-services/png/README.md .
+      See ../../tools/build-tool/data/android/integrated-services/png/README.adoc .
 
   3.If CASTLE_PNG_STATIC is defined, we statically link to libpng.
     The presense of static libpng library (libpng.a on Unix) is then

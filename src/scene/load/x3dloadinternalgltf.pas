@@ -76,7 +76,7 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
         it processes all mesh positions each frame.
         This is unoptimal, as glTF skinning can be done on GPU, with much smaller runtime cost.
 
-  - See https://castle-engine.io/planned_features.php .
+  - See https://castle-engine.io/roadmap .
 }
 
 { Convert simple types ------------------------------------------------------- }
