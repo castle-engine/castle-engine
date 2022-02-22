@@ -77,30 +77,32 @@ procedure TStatePlay.Start;
 
   procedure UsePhysicsForAvatarGravity;
   var
-    LevelBody: TRigidBody;
-    LevelCollider: TMeshCollider;
-    AvatarBody: TRigidBody;
-    AvatarCollider: TBoxCollider;
+    LevelBody: TCastleRigidBody;
+    LevelCollider: TCastleMeshCollider;
+    AvatarBody: TCastleRigidBody;
+    AvatarCollider: TCastleBoxCollider;
   begin
-    LevelBody := TRigidBody.Create(FreeAtStop);
+    LevelBody := TCastleRigidBody.Create(FreeAtStop);
     LevelBody.Dynamic := false;
 
-    LevelCollider := TMeshCollider.Create(LevelBody);
+    LevelCollider := TCastleMeshCollider.Create(SceneLevel);
     LevelCollider.Scene := SceneLevel;
     LevelCollider.Restitution := 0.3;
 
-    SceneLevel.RigidBody := LevelBody;
+    SceneLevel.AddBehavior(LevelBody);
+    SceneLevel.AddBehavior(LevelCollider);
 
-    AvatarBody := TRigidBody.Create(FreeAtStop);
+    AvatarBody := TCastleRigidBody.Create(FreeAtStop);
     AvatarBody.LockRotation := [0, 2];
 
-    AvatarCollider := TBoxCollider.Create(AvatarBody);
+    AvatarCollider := TCastleBoxCollider.Create(SceneAvatar);
     AvatarCollider.Size := Vector3(1, 2, 1);
     AvatarCollider.Translation := Vector3(0, 1, 0);
     AvatarCollider.Restitution := 0.3;
     AvatarCollider.Density := 100.0;
 
-    SceneAvatar.RigidBody := AvatarBody;
+    SceneAvatar.AddBehavior(AvatarCollider);
+    SceneAvatar.AddBehavior(AvatarBody);
   end;
 
 var
