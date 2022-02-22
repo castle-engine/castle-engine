@@ -153,7 +153,7 @@ begin
 
     Most likely, this will be made possible by enabling TRigidBody.Dynamic and
     TRigidBody.Animated to be both @true. }
-  {.$define USE_PHYSICS_FOR_AVATAR_GRAVITY}
+  {$define USE_PHYSICS_FOR_AVATAR_GRAVITY}
 
   {$ifdef USE_PHYSICS_FOR_AVATAR_GRAVITY}
   UsePhysicsForAvatarGravity;
