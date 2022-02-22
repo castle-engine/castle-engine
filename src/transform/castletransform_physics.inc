@@ -133,6 +133,7 @@
       DefaultFriction = 0.5;
 
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -156,6 +157,9 @@
       {$ifdef FPC}default DefaultRestitution{$endif};
     property Friction: Single read FFriction write SetFriction
       {$ifdef FPC}default DefaultFriction{$endif};
+    {$define read_interface_class}
+    {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
+    {$undef read_interface_class}
   end;
 
   { Shape used for collision detection of a rigid body @link(TRigidBody). }
@@ -1010,6 +1014,10 @@ end;
 constructor TCastleCollider.Create(AOwner: TComponent);
 begin
   inherited;
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+
   // properties defaults
   FDensity := DefaultDensity;
   FMass := DefaultMass;
@@ -1025,6 +1033,14 @@ begin
   FLocalInverseTransform := TMatrix4.Identity;
 end;
 
+destructor TCastleCollider.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
+end;
+
 function TCastleCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
@@ -1036,6 +1052,10 @@ begin
   else
     Result := inherited PropertySections(PropertyName);
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TPlaneCollider ------------------------------------------------------------- }
 
