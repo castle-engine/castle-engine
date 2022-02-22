@@ -144,11 +144,6 @@
 
 { internal routine to create proxy ------------------------------------------- }
 
-{$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
-  {$optimization OFF}
-  {$info Workaround Aarch64 optimizer: TextProxy not optimized (begin)}
-{$endif}
-
 { Create a simple mesh (filling OutCoords, OutTexCoords fields
   to initialize X3D node like QuadSet) that represents input Text node.
   The interface is suitable for both VRML 2.0 / X3D Text node,
@@ -600,14 +595,6 @@ begin
     Result := FaceSet;
   except FreeAndNil(FaceSet); raise end;
 end;
-
-{ Turn optimizations back on.
-  FPC $push / $pop unfortunately doesn't save/restore optimization level,
-  so we restore it if -dBUGGY_AARCH64_OPTIMIZATIONS. }
-{$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
-  {$optimization ON}
-  {$info Workaround Aarch64 optimizer: TextProxy not optimized (end)}
-{$endif}
 
 { constants ------------------------------------------------------------------ }
 
