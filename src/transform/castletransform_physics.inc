@@ -86,8 +86,18 @@
   TCastleCollider = class(TCastleBehavior)
   strict private
     FDensity, FMass, FRestitution, FFriction: Single;
+    { When @false, behave as if Translation/Rotation/Scale/FLocalTransform/FLocalInverseTransform
+      were all "identity", i.e. "no transformation".
+      This is an often case, so we want to optimize it. }
+    FTranslation: TVector3;
+    FRotation: TVector4;
+    FScale: TVector3;
   private
     FKraftShape: TKraftShape;  // owned by TKraftRigidBody
+    FUseLocalTransform: Boolean;
+    FLocalTransform: TMatrix4;
+    FLocalInverseTransform: TMatrix4;
+
     procedure InitializeKraft(const APhysics: TKraft;
       const ACastleRigidBody: TCastleRigidBody);
 
@@ -118,6 +128,10 @@
     constructor Create(AOwner: TComponent); override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    property Translation: TVector3 read FTranslation write FTranslation;
+    property Rotation: TVector4 read FRotation write FRotation;
+    property Scale: TVector3 read FScale write FScale;
   published
     { Density (per volume) in kg, this implicitly determines mass
       (volume is automatically calculated by the physics engine).
@@ -143,15 +157,6 @@
     FKraftShape: TKraftShape;
     FParent: TRigidBody;
     FDensity, FMass, FRestitution, FFriction: Single;
-    { When @false, behave as if Translation/Rotation/Scale/FLocalTransform/FLocalInverseTransform
-      were all "identity", i.e. "no transformation".
-      This is an often case, so we want to optimize it. }
-    FUseLocalTransform: Boolean;
-    FLocalTransform: TMatrix4;
-    FLocalInverseTransform: TMatrix4;
-    FTranslation: TVector3;
-    FRotation: TVector4;
-    FScale: TVector3;
     procedure InitializeKraft(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody);
   strict protected
@@ -197,21 +202,6 @@
       {$ifdef FPC}default DefaultRestitution{$endif};
     property Friction: Single read FFriction write FFriction
       {$ifdef FPC}default DefaultFriction{$endif};
-
-    { Local translation applied to the collider shape.
-      Note: These properties may disappear soon from TCollider,
-      and will only be in new (similar but not 100% compatible) TCastleCollider. }
-    property Translation: TVector3 read FTranslation write FTranslation; {$ifdef FPC}experimental;{$endif}
-
-    { Local rotation applied to the collider shape.
-      Note: These properties may disappear soon from TCollider,
-      and will only be in new (similar but not 100% compatible) TCastleCollider. }
-    property Rotation: TVector4 read FRotation write FRotation; {$ifdef FPC}experimental;{$endif}
-
-    { Local scale applied to the collider shape.
-      Note: These properties may disappear soon from TCollider,
-      and will only be in new (similar but not 100% compatible) TCastleCollider. }
-    property Scale: TVector3 read FScale write FScale; {$ifdef FPC}experimental;{$endif}
   end deprecated 'use TCastleCollider';
 
 
@@ -400,6 +390,11 @@
     procedure CheckPhysicsPostStepNeeded;
 
     function GetKraftShape: TKraftShape;
+
+    { Returns TCastleCollider bahavior or nil when no collider behavior in
+      Parent or Parent = nil. In most cases you should use FCastleCollider
+      reference to behavior that was used to initialize rigid body }
+    function GetCastleColliderFromParent: TCastleCollider;
   private
 
     FKraftBody: TKraftRigidBody;
@@ -444,9 +439,6 @@
     procedure InitializeTransform(const Transform: TCastleTransform);
     { Disconnect from Transform.World, if was connected. }
     procedure DeinitializeTransform(const Transform: TCastleTransform);
-    { Returns TCastleCollider bahavior or nil when no collider behavior in
-      Parent or Parent = nil }
-    function GetCastleCollider: TCastleCollider;
 
     { Initialize rigid body objects from physics engine }
     procedure InitializeEngineRigidBody(const Transform: TCastleTransform);
@@ -826,12 +818,6 @@ begin
   FMass := DefaultMass;
   FRestitution := DefaultRestitution;
   FFriction := DefaultFriction;
-  FScale := NoScale;
-
-  { Will be updated in TCollider.InitializeKraft to reflect FKraftShape.LocalTransform }
-  FUseLocalTransform := false;
-  FLocalTransform := TMatrix4.Identity;
-  FLocalInverseTransform := TMatrix4.Identity;
 
   FParent := AParent;
   FreeAndNil(FParent.FCollider);
@@ -840,8 +826,6 @@ end;
 
 procedure TCollider.InitializeKraft(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody);
-var
-  T: TTransformation;
 begin
   // FreeAndNil(FKraftShape); // do not free here, TKraftShape is owned by TKraftRigidBody
   FKraftShape := CreateKraftShape(APhysics, ARigidBody);
@@ -851,25 +835,6 @@ begin
   FKraftShape.Friction := Friction;
   if not FParent.Exists then
     FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
-
-  FUseLocalTransform := not (
-    FTranslation.IsPerfectlyZero and
-    (FRotation.W = 0) and
-    TVector3.PerfectlyEquals(FScale, NoScale)
-  );
-  if FUseLocalTransform then
-  begin
-    { initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
-    T.Init;
-    {$warnings off} // Rotation, Scale, Translation will move to new TCastleCollider, where they will not be experimental
-    T.Multiply(Rotation, Scale, Translation);
-    {$warnings on}
-    FLocalTransform := T.Transform;
-    FLocalInverseTransform := T.InverseTransform;
-    FKraftShape.LocalTransform := MatrixToKraft(FLocalTransform);
-  end;
-  { Do not bother updating FLocalTransform, FLocalInverseTransform otherwise,
-    their value can stay undefined. }
 end;
 
 destructor TCollider.Destroy;
@@ -882,6 +847,8 @@ end;
 
 procedure TCastleCollider.InitializeKraft(const APhysics: TKraft;
   const ACastleRigidBody: TCastleRigidBody);
+var
+  T: TTransformation;
 begin
   // when using old Collider and new one
   if ACastleRigidBody.Collider <> nil then
@@ -906,6 +873,23 @@ begin
   FKraftShape.Friction := Friction;
   if not Parent.RigidBody.Exists then //
     FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
+
+  FUseLocalTransform := not (
+    FTranslation.IsPerfectlyZero and
+    (FRotation.W = 0) and
+    TVector3.PerfectlyEquals(FScale, NoScale)
+  );
+  if FUseLocalTransform then
+  begin
+    { initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
+    T.Init;
+    T.Multiply(Rotation, Scale, Translation);
+    FLocalTransform := T.Transform;
+    FLocalInverseTransform := T.InverseTransform;
+    FKraftShape.LocalTransform := MatrixToKraft(FLocalTransform);
+  end;
+  { Do not bother updating FLocalTransform, FLocalInverseTransform otherwise,
+    their value can stay undefined. }
 end;
 
 procedure TCastleCollider.SetDensity(const AValue: Single);
@@ -993,6 +977,12 @@ begin
   FMass := DefaultMass;
   FRestitution := DefaultRestitution;
   FFriction := DefaultFriction;
+  FScale := NoScale;
+
+  { Will be updated in TCastleCollider.InitializeKraft to reflect FKraftShape.LocalTransform }
+  FUseLocalTransform := false;
+  FLocalTransform := TMatrix4.Identity;
+  FLocalInverseTransform := TMatrix4.Identity;
 end;
 
 function TCastleCollider.PropertySections(
@@ -1321,7 +1311,7 @@ begin
   FState := crbsNotInitialized;
 end;
 
-function TCastleRigidBody.GetCastleCollider: TCastleCollider;
+function TCastleRigidBody.GetCastleColliderFromParent: TCastleCollider;
 begin
   if Parent <> nil then
     Result := Parent.FindBehavior(TCastleCollider) as TCastleCollider
@@ -1369,7 +1359,7 @@ begin
     raise Exception.Create(
       'TryInitializeColliders: Trying to add collider but rigid body not initilized');
 
-  CastleColliderFromTransform := GetCastleCollider;
+  CastleColliderFromTransform := GetCastleColliderFromParent;
   if (Collider <> nil) and (CastleColliderFromTransform <> nil) then
     raise Exception.Create(
       'You can''t use TCollider and TCastleCollider in the same rigid body. ' +
@@ -1718,8 +1708,9 @@ procedure TCastleRigidBody.Update(const SecondsPassed: Single; var RemoveMe: TRe
 
     LocalTransform := Parent.CheckParent.WorldInverseTransform *
       MatrixFromKraft(Shape.InterpolatedWorldTransform);
-    if FCollider.FUseLocalTransform then
-      LocalTransform := LocalTransform * FCollider.FLocalInverseTransform;
+    if (FCollider = nil) and (FCastleCollider <> nil) and
+       (FCastleCollider.FUseLocalTransform) then
+      LocalTransform := LocalTransform * FCastleCollider.FLocalInverseTransform;
 
     MatrixDecompose(LocalTransform, Translation, Rotation, Scale);
     Parent.Rotation := Rotation;
