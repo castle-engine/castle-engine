@@ -98,6 +98,10 @@
     FLocalTransform: TMatrix4;
     FLocalInverseTransform: TMatrix4;
 
+    { Updates FLocalTransformation and FUseLocalTransformation after changing
+      Translation, Scale, Rotation and in InitializeKraft. }
+    procedure UpdateLocalTransform;
+
     procedure InitializeKraft(const APhysics: TKraft;
       const ACastleRigidBody: TCastleRigidBody);
 
@@ -105,6 +109,9 @@
     procedure SetMass(const AValue: Single);
     procedure SetRestitution(const AValue: Single);
     procedure SetFriction(const AValue: Single);
+    procedure SetTranslation(const AValue: TVector3);
+    procedure SetRotation(const AValue: TVector4);
+    procedure SetScale(const AValue: TVector3);
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
@@ -129,9 +136,9 @@
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    property Translation: TVector3 read FTranslation write FTranslation;
-    property Rotation: TVector4 read FRotation write FRotation;
-    property Scale: TVector3 read FScale write FScale;
+    property Translation: TVector3 read FTranslation write SetTranslation;
+    property Rotation: TVector4 read FRotation write SetRotation;
+    property Scale: TVector3 read FScale write SetScale;
   published
     { Density (per volume) in kg, this implicitly determines mass
       (volume is automatically calculated by the physics engine).
@@ -845,10 +852,29 @@ end;
 
 { TCastleCollider ------------------------------------------------------------ }
 
-procedure TCastleCollider.InitializeKraft(const APhysics: TKraft;
-  const ACastleRigidBody: TCastleRigidBody);
+procedure TCastleCollider.UpdateLocalTransform;
 var
   T: TTransformation;
+begin
+  { initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
+  T.Init;
+  T.Multiply(Rotation, Scale, Translation);
+  FLocalTransform := T.Transform;
+  FLocalInverseTransform := T.InverseTransform;
+  if FKraftShape <> nil then
+    FKraftShape.LocalTransform := MatrixToKraft(FLocalTransform);
+
+  { After setting the appropriate transformation, we can optimize the matrix
+    multiplication when rotation = 0, translation = 0,0,0, scale = 1,1,1 }
+  FUseLocalTransform := not (
+    FTranslation.IsPerfectlyZero and
+    (FRotation.W = 0) and
+    TVector3.PerfectlyEquals(FScale, NoScale)
+  );
+end;
+
+procedure TCastleCollider.InitializeKraft(const APhysics: TKraft;
+  const ACastleRigidBody: TCastleRigidBody);
 begin
   // when using old Collider and new one
   if ACastleRigidBody.Collider <> nil then
@@ -874,22 +900,7 @@ begin
   if not Parent.RigidBody.Exists then //
     FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
 
-  FUseLocalTransform := not (
-    FTranslation.IsPerfectlyZero and
-    (FRotation.W = 0) and
-    TVector3.PerfectlyEquals(FScale, NoScale)
-  );
-  if FUseLocalTransform then
-  begin
-    { initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
-    T.Init;
-    T.Multiply(Rotation, Scale, Translation);
-    FLocalTransform := T.Transform;
-    FLocalInverseTransform := T.InverseTransform;
-    FKraftShape.LocalTransform := MatrixToKraft(FLocalTransform);
-  end;
-  { Do not bother updating FLocalTransform, FLocalInverseTransform otherwise,
-    their value can stay undefined. }
+  UpdateLocalTransform;
 end;
 
 procedure TCastleCollider.SetDensity(const AValue: Single);
@@ -926,6 +937,33 @@ begin
   FFriction := AValue;
   if FKraftShape <> nil then
     FKraftShape.Friction := FFriction;
+end;
+
+procedure TCastleCollider.SetTranslation(const AValue: TVector3);
+begin
+  if AValue.PerfectlyEquals(AValue, FTranslation) then
+    Exit;
+
+  FTranslation := AValue;
+  UpdateLocalTransform;
+end;
+
+procedure TCastleCollider.SetRotation(const AValue: TVector4);
+begin
+  if AValue.PerfectlyEquals(AValue, FRotation) then
+    Exit;
+
+  FRotation := AValue;
+  UpdateLocalTransform;
+end;
+
+procedure TCastleCollider.SetScale(const AValue: TVector3);
+begin
+  if AValue.PerfectlyEquals(AValue, FScale) then
+    Exit;
+
+  FScale := AValue;
+  UpdateLocalTransform;
 end;
 
 procedure TCastleCollider.ShapeChangedNotifyRigidBody;
@@ -978,6 +1016,8 @@ begin
   FRestitution := DefaultRestitution;
   FFriction := DefaultFriction;
   FScale := NoScale;
+  FTranslation := Vector3(0, 0, 0);
+  FRotation := Vector4(0, 1, 0, 0);
 
   { Will be updated in TCastleCollider.InitializeKraft to reflect FKraftShape.LocalTransform }
   FUseLocalTransform := false;
