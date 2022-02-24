@@ -2596,9 +2596,23 @@ function RotationMatrixRad(const AngleRad: Single;
 var
   NormAxis: TVector3;
   AngleSin, AngleCos: Float;
-  S, C: Single;
+  AxisLen, S, C: Single;
 begin
-  NormAxis := Axis.Normalize;
+  // NormAxis := Axis.Normalize;
+  { Instead of calling Axis.Normalize, we do normalization here.
+    This way we can react nicer (for zero additional cost) to Axis being
+    exactly zero (which is an easy mistake to make e.g. when editing Rotation
+    in CGE editor).
+    We'll return an identity matrix instead of invalid matrix
+    that would likely make transformed model invisible.
+    We still don't officially tolerate such Axis value. }
+  AxisLen := Axis.Length;
+  if AxisLen = 0 then
+    Exit(TMatrix4.Identity);
+  AxisLen := 1 / AxisLen;
+  NormAxis.X := Axis.X * AxisLen;
+  NormAxis.Y := Axis.Y * AxisLen;
+  NormAxis.Z := Axis.Z * AxisLen;
 
   SinCos(AngleRad, AngleSin, AngleCos);
   { convert Float to Single once }
@@ -2653,9 +2667,27 @@ var
   NormAxis: TVector3;
   V: Single;
   AngleSin, AngleCos: Float;
-  S, C: Single;
+  AxisLen, S, C: Single;
 begin
-  NormAxis := Axis.Normalize;
+  // NormAxis := Axis.Normalize;
+  { Instead of calling Axis.Normalize, we do normalization here.
+    This way we can react nicer (for zero additional cost) to Axis being
+    exactly zero (which is an easy mistake to make e.g. when editing Rotation
+    in CGE editor).
+    We'll return an identity matrix instead of invalid matrix
+    that would likely make transformed model invisible.
+    We still don't officially tolerate such Axis value. }
+  AxisLen := Axis.Length;
+  if AxisLen = 0 then
+  begin
+    Matrix := TMatrix4.Identity;
+    InvertedMatrix := TMatrix4.Identity;
+    Exit;
+  end;
+  AxisLen := 1 / AxisLen;
+  NormAxis.X := Axis.X * AxisLen;
+  NormAxis.Y := Axis.Y * AxisLen;
+  NormAxis.Z := Axis.Z * AxisLen;
 
   SinCos(AngleRad, AngleSin, AngleCos);
   { convert Float to Single once }
