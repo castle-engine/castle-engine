@@ -444,6 +444,9 @@ type
     ColorPerVertexType: TColorPerVertexType;
     ColorPerVertexMode: TColorMode;
 
+    ShapeBoundingBoxInWorldKnown: Boolean;
+    ShapeBoundingBoxInWorld: TBox3D;
+
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
       const ForwardDeclareInFinalShader: boolean = false); overload;
@@ -476,12 +479,12 @@ type
     { Uniforms that will be set on this shader every frame (not just once after linking). }
     DynamicUniforms: TDynamicUniformList;
 
-    { We use a callback, instead of storing TBox3D result, because
-      1. in many cases, we will not need to call it (so we don't need to recalculate
-         TShape.LocalBoundingBox every frame for a changing shape),
-      2. if it can be cached, TShape.LocalBoundingBox already implements
-         a proper cache mechanism. }
-    ShapeBoundingBox: TBoundingBoxEvent;
+    { We require a callback, instead of always requiring TBox3D result, because
+      in many cases, we will not need to call it (so we don't need to recalculate
+      TShape.LocalBoundingBox every frame for a changing shape).
+
+      Should return bbox in scene coordinate system (not in world coordinate system). }
+    ShapeBoundingBoxInSceneEvent: TBoundingBoxEvent;
 
     { Camera * scene transformation (without the shape transformation).
 
@@ -492,6 +495,9 @@ type
       the OpenGL modelview matrix contains also shape transformation,
       so it's different than SceneModelView. }
     SceneModelView: TMatrix4;
+
+    { Scene transformation (without the shape transformation). }
+    SceneTransform: TMatrix4;
 
     { Assign this if you used EnableTexGen with tgMirrorPlane
       to setup correct uniforms. }
@@ -922,6 +928,9 @@ procedure TLightShader.Prepare(var Hash: TShaderCodeHash; const LightNumber: Car
     Hash.AddInteger(LightDefines[D].Hash * (LightNumber + 1));
   end;
 
+var
+  RadiusInWorld: Single;
+  LocationInWorld: TVector3;
 begin
   DefinesCount := 0;
   Hash.AddInteger(101);
@@ -951,25 +960,48 @@ begin
     if TAbstractPositionalLightNode(Node).HasAttenuation then
       Define(ldHasAttenuation);
 
-    if TAbstractPositionalLightNode(Node).HasRadius and
-      { Do not activate per-pixel checking of light radius,
-        if we know (by bounding box test below)
-        that the whole shape is completely within radius. }
-      (Shader.ShapeBoundingBox().PointMaxDistance(Light^.Location, -1) > Light^.Radius) then
+    if TAbstractPositionalLightNode(Node).HasRadius then
     begin
-      Define(ldHasRadius);
-      LightUniformName2 := 'castle_LightSource%dRadius';
-      LightUniformValue2 := Light^.Radius;
-      { Uniform value comes from this Node's property,
-        so this cannot be shared with other light nodes,
-        that may have not synchronized radius value.
+      { calculate ShapeBoundingBoxInWorld }
+      if not Shader.ShapeBoundingBoxInWorldKnown then
+      begin
+        Shader.ShapeBoundingBoxInWorldKnown := true;
+        Shader.ShapeBoundingBoxInWorld := Shader.ShapeBoundingBoxInSceneEvent().Transform(Shader.SceneTransform);
+      end;
 
-        (Note: We could instead add radius value to the hash.
-        Then this shader could be shared between all light nodes with
-        the same radius value --- however, if radius changed,
-        then the shader would have to be recreated, even if the same
-        light node was used.) }
-      Hash.AddPointer(Node);
+      { calculate RadiusInWorld, LocationInWorld.
+        Note: we optimize WorldCoordinates = true case, as most often ---
+        once we'll design lights in editor,  then lights are usually in different
+        scene than original. }
+      if Light^.WorldCoordinates then
+      begin
+        RadiusInWorld := Light^.Radius;
+        LocationInWorld := Light^.Location;
+      end else
+      begin
+        RadiusInWorld := Approximate3DScale(Shader.SceneTransform) * Light^.Radius;
+        LocationInWorld := Shader.SceneTransform.MultPoint(Light^.Location);
+      end;
+
+      { Do not activate per-pixel checking of light radius,
+        if we know (by bounding box test)
+        that the whole shape is completely within radius. }
+      if Shader.ShapeBoundingBoxInWorld.PointMaxDistanceSqr(LocationInWorld, -1) > Sqr(RadiusInWorld) then
+      begin
+        Define(ldHasRadius);
+        LightUniformName2 := 'castle_LightSource%dRadius';
+        LightUniformValue2 := Light^.Radius;
+        { Uniform value comes from this Node's property,
+          so this cannot be shared with other light nodes,
+          that may have not synchronized radius value.
+
+          (Note: We could instead add radius value to the hash.
+          Then this shader could be shared between all light nodes with
+          the same radius value --- however, if radius changed,
+          then the shader would have to be recreated, even if the same
+          light node was used.) }
+        Hash.AddPointer(Node);
+      end;
     end;
   end;
   if Node.FdAmbientIntensity.Value <> 0 then
@@ -2057,7 +2089,8 @@ begin
   ColorPerVertexType := ctNone;
   ColorPerVertexMode := cmReplace;
   FPhongShading := false;
-  ShapeBoundingBox := nil;
+  ShapeBoundingBoxInSceneEvent := nil;
+  ShapeBoundingBoxInWorldKnown := false;
   Material := nil;
   DynamicUniforms.Count := 0;
   TextureMatrix.Count := 0;

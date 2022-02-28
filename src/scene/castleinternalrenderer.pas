@@ -449,8 +449,12 @@ type
     Cache: TShapeCache;
 
     { Assign this each time before passing this shape to RenderShape.
-      Should contai camera and scene transformation (but not particular shape transformation). }
+      Should contain camera and scene transformation (but not particular shape transformation). }
     SceneModelView: TMatrix4;
+
+    { Assign this each time before passing this shape to RenderShape.
+      Should contain only scene transformation (but not particular shape transformation). }
+    SceneTransform: TMatrix4;
 
     { Assign this each time before passing this shape to RenderShape. }
     Fog: TFogFunctionality;
@@ -2378,7 +2382,8 @@ begin
   if PhongShading then
     Shader.ShapeRequiresShaders := true;
 
-  Shader.ShapeBoundingBox := {$ifdef FPC}@{$endif} Shape.BoundingBox;
+  Shader.ShapeBoundingBoxInSceneEvent := {$ifdef FPC}@{$endif} Shape.BoundingBox;
+  Shader.SceneTransform := Shape.SceneTransform;
   Shader.ShadowSampling := RenderOptions.ShadowSampling;
   RenderShapeLineProperties(Shape, Shader);
 end;

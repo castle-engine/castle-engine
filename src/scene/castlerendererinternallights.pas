@@ -223,7 +223,7 @@ begin
 {$else}
 begin
   { We pass light information to shaders in our own uniform variables,
-    this is handled by CastleRendererShader. }
+    this is handled by CastleRendererInternalShader. }
 {$endif}
 end;
 

@@ -918,6 +918,10 @@ end;
 procedure TCastleScene.RenderShape_NoTests(const Shape: TGLShape);
 begin
   Shape.SceneModelView := Render_ModelView;
+  if Render_Params.TransformIdentity then
+    Shape.SceneTransform := TMatrix4.Identity
+  else
+    Shape.SceneTransform := Render_Params.Transform^;
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
   OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(false);
@@ -1318,6 +1322,7 @@ procedure TCastleScene.PrepareResources(
           PlaneTransform(Plane, SceneModelView); will fail,
           with SceneModelView matrix = zero. }
         TGLShape(Shape).SceneModelView := TMatrix4.Identity;
+        TGLShape(Shape).SceneTransform := TMatrix4.Identity;
         TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
         Renderer.RenderShape(TGLShape(Shape));
       end;
