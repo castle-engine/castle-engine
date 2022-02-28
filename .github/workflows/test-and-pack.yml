@@ -19,7 +19,7 @@ jobs:
       - run: make clean tests
       # Build Using FpMake (Default FPC)
       - run: make clean test-fpmake
-  test-fpc3.2.0:
+  test-fpc320:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
