@@ -122,7 +122,8 @@ begin
     'DesignUrl', TDesignURLPropertyEditor);
 
   { Improved float properties }
-  RegisterPropertyEditor(TypeInfo(Single), TCastleVector4RotationPersistent, 'W', TCastleFloatRotationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(Single), TCastleVector4RotationPersistent, 'W',
+    TCastleFloatRotationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(Single), nil, '', TCastleFloatPropertyEditor);
   RegisterPropertyEditor(TypeInfo(Double), nil, '', TCastleFloatPropertyEditor);
   {$ifndef EXTENDED_EQUALS_DOUBLE}
