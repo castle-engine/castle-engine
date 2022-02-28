@@ -50,7 +50,10 @@ type
 function TAutoGenerateProperty.PersistentPropertyClass: String;
 begin
   Result := StringReplace(PropertyType, 'TVector', 'TCastleVector', [rfReplaceAll]);
-  Result += 'Persistent';
+  if PropertyName = 'Rotation' then
+    Result += 'RotationPersistent'
+  else
+    Result += 'Persistent';
 end;
 
 { TAutoGeneratePropertyList --------------------------------------------------}
