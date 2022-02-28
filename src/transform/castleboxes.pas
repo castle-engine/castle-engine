@@ -2060,7 +2060,7 @@ end;
 
 function TBox3D.PointDistance(const Point: TVector3): Single;
 begin
-  Result := Sqrt(PointDistance(Point));
+  Result := Sqrt(PointDistanceSqr(Point));
 end;
 
 function TBox3D.PointDistanceSqr(const Point: TVector3): Single;
