@@ -1,0 +1,46 @@
+on: [push]
+jobs:
+  test-fpclatest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # We use https://github.com/marketplace/actions/setup-lazarus-environment
+      # to setup FPC+Lazarus easily.
+      - uses: gcarreno/setup-lazarus@v3.0.16
+        with:
+          lazarus-version: "stable"
+      # Build Tools (Default FPC)
+      - run: make clean tools
+      # Build Examples (Default FPC)
+      - run: make clean examples
+      # Build Examples Using Lazarus (Default FPC/Lazarus)
+      - run: make clean examples-laz
+      # Build And Run Auto-Tests (Default FPC)
+      - run: make clean tests
+      # Build Using FpMake (Default FPC)
+      - run: make clean test-fpmake
+  test-fpc3.2.0:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # We use https://github.com/marketplace/actions/setup-lazarus-environment
+      # to setup FPC+Lazarus easily.
+      - uses: gcarreno/setup-lazarus@v3.0.16
+        with:
+          # latest version with FPC 3.2.0 on https://github.com/marketplace/actions/setup-lazarus-environment
+          lazarus-version: "2.0.12"
+      - run: make clean tools
+      - run: make clean examples
+      - run: make clean examples-laz
+      - run: make clean tests
+      - run: make clean test-fpmake
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: gcarreno/setup-lazarus@v3.0.16
+        with:
+          lazarus-version: "stable"
+      # remove previous artifacts
+      - run: rm -f castle-engine*.zip
+      - run: ./tools/internal/pack_release/pack_release.sh
