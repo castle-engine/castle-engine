@@ -120,7 +120,9 @@ type
       https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glUniform.xhtml
     }
     Position: TVector3;
+    Radius: Single;
     SpotCosCutoff: Single;
+    SpotBeamWidth: Single;
     SpotDirection: TVector3;
     SpotExponent: Single;
     SpotCutoff: Single;
@@ -928,9 +930,6 @@ procedure TLightShader.Prepare(var Hash: TShaderCodeHash; const LightNumber: Car
     Hash.AddInteger(LightDefines[D].Hash * (LightNumber + 1));
   end;
 
-var
-  RadiusInWorld: Single;
-  LocationInWorld: TVector3;
 begin
   DefinesCount := 0;
   Hash.AddInteger(101);
@@ -941,68 +940,19 @@ begin
     if Node is TSpotLightNode_1 then
     begin
       Define(ldTypeSpot);
-      if TSpotLightNode_1(Node).SpotExponent <> 0 then
-        Define(ldHasSpotExponent);
+      Define(ldHasSpotExponent);
     end else
     if Node is TSpotLightNode then
     begin
       Define(ldTypeSpot);
-      if TSpotLightNode(Node).FdBeamWidth.Value <
-         TSpotLightNode(Node).FdCutOffAngle.Value then
-      begin
-        Define(ldHasBeamWidth);
-        LightUniformName1 := 'castle_LightSource%dBeamWidth';
-        LightUniformValue1 := TSpotLightNode(Node).FdBeamWidth.Value;
-        Hash.AddFloat(LightUniformValue1, 2179);
-      end;
+      Define(ldHasBeamWidth);
     end;
 
     if TAbstractPositionalLightNode(Node).HasAttenuation then
       Define(ldHasAttenuation);
 
     if TAbstractPositionalLightNode(Node).HasRadius then
-    begin
-      { calculate ShapeBoundingBoxInWorld }
-      if not Shader.ShapeBoundingBoxInWorldKnown then
-      begin
-        Shader.ShapeBoundingBoxInWorldKnown := true;
-        Shader.ShapeBoundingBoxInWorld := Shader.ShapeBoundingBoxInSceneEvent().Transform(Shader.SceneTransform);
-      end;
-
-      { calculate RadiusInWorld, LocationInWorld.
-        Note: we optimize WorldCoordinates = true case, as most often ---
-        once we'll design lights in editor,  then lights are usually in different
-        scene than original. }
-      if Light^.WorldCoordinates then
-      begin
-        RadiusInWorld := Light^.Radius;
-        LocationInWorld := Light^.Location;
-      end else
-      begin
-        RadiusInWorld := Approximate3DScale(Shader.SceneTransform) * Light^.Radius;
-        LocationInWorld := Shader.SceneTransform.MultPoint(Light^.Location);
-      end;
-
-      { Do not activate per-pixel checking of light radius,
-        if we know (by bounding box test)
-        that the whole shape is completely within radius. }
-      if Shader.ShapeBoundingBoxInWorld.PointMaxDistanceSqr(LocationInWorld, -1) > Sqr(RadiusInWorld) then
-      begin
-        Define(ldHasRadius);
-        LightUniformName2 := 'castle_LightSource%dRadius';
-        LightUniformValue2 := Light^.Radius;
-        { Uniform value comes from this Node's property,
-          so this cannot be shared with other light nodes,
-          that may have not synchronized radius value.
-
-          (Note: We could instead add radius value to the hash.
-          Then this shader could be shared between all light nodes with
-          the same radius value --- however, if radius changed,
-          then the shader would have to be recreated, even if the same
-          light node was used.) }
-        Hash.AddPointer(Node);
-      end;
-    end;
+      Define(ldHasRadius);
   end;
   if Node.FdAmbientIntensity.Value <> 0 then
     Define(ldHasAmbient);
@@ -1132,6 +1082,17 @@ begin
     if Node is TAbstractPositionalLightNode then
     begin
       LiPos := TAbstractPositionalLightNode(Node);
+
+      if LiPos.HasRadius then
+      begin
+        Uniforms.SetUniform('castle_LightSource%dRadius', Uniforms.Radius,
+          { TODO: This should be radius in eye space.
+            But
+              Approximate3DScale(LightToEyeSpace^) * Light^.Radius
+            looks wrong, changing camera then changes light look? }
+          Light^.Radius);
+      end;
+
       if LiPos is TSpotLightNode_1 then
       begin
         LiSpot1 := TSpotLightNode_1(Node);
@@ -1139,11 +1100,8 @@ begin
           LiSpot1.SpotCosCutoff);
         Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
           LightToEyeSpace^.MultDirection(Light^.Direction));
-        if LiSpot1.SpotExponent <> 0 then
-        begin
-          Uniforms.SetUniform('castle_LightSource%dSpotExponent', Uniforms.SpotExponent,
-            LiSpot1.SpotExponent);
-        end;
+        Uniforms.SetUniform('castle_LightSource%dSpotExponent', Uniforms.SpotExponent,
+          LiSpot1.SpotExponent);
       end else
       if LiPos is TSpotLightNode then
       begin
@@ -1152,11 +1110,10 @@ begin
           LiSpot.SpotCosCutoff);
         Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
           LightToEyeSpace^.MultDirection(Light^.Direction));
-        if LiSpot.FdBeamWidth.Value < LiSpot.FdCutOffAngle.Value then
-        begin
-          Uniforms.SetUniform('castle_LightSource%dSpotCutoff', Uniforms.SpotCutoff,
-            LiSpot.FdCutOffAngle.Value);
-        end;
+        Uniforms.SetUniform('castle_LightSource%dBeamWidth', Uniforms.SpotBeamWidth,
+          LiSpot.FdBeamWidth.Value);
+        Uniforms.SetUniform('castle_LightSource%dSpotCutoff', Uniforms.SpotCutoff,
+          LiSpot.FdCutOffAngle.Value);
       end;
 
       if LiPos.HasAttenuation then
