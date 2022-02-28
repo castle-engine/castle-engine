@@ -94,7 +94,7 @@ implementation
 
 uses SysUtils, Math,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleUtils;
+  CastleUtils, CastleBoxes;
 
 { Set and enable OpenGL light properties based on X3D light.
 
@@ -271,6 +271,44 @@ procedure TLightsRenderer.Render(
 var
   LightsEnabled: Cardinal;
 
+  function InsideLightRadius(const Light: TLightInstance): Boolean;
+  var
+    LightPosNode: TAbstractPositionalLightNode;
+    ShapeBox: TBox3D;
+    RadiusInWorld: Single;
+    LocationInWorld: TVector3;
+  begin
+    Result := true;
+    if Light.Node is TAbstractPositionalLightNode then
+    begin
+      LightPosNode := TAbstractPositionalLightNode(Light.Node);
+      if LightPosNode.HasRadius then
+      begin
+        ShapeBox := Shader.ShapeBoundingBoxInWorld;
+        if ShapeBox.IsEmpty then
+          Exit(false);
+
+        { calculate RadiusInWorld, LocationInWorld.
+          Note: we optimize WorldCoordinates = true case, as most often ---
+          once we'll design lights in editor,  then lights are usually in different
+          scene than original. }
+        if Light.WorldCoordinates then
+        begin
+          RadiusInWorld := Light.Radius;
+          LocationInWorld := Light.Location;
+        end else
+        begin
+          RadiusInWorld := Approximate3DScale(Shader.SceneTransform) * Light.Radius;
+          LocationInWorld := Shader.SceneTransform.MultPoint(Light.Location);
+        end;
+
+        { Light will never reach the shape. }
+        if ShapeBox.PointDistanceSqr(LocationInWorld) > Sqr(RadiusInWorld) then
+          Exit(false);
+      end;
+    end;
+  end;
+
   procedure AddList(const Lights: TLightInstancesList; const IsGlobalLight: Boolean);
   var
     I: Integer;
@@ -285,7 +323,7 @@ var
       if Assigned(LightRenderEvent) then
         LightRenderEvent(Light^, IsGlobalLight, LightOn);
 
-      if LightOn then
+      if LightOn and InsideLightRadius(Light^) then
       begin
         if NeedRenderLight(LightsEnabled, Light) then
           glLightFromX3DLight(LightsEnabled, Light^, RenderingCamera);

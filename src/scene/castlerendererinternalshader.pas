@@ -446,8 +446,8 @@ type
     ColorPerVertexType: TColorPerVertexType;
     ColorPerVertexMode: TColorMode;
 
-    ShapeBoundingBoxInWorldKnown: Boolean;
-    ShapeBoundingBoxInWorld: TBox3D;
+    FShapeBoundingBoxInWorldKnown: Boolean;
+    FShapeBoundingBoxInWorld: TBox3D;
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
@@ -485,7 +485,9 @@ type
       in many cases, we will not need to call it (so we don't need to recalculate
       TShape.LocalBoundingBox every frame for a changing shape).
 
-      Should return bbox in scene coordinate system (not in world coordinate system). }
+      Should return bbox in scene coordinate system (not in world coordinate system).
+
+      Use ShapeBoundingBoxInWorld to get the box easily. }
     ShapeBoundingBoxInSceneEvent: TBoundingBoxEvent;
 
     { Camera * scene transformation (without the shape transformation).
@@ -658,6 +660,9 @@ type
 
     { Shader needs normals, for lighting calculation or tex coord generation. }
     function NeedsNormals: Boolean;
+
+    { Current shape bbox, in world coordinates. }
+    function ShapeBoundingBoxInWorld: TBox3D;
   end;
 
 implementation
@@ -2047,7 +2052,7 @@ begin
   ColorPerVertexMode := cmReplace;
   FPhongShading := false;
   ShapeBoundingBoxInSceneEvent := nil;
-  ShapeBoundingBoxInWorldKnown := false;
+  FShapeBoundingBoxInWorldKnown := false;
   Material := nil;
   DynamicUniforms.Count := 0;
   TextureMatrix.Count := 0;
@@ -3786,6 +3791,16 @@ function TShader.NeedsNormals: Boolean;
 begin
   // optimize lmUnlit: no need for normals data
   Result := (LightingModel <> lmUnlit) or NeedsNormalsForTexGen;
+end;
+
+function TShader.ShapeBoundingBoxInWorld: TBox3D;
+begin
+  if not FShapeBoundingBoxInWorldKnown then
+  begin
+    FShapeBoundingBoxInWorldKnown := true;
+    FShapeBoundingBoxInWorld := ShapeBoundingBoxInSceneEvent().Transform(SceneTransform);
+  end;
+  Result := FShapeBoundingBoxInWorld;
 end;
 
 end.

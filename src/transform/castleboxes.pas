@@ -485,6 +485,13 @@ type
       @raises EBox3DEmpty When used with an empty box. }
     function PointDistance(const Point: TVector3): Single;
 
+    { Shortest distance between the box and a point, squared.
+      Always zero when the point is inside the box.
+
+      @raises EBox3DEmpty When used with an empty box. }
+    function PointDistanceSqr(const Point: TVector3): Single;
+
+    (*
     { Maximum distance between the box and a point.
       Returns EmptyBoxDistance when box is empty. }
     function PointMaxDistance(const Point: TVector3;
@@ -494,6 +501,7 @@ type
       Returns EmptyBoxDistance when box is empty. }
     function PointMaxDistanceSqr(const Point: TVector3;
       const EmptyBoxDistance: Single): Single;
+    *)
 
     function Equal(const Box2: TBox3D): boolean; overload;
     function Equal(const Box2: TBox3D; const Epsilon: Single): boolean; overload;
@@ -2051,6 +2059,11 @@ begin
 end;
 
 function TBox3D.PointDistance(const Point: TVector3): Single;
+begin
+  Result := Sqrt(PointDistance(Point));
+end;
+
+function TBox3D.PointDistanceSqr(const Point: TVector3): Single;
 var
   I: Integer;
 begin
@@ -2074,10 +2087,9 @@ begin
     if Point[I] > Data[1][I] then
       Result := Result + (Sqr(Point[I] - Data[1][I]));
   end;
-
-  Result := Sqrt(Result);
 end;
 
+(*
 function TBox3D.PointMaxDistance(const Point: TVector3;
   const EmptyBoxDistance: Single): Single;
 var
@@ -2107,6 +2119,7 @@ begin
       Sqr(Point.Z - B[Point.Z < (Data[0].Z + Data[1].Z) / 2].Z)
     ;
 end;
+*)
 
 function TBox3D.Equal(const Box2: TBox3D): boolean;
 begin
