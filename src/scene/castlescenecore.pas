@@ -8560,7 +8560,10 @@ begin
      (PropertyName = 'AutoAnimation') or
      (PropertyName = 'AutoAnimationLoop') or
      (PropertyName = 'DefaultAnimationTransition') or
-     (PropertyName = 'Spatial') then
+     (PropertyName = 'Spatial') or
+     (PropertyName = 'ExposeTransforms') or
+     (PropertyName = 'TimePlaying') or
+     (PropertyName = 'TimePlayingSpeed') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

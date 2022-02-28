@@ -2283,7 +2283,8 @@ end;
 function TCastleScene.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'RenderOptions') then
+  if (PropertyName = 'RenderOptions') or
+     (PropertyName = 'CastGlobalLights') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
