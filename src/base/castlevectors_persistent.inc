@@ -179,6 +179,12 @@ type
     property W: Single read GetW write SetW stored WIsStored nodefault;
   end;
 
+  { TCastleVector4Persistent descendant for castle editor
+    to change 'W' property name to 'Angle (W)' in inspector }
+  TCastleVector4RotationPersistent = class(TCastleVector4Persistent)
+
+  end;
+
   { Helper methods you can use from TCastleComponent.CustomSerialization
     to manage reading/writing of vectors. }
   TSerializationProcessVectorsHelper = class helper for TSerializationProcess
