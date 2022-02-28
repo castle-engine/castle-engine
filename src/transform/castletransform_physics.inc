@@ -80,9 +80,6 @@
   end;
 
   { Don't have any Kraft objects only describe shape }
-
-  { TCastleCollider }
-
   TCastleCollider = class(TCastleBehavior)
   strict private
     FDensity, FMass, FRestitution, FFriction: Single;
@@ -92,6 +89,8 @@
     FTranslation: TVector3;
     FRotation: TVector4;
     FScale: TVector3;
+    FAutoSize: Boolean;
+    FAutoSizing: Boolean; // are we calculating auto size?
   private
     FKraftShape: TKraftShape;  // owned by TKraftRigidBody
     FUseLocalTransform: Boolean;
@@ -112,15 +111,19 @@
     procedure SetTranslation(const AValue: TVector3);
     procedure SetRotation(const AValue: TVector4);
     procedure SetScale(const AValue: TVector3);
+    procedure SetAutoSize(const AValue: Boolean);
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
 
     { Notify CastleRigidBody that kraft shape need be recreated }
     procedure ShapeChangedNotifyRigidBody;
+    procedure CalculateAutoSize; virtual;
   protected
     procedure ParentAfterAttach; override;
     procedure ParentBeforeDetach; override;
+    { Removes AutoSize = true when someone changes any collider size }
+    procedure UpdateAutoSizeProperty;
   public
     const
       { Default for @link(Density). }
@@ -136,11 +139,14 @@
     destructor Destroy; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    { Recalculates current size using parent Bounding Box }
+    procedure DoAutoSize;
 
     property Translation: TVector3 read FTranslation write SetTranslation;
     property Rotation: TVector4 read FRotation write SetRotation;
     property Scale: TVector3 read FScale write SetScale;
   published
+    property AutoSize: Boolean read FAutoSize write SetAutoSize default true;
     { Density (per volume) in kg, this implicitly determines mass
       (volume is automatically calculated by the physics engine).
       If you instead prefer to explicitly set mass, set @link(Mass)
@@ -229,9 +235,6 @@
 
   { Collide as an infinite plane.
     Add this to transform behavior list. }
-
-  { TCastlePlaneCollider }
-
   TCastlePlaneCollider = class(TCastleCollider)
   strict private
     FNormal: TVector3;
@@ -268,9 +271,6 @@
 
   { Collide as a box.
     Add this to transform behavior list. }
-
-  { TCastleBoxCollider }
-
   TCastleBoxCollider = class(TCastleCollider)
   strict private
     FSize: TVector3;
@@ -279,6 +279,7 @@
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
+    procedure CalculateAutoSize; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -295,9 +296,6 @@
 
   { Collide as a sphere.
     Place this inside @link(TRigidBody.Collider) property. }
-
-  { TSphereCollider }
-
   TSphereCollider = class(TCollider)
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
@@ -308,9 +306,6 @@
 
   { Collide as a sphere.
     Add this to transform behavior list.}
-
-  { TCastleSphereCollider }
-
   TCastleSphereCollider = class(TCastleCollider)
   strict private
     FRadius: Single;
@@ -319,6 +314,9 @@
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  protected
+    procedure CalculateAutoSize; override;
+
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
@@ -338,9 +336,6 @@
 
   { Collide as a capsule.
     Add this to transform behavior list.}
-
-  { TCastleCapsuleCollider }
-
   TCastleCapsuleCollider = class(TCastleCollider)
   strict private
     FRadius: Single;
@@ -351,6 +346,8 @@
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  protected
+    procedure CalculateAutoSize; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
@@ -735,6 +732,7 @@ begin
   if not SameValue(FRadius, AValue) then
   begin
     FRadius := AValue;
+    UpdateAutoSizeProperty;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -744,6 +742,7 @@ begin
   if not SameValue(FHeight, AValue) then
   begin
     FHeight := AValue;
+    UpdateAutoSizeProperty;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -752,6 +751,20 @@ function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
   Result := TKraftShapeCapsule.Create(APhysics, ARigidBody, FRadius, FHeight);
+end;
+
+procedure TCastleCapsuleCollider.CalculateAutoSize;
+begin
+  inherited;
+  if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
+  begin
+    Radius := 1;
+    Height := 1;
+    Exit;
+  end;
+
+  Radius := Parent.BoundingBox.SizeX * 0.49;
+  Height := Max(Parent.BoundingBox.SizeY - FRadius * 2, 0.01);
 end;
 
 function TCastleCapsuleCollider.PropertySections(
@@ -970,6 +983,16 @@ begin
   UpdateLocalTransform;
 end;
 
+procedure TCastleCollider.SetAutoSize(const AValue: Boolean);
+begin
+  if FAutoSize = AValue then
+    Exit;
+
+  FAutoSize := AValue;
+  if FAutoSize then
+    DoAutoSize;
+end;
+
 procedure TCastleCollider.ShapeChangedNotifyRigidBody;
 var
   CastleRBody: TCastleRigidBody;
@@ -994,6 +1017,9 @@ begin
     CastleRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
     if CastleRigidBody <> nil then
       CastleRigidBody.CheckInitialization(Self);
+
+    if AutoSize then
+      DoAutoSize;
   end;
 end;
 
@@ -1009,6 +1035,25 @@ begin
     // deinitialize collider
     CastleRBody.DeinitializeColliders;
   end;
+end;
+
+procedure TCastleCollider.UpdateAutoSizeProperty;
+begin
+  if AutoSize = false then
+    Exit;
+
+  if FAutoSizing then
+    Exit;
+
+  if csLoading in ComponentState then
+    Exit;
+
+  AutoSize := false;
+end;
+
+procedure TCastleCollider.CalculateAutoSize;
+begin
+
 end;
 
 constructor TCastleCollider.Create(AOwner: TComponent);
@@ -1031,6 +1076,7 @@ begin
   FUseLocalTransform := false;
   FLocalTransform := TMatrix4.Identity;
   FLocalInverseTransform := TMatrix4.Identity;
+  FAutoSize := true;
 end;
 
 destructor TCastleCollider.Destroy;
@@ -1053,6 +1099,16 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+procedure TCastleCollider.DoAutoSize;
+begin
+  FAutoSizing := true;
+  try
+    CalculateAutoSize;
+  finally
+    FAutoSizing := false;
+  end;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -1073,6 +1129,7 @@ begin
   if not FNormal.Equals(FNormal, AValue) then
   begin
     FNormal := AValue;
+    UpdateAutoSizeProperty;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -1082,6 +1139,7 @@ begin
   if not SameValue(FDistance, AValue) then
   begin
     FDistance := AValue;
+    UpdateAutoSizeProperty;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -1149,6 +1207,7 @@ begin
   if not TVector3.Equals(FSize, AValue) then
   begin
     FSize := AValue;
+    UpdateAutoSizeProperty;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -1170,9 +1229,23 @@ begin
   Result := TKraftShapeBox.Create(APhysics, ARigidBody, VectorToKraft(FSize / 2));
 end;
 
+procedure TCastleBoxCollider.CalculateAutoSize;
+begin
+  inherited;
+
+  if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
+  begin
+    Size := Vector3(1, 1, 1);
+    Exit;
+  end;
+
+  Size := Parent.BoundingBox.Size;
+end;
+
 constructor TCastleBoxCollider.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  Size := Vector3(1.0, 1.0, 1.0);
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -1214,6 +1287,7 @@ begin
   if not SameValue(FRadius, AValue) then
   begin
     FRadius := AValue;
+    UpdateAutoSizeProperty;
     ShapeChangedNotifyRigidBody;
   end;
 end;
@@ -1222,6 +1296,18 @@ function TCastleSphereCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
   Result := TKraftShapeSphere.Create(APhysics, ARigidBody, FRadius);
+end;
+
+procedure TCastleSphereCollider.CalculateAutoSize;
+begin
+  inherited;
+  if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
+  begin
+    Radius := 1;
+    Exit;
+  end;
+
+  Radius := Parent.BoundingBox.SizeX * 0.49;
 end;
 
 function TCastleSphereCollider.PropertySections(const PropertyName: String
