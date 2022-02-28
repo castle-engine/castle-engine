@@ -118,6 +118,7 @@ type
 
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerPhysicsBehaviors(const Player:TCastleScene);
+    procedure ConfigurePlayerPhysicsBehaviorsEditor(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
     procedure PlayerCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
     procedure PlayerCollisionExit(const CollisionDetails: TPhysicsCollisionDetails);
@@ -763,6 +764,19 @@ begin
   Player.AddBehavior(RBody);
   Player.AddBehavior(Collider);
   //Player.AddBehavior(RBody);
+end;
+
+procedure TStatePlay.ConfigurePlayerPhysicsBehaviorsEditor(
+  const Player: TCastleScene);
+var
+  RBody: TCastleRigidBody;
+begin
+  RBody := Player.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if RBody<> nil then
+  begin
+    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
+    RBody.OnCollisionExit := {$ifdef FPC}@{$endif}PlayerCollisionExit;
+  end;
 end;
 
 procedure TStatePlay.ConfigurePlayerAbilities(const Player: TCastleScene);
@@ -1414,6 +1428,9 @@ begin
   if IsPlayerDead then
     Exit;
 
+  if ScenePlayer.RigidBody = nil then
+    Exit;
+
   DeltaVelocity := Vector3(0, 0, 0);
   Vel := ScenePlayer.RigidBody.LinearVelocity;
 
@@ -1872,11 +1889,13 @@ begin
     DeadlyObstacles.Add(DeadlyObstacle);
   end;
 
-  { Configure physics for player }
-  if NewPhysicsBehaviors then
+  { Configure physics for player - done in editor }
+  {if NewPhysicsBehaviors then
     ConfigurePlayerPhysicsBehaviors(ScenePlayer)
   else
-    ConfigurePlayerPhysics(ScenePlayer);
+    ConfigurePlayerPhysics(ScenePlayer);}
+  ConfigurePlayerPhysicsBehaviorsEditor(ScenePlayer);
+
   ConfigurePlayerAbilities(ScenePlayer);
 
   ConfigureBulletSpriteScene;

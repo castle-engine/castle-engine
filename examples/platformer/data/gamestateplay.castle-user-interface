@@ -5096,7 +5096,40 @@
               "Y" : 1.6735386657714844E+002,
               "Z" : 1.0000000000000000E+001
             },
-            "URL" : "castle-data:/player/player.castle-sprite-sheet"
+            "URL" : "castle-data:/player/player.castle-sprite-sheet",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "LockRotation" : [
+                  0,
+                  1,
+                  2
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody1"
+              },
+              {
+                "$$ClassName" : "TCastleCapsuleCollider",
+                "Friction" : 2.5000000000000000E-001,
+                "Height" : 3.8000000000000000E+001,
+                "Mass" : 5.0000000000000000E+001,
+                "Name" : "CapsuleCollider",
+                "Radius" : 3.6000000000000000E+001,
+                "Restitution" : 9.9999997473787516E-005,
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Y" : 1.0000000000000000E+000
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.0000000000000000E+000,
+                  "Y" : 1.0000000000000000E+000,
+                  "Z" : 1.0000000000000000E+000
+                }
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleTransform",
@@ -6215,7 +6248,6 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastle2DNavigation",
-          "Exists" : false,
           "Name" : "Navigation2D1"
         }
       ]
