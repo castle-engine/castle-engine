@@ -4062,43 +4062,16 @@ procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
         Shape.State.AddLight(L);
     end;
 
-    { Add L everywhere within given Radius from Location.
-      Note that this will calculate BoundingBox of every Shape
-      (but that's simply unavoidable if you have scene with VRML 2.0
-      positional lights). }
-    procedure AddLightRadius(const L: TLightInstance;
-      const Location: TVector3; const Radius: Single);
-    var
-      ShapeList: TShapeList;
-      Shape: TShape;
-    begin
-      ShapeList := Shapes.TraverseList(false);
-      for Shape in ShapeList do
-        if Shape.BoundingBox.SphereCollision(Location, Radius) then
-          Shape.State.AddLight(L);
-    end;
-
   var
     I: Integer;
     L: PLightInstance;
-    LNode: TAbstractLightNode;
   begin
     { Here we only deal with light scope = lsGlobal case.
       Other scopes are handled during traversing. }
-
     for I := 0 to InternalGlobalLights.Count - 1 do
     begin
       L := PLightInstance(InternalGlobalLights.Ptr(I));
-      LNode := L^.Node;
-
-      { TODO: for spot lights, it would be an optimization to also limit
-        LightInstances by spot cone size. }
-
-      if (LNode is TAbstractPositionalLightNode) and
-         TAbstractPositionalLightNode(LNode).HasRadius then
-        AddLightRadius(L^, L^.Location, L^.Radius)
-      else
-        AddLightEverywhere(L^);
+      AddLightEverywhere(L^);
     end;
   end;
 
