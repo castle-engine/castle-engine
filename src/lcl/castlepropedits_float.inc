@@ -60,9 +60,6 @@ type
 { TCastleFloatRotationPropertyEditor ----------------------------------------- }
 
 function TCastleFloatRotationPropertyEditor.GetName: ShortString;
-var
-  Anc: TInstProp;
-  EH: TPropertyEditorHook;
 begin
   Result := inherited GetName;
 
