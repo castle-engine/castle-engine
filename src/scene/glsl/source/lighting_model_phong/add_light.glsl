@@ -1,5 +1,5 @@
 /*
-  Copyright 2010-2020 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -101,10 +101,12 @@ void PLUG_add_light(inout vec4 color,
 #ifdef LIGHT<Light>_HAS_BEAM_WIDTH
   /* calculate spot following VRML 2.0/X3D idea of beamWidth */
   float cutOffAngle = castle_LightSource<Light>SpotCutoff;
-  scale *= clamp(
-    (                    acos(spot_cos) - cutOffAngle) /
-    (castle_LightSource<Light>BeamWidth - cutOffAngle),
-    0.0, 1.0);
+  if (castle_LightSource<Light>BeamWidth < cutOffAngle) {
+    scale *= clamp(
+      (                    acos(spot_cos) - cutOffAngle) /
+      (castle_LightSource<Light>BeamWidth - cutOffAngle),
+      0.0, 1.0);
+  }
 #endif
 
 #ifdef LIGHT<Light>_HAS_SPOT_EXPONENT

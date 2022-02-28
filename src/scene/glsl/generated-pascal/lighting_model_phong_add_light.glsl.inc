@@ -1,7 +1,7 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "source/lighting_model_phong/add_light.glsl" }
 '/*' + LineEnding +
-'  Copyright 2010-2020 Michalis Kamburelis.' + LineEnding +
+'  Copyright 2010-2022 Michalis Kamburelis.' + LineEnding +
 '' + LineEnding +
 '  This file is part of "Castle Game Engine".' + LineEnding +
 '' + LineEnding +
@@ -103,10 +103,12 @@
 '#ifdef LIGHT<Light>_HAS_BEAM_WIDTH' + LineEnding +
 '  /* calculate spot following VRML 2.0/X3D idea of beamWidth */' + LineEnding +
 '  float cutOffAngle = castle_LightSource<Light>SpotCutoff;' + LineEnding +
-'  scale *= clamp(' + LineEnding +
-'    (                    acos(spot_cos) - cutOffAngle) /' + LineEnding +
-'    (castle_LightSource<Light>BeamWidth - cutOffAngle),' + LineEnding +
-'    0.0, 1.0);' + LineEnding +
+'  if (castle_LightSource<Light>BeamWidth < cutOffAngle) {' + LineEnding +
+'    scale *= clamp(' + LineEnding +
+'      (                    acos(spot_cos) - cutOffAngle) /' + LineEnding +
+'      (castle_LightSource<Light>BeamWidth - cutOffAngle),' + LineEnding +
+'      0.0, 1.0);' + LineEnding +
+'  }' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_SPOT_EXPONENT' + LineEnding +
