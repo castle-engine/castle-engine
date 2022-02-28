@@ -770,8 +770,9 @@ end;
 function TCastleCapsuleCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Radius') or
-     (PropertyName = 'Height') then
+  if (PropertyName = 'AutoSize') or
+     (PropertyName = 'Height') or
+     (PropertyName = 'Radius') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -1170,7 +1171,8 @@ end;
 function TCastlePlaneCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'NormalPersistent') or
+  if (PropertyName = 'AutoSize') or
+     (PropertyName = 'NormalPersistent') or
      (PropertyName = 'Distance') then
     Result := [psBasic]
   else
@@ -1262,7 +1264,8 @@ end;
 function TCastleBoxCollider.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if PropertyName = 'SizePersistent' then
+  if (PropertyName = 'AutoSize') or
+     (PropertyName = 'SizePersistent') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -1313,7 +1316,8 @@ end;
 function TCastleSphereCollider.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if PropertyName = 'Radius' then
+  if (PropertyName = 'AutoSize') or
+     (PropertyName = 'Radius') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
