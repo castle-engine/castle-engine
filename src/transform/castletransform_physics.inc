@@ -972,6 +972,7 @@ begin
     Exit;
 
   FTranslation := AValue;
+  UpdateAutoSizeProperty;
   UpdateLocalTransform;
 end;
 
@@ -981,6 +982,7 @@ begin
     Exit;
 
   FRotation := AValue;
+  UpdateAutoSizeProperty;
   UpdateLocalTransform;
 end;
 
@@ -990,6 +992,7 @@ begin
     Exit;
 
   FScale := AValue;
+  UpdateAutoSizeProperty;
   UpdateLocalTransform;
 end;
 
