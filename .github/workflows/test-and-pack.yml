@@ -1,16 +1,23 @@
+name: Test and Pack
 on: [push]
-env:
-  CASTLE_ENGINE_PATH: $GITHUB_WORKSPACE
 jobs:
   test-fpclatest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       # We use https://github.com/marketplace/actions/setup-lazarus-environment
       # to setup FPC+Lazarus easily.
       - uses: gcarreno/setup-lazarus@v3.0.16
         with:
           lazarus-version: "stable"
+
+      # Set env CASTLE_ENGINE_PATH following
+      # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
+      # https://brandur.org/fragments/github-actions-env-vars-in-env-vars
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
       - name: Build Tools (FPC Stable)
         run: make clean tools
       - name: Build Examples (FPC Stable)
@@ -31,6 +38,8 @@ jobs:
         with:
           # latest version with FPC 3.2.0 on https://github.com/marketplace/actions/setup-lazarus-environment
           lazarus-version: "2.0.12"
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools (FPC 3.2.0)
         run: make clean tools
       - name: Build Examples (FPC 3.2.0)
@@ -49,6 +58,9 @@ jobs:
       - uses: gcarreno/setup-lazarus@v3.0.16
         with:
           lazarus-version: "stable"
-      # remove previous artifacts
-      - run: rm -f castle-engine*.zip
-      - run: ./tools/internal/pack_release/pack_release.sh
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Remove previous artifacts
+        run: rm -f castle-engine*.zip
+      - name: Pack
+        run: ./tools/internal/pack_release/pack_release.sh
