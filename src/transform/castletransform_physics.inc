@@ -1247,7 +1247,7 @@ end;
 constructor TCastleBoxCollider.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  Size := Vector3(1.0, 1.0, 1.0);
+  FSize := Vector3(1.0, 1.0, 1.0);
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
   {$undef read_implementation_constructor}
