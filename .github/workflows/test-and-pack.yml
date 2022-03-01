@@ -1,6 +1,6 @@
 on: [push]
 env:
-  CASTLE_ENGINE_PATH: ${{ env.GITHUB_WORKSPACE }}
+  CASTLE_ENGINE_PATH: $GITHUB_WORKSPACE
 jobs:
   test-fpclatest:
     runs-on: ubuntu-latest
@@ -11,16 +11,16 @@ jobs:
       - uses: gcarreno/setup-lazarus@v3.0.16
         with:
           lazarus-version: "stable"
-      # Build Tools (Default FPC)
-      - run: make clean tools
-      # Build Examples (Default FPC)
-      - run: make clean examples
-      # Build Examples Using Lazarus (Default FPC/Lazarus)
-      - run: make clean examples-laz
-      # Build And Run Auto-Tests (Default FPC)
-      - run: make clean tests
-      # Build Using FpMake (Default FPC)
-      - run: make clean test-fpmake
+      - name: Build Tools (FPC Stable)
+        run: make clean tools
+      - name: Build Examples (FPC Stable)
+        run: make clean examples
+      - name: Build Examples Using Lazarus (FPC / Lazarus Stable)
+        run: make clean examples-laz
+      - name: Build And Run Auto-Tests (FPC Stable)
+        run: make clean tests
+      - name: Build Using FpMake (FPC Stable)
+        run: make clean test-fpmake
   test-fpc320:
     runs-on: ubuntu-latest
     steps:
@@ -31,11 +31,16 @@ jobs:
         with:
           # latest version with FPC 3.2.0 on https://github.com/marketplace/actions/setup-lazarus-environment
           lazarus-version: "2.0.12"
-      - run: make clean tools
-      - run: make clean examples
-      - run: make clean examples-laz
-      - run: make clean tests
-      - run: make clean test-fpmake
+      - name: Build Tools (FPC 3.2.0)
+        run: make clean tools
+      - name: Build Examples (FPC 3.2.0)
+        run: make clean examples
+      - name: Build Examples Using Lazarus (FPC 3.2.0 / Lazarus 2.0.12)
+        run: make clean examples-laz
+      - name: Build And Run Auto-Tests (FPC 3.2.0)
+        run: make clean tests
+      - name: Build Using FpMake (FPC 3.2.0)
+        run: make clean test-fpmake
   pack:
     needs: [test-fpc320, test-fpclatest]
     runs-on: ubuntu-latest
