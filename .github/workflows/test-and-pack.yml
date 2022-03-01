@@ -1,4 +1,6 @@
 on: [push]
+env:
+  CASTLE_ENGINE_PATH: ${{ env.GITHUB_WORKSPACE }}
 jobs:
   test-fpclatest:
     runs-on: ubuntu-latest
@@ -35,6 +37,7 @@ jobs:
       - run: make clean tests
       - run: make clean test-fpmake
   pack:
+    needs: [test-fpc320, test-fpclatest]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
