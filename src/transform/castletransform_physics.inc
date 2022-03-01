@@ -754,6 +754,8 @@ begin
 end;
 
 procedure TCastleCapsuleCollider.CalculateAutoSize;
+var
+  LocalBoundingBox: TBox3D;
 begin
   inherited;
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
@@ -763,8 +765,15 @@ begin
     Exit;
   end;
 
-  Radius := Parent.BoundingBox.SizeX * 0.49;
-  Height := Max(Parent.BoundingBox.SizeY - FRadius * 2, 0.01);
+
+  LocalBoundingBox := Parent.LocalBoundingBox;
+
+  Translation := LocalBoundingBox.Center;
+  Scale := NoScale;
+  Rotation := Vector4(0, 0, 0, 0);
+
+  Radius := LocalBoundingBox.SizeX * 0.49;
+  Height := Max(LocalBoundingBox.SizeY - Radius * 2, 0.01);
 end;
 
 function TCastleCapsuleCollider.PropertySections(
@@ -1232,6 +1241,8 @@ begin
 end;
 
 procedure TCastleBoxCollider.CalculateAutoSize;
+var
+  LocalBoundingBox: TBox3D;
 begin
   inherited;
 
@@ -1241,7 +1252,12 @@ begin
     Exit;
   end;
 
-  Size := Parent.BoundingBox.Size;
+  LocalBoundingBox := Parent.LocalBoundingBox;
+  Size := LocalBoundingBox.Size;
+
+  Translation := LocalBoundingBox.Center;
+  Scale := NoScale;
+  Rotation := Vector4(0, 0, 0, 0);
 end;
 
 constructor TCastleBoxCollider.Create(AOwner: TComponent);
@@ -1302,6 +1318,8 @@ begin
 end;
 
 procedure TCastleSphereCollider.CalculateAutoSize;
+var
+  LocalBoundingBox: TBox3D;
 begin
   inherited;
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
@@ -1310,7 +1328,12 @@ begin
     Exit;
   end;
 
-  Radius := Parent.BoundingBox.SizeX * 0.49;
+  LocalBoundingBox := Parent.LocalBoundingBox;
+  Radius := LocalBoundingBox.Radius;
+
+  Translation := LocalBoundingBox.Center;
+  Scale := NoScale;
+  Rotation := Vector4(0, 0, 0, 0);
 end;
 
 function TCastleSphereCollider.PropertySections(const PropertyName: String
