@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,8 +17,6 @@
   { Base X3D node that can have some metadata. }
   TAbstractNode = class(TX3DNode)
   strict private
-    procedure InsertMetadata(const M: TAbstractMetadataNode);
-
     function GetMetadataBooleanArray(const Key: String; const Index: Cardinal): Boolean;
     procedure SetMetadataBooleanArray(const Key: String; const Index: Cardinal; const Value: Boolean);
     function GetMetadataStringArray(const Key: String; const Index: Cardinal): String;
@@ -37,6 +35,8 @@
     function GetMetadataDouble(const Key: String): Double;
     procedure SetMetadataDouble(const Key: String; const Value: Double);
   public
+    procedure InternalInsertMetadata(const M: TAbstractMetadataNode);
+
     { Find a "metadata" information within this node with given key.
       Returns @nil if not found.
 
@@ -315,7 +315,7 @@ begin
   {$endif}
 end;
 
-procedure TAbstractNode.InsertMetadata(const M: TAbstractMetadataNode);
+procedure TAbstractNode.InternalInsertMetadata(const M: TAbstractMetadataNode);
 var
   MSet: TMetadataSetNode;
 begin
@@ -362,7 +362,7 @@ begin
   begin
     MB := TMetadataBooleanNode.Create;
     MB.NameField := Key;
-    InsertMetadata(MB);
+    InternalInsertMetadata(MB);
   end else
   begin
     if not (M is TMetadataBooleanNode) then
@@ -403,7 +403,7 @@ begin
   begin
     MB := TMetadataStringNode.Create;
     MB.NameField := Key;
-    InsertMetadata(MB);
+    InternalInsertMetadata(MB);
   end else
   begin
     if not (M is TMetadataStringNode) then
@@ -444,7 +444,7 @@ begin
   begin
     MB := TMetadataIntegerNode.Create;
     MB.NameField := Key;
-    InsertMetadata(MB);
+    InternalInsertMetadata(MB);
   end else
   begin
     if not (M is TMetadataIntegerNode) then
@@ -495,7 +495,7 @@ begin
   begin
     M := TMetadataDoubleNode.Create;
     M.NameField := Key;
-    InsertMetadata(M);
+    InternalInsertMetadata(M);
   end;
 
   if M is TMetadataFloatNode then
