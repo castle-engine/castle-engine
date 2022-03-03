@@ -39,6 +39,7 @@ type
     procedure SetIntensity(const Value: Single);
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Light color shining over surface. By default white. }
@@ -113,6 +114,14 @@ begin
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastledirectionallight_persistent_vectors.inc}
   {$undef read_implementation_constructor}
+end;
+
+destructor TCastleDirectionalLight.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastledirectionallight_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
 end;
 
 function TCastleDirectionalLight.PropertySections(const PropertyName: String): TPropertySections;
