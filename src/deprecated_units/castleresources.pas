@@ -915,8 +915,13 @@ destructor T3DResource.Destroy;
 begin
   FPrepared := false;
   ReleaseCore;
-  FreeAndNil(FAnimations);
   inherited;
+  { Freeing FAnimations *after* inherited is necessary,
+    because inherited notifies all TResourceFrame about freeing of related T3DResource instance.
+    At the point of that notification, TResourceFrame may assume that referenced FAnimation
+    still exists.
+    Testcase: just run and close fps_game. }
+  FreeAndNil(FAnimations);
 end;
 
 function T3DResource.CreateSceneForPool(const Params: TPrepareParams): TCastleScene;
