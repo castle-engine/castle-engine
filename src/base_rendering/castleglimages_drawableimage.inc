@@ -1317,13 +1317,6 @@ begin
   Draw(ScreenRect, ImageRect);
 end;
 
-{$ifdef FPC}
-  {$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
-    {$optimization OFF}
-    {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (begin)}
-  {$endif}
-{$endif}
-
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
   const CornerTop, CornerRight, CornerBottom, CornerLeft: Single);
 var
@@ -1433,16 +1426,6 @@ begin
 
   UseScreenRotationCenter := false;
 end;
-
-{ Turn optimizations back on.
-  FPC $push / $pop unfortunately doesn't save/restore optimization level,
-  so we restore it if -dBUGGY_AARCH64_OPTIMIZATIONS. }
-{$ifdef FPC}
-  {$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
-    {$optimization ON}
-    {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (end)}
-  {$endif}
-{$endif}
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
   const Corner: TVector4Integer);

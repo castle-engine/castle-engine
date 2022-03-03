@@ -808,12 +808,12 @@ begin
   Dialog := TColorDialog.Create(nil);
   try
     ColorByte := Vector3Byte(Color);
-    Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
+    Dialog.Color := RGBToColor(ColorByte.X, ColorByte.Y, ColorByte.Z);
     ReleaseAllKeysAndMouse; // do it manually
     Result := Dialog.Execute;
     if Result then
     begin
-      RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
+      RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
       Color := Vector3(ColorByte);
     end;
   finally FreeAndNil(Dialog) end;

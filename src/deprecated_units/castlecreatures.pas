@@ -1186,9 +1186,11 @@ begin
   Result.SetView(APosition, ADirection, RootTransform.GravityUp, FlexibleUp);
   Result.Life := MaxLife;
   Result.KnockBackSpeed := KnockBackSpeed;
+  {$warnings off} // using deprecated in deprecated
   Result.Gravity := not Flying;
   Result.FallSpeed := FallSpeed;
   Result.GrowSpeed := GrowSpeed;
+  {$warnings on}
   Result.CastShadowVolumes := CastShadowVolumes;
   Result.MiddleHeight := MiddleHeight;
   Scale := RandomFloatRange(ScaleMin, ScaleMax);
@@ -1425,7 +1427,9 @@ begin
     MiddleHeight, so MiddleHeight is always between bounding box bottom and top
     for missiles. See TCastleTransform.MiddleHeight. }
 
+  {$warnings off} // using deprecated in deprecated
   Result.Gravity := false;
+  {$warnings on}
 end;
 
 function TMissileCreatureResource.RadiusCalculate(const GravityUp: TVector3): Single;
@@ -1865,7 +1869,9 @@ var
   begin
     { calculate DirectionToTarget }
     DirectionToTarget := Target - Middle;
+    {$warnings off} // using deprecated in deprecated
     if Gravity then
+    {$warnings on}
       MakeVectorsOrthoOnTheirPlane(DirectionToTarget, World.GravityUp);
 
     { calculate AngleBetweenDirectionToTarget }
@@ -1915,7 +1921,9 @@ var
         TVector3.CrossProduct(Direction, DirectionToTarget));
 
       { Make sure direction for non-flying creatures is orthogonal to GravityUp. }
+      {$warnings off} // using deprecated in deprecated
       if Gravity then
+      {$warnings on}
         MakeVectorsOrthoOnTheirPlane(NewDirection, World.GravityUp);
       Direction := NewDirection;
     end;
@@ -1927,8 +1935,11 @@ var
   var
     SqrDistanceToTarget: Single;
   begin
+    {$warnings off} // using deprecated in deprecated
     if not Gravity then
-      SqrDistanceToTarget := PointsDistanceSqr(Middle, Target) else
+      SqrDistanceToTarget := PointsDistanceSqr(Middle, Target)
+    {$warnings on}
+    else
       SqrDistanceToTarget := PointsDistance2DSqr(Middle, Target, World.GravityCoordinate);
     Result :=
       { If creature is ideally at the target
@@ -2049,7 +2060,9 @@ var
       where creature can reliably move. Creature that cannot fly cannot
       move in gravity (UpIndex) direction. }
     for I := 0 to 2 do
+      {$warnings off} // using deprecated in deprecated
       if (not Gravity) or (I <> World.GravityCoordinate) then
+      {$warnings on}
         AlternativeTarget.InternalData[I] := AlternativeTarget.InternalData[I] + (Random * Distance * 2 - Distance);
 
     HasAlternativeTarget := true;
@@ -2086,7 +2099,9 @@ var
         SetState(csWalk);
         Result := false;
       end else
+      {$warnings off} // using deprecated in deprecated
       if Gravity and
+      {$warnings on}
          (AngleBetweenDirectionToEnemy < 0.01) and
          BoundingBox.Contains2D(LastSensedEnemy, World.GravityCoordinate) then
       begin
@@ -2132,10 +2147,14 @@ var
         AboveHeight: Single;
       begin
         Result := false;
+        {$warnings off} // using deprecated in deprecated
         if Gravity then
+        {$warnings on}
         begin
           Height(NewMiddle, AboveHeight);
+          {$warnings off} // using deprecated in deprecated
           if AboveHeight > Resource.MaxHeightAcceptableToFall + PreferredHeight then
+          {$warnings on}
             Result := true;
         end;
       end;
@@ -2528,7 +2547,9 @@ begin
 
     For non-flying, this is not needed, as then Up should always remain equal
     to initial value, which is GravityUp. }
+  {$warnings off} // using deprecated in deprecated
   if not Gravity then
+  {$warnings on}
     UpPrefer(World.GravityUp);
 
   UpdateDebugTransform;

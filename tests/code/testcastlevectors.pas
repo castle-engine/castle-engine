@@ -58,6 +58,7 @@ type
     procedure TestMakeVectorOrthogonal;
     procedure TestEpsilonInModelViewToNormalMatrix;
     procedure TestInit;
+    procedure TestRotationZeroAxis;
   end;
 
 function RandomVector: TVector3;
@@ -1143,6 +1144,22 @@ begin
 
   V2.Init(111, 222);
   AssertVectorEquals(Vector2(111, 222), V2);
+end;
+
+procedure TTestCastleVectors.TestRotationZeroAxis;
+var
+  T: TTransformation;
+begin
+  T.Init;
+  T.Multiply(
+    Vector4(0, 0, 0, Pi/2),
+    Vector3(1, 1, 1),
+    Vector3(0, 0, 0)
+  );
+  AssertMatrixEquals(T.Transform, TMatrix4.Identity);
+  AssertMatrixEquals(T.InverseTransform, TMatrix4.Identity);
+  AssertSameValue(1, T.Scale);
+  AssertTrue(T.UniformScale);
 end;
 
 initialization

@@ -490,10 +490,8 @@ function PointOnLineClosestToLine(
 
 { Functions to create common 4x4 matrices used in 3D graphics.
 
-  These functions generate the same matrices that are made by corresponding
-  OpenGL (gl or glu) functions. So rotations will be generated in the same
-  fashion, etc. For exact specification of what matrices they create see
-  OpenGL specification for routines glTranslate, glScale, glRotate.
+  These functions generate the same matrices as old OpenGL fixed-function was using.
+  They work in right-handed coordinate system, just like X3D, glTF and OpenGL.
 
   Functions named Matrices below generate both normal and inverted matrices.
   For example, function RotationMatrices returns two matrices that you
@@ -695,6 +693,8 @@ function ScalingMatrix(const ScaleFactor: TVector3): TMatrix4;
 procedure ScalingMatrices(const ScaleFactor: TVector3;
   InvertedMatrixIdentityIfNotExists: boolean;
   out Matrix, InvertedMatrix: TMatrix4);
+
+function RotationMatrix(const AxisAngle: TVector4): TMatrix4; overload;
 
 function RotationMatrixRad(const AngleRad: Single; const Axis: TVector3): TMatrix4; overload;
 function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3): TMatrix4; overload; deprecated 'use radians for everything throughout CGE';
@@ -2584,14 +2584,35 @@ begin
   end;
 end;
 
+function RotationMatrix(const AxisAngle: TVector4): TMatrix4;
+var
+  Axis: TVector3 absolute AxisAngle;
+begin
+  Result := RotationMatrixRad(AxisAngle.W, Axis);
+end;
+
 function RotationMatrixRad(const AngleRad: Single;
   const Axis: TVector3): TMatrix4;
 var
   NormAxis: TVector3;
   AngleSin, AngleCos: Float;
-  S, C: Single;
+  AxisLen, S, C: Single;
 begin
-  NormAxis := Axis.Normalize;
+  // NormAxis := Axis.Normalize;
+  { Instead of calling Axis.Normalize, we do normalization here.
+    This way we can react nicer (for zero additional cost) to Axis being
+    exactly zero (which is an easy mistake to make e.g. when editing Rotation
+    in CGE editor).
+    We'll return an identity matrix instead of invalid matrix
+    that would likely make transformed model invisible.
+    We still don't officially tolerate such Axis value. }
+  AxisLen := Axis.Length;
+  if AxisLen = 0 then
+    Exit(TMatrix4.Identity);
+  AxisLen := 1 / AxisLen;
+  NormAxis.X := Axis.X * AxisLen;
+  NormAxis.Y := Axis.Y * AxisLen;
+  NormAxis.Z := Axis.Z * AxisLen;
 
   SinCos(AngleRad, AngleSin, AngleCos);
   { convert Float to Single once }
@@ -2646,9 +2667,27 @@ var
   NormAxis: TVector3;
   V: Single;
   AngleSin, AngleCos: Float;
-  S, C: Single;
+  AxisLen, S, C: Single;
 begin
-  NormAxis := Axis.Normalize;
+  // NormAxis := Axis.Normalize;
+  { Instead of calling Axis.Normalize, we do normalization here.
+    This way we can react nicer (for zero additional cost) to Axis being
+    exactly zero (which is an easy mistake to make e.g. when editing Rotation
+    in CGE editor).
+    We'll return an identity matrix instead of invalid matrix
+    that would likely make transformed model invisible.
+    We still don't officially tolerate such Axis value. }
+  AxisLen := Axis.Length;
+  if AxisLen = 0 then
+  begin
+    Matrix := TMatrix4.Identity;
+    InvertedMatrix := TMatrix4.Identity;
+    Exit;
+  end;
+  AxisLen := 1 / AxisLen;
+  NormAxis.X := Axis.X * AxisLen;
+  NormAxis.Y := Axis.Y * AxisLen;
+  NormAxis.Z := Axis.Z * AxisLen;
 
   SinCos(AngleRad, AngleSin, AngleCos);
   { convert Float to Single once }

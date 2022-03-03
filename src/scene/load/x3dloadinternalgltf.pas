@@ -76,7 +76,7 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
         it processes all mesh positions each frame.
         This is unoptimal, as glTF skinning can be done on GPU, with much smaller runtime cost.
 
-  - See https://castle-engine.io/planned_features.php .
+  - See https://castle-engine.io/roadmap .
 }
 
 { Convert simple types ------------------------------------------------------- }
@@ -769,7 +769,8 @@ begin
     And Blender can indeed set it to a very large value, like 1000,
     see castle-engine/examples/fps_game/data/example_level/ .
     This is not a problem for CGE,
-    so we just ignore the X3D specification limit of intensity in [0..1]. }
+    and X3D >= 4.0 also allows any large intensity.
+    (only X3D 3 and VRML limited it to [0..1] range). }
   Light.Intensity := TPasJSON.GetNumber(LightObject.Properties['intensity'], 1);
   Light.Color := ReadColor(LightObject.Properties['color'], WhiteRGB);
 
@@ -892,12 +893,123 @@ var
       WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
   end;
 
+  { Read glTF "extras" item, with given key and value (JSON array), into X3D "metadata" information. }
+  procedure ReadMetadataKeyValueFromArray(const Key: String; const JsonArray: TPasJSONItemArray; const Node: TAbstractNode);
+  var
+    J: Integer;
+  begin
+    if JsonArray.Count > 0 then // we ignore empty arrays, as their metadata type is unknown
+    begin
+      if JsonArray[0] is TPasJSONItemString then
+      begin
+        Node.MetadataStringArray[Key, JsonArray.Count - 1] := ''; // set array size
+        for J := 0 to JsonArray.Count - 1 do
+        begin
+          if not (JsonArray[J] is TPasJSONItemString) then
+          begin
+            WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
+              Key,
+              J
+            ]);
+            Continue;
+          end;
+          Node.MetadataStringArray[Key, J] := (JsonArray[J] as TPasJSONItemString).Value;
+        end;
+      end else
+      if JsonArray[0] is TPasJSONItemBoolean then
+      begin
+        Node.MetadataBooleanArray[Key, JsonArray.Count - 1] := false; // set array size
+        for J := 0 to JsonArray.Count - 1 do
+        begin
+          if not (JsonArray[J] is TPasJSONItemBoolean) then
+          begin
+            WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
+              Key,
+              J
+            ]);
+            Continue;
+          end;
+          Node.MetadataBooleanArray[Key, J] := (JsonArray[J] as TPasJSONItemBoolean).Value;
+        end;
+      end else
+      if JsonArray[0] is TPasJSONItemNumber then
+      begin
+        Node.MetadataDoubleArray[Key, JsonArray.Count - 1] := 0; ; // set array size
+        for J := 0 to JsonArray.Count - 1 do
+        begin
+          if not (JsonArray[J] is TPasJSONItemNumber) then
+          begin
+            WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
+              Key,
+              J
+            ]);
+            Continue;
+          end;
+          Node.MetadataDoubleArray[Key, J] := (JsonArray[J] as TPasJSONItemNumber).Value;
+        end;
+      end else
+      begin
+        WritelnWarning('Cannot read glTF extra "%s", unexpected type inside array %s', [
+          Key,
+          JsonArray[0].ClassName
+        ]);
+      end;
+    end;
+  end;
+
+  { Read glTF "extras" item, with given key and value (JSON object), into X3D "metadata" information.
+    Testcase: https://github.com/KhronosGroup/3DC-Certification/tree/main/models/AnalyticalCubes }
+  procedure ReadMetadataKeyValueFromObject(const Key: String; const JsonObject: TPasJSONItemObject; const Node: TAbstractNode);
+  var
+    MetadataSet: TMetadataSetNode;
+    StrNode: TMetadataStringNode;
+    BoolNode: TMetadataBooleanNode;
+    DoubleNode: TMetadataDoubleNode;
+    I: Integer;
+  begin
+    { TODO: It would be better to use recursion here to do read metadata. }
+    MetadataSet := TMetadataSetNode.Create;
+    MetadataSet.NameField := Key;
+    Node.InternalInsertMetadata(MetadataSet);
+
+    for I := 0 to JsonObject.Count - 1 do
+    begin
+      if JsonObject.Values[I] is TPasJSONItemString then
+      begin
+        StrNode := TMetadataStringNode.Create;
+        StrNode.NameField := JsonObject.Keys[I];
+        StrNode.SetValue([TPasJSONItemString(JsonObject.Values[I]).Value]);
+        MetadataSet.FdValue.Add(StrNode);
+      end else
+      if JsonObject.Values[I] is TPasJSONItemBoolean then
+      begin
+        BoolNode := TMetadataBooleanNode.Create;
+        BoolNode.NameField := JsonObject.Keys[I];
+        BoolNode.SetValue([TPasJSONItemBoolean(JsonObject.Values[I]).Value]);
+        MetadataSet.FdValue.Add(BoolNode);
+      end else
+      if JsonObject.Values[I] is TPasJSONItemNumber then
+      begin
+        DoubleNode := TMetadataDoubleNode.Create;
+        DoubleNode.NameField := JsonObject.Keys[I];
+        DoubleNode.SetValue([TPasJSONItemNumber(JsonObject.Values[I]).Value]);
+        MetadataSet.FdValue.Add(DoubleNode);
+      end else
+      begin
+        WritelnWarning('Cannot read glTF object "%s" inside extra metadata, field "%s", unhandled type %s', [
+          Key,
+          JsonObject.Keys[I],
+          JsonObject.Values[I].ClassName
+        ]);
+      end;
+    end;
+  end;
+
   { Read glTF "extras" into X3D "metadata" information. }
   procedure ReadMetadata(const Extras: TPasJSONItemObject; const Node: TAbstractNode);
   var
-    I, J: Integer;
+    I: Integer;
     Key: String;
-    JsonArray: TPasJSONItemArray;
   begin
     for I := 0 to Extras.Count - 1 do
     begin
@@ -912,66 +1024,11 @@ var
         Node.MetadataDouble[Key] := TPasJSONItemNumber(Extras.Values[I]).Value
       else
       if Extras.Values[I] is TPasJSONItemArray then
-      begin
-        JsonArray := TPasJSONItemArray(Extras.Values[I]);
-        if JsonArray.Count > 0 then // we ignore empty arrays, as their metadata type is unknown
-        begin
-          if JsonArray[0] is TPasJSONItemString then
-          begin
-            Node.MetadataStringArray[Key, JsonArray.Count - 1] := ''; // set array size
-            for J := 0 to JsonArray.Count - 1 do
-            begin
-              if not (JsonArray[J] is TPasJSONItemString) then
-              begin
-                WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
-                  Key,
-                  J
-                ]);
-                Continue;
-              end;
-              Node.MetadataStringArray[Key, J] := (JsonArray[J] as TPasJSONItemString).Value;
-            end;
-          end else
-          if JsonArray[0] is TPasJSONItemBoolean then
-          begin
-            Node.MetadataBooleanArray[Key, JsonArray.Count - 1] := false; // set array size
-            for J := 0 to JsonArray.Count - 1 do
-            begin
-              if not (JsonArray[J] is TPasJSONItemBoolean) then
-              begin
-                WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
-                  Key,
-                  J
-                ]);
-                Continue;
-              end;
-              Node.MetadataBooleanArray[Key, J] := (JsonArray[J] as TPasJSONItemBoolean).Value;
-            end;
-          end else
-          if JsonArray[0] is TPasJSONItemNumber then
-          begin
-            Node.MetadataDoubleArray[Key, JsonArray.Count - 1] := 0; ; // set array size
-            for J := 0 to JsonArray.Count - 1 do
-            begin
-              if not (JsonArray[J] is TPasJSONItemNumber) then
-              begin
-                WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
-                  Key,
-                  J
-                ]);
-                Continue;
-              end;
-              Node.MetadataDoubleArray[Key, J] := (JsonArray[J] as TPasJSONItemNumber).Value;
-            end;
-          end else
-          begin
-            WritelnWarning('Cannot read glTF extra "%s", unexpected type inside array %s', [
-              Key,
-              JsonArray[0].ClassName
-            ]);
-          end;
-        end;
-      end else
+        ReadMetadataKeyValueFromArray(Key, TPasJSONItemArray(Extras.Values[I]), Node)
+      else
+      if Extras.Values[I] is TPasJSONItemObject then
+        ReadMetadataKeyValueFromObject(Key, TPasJSONItemObject(Extras.Values[I]), Node)
+      else
       begin
         WritelnWarning('Cannot read glTF extra "%s", unexpected type %s', [
           Key,

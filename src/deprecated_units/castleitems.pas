@@ -21,12 +21,14 @@ unit CastleItems
 
 interface
 
+{$warnings off} // using deprecated in deprecated
 uses Generics.Collections,
   CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
   CastleResources, CastleGLImages, CastleTimeUtils,
   CastleXMLConfig, CastleSoundEngine, CastleFrustum,
   CastleTransformExtra, CastleTransform, CastleColors, CastleDebugTransform;
+{$warnings on}
 
 type
   TInventoryItem = class;
@@ -619,8 +621,10 @@ type
 
 implementation
 
+{$warnings off} // using deprecated in deprecated
 uses SysUtils, Math,
   CastleFilesUtils, CastlePlayer, CastleGameNotifications, CastleConfig, CastleCreatures;
+{$warnings on}
 
 { TItemResource ------------------------------------------------------------ }
 
@@ -809,9 +813,11 @@ begin
   FOwner3D := Result;
   Result.Orientation := Resource.Orientation; // must be set before SetView
   Result.SetView(APosition, AnyOrthogonalVector(RootTransform.GravityUp), RootTransform.GravityUp);
+  {$warnings off} // using deprecated in deprecated
   Result.Gravity := true;
   Result.FallSpeed := Resource.FallSpeed;
   Result.GrowSpeed := Resource.GrowSpeed;
+  {$warnings on}
   Result.CastShadowVolumes := Resource.CastShadowVolumes;
 
   ALevel.ItemsRoot.Add(Result);
@@ -1257,7 +1263,9 @@ begin
   inherited Create(AOwner);
 
   CollidesWithMoving := true;
+  {$warnings off} // using deprecated in deprecated
   Gravity := true;
+  {$warnings on}
 
   FDebugTransform := TItemDebugTransform.Create(Self);
   FDebugTransform.Parent := Self;
@@ -1399,9 +1407,11 @@ function TAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
       prevent putting item "inside the ground", but the item
       would be too close to the player --- he could pick it up
       immediately. }
+    {$warnings off} // using deprecated in deprecated
     DropTranslation := Translation +
       DirectionInGravityPlane *
         (0.6 * (PreferredHeight * Sqrt3 + ItemBox.Diagonal));
+    {$warnings on}
 
     { Now check is DropTranslation actually possible
       (i.e. check collisions item<->everything).

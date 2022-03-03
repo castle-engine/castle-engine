@@ -85,6 +85,15 @@
     FKraftShape: TKraftShape;
     FParent: TRigidBody;
     FDensity, FMass, FRestitution, FFriction: Single;
+    { When @false, behave as if Translation/Rotation/Scale/FLocalTransform/FLocalInverseTransform
+      were all "identity", i.e. "no transformation".
+      This is an often case, so we want to optimize it. }
+    FUseLocalTransform: Boolean;
+    FLocalTransform: TMatrix4;
+    FLocalInverseTransform: TMatrix4;
+    FTranslation: TVector3;
+    FRotation: TVector4;
+    FScale: TVector3;
     procedure InitializeKraft(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody);
   strict protected
@@ -130,6 +139,21 @@
       {$ifdef FPC}default DefaultRestitution{$endif};
     property Friction: Single read FFriction write FFriction
       {$ifdef FPC}default DefaultFriction{$endif};
+
+    { Local translation applied to the collider shape.
+      Note: These properties may disappear soon from TCollider,
+      and will only be in new (similar but not 100% compatible) TCastleCollider. }
+    property Translation: TVector3 read FTranslation write FTranslation; {$ifdef FPC}experimental;{$endif}
+
+    { Local rotation applied to the collider shape.
+      Note: These properties may disappear soon from TCollider,
+      and will only be in new (similar but not 100% compatible) TCastleCollider. }
+    property Rotation: TVector4 read FRotation write FRotation; {$ifdef FPC}experimental;{$endif}
+
+    { Local scale applied to the collider shape.
+      Note: These properties may disappear soon from TCollider,
+      and will only be in new (similar but not 100% compatible) TCastleCollider. }
+    property Scale: TVector3 read FScale write FScale; {$ifdef FPC}experimental;{$endif}
   end;
 
   { Collide as an infinite plane.
@@ -349,7 +373,12 @@
           They are under the control of the physics engine.
           You can still reliably read them.
 
-          Also, the value @link(Animated) is ignored in this case.
+          Keep @link(Animated) as @false in this case.
+          Right now, @link(Animated) doesn't actually matter when @name is @true,
+          but don't depend on it.
+          In the future, we may enable to set @link(Animated)
+          to @true, to allow you to explicitly transform objects that are still
+          under control of physics.
         )
 
         @itemLabel false
@@ -555,6 +584,12 @@ begin
   FMass := DefaultMass;
   FRestitution := DefaultRestitution;
   FFriction := DefaultFriction;
+  FScale := NoScale;
+
+  { Will be updated in TCollider.InitializeKraft to reflect FKraftShape.LocalTransform }
+  FUseLocalTransform := false;
+  FLocalTransform := TMatrix4.Identity;
+  FLocalInverseTransform := TMatrix4.Identity;
 
   FParent := AParent;
   FreeAndNil(FParent.FCollider);
@@ -563,6 +598,8 @@ end;
 
 procedure TCollider.InitializeKraft(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody);
+var
+  T: TTransformation;
 begin
   // FreeAndNil(FKraftShape); // do not free here, TKraftShape is owned by TKraftRigidBody
   FKraftShape := CreateKraftShape(APhysics, ARigidBody);
@@ -572,6 +609,25 @@ begin
   FKraftShape.Friction := Friction;
   if not FParent.Exists then
     FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
+
+  FUseLocalTransform := not (
+    FTranslation.IsPerfectlyZero and
+    (FRotation.W = 0) and
+    TVector3.PerfectlyEquals(FScale, NoScale)
+  );
+  if FUseLocalTransform then
+  begin
+    { initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
+    T.Init;
+    {$warnings off} // Rotation, Scale, Translation will move to new TCastleCollider, where they will not be experimental
+    T.Multiply(Rotation, Scale, Translation);
+    {$warnings on}
+    FLocalTransform := T.Transform;
+    FLocalInverseTransform := T.InverseTransform;
+    FKraftShape.LocalTransform := MatrixToKraft(FLocalTransform);
+  end;
+  { Do not bother updating FLocalTransform, FLocalInverseTransform otherwise,
+    their value can stay undefined. }
 end;
 
 destructor TCollider.Destroy;
@@ -1018,6 +1074,8 @@ procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPass
 
     LocalTransform := Transform.CheckParent.WorldInverseTransform *
       MatrixFromKraft(Shape.InterpolatedWorldTransform);
+    if FCollider.FUseLocalTransform then
+      LocalTransform := LocalTransform * FCollider.FLocalInverseTransform;
 
     MatrixDecompose(LocalTransform, Translation, Rotation, Scale);
     Transform.Rotation := Rotation;

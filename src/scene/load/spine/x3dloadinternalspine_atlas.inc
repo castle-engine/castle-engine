@@ -45,6 +45,7 @@ type
   TAtlasPage = class
   public
     TextureURL: string;
+    PMA: String;
     Format: string;
     Filter: string; //< a value allowed by TextureProperties.MinificationFilter and MagnificationFilter
     IsRepeat: boolean;
@@ -461,6 +462,7 @@ begin
         if IsNameValueFilter(Line, 'filter', Page.Filter) then else
         if IsNameValueRepeat(Line, 'repeat', Page.IsRepeat) then else
         if IsNameValueSingle(Line, 'scale', Page.Scale) then else
+        if IsNameValueString(Line, 'pma', Page.PMA) then else // We ignore pma
         if IsNameValueVector2Integer(Line, 'size', Page.Size) then else
         if Pos(':', Line) <> 0 then
           raise ESpineReadError.CreateFmt('Unhandled name:value pair (outside region) "%s"', [Line]) else
