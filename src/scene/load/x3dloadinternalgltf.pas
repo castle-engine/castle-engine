@@ -1769,6 +1769,7 @@ var
     begin
       OrthoViewpoint := TOrthoViewpointNode.Create;
       OrthoViewpoint.X3DName := Camera.Name;
+      OrthoViewpoint.Position := TVector3.Zero;
       if CastleX3dExtensions then
         OrthoViewpoint.GravityTransform := false;
       ParentGroup.AddChildren(OrthoViewpoint);
@@ -1778,8 +1779,9 @@ var
     begin
       Viewpoint := TViewpointNode.Create;
       Viewpoint.X3DName := Camera.Name;
+      Viewpoint.Position := TVector3.Zero;
       if Camera.Perspective.YFov <> 0 then
-        Viewpoint.FieldOfView := Camera.Perspective.YFov / 2;
+        Viewpoint.FieldOfView := Camera.Perspective.YFov;
       if CastleX3dExtensions then
         Viewpoint.GravityTransform := false;
       ParentGroup.AddChildren(Viewpoint);
