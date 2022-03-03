@@ -1331,7 +1331,7 @@ begin
   Result := FResources;
 end;
 
-initialization // Empty but Delphi need that
+initialization // Empty but Delphi needs this
 
 finalization
   UnitFinalization := true;

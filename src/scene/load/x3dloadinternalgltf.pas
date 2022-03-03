@@ -769,7 +769,8 @@ begin
     And Blender can indeed set it to a very large value, like 1000,
     see castle-engine/examples/fps_game/data/example_level/ .
     This is not a problem for CGE,
-    so we just ignore the X3D specification limit of intensity in [0..1]. }
+    and X3D >= 4.0 also allows any large intensity.
+    (only X3D 3 and VRML limited it to [0..1] range). }
   Light.Intensity := TPasJSON.GetNumber(LightObject.Properties['intensity'], 1);
   Light.Color := ReadColor(LightObject.Properties['color'], WhiteRGB);
 
