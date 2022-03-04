@@ -22,6 +22,10 @@ unit CastleScene;
   This is OK. }
 {$ifndef FPC}{$warn HIDING_MEMBER off}{$endif}
 
+{ By default, we don't define TCastleEnvironmentLight -- implementation is not finished yet
+  (neither of TCastleEnvironmentLight, nor of underlying TEnvironmentLightNode). }
+{.$define CASTLE_EXPERIMENTAL_ENVIRONMENT_LIGHT}
+
 interface
 
 uses SysUtils, Classes, Generics.Collections,
@@ -589,7 +593,9 @@ const
 {$I castlescene_pointlight.inc}
 {$I castlescene_directionallight.inc}
 {$I castlescene_spotlight.inc}
-{$I castlescene_environmentlight.inc}
+{$ifdef CASTLE_EXPERIMENTAL_ENVIRONMENT_LIGHT}
+  {$I castlescene_environmentlight.inc}
+{$endif}
 {$undef read_interface}
 
 implementation
@@ -614,7 +620,9 @@ uses Math,
 {$I castlescene_pointlight.inc}
 {$I castlescene_directionallight.inc}
 {$I castlescene_spotlight.inc}
-{$I castlescene_environmentlight.inc}
+{$ifdef CASTLE_EXPERIMENTAL_ENVIRONMENT_LIGHT}
+  {$I castlescene_environmentlight.inc}
+{$endif}
 {$undef read_implementation}
 
 { TGLSceneShape -------------------------------------------------------------- }
@@ -2341,7 +2349,9 @@ initialization
   RegisterSerializableComponent(TCastlePointLight, 'Point Light');
   RegisterSerializableComponent(TCastleDirectionalLight, 'Directional Light');
   RegisterSerializableComponent(TCastleSpotLight, 'Spot Light');
-  RegisterSerializableComponent(TCastleEnvironmentLight, 'Environment Light');
+  {$ifdef CASTLE_EXPERIMENTAL_ENVIRONMENT_LIGHT}
+  RegisterSerializableComponent(TCastleEnvironmentLight, 'Environment Light (Experimental)');
+  {$endif}
 finalization
   GLContextCache.FreeWhenEmpty(@GLContextCache);
 end.
