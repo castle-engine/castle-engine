@@ -97,8 +97,8 @@ type
       DefaultPointSize = 3.0;
       DefaultLineWidth = 2.0;
       DefaultBumpMapping = bmSteepParallaxShadowing;
-      DefaultPhongShading = false;
-      DefaultMaxLightsPerShape = 8;
+      DefaultPhongShading = true;
+      DefaultMaxLightsPerShape = 64;
 
       { }
       DefaultBlendingSourceFactor = bsSrcAlpha;
@@ -442,17 +442,19 @@ type
       default DefaultShadowSampling;
 
     { For efficiency reasons, we only allow a finite number of lights that can affect
-      the given shape. You can increase this number if necessary.
+      the given shape.
 
-      Note that, instead of increasing this limit,
-      you can sometimes adjust your models to fit within this limit.
-      Do this using light source radius and/or scope (e.g. you can use "radius" in Blender,
+      You can increase this number if necessary,
+      although note that it is alreday quite large by default.
+      Instead of increasing this limit,
+      it is always more efficient to design your scenes to fit within this limit.
+      Use the light source radius and/or scope (e.g. you can use "radius" in Blender,
       it is exported OK to glTF), and make smaller shapes.
 
       Note that on ancient dekstops, with fixed-function OpenGL pipeline,
       there is an additional hard limit (dependent on GPU, but usually 8, for this).
-      But on modern desktops, as well as mobile and other platforms, you can increase this limit
-      freely. }
+      But on modern desktops, as well as mobile and other platforms,
+      you can increase this limit freely. }
     property MaxLightsPerShape: Cardinal
       read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
 
