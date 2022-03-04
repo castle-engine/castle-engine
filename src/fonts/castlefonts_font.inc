@@ -63,10 +63,10 @@ type
 
     constructor Create(const URL: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      const ACharacters: TUnicodeCharList = nil); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then Load';
+      const ACharacters: TUnicodeCharList = nil); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then assign properties to load font: OptimalSize, LoadCharacters, AntiAliased, URL';
     constructor Create(const URL: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      const ACharacters: TSetOfChars); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then Load';
+      const ACharacters: TSetOfChars); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then assign properties to load font: OptimalSize, LoadCharacters, AntiAliased, URL';
 
     { Load by reading a FreeType font file, like ttf.
 
