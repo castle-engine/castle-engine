@@ -43,9 +43,13 @@
 
   { Collide as a mesh, constructed from the given scene shapes.
     Add this behavior to your Scene }
+
+  { TCastleMeshCollider }
+
   TCastleMeshCollider = class(TCastleCollider)
   strict private
     Mesh: TKraftMesh;
+    FScene: TCastleSceneCore;
     procedure AddTriangle(Shape: TObject;
       const Position: TTriangle3;
       const Normal: TTriangle3; const TexCoord: TTriangle4;
@@ -53,7 +57,8 @@
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-  public
+      procedure SetScene(const AValue: TCastleSceneCore);
+  published
     { Mesh which is used to collide.
       It does not have to be convex.
 
@@ -62,7 +67,7 @@
       Using the TCollisionNode inside Scene matters (so the scene may collide
       as something different than it's visible, see
       https://castle-engine.io/x3d_implementation_navigation.php ). }
-    Scene: TCastleSceneCore;
+    property Scene: TCastleSceneCore read FScene write SetScene;
   end;
 
 (*
@@ -179,21 +184,32 @@ var
   ShapesList: TShapeList;
   I: Integer;
 begin
-  if Scene = nil then
-    raise Exception.Create('You must assign a TMeshCollider.Scene to determine the mesh triangles');
+  //raise Exception.Create('You must assign a TCastleMeshCollider.Scene to determine the mesh triangles');
 
   Mesh := TKraftMesh.Create(APhysics);
 
-  ShapesList := Scene.Shapes.TraverseList(true);
-  for I := 0 to ShapesList.Count - 1 do
-    if ShapesList[I].Collidable then
-      ShapesList[I].Triangulate(false, {$ifdef FPC}@{$endif}AddTriangle);
+  if FScene <> nil then
+  begin
+    ShapesList := Scene.Shapes.TraverseList(true);
+    for I := 0 to ShapesList.Count - 1 do
+      if ShapesList[I].Collidable then
+        ShapesList[I].Triangulate(false, {$ifdef FPC}@{$endif}AddTriangle);
 
-  if Mesh.CountVertices = 0 then
-    raise Exception.Create('The scene assigned to TMeshCollider.Scene is empty (no collidable triangles)');
+    if Mesh.CountVertices = 0 then
+      raise Exception.Create('The scene assigned to TCastleMeshCollider.Scene is empty (no collidable triangles)');
+  end;
   Mesh.Finish;
 
   Result := TKraftShapeMesh.Create(APhysics, ARigidBody, Mesh);
+end;
+
+procedure TCastleMeshCollider.SetScene(const AValue: TCastleSceneCore);
+begin
+  if FScene <> AValue then
+  begin
+    FScene := AValue;
+    ShapeChangedNotifyRigidBody;
+  end;
 end;
 
 
