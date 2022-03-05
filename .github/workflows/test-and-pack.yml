@@ -49,15 +49,15 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tools
+        run: . /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tools
       - name: Build Examples (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples
+        run: . /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples
       - name: Build Examples Using Lazarus (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz
+        run: . /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz
       - name: Build And Run Auto-Tests (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tests
+        run: . /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tests
       - name: Build Using FpMake (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean test-fpmake
+        run: . /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean test-fpmake
   pack:
     needs: [test-fpc320, test-fpclatest]
     runs-on: ubuntu-latest
