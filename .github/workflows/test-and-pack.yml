@@ -8,9 +8,13 @@ jobs:
 
       # We use https://github.com/marketplace/actions/setup-lazarus-environment
       # to setup FPC+Lazarus easily.
-      - uses: gcarreno/setup-lazarus@v3.0.16
-        with:
-          lazarus-version: "stable"
+      # - uses: gcarreno/setup-lazarus@v3.0.16
+      #   with:
+      #     lazarus-version: "stable"
+
+      # Use Docker image with CGE prerequisites (FPC, Lazarus, Android tools etc.)
+      # See https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
+      - uses: docker://kambi/castle-engine-cloud-builds-tools:cge-none
 
       # Set env CASTLE_ENGINE_PATH following
       # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
@@ -32,12 +36,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       # We use https://github.com/marketplace/actions/setup-lazarus-environment
       # to setup FPC+Lazarus easily.
-      - uses: gcarreno/setup-lazarus@v3.0.16
-        with:
-          # latest version with FPC 3.2.0 on https://github.com/marketplace/actions/setup-lazarus-environment
-          lazarus-version: "2.0.12"
+      # - uses: gcarreno/setup-lazarus@v3.0.16
+      #   with:
+      #     # latest version with FPC 3.2.0 on https://github.com/marketplace/actions/setup-lazarus-environment
+      #     lazarus-version: "2.0.12"
+
+      # Use Docker image with CGE prerequisites (FPC, Lazarus, Android tools etc.)
+      # See https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
+      - uses: docker://kambi/castle-engine-cloud-builds-tools:cge-none
+
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools (FPC 3.2.0)
@@ -55,9 +65,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: gcarreno/setup-lazarus@v3.0.16
-        with:
-          lazarus-version: "stable"
+
+      # - uses: gcarreno/setup-lazarus@v3.0.16
+      #   with:
+      #     lazarus-version: "stable"
+
+      # Use Docker image with CGE prerequisites (FPC, Lazarus, Android tools etc.)
+      # See https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
+      - uses: docker://kambi/castle-engine-cloud-builds-tools:cge-none
+
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Remove previous artifacts
