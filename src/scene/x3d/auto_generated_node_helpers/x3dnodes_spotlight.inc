@@ -117,7 +117,7 @@ procedure TSpotLightNode.CreateNode;
 begin
   inherited;
 
-  FFdBeamWidth := TSFFloat.Create(Self, True, 'beamWidth', Pi/2);
+  FFdBeamWidth := TSFFloat.Create(Self, True, 'beamWidth', Pi*3/16);
    FdBeamWidth.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBeamWidth);
 

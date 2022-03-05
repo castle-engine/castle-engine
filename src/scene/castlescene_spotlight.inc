@@ -46,7 +46,7 @@ type
     procedure UpdateGizmoCoord;
   public
     const
-      DefaultBeamWidth = Pi / 2;
+      DefaultBeamWidth = Pi * 3 / 16;
       DefaultCutOffAngle = Pi / 4;
       DefaultRadius = 100.0;
 
