@@ -26,7 +26,8 @@ uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
   CastleInternalOctree, CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, CastleInternalBaseTriangleOctree,
-  CastleTimeUtils, CastleTransform, CastleInternalShadowMaps, CastleProjection;
+  CastleTimeUtils, CastleTransform, CastleInternalShadowMaps, CastleProjection,
+  CastleComponentSerialize;
 
 type
   { These are various features that may be freed by
@@ -8695,5 +8696,9 @@ begin
     end;
   end;
 end;
+
+initialization
+
+  RegisterSerializableComponent(TCastleMeshCollider, 'Mesh Colllider');
 
 end.
