@@ -440,6 +440,8 @@
     procedure SetOnCollisionStay(const AValue: TCollisionEvent);
     procedure SetOnCollisionExit(const AValue: TCollisionEvent);
 
+    procedure SetDynamic(const AValue: Boolean);
+
     procedure SetExists(const Value: Boolean);
     procedure SetTrigger(const Value: Boolean);
 
@@ -596,7 +598,7 @@
         )
       )
     }
-    property Dynamic: Boolean read FDynamic write FDynamic default true;
+    property Dynamic: Boolean read FDynamic write SetDynamic default true;
 
     { Is the transformation of this object updated often
       (relevant only when @link(Dynamic) = @false).
@@ -1834,6 +1836,24 @@ procedure TCastleRigidBody.SetOnCollisionExit(const AValue: TCollisionEvent);
 begin
   FOnCollisionExit := AValue;
   CheckPhysicsPostStepNeeded;
+end;
+
+procedure TCastleRigidBody.SetDynamic(const AValue: Boolean);
+begin
+  if FDynamic <> AValue then
+  begin
+    FDynamic := AValue;
+    if FKraftBody <> nil then
+    begin
+      if FDynamic then
+        FKraftBody.SetRigidBodyType(krbtDynamic)
+      else
+      if Animated then
+        FKraftBody.SetRigidBodyType(krbtKinematic)
+      else
+        FKraftBody.SetRigidBodyType(krbtStatic);
+    end;
+  end;
 end;
 
 procedure TCastleRigidBody.SetAngularVelocityDamp(const AValue: Single);
