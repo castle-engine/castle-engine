@@ -1,5 +1,20 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to
+# - test CGE compilation and automatic tests
+# - pack CGE into zip
+# Uses CGE Docker image https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
+#
+# See https://docs.github.com/en/actions for docs.
+# ----------------------------------------------------------------------------
+
 name: Test and Pack
 on: [push]
+
+# setup.sh inside Docker requires using bash
+defaults:
+  run:
+    shell: bash
+
 jobs:
   test-fpclatest:
     runs-on: ubuntu-latest
@@ -50,16 +65,16 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools (FPC 3.2.0)
-        run: . /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tools
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tools
       # To conserve disk usage on GH Actions runner, use common directory for output of all projects
       - name: Build Examples (FPC 3.2.0)
-        run: . /usr/local/fpclazarus/bin/setup.sh 3.2.0 && mkdir -p /tmp/cge/ && make clean examples CASTLE_ENGINE_TOOL_OPTIONS="--output=/tmp/cge/"
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && mkdir -p /tmp/cge/ && make clean examples CASTLE_ENGINE_TOOL_OPTIONS="--output=/tmp/cge/"
       - name: Build Examples Using Lazarus (FPC 3.2.0)
-        run: . /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz
       - name: Build And Run Auto-Tests (FPC 3.2.0)
-        run: . /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tests
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tests
       - name: Build Using FpMake (FPC 3.2.0)
-        run: . /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean test-fpmake
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean test-fpmake
   pack:
     needs: [test-fpc320, test-fpclatest]
     runs-on: ubuntu-latest
