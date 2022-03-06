@@ -1079,7 +1079,7 @@ begin
     Position := LightToEyeSpace^ * Light^.Position;
 
     { Note that we cut off last component of Node.Position,
-      we don't need it. #defines tell the shader whether we deal with direcional
+      we don't need it. #defines tell the shader whether we deal with directional
       or positional light. }
     Uniforms.SetUniform('castle_LightSource%dPosition', Uniforms.Position,
       Position.XYZ);
@@ -1091,11 +1091,7 @@ begin
       if LiPos.HasRadius then
       begin
         Uniforms.SetUniform('castle_LightSource%dRadius', Uniforms.Radius,
-          { TODO: This should be radius in eye space.
-            But
-              Approximate3DScale(LightToEyeSpace^) * Light^.Radius
-            looks wrong, changing camera then changes light look? }
-          Light^.Radius);
+          Approximate3DScale(LightToEyeSpace^) * Light^.Radius);
       end;
 
       if LiPos is TSpotLightNode_1 then
