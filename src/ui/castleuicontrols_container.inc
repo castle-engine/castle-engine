@@ -833,7 +833,7 @@ begin
   Result :=
     (ForceCaptureInput <> nil) and
     (ForceCaptureInput.Container = Self) { currently added to our Controls tree } and
-    ForceCaptureInput.GetExists;
+    ForceCaptureInput.Exists;
 end;
 
 function TCastleContainer.PassEvents(const C: TCastleUserInterface;
@@ -842,7 +842,7 @@ function TCastleContainer.PassEvents(const C: TCastleUserInterface;
 begin
   Result :=
     (not (csDestroying in C.ComponentState)) and
-    C.GetExists and
+    C.Exists and
     ((not CheckEventPosition) or C.CapturesEventsAtPosition(EventPosition)) and
     C.Visible;
 end;
@@ -1474,9 +1474,9 @@ begin
   if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
     Capture := nil;
 
-  if (Capture <> nil) and not Capture.GetExists then
+  if (Capture <> nil) and not Capture.Exists then
   begin
-    { No longer capturing, since the GetExists returns false now.
+    { No longer capturing, since the Exists returns false now.
       We do not send any events to non-existing controls. }
     FCaptureInput.Remove(Event.FingerIndex);
     Capture := nil;
@@ -1666,9 +1666,9 @@ begin
   if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
     Capture := nil;
 
-  if (Capture <> nil) and not Capture.GetExists then
+  if (Capture <> nil) and not Capture.Exists then
   begin
-    { No longer capturing, since the GetExists returns false now.
+    { No longer capturing, since the Exists returns false now.
       We do not send any events to non-existing controls. }
     FCaptureInput.Remove(Event.FingerIndex);
     Capture := nil;

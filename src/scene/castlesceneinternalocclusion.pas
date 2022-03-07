@@ -507,7 +507,8 @@ begin
       if TraversalStack.Count <> 0 then
       begin
         Node := TShapeOctreeNode(TraversalStack.Pop);
-        if Node.FrustumCollisionPossible(Params.Frustum^) then
+        if (Params.Frustum = nil) or
+           Node.FrustumCollisionPossible(Params.Frustum^) then
         begin
           {$ifdef VISIBILITY_KEEP_FRAMES}
           { There was a resigned idea below (maybe useful later) to do

@@ -34,22 +34,8 @@ type
   TCastleViewport = class;
   TCastleSceneManager = class;
 
-  TRender3DEvent = procedure (Viewport: TCastleViewport;
+  TRenderOnePassEvent = procedure (Viewport: TCastleViewport;
     const Params: TRenderParams) of object;
-
-  { Internal, special TRenderParams descendant that can return different
-    set of base lights for some scenes. Used to implement GlobalLights,
-    where MainScene and other objects need different lights.
-    @exclude. }
-  TManagerRenderParams = class(TRenderParams)
-  private
-    MainScene: TCastleTransform;
-    FBaseLights: array [boolean { is main scene }] of TLightInstancesList;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; override;
-  end;
 
   { Event for @link(TCastleViewport.OnProjection). }
   TProjectionEvent = procedure (var Parameters: TProjection) of object;
@@ -110,13 +96,21 @@ type
         Viewport: TCastleViewport;
         function SetupUniforms(var BoundTextureUnits: Cardinal): Boolean; override;
       end;
+      TViewportRenderParams = class(TRenderParams)
+      private
+        FGlobalLights: TLightInstancesList;
+      public
+        constructor Create;
+        destructor Destroy; override;
+        function GlobalLights: TAbstractLightInstancesList; override;
+      end;
+
     var
       FCamera: TCastleCamera;
-      FRenderParams: TManagerRenderParams;
+      FRenderParams: TViewportRenderParams;
       FPrepareParams: TPrepareParams;
       FBackgroundWireframe: boolean;
       FBackgroundColor: TCastleColor;
-      FOnRender3D: TRender3DEvent;
       FUseGlobalLights, FUseGlobalFog: boolean;
       FApproximateActivation: boolean;
       FDefaultVisibilityLimit: Single;
@@ -164,6 +158,8 @@ type
       FLastSeenMainScene: TCastleScene; // only used by editor
       FBackground: TCastleBackground;
       FBackgroundObserver: TFreeNotificationObserver;
+      // reused between frames for speed
+      FRenderWithoutScreenEffectsRenderingCamera: TRenderingCamera;
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -264,11 +260,11 @@ type
       This takes care to always update Camera.ProjectionMatrix, Projection. }
     procedure ApplyProjection;
 
-    { Render shadow quads for all the things rendered by @link(Render3D).
+    { Render shadow quads for all the things rendered by @link(RenderOnePass).
       You can use here ShadowVolumeRenderer instance, which is guaranteed
       to be initialized with TGLShadowVolumeRenderer.InitFrustumAndLight,
       so you can do shadow volumes culling. }
-    procedure RenderShadowVolume;
+    procedure RenderShadowVolume(const Params: TRenderParams);
 
     { Detect position/direction of the main light that produces shadows.
       Looks at MainScene.InternalMainLightForShadows.
@@ -316,10 +312,12 @@ type
     function CalculateProjection: TProjection; virtual;
 
     { Prepare lights shining on everything.
-      BaseLights contents should be initialized here.
+      GlobalLights contents should be initialized here.
       The implementation in this class adds headlight determined
       by the @link(TCastleRootTransform.UseHeadlight Items.UseHeadlight) value. }
-    procedure InitializeLights(const Lights: TLightInstancesList); virtual;
+    procedure InitializeGlobalLights(const GlobalLights: TLightInstancesList); virtual;
+
+    procedure InitializeLights(const GlobalLights: TLightInstancesList); deprecated 'use InitializeGlobalLights';
 
     { Render everything from given camera view (as TRenderingCamera).
       Given RenderingCamera.Target says to where we generate the image.
@@ -339,7 +337,9 @@ type
       or only opaque shapes).
       All current camera settings are saved in RenderParams.RenderingCamera.
       @param(Params Rendering parameters, see @link(TRenderParams).) }
-    procedure Render3D(const Params: TRenderParams); virtual;
+    procedure RenderOnePass(const Params: TRenderParams); virtual;
+
+    procedure Render3D(const Params: TRenderParams); virtual; deprecated 'use RenderOnePass';
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -987,12 +987,6 @@ type
     property Navigation: TCastleNavigation read FNavigation write SetNavigation
       stored IsStoredNavigation;
 
-    {$ifdef FPC}
-    { See Render3D method. }
-    property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
-      deprecated 'do not customize rendering with this; instead add TCastleUserInterface descendants where you can override TCastleUserInterface.Render to do custom rendering';
-    {$endif}
-
     { Should we render with shadow volumes.
       You can change this at any time, to switch rendering shadows on/off.
 
@@ -1066,16 +1060,12 @@ type
     }
     property ClearDepth: boolean read FClearDepth write FClearDepth default true;
 
-    { Let MainScene.GlobalLights shine on every 3D object, not only
+    { Let lights in MainScene shine on every other TCastleScene, not only
       MainScene. This is an easy way to lit your whole world with lights
-      defined inside MainScene file. Be sure to set lights global=TRUE.
-
-      Note that for now this assumes that MainScene coordinates equal
-      world coordinates. This means that you should not transform
-      the MainScene, it should be placed inside @link(TCastleViewport.Items)
-      and not transformed by TCastleTransform. }
+      defined inside MainScene file. Be sure to set X3D lights global=TRUE. }
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default DefaultUseGlobalLights;
+      {$ifdef FPC} deprecated 'if you need to tweak this, then do not use MainScene; use regular TCastleScene and set CastGlobalLights as needed'; {$endif}
 
     { Let the fog defined in MainScene affect all objects, not only MainScene.
       This is consistent with @link(UseGlobalLights), that allows lights
@@ -1300,8 +1290,6 @@ type
     property AutoNavigation default true;
   end {$ifdef FPC}deprecated 'use TCastleViewport to render scenes. To have the same initial behavior, set FullSize, AutoCamera and AutoNavigation to true'{$endif};
 
-procedure Register;
-
 var
   { Key/mouse combination to interact with clickable things in 3D world.
     More precisely, this input will activate pointing device sensors in VRML/X3D,
@@ -1320,20 +1308,11 @@ var
 
 implementation
 
-{$warnings off}
-// TODO: This unit temporarily uses RenderingCamera singleton,
-// to keep it working for backward compatibility.
 uses DOM, Math,
-  CastleRenderingCamera,
   CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
   CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
   CastleRenderContext, CastleApplicationProperties;
-{$warnings on}
-
-procedure Register;
-begin
-end;
 
 {$define read_implementation}
 {$I castleviewport_touchnavigation.inc}
@@ -1341,25 +1320,23 @@ end;
 {$I castleviewport_serialize.inc}
 {$undef read_implementation}
 
-{ TManagerRenderParams ------------------------------------------------------- }
+{ TViewportRenderParams ------------------------------------------------------- }
 
-constructor TManagerRenderParams.Create;
+constructor TCastleViewport.TViewportRenderParams.Create;
 begin
   inherited;
-  FBaseLights[false] := TLightInstancesList.Create;
-  FBaseLights[true ] := TLightInstancesList.Create;
+  FGlobalLights := TLightInstancesList.Create;
 end;
 
-destructor TManagerRenderParams.Destroy;
+destructor TCastleViewport.TViewportRenderParams.Destroy;
 begin
-  FreeAndNil(FBaseLights[false]);
-  FreeAndNil(FBaseLights[true ]);
+  FreeAndNil(FGlobalLights);
   inherited;
 end;
 
-function TManagerRenderParams.BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList;
+function TCastleViewport.TViewportRenderParams.GlobalLights: TAbstractLightInstancesList;
 begin
-  Result := FBaseLights[(Scene = MainScene) or Scene.ExcludeFromGlobalLights];
+  Result := FGlobalLights;
 end;
 
 { TSSAOScreenEffect ---------------------------------------------------------- }
@@ -1414,8 +1391,9 @@ begin
   FBackgroundColor := DefaultBackgroundColor;
   FUseGlobalLights := DefaultUseGlobalLights;
   FUseGlobalFog := DefaultUseGlobalFog;
-  FRenderParams := TManagerRenderParams.Create;
+  FRenderParams := TViewportRenderParams.Create;
   FPrepareParams := TPrepareParams.Create;
+  FRenderWithoutScreenEffectsRenderingCamera := TRenderingCamera.Create;
   FShadowVolumes := DefaultShadowVolumes;
   FScreenSpaceReflectionsSurfaceGlossiness := DefaultScreenSpaceReflectionsSurfaceGlossiness;
   FClearDepth := true;
@@ -1481,6 +1459,7 @@ begin
 
   FreeAndNil(FRenderParams);
   FreeAndNil(FPrepareParams);
+  FreeAndNil(FRenderWithoutScreenEffectsRenderingCamera);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -1834,17 +1813,20 @@ var
   var
     RemoveItem: TRemoveType;
   begin
-    RemoveItem := rtNone;
+    if Items.Exists then
+    begin
+      RemoveItem := rtNone;
 
-    { Note that Items.Update do not take HandleInput
-      parameter, as it would not be controllable for them: 3D objects do not
-      have strict front-to-back order, so we would not know in what order
-      call their Update methods, so we have to let many Items handle keys anyway.
-      So, it's consistent to just treat 3D objects as "cannot definitely
-      mark keys/mouse as handled". }
+      { Note that Items.Update do not take HandleInput
+        parameter, as it would not be controllable for them: 3D objects do not
+        have strict front-to-back order, so we would not know in what order
+        call their Update methods, so we have to let many Items handle keys anyway.
+        So, it's consistent to just treat 3D objects as "cannot definitely
+        mark keys/mouse as handled". }
 
-    Items.Update(SecondsPassedScaled, RemoveItem);
-    { we ignore RemoveItem --- main Items list cannot be removed }
+      Items.Update(SecondsPassedScaled, RemoveItem);
+      { we ignore RemoveItem --- main Items list cannot be removed }
+    end;
   end;
 
   procedure UpdateVisibleChange;
@@ -2224,25 +2206,37 @@ end;
 
 procedure TCastleViewport.Render3D(const Params: TRenderParams);
 begin
+end;
+
+procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
+begin
+  {$warnings off} // keep deprecated working
+  Render3D(Params);
+  {$warnings on}
+
   Params.Frustum := @Params.RenderingCamera.Frustum;
   Items.Render(Params);
-  if Assigned(FOnRender3D) then
-    FOnRender3D(Self, Params);
 end;
 
-procedure TCastleViewport.RenderShadowVolume;
+procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
 begin
-  Items.RenderShadowVolume(FShadowVolumeRenderer, true, TMatrix4.Identity);
+  Params.Frustum := @Params.RenderingCamera.Frustum;
+  Items.RenderShadowVolume(Params, FShadowVolumeRenderer);
 end;
 
-procedure TCastleViewport.InitializeLights(const Lights: TLightInstancesList);
+procedure TCastleViewport.InitializeGlobalLights(const GlobalLights: TLightInstancesList);
 var
   HI: TLightInstance;
 begin
   {$warnings off}
   if HeadlightInstance(HI) then
-    Lights.Add(HI);
+    GlobalLights.Add(HI);
   {$warnings on}
+end;
+
+procedure TCastleViewport.InitializeLights(const GlobalLights: TLightInstancesList);
+begin
+  InitializeGlobalLights(GlobalLights);
 end;
 
 function TCastleViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
@@ -2255,6 +2249,7 @@ var
     Position, Direction, Up: TVector3;
   begin
     Assert(Node <> nil);
+    Node.InternalHeadlight := true;
 
     HC.GetView(Position, Direction, Up);
 
@@ -2296,16 +2291,16 @@ end;
 function TCastleViewport.PrepareParams: TPrepareParams;
 { Note: you cannot refer to PrepareParams inside
   the TCastleTransform.PrepareResources or TCastleTransform.Render implementation,
-  as they may change the referenced PrepareParams.InternalBaseLights value.
+  as they may change the referenced PrepareParams.InternalGlobalLights value.
 }
 begin
-  { We just reuse FRenderParams.FBaseLights[false] below as a temporary
+  { We just reuse FRenderParams.FGlobalLights below as a temporary
     TLightInstancesList that we already have created. }
 
-  { initialize FPrepareParams.InternalBaseLights }
-  FRenderParams.FBaseLights[false].Clear;
-  InitializeLights(FRenderParams.FBaseLights[false]);
-  FPrepareParams.InternalBaseLights := FRenderParams.FBaseLights[false];
+  { initialize FPrepareParams.InternalGlobalLights }
+  FRenderParams.FGlobalLights.Clear;
+  InitializeGlobalLights(FRenderParams.FGlobalLights);
+  FPrepareParams.InternalGlobalLights := FRenderParams.FGlobalLights;
 
   { initialize FPrepareParams.InternalGlobalFog }
   if UseGlobalFog and
@@ -2319,7 +2314,7 @@ end;
 
 function TCastleViewport.BaseLights: TLightInstancesList;
 begin
-  Result := PrepareParams.InternalBaseLights as TLightInstancesList;
+  Result := PrepareParams.InternalGlobalLights as TLightInstancesList;
 end;
 
 procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
@@ -2334,14 +2329,16 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
 
     Params.InShadow := false;
 
-    Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
-    Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
+    Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
+    Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
   end;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4);
   begin
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
-    FShadowVolumeRenderer.Render(Params, {$ifdef FPC}@{$endif}Render3D, {$ifdef FPC}@{$endif}RenderShadowVolume, ShadowVolumesRender);
+    FShadowVolumeRenderer.Render(Params,
+      {$ifdef FPC}@{$endif}RenderOnePass,
+      {$ifdef FPC}@{$endif}RenderShadowVolume, ShadowVolumesRender);
   end;
 
 var
@@ -2434,14 +2431,29 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
     end;
   end;
 
-begin
-  { TODO: Temporary compatibility cludge:
-    Because some rendering code still depends on
-    the CastleRenderingCamera.RenderingCamera singleton being initialized,
-    so initialize it from current parameter. }
-  if RenderingCamera <> CastleRenderingCamera.RenderingCamera then
-    CastleRenderingCamera.RenderingCamera.Assign(RenderingCamera);
+  procedure AddGlobalLightsFromScene(const SceneCastingLights: TCastleScene);
+  var
+    J: Integer;
+    NewGlobalLight: PLightInstance;
+  begin
+    if not SceneCastingLights.ExistsInRoot then
+      Exit;
 
+    for J := 0 to SceneCastingLights.InternalGlobalLights.Count - 1 do
+    begin
+      NewGlobalLight := PLightInstance(FRenderParams.FGlobalLights.Add);
+      NewGlobalLight^ := SceneCastingLights.InternalGlobalLights.List^[J];
+      { make NewGlobalLight^ in world coordinates }
+      NewGlobalLight^.Transform := SceneCastingLights.WorldTransform * NewGlobalLight^.Transform;
+      NewGlobalLight^.TransformScale := Approximate3DScale(SceneCastingLights.WorldTransform) * NewGlobalLight^.TransformScale;
+      NewGlobalLight^.WorldCoordinates := true;
+      NewGlobalLight^.Node.UpdateLightInstance(NewGlobalLight^);
+    end;
+  end;
+
+var
+  SceneCastingLights: TCastleScene;
+begin
   RenderClear;
   RenderBackground;
 
@@ -2459,21 +2471,18 @@ begin
   FRenderParams.RenderingCamera := RenderingCamera;
   FillChar(FRenderParams.Statistics, SizeOf(FRenderParams.Statistics), #0);
 
-  FRenderParams.FBaseLights[false].Clear;
-  InitializeLights(FRenderParams.FBaseLights[false]);
-  if UseGlobalLights and
-     (Items.MainScene <> nil) and
-     (Items.MainScene.GlobalLights.Count <> 0) then
-  begin
-    FRenderParams.MainScene := Items.MainScene;
-    { For MainScene, BaseLights are only the ones calculated by InitializeLights }
-    FRenderParams.FBaseLights[true].Assign(FRenderParams.FBaseLights[false]);
-    { For others than MainScene, BaseLights are calculated by InitializeLights
-      summed with Items.MainScene.GlobalLights. }
-    FRenderParams.FBaseLights[false].AppendInWorldCoordinates(Items.MainScene.GlobalLights);
-  end else
-    { Do not use Params.FBaseLights[true] }
-    FRenderParams.MainScene := nil;
+  { Calculate FRenderParams.FGlobalLights }
+  FRenderParams.FGlobalLights.Clear;
+  { Add headlight }
+  InitializeGlobalLights(FRenderParams.FGlobalLights);
+  { Add lights from MainScene  }
+  if Items.MainScene <> nil then
+    AddGlobalLightsFromScene(Items.MainScene);
+  { Add lights from all scenes with CastGlobalLights }
+  if Items.InternalScenesCastGlobalLights <> nil then
+    for SceneCastingLights in Items.InternalScenesCastGlobalLights do
+      if Items.MainScene <> SceneCastingLights then // MainScene is already accounted for above
+        AddGlobalLightsFromScene(SceneCastingLights);
 
   { initialize FRenderParams.GlobalFog }
   if UseGlobalFog and
@@ -2495,7 +2504,15 @@ procedure TCastleViewport.RenderWithoutScreenEffects;
     Always call ApplyProjection before this, to set correct
     projection matrix. }
   procedure RenderOnScreen(ACamera: TCastleCamera);
+  var
+    RenderingCamera: TRenderingCamera;
   begin
+    { We reuse FRenderWithoutScreenEffectsRenderingCamera,
+      but to be clean (to not use it when it's not really initialized)
+      this is the only place where we refer to FRenderWithoutScreenEffectsRenderingCamera field.
+      Rest of code should get RenderingCamera by parameters. }
+    RenderingCamera := FRenderWithoutScreenEffectsRenderingCamera;
+
     RenderingCamera.Target := rtScreen;
     RenderingCamera.FromCameraObject(ACamera);
 
@@ -3387,11 +3404,6 @@ begin
     ApplyProjection;
   end;
 
-  { RenderingCamera properties must be already set,
-    since PrepareResources may do some operations on texture gen modes
-    in WORLDSPACE*. }
-  RenderingCamera.FromCameraObject(Camera);
-
   if DisplayProgressTitle <> '' then
   begin
     Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
@@ -3474,7 +3486,7 @@ function TCastleViewport.PointingDevicePress: Boolean;
 
     function CallPress(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
     begin
-      if not Pick.Item.GetExists then // prevent calling Pick.Item.PointingDeviceXxx when item GetExists=false
+      if not Pick.Item.Exists then // prevent calling Pick.Item.PointingDeviceXxx when item Exists=false
         Result := false
       else
         Result := Pick.Item.PointingDevicePress(Pick, Distance);
@@ -3568,7 +3580,7 @@ function TCastleViewport.PointingDeviceRelease: Boolean;
 
     function CallRelease(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
     begin
-      if not Pick.Item.GetExists then // prevent calling Pick.Item.PointingDeviceXxx when item GetExists=false
+      if not Pick.Item.Exists then // prevent calling Pick.Item.PointingDeviceXxx when item Exists=false
         Result := false
       else
         Result := Pick.Item.PointingDeviceRelease(Pick, Distance, false);
@@ -3623,7 +3635,7 @@ function TCastleViewport.PointingDeviceMove: boolean;
 
     function CallMove(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
     begin
-      if not Pick.Item.GetExists then // prevent calling Pick.Item.PointingDeviceXxx when item GetExists=false
+      if not Pick.Item.Exists then // prevent calling Pick.Item.PointingDeviceXxx when item Exists=false
         Result := false
       else
         Result := Pick.Item.PointingDeviceMove(Pick, Distance);
@@ -3817,7 +3829,7 @@ procedure TCastleViewport.MainSceneAndCamera_BoundViewpointVectorsChanged(Sender
 begin
   { TODO: It may be useful to enable camera animation by some specific property,
     like AnimateCameraByViewpoint (that works even when AutoCamera = false,
-    as we advise for new scene managers). }
+    as we advise for new viewports). }
   if AutoCamera { or AnimateCameraByViewpoint } then
     Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
 end;

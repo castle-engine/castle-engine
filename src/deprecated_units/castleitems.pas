@@ -545,7 +545,6 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GetExists: boolean; override;
 
     { The Item owned by this TItemOnWorld instance. Never @nil. }
     property Item: TInventoryItem read FItem;
@@ -619,10 +618,6 @@ type
   end;
 
   TItemOnWorldExistsEvent = function(const Item: TItemOnWorld): boolean of object;
-
-var
-  { Global callback to control items on level existence. }
-  OnItemOnWorldExists: TItemOnWorldExistsEvent;
 
 implementation
 
@@ -803,6 +798,11 @@ function TInventoryItem.PutOnWorld(
 var
   RootTransform: TCastleRootTransform;
 begin
+  if ALevel.ItemsRoot = nil then
+    raise Exception.CreateFmt('Cannot add item "%s" to level, as the level is not loaded yet. Execute TLevel.Load first', [
+      Name
+    ]);
+
   RootTransform := ALevel.RootTransform;
 
   Result := TItemOnWorld.Create(ALevel.FreeAtUnload);
@@ -820,7 +820,7 @@ begin
   {$warnings on}
   Result.CastShadowVolumes := Resource.CastShadowVolumes;
 
-  RootTransform.Add(Result);
+  ALevel.ItemsRoot.Add(Result);
 end;
 
 procedure TInventoryItem.Use;
@@ -883,19 +883,19 @@ var
     Enemy: TCastleAlive;
     {$warnings on}
     WeaponBoundingBox: TBox3D;
-    RootTransform: TCastleRootTransform;
+    CreaturesRoot: TCastleTransform;
   begin
     { Attacker.Direction may be multiplied by something here for long-range weapons }
     WeaponBoundingBox := Attacker.BoundingBox.Translate(Attacker.Direction);
-    RootTransform := Level.RootTransform;
     { Tests: Writeln('WeaponBoundingBox is ', WeaponBoundingBox.ToNiceStr); }
-    { TODO: we would prefer to use RootTransform.BoxCollision for this,
+    CreaturesRoot := Level.CreaturesRoot;
+    { TODO: we would prefer to use CreaturesRoot.BoxCollision for this,
       but we need to know which creature was hit. }
-    for I := 0 to RootTransform.Count - 1 do
+    for I := 0 to CreaturesRoot.Count - 1 do
       {$warnings off} // using deprecated in deprecated
-      if RootTransform[I] is TCastleAlive then
+      if CreaturesRoot[I] is TCastleAlive then
       begin
-        Enemy := TCastleAlive(RootTransform[I]);
+        Enemy := TCastleAlive(CreaturesRoot[I]);
         { Tests: Writeln('Creature bbox is ', C.BoundingBox.ToNiceStr); }
         if (Enemy <> Attacker) and
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then
@@ -1303,7 +1303,7 @@ var
   Player: TAliveWithInventory;
 begin
   inherited;
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
   LifeTime := LifeTime + SecondsPassed;
 
@@ -1343,12 +1343,6 @@ begin
   Result := Item;
   Result.FOwner3D := nil;
   FItem := nil;
-end;
-
-function TItemOnWorld.GetExists: boolean;
-begin
-  Result := (inherited GetExists) and
-    ((not Assigned(OnItemOnWorldExists)) or OnItemOnWorldExists(Self));
 end;
 
 { TAliveWithInventory ------------------------------------------------------ }

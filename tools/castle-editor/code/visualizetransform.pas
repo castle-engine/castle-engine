@@ -658,13 +658,13 @@ begin
 
   // Gizmo[voSelect] remains nil
   Gizmo[voTranslate] := CreateGizmoScene;
-  Gizmo[voTranslate].Load(EditorApplicationData + 'gizmos/translate_final.x3dv');
+  Gizmo[voTranslate].Load(InternalCastleDesignData + 'gizmos/transform/translate_final.x3dv');
   Gizmo[voTranslate].Operation := voTranslate;
   Gizmo[voRotate] := CreateGizmoScene;
-  Gizmo[voRotate].Load(EditorApplicationData + 'gizmos/rotate_final.x3dv');
+  Gizmo[voRotate].Load(InternalCastleDesignData + 'gizmos/transform/rotate_final.x3dv');
   Gizmo[voRotate].Operation := voRotate;
   Gizmo[voScale] := CreateGizmoScene;
-  Gizmo[voScale].Load(EditorApplicationData + 'gizmos/scale_final.x3dv');
+  Gizmo[voScale].Load(InternalCastleDesignData + 'gizmos/transform/scale_final.x3dv');
   Gizmo[voScale].Operation := voScale;
 end;
 

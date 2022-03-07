@@ -29,8 +29,7 @@ type
 
   TGLShadowVolumeRenderer = class;
 
-  TSVRenderParamsProc = procedure (const Params: TRenderParams) of object;
-  TSVRenderProc = procedure of object;
+  TSVRenderProc = procedure (const Params: TRenderParams) of object;
 
   { Shadow volume rendering in OpenGL.
     This class provides various utilities related to shadow volume rendering.
@@ -189,7 +188,7 @@ type
       are changed here (their previous values are ignored).
       They cannot be modified by our callbacks.
 
-      Render3D renders part of the scene.
+      RenderOnePass renders part of the scene.
 
       @unorderedList(
         @item(
@@ -207,7 +206,7 @@ type
           (to render only stuff that is never in shadow).)
       )
 
-      Render3D must also honour Params.Transparent,
+      RenderOnePass must also honour Params.Transparent,
       rendering only opaque or only transparent parts.
       For Transparent = @true, always Params.InShadow = @false.
       Shadow volumes simply don't allow transparent object
@@ -224,7 +223,7 @@ type
       shadow volumes. }
     procedure Render(
       const Params: TRenderParams;
-      const Render3D: TSVRenderParamsProc;
+      const RenderOnePass: TSVRenderProc;
       const RenderShadowVolumes: TSVRenderProc;
       const DrawShadowVolumes: boolean);
   end;
@@ -635,14 +634,14 @@ end;
 
 procedure TGLShadowVolumeRenderer.Render(
   const Params: TRenderParams;
-  const Render3D: TSVRenderParamsProc;
+  const RenderOnePass: TSVRenderProc;
   const RenderShadowVolumes: TSVRenderProc;
   const DrawShadowVolumes: boolean);
 {$ifdef OpenGLES}
 begin
   // TODO-es
-  Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
-  Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
+  Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
+  Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
 {$else}
 
 const
@@ -673,12 +672,12 @@ begin
   Params.InShadow := false;
   Params.Transparent := false;
   Params.ShadowVolumesReceivers := [false];
-  Render3D(Params);
+  RenderOnePass(Params);
 
   Params.InShadow := true;
   Params.Transparent := false;
   Params.ShadowVolumesReceivers := [true];
-  Render3D(Params);
+  RenderOnePass(Params);
 
   glEnable(GL_STENCIL_TEST);
     { Note that stencil buffer is set to all 0 now. }
@@ -700,7 +699,7 @@ begin
         if StencilTwoSided then
         begin
           StencilSetupKind := ssFrontAndBack;
-          RenderShadowVolumes;
+          RenderShadowVolumes(Params);
         end else
         begin
           glEnable(GL_CULL_FACE);
@@ -708,14 +707,14 @@ begin
           { Render front facing shadow shadow volume faces. }
           StencilSetupKind := ssFront;
           glCullFace(GL_BACK);
-          RenderShadowVolumes;
+          RenderShadowVolumes(Params);
 
           { Render back facing shadow shadow volume faces. }
           StencilSetupKind := ssBack;
           SavedCount := Count;
           Count := false;
           glCullFace(GL_FRONT);
-          RenderShadowVolumes;
+          RenderShadowVolumes(Params);
           Count := SavedCount;
         end;
 
@@ -748,8 +747,8 @@ begin
 
     This is easy doable for opaque parts. But what about transparent
     things? In other words, where should we call
-    Render3D(Transparent=true, ShadowVolumesReceivers=false)
-    and Render3D(Transparent=true, InShadow=false, ShadowVolumesReceivers=true)?
+    RenderOnePass(Transparent=true, ShadowVolumesReceivers=false)
+    and RenderOnePass(Transparent=true, InShadow=false, ShadowVolumesReceivers=true)?
     They should be rendered but they don't affect depth buffer.
     Well, clearly, they have to be rendered
     before glClear(GL_DEPTH_BUFFER_BIT) (for the same reason that
@@ -798,7 +797,7 @@ begin
       Params.InShadow := false;
       Params.Transparent := false;
       Params.ShadowVolumesReceivers := [true];
-      Render3D(Params);
+      RenderOnePass(Params);
       Dec(Params.StencilTest);
     glDisable(GL_STENCIL_TEST);
   glPopAttrib();
@@ -816,7 +815,7 @@ begin
       glColor4f(1, 1, 0, 0.3);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glEnable(GL_BLEND);
-      RenderShadowVolumes;
+      RenderShadowVolumes(Params);
     glPopAttrib;
 
     RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
@@ -826,12 +825,12 @@ begin
   Params.InShadow := false;
   Params.Transparent := true;
   Params.ShadowVolumesReceivers := [true];
-  Render3D(Params);
+  RenderOnePass(Params);
 
   Params.InShadow := false;
   Params.Transparent := true;
   Params.ShadowVolumesReceivers := [false];
-  Render3D(Params);
+  RenderOnePass(Params);
 {$endif}
 end;
 

@@ -62,8 +62,12 @@ begin
 
     Viewport := TCastleViewport.Create(nil);
 
+    Levels.Clear;
+    Levels.LoadFromFiles('castle-data:/game/level_without_loading_image');
+
     Level := TLevel.Create(nil);
     Level.Viewport := Viewport;
+    Level.Load('level_without_loading_image');
 
     Resources.Prepare(Viewport.PrepareParams, 'resources');
 

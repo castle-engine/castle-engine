@@ -984,8 +984,7 @@ const
     Low (TKraftRigidBodyCollisionGroup)..
     High(TKraftRigidBodyCollisionGroup)];
 begin
-  // TODO: this looks at my GetCollides, not at parents GetCollides
-  if Transform.GetCollides then
+  if Transform.ExistsInRoot and Transform.Collides then
   begin
     FKraftBody.CollideWithCollisionGroups := AllCollisionGroups;
     FKraftBody.CollisionGroups := [0]; // TODO: make this configurable
@@ -1373,7 +1372,7 @@ var
   PhysicsTicksCount:Integer;
   OldTimeAccumulator: TFloatTime;
 begin
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
   { Avoid doing this two times within the same FrameId.
     Important if the same TCastleAbstractRootTransform is present in multiple viewports. }

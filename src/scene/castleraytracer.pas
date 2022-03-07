@@ -147,8 +147,13 @@ type
     FogNode: TFogNode;
 
     { Lights shining on everything, like a headlight. }
-    BaseLights: TLightInstancesList;
-    OwnsBaseLights: boolean;
+    GlobalLights: TLightInstancesList;
+    OwnsGlobalLights: boolean;
+
+    property BaseLights: TLightInstancesList read GlobalLights write GlobalLights;
+      {$ifdef FPC}deprecated 'use GlobalLights';{$endif}
+    property OwnsBaseLights: Boolean read OwnsGlobalLights write OwnsGlobalLights;
+      {$ifdef FPC}deprecated 'use BaseLights';{$endif}
 
     procedure Execute; override;
     destructor Destroy; override;
@@ -780,7 +785,7 @@ var
               Result := Result + Lights.List^[i].Contribution(Intersection,
                 IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
-        { Add BaseLights contribution, just like other lights.
+        { Add GlobalLights contribution, just like other lights.
 
           Note for LightNotBlocked testing: theoretically, just using
           LightNotBlocked always (no matter Depth/InitialDepth) should
@@ -808,12 +813,12 @@ var
              the problem at least for primary rays: directional light always
              reaches them.
 
-          The above reasoning is nice as long as BaseLights only contain
+          The above reasoning is nice as long as GlobalLights only contain
           the headlight. Which is true in the current uses. }
-        for I := 0 to BaseLights.Count - 1 do
+        for I := 0 to GlobalLights.Count - 1 do
           if (Depth = InitialDepth) or
-             LightNotBlocked(BaseLights.List^[I]) then
-            Result := Result + BaseLights.List^[I].Contribution(Intersection,
+             LightNotBlocked(GlobalLights.List^[I]) then
+            Result := Result + GlobalLights.List^[I].Contribution(Intersection,
               IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Calculate recursively reflected and transmitted rays.
@@ -917,8 +922,8 @@ end;
 
 destructor TClassicRayTracer.Destroy;
 begin
-  if OwnsBaseLights then
-    FreeAndNil(BaseLights);
+  if OwnsGlobalLights then
+    FreeAndNil(GlobalLights);
   inherited;
 end;
 

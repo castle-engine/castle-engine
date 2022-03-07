@@ -906,7 +906,6 @@ type
 
     constructor Create(AOwner: TComponent; const AMaxLife: Single); reintroduce; virtual;
     destructor Destroy; override;
-    function GetExists: boolean; override;
     function GetCollides: boolean; override;
 
     property Resource: TCreatureResource read FResource;
@@ -1075,9 +1074,6 @@ type
 var
   DebugTimeStopForCreatures: boolean = false;
 
-  { Global callback to control creatures existence. }
-  OnCreatureExists: TCreatureExistsEvent;
-
 implementation
 
 {$warnings off} // using deprecated CastleProgress, CastleGameNotifications in deprecated
@@ -1085,9 +1081,6 @@ uses SysUtils, DOM, Math,
   CastleFilesUtils, CastleGLUtils,
   CastleProgress, CastleGameNotifications, CastleUIControls;
 {$warnings on}
-
-var
-  DisableCreatures: Cardinal;
 
 { TCreatureResource -------------------------------------------------------------- }
 
@@ -1166,6 +1159,11 @@ var
   Scale: Single;
   RootTransform: TCastleRootTransform;
 begin
+  if ALevel.CreaturesRoot = nil then
+    raise Exception.CreateFmt('Cannot add creature "%s" to level, as the level is not loaded yet. Execute TLevel.Load first', [
+      Name
+    ]);
+
   RootTransform := ALevel.RootTransform;
 
   { This is only needed if you did not add creature to <resources>.
@@ -1198,7 +1196,7 @@ begin
   Scale := RandomFloatRange(ScaleMin, ScaleMax);
   Result.Scale := Vector3(Scale, Scale, Scale);
 
-  RootTransform.Add(Result);
+  ALevel.CreaturesRoot.Add(Result);
 end;
 
 function TCreatureResource.CreateCreature(
@@ -1489,12 +1487,6 @@ begin
   Add(FResourceFrame);
 end;
 
-function TCreature.GetExists: boolean;
-begin
-  Result := (inherited GetExists) and (DisableCreatures = 0) and
-    ((not Assigned(OnCreatureExists)) or OnCreatureExists(Self));
-end;
-
 function TCreature.GetCollides: boolean;
 begin
   Result := (inherited GetCollides) and
@@ -1618,9 +1610,9 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
 
 begin
   inherited;
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
-  { In this case (when GetExists, regardless of DebugTimeStopForCreatures),
+  { In this case (when Exists, regardless of DebugTimeStopForCreatures),
     TCastleAlive.Update changed LifeTime.
     And LifeTime is used to choose animation frame in GetChild.
     So the creature constantly changes, even when it's
@@ -1657,7 +1649,7 @@ end;
 
 function TCreature.Sphere(out ARadius: Single): boolean;
 begin
-  Result := GetExists and (not Dead);
+  Result := Exists and (not Dead);
   ARadius := Radius;
 end;
 
@@ -2499,7 +2491,7 @@ var
   E: TCastleTransform;
 begin
   inherited;
-  if (not GetExists) or DebugTimeStopForCreatures then Exit;
+  if (not Exists) or DebugTimeStopForCreatures then Exit;
 
   { eventually turn off InternalMiddleForceBox }
   InternalMiddleForceBox := InternalMiddleForceBox and (LifeTime <= InternalMiddleForceBoxTime);
@@ -2710,17 +2702,30 @@ var
   Player: TCastleTransform;
 
   function MissileMoveAllowed(const OldPos, NewPos: TVector3): boolean;
+  var
+    SavedPlayerExists: Boolean;
+    SavedCreaturesRootExists: Boolean;
   begin
     {$warnings off} // using deprecated in deprecated
-    if (not Resource.HitsPlayer) and (Player <> nil) then Player.Disable;
+    if (not Resource.HitsPlayer) and (Player <> nil) then
+    begin
+      SavedPlayerExists := Player.Exists;
+      Player.Exists := false;
+    end;
     {$warnings on}
-    if not Resource.HitsCreatures then Inc(DisableCreatures);
+    if not Resource.HitsCreatures then
+    begin
+      SavedCreaturesRootExists := Level.CreaturesRoot.Exists;
+      Level.CreaturesRoot.Exists := false;
+    end;
     try
       Result := MoveAllowed(OldPos, NewPos, false);
     finally
-      if not Resource.HitsCreatures then Dec(DisableCreatures);
+      if not Resource.HitsCreatures then
+        Level.CreaturesRoot.Exists := SavedCreaturesRootExists;
       {$warnings off} // using deprecated in deprecated
-      if (not Resource.HitsPlayer) and (Player <> nil) then Player.Enable;
+      if (not Resource.HitsPlayer) and (Player <> nil) then
+        Player.Exists := SavedPlayerExists;
       {$warnings on}
     end;
   end;
@@ -2733,7 +2738,7 @@ var
   C: TCreature;
 begin
   inherited;
-  if (not GetExists) or DebugTimeStopForCreatures then Exit;
+  if (not Exists) or DebugTimeStopForCreatures then Exit;
 
   if Dead then
   begin
@@ -2779,7 +2784,7 @@ begin
         if World[I] is TCreature then
         begin
           C := TCreature(World[I]);
-          if (C <> Self) and C.GetCollides and
+          if (C <> Self) and C.CheckCollides and
             C.BoundingBox.SphereSimpleCollision(Middle, Radius) then
           begin
             HitCreature(C);
@@ -2866,7 +2871,7 @@ procedure TStillCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemo
 
 begin
   inherited;
-  if (not GetExists) or DebugTimeStopForCreatures then Exit;
+  if (not Exists) or DebugTimeStopForCreatures then Exit;
 
   if Dead then
   begin

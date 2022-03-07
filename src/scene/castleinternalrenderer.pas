@@ -440,7 +440,7 @@ type
       be @nil, if it failed to link.
 
       Separate values for each rendering pass, since different rendering
-      passes probably have different BaseLights and so will require different
+      passes probably have different GlobalLights and so will require different
       shaders. This makes multi-pass rendering, like for shadow volumes,
       play nicely with shaders. Otherwise we could recreate shaders at each
       rendering pass. }
@@ -449,8 +449,12 @@ type
     Cache: TShapeCache;
 
     { Assign this each time before passing this shape to RenderShape.
-      Should contai camera and scene transformation (but not particular shape transformation). }
+      Should contain camera and scene transformation (but not particular shape transformation). }
     SceneModelView: TMatrix4;
+
+    { Assign this each time before passing this shape to RenderShape.
+      Should contain only scene transformation (but not particular shape transformation). }
+    SceneTransform: TMatrix4;
 
     { Assign this each time before passing this shape to RenderShape. }
     Fog: TFogFunctionality;
@@ -574,7 +578,7 @@ type
     { ----------------------------------------------------------------- }
 
     { Available between RenderBegin / RenderEnd. }
-    LightsRenderer: TVRMLGLLightsRenderer;
+    LightsRenderer: TLightsRenderer;
 
     { Currently set fog parameters, during render. }
     FogFunctionality: TFogFunctionality;
@@ -592,7 +596,7 @@ type
     FCache: TGLRendererContextCache;
 
     { Lights shining on all shapes, may be @nil. Set in each RenderBegin. }
-    BaseLights: TLightInstancesList;
+    GlobalLights: TLightInstancesList;
 
     { Rendering camera. Set in each RenderBegin, cleared in RenderEnd. }
     RenderingCamera: TRenderingCamera;
@@ -708,7 +712,7 @@ type
       when your OpenGL context is still active. }
     procedure UnprepareAll;
 
-    procedure RenderBegin(const ABaseLights: TLightInstancesList;
+    procedure RenderBegin(const AGlobalLights: TLightInstancesList;
       const ARenderingCamera: TRenderingCamera;
       const LightRenderEvent: TLightRenderEvent;
       const AInternalPass: TInternalRenderingPass;
@@ -2209,7 +2213,7 @@ begin
 end;
 
 procedure TGLRenderer.RenderBegin(
-  const ABaseLights: TLightInstancesList;
+  const AGlobalLights: TLightInstancesList;
   const ARenderingCamera: TRenderingCamera;
   const LightRenderEvent: TLightRenderEvent;
   const AInternalPass: TInternalRenderingPass;
@@ -2241,7 +2245,7 @@ procedure TGLRenderer.RenderBegin(
   end;
 
 begin
-  BaseLights := ABaseLights;
+  GlobalLights := AGlobalLights;
   RenderingCamera := ARenderingCamera;
   Assert(RenderingCamera <> nil);
 
@@ -2265,7 +2269,7 @@ begin
   Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
-  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent, RenderOptions.MaxLightsPerShape);
+  LightsRenderer := TLightsRenderer.Create(LightRenderEvent, RenderOptions.MaxLightsPerShape);
   LightsRenderer.RenderingCamera := RenderingCamera;
 end;
 
@@ -2378,7 +2382,8 @@ begin
   if PhongShading then
     Shader.ShapeRequiresShaders := true;
 
-  Shader.ShapeBoundingBox := {$ifdef FPC}@{$endif} Shape.BoundingBox;
+  Shader.ShapeBoundingBoxInSceneEvent := {$ifdef FPC}@{$endif} Shape.BoundingBox;
+  Shader.SceneTransform := Shape.SceneTransform;
   Shader.ShadowSampling := RenderOptions.ShadowSampling;
   RenderShapeLineProperties(Shape, Shader);
 end;
@@ -2430,12 +2435,12 @@ begin
     there is no point in setting up lights. }
   if Lighting then
   begin
-    if RenderOptions.SceneLights then
+    if RenderOptions.ReceiveSceneLights then
       SceneLights := Shape.State.Lights
     else
       SceneLights := nil;
 
-    LightsRenderer.Render(BaseLights, SceneLights, Shader);
+    LightsRenderer.Render(GlobalLights, SceneLights, Shader);
   end;
 
   RenderShapeFog(Shape, Shader, Lighting);

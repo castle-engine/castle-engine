@@ -19,22 +19,56 @@
   (desktop or mobile). }
 unit GameInitialize;
 
+{ Use GameStateMain with UI and level designed in CGE editor.
+  Not functional yet, but this is the future we go for. }
+{.$define UPCOMING_FPS_GAME_REDESIGN}
+
 interface
 
 implementation
 
 uses SysUtils, Classes,
-  CastleWindow, CastleLog, CastleConfig, CastleLevels,
+  CastleWindow, CastleApplicationProperties, CastleUIState
+  {$ifdef UPCOMING_FPS_GAME_REDESIGN}
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  {$endregion 'Castle Initialization Uses'}
+  {$else}
+  , CastleLog, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleTransform, CastleFilesUtils, CastleGameNotifications,
   CastleVectors, CastleUIControls, CastleGLUtils, CastleViewport,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
-  CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties,
-  CastleLoadGltf, CastleSceneCore, CastleScene;
+  CastleCreatures, CastleRectangles, CastleImages,
+  CastleLoadGltf, CastleSceneCore, CastleScene
+  {$endif};
 
 var
   Window: TCastleWindow;
+
+{$ifdef UPCOMING_FPS_GAME_REDESIGN}
+
+{ Initialize the game.
+  This is assigned to Application.OnInitialize, and will be called only once. }
+procedure ApplicationInitialize;
+begin
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  { Create game states and set initial state }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
+  StateMain := TStateMain.Create(Application);
+  {$endregion 'Castle State Creation'}
+
+  TUIState.Current := StateMain;
+end;
+
+{$else UPCOMING_FPS_GAME_REDESIGN}
+
+var
   Level: TLevel;
   Player: TPlayer;
   Viewport: TCastleViewport;
@@ -544,16 +578,14 @@ procedure ApplicationInitialize;
 var
   TouchNavigation: TCastleTouchNavigation;
 begin
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
   { Turn on some engine optimizations not enabled by default.
     TODO: In the future they should be default, and these variables should be ignored.
     See their docs for description why they aren't default yet. }
   OptimizeExtensiveTransformations := true;
   InternalFastTransformUpdate := true;
-
-  { automatically scale user interface to reference sizes }
-  Window.Container.UIReferenceWidth := 1024;
-  Window.Container.UIReferenceHeight := 768;
-  Window.Container.UIScaling := usEncloseReferenceSize;
 
   { force using Phong lighting model instead of PBR (physically-based rendering) model.
     Faster, less realistic. }
@@ -688,6 +720,8 @@ begin
     inside TPlayerHUD, or using TCastleImageControl). }
   Window.Controls.InsertFront(TCastleCrosshair.Create(Application));
 end;
+
+{$endif UPCOMING_FPS_GAME_REDESIGN}
 
 initialization
   Application.OnInitialize := @ApplicationInitialize;

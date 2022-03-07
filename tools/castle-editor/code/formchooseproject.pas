@@ -258,6 +258,9 @@ begin
   RecentProjects.LoadFromConfig(UserConfig);
   //  RecentProjects.NextMenuItem := ; // unused for now
   ConfigLoad;
+
+  UseEditorApplicationData;
+  InternalCastleDesignData := ApplicationData('');
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);

@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2019 Michalis Kamburelis.
+  Copyright 2009-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,8 +30,7 @@ type
   TCastleSceneManager         = CastleViewport.TCastleSceneManager;
   TCastleAbstractViewportList = CastleViewport.TCastleViewportList;
   {$warnings on}
-  TRender3DEvent              = CastleViewport.TRender3DEvent;
-  TManagerRenderParams        = CastleViewport.TManagerRenderParams;
+  TRender3DEvent              = CastleViewport.TRenderOnePassEvent;
   TProjectionEvent            = CastleViewport.TProjectionEvent;
   TUseHeadlight               = CastleScene.TUseHeadlight;
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,6 +18,7 @@
 {$ifdef read_interface}
 
 type
+  { Primitive material type, used by @link(TCastleAbstractPrimitive.Material). }
   TPrimitiveMaterial = (pmPhysical, pmPhong, pmUnlit);
 
   { Base class to express primitives that can be easily added and

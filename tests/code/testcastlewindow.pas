@@ -263,7 +263,14 @@ var
   begin
     RenderParams := TBasicRenderParams.Create;
     try
-      T.Render(RenderParams);
+      RenderParams.RenderingCamera := TRenderingCamera.Create;
+      try
+        RenderParams.RenderingCamera.FromMatrix(TVector3.Zero,
+          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+        RenderParams.RenderingCamera.Target := rtScreen;
+        RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
+        T.Render(RenderParams);
+      finally FreeAndNil(RenderParams.RenderingCamera) end;
     finally FreeAndNil(RenderParams) end;
 
     RemoveMe := rtNone;

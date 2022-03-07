@@ -368,19 +368,10 @@ type
   {$undef read_interface_class}
   end;
 
-procedure Register;
-
 implementation
 
 uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils,
   CastleStringUtils, CastleGLImages, CastleComponentSerialize;
-
-procedure Register;
-begin
-  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
-  RegisterComponents('Castle', [TCastleOnScreenMenu]);
-  {$endif}
-end;
 
 { TCastleMenuButton ---------------------------------------------------------- }
 

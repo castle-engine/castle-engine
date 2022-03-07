@@ -180,7 +180,11 @@ var
     or (possible in case of TCastleControl) in Lazarus/Delphi form designer. }
   CastleDesignMode: Boolean;
 
-  { Refresh UI of CGE editor, because hierarchy of UI/transforms changed. }
+  { @exclude Path to editor data, in design mode.
+    Useful e.g. to initialize gizmo textures. }
+  InternalCastleDesignData: String;
+
+  { @exclude Refresh UI of CGE editor, because hierarchy of UI/transforms changed. }
   InternalCastleDesignInvalidate: Boolean;
 
 {$endif read_interface}

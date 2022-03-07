@@ -2,7 +2,7 @@
 set -eu
 
 INPUT_DIR=./nodes-specification/
-OUTPUT_DIR=../../../src/x3d/auto_generated_node_helpers/
+OUTPUT_DIR=../../../src/scene/x3d/auto_generated_node_helpers/
 
 rm -f "$OUTPUT_DIR"x3dnodes_*.inc
 

@@ -260,9 +260,26 @@
   end;
 {$endif read_interface_type}
 
+{$ifdef read_interface_func}
+
+{ Are we currently doing off-screen rendering.
+  This is @true if we're between
+  TGLRenderToTexture.RenderBegin and TGLRenderToTexture.RenderEnd. }
+function OffscreenRendering: Boolean;
+
+{$endif read_interface_func}
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+var
+  FOffscreenRendering: Cardinal;
+
+function OffscreenRendering: Boolean;
+begin
+  Result := FOffscreenRendering <> 0;
+end;
 
 { BindFramebuffer stack ------------------------------------------------------ }
 
@@ -713,6 +730,8 @@ end;
 
 procedure TGLRenderToTexture.RenderBegin;
 begin
+  Inc(FOffscreenRendering);
+
   if Framebuffer <> 0 then
   begin
     if not FramebufferBound then
@@ -814,6 +833,8 @@ begin
       glCopyTexSubImage2D(DepthTextureTarget, 0, 0, 0, 0, 0, Width, Height);
     end;
   end;
+
+  Dec(FOffscreenRendering);
 end;
 
 procedure TGLRenderToTexture.GenerateMipmap;

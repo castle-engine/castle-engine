@@ -118,7 +118,6 @@ begin
     P.Targets.AddUnit('castlenurbs.pas');
     P.Targets.AddUnit('castlequaternions.pas');
     P.Targets.AddUnit('castlerandom.pas');
-    P.Targets.AddUnit('castlerenderingcamera.pas');
     P.Targets.AddUnit('castlesectors.pas');
     P.Targets.AddUnit('castletransform.pas');
     P.Targets.AddUnit('castletriangles.pas');
@@ -222,7 +221,6 @@ begin
     P.Targets.AddUnit('castlephotoservice.pas');
     P.Targets.AddUnit('castleopendocument.pas');
     P.Targets.AddUnit('castletenjin.pas');
-    P.Targets.AddUnit('castlegiftiz.pas');
 
     if Defaults.OS = Android then
     begin

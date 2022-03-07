@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,7 +26,7 @@ var
   NewAboveGround: PTriangle;
   BoxIntersection: TVector3;
 begin
-  if GetCollides then
+  if CheckCollides then
   begin
     Result := inherited LocalHeightCollision(APosition, GravityUp,
       TrianglesToIgnoreFunc, AboveHeight, AboveGround);
@@ -141,7 +141,7 @@ begin
     Exit(false);
 
 { Simpler implementation that doesn't allow others to become "unstuck".
-  It's also slightly less optimal, as internally LocalBoundingBox and GetCollides
+  It's also slightly less optimal, as internally LocalBoundingBox and CheckCollides
   will be calculated many times (although they should be lighting-fast,
   still their time matters, as this is the basis of our AI and may be called
   many times per frame).
@@ -149,11 +149,11 @@ begin
   to other methods, they may use LocalBoundingBox or something else.
 
   if IsRadius then
-    Result := not ( GetCollides and
+    Result := not ( CheckCollides and
       ( LocalSegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
         LocalSphereCollision(ProposedNewPos, Radius, TrianglesToIgnoreFunc) ) )
   else
-    Result := not ( GetCollides and
+    Result := not ( CheckCollides and
       ( LocalSegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
         LocalBoxCollision(NewBox, TrianglesToIgnoreFunc) ) );
 }
@@ -168,7 +168,7 @@ begin
   Result := true;
   NewPos := ProposedNewPos;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     if UseInternalOctreeCollisions then
     begin
@@ -196,7 +196,7 @@ function TCastleSceneCore.LocalMoveCollision(
 begin
   Result := true;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     if UseInternalOctreeCollisions then
     begin
@@ -220,7 +220,7 @@ function TCastleSceneCore.LocalSegmentCollision(const Pos1, Pos2: TVector3;
 begin
   Result := false;
 
-  if GetCollides or (ALineOfSight and GetExists) then
+  if CheckCollides or (ALineOfSight and Exists) then
   begin
     if UseInternalOctreeCollisions then
     begin
@@ -242,7 +242,7 @@ function TCastleSceneCore.LocalSphereCollision(
 begin
   Result := false;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     if UseInternalOctreeCollisions then
     begin
@@ -265,7 +265,7 @@ function TCastleSceneCore.LocalSphereCollision2D(
 begin
   Result := false;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     if UseInternalOctreeCollisions then
     begin
@@ -295,7 +295,7 @@ function TCastleSceneCore.LocalPointCollision2D(const Point: TVector2;
 begin
   Result := false;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     if UseInternalOctreeCollisions then
     begin
@@ -316,7 +316,7 @@ function TCastleSceneCore.LocalBoxCollision(const Box: TBox3D;
 begin
   Result := false;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     if UseInternalOctreeCollisions then
     begin
@@ -343,7 +343,7 @@ var
 begin
   Result := nil;
 
-  if GetPickable then
+  if CheckPickable then
   begin
     if UseInternalOctreeCollisions then
     begin

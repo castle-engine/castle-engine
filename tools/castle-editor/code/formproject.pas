@@ -813,7 +813,7 @@ begin
   URLFileName := ApplicationConfig(DockLayoutFileName);
   { Try to load default layout if user layout is not exist }
   if not URIFileExists(URLFileName) then
-    URLFileName := EditorApplicationData + 'layouts/' + DockLayoutFileNameDefault;
+    URLFileName := InternalCastleDesignData + 'layouts/' + DockLayoutFileNameDefault;
   try
     XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
     try

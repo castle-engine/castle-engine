@@ -55,6 +55,7 @@ type
     procedure TestRemoveDelayed;
     procedure TestRemoveDelayed_Destructor;
     procedure TestRemoveDelayed_EarlyFree;
+    procedure TestExistsInRoot;
   end;
 
 implementation
@@ -103,9 +104,9 @@ begin
     BoundingBox must take into account also non-collidable
     (but visible) 3D object parts. (Well, in the case of this trivial
     3D object, it's actually never visible, so it's a little pointless...
-    But in general, the rule is "BoundingBox looks at GetExists,
+    But in general, the rule is "BoundingBox looks at Exists,
     not at Collides property".) }
-  if GetExists then
+  if Exists then
     Result := MyBox
   else
     Result := TBox3D.Empty;
@@ -1513,7 +1514,14 @@ end;
   begin
     Params := TBasicRenderParams.Create;
     try
-      T.Render(Params);
+      Params.RenderingCamera := TRenderingCamera.Create;
+      try
+        Params.RenderingCamera.FromMatrix(TVector3.Zero,
+          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+        Params.RenderingCamera.Target := rtScreen;
+        Params.Frustum := @Params.RenderingCamera.Frustum;
+        T.Render(Params);
+      finally FreeAndNil(Params.RenderingCamera) end;
     finally FreeAndNil(Params) end;
   end;
 
@@ -1625,6 +1633,67 @@ begin
   AssertEquals(0, T1.Count);
 
   FreeAndNil(T1);
+end;
+
+procedure TTestCastleTransform.TestExistsInRoot;
+var
+  T1, T2, T3: TCastleTransform;
+begin
+  T1 := TCastleTransform.Create(nil);
+  T2 := TCastleTransform.Create(nil);
+  T3 := TCastleTransform.Create(nil);
+
+  AssertTrue(T1.Exists);
+  AssertTrue(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertTrue(T2.ExistsInRoot);
+
+  T1.Add(T2);
+
+  AssertTrue(T1.Exists);
+  AssertTrue(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertTrue(T2.ExistsInRoot);
+
+  T1.Exists := false;
+
+  AssertFalse(T1.Exists);
+  AssertFalse(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertFalse(T2.ExistsInRoot);
+
+  T1.Exists := true;
+
+  AssertTrue(T1.Exists);
+  AssertTrue(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertTrue(T2.ExistsInRoot);
+
+  T2.Exists := false;
+
+  AssertTrue(T1.Exists);
+  AssertTrue(T1.ExistsInRoot);
+  AssertFalse(T2.Exists);
+  AssertFalse(T2.ExistsInRoot);
+
+  T2.Exists := true;
+  T1.Exists := false;
+
+  AssertFalse(T1.Exists);
+  AssertFalse(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertFalse(T2.ExistsInRoot);
+
+  T1.Remove(T2);
+
+  AssertFalse(T1.Exists);
+  AssertFalse(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertTrue(T2.ExistsInRoot); // T2 is without parent now, so again has T2.ExistsInRoot
+
+  FreeAndNil(T1);
+  FreeAndNil(T2);
+  FreeAndNil(T3);
 end;
 
 initialization

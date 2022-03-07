@@ -86,9 +86,7 @@ var
 
 implementation
 
-{$warnings off} // using deprecated CastleRenderingCamera in deprecated
-uses SysUtils, CastleUtils, CastleKeysMouse, CastleRenderingCamera;
-{$warnings on}
+uses SysUtils, CastleUtils, CastleKeysMouse;
 
 { TWindowProgressInterface  ------------------------------------------------ }
 
@@ -113,8 +111,9 @@ begin
        and progress bar appears because after animating a transform the shape octree
        needs to be rebuild for frustum culling (which can happen on larger scenes,
        to easily reproduce use TESTING_PROGRESS_DELAY with android_demo 2 teapots scene). }
-     (RenderingCamera.Target = rtScreen) then
-    UsedWindow := Application.MainWindow else
+     (not OffscreenRendering) then
+    UsedWindow := Application.MainWindow
+  else
     UsedWindow := nil;
 
   if UsedWindow = nil then Exit;

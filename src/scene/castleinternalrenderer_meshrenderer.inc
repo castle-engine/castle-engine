@@ -1058,12 +1058,12 @@ begin
          (not(Shape.ProgramCache[Renderer.Pass].Hash = Shader.CodeHash)) then
       begin
         if LogRenderer then
-          WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d, pass: %d)',
-            [Shape.NiceName,
-             BoolToStr((Shape.ProgramCache[Renderer.Pass] = nil) or
-                       (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil), true),
-             Renderer.BaseLights.Count,
-             Renderer.Pass]);
+          WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, pass: %d)', [
+            Shape.NiceName,
+            BoolToStr((Shape.ProgramCache[Renderer.Pass] = nil) or
+                      (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil), true),
+            Renderer.Pass
+          ]);
 
         if Shape.ProgramCache[Renderer.Pass] <> nil then
           Renderer.Cache.Program_DecReference(Shape.ProgramCache[Renderer.Pass]);

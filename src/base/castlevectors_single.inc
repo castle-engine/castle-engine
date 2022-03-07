@@ -724,11 +724,7 @@ function RotatePoint2D(const Point: TVector2; const AngleRad: Single): TVector2;
   (like scale (-1, 1), common in 2D to flip horizontally).
 
   The overloaded version with matrix argument
-  makes a fast (not always correct) extraction of scale from matrix.
-  It does simple extraction and works for identity,
-  translation and scaling matrices.
-  It fails (returns incorrect values) when looking at some rotation matrices.
-  Use MatrixDecompose instead to have a full-blown, but slower, solution.
+  extracts scale from matrix, just like MatrixDecompose.
 
   @groupBegin }
 function Approximate3DScale(const X, Y, Z: Single): Single; overload;
@@ -2788,15 +2784,14 @@ begin
 end;
 
 function Approximate3DScale(const M: TMatrix4): Single;
+var
+  Scale: TVector3;
 begin
-  { This is a simple method of extracting average scaling factor from a matrix.
-    Works OK for combination of scaling, translation matrices.
-    Will fail on rotation (and possibly many other) matrices. }
-  Result := Approximate3DScale(
-    M.Data[0, 0],
-    M.Data[1, 1],
-    M.Data[2, 2]
-  );
+  { See MatrixDecompose }
+  Scale.X := Vector3(M.Data[0, 0], M.Data[0, 1], M.Data[0, 2]).Length;
+  Scale.Y := Vector3(M.Data[1, 0], M.Data[1, 1], M.Data[1, 2]).Length;
+  Scale.Z := Vector3(M.Data[2, 0], M.Data[2, 1], M.Data[2, 2]).Length;
+  Result := Approximate3DScale(Scale);
 end;
 
 function Approximate2DScale(const X, Y: Single): Single;
