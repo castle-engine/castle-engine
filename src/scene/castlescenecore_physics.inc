@@ -54,7 +54,9 @@
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
-      procedure SetScene(const AValue: TCastleSceneCore);
+    procedure SetScene(const AValue: TCastleSceneCore);
+    { In case of mesh collider only remove Translation, Rotation and Scale }
+    procedure CalculateAutoSize; override;
   published
     { Mesh which is used to collide.
       It does not have to be convex.
@@ -212,6 +214,14 @@ begin
     FScene := AValue;
     ShapeChangedNotifyRigidBody;
   end;
+end;
+
+procedure TCastleMeshCollider.CalculateAutoSize;
+begin
+  inherited;
+  Rotation := Vector4(0, 0, 0, 0);
+  Scale := Vector3(1, 1, 1);
+  Translation := Vector3(0, 0, 0);
 end;
 
 
