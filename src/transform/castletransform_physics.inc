@@ -246,6 +246,8 @@
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
+
+    procedure CalculateAutoSize; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1194,6 +1196,40 @@ begin
 
   Result := TKraftShapePlane.Create(APhysics, ARigidBody,
     Plane(Vector3Norm(VectorToKraft(FNormal)), Distance));
+end;
+
+procedure TCastlePlaneCollider.CalculateAutoSize;
+var
+  LocalBoundingBox: TBox3D;
+begin
+  inherited;
+
+  if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
+  begin
+    Normal := Vector3(0, 1, 0);
+    Exit;
+  end;
+
+  Distance := 0;
+  LocalBoundingBox := Parent.LocalBoundingBox;
+  if LocalBoundingBox.SizeX > LocalBoundingBox.SizeY then
+  begin
+    if LocalBoundingBox.SizeY > LocalBoundingBox.SizeZ then
+      Normal := Vector3(0, 0, 1)
+    else
+      Normal := Vector3(0, 1, 0);
+  end
+  else
+    begin
+      if LocalBoundingBox.SizeX > LocalBoundingBox.SizeZ then
+        Normal := Vector3(0, 0, 1)
+      else
+        Normal := Vector3(1, 0, 0);
+    end;
+
+  Translation := LocalBoundingBox.Center;
+  Scale := NoScale;
+  Rotation := Vector4(0, 0, 0, 0);
 end;
 
 constructor TCastlePlaneCollider.Create(AOwner: TComponent);
