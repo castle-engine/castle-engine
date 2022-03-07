@@ -405,7 +405,8 @@
     function GetCastleColliderFromParent: TCastleCollider;
 
     { Updates Kraft rigid body type krbtDynamic, krbtKinematic, krbtStatic
-      based on Dynamic and Animated properties. Used in SetAnimated, SetDynamic. }
+      based on Dynamic and Animated properties. Used in SetAnimated, SetDynamic,
+      InitializeEngineRigidBody.}
     procedure UpdateKraftRigidBodyType;
   private
 
@@ -1524,13 +1525,7 @@ begin
   FKraftBody := TKraftRigidBody.Create(World.FKraftEngine);
   FKraftBody.UserData := Self;
 
-  if Dynamic then
-    FKraftBody.SetRigidBodyType(krbtDynamic)
-  else
-  if Animated then
-    FKraftBody.SetRigidBodyType(krbtKinematic)
-  else
-    FKraftBody.SetRigidBodyType(krbtStatic);
+  UpdateKraftRigidBodyType;
 
   FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
   if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisX];
