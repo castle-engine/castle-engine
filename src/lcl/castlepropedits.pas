@@ -160,9 +160,9 @@ begin
     TExposeTransformsPropertyEditor);
 
   RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockTranslation',
-    TRangeSetPropertyEditor);
+    T3DCoordsRangeSetPropertyEditor);
   RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockRotation',
-    TRangeSetPropertyEditor);
+    T3DCoordsRangeSetPropertyEditor);
 end;
 
 initialization
