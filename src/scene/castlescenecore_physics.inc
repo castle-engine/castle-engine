@@ -57,6 +57,8 @@
     procedure SetScene(const AValue: TCastleSceneCore);
     { In case of mesh collider only remove Translation, Rotation and Scale }
     procedure CalculateAutoSize; override;
+  public
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Mesh which is used to collide.
       It does not have to be convex.
@@ -222,6 +224,16 @@ begin
   Rotation := Vector4(0, 0, 0, 0);
   Scale := Vector3(1, 1, 1);
   Translation := Vector3(0, 0, 0);
+end;
+
+function TCastleMeshCollider.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'AutoSize') or
+     (PropertyName = 'Scene') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 
