@@ -407,6 +407,10 @@
       based on Dynamic and Animated properties. Used in SetAnimated, SetDynamic,
       InitializeEngineRigidBody.}
     procedure UpdateKraftRigidBodyType;
+
+    { Changes Kraft GravityScale based on Gravity property. Used in SetGravity
+      and InitializeEngineRigidBody. }
+    procedure UpdateKraftGravity;
   private
 
     FKraftBody: TKraftRigidBody;
@@ -446,6 +450,7 @@
 
     procedure SetDynamic(const AValue: Boolean);
     procedure SetAnimated(const AValue: Boolean);
+    procedure SetGravity(const AValue: Boolean);
 
     procedure SetExists(const Value: Boolean);
     procedure SetTrigger(const Value: Boolean);
@@ -663,7 +668,7 @@
     property Collider: TCollider read FCollider;
 
     { Is this object affected by gravity. }
-    property Gravity: Boolean read FGravity write FGravity default true;
+    property Gravity: Boolean read FGravity write SetGravity default true;
 
     { Disable motion (@link(TCastleTransform.Translation) change) along
       the particular (world) axis.
@@ -1521,6 +1526,12 @@ begin
   end;
 end;
 
+procedure TCastleRigidBody.UpdateKraftGravity;
+begin
+  if FKraftBody <> nil then
+    FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
+end;
+
 procedure TCastleRigidBody.InitializeEngineRigidBody(
   const Transform: TCastleTransform);
 begin
@@ -1871,6 +1882,15 @@ begin
   begin
     FAnimated := AValue;
     UpdateKraftRigidBodyType;
+  end;
+end;
+
+procedure TCastleRigidBody.SetGravity(const AValue: Boolean);
+begin
+  if FGravity <> AValue then
+  begin
+    FGravity := AValue;
+    UpdateKraftGravity;
   end;
 end;
 
