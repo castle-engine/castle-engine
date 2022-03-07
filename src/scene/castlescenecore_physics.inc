@@ -43,9 +43,6 @@
 
   { Collide as a mesh, constructed from the given scene shapes.
     Add this behavior to your Scene }
-
-  { TCastleMeshCollider }
-
   TCastleMeshCollider = class(TCastleCollider)
   strict private
     Mesh: TKraftMesh;
@@ -184,8 +181,6 @@ var
   ShapesList: TShapeList;
   I: Integer;
 begin
-  //raise Exception.Create('You must assign a TCastleMeshCollider.Scene to determine the mesh triangles');
-
   Mesh := TKraftMesh.Create(APhysics);
 
   if FScene <> nil then
@@ -196,7 +191,7 @@ begin
         ShapesList[I].Triangulate(false, {$ifdef FPC}@{$endif}AddTriangle);
 
     if Mesh.CountVertices = 0 then
-      raise Exception.Create('The scene assigned to TCastleMeshCollider.Scene is empty (no collidable triangles)');
+      WritelnWarning('The scene assigned to TCastleMeshCollider.Scene is empty (no collidable triangles)');
   end;
   Mesh.Finish;
 
