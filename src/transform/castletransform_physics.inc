@@ -1362,7 +1362,7 @@ begin
   end;
 
   LocalBoundingBox := Parent.LocalBoundingBox;
-  Radius := LocalBoundingBox.Radius;
+  Radius := LocalBoundingBox.AverageSize(false, 2) / 2;
 
   Translation := LocalBoundingBox.Center;
   Scale := NoScale;
