@@ -364,11 +364,7 @@
   TRigidBodyList = {$ifdef FPC}specialize{$endif} TList<TRigidBody>;
   TCastleRigidBodyList = {$ifdef FPC}specialize{$endif} TList<TCastleRigidBody>;
 
-  { Rigid body behavior for the physics engine,
-    see @link(TCastleTransform.RigidBody). }
-
-  { TCastleRigidBody }
-
+  { Rigid body behavior for the physics engine }
   TCastleRigidBody = class(TCastleBehavior)
   strict private
     type
@@ -381,7 +377,8 @@
     var
       { Current rigid body state. }
       FState: TCastleRigidBodyState;
-      { Castle collider behavior that was used to initialize rigid body }
+      { Castle collider behavior that was used to initialize rigid body or nil
+        if physics engine collider was not initialized }
       FCastleCollider: TCastleCollider;
 
       { List of collisions from previous step. }
@@ -453,7 +450,13 @@
     procedure SetExists(const Value: Boolean);
     procedure SetTrigger(const Value: Boolean);
 
-    { Connect this rigid body with Transform and Transform.World. }
+    { Creates physics engine object and connects this rigid body with
+      Transform and Transform.World.
+
+      Initialization is done in three steps:
+      1. Creation of Kraft rigid body in InitializeEngineRigidBody
+      2. Creation of Kraft shape based on TCollder or TCastleCollider
+      3. Finishing initialization when creation of Kraft shape succeeded }
     procedure InitializeTransform(const Transform: TCastleTransform);
     { Disconnect from Transform.World, if was connected. }
     procedure DeinitializeTransform(const Transform: TCastleTransform);
@@ -488,7 +491,6 @@
       Locks moving along the Z axis,
       locks rotating along the X and Y axes. }
     procedure Setup2D;
-
 
     { Transformations that we collide with currently. }
     function GetCollidingTransforms: TCastleTransformList;
