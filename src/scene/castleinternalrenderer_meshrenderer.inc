@@ -529,7 +529,21 @@ end;
 procedure TBaseCoordinateRenderer.RenderCoordinateBegin;
 begin
   RenderContext.CullFace := Arrays.CullFace;
-  RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;
+  { Following glTF on what to do with negative scale transformations:
+
+    """
+    If the determinant of the transform is a negative value,
+    the winding order of the mesh triangle faces should be reversed.
+    This supports negative scales for mirroring geometry.
+    """
+
+    This makes backface culling remove proper faces when negative
+    scale is used.
+    See https://github.com/castle-engine/castle-engine/issues/336 . }
+  if Shape.ShapeModelView.Determinant < 0 then
+    RenderContext.FrontFaceCcw := not Arrays.FrontFaceCcw
+  else
+    RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;
   if Renderer.RenderOptions.Mode = rmFull then
     Renderer.SmoothShading := not Arrays.ForceFlatShading;
 end;
