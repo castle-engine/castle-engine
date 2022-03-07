@@ -783,7 +783,6 @@ begin
     Exit;
   end;
 
-
   LocalBoundingBox := Parent.LocalBoundingBox;
 
   Translation := LocalBoundingBox.Center;
@@ -791,7 +790,10 @@ begin
   Rotation := Vector4(0, 0, 0, 0);
 
   Radius := LocalBoundingBox.SizeX * 0.49;
-  Height := Max(LocalBoundingBox.SizeY - Radius * 2, 0.01);
+  { If radius *2 is bigger than height make it smaller. }
+  if Radius * 2 > LocalBoundingBox.SizeY then
+    Radius := LocalBoundingBox.SizeY / 2 - 0.001;
+  Height := Min(LocalBoundingBox.SizeY - Radius * 2, 0.001);
 end;
 
 function TCastleCapsuleCollider.PropertySections(
