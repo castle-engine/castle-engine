@@ -403,6 +403,8 @@
       Parent or Parent = nil. In most cases you should use FCastleCollider
       reference to behavior that was used to initialize rigid body }
     function GetCastleColliderFromParent: TCastleCollider;
+
+    procedure UpdateKraftRigidBodyType;
   private
 
     FKraftBody: TKraftRigidBody;
@@ -441,6 +443,7 @@
     procedure SetOnCollisionExit(const AValue: TCollisionEvent);
 
     procedure SetDynamic(const AValue: Boolean);
+    procedure SetAnimated(const AValue: Boolean);
 
     procedure SetExists(const Value: Boolean);
     procedure SetTrigger(const Value: Boolean);
@@ -631,7 +634,7 @@
         )
       )
     }
-    property Animated: Boolean read FAnimated write FAnimated default false;
+    property Animated: Boolean read FAnimated write SetAnimated default false;
 
     { Triggers report when other object collides with them,
       but still allow the other object to pass through.
@@ -1497,6 +1500,20 @@ begin
     Result := nil;
 end;
 
+procedure TCastleRigidBody.UpdateKraftRigidBodyType;
+begin
+  if FKraftBody <> nil then
+  begin
+    if FDynamic then
+      FKraftBody.SetRigidBodyType(krbtDynamic)
+    else
+    if Animated then
+      FKraftBody.SetRigidBodyType(krbtKinematic)
+    else
+      FKraftBody.SetRigidBodyType(krbtStatic);
+  end;
+end;
+
 procedure TCastleRigidBody.InitializeEngineRigidBody(
   const Transform: TCastleTransform);
 begin
@@ -1843,16 +1860,16 @@ begin
   if FDynamic <> AValue then
   begin
     FDynamic := AValue;
-    if FKraftBody <> nil then
-    begin
-      if FDynamic then
-        FKraftBody.SetRigidBodyType(krbtDynamic)
-      else
-      if Animated then
-        FKraftBody.SetRigidBodyType(krbtKinematic)
-      else
-        FKraftBody.SetRigidBodyType(krbtStatic);
-    end;
+    UpdateKraftRigidBodyType;
+  end;
+end;
+
+procedure TCastleRigidBody.SetAnimated(const AValue: Boolean);
+begin
+  if FAnimated <> AValue then
+  begin
+    FAnimated := AValue;
+    UpdateKraftRigidBodyType;
   end;
 end;
 
