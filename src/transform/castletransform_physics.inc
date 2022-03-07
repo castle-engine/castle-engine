@@ -101,8 +101,9 @@
       Translation, Scale, Rotation and in InitializeKraft. }
     procedure UpdateLocalTransform;
 
-    procedure InitializeKraft(const APhysics: TKraft;
-      const ACastleRigidBody: TCastleRigidBody);
+    { Initializes Kraft shape returns false if initialization fails }
+    function InitializeKraft(const APhysics: TKraft;
+      const ACastleRigidBody: TCastleRigidBody): Boolean;
 
     procedure SetDensity(const AValue: Single);
     procedure SetMass(const AValue: Single);
@@ -917,8 +918,8 @@ begin
   );
 end;
 
-procedure TCastleCollider.InitializeKraft(const APhysics: TKraft;
-  const ACastleRigidBody: TCastleRigidBody);
+function TCastleCollider.InitializeKraft(const APhysics: TKraft;
+  const ACastleRigidBody: TCastleRigidBody): Boolean;
 begin
   // when using old Collider and new one
   if ACastleRigidBody.Collider <> nil then
@@ -937,6 +938,9 @@ begin
   end;}
 
   FKraftShape := CreateKraftShape(APhysics, ACastleRigidBody.FKraftBody);
+
+  if FKraftShape = nil then
+    Exit(false);
   // assign common TCollider properties to Kraft shape
   FKraftShape.Density := Density;
   FKraftShape.Restitution := Restitution;
@@ -945,6 +949,8 @@ begin
     FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
 
   UpdateLocalTransform;
+
+  Result := true;
 end;
 
 procedure TCastleCollider.SetDensity(const AValue: Single);
@@ -1177,6 +1183,13 @@ end;
 function TCastlePlaneCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
+  if ARigidBody.RigidBodyType <> krbtStatic then
+  begin
+    WritelnWarning('TCastlePlaneCollider is available only for static rigid bodies.');
+    Result := nil;
+    Exit;
+  end;
+
   Result := TKraftShapePlane.Create(APhysics, ARigidBody,
     Plane(Vector3Norm(VectorToKraft(FNormal)), Distance));
 end;
@@ -1592,7 +1605,11 @@ begin
     Exit(false);
   end;
 
-  CastleColliderFromTransform.InitializeKraft(Parent.World.FKraftEngine, Self);
+  if not CastleColliderFromTransform.InitializeKraft(Parent.World.FKraftEngine, Self) then
+  begin
+    FState := crbsNoCollider;
+    Exit(false);
+  end;
 
   FCastleCollider := CastleColliderFromTransform;
   FState := crbsNoFinalization;
@@ -1678,8 +1695,7 @@ begin
     begin
       if TryInitializeColliders then
         FinishInitialization(Parent);
-    end;
-
+    end else
     if FCastleCollider <> ACastleCollider then
     begin
       { Trying to initialize rigid body with another collider without deinitialization

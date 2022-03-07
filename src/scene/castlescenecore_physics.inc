@@ -181,6 +181,13 @@ var
   ShapesList: TShapeList;
   I: Integer;
 begin
+  if ARigidBody.RigidBodyType <> krbtStatic then
+  begin
+    WritelnWarning('TCastleMeshCollider is available only for static rigid bodies.');
+    Result := nil;
+    Exit;
+  end;
+
   Mesh := TKraftMesh.Create(APhysics);
 
   if FScene <> nil then
