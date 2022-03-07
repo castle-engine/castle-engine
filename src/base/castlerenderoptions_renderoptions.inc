@@ -58,6 +58,7 @@ type
     FSolidWireframeBias: Single;
     FSilhouetteScale: Single;
     FSilhouetteBias: Single;
+    FRobustNegativeScale: Boolean;
 
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
@@ -534,6 +535,11 @@ type
       (for OpenGL, we require ARB_occlusion_query). }
     property OcclusionQuery: boolean
       read FOcclusionQuery write SetOcclusionQuery default false;
+
+    { Support lighting and backface culling for models using negative scale.
+      This has a small performance cost, and so is disabled by default. }
+    property RobustNegativeScale: Boolean
+      read FRobustNegativeScale write FRobustNegativeScale default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}

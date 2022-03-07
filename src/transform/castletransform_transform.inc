@@ -1524,7 +1524,10 @@
 
           For unlit stuff, or custom lighting, negative scale may be Ok.
           For many 2D games that use no lighting/custom lighting,
-          negative scale is Ok.)
+          negative scale is Ok.
+
+          If you really need to use negative scale and lighting,
+          enable @link(TRenderOptions.RobustNegativeScale).)
 
         @item(At least, keep all scale components non-zero.
           Otherwise the scaling operation is not invertible,

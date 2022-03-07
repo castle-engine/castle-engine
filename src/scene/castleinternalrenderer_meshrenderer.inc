@@ -540,7 +540,8 @@ begin
     This makes backface culling remove proper faces when negative
     scale is used.
     See https://github.com/castle-engine/castle-engine/issues/336 . }
-  if Shape.ShapeModelView.Determinant < 0 then
+  if RenderOptions.RobustNegativeScale and
+     (Shape.ShapeModelView.Determinant < 0) then
     RenderContext.FrontFaceCcw := not Arrays.FrontFaceCcw
   else
     RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;
