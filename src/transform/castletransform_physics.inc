@@ -404,6 +404,8 @@
       reference to behavior that was used to initialize rigid body }
     function GetCastleColliderFromParent: TCastleCollider;
 
+    { Updates Kraft rigid body type krbtDynamic, krbtKinematic, krbtStatic
+      based on Dynamic and Animated properties. Used in SetAnimated, SetDynamic. }
     procedure UpdateKraftRigidBodyType;
   private
 
@@ -1507,7 +1509,7 @@ begin
     if FDynamic then
       FKraftBody.SetRigidBodyType(krbtDynamic)
     else
-    if Animated then
+    if FAnimated then
       FKraftBody.SetRigidBodyType(krbtKinematic)
     else
       FKraftBody.SetRigidBodyType(krbtStatic);
