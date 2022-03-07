@@ -860,6 +860,7 @@ type
   TCreature = class(TCastleAlive)
   private
     FResource: TCreatureResource;
+    FResourceObserver: TFreeNotificationObserver;
     FResourceFrame: TResourceFrame;
 
     SoundSource: TCastleSoundSource;
@@ -876,6 +877,8 @@ type
     { Calculated @link(Radius) suitable for this creature.
       This is cached result of @link(TCreatureResource.Radius). }
     FRadius: Single;
+
+    procedure ResourceFreeNotification(const Sender: TFreeNotificationObserver);
   protected
     var
       { Set by CreateCreature. }
@@ -1182,6 +1185,7 @@ begin
     to sensibly use the creature }
   Result.Level := ALevel;
   Result.FResource := Self;
+  Result.FResourceObserver.Observed := Self;
   Result.Orientation := Orientation; // must be set before SetView
   Result.SetView(APosition, ADirection, RootTransform.GravityUp, FlexibleUp);
   Result.Life := MaxLife;
@@ -1477,6 +1481,10 @@ begin
   CollidesWithMoving := true;
   MaxLife := AMaxLife;
   FSoundDieEnabled := true;
+
+  FResourceObserver := TFreeNotificationObserver.Create(Self);
+  FResourceObserver.OnFreeNotification := {$ifdef FPC}@{$endif}ResourceFreeNotification;
+
   SoundSource := TCastleSoundSource.Create(Self);
   AddBehavior(SoundSource);
 
@@ -1485,6 +1493,11 @@ begin
 
   FResourceFrame := TResourceFrame.Create(Self);
   Add(FResourceFrame);
+end;
+
+procedure TCreature.ResourceFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  FResource := nil;
 end;
 
 function TCreature.GetCollides: boolean;
