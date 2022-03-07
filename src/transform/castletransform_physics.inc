@@ -397,6 +397,8 @@
     { Assign or unassign PhysicsPostStep in TKraftBody.OnPostStep when needed. }
     procedure CheckPhysicsPostStepNeeded;
 
+    { Makes easier to get appropriate Kraft shape (from the old collider or
+      the new behavior. Will be removed after removing the old physics support.}
     function GetKraftShape: TKraftShape;
 
     { Returns TCastleCollider bahavior or nil when no collider behavior in
