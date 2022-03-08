@@ -28,6 +28,8 @@ type
   { Used by TCastleThirdPersonNavigation.AimAvatar. }
   TAimAvatar = (aaNone, aaHorizontal, aaFlying);
 
+  TMovementType = (mtAnimated, mtVelocity, mtForce);
+
   { 3rd-person camera navigation.
     Create an instance of this and assign it to @link(TCastleViewport.Navigation) to use.
     Be sure to also assign @link(Avatar).
@@ -73,6 +75,7 @@ type
     FInput_CameraFurther: TInputShortcut;
     FInput_Crouch: TInputShortcut;
     FInput_Run: TInputShortcut;
+    FInput_Jump: TInputShortcut;
     FCameraDistanceChangeSpeed: Single;
     FMinDistanceToAvatarTarget: Single;
     FMaxDistanceToAvatarTarget: Single;
@@ -88,6 +91,8 @@ type
     FAvatarFreeObserver: TFreeNotificationObserver;
     FAvatarHierarchyFreeObserver: TFreeNotificationObserver;
     SetAnimationWarningsDone: Cardinal;
+    FMovementType: TMovementType;
+    FWasJumpInput: Boolean;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
@@ -206,6 +211,7 @@ type
     property Input_CameraFurther: TInputShortcut read FInput_CameraFurther;
     property Input_Crouch: TInputShortcut read FInput_Crouch;
     property Input_Run: TInputShortcut read FInput_Run;
+    property Input_Jump: TInputShortcut read FInput_Jump;
   published
     property MouseLookHorizontalSensitivity;
     property MouseLookVerticalSensitivity;
@@ -392,6 +398,7 @@ begin
   FInput_CameraFurther           := TInputShortcut.Create(Self);
   FInput_Crouch                  := TInputShortcut.Create(Self);
   FInput_Run                     := TInputShortcut.Create(Self);
+  FInput_Jump                    := TInputShortcut.Create(Self);
 
   Input_Forward                 .Assign(keyW, keyArrowUp);
   Input_Backward                .Assign(keyS, keyArrowDown);
@@ -403,6 +410,7 @@ begin
   Input_CameraFurther           .Assign(keyNone);
   Input_Crouch                  .Assign(keyCtrl);
   Input_Run                     .Assign(keyShift);
+  Input_Jump                    .Assign(keySpace);
 
   Input_Forward                .SetSubComponent(true);
   Input_Backward               .SetSubComponent(true);
@@ -414,6 +422,7 @@ begin
   Input_CameraFurther          .SetSubComponent(true);
   Input_Crouch                 .SetSubComponent(true);
   Input_Run                    .SetSubComponent(true);
+  Input_Jump                   .SetSubComponent(true);
 
   Input_Forward                .Name := 'Input_Forward';
   Input_Backward               .Name := 'Input_Backward';
@@ -425,13 +434,17 @@ begin
   Input_CameraFurther          .Name := 'Input_CameraFurther';
   Input_Crouch                 .Name := 'Input_Crouch';
   Input_Run                    .Name := 'Input_Run';
+  Input_Jump                   .Name := 'Input_Jump';
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 
   // override vector change method, to call Init in design mode when this changes
-  AvatarTargetPersistent.InternalSetValue := {$ifdef FPC}@{$endif}MySetAvatarTargetForPersistent
+  AvatarTargetPersistent.InternalSetValue := {$ifdef FPC}@{$endif}MySetAvatarTargetForPersistent;
+
+  FMovementType := mtVelocity;
+  FWasJumpInput := false;
 end;
 
 procedure TCastleThirdPersonNavigation.MySetAvatarTargetForPersistent(const AValue: TVector3);
@@ -851,112 +864,266 @@ var
   Speed: Single;
   Moving, Rotating: Boolean;
   T: TVector3;
+  Vel: TVector3;
+  VLength: Single;
+  DeltaSpeed: Single;
+  DeltaAngular: Single;
+  AvatarRigidBody: TCastleRigidBody;
+  MaxHorizontalVelocityChange: Single;
+  Acceleration: Single;
+  HVelocity: TVector3;
+  VVelocity: Single;
+  MoveDirection: TVector3;
+  Ground: TCastleTransform;
+  IsOnGround: Boolean;
+  Jump: Single;
+const
+  JumpVelocity = 5;
 begin
   inherited;
 
   // TODO jumping with space, similar to TCastleWalkNavigation mechanics
 
   A := RealAvatarHierarchy;
-  if (A <> nil) and (InternalViewport <> nil) then
+  if (A = nil) or (InternalViewport = nil) then
+    Exit;
+
+  if Input_Run.IsPressed(Container) then
   begin
-    if Input_Run.IsPressed(Container) then
-    begin
-      SpeedType := stRun;
-      Speed := RunSpeed;
-    end else
-    if Input_Crouch.IsPressed(Container) then
-    begin
-      SpeedType := stCrouch;
-      Speed := CrouchSpeed;
-    end else
-    begin
-      SpeedType := stNormal;
-      Speed := MoveSpeed;
-    end;
+    SpeedType := stRun;
+    Speed := RunSpeed;
+  end else
+  if Input_Crouch.IsPressed(Container) then
+  begin
+    SpeedType := stCrouch;
+    Speed := CrouchSpeed;
+  end else
+  begin
+    SpeedType := stNormal;
+    Speed := MoveSpeed;
+  end;
 
-    T := TVector3.Zero;
-    if Input_Forward.IsPressed(Container) then
-    begin
-      Moving := true;
-      T := T + A.Direction * Speed * SecondsPassed;
-    end;
-    if Input_Backward.IsPressed(Container) then
-    begin
-      Moving := true;
-      T := T - A.Direction * Speed * SecondsPassed;
-    end;
-    if Input_RightStrafe.IsPressed(Container) then
-    begin
-      Moving := true;
-      T := T + TVector3.CrossProduct(A.Direction, A.Up) * Speed * SecondsPassed;
-    end;
-    if Input_LeftStrafe.IsPressed(Container) then
-    begin
-      Moving := true;
-      T := T - TVector3.CrossProduct(A.Direction, A.Up) * Speed * SecondsPassed;
-    end;
-    if Input_RightRotate.IsPressed(Container) then
-    begin
-      Moving := true;
-      A.Direction := RotatePointAroundAxisRad(-RotationSpeed * SecondsPassed, A.Direction, A.Up)
-      { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
-        In effect, keys AD don't work when AimAvatar <> aaNone. }
-    end;
-    if Input_LeftRotate.IsPressed(Container) then
-    begin
-      Moving := true;
-      A.Direction := RotatePointAroundAxisRad(RotationSpeed * SecondsPassed, A.Direction, A.Up);
-      { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
-        In effect, keys AD don't work when AimAvatar <> aaNone. }
-    end;
 
-    if not T.IsPerfectlyZero then
-      A.Move(T, false);
-
-    Rotating := UpdateAimAvatar;
-
-    { TODO: In case we use AimAvatar and you move mouse very slowly for short amounts,
-      we may switch very quickly between AnimationIdle and AnimationRotate.
-      This makes somewhat bad look in third_person_navigation, and though it uses
-      DefaultAnimationTransition <> 0.
-      Should we protect from it here, to introduce minimal time to change
-      animation between rotating/non-rotating variant? }
-
-    // change Avatar.AutoAnimation
-    if Moving then
+  Moving := false;
+  case FMovementType of
+    mtAnimated:
     begin
-      case SpeedType of
-        stNormal: SetAnimation([AnimationWalk, AnimationIdle]);
-        stRun   : SetAnimation([AnimationRun, AnimationIdle]);
-        stCrouch: SetAnimation([AnimationCrouch, AnimationCrouchIdle, AnimationIdle]);
-        // else raise EInternalError.Create('Unhandled SpeedType'); // new FPC will warn in case of unhandled "else"
-      end;
-    end else
-    begin
-      if SpeedType = stCrouch then
+      T := TVector3.Zero;
+      if Input_Forward.IsPressed(Container) then
       begin
-        if Rotating then
-          SetAnimation([AnimationCrouchRotate, AnimationCrouch, AnimationCrouchIdle, AnimationIdle])
+        Moving := true;
+        T := T + A.Direction * Speed * SecondsPassed;
+      end;
+      if Input_Backward.IsPressed(Container) then
+      begin
+        Moving := true;
+        T := T - A.Direction * Speed * SecondsPassed;
+      end;
+      if Input_RightStrafe.IsPressed(Container) then
+      begin
+        Moving := true;
+        T := T + TVector3.CrossProduct(A.Direction, A.Up) * Speed * SecondsPassed;
+      end;
+      if Input_LeftStrafe.IsPressed(Container) then
+      begin
+        Moving := true;
+        T := T - TVector3.CrossProduct(A.Direction, A.Up) * Speed * SecondsPassed;
+      end;
+
+      if Input_RightRotate.IsPressed(Container) then
+      begin
+        Moving := true;
+        A.Direction := RotatePointAroundAxisRad(-RotationSpeed * SecondsPassed, A.Direction, A.Up);
+        { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
+          In effect, keys AD don't work when AimAvatar <> aaNone. }
+      end;
+      if Input_LeftRotate.IsPressed(Container) then
+      begin
+        Moving := true;
+        A.Direction := RotatePointAroundAxisRad(RotationSpeed * SecondsPassed, A.Direction, A.Up);
+        { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
+          In effect, keys AD don't work when AimAvatar <> aaNone. }
+      end;
+
+      if not T.IsPerfectlyZero then
+        A.Move(T, false);
+
+      Rotating := UpdateAimAvatar;
+
+    end;
+    mtVelocity:
+    begin
+      { How fast should avatar change it's speed }
+      Acceleration := Speed * 10 / 60;
+      MaxHorizontalVelocityChange := Acceleration * 60;
+      DeltaSpeed := 0;
+
+      AvatarRigidBody := A.RigidBody;
+
+      if AvatarRigidBody = nil then
+      begin
+        WritelnWarning('Avatar don''t have rigid body!');
+        Exit;
+      end;
+
+      { Check player is on ground }
+      Ground := AvatarRigidBody.PhysicsRayCast(A.Translation {+ Vector3(0,5,0)},
+        Vector3(0, -1, 0), A.BoundingBox.SizeY / 2 + A.BoundingBox.SizeY * 0.1);
+
+      IsOnGround := Ground <> nil;
+      //IsOnGround := true;
+
+      if Input_Forward.IsPressed(Container) then
+      begin
+        Moving := true;
+        DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed;
+        MoveDirection := A.Direction;
+      end;
+      if Input_Backward.IsPressed(Container) then
+      begin
+        Moving := true;
+        DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed;
+        MoveDirection := -A.Direction;
+      end;
+      if Input_RightStrafe.IsPressed(Container) then
+      begin
+        Moving := true;
+        DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed;
+        MoveDirection := TVector3.CrossProduct(A.Direction, A.Up);
+      end;
+      if Input_LeftStrafe.IsPressed(Container) then
+      begin
+        Moving := true;
+        DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed;
+        MoveDirection := -TVector3.CrossProduct(A.Direction, A.Up);
+      end;
+
+      Jump := 0;
+      if Input_Jump.IsPressed(Container) and (not FWasJumpInput) and IsOnGround then
+      begin
+        //if  and (not FWasJumpInput) and IsOnGround
+        FWasJumpInput := true;
+        Moving := false;
+        Jump := JumpVelocity;
+      end else
+        FWasJumpInput := false;
+
+
+      DeltaAngular := 0;
+      if Input_RightRotate.IsPressed(Container) then
+      begin
+        Moving := true;
+        DeltaAngular := -RotationSpeed * 60 * SecondsPassed;
+      end;
+      if Input_LeftRotate.IsPressed(Container) then
+      begin
+        Moving := true;
+        DeltaAngular := RotationSpeed * 60 * SecondsPassed;
+      end;
+
+      // jumping
+      if not IsZero(Jump) then
+      begin
+        Vel := AvatarRigidBody.LinearVelocity;
+        Vel.Y := Jump;
+        AvatarRigidBody.LinearVelocity := Vel;
+      end else
+      // moving
+      if not IsZero(DeltaSpeed) then
+      begin
+        Vel := AvatarRigidBody.LinearVelocity;
+        HVelocity := Vel;
+        HVelocity.Y := 0;
+        VVelocity := Vel.Y;
+        // maybe use LengthSqrt?
+        VLength := HVelocity.Length;
+        WritelnLog('DeltaSpeed ' + FloatToStr(DeltaSpeed));
+        WritelnLog('Direction ' + A.Direction.ToString);
+        WritelnLog('VLength ' + VLength.ToString);
+        WritelnLog('VVelocity' + FloatToStr(VVelocity));
+        WritelnLog('HVelocity' + HVelocity.ToString);
+        WritelnLog('HVelocity Length' + HVelocity.Length.ToString);
+        VLength := VLength + DeltaSpeed;
+        if VLength > Speed then
+            VLength := Speed;
+        Vel := MoveDirection * VLength;
+
+        if IsZero(Jump) then
+          Vel.Y := VVelocity
         else
-          SetAnimation([AnimationCrouchIdle, AnimationCrouch, AnimationIdle]);
+          Vel.Y := Jump;
+
+        AvatarRigidBody.LinearVelocity := Vel;
       end else
       begin
-        { Note that stRun behaves the same as ssNormal when Moving = false.
-          This just means user holds Shift (Input_Run) but not actually moving by AWSD. }
-        if Rotating then
-          SetAnimation([AnimationRotate, AnimationWalk, AnimationIdle])
-        else
-          SetAnimation([AnimationIdle]);
+        // slowing down the avatar
+        Vel := AvatarRigidBody.LinearVelocity;
+        Vel.X := 0;
+        Vel.Z := 0;
+        AvatarRigidBody.LinearVelocity := Vel;
       end;
-    end;
 
-    if CastleDesignMode then
-      { In design mode, update immediately both position and direction of the camera.
-        This reflects that Init should be done at the beginning of actual game. }
-      Init
-    else
-      UpdateCamera;
+      // rotation
+      if not IsZero(DeltaAngular) then
+      begin
+        AvatarRigidBody.AngularVelocity := Vector3(0,1,0) * DeltaAngular;
+        Rotating := true;
+      end
+      else
+      begin
+        AvatarRigidBody.AngularVelocity := Vector3(0,0,0);
+        Rotating := false;
+      end;
+
+    end;
+    mtForce:
+    begin
+
+    end;
   end;
+
+  { TODO: In case we use AimAvatar and you move mouse very slowly for short amounts,
+    we may switch very quickly between AnimationIdle and AnimationRotate.
+    This makes somewhat bad look in third_person_navigation, and though it uses
+    DefaultAnimationTransition <> 0.
+    Should we protect from it here, to introduce minimal time to change
+    animation between rotating/non-rotating variant? }
+
+  // change Avatar.AutoAnimation
+  if Moving then
+  begin
+    case SpeedType of
+      stNormal: SetAnimation([AnimationWalk, AnimationIdle]);
+      stRun   : SetAnimation([AnimationRun, AnimationIdle]);
+      stCrouch: SetAnimation([AnimationCrouch, AnimationCrouchIdle, AnimationIdle]);
+      // else raise EInternalError.Create('Unhandled SpeedType'); // new FPC will warn in case of unhandled "else"
+    end;
+  end else
+  begin
+    if SpeedType = stCrouch then
+    begin
+      if Rotating then
+        SetAnimation([AnimationCrouchRotate, AnimationCrouch, AnimationCrouchIdle, AnimationIdle])
+      else
+        SetAnimation([AnimationCrouchIdle, AnimationCrouch, AnimationIdle]);
+    end else
+    begin
+      { Note that stRun behaves the same as ssNormal when Moving = false.
+        This just means user holds Shift (Input_Run) but not actually moving by AWSD. }
+      if Rotating then
+        SetAnimation([AnimationRotate, AnimationWalk, AnimationIdle])
+      else
+        SetAnimation([AnimationIdle]);
+    end;
+  end;
+
+  if CastleDesignMode then
+    { In design mode, update immediately both position and direction of the camera.
+      This reflects that Init should be done at the beginning of actual game. }
+    Init
+  else
+    UpdateCamera;
+
 end;
 
 { Since String values cannot have default properties,
