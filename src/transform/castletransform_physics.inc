@@ -1756,7 +1756,7 @@ begin
     if FKraftBody.ShapeCount > 0 then
     begin
       Assert(FKraftBody.ShapeCount = 1, 'More than one shape in rigid body.');
-      Assert(FKraftBody.ShapeFirst <> FCastleCollider.FKraftShape, 'Mixed kraft shapes');
+      Assert(FKraftBody.ShapeFirst = FCastleCollider.FKraftShape, 'Mixed kraft shapes');
       FreeAndNil(FCastleCollider.FKraftShape);
     end;
     Assert(FCastleCollider.FKraftShape = nil, 'Mixed kraft shapes');
