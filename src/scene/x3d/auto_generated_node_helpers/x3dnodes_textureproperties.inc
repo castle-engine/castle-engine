@@ -234,51 +234,51 @@ begin
   inherited;
 
   FFdAnisotropicDegree := TSFFloat.Create(Self, True, 'anisotropicDegree', 1.0);
-   FdAnisotropicDegree.ChangeAlways := chVisibleNonGeometry;
+   FdAnisotropicDegree.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdAnisotropicDegree);
 
   FFdBorderColor := TSFColorRGBA.Create(Self, True, 'borderColor', Vector4(0, 0, 0, 0));
-   FdBorderColor.ChangeAlways := chVisibleNonGeometry;
+   FdBorderColor.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBorderColor);
 
   FFdBorderWidth := TSFInt32.Create(Self, True, 'borderWidth', 0);
-   FdBorderWidth.ChangeAlways := chVisibleNonGeometry;
+   FdBorderWidth.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBorderWidth);
 
   FFdBoundaryModeS := TSFStringEnum.Create(Self, True, 'boundaryModeS', BoundaryModeNames, Ord(bmRepeat));
-   FdBoundaryModeS.ChangeAlways := chVisibleNonGeometry;
+   FdBoundaryModeS.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBoundaryModeS);
 
   FFdBoundaryModeT := TSFStringEnum.Create(Self, True, 'boundaryModeT', BoundaryModeNames, Ord(bmRepeat));
-   FdBoundaryModeT.ChangeAlways := chVisibleNonGeometry;
+   FdBoundaryModeT.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBoundaryModeT);
 
   FFdBoundaryModeR := TSFStringEnum.Create(Self, True, 'boundaryModeR', BoundaryModeNames, Ord(bmRepeat));
-   FdBoundaryModeR.ChangeAlways := chVisibleNonGeometry;
+   FdBoundaryModeR.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBoundaryModeR);
 
   FFdMagnificationFilter := TSFString.Create(Self, True, 'magnificationFilter', 'FASTEST');
-   FdMagnificationFilter.ChangeAlways := chVisibleNonGeometry;
+   FdMagnificationFilter.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdMagnificationFilter);
 
   FFdMinificationFilter := TSFString.Create(Self, True, 'minificationFilter', 'FASTEST');
-   FdMinificationFilter.ChangeAlways := chVisibleNonGeometry;
+   FdMinificationFilter.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdMinificationFilter);
 
   FFdTextureCompression := TSFString.Create(Self, True, 'textureCompression', 'FASTEST');
-   FdTextureCompression.ChangeAlways := chVisibleNonGeometry;
+   FdTextureCompression.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdTextureCompression);
 
   FFdTexturePriority := TSFFloat.Create(Self, True, 'texturePriority', 0);
-   FdTexturePriority.ChangeAlways := chVisibleNonGeometry;
+   FdTexturePriority.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdTexturePriority);
 
   FFdGenerateMipMaps := TSFBool.Create(Self, False, 'generateMipMaps', false);
-   FdGenerateMipMaps.ChangeAlways := chVisibleNonGeometry;
+   FdGenerateMipMaps.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdGenerateMipMaps);
 
   FFdGuiTexture := TSFBool.Create(Self, False, 'guiTexture', false);
-   FdGuiTexture.ChangeAlways := chVisibleNonGeometry;
+   FdGuiTexture.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdGuiTexture);
 end;
 
