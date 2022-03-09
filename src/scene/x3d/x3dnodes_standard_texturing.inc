@@ -485,18 +485,16 @@
     {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
   end;
 
-  { Boundary modes for S, T, R texture coordinates.
-
-    bmClampToBoundary:
-    We allow but don't handle X3D CLAMP_TO_BOUNDARY string and behave
-    like CLAMP_TO_EDGE. Handling would mean complicating implementation
-    for little gain. }
+  { Boundary modes for texture coordinates.
+    See @link(TTexturePropertiesNode.BoundaryModeS),
+    @link(TTexturePropertiesNode.BoundaryModeT),
+    @link(TTexturePropertiesNode.BoundaryModeR). }
   TBoundaryMode = (
-    bmClamp,
-    bmClampToEdge,
-    bmClampToBoundary,
-    bmMirroredRepeat,
-    bmRepeat
+    bmClamp, //< Clamp texture coordinates to [0..1]. Equivalent to bmClampToEdge.
+    bmClampToEdge, //< Clamp texture coordinates to [0..1].
+    bmClampToBoundaryUnsupported, //< Clamp texture coordinates to [0..1]. Equivalent to bmClampToEdge. See https://castle-engine.io/x3d_implementation_texturing.php.
+    bmMirroredRepeat, //< Repeat the texture, switching between original and flipped texture.
+    bmRepeat //< Repeat the texture.
   );
 
   { Adjust the texture application properties. }

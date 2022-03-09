@@ -473,7 +473,7 @@ procedure TGLTextureNode.HandleTextureProperties(
     Map: array [TBoundaryMode] of TGLenum = (
       GL_CLAMP_TO_EDGE, // bmClamp: Undefined in X3D, we prefer to make it equal to bmClampToEdge as we don't support border.
       GL_CLAMP_TO_EDGE,
-      GL_CLAMP_TO_EDGE, //< bmClampToBoundary: Border not supported, hence behave like bmClampToEdge.
+      GL_CLAMP_TO_EDGE, //< bmClampToBoundaryUnsupported: Border not supported, hence behave like bmClampToEdge.
       GL_MIRRORED_REPEAT,
       GL_REPEAT
     );
@@ -547,9 +547,9 @@ begin
     Anisotropy := TextureProperties.AnisotropicDegree;
     GUITexture := TextureProperties.GUITexture;
 
-    if (TextureProperties.BoundaryModeS = bmClampToBoundary) or
-       (TextureProperties.BoundaryModeT = bmClampToBoundary) or
-       (TextureProperties.BoundaryModeR = bmClampToBoundary) then
+    if (TextureProperties.BoundaryModeS = bmClampToBoundaryUnsupported) or
+       (TextureProperties.BoundaryModeT = bmClampToBoundaryUnsupported) or
+       (TextureProperties.BoundaryModeR = bmClampToBoundaryUnsupported) then
       WritelnWarning('VRML/X3D', 'Boundary mode CLAMP_TO_BOUNDARY is not supported. Behaves like CLAMP_TO_EDGE.');
 
     BoundaryModeS := BoundaryModeGL(TextureProperties.BoundaryModeS);
