@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -507,12 +507,6 @@
     function GetMagnificationFilter: TAutoMagnificationFilter;
     procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
   public
-    strict private FFdMagnificationFilter: TSFString;
-    public property FdMagnificationFilter: TSFString read FFdMagnificationFilter;
-
-    strict private FFdMinificationFilter: TSFString;
-    public property FdMinificationFilter: TSFString read FFdMinificationFilter;
-
     property MagnificationFilter: TAutoMagnificationFilter
       read GetMagnificationFilter write SetMagnificationFilter;
 

@@ -86,13 +86,13 @@
     { X3D field "boundaryModeR". } { }
     property BoundaryModeR: TBoundaryMode read GetBoundaryModeR write SetBoundaryModeR;
 
-    {strict private FFdMagnificationFilter: TSFString;
+    strict private FFdMagnificationFilter: TSFString;
     { X3D field "magnificationFilter". } { }
     public property FdMagnificationFilter: TSFString read FFdMagnificationFilter;
 
     strict private FFdMinificationFilter: TSFString;
     { X3D field "minificationFilter". } { }
-    public property FdMinificationFilter: TSFString read FFdMinificationFilter;}
+    public property FdMinificationFilter: TSFString read FFdMinificationFilter;
 
     strict private FFdTextureCompression: TSFString;
     { X3D field "textureCompression". } { }
