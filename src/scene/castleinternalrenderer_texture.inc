@@ -34,16 +34,16 @@
       RepeatS: GLenum; RepeatT: GLenum; RepeatR: GLenum;
       out Filter: TTextureFilter; out BoundaryModeS: GLenum;
       out BoundaryModeT: GLenum; out BoundaryModeR: GLenum;
-      out Anisotropy: TGLfloat; out GUITexture: boolean);
+      out Anisotropy: TGLfloat; out GUITexture: boolean); overload;
 
     procedure HandleTextureProperties(
       TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
       out Filter: TTextureFilter; out BoundaryModeS: GLenum;
-      out BoundaryModeT: GLenum; out Anisotropy: TGLfloat; out GUITexture: boolean);
+      out BoundaryModeT: GLenum; out Anisotropy: TGLfloat; out GUITexture: boolean); overload;
 
     procedure HandleTextureProperties(
       TextureProperties: TTexturePropertiesNode;
-      out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
+      out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean); overload;
     { @groupEnd }
 
     { Decide if this class can handle given texture Node. }
