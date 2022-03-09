@@ -155,6 +155,8 @@ begin
   FTexPropertiesNode := TTexturePropertiesNode.Create;
   FTexPropertiesNode.MinificationFilter := minDefault; // corresponding to default SmoothScaling = true
   FTexPropertiesNode.MagnificationFilter := magDefault; // corresponding to default SmoothScaling = true
+  FTexPropertiesNode.BoundaryModeS := bmClampToEdge; // correspoding to default FRepeatImage and FShift, UpdateCoordinateNodes may change it
+  FTexPropertiesNode.BoundaryModeT := bmClampToEdge; // correspoding to default FRepeatImage and FShift, UpdateCoordinateNodes may change it
   { Do not force "power of 2" size, which may prevent mipmaps.
     This seems like a better default (otherwise the resizing underneath
     may cause longer loading time, and loss of quality, if not expected).
@@ -162,8 +164,9 @@ begin
   FTexPropertiesNode.GuiTexture := not FMipmaps;
 
   FTextureNode := TImageTextureNode.Create;
-  FTextureNode.RepeatS := false; // correspoding to default FRepeatImage and FShift, UpdateCoordinateNodes may change it
-  FTextureNode.RepeatT := false; // correspoding to default FRepeatImage and FShift, UpdateCoordinateNodes may change it
+  { No point in adjusting RepeatS/T: TextureProperties override it.
+  FTextureNode.RepeatS := false;
+  FTextureNode.RepeatT := false; }
   FTextureNode.TextureProperties := FTexPropertiesNode;
 
   FMaterialNode := TUnlitMaterialNode.Create;
@@ -281,8 +284,8 @@ begin
       Vector2(X1, Y2)
     ]);
 
-    FTextureNode.RepeatS := (FShift.X <> 0) or (FRepeatImage.X > 1);
-    FTextureNode.RepeatT := (FShift.Y <> 0) or (FRepeatImage.Y > 1);
+    FTexPropertiesNode.BoundaryModeS := BoolRepeatToBoundaryMode[(FShift.X <> 0) or (FRepeatImage.X > 1)];
+    FTexPropertiesNode.BoundaryModeT := BoolRepeatToBoundaryMode[(FShift.Y <> 0) or (FRepeatImage.Y > 1)];
   end else
   begin
     FCoordinateNode.SetPoint([]);
