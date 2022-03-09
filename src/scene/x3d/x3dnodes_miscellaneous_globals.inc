@@ -133,6 +133,14 @@ const
     { additions here must be synchronized with additions to TVRML1State }
   );
 
+  { Convert Boolean meaning "repeat" into TBoundaryMode.
+    Useful to convert e.g. TImageTextureNode.RepeatS value
+    into TTexturePropertiesNode.BoundaryModeS value. }
+  BoolRepeatToBoundaryMode: array [Boolean] of TBoundaryMode = (
+    bmClampToEdge,
+    bmRepeat
+  );
+
 var
   { Triangulation settings.
 
