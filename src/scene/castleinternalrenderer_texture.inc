@@ -459,15 +459,24 @@ procedure TGLTextureNode.HandleTextureProperties(
   RepeatR: GLenum; out Filter: TTextureFilter; out BoundaryModeS: GLenum; out
   BoundaryModeT: GLenum; out BoundaryModeR: GLenum; out Anisotropy: TGLfloat;
   out GUITexture: boolean);
-const
-  BoundaryModeGL: array [TBoundaryMode] of GLenum = (
-    GL_CLAMP,
-    GL_CLAMP_TO_EDGE,
-    GL_CLAMP_TO_EDGE,             // bmClampToBoundary: Not supported, hence
-                                  // behave like bmClampToEdge.
-    GL_MIRRORED_REPEAT,
-    GL_REPEAT
-  );
+
+  function BoundaryModeGL(const Value: TBoundaryMode): TGLenum;
+  const
+    Map: array [TBoundaryMode] of GLenum = (
+      GL_CLAMP_TO_EDGE, // bmClamp: Undefined in X3D, we prefer to make it equal to bmClampToEdge as we don't support border.
+      GL_CLAMP_TO_EDGE,
+      GL_CLAMP_TO_EDGE, //< bmClampToBoundary: Border not supported, hence behave like bmClampToEdge.
+      GL_MIRRORED_REPEAT,
+      GL_REPEAT
+    );
+  begin
+    Result := Map[Value];
+
+    { Use GLFeatures.CLAMP_TO_EDGE instead of GL_CLAMP_TO_EDGE, to support even
+      ancient OpenGL versions that don't support GL_CLAMP_TO_EDGE. }
+    if Result = GL_CLAMP_TO_EDGE then
+      Result := GLFeatures.CLAMP_TO_EDGE;
+  end;
 
   { Convert TAutoMinificationFilter to TMinificationFilter,
     resolving the "default"/"fastest"/"nicest" aliases to specific values. }
@@ -532,13 +541,12 @@ begin
 
     if (TextureProperties.BoundaryModeS = bmClampToBoundary) or
        (TextureProperties.BoundaryModeT = bmClampToBoundary) or
-       (TextureProperties.BoundaryModeR = bmClampToBoundary)
-    then
+       (TextureProperties.BoundaryModeR = bmClampToBoundary) then
       WritelnWarning('VRML/X3D', 'Boundary mode CLAMP_TO_BOUNDARY is not supported. Behaves like CLAMP_TO_EDGE.');
 
-    BoundaryModeS := BoundaryModeGL[TextureProperties.BoundaryModeS];
-    BoundaryModeT := BoundaryModeGL[TextureProperties.BoundaryModeT];
-    BoundaryModeR := BoundaryModeGL[TextureProperties.BoundaryModeR];
+    BoundaryModeS := BoundaryModeGL(TextureProperties.BoundaryModeS);
+    BoundaryModeT := BoundaryModeGL(TextureProperties.BoundaryModeT);
+    BoundaryModeR := BoundaryModeGL(TextureProperties.BoundaryModeR);
   end else
   begin
     Filter := TextureFilter(Renderer.RenderOptions);
