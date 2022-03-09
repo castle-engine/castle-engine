@@ -2,7 +2,7 @@
 <project name="show_bounding_rect_in_2d"
   standalone_source="show_bounding_rect_in_2d_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.showboundingrectin2d"
+  qualified_name="io.castleengine.show.bounding.rect.in2d"
   caption="Show 2D Bounding Rect"
 >
   <compiler_options>

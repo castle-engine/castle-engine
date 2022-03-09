@@ -1,6 +1,6 @@
 {%MainUnit castlebehaviors.pas}
 {
-  Copyright 2006-2021 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,7 +36,8 @@ type
     procedure SetAttacker(const Value: TCastleAliveBehavior);
     procedure AttackerFreeNotification(const Sender: TFreeNotificationObserver);
   protected
-    procedure ParentChanged; override;
+    function CanAttachToParent(const NewParent: TCastleTransform;
+      out ReasonWhyCannot: String): Boolean; override;
   public
     const
       { Default value for @link(MaxLife) and @link(Life). }
@@ -131,10 +132,17 @@ begin
   FAttackerObserver.OnFreeNotification := {$ifdef FPC}@{$endif}AttackerFreeNotification;
 end;
 
-procedure TCastleAliveBehavior.ParentChanged;
+function TCastleAliveBehavior.CanAttachToParent(const NewParent: TCastleTransform;
+  out ReasonWhyCannot: String): Boolean;
 begin
-  inherited;
-  SingleInstanceOfBehavior;
+  Result := inherited;
+  if not Result then Exit;
+
+  if NewParent.FindBehavior(TCastleAliveBehavior) <> nil then
+  begin
+    ReasonWhyCannot := 'Only one TCastleAliveBehavior can be added to a given TCastleTransform';
+    Result := false;
+  end;
 end;
 
 procedure TCastleAliveBehavior.AttackerFreeNotification(

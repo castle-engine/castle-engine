@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleLevels" -*-
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -44,9 +44,11 @@ begin
 
   Viewport := TCastleViewport.Create(nil);
 
+  Levels.Clear;
+  Levels.LoadFromFiles('castle-data:/game/level_without_loading_image');
+
   Level := TLevel.Create(nil);
   Level.Viewport := Viewport;
-  Levels.LoadFromFiles('data/game/level_without_loading_image');
   Level.Load('level_without_loading_image');
 
   Level.Free;
@@ -62,9 +64,11 @@ begin
   Player := TPlayer.Create(nil);
   Viewport := TCastleViewport.Create(nil);
 
+  Levels.Clear;
+  Levels.LoadFromFiles('castle-data:/game/level_without_loading_image');
+
   Level := TLevel.Create(nil);
   Level.Viewport := Viewport;
-  Levels.LoadFromFiles('data/game/level_without_loading_image');
   Level.Load('level_without_loading_image');
 
   Level.Player := Player;

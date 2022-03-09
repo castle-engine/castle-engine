@@ -42,7 +42,7 @@ type
 
 implementation
 
-uses CastleLog, CastleQuaternions, X3DTriangles, CastleApplicationProperties,
+uses CastleLog, CastleQuaternions, CastleApplicationProperties,
   CastleURIUtils;
 
 {$define read_implementation}

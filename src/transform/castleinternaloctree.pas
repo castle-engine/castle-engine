@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,7 +15,9 @@
 
 (*Base octree classes (TOctreeNode and TOctree) and utilities.
   Used by actual octrees in units like
-  @link(CastleInternalTriangleOctree) and @link(CastleInternalShapeOctree).
+  @link(CastleInternalTriangleOctree),
+  @link(CastleInternalBaseTriangleOctree),
+  @link(CastleInternalShapeOctree).
 
   Typical way to derive actual (non-abstract) octrees goes like this;
 
@@ -328,13 +330,13 @@ type
     { current octree total statistics }
     FTotalLeafNodes, FTotalNonLeafNodes, FTotalItemsInLeafs: Int64;
   protected
-    property InternalTreeRoot: TOctreeNode read FTreeRoot;
-
     { Text appended to the @link(Statistics).
       In this class this returns ''.
       Every line, including the last one, must be terminated by a newline. }
     function StatisticsBonus: string; virtual;
   public
+    property InternalTreeRoot: TOctreeNode read FTreeRoot;
+
     { Maximum tree depth.
 
       Set this to zero to force RootNode to be a leaf
@@ -488,8 +490,8 @@ begin
         SubBox := Box;
         for i := 0 to 2 do
           if b[i] then
-            SubBox.Data[0].Data[i] := MiddlePoint[i] else
-            SubBox.Data[1].Data[i] := MiddlePoint[i];
+            SubBox.Data[0].InternalData[i] := MiddlePoint[i] else
+            SubBox.Data[1].InternalData[i] := MiddlePoint[i];
 
         TreeSubNodes[b[0], b[1], b[2]] :=
           TOctreeNodeClass(Self.ClassType).Create(
@@ -699,9 +701,9 @@ begin
   begin
     SubnodeLow[i] := false;
     SubnodeHigh[i] := true;
-    if ABox.Data[0].Data[i] >= MiddlePoint[i] then
+    if ABox.Data[0][i] >= MiddlePoint[i] then
       SubnodeLow[i] := true else
-    if ABox.Data[1].Data[i] < MiddlePoint[i] then
+    if ABox.Data[1][i] < MiddlePoint[i] then
       SubnodeHigh[i] := false;
   end;
 end;

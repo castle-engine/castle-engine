@@ -68,7 +68,7 @@ type
 
       @italic(Note for descendant implementors):
       Exceptions raised inside this will make an actual exception (from
-      undefined place, for now ApplicationProperties._Update, called by TCastleWindowBase and TCastleControlBase).
+      undefined place, for now ApplicationProperties._Update, called by TCastleWindow and TCastleControl).
       In case of normal download failure, e.g. file (or HTTP resource) doesn't exist
       (so it is not some bug in code), this method should set Status to dsError
       and not raise an exception. }

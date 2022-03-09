@@ -322,6 +322,7 @@ type
     var
       FViewport: TCastleViewport;
       FInternalLogic: TLevelInternalLogic;
+      FCreaturesRoot, FItemsRoot: TCastleTransform;
       FLogic: TLevelLogic;
       FInfo: TLevelInfo;
       LevelResourcesPrepared: boolean;
@@ -352,6 +353,8 @@ type
     function GetPlayer: TCastleTransform; override;
     function GetSectors: TSectorList; override;
     function RootTransform: TCastleRootTransform; override;
+    function CreaturesRoot: TCastleTransform; override;
+    function ItemsRoot: TCastleTransform; override;
     function PrepareParams: TPrepareParams; override;
     function FreeAtUnload: TComponent; override;
 
@@ -699,11 +702,22 @@ destructor TLevel.Destroy;
 begin
   if Info <> nil then
   begin
-    { we check LevelResourcesPrepared, to avoid calling
-      Info.LevelResources.Release when Info.LevelResources.Prepare
-      was not called (which may happen if there was an exception if LoadCore
-      at MainScene.Load(SceneURL). }
-    if (Info.LevelResources <> nil) and LevelResourcesPrepared then
+    if (Info.LevelResources <> nil) and
+       { check LevelResourcesPrepared, to avoid calling
+         Info.LevelResources.Release when Info.LevelResources.Prepare
+         was not called (which may happen if there was an exception if LoadCore
+         at MainScene.Load(SceneURL). }
+       LevelResourcesPrepared and
+       { check "Resources <> nil" is a hack to avoid calling Release
+         on T3DResource when all T3DResource were already freed in CastleResources
+         unit finalization.
+         Testcase: darkest_before_dawn.
+
+         TODO: This is not a general solution -- it would be better to implement in T3DResourceList
+         a way to observe freeing of T3DResource, maybe even make T3DResource a TComponent
+         and then make T3DResourceList as TComponentList. T3DResourceList should automatically
+         remove items freed elsewhere. }
+       (Resources <> nil) then
       Info.LevelResources.Release;
 
     Dec(FLevels.References);
@@ -742,6 +756,16 @@ end;
 function TLevel.RootTransform: TCastleRootTransform;
 begin
   Result := Viewport.Items;
+end;
+
+function TLevel.CreaturesRoot: TCastleTransform;
+begin
+  Result := FCreaturesRoot;
+end;
+
+function TLevel.ItemsRoot: TCastleTransform;
+begin
+  Result := FItemsRoot;
 end;
 
 function TLevel.PrepareParams: TPrepareParams;
@@ -799,7 +823,7 @@ const
 
     Box := Shape.BoundingBox;
     Position := Box.Center;
-    Position[Items.GravityCoordinate] := Box.Data[0].Data[Items.GravityCoordinate];
+    Position.InternalData[Items.GravityCoordinate] := Box.Data[0].InternalData[Items.GravityCoordinate];
 
     Direction := Info.PlaceholderReferenceDirection;
     Direction := Shape.State.Transformation.Transform.MultDirection(Direction);
@@ -876,7 +900,11 @@ begin
     remain untouched. }
   FreeAndNil(FFreeAtUnload);
 
-  FLogic := nil; { we freed FLogic above, since it is always owned by FFreeAtUnload }
+  { We freed FLogic etc. above, since they are always owned by FFreeAtUnload.
+    To be safe, set them to nil. }
+  FLogic := nil;
+  FCreaturesRoot := nil;
+  FItemsRoot := nil;
 
   { save PreviousResources, before Info is overridden with new level.
     This allows us to keep PreviousResources while new resources are required,
@@ -950,10 +978,10 @@ var
     begin
       { Set MoveLimit to Items.MainScene.BoundingBox, and make maximum up larger. }
       NewMoveLimit := Items.MainScene.BoundingBox;
-      NewMoveLimit.Data[1].Data[Items.GravityCoordinate] :=
-      NewMoveLimit.Data[1].Data[Items.GravityCoordinate] +
-        4 * (NewMoveLimit.Data[1].Data[Items.GravityCoordinate] -
-             NewMoveLimit.Data[0].Data[Items.GravityCoordinate]);
+      NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] :=
+      NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] +
+        4 * (NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] -
+             NewMoveLimit.Data[0].InternalData[Items.GravityCoordinate]);
       Items.MoveLimit := NewMoveLimit;
     end;
 
@@ -1050,6 +1078,12 @@ begin
 
     { add FInternalLogic to Items }
     Items.Add(FInternalLogic);
+
+    { add CreaturesRoot, ItemsRoot to Items }
+    FCreaturesRoot := TCastleTransform.Create(FreeAtUnload);
+    Items.Add(FCreaturesRoot);
+    FItemsRoot := TCastleTransform.Create(FreeAtUnload);
+    Items.Add(FItemsRoot);
 
     { add FLogic (new Info.LogicClass instance) }
     FLogic := Info.LogicClass.Create(FreeAtUnload, Self, Items.MainScene, Info.Element);
@@ -1528,7 +1562,7 @@ procedure TLevelInfo.LoadFromDocument;
   end;
 
 const
-  DefaultPlaceholderReferenceDirection: TVector3 = (Data: (1, 0, 0));
+  DefaultPlaceholderReferenceDirection: TVector3 = (X: 1; Y: 0; Z: 0);
 var
   LoadingImageURL: string;
   SoundName: string;

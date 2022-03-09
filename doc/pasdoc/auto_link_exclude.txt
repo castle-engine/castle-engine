@@ -73,7 +73,6 @@ create
 current
 cursor
 curve
-customcursor
 data
 dds
 dead
@@ -299,6 +298,7 @@ rectangle
 rectangles
 rects
 red
+reference
 references
 register
 registered

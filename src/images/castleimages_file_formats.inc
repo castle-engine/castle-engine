@@ -74,7 +74,9 @@ type
     ifRGBE,
 
     ifIPL,
+    {$ifdef CASTLE_ENABLE_TIFF}
     ifTIFF,
+    {$endif}
     ifJP2
   );
   TImageFormats = set of TImageFormat;
@@ -114,8 +116,10 @@ function LoadTGA(const Stream: TStream;
 {function LoadSGI(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;}
 
+{$ifdef CASTLE_ENABLE_TIFF}
 function LoadTIFF(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+{$endif}
 
 function LoadJP2(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
@@ -188,7 +192,9 @@ procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveJP2(const Img: TEncodedImage; const Stream: TStream); forward;
+{$ifdef CASTLE_ENABLE_TIFF}
 procedure SaveTIFF(const Img: TEncodedImage; const Stream: TStream); forward;
+{$endif}
 
 { Detecting class ------------------------------------------------------------ }
 
@@ -553,6 +559,7 @@ const
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     ),
+    {$ifdef CASTLE_ENABLE_TIFF}
     ( FormatName: 'TIFF image';
       MimeTypesCount: 1;
       MimeTypes: ('image/tiff', '', '', '', '', '', '');
@@ -561,6 +568,7 @@ const
       Save: {$ifdef FPC}@{$endif}SaveTIFF; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
+    {$endif}
     (*
     ( FormatName: 'SGI image';
       MimeTypesCount: 3;

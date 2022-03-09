@@ -80,16 +80,16 @@
     class var
       NextTransformId: Cardinal;
     var
-      FCastShadowVolumes: boolean;
-      FExists: boolean;
-      FCollides: boolean;
-      FPickable: boolean;
-      FVisible: boolean;
+      FCastShadowVolumes: Boolean;
+      FExists: Boolean;
+      FParentExistsInRoot: Boolean;
+      FExistsInRoot: Boolean;
+      FCollides: Boolean;
+      FPickable: Boolean;
+      FVisible: Boolean;
       FCursor: TMouseCursor;
-      FCollidesWithMoving: boolean;
-      Disabled: Cardinal;
-      FExcludeFromGlobalLights, FExcludeFromStatistics,
-        FInternalExcludeFromParentBoundingVolume: boolean;
+      FCollidesWithMoving: Boolean;
+      FExcludeFromStatistics, FInternalExcludeFromParentBoundingVolume: Boolean;
       FWorld: TCastleAbstractRootTransform;
       { How many times this is a child in the FWorld, counting all possible paths in transformation tree. }
       FWorldReferences: Cardinal;
@@ -98,6 +98,8 @@
       FCollisionSphereRadius: Single;
       FListenPressRelease: Boolean;
       RegisteredGLContextCloseListener: Boolean;
+      FPendingToRemove: TComponentList;
+      FPendingToRemoveAndFree: TComponentList;
 
       // transformation
       FCenter: TVector3;
@@ -107,21 +109,21 @@
       FTranslation: TVector3;
 
       // transformation extras
-      FGravity: boolean;
+      FGravity: Boolean;
       FFallingStartMiddle: TVector3;
-      FFalling: boolean;
+      FFalling: Boolean;
       FFallSpeed: Single;
       FGrowSpeed: Single;
       FMiddleHeight: Single;
       FOrientation: TOrientationType;
-      FOnlyTranslation: boolean;
+      FOnlyTranslation: Boolean;
 
       FTransformation: TTransformation;
-      FTransformationValid: boolean;
+      FTransformationValid: Boolean;
 
       FWorldTransformation: TTransformation;
       FWorldTransformationId: Cardinal;
-      FWorldTransformationValid: boolean;
+      FWorldTransformationValid: Boolean;
 
       FLastParentWorldTransformation: TTransformation;
       FLastParentWorldTransformationId: Cardinal;
@@ -165,8 +167,18 @@
     procedure SetListenPressRelease(const Value: Boolean);
     function GetBehaviors(const Index: Integer): TCastleBehavior;
     procedure GLContextCloseEvent(Sender: TObject);
+    procedure PendingRemovals;
+    procedure SetExists(const Value: Boolean);
+    procedure SetParentExistsInRoot(const Value: Boolean);
+    { Value of FParent.ParentExistsInRoot, if FParent is non-nil.
+      Always true, if FParent = nil.
+      Intuitively this means "all our parents exist" -- Parent, Parent.Parent etc.,
+      as far as our parent hierarchy goes. }
+    property ParentExistsInRoot: Boolean read FParentExistsInRoot write SetParentExistsInRoot default true;
+    { Call when ParentExistsInRoot or Exists changed. }
+    procedure UpdateExistsInRoot;
   private
-    { "Meaningul" parent is a parent that competes to be a value of Parent.
+    { "Meaningful" parent is a parent that competes to be a value of Parent.
       This allows to avoid TCastleTransformReference from being considered
       a meaningful parent, so that transforms under TCastleTransformReference
       can still have useful Parent, WorldTransform and more
@@ -371,8 +383,7 @@
       the @link(Collides) property). The @link(Collides) property
       specifies whether item collides with camera. And this method is used
       for picking (pointing) 3D stuff --- everything visible can be picked,
-      collidable or not. Instead, this looks at @link(Pickable) property
-      (actually, at @link(GetPickable) method result).
+      collidable or not. Instead, this looks at @link(Pickable) and @link(Exists) properties.
 
       This always returns the first collision with the world, that is
       the one with smallest TRayCollision.Distance. For example, when
@@ -423,10 +434,8 @@
       This is @bold(mostly an internal method). You should not need to override
       it during normal engine usage. If you render everything using TCastleScene,
       then rendering shadow volumes is also automatically handled by TCastleScene. }
-    procedure LocalRenderShadowVolume(
-      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4); virtual;
+    procedure LocalRenderShadowVolume(const Params: TRenderParams;
+      const ShadowVolumeRenderer: TBaseShadowVolumeRenderer); virtual;
 
     { Can we use simple @link(Translation) to express our whole transformation
       (IOW, we have no scaling, no rotation).
@@ -456,23 +465,26 @@
       life or such. }
     procedure Fall(const FallHeight: Single); virtual;
 
-    { Override this to be notified about every transformation change.
+    { Override to be notified about every transformation change.
       By default, this calls VisibleChangeHere, which causes the window to redraw. }
     procedure ChangedTransform; virtual;
+
+    { Override to be notified after ExistsInRoot value changed. }
+    procedure ExistsInRootChanged; virtual;
   public
     const
       DefaultMiddleHeight = 0.5;
       DefaultDirection: array [TOrientationType] of TVector3 = (
-        (Data: (0,  0, -1)),
-        (Data: (0,  0, +1)),
-        (Data: (0, -1,  0)),
-        (Data: (1,  0,  0))
+        (X: 0; Y: 0; Z: -1),
+        (X: 0; Y: 0; Z: +1),
+        (X: 0; Y: -1; Z: 0),
+        (X: 1; Y: 0; Z: 0)
       );
       DefaultUp: array [TOrientationType] of TVector3 = (
-        (Data: (0, 1, 0)),
-        (Data: (0, 1, 0)),
-        (Data: (0, 0, 1)),
-        (Data: (0, 0, 1))
+        (X: 0; Y: 1; Z: 0),
+        (X: 0; Y: 1; Z: 0),
+        (X: 0; Y: 0; Z: 1),
+        (X: 0; Y: 0; Z: 1)
       );
 
     class var
@@ -516,57 +528,95 @@
     function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
 
-    { Does item really exist, see @link(Exists) and @link(Enable),
-      @link(Disable).
-      It TCastleTransform class, returns @true if @link(Exists) and not disabled.
-      May be modified in subclasses, to return something more complicated. }
-    function GetExists: boolean; virtual;
+    {$ifdef FPC}
+    property GetExists: Boolean read FExists; deprecated 'use Exists';
+    {$endif}
 
-    { Does item really collide, see @link(Collides).
-      It TCastleTransform class, returns @link(Collides) and @link(GetExists).
-      May be modified in subclasses, to return something more complicated. }
-    function GetCollides: boolean; virtual;
+    { Does the item really collide. Trivial shortcut for checking @link(Collides) and @link(Exists). }
+    function CheckCollides: Boolean;
+    function GetCollides: boolean; virtual; deprecated 'use CheckCollides';
 
-    { Is item really pickable, see @link(Pickable).
-      It TCastleTransform class, returns @link(Pickable) and @link(GetExists).
-      May be modified in subclasses, to return something more complicated. }
-    function GetPickable: boolean; virtual;
+    { Is the item really pickable. Trivial shortcut for checking @link(Pickable) and @link(Exists). }
+    function CheckPickable: boolean;
+    function GetPickable: boolean; virtual; deprecated 'use CheckPickable';
 
-    { Is item really visible, see @link(Visible).
-      It v class, returns @link(Visible) and @link(GetExists).
-      May be modified in subclasses, to return something more complicated. }
-    function GetVisible: boolean; virtual;
+    { Is the item really visible. Trivial shortcut for checking @link(Visible) and @link(Exists). }
+    function CheckVisible: boolean;
+    function GetVisible: boolean; virtual; deprecated 'use CheckVisible';
 
-    { Items that are at least once disabled are treated like not existing.
-      Every @link(Disable) call should always be paired with @link(Enable) call
-      (usually using @code(try ... finally .... end) block).
-      Internally, we keep a counter of how many times the object is disabled,
-      and if this counter is <> 0 then GetExists returns @false.
-      Using this is useful for taming collisions, especially to avoid self-collisions
-      (when a creature moves, it checks for collision with other creatures,
-      but it doesn't want to check for collisions with it's own bounding volume).
-      @groupBegin }
-    procedure Disable;
-    procedure Enable;
-    { @groupEnd }
+    { Add a child.
 
-    { Operate on 3D objects contained in the list.
-      You can also operate directly on @link(List) instance.
+      Note that adding the same child multiple times is allowed,
+      in general you can use the same TCastleTransform instance multiple times in one hierarchy
+      of TCastleRootTransform. }
+    procedure Add(const Item: TCastleTransform);
 
-      Note that adding and removing from this hierarchy is guaranteed to be fast,
-      so you can do it even in the middle of the game.
+    { Insert a child at a specific position on the children list.
+
+      Usually the order of children doesn't matter, so there's not much point
+      in using this method. You can as well use @link(Add).
+      In particular, for rendering opaque (3D or 2D objects) the front/back is decided by
+      the actual translation of the object in 3D, i.e. what is closer to the camera.
+      (In a typical 2D setup, larger Z values mean "closer to the camera".)
+      The position on the children list doesn't matter in this case.
+
+      However, the position matters in case of blending.
+      See https://castle-engine.io/blending .
+      For correct blending, when you have multiple partially-transparent scenes,
+      the partially-transparent objects must be sorted from back to front on the list.
+      So you should add them in the proper order, or insert on proper positions,
+      or use @link(SortBackToFront2D) on parent transformation. }
+    procedure Insert(const Index: Integer; const Item: TCastleTransform);
+
+    { Remove a child.
+
+      Note that adding and removing from the TCastleTransform hierarchy is guaranteed
+      to be fast, so you can do it even in the middle of the game.
       In particular calling @link(Remove) doesn't free rendering reasources
       of the removed scene,
-      so removing scene only to add it later to another TCastleViewport.Items is blazingly fast.
-      @groupBegin }
-    procedure Add(const Item: TCastleTransform);
-    procedure Insert(const Index: Integer; const Item: TCastleTransform);
+      so removing scene only to add it later to another TCastleViewport.Items is fast. }
     procedure Remove(const Item: TCastleTransform);
+
+    { Use this to remove (and possibly free) the child, but not immediately.
+
+      The actual removal (and freeing, if FreeItem) will be done at some crucial points:
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item Right before we render children.
+        @item Right before we loop over children in the @link(Update) method.
+        @item Right after we loop over children in the @link(Update) method.
+        @item From our destructor.
+      )
+
+      This allows to use this method safely even in the middle of iteration
+      over TCastleTransform children. For example you can use it from @link(Update) method,
+      from any TCastleTransform.Update or TCastleUserInterface.Update (including TUIState.Update).
+
+      Note: It is not a problem if the child scheduled to be removed
+      will also be removed (or even freed) directly e.g. by just calling @code(Free) on it.
+      We ignore removal of items that are no longer
+      our children, and we automatically remove the child from "pending to remove" list
+      if it is freed. You only need to be careful in case you add the same TCastleTransform
+      instance multiple times to the same parent
+      (see https://castle-engine.io/viewport_and_scenes_from_code#_multiple_instances_of_the_same_scene )
+      as then each removal removes one instance (not all) of the child from parent. }
+    procedure RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
+
+    { Remove a child, by index on the @link(Items) list. }
+    procedure Delete(const Index: Integer);
+
+    { List of current children. }
     property Items[const I: Integer]: TCastleTransform read GetItem write SetItem; default;
+
+    { Count of current children, to iterate over @link(Items) from 0 to Count-1. }
     function Count: Integer;
+
+    { Remove all children TCastleTransform instances. }
     procedure Clear;
+
+    { Exchange position of 2 children TCastleTransform instances. }
     procedure Exchange(const Index1, Index2: Integer);
-    { @groupEnd }
 
     { Return parent TCastleTransform.
       It ignores (never returns) parents caused by referencing transform in TCastleTransformReference.
@@ -614,7 +664,7 @@
         )
         @item(
           In 3D, it may make sense to call this method even every frame
-          (like in every @link(TCastleWindowBase.OnUpdate)).
+          (like in every @link(TCastleWindow.OnUpdate)).
           Call it if you move or otherwise change the objects (changing their bounding boxes),
           or if the CameraPosition may change (note that CameraPosition is only
           relevant if BlendingSort = bs3D).
@@ -685,7 +735,7 @@
     function WorldBoundingBox: TBox3D;
 
     { Render given object.
-      Should check and immediately exit when @link(GetVisible) is @false.
+      Should check and immediately exit when @link(CheckVisible) is @false.
 
       The rendering transformation, frustum, and filtering
       is specified inside TRenderParams class.
@@ -706,17 +756,10 @@
       It does shadow volumes culling inside (so ShadowVolumeRenderer should
       have FrustumCullingInit already initialized).
 
-      ParentTransform and ParentTransformIsIdentity describe the transformation
-      of this object in the world.
-      TCastleTransform objects may be organized in a hierarchy when
-      parent transforms it's children. When ParentTransformIsIdentity,
-      ParentTransform must be TMatrix4.Identity (it's not guaranteed
-      that when ParentTransformIsIdentity = @true, Transform value will be
-      ignored !). }
-    procedure RenderShadowVolume(
-      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4);
+      Params.Transform,InverseTransform,TransformIdentity describe the transformation,
+      just like for @link(Render). }
+    procedure RenderShadowVolume(const Params: TRenderParams;
+      const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 
     { Prepare resources, making various methods (like rendering and such)
       to execute fast.
@@ -834,7 +877,7 @@
       or under the mouse/touch position).
       This way @link(TCastleRootTransform.MainScene) is always informed about pointing device movement.
 
-      These methods are called only if the object GetExists.
+      These methods are called only if the object Exists.
       There's no need to check this condition inside the method implementation.
 
       @groupBegin }
@@ -847,10 +890,17 @@
     { @groupEnd }
 
     { Continuously occuring event, for various tasks.
+
+      Executed only on instances that have @link(Exists) (no need to check this
+      in overridden Update implementation).
+
       @param(RemoveMe Set this to rtRemove or rtRemoveAndFree to remove
         this item from parent after this call finished.
         rtRemoveAndFree additionally will free this item.
-        Initially it's rtNone when this method is called.) }
+        Initially it's rtNone when this method is called.
+
+        You can also use RemoveDelayed from parent for similar effect.
+      ) }
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); virtual;
 
     { Something visible changed inside @italic(this) object.
@@ -927,7 +977,7 @@
       collisions instead of BoundingBox.
       See @link(CollidesWithMoving) and @link(MoveAllowed) for when it may happen.
 
-      Must return @false when not GetExists (because we can't express
+      Must return @false when not Exists (because we can't express
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
       TBox3D.Empty).
 
@@ -1192,6 +1242,7 @@
       to always use physics, through @link(TCastleTransform.RigidBody),
       to have realistic gravity. }
     property Gravity: boolean read FGravity write FGravity default false;
+      {$ifdef FPC}deprecated 'use physics (TCastleRigidBody, TCastleCollider) to make things affected by gravity';{$endif}
 
     { Falling speed, in units per second, for @link(Gravity).
 
@@ -1202,6 +1253,7 @@
       to always use physics, through @link(TCastleTransform.RigidBody),
       to have realistic gravity. }
     property FallSpeed: Single read FFallSpeed write FFallSpeed {$ifdef FPC}default 0{$endif};
+      {$ifdef FPC}deprecated 'use physics (TCastleRigidBody, TCastleCollider) to make things affected by gravity';{$endif}
 
     { Growing (raising from crouching to normal standing position)
       speed, in units per second.
@@ -1213,6 +1265,7 @@
       This is relevant only if @link(Gravity) and PreferredHeight <> 0.
       0 means no growing. }
     property GrowSpeed: Single read FGrowSpeed write FGrowSpeed {$ifdef FPC}default 0{$endif};
+      {$ifdef FPC}deprecated 'use physics (TCastleRigidBody, TCastleCollider) to make things affected by gravity';{$endif}
 
     { The preferred height of the object @link(Middle) above the ground,
       when the object is standing on the ground firmly.
@@ -1224,6 +1277,7 @@
       This may be dynamic (may change during creature lifetime,
       so you can make the creature duck or grow if you want). }
     function PreferredHeight: Single; virtual;
+      {$ifdef FPC}deprecated 'use physics (TCastleRigidBody, TCastleCollider) to make things affected by gravity';{$endif}
 
     { How high are creature eyes in the model.
       Value 0 means that eyes are at the bottom of the model,
@@ -1470,7 +1524,10 @@
 
           For unlit stuff, or custom lighting, negative scale may be Ok.
           For many 2D games that use no lighting/custom lighting,
-          negative scale is Ok.)
+          negative scale is Ok.
+
+          If you really need to use negative scale and lighting,
+          enable @link(TRenderOptions.RobustNegativeScale).)
 
         @item(At least, keep all scale components non-zero.
           Otherwise the scaling operation is not invertible,
@@ -1702,19 +1759,25 @@
       @code(for B in MyTransform.BehaviorsEnumerate do ...).
       Do not call this method in other contexts, it is only useful for "for..in" construction. }
     function BehaviorsEnumerate: TCastleBehaviorEnumerator;
-  published
-    { Is this object visible and colliding.
 
-      Setting this to @false pretty much turns everything of this 3D object
-      to "off". This is useful for objects that disappear completely from
-      the level when something happens. You could just as well remove
-      this object from @link(TCastleViewport.Items) tree, but sometimes it's more
-      comfortable to simply turn this property to @false.
+    { Does this object, and all it's parents up to the root, exist.
+      This has undefined value in case you place this TCastleTransform instance
+      (or any parent) many times within the viewport root,
+      and some parents exist while some not.
 
-      Descendants may also override GetExists method.
+      This property doesn't check whether this TCastleTransform is actually
+      part of some @link(World). So it will be @true if this item doesn't have
+      any parent. It only checks that "all parents, going up the tree, have @link(Exists)
+      true".
 
       @noAutoLinkHere }
-    property Exists: boolean read FExists write FExists default true;
+    property ExistsInRoot: Boolean read FExistsInRoot;
+  published
+    { Is this object visible and colliding.
+      Setting this to @false makes this object non-existing,
+      just as if removing the object from parent would do.
+      @noAutoLinkHere }
+    property Exists: Boolean read FExists write SetExists default true;
 
     { Should this 3D object participate in collision detection.
       You can turn this off, useful to make e.g. "fake" walls
@@ -1741,48 +1804,27 @@
       can pass through them.
 
       Note that if not @link(Exists) then this doesn't matter
-      (not existing objects never participate in collision detection).
-
-      Descendants may also override GetCollides method. Sometimes it's more
-      comfortable than changing the property value.
+      (non-existing objects never participate in collision detection).
 
       @noAutoLinkHere }
     property Collides: boolean read FCollides write FCollides default true;
 
     { Is item pickable by @link(RayCollision) method.
       Note that if not @link(Exists) then this doesn't matter
-      (not existing objects are never pickable).
+      (non-existing objects are never pickable).
+
       This is independent from @link(Collides), as @link(RayCollision)
       does not look at @link(Collides), it only looks at @link(Pickable).
-
-      Descendants may also override GetPickable method. Sometimes it's more
-      comfortable than changing the property value.
-
       @noAutoLinkHere }
     property Pickable: boolean read FPickable write FPickable default true;
 
     { Is item visible.
       Note that if not @link(Exists) then this doesn't matter
-      (not existing objects are never visible).
+      (non-existing objects are never visible).
+
       This is independent from @link(Collides) or @link(Pickable).
-
-      Descendants may also override GetVisible method. Sometimes it's more
-      comfortable than changing the property value.
-
       @noAutoLinkHere }
     property Visible: boolean read FVisible write FVisible default true;
-
-    { If this 3D object is rendered as part of TCastleViewport,
-      and @link(TCastleViewport.UseGlobalLights) is @true, then this property allows
-      to make an exception for this 3D object: even though
-      @link(TCastleViewport.UseGlobalLights) is @true,
-      do not use global lights @italic(for this 3D object).
-
-      Note that this is not applied recursively. Instead, it is checked at each TCastleTransform instance
-      that checks TRenderParams.BaseLights. In practice, it is only checked at TCastleScene,
-      unless you do custom rendering on your own. }
-    property ExcludeFromGlobalLights: boolean
-      read FExcludeFromGlobalLights write FExcludeFromGlobalLights default false;
 
     { Exclude from rendering statistics in
       @link(TCastleViewport.Statistics). }
@@ -1825,14 +1867,10 @@ end;
 
 { TCastleTransform ---------------------------------------------------------------- }
 
-const
-  NoScale: TVector3 = (Data: (1, 1, 1));
-
 constructor TCastleTransform.Create(AOwner: TComponent);
 begin
   inherited;
   FCastShadowVolumes := true;
-  FExists := true;
   FCollides := true;
   FPickable := true;
   FVisible := true;
@@ -1845,6 +1883,10 @@ begin
   FScale := NoScale;
   FOrientation := DefaultOrientation;
   MeaningfulParent := true;
+  FExists := true;
+  { at the beginning FParent = nil, which implies "all parents exist" }
+  FParentExistsInRoot := true;
+  FExistsInRoot := true; // FParentExistsInRoot and FExists;, UpdateExistsInRoot would also set this
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
@@ -1856,6 +1898,10 @@ begin
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
   {$undef read_implementation_destructor}
+
+  PendingRemovals;
+  FreeAndNil(FPendingToRemove);
+  FreeAndNil(FPendingToRemoveAndFree);
 
   PhysicsDestroy;
 
@@ -1895,40 +1941,46 @@ begin
   end;
 end;
 
-function TCastleTransform.GetExists: boolean;
+function TCastleTransform.CheckCollides: boolean;
 begin
-  Result := FExists and (Disabled = 0);
+  {$warnings off} // using deprecated to keep it working
+  Result := GetCollides;
+  {$warnings on}
 end;
 
 function TCastleTransform.GetCollides: boolean;
 begin
-  Result := FCollides and GetExists;
+  Result := FCollides and Exists;
+end;
+
+function TCastleTransform.CheckPickable: boolean;
+begin
+  {$warnings off} // using deprecated to keep it working
+  Result := GetPickable;
+  {$warnings on}
 end;
 
 function TCastleTransform.GetPickable: boolean;
 begin
-  Result := FPickable and GetExists;
+  Result := FPickable and Exists;
+end;
+
+function TCastleTransform.CheckVisible: boolean;
+begin
+  {$warnings off} // using deprecated to keep it working
+  Result := GetVisible;
+  {$warnings on}
 end;
 
 function TCastleTransform.GetVisible: boolean;
 begin
-  Result := FVisible and GetExists;
+  Result := FVisible and Exists;
 end;
 
 function TCastleTransform.Sphere(out Radius: Single): boolean;
 begin
   Radius := CollisionSphereRadius;
   Result := Radius <> 0;
-end;
-
-procedure TCastleTransform.Disable;
-begin
-  Inc(Disabled);
-end;
-
-procedure TCastleTransform.Enable;
-begin
-  Dec(Disabled);
 end;
 
 procedure TCastleTransform.AddToWorld(const Value: TCastleAbstractRootTransform);
@@ -1976,7 +2028,11 @@ begin
     We check MeaningfulParent, so that adding children to TCastleTransformReference
     will not change parent. }
   if NewParent.MeaningfulParent then
+  begin
     FParent := NewParent;
+    { Keep our ParentExistsInRoot synchronized with FParent, and thus keep our ExistsInRoot correct }
+    ParentExistsInRoot := FParent.ExistsInRoot;
+  end;
 
   if NewParent.World <> nil then
     AddToWorld(NewParent.World);
@@ -1995,7 +2051,11 @@ begin
   { Clear FParent only if previous parent matched OldParent.
     This way removing from TCastleTransformReference will not change FParent. }
   if FParent = OldParent then
+  begin
     FParent := nil;
+    { non-existing parent means "all parents exist" }
+    ParentExistsInRoot := true;
+  end;
 
   { Do not call RemoveFreeNotification when OldParent is equal to World,
     this would prevent getting notification when FWorld is set to nil in
@@ -2097,26 +2157,30 @@ function TCastleTransform.Height(const MyPosition: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 var
   MyPositionWorld: TVector3;
+  SavedExists: Boolean;
 begin
   MyPositionWorld := Parent.LocalToWorld(MyPosition);
-  Disable;
+  SavedExists := Exists;
+  Exists := false;
   try
     Result := World.WorldHeight(MyPositionWorld, AboveHeight, AboveGround);
     if Result then
       AboveHeight := Parent.WorldToLocalDistance(AboveHeight);
-  finally Enable end;
+  finally Exists := SavedExists end;
 end;
 
 function TCastleTransform.LineOfSight(const Pos1, Pos2: TVector3): boolean;
 var
   Pos1World, Pos2World: TVector3;
+  SavedExists: Boolean;
 begin
   Pos1World := Parent.LocalToWorld(Pos1);
   Pos2World := Parent.LocalToWorld(Pos2);
-  Disable;
+  SavedExists := Exists;
+  Exists := false;
   try
     Result := World.WorldLineOfSight(Pos1World, Pos2World);
-  finally Enable end;
+  finally Exists := SavedExists end;
 end;
 
 function TCastleTransform.MoveAllowed(const OldPos, ProposedNewPos: TVector3;
@@ -2127,6 +2191,7 @@ var
   SpRadius, SpRadiusWorld: Single;
   OldBox, NewBox: TBox3D;
   OldPosWorld, ProposedNewPosWorld, NewPosWorld: TVector3;
+  SavedExists: Boolean;
 begin
   Assert(Parent <> nil, 'Need to know world transformation before MoveAllowed');
 
@@ -2143,11 +2208,12 @@ begin
 
   SpRadiusWorld := Parent.LocalToWorldDistance(SpRadius);
 
-  Disable;
+  SavedExists := Exists;
+  Exists := false;
   try
     Result := World.WorldMoveAllowed(OldPosWorld, ProposedNewPosWorld, NewPosWorld,
       Sp, SpRadiusWorld, OldBox, NewBox, BecauseOfGravity);
-  finally Enable end;
+  finally Exists := SavedExists end;
 
   if Result then
     NewPos := Parent.WorldToLocal(NewPosWorld);
@@ -2159,6 +2225,7 @@ var
   Sp: boolean;
   SpRadius: Single;
   OldBox, NewBox: TBox3D;
+  SavedExists: Boolean;
 begin
   { save bounding volume information before calling Disable, as Disable makes
     bounding volume empty }
@@ -2168,50 +2235,57 @@ begin
   OldBox := WorldBoundingBox;
   NewBox := OldBox.Translate(NewPos - OldPos);
 
-  Disable;
+  SavedExists := Exists;
+  Exists := false;
   try
     Result := World.WorldMoveAllowed(OldPos, NewPos,
       Sp, SpRadius, OldBox, NewBox, BecauseOfGravity);
-  finally Enable end;
+  finally Exists := SavedExists end;
 end;
 
 function TCastleTransform.Ray(
   const RayOrigin, RayDirection: TVector3): TRayCollision;
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
+  SavedExists: Boolean;
 begin
   RayOriginWorld := Parent.LocalToWorld(RayOrigin);
   RayDirectionWorld := Parent.LocalToWorldDirection(RayDirection);
-  Disable;
+  SavedExists := Exists;
+  Exists := false;
   try
     Result := World.WorldRay(RayOriginWorld, RayDirectionWorld);
-  finally Enable end;
+  finally Exists := SavedExists end;
 end;
 
 function TCastleTransform.RayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
+  SavedExists: Boolean;
 begin
   RayOriginWorld := Parent.LocalToWorld(RayOrigin);
   RayDirectionWorld := Parent.LocalToWorldDirection(RayDirection);
-  Disable;
+  SavedExists := Exists;
+  Exists := false;
   try
     Result := World.WorldRayCast(RayOriginWorld, RayDirectionWorld);
-  finally Enable end;
+  finally Exists := SavedExists end;
 end;
 
 function TCastleTransform.RayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
+  SavedExists: Boolean;
 begin
   RayOriginWorld := Parent.LocalToWorld(RayOrigin);
   RayDirectionWorld := Parent.LocalToWorldDirection(RayDirection);
-  Disable;
+  SavedExists := Exists;
+  Exists := false;
   try
     Result := World.WorldRayCast(RayOriginWorld, RayDirectionWorld, Distance);
     if Result <> nil then
       Distance := Parent.WorldToLocalDistance(Distance);
-  finally Enable end;
+  finally Exists := SavedExists end;
 end;
 
 { list stuff ---------------------------------------------------------------- }
@@ -2238,7 +2312,14 @@ end;
 
 function TCastleTransform.Count: Integer;
 begin
-  Result := List.Count;
+  { Free notifications may want to iterate over some children from a TCastleTransform
+    that is being freed, and has List = nil now.
+    This happens for lights in designs, when we remove the light or close the design.
+    Behave as if we don't have children then. }
+  if List <> nil then
+    Result := List.Count
+  else
+    Result := 0;
 end;
 
 procedure TCastleTransform.Remove(const Item: TCastleTransform);
@@ -2249,6 +2330,13 @@ begin
     Ignore it -- removing from a nil list doesn't require doing anything. }
   if List <> nil then
     List.Remove(Item);
+end;
+
+procedure TCastleTransform.Delete(const Index: Integer);
+begin
+  { As in Remove, check "List <> nil" }
+  if List <> nil then
+    List.Delete(Index);
 end;
 
 procedure TCastleTransform.Clear;
@@ -2301,7 +2389,7 @@ var
   I: Integer;
 begin
   Result := TBox3D.Empty;
-  if GetExists then
+  if Exists then
   begin
     for I := 0 to List.Count - 1 do
       if not List[I].InternalExcludeFromParentBoundingVolume then
@@ -2313,25 +2401,23 @@ procedure TCastleTransform.LocalRender(const Params: TRenderParams);
 var
   I: Integer;
 begin
-  if GetVisible then
+  if CheckVisible then
   begin
+    PendingRemovals;
     for I := 0 to List.Count - 1 do
       List[I].Render(Params);
   end;
 end;
 
-procedure TCastleTransform.LocalRenderShadowVolume(
-  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4);
+procedure TCastleTransform.LocalRenderShadowVolume(const Params: TRenderParams;
+  const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 var
   I: Integer;
 begin
-  if GetExists and CastShadowVolumes then
+  if Exists and CastShadowVolumes then
   begin
     for I := 0 to List.Count - 1 do
-      List[I].RenderShadowVolume(ShadowVolumeRenderer,
-        ParentTransformIsIdentity, ParentTransform);
+      List[I].RenderShadowVolume(Params, ShadowVolumeRenderer);
   end;
 end;
 
@@ -2373,7 +2459,7 @@ var
   I: Integer;
 begin
   Result := false;
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
   for I := 0 to List.Count - 1 do
     if List[I].Press(Event) then Exit(true);
@@ -2384,7 +2470,7 @@ var
   I: Integer;
 begin
   Result := false;
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
   for I := 0 to List.Count - 1 do
     if List[I].Release(Event) then Exit(true);
@@ -2447,34 +2533,41 @@ procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRe
     Item: TCastleTransform;
     RemoveItem: TRemoveType;
   begin
+    PendingRemovals;
+
     I := 0;
     while I < List.Count do
     begin
       Item := List[I];
-      RemoveItem := rtNone;
-      Item.Update(SecondsPassed, RemoveItem);
-      if RemoveItem in [rtRemove, rtRemoveAndFree] then
+      if Item.Exists then
       begin
-        List.Delete(I);
-        if RemoveItem = rtRemoveAndFree then
-          FreeAndNil(Item);
+        RemoveItem := rtNone;
+        Item.Update(SecondsPassed, RemoveItem);
+        if RemoveItem in [rtRemove, rtRemoveAndFree] then
+        begin
+          List.Delete(I);
+          if RemoveItem = rtRemoveAndFree then
+            FreeAndNil(Item);
+        end else
+          Inc(I);
       end else
         Inc(I);
     end;
+
+    PendingRemovals;
   end;
 
 begin
-  if GetExists then
-  begin
-    UpdateBehaviors;
-    UpdateChildren;
+  Assert(Exists); // this should never be called on TCastleTransform that does not exist
 
-    { Disable physics and gravity in design mode (in the future we may add optional way to enable them) }
-    if not CastleDesignMode then
-    begin
-      UpdateSimpleGravity(SecondsPassed);
-      UpdatePhysicsEngine(SecondsPassed);
-    end;
+  UpdateBehaviors;
+  UpdateChildren;
+
+  { Disable physics and gravity in design mode (in the future we may add optional way to enable them) }
+  if not CastleDesignMode then
+  begin
+    UpdateSimpleGravity(SecondsPassed);
+    UpdatePhysicsEngine(SecondsPassed);
   end;
 end;
 
@@ -2561,7 +2654,18 @@ end;
 
 function TCastleTransform.HasWorldTransform: boolean;
 begin
-  Result := (Self = World) or (FParent <> nil);
+  { Check for "FWorld <> nil" is still necessary, otherwise a TCastleTransform
+    could satisfy this without having World assigned:
+    when it has a FParent, but FParent is not yet part of any World.
+
+    This matters, e.g. we activate FScene.ProcessEvents:=true
+    in TCastleAbstractLight.Create, at which point FScene has a parent
+    but the parent (TCastleAbstractLight instance) is not yet part of world.
+    SetProcessEvents calls GetCameraVectors that checks HasWorldTransform,
+    assuming that HasWorldTransform => implies World <> nil.
+
+    TODO: maybe just "FWorld <> nil" should be enough? }
+  Result := (FWorld <> nil) and ((Self = World) or (FParent <> nil));
 end;
 
 procedure TCastleTransform.UpdateWorldTransformation;
@@ -2790,6 +2894,7 @@ begin
       OldParamsTransform         := Params.Transform;
       OldParamsInverseTransform  := Params.InverseTransform;
       OldFrustum                 := Params.Frustum;
+      Assert(OldFrustum <> nil);
 
       NewParamsTransformation.Transform        := OldParamsTransform^;
       NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
@@ -2833,25 +2938,64 @@ begin
   Params.InMeaningfulParent := OldInMeaningfulParent;
 end;
 
-procedure TCastleTransform.RenderShadowVolume(
-  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4);
+procedure TCastleTransform.RenderShadowVolume(const Params: TRenderParams;
+  const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 var
   T: TVector3;
+  OldParamsTransform, OldParamsInverseTransform: PMatrix4;
+  NewParamsTransformation: TTransformation;
+  OldParamsTransformIdentity: Boolean;
+  OldFrustum: PFrustum;
+  NewFrustumValue: TFrustum;
 begin
-  if FOnlyTranslation then
+  T := Translation;
+  if FOnlyTranslation and T.IsZero then
   begin
-    T := Translation;
-    if T.IsZero then
-      LocalRenderShadowVolume(ShadowVolumeRenderer,
-        ParentTransformIsIdentity, ParentTransform)
-    else
-      LocalRenderShadowVolume(ShadowVolumeRenderer,
-        false, TranslationMatrix(T) * ParentTransform);
+    LocalRenderShadowVolume(Params, ShadowVolumeRenderer);
   end else
-    LocalRenderShadowVolume(ShadowVolumeRenderer,
-      false, Transform * ParentTransform);
+  begin
+    { TODO: This is a copy-paste of transformation algorithm from TCastleTransform.Render. }
+
+    OldParamsTransformIdentity := Params.TransformIdentity;
+    OldParamsTransform         := Params.Transform;
+    OldParamsInverseTransform  := Params.InverseTransform;
+    OldFrustum                 := Params.Frustum;
+    Assert(OldFrustum <> nil);
+
+    NewParamsTransformation.Transform        := OldParamsTransform^;
+    NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
+    NewFrustumValue                          := OldFrustum^;
+
+    Params.TransformIdentity := false;
+    Params.Transform        := @NewParamsTransformation.Transform;
+    Params.InverseTransform := @NewParamsTransformation.InverseTransform;
+    Params.Frustum          := @NewFrustumValue;
+
+    { Update NewXxx to apply the transformation defined by this TCastleTransform.
+      LocalRender expects Frustum in local coordinates (without transformation),
+      so we subtract transformation below. }
+    if FOnlyTranslation then
+    begin
+      NewParamsTransformation.Translate(T);
+      NewFrustumValue.MoveVar(-T);
+    end else
+    begin
+      InternalTransformationMult(NewParamsTransformation);
+      if IsNan(NewParamsTransformation.Transform.Data[0, 0]) then
+        WarningMatrixNan(NewParamsTransformation.Transform);
+      NewFrustumValue := NewFrustumValue.TransformByInverse(Transform);
+      // 2x slower: NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
+    end;
+
+    LocalRenderShadowVolume(Params, ShadowVolumeRenderer);
+
+    { Restore OldXxx values.
+      They can be restored fast, thanks to using pointers to matrix/frustum. }
+    Params.TransformIdentity := OldParamsTransformIdentity;
+    Params.Transform         := OldParamsTransform;
+    Params.InverseTransform  := OldParamsInverseTransform;
+    Params.Frustum           := OldFrustum;
+  end;
 end;
 
 function Bottom(const Gravity: boolean; const GravityCoordinate: Integer;
@@ -2859,7 +3003,7 @@ function Bottom(const Gravity: boolean; const GravityCoordinate: Integer;
 begin
   if Gravity then
     Result := 0 else
-    Result := BoundingBox.Data[0].Data[GravityCoordinate];
+    Result := BoundingBox.Data[0][GravityCoordinate];
 end;
 
 function TCastleTransform.Middle: TVector3;
@@ -2882,7 +3026,13 @@ begin
     besides moving, only rotates around it's own up axis). }
 
   Result := Translation;
-  Result.Data[GC] := Result.Data[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
+  { Using deprecated in deprecated.
+    This should be simpler at some point:
+      Result.InternalData[GC] := Lerp(MiddleHeight, B.Data[0][GC], B.Data[1][GC]);
+  }
+  {$warnings off}
+  Result.InternalData[GC] := Result.InternalData[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
+  {$warnings on}
 end;
 
 function TCastleTransform.PreferredHeight: Single;
@@ -2900,7 +3050,9 @@ begin
   if B.IsEmpty then
     Result := 0
   else
-    Result := MiddleHeight * (B.Data[1].Data[GC] - Bottom(Gravity, GC, B));
+    {$warnings off} // using deprecated in deprecated
+    Result := MiddleHeight * (B.Data[1][GC] - Bottom(Gravity, GC, B));
+    {$warnings on}
 
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
   if Sphere(R) and (R > Result) then
@@ -2912,6 +3064,7 @@ begin
   {$endif}
 end;
 
+{$warnings off} // keep deprecated working
 procedure TCastleTransform.UpdateSimpleGravity(const SecondsPassed: Single);
 
   procedure DoGravity(const PreferredHeight: Single);
@@ -3039,6 +3192,7 @@ begin
       DoGravity(PH);
   end;
 end;
+{$warnings on}
 
 procedure TCastleTransform.Fall(const FallHeight: Single);
 begin
@@ -3205,7 +3359,7 @@ end;
 
 procedure TCastleTransform.SetTranslationXY(const Value: TVector2);
 begin
-  Translation := Vector3(Value, Translation.Data[2]);
+  Translation := Vector3(Value, Translation.Z);
 end;
 
 procedure TCastleTransform.Translate(const TranslationChange: TVector3);
@@ -3344,9 +3498,19 @@ begin
 end;
 
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
+var
+  ReasonWhyCannot: String;
 begin
   if Behavior.FParent <> Self then
   begin
+    if not Behavior.CanAttachToParent(Self, ReasonWhyCannot) then
+      raise Exception.CreateFmt('Cannot add behavior %s (%s) to %s (%s) because: %s', [
+        Behavior.Name,
+        Behavior.ClassName,
+        Name,
+        ClassName,
+        ReasonWhyCannot
+      ]);
     FBehaviors.Add(Behavior);
     Behavior.FParent := Self;
     Behavior.ParentChanged; // call at end, when state is consistent
@@ -3400,6 +3564,84 @@ begin
     Result := BehaviorClass.Create(Self);
     AddBehavior(Result);
   end;
+end;
+
+procedure TCastleTransform.PendingRemovals;
+var
+  I: Integer;
+  Item: TCastleTransform;
+begin
+  { We iterate downto, and still check that index is valid.
+    That is because removing/freeing may call some virtual methods,
+    and may in turn cause removal/free of other items,
+    even items on the pending list.
+    They may also add new items to this list. }
+
+  if FPendingToRemove <> nil then
+    for I := FPendingToRemove.Count - 1 downto 0 do
+      if I < FPendingToRemove.Count then
+      begin
+        Item := FPendingToRemove[I] as TCastleTransform;
+        Remove(Item);
+        FPendingToRemove.Remove(Item);
+      end;
+
+  if FPendingToRemoveAndFree <> nil then
+    for I := FPendingToRemoveAndFree.Count - 1 downto 0 do
+      if I < FPendingToRemoveAndFree.Count then
+        FPendingToRemoveAndFree[I].Free; // this will remove it from children, and from FPendingToRemoveAndFree
+end;
+
+procedure TCastleTransform.RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
+begin
+  if FreeItem then
+  begin
+    if FPendingToRemoveAndFree = nil then
+      FPendingToRemoveAndFree := TComponentList.Create(false);
+    FPendingToRemoveAndFree.Add(Item);
+  end else
+  begin
+    if FPendingToRemove = nil then
+      FPendingToRemove := TComponentList.Create(false);
+    FPendingToRemove.Add(Item);
+  end;
+end;
+
+procedure TCastleTransform.SetExists(const Value: Boolean);
+begin
+  if FExists <> Value then
+  begin
+    FExists := Value;
+    UpdateExistsInRoot;
+  end;
+end;
+
+procedure TCastleTransform.SetParentExistsInRoot(const Value: Boolean);
+begin
+  if FParentExistsInRoot <> Value then
+  begin
+    FParentExistsInRoot := Value;
+    UpdateExistsInRoot;
+  end;
+end;
+
+procedure TCastleTransform.UpdateExistsInRoot;
+var
+  NewExistsInRoot: Boolean;
+  I: Integer;
+begin
+  NewExistsInRoot := ParentExistsInRoot and Exists;
+  if FExistsInRoot <> NewExistsInRoot then
+  begin
+    FExistsInRoot := NewExistsInRoot;
+    for I := Count - 1 downto 0 do
+      Items[I].ParentExistsInRoot := FExistsInRoot; // use child SetParentExistsInRoot, so it can update it's ExistsInRoot
+    ExistsInRootChanged; // virtual, called at end to be called when all children are valid too
+  end;
+end;
+
+procedure TCastleTransform.ExistsInRootChanged;
+begin
 end;
 
 {$define read_implementation_methods}

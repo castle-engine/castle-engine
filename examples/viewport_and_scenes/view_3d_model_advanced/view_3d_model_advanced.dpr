@@ -26,7 +26,7 @@ uses SysUtils, Classes,
   CastleControls, CastleURIUtils, CastleApplicationProperties, CastleViewport;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Viewport: TCastleViewport;
   Scene: TCastleScene;
   OpenButton: TCastleButton;
@@ -63,7 +63,7 @@ begin
 
   InitializeLog;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;

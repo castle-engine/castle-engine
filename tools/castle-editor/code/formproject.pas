@@ -47,6 +47,7 @@ type
     ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemEdit: TMenuItem;
     MenuItemOutputCopyAll: TMenuItem;
     MenuItemOutputCopySelected: TMenuItem;
     MenuItemSeparator12312123123: TMenuItem;
@@ -812,7 +813,7 @@ begin
   URLFileName := ApplicationConfig(DockLayoutFileName);
   { Try to load default layout if user layout is not exist }
   if not URIFileExists(URLFileName) then
-    URLFileName := EditorApplicationData + 'layouts/' + DockLayoutFileNameDefault;
+    URLFileName := InternalCastleDesignData + 'layouts/' + DockLayoutFileNameDefault;
   try
     XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
     try

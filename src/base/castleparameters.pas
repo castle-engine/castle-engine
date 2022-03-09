@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -288,7 +288,7 @@ type
 
       The ParseOnlyKnownOptions = @true is useful if you want to handle
       some command-line options, but you still want to leave final options
-      parsing to a later code. For example TCastleWindowBase.ParseParameters parses
+      parsing to a later code. For example TCastleWindow.ParseParameters parses
       some window parameters (like --geometry), leaving your program-specific
       stuff in peace.
 
@@ -296,7 +296,7 @@ type
       fool-proof solution, for example the command-line
       @code(view3dscene --navigation --geometry 800x600 Walk) is actually invalid.
       But we will handle it, by first detecting and removing @code(--geometry 800x600)
-      from TCastleWindowBase.ParseParameters, and then detecting and removing
+      from TCastleWindow.ParseParameters, and then detecting and removing
       @code(--navigation Walk) from view3dscene code.
       Basically, processing by Parse many times is not fool-proof
       in some weird situations.
@@ -700,9 +700,9 @@ end;
 
 function SeparateArgsToVector3(const v: TSeparateArgs): TVector3;
 begin
-  Result[0] := StrToFloatDot(v[1]);
-  Result[1] := StrToFloatDot(v[2]);
-  Result[2] := StrToFloatDot(v[3]);
+  Result.X := StrToFloatDot(v[1]);
+  Result.Y := StrToFloatDot(v[2]);
+  Result.Z := StrToFloatDot(v[3]);
 end;
 
 function SeparateArgsToVector3Single(const v: TSeparateArgs): TVector3;

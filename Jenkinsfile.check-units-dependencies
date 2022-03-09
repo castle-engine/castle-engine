@@ -23,6 +23,11 @@ pipeline {
     CASTLE_ENGINE_PATH = "${WORKSPACE}"
   }
   stages {
+    stage('Cleanup') {
+      steps {
+        sh "repository_cleanup . --remove-unversioned"
+      }
+    }
     stage('Build Tools') {
       steps {
         sh 'rm -Rf installed/'

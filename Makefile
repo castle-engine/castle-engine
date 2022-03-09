@@ -333,6 +333,7 @@ examples-laz:
 	done
 	$(FIND) . \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
+	  '(' -path ./src/vampyre_imaginglib -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -iname '*.lpi' -exec ./tools/internal/lazbuild_retry '{}' ';' ')'
@@ -415,8 +416,7 @@ cleanmore: clean
 	$(FIND) . -type d '(' -iname 'backup' \
 			')' -exec rm -Rf '{}' ';' -prune
 	$(MAKE) -C doc/pasdoc/ clean
-	rm -Rf tools/build-tool/data/android/integrated-services/giftiz/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
+	rm -Rf tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
 	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar \
 	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.aar \
 	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar \

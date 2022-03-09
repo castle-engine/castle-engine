@@ -4,7 +4,7 @@ Demo how to load and render a 3D model. This is just a single program source fil
 
 This presents the simplest code that manually sets up
 
-- TCastleWindowBase (window where Castle Game Engine can work)
+- TCastleWindow (window where Castle Game Engine can work)
 - TCastleViewport
 - TCastleScene
 

@@ -67,9 +67,9 @@ end;
 
 procedure TTestCastleWindowOpen.TestProgressFromOpen;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Window.Controls.InsertFront(TControl1.Create(Window));
     Window.Controls.InsertFront(TCastleButton.Create(Window));
@@ -110,9 +110,9 @@ end;
 
 procedure TTestCastleWindowOpen.TestSaveScreenFromOpen;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Window.Controls.InsertFront(TControl2.Create(Window));
     Window.Controls.InsertFront(TCastleButton.Create(Window));
@@ -131,7 +131,7 @@ begin
 end;
 
 type
-  TCastleWindowWithSceneManager = class(TCastleWindowBase)
+  TCastleWindowWithSceneManager = class(TCastleWindow)
     SceneManager: TGameSceneManager;
     constructor Create(AOwner: TComponent); override;
   end;

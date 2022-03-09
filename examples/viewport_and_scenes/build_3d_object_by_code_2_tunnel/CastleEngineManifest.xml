@@ -2,7 +2,7 @@
 <project name="build_3d_object_by_code_2_tunnel"
   standalone_source="build_3d_object_by_code_2_tunnel_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.build3dobjectbycode2tunnel"
+  qualified_name="io.castleengine.build3.dobject.by.code2tunnel"
   caption="Build 3D Object By Code - Tunnel"
 >
   <compiler_options>

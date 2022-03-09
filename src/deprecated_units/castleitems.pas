@@ -21,12 +21,14 @@ unit CastleItems
 
 interface
 
+{$warnings off} // using deprecated in deprecated
 uses Generics.Collections,
   CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
   CastleResources, CastleGLImages, CastleTimeUtils,
   CastleXMLConfig, CastleSoundEngine, CastleFrustum,
   CastleTransformExtra, CastleTransform, CastleColors, CastleDebugTransform;
+{$warnings on}
 
 type
   TInventoryItem = class;
@@ -65,7 +67,7 @@ type
       of this resource by CreateItem. }
     function ItemClass: TInventoryItemClass; virtual;
   public
-    constructor Create(const AName: string); override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
@@ -195,7 +197,7 @@ type
       DefaultAttackKnockbackDistance = 0.0;
       DefaultAttackShoot = false;
 
-    constructor Create(const AName: string); override;
+    constructor Create(AOwner: TComponent); override;
 
     { Sound to make on equipping. Each weapon can have it's own
       equipping sound. }
@@ -543,7 +545,6 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GetExists: boolean; override;
 
     { The Item owned by this TItemOnWorld instance. Never @nil. }
     property Item: TInventoryItem read FItem;
@@ -618,18 +619,16 @@ type
 
   TItemOnWorldExistsEvent = function(const Item: TItemOnWorld): boolean of object;
 
-var
-  { Global callback to control items on level existence. }
-  OnItemOnWorldExists: TItemOnWorldExistsEvent;
-
 implementation
 
+{$warnings off} // using deprecated in deprecated
 uses SysUtils, Math,
   CastleFilesUtils, CastlePlayer, CastleGameNotifications, CastleConfig, CastleCreatures;
+{$warnings on}
 
 { TItemResource ------------------------------------------------------------ }
 
-constructor TItemResource.Create(const AName: string);
+constructor TItemResource.Create(AOwner: TComponent);
 begin
   inherited;
   FBaseAnimation := T3DResourceAnimation.Create(Self, 'base');
@@ -725,7 +724,7 @@ end;
 
 { TItemWeaponResource ------------------------------------------------------------ }
 
-constructor TItemWeaponResource.Create(const AName: string);
+constructor TItemWeaponResource.Create(AOwner: TComponent);
 begin
   inherited;
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');
@@ -799,6 +798,11 @@ function TInventoryItem.PutOnWorld(
 var
   RootTransform: TCastleRootTransform;
 begin
+  if ALevel.ItemsRoot = nil then
+    raise Exception.CreateFmt('Cannot add item "%s" to level, as the level is not loaded yet. Execute TLevel.Load first', [
+      Name
+    ]);
+
   RootTransform := ALevel.RootTransform;
 
   Result := TItemOnWorld.Create(ALevel.FreeAtUnload);
@@ -809,12 +813,14 @@ begin
   FOwner3D := Result;
   Result.Orientation := Resource.Orientation; // must be set before SetView
   Result.SetView(APosition, AnyOrthogonalVector(RootTransform.GravityUp), RootTransform.GravityUp);
+  {$warnings off} // using deprecated in deprecated
   Result.Gravity := true;
   Result.FallSpeed := Resource.FallSpeed;
   Result.GrowSpeed := Resource.GrowSpeed;
+  {$warnings on}
   Result.CastShadowVolumes := Resource.CastShadowVolumes;
 
-  RootTransform.Add(Result);
+  ALevel.ItemsRoot.Add(Result);
 end;
 
 procedure TInventoryItem.Use;
@@ -877,19 +883,19 @@ var
     Enemy: TCastleAlive;
     {$warnings on}
     WeaponBoundingBox: TBox3D;
-    RootTransform: TCastleRootTransform;
+    CreaturesRoot: TCastleTransform;
   begin
     { Attacker.Direction may be multiplied by something here for long-range weapons }
     WeaponBoundingBox := Attacker.BoundingBox.Translate(Attacker.Direction);
-    RootTransform := Level.RootTransform;
     { Tests: Writeln('WeaponBoundingBox is ', WeaponBoundingBox.ToNiceStr); }
-    { TODO: we would prefer to use RootTransform.BoxCollision for this,
+    CreaturesRoot := Level.CreaturesRoot;
+    { TODO: we would prefer to use CreaturesRoot.BoxCollision for this,
       but we need to know which creature was hit. }
-    for I := 0 to RootTransform.Count - 1 do
+    for I := 0 to CreaturesRoot.Count - 1 do
       {$warnings off} // using deprecated in deprecated
-      if RootTransform[I] is TCastleAlive then
+      if CreaturesRoot[I] is TCastleAlive then
       begin
-        Enemy := TCastleAlive(RootTransform[I]);
+        Enemy := TCastleAlive(CreaturesRoot[I]);
         { Tests: Writeln('Creature bbox is ', C.BoundingBox.ToNiceStr); }
         if (Enemy <> Attacker) and
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then
@@ -1257,7 +1263,9 @@ begin
   inherited Create(AOwner);
 
   CollidesWithMoving := true;
+  {$warnings off} // using deprecated in deprecated
   Gravity := true;
+  {$warnings on}
 
   FDebugTransform := TItemDebugTransform.Create(Self);
   FDebugTransform.Parent := Self;
@@ -1295,7 +1303,7 @@ var
   Player: TAliveWithInventory;
 begin
   inherited;
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
   LifeTime := LifeTime + SecondsPassed;
 
@@ -1335,12 +1343,6 @@ begin
   Result := Item;
   Result.FOwner3D := nil;
   FItem := nil;
-end;
-
-function TItemOnWorld.GetExists: boolean;
-begin
-  Result := (inherited GetExists) and
-    ((not Assigned(OnItemOnWorldExists)) or OnItemOnWorldExists(Self));
 end;
 
 { TAliveWithInventory ------------------------------------------------------ }
@@ -1405,9 +1407,11 @@ function TAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
       prevent putting item "inside the ground", but the item
       would be too close to the player --- he could pick it up
       immediately. }
+    {$warnings off} // using deprecated in deprecated
     DropTranslation := Translation +
       DirectionInGravityPlane *
         (0.6 * (PreferredHeight * Sqrt3 + ItemBox.Diagonal));
+    {$warnings on}
 
     { Now check is DropTranslation actually possible
       (i.e. check collisions item<->everything).

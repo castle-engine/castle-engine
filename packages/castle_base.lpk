@@ -8,8 +8,8 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/x3d/opengl/glsl/generated-pascal;../src/x3d/opengl;../src/x3d;../src/base/opengl;../src/images/opengl;../src/images/opengl/glsl/generated-pascal;../src/images;../src/x3d/auto_generated_node_helpers;../src/ui/opengl;../src/deprecated_units;../src/files;../src/fonts/opengl"/>
-        <OtherUnitFiles Value="../src/base;../src/transform;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/services;../src/services/opengl;../src/transform/opengl;../src/base/opengl;../src/images/opengl;../src/fonts/opengl;../src/physics/kraft;../src/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units"/>
+        <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/fonts"/>
+        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui;../src/services;../src/transform;../src/base_rendering;../src/fonts;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="962">
+    <Files Count="970">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -480,15 +480,15 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item101>
       <Item102>
-        <Filename Value="../src/base/opengl/castlegles.pas"/>
+        <Filename Value="../src/base_rendering/castlegles.pas"/>
         <UnitName Value="CastleGLES"/>
       </Item102>
       <Item103>
-        <Filename Value="../src/base/opengl/castleglversion.pas"/>
+        <Filename Value="../src/base_rendering/castleglversion.pas"/>
         <UnitName Value="CastleGLVersion"/>
       </Item103>
       <Item104>
-        <Filename Value="../src/base/opengl/openglmac.inc"/>
+        <Filename Value="../src/base_rendering/openglmac.inc"/>
         <Type Value="Include"/>
       </Item104>
       <Item105>
@@ -803,7 +803,6 @@ See https://castle-engine.io/license.php for details.
       </Item175>
       <Item176>
         <Filename Value="../src/files/castlexmlconfig.pas"/>
-        <HasRegisterProc Value="True"/>
         <UnitName Value="CastleXMLConfig"/>
       </Item176>
       <Item177>
@@ -887,35 +886,35 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleTextureFontData"/>
       </Item196>
       <Item197>
-        <Filename Value="../src/fonts/opengl/castlefonts.pas"/>
+        <Filename Value="../src/fonts/castlefonts.pas"/>
         <UnitName Value="CastleFonts"/>
       </Item197>
       <Item198>
-        <Filename Value="../src/fonts/opengl/castlefonts_abstractfont.inc"/>
+        <Filename Value="../src/fonts/castlefonts_abstractfont.inc"/>
         <Type Value="Include"/>
       </Item198>
       <Item199>
-        <Filename Value="../src/fonts/opengl/castlefonts_bitmapfont.inc"/>
+        <Filename Value="../src/fonts/castlefonts_bitmapfont.inc"/>
         <Type Value="Include"/>
       </Item199>
       <Item200>
-        <Filename Value="../src/fonts/opengl/castlefonts_font.inc"/>
+        <Filename Value="../src/fonts/castlefonts_font.inc"/>
         <Type Value="Include"/>
       </Item200>
       <Item201>
-        <Filename Value="../src/fonts/opengl/castlefonts_fontfamily.inc"/>
+        <Filename Value="../src/fonts/castlefonts_fontfamily.inc"/>
         <Type Value="Include"/>
       </Item201>
       <Item202>
-        <Filename Value="../src/fonts/opengl/castlefonts_fontsizevariants.inc"/>
+        <Filename Value="../src/fonts/castlefonts_fontsizevariants.inc"/>
         <Type Value="Include"/>
       </Item202>
       <Item203>
-        <Filename Value="../src/fonts/opengl/castlefonts_miscellaneous.inc"/>
+        <Filename Value="../src/fonts/castlefonts_miscellaneous.inc"/>
         <Type Value="Include"/>
       </Item203>
       <Item204>
-        <Filename Value="../src/fonts/opengl/castleinternalrichtext.pas"/>
+        <Filename Value="../src/fonts/castleinternalrichtext.pas"/>
         <UnitName Value="CastleInternalRichText"/>
       </Item204>
       <Item205>
@@ -1019,147 +1018,147 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleVideos"/>
       </Item229>
       <Item230>
-        <Filename Value="../src/images/opengl/auto_generated_persistent_vectors/tcastleimagepersistent_persistent_vectors.inc"/>
+        <Filename Value="../src/base_rendering/auto_generated_persistent_vectors/tcastleimagepersistent_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item230>
       <Item231>
-        <Filename Value="../src/images/opengl/castleglimages.pas"/>
+        <Filename Value="../src/base_rendering/castleglimages.pas"/>
         <UnitName Value="CastleGLImages"/>
       </Item231>
       <Item232>
-        <Filename Value="../src/images/opengl/castleglimages_drawableimage.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_drawableimage.inc"/>
         <Type Value="Include"/>
       </Item232>
       <Item233>
-        <Filename Value="../src/images/opengl/castleglimages_drawableimagecache.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_drawableimagecache.inc"/>
         <Type Value="Include"/>
       </Item233>
       <Item234>
-        <Filename Value="../src/images/opengl/castleglimages_filter.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_filter.inc"/>
         <Type Value="Include"/>
       </Item234>
       <Item235>
-        <Filename Value="../src/images/opengl/castleglimages_load_2d.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_load_2d.inc"/>
         <Type Value="Include"/>
       </Item235>
       <Item236>
-        <Filename Value="../src/images/opengl/castleglimages_load_3d.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_load_3d.inc"/>
         <Type Value="Include"/>
       </Item236>
       <Item237>
-        <Filename Value="../src/images/opengl/castleglimages_load_cubemap.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_load_cubemap.inc"/>
         <Type Value="Include"/>
       </Item237>
       <Item238>
-        <Filename Value="../src/images/opengl/castleglimages_miscellaneous.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_miscellaneous.inc"/>
         <Type Value="Include"/>
       </Item238>
       <Item239>
-        <Filename Value="../src/images/opengl/castleglimages_packing.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_packing.inc"/>
         <Type Value="Include"/>
       </Item239>
       <Item240>
-        <Filename Value="../src/images/opengl/castleglimages_persistentimage.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_persistentimage.inc"/>
         <Type Value="Include"/>
       </Item240>
       <Item241>
-        <Filename Value="../src/images/opengl/castleglimages_rendertotexture.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_rendertotexture.inc"/>
         <Type Value="Include"/>
       </Item241>
       <Item242>
-        <Filename Value="../src/images/opengl/castleglimages_savescreen.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_savescreen.inc"/>
         <Type Value="Include"/>
       </Item242>
       <Item243>
-        <Filename Value="../src/images/opengl/castleglimages_sprite.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_sprite.inc"/>
         <Type Value="Include"/>
       </Item243>
       <Item244>
-        <Filename Value="../src/images/opengl/castleglimages_texturememoryprofiler.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_texturememoryprofiler.inc"/>
         <Type Value="Include"/>
       </Item244>
       <Item245>
-        <Filename Value="../src/images/opengl/castleglimages_video.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_video.inc"/>
         <Type Value="Include"/>
       </Item245>
       <Item246>
-        <Filename Value="../src/images/opengl/castleglimages_wrap.inc"/>
+        <Filename Value="../src/base_rendering/castleglimages_wrap.inc"/>
         <Type Value="Include"/>
       </Item246>
       <Item247>
-        <Filename Value="../src/images/opengl/castleglshaders.pas"/>
+        <Filename Value="../src/base_rendering/castleglshaders.pas"/>
         <UnitName Value="CastleGLShaders"/>
       </Item247>
       <Item248>
-        <Filename Value="../src/images/opengl/castleglutils.pas"/>
+        <Filename Value="../src/base_rendering/castleglutils.pas"/>
         <UnitName Value="CastleGLUtils"/>
       </Item248>
       <Item249>
-        <Filename Value="../src/images/opengl/castleglutils_delphi_wgl.inc"/>
+        <Filename Value="../src/base_rendering/castleglutils_delphi_wgl.inc"/>
         <Type Value="Include"/>
       </Item249>
       <Item250>
-        <Filename Value="../src/images/opengl/castleglutils_draw_primitive_2d.inc"/>
+        <Filename Value="../src/base_rendering/castleglutils_draw_primitive_2d.inc"/>
         <Type Value="Include"/>
       </Item250>
       <Item251>
-        <Filename Value="../src/images/opengl/castleglutils_errors.inc"/>
+        <Filename Value="../src/base_rendering/castleglutils_errors.inc"/>
         <Type Value="Include"/>
       </Item251>
       <Item252>
-        <Filename Value="../src/images/opengl/castleglutils_ext_framebuffer_blit.inc"/>
+        <Filename Value="../src/base_rendering/castleglutils_ext_framebuffer_blit.inc"/>
         <Type Value="Include"/>
       </Item252>
       <Item253>
-        <Filename Value="../src/images/opengl/castleglutils_features.inc"/>
+        <Filename Value="../src/base_rendering/castleglutils_features.inc"/>
         <Type Value="Include"/>
       </Item253>
       <Item254>
-        <Filename Value="../src/images/opengl/castleglutils_helpers.inc"/>
+        <Filename Value="../src/base_rendering/castleglutils_helpers.inc"/>
         <Type Value="Include"/>
       </Item254>
       <Item255>
-        <Filename Value="../src/images/opengl/castleglutils_information.inc"/>
+        <Filename Value="../src/base_rendering/castleglutils_information.inc"/>
         <Type Value="Include"/>
       </Item255>
       <Item256>
-        <Filename Value="../src/images/opengl/castleglutils_mipmaps.inc"/>
+        <Filename Value="../src/base_rendering/castleglutils_mipmaps.inc"/>
         <Type Value="Include"/>
       </Item256>
       <Item257>
-        <Filename Value="../src/images/opengl/castleglutils_types.inc"/>
+        <Filename Value="../src/base_rendering/castleglutils_types.inc"/>
         <Type Value="Include"/>
       </Item257>
       <Item258>
-        <Filename Value="../src/images/opengl/castlerendercontext.pas"/>
+        <Filename Value="../src/base_rendering/castlerendercontext.pas"/>
         <UnitName Value="CastleRenderContext"/>
       </Item258>
       <Item259>
-        <Filename Value="../src/images/opengl/glsl/generated-pascal/image.fs.inc"/>
+        <Filename Value="../src/base_rendering/glsl/generated-pascal/image.fs.inc"/>
         <Type Value="Include"/>
       </Item259>
       <Item260>
-        <Filename Value="../src/images/opengl/glsl/generated-pascal/image.vs.inc"/>
+        <Filename Value="../src/base_rendering/glsl/generated-pascal/image.vs.inc"/>
         <Type Value="Include"/>
       </Item260>
       <Item261>
-        <Filename Value="../src/images/opengl/glsl/generated-pascal/primitive_2.fs.inc"/>
+        <Filename Value="../src/base_rendering/glsl/generated-pascal/primitive_2.fs.inc"/>
         <Type Value="Include"/>
       </Item261>
       <Item262>
-        <Filename Value="../src/images/opengl/glsl/generated-pascal/primitive_2.vs.inc"/>
+        <Filename Value="../src/base_rendering/glsl/generated-pascal/primitive_2.vs.inc"/>
         <Type Value="Include"/>
       </Item262>
       <Item263>
-        <Filename Value="../src/pasgltf/PasDblStrUtils.pas"/>
+        <Filename Value="../src/scene/load/pasgltf/PasDblStrUtils.pas"/>
         <UnitName Value="PasDblStrUtils"/>
       </Item263>
       <Item264>
-        <Filename Value="../src/pasgltf/PasGLTF.pas"/>
+        <Filename Value="../src/scene/load/pasgltf/PasGLTF.pas"/>
         <UnitName Value="PasGLTF"/>
       </Item264>
       <Item265>
-        <Filename Value="../src/pasgltf/PasJSON.pas"/>
+        <Filename Value="../src/scene/load/pasgltf/PasJSON.pas"/>
         <UnitName Value="PasJSON"/>
       </Item265>
       <Item266>
@@ -1210,10 +1209,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/services/castletestfairy.pas"/>
         <UnitName Value="CastleTestFairy"/>
       </Item277>
-      <Item278>
-        <Filename Value="../src/services/opengl/castlegiftiz.pas"/>
-        <UnitName Value="CastleGiftiz"/>
-      </Item278>
       <Item279>
         <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlebillboard_persistent_vectors.inc"/>
         <Type Value="Include"/>
@@ -1227,7 +1222,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item281>
       <Item282>
-        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc"/>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item282>
       <Item283>
@@ -1308,20 +1303,15 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleQuaternions"/>
       </Item301>
       <Item302>
-        <Filename Value="../src/transform/castlerays.pas"/>
-        <UnitName Value="CastleRays"/>
+        <Filename Value="../src/transform/castleinternalrays.pas"/>
+        <UnitName Value="CastleInternalRays"/>
       </Item302>
-      <Item303>
-        <Filename Value="../src/transform/castlerenderingcamera.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleRenderingCamera"/>
-      </Item303>
       <Item304>
         <Filename Value="../src/transform/castlesectors.pas"/>
         <UnitName Value="CastleSectors"/>
       </Item304>
       <Item305>
-        <Filename Value="../src/transform/castlethirdpersonnavigation.pas"/>
+        <Filename Value="../src/scene/castlethirdpersonnavigation.pas"/>
         <UnitName Value="CastleThirdPersonNavigation"/>
       </Item305>
       <Item306>
@@ -1389,7 +1379,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleTriangulate"/>
       </Item321>
       <Item322>
-        <Filename Value="../src/transform/opengl/castleinternalglshadowvolumes.pas"/>
+        <Filename Value="../src/transform/castleinternalglshadowvolumes.pas"/>
         <UnitName Value="CastleInternalGLShadowVolumes"/>
       </Item322>
       <Item323>
@@ -1423,268 +1413,267 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleKeysMouse"/>
       </Item329>
       <Item330>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item330>
       <Item331>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastlecheckbox_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastlecheckbox_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item331>
       <Item332>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item332>
       <Item333>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item333>
       <Item334>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item334>
       <Item335>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item335>
       <Item336>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item336>
       <Item337>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastlerectanglecontrol_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastlerectanglecontrol_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item337>
       <Item338>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item338>
       <Item339>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item339>
       <Item340>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item340>
       <Item341>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item341>
       <Item342>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item342>
       <Item343>
-        <Filename Value="../src/ui/opengl/auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc"/>
+        <Filename Value="../src/ui/auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item343>
       <Item344>
-        <Filename Value="../src/ui/opengl/castlecontrols.pas"/>
-        <HasRegisterProc Value="True"/>
+        <Filename Value="../src/ui/castlecontrols.pas"/>
         <UnitName Value="CastleControls"/>
       </Item344>
       <Item345>
-        <Filename Value="../src/ui/opengl/castlecontrols_button.inc"/>
+        <Filename Value="../src/ui/castlecontrols_button.inc"/>
         <Type Value="Include"/>
       </Item345>
       <Item346>
-        <Filename Value="../src/ui/opengl/castlecontrols_checkbox.inc"/>
+        <Filename Value="../src/ui/castlecontrols_checkbox.inc"/>
         <Type Value="Include"/>
       </Item346>
       <Item347>
-        <Filename Value="../src/ui/opengl/castlecontrols_clipboard.inc"/>
+        <Filename Value="../src/ui/castlecontrols_clipboard.inc"/>
         <Type Value="Include"/>
       </Item347>
       <Item348>
-        <Filename Value="../src/ui/opengl/castlecontrols_crosshair.inc"/>
+        <Filename Value="../src/ui/castlecontrols_crosshair.inc"/>
         <Type Value="Include"/>
       </Item348>
       <Item349>
-        <Filename Value="../src/ui/opengl/castlecontrols_design.inc"/>
+        <Filename Value="../src/ui/castlecontrols_design.inc"/>
         <Type Value="Include"/>
       </Item349>
       <Item350>
-        <Filename Value="../src/ui/opengl/castlecontrols_edit.inc"/>
+        <Filename Value="../src/ui/castlecontrols_edit.inc"/>
         <Type Value="Include"/>
       </Item350>
       <Item351>
-        <Filename Value="../src/ui/opengl/castlecontrols_groups.inc"/>
+        <Filename Value="../src/ui/castlecontrols_groups.inc"/>
         <Type Value="Include"/>
       </Item351>
       <Item352>
-        <Filename Value="../src/ui/opengl/castlecontrols_imagecontrol.inc"/>
+        <Filename Value="../src/ui/castlecontrols_imagecontrol.inc"/>
         <Type Value="Include"/>
       </Item352>
       <Item353>
-        <Filename Value="../src/ui/opengl/castlecontrols_initial_types.inc"/>
+        <Filename Value="../src/ui/castlecontrols_initial_types.inc"/>
         <Type Value="Include"/>
       </Item353>
       <Item354>
-        <Filename Value="../src/ui/opengl/castlecontrols_label.inc"/>
+        <Filename Value="../src/ui/castlecontrols_label.inc"/>
         <Type Value="Include"/>
       </Item354>
       <Item355>
-        <Filename Value="../src/ui/opengl/castlecontrols_panel.inc"/>
+        <Filename Value="../src/ui/castlecontrols_panel.inc"/>
         <Type Value="Include"/>
       </Item355>
       <Item356>
-        <Filename Value="../src/ui/opengl/castlecontrols_progressbar.inc"/>
+        <Filename Value="../src/ui/castlecontrols_progressbar.inc"/>
         <Type Value="Include"/>
       </Item356>
       <Item357>
-        <Filename Value="../src/ui/opengl/castlecontrols_rectanglecontrol.inc"/>
+        <Filename Value="../src/ui/castlecontrols_rectanglecontrol.inc"/>
         <Type Value="Include"/>
       </Item357>
       <Item358>
-        <Filename Value="../src/ui/opengl/castlecontrols_scrollview.inc"/>
+        <Filename Value="../src/ui/castlecontrols_scrollview.inc"/>
         <Type Value="Include"/>
       </Item358>
       <Item359>
-        <Filename Value="../src/ui/opengl/castlecontrols_shape.inc"/>
+        <Filename Value="../src/ui/castlecontrols_shape.inc"/>
         <Type Value="Include"/>
       </Item359>
       <Item360>
-        <Filename Value="../src/ui/opengl/castlecontrols_simplebackground.inc"/>
+        <Filename Value="../src/ui/castlecontrols_simplebackground.inc"/>
         <Type Value="Include"/>
       </Item360>
       <Item361>
-        <Filename Value="../src/ui/opengl/castlecontrols_sliders.inc"/>
+        <Filename Value="../src/ui/castlecontrols_sliders.inc"/>
         <Type Value="Include"/>
       </Item361>
       <Item362>
-        <Filename Value="../src/ui/opengl/castlecontrols_switchcontrol.inc"/>
+        <Filename Value="../src/ui/castlecontrols_switchcontrol.inc"/>
         <Type Value="Include"/>
       </Item362>
       <Item363>
-        <Filename Value="../src/ui/opengl/castlecontrols_tableview.inc"/>
+        <Filename Value="../src/ui/castlecontrols_tableview.inc"/>
         <Type Value="Include"/>
       </Item363>
       <Item364>
-        <Filename Value="../src/ui/opengl/castlecontrols_timer.inc"/>
+        <Filename Value="../src/ui/castlecontrols_timer.inc"/>
         <Type Value="Include"/>
       </Item364>
       <Item365>
-        <Filename Value="../src/ui/opengl/castlecontrols_touchcontrol.inc"/>
+        <Filename Value="../src/ui/castlecontrols_touchcontrol.inc"/>
         <Type Value="Include"/>
       </Item365>
       <Item366>
-        <Filename Value="../src/ui/opengl/castlecontrols_uifont.inc"/>
+        <Filename Value="../src/ui/castlecontrols_uifont.inc"/>
         <Type Value="Include"/>
       </Item366>
       <Item367>
-        <Filename Value="../src/ui/opengl/castlecontrols_userinterfacefont.inc"/>
+        <Filename Value="../src/ui/castlecontrols_userinterfacefont.inc"/>
         <Type Value="Include"/>
       </Item367>
       <Item368>
-        <Filename Value="../src/ui/opengl/castledialogstates.pas"/>
+        <Filename Value="../src/ui/castledialogstates.pas"/>
         <UnitName Value="CastleDialogStates"/>
       </Item368>
       <Item369>
-        <Filename Value="../src/ui/opengl/castledialogstates_dialog.inc"/>
+        <Filename Value="../src/ui/castledialogstates_dialog.inc"/>
         <Type Value="Include"/>
       </Item369>
       <Item370>
-        <Filename Value="../src/ui/opengl/castleflasheffect.pas"/>
+        <Filename Value="../src/ui/castleflasheffect.pas"/>
         <UnitName Value="CastleFlashEffect"/>
       </Item370>
       <Item371>
-        <Filename Value="../src/ui/opengl/castleinputs.pas"/>
+        <Filename Value="../src/ui/castleinputs.pas"/>
         <UnitName Value="CastleInputs"/>
       </Item371>
       <Item372>
-        <Filename Value="../src/ui/opengl/castleinternalcontrolsimages.pas"/>
+        <Filename Value="../src/ui/castleinternalcontrolsimages.pas"/>
         <UnitName Value="CastleInternalControlsImages"/>
       </Item372>
       <Item373>
-        <Filename Value="../src/ui/opengl/castleinternalcontrolsimages.image_data"/>
+        <Filename Value="../src/ui/castleinternalcontrolsimages.image_data"/>
         <Type Value="Text"/>
       </Item373>
       <Item374>
-        <Filename Value="../src/ui/opengl/castleinternalinspector.pas"/>
+        <Filename Value="../src/ui/castleinternalinspector.pas"/>
         <UnitName Value="CastleInternalInspector"/>
       </Item374>
       <Item375>
-        <Filename Value="../src/ui/opengl/castleinternalinspectorutils.pas"/>
+        <Filename Value="../src/ui/castleinternalinspectorutils.pas"/>
         <UnitName Value="CastleInternalInspectorUtils"/>
       </Item375>
       <Item376>
-        <Filename Value="../src/ui/opengl/castleinternalsettings.pas"/>
+        <Filename Value="../src/ui/castleinternalsettings.pas"/>
         <UnitName Value="CastleInternalSettings"/>
       </Item376>
       <Item377>
-        <Filename Value="../src/ui/opengl/castlenotifications.pas"/>
+        <Filename Value="../src/ui/castlenotifications.pas"/>
         <UnitName Value="CastleNotifications"/>
       </Item377>
       <Item378>
-        <Filename Value="../src/ui/opengl/castletiledmap.pas"/>
+        <Filename Value="../src/ui/castletiledmap.pas"/>
         <UnitName Value="CastleTiledMap"/>
       </Item378>
       <Item379>
-        <Filename Value="../src/ui/opengl/castletiledmap_control.inc"/>
+        <Filename Value="../src/ui/castletiledmap_control.inc"/>
         <Type Value="Include"/>
       </Item379>
       <Item380>
-        <Filename Value="../src/ui/opengl/castletiledmap_map.inc"/>
+        <Filename Value="../src/ui/castletiledmap_map.inc"/>
         <Type Value="Include"/>
       </Item380>
       <Item381>
-        <Filename Value="../src/ui/opengl/castleuicontrols.pas"/>
+        <Filename Value="../src/ui/castleuicontrols.pas"/>
         <UnitName Value="CastleUIControls"/>
       </Item381>
       <Item382>
-        <Filename Value="../src/ui/opengl/castleuicontrols_container.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_container.inc"/>
         <Type Value="Include"/>
       </Item382>
       <Item383>
-        <Filename Value="../src/ui/opengl/castleuicontrols_deprecated.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_deprecated.inc"/>
         <Type Value="Include"/>
       </Item383>
       <Item384>
-        <Filename Value="../src/ui/opengl/castleuicontrols_initial_constants.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_initial_constants.inc"/>
         <Type Value="Include"/>
       </Item384>
       <Item385>
-        <Filename Value="../src/ui/opengl/castleuicontrols_initial_types.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_initial_types.inc"/>
         <Type Value="Include"/>
       </Item385>
       <Item386>
-        <Filename Value="../src/ui/opengl/castleuicontrols_inputinspector.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_inputinspector.inc"/>
         <Type Value="Include"/>
       </Item386>
       <Item387>
-        <Filename Value="../src/ui/opengl/castleuicontrols_internalchildrencontrols.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_internalchildrencontrols.inc"/>
         <Type Value="Include"/>
       </Item387>
       <Item388>
-        <Filename Value="../src/ui/opengl/castleuicontrols_miscellaneous_globals.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_miscellaneous_globals.inc"/>
         <Type Value="Include"/>
       </Item388>
       <Item389>
-        <Filename Value="../src/ui/opengl/castleuicontrols_serialize.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_serialize.inc"/>
         <Type Value="Include"/>
       </Item389>
       <Item390>
-        <Filename Value="../src/ui/opengl/castleuicontrols_theme.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_theme.inc"/>
         <Type Value="Include"/>
       </Item390>
       <Item391>
-        <Filename Value="../src/ui/opengl/castleuicontrols_touchlist.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_touchlist.inc"/>
         <Type Value="Include"/>
       </Item391>
       <Item392>
-        <Filename Value="../src/ui/opengl/castleuicontrols_userinterface.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_userinterface.inc"/>
         <Type Value="Include"/>
       </Item392>
       <Item393>
-        <Filename Value="../src/ui/opengl/castleuicontrols_userinterfacelist.inc"/>
+        <Filename Value="../src/ui/castleuicontrols_userinterfacelist.inc"/>
         <Type Value="Include"/>
       </Item393>
       <Item394>
-        <Filename Value="../src/ui/opengl/castleuistate.pas"/>
+        <Filename Value="../src/ui/castleuistate.pas"/>
         <UnitName Value="CastleUIState"/>
       </Item394>
       <Item395>
-        <Filename Value="../src/ui/opengl/ui/inspector_ui.castle-user-interface.inc"/>
+        <Filename Value="../src/ui/designs/inspector_ui.castle-user-interface.inc"/>
         <Type Value="Include"/>
       </Item395>
       <Item396>
@@ -1693,2271 +1682,2309 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalTDxInput_TLB"/>
       </Item396>
       <Item397>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_anchor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_anchor.inc"/>
         <Type Value="Include"/>
       </Item397>
       <Item398>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_appearance.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_appearance.inc"/>
         <Type Value="Include"/>
       </Item398>
       <Item399>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_arc2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_arc2d.inc"/>
         <Type Value="Include"/>
       </Item399>
       <Item400>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_arcclose2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_arcclose2d.inc"/>
         <Type Value="Include"/>
       </Item400>
       <Item401>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_audioclip.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_audioclip.inc"/>
         <Type Value="Include"/>
       </Item401>
       <Item402>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_background.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_background.inc"/>
         <Type Value="Include"/>
       </Item402>
       <Item403>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_balljoint.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_balljoint.inc"/>
         <Type Value="Include"/>
       </Item403>
       <Item404>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_billboard.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_billboard.inc"/>
         <Type Value="Include"/>
       </Item404>
       <Item405>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_blendmode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_blendmode.inc"/>
         <Type Value="Include"/>
       </Item405>
       <Item406>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_booleanfilter.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_booleanfilter.inc"/>
         <Type Value="Include"/>
       </Item406>
       <Item407>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_booleansequencer.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_booleansequencer.inc"/>
         <Type Value="Include"/>
       </Item407>
       <Item408>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_booleantoggle.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_booleantoggle.inc"/>
         <Type Value="Include"/>
       </Item408>
       <Item409>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_booleantrigger.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_booleantrigger.inc"/>
         <Type Value="Include"/>
       </Item409>
       <Item410>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_boundedphysicsmodel.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_boundedphysicsmodel.inc"/>
         <Type Value="Include"/>
       </Item410>
       <Item411>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_box.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_box.inc"/>
         <Type Value="Include"/>
       </Item411>
       <Item412>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_cadassembly.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cadassembly.inc"/>
         <Type Value="Include"/>
       </Item412>
       <Item413>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_cadface.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cadface.inc"/>
         <Type Value="Include"/>
       </Item413>
       <Item414>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_cadlayer.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cadlayer.inc"/>
         <Type Value="Include"/>
       </Item414>
       <Item415>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_cadpart.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cadpart.inc"/>
         <Type Value="Include"/>
       </Item415>
       <Item416>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_circle2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_circle2d.inc"/>
         <Type Value="Include"/>
       </Item416>
       <Item417>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_clipplane.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_clipplane.inc"/>
         <Type Value="Include"/>
       </Item417>
       <Item418>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_collidableoffset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_collidableoffset.inc"/>
         <Type Value="Include"/>
       </Item418>
       <Item419>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_collidableshape.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_collidableshape.inc"/>
         <Type Value="Include"/>
       </Item419>
       <Item420>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_collision.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_collision.inc"/>
         <Type Value="Include"/>
       </Item420>
       <Item421>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_collisioncollection.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_collisioncollection.inc"/>
         <Type Value="Include"/>
       </Item421>
       <Item422>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_collisionsensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_collisionsensor.inc"/>
         <Type Value="Include"/>
       </Item422>
       <Item423>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_collisionspace.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_collisionspace.inc"/>
         <Type Value="Include"/>
       </Item423>
       <Item424>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_color.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_color.inc"/>
         <Type Value="Include"/>
       </Item424>
       <Item425>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_colordamper.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_colordamper.inc"/>
         <Type Value="Include"/>
       </Item425>
       <Item426>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_colorinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_colorinterpolator.inc"/>
         <Type Value="Include"/>
       </Item426>
       <Item427>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_colorrgba.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_colorrgba.inc"/>
         <Type Value="Include"/>
       </Item427>
       <Item428>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc"/>
         <Type Value="Include"/>
       </Item428>
       <Item429>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_commonsurfaceshader.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_commonsurfaceshader.inc"/>
         <Type Value="Include"/>
       </Item429>
       <Item430>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_composedcubemaptexture.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_composedcubemaptexture.inc"/>
         <Type Value="Include"/>
       </Item430>
       <Item431>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_composedshader.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_composedshader.inc"/>
         <Type Value="Include"/>
       </Item431>
       <Item432>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_composedtexture3d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_composedtexture3d.inc"/>
         <Type Value="Include"/>
       </Item432>
       <Item433>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_cone.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cone.inc"/>
         <Type Value="Include"/>
       </Item433>
       <Item434>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_coneemitter.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_coneemitter.inc"/>
         <Type Value="Include"/>
       </Item434>
       <Item435>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_contact.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_contact.inc"/>
         <Type Value="Include"/>
       </Item435>
       <Item436>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_contour2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_contour2d.inc"/>
         <Type Value="Include"/>
       </Item436>
       <Item437>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_contourpolyline2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_contourpolyline2d.inc"/>
         <Type Value="Include"/>
       </Item437>
       <Item438>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_coordinate.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_coordinate.inc"/>
         <Type Value="Include"/>
       </Item438>
       <Item439>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_coordinatedamper.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_coordinatedamper.inc"/>
         <Type Value="Include"/>
       </Item439>
       <Item440>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_coordinatedouble.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_coordinatedouble.inc"/>
         <Type Value="Include"/>
       </Item440>
       <Item441>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc"/>
         <Type Value="Include"/>
       </Item441>
       <Item442>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc"/>
         <Type Value="Include"/>
       </Item442>
       <Item443>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc"/>
         <Type Value="Include"/>
       </Item443>
       <Item444>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc"/>
         <Type Value="Include"/>
       </Item444>
       <Item445>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_cubicbezierpositioninterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cubicbezierpositioninterpolator.inc"/>
         <Type Value="Include"/>
       </Item445>
       <Item446>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_cylinder.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cylinder.inc"/>
         <Type Value="Include"/>
       </Item446>
       <Item447>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_cylindersensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_cylindersensor.inc"/>
         <Type Value="Include"/>
       </Item447>
       <Item448>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_directionallight.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_directionallight.inc"/>
         <Type Value="Include"/>
       </Item448>
       <Item449>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_disentitymanager.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_disentitymanager.inc"/>
         <Type Value="Include"/>
       </Item449>
       <Item450>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_disentitytypemapping.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_disentitytypemapping.inc"/>
         <Type Value="Include"/>
       </Item450>
       <Item451>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_disk2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_disk2d.inc"/>
         <Type Value="Include"/>
       </Item451>
       <Item452>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_doubleaxishingejoint.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_doubleaxishingejoint.inc"/>
         <Type Value="Include"/>
       </Item452>
       <Item453>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_easeineaseout.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_easeineaseout.inc"/>
         <Type Value="Include"/>
       </Item453>
       <Item454>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_effect.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_effect.inc"/>
         <Type Value="Include"/>
       </Item454>
       <Item455>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_effectpart.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_effectpart.inc"/>
         <Type Value="Include"/>
       </Item455>
       <Item456>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_elevationgrid.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_elevationgrid.inc"/>
         <Type Value="Include"/>
       </Item456>
       <Item457>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_environmentlight.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_environmentlight.inc"/>
         <Type Value="Include"/>
       </Item457>
       <Item458>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_espdutransform.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_espdutransform.inc"/>
         <Type Value="Include"/>
       </Item458>
       <Item459>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_explosionemitter.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_explosionemitter.inc"/>
         <Type Value="Include"/>
       </Item459>
       <Item460>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_extrusion.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_extrusion.inc"/>
         <Type Value="Include"/>
       </Item460>
       <Item461>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_fillproperties.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_fillproperties.inc"/>
         <Type Value="Include"/>
       </Item461>
       <Item462>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_floatvertexattribute.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_floatvertexattribute.inc"/>
         <Type Value="Include"/>
       </Item462>
       <Item463>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_fog.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_fog.inc"/>
         <Type Value="Include"/>
       </Item463>
       <Item464>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_fogcoordinate.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_fogcoordinate.inc"/>
         <Type Value="Include"/>
       </Item464>
       <Item465>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_fontstyle.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_fontstyle.inc"/>
         <Type Value="Include"/>
       </Item465>
       <Item466>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_forcephysicsmodel.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_forcephysicsmodel.inc"/>
         <Type Value="Include"/>
       </Item466>
       <Item467>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_generatedcubemaptexture.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_generatedcubemaptexture.inc"/>
         <Type Value="Include"/>
       </Item467>
       <Item468>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_generatedshadowmap.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_generatedshadowmap.inc"/>
         <Type Value="Include"/>
       </Item468>
       <Item469>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_geocoordinate.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_geocoordinate.inc"/>
         <Type Value="Include"/>
       </Item469>
       <Item470>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_geoelevationgrid.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_geoelevationgrid.inc"/>
         <Type Value="Include"/>
       </Item470>
       <Item471>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_geolocation.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_geolocation.inc"/>
         <Type Value="Include"/>
       </Item471>
       <Item472>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_geolod.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_geolod.inc"/>
         <Type Value="Include"/>
       </Item472>
       <Item473>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_geometadata.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_geometadata.inc"/>
         <Type Value="Include"/>
       </Item473>
       <Item474>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_geoorigin.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_geoorigin.inc"/>
         <Type Value="Include"/>
       </Item474>
       <Item475>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_geopositioninterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_geopositioninterpolator.inc"/>
         <Type Value="Include"/>
       </Item475>
       <Item476>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_geoproximitysensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_geoproximitysensor.inc"/>
         <Type Value="Include"/>
       </Item476>
       <Item477>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_geotouchsensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_geotouchsensor.inc"/>
         <Type Value="Include"/>
       </Item477>
       <Item478>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_geotransform.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_geotransform.inc"/>
         <Type Value="Include"/>
       </Item478>
       <Item479>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_geoviewpoint.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_geoviewpoint.inc"/>
         <Type Value="Include"/>
       </Item479>
       <Item480>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_group.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_group.inc"/>
         <Type Value="Include"/>
       </Item480>
       <Item481>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_hanimdisplacer.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_hanimdisplacer.inc"/>
         <Type Value="Include"/>
       </Item481>
       <Item482>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_hanimhumanoid.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_hanimhumanoid.inc"/>
         <Type Value="Include"/>
       </Item482>
       <Item483>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_hanimjoint.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_hanimjoint.inc"/>
         <Type Value="Include"/>
       </Item483>
       <Item484>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_hanimsegment.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_hanimsegment.inc"/>
         <Type Value="Include"/>
       </Item484>
       <Item485>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_hanimsite.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_hanimsite.inc"/>
         <Type Value="Include"/>
       </Item485>
       <Item486>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_imagebackground.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_imagebackground.inc"/>
         <Type Value="Include"/>
       </Item486>
       <Item487>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_imagecubemaptexture.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_imagecubemaptexture.inc"/>
         <Type Value="Include"/>
       </Item487>
       <Item488>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_imagetexture.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_imagetexture.inc"/>
         <Type Value="Include"/>
       </Item488>
       <Item489>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_imagetexture3d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_imagetexture3d.inc"/>
         <Type Value="Include"/>
       </Item489>
       <Item490>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_indexedfaceset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_indexedfaceset.inc"/>
         <Type Value="Include"/>
       </Item490>
       <Item491>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_indexedlineset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_indexedlineset.inc"/>
         <Type Value="Include"/>
       </Item491>
       <Item492>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_indexedquadset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_indexedquadset.inc"/>
         <Type Value="Include"/>
       </Item492>
       <Item493>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_indexedtrianglefanset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_indexedtrianglefanset.inc"/>
         <Type Value="Include"/>
       </Item493>
       <Item494>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_indexedtriangleset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_indexedtriangleset.inc"/>
         <Type Value="Include"/>
       </Item494>
       <Item495>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_indexedtrianglestripset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_indexedtrianglestripset.inc"/>
         <Type Value="Include"/>
       </Item495>
       <Item496>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_inline.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_inline.inc"/>
         <Type Value="Include"/>
       </Item496>
       <Item497>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_inlineloadcontrol.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_inlineloadcontrol.inc"/>
         <Type Value="Include"/>
       </Item497>
       <Item498>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_integersequencer.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_integersequencer.inc"/>
         <Type Value="Include"/>
       </Item498>
       <Item499>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_integertrigger.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_integertrigger.inc"/>
         <Type Value="Include"/>
       </Item499>
       <Item500>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_kambiappearance.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_kambiappearance.inc"/>
         <Type Value="Include"/>
       </Item500>
       <Item501>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_kambiheadlight.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_kambiheadlight.inc"/>
         <Type Value="Include"/>
       </Item501>
       <Item502>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_kambiinline.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_kambiinline.inc"/>
         <Type Value="Include"/>
       </Item502>
       <Item503>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_kambinavigationinfo.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_kambinavigationinfo.inc"/>
         <Type Value="Include"/>
       </Item503>
       <Item504>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_kambioctreeproperties.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_kambioctreeproperties.inc"/>
         <Type Value="Include"/>
       </Item504>
       <Item505>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_keysensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_keysensor.inc"/>
         <Type Value="Include"/>
       </Item505>
       <Item506>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_layer.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_layer.inc"/>
         <Type Value="Include"/>
       </Item506>
       <Item507>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_layerset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_layerset.inc"/>
         <Type Value="Include"/>
       </Item507>
       <Item508>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_layout.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_layout.inc"/>
         <Type Value="Include"/>
       </Item508>
       <Item509>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_layoutgroup.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_layoutgroup.inc"/>
         <Type Value="Include"/>
       </Item509>
       <Item510>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_layoutlayer.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_layoutlayer.inc"/>
         <Type Value="Include"/>
       </Item510>
       <Item511>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_linepicksensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_linepicksensor.inc"/>
         <Type Value="Include"/>
       </Item511>
       <Item512>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_lineproperties.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_lineproperties.inc"/>
         <Type Value="Include"/>
       </Item512>
       <Item513>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_lineset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_lineset.inc"/>
         <Type Value="Include"/>
       </Item513>
       <Item514>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_loadsensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_loadsensor.inc"/>
         <Type Value="Include"/>
       </Item514>
       <Item515>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_localfog.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_localfog.inc"/>
         <Type Value="Include"/>
       </Item515>
       <Item516>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_lod.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_lod.inc"/>
         <Type Value="Include"/>
       </Item516>
       <Item517>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_logger.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_logger.inc"/>
         <Type Value="Include"/>
       </Item517>
       <Item518>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_material.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_material.inc"/>
         <Type Value="Include"/>
       </Item518>
       <Item519>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_matrix3vertexattribute.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_matrix3vertexattribute.inc"/>
         <Type Value="Include"/>
       </Item519>
       <Item520>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_matrix4vertexattribute.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_matrix4vertexattribute.inc"/>
         <Type Value="Include"/>
       </Item520>
       <Item521>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_matrixtransform.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_matrixtransform.inc"/>
         <Type Value="Include"/>
       </Item521>
       <Item522>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_metadataboolean.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_metadataboolean.inc"/>
         <Type Value="Include"/>
       </Item522>
       <Item523>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_metadatadouble.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_metadatadouble.inc"/>
         <Type Value="Include"/>
       </Item523>
       <Item524>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_metadatafloat.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_metadatafloat.inc"/>
         <Type Value="Include"/>
       </Item524>
       <Item525>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_metadatainteger.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_metadatainteger.inc"/>
         <Type Value="Include"/>
       </Item525>
       <Item526>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_metadataset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_metadataset.inc"/>
         <Type Value="Include"/>
       </Item526>
       <Item527>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_metadatastring.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_metadatastring.inc"/>
         <Type Value="Include"/>
       </Item527>
       <Item528>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_motorjoint.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_motorjoint.inc"/>
         <Type Value="Include"/>
       </Item528>
       <Item529>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_movietexture.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_movietexture.inc"/>
         <Type Value="Include"/>
       </Item529>
       <Item530>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc"/>
         <Type Value="Include"/>
       </Item530>
       <Item531>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_multitexture.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_multitexture.inc"/>
         <Type Value="Include"/>
       </Item531>
       <Item532>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_multitexturecoordinate.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_multitexturecoordinate.inc"/>
         <Type Value="Include"/>
       </Item532>
       <Item533>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_multitexturetransform.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_multitexturetransform.inc"/>
         <Type Value="Include"/>
       </Item533>
       <Item534>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_navigationinfo.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_navigationinfo.inc"/>
         <Type Value="Include"/>
       </Item534>
       <Item535>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_normal.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_normal.inc"/>
         <Type Value="Include"/>
       </Item535>
       <Item536>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_normalinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_normalinterpolator.inc"/>
         <Type Value="Include"/>
       </Item536>
       <Item537>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_nurbscurve.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_nurbscurve.inc"/>
         <Type Value="Include"/>
       </Item537>
       <Item538>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_nurbscurve2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_nurbscurve2d.inc"/>
         <Type Value="Include"/>
       </Item538>
       <Item539>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_nurbsorientationinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_nurbsorientationinterpolator.inc"/>
         <Type Value="Include"/>
       </Item539>
       <Item540>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_nurbspatchsurface.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_nurbspatchsurface.inc"/>
         <Type Value="Include"/>
       </Item540>
       <Item541>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_nurbspositioninterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_nurbspositioninterpolator.inc"/>
         <Type Value="Include"/>
       </Item541>
       <Item542>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_nurbsset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_nurbsset.inc"/>
         <Type Value="Include"/>
       </Item542>
       <Item543>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_nurbssurfaceinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_nurbssurfaceinterpolator.inc"/>
         <Type Value="Include"/>
       </Item543>
       <Item544>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_nurbssweptsurface.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_nurbssweptsurface.inc"/>
         <Type Value="Include"/>
       </Item544>
       <Item545>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_nurbsswungsurface.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_nurbsswungsurface.inc"/>
         <Type Value="Include"/>
       </Item545>
       <Item546>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_nurbstexturecoordinate.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_nurbstexturecoordinate.inc"/>
         <Type Value="Include"/>
       </Item546>
       <Item547>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_nurbstrimmedsurface.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_nurbstrimmedsurface.inc"/>
         <Type Value="Include"/>
       </Item547>
       <Item548>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_orientationchaser.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_orientationchaser.inc"/>
         <Type Value="Include"/>
       </Item548>
       <Item549>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_orientationdamper.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_orientationdamper.inc"/>
         <Type Value="Include"/>
       </Item549>
       <Item550>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_orientationinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_orientationinterpolator.inc"/>
         <Type Value="Include"/>
       </Item550>
       <Item551>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_orientationinterpolator2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_orientationinterpolator2d.inc"/>
         <Type Value="Include"/>
       </Item551>
       <Item552>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc"/>
         <Type Value="Include"/>
       </Item552>
       <Item553>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_packagedshader.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_packagedshader.inc"/>
         <Type Value="Include"/>
       </Item553>
       <Item554>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_particlesystem.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_particlesystem.inc"/>
         <Type Value="Include"/>
       </Item554>
       <Item555>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_physicalmaterial.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_physicalmaterial.inc"/>
         <Type Value="Include"/>
       </Item555>
       <Item556>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_pickablegroup.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_pickablegroup.inc"/>
         <Type Value="Include"/>
       </Item556>
       <Item557>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_pixeltexture.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_pixeltexture.inc"/>
         <Type Value="Include"/>
       </Item557>
       <Item558>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_pixeltexture3d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_pixeltexture3d.inc"/>
         <Type Value="Include"/>
       </Item558>
       <Item559>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_planesensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_planesensor.inc"/>
         <Type Value="Include"/>
       </Item559>
       <Item560>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_pointemitter.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_pointemitter.inc"/>
         <Type Value="Include"/>
       </Item560>
       <Item561>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_pointlight.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_pointlight.inc"/>
         <Type Value="Include"/>
       </Item561>
       <Item562>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_pointpicksensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_pointpicksensor.inc"/>
         <Type Value="Include"/>
       </Item562>
       <Item563>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_pointset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_pointset.inc"/>
         <Type Value="Include"/>
       </Item563>
       <Item564>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_polyline2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_polyline2d.inc"/>
         <Type Value="Include"/>
       </Item564>
       <Item565>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_polylineemitter.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_polylineemitter.inc"/>
         <Type Value="Include"/>
       </Item565>
       <Item566>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_polypoint2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_polypoint2d.inc"/>
         <Type Value="Include"/>
       </Item566>
       <Item567>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_positionchaser.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_positionchaser.inc"/>
         <Type Value="Include"/>
       </Item567>
       <Item568>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_positionchaser2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_positionchaser2d.inc"/>
         <Type Value="Include"/>
       </Item568>
       <Item569>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_positiondamper.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_positiondamper.inc"/>
         <Type Value="Include"/>
       </Item569>
       <Item570>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_positiondamper2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_positiondamper2d.inc"/>
         <Type Value="Include"/>
       </Item570>
       <Item571>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_positioninterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_positioninterpolator.inc"/>
         <Type Value="Include"/>
       </Item571>
       <Item572>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_positioninterpolator2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_positioninterpolator2d.inc"/>
         <Type Value="Include"/>
       </Item572>
       <Item573>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_primitivepicksensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_primitivepicksensor.inc"/>
         <Type Value="Include"/>
       </Item573>
       <Item574>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_programshader.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_programshader.inc"/>
         <Type Value="Include"/>
       </Item574>
       <Item575>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_projectedtexturecoordinate.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_projectedtexturecoordinate.inc"/>
         <Type Value="Include"/>
       </Item575>
       <Item576>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_proximitysensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_proximitysensor.inc"/>
         <Type Value="Include"/>
       </Item576>
       <Item577>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_quadset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_quadset.inc"/>
         <Type Value="Include"/>
       </Item577>
       <Item578>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_receiverpdu.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_receiverpdu.inc"/>
         <Type Value="Include"/>
       </Item578>
       <Item579>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_rectangle2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_rectangle2d.inc"/>
         <Type Value="Include"/>
       </Item579>
       <Item580>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_renderedtexture.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_renderedtexture.inc"/>
         <Type Value="Include"/>
       </Item580>
       <Item581>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_rigidbody.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_rigidbody.inc"/>
         <Type Value="Include"/>
       </Item581>
       <Item582>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_rigidbodycollection.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_rigidbodycollection.inc"/>
         <Type Value="Include"/>
       </Item582>
       <Item583>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_scalarchaser.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_scalarchaser.inc"/>
         <Type Value="Include"/>
       </Item583>
       <Item584>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_scalarinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_scalarinterpolator.inc"/>
         <Type Value="Include"/>
       </Item584>
       <Item585>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_screeneffect.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_screeneffect.inc"/>
         <Type Value="Include"/>
       </Item585>
       <Item586>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_screenfontstyle.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_screenfontstyle.inc"/>
         <Type Value="Include"/>
       </Item586>
       <Item587>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_screengroup.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_screengroup.inc"/>
         <Type Value="Include"/>
       </Item587>
       <Item588>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_script.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_script.inc"/>
         <Type Value="Include"/>
       </Item588>
       <Item589>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_shaderpart.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_shaderpart.inc"/>
         <Type Value="Include"/>
       </Item589>
       <Item590>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_shaderprogram.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_shaderprogram.inc"/>
         <Type Value="Include"/>
       </Item590>
       <Item591>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_shadertexture.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_shadertexture.inc"/>
         <Type Value="Include"/>
       </Item591>
       <Item592>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_shape.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_shape.inc"/>
         <Type Value="Include"/>
       </Item592>
       <Item593>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_signalpdu.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_signalpdu.inc"/>
         <Type Value="Include"/>
       </Item593>
       <Item594>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_singleaxishingejoint.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_singleaxishingejoint.inc"/>
         <Type Value="Include"/>
       </Item594>
       <Item595>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_sliderjoint.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_sliderjoint.inc"/>
         <Type Value="Include"/>
       </Item595>
       <Item596>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_sound.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_sound.inc"/>
         <Type Value="Include"/>
       </Item596>
       <Item597>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_sphere.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_sphere.inc"/>
         <Type Value="Include"/>
       </Item597>
       <Item598>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_spheresensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_spheresensor.inc"/>
         <Type Value="Include"/>
       </Item598>
       <Item599>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_splinepositioninterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_splinepositioninterpolator.inc"/>
         <Type Value="Include"/>
       </Item599>
       <Item600>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_splinepositioninterpolator2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_splinepositioninterpolator2d.inc"/>
         <Type Value="Include"/>
       </Item600>
       <Item601>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_splinescalarinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_splinescalarinterpolator.inc"/>
         <Type Value="Include"/>
       </Item601>
       <Item602>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_spotlight.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_spotlight.inc"/>
         <Type Value="Include"/>
       </Item602>
       <Item603>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_squadorientationinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_squadorientationinterpolator.inc"/>
         <Type Value="Include"/>
       </Item603>
       <Item604>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_staticgroup.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_staticgroup.inc"/>
         <Type Value="Include"/>
       </Item604>
       <Item605>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_stringsensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_stringsensor.inc"/>
         <Type Value="Include"/>
       </Item605>
       <Item606>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_surfaceemitter.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_surfaceemitter.inc"/>
         <Type Value="Include"/>
       </Item606>
       <Item607>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_switch.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_switch.inc"/>
         <Type Value="Include"/>
       </Item607>
       <Item608>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_tangent.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_tangent.inc"/>
         <Type Value="Include"/>
       </Item608>
       <Item609>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_teapot.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_teapot.inc"/>
         <Type Value="Include"/>
       </Item609>
       <Item610>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_texcoorddamper2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texcoorddamper2d.inc"/>
         <Type Value="Include"/>
       </Item610>
       <Item611>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_text.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_text.inc"/>
         <Type Value="Include"/>
       </Item611>
       <Item612>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_text3d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_text3d.inc"/>
         <Type Value="Include"/>
       </Item612>
       <Item613>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_texturebackground.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texturebackground.inc"/>
         <Type Value="Include"/>
       </Item613>
       <Item614>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_texturecoordinate.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texturecoordinate.inc"/>
         <Type Value="Include"/>
       </Item614>
       <Item615>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_texturecoordinate3d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texturecoordinate3d.inc"/>
         <Type Value="Include"/>
       </Item615>
       <Item616>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_texturecoordinate4d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texturecoordinate4d.inc"/>
         <Type Value="Include"/>
       </Item616>
       <Item617>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc"/>
         <Type Value="Include"/>
       </Item617>
       <Item618>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_textureproperties.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_textureproperties.inc"/>
         <Type Value="Include"/>
       </Item618>
       <Item619>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_texturetransform.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texturetransform.inc"/>
         <Type Value="Include"/>
       </Item619>
       <Item620>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_texturetransform3d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texturetransform3d.inc"/>
         <Type Value="Include"/>
       </Item620>
       <Item621>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_texturetransformmatrix3d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_texturetransformmatrix3d.inc"/>
         <Type Value="Include"/>
       </Item621>
       <Item622>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_timesensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_timesensor.inc"/>
         <Type Value="Include"/>
       </Item622>
       <Item623>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_timetrigger.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_timetrigger.inc"/>
         <Type Value="Include"/>
       </Item623>
       <Item624>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_toggler.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_toggler.inc"/>
         <Type Value="Include"/>
       </Item624>
       <Item625>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_touchsensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_touchsensor.inc"/>
         <Type Value="Include"/>
       </Item625>
       <Item626>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_transform.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_transform.inc"/>
         <Type Value="Include"/>
       </Item626>
       <Item627>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_transformsensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_transformsensor.inc"/>
         <Type Value="Include"/>
       </Item627>
       <Item628>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_transmitterpdu.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_transmitterpdu.inc"/>
         <Type Value="Include"/>
       </Item628>
       <Item629>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_trianglefanset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_trianglefanset.inc"/>
         <Type Value="Include"/>
       </Item629>
       <Item630>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_triangleset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_triangleset.inc"/>
         <Type Value="Include"/>
       </Item630>
       <Item631>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_triangleset2d.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_triangleset2d.inc"/>
         <Type Value="Include"/>
       </Item631>
       <Item632>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_trianglestripset.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_trianglestripset.inc"/>
         <Type Value="Include"/>
       </Item632>
       <Item633>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc"/>
         <Type Value="Include"/>
       </Item633>
       <Item634>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_universaljoint.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_universaljoint.inc"/>
         <Type Value="Include"/>
       </Item634>
       <Item635>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_unlitmaterial.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_unlitmaterial.inc"/>
         <Type Value="Include"/>
       </Item635>
       <Item636>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_valuetrigger.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_valuetrigger.inc"/>
         <Type Value="Include"/>
       </Item636>
       <Item637>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc"/>
         <Type Value="Include"/>
       </Item637>
       <Item638>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_viewpoint.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_viewpoint.inc"/>
         <Type Value="Include"/>
       </Item638>
       <Item639>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_viewpointgroup.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_viewpointgroup.inc"/>
         <Type Value="Include"/>
       </Item639>
       <Item640>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_viewpointmirror.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_viewpointmirror.inc"/>
         <Type Value="Include"/>
       </Item640>
       <Item641>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_viewport.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_viewport.inc"/>
         <Type Value="Include"/>
       </Item641>
       <Item642>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_visibilitysensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_visibilitysensor.inc"/>
         <Type Value="Include"/>
       </Item642>
       <Item643>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_volumeemitter.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_volumeemitter.inc"/>
         <Type Value="Include"/>
       </Item643>
       <Item644>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_volumepicksensor.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_volumepicksensor.inc"/>
         <Type Value="Include"/>
       </Item644>
       <Item645>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_windphysicsmodel.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_windphysicsmodel.inc"/>
         <Type Value="Include"/>
       </Item645>
       <Item646>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_worldinfo.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_worldinfo.inc"/>
         <Type Value="Include"/>
       </Item646>
       <Item647>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3d3dbackgroundnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3d3dbackgroundnode.inc"/>
         <Type Value="Include"/>
       </Item647>
       <Item648>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dappearancechildnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dappearancechildnode.inc"/>
         <Type Value="Include"/>
       </Item648>
       <Item649>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dappearancenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dappearancenode.inc"/>
         <Type Value="Include"/>
       </Item649>
       <Item650>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc"/>
         <Type Value="Include"/>
       </Item650>
       <Item651>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dbindablenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dbindablenode.inc"/>
         <Type Value="Include"/>
       </Item651>
       <Item652>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dchasernode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dchasernode.inc"/>
         <Type Value="Include"/>
       </Item652>
       <Item653>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dchildnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dchildnode.inc"/>
         <Type Value="Include"/>
       </Item653>
       <Item654>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dcolornode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dcolornode.inc"/>
         <Type Value="Include"/>
       </Item654>
       <Item655>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc"/>
         <Type Value="Include"/>
       </Item655>
       <Item656>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dcoordinatenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dcoordinatenode.inc"/>
         <Type Value="Include"/>
       </Item656>
       <Item657>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc"/>
         <Type Value="Include"/>
       </Item657>
       <Item658>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3ddampernode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3ddampernode.inc"/>
         <Type Value="Include"/>
       </Item658>
       <Item659>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3ddirectionallightnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3ddirectionallightnode.inc"/>
         <Type Value="Include"/>
       </Item659>
       <Item660>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc"/>
         <Type Value="Include"/>
       </Item660>
       <Item661>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3denvironmentalsensornode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3denvironmentalsensornode.inc"/>
         <Type Value="Include"/>
       </Item661>
       <Item662>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3denvironmenttexturenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3denvironmenttexturenode.inc"/>
         <Type Value="Include"/>
       </Item662>
       <Item663>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dfollowernode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dfollowernode.inc"/>
         <Type Value="Include"/>
       </Item663>
       <Item664>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dfontstylenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dfontstylenode.inc"/>
         <Type Value="Include"/>
       </Item664>
       <Item665>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dgeometricpropertynode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dgeometricpropertynode.inc"/>
         <Type Value="Include"/>
       </Item665>
       <Item666>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc"/>
         <Type Value="Include"/>
       </Item666>
       <Item667>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dgroupingnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dgroupingnode.inc"/>
         <Type Value="Include"/>
       </Item667>
       <Item668>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dinfonode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dinfonode.inc"/>
         <Type Value="Include"/>
       </Item668>
       <Item669>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dinterpolatornode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dinterpolatornode.inc"/>
         <Type Value="Include"/>
       </Item669>
       <Item670>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dkeydevicesensornode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dkeydevicesensornode.inc"/>
         <Type Value="Include"/>
       </Item670>
       <Item671>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dlayernode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dlayernode.inc"/>
         <Type Value="Include"/>
       </Item671>
       <Item672>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dlayoutnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dlayoutnode.inc"/>
         <Type Value="Include"/>
       </Item672>
       <Item673>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dlightnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dlightnode.inc"/>
         <Type Value="Include"/>
       </Item673>
       <Item674>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc"/>
         <Type Value="Include"/>
       </Item674>
       <Item675>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dmetadatanode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dmetadatanode.inc"/>
         <Type Value="Include"/>
       </Item675>
       <Item676>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dnbodycollidablenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dnbodycollidablenode.inc"/>
         <Type Value="Include"/>
       </Item676>
       <Item677>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dnbodycollisionspacenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dnbodycollisionspacenode.inc"/>
         <Type Value="Include"/>
       </Item677>
       <Item678>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dnetworksensornode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dnetworksensornode.inc"/>
         <Type Value="Include"/>
       </Item678>
       <Item679>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dnode.inc"/>
         <Type Value="Include"/>
       </Item679>
       <Item680>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dnormalnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dnormalnode.inc"/>
         <Type Value="Include"/>
       </Item680>
       <Item681>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dnurbscontrolcurvenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dnurbscontrolcurvenode.inc"/>
         <Type Value="Include"/>
       </Item681>
       <Item682>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dnurbssurfacegeometrynode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dnurbssurfacegeometrynode.inc"/>
         <Type Value="Include"/>
       </Item682>
       <Item683>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3donesidedmaterialnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3donesidedmaterialnode.inc"/>
         <Type Value="Include"/>
       </Item683>
       <Item684>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dparametricgeometrynode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dparametricgeometrynode.inc"/>
         <Type Value="Include"/>
       </Item684>
       <Item685>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc"/>
         <Type Value="Include"/>
       </Item685>
       <Item686>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc"/>
         <Type Value="Include"/>
       </Item686>
       <Item687>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dpicksensornode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dpicksensornode.inc"/>
         <Type Value="Include"/>
       </Item687>
       <Item688>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dpointingdevicesensornode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dpointingdevicesensornode.inc"/>
         <Type Value="Include"/>
       </Item688>
       <Item689>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dpointlightnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dpointlightnode.inc"/>
         <Type Value="Include"/>
       </Item689>
       <Item690>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dpositionallightnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dpositionallightnode.inc"/>
         <Type Value="Include"/>
       </Item690>
       <Item691>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc"/>
         <Type Value="Include"/>
       </Item691>
       <Item692>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dpunctuallightnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dpunctuallightnode.inc"/>
         <Type Value="Include"/>
       </Item692>
       <Item693>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3drigidjointnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3drigidjointnode.inc"/>
         <Type Value="Include"/>
       </Item693>
       <Item694>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dscriptnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dscriptnode.inc"/>
         <Type Value="Include"/>
       </Item694>
       <Item695>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dsensornode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dsensornode.inc"/>
         <Type Value="Include"/>
       </Item695>
       <Item696>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dsequencernode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dsequencernode.inc"/>
         <Type Value="Include"/>
       </Item696>
       <Item697>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dshadernode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dshadernode.inc"/>
         <Type Value="Include"/>
       </Item697>
       <Item698>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dshapenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dshapenode.inc"/>
         <Type Value="Include"/>
       </Item698>
       <Item699>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dsingletexturecoordinatenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dsingletexturecoordinatenode.inc"/>
         <Type Value="Include"/>
       </Item699>
       <Item700>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dsingletexturenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dsingletexturenode.inc"/>
         <Type Value="Include"/>
       </Item700>
       <Item701>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dsingletexturetransformnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dsingletexturetransformnode.inc"/>
         <Type Value="Include"/>
       </Item701>
       <Item702>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dsoundnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dsoundnode.inc"/>
         <Type Value="Include"/>
       </Item702>
       <Item703>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc"/>
         <Type Value="Include"/>
       </Item703>
       <Item704>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc"/>
         <Type Value="Include"/>
       </Item704>
       <Item705>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dtexture3dnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dtexture3dnode.inc"/>
         <Type Value="Include"/>
       </Item705>
       <Item706>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc"/>
         <Type Value="Include"/>
       </Item706>
       <Item707>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dtexturenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dtexturenode.inc"/>
         <Type Value="Include"/>
       </Item707>
       <Item708>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dtexturetransformnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dtexturetransformnode.inc"/>
         <Type Value="Include"/>
       </Item708>
       <Item709>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dtimedependentnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dtimedependentnode.inc"/>
         <Type Value="Include"/>
       </Item709>
       <Item710>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc"/>
         <Type Value="Include"/>
       </Item710>
       <Item711>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dtriggernode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dtriggernode.inc"/>
         <Type Value="Include"/>
       </Item711>
       <Item712>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dvertexattributenode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dvertexattributenode.inc"/>
         <Type Value="Include"/>
       </Item712>
       <Item713>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc"/>
         <Type Value="Include"/>
       </Item713>
       <Item714>
-        <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc"/>
         <Type Value="Include"/>
       </Item714>
       <Item715>
-        <Filename Value="../src/x3d/auto_generated_teapot/teapot.inc"/>
+        <Filename Value="../src/scene/x3d/auto_generated_teapot/teapot.inc"/>
         <Type Value="Include"/>
       </Item715>
       <Item716>
-        <Filename Value="../src/x3d/castlefields_internalglobals.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_internalglobals.inc"/>
         <Type Value="Include"/>
       </Item716>
       <Item717>
-        <Filename Value="../src/x3d/castlefields_miscglobals.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_miscglobals.inc"/>
         <Type Value="Include"/>
       </Item717>
       <Item718>
-        <Filename Value="../src/x3d/castlefields_misctypes.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_misctypes.inc"/>
         <Type Value="Include"/>
       </Item718>
       <Item719>
-        <Filename Value="../src/x3d/castlefields_x3devent.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3devent.inc"/>
         <Type Value="Include"/>
       </Item719>
       <Item720>
-        <Filename Value="../src/x3d/castlefields_x3devent_descendants.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3devent_descendants.inc"/>
         <Type Value="Include"/>
       </Item720>
       <Item721>
-        <Filename Value="../src/x3d/castlefields_x3dfield.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3dfield.inc"/>
         <Type Value="Include"/>
       </Item721>
       <Item722>
-        <Filename Value="../src/x3d/castlefields_x3dfieldorevent.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3dfieldorevent.inc"/>
         <Type Value="Include"/>
       </Item722>
       <Item723>
-        <Filename Value="../src/x3d/castlefields_x3dfieldsmanager.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3dfieldsmanager.inc"/>
         <Type Value="Include"/>
       </Item723>
       <Item724>
-        <Filename Value="../src/x3d/castlefields_x3dfileitem.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3dfileitem.inc"/>
         <Type Value="Include"/>
       </Item724>
       <Item725>
-        <Filename Value="../src/x3d/castlefields_x3dmultfield.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3dmultfield.inc"/>
         <Type Value="Include"/>
       </Item725>
       <Item726>
-        <Filename Value="../src/x3d/castlefields_x3dreader.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3dreader.inc"/>
         <Type Value="Include"/>
       </Item726>
       <Item727>
-        <Filename Value="../src/x3d/castlefields_x3dsimplemultfield.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3dsimplemultfield.inc"/>
         <Type Value="Include"/>
       </Item727>
       <Item728>
-        <Filename Value="../src/x3d/castlefields_x3dsimplemultfield_descendants.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3dsimplemultfield_descendants.inc"/>
         <Type Value="Include"/>
       </Item728>
       <Item729>
-        <Filename Value="../src/x3d/castlefields_x3dsinglefield.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3dsinglefield.inc"/>
         <Type Value="Include"/>
       </Item729>
       <Item730>
-        <Filename Value="../src/x3d/castlefields_x3dsinglefield_descendants.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3dsinglefield_descendants.inc"/>
         <Type Value="Include"/>
       </Item730>
       <Item731>
-        <Filename Value="../src/x3d/castlefields_x3dwriter.inc"/>
+        <Filename Value="../src/scene/x3d/castlefields_x3dwriter.inc"/>
         <Type Value="Include"/>
       </Item731>
       <Item732>
-        <Filename Value="../src/x3d/castleinternalarraysgenerator.pas"/>
+        <Filename Value="../src/scene/castleinternalarraysgenerator.pas"/>
         <UnitName Value="CastleInternalArraysGenerator"/>
       </Item732>
       <Item733>
-        <Filename Value="../src/x3d/castleinternalarraysgenerator_geometry3d.inc"/>
+        <Filename Value="../src/scene/castleinternalarraysgenerator_geometry3d.inc"/>
         <Type Value="Include"/>
       </Item733>
       <Item734>
-        <Filename Value="../src/x3d/castleinternalarraysgenerator_rendering.inc"/>
+        <Filename Value="../src/scene/castleinternalarraysgenerator_rendering.inc"/>
         <Type Value="Include"/>
       </Item734>
       <Item735>
-        <Filename Value="../src/x3d/castleinternalautogenerated.pas"/>
+        <Filename Value="../src/images/castleinternalautogenerated.pas"/>
         <UnitName Value="CastleInternalAutoGenerated"/>
       </Item735>
       <Item736>
-        <Filename Value="../src/x3d/castleinternalnodeinterpolator.pas"/>
+        <Filename Value="../src/scene/castleinternalnodeinterpolator.pas"/>
         <UnitName Value="CastleInternalNodeInterpolator"/>
       </Item736>
       <Item737>
-        <Filename Value="../src/x3d/castleinternalnormals.pas"/>
+        <Filename Value="../src/scene/castleinternalnormals.pas"/>
         <UnitName Value="CastleInternalNormals"/>
       </Item737>
       <Item738>
-        <Filename Value="../src/x3d/castleinternalshadowmaps.pas"/>
+        <Filename Value="../src/scene/castleinternalshadowmaps.pas"/>
         <UnitName Value="CastleInternalShadowMaps"/>
       </Item738>
       <Item739>
-        <Filename Value="../src/x3d/castleinternalshapeoctree.pas"/>
+        <Filename Value="../src/scene/castleinternalshapeoctree.pas"/>
         <UnitName Value="CastleInternalShapeOctree"/>
       </Item739>
       <Item740>
-        <Filename Value="../src/x3d/castleinternalspritesheet.pas"/>
+        <Filename Value="../src/scene/castleinternalspritesheet.pas"/>
         <UnitName Value="CastleInternalSpriteSheet"/>
       </Item740>
       <Item741>
-        <Filename Value="../src/x3d/castleinternaltriangleoctree.pas"/>
+        <Filename Value="../src/scene/castleinternaltriangleoctree.pas"/>
         <UnitName Value="CastleInternalTriangleOctree"/>
       </Item741>
       <Item742>
-        <Filename Value="../src/x3d/castleinternaltriangleoctree_raysegmentcollisions.inc"/>
+        <Filename Value="../src/scene/castleinternaltriangleoctree_raysegmentcollisions.inc"/>
         <Type Value="Include"/>
       </Item742>
       <Item743>
-        <Filename Value="../src/x3d/castleinternalx3dlexer.pas"/>
+        <Filename Value="../src/scene/castleinternalx3dlexer.pas"/>
         <UnitName Value="CastleInternalX3DLexer"/>
       </Item743>
       <Item744>
-        <Filename Value="../src/x3d/castleloadgltf.pas"/>
+        <Filename Value="../src/scene/load/castleloadgltf.pas"/>
         <UnitName Value="CastleLoadGltf"/>
       </Item744>
       <Item745>
-        <Filename Value="../src/x3d/castlematerialproperties.pas"/>
+        <Filename Value="../src/scene/castlematerialproperties.pas"/>
         <UnitName Value="CastleMaterialProperties"/>
       </Item745>
       <Item746>
-        <Filename Value="../src/x3d/castleraytracer.pas"/>
+        <Filename Value="../src/scene/castleraytracer.pas"/>
         <UnitName Value="CastleRayTracer"/>
       </Item746>
       <Item747>
-        <Filename Value="../src/x3d/castlescenecore.pas"/>
+        <Filename Value="../src/scene/castlescenecore.pas"/>
         <UnitName Value="CastleSceneCore"/>
       </Item747>
       <Item748>
-        <Filename Value="../src/x3d/castlescenecore_collisions.inc"/>
+        <Filename Value="../src/scene/castlescenecore_collisions.inc"/>
         <Type Value="Include"/>
       </Item748>
       <Item749>
-        <Filename Value="../src/x3d/castlescenecore_physics.inc"/>
+        <Filename Value="../src/scene/castlescenecore_physics.inc"/>
         <Type Value="Include"/>
       </Item749>
       <Item750>
-        <Filename Value="../src/x3d/castleshapeinternalshadowvolumes.pas"/>
+        <Filename Value="../src/scene/castleshapeinternalshadowvolumes.pas"/>
         <UnitName Value="CastleShapeInternalShadowVolumes"/>
       </Item750>
       <Item751>
-        <Filename Value="../src/x3d/castleshapes.pas"/>
+        <Filename Value="../src/scene/castleshapes.pas"/>
         <UnitName Value="CastleShapes"/>
       </Item751>
       <Item752>
-        <Filename Value="../src/x3d/castleterrain.pas"/>
+        <Filename Value="../src/scene/castleterrain.pas"/>
         <UnitName Value="CastleTerrain"/>
       </Item752>
       <Item753>
-        <Filename Value="../src/x3d/octreeconf.inc"/>
+        <Filename Value="../src/scene/octreeconf.inc"/>
         <Type Value="Include"/>
       </Item753>
       <Item754>
-        <Filename Value="../src/x3d/opengl/auto_generated_persistent_vectors/tcastleabstractprimitive_persistent_vectors.inc"/>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastleabstractprimitive_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item754>
       <Item755>
-        <Filename Value="../src/x3d/opengl/auto_generated_persistent_vectors/tcastlebox_persistent_vectors.inc"/>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlebox_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item755>
       <Item756>
-        <Filename Value="../src/x3d/opengl/auto_generated_persistent_vectors/tcastleimagetransform_persistent_vectors.inc"/>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastleimagetransform_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item756>
       <Item757>
-        <Filename Value="../src/x3d/opengl/auto_generated_persistent_vectors/tcastleplane_persistent_vectors.inc"/>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastleplane_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item757>
       <Item758>
-        <Filename Value="../src/x3d/opengl/auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc"/>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item758>
       <Item759>
-        <Filename Value="../src/x3d/opengl/castledebugtransform.pas"/>
+        <Filename Value="../src/scene/castledebugtransform.pas"/>
         <UnitName Value="CastleDebugTransform"/>
       </Item759>
       <Item760>
-        <Filename Value="../src/x3d/opengl/castleinternalbackground.pas"/>
-        <UnitName Value="CastleInternalBackground"/>
+        <Filename Value="../src/scene/castleinternalbackgroundrenderer.pas"/>
+        <UnitName Value="CastleInternalBackgroundRenderer"/>
       </Item760>
       <Item761>
-        <Filename Value="../src/x3d/opengl/castleinternalbatchshapes.pas"/>
+        <Filename Value="../src/scene/castleinternalbatchshapes.pas"/>
         <UnitName Value="CastleInternalBatchShapes"/>
       </Item761>
       <Item762>
-        <Filename Value="../src/x3d/opengl/castleinternalglcubemaps.pas"/>
+        <Filename Value="../src/scene/castleinternalglcubemaps.pas"/>
         <UnitName Value="CastleInternalGLCubeMaps"/>
       </Item762>
       <Item763>
-        <Filename Value="../src/x3d/opengl/castleinternalrenderer.pas"/>
+        <Filename Value="../src/scene/castleinternalrenderer.pas"/>
         <UnitName Value="CastleInternalRenderer"/>
       </Item763>
       <Item764>
-        <Filename Value="../src/x3d/opengl/castleinternalrenderer_glsl.inc"/>
+        <Filename Value="../src/scene/castleinternalrenderer_glsl.inc"/>
         <Type Value="Include"/>
       </Item764>
       <Item765>
-        <Filename Value="../src/x3d/opengl/castleinternalrenderer_materials.inc"/>
+        <Filename Value="../src/scene/castleinternalrenderer_materials.inc"/>
         <Type Value="Include"/>
       </Item765>
       <Item766>
-        <Filename Value="../src/x3d/opengl/castleinternalrenderer_meshrenderer.inc"/>
+        <Filename Value="../src/scene/castleinternalrenderer_meshrenderer.inc"/>
         <Type Value="Include"/>
       </Item766>
       <Item767>
-        <Filename Value="../src/x3d/opengl/castleinternalrenderer_pass.inc"/>
+        <Filename Value="../src/scene/castleinternalrenderer_pass.inc"/>
         <Type Value="Include"/>
       </Item767>
       <Item768>
-        <Filename Value="../src/x3d/opengl/castleinternalrenderer_resource.inc"/>
+        <Filename Value="../src/scene/castleinternalrenderer_resource.inc"/>
         <Type Value="Include"/>
       </Item768>
       <Item769>
-        <Filename Value="../src/x3d/opengl/castleinternalrenderer_surfacetextures.inc"/>
+        <Filename Value="../src/scene/castleinternalrenderer_surfacetextures.inc"/>
         <Type Value="Include"/>
       </Item769>
       <Item770>
-        <Filename Value="../src/x3d/opengl/castleinternalrenderer_texture.inc"/>
+        <Filename Value="../src/scene/castleinternalrenderer_texture.inc"/>
         <Type Value="Include"/>
       </Item770>
       <Item771>
-        <Filename Value="../src/x3d/opengl/castlerendererinternallights.pas"/>
+        <Filename Value="../src/scene/castlerendererinternallights.pas"/>
         <UnitName Value="CastleRendererInternalLights"/>
       </Item771>
       <Item772>
-        <Filename Value="../src/x3d/opengl/castlerendererinternalshader.pas"/>
+        <Filename Value="../src/scene/castlerendererinternalshader.pas"/>
         <UnitName Value="CastleRendererInternalShader"/>
       </Item772>
       <Item773>
-        <Filename Value="../src/x3d/opengl/castlerendererinternaltextureenv.pas"/>
+        <Filename Value="../src/scene/castlerendererinternaltextureenv.pas"/>
         <UnitName Value="CastleRendererInternalTextureEnv"/>
       </Item773>
       <Item774>
-        <Filename Value="../src/x3d/opengl/castlescene.pas"/>
-        <HasRegisterProc Value="True"/>
+        <Filename Value="../src/scene/castlescene.pas"/>
         <UnitName Value="CastleScene"/>
       </Item774>
       <Item775>
-        <Filename Value="../src/x3d/opengl/castlescene_abstractprimitive.inc"/>
+        <Filename Value="../src/scene/castlescene_abstractprimitive.inc"/>
         <Type Value="Include"/>
       </Item775>
       <Item776>
-        <Filename Value="../src/x3d/opengl/castlescene_box.inc"/>
+        <Filename Value="../src/scene/castlescene_box.inc"/>
         <Type Value="Include"/>
       </Item776>
       <Item777>
-        <Filename Value="../src/x3d/opengl/castlescene_cone.inc"/>
+        <Filename Value="../src/scene/castlescene_cone.inc"/>
         <Type Value="Include"/>
       </Item777>
       <Item778>
-        <Filename Value="../src/x3d/opengl/castlescene_cylinder.inc"/>
+        <Filename Value="../src/scene/castlescene_cylinder.inc"/>
         <Type Value="Include"/>
       </Item778>
       <Item779>
-        <Filename Value="../src/x3d/opengl/castlescene_imagetransform.inc"/>
+        <Filename Value="../src/scene/castlescene_imagetransform.inc"/>
         <Type Value="Include"/>
       </Item779>
       <Item780>
-        <Filename Value="../src/x3d/opengl/castlescene_plane.inc"/>
+        <Filename Value="../src/scene/castlescene_plane.inc"/>
         <Type Value="Include"/>
       </Item780>
       <Item781>
-        <Filename Value="../src/x3d/opengl/castlescene_roottransform.inc"/>
+        <Filename Value="../src/scene/castlescene_roottransform.inc"/>
         <Type Value="Include"/>
       </Item781>
       <Item782>
-        <Filename Value="../src/x3d/opengl/castlescene_sphere.inc"/>
+        <Filename Value="../src/scene/castlescene_sphere.inc"/>
         <Type Value="Include"/>
       </Item782>
       <Item783>
-        <Filename Value="../src/x3d/opengl/castlescene_text.inc"/>
+        <Filename Value="../src/scene/castlescene_text.inc"/>
         <Type Value="Include"/>
       </Item783>
       <Item784>
-        <Filename Value="../src/x3d/opengl/castlesceneinternalblending.pas"/>
+        <Filename Value="../src/scene/castlesceneinternalblending.pas"/>
         <UnitName Value="CastleSceneInternalBlending"/>
       </Item784>
       <Item785>
-        <Filename Value="../src/x3d/opengl/castlesceneinternalocclusion.pas"/>
+        <Filename Value="../src/scene/castlesceneinternalocclusion.pas"/>
         <UnitName Value="CastleSceneInternalOcclusion"/>
       </Item785>
       <Item786>
-        <Filename Value="../src/x3d/opengl/castlesceneinternalshape.pas"/>
+        <Filename Value="../src/scene/castlesceneinternalshape.pas"/>
         <UnitName Value="CastleSceneInternalShape"/>
       </Item786>
       <Item787>
-        <Filename Value="../src/x3d/opengl/castlescreeneffects.pas"/>
+        <Filename Value="../src/scene/castlescreeneffects.pas"/>
         <UnitName Value="CastleScreenEffects"/>
       </Item787>
       <Item788>
-        <Filename Value="../src/x3d/opengl/castleshapeinternalrendershadowvolumes.pas"/>
+        <Filename Value="../src/scene/castleshapeinternalrendershadowvolumes.pas"/>
         <UnitName Value="CastleShapeInternalRenderShadowVolumes"/>
       </Item788>
       <Item789>
-        <Filename Value="../src/x3d/opengl/castleviewport.pas"/>
-        <HasRegisterProc Value="True"/>
+        <Filename Value="../src/scene/castleviewport.pas"/>
         <UnitName Value="CastleViewport"/>
       </Item789>
       <Item790>
-        <Filename Value="../src/x3d/opengl/castleviewport_serialize.inc"/>
+        <Filename Value="../src/scene/castleviewport_serialize.inc"/>
         <Type Value="Include"/>
       </Item790>
       <Item791>
-        <Filename Value="../src/x3d/opengl/castleviewport_touchnavigation.inc"/>
+        <Filename Value="../src/scene/castleviewport_touchnavigation.inc"/>
         <Type Value="Include"/>
       </Item791>
       <Item792>
-        <Filename Value="../src/x3d/opengl/castleviewport_warmup_cache.inc"/>
+        <Filename Value="../src/scene/castleviewport_warmup_cache.inc"/>
         <Type Value="Include"/>
       </Item792>
       <Item793>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/bump_mapping.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/bump_mapping.fs.inc"/>
         <Type Value="Include"/>
       </Item793>
       <Item794>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/bump_mapping.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/bump_mapping.vs.inc"/>
         <Type Value="Include"/>
       </Item794>
       <Item795>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/bump_mapping_parallax.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/bump_mapping_parallax.fs.inc"/>
         <Type Value="Include"/>
       </Item795>
       <Item796>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/bump_mapping_parallax.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/bump_mapping_parallax.vs.inc"/>
         <Type Value="Include"/>
       </Item796>
       <Item797>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/bump_mapping_steep_parallax_shadowing.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/bump_mapping_steep_parallax_shadowing.fs.inc"/>
         <Type Value="Include"/>
       </Item797>
       <Item798>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/bump_mapping_steep_parallax_shadowing.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/bump_mapping_steep_parallax_shadowing.vs.inc"/>
         <Type Value="Include"/>
       </Item798>
       <Item799>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/common.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/common.fs.inc"/>
         <Type Value="Include"/>
       </Item799>
       <Item800>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/common.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/common.vs.inc"/>
         <Type Value="Include"/>
       </Item800>
       <Item801>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/fallback.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/fallback.fs.inc"/>
         <Type Value="Include"/>
       </Item801>
       <Item802>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/fallback.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/fallback.vs.inc"/>
         <Type Value="Include"/>
       </Item802>
       <Item803>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/geometry_shader_utils.gs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/geometry_shader_utils.gs.inc"/>
         <Type Value="Include"/>
       </Item803>
       <Item804>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_phong_add_light.glsl.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_phong_add_light.glsl.inc"/>
         <Type Value="Include"/>
       </Item804>
       <Item805>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_phong_shading_gouraud.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_phong_shading_gouraud.vs.inc"/>
         <Type Value="Include"/>
       </Item805>
       <Item806>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_phong_shading_phong.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_phong_shading_phong.fs.inc"/>
         <Type Value="Include"/>
       </Item806>
       <Item807>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_phong_structures.glsl.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_phong_structures.glsl.inc"/>
         <Type Value="Include"/>
       </Item807>
       <Item808>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_physical_add_light.glsl.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_physical_add_light.glsl.inc"/>
         <Type Value="Include"/>
       </Item808>
       <Item809>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_physical_shading_gouraud.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_physical_shading_gouraud.vs.inc"/>
         <Type Value="Include"/>
       </Item809>
       <Item810>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_physical_shading_phong.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_physical_shading_phong.fs.inc"/>
         <Type Value="Include"/>
       </Item810>
       <Item811>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_physical_structures.glsl.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_physical_structures.glsl.inc"/>
         <Type Value="Include"/>
       </Item811>
       <Item812>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_unlit_add_light.glsl.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_unlit_add_light.glsl.inc"/>
         <Type Value="Include"/>
       </Item812>
       <Item813>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_unlit_shading_gouraud.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_unlit_shading_gouraud.vs.inc"/>
         <Type Value="Include"/>
       </Item813>
       <Item814>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_unlit_shading_phong.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_unlit_shading_phong.fs.inc"/>
         <Type Value="Include"/>
       </Item814>
       <Item815>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/lighting_model_unlit_structures.glsl.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/lighting_model_unlit_structures.glsl.inc"/>
         <Type Value="Include"/>
       </Item815>
       <Item816>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/main_shading_gouraud.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/main_shading_gouraud.fs.inc"/>
         <Type Value="Include"/>
       </Item816>
       <Item817>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/main_shading_gouraud.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/main_shading_gouraud.vs.inc"/>
         <Type Value="Include"/>
       </Item817>
       <Item818>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/main_shading_phong.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/main_shading_phong.fs.inc"/>
         <Type Value="Include"/>
       </Item818>
       <Item819>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/main_shading_phong.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/main_shading_phong.vs.inc"/>
         <Type Value="Include"/>
       </Item819>
       <Item820>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/screen_effect.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/screen_effect.vs.inc"/>
         <Type Value="Include"/>
       </Item820>
       <Item821>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/screen_effect_library.glsl.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/screen_effect_library.glsl.inc"/>
         <Type Value="Include"/>
       </Item821>
       <Item822>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/shadow_map_common.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/shadow_map_common.fs.inc"/>
         <Type Value="Include"/>
       </Item822>
       <Item823>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/shadow_map_generate.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/shadow_map_generate.fs.inc"/>
         <Type Value="Include"/>
       </Item823>
       <Item824>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/shadow_map_generate.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/shadow_map_generate.vs.inc"/>
         <Type Value="Include"/>
       </Item824>
       <Item825>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/simplest.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/simplest.fs.inc"/>
         <Type Value="Include"/>
       </Item825>
       <Item826>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/simplest.vs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/simplest.vs.inc"/>
         <Type Value="Include"/>
       </Item826>
       <Item827>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/ssao.glsl.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/ssao.glsl.inc"/>
         <Type Value="Include"/>
       </Item827>
       <Item828>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/ssr.glsl.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/ssr.glsl.inc"/>
         <Type Value="Include"/>
       </Item828>
       <Item829>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/tone_mapping.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/tone_mapping.fs.inc"/>
         <Type Value="Include"/>
       </Item829>
       <Item830>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/variance_shadow_map_common.fs.inc"/>
+        <Filename Value="../src/scene/glsl/generated-pascal/variance_shadow_map_common.fs.inc"/>
         <Type Value="Include"/>
       </Item830>
       <Item831>
-        <Filename Value="../src/x3d/x3dcamerautils.pas"/>
+        <Filename Value="../src/scene/x3dcamerautils.pas"/>
         <UnitName Value="X3DCameraUtils"/>
       </Item831>
       <Item832>
-        <Filename Value="../src/x3d/x3dcastlescript.pas"/>
-        <UnitName Value="X3DCastleScript"/>
+        <Filename Value="../src/scene/castleinternalx3dscript.pas"/>
+        <UnitName Value="CastleInternalX3DScript"/>
       </Item832>
       <Item833>
-        <Filename Value="../src/x3d/x3dfields.pas"/>
+        <Filename Value="../src/scene/x3d/x3dfields.pas"/>
         <UnitName Value="X3DFields"/>
       </Item833>
       <Item834>
-        <Filename Value="../src/x3d/x3dload.pas"/>
+        <Filename Value="../src/scene/load/x3dload.pas"/>
         <UnitName Value="X3DLoad"/>
       </Item834>
       <Item835>
-        <Filename Value="../src/x3d/x3dloadinternal3ds.pas"/>
+        <Filename Value="../src/scene/load/x3dloadinternal3ds.pas"/>
         <UnitName Value="X3DLoadInternal3DS"/>
       </Item835>
       <Item836>
-        <Filename Value="../src/x3d/x3dloadinternalcocos2d.pas"/>
+        <Filename Value="../src/scene/load/x3dloadinternalcocos2d.pas"/>
         <UnitName Value="X3DLoadInternalCocos2d"/>
       </Item836>
       <Item837>
-        <Filename Value="../src/x3d/x3dloadinternalcollada.pas"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada.pas"/>
         <UnitName Value="X3DLoadInternalCollada"/>
       </Item837>
       <Item838>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_cameras.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_cameras.inc"/>
         <Type Value="Include"/>
       </Item838>
       <Item839>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_childrenlist.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_childrenlist.inc"/>
         <Type Value="Include"/>
       </Item839>
       <Item840>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_controllers.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_controllers.inc"/>
         <Type Value="Include"/>
       </Item840>
       <Item841>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_effects.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_effects.inc"/>
         <Type Value="Include"/>
       </Item841>
       <Item842>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_geometries.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_geometries.inc"/>
         <Type Value="Include"/>
       </Item842>
       <Item843>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_images.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_images.inc"/>
         <Type Value="Include"/>
       </Item843>
       <Item844>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_indexes.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_indexes.inc"/>
         <Type Value="Include"/>
       </Item844>
       <Item845>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_integerparser.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_integerparser.inc"/>
         <Type Value="Include"/>
       </Item845>
       <Item846>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_librarynodes.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_librarynodes.inc"/>
         <Type Value="Include"/>
       </Item846>
       <Item847>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_lights.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_lights.inc"/>
         <Type Value="Include"/>
       </Item847>
       <Item848>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_materials.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_materials.inc"/>
         <Type Value="Include"/>
       </Item848>
       <Item849>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_matrix.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_matrix.inc"/>
         <Type Value="Include"/>
       </Item849>
       <Item850>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_node.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_node.inc"/>
         <Type Value="Include"/>
       </Item850>
       <Item851>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_primitives.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_primitives.inc"/>
         <Type Value="Include"/>
       </Item851>
       <Item852>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_read_helpers.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_read_helpers.inc"/>
         <Type Value="Include"/>
       </Item852>
       <Item853>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_scenes.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_scenes.inc"/>
         <Type Value="Include"/>
       </Item853>
       <Item854>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_source.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_source.inc"/>
         <Type Value="Include"/>
       </Item854>
       <Item855>
-        <Filename Value="../src/x3d/x3dloadinternalcollada_sources.inc"/>
+        <Filename Value="../src/scene/load/collada/x3dloadinternalcollada_sources.inc"/>
         <Type Value="Include"/>
       </Item855>
       <Item856>
-        <Filename Value="../src/x3d/x3dloadinternalgeo.pas"/>
+        <Filename Value="../src/scene/load/x3dloadinternalgeo.pas"/>
         <UnitName Value="X3DLoadInternalGEO"/>
       </Item856>
       <Item857>
-        <Filename Value="../src/x3d/x3dloadinternalgltf.pas"/>
+        <Filename Value="../src/scene/load/x3dloadinternalgltf.pas"/>
         <UnitName Value="X3DLoadInternalGltf"/>
       </Item857>
       <Item858>
-        <Filename Value="../src/x3d/x3dloadinternalimage.pas"/>
+        <Filename Value="../src/scene/load/x3dloadinternalimage.pas"/>
         <UnitName Value="X3DLoadInternalImage"/>
       </Item858>
       <Item859>
-        <Filename Value="../src/x3d/x3dloadinternalmd3.pas"/>
+        <Filename Value="../src/scene/load/x3dloadinternalmd3.pas"/>
         <UnitName Value="X3DLoadInternalMD3"/>
       </Item859>
       <Item860>
-        <Filename Value="../src/x3d/x3dloadinternalobj.pas"/>
+        <Filename Value="../src/scene/load/x3dloadinternalobj.pas"/>
         <UnitName Value="X3DLoadInternalOBJ"/>
       </Item860>
       <Item861>
-        <Filename Value="../src/x3d/x3dloadinternalspine.pas"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine.pas"/>
         <UnitName Value="X3DLoadInternalSpine"/>
       </Item861>
       <Item862>
-        <Filename Value="../src/x3d/x3dloadinternalspine_animations.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_animations.inc"/>
         <Type Value="Include"/>
       </Item862>
       <Item863>
-        <Filename Value="../src/x3d/x3dloadinternalspine_animutils.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_animutils.inc"/>
         <Type Value="Include"/>
       </Item863>
       <Item864>
-        <Filename Value="../src/x3d/x3dloadinternalspine_atlas.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_atlas.inc"/>
         <Type Value="Include"/>
       </Item864>
       <Item865>
-        <Filename Value="../src/x3d/x3dloadinternalspine_attachments.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_attachments.inc"/>
         <Type Value="Include"/>
       </Item865>
       <Item866>
-        <Filename Value="../src/x3d/x3dloadinternalspine_bones.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_bones.inc"/>
         <Type Value="Include"/>
       </Item866>
       <Item867>
-        <Filename Value="../src/x3d/x3dloadinternalspine_bonetimelines.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_bonetimelines.inc"/>
         <Type Value="Include"/>
       </Item867>
       <Item868>
-        <Filename Value="../src/x3d/x3dloadinternalspine_deformtimelines.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_deformtimelines.inc"/>
         <Type Value="Include"/>
       </Item868>
       <Item869>
-        <Filename Value="../src/x3d/x3dloadinternalspine_drawordertimelines.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_drawordertimelines.inc"/>
         <Type Value="Include"/>
       </Item869>
       <Item870>
-        <Filename Value="../src/x3d/x3dloadinternalspine_json.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_json.inc"/>
         <Type Value="Include"/>
       </Item870>
       <Item871>
-        <Filename Value="../src/x3d/x3dloadinternalspine_simpletextureloader.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_simpletextureloader.inc"/>
         <Type Value="Include"/>
       </Item871>
       <Item872>
-        <Filename Value="../src/x3d/x3dloadinternalspine_skeleton.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_skeleton.inc"/>
         <Type Value="Include"/>
       </Item872>
       <Item873>
-        <Filename Value="../src/x3d/x3dloadinternalspine_skins.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_skins.inc"/>
         <Type Value="Include"/>
       </Item873>
       <Item874>
-        <Filename Value="../src/x3d/x3dloadinternalspine_slots.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_slots.inc"/>
         <Type Value="Include"/>
       </Item874>
       <Item875>
-        <Filename Value="../src/x3d/x3dloadinternalspine_slottimelines.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_slottimelines.inc"/>
         <Type Value="Include"/>
       </Item875>
       <Item876>
-        <Filename Value="../src/x3d/x3dloadinternalspine_textureloader.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_textureloader.inc"/>
         <Type Value="Include"/>
       </Item876>
       <Item877>
-        <Filename Value="../src/x3d/x3dloadinternalspine_url.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_url.inc"/>
         <Type Value="Include"/>
       </Item877>
       <Item878>
-        <Filename Value="../src/x3d/x3dloadinternalspine_weightedmeshtimelines.inc"/>
+        <Filename Value="../src/scene/load/spine/x3dloadinternalspine_weightedmeshtimelines.inc"/>
         <Type Value="Include"/>
       </Item878>
       <Item879>
-        <Filename Value="../src/x3d/x3dloadinternalstl.pas"/>
+        <Filename Value="../src/scene/load/x3dloadinternalstl.pas"/>
         <UnitName Value="X3DLoadInternalSTL"/>
       </Item879>
       <Item880>
-        <Filename Value="../src/x3d/x3dloadinternalutils.pas"/>
+        <Filename Value="../src/scene/load/x3dloadinternalutils.pas"/>
         <UnitName Value="X3DLoadInternalUtils"/>
       </Item880>
       <Item881>
-        <Filename Value="../src/x3d/x3dnodes.pas"/>
+        <Filename Value="../src/scene/x3d/x3dnodes.pas"/>
         <UnitName Value="X3DNodes"/>
       </Item881>
       <Item882>
-        <Filename Value="../src/x3d/x3dnodes_1.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_1.inc"/>
         <Type Value="Include"/>
       </Item882>
       <Item883>
-        <Filename Value="../src/x3d/x3dnodes_97_hanim.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_97_hanim.inc"/>
         <Type Value="Include"/>
       </Item883>
       <Item884>
-        <Filename Value="../src/x3d/x3dnodes_97_nurbs.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_97_nurbs.inc"/>
         <Type Value="Include"/>
       </Item884>
       <Item885>
-        <Filename Value="../src/x3d/x3dnodes_boundingboxes.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_boundingboxes.inc"/>
         <Type Value="Include"/>
       </Item885>
       <Item886>
-        <Filename Value="../src/x3d/x3dnodes_castle.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_castle.inc"/>
         <Type Value="Include"/>
       </Item886>
       <Item887>
-        <Filename Value="../src/x3d/x3dnodes_clipplane.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_clipplane.inc"/>
         <Type Value="Include"/>
       </Item887>
       <Item888>
-        <Filename Value="../src/x3d/x3dnodes_coordpolygons.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_coordpolygons.inc"/>
         <Type Value="Include"/>
       </Item888>
       <Item889>
-        <Filename Value="../src/x3d/x3dnodes_destructionnotification.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_destructionnotification.inc"/>
         <Type Value="Include"/>
       </Item889>
       <Item890>
-        <Filename Value="../src/x3d/x3dnodes_encoding_classic.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_encoding_classic.inc"/>
         <Type Value="Include"/>
       </Item890>
       <Item891>
-        <Filename Value="../src/x3d/x3dnodes_encoding_xml.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_encoding_xml.inc"/>
         <Type Value="Include"/>
       </Item891>
       <Item892>
-        <Filename Value="../src/x3d/x3dnodes_eventsengine.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_eventsengine.inc"/>
         <Type Value="Include"/>
       </Item892>
       <Item893>
-        <Filename Value="../src/x3d/x3dnodes_generatedtextures.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_generatedtextures.inc"/>
         <Type Value="Include"/>
       </Item893>
       <Item894>
-        <Filename Value="../src/x3d/x3dnodes_importexport.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_importexport.inc"/>
         <Type Value="Include"/>
       </Item894>
       <Item895>
-        <Filename Value="../src/x3d/x3dnodes_initial_types.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_initial_types.inc"/>
         <Type Value="Include"/>
       </Item895>
       <Item896>
-        <Filename Value="../src/x3d/x3dnodes_instantreality.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_instantreality.inc"/>
         <Type Value="Include"/>
       </Item896>
       <Item897>
-        <Filename Value="../src/x3d/x3dnodes_inventor.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_inventor.inc"/>
         <Type Value="Include"/>
       </Item897>
       <Item898>
-        <Filename Value="../src/x3d/x3dnodes_lightinstance.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_lightinstance.inc"/>
         <Type Value="Include"/>
       </Item898>
       <Item899>
-        <Filename Value="../src/x3d/x3dnodes_load.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_load.inc"/>
         <Type Value="Include"/>
       </Item899>
       <Item900>
-        <Filename Value="../src/x3d/x3dnodes_mfnode.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_mfnode.inc"/>
         <Type Value="Include"/>
       </Item900>
       <Item901>
-        <Filename Value="../src/x3d/x3dnodes_miscellaneous_globals.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_miscellaneous_globals.inc"/>
         <Type Value="Include"/>
       </Item901>
       <Item902>
-        <Filename Value="../src/x3d/x3dnodes_miscellaneous_internals.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_miscellaneous_internals.inc"/>
         <Type Value="Include"/>
       </Item902>
       <Item903>
-        <Filename Value="../src/x3d/x3dnodes_names.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_names.inc"/>
         <Type Value="Include"/>
       </Item903>
       <Item904>
-        <Filename Value="../src/x3d/x3dnodes_nodesmanager.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_nodesmanager.inc"/>
         <Type Value="Include"/>
       </Item904>
       <Item905>
-        <Filename Value="../src/x3d/x3dnodes_prototypes.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_prototypes.inc"/>
         <Type Value="Include"/>
       </Item905>
       <Item906>
-        <Filename Value="../src/x3d/x3dnodes_save.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_save.inc"/>
         <Type Value="Include"/>
       </Item906>
       <Item907>
-        <Filename Value="../src/x3d/x3dnodes_sfnode.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_sfnode.inc"/>
         <Type Value="Include"/>
       </Item907>
       <Item908>
-        <Filename Value="../src/x3d/x3dnodes_standard_cadgeometry.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_cadgeometry.inc"/>
         <Type Value="Include"/>
       </Item908>
       <Item909>
-        <Filename Value="../src/x3d/x3dnodes_standard_core.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_core.inc"/>
         <Type Value="Include"/>
       </Item909>
       <Item910>
-        <Filename Value="../src/x3d/x3dnodes_standard_cubemaptexturing.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_cubemaptexturing.inc"/>
         <Type Value="Include"/>
       </Item910>
       <Item911>
-        <Filename Value="../src/x3d/x3dnodes_standard_dis.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_dis.inc"/>
         <Type Value="Include"/>
       </Item911>
       <Item912>
-        <Filename Value="../src/x3d/x3dnodes_standard_environmentaleffects.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_environmentaleffects.inc"/>
         <Type Value="Include"/>
       </Item912>
       <Item913>
-        <Filename Value="../src/x3d/x3dnodes_standard_environmentalsensor.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_environmentalsensor.inc"/>
         <Type Value="Include"/>
       </Item913>
       <Item914>
-        <Filename Value="../src/x3d/x3dnodes_standard_eventutilities.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_eventutilities.inc"/>
         <Type Value="Include"/>
       </Item914>
       <Item915>
-        <Filename Value="../src/x3d/x3dnodes_standard_followers.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_followers.inc"/>
         <Type Value="Include"/>
       </Item915>
       <Item916>
-        <Filename Value="../src/x3d/x3dnodes_standard_geometry2d.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_geometry2d.inc"/>
         <Type Value="Include"/>
       </Item916>
       <Item917>
-        <Filename Value="../src/x3d/x3dnodes_standard_geometry3d.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_geometry3d.inc"/>
         <Type Value="Include"/>
       </Item917>
       <Item918>
-        <Filename Value="../src/x3d/x3dnodes_standard_geospatial.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_geospatial.inc"/>
         <Type Value="Include"/>
       </Item918>
       <Item919>
-        <Filename Value="../src/x3d/x3dnodes_standard_grouping.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_grouping.inc"/>
         <Type Value="Include"/>
       </Item919>
       <Item920>
-        <Filename Value="../src/x3d/x3dnodes_standard_h-anim.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_h-anim.inc"/>
         <Type Value="Include"/>
       </Item920>
       <Item921>
-        <Filename Value="../src/x3d/x3dnodes_standard_interpolation.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_interpolation.inc"/>
         <Type Value="Include"/>
       </Item921>
       <Item922>
-        <Filename Value="../src/x3d/x3dnodes_standard_interpolation_cubic_bezier.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_interpolation_cubic_bezier.inc"/>
         <Type Value="Include"/>
       </Item922>
       <Item923>
-        <Filename Value="../src/x3d/x3dnodes_standard_keydevicesensor.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_keydevicesensor.inc"/>
         <Type Value="Include"/>
       </Item923>
       <Item924>
-        <Filename Value="../src/x3d/x3dnodes_standard_layering.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_layering.inc"/>
         <Type Value="Include"/>
       </Item924>
       <Item925>
-        <Filename Value="../src/x3d/x3dnodes_standard_layout.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_layout.inc"/>
         <Type Value="Include"/>
       </Item925>
       <Item926>
-        <Filename Value="../src/x3d/x3dnodes_standard_lighting.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_lighting.inc"/>
         <Type Value="Include"/>
       </Item926>
       <Item927>
-        <Filename Value="../src/x3d/x3dnodes_standard_navigation.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_navigation.inc"/>
         <Type Value="Include"/>
       </Item927>
       <Item928>
-        <Filename Value="../src/x3d/x3dnodes_standard_networking.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_networking.inc"/>
         <Type Value="Include"/>
       </Item928>
       <Item929>
-        <Filename Value="../src/x3d/x3dnodes_standard_nurbs.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_nurbs.inc"/>
         <Type Value="Include"/>
       </Item929>
       <Item930>
-        <Filename Value="../src/x3d/x3dnodes_standard_particlesystems.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_particlesystems.inc"/>
         <Type Value="Include"/>
       </Item930>
       <Item931>
-        <Filename Value="../src/x3d/x3dnodes_standard_picking.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_picking.inc"/>
         <Type Value="Include"/>
       </Item931>
       <Item932>
-        <Filename Value="../src/x3d/x3dnodes_standard_pointingdevicesensor.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_pointingdevicesensor.inc"/>
         <Type Value="Include"/>
       </Item932>
       <Item933>
-        <Filename Value="../src/x3d/x3dnodes_standard_rendering.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_rendering.inc"/>
         <Type Value="Include"/>
       </Item933>
       <Item934>
-        <Filename Value="../src/x3d/x3dnodes_standard_rigidbodyphysics.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_rigidbodyphysics.inc"/>
         <Type Value="Include"/>
       </Item934>
       <Item935>
-        <Filename Value="../src/x3d/x3dnodes_standard_scripting.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_scripting.inc"/>
         <Type Value="Include"/>
       </Item935>
       <Item936>
-        <Filename Value="../src/x3d/x3dnodes_standard_shaders.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_shaders.inc"/>
         <Type Value="Include"/>
       </Item936>
       <Item937>
-        <Filename Value="../src/x3d/x3dnodes_standard_shape.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_shape.inc"/>
         <Type Value="Include"/>
       </Item937>
       <Item938>
-        <Filename Value="../src/x3d/x3dnodes_standard_sound.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_sound.inc"/>
         <Type Value="Include"/>
       </Item938>
       <Item939>
-        <Filename Value="../src/x3d/x3dnodes_standard_text.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_text.inc"/>
         <Type Value="Include"/>
       </Item939>
       <Item940>
-        <Filename Value="../src/x3d/x3dnodes_standard_texturing.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_texturing.inc"/>
         <Type Value="Include"/>
       </Item940>
       <Item941>
-        <Filename Value="../src/x3d/x3dnodes_standard_texturing3d.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_texturing3d.inc"/>
         <Type Value="Include"/>
       </Item941>
       <Item942>
-        <Filename Value="../src/x3d/x3dnodes_standard_time.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_time.inc"/>
         <Type Value="Include"/>
       </Item942>
       <Item943>
-        <Filename Value="../src/x3d/x3dnodes_utils_box.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_utils_box.inc"/>
         <Type Value="Include"/>
       </Item943>
       <Item944>
-        <Filename Value="../src/x3d/x3dnodes_utils_cone_cylinder.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_utils_cone_cylinder.inc"/>
         <Type Value="Include"/>
       </Item944>
       <Item945>
-        <Filename Value="../src/x3d/x3dnodes_utils_elevationgrid.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_utils_elevationgrid.inc"/>
         <Type Value="Include"/>
       </Item945>
       <Item946>
-        <Filename Value="../src/x3d/x3dnodes_utils_extrusion.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_utils_extrusion.inc"/>
         <Type Value="Include"/>
       </Item946>
       <Item947>
-        <Filename Value="../src/x3d/x3dnodes_utils_materials.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_utils_materials.inc"/>
         <Type Value="Include"/>
       </Item947>
       <Item948>
-        <Filename Value="../src/x3d/x3dnodes_utils_sphere.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_utils_sphere.inc"/>
         <Type Value="Include"/>
       </Item948>
       <Item949>
-        <Filename Value="../src/x3d/x3dnodes_verticesandtrianglescounting.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_verticesandtrianglescounting.inc"/>
         <Type Value="Include"/>
       </Item949>
       <Item950>
-        <Filename Value="../src/x3d/x3dnodes_vrml1state.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_vrml1state.inc"/>
         <Type Value="Include"/>
       </Item950>
       <Item951>
-        <Filename Value="../src/x3d/x3dnodes_x3dfonttexturescache.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_x3dfonttexturescache.inc"/>
         <Type Value="Include"/>
       </Item951>
       <Item952>
-        <Filename Value="../src/x3d/x3dnodes_x3dgraphtraversestate.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_x3dgraphtraversestate.inc"/>
         <Type Value="Include"/>
       </Item952>
       <Item953>
-        <Filename Value="../src/x3d/x3dnodes_x3dinterfacedeclaration.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_x3dinterfacedeclaration.inc"/>
         <Type Value="Include"/>
       </Item953>
       <Item954>
-        <Filename Value="../src/x3d/x3dnodes_x3dnode.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_x3dnode.inc"/>
         <Type Value="Include"/>
       </Item954>
       <Item955>
-        <Filename Value="../src/x3d/x3dnodes_x3dnodeclasseslist.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_x3dnodeclasseslist.inc"/>
         <Type Value="Include"/>
       </Item955>
       <Item956>
-        <Filename Value="../src/x3d/x3dnodes_x3dnodescache.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_x3dnodescache.inc"/>
         <Type Value="Include"/>
       </Item956>
       <Item957>
-        <Filename Value="../src/x3d/x3dnodes_x3droute.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_x3droute.inc"/>
         <Type Value="Include"/>
       </Item957>
       <Item958>
-        <Filename Value="../src/x3d/x3dnodes_x3dunknownnode.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_x3dunknownnode.inc"/>
         <Type Value="Include"/>
       </Item958>
       <Item959>
-        <Filename Value="../src/x3d/x3dtime.pas"/>
+        <Filename Value="../src/scene/x3dtime.pas"/>
         <UnitName Value="X3DTime"/>
       </Item959>
       <Item960>
-        <Filename Value="../src/x3d/x3dtriangles.pas"/>
-        <UnitName Value="X3DTriangles"/>
+        <Filename Value="../src/transform/castleinternalbasetriangleoctree.pas"/>
+        <UnitName Value="CastleInternalBaseTriangleOctree"/>
       </Item960>
       <Item961>
-        <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
+        <Filename Value="../src/transform/castleinternalbasetriangleoctree_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
       </Item961>
       <Item962>
         <Filename Value="../src/images/castleimages_assign.inc"/>
         <Type Value="Include"/>
       </Item962>
+      <Item963>
+        <Filename Value="../src/scene/castlescene_background.inc"/>
+        <Type Value="Include"/>
+      </Item963>
+      <Item964>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlebackground_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item964>
+      <Item965>
+        <Filename Value="../src/scene/castlescene_abstractlight.inc"/>
+        <Type Value="Include"/>
+      </Item965>
+      <Item966>
+        <Filename Value="../src/scene/castlescene_pointlight.inc"/>
+        <Type Value="Include"/>
+      </Item966>
+      <Item967>
+        <Filename Value="../src/scene/castlescene_directionallight.inc"/>
+        <Type Value="Include"/>
+      </Item967>
+      <Item968>
+        <Filename Value="../src/scene/castlescene_spotlight.inc"/>
+        <Type Value="Include"/>
+      </Item968>
+      <Item969>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlepointlight_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item969>
+      <Item970>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastledirectionallight_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item970>
+      <Item303>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlespotlight_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item303>
+      <Item278>
+        <Filename Value="../src/scene/castlescene_environmentlight.inc"/>
+        <Type Value="Include"/>
+      </Item278>
     </Files>
     <RequiredPkgs Count="3">
       <Item1>

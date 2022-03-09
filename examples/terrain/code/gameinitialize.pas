@@ -36,7 +36,7 @@ type
 
 var
   { global stuff }
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Scene: TTerrainScene; //< terrain
   EnvironmentScene: TCastleScene; //< defines sky (background) and fog
   ExamineNavigation: TCastleExamineNavigation;
@@ -697,7 +697,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line

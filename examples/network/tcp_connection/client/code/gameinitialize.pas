@@ -45,7 +45,7 @@ type
   end;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   HostEdit, PortEdit, SendEdit: TCastleEdit;
   ResponseLabel: TCastleLabel;
   Client: TClient;
@@ -178,7 +178,7 @@ initialization
   Application.OnInitialize := {$ifdef FPC}@{$endif} ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
 finalization

@@ -73,10 +73,10 @@ end;
 procedure TTestCastleFonts.TestMaxTextWidthHtmlInWindow;
 {$ifdef TEST_CASTLE_WINDOW}
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
   // should work with OpenGL context too, actually it doesn't matter now
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Window.Visible := false;
     Window.Open;

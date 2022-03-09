@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Progress bar displayed in a TCastleWindowBase.
+{ Progress bar displayed in a TCastleWindow.
 
-  Simply set @code(WindowProgressInterface.Window) to your TCastleWindowBase
+  Simply set @code(WindowProgressInterface.Window) to your TCastleWindow
   instance, and assign
 
   @longCode(#  Progress.UserInterface := WindowProgressInterface;#)
@@ -60,17 +60,17 @@ type
     { Window used to render the progress bar, or nil if none.
       Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
-    UsedWindow: TCastleWindowBase;
+    UsedWindow: TCastleWindow;
     SavedMode: TGLMode;
     {$ifdef FPC}
-    function GetWindow: TCastleWindowBase;
-    procedure SetWindow(const Value: TCastleWindowBase);
+    function GetWindow: TCastleWindow;
+    procedure SetWindow(const Value: TCastleWindow);
     {$endif}
   public
     {$ifdef FPC}
     { @deprecated Using this is deprecated, you should rather assign to
       Application.MainWindow. }
-    property Window: TCastleWindowBase read GetWindow write SetWindow; deprecated;
+    property Window: TCastleWindow read GetWindow write SetWindow; deprecated;
     {$endif}
 
     procedure Init(Progress: TProgress); override;
@@ -86,19 +86,17 @@ var
 
 implementation
 
-{$warnings off} // using deprecated CastleRenderingCamera in deprecated
-uses SysUtils, CastleUtils, CastleKeysMouse, CastleRenderingCamera;
-{$warnings on}
+uses SysUtils, CastleUtils, CastleKeysMouse;
 
 { TWindowProgressInterface  ------------------------------------------------ }
 
 {$ifdef FPC}
-function TWindowProgressInterface.GetWindow: TCastleWindowBase;
+function TWindowProgressInterface.GetWindow: TCastleWindow;
 begin
   Result := Application.MainWindow;
 end;
 
-procedure TWindowProgressInterface.SetWindow(const Value: TCastleWindowBase);
+procedure TWindowProgressInterface.SetWindow(const Value: TCastleWindow);
 begin
   Application.MainWindow := Value;
 end;
@@ -113,8 +111,9 @@ begin
        and progress bar appears because after animating a transform the shape octree
        needs to be rebuild for frustum culling (which can happen on larger scenes,
        to easily reproduce use TESTING_PROGRESS_DELAY with android_demo 2 teapots scene). }
-     (RenderingCamera.Target = rtScreen) then
-    UsedWindow := Application.MainWindow else
+     (not OffscreenRendering) then
+    UsedWindow := Application.MainWindow
+  else
     UsedWindow := nil;
 
   if UsedWindow = nil then Exit;

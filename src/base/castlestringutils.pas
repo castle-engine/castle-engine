@@ -993,6 +993,13 @@ function SizeToStr(const Value: Int64): String;
   this converts UTF-8 into UTF-16 UnicodeString. }
 function StringToUtf16(const Src: String): UnicodeString; inline;
 
+{ Convert UTF-16 (UnicodeString) to String.
+  On Delphi (more generally: on compilers where String is already UnicodeString, which is UTF-16),
+  this does nothing.
+  On FPC (more generally: on compilers where String is AnsiString with UTF-8 encoding),
+  this converts UTF-16 into UTF-8. }
+function Utf16ToString(const Src: UnicodeString): String; inline;
+
 const
   { }
   CtrlA = Chr(Ord('a') - Ord('a') + 1); { = #1 } { }
@@ -2268,18 +2275,20 @@ begin
 end;
 
 type
+  TRegExprString = {$if defined(FPC) and (FPC_FULLVERSION >= 30300)} UnicodeString {$else} String {$endif};
+
   TRegExprCounter = class
   private
     Index: Integer;
     ReplacementsDone: Cardinal;
     function ReplaceCallback(
-      {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): string;
+      {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): TRegExprString;
   end;
 
 function TRegExprCounter.ReplaceCallback(
-  {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): string;
+  {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): TRegExprString;
 var
-  MatchedText: string;
+  MatchedText: TRegExprString;
 begin
   MatchedText := {$ifdef FPC} ARegExpr.Match[1] {$else} Match.Groups[1].Value {$endif};
   Result := IntToStrZPad(Index, StrToInt(MatchedText));
@@ -2701,6 +2710,11 @@ end;
 function StringToUtf16(const Src: String): UnicodeString;
 begin
   Result := {$if SizeOf(char) = 2} Src {$else} UTF8Decode(Src) {$ifend};
+end;
+
+function Utf16ToString(const Src: UnicodeString): String;
+begin
+  Result := {$if SizeOf(char) = 2} Src {$else} UTF8Encode(Src) {$ifend};
 end;
 
 end.

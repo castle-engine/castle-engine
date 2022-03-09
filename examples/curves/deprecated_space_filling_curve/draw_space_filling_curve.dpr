@@ -41,11 +41,11 @@ uses SysUtils, CastleWindow, CastleUtils, CastleGLUtils, CastleParameters,
   CastleKeysMouse, CastleColors;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   CurveImage: TRGBImage;
 const
-  CurveCol: TVector3Byte = (Data: (255, 255, 255));
-  CurveImageBGCol: TVector4Byte = (Data: (0, 0, 0, 0));
+  CurveCol: TVector3Byte = (X: 255; Y: 255; Z: 255);
+  CurveImageBGCol: TVector4Byte = (X: 0; Y: 0; Z: 0; W: 0);
 
 { CastleWindow callbacks ------------------------------------------------------- }
 
@@ -120,7 +120,7 @@ var
   InitialOrient: boolean; { default value depends on DoPeano }
   StepsResolution, AllStepsCount: Cardinal;
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   { parse params }
   if Parameters.High >= 1 then

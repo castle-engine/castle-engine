@@ -15,7 +15,7 @@
 }
 
 uses Classes, SysUtils,
-  CastleParameters, CastleStringUtils;
+  CastleUtils, CastleParameters, CastleStringUtils;
 
   { Is it OK to depend from unit in CurrentCategory on a unit in DependencyCategory. }
   function DependencyOk(CurrentCategory, DependencyCategory: string): boolean;
@@ -44,59 +44,61 @@ uses Classes, SysUtils,
       IndirectDependencyCheck('audio', 'files') or
       IndirectDependencyCheck('images', 'files') or
       IndirectDependencyCheck('images', 'vampyre_imaginglib') or
-      IndirectDependencyCheck('fonts', 'images') or
+      IndirectDependencyCheck('base_rendering', 'images') or
+      IndirectDependencyCheck('fonts', 'base_rendering') or
       IndirectDependencyCheck('ui', 'audio') or
       IndirectDependencyCheck('ui', 'fonts') or
       IndirectDependencyCheck('services', 'ui') or
       IndirectDependencyCheck('transform', 'services') or
       IndirectDependencyCheck('castlescript', 'transform') or
-      IndirectDependencyCheck('x3d', 'pasgltf') or
-      IndirectDependencyCheck('x3d', 'castlescript') or
-      IndirectDependencyCheck('window', 'x3d') or
-      IndirectDependencyCheck('lcl', 'x3d');
+      IndirectDependencyCheck('scene', 'castlescript') or
+      IndirectDependencyCheck('window', 'ui') or
+      IndirectDependencyCheck('lcl', 'ui');
   end;
 
 var
   AllCgeUnits: TStringList;
   DependenciesToCheck: TStringList;
 
-  procedure ExtractCategory(UnitPath: string;
-    out Category: string; out IsOpenGL: boolean);
+  procedure ExtractCategory(UnitPath: string; out Category: string);
   var
     TokenPos: Integer;
-    PartAfterCategory: string;
+    //PartAfterCategory: string;
   begin
     while SCharIs(UnitPath, 1, '.') or
           SCharIs(UnitPath, 1, '/') do
       UnitPath := SEnding(UnitPath, 2); // cut off initial ./ from UnitPath
     TokenPos := 1;
     Category := NextToken(UnitPath, TokenPos, ['/', '\']);
-    PartAfterCategory := NextToken(UnitPath, TokenPos, ['/', '\']);
-    IsOpenGL :=
-      SameText(PartAfterCategory, 'opengl') or
-      // All units in categories below are automatically tied to OpenGL,
-      // they don't have to be in opengl/ subdirectory.
-      SameText(Category, 'window') or
-      SameText(Category, 'lcl');
+    //PartAfterCategory := NextToken(UnitPath, TokenPos, ['/', '\']);
   end;
 
   function FindCategory(const DependencyBaseName: string;
-    out Category: string; out IsOpenGL: boolean): boolean;
+    out Category: string): boolean;
   var
     UnitPath: string;
   begin
     for UnitPath in AllCgeUnits do
       if SameText(ChangeFileExt(ExtractFileName(UnitPath), ''), DependencyBaseName) then
       begin
-        ExtractCategory(UnitPath, Category, IsOpenGL);
+        ExtractCategory(UnitPath, Category);
         Exit(true);
       end;
     Result := false;
   end;
 
+const
+  AllowedExceptions: array [0..5] of String = (
+    'Category castlescript uses scene. Unit ./castlescript/castlecurves.pas uses X3DNodes',
+    'Category transform uses scene. Unit ./transform/castlecameras.pas uses CastleViewport',
+    'Category ui uses transform. Unit ./ui/castleinternalinspector.pas uses CastleCameras',
+    'Category ui uses scene. Unit ./ui/castleinternalinspector.pas uses CastleScene',
+    'Category ui uses transform. Unit ./ui/castleinternalinspector.pas uses CastleTransform',
+    'Category ui uses scene. Unit ./ui/castleinternalinspector.pas uses CastleViewport'
+  );
+
 var
   CurrentUnit, DependencyToCheck, CurrentCategory, DependencyCategory, DependencyDescribe: string;
-  CurrentIsOpenGL, DependencyIsOpenGL: boolean;
 begin
   Parameters.CheckHigh(3);
   AllCgeUnits := TStringList.Create;
@@ -108,26 +110,26 @@ begin
   try
     for DependencyToCheck in DependenciesToCheck do
     begin
-      if FindCategory(DependencyToCheck, DependencyCategory, DependencyIsOpenGL) then
+      if FindCategory(DependencyToCheck, DependencyCategory) then
       begin
-        ExtractCategory(CurrentUnit, CurrentCategory, CurrentIsOpenGL);
-        DependencyDescribe := Format('Category %s (OpenGL subdirectory: %s) uses %s (OpenGL subdirectory: %s). Unit %s uses %s',
-          [CurrentCategory,
-           BoolToStr(CurrentIsOpenGL, true),
-           DependencyCategory,
-           BoolToStr(DependencyIsOpenGL, true),
-           CurrentUnit,
-           DependencyToCheck]);
+        ExtractCategory(CurrentUnit, CurrentCategory);
+        DependencyDescribe := Format('Category %s uses %s. Unit %s uses %s', [
+          CurrentCategory,
+          DependencyCategory,
+          CurrentUnit,
+          DependencyToCheck
+        ]);
         // Writeln('Checking: ', DependencyDescribe);
         if not DependencyOk(CurrentCategory, DependencyCategory) then
         begin
-          Writeln(ErrOutput, 'ERROR: Not allowed dependency: ', DependencyDescribe);
-          ExitCode := 1;
-        end;
-        if (not CurrentIsOpenGL) and DependencyIsOpenGL then
-        begin
-          Writeln(ErrOutput, 'ERROR: Not allowed dependency (supposedly non-OpenGL code depends on OpenGL code): ', DependencyDescribe);
-          ExitCode := 1;
+          if ArrayPosStr(DependencyDescribe, AllowedExceptions) <> -1 then
+          begin
+            Writeln(ErrOutput, 'WARNING: Not allowed dependency, but it is listed as exception to temporarily allow: ', DependencyDescribe);
+          end else
+          begin
+            Writeln(ErrOutput, 'ERROR: Not allowed dependency: ', DependencyDescribe);
+            ExitCode := 1;
+          end;
         end;
       end;
     end;

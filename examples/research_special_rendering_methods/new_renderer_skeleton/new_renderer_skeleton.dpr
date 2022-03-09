@@ -19,7 +19,7 @@
   In the future, Castle Game Engine should allow to "plug" a new renderer,
   such that the underlying renderer can be switched at runtime,
   and the public engine API stays the same.
-  So all the engine classes (like TCastleScene, TCastleViewport, TCastleWindowBase,
+  So all the engine classes (like TCastleScene, TCastleViewport, TCastleWindow,
   TCastleButton, TDrawableImage...) will work, regardless of the renderer.
 
   Also, you will then no longer need to initialize some semi-internal things
@@ -220,9 +220,9 @@ begin
 
       - The API of TRenderParams is internal, it may change at any moment.
 
-      - Moreover here we create TRenderParams with abstract methods (BaseLights).
-        Ignore this temporarily, you don't need BaseLights to test your new renderer
-        (BaseLights are only used for a configurable headlight, and for shining
+      - Moreover here we create TRenderParams with abstract methods (GlobalLights).
+        Ignore this temporarily, you don't need GlobalLights to test your new renderer
+        (GlobalLights are only used for a configurable headlight, and for shining
         lights from one TCastleScene over another TCastleScene).
 
       - You should not do this in a normal CGE application. In normal application,

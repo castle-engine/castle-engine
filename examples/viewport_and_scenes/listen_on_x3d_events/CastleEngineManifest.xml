@@ -2,7 +2,7 @@
 <project name="listen_on_x3d_events"
   standalone_source="listen_on_x3d_events_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.listenonx3devents"
+  qualified_name="io.castleengine.listen.on.x3d.events"
   caption="Listen on X3D events"
 >
   <compiler_options>

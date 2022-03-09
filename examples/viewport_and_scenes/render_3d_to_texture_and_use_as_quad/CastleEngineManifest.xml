@@ -2,7 +2,7 @@
 <project name="render_3d_to_texture_and_use_as_quad"
   standalone_source="render_3d_to_texture_and_use_as_quad_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.render3dtotextureanduseasquad"
+  qualified_name="io.castleengine.render3d.to.texture.and.use.as.quad"
   caption="Render 3D scene to a texture"
 >
   <compiler_options>

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -189,11 +189,11 @@ begin
     Max := List^[0];
     for I := 1 to Count - 1 do
     begin
-      if List^[I].Data[0] < Min.Data[0] then Min.Data[0] := List^[I].Data[0] else
-      if List^[I].Data[0] > Max.Data[0] then Max.Data[0] := List^[I].Data[0];
+      if List^[I].X < Min.X then Min.X := List^[I].X else
+      if List^[I].X > Max.X then Max.X := List^[I].X;
 
-      if List^[I].Data[1] < Min.Data[1] then Min.Data[1] := List^[I].Data[1] else
-      if List^[I].Data[1] > Max.Data[1] then Max.Data[1] := List^[I].Data[1];
+      if List^[I].Y < Min.Y then Min.Y := List^[I].Y else
+      if List^[I].Y > Max.Y then Max.Y := List^[I].Y;
     end;
   end;
 end;
@@ -277,7 +277,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    List^[I].NormalizeMe;
+    List^[I] := List^[I].Normalize;
 end;
 
 procedure TVector3List.MultiplyComponents(const V: TVector3);
@@ -316,8 +316,7 @@ begin
   Count := ACount;
   for I := 0 to Count - 1 do
   begin
-    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
-    List^[I].NormalizeMe;
+    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]).Normalize;
   end;
 end;
 

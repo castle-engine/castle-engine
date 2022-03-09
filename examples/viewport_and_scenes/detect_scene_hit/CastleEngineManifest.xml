@@ -2,7 +2,7 @@
 <project name="detect_scene_hit"
   standalone_source="detect_scene_hit_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.detectscenehit"
+  qualified_name="io.castleengine.detect.scene.hit"
   caption="Detect Scene Hits"
 >
   <compiler_options>

@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -139,10 +139,13 @@ procedure TStateMain.UpdateCollision;
 
 var
   Box: TBox3D;
+  SavedExists: Boolean;
 begin
-  { Use TransformMoving.Disable so that WorldXxxCollision call doesn't
-    detect collisions with TransformMoving (so it only detects them with SceneLevel). }
-  TransformMoving.Disable;
+  { Make TransformMoving temporarily non-existing,
+    so that WorldXxxCollision call doesn't detect collisions with TransformMoving
+    (so it only detects them with SceneLevel). }
+  SavedExists := TransformMoving.Exists;
+  TransformMoving.Exists := false;
 
   case FTestMode of
     tmMove, tmSphere:
@@ -165,7 +168,7 @@ begin
       end;
   end;
 
-  TransformMoving.Enable;
+  TransformMoving.Exists := SavedExists;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

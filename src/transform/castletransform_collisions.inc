@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,7 +31,7 @@ begin
   AboveHeight := MaxSingle;
   AboveGround := nil;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     for I := 0 to List.Count - 1 do
     begin
@@ -59,7 +59,7 @@ begin
   Result := true;
   NewPos := ProposedNewPos;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     { We call MoveCollision with separate ProposedNewPos and NewPos
       only on the first scene.
@@ -103,7 +103,7 @@ var
 begin
   Result := true;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     for I := 0 to List.Count - 1 do
     begin
@@ -122,7 +122,7 @@ var
 begin
   Result := false;
 
-  if GetCollides or (ALineOfSight and GetExists) then
+  if CheckCollides or (ALineOfSight and Exists) then
   begin
     for I := 0 to List.Count - 1 do
     begin
@@ -139,7 +139,7 @@ var
 begin
   Result := false;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     for I := 0 to List.Count - 1 do
     begin
@@ -157,7 +157,7 @@ var
 begin
   Result := false;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     for I := 0 to List.Count - 1 do
     begin
@@ -179,7 +179,7 @@ var
 begin
   Result := false;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     for I := 0 to List.Count - 1 do
     begin
@@ -196,7 +196,7 @@ var
 begin
   Result := false;
 
-  if GetCollides then
+  if CheckCollides then
   begin
     for I := 0 to List.Count - 1 do
     begin
@@ -229,7 +229,7 @@ var
 begin
   Result := nil;
 
-  if GetPickable then
+  if CheckPickable then
   begin
     for I := 0 to List.Count - 1 do
       AddNewResult(List[I].RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc));
@@ -257,7 +257,7 @@ var
 begin
   { LocalHeightCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then
+  if not CheckCollides then
   begin
     Result := false;
     AboveHeight := MaxSingle;
@@ -292,7 +292,7 @@ var
 begin
   { LocalMoveCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then
+  if not CheckCollides then
   begin
     NewPos := ProposedNewPos;
     Exit(true);
@@ -336,7 +336,7 @@ var
 begin
   { LocalMoveCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then Exit(true);
+  if not CheckCollides then Exit(true);
 
   if FOnlyTranslation then
   begin
@@ -373,7 +373,7 @@ var
 begin
   { LocalSegmentCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not (GetCollides or (ALineOfSight and GetExists)) then Exit(false);
+  if not (CheckCollides or (ALineOfSight and Exists)) then Exit(false);
 
   if FOnlyTranslation then
   begin
@@ -394,7 +394,7 @@ function TCastleTransform.SphereCollision(
 begin
   { LocalSphereCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then Exit(false);
+  if not CheckCollides then Exit(false);
 
   if FOnlyTranslation then
     Result := LocalSphereCollision(
@@ -410,7 +410,7 @@ function TCastleTransform.SphereCollision2D(
 begin
   { LocalSphereCollision2D will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then Exit(false);
+  if not CheckCollides then Exit(false);
 
   if FOnlyTranslation then
     Result := LocalSphereCollision2D(
@@ -425,7 +425,7 @@ function TCastleTransform.PointCollision2D(
 begin
   { LocalPointCollision2D will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then Exit(false);
+  if not CheckCollides then Exit(false);
 
   if FOnlyTranslation then
     Result := LocalPointCollision2D(
@@ -440,7 +440,7 @@ function TCastleTransform.BoxCollision(
 begin
   { LocalBoxCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then Exit(false);
+  if not CheckCollides then Exit(false);
 
   if FOnlyTranslation then
     Result := LocalBoxCollision(
@@ -520,7 +520,7 @@ var
 begin
   { LocalRayCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not GetPickable then Exit(nil);
+  if not CheckPickable then Exit(nil);
 
   if FOnlyTranslation then
   begin

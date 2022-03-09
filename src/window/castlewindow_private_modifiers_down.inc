@@ -16,7 +16,7 @@
 { Small helpful utilities for CastleWindow implementations that are based
   on a system where left shift and right shift keys (or Alt, or Ctrl keys) 
   are given as different keys. This situation requires some special care
-  because in our TKey type (and so in TCastleWindowBase.KeysDown table)
+  because in our TKey type (and so in TCastleWindow.KeysDown table)
   we do not differentiate between right and left Shift key (or Alt, or Ctrl).
   
   Currently this concerns GTK and Xlib implementations.
@@ -66,7 +66,7 @@ private
   
 {$ifdef read_implementation}
 
-procedure TCastleWindowBase.SetPrivateModifiersDown(ModKey:TModifierKey; IsRight:boolean; 
+procedure TCastleWindow.SetPrivateModifiersDown(ModKey:TModifierKey; IsRight:boolean; 
   Value:boolean);
 var OldState, NewState:boolean;
 begin

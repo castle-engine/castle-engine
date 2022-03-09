@@ -2,7 +2,7 @@
 <project name="custom_input_shortcuts_saved_to_config"
   standalone_source="custom_input_shortcuts_saved_to_config_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.custominputshortcutssavedtoconfig"
+  qualified_name="io.castleengine.custom.input.shortcuts.saved.to.config"
   caption="TInputShortcut demo"
 >
   <compiler_options>

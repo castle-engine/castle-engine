@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ File filters, for TCastleWindowBase.FileDialog and Lazarus file dialogs. }
+{ File filters, for TCastleWindow.FileDialog and Lazarus file dialogs. }
 unit CastleFileFilters;
 
 {$I castleconf.inc}

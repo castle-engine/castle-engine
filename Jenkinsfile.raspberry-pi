@@ -33,6 +33,11 @@ pipeline {
         sh 'make --version'
       }
     }
+    stage('Cleanup') {
+      steps {
+        sh "repository_cleanup . --remove-unversioned"
+      }
+    }
     stage('Build Tools') {
       steps {
         sh 'rm -Rf installed/'

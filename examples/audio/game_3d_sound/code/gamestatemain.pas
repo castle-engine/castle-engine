@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2021 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -191,7 +191,7 @@ end;
 
 procedure TStateMain.UpdateRatPosition;
 const
-  RatCircleMiddle: TVector3 = (Data: (0, 0, 0));
+  RatCircleMiddle: TVector3 = (X: 0; Y: 0; Z: 0);
   RatCircleRadius = 3;
 var
   T: TVector3;

@@ -37,6 +37,7 @@ begin
   {$endif}
 end;
 
+{$ifdef CASTLE_ENABLE_TIFF}
 function LoadTIFF(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
@@ -47,6 +48,7 @@ begin
   Result := nil; // just silence FPC warning
   {$endif}
 end;
+{$endif}
 
 function LoadJP2(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
@@ -234,6 +236,7 @@ begin
   {$endif}
 end;
 
+{$ifdef CASTLE_ENABLE_TIFF}
 procedure SaveTIFF(const Img: TEncodedImage; const Stream: TStream);
 begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
@@ -242,6 +245,7 @@ begin
   raise EImageSaveError.Create('Cannot save TIFF (Vampyre Imaging Library not available at compile-time)');
   {$endif}
 end;
+{$endif}
 
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream);
 begin
