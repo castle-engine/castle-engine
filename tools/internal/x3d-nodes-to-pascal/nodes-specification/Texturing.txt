@@ -123,6 +123,7 @@ TextureCoordinateGenerator : X3DSingleTextureCoordinateNode {
 
 TextureProperties : X3DNode {
   auto-generate-more: true
+  default-container-field: textureProperties
   SFFloat     [in,out] anisotropicDegree   1.0
     range: [1,Inf)
     change: chTexturePropertiesNode

@@ -280,6 +280,8 @@ begin
   FFdGuiTexture := TSFBool.Create(Self, False, 'guiTexture', false);
    FdGuiTexture.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdGuiTexture);
+
+  DefaultContainerField := 'textureProperties';
 end;
 
 {$endif read_implementation}
