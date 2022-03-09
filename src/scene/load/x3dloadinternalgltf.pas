@@ -1038,13 +1038,14 @@ var
     end;
   end;
 
-  function ReadTextureRepeat(const Wrap: TPasGLTF.TSampler.TWrappingMode): Boolean;
+  function ReadTextureWrap(const Wrap: TPasGLTF.TSampler.TWrappingMode): TBoundaryMode;
   begin
-    Result :=
-      (Wrap = TPasGLTF.TSampler.TWrappingMode.Repeat_) or
-      (Wrap = TPasGLTF.TSampler.TWrappingMode.MirroredRepeat);
-    if Wrap = TPasGLTF.TSampler.TWrappingMode.MirroredRepeat then
-      WritelnWarning('glTF', 'MirroredRepeat wrap mode not supported, using simple Repeat');
+    case Wrap of
+      TPasGLTF.TSampler.TWrappingMode.Repeat_       : Result := bmRepeat;
+      TPasGLTF.TSampler.TWrappingMode.ClampToEdge   : Result := bmClampToEdge;
+      TPasGLTF.TSampler.TWrappingMode.MirroredRepeat: Result := bmMirroredRepeat;
+      else raise EInternalError.Create('Unexpected glTF wrap');
+    end;
   end;
 
   function ReadMinificationFilter(const Filter: TPasGLTF.TSampler.TMinFilter): TAutoMinificationFilter;
@@ -1182,15 +1183,16 @@ var
           begin
             GltfSampler := Document.Samplers[GltfTexture.Sampler];
 
-            Texture.RepeatS := ReadTextureRepeat(GltfSampler.WrapS);
-            Texture.RepeatT := ReadTextureRepeat(GltfSampler.WrapT);
-
-            if (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
+            if (GltfSampler.WrapS <> TPasGLTF.TSampler.TWrappingMode.Repeat_) or
+               (GltfSampler.WrapT <> TPasGLTF.TSampler.TWrappingMode.Repeat_) or
+               (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
                (GltfSampler.MagFilter <> TPasGLTF.TSampler.TMagFilter.None) then
             begin
               TextureProperties := TTexturePropertiesNode.Create;
               TextureProperties.MinificationFilter := ReadMinificationFilter(GltfSampler.MinFilter);
               TextureProperties.MagnificationFilter := ReadMagnificationFilter(GltfSampler.MagFilter);
+              TextureProperties.BoundaryModeS := ReadTextureWrap(GltfSampler.WrapS);
+              TextureProperties.BoundaryModeT := ReadTextureWrap(GltfSampler.WrapT);
               Texture.TextureProperties := TextureProperties;
             end;
           end;
