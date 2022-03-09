@@ -936,6 +936,8 @@ procedure TDesignFrame.TDesignerLayer.Render;
     const Lab: TCastleLabel; const Rect: TCastleRectangleControl;
     const LabelColor: TCastleColor);
   begin
+    {$define CASTLE_DESIGNER_LABELS}
+    {$ifdef CASTLE_DESIGNER_LABELS}
     if UI <> nil then
     begin
       Lab.Caption := Frame.ComponentCaption(UI);
@@ -956,6 +958,7 @@ procedure TDesignFrame.TDesignerLayer.Render;
         // put Rect inside UI, otherwise it would be offscreen
         Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
     end else
+    {$endif}
       Rect.Exists := false;
   end;
 
