@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestX3DNodes" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -98,6 +98,7 @@ type
     procedure TestMetadata;
     procedure TestMetadataArray;
     procedure TestNiceName;
+    procedure TestTextureProperties;
   end;
 
 implementation
@@ -2160,6 +2161,19 @@ begin
   N.X3DName := 'Foo';
   AssertEquals('Group(Foo)', N.NiceName);
   FreeAndNil(N);
+end;
+
+procedure TTestX3DNodes.TestTextureProperties;
+var
+  N: TTexturePropertiesNode;
+  I: Integer;
+begin
+  N := TTexturePropertiesNode.Create;
+  try
+    for I := 0 to N.FieldsCount - 1 do
+      if N.Fields[I].X3DName <> 'metadata' then
+        AssertTrue(N.Fields[I].ExecuteChange = chTexturePropertiesNode);
+  finally FreeAndNil(N) end;
 end;
 
 initialization
