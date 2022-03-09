@@ -30,20 +30,26 @@
       from repeatS and repeatT fields.
       @groupBegin }
     procedure HandleTextureProperties(
-      TextureProperties: TTexturePropertiesNode;
-      RepeatS: GLenum; RepeatT: GLenum; RepeatR: GLenum;
-      out Filter: TTextureFilter; out BoundaryModeS: GLenum;
-      out BoundaryModeT: GLenum; out BoundaryModeR: GLenum;
-      out Anisotropy: TGLfloat; out GUITexture: boolean); overload;
+      const TextureProperties: TTexturePropertiesNode;
+      const RepeatS, RepeatT, RepeatR: TGLenum;
+      out Filter: TTextureFilter;
+      out BoundaryModeS, BoundaryModeT, BoundaryModeR: TGLenum;
+      out Anisotropy: TGLfloat;
+      out GUITexture: boolean); overload;
 
     procedure HandleTextureProperties(
-      TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
-      out Filter: TTextureFilter; out BoundaryModeS: GLenum;
-      out BoundaryModeT: GLenum; out Anisotropy: TGLfloat; out GUITexture: boolean); overload;
+      const TextureProperties: TTexturePropertiesNode;
+      const RepeatS, RepeatT: TGLenum;
+      out Filter: TTextureFilter;
+      out BoundaryModeS, BoundaryModeT: TGLenum;
+      out Anisotropy: TGLfloat;
+      out GUITexture: boolean); overload;
 
     procedure HandleTextureProperties(
-      TextureProperties: TTexturePropertiesNode;
-      out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean); overload;
+      const TextureProperties: TTexturePropertiesNode;
+      out Filter: TTextureFilter;
+      out Anisotropy: TGLfloat;
+      out GUITexture: boolean); overload;
     { @groupEnd }
 
     { Decide if this class can handle given texture Node. }
@@ -455,14 +461,16 @@ begin
 end;
 
 procedure TGLTextureNode.HandleTextureProperties(
-  TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
-  RepeatR: GLenum; out Filter: TTextureFilter; out BoundaryModeS: GLenum; out
-  BoundaryModeT: GLenum; out BoundaryModeR: GLenum; out Anisotropy: TGLfloat;
+  const TextureProperties: TTexturePropertiesNode;
+  const RepeatS, RepeatT, RepeatR: TGLenum;
+  out Filter: TTextureFilter;
+  out BoundaryModeS, BoundaryModeT, BoundaryModeR: TGLenum;
+  out Anisotropy: TGLfloat;
   out GUITexture: boolean);
 
   function BoundaryModeGL(const Value: TBoundaryMode): TGLenum;
   const
-    Map: array [TBoundaryMode] of GLenum = (
+    Map: array [TBoundaryMode] of TGLenum = (
       GL_CLAMP_TO_EDGE, // bmClamp: Undefined in X3D, we prefer to make it equal to bmClampToEdge as we don't support border.
       GL_CLAMP_TO_EDGE,
       GL_CLAMP_TO_EDGE, //< bmClampToBoundary: Border not supported, hence behave like bmClampToEdge.
@@ -562,29 +570,34 @@ begin
 end;
 
 procedure TGLTextureNode.HandleTextureProperties(
-  TextureProperties: TTexturePropertiesNode; RepeatS: GLenum; RepeatT: GLenum;
-  out Filter: TTextureFilter; out BoundaryModeS: GLenum; out
-  BoundaryModeT: GLenum; out Anisotropy: TGLfloat; out GUITexture: boolean);
+  const TextureProperties: TTexturePropertiesNode;
+  const RepeatS, RepeatT: TGLenum;
+  out Filter: TTextureFilter;
+  out BoundaryModeS, BoundaryModeT: TGLenum;
+  out Anisotropy: TGLfloat;
+  out GUITexture: boolean);
 var
-  dummy: GLenum;
+  Dummy: TGLenum;
 const
-  dummyRepeatMode = GL_REPEAT;
+  DummyRepeatMode = GL_REPEAT;
 begin
-  HandleTextureProperties(TextureProperties, RepeatS, RepeatT, dummyRepeatMode,
-    Filter, BoundaryModeS, BoundaryModeT, dummy, Anisotropy, GUITexture);
+  HandleTextureProperties(TextureProperties, RepeatS, RepeatT, DummyRepeatMode,
+    Filter, BoundaryModeS, BoundaryModeT, Dummy, Anisotropy, GUITexture);
 end;
 
 procedure TGLTextureNode.HandleTextureProperties(
-  TextureProperties: TTexturePropertiesNode; out Filter: TTextureFilter; out
-  Anisotropy: TGLfloat; out GUITexture: boolean);
+  const TextureProperties: TTexturePropertiesNode;
+  out Filter: TTextureFilter;
+  out Anisotropy: TGLfloat;
+  out GUITexture: boolean);
 var
-  dummy: array[0..2] of GLenum;
+  Dummy: array[0..2] of TGLenum;
 const
-  dummyRepeatMode = GL_REPEAT;
+  DummyRepeatMode = GL_REPEAT;
 begin
   HandleTextureProperties(
-    TextureProperties, dummyRepeatMode, dummyRepeatMode, dummyRepeatMode,
-    Filter, dummy[0], dummy[1], dummy[2], Anisotropy, GUITexture);
+    TextureProperties, DummyRepeatMode, DummyRepeatMode, DummyRepeatMode,
+    Filter, Dummy[0], Dummy[1], Dummy[2], Anisotropy, GUITexture);
 end;
 
 class function TGLTextureNode.ClassForTextureNode(
