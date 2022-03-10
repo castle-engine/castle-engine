@@ -257,11 +257,11 @@ begin
    FdBoundaryModeR.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBoundaryModeR);
 
-  FFdMagnificationFilter := TSFString.Create(Self, True, 'magnificationFilter', 'FASTEST');
+  FFdMagnificationFilter := TSFString.Create(Self, True, 'magnificationFilter', 'DEFAULT');
    FdMagnificationFilter.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdMagnificationFilter);
 
-  FFdMinificationFilter := TSFString.Create(Self, True, 'minificationFilter', 'FASTEST');
+  FFdMinificationFilter := TSFString.Create(Self, True, 'minificationFilter', 'DEFAULT');
    FdMinificationFilter.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdMinificationFilter);
 

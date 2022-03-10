@@ -145,10 +145,10 @@ TextureProperties : X3DNode {
     range: ["CLAMP", "CLAMP_TO_EDGE", "CLAMP_TO_BOUNDARY", "MIRRORED_REPEAT", "REPEAT"]
     enumerated-type: TBoundaryMode BoundaryModeNames bmRepeat
     change: chTexturePropertiesNode
-  SFString    [in,out] magnificationFilter "FASTEST"
+  SFString    [in,out] magnificationFilter "DEFAULT"
     range: [see Table 18.8]
     change: chTexturePropertiesNode
-  SFString    [in,out] minificationFilter  "FASTEST"
+  SFString    [in,out] minificationFilter  "DEFAULT"
     range: [see Table 18.9]
     change: chTexturePropertiesNode
   SFString    [in,out] textureCompression  "FASTEST"
