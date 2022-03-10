@@ -26,10 +26,31 @@
   protected
     { Calculate things from TextureProperties node.
       If TextureProperties = @nil, they are taken from defaults
-      (possibly in RenderOptions). }
+      (possibly in RenderOptions) and BoundaryModeS/-T are taken
+      from repeatS and repeatT fields.
+      @groupBegin }
     procedure HandleTextureProperties(
-      TextureProperties: TTexturePropertiesNode;
-      out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
+      const TextureProperties: TTexturePropertiesNode;
+      const RepeatS, RepeatT, RepeatR: TGLenum;
+      out Filter: TTextureFilter;
+      out BoundaryModeS, BoundaryModeT, BoundaryModeR: TGLenum;
+      out Anisotropy: TGLfloat;
+      out GUITexture: boolean); overload;
+
+    procedure HandleTextureProperties(
+      const TextureProperties: TTexturePropertiesNode;
+      const RepeatS, RepeatT: TGLenum;
+      out Filter: TTextureFilter;
+      out BoundaryModeS, BoundaryModeT: TGLenum;
+      out Anisotropy: TGLfloat;
+      out GUITexture: boolean); overload;
+
+    procedure HandleTextureProperties(
+      const TextureProperties: TTexturePropertiesNode;
+      out Filter: TTextureFilter;
+      out Anisotropy: TGLfloat;
+      out GUITexture: boolean); overload;
+    { @groupEnd }
 
     { Decide if this class can handle given texture Node. }
     class function IsClassForTextureNode(
@@ -440,8 +461,30 @@ begin
 end;
 
 procedure TGLTextureNode.HandleTextureProperties(
-  TextureProperties: TTexturePropertiesNode;
-  out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
+  const TextureProperties: TTexturePropertiesNode;
+  const RepeatS, RepeatT, RepeatR: TGLenum;
+  out Filter: TTextureFilter;
+  out BoundaryModeS, BoundaryModeT, BoundaryModeR: TGLenum;
+  out Anisotropy: TGLfloat;
+  out GUITexture: boolean);
+
+  function BoundaryModeGL(const Value: TBoundaryMode): TGLenum;
+  const
+    Map: array [TBoundaryMode] of TGLenum = (
+      GL_CLAMP_TO_EDGE, // bmClamp: Undefined in X3D, we prefer to make it equal to bmClampToEdge as we don't support border.
+      GL_CLAMP_TO_EDGE,
+      GL_CLAMP_TO_EDGE, //< bmClampToBoundaryUnsupported: Border not supported, hence behave like bmClampToEdge.
+      GL_MIRRORED_REPEAT,
+      GL_REPEAT
+    );
+  begin
+    Result := Map[Value];
+
+    { Use GLFeatures.CLAMP_TO_EDGE instead of GL_CLAMP_TO_EDGE, to support even
+      ancient OpenGL versions that don't support GL_CLAMP_TO_EDGE. }
+    if Result = GL_CLAMP_TO_EDGE then
+      Result := GLFeatures.CLAMP_TO_EDGE;
+  end;
 
   { Convert TAutoMinificationFilter to TMinificationFilter,
     resolving the "default"/"fastest"/"nicest" aliases to specific values. }
@@ -503,12 +546,58 @@ begin
     Filter.Magnification := FinalMagnificationFilter(TextureProperties.MagnificationFilter);
     Anisotropy := TextureProperties.AnisotropicDegree;
     GUITexture := TextureProperties.GUITexture;
+
+    if (TextureProperties.BoundaryModeS = bmClampToBoundaryUnsupported) or
+       (TextureProperties.BoundaryModeT = bmClampToBoundaryUnsupported) or
+       (TextureProperties.BoundaryModeR = bmClampToBoundaryUnsupported) then
+      WritelnWarning('VRML/X3D', 'Boundary mode CLAMP_TO_BOUNDARY is not supported. Behaves like CLAMP_TO_EDGE.');
+
+    BoundaryModeS := BoundaryModeGL(TextureProperties.BoundaryModeS);
+    BoundaryModeT := BoundaryModeGL(TextureProperties.BoundaryModeT);
+    BoundaryModeR := BoundaryModeGL(TextureProperties.BoundaryModeR);
   end else
   begin
     Filter := TextureFilter(Renderer.RenderOptions);
     Anisotropy := 1;
     GUITexture := false;
+
+    { Use repeatS/T/R
+      as no texture property node is provided. [see 18.2.3] }
+    BoundaryModeS := RepeatS;
+    BoundaryModeT := RepeatT;
+    BoundaryModeR := RepeatR;
   end;
+end;
+
+procedure TGLTextureNode.HandleTextureProperties(
+  const TextureProperties: TTexturePropertiesNode;
+  const RepeatS, RepeatT: TGLenum;
+  out Filter: TTextureFilter;
+  out BoundaryModeS, BoundaryModeT: TGLenum;
+  out Anisotropy: TGLfloat;
+  out GUITexture: boolean);
+var
+  Dummy: TGLenum;
+const
+  DummyRepeatMode = GL_REPEAT;
+begin
+  HandleTextureProperties(TextureProperties, RepeatS, RepeatT, DummyRepeatMode,
+    Filter, BoundaryModeS, BoundaryModeT, Dummy, Anisotropy, GUITexture);
+end;
+
+procedure TGLTextureNode.HandleTextureProperties(
+  const TextureProperties: TTexturePropertiesNode;
+  out Filter: TTextureFilter;
+  out Anisotropy: TGLfloat;
+  out GUITexture: boolean);
+var
+  Dummy: array[0..2] of TGLenum;
+const
+  DummyRepeatMode = GL_REPEAT;
+begin
+  HandleTextureProperties(
+    TextureProperties, DummyRepeatMode, DummyRepeatMode, DummyRepeatMode,
+    Filter, Dummy[0], Dummy[1], Dummy[2], Anisotropy, GUITexture);
 end;
 
 class function TGLTextureNode.ClassForTextureNode(
@@ -889,16 +978,19 @@ procedure TGLImageTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
+  BoundaryModeS: TGLenum;
+  BoundaryModeT: TGLenum;
   TextureWrap: TTextureWrap2D;
   GUITexture, FlipVertically: boolean;
 begin
   { HandledNode already made sure IsTextureImage = @true }
 
   HandleTextureProperties(TextureNode.TextureProperties,
-    Filter, Anisotropy, GUITexture);
+    TextureRepeatToGL(TextureNode.RepeatS), TextureRepeatToGL(TextureNode.RepeatT),
+    Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
 
-  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.RepeatS);
-  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.RepeatT);
+  TextureWrap.Data[0] := BoundaryModeS;
+  TextureWrap.Data[1] := BoundaryModeT;
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
@@ -976,16 +1068,19 @@ procedure TGLMovieTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
+  BoundaryModeS: TGLenum;
+  BoundaryModeT: TGLenum;
   TextureWrap: TTextureWrap2D;
   GUITexture: boolean;
 begin
   { HandledNode already made sure IsTextureVideo = @true }
 
   HandleTextureProperties(TextureNode.TextureProperties,
-    Filter, Anisotropy, GUITexture);
+    TextureRepeatToGL(TextureNode.RepeatS), TextureRepeatToGL(TextureNode.RepeatT),
+    Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
 
-  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.RepeatS);
-  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.RepeatT);
+  TextureWrap.Data[0] := BoundaryModeS;
+  TextureWrap.Data[1] := BoundaryModeT;
 
   SetTextureRGBFromImage(TextureNode.TextureVideo.Items[0]);
 
@@ -1071,13 +1166,16 @@ var
   InitialImage: TCastleImage;
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
+  BoundaryModeS: TGLenum;
+  BoundaryModeT: TGLenum;
   TextureWrap: TTextureWrap2D;
   NodeWidth, NodeHeight: Cardinal;
   GUITexture: boolean;
   Sizing: TTextureSizing;
 begin
   HandleTextureProperties(TextureNode.TextureProperties,
-    Filter, Anisotropy, GUITexture);
+    TextureRepeatToGL(TextureNode.FdRepeatS.Value), TextureRepeatToGL(TextureNode.FdRepeatT.Value),
+    Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
 
   { calculate Filter, Anisotropy, NeedsMipmaps }
   NeedsMipmaps := Filter.NeedsMipmaps;
@@ -1091,8 +1189,8 @@ begin
     NeedsMipmaps := false;
   end;
 
-  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.FdRepeatS.Value);
-  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.FdRepeatT.Value);
+  TextureWrap.Data[0] := BoundaryModeS;
+  TextureWrap.Data[1] := BoundaryModeT;
 
   { calculate Width, Height }
   if TextureNode.FdDimensions.Items.Count - 1 >= 0 then
@@ -1870,6 +1968,9 @@ procedure TGL3DTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
+  BoundaryModeS: TGLenum;
+  BoundaryModeT: TGLenum;
+  BoundaryModeR: TGLenum;
   GUITexture: boolean;
   TextureWrap: TTextureWrap3D;
 begin
@@ -1886,12 +1987,13 @@ begin
   if TextureNode.TextureImage = nil then Exit;
 
   HandleTextureProperties(TextureNode.TextureProperties,
-    Filter, Anisotropy, GUITexture);
+    TextureRepeatToGL(TextureNode.FdRepeatS.Value), TextureRepeatToGL(TextureNode.FdRepeatT.Value),
+    TextureRepeatToGL(TextureNode.FdRepeatR.Value), Filter, BoundaryModeS, BoundaryModeT, BoundaryModeR, Anisotropy, GUITexture);
 
   { calculate TextureWrap }
-  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.FdRepeatS.Value);
-  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.FdRepeatT.Value);
-  TextureWrap.Data[2] := TextureRepeatToGL(TextureNode.FdRepeatR.Value);
+  TextureWrap.Data[0] := BoundaryModeS;
+  TextureWrap.Data[1] := BoundaryModeT;
+  TextureWrap.Data[2] := BoundaryModeR;
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 

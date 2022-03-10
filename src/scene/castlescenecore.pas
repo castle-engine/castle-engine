@@ -5150,7 +5150,7 @@ var
   end;
 
   { Handle chTextureImage, chTextureRendererProperties }
-  procedure HandleChangeTextureImageOrRenderer;
+  procedure HandleChangeTextureImageOrRenderer(const ANode: TX3DNode; const Change: TX3DChange);
   var
     ShapeList: TShapeList;
     Shape: TShape;
@@ -5173,6 +5173,40 @@ var
     begin
       if Shape.UsesTexture(TAbstractTextureNode(ANode)) then
         Shape.Changed(false, [Change]);
+    end;
+  end;
+
+  { React to change of TTexturePropertiesNode fields.
+
+    Testcase that this is needed: create new TCastleImageTransform
+    and change TCastleImageTransform.RepeatImage between (0.1, 0.1) and (10, 10),
+    effectively changing the TextureProperties.BoundaryModeS/T under the hood between
+    clamp and repeat. }
+  procedure HandleChangeTextureProperties;
+  var
+    ParentField: TX3DField;
+    TextureNode: TX3DNode;
+    I: Integer;
+  begin
+    Assert(ANode is TTexturePropertiesNode, 'Only TTexturePropertiesNode should send chTexturePropertiesNode');
+    for I := 0 to ANode.ParentFieldsCount - 1 do
+    begin
+      ParentField := ANode.ParentFields[I];
+      if not (ParentField is TSFNode) then
+      begin
+        WritelnWarning('TTexturePropertiesNode change', 'ParentField is not TSFNode. This should not happen in normal usage of TTexturePropertiesNode, submit a bug');
+        Continue;
+      end;
+
+      TextureNode := TSFNode(ParentField).ParentNode;
+      if TextureNode = nil then
+      begin
+        WritelnWarning('TTexturePropertiesNode change', 'ParentField.Node is nil. This should not happen in usual usage of TCastleScene, submit a bug');
+        Continue;
+      end;
+
+      { Make the same effect as when texture node's repeatS/T/R field changes }
+      HandleChangeTextureImageOrRenderer(TextureNode, chTextureRendererProperties);
     end;
   end;
 
@@ -5430,8 +5464,8 @@ begin
       chTimeStopStart: HandleChangeTimeStopStart;
       chViewpointVectors: HandleChangeViewpointVectors;
       // TODO:  chViewpointProjection: HandleChangeViewpointProjection
-      chTextureImage, chTextureRendererProperties: HandleChangeTextureImageOrRenderer;
-      // TODO: chTexturePropertiesNode
+      chTextureImage, chTextureRendererProperties: HandleChangeTextureImageOrRenderer(ANode, Change);
+      chTexturePropertiesNode: HandleChangeTextureProperties;
       chShadowCasters: HandleChangeShadowCasters;
       chGeneratedTextureUpdateNeeded: HandleChangeGeneratedTextureUpdateNeeded;
       { The HandleFontStyle implementation matches

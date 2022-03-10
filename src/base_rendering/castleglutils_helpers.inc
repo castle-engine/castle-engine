@@ -75,7 +75,7 @@ procedure glScalev(const V: TVector3); overload; deprecated 'use other methods t
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 
-procedure glClipPlane(plane: GLenum; const V: TVector4Double); overload;
+procedure glClipPlane(plane: TGLenum; const V: TVector4Double); overload;
 
 procedure glNormalv(const v: TVector3); overload;
 
@@ -324,7 +324,7 @@ procedure glScalev(const V: TVector3); begin glScalef(V.X, V.Y, V.Z); end;
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3); begin glRotatef(Angle, V.X, V.Y, V.Z); end;
 
-procedure glClipPlane(plane: GLenum; const V: TVector4Double);
+procedure glClipPlane(plane: TGLenum; const V: TVector4Double);
 begin
   {$ifdef FPC}GL.{$else}OpenGL.{$endif}glClipPlane(plane, @V);
 end;

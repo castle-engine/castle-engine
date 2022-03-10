@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -485,6 +485,18 @@
     {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
   end;
 
+  { Boundary modes for texture coordinates.
+    See @link(TTexturePropertiesNode.BoundaryModeS),
+    @link(TTexturePropertiesNode.BoundaryModeT),
+    @link(TTexturePropertiesNode.BoundaryModeR). }
+  TBoundaryMode = (
+    bmClamp, //< Clamp texture coordinates to [0..1]. Equivalent to bmClampToEdge.
+    bmClampToEdge, //< Clamp texture coordinates to [0..1].
+    bmClampToBoundaryUnsupported, //< Clamp texture coordinates to [0..1]. Equivalent to bmClampToEdge. See https://castle-engine.io/x3d_implementation_texturing.php.
+    bmMirroredRepeat, //< Repeat the texture, switching between original and flipped texture.
+    bmRepeat //< Repeat the texture.
+  );
+
   { Adjust the texture application properties. }
   TTexturePropertiesNode = class(TAbstractNode)
   strict private
@@ -493,45 +505,6 @@
     function GetMagnificationFilter: TAutoMagnificationFilter;
     procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdAnisotropicDegree: TSFFloat;
-    public property FdAnisotropicDegree: TSFFloat read FFdAnisotropicDegree;
-
-    strict private FFdBorderColor: TSFColorRGBA;
-    public property FdBorderColor: TSFColorRGBA read FFdBorderColor;
-
-    strict private FFdBorderWidth: TSFInt32;
-    public property FdBorderWidth: TSFInt32 read FFdBorderWidth;
-
-    strict private FFdBoundaryModeS: TSFString;
-    public property FdBoundaryModeS: TSFString read FFdBoundaryModeS;
-
-    strict private FFdBoundaryModeT: TSFString;
-    public property FdBoundaryModeT: TSFString read FFdBoundaryModeT;
-
-    strict private FFdBoundaryModeR: TSFString;
-    public property FdBoundaryModeR: TSFString read FFdBoundaryModeR;
-
-    strict private FFdMagnificationFilter: TSFString;
-    public property FdMagnificationFilter: TSFString read FFdMagnificationFilter;
-
-    strict private FFdMinificationFilter: TSFString;
-    public property FdMinificationFilter: TSFString read FFdMinificationFilter;
-
-    strict private FFdTextureCompression: TSFString;
-    public property FdTextureCompression: TSFString read FFdTextureCompression;
-
-    strict private FFdTexturePriority: TSFFloat;
-    public property FdTexturePriority: TSFFloat read FFdTexturePriority;
-
-    strict private FFdGenerateMipMaps: TSFBool;
-    public property FdGenerateMipMaps: TSFBool read FFdGenerateMipMaps;
-
-    strict private FFdGUITexture: TSFBool;
-    public property FdGUITexture: TSFBool read FFdGUITexture;
-
     property MagnificationFilter: TAutoMagnificationFilter
       read GetMagnificationFilter write SetMagnificationFilter;
 
@@ -1187,77 +1160,14 @@ begin
   Result := 'TextureCoordinateGenerator';
 end;
 
-procedure TTexturePropertiesNode.CreateNode;
-begin
-  inherited;
-
-  FFdAnisotropicDegree := TSFFloat.Create(Self, true, 'anisotropicDegree', 1.0);
-   FdAnisotropicDegree.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdAnisotropicDegree);
-  { X3D specification comment: [1,Inf) }
-
-  FFdBorderColor := TSFColorRGBA.Create(Self, true, 'borderColor', Vector4(0, 0, 0, 0));
-   FdBorderColor.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdBorderColor);
-  { X3D specification comment: [0,1] }
-
-  FFdBorderWidth := TSFInt32.Create(Self, true, 'borderWidth', 0);
-   FdBorderWidth.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdBorderWidth);
-  { X3D specification comment: [0,1] }
-
-  FFdBoundaryModeS := TSFString.Create(Self, true, 'boundaryModeS', 'REPEAT');
-   FdBoundaryModeS.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdBoundaryModeS);
-  { X3D specification comment: [see Table 18.7] }
-
-  FFdBoundaryModeT := TSFString.Create(Self, true, 'boundaryModeT', 'REPEAT');
-   FdBoundaryModeT.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdBoundaryModeT);
-  { X3D specification comment: [see Table 18.7] }
-
-  FFdBoundaryModeR := TSFString.Create(Self, true, 'boundaryModeR', 'REPEAT');
-   FdBoundaryModeR.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdBoundaryModeR);
-  { X3D specification comment: [see Table 18.7] }
-
-  FFdMagnificationFilter := TSFString.Create(Self, true, 'magnificationFilter', 'FASTEST');
-   FdMagnificationFilter.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdMagnificationFilter);
-  { X3D specification comment: [see Table 18.8] }
-
-  FFdMinificationFilter := TSFString.Create(Self, true, 'minificationFilter', 'FASTEST');
-   FdMinificationFilter.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdMinificationFilter);
-  { X3D specification comment: [see Table 18.9] }
-
-  FFdTextureCompression := TSFString.Create(Self, true, 'textureCompression', 'FASTEST');
-   FdTextureCompression.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdTextureCompression);
-  { X3D specification comment: [see Table 18.10] }
-
-  FFdTexturePriority := TSFFloat.Create(Self, true, 'texturePriority', 0);
-   FdTexturePriority.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdTexturePriority);
-  { X3D specification comment: [0,1] }
-
-  FFdGenerateMipMaps := TSFBool.Create(Self, false, 'generateMipMaps', false);
-   FdGenerateMipMaps.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdGenerateMipMaps);
-
-  FFdGUITexture := TSFBool.Create(Self, false, 'guiTexture', false);
-   FdGUITexture.ChangeAlways := chTexturePropertiesNode;
-  AddField(FFdGUITexture);
-
-  { X3D XML spec (edition 2) mistakenly claims it should be
-    "lineProperties", which is nonsense... I set this to "textureProperties". }
-  DefaultContainerField := 'textureProperties';
-end;
-
-class function TTexturePropertiesNode.ClassX3DType: string;
-begin
-  Result := 'TextureProperties';
-end;
+const
+  BoundaryModeNames: array [TBoundaryMode] of string = (
+    'CLAMP',
+    'CLAMP_TO_EDGE',
+    'CLAMP_TO_BOUNDARY',
+    'MIRRORED_REPEAT',
+    'REPEAT'
+  );
 
 function TTexturePropertiesNode.GetMinificationFilter: TAutoMinificationFilter;
 var
