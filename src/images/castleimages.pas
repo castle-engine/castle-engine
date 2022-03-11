@@ -1795,7 +1795,7 @@ type
     because of Img class (memory format) and/or image file format.)
 
   @groupBegin }
-procedure SaveImage(const img: TEncodedImage; const MimeType: string; Stream: TStream); overload;
+procedure SaveImage(const Img: TEncodedImage; const MimeType: string; Stream: TStream); overload;
 procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
 { @groupEnd }
 
@@ -4679,7 +4679,7 @@ begin
     raise EImageSaveError.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
 end;
 
-procedure SaveImage(const img: TEncodedImage; const MimeType: string; Stream: TStream);
+procedure SaveImage(const Img: TEncodedImage; const MimeType: string; Stream: TStream);
 var
   Format: TImageFormat;
 begin

@@ -1,9 +1,7 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
-  Parts of this file are based on FPC packages/fcl-process/src/process.pp ,
-  which conveniently uses *exactly* the same license as Castle Game Engine.
 
   "Castle Game Engine" is free software; see the file COPYING.txt,
   included in this distribution, for details about the copyright.

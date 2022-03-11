@@ -143,6 +143,11 @@ type
       FIOSTeam: string;
       FindPascalFilesResult: TStringList; // valid only during FindPascalFilesCallback
 
+      FDebianMenuSection: String;
+      FDebianControlSection: String;
+      FFreeDesktopCategories: String;
+      FFreeDesktopComment: String;
+
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
     procedure CheckValidQualifiedName(const OptionName: string; const QualifiedName: string);
@@ -255,6 +260,33 @@ type
       that can optionally auto-create the source file. }
     property PluginSource: string read FPluginSource;
 
+    { Debian-specific section name, for Debian control file.
+      See https://www.debian.org/doc/debian-policy/ch-archive.html#s-subsections
+      for allowed values.
+      Used only by --package-format=deb.
+
+      Default: 'games'. }
+    property DebianControlSection: String read FDebianControlSection;
+
+    { Debian-specific section name, for Debian menu.
+      See https://www.debian.org/doc/packaging-manuals/menu.html/ch3.html#s3.5 and
+      "man menufile" on Debian for more information.
+      Used only by --package-format=deb.
+
+      Default: 'Games'. }
+    property DebianMenuSection: String read FDebianMenuSection;
+
+    { Freedesktop category of the app,
+      see https://www.freedesktop.org/wiki/Specifications/menu-spec/ for more info.
+      Used only by --package-format=deb right now.
+      Default: Game }
+    property FreeDesktopCategories: String read FFreeDesktopCategories;
+
+    { A short description of the project.
+      See https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html for more info.
+      Used only by --package-format=deb right now. }
+    property FreeDesktopComment: String read FFreeDesktopComment;
+
     { Find a file with given BaseName (contains filename, with extension, but without any path)
       among SearchPaths of this project.
       Returns absolute filename, or '' if not found. }
@@ -327,12 +359,13 @@ end;
 
 function TImageFileNames.FindExtension(const Extensions: array of string): string;
 var
-  I: Integer;
+  I, J: Integer;
 begin
   Result := '';
-  for I := 0 to Count - 1 do
-    if AnsiSameText(ExtractFileExt(Strings[I]), '.ico') then
-      Exit(Strings[I]);
+  for J := 0 to Length(Extensions) - 1 do
+    for I := 0 to Count - 1 do
+      if AnsiSameText(ExtractFileExt(Strings[I]), Extensions[J]) then
+        Exit(Strings[I]);
 end;
 
 function TImageFileNames.FindReadable: TCastleImage;
@@ -679,6 +712,24 @@ begin
 
     if FAndroidServices.HasService('open_associated_urls') then
       FAndroidServices.AddService('download_urls'); // downloading is needed when opening files from web
+
+    FDebianControlSection := 'games';
+    FDebianMenuSection := 'Games';
+    Element := Doc.DocumentElement.ChildElement('debian', false);
+    if Element <> nil then
+    begin
+      FDebianControlSection := Element.AttributeStringDef('control_section', FDebianControlSection);
+      FDebianMenuSection := Element.AttributeStringDef('menu_section', FDebianMenuSection);
+    end;
+
+    FFreeDesktopCategories := 'Game';
+    FFreeDesktopComment := '';
+    Element := Doc.DocumentElement.ChildElement('free_desktop', false);
+    if Element <> nil then
+    begin
+      FFreeDesktopCategories := Element.AttributeStringDef('categories', FFreeDesktopCategories);
+      FFreeDesktopComment := Element.AttributeStringDef('comment', FFreeDesktopComment);
+    end;
   finally FreeAndNil(Doc) end;
 
   CreateFinish;

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -675,6 +675,15 @@ begin
     ]);
   end;
 
+  if Result in [pfDeb] then
+  begin
+    if (OS <> Linux) then
+      raise Exception.Create('Cannot package DEB for OS = ' + OSToString(OS) + ' Expected: Linux.');
+    {$ifndef Linux}
+    raise Exception.Create('Currently DEB package can only be created under Linux OS, as it depends on several Linux-specific tools.');
+    {$endif}
+  end;
+
   if (Result in [
       pfAndroidApk,
       pfAndroidAppBundle
@@ -809,6 +818,9 @@ var
       Pack.AddDataInformation(TCastleManifest.DataName);
 
       PackageFileName := PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion);
+
+      Pack.Cpu := Cpu;
+      Pack.Manifest := Manifest;
       Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
     finally FreeAndNil(Pack) end;
   end;
@@ -849,7 +861,7 @@ begin
       end;
     pfNintendoSwitchProject:
       PackageNintendoSwitch(Self);
-    pfDirectory, pfZip, pfTarGz:
+    pfDirectory, pfZip, pfTarGz, pfDeb:
       PackageDirectory(PackageFormatFinal);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Unhandled PackageFormatFinal in DoPackage');
@@ -1048,6 +1060,7 @@ begin
   case PackageFormat of
     pfZip: Result += '.zip';
     pfTarGz: Result += '.tar.gz';
+    pfDeb: Result += '.deb';
     else ; // leave without extension for pfDirectory
   end;
 end;

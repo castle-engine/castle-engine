@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -314,7 +314,11 @@ function ApplicationConfig(const Path: string): string;
 
       @item(@code(data) subdirectory of the current directory, if exists.
         This is easiest and comfortable for development, just keep
-        the "data" subdirectory alongside the executable binary.)
+        the "data" subdirectory alongside the executable binary.
+
+        Note: This is searched *after* system-wide specific dirs above,
+        to avoid accidentally picking unrelated "data" in current directory
+        instead of system-wide data.)
 
       @item(As a last resort, we just return the current directory.
         So you can just place data files directly inside the current directory.
