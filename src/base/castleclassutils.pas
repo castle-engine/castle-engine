@@ -2112,6 +2112,11 @@ var
   TextFile: Text;
   StringStream: TStringStream;
 begin
+  {$ifdef VER3_3} {$define CASTLE_SECURE_BACKTRACE} {$endif}
+  {$ifdef CASTLE_SECURE_BACKTRACE}
+  try
+  {$endif}
+
   StringStream := TStringStream.Create('');
   try
     AssignStream(TextFile, StringStream);
@@ -2121,6 +2126,15 @@ begin
     finally CloseFile(TextFile) end;
     Result := StringStream.DataString;
   finally FreeAndNil(StringStream) end;
+
+  {$ifdef CASTLE_SECURE_BACKTRACE}
+  except
+    // TODO: investigate and report, reproducible by running play_animation with non-existent data.
+    // WritelnWarning('Capturing backtrace failed, this is known to happen with some FPC 3.3.1 versions.');
+    // Cannot log this problem -- as logging itself could use backtrace, causing infinite loop...
+    Result := '';
+  end;
+  {$endif}
 {$endif}
 end;
 {$endif}
