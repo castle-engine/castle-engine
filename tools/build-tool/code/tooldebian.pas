@@ -12,6 +12,8 @@
 
   ----------------------------------------------------------------------------
 }
+
+{ Package a project to a DEB (package format of Debian and derivatives). }
 unit ToolDebian;
 
 {$I castleconf.inc}
@@ -22,18 +24,16 @@ uses
   CastleFindFiles,
   ToolArchitectures, ToolManifest, ToolPackage;
 
-type
-  { Package a project to a DEB (package format of Debian and derivatives). }
-  TPackageDebian = class(TPackageDirectoryAbstract)
-  strict private
-    { Total size of all binaries in the project, required for Debian metadata }
-    BinariesSize: Int64;
-    { Helper to find total size of all files inside the folder. }
-    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
-  public
-    procedure Make(const OutputProjectPath: String; const TempPath: String;
-      const PackageFileName: String; const Cpu: TCpu; const Manifest: TCastleManifest);
-  end;
+{ Create Debian package (DEB).
+
+  Assumes that PackagedPath has been created by TPackageDirectory,
+  and it contains the final executable and data files.
+
+  PackageOutputPath, PackageFileName have the same meaning
+  as for TPackageDirectory.Make. }
+procedure PackageDebian(const PackagedPath: String;
+  const PackageOutputPath, PackageFileName: String;
+  const Cpu: TCpu; const Manifest: TCastleManifest);
 
 implementation
 
@@ -43,13 +43,37 @@ uses
   CastleStringUtils,
   ToolCommonUtils, ToolUtils;
 
-procedure TPackageDebian.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+{ DirectorySize utility ------------------------------------------------------ }
+
+type
+  TDirectorySizeHelper = class
+  public
+    { Total size of all files in the directory. }
+    Size: Int64;
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  end;
+
+procedure TDirectorySizeHelper.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 begin
-  BinariesSize += FileInfo.Size;
+  Size += FileInfo.Size;
 end;
 
-procedure TPackageDebian.Make(const OutputProjectPath: String; const TempPath: String;
-  const PackageFileName: String; const Cpu: TCpu; const Manifest: TCastleManifest);
+function DirectorySize(const Dir: String): Int64;
+var
+  Helper: TDirectorySizeHelper;
+begin
+  Helper := TDirectorySizeHelper.Create;
+  try
+    FindFiles(Dir, '*', false, {$ifdef FPC}@{$endif}Helper.FoundFile, [ffRecursive]);
+    Result := Helper.Size;
+  finally FreeAndNil(Helper) end;
+end;
+
+{ PackageDebian -------------------------------------------------------------- }
+
+procedure PackageDebian(const PackagedPath: String;
+  const PackageOutputPath, PackageFileName: String;
+  const Cpu: TCpu; const Manifest: TCastleManifest);
 
   function CpuToArchitectureString(const Cpu: TCpu): String;
   begin
@@ -93,10 +117,12 @@ const
   DefaultIconXpmString = {$I ../embedded_images/tooldefaulticonxpm.inc};
   AllowedDebianPackageChars = ['a'..'z', '0'..'9', '-', '+', '.'];
 var
+  TempPath: String;
+  BinariesSize: Int64;
   PathToExecutableLocal, PathToExecutableUnix: String;
   PathToIconFileLocal, PathToIconFileUnix: String;
   ShareDirLocal, ShareDirUrl: String;
-  PackageDirLocal, PackageDirUrl: String;
+  PackageDirBaseName, PackageDirLocal, PackageDirUrl: String;
   ImageMagickExe, PngIcon: String;
   DebianDescription: String;
 begin
@@ -107,7 +133,10 @@ begin
       Manifest.Name
     ]);
 
-  PackageDirLocal := TempPath + PackageFileName;
+  TempPath := InclPathDelim(CreateTemporaryDir);
+
+  PackageDirBaseName := DeleteFileExt(PackageFileName);
+  PackageDirLocal := TempPath + PackageDirBaseName;
   PackageDirUrl := StringReplace(PackageDirLocal, PathDelim, '/', [rfReplaceAll]);
   if DirectoryExists(PackageDirLocal) then
     RemoveNonEmptyDir(PackageDirLocal);
@@ -116,7 +145,7 @@ begin
   PathToExecutableUnix := '/usr/bin/' + Manifest.Name;
   PathToExecutableLocal := StringReplace(PathToExecutableUnix, '/', PathDelim, [rfReplaceAll]);
   CheckForceDirectories(PackageDirLocal + PathDelim + 'usr' + PathDelim + 'bin');
-  CheckCopyFile(InclPathDelim(Path) + Manifest.ExecutableName,
+  CheckCopyFile(InclPathDelim(PackagedPath) + Manifest.ExecutableName,
     PackageDirLocal + PathDelim + PathToExecutableLocal);
 
   BinariesSize := FileSize(PackageDirLocal + PathDelim + PathToExecutableLocal);
@@ -126,12 +155,10 @@ begin
   ShareDirUrl := StringReplace(ShareDirLocal, PathDelim, '/', [rfReplaceAll]);
   CheckForceDirectories(ShareDirLocal);
 
-  if DirectoryExists(InclPathDelim(Path) + 'data') then
+  if DirectoryExists(InclPathDelim(PackagedPath) + 'data') then
   begin
-    CopyDirectory(InclPathDelim(Path) + 'data', InclPathDelim(ShareDirLocal) + Manifest.Name);
-    // Calculate binaries size
-    FindFiles(InclPathDelim(Path) + 'data', '*', false,
-      {$ifdef FPC}@{$endif}FoundFile, [ffRecursive]);
+    CopyDirectory(InclPathDelim(PackagedPath) + 'data', InclPathDelim(ShareDirLocal) + Manifest.Name);
+    BinariesSize += DirectorySize(InclPathDelim(PackagedPath) + 'data');
   end;
 
   // Copy or generate XPM icon
@@ -228,17 +255,17 @@ begin
 
   // Calculate MD5 checksums
 
-  RunCommandSimple(TempPath + PackageFileName, 'bash', ['-c',
+  RunCommandSimple(TempPath + PackageDirBaseName, 'bash', ['-c',
     'find -type f | egrep -v ''^\./DEBIAN'' | xargs --replace=hh -n1 md5sum "hh" | sed ''s/\ \.\///'' > DEBIAN/md5sums']);
 
   // Package DEB
 
-  RunCommandSimple(TempPath, 'dpkg-deb', ['--build', PackageFileName]);
-  RenameFile(PackageDirLocal + '.deb', PackageFileName + '.deb');
+  RunCommandSimple(TempPath, 'dpkg-deb', ['--build', PackageDirBaseName]);
 
-  // And finally clean up the temporary files
-  RemoveNonEmptyDir(PackageDirLocal);
-  DeleteFile(TempPath + 'package-debian.sh');
+  CheckRenameFile(TempPath + PackageDirBaseName + '.deb', CombinePaths(PackageOutputPath, PackageFileName));
+
+  // clean up the temporary files
+  RemoveNonEmptyDir(TempPath);
 end;
 
 end.
