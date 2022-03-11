@@ -114,20 +114,27 @@ begin
   if DirectoryExists(PackageDirLocal) then
     RemoveNonEmptyDir(PackageDirLocal);
 
-  // Copy the binaries
-
+  // Copy the executable to /usr/bin/<project-name>
   PathToExecutableUnix := '/usr/bin/' + Manifest.Name;
   PathToExecutableLocal := StringReplace(PathToExecutableUnix, '/', PathDelim, [rfReplaceAll]);
-  CopyDirectory(Path, PackageDirLocal + PathToExecutableLocal);
+  CheckForceDirectories(PackageDirLocal + PathDelim + 'usr' + PathDelim + 'bin');
+  CheckCopyFile(InclPathDelim(Path) + Manifest.ExecutableName,
+    PackageDirLocal + PathDelim + PathToExecutableLocal);
 
+  BinariesSize := FileSize(PackageDirLocal + PathDelim + PathToExecutableLocal);
+
+  // Copy the data to /usr/share/<project-data> (ApplicationData is prepared to detect it by default)
   ShareDirLocal := PackageDirLocal + PathDelim + 'usr' + PathDelim + 'share';
   ShareDirUrl := StringReplace(ShareDirLocal, PathDelim, '/', [rfReplaceAll]);
   CheckForceDirectories(ShareDirLocal);
 
-  // Calculate binaries size
-
-  BinariesSize := 0;
-  FindFiles(PackageDirLocal + PathToExecutableLocal, '*', false, {$ifdef FPC}@{$endif}FoundFile, [ffRecursive]);
+  if DirectoryExists(InclPathDelim(Path) + 'data') then
+  begin
+    CopyDirectory(InclPathDelim(Path) + 'data', InclPathDelim(ShareDirLocal) + Manifest.Name);
+    // Calculate binaries size
+    FindFiles(InclPathDelim(Path) + 'data', '*', false,
+      {$ifdef FPC}@{$endif}FoundFile, [ffRecursive]);
+  end;
 
   // Copy or generate XPM icon
 
@@ -216,7 +223,7 @@ begin
   StringToFile(
     PackageDirUrl + '/DEBIAN/postinst',
     '#!/bin/sh' + NL + NL +
-    'chmod +x ' + PathToExecutableUnix + '/' + Manifest.ExecutableName + NL + NL +
+    'chmod +x ' + PathToExecutableUnix + NL + NL +
     'exit 0'
   );
   DoMakeExecutable(PackageDirLocal + PathDelim + 'DEBIAN' + PathDelim + 'postinst');
