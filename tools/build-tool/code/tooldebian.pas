@@ -25,13 +25,12 @@ uses
   ToolArchitectures, ToolManifest, ToolPackage;
 
 type
-  { Package a project to a directory. }
+  { Package a project to a DEB (package format of Debian and derivatives). }
   TPackageDebian = class(TPackageDirectoryAbstract)
   strict private
     { Total size of all binaries in the project, required for Debian metadata }
     BinariesSize: Int64;
-    { Helper to find total size of all files inside the folder,
-      To satisfy FindFile syntax has to be of Object }
+    { Helper to find total size of all files inside the folder. }
     procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   public
     procedure Make(const OutputProjectPath: String; const TempPath: String;
@@ -39,10 +38,11 @@ type
   end;
 
 implementation
+
 uses
   SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
   CastleUtils, CastleFilesUtils, CastleDownload, CastleImages, CastleLog,
-  ToolCommonUtils, ToolUtils, ToolEmbeddedXpmIcon;
+  ToolCommonUtils, ToolUtils;
 
 procedure TPackageDebian.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 begin
@@ -50,7 +50,7 @@ begin
 end;
 
 procedure TPackageDebian.Make(const OutputProjectPath: String; const TempPath: String;
-      const PackageFileName: String; const Cpu: TCpu; const Manifest: TCastleManifest);
+  const PackageFileName: String; const Cpu: TCpu; const Manifest: TCastleManifest);
 
   function CpuToArchitectureString(const Cpu: TCpu): String;
   begin
@@ -58,14 +58,16 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const TempPath: S
       { Architectures supported by https://packages.debian.org/buster/bash }
       x86_64: Result := 'amd64';
       aarch64: Result := 'arm64';
-      arm: begin
+      arm:
+        begin
           Result := 'armel';
           WriteLnWarning('Architecture ' + CpuToString(Cpu) + ' is ambiguous between "armel" and "armhf" in Debian.');
         end;
       i386: Result := 'i386';
       mips: Result := 'mips';
       mipsel: Result := 'mipsel';
-      powerpc64: begin
+      powerpc64:
+        begin
           Result := 'ppc64el';
           WriteLnWarning('Architecture ' + CpuToString(Cpu) + ' is ambiguous between "ppc64el" and "ppc64" in Debian.');
         end;
@@ -75,7 +77,7 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const TempPath: S
       m68k: Result := 'm68k';
       {$ifdef VER3_0} // FPC 3.2.2 removed riscv64, see https://github.com/castle-engine/castle-engine/commit/04fed13723a985f37f53b3a852d7d84d7e4b975b
       riscv64: Result := 'riscv64';
-      {$endif} 
+      {$endif}
       sparc64: Result := 'sparc64';
       // "alpha"
       // "sh4"
@@ -88,12 +90,8 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const TempPath: S
     end;
   end;
 
-  procedure CreateDirCheck(const Dir: String);
-  begin
-    if not CreateDir(Dir) then
-      raise Exception.Create('Cannot create directory: ' + Dir);
-  end;
-
+const
+  DefaultIconXpmString = {$I ../embedded_images/tooldefaulticonxpm.inc};
 var
   PathToExecutableLocal, PathToExecutableUnix: String;
   PathToIconFileLocal, PathToIconFileUnix: String;
@@ -109,13 +107,13 @@ begin
 
   // Copy the binaries
 
-  PathToExecutableUnix := '/usr/' + Manifest.DebianInstallFolder + '/' + Manifest.Name;
+  PathToExecutableUnix := '/usr/bin/' + Manifest.Name;
   PathToExecutableLocal := StringReplace(PathToExecutableUnix, '/', PathDelim, [rfReplaceAll]);
   CopyDirectory(Path, PackageDirLocal + PathToExecutableLocal);
 
   ShareDirLocal := PackageDirLocal + PathDelim + 'usr' + PathDelim + 'share';
   ShareDirUrl := StringReplace(ShareDirLocal, PathDelim, '/', [rfReplaceAll]);
-  CreateDirCheck(ShareDirLocal);
+  CheckForceDirectories(ShareDirLocal);
 
   // Calculate binaries size
 
@@ -124,7 +122,7 @@ begin
 
   // Copy or generate XPM icon
 
-  CreateDirCheck(ShareDirLocal + PathDelim + 'pixmaps');
+  CheckForceDirectories(ShareDirLocal + PathDelim + 'pixmaps');
   PathToIconFileUnix := '/usr/share/pixmaps/' + Manifest.ExecutableName + '.xpm';
   PathToIconFileLocal := StringReplace(PathToIconFileUnix, '/', PathDelim, [rfReplaceAll]);
   if Manifest.Icons.FindExtension(['.xpm']) <> '' then
@@ -141,30 +139,33 @@ begin
     end else
     begin
       WriteLnWarning('XPM icon not found and no ImageMagick found for automatic conversion. Using default icon');
-      StringToFile(PackageDirLocal + PathToIconFileLocal, XpmIconString);
+      StringToFile(PackageDirLocal + PathToIconFileLocal, DefaultIconXpmString);
     end;
   end;
 
   // Create menu item for the game
 
-  CreateDirCheck(ShareDirLocal + PathDelim + 'menu');
+  CheckForceDirectories(ShareDirLocal + PathDelim + 'menu');
   StringToFile(
     ShareDirUrl + '/menu/' + Manifest.Name,
     '?package(' + Manifest.Name + '): \' + NL +
     'needs="X11" \' + NL +
-    'section="' + Manifest.DebianSection + '" \' + NL +
+    'section="' + Manifest.DebianMenuSection + '" \' + NL +
     'title="' + Manifest.Caption + '" \' + NL +
-    'command="bash -c ''cd ' + PathToExecutableUnix + ' && ./' + Manifest.ExecutableName + '''" \' + NL +
+    { Note: this assumes that the application is installed under $PATH,
+      and that application will find its own system-wide data using standard
+      ApplicationData logic on Linux. }
+    'command="' + Manifest.ExecutableName + '" \' + NL +
     'icon="' + PathToIconFileUnix +'"'
   );
 
-  CreateDirCheck(ShareDirLocal + PathDelim + 'applications');
+  CheckForceDirectories(ShareDirLocal + PathDelim + 'applications');
   StringToFile(
     ShareDirUrl + '/applications/' + Manifest.ExecutableName + '.desktop',
     '[Desktop Entry]' + NL +
     'Version=' + Manifest.Version.DisplayValue + NL +
     'Terminal=false' + NL +
-    'Exec=bash -c ''cd ' + PathToExecutableUnix + ' && ./' + Manifest.ExecutableName + '''' + NL +
+    'Exec=' + Manifest.ExecutableName + NL +
     'Icon=' + PathToIconFileUnix + NL +
     'Type=Application' + NL +
     'Categories=' + Manifest.FreeDesktopCategories + NL +
@@ -181,16 +182,17 @@ begin
   end else
     ManifestFreeDesktopComment := Manifest.FreeDesktopComment;
 
-  CreateDirCheck(PackageDirLocal + PathDelim + 'DEBIAN');
+  CheckForceDirectories(PackageDirLocal + PathDelim + 'DEBIAN');
   StringToFile(
     PackageDirUrl + '/DEBIAN/control',
     'Package: ' + Manifest.Name + NL +
     'Version: ' + Manifest.Version.DisplayValue + NL +
-    'Section: ' + Manifest.DebianInstallFolder + NL +
+    'Section: ' + Manifest.DebianControlSection + NL +
     'Priority: optional' + NL +
     'Architecture: ' + CpuToArchitectureString(Cpu) + NL +
     'Maintainer: ' + Manifest.Author + NL +
     'Installed-Size: ' + IntToStr(BinariesSize div 1024) + NL +
+    { TODO: This should reflect Project.Dependencies. }
     'Depends: libopenal1, libpng16-16, zlib1g, libvorbis0a, libvorbisfile3, libfreetype6, libgl1-mesa-dri, libgtk2.0-0' + NL +
     'Description: ' + Manifest.Caption + NL +
     ' ' + ManifestFreeDesktopComment + NL //final new line
@@ -222,4 +224,3 @@ begin
 end;
 
 end.
-
