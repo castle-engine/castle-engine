@@ -317,7 +317,7 @@ function ApplicationConfig(const Path: string): string;
         the "data" subdirectory alongside the executable binary.
 
         Note: This is searched *after* system-wide specific dirs above,
-        to avoid accidentlaly picking unrelated "data" in current directory
+        to avoid accidentally picking unrelated "data" in current directory
         instead of system-wide data.)
 
       @item(As a last resort, we just return the current directory.
