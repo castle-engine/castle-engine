@@ -42,6 +42,7 @@ implementation
 uses
   SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
   CastleUtils, CastleFilesUtils, CastleDownload, CastleImages, CastleLog,
+  CastleStringUtils,
   ToolCommonUtils, ToolUtils;
 
 procedure TPackageDebian.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
@@ -92,6 +93,7 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const TempPath: S
 
 const
   DefaultIconXpmString = {$I ../embedded_images/tooldefaulticonxpm.inc};
+  AllowedDebianPackageChars = ['a'..'z', '0'..'9', '-', '+', '.'];
 var
   PathToExecutableLocal, PathToExecutableUnix: String;
   PathToIconFileLocal, PathToIconFileUnix: String;
@@ -100,6 +102,13 @@ var
   ImageMagickExe, PngIcon: String;
   DebianDescription: String;
 begin
+  { dpkg-deb only accepts package names with these characters. }
+  if CharsPos(AllChars - AllowedDebianPackageChars, Manifest.Name) <> 0 then
+    raise Exception.CreateFmt('Project name is "%s", but for Debian package it can only contain lowercase letters, digits, and -+. .' + NL +
+      '  TODO: In the future, we will fix project name for Debian to work with any CGE-allowed project name.', [
+      Manifest.Name
+    ]);
+
   PackageDirLocal := TempPath + PackageFileName;
   PackageDirUrl := StringReplace(PackageDirLocal, PathDelim, '/', [rfReplaceAll]);
   if DirectoryExists(PackageDirLocal) then
