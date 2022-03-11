@@ -97,8 +97,8 @@ var
   PathToIconFileLocal, PathToIconFileUnix: String;
   ShareDirLocal, ShareDirUrl: String;
   PackageDirLocal, PackageDirUrl: String;
-  ImageMagickExe: String;
-  ManifestFreeDesktopComment: String;
+  ImageMagickExe, PngIcon: String;
+  DebianDescription: String;
 begin
   PackageDirLocal := TempPath + PackageFileName;
   PackageDirUrl := StringReplace(PackageDirLocal, PathDelim, '/', [rfReplaceAll]);
@@ -129,16 +129,20 @@ begin
     CheckCopyFile(Manifest.Icons.FindExtension(['.xpm']), PackageDirLocal + PathToIconFileLocal)
   else
   begin
+    PngIcon := Manifest.Icons.FindExtension(['.png']);
     // using ImageMagick - FPWriteXPM first doesn't properly write alpha channel, second uses palette char size = 2 which results in large files
     ImageMagickExe := FindExe('convert');
-    if ImageMagickExe <> '' then
+    if (PngIcon <> '') and (ImageMagickExe <> '') then
     begin
-      WriteLnWarning('XPM icon not found. Attempting conversion.');
+      WritelnVerbose('Converting PNG icon to XPM using ImageMagick.');
       // 96 colors in XPM still produces 1 symbol per color, larger values double the file size
-      RunCommandSimple(ImageMagickExe, ['-colors 96', Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal])
+      RunCommandSimple(ImageMagickExe, ['-colors', '96', PngIcon, PackageDirLocal + PathToIconFileLocal])
     end else
     begin
-      WriteLnWarning('XPM icon not found and no ImageMagick found for automatic conversion. Using default icon');
+      WritelnVerbose('Using default XPM icon.' + NL +
+        '  Reason:' + NL +
+        '  - We did not find in CastleEngineManifest.xml XPM icon.' + NL +
+        '  - We also did not find in CastleEngineManifest.xml PNG icon or we did not find ImageMagick.');
       StringToFile(PackageDirLocal + PathToIconFileLocal, DefaultIconXpmString);
     end;
   end;
@@ -174,13 +178,13 @@ begin
   );
 
   if Trim(Manifest.Author) = '' then
-    WriteLnWarning('No author was provided in Manifest file. This field is recommended to build a Debian package.');
+    WriteLnWarning('No "author" was provided in CastleEngineManifest.xml. This field is recommended to build a Debian package.');
   if Trim(Manifest.FreeDesktopComment) = '' then
   begin
-    WriteLnWarning('No "comment" was provided in Manifest file. This field is required to build a Debian package. Autoreplacing with "No comment provided".');
-    ManifestFreeDesktopComment := 'No comment provided';
+    WriteLnWarning('No "comment" was provided in CastleEngineManifest.xml. This field is recommended to build a Debian package.');
+    DebianDescription := 'No comment provided';
   end else
-    ManifestFreeDesktopComment := Manifest.FreeDesktopComment;
+    DebianDescription := Manifest.FreeDesktopComment;
 
   CheckForceDirectories(PackageDirLocal + PathDelim + 'DEBIAN');
   StringToFile(
@@ -195,7 +199,7 @@ begin
     { TODO: This should reflect Project.Dependencies. }
     'Depends: libopenal1, libpng16-16, zlib1g, libvorbis0a, libvorbisfile3, libfreetype6, libgl1-mesa-dri, libgtk2.0-0' + NL +
     'Description: ' + Manifest.Caption + NL +
-    ' ' + ManifestFreeDesktopComment + NL //final new line
+    ' ' + DebianDescription + NL //final new line
   );
 
   // Post-installation running - assign executable permissions
