@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2020 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -76,7 +76,7 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
         it processes all mesh positions each frame.
         This is unoptimal, as glTF skinning can be done on GPU, with much smaller runtime cost.
 
-  - See https://castle-engine.io/planned_features.php .
+  - See https://castle-engine.io/roadmap .
 }
 
 { Convert simple types ------------------------------------------------------- }
@@ -485,7 +485,7 @@ const
 
   function GetPerceivedBrightness(const C: TCastleColorRGB): Single;
   begin
-    Result := Sqrt(0.299 * Sqr(C[0]) + 0.587 * Sqr(C[1]) + 0.114 * Sqr(C[2]));
+    Result := Sqrt(0.299 * Sqr(C.X) + 0.587 * Sqr(C.Y) + 0.114 * Sqr(C.Z));
   end;
 
   procedure ConvertSpecularGlossinessToMetallicRoughness(
@@ -558,10 +558,10 @@ const
        (JSONItem is TPasJSONItemArray) and
        (TPasJSONItemArray(JSONItem).Count = 4) then
     begin
-      DiffuseFactor[0] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], 1);
-      DiffuseFactor[1] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], 1);
-      DiffuseFactor[2] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], 1);
-      DiffuseFactor[3] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[3], 1);
+      DiffuseFactor.X := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], 1);
+      DiffuseFactor.Y := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], 1);
+      DiffuseFactor.Z := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], 1);
+      DiffuseFactor.W := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[3], 1);
     end;
 
     DiffuseTexture.Init;
@@ -582,9 +582,9 @@ const
        (JSONItem is TPasJSONItemArray) and
        (TPasJSONItemArray(JSONItem).Count = 3) then
     begin
-      SpecularFactor[0] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], 1);
-      SpecularFactor[1] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], 1);
-      SpecularFactor[2] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], 1);
+      SpecularFactor.X := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], 1);
+      SpecularFactor.Y := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], 1);
+      SpecularFactor.Z := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], 1);
     end;
 
     SpecularGlossinessTexture.Init;
@@ -716,7 +716,7 @@ procedure TPunctualLights.ReadLight(const LightObject: TPasJSONItemObject);
     begin
       ColorArray := TPasJSONItemArray(Item);
       for I := 0 to Min(2, ColorArray.Count - 1) do
-        Result[I] := TPasJSON.GetNumber(ColorArray.Items[I], DefaultColor[I]);
+        Result.InternalData[I] := TPasJSON.GetNumber(ColorArray.Items[I], DefaultColor[I]);
     end;
   end;
 
@@ -769,7 +769,8 @@ begin
     And Blender can indeed set it to a very large value, like 1000,
     see castle-engine/examples/fps_game/data/example_level/ .
     This is not a problem for CGE,
-    so we just ignore the X3D specification limit of intensity in [0..1]. }
+    and X3D >= 4.0 also allows any large intensity.
+    (only X3D 3 and VRML limited it to [0..1] range). }
   Light.Intensity := TPasJSON.GetNumber(LightObject.Properties['intensity'], 1);
   Light.Color := ReadColor(LightObject.Properties['color'], WhiteRGB);
 
@@ -892,12 +893,123 @@ var
       WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
   end;
 
+  { Read glTF "extras" item, with given key and value (JSON array), into X3D "metadata" information. }
+  procedure ReadMetadataKeyValueFromArray(const Key: String; const JsonArray: TPasJSONItemArray; const Node: TAbstractNode);
+  var
+    J: Integer;
+  begin
+    if JsonArray.Count > 0 then // we ignore empty arrays, as their metadata type is unknown
+    begin
+      if JsonArray[0] is TPasJSONItemString then
+      begin
+        Node.MetadataStringArray[Key, JsonArray.Count - 1] := ''; // set array size
+        for J := 0 to JsonArray.Count - 1 do
+        begin
+          if not (JsonArray[J] is TPasJSONItemString) then
+          begin
+            WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
+              Key,
+              J
+            ]);
+            Continue;
+          end;
+          Node.MetadataStringArray[Key, J] := (JsonArray[J] as TPasJSONItemString).Value;
+        end;
+      end else
+      if JsonArray[0] is TPasJSONItemBoolean then
+      begin
+        Node.MetadataBooleanArray[Key, JsonArray.Count - 1] := false; // set array size
+        for J := 0 to JsonArray.Count - 1 do
+        begin
+          if not (JsonArray[J] is TPasJSONItemBoolean) then
+          begin
+            WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
+              Key,
+              J
+            ]);
+            Continue;
+          end;
+          Node.MetadataBooleanArray[Key, J] := (JsonArray[J] as TPasJSONItemBoolean).Value;
+        end;
+      end else
+      if JsonArray[0] is TPasJSONItemNumber then
+      begin
+        Node.MetadataDoubleArray[Key, JsonArray.Count - 1] := 0; ; // set array size
+        for J := 0 to JsonArray.Count - 1 do
+        begin
+          if not (JsonArray[J] is TPasJSONItemNumber) then
+          begin
+            WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
+              Key,
+              J
+            ]);
+            Continue;
+          end;
+          Node.MetadataDoubleArray[Key, J] := (JsonArray[J] as TPasJSONItemNumber).Value;
+        end;
+      end else
+      begin
+        WritelnWarning('Cannot read glTF extra "%s", unexpected type inside array %s', [
+          Key,
+          JsonArray[0].ClassName
+        ]);
+      end;
+    end;
+  end;
+
+  { Read glTF "extras" item, with given key and value (JSON object), into X3D "metadata" information.
+    Testcase: https://github.com/KhronosGroup/3DC-Certification/tree/main/models/AnalyticalCubes }
+  procedure ReadMetadataKeyValueFromObject(const Key: String; const JsonObject: TPasJSONItemObject; const Node: TAbstractNode);
+  var
+    MetadataSet: TMetadataSetNode;
+    StrNode: TMetadataStringNode;
+    BoolNode: TMetadataBooleanNode;
+    DoubleNode: TMetadataDoubleNode;
+    I: Integer;
+  begin
+    { TODO: It would be better to use recursion here to do read metadata. }
+    MetadataSet := TMetadataSetNode.Create;
+    MetadataSet.NameField := Key;
+    Node.InternalInsertMetadata(MetadataSet);
+
+    for I := 0 to JsonObject.Count - 1 do
+    begin
+      if JsonObject.Values[I] is TPasJSONItemString then
+      begin
+        StrNode := TMetadataStringNode.Create;
+        StrNode.NameField := JsonObject.Keys[I];
+        StrNode.SetValue([TPasJSONItemString(JsonObject.Values[I]).Value]);
+        MetadataSet.FdValue.Add(StrNode);
+      end else
+      if JsonObject.Values[I] is TPasJSONItemBoolean then
+      begin
+        BoolNode := TMetadataBooleanNode.Create;
+        BoolNode.NameField := JsonObject.Keys[I];
+        BoolNode.SetValue([TPasJSONItemBoolean(JsonObject.Values[I]).Value]);
+        MetadataSet.FdValue.Add(BoolNode);
+      end else
+      if JsonObject.Values[I] is TPasJSONItemNumber then
+      begin
+        DoubleNode := TMetadataDoubleNode.Create;
+        DoubleNode.NameField := JsonObject.Keys[I];
+        DoubleNode.SetValue([TPasJSONItemNumber(JsonObject.Values[I]).Value]);
+        MetadataSet.FdValue.Add(DoubleNode);
+      end else
+      begin
+        WritelnWarning('Cannot read glTF object "%s" inside extra metadata, field "%s", unhandled type %s', [
+          Key,
+          JsonObject.Keys[I],
+          JsonObject.Values[I].ClassName
+        ]);
+      end;
+    end;
+  end;
+
   { Read glTF "extras" into X3D "metadata" information. }
   procedure ReadMetadata(const Extras: TPasJSONItemObject; const Node: TAbstractNode);
   var
-    I, J: Integer;
+    I: Integer;
     Key: String;
-    JsonArray: TPasJSONItemArray;
   begin
     for I := 0 to Extras.Count - 1 do
     begin
@@ -912,66 +1024,11 @@ var
         Node.MetadataDouble[Key] := TPasJSONItemNumber(Extras.Values[I]).Value
       else
       if Extras.Values[I] is TPasJSONItemArray then
-      begin
-        JsonArray := TPasJSONItemArray(Extras.Values[I]);
-        if JsonArray.Count > 0 then // we ignore empty arrays, as their metadata type is unknown
-        begin
-          if JsonArray[0] is TPasJSONItemString then
-          begin
-            Node.MetadataStringArray[Key, JsonArray.Count - 1] := ''; // set array size
-            for J := 0 to JsonArray.Count - 1 do
-            begin
-              if not (JsonArray[J] is TPasJSONItemString) then
-              begin
-                WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
-                  Key,
-                  J
-                ]);
-                Continue;
-              end;
-              Node.MetadataStringArray[Key, J] := (JsonArray[J] as TPasJSONItemString).Value;
-            end;
-          end else
-          if JsonArray[0] is TPasJSONItemBoolean then
-          begin
-            Node.MetadataBooleanArray[Key, JsonArray.Count - 1] := false; // set array size
-            for J := 0 to JsonArray.Count - 1 do
-            begin
-              if not (JsonArray[J] is TPasJSONItemBoolean) then
-              begin
-                WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
-                  Key,
-                  J
-                ]);
-                Continue;
-              end;
-              Node.MetadataBooleanArray[Key, J] := (JsonArray[J] as TPasJSONItemBoolean).Value;
-            end;
-          end else
-          if JsonArray[0] is TPasJSONItemNumber then
-          begin
-            Node.MetadataDoubleArray[Key, JsonArray.Count - 1] := 0; ; // set array size
-            for J := 0 to JsonArray.Count - 1 do
-            begin
-              if not (JsonArray[J] is TPasJSONItemNumber) then
-              begin
-                WritelnWarning('Cannot read glTF extra "%s" index %d, different type than 1st array item', [
-                  Key,
-                  J
-                ]);
-                Continue;
-              end;
-              Node.MetadataDoubleArray[Key, J] := (JsonArray[J] as TPasJSONItemNumber).Value;
-            end;
-          end else
-          begin
-            WritelnWarning('Cannot read glTF extra "%s", unexpected type inside array %s', [
-              Key,
-              JsonArray[0].ClassName
-            ]);
-          end;
-        end;
-      end else
+        ReadMetadataKeyValueFromArray(Key, TPasJSONItemArray(Extras.Values[I]), Node)
+      else
+      if Extras.Values[I] is TPasJSONItemObject then
+        ReadMetadataKeyValueFromObject(Key, TPasJSONItemObject(Extras.Values[I]), Node)
+      else
       begin
         WritelnWarning('Cannot read glTF extra "%s", unexpected type %s', [
           Key,
@@ -981,13 +1038,14 @@ var
     end;
   end;
 
-  function ReadTextureRepeat(const Wrap: TPasGLTF.TSampler.TWrappingMode): Boolean;
+  function ReadTextureWrap(const Wrap: TPasGLTF.TSampler.TWrappingMode): TBoundaryMode;
   begin
-    Result :=
-      (Wrap = TPasGLTF.TSampler.TWrappingMode.Repeat_) or
-      (Wrap = TPasGLTF.TSampler.TWrappingMode.MirroredRepeat);
-    if Wrap = TPasGLTF.TSampler.TWrappingMode.MirroredRepeat then
-      WritelnWarning('glTF', 'MirroredRepeat wrap mode not supported, using simple Repeat');
+    case Wrap of
+      TPasGLTF.TSampler.TWrappingMode.Repeat_       : Result := bmRepeat;
+      TPasGLTF.TSampler.TWrappingMode.ClampToEdge   : Result := bmClampToEdge;
+      TPasGLTF.TSampler.TWrappingMode.MirroredRepeat: Result := bmMirroredRepeat;
+      else raise EInternalError.Create('Unexpected glTF wrap');
+    end;
   end;
 
   function ReadMinificationFilter(const Filter: TPasGLTF.TSampler.TMinFilter): TAutoMinificationFilter;
@@ -1125,15 +1183,16 @@ var
           begin
             GltfSampler := Document.Samplers[GltfTexture.Sampler];
 
-            Texture.RepeatS := ReadTextureRepeat(GltfSampler.WrapS);
-            Texture.RepeatT := ReadTextureRepeat(GltfSampler.WrapT);
-
-            if (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
+            if (GltfSampler.WrapS <> TPasGLTF.TSampler.TWrappingMode.Repeat_) or
+               (GltfSampler.WrapT <> TPasGLTF.TSampler.TWrappingMode.Repeat_) or
+               (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
                (GltfSampler.MagFilter <> TPasGLTF.TSampler.TMagFilter.None) then
             begin
               TextureProperties := TTexturePropertiesNode.Create;
               TextureProperties.MinificationFilter := ReadMinificationFilter(GltfSampler.MinFilter);
               TextureProperties.MagnificationFilter := ReadMagnificationFilter(GltfSampler.MagFilter);
+              TextureProperties.BoundaryModeS := ReadTextureWrap(GltfSampler.WrapS);
+              TextureProperties.BoundaryModeT := ReadTextureWrap(GltfSampler.WrapT);
               Texture.TextureProperties := TextureProperties;
             end;
           end;
@@ -1506,7 +1565,7 @@ var
     I: Integer;
   begin
     for I := 0 to TexCoord.Count - 1 do
-      TexCoord.List^[I].Data[1] := 1  - TexCoord.List^[I].Data[1];
+      TexCoord.List^[I].Y := 1  - TexCoord.List^[I].Y;
   end;
 
   procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive;
@@ -1712,6 +1771,7 @@ var
     begin
       OrthoViewpoint := TOrthoViewpointNode.Create;
       OrthoViewpoint.X3DName := Camera.Name;
+      OrthoViewpoint.Position := TVector3.Zero;
       if CastleX3dExtensions then
         OrthoViewpoint.GravityTransform := false;
       ParentGroup.AddChildren(OrthoViewpoint);
@@ -1721,8 +1781,9 @@ var
     begin
       Viewpoint := TViewpointNode.Create;
       Viewpoint.X3DName := Camera.Name;
+      Viewpoint.Position := TVector3.Zero;
       if Camera.Perspective.YFov <> 0 then
-        Viewpoint.FieldOfView := Camera.Perspective.YFov / 2;
+        Viewpoint.FieldOfView := Camera.Perspective.YFov;
       if CastleX3dExtensions then
         Viewpoint.GravityTransform := false;
       ParentGroup.AddChildren(Viewpoint);
@@ -2151,10 +2212,10 @@ var
       end else
       begin
         SkinMatrix :=
-          JointMatrix.List^[VertexJoints.Data[0]] * VertexWeights.Data[0] +
-          JointMatrix.List^[VertexJoints.Data[1]] * VertexWeights.Data[1] +
-          JointMatrix.List^[VertexJoints.Data[2]] * VertexWeights.Data[2] +
-          JointMatrix.List^[VertexJoints.Data[3]] * VertexWeights.Data[3];
+          JointMatrix.List^[VertexJoints.X] * VertexWeights.X +
+          JointMatrix.List^[VertexJoints.Y] * VertexWeights.Y +
+          JointMatrix.List^[VertexJoints.Z] * VertexWeights.Z +
+          JointMatrix.List^[VertexJoints.W] * VertexWeights.W;
       end;
       AnimatedCoords.List^[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
       if AnimatedNormals <> nil then

@@ -220,9 +220,9 @@ begin
 
       - The API of TRenderParams is internal, it may change at any moment.
 
-      - Moreover here we create TRenderParams with abstract methods (BaseLights).
-        Ignore this temporarily, you don't need BaseLights to test your new renderer
-        (BaseLights are only used for a configurable headlight, and for shining
+      - Moreover here we create TRenderParams with abstract methods (GlobalLights).
+        Ignore this temporarily, you don't need GlobalLights to test your new renderer
+        (GlobalLights are only used for a configurable headlight, and for shining
         lights from one TCastleScene over another TCastleScene).
 
       - You should not do this in a normal CGE application. In normal application,

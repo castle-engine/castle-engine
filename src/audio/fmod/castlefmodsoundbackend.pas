@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2021 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -575,7 +575,7 @@ end;
 
 procedure TFMODSoundEngineBackend.SetListener(const Position, Direction, Up: TVector3);
 const
-  ListenerVelocity: TVector3 = (Data: (0, 0, 0));
+  ListenerVelocity: TVector3 = (X: 0; Y: 0; Z: 0);
 begin
   CheckFMOD(FMOD_System_Set3DListenerAttributes(FMODSystem, 0,  @Position, @ListenerVelocity, @Direction, @Up));
 end;

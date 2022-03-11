@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -148,12 +148,12 @@ end;
 
 function TCastleVector2Persistent.GetX: Single;
 begin
-  Result := Value.Data[0];
+  Result := Value.X;
 end;
 
 function TCastleVector2Persistent.GetY: Single;
 begin
-  Result := Value.Data[1];
+  Result := Value.Y;
 end;
 
 procedure TCastleVector2Persistent.SetX(const AValue: Single);
@@ -161,7 +161,7 @@ var
   V: TVector2;
 begin
   V := Value;
-  V.Data[0] := AValue;
+  V.X := AValue;
   Value := V;
 end;
 
@@ -170,18 +170,18 @@ var
   V: TVector2;
 begin
   V := Value;
-  V.Data[1] := AValue;
+  V.Y := AValue;
   Value := V;
 end;
 
 function TCastleVector2Persistent.XIsStored: Boolean;
 begin
-  Result := Value.Data[0] <> InternalDefaultValue.Data[0];
+  Result := Value.X <> InternalDefaultValue.X;
 end;
 
 function TCastleVector2Persistent.YIsStored: Boolean;
 begin
-  Result := Value.Data[1] <> InternalDefaultValue.Data[1];
+  Result := Value.Y <> InternalDefaultValue.Y;
 end;
 
 function TCastleVector2Persistent.HasDefaultValue: Boolean;
@@ -203,17 +203,17 @@ end;
 
 function TCastleVector3Persistent.GetX: Single;
 begin
-  Result := Value.Data[0];
+  Result := Value.X;
 end;
 
 function TCastleVector3Persistent.GetY: Single;
 begin
-  Result := Value.Data[1];
+  Result := Value.Y;
 end;
 
 function TCastleVector3Persistent.GetZ: Single;
 begin
-  Result := Value.Data[2];
+  Result := Value.Z;
 end;
 
 procedure TCastleVector3Persistent.SetX(const AValue: Single);
@@ -221,7 +221,7 @@ var
   V: TVector3;
 begin
   V := Value;
-  V.Data[0] := AValue;
+  V.X := AValue;
   Value := V;
 end;
 
@@ -230,7 +230,7 @@ var
   V: TVector3;
 begin
   V := Value;
-  V.Data[1] := AValue;
+  V.Y := AValue;
   Value := V;
 end;
 
@@ -239,23 +239,23 @@ var
   V: TVector3;
 begin
   V := Value;
-  V.Data[2] := AValue;
+  V.Z := AValue;
   Value := V;
 end;
 
 function TCastleVector3Persistent.XIsStored: Boolean;
 begin
-  Result := Value.Data[0] <> InternalDefaultValue.Data[0];
+  Result := Value.X <> InternalDefaultValue.X;
 end;
 
 function TCastleVector3Persistent.YIsStored: Boolean;
 begin
-  Result := Value.Data[1] <> InternalDefaultValue.Data[1];
+  Result := Value.Y <> InternalDefaultValue.Y;
 end;
 
 function TCastleVector3Persistent.ZIsStored: Boolean;
 begin
-  Result := Value.Data[2] <> InternalDefaultValue.Data[2];
+  Result := Value.Z <> InternalDefaultValue.Z;
 end;
 
 function TCastleVector3Persistent.HasDefaultValue: Boolean;
@@ -277,22 +277,22 @@ end;
 
 function TCastleVector4Persistent.GetX: Single;
 begin
-  Result := Value.Data[0];
+  Result := Value.X;
 end;
 
 function TCastleVector4Persistent.GetY: Single;
 begin
-  Result := Value.Data[1];
+  Result := Value.Y;
 end;
 
 function TCastleVector4Persistent.GetZ: Single;
 begin
-  Result := Value.Data[2];
+  Result := Value.Z;
 end;
 
 function TCastleVector4Persistent.GetW: Single;
 begin
-  Result := Value.Data[3];
+  Result := Value.W;
 end;
 
 procedure TCastleVector4Persistent.SetX(const AValue: Single);
@@ -300,7 +300,7 @@ var
   V: TVector4;
 begin
   V := Value;
-  V.Data[0] := AValue;
+  V.X := AValue;
   Value := V;
 end;
 
@@ -309,7 +309,7 @@ var
   V: TVector4;
 begin
   V := Value;
-  V.Data[1] := AValue;
+  V.Y := AValue;
   Value := V;
 end;
 
@@ -318,7 +318,7 @@ var
   V: TVector4;
 begin
   V := Value;
-  V.Data[2] := AValue;
+  V.Z := AValue;
   Value := V;
 end;
 
@@ -327,28 +327,28 @@ var
   V: TVector4;
 begin
   V := Value;
-  V.Data[3] := AValue;
+  V.W := AValue;
   Value := V;
 end;
 
 function TCastleVector4Persistent.XIsStored: Boolean;
 begin
-  Result := Value.Data[0] <> InternalDefaultValue.Data[0];
+  Result := Value.X <> InternalDefaultValue.X;
 end;
 
 function TCastleVector4Persistent.YIsStored: Boolean;
 begin
-  Result := Value.Data[1] <> InternalDefaultValue.Data[1];
+  Result := Value.Y <> InternalDefaultValue.Y;
 end;
 
 function TCastleVector4Persistent.ZIsStored: Boolean;
 begin
-  Result := Value.Data[2] <> InternalDefaultValue.Data[2];
+  Result := Value.Z <> InternalDefaultValue.Z;
 end;
 
 function TCastleVector4Persistent.WIsStored: Boolean;
 begin
-  Result := Value.Data[3] <> InternalDefaultValue.Data[3];
+  Result := Value.W <> InternalDefaultValue.W;
 end;
 
 function TCastleVector4Persistent.HasDefaultValue: Boolean;

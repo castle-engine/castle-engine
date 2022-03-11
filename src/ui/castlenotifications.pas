@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -144,19 +144,10 @@ type
   {$undef read_interface_class}
   end;
 
-procedure Register;
-
 implementation
 
 uses Math,
   CastleLog, CastleComponentSerialize;
-
-procedure Register;
-begin
-  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
-  RegisterComponents('Castle', [TCastleNotifications]);
-  {$endif}
-end;
 
 { TNotificationList ---------------------------------------------------------- }
 
@@ -317,7 +308,7 @@ begin
     if TimerSeconds(TimerNow, Messages[I].Time) > TimeoutToFade then
     begin
       C := Messages[I].Color;
-      C[3] := MapRange(TimerSeconds(TimerNow, Messages[I].Time),
+      C.W := MapRange(TimerSeconds(TimerNow, Messages[I].Time),
         TimeoutToFade, Timeout, 1, 0);
       Messages[I].Color := C;
       VisibleChange([chRectangle]);

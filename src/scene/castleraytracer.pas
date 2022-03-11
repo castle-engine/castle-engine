@@ -147,8 +147,13 @@ type
     FogNode: TFogNode;
 
     { Lights shining on everything, like a headlight. }
-    BaseLights: TLightInstancesList;
-    OwnsBaseLights: boolean;
+    GlobalLights: TLightInstancesList;
+    OwnsGlobalLights: boolean;
+
+    property BaseLights: TLightInstancesList read GlobalLights write GlobalLights;
+      {$ifdef FPC}deprecated 'use GlobalLights';{$endif}
+    property OwnsBaseLights: Boolean read OwnsGlobalLights write OwnsGlobalLights;
+      {$ifdef FPC}deprecated 'use BaseLights';{$endif}
 
     procedure Execute; override;
     destructor Destroy; override;
@@ -428,11 +433,11 @@ var
     Dimensions := Image.Dimensions;
     for I := 0 to 2 do
     begin
-      PixelInt[I] := Round(Pixel[I] - 0.5);
+      PixelInt.InternalData[I] := Round(Pixel[I] - 0.5);
       if RepeatCoord[I] then
-        PixelInt[I] := DivUnsignedModulo(PixelInt[I], Dimensions[I])
+        PixelInt.InternalData[I] := DivUnsignedModulo(PixelInt[I], Dimensions[I])
       else
-        PixelInt[I] := Clamped(PixelInt[I], 0, Dimensions[I] - 1);
+        PixelInt.InternalData[I] := Clamped(PixelInt[I], 0, Dimensions[I] - 1);
     end;
     Result := Image.Colors[PixelInt[0], PixelInt[1], PixelInt[2]];
   end;
@@ -485,9 +490,9 @@ var
     for I := 0 to 1 do
     begin
       if RepeatCoord[I] then
-        Pixel.Data[I] := FloatModulo(Pixel.Data[I], Dimensions[I])
+        Pixel.InternalData[I] := FloatModulo(Pixel[I], Dimensions[I])
       else
-        Pixel.Data[I] := Clamped(Pixel.Data[I], 0, Dimensions[I]);
+        Pixel.InternalData[I] := Clamped(Pixel[I], 0, Dimensions[I]);
     end;
 
     for I := 0 to 1 do
@@ -496,7 +501,7 @@ var
       // it will not filter 100% nicely on the border pixels
       PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
       PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
-      PixelFrac[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
+      PixelFrac.InternalData[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
     end;
 
     Result :=
@@ -539,7 +544,7 @@ begin
       begin
         Image := TCastleImage(EncodedImage);
         TexCoord3D := TexCoord.ToPosition;
-        Pixel.Init(
+        Pixel := Vector3(
           TexCoord3D[0] * Image.Width,
           TexCoord3D[1] * Image.Height,
           TexCoord3D[2] * Image.Depth
@@ -780,7 +785,7 @@ var
               Result := Result + Lights.List^[i].Contribution(Intersection,
                 IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
-        { Add BaseLights contribution, just like other lights.
+        { Add GlobalLights contribution, just like other lights.
 
           Note for LightNotBlocked testing: theoretically, just using
           LightNotBlocked always (no matter Depth/InitialDepth) should
@@ -808,12 +813,12 @@ var
              the problem at least for primary rays: directional light always
              reaches them.
 
-          The above reasoning is nice as long as BaseLights only contain
+          The above reasoning is nice as long as GlobalLights only contain
           the headlight. Which is true in the current uses. }
-        for I := 0 to BaseLights.Count - 1 do
+        for I := 0 to GlobalLights.Count - 1 do
           if (Depth = InitialDepth) or
-             LightNotBlocked(BaseLights.List^[I]) then
-            Result := Result + BaseLights.List^[I].Contribution(Intersection,
+             LightNotBlocked(GlobalLights.List^[I]) then
+            Result := Result + GlobalLights.List^[I].Contribution(Intersection,
               IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Calculate recursively reflected and transmitted rays.
@@ -917,8 +922,8 @@ end;
 
 destructor TClassicRayTracer.Destroy;
 begin
-  if OwnsBaseLights then
-    FreeAndNil(BaseLights);
+  if OwnsGlobalLights then
+    FreeAndNil(GlobalLights);
   inherited;
 end;
 
@@ -1212,7 +1217,7 @@ const
           DirectColor := DirectColor * Material.DiffuseColor;
 
           { calculate LightDirNorm (znormalizowane), NegatedLightDirNorm }
-          LightDirNorm.NormalizeMe;
+          LightDirNorm := LightDirNorm.Normalize;
           NegatedLightDirNorm := -LightDirNorm;
 
           { Wymnoz DirectColor

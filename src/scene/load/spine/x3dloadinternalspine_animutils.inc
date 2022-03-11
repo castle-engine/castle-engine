@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -67,8 +67,8 @@ end;
     For a full support, we'd have to extend our interpolators to account for this.
 
     We only use VectorComponents from PreviousValue and NextValue.
-    E.g. when VectorComponents = 2, we only look at PreviousValue[0], PreviousValue[1],
-    and we ignore PreviousValue[2], PreviousValue[3].
+    E.g. when VectorComponents = 2, we only look at PreviousValue.X, PreviousValue.Y,
+    and we ignore PreviousValue.Z, PreviousValue.W.
   )
 }
 function ReadCurveControlPoints(const OwnerName: String; const Json: TJSONObject;
@@ -109,25 +109,25 @@ begin
       C := TJSONArray(CurveJson).Count;
       if C = 4 then
       begin
-        Result[0] := NormalizeTime (CurveJsonArray.Floats[0]);
-        Result[1] := NormalizeValue(CurveJsonArray.Floats[1], 0);
-        Result[2] := NormalizeTime (CurveJsonArray.Floats[2]);
-        Result[3] := NormalizeValue(CurveJsonArray.Floats[3], 0);
+        Result.X := NormalizeTime (CurveJsonArray.Floats[0]);
+        Result.Y := NormalizeValue(CurveJsonArray.Floats[1], 0);
+        Result.Z := NormalizeTime (CurveJsonArray.Floats[2]);
+        Result.W := NormalizeValue(CurveJsonArray.Floats[3], 0);
       end else
       if C = 4 * VectorComponents then
       begin
-        Result[0] := NormalizeTime (CurveJsonArray.Floats[0]);
-        Result[1] := NormalizeValue(CurveJsonArray.Floats[1], 0);
-        Result[2] := NormalizeTime (CurveJsonArray.Floats[2]);
-        Result[3] := NormalizeValue(CurveJsonArray.Floats[3], 0);
+        Result.X := NormalizeTime (CurveJsonArray.Floats[0]);
+        Result.Y := NormalizeValue(CurveJsonArray.Floats[1], 0);
+        Result.Z := NormalizeTime (CurveJsonArray.Floats[2]);
+        Result.W := NormalizeValue(CurveJsonArray.Floats[3], 0);
         for J := 1 to VectorComponents - 1 do
         begin
-          NewControlPoints[0] := NormalizeTime (CurveJsonArray.Floats[J * 4 + 0]);
-          NewControlPoints[1] := NormalizeValue(CurveJsonArray.Floats[J * 4 + 1], J);
-          NewControlPoints[2] := NormalizeTime (CurveJsonArray.Floats[J * 4 + 2]);
-          NewControlPoints[3] := NormalizeValue(CurveJsonArray.Floats[J * 4 + 3], J);
-          if (not SameValue(Result[0], NewControlPoints[0])) or
-             (not SameValue(Result[2], NewControlPoints[2])) then
+          NewControlPoints.X := NormalizeTime (CurveJsonArray.Floats[J * 4 + 0]);
+          NewControlPoints.Y := NormalizeValue(CurveJsonArray.Floats[J * 4 + 1], J);
+          NewControlPoints.Z := NormalizeTime (CurveJsonArray.Floats[J * 4 + 2]);
+          NewControlPoints.W := NormalizeValue(CurveJsonArray.Floats[J * 4 + 3], J);
+          if (not SameValue(Result.X, NewControlPoints.X)) or
+             (not SameValue(Result.Z, NewControlPoints.Z)) then
           begin
             WritelnWarning('Spine', 'Curve interpolation of "%s" has different keys for %d components', [
               OwnerName,
@@ -136,18 +136,18 @@ begin
             Exit;
           end;
           { // Avoid this warning, too spamming.
-          if (not SameValue(Result[1], NewControlPoints[1])) or
-             (not SameValue(Result[3], NewControlPoints[3])) then
+          if (not SameValue(Result.Y, NewControlPoints.Y)) or
+             (not SameValue(Result.W, NewControlPoints.W)) then
             WritelnWarning('Spine', 'Curve interpolation of "%s" has different values for %d components. Averaging.', [
               OwnerName,
               VectorComponents
             ]);
           }
-          Result[1] := Result[1] + NewControlPoints[1];
-          Result[3] := Result[3] + NewControlPoints[1];
+          Result.Y := Result.Y + NewControlPoints.Y;
+          Result.W := Result.W + NewControlPoints.Y;
         end;
-        Result[1] := Result[1] / VectorComponents;
-        Result[3] := Result[3] / VectorComponents;
+        Result.Y := Result.Y / VectorComponents;
+        Result.W := Result.W / VectorComponents;
       end else
       begin
         WritelnWarning('Spine', 'Curve interpolation of "%s" is an array with %d elements (expected 4 or %d)', [
@@ -195,10 +195,10 @@ begin
     if CurveJson is TJSONArray then
     begin
       CurveJsonArray := TJSONArray(CurveJson);
-      Result[0] := NormalizeTime (CurveJsonArray.Floats[0]);
-      Result[1] := CurveJsonArray.Floats[1];
-      Result[2] := NormalizeTime (CurveJsonArray.Floats[2]);
-      Result[3] := CurveJsonArray.Floats[3];
+      Result.X := NormalizeTime (CurveJsonArray.Floats[0]);
+      Result.Y := CurveJsonArray.Floats[1];
+      Result.Z := NormalizeTime (CurveJsonArray.Floats[2]);
+      Result.W := CurveJsonArray.Floats[3];
     end;
   end;
 end;

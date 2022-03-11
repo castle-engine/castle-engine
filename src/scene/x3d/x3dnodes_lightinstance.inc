@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -55,8 +55,7 @@
       in scene space, so it will be transformed by the whole modelview matrix
       (camera matrix with scene transformations).
       When this is true, during rendering we take care to transform this light
-      only by camera matrix (not additional scene transformation).
-      Useful for example for headlight. }
+      only by camera matrix (not additional scene transformation). }
     WorldCoordinates: boolean;
 
     { Position expressed in homogeneous coordinates.
@@ -93,9 +92,6 @@
     { Find light with given node name. Return @nil if not found. }
     function FindName(NodeName: string): PLightInstance;
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
-
-    { Append List to our contents, setting every light's WorldCoordinates = @true. }
-    procedure AppendInWorldCoordinates(const AList: TLightInstancesList);
   end;
 
 {$endif read_interface}
@@ -346,20 +342,6 @@ begin
     for I := 0 to Count - 1 do
       if not LightInstanceEquals(List^[I], TLightInstancesList(SecondValue).List^[I]) then
         Exit(false);
-end;
-
-procedure TLightInstancesList.AppendInWorldCoordinates(const AList: TLightInstancesList);
-var
-  OldCount: Integer;
-  I: Integer;
-begin
-  OldCount := Count;
-  Count := Count + AList.Count;
-  for I := 0 to AList.Count - 1 do
-  begin
-    List^[OldCount + I] := AList.List^[I];
-    List^[OldCount + I].WorldCoordinates := true;
-  end;
 end;
 
 {$endif read_implementation}

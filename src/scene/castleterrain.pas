@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2018 Michalis Kamburelis.
+  Copyright 2009-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -370,8 +370,8 @@ begin
 
   Result := CreateNode(Divisions,
     FloatRectangle(
-      XRange[0]            , ZRange[0],
-      XRange[1] - XRange[0], ZRange[1] - ZRange[0]),
+      XRange.X           , ZRange.X,
+      XRange.Y - XRange.X, ZRange.Y - ZRange.X),
     FloatRectangle(0, 0, Size, Size), Appearance);
 end;
 
@@ -476,13 +476,13 @@ var
   var
     QueryPosition: TVector2;
   begin
-    QueryPosition[0] := InputRange.Width  * I / (Divisions-1) + InputRange.Left;
-    QueryPosition[1] := InputRange.Height * J / (Divisions-1) + InputRange.Bottom;
+    QueryPosition.X := InputRange.Width  * I / (Divisions-1) + InputRange.Left;
+    QueryPosition.Y := InputRange.Height * J / (Divisions-1) + InputRange.Bottom;
 
-    Position[0] := OutputRange.Width  * I / (Divisions-1) + OutputRange.Left;
-    Position[2] := OutputRange.Height * J / (Divisions-1) + OutputRange.Bottom;
+    Position.X := OutputRange.Width  * I / (Divisions-1) + OutputRange.Left;
+    Position.Z := OutputRange.Height * J / (Divisions-1) + OutputRange.Bottom;
 
-    Position[1] := Height(QueryPosition[0], QueryPosition[1]);
+    Position.Y := Height(QueryPosition.X, QueryPosition.Y);
   end;
 
   function Idx(const I, J: Integer): Integer;
@@ -517,7 +517,7 @@ var
       Normal := Normal + FaceNormal(0, -1);
     if (I > 0) and (J > 0) then
       Normal := Normal + FaceNormal(-1, -1);
-    Normal.NormalizeMe;
+    Normal := Normal.Normalize;
   end;
 
 var

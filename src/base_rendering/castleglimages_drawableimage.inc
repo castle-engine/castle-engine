@@ -176,7 +176,7 @@
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
-      DefaultBlendingConstantColor: TVector4 = (Data: (1, 1, 1, 1));
+      DefaultBlendingConstantColor: TVector4 = (X: 1; Y: 1; Z: 1; W: 1);
 
     { Prepare image for drawing.
 
@@ -1317,13 +1317,6 @@ begin
   Draw(ScreenRect, ImageRect);
 end;
 
-{$ifdef FPC}
-  {$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
-    {$optimization OFF}
-    {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (begin)}
-  {$endif}
-{$endif}
-
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
   const CornerTop, CornerRight, CornerBottom, CornerLeft: Single);
 var
@@ -1433,16 +1426,6 @@ begin
 
   UseScreenRotationCenter := false;
 end;
-
-{ Turn optimizations back on.
-  FPC $push / $pop unfortunately doesn't save/restore optimization level,
-  so we restore it if -dBUGGY_AARCH64_OPTIMIZATIONS. }
-{$ifdef FPC}
-  {$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
-    {$optimization ON}
-    {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (end)}
-  {$endif}
-{$endif}
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
   const Corner: TVector4Integer);
@@ -1606,22 +1589,22 @@ end;
 
 function TDrawableImage.GetCenterX: Single;
 begin
-  Result := FRotationCenter.Data[0];
+  Result := FRotationCenter.X;
 end;
 
 function TDrawableImage.GetCenterY: Single;
 begin
-  Result := FRotationCenter.Data[1];
+  Result := FRotationCenter.Y;
 end;
 
 procedure TDrawableImage.SetCenterX(const Value: Single);
 begin
-  FRotationCenter.Data[0] := Value;
+  FRotationCenter.X := Value;
 end;
 
 procedure TDrawableImage.SetCenterY(const Value: Single);
 begin
-  FRotationCenter.Data[1] := Value;
+  FRotationCenter.Y := Value;
 end;
 
 procedure TDrawableImage.SetRepeatS(const Value: Boolean);

@@ -136,18 +136,20 @@ procedure SHVectorGLCapture(
 
     RenderParams := TBasicRenderParams.Create;
     try
-      { TBasicRenderParams will automatically link to CastleRenderingCamera.RenderingCamera,
-        to CastleRenderingCamera.RenderingCamera.Frustum,
-        and will have good defaults (inclusive) for InShadow and ShadowVolumesReceivers. }
-      RenderParams.RenderingCamera.Target := rtCubeMapEnvironment;
-      RenderParams.RenderingCamera.FromMatrix(
-        CapturePoint,
-        LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-        FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-        RenderContext.ProjectionMatrix
-      );
-      RenderParams.Transparent := false; Render(RenderParams);
-      RenderParams.Transparent := true ; Render(RenderParams);
+      { TBasicRenderParams will automatically have good defaults (inclusive) for InShadow and ShadowVolumesReceivers. }
+      RenderParams.RenderingCamera := TRenderingCamera.Create;
+      try
+        RenderParams.RenderingCamera.FromMatrix(
+          CapturePoint,
+          LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+          FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+          RenderContext.ProjectionMatrix
+        );
+        RenderParams.RenderingCamera.Target := rtCubeMapEnvironment;
+        RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
+        RenderParams.Transparent := false; Render(RenderParams);
+        RenderParams.Transparent := true ; Render(RenderParams);
+      finally FreeAndNil(RenderParams.RenderingCamera) end;
     finally FreeAndNil(RenderParams) end;
 
     Map := SaveScreen_noflush(TGrayscaleImage,

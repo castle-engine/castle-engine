@@ -61,7 +61,7 @@ end;
 
 procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 const
-  DragonSpeed: TVector2 = (Data: (3000, 1500));
+  DragonSpeed: TVector2 = (X: 3000; Y: 1500);
 var
   T: TVector2;
   CamPos: TVector3;

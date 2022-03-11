@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,7 +40,7 @@ type
 
     tokMinus, tokPlus,
 
-    tokMultiply, tokDivide, tokPower, tokModulo,
+    tokMultiply, tokFloatDivide, tokIntDivide, tokPower, tokModulo,
 
     tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual,
 
@@ -164,26 +164,33 @@ const
 
   function ReadSimpleToken: boolean;
   const
-    { kolejnosc w toks_strs MA znaczenie - pierwszy zostanie dopasowany string dluzszy,
-      wiec aby Lexer pracowal zachlannnie stringi dluzsze musza byc pierwsze. }
-    toks_strs: array [0..18] of string=
-     ('<>', '<=', '>=', '<', '>', '=', '+', '-', '*', '/', ',',
-      '(', ')', '^', '[', ']', '%', ';', ':=');
-    toks_tokens: array[0..High(toks_strs)]of TToken =
-     (tokNotEqual, tokLesserEqual, tokGreaterEqual, tokLesser, tokGreater,
-      tokEqual, tokPlus, tokMinus, tokMultiply, tokDivide, tokComma, tokLParen, tokRParen,
-      tokPower, tokLQaren, tokRQaren, tokModulo, tokSemicolon, tokAssignment);
-  var i: integer;
+    { Order on TokensStrs matters - first one wins.
+      So if something is a prefix of another thing, the prefix should be latter.
+      E.g. "<>" should be detected before "<" gets detected.
+      This makes lexer "greedy", as is standard for programming languages lexels. }
+    TokensStrs: array [0..19] of string = (
+      '<>', '<=', '>=', '<', '>',
+      '=', '+', '-', '*', '/', 'div', ',',
+      '(', ')', '^', '[', ']', '%', ';', ':='
+    );
+    { Order and count of Tokens must match TokensStrs. }
+    Tokens: array[0..High(TokensStrs)]of TToken = (
+      tokNotEqual, tokLesserEqual, tokGreaterEqual, tokLesser, tokGreater,
+      tokEqual, tokPlus, tokMinus, tokMultiply, tokFloatDivide, tokIntDivide, tokComma,
+      tokLParen, tokRParen, tokPower, tokLQaren, tokRQaren, tokModulo, tokSemicolon, tokAssignment
+    );
+  var
+    i: integer;
   begin
-   for i := 0 to High(toks_strs) do
-    if Copy(text, TextPos, Length(toks_strs[i])) = toks_strs[i] then
-    begin
-     ftoken := toks_tokens[i];
-     Inc(fTextPos, Length(toks_strs[i]));
-     result := true;
-     exit;
-    end;
-   result := false;
+    for i := 0 to High(TokensStrs) do
+      if Copy(text, TextPos, Length(TokensStrs[i])) = TokensStrs[i] then
+      begin
+        ftoken := Tokens[i];
+        Inc(fTextPos, Length(TokensStrs[i]));
+        result := true;
+        exit;
+      end;
+    result := false;
   end;
 
   { Read a string, to a tokString token.
@@ -399,7 +406,7 @@ const
     'built-in function',
     'function',
     '-', '+',
-    '*', '/', '^', '%',
+    '*', '/', 'div', '^', '%',
     '>', '<', '>=', '<=', '=', '<>',
     '(', ')',
     '[', ']',

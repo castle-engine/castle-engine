@@ -1059,9 +1059,9 @@ uses Generics.Defaults,
 
 const
   UnknownTexCoord: TTriangle4 = (Data: (
-    (Data: (0, 0, 0, 1)),
-    (Data: (0, 0, 0, 1)),
-    (Data: (0, 0, 0, 1))
+    (X: 0; Y: 0; Z: 0; W: 1),
+    (X: 0; Y: 0; Z: 0; W: 1),
+    (X: 0; Y: 0; Z: 0; W: 1)
   ));
 
 { TTriangleHelper ------------------------------------------------------------ }
@@ -2083,8 +2083,8 @@ function TShape.CreateTriangleOctree(
 
       procedure TriAssign(TriIndex: integer; c1value, c2value: Single);
       begin
-        Position.Data[TriIndex].Data[c1] := c1value;
-        Position.Data[TriIndex].Data[c2] := c2value;
+        Position.Data[TriIndex].InternalData[c1] := c1value;
+        Position.Data[TriIndex].InternalData[c2] := c2value;
       end;
 
     begin
@@ -2092,10 +2092,12 @@ function TShape.CreateTriangleOctree(
 
       for I := 0 to 2 do
       begin
-        Position.Data[I].Data[ConstCoord] := ConstCoordValue;
-        Normal.Data[I].Data[C1] := 0;
-        Normal.Data[I].Data[C2] := 0;
-        Normal.Data[I].Data[ConstCoord] := 1; { TODO: or -1 }
+        Position.Data[I].InternalData[ConstCoord] := ConstCoordValue;
+        {$warnings off} // silence FPC warning about Normal uninitialized
+        Normal.Data[I].InternalData[C1] := 0;
+        {$warnings on}
+        Normal.Data[I].InternalData[C2] := 0;
+        Normal.Data[I].InternalData[ConstCoord] := 1; { TODO: or -1 }
       end;
 
       TriAssign(0, x1, y1);

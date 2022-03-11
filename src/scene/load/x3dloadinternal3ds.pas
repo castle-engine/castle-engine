@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -490,9 +490,9 @@ end;
 const
   { TODO: I don't know default 3DS material parameters.
     Below I just use some default OpenGL and VRML 1.0 values. } { }
-  Default3dsMatAmbient: TVector4 = (Data: (0.2, 0.2, 0.2, 1.0));
-  Default3dsMatDiffuse: TVector4 = (Data: (0.8, 0.8, 0.8, 1.0));
-  Default3dsMatSpecular: TVector4 = (Data: (0, 0, 0, 1.0));
+  Default3dsMatAmbient: TVector4 = (X: 0.2; Y: 0.2; Z: 0.2; W: 1.0);
+  Default3dsMatDiffuse: TVector4 = (X: 0.8; Y: 0.8; Z: 0.8; W: 1.0);
+  Default3dsMatSpecular: TVector4 = (X: 0; Y: 0; Z: 0; W: 1.0);
   Default3dsMatShininess: Single = 0.2; {< in range 0..1 }
 
 constructor TMaterial3ds.Create(const AName: string);
@@ -514,7 +514,7 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
   function ReadMaterialMap(EndPos: Int64): TMaterialMap3ds;
   const
     InitialExistingMatMap: TMaterialMap3ds =
-    (Exists: true; MapURL: ''; Scale: (Data: (1, 1)); Offset: (Data: (0, 0)));
+    (Exists: true; MapURL: ''; Scale: (X: 1; Y: 1); Offset: (X: 0; Y: 0));
   var
     h: TChunkHeader;
     hEnd: Int64;
@@ -528,10 +528,10 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
       hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
       case h.id of
         CHUNK_MAP_FILE: Result.MapURL := StreamReadZeroEndString(Stream);
-        CHUNK_MAP_USCALE: Stream.ReadLE(Result.Scale.Data[0]);
-        CHUNK_MAP_VSCALE: Stream.ReadLE(Result.Scale.Data[1]);
-        CHUNK_MAP_UOFFSET: Stream.ReadLE(Result.Offset.Data[0]);
-        CHUNK_MAP_VOFFSET: Stream.ReadLE(Result.Offset.Data[1]);
+        CHUNK_MAP_USCALE: Stream.ReadLE(Result.Scale.X);
+        CHUNK_MAP_VSCALE: Stream.ReadLE(Result.Scale.Y);
+        CHUNK_MAP_UOFFSET: Stream.ReadLE(Result.Offset.X);
+        CHUNK_MAP_VOFFSET: Stream.ReadLE(Result.Offset.Y);
         else Stream.Position := hEnd;
       end;
     end;
@@ -772,7 +772,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
       { init face }
       Stream.ReadBuffer(Word3, SizeOf(Word3));
       for j := 0 to 2 do
-        VertsIndices[j] := LEtoN(Word3[j]);
+        VertsIndices.InternalData[j] := LEtoN(Word3[j]);
       Stream.ReadLE(Flags);
       { decode Flags }
       for j := 0 to 2 do
@@ -879,8 +879,8 @@ function TCamera3ds.Up: TVector3;
 var
   D: TVector3;
 const
-  StandardUp: TVector3 = (Data: (0, 0, 1));
-  StandardUpAlt: TVector3 = (Data: (0, 1, 0));
+  StandardUp: TVector3 = (X: 0; Y: 0; Z: 1);
+  StandardUpAlt: TVector3 = (X: 0; Y: 1; Z: 0);
 begin
   D := Direction;
 

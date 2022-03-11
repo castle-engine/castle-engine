@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,7 +75,7 @@ procedure glScalev(const V: TVector3); overload; deprecated 'use other methods t
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 
-procedure glClipPlane(plane: GLenum; const V: TVector4Double); overload;
+procedure glClipPlane(plane: TGLenum; const V: TVector4Double); overload;
 
 procedure glNormalv(const v: TVector3); overload;
 
@@ -316,15 +316,15 @@ begin
   {$warnings on}
 end;
 
-procedure glTranslatev(const V: TVector3); begin glTranslatef(V[0], V[1], V[2]); end;
+procedure glTranslatev(const V: TVector3); begin glTranslatef(V.X, V.Y, V.Z); end;
 
 procedure glScalev(const V: Single); begin glScalef(V, V, V); end;
 
-procedure glScalev(const V: TVector3); begin glScalef(V[0], V[1], V[2]); end;
+procedure glScalev(const V: TVector3); begin glScalef(V.X, V.Y, V.Z); end;
 
-procedure glRotatev(const Angle: TGLfloat;  const V: TVector3); begin glRotatef(Angle, V[0], V[1], V[2]); end;
+procedure glRotatev(const Angle: TGLfloat;  const V: TVector3); begin glRotatef(Angle, V.X, V.Y, V.Z); end;
 
-procedure glClipPlane(plane: GLenum; const V: TVector4Double);
+procedure glClipPlane(plane: TGLenum; const V: TVector4Double);
 begin
   {$ifdef FPC}GL.{$else}OpenGL.{$endif}glClipPlane(plane, @V);
 end;
@@ -469,12 +469,12 @@ end;
 
 procedure glColorOpacity(const Color: TVector3; const Opacity: Single);
 begin
-  glColor4f(Color[0], Color[1], Color[2], Opacity);
+  glColor4f(Color.X, Color.Y, Color.Z, Opacity);
 end;
 
 procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single);
 begin
-  glColor4f(Color[0] / 255, Color[1] / 255, Color[2] / 255, Opacity);
+  glColor4f(Color.X / 255, Color.Y / 255, Color.Z / 255, Opacity);
 end;
 {$endif}
 

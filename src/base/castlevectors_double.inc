@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -46,8 +46,8 @@ function ThreePlanesIntersectionPointDouble(
 function MaxAbsVectorCoordDouble(const v: TVector3Double): integer;
 begin
   Result := 0;
-  if Abs(v.Data[1]) > Abs(v.Data[Result]) then Result := 1;
-  if Abs(v.Data[2]) > Abs(v.Data[Result]) then Result := 2;
+  if Abs(v.Y) > Abs(v[Result]) then Result := 1;
+  if Abs(v.Z) > Abs(v[Result]) then Result := 2;
 end;
 
 procedure TwoPlanesIntersectionLineDouble(const Plane0, Plane1: TVector4Double;
@@ -62,65 +62,65 @@ begin
   LineVector := TVector3Double.CrossProduct(Plane0Dir, Plane1Dir);
 
   NonZeroIndex := MaxAbsVectorCoordDouble(LineVector);
-  if IsZero(LineVector.Data[NonZeroIndex]) then
+  if IsZero(LineVector[NonZeroIndex]) then
     raise EPlanesParallel.Create(
       'Unable to calculate intersection line of two planes ' +
       Plane0.ToRawString + ' and ' + Plane1.ToRawString + ' because ' +
       'planes are parallel');
 
-  { Since LineVector.Data[NonZeroIndex] <> 0, we know that we can find exactly
-    one point on this line by assuming that Point.Data[NonZeroIndex] = 0. }
-  Line0.Data[NonZeroIndex] := 0;
+  { Since LineVector[NonZeroIndex] <> 0, we know that we can find exactly
+    one point on this line by assuming that Point[NonZeroIndex] = 0. }
+  Line0.InternalData[NonZeroIndex] := 0;
   RestOf3DCoords(NonZeroIndex, Index1, Index2);
 
   { Now we must solve
-      Plane0.Data[Index1] * Line0.Data[Index1] + Plane0.Data[Index2] * Line0.Data[Index2] + Plane0.Data[3] = 0
-      Plane1.Data[Index1] * Line0.Data[Index1] + Plane1.Data[Index2] * Line0.Data[Index2] + Plane1.Data[3] = 0
-    We want to sum these two equations to eliminate Line0.Data[Index1]:
-      0                                 + Sum_Index2        * Line0.Data[Index2] + Sum_3        = 0
+      Plane0[Index1] * Line0[Index1] + Plane0[Index2] * Line0[Index2] + Plane0.W = 0
+      Plane1[Index1] * Line0[Index1] + Plane1[Index2] * Line0[Index2] + Plane1.W = 0
+    We want to sum these two equations to eliminate Line0[Index1]:
+      0                              + Sum_Index2     * Line0[Index2] + Sum_3 = 0
   }
-  if not IsZero(Plane0.Data[Index1]) then
+  if not IsZero(Plane0[Index1]) then
   begin
     PlaneWithNonZeroIndex1 := @Plane0;
-    PlaneMultiply := - Plane1.Data[Index1] / Plane0.Data[Index1];
-    Sum_Index2 := Plane0.Data[Index2] * PlaneMultiply + Plane1.Data[Index2];
-    Sum_3      := Plane0.Data[3]      * PlaneMultiply + Plane1.Data[3];
+    PlaneMultiply := - Plane1[Index1] / Plane0[Index1];
+    Sum_Index2 := Plane0[Index2] * PlaneMultiply + Plane1[Index2];
+    Sum_3      := Plane0.W      * PlaneMultiply + Plane1.W;
   end else
-  if not IsZero(Plane1.Data[Index1]) then
+  if not IsZero(Plane1[Index1]) then
   begin
     PlaneWithNonZeroIndex1 := @Plane1;
-    PlaneMultiply := - Plane0.Data[Index1] / Plane1.Data[Index1];
-    Sum_Index2 := Plane0.Data[Index2] + Plane1.Data[Index2] * PlaneMultiply;
-    Sum_3      := Plane0.Data[3]      + Plane1.Data[3]      * PlaneMultiply;
+    PlaneMultiply := - Plane0[Index1] / Plane1[Index1];
+    Sum_Index2 := Plane0[Index2] + Plane1[Index2] * PlaneMultiply;
+    Sum_3      := Plane0.W      + Plane1.W      * PlaneMultiply;
   end else
   begin
-    { If Plane0.Data[Index1] = Plane1.Data[Index1] = 0, this is simple.
-        Sum_Index2 := Plane0.Data[Index2] + Plane1.Data[Index2];
-        Sum_3      := Plane0.Data[3]      + Plane1.Data[3]     ;
+    { If Plane0[Index1] = Plane1[Index1] = 0, this is simple.
+        Sum_Index2 := Plane0[Index2] + Plane1[Index2];
+        Sum_3      := Plane0.W      + Plane1.W     ;
         PlaneWithNonZeroIndex1 := ???;
       But it's useless, because then I will not be able to calculate
-      Line0.Data[Index1] (after obtaining Line0.Data[Index2]).
+      Line0[Index1] (after obtaining Line0[Index2]).
       TODO -- some proof that this cannot happen for correct input ? }
     raise Exception.Create('Cannot calculate intersection line of two planes');
   end;
 
   { Now we know that
-      Sum_Index2 * Line0.Data[Index2] + Sum_3 = 0
-    Sum_Index2 must be <> 0, since we know that Line0.Data[Index2] must be uniquely
+      Sum_Index2 * Line0[Index2] + Sum_3 = 0
+    Sum_Index2 must be <> 0, since we know that Line0[Index2] must be uniquely
     determined ? Right ? TODO -- I'm not sure, how to prove this simply ?
   }
-  Line0.Data[Index2] := - Sum_3 / Sum_Index2;
+  Line0.InternalData[Index2] := - Sum_3 / Sum_Index2;
 
   { Note we have
-      PlaneWithNonZeroIndex1^.Data[Index1] * Line0.Data[Index1] +
-      PlaneWithNonZeroIndex1^.Data[Index2] * Line0.Data[Index2] +
-      PlaneWithNonZeroIndex1^.Data[3] = 0
-    All is known except Line0.Data[Index1],
-    PlaneWithNonZeroIndex1^.Data[Index1] is for sure <> 0. }
-  Line0.Data[Index1] := -
-    (PlaneWithNonZeroIndex1^.Data[Index2] * Line0.Data[Index2] +
-     PlaneWithNonZeroIndex1^.Data[3]) /
-    PlaneWithNonZeroIndex1^.Data[Index1];
+      PlaneWithNonZeroIndex1^[Index1] * Line0[Index1] +
+      PlaneWithNonZeroIndex1^[Index2] * Line0[Index2] +
+      PlaneWithNonZeroIndex1^.W = 0
+    All is known except Line0[Index1],
+    PlaneWithNonZeroIndex1^[Index1] is for sure <> 0. }
+  Line0.InternalData[Index1] := -
+    (PlaneWithNonZeroIndex1^[Index2] * Line0[Index2] +
+     PlaneWithNonZeroIndex1^.W) /
+    PlaneWithNonZeroIndex1^[Index1];
 end;
 
 function TryPlaneLineIntersectionDouble(out t: Double;
@@ -133,7 +133,7 @@ begin
   if not IsZero(Dot) then
   begin
     Result := true;
-    t := -(plane.Data[0]*line0.Data[0] + plane.Data[1]*line0.Data[1] + plane.Data[2]*line0.Data[2] + plane.Data[3])/Dot;
+    t := -(plane.X*line0.X + plane.Y*line0.Y + plane.Z*line0.Z + plane.W)/Dot;
   end else
     Result := false;
 end;

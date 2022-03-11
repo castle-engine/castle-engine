@@ -222,27 +222,6 @@
   {$endif}
 {$endif}
 
-{ Define BUGGY_AARCH64_OPTIMIZATIONS when appropriate --------------------------- }
-
-{ Various things are broken when older FPC < 3.3.1 (rev 48104)
-  is used with optimizations=on on Aarch64.
-
-  - See https://trello.com/c/5ydB4MuA/113-enable-again-aarch64-optimizations .
-
-  - TextProxy broken:
-    it seems like it draws only 1st letter of each line.
-    Testcase: bubbles in unholy_society.
-
-  - Draw3x3 implementation is broken by optimizations on Aarch64,
-    it seems like it doesn't receive DrawWidth correctly,
-    and even when we workaround it, it calculates partial rectangles
-    (for DrawAdd) incorrectly.
-    Testcase: any example using Draw3x3 on Android/Aarch64. }
-
-{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE) and (defined(VER3_0) or defined(VER3_1) or defined(VER3_2))}
-  {$define BUGGY_AARCH64_OPTIMIZATIONS}
-{$endif}
-
 { Nintendo Switch ------------------------------------------------------------ }
 
 { Since we use (as a hack) Aarch64/Android for Nintendo Switch,
@@ -419,10 +398,10 @@
       See https://castle-engine.io/build_tool .
       It will also be placed alongside your .exe when you do "castle-engine compile ...".
 
-    - On macOS, see https://castle-engine.io/macosx_requirements.php .
+    - On macOS, see https://castle-engine.io/macos .
 
     - On Android, we have a "png" service with libpng included.
-      See tools/build-tool/data/android/integrated-services/png/README.md .
+      See ../../tools/build-tool/data/android/integrated-services/png/README.adoc .
 
   3.If CASTLE_PNG_STATIC is defined, we statically link to libpng.
     The presense of static libpng library (libpng.a on Unix) is then

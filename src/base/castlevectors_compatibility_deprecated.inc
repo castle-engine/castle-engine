@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,25 +20,25 @@
 
 const
   { Vector with all components zero. }
-  ZeroVector2Single: TVector2 = (Data: (0, 0)) deprecated 'use TVector2.Zero';
-  ZeroVector3Single: TVector3 = (Data: (0, 0, 0)) deprecated 'use TVector3.Zero';
-  ZeroVector4Single: TVector4 = (Data: (0, 0, 0, 0)) deprecated 'use TVector4.Zero';
+  ZeroVector2Single: TVector2 = (X: 0; Y: 0) deprecated 'use TVector2.Zero';
+  ZeroVector3Single: TVector3 = (X: 0; Y: 0; Z: 0) deprecated 'use TVector3.Zero';
+  ZeroVector4Single: TVector4 = (X: 0; Y: 0; Z: 0; W: 0) deprecated 'use TVector4.Zero';
 
-  ZeroVector2Double: TVector2Double = (Data: (0, 0)) deprecated 'use TVector2Double.Zero';
-  ZeroVector3Double: TVector3Double = (Data: (0, 0, 0)) deprecated 'use TVector3Double.Zero';
-  ZeroVector4Double: TVector4Double = (Data: (0, 0, 0, 0)) deprecated 'use TVector4Double.Zero';
+  ZeroVector2Double: TVector2Double = (X: 0; Y: 0) deprecated 'use TVector2Double.Zero';
+  ZeroVector3Double: TVector3Double = (X: 0; Y: 0; Z: 0) deprecated 'use TVector3Double.Zero';
+  ZeroVector4Double: TVector4Double = (X: 0; Y: 0; Z: 0; W: 0) deprecated 'use TVector4Double.Zero';
 
-  ZeroVector2Byte: TVector2Byte = (Data: (0, 0)) deprecated 'use TVector2Byte.Zero';
-  ZeroVector3Byte: TVector3Byte = (Data: (0, 0, 0)) deprecated 'use TVector3Byte.Zero';
-  ZeroVector4Byte: TVector4Byte = (Data: (0, 0, 0, 0)) deprecated 'use TVector4Byte.Zero';
+  ZeroVector2Byte: TVector2Byte = (X: 0; Y: 0) deprecated 'use TVector2Byte.Zero';
+  ZeroVector3Byte: TVector3Byte = (X: 0; Y: 0; Z: 0) deprecated 'use TVector3Byte.Zero';
+  ZeroVector4Byte: TVector4Byte = (X: 0; Y: 0; Z: 0; W: 0) deprecated 'use TVector4Byte.Zero';
 
-  ZeroVector2Integer: TVector2Integer = (Data: (0, 0)) deprecated 'use TVector2Integer.Zero';
-  ZeroVector3Integer: TVector3Integer = (Data: (0, 0, 0)) deprecated 'use TVector3Integer.Zero';
-  ZeroVector4Integer: TVector4Integer = (Data: (0, 0, 0, 0)) deprecated 'use TVector4Integer.Zero';
+  ZeroVector2Integer: TVector2Integer = (X: 0; Y: 0) deprecated 'use TVector2Integer.Zero';
+  ZeroVector3Integer: TVector3Integer = (X: 0; Y: 0; Z: 0) deprecated 'use TVector3Integer.Zero';
+  ZeroVector4Integer: TVector4Integer = (X: 0; Y: 0; Z: 0; W: 0) deprecated 'use TVector4Integer.Zero';
 
-  ZeroVector2Cardinal: TVector2Cardinal = (Data: (0, 0)) deprecated 'use TVector2Cardinal.Zero';
-  ZeroVector3Cardinal: TVector3Cardinal = (Data: (0, 0, 0)) deprecated 'use TVector3Cardinal.Zero';
-  ZeroVector4Cardinal: TVector4Cardinal = (Data: (0, 0, 0, 0)) deprecated 'use TVector4Cardinal.Zero';
+  ZeroVector2Cardinal: TVector2Cardinal = (X: 0; Y: 0) deprecated 'use TVector2Cardinal.Zero';
+  ZeroVector3Cardinal: TVector3Cardinal = (X: 0; Y: 0; Z: 0) deprecated 'use TVector3Cardinal.Zero';
+  ZeroVector4Cardinal: TVector4Cardinal = (X: 0; Y: 0; Z: 0; W: 0) deprecated 'use TVector4Cardinal.Zero';
 
   ZeroMatrix2Single: TMatrix2 = (Data: ((0, 0), (0, 0))) deprecated 'use TMatrix2.Zero';
   ZeroMatrix3Single: TMatrix3 = (Data: ((0, 0, 0), (0, 0, 0), (0, 0, 0))) deprecated 'use TMatrix3.Zero';
@@ -57,19 +57,19 @@ const
   IdentityMatrix4Double: TMatrix4Double = (Data: ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))) deprecated 'use TMatrix4Double.Identity';
 
   UnitVector2Single: array [TVector2.TIndex] of TVector2 = (
-    (Data: (1, 0)),
-    (Data: (0, 1))
+    (X: 1; Y: 0),
+    (X: 0; Y: 1)
   ) deprecated 'use TVector2.One';
   UnitVector3Single: array [TVector3.TIndex] of TVector3 = (
-    (Data: (1, 0, 0)),
-    (Data: (0, 1, 0)),
-    (Data: (0, 0, 1))
+    (X: 1; Y: 0; Z: 0),
+    (X: 0; Y: 1; Z: 0),
+    (X: 0; Y: 0; Z: 1)
   ) deprecated 'use TVector3.One';
   UnitVector4Single: array [TVector4.TIndex] of TVector4 = (
-    (Data: (1, 0, 0, 0)),
-    (Data: (0, 1, 0, 0)),
-    (Data: (0, 0, 1, 0)),
-    (Data: (0, 0, 0, 1))
+    (X: 1; Y: 0; Z: 0; W: 0),
+    (X: 0; Y: 1; Z: 0; W: 0),
+    (X: 0; Y: 0; Z: 1; W: 0),
+    (X: 0; Y: 0; Z: 0; W: 1)
   ) deprecated 'use TVector4.One';
 
 type
@@ -136,8 +136,8 @@ function VectorMultiplyComponents(const V1, V2: TVector4): TVector4; overload; d
 function VectorProduct(const V1, V2: TVector3): TVector3; overload; deprecated 'use TVector3.CrossProduct';
 function Normalized(const V: TVector2): TVector2; overload; deprecated 'use V.Normalize method';
 function Normalized(const V: TVector3): TVector3; overload; deprecated 'use V.Normalize method';
-procedure NormalizeVar(var V: TVector2); overload; deprecated 'use V.NormalizeMe method';
-procedure NormalizeVar(var V: TVector3); overload; deprecated 'use V.NormalizeMe method';
+procedure NormalizeVar(var V: TVector2); overload; deprecated 'use V := V.Normalize';
+procedure NormalizeVar(var V: TVector3); overload; deprecated 'use V := V.Normalize';
 function MatrixMult(const M1, M2: TMatrix4): TMatrix4; overload; deprecated 'use * operator to multiply matrices';
 function MatrixMultPoint(const M: TMatrix4; const P: TVector2): TVector2; overload; deprecated 'use M.MultPoint method';
 function MatrixMultPoint(const M: TMatrix4; const P: TVector3): TVector3; overload; deprecated 'use M.MultPoint method';
@@ -235,63 +235,63 @@ function Matrix4Single(const V: TMatrix4Double): TMatrix4; overload; deprecated 
 
 function Vector2Single(const X, Y: Single): TVector2;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
+  Result.X := X;
+  Result.Y := Y;
 end;
 
 function Vector2Single(const V: TVector2Double): TVector2;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
+  Result.X := V.X;
+  Result.Y := V.Y;
 end;
 
 { Construct 3D float vectors ------------------------------------------------------------ }
 
 function Vector3Single(const X, Y, Z: Single): TVector3;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
-  Result.Data[2] := Z;
+  Result.X := X;
+  Result.Y := Y;
+  Result.Z := Z;
 end;
 
 function Vector3Single(const V: TVector2; const Z: Single): TVector3;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
-  Result.Data[2] := Z;
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := Z;
 end;
 
 function Vector3Single(const V: TVector3Double): TVector3;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
-  Result.Data[2] := V.Data[2];
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := V.Z;
 end;
 
 { Construct 4D float vectors ------------------------------------------------------------ }
 
 function Vector4Single(const X, Y, Z, W: Single): TVector4;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
-  Result.Data[2] := Z;
-  Result.Data[3] := W;
+  Result.X := X;
+  Result.Y := Y;
+  Result.Z := Z;
+  Result.W := W;
 end;
 
 function Vector4Single(const V: TVector3; const W: Single): TVector4;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
-  Result.Data[2] := V.Data[2];
-  Result.Data[3] := W;
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := V.Z;
+  Result.W := W;
 end;
 
 function Vector4Single(const V: TVector4Double): TVector4;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
-  Result.Data[2] := V.Data[2];
-  Result.Data[3] := V.Data[3];
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := V.Z;
+  Result.W := V.W;
 end;
 
 { float compatibility functions ---------------------------------------------- }
@@ -385,12 +385,12 @@ end;
 
 procedure NormalizeVar(var V: TVector2);
 begin
-  V.NormalizeMe;
+  V := V.Normalize;
 end;
 
 procedure NormalizeVar(var V: TVector3);
 begin
-  V.NormalizeMe;
+  V := V.Normalize;
 end;
 
 function MatrixMult(const M1, M2: TMatrix4): TMatrix4;

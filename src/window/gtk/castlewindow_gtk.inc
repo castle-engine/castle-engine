@@ -1420,7 +1420,8 @@ begin
     if Result then
     begin
       gtk_color_selection_get_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
-      for i := 0 to 2 do Color[i] := GtkColor[i];
+      for i := 0 to 2 do
+        Color.InternalData[i] := GtkColor[i];
     end;
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;

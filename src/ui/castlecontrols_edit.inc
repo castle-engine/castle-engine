@@ -547,7 +547,7 @@ end;
 function TCastleEdit.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) or (not Enabled) then Exit;
+  if Result or (not Exists) or (not Enabled) then Exit;
 
   if Event.IsKey(CharBackSpace) or Event.IsKey(keyBackSpace) then
   begin

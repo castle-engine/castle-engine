@@ -200,12 +200,17 @@ begin
   if UseClearColor then
     RenderContext.Clear([cbColor], ClearColor);
 
-  { We don't calculate correct Frustum (accounting for the fact that camera
+  { We don't calculate correct Params.Frustum (accounting for the fact that camera
     is rotated but never shifted during 3D background rendering) now.
     But also frustum culling for this would not be very useful,
-    so just disable it. }
-  Scene.InternalIgnoreFrustum := true;
+    so just disable it by leaving Params.Frustum = nil. }
+  //Params.Frustum := nil; // this is actually the default, we never set Params.Frustum
+  Assert(Params.Frustum = nil);
 
+  { Scene.Render in this case should call Scene.LocalRender straight away,
+    as Scene has no transformation.
+    And that's good, the TCastleTransform.Render could not handle any transformation
+    as Params.Frustum is nil.  }
   Params.Transparent := false; Scene.Render(Params);
   Params.Transparent := true ; Scene.Render(Params);
 end;
@@ -243,18 +248,18 @@ var
     procedure RenderTextureSide(const Side: TBackgroundSide);
     const
       Coords: array [TBackgroundSide, 0..3] of TVector3 =
-      ( ((Data: ( 1, -1,  1)), (Data: (-1, -1,  1)), (Data: (-1,  1,  1)), (Data: ( 1,  1,  1))), {back}
-        ((Data: (-1, -1,  1)), (Data: ( 1, -1,  1)), (Data: ( 1, -1, -1)), (Data: (-1, -1, -1))), {bottom}
-        ((Data: (-1, -1, -1)), (Data: ( 1, -1, -1)), (Data: ( 1,  1, -1)), (Data: (-1,  1, -1))), {front}
-        ((Data: (-1, -1,  1)), (Data: (-1, -1, -1)), (Data: (-1,  1, -1)), (Data: (-1,  1,  1))), {left}
-        ((Data: ( 1, -1, -1)), (Data: ( 1, -1,  1)), (Data: ( 1,  1,  1)), (Data: ( 1,  1, -1))), {right}
-        ((Data: (-1,  1, -1)), (Data: ( 1,  1, -1)), (Data: ( 1,  1,  1)), (Data: (-1,  1,  1)))  {top}
+      ( ((X: 1; Y: -1; Z:  1), (X:-1; Y: -1; Z:  1), (X:-1; Y:  1; Z:  1), (X: 1; Y:  1; Z:  1)), {back}
+        ((X:-1; Y: -1; Z:  1), (X: 1; Y: -1; Z:  1), (X: 1; Y: -1; Z: -1), (X:-1; Y: -1; Z: -1)), {bottom}
+        ((X:-1; Y: -1; Z: -1), (X: 1; Y: -1; Z: -1), (X: 1; Y:  1; Z: -1), (X:-1; Y:  1; Z: -1)), {front}
+        ((X:-1; Y: -1; Z:  1), (X:-1; Y: -1; Z: -1), (X:-1; Y:  1; Z: -1), (X:-1; Y:  1; Z:  1)), {left}
+        ((X: 1; Y: -1; Z: -1), (X: 1; Y: -1; Z:  1), (X: 1; Y:  1; Z:  1), (X: 1; Y:  1; Z: -1)), {right}
+        ((X:-1; Y:  1; Z: -1), (X: 1; Y:  1; Z: -1), (X: 1; Y:  1; Z:  1), (X:-1; Y:  1; Z:  1))  {top}
       );
       TexCoords: array [0..3] of TVector2 = (
-        (Data: (0, 0)),
-        (Data: (1, 0)),
-        (Data: (1, 1)),
-        (Data: (0, 1))
+        (X: 0; Y: 0),
+        (X: 1; Y: 0),
+        (X: 1; Y: 1),
+        (X: 0; Y: 1)
       );
     var
       Shape: TShapeNode;

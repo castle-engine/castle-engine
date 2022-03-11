@@ -28,7 +28,7 @@ unit CastleResources
 interface
 
 uses Classes, DOM, Generics.Collections,
-  CastleVectors, CastleXMLConfig, CastleTimeUtils, CastleFrustum,
+  CastleVectors, CastleXMLConfig, CastleTimeUtils, CastleFrustum, CastleClassUtils,
   CastleScene, X3DNodes, CastleTransform, CastleBoxes, CastleFindFiles,
   CastleSectors;
 
@@ -50,7 +50,7 @@ type
         ForcedLoop: Boolean;
         ForcedActualTime: TFloatTime;
 
-        { Prepare scene loading i from given URL.
+        { Prepare scene loading from given URL.
           Loads the scene only if URL is not empty and if it's not already loaded (that is, when Scene = nil).
           Prepares for fast rendering and other processing by TCastleTransform.PrepareResources.
           Calls Progress.Step 2 times, if DoProgress. }
@@ -142,9 +142,12 @@ type
     FLoop: boolean;
     CurrentChild: TCastleScene;
     CurrentChildFromPool: Boolean;
+    ResourceObserver: TFreeNotificationObserver;
+    procedure ResourceFreeNotification(const Sender: TFreeNotificationObserver);
   protected
     procedure LocalRender(const Params: TRenderParams); override;
   public
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Animation: T3DResourceAnimation read FAnimation;
     { Time within the ResourceAnimation. }
@@ -164,6 +167,12 @@ type
     function GetPlayer: TCastleTransform; virtual; abstract;
     function GetSectors: TSectorList; virtual; abstract;
     function RootTransform: TCastleRootTransform; virtual; abstract;
+    { All creatures are children of this.
+      Allows to easily hide them. }
+    function CreaturesRoot: TCastleTransform; virtual; abstract;
+    { All items are children of this.
+      Allows to easily hide them. }
+    function ItemsRoot: TCastleTransform; virtual; abstract;
     { Parameters to prepare rendering for,
       see @link(TCastleViewport.PrepareParams). }
     function PrepareParams: TPrepareParams; virtual; abstract;
@@ -179,10 +188,21 @@ type
     But some 3D objects may need to have such resource prepared to work.
 
     It can also load it's configuration from XML config file.
-    For this purpose, it has a unique identifier in @link(Name) property. }
-  T3DResource = class
+    For this purpose, it has a unique identifier in @link(Name) property.
+
+    Name (from TComponent.Name) is a unique identifier of this resource.
+    Used to refer to this resource from level placeholders
+    (see TLevel.Load about placeholders),
+    from other XML files (for example one creature may shoot another
+    creature as a missile using @link(TWalkAttackCreatureResource.FireMissileName)),
+    and in other places.
+
+    Name can use only letters, use CamelCase.
+    Reason: This must be a valid identifier in both VRML/X3D and ObjectPascal.
+    Also digits and underscores are reserved, as we may use them to get other
+    information from placeholder names. }
+  T3DResource = class(TComponent)
   private
-    FName: string;
     FPrepared: boolean;
     FUsageCount: Cardinal;
     FConfigAlwaysPrepared: boolean;
@@ -233,7 +253,7 @@ type
       DefaultReceiveShadowVolumes = true;
       DefaultCastShadowVolumes = true;
 
-    constructor Create(const AName: string); virtual;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Are we in a (fully) prepared state. That is after a (fully successful)
@@ -243,19 +263,6 @@ type
       is not finished yet. This property is guaranteed to be @true only if
       preparation was fully successfully (no exceptions) finished. }
     property Prepared: boolean read FPrepared;
-
-    { Unique identifier of this resource.
-      Used to refer to this resource from level placeholders
-      (see TLevel.Load about placeholders),
-      from other XML files (for example one creature may shoot another
-      creature as a missile using @link(TWalkAttackCreatureResource.FireMissileName)),
-      and in other places.
-
-      This can use only letters, use CamelCase.
-      Reason: This must be a valid identifier in both VRML/X3D and ObjectPascal.
-      Also digits and underscores are reserved, as we may use them to get other
-      information from placeholder names. }
-    property Name: string read FName;
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); virtual;
 
@@ -585,7 +592,7 @@ begin
       result after some animation run and modified scene.
       This would cause creature radius change.
 
-      Testcase: examples/animations/resource_animations,
+      Testcase: examples/animations/deprecated_resource_animations,
       load same resource 2x in a row,
       bounding sphere should not change. }
     InitialBox := Scene.BoundingBox;
@@ -777,6 +784,25 @@ end;
 
 { TResourceFrame ------------------------------------------------------------- }
 
+constructor TResourceFrame.Create(AOwner: TComponent);
+begin
+  inherited;
+  ResourceObserver := TFreeNotificationObserver.Create(Self);
+  ResourceObserver.OnFreeNotification := {$ifdef FPC}@{$endif}ResourceFreeNotification;
+end;
+
+destructor TResourceFrame.Destroy;
+begin
+  if CurrentChildFromPool then
+  begin
+    CurrentChildFromPool := false;
+    FAnimation.FOwner.ReleaseSceneFromPool(CurrentChild);
+    Remove(CurrentChild);
+    CurrentChild := nil;
+  end;
+  inherited;
+end;
+
 procedure TResourceFrame.LocalRender(const Params: TRenderParams);
 
   procedure UpdateChild;
@@ -838,6 +864,11 @@ begin
   FTime := ATime;
   FLoop := ALoop;
 
+  if FAnimation <> nil then
+    ResourceObserver.Observed := FAnimation.FOwner
+  else
+    ResourceObserver.Observed := nil;
+
   // if setting new resource, allocate new scene from pool
   if (not CurrentChildFromPool) and
      (FAnimation <> nil) and
@@ -862,24 +893,22 @@ begin
   end;
 end;
 
-destructor TResourceFrame.Destroy;
+procedure TResourceFrame.ResourceFreeNotification(const Sender: TFreeNotificationObserver);
 begin
-  if CurrentChildFromPool then
-  begin
-    CurrentChildFromPool := false;
-    FAnimation.FOwner.ReleaseSceneFromPool(CurrentChild);
-    Remove(CurrentChild);
-    CurrentChild := nil;
-  end;
-  inherited;
+  { When T3DResource (FAnimation.Owner) is freed, unassociate from FAnimation
+    (that is/will be freed alongside), to avoid later crash at TResourceFrame.Destroy.
+    The FreeAndNil(Resources) may happen before all creatures are destroyed.
+    Testcase: fps_game, crash at game exit. }
+  SetFrame(nil, nil, 0, false);
+  Assert(FAnimation = nil);
+  Assert(not CurrentChildFromPool);
 end;
 
 { T3DResource ---------------------------------------------------------------- }
 
-constructor T3DResource.Create(const AName: string);
+constructor T3DResource.Create(AOwner: TComponent);
 begin
-  inherited Create;
-  FName := AName;
+  inherited;
   FFallSpeed := DefaultFallSpeed;
   FGrowSpeed := DefaultGrowSpeed;
   FReceiveShadowVolumes := DefaultReceiveShadowVolumes;
@@ -892,8 +921,13 @@ destructor T3DResource.Destroy;
 begin
   FPrepared := false;
   ReleaseCore;
-  FreeAndNil(FAnimations);
   inherited;
+  { Freeing FAnimations *after* inherited is necessary,
+    because inherited notifies all TResourceFrame about freeing of related T3DResource instance.
+    At the point of that notification, TResourceFrame may assume that referenced FAnimation
+    still exists.
+    Testcase: just run and close fps_game. }
+  FreeAndNil(FAnimations);
 end;
 
 function T3DResource.CreateSceneForPool(const Params: TPrepareParams): TCastleScene;
@@ -1126,7 +1160,8 @@ begin
             [ResourceName]);
       end else
       begin
-        Resource := ResourceClass.Create(ResourceName);
+        Resource := ResourceClass.Create(nil);
+        Resource.Name := ResourceName;
         Add(Resource);
       end;
 
@@ -1307,7 +1342,7 @@ begin
   Result := FResources;
 end;
 
-initialization // Empty but Delphi need that
+initialization // Empty but Delphi needs this
 
 finalization
   UnitFinalization := true;

@@ -1035,11 +1035,6 @@ type
         using this variable (e.g. Render routines will exit immediately
         when InternalDirty <> 0).
 
-        Note: in the future, we could replace this by just Enable/Disable
-        feature on TCastleTransform. But it's not so trivial now, as Enable/Disable
-        makes even *too much* things non-existing, e.g. GetCollides
-        may return false, LocalBoundingBox may be empty etc.
-
         @exclude }
       InternalDirty: Cardinal;
 
@@ -1935,9 +1930,12 @@ type
       (or it has empty title) then result is based on loaded URL. }
     function Caption: string;
 
-    { Global lights of this scene. Read-only. May be useful to render
-      other 3D objects with lights defined inside this scene. }
-    property GlobalLights: TLightInstancesList read FGlobalLights;
+    { Global lights of this scene. Read-only.
+      Useful to shine these lights on other scenes, if TCastleScene.CastGlobalLights. }
+    property InternalGlobalLights: TLightInstancesList read FGlobalLights;
+    {$ifdef FPC}
+    property GlobalLights: TLightInstancesList read FGlobalLights; deprecated;
+    {$endif}
 
     { Find a named X3D node (and a field or event within this node)
       in the current node graph. They search all nodes
@@ -3567,7 +3565,7 @@ end;
 
 function TCastleSceneCore.LocalBoundingBox: TBox3D;
 begin
-  if GetExists then
+  if Exists then
   begin
     if not (fvLocalBoundingBox in Validities) then
     begin
@@ -3859,7 +3857,7 @@ begin
 
     { Add lights to GlobalLights }
     if Active and (TAbstractLightNode(Node).Scope = lsGlobal) then
-      ParentScene.GlobalLights.Add(
+      ParentScene.InternalGlobalLights.Add(
         TAbstractLightNode(Node).CreateLightInstance(StateStack.Top));
   end else
 
@@ -4064,42 +4062,16 @@ procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
         Shape.State.AddLight(L);
     end;
 
-    { Add L everywhere within given Radius from Location.
-      Note that this will calculate BoundingBox of every Shape
-      (but that's simply unavoidable if you have scene with VRML 2.0
-      positional lights). }
-    procedure AddLightRadius(const L: TLightInstance;
-      const Location: TVector3; const Radius: Single);
-    var
-      ShapeList: TShapeList;
-      Shape: TShape;
-    begin
-      ShapeList := Shapes.TraverseList(false);
-      for Shape in ShapeList do
-        if Shape.BoundingBox.SphereCollision(Location, Radius) then
-          Shape.State.AddLight(L);
-    end;
-
   var
     I: Integer;
     L: PLightInstance;
-    LNode: TAbstractLightNode;
   begin
     { Here we only deal with light scope = lsGlobal case.
       Other scopes are handled during traversing. }
-
-    for I := 0 to GlobalLights.Count - 1 do
+    for I := 0 to InternalGlobalLights.Count - 1 do
     begin
-      L := PLightInstance(GlobalLights.Ptr(I));
-      LNode := L^.Node;
-
-      { TODO: for spot lights, it would be an optimization to also limit
-        LightInstances by spot cone size. }
-
-      if (LNode is TAbstractPositionalLightNode) and
-         TAbstractPositionalLightNode(LNode).HasRadius then
-        AddLightRadius(L^, L^.Location, L^.Radius) else
-        AddLightEverywhere(L^);
+      L := PLightInstance(InternalGlobalLights.Ptr(I));
+      AddLightEverywhere(L^);
     end;
   end;
 
@@ -4191,7 +4163,7 @@ begin
     FreeAndNil(FShapes);
     FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
-    GlobalLights.Clear;
+    InternalGlobalLights.Clear;
     FViewpointsArray.Clear;
     FAnimationsList.Clear;
     AnimationAffectedFields.Clear;
@@ -4505,7 +4477,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
 
     { Update also light state on GlobalLights list, in case other scenes
       depend on this light. Testcase: planets-demo. }
-    HandleLightsList(ParentScene.GlobalLights);
+    HandleLightsList(ParentScene.InternalGlobalLights);
 
     { force update of GeneratedShadowMap textures that used this light }
     ParentScene.GeneratedTextures.UpdateShadowMaps(LightNode);
@@ -4984,14 +4956,14 @@ var
     end;
 
     { Change light instance on GlobalLights list, if any.
-      This way other 3D scenes, using our lights by
-      @link(TCastleViewport.UseGlobalLights) feature,
+      This way other scenes, using our lights by
+      @link(TCastleScene.CastGlobalLights) feature,
       also have updated light location/direction.
       See https://sourceforge.net/p/castle-engine/discussion/general/thread/0bbaaf38/
       for a testcase. }
-    for I := 0 to GlobalLights.Count - 1 do
+    for I := 0 to InternalGlobalLights.Count - 1 do
     begin
-      L := PLightInstance(GlobalLights.Ptr(I));
+      L := PLightInstance(InternalGlobalLights.Ptr(I));
       if L^.Node = ANode then
         L^.Node.UpdateLightInstance(L^);
     end;
@@ -5178,7 +5150,7 @@ var
   end;
 
   { Handle chTextureImage, chTextureRendererProperties }
-  procedure HandleChangeTextureImageOrRenderer;
+  procedure HandleChangeTextureImageOrRenderer(const ANode: TX3DNode; const Change: TX3DChange);
   var
     ShapeList: TShapeList;
     Shape: TShape;
@@ -5201,6 +5173,40 @@ var
     begin
       if Shape.UsesTexture(TAbstractTextureNode(ANode)) then
         Shape.Changed(false, [Change]);
+    end;
+  end;
+
+  { React to change of TTexturePropertiesNode fields.
+
+    Testcase that this is needed: create new TCastleImageTransform
+    and change TCastleImageTransform.RepeatImage between (0.1, 0.1) and (10, 10),
+    effectively changing the TextureProperties.BoundaryModeS/T under the hood between
+    clamp and repeat. }
+  procedure HandleChangeTextureProperties;
+  var
+    ParentField: TX3DField;
+    TextureNode: TX3DNode;
+    I: Integer;
+  begin
+    Assert(ANode is TTexturePropertiesNode, 'Only TTexturePropertiesNode should send chTexturePropertiesNode');
+    for I := 0 to ANode.ParentFieldsCount - 1 do
+    begin
+      ParentField := ANode.ParentFields[I];
+      if not (ParentField is TSFNode) then
+      begin
+        WritelnWarning('TTexturePropertiesNode change', 'ParentField is not TSFNode. This should not happen in normal usage of TTexturePropertiesNode, submit a bug');
+        Continue;
+      end;
+
+      TextureNode := TSFNode(ParentField).ParentNode;
+      if TextureNode = nil then
+      begin
+        WritelnWarning('TTexturePropertiesNode change', 'ParentField.Node is nil. This should not happen in usual usage of TCastleScene, submit a bug');
+        Continue;
+      end;
+
+      { Make the same effect as when texture node's repeatS/T/R field changes }
+      HandleChangeTextureImageOrRenderer(TextureNode, chTextureRendererProperties);
     end;
   end;
 
@@ -5458,8 +5464,8 @@ begin
       chTimeStopStart: HandleChangeTimeStopStart;
       chViewpointVectors: HandleChangeViewpointVectors;
       // TODO:  chViewpointProjection: HandleChangeViewpointProjection
-      chTextureImage, chTextureRendererProperties: HandleChangeTextureImageOrRenderer;
-      // TODO: chTexturePropertiesNode
+      chTextureImage, chTextureRendererProperties: HandleChangeTextureImageOrRenderer(ANode, Change);
+      chTexturePropertiesNode: HandleChangeTextureProperties;
       chShadowCasters: HandleChangeShadowCasters;
       chGeneratedTextureUpdateNeeded: HandleChangeGeneratedTextureUpdateNeeded;
       { The HandleFontStyle implementation matches
@@ -6229,7 +6235,7 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if Result or (not GetExists) or (Event.EventType <> itKey) then Exit;
+  if Result or (not Exists) or (Event.EventType <> itKey) then Exit;
 
   if ProcessEvents then
   begin
@@ -6254,7 +6260,7 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if Result or (not GetExists) or (Event.EventType <> itKey) then Exit;
+  if Result or (not Exists) or (Event.EventType <> itKey) then Exit;
 
   if ProcessEvents then
   begin
@@ -6288,7 +6294,7 @@ var
   OverItem: PTriangle;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result or (not Exists) then Exit;
 
   OverItem := Pick.Triangle;
 
@@ -7136,7 +7142,7 @@ var
   SP: Single;
 begin
   inherited;
-  if not GetExists then Exit;
+  if not Exists then Exit;
 
   { in case the same scene is present many times on Viewport.Items list,
     do not process it's Update() many times (would cause time to move too fast). }
@@ -7343,18 +7349,18 @@ begin
       APosition := PSI.InverseTransform.MultPoint(CameraVectors.Position);
 
       NewIsActive :=
-        (APosition[0] >= ProxNode.FdCenter.Value[0] - ProxNode.FdSize.Value[0] / 2) and
-        (APosition[0] <= ProxNode.FdCenter.Value[0] + ProxNode.FdSize.Value[0] / 2) and
-        (APosition[1] >= ProxNode.FdCenter.Value[1] - ProxNode.FdSize.Value[1] / 2) and
-        (APosition[1] <= ProxNode.FdCenter.Value[1] + ProxNode.FdSize.Value[1] / 2) and
-        (APosition[2] >= ProxNode.FdCenter.Value[2] - ProxNode.FdSize.Value[2] / 2) and
-        (APosition[2] <= ProxNode.FdCenter.Value[2] + ProxNode.FdSize.Value[2] / 2) and
+        (APosition.X >= ProxNode.FdCenter.Value.X - ProxNode.FdSize.Value.X / 2) and
+        (APosition.X <= ProxNode.FdCenter.Value.X + ProxNode.FdSize.Value.X / 2) and
+        (APosition.Y >= ProxNode.FdCenter.Value.Y - ProxNode.FdSize.Value.Y / 2) and
+        (APosition.Y <= ProxNode.FdCenter.Value.Y + ProxNode.FdSize.Value.Y / 2) and
+        (APosition.Z >= ProxNode.FdCenter.Value.Z - ProxNode.FdSize.Value.Z / 2) and
+        (APosition.Z <= ProxNode.FdCenter.Value.Z + ProxNode.FdSize.Value.Z / 2) and
         { ... and the box is not empty, which for ProximitySensor
           is signalled by any size <= 0 (yes, equal 0 also means empty).
           We check this at the end, as this is the least common situation? }
-        (ProxNode.FdSize.Value[0] > 0) and
-        (ProxNode.FdSize.Value[1] > 0) and
-        (ProxNode.FdSize.Value[2] > 0);
+        (ProxNode.FdSize.Value.X > 0) and
+        (ProxNode.FdSize.Value.Y > 0) and
+        (ProxNode.FdSize.Value.Z > 0);
 
       if NewIsActive <> PSI.IsActive then
       begin
@@ -8140,16 +8146,16 @@ begin
       NavigationType := 'EXAMINE';
   end;
 
-  AvatarSize[0] := Navigation.Radius;
+  AvatarSize.X := Navigation.Radius;
   if Walk <> nil then begin
     WalkSpeed := Walk.MoveSpeed;
-    AvatarSize[1] := Walk.PreferredHeight;
-    AvatarSize[2] := Walk.ClimbHeight;
+    AvatarSize.Y := Walk.PreferredHeight;
+    AvatarSize.Z := Walk.ClimbHeight;
   end
   else begin
     WalkSpeed := 0;
-    AvatarSize[1] := 0;
-    AvatarSize[2] := 0;
+    AvatarSize.Y := 0;
+    AvatarSize.Z := 0;
   end;
   VisibilityLimit := 0;
 
@@ -8584,14 +8590,17 @@ function TCastleSceneCore.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'URL') or
-    (PropertyName = 'ProcessEvents') or
-    (PropertyName = 'AutoAnimation') or
-    (PropertyName = 'AutoAnimationLoop') or
-    (PropertyName = 'DefaultAnimationTransition') or
-    (PropertyName = 'Spatial') then
-      Result := [psBasic]
-    else
-      Result := inherited PropertySections(PropertyName);
+     (PropertyName = 'ProcessEvents') or
+     (PropertyName = 'AutoAnimation') or
+     (PropertyName = 'AutoAnimationLoop') or
+     (PropertyName = 'DefaultAnimationTransition') or
+     (PropertyName = 'Spatial') or
+     (PropertyName = 'ExposeTransforms') or
+     (PropertyName = 'TimePlaying') or
+     (PropertyName = 'TimePlayingSpeed') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);

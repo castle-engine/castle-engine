@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2021 Michalis Kamburelis.
+  Copyright 2007-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -292,7 +292,7 @@ begin
   Caps := AngleRadBetweenVectors(OriginalIntersection,
     Vector3(0, 1, 0)) < FdDiskAngle.Value;
 
-  OriginalIntersection[1] := 0;
+  OriginalIntersection.Y := 0;
 
   if Caps then
   begin
@@ -301,7 +301,7 @@ begin
       and passing though PlaneOrigin. }
     CapsPlaneDir := PVector3(@CapsPlane);
     CapsPlaneDir^ := Transform.MultDirection(TVector3.One[1]);
-    CapsPlane[3] := -TVector3.DotProduct(CapsPlaneDir^, OverPoint);
+    CapsPlane.W := -TVector3.DotProduct(CapsPlaneDir^, OverPoint);
   end else
   begin
     CylinderAxisOrigin := Transform.MultPoint(TVector3.Zero);
@@ -350,7 +350,7 @@ begin
     { both OriginalIntersection and LocalIntersection have Y component set to 0
       for the sake of calculating RotationAngle. They are both assumed to lie
       nicely on a CapsPlane. }
-    LocalIntersection[1] := 0;
+    LocalIntersection.Y := 0;
 
     RotationAngle := RotationAngleRadBetweenVectors(
       OriginalIntersection, LocalIntersection, TVector3.One[1]);
@@ -393,7 +393,7 @@ begin
       and passing though PlaneOrigin. }
     PlaneDir := PVector3(@Plane);
     PlaneDir^ := Transform.MultDirection(TVector3.One[2]);
-    Plane[3] := -TVector3.DotProduct(PlaneDir^, PlaneOrigin);
+    Plane.W := -TVector3.DotProduct(PlaneDir^, PlaneOrigin);
 
     { +X, +Y vectors, transformed by current sensor transform and
       by axisRotation, normalized. }
@@ -404,7 +404,7 @@ begin
     begin
       { Transform matrix doesn't manage to transform directions.
         So just assume it's identity, nothing more sensible to do. }
-      Plane := Vector4(0, 0, 1, -PlaneOrigin[2]);
+      Plane := Vector4(0, 0, 1, -PlaneOrigin.Z);
       PlaneX := TVector3.One[0];
       PlaneY := TVector3.One[1];
       Transform := TMatrix4.Identity;
@@ -471,22 +471,22 @@ begin
 
       Then applying the PointOrigin, PlaneX, PlaneY would be much simpler:
       PointOrigin is just zero, and PlaneX = just (1, 0, 0).
-      So instead of TVector3.DotProduct(V, PlaneX) just take V[0]. }
+      So instead of TVector3.DotProduct(V, PlaneX) just take V.X. }
 
     TranslationGlobal := Intersection - PlaneOrigin;
 
     { map TranslationGlobal to the plane local coord system
       (with axisRotation) }
-    Translation[0] := TVector3.DotProduct(TranslationGlobal, PlaneX);
-    Translation[1] := TVector3.DotProduct(TranslationGlobal, PlaneY);
-    Translation[2] := 0;
+    Translation.X := TVector3.DotProduct(TranslationGlobal, PlaneX);
+    Translation.Y := TVector3.DotProduct(TranslationGlobal, PlaneY);
+    Translation.Z := 0;
 
     Translation := Translation + FdOffset.Value;
 
-    if FdMinPosition.Value[0] <= FdMaxPosition.Value[0] then
-      ClampVar(Translation.Data[0], FdMinPosition.Value[0], FdMaxPosition.Value[0]);
-    if FdMinPosition.Value[1] <= FdMaxPosition.Value[1] then
-      ClampVar(Translation.Data[1], FdMinPosition.Value[1], FdMaxPosition.Value[1]);
+    if FdMinPosition.Value.X <= FdMaxPosition.Value.X then
+      ClampVar(Translation.X, FdMinPosition.Value.X, FdMaxPosition.Value.X);
+    if FdMinPosition.Value.Y <= FdMaxPosition.Value.Y then
+      ClampVar(Translation.Y, FdMinPosition.Value.Y, FdMaxPosition.Value.Y);
 
     EventTranslation_changed.Send(Translation, Time);
     WasTranslation := true;

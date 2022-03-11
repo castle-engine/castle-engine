@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -91,23 +91,23 @@ var
 
       { the polygon is always at least a triangle, read it }
       for j := 0 to 2 do
-        CurrentFace[j] := ReadVertexIndex(LineTokens[J + 1]);
+        CurrentFace.InternalData[j] := ReadVertexIndex(LineTokens[J + 1]);
       Faces.Add(CurrentFace);
 
-      FirstVert := CurrentFace[0];
-      LastVert := CurrentFace[2];
+      FirstVert := CurrentFace.X;
+      LastVert := CurrentFace.Z;
 
       { for each following vertex, add new triangle by connecting
         FirstVert, LastVert and new vertexa.
         Watch out for the order --- make all triangles oriented consistently. }
       for j := 3 to ThisPolyCount - 1 do
       begin
-        CurrentFace[0] := FirstVert;
-        CurrentFace[1] := LastVert;
-        CurrentFace[2] := ReadVertexIndex(LineTokens[J + 1]);
+        CurrentFace.X := FirstVert;
+        CurrentFace.Y := LastVert;
+        CurrentFace.Z := ReadVertexIndex(LineTokens[J + 1]);
         Faces.Add(CurrentFace);
 
-        LastVert := CurrentFace[2];
+        LastVert := CurrentFace.Z;
       end;
     finally FreeAndNil(LineTokens) end;
   end;
@@ -212,9 +212,9 @@ begin
       faces.FdCoordIndex.Count := geo.Faces.Count * 4;
       for i := 0 to geo.Faces.Count-1 do
       begin
-        faces.FdCoordIndex.Items.List^[i * 4    ] := geo.Faces.List^[i][0];
-        faces.FdCoordIndex.Items.List^[i * 4 + 1] := geo.Faces.List^[i][1];
-        faces.FdCoordIndex.Items.List^[i * 4 + 2] := geo.Faces.List^[i][2];
+        faces.FdCoordIndex.Items.List^[i * 4    ] := geo.Faces.List^[i].X;
+        faces.FdCoordIndex.Items.List^[i * 4 + 1] := geo.Faces.List^[i].Y;
+        faces.FdCoordIndex.Items.List^[i * 4 + 2] := geo.Faces.List^[i].Z;
         faces.FdCoordIndex.Items.List^[i * 4 + 3] := -1;
       end;
 

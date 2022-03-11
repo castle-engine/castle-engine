@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -332,8 +332,8 @@ begin
     for I := 0 to Count - 1 do
     begin
       C.FdPoint.Items.List^[I] := Vector3(
-        FdLineSegments.Items.List^[I].Data[0],
-        FdLineSegments.Items.List^[I].Data[1],
+        FdLineSegments.Items.List^[I].X,
+        FdLineSegments.Items.List^[I].Y,
         0
       );
     end;
@@ -372,8 +372,8 @@ begin
     for I := 0 to Count - 1 do
     begin
       C.FdPoint.Items.List^[I] := Vector3(
-        FdPoint.Items.List^[I].Data[0],
-        FdPoint.Items.List^[I].Data[1],
+        FdPoint.Items.List^[I].X,
+        FdPoint.Items.List^[I].Y,
         0
       );
     end;
@@ -467,8 +467,8 @@ begin
     for I := 0 to Count - 1 do
     begin
       C.FdPoint.Items.List^[I] := Vector3(
-        FdVertices.Items.List^[I].Data[0],
-        FdVertices.Items.List^[I].Data[1],
+        FdVertices.Items.List^[I].X,
+        FdVertices.Items.List^[I].Y,
         0
       );
     end;

@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="964">
+    <Files Count="970">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -803,7 +803,6 @@ See https://castle-engine.io/license.php for details.
       </Item175>
       <Item176>
         <Filename Value="../src/files/castlexmlconfig.pas"/>
-        <HasRegisterProc Value="True"/>
         <UnitName Value="CastleXMLConfig"/>
       </Item176>
       <Item177>
@@ -1210,10 +1209,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/services/castletestfairy.pas"/>
         <UnitName Value="CastleTestFairy"/>
       </Item277>
-      <Item278>
-        <Filename Value="../src/services/castlegiftiz.pas"/>
-        <UnitName Value="CastleGiftiz"/>
-      </Item278>
       <Item279>
         <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlebillboard_persistent_vectors.inc"/>
         <Type Value="Include"/>
@@ -1311,11 +1306,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/transform/castleinternalrays.pas"/>
         <UnitName Value="CastleInternalRays"/>
       </Item302>
-      <Item303>
-        <Filename Value="../src/transform/castlerenderingcamera.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleRenderingCamera"/>
-      </Item303>
       <Item304>
         <Filename Value="../src/transform/castlesectors.pas"/>
         <UnitName Value="CastleSectors"/>
@@ -1480,7 +1470,6 @@ See https://castle-engine.io/license.php for details.
       </Item343>
       <Item344>
         <Filename Value="../src/ui/castlecontrols.pas"/>
-        <HasRegisterProc Value="True"/>
         <UnitName Value="CastleControls"/>
       </Item344>
       <Item345>
@@ -3202,7 +3191,6 @@ See https://castle-engine.io/license.php for details.
       </Item773>
       <Item774>
         <Filename Value="../src/scene/castlescene.pas"/>
-        <HasRegisterProc Value="True"/>
         <UnitName Value="CastleScene"/>
       </Item774>
       <Item775>
@@ -3263,7 +3251,6 @@ See https://castle-engine.io/license.php for details.
       </Item788>
       <Item789>
         <Filename Value="../src/scene/castleviewport.pas"/>
-        <HasRegisterProc Value="True"/>
         <UnitName Value="CastleViewport"/>
       </Item789>
       <Item790>
@@ -3966,6 +3953,38 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlebackground_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item964>
+      <Item965>
+        <Filename Value="../src/scene/castlescene_abstractlight.inc"/>
+        <Type Value="Include"/>
+      </Item965>
+      <Item966>
+        <Filename Value="../src/scene/castlescene_pointlight.inc"/>
+        <Type Value="Include"/>
+      </Item966>
+      <Item967>
+        <Filename Value="../src/scene/castlescene_directionallight.inc"/>
+        <Type Value="Include"/>
+      </Item967>
+      <Item968>
+        <Filename Value="../src/scene/castlescene_spotlight.inc"/>
+        <Type Value="Include"/>
+      </Item968>
+      <Item969>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlepointlight_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item969>
+      <Item970>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastledirectionallight_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item970>
+      <Item303>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlespotlight_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item303>
+      <Item278>
+        <Filename Value="../src/scene/castlescene_environmentlight.inc"/>
+        <Type Value="Include"/>
+      </Item278>
     </Files>
     <RequiredPkgs Count="3">
       <Item1>

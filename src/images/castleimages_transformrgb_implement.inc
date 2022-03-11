@@ -7,13 +7,13 @@ begin
  p := PPixel(RawPixels);
  for i := 1 to Width * Height do
  begin
-  NewColor.Data[0] := Matrix.Data[0, 0]*p^.Data[0] + Matrix.Data[1, 0]*p^.Data[1]+ Matrix.Data[2, 0]*p^.Data[2];
-  NewColor.Data[1] := Matrix.Data[0, 1]*p^.Data[0] + Matrix.Data[1, 1]*p^.Data[1]+ Matrix.Data[2, 1]*p^.Data[2];
-  NewColor.Data[2] := Matrix.Data[0, 2]*p^.Data[0] + Matrix.Data[1, 2]*p^.Data[1]+ Matrix.Data[2, 2]*p^.Data[2];
+  NewColor.X := Matrix.Data[0, 0]*p^.X + Matrix.Data[1, 0]*p^.Y+ Matrix.Data[2, 0]*p^.Z;
+  NewColor.Y := Matrix.Data[0, 1]*p^.X + Matrix.Data[1, 1]*p^.Y+ Matrix.Data[2, 1]*p^.Z;
+  NewColor.Z := Matrix.Data[0, 2]*p^.X + Matrix.Data[1, 2]*p^.Y+ Matrix.Data[2, 2]*p^.Z;
 
-  p^.Data[0] := Clamped(Round(NewColor.Data[0]), 0, High(Byte));
-  p^.Data[1] := Clamped(Round(NewColor.Data[1]), 0, High(Byte));
-  p^.Data[2] := Clamped(Round(NewColor.Data[2]), 0, High(Byte));
+  p^.X := Clamped(Round(NewColor.X), 0, High(Byte));
+  p^.Y := Clamped(Round(NewColor.Y), 0, High(Byte));
+  p^.Z := Clamped(Round(NewColor.Z), 0, High(Byte));
   Inc(P);
  end;
 end;

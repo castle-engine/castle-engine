@@ -1,6 +1,6 @@
 {%MainUnit castletimeutils.pas}
 {
-  Copyright 2000-2019 Michalis Kamburelis.
+  Copyright 2000-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -183,6 +183,19 @@ type
       accessed from TCastleContainer, like @link(TCastleContainer.Fps),
       @link(TCastleWindow.Fps), @link(TCastleControl.Fps). }
     class function FrameId: TFrameId;
+
+    { Frame identifier within which last render started.
+
+      This is usually equal to @link(FrameId) or @link(FrameId) - 1
+      (depending on the order, whether Update or Render happens first,
+      which may be platform-dependent).
+      Though if you disabled TCastleWindow.AutoRedisplay, it may be something
+      even smaller than @link(FrameId) - 1.
+
+      Never zero. (This allows to easily treat "frame id = zero" as
+      "frame id that never happened" in some logic.)
+    }
+    class function RenderFrameId: TFrameId;
   end;
 
 {$endif read_interface}
@@ -193,6 +206,7 @@ type
 
 var
   FFrameId: TFrameId = 1;
+  FRenderFrameId: TFrameId = 1;
 
 constructor TFramesPerSecond.Create;
 const
@@ -218,6 +232,7 @@ end;
 procedure TFramesPerSecond._RenderBegin;
 begin
   RenderStartTime := Timer;
+  FRenderFrameId := FFrameId;
 end;
 
 procedure TFramesPerSecond._RenderEnd;
@@ -311,6 +326,11 @@ end;
 class function TFramesPerSecond.FrameId: TFrameId;
 begin
   Result := FFrameId;
+end;
+
+class function TFramesPerSecond.RenderFrameId: TFrameId;
+begin
+  Result := FRenderFrameId;
 end;
 
 {$endif read_implementation}

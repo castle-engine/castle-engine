@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,7 +40,7 @@ begin
     for I := 0 to JsonArray.Count - 1 do
       if JsonArray[I] is TJSONNumber then
       begin
-        Vec2[Vec2Index] := JsonArray[I].AsFloat;
+        Vec2.InternalData[Vec2Index] := JsonArray[I].AsFloat;
         Inc(Vec2Index);
         if Vec2Index = 2 then
         begin

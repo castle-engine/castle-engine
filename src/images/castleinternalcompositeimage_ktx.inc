@@ -245,7 +245,7 @@ begin
       { Now invert red and blue. }
       for X := 0 to Image.Width - 1 do
       begin
-        SwapValues(Row^.Data[2], Row^.Data[0]);
+        SwapValues(Row^.Z, Row^.X);
         Inc(Row);
       end;
       if Padding <> 0 then
@@ -291,7 +291,7 @@ begin
       { Now invert red and blue. }
       for X := 0 to Image.Width - 1 do
       begin
-        SwapValues(Row^.Data[2], Row^.Data[0]);
+        SwapValues(Row^.Z, Row^.X);
         Inc(Row);
       end;
     end;
@@ -323,9 +323,9 @@ begin
         Pixel := PVector3(Image.RowPtr(TargetY(Y), TargetZ(Z)));
         for X := 0 to Image.Width - 1 do
         begin
-          Pixel^[0] := PixelSource^;
-          Pixel^[1] := PixelSource^;
-          Pixel^[2] := PixelSource^;
+          Pixel^.X := PixelSource^;
+          Pixel^.Y := PixelSource^;
+          Pixel^.Z := PixelSource^;
           Inc(PixelSource);
           Inc(Pixel);
         end;

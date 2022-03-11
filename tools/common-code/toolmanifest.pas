@@ -53,6 +53,11 @@ type
   public
     DisplayValue: String;
     Code: Cardinal;
+    { Version components separated by dots in DisplayValue:
+      Major, Minor, Release, Build.
+      Calculated by InitializeItems. }
+    Items: array [0..3] of Cardinal;
+    procedure InitializeItems;
   end;
 
   TImageFileNames = class(TCastleStringList)
@@ -321,6 +326,23 @@ begin
     if SameText(CompilerToString(Result), S) then
       Exit;
   raise Exception.CreateFmt('Invalid compiler name "%s"', [S]);
+end;
+
+{ TProjectVersion ------------------------------------------------------------- }
+
+procedure TProjectVersion.InitializeItems;
+var
+  Strs: TCastleStringList;
+  I: Integer;
+begin
+  Strs := CastleStringUtils.SplitString(DisplayValue, '.');
+  try
+    for I := 0 to High(Items) do
+      if I < Strs.Count then
+        Items[I] := StrToIntDef(Trim(Strs[I]), 0)
+      else
+        Items[I] := 0;
+  finally FreeAndNil(Strs) end;
 end;
 
 { TImageFileNames ------------------------------------------------------------- }
@@ -899,6 +921,7 @@ procedure TCastleManifest.CreateFinish;
   end;
 
 begin
+  Version.InitializeItems;
   CheckDataExists;
   GuessDependencies; // depends on FDataExists finalized, so must be after CheckDataExists
   CloseDependencies; // must be after GuessDependencies, to close also guesses dependencies

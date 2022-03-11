@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2021 Michalis Kamburelis.
+  Copyright 2015-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,12 +32,12 @@
     procedure SetBorderColor(const Value: TCastleColor);
     function GetBorderWidth: Integer;
     procedure SetBorderWidth(const Value: Integer);
-    function GetBoundaryModeS: String;
-    procedure SetBoundaryModeS(const Value: String);
-    function GetBoundaryModeT: String;
-    procedure SetBoundaryModeT(const Value: String);
-    function GetBoundaryModeR: String;
-    procedure SetBoundaryModeR(const Value: String);
+    function GetBoundaryModeS: TBoundaryMode;
+    procedure SetBoundaryModeS(const Value: TBoundaryMode);
+    function GetBoundaryModeT: TBoundaryMode;
+    procedure SetBoundaryModeT(const Value: TBoundaryMode);
+    function GetBoundaryModeR: TBoundaryMode;
+    procedure SetBoundaryModeR(const Value: TBoundaryMode);
     function GetTextureCompression: String;
     procedure SetTextureCompression(const Value: String);
     function GetTexturePriority: Single;
@@ -47,24 +47,74 @@
     function GetGuiTexture: Boolean;
     procedure SetGuiTexture(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAnisotropicDegree: TSFFloat;
+    { X3D field "anisotropicDegree". } { }
+    public property FdAnisotropicDegree: TSFFloat read FFdAnisotropicDegree;
     { X3D field "anisotropicDegree". } { }
     property AnisotropicDegree: Single read GetAnisotropicDegree write SetAnisotropicDegree;
+
+    strict private FFdBorderColor: TSFColorRGBA;
+    { X3D field "borderColor". } { }
+    public property FdBorderColor: TSFColorRGBA read FFdBorderColor;
     { X3D field "borderColor". } { }
     property BorderColor: TCastleColor read GetBorderColor write SetBorderColor;
+
+    strict private FFdBorderWidth: TSFInt32;
+    { X3D field "borderWidth". } { }
+    public property FdBorderWidth: TSFInt32 read FFdBorderWidth;
     { X3D field "borderWidth". } { }
     property BorderWidth: Integer read GetBorderWidth write SetBorderWidth;
+
+    strict private FFdBoundaryModeS: TSFStringEnum;
     { X3D field "boundaryModeS". } { }
-    property BoundaryModeS: String read GetBoundaryModeS write SetBoundaryModeS;
+    public property FdBoundaryModeS: TSFStringEnum read FFdBoundaryModeS;
+    { X3D field "boundaryModeS". } { }
+    property BoundaryModeS: TBoundaryMode read GetBoundaryModeS write SetBoundaryModeS;
+
+    strict private FFdBoundaryModeT: TSFStringEnum;
     { X3D field "boundaryModeT". } { }
-    property BoundaryModeT: String read GetBoundaryModeT write SetBoundaryModeT;
+    public property FdBoundaryModeT: TSFStringEnum read FFdBoundaryModeT;
+    { X3D field "boundaryModeT". } { }
+    property BoundaryModeT: TBoundaryMode read GetBoundaryModeT write SetBoundaryModeT;
+
+    strict private FFdBoundaryModeR: TSFStringEnum;
     { X3D field "boundaryModeR". } { }
-    property BoundaryModeR: String read GetBoundaryModeR write SetBoundaryModeR;
+    public property FdBoundaryModeR: TSFStringEnum read FFdBoundaryModeR;
+    { X3D field "boundaryModeR". } { }
+    property BoundaryModeR: TBoundaryMode read GetBoundaryModeR write SetBoundaryModeR;
+
+    strict private FFdMagnificationFilter: TSFString;
+    { X3D field "magnificationFilter". } { }
+    public property FdMagnificationFilter: TSFString read FFdMagnificationFilter;
+
+    strict private FFdMinificationFilter: TSFString;
+    { X3D field "minificationFilter". } { }
+    public property FdMinificationFilter: TSFString read FFdMinificationFilter;
+
+    strict private FFdTextureCompression: TSFString;
+    { X3D field "textureCompression". } { }
+    public property FdTextureCompression: TSFString read FFdTextureCompression;
     { X3D field "textureCompression". } { }
     property TextureCompression: String read GetTextureCompression write SetTextureCompression;
+
+    strict private FFdTexturePriority: TSFFloat;
+    { X3D field "texturePriority". } { }
+    public property FdTexturePriority: TSFFloat read FFdTexturePriority;
     { X3D field "texturePriority". } { }
     property TexturePriority: Single read GetTexturePriority write SetTexturePriority;
+
+    strict private FFdGenerateMipMaps: TSFBool;
+    { X3D field "generateMipMaps". } { }
+    public property FdGenerateMipMaps: TSFBool read FFdGenerateMipMaps;
     { X3D field "generateMipMaps". } { }
     property GenerateMipMaps: Boolean read GetGenerateMipMaps write SetGenerateMipMaps;
+
+    strict private FFdGuiTexture: TSFBool;
+    { X3D field "guiTexture". } { }
+    public property FdGuiTexture: TSFBool read FFdGuiTexture;
     { X3D field "guiTexture". } { }
     property GuiTexture: Boolean read GetGuiTexture write SetGuiTexture;
 
@@ -104,34 +154,34 @@ begin
   FdBorderWidth.Send(Value);
 end;
 
-function TTexturePropertiesNode.GetBoundaryModeS: String;
+function TTexturePropertiesNode.GetBoundaryModeS: TBoundaryMode;
 begin
-  Result := FdBoundaryModeS.Value;
+  Result := TBoundaryMode(FdBoundaryModeS.EnumValue);
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeS(const Value: String);
+procedure TTexturePropertiesNode.SetBoundaryModeS(const Value: TBoundaryMode);
 begin
-  FdBoundaryModeS.Send(Value);
+  FdBoundaryModeS.SendEnumValue(Ord(Value));
 end;
 
-function TTexturePropertiesNode.GetBoundaryModeT: String;
+function TTexturePropertiesNode.GetBoundaryModeT: TBoundaryMode;
 begin
-  Result := FdBoundaryModeT.Value;
+  Result := TBoundaryMode(FdBoundaryModeT.EnumValue);
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeT(const Value: String);
+procedure TTexturePropertiesNode.SetBoundaryModeT(const Value: TBoundaryMode);
 begin
-  FdBoundaryModeT.Send(Value);
+  FdBoundaryModeT.SendEnumValue(Ord(Value));
 end;
 
-function TTexturePropertiesNode.GetBoundaryModeR: String;
+function TTexturePropertiesNode.GetBoundaryModeR: TBoundaryMode;
 begin
-  Result := FdBoundaryModeR.Value;
+  Result := TBoundaryMode(FdBoundaryModeR.EnumValue);
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeR(const Value: String);
+procedure TTexturePropertiesNode.SetBoundaryModeR(const Value: TBoundaryMode);
 begin
-  FdBoundaryModeR.Send(Value);
+  FdBoundaryModeR.SendEnumValue(Ord(Value));
 end;
 
 function TTexturePropertiesNode.GetTextureCompression: String;
@@ -172,6 +222,66 @@ end;
 procedure TTexturePropertiesNode.SetGuiTexture(const Value: Boolean);
 begin
   FdGuiTexture.Send(Value);
+end;
+
+class function TTexturePropertiesNode.ClassX3DType: String;
+begin
+  Result := 'TextureProperties';
+end;
+
+procedure TTexturePropertiesNode.CreateNode;
+begin
+  inherited;
+
+  FFdAnisotropicDegree := TSFFloat.Create(Self, True, 'anisotropicDegree', 1.0);
+   FdAnisotropicDegree.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdAnisotropicDegree);
+
+  FFdBorderColor := TSFColorRGBA.Create(Self, True, 'borderColor', Vector4(0, 0, 0, 0));
+   FdBorderColor.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdBorderColor);
+
+  FFdBorderWidth := TSFInt32.Create(Self, True, 'borderWidth', 0);
+   FdBorderWidth.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdBorderWidth);
+
+  FFdBoundaryModeS := TSFStringEnum.Create(Self, True, 'boundaryModeS', BoundaryModeNames, Ord(bmRepeat));
+   FdBoundaryModeS.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdBoundaryModeS);
+
+  FFdBoundaryModeT := TSFStringEnum.Create(Self, True, 'boundaryModeT', BoundaryModeNames, Ord(bmRepeat));
+   FdBoundaryModeT.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdBoundaryModeT);
+
+  FFdBoundaryModeR := TSFStringEnum.Create(Self, True, 'boundaryModeR', BoundaryModeNames, Ord(bmRepeat));
+   FdBoundaryModeR.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdBoundaryModeR);
+
+  FFdMagnificationFilter := TSFString.Create(Self, True, 'magnificationFilter', 'DEFAULT');
+   FdMagnificationFilter.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdMagnificationFilter);
+
+  FFdMinificationFilter := TSFString.Create(Self, True, 'minificationFilter', 'DEFAULT');
+   FdMinificationFilter.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdMinificationFilter);
+
+  FFdTextureCompression := TSFString.Create(Self, True, 'textureCompression', 'FASTEST');
+   FdTextureCompression.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdTextureCompression);
+
+  FFdTexturePriority := TSFFloat.Create(Self, True, 'texturePriority', 0);
+   FdTexturePriority.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdTexturePriority);
+
+  FFdGenerateMipMaps := TSFBool.Create(Self, False, 'generateMipMaps', false);
+   FdGenerateMipMaps.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdGenerateMipMaps);
+
+  FFdGuiTexture := TSFBool.Create(Self, False, 'guiTexture', false);
+   FdGuiTexture.ChangeAlways := chTexturePropertiesNode;
+  AddField(FFdGuiTexture);
+
+  DefaultContainerField := 'textureProperties';
 end;
 
 {$endif read_implementation}

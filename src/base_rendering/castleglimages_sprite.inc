@@ -436,8 +436,8 @@ end;
 
 function TSprite.GetPosition: TVector2;
 begin
-  Result[0] := FX;
-  Result[1] := FY;
+  Result.X := FX;
+  Result.Y := FY;
 end;
 
 function TSprite.GetRotation: Single;

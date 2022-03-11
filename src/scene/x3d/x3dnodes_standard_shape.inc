@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -80,6 +80,8 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
+    InternalWasVisibleFrameId: TFrameId;
+
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -115,6 +117,16 @@
       or @nil. }
     function CommonSurfaceShader: TCommonSurfaceShaderNode;
       deprecated 'use TMaterialNode instead of TCommonSurfaceShaderNode (it has the same functionality and is standardized in X3D v4)';
+
+    { Whether the shape was (potentially, at least partially) visible in the last rendering event.
+
+      Note that the same shape reference may be present multiple times
+      within one scene.
+      Moreover, the same scene may be present multiple times within one viewport.
+      Moreover, multiple viewports may render the same scene.
+      The shape is marked as "was visible" if any instance of it was visible
+      in any viewport in any scene. }
+    function WasVisible: Boolean;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
   end;
@@ -624,6 +636,14 @@ begin
     App.LineProperties := Value;
     Appearance := App;
   end;
+end;
+
+function TAbstractShapeNode.WasVisible: Boolean;
+begin
+  { Note: InternalWasVisibleFrameId is 0 by default,
+    and TFramesPerSecond.RenderFrameId is always >= 1,
+    which means that this will return (correctly) false at the beginning before any rendering run. }
+  Result := TFramesPerSecond.RenderFrameId = InternalWasVisibleFrameId;
 end;
 
 procedure TAppearanceNode.SetMaterialBefore(const Value: TAbstractMaterialNode);

@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -236,9 +236,9 @@ end;
 
 function TTextReader.ReadVector3: TVector3;
 begin
-  Result[0] := ReadSingle;
-  Result[1] := ReadSingle;
-  Result[2] := ReadSingle;
+  Result.X := ReadSingle;
+  Result.Y := ReadSingle;
+  Result.Z := ReadSingle;
 end;
 
 function TTextReader.ReadVector3Single: TVector3;

@@ -83,3 +83,11 @@
 ../../../src/scene/ TCastleBackground GroundBottomColor TCastleColorRGB
 ../../../src/scene/ TCastleBackground GroundEquatorColor TCastleColorRGB
 ../../../src/scene/ TCastleBackground Rotation TVector4
+
+../../../src/scene/ TCastlePointLight Color TCastleColorRGB
+../../../src/scene/ TCastlePointLight Attenuation TVector3
+
+../../../src/scene/ TCastleDirectionalLight Color TCastleColorRGB
+
+../../../src/scene/ TCastleSpotLight Color TCastleColorRGB
+../../../src/scene/ TCastleSpotLight Attenuation TVector3

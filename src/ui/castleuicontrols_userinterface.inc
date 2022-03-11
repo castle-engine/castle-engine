@@ -181,7 +181,7 @@
 
       @unorderedList(
         @item(@bold(This must ignore)
-          the current value of the @link(GetExists) method
+          the current value of the @link(Exists) method
           and @link(Exists) property, that is: the result of this function
           assumes that control does exist.)
 
@@ -450,7 +450,7 @@
       regardless of whether the control is under the mouse and regardless
       of what other controls already did. So all controls (well,
       all controls that exist, in case of TCastleUserInterface,
-      see TCastleUserInterface.GetExists) receive Update calls.
+      see TCastleUserInterface.Exists) receive Update calls.
 
       So the "handled" status is passed through HandleInput.
       If a control is not under the mouse, it will receive HandleInput
@@ -574,34 +574,22 @@
     { Remove all child controls added by @link(InsertFront) or @link(InsertBack). }
     procedure ClearControls;
 
-    { Return whether item really exists, see @link(Exists).
-      Non-existing item does not receive any of the render or input or update calls.
-      They only receive @link(GLContextOpen), @link(GLContextClose), @link(Resize)
-      calls.
-
-      It TCastleUserInterface class, this returns the value of @link(Exists) property.
-      May be overridden in descendants, to return something more complicated,
-      but it should always be a logical "and" with the inherited @link(GetExists)
-      implementation (so setting the @code(Exists := false) will always work),
-      like
-
-      @longCode(#
-        Result := (inherited GetExists) and MyComplicatedConditionForExists;
-      #) }
-    function GetExists: boolean; virtual;
+    {$ifdef FPC}
+    property GetExists: Boolean read FExists; deprecated 'use Exists';
+    {$endif}
 
     { Does this control capture events under this container position.
       The default implementation simply checks whether Position
       is inside @link(RenderRect).
       It also checks whether @link(CapturesEvents) is @true.
 
-      Always treated like @false when GetExists returns @false,
+      Always treated like @false when Exists returns @false,
       so the implementation of this method only needs to make checks assuming that
-      GetExists = @true.  }
+      Exists = @true.  }
     function CapturesEventsAtPosition(const Position: TVector2): boolean; virtual;
 
     { Prepare your resources, right before drawing.
-      Called only when @link(GetExists) and GLInitialized.
+      Called only when @link(Exists) and GLInitialized.
 
       @bold(Do not explicitly call this method.)
       Instead, render controls by adding them to the
@@ -610,7 +598,7 @@
     }
     procedure BeforeRender; virtual;
 
-    { Render a control. Called only when @link(GetExists) and GLInitialized,
+    { Render a control. Called only when @link(Exists) and GLInitialized,
       you can depend on it in the implementation of this method.
 
       @bold(Do not explicitly call this method.)
@@ -684,7 +672,7 @@
       In other words, this is the moment when you can initialize
       OpenGL resources, like display lists, VBOs, OpenGL texture names, etc.
 
-      As an exception, this is called regardless of the GetExists value.
+      As an exception, this is called regardless of the Exists value.
       This way a control can prepare it's resources, regardless if it exists now. }
     procedure GLContextOpen; virtual;
 
@@ -697,7 +685,7 @@
       You should release here any resources that are tied to the
       OpenGL context. In particular, the ones created in GLContextOpen.
 
-      As an exception, this is called regardless of the GetExists value.
+      As an exception, this is called regardless of the Exists value.
       This way a control can release it's resources, regardless if it exists now. }
     procedure GLContextClose; virtual;
 
@@ -843,7 +831,7 @@
       to the parent position, use @link(RenderRect)
       or @link(RenderRectWithBorder) instead.
 
-      This method ignores the current value of the @link(GetExists) method
+      This method ignores the current value of the @link(Exists) method
       and @link(Exists) property, that is: the result of this function
       assumes that control does exist.
 
@@ -1161,9 +1149,10 @@
 
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
-      You can also remove this from controls list (like
-      @link(TCastleWindow.Controls)), but often it's more comfortable
-      to set this property to false. }
+      This is mostly equivalent to just removing this control from parent list.
+
+      Non-existing controls still receive
+      @link(GLContextOpen), @link(GLContextClose), @link(Resize) events. }
     property Exists: boolean read FExists write SetExists default true;
 
     { Position from the left side of the parent control.
@@ -1907,7 +1896,7 @@ var
   I: Integer;
   R: TFloatRectangle;
 begin
-  if GetExists then
+  if Exists then
   begin
     CacheRectBegin;
 
@@ -1967,11 +1956,6 @@ end;
 procedure TCastleUserInterface.GLContextClose;
 begin
   FGLInitialized := false;
-end;
-
-function TCastleUserInterface.GetExists: boolean;
-begin
-  Result := FExists;
 end;
 
 procedure TCastleUserInterface.DoInternalMouseEnter;
@@ -2230,7 +2214,7 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
     for I := 0 to ControlsCount - 1 do
     begin
       C := Controls[I];
-      if not C.GetExists then Continue;
+      if not C.Exists then Continue;
 
       { Calculate ChildRect.
         We cannot use C.EffectiveRect or C.RectWithAnchors now,
@@ -2449,8 +2433,8 @@ begin
     Result := TVector2.Zero;
 
   RA := RectWithAnchors;
-  Result.Data[0] := Result.Data[0] + RA.Left;
-  Result.Data[1] := Result.Data[1] + RA.Bottom;
+  Result.X := Result.X + RA.Left;
+  Result.Y := Result.Y + RA.Bottom;
 end;
 
 function TCastleUserInterface.LocalToContainerTranslationShiftBorder: TVector2;
@@ -2458,8 +2442,8 @@ begin
   Result := LocalToContainerTranslation;
   if FBorder.Exists then // optimize common case
   begin
-    Result.Data[0] := Result.Data[0] + FBorder.TotalLeft   * UIScale;
-    Result.Data[1] := Result.Data[1] + FBorder.TotalBottom * UIScale;
+    Result.X := Result.X + FBorder.TotalLeft   * UIScale;
+    Result.Y := Result.Y + FBorder.TotalBottom * UIScale;
   end;
 end;
 
@@ -2559,14 +2543,14 @@ end;
 
 function TCastleUserInterface.GetAnchorDelta: TVector2;
 begin
-  Result[0] := HorizontalAnchorDelta;
-  Result[1] := VerticalAnchorDelta;
+  Result.X := HorizontalAnchorDelta;
+  Result.Y := VerticalAnchorDelta;
 end;
 
 procedure TCastleUserInterface.SetAnchorDelta(const AValue: TVector2);
 begin
-  HorizontalAnchorDelta := AValue[0];
-  VerticalAnchorDelta := AValue[1];
+  HorizontalAnchorDelta := AValue.X;
+  VerticalAnchorDelta := AValue.Y;
 end;
 
 procedure TCastleUserInterface.Anchor(const AHorizontalAnchor: THorizontalPosition;

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1420,7 +1420,7 @@ begin
       for i := 0 to Value.Width * Value.Height - 1 do
       begin
         ga := TGrayscaleAlphaImage(Value).PixelsArray^[i];
-        pixel := (ga[0] shl 8) or ga[1];
+        pixel := (ga.X shl 8) or ga.Y;
         Writer.Write(Format('0x%.4x ', [pixel]));
       end;
     end else
@@ -1429,7 +1429,7 @@ begin
       for i := 0 to Value.Width * Value.Height - 1 do
       begin
         rgb := TRGBImage(Value).PixelsArray^[i];
-        pixel := (rgb[0] shl 16) or (rgb[1] shl 8) or rgb[2];
+        pixel := (rgb.X shl 16) or (rgb.Y shl 8) or rgb.Z;
         Writer.Write(Format('0x%.6x ', [pixel]));
       end;
     end else
@@ -1438,7 +1438,7 @@ begin
       for i := 0 to Value.Width * Value.Height - 1 do
       begin
         rgba := TRGBAlphaImage(Value).PixelsArray^[i];
-        pixel := (rgba[0] shl 24) or (rgba[1] shl 16) or (rgba[2] shl 8) or rgba[3];
+        pixel := (rgba.X shl 24) or (rgba.Y shl 16) or (rgba.Z shl 8) or rgba[3];
         Writer.Write(Format('0x%.8x ', [pixel]));
       end;
     end else
@@ -1666,13 +1666,13 @@ var
   V: TItemColumn;
   Column: integer;
 begin
-  V.Data := FValue.Data[0];
+  V := FValue.Columns[0];
   Writer.Writeln(V.ToRawString);
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
-    V.Data := FValue.Data[Column];
+    V := FValue.Columns[Column];
     Writer.WritelnIndent(V.ToRawString);
   end;
   Writer.DecIndent;
@@ -1796,28 +1796,15 @@ end;
 procedure TSFMatrix3f.SaveToStreamValue(Writer: TX3DWriter);
 var
   V: TVector3;
-  Column: integer;
+  Column: Integer;
 begin
-  {$ifdef FPC}
-  V.Data := FValue.Data[0];
-  {$else}
-  V.Data[0] :=FValue.Data[0][0];
-  V.Data[1] :=FValue.Data[0][1];
-  V.Data[2] :=FValue.Data[0][2];
-  {$endif}
-
+  V := FValue.Columns[0];
   Writer.Writeln(V.ToRawString);
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
-    {$ifdef FPC}
-    V.Data := FValue.Data[Column];
-    {$else}
-    V.Data[0] := FValue.Data[Column][0];
-    V.Data[1] := FValue.Data[Column][1];
-    V.Data[2] := FValue.Data[Column][2];
-    {$endif}
+    V := FValue.Columns[Column];
     Writer.WritelnIndent(V.ToRawString);
   end;
   Writer.DecIndent;
@@ -1944,26 +1931,13 @@ var
   V: TVector3Double;
   Column: integer;
 begin
-  {$ifdef FPC}
-  V.Data := FValue.Data[0];
-  {$else}
-  V.Data[0] :=FValue.Data[0][0];
-  V.Data[1] :=FValue.Data[0][1];
-  V.Data[2] :=FValue.Data[0][2];
-  {$endif}
-
+  V := FValue.Columns[0];
   Writer.Writeln(V.ToRawString);
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
-    {$ifdef FPC}
-    V.Data := FValue.Data[Column];
-    {$else}
-    V.Data[0] := FValue.Data[Column][0];
-    V.Data[1] := FValue.Data[Column][1];
-    V.Data[2] := FValue.Data[Column][2];
-    {$endif}
+    V := FValue.Columns[Column];
     Writer.WritelnIndent(V.ToRawString);
   end;
   Writer.DecIndent;
@@ -2089,28 +2063,13 @@ var
   V: TVector4;
   Column: integer;
 begin
-  {$ifdef FPC}
-  V.Data := FValue.Data[0];
-  {$else}
-  V.Data[0] :=FValue.Data[0][0];
-  V.Data[1] :=FValue.Data[0][1];
-  V.Data[2] :=FValue.Data[0][2];
-  V.Data[3] :=FValue.Data[0][3];
-  {$endif}
-
+  V := FValue.Columns[0];
   Writer.Writeln(V.ToRawString);
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
-    {$ifdef FPC}
-    V.Data := FValue.Data[Column];
-    {$else}
-    V.Data[0] := FValue.Data[Column][0];
-    V.Data[1] := FValue.Data[Column][1];
-    V.Data[2] := FValue.Data[Column][2];
-    V.Data[3] := FValue.Data[Column][3];
-    {$endif}
+    V := FValue.Columns[Column];
     Writer.WritelnIndent(V.ToRawString);
   end;
   Writer.DecIndent;
@@ -2237,28 +2196,13 @@ var
   V: TVector4Double;
   Column: integer;
 begin
-  {$ifdef FPC}
-  V.Data := FValue.Data[0];
-  {$else}
-  V.Data[0] :=FValue.Data[0][0];
-  V.Data[1] :=FValue.Data[0][1];
-  V.Data[2] :=FValue.Data[0][2];
-  V.Data[3] :=FValue.Data[0][3];
-  {$endif}
-
+  V := FValue.Columns[0];
   Writer.Writeln(V.ToRawString);
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
-    {$ifdef FPC}
-    V.Data := FValue.Data[Column];
-    {$else}
-    V.Data[0] := FValue.Data[Column][0];
-    V.Data[1] := FValue.Data[Column][1];
-    V.Data[2] := FValue.Data[Column][2];
-    V.Data[3] := FValue.Data[Column][3];
-    {$endif}
+    V := FValue.Columns[Column];
     Writer.WritelnIndent(V.ToRawString);
   end;
   Writer.DecIndent;
@@ -2381,36 +2325,38 @@ end;
 
 procedure TSFRotation.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
-  ParseVector(Axis.Data, Lexer);
+  Axis.X := ParseFloat(Lexer);
+  Axis.Y := ParseFloat(Lexer);
+  Axis.Z := ParseFloat(Lexer);
   RotationRad := ParseFloat(Lexer) * Reader.AngleConversionFactor;
 end;
 
 function TSFRotation.GetValue: TVector4;
 begin
-  Move(Axis.Data[0], Result.Data[0], SizeOf(Single) * 3);
-  Result[3] := RotationRad;
+  Move(Axis, Result, SizeOf(Single) * 3);
+  Result.W := RotationRad;
 end;
 
 procedure TSFRotation.SetValue(const AValue: TVector4);
 begin
-  Axis[0] := AValue[0];
-  Axis[1] := AValue[1];
-  Axis[2] := AValue[2];
-  RotationRad := AValue[3];
+  Axis.X := AValue.X;
+  Axis.Y := AValue.Y;
+  Axis.Z := AValue.Z;
+  RotationRad := AValue.W;
 end;
 
 function TSFRotation.GetValueDeg: TVector4;
 begin
-  Move(Axis.Data[0], Result.Data[0], SizeOf(Single) * 3);
-  Result[3] := RadToDeg(RotationRad);
+  Move(Axis, Result, SizeOf(Single) * 3);
+  Result.W := RadToDeg(RotationRad);
 end;
 
 procedure TSFRotation.SetValueDeg(const AValue: TVector4);
 begin
-  Axis[0] := AValue[0];
-  Axis[1] := AValue[1];
-  Axis[2] := AValue[2];
-  RotationRad := DegToRad(AValue[3]);
+  Axis.X := AValue.X;
+  Axis.Y := AValue.Y;
+  Axis.Z := AValue.Z;
+  RotationRad := DegToRad(AValue.W);
 end;
 
 procedure TSFRotation.SaveToStreamValue(Writer: TX3DWriter);
@@ -2747,10 +2693,10 @@ procedure TSFGenericVector.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.Data) do
+  for I := 0 to High(Value.TIndex) do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
-    Value.Data[I] := Lexer.TokenFloat;
+    Value.InternalData[I] := Lexer.TokenFloat;
     Lexer.NextToken;
   end;
 
@@ -2861,7 +2807,7 @@ procedure TSFVec2f.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.Data) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;
@@ -2966,7 +2912,7 @@ var
   V: TVector3;
 begin
   V := Value;
-  V[Index] := ComponentValue;
+  V.InternalData[Index] := ComponentValue;
   Send(V);
 end;
 
@@ -2984,7 +2930,7 @@ procedure TSFVec3f.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.Data) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;
@@ -3111,7 +3057,7 @@ procedure TSFVec4f.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.Data) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;
@@ -3238,7 +3184,7 @@ procedure TSFVec2d.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.Data) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;
@@ -3353,7 +3299,7 @@ procedure TSFVec3d.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.Data) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;
@@ -3468,7 +3414,7 @@ procedure TSFVec4d.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   I: Integer;
 begin
-  for I := 0 to High(Value.Data) do
+  for I := 0 to Value.Count - 1 do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
     Value.Data[I] := Lexer.TokenFloat;

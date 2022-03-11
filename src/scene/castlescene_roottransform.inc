@@ -66,6 +66,7 @@ type
     MainSceneObserver: TFreeNotificationObserver;
     FUseHeadlight: TUseHeadlight;
     FHeadlightNode: TAbstractLightNode;
+    FInternalScenesCastGlobalLights: TCastleSceneList;
     procedure SetMainScene(const Value: TCastleScene);
     procedure MainScene_BoundViewpointChanged(Sender: TObject);
     procedure MainScene_BoundViewpointVectorsChanged(Sender: TObject);
@@ -73,6 +74,9 @@ type
     function GetHeadlightNode: TAbstractLightNode;
     procedure SetHeadlightNode(const Node: TAbstractLightNode);
     procedure MainSceneFreeNotification(const Sender: TFreeNotificationObserver);
+  private
+    procedure RegisterCastGlobalLights(const S: TCastleScene);
+    procedure UnregisterCastGlobalLights(const S: TCastleScene);
   protected
     function IgnoreTransparentItem(
       const Sender: TObject; const Triangle: PTriangle): Boolean; override;
@@ -80,6 +84,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { @exclude
+      TCastleScene instances that have TCastleScene.CastGlobalLights.
+      May be @nil, equivalent to empty. }
+    property InternalScenesCastGlobalLights: TCastleSceneList read FInternalScenesCastGlobalLights;
 
     { Determines the headlight look, if we use a headlight
       (which is determined by the algorithm described at @link(UseHeadlight) and
@@ -135,7 +144,12 @@ type
           node descending from TAbstractBackgroundNode),
           it will be used.
 
-          Otherwise we render a background using @link(TCastleViewport.BackgroundColor).
+          This is overridden if you set @link(TCastleViewport.Background)
+          to non-nil. MainScene's background is ignored in this case.
+
+          When neither MainScene background is present,
+          nor @link(TCastleViewport.Background) is specified,
+          then we render a background using @link(TCastleViewport.BackgroundColor).
 
           Note that when @link(TCastleViewport.Transparent) is @true,
           we never render any background (neither from MainScene,
@@ -152,7 +166,11 @@ type
 
         @item(Determines the main light casting shadow volumes.)
 
-        @item(Determines lights shining on all scenes, if @link(TCastleViewport.UseGlobalLights).)
+        @item(Determines lights shining on all scenes,
+          as this scene has by default @link(TCastleScene.CastGlobalLights)
+          when you set it as MainScene.
+          This can also be achieved on any other scene too,
+          by setting @link(TCastleScene.CastGlobalLights).)
 
         @item(Determines fog on all scenes, if @link(TCastleViewport.UseGlobalFog).)
 
@@ -196,6 +214,7 @@ begin
   MainScene := nil;
 
   FreeIfUnusedAndNil(FHeadlightNode);
+  FreeAndNil(FInternalScenesCastGlobalLights);
   inherited;
 end;
 
@@ -318,6 +337,31 @@ function TCastleRootTransform.IgnoreTransparentItem(
   const Sender: TObject; const Triangle: PTriangle): Boolean;
 begin
   Result := Triangle^.IsTransparent;
+end;
+
+procedure TCastleRootTransform.RegisterCastGlobalLights(const S: TCastleScene);
+begin
+  if FInternalScenesCastGlobalLights = nil then
+    FInternalScenesCastGlobalLights := TCastleSceneList.Create(false);
+  FInternalScenesCastGlobalLights.Add(S);
+end;
+
+procedure TCastleRootTransform.UnregisterCastGlobalLights(const S: TCastleScene);
+var
+  I: Integer;
+begin
+  if FInternalScenesCastGlobalLights = nil then
+    I := -1
+  else
+    I := FInternalScenesCastGlobalLights.IndexOf(S);
+
+  if I = -1 then
+  begin
+    WritelnWarning('Scene called UnregisterCastGlobalLights, but it was not on the list InternalScenesCastGlobalLights');
+    Exit;
+  end;
+
+  FInternalScenesCastGlobalLights.Delete(I);
 end;
 
 {$endif read_implementation}

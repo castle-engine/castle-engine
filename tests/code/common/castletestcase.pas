@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2021 Michalis Kamburelis.
+  Copyright 2015-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,6 +31,8 @@ type
   public
     procedure AssertMatrixEquals(const Expected, Actual: TMatrix4;
       const Epsilon: Single; AErrorAddrs: Pointer = nil);
+    procedure AssertMatrixEquals(const Expected, Actual: TMatrix4;
+      AErrorAddrs: Pointer = nil);
 
     procedure AssertVectorEquals(const Expected, Actual: TVector2Byte; AErrorAddrs: Pointer = nil);
     procedure AssertVectorEquals(const Expected, Actual: TVector3Byte; AErrorAddrs: Pointer = nil);
@@ -108,6 +110,15 @@ begin
        Epsilon
       ]), AErrorAddrs);
   end;
+end;
+
+procedure TCastleTestCase.AssertMatrixEquals(
+  const Expected, Actual: TMatrix4; AErrorAddrs: Pointer);
+begin
+  if AErrorAddrs = nil then
+    AErrorAddrs := CallerAddr;
+
+  AssertMatrixEquals(Expected, Actual, SingleEpsilon, AErrorAddrs);
 end;
 
 procedure TCastleTestCase.AssertVectorEquals(

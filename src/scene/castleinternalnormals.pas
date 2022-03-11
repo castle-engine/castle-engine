@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -222,7 +222,7 @@ var
       for J := 0 to ThisVertexFaces.Count - 1 do
         if (I <> J) and FaceCanBeSmoothedWith(I, J) then
           Normal := Normal + Faces.List^[ThisVertexFaces[J]].Normal;
-      Normal.NormalizeMe;
+      Normal := Normal.Normalize;
       SetNormal(VertexNum, Faces.List^[ThisVertexFaces[I]], Normal);
     end;
   end;

@@ -110,7 +110,7 @@ PointLight : X3DPointLightNode {
 
 SpotLight : X3DPositionalLightNode {
   auto-generate-more: true
-  SFFloat [in,out] beamWidth        Pi/2
+  SFFloat [in,out] beamWidth        Pi*3/16
     range: (0,Pi/2]
   SFFloat [in,out] cutOffAngle      Pi/4
     range: (0,Pi/2]

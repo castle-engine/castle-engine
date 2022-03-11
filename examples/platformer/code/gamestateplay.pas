@@ -1557,7 +1557,7 @@ begin
   begin
     EnemyScene := EnemiesRoot.Items[I] as TCastleScene;
 
-    if not EnemyScene.GetExists then
+    if not EnemyScene.Exists then
       Continue;
 
     ConfigureEnemyPhysics(EnemyScene);

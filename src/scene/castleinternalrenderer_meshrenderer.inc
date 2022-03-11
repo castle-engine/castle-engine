@@ -529,7 +529,22 @@ end;
 procedure TBaseCoordinateRenderer.RenderCoordinateBegin;
 begin
   RenderContext.CullFace := Arrays.CullFace;
-  RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;
+  { Following glTF on what to do with negative scale transformations:
+
+    """
+    If the determinant of the transform is a negative value,
+    the winding order of the mesh triangle faces should be reversed.
+    This supports negative scales for mirroring geometry.
+    """
+
+    This makes backface culling remove proper faces when negative
+    scale is used.
+    See https://github.com/castle-engine/castle-engine/issues/336 . }
+  if RenderOptions.RobustNegativeScale and
+     (Shape.ShapeModelView.Determinant < 0) then
+    RenderContext.FrontFaceCcw := not Arrays.FrontFaceCcw
+  else
+    RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;
   if Renderer.RenderOptions.Mode = rmFull then
     Renderer.SmoothShading := not Arrays.ForceFlatShading;
 end;
@@ -630,9 +645,9 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
 
   const
     GenerationVectorsIdentity: TTextureGenerationVectors =
-    ( (Data: (1, 0, 0, 0)),
-      (Data: (0, 1, 0, 0)),
-      (Data: (0, 0, 1, 0)) );
+    ( (X:1; Y: 0; Z: 0; W: 0),
+      (X:0; Y: 1; Z: 0; W: 0),
+      (X:0; Y: 0; Z: 1; W: 0) );
     ProjectorScalingMatrix: TMatrix4 = (Data:
     ( (0.5,   0,   0, 0),
       (  0, 0.5,   0, 0),
@@ -858,7 +873,7 @@ end;
 procedure TTextureCoordinateRenderer.RenderCoordinateEnd;
 {$ifndef OpenGLES}
 const
-  DefaultTexCoord: TVector4 = (Data: (0, 0, 0, 1));
+  DefaultTexCoord: TVector4 = (X:0; Y: 0; Z: 0; W: 1);
 {$endif}
 var
   I: Integer;
@@ -1058,12 +1073,12 @@ begin
          (not(Shape.ProgramCache[Renderer.Pass].Hash = Shader.CodeHash)) then
       begin
         if LogRenderer then
-          WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d, pass: %d)',
-            [Shape.NiceName,
-             BoolToStr((Shape.ProgramCache[Renderer.Pass] = nil) or
-                       (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil), true),
-             Renderer.BaseLights.Count,
-             Renderer.Pass]);
+          WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, pass: %d)', [
+            Shape.NiceName,
+            BoolToStr((Shape.ProgramCache[Renderer.Pass] = nil) or
+                      (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil), true),
+            Renderer.Pass
+          ]);
 
         if Shape.ProgramCache[Renderer.Pass] <> nil then
           Renderer.Cache.Program_DecReference(Shape.ProgramCache[Renderer.Pass]);

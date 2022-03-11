@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -63,10 +63,10 @@ type
 
     constructor Create(const URL: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      const ACharacters: TUnicodeCharList = nil); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then Load';
+      const ACharacters: TUnicodeCharList = nil); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then assign properties to load font: OptimalSize, LoadCharacters, AntiAliased, URL';
     constructor Create(const URL: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      const ACharacters: TSetOfChars); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then Load';
+      const ACharacters: TSetOfChars); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then assign properties to load font: OptimalSize, LoadCharacters, AntiAliased, URL';
 
     { Load by reading a FreeType font file, like ttf.
 
@@ -556,10 +556,10 @@ begin
     Exit(TVector2.Zero); // font not loaded
   M := FFont.TextMove(S);
   Result := Vector2(M.X, M.Y);
-  Result.Data[0] := Result.Data[0] * Scale;
+  Result.X := Result.X * Scale;
   if Outline <> 0 then
-    Result.Data[0] := Result.Data[0] + Outline * 2 * {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(S);
-  Result.Data[1] := Result.Data[1] * Scale;
+    Result.X := Result.X + Outline * 2 * {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(S);
+  Result.Y := Result.Y * Scale;
 end;
 
 procedure TCastleFont.SetURL(const Value: String);

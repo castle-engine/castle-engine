@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -144,11 +144,6 @@
 
 { internal routine to create proxy ------------------------------------------- }
 
-{$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
-  {$optimization OFF}
-  {$info Workaround Aarch64 optimizer: TextProxy not optimized (begin)}
-{$endif}
-
 { Create a simple mesh (filling OutCoords, OutTexCoords fields
   to initialize X3D node like QuadSet) that represents input Text node.
   The interface is suitable for both VRML 2.0 / X3D Text node,
@@ -250,18 +245,18 @@ var
       Origin := TVector3.Zero;
       case Justify of
         fjBegin, fjFirst :
-                  Origin[0] := 0;
-        fjMiddle: Origin[0] := -MaxTextWidth * XScale / 2;
-        fjEnd   : Origin[0] := -MaxTextWidth * XScale    ;
+                  Origin.X := 0;
+        fjMiddle: Origin.X := -MaxTextWidth * XScale / 2;
+        fjEnd   : Origin.X := -MaxTextWidth * XScale    ;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('SendEvents: Invalid font justify value');
         {$endif}
       end;
       case JustifyMinor of
-        fjFirst : Origin[1] := -FinalRowHeight;
-        fjBegin : Origin[1] := 0;
-        fjMiddle: Origin[1] := -FinalRowHeight * Strings.Count / 2;
-        fjEnd   : Origin[1] := -FinalRowHeight * Strings.Count;
+        fjFirst : Origin.Y := -FinalRowHeight;
+        fjBegin : Origin.Y := 0;
+        fjMiddle: Origin.Y := -FinalRowHeight * Strings.Count / 2;
+        fjEnd   : Origin.Y := -FinalRowHeight * Strings.Count;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('SendEvents: Invalid font justify value');
         {$endif}
@@ -600,14 +595,6 @@ begin
     Result := FaceSet;
   except FreeAndNil(FaceSet); raise end;
 end;
-
-{ Turn optimizations back on.
-  FPC $push / $pop unfortunately doesn't save/restore optimization level,
-  so we restore it if -dBUGGY_AARCH64_OPTIMIZATIONS. }
-{$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
-  {$optimization ON}
-  {$info Workaround Aarch64 optimizer: TextProxy not optimized (end)}
-{$endif}
 
 { constants ------------------------------------------------------------------ }
 

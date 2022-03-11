@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2009-2018 Michalis Kamburelis.
+  Copyright 2009-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -658,13 +658,13 @@ begin
         W := Weight.List^[I];
         if W = 0 then W := 1;
 
-        MinVar(Result.Data[0].Data[0], V^.Data[0] / W);
-        MinVar(Result.Data[0].Data[1], V^.Data[1] / W);
-        MinVar(Result.Data[0].Data[2], V^.Data[2] / W);
+        MinVar(Result.Data[0].X, V^.X / W);
+        MinVar(Result.Data[0].Y, V^.Y / W);
+        MinVar(Result.Data[0].Z, V^.Z / W);
 
-        MaxVar(Result.Data[1].Data[0], V^.Data[0] / W);
-        MaxVar(Result.Data[1].Data[1], V^.Data[1] / W);
-        MaxVar(Result.Data[1].Data[2], V^.Data[2] / W);
+        MaxVar(Result.Data[1].X, V^.X / W);
+        MaxVar(Result.Data[1].Y, V^.Y / W);
+        MaxVar(Result.Data[1].Z, V^.Z / W);
       end;
     end;
   end else
@@ -710,13 +710,13 @@ begin
 
         V := Transform.MultPoint(Point.List^[I] / W);
 
-        MinVar(Result.Data[0].Data[0], V[0]);
-        MinVar(Result.Data[0].Data[1], V[1]);
-        MinVar(Result.Data[0].Data[2], V[2]);
+        MinVar(Result.Data[0].X, V.X);
+        MinVar(Result.Data[0].Y, V.Y);
+        MinVar(Result.Data[0].Z, V.Z);
 
-        MaxVar(Result.Data[1].Data[0], V[0]);
-        MaxVar(Result.Data[1].Data[1], V[1]);
-        MaxVar(Result.Data[1].Data[2], V[2]);
+        MaxVar(Result.Data[1].X, V.X);
+        MaxVar(Result.Data[1].Y, V.Y);
+        MaxVar(Result.Data[1].Z, V.Z);
       end;
     end;
   end else

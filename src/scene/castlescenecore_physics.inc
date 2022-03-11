@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,7 +34,7 @@
       It does not have to be convex.
 
       The @link(TCastleTransform.Collides Scene.Collides) and
-      @link(TCastleTransform.GetCollides Scene.GetCollides) do not matter here.
+      @link(TCastleTransform.CheckCollides Scene.CheckCollides) do not matter here.
       Using the TCollisionNode inside Scene matters (so the scene may collide
       as something different than it's visible, see
       https://castle-engine.io/x3d_implementation_navigation.php ). }
@@ -65,7 +65,7 @@
       It does not have to be convex.
 
       The @link(TCastleTransform.Collides Scene.Collides) and
-      @link(TCastleTransform.GetCollides Scene.GetCollides) do not matter here.
+      @link(TCastleTransform.CheckCollides Scene.CheckCollides) do not matter here.
       Using the TCollisionNode inside Scene matters (so the scene may collide
       as something different than it's visible, see
       https://castle-engine.io/x3d_implementation_navigation.php ). }

@@ -28,8 +28,7 @@ type
   TUIStateList = class;
 
   { UI state, to manage the state of your game UI.
-    See also
-    https://castle-engine.io/manual_2d_user_interface.php#section_ui_state
+    See also https://castle-engine.io/states
     for an overview of using TUIState.
 
     In simple cases, only one state is @italic(current) at a given time,
@@ -230,7 +229,7 @@ type
         TUIState.Current := StateMain;
       #)
 
-      See https://castle-engine.io/manual_2d_user_interface.php and numerous engine examples.
+      See https://castle-engine.io/states and numerous engine examples.
     }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;

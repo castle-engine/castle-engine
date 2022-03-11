@@ -490,8 +490,8 @@ begin
         SubBox := Box;
         for i := 0 to 2 do
           if b[i] then
-            SubBox.Data[0].Data[i] := MiddlePoint[i] else
-            SubBox.Data[1].Data[i] := MiddlePoint[i];
+            SubBox.Data[0].InternalData[i] := MiddlePoint[i] else
+            SubBox.Data[1].InternalData[i] := MiddlePoint[i];
 
         TreeSubNodes[b[0], b[1], b[2]] :=
           TOctreeNodeClass(Self.ClassType).Create(
@@ -701,9 +701,9 @@ begin
   begin
     SubnodeLow[i] := false;
     SubnodeHigh[i] := true;
-    if ABox.Data[0].Data[i] >= MiddlePoint[i] then
+    if ABox.Data[0][i] >= MiddlePoint[i] then
       SubnodeLow[i] := true else
-    if ABox.Data[1].Data[i] < MiddlePoint[i] then
+    if ABox.Data[1][i] < MiddlePoint[i] then
       SubnodeHigh[i] := false;
   end;
 end;

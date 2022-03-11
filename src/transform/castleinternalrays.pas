@@ -187,8 +187,8 @@ begin
     of this class).
     We know that WindowWidth / 2 = Tan(ViewAngleX / 2).
     From this, equations below follow. }
-  WindowWidth  := Tan(PerspectiveAngles.Data[0] / 2) * 2;
-  WindowHeight := Tan(PerspectiveAngles.Data[1] / 2) * 2;
+  WindowWidth  := Tan(PerspectiveAngles.X / 2) * 2;
+  WindowHeight := Tan(PerspectiveAngles.Y / 2) * 2;
 end;
 
 procedure TPerspectiveRaysWindow.PrimaryRay(const x, y: Single;
@@ -201,14 +201,14 @@ begin
     (assume camera position = zero, direction = -Z, up = +Y).
     Integer X, Y values should result in a ray that goes
     right through the middle of the pixel area. }
-  RayDirection.Data[0] := MapRange(x+0.5, 0, ScreenWidth , -WindowWidth /2, WindowWidth /2);
-  RayDirection.Data[1] := MapRange(y+0.5, 0, ScreenHeight, -WindowHeight/2, WindowHeight/2);
-  RayDirection.Data[2] := -1;
+  RayDirection.X := MapRange(x+0.5, 0, ScreenWidth , -WindowWidth /2, WindowWidth /2);
+  RayDirection.Y := MapRange(y+0.5, 0, ScreenHeight, -WindowHeight/2, WindowHeight/2);
+  RayDirection.Z := -1;
 
   { Transform ray to take camera settings into acount. }
   RayDirection := TransformToCoords(RayDirection, CamSide, CamUp, -CamDirection);
 
-  RayDirection.NormalizeMe;
+  RayDirection := RayDirection.Normalize;
 end;
 
 { TFrustumRaysWindow ---------------------------------------------------- }
@@ -245,14 +245,14 @@ begin
     (assume camera position = zero, direction = -Z, up = +Y).
     Integer X, Y values should result in a ray that goes
     right through the middle of the pixel area. }
-  RayDirection.Data[0] := MapRange(X + 0.5, 0, ScreenWidth , Dimensions.Left, Dimensions.Right);
-  RayDirection.Data[1] := MapRange(Y + 0.5, 0, ScreenHeight, Dimensions.Bottom, Dimensions.Top);
-  RayDirection.Data[2] := -1;
+  RayDirection.X := MapRange(X + 0.5, 0, ScreenWidth , Dimensions.Left, Dimensions.Right);
+  RayDirection.Y := MapRange(Y + 0.5, 0, ScreenHeight, Dimensions.Bottom, Dimensions.Top);
+  RayDirection.Z := -1;
 
   { Transform ray to take camera settings into acount. }
   RayDirection := TransformToCoords(RayDirection, CamSide, CamUp, -CamDirection);
 
-  RayDirection.NormalizeMe;
+  RayDirection := RayDirection.Normalize;
 end;
 
 { TOrthographicRaysWindow ---------------------------------------------------- }

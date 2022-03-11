@@ -47,7 +47,7 @@
   )
 
   Functions with Density <> Const return PdfValue for returned point,
-  i.e. for density p(Theta) it's PfdValue = p(Result[1]).
+  i.e. for density p(Theta) it's PfdValue = p(Result.Y).
   These functions try to calculate PdfValue smartly (often calculating
   PfdValue and calculating Result uses the same intermediate calculation,
   so we can save some computation). PdfValue is needed for importance sampling.
@@ -126,18 +126,18 @@ function PhiThetaToXYZ(const PhiTheta: TVector2; const SphereRadius: Single): TV
 var
   SinPhi, CosPhi, SinTheta, CosTheta: Float;
 begin
-  SinCos(PhiTheta[0], SinPhi, CosPhi);
-  SinCos(PhiTheta[1], SinTheta, CosTheta);
+  SinCos(PhiTheta.X, SinPhi, CosPhi);
+  SinCos(PhiTheta.Y, SinTheta, CosTheta);
 
-  result[0] := SphereRadius * CosPhi * SinTheta;
-  result[1] := SphereRadius * SinPhi * SinTheta;
-  result[2] := SphereRadius * CosTheta;
+  result.X := SphereRadius * CosPhi * SinTheta;
+  result.Y := SphereRadius * SinPhi * SinTheta;
+  result.Z := SphereRadius * CosTheta;
 end;
 
 function XYZToPhiTheta(const XYZ: TVector3): TVector2;
 begin
-  Result[0] := ArcTan2(XYZ[1], XYZ[0]);
-  Result[1] := ArcTan2(Sqrt(Sqr(XYZ[0]) + Sqr(XYZ[1])), XYZ[2]);
+  Result.X := ArcTan2(XYZ.Y, XYZ.X);
+  Result.Y := ArcTan2(Sqrt(Sqr(XYZ.X) + Sqr(XYZ.Y)), XYZ.Z);
 end;
 
 function PhiThetaToXYZ(const PhiTheta: TVector2; const SphereTheta0: TVector3): TVector3;
@@ -148,17 +148,17 @@ begin
   result := PhiThetaToXYZ(PhiTheta, 1);
 
   { make NewX anything orthogonal (but not zero) to SphereTheta0. }
-  if IsZero(SphereTheta0[0]) and IsZero(SphereTheta0[1]) then
+  if IsZero(SphereTheta0.X) and IsZero(SphereTheta0.Y) then
   begin
-    { then we're sure that SphereTheta0[2] <> 0, so NewX will not be zero }
-    NewX[0] := 0;
-    NewX[1] := -SphereTheta0[2];
-    NewX[2] := SphereTheta0[1];
+    { then we're sure that SphereTheta0.Z <> 0, so NewX will not be zero }
+    NewX.X := 0;
+    NewX.Y := -SphereTheta0.Z;
+    NewX.Z := SphereTheta0.Y;
   end else
   begin
-    NewX[0] := -SphereTheta0[1];
-    NewX[1] := SphereTheta0[0];
-    NewX[2] := 0;
+    NewX.X := -SphereTheta0.Y;
+    NewX.Y := SphereTheta0.X;
+    NewX.Z := 0;
   end;
   NewY := TVector3.CrossProduct(SphereTheta0, NewX);
   { set correct lengths for NewX and NewY. We calculate NewYLen fast, without
@@ -181,8 +181,8 @@ end;
 
 function RandomHemispherePointConst: TVector2;
 begin
-  result[0] := 2*Pi*Random;
-  result[1] := ArcCos(Random);
+  result.X := 2*Pi*Random;
+  result.Y := ArcCos(Random);
 end;
 
 function RandomHemispherePointConstXYZ: TVector3;
@@ -195,9 +195,9 @@ begin
   SinCos(2*Pi*r1, sinus, cosinus);
   sqroot := Sqrt(1-Sqr(r2));
 
-  result[0] := cosinus * sqroot;
-  result[1] := sinus * sqroot;
-  result[2] := r2;
+  result.X := cosinus * sqroot;
+  result.Y := sinus * sqroot;
+  result.Z := r2;
 end;
 
 function RandomHemispherePointCosTheta(
@@ -207,8 +207,8 @@ var
 begin
   SqrtR2 := Sqrt(Random);
 
-  result[0] := 2*Pi*Random;
-  result[1] := ArcCos(SqrtR2);
+  result.X := 2*Pi*Random;
+  result.Y := ArcCos(SqrtR2);
   PdfValue := SqrtR2 / Pi;
 end;
 
@@ -223,10 +223,10 @@ begin
   SinCos(2*Pi*r1, SinR1, CosR1);
   SqRoot := Sqrt(1-r2);
 
-  result[0] := CosR1 * SqRoot;
-  result[1] := SinR1 * SqRoot;
-  result[2] := Sqrt(r2);
-  PdfValue := result[2];
+  result.X := CosR1 * SqRoot;
+  result.Y := SinR1 * SqRoot;
+  result.Z := Sqrt(r2);
+  PdfValue := result.Z;
 end;
 
 function RandomHemispherePointCosThetaExp(const n: Single;
@@ -236,8 +236,8 @@ var
 begin
   r2 := Random;
 
-  result[0] := 2*Pi*Random;
-  result[1] := ArcCos(Power(r2, 1/(n+1)));
+  result.X := 2*Pi*Random;
+  result.Y := ArcCos(Power(r2, 1/(n+1)));
   PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
 end;
 
@@ -253,9 +253,9 @@ begin
   r2Power := Power(r2, 1/(n+1));
   r2Root := Sqrt(1-Sqr(r2Power));
 
-  result[0] := CosR1 * r2Root;
-  result[1] := SinR1 * r2Root;
-  result[2] := r2Power;
+  result.X := CosR1 * r2Root;
+  result.Y := SinR1 * r2Root;
+  result.Z := r2Power;
   PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
 end;
 

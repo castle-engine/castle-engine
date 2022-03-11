@@ -131,10 +131,10 @@ type
       DefaultInitialHeightAboveTarget = 1.0;
       DefaultDistanceToAvatarTarget = 4.0;
       DefaultAvatarRotationSpeed = 10;
-      DefaultAvatarTarget: TVector3 = (Data: (0, 2, 0));
+      DefaultAvatarTarget: TVector3 = (X: 0; Y: 2; Z: 0);
       DefaultCameraSpeed = 10;
       {$ifdef AVATAR_TARGET_FORWARD}
-      DefaultAvatarTargetForward: TVector3 = (Data: (0, 2, 0));
+      DefaultAvatarTargetForward: TVector3 = (X: 0; Y: 2; Z: 0);
       {$endif}
       DefaultMoveSpeed = 1.0;
       DefaultCrouchSpeed = 0.5;
@@ -277,7 +277,7 @@ type
       view by a wall, enemy etc. When it is @true, we avoid seeing an invalid geometry
       (e.g. from the wrong side of the wall or inside a creature) @italic(ever),
       but in exchange the camera sometimes has to be adjusted very abrtupty (testcase:
-      third_person_camera demo, stand in the middle of moving enemies, and look around). }
+      third_person_navigation demo, stand in the middle of moving enemies, and look around). }
     property ImmediatelyFixBlockedCamera: Boolean read FImmediatelyFixBlockedCamera write FImmediatelyFixBlockedCamera
       default false;
 
@@ -481,7 +481,7 @@ begin
       which accesses World, and the World still contains the TCastleTransform
       that is right now in csDestroying state and has no octree.
 
-      Testcase: third_person_camera, assign non-nil (different) values to both
+      Testcase: third_person_navigation, assign non-nil (different) values to both
       Avatar and AvatarHierarchy, then free the referenced component
       (either Avatar or AvatarHierarchy). Without check "(Value <> nil)"
       there would be a crash.
@@ -583,9 +583,11 @@ function TCastleThirdPersonNavigation.CameraMaxDistanceToTarget(
   const CameraDir: TVector3): Single;
 var
   CollisionDistance: Single;
+  SavedAExists: Boolean;
 begin
   Result := MaxSingle;
-  A.Disable;
+  SavedAExists := A.Exists;
+  A.Exists := false;
   try
     if A.World.WorldRayCast(CameraLookPos, -CameraDir, CollisionDistance) <> nil then
     begin
@@ -595,7 +597,7 @@ begin
         Then use MinDistanceToAvatarTarget. }
       Result := Max(MinDistanceToAvatarTarget, CollisionDistance - Radius);
     end;
-  finally A.Enable end;
+  finally A.Exists := SavedAExists end;
 end;
 
 procedure TCastleThirdPersonNavigation.Init;

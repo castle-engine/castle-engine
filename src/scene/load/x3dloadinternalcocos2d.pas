@@ -745,13 +745,16 @@ begin
 
   Tex := TImageTextureNode.Create;
   Tex.FdUrl.Send(FImagePath);
+  { No point in adjusting RepeatS/T: TextureProperties override it.
   Tex.RepeatS := false;
-  Tex.RepeatT := false;
+  Tex.RepeatT := false; }
   Shape.Texture := Tex;
 
   TexProperties := TTexturePropertiesNode.Create;
   TexProperties.MagnificationFilter := magDefault;
   TexProperties.MinificationFilter := minDefault;
+  TexProperties.BoundaryModeS := bmClampToEdge;
+  TexProperties.BoundaryModeT := bmClampToEdge;
   { Do not force "power of 2" size, which may prevent mipmaps.
     This seems like a better default (otherwise the resizing underneath
     may cause longer loading time, and loss of quality, if not expected).

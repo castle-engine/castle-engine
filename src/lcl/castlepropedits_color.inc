@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2010-2019 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -49,13 +49,13 @@ begin
     Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
     if Dialog.Execute then
     begin
-      RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
+      RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
       // keep Color alpha unchanged ...
-      Color := Vector4(Vector3(ColorByte), Color[3]);
+      Color := Vector4(Vector3(ColorByte), Color.W);
       // ... unless it is zero, then change to 1.
       // This makes changing TCastleUserInterface.BorderColor changing more natural.
-      if Color[3] = 0 then
-        Color[3] := 1;
+      if Color.W = 0 then
+        Color.W := 1;
       ColorPersistent.Value := Color;
       Modified;
     end;
@@ -118,7 +118,7 @@ begin
     Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
     if Dialog.Execute then
     begin
-      RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
+      RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
       Color := Vector3(ColorByte);
       ColorPersistent.Value := Color;
       Modified;

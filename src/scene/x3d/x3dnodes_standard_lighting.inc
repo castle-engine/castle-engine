@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,6 +36,11 @@
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
+    { Does this node act as a headlight.
+      Set and used internally in CGE.
+      @exclude }
+    InternalHeadlight: Boolean;
+
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
     { Create TLightInstance record describing this light node under given
@@ -314,7 +319,7 @@
 const
   FallbackProjectionNear = 1;
   FallbackProjectionFar = 100;
-  FallbackProjectionRectangle: TVector4 = (Data: (-10, -10, 10, 10));
+  FallbackProjectionRectangle: TVector4 = (X: -10; Y: -10; Z: 10; W: 10);
 
 { TAbstractLightNode --------------------------------------------------------- }
 
@@ -537,7 +542,7 @@ begin
     calculate Side,
     and make Up orthogonal to Dir }
   Side := TVector3.CrossProduct(Dir, Up).Normalize;
-  Dir.NormalizeMe;
+  Dir := Dir.Normalize;
   Up := TVector3.CrossProduct(Side, Dir);
 end;
 

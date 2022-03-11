@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,6 +42,8 @@ begin
     TextureProperties.AnisotropicDegree := 8;
     TextureProperties.MinificationFilter := minDefault;
     TextureProperties.MagnificationFilter := magDefault;
+    TextureProperties.BoundaryModeS := BoolRepeatToBoundaryMode[ImageTexture.RepeatS];
+    TextureProperties.BoundaryModeT := BoolRepeatToBoundaryMode[ImageTexture.RepeatT];
     ImageTexture.TextureProperties := TextureProperties;
   end;
 end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -44,7 +44,14 @@ type
     class function InfixOperatorName: string; override;
   end;
 
-  TCasScriptDivide = class(TCasScriptFunction)
+  TCasScriptFloatDivide = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+    class function InfixOperatorName: string; override;
+  end;
+
+  TCasScriptIntDivide = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
@@ -379,19 +386,34 @@ begin
   Result := '*';
 end;
 
-class function TCasScriptDivide.Name: string;
+class function TCasScriptFloatDivide.Name: string;
 begin
-  Result := 'divide (/)';
+  Result := 'float division (/)';
 end;
 
-class function TCasScriptDivide.ShortName: string;
+class function TCasScriptFloatDivide.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TCasScriptDivide.InfixOperatorName: string;
+class function TCasScriptFloatDivide.InfixOperatorName: string;
 begin
   Result := '/';
+end;
+
+class function TCasScriptIntDivide.Name: string;
+begin
+  Result := 'int division (div)';
+end;
+
+class function TCasScriptIntDivide.ShortName: string;
+begin
+  Result := '';
+end;
+
+class function TCasScriptIntDivide.InfixOperatorName: string;
+begin
+  Result := 'div';
 end;
 
 class function TCasScriptNegate.Name: string;

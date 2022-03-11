@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleFrustum" -*-
 {
-  Copyright 2005-2021 Michalis Kamburelis.
+  Copyright 2005-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,9 +47,9 @@ function RandomFrustum(MakeZFarInfinity: boolean): TFrustum;
   function RandomNonZeroVector(const Scale: Float): TVector3;
   begin
     repeat
-      Result[0] := Random * Scale - Scale/2;
-      Result[1] := Random * Scale - Scale/2;
-      Result[2] := Random * Scale - Scale/2;
+      Result.X := Random * Scale - Scale/2;
+      Result.Y := Random * Scale - Scale/2;
+      Result.Z := Random * Scale - Scale/2;
     until not Result.IsPerfectlyZero;
   end;
 
@@ -75,18 +75,20 @@ begin
 end;
 
 function RandomBox: TBox3D;
+var
+  I: Integer;
+  Val1, Val2: Single;
 begin
-  Result.Data[0].Data[0] := Random * 20 - 10;
-  Result.Data[0].Data[1] := Random * 20 - 10;
-  Result.Data[0].Data[2] := Random * 20 - 10;
-
-  Result.Data[1].Data[0] := Random * 20 - 10;
-  Result.Data[1].Data[1] := Random * 20 - 10;
-  Result.Data[1].Data[2] := Random * 20 - 10;
-
-  OrderUp(Result.Data[0].Data[0], Result.Data[1].Data[0]);
-  OrderUp(Result.Data[0].Data[1], Result.Data[1].Data[1]);
-  OrderUp(Result.Data[0].Data[2], Result.Data[1].Data[2]);
+  for I := 0 to 2 do
+  begin
+    Val1 := Random * 20 - 10;
+    Val2 := Random * 20 - 10;
+    OrderUp(Val1, Val2);
+    {$warnings off} // silence FPC warning about Normal uninitialized
+    Result.Data[0].Data[I] := Val1;
+    {$warnings on}
+    Result.Data[1].Data[I] := Val2;
+  end;
 end;
 
 procedure TTestCastleFrustum.AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
@@ -159,9 +161,9 @@ begin
       Vector3(1, 0, 0) { look direction },
       Vector3(0, 0, 1) { up vector } ));
 
-  AssertTrue(Frustum.Planes[fpFar][0] = 0);
-  AssertTrue(Frustum.Planes[fpFar][1] = 0);
-  AssertTrue(Frustum.Planes[fpFar][2] = 0);
+  AssertTrue(Frustum.Planes[fpFar].X = 0);
+  AssertTrue(Frustum.Planes[fpFar].Y = 0);
+  AssertTrue(Frustum.Planes[fpFar].Z = 0);
   AssertTrue(Frustum.ZFarInfinity);
 
   AssertFrustumSphereCollisionPossible(Frustum, Vector3(0, 0, 0), 81,
@@ -197,13 +199,13 @@ procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
     function CheckOutsideCorner(const XIndex, YIndex, ZIndex: Cardinal): boolean;
     begin
      Result :=
-       { Frustum[fp][0] * Box[XIndex][0] +
-         Frustum[fp][1] * Box[YIndex][1] +
-         Frustum[fp][2] * Box[ZIndex][2] +
+       { Frustum[fp].X * Box[XIndex].X +
+         Frustum[fp].Y * Box[YIndex].Y +
+         Frustum[fp].Z * Box[ZIndex].Z +
          optimized version : }
-       FrustumMultiplyBox.Data[XIndex][0] +
-       FrustumMultiplyBox.Data[YIndex][1] +
-       FrustumMultiplyBox.Data[ZIndex][2] +
+       FrustumMultiplyBox.Data[XIndex].X +
+       FrustumMultiplyBox.Data[YIndex].Y +
+       FrustumMultiplyBox.Data[ZIndex].Z +
        Frustum.Planes[fp][3] < 0;
     end;
 
@@ -235,12 +237,12 @@ procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
       begin
        { This way I need 6 multiplications instead of 8*3=24
          (in case I would have to execute CheckOutsideCorner 8 times) }
-       FrustumMultiplyBox.Data[0][0] := Planes[fp][0] * Box.Data[0][0];
-       FrustumMultiplyBox.Data[0][1] := Planes[fp][1] * Box.Data[0][1];
-       FrustumMultiplyBox.Data[0][2] := Planes[fp][2] * Box.Data[0][2];
-       FrustumMultiplyBox.Data[1][0] := Planes[fp][0] * Box.Data[1][0];
-       FrustumMultiplyBox.Data[1][1] := Planes[fp][1] * Box.Data[1][1];
-       FrustumMultiplyBox.Data[1][2] := Planes[fp][2] * Box.Data[1][2];
+       FrustumMultiplyBox.Data[0].X := Planes[fp].X * Box.Data[0].X;
+       FrustumMultiplyBox.Data[0].Y := Planes[fp].Y * Box.Data[0].Y;
+       FrustumMultiplyBox.Data[0].Z := Planes[fp].Z * Box.Data[0].Z;
+       FrustumMultiplyBox.Data[1].X := Planes[fp].X * Box.Data[1].X;
+       FrustumMultiplyBox.Data[1].Y := Planes[fp].Y * Box.Data[1].Y;
+       FrustumMultiplyBox.Data[1].Z := Planes[fp].Z * Box.Data[1].Z;
 
        { I'm splitting code below to two possilibilities.
          This way I can calculate 7 remaining CheckOutsideCorner
@@ -299,13 +301,13 @@ procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
     function CheckOutsideCorner(const XIndex, YIndex, ZIndex: Cardinal): boolean;
     begin
      Result :=
-       { Planes[fp][0] * Box[XIndex][0] +
-         Planes[fp][1] * Box[YIndex][1] +
-         Planes[fp][2] * Box[ZIndex][2] +
+       { Planes[fp].X * Box[XIndex].X +
+         Planes[fp].Y * Box[YIndex].Y +
+         Planes[fp].Z * Box[ZIndex].Z +
          optimized version : }
-       FrustumMultiplyBox.Data[XIndex][0] +
-       FrustumMultiplyBox.Data[YIndex][1] +
-       FrustumMultiplyBox.Data[ZIndex][2] +
+       FrustumMultiplyBox.Data[XIndex].X +
+       FrustumMultiplyBox.Data[YIndex].Y +
+       FrustumMultiplyBox.Data[ZIndex].Z +
        Frustum.Planes[fp][3] < 0;
     end;
 
@@ -324,12 +326,12 @@ procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
       for fp := Low(fp) to LastPlane do
       begin
         { This way I need 6 multiplications instead of 8*3=24 }
-        FrustumMultiplyBox.Data[0][0] := Planes[fp][0] * Box.Data[0][0];
-        FrustumMultiplyBox.Data[0][1] := Planes[fp][1] * Box.Data[0][1];
-        FrustumMultiplyBox.Data[0][2] := Planes[fp][2] * Box.Data[0][2];
-        FrustumMultiplyBox.Data[1][0] := Planes[fp][0] * Box.Data[1][0];
-        FrustumMultiplyBox.Data[1][1] := Planes[fp][1] * Box.Data[1][1];
-        FrustumMultiplyBox.Data[1][2] := Planes[fp][2] * Box.Data[1][2];
+        FrustumMultiplyBox.Data[0].X := Planes[fp].X * Box.Data[0].X;
+        FrustumMultiplyBox.Data[0].Y := Planes[fp].Y * Box.Data[0].Y;
+        FrustumMultiplyBox.Data[0].Z := Planes[fp].Z * Box.Data[0].Z;
+        FrustumMultiplyBox.Data[1].X := Planes[fp].X * Box.Data[1].X;
+        FrustumMultiplyBox.Data[1].Y := Planes[fp].Y * Box.Data[1].Y;
+        FrustumMultiplyBox.Data[1].Z := Planes[fp].Z * Box.Data[1].Z;
 
         if CheckOutsideCorner(0, 0, 0) and
            CheckOutsideCorner(0, 0, 1) and

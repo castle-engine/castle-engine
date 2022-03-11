@@ -480,7 +480,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
 
       is not present in "if" below. }
 
-    if C.GetExists then
+    if C.Exists then
     begin
       { First try to find children, with TestWithBorder=false (so it doesn't detect
         control if we merely point at its border). This allows to find controls
@@ -936,6 +936,8 @@ procedure TDesignFrame.TDesignerLayer.Render;
     const Lab: TCastleLabel; const Rect: TCastleRectangleControl;
     const LabelColor: TCastleColor);
   begin
+    {$define CASTLE_DESIGNER_LABELS}
+    {$ifdef CASTLE_DESIGNER_LABELS}
     if UI <> nil then
     begin
       Lab.Caption := Frame.ComponentCaption(UI);
@@ -956,6 +958,7 @@ procedure TDesignFrame.TDesignerLayer.Render;
         // put Rect inside UI, otherwise it would be offscreen
         Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
     end else
+    {$endif}
       Rect.Exists := false;
   end;
 

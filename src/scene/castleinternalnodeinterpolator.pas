@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2018 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1001,7 +1001,7 @@ var
       receive of IntSequencer.fraction_changed will again set Switch.
 
       Testcase:
-      - resource_animations example, load any castle-anim-frames example.
+      - deprecated_resource_animations example, load any castle-anim-frames example.
         Without this, the animation would jump between 2 frames.
       - Also examples/fixed_camera_game/ (shaking humanoid without this)
       - Also castle-game (shaking alien shooting animation) }
@@ -1055,7 +1055,7 @@ var
       so keep it enabled (default).
       Our SwitchChooseAnimation.FdWhichChoice.EventIn is detected OK as "affected field".
       Testcases:
-      - examples/animations/resource_animations/
+      - examples/animations/deprecated_resource_animations/
       - demo-models/bump_mapping/lizardman.
     TimeSensor.DetectAffectedFields := true;
     }

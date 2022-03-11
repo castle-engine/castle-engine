@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,7 +16,18 @@
 {$ifdef read_interface}
 
 type
-  { Plane with configurable size, position and material. }
+  { Plane with configurable size, position and material.
+
+    The plane is actually just a rectangle with specified @link(Size).
+    It is centered around the point (0,0,0).
+
+    The plane is parallel to the given @link(Axis), by default the Axis is 1 (Y)
+    -- which means that the plane acts like a floor in a typical 3D setup.
+    If you want a rectangle visible in typical 2D setup (where X goes to the right,
+    Y goes up), change the @link(Axis) to 2 (Z).
+
+    You can translate, rotate, scale the plane freely, as it is a TCastleTransform,
+    and can be a child of other TCastleTransform instances too. }
   TCastlePlane = class(TCastleAbstractPrimitive)
   strict private
     FQuadSetNode: TQuadSetNode;
@@ -34,7 +45,17 @@ type
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Size of the plane in XZ plane. By default (2, 2). }
+    { Size of the plane. By default (2, 2).
+
+      The coordinates affected by this property depend on current @link(Axis) value.
+      That is:
+
+      @unorderedList(
+        @item Axis = 0 means that this property determines the size in Y and Z (in this order).
+        @item Axis = 1 means that this property determines the size in X and Z (in this order).
+        @item Axis = 2 means that this property determines the size in X and Y (in this order).
+      )
+     }
     property Size: TVector2 read FSize write SetSize;
   published
     { Axis where the plane is constant.
@@ -106,9 +127,11 @@ begin
   RestOf3DCoordsCycle(FAxis, C1, C2);
   for I := Low(V) to High(V) do
   begin
-    V3D[I].Data[FAxis] := 0;
-    V3D[I].Data[C1] := V[I].Data[0];
-    V3D[I].Data[C2] := V[I].Data[1];
+    {$warnings off} // silence FPC warning about V3D uninitialized
+    V3D[I].InternalData[FAxis] := 0;
+    {$warnings on}
+    V3D[I].InternalData[C1] := V[I].X;
+    V3D[I].InternalData[C2] := V[I].Y;
   end;
 
   FCoordinateNode.SetPoint(V3D);
