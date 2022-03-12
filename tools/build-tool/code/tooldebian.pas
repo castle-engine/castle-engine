@@ -194,7 +194,7 @@ begin
 
   CheckForceDirectories(ShareDirLocal + PathDelim + 'menu');
   StringToFile(
-    ShareDirUrl + '/menu/' + DebianPackageName,
+    ShareDirUrl + '/menu/' + Manifest.ExecutableName,
     '?package(' + DebianPackageName + '): \' + NL +
     'needs="X11" \' + NL +
     'section="' + Manifest.DebianMenuSection + '" \' + NL +
