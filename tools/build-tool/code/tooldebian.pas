@@ -147,6 +147,8 @@ begin
   CheckForceDirectories(PackageDirLocal + PathDelim + 'usr' + PathDelim + 'bin');
   CheckCopyFile(InclPathDelim(PackagedPath) + Manifest.ExecutableName,
     PackageDirLocal + PathDelim + PathToExecutableLocal);
+  { This should be enough for file to be packaged as executable. }
+  DoMakeExecutable(PackageDirLocal + PathDelim + PathToExecutableLocal);
 
   BinariesSize := FileSize(PackageDirLocal + PathDelim + PathToExecutableLocal);
 
@@ -244,16 +246,6 @@ begin
     'Description: ' + Manifest.Caption + NL +
     ' ' + DebianDescription + NL //final new line
   );
-
-  // Post-installation running - assign executable permissions
-
-  StringToFile(
-    PackageDirUrl + '/DEBIAN/postinst',
-    '#!/bin/sh' + NL + NL +
-    'chmod +x ' + PathToExecutableUnix + NL + NL +
-    'exit 0'
-  );
-  DoMakeExecutable(PackageDirLocal + PathDelim + 'DEBIAN' + PathDelim + 'postinst');
 
   // Calculate MD5 checksums
 
