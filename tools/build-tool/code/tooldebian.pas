@@ -117,7 +117,7 @@ const
   DefaultIconXpmString = {$I ../embedded_images/tooldefaulticonxpm.inc};
   AllowedDebianPackageChars = ['a'..'z', '0'..'9', '-', '+', '.'];
 var
-  TempPath: String;
+  DebianPackageName, TempPath: String;
   BinariesSize: Int64;
   PathToExecutableLocal, PathToExecutableUnix: String;
   PathToIconFileLocal, PathToIconFileUnix: String;
@@ -126,14 +126,14 @@ var
   ImageMagickExe, PngIcon: String;
   DebianDescription: String;
 begin
-  { dpkg-deb only accepts package names with these characters. }
-  if CharsPos(AllChars - AllowedDebianPackageChars, Manifest.Name) <> 0 then
-    raise Exception.CreateFmt('Project name is "%s", but for Debian package it can only contain lowercase letters, digits, and -+. .' + NL +
-      '  TODO: In the future, we will fix project name for Debian to work with any CGE-allowed project name.', [
-      Manifest.Name
-    ]);
-
   TempPath := InclPathDelim(CreateTemporaryDir);
+
+  DebianPackageName := SReplaceChars(Manifest.Name, '_', '-');
+  { dpkg-deb only accepts package names with these characters. }
+  if CharsPos(AllChars - AllowedDebianPackageChars, DebianPackageName) <> 0 then
+    raise Exception.CreateFmt('Debiian package name is "%s", but for Debian package it can only contain lowercase letters, digits, and -+.', [
+      DebianPackageName
+    ]);
 
   PackageDirBaseName := DeleteFileExt(PackageFileName);
   PackageDirLocal := TempPath + PackageDirBaseName;
@@ -142,7 +142,7 @@ begin
     RemoveNonEmptyDir(PackageDirLocal);
 
   // Copy the executable to /usr/bin/<project-name>
-  PathToExecutableUnix := '/usr/bin/' + Manifest.Name;
+  PathToExecutableUnix := '/usr/bin/' + Manifest.ExecutableName;
   PathToExecutableLocal := StringReplace(PathToExecutableUnix, '/', PathDelim, [rfReplaceAll]);
   CheckForceDirectories(PackageDirLocal + PathDelim + 'usr' + PathDelim + 'bin');
   CheckCopyFile(InclPathDelim(PackagedPath) + Manifest.ExecutableName,
@@ -157,6 +157,8 @@ begin
 
   if DirectoryExists(InclPathDelim(PackagedPath) + 'data') then
   begin
+    { ApplicationData expects to find data under /usr/share/<project-name>,
+      so using here Manifest.Name. }
     CopyDirectory(InclPathDelim(PackagedPath) + 'data', InclPathDelim(ShareDirLocal) + Manifest.Name);
     BinariesSize += DirectorySize(InclPathDelim(PackagedPath) + 'data');
   end;
@@ -192,8 +194,8 @@ begin
 
   CheckForceDirectories(ShareDirLocal + PathDelim + 'menu');
   StringToFile(
-    ShareDirUrl + '/menu/' + Manifest.Name,
-    '?package(' + Manifest.Name + '): \' + NL +
+    ShareDirUrl + '/menu/' + DebianPackageName,
+    '?package(' + DebianPackageName + '): \' + NL +
     'needs="X11" \' + NL +
     'section="' + Manifest.DebianMenuSection + '" \' + NL +
     'title="' + Manifest.Caption + '" \' + NL +
@@ -230,7 +232,7 @@ begin
   CheckForceDirectories(PackageDirLocal + PathDelim + 'DEBIAN');
   StringToFile(
     PackageDirUrl + '/DEBIAN/control',
-    'Package: ' + Manifest.Name + NL +
+    'Package: ' + DebianPackageName + NL +
     'Version: ' + Manifest.Version.DisplayValue + NL +
     'Section: ' + Manifest.DebianControlSection + NL +
     'Priority: optional' + NL +
