@@ -69,6 +69,35 @@ begin
   finally FreeAndNil(Helper) end;
 end;
 
+{ FindFileCheck ----------------------------------------------------- }
+
+{ Various checks on files/dirs in package main directory. }
+procedure FindFileCheck(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
+const
+  ErrPackagedDescription = 'In Debian package, we only package the main executable and "data" subdirectory now. If you include any other files, they are not placed in the final Debian package.';
+var
+  Manifest: TCastleManifest;
+begin
+  Manifest := TCastleManifest(Data);
+
+  if FileInfo.Name = Manifest.ExecutableName then
+  begin
+    if FileInfo.Directory then
+      WritelnWarning('"%s" should not be a directory', [FileInfo.Name]);
+  end else
+  if FileInfo.Name = 'data' then
+  begin
+    if not FileInfo.Directory then
+      WritelnWarning('"%s" should be a directory', [FileInfo.Name]);
+  end else
+  begin
+    if FileInfo.Directory then
+      WritelnWarning('Directory "%s" will not be packaged. ' + ErrPackagedDescription, [FileInfo.Name])
+    else
+      WritelnWarning('File "%s" will not be packaged. ' + ErrPackagedDescription, [FileInfo.Name]);
+  end;
+end;
+
 { PackageDebian -------------------------------------------------------------- }
 
 procedure PackageDebian(const PackagedPath: String;
@@ -128,6 +157,10 @@ var
 begin
   TempPath := InclPathDelim(CreateTemporaryDir);
 
+  // Use FindFileCheck to warn about files not packaged into DEB
+  FindFiles(PackagedPath, '*', false, {$ifdef FPC}@{$endif}FindFileCheck, Manifest, []);
+
+  // Calculate DebianPackageName, avoid using _ in package name -- not allowed
   DebianPackageName := SReplaceChars(Manifest.Name, '_', '-');
   { dpkg-deb only accepts package names with these characters. }
   if CharsPos(AllChars - AllowedDebianPackageChars, DebianPackageName) <> 0 then
