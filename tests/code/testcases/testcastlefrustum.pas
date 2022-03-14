@@ -538,8 +538,6 @@ begin
   {$endif}
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleFrustum);
-{$endif}
 end.

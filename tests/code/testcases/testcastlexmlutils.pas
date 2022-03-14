@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleXMLUtils" -*-
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -102,8 +102,6 @@ begin
   finally FreeAndNil(Doc); end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleXMLUtils);
-{$endif}
 end.

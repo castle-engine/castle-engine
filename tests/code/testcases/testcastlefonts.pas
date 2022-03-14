@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleFonts" -*-
 {
-  Copyright 2011-2021 Michalis Kamburelis.
+  Copyright 2011-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -332,8 +332,6 @@ begin
   FreeAndNil(CF);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleFonts);
-{$endif}
 end.

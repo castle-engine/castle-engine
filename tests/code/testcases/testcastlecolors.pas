@@ -129,8 +129,6 @@ begin
   AssertVectorEquals(LerpRgbInHsv(1, BlackRGB, PureRed), PureRed);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestCastleColors);
-{$endif}
 end.

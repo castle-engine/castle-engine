@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestX3DFields" -*-
 {
-  Copyright 2017-2021 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -83,8 +83,6 @@ begin
   finally FreeAndNil(Scene) end;
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestX3DFields);
-{$endif}
 end.

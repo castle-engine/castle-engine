@@ -1,6 +1,6 @@
 ﻿// -*- compile-command: "./test_single_testcase.sh TTestParsingParameters" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -505,8 +505,6 @@ begin
   );
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
- RegisterTest(TTestParsingParameters);
- {$endif}
+  RegisterTest(TTestParsingParameters);
 end.

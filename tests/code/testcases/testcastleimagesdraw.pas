@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestImagesDraw" -*-
 {
-  Copyright 2015-2021 Michalis Kamburelis.
+  Copyright 2015-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -398,8 +398,6 @@ begin
   AssertVectorEquals(Vector2Byte(AddBytesPremultiplied(203, 202), 128), GrayAlpha.PixelPtr(1, 1)^);
 end;
 
-{$ifndef CASTLE_TESTER}
 initialization
   RegisterTest(TTestImagesDraw);
-{$endif}
 end.

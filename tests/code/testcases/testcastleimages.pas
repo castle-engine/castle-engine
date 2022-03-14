@@ -35,8 +35,7 @@ type
     procedure TestResize;
     //procedure TestMimeTypesAndExtsCount;
     procedure TestLoadSavePreserveAlpha;
-    // TODO: TestInternalDetectClassPNG - crashes
-    {$ifndef CASTLE_TESTER}procedure TestInternalDetectClassPNG;{$endif}
+    procedure TestInternalDetectClassPNG;
     procedure TestLoadAnchors;
   end;
 
@@ -313,7 +312,6 @@ begin
   TestImage('castle-data:/images/load-save-alpha-test/5.png');
 end;
 
-{$ifndef CASTLE_TESTER}
 procedure TTestImages.TestInternalDetectClassPNG;
 var
   Stream: TStream;
@@ -325,7 +323,6 @@ begin
     AssertEquals('TRGBAlphaImage', ImageClass.ClassName);
   finally FreeAndNil(Stream) end;
 end;
-{$endif}
 
 procedure TTestImages.TestLoadAnchors;
 var
