@@ -31,7 +31,7 @@ jobs:
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
 
       - name: Build Tools (FPC Stable)
-        run: make clean tools
+        run: make clean default
       # To conserve disk usage on GH Actions runner, use common directory for output of all projects
       - name: Build Examples (FPC Stable)
         run: make clean examples
@@ -52,7 +52,7 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tools
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean default
       # To conserve disk usage on GH Actions runner, use common directory for output of all projects
       - name: Build Examples (FPC 3.2.0)
         run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples
@@ -73,7 +73,7 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools (FPC Latest Unstable)
-        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools
+        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean default
       # To conserve disk usage on GH Actions runner, use common directory for output of all projects
       - name: Build Examples (FPC Latest Unstable)
         run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples
