@@ -201,6 +201,7 @@ begin
     Exit; // TODO: We can test window progress only in console mode
   {$endif}
 
+  Levels.LoadFromFiles('castle-data:/game/level_without_loading_image');
   DoTest(false);
   DoTest(true);
 end;
