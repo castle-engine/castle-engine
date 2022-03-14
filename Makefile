@@ -12,8 +12,16 @@
 #
 # Most useful targets of this Makefile:
 #
-#   all (default target) --
-#     Compile all units, uses fpmake.
+#   default (default target) --
+#     Build the most useful things:
+#     - tools not depending on LCL (including build tool)
+#     - editor
+#     Also, register all Lazarus packages.
+#     Also, place all tools and editor in bin/ subdirectory.
+#
+#   tools --
+#     Build all tools that don't depend on LCL.
+#     Right now it means: all tools except castle-editor.
 #
 #   examples --
 #     Compile most examples and tools (that don't use Lazarus LCL).
@@ -32,6 +40,11 @@
 #     This compilation method uses our .lpi project files,
 #     and compiles every program by the lazbuild utility.
 #     Lazarus and FPC installation is required.
+#
+#   build-using-fpmake:
+#     Compile all units using FpMake.
+#     We support this as an optional build approach to CGE and applications using CGE.
+#     See https://castle-engine.io/fpmake .
 #
 #   clean --
 #     Delete FPC temporary files, Delphi temporary files,
@@ -100,12 +113,24 @@ endif
 #
 BUILD_TOOL = ./tools/build-tool/castle-engine$(EXE_EXTENSION)
 
-# compile ------------------------------------------------------------
+# compiling tools ------------------------------------------------------------
 
-.PHONY: all
-all:
-	$(MAKE) --no-print-directory build-using-fpmake
-	$(MAKE) tools
+.PHONY: default
+default: tools
+	lazbuild --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
+	lazbuild --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
+	lazbuild --add-package-link packages/castle_base.lpk
+	lazbuild --add-package-link packages/castle_window.lpk
+	lazbuild --add-package-link packages/castle_components.lpk
+	lazbuild tools/castle-editor/castle_editor.lpi
+# move binaries to bin/
+	$(INSTALL) -d bin/
+	$(INSTALL) tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) bin/
+	$(INSTALL) tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) bin/
+	$(INSTALL) tools/castle-curves/castle-curves$(EXE_EXTENSION) bin/
+	$(INSTALL) tools/build-tool/castle-engine$(EXE_EXTENSION) bin/
+	$(INSTALL) tools/to-data-uri/to-data-uri$(EXE_EXTENSION) bin/
+	$(INSTALL) tools/castle-editor/castle-editor$(EXE_EXTENSION) bin/
 
 .PHONY: tools
 tools:
@@ -115,29 +140,6 @@ tools:
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/image-to-pascal/ compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/texture-font-to-pascal/ compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/to-data-uri/ compile
-
-.PHONY: build-using-fpmake
-build-using-fpmake:
-	fpc fpmake.pp
-	@echo 'Running fpmake. If this fails saying that "rtl" is not found, remember to set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
-# Workaround FPC >= 3.x problem (bug?) --- it ignores $FPCDIR, but --globalunitdir works
-	if [ '(' -n "$(FPCDIR)" ')' ]; then \
-	   ./fpmake --globalunitdir="$(FPCDIR)"; \
-	else \
-	   ./fpmake; \
-	fi
-
-# Full test that fpmake compilation process works
-# (see https://castle-engine.io/fpmake )
-.PHONY: test-fpmake
-test-fpmake: build-using-fpmake
-# Test fpmake with --nofpccfg, to make sure our dependencies in fpmake.pp are correct
-	./fpmake clean --verbose
-	if [ '(' -n "$(FPCDIR)" ')' ]; then \
-	   ./fpmake --globalunitdir="$(FPCDIR)" --nofpccfg --verbose; \
-	else \
-	   ./fpmake --nofpccfg --verbose; \
-	fi
 
 # install / uninstall --------------------------------------------------------
 #
@@ -201,7 +203,7 @@ strip-precompiled-libraries:
 	       tools/build-tool/data/android/integrated/gradlew \
 	       tools/build-tool/data/android/integrated/gradlew.bat
 
-# examples and tools -----------------------------------------------------------
+# compiling examples -----------------------------------------------------------
 
 # Note that examples with CastleEngineManifest.xml are not listed here.
 # They will be found and compiled by a Makefile rule that searches using
@@ -478,5 +480,30 @@ tests:
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=release --compiler-option=-dNO_WINDOW_SYSTEM compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+
+# fpmake ---------------------------------------------------------------------
+
+.PHONY: build-using-fpmake
+build-using-fpmake:
+	fpc fpmake.pp
+	@echo 'Running fpmake. If this fails saying that "rtl" is not found, remember to set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
+# Workaround FPC >= 3.x problem (bug?) --- it ignores $FPCDIR, but --globalunitdir works
+	if [ '(' -n "$(FPCDIR)" ')' ]; then \
+	   ./fpmake --globalunitdir="$(FPCDIR)"; \
+	else \
+	   ./fpmake; \
+	fi
+
+# Full test that fpmake compilation process works
+# (see https://castle-engine.io/fpmake )
+.PHONY: test-fpmake
+test-fpmake: build-using-fpmake
+# Test fpmake with --nofpccfg, to make sure our dependencies in fpmake.pp are correct
+	./fpmake clean --verbose
+	if [ '(' -n "$(FPCDIR)" ')' ]; then \
+	   ./fpmake --globalunitdir="$(FPCDIR)" --nofpccfg --verbose; \
+	else \
+	   ./fpmake --nofpccfg --verbose; \
+	fi
 
 # eof ------------------------------------------------------------
