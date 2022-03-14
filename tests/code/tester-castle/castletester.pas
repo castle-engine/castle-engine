@@ -43,13 +43,6 @@ type
   TNotifyTestCaseExecuted = procedure (const Name: String) of object;
   TNotifyTestCountChanged = procedure (const TestCount: Integer) of object;
 
-  TCastleTesterMode = (
-    ctmDesktop, // tester runs in UI application on desktop (Linux, Windows, MacOS)
-    ctmConsole, // tester runs in console
-    ctmMobile,  // tester runs on Android or iOs
-    ctmWeb // in the future, for the Web target
-  );
-
   TCastleTester = class;
   TCastleTestCase = class;
 
@@ -97,8 +90,8 @@ type
     FCurrentTestName: String;
 
     FWindowForTest: TCastleWindow;
-    { Viewport from MainWindow in Desktop or Mobile mode or viewport from
-      FWindowForViewportTest when Console Mode }
+    { Viewport from Application.MainWindow in non-console mode,
+      or viewport from FWindowForViewportTest when Console Mode. }
     FViewportForTest: TCastleViewport;
     { Window for Viewport when tester in Console mode }
     FWindowForViewportTest: TCastleWindow;
@@ -214,10 +207,9 @@ type
     procedure AssertFrustumEquals(const Expected, Actual: TFrustum;
       AddrOfError: Pointer = nil); overload;
 
-
     function CompareFileName(Expected, Actual: String): Boolean;
 
-    { Function that works in Delphi and FPC }
+    { Get temporary directory, implementation that works for both Delphi and FPC. }
     function GetTempDirectory: String;
 
     procedure TestLog(Text: String);
@@ -230,10 +222,9 @@ type
     function CreateWindowForTest: TCastleWindow;
     procedure DestroyWindowForTest;
 
-    { If you don't need window for testing you can simply get a viewport.
-      This view port is automatically cleaned when test method ends.
-      In UI mode it's in main window }
-    function GetTestingViewport: TCastleViewport;
+    { If you need a TCastleViewport for testing, you can use this one.
+      This viewport is automatically cleaned when test method ends. }
+    //function GetTestingViewport: TCastleViewport;
 
     { Used by TCastleTester.Scan to add tests }
     function AddTest(const AName: String;
@@ -241,7 +232,14 @@ type
       const ARttiMethod: TRttiMethod{$endif}): TCastleTest;
 
     function IsConsoleMode: Boolean;
-    function IsMobileMode: Boolean;
+
+    { Does the current platform allow to create new TCastleWindow during tests.
+      This applies to calling CreateWindowForTest as well as to explicit
+      "TCastleWindow.Create" calls.
+
+      This is false on mobile.
+      On non-mobile, it is true both in console and non-console mode. }
+    function CanCreateWindowForTest: Boolean;
 
     { Clears test list }
     procedure ClearTests;
@@ -327,10 +325,9 @@ type
     { Runs next test, good for UI apps, can raise exceptions }
     procedure RunNextTest;
 
-    { Returns tester mode (UI or Console) }
-    function Mode: TCastleTesterMode;
-
     function EnabledTestCount: Integer;
+
+    function IsConsoleMode: Boolean;
 
     { Stop testing on first fail or run all tests }
     property StopOnFirstFail: Boolean read FStopOnFirstFail
@@ -424,18 +421,6 @@ end;
 function TCastleTester.IsNextTestToRun: Boolean;
 begin
   Result := (FLastRunningTestIndex < FTestsToRun.Count);
-end;
-
-function TCastleTester.Mode: TCastleTesterMode;
-begin
-  if FUIWindow = nil then
-    Result := ctmConsole
-  else
-    {$if defined(ANDROID) or defined(iPHONESIM) or defined(iOS)}
-    Result := ctmMobile;
-    {$else}
-    Result := ctmDesktop;
-    {$endif}
 end;
 
 procedure TCastleTester.PrepareTestListToRun(const ATestCaseName: String);
@@ -630,6 +615,11 @@ begin
     if TestCase.Enabled then
       Inc(Result, TestCase.EnabledTestCount);
   end;
+end;
+
+function TCastleTester.IsConsoleMode: Boolean;
+begin
+  Result := FUIWindow = nil;
 end;
 
 { TCastleTestCase }
@@ -1127,7 +1117,7 @@ end;
 function TCastleTestCase.CreateWindowForTest: TCastleWindow;
 begin
   FWindowForTest := TCastleWindow.Create(nil);
-  if FCastleTester.Mode = ctmConsole then
+  if IsConsoleMode then
   begin
     Application.MainWindow := FWindowForTest;
   end;
@@ -1143,7 +1133,7 @@ end;
 procedure TCastleTestCase.DestroyWindowForTest;
 begin
   FreeAndNil(FWindowForTest);
-  if FCastleTester.Mode = ctmConsole then
+  if IsConsoleMode then
   begin
     Application.MainWindow := nil;
   end;
@@ -1196,19 +1186,24 @@ begin
   Result := FTestList[Index];
 end;
 
+{ TODO:
 function TCastleTestCase.GetTestingViewport: TCastleViewport;
 begin
   raise Exception.Create('Not implemented');
 end;
+}
 
 function TCastleTestCase.IsConsoleMode: Boolean;
 begin
-  Result := (FCastleTester.Mode = ctmConsole);
+  Result := FCastleTester.IsConsoleMode;
 end;
 
-function TCastleTestCase.IsMobileMode: Boolean;
+function TCastleTestCase.CanCreateWindowForTest: Boolean;
 begin
-  Result := (FCastleTester.Mode = ctmMobile);
+  Result :=
+    {$if defined(ANDROID) or defined(iPHONESIM) or defined(iOS)} true
+    {$else} false
+    {$endif};
 end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);

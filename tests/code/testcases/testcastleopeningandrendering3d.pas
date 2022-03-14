@@ -185,8 +185,8 @@ end;
 procedure TTestOpeningAndRendering3D.Test1;
 begin
   {$ifdef CASTLE_TESTER}
-  if IsMobileMode then
-    Fail('Tests that create new TCastleWindow cannot be run on mobile.');
+  if not CanCreateWindowForTest then
+    Exit;
   {$endif}
 
   TestOpenAndRender(false);
