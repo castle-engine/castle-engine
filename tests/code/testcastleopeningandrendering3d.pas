@@ -28,7 +28,7 @@ type
   TTestOpeningAndRendering3D = class(TCastleTestCase)
   private
     { Available only during Test1 }
-    Window: TCastleWindowBase;
+    Window: TCastleWindow;
     Viewport: TCastleViewport;
     Scene: TCastleScene;
     RecreateSceneEachTime: boolean;
