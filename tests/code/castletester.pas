@@ -96,12 +96,12 @@ type
     FNotifyAssertFail: TNotifyAssertFail;
     FCurrentTestName: String;
 
-    FWindowForTest: TCastleWindowBase;
+    FWindowForTest: TCastleWindow;
     { Viewport from MainWindow in Desktop or Mobile mode or viewport from
       FWindowForViewportTest when Console Mode }
     FViewportForTest: TCastleViewport;
     { Window for Viewport when tester in Console mode }
-    FWindowForViewportTest: TCastleWindowBase;
+    FWindowForViewportTest: TCastleWindow;
     { TCastleTester that runs test case }
     FCastleTester: TCastleTester;
 
@@ -146,7 +146,9 @@ type
       const Epsilon: Single; AddrOfError: Pointer = nil); overload;
 
     procedure AssertMatrixEquals(const Expected, Actual: TMatrix4;
-      const Epsilon: Single; AddrOfError: Pointer = nil);
+      const Epsilon: Single; AddrOfError: Pointer = nil); overload;
+    procedure AssertMatrixEquals(const Expected, Actual: TMatrix4;
+      AddrOfError: Pointer = nil); overload;
 
     procedure AssertVectorEquals(const Expected, Actual: TVector2Byte;
       AddrOfError: Pointer = nil); overload;
@@ -222,10 +224,10 @@ type
 
     procedure OnWarningRaiseException(const Category, S: string);
 
-    { Method that facilitates the creation of the window for the test
-      it will be freed when test method ends but if you need test
-      window destroying call DestroyWindowForTest }
-    function CreateWindowForTest: TCastleWindowBase;
+    { Create TCastleWindow for test purposes.
+      It will be automatically freed when test method ends but if you need you
+      can also call DestroyWindowForTest explicitly. }
+    function CreateWindowForTest: TCastleWindow;
     procedure DestroyWindowForTest;
 
     { If you don't need window for testing you can simply get a viewport.
@@ -271,7 +273,7 @@ type
     FLastRunningTestIndex: Integer;
 
     { Test app window when tester runs in UI mode or nil in console mode }
-    FUIWindow: TCastleWindowBase;
+    FUIWindow: TCastleWindow;
 
     { Flag to stop on first test fail }
     FStopOnFirstFail: Boolean;
@@ -811,6 +813,15 @@ begin
   end;
 end;
 
+procedure TCastleTestCase.AssertMatrixEquals(const Expected, Actual: TMatrix4;
+  AddrOfError: Pointer);
+begin
+  if AddrOfError = nil then
+    AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
+
+  AssertMatrixEquals(Expected, Actual, SingleEpsilon, AddrOfError);
+end;
+
 procedure TCastleTestCase.AssertPlaneEquals(const Expected, Actual: TVector4;
   AddrOfError: Pointer);
 begin
@@ -1105,9 +1116,9 @@ begin
   FWindowForTest := nil;
 end;
 
-function TCastleTestCase.CreateWindowForTest: TCastleWindowBase;
+function TCastleTestCase.CreateWindowForTest: TCastleWindow;
 begin
-  FWindowForTest := TCastleWindowBase.Create(nil);
+  FWindowForTest := TCastleWindow.Create(nil);
   if FCastleTester.Mode = ctmConsole then
   begin
     Application.MainWindow := FWindowForTest;
