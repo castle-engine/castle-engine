@@ -33,6 +33,7 @@ unit CastleGenericLists
 {$ifdef VER2_2} {$undef HAS_EXTRACT} {$endif}
 {$ifdef VER2_4} {$undef HAS_EXTRACT} {$endif}
 
+{$ifdef FPC}
 interface
 
 uses FGL;
@@ -456,3 +457,13 @@ begin
 end;
 
 end.
+
+{$else}
+
+interface
+
+implementation
+
+end.
+
+{$endif FPC}

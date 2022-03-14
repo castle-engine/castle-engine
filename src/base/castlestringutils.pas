@@ -1037,8 +1037,8 @@ const
 
 implementation
 
-uses {$ifdef FPC} Regexpr {$else} RegularExpressions {$endif}, StrUtils,
-  CastleLog;
+uses {$ifdef FPC} Regexpr {$else} RegularExpressions, Character {$endif},
+  StrUtils, CastleLog;
 
 { TStringsHelper ------------------------------------------------------------- }
 
@@ -2603,10 +2603,17 @@ begin if s = '' then result := nil else result := PAnsiChar(s); end;
 
 function SCompressWhiteSpace(const S: string): string;
 var
-  ResultPos: Integer; { this is always next free result position }
   SPos: Integer; { this is always next unhandled S position }
+{$ifdef FPC}
+  ResultPos: Integer; { this is always next free result position }
   NextSPos: Integer;
+{$else}
+  StringBuilder: TStringBuilder;
+  SLength: Integer;
+{$endif}
 begin
+  { Move is fast but we can't use it in delphi }
+  {$ifdef FPC}
   ResultPos := 1;
   SPos := 1;
   SetLength(Result, Length(S)); { resulting string is at most as long as S }
@@ -2648,6 +2655,48 @@ begin
   Assert(ResultPos - 1 <= Length(Result));
 
   SetLength(Result, ResultPos - 1);
+  {$else}
+  SLength := Length(S);
+
+  if SLength = 0 then
+    Exit(S);
+
+  StringBuilder := TStringBuilder.Create;
+  try
+    StringBuilder.Capacity := SLength;
+
+    SPos := 1;
+    while SPos <= SLength do
+    begin
+      if IsSurrogate(S, SPos) then
+      begin
+        StringBuilder.Append(S[SPos]);
+        Inc(SPos);
+        if SPos <= SLength then
+        begin
+          StringBuilder.Append(S[SPos]);
+          Inc(SPos);
+        end;
+        continue;
+      end;
+
+      if SCharIs(S, SPos, WhiteSpaces) then
+      begin
+        StringBuilder.Append(S[SPos]);
+        while SCharIs(S, SPos, WhiteSpaces) do
+          Inc(SPos);
+        continue;
+      end;
+
+      StringBuilder.Append(S[SPos]);
+      Inc(SPos);
+    end;
+
+    Result := StringBuilder.ToString;
+  finally
+    StringBuilder.Free;
+  end;
+  {$endif}
 end;
 
 procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;

@@ -492,8 +492,6 @@ end;
 
 constructor TX3DLexer.Create(AStream: TPeekCharStream; AOwnsStream: boolean);
 const
-  GzipHeader = #$1F + #$8B;
-
   InventorHeaderStart = '#Inventor ';
 
   VRML1HeaderStart = '#VRML V1.0 ';
@@ -593,20 +591,25 @@ const
   end;
 
 var
-  Line: string;
+  FirstLine: AnsiString;
+  Line: String;
 begin
   CreateCommonBegin(AStream, AOwnsStream);
 
   { Read first line = signature. }
-  Line := Stream.ReadUpto(X3DLineTerm);
+  FirstLine := Stream.ReadUpto(X3DLineTerm);
+
+  if Length(FirstLine) < 2 then
+    raise EX3DLexerError.Create(Self,
+      'Unexpected end of file on the signature line');
 
   { Conveniently, GzipHeader doesn't contain X3DLineTerm.
     So if Line starts with GzipHeader, we know 100% it's gzip file,
     otherwise we know 100% it's not. }
-  if Copy(Line, 1, Length(GzipHeader)) = GzipHeader then
-  begin
+  if (FirstLine[1] = #$1F) and (FirstLine[2] = #$8B) then
     raise EGzipCompressed.Create('Stream is compressed by gzip');
-  end;
+
+  Line := FirstLine;
 
   { Normal (uncompressed) VRML file, continue reading ... }
 

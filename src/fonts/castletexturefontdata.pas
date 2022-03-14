@@ -319,8 +319,23 @@ var
   end;
 
   function FileNameContainsNonAsciiCharacters(const FileName: String): Boolean;
+  {$ifndef FPC}
+  var
+    I:Integer;
+  {$endif}
   begin
+    {$ifdef FPC}
     Result := CharsPos(AllChars - SimpleAsciiCharacters, FileName) <> 0;
+    {$else}
+    if FileName = '' then
+      Exit(false);
+
+    for I := 1 to Length(FileName) do
+      if (Ord(FileName[I]) > 126) or (Ord(FileName[I]) < 32) then
+        Exit(true);
+
+    Result := false;
+    {$endif}
   end;
 
 const

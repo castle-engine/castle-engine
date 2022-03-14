@@ -1227,7 +1227,7 @@ procedure TDDSHandler.SaveToStream(const Stream: TStream);
 
   procedure WriteHeader;
   const
-    Magic: array [0 .. 3] of char = 'DDS ';
+    Magic: array [0 .. 3] of AnsiChar = 'DDS ';
   var
     Header: TDDSHeader;
   begin

@@ -548,8 +548,11 @@ type
     function GetColumns(const AColumn: TIndex): TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure SetColumns(const AColumn: TIndex; const Value: TGenericVector3); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
   public
+    type
+      TIndexArray = array[TIndex] of TGenericScalar;
     var
-      Data: array [TIndex, TIndex] of TGenericScalar;
+      //Data: array [TIndex, TIndex] of TGenericScalar;
+      Data: array [TIndex] of TIndexArray;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -626,8 +629,11 @@ type
       keep it fast. }
     procedure RaiseDirectionTransformedResultInvalid(const Divisor: TGenericScalar);
   public
+    type
+      TIndexArray = array[TIndex] of TGenericScalar;
     var
-      Data: array [TIndex, TIndex] of TGenericScalar;
+      //Data: array [TIndex, TIndex] of TGenericScalar;
+      Data: array [TIndex] of TIndexArray;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
