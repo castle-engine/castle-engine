@@ -5,23 +5,22 @@ interface
 uses SysUtils, Classes, CastleTester;
 
 type
-
   TCastleConsoleTester = class
-    strict private
-      FTester: TCastleTester;
-      procedure TestExecuted(const AName: String);
-      procedure AssertFailed(const TestName, Msg: String);
+  strict private
+    FTester: TCastleTester;
+    procedure TestExecuted(const AName: String);
+    procedure AssertFailed(const TestName, Msg: String);
 
-      procedure Log(const AMessage: String);
-    public
-      constructor Create;
-      destructor Destroy; override;
+    procedure Log(const AMessage: String);
+  public
+    constructor Create;
+    destructor Destroy; override;
 
-      { Runs all tests or only one test case when ATestCaseToRun <> '' }
-      procedure Run(const ATestCaseToRun: String = '');
+    { Runs all tests or only one test case when ATestCaseToRun <> '' }
+    procedure Run(const ATestCaseToRun: String = '');
 
-      { Parsing --suite=xx parameter and returns only value (xx) }
-      class function GetTestCaseNameFromParameters: String;
+    { Parsing --suite=xx parameter and returns only value (xx) }
+    class function GetTestCaseNameFromParameters: String;
   end;
 
 
