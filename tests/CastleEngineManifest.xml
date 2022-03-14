@@ -8,10 +8,9 @@
   <compiler_options>
     <search_paths>
       <path value="code/" />
-      <path value="../../tests/code" />
     </search_paths>
     <custom_options>
       <option>-dCASTLE_TESTER</option>
-    </custom_options>	
+    </custom_options>
   </compiler_options>
 </project>
