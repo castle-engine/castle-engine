@@ -2160,6 +2160,8 @@ begin
 end;
 
 procedure TCastleTransform.Notification(AComponent: TComponent; Operation: TOperation);
+var
+  Beh: TCastleBehavior;
 begin
   inherited;
 
@@ -2202,6 +2204,26 @@ begin
 
   if (Operation = opRemove) and (AComponent is TCastleTransform) and (List <> nil) then
     List.RemoveAll(AComponent);
+
+  { When someone calls Free Behavior it is fired but doesn't call
+    WorldBeforeDetach, ParentBeforeDetach, ParentChanged, so we need
+    add it here. }
+  if (Operation = opRemove) and (AComponent is TCastleBehavior) then
+  begin
+    Beh := AComponent as TCastleBehavior;
+    if Beh.Parent <> nil then
+    begin
+      { Call WorldDetached directly }
+      if Beh.NeedWorldChangeNotification and (FWorld <> nil) then
+        Beh.WorldBeforeDetach;
+
+      Beh.ParentBeforeDetach;
+
+      Beh.FParent := nil;
+      Beh.ParentChanged; // call at end, when state is consistent
+      RemoveWorldChangeNotification(Beh);
+    end;
+  end;
 end;
 
 function TCastleTransform.Height(const MyPosition: TVector3;
@@ -3708,6 +3730,7 @@ begin
        ((OldParent = nil) or ((OldParent <> nil) and (OldParent.World <> FWorld))) then
         Behavior.WorldAfterAttach;
     end;
+    Behavior.FreeNotification(Self);
   end;
 end;
 
@@ -3727,6 +3750,7 @@ begin
   FBehaviors.Delete(BehaviorIndex);
   Beh.ParentChanged; // call at end, when state is consistent
   RemoveWorldChangeNotification(Beh);
+  Beh.RemoveFreeNotification(Self);
 end;
 
 procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
