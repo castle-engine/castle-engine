@@ -271,14 +271,9 @@ test-editor-templates:
 .PHONY: examples
 examples:
 # Compile build tool first, used to compile other tools and examples.
-# Also copy it, as below it will recompile itself (which would be trouble on Windows).
 	tools/build-tool/castle-engine_compile.sh
-	cp -f $(BUILD_TOOL) castle-engine-copy$(EXE_EXTENSION)
 
 # Compile all examples and tools with CastleEngineManifest.xml inside.
-#
-# We make a copy of castle-engine, otherwise it would fail on Windows
-# (as you cannot replace your own exe).
 #
 # We clean output afterwards, to avoid using a lot of disk space (would be a problem
 # with GitHub Actions).
@@ -291,15 +286,20 @@ examples:
 #
 # So we use find to generate list of projects, then run using simple "for" over them.
 #
-# Exceptions:
-# - We do not compile examples/network/tcp_connection/ here,
-#   as it requires Indy which may not be installed.
-# - delphi_tests requires Delphi, which is not available on non-Windows,
-#   so it is disabled from automatic test here.
+# Exceptions: We do not process:
+#
+# - examples/network/tcp_connection/: because it requires Indy which may not be installed.
+#
+# - tests/delphi_tests: because it requires Delphi, which is not available on non-Windows.
+#
+# - tools/build-tool: because
+#   - compilation is tested by "make tools" already,
+#   - we don't want to clean it, to have it available for "make test-editor-templates" after this
+#   - on Windows, we'd have to make a copy of castle-engine, as you cannot replace own exe.
 	$(FIND) . \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
-	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
+	  '(' -path ./tools/build-tool -prune ')' -o \
 	  '(' -path ./tests/delphi_tests -prune ')' -o \
 	  '(' -type d -iname castle-engine-output -prune ')' -o \
 	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
@@ -307,8 +307,8 @@ examples:
 	echo 'Found projects: '`wc -l < /tmp/cge-projects.txt`
 	set -e && for MANIFEST in `cat /tmp/cge-projects.txt`; do \
 	  echo 'Compiling project '$${MANIFEST}; \
-	  ./castle-engine-copy$(EXE_EXTENSION) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} compile; \
-	  ./castle-engine-copy$(EXE_EXTENSION) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} clean; \
+	  $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} compile; \
+	  $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} clean; \
 	done
 
 # Compile editor templates
