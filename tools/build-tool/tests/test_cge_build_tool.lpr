@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,20 +16,25 @@
 { Automatic test runner for CGE build tool. }
 
 uses
-  SysUtils, ConsoleTestRunner,
-  CastleConsoleTestRunner, CastleApplicationProperties, CastleScript,
+  SysUtils, CastleTester, CastleConsoleTester, CastleApplicationProperties,
+  CastleScript, CastleLog,
   TestToolProject;
 
 var
-  Application: TCastleConsoleTestRunner;
+  ConsoleTester: TCastleConsoleTester;
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   ScriptVerboseMessages := true;
-  Application := TCastleConsoleTestRunner.Create(nil);
+
+  { Avoid warnings that opening files too early. }
+  ApplicationProperties._FileAccessSafe := true;
+
+  InitializeLog; // CastleConsoleTester puts output in log
+
+  ConsoleTester := TCastleConsoleTester.Create;
   try
-    Application.Title := 'CGE Build Tool - Test runner (using fpcunit)';
-    DefaultFormat := fPlain;
-    Application.Initialize;
-    Application.Run;
-  finally FreeAndNil(Application) end;
+    ConsoleTester.Run('');
+  finally
+    FreeAndNil(ConsoleTester);
+  end;
 end.

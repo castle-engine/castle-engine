@@ -24,7 +24,6 @@ uses
 
 var
   ConsoleTester: TCastleConsoleTester;
-
 begin
   if Parameters.IndexOf('--console') = -1 then
   begin
