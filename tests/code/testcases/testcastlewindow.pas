@@ -56,7 +56,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if IsMobileMode then
-    Fail('Tests that creates windows cannot be run on mobile.');
+    Fail('Tests that create new TCastleWindow cannot be run on mobile.');
   {$endif}
 
   Window := TCastleWindow.Create(nil);
@@ -75,7 +75,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if IsMobileMode then
-    Fail('Tests that creates windows cannot be run on mobile.');
+    Fail('Tests that create new TCastleWindow cannot be run on mobile.');
   {$endif}
 
   Window := TCastleWindow.Create(nil);
@@ -119,7 +119,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if IsMobileMode then
-    Fail('Tests that creates windows cannot be run on mobile.');
+    Fail('Tests that create new TCastleWindow cannot be run on mobile.');
   {$endif}
 
   Window := nil;
@@ -241,7 +241,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if IsMobileMode then
-    Fail('Tests that creates windows cannot be run on mobile.');
+    Fail('Tests that create new TCastleWindow cannot be run on mobile.');
   {$endif}
 
   Window := TCastleWindow.Create(nil);
@@ -376,7 +376,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if IsMobileMode then
-    Fail('Tests that creates windows cannot be run on mobile.');
+    Fail('Tests that create new TCastleWindow cannot be run on mobile.');
   {$endif}
 
   Window := TCastleWindow.Create(nil);
