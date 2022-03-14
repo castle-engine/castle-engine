@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestFGL" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestFGL" -*-
 {
   Copyright 2004-2021 Michalis Kamburelis.
 

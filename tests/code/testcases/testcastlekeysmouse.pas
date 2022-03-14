@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestKeysMouse" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestKeysMouse" -*-
 {
   Copyright 2012-2021 Michalis Kamburelis.
 

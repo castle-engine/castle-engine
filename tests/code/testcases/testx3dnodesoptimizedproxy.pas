@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestX3DNodesOptimizedProxy" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestX3DNodesOptimizedProxy" -*-
 {
   Copyright 2010-2021 Michalis Kamburelis.
 

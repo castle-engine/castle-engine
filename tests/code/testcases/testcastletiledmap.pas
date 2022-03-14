@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleTiledMap" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestCastleTiledMap" -*-
 {
   Copyright 2021-2021 Michalis Kamburelis.
 

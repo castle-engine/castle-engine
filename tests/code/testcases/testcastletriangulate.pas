@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleTriangulate" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestCastleTriangulate" -*-
 {
   Copyright 2011-2022 Michalis Kamburelis.
 

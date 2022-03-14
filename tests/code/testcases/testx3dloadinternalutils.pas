@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestX3DLoadInternalUtils" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestX3DLoadInternalUtils" -*-
 {
   Copyright 2019-2021 Michalis Kamburelis.
 

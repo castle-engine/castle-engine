@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestBasicLists" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestBasicLists" -*-
 {
   Copyright 2004-2021 Michalis Kamburelis.
 

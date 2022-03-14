@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleScriptVectors" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestCastleScriptVectors" -*-
 {
   Copyright 2008-2021 Michalis Kamburelis.
 

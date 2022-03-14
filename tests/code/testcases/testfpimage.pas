@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestFPImage" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestFPImage" -*-
 {
   Copyright 2011-2021 Michalis Kamburelis.
 

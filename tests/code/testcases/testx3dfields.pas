@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestX3DFields" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestX3DFields" -*-
 {
   Copyright 2017-2021 Michalis Kamburelis.
 

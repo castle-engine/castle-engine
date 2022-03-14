@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleQuaternions" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestCastleQuaternions" -*-
 {
   Copyright 2018-2021 Michalis Kamburelis.
 

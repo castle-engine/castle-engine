@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleTransform" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestCastleTransform" -*-
 {
   Copyright 2012-2022 Michalis Kamburelis.
 

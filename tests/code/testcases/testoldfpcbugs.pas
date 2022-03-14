@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestOldFPCBugs" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestOldFPCBugs" -*-
 {
   Copyright 2004-2021 Michalis Kamburelis.
 

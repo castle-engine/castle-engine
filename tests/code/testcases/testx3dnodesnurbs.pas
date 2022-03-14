@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestX3DNodesNurbs" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestX3DNodesNurbs" -*-
 {
   Copyright 2020-2021 Michalis Kamburelis.
 

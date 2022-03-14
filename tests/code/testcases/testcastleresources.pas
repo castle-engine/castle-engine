@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleResources" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestCastleResources" -*-
 {
   Copyright 2020-2022 Michalis Kamburelis.
 

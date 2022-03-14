@@ -1,6 +1,6 @@
-﻿// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestUnicode" -*-
+﻿// -*- compile-command: "./test_single_testcase.sh TTestUnicode" -*-
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

@@ -1,4 +1,4 @@
-// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleCompositeImage" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestCastleCompositeImage" -*-
 {
   Copyright 2009-2022 Michalis Kamburelis.
 
