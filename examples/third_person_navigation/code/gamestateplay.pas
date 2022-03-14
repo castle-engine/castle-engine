@@ -80,14 +80,16 @@ procedure TStatePlay.Start;
     LevelBody: TCastleRigidBody;
     LevelCollider: TCastleMeshCollider;
     AvatarBody: TCastleRigidBody;
-    AvatarCollider: TCastleBoxCollider;
+    //AvatarCollider: TCastleBoxCollider;
+    AvatarCollider: TCastleCapsuleCollider;
   begin
     LevelBody := TCastleRigidBody.Create(FreeAtStop);
     LevelBody.Dynamic := false;
 
     LevelCollider := TCastleMeshCollider.Create(SceneLevel);
     LevelCollider.Scene := SceneLevel;
-    LevelCollider.Restitution := 0.3;
+    LevelCollider.Restitution := 0.2;
+    LevelCollider.Friction := 0.25;
 
     SceneLevel.AddBehavior(LevelBody);
     SceneLevel.AddBehavior(LevelCollider);
@@ -95,14 +97,17 @@ procedure TStatePlay.Start;
     AvatarBody := TCastleRigidBody.Create(FreeAtStop);
     AvatarBody.LockRotation := [0, 2];
 
-    AvatarCollider := TCastleBoxCollider.Create(SceneAvatar);
-    AvatarCollider.Size := Vector3(1, 2, 1);
-    AvatarCollider.Translation := Vector3(0, 1, 0);
-    AvatarCollider.Restitution := 0.3;
-    AvatarCollider.Density := 100.0;
+    //AvatarCollider := TCastleBoxCollider.Create(SceneAvatar);
+    AvatarCollider := TCastleCapsuleCollider.Create(SceneAvatar);
+    // Currently using AutoSize uncoment to set your own size
+    //AvatarCollider.Size := Vector3(1, 2, 1);
+    //AvatarCollider.Translation := Vector3(0, 5, 0);
+    AvatarCollider.Restitution := 0.01;
+    AvatarCollider.Friction := 0.10;
+    //AvatarCollider.Mass := 50;
 
-    SceneAvatar.AddBehavior(AvatarCollider);
     SceneAvatar.AddBehavior(AvatarBody);
+    SceneAvatar.AddBehavior(AvatarCollider);
   end;
 
 var
@@ -185,6 +190,8 @@ begin
   ThirdPersonNavigation.Input_CameraCloser.Assign(keyNone, keyNone, '', false, buttonLeft, mwUp);
   ThirdPersonNavigation.Input_CameraFurther.Assign(keyNone, keyNone, '', false, buttonLeft, mwDown);
   ThirdPersonNavigation.MouseLook := true; // by default use mouse look
+  ThirdPersonNavigation.AnimationJump := 'idle';
+  ThirdPersonNavigation.AnimationFall := 'bored';
   ThirdPersonNavigation.Init;
 end;
 
