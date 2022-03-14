@@ -40,8 +40,10 @@ var
   Viewport: TCastleViewport;
   Level: TLevel;
 begin
+  {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
     Exit; // This test only makes sense in console mode
+  {$endif}
 
   AssertFalse(ApplicationProperties.IsGLContextOpen);
 

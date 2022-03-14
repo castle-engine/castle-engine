@@ -12,24 +12,43 @@ Compile by:
 
 - Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `castle_tester_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
 
-## Using
+## Using with default testing framework (Castle)
 
-By default castle tester shows window. Add --console to run in terminal. 
+By default the tester shows a window, using `TCastleWindow`. Add `--console` to use a console output instead.
 
-To test one test case use --suite=xx eg.:
-`castle-tester --console --suite=TTestRectangles`
+To limit testing to just one test case use `--suite=xx` e.g.:
 
-## fpcunit
+```
+castle-tester --console --suite=TTestRectangles
+```
 
-Castle tester is compatibile with fpcunit so you can still use test_castle_game_engine.lpi but compile_console.sh now builds castle-tester.
+## Alternative testing framework (FpcUnit) - console
 
-Running all test in console:
+We also maintain a version of the tester using FPC's FpcUnit. Compile it with console UI (passes `TEXT_RUNNER` define) like this:
 
-`./test_castle_game_engine -a`
+```
+castle-engine clean # clean compilation with default CGE testing framework
+castle-engine compile --manifest-name=CastleEngineManifest.xml.fpcunit
+```
 
-Running only CastleTransform tests:
+From the command-line run all the tests like this:
 
-`./test_castle_game_engine --suite=TTestCastleTransform`
+```
+./test_castle_game_engine -a
+```
 
+Running specific tests like this:
 
+```
+./test_castle_game_engine --suite=TTestCastleTransform
+```
 
+## Alternative testing framework (FpcUnit) - GUI
+
+You can also open in Lazarus and compile + run `test_castle_game_engine.lpi` project. Or build it using command-line
+
+```
+lazbuild test_castle_game_engine.lpi
+```
+
+This produces a binary `test_castle_game_engine` using LCL UI. Run it and click appropriate button to run all tests.

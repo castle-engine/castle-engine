@@ -19,7 +19,7 @@ unit TestCastleWindowOpen;
 
 interface
 
-uses Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+uses Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry
   {$else}CastleTester{$endif}, CastleWindow;
 
 type

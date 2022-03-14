@@ -8,6 +8,9 @@
   <compiler_options>
     <search_paths>
       <path value="code/" />
+      <path value="code/testcases/" />
+      <path value="code/tester-castle/" />
+      <path value="../tools/common-code/" />
     </search_paths>
     <custom_options>
       <option>-dCASTLE_TESTER</option>
