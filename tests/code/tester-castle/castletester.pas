@@ -893,13 +893,21 @@ end;
 procedure TCastleTestCase.AssertSameValue(const Expected, Actual: Double;
   AddrOfError: Pointer);
 begin
+  if not Assigned(AddrOfError) then
+    AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
 
+  AssertSameValue(Expected, Actual, DoubleEpsilon, AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertSameValue(const Expected, Actual: Double;
   const Epsilon: Double; AddrOfError: Pointer);
 begin
+  if not Assigned(AddrOfError) then
+    AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
 
+  if not SameValue(Expected, Actual, Epsilon) then
+    Fail(Format('Floats (Double) are not equal: expected: %g, actual: %g',
+      [Expected, Actual]), AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertRectsEqual(const Expected,
