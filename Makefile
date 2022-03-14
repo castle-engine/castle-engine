@@ -294,7 +294,7 @@ examples:
 #   as it requires Indy which may not be installed.
 # - delphi_tests requires Delphi, which is not available on non-Windows,
 #   so it is disabled from automatic test here.
-	$(FIND) ./tests/ \
+	$(FIND) . \
 	    '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	    '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	    '(' -path ./tools/build-tool/tests/data -prune ')' -o \
