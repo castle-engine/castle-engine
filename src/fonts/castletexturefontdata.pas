@@ -328,7 +328,7 @@ var
     Result := CharsPos(AllChars - SimpleAsciiCharacters, FileName) <> 0;
     {$else}
     if FileName = '' then
-      Exit(true);
+      Exit(false);
 
     for I := 1 to Length(FileName) do
       if (Ord(FileName[I]) > 126) or (Ord(FileName[I]) < 32) then
