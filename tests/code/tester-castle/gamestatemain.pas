@@ -60,7 +60,6 @@ type
     procedure Start; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: Boolean); override;
-    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -68,11 +67,8 @@ var
 
 implementation
 
-{$define CASTLE_TESTER}
-
 uses SysUtils,
   CastleColors, CastleUtils,
-
 
  { Testing (mainly) things inside FPC standard library, not CGE }
   {$ifdef FPC}TestCompiler,{$endif}
@@ -82,7 +78,6 @@ uses SysUtils,
   {$ifdef FPC}TestOldFPCBugs,{$endif}
   {$ifdef FPC}TestFPImage,{$endif}
   //TestToolFpcVersion,
-
 
 { Testing CGE units }
   {$ifdef FPC}TestCastleUtils,{$endif}
@@ -262,7 +257,7 @@ begin
 
   LabelMessage.Caption := AMessage;
 
-  { If some test ends with unhalted exception we want it on our error list }
+  { If some test ends with unhandled exception we want it on our error list }
   if Exception then
     LogFailedAssertion(AMessage);
 
@@ -303,7 +298,7 @@ begin
         on E:Exception do
         begin
           { In case of UI application we don't want any unhandled exceptions }
-          StopTesting('Unhalted exception: ' + E.Message, true);
+          StopTesting('Unhandled exception: ' + E.Message, true);
         end;
       end;
     end else
@@ -313,31 +308,6 @@ begin
   end;
 
   inherited;
-end;
-
-function TStateMain.Press(const Event: TInputPressRelease): Boolean;
-begin
-  Result := inherited;
-  if Result then Exit; // allow the ancestor to handle keys
-
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TStateMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
-
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
-  begin
-    // DoSomething;
-    Exit(true); // key was handled
-  end;
-  }
 end;
 
 end.
