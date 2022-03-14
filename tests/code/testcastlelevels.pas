@@ -40,6 +40,9 @@ var
   Viewport: TCastleViewport;
   Level: TLevel;
 begin
+  if not IsConsoleMode then
+    Exit; // This test only makes sense in console mode
+
   AssertFalse(ApplicationProperties.IsGLContextOpen);
 
   Viewport := TCastleViewport.Create(nil);
