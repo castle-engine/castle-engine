@@ -360,6 +360,7 @@ examples-laz:
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -path ./tools/build-tool/data -prune ')' -o \
+	  '(' -path ./examples/deprecated_library -prune ')' -o \
 	  '(' -iname '*.lpi' -print ')'  > \
 	  /tmp/cge-laz-projects.txt
 	echo 'Found projects: '`wc -l < /tmp/cge-laz-projects.txt`
