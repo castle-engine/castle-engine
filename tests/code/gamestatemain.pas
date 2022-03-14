@@ -32,6 +32,7 @@ type
     LabelTestPassed: TCastleLabel;
     LabelTestFailed: TCastleLabel;
     LabelFailedTests: TCastleLabel;
+    LabelTestsCount: TCastleLabel;
     CheckboxStopOnFail: TCastleCheckbox;
     ButtonStartTests: TCastleButton;
     ButtonStopTests: TCastleButton;
@@ -176,8 +177,10 @@ end;
 
 procedure TStateMain.EnabledTestCountChanged(Sender: TObject);
 begin
-  ButtonSelectTests.Caption := 'Select tests (' + IntToStr(Tester.EnabledTestCount) +
-  '/' + IntToStr(Tester.TestsCount) + ')';
+  LabelTestsCount.Caption := Format('Tests: %d / %d', [
+    Tester.EnabledTestCount,
+    Tester.TestsCount
+  ]);
 end;
 
 procedure TStateMain.LogFailedAssertion(const AMessage: String);
@@ -202,12 +205,14 @@ begin
 
   ButtonSelectTests := DesignedComponent('ButtonSelectTests') as TCastleButton;
   ButtonSelectTests.Enabled := true;
+  ButtonSelectTests.Exists := false; // TODO: ButtonSelectTests functionality not implemented yet
 
   LabelTestPassed := DesignedComponent('LabelTestPassed') as TCastleLabel;
   LabelTestFailed := DesignedComponent('LabelTestFailed') as TCastleLabel;
   LabelMessage := DesignedComponent('LabelMessage') as TCastleLabel;
   LabelCurrentTest := DesignedComponent('LabelCurrentTest') as TCastleLabel;
   LabelFailedTests := DesignedComponent('LabelFailedTests') as TCastleLabel;
+  LabelTestsCount := DesignedComponent('LabelTestsCount') as TCastleLabel;
   CheckboxStopOnFail := DesignedComponent('CheckboxStopOnFail') as TCastleCheckbox;
 
   { Make sure the tests are not running }
