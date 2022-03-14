@@ -1,11 +1,5 @@
-unit CastleTester;
 {
-  Copyright 2022 Michalis Kamburelis, Andrzej Kilijański, Dean Zobec,
-    Michael Van Canneyt
-
-  API structure (for compatibility) and some of functions from
-  fpcunit (part of Free Component Library (FCL)) by Dean Zobec, Michael Van Canneyt
-  See https://wiki.lazarus.freepascal.org/fpcunit for more info.
+  Copyright 2022-2022 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,6 +12,11 @@ unit CastleTester;
 
   ----------------------------------------------------------------------------
 }
+
+{ Running tests, compatible with fpcunit, using some code from fpcunit
+  (part of Free Component Library (FCL)) by Dean Zobec, Michael Van Canneyt.
+  See https://wiki.lazarus.freepascal.org/fpcunit for more info. }
+unit CastleTester;
 
 interface
 
