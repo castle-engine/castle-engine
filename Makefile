@@ -273,24 +273,41 @@ examples:
 	tools/build-tool/castle-engine_compile.sh
 	cp -f $(BUILD_TOOL) castle-engine-copy$(EXE_EXTENSION)
 
-# Compile all examples with CastleEngineManifest.xml inside.
-# Use xargs (not "find ... -execdir") because we want the "make examples" to fail
-# if something failed to compile.
+# Compile all examples and tools with CastleEngineManifest.xml inside.
+#
 # We make a copy of castle-engine, otherwise it would fail on Windows
 # (as you cannot replace your own exe).
+#
+# We clean output afterwards, to avoid using a lot of disk space (would be a problem
+# with GitHub Actions).
+#
+# We want this to fail if some application failed to compile.
+# Unfortunately find seems to ignore -exec result.
+# (see e.g. https://unix.stackexchange.com/questions/392970/how-to-get-the-exit-code-of-commands-started-by-find )
+# And we cannot use -execdir.
+# We also cannot use find ... | xargs, we need to execute 2 commands for each (compile and clean).
+#
+# So we use find to generate list of projects, then run using simple "for" over them.
+#
 # Exceptions:
 # - We do not compile examples/network/tcp_connection/ here,
 #   as it requires Indy which may not be installed.
 # - delphi_tests requires Delphi, which is not available on non-Windows,
 #   so it is disabled from automatic test here.
-	$(FIND) . \
-	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
-	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
-	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
-	  '(' -path ./tests/delphi_tests -prune ')' -o \
-	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
-	  xargs -0 -n1 ./castle-engine-copy$(EXE_EXTENSION) \
-	    $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
+	$(FIND) ./tests/ \
+	    '(' -path ./examples/network/tcp_connection -prune ')' -o \
+	    '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
+	    '(' -path ./tools/build-tool/tests/data -prune ')' -o \
+	    '(' -path ./tests/delphi_tests -prune ')' -o \
+	    '(' -type d -iname castle-engine-output -prune ')' -o \
+	    '(' -type f -iname CastleEngineManifest.xml -print ')' > \
+	    /tmp/cge-projects.txt
+	echo 'Found projects: '`wc -l < /tmp/cge-projects.txt`
+	set -e && for MANIFEST in `cat /tmp/cge-projects.txt`; do \
+	     echo 'Compiling project '$${MANIFEST}; \
+	     ./castle-engine-copy$(EXE_EXTENSION) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} compile; \
+	     ./castle-engine-copy$(EXE_EXTENSION) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} clean; \
+	done
 
 # Compile editor templates
 	 $(MAKE) test-editor-templates

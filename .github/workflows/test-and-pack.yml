@@ -34,7 +34,7 @@ jobs:
         run: make clean tools
       # To conserve disk usage on GH Actions runner, use common directory for output of all projects
       - name: Build Examples (FPC Stable)
-        run: mkdir -p /tmp/cge/ && make clean examples CASTLE_ENGINE_TOOL_OPTIONS="--output=/tmp/cge/"
+        run: make clean examples
       - name: Build Examples Using Lazarus (FPC / Lazarus Stable)
         run: make clean examples-laz
       - name: Build And Run Auto-Tests (FPC Stable)
@@ -55,7 +55,7 @@ jobs:
         run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tools
       # To conserve disk usage on GH Actions runner, use common directory for output of all projects
       - name: Build Examples (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && mkdir -p /tmp/cge/ && make clean examples CASTLE_ENGINE_TOOL_OPTIONS="--output=/tmp/cge/"
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples
       - name: Build Examples Using Lazarus (FPC 3.2.0)
         run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz
       - name: Build And Run Auto-Tests (FPC 3.2.0)
@@ -76,7 +76,7 @@ jobs:
         run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools
       # To conserve disk usage on GH Actions runner, use common directory for output of all projects
       - name: Build Examples (FPC Latest Unstable)
-        run: source /usr/local/fpclazarus/bin/setup.sh trunk && mkdir -p /tmp/cge/ && make clean examples CASTLE_ENGINE_TOOL_OPTIONS="--output=/tmp/cge/"
+        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples
       - name: Build Examples Using Lazarus (FPC Latest Unstable)
         run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz
       - name: Build And Run Auto-Tests (FPC Latest Unstable)
