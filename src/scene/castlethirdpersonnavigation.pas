@@ -1131,7 +1131,7 @@ begin
       end;
       mtForce:
       begin
-
+        //AvatarRigidBody.;
       end;
     end;
   end;
