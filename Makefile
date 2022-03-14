@@ -295,18 +295,18 @@ examples:
 # - delphi_tests requires Delphi, which is not available on non-Windows,
 #   so it is disabled from automatic test here.
 	$(FIND) . \
-	    '(' -path ./examples/network/tcp_connection -prune ')' -o \
-	    '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
-	    '(' -path ./tools/build-tool/tests/data -prune ')' -o \
-	    '(' -path ./tests/delphi_tests -prune ')' -o \
-	    '(' -type d -iname castle-engine-output -prune ')' -o \
-	    '(' -type f -iname CastleEngineManifest.xml -print ')' > \
-	    /tmp/cge-projects.txt
+	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
+	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
+	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
+	  '(' -path ./tests/delphi_tests -prune ')' -o \
+	  '(' -type d -iname castle-engine-output -prune ')' -o \
+	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
+	  /tmp/cge-projects.txt
 	echo 'Found projects: '`wc -l < /tmp/cge-projects.txt`
 	set -e && for MANIFEST in `cat /tmp/cge-projects.txt`; do \
-	     echo 'Compiling project '$${MANIFEST}; \
-	     ./castle-engine-copy$(EXE_EXTENSION) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} compile; \
-	     ./castle-engine-copy$(EXE_EXTENSION) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} clean; \
+	  echo 'Compiling project '$${MANIFEST}; \
+	  ./castle-engine-copy$(EXE_EXTENSION) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} compile; \
+	  ./castle-engine-copy$(EXE_EXTENSION) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} clean; \
 	done
 
 # Compile editor templates
@@ -330,9 +330,13 @@ examples-delphi:
 	  '(' -path ./examples/deprecated_random_generator -prune ')' -o \
 	  '(' -path ./examples/deprecated_library -prune ')' -o \
 	  '(' -path ./examples/lazarus -prune ')' -o \
-	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
-	  xargs -0 -n1 $(BUILD_TOOL) \
-	    $(CASTLE_ENGINE_TOOL_OPTIONS) compile --compiler=delphi --project
+	  '(' -iname CastleEngineManifest.xml -print ')' > \
+	  /tmp/cge-delphi-projects.txt
+	echo 'Found projects: '`wc -l < /tmp/cge-delphi-projects.txt`
+	set -e && for MANIFEST in `cat /tmp/cge-delphi-projects.txt`; do \
+	  echo 'Compiling project '$${MANIFEST}; \
+	  $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} --compiler=delphi compile; \
+	done
 
 .PHONY: cleanexamples
 cleanexamples:
@@ -345,15 +349,21 @@ examples-laz:
 	lazbuild packages/castle_base.lpk
 	lazbuild packages/castle_window.lpk
 	lazbuild packages/castle_components.lpk
-	for LPI_FILENAME in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
-	  ./tools/internal/lazbuild_retry $${LPI_FILENAME}.lpi; \
+	set -e && for PROJECT_LPI in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
+	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
 	done
 	$(FIND) . \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./src/vampyre_imaginglib -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
-	  '(' -iname '*.lpi' -exec ./tools/internal/lazbuild_retry '{}' ';' ')'
+	  '(' -iname '*.lpi' -print ')'  > \
+	  /tmp/cge-laz-projects.txt
+	echo 'Found projects: '`wc -l < /tmp/cge-laz-projects.txt`
+	set -e && for PROJECT_LPI in `cat /tmp/cge-laz-projects.txt`; do \
+	  echo 'Compiling project '$${PROJECT_LPI}; \
+	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}; \
+	done
 
 # cleaning ------------------------------------------------------------
 
