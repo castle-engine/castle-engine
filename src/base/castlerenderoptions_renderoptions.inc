@@ -1,7 +1,7 @@
 {%MainUnit castlerenderoptions.pas}
 
 {
-  Copyright 2002-2020 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,7 +27,7 @@ type
   TCastleRenderOptions = class(TComponent)
   strict private
     FLighting: boolean;
-    FSceneLights: boolean;
+    FReceiveSceneLights, FReceiveGlobalLights: boolean;
     FTextures: boolean;
     FMinificationFilter: TAutoMinificationFilter;
     FMagnificationFilter: TAutoMagnificationFilter;
@@ -58,6 +58,7 @@ type
     FSolidWireframeBias: Single;
     FSilhouetteScale: Single;
     FSilhouetteBias: Single;
+    FRobustNegativeScale: Boolean;
 
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
@@ -97,8 +98,8 @@ type
       DefaultPointSize = 3.0;
       DefaultLineWidth = 2.0;
       DefaultBumpMapping = bmSteepParallaxShadowing;
-      DefaultPhongShading = false;
-      DefaultMaxLightsPerShape = 8;
+      DefaultPhongShading = true;
+      DefaultMaxLightsPerShape = 64;
 
       { }
       DefaultBlendingSourceFactor = bsSrcAlpha;
@@ -129,7 +130,7 @@ type
       { Default value of @link(TCastleRenderOptions.BlendingSort). }
       DefaultBlendingSort = bs3D;
 
-      DefaultWireframeColor: TCastleColorRGB = (Data: (0, 0, 0));
+      DefaultWireframeColor: TCastleColorRGB = (X: 0; Y: 0; Z: 0);
 
       DefaultSolidWireframeScale = 1;
       DefaultSolidWireframeBias = 1;
@@ -313,30 +314,52 @@ type
       read FDebugHierOcclusionQueryResults
       write FDebugHierOcclusionQueryResults default false;
 
-    { @deprecated @exclude Old name for @link(SceneLights). }
+    { @deprecated @exclude Old name for @link(ReceiveSceneLights). }
     property UseSceneLights: boolean
-      read FSceneLights write FSceneLights default true;
+      read FReceiveSceneLights write FReceiveSceneLights default true;
+      {$ifdef FPC}deprecated 'use ReceiveSceneLights';{$endif}
+
+    { @deprecated @exclude Old name for @link(ReceiveSceneLights). }
+    property SceneLights: boolean
+      read FReceiveSceneLights write FReceiveSceneLights default true;
+      {$ifdef FPC}deprecated 'use ReceiveSceneLights';{$endif}
 
     { @deprecated @exclude Old name for @link(OcclusionQuery). }
     property UseOcclusionQuery: boolean
       read FOcclusionQuery write SetOcclusionQuery default false;
+      {$ifdef FPC}deprecated 'use OcclusionQuery';{$endif}
   published
     { Enable real-time lighting when rendering. }
     property Lighting: boolean read FLighting write FLighting default true;
 
-    { Use lights defined in this scene (in the model loaded to this TCastleScene).
+    { Use lights defined in this scene (in the model loaded to this TCastleScene)
+      to light the shapes in this scene.
 
-      If false, only the headlight (depending on
-      @link(TCastleRootTransform.UseHeadlight Viewport.Items.UseHeadlight))
-      and global lights from
-      @link(TCastleRootTransform.MainScene Viewport.Items.MainScene)
-      (depending on
-      @link(TCastleViewport.UseGlobalLights Viewport.UseGlobalLights))
-      affect this scene.
+      Note: This property controls whether lights defined within a model (TCastleScene)
+      affect the shapes in the same model.
+      In case of such lights, the value of @link(TCastleScene.CastGlobalLights)
+      and @link(GlobalLights) doesn't matter. Only this property, ReceiveSceneLights, controls
+      whether such lights work.
 
-      This doesn't matter if @link(Lighting) is @false. }
-    property SceneLights: boolean
-      read FSceneLights write FSceneLights default true;
+      The other lights are controlled by @link(ReceiveGlobalLights).
+
+      This doesn't matter if @link(Lighting) is @false.
+      If both ReceiveSceneLights and ReceiveGlobalLights are @false,
+      then the scene receives no lighting at all. }
+    property ReceiveSceneLights: boolean
+      read FReceiveSceneLights write FReceiveSceneLights default true;
+
+    { Use lights defined in other scenes to light the shapes in this scene.
+
+      This property controls whether @italic(other) scenes with
+      @link(TCastleScene.CastGlobalLights),
+      as well as headlight, shine on this scene.
+
+      This doesn't matter if @link(Lighting) is @false.
+      If both ReceiveSceneLights and ReceiveGlobalLights are @false,
+      then the scene receives no lighting at all. }
+    property ReceiveGlobalLights: boolean
+      read FReceiveGlobalLights write FReceiveGlobalLights default true;
 
     { Use textures. }
     property Textures: boolean
@@ -420,17 +443,19 @@ type
       default DefaultShadowSampling;
 
     { For efficiency reasons, we only allow a finite number of lights that can affect
-      the given shape. You can increase this number if necessary.
+      the given shape.
 
-      Note that, instead of increasing this limit,
-      you can sometimes adjust your models to fit within this limit.
-      Do this using light source radius and/or scope (e.g. you can use "radius" in Blender,
+      You can increase this number if necessary,
+      although note that it is alreday quite large by default.
+      Instead of increasing this limit,
+      it is always more efficient to design your scenes to fit within this limit.
+      Use the light source radius and/or scope (e.g. you can use "radius" in Blender,
       it is exported OK to glTF), and make smaller shapes.
 
       Note that on ancient dekstops, with fixed-function OpenGL pipeline,
       there is an additional hard limit (dependent on GPU, but usually 8, for this).
-      But on modern desktops, as well as mobile and other platforms, you can increase this limit
-      freely. }
+      But on modern desktops, as well as mobile and other platforms,
+      you can increase this limit freely. }
     property MaxLightsPerShape: Cardinal
       read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
 
@@ -511,6 +536,11 @@ type
     property OcclusionQuery: boolean
       read FOcclusionQuery write SetOcclusionQuery default false;
 
+    { Support lighting and backface culling for models using negative scale.
+      This has a small performance cost, and so is disabled by default. }
+    property RobustNegativeScale: Boolean
+      read FRobustNegativeScale write FRobustNegativeScale default false;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -529,7 +559,8 @@ begin
   inherited;
 
   FLighting := true;
-  FSceneLights := true;
+  FReceiveSceneLights := true;
+  FReceiveGlobalLights := true;
   FTextures := true;
   FMinificationFilter := minDefault;
   FMagnificationFilter := magDefault;
@@ -573,7 +604,8 @@ begin
   if Source is TCastleRenderOptions then
   begin
     Lighting := TCastleRenderOptions(Source).Lighting;
-    SceneLights := TCastleRenderOptions(Source).SceneLights;
+    ReceiveSceneLights := TCastleRenderOptions(Source).ReceiveSceneLights;
+    ReceiveGlobalLights := TCastleRenderOptions(Source).ReceiveGlobalLights;
     Textures := TCastleRenderOptions(Source).Textures;
     MinificationFilter := TCastleRenderOptions(Source).MinificationFilter;
     MagnificationFilter := TCastleRenderOptions(Source).MagnificationFilter;

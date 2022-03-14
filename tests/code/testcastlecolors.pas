@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleColors" -*-
 {
-  Copyright 2011-2021 Michalis Kamburelis.
+  Copyright 2011-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -56,16 +56,16 @@ begin
     for G := 0 to 255 div 5 do
       for B := 0 to 255 div 5 do
       begin
-        RGB[0] := R * 5;
-        RGB[1] := G * 5;
-        RGB[2] := B * 5;
+        RGB.X := R * 5;
+        RGB.Y := G * 5;
+        RGB.Z := B * 5;
         HSV := RgbToHsv(RGB);
         { test trip to HSV and back returns the same }
         AssertTrue(TVector3Byte.Equals(RGB, HsvToRgbByte(HSV)));
         { test HSV components are in appropriate ranges }
-        AssertTrue(Between(HSV[0], 0, 6));
-        AssertTrue(Between(HSV[1], 0, 1));
-        AssertTrue(Between(HSV[2], 0, 1));
+        AssertTrue(Between(HSV.X, 0, 6));
+        AssertTrue(Between(HSV.Y, 0, 1));
+        AssertTrue(Between(HSV.Z, 0, 1));
       end;
 
   {$ifdef SPEED_TESTS}
@@ -86,8 +86,8 @@ end;
 
 procedure TTestCastleColors.TestLerpInHsv;
 const
-  PureRed: TVector3 = (Data: (1, 0, 0));
-  PureBlue: TVector3 = (Data: (0, 0, 1));
+  PureRed : TVector3 = (X: 1; Y: 0; Z: 0);
+  PureBlue: TVector3 = (X: 0; Y: 0; Z: 1);
 var
   I: Integer;
   C: TVector3;
@@ -98,8 +98,8 @@ begin
     C := LerpRgbInHsv(I / 10, BlackRGB, PureBlue);
     { interpolating from pure black to blue,
       all colors along the way should keep hue = blue }
-    H := RgbToHsv(C)[0];
-    AssertTrue(RgbToHsv(PureBlue)[0] = H);
+    H := RgbToHsv(C).X;
+    AssertTrue(RgbToHsv(PureBlue).X = H);
 //    Writeln(C.ToString, ' ', VectorToNiceStr(RgbToHsv(C)));
   end;
 
@@ -107,7 +107,7 @@ begin
   begin
     C := LerpRgbInHsv(I / 10, PureRed, PureBlue);
     { interpolate from hue 0 to hue 4 --- go down through 0 }
-    H := RgbToHsv(C)[0];
+    H := RgbToHsv(C).X;
     AssertTrue((H = 0.0) or Between(H, 4, 6));
 //    Writeln(C.ToString, ' ', VectorToNiceStr(RgbToHsv(C)));
   end;
@@ -116,7 +116,7 @@ begin
   begin
     C := LerpRgbInHsv(I / 10, PureBlue, PureRed);
     { interpolate from hue 4 to hue 0 --- go up through 6 }
-    H := RgbToHsv(C)[0];
+    H := RgbToHsv(C).X;
     AssertTrue((H = 0.0) or Between(H, 4, 6));
 //    Writeln(C.ToString, ' ', VectorToNiceStr(RgbToHsv(C)));
   end;

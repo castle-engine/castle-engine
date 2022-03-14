@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestScene" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,7 +32,7 @@ type
 implementation
 
 uses X3DNodes, CastleSceneCore, CastleScene, CastleBoxes, CastleVectors,
-  CastleRays, CastleProjection;
+  CastleInternalRays, CastleProjection;
 
 procedure TTestScene.TestScene;
 
@@ -54,7 +54,7 @@ procedure TTestScene.TestScene;
 
     AssertTrue(EmptyScene.FogStack.Top = nil);
 
-    AssertTrue(EmptyScene.InternalBackground = nil);
+    AssertTrue(EmptyScene.InternalBackgroundRenderer = nil);
   end;
 
 var EmptyScene: TCastleScene;

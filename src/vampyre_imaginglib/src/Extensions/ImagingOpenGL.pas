@@ -128,7 +128,7 @@ function SaveGLTextureToStream(const Ext: string; Stream: TStream; const Texture
   Saves all present mipmap levels.}
 function SaveGLTextureToMemory(const Ext: string; Data: Pointer; var Size: LongInt; const Texture: GLuint): Boolean;
 
-{ Converts main level of the GL texture to TImageData strucrue. OverrideFormat
+{ Converts main level of the GL texture to TImageData structure. OverrideFormat
   can be used to convert output image to the specified format rather
   than use the format taken from GL texture, ifUnknown means no conversion.}
 function CreateImageFromGLTexture(const Texture: GLuint;
@@ -152,23 +152,23 @@ var
     pow2 texture is created and nonpow2 input image is pasted into it
     keeping its original size. This could be useful for some 2D stuff
     (and its faster than rescaling of course). Note that this is applied
-    to all rescaling smaller->bigger operations that might ocurr during
+    to all rescaling smaller->bigger operations that might occur during
     image->texture process (usually only pow2/nonpow2 stuff and when you
     set custom Width & Height in CreateGLTextureFrom(Multi)Image).}
   PasteNonPow2ImagesIntoPow2: Boolean = False;
-  { Standard behaviur if GL_ARB_texture_non_power_of_two extension is not supported
+  { Standard behavior if GL_ARB_texture_non_power_of_two extension is not supported
     is to rescale image to power of 2 dimensions. NPOT extension is exposed only
     when HW has full support for NPOT textures but some cards
     (pre-DX10 ATI Radeons, some other maybe) have partial NPOT support. 
     Namely Radeons can use NPOT textures but not mipmapped. If you know what you are doing
     you can disable NPOT support check so the image won't be rescaled to POT
-    by seting DisableNPOTSupportCheck to True.}
+    by setting DisableNPOTSupportCheck to True.}
   DisableNPOTSupportCheck: Boolean = False;
 
 implementation
 
 const
-  // Cube map consts
+  // Cube map constants
   GL_TEXTURE_BINDING_CUBE_MAP       = $8514;
   GL_TEXTURE_CUBE_MAP_POSITIVE_X    = $8515;
   GL_TEXTURE_CUBE_MAP_NEGATIVE_X    = $8516;
@@ -345,7 +345,7 @@ end;
 
 function GetGLTextureCaps(var Caps: TGLTextureCaps): Boolean;
 begin
-  // Check DXTC support and load extension functions if necesary
+  // Check DXTC support and load extension functions if necessary
   Caps.DXTCompression := IsGLExtensionSupported('GL_ARB_texture_compression') and
     IsGLExtensionSupported('GL_EXT_texture_compression_s3tc');
   if Caps.DXTCompression then

@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2018 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,18 +57,9 @@ type
     property NextMenuItem: TMenuItem read FNextMenuItem write SetNextMenuItem;
   end;
 
-procedure Register;
-
 implementation
 
 uses SysUtils, Classes, CastleLCLUtils, CastleURIUtils;
-
-procedure Register;
-begin
-  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
-  RegisterComponents('Castle', [TCastleRecentFiles]);
-  {$endif}
-end;
 
 { TMenuRecentItem ------------------------------------------------------------ }
 

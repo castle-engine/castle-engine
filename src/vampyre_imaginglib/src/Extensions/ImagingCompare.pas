@@ -58,7 +58,7 @@ begin
 
   for I := 0 to Samples - 1 do
   begin
-    // Compute difference betwen pixels
+    // Compute difference between pixels
     case Bps of
       1: Diff := Abs(PixelPtr2^ - PixelPtr1^);
       2:

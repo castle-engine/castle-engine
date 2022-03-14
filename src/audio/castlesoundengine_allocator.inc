@@ -87,7 +87,7 @@
     constructor Create;
     destructor Destroy; override;
 
-    procedure Refresh; deprecated 'this does not do anything now; refreshing is done automatically if you use CastleWindow unit (with TCastleApplication, TCastleWindowBase) or TCastleControlBase; in other cases, you shoud call ApplicationProperties._Update yourself';
+    procedure Refresh; deprecated 'this does not do anything now; refreshing is done automatically if you use CastleWindow unit (with TCastleApplication, TCastleWindow) or TCastleControl; in other cases, you shoud call ApplicationProperties._Update yourself';
 
     { Load and save into the config file sound engine properties.
       For example use with @link(UserConfig) to store sound preferences

@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestOpeningAndRendering3D" -*-
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -146,7 +146,7 @@ procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachT
 begin
   RecreateSceneEachTime := ARecreateSceneEachTime;
 
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Scene := TCastleScene.Create(Window);
     Scene.Spatial := [ssRendering, ssDynamicCollisions];

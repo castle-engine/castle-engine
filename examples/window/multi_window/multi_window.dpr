@@ -18,7 +18,7 @@
   - instead of registering OnXxx callbacks overriding EventXxx methods
     (more OOP approach)
   - press c to change cursor in the window that has focus, this is to demo
-    that TCastleWindowBase.Cursor indeed works as appropriate, i.e. changes the cursor
+    that TCastleWindow.Cursor indeed works as appropriate, i.e. changes the cursor
     only for the given window.
 }
 
@@ -34,7 +34,7 @@ type
   public
     Text: string;
     LightColor, DarkColor: TCastleColor;
-    ParentWindow: TCastleWindowBase;
+    ParentWindow: TCastleWindow;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
@@ -78,12 +78,12 @@ end;
 
 var
   I: Integer;
-  Windows: array [0..4] of TCastleWindowBase;
+  Windows: array [0..4] of TCastleWindow;
   Text: TText;
 begin
   for i := 0 to High(Windows) do
   begin
-    Windows[I] := TCastleWindowBase.Create(Application);
+    Windows[I] := TCastleWindow.Create(Application);
 
     Text := TText.Create(Windows[I]);
     Text.Text := 'Window ' + IntToStr(I);

@@ -10,7 +10,7 @@ object ViewFileFrame: TViewFileFrame
   TabOrder = 0
   DesignLeft = 529
   DesignTop = 334
-  object Control: TCastleControlBase
+  object Control: TCastleControl
     Left = 0
     Height = 300
     Top = 0

@@ -28,7 +28,7 @@ uses SysUtils, Classes, CastleControls, CastleUtils, CastleFilesUtils,
   GameStateMainMenu, GameStateLoading, GameStatePlay, GameStateAskDialog;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 procedure ApplicationInitialize;
 begin
@@ -42,7 +42,7 @@ end;
 initialization
   Application.OnInitialize := @ApplicationInitialize;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 finalization
   TUIState.Current := nil;

@@ -400,7 +400,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     ClientHeight = 488
     ClientWidth = 310
     TabOrder = 4
-    object CastleControlPreview: TCastleControlBase
+    object CastleControlPreview: TCastleControl
       AnchorSideLeft.Control = PanelRight
       AnchorSideTop.Control = PanelPreviewHead
       AnchorSideTop.Side = asrBottom

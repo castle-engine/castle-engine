@@ -22,7 +22,7 @@ uses Math,
   CastleColors, CastleWindow, CastleControls, CastleFlashEffect;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Flash: array [0..2] of TCastleFlashEffect;
   Timer: array [0..2] of TCastleTimer;
 
@@ -39,7 +39,7 @@ end;
 var
   I: Integer;
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.Width := 600;
   Window.Height := 120;
 

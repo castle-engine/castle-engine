@@ -18,7 +18,6 @@
 unit FrameDesign;
 
 {$mode objfpc}{$H+}
-{$modeswitch nestedprocvars}
 
 interface
 
@@ -212,7 +211,7 @@ type
       DesignOwner: TComponent;
       FDesignerLayer: TDesignerLayer;
       FDesignModified: Boolean;
-      CastleControl: TCastleControlBase;
+      CastleControl: TCastleControl;
       TreeNodeMap: TTreeNodeMap;
       Mode: TMode;
       InsideToggleModeClick: Boolean;
@@ -481,7 +480,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
 
       is not present in "if" below. }
 
-    if C.GetExists then
+    if C.Exists then
     begin
       { First try to find children, with TestWithBorder=false (so it doesn't detect
         control if we merely point at its border). This allows to find controls
@@ -511,7 +510,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
     end;
   end;
 
-  function MouseOverControl(const Control: TCastleControlBase): Boolean;
+  function MouseOverControl(const Control: TCastleControl): Boolean;
   var
     PosInClient: TPoint;
   begin
@@ -937,6 +936,8 @@ procedure TDesignFrame.TDesignerLayer.Render;
     const Lab: TCastleLabel; const Rect: TCastleRectangleControl;
     const LabelColor: TCastleColor);
   begin
+    {$define CASTLE_DESIGNER_LABELS}
+    {$ifdef CASTLE_DESIGNER_LABELS}
     if UI <> nil then
     begin
       Lab.Caption := Frame.ComponentCaption(UI);
@@ -957,6 +958,7 @@ procedure TDesignFrame.TDesignerLayer.Render;
         // put Rect inside UI, otherwise it would be offscreen
         Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
     end else
+    {$endif}
       Rect.Exists := false;
   end;
 
@@ -1064,7 +1066,7 @@ begin
   Inspector[itEvents].Filter := tkMethods;
   Inspector[itEvents].AnchorToNeighbour(akTop, 0, PanelEventsInfo);
 
-  CastleControl := TCastleControlBase.Create(Self);
+  CastleControl := TCastleControl.Create(Self);
   CastleControl.Parent := PanelMiddle;
   CastleControl.Align := alClient;
   CastleControl.OnResize := @CastleControlResize;
@@ -3114,9 +3116,13 @@ procedure TDesignFrame.UpdateSelectedControl;
         { We remove TToolButton's actions and use our own's OnClick events
           instead so that we can hook our undo/redo system in }
         CollectionPropertyEditorForm.AddButton.Action := nil;
+        CollectionPropertyEditorForm.AddButton.Enabled := True;
         CollectionPropertyEditorForm.DeleteButton.Action := nil;
+        CollectionPropertyEditorForm.DeleteButton.Enabled := True;
         CollectionPropertyEditorForm.MoveUpButton.Action := nil;
+        CollectionPropertyEditorForm.MoveUpButton.Enabled := True;
         CollectionPropertyEditorForm.MoveDownButton.Action := nil;
+        CollectionPropertyEditorForm.MoveDownButton.Enabled := True;
         CollectionPropertyEditorForm.AddButton.OnClick := @PropertyGridCollectionItemAdd;
         CollectionPropertyEditorForm.DeleteButton.OnClick := @PropertyGridCollectionItemDelete;
         CollectionPropertyEditorForm.MoveUpButton.OnClick := @PropertyGridCollectionItemMoveUp;
@@ -4131,6 +4137,5 @@ end;
 initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
-  PropertyEditorsAdviceDataDirectory := true;
   CastleDesignMode := true;
 end.

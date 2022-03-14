@@ -1,5 +1,6 @@
+{%MainUnit castleimages.pas}
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -68,9 +69,9 @@ begin
     for X := 0 to FPImage.Width - 1 do
     begin
       Color := FPImage.Colors8Bit[X, Y];
-      ResultPixels^.Data[0] := Color.R;
-      ResultPixels^.Data[1] := Color.G;
-      ResultPixels^.Data[2] := Color.B;
+      ResultPixels^.X := Color.R;
+      ResultPixels^.Y := Color.G;
+      ResultPixels^.Z := Color.B;
       Inc(ResultPixels);
     end;
 end;
@@ -132,11 +133,11 @@ begin
     for X := 0 to FPImage.Width - 1 do
     begin
       Color := FPImage.Colors8Bit[X, Y];
-      ResultPixels^.Data[0] := GrayscaleValue(Vector3Byte(
+      ResultPixels^.X := GrayscaleValue(Vector3Byte(
         Color.R,
         Color.G,
         Color.B));
-      ResultPixels^.Data[1] := Color.A;
+      ResultPixels^.Y := Color.A;
       Inc(ResultPixels);
     end;
 end;
@@ -154,9 +155,9 @@ begin
     for X := 0 to FPImage.Width - 1 do
     begin
       Color := FPImage.Colors8Bit[X, Y];
-      ResultPixels^.Data[0] := Color.R / 255;
-      ResultPixels^.Data[1] := Color.G / 255;
-      ResultPixels^.Data[2] := Color.B / 255;
+      ResultPixels^.X := Color.R / 255;
+      ResultPixels^.Y := Color.G / 255;
+      ResultPixels^.Z := Color.B / 255;
       Inc(ResultPixels);
     end;
 end;
@@ -343,10 +344,10 @@ begin
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
-        Color.R := P^.Data[0];
+        Color.R := P^.X;
         Color.G := Color.R;
         Color.B := Color.R;
-        Color.A := P^.Data[1];
+        Color.A := P^.Y;
         Result.Colors8Bit[X, Y] := Color;
         Inc(P);
       end;
@@ -366,9 +367,9 @@ begin
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
-        Color.R := P^.Data[0];
-        Color.G := P^.Data[1];
-        Color.B := P^.Data[2];
+        Color.R := P^.X;
+        Color.G := P^.Y;
+        Color.B := P^.Z;
         Color.A := $FF;
         Result.Colors8Bit[X, Y] := Color;
         Inc(P);
@@ -389,10 +390,10 @@ begin
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
-        Color.R := P^.Data[0];
-        Color.G := P^.Data[1];
-        Color.B := P^.Data[2];
-        Color.A := P^.Data[3];
+        Color.R := P^.X;
+        Color.G := P^.Y;
+        Color.B := P^.Z;
+        Color.A := P^.W;
         Result.Colors8Bit[X, Y] := Color;
         Inc(P);
       end;
@@ -414,9 +415,9 @@ begin
       for X := 0 to Result.Width - 1 do
       begin
         Col := Vector3Byte(P^);
-        Color.R := Col.Data[0];
-        Color.G := Col.Data[1];
-        Color.B := Col.Data[2];
+        Color.R := Col.X;
+        Color.G := Col.Y;
+        Color.B := Col.Z;
         Color.A := $FF;
         Result.Colors8Bit[X, Y] := Color;
         Inc(P);
@@ -431,7 +432,9 @@ var
 begin
   FPImage := nil;
   try
+    {$warnings off} // using deprecated in deprecated
     FPImage := Img.ToFpImage;
+    {$warnings on}
     try
       FPImage.SaveToStream(Stream, Writer);
       { FPImage.SaveToStream may raise any kind of Exception.
@@ -479,7 +482,9 @@ begin
   if ResizeWidth = 0 then ResizeWidth := Width;
   if ResizeHeight = 0 then ResizeHeight := Height;
 
+  {$warnings off} // using deprecated in deprecated
   FPImageSource := ToFpImage;
+  {$warnings on}
   try
     Interpolator := CreateInterpolation(Interpolation);
     try

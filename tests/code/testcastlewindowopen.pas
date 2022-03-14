@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleWindowOpen" -*-
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -68,14 +68,14 @@ end;
 
 procedure TTestCastleWindowOpen.TestProgressFromOpen;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
   {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
     Fail('Curretnly we can test window progress only in console mode.');
   {$endif}
 
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Window.Controls.InsertFront(TControl1.Create(Window));
     Window.Controls.InsertFront(TCastleButton.Create(Window));
@@ -116,14 +116,14 @@ end;
 
 procedure TTestCastleWindowOpen.TestSaveScreenFromOpen;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
   {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
     Fail('Curretnly we can test window progress only in console mode.');
   {$endif}
 
-  Window := TCastleWindowBase.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
     Window.Controls.InsertFront(TControl2.Create(Window));
     Window.Controls.InsertFront(TCastleButton.Create(Window));
@@ -142,7 +142,7 @@ begin
 end;
 
 type
-  TCastleWindowWithSceneManager = class(TCastleWindowBase)
+  TCastleWindowWithSceneManager = class(TCastleWindow)
     SceneManager: TGameSceneManager;
     constructor Create(AOwner: TComponent); override;
   end;

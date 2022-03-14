@@ -37,10 +37,10 @@ uses CastleVectors, CastleImages, CastleInternalSpaceFillingCurves, CastleUtils,
   CastleColors;
 
 const
-  Red3Byte  : TVector3Byte = (Data: (255, 0, 0));
-  Green3Byte: TVector3Byte = (Data: (0, 255, 0));
-  Red4Byte  : TVector4Byte = (Data: (255, 0, 0, 255));
-  Green4Byte: TVector4Byte = (Data: (0, 255, 0, 255));
+  Red3Byte  : TVector3Byte = (X: 255; Y: 0; Z: 0);
+  Green3Byte: TVector3Byte = (X: 0; Y: 255; Z: 0);
+  Red4Byte  : TVector4Byte = (X: 255; Y: 0; Z: 0; W: 255);
+  Green4Byte: TVector4Byte = (X: 0; Y: 255; Z: 0; W: 255);
 
 procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
 

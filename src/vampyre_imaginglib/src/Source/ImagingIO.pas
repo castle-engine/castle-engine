@@ -9,7 +9,7 @@
   file, You can obtain one at https://mozilla.org/MPL/2.0.
 } 
 
-{ This unit contains default IO functions for reading from/writting to
+{ This unit contains default IO functions for reading from/writing to
   files, streams and memory.}
 unit ImagingIO;
 
@@ -219,7 +219,7 @@ begin
     BytesToRead := FBytesInBuf;
     if BytesToRead > BytesToGo then
       BytesToRead := BytesToGo;
-    // Ccopy from the stream buffer to the caller's buffer
+    // Copy from the stream buffer to the caller's buffer
     Move(FBuffer^, BufAsBytes[BufIdx], BytesToRead);
     // Calculate the number of bytes still to read
     Dec(BytesToGo, BytesToRead);
@@ -654,7 +654,7 @@ initialization
     - Removed TMemoryIORec.Written, use Position to get proper memory
       position (Written didn't take Seeks into account).
     - Added TBufferedReadFile and TBufferedWriteFile classes for
-      buffered file reading/writting. File IO functions now use these
+      buffered file reading/writing. File IO functions now use these
       classes resulting in performance increase mainly in file formats
       that read/write many small chunks. 
     - Added fmShareDenyWrite to FileOpenRead. You can now read

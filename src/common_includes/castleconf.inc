@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -222,27 +222,6 @@
   {$endif}
 {$endif}
 
-{ Define BUGGY_AARCH64_OPTIMIZATIONS when appropriate --------------------------- }
-
-{ Various things are broken when older FPC < 3.3.1 (rev 48104)
-  is used with optimizations=on on Aarch64.
-
-  - See https://trello.com/c/5ydB4MuA/113-enable-again-aarch64-optimizations .
-
-  - TextProxy broken:
-    it seems like it draws only 1st letter of each line.
-    Testcase: bubbles in unholy_society.
-
-  - Draw3x3 implementation is broken by optimizations on Aarch64,
-    it seems like it doesn't receive DrawWidth correctly,
-    and even when we workaround it, it calculates partial rectangles
-    (for DrawAdd) incorrectly.
-    Testcase: e.g. examples/user_interface/show_various_ui_controls/ on Android/Aarch64. }
-
-{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE) and (defined(VER3_0) or defined(VER3_1) or defined(VER3_2))}
-  {$define BUGGY_AARCH64_OPTIMIZATIONS}
-{$endif}
-
 { Nintendo Switch ------------------------------------------------------------ }
 
 { Since we use (as a hack) Aarch64/Android for Nintendo Switch,
@@ -419,10 +398,10 @@
       See https://castle-engine.io/build_tool .
       It will also be placed alongside your .exe when you do "castle-engine compile ...".
 
-    - On macOS, see https://castle-engine.io/macosx_requirements.php .
+    - On macOS, see https://castle-engine.io/macos .
 
     - On Android, we have a "png" service with libpng included.
-      See tools/build-tool/data/android/integrated-services/png/README.md .
+      See ../../tools/build-tool/data/android/integrated-services/png/README.adoc .
 
   3.If CASTLE_PNG_STATIC is defined, we statically link to libpng.
     The presense of static libpng library (libpng.a on Unix) is then
@@ -510,51 +489,35 @@
   The choice "which fields are seldom used" is purely subjective, and may change! }
 {.$define CASTLE_SLIM_NODES}
 
-{ Compatibility -------------------------------------------------------------- }
-
-{ Define deprecated CastleWindow classes.
-  These introduce dependencies on deprecated units like CastleLevels etc.
-  which can otherwise be usually avoided. }
-{$ifdef FPC}
-  {$define CASTLE_DEPRECATED_WINDOW_CLASSES}
-{$endif}
-
 { Vampyre Imaging ------------------------------------------------------------ }
 
-{ Use Vampyre Imaging to support extra image formats.
+{ Use Vampyre Imaging Library to support additional image formats.
+  See https://imaginglib.sourceforge.io/ ,
+  https://github.com/galfar/imaginglib ,
+  https://castle-engine.io/wp/2021/12/18/integration-with-vampyre-imaging-library-new-example-image_display-to-test-image-loading-speed-and-format-support/
+  about Vampyre.
 
-  This is particularly useful when compiling Delphi, to get additional support
-  for formats like JPG.
-  We may depend on Vampyre Imaging for even more formats in the future,
-  and with FPC too (it works cool, but we need to do testing before enabling
-  it by default for everyone first).
+  We rely on Vampyre for a number of formats.
 
-  To compile Vampyre also with FPC using build tool, just define the symbol
-  USE_VAMPYRE_IMAGING below *always* (remove check for ifndef FPC).
+  - With Delphi (where Vampyre is our only way to read some formats,
+    like JPG, BPM, PPM).
 
-  To compile Vampyre also with FPC using Lazarus:
+  - With FPC (although with FPC we can also use FpImage.
+    But Vampyre proved better: 2x faster at reading PNG,
+    and more reliable at reading BMP, PPM, XPM -- we have testcase images in this
+    repo that fail with FpImage, while work OK with Vampyre).
 
-      As above, just define the symbol USE_VAMPYRE_IMAGING *always*.
-      Also, you need to:
+  Right now we just use Vampyre, by default, with all compilers.
 
-      - Open and compile in Lazarus 2 Vampyre packages:
-        src/vampyre_imaginglib/src/Packages/VampyreImaginePackage.lpk
-        src/vampyre_imaginglib/src/Packages/VampyreImaginePackageExt.lpk
-      - Note: You may want to remove DONT_LINK_EXTRAS symbol defined by default in
-        VampyreImaginePackageExt.lpk.
-        This way e.g. TIFF support will be automatically present.
-      - Edit CGE packages/castle_base.lpk to add the 2 above Vampyre packages
-        as requirements.
-
-      This way CGE packages use Vampyre packages in a clean (Lazarus) way.
-      And we automatically use all compilation configuration done by Vampyre authors.
-
-  Right now we bundle Vampyre Imaging with CGE (in src/vampyre_imaging),
+  We bundle Vampyre Imaging sources with CGE (in src/vampyre_imaging),
   and so it is available automatically without any effort for all CGE devs,
   and so we just use it automatically.
+
+  Note: To compile with Vampyre using Lazarus (from LPI, LPK):
+  remember to register in Lazarus 2 Vampyre packages:
+  src/vampyre_imaginglib/src/Packages/VampyreImaginePackage.lpk
+  src/vampyre_imaginglib/src/Packages/VampyreImaginePackageExt.lpk
 }
-{$ifndef FPC}
-  {$define USE_VAMPYRE_IMAGING}
-{$endif}
+{$define USE_VAMPYRE_IMAGING}
 
 {$endif not CASTLE_CONF_INCLUDED}

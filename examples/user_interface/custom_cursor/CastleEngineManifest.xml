@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="custom_cursor"
+  standalone_source="custom_cursor_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.custom.cursor"
+  caption="Custom Cursor"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

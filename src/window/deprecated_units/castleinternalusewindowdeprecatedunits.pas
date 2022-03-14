@@ -25,7 +25,7 @@ unit CastleInternalUseWindowDeprecatedUnits;
 
 interface
 
-uses CastleWindowModes, CastleWindowTouch, CastleSoundMenu, CastleWindowProgress;
+uses CastleWindowModes, CastleSoundMenu, CastleWindowProgress;
 
 implementation
 

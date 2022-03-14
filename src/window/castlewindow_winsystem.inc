@@ -44,7 +44,7 @@ private
      (wyslany przez WindowManagera kiedy mysmy robili cos innego.
      User szybko zrobil key down, potem up, dopiero potem my zauwazylismy
      ze dostalismy KeyDown, zrobilismy sobie Close (moze nawet
-     zwolnilismy z pamieci obiekt TCastleWindowBase !!) i potem wywolujemy
+     zwolnilismy z pamieci obiekt TCastleWindow !!) i potem wywolujemy
      ProcessMessage (bo np. sa jeszcze jakies inne okienka otwarte)
      i dostajemy messaga KeyUp dla okienka ktore juz jest Closed
      albo moze nawet ktorego juz nie ma w pamieci !!
@@ -117,7 +117,7 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
       DispatchMessage(msg);
       {$ifdef CASTLE_ENGINE_PLUGIN}
       { In case of plugin, we have to take care of calling TryHandlingMessage
-        (which calls TCastleWindowBase.WindowProc) ourselves.
+        (which calls TCastleWindow.WindowProc) ourselves.
         In other cases, it's called by WndProc which is automatically called
         by DispatchMessage because our window is connected with our window class.
         See DispatchMessage docs on:

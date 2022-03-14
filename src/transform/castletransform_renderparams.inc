@@ -24,7 +24,7 @@
     { How many shapes were rendered (send to OpenGL)
       versus all shapes that were potentially visible.
       Potentially visible shapes are the ones with
-      TShape.Visible inside a 3D object with TCastleTransform.GetExists.
+      TShape.Visible inside a TCastleTransform with TCastleTransform.Exists.
 
       When ShapesRendered is much smaller than ShapesVisible,
       it means that the algorithm for removing invisible scene parts
@@ -235,7 +235,11 @@
 
     { Camera frustum in local coordinates. Local for the TCastleTransform instance
       receiving this TRenderParams as @link(TCastleTransform.LocalRender)
-      parameter. }
+      parameter, so it may be different from RenderingCamera.Frustum.
+
+      As a special exception, it can be @nil, but only when TCastleScene.LocalRender
+      is called (this happens from TBackgroundScene.Render).
+      The TCastleScene.LocalRender should ignore frustum when it is @nil. }
     Frustum: PFrustum;
 
     { Camera information for renderer. }
@@ -247,8 +251,8 @@
 
     constructor Create;
 
-    { Lights that shine on given 3D object. }
-    function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; virtual; abstract;
+    { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }
+    function GlobalLights: TAbstractLightInstancesList; virtual; abstract;
 
     function RenderTransform: TMatrix4; deprecated 'use Transform';
     function RenderTransformIdentity: boolean; deprecated 'use TransformIdentity';
@@ -265,8 +269,8 @@
     like @link(T3DResource.Prepare). You should treat this class as a "black box"
     in normal applications. }
   TPrepareParams = class
-    { Include a headlight, or global lights that shine on all
-      scenes (see @link(TCastleViewport.UseGlobalLights)).
+    { Include a headlight and all lights that shine on all
+      scenes (thanks to @link(TCastleScene.CastGlobalLights)).
 
       It is not necessary to define this (it may be @nil).
       And all the lighting is dynamic, so of course you can always
@@ -275,7 +279,7 @@
       are immediately prepared for the current lighting.
 
       @exclude }
-    InternalBaseLights: TAbstractLightInstancesList;
+    InternalGlobalLights: TAbstractLightInstancesList;
 
     { World fog, in any, to prepare for.
       @exclude }

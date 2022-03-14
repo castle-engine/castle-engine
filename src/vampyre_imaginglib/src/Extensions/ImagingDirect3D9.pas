@@ -111,7 +111,7 @@ function SaveD3DTextureToStream(const Ext: string; Stream: TStream; const Textur
   Saves all present mipmap levels.}
 function SaveD3DTextureToMemory(const Ext: string; Data: Pointer; var Size: LongInt; const Texture: IDirect3DTexture9): Boolean;
 
-{ Converts main level of the D3D texture to TImageData strucrue. OverrideFormat
+{ Converts main level of the D3D texture to TImageData structure. OverrideFormat
   can be used to convert output image to the specified format rather
   than use the format taken from D3D texture, ifUnknown means no conversion.}
 function CreateImageFromD3DTexture(const Texture: IDirect3DTexture9;
@@ -430,7 +430,7 @@ begin
     end
     else
     begin
-      // Image format coresponding to desired D3D format is either found
+      // Image format corresponding to desired D3D format is either found
       // and image is converted to it (if the image is not in this format already)
       // or it is not found (or not supported by hardware) and default format is used
       ConvTo := D3DFormatToImageFormat(Format);
@@ -633,7 +633,7 @@ begin
   begin
     // Check if desired mipmap level count is valid
     ExistingLevels := Texture.GetLevelCount;
-    if (MipLevels <= 0) or (Miplevels > ExistingLevels) then
+    if (MipLevels <= 0) or (MipLevels > ExistingLevels) then
       MipLevels := ExistingLevels;
 
     Texture.GetLevelDesc(0, Desc);
@@ -728,7 +728,7 @@ begin
 
   if Succeeded(Surface.LockRect(Rect, nil, D3DLOCK_READONLY)) then
   begin
-    // If surface was successfuly locked a new image is created
+    // If surface was successfully locked a new image is created
     // and surface's contents are copied to it
     NewImage(Desc.Width, Desc.Height, CurrentFormat, Image);
     FillImageWithLockedRect(Image, Rect);

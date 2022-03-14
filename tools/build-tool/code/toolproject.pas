@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -675,6 +675,15 @@ begin
     ]);
   end;
 
+  if Result in [pfDeb] then
+  begin
+    if (OS <> Linux) then
+      raise Exception.Create('Cannot package DEB for OS = ' + OSToString(OS) + ' Expected: Linux.');
+    {$ifndef Linux}
+    raise Exception.Create('Currently DEB package can only be created under Linux OS, as it depends on several Linux-specific tools.');
+    {$endif}
+  end;
+
   if (Result in [
       pfAndroidApk,
       pfAndroidAppBundle
@@ -809,6 +818,9 @@ var
       Pack.AddDataInformation(TCastleManifest.DataName);
 
       PackageFileName := PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion);
+
+      Pack.Cpu := Cpu;
+      Pack.Manifest := Manifest;
       Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
     finally FreeAndNil(Pack) end;
   end;
@@ -849,7 +861,7 @@ begin
       end;
     pfNintendoSwitchProject:
       PackageNintendoSwitch(Self);
-    pfDirectory, pfZip, pfTarGz:
+    pfDirectory, pfZip, pfTarGz, pfDeb:
       PackageDirectory(PackageFormatFinal);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Unhandled PackageFormatFinal in DoPackage');
@@ -1048,6 +1060,7 @@ begin
   case PackageFormat of
     pfZip: Result += '.zip';
     pfTarGz: Result += '.tar.gz';
+    pfDeb: Result += '.deb';
     else ; // leave without extension for pfDirectory
   end;
 end;
@@ -1953,21 +1966,9 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
   end;
 
 var
-  I: Integer;
   NonEmptyAuthor: string;
-  VersionComponents: array [0..3] of Cardinal;
-  VersionComponentsString: TCastleStringList;
   Macros: TStringStringMap;
 begin
-  { calculate version as 4 numbers, Windows resource/manifest stuff expect this }
-  VersionComponentsString := CastleStringUtils.SplitString(Version.DisplayValue, '.');
-  try
-    for I := 0 to High(VersionComponents) do
-      if I < VersionComponentsString.Count then
-        VersionComponents[I] := StrToIntDef(Trim(VersionComponentsString[I]), 0) else
-        VersionComponents[I] := 0;
-  finally FreeAndNil(VersionComponentsString) end;
-
   if Author = '' then
     NonEmptyAuthor := 'Unknown Author'
   else
@@ -1976,10 +1977,10 @@ begin
   Macros := TStringStringMap.Create;
   try
     Macros.Add('DOLLAR'          , '$');
-    Macros.Add('VERSION_MAJOR'   , IntToStr(VersionComponents[0]));
-    Macros.Add('VERSION_MINOR'   , IntToStr(VersionComponents[1]));
-    Macros.Add('VERSION_RELEASE' , IntToStr(VersionComponents[2]));
-    Macros.Add('VERSION_BUILD'   , IntToStr(VersionComponents[3]));
+    Macros.Add('VERSION_MAJOR'   , IntToStr(Version.Items[0]));
+    Macros.Add('VERSION_MINOR'   , IntToStr(Version.Items[1]));
+    Macros.Add('VERSION_RELEASE' , IntToStr(Version.Items[2]));
+    Macros.Add('VERSION_BUILD'   , IntToStr(Version.Items[3]));
     Macros.Add('VERSION'         , Manifest.Version.DisplayValue);
     Macros.Add('VERSION_CODE'    , IntToStr(Manifest.Version.Code));
     Macros.Add('NAME'            , Name);

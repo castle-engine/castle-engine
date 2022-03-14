@@ -89,7 +89,7 @@ begin
 
                 We calculate only red component here, the rest will
                 be copied from it later. }
-              VertexTransfer[SHBase].Data[0] += SHBasis(SHBase, RayDirectionPT) *
+              VertexTransfer[SHBase].X += SHBasis(SHBase, RayDirectionPT) *
                 TVector3.DotProduct(N, RayDirection);
           end;
         end;
@@ -98,20 +98,20 @@ begin
         begin
           { VertexTransfer[SHBase][0] is an integral over hemisphere,
             so normalize. }
-          VertexTransfer[SHBase].Data[0] *= 2 * Pi / RaysPerVertex;
+          VertexTransfer[SHBase].X *= 2 * Pi / RaysPerVertex;
 
           { Calculate Green, Blue components of VertexTransfer
             (just copy from Red, since we didn't take DiffuseColor
             into account yet). }
-          VertexTransfer[SHBase].Data[1] := VertexTransfer[SHBase].Data[0];
-          VertexTransfer[SHBase].Data[2] := VertexTransfer[SHBase].Data[0];
+          VertexTransfer[SHBase].Y := VertexTransfer[SHBase].X;
+          VertexTransfer[SHBase].Z := VertexTransfer[SHBase].X;
 
           { Multiply by BRDF = DiffuseColor (since
             BRDF is simply constant, so we can simply multiply here).
             For diffuse surface, BRDF is just = DiffuseColor. }
-          VertexTransfer[SHBase].Data[0] *= DiffuseColor[0];
-          VertexTransfer[SHBase].Data[1] *= DiffuseColor[1];
-          VertexTransfer[SHBase].Data[2] *= DiffuseColor[2];
+          VertexTransfer[SHBase].X *= DiffuseColor[0];
+          VertexTransfer[SHBase].Y *= DiffuseColor[1];
+          VertexTransfer[SHBase].Z *= DiffuseColor[2];
         end;
       end;
 

@@ -213,15 +213,15 @@ begin
      'transform',
      'audio',
      'base',
+     'base_rendering',
      'castlescript',
      'files',
      'fonts',
      'images',
-     'pasgltf',
      'physics',
      'services',
      'ui',
-     'x3d',
+     'scene',
      'deprecated_units'
     ],
     [

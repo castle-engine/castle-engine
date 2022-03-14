@@ -1314,7 +1314,7 @@ function  TIFFInitZIP(tif: PTIFF; scheme: Integer): Integer; cdecl; external;
 
 function NotConfigured(tif: PTIFF; scheme: Integer): Integer; cdecl; external;
 
-{DW
+{DW 
 const
 
   _TIFFBuiltinCODECS: array[0..17] of TIFFCodec = (
@@ -1517,3 +1517,4 @@ initialization
   TIFFSetErrorHandler(@InternallTIFFError);
 
 end.
+

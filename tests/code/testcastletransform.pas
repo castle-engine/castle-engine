@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleTransform" -*-
 {
-  Copyright 2012-2021 Michalis Kamburelis.
+  Copyright 2012-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,6 +53,10 @@ type
     procedure TestPassCombine;
     procedure TestForIn;
     procedure TestForInBehaviors;
+    procedure TestRemoveDelayed;
+    procedure TestRemoveDelayed_Destructor;
+    procedure TestRemoveDelayed_EarlyFree;
+    procedure TestExistsInRoot;
   end;
 
 implementation
@@ -101,9 +105,9 @@ begin
     BoundingBox must take into account also non-collidable
     (but visible) 3D object parts. (Well, in the case of this trivial
     3D object, it's actually never visible, so it's a little pointless...
-    But in general, the rule is "BoundingBox looks at GetExists,
+    But in general, the rule is "BoundingBox looks at Exists,
     not at Collides property".) }
-  if GetExists then
+  if Exists then
     Result := MyBox
   else
     Result := TBox3D.Empty;
@@ -119,12 +123,12 @@ end;
 
 const
   Box0: TBox3D = (Data: (
-    (Data: (-1, -1, -1)),
-    (Data: (1, 1, 1))
+    (X: -1; Y: -1; Z: -1),
+    (X: 1; Y: 1; Z: 1)
   ));
   Box20: TBox3D = (Data: (
-    (Data: (19, -1, -1)),
-    (Data: (21, 1, 1))
+    (X: 19; Y: -1; Z: -1),
+    (X: 21; Y: 1; Z: 1)
   ));
 
 { TTestCastleTransform ---------------------------------------------------------------- }
@@ -1495,6 +1499,202 @@ begin
   FreeAndNil(B1);
   FreeAndNil(B2);
   FreeAndNil(B3);
+end;
+
+  procedure FakeUpdate(const T: TCastleTransform);
+  var
+    IgnoreRemoveMe: TRemoveType;
+  begin
+    IgnoreRemoveMe := rtNone;
+    T.Update(1/60, IgnoreRemoveMe);
+  end;
+
+  procedure FakeRender(const T: TCastleTransform);
+  var
+    Params: TBasicRenderParams;
+  begin
+    Params := TBasicRenderParams.Create;
+    try
+      Params.RenderingCamera := TRenderingCamera.Create;
+      try
+        Params.RenderingCamera.FromMatrix(TVector3.Zero,
+          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+        Params.RenderingCamera.Target := rtScreen;
+        Params.Frustum := @Params.RenderingCamera.Frustum;
+        T.Render(Params);
+      finally FreeAndNil(Params.RenderingCamera) end;
+    finally FreeAndNil(Params) end;
+  end;
+
+procedure TTestCastleTransform.TestRemoveDelayed;
+var
+  T1, T2, T3: TCastleTransform;
+begin
+  T1 := TCastleTransform.Create(nil);
+  T2 := TCastleTransform.Create(nil);
+  T3 := TCastleTransform.Create(nil);
+
+  T1.Add(T2);
+  T1.Add(T3);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T2);
+  AssertTrue(T1[1] = T3);
+
+  T1.RemoveDelayed(T2);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T2);
+  AssertTrue(T1[1] = T3);
+
+  T1.RemoveDelayed(T2);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T2);
+  AssertTrue(T1[1] = T3);
+
+  FakeUpdate(T1);
+  AssertEquals(1, T1.Count);
+  AssertTrue(T1[0] = T3);
+
+  T1.Add(T2);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T3);
+  AssertTrue(T1[1] = T2);
+
+  FakeRender(T1);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T3);
+  AssertTrue(T1[1] = T2);
+
+  T1.RemoveDelayed(T2);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T3);
+  AssertTrue(T1[1] = T2);
+
+  FakeRender(T1);
+  AssertEquals(1, T1.Count);
+  AssertTrue(T1[0] = T3);
+
+  T1.Add(T2);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T3);
+  AssertTrue(T1[1] = T2);
+
+  T1.RemoveDelayed(T2, true);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T3);
+  AssertTrue(T1[1] = T2);
+
+  FakeRender(T1);
+  AssertEquals(1, T1.Count);
+  AssertTrue(T1[0] = T3);
+
+  FreeAndNil(T1);
+  FreeAndNil(T3);
+end;
+
+procedure TTestCastleTransform.TestRemoveDelayed_Destructor;
+var
+  T1, T2, T3: TCastleTransform;
+begin
+  T1 := TCastleTransform.Create(nil);
+  T2 := TCastleTransform.Create(nil);
+  T3 := TCastleTransform.Create(nil);
+
+  T1.Add(T2);
+  T1.Add(T3);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T2);
+  AssertTrue(T1[1] = T3);
+
+  T1.RemoveDelayed(T2, true);
+  T1.RemoveDelayed(T3, true);
+
+  // test that T1 destructor frees T2, T3
+  FreeAndNil(T1);
+end;
+
+procedure TTestCastleTransform.TestRemoveDelayed_EarlyFree;
+var
+  T1, T2, T3: TCastleTransform;
+begin
+  T1 := TCastleTransform.Create(nil);
+  T2 := TCastleTransform.Create(nil);
+  T3 := TCastleTransform.Create(nil);
+
+  T1.Add(T2);
+  T1.Add(T3);
+  AssertEquals(2, T1.Count);
+  AssertTrue(T1[0] = T2);
+  AssertTrue(T1[1] = T3);
+
+  // test that explicit freeing of things scheduled for removal is OK
+  FreeAndNil(T2);
+  FreeAndNil(T3);
+
+  FakeUpdate(T1);
+  AssertEquals(0, T1.Count);
+
+  FreeAndNil(T1);
+end;
+
+procedure TTestCastleTransform.TestExistsInRoot;
+var
+  T1, T2, T3: TCastleTransform;
+begin
+  T1 := TCastleTransform.Create(nil);
+  T2 := TCastleTransform.Create(nil);
+  T3 := TCastleTransform.Create(nil);
+
+  AssertTrue(T1.Exists);
+  AssertTrue(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertTrue(T2.ExistsInRoot);
+
+  T1.Add(T2);
+
+  AssertTrue(T1.Exists);
+  AssertTrue(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertTrue(T2.ExistsInRoot);
+
+  T1.Exists := false;
+
+  AssertFalse(T1.Exists);
+  AssertFalse(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertFalse(T2.ExistsInRoot);
+
+  T1.Exists := true;
+
+  AssertTrue(T1.Exists);
+  AssertTrue(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertTrue(T2.ExistsInRoot);
+
+  T2.Exists := false;
+
+  AssertTrue(T1.Exists);
+  AssertTrue(T1.ExistsInRoot);
+  AssertFalse(T2.Exists);
+  AssertFalse(T2.ExistsInRoot);
+
+  T2.Exists := true;
+  T1.Exists := false;
+
+  AssertFalse(T1.Exists);
+  AssertFalse(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertFalse(T2.ExistsInRoot);
+
+  T1.Remove(T2);
+
+  AssertFalse(T1.Exists);
+  AssertFalse(T1.ExistsInRoot);
+  AssertTrue(T2.Exists);
+  AssertTrue(T2.ExistsInRoot); // T2 is without parent now, so again has T2.ExistsInRoot
+
+  FreeAndNil(T1);
+  FreeAndNil(T2);
+  FreeAndNil(T3);
 end;
 
 initialization

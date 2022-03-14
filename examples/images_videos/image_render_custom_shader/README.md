@@ -2,7 +2,7 @@
 
 Simple rendering using TCastleImageControl with a custom GLSL shader.
 
-Note that an alternative way of using custom shaders is to use a scene (like TCastleScene and TCastleViewport with a rectangle, see https://castle-engine.io/x3d_implementation_geometry2d.php ). And then you can assign custom shaders using nodes, see the examples ../../3d_rendering_processing/shader_effects , ../../3d_rendering_processing/shader_override .
+Note that an alternative way of using custom shaders is to use a scene (like TCastleScene and TCastleViewport with a rectangle, see https://castle-engine.io/x3d_implementation_geometry2d.php ). And then you can assign custom shaders using nodes, see the examples ../../viewport_and_scenes/shader_effects , ../../viewport_and_scenes/shader_override .
 
 This method is limited to rendering 2D images. It uses TCastleImageControl.CustomShader, that under the hood uses TDrawableImage.CustomShader. It requires manually creating TGLSLProgram instance and linking it.
 

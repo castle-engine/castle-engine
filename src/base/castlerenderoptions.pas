@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2020 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -118,7 +118,8 @@ type
           and potentially lighted and textured just like their corresponding
           triangles would be colored. So you can control lighting using
           @link(TCastleRenderOptions.Lighting),
-          @link(TCastleRenderOptions.SceneLights) etc. properties, and you
+          @link(TCastleRenderOptions.ReceiveSceneLights),
+          @link(TCastleRenderOptions.ReceiveGlobalLights) properties, and you
           can control texturing by @link(TCastleRenderOptions.Textures) property.)
       ) }
     weWireframeOnly,

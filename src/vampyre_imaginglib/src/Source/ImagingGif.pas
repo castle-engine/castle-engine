@@ -247,7 +247,7 @@ begin
   end;
 end;
 
-{ GIF LZW decompresion code is from JVCL JvGIF.pas unit.}
+{ GIF LZW decompression code is from JVCL JvGIF.pas unit.}
 procedure TGIFFileFormat.LZWDecompress(Stream: TStream; Handle: TImagingHandle; Width, Height: Integer;
   Interlaced: Boolean; Data: Pointer);
 var
@@ -356,7 +356,7 @@ begin
     ReadCtxt.Size := 0;
     ReadCtxt.CodeSize := MinCodeSize + 1;
     ReadCtxt.ReadMask := (1 shl ReadCtxt.CodeSize) - 1;
-    // Initialise pixel-output context
+    // Initialize pixel-output context
     OutCtxt.X := 0;
     OutCtxt.Y := 0;
     OutCtxt.Pass := 0;
@@ -452,7 +452,7 @@ begin
   end;
 end;
 
-{ GIF LZW compresion code is from JVCL JvGIF.pas unit.}
+{ GIF LZW compression code is from JVCL JvGIF.pas unit.}
 procedure TGIFFileFormat.LZWCompress(const IO: TIOFunctions; Handle: TImagingHandle; Width, Height, BitCount: Integer;
     Interlaced: Boolean; Data: Pointer);
 var
@@ -523,7 +523,7 @@ begin
     for I := 0 to HashTableSize - 1 do
       HashTable.Add(nil);
 
-    // Initialise encoder variables
+    // Initialize encoder variables
     InitCodeSize := BitCount + 1;
     if InitCodeSize = 2 then
       Inc(InitCodeSize);
@@ -872,7 +872,7 @@ var
         Exit;
       end;
 
-      // If Grahic Control Extension is present make use of it
+      // If Graphic Control Extension is present make use of it
       if HasGraphicExt then
       begin
         FrameInfos[Idx].HasTransparency := (GraphicExt.PackedFields and GIFTransparent) = GIFTransparent;
@@ -1181,7 +1181,7 @@ begin
       FillChar(ImageDesc, Sizeof(ImageDesc), 0);
       ImageDesc.Width := Width;
       ImageDesc.Height := Height;
-      ImageDesc.PackedFields := GIFLocalColorTable or GIFColorTableSize; // Use lccal color table with 256 entries
+      ImageDesc.PackedFields := GIFLocalColorTable or GIFColorTableSize; // Use local color table with 256 entries
       Write(Handle, @ImageDesc, SizeOf(ImageDesc));
 
       // Write local color table for each frame
@@ -1261,12 +1261,12 @@ initialization
       transparent by default.
 
   -- 0.24.1 Changes/Bug Fixes ---------------------------------
-    - Made backround color transparent by default (alpha = 0).
+    - Made background color transparent by default (alpha = 0).
 
   -- 0.23 Changes/Bug Fixes -----------------------------------
     - Fixed other loading bugs (local pal size, transparency).
     - Added GIF saving.
-    - Fixed bug when loading multiframe GIFs and implemented few animation
+    - Fixed bug when loading multi-frame GIFs and implemented few animation
       features (disposal methods, ...). 
     - Loading of GIFs working.
     - Unit created with initial stuff!

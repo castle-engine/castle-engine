@@ -25,7 +25,7 @@ uses
 
 const
   VertexArray: packed array[0..2] of TVector2 = (
-    (Data: (-1, 0)), (Data: (1, 0)), (Data: (0, 1))
+    (X: -1; Y: 0), (X: 1; Y: 0), (X: 0; Y: 1)
   );
   TransformFeedbackVertexShaderSource: String =
 '#version 330' + NL +
@@ -54,7 +54,7 @@ const
 '}';
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Viewport: TCastleViewport;
   VAOs, VBOs: array[0..1] of TGLint;
   RenderProgram, TransformFeedbackProgram: TGLSLProgram;
@@ -117,7 +117,7 @@ end;
 begin
   InitializeLog;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.Open;
 
   Viewport := TCastleViewport.Create(Application);

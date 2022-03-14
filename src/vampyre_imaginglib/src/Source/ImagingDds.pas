@@ -21,7 +21,7 @@ uses
 
 type
   { Class for loading and saving Microsoft DirectDraw surfaces.
-    It can load/save all D3D formats which have coresponding
+    It can load/save all D3D formats which have corresponding
     TImageFormat. It supports plain textures, cube textures and
     volume textures, all of these can have mipmaps. It can also
     load some formats which have no exact TImageFormat, but can be easily
@@ -123,7 +123,7 @@ const
   D3DFMT_R16F          = 111;
   D3DFMT_A16B16G16R16F = 113;
 
-  { Constans used by TDDSurfaceDesc2.Flags.}
+  { Constants used by TDDSurfaceDesc2.Flags.}
   DDSD_CAPS            = $00000001;
   DDSD_HEIGHT          = $00000002;
   DDSD_WIDTH           = $00000004;
@@ -133,7 +133,7 @@ const
   DDSD_LINEARSIZE      = $00080000;
   DDSD_DEPTH           = $00800000;
 
-  { Constans used by TDDSPixelFormat.Flags.}
+  { Constants used by TDDSPixelFormat.Flags.}
   DDPF_ALPHAPIXELS     = $00000001;    // used by formats which contain alpha
   DDPF_FOURCC          = $00000004;    // used by DXT and large ARGB formats
   DDPF_RGB             = $00000040;    // used by RGB formats
@@ -141,12 +141,12 @@ const
   DDPF_BUMPLUMINANCE   = $00040000;    // used by mixed signed-unsigned formats
   DDPF_BUMPDUDV        = $00080000;    // used by signed formats
 
-  { Constans used by TDDSCaps.Caps1.}
+  { Constants used by TDDSCaps.Caps1.}
   DDSCAPS_COMPLEX      = $00000008;
   DDSCAPS_TEXTURE      = $00001000;
   DDSCAPS_MIPMAP       = $00400000;
 
-  { Constans used by TDDSCaps.Caps2.}
+  { Constants used by TDDSCaps.Caps2.}
   DDSCAPS2_CUBEMAP     = $00000200;
   DDSCAPS2_POSITIVEX   = $00000400;
   DDSCAPS2_NEGATIVEX   = $00000800;
@@ -203,7 +203,7 @@ type
     Desc: TDDSurfaceDesc2; // Surface description
   end;
 
-  { Resoirce types for D3D 10+ }
+  { Resource types for D3D 10+ }
   TD3D10ResourceDimension = (
     D3D10_RESOURCE_DIMENSION_UNKNOWN   = 0,
     D3D10_RESOURCE_DIMENSION_BUFFER    = 1,
@@ -393,7 +393,7 @@ begin
       if IsCubeMap then
       begin
         // Cube maps are stored like this
-        // Face 0 mimap 0
+        // Face 0 mipmap 0
         // Face 0 mipmap 1
         // ...
         // Face 1 mipmap 0

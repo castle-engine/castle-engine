@@ -28,7 +28,7 @@ uses CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState
   {$endregion 'Castle Initialization Uses'};
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
@@ -50,7 +50,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 

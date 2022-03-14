@@ -127,7 +127,7 @@ begin
   TThread.NameThreadForDebugging('ImageLoaderThread');
   ErrorMsg := '';
 
-  // Delete old images and thumbmails
+  // Delete old images and thumbnails
   ClearImagesAndThumbs(FImageRef);
 
   try

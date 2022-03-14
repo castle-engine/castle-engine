@@ -67,7 +67,7 @@ type
 
     { Resizes current image with optional resampling.}
     procedure Resize(NewWidth, NewHeight: Integer; Filter: TResizeFilter);
-
+    { Resizes current image proportionally to fit the given width and height. }
     procedure ResizeToFit(FitWidth, FitHeight: Integer; Filter: TResizeFilter; DstImage: TBaseImage);
     { Flips current image. Reverses the image along its horizontal axis the top
       becomes the bottom and vice versa.}
@@ -110,10 +110,10 @@ type
     procedure LoadFromStream(Stream: TStream); virtual;
 
     { Saves current image data to file.}
-    procedure SaveToFile(const FileName: string);
+    function SaveToFile(const FileName: string): Boolean;
     { Saves current image data to stream. Ext identifies desired image file
-      format (jpg, png, dds, ...)}
-    procedure SaveToStream(const Ext: string; Stream: TStream);
+      format (jpg, png, dds, ...).}
+    function SaveToStream(const Ext: string; Stream: TStream): Boolean;
 
     { Width of current image in pixels.}
     property Width: Integer read GetWidth write SetWidth;
@@ -146,7 +146,7 @@ type
     { Indicates whether the current image is valid (proper format,
       allowed dimensions, right size, ...).}
     property Valid: Boolean read GetValid;
-    { Indicates whether image containst any data (size in bytes > 0).}
+    { Indicates whether image contains any data (size in bytes > 0).}
     property Empty: Boolean read GetEmpty;
     { Specifies the bounding rectangle of the image.}
     property BoundsRect: TRect read GetBoundsRect;
@@ -209,29 +209,29 @@ type
     { Assigns multi image from array of image data records.}
     procedure AssignFromArray(const ADataArray: TDynImageDataArray);
 
-    { Adds new image at the end of the image array. }
+    { Adds new image at the end of the image array. Returns index of the added image.}
     function AddImage(AWidth, AHeight: Integer; AFormat: TImageFormat = ifDefault): Integer; overload;
-    { Adds existing image at the end of the image array. }
+    { Adds existing image at the end of the image array. Returns index of the added image.}
     function AddImage(const Image: TImageData): Integer; overload;
-    { Adds existing image (Active image of a TmultiImage)
-      at the end of the image array. }
+    { Adds existing image (or active image of a TMultiImage)
+      at the end of the image array. Returns index of the added image.}
     function AddImage(Image: TBaseImage): Integer; overload;
-    { Adds existing image array ((all images of a multi image))
-      at the end of the image array. }
+    { Adds existing image array (all images of a multi image)
+      at the end of the image array.}
     procedure AddImages(const Images: TDynImageDataArray); overload;
-    { Adds existing MultiImage images at the end of the image array. }
+    { Adds existing MultiImage images at the end of the image array.}
     procedure AddImages(Images: TMultiImage); overload;
 
     { Inserts new image image at the given position in the image array. }
     procedure InsertImage(Index, AWidth, AHeight: Integer; AFormat: TImageFormat = ifDefault); overload;
     { Inserts existing image at the given position in the image array. }
     procedure InsertImage(Index: Integer; const Image: TImageData); overload;
-    { Inserts existing image (Active image of a TmultiImage)
+    { Inserts existing image (Active image of a TMultiImage)
       at the given position in the image array. }
     procedure InsertImage(Index: Integer; Image: TBaseImage); overload;
     { Inserts existing image at the given position in the image array. }
     procedure InsertImages(Index: Integer; const Images: TDynImageDataArray); overload;
-    { Inserts existing images (all images of a TmultiImage) at
+    { Inserts existing images (all images of a TMultiImage) at
       the given position in the image array. }
     procedure InsertImages(Index: Integer; Images: TMultiImage); overload;
 
@@ -249,11 +249,11 @@ type
     { Resizes all images.}
     procedure ResizeImages(NewWidth, NewHeight: Integer; Filter: TResizeFilter);
 
-    { Overloaded loading method that will add new image to multiimage if
-      image array is empty bero loading. }
+    { Overloaded loading method that will add new image to multi-image if
+      image array is empty before loading. If it's not empty the active image is replaced.}
     procedure LoadFromFile(const FileName: string); override;
-    { Overloaded loading method that will add new image to multiimage if
-      image array is empty bero loading. }
+    { Overloaded loading method that will add new image to multi-image if
+      image array is empty before loading. If it's not empty the active image is replaced.}
     procedure LoadFromStream(Stream: TStream); override;
 
     { Loads whole multi image from file.}
@@ -261,10 +261,10 @@ type
     { Loads whole multi image from stream.}
     procedure LoadMultiFromStream(Stream: TStream);
     { Saves whole multi image to file.}
-    procedure SaveMultiToFile(const FileName: string);
+    function SaveMultiToFile(const FileName: string): Boolean;
     { Saves whole multi image to stream. Ext identifies desired
       image file format (jpg, png, dds, ...).}
-    procedure SaveMultiToStream(const Ext: string; Stream: TStream);
+    function SaveMultiToStream(const Ext: string; Stream: TStream): Boolean;
 
     { Indicates active image of this multi image. All methods inherited
       from TBaseImage operate on this image only.}
@@ -286,7 +286,7 @@ implementation
 
 const
   DefaultWidth = 16;
-  Defaultheight = 16;
+  DefaultHeight = 16;
 
 function GetArrayFromImageData(const ImageData: TImageData): TDynImageDataArray;
 begin
@@ -575,16 +575,20 @@ begin
     DoDataSizeChanged;
 end;
 
-procedure TBaseImage.SaveToFile(const FileName: string);
+function TBaseImage.SaveToFile(const FileName: string): Boolean;
 begin
   if Valid then
-    Imaging.SaveImageToFile(FileName, FPData^);
+    Result := Imaging.SaveImageToFile(FileName, FPData^)
+  else
+    Result := False;
 end;
 
-procedure TBaseImage.SaveToStream(const Ext: string; Stream: TStream);
+function TBaseImage.SaveToStream(const Ext: string; Stream: TStream): Boolean;
 begin
   if Valid then
-    Imaging.SaveImageToStream(Ext, Stream, FPData^);
+    Result := Imaging.SaveImageToStream(Ext, Stream, FPData^)
+  else
+    Result := False;
 end;
 
 
@@ -1007,24 +1011,21 @@ begin
   SetActiveImage(0);
 end;
 
-procedure TMultiImage.SaveMultiToFile(const FileName: string);
+function TMultiImage.SaveMultiToFile(const FileName: string): Boolean;
 begin
-  Imaging.SaveMultiImageToFile(FileName, FDataArray);
+  Result := Imaging.SaveMultiImageToFile(FileName, FDataArray);
 end;
 
-procedure TMultiImage.SaveMultiToStream(const Ext: string; Stream: TStream);
+function TMultiImage.SaveMultiToStream(const Ext: string; Stream: TStream): Boolean;
 begin
-  Imaging.SaveMultiImageToStream(Ext, Stream, FDataArray);
+  Result := Imaging.SaveMultiImageToStream(Ext, Stream, FDataArray);
 end;
 
 {
-  File Notes:
-
-  -- TODOS ----------------------------------------------------
-    - nothing now
+  File Notes (obsolete):
 
   -- 0.77.1 ---------------------------------------------------
-    - Added TSingleImage.AssignFromData and TMultiImage.AssigntFromArray
+    - Added TSingleImage.AssignFromData and TMultiImage.AssignFromArray
       as a replacement for constructors used as methods (that is
       compiler error in Delphi XE3).
     - Added TBaseImage.ResizeToFit method.
@@ -1075,7 +1076,7 @@ end;
 
   -- 0.17 Changes/Bug Fixes -----------------------------------
     - added props PaletteEntries and ScanLine to TBaseImage
-    - aded new constructor to TBaseImage that take TBaseImage source
+    - added new constructor to TBaseImage that take TBaseImage source
     - TMultiImage levels adding and inserting rewritten internally
     - added some new functions to TMultiImage: AddLevels, InsertLevels
     - added some new functions to TBaseImage: Flip, Mirror, Rotate,

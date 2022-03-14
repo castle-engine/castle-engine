@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleVectors" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,6 +57,8 @@ type
     procedure TestRotatePointAroundAxis;
     procedure TestMakeVectorOrthogonal;
     procedure TestEpsilonInModelViewToNormalMatrix;
+    procedure TestInit;
+    procedure TestRotationZeroAxis;
   end;
 
 function RandomVector: TVector3;
@@ -115,13 +117,13 @@ end;
 procedure TTestCastleVectors.TestCollisions;
 const
   TriConst: TTriangle3 = (Data: (
-    (Data: (2, 2, -1)),
-    (Data: (3, 3, -1)),
-    (Data: (3, 2, -1)) ));
-  TriPlaneConst: TVector4 = (Data: (0, 0, 1, 1));
-  Pos1Const: TVector3 = (Data: (2, 2, -3));
-  Pos2Const: TVector3 = (Data: (2, 2, 3));
-  Coll: TVector3 = (Data: (2, 2, -1));
+    (X: 2; Y: 2; Z: -1),
+    (X: 3; Y: 3; Z: -1),
+    (X: 3; Y: 2; Z: -1) ));
+  TriPlaneConst: TVector4 = (X: 0; Y: 0; Z: 1; W: 1);
+  Pos1Const: TVector3 = (X: 2; Y: 2; Z: -3);
+  Pos2Const: TVector3 = (X: 2; Y: 2; Z: 3);
+  Coll: TVector3 = (X: 2; Y: 2; Z: -1);
 var
   Intersection, Intersection2: TVector3;
 begin
@@ -137,21 +139,21 @@ end;
 procedure TTestCastleVectors.TestArea;
 const
   Tri: TTriangle3 = (Data: (
-    (Data: (0, 0, 0)),
-    (Data: (10, 0, 0)),
-    (Data: (0, 25, 0)) ));
+    (X: 0; Y: 0; Z: 0),
+    (X: 10; Y: 0; Z: 0),
+    (X: 0; Y: 25; Z: 0) ));
   CCWPoly: array [0..4] of TVector2 = (
-    (Data: (5, 4)),
-    (Data: (2, 3)),
-    (Data: (4, 3)),
-    (Data: (2, 1)),
-    (Data: (6, 2)) );
+    (X: 5; Y: 4),
+    (X: 2; Y: 3),
+    (X: 4; Y: 3),
+    (X: 2; Y: 1),
+    (X: 6; Y: 2) );
   CWPoly: array [0..4] of TVector2 = (
-    (Data: (6, 2)),
-    (Data: (2, 1)),
-    (Data: (4, 3)),
-    (Data: (2, 3)),
-    (Data: (5, 4)) );
+    (X: 6; Y: 2),
+    (X: 2; Y: 1),
+    (X: 4; Y: 3),
+    (X: 2; Y: 3),
+    (X: 5; Y: 4) );
 begin
  AssertTrue(Tri.Area = 10*25/2);
 
@@ -196,8 +198,8 @@ end;
 
 procedure TTestCastleVectors.TestPlanesIntersection;
 const
-  P1: TVector4 = (Data: (-1.9935636520385742, -0.00000009909226151, 0.25691652297973633, -30.014257431030273));
-  P2: TVector4 = (Data: (-1.2131816148757935, 1.90326225890658E-008, -1.5900282859802246, 1.5900282859802246));
+  P1: TVector4 = (X: -1.9935636520385742; Y: -0.00000009909226151; Z: 0.25691652297973633; W: -30.014257431030273);
+  P2: TVector4 = (X: -1.2131816148757935; Y: 1.90326225890658E-008; Z: -1.5900282859802246; W: 1.5900282859802246);
 var
   Line0, LineVector: TVector3;
 begin
@@ -217,12 +219,14 @@ var
 
   function RandomVector3: TVector3;
   begin
-   result[0] := Random*1000 -500.0;
-   result[1] := Random*1000 -500.0;
-   result[2] := Random*1000 -500.0;
+    Result := Vector3(
+      Random*1000 -500.0,
+      Random*1000 -500.0,
+      Random*1000 -500.0
+    );
   end;
 
-const VConst: TVector3 = (Data: (1.0, 2.0, 3.0));
+const VConst: TVector3 = (X: 1.0; Y: 2.0; Z: 3.0);
 
 var
   i: integer;
@@ -240,14 +244,14 @@ begin
   PlaneConstCoord := Random(3);
   PlaneConstVal := Random*1000 - 500;
   FillChar(Plane, SizeOf(Plane), 0);
-  Plane[PlaneConstCoord] := -1;
-  Plane[3] := PlaneConstVal;
+  Plane.InternalData[PlaneConstCoord] := -1;
+  Plane.InternalData[3] := PlaneConstVal;
 
   { czasami uczyn promien rownoleglym do [Simple]Plane (zeby zobaczyc
     czy sobie z tym radzi) }
   if Random(10) = 1 then
   begin
-   RayDirection[PlaneConstCoord] := 0;
+   RayDirection.InternalData[PlaneConstCoord] := 0;
    b1 := TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, RayOrigin, RayDirection);
    b2 := TryPlaneRayIntersection(I2, Plane, RayOrigin, RayDirection);
    Check( (not b1) and (not b2) ,'intersect with parallel plane');
@@ -364,7 +368,7 @@ procedure TTestCastleVectors.TestVectorStr;
   begin
    v := RandomVector;
    s := v.ToRawString;
-   DeFormat(s, '%.single. %.single. %.single.', [@v2.Data[0], @v2.Data[1], @v2.Data[2]]);
+   DeFormat(s, '%.single. %.single. %.single.', [@v2.X, @v2.Y, @v2.Z]);
    AssertVectorEquals(v2, v, 0.001); // larger epsilon for ppc64
   end;
 
@@ -463,11 +467,11 @@ end;
 procedure TTestCastleVectors.TestIndexedPolygonNormalArea;
 const
   Poly: array [0..4] of TVector3 = (
-    (Data: (5, 4, 0)),
-    (Data: (4, 4, 0)),
-    (Data: (2, 3, 0)),
-    (Data: (2, 1, 0)),
-    (Data: (6, 2, 0)) );
+    (X: 5; Y: 4; Z: 0),
+    (X: 4; Y: 4; Z: 0),
+    (X: 2; Y: 3; Z: 0),
+    (X: 2; Y: 1; Z: 0),
+    (X: 6; Y: 2; Z: 0) );
   CCWPolyIndex: array [0..6] of LongInt = (0, 1, 5, 2, 3, 4, 999);
   CWPolyIndex: array [0..6] of LongInt = (666, 4, 105, 3, 2, 1, 0);
 begin
@@ -519,9 +523,11 @@ end;
 
 function RandomVector: TVector3;
 begin
-  result[0] := Random*1000;
-  result[1] := Random*1000;
-  result[2] := Random*1000;
+  Result := Vector3(
+    Random*1000,
+    Random*1000,
+    Random*1000
+  );
 end;
 
 function RandomMatrix: TMatrix4;
@@ -551,20 +557,20 @@ procedure TTestCastleVectors.TestMatrixMultiplication;
 var
   M1, M2, M3, Result1, Result2: TMatrix4;
 begin
-  M1.Data[0] := TMatrix4.TIndexArray(Vector4(1, 0, 0, 0).Data);
-  M1.Data[1] := TMatrix4.TIndexArray(Vector4(0, 1, 0, 0).Data);
-  M1.Data[2] := TMatrix4.TIndexArray(Vector4(0, 0, 1, 0).Data);
-  M1.Data[3] := TMatrix4.TIndexArray(Vector4(-0.31, 1.26, -0.03, 1).Data);
+  M1.Columns[0] := Vector4(1, 0, 0, 0);
+  M1.Columns[1] := Vector4(0, 1, 0, 0);
+  M1.Columns[2] := Vector4(0, 0, 1, 0);
+  M1.Columns[3] := Vector4(-0.31, 1.26, -0.03, 1);
 
-  M2.Data[0] := TMatrix4.TIndexArray(Vector4( 0.58,  0.75, 0.31, 0.00).Data);
-  M2.Data[1] := TMatrix4.TIndexArray(Vector4(-0.81,  0.52, 0.26, 0.00).Data);
-  M2.Data[2] := TMatrix4.TIndexArray(Vector4( 0.03, -0.40, 0.92, 0.00).Data);
-  M2.Data[3] := TMatrix4.TIndexArray(Vector4( 0.00,  0.00, 0.00, 1.00).Data);
+  M2.Columns[0] := Vector4( 0.58,  0.75, 0.31, 0.00);
+  M2.Columns[1] := Vector4(-0.81,  0.52, 0.26, 0.00);
+  M2.Columns[2] := Vector4( 0.03, -0.40, 0.92, 0.00);
+  M2.Columns[3] := Vector4( 0.00,  0.00, 0.00, 1.00);
 
-  M3.Data[0] := TMatrix4.TIndexArray(Vector4(1.00, 0.00, 0.00,  0.31).Data);
-  M3.Data[1] := TMatrix4.TIndexArray(Vector4(0.00, 1.00, 0.00, -1.26).Data);
-  M3.Data[2] := TMatrix4.TIndexArray(Vector4(0.00, 0.00, 1.00,  0.03).Data);
-  M3.Data[3] := TMatrix4.TIndexArray(Vector4(0.00, 0.00, 0.00,  1.00).Data);
+  M3.Columns[0] := Vector4(1.00, 0.00, 0.00,  0.31);
+  M3.Columns[1] := Vector4(0.00, 1.00, 0.00, -1.26);
+  M3.Columns[2] := Vector4(0.00, 0.00, 1.00,  0.03);
+  M3.Columns[3] := Vector4(0.00, 0.00, 0.00,  1.00);
 
   Result1 := M1 * M2;
   Result2 := M1 * M2;
@@ -584,13 +590,13 @@ procedure TTestCastleVectors.TestMatrixTranspose;
 var
   M1, M2: TMatrix3;
 begin
-  M1.Data[0] := TMatrix3.TIndexArray(Vector3(1, 2, 3).Data);
-  M1.Data[1] := TMatrix3.TIndexArray(Vector3(4, 5, 6).Data);
-  M1.Data[2] := TMatrix3.TIndexArray(Vector3(7, 8, 9).Data);
+  M1.Columns[0] := Vector3(1, 2, 3);
+  M1.Columns[1] := Vector3(4, 5, 6);
+  M1.Columns[2] := Vector3(7, 8, 9);
 
-  M2.Data[0] := TMatrix3.TIndexArray(Vector3(1, 4, 7).Data);
-  M2.Data[1] := TMatrix3.TIndexArray(Vector3(2, 5, 8).Data);
-  M2.Data[2] := TMatrix3.TIndexArray(Vector3(3, 6, 9).Data);
+  M2.Columns[0] := Vector3(1, 4, 7);
+  M2.Columns[1] := Vector3(2, 5, 8);
+  M2.Columns[2] := Vector3(3, 6, 9);
 
   M1 := M1.Transpose;
   AssertTrue(TMatrix3.PerfectlyEquals(M1, M2));
@@ -768,8 +774,8 @@ end;
 
 procedure TTestCastleVectors.Test2D;
 const
-  P1: TVector3 = (Data: (1, 2, 3));
-  P2: TVector3 = (Data: (2, 5, 13));
+  P1: TVector3 = (X: 1; Y: 2; Z: 3);
+  P2: TVector3 = (X: 2; Y: 5; Z: 13);
 begin
   AssertSameValue(Sqr(1) + Sqr(3) + Sqr(10), PointsDistanceSqr(P1, P2), 0.01);
   AssertSameValue(Sqr(3) + Sqr(10), PointsDistance2DSqr(P1, P2, 0), 0.01);
@@ -800,9 +806,9 @@ end;
 
 procedure TTestCastleVectors.TestXYZ;
 const
-  V2Const: TVector2 = (Data: (1, 2));
-  V3Const: TVector3 = (Data: (1, 2, 3));
-  V4Const: TVector4 = (Data: (1, 2, 3, 4));
+  V2Const: TVector2 = (X: 1; Y: 2);
+  V3Const: TVector3 = (X: 1; Y: 2; Z: 3);
+  V4Const: TVector4 = (X: 1; Y: 2; Z: 3; W: 4);
 var
   V2: TVector2;
   V3: TVector3;
@@ -1122,6 +1128,38 @@ NormalMatrix (ModelViewToNormalMatrix determinant 0.000100) 0.05 0.04 0.00
   );
   AssertTrue(TMatrix3.Equals(ModelViewToNormalMatrix(Mv1), Norml1Approx, 0.01));
   AssertTrue(TMatrix3.Equals(ModelViewToNormalMatrix(Mv2), Norml1Approx, 0.01));
+end;
+
+procedure TTestCastleVectors.TestInit;
+var
+  V2: TVector2;
+  V3: TVector3;
+  V4: TVector4;
+begin
+  V4.Init(1, 2, 3, 4);
+  AssertVectorEquals(Vector4(1, 2, 3, 4), V4);
+
+  V3.Init(11, 22, 33);
+  AssertVectorEquals(Vector3(11, 22, 33), V3);
+
+  V2.Init(111, 222);
+  AssertVectorEquals(Vector2(111, 222), V2);
+end;
+
+procedure TTestCastleVectors.TestRotationZeroAxis;
+var
+  T: TTransformation;
+begin
+  T.Init;
+  T.Multiply(
+    Vector4(0, 0, 0, Pi/2),
+    Vector3(1, 1, 1),
+    Vector3(0, 0, 0)
+  );
+  AssertMatrixEquals(T.Transform, TMatrix4.Identity);
+  AssertMatrixEquals(T.InverseTransform, TMatrix4.Identity);
+  AssertSameValue(1, T.Scale);
+  AssertTrue(T.UniformScale);
 end;
 
 initialization

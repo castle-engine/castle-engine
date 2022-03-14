@@ -2,7 +2,7 @@
 <project name="animate_transform_by_code_2"
   standalone_source="animate_transform_by_code_2_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.animatetransformbycode2"
+  qualified_name="io.castleengine.animate.transform.by.code2"
   caption="Build and Animate Transform by Code"
 >
   <compiler_options>

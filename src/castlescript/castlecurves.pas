@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -314,8 +314,8 @@ var
   V: TVector3;
 begin
   V := Point(T);
-  Result[0] := V[0];
-  Result[1] := V[1];
+  Result.X := V.X;
+  Result.Y := V.Y;
 end;
 
 class function TCurve.LoadFromFile(const URL: string): TCurve;
@@ -471,7 +471,7 @@ var
 begin
   TVariable.Value := T;
   for I := 0 to 2 do
-    Result[I] := (FFunction[I].Execute as TCasScriptFloat).Value;
+    Result.InternalData[I] := (FFunction[I].Execute as TCasScriptFloat).Value;
 
   {test: Writeln('Point at t = ',FloatToNiceStr(Single(t)), ' is (',
     Result.ToString, ')');}

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2021 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes,
   CastleVectors, CastleUtils, CastleKeysMouse, CastleBoxes, CastleQuaternions,
-  CastleFrustum, CastleUIControls, CastleRays, CastleProjection, CastleTimeUtils,
+  CastleFrustum, CastleUIControls, CastleInternalRays, CastleProjection, CastleTimeUtils,
   CastleInputs, CastleTriangles, CastleRectangles, CastleClassUtils,
   CastleInternalCameraGestures;
 
@@ -210,7 +210,7 @@ type
 
       @unorderedList(
         @item(When both @link(Width) and @link(Height) are zero,
-          then the effetive projection width and height
+          then the effective projection width and height
           are based on the viewport width and height.
           That is, they will follow
           @link(TCastleUserInterface.EffectiveWidth TCastleViewport.EffectiveWidth)
@@ -219,7 +219,7 @@ type
         )
 
         @item(When exactly one of @link(Width) and @link(Height) is non-zero,
-          then it explicitly determines the projection width or height accordingily.
+          then it explicitly determines the projection width or height accordingly.
           This allows to easily display the same piece of the game world,
           regardless of the viewport size.
 
@@ -227,8 +227,8 @@ type
           of the viewport control.
         )
 
-        @item(When both @link(Width) and @link(Height) are non-zero, then
-          they determine the projection width and height.
+        @item(When both @link(Width) and @link(Height) are non-zero,
+          they determine the projection width and height following the algorithm outlined below.
           This also allows to easily display the same piece of the game world,
           regardless of the viewport size.
 
@@ -236,8 +236,8 @@ type
             @item(When @link(Stretch) = @false (default), they determine the @italic(minimum)
               projection width and height along the given axis.
 
-              If the displayed viewport aspect ratio wil be different than given
-              @link(Width) and @link(Height) ratio, then these value will be
+              If the displayed viewport aspect ratio will be different than given
+              @link(Width) and @link(Height) ratio, then these values will be
               treated as minimum values, and they will be adjusted (one of them will be increased)
               for the purposes of rendering.
               You can read the @link(EffectiveWidth), @link(EffectiveHeight) to know
@@ -250,25 +250,25 @@ type
               to the left-bottom of the whole viewport.
               It points to the left-bottom of the rectangle of aspect ratio
               @link(Width) / @link(Height) within the viewport.
-              This way the enlarged viewport shows equal amount of additional space on the left and right
-              (or bottom and top) of the @link(Width) / @link(Height) rectangle within.
+              This way the enlarged viewport shows equal amount of additional space on the left and
+              the right (or bottom and top) of the @link(Width) / @link(Height) rectangle within.
             )
 
             @item(When @link(Stretch) = @true, these values are used directly,
               even if it means that aspect ratio of the projection
               will not reflect the aspect ratio of the viewport on screen.
 
-              This allows for some tricks, like @italic(Military Projection),
+              This allows to implement some tricks, like @italic(Military Projection),
               https://github.com/castle-engine/castle-engine/issues/290 .)
           )
         )
       )
 
-      In alll cases, the resulting size is also multiplied by @link(Scale),
+      In all the cases, the resulting size is also multiplied by @link(Scale),
       by default 1.0.
 
-      In all cases, you can read @link(EffectiveWidth) and @link(EffectiveHeight)
-      to know the actual projection width and height, calculated using
+      You can read @link(EffectiveWidth) and @link(EffectiveHeight)
+      to learn the actual projection width and height, calculated using
       the above algorithm.
 
       @groupBegin }
@@ -685,6 +685,8 @@ type
     procedure SetProjectionMatrix(const Value: TMatrix4);
     function GetFrustum: TFrustum;
     function GoodModelBox: TBox3D;
+    function GetIgnoreAllInputs: boolean;
+    procedure SetIgnoreAllInputs(const Value: boolean);
   protected
     { Needed for niMouseDragging navigation.
       Checking MouseDraggingStarted means that we handle only dragging that
@@ -694,14 +696,11 @@ type
     MouseDraggingStarted: Integer;
     MouseDraggingStart: TVector2;
 
-    procedure SetInput(const Value: TNavigationInputs); virtual;
-    function GetIgnoreAllInputs: boolean;
-    procedure SetIgnoreAllInputs(const Value: boolean);
-    procedure SetRadius(const Value: Single); virtual;
+    { Behave as if @link(Input) is like this.
+      This allows to disable input on paused viewport. }
+    function UsingInput: TNavigationInputs;
 
     function ReallyEnableMouseDragging: boolean; virtual;
-
-    procedure SetModelBox(const B: TBox3D);
 
     { Check collisions to determine how high above ground is given point.
       Calls OnInternalHeight callback. }
@@ -758,7 +757,6 @@ type
 
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
-    function GetExists: boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Used by @link(MoveAllowed), see there for description.
@@ -852,7 +850,7 @@ type
           Input_IncreasePreferredHeight, Input_DecreasePreferredHeight.
         )
       ) }
-    property Radius: Single read FRadius write SetRadius {$ifdef FPC}default DefaultRadius{$endif};
+    property Radius: Single read FRadius write FRadius {$ifdef FPC}default DefaultRadius{$endif};
 
     { Express current view as camera vectors: position, direction, up.
 
@@ -925,7 +923,7 @@ type
       fills the whole window,
       and requires that it's added to @link(TCastleViewport.Navigation)
       and this @link(TCastleViewport) must be part of
-      TCastleWindowBase.Controls or TCastleControlBase.Controls.
+      TCastleWindow.Controls or TCastleControl.Controls.
 
       Projection (read-only here) describe your projection,
       required for calculating the ray properly.
@@ -943,7 +941,7 @@ type
       fills the whole window,
       and requires that it's added to @link(TCastleViewport.Navigation)
       and this @link(TCastleViewport) must be part of
-      TCastleWindowBase.Controls or TCastleControlBase.Controls.
+      TCastleWindow.Controls or TCastleControl.Controls.
 
       @seealso Ray
       @seealso CustomRay }
@@ -1136,7 +1134,7 @@ type
       used by @link(TCastleExamineNavigation) descendant.
       Determines speed of movement and zooming.
       Initially this is TBox3D.Empty. }
-    property ModelBox: TBox3D read FModelBox write SetModelBox;
+    property ModelBox: TBox3D read FModelBox write FModelBox;
 
     { Input methods available to user. See documentation of TNavigationInput
       type for possible values and their meaning.
@@ -1144,7 +1142,7 @@ type
       To disable any user interaction with this navigation
       you can simply set this to empty.
       You can also leave @link(TCastleViewport.Navigation) as @nil. }
-    property Input: TNavigationInputs read FInput write SetInput default DefaultInput;
+    property Input: TNavigationInputs read FInput write FInput default DefaultInput;
   published
     // By default this captures events from whole parent, which should be whole Viewport.
     property FullSize default true;
@@ -2076,7 +2074,7 @@ type
     { @groupEnd }
 
     { Moving speed when mouse dragging.
-      Relevant only when @code((MouseDragMode is mdWalk) and (niMouseDragging in Input)). }
+      Relevant only when @code((MouseDragMode is mdWalk) and (niMouseDragging in UsingInput)). }
     property MouseDraggingMoveSpeed: Single
       read FMouseDraggingMoveSpeed write FMouseDraggingMoveSpeed
       {$ifdef FPC}default DefaultMouseDraggingMoveSpeed{$endif};
@@ -2141,8 +2139,8 @@ const
     @link(OrientationToDirection), @link(OrientationToUp).
     These match X3D default camera values.
     @groupBegin }
-  DefaultCameraDirection: TVector3 = (Data: (0, 0, -1));
-  DefaultCameraUp: TVector3 = (Data: (0, 1, 0));
+  DefaultCameraDirection: TVector3 = (X: 0; Y: 0; Z: -1);
+  DefaultCameraUp       : TVector3 = (X: 0; Y: 1; Z: 0);
   { @groupEnd }
 
   ciNormal        = niNormal        deprecated 'use niNormal';
@@ -2257,27 +2255,18 @@ const
       Max(DefaultPreferredHeight, Radius * RadiusToPreferredHeightMin)
     This way, in case of models that are small, but still follow the standard "1 unit = 1 meter",
     the PreferredHeight will not get weirdly small, it will be DefaultPreferredHeight.
-    Testcase: examples/third_person_camera/data/level/level-dungeon.gltf open with view3dscene.
+    Testcase: examples/third_person_navigation/data/level/level-dungeon.gltf open with view3dscene.
   }
   RadiusToPreferredHeightMin = 4.0;
 
   { Multiply world bounding box AverageSize by this to get sensible radius. }
   WorldBoxSizeToRadius = 0.005;
 
-procedure Register;
-
 implementation
 
 uses Math,
   CastleStringUtils, CastleLog, CastleViewport,
   CastleComponentSerialize;
-
-procedure Register;
-begin
-  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
-  RegisterComponents('Castle', [TCastleExamineNavigation, TCastleWalkNavigation]);
-  {$endif}
-end;
 
 { TCastle2DNavigation -------------------------------------------------------- }
 
@@ -2701,8 +2690,8 @@ var
   OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
   APos, ADir, AUp: TVector3;
 begin
-  AInitialDirection.NormalizeMe;
-  AInitialUp.NormalizeMe;
+  AInitialDirection := AInitialDirection.Normalize;
+  AInitialUp := AInitialUp.Normalize;
   MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
 
   if TransformCurrentCamera then
@@ -2878,21 +2867,6 @@ begin
   Result := (InternalViewport as TCastleViewport).Camera;
 end;
 
-procedure TCastleNavigation.SetInput(const Value: TNavigationInputs);
-begin
-  FInput := Value;
-end;
-
-procedure TCastleNavigation.SetRadius(const Value: Single);
-begin
-  FRadius := Value;
-end;
-
-procedure TCastleNavigation.SetModelBox(const B: TBox3D);
-begin
-  FModelBox := B;
-end;
-
 procedure TCastleNavigation.Ray(const WindowPosition: TVector2;
   const Projection: TProjection;
   out RayOrigin, RayDirection: TVector3);
@@ -2988,16 +2962,17 @@ end;
 procedure TCastleNavigation.SetIgnoreAllInputs(const Value: boolean);
 begin
   if Value then
-    Input := [] else
+    Input := []
+  else
     Input := DefaultInput;
 end;
 
 function TCastleNavigation.ReallyEnableMouseDragging: boolean;
 begin
-  Result := (niMouseDragging in Input) and
+  Result := (niMouseDragging in UsingInput) and
     { Is mouse dragging allowed by viewport.
       This is an additional condition to enable mouse dragging,
-      above the existing niMouseDragging in Input.
+      above the existing niMouseDragging in UsingInput.
       It is used to prevent camera navigation by
       dragging when we already drag a 3D item (like X3D TouchSensor). }
     ( (InternalViewport = nil) or
@@ -3067,11 +3042,14 @@ begin
     inherited Assign(Source);
 end;
 
-function TCastleNavigation.GetExists: boolean;
+function TCastleNavigation.UsingInput: TNavigationInputs;
 begin
-  Result := (inherited GetExists) and
-    ( (InternalViewport = nil) or
-      (not (InternalViewport as TCastleViewport).Items.Paused) );
+  { Behave like Input=[] on a paused viewport }
+  if (InternalViewport <> nil) and
+     ((InternalViewport as TCastleViewport).Items.Paused) then
+    Result := []
+  else
+    Result := Input;
 end;
 
 procedure TCastleNavigation.GetView(out APos, ADir, AUp: TVector3);
@@ -3346,8 +3324,8 @@ var
     if not RotationEnabled then Exit;
 
     if RotationAccelerate then
-      FRotationsAnim[coord] :=
-        Clamped(FRotationsAnim[coord] +
+      FRotationsAnim.InternalData[coord] :=
+        Clamped(FRotationsAnim.InternalData[coord] +
           RotationAccelerationSpeed * SecondsPassed * Direction,
           -MaxRotationSpeed, MaxRotationSpeed)
     else
@@ -3395,7 +3373,7 @@ begin
     V.Rotations.LazyNormalizeMe;
   end;
 
-  if HandleInput and (niNormal in Input) then
+  if HandleInput and (niNormal in UsingInput) then
   begin
     if GoodModelBox.IsEmptyOrZero then
       MoveChange := KeysMoveSpeed * SecondsPassed
@@ -3411,7 +3389,7 @@ begin
         if Inputs_Move[i, true ].IsPressed(Container) then
         begin
           MoveChangeVector := TVector3.Zero;
-          MoveChangeVector[I] := MoveChange;
+          MoveChangeVector.InternalData[I] := MoveChange;
           V.Translation := V.Translation + MoveChangeVector;
 
           HandleInput := not ExclusiveEvents;
@@ -3419,7 +3397,7 @@ begin
         if Inputs_Move[i, false].IsPressed(Container) then
         begin
           MoveChangeVector := TVector3.Zero;
-          MoveChangeVector[I] := -MoveChange;
+          MoveChangeVector.InternalData[I] := -MoveChange;
           V.Translation := V.Translation + MoveChangeVector;
 
           HandleInput := not ExclusiveEvents;
@@ -3447,7 +3425,7 @@ begin
   ExamineVectors := V;
 
   { process things that do not set ExamineVectors }
-  if HandleInput and (niNormal in Input) then
+  if HandleInput and (niNormal in UsingInput) then
   begin
     if Input_ScaleLarger.IsPressed(Container) then
     begin
@@ -3488,7 +3466,7 @@ var
   V: TVector3;
 begin
   V := TVector3.Zero;
-  V[Coord] := MoveDistance;
+  V.InternalData[Coord] := MoveDistance;
   Translation := Translation + V;
 end;
 
@@ -3498,7 +3476,7 @@ var
   Size: Single;
   MoveSize: Double;
 begin
-  if not (ni3dMouse in Input) then Exit(false);
+  if not (ni3dMouse in UsingInput) then Exit(false);
   if not MoveEnabled then Exit(false);
   if GoodModelBox.IsEmptyOrZero then Exit(false);
   Result := true;
@@ -3523,7 +3501,7 @@ var
   RotationSize: Double;
   V: TExamineVectors;
 begin
-  if not (ni3dMouse in Input) then Exit(false);
+  if not (ni3dMouse in UsingInput) then Exit(false);
   if not RotationEnabled then Exit(false);
   Result := true;
 
@@ -3658,10 +3636,10 @@ begin
      (ModifiersDown(Container.Pressed) <> []) then
     Exit;
 
-  if (niGesture in Input) and FPinchGestureRecognizer.Press(Event) then
+  if (niGesture in UsingInput) and FPinchGestureRecognizer.Press(Event) then
     Exit(ExclusiveEvents);
 
-  if not (niNormal in Input) then Exit;
+  if not (niNormal in UsingInput) then Exit;
 
   if Event.EventType <> itMouseWheel then
   begin
@@ -3702,7 +3680,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (niGesture in Input) and FPinchGestureRecognizer.Release(Event) then
+  if (niGesture in UsingInput) and FPinchGestureRecognizer.Release(Event) then
     Exit(ExclusiveEvents);
 end;
 
@@ -3838,7 +3816,7 @@ begin
   else
     Dpi := DefaultDpi;
 
-  if (niGesture in Input) and FPinchGestureRecognizer.Motion(Event, Dpi) then
+  if (niGesture in UsingInput) and FPinchGestureRecognizer.Motion(Event, Dpi) then
     Exit(ExclusiveEvents);
 
   MoveDivConst := Dpi;
@@ -3962,13 +3940,14 @@ function TCastleExamineNavigation.GetInput_RotateZDec: TInputShortcut; begin Res
 
 function TCastleExamineNavigation.GetMouseNavigation: boolean;
 begin
-  Result := niMouseDragging in Input;
+  Result := niMouseDragging in UsingInput;
 end;
 
 procedure TCastleExamineNavigation.SetMouseNavigation(const Value: boolean);
 begin
   if Value then
-    Input := Input + [niMouseDragging] else
+    Input := Input + [niMouseDragging]
+  else
     Input := Input - [niMouseDragging];
 end;
 
@@ -4051,9 +4030,9 @@ function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): boolean;
     if not MouseChange.IsPerfectlyZero then
     begin
       if InvertVerticalMouseLook then
-        MouseChange.Data[1] := -MouseChange.Data[1];
-      MouseChange.Data[0] := MouseChange.Data[0] * MouseLookHorizontalSensitivity;
-      MouseChange.Data[1] := MouseChange.Data[1] * MouseLookVerticalSensitivity;
+        MouseChange.Y := -MouseChange.Y;
+      MouseChange.X := MouseChange.X * MouseLookHorizontalSensitivity;
+      MouseChange.Y := MouseChange.Y * MouseLookVerticalSensitivity;
       ProcessMouseLookDelta(MouseChange);
       Result := ExclusiveEvents;
     end;
@@ -4063,8 +4042,7 @@ begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
 
-  if (niNormal in Input) and
-    UsingMouseLook and
+  if UsingMouseLook and
     Container.Focused and
     ContainerSizeKnown and
     (not Camera.Animation) then
@@ -4076,7 +4054,7 @@ end;
 
 function TCastleMouseLookNavigation.UsingMouseLook: Boolean;
 begin
-  Result := MouseLook and not CastleDesignMode;
+  Result := MouseLook and (niNormal in UsingInput) and not CastleDesignMode;
 end;
 
 { TCastleWalkNavigation ---------------------------------------------------------------- }
@@ -5046,44 +5024,44 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     MoveSizeX := 0;
     MoveSizeY := 0;
 
-    if Abs(Delta[0]) < Tolerance then
-      Delta[0] := 0
+    if Abs(Delta.X) < Tolerance then
+      Delta.X := 0
     else
-      MoveSizeX := (Abs(Delta[0]) - Tolerance) * MouseDraggingMoveSpeed;
+      MoveSizeX := (Abs(Delta.X) - Tolerance) * MouseDraggingMoveSpeed;
 
-    if Abs(Delta[1]) < Tolerance then
-      Delta[1] := 0
+    if Abs(Delta.Y) < Tolerance then
+      Delta.Y := 0
     else
-      MoveSizeY := (Abs(Delta[1]) - Tolerance) * MouseDraggingMoveSpeed;
+      MoveSizeY := (Abs(Delta.Y) - Tolerance) * MouseDraggingMoveSpeed;
 
     if buttonLeft in Container.MousePressed then
     begin
-      if Delta[1] < -Tolerance then
+      if Delta.Y < -Tolerance then
         MoveHorizontal(-MoveSizeY * SecondsPassed, 1); { forward }
-      if Delta[1] > Tolerance then
+      if Delta.Y > Tolerance then
         MoveHorizontal(-MoveSizeY * SecondsPassed, -1); { backward }
 
-      if Abs(Delta[0]) > Tolerance then
-        RotateHorizontal(-Delta[0] * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
+      if Abs(Delta.X) > Tolerance then
+        RotateHorizontal(-Delta.X * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
     end
     else if buttonRight in Container.MousePressed then
     begin
-      if Delta[0] < -Tolerance then
+      if Delta.X < -Tolerance then
       begin
         RotateHorizontalForStrafeMove(HalfPi);
         MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife left }
         RotateHorizontalForStrafeMove(-HalfPi);
       end;
-      if Delta[0] > Tolerance then
+      if Delta.X > Tolerance then
       begin
         RotateHorizontalForStrafeMove(-HalfPi);
         MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife right }
         RotateHorizontalForStrafeMove(HalfPi);
       end;
 
-      if Delta[1] < -5 then
+      if Delta.Y < -5 then
         MoveVertical(-MoveSizeY * SecondsPassed, 1);    { fly up }
-      if Delta[1] > 5 then
+      if Delta.Y > 5 then
         MoveVertical(-MoveSizeY * SecondsPassed, -1);   { fly down }
     end;
   end;
@@ -5092,6 +5070,13 @@ var
   ModsDown: TModifierKeys;
 begin
   inherited;
+
+  { update Cursor every frame, in case InternalViewport.Paused changed
+    (which changes UsingInput and UsingMouseLook) }
+  if UsingMouseLook then
+    Cursor := mcForceNone
+  else
+    Cursor := mcDefault;
 
   { Do not handle keys or gravity etc. }
   if Camera.Animation then Exit;
@@ -5103,7 +5088,7 @@ begin
 
   if HandleInput then
   begin
-    if niNormal in Input then
+    if niNormal in UsingInput then
     begin
       HandleInput := not ExclusiveEvents;
       FIsCrouching := Gravity and Input_Crouch.IsPressed(Container);
@@ -5290,7 +5275,7 @@ begin
     Exit;
   end;
 
-  if (not (niNormal in Input)) or Camera.Animation then Exit(false);
+  if (not (niNormal in UsingInput)) or Camera.Animation then Exit(false);
 
   if Input_GravityUp.IsEvent(Event) then
   begin
@@ -5309,7 +5294,7 @@ function TCastleWalkNavigation.SensorTranslation(const X, Y, Z, Length: Double;
 var
   MoveSize: Double;
 begin
-  if not (ni3dMouse in Input) then Exit(false);
+  if not (ni3dMouse in UsingInput) then Exit(false);
   Result := true;
 
   MoveSize := Length * SecondsPassed / 5000;
@@ -5343,7 +5328,7 @@ function TCastleWalkNavigation.SensorRotation(const X, Y, Z, Angle: Double;
 const
   SpeedSensor = 2;
 begin
-  if not (ni3dMouse in Input) then Exit(false);
+  if not (ni3dMouse in UsingInput) then Exit(false);
   Result := true;
 
   if Abs(X) > 0.4 then      { tilt forward / backward }
@@ -5393,9 +5378,11 @@ begin
 
     Camera.ProjectionNear := Radius * RadiusToProjectionNear;
 
-    Pos[0] := Box.Data[0].Data[0] - AvgSize;
-    Pos[1] := (Box.Data[0].Data[1] + Box.Data[1].Data[1]) / 2;
-    Pos[2] := (Box.Data[0].Data[2] + Box.Data[1].Data[2]) / 2;
+    Pos := Vector3(
+      Box.Data[0].X - AvgSize,
+      (Box.Data[0].Y + Box.Data[1].Y) / 2,
+      (Box.Data[0].Z + Box.Data[1].Z) / 2
+    );
     Camera.Init(Pos,
       DefaultCameraDirection,
       DefaultCameraUp,
@@ -5447,8 +5434,8 @@ end;
 procedure TCastleWalkNavigation.ProcessMouseLookDelta(const Delta: TVector2);
 begin
   inherited;
-  RotateHorizontal(-Delta[0]);
-  RotateVertical(Delta[1]);
+  RotateHorizontal(-Delta.X);
+  RotateVertical(Delta.Y);
 end;
 
 function TCastleWalkNavigation.Motion(const Event: TInputMotion): boolean;
@@ -5584,8 +5571,8 @@ var
   Rot1Quat, Rot2Quat: TQuaternion;
   Rot1CosAngle, Rot2CosAngle: Single;
 begin
-  Direction.NormalizeMe;
-  Up.NormalizeMe;
+  Direction := Direction.Normalize;
+  Up := Up.Normalize;
 
   { calculate Rot1Quat }
   Rot1Axis := TVector3.CrossProduct(DefaultDirection, Direction);
@@ -5600,7 +5587,7 @@ begin
     { Normalize *after* checking ZeroVector, otherwise normalization
       could change some almost-zero vector into a (practically random)
       vector of length 1. }
-    Rot1Axis.NormalizeMe;
+    Rot1Axis := Rot1Axis.Normalize;
   Rot1CosAngle := TVector3.DotProduct(DefaultDirection, Direction);
   Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
@@ -5611,7 +5598,7 @@ begin
     Calculating Rot2Axis below is a solution. }
   Rot2Axis := TVector3.CrossProduct(DefaultUpAfterRot1, Up);
 
-  (*We could now do Rot2Axis.NormalizeMe,
+  (*We could now do Rot2Axis := Rot2Axis.Normalize,
     after making sure it's not zero. Like
 
     { we need larger epsilon for ZeroVector below, in case
@@ -5622,7 +5609,7 @@ begin
       { Normalize *after* checking ZeroVector, otherwise normalization
         could change some almost-zero vector into a (practically random)
         vector of length 1. }
-      Rot2Axis.NormalizeMe;
+      Rot2Axis := Rot2Axis.Normalize;
 
     And later do
 
@@ -5726,9 +5713,9 @@ begin
     Offset := 2 * Box.AverageSize;
 
     if WantedDirectionPositive then
-      Position[WantedDirection] := Box.Data[0].Data[WantedDirection] - Offset
+      Position.InternalData[WantedDirection] := Box.Data[0].InternalData[WantedDirection] - Offset
     else
-      Position[WantedDirection] := Box.Data[1].Data[WantedDirection] + Offset;
+      Position.InternalData[WantedDirection] := Box.Data[1].InternalData[WantedDirection] + Offset;
   end;
 
   { GravityUp is just always equal Up here. }

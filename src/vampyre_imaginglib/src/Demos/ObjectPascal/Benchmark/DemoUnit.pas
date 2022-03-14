@@ -346,8 +346,10 @@ begin
     WriteLn('Error!' + sLineBreak + '"Data" directory with ' +
       'required "Tigers.*" images not found.');
     WriteLn;
+{$IFDEF DEBUG}
     WriteLn('Press RETURN key to exit');
     ReadLn;
+{$ENDIF}
     Halt(1);
   end;
 
@@ -369,8 +371,8 @@ begin
       SetLength(Formats, I);
 
       // Test image loading functions for all supported image file formats
-      // note that image loaded in one LoadImage is automaticaly
-      // freed in then next LoadImage call so no leaks (should) occurr.
+      // note that image loaded in one LoadImage is automatically
+      // freed in then next LoadImage call so no leaks (should) occur.
       WriteLn(Output, '-------------  Loading Images -------------');
       for I := Low(Formats) to High(Formats) do
         LoadImage(GetImageName(Formats[I].Ext));
@@ -428,9 +430,11 @@ begin
   {$ENDIF}
   end;
 
+{$IFDEF DEBUG}
   WriteLn;
   WriteLn('Press RETURN key to exit');
   ReadLn;
+{$ENDIF}
 end;
 
 {

@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -311,25 +311,25 @@ begin
          CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec2f);
          GA := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
          TCasScriptVec2f(AResult).Value := Vector2(
-           GA^[0]/255,
-           GA^[1]/255);
+           GA^.X/255,
+           GA^.Y/255);
        end;
     3: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3f);
          RGB := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
          TCasScriptVec3f(AResult).Value := Vector3(
-           RGB^[0]/255,
-           RGB^[1]/255,
-           RGB^[2]/255);
+           RGB^.X/255,
+           RGB^.Y/255,
+           RGB^.Z/255);
        end;
     4: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec4f);
          RGBAlpha := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
          TCasScriptVec4f(AResult).Value := Vector4(
-           RGBAlpha^[0]/255,
-           RGBAlpha^[1]/255,
-           RGBAlpha^[2]/255,
-           RGBAlpha^[3]/255);
+           RGBAlpha^.X/255,
+           RGBAlpha^.Y/255,
+           RGBAlpha^.Z/255,
+           RGBAlpha^.W/255);
        end;
     else raise EInternalError.Create('TCasScriptImage: invalid components count');
   end;
@@ -356,23 +356,23 @@ begin
     2: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
          GA := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         TCasScriptFloat(AResult).Value := GA^[0]/255;
+         TCasScriptFloat(AResult).Value := GA^.X/255;
        end;
     3: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3f);
          RGB := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
          TCasScriptVec3f(AResult).Value := Vector3(
-           RGB^[0]/255,
-           RGB^[1]/255,
-           RGB^[2]/255);
+           RGB^.X/255,
+           RGB^.Y/255,
+           RGB^.Z/255);
        end;
     4: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3f);
          RGBAlpha := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
          TCasScriptVec3f(AResult).Value := Vector3(
-           RGBAlpha^[0]/255,
-           RGBAlpha^[1]/255,
-           RGBAlpha^[2]/255);
+           RGBAlpha^.X/255,
+           RGBAlpha^.Y/255,
+           RGBAlpha^.Z/255);
        end;
     else raise EInternalError.Create('TCasScriptImage: invalid components count');
   end;
@@ -396,11 +396,11 @@ begin
        end;
     2: begin
          GA := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         TCasScriptFloat(AResult).Value := GA^[1]/255;
+         TCasScriptFloat(AResult).Value := GA^.Y/255;
        end;
     4: begin
          RGBAlpha := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         TCasScriptFloat(AResult).Value := RGBAlpha^[3]/255;
+         TCasScriptFloat(AResult).Value := RGBAlpha^.W/255;
        end;
     else raise EInternalError.Create('TCasScriptImage: invalid components count');
   end;
@@ -432,21 +432,21 @@ begin
        end;
     2: begin
          GA := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         GA^[0] := Clamped(Round(TCasScriptVec2f(Arguments[3]).Value[0]*255), 0, 255);
-         GA^[1] := Clamped(Round(TCasScriptVec2f(Arguments[3]).Value[1]*255), 0, 255);
+         GA^.X := Clamped(Round(TCasScriptVec2f(Arguments[3]).Value[0]*255), 0, 255);
+         GA^.Y := Clamped(Round(TCasScriptVec2f(Arguments[3]).Value[1]*255), 0, 255);
        end;
     3: begin
          RGB := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         RGB^[0] := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[0]*255), 0, 255);
-         RGB^[1] := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[1]*255), 0, 255);
-         RGB^[2] := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[2]*255), 0, 255);
+         RGB^.X := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[0]*255), 0, 255);
+         RGB^.Y := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[1]*255), 0, 255);
+         RGB^.Z := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[2]*255), 0, 255);
        end;
     4: begin
          RGBAlpha := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         RGBAlpha^[0] := Clamped(Round(TCasScriptVec4f(Arguments[3]).Value[0]*255), 0, 255);
-         RGBAlpha^[1] := Clamped(Round(TCasScriptVec4f(Arguments[3]).Value[1]*255), 0, 255);
-         RGBAlpha^[2] := Clamped(Round(TCasScriptVec4f(Arguments[3]).Value[2]*255), 0, 255);
-         RGBAlpha^[3] := Clamped(Round(TCasScriptVec4f(Arguments[3]).Value[3]*255), 0, 255);
+         RGBAlpha^.X := Clamped(Round(TCasScriptVec4f(Arguments[3]).Value[0]*255), 0, 255);
+         RGBAlpha^.Y := Clamped(Round(TCasScriptVec4f(Arguments[3]).Value[1]*255), 0, 255);
+         RGBAlpha^.Z := Clamped(Round(TCasScriptVec4f(Arguments[3]).Value[2]*255), 0, 255);
+         RGBAlpha^.W := Clamped(Round(TCasScriptVec4f(Arguments[3]).Value[3]*255), 0, 255);
        end;
     else raise EInternalError.Create('TCasScriptImage: invalid components count');
   end;
@@ -480,19 +480,19 @@ begin
        end;
     2: begin
          GA := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         GA^[0] := Clamped(Round(TCasScriptFloat(Arguments[3]).Value*255), 0, 255);
+         GA^.X := Clamped(Round(TCasScriptFloat(Arguments[3]).Value*255), 0, 255);
        end;
     3: begin
          RGB := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         RGB^[0] := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[0]*255), 0, 255);
-         RGB^[1] := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[1]*255), 0, 255);
-         RGB^[2] := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[2]*255), 0, 255);
+         RGB^.X := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[0]*255), 0, 255);
+         RGB^.Y := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[1]*255), 0, 255);
+         RGB^.Z := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[2]*255), 0, 255);
        end;
     4: begin
          RGBAlpha := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         RGBAlpha^[0] := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[0]*255), 0, 255);
-         RGBAlpha^[1] := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[1]*255), 0, 255);
-         RGBAlpha^[2] := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[2]*255), 0, 255);
+         RGBAlpha^.X := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[0]*255), 0, 255);
+         RGBAlpha^.Y := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[1]*255), 0, 255);
+         RGBAlpha^.Z := Clamped(Round(TCasScriptVec3f(Arguments[3]).Value[2]*255), 0, 255);
        end;
     else raise EInternalError.Create('TCasScriptImage: invalid components count');
   end;
@@ -523,11 +523,11 @@ begin
        end;
     2: begin
          GA := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         GA^[1] := Clamped(Round(TCasScriptFloat(Arguments[3]).Value*255), 0, 255);
+         GA^.Y := Clamped(Round(TCasScriptFloat(Arguments[3]).Value*255), 0, 255);
        end;
     4: begin
          RGBAlpha := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         RGBAlpha^[3] := Clamped(Round(TCasScriptFloat(Arguments[3]).Value*255), 0, 255);
+         RGBAlpha^.W := Clamped(Round(TCasScriptFloat(Arguments[3]).Value*255), 0, 255);
        end;
     else raise EInternalError.Create('TCasScriptImage: invalid components count');
   end;

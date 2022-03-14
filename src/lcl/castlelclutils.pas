@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -97,7 +97,6 @@ const
   ( crDefault, // mcDefault
     crNone,    // mcNone
     crNone,    // mcForceNone
-    crDefault, // mcCustom
 
     crArrow,       // mcStandard
     crHourGlass,   // mcWait
@@ -501,7 +500,7 @@ var
   Col: LongInt;
 begin
   Col := ColorToRGB(Color);
-  RedGreenBlue(Col, Result.Data[0], Result.Data[1], Result.Data[2]);
+  RedGreenBlue(Col, Result.X, Result.Y, Result.Z);
 end;
 
 { TLCLKeyPressHandler -------------------------------------------------------- }

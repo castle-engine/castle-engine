@@ -45,7 +45,7 @@ type
   end;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   PortEdit, SendEdit: TCastleEdit;
   ResponseLabel: TCastleLabel;
   Server: TServer;
@@ -164,7 +164,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
 finalization

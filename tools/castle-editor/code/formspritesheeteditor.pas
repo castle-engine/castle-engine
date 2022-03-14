@@ -50,7 +50,7 @@ type
     ActionOpenSpriteSheet: TAction;
     ActionListSpriteSheet: TActionList;
     ButtonCloseWindow: TButton;
-    CastleControlPreview: TCastleControlBase;
+    CastleControlPreview: TCastleControl;
     CastleOpenImageDialog: TCastleOpenImageDialog;
     CastleImportAtlasDialog: TCastleOpenImageDialog;
     ImageAtlasSizeWarning: TImage;

@@ -328,7 +328,7 @@ begin
     if Status <> IJL_OK then
       JpegError(Status);
 
-    // Decoded images with alpha are in ABGR format so R and B chanels are switched
+    // Decoded images with alpha are in ABGR format so R and B channels are switched
     if JpegFmt = ifA8R8G8B8 then
       SwapChannels(Images[0], ChannelRed, ChannelBlue);
 

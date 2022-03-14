@@ -1,6 +1,6 @@
 {%MainUnit castlebehaviors.pas}
 {
-  Copyright 2006-2021 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -112,6 +112,8 @@ type
   protected
     procedure SetState(const Value: TState); virtual;
     procedure ParentChanged; override;
+    function CanAttachToParent(const NewParent: TCastleTransform;
+      out ReasonWhyCannot: String): Boolean; override;
 
     { Actually do the attack indicated by AnimationAttack
       and AttackTime and other AttackXxx properties.
@@ -257,6 +259,19 @@ begin
   Result := (Parent as TCastleScene).AnimationDuration(Animation);
 end;
 
+function TCastleMoveAttack.CanAttachToParent(const NewParent: TCastleTransform;
+  out ReasonWhyCannot: String): Boolean;
+begin
+  Result := inherited;
+  if not Result then Exit;
+
+  if NewParent.FindBehavior(TCastleMoveAttack) <> nil then
+  begin
+    ReasonWhyCannot := 'Only one TCastleMoveAttack behavior can be added to a given TCastleTransform';
+    Result := false;
+  end;
+end;
+
 procedure TCastleMoveAttack.ParentChanged;
 var
   Alive: TCastleAliveBehavior;
@@ -266,8 +281,6 @@ begin
   // Our PlayAnimation and AnimationDuration requires you attach this to TCastleScene
   if not (Parent is TCastleScene) then
     raise Exception.CreateFmt('%s can only be attached to a TCastleScene', [ClassName]);
-
-  SingleInstanceOfBehavior;
 
   { Note that we don't automatically create TCastleAliveBehavior,
     this would make it complicated when something adds another

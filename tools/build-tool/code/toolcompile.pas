@@ -95,28 +95,29 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..43] of String = (
+  EnginePaths: array [0..41] of String = (
     'base',
     'common_includes',
     'base/android',
     'base/windows',
     'base/unix',
-    'base/opengl',
+    'base_rendering',
+    'base_rendering/glsl/generated-pascal',
     'fonts',
-    'fonts/opengl',
     'window',
     'window/gtk',
     'window/windows',
     'window/unix',
     'window/deprecated_units',
     'images',
-    'images/opengl',
-    'images/opengl/glsl/generated-pascal',
     'transform',
-    'transform/opengl',
-    'x3d',
-    'x3d/opengl',
-    'x3d/opengl/glsl/generated-pascal',
+    'scene',
+    'scene/glsl/generated-pascal',
+    'scene/x3d',
+    'scene/load',
+    'scene/load/spine',
+    'scene/load/collada',
+    'scene/load/pasgltf',
     'audio',
     'audio/fmod',
     'audio/openal',
@@ -126,12 +127,9 @@ const
     'castlescript',
     'ui',
     'ui/windows',
-    'ui/opengl',
     'services',
-    'services/opengl',
     'physics',
     'physics/kraft',
-    'pasgltf',
     'deprecated_units',
     { Vampyre Imaging Library }
     'vampyre_imaginglib/src/Source',
@@ -555,8 +553,13 @@ begin
     { Release build and valgrind build are quite similar, they share many options. }
     if Mode in [cmRelease, cmValgrind] then
     begin
-      { Aarch64 optimizations exhibit bugs, on all OSes,
-        with older FPC < 3.3.1 (rev 48104).
+      { Aarch64 optimizations exhibit bugs, on all OSes, with older FPC:
+
+        - Bugs reproducible with FPC = 3.2.0 and FPC 3.3.1 (rev <= 48104).
+        - Fixed in FPC 3.2.0 and later FPC unstable from GitLab.
+
+        See https://trello.com/c/5ydB4MuA/113-enable-again-aarch64-optimizations .
+
         Testcases:
 
         - iOS:
@@ -581,22 +584,14 @@ begin
           but workarounding it only uncovers more problems, it looks like
           the values in local Single variables there randomly change.
 
-          This is still reproducible with FPC 3.3.1 revision 42921
-          (latest revision as of 2019/09/05),
-          however it is locally workarounded by "$optimizations off" around
-          Draw3x3 implementation now.
-
-        So we disable optimizations on Aarch64.
-        Unless $CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER is set to true.
-        Or unless we have FPC version where it was fixed:
-        see https://trello.com/c/5ydB4MuA/113-enable-again-aarch64-optimizations }
-
+          This is reproducible with FPC 3.3.1 revision 42921
+          (latest revision as of 2019/09/05).
+      }
       if (CPU = Aarch64) and
-         (not FpcVer.AtLeast(3, 3, 1)) and
-         (GetEnvironmentVariable('CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER') <> 'true') then
+         (not FpcVer.AtLeast(3, 2, 2)) then
       begin
         FpcOptions.Add('-O-');
-        WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with FPC < 3.3.1 (rev 48104).');
+        WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with older FPC. Upgrade to FPC >= 3.2.2.');
       end else
         FpcOptions.Add('-O2');
       FpcOptions.Add('-dRELEASE');

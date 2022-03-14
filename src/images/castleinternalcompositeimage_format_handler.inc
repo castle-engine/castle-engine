@@ -1,5 +1,6 @@
+{%MainUnit castleinternalcompositeimage.pas}
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

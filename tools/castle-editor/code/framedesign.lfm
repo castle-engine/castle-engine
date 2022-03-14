@@ -366,6 +366,7 @@ object DesignFrame: TDesignFrame
       Align = alClient
       DragMode = dmAutomatic
       MultiSelect = True
+      MultiSelectStyle = [msControlSelect, msShiftSelect]
       ParentFont = False
       ParentShowHint = False
       PopupMenu = MenuTreeView

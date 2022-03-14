@@ -82,7 +82,7 @@ const
 
   { Supported sound file formats.
     Use these filters with LCL file dialog (easily set by FileFiltersToDialog)
-    or TCastleWindowBase.FileDialog. }
+    or TCastleWindow.FileDialog. }
   LoadSound_FileFilters =
   'All Files|*|' +
   '*All Sound Files|*.wav;*.ogg|' +

@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleScript" -*-
 {
-  Copyright 2007-2021 Michalis Kamburelis.
+  Copyright 2007-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,6 +36,7 @@ type
     procedure TestInvalidOps;
     procedure TestTryExecuteMath;
     procedure TestCoalesce;
+    procedure TestDivision;
   end;
 
 implementation
@@ -609,6 +610,19 @@ begin
   AssertEquals('dfgds', StringExpression('coalesce(''dfgds'', ''asd'')'));
   AssertEquals('4rfgdf', StringExpression('coalesce(''4rfgdf'', '''')'));
   AssertEquals('poip', StringExpression('coalesce('''' + '''', ''poip'')'));
+end;
+
+procedure TTestCastleScript.TestDivision;
+begin
+  AssertSameValue(0, ParseConstantFloatExpression('1 div 2'));
+  AssertSameValue(1, ParseConstantFloatExpression('2 div 2'));
+  AssertSameValue(1, ParseConstantFloatExpression('3 div 2'));
+  AssertSameValue(2, ParseConstantFloatExpression('4 div 2'));
+
+  AssertSameValue(0.5, ParseConstantFloatExpression('1 / 2'));
+  AssertSameValue(1, ParseConstantFloatExpression('2 / 2'));
+  AssertSameValue(1.5, ParseConstantFloatExpression('3 / 2'));
+  AssertSameValue(2, ParseConstantFloatExpression('4 / 2'));
 end;
 
 initialization

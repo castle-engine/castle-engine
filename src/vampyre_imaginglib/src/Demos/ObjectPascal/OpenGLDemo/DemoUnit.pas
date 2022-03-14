@@ -16,7 +16,6 @@ unit DemoUnit;
 
 { Define this symbol if you want to use dglOpenGL header.}
 {$DEFINE USE_DGL_HEADERS}
-{ $DEFINE USE_GLSCENE_HEADERS}
 
 {$I ImagingOptions.inc}
 {$R ..\Common\MainIcon.res}

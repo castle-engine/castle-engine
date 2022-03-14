@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,12 +74,12 @@ type
     { Quaternion conjugation. This is just a fancy name for negating @code(Data.Vector).
       @groupBegin }
     function Conjugate: TQuaternion;
-    procedure ConjugateMe;
+    procedure ConjugateMe; deprecated 'use Q := Q.Conjugate';
     { @groupEnd }
 
     { Make the quaternion normalized. }
-    procedure NormalizeMe;
-    procedure Normalize; deprecated 'use NormalizeMe (consistent with TVector3.NormalizeMe and TQuaternion.ConjugateMe)';
+    function Normalize: TQuaternion;
+    procedure NormalizeMe; deprecated 'use Q := Q.Normalize';
 
     { Perform normalization but only if the quaternion is detected to be
       "significantly unnormalized". It checks if the quaternion needs
@@ -121,7 +121,7 @@ type
   end;
 
 const
-  QuatIdentityRot: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1))
+  QuatIdentityRot: TQuaternion = (Data: (Vector: (X: 0; Y: 0; Z: 0); Real: 1))
     deprecated 'use TQuaternion.ZeroRotation';
 
 { Calculate unit quaternion representing rotation around Axis
@@ -194,7 +194,7 @@ uses Math, CastleUtils;
 
 class function TQuaternion.ZeroRotation: TQuaternion; {$ifdef FPC}static;{$endif}
 const
-  R: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1));
+  R: TQuaternion = (Data: (Vector: (X: 0; Y: 0; Z: 0); Real: 1));
 begin
   Result := R;
 end;
@@ -230,7 +230,7 @@ function TQuaternion.ToAxisAngle: TVector4;
 var
   Axis: TVector3 absolute Result;
 begin
-  ToAxisAngle(Axis, Result.Data[3]);
+  ToAxisAngle(Axis, Result.W);
 end;
 
 function TQuaternion.Conjugate: TQuaternion;
@@ -296,9 +296,9 @@ end;
 function TQuaternion.ToRotationMatrix: TMatrix4;
 begin
   Result := QuatToRotationMatrix(
-    Data.Vector.Data[0],
-    Data.Vector.Data[1],
-    Data.Vector.Data[2],
+    Data.Vector.X,
+    Data.Vector.Y,
+    Data.Vector.Z,
     Data.Real);
 end;
 
@@ -329,15 +329,25 @@ end;
 function TQuaternion.ToRotationMatrix3: TMatrix3;
 begin
   Result := QuatToRotationMatrix3(
-    Data.Vector.Data[0],
-    Data.Vector.Data[1],
-    Data.Vector.Data[2],
+    Data.Vector.X,
+    Data.Vector.Y,
+    Data.Vector.Z,
     Data.Real);
 end;
 
-procedure TQuaternion.Normalize;
+function TQuaternion.Normalize: TQuaternion;
+var
+  Len: Single;
 begin
-  NormalizeMe;
+  Len := Data.Vector4.Length;
+  if Len <> 0 then
+  begin
+    Len := 1/Len;
+    Result.Data.Vector.X := Data.Vector.X * Len;
+    Result.Data.Vector.Y := Data.Vector.Y * Len;
+    Result.Data.Vector.Z := Data.Vector.Z * Len;
+    Result.Data.Real := Data.Real * Len;
+  end;
 end;
 
 procedure TQuaternion.NormalizeMe;
@@ -348,9 +358,9 @@ begin
   if Len <> 0 then
   begin
     Len := 1/Len;
-    Data.Vector.Data[0] := Data.Vector.Data[0] * Len;
-    Data.Vector.Data[1] := Data.Vector.Data[1] * Len;
-    Data.Vector.Data[2] := Data.Vector.Data[2] * Len;
+    Data.Vector.X := Data.Vector.X * Len;
+    Data.Vector.Y := Data.Vector.Y * Len;
+    Data.Vector.Z := Data.Vector.Z * Len;
     Data.Real := Data.Real * Len;
   end;
 end;
@@ -372,9 +382,9 @@ begin
     if Len <> 0 then
     begin
       Len := 1/Len;
-      Data.Vector.Data[0] := Data.Vector.Data[0] * Len;
-      Data.Vector.Data[1] := Data.Vector.Data[1] * Len;
-      Data.Vector.Data[2] := Data.Vector.Data[2] * Len;
+      Data.Vector.X := Data.Vector.X * Len;
+      Data.Vector.Y := Data.Vector.Y * Len;
+      Data.Vector.Z := Data.Vector.Z * Len;
       Data.Real := Data.Real * Len;
     end;
   end;
@@ -419,7 +429,7 @@ function QuatFromAxisAngle(const AxisAngle: TVector4;
 var
   Axis: TVector3 absolute AxisAngle;
 begin
-  Result := QuatFromAxisAngle(Axis, AxisAngle.Data[3], NormalizeAxis);
+  Result := QuatFromAxisAngle(Axis, AxisAngle.W, NormalizeAxis);
 end;
 
 function QuatFromRotationMatrix(const Matrix: TMatrix3): TQuaternion;
@@ -435,36 +445,36 @@ begin
   if Trace > 0 then
   begin
     S := Sqrt(Trace + 1.0) * 2; // S=4*qw
-    Result.Data.Vector4[3] := 0.25 * S;
-    Result.Data.Vector4[0] := (Matrix.Data[1, 2] - Matrix.Data[2, 1]) / S;
-    Result.Data.Vector4[1] := (Matrix.Data[2, 0] - Matrix.Data[0, 2]) / S;
-    Result.Data.Vector4[2] := (Matrix.Data[0, 1] - Matrix.Data[1, 0]) / S;
+    Result.Data.Vector4.W := 0.25 * S;
+    Result.Data.Vector4.X := (Matrix.Data[1, 2] - Matrix.Data[2, 1]) / S;
+    Result.Data.Vector4.Y := (Matrix.Data[2, 0] - Matrix.Data[0, 2]) / S;
+    Result.Data.Vector4.Z := (Matrix.Data[0, 1] - Matrix.Data[1, 0]) / S;
   end else
   if (Matrix.Data[0, 0] > Matrix.Data[1, 1]) and (Matrix.Data[0, 0] > Matrix.Data[2, 2]) then
   begin
     S := Sqrt(1.0 + Matrix.Data[0, 0] - Matrix.Data[1, 1] - Matrix.Data[2, 2]) * 2; // S=4*qx
-    Result.Data.Vector4[3] := (Matrix.Data[1, 2] - Matrix.Data[2, 1]) / S;
-    Result.Data.Vector4[0] := 0.25 * S;
-    Result.Data.Vector4[1] := (Matrix.Data[1, 0] + Matrix.Data[0, 1]) / S;
-    Result.Data.Vector4[2] := (Matrix.Data[2, 0] + Matrix.Data[0, 2]) / S;
+    Result.Data.Vector4.W := (Matrix.Data[1, 2] - Matrix.Data[2, 1]) / S;
+    Result.Data.Vector4.X := 0.25 * S;
+    Result.Data.Vector4.Y := (Matrix.Data[1, 0] + Matrix.Data[0, 1]) / S;
+    Result.Data.Vector4.Z := (Matrix.Data[2, 0] + Matrix.Data[0, 2]) / S;
   end else
   if (Matrix.Data[1, 1] > Matrix.Data[2, 2]) then
   begin
     S := Sqrt(1.0 + Matrix.Data[1, 1] - Matrix.Data[0, 0] - Matrix.Data[2, 2]) * 2; // S=4*qy
-    Result.Data.Vector4[3] := (Matrix.Data[2, 0] - Matrix.Data[0, 2]) / S;
-    Result.Data.Vector4[0] := (Matrix.Data[1, 0] + Matrix.Data[0, 1]) / S;
-    Result.Data.Vector4[1] := 0.25 * S;
-    Result.Data.Vector4[2] := (Matrix.Data[2, 1] + Matrix.Data[1, 2]) / S;
+    Result.Data.Vector4.W := (Matrix.Data[2, 0] - Matrix.Data[0, 2]) / S;
+    Result.Data.Vector4.X := (Matrix.Data[1, 0] + Matrix.Data[0, 1]) / S;
+    Result.Data.Vector4.Y := 0.25 * S;
+    Result.Data.Vector4.Z := (Matrix.Data[2, 1] + Matrix.Data[1, 2]) / S;
   end else
   begin
     S := Sqrt(1.0 + Matrix.Data[2, 2] - Matrix.Data[0, 0] - Matrix.Data[1, 1]) * 2; // S=4*qz
-    Result.Data.Vector4[3] := (Matrix.Data[0, 1] - Matrix.Data[1, 0]) / S;
-    Result.Data.Vector4[0] := (Matrix.Data[2, 0] + Matrix.Data[0, 2]) / S;
-    Result.Data.Vector4[1] := (Matrix.Data[2, 1] + Matrix.Data[1, 2]) / S;
-    Result.Data.Vector4[2] := 0.25 * S;
+    Result.Data.Vector4.W := (Matrix.Data[0, 1] - Matrix.Data[1, 0]) / S;
+    Result.Data.Vector4.X := (Matrix.Data[2, 0] + Matrix.Data[0, 2]) / S;
+    Result.Data.Vector4.Y := (Matrix.Data[2, 1] + Matrix.Data[1, 2]) / S;
+    Result.Data.Vector4.Z := 0.25 * S;
   end;
 
-  Result.NormalizeMe;
+  Result := Result.Normalize;
 end;
 
 procedure MatrixDecompose(const Matrix: TMatrix4;
@@ -480,19 +490,19 @@ begin
   }
 
   // calculate Translation
-  Translation.Init(Matrix.Data[3, 0], Matrix.Data[3, 1], Matrix.Data[3, 2]);
+  Translation := Vector3(Matrix.Data[3, 0], Matrix.Data[3, 1], Matrix.Data[3, 2]);
 
   // calculate Scale
   for I := 0 to 2 do
   begin
-    Column.Init(Matrix.Data[I, 0], Matrix.Data[I, 1], Matrix.Data[I, 2]);
-    Scale.Data[I] := Column.Length;
+    Column := Vector3(Matrix.Data[I, 0], Matrix.Data[I, 1], Matrix.Data[I, 2]);
+    Scale.InternalData[I] := Column.Length;
   end;
 
   // calculate Rotation
   for I := 0 to 2 do
     for J := 0 to 2 do
-      RotationMatrix.Data[I, J] := Matrix.Data[I, J] / Scale.Data[I];
+      RotationMatrix.Data[I, J] := Matrix.Data[I, J] / Scale[I];
   Quaternion := QuatFromRotationMatrix(RotationMatrix);
   Rotation := Quaternion.ToAxisAngle;
 end;
@@ -563,7 +573,7 @@ begin
       idle <-> use_phone_loop (SLerp called by TSFRotation.AssignLerp) }
 
   if TVector3.PerfectlyEquals(Rot1Axis, Rot2Axis) then
-    Result := Vector4(Rot1Axis, AngleLerp(A, Rot1.Data[3], Rot2.Data[3]))
+    Result := Vector4(Rot1Axis, AngleLerp(A, Rot1.W, Rot2.W))
   else
     Result := SLerp(A,
       QuatFromAxisAngle(Rot1, true),
@@ -580,7 +590,7 @@ begin
   end else
     Result.Data.Vector4 := Lerp(A, Q1.Data.Vector4, Q2.Data.Vector4);
 
-  Result.NormalizeMe;
+  Result := Result.Normalize;
 end;
 
 function NLerp(const A: Single; const Rot1, Rot2: TVector4;

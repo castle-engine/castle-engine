@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="light_point.svg"
+   width="512"
+   height="512"
+   inkscape:export-filename="/home/michalis/sources/castle-engine/castle-engine/tools/castle-editor/gfx/gizmos/light/light_point.png"
+   inkscape:export-xdpi="48"
+   inkscape:export-ydpi="48"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#000000"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="true"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:zoom="0.40039063"
+     inkscape:cx="353.40487"
+     inkscape:cy="106.14634"
+     inkscape:window-width="1852"
+     inkscape:window-height="1009"
+     inkscape:window-x="1988"
+     inkscape:window-y="34"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <!--! Font Awesome Pro 6.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+  <path
+     d="m 182.07502,433.00385 c 0,5.62118 1.6211,11.10489 4.7169,15.79144 l 15.30047,22.93285 c 4.68655,7.02982 15.32725,12.74741 23.7809,12.74741 h 55.05134 c 8.42508,0 19.06756,-5.71402 23.75411,-12.74741 l 15.24691,-22.92393 c 2.62268,-3.96169 4.77403,-11.0424 4.77403,-15.80036 l 0.11427,-34.99291 H 181.98575 Z M 252.86424,27.472831 C 161.84698,27.751792 96.288838,101.52639 96.288838,183.76865 c 0,39.61697 14.675602,75.73465 38.884982,103.37191 14.75593,16.81802 37.79591,51.98053 46.61555,81.63523 0.0279,0.22317 0.0837,0.46116 0.11158,0.69834 h 143.00673 c 0.0279,-0.23709 0.0837,-0.46115 0.11158,-0.69834 8.81518,-29.6547 31.85961,-64.81721 46.61555,-81.63523 24.23616,-26.86956 38.87605,-62.93368 38.87605,-103.37191 0,-86.134327 -70.61069,-156.560855 -157.64662,-156.295819 z m 0.53561,85.694059 c -39.3938,0 -71.4141,32.03815 -71.4141,70.61069 0,8.65003 -6.42726,15.0773 -14.28281,15.0773 -7.85555,0 -14.28282,-6.42727 -14.28282,-14.28282 0,-55.13168 44.85698,-99.176328 99.97973,-99.176328 7.89483,0 14.28282,6.390669 14.28282,14.282819 0,7.892149 -6.42727,13.488339 -14.28282,13.488339 z"
+     id="path2"
+     style="fill:#fc9c2d;fill-opacity:1;stroke:#000000;stroke-width:8.92676;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+</svg>

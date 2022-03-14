@@ -10,10 +10,10 @@
 uses CastleParameters, CastleWindow, CastleControls, CastleColors, CastleUIControls;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   L: TCastleLabel;
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.Open;
 
   L := TCastleLabel.Create(Application);

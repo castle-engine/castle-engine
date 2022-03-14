@@ -68,7 +68,7 @@ type
   TInstanceData = record
     Npp: PNPP;
     Window: TNPWindow;
-    CastleWindow: TCastleWindowBase;
+    CastleWindow: TCastleWindow;
     FreeCastleWindow: boolean;
     NamedParameters: TCastleStringList;
     {$ifndef DEBUG_WINDOWLESS}

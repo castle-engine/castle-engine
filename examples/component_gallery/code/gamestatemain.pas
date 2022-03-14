@@ -27,7 +27,7 @@ type
   TStateMain = class(TUIState)
   private
     const
-      PagesCount = 6;
+      PagesCount = 12;
 
       { Suffixes of component names in the design,
         to find ButtonXxx and PageXxx matching controls. }
@@ -36,8 +36,14 @@ type
         'EmptyRectangle',
         'ColorRectangle',
         'Label',
+        'Image',
         'Button',
-        'Button2'
+        'Button2',
+        'Checkbox',
+        'Edit',
+        'HorizontalVerticalGroup',
+        'ScrollView',
+        'Shape'
       );
 
     var

@@ -33,11 +33,11 @@ begin
 end;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Viewport: TCastleViewport;
   Scene: TCastleScene;
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   // We must have buffer that stores alpha information, not only RGB
   Window.AlphaBits := 8;
   // Initially fill buffer with transparent white.

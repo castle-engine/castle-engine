@@ -21,7 +21,7 @@ uses
 
 type
   { Class for loading X Window Pixmap images known as XPM.
-    It is ASCII-text-based format, basicaly a fragment of C code
+    It is ASCII-text-based format, basically a fragment of C code
     declaring static array. Loaded image is in ifA8R8G8B8 data format.
     Loading as well as saving is supported now. }
   TXPMFileFormat = class(TImageFileFormat)
@@ -488,7 +488,7 @@ begin
 
     StrFile.Add('/* pixels */');
 
-    // Write pixels - for aech pixel of image find its char id
+    // Write pixels - for each pixel of image find its char id
     // and append it to line
     Ptr := ImageToSave.Bits;
     for Y := 0 to ImageToSave.Height - 1 do

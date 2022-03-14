@@ -436,6 +436,8 @@ begin
     SaveHeader;
     // Save uncompressed pixels
     SavePixels;
+    // Castle Game Engine fix, submitted upstream, see https://github.com/galfar/imaginglib/pull/23
+    Result := True;
   finally
     if MustBeFreed then
       FreeImage(ImageToSave);

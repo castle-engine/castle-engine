@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -318,7 +318,7 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
             Macros.Add('${DESIGN_FILE_URL}', MaybeUseDataProtocol(FilenameToURISafe(FinalDesignAbsolute)));
 
             StringToFile(FinalDesignAbsolute, FileToString(
-              EditorApplicationData + 'templates/newunitstate.castle-user-interface'));
+              InternalCastleDesignData + 'templates/newunitstate.castle-user-interface'));
             FCreatedDesignRelative := FinalDesignRelative;
             FCreatedDesignAbsolute := FinalDesignAbsolute;
 
@@ -334,7 +334,7 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
           end;
       end;
 
-      Contents := FileToString(EditorApplicationData + 'templates/' + TemplateSource);
+      Contents := FileToString(InternalCastleDesignData + 'templates/' + TemplateSource);
       Contents := SReplacePatterns(Contents, Macros, false);
       StringToFile(FinalUnitAbsolute, Contents);
       FCreatedUnitRelative := FinalUnitRelative;

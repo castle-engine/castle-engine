@@ -70,7 +70,7 @@ type
   { File Header for Windows/OS2 bitmap file.}
   TBitmapFileHeader = packed record
     ID: Word;           // Is always 19778 : 'BM'
-    Size: UInt32;       // Filesize
+    Size: UInt32;       // File size
     Reserved1: Word;
     Reserved2: Word;
     Offset: UInt32;     // Offset from start pos to beginning of image bits
@@ -211,7 +211,7 @@ var
       NegHeightBitmap := BI.Height < 0;
       Row := 0; // Current row in dest image
       Col := 0; // Current column in dest image
-      // Row in dest image where actuall writting will be done
+      // Row in dest image where actual writing will be done
       WriteRow := Iff(NegHeightBitmap, Row, Height - 1 - Row);
       while (Row < Height) and (SrcPos < BI.SizeImage) do
       begin
@@ -307,7 +307,7 @@ var
       NegHeightBitmap := BI.Height < 0;
       Row := 0; // Current row in dest image
       Col := 0; // Current column in dest image
-      // Row in dest image where actuall writting will be done
+      // Row in dest image where actual writing will be done
       WriteRow := Iff(NegHeightBitmap, Row, Height - 1 - Row);
       while (Row < Height) and (SrcPos < BI.SizeImage) do
       begin
@@ -408,7 +408,7 @@ begin
         BI.SizeImage := BF.Size - BF.Offset;
     end;
     // Bit mask reading. Only read it if there is V3 header, V4 header has
-    // masks laoded already (only masks for RGB in V3).
+    // masks loaded already (only masks for RGB in V3).
     if (BI.Compression = BI_BITFIELDS) and (BI.Size = V3InfoHeaderSize) then
       Read(Handle, @BI.RedMask, SizeOf(BI.RedMask) * 3);
 
@@ -438,7 +438,7 @@ begin
     // Palette settings and reading
     if BI.BitCount <= 8 then
     begin
-      // Seek to the begining of palette
+      // Seek to the beginning of palette
       Seek(Handle, StartPos + SizeOf(TBitmapFileHeader) + LongInt(BI.Size),
         smFromBeginning);
       if IsOS2 then
@@ -812,7 +812,7 @@ initialization
       Should be less buggy an more readable (load inspired by Colosseum Builders' code).
     - Made public properties for options registered to SetOption/GetOption
       functions. 
-    - Addded alpha check to 32b bitmap loading too (teh same as in 16b
+    - Added alpha check to 32b bitmap loading too (teh same as in 16b
       bitmap loading).
     - Moved Convert1To8 and Convert4To8 to ImagingFormats
     - Changed extensions to filename masks.
@@ -832,7 +832,7 @@ initialization
 
   -- 0.13 Changes/Bug Fixes -----------------------------------
     - when loading 1/4 bit images with dword aligned dimensions
-      there was ugly memory rewritting bug causing image corruption
+      there was ugly memory rewriting bug causing image corruption
 
 }
 
