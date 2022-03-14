@@ -434,7 +434,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
-    Fail('Currently we can test TUIState only in console mode.');
+    Fail('TODO: We can test TUIState only in console mode.');
   {$endif}
 
   {$ifndef CASTLE_TESTER}
@@ -511,7 +511,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
-    Fail('Curretnly we can test TUIState only in console mode.');
+    Fail('TODO: We can test TUIState only in console mode.');
   {$endif}
 
   {$ifndef CASTLE_TESTER}
@@ -596,7 +596,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
-    Fail('Curretnly we can test TUIState only in console mode.');
+    Fail('TODO: We can test TUIState only in console mode.');
   {$endif}
 
   {$ifndef CASTLE_TESTER}

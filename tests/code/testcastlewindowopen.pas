@@ -72,7 +72,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
-    Fail('Curretnly we can test window progress only in console mode.');
+    Fail('TODO: We can test window progress only in console mode.');
   {$endif}
 
   Window := TCastleWindow.Create(nil);
@@ -120,7 +120,7 @@ var
 begin
   {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
-    Fail('Curretnly we can test window progress only in console mode.');
+    Fail('TODO: We can test window progress only in console mode.');
   {$endif}
 
   Window := TCastleWindow.Create(nil);
@@ -198,7 +198,7 @@ procedure TTestCastleWindowOpen.TestLoadLevelFromOpen;
 begin
   {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
-    Fail('Curretnly we can test window progress only in console mode.');
+    Fail('TODO: We can test window progress only in console mode.');
   {$endif}
 
   DoTest(false);
