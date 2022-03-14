@@ -17,7 +17,7 @@ defaults:
 
 jobs:
   test-fpc-stable:
-    name: Build And Automatic Tests (FPC Stable)
+    name: Base Tests (FPC Stable)
     runs-on: ubuntu-latest
     # Use Docker image with CGE prerequisites (FPC, Lazarus, Android tools etc.)
     # See https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
@@ -37,7 +37,7 @@ jobs:
         run: make clean test-fpmake
 
   test-fpc-stable-examples:
-    name: Build Examples (FPC Stable)
+    name: Examples (FPC Stable)
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
@@ -48,7 +48,7 @@ jobs:
         run: make clean examples
 
   test-fpc-stable-examples-laz:
-    name: Build Examples Using Lazarus (FPC / Lazarus Stable)
+    name: Examples Using Lazarus (FPC / Lazarus Stable)
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
@@ -59,7 +59,7 @@ jobs:
         run: make clean examples-laz
 
   test-fpc-320:
-    name: Build And Automatic Tests (FPC 3.2.0)
+    name: Base Tests (FPC 3.2.0)
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
@@ -74,6 +74,7 @@ jobs:
         run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean test-fpmake
 
   test-fpc-320-examples:
+    name: Examples (FPC 3.2.0)
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
@@ -84,6 +85,7 @@ jobs:
         run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples
 
   test-fpc-320-examples-laz:
+    name: Examples Using Lazarus (FPC 3.2.0)
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
@@ -94,7 +96,7 @@ jobs:
         run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz
 
   test-fpc-latest-unstable:
-    name: Build And Automatic Tests (FPC Latest Unstable)
+    name: Base Tests (FPC Latest Unstable)
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
@@ -109,7 +111,7 @@ jobs:
         run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake
 
   test-fpc-latest-unstable-examples:
-    name: Build Examples (FPC Latest Unstable)
+    name: Examples (FPC Latest Unstable)
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
@@ -120,7 +122,7 @@ jobs:
         run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples
 
   test-fpc-latest-unstable-examples-laz:
-    name: Build Examples Using Lazarus (FPC Latest Unstable)
+    name: Examples Using Lazarus (FPC Latest Unstable)
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
