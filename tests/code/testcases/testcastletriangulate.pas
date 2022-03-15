@@ -17,8 +17,6 @@
 { Test CastleTriangulate unit. }
 unit TestCastleTriangulate;
 
-{$I castleconf.inc}
-
 interface
 
 uses

@@ -17,9 +17,6 @@
 { Test X3DNodes unit. }
 unit TestX3DNodes;
 
-{$I tests.inc}
-{$I castleconf.inc}
-
 interface
 
 uses

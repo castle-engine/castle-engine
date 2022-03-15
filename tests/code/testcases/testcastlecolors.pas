@@ -17,8 +17,6 @@
 { Test CastleColors unit. }
 unit TestCastleColors;
 
-{$I castleconf.inc}
-
 { $define SPEED_TESTS}
 
 interface

@@ -17,8 +17,6 @@
 { Test CastleParameters unit. }
 unit TestCastleParameters;
 
-{$I castleconf.inc}
-
 interface
 
 uses Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,

@@ -17,8 +17,6 @@
 { Test CastleImages. }
 unit TestCastleImages;
 
-{$I castleconf.inc}
-
 interface
 
 uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,

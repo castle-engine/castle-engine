@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCompiler" -*-
 {
-  Copyright 2017-2021 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,8 +18,6 @@
 unit TestCompiler;
 
 interface
-
-{$I castleconf.inc}
 
 uses
   Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry

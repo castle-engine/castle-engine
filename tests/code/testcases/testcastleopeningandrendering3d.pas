@@ -14,9 +14,18 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test TCastleScene opening and rendering various files. }
 unit TestCastleOpeningAndRendering3D;
 
-{$I tests.inc}
+{ Test also all models found in
+
+    ../../demo-models
+    ../../castle/data
+    ../../www/htdocs
+
+  This will make the test take *much* longer time,
+  TestOpeningAndRendering3D will then open + render a lot of models. }
+{.$define CASTLE_TEST_DEMO_MODELS}
 
 interface
 
@@ -162,11 +171,11 @@ begin
     TestScene('');
     TestScenesInDir('data');
 
-    {$ifdef CASTLE_ENGINE_TRUNK_AVAILABLE}
+    {$ifdef CASTLE_TEST_DEMO_MODELS}
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'demo-models');
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'castle' + PathDelim + 'data');
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'www' + PathDelim + 'htdocs');
-    {$endif CASTLE_ENGINE_TRUNK_AVAILABLE}
+    {$endif CASTLE_TEST_DEMO_MODELS}
 
     ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
     try

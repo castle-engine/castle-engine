@@ -17,8 +17,6 @@
 { Test CastleSpaceFillingCurves unit. }
 unit TestCastleSpaceFillingCurves;
 
-{$I castleconf.inc}
-
 interface
 
 uses

@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestSceneCore" -*-
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,8 +16,6 @@
 
 { Test CastleSceneCore unit. }
 unit TestCastleSceneCore;
-
-{$I tests.inc}
 
 interface
 

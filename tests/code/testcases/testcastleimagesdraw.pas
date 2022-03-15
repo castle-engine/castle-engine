@@ -16,8 +16,6 @@
 
 unit TestCastleImagesDraw;
 
-{$include castleconf.inc}
-
 interface
 
 uses

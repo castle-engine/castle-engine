@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleScriptVectors" -*-
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,8 +16,6 @@
 
 { Test CastleScriptVectors unit. }
 unit TestCastleScriptVectors;
-
-{$I castleconf.inc}
 
 interface
 
