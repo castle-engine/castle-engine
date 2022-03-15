@@ -104,7 +104,7 @@ procedure TStatePlay.Start;
     //AvatarCollider.Translation := Vector3(0, 5, 0);
     AvatarCollider.Restitution := 0.01;
     AvatarCollider.Friction := 0.10;
-    //AvatarCollider.Mass := 50;
+    AvatarCollider.Mass := 50;
 
     SceneAvatar.AddBehavior(AvatarBody);
     SceneAvatar.AddBehavior(AvatarCollider);
