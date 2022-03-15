@@ -14,6 +14,15 @@
     </search_paths>
     <custom_options>
       <option>-dCASTLE_TESTER</option>
+      <!-- Test for memory leaks -->
+      <option>-gl</option>
+      <option>-gh</option>
+      <!--
+        Hide warnings about deprecated stuff.
+        In tests, we often deliberately test deprecated API, to make sure it still works.
+      -->
+      <option>-vm05075</option>
+      <option>-vm05066</option>
     </custom_options>
   </compiler_options>
 </project>
