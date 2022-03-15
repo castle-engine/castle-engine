@@ -464,7 +464,8 @@ begin
   // override vector change method, to call Init in design mode when this changes
   AvatarTargetPersistent.InternalSetValue := {$ifdef FPC}@{$endif}MySetAvatarTargetForPersistent;
 
-  FMovementType := mtVelocity;
+  //FMovementType := mtVelocity;
+  FMovementType := mtForce;
   FWasJumpInput := false;
   FAirMovementControl := DefaultAirMovementControl;
   FAirRotationControl := DefaultAirRotateControl;
@@ -892,6 +893,8 @@ var
   DeltaSpeed: Single;
   DeltaAngular: Single;
   AvatarRigidBody: TCastleRigidBody;
+
+  // velocity
   MaxHorizontalVelocityChange: Single;
   Acceleration: Single;
   HVelocity: TVector3;
@@ -901,6 +904,11 @@ var
   IsOnGround: Boolean;
   DistanceToGround: Single;
   Jump: Single;
+
+  // force
+  DeltaForce: Single;
+  Collider: TCastleCollider;
+  Torque: Single;
 const
   JumpVelocity = 5;
 begin
@@ -1131,7 +1139,68 @@ begin
       end;
       mtForce:
       begin
-        //AvatarRigidBody.;
+        Collider := A.FindBehavior(TCastleCollider) as TCastleCollider;
+        if Collider = nil then
+          Exit;
+
+        DeltaForce := 0;
+
+
+        if Input_Forward.IsPressed(Container) then
+        begin
+          Moving := true;
+          DeltaForce := Speed * 2 * Collider.Mass * SecondsPassed * 60 {* MovementControlFactor(IsOnGround)};
+          WritelnLog('DeltaForce ' + FloatToStr(DeltaForce));
+          //MoveDirection := A.WorldToLocal(A.Direction); // for AddCenterForce
+          MoveDirection := A.Direction;
+        end;
+
+        if Input_Backward.IsPressed(Container) then
+        begin
+          Moving := true;
+          DeltaForce := Speed * 2 * Collider.Mass * SecondsPassed * 60 {* MovementControlFactor(IsOnGround)};
+          WritelnLog('DeltaForce ' + FloatToStr(DeltaForce));
+          //MoveDirection := A.WorldToLocal(-A.Direction); // for AddCenterForce
+          MoveDirection := -A.Direction;
+        end;
+
+        Torque := 0;
+        if Input_RightRotate.IsPressed(Container) then
+        begin
+          Moving := true;
+          Torque := -RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGround)};
+        end;
+        if Input_LeftRotate.IsPressed(Container) then
+        begin
+          Moving := true;
+          Torque := RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGround)};
+        end;
+
+        AvatarRigidBody.WakeUp;
+
+        if not IsZero(Torque) then
+        begin
+          AvatarRigidBody.AddTorque(A.Up * Torque);
+          Rotating := true;
+        end else
+        if not AvatarRigidBody.AngularVelocity.IsZero(0.1) then
+        begin
+          Rotating := true;
+          { TODO: In case of space ship this is not OK.}
+        end else
+        begin
+          //AvatarRigidBody.AngularVelocity := Vector3(0, 0, 0);
+          Rotating := false;
+        end;
+
+
+        if Moving then
+        begin
+          AvatarRigidBody.AddForce(MoveDirection * DeltaForce, A.Translation);
+          //AvatarRigidBody.AddCenterForce(MoveDirection * DeltaForce);
+          //AvatarRigidBody.ApplyImpulse(MoveDirection * DeltaForce, A.Translation);
+          //AvatarRigidBody.ApplyImpulse(MoveDirection * DeltaForce, Collider.Translation);
+        end;
       end;
     end;
   end;
