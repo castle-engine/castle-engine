@@ -17,6 +17,9 @@
 { Test some Pascal compiler (FPC) stuff. These tests are independent from CGE. }
 unit TestCompiler;
 
+{ Needed to define EXTENDED_EQUALS_DOUBLE on some platforms/compilers. }
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses
