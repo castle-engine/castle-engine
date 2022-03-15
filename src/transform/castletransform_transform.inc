@@ -217,6 +217,10 @@
     procedure NotifyWorldAttach(const NewWorld: TCastleAbstractRootTransform);
     procedure NotifyWorldDetach(const PreviousWorld: TCastleAbstractRootTransform);
 
+    { When someone calls Free Behavior it is fired but doesn't call
+      WorldBeforeDetach, ParentBeforeDetach, ParentChanged, so we need
+      add procedure that is called in behavior destructor to call all
+      needed events before destroy. }
     procedure BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
   protected
     { Call this when doing anything that allocates GL resources.
@@ -2756,9 +2760,6 @@ end;
 
 procedure TCastleTransform.BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
 begin
-  { When someone calls Free Behavior it is fired but doesn't call
-    WorldBeforeDetach, ParentBeforeDetach, ParentChanged, so we need
-    add it here. }
   if Behavior.Parent <> nil then
   begin
     { Call WorldDetached directly }
