@@ -1692,7 +1692,19 @@ begin
     '      durationBetweenConst + random() * durationBetweenRandom2;' + #10 +
     '    startLight2 := startLight1AndAudio + blink2Start)' + #10 +
     '') =
-    '"castlescript:&#xA;function initialize(time)&#xA;  { set up first thunder in the future }&#xA;  '+'startLight1AndAudio :=  time +&#xA;    durationBetweenConst + random() * durationBetweenRandom1;&#xA;  startLight2 := startLight1AndAudio + ' + 'blink2Start&#xA;&#xA;function forceThunderNow(value, time)&#xA;  when (value,&#xA;    startLight1AndAudio := time;&#xA;    startLight2 := '+'startLight1AndAudio + blink2Start)&#xA;&#xA;function light2Active(value, time)&#xA;  when (and(not(value), not(audioActive)),&#xA;    ' + '{ Once everything finished (2nd light blink and sound) finished,&#xA;      set up next thunder in the future.&#xA;      ' + 'We can only do it once everything finished, as X3D spec says that&#xA;      &apos;Any set_startTime events to an active time-dependent node are ignored.&apos; }&#xA;    startLight1AndAudio := startLight1AndAudio +&#xA;      ' + 'durationBetweenConst + random() * durationBetweenRandom2;&#xA;  ' + '  startLight2 := startLight1AndAudio + blink2Start)&#xA;&#xA;function ' + 'audioActive(value, time)&#xA;  when (and(not(value), not(light2Active)),&#xA;    ' + '{ Exactly like light2Active. We have to watch for both light2Active&#xA;      and audioActive, as we don&apos;t know which one takes longer: light blinking&#xA;      or audio sound. }&#xA;    ' + 'startLight1AndAudio := startLight1AndAudio +&#xA;      durationBetweenConst + random() * durationBetweenRandom2;&#xA;   ' + ' startLight2 := startLight1AndAudio + blink2Start)&#xA;"');
+
+    '"castlescript:&#xA;function initialize(time)&#xA;  { set up first thunder in the future }&#xA;  '+
+    'startLight1AndAudio :=  time +&#xA;    durationBetweenConst + random() * durationBetweenRandom1;&#xA;  startLight2 := startLight1AndAudio + ' +
+    'blink2Start&#xA;&#xA;function forceThunderNow(value, time)&#xA;  when (value,&#xA;    startLight1AndAudio := time;&#xA;    startLight2 := '+
+    'startLight1AndAudio + blink2Start)&#xA;&#xA;function light2Active(value, time)&#xA;  when (and(not(value), not(audioActive)),&#xA;    ' +
+    '{ Once everything finished (2nd light blink and sound) finished,&#xA;      set up next thunder in the future.&#xA;      ' +
+    'We can only do it once everything finished, as X3D spec says that&#xA;      &apos;Any set_startTime events to an active time-dependent node are ignored.&apos; }&#xA;    startLight1AndAudio := startLight1AndAudio +&#xA;      ' +
+    'durationBetweenConst + random() * durationBetweenRandom2;&#xA;  ' +
+    '  startLight2 := startLight1AndAudio + blink2Start)&#xA;&#xA;function ' +
+    'audioActive(value, time)&#xA;  when (and(not(value), not(light2Active)),&#xA;    ' +
+    '{ Exactly like light2Active. We have to watch for both light2Active&#xA;      and audioActive, as we don&apos;t know which one takes longer: light blinking&#xA;      or audio sound. }&#xA;    ' +
+    'startLight1AndAudio := startLight1AndAudio +&#xA;      durationBetweenConst + random() * durationBetweenRandom2;&#xA;   ' +
+    ' startLight2 := startLight1AndAudio + blink2Start)&#xA;"');
 end;
 
 procedure TTestX3DNodes.TestOrthoViewpointFieldOfView;
