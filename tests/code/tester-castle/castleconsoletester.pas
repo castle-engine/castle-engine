@@ -45,7 +45,7 @@ uses CastleLog, CastleParameters;
 
 procedure TCastleConsoleTester.AssertFailed(const TestName, Msg: String);
 begin
-  Log(TestName + 'Failed : ' + Msg);
+  Log(TestName + ': Failed: ' + Msg);
 end;
 
 constructor TCastleConsoleTester.Create;
