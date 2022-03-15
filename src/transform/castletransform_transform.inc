@@ -216,6 +216,8 @@
 
     procedure NotifyWorldAttach(const NewWorld: TCastleAbstractRootTransform);
     procedure NotifyWorldDetach(const PreviousWorld: TCastleAbstractRootTransform);
+
+    procedure BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
   protected
     { Call this when doing anything that allocates GL resources.
       This will make sure GLContextClose will get called. }
@@ -2204,26 +2206,6 @@ begin
 
   if (Operation = opRemove) and (AComponent is TCastleTransform) and (List <> nil) then
     List.RemoveAll(AComponent);
-
-  { When someone calls Free Behavior it is fired but doesn't call
-    WorldBeforeDetach, ParentBeforeDetach, ParentChanged, so we need
-    add it here. }
-  if (Operation = opRemove) and (AComponent is TCastleBehavior) then
-  begin
-    Beh := AComponent as TCastleBehavior;
-    if Beh.Parent <> nil then
-    begin
-      { Call WorldDetached directly }
-      if Beh.NeedWorldChangeNotification and (FWorld <> nil) then
-        Beh.WorldBeforeDetach;
-
-      Beh.ParentBeforeDetach;
-
-      Beh.FParent := nil;
-      Beh.ParentChanged; // call at end, when state is consistent
-      RemoveWorldChangeNotification(Beh);
-    end;
-  end;
 end;
 
 function TCastleTransform.Height(const MyPosition: TVector3;
@@ -2769,6 +2751,25 @@ begin
   for I := 0 to FBehaviorsWorldChangeNotificationList.Count - 1 do
   begin
     FBehaviorsWorldChangeNotificationList[I].WorldBeforeDetach;
+  end;
+end;
+
+procedure TCastleTransform.BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
+begin
+  { When someone calls Free Behavior it is fired but doesn't call
+    WorldBeforeDetach, ParentBeforeDetach, ParentChanged, so we need
+    add it here. }
+  if Behavior.Parent <> nil then
+  begin
+    { Call WorldDetached directly }
+    if Behavior.NeedWorldChangeNotification and (FWorld <> nil) then
+      Behavior.WorldBeforeDetach;
+
+    Behavior.ParentBeforeDetach;
+
+    Behavior.FParent := nil;
+    Behavior.ParentChanged; // call at end, when state is consistent
+    RemoveWorldChangeNotification(Behavior);
   end;
 end;
 

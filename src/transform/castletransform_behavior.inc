@@ -88,6 +88,8 @@
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; virtual;
   public
+    destructor Destroy; override;
+
     function World: TCastleAbstractRootTransform;
 
     { Parent TCastleTransform of this behavior.
@@ -182,6 +184,14 @@ function TCastleBehavior.CanAttachToParent(const NewParent: TCastleTransform;
 begin
   ReasonWhyCannot := '';
   Result := true;
+end;
+
+destructor TCastleBehavior.Destroy;
+begin
+  if Parent <> nil then
+    Parent.BeforeBehaviorDestroy(Self);
+
+  inherited Destroy;
 end;
 
 function TCastleBehavior.World: TCastleAbstractRootTransform;
