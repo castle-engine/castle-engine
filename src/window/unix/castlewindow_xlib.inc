@@ -36,20 +36,13 @@ private
   Colormap: TColormap;
   {$endif}
 
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  PluginWindow: TNPWindow;
-  PluginStruct: TNPSetWindowCallbackStruct;
-  {$endif}
-
   function HandleXEvent(const Event: TXEvent): boolean;
   procedure UpdateCursor;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
 private
-  {$ifndef CASTLE_ENGINE_PLUGIN}
   FXDisplayName: string;
-  {$endif}
   FXScreen: Integer;
   InitializeXDisplayDone: boolean;
   XCursors: array [TMouseCursor] of TCursor;
@@ -87,11 +80,9 @@ private
 public
   function HandleXEvent(Event: TXEvent): boolean;
 
-  {$ifndef CASTLE_ENGINE_PLUGIN}
   { X display name used to communicate with X server (to open windows,
     query screen size and so on). }
   property XDisplayName: string read FXDisplayName write FXDisplayName;
-  {$endif}
   property XDisplay: PDisplay read FXDisplay;
   property XScreen: Integer read FXScreen;
 {$endif read_application_interface}
@@ -123,30 +114,16 @@ procedure TCastleWindow.OpenBackend;
 var
   AttrValueMask: Cardinal;
   Attr: TXSetWindowAttributes;
-  {$ifndef CASTLE_ENGINE_PLUGIN}
   CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight: Integer;
   sizeHints: TXSizeHints;
   WindTitleProp: TXTextProperty;
   ClassHint: TXClassHint;
   WMHints: TXWMHints;
   PWindTitle: PChar;
-  {$endif}
 const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
 begin
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  Application.FXDisplay := PluginStruct.Display;
-
-  FLeft := PluginWindow.X;
-  FTop := PluginWindow.Y;
-  FWidth := PluginWindow.Width;
-  FHeight := PluginWindow.Height;
-  // plugin is never fullscreen
-  FFullScreenWanted := false;
-  FFullScreenBackend := false;
-  {$endif}
-
   Application.InitializeXDisplay;
 
   Attr.event_mask := AcceptedEventsMask;
@@ -169,27 +146,18 @@ begin
   begin
     Attr.override_redirect := XBool_true;
     AttrValueMask := AttrValueMask or CWOverrideRedirect;
-    {$ifndef CASTLE_ENGINE_PLUGIN}
     CorrectLeft := 0;
     CorrectTop := 0;
     CorrectWidth := Application.ScreenWidth;
     CorrectHeight := Application.ScreenHeight;
-    {$endif}
   end else
   begin
-    {$ifndef CASTLE_ENGINE_PLUGIN}
     CorrectLeft := Left;
     CorrectTop := Top;
     CorrectWidth := Width;
     CorrectHeight := Height;
-    {$endif}
   end;
 
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  windowXID := TWindow(PluginWindow.Window);
-  { below is crucial, otherwise we'll not listed to events on windowXID }
-  XChangeWindowAttributes(Application.XDisplay, windowXID, CWEventMask, @Attr);
-  {$else}
   windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
     CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight, 0,
     {$ifndef OpenGLES} XVisual^.depth {$else} CopyFromParent {$endif},
@@ -271,7 +239,6 @@ begin
     if Visible then
       XMapWindow(Application.XDisplay, windowXID);
   end;
-  {$endif}
 
   ContextCreateEnd(windowXID);
 
@@ -317,9 +284,7 @@ begin
 
   if windowXID <> None then
   begin
-    {$ifndef CASTLE_ENGINE_PLUGIN}
     XDestroyWindow(Application.XDisplay, windowXID);
-    {$endif}
     windowXID := None
   end;
 
@@ -691,7 +656,6 @@ const
 begin
   if not InitializeXDisplayDone then
   begin
-    {$ifndef CASTLE_ENGINE_PLUGIN}
     { process FXDisplayName by Xlib.XDisplayName, to make it look nicer }
     FXDisplayName := Xlib.XDisplayName(PCharOrNil(FXDisplayName));
     FXDisplay := XOpenDisplay(PCharOrNil(FXDisplayName));
@@ -709,17 +673,6 @@ begin
       {$endif}
         raise Exception.CreateFmt('XOpenDisplay could not open display "%s"', [XDisplayName]);
     end;
-
-    {$else}
-
-    { For a plugin,
-     - FXDisplay is unknown until NPP_New. It is set in NPP_SetWindow.
-       It must be set before this.
-     - FXDisplayName identifier is undefined, since it's never known. }
-
-    raise Exception.Create('Plugin caller did not set X display');
-
-    {$endif}
 
     // TODO: Is it OK for a plugin to just get XDefaultScreen below?
     FXScreen := XDefaultScreen(XDisplay);

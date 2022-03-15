@@ -85,10 +85,6 @@ private
   VK_BackQuote,
   VK_BackSlash: Byte;
 
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  PluginWindow: TNPWindow;
-  {$endif}
-
   function WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
   { convert virtual key code (VK_xxx) to TKey. Returns keyNone if no conversion
@@ -1065,22 +1061,11 @@ procedure TCastleWindow.OpenBackend;
   end;
 
 var
-  {$ifndef CASTLE_ENGINE_PLUGIN}
   dwExStyle, dwStyle: dword;
   WindowRect: TRect;
   H_Menu: HMenu;
-  {$endif}
   ClientRect: TRect;
 begin
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  FLeft := PluginWindow.X;
-  FTop := PluginWindow.Y;
-  FWidth := PluginWindow.Width;
-  FHeight := PluginWindow.Height;
-  Fullscreen := false;
-
-  H_wnd := HWND(PluginWindow.Window);
-  {$else}
   { optionally hide mouse in FullScreem,
     set dwStyle and dwExStyle for our window }
   if FullScreen then
@@ -1161,7 +1146,6 @@ begin
     windowRect.right-windowRect.left, windowRect.Bottom-windowRect.top,
     0 { no parent window }, H_Menu, hInstance,
     nil { don't pass anything to WM_CREATE } );
-  {$endif}
 
   Check(h_Wnd <> 0, 'Creating window (H_wnd) failed');
 
@@ -1194,14 +1178,12 @@ begin
     ze "dziala kiedy wywolamy Invalidate". }
   Application.OpenWindowsAdd(Self);
 
-  {$ifndef CASTLE_ENGINE_PLUGIN}
   if Visible then
   begin
     ShowWindow(h_Wnd, SW_SHOW);
     SetForegroundWindow(h_Wnd);
     SetFocus(h_Wnd);
   end;
-  {$endif}
 
   OSCheck(GetClientRect(h_Wnd, ClientRect), 'GetClientRect');
 
@@ -1310,10 +1292,8 @@ begin
     if (h_Dc <> 0) and (ReleaseDC(h_Wnd, h_Dc) = 0) then
       WritelnWarning('WinAPI', 'Releasing device context (ReleaseDC) failed.');
     h_Dc := 0;
-    {$ifndef CASTLE_ENGINE_PLUGIN}
     if (h_Wnd <> 0) and (not DestroyWindow(h_Wnd))then
       WritelnWarning('WinAPI', 'Destroying window (DestroyWindow) failed.');
-    {$endif}
     h_Wnd := 0;
   finally InCloseBackend := false; end;
 end;

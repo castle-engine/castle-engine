@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,20 +57,11 @@ private
 function TCastleApplication.ProcessAllMessages: boolean;
 var
   WasAnyMessage: boolean;
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  I: Integer;
-  {$endif}
 begin
   repeat
     Result := ProcessMessage2(false, false, WasAnyMessage);
     if (not Result) or (not WasAnyMessage) then break;
   until false;
-
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  // TODO: why is this needed?
-  for I := 0 to OpenWindowsCount - 1 do
-    OpenWindows[I].Invalidate;
-  {$endif CASTLE_ENGINE_PLUGIN}
 end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
@@ -115,15 +106,6 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
     begin
       TranslateMessage(msg);
       DispatchMessage(msg);
-      {$ifdef CASTLE_ENGINE_PLUGIN}
-      { In case of plugin, we have to take care of calling TryHandlingMessage
-        (which calls TCastleWindow.WindowProc) ourselves.
-        In other cases, it's called by WndProc which is automatically called
-        by DispatchMessage because our window is connected with our window class.
-        See DispatchMessage docs on:
-        https://msdn.microsoft.com/en-us/library/windows/desktop/ms644934%28v=vs.85%29.aspx }
-      TryHandlingMessage(msg.hWnd, msg.message, msg.wParam, msg.lParam);
-      {$endif}
     end;
     {$endif}
 
@@ -147,27 +129,6 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
   {$endif}
 
   {$ifdef CASTLE_WINDOW_XLIB}
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  var
-    I: Integer;
-  begin
-    { When running as a plugin, be extra careful to eat only messages
-      to our window, otherwise we could eat messages directed to other window. }
-    for I := 0 to OpenWindowsCount - 1 do
-      if XBool(XCheckWindowEvent(XDisplay,
-        OpenWindows[I].WindowXID, AcceptedEventsMask, @event)) <> XBool_False then
-      begin
-        HandleEvent;
-        Exit(true);
-      end else
-      if XBool(XCheckTypedWindowEvent(XDisplay,
-        OpenWindows[I].WindowXID, ClientMessage, @event)) <> XBool_False then
-      begin
-        HandleEvent;
-        Exit(true);
-      end;
-    Result := false;
-  {$else}
   begin
     Result := true;
     if XBool(XCheckMaskEvent(XDisplay, AcceptedEventsMask, @event)) <> XBool_False then
@@ -175,7 +136,6 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
     if XBool(XCheckTypedEvent(XDisplay, ClientMessage, @event)) <> XBool_False then
       HandleEvent else
       Result := false;
-  {$endif}
   {$endif}
   end;
 
@@ -226,16 +186,11 @@ begin
 
   if Terminated then Exit(false);
 
-  {$ifndef CASTLE_ENGINE_PLUGIN}
-  { Plugin should never just sleep like this, to not block the browser
-    from processing messages. Instead, the timer interval will prevent
-    us from executing too often. }
   if (not WasAnyMessage) and
      (not Terminated) and
      (not WaitForMessage) and
      WaitToLimitFPS then
     DoLimitFPS;
-  {$endif}
 
   Result := not Terminated;
 end;

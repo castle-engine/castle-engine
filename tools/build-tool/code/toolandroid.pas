@@ -84,7 +84,7 @@ var
 begin
   for CPU in DetectAndroidCPUS do
   begin
-    Compile(Compiler, Android, CPU, { Plugin } false,
+    Compile(Compiler, Android, CPU, { DetectMemoryLeaks } false,
       Mode, WorkingDirectory, CompileFile, SearchPaths, LibraryPaths, ExtraOptions);
     if Project <> nil then
     begin

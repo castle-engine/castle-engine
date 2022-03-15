@@ -5,7 +5,7 @@
   qualified_name="io.castleengine.castletester"
   caption="Castle Tester"
 >
-  <compiler_options>
+  <compiler_options detect_memory_leaks="true">
     <search_paths>
       <path value="code/" />
       <path value="code/testcases/" />
@@ -14,9 +14,6 @@
     </search_paths>
     <custom_options>
       <option>-dCASTLE_TESTER</option>
-      <!-- Test for memory leaks -->
-      <option>-gl</option>
-      <option>-gh</option>
       <!--
         Hide warnings about deprecated stuff.
         In tests, we often deliberately test deprecated API, to make sure it still works.

@@ -214,9 +214,6 @@ unit CastleWindow;
              { $define CASTLE_WINDOW_GTK_2}
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-           {$elseif defined(CASTLE_ENGINE_PLUGIN)}
-             // on Unix plugin, you have to use Xlib
-             {$define CASTLE_WINDOW_XLIB}
            {$else}
              // various possible backends on traditional Unix (Linux, FreeBSD) desktop:
              {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional), supports both OpenGL and OpenGLES
@@ -2168,7 +2165,7 @@ type
       const MessageType: TWindowMessageType = mtQuestion): boolean;
 
     { Named parameters used to initialize this window.
-      Right now only meaningful when using NPAPI plugin. }
+      Right now not used (were used by NPAPI plugin, may be useful to new web target). }
     property NamedParameters: TCastleStringList read FNamedParameters;
   private
     LastFpsOutputTime: TTimerResult;
@@ -2273,7 +2270,6 @@ type
     LastLimitFPSTime: TTimerResult;
     FMainWindow: TCastleWindow;
     FUserAgent: string;
-    FDefaultWindowClass: TCastleWindowClass;
     LastMaybeDoTimerTime: TTimerResult;
 
     FOpenWindows: TWindowList;
@@ -2460,7 +2456,7 @@ type
       and the first OpenGL context is initialized (right before
       calling TCastleWindow.OnOpen).
 
-      For targets like Android or iOS or browser plugin,
+      For targets like Android or iOS,
       you should not do anything (even reading files) before this callback occurs.
       Only when this occurs, we know that external process told us
       "Ok, you're ready".
@@ -2499,33 +2495,13 @@ type
 
     { Main window used for various purposes.
       On targets when only one TCastleWindow instance makes sense
-      (like Android or iOS or web plugin), set this to the reference of that window.
+      (like Android or iOS or web), set this to the reference of that window.
       It is also used by TWindowProgressInterface to display progress bar. }
     property MainWindow: TCastleWindow read FMainWindow write SetMainWindow;
 
-    { User agent string, when running inside a browser, right now only meaningful when using NPAPI plugin. }
+    { User agent string, when running inside a browser.
+      Right now never set (was used by NPAPI plugin, may be useful to new web target). }
     property UserAgent: string read FUserAgent;
-
-    { Default window class to create when environment requires it,
-      right now: when a new instance of browser plugin is requested.
-      In this case, we first try to use MainWindow (if assigned and not open),
-      otherwise we create new window instance of this class.
-
-      For single-window apps (for example, a game that can only
-      be played in one window at a time), you want to set MainWindow
-      to your @italic(real) window where game goes on,
-      and set DefaultWindowClass to some simple window informing user
-      to switch to the primary window.
-
-      For multi-window apps (games that can be played simultaneously
-      in multiple windows, or things like 3D model browsers that
-      can display different models in different windows) you can
-      leave MainWindow at @nil and just focus on creating a special
-      window class with your functionality.
-
-      By default, this is simple TCastleWindow class. }
-    property DefaultWindowClass: TCastleWindowClass
-      read FDefaultWindowClass write FDefaultWindowClass;
 
     { Process messages from the window system.
       You have to call this repeatedly to process key presses,
@@ -3884,22 +3860,17 @@ var
 begin
   Include(ProcData^.SpecifiedOptions, poDisplay);
   case OptionNum of
-    0: {$ifdef CASTLE_ENGINE_PLUGIN}
-       WarningWrite(ApplicationName + ': warning: --display option is ignored ' +
-         'when we are inside the plugin');
+    0: {$ifdef CASTLE_WINDOW_XLIB}
+       if Application.FOpenWindows.Count <> 0 then
+         WarningWrite(ApplicationName + ': some windows are already open ' +
+           'so --display option is ignored.') else
+         Application.XDisplayName := Argument;
        {$else}
-         {$ifdef CASTLE_WINDOW_XLIB}
-         if Application.FOpenWindows.Count <> 0 then
-           WarningWrite(ApplicationName + ': some windows are already open ' +
-             'so --display option is ignored.') else
-           Application.XDisplayName := Argument;
+         {$ifdef CASTLE_WINDOW_GTK_2}
+         Application.XDisplayName := Argument;
          {$else}
-           {$ifdef CASTLE_WINDOW_GTK_2}
-           Application.XDisplayName := Argument;
-           {$else}
-           WarningWrite(ApplicationName + ': warning: --display option is ignored ' +
-             'when we don''t use directly Xlib');
-           {$endif}
+         WarningWrite(ApplicationName + ': warning: --display option is ignored ' +
+           'when we don''t use directly Xlib');
          {$endif}
        {$endif}
   end;
@@ -4507,7 +4478,6 @@ begin
   inherited;
   FOpenWindows := TWindowList.Create(false);
   FTimerMilisec := 1000;
-  FDefaultWindowClass := TCastleWindow;
   CreateBackend;
   OnMainContainer := {$ifdef FPC}@{$endif}GetMainContainer;
 end;

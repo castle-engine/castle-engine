@@ -97,6 +97,7 @@ type
       DefaultUsesNonExemptEncryption = true;
       DefaultDataExists = true;
       DefaultFullscreenImmersive = true;
+      DefaultDetectMemoryLeaks = false;
 
       { character sets }
       ControlChars = [#0 .. Chr(Ord(' ') - 1)];
@@ -142,11 +143,11 @@ type
       FLocalizedAppNames: TLocalizedAppNameList;
       FIOSTeam: string;
       FindPascalFilesResult: TStringList; // valid only during FindPascalFilesCallback
-
       FDebianMenuSection: String;
       FDebianControlSection: String;
       FFreeDesktopCategories: String;
       FFreeDesktopComment: String;
+      FDetectMemoryLeaks: Boolean;
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
@@ -286,6 +287,8 @@ type
       See https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html for more info.
       Used only by --package-format=deb right now. }
     property FreeDesktopComment: String read FFreeDesktopComment;
+
+    property DetectMemoryLeaks: Boolean read FDetectMemoryLeaks;
 
     { Find a file with given BaseName (contains filename, with extension, but without any path)
       among SearchPaths of this project.
@@ -429,6 +432,7 @@ begin
   FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
   FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
   FFullscreenImmersive := DefaultFullscreenImmersive;
+  FDetectMemoryLeaks := DefaultDetectMemoryLeaks;
 
   FPath := InclPathDelim(APath);
   FPathUrl := FilenameToURISafe(FPath);
@@ -664,6 +668,8 @@ begin
     Element := Doc.DocumentElement.ChildElement('compiler_options', false);
     if Element <> nil then
     begin
+      FDetectMemoryLeaks := Element.AttributeBooleanDef('detect_memory_leaks', DefaultDetectMemoryLeaks);
+
       ChildElement := Element.ChildElement('custom_options', false);
       if ChildElement <> nil then
       begin

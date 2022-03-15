@@ -30,14 +30,14 @@ type
 { Compile with Pascal compiler.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure Compile(Compiler: TCompiler;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+  const OS: TOS; const CPU: TCPU; const DetectMemoryLeaks: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths: TStrings;
   const ExtraOptions: TStrings);
 
 { Compile with FPC and proper command-line option given file.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
-procedure CompileFpc(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+procedure CompileFpc(const OS: TOS; const CPU: TCPU; const DetectMemoryLeaks: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths: TStrings;
   const ExtraOptions: TStrings);
@@ -298,7 +298,7 @@ begin
   // Line := '<begin>' + Line + '<end>';
 end;
 
-procedure CompileFpc(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+procedure CompileFpc(const OS: TOS; const CPU: TCPU; const DetectMemoryLeaks: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
@@ -662,34 +662,10 @@ begin
       //FpcOptions.Add('-CaEABIHF');
     end;
 
-    if Plugin then
+    if DetectMemoryLeaks then
     begin
-      FpcOptions.Add('-dCASTLE_ENGINE_PLUGIN');
-      { We need to add -fPIC otherwise compiling a shared library fails with
-
-        /usr/bin/ld: .../castlewindow.o: relocation R_X86_64_32S against
-          `U_CASTLEWINDOW_MENUITEMS' can not be used when making
-          a shared object; recompile with -fPIC
-
-        That is because FPC RTL is compiled with -fPIC for this platform,
-        it seems. See
-        http://lists.freepascal.org/pipermail/fpc-pascal/2014-November/043155.html
-        http://lists.freepascal.org/pipermail/fpc-pascal/2014-November/043159.html
-
-        """
-        fpcmake automatically adds -Cg/-fPIC for x86-64 platforms,
-        exactly because of this issue.
-        """
-
-        And http://wiki.freepascal.org/PIC_information explains about PIC:
-        """
-        fpcmake automatically adds -Cg/-fPIC for x86-64 platforms:
-        * for freebsd, openbsd, netbsd, linux, solaris
-        * for darwin -Cg is enabled by the compiler (see below)
-        """
-      }
-      if (CPU = X86_64) and (OS in [Linux,FreeBSD,NetBSD,OpenBSD,Solaris]) then
-        FpcOptions.Add('-fPIC');
+      FpcOptions.Add('-gl');
+      FpcOptions.Add('-gh');
     end;
 
     FpcOptions.Add(CompileFile);
@@ -721,7 +697,7 @@ begin
 end;
 
 procedure Compile(Compiler: TCompiler;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+  const OS: TOS; const CPU: TCPU; const DetectMemoryLeaks: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths: TStrings;
   const ExtraOptions: TStrings);
@@ -740,7 +716,7 @@ begin
   Assert(Compiler <> coAutodetect);
 
   case Compiler of
-    coFpc: CompileFpc(OS, CPU, Plugin, Mode, WorkingDirectory, CompileFile,
+    coFpc: CompileFpc(OS, CPU, DetectMemoryLeaks, Mode, WorkingDirectory, CompileFile,
       SearchPaths, LibraryPaths, ExtraOptions);
     coDelphi: CompileDelphi(OS, CPU, Mode, WorkingDirectory, CompileFile,
       SearchPaths, ExtraOptions);

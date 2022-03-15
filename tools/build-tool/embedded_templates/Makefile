@@ -4,8 +4,6 @@
 # https://github.com/pasdoc/pasdoc/blob/master/source/tools/file_to_pascal_string.dpr
 
 ALL_TARGETS := \
-  windows/castle-plugin-auto-generated-resources.rc.inc \
-  windows/castle-auto-generated-resources.rc.inc \
   windows/castle-automatic-windows.manifest.inc \
   template-castle-engine-output-warning.txt.inc
 

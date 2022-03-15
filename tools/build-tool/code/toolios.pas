@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2020 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -78,7 +78,7 @@ var
     LinkResContents, ObjectFiles: TCastleStringList;
     I: Integer;
   begin
-    Compile(Compiler, OS, CPU, { Plugin } false, Mode, WorkingDirectory, CompileFile,
+    Compile(Compiler, OS, CPU, { DetectMemoryLeaks } false, Mode, WorkingDirectory, CompileFile,
       SearchPaths, LibraryPaths, FinalExtraOptions);
 
     { now use libtool to create a static library .a }
