@@ -77,6 +77,9 @@ end;
 procedure TEnemy.ParentChanged;
 begin
   inherited;
+  if Parent = nil then
+    Exit;
+
   Scene := Parent as TCastleScene; // TEnemy can only be added as behavior to TCastleScene
   Scene.PlayAnimation('walk', true);
 end;
