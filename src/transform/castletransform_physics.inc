@@ -546,6 +546,11 @@
     procedure ApplyImpulse(const Impulse, Point: TVector3);
 
     procedure AddTorque(const Torque: TVector3);
+
+    procedure WakeUp;
+
+    procedure Sleep;
+
     property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
     property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
     property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
@@ -2185,6 +2190,16 @@ end;
 procedure TCastleRigidBody.AddTorque(const Torque: TVector3);
 begin
   FKraftBody.AddBodyTorque(VectorToKraft(Torque));
+end;
+
+procedure TCastleRigidBody.WakeUp;
+begin
+  FKraftBody.SetToAwake;
+end;
+
+procedure TCastleRigidBody.Sleep;
+begin
+  FKraftBody.SetToSleep;
 end;
 
 procedure TCastleRigidBody.SetLinearVelocity(const LVelocity: TVector3);
