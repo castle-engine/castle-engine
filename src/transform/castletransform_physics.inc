@@ -537,6 +537,15 @@
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { Force and position is in world coordinate system }
+    procedure AddForce(const Force, Position: TVector3);
+
+    { Force is in local rigid body coordinate system (need WorldToLocal()) }
+    procedure AddCenterForce(const Force: TVector3);
+
+    procedure ApplyImpulse(const Impulse, Point: TVector3);
+
+    procedure AddTorque(const Torque: TVector3);
     property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
     property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
     property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
@@ -2156,6 +2165,26 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleRigidBody.AddForce(const Force, Position: TVector3);
+begin
+  FKraftBody.AddForceAtPosition(VectorToKraft(Force), VectorToKraft(Position));
+end;
+
+procedure TCastleRigidBody.AddCenterForce(const Force: TVector3);
+begin
+  FKraftBody.AddBodyForce(VectorToKraft(Force));
+end;
+
+procedure TCastleRigidBody.ApplyImpulse(const Impulse, Point: TVector3);
+begin
+  FKraftBody.ApplyImpulseAtPosition(VectorToKraft(Point), VectorToKraft(Impulse));
+end;
+
+procedure TCastleRigidBody.AddTorque(const Torque: TVector3);
+begin
+  FKraftBody.AddBodyTorque(VectorToKraft(Torque));
 end;
 
 procedure TCastleRigidBody.SetLinearVelocity(const LVelocity: TVector3);
