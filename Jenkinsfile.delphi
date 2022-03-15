@@ -57,7 +57,8 @@ pipeline {
     stage('Check Delphi AutoTests (Win64)') {
       steps {
         dir ('tests/delphi_tests/') {
-          sh 'castle-engine compile --compiler=delphi'
+          sh 'castle-engine clean'
+          sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64'
           sh 'castle-engine run'
         }
       }
@@ -65,14 +66,33 @@ pipeline {
     stage('Check Delphi AutoTests (Win32)') {
       steps {
         dir ('tests/delphi_tests/') {
+          sh 'castle-engine clean'
           sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
           sh 'castle-engine run'
         }
       }
     }
+    stage('Check AutoTests (Win64)') {
+      steps {
+        dir ('tests/') {
+          sh 'castle-engine clean'
+          sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64 --compiler-option=-dNO_WINDOW_SYSTEM'
+          sh 'castle-engine run -- --console'
+        }
+      }
+    }
+    stage('Check AutoTests (Win32)') {
+      steps {
+        dir ('tests/') {
+          sh 'castle-engine clean'
+          sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386 --compiler-option=-dNO_WINDOW_SYSTEM'
+          sh 'castle-engine run -- --console'
+        }
+      }
+    }
     stage('Build Templates with Delphi (Win64)') {
       steps {
-        sh 'make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi"'
+        sh 'make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win64 --cpu=x86_64"'
       }
     }
     stage('Build Templates with Delphi (Win32)') {
@@ -82,7 +102,7 @@ pipeline {
     }
     stage('Build Examples with Delphi (Win64)') {
       steps {
-        sh 'make examples-delphi'
+        sh 'make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win64 --cpu=x86_64"'
       }
     }
     stage('Build Examples with Delphi (Win32)') {
