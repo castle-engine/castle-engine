@@ -3732,7 +3732,6 @@ begin
        ((OldParent = nil) or ((OldParent <> nil) and (OldParent.World <> FWorld))) then
         Behavior.WorldAfterAttach;
     end;
-    Behavior.FreeNotification(Self);
   end;
 end;
 
@@ -3752,7 +3751,6 @@ begin
   FBehaviors.Delete(BehaviorIndex);
   Beh.ParentChanged; // call at end, when state is consistent
   RemoveWorldChangeNotification(Beh);
-  Beh.RemoveFreeNotification(Self);
 end;
 
 procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
