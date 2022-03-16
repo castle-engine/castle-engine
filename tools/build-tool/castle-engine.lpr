@@ -323,26 +323,23 @@ begin
     { use GetCurrentDir as WorkingDir,
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
-    case Target of
-      targetCustom:
-        begin
-          SimpleCompileOptions := TCompilerOptions.Create;
-          try
-            SimpleCompileOptions.OS := OS;
-            SimpleCompileOptions.CPU := CPU;
-            SimpleCompileOptions.DetectMemoryLeaks := false;
-            SimpleCompileOptions.Mode := Mode;
-            SimpleCompileOptions.ExtraOptions.AddRange(CompilerExtraOptions);
-            Compile(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
-          finally FreeAndNil(SimpleCompileOptions) end;
-        end;
-      targetAndroid       : CompileAndroid(OverrideCompiler, nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetIOS           : CompileIOS(OverrideCompiler, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetNintendoSwitch: CompileNintendoSwitch(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('Operation not implemented for this target');
-      {$endif}
-    end;
+    SimpleCompileOptions := TCompilerOptions.Create;
+    try
+      SimpleCompileOptions.OS := OS;
+      SimpleCompileOptions.CPU := CPU;
+      SimpleCompileOptions.DetectMemoryLeaks := false;
+      SimpleCompileOptions.Mode := Mode;
+      SimpleCompileOptions.ExtraOptions.AddRange(CompilerExtraOptions);
+      case Target of
+        targetCustom        : Compile(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
+        targetAndroid       : CompileAndroid(OverrideCompiler, nil, GetCurrentDir, FileName, SimpleCompileOptions);
+        targetIOS           : CompileIOS(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
+        targetNintendoSwitch: CompileNintendoSwitch(GetCurrentDir, FileName, SimpleCompileOptions);
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('Operation not implemented for this target');
+        {$endif}
+      end;
+    finally FreeAndNil(SimpleCompileOptions) end;
   end else
   begin
     if Command <> 'run' then

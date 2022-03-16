@@ -6,6 +6,9 @@
   caption="Castle Tester"
 >
   <compiler_options detect_memory_leaks="true">
+    <defines>
+      <define>CASTLE_TESTER</define>
+    </defines>
     <search_paths>
       <path value="code/" />
       <path value="code/testcases/" />
@@ -13,7 +16,6 @@
       <path value="../tools/common-code/" />
     </search_paths>
     <custom_options>
-      <option>-dCASTLE_TESTER</option>
       <!--
         Hide warnings about deprecated stuff.
         In tests, we often deliberately test deprecated API, to make sure it still works.

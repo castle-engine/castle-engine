@@ -42,6 +42,9 @@ type
     { Compile with memory leak detection.
       For now, only supported by CompileFpc, ignored by CompileLazbuild and CompileDelphi. }
     DetectMemoryLeaks: boolean;
+    { Define symbols during compilation.
+      For now, only supported by CompileFpc and CompileDelphi, ignored by CompileLazbuild. }
+    Defines: TCastleStringList;
     { Units / includes paths.
       For now, only supported by CompileFpc and CompileDelphi, ignored by CompileLazbuild. }
     SearchPaths: TCastleStringList;
@@ -185,6 +188,7 @@ uses SysUtils, Process,
 constructor TCompilerOptions.Create;
 begin
   inherited;
+  Defines := TCastleStringList.Create;
   SearchPaths := TCastleStringList.Create;
   LibraryPaths := TCastleStringList.Create;
   ExtraOptions := TCastleStringList.Create;
@@ -192,6 +196,7 @@ end;
 
 destructor TCompilerOptions.Destroy;
 begin;
+  FreeAndNil(Defines);
   FreeAndNil(SearchPaths);
   FreeAndNil(LibraryPaths);
   FreeAndNil(ExtraOptions);
@@ -502,6 +507,14 @@ var
     end;
   end;
 
+  procedure AddDefines;
+  var
+    S: String;
+  begin
+    for S in Options.Defines do
+      FpcOptions.Add('-d' + S);
+  end;
+
 var
   FpcOutput, FpcExe: string;
   FpcExitStatus: Integer;
@@ -708,12 +721,12 @@ begin
       FpcOptions.Add('-gh');
     end;
 
+    AddIOSOptions;
+    AddDefines;
+    FpcOptions.AddRange(Options.ExtraOptions);
+
     FpcOptions.Add(CompileFile);
     FpcOptions.Add('-FU' + CompilationOutputPath(coFpc, Options.OS, Options.CPU, WorkingDirectory));
-
-    AddIOSOptions;
-
-    FpcOptions.AddRange(Options.ExtraOptions);
 
     Writeln('FPC executing...');
     FpcExe := FindExeFpcCompiler;
@@ -831,6 +844,14 @@ var
     DccOptions.Add('-NX' + OutPath);
   end;
 
+  procedure AddDefines;
+  var
+    S: String;
+  begin
+    for S in Options.Defines do
+      DccOptions.Add('-d' + S);
+  end;
+
 var
   DelphiPath, Dcc, DccExe: String;
   DccOutput: String;
@@ -894,9 +915,10 @@ begin
       {$endif}
     end;
 
-    DccOptions.Add(CompileFile);
-
+    AddDefines;
     DccOptions.AddRange(Options.ExtraOptions);
+
+    DccOptions.Add(CompileFile);
 
     RunCommandIndirPassthrough(WorkingDirectory, DccExe, DccOptions.ToArray, DccOutput, DccExitStatus);
     if DccExitStatus <> 0 then

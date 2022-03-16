@@ -125,6 +125,7 @@ type
       FIncludePaths: TIncludePathList;
       FExcludePaths: TCastleStringList;
       FExtraCompilerOptions, FExtraCompilerOptionsAbsolute: TCastleStringList;
+      FDefines: TCastleStringList;
       FIcons, FLaunchImages: TImageFileNames;
       FLaunchImageStoryboard: TLaunchImageStoryboard;
       FSearchPaths, FLibraryPaths: TStringList;
@@ -226,6 +227,7 @@ type
     property ExcludePaths: TCastleStringList read FExcludePaths;
     property ExtraCompilerOptions: TCastleStringList read FExtraCompilerOptions;
     property ExtraCompilerOptionsAbsolute: TCastleStringList read FExtraCompilerOptionsAbsolute;
+    property Defines: TCastleStringList read FDefines;
 
     { iOS-specific things }
     property IOSOverrideQualifiedName: string read FIOSOverrideQualifiedName;
@@ -415,6 +417,7 @@ begin
   FExcludePaths := TCastleStringList.Create;
   FExtraCompilerOptions := TCastleStringList.Create;
   FExtraCompilerOptionsAbsolute := TCastleStringList.Create;
+  FDefines := TCastleStringList.Create;
   FIcons := TImageFileNames.Create;
   FLaunchImages := TImageFileNames.Create;
   FLaunchImageStoryboard := TLaunchImageStoryboard.Create;
@@ -684,6 +687,16 @@ begin
         finally FreeAndNil(ChildElements) end;
       end;
 
+      ChildElement := Element.ChildElement('defines', false);
+      if ChildElement <> nil then
+      begin
+        ChildElements := ChildElement.ChildrenIterator('define');
+        try
+          while ChildElements.GetNext do
+            FDefines.Add(Trim(ChildElements.Current.TextData));
+        finally FreeAndNil(ChildElements) end;
+      end;
+
       ChildElement := Element.ChildElement('search_paths', false);
       if ChildElement <> nil then
       begin
@@ -753,6 +766,7 @@ begin
   FreeAndNil(FExcludePaths);
   FreeAndNil(FExtraCompilerOptions);
   FreeAndNil(FExtraCompilerOptionsAbsolute);
+  FreeAndNil(FDefines);
   FreeAndNil(FIcons);
   FreeAndNil(FLaunchImages);
   FreeAndNil(FLaunchImageStoryboard);

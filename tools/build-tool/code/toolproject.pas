@@ -155,8 +155,6 @@ type
     function AndroidProjectType: TAndroidProjectType;
     function Icons: TImageFileNames;
     function LaunchImages: TImageFileNames;
-    function SearchPaths: TStringList;
-    function LibraryPaths: TStringList;
     function AndroidServices: TServiceList;
     function IOSServices: TServiceList;
     function AssociateDocumentTypes: TAssociatedDocTypeList;
@@ -519,8 +517,9 @@ begin
     CompilerOptions.ExtraOptions.AddRange(Manifest.ExtraCompilerOptions);
     if CompilerExtraOptions <> nil then
       CompilerOptions.ExtraOptions.AddRange(CompilerExtraOptions);
-    CompilerOptions.SearchPaths.AddRange(SearchPaths);
-    CompilerOptions.LibraryPaths.AddRange(LibraryPaths);
+    CompilerOptions.SearchPaths.AddRange(Manifest.SearchPaths);
+    CompilerOptions.LibraryPaths.AddRange(Manifest.LibraryPaths);
+    CompilerOptions.Defines.AddRange(Manifest.Defines);
 
     { TODO: "lazbuild" should be another Compiler option, called "lazbuild (calls FPC using options from LPI file)" }
     if Manifest.BuildUsingLazbuild then
@@ -538,32 +537,17 @@ begin
     case Target of
       targetAndroid:
         begin
-          CompileAndroid(FinalCompiler, Self,
-            CompilerOptions.Mode,
-            Path, AndroidSourceFile(true, true),
-            CompilerOptions.SearchPaths,
-            CompilerOptions.LibraryPaths,
-            CompilerOptions.ExtraOptions);
+          CompileAndroid(FinalCompiler, Self, Path, AndroidSourceFile(true, true), CompilerOptions);
         end;
       targetIOS:
         begin
-          CompileIOS(FinalCompiler,
-            CompilerOptions.Mode,
-            Path, IOSSourceFile(true, true),
-            CompilerOptions.SearchPaths,
-            CompilerOptions.LibraryPaths,
-            CompilerOptions.ExtraOptions);
+          CompileIOS(FinalCompiler, Path, IOSSourceFile(true, true), CompilerOptions);
           LinkIOSLibrary(FinalCompiler, Path, IOSLibraryFile);
           Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
         end;
       targetNintendoSwitch:
         begin
-          CompileNintendoSwitchLibrary(Self,
-            CompilerOptions.Mode,
-            Path, NXSourceFile(true, true),
-            CompilerOptions.SearchPaths,
-            CompilerOptions.LibraryPaths,
-            CompilerOptions.ExtraOptions);
+          CompileNintendoSwitchLibrary(Self, Path, NXSourceFile(true, true), CompilerOptions);
         end;
       targetCustom:
         begin
@@ -1812,7 +1796,7 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       Result := SAppendPart(Result, ';', EnginePathPrefix + S);
     for S in EnginePathsDelphi do
       Result := SAppendPart(Result, ';', EnginePathPrefix + S);
-    for S in SearchPaths do
+    for S in Manifest.SearchPaths do
       Result := SAppendPart(Result, ';', S);
   end;
 
@@ -1879,6 +1863,24 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     Result := GUIDToString(MyGuid);
   end;
 
+  function DefinesAsCompilerOptions: String;
+  var
+    D: String;
+  begin
+    Result := '';
+    for D in Manifest.Defines do
+      Result := Result + '-d' + D + NL;
+  end;
+
+  function DefinesSemicolonSeparated: String;
+  var
+    D: String;
+  begin
+    Result := '';
+    for D in Manifest.Defines do
+      Result := Result + D + ';';
+  end;
+
 var
   NonEmptyAuthor: string;
   Macros: TStringStringMap;
@@ -1904,16 +1906,18 @@ begin
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
     Macros.Add('GAME_UNITS'      , Manifest.GameUnits);
-    Macros.Add('SEARCH_PATHS'          , MakePathsStr(SearchPaths, false));
-    Macros.Add('ABSOLUTE_SEARCH_PATHS' , MakePathsStr(SearchPaths, true));
-    Macros.Add('LIBRARY_PATHS'          , MakePathsStr(LibraryPaths, false));
+    Macros.Add('SEARCH_PATHS'          , MakePathsStr(Manifest.SearchPaths, false));
+    Macros.Add('ABSOLUTE_SEARCH_PATHS' , MakePathsStr(Manifest.SearchPaths, true));
+    Macros.Add('LIBRARY_PATHS'         , MakePathsStr(Manifest.LibraryPaths, false));
     { Using this is important in ../data/custom_editor_template/castle_editor.lpi ,
       otherwise with FPC 3.3.1 (rev 40292) doing "castle-engine editor"
       fails when the project uses some libraries (like mORMot's .o files in static/). }
-    Macros.Add('ABSOLUTE_LIBRARY_PATHS' , MakePathsStr(LibraryPaths, true));
+    Macros.Add('ABSOLUTE_LIBRARY_PATHS', MakePathsStr(Manifest.LibraryPaths, true));
     Macros.Add('CASTLE_ENGINE_PATH'    , CastleEnginePath);
     Macros.Add('EXTRA_COMPILER_OPTIONS', Manifest.ExtraCompilerOptions.Text);
     Macros.Add('EXTRA_COMPILER_OPTIONS_ABSOLUTE', Manifest.ExtraCompilerOptionsAbsolute.Text);
+    Macros.Add('DEFINES_SEMICOLON_SEPARATED', DefinesSemicolonSeparated);
+    Macros.Add('DEFINES_AS_COMPILER_OPTIONS', DefinesAsCompilerOptions);
     Macros.Add('EDITOR_UNITS'          , Manifest.EditorUnits);
     Macros.Add('EXPLICIT_STANDALONE_SOURCE', ExplicitStandaloneFile('.dpr'));
     Macros.Add('DELPHI_SEARCH_PATHS', DelphiSearchPaths);
@@ -2221,16 +2225,6 @@ end;
 function TCastleProject.LaunchImages: TImageFileNames;
 begin
   Result := Manifest.LaunchImages;
-end;
-
-function TCastleProject.SearchPaths: TStringList;
-begin
-  Result := Manifest.SearchPaths;
-end;
-
-function TCastleProject.LibraryPaths: TStringList;
-begin
-  Result := Manifest.LibraryPaths;
 end;
 
 function TCastleProject.AndroidServices: TServiceList;
