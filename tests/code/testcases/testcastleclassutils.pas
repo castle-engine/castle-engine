@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleClassUtils" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -88,7 +88,9 @@ var
   ReaderStream: TPeekCharStream;
   Buf: array[0..2]of Byte;
 begin
- SStream := TStringStream.Create(#1#2#3#4#5#6#7#8#9#10#11#12);
+ SStream := TStringStream.Create(#1#2#3#4#5#6#7#8#9#10#11#12
+   { no need to request UTF-8 encoding, it is default, also with Delphi. }
+   {, TEncoding.UTF8});
  try
   SStream.Position := 0;
   ReaderStream := StreamFromStreamFunc(SStream);
