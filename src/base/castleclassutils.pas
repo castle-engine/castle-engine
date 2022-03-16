@@ -1350,8 +1350,11 @@ begin
     Result := 0 else
   if IsPeekedChar then
   begin
-    PChar(@Buffer)[0] := Chr(PeekedChar);
-    Result := 1 + SourceStream.Read(PChar(@Buffer)[1], Count - 1);
+    { Note: It would be more natural to access
+        PAnsiChar(@Buffer)[...],
+      but on Delphi the PAnsiChar cannot be indexed like an array. }
+    PByteArray(@Buffer)^[0] := PeekedChar;
+    Result := 1 + SourceStream.Read(PByteArray(@Buffer)^[1], Count - 1);
     { Note that if SourceStream.Read will raise an exception,
       we will still have IsPeekedChar = true. }
     IsPeekedChar := false;
@@ -1364,7 +1367,7 @@ end;
 
 function TSimplePeekCharStream.PeekChar: Integer;
 var
-  C: Char;
+  C: AnsiChar;
 begin
   if not IsPeekedChar then
   begin
