@@ -206,19 +206,19 @@ end;
 
 function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
 
-  function ChunkTypeCode(const ChunkName: String): LongWord;
+  function ChunkTypeCode(const ChunkName: String): UInt32;
   begin
-    Assert(Length(ChunkName) = 4);
+    Assert(Length(ChunkName) = SizeOf(UInt32));
     Result :=
-      {$ifdef FPC_LITTLE_ENDIAN}
-      LongWord(Ord(ChunkName[4])) shl 24 +
-      LongWord(Ord(ChunkName[3])) shl 16 +
-      LongWord(Ord(ChunkName[2])) shl 8 +
+      {$ifdef CASTLE_LITTLE_ENDIAN}
+      UInt32(Ord(ChunkName[4])) shl 24 +
+      UInt32(Ord(ChunkName[3])) shl 16 +
+      UInt32(Ord(ChunkName[2])) shl 8 +
       Ord(ChunkName[1])
       {$else}
-      LongWord(Ord(ChunkName[1])) shl 24 +
-      LongWord(Ord(ChunkName[2])) shl 16 +
-      LongWord(Ord(ChunkName[3])) shl 8 +
+      UInt32(Ord(ChunkName[1])) shl 24 +
+      UInt32(Ord(ChunkName[2])) shl 16 +
+      UInt32(Ord(ChunkName[3])) shl 8 +
       Ord(ChunkName[4])
       {$endif}
     ;
@@ -237,8 +237,8 @@ const
   PNG_COLOR_TYPE_RGB_ALPHA = (PNG_COLOR_MASK_COLOR or PNG_COLOR_MASK_ALPHA);
   PNG_COLOR_TYPE_GRAY_ALPHA = (PNG_COLOR_MASK_ALPHA);
 var
-  ReadHeader, ChunkType, ChunkSize, IWidth, IHeight: LongWord;
-  ChunkTypeIHDR, ChunkTypetRNS, ChunkTypeIEND: LongWord;
+  ReadHeader, ChunkType, ChunkSize, IWidth, IHeight: UInt32;
+  ChunkTypeIHDR, ChunkTypetRNS, ChunkTypeIEND: UInt32;
   Bits, ColorType: Byte;
 begin
   try

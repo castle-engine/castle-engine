@@ -318,6 +318,7 @@ begin
   Stream := Download('castle-data:/png_with_alpha_trns.png');
   try
     ImageClass := InternalDetectClassPNG(Stream);
+    AssertTrue(ImageClass <> nil);
     AssertEquals('TRGBAlphaImage', ImageClass.ClassName);
   finally FreeAndNil(Stream) end;
 end;

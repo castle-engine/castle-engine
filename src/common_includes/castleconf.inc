@@ -97,6 +97,22 @@
   {$define CPUARM64}
 {$endif}
 
+{ Endianess ------------------------------------------------------------------ }
+
+{$ifdef FPC}
+  {$ifdef FPC_LITTLE_ENDIAN} {$define CASTLE_LITTLE_ENDIAN} {$endif}
+  {$ifdef FPC_BIG_ENDIAN} {$define CASTLE_BIG_ENDIAN} {$endif}
+{$else}
+  { Delphi only supports little-endian it seems. }
+  {$define CASTLE_LITTLE_ENDIAN}
+{$endif}
+
+{$ifndef CASTLE_LITTLE_ENDIAN}
+  {$ifndef CASTLE_BIG_ENDIAN}
+    {$error Neither CASTLE_LITTLE_ENDIAN or CASTLE_BIG_ENDIAN defined. Fix castleconf.inc for the current compiler/platform combination.}
+  {$endif}
+{$endif}
+
 { Define various necessary things -------------------------------------------- }
 
 (*EXTENDED_EQUALS_DOUBLE should be defined when Extended type is
