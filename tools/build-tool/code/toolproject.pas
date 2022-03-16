@@ -108,7 +108,7 @@ type
     procedure DoCreateManifest;
     procedure DoCompile(const OverrideCompiler: TCompiler;
       const Target: TTarget; const OS: TOS; const CPU: TCPU;
-      const Mode: TCompilationMode; const FpcExtraOptions: TStrings = nil);
+      const Mode: TCompilationMode; const CompilerExtraOptions: TStrings = nil);
     procedure DoPackage(const Target: TTarget;
       const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode;
       const PackageFormat: TPackageFormat;
@@ -481,7 +481,7 @@ end;
 
 procedure TCastleProject.DoCompile(const OverrideCompiler: TCompiler; const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode;
-  const FpcExtraOptions: TStrings);
+  const CompilerExtraOptions: TStrings);
 
   { Copy external libraries to LibrariesOutputPath.
     LibrariesOutputPath must be empty (current dir) or ending with path delimiter. }
@@ -504,56 +504,73 @@ procedure TCastleProject.DoCompile(const OverrideCompiler: TCompiler; const Targ
 
 var
   SourceExe, DestExe, MainSource: string;
-  ExtraOptions: TCastleStringList;
+  CompilerOptions: TCompilerOptions;
   FinalCompiler: TCompiler;
 begin
   Writeln(Format('Compiling project "%s" for %s in mode "%s".',
     [Name, TargetCompleteToString(Target, OS, CPU), ModeToString(Mode)]));
 
-  { TODO: "lazbuild" should be another Compiler option, called "lazbuild (calls FPC using options from LPI file)" }
-  if Manifest.BuildUsingLazbuild then
-  begin
-    CompileLazbuild(OS, CPU, Mode, Path, Manifest.LazarusProject);
-    Exit;
-  end;
-
-  { use compiler specified in CastleEngineManifest.xml,
-    overridden by Compiler specified on command-line (given as parameter). }
-  FinalCompiler := OverrideCompiler;
-  if FinalCompiler = coAutodetect then
-    FinalCompiler := ManifestCompiler;
-
-  ExtraOptions := TCastleStringList.Create;
+  CompilerOptions := TCompilerOptions.Create;
   try
-    ExtraOptions.AddRange(Manifest.ExtraCompilerOptions);
-    if FpcExtraOptions <> nil then
-      ExtraOptions.AddRange(FpcExtraOptions);
+    CompilerOptions.OS := OS;
+    CompilerOptions.CPU := CPU;
+    CompilerOptions.Mode := Mode;
+    CompilerOptions.DetectMemoryLeaks := Manifest.DetectMemoryLeaks;
+    CompilerOptions.ExtraOptions.AddRange(Manifest.ExtraCompilerOptions);
+    if CompilerExtraOptions <> nil then
+      CompilerOptions.ExtraOptions.AddRange(CompilerExtraOptions);
+    CompilerOptions.SearchPaths.AddRange(SearchPaths);
+    CompilerOptions.LibraryPaths.AddRange(LibraryPaths);
+
+    { TODO: "lazbuild" should be another Compiler option, called "lazbuild (calls FPC using options from LPI file)" }
+    if Manifest.BuildUsingLazbuild then
+    begin
+      CompileLazbuild(Path, Manifest.LazarusProject, CompilerOptions);
+      Exit;
+    end;
+
+    { use compiler specified in CastleEngineManifest.xml,
+      overridden by Compiler specified on command-line (given as parameter). }
+    FinalCompiler := OverrideCompiler;
+    if FinalCompiler = coAutodetect then
+      FinalCompiler := ManifestCompiler;
 
     case Target of
       targetAndroid:
         begin
-          CompileAndroid(FinalCompiler, Self, Mode, Path, AndroidSourceFile(true, true),
-            SearchPaths, LibraryPaths, ExtraOptions);
+          CompileAndroid(FinalCompiler, Self,
+            CompilerOptions.Mode,
+            Path, AndroidSourceFile(true, true),
+            CompilerOptions.SearchPaths,
+            CompilerOptions.LibraryPaths,
+            CompilerOptions.ExtraOptions);
         end;
       targetIOS:
         begin
-          CompileIOS(FinalCompiler, Mode, Path, IOSSourceFile(true, true),
-            SearchPaths, LibraryPaths, ExtraOptions);
+          CompileIOS(FinalCompiler,
+            CompilerOptions.Mode,
+            Path, IOSSourceFile(true, true),
+            CompilerOptions.SearchPaths,
+            CompilerOptions.LibraryPaths,
+            CompilerOptions.ExtraOptions);
           LinkIOSLibrary(FinalCompiler, Path, IOSLibraryFile);
           Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
         end;
       targetNintendoSwitch:
         begin
-          CompileNintendoSwitchLibrary(Self, Mode, Path, NXSourceFile(true, true),
-            SearchPaths, LibraryPaths, ExtraOptions);
+          CompileNintendoSwitchLibrary(Self,
+            CompilerOptions.Mode,
+            Path, NXSourceFile(true, true),
+            CompilerOptions.SearchPaths,
+            CompilerOptions.LibraryPaths,
+            CompilerOptions.ExtraOptions);
         end;
       targetCustom:
         begin
           case OS of
             Android:
               begin
-                Compile(FinalCompiler, OS, CPU, Manifest.DetectMemoryLeaks, Mode, Path, AndroidSourceFile(true, true),
-                  SearchPaths, LibraryPaths, ExtraOptions);
+                Compile(FinalCompiler, Path, AndroidSourceFile(true, true), CompilerOptions);
                 { Our default compilation output doesn't contain CPU suffix,
                   but we need the CPU suffix to differentiate between Android/ARM and Android/Aarch64. }
                 CheckRenameFile(AndroidLibraryFile(cpuNone), AndroidLibraryFile(CPU));
@@ -566,10 +583,9 @@ begin
                   raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
 
                 if MakeAutoGeneratedResources(Self, Path + ExtractFilePath(MainSource), OS, CPU) then
-                  ExtraOptions.Add('-dCASTLE_AUTO_GENERATED_RESOURCES');
+                  CompilerOptions.ExtraOptions.Add('-dCASTLE_AUTO_GENERATED_RESOURCES');
 
-                Compile(FinalCompiler, OS, CPU, Manifest.DetectMemoryLeaks, Mode, Path, MainSource,
-                  SearchPaths, LibraryPaths, ExtraOptions);
+                Compile(FinalCompiler, Path, MainSource, CompilerOptions);
 
                 SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
                 DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
@@ -590,7 +606,7 @@ begin
       else raise EInternalError.Create('Unhandled --target for DoCompile');
       {$endif}
     end;
-  finally FreeAndNil(ExtraOptions) end;
+  finally FreeAndNil(CompilerOptions) end;
 end;
 
 function TCastleProject.PackageFiles(const OnlyData: boolean;

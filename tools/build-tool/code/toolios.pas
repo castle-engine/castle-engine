@@ -77,9 +77,21 @@ var
     CompilationOutput, LinkRes, OutputLibrary: string;
     LinkResContents, ObjectFiles: TCastleStringList;
     I: Integer;
+    CompilerOptions: TCompilerOptions;
   begin
-    Compile(Compiler, OS, CPU, { DetectMemoryLeaks } false, Mode, WorkingDirectory, CompileFile,
-      SearchPaths, LibraryPaths, FinalExtraOptions);
+    CompilerOptions := TCompilerOptions.Create;
+    try
+      CompilerOptions.OS := OS;
+      CompilerOptions.CPU := CPU;
+      CompilerOptions.Mode := Mode;
+      CompilerOptions.DetectMemoryLeaks := false;
+      CompilerOptions.ExtraOptions.AddRange(FinalExtraOptions);
+      if SearchPaths <> nil then
+        CompilerOptions.SearchPaths.AddRange(SearchPaths);
+      if LibraryPaths <> nil then
+        CompilerOptions.LibraryPaths.AddRange(LibraryPaths);
+      Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+    finally FreeAndNil(CompilerOptions) end;
 
     { now use libtool to create a static library .a }
 

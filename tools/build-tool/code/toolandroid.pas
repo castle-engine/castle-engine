@@ -81,11 +81,24 @@ procedure CompileAndroid(const Compiler: TCompiler;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
   CPU: TCPU;
+  CompilerOptions: TCompilerOptions;
 begin
   for CPU in DetectAndroidCPUS do
   begin
-    Compile(Compiler, Android, CPU, { DetectMemoryLeaks } false,
-      Mode, WorkingDirectory, CompileFile, SearchPaths, LibraryPaths, ExtraOptions);
+    CompilerOptions := TCompilerOptions.Create;
+    try
+      CompilerOptions.OS := Android;
+      CompilerOptions.CPU := CPU;
+      CompilerOptions.Mode := Mode;
+      CompilerOptions.DetectMemoryLeaks := false;
+      if ExtraOptions <> nil then
+        CompilerOptions.ExtraOptions.AddRange(ExtraOptions);
+      if SearchPaths <> nil then
+        CompilerOptions.SearchPaths.AddRange(SearchPaths);
+      if LibraryPaths <> nil then
+        CompilerOptions.LibraryPaths.AddRange(LibraryPaths);
+      Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+    finally FreeAndNil(CompilerOptions) end;
     if Project <> nil then
     begin
       CheckRenameFile(Project.AndroidLibraryFile(cpuNone), Project.AndroidLibraryFile(CPU));

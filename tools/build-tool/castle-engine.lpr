@@ -288,6 +288,7 @@ var
   Command, S, FileName: string;
   Project: TCastleProject;
   RestOfParameters: TCastleStringList;
+  SimpleCompileOptions: TCompilerOptions; // used only when command is "simple-compile"
 begin
   ApplicationProperties.ApplicationName := 'castle-engine';
   ApplicationProperties.Version := CastleEngineVersion;
@@ -323,7 +324,18 @@ begin
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
     case Target of
-      targetCustom        : Compile(OverrideCompiler, OS, CPU, { DetectMemoryLeaks } false, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetCustom:
+        begin
+          SimpleCompileOptions := TCompilerOptions.Create;
+          try
+            SimpleCompileOptions.OS := OS;
+            SimpleCompileOptions.CPU := CPU;
+            SimpleCompileOptions.DetectMemoryLeaks := false;
+            SimpleCompileOptions.Mode := Mode;
+            SimpleCompileOptions.ExtraOptions.AddRange(CompilerExtraOptions);
+            Compile(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
+          finally FreeAndNil(SimpleCompileOptions) end;
+        end;
       targetAndroid       : CompileAndroid(OverrideCompiler, nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
       targetIOS           : CompileIOS(OverrideCompiler, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
       targetNintendoSwitch: CompileNintendoSwitch(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
