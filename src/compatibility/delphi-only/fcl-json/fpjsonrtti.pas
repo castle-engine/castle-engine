@@ -1182,7 +1182,9 @@ begin
 ///    tkBool :
 ///      Result:=TJSONBoolean.Create(GetOrdProp(AObject,PropertyInfo)<>0);
     tkInt64 :
-      Result:=TJSONInt64Number.Create(GetOrdProp(AObject,PropertyInfo));
+      { Note: using GetOrdProp will result in non-sense values on Delphi.
+        And serializing e.g. "TComponent.Tag" on 64-bit systems relies on this. }
+      Result:=TJSONInt64Number.Create(GetInt64Prop(AObject,PropertyInfo));
 ///    tkQWord :
 ///      Result:=TJSONFloatNumber.Create(GetOrdProp(AObject,PropertyInfo));
 ///    tkObject :
