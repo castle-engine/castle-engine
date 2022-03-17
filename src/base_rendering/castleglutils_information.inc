@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,7 +24,10 @@
   Note that the last line of returned string does not terminate
   with a newline character (so e.g. you may want to do
   Writeln(GLInformationString) instead of just Write(GLInformationString)). }
-function GLInformationString: string;
+function GLInformationString: String;
+
+{ One-line string summarizing current OpenGL(ES). }
+function GLInformationStringSummary: String;
 
 {$endif read_interface}
 
@@ -295,6 +298,15 @@ begin
     '  Current for Renderbuffers: ' + IntToStrUnknown(GLFeatures.Memory.CurrentRenderbuffer);
 
   CheckGLErrors;
+end;
+
+function GLInformationStringSummary: String;
+begin
+  Result := Format('%s %d.%d', [
+    {$ifdef OpenGLES} 'OpenGLES' {$else} 'OpenGL' {$endif},
+    GLVersion.Major,
+    GLVersion.Minor
+  ]);
 end;
 
 {$endif read_implementation}

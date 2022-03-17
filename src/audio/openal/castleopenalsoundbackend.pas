@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -155,7 +155,7 @@ type
     ALVersion11: Boolean;
   public
     procedure DetectDevices(const Devices: TSoundDeviceList); override;
-    function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
+    function ContextOpen(const ADevice: String; out Information, InformationSummary: String): Boolean; override;
     procedure ContextClose; override;
     function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
@@ -902,7 +902,7 @@ begin
 end;
 
 function TOpenALSoundEngineBackend.ContextOpen(const ADevice: String;
-  out Information: String): Boolean;
+  out Information, InformationSummary: String): Boolean;
 
   procedure ParseVersion(const Version: string; out Major, Minor: Integer);
   var
@@ -945,6 +945,14 @@ function TOpenALSoundEngineBackend.ContextOpen(const ADevice: String;
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetString ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end;
 
+  function ALSuccessInformationSummary: string;
+  begin
+    Result := Format('OpenAL %d.%d', [
+      FALMajorVersion,
+      FALMinorVersion
+    ]);
+  end;
+
 var
   ErrMessage: String;
 begin
@@ -965,6 +973,7 @@ begin
 
     FEFXSupported := false;
     Information := '';
+    InformationSummary := '';
     FALMajorVersion := 0;
     FALMinorVersion := 0;
 
@@ -997,11 +1006,15 @@ begin
 
     Result := true;
     Information := ALSuccessInformation;
+    InformationSummary := ALSuccessInformationSummary;
     WasAlreadyOpen := true;
     WasAlreadyOpenDevice := ADevice;
   except
     on E: EOpenALError do
+    begin
       Information := E.Message;
+      InformationSummary := Information;
+    end;
   end;
 end;
 

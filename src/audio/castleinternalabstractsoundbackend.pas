@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2019 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -173,7 +173,7 @@ type
       Regardless whether it returns @true or @false,
       also fills Information (with reasons of failure,
       or with details about initialized sound backend). }
-    function ContextOpen(const ADevice: String; out Information: String): Boolean; virtual; abstract;
+    function ContextOpen(const ADevice: String; out Information, InformationSummary: String): Boolean; virtual; abstract;
 
     { Close backend.
       Guaranteed to be called only after successful (returning @true) ContextOpen. }

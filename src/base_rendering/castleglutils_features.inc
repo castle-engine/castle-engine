@@ -347,6 +347,9 @@ procedure GLInformationInitialize;
 var
   GLFeatures: TGLFeatures;
 
+  { Much more verbose logging of current context capabilities in GLInformationInitialize. }
+  LogGLInformationVerbose: Boolean = false;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -360,7 +363,11 @@ begin
   FreeAndNil(GLFeatures);
   GLFeatures := TGLFeatures.Create;
 
-  WritelnLogMultiline('Rendering Context Initialization', GLInformationString);
+  if LogGLInformationVerbose then
+    WritelnLogMultiline('Rendering Initialized', GLInformationString)
+  else
+    WritelnLog('Rendering Initialized', GLInformationStringSummary +
+      ' (for more info: LogGLInformationVerbose:=true)');
 end;
 
 {$ifdef OpenGLES}

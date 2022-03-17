@@ -1022,8 +1022,9 @@ procedure TCastleWindow.OpenBackend;
   procedure InitializeDpi;
   begin
     FDpi := GetDeviceCaps(h_Dc, LOGPIXELSX);
-    WritelnLog('WinAPI', 'Dots (pixels) per inch is %f (%f * default %f)',
-      [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+    // Too verbose by default, UpdateUIScale will show it if UIScaling is usDpiScale.
+    // WritelnLog('WinAPI', 'Dots (pixels) per inch is %f (%f * default %f)',
+    //   [FDpi, FDpi / DefaultDpi, DefaultDpi]);
   end;
 
   { Request WinAPI to send DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events

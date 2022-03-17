@@ -843,8 +843,9 @@ const
         FDpi := gdk_screen_width() / (ScreenWidthMM / 25.4);
     end;
 
-    WritelnLog('GTK', 'Dots (pixels) per inch is %f (%f * default %f)',
-      [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+    // Too verbose by default, UpdateUIScale will show it if UIScaling is usDpiScale.
+    // WritelnLog('GTK', 'Dots (pixels) per inch is %f (%f * default %f)',
+    //   [FDpi, FDpi / DefaultDpi, DefaultDpi]);
   end;
 
 {$ifndef OpenGLES}

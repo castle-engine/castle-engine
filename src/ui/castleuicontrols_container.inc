@@ -2040,7 +2040,12 @@ begin
   case AUIScaling of
     usNone         : Result := 1;
     usExplicitScale: Result := AUIExplicitScale;
-    usDpiScale     : Result := ADpi / DefaultDpi;
+    usDpiScale     :
+      begin
+        WritelnLog('UI scaling', 'Using dots (pixels) per inch %f (%f * default %f)',
+          [ADpi, ADpi / DefaultDpi, DefaultDpi]);
+        Result := ADpi / DefaultDpi;
+      end;
     usEncloseReferenceSize, usFitReferenceSize:
       begin
         Result := 1;
