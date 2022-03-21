@@ -1962,7 +1962,17 @@ begin
 end;
 
 destructor TCastleTransform.Destroy;
+var
+  I: Integer;
 begin
+  { Before we start destroying the transform we need remove all behaviors from
+    it, because destroying behavior calls it events like BeforeParentDetach,
+    ParentChanged. In this case FBehaviors and other TCastleTransform data is
+    destroyed before destroying behavior. }
+
+  for I := FBehaviors.Count -1 downto 0 do
+    RemoveBehaviorIndex(I);
+
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
   {$undef read_implementation_destructor}
