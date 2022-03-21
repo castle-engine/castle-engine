@@ -1970,7 +1970,7 @@ begin
     ParentChanged. In this case FBehaviors and other TCastleTransform data is
     destroyed before destroying behavior. }
 
-  for I := FBehaviors.Count -1 downto 0 do
+  for I := FBehaviors.Count - 1 downto 0 do
     RemoveBehaviorIndex(I);
 
   {$define read_implementation_destructor}
