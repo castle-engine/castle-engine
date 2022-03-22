@@ -179,6 +179,8 @@ var
   { Are we inside Castle Game Engine designer mode,
     or (possible in case of TCastleControl) in Lazarus/Delphi form designer. }
   CastleDesignMode: Boolean;
+  CastleDesignModePhysicsEnabled: Boolean;
+  CastleDesignModePhysicsPaused: Boolean;
 
   { @exclude Path to editor data, in design mode.
     Useful e.g. to initialize gizmo textures. }

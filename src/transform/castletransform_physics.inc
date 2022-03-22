@@ -2029,8 +2029,10 @@ procedure TCastleRigidBody.Update(const SecondsPassed: Single; var RemoveMe: TRe
 begin
   inherited;
 
-  { Disable physics in design mode (in the future we may add optional way to enable them) }
-  if CastleDesignMode then
+  { Disable updating physics in design mode }
+  if CastleDesignMode and
+     ((not CastleDesignModePhysicsEnabled) or CastleDesignModePhysicsPaused)
+  then
     Exit;
 
   if Parent = nil then
@@ -2353,7 +2355,10 @@ begin
     Exit;
   UpdateFrameId := TFramesPerSecond.FrameId;
 
-  if EnablePhysics and (FKraftEngine <> nil) then
+  if EnablePhysics and (FKraftEngine <> nil) and
+    ( (CastleDesignMode = false) or
+      (CastleDesignMode and (CastleDesignModePhysicsEnabled and (not CastleDesignModePhysicsPaused)))
+    ) then
   begin
     FrameProfiler.Start(fmUpdatePhysics);
 
