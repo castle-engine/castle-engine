@@ -538,6 +538,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    procedure BeforeDestruction;override;
+
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
@@ -1962,17 +1964,7 @@ begin
 end;
 
 destructor TCastleTransform.Destroy;
-var
-  I: Integer;
 begin
-  { Before we start destroying the transform we need remove all behaviors from
-    it, because destroying behavior calls it events like BeforeParentDetach,
-    ParentChanged. In this case FBehaviors and other TCastleTransform data is
-    destroyed before destroying behavior. }
-
-  for I := FBehaviors.Count - 1 downto 0 do
-    RemoveBehaviorIndex(I);
-
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
   {$undef read_implementation_destructor}
@@ -1994,6 +1986,25 @@ begin
   { set to nil, to detach free notification }
   ChangeWorld(nil);
   inherited;
+end;
+
+procedure TCastleTransform.BeforeDestruction;
+var
+  I: Integer;
+begin
+  { Before we start destroying the transform we need remove all behaviors from
+    it, because destroying behavior calls it events like BeforeParentDetach,
+    ParentChanged. In this case FBehaviors and other TCastleTransform data is
+    destroyed before destroying behavior.
+
+    Notice that, this code is not in Destructor because when we make TCastleTransform
+    descendant class some things will be destroyed before removing behaviors and
+    that will run BeforeParentDetach event that can use some descendant fields. }
+
+  for I := FBehaviors.Count - 1 downto 0 do
+    RemoveBehaviorIndex(I);
+
+  inherited BeforeDestruction;
 end;
 
 procedure TCastleTransform.VisibleChangeHere(const Changes: TVisibleChanges);
