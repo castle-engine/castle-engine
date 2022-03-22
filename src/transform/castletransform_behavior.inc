@@ -88,7 +88,7 @@
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; virtual;
   public
-    destructor Destroy; override;
+    procedure BeforeDestruction;override;
 
     function World: TCastleAbstractRootTransform;
 
@@ -186,12 +186,12 @@ begin
   Result := true;
 end;
 
-destructor TCastleBehavior.Destroy;
+procedure TCastleBehavior.BeforeDestruction;
 begin
   if Parent <> nil then
     Parent.BeforeBehaviorDestroy(Self);
 
-  inherited Destroy;
+  inherited BeforeDestruction;
 end;
 
 function TCastleBehavior.World: TCastleAbstractRootTransform;
