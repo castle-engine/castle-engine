@@ -41,18 +41,48 @@
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdBack: TSFNode;
+    { X3D field "back". } { }
+    public property FdBack: TSFNode read FFdBack;
     { X3D field "back". } { }
     property Back: TAbstractTexture2DNode read GetBack write SetBack;
+
+    strict private FFdBottom: TSFNode;
+    { X3D field "bottom". } { }
+    public property FdBottom: TSFNode read FFdBottom;
     { X3D field "bottom". } { }
     property Bottom: TAbstractTexture2DNode read GetBottom write SetBottom;
+
+    strict private FFdFront: TSFNode;
+    { X3D field "front". } { }
+    public property FdFront: TSFNode read FFdFront;
     { X3D field "front". } { }
     property Front: TAbstractTexture2DNode read GetFront write SetFront;
+
+    strict private FFdLeft: TSFNode;
+    { X3D field "left". } { }
+    public property FdLeft: TSFNode read FFdLeft;
     { X3D field "left". } { }
     property Left: TAbstractTexture2DNode read GetLeft write SetLeft;
+
+    strict private FFdRight: TSFNode;
+    { X3D field "right". } { }
+    public property FdRight: TSFNode read FFdRight;
     { X3D field "right". } { }
     property Right: TAbstractTexture2DNode read GetRight write SetRight;
+
+    strict private FFdTop: TSFNode;
+    { X3D field "top". } { }
+    public property FdTop: TSFNode read FFdTop;
     { X3D field "top". } { }
     property Top: TAbstractTexture2DNode read GetTop write SetTop;
+
+    strict private FFdTextureProperties: TSFNode;
+    { X3D field "textureProperties". } { }
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
     { X3D field "textureProperties". } { }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
@@ -151,6 +181,44 @@ end;
 procedure TComposedCubeMapTextureNode.SetTextureProperties(const Value: TTexturePropertiesNode);
 begin
   FdTextureProperties.Send(Value);
+end;
+
+class function TComposedCubeMapTextureNode.ClassX3DType: String;
+begin
+  Result := 'ComposedCubeMapTexture';
+end;
+
+procedure TComposedCubeMapTextureNode.CreateNode;
+begin
+  inherited;
+
+  FFdBack := TSFNode.Create(Self, True, 'back', [TAbstractTexture2DNode]);
+   FdBack.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdBack);
+
+  FFdBottom := TSFNode.Create(Self, True, 'bottom', [TAbstractTexture2DNode]);
+   FdBottom.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdBottom);
+
+  FFdFront := TSFNode.Create(Self, True, 'front', [TAbstractTexture2DNode]);
+   FdFront.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdFront);
+
+  FFdLeft := TSFNode.Create(Self, True, 'left', [TAbstractTexture2DNode]);
+   FdLeft.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdLeft);
+
+  FFdRight := TSFNode.Create(Self, True, 'right', [TAbstractTexture2DNode]);
+   FdRight.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdRight);
+
+  FFdTop := TSFNode.Create(Self, True, 'top', [TAbstractTexture2DNode]);
+   FdTop.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdTop);
+
+  FFdTextureProperties := TSFNode.Create(Self, False, 'textureProperties', [TTexturePropertiesNode]);
+   FdTextureProperties.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdTextureProperties);
 end;
 
 {$endif read_implementation}

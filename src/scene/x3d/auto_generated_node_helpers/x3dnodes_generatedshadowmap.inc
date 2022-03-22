@@ -26,6 +26,8 @@
 {$ifdef read_interface}
 
   strict private
+    function GetUpdate: TTextureUpdate;
+    procedure SetUpdate(const Value: TTextureUpdate);
     function GetSize: Integer;
     procedure SetSize(const Value: Integer);
     function GetLight: TAbstractLightNode;
@@ -34,21 +36,63 @@
     procedure SetScale(const Value: Single);
     function GetBias: Single;
     procedure SetBias(const Value: Single);
+    function GetCompareMode: TShadowMapCompareMode;
+    procedure SetCompareMode(const Value: TShadowMapCompareMode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdUpdate: TSFStringEnum;
+    { X3D field "update". } { }
+    public property FdUpdate: TSFStringEnum read FFdUpdate;
+    { X3D field "update". } { }
+    property Update: TTextureUpdate read GetUpdate write SetUpdate;
+
+    strict private FFdSize: TSFInt32;
+    { X3D field "size". } { }
+    public property FdSize: TSFInt32 read FFdSize;
     { X3D field "size". } { }
     property Size: Integer read GetSize write SetSize;
+
+    strict private FFdLight: TSFNode;
+    { X3D field "light". } { }
+    public property FdLight: TSFNode read FFdLight;
     { X3D field "light". } { }
     property Light: TAbstractLightNode read GetLight write SetLight;
+
+    strict private FFdScale: TSFFloat;
+    { X3D field "scale". } { }
+    public property FdScale: TSFFloat read FFdScale;
     { X3D field "scale". } { }
     property Scale: Single read GetScale write SetScale;
+
+    strict private FFdBias: TSFFloat;
+    { X3D field "bias". } { }
+    public property FdBias: TSFFloat read FFdBias;
     { X3D field "bias". } { }
     property Bias: Single read GetBias write SetBias;
+
+    strict private FFdCompareMode: TSFStringEnum;
+    { X3D field "compareMode". } { }
+    public property FdCompareMode: TSFStringEnum read FFdCompareMode;
+    { X3D field "compareMode". } { }
+    property CompareMode: TShadowMapCompareMode read GetCompareMode write SetCompareMode;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TGeneratedShadowMapNode ----------------------------------------------- }
+
+function TGeneratedShadowMapNode.GetUpdate: TTextureUpdate;
+begin
+  Result := TTextureUpdate(FdUpdate.EnumValue);
+end;
+
+procedure TGeneratedShadowMapNode.SetUpdate(const Value: TTextureUpdate);
+begin
+  FdUpdate.SendEnumValue(Ord(Value));
+end;
 
 function TGeneratedShadowMapNode.GetSize: Integer;
 begin
@@ -91,6 +135,54 @@ end;
 procedure TGeneratedShadowMapNode.SetBias(const Value: Single);
 begin
   FdBias.Send(Value);
+end;
+
+function TGeneratedShadowMapNode.GetCompareMode: TShadowMapCompareMode;
+begin
+  Result := TShadowMapCompareMode(FdCompareMode.EnumValue);
+end;
+
+procedure TGeneratedShadowMapNode.SetCompareMode(const Value: TShadowMapCompareMode);
+begin
+  FdCompareMode.SendEnumValue(Ord(Value));
+end;
+
+class function TGeneratedShadowMapNode.ClassX3DType: String;
+begin
+  Result := 'GeneratedShadowMap';
+end;
+
+procedure TGeneratedShadowMapNode.CreateNode;
+begin
+  inherited;
+
+  FFdUpdate := TSFStringEnum.Create(Self, True, 'update', TextureUpdateNames, Ord(upNone));
+   FdUpdate.ChangeAlways := chRedisplay;
+  AddField(FFdUpdate);
+
+  FFdSize := TSFInt32.Create(Self, False, 'size', 128);
+   FdSize.ChangeAlways := chTextureRendererProperties;
+   FdSize.MustBeNonnegative := true;
+  AddField(FFdSize);
+
+  FFdLight := TSFNode.Create(Self, False, 'light', [TAbstractLightNode]);
+   FdLight.ChangeAlways := chGeneratedTextureUpdateNeeded;
+   FdLight.WeakLink := true;
+  AddField(FFdLight);
+
+  FFdScale := TSFFloat.Create(Self, True, 'scale', DefaultScale);
+   FdScale.ChangeAlways := chGeneratedTextureUpdateNeeded;
+   FdScale.MustBeNonnegative := true;
+  AddField(FFdScale);
+
+  FFdBias := TSFFloat.Create(Self, True, 'bias', DefaultBias);
+   FdBias.ChangeAlways := chGeneratedTextureUpdateNeeded;
+   FdBias.MustBeNonnegative := true;
+  AddField(FFdBias);
+
+  FFdCompareMode := TSFStringEnum.Create(Self, False, 'compareMode', CompareModeNames, Ord(smCompareRLEqual));
+   FdCompareMode.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdCompareMode);
 end;
 
 {$endif read_implementation}

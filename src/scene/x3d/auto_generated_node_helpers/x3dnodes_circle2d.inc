@@ -83,6 +83,7 @@ begin
 
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
    FdRadius.ChangeAlways := chVisibleNonGeometry;
+   FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
 
   FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);

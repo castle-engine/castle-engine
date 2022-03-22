@@ -26,21 +26,57 @@
 {$ifdef read_interface}
 
   strict private
+    function GetUpdate: TTextureUpdate;
+    procedure SetUpdate(const Value: TTextureUpdate);
     function GetSize: Integer;
     procedure SetSize(const Value: Integer);
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
+    function GetBias: TVector3;
+    procedure SetBias(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdUpdate: TSFStringEnum;
+    { X3D field "update". } { }
+    public property FdUpdate: TSFStringEnum read FFdUpdate;
+    { X3D field "update". } { }
+    property Update: TTextureUpdate read GetUpdate write SetUpdate;
+
+    strict private FFdSize: TSFInt32;
+    { X3D field "size". } { }
+    public property FdSize: TSFInt32 read FFdSize;
     { X3D field "size". } { }
     property Size: Integer read GetSize write SetSize;
+
+    strict private FFdTextureProperties: TSFNode;
+    { X3D field "textureProperties". } { }
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
     { X3D field "textureProperties". } { }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
+
+    strict private FFdBias: TSFVec3f;
+    { X3D field "bias". } { }
+    public property FdBias: TSFVec3f read FFdBias;
+    { X3D field "bias". } { }
+    property Bias: TVector3 read GetBias write SetBias;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TGeneratedCubeMapTextureNode ----------------------------------------------- }
+
+function TGeneratedCubeMapTextureNode.GetUpdate: TTextureUpdate;
+begin
+  Result := TTextureUpdate(FdUpdate.EnumValue);
+end;
+
+procedure TGeneratedCubeMapTextureNode.SetUpdate(const Value: TTextureUpdate);
+begin
+  FdUpdate.SendEnumValue(Ord(Value));
+end;
 
 function TGeneratedCubeMapTextureNode.GetSize: Integer;
 begin
@@ -63,6 +99,43 @@ end;
 procedure TGeneratedCubeMapTextureNode.SetTextureProperties(const Value: TTexturePropertiesNode);
 begin
   FdTextureProperties.Send(Value);
+end;
+
+function TGeneratedCubeMapTextureNode.GetBias: TVector3;
+begin
+  Result := FdBias.Value;
+end;
+
+procedure TGeneratedCubeMapTextureNode.SetBias(const Value: TVector3);
+begin
+  FdBias.Send(Value);
+end;
+
+class function TGeneratedCubeMapTextureNode.ClassX3DType: String;
+begin
+  Result := 'GeneratedCubeMapTexture';
+end;
+
+procedure TGeneratedCubeMapTextureNode.CreateNode;
+begin
+  inherited;
+
+  FFdUpdate := TSFStringEnum.Create(Self, True, 'update', TextureUpdateNames, Ord(upNone));
+   FdUpdate.ChangeAlways := chRedisplay;
+  AddField(FFdUpdate);
+
+  FFdSize := TSFInt32.Create(Self, False, 'size', 128);
+   FdSize.ChangeAlways := chTextureRendererProperties;
+   FdSize.MustBeNonnegative := true;
+  AddField(FFdSize);
+
+  FFdTextureProperties := TSFNode.Create(Self, False, 'textureProperties', [TTexturePropertiesNode]);
+   FdTextureProperties.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdTextureProperties);
+
+  FFdBias := TSFVec3f.Create(Self, True, 'bias', Vector3(0, 0, 0));
+   FdBias.ChangeAlways := chNone;
+  AddField(FFdBias);
 end;
 
 {$endif read_implementation}

@@ -126,3 +126,12 @@ ImageBackground : X3DBackgroundNode {
     range: X3DTextureNode
   MFVec2f     [in,out] texCoords [ 0 0, 1 0, 1 1, 0 1 ]
 }
+
+Plane : X3DGeometryNode {
+  auto-generate-more: true
+  SFVec2f []       size     2 2
+    range: (0,Inf)
+    change: chGeometry
+  SFBool  []       solid    TRUE
+    change: chGeometry
+}

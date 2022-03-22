@@ -87,10 +87,12 @@ begin
 
   FFdInnerRadius := TSFFloat.Create(Self, False, 'innerRadius', 0);
    FdInnerRadius.ChangeAlways := chVisibleNonGeometry;
+   FdInnerRadius.MustBeNonnegative := true;
   AddField(FFdInnerRadius);
 
   FFdOuterRadius := TSFFloat.Create(Self, False, 'outerRadius', 1);
    FdOuterRadius.ChangeAlways := chVisibleNonGeometry;
+   FdOuterRadius.MustBeNonnegative := true;
   AddField(FFdOuterRadius);
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);

@@ -29,10 +29,20 @@
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdUrl: TMFString;
+    { X3D field "url". } { }
+    public property FdUrl: TMFString read FFdUrl;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList); overload;
+
+    strict private FFdTextureProperties: TSFNode;
+    { X3D field "textureProperties". } { }
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
     { X3D field "textureProperties". } { }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
@@ -63,6 +73,24 @@ end;
 procedure TImageCubeMapTextureNode.SetTextureProperties(const Value: TTexturePropertiesNode);
 begin
   FdTextureProperties.Send(Value);
+end;
+
+class function TImageCubeMapTextureNode.ClassX3DType: String;
+begin
+  Result := 'ImageCubeMapTexture';
+end;
+
+procedure TImageCubeMapTextureNode.CreateNode;
+begin
+  inherited;
+
+  FFdUrl := TMFString.Create(Self, True, 'url', []);
+   FdUrl.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdUrl);
+
+  FFdTextureProperties := TSFNode.Create(Self, False, 'textureProperties', [TTexturePropertiesNode]);
+   FdTextureProperties.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdTextureProperties);
 end;
 
 {$endif read_implementation}

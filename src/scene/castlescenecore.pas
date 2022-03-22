@@ -452,7 +452,7 @@ type
         { May be only TGeneratedCubeMapTextureNode or TRenderedTextureNode
           or TGeneratedShadowMapNode. }
         TextureNode: TAbstractTextureNode;
-        Handler: TGeneratedTextureHandler;
+        Functionality: TGeneratedTextureFunctionality;
         Shape: TShape;
       end;
       PGeneratedTexture = ^TGeneratedTexture;
@@ -2826,12 +2826,11 @@ function TCastleSceneCore.TGeneratedTextureList.AddShapeTexture(Shape: TShape;
   Tex: TAbstractTextureNode): Pointer;
 var
   GenTex: PGeneratedTexture;
+  GenTexFunctionality: TGeneratedTextureFunctionality;
 begin
   Result := nil;
-
-  if (Tex is TGeneratedCubeMapTextureNode) or
-     (Tex is TGeneratedShadowMapNode) or
-     (Tex is TRenderedTextureNode) then
+  GenTexFunctionality := Tex.GenTexFunctionality;
+  if GenTexFunctionality <> nil then
   begin
     GenTex := FindTextureNode(Tex);
     if GenTex <> nil then
@@ -2864,19 +2863,11 @@ begin
     begin
       GenTex := PGeneratedTexture(Add);
       GenTex^.TextureNode := Tex;
-
-      if Tex is TGeneratedCubeMapTextureNode then
-        GenTex^.Handler := TGeneratedCubeMapTextureNode(Tex).GeneratedTextureHandler else
-      if Tex is TGeneratedShadowMapNode then
-        GenTex^.Handler := TGeneratedShadowMapNode(Tex).GeneratedTextureHandler else
-      if Tex is TRenderedTextureNode then
-        GenTex^.Handler := TRenderedTextureNode(Tex).GeneratedTextureHandler else
-        raise EInternalError.Create('sf34234');
-
+      GenTex^.Functionality := GenTexFunctionality;
       { Make sure to reset InternalUpdateNeeded to true, in case it was false because
         it was already generated but now some change caused ChangedAll.
         Testcase: projected_Spotlight.x3dv from Victor Amat. }
-      GenTex^.Handler.InternalUpdateNeeded := true;
+      GenTex^.Functionality.InternalUpdateNeeded := true;
       GenTex^.Shape := Shape;
     end;
   end;
@@ -2889,7 +2880,7 @@ begin
   for I := 0 to Count - 1 do
     if (List^[I].TextureNode is TGeneratedShadowMapNode) and
        (TGeneratedShadowMapNode(List^[I].TextureNode).FdLight.Value = LightNode) then
-      List^[I].Handler.InternalUpdateNeeded := true;
+      List^[I].Functionality.InternalUpdateNeeded := true;
 end;
 
 { TTimeDependentList ------------------------------------------------- }
@@ -5220,17 +5211,12 @@ var
 
   procedure HandleChangeGeneratedTextureUpdateNeeded;
   var
-    Handler: TGeneratedTextureHandler;
+    GenTexFunctionality: TGeneratedTextureFunctionality;
   begin
-    if ANode is TGeneratedCubeMapTextureNode then
-      Handler := TGeneratedCubeMapTextureNode(ANode).GeneratedTextureHandler else
-    if ANode is TGeneratedShadowMapNode then
-      Handler := TGeneratedShadowMapNode(ANode).GeneratedTextureHandler else
-    if ANode is TRenderedTextureNode then
-      Handler := TRenderedTextureNode(ANode).GeneratedTextureHandler else
+    GenTexFunctionality := ANode.GenTexFunctionality;
+    if GenTexFunctionality = nil then
       Exit;
-
-    Handler.InternalUpdateNeeded := true;
+    GenTexFunctionality.InternalUpdateNeeded := true;
     VisibleChangeHere([]);
   end;
 

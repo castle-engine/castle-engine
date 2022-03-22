@@ -123,10 +123,12 @@ begin
 
   FFdGustiness := TSFFloat.Create(Self, True, 'gustiness', 0.1);
    FdGustiness.ChangeAlways := chVisibleNonGeometry;
+   FdGustiness.MustBeNonnegative := true;
   AddField(FFdGustiness);
 
   FFdSpeed := TSFFloat.Create(Self, True, 'speed', 0.1);
    FdSpeed.ChangeAlways := chVisibleNonGeometry;
+   FdSpeed.MustBeNonnegative := true;
   AddField(FFdSpeed);
 
   FFdTurbulence := TSFFloat.Create(Self, True, 'turbulence', 0);

@@ -26,29 +26,196 @@
 {$ifdef read_interface}
 
   strict private
+    function GetBackground: TAbstractBackgroundNode;
+    procedure SetBackground(const Value: TAbstractBackgroundNode);
+    function GetFog: TFogNode;
+    procedure SetFog(const Value: TFogNode);
+    function GetScene: TAbstractNode;
+    procedure SetScene(const Value: TAbstractNode);
+    function GetUpdate: TTextureUpdate;
+    procedure SetUpdate(const Value: TTextureUpdate);
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
     function GetRepeatR: Boolean;
     procedure SetRepeatR(const Value: Boolean);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
+    function GetFrameBufferMode: String;
+    procedure SetFrameBufferMode(const Value: String);
+    function GetTriggerName: String;
+    procedure SetTriggerName(const Value: String);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdBackground: TSFNode;
+    { X3D field "background". } { }
+    public property FdBackground: TSFNode read FFdBackground;
+    { X3D field "background". } { }
+    property Background: TAbstractBackgroundNode read GetBackground write SetBackground;
+
+    strict private FFdFog: TSFNode;
+    { X3D field "fog". } { }
+    public property FdFog: TSFNode read FFdFog;
+    { X3D field "fog". } { }
+    property Fog: TFogNode read GetFog write SetFog;
+
+    strict private FFdEnvironment: TSFNode;
+    { X3D field "environment". } { }
+    public property FdEnvironment: TSFNode read FFdEnvironment;
+
+    strict private FFdScene: TSFNode;
+    { X3D field "scene". } { }
+    public property FdScene: TSFNode read FFdScene;
+    { X3D field "scene". } { }
+    property Scene: TAbstractNode read GetScene write SetScene;
+
+    strict private FFdForeground: TSFNode;
+    { X3D field "foreground". } { }
+    public property FdForeground: TSFNode read FFdForeground;
+
+    strict private FFdDimensions: TMFInt32;
+    { X3D field "dimensions". } { }
+    public property FdDimensions: TMFInt32 read FFdDimensions;
     { Set X3D field "dimensions". } { }
     procedure SetDimensions(const Value: array of LongInt); overload;
     { Set X3D field "dimensions". } { }
     procedure SetDimensions(const Value: TLongIntList); overload;
+
+    strict private FFdUpdate: TSFStringEnum;
+    { X3D field "update". } { }
+    public property FdUpdate: TSFStringEnum read FFdUpdate;
+    { X3D field "update". } { }
+    property Update: TTextureUpdate read GetUpdate write SetUpdate;
+
+    strict private FFdViewpoint: TSFNode;
+    { X3D field "viewpoint". } { }
+    public property FdViewpoint: TSFNode read FFdViewpoint;
+
+    strict private FFdTextureProperties: TSFNode;
+    { X3D field "textureProperties". } { }
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
     { X3D field "textureProperties". } { }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
+
+    strict private FFdRepeatS: TSFBool;
+    { X3D field "repeatS". } { }
+    public property FdRepeatS: TSFBool read FFdRepeatS;
+
+    strict private FFdRepeatT: TSFBool;
+    { X3D field "repeatT". } { }
+    public property FdRepeatT: TSFBool read FFdRepeatT;
+
+    strict private FFdRepeatR: TSFBool;
+    { X3D field "repeatR". } { }
+    public property FdRepeatR: TSFBool read FFdRepeatR;
     { X3D field "repeatR". } { }
     property RepeatR: Boolean read GetRepeatR write SetRepeatR;
+
+    strict private FFdDepthMap: TMFBool;
+    { X3D field "depthMap". } { }
+    public property FdDepthMap: TMFBool read FFdDepthMap;
     { Set X3D field "depthMap". } { }
     procedure SetDepthMap(const Value: array of boolean); overload;
     { Set X3D field "depthMap". } { }
     procedure SetDepthMap(const Value: TBooleanList); overload;
+
+    strict private FFdZOffset: TMFInt32;
+    { X3D field "zOffset". } { }
+    public property FdZOffset: TMFInt32 read FFdZOffset;
+    { Set X3D field "zOffset". } { }
+    procedure SetZOffset(const Value: array of LongInt); overload;
+    { Set X3D field "zOffset". } { }
+    procedure SetZOffset(const Value: TLongIntList); overload;
+
+    strict private FFdTargets: TMFNode;
+    { X3D field "targets". } { }
+    public property FdTargets: TMFNode read FFdTargets;
+    { Set X3D field "targets". } { }
+    procedure SetTargets(const Value: array of TAbstractTextureNode);
+
+    strict private FFdDescription: TSFString;
+    { X3D field "description". } { }
+    public property FdDescription: TSFString read FFdDescription;
+    { X3D field "description". } { }
+    property Description: String read GetDescription write SetDescription;
+
+    strict private FEventViewing: TSFMatrix4fEvent;
+    { X3D out event "viewing". } { }
+    public property EventViewing: TSFMatrix4fEvent read FEventViewing;
+
+    strict private FEventProjection: TSFMatrix4fEvent;
+    { X3D out event "projection". } { }
+    public property EventProjection: TSFMatrix4fEvent read FEventProjection;
+
+    strict private FFdFrameBufferMode: TSFString;
+    { X3D field "frameBufferMode". } { }
+    public property FdFrameBufferMode: TSFString read FFdFrameBufferMode;
+    { X3D field "frameBufferMode". } { }
+    property FrameBufferMode: String read GetFrameBufferMode write SetFrameBufferMode;
+
+    strict private FFdExcludeNodes: TMFNode;
+    { X3D field "excludeNodes". } { }
+    public property FdExcludeNodes: TMFNode read FFdExcludeNodes;
+
+    strict private FFdTriggerName: TSFString;
+    { X3D field "triggerName". } { }
+    public property FdTriggerName: TSFString read FFdTriggerName;
+    { X3D field "triggerName". } { }
+    property TriggerName: String read GetTriggerName write SetTriggerName;
+
+    strict private FEventImage_changed: TSFImageEvent;
+    { X3D out event "image_changed". } { }
+    public property EventImage_changed: TSFImageEvent read FEventImage_changed;
+
+    strict private FEventRendering: TSFBoolEvent;
+    { X3D out event "rendering". } { }
+    public property EventRendering: TSFBoolEvent read FEventRendering;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TRenderedTextureNode ----------------------------------------------- }
+
+function TRenderedTextureNode.GetBackground: TAbstractBackgroundNode;
+begin
+  if FdBackground.Value is TAbstractBackgroundNode then
+    Result := TAbstractBackgroundNode(FdBackground.Value)
+  else
+    Result := nil;
+end;
+
+procedure TRenderedTextureNode.SetBackground(const Value: TAbstractBackgroundNode);
+begin
+  FdBackground.Send(Value);
+end;
+
+function TRenderedTextureNode.GetFog: TFogNode;
+begin
+  if FdFog.Value is TFogNode then
+    Result := TFogNode(FdFog.Value)
+  else
+    Result := nil;
+end;
+
+procedure TRenderedTextureNode.SetFog(const Value: TFogNode);
+begin
+  FdFog.Send(Value);
+end;
+
+function TRenderedTextureNode.GetScene: TAbstractNode;
+begin
+  if FdScene.Value is TAbstractNode then
+    Result := TAbstractNode(FdScene.Value)
+  else
+    Result := nil;
+end;
+
+procedure TRenderedTextureNode.SetScene(const Value: TAbstractNode);
+begin
+  FdScene.Send(Value);
+end;
 
 procedure TRenderedTextureNode.SetDimensions(const Value: array of LongInt);
 begin
@@ -58,6 +225,16 @@ end;
 procedure TRenderedTextureNode.SetDimensions(const Value: TLongIntList);
 begin
   FdDimensions.Send(Value);
+end;
+
+function TRenderedTextureNode.GetUpdate: TTextureUpdate;
+begin
+  Result := TTextureUpdate(FdUpdate.EnumValue);
+end;
+
+procedure TRenderedTextureNode.SetUpdate(const Value: TTextureUpdate);
+begin
+  FdUpdate.SendEnumValue(Ord(Value));
 end;
 
 function TRenderedTextureNode.GetTextureProperties: TTexturePropertiesNode;
@@ -91,6 +268,156 @@ end;
 procedure TRenderedTextureNode.SetDepthMap(const Value: TBooleanList);
 begin
   FdDepthMap.Send(Value);
+end;
+
+procedure TRenderedTextureNode.SetZOffset(const Value: array of LongInt);
+begin
+  FdZOffset.Send(Value);
+end;
+
+procedure TRenderedTextureNode.SetZOffset(const Value: TLongIntList);
+begin
+  FdZOffset.Send(Value);
+end;
+
+procedure TRenderedTextureNode.SetTargets(const Value: array of TAbstractTextureNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractTextureNode));
+  FdTargets.Send(A);
+end;
+
+function TRenderedTextureNode.GetDescription: String;
+begin
+  Result := FdDescription.Value;
+end;
+
+procedure TRenderedTextureNode.SetDescription(const Value: String);
+begin
+  FdDescription.Send(Value);
+end;
+
+function TRenderedTextureNode.GetFrameBufferMode: String;
+begin
+  Result := FdFrameBufferMode.Value;
+end;
+
+procedure TRenderedTextureNode.SetFrameBufferMode(const Value: String);
+begin
+  FdFrameBufferMode.Send(Value);
+end;
+
+function TRenderedTextureNode.GetTriggerName: String;
+begin
+  Result := FdTriggerName.Value;
+end;
+
+procedure TRenderedTextureNode.SetTriggerName(const Value: String);
+begin
+  FdTriggerName.Send(Value);
+end;
+
+class function TRenderedTextureNode.ClassX3DType: String;
+begin
+  Result := 'RenderedTexture';
+end;
+
+procedure TRenderedTextureNode.CreateNode;
+begin
+  inherited;
+
+  FFdBackground := TSFNode.Create(Self, True, 'background', [TAbstractBackgroundNode]);
+   FdBackground.ChangeAlways := chGeneratedTextureUpdateNeeded;
+  AddField(FFdBackground);
+
+  FFdFog := TSFNode.Create(Self, True, 'fog', [TFogNode]);
+   FdFog.ChangeAlways := chGeneratedTextureUpdateNeeded;
+  AddField(FFdFog);
+
+  FFdEnvironment := TSFNode.Create(Self, True, 'environment', []);
+   FdEnvironment.ChangeAlways := chGeneratedTextureUpdateNeeded;
+  AddField(FFdEnvironment);
+
+  FFdScene := TSFNode.Create(Self, True, 'scene', [TAbstractNode]);
+   FdScene.ChangeAlways := chGeneratedTextureUpdateNeeded;
+  AddField(FFdScene);
+
+  FFdForeground := TSFNode.Create(Self, True, 'foreground', []);
+   FdForeground.ChangeAlways := chGeneratedTextureUpdateNeeded;
+  AddField(FFdForeground);
+
+  FFdDimensions := TMFInt32.Create(Self, True, 'dimensions', [DefaultRenderedTextureWidth, DefaultRenderedTextureHeight, 4, 1, 1]);
+   FdDimensions.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdDimensions);
+
+  FFdUpdate := TSFStringEnum.Create(Self, True, 'update', TextureUpdateNames, Ord(upNone));
+   FdUpdate.ChangeAlways := chRedisplay;
+  AddField(FFdUpdate);
+
+  FFdViewpoint := TSFNode.Create(Self, True, 'viewpoint', [TAbstractViewpointNode, TViewpointMirrorNode]);
+   FdViewpoint.ChangeAlways := chGeneratedTextureUpdateNeeded;
+  AddField(FFdViewpoint);
+
+  FFdTextureProperties := TSFNode.Create(Self, False, 'textureProperties', [TTexturePropertiesNode]);
+   FdTextureProperties.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdTextureProperties);
+
+  FFdRepeatS := TSFBool.Create(Self, False, 'repeatS', true);
+   FdRepeatS.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdRepeatS);
+
+  FFdRepeatT := TSFBool.Create(Self, False, 'repeatT', true);
+   FdRepeatT.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdRepeatT);
+
+  FFdRepeatR := TSFBool.Create(Self, False, 'repeatR', true);
+   FdRepeatR.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdRepeatR);
+
+  FFdDepthMap := TMFBool.Create(Self, True, 'depthMap', []);
+   FdDepthMap.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdDepthMap);
+
+  FFdZOffset := TMFInt32.Create(Self, True, 'zOffset', []);
+   FdZOffset.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdZOffset);
+
+  FFdTargets := TMFNode.Create(Self, True, 'targets', [TAbstractTextureNode]);
+   FdTargets.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdTargets);
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chNone;
+  AddField(FFdDescription);
+
+  FEventViewing := TSFMatrix4fEvent.Create(Self, 'viewing', false);
+  AddEvent(FEventViewing);
+
+  FEventProjection := TSFMatrix4fEvent.Create(Self, 'projection', false);
+  AddEvent(FEventProjection);
+
+  FFdFrameBufferMode := TSFString.Create(Self, True, 'frameBufferMode', 'AUTO');
+   FdFrameBufferMode.ChangeAlways := chTextureRendererProperties;
+  AddField(FFdFrameBufferMode);
+
+  FFdExcludeNodes := TMFNode.Create(Self, False, 'excludeNodes', []);
+   FdExcludeNodes.ChangeAlways := chGeneratedTextureUpdateNeeded;
+  AddField(FFdExcludeNodes);
+
+  FFdTriggerName := TSFString.Create(Self, False, 'triggerName', 'Render');
+   FdTriggerName.ChangeAlways := chNone;
+  AddField(FFdTriggerName);
+
+  FEventImage_changed := TSFImageEvent.Create(Self, 'image_changed', false);
+  AddEvent(FEventImage_changed);
+
+  FEventRendering := TSFBoolEvent.Create(Self, 'rendering', false);
+  AddEvent(FEventRendering);
 end;
 
 {$endif read_implementation}

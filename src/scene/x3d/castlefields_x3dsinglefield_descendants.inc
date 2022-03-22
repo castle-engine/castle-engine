@@ -159,6 +159,7 @@
     FValue: Single;
     FAngle: boolean;
     procedure SetValue(const AValue: Single);
+    procedure SetMustBeNonnegative(const ANewMustBeNonnegative: Boolean);
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
@@ -166,16 +167,18 @@
     DefaultValueExists: boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: Single;
-      const AMustBeNonnegative: boolean = false);
+      const AExposed: boolean; const AName: string; const AValue: Single);
 
+    { Current field value. }
     property Value: Single read FValue write SetValue;
 
-    { If @true then when trying to set Value to something < 0,
-      we'll negate it (in other words, we'll keep Value >= 0 always).
-      This is nice e.g. for Sphere.FdRadius field --- some incorrect VRML specify
-      negative sphere radius. }
-    property MustBeNonnegative: boolean read FMustBeNonnegative default false;
+    { Set this to @true to request that only values >= 0 are valid.
+      Trying to set Value to something < 0 will make a warning
+      and fix it (for now -- by negating it, but don't depend on this "fix" algorithm).
+      Also when changing this to @true while current Value is invalid,
+      it will also be fixed and make a warning. }
+    property MustBeNonnegative: Boolean
+      read FMustBeNonnegative write SetMustBeNonnegative default false;
 
     { Value represents an angle. When reading from X3D 3.3 file, we will
       make sure it's expressed in radians, honoring optional "UNIT angle ..."
@@ -298,6 +301,7 @@
     FMustBeNonnegative: boolean;
     FValue: Longint;
     procedure SetValue(const AValue: Longint);
+    procedure SetMustBeNonnegative(const ANewMustBeNonnegative: Boolean);
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
@@ -305,13 +309,18 @@
     DefaultValueExists: boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: Longint;
-      const AMustBeNonnegative: boolean = false);
+      const AExposed: boolean; const AName: string; const AValue: Longint);
 
     property Value: Longint read FValue write SetValue;
 
-    { See TSFFloat.MustBeNonnegative for explanation of this. }
-    property MustBeNonnegative: boolean read FMustBeNonnegative default false;
+    { Set this to @true to request that only values >= 0 are valid.
+      Trying to set Value to something < 0 will make a warning
+      and fix it (for now -- by negating it, but don't depend on this "fix" algorithm).
+      Also when changing this to @true while current Value is invalid,
+      it will also be fixed and make a warning. }
+    property MustBeNonnegative: Boolean
+      read FMustBeNonnegative write SetMustBeNonnegative default false;
+
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
@@ -1059,22 +1068,43 @@ end;
 
 { TSFFloat ------------------------------------------------------------------- }
 
+constructor TSFFloat.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: Single);
+begin
+  inherited Create(AParentNode, AExposed, AName);
+  FValue := AValue;
+  AssignDefaultValueFromValue;
+end;
+
 procedure TSFFloat.SetValue(const AValue: Single);
 begin
-  if MustBeNonnegative then
-    FValue := Abs(AValue) else
+  if MustBeNonnegative and (AValue < 0) then
+  begin
+    WritelnWarning('Setting float field %s to value < 0 (given: %f) is invalid', [
+      NiceName,
+      AValue
+    ]);
+    FValue := -AValue;
+    Assert(Value >= 0);
+  end else
     FValue := AValue;
 end;
 
-constructor TSFFloat.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: Single;
-  const AMustBeNonnegative: boolean);
+procedure TSFFloat.SetMustBeNonnegative(const ANewMustBeNonnegative: Boolean);
 begin
-  inherited Create(AParentNode, AExposed, AName);
-
-  FMustBeNonnegative := AMustBeNonnegative;
-  Value := AValue; { Set property, zeby SetValue moglo ew. zmienic Value }
-  AssignDefaultValueFromValue;
+  if FMustBeNonnegative <> ANewMustBeNonnegative then
+  begin
+    FMustBeNonnegative := ANewMustBeNonnegative;
+    if FMustBeNonnegative and (Value < 0) then
+    begin
+      WritelnWarning('Float field %s cannot have value < 0 (has: %f), fixing', [
+        NiceName,
+        Value
+      ]);
+      FValue := -FValue;
+      Assert(Value >= 0);
+    end;
+  end;
 end;
 
 procedure TSFFloat.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
@@ -1488,22 +1518,43 @@ end;
 
 { TSFLong -------------------------------------------------------------------- }
 
-procedure TSFLong.SetValue(const AValue: Longint);
+constructor TSFLong.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: Longint);
 begin
-  if MustBeNonnegative then
-    FValue := Abs(AValue) else
+  inherited Create(AParentNode, AExposed, AName);
+  FValue := AValue;
+  AssignDefaultValueFromValue;
+end;
+
+procedure TSFLong.SetValue(const AValue: LongInt);
+begin
+  if MustBeNonnegative and (AValue < 0) then
+  begin
+    WritelnWarning('Setting int32 field %s to value < 0 (given: %f) is invalid', [
+      NiceName,
+      AValue
+    ]);
+    FValue := -AValue;
+    Assert(Value >= 0);
+  end else
     FValue := AValue;
 end;
 
-constructor TSFLong.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: Longint;
-  const AMustBeNonnegative: boolean);
+procedure TSFLong.SetMustBeNonnegative(const ANewMustBeNonnegative: Boolean);
 begin
-  inherited Create(AParentNode, AExposed, AName);
-
-  FMustBeNonnegative := AMustBeNonnegative;
-  Value := AValue; { Set using property, to let SetValue change Value }
-  AssignDefaultValueFromValue;
+  if FMustBeNonnegative <> ANewMustBeNonnegative then
+  begin
+    FMustBeNonnegative := ANewMustBeNonnegative;
+    if FMustBeNonnegative and (Value < 0) then
+    begin
+      WritelnWarning('Int32 field %s cannot have value < 0 (has: %f), fixing', [
+        NiceName,
+        Value
+      ]);
+      FValue := -FValue;
+      Assert(Value >= 0);
+    end;
+  end;
 end;
 
 procedure TSFLong.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);

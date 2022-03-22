@@ -242,18 +242,22 @@ begin
 
   FFdMaxBack := TSFFloat.Create(Self, True, 'maxBack', 10);
    FdMaxBack.ChangeAlways := chVisibleNonGeometry;
+   FdMaxBack.MustBeNonnegative := true;
   AddField(FFdMaxBack);
 
   FFdMaxFront := TSFFloat.Create(Self, True, 'maxFront', 10);
    FdMaxFront.ChangeAlways := chVisibleNonGeometry;
+   FdMaxFront.MustBeNonnegative := true;
   AddField(FFdMaxFront);
 
   FFdMinBack := TSFFloat.Create(Self, True, 'minBack', 1);
    FdMinBack.ChangeAlways := chVisibleNonGeometry;
+   FdMinBack.MustBeNonnegative := true;
   AddField(FFdMinBack);
 
   FFdMinFront := TSFFloat.Create(Self, True, 'minFront', 1);
    FdMinFront.ChangeAlways := chVisibleNonGeometry;
+   FdMinFront.MustBeNonnegative := true;
   AddField(FFdMinFront);
 
   FFdPriority := TSFFloat.Create(Self, True, 'priority', 0);

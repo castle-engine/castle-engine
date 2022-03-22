@@ -163,6 +163,7 @@ begin
 
   FFdVisibilityRange := TSFFloat.Create(Self, True, 'visibilityRange', 0);
    FdVisibilityRange.ChangeAlways := chRedisplay;
+   FdVisibilityRange.MustBeNonnegative := true;
   AddField(FFdVisibilityRange);
 
   FFdVolumetric := TSFBool.Create(Self, True, 'volumetric', false);

@@ -335,22 +335,27 @@ begin
 
   FFdConstantForceMix := TSFFloat.Create(Self, True, 'constantForceMix', 0.0001);
    FdConstantForceMix.ChangeAlways := chVisibleNonGeometry;
+   FdConstantForceMix.MustBeNonnegative := true;
   AddField(FFdConstantForceMix);
 
   FFdContactSurfaceThickness := TSFFloat.Create(Self, True, 'contactSurfaceThickness', 0);
    FdContactSurfaceThickness.ChangeAlways := chVisibleNonGeometry;
+   FdContactSurfaceThickness.MustBeNonnegative := true;
   AddField(FFdContactSurfaceThickness);
 
   FFdDisableAngularSpeed := TSFFloat.Create(Self, True, 'disableAngularSpeed', 0);
    FdDisableAngularSpeed.ChangeAlways := chVisibleNonGeometry;
+   FdDisableAngularSpeed.MustBeNonnegative := true;
   AddField(FFdDisableAngularSpeed);
 
   FFdDisableLinearSpeed := TSFFloat.Create(Self, True, 'disableLinearSpeed', 0);
    FdDisableLinearSpeed.ChangeAlways := chVisibleNonGeometry;
+   FdDisableLinearSpeed.MustBeNonnegative := true;
   AddField(FFdDisableLinearSpeed);
 
   FFdDisableTime := TSFFloat.Create(Self, True, 'disableTime', 0);
    FdDisableTime.ChangeAlways := chVisibleNonGeometry;
+   FdDisableTime.MustBeNonnegative := true;
   AddField(FFdDisableTime);
 
   FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
@@ -367,6 +372,7 @@ begin
 
   FFdIterations := TSFInt32.Create(Self, True, 'iterations', 10);
    FdIterations.ChangeAlways := chVisibleNonGeometry;
+   FdIterations.MustBeNonnegative := true;
   AddField(FFdIterations);
 
   FFdJoints := TMFNode.Create(Self, True, 'joints', [TAbstractRigidJointNode]);

@@ -131,6 +131,7 @@ begin
 
   FFdHatchStyle := TSFInt32.Create(Self, True, 'hatchStyle', 1);
    FdHatchStyle.ChangeAlways := chVisibleNonGeometry;
+   FdHatchStyle.MustBeNonnegative := true;
   AddField(FFdHatchStyle);
 
   DefaultContainerField := 'fillProperties';

@@ -127,6 +127,7 @@ begin
 
   FFdTessellationScale := TSFFloat.Create(Self, True, 'tessellationScale', 1.0);
    FdTessellationScale.ChangeAlways := chVisibleNonGeometry;
+   FdTessellationScale.MustBeNonnegative := true;
   AddField(FFdTessellationScale);
 
   FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));

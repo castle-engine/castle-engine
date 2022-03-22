@@ -203,6 +203,7 @@ begin
 
   FFdSpeed := TSFFloat.Create(Self, True, 'speed', 1.0);
    FdSpeed.ChangeAlways := chNavigationInfo;
+   FdSpeed.MustBeNonnegative := true;
   AddField(FFdSpeed);
 
   FFdTransitionTime := TSFTime.Create(Self, True, 'transitionTime', 1.0);
@@ -219,6 +220,7 @@ begin
 
   FFdVisibilityLimit := TSFFloat.Create(Self, True, 'visibilityLimit', 0.0);
    FdVisibilityLimit.ChangeAlways := chVisibleNonGeometry;
+   FdVisibilityLimit.MustBeNonnegative := true;
   AddField(FFdVisibilityLimit);
 
   FEventTransitionComplete := TSFBoolEvent.Create(Self, 'transitionComplete', false);

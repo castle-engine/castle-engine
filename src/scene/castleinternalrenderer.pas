@@ -3390,38 +3390,12 @@ procedure TGLRenderer.UpdateGeneratedTextures(const Shape: TX3DRendererShape;
   const CurrentViewpoint: TAbstractViewpointNode;
   const CameraViewKnown: boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3);
-var
-  { Only for CheckUpdateField and PostUpdateField }
-  SavedHandler: TGeneratedTextureHandler;
 
-  { Look at the "update" field's value, decide whether we need updating.
-    Will take care of making warning on incorrect "update". }
-  function CheckUpdate(Handler: TGeneratedTextureHandler): boolean;
-  var
-    Update: TTextureUpdate;
-  begin
-    SavedHandler := Handler; { for PostUpdateField }
-    Update := Handler.Update.Value;
-    Result :=
-        (Update = upNextFrameOnly) or
-      ( (Update = upAlways) and Handler.InternalUpdateNeeded );
-  end;
-
-  { Call this after CheckUpdateField returned @true and you updated
-    the texture.
-    Will take care of sending "NONE" after "NEXT_FRAME_ONLY". }
-  procedure PostUpdate;
-  begin
-    if SavedHandler.Update.Value = upNextFrameOnly then
-      SavedHandler.Update.Send(upNone);
-    SavedHandler.InternalUpdateNeeded := false;
-  end;
-
-  procedure UpdateGeneratedCubeMap(TexNode: TGeneratedCubeMapTextureNode);
+  procedure UpdateGeneratedCubeMap(const TexNode: TGeneratedCubeMapTextureNode);
   var
     GLNode: TGLGeneratedCubeMapTextureNode;
   begin
-    if CheckUpdate(TexNode.GeneratedTextureHandler) then
+    if TexNode.GenTexFunctionality.NeedsUpdate then
     begin
       { Shape.BoundingBox must be non-empty, otherwise we don't know from what
         3D point to capture environment.
@@ -3438,7 +3412,7 @@ var
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
           Shape.BoundingBox.Center + TexNode.FdBias.Value);
 
-        PostUpdate;
+        TexNode.GenTexFunctionality.PostUpdate;
 
         if LogRenderer then
           WritelnLog('CubeMap', TexNode.NiceName + ' texture regenerated');
@@ -3450,7 +3424,7 @@ var
   var
     GLNode: TGLGeneratedShadowMap;
   begin
-    if CheckUpdate(TexNode.GeneratedTextureHandler) then
+    if TexNode.GenTexFunctionality.NeedsUpdate then
     begin
       if TexNode.FdLight.Value is TAbstractPunctualLightNode then
       begin
@@ -3460,7 +3434,7 @@ var
           GLNode.Update(Render, ProjectionNear, ProjectionFar,
             TAbstractPunctualLightNode(TexNode.FdLight.Value));
 
-          PostUpdate;
+          TexNode.GenTexFunctionality.PostUpdate;
 
           if LogRenderer then
             WritelnLog('GeneratedShadowMap', TexNode.NiceName + ' texture regenerated');
@@ -3476,7 +3450,7 @@ var
     GeometryCoordsField: TMFVec3f;
     GeometryCoords: TVector3List;
   begin
-    if CheckUpdate(TexNode.GeneratedTextureHandler) then
+    if TexNode.GenTexFunctionality.NeedsUpdate then
     begin
       GLNode := TGLRenderedTextureNode(GLTextureNodes.TextureNode(TexNode));
       if GLNode <> nil then
@@ -3495,7 +3469,7 @@ var
           GeometryCoords,
           Shape.MirrorPlaneUniforms);
 
-        PostUpdate;
+        TexNode.GenTexFunctionality.PostUpdate;
 
         if LogRenderer then
           WritelnLog('RenderedTexture', TexNode.NiceName + ' texture regenerated');

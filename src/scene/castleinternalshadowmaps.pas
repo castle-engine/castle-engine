@@ -117,8 +117,8 @@ begin
     Result^.ShadowMap := TGeneratedShadowMapNode.Create;
     { Allows view3dscene lights editor to easily configure this node. }
     Light.FdDefaultShadowMap.Value := Result^.ShadowMap;
-    Result^.ShadowMap.FdUpdate.Value := upAlways;
-    Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
+    Result^.ShadowMap.Update := upAlways;
+    Result^.ShadowMap.Size := DefaultShadowMapSize;
   end;
 
   { Regardless if this is taken from defaultShadowMap or created,

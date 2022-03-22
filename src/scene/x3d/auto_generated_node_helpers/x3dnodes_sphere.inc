@@ -109,6 +109,7 @@ begin
 
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
    FdRadius.ChangeAlways := chGeometry;
+   FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', true);

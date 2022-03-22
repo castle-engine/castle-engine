@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,35 +17,16 @@
 
 {$ifdef read_interface}
 
-  { Possible update modes for generated textures (like TGeneratedCubeMapTextureNode). }
+  { Possible update modes for generated textures (like @link(TGeneratedCubeMapTextureNode.Update)). }
   TTextureUpdate = (upNone, upNextFrameOnly, upAlways);
 
-  { Update field for rendered textures (like TGeneratedCubeMapTextureNode). }
-  TSFTextureUpdate = class(TSFStringEnum)
+  { Functionality for all X3D nodes that represent generated textures. }
+  TGeneratedTextureFunctionality = class(TNodeFunctionality)
   strict private
-    function GetValue: TTextureUpdate;
-    procedure SetValue(const AValue: TTextureUpdate); reintroduce;
-  strict protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-  public
-    constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string;
-      const AValue: TTextureUpdate);
-    function ExecuteChange: TX3DChange; override;
-
-    { Access the string value as TTextureUpdate enum.
-      Takes care of doing warning if the underlying string value (in VRML/X3D)
-      is invalid. }
-    property Value: TTextureUpdate read GetValue write SetValue;
-    procedure Send(const AValue: TTextureUpdate);
-  end;
-
-  { Common interface for all VRML/X3D generated texture nodes. }
-  TGeneratedTextureHandler = class
-  private
-    FUpdate: TSFTextureUpdate;
-  strict private
-    FUpdateNeeded: boolean;
+    FTextureNode: TAbstractTextureNode;
+  protected
+    function GetUpdate: TTextureUpdate; virtual; abstract;
+    procedure SetUpdate(const Value: TTextureUpdate); virtual; abstract;
   public
     { Used by TCastleScene to track when to set InternalUpdateNeeded. }
     InternalLastStateId: TFrameId;
@@ -61,67 +42,47 @@
       of this texture possibly changed, it's set to @true. }
     InternalUpdateNeeded: boolean;
 
-    constructor Create;
-    property Update: TSFTextureUpdate read FUpdate;
+    constructor Create(const TextureNode: TAbstractTextureNode);
+
+    { Depending on @link(Update), decide whether we need updating. }
+    function NeedsUpdate: Boolean;
+
+    { Call after NeedsUpdate returned @true and you updated the texture.
+      Will take care of sending "NONE" after "NEXT_FRAME_ONLY". }
+    procedure PostUpdate;
+
+    property Update: TTextureUpdate read GetUpdate write SetUpdate;
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TSFTextureUpdate.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: TTextureUpdate);
 const
-  UpdateNames: array [TTextureUpdate] of string =
-  ('NONE', 'NEXT_FRAME_ONLY', 'ALWAYS');
+  TextureUpdateNames: array [TTextureUpdate] of string = (
+    'NONE',
+    'NEXT_FRAME_ONLY',
+    'ALWAYS'
+  );
+
+{ TGeneratedTextureFunctionality --------------------------------------------- }
+
+constructor TGeneratedTextureFunctionality.Create(const TextureNode: TAbstractTextureNode);
 begin
-  inherited Create(AParentNode, AExposed, AName, UpdateNames, Ord(AValue));
+  FTextureNode := TextureNode;
+  inherited Create(TextureNode);
 end;
 
-function TSFTextureUpdate.GetValue: TTextureUpdate;
+function TGeneratedTextureFunctionality.NeedsUpdate: Boolean;
 begin
-  Result := TTextureUpdate(EnumValue);
+  Result :=
+      (Update = upNextFrameOnly) or
+    ( (Update = upAlways) and InternalUpdateNeeded );
 end;
 
-procedure TSFTextureUpdate.SetValue(const AValue: TTextureUpdate);
+procedure TGeneratedTextureFunctionality.PostUpdate;
 begin
-  EnumValue := Ord(AValue);
+  if Update = upNextFrameOnly then
+    Update := upNone;
+  InternalUpdateNeeded := false;
 end;
 
-procedure TSFTextureUpdate.Send(const AValue: TTextureUpdate);
-begin
-  inherited SendEnumValue(Ord(AValue));
-end;
-
-class function TSFTextureUpdate.ExposedEventsFieldClass: TX3DFieldClass;
-begin
-  Result := TSFString;
-end;
-
-function TSFTextureUpdate.ExecuteChange: TX3DChange;
-begin
-  { This causes appropriate @link(Changes): chRedisplay if value <> upNone.
-    Then necessary things will be done automatically
-    at next UpdateGeneratedTextures call, so nothing besides chRedisplay
-    is required.
-
-    Note we do not pass chVisibleGeometry, chVisibleNonGeometry, or such.
-    So VisibleChangeHere will be called with [].
-    That's logical --- only the change of "update" field doesn't visibly
-    change anything on the scene. This means that if you change update
-    to upAlways, but no visible change was registered since last update
-    of the texture, the texture will not be actually immediately
-    regenerated --- correct optimization!
-
-    If value is upNone, nothing needs to be done. }
-
-  if Value <> upNone then
-    Result := chRedisplay
-  else
-    Result := chNone;
-end;
-
-constructor TGeneratedTextureHandler.Create;
-begin
-  inherited;
-  FUpdateNeeded := true;
-end;
 {$endif read_implementation}

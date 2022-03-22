@@ -212,6 +212,7 @@ begin
   FFdCreaseAngle := TSFFloat.Create(Self, False, 'creaseAngle', 0);
    FdCreaseAngle.ChangeAlways := chGeometry;
    FdCreaseAngle.Angle := true;
+   FdCreaseAngle.MustBeNonnegative := true;
   AddField(FFdCreaseAngle);
 
   FFdNormalIndex := TMFInt32.Create(Self, False, 'normalIndex', []);

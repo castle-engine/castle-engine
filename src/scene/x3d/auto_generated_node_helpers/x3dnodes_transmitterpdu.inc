@@ -799,6 +799,7 @@ begin
 
   FFdPower := TSFFloat.Create(Self, True, 'power', 0.0);
    FdPower.ChangeAlways := chVisibleNonGeometry;
+   FdPower.MustBeNonnegative := true;
   AddField(FFdPower);
 
   FFdRadioEntityTypeCategory := TSFInt32.Create(Self, True, 'radioEntityTypeCategory', 0);
@@ -831,6 +832,7 @@ begin
 
   FFdReadInterval := TSFFloat.Create(Self, True, 'readInterval', 0.1);
    FdReadInterval.ChangeAlways := chVisibleNonGeometry;
+   FdReadInterval.MustBeNonnegative := true;
   AddField(FFdReadInterval);
 
   FFdRelativeAntennaLocation := TSFVec3f.Create(Self, True, 'relativeAntennaLocation', Vector3(0, 0, 0));
@@ -859,6 +861,7 @@ begin
 
   FFdWriteInterval := TSFFloat.Create(Self, True, 'writeInterval', 1.0);
    FdWriteInterval.ChangeAlways := chVisibleNonGeometry;
+   FdWriteInterval.MustBeNonnegative := true;
   AddField(FFdWriteInterval);
 
   FEventIsNetworkReader := TSFBoolEvent.Create(Self, 'isNetworkReader', false);

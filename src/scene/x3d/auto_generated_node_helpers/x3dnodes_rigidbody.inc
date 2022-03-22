@@ -467,14 +467,17 @@ begin
 
   FFdDisableAngularSpeed := TSFFloat.Create(Self, True, 'disableAngularSpeed', 0);
    FdDisableAngularSpeed.ChangeAlways := chVisibleNonGeometry;
+   FdDisableAngularSpeed.MustBeNonnegative := true;
   AddField(FFdDisableAngularSpeed);
 
   FFdDisableLinearSpeed := TSFFloat.Create(Self, True, 'disableLinearSpeed', 0);
    FdDisableLinearSpeed.ChangeAlways := chVisibleNonGeometry;
+   FdDisableLinearSpeed.MustBeNonnegative := true;
   AddField(FFdDisableLinearSpeed);
 
   FFdDisableTime := TSFFloat.Create(Self, True, 'disableTime', 0);
    FdDisableTime.ChangeAlways := chVisibleNonGeometry;
+   FdDisableTime.MustBeNonnegative := true;
   AddField(FFdDisableTime);
 
   FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
@@ -511,6 +514,7 @@ begin
 
   FFdMass := TSFFloat.Create(Self, True, 'mass', 1);
    FdMass.ChangeAlways := chVisibleNonGeometry;
+   FdMass.MustBeNonnegative := true;
   AddField(FFdMass);
 
   FFdMassDensityModel := TSFNode.Create(Self, True, 'massDensityModel', [TSphereNode, TBoxNode, TConeNode]);

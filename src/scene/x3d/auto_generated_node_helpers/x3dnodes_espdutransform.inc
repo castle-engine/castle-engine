@@ -1307,6 +1307,7 @@ begin
 
   FFdFiringRange := TSFFloat.Create(Self, True, 'firingRange', 0.0);
    FdFiringRange.ChangeAlways := chVisibleNonGeometry;
+   FdFiringRange.MustBeNonnegative := true;
   AddField(FFdFiringRange);
 
   FFdFiringRate := TSFInt32.Create(Self, True, 'firingRate', 0);

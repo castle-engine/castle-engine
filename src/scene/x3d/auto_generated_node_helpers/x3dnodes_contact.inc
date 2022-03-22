@@ -387,6 +387,7 @@ begin
 
   FFdMinbounceSpeed := TSFFloat.Create(Self, True, 'minbounceSpeed', 0);
    FdMinbounceSpeed.ChangeAlways := chVisibleNonGeometry;
+   FdMinbounceSpeed.MustBeNonnegative := true;
   AddField(FFdMinbounceSpeed);
 
   FFdPosition := TSFVec3f.Create(Self, True, 'position', Vector3(0, 0, 0));

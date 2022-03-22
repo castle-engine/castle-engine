@@ -91,6 +91,7 @@ begin
 
   FFdPitch := TSFFloat.Create(Self, True, 'pitch', 1.0);
    FdPitch.ChangeAlways := chVisibleNonGeometry;
+   FdPitch.MustBeNonnegative := true;
   AddField(FFdPitch);
 
   FEventDuration_changed := TSFTimeEvent.Create(Self, 'duration_changed', false);

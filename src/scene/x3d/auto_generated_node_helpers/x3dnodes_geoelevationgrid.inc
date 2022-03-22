@@ -370,6 +370,7 @@ begin
 
   FFdYScale := TSFFloat.Create(Self, True, 'yScale', 1.0);
    FdYScale.ChangeAlways := chGeometry;
+   FdYScale.MustBeNonnegative := true;
   AddField(FFdYScale);
 
   FFdCcw := TSFBool.Create(Self, False, 'ccw', true);
@@ -411,6 +412,7 @@ begin
 
   FFdXDimension := TSFInt32.Create(Self, False, 'xDimension', 0);
    FdXDimension.ChangeAlways := chGeometry;
+   FdXDimension.MustBeNonnegative := true;
   AddField(FFdXDimension);
 
   FFdXSpacing := TSFDouble.Create(Self, False, 'xSpacing', 1.0);
@@ -419,6 +421,7 @@ begin
 
   FFdZDimension := TSFInt32.Create(Self, False, 'zDimension', 0);
    FdZDimension.ChangeAlways := chGeometry;
+   FdZDimension.MustBeNonnegative := true;
   AddField(FFdZDimension);
 
   FFdZSpacing := TSFDouble.Create(Self, False, 'zSpacing', 1.0);

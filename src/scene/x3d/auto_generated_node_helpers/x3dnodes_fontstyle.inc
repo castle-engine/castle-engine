@@ -247,10 +247,12 @@ begin
 
   FFdSize := TSFFloat.Create(Self, False, 'size', 1.0);
    FdSize.ChangeAlways := chFontStyle;
+   FdSize.MustBeNonnegative := true;
   AddField(FFdSize);
 
   FFdSpacing := TSFFloat.Create(Self, False, 'spacing', 1.0);
    FdSpacing.ChangeAlways := chFontStyle;
+   FdSpacing.MustBeNonnegative := true;
   AddField(FFdSpacing);
 
   FFdStyle := TSFStringEnum.Create(Self, False, 'style', FontStyleNames, Ord(fsPlain));

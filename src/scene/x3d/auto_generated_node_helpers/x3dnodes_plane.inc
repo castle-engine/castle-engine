@@ -25,24 +25,55 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetSize: TVector2;
+    procedure SetSize(const Value: TVector2);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
+
+    strict private FFdSize: TSFVec2f;
+    { X3D field "size". } { }
+    public property FdSize: TSFVec2f read FFdSize;
+    { X3D field "size". } { }
+    property Size: TVector2 read GetSize write SetSize;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TAbstractEnvironmentTextureNode ----------------------------------------------- }
+{ TPlaneNode ----------------------------------------------- }
 
-class function TAbstractEnvironmentTextureNode.ClassX3DType: String;
+function TPlaneNode.GetSize: TVector2;
 begin
-  Result := 'X3DEnvironmentTextureNode';
+  Result := FdSize.Value;
 end;
 
-procedure TAbstractEnvironmentTextureNode.CreateNode;
+procedure TPlaneNode.SetSize(const Value: TVector2);
+begin
+  FdSize.Send(Value);
+end;
+
+class function TPlaneNode.ClassX3DType: String;
+begin
+  Result := 'Plane';
+end;
+
+procedure TPlaneNode.CreateNode;
 begin
   inherited;
+
+  FFdSize := TSFVec2f.Create(Self, False, 'size', Vector2(2, 2));
+   FdSize.ChangeAlways := chGeometry;
+  AddField(FFdSize);
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', true);
+   FdSolid.ChangeAlways := chGeometry;
+  AddField(FFdSolid);
 end;
 
 {$endif read_implementation}

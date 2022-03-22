@@ -306,10 +306,12 @@ begin
 
   FFdMaxParticles := TSFInt32.Create(Self, True, 'maxParticles', 200);
    FdMaxParticles.ChangeAlways := chVisibleNonGeometry;
+   FdMaxParticles.MustBeNonnegative := true;
   AddField(FFdMaxParticles);
 
   FFdParticleLifetime := TSFFloat.Create(Self, True, 'particleLifetime', 5);
    FdParticleLifetime.ChangeAlways := chVisibleNonGeometry;
+   FdParticleLifetime.MustBeNonnegative := true;
   AddField(FFdParticleLifetime);
 
   FFdParticleSize := TSFVec2f.Create(Self, True, 'particleSize', Vector2(0.02, 0.02));

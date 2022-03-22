@@ -467,10 +467,12 @@ begin
 
   FFdReadInterval := TSFFloat.Create(Self, True, 'readInterval', 0.1);
    FdReadInterval.ChangeAlways := chVisibleNonGeometry;
+   FdReadInterval.MustBeNonnegative := true;
   AddField(FFdReadInterval);
 
   FFdReceivedPower := TSFFloat.Create(Self, True, 'receivedPower', 0.0);
    FdReceivedPower.ChangeAlways := chVisibleNonGeometry;
+   FdReceivedPower.MustBeNonnegative := true;
   AddField(FFdReceivedPower);
 
   FFdReceiverState := TSFInt32.Create(Self, True, 'receiverState', 0);
@@ -507,6 +509,7 @@ begin
 
   FFdWriteInterval := TSFFloat.Create(Self, True, 'writeInterval', 1.0);
    FdWriteInterval.ChangeAlways := chVisibleNonGeometry;
+   FdWriteInterval.MustBeNonnegative := true;
   AddField(FFdWriteInterval);
 
   FEventIsNetworkReader := TSFBoolEvent.Create(Self, 'isNetworkReader', false);

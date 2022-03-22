@@ -92,7 +92,8 @@ X3DPositionalLightNode : X3DPunctualLightNode {
     range: 0 0 0 (-Inf,Inf)
     change: chLightLocationDirection
   SFFloat [in,out] radius           100
-    range: [0,Inf)
+    # As an extension to X3D, CGE allows radius -1 to indicate "no radius"
+    range: [0,Inf) or -1
     change: chLightInstanceProperty
 }
 

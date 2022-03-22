@@ -351,6 +351,7 @@ begin
   FFdCreaseAngle := TSFFloat.Create(Self, False, 'creaseAngle', 0);
    FdCreaseAngle.ChangeAlways := chGeometry;
    FdCreaseAngle.Angle := true;
+   FdCreaseAngle.MustBeNonnegative := true;
   AddField(FFdCreaseAngle);
 
   FFdHeight := TMFFloat.Create(Self, False, 'height', []);
@@ -367,18 +368,22 @@ begin
 
   FFdXDimension := TSFInt32.Create(Self, False, 'xDimension', 0);
    FdXDimension.ChangeAlways := chGeometry;
+   FdXDimension.MustBeNonnegative := true;
   AddField(FFdXDimension);
 
   FFdXSpacing := TSFFloat.Create(Self, False, 'xSpacing', 1.0);
    FdXSpacing.ChangeAlways := chGeometry;
+   FdXSpacing.MustBeNonnegative := true;
   AddField(FFdXSpacing);
 
   FFdZDimension := TSFInt32.Create(Self, False, 'zDimension', 0);
    FdZDimension.ChangeAlways := chGeometry;
+   FdZDimension.MustBeNonnegative := true;
   AddField(FFdZDimension);
 
   FFdZSpacing := TSFFloat.Create(Self, False, 'zSpacing', 1.0);
    FdZSpacing.ChangeAlways := chGeometry;
+   FdZSpacing.MustBeNonnegative := true;
   AddField(FFdZSpacing);
 end;
 

@@ -27,15 +27,30 @@ KambiAppearance : Appearance {
 }
 
 GeneratedShadowMap : X3DSingleTextureNode {
+  auto-generate-more: true
   SFString   [in,out]      update           "NONE"
     range: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
+    enumerated-type: TTextureUpdate TextureUpdateNames upNone
+    doc: When to update the texture contents.
+    # See GeneratedCubeMapTexture.change for reasoning why chRedisplay is good.
+    change: chRedisplay
   SFInt32    []            size             128
+    range: (0,Inf)
+    change: chTextureRendererProperties
   SFNode     []            light            NULL
     range: X3DLightNode
-  SFFloat    [in,out]      scale            4.0
-  SFFloat    [in,out]      bias             4.0
+    change: chGeneratedTextureUpdateNeeded
+    weak-link
+  SFFloat    [in,out]      scale            DefaultScale
+    range: [0,Inf)
+    change: chGeneratedTextureUpdateNeeded
+  SFFloat    [in,out]      bias             DefaultBias
+    range: [0,Inf)
+    change: chGeneratedTextureUpdateNeeded
   SFString   []            compareMode      "COMPARE_R_LEQUAL"
     range: ["COMPARE_R_LEQUAL"|"COMPARE_R_GEQUAL"|"NONE"]
+    enumerated-type: TShadowMapCompareMode CompareModeNames smCompareRLEqual
+    change: chTextureRendererProperties
 }
 
 Text3D : Text {
@@ -103,18 +118,62 @@ Teapot : X3DGeometryNode {
 }
 
 RenderedTexture : X3DSingleTextureNode {
-  MFInt32    [in,out]      dimensions            [128 128 4 1 1]
+  auto-generate-more: true
+  SFNode     [in,out]      background       NULL
+    range: X3DBackgroundNode
+    change: chGeneratedTextureUpdateNeeded
+  SFNode     [in,out]      fog              NULL
+    range: Fog
+    change: chGeneratedTextureUpdateNeeded
+  SFNode     [in,out]      environment      NULL
+    # range: EnvironmentBindable # this field is for compatibility with InstantReality, we don't support Environment node
+    change: chGeneratedTextureUpdateNeeded
+  SFNode     [in,out]      scene            NULL
+    range: X3DNode
+    change: chGeneratedTextureUpdateNeeded
+  SFNode     [in,out]      foreground       NULL
+    # range: ForegroundBindable # this field is for compatibility with InstantReality, we don't support Foreground node
+    change: chGeneratedTextureUpdateNeeded
+  MFInt32    [in,out]      dimensions            [DefaultRenderedTextureWidth, DefaultRenderedTextureHeight, 4, 1, 1]
+    change: chTextureRendererProperties
   SFString   [in,out]      update                "NONE"
     range: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
+    enumerated-type: TTextureUpdate TextureUpdateNames upNone
+    doc: When to update the texture contents.
+    # See GeneratedCubeMapTexture.change for reasoning why chRedisplay is good.
+    change: chRedisplay
   # note that we allow even VRML 1.0 cameras by TAbstractViewpointNode
   SFNode     [in,out]      viewpoint             NULL
     range: X3DViewpointNode, ViewpointMirror
+    change: chGeneratedTextureUpdateNeeded
   SFNode     []            textureProperties     NULL
     range: TextureProperties
+    change: chTextureRendererProperties
   SFBool     []            repeatS               TRUE
+    change: chTextureRendererProperties
   SFBool     []            repeatT               TRUE
+    change: chTextureRendererProperties
   SFBool     []            repeatR               TRUE
+    change: chTextureRendererProperties
   MFBool     [in,out]      depthMap              []
+    change: chTextureRendererProperties
+  MFInt32    [in,out]      zOffset               []
+    change: chTextureRendererProperties
+  MFNode     [in,out]      targets               []
+    range: X3DTextureNode
+    change: chTextureRendererProperties
+  SFString   [in,out]      description           ""
+    change: chNone
+  SFMatrix4f [out]         viewing
+  SFMatrix4f [out]         projection
+  SFString   [in,out]      frameBufferMode       "AUTO"
+    change: chTextureRendererProperties
+  MFNode     []            excludeNodes          []
+    change: chGeneratedTextureUpdateNeeded
+  SFString   []            triggerName           "Render"
+    change: chNone
+  SFImage    [out]         image_changed
+  SFBool     [out]         rendering
 }
 
 Logger : X3DChildNode {

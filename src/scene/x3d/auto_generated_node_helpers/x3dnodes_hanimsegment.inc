@@ -224,6 +224,7 @@ begin
 
   FFdMass := TSFFloat.Create(Self, True, 'mass', 0);
    FdMass.ChangeAlways := chVisibleNonGeometry;
+   FdMass.MustBeNonnegative := true;
   AddField(FFdMass);
 
   FFdMomentsOfInertia := TMFFloat.Create(Self, True, 'momentsOfInertia', [0, 0, 0, 0, 0, 0, 0, 0, 0]);

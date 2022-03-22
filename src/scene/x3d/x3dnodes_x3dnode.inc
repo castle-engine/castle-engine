@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -50,12 +50,13 @@
 
   TNodeFunctionalityClass = class of TNodeFunctionality;
 
-  { X3D node. Every VRML/X3D node class descends from this. }
+  { X3D node. Every X3D node class descends from this. }
   TX3DNode = class(TX3DFileItem)
   strict private
     FFunctionalityList: TNodeFunctionalityList; //< may be @nil if none
     FTransformFunctionality: TTransformFunctionality;
     FTimeFunctionality: TTimeDependentFunctionality;
+    FGenTexFunctionality: TGeneratedTextureFunctionality;
   private
     FX3DName: string;
     FBaseUrl: string;
@@ -1112,6 +1113,8 @@
     property TransformFunctionality: TTransformFunctionality read FTransformFunctionality;
     { Fast shortcut to Functionality(TTimeDependentFunctionality). }
     property TimeFunctionality: TTimeDependentFunctionality read FTimeFunctionality;
+    { Fast shortcut to Functionality(TGeneratedTextureFunctionality). }
+    property GenTexFunctionality: TGeneratedTextureFunctionality read FGenTexFunctionality;
   end;
 
   TX3DNodeList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DNode>)
@@ -3503,11 +3506,13 @@ procedure TX3DNode.AddFunctionality(const F: TNodeFunctionality);
   begin
     FTransformFunctionality := Functionality(TTransformFunctionality) as TTransformFunctionality;
     FTimeFunctionality := Functionality(TTimeDependentFunctionality) as TTimeDependentFunctionality;
+    FGenTexFunctionality := Functionality(TGeneratedTextureFunctionality) as TGeneratedTextureFunctionality;
   end;
 
 begin
   Assert(not ( (F is TTransformFunctionality) and (FTransformFunctionality <> nil) ), 'Do not add 2 functionalities implementing TTransformFunctionality');
   Assert(not ( (F is TTimeDependentFunctionality) and (FTimeFunctionality <> nil) ), 'Do not add 2 functionalities implementing TTimeDependentFunctionality');
+  Assert(not ( (F is TGeneratedTextureFunctionality) and (FGenTexFunctionality <> nil) ), 'Do not add 2 functionalities implementing TGeneratedTextureFunctionality');
 
   if FFunctionalityList = nil then
     FFunctionalityList := TNodeFunctionalityList.Create(true);

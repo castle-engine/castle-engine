@@ -200,6 +200,7 @@ begin
 
   FFdSpeedFactor := TSFFloat.Create(Self, False, 'speedFactor', 1.0);
    FdSpeedFactor.ChangeAlways := chVisibleNonGeometry;
+   FdSpeedFactor.MustBeNonnegative := true;
   AddField(FFdSpeedFactor);
 end;
 

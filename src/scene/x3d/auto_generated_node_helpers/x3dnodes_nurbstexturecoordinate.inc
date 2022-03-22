@@ -199,6 +199,7 @@ begin
 
   FFdUDimension := TSFInt32.Create(Self, False, 'uDimension', 0);
    FdUDimension.ChangeAlways := chVisibleNonGeometry;
+   FdUDimension.MustBeNonnegative := true;
   AddField(FFdUDimension);
 
   FFdUKnot := TMFDouble.Create(Self, False, 'uKnot', []);
@@ -211,6 +212,7 @@ begin
 
   FFdVDimension := TSFInt32.Create(Self, False, 'vDimension', 0);
    FdVDimension.ChangeAlways := chVisibleNonGeometry;
+   FdVDimension.MustBeNonnegative := true;
   AddField(FFdVDimension);
 
   FFdVKnot := TMFDouble.Create(Self, False, 'vKnot', []);

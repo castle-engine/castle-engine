@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -949,11 +949,13 @@ begin
    FdParts.ChangeAlways := chGeometry;
   AddField(FFdParts);
 
-  FFdBottomRadius := TSFFloat.Create(Self, true, 'bottomRadius', 1, true);
+  FFdBottomRadius := TSFFloat.Create(Self, true, 'bottomRadius', 1);
+   FdBottomRadius.MustBeNonnegative := true;
    FdBottomRadius.ChangeAlways := chGeometry;
   AddField(FFdBottomRadius);
 
-  FFdHeight := TSFFloat.Create(Self, true, 'height', 2, true);
+  FFdHeight := TSFFloat.Create(Self, true, 'height', 2);
+   FdHeight.MustBeNonnegative := true;
    FdHeight.ChangeAlways := chGeometry;
   AddField(FFdHeight);
 end;
@@ -972,15 +974,18 @@ procedure TCubeNode_1.CreateNode;
 begin
   inherited;
 
-  FFdWidth := TSFFloat.Create(Self, true, 'width', 2, true);
+  FFdWidth := TSFFloat.Create(Self, true, 'width', 2);
+   FdWidth.MustBeNonnegative := true;
    FdWidth.ChangeAlways := chGeometry;
   AddField(FFdWidth);
 
-  FFdHeight := TSFFloat.Create(Self, true, 'height', 2, true);
+  FFdHeight := TSFFloat.Create(Self, true, 'height', 2);
+   FdHeight.MustBeNonnegative := true;
    FdHeight.ChangeAlways := chGeometry;
   AddField(FFdHeight);
 
-  FFdDepth := TSFFloat.Create(Self, true, 'depth', 2, true);
+  FFdDepth := TSFFloat.Create(Self, true, 'depth', 2);
+   FdDepth.MustBeNonnegative := true;
    FdDepth.ChangeAlways := chGeometry;
   AddField(FFdDepth);
 end;
@@ -1003,11 +1008,13 @@ begin
    FdParts.ChangeAlways := chGeometry;
   AddField(FFdParts);
 
-  FFdRadius := TSFFloat.Create(Self, true, 'radius', 1, true);
+  FFdRadius := TSFFloat.Create(Self, true, 'radius', 1);
+   FdRadius.MustBeNonnegative := true;
    FdRadius.ChangeAlways := chGeometry;
   AddField(FFdRadius);
 
-  FFdHeight := TSFFloat.Create(Self, true, 'height', 2, true);
+  FFdHeight := TSFFloat.Create(Self, true, 'height', 2);
+   FdHeight.MustBeNonnegative := true;
    FdHeight.ChangeAlways := chGeometry;
   AddField(FFdHeight);
 end;
@@ -1203,7 +1210,8 @@ procedure TSphereNode_1.CreateNode;
 begin
   inherited;
 
-  FFdRadius := TSFFloat.Create(Self, true, 'radius', 1, true);
+  FFdRadius := TSFFloat.Create(Self, true, 'radius', 1);
+   FdRadius.MustBeNonnegative := true;
    FdRadius.ChangeAlways := chGeometry;
   AddField(FFdRadius);
 end;
@@ -1236,7 +1244,8 @@ procedure TFontStyleNode_1.CreateNode;
 begin
   inherited;
 
-  FFdSize := TSFFloat.Create(Self, true, 'size', 10, true);
+  FFdSize := TSFFloat.Create(Self, true, 'size', 10);
+   FdSize.MustBeNonnegative := true;
    FdSize.ChangeAlways := chGeometryVRML1State;
   AddField(FFdSize);
 
@@ -2027,7 +2036,8 @@ begin
    FdPosition.ChangeAlways := chViewpointVectors;
   AddField(FFdPosition);
 
-  FFdFocalDistance := TSFFloat.Create(Self, true, 'focalDistance', 5, true);
+  FFdFocalDistance := TSFFloat.Create(Self, true, 'focalDistance', 5);
+   FdFocalDistance.MustBeNonnegative := true;
   AddField(FFdFocalDistance);
 
   FFdNearDistance := TSFFloat.Create(Self, true, 'nearDistance', 0);
@@ -2048,7 +2058,8 @@ procedure TOrthographicCameraNode_1.CreateNode;
 begin
   inherited;
 
-  FFdHeight := TSFFloat.Create(Self, true, 'height', 2, true);
+  FFdHeight := TSFFloat.Create(Self, true, 'height', 2);
+   FdHeight.MustBeNonnegative := true;
   AddField(FFdHeight);
 end;
 
@@ -2066,7 +2077,8 @@ procedure TPerspectiveCameraNode_1.CreateNode;
 begin
   inherited;
 
-  FFdHeightAngle := TSFFloat.Create(Self, true, 'heightAngle', Pi / 4, true);
+  FFdHeightAngle := TSFFloat.Create(Self, true, 'heightAngle', Pi / 4);
+   FdHeightAngle.MustBeNonnegative := true;
   AddField(FFdHeightAngle);
 end;
 

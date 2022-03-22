@@ -105,6 +105,7 @@ begin
 
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
    FdRadius.ChangeAlways := chVisibleNonGeometry;
+   FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
 
   FFdStartAngle := TSFFloat.Create(Self, False, 'startAngle', 0);

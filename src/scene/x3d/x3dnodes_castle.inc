@@ -170,53 +170,27 @@
     See https://castle-engine.io/x3d_extensions_shadow_maps.php }
   TGeneratedShadowMapNode = class(TAbstractSingleTextureNode)
   strict private
-    FGeneratedTextureHandler: TGeneratedTextureHandler;
-    function GetCompareMode: TShadowMapCompareMode;
-    procedure SetCompareMode(const Value: TShadowMapCompareMode);
-    function GetUpdate: TTextureUpdate;
-    procedure SetUpdate(const Value: TTextureUpdate);
+    type
+      TGenShadowMapGenTex = class(TGeneratedTextureFunctionality)
+      strict private
+        FParent: TGeneratedShadowMapNode;
+      protected
+        function GetUpdate: TTextureUpdate; override;
+        procedure SetUpdate(const Value: TTextureUpdate); override;
+      public
+        constructor Create(const AParent: TGeneratedShadowMapNode);
+      end;
+    var
+      FGenTexFunctionality: TGenShadowMapGenTex;
   public
     const
       DefaultSize = 128;
       DefaultScale = 4.0;
       DefaultBias = 4.0;
 
-    procedure CreateNode; override;
-    destructor Destroy; override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
-    class function ClassX3DType: string; override;
-
-    property GeneratedTextureHandler: TGeneratedTextureHandler
-      read FGeneratedTextureHandler;
-
-    strict private FFdUpdate: TSFTextureUpdate;
-    public property FdUpdate: TSFTextureUpdate read FFdUpdate;
-
-    { When to update the texture.
-      See the specification of the "update" field of the GeneratedShadowMap
-      on https://castle-engine.io/x3d_extensions_shadow_maps.php .
-
-      You should usually use this property instead of accessing @link(FdUpdate),
-      it will change FdUpdate.Value and call FdUpdate.Changed. }
-    public property Update: TTextureUpdate read GetUpdate write SetUpdate;
-
-    strict private FFdSize: TSFInt32;
-    public property FdSize: TSFInt32 read FFdSize;
-
-    strict private FFdLight: TSFNode;
-    public property FdLight: TSFNode read FFdLight;
-
-    strict private FFdScale: TSFFloat;
-    public property FdScale: TSFFloat read FFdScale;
-
-    strict private FFdBias: TSFFloat;
-    public property FdBias: TSFFloat read FFdBias;
-
-    strict private FFdCompareMode: TSFStringEnum;
-    public property FdCompareMode: TSFStringEnum read FFdCompareMode;
-    property CompareMode: TShadowMapCompareMode read GetCompareMode write SetCompareMode;
-
-    {$I auto_generated_node_helpers/x3dnodes_generatedshadowmap.inc}
+  {$I auto_generated_node_helpers/x3dnodes_generatedshadowmap.inc}
   end;
 
   { Generate texture coordinates by projection.
@@ -541,11 +515,13 @@ begin
   FFdOctreeStaticCollisions.AddAlternativeName('octreeCollidableTriangles', 0);
   AddField(FFdOctreeStaticCollisions);
 
-  FFdHeadBobbing := TSFFloat.Create(Self, true, 'headBobbing', TCastleWalkNavigation.DefaultHeadBobbing, true);
+  FFdHeadBobbing := TSFFloat.Create(Self, true, 'headBobbing', TCastleWalkNavigation.DefaultHeadBobbing);
+   FdHeadBobbing.MustBeNonnegative := true;
    FdHeadBobbing.ChangeAlways := chNavigationInfo;
   AddField(FFdHeadBobbing);
 
-  FFdHeadBobbingTime := TSFFloat.Create(Self, true, 'headBobbingTime', TCastleWalkNavigation.DefaultHeadBobbingTime, true);
+  FFdHeadBobbingTime := TSFFloat.Create(Self, true, 'headBobbingTime', TCastleWalkNavigation.DefaultHeadBobbingTime);
+   FdHeadBobbingTime.MustBeNonnegative := true;
    FdHeadBobbingTime.ChangeAlways := chNavigationInfo;
   AddField(FdHeadBobbingTime);
 
@@ -608,77 +584,43 @@ begin
     WritelnWarning('VRML/X3D', 'KambiOctreeProperties.leafCapacity must be >= -1');
 end;
 
-procedure TGeneratedShadowMapNode.CreateNode;
+{ TGeneratedShadowMapNode.TGenShadowMapGenTex -------------------------------- }
+
+constructor TGeneratedShadowMapNode.TGenShadowMapGenTex.Create(const AParent: TGeneratedShadowMapNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+function TGeneratedShadowMapNode.TGenShadowMapGenTex.GetUpdate: TTextureUpdate;
+begin
+  Result := FParent.Update;
+end;
+
+procedure TGeneratedShadowMapNode.TGenShadowMapGenTex.SetUpdate(const Value: TTextureUpdate);
+begin
+  FParent.Update := Value;
+end;
+
+{ TGeneratedShadowMapNode ---------------------------------------------------- }
+
+ { Note that TGeneratedShadowMapNode.FdLight is not listed in
+   TGeneratedShadowMapNode.DirectEnumerateActive,
+   because the light doesn't shine here. We don't want
+   to override it's transform with transformation of a GeneratedShadowMap. }
+
 const
-  CompareModeNames: array [TShadowMapCompareMode] of string =
-  ('COMPARE_R_LEQUAL', 'COMPARE_R_GEQUAL', 'NONE');
+  CompareModeNames: array [TShadowMapCompareMode] of string = (
+    'COMPARE_R_LEQUAL',
+    'COMPARE_R_GEQUAL',
+    'NONE'
+  );
+
+constructor TGeneratedShadowMapNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdUpdate := TSFTextureUpdate.Create(Self, true, 'update', upNone);
-  AddField(FFdUpdate);
-  { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
-
-  FFdSize := TSFInt32.Create(Self, false, 'size', DefaultSize, { MustBeNonnegative } true);
-   FdSize.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdSize);
-  { X3D specification comment: (0,Inf) }
-
-  { Note that light node is not enumerated as an active node
-    for traversing (in DirectEnumerateActive), because the light doesn't
-    shine here. We don't want
-    to override it's transform with transformation of this
-    GeneratedShadowMap. }
-  FFdLight := TSFNode.Create(Self, true, 'light', [TAbstractLightNode]);
-   FdLight.ChangeAlways := chGeneratedTextureUpdateNeeded;
-   FdLight.WeakLink := true;
-  AddField(FFdLight);
-
-  FFdScale := TSFFloat.Create(Self, true, 'scale', DefaultScale, { MustBeNonnegative } true);
-   FdScale.ChangeAlways := chGeneratedTextureUpdateNeeded;
-  AddField(FFdScale);
-
-  FFdBias := TSFFloat.Create(Self, true, 'bias', DefaultBias, { MustBeNonnegative } true);
-   FdBias.ChangeAlways := chGeneratedTextureUpdateNeeded;
-  AddField(FFdBias);
-
-  FFdCompareMode := TSFStringEnum.Create(Self, true, 'compareMode', CompareModeNames, Ord(smCompareRLEqual));
-   FdCompareMode.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdCompareMode);
-
-  FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
-  FGeneratedTextureHandler.FUpdate := FdUpdate;
-end;
-
-destructor TGeneratedShadowMapNode.Destroy;
-begin
-  FreeAndNil(FGeneratedTextureHandler);
-  inherited;
-end;
-
-class function TGeneratedShadowMapNode.ClassX3DType: string;
-begin
-  Result := 'GeneratedShadowMap';
-end;
-
-function TGeneratedShadowMapNode.GetCompareMode: TShadowMapCompareMode;
-begin
-  Result := TShadowMapCompareMode(FdCompareMode.EnumValue);
-end;
-
-procedure TGeneratedShadowMapNode.SetCompareMode(const Value: TShadowMapCompareMode);
-begin
-  FdCompareMode.SendEnumValue(Ord(Value));
-end;
-
-function TGeneratedShadowMapNode.GetUpdate: TTextureUpdate;
-begin
-  Result := FdUpdate.Value;
-end;
-
-procedure TGeneratedShadowMapNode.SetUpdate(const Value: TTextureUpdate);
-begin
-  FdUpdate.Send(Value);
+  FGenTexFunctionality := TGenShadowMapGenTex.Create(Self);
+  AddFunctionality(FGenTexFunctionality);
 end;
 
 procedure TProjectedTextureCoordinateNode.CreateNode;

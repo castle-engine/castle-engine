@@ -883,7 +883,7 @@ procedure TCastleScene.GLContextClose;
   begin
     if GeneratedTextures <> nil then
       for I := 0 to GeneratedTextures.Count - 1 do
-        GeneratedTextures.List^[I].Handler.InternalUpdateNeeded := true;
+        GeneratedTextures.List^[I].Functionality.InternalUpdateNeeded := true;
   end;
 
 begin
@@ -1942,7 +1942,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
     I: Integer;
     Shape: TGLShape;
     TextureNode: TAbstractTextureNode;
-    Handler: TGeneratedTextureHandler;
+    GenTexFunctionality: TGeneratedTextureFunctionality;
     CamPos, CamDir, CamUp: TVector3;
   begin
     if GeneratedTextures.Count = 0 then
@@ -1976,26 +1976,26 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
       {$ifndef FPC}{$POINTERMATH ON}{$endif}
       Shape := TGLShape(GeneratedTextures.L[I].Shape);
       TextureNode := GeneratedTextures.L[I].TextureNode;
-      Handler := GeneratedTextures.L[I].Handler;
+      GenTexFunctionality := GeneratedTextures.L[I].Functionality;
       {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
-      { update Handler.UpdateNeeded }
+      { update GenTexFunctionality.InternalUpdateNeeded }
       if TextureNode is TGeneratedShadowMapNode then
       begin
         { For TGeneratedShadowMapNode, only geometry change requires to regenerate it. }
-        if Handler.InternalLastStateId < World.InternalVisibleGeometryStateId then
+        if GenTexFunctionality.InternalLastStateId < World.InternalVisibleGeometryStateId then
         begin
-          Handler.InternalLastStateId := World.InternalVisibleGeometryStateId;
-          Handler.InternalUpdateNeeded := true;
+          GenTexFunctionality.InternalLastStateId := World.InternalVisibleGeometryStateId;
+          GenTexFunctionality.InternalUpdateNeeded := true;
         end;
       end else
       begin
         { For TRenderedTextureNode, TGeneratedCubeMapTextureNode etc.
           any visible change indicates to regenerate it. }
-        if Handler.InternalLastStateId < World.InternalVisibleStateId then
+        if GenTexFunctionality.InternalLastStateId < World.InternalVisibleStateId then
         begin
-          Handler.InternalLastStateId := World.InternalVisibleStateId;
-          Handler.InternalUpdateNeeded := true;
+          GenTexFunctionality.InternalLastStateId := World.InternalVisibleStateId;
+          GenTexFunctionality.InternalUpdateNeeded := true;
         end;
       end;
 
@@ -2185,7 +2185,7 @@ begin
         as RenderedTexture with viewpoint = NULL uses current camera.
         See demo_models/rendered_texture/rendered_texture_no_headlight.x3dv
         testcase. }
-      GeneratedTextures.L[I].Handler.InternalUpdateNeeded := true;
+      GeneratedTextures.L[I].Functionality.InternalUpdateNeeded := true;
   {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 

@@ -298,6 +298,7 @@ begin
 
   FFdRange := TSFFloat.Create(Self, False, 'range', 10);
    FdRange.ChangeAlways := chVisibleNonGeometry;
+   FdRange.MustBeNonnegative := true;
   AddField(FFdRange);
 
   FFdRootUrl := TMFString.Create(Self, False, 'rootUrl', []);

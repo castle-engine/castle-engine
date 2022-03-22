@@ -168,6 +168,7 @@ begin
 
   FFdMaxExtent := TSFFloat.Create(Self, True, 'maxExtent', 0.0);
    FdMaxExtent.ChangeAlways := chGeometry;
+   FdMaxExtent.MustBeNonnegative := true;
   AddField(FFdMaxExtent);
 
   FFdMaxDisplayChars := TSFInt32.Create(Self, True, 'maxDisplayChars', -1);

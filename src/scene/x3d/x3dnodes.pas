@@ -538,6 +538,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_pickablegroup.inc}
 {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_pixeltexture3d.inc}
+{$I auto_generated_node_helpers/x3dnodes_plane.inc}
 {$I auto_generated_node_helpers/x3dnodes_planesensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_pointemitter.inc}
 {$I auto_generated_node_helpers/x3dnodes_pointlight.inc}

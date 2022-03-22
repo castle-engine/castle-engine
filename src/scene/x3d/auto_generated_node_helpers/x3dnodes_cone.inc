@@ -167,10 +167,12 @@ begin
 
   FFdBottomRadius := TSFFloat.Create(Self, False, 'bottomRadius', 1);
    FdBottomRadius.ChangeAlways := chGeometry;
+   FdBottomRadius.MustBeNonnegative := true;
   AddField(FFdBottomRadius);
 
   FFdHeight := TSFFloat.Create(Self, False, 'height', 2);
    FdHeight.ChangeAlways := chGeometry;
+   FdHeight.MustBeNonnegative := true;
   AddField(FFdHeight);
 
   FFdSide := TSFBool.Create(Self, False, 'side', true);

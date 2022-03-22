@@ -102,110 +102,32 @@
     viewpoint. }
   TRenderedTextureNode = class(TAbstractSingleTextureNode)
   strict private
-    FGeneratedTextureHandler: TGeneratedTextureHandler;
+    type
+      TRenderedTextureGenTex = class(TGeneratedTextureFunctionality)
+      strict private
+        FParent: TRenderedTextureNode;
+      protected
+        function GetUpdate: TTextureUpdate; override;
+        procedure SetUpdate(const Value: TTextureUpdate); override;
+      public
+        constructor Create(const AParent: TRenderedTextureNode);
+      end;
+    var
+      FGenTexFunctionality: TRenderedTextureGenTex;
   public
-    procedure CreateNode; override;
-    destructor Destroy; override;
-
-    class function ClassX3DType: string; override;
-
-    property GeneratedTextureHandler: TGeneratedTextureHandler
-      read FGeneratedTextureHandler;
-
-    strict private FFdViewpoint: TSFNode;
-    public property FdViewpoint: TSFNode read FFdViewpoint;
-
-    strict private FFdBackground: TSFNode;
-    public property FdBackground: TSFNode read FFdBackground;
-
-    strict private FFdFog: TSFNode;
-    public property FdFog: TSFNode read FFdFog;
-
-    strict private FFdEnvironment: TSFNode;
-    public property FdEnvironment: TSFNode read FFdEnvironment;
-
-    strict private FFdScene: TSFNode;
-    public property FdScene: TSFNode read FFdScene;
-
-    strict private FFdDimensions: TMFInt32;
-    public property FdDimensions: TMFInt32 read FFdDimensions;
-
-    strict private FFdDepthMap: TMFBool;
-    public property FdDepthMap: TMFBool read FFdDepthMap;
-
-    strict private FFdForeground: TSFNode;
-    public property FdForeground: TSFNode read FFdForeground;
-
-    strict private FFdZOffset: TMFInt32;
-    public property FdZOffset: TMFInt32 read FFdZOffset;
-
-    strict private FFdTargets: TMFNode;
-    public property FdTargets: TMFNode read FFdTargets;
-
-    strict private FFdDescription: TSFString;
-    public property FdDescription: TSFString read FFdDescription;
-
-    { Event out } { }
-    strict private FEventViewing: TSFMatrix4fEvent;
-    public property EventViewing: TSFMatrix4fEvent read FEventViewing;
-
-    { Event out } { }
-    strict private FEventProjection: TSFMatrix4fEvent;
-    public property EventProjection: TSFMatrix4fEvent read FEventProjection;
-
-    strict private FFdUpdate: TSFTextureUpdate;
-    public property FdUpdate: TSFTextureUpdate read FFdUpdate;
-
-    strict private FFdFrameBufferMode: TSFString;
-    public property FdFrameBufferMode: TSFString read FFdFrameBufferMode;
-
-    strict private FFdExcludeNodes: TMFNode;
-    public property FdExcludeNodes: TMFNode read FFdExcludeNodes;
-
-    strict private FFdTriggerName: TSFString;
-    public property FdTriggerName: TSFString read FFdTriggerName;
-
-    { Event in } { }
-    strict private FEventTriggerSlot: TSFTimeEvent;
-    public property EventTriggerSlot: TSFTimeEvent read FEventTriggerSlot;
-
-    { Event out } { }
-    strict private FEventImage_changed: TSFImageEvent;
-    public property EventImage_changed: TSFImageEvent read FEventImage_changed;
-
-    strict private FFdTextureProperties: TSFNode;
-    public property FdTextureProperties: TSFNode read FFdTextureProperties;
-
-    strict private FFdRepeatS: TSFBool;
-    public property FdRepeatS: TSFBool read FFdRepeatS;
-
-    strict private FFdRepeatT: TSFBool;
-    public property FdRepeatT: TSFBool read FFdRepeatT;
-
-    strict private FFdRepeatR: TSFBool;
-    public property FdRepeatR: TSFBool read FFdRepeatR;
-
-    { Event out } { }
-    strict private FEventRendering: TSFBoolEvent;
-    public property EventRendering: TSFBoolEvent read FEventRendering;
-
-    {$I auto_generated_node_helpers/x3dnodes_renderedtexture.inc}
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_renderedtexture.inc}
   end;
 
+  { Alternative (deprecated) version of TRectangle2DNode,
+    compatible with InstantReality X3D browser.
+    @deprecated }
   TPlaneNode = class(TAbstractGeometryNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdSize: TSFVec2f;
-    public property FdSize: TSFVec2f read FFdSize;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
+  {$I auto_generated_node_helpers/x3dnodes_plane.inc}
   end;
 
   { Utility for setting and observing a boolean value in various ways. }
@@ -787,133 +709,34 @@ begin
   Result := 'Converter';
 end;
 
-procedure TRenderedTextureNode.CreateNode;
+{ TRenderedTextureNode.TRenderedTextureGenTex -------------------------------- }
+
+constructor TRenderedTextureNode.TRenderedTextureGenTex.Create(const AParent: TRenderedTextureNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+function TRenderedTextureNode.TRenderedTextureGenTex.GetUpdate: TTextureUpdate;
+begin
+  Result := FParent.Update;
+end;
+
+procedure TRenderedTextureNode.TRenderedTextureGenTex.SetUpdate(const Value: TTextureUpdate);
+begin
+  FParent.Update := Value;
+end;
+
+{ TRenderedTextureNode ------------------------------------------------------- }
+
+constructor TRenderedTextureNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdViewpoint := TSFNode.Create(Self, true, 'viewpoint', [TAbstractViewpointNode, TViewpointMirrorNode]);
-   FdViewpoint.ChangeAlways := chGeneratedTextureUpdateNeeded;
-  AddField(FFdViewpoint);
-
-  FFdBackground := TSFNode.Create(Self, true, 'background', [TAbstractBackgroundNode]);
-   FdBackground.ChangeAlways := chGeneratedTextureUpdateNeeded;
-  AddField(FFdBackground);
-
-  FFdFog := TSFNode.Create(Self, true, 'fog', [TFogNode]);
-   FdFog.ChangeAlways := chGeneratedTextureUpdateNeeded;
-  AddField(FFdFog);
-
-  FFdEnvironment := TSFNode.Create(Self, true, 'environment', [TX3DNode] { nothing sensible in core X3D for this });
-   FdEnvironment.ChangeAlways := chGeneratedTextureUpdateNeeded;
-  AddField(FFdEnvironment);
-
-  FFdScene := TSFNode.Create(Self, true, 'scene', [TX3DNode]);
-   FdScene.ChangeAlways := chGeneratedTextureUpdateNeeded;
-  AddField(FFdScene);
-
-  FFdDimensions := TMFInt32.Create(Self, true, 'dimensions',
-    [ DefaultRenderedTextureWidth,
-      DefaultRenderedTextureHeight, 4, 1, 1]);
-   FdDimensions.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdDimensions);
-
-  FFdDepthMap := TMFBool.Create(Self, true, 'depthMap', []);
-   FdDepthMap.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdDepthMap);
-
-  FFdForeground := TSFNode.Create(Self, true, 'foreground', [TX3DNode] { nothing sensible in core X3D for this });
-   FdForeground.ChangeAlways := chGeneratedTextureUpdateNeeded;
-  AddField(FFdForeground);
-
-  FFdZOffset := TMFInt32.Create(Self, true, 'zOffset', []);
-   FdZOffset.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdZOffset);
-
-  FFdTargets := TMFNode.Create(Self, true, 'targets', [TAbstractTextureNode]);
-   FdTargets.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdTargets);
-
-  FFdDescription := TSFString.Create(Self, true, 'description', '');
-  AddField(FFdDescription);
-
-  FEventViewing := TSFMatrix4fEvent.Create(Self, 'viewing', false);
-  AddEvent(FEventViewing);
-
-  FEventProjection := TSFMatrix4fEvent.Create(Self, 'projection', false);
-  AddEvent(FEventProjection);
-
-  FFdUpdate := TSFTextureUpdate.Create(Self, true, 'update', upNone);
-  AddField(FFdUpdate);
-
-  FFdFrameBufferMode := TSFString.Create(Self, true, 'frameBufferMode', 'auto');
-   FdFrameBufferMode.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdFrameBufferMode);
-
-  FFdExcludeNodes := TMFNode.Create(Self, false, 'excludeNodes', [TX3DNode]);
-   FdExcludeNodes.ChangeAlways := chGeneratedTextureUpdateNeeded;
-  AddField(FFdExcludeNodes);
-
-  FFdTriggerName := TSFString.Create(Self, false, 'triggerName', 'Render');
-  AddField(FFdTriggerName);
-
-  FEventTriggerSlot := TSFTimeEvent.Create(Self, 'triggerSlot', true);
-  AddEvent(FEventTriggerSlot);
-
-  FEventImage_changed := TSFImageEvent.Create(Self, 'image_changed', false);
-  AddEvent(FEventImage_changed);
-
-  FFdTextureProperties := TSFNode.Create(Self, false, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdTextureProperties);
-
-  FFdRepeatS := TSFBool.Create(Self, false, 'repeatS', true);
-   FdRepeatS.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdRepeatS);
-
-  FFdRepeatT := TSFBool.Create(Self, false, 'repeatT', true);
-   FdRepeatT.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdRepeatT);
-
-  FFdRepeatR := TSFBool.Create(Self, false, 'repeatR', true);
-   FdRepeatR.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdRepeatR);
-
-  FEventRendering := TSFBoolEvent.Create(Self, 'rendering', false);
-  AddEvent(FEventRendering);
-
-  FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
-  FGeneratedTextureHandler.FUpdate := FdUpdate;
+  FGenTexFunctionality := TRenderedTextureGenTex.Create(Self);
+  AddFunctionality(FGenTexFunctionality);
 end;
 
-destructor TRenderedTextureNode.Destroy;
-begin
-  FreeAndNil(FGeneratedTextureHandler);
-  inherited;
-end;
-
-class function TRenderedTextureNode.ClassX3DType: string;
-begin
-  Result := 'RenderedTexture';
-end;
-
-procedure TPlaneNode.CreateNode;
-begin
-  inherited;
-
-  FFdSize := TSFVec2f.Create(Self, false, 'size', Vector2(2, 2));
-   FdSize.ChangeAlways := chGeometry;
-  AddField(FFdSize);
-  { X3D specification comment: (0,Inf) }
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-end;
-
-class function TPlaneNode.ClassX3DType: string;
-begin
-  Result := 'Plane';
-end;
+{ TPlaneNode ----------------------------------------------------------------- }
 
 function TPlaneNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
