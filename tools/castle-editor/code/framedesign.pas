@@ -48,6 +48,9 @@ type
   TDesignFrame = class(TFrame)
     ButtonResetTransformation: TButton;
     ButtonClearAnchorDeltas: TButton;
+    ButtonStartPhysics: TSpeedButton;
+    ButtonPhysicsPause: TSpeedButton;
+    ButtonViewportMenu: TSpeedButton;
     LabelHeaderTransform: TLabel;
     LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
@@ -103,7 +106,9 @@ type
     TabBasic: TTabSheet;
     UpdateObjectInspector: TTimer;
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
+    procedure ButtonPhysicsPauseClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
+    procedure ButtonStartPhysicsClick(Sender: TObject);
     procedure ButtonTransformRotateModeClick(Sender: TObject);
     procedure ButtonTransformScaleModeClick(Sender: TObject);
     procedure ButtonTransformSelectModeClick(Sender: TObject);
@@ -220,6 +225,7 @@ type
       PendingErrorBox: String;
       VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
       CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
+      DesignStateBeforePhysicsRun: String;
       FCurrentViewport: TCastleViewport;
       FCurrentViewportObserver: TFreeNotificationObserver;
 
@@ -4142,6 +4148,11 @@ begin
   end;
 end;
 
+procedure TDesignFrame.ButtonPhysicsPauseClick(Sender: TObject);
+begin
+  CastleDesignModePhysicsPaused := not CastleDesignModePhysicsPaused;
+end;
+
 procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);
 var
   T: TCastleTransform;
@@ -4152,6 +4163,22 @@ begin
     T.Identity;
     ModifiedOutsideObjectInspector('Reset transformations for ' + T.Name, ucHigh);
   end;
+end;
+
+procedure TDesignFrame.ButtonStartPhysicsClick(Sender: TObject);
+var
+  NewDesignOwner: TComponent;
+begin
+  CastleDesignModePhysicsEnabled := not CastleDesignModePhysicsEnabled;
+  if CastleDesignModePhysicsEnabled then
+  begin
+    DesignStateBeforePhysicsRun := ComponentToString(DesignRoot);
+  end
+  else
+    begin
+      NewDesignOwner := TComponent.Create(Self);
+      OpenDesign(StringToComponent(DesignStateBeforePhysicsRun, NewDesignOwner), NewDesignOwner, FDesignUrl);
+    end;
 end;
 
 procedure TDesignFrame.ButtonTransformRotateModeClick(Sender: TObject);
@@ -4552,4 +4579,5 @@ initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
   CastleDesignMode := true;
+  CastleDesignModePhysicsEnabled := false;
 end.
