@@ -488,7 +488,9 @@ tests:
 .PHONY: build-using-fpmake
 build-using-fpmake:
 	fpc fpmake.pp
-	@echo 'Running fpmake. If this fails saying that "rtl" is not found, remember to set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
+	@echo 'Running fpmake.'
+	@echo '  If this fails saying that "rtl" is not found -> set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
+	@echo '  If this fails saying that "opengl" package is not found -> you maybe have broken FPC installation without Package.fpc files, consider using "export CASTLE_PACKAGE_NO_DEPENDENCIES=true" as a workaround.'
 # Workaround FPC >= 3.x problem (bug?) --- it ignores $FPCDIR, but --globalunitdir works
 	if [ '(' -n "$(FPCDIR)" ')' ]; then \
 	   ./fpmake --globalunitdir="$(FPCDIR)"; \

@@ -44,49 +44,53 @@ begin
       {$endif};
     Xlib := Defaults.OS in (AllUnixOSes - [Android]);
 
-    { Add dependencies on FPC packages.
-      These aren't really needed, as your default fpc.cfg should
-      point to them anyway. They are needed only when compiling with --nofpccfg.
-      Anyway, maybe this is a good place to document my dependencies
-      on FPC packages --- so let's do this. }
-(*
-    if (Defaults.OS <> Android) and (not LikeIOS) then
-      P.Dependencies.Add('opengl');
-    P.Dependencies.Add('fcl-base');
-    P.Dependencies.Add('fcl-image');
-    P.Dependencies.Add('fcl-xml');
-    P.Dependencies.Add('fcl-process');
-    P.Dependencies.Add('hash'); { CRC unit used by CastleInternalGzio }
-    if Defaults.OS <> Android then
-      P.Dependencies.Add('fcl-web');
-    P.Dependencies.Add('pasjpeg');
-    P.Dependencies.Add('paszlib'); { used by FpReadTiff, we don't use paszlib in CGE }
-    P.Dependencies.Add('regexpr');
-    if Xlib then
+    { Do "export CASTLE_PACKAGE_NO_DEPENDENCIES=true"
+      if you have broken FPC installation without proper Package.fpc files.
+      Note: This will break compilation with --nofpccfg. }
+    if GetEnvironmentVariable('CASTLE_PACKAGE_NO_DEPENDENCIES') <> 'true' then
     begin
-      P.Dependencies.Add('x11');
-      P.Dependencies.Add('gtk2');
-      P.Dependencies.Add('cairo');
-    end else
-    if Defaults.OS in AllWindowsOSes then
-    begin
-      P.Dependencies.Add('winunits-base');
-      P.Dependencies.Add('winunits-jedi'); // our CastleWindow uses JwaWinUser
-      P.Dependencies.Add('fcl-registry');
+      { Add dependencies on FPC packages.
+        These aren't really needed, as your default fpc.cfg should
+        point to them anyway. They are needed only when compiling with --nofpccfg.
+        Anyway, maybe this is a good place to document my dependencies
+        on FPC packages --- so let's do this. }
+      if (Defaults.OS <> Android) and (not LikeIOS) then
+        P.Dependencies.Add('opengl');
+      P.Dependencies.Add('fcl-base');
+      P.Dependencies.Add('fcl-image');
+      P.Dependencies.Add('fcl-xml');
+      P.Dependencies.Add('fcl-process');
+      P.Dependencies.Add('hash'); { CRC unit used by CastleInternalGzio }
+      if Defaults.OS <> Android then
+        P.Dependencies.Add('fcl-web');
+      P.Dependencies.Add('pasjpeg');
+      P.Dependencies.Add('paszlib'); { used by FpReadTiff, we don't use paszlib in CGE }
+      P.Dependencies.Add('regexpr');
+      if Xlib then
+      begin
+        P.Dependencies.Add('x11');
+        P.Dependencies.Add('gtk2');
+        P.Dependencies.Add('cairo');
+      end else
+      if Defaults.OS in AllWindowsOSes then
+      begin
+        P.Dependencies.Add('winunits-base');
+        P.Dependencies.Add('winunits-jedi'); // our CastleWindow uses JwaWinUser
+        P.Dependencies.Add('fcl-registry');
+      end;
+      {$ifndef VER2}
+      {$ifndef VER3_0}
+      P.Dependencies.Add('rtl-generics');
+      {$endif}
+      {$endif}
     end;
-    {$ifndef VER2}
-    {$ifndef VER3_0}
-    P.Dependencies.Add('rtl-generics');
-    {$endif}
-    {$endif}
-*)
 
     { Some general variables, visible only (as far as I can see) when
       using "./fpmake manifest". }
     P.Author := 'Michalis Kamburelis';
     P.License := 'LGPL >= 2 (with static linking exception)';
     P.HomepageURL := 'https://castle-engine.io/';
-    P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
+    P.Email := 'michalis' + '@castle-engine.io'; { at least protect sources from spammers }
     P.Version := {$I src/base/castleversion.inc};
 
     { Add our unit groups.
@@ -342,6 +346,7 @@ begin
     end;
 
     P.SourcePath.Add('src/window/deprecated_units');
+    P.Targets.AddUnit('castlesoundmenu.pas');
     P.Targets.AddUnit('castleuistate.pas');
     P.Targets.AddUnit('castlewindowmodes.pas');
     P.Targets.AddUnit('castlewindowprogress.pas');
