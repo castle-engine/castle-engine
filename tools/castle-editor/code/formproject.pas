@@ -2273,9 +2273,6 @@ begin
   ProjectStandaloneSource := Manifest.StandaloneSource;
   ProjectLazarus := Manifest.LazarusProject;
   ProjectDelphi := Manifest.DelphiProject;
-  if (Manifest.EditorUnits <> '') and
-     (not InternalHasCustomComponents) then
-    WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
 
   { Make some fields absolute paths, or empty }
   if ProjectStandaloneSource <> '' then
@@ -2305,6 +2302,14 @@ begin
 
   DesignExistenceChanged;
   UpdateFormCaption(nil); // make form Caption reflect project name (although this is now done also by DesignExistenceChanged)
+
+  if (Manifest.EditorUnits <> '') and
+     (not InternalHasCustomComponents) then
+  begin
+    if YesNoBox('Project uses custom components.' + NL + NL + 'Rebuild and restart editor with custom components?') then
+      MenuItemRestartRebuildEditorClick(nil);
+      //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
+  end;
 end;
 
 procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
