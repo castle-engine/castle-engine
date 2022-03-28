@@ -58,7 +58,7 @@ type
     LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
-    LabelSelectedViewport1: TLabel;
+    LabelPhysicsSimulation: TLabel;
     LabelSizeInfo: TLabel;
     MenuTreeViewItemSaveSelected: TMenuItem;
     MenuSeparator1: TMenuItem;
