@@ -2030,9 +2030,7 @@ begin
   inherited;
 
   { Disable updating physics in design mode }
-  if CastleDesignMode and
-     ((not CastleDesignModePhysicsEnabled) or CastleDesignModePhysicsPaused)
-  then
+  if CastleDesignMode and (CastleDesignPhysicsMode in [pmStopped, pmPaused]) then
     Exit;
 
   if Parent = nil then
@@ -2357,7 +2355,7 @@ begin
 
   if EnablePhysics and (FKraftEngine <> nil) and
     ( (CastleDesignMode = false) or
-      (CastleDesignMode and (CastleDesignModePhysicsEnabled and (not CastleDesignModePhysicsPaused)))
+      (CastleDesignMode and (CastleDesignPhysicsMode = pmPlaying))
     ) then
   begin
     FrameProfiler.Start(fmUpdatePhysics);

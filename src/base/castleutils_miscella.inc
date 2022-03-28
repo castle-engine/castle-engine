@@ -175,12 +175,19 @@ function StrToFloatDot(const S: String): Extended;
   and in general ignores locale (standard StrToFloat looks at ThousandSeparator). }
 function StrToFloatDefDot(Const S: String; const Default: Extended): Extended;
 
+type
+  { Physics mode in design mode. }
+  TInternalPhysicsMode = (
+    pmStopped,
+    pmPaused,
+    pmPlaying
+  );
+
 var
   { Are we inside Castle Game Engine designer mode,
     or (possible in case of TCastleControl) in Lazarus/Delphi form designer. }
   CastleDesignMode: Boolean;
-  CastleDesignModePhysicsEnabled: Boolean;
-  CastleDesignModePhysicsPaused: Boolean;
+  CastleDesignPhysicsMode: TInternalPhysicsMode;
 
   { @exclude Path to editor data, in design mode.
     Useful e.g. to initialize gizmo textures. }
