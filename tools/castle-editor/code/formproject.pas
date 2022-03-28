@@ -2226,8 +2226,13 @@ begin
   else
     S := '';
   S := S + SQuoteLCLCaption(ProjectName);
-  if InternalHasCustomComponents then
-    S := S + ' (With Custom Components)';
+  if InternalCustomComponentsForProject <> '' then
+  begin
+    if InternalCustomComponentsForProject = ProjectName then
+      S := S + ' (With Custom Components)'
+    else
+      S := S + ' (With Custom Components from ' + InternalCustomComponentsForProject + ')';
+  end;
   Caption := S + ' | Castle Game Engine';
 end;
 
@@ -2304,9 +2309,12 @@ begin
   UpdateFormCaption(nil); // make form Caption reflect project name (although this is now done also by DesignExistenceChanged)
 
   if (Manifest.EditorUnits <> '') and
-     (not InternalHasCustomComponents) then
+     (ProjectName <> InternalCustomComponentsForProject) then
   begin
-    if YesNoBox('Project uses custom components.' + NL + NL + 'Rebuild and restart editor with custom components?') then
+    if YesNoBox(Format('Project "%s" uses custom components.' + NL + NL +
+          'Rebuild and restart editor with custom components?', [
+          ProjectName
+        ])) then
       MenuItemRestartRebuildEditorClick(nil);
       //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
   end;
