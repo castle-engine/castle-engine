@@ -78,7 +78,7 @@ begin
     begin
       ReportProgress(Download.DownloadedBytes, Download.TotalBytes);
 
-      { In a normal GUI application, e.g. using TCastleWindowBase or TCastleControlBase,
+      { In a normal GUI application, e.g. using TCastleWindow or TCastleControl,
         the update is done automatically.
         There's no need to call "ApplicationProperties._Update" explicitly,
         and no point in calling "Sleep" if you want to display some smooth animation

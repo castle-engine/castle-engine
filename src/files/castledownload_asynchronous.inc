@@ -37,7 +37,7 @@ type
 
     The download continues while your application is running,
     because we use @link(TCastleApplicationProperties.OnUpdate ApplicationProperties.OnUpdate)
-    mechanism. If your application uses TCastleWindowBase or TCastleControlBase,
+    mechanism. If your application uses TCastleWindow or TCastleControl,
     then this just works.
     Note that if you just want to wait for download to finish,
     you can use @link(WaitForFinish) method or just call simpler @link(Download)

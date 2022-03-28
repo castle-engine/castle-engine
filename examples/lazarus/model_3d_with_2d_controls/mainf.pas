@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,16 +22,12 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  CastleControl, CastleControls, CastleOnScreenMenu,
-  GameViewMain;
+  CastleControl, CastleControls;
 
 type
   TForm1 = class(TForm)
-    CastleControl: TCastleControlBase;
+    Browser: TCastleControl;
     procedure FormCreate(Sender: TObject);
-  private
-    ViewMain: TViewMain;
-    procedure MenuClick(Sender: TObject);
     procedure MainButtonClick(Sender: TObject);
   end;
 
@@ -40,8 +36,10 @@ var
 
 implementation
 
+{$R *.lfm}
+
 uses CastleSceneCore, CastleUtils, CastleImages, CastleVectors,
-  CastleControlsImages, CastleUIControls, CastleComponentSerialize;
+  CastleUIControls, CastleComponentSerialize;
 
 { TForm1 --------------------------------------------------------------------- }
 
@@ -51,33 +49,41 @@ procedure TForm1.FormCreate(Sender: TObject);
   procedure AdjustTheme;
   begin
     { Change the tooltip image to have rounded corners,
-      using a predefined TooltipRounded image from CastleControlsImages
+      using a predefined TooltipRounded image from CastleInternalControlsImages
       unit. You could also use load and use your own image,
       e.g. by LoadImage. }
-    Theme.ImagesPersistent[tiTooltip].Image := TooltipRounded;
+    Theme.ImagesPersistent[tiTooltip].Url := 'castle-data:/TooltipRounded.png';
     Theme.ImagesPersistent[tiTooltip].ProtectedSides.AllSides := 9;
   end;
 
-begin
-  { This corresponds to the Application.OnInitialize contents of
-    a TCastleWindow-based application.
-    We do
-    - some one-time initialization,
-    - create TCastleView instances,
-    - set one TCastleView instance as current using "CastleControl.View := ..." }
+  { Initialize user interface designed by CGE editor.
+    It is already loaded by Browser.DesignUrl.
+    This is the most advised way to design UI. }
+  procedure InitializeDesignedUserInterface;
+  var
+    MainButton: TCastleButton;
+  begin
+    MainButton := Browser.DesignedComponent('MainButton') as TCastleButton;
+    MainButton.OnClick := @MainButtonClick;
+  end;
 
+  { Add additional user interface elements created manually,
+    by code, just to show that we can. }
+  procedure AddUserInterfaceFromCode;
+  var
+    Button: TCastleButton;
+  begin
+    Button := TCastleButton.Create(Self);
+    Button.Caption := 'Button added from code';
+    Button.Anchor(hpRight, -10);
+    Button.Anchor(vpBottom, 120);
+    Browser.Controls.InsertFront(Button);
+  end;
+
+begin
   AdjustTheme;
-
-  ViewMain := TViewMain.Create(Self);
-  ViewMain.OnMenuClick := @MenuClick;
-  ViewMain.OnMainButtonClick := @MainButtonClick;
-
-  CastleControl.Container.View := ViewMain;
-end;
-
-procedure TForm1.MenuClick(Sender: TObject);
-begin
-  ShowMessage(Format('Clicked menu item %s.', [(Sender as TCastleOnScreenMenuItem).Caption]));
+  InitializeDesignedUserInterface;
+  AddUserInterfaceFromCode;
 end;
 
 procedure TForm1.MainButtonClick(Sender: TObject);
@@ -85,6 +91,5 @@ begin
   ShowMessage('Main button clicked.');
 end;
 
-initialization
-  {$I mainf.lrs}
 end.
+

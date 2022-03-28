@@ -1,3 +1,4 @@
+{%MainUnit castleinternalpng.pas}
 (*
   Libpng bindings. See [http://www.libpng.org/].
   Bases on FPC sources, modified by Kambi.

@@ -10,6 +10,10 @@ unit imjdphuff;
 
 { Original: jdphuff.c ; Copyright (C) 1995-1997, Thomas G. Lane. }
 
+{ Castle Game Engine: Calls to Dec(entropy^.restarts_to_go) here assume that range checks are off,
+  testcase: https://github.com/castle-engine/blaise-pascal-article-examples/ }
+{$R-}
+
 interface
 
 {$I imjconfig.inc}

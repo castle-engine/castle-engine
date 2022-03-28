@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,12 +33,12 @@ type
   { Gathering analytics through Google Analytics https://www.google.com/analytics/
     and / or Game Analytics http://www.gameanalytics.com/ .
 
-    On Android or iOS. You will need to also add appropriate "service" to your application,
+    Available on Android or iOS. You will need to also add appropriate "service" to your application,
     like @code(game_analytics) or @code(google_analytics) to have the integration code
     automatically included. See Android services
-    ( https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine )
-    and iOS services
-    ( https://castle-engine.io/ios-Services )
+    ( https://castle-engine.io/android_services ),
+    iOS services
+    ( https://castle-engine.io/ios_services )
     and CastleEngineManifest.xml docs
     ( https://castle-engine.io/project_manifest ).
 

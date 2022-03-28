@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="shader_override"
+  standalone_source="shader_override_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.shader.override"
+  caption="Override Shaders Demo"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

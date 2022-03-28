@@ -31,7 +31,7 @@ type
     Redguard stores multiple images in one file (usually related like textures for various
     parts of single 3d object). Image data is stored as 8bit. Each image
     can have its own embedded palette or it can use external palette.
-    Default palette (fxart\Redguard.col) is applied to textures without the embeded one
+    Default palette (fxart\Redguard.col) is applied to textures without the embedded one
     although some texture sets look like their external pal is different (see more *.col
     files in fxart).
 
@@ -404,7 +404,7 @@ begin
         else
           SkipChunkData;
       until Eof(Handle) or (Chunk.ChunkID = ENDSignature);
-      // Recontruct current image according to data read from chunks
+      // Reconstruct current image according to data read from chunks
       Reconstruct;
       // Read header for next image
       ReadTextureHeader;
@@ -443,7 +443,7 @@ end;
     - BattleSpire images now have correct colors.
 
   -- 0.21 -----------------------------------------------------
-    - Blue channel of BattleSpire images cracked but others arer still unknown.
+    - Blue channel of BattleSpire images cracked but others are still unknown.
     - Added support for animated BattleSpire images.
     - Added support for animated Redguard textures.
     - Added support for Redguard textures (Battlespire images still don't figured out).

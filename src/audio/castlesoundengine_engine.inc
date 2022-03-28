@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,6 +37,7 @@
       TInternalSoundBuffersList = {$ifdef FPC}specialize{$endif} TObjectList<TInternalSoundBuffer>;
     var
       FInformation: string;
+      FInformationSummary: string;
       FDevice: string;
       FVolume: Single;
       FEnabled: boolean;
@@ -79,6 +80,9 @@
       DefaultDistanceModel = dmInverse;
       DefaultDevice = '';
       DefaultEnabled = true;
+
+    class var
+      LogVerbose: Boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -149,6 +153,10 @@
     { Multiline information about the currently initialized
       sound backend (OpenAL, FMOD etc.). }
     property Information: string read FInformation;
+
+    { One-line information about the currently initialized
+      sound backend (OpenAL, FMOD etc.). }
+    property InformationSummary: string read FInformationSummary;
 
     { Load a sound file contents such that they can be immediately played.
 
@@ -557,20 +565,23 @@ procedure TSoundEngine.ContextOpenCore;
   end;
 
 var
-  BackendOpenInformation: string;
+  BackendOpenInformation, BackendOpenInformationSummary: String;
 begin
   Assert(not IsContextOpenSuccess, 'Sound context is already active');
 
   if not Enabled then
   begin
     FInformation := 'Sound initialization aborted: Sound engine is disabled';
+    FInformationSummary := 'Disabled';
   end else
   begin
-    FIsContextOpenSuccess := Backend.ContextOpen(FDevice, BackendOpenInformation);
+    FIsContextOpenSuccess := Backend.ContextOpen(FDevice, BackendOpenInformation, BackendOpenInformationSummary);
     if not IsContextOpenSuccess then
-      FInformation :=
-        'Sound backend initialization failed:' + NL +
-        BackendOpenInformation else
+    begin
+      FInformation := 'Sound backend initialization failed:' + NL +
+        BackendOpenInformation;
+      FInformationSummary := 'Failed: ' + BackendOpenInformationSummary;
+    end else
     begin
       FInformation :=
         'Sound backend initialized successfully:' + NL +
@@ -582,6 +593,7 @@ begin
             MinAllocatedSources, MaxAllocatedSources,
             BoolToStr(VorbisFileInitialized, true)
           ]);
+      FInformationSummary := 'Initialized: ' + BackendOpenInformationSummary;
 
       try
         Backend.SetVolume(Volume);
@@ -600,7 +612,10 @@ begin
     end;
   end;
 
-  WritelnLogMultiline('Sound', Information);
+  if LogVerbose then
+    WritelnLogMultiline('Sound', Information)
+  else
+    WritelnLog('Sound', InformationSummary + ' (for more info: TSoundEngine.LogVerbose:=true)');
 
   OnOpenClose.ExecuteAll(Self);
 end;

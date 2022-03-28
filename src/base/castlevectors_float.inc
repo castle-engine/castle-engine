@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -144,107 +144,107 @@ function TryInverseHarder(const M: TMatrix4; out MInverse: TMatrix4): boolean;
 
 function Vector2(const X, Y: Single): TVector2;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
+  Result.X := X;
+  Result.Y := Y;
 end;
 
 function Vector2(const V: TVector2Double): TVector2;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
+  Result.X := V.X;
+  Result.Y := V.Y;
 end;
 
 function Vector2Double(const X, Y: Double): TVector2Double;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
+  Result.X := X;
+  Result.Y := Y;
 end;
 
 { Construct 3D vectors ------------------------------------------------------------ }
 
 function Vector3(const X, Y, Z: Single): TVector3;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
-  Result.Data[2] := Z;
+  Result.X := X;
+  Result.Y := Y;
+  Result.Z := Z;
 end;
 
 function Vector3(const V: TVector2; const Z: Single): TVector3;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
-  Result.Data[2] := Z;
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := Z;
 end;
 
 function Vector3(const V: TVector3Double): TVector3;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
-  Result.Data[2] := V.Data[2];
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := V.Z;
 end;
 
 function Vector3Double(const X, Y, Z: Double): TVector3Double;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
-  Result.Data[2] := Z;
+  Result.X := X;
+  Result.Y := Y;
+  Result.Z := Z;
 end;
 
 function Vector3Double(const V: TVector3): TVector3Double;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
-  Result.Data[2] := V.Data[2];
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := V.Z;
 end;
 
 { Construct 4D vectors ------------------------------------------------------------ }
 
 function Vector4(const X, Y, Z, W: Single): TVector4;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
-  Result.Data[2] := Z;
-  Result.Data[3] := W;
+  Result.X := X;
+  Result.Y := Y;
+  Result.Z := Z;
+  Result.W := W;
 end;
 
 function Vector4(const V: TVector3; const W: Single): TVector4;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
-  Result.Data[2] := V.Data[2];
-  Result.Data[3] := W;
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := V.Z;
+  Result.W := W;
 end;
 
 function Vector4(const V: TVector2; const Z, W: Single): TVector4;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
-  Result.Data[2] := Z;
-  Result.Data[3] := W;
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := Z;
+  Result.W := W;
 end;
 
 function Vector4(const V: TVector4Double): TVector4;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
-  Result.Data[2] := V.Data[2];
-  Result.Data[3] := V.Data[3];
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := V.Z;
+  Result.W := V.W;
 end;
 
 function Vector4Double(const X, Y, Z, W: Double): TVector4Double;
 begin
-  Result.Data[0] := X;
-  Result.Data[1] := Y;
-  Result.Data[2] := Z;
-  Result.Data[3] := W;
+  Result.X := X;
+  Result.Y := Y;
+  Result.Z := Z;
+  Result.W := W;
 end;
 
 function Vector4Double(const V: TVector4): TVector4Double;
 begin
-  Result.Data[0] := V.Data[0];
-  Result.Data[1] := V.Data[1];
-  Result.Data[2] := V.Data[2];
-  Result.Data[3] := V.Data[3];
+  Result.X := V.X;
+  Result.Y := V.Y;
+  Result.Z := V.Z;
+  Result.W := V.W;
 end;
 
 { Convert matrix ------------------------------------------------------------- }
@@ -292,8 +292,8 @@ var
   SPosition: Integer;
 begin
   SPosition := 1;
-  Result.Data[0] := StrToFloatDot(NextToken(S, SPosition));
-  Result.Data[1] := StrToFloatDot(NextToken(S, SPosition));
+  Result.X := StrToFloatDot(NextToken(S, SPosition));
+  Result.Y := StrToFloatDot(NextToken(S, SPosition));
   if NextToken(S, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
@@ -303,9 +303,9 @@ var
   SPosition: Integer;
 begin
   SPosition := 1;
-  Result.Data[0] := StrToFloatDot(NextToken(S, SPosition));
-  Result.Data[1] := StrToFloatDot(NextToken(S, SPosition));
-  Result.Data[2] := StrToFloatDot(NextToken(S, SPosition));
+  Result.X := StrToFloatDot(NextToken(S, SPosition));
+  Result.Y := StrToFloatDot(NextToken(S, SPosition));
+  Result.Z := StrToFloatDot(NextToken(S, SPosition));
   if NextToken(S, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 
@@ -319,10 +319,10 @@ var
   SPosition: Integer;
 begin
   SPosition := 1;
-  Result.Data[0] := StrToFloatDot(NextToken(S, SPosition));
-  Result.Data[1] := StrToFloatDot(NextToken(S, SPosition));
-  Result.Data[2] := StrToFloatDot(NextToken(S, SPosition));
-  Result.Data[3] := StrToFloatDot(NextToken(S, SPosition));
+  Result.X := StrToFloatDot(NextToken(S, SPosition));
+  Result.Y := StrToFloatDot(NextToken(S, SPosition));
+  Result.Z := StrToFloatDot(NextToken(S, SPosition));
+  Result.W := StrToFloatDot(NextToken(S, SPosition));
   if NextToken(S, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;

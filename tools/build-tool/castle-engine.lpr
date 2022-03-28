@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,7 +35,6 @@ var
   Target: TTarget;
   OS: TOS;
   CPU: TCPU;
-  Plugin: boolean = false;
   Mode: TCompilationMode = cmRelease;
   AssumeCompiled: boolean = false;
   Fast: boolean = false;
@@ -124,7 +123,6 @@ begin
             '    the apk package created by previous "package" call' +NL+
             '    for Android. Useful for quick testing of your app on a device' +NL+
             '    connected through USB.' +NL+
-            '    Useful also for installing compiled web browser plugin.' +NL+
             NL+
             'run' +NL+
             '    Run the application. ' +NL+
@@ -186,7 +184,7 @@ begin
             OptionDescription('--fast',
               'Do not "clean" before "package". Recompile only what changed. This is faster for development, but cannot guarantee that everything is recompiled in a release mode.') +NL+
             OptionDescription('--plugin',
-              'Compile/package/install a browser plugin.') +NL+
+              'Compile/package/install a browser NPAPI plugin. DEPRECATED.') +NL+
             OptionDescription('--fpc-version-iphone-simulator VERSION',
               'When compiling for iPhone Simulator, we pass -V<VERSION> to the "fpc" command-line. This is necessary if you use the official "FPC for iOS" package (see the "Getting Started - iOS.rtf" inside the "FPC for iOS" dmg for explanation). You can set this to "auto" (this is the default) to auto-detect this based on regular FPC version. Or you can set this to a particular version, like "3.0.5". Or you can set this to empty "" to avoid passing any -V<VERSION> (suitable for FPC 3.1.1).') +NL+
             OptionDescription('--compiler-option=PARAM',
@@ -247,7 +245,7 @@ begin
     6 : Mode := StringToMode(Argument);
     7 : AssumeCompiled := true;
     8 : Fast := true;
-    9 : Plugin := true;
+    9 : WritelnWarning('NPAPI plugin is no longer available, ignoring --plugin');
     10: FPCVersionForIPhoneSimulator := Argument;
     11: CompilerExtraOptions.Add(Argument);
     12: OutputPathBase := Argument;
@@ -290,6 +288,7 @@ var
   Command, S, FileName: string;
   Project: TCastleProject;
   RestOfParameters: TCastleStringList;
+  SimpleCompileOptions: TCompilerOptions; // used only when command is "simple-compile"
 begin
   ApplicationProperties.ApplicationName := 'castle-engine';
   ApplicationProperties.Version := CastleEngineVersion;
@@ -324,15 +323,23 @@ begin
     { use GetCurrentDir as WorkingDir,
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
-    case Target of
-      targetCustom        : Compile(OverrideCompiler, OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetAndroid       : CompileAndroid(OverrideCompiler, nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetIOS           : CompileIOS(OverrideCompiler, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetNintendoSwitch: CompileNintendoSwitch(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('Operation not implemented for this target');
-      {$endif}
-    end;
+    SimpleCompileOptions := TCompilerOptions.Create;
+    try
+      SimpleCompileOptions.OS := OS;
+      SimpleCompileOptions.CPU := CPU;
+      SimpleCompileOptions.DetectMemoryLeaks := false;
+      SimpleCompileOptions.Mode := Mode;
+      SimpleCompileOptions.ExtraOptions.AddRange(CompilerExtraOptions);
+      case Target of
+        targetCustom        : Compile(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
+        targetAndroid       : CompileAndroid(OverrideCompiler, nil, GetCurrentDir, FileName, SimpleCompileOptions);
+        targetIOS           : CompileIOS(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
+        targetNintendoSwitch: CompileNintendoSwitch(GetCurrentDir, FileName, SimpleCompileOptions);
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('Operation not implemented for this target');
+        {$endif}
+      end;
+    finally FreeAndNil(SimpleCompileOptions) end;
   end else
   begin
     if Command <> 'run' then
@@ -343,7 +350,7 @@ begin
         Project.DoCreateManifest
       else
       if Command = 'compile' then
-        Project.DoCompile(OverrideCompiler, Target, OS, CPU, Plugin, Mode, CompilerExtraOptions)
+        Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions)
       else
       if Command = 'package' then
       begin
@@ -351,12 +358,12 @@ begin
         begin
           if not Fast then
             Project.DoClean;
-          Project.DoCompile(OverrideCompiler, Target, OS, CPU, Plugin, Mode, CompilerExtraOptions);
+          Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions);
         end;
-        Project.DoPackage(Target, OS, CPU, Plugin, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
+        Project.DoPackage(Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
       end else
       if Command = 'install' then
-        Project.DoInstall(Target, OS, CPU, Plugin, Mode, PackageFormat, PackageNameIncludeVersion)
+        Project.DoInstall(Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion)
       else
       if Command = 'run' then
       begin
@@ -365,7 +372,7 @@ begin
           RestOfParameters.Text := Parameters.Text;
           RestOfParameters.Delete(0); // remove our own name
           RestOfParameters.Delete(0); // remove "run"
-          Project.DoRun(Target, OS, CPU, Plugin, RestOfParameters);
+          Project.DoRun(Target, OS, CPU, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end else
       if Command = 'package-source' then

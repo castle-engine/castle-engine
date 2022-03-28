@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -319,8 +319,23 @@ var
   end;
 
   function FileNameContainsNonAsciiCharacters(const FileName: String): Boolean;
+  {$ifndef FPC}
+  var
+    I:Integer;
+  {$endif}
   begin
+    {$ifdef FPC}
     Result := CharsPos(AllChars - SimpleAsciiCharacters, FileName) <> 0;
+    {$else}
+    if FileName = '' then
+      Exit(false);
+
+    for I := 1 to Length(FileName) do
+      if (Ord(FileName[I]) > 126) or (Ord(FileName[I]) < 32) then
+        Exit(true);
+
+    Result := false;
+    {$endif}
   end;
 
 const
@@ -702,8 +717,8 @@ begin
     G := Glyph(C);
     if G <> nil then
     begin
-      Result.Data[0] := Result.Data[0] + G.AdvanceX;
-      Result.Data[1] := Result.Data[1] + G.AdvanceY;
+      Result.X := Result.X + G.AdvanceX;
+      Result.Y := Result.Y + G.AdvanceY;
     end;
 
     {$ifdef FPC}

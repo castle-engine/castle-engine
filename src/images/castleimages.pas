@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -67,7 +67,6 @@
 unit CastleImages;
 
 {$include castleconf.inc}
-{$ifdef FPC} {$modeswitch nestedprocvars}{$H+} {$endif}
 
 interface
 
@@ -75,7 +74,10 @@ uses SysUtils, Classes, Math, Generics.Collections,
   {$ifdef FPC}
   { FPImage and related units }
   FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
-  FPReadJPEG, FPWriteJPEG, FPReadPNM, FPReadPNG, FPWritePNG,
+  FPReadBMP, FPWriteBMP,
+  FPReadJPEG, FPWriteJPEG,
+  FPReadPNM, FPWritePNM,
+  FPReadPNG, FPWritePNG,
   {$else}
   { Delphi units }
   Vcl.Imaging.PngImage,
@@ -85,6 +87,8 @@ uses SysUtils, Classes, Math, Generics.Collections,
   CastleFileFilters, CastleClassUtils, CastleColors;
 
 type
+  { TODO: This should be merged with TAlphaMode, these types say the same. }
+  { How is the alpha channel of an image treated. }
   TAutoAlphaChannel = (acAuto, acNone, acTest, acBlending);
   { See TCastleImage.AlphaChannel. }
   TAlphaChannel = acNone .. acBlending;
@@ -232,7 +236,7 @@ type
     {$ifdef FPC}
     { Convert image contents to FpImage instance.
       The resulting instance is owned by the caller. }
-    function ToFpImage: TInternalCastleFpImage; virtual;
+    function ToFpImage: TInternalCastleFpImage; virtual; deprecated 'interoperability with FpImage may be dropped in the future';
     {$endif}
   end;
 
@@ -425,14 +429,9 @@ type
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); virtual;
   public
     { Constructor without parameters creates image with Width = Height = Depth = 0
-      and RawPixels = nil, so IsEmpty will return @true.
-
-      Both constructors must be virtual, this allows to implement things
-      like TCastleImage.MakeCopy. }
+      and RawPixels = nil, so IsEmpty will return @true. }
     constructor Create; overload; virtual;
-    constructor Create(
-      const AWidth, AHeight: Cardinal;
-      const ADepth: Cardinal = 1); overload; virtual;
+    constructor Create(const AWidth, AHeight: Cardinal; const ADepth: Cardinal = 1); overload;
 
     { This is equivalent to SetSize(0, 0, 0).
       It sets Width = Height = 0 and RawPixels = nil. }
@@ -535,13 +534,9 @@ type
       Remember that resizing may change RawPixels pointer, so all pointers
       that you aquired using functions like
       RawPixels, Pixels, PixelsArray, RowPtr, PixelPtr
-      may be invalid after calling Resize.
-
-      If ProgressTitle <> '' this will call Progress.Init/Step/Fini
-      from CastleProgress to indicate progress of operation. }
+      may be invalid after calling Resize. }
     procedure Resize(ResizeWidth, ResizeHeight: Cardinal;
-      const Interpolation: TResizeInterpolation = riBilinear;
-      const ProgressTitle: string = '');
+      const Interpolation: TResizeInterpolation = riBilinear);
 
     { Change Width and Height and appropriately stretch image contents.
 
@@ -573,14 +568,9 @@ type
 
       As with @link(Resize) method, when the parameter ResizeTo* is 0
       it means to use current Width/Height.
-      So e.g. using MakeResized(0, 0) is the same thing as using CreateCopy.
-
-      As with @link(Resize),
-      if ProgressTitle <> '' this will call Progress.Init/Step/Fini
-      from CastleProgress to indicate progress of operation. }
+      So e.g. using MakeResized(0, 0) is the same thing as using CreateCopy. }
     function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
-      const Interpolation: TResizeInterpolation = riBilinear;
-      const ProgressTitle: string = ''): TCastleImage;
+      const Interpolation: TResizeInterpolation = riBilinear): TCastleImage;
 
     { Mirror image horizotally (that is right edge is swapped with left edge). }
     procedure FlipHorizontal;
@@ -869,7 +859,7 @@ type
       when assignning.
 
       @raises(EImageAssignmentError If it's not possible to convert from
-        Source class to us. Not every possible conversion is implemented now.)
+        Source class to us.)
     }
     procedure Assign(const Source: TCastleImage); virtual;
 
@@ -1166,7 +1156,7 @@ type
 
     { Create a new TRGBAlphaImage instance with RGB contents copied from this
       image, and alpha fully opaque. }
-    function ToRGBAlphaImage: TRGBAlphaImage;
+    function ToRGBAlphaImage: TRGBAlphaImage; deprecated 'create TRGBAlphaImage and use TRGBAlphaImage.Assign';
 
     { Convert image to an TRGBFloatImage format.
 
@@ -1183,9 +1173,9 @@ type
       be expressed as simple 8-bit RGB. But by using this conversion
       you initially fill float image with data that does not have
       precision beyond standard 0..255 discreet range for each RGB component... }
-    function ToRGBFloat: TRGBFloatImage;
+    function ToRGBFloat: TRGBFloatImage; deprecated 'create TRGBFloatImage and use TRGBFloatImage.Assign';
 
-    function ToGrayscale: TGrayscaleImage;
+    function ToGrayscale: TGrayscaleImage; deprecated 'create TGrayscaleImage and use TGrayscaleImage.Assign';
 
     {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
@@ -1305,14 +1295,16 @@ type
     class procedure MixColors(const OutputColor: Pointer;
        const Weights: TVector4; const AColors: TVector4Pointer); override;
 
+    procedure Assign(const Source: TCastleImage); override;
+
     { Remove alpha channel. }
-    function ToRGBImage: TRGBImage;
+    function ToRGBImage: TRGBImage; deprecated 'create TRGBImage and use TRGBImage.Assign';
 
     { Flatten to grayscale. }
-    function ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
+    function ToGrayscaleAlphaImage: TGrayscaleAlphaImage; deprecated 'create TGrayscaleAlphaImage and use TGrayscaleAlphaImage.Assign';
 
     { Flatten to grayscale and remove alpha channel. }
-    function ToGrayscaleImage: TGrayscaleImage;
+    function ToGrayscaleImage: TGrayscaleImage; deprecated 'create TGrayscaleImage and use TGrayscaleImage.Assign';
     {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
     {$endif}
@@ -1385,7 +1377,7 @@ type
       So such conversion not only kills the floating-point
       precision in float format but also clamps color components
       to 0..1. }
-    function ToRGBImage: TRGBImage;
+    function ToRGBImage: TRGBImage; deprecated 'create TRGBImage and use TRGBImage.Assign';
     {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
     {$endif}
@@ -1402,6 +1394,7 @@ type
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
        const Weights: TVector4; const AColors: TVector4Pointer); override;
+    procedure Assign(const Source: TCastleImage); override;
   end;
 
   { Grayscale image. Color is a simple Byte value. }
@@ -1409,8 +1402,10 @@ type
   private
     FTreatAsAlpha: boolean;
     FColorWhenTreatedAsAlpha: TVector3Byte;
+    FGrayscaleColorWhenTreatedAsAlpha: Byte;
     function GetPixels: PByte;
     function GetPixelsArray: PByteArray;
+    procedure SetColorWhenTreatedAsAlpha(const Value: TVector3Byte);
     {$ifdef FPC}
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
     {$endif}
@@ -1421,6 +1416,8 @@ type
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
+    constructor Create; overload; override;
+
     { Pointer to pixels. Same as RawPixels, only typecasted to PByte. }
     property Pixels: PByte read GetPixels;
     property GrayscalePixels: PByte read GetPixels; {$ifdef FPC} deprecated 'use Pixels'; {$endif}
@@ -1446,11 +1443,13 @@ type
       components are < 2^7 after this. }
     procedure HalfColors;
 
-    { Add an alpha channel.
-      The newly created alpha channel will have constant opaque alpha,
-      except in the special case of TGrayscaleImage.TreatAsAlpha = @true
-      (where the contents will be copied to alpha, and intensity set to white). }
-    function ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
+    { Add alpha channel.
+
+      If TreatAsAlpha = @false: add constant opaque alpha.
+
+      If TreatAsAlpha = @true: output alpha will be derived from source grayscale,
+      output intensity will be derived from ColorWhenTreatedAsAlpha. }
+    function ToGrayscaleAlphaImage: TGrayscaleAlphaImage; deprecated 'create TGrayscaleAlphaImage and use TGrayscaleAlphaImage.Assign';
 
     {$ifdef FPC}
     function ToFpImage: TInternalCastleFpImage; override;
@@ -1475,17 +1474,26 @@ type
           It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone.)
 
         @item(
-          When using @link(DrawFrom) / @link(DrawTo) methods.
+          When using @link(DrawFrom) / @link(DrawTo) methods or being assigned to something using @link(Assign).
           If @true, this image is drawn like an RGBA image,
           with constant RGB color ColorWhenTreatedAsAlpha, and alpha channel
           taken from contents of this image.)
       )
     }
     property TreatAsAlpha: boolean
-      read FTreatAsAlpha write FTreatAsAlpha;
+      read FTreatAsAlpha write FTreatAsAlpha default false;
 
+    { Used for drawing/assigning when TreatAsAlpha is @true, and we need the base
+      (not alpha) color for some equation.
+      By default white (255, 255, 255). }
     property ColorWhenTreatedAsAlpha: TVector3Byte
-      read FColorWhenTreatedAsAlpha write FColorWhenTreatedAsAlpha;
+      read FColorWhenTreatedAsAlpha write SetColorWhenTreatedAsAlpha;
+
+    { Automatically derived from ColorWhenTreatedAsAlpha by averaging RGB components
+      to calculate grayscale intensity.
+      By default 255. }
+    property GrayscaleColorWhenTreatedAsAlpha: Byte
+      read FGrayscaleColorWhenTreatedAsAlpha;
 
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
@@ -1530,7 +1538,7 @@ type
     class function ColorComponentsCount: Cardinal; override;
 
     { Remove alpha channel. }
-    function ToGrayscaleImage: TGrayscaleImage;
+    function ToGrayscaleImage: TGrayscaleImage; deprecated 'create TGrayscaleImage and use TGrayscaleImage.Assign';
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector2Byte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PVector2ByteArray;
@@ -1583,10 +1591,10 @@ type
   Each component of V (red, green, blue) must be from range
   [0, +infinity), not merely from [0, 1].
   That is, V must have only nonnegative values. }
-function Vector3ToRGBE(const v: TVector3): TVector4Byte;
+function Vector3ToRGBE(const v: TVector3): TVector4Byte; deprecated 'RGBE compression should be internal in CGE or Vampyre';
 
 { Decode Red + Green + Blue + Exponent back into RGB (3 floats). }
-function VectorRGBETo3Single(const v: TVector4Byte): TVector3;
+function VectorRGBETo3Single(const v: TVector4Byte): TVector3; deprecated 'RGBE compression should be internal in CGE or Vampyre';
 
 { File formats managing ----------------------------------------------------- }
 
@@ -1600,7 +1608,7 @@ function IsImageMimeType(const MimeType: string;
   to let him know which formats are supported (and by which extensions
   they are recognized). Although almost always a better way to show
   this to user is just to use SaveImage_FileFilters with a save dialog
-  like TCastleWindowBase.FileDialog,
+  like TCastleWindow.FileDialog,
   this shows file types in the open/save dialog,
   so it's most natural and convenient to user.
 
@@ -1787,7 +1795,7 @@ type
     because of Img class (memory format) and/or image file format.)
 
   @groupBegin }
-procedure SaveImage(const img: TEncodedImage; const MimeType: string; Stream: TStream); overload;
+procedure SaveImage(const Img: TEncodedImage; const MimeType: string; Stream: TStream); overload;
 procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
 { @groupEnd }
 
@@ -1802,6 +1810,7 @@ procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
 
   @groupBegin }
 function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
+  deprecated 'implement this logic yourself; the fact that this may return TRGBImage, disregarging possible alpha, is misleading';
 { @groupEnd }
 
 var
@@ -1998,11 +2007,21 @@ function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
 
 implementation
 
+{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
 uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
-  {$ifdef USE_VAMPYRE_IMAGING} Imaging, ImagingClasses, ImagingTypes, {$endif}
+  {$ifdef USE_VAMPYRE_IMAGING} Imaging, ImagingClasses, ImagingTypes,
+    { Using ImagingExtFileFormats explicitly is necessary to include extra formats when
+      being compiled through Lazarus (LPI / LPK).
+      That is because VampyreImagingPackage.lpk defines DONT_LINK_EXTRAS,
+      which means that Imaging unit doesn't use ImagingExtFileFormats
+      (because otherwise there would be circular dependency between
+      VampyreImagingPackage.lpk and VampyreImagingPackageExt.lpk). }
+    ImagingExtFileFormats,
+  {$endif}
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
-  CastleCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils,
+  CastleInternalCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils,
   CastleStreamUtils;
+{$warnings on}
 
 { parts ---------------------------------------------------------------------- }
 
@@ -2011,24 +2030,22 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
 {$I castleimages_draw.inc}
 {$I castleimages_paint.inc}
 {$I castleimages_astc.inc}
-{$I castleimages_bmp.inc}
 {$I castleimages_libpng.inc}
 {$I castleimages_fpimage.inc}
 {$I castleimages_loading_saving_func.inc}
 {$I castleimages_vcl_imaging.inc}
 {$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
-{$I castleimages_ppm.inc}
 {$I castleimages_ipl.inc}
-{$I castleimages_rgbe_fileformat.inc}
 {$I castleimages_composite.inc}
+{$I castleimages_assign.inc}
 
 { Colors ------------------------------------------------------------------ }
 
 function EqualRGB(const Color1, Color2: TVector3Byte; Tolerance: Byte): boolean;
 begin
- result:=(Abs(Smallint(Color1.Data[0]) - Color2.Data[0]) <= Tolerance) and
-         (Abs(Smallint(Color1.Data[1]) - Color2.Data[1]) <= Tolerance) and
-         (Abs(Smallint(Color1.Data[2]) - Color2.Data[2]) <= Tolerance);
+ result:=(Abs(Smallint(Color1.X) - Color2.X) <= Tolerance) and
+         (Abs(Smallint(Color1.Y) - Color2.Y) <= Tolerance) and
+         (Abs(Smallint(Color1.Z) - Color2.Z) <= Tolerance);
 end;
 
 { TEncodedImage -------------------------------------------------------------- }
@@ -2041,9 +2058,9 @@ end;
 
 function TEncodedImage.Dimensions: TVector3Cardinal;
 begin
-  Result.Data[0] := Width;
-  Result.Data[1] := Height;
-  Result.Data[2] := Depth;
+  Result.X := Width;
+  Result.Y := Height;
+  Result.Z := Depth;
 end;
 
 function TEncodedImage.IsEmpty: boolean;
@@ -2166,9 +2183,8 @@ end;
 
 function TCastleImage.CreateCopy: TEncodedImage;
 begin
-  Result := TCastleImageClass(Self.ClassType).Create(Width, Height, Depth);
-  Move(RawPixels^, Result.RawPixels^, Size);
-  Result.FURL := URL;
+  Result := TCastleImageClass(Self.ClassType).Create;
+  TCastleImage(Result).Assign(Self);
 end;
 
 type
@@ -2182,8 +2198,7 @@ procedure InternalResize(PixelSize: Cardinal;
   const SourceData: Pointer; const SourceRect: TRectangle; const SourceWidth, SourceHeight: Cardinal;
   const DestinData: Pointer; const DestinRect: TRectangle; const DestinWidth, DestinHeight: Cardinal;
   const Interpolation: TResizeInterpolationInternal;
-  const MixColors: TMixColorsFunction;
-  const ProgressTitle: string);
+  const MixColors: TMixColorsFunction);
 var
   DestinY: Integer;
 
@@ -2244,68 +2259,34 @@ var
       SourceX2 := SourceX2 * PixelSize;
 
       SourceXFrac := Frac(SourceXFrac);
-      Weights.Data[0] := SourceXFrac * SourceYFrac;
-      Colors.Data[0] := Pointer(PtrUInt(Source2Row + SourceX2));
-      Weights.Data[1] := (1 - SourceXFrac) * SourceYFrac;
-      Colors.Data[1] := Pointer(PtrUInt(Source2Row + SourceX1));
-      Weights.Data[2] := (1 - SourceXFrac) * (1 - SourceYFrac);
-      Colors.Data[2] := Pointer(PtrUInt(Source1Row + SourceX1));
-      Weights.Data[3] :=  SourceXFrac * (1 - SourceYFrac);
-      Colors.Data[3] := Pointer(PtrUInt(Source1Row + SourceX2));
+      Weights.X := SourceXFrac * SourceYFrac;
+      Colors.X := Pointer(PtrUInt(Source2Row + SourceX2));
+      Weights.Y := (1 - SourceXFrac) * SourceYFrac;
+      Colors.Y := Pointer(PtrUInt(Source2Row + SourceX1));
+      Weights.Z := (1 - SourceXFrac) * (1 - SourceYFrac);
+      Colors.Z := Pointer(PtrUInt(Source1Row + SourceX1));
+      Weights.W :=  SourceXFrac * (1 - SourceYFrac);
+      Colors.W := Pointer(PtrUInt(Source1Row + SourceX2));
       MixColors(Pointer(PtrUInt(DestinRow + DestinX * PixelSize)), Weights, Colors);
     end;
   end;
 
-{$ifdef FPC}
-
-type
-  TMakeLineFunction = procedure is nested;
-var
-  MakeLine: TMakeLineFunction;
 begin
   case Interpolation of
-    riNearest : MakeLine := @MakeLineNearest;
-    riBilinear: MakeLine := @MakeLineBilinear;
+    riNearest:
+      for DestinY := DestinRect.Bottom to DestinRect.Top - 1 do
+        MakeLineNearest;
+    riBilinear:
+      for DestinY := DestinRect.Bottom to DestinRect.Top - 1 do
+        MakeLineBilinear;
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Unknown Interpolation for InternalResize');
     {$endif}
   end;
-
-{$else}
-
-  { In Delphi mode, nested procedural variables are not supported.
-    Just define a local MakeLine procedure. }
-  procedure MakeLine;
-  begin
-    case Interpolation of
-      riNearest : MakeLineNearest;
-      riBilinear: MakeLineBilinear;
-      else raise EInternalError.Create('Unknown Interpolation for InternalResize');
-    end;
-  end;
-
-begin
-{$endif}
-  if ProgressTitle = '' then
-  begin
-    for DestinY := DestinRect.Bottom to DestinRect.Top - 1 do
-      MakeLine;
-  end else
-  begin
-    Progress.Init(DestinHeight, ProgressTitle);
-    try
-      for DestinY := DestinRect.Bottom to DestinRect.Top - 1 do
-      begin
-        MakeLine;
-        Progress.Step;
-      end;
-    finally Progress.Fini end;
-  end;
 end;
 
 procedure TCastleImage.Resize(ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation;
-  const ProgressTitle: string);
+  const Interpolation: TResizeInterpolation);
 var
   NewPixels: Pointer;
 {$ifdef FPC}
@@ -2316,7 +2297,6 @@ begin
      (Interpolation <= High(TResizeInterpolationFpImage)) then
   begin
     {$ifdef FPC}
-    // TODO; ProgressTitle not supported for this
     NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
     try
       FromFpImage(NewFpImage);
@@ -2325,7 +2305,7 @@ begin
     WritelnWarning('Resizing with interpolation %d not supported with Delphi, falling back to bilinear', [
       Ord(Interpolation)
     ]);
-    Resize(ResizeWidth, ResizeHeight, riBilinear, ProgressTitle);
+    Resize(ResizeWidth, ResizeHeight, riBilinear);
     {$endif FPC}
   end else
   begin
@@ -2340,7 +2320,7 @@ begin
       InternalResize(PixelSize,
         RawPixels, Rect, Width, Height,
         NewPixels, CastleRectangles.Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
-        Interpolation, {$ifdef FPC}@{$endif} MixColors, ProgressTitle);
+        Interpolation, {$ifdef FPC}@{$endif} MixColors);
       FreeMemNiling(FRawPixels);
 
       FRawPixels := NewPixels;
@@ -2351,8 +2331,7 @@ begin
 end;
 
 function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation;
-  const ProgressTitle: string): TCastleImage;
+  const Interpolation: TResizeInterpolation): TCastleImage;
 {$ifdef FPC}
 var
   NewFpImage: TInternalCastleFpImage;
@@ -2362,7 +2341,6 @@ begin
      (Interpolation <= High(TResizeInterpolationFpImage)) then
   begin
     {$ifdef FPC}
-    // TODO; ProgressTitle not supported for this
     NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
     try
       // since we request our own class as output, CreateFromFpImage must return some TCastleImage
@@ -2372,7 +2350,7 @@ begin
     WritelnWarning('Resizing with interpolation %d not supported with Delphi, falling back to bilinear', [
       Ord(Interpolation)
     ]);
-    Result := MakeResized(ResizeWidth, ResizeHeight, riBilinear, ProgressTitle);
+    Result := MakeResized(ResizeWidth, ResizeHeight, riBilinear);
     {$endif FPC}
   end else
   begin
@@ -2387,7 +2365,7 @@ begin
         InternalResize(PixelSize,
                  RawPixels,        Rect,        Width,        Height,
           Result.RawPixels, Result.Rect, Result.Width, Result.Height,
-          Interpolation, {$ifdef FPC}@{$endif} MixColors, ProgressTitle);
+          Interpolation, {$ifdef FPC}@{$endif} MixColors);
     except Result.Free; raise end;
   end;
 end;
@@ -2407,16 +2385,16 @@ type
   var
     SourceRect, DestRect: TRectangle;
   begin
-    SourceRect := CastleRectangles.Rectangle(SourceXs.Data[X], SourceYs.Data[Y],
-      SourceXs.Data[Integer(X) + 1] - SourceXs.Data[X],
-      SourceYs.Data[Integer(Y) + 1] - SourceYs.Data[Y]);
-    DestRect := CastleRectangles.Rectangle(DestXs.Data[X], DestYs.Data[Y],
-      DestXs.Data[Integer(X) + 1] - DestXs.Data[X],
-      DestYs.Data[Integer(Y) + 1] - DestYs.Data[Y]);
+    SourceRect := CastleRectangles.Rectangle(SourceXs.InternalData[X], SourceYs.InternalData[Y],
+      SourceXs.InternalData[Integer(X) + 1] - SourceXs.InternalData[X],
+      SourceYs.InternalData[Integer(Y) + 1] - SourceYs.InternalData[Y]);
+    DestRect := CastleRectangles.Rectangle(DestXs.InternalData[X], DestYs.InternalData[Y],
+      DestXs.InternalData[Integer(X) + 1] - DestXs.InternalData[X],
+      DestYs.InternalData[Integer(Y) + 1] - DestYs.InternalData[Y]);
     InternalResize(PixelSize,
       RawPixels, SourceRect, Width, Height,
       NewPixels, DestRect, ResizeWidth, ResizeHeight,
-      Interpolation, {$ifdef FPC}@{$endif} MixColors, '');
+      Interpolation, {$ifdef FPC}@{$endif} MixColors);
   end;
 
 var
@@ -2424,38 +2402,38 @@ var
 begin
   if (ResizeWidth <> Width) or (ResizeHeight <> Height) then
   begin
-    NewCorners.Data[0] := Corners.Data[0] * ResizeWidth div Width;
-    NewCorners.Data[1] := Corners.Data[1] * ResizeHeight div Height;
-    NewCorners.Data[2] := Corners.Data[2] * ResizeWidth div Width;
-    NewCorners.Data[3] := Corners.Data[3] * ResizeHeight div Height;
+    NewCorners.X := Corners.X * ResizeWidth div Width;
+    NewCorners.Y := Corners.Y * ResizeHeight div Height;
+    NewCorners.Z := Corners.Z * ResizeWidth div Width;
+    NewCorners.W := Corners.W * ResizeHeight div Height;
 
-    if not ( (Corners.Data[3] + Corners.Data[1] < Width) and
-             (Corners.Data[2] + Corners.Data[0] < Height) and
-             (NewCorners.Data[3] + NewCorners.Data[1] < ResizeWidth) and
-             (NewCorners.Data[2] + NewCorners.Data[0] < ResizeHeight) ) then
+    if not ( (Corners.W + Corners.Y < Width) and
+             (Corners.Z + Corners.X < Height) and
+             (NewCorners.W + NewCorners.Y < ResizeWidth) and
+             (NewCorners.Z + NewCorners.X < ResizeHeight) ) then
       raise Exception.CreateFmt('TCastleImage.Resize3x3: Cannot resize image with corners because corners are larger then image size. Source corners: %s, source size: %dx%d, destination corners: %s, destination size: %dx%d',
         [Corners.ToString, Width, Height,
          NewCorners.ToString, ResizeWidth, ResizeHeight]);
 
-    SourceXs.Data[0] := 0;
-    SourceXs.Data[1] := Corners.Data[3];
-    SourceXs.Data[2] := Width - Corners.Data[1];
-    SourceXs.Data[3] := Width;
+    SourceXs.X := 0;
+    SourceXs.Y := Corners.W;
+    SourceXs.Z := Width - Corners.Y;
+    SourceXs.W := Width;
 
-    SourceYs.Data[0] := 0;
-    SourceYs.Data[1] := Corners.Data[2];
-    SourceYs.Data[2] := Height - Corners.Data[0];
-    SourceYs.Data[3] := Height;
+    SourceYs.X := 0;
+    SourceYs.Y := Corners.Z;
+    SourceYs.Z := Height - Corners.X;
+    SourceYs.W := Height;
 
-    DestXs.Data[0] := 0;
-    DestXs.Data[1] := NewCorners.Data[3];
-    DestXs.Data[2] := ResizeWidth - NewCorners.Data[1];
-    DestXs.Data[3] := ResizeWidth;
+    DestXs.X := 0;
+    DestXs.Y := NewCorners.W;
+    DestXs.Z := ResizeWidth - NewCorners.Y;
+    DestXs.W := ResizeWidth;
 
-    DestYs.Data[0] := 0;
-    DestYs.Data[1] := NewCorners.Data[2];
-    DestYs.Data[2] := ResizeHeight - NewCorners.Data[0];
-    DestYs.Data[3] := ResizeHeight;
+    DestYs.X := 0;
+    DestYs.Y := NewCorners.Z;
+    DestYs.Z := ResizeHeight - NewCorners.X;
+    DestYs.W := ResizeHeight;
 
     NewPixels := GetMem(ResizeWidth * ResizeHeight * PixelSize);
     for X := Low(TPart) to High(TPart) do
@@ -2761,29 +2739,6 @@ class procedure TCastleImage.MixColors(const OutputColor: Pointer;
   const Weights: TVector4; const AColors: TVector4Pointer);
 begin
   raise EImageLerpInvalidClasses.Create('Mixing colors (TCastleImage.MixColors) not possible with the base TCastleImage class');
-end;
-
-procedure TCastleImage.Assign(const Source: TCastleImage);
-begin
-  if Source.ClassType = ClassType then
-  begin
-    SetSize(Source);
-    // if Source.RawPixels = nil, then we're already freed by SetSize above
-    if Source.RawPixels <> nil then
-      Move(Source.RawPixels^, RawPixels^, Size);
-    URL := Source.URL;
-  end else
-    raise EImageAssignmentError.CreateFmt('Cannot copy image contents from %s to %s',
-      [Source.ClassName, ClassName]);
-
-  { TODO: one day, this should just call
-      DrawFrom(Source, 0, 0, Source.Width, Source.Height, dmOverwrite);
-    instead of raising EImageAssignmentError.
-
-    TCastleImage.Assign will not even need to be virtual then.
-
-    However, for now, DrawFrom and friends do not handle the Z coordinate
-    (they only draw from/to Z = 0). }
 end;
 
 procedure TCastleImage.SaveToPascalCode(const ImageName: string;
@@ -3171,10 +3126,10 @@ begin
 
   for i := 1 to Width * Height * Depth do
   begin
-    s := (Map^.Data[0] + Map^.Data[1] + Map^.Data[2]) / 255 / 3;
-    Res^.Data[0] := Round(s * White^.Data[0] + (1-s) * Black^.Data[0]);
-    Res^.Data[1] := Round(s * White^.Data[1] + (1-s) * Black^.Data[1]);
-    Res^.Data[2] := Round(s * White^.Data[2] + (1-s) * Black^.Data[2]);
+    s := (Map^.X + Map^.Y + Map^.Z) / 255 / 3;
+    Res^.X := Round(s * White^.X + (1-s) * Black^.X);
+    Res^.Y := Round(s * White^.Y + (1-s) * Black^.Y);
+    Res^.Z := Round(s * White^.Z + (1-s) * Black^.Z);
     Inc(Map);
     Inc(White);
     Inc(Black);
@@ -3220,9 +3175,9 @@ begin
   prgb := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
-    prgb^.Data[0] := High(byte) - prgb^.Data[0];
-    prgb^.Data[1] := High(byte) - prgb^.Data[1];
-    prgb^.Data[2] := High(byte) - prgb^.Data[2];
+    prgb^.X := High(byte) - prgb^.X;
+    prgb^.Y := High(byte) - prgb^.Y;
+    prgb^.Z := High(byte) - prgb^.Z;
     Inc(prgb);
   end;
 end;
@@ -3232,10 +3187,10 @@ var
   Pixel: PVector3Byte;
 begin
   Pixel := PixelPtr(X, Y, Z);
-  Result.Data[0] := Pixel^.Data[0] / 255;
-  Result.Data[1] := Pixel^.Data[1] / 255;
-  Result.Data[2] := Pixel^.Data[2] / 255;
-  Result.Data[3] := 1.0;
+  Result.X := Pixel^.X / 255;
+  Result.Y := Pixel^.Y / 255;
+  Result.Z := Pixel^.Z / 255;
+  Result.W := 1.0;
 end;
 
 procedure TRGBImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
@@ -3243,9 +3198,9 @@ var
   Pixel: PVector3Byte;
 begin
   Pixel := PixelPtr(X, Y, Z);
-  Pixel^.Data[0] := Clamped(Round(C.Data[0] * 255), Low(Byte), High(Byte));
-  Pixel^.Data[1] := Clamped(Round(C.Data[1] * 255), Low(Byte), High(Byte));
-  Pixel^.Data[2] := Clamped(Round(C.Data[2] * 255), Low(Byte), High(Byte));
+  Pixel^.X := Clamped(Round(C.X * 255), Low(Byte), High(Byte));
+  Pixel^.Y := Clamped(Round(C.Y * 255), Low(Byte), High(Byte));
+  Pixel^.Z := Clamped(Round(C.Z * 255), Low(Byte), High(Byte));
 end;
 
 procedure TRGBImage.Clear(const Pixel: TVector4Byte);
@@ -3288,59 +3243,21 @@ type PPixel = PVector3Byte;
 {$I castleimages_modulatergb_implement.inc}
 
 function TRGBImage.ToRGBAlphaImage: TRGBAlphaImage;
-var
-  pi: PVector3Byte;
-  pa: PVector4Byte;
-  i: Cardinal;
 begin
-  Result := TRGBAlphaImage.Create(Width, Height, Depth);
-  pi := Pixels;
-  pa := Result.Pixels;
-  for i := 1 to Width * Height * Depth do
-  begin
-    Move(pi^, pa^, SizeOf(TVector3Byte));
-    pa^.Data[3] := High(Byte);
-    Inc(pi);
-    Inc(pa);
-  end;
+  Result := TRGBAlphaImage.Create;
+  Result.Assign(Self);
 end;
 
 function TRGBImage.ToRGBFloat: TRGBFloatImage;
-var
-  PFloat: PVector3;
-  PByte: PVector3Byte;
-  i: Cardinal;
 begin
-  result := TRGBFloatImage.Create(Width, Height, Depth);
-  try
-    PByte := Pixels;
-    PFloat := Result.Pixels;
-    for i := 1 to Width * Height * Depth do
-    begin
-      PFloat^ := Vector3(PByte^);
-      Inc(PByte);
-      Inc(PFloat);
-    end;
-  except Result.Free; raise end;
+  Result := TRGBFloatImage.Create;
+  Result.Assign(Self);
 end;
 
 function TRGBImage.ToGrayscale: TGrayscaleImage;
-var
-  pRGB: PVector3Byte;
-  pGrayscale: PByte;
-  I: Cardinal;
 begin
-  Result := TGrayscaleImage.Create(Width, Height, Depth);
-  try
-    pRGB := Pixels;
-    pGrayscale := Result.Pixels;
-    for i := 1 to Width * Height * Depth do
-    begin
-      pGrayscale^ := GrayscaleValue(pRGB^);
-      Inc(pRGB);
-      Inc(pGrayscale);
-    end;
-  except Result.Free; raise end;
+  Result := TGrayscaleImage.Create;
+  Result.Assign(Self);
 end;
 
 procedure TRGBImage.HorizontalLine(const x1, x2, y: Integer;
@@ -3405,60 +3322,22 @@ var
   Cols: array [0..3] of PVector3Byte absolute AColors;
 begin
   {$I norqcheckbegin.inc}
-  OutputCol^.Data[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
-    Weights.Data[0] * Cols[0]^.Data[0] +
-    Weights.Data[1] * Cols[1]^.Data[0] +
-    Weights.Data[2] * Cols[2]^.Data[0] +
-    Weights.Data[3] * Cols[3]^.Data[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
-  OutputCol^.Data[1] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
-    Weights.Data[0] * Cols[0]^.Data[1] +
-    Weights.Data[1] * Cols[1]^.Data[1] +
-    Weights.Data[2] * Cols[2]^.Data[1] +
-    Weights.Data[3] * Cols[3]^.Data[1]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
-  OutputCol^.Data[2] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
-    Weights.Data[0] * Cols[0]^.Data[2] +
-    Weights.Data[1] * Cols[1]^.Data[2] +
-    Weights.Data[2] * Cols[2]^.Data[2] +
-    Weights.Data[3] * Cols[3]^.Data[2]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^.X := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
+    Weights.X * Cols[0]^.X +
+    Weights.Y * Cols[1]^.X +
+    Weights.Z * Cols[2]^.X +
+    Weights.W * Cols[3]^.X) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^.Y := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
+    Weights.X * Cols[0]^.Y +
+    Weights.Y * Cols[1]^.Y +
+    Weights.Z * Cols[2]^.Y +
+    Weights.W * Cols[3]^.Y) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^.Z := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
+    Weights.X * Cols[0]^.Z +
+    Weights.Y * Cols[1]^.Z +
+    Weights.Z * Cols[2]^.Z +
+    Weights.W * Cols[3]^.Z) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
   {$I norqcheckend.inc}
-end;
-
-procedure TRGBImage.Assign(const Source: TCastleImage);
-var
-  FloatPtr: PVector3;
-  RgbaPtr: PVector4Byte;
-  SelfPtr: PVector3Byte;
-  I: Cardinal;
-begin
-  if Source is TRGBAlphaImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    RgbaPtr := TRGBAlphaImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      Move(RgbaPtr^, SelfPtr^, SizeOf(TVector3Byte));
-      Inc(SelfPtr);
-      Inc(RgbaPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-  if Source is TRGBFloatImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    FloatPtr := TRGBFloatImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^ := Vector3Byte(FloatPtr^);
-      Inc(SelfPtr);
-      Inc(FloatPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-    inherited;
 end;
 
 { TRGBAlphaImage ------------------------------------------------------------ }
@@ -3501,9 +3380,9 @@ begin
   palpha := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
-    palpha^.Data[0] := High(byte) - palpha^.Data[0];
-    palpha^.Data[1] := High(byte) - palpha^.Data[1];
-    palpha^.Data[2] := High(byte) - palpha^.Data[2];
+    palpha^.X := High(byte) - palpha^.X;
+    palpha^.Y := High(byte) - palpha^.Y;
+    palpha^.Z := High(byte) - palpha^.Z;
     Inc(palpha);
   end;
 end;
@@ -3513,10 +3392,10 @@ var
   Pixel: PVector4Byte;
 begin
   Pixel := PixelPtr(X, Y, Z);
-  Result.Data[0] := Pixel^.Data[0] / 255;
-  Result.Data[1] := Pixel^.Data[1] / 255;
-  Result.Data[2] := Pixel^.Data[2] / 255;
-  Result.Data[3] := Pixel^.Data[3] / 255;
+  Result.X := Pixel^.X / 255;
+  Result.Y := Pixel^.Y / 255;
+  Result.Z := Pixel^.Z / 255;
+  Result.W := Pixel^.W / 255;
 end;
 
 procedure TRGBAlphaImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
@@ -3524,10 +3403,10 @@ var
   Pixel: PVector4Byte;
 begin
   Pixel := PixelPtr(X, Y, Z);
-  Pixel^.Data[0] := Clamped(Round(C.Data[0] * 255), Low(Byte), High(Byte));
-  Pixel^.Data[1] := Clamped(Round(C.Data[1] * 255), Low(Byte), High(Byte));
-  Pixel^.Data[2] := Clamped(Round(C.Data[2] * 255), Low(Byte), High(Byte));
-  Pixel^.Data[3] := Clamped(Round(C.Data[3] * 255), Low(Byte), High(Byte));
+  Pixel^.X := Clamped(Round(C.X * 255), Low(Byte), High(Byte));
+  Pixel^.Y := Clamped(Round(C.Y * 255), Low(Byte), High(Byte));
+  Pixel^.Z := Clamped(Round(C.Z * 255), Low(Byte), High(Byte));
+  Pixel^.W := Clamped(Round(C.W * 255), Low(Byte), High(Byte));
 end;
 
 procedure TRGBAlphaImage.Clear(const Pixel: TVector4Byte);
@@ -3543,7 +3422,7 @@ begin
   palpha := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
-    palpha^.Data[3] := Alpha;
+    palpha^.W := Alpha;
     Inc(palpha);
   end;
 end;
@@ -3571,8 +3450,8 @@ begin
   for i := 1 to Width * Height * Depth do
   begin
     if EqualRGB(AlphaColor, PVector3Byte(pa)^, Tolerance) then
-      pa^.Data[3] := AlphaOnColor else
-      pa^.Data[3] := AlphaOnNoColor;
+      pa^.W := AlphaOnColor else
+      pa^.W := AlphaOnNoColor;
     Inc(pa);
   end;
 end;
@@ -3598,7 +3477,7 @@ begin
   for I := 1 to Width * Height * Depth do
   begin
     System.Move(PtrRGB^, PtrAlpha^, SizeOf(TVector3Byte));
-    PtrAlpha^.Data[3] := PtrGrayscale^;
+    PtrAlpha^.W := PtrGrayscale^;
 
     Inc(PtrAlpha);
     Inc(PtrRGB);
@@ -3621,8 +3500,8 @@ begin
 
   for I := 1 to Width * Height * Depth do
   begin
-    if (PtrAlpha^.Data[3] > AlphaTolerance) and
-       (PtrAlpha^.Data[3] < 255 - AlphaTolerance) then
+    if (PtrAlpha^.W > AlphaTolerance) and
+       (PtrAlpha^.W < 255 - AlphaTolerance) then
       Exit(acBlending);
     Inc(PtrAlpha);
   end;
@@ -3655,48 +3534,45 @@ var
   Cols: array [0..3] of PVector4Byte absolute AColors;
 begin
   {$I norqcheckbegin.inc}
-  OutputCol^.Data[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
-    Weights.Data[0] * Cols[0]^.Data[0] +
-    Weights.Data[1] * Cols[1]^.Data[0] +
-    Weights.Data[2] * Cols[2]^.Data[0] +
-    Weights.Data[3] * Cols[3]^.Data[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
-  OutputCol^.Data[1] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
-    Weights.Data[0] * Cols[0]^.Data[1] +
-    Weights.Data[1] * Cols[1]^.Data[1] +
-    Weights.Data[2] * Cols[2]^.Data[1] +
-    Weights.Data[3] * Cols[3]^.Data[1]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
-  OutputCol^.Data[2] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
-    Weights.Data[0] * Cols[0]^.Data[2] +
-    Weights.Data[1] * Cols[1]^.Data[2] +
-    Weights.Data[2] * Cols[2]^.Data[2] +
-    Weights.Data[3] * Cols[3]^.Data[2]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
-  OutputCol^.Data[3] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
-    Weights.Data[0] * Cols[0]^.Data[3] +
-    Weights.Data[1] * Cols[1]^.Data[3] +
-    Weights.Data[2] * Cols[2]^.Data[3] +
-    Weights.Data[3] * Cols[3]^.Data[3]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^.X := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
+    Weights.X * Cols[0]^.X +
+    Weights.Y * Cols[1]^.X +
+    Weights.Z * Cols[2]^.X +
+    Weights.W * Cols[3]^.X) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^.Y := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
+    Weights.X * Cols[0]^.Y +
+    Weights.Y * Cols[1]^.Y +
+    Weights.Z * Cols[2]^.Y +
+    Weights.W * Cols[3]^.Y) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^.Z := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
+    Weights.X * Cols[0]^.Z +
+    Weights.Y * Cols[1]^.Z +
+    Weights.Z * Cols[2]^.Z +
+    Weights.W * Cols[3]^.Z) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^.W := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
+    Weights.X * Cols[0]^.W +
+    Weights.Y * Cols[1]^.W +
+    Weights.Z * Cols[2]^.W +
+    Weights.W * Cols[3]^.W) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
   {$I norqcheckend.inc}
 end;
 
 function TRGBAlphaImage.ToRGBImage: TRGBImage;
 begin
-  Result := TRGBImage.Create(0, 0);
+  Result := TRGBImage.Create;
   Result.Assign(Self);
-  Result.URL := URL + '[ToRGBImage]';
 end;
 
 function TRGBAlphaImage.ToGrayscaleImage: TGrayscaleImage;
 begin
-  Result := TGrayscaleImage.Create(0, 0);
+  Result := TGrayscaleImage.Create;
   Result.Assign(Self);
-  Result.URL := URL + '[ToGrayscaleImage]';
 end;
 
 function TRGBAlphaImage.ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
 begin
-  Result := TGrayscaleAlphaImage.Create(0, 0);
+  Result := TGrayscaleAlphaImage.Create;
   Result.Assign(Self);
-  Result.URL := URL + '[ToGrayscaleAlphaImage]';
 end;
 
 procedure TRGBAlphaImage.PremultiplyAlpha;
@@ -3710,9 +3586,9 @@ begin
     P := Pixels;
     for I := 1 to Width * Height * Depth do
     begin
-      P^.Data[0] := Clamped(Round(P^.Data[0] * P^.Data[3] / 255), 0, 255);
-      P^.Data[1] := Clamped(Round(P^.Data[1] * P^.Data[3] / 255), 0, 255);
-      P^.Data[2] := Clamped(Round(P^.Data[2] * P^.Data[3] / 255), 0, 255);
+      P^.X := Clamped(Round(P^.X * P^.W / 255), 0, 255);
+      P^.Y := Clamped(Round(P^.Y * P^.W / 255), 0, 255);
+      P^.Z := Clamped(Round(P^.Z * P^.W / 255), 0, 255);
       Inc(P);
     end;
   end;
@@ -3749,7 +3625,7 @@ function TRGBAlphaImage.MakeAlphaBleed(const ProgressTitle: string): TCastleImag
       if (NX = GX) and (NY = GY) then
         SomePixelWithinImage := true;
       Result := PixelPtr(GX, GY, Z);
-      if Result^.Data[3] <> High(Byte) then
+      if Result^.W <> High(Byte) then
         Result := nil; // nope, tried pixel is not opaque
     end;
 
@@ -3786,7 +3662,7 @@ begin
         for Z := 0 to Depth - 1 do
         begin
           P := Result.PixelPtr(X, Y, Z);
-          if P^.Data[3] <> High(Byte) then
+          if P^.W <> High(Byte) then
           begin
             NewP := FindNearestNonTransparentPixel(X, Y, Z);
             if NewP <> nil then
@@ -3838,10 +3714,10 @@ var
   Pixel: PVector3;
 begin
   Pixel := PixelPtr(X, Y, Z);
-  Result.Data[0] := Pixel^.Data[0];
-  Result.Data[1] := Pixel^.Data[1];
-  Result.Data[2] := Pixel^.Data[2];
-  Result.Data[3] := 1.0;
+  Result.X := Pixel^.X;
+  Result.Y := Pixel^.Y;
+  Result.Z := Pixel^.Z;
+  Result.W := 1.0;
 end;
 
 procedure TRGBFloatImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
@@ -3849,25 +3725,25 @@ var
   Pixel: PVector3;
 begin
   Pixel := PixelPtr(X, Y, Z);
-  Pixel^.Data[0] := C.Data[0];
-  Pixel^.Data[1] := C.Data[1];
-  Pixel^.Data[2] := C.Data[2];
+  Pixel^.X := C.X;
+  Pixel^.Y := C.Y;
+  Pixel^.Z := C.Z;
 end;
 
 procedure TRGBFloatImage.Clear(const Pixel: TVector4Byte);
 begin
   Clear(Vector3(
-    Pixel.Data[0] * 255,
-    Pixel.Data[1] * 255,
-    Pixel.Data[2] * 255));
+    Pixel.X * 255,
+    Pixel.Y * 255,
+    Pixel.Z * 255));
 end;
 
 function TRGBFloatImage.IsClear(const Pixel: TVector4Byte): boolean;
 begin
   Result := IsClear(Vector3(
-    Pixel.Data[0] * 255,
-    Pixel.Data[1] * 255,
-    Pixel.Data[2] * 255));
+    Pixel.X * 255,
+    Pixel.Y * 255,
+    Pixel.Z * 255));
 end;
 
 procedure TRGBFloatImage.Clear(const Pixel: TVector3);
@@ -3903,7 +3779,7 @@ end;
 
 function TRGBFloatImage.ToRGBImage: TRGBImage;
 begin
-  Result := TRGBImage.Create(0, 0);
+  Result := TRGBImage.Create;
   Result.Assign(Self);
 end;
 
@@ -3922,9 +3798,9 @@ end;
 
 function VectorPowerComponents(const V: TVector3; const Exp: Single): TVector3;
 begin
-  Result.Data[0] := Power(V.Data[0], Exp);
-  Result.Data[1] := Power(V.Data[1], Exp);
-  Result.Data[2] := Power(V.Data[2], Exp);
+  Result.X := Power(V.X, Exp);
+  Result.Y := Power(V.Y, Exp);
+  Result.Z := Power(V.Z, Exp);
 end;
 
 procedure TRGBFloatImage.ExpColors(const Exp: Single);
@@ -3964,21 +3840,21 @@ var
   OutputCol: PVector3 absolute OutputColor;
   Cols: array [0..3] of PVector3 absolute AColors;
 begin
-  OutputCol^.Data[0] :=
-    Weights.Data[0] * Cols[0]^.Data[0] +
-    Weights.Data[1] * Cols[1]^.Data[0] +
-    Weights.Data[2] * Cols[2]^.Data[0] +
-    Weights.Data[3] * Cols[3]^.Data[0];
-  OutputCol^.Data[1] :=
-    Weights.Data[0] * Cols[0]^.Data[1] +
-    Weights.Data[1] * Cols[1]^.Data[1] +
-    Weights.Data[2] * Cols[2]^.Data[1] +
-    Weights.Data[3] * Cols[3]^.Data[1];
-  OutputCol^.Data[2] :=
-    Weights.Data[0] * Cols[0]^.Data[2] +
-    Weights.Data[1] * Cols[1]^.Data[2] +
-    Weights.Data[2] * Cols[2]^.Data[2] +
-    Weights.Data[3] * Cols[3]^.Data[2];
+  OutputCol^.X :=
+    Weights.X * Cols[0]^.X +
+    Weights.Y * Cols[1]^.X +
+    Weights.Z * Cols[2]^.X +
+    Weights.W * Cols[3]^.X;
+  OutputCol^.Y :=
+    Weights.X * Cols[0]^.Y +
+    Weights.Y * Cols[1]^.Y +
+    Weights.Z * Cols[2]^.Y +
+    Weights.W * Cols[3]^.Y;
+  OutputCol^.Z :=
+    Weights.X * Cols[0]^.Z +
+    Weights.Y * Cols[1]^.Z +
+    Weights.Z * Cols[2]^.Z +
+    Weights.W * Cols[3]^.Z;
 end;
 
 procedure TRGBFloatImage.InvertColors;
@@ -3989,14 +3865,21 @@ begin
   P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
-    P^.Data[0] := Max(1-P^.Data[0], 0.0);
-    P^.Data[1] := Max(1-P^.Data[1], 0.0);
-    P^.Data[2] := Max(1-P^.Data[2], 0.0);
+    P^.X := Max(1-P^.X, 0.0);
+    P^.Y := Max(1-P^.Y, 0.0);
+    P^.Z := Max(1-P^.Z, 0.0);
     Inc(P);
   end;
 end;
 
 { TGrayscaleImage ------------------------------------------------------------ }
+
+constructor TGrayscaleImage.Create;
+begin
+  inherited;
+  FColorWhenTreatedAsAlpha := Vector3Byte(255, 255, 255);
+  FGrayscaleColorWhenTreatedAsAlpha := GrayscaleValue(FColorWhenTreatedAsAlpha);
+end;
 
 function TGrayscaleImage.GetPixels: PByte;
 begin
@@ -4087,43 +3970,17 @@ var
 begin
   {$I norqcheckbegin.inc}
   OutputCol^ := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
-    Weights.Data[0] * Cols[0]^ +
-    Weights.Data[1] * Cols[1]^ +
-    Weights.Data[2] * Cols[2]^ +
-    Weights.Data[3] * Cols[3]^) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+    Weights.X * Cols[0]^ +
+    Weights.Y * Cols[1]^ +
+    Weights.Z * Cols[2]^ +
+    Weights.W * Cols[3]^) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
   {$I norqcheckend.inc}
 end;
 
 function TGrayscaleImage.ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
-var
-  pg: PByte;
-  pa: PVector2Byte;
-  I: Cardinal;
 begin
-  Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
-  Result.URL := URL + '[ToGrayscaleAlphaImage]';
-  pg := Pixels;
-  pa := Result.Pixels;
-
-  if TreatAsAlpha then
-  begin
-    for i := 1 to Width * Height * Depth do
-    begin
-      pa^.Data[0] := High(Byte);
-      pa^.Data[1] := pg^;
-      Inc(pg);
-      Inc(pa);
-    end;
-  end else
-  begin
-    for i := 1 to Width * Height * Depth do
-    begin
-      pa^.Data[0] := pg^;
-      pa^.Data[1] := High(Byte);
-      Inc(pg);
-      Inc(pa);
-    end;
-  end;
+  Result := TGrayscaleAlphaImage.Create;
+  Result.Assign(Self);
 end;
 
 function TGrayscaleImage.AlphaChannel(
@@ -4148,45 +4005,6 @@ begin
   Result := acTest;
 end;
 
-procedure TGrayscaleImage.Assign(const Source: TCastleImage);
-var
-  RgbaPtr: PVector4Byte;
-  GaPtr: PVector2Byte;
-  RgbPtr: PVector3Byte absolute RgbaPtr;
-  SelfPtr: PByte;
-  I: Cardinal;
-begin
-  if Source is TGrayscaleAlphaImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    GaPtr := TGrayscaleAlphaImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^ := GaPtr^.Data[0];
-      Inc(SelfPtr);
-      Inc(GaPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-  if Source is TRGBAlphaImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    RgbaPtr := TRGBAlphaImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^ := GrayscaleValue(RgbPtr^);
-      Inc(SelfPtr);
-      Inc(RgbaPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-    inherited;
-end;
-
 procedure TGrayscaleImage.InvertColors;
 var
   I: Cardinal;
@@ -4205,10 +4023,10 @@ var
   Pixel: PByte;
 begin
   Pixel := PixelPtr(X, Y, Z);
-  Result.Data[0] := Pixel^;
-  Result.Data[1] := Pixel^;
-  Result.Data[2] := Pixel^;
-  Result.Data[3] := 1.0;
+  Result.X := Pixel^;
+  Result.Y := Pixel^;
+  Result.Z := Pixel^;
+  Result.W := 1.0;
 end;
 
 procedure TGrayscaleImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
@@ -4217,6 +4035,12 @@ var
 begin
   Pixel := PixelPtr(X, Y, Z);
   Pixel^ := Clamped(Round(GrayscaleValue(C) * 255), Low(Byte), High(Byte));
+end;
+
+procedure TGrayscaleImage.SetColorWhenTreatedAsAlpha(const Value: TVector3Byte);
+begin
+  FColorWhenTreatedAsAlpha := Value;
+  FGrayscaleColorWhenTreatedAsAlpha := GrayscaleValue(Value);
 end;
 
 { TGrayscaleAlphaImage ------------------------------------------------------------ }
@@ -4253,12 +4077,12 @@ end;
 
 procedure TGrayscaleAlphaImage.Clear(const Pixel: TVector4Byte);
 begin
-  Clear(Vector2Byte(GrayscaleValue(Pixel), Pixel.Data[3]));
+  Clear(Vector2Byte(GrayscaleValue(Pixel), Pixel.W));
 end;
 
 function TGrayscaleAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
 begin
-  Result := IsClear(Vector2Byte(GrayscaleValue(Pixel), Pixel.Data[3]));
+  Result := IsClear(Vector2Byte(GrayscaleValue(Pixel), Pixel.W));
 end;
 
 procedure TGrayscaleAlphaImage.Clear(const Pixel: TVector2Byte);
@@ -4307,8 +4131,8 @@ begin
 
   for I := 1 to Width * Height * Depth do
   begin
-    if (PtrAlpha^.Data[1] > AlphaTolerance) and
-       (PtrAlpha^.Data[1] < 255 - AlphaTolerance) then
+    if (PtrAlpha^.Y > AlphaTolerance) and
+       (PtrAlpha^.Y < 255 - AlphaTolerance) then
       Exit(acBlending);
     Inc(PtrAlpha);
   end;
@@ -4341,42 +4165,17 @@ var
   Cols: array [0..3] of PVector2Byte absolute AColors;
 begin
   {$I norqcheckbegin.inc}
-  OutputCol^.Data[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
-    Weights.Data[0] * Cols[0]^.Data[0] +
-    Weights.Data[1] * Cols[1]^.Data[0] +
-    Weights.Data[2] * Cols[2]^.Data[0] +
-    Weights.Data[3] * Cols[3]^.Data[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
-  OutputCol^.Data[1] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
-    Weights.Data[0] * Cols[0]^.Data[1] +
-    Weights.Data[1] * Cols[1]^.Data[1] +
-    Weights.Data[2] * Cols[2]^.Data[1] +
-    Weights.Data[3] * Cols[3]^.Data[1]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^.X := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
+    Weights.X * Cols[0]^.X +
+    Weights.Y * Cols[1]^.X +
+    Weights.Z * Cols[2]^.X +
+    Weights.W * Cols[3]^.X) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^.Y := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(
+    Weights.X * Cols[0]^.Y +
+    Weights.Y * Cols[1]^.Y +
+    Weights.Z * Cols[2]^.Y +
+    Weights.W * Cols[3]^.Y) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
   {$I norqcheckend.inc}
-end;
-
-procedure TGrayscaleAlphaImage.Assign(const Source: TCastleImage);
-var
-  RgbaPtr: PVector4Byte;
-  RgbPtr: PVector3Byte absolute RgbaPtr;
-  SelfPtr: PVector2Byte;
-  I: Cardinal;
-begin
-  if Source is TRGBAlphaImage then
-  begin
-    SetSize(Source);
-    SelfPtr := Pixels;
-    RgbaPtr := TRGBAlphaImage(Source).Pixels;
-    for I := 1 to Width * Height * Depth do
-    begin
-      SelfPtr^.Data[0] := GrayscaleValue(RgbPtr^);
-      SelfPtr^.Data[1] := RgbaPtr^.Data[3];
-      Inc(SelfPtr);
-      Inc(RgbaPtr);
-    end;
-    URL := Source.URL;
-  end else
-
-    inherited;
 end;
 
 procedure TGrayscaleAlphaImage.InvertColors;
@@ -4387,7 +4186,7 @@ begin
   P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
-    P^.Data[0] := High(Byte) - P^.Data[0];
+    P^.X := High(Byte) - P^.X;
     Inc(P);
   end;
 end;
@@ -4397,10 +4196,10 @@ var
   Pixel: PVector2Byte;
 begin
   Pixel := PixelPtr(X, Y, Z);
-  Result.Data[0] := Pixel^.Data[0] / 255;
-  Result.Data[1] := Pixel^.Data[0] / 255;
-  Result.Data[2] := Pixel^.Data[0] / 255;
-  Result.Data[3] := Pixel^.Data[1] / 255;
+  Result.X := Pixel^.X / 255;
+  Result.Y := Pixel^.X / 255;
+  Result.Z := Pixel^.X / 255;
+  Result.W := Pixel^.Y / 255;
 end;
 
 procedure TGrayscaleAlphaImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
@@ -4408,15 +4207,14 @@ var
   Pixel: PVector2Byte;
 begin
   Pixel := PixelPtr(X, Y, Z);
-  Pixel^.Data[0] := Clamped(Round(GrayscaleValue(C) * 255), Low(Byte), High(Byte));
-  Pixel^.Data[1] := Clamped(Round(C.Data[3]         * 255), Low(Byte), High(Byte));
+  Pixel^.X := Clamped(Round(GrayscaleValue(C) * 255), Low(Byte), High(Byte));
+  Pixel^.Y := Clamped(Round(C.W         * 255), Low(Byte), High(Byte));
 end;
 
 function TGrayscaleAlphaImage.ToGrayscaleImage: TGrayscaleImage;
 begin
-  Result := TGrayscaleImage.Create(0, 0);
+  Result := TGrayscaleImage.Create;
   Result.Assign(Self);
-  Result.URL := URL + '[ToGrayscaleImage]';
 end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }
@@ -4435,10 +4233,9 @@ const
 
   { zero musi byc reprezentowane w specjalny sposob w formacie RGBE,
     podobnie jak w kazdym formacie zmiennoprzec. }
-  RGBEZero: TVector4Byte=(Data: (0, 0, 0, 0));
-
-  RGBELow :TVector4Byte=(Data: (0, 0, 0, 0)); { = RGBEZero }
-  RGBEHigh: TVector4Byte=(Data: (High(Byte), High(Byte), High(Byte), High(Byte)));
+  RGBEZero: TVector4Byte = (X: 0; Y: 0; Z: 0; W: 0);
+  RGBELow : TVector4Byte = (X: 0; Y: 0; Z: 0; W: 0); { = RGBEZero }
+  RGBEHigh: TVector4Byte = (X: High(Byte); Y: High(Byte); Z: High(Byte); W: High(Byte));
 
 function Vector3ToRGBE(const v: TVector3): TVector4Byte;
 { implementacja : jak Graphic Gems II.5 ale z poprawkami -
@@ -4493,13 +4290,13 @@ begin
     mozna podac dokladniejsze ograniczenie na Mantissa * High(byte)).
     Wszystkie pozostale v[] sa mniejsze od MaxVal wiec one tez dadza cos
     w zakresie bajta. }
-  Result.Data[0] := Clamped(Round(v.Data[0] * Multiplier), 0, High(Byte));
-  Result.Data[1] := Clamped(Round(v.Data[1] * Multiplier), 0, High(Byte));
-  Result.Data[2] := Clamped(Round(v.Data[2] * Multiplier), 0, High(Byte));
+  Result.X := Clamped(Round(v.X * Multiplier), 0, High(Byte));
+  Result.Y := Clamped(Round(v.Y * Multiplier), 0, High(Byte));
+  Result.Z := Clamped(Round(v.Z * Multiplier), 0, High(Byte));
 
   { sprawdzajac czy Exponent in RGBEMin/MaxExponent wczesniej juz zapewnilem
     sobie ze ponizsze przypisanie jest Ok, wynik zmiesci sie w zakresie bajta. }
-  Result.Data[3] := Exponent + RGBEExponentOffset;
+  Result.W := Exponent + RGBEExponentOffset;
 end;
 
 function VectorRGBETo3Single(const v: TVector4Byte): TVector3;
@@ -4510,12 +4307,12 @@ function VectorRGBETo3Single(const v: TVector4Byte): TVector3;
 var
   Multiplier: Single;
 begin
-  if v.Data[3] = 0 then begin Result := TVector3.Zero; Exit end;
+  if v.W = 0 then begin Result := TVector3.Zero; Exit end;
 
-  Multiplier := Ldexp(1 / 256, Integer(v.Data[3]) - RGBEExponentOffset);
-  Result.Data[0] := v.Data[0] * Multiplier;
-  Result.Data[1] := v.Data[1] * Multiplier;
-  Result.Data[2] := v.Data[2] * Multiplier;
+  Multiplier := Ldexp(1 / 256, Integer(v.W) - RGBEExponentOffset);
+  Result.X := v.X * Multiplier;
+  Result.Y := v.Y * Multiplier;
+  Result.Z := v.Z * Multiplier;
 end;
 
 { TLoadImageEventList -------------------------------------------------------- }
@@ -4551,85 +4348,26 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
     end;
 
-    { Make sure the image has an alpha channel.
-      If image doesn't have an alpha channel (it is TRGBImage or TGrayscaleImage),
-      we will create new image instance (respectively, TRGBAlphaImage or TGrayscaleAlphaImage)
-      that adds an alpha channel. The newly created alpha channel will have constant opaque alpha,
-      except in the special case of TGrayscaleImage with TGrayscaleImage.TreatAsAlpha = @true
-      (where the contents will be copied to alpha, and intensity set to white).
-
-      If the image already had an alpha channel, then just return it. }
-    procedure ImageAddAlphaVar(var Img: TEncodedImage);
-    var
-      NewImg: TCastleImage;
-    begin
-      if Img is TRGBImage then
-      begin
-        NewImg := TRGBImage(Img).ToRGBAlphaImage;
-        FreeAndNil(Img);
-        Img := NewImg;
-      end else
-      if Img is TGrayscaleImage then
-      begin
-        NewImg := TGrayscaleImage(Img).ToGrayscaleAlphaImage;
-        FreeAndNil(Img);
-        Img := NewImg;
-      end;
-
-      if not Img.HasAlpha then
-        raise EInternalError.Create(
-          'ImageAddAlphaVar not possible for this image class: ' + Img.ClassName);
-    end;
-
-    procedure ImageStripAlphaVar(var Img: TEncodedImage);
-    var
-      NewImg: TCastleImage;
-    begin
-      if Img is TRGBAlphaImage then
-      begin
-        NewImg := TRGBAlphaImage(Img).ToRGBImage;
-        FreeAndNil(Img);
-        Img := NewImg;
-      end else
-      if Img is TGrayscaleAlphaImage then
-      begin
-        NewImg := TGrayscaleAlphaImage(Img).ToGrayscaleImage;
-        FreeAndNil(Img);
-        Img := NewImg;
-      end;
-
-      if Img.HasAlpha then
-        raise EInternalError.Create(
-          'ImageStripAlphaVar not possible for this image class: ' + Img.ClassName);
-    end;
-
-    procedure ImageRGBToFloatVar(var Image: TEncodedImage);
-    var
-      NewResult: TEncodedImage;
-    begin
-      NewResult := (Image as TRGBImage).ToRGBFloat;
-      Image.Free;
-      Image := NewResult;
-    end;
-
-    { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }
-    procedure ImageRGBToGrayscaleVar(var Image: TEncodedImage);
-    var
-      NewResult: TEncodedImage;
-    begin
-      NewResult := (Image as TRGBImage).ToGrayscale;
-      Image.Free;
-      Image := NewResult;
-    end;
-
     { Input: TGPUCompressedImage, output: anything else than TGPUCompressedImage. }
     procedure ImageDecompressVar(var Image: TEncodedImage);
     var
       NewResult: TEncodedImage;
     begin
       NewResult := (Image as TGPUCompressedImage).Decompress;
-      Image.Free;
+
+      FreeAndNil(Image);
       Image := NewResult;
+    end;
+
+    procedure ReplaceResult(const NewResultClass: TCastleImageClass);
+    var
+      NewResult: TCastleImage;
+    begin
+      NewResult := NewResultClass.Create;
+      NewResult.Assign(Result as TCastleImage);
+
+      FreeAndNil(Result);
+      Result := NewResult;
     end;
 
   begin
@@ -4642,46 +4380,77 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
           Exit; // ClassAllowed was fixed by just decompressing GPU image, testcase: castle-view-image
       end;
 
+      { For each possible Result class,
+        try various possible target classes we can convert to
+        (using castleimages_assign.inc)
+        in the order from the most preferred (sensible/losssless) conversion
+        to least preferred. }
+
       if (Result is TRGBAlphaImage) and ClassAllowed(TRGBImage) then
-        ImageStripAlphaVar(Result)
+        ReplaceResult(TRGBImage)
+      else
+      if (Result is TRGBAlphaImage) and ClassAllowed(TGrayscaleAlphaImage) then
+        ReplaceResult(TGrayscaleAlphaImage)
       else
       if (Result is TRGBAlphaImage) and ClassAllowed(TGrayscaleImage) then
-      begin
-        ImageStripAlphaVar(Result);
-        ImageRGBToGrayscaleVar(Result);
-      end else
-      {TODO if (Result is TRGBAlphaImage) and ClassAllowed(TGrayscaleAlphaImage) then
-      begin
-        ImageRGBToGrayscaleVar(Result); // extend ImageRGBToGrayscaleVar to handle this case, rename to sthg like ImageToGrayscaleXxxVar
-      end else}
+        ReplaceResult(TGrayscaleImage)
+      else
       if (Result is TRGBAlphaImage) and ClassAllowed(TRGBFloatImage) then
-      begin
-        ImageStripAlphaVar(Result);
-        ImageRGBToFloatVar(Result);
-      end else
-
-      if (Result is TGrayscaleAlphaImage) and ClassAllowed(TGrayscaleImage) then
-        ImageStripAlphaVar(Result)
+        ReplaceResult(TRGBFloatImage)
       else
 
-      if (Result is TRGBImage) and ClassAllowed(TRGBFloatImage) then
-        ImageRGBToFloatVar(Result)
+      if (Result is TRGBImage) and ClassAllowed(TRGBAlphaImage) then
+        ReplaceResult(TRGBAlphaImage)
       else
       if (Result is TRGBImage) and ClassAllowed(TGrayscaleImage) then
-        ImageRGBToGrayscaleVar(Result)
+        ReplaceResult(TGrayscaleImage)
       else
       if (Result is TRGBImage) and ClassAllowed(TGrayscaleAlphaImage) then
-      begin
-        ImageRGBToGrayscaleVar(Result);
-        ImageAddAlphaVar(Result);
-      end else
-      if (Result is TRGBImage) and ClassAllowed(TRGBAlphaImage) then
-        ImageAddAlphaVar(Result)
+        ReplaceResult(TGrayscaleAlphaImage)
+      else
+      if (Result is TRGBImage) and ClassAllowed(TRGBFloatImage) then
+        ReplaceResult(TRGBFloatImage)
+      else
+
+      if (Result is TGrayscaleAlphaImage) and ClassAllowed(TRGBAlphaImage) then
+        ReplaceResult(TRGBAlphaImage)
+      else
+      if (Result is TGrayscaleAlphaImage) and ClassAllowed(TGrayscaleImage) then
+        ReplaceResult(TGrayscaleImage)
+      else
+      if (Result is TGrayscaleAlphaImage) and ClassAllowed(TRGBImage) then
+        ReplaceResult(TRGBImage)
+      else
+      if (Result is TGrayscaleAlphaImage) and ClassAllowed(TRGBFloatImage) then
+        ReplaceResult(TRGBFloatImage)
       else
 
       if (Result is TGrayscaleImage) and ClassAllowed(TGrayscaleAlphaImage) then
-        ImageAddAlphaVar(Result)
+        ReplaceResult(TGrayscaleAlphaImage)
       else
+      if (Result is TGrayscaleImage) and ClassAllowed(TRGBAlphaImage) then
+        ReplaceResult(TRGBAlphaImage)
+      else
+      if (Result is TGrayscaleImage) and ClassAllowed(TRGBImage) then
+        ReplaceResult(TRGBImage)
+      else
+      if (Result is TGrayscaleImage) and ClassAllowed(TRGBFloatImage) then
+        ReplaceResult(TRGBFloatImage)
+      else
+
+      if (Result is TRGBFloatImage) and ClassAllowed(TRGBImage) then
+        ReplaceResult(TRGBImage)
+      else
+      if (Result is TRGBFloatImage) and ClassAllowed(TRGBAlphaImage) then
+        ReplaceResult(TRGBAlphaImage)
+      else
+      if (Result is TRGBFloatImage) and ClassAllowed(TGrayscaleImage) then
+        ReplaceResult(TGrayscaleImage)
+      else
+      if (Result is TRGBFloatImage) and ClassAllowed(TGrayscaleAlphaImage) then
+        ReplaceResult(TGrayscaleAlphaImage)
+      else
+
         raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot satisfy the requested output format, we got %s, but we want %s. Use less restrictive AllowedImageClasses argument.', [
           Result.ClassName,
           LoadEncodedImageParams(AllowedImageClasses)
@@ -4868,10 +4637,11 @@ begin
             Save(Img, Stream) else
           if Img is TRGBFloatImage then
           begin
-            ImgRGB := TRGBFloatImage(Img).ToRGBImage;
+            ImgRGB := TRGBImage.Create;
             try
+              ImgRGB.Assign(TRGBFloatImage(Img));
               SaveImage(ImgRGB, Format, Stream);
-            finally ImgRGB.Free end;
+            finally FreeAndNil(ImgRGB) end;
           end else
             raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;
@@ -4886,10 +4656,11 @@ begin
             Save(Img, Stream) else
           if Img is TRGBFloatImage then
           begin
-            ImgRGB := TRGBFloatImage(Img).ToRGBImage;
+            ImgRGB := TRGBImage.Create;
             try
+              ImgRGB.Assign(TRGBFloatImage(Img));
               SaveImage(ImgRGB, Format, Stream);
-            finally ImgRGB.Free end;
+            finally FreeAndNil(ImgRGB) end;
           end else
             raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;
@@ -4908,7 +4679,7 @@ begin
     raise EImageSaveError.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
 end;
 
-procedure SaveImage(const img: TEncodedImage; const MimeType: string; Stream: TStream);
+procedure SaveImage(const Img: TEncodedImage; const MimeType: string; Stream: TStream);
 var
   Format: TImageFormat;
 begin

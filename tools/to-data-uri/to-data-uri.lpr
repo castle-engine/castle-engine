@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2018 Michalis Kamburelis.
+  Copyright 2013-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,7 +29,7 @@
   See documentation of CastleDownload.Download function for details. }
 
 uses SysUtils, Classes, Base64, CastleParameters, CastleDownload,
-  CastleURIUtils, CastleDataURI, CastleClassUtils;
+  CastleURIUtils, CastleInternalDataUri, CastleClassUtils;
 var
   MimeType: string;
   Stream: TStream;

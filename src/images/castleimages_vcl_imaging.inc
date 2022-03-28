@@ -1,5 +1,6 @@
+{%MainUnit castleimages.pas}
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,7 +40,7 @@ var
       // convert BGR -> RGB
       for X := 0 to W - 1 do
       begin
-        SwapValues(OutImage.Data[0], OutImage.Data[2]);
+        SwapValues(OutImage^.X, OutImage^.Z);
         Inc(OutImage);
       end;
     end;
@@ -60,10 +61,10 @@ var
       for X := 0 to W - 1 do
       begin
         // convert BGR -> RGB by the way
-        OutImage.Data[0] := PngScanline^[2];
-        OutImage.Data[1] := PngScanline^[1];
-        OutImage.Data[2] := PngScanline^[0];
-        OutImage.Data[3] := PngAlphaScanline^;
+        OutImage^.X := PngScanline^[2];
+        OutImage^.Y := PngScanline^[1];
+        OutImage^.Z := PngScanline^[0];
+        OutImage^.W := PngAlphaScanline^;
         Inc(PngScanline);
         Inc(PngAlphaScanline);
         Inc(OutImage);

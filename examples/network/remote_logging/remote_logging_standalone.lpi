@@ -36,14 +36,14 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
-        <Filename Value="code/gameloghandler.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="gameloghandler"/>
-      </Unit3>
-      <Unit4>
         <Filename Value="code/gamestatemain.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gamestatemain"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="code/gameloghandler.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameloghandler"/>
       </Unit4>
     </Units>
   </ProjectOptions>

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,32 +27,55 @@ uses Classes,
 type
   TCompilationMode = (cmRelease, cmValgrind, cmDebug);
 
+  { Compiler options are passed to @link(Compile) procedure and friends,
+    and are read-only there.
+    Caller should set the fields of this class before calling @link(Compile).
+
+    The objects here (like TCastleStringList) are
+    - owned by this class (created in constructor and destroyed in destructor)
+    - never @nil
+    - initially empty. }
+  TCompilerOptions = class
+    OS: TOS;
+    CPU: TCPU;
+    Mode: TCompilationMode;
+    { Compile with memory leak detection.
+      For now, only supported by CompileFpc, ignored by CompileLazbuild and CompileDelphi. }
+    DetectMemoryLeaks: boolean;
+    { Define symbols during compilation.
+      For now, only supported by CompileFpc and CompileDelphi, ignored by CompileLazbuild. }
+    Defines: TCastleStringList;
+    { Units / includes paths.
+      For now, only supported by CompileFpc and CompileDelphi, ignored by CompileLazbuild. }
+    SearchPaths: TCastleStringList;
+    { Library path.
+      For now, only supported by CompileFpc, ignored by CompileDelphi and CompileLazbuild. }
+    LibraryPaths: TCastleStringList;
+    { Extra compiler options, directly passed to fpc/dcc on command-line.
+      For now, only supported by CompileFpc and CompileDelphi, ignored by CompileLazbuild. }
+    ExtraOptions: TCastleStringList;
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
 { Compile with Pascal compiler.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure Compile(Compiler: TCompiler;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths: TStrings;
-  const ExtraOptions: TStrings);
+  const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
 
 { Compile with FPC and proper command-line option given file.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
-procedure CompileFpc(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths: TStrings;
-  const ExtraOptions: TStrings);
+procedure CompileFpc(
+  const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
 
 { Compile with Delphi and proper command-line option given file.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
-procedure CompileDelphi(const OS: TOS; const CPU: TCPU;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths: TStrings;
-  const ExtraOptions: TStrings);
+procedure CompileDelphi(
+  const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
 
 { Compile with lazbuild. }
-procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
-  const Mode: TCompilationMode;
-  const WorkingDirectory, LazarusProjectFile: string);
+procedure CompileLazbuild(
+  const WorkingDirectory, LazarusProjectFile: string; const Options: TCompilerOptions);
 
 { Run lazbuild with specified command-line options.
   Warning: This @italic(may) modify LazbuildOptions contents,
@@ -95,28 +118,29 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..44] of String = (
+  EnginePaths: array [0..41] of String = (
     'base',
     'common_includes',
     'base/android',
     'base/windows',
     'base/unix',
-    'base/opengl',
+    'base_rendering',
+    'base_rendering/glsl/generated-pascal',
     'fonts',
-    'fonts/opengl',
     'window',
     'window/gtk',
     'window/windows',
     'window/unix',
     'window/deprecated_units',
     'images',
-    'images/opengl',
-    'images/opengl/glsl/generated-pascal',
-    '3d',
-    '3d/opengl',
-    'x3d',
-    'x3d/opengl',
-    'x3d/opengl/glsl/generated-pascal',
+    'transform',
+    'scene',
+    'scene/glsl/generated-pascal',
+    'scene/x3d',
+    'scene/load',
+    'scene/load/spine',
+    'scene/load/collada',
+    'scene/load/pasgltf',
     'audio',
     'audio/fmod',
     'audio/openal',
@@ -126,13 +150,9 @@ const
     'castlescript',
     'ui',
     'ui/windows',
-    'ui/opengl',
-    'game',
     'services',
-    'services/opengl',
     'physics',
     'physics/kraft',
-    'pasgltf',
     'deprecated_units',
     { Vampyre Imaging Library }
     'vampyre_imaginglib/src/Source',
@@ -162,6 +182,28 @@ implementation
 uses SysUtils, Process,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo;
+
+{ TCompilerOptions ----------------------------------------------------------- }
+
+constructor TCompilerOptions.Create;
+begin
+  inherited;
+  Defines := TCastleStringList.Create;
+  SearchPaths := TCastleStringList.Create;
+  LibraryPaths := TCastleStringList.Create;
+  ExtraOptions := TCastleStringList.Create;
+end;
+
+destructor TCompilerOptions.Destroy;
+begin;
+  FreeAndNil(Defines);
+  FreeAndNil(SearchPaths);
+  FreeAndNil(LibraryPaths);
+  FreeAndNil(ExtraOptions);
+  inherited;
+end;
+
+{ TFpcVersionForIPhoneSimulatorChecked --------------------------------------- }
 
 type
   TFpcVersionForIPhoneSimulatorChecked = class
@@ -227,6 +269,8 @@ begin
   Result := CachedValue;
 end;
 
+{ CleanDirectory ------------------------------------------------------------- }
+
 type
   TCleanDirectoryHelper = class
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
@@ -265,6 +309,8 @@ begin
   finally FreeAndNil(Helper) end;
 end;
 
+{ Other routines ------------------------------------------------------------- }
+
 { Writeln a message that FPC/Lazarus crashed and we will retry,
   and clean compilation leftover files. }
 procedure FpcLazarusCrashRetry(const WorkingDirectory, ToolName, ProjectName: String);
@@ -301,9 +347,7 @@ begin
   // Line := '<begin>' + Line + '<end>';
 end;
 
-procedure CompileFpc(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+procedure CompileFpc(const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
 var
   CastleEngineSrc: string;
   FpcVer: TFpcVersion;
@@ -345,12 +389,11 @@ var
   var
     S: String;
   begin
-    if SearchPaths <> nil then
-      for S in SearchPaths do
-      begin
-        FpcOptions.Add('-Fu' + S);
-        FpcOptions.Add('-Fi' + S);
-      end;
+    for S in Options.SearchPaths do
+    begin
+      FpcOptions.Add('-Fu' + S);
+      FpcOptions.Add('-Fi' + S);
+    end;
   end;
 
   procedure AddEngineLibraryPaths;
@@ -366,17 +409,16 @@ var
   var
     S: String;
   begin
-    if LibraryPaths <> nil then
-      for S in LibraryPaths do
-        FpcOptions.Add('-Fl' + S);
+    for S in Options.LibraryPaths do
+      FpcOptions.Add('-Fl' + S);
   end;
 
   function IsIOS: boolean;
   begin
     Result :=
-      (OS = iphonesim) or
-      ((OS = iOS) and (CPU = arm)) or
-      ((OS = iOS) and (CPU = aarch64));
+      (Options.OS = iphonesim) or
+      ((Options.OS = iOS) and (Options.CPU = arm)) or
+      ((Options.OS = iOS) and (Options.CPU = aarch64));
   end;
 
   procedure AddIOSOptions;
@@ -391,7 +433,7 @@ var
   begin
     LikeIOS := false;
 
-    if OS = iphonesim then
+    if Options.OS = iphonesim then
     begin
       LikeIOS := true;
       VersionForSimulator := TFpcVersionForIPhoneSimulatorChecked.Value(FpcVer);
@@ -402,7 +444,7 @@ var
       {$endif}
     end;
 
-    if (OS = iOS) and (CPU = arm) then
+    if (Options.OS = iOS) and (Options.CPU = arm) then
     begin
       LikeIOS := true;
       FpcOptions.Add('-Cparmv7');
@@ -412,7 +454,7 @@ var
       {$endif}
     end;
 
-    if (OS = iOS) and (CPU = aarch64) then
+    if (Options.OS = iOS) and (Options.CPU = aarch64) then
     begin
       LikeIOS := true;
       {$ifdef DARWIN}
@@ -460,9 +502,17 @@ var
       { This option is actually ununsed, since we pass -Cn
         and later create the library manually. }
       FpcOptions.Add('-o' +
-        CompilationOutputPath(coFpc, OS, CPU, WorkingDirectory) +
+        CompilationOutputPath(coFpc, Options.OS, Options.CPU, WorkingDirectory) +
         'libcge_ios_project_unused.a');
     end;
+  end;
+
+  procedure AddDefines;
+  var
+    S: String;
+  begin
+    for S in Options.Defines do
+      FpcOptions.Add('-d' + S);
   end;
 
 var
@@ -545,19 +595,24 @@ begin
       FpcOptions.Add('-vm5090');
     end;
 
-    if (OS = iOS) and not FpcVer.AtLeast(3, 2, 2) then
+    if (Options.OS = iOS) and not FpcVer.AtLeast(3, 2, 2) then
       // Before FPC 3.2.2, the OS=iOS was designated as OS=darwin for FPC
       FpcOptions.Add('-Tdarwin')
     else
-      FpcOptions.Add('-T' + OSToString(OS));
+      FpcOptions.Add('-T' + OSToString(Options.OS));
 
-    FpcOptions.Add('-P' + CPUToString(CPU));
+    FpcOptions.Add('-P' + CPUToString(Options.CPU));
 
     { Release build and valgrind build are quite similar, they share many options. }
-    if Mode in [cmRelease, cmValgrind] then
+    if Options.Mode in [cmRelease, cmValgrind] then
     begin
-      { Aarch64 optimizations exhibit bugs, on all OSes,
-        with older FPC < 3.3.1 (rev 48104).
+      { Aarch64 optimizations exhibit bugs, on all OSes, with older FPC:
+
+        - Bugs reproducible with FPC = 3.2.0 and FPC 3.3.1 (rev <= 48104).
+        - Fixed in FPC 3.2.0 and later FPC unstable from GitLab.
+
+        See https://trello.com/c/5ydB4MuA/113-enable-again-aarch64-optimizations .
+
         Testcases:
 
         - iOS:
@@ -582,28 +637,20 @@ begin
           but workarounding it only uncovers more problems, it looks like
           the values in local Single variables there randomly change.
 
-          This is still reproducible with FPC 3.3.1 revision 42921
-          (latest revision as of 2019/09/05),
-          however it is locally workarounded by "$optimizations off" around
-          Draw3x3 implementation now.
-
-        So we disable optimizations on Aarch64.
-        Unless $CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER is set to true.
-        Or unless we have FPC version where it was fixed:
-        see https://trello.com/c/5ydB4MuA/113-enable-again-aarch64-optimizations }
-
-      if (CPU = Aarch64) and
-         (not FpcVer.AtLeast(3, 3, 1)) and
-         (GetEnvironmentVariable('CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER') <> 'true') then
+          This is reproducible with FPC 3.3.1 revision 42921
+          (latest revision as of 2019/09/05).
+      }
+      if (Options.CPU = Aarch64) and
+         (not FpcVer.AtLeast(3, 2, 2)) then
       begin
         FpcOptions.Add('-O-');
-        WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with FPC < 3.3.1 (rev 48104).');
+        WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with older FPC. Upgrade to FPC >= 3.2.2.');
       end else
         FpcOptions.Add('-O2');
       FpcOptions.Add('-dRELEASE');
     end;
 
-    case Mode of
+    case Options.Mode of
       cmRelease:
         begin
           FpcOptions.Add('-Xs');
@@ -630,7 +677,7 @@ begin
       {$endif}
     end;
 
-    if (OS = Android) and (CPU = arm) then
+    if (Options.OS = Android) and (Options.CPU = arm) then
     begin
       { Our platform is armeabi-v7a, see ToolAndroidPackage
         comments about armeabi-v7a.
@@ -668,43 +715,18 @@ begin
       //FpcOptions.Add('-CaEABIHF');
     end;
 
-    if Plugin then
+    if Options.DetectMemoryLeaks then
     begin
-      FpcOptions.Add('-dCASTLE_ENGINE_PLUGIN');
-      { We need to add -fPIC otherwise compiling a shared library fails with
-
-        /usr/bin/ld: .../castlewindow.o: relocation R_X86_64_32S against
-          `U_CASTLEWINDOW_MENUITEMS' can not be used when making
-          a shared object; recompile with -fPIC
-
-        That is because FPC RTL is compiled with -fPIC for this platform,
-        it seems. See
-        http://lists.freepascal.org/pipermail/fpc-pascal/2014-November/043155.html
-        http://lists.freepascal.org/pipermail/fpc-pascal/2014-November/043159.html
-
-        """
-        fpcmake automatically adds -Cg/-fPIC for x86-64 platforms,
-        exactly because of this issue.
-        """
-
-        And http://wiki.freepascal.org/PIC_information explains about PIC:
-        """
-        fpcmake automatically adds -Cg/-fPIC for x86-64 platforms:
-        * for freebsd, openbsd, netbsd, linux, solaris
-        * for darwin -Cg is enabled by the compiler (see below)
-        """
-      }
-      if (CPU = X86_64) and (OS in [Linux,FreeBSD,NetBSD,OpenBSD,Solaris]) then
-        FpcOptions.Add('-fPIC');
+      FpcOptions.Add('-gl');
+      FpcOptions.Add('-gh');
     end;
 
-    FpcOptions.Add(CompileFile);
-    FpcOptions.Add('-FU' + CompilationOutputPath(coFpc, OS, CPU, WorkingDirectory));
-
     AddIOSOptions;
+    AddDefines;
+    FpcOptions.AddRange(Options.ExtraOptions);
 
-    if ExtraOptions <> nil then
-      FpcOptions.AddRange(ExtraOptions);
+    FpcOptions.Add(CompileFile);
+    FpcOptions.Add('-FU' + CompilationOutputPath(coFpc, Options.OS, Options.CPU, WorkingDirectory));
 
     Writeln('FPC executing...');
     FpcExe := FindExeFpcCompiler;
@@ -726,11 +748,7 @@ begin
   finally FreeAndNil(FpcOptions) end;
 end;
 
-procedure Compile(Compiler: TCompiler;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths: TStrings;
-  const ExtraOptions: TStrings);
+procedure Compile(Compiler: TCompiler; const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
 begin
   { resolve Compiler to something other than coAutodetect }
   if Compiler = coAutodetect then
@@ -746,18 +764,13 @@ begin
   Assert(Compiler <> coAutodetect);
 
   case Compiler of
-    coFpc: CompileFpc(OS, CPU, Plugin, Mode, WorkingDirectory, CompileFile,
-      SearchPaths, LibraryPaths, ExtraOptions);
-    coDelphi: CompileDelphi(OS, CPU, Mode, WorkingDirectory, CompileFile,
-      SearchPaths, ExtraOptions);
+    coFpc: CompileFpc(WorkingDirectory, CompileFile, Options);
+    coDelphi: CompileDelphi(WorkingDirectory, CompileFile, Options);
     else raise EInternalError.Create('Compile: Compiler?');
   end;
 end;
 
-procedure CompileDelphi(const OS: TOS; const CPU: TCPU;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths: TStrings;
-  const ExtraOptions: TStrings);
+procedure CompileDelphi(const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
 var
   CastleEngineSrc: String;
   DccOptions: TCastleStringList;
@@ -774,7 +787,7 @@ var
   begin
     { calculate SearchNamespaces }
     SearchNamespaces := SearchNamespacesGeneral;
-    if OS in AllWindowsOSes then
+    if Options.OS in AllWindowsOSes then
       SearchNamespaces := SAppendPart(SearchNamespaces, ';', SearchNamespacesWindows);
 
     DccOptions.Add('-NS' + SearchNamespaces);
@@ -806,19 +819,18 @@ var
   var
     S: String;
   begin
-    if SearchPaths <> nil then
-      for S in SearchPaths do
-      begin
-        DccOptions.Add('-U' + S);
-        DccOptions.Add('-I' + S);
-      end;
+    for S in Options.SearchPaths do
+    begin
+      DccOptions.Add('-U' + S);
+      DccOptions.Add('-I' + S);
+    end;
   end;
 
   procedure AddOutputPaths;
   var
     OutPath: String;
   begin
-    OutPath := CompilationOutputPath(coDelphi, OS, CPU, WorkingDirectory);
+    OutPath := CompilationOutputPath(coDelphi, Options.OS, Options.CPU, WorkingDirectory);
     { Looks like DCCxxx cannot handle parameters with spaces? Answers
         Fatal: F1026 File not found: 'Game.dpr'
       for
@@ -830,6 +842,14 @@ var
     DccOptions.Add('-NO' + OutPath);
     DccOptions.Add('-NB' + OutPath);
     DccOptions.Add('-NX' + OutPath);
+  end;
+
+  procedure AddDefines;
+  var
+    S: String;
+  begin
+    for S in Options.Defines do
+      DccOptions.Add('-d' + S);
   end;
 
 var
@@ -852,20 +872,20 @@ begin
       dccosxarm64 - macos/Arm64
   }
   Dcc := 'dcc';
-  case OS of
+  case Options.OS of
     Win32, Win64: ;
     Android: Dcc += 'a';
     iOS    : Dcc += 'ios';
     Linux  : Dcc += 'linux';
     MacOSX : Dcc += 'osx';
-    else raise Exception.CreateFmt('Operating system "%s" not supported by Delphi', [OSToString(OS)]);
+    else raise Exception.CreateFmt('Operating system "%s" not supported by Delphi', [OSToString(Options.OS)]);
   end;
-  case CPU of
+  case Options.CPU of
     i386   : Dcc += '32';
     x86_64 : Dcc += '64';
     Arm    : Dcc += 'arm';
     Aarch64: Dcc += 'arm64';
-    else raise Exception.CreateFmt('CPU "%s" not supported by Delphi', [CPUToString(CPU)]);
+    else raise Exception.CreateFmt('CPU "%s" not supported by Delphi', [CPUToString(Options.CPU)]);
   end;
 
   DccExe := DelphiPath + 'bin' + PathDelim + Dcc + ExeExtension;
@@ -887,7 +907,7 @@ begin
     AddOutputPaths;
 
     // TODO: Do something more useful for release optimizations or debugging
-    case Mode of
+    case Options.Mode of
       cmRelease, cmValgrind: DccOptions.Add('-dRELEASE');
       cmDebug              : DccOptions.Add('-dDEBUG');
       {$ifndef COMPILER_CASE_ANALYSIS}
@@ -895,10 +915,10 @@ begin
       {$endif}
     end;
 
-    DccOptions.Add(CompileFile);
+    AddDefines;
+    DccOptions.AddRange(Options.ExtraOptions);
 
-    if ExtraOptions <> nil then
-      DccOptions.AddRange(ExtraOptions);
+    DccOptions.Add(CompileFile);
 
     RunCommandIndirPassthrough(WorkingDirectory, DccExe, DccOptions.ToArray, DccOutput, DccExitStatus);
     if DccExitStatus <> 0 then
@@ -968,44 +988,42 @@ begin
   finally FreeAndNil(L) end;
 end;
 
-procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
-  const Mode: TCompilationMode;
-  const WorkingDirectory, LazarusProjectFile: string);
+procedure CompileLazbuild(const WorkingDirectory, LazarusProjectFile: string; const Options: TCompilerOptions);
 var
   LazbuildOptions: TCastleStringList;
+
+  procedure LazbuildAddPackage(const LpkFileName: String);
+  begin
+    LazbuildOptions.Clear;
+    LazbuildOptions.Add('--add-package-link');
+    LazbuildOptions.Add(CastleEnginePath + LpkFileName);
+    RunLazbuild(WorkingDirectory, LazbuildOptions);
+  end;
+
 begin
   LazbuildOptions := TCastleStringList.Create;
   try
     // register CGE packages first
     if CastleEnginePath <> '' then
     begin
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_base.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
-
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_window.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
-
-      LazbuildOptions.Clear;
-      LazbuildOptions.Add('--add-package-link');
-      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_components.lpk');
-      RunLazbuild(WorkingDirectory, LazbuildOptions);
+      LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk');
+      LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk');
+      LazbuildAddPackage('packages/castle_base.lpk');
+      LazbuildAddPackage('packages/castle_window.lpk');
+      LazbuildAddPackage('packages/castle_components.lpk');
     end;
 
     LazbuildOptions.Clear;
-    LazbuildOptions.Add('--os=' + OSToString(OS));
-    LazbuildOptions.Add('--cpu=' + CPUToString(CPU));
+    LazbuildOptions.Add('--os=' + OSToString(Options.OS));
+    LazbuildOptions.Add('--cpu=' + CPUToString(Options.CPU));
     { // Do not pass --build-mode, as project may not have it defined.
-    if Mode = cmDebug then
+    if Options.Mode = cmDebug then
       LazbuildOptions.Add('--build-mode=Debug')
     else
       LazbuildOptions.Add('--build-mode=Release');
     }
 
-    { For historic reasons, Lazarus defaults to Carbon on macOS,
+    { For historic reasons, Lazarus < 2.2 defaults to Carbon on macOS,
       even on 64-bit macOS where you cannot link with Carbon.
       And since macOS Catalina (10.15) all applications *must* be 64-bit
       (32-bit is no longer supported) so this is important.
@@ -1030,7 +1048,7 @@ begin
       - 2 times (for both Debug/Release, I would need a copy DebugMacOS and ReleaseMacOS)
       - and require it in all user projects (this is not acceptable).
     }
-    if (OS = darwin) and (CPU = X86_64) then
+    if (Options.OS = darwin) and (Options.CPU = X86_64) then
       LazbuildOptions.Add('--widgetset=cocoa');
     LazbuildOptions.Add(LazarusProjectFile);
 

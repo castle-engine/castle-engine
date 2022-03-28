@@ -32,7 +32,7 @@ unit ImagingJpeg;
   {$DEFINE PASJPEG}
 {$IFEND}
 
-{ We usually want to skip the rest of the corrupted file when loading JEPG files
+{ We usually want to skip the rest of the corrupted file when loading JPEG files
   instead of getting exception. JpegLib's error handler can only be
   exited using setjmp/longjmp ("non-local goto") functions to get error
   recovery when loading corrupted JPEG files. This is implemented in assembler
@@ -137,7 +137,7 @@ var
   JIO: TIOFunctions;
   JpegErrorMgr: jpeg_error_mgr;
 
-{ Intenal unit jpeglib support functions }
+{ Internal unit jpeglib support functions }
 
 {$IFDEF ErrorJmpRecovery}
   {$IFDEF DCC}
@@ -223,7 +223,7 @@ procedure JpegError(CInfo: j_common_ptr);
 
 begin
 {$IFDEF ErrorJmpRecovery}
-  // Only recovers on loads and when header is sucessfully loaded
+  // Only recovers on loads and when header is successfully loaded
   // (error occurs when reading scanlines)
   if (CInfo.client_data <> nil) and
     PErrorClientData(CInfo.client_data).ScanlineReadReached then
@@ -454,19 +454,16 @@ var
 
   procedure LoadMetaData;
   var
-    XDensity, YDensity: Single;
     ResUnit: TResolutionUnit;
   begin
     // Density unit: 0 - undef, 1 - inch, 2 - cm
     if jc.d.saw_JFIF_marker and (jc.d.density_unit > 0) and
       (jc.d.X_density > 0) and (jc.d.Y_density > 0) then
     begin
-      XDensity := jc.d.X_density;
-      YDensity := jc.d.Y_density;
       ResUnit := ruDpi;
       if jc.d.density_unit = 2 then
         ResUnit := ruDpcm;
-      FMetadata.SetPhysicalPixelSize(ResUnit, XDensity, YDensity);
+      FMetadata.SetPhysicalPixelSize(ResUnit, jc.d.X_density, jc.d.Y_density);
     end;
   end;
 
@@ -573,7 +570,7 @@ var
 
   procedure SaveMetaData;
   var
-    XRes, YRes: Single;
+    XRes, YRes: Double;
   begin
     if FMetadata.GetPhysicalPixelSize(ruDpcm, XRes, YRes, True) then
     begin
@@ -708,7 +705,7 @@ initialization
     - Added loading and saving of physical pixel size metadata.
 
   -- 0.26.3 Changes/Bug Fixes ---------------------------------
-    - Changed the Jpeg error manager, messages were not properly formated.
+    - Changed the Jpeg error manager, messages were not properly formatted.
 
   -- 0.26.1 Changes/Bug Fixes ---------------------------------
     - Fixed wrong color space setting in InitCompressor.

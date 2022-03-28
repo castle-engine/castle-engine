@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2020 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,9 +33,13 @@ type
     atAppStore
   );
 
+{ Compile all IOS libraries (4 or 2 versions, depending on IosSimulatorSupport).
+
+  CompilerOptions.OS andCompilerOptions.CPU are ignored by this routine.
+  This routine may modify CompilerOptions contents. }
 procedure CompileIOS(const Compiler: TCompiler;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
 
 procedure LinkIOSLibrary(const Compiler: TCompiler;
   const CompilationWorkingDirectory, OutputFile: string);
@@ -67,10 +71,8 @@ const
   IOSPartialLibraryName = 'lib_cge_project.a';
 
 procedure CompileIOS(const Compiler: TCompiler;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
-var
-  FinalExtraOptions: TCastleStringList;
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
 
   procedure CompileLibrary(const OS: TOS; const CPU: TCPU);
   var
@@ -78,8 +80,9 @@ var
     LinkResContents, ObjectFiles: TCastleStringList;
     I: Integer;
   begin
-    Compile(Compiler, OS, CPU, { Plugin } false, Mode, WorkingDirectory, CompileFile,
-      SearchPaths, LibraryPaths, FinalExtraOptions);
+    CompilerOptions.OS := OS;
+    CompilerOptions.CPU := CPU;
+    Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
 
     { now use libtool to create a static library .a }
 
@@ -113,23 +116,17 @@ var
   end;
 
 begin
-  FinalExtraOptions := TCastleStringList.Create;
-  try
-    if ExtraOptions <> nil then
-      FinalExtraOptions.AddRange(ExtraOptions);
-    { To compile CastleInternalVorbisFile properly.
-      Later PackageIOS will actually add the static tremolo files to the project. }
-    FinalExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
+  { To compile CastleInternalVorbisFile properly.
+    Later PackageIOS will actually add the static tremolo files to the project. }
+  CompilerOptions.ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
 
-    if IosSimulatorSupport then
-    begin
-      CompileLibrary(iphonesim, i386);
-      CompileLibrary(iphonesim, x86_64);
-    end;
-    CompileLibrary(iOS, arm);
-    CompileLibrary(iOS, aarch64);
-
-  finally FreeAndNil(FinalExtraOptions) end;
+  if IosSimulatorSupport then
+  begin
+    CompileLibrary(iphonesim, i386);
+    CompileLibrary(iphonesim, x86_64);
+  end;
+  CompileLibrary(iOS, arm);
+  CompileLibrary(iOS, aarch64);
 end;
 
 procedure LinkIOSLibrary(const Compiler: TCompiler; const CompilationWorkingDirectory, OutputFile: string);

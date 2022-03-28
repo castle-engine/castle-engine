@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,48 +32,48 @@ const
     They follow the CSS colors constants
     [http://www.w3.org/TR/CSS21/syndata.html#color-units].
     @groupBegin }
-  Maroon : TCastleColor = (Data: ( 0.5 , 0.0 , 0.0 , 1.0));
-  Red    : TCastleColor = (Data: ( 1.0 , 0.0 , 0.0 , 1.0));
-  Orange : TCastleColor = (Data: ( 1.0 , 0.65, 0.0 , 1.0));
-  Yellow : TCastleColor = (Data: ( 1.0 , 1.0 , 0.0 , 1.0));
-  Olive  : TCastleColor = (Data: ( 0.5 , 0.5 , 0.0 , 1.0));
-  Purple : TCastleColor = (Data: ( 0.5 , 0.0 , 0.5 , 1.0));
-  Fuchsia: TCastleColor = (Data: ( 1.0 , 0.0 , 1.0 , 1.0));
-  White  : TCastleColor = (Data: ( 1.0 , 1.0 , 1.0 , 1.0));
-  Lime   : TCastleColor = (Data: ( 0.0 , 1.0 , 0.0 , 1.0));
-  Green  : TCastleColor = (Data: ( 0.0 , 0.5 , 0.0 , 1.0));
-  Navy   : TCastleColor = (Data: ( 0.0 , 0.0 , 0.5 , 1.0));
-  Blue   : TCastleColor = (Data: ( 0.0 , 0.0 , 1.0 , 1.0));
-  Aqua   : TCastleColor = (Data: ( 0.0 , 1.0 , 1.0 , 1.0));
-  Teal   : TCastleColor = (Data: ( 0.0 , 0.5 , 0.5 , 1.0));
-  Black  : TCastleColor = (Data: ( 0.0 , 0.0 , 0.0 , 1.0));
-  Silver : TCastleColor = (Data: ( 0.75, 0.75, 0.75, 1.0));
-  Gray   : TCastleColor = (Data: ( 0.5 , 0.5 , 0.5 , 1.0));
+  Maroon : TCastleColor = (X: 0.5; Y: 0.0; Z: 0.0; W: 1.0);
+  Red    : TCastleColor = (X: 1.0; Y: 0.0; Z: 0.0; W: 1.0);
+  Orange : TCastleColor = (X: 1.0; Y: 0.65; Z: 0.0; W: 1.0);
+  Yellow : TCastleColor = (X: 1.0; Y: 1.0; Z: 0.0; W: 1.0);
+  Olive  : TCastleColor = (X: 0.5; Y: 0.5; Z: 0.0; W: 1.0);
+  Purple : TCastleColor = (X: 0.5; Y: 0.0; Z: 0.5; W: 1.0);
+  Fuchsia: TCastleColor = (X: 1.0; Y: 0.0; Z: 1.0; W: 1.0);
+  White  : TCastleColor = (X: 1.0; Y: 1.0; Z: 1.0; W: 1.0);
+  Lime   : TCastleColor = (X: 0.0; Y: 1.0; Z: 0.0; W: 1.0);
+  Green  : TCastleColor = (X: 0.0; Y: 1.0; Z: 0.0; W: 1.0);
+  Navy   : TCastleColor = (X: 0.0; Y: 0.0; Z: 0.5; W: 1.0);
+  Blue   : TCastleColor = (X: 0.0; Y: 0.0; Z: 1.0; W: 1.0);
+  Aqua   : TCastleColor = (X: 0.0; Y: 1.0; Z: 1.0; W: 1.0);
+  Teal   : TCastleColor = (X: 0.0; Y: 0.5; Z: 0.5; W: 1.0);
+  Black  : TCastleColor = (X: 0.0; Y: 0.0; Z: 0.0; W: 1.0);
+  Silver : TCastleColor = (X: 0.75; Y: 0.75; Z: 0.75; W: 1.0);
+  Gray   : TCastleColor = (X: 0.5; Y: 0.5; Z: 0.5; W: 1.0);
   { @groupEnd }
 
   { Additional color constants. } { }
-  LightRed  : TCastleColor = (Data: ( 1.0 , 0.33, 0.33, 1.0));
-  LightGreen: TCastleColor = (Data: ( 0.33, 1.0 , 0.33, 1.0));
-  LightBlue : TCastleColor = (Data: ( 0.33, 0.33, 1.0 , 1.0));
+  LightRed  : TCastleColor = (X: 1.0; Y: 0.33; Z: 0.33; W: 1.0);
+  LightGreen: TCastleColor = (X: 0.33; Y: 1.0; Z: 0.33; W: 1.0);
+  LightBlue : TCastleColor = (X: 0.33; Y: 0.33; Z: 1.0; W: 1.0);
 
-  WhiteRGB  : TCastleColorRGB = (Data: ( 1.0 , 1.0 , 1.0));
-  BlackRGB  : TCastleColorRGB = (Data: ( 0.0 , 0.0 , 0.0));
-  RedRGB    : TCastleColorRGB = (Data: ( 1.0 , 0.0 , 0.0));
-  YellowRGB : TCastleColorRGB = (Data: ( 1.0 , 1.0 , 0.0));
-  GreenRGB  : TCastleColorRGB = (Data: ( 0.0 , 0.5 , 0.0));
-  BlueRGB   : TCastleColorRGB = (Data: ( 0.0 , 0.0 , 1.0));
-  GrayRGB   : TCastleColorRGB = (Data: ( 0.5 , 0.5 , 0.5));
+  WhiteRGB  : TCastleColorRGB = (X: 1.0; Y: 1.0; Z: 1.0);
+  BlackRGB  : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 0.0);
+  RedRGB    : TCastleColorRGB = (X: 1.0; Y: 0.0; Z: 0.0);
+  YellowRGB : TCastleColorRGB = (X: 1.0; Y: 1.0; Z: 0.0);
+  GreenRGB  : TCastleColorRGB = (X: 0.0; Y: 1.0; Z: 0.0);
+  BlueRGB   : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 1.0);
+  GrayRGB   : TCastleColorRGB = (X: 0.5; Y: 0.5; Z: 0.5);
 
   { Deprecated, use WhiteRGB. @deprecated }
-  White3Single  : TCastleColorRGB = (Data: ( 1.0 , 1.0 , 1.0)) deprecated;
+  White3Single  : TCastleColorRGB = (X: 1.0; Y: 1.0; Z: 1.0) deprecated;
   { Deprecated, use BlackRGB. @deprecated }
-  Black3Single  : TCastleColorRGB = (Data: ( 0.0 , 0.0 , 0.0)) deprecated;
+  Black3Single  : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 0.0) deprecated;
   { Deprecated, use RedRGB. @deprecated }
-  Red3Single    : TCastleColorRGB = (Data: ( 1.0 , 0.0 , 0.0)) deprecated;
+  Red3Single    : TCastleColorRGB = (X: 1.0; Y: 0.0; Z: 0.0) deprecated;
   { Deprecated, use GreenRGB. @deprecated }
-  Green3Single  : TCastleColorRGB = (Data: ( 0.0 , 0.5 , 0.0)) deprecated;
+  Green3Single  : TCastleColorRGB = (X: 0.0; Y: 1.0; Z: 0.0) deprecated;
   { Deprecated, use BlueRGB. @deprecated }
-  Blue3Single   : TCastleColorRGB = (Data: ( 0.0 , 0.0 , 1.0)) deprecated;
+  Blue3Single   : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 1.0) deprecated;
 
 { Calculate color intensity, for converting color to grayscale.
   @groupBegin }
@@ -193,55 +193,55 @@ begin
 
     These weights are copied from libpng manual. }
 
-  Result := (0.212671 * V.Data[0]+
-             0.715160 * V.Data[1]+
-             0.072169 * V.Data[2]);
+  Result := (0.212671 * V.X+
+             0.715160 * V.Y+
+             0.072169 * V.Z);
 end;
 
 function GrayscaleValue(const v: TCastleColorRGB): Single;
 begin
-  Result := 0.212671 * V.Data[0]+
-            0.715160 * V.Data[1]+
-            0.072169 * V.Data[2];
+  Result := 0.212671 * V.X+
+            0.715160 * V.Y+
+            0.072169 * V.Z;
 end;
 
 function GrayscaleValue(const v: TVector3Byte): Byte;
 begin
   // force multiplication as Word
-  Result := (Word(54 ) * V.Data[0]+
-             Word(183) * V.Data[1]+
-             Word(19 ) * V.Data[2]) shr 8; //div 256;
+  Result := (Word(54 ) * V.X+
+             Word(183) * V.Y+
+             Word(19 ) * V.Z) shr 8; //div 256;
 end;
 
 function GrayscaleValue(const v: TVector4Byte): Byte;
 begin
-  Result := (Word(54 ) * V.Data[0]+
-             Word(183) * V.Data[1]+
-             Word(19 ) * V.Data[2]) shr 8; //div 256;
+  Result := (Word(54 ) * V.X+
+             Word(183) * V.Y+
+             Word(19 ) * V.Z) shr 8; //div 256;
 end;
 
 function Grayscale(const v: TCastleColor): TCastleColor;
 var
   V3: TVector3 absolute V;
 begin
-  Result.Data[0] := GrayscaleValue(V3);
-  Result.Data[1] := Result.Data[0];
-  Result.Data[2] := Result.Data[0];
-  Result.Data[3] := V.Data[3];
+  Result.X := GrayscaleValue(V3);
+  Result.Y := Result.X;
+  Result.Z := Result.X;
+  Result.W := V.W;
 end;
 
 function Grayscale(const v: TCastleColorRGB): TCastleColorRGB;
 begin
-  Result.Data[0] := GrayscaleValue(V);
-  Result.Data[1] := Result.Data[0];
-  Result.Data[2] := Result.Data[0];
+  Result.X := GrayscaleValue(V);
+  Result.Y := Result.X;
+  Result.Z := Result.X;
 end;
 
 function Grayscale(const v: TVector3Byte): TVector3Byte;
 begin
-  Result.Data[0] := GrayscaleValue(V);
-  Result.Data[1] := Result.Data[0];
-  Result.Data[2] := Result.Data[0];
+  Result.X := GrayscaleValue(V);
+  Result.Y := Result.X;
+  Result.Z := Result.X;
 end;
 
 { color changing ------------------------------------------------------------ }
@@ -253,44 +253,44 @@ end;
 
 function ColorRedConvertByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result.Data[0] := GrayscaleValue(Color);
-  Result.Data[1] := 0;
-  Result.Data[2] := 0;
+  Result.X := GrayscaleValue(Color);
+  Result.Y := 0;
+  Result.Z := 0;
 end;
 
 function ColorGreenConvertByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result.Data[1] := GrayscaleValue(Color);
-  Result.Data[0] := 0;
-  Result.Data[2] := 0;
+  Result.Y := GrayscaleValue(Color);
+  Result.X := 0;
+  Result.Z := 0;
 end;
 
 function ColorBlueConvertByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result.Data[2] := GrayscaleValue(Color);
-  Result.Data[0] := 0;
-  Result.Data[1] := 0;
+  Result.Z := GrayscaleValue(Color);
+  Result.X := 0;
+  Result.Y := 0;
 end;
 
 function ColorRedStripByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result.Data[0] := Color.Data[0];
-  Result.Data[1] := 0;
-  Result.Data[2] := 0;
+  Result.X := Color.X;
+  Result.Y := 0;
+  Result.Z := 0;
 end;
 
 function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result.Data[0] := 0;
-  Result.Data[1] := Color.Data[1];
-  Result.Data[2] := 0;
+  Result.X := 0;
+  Result.Y := Color.Y;
+  Result.Z := 0;
 end;
 
 function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result.Data[0] := 0;
-  Result.Data[1] := 0;
-  Result.Data[2] := Color.Data[2];
+  Result.X := 0;
+  Result.Y := 0;
+  Result.Z := Color.Z;
 end;
 
 { HSV stuff ------------------------------------------------------------------ }
@@ -300,7 +300,7 @@ var
   Chroma, V: Single;
 begin
   V := Value.Max;
-  Result.Data[2] := V;
+  Result.Z := V;
   Chroma := V - Value.Min;
 
   { Chroma and V are now in the same range as RGB components.
@@ -308,23 +308,23 @@ begin
 
   if Chroma = 0 then
   begin
-    Result.Data[0] := 0;
-    Result.Data[1] := 0;
+    Result.X := 0;
+    Result.Y := 0;
   end else
   begin
     { calculate hue }
-    if V = Value.Data[0] then
+    if V = Value.X then
     begin
-      Result.Data[0] := (Value.Data[1] - Value.Data[2]) / Chroma;
-      if Result.Data[0] < 0 then
-        Result.Data[0] := Result.Data[0] + 6.0;
+      Result.X := (Value.Y - Value.Z) / Chroma;
+      if Result.X < 0 then
+        Result.X := Result.X + 6.0;
     end else
-    if V = Value.Data[1] then
-      Result.Data[0] := (Value.Data[2] - Value.Data[0]) / Chroma + 2.0 else
-      Result.Data[0] := (Value.Data[0] - Value.Data[1]) / Chroma + 4.0;
+    if V = Value.Y then
+      Result.X := (Value.Z - Value.X) / Chroma + 2.0 else
+      Result.X := (Value.X - Value.Y) / Chroma + 4.0;
 
     { calculate saturation }
-    Result.Data[1] := Chroma / V;
+    Result.Y := Chroma / V;
   end;
 end;
 
@@ -332,21 +332,21 @@ function HsvToRgb(const Value: TVector3): TVector3;
 var
   F, P, Q, T, V: Single;
 begin
-  F := Frac(Value.Data[0]);
+  F := Frac(Value.X);
 
   { RGB component candidates }
-  V := Value.Data[2];
-  P := V * (1 -  Value.Data[1]);
-  Q := V * (1 - (Value.Data[1] * F));
-  T := V * (1 - (Value.Data[1] * (1 - F)));
+  V := Value.Z;
+  P := V * (1 -  Value.Y);
+  Q := V * (1 - (Value.Y * F));
+  T := V * (1 - (Value.Y * (1 - F)));
 
-  case Floor(Value.Data[0]) of
-    0, 6:begin Result.Data[0] := V; Result.Data[1] := T; Result.Data[2] := P; end;
-    1:   begin Result.Data[0] := Q; Result.Data[1] := V; Result.Data[2] := P; end;
-    2:   begin Result.Data[0] := P; Result.Data[1] := V; Result.Data[2] := T; end;
-    3:   begin Result.Data[0] := P; Result.Data[1] := Q; Result.Data[2] := V; end;
-    4:   begin Result.Data[0] := T; Result.Data[1] := P; Result.Data[2] := V; end;
-    else begin Result.Data[0] := V; Result.Data[1] := P; Result.Data[2] := Q; end;
+  case Floor(Value.X) of
+    0, 6:begin Result.X := V; Result.Y := T; Result.Z := P; end;
+    1:   begin Result.X := Q; Result.Y := V; Result.Z := P; end;
+    2:   begin Result.X := P; Result.Y := V; Result.Z := T; end;
+    3:   begin Result.X := P; Result.Y := Q; Result.Z := V; end;
+    4:   begin Result.X := T; Result.Y := P; Result.Z := V; end;
+    else begin Result.X := V; Result.Y := P; Result.Z := Q; end;
   end;
 end;
 
@@ -354,9 +354,9 @@ function RgbToHsv(const Value: TVector3Byte): TVector3;
 var
   ValueFloat: TVector3;
 begin
-  ValueFloat.Data[0] := Value.Data[0] / 255.0;
-  ValueFloat.Data[1] := Value.Data[1] / 255.0;
-  ValueFloat.Data[2] := Value.Data[2] / 255.0;
+  ValueFloat.X := Value.X / 255.0;
+  ValueFloat.Y := Value.Y / 255.0;
+  ValueFloat.Z := Value.Z / 255.0;
   Result := RgbToHsv(ValueFloat);
 end;
 
@@ -365,9 +365,9 @@ var
   ResultFloat: TVector3;
 begin
   ResultFloat := HsvToRgb(Value);
-  Result.Data[0] := RoundClamp255(ResultFloat.Data[0] * 255.0);
-  Result.Data[1] := RoundClamp255(ResultFloat.Data[1] * 255.0);
-  Result.Data[2] := RoundClamp255(ResultFloat.Data[2] * 255.0);
+  Result.X := RoundClamp255(ResultFloat.X * 255.0);
+  Result.Y := RoundClamp255(ResultFloat.Y * 255.0);
+  Result.Z := RoundClamp255(ResultFloat.Z * 255.0);
 end;
 
 function LerpRgbInHsv(const A: Single; const V1, V2: TVector3): TVector3;
@@ -383,33 +383,33 @@ begin
     colors with saturation = 0 get hue = 0, which causes
     interpolation from something colorful (like blue) to black go through
     weird hue. }
-  if H1.Data[1] = 0 then
-    HOut.Data[0] := H2.Data[0] else
-  if H2.Data[1] = 0 then
-    HOut.Data[0] := H1.Data[0] else
+  if H1.Y = 0 then
+    HOut.X := H2.X else
+  if H2.Y = 0 then
+    HOut.X := H1.X else
   begin
-    HueDiff := H2.Data[0] - H1.Data[0];
+    HueDiff := H2.X - H1.X;
     if HueDiff > 3 then
     begin
       { from hue 1 to hue 2 go down through 0.0 }
-      H2.Data[0] := H2.Data[0] - 6;
-      HOut.Data[0] := H1.Data[0] + A * (H2.Data[0] - H1.Data[0]);
-      if HOut.Data[0] < 0 then HOut.Data[0] := HOut.Data[0] + 6;
+      H2.X := H2.X - 6;
+      HOut.X := H1.X + A * (H2.X - H1.X);
+      if HOut.X < 0 then HOut.X := HOut.X + 6;
     end else
     if HueDiff < -3 then
     begin
       { from hue 1 to hue 2 go up through 6.0 }
-      H2.Data[0] := H2.Data[0] + 6;
-      HOut.Data[0] := H1.Data[0] + A * (H2.Data[0] - H1.Data[0]);
-      if HOut.Data[0] > 6 then HOut.Data[0] := HOut.Data[0] - 6;
+      H2.X := H2.X + 6;
+      HOut.X := H1.X + A * (H2.X - H1.X);
+      if HOut.X > 6 then HOut.X := HOut.X - 6;
     end else
       { normal lerp when HueDiff inside [-3, 3] }
-      HOut.Data[0] := H1.Data[0] + A * (H2.Data[0] - H1.Data[0]);
+      HOut.X := H1.X + A * (H2.X - H1.X);
   end;
 
   { lerp on saturation and value is normal }
-  HOut.Data[1] := H1.Data[1] + A * (H2.Data[1] - H1.Data[1]);
-  HOut.Data[2] := H1.Data[2] + A * (H2.Data[2] - H1.Data[2]);
+  HOut.Y := H1.Y + A * (H2.Y - H1.Y);
+  HOut.Z := H1.Z + A * (H2.Z - H1.Z);
 
   Result := HsvToRgb(HOut);
 end;
@@ -418,19 +418,19 @@ function ColorToHex(const V: TCastleColor): string;
 var
   A: Byte;
 begin
-  Result := IntToHex(RoundClamp255(V.Data[0] * 255), 2) +
-            IntToHex(RoundClamp255(V.Data[1] * 255), 2) +
-            IntToHex(RoundClamp255(V.Data[2] * 255), 2);
-  A := RoundClamp255(V.Data[3] * 255);
+  Result := IntToHex(RoundClamp255(V.X * 255), 2) +
+            IntToHex(RoundClamp255(V.Y * 255), 2) +
+            IntToHex(RoundClamp255(V.Z * 255), 2);
+  A := RoundClamp255(V.W * 255);
   if A <> 255 then
     Result := Result + IntToHex(A, 2);
 end;
 
 function ColorRGBToHex(const V: TCastleColorRGB): string;
 begin
-  Result := IntToHex(RoundClamp255(V.Data[0] * 255), 2) +
-            IntToHex(RoundClamp255(V.Data[1] * 255), 2) +
-            IntToHex(RoundClamp255(V.Data[2] * 255), 2);
+  Result := IntToHex(RoundClamp255(V.X * 255), 2) +
+            IntToHex(RoundClamp255(V.Y * 255), 2) +
+            IntToHex(RoundClamp255(V.Z * 255), 2);
 end;
 
 function HexToColor(const S: string): TCastleColor;
@@ -464,7 +464,7 @@ end;
 function ColorOpacity(const Color: TCastleColor; const Opacity: Single): TCastleColor;
 begin
   Result := Color;
-  Result.Data[3] := Opacity;
+  Result.W := Opacity;
 end;
 
 function FadeDarkColor(const Color: TCastleColor;
@@ -495,7 +495,7 @@ begin
       - to   screen color := original screen color }
       Result := White * MapRange(FadeIntensity, FullBlack, 0, MinScale, 1);
 
-    Result.Data[3] := 1.0; { alpha always 1.0 in this case }
+    Result.W := 1.0; { alpha always 1.0 in this case }
   end else
     Result := TVector4.Zero;
 end;
@@ -513,7 +513,7 @@ begin
       Intensity := MapRange(FadeIntensity, 0, FullTime, 0, 1) else
       Intensity := MapRange(FadeIntensity, FullTime, 1, 1, 0);
     Result := Color;
-    Result.Data[3] := Intensity;
+    Result.W := Intensity;
   end else
     Result := TVector4.Zero;
 end;

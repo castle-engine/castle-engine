@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectGroup FileVersion="2">
+    <Targets>
+      <Target FileName="Benchmark/Bench.lpi">
+        <BuildModes>
+          <Mode Name="Default"/>
+        </BuildModes>
+      </Target>
+      <Target FileName="VampConvert/VampConvert.lpi">
+        <BuildModes>
+          <Mode Name="Debug" Compile="True"/>
+          <Mode Name="Release"/>
+        </BuildModes>
+      </Target>
+      <Target FileName="ImageBrowser/ImgBrowser.lpi">
+        <BuildModes>
+          <Mode Name="Default"/>          
+        </BuildModes>
+      </Target>
+      <Target FileName="LCLImager/lclimager.lpi">
+        <BuildModes>
+          <Mode Name="Debug"/>
+          <Mode Name="Release - Win64"/>
+          <Mode Name="Release - Linux"/>
+          <Mode Name="Release - Win32"/>
+          <Mode Name="Release - OSX"/>
+          <Mode Name="Release"/>
+        </BuildModes>
+      </Target>
+      <Target FileName="OpenGLDemo/OpenGLDemo.lpi">
+        <BuildModes>
+          <Mode Name="Default"/>
+        </BuildModes>
+      </Target>
+      <Target FileName="SDLDemo/SDLDemo.lpi">
+        <BuildModes>
+          <Mode Name="Default"/>
+        </BuildModes>
+      </Target>
+      <Target FileName="D3DDemo/D3DDemo.lpi">
+        <BuildModes>
+          <Mode Name="Default"/>
+        </BuildModes>
+      </Target>
+    </Targets>
+  </ProjectGroup>
+</CONFIG>

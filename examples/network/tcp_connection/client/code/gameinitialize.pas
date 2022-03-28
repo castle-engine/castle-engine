@@ -30,7 +30,7 @@ type
       FClient: TCastleTCPClient;
       procedure OnConnected;
       procedure OnDisconnected;
-      procedure OnMessageRecieved (const AMessage: String);
+      procedure OnMessageReceived (const AMessage: String);
     public
       constructor Create (const AHost: String; const APort: Word);
       destructor Destroy; override;
@@ -45,7 +45,7 @@ type
   end;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   HostEdit, PortEdit, SendEdit: TCastleEdit;
   ResponseLabel: TCastleLabel;
   Client: TClient;
@@ -128,7 +128,7 @@ begin
 
   FClient.OnConnected := {$ifdef FPC}@{$endif} OnConnected;
   FClient.OnDisconnected := {$ifdef FPC}@{$endif} OnDisconnected;
-  FClient.OnMessageRecieved := {$ifdef FPC}@{$endif} OnMessageRecieved;
+  FClient.OnMessageReceived := {$ifdef FPC}@{$endif} OnMessageReceived;
 
   FClient.Connect;
 end;
@@ -150,7 +150,7 @@ begin
   ResponseLabel.Caption := 'Disconnected!';
 end;
 
-procedure TClient.OnMessageRecieved (const AMessage: String);
+procedure TClient.OnMessageReceived (const AMessage: String);
 begin
   ResponseLabel.Caption := AMessage;
 end;
@@ -178,7 +178,7 @@ initialization
   Application.OnInitialize := {$ifdef FPC}@{$endif} ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
 finalization

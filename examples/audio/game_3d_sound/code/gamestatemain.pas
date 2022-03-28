@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2021 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -191,7 +191,7 @@ end;
 
 procedure TStateMain.UpdateRatPosition;
 const
-  RatCircleMiddle: TVector3 = (Data: (0, 0, 0));
+  RatCircleMiddle: TVector3 = (X: 0; Y: 0; Z: 0);
   RatCircleRadius = 3;
 var
   T: TVector3;
@@ -283,13 +283,13 @@ begin
   if Event.IsMouseButton(buttonLeft) then
   begin
     { Detect clicks on TNT scene.
-      We look at TransformUnderMouse.UniqueParent, because that is how tnt_final.castle-transform
+      We look at TransformUnderMouse.Parent, because that is how tnt_final.castle-transform
       was designed: we will detect clicks on SceneTntBox, which is the child of the root
       of tnt_final.castle-transform . }
     if (Viewport.TransformUnderMouse <> nil) and
-       (Viewport.TransformUnderMouse.UniqueParent <> nil) and
-       (Tnts.IndexOf(Viewport.TransformUnderMouse.UniqueParent) <> -1) then
-      TntHit(Viewport.TransformUnderMouse.UniqueParent);
+       (Viewport.TransformUnderMouse.Parent <> nil) and
+       (Tnts.IndexOf(Viewport.TransformUnderMouse.Parent) <> -1) then
+      TntHit(Viewport.TransformUnderMouse.Parent);
   end;
 end;
 

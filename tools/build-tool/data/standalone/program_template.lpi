@@ -54,7 +54,8 @@ ${LAZARUS_PROJECT_ALL_UNITS}    </Units>
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CustomOptions Value="${EXTRA_COMPILER_OPTIONS}"/>
+      <CustomOptions Value="${EXTRA_COMPILER_OPTIONS}
+${DEFINES_AS_COMPILER_OPTIONS}"/>
     </Other>
   </CompilerOptions>
   <Debugging>

@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -152,7 +152,7 @@ begin
   { We avoid using RotationMatricesRad when angle = 0, since this
     is often the case, and it makes TransformState much faster
     (which is important --- TransformState is important for traversing state). }
-  if Rotation[3] <> 0 then
+  if Rotation.W <> 0 then
   begin
     { Note that even rotation Axis = zero is OK, both M and IM will be
       identity in this case. }
@@ -161,11 +161,11 @@ begin
     InverseTransform := IM * InverseTransform;
   end;
 
-  if (ScaleVector[0] <> 1) or
-     (ScaleVector[1] <> 1) or
-     (ScaleVector[2] <> 1) then
+  if (ScaleVector.X <> 1) or
+     (ScaleVector.Y <> 1) or
+     (ScaleVector.Z <> 1) then
   begin
-    if ScaleOrientation[3] <> 0 then
+    if ScaleOrientation.W <> 0 then
     begin
       RotationMatricesRad(ScaleOrientation, MRotateScaleOrient, IMRotateScaleOrient);
       Transform := Transform * MRotateScaleOrient;
@@ -182,7 +182,7 @@ begin
     Transform := Transform * M;
     InverseTransform := IM * InverseTransform;
 
-    if ScaleOrientation[3] <> 0 then
+    if ScaleOrientation.W <> 0 then
     begin
       { That's right, we reuse MRotateScaleOrient and IMRotateScaleOrient
         matrices below. Since we want to reverse them now, so normal
@@ -193,8 +193,8 @@ begin
 
     Scale := Scale * Approximate3DScale(ScaleVector);
     UniformScale := UniformScale and
-      (ScaleVector.Data[0] = ScaleVector.Data[1]) and
-      (ScaleVector.Data[1] = ScaleVector.Data[2]);
+      (ScaleVector.X = ScaleVector.Y) and
+      (ScaleVector.Y = ScaleVector.Z);
   end;
 
   MultMatricesTranslation(Transform, InverseTransform, -Center);
@@ -215,7 +215,7 @@ begin
   { We avoid using RotationMatricesRad when angle = 0, since this
     is often the case, and it makes TransformState much faster
     (which is important --- TransformState is important for traversing state). }
-  if Rotation[3] <> 0 then
+  if Rotation.W <> 0 then
   begin
     { Note that even rotation Axis = zero is OK, both M and IM will be
       identity in this case. }
@@ -224,9 +224,9 @@ begin
     InverseTransform := IM * InverseTransform;
   end;
 
-  if (ScaleVector[0] <> 1) or
-     (ScaleVector[1] <> 1) or
-     (ScaleVector[2] <> 1) then
+  if (ScaleVector.X <> 1) or
+     (ScaleVector.Y <> 1) or
+     (ScaleVector.Z <> 1) then
   begin
     { For scaling, we explicitly request that if ScalingFactor contains
       zero, IM will be forced to be identity (the 2nd param to ScalingMatrices
@@ -240,8 +240,8 @@ begin
 
     Scale := Scale * Approximate3DScale(ScaleVector);
     UniformScale := UniformScale and
-      (ScaleVector.Data[0] = ScaleVector.Data[1]) and
-      (ScaleVector.Data[1] = ScaleVector.Data[2]);
+      (ScaleVector.X = ScaleVector.Y) and
+      (ScaleVector.Y = ScaleVector.Z);
   end;
 end;
 

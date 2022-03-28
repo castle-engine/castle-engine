@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,7 +18,6 @@
 unit FrameDesign;
 
 {$mode objfpc}{$H+}
-{$modeswitch nestedprocvars}
 
 interface
 
@@ -212,7 +211,7 @@ type
       DesignOwner: TComponent;
       FDesignerLayer: TDesignerLayer;
       FDesignModified: Boolean;
-      CastleControl: TCastleControlBase;
+      CastleControl: TCastleControl;
       TreeNodeMap: TTreeNodeMap;
       Mode: TMode;
       InsideToggleModeClick: Boolean;
@@ -481,7 +480,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
 
       is not present in "if" below. }
 
-    if C.GetExists then
+    if C.Exists then
     begin
       { First try to find children, with TestWithBorder=false (so it doesn't detect
         control if we merely point at its border). This allows to find controls
@@ -511,7 +510,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
     end;
   end;
 
-  function MouseOverControl(const Control: TCastleControlBase): Boolean;
+  function MouseOverControl(const Control: TCastleControl): Boolean;
   var
     PosInClient: TPoint;
   begin
@@ -529,12 +528,29 @@ end;
 
 function TDesignFrame.TDesignerLayer.HoverTransform(
   const AMousePosition: TVector2): TCastleTransform;
+
+  function SelectionFromRayHit(const RayHit: TRayCollision): TCastleTransform;
+  var
+    I: Integer;
+  begin
+    // set outer-most TCastleTransformReference, if any, to show selection at TCastleTransformReference
+    for I := RayHit.Count - 1 downto 0 do
+      if (RayHit[I].Item is TCastleTransformReference) and Selectable(RayHit[I].Item) then
+        Exit(RayHit[I].Item);
+
+    // set the inner-most TCastleTransform hit, but not anything transient (to avoid hitting gizmo)
+    for I := 0 to RayHit.Count - 1 do
+      if Selectable(RayHit[I].Item) then
+        Exit(RayHit[I].Item);
+
+    Result := nil;
+  end;
+
 var
   UI: TCastleUserInterface;
   Viewport: TCastleViewport;
   RayOrigin, RayDirection: TVector3;
   RayHit: TRayCollision;
-  I: Integer;
 begin
   UI := HoverUserInterface(AMousePosition);
   if UI is TCastleViewport then // also checks UI <> nil
@@ -556,15 +572,10 @@ begin
   Viewport.PositionToRay(AMousePosition, true, RayOrigin, RayDirection);
   RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
   try
-    Result := nil;
-    // set the inner-most TCastleTransform hit, but not anything transient (to avoid hitting gizmo)
     if RayHit <> nil then
-      for I := 0 to RayHit.Count - 1 do
-        if Selectable(RayHit[I].Item) then
-        begin
-          Result := RayHit[I].Item;
-          Break;
-        end;
+      Result := SelectionFromRayHit(RayHit)
+    else
+      Result := nil;
   finally FreeAndNil(RayHit) end;
 end;
 
@@ -925,6 +936,8 @@ procedure TDesignFrame.TDesignerLayer.Render;
     const Lab: TCastleLabel; const Rect: TCastleRectangleControl;
     const LabelColor: TCastleColor);
   begin
+    {$define CASTLE_DESIGNER_LABELS}
+    {$ifdef CASTLE_DESIGNER_LABELS}
     if UI <> nil then
     begin
       Lab.Caption := Frame.ComponentCaption(UI);
@@ -945,6 +958,7 @@ procedure TDesignFrame.TDesignerLayer.Render;
         // put Rect inside UI, otherwise it would be offscreen
         Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
     end else
+    {$endif}
       Rect.Exists := false;
   end;
 
@@ -1052,7 +1066,7 @@ begin
   Inspector[itEvents].Filter := tkMethods;
   Inspector[itEvents].AnchorToNeighbour(akTop, 0, PanelEventsInfo);
 
-  CastleControl := TCastleControlBase.Create(Self);
+  CastleControl := TCastleControl.Create(Self);
   CastleControl.Parent := PanelMiddle;
   CastleControl.Align := alClient;
   CastleControl.OnResize := @CastleControlResize;
@@ -1754,7 +1768,7 @@ procedure TDesignFrame.DuplicateComponent;
     ComponentString: String;
     InsertIndex: Integer;
   begin
-    ParentComp := Selected.UniqueParent;
+    ParentComp := Selected.Parent;
     if ParentComp = nil then
     begin
       ErrorBox('To duplicate, select component with exactly one parent');
@@ -2010,12 +2024,20 @@ begin
 end;
 
 procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
+var
+  SavedErrorBox: String;
 begin
   { process PendingErrorBox }
   if PendingErrorBox <> '' then
   begin
-    ErrorBox(PendingErrorBox);
+    SavedErrorBox := PendingErrorBox;
+    { Clear PendingErrorBoxthis *before* doing ErrorBox, as on WinAPI,
+      the CastleControlUpdate will keep occurring underneath the box,
+      and we would spawn ~infinite number of ErrorBox.
+      This can happen e.g. in case of invalid CastleSettings.xml file,
+      that sets PendingErrorBox. }
     PendingErrorBox := '';
+    ErrorBox(SavedErrorBox);
   end;
 
   if InternalCastleDesignInvalidate then
@@ -2118,15 +2140,45 @@ var
     end;
   end;
 
+  function AddImage(const Url: String): TCastleTransform;
+  var
+    ImageTransform: TCastleImageTransform;
+  begin
+    ImageTransform := AddComponent(Viewport.Items, TCastleImageTransform, nil) as TCastleImageTransform;
+    ImageTransform.Url := Url;
+    Result := ImageTransform;
+  end;
+
+  function AddScene(const Url: String): TCastleTransform;
+  var
+    Scene: TCastleScene;
+  begin
+    Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
+    Scene.Url := Url;
+    Result := Scene;
+  end;
+
+  function AddSound(const Url: String): TCastleTransform;
+  var
+    Transform: TCastleTransform;
+    SoundSource: TCastleSoundSource;
+    Sound: TCastleSound;
+  begin
+    Transform := AddComponent(Viewport.Items, TCastleTransform, nil) as TCastleTransform;
+    SoundSource := AddComponent(Transform, TCastleSoundSource, nil) as TCastleSoundSource;
+    Sound := AddComponent(SoundSource, TCastleSound, nil) as TCastleSound;
+    Sound.Url := Url;
+    SoundSource.Sound := Sound;
+    Result := Transform;
+  end;
+
 var
   ShellList: TCastleShellListView;
   SelectedFileName: String;
-  SelectedURL: String;
+  SelectedUrl: String;
   UI: TCastleUserInterface;
-  Transform: TCastleTransform;
   DropPos: TVector3;
-  SoundSource: TCastleSoundSource;
-  Sound: TCastleSound;
+  Transform: TCastleTransform;
 begin
   if Source is TCastleShellListView then
   begin
@@ -2134,7 +2186,7 @@ begin
     if ShellList.Selected <> nil then
     begin
       SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
-      SelectedURL := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+      SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
 
       UI := FDesignerLayer.HoverUserInterface(Vector2(X, Y));
       if not (UI is TCastleViewport) then
@@ -2144,19 +2196,15 @@ begin
       if not DropPosition(DropPos) then
         Exit;
 
-      if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
-      begin
-        Transform := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
-        (Transform as TCastleScene).URL := SelectedURL;
-      end else
-      if TFileFilterList.Matches(LoadSound_FileFilters, SelectedURL) then
-      begin
-        Transform := AddComponent(Viewport.Items, TCastleTransform, nil) as TCastleTransform;
-        SoundSource := AddComponent(Transform, TCastleSoundSource, nil) as TCastleSoundSource;
-        Sound := AddComponent(SoundSource, TCastleSound, nil) as TCastleSound;
-        Sound.URL := SelectedURL;
-        SoundSource.Sound := Sound;
-      end else
+      if LoadImage_FileFilters.Matches(SelectedUrl) then
+        Transform := AddImage(SelectedUrl)
+      else
+      if TFileFilterList.Matches(LoadScene_FileFilters, SelectedUrl) then
+        Transform := AddScene(SelectedUrl)
+      else
+      if TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl) then
+        Transform := AddSound(SelectedUrl)
+      else
         Exit; // cannot drop such file type
 
       Transform.Translation := DropPos;
@@ -3068,9 +3116,13 @@ procedure TDesignFrame.UpdateSelectedControl;
         { We remove TToolButton's actions and use our own's OnClick events
           instead so that we can hook our undo/redo system in }
         CollectionPropertyEditorForm.AddButton.Action := nil;
+        CollectionPropertyEditorForm.AddButton.Enabled := True;
         CollectionPropertyEditorForm.DeleteButton.Action := nil;
+        CollectionPropertyEditorForm.DeleteButton.Enabled := True;
         CollectionPropertyEditorForm.MoveUpButton.Action := nil;
+        CollectionPropertyEditorForm.MoveUpButton.Enabled := True;
         CollectionPropertyEditorForm.MoveDownButton.Action := nil;
+        CollectionPropertyEditorForm.MoveDownButton.Enabled := True;
         CollectionPropertyEditorForm.AddButton.OnClick := @PropertyGridCollectionItemAdd;
         CollectionPropertyEditorForm.DeleteButton.OnClick := @PropertyGridCollectionItemDelete;
         CollectionPropertyEditorForm.MoveUpButton.OnClick := @PropertyGridCollectionItemMoveUp;
@@ -3429,24 +3481,24 @@ var
         begin
           if not ContainsRecursive(Src, Dst) then
           begin
-            if Src.UniqueParent <> nil then
-              Src.UniqueParent.Remove(Src);
+            if Src.Parent <> nil then
+              Src.Parent.Remove(Src);
             Dst.Add(Src);
             Refresh;
           end;
         end;
       tnsBottom, tnsTop:
         begin
-          if (Dst.UniqueParent <> nil) and
-             not ContainsRecursive(Src, Dst.UniqueParent) then
+          if (Dst.Parent <> nil) and
+             not ContainsRecursive(Src, Dst.Parent) then
           begin
-            if Src.UniqueParent <> nil then
-              Src.UniqueParent.Remove(Src);
-            Index := Dst.UniqueParent.List.IndexOf(Dst);
+            if Src.Parent <> nil then
+              Src.Parent.Remove(Src);
+            Index := Dst.Parent.List.IndexOf(Dst);
             Assert(Index <> -1);
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
-            Dst.UniqueParent.Insert(Index, Src);
+            Dst.Parent.Insert(Index, Src);
             Refresh;
           end;
         end;
@@ -4085,6 +4137,5 @@ end;
 initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
-  PropertyEditorsAdviceDataDirectory := true;
   CastleDesignMode := true;
 end.

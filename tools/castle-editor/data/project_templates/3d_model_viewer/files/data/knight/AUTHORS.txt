@@ -9,6 +9,4 @@ The model in knight.blend and texture in knight.png:
     GPL 2.0
   or above versions of these.
 
-  It was somewhat retouched by Michalis Kamburelis.
-  It's the same model we use in examples/animations/resource_animations/,
-  here exported to glTF.
+  Adjusted for this demo by Michalis Kamburelis.

@@ -1,0 +1,146 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to
+# - test CGE compilation and automatic tests
+# - pack CGE into zip
+# Uses CGE Docker image https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
+#
+# See https://docs.github.com/en/actions for docs.
+# ----------------------------------------------------------------------------
+
+name: Test and Pack
+on: [push]
+
+# setup.sh inside Docker requires using bash
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test-fpc-stable:
+    name: Base Tests (FPC Stable)
+    runs-on: ubuntu-latest
+    # Use Docker image with CGE prerequisites (FPC, Lazarus, Android tools etc.)
+    # See https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v2
+      # Set env CASTLE_ENGINE_PATH following
+      # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
+      # https://brandur.org/fragments/github-actions-env-vars-in-env-vars
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Tools (FPC Stable)
+        run: make clean default
+      - name: Build And Run Auto-Tests (FPC Stable)
+        run: make clean tests
+      - name: Build Using FpMake (FPC Stable)
+        run: make clean test-fpmake
+
+  test-fpc-stable-examples:
+    name: Examples (FPC Stable)
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Examples (FPC Stable)
+        run: make clean examples
+
+  test-fpc-stable-examples-laz:
+    name: Examples Using Lazarus (FPC / Lazarus Stable)
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Examples Using Lazarus (FPC / Lazarus Stable)
+        run: make clean examples-laz
+
+  test-fpc-320:
+    name: Base Tests (FPC 3.2.0)
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Tools (FPC 3.2.0)
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean default
+      - name: Build And Run Auto-Tests (FPC 3.2.0)
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tests
+      - name: Build Using FpMake (FPC 3.2.0)
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean test-fpmake
+
+  test-fpc-320-examples:
+    name: Examples (FPC 3.2.0)
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Examples (FPC 3.2.0)
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples
+
+  test-fpc-320-examples-laz:
+    name: Examples Using Lazarus (FPC 3.2.0)
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Examples Using Lazarus (FPC 3.2.0)
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz
+
+  test-fpc-latest-unstable:
+    name: Base Tests (FPC Latest Unstable)
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Tools (FPC Latest Unstable)
+        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean default
+      - name: Build And Run Auto-Tests (FPC Latest Unstable)
+        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests
+      - name: Build Using FpMake (FPC Latest Unstable)
+        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake
+
+  test-fpc-latest-unstable-examples:
+    name: Examples (FPC Latest Unstable)
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Examples (FPC Latest Unstable)
+        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples
+
+  test-fpc-latest-unstable-examples-laz:
+    name: Examples Using Lazarus (FPC Latest Unstable)
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Examples Using Lazarus (FPC Latest Unstable)
+        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz
+
+  pack:
+    name: Pack to zip
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Remove previous artifacts
+        run: rm -f castle-engine*.zip
+      - name: Pack
+        run: ./tools/internal/pack_release/pack_release.sh

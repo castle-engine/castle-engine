@@ -8,7 +8,7 @@
   sprite's data format by pressing SPACE key (it cycles trough all
   TImageFormat values) and toggle alpha blending (working only
   when sprite's current format has alpha channel) and color keying.
-  Sprite can be moved accross the screen using arrow keys.
+  Sprite can be moved across the screen using arrow keys.
   Screenshots can also be taken. Status of the sprite
   and list of active keys are shown in the console window.
  }

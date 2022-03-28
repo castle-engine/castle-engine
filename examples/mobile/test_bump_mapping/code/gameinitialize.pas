@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,7 +27,7 @@ uses SysUtils, Math,
   CastleApplicationProperties, CastleUtils;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   SceneVisualizeLight: TCastleScene;
   MainLight: TPointLightNode;
   Time: TFloatTime;
@@ -91,7 +91,6 @@ begin
 
   // make MainLight on Scene1 affect all scenes, Scene1 and Scene2
   Viewport.Items.MainScene := Scene1;
-  Viewport.UseGlobalLights := true;
 
   MainLight := Scene1.Node('MainLight') as TPointLightNode;
   Time := 0;
@@ -115,7 +114,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 

@@ -43,7 +43,7 @@
       <Filename Value="visualize_triangulation"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value=""/>
+      <IncludeFiles Value="../../src/base"/>
       <OtherUnitFiles Value=""/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
       <Libraries Value="" />

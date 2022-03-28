@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="test_castle_game_engine"
-  standalone_source="test_castle_game_engine.lpr">
-  <compiler_options>
+<project name="castle-tester"
+  standalone_source="castle_tester_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.castletester"
+  caption="Castle Tester"
+>
+  <compiler_options detect_memory_leaks="true">
+    <defines>
+      <define>CASTLE_TESTER</define>
+    </defines>
+    <search_paths>
+      <path value="code/" />
+      <path value="code/testcases/" />
+      <path value="code/tester-castle/" />
+      <path value="../tools/common-code/" />
+    </search_paths>
     <custom_options>
-      <option>-gl</option>
-      <option>-gh</option>
-      <option>-dTEXT_RUNNER</option>
       <!--
         Hide warnings about deprecated stuff.
         In tests, we often deliberately test deprecated API, to make sure it still works.
@@ -13,10 +23,5 @@
       <option>-vm05075</option>
       <option>-vm05066</option>
     </custom_options>
-    <search_paths>
-      <path value="code/" />
-      <path value="code/common/" />
-      <path value="../tools/common-code/" />
-    </search_paths>
   </compiler_options>
 </project>

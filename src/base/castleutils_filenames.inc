@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -69,8 +69,13 @@ function ExtractOnlyFilename(const FileName: string): string; deprecated;
 function ChangeFilePath(const FileName, NewPath: string): string; deprecated;
 
 { Include / exclude the last path delimiter, if necessary.
-  They are just comfortable shorter names for
+  These are just comfortable shorter names for
   IncludeTrailingPathDelimiter and ExcludeTrailingPathDelimiter.
+
+  For Delphi, we also fix treatment of slash on Windows:
+  it should be treated as a path delimiter, as Windows accepts
+  both slashes and backslashes.
+
   @groupBegin }
 function InclPathDelim(const s: string): string;
 function ExclPathDelim(const s: string): string;
@@ -135,11 +140,21 @@ end;
 
 function InclPathDelim(const s: string): string;
 begin
+  {$if defined(MSWINDOWS) and not defined(FPC)}
+  { On Windows, also accept / as final path delimiter.
+    FPC does it automatically. }
+  if (S <> '') and (S[Length(S)] = '/') then Exit(S);
+  {$endif}
   Result := IncludeTrailingPathDelimiter(S);
 end;
 
 function ExclPathDelim(const s: string): string;
 begin
+  {$if defined(MSWINDOWS) and not defined(FPC)}
+  { On Windows, also accept / as final path delimiter.
+    FPC does it automatically. }
+  if (S <> '') and (S[Length(S)] = '/') then Exit(Copy(S, 1, Length(S) - 1));
+  {$endif}
   Result := ExcludeTrailingPathDelimiter(S);
 end;
 

@@ -216,7 +216,7 @@ end;
     - Fixed RGB>>CMYK conversions.
 
   -- 0.23 Changes/Bug Fixes -----------------------------------
-    - Added RGB<>CMY(K) converion functions for 16 bit channels
+    - Added RGB<>CMY(K) conversion functions for 16 bit channels
       (needed by PSD loading code).
 
   -- 0.21 Changes/Bug Fixes -----------------------------------

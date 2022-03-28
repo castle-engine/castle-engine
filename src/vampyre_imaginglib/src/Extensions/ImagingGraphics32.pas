@@ -49,8 +49,8 @@ procedure CopyRectToBitmap32(Image: TBaseImage; Bitmap32: TCustomBitmap32;
 
 { Maps GR32 bitmap on TImageData record so that they'll both share
   the same pixels in memory (Bitmap32.Bits and Image.Bits point to the same
-  memory address). Usefull if you wan to e.g. save Bitmap32 using Imaging
-  and don't want to needlesly duplicate the entire image in memory.
+  memory address). Useful if you wan to e.g. save Bitmap32 using Imaging
+  and don't want to needlessly duplicate the entire image in memory.
   Note that you must not call FreeImage on Image after the mapping or
   the memory of Bitmap32 would be freed too.}
 procedure MapBitmap32ToImageData(Bitmap32: TCustomBitmap32; var Image: TImageData);

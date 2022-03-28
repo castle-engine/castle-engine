@@ -1,11 +1,12 @@
 object ProjectForm: TProjectForm
-  Left = 546
-  Height = 405
-  Top = 273
-  Width = 731
+  Left = 2239
+  Height = 506
+  Top = 258
+  Width = 914
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 385
-  ClientWidth = 731
+  ClientHeight = 476
+  ClientWidth = 914
+  DesignTimePPI = 120
   Menu = MainMenu1
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -18,9 +19,9 @@ object ProjectForm: TProjectForm
   LCLVersion = '2.0.12.0'
   object PageControlBottom: TPageControl
     Left = 0
-    Height = 179
-    Top = 206
-    Width = 731
+    Height = 224
+    Top = 252
+    Width = 914
     ActivePage = TabFiles
     Align = alBottom
     ParentFont = False
@@ -28,74 +29,77 @@ object ProjectForm: TProjectForm
     TabOrder = 0
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 151
-      ClientWidth = 723
+      ClientHeight = 188
+      ClientWidth = 904
       ParentFont = False
       object SplitterBetweenFiles: TSplitter
         Left = 0
-        Height = 151
+        Height = 188
         Top = 0
-        Width = 4
+        Width = 5
       end
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 185
-      ClientWidth = 1132
+      ClientHeight = 188
+      ClientWidth = 904
       ParentFont = False
       object ListOutput: TListBox
         Left = 0
-        Height = 151
+        Height = 188
         Top = 0
-        Width = 906
+        Width = 904
         Align = alClient
-        ItemHeight = 17
+        ItemHeight = 21
         OnClick = ListOutputClick
         ParentFont = False
-        ScrollWidth = 1324
+        PopupMenu = OutputPopup
+        ScrollWidth = 902
         Style = lbOwnerDrawFixed
         TabOrder = 0
+        TopIndex = -1
       end
     end
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
-      ClientHeight = 185
-      ClientWidth = 1132
+      ClientHeight = 188
+      ClientWidth = 904
       ParentFont = False
       TabVisible = False
       object ListWarnings: TListBox
         Left = 0
-        Height = 117
-        Top = 34
-        Width = 906
+        Height = 148
+        Top = 40
+        Width = 904
         Align = alClient
         ItemHeight = 0
         ParentFont = False
-        ScrollWidth = 1130
+        ScrollWidth = 902
         TabOrder = 0
+        TopIndex = -1
       end
       object PanelWarnings: TPanel
         Left = 0
-        Height = 34
+        Height = 40
         Top = 0
-        Width = 906
+        Width = 904
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 34
-        ClientWidth = 906
+        ClientHeight = 40
+        ClientWidth = 904
         ParentFont = False
         TabOrder = 1
         object ButtonClearWarnings: TBitBtn
           Left = 0
-          Height = 34
+          Height = 40
           Hint = 'Clear warnings list.'
           Top = 0
-          Width = 81
+          Width = 87
           AutoSize = True
           Caption = 'Clear'
-          Constraints.MinHeight = 18
-          Constraints.MinWidth = 18
+          Constraints.MinHeight = 22
+          Constraints.MinWidth = 22
           Glyph.Data = {
             36090000424D3609000000000000360000002800000018000000180000000100
             2000000000000009000064000000640000000000000000000000000000000000
@@ -182,21 +186,21 @@ object ProjectForm: TProjectForm
   object Splitter2: TSplitter
     Cursor = crVSplit
     Left = 0
-    Height = 5
-    Top = 201
-    Width = 731
+    Height = 6
+    Top = 246
+    Width = 914
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 201
+    Height = 246
     Top = 0
-    Width = 731
+    Width = 914
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 201
-    ClientWidth = 731
+    ClientHeight = 246
+    ClientWidth = 914
     ParentFont = False
     TabOrder = 2
     object LabelNoDesign: TLabel
@@ -206,21 +210,21 @@ object ProjectForm: TProjectForm
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Side = asrCenter
       AnchorSideBottom.Side = asrCenter
-      Left = 194
-      Height = 120
-      Top = 40
-      Width = 343
+      Left = 239
+      Height = 112
+      Top = 67
+      Width = 436
       Alignment = taCenter
       Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
-      Font.Height = -21
+      Font.Height = -26
       ParentColor = False
       ParentFont = False
       WordWrap = True
     end
   end
   object MainMenu1: TMainMenu
-    Left = 35
-    Top = 19
+    Left = 44
+    Top = 24
     object MenuItemFile: TMenuItem
       Caption = '&Project'
       object MenuItemRestartRebuildEditor: TMenuItem
@@ -287,9 +291,16 @@ object ProjectForm: TProjectForm
         Caption = 'Save As ...'
         OnClick = MenuItemSaveAsDesignClick
       end
-      object MenuItemSeparator150: TMenuItem
+      object MenuItemSeparator1300: TMenuItem
         Caption = '-'
       end
+      object MenuItemDesignClose: TMenuItem
+        Caption = 'Close'
+        OnClick = MenuItemDesignCloseClick
+      end
+    end
+    object MenuItemEdit: TMenuItem
+      Caption = 'Edit'
       object MenuItemDesignAddUserInterface: TMenuItem
         Caption = 'Add User Interface'
       end
@@ -339,13 +350,6 @@ object ProjectForm: TProjectForm
         Caption = 'Delete Component'
         ShortCut = 16430
         OnClick = MenuItemDesignDeleteComponentClick
-      end
-      object MenuItemSeparator1300: TMenuItem
-        Caption = '-'
-      end
-      object MenuItemDesignClose: TMenuItem
-        Caption = 'Close'
-        OnClick = MenuItemDesignCloseClick
       end
     end
     object MenuItemCode: TMenuItem
@@ -556,27 +560,27 @@ object ProjectForm: TProjectForm
   end
   object ProcessUpdateTimer: TTimer
     OnTimer = ProcessUpdateTimerTimer
-    Left = 93
-    Top = 14
+    Left = 116
+    Top = 18
   end
   object SaveDesignDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
     Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     AdviceDataDirectory = True
-    Left = 93
-    Top = 105
+    Left = 116
+    Top = 131
   end
   object OpenDesignDialog: TCastleOpenDialog
     Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     AdviceDataDirectory = True
-    Left = 93
-    Top = 61
+    Left = 116
+    Top = 76
   end
   object ShellListPopupMenu: TPopupMenu
     OnPopup = ShellListPopupMenuPopup
-    Left = 56
-    Top = 166
+    Left = 80
+    Top = 304
     object MenuItemOpenDefault: TMenuItem
       Caption = 'Open'
       Default = True
@@ -627,8 +631,8 @@ object ProjectForm: TProjectForm
     end
   end
   object ShellTreePopupMenu: TPopupMenu
-    Left = 149
-    Top = 184
+    Left = 80
+    Top = 376
     object MenuItemShellTreeOpenDir: TMenuItem
       Caption = 'Open in File Manager'
       OnClick = MenuItemShellTreeOpenDirClick
@@ -644,8 +648,8 @@ object ProjectForm: TProjectForm
   object ShellIcons: TImageList
     Height = 24
     Width = 24
-    Left = 250
-    Top = 192
+    Left = 304
+    Top = 376
     Bitmap = {
       4C69010000001800000018000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -725,12 +729,12 @@ object ProjectForm: TProjectForm
   object ApplicationProperties1: TApplicationProperties
     OnActivate = ApplicationProperties1Activate
     OnException = ApplicationProperties1Exception
-    Left = 220
-    Top = 14
+    Left = 275
+    Top = 18
   end
   object ActionList: TActionList
-    Left = 318
-    Top = 15
+    Left = 398
+    Top = 19
     object ActionNewSpriteSheet: TAction
       Caption = 'New Sprite Sheet...'
       OnExecute = ActionNewSpriteSheetExecute
@@ -776,9 +780,42 @@ object ProjectForm: TProjectForm
       Caption = 'Regenerate Project (overwrites LPI, DPR, DPROJ, CastleAutoGenerated)'
       OnExecute = ActionRegenerateProjectExecute
     end
+    object ActionOutputClean: TAction
+      Category = 'Output'
+      Caption = 'Clean'
+      OnExecute = ActionOutputCleanExecute
+    end
+    object ActionOutputCopySelected: TAction
+      Category = 'Output'
+      Caption = 'Copy Selected'
+      OnExecute = ActionOutputCopySelectedExecute
+      OnUpdate = ActionOutputCopySelectedUpdate
+    end
+    object ActionOutputCopyAll: TAction
+      Category = 'Output'
+      Caption = 'Copy All'
+      OnExecute = ActionOutputCopyAllExecute
+    end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
-    Left = 168
-    Top = 128
+    Left = 296
+    Top = 131
+  end
+  object OutputPopup: TPopupMenu
+    OnPopup = ShellListPopupMenuPopup
+    Left = 304
+    Top = 304
+    object MenuItemOutputClean: TMenuItem
+      Action = ActionOutputClean
+    end
+    object MenuItemSeparator12312123123: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemOutputCopySelected: TMenuItem
+      Action = ActionOutputCopySelected
+    end
+    object MenuItemOutputCopyAll: TMenuItem
+      Action = ActionOutputCopyAll
+    end
   end
 end

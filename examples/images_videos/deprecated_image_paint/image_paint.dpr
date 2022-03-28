@@ -26,7 +26,7 @@ const
   NTests = 6;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   RGBAlphaImageGL, RGBImageGL, GrayscaleAlphaImageGL, GrayscaleImageGL, RGBFloatImageGL: TDrawableImage;
   RGBAlphaImage, RGBImage, GrayscaleAlphaImage, GrayscaleImage, RGBFloatImage: TCastleImage;
 
@@ -88,7 +88,7 @@ end;
 begin
   InitializeLog;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.Width := NTests * TestSize;
   Window.Height := 5 * TestSize;
   Window.OnRender := @DoRender;

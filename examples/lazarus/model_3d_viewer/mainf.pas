@@ -45,7 +45,7 @@ type
     EditUpX: TEdit;
     GroupNavigationType: TGroupBox;
     GroupBoxCamera: TGroupBox;
-    Browser: TCastleControlBase;
+    Browser: TCastleControl;
     ImagePoweredBy: TImage;
     LabelPosition: TLabel;
     LabelDirection: TLabel;

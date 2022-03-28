@@ -67,8 +67,8 @@ begin
   WriteLn('    -format:  changes data format of input images');
   WriteLn('       argument: name of data format supported by Imaging like A8R8G8B8');
   WriteLn('    -resize:  changes size of input images');
-  WriteLn('       argument: string in format AxBxC (%dx%dx%s) where A is desired');
-  WriteLn('                 width, B is desired height, and C is resampling filter used.');
+  WriteLn('       argument: string in format AxBxC where A is desired width,');
+  WriteLn('                 B is desired height, and C is resampling filter used.');
   WriteLn('                 If A or B is 0 then original dimension will be preserved.');
   WriteLn('                 C is optional and can have one of following values: ');
   WriteLn('                 nearest(default), bilinear, bicubic, lanczos.');
@@ -116,13 +116,21 @@ begin
   end;
 end;
 
-procedure PrintError(const Msg: string; const Args: array of const);
+procedure PrintErrorAndExit(const Msg: string; const Args: array of const);
 begin
   WriteLn(Format('Error: ' + Msg, Args));
   WriteLn;
   PrintUsage;
   Operations.Free;
   Halt(1);
+end;
+
+procedure PrintHelpAndExit;
+begin
+  WriteLn;
+  PrintUsage;
+  Operations.Free;
+  Halt(0);
 end;
 
 procedure PrintWarning(const Msg: string; const Args: array of const);
@@ -159,6 +167,8 @@ var
       InFile := Arg
     else if (S = 'outfile') or (S = 'o') then
       OutFile := Arg
+    else if S = 'h' then
+      PrintHelpAndExit
     else
       Operations.Add(Format('%s=%s', [S, LowerCase(Arg)]));
   end;
@@ -172,15 +182,15 @@ procedure CheckOptions;
 var
   InFileName, InFileDir: string;
 begin
-  // Check if input and input filenames are valid
+  // Check if input and output filenames are valid
   if InFile = '' then
-    PrintError('Input file not specified', []);
+    PrintErrorAndExit('Input file not specified', []);
 
   if not FileExists(InFile) then
-    PrintError('Input file not found: "%s"', [InFile]);
+    PrintErrorAndExit('Input file not found: "%s"', [InFile]);
 
   if not Imaging.IsFileFormatSupported(InFile) then
-    PrintError('Input file format not supported: %s', [ImagingUtility.GetFileExt(InFile)]);
+    PrintErrorAndExit('Input file format not supported: %s', [ImagingUtility.GetFileExt(InFile)]);
 
   if OutFile = '' then
   begin
@@ -217,7 +227,7 @@ var
 
   procedure PrintInvalidArg(const OpName, Arg: string);
   begin
-    PrintError('Invalid argument (%s) for operation: %s', [Arg, OpName]);
+    PrintErrorAndExit('Invalid argument (%s) for operation: %s', [Arg, OpName]);
   end;
 
   function FindFormat(const FmtString: string): TImageFormat;
@@ -244,10 +254,10 @@ begin
   try
     // Load input image
     if not Imaging.LoadMultiImageFromFile(InFile, Images) then
-      PrintError('Input file loading failed: %s', [ImagingUtility.GetExceptObject.Message]);
+      PrintErrorAndExit('Input file loading failed: %s', [ImagingUtility.GetExceptObject.Message]);
     // Check if all loaded images are OK or if they are any at all
     if (Length(Images) = 0) or not Imaging.TestImagesInArray(Images) then
-      PrintError('Input file loaded but it does not contain any images or some of them are invalid', []);
+      PrintErrorAndExit('Input file loaded but it does not contain any images or some of them are invalid', []);
 
     PrintInfo('Input images (count: %d) loaded succesfully from: %s', [Length(Images), InFile]);
 
@@ -367,7 +377,7 @@ begin
 
     // Finally save the result
     if not Imaging.SaveMultiImageToFile(OutFile, Images) then
-      PrintError('Output file saving failed: %s', [ImagingUtility.GetExceptObject.Message])
+      PrintErrorAndExit('Output file saving failed: %s', [ImagingUtility.GetExceptObject.Message])
     else
       PrintInfo('Output images saved succesfully to: %s', [OutFile])
   finally
@@ -386,7 +396,7 @@ begin
   try
     ProcessOperations;
   except
-    PrintError('Exception raised during processing oprations: %s',
+    PrintErrorAndExit('Exception raised during processing oprations: %s',
       [ImagingUtility.GetExceptObject.Message]);
   end;
   Operations.Free;
@@ -394,10 +404,6 @@ end;
 
 {
   File Notes:
-
-  -- TODOS ----------------------------------------------------
-    - more operations
-    - allow changing ImagingOptions too
 
   -- 0.80 -----------------------------------------------------
     - Added Lanczos as a resampling option

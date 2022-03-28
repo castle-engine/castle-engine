@@ -20,7 +20,7 @@ uses
   ImagingTypes, Imaging, ElderImagery, ImagingIO, ImagingUtility;
 
 type
-  { Class that proveides loading of textures from TES2: Daggerfall
+  { Class that provides loading of textures from TES2: Daggerfall
     (works for Terminator: FS and maybe other games too).
     Textures are stored in 8bit indexed format with external palette.
     This format is very complicated (more images with subimages,
@@ -45,7 +45,7 @@ type
   end;
 
 const
-  { Metadata item id for accessing name of last loaded Daggetfall texture.
+  { Metadata item id for accessing name of last loaded Daggerfall texture.
     Value type is string.}
   SMetaDagTextureName = 'DagTexture.Name';
 

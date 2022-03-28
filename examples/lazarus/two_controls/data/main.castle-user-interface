@@ -1,0 +1,77 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "AutoCamera" : true,
+      "AutoNavigation" : true,
+      "Camera" : {
+        "$$ClassName" : "TCastleCamera",
+        "GravityUpPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Y" : -4.3711388286737929E-008,
+          "Z" : 1.0000000000000000E+000
+        },
+        "InitialDirectionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -4.6150602400302887E-002,
+          "Y" : 9.9815291166305542E-001,
+          "Z" : -3.9510805159807205E-002
+        },
+        "InitialPositionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 2.1578378975391388E-001,
+          "Y" : -4.3772482872009277E+000,
+          "Z" : 1.1591906547546387E+000
+        },
+        "InitialUpPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -1.7574215307831764E-003,
+          "Y" : 3.9471752941608429E-002,
+          "Z" : 9.9921911954879761E-001
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "Name" : "Orthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective",
+          "Name" : "Perspective"
+        },
+        "ProjectionNear" : 1.5000000596046448E-001
+      },
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "MainScene" : "MainScene",
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "Name" : "PhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "MainScene",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "URL" : "castle-data:/fireplace/fireplace_final.wrl"
+          }
+        ]
+      },
+      "Name" : "MainViewport"
+    }
+  ]
+}

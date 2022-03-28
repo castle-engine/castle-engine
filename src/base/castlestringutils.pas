@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2021 Michalis Kamburelis.
+  Copyright 2000-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -951,6 +951,11 @@ function CharSetToStr(const SetVariable: TSetOfChars): string;
   PChar(S): returns a Pointer(S) with appropriate type cast. }
 function PCharOrNil(const s: string): PChar;
 
+{ PWideCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
+  If string is empty, this returns @nil, otherwise it works just like
+  PWideChar(S): returns a Pointer(S) with appropriate type cast. }
+function PWideCharOrNil(const s: WideString): PWideChar;
+
 { PAnsiCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
   If string is empty, this returns @nil, otherwise it works just like
   PAnsiChar(S): returns a Pointer(S) with appropriate type cast. }
@@ -980,6 +985,20 @@ procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
 function TrimEndingNewline(const S: String): String;
 
 function SizeToStr(const Value: Int64): String;
+
+{ Convert String to UTF-16 (UnicodeString).
+  On Delphi (more generally: on compilers where String is already UnicodeString, which is UTF-16),
+  this does nothing.
+  On FPC (more generally: on compilers where String is AnsiString with UTF-8 encoding),
+  this converts UTF-8 into UTF-16 UnicodeString. }
+function StringToUtf16(const Src: String): UnicodeString; inline;
+
+{ Convert UTF-16 (UnicodeString) to String.
+  On Delphi (more generally: on compilers where String is already UnicodeString, which is UTF-16),
+  this does nothing.
+  On FPC (more generally: on compilers where String is AnsiString with UTF-8 encoding),
+  this converts UTF-16 into UTF-8. }
+function Utf16ToString(const Src: UnicodeString): String; inline;
 
 const
   { }
@@ -1018,8 +1037,8 @@ const
 
 implementation
 
-uses {$ifdef FPC} Regexpr {$else} RegularExpressions {$endif}, StrUtils,
-  CastleLog;
+uses {$ifdef FPC} Regexpr {$else} RegularExpressions, Character {$endif},
+  StrUtils, CastleLog;
 
 { TStringsHelper ------------------------------------------------------------- }
 
@@ -2256,18 +2275,20 @@ begin
 end;
 
 type
+  TRegExprString = {$if defined(FPC) and (FPC_FULLVERSION >= 30300)} UnicodeString {$else} String {$endif};
+
   TRegExprCounter = class
   private
     Index: Integer;
     ReplacementsDone: Cardinal;
     function ReplaceCallback(
-      {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): string;
+      {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): TRegExprString;
   end;
 
 function TRegExprCounter.ReplaceCallback(
-  {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): string;
+  {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): TRegExprString;
 var
-  MatchedText: string;
+  MatchedText: TRegExprString;
 begin
   MatchedText := {$ifdef FPC} ARegExpr.Match[1] {$else} Match.Groups[1].Value {$endif};
   Result := IntToStrZPad(Index, StrToInt(MatchedText));
@@ -2574,15 +2595,25 @@ end;
 function PCharOrNil(const s: string): PChar;
 begin if s = '' then result := nil else result := PChar(s); end;
 
+function PWideCharOrNil(const s: WideString): PWideChar;
+begin if s = '' then result := nil else result := PWideChar(s); end;
+
 function PAnsiCharOrNil(const s: AnsiString): PAnsiChar;
 begin if s = '' then result := nil else result := PAnsiChar(s); end;
 
 function SCompressWhiteSpace(const S: string): string;
 var
-  ResultPos: Integer; { this is always next free result position }
   SPos: Integer; { this is always next unhandled S position }
+{$ifdef FPC}
+  ResultPos: Integer; { this is always next free result position }
   NextSPos: Integer;
+{$else}
+  StringBuilder: TStringBuilder;
+  SLength: Integer;
+{$endif}
 begin
+  { Move is fast but we can't use it in delphi }
+  {$ifdef FPC}
   ResultPos := 1;
   SPos := 1;
   SetLength(Result, Length(S)); { resulting string is at most as long as S }
@@ -2624,6 +2655,48 @@ begin
   Assert(ResultPos - 1 <= Length(Result));
 
   SetLength(Result, ResultPos - 1);
+  {$else}
+  SLength := Length(S);
+
+  if SLength = 0 then
+    Exit(S);
+
+  StringBuilder := TStringBuilder.Create;
+  try
+    StringBuilder.Capacity := SLength;
+
+    SPos := 1;
+    while SPos <= SLength do
+    begin
+      if IsSurrogate(S, SPos) then
+      begin
+        StringBuilder.Append(S[SPos]);
+        Inc(SPos);
+        if SPos <= SLength then
+        begin
+          StringBuilder.Append(S[SPos]);
+          Inc(SPos);
+        end;
+        continue;
+      end;
+
+      if SCharIs(S, SPos, WhiteSpaces) then
+      begin
+        StringBuilder.Append(S[SPos]);
+        while SCharIs(S, SPos, WhiteSpaces) do
+          Inc(SPos);
+        continue;
+      end;
+
+      StringBuilder.Append(S[SPos]);
+      Inc(SPos);
+    end;
+
+    Result := StringBuilder.ToString;
+  finally
+    StringBuilder.Free;
+  end;
+  {$endif}
 end;
 
 procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
@@ -2681,6 +2754,16 @@ begin
 
   // too verbose
   //Result += Format(' (%d bytes)', [Value]);
+end;
+
+function StringToUtf16(const Src: String): UnicodeString;
+begin
+  Result := {$if SizeOf(char) = 2} Src {$else} UTF8Decode(Src) {$ifend};
+end;
+
+function Utf16ToString(const Src: UnicodeString): String;
+begin
+  Result := {$if SizeOf(char) = 2} Src {$else} UTF8Encode(Src) {$ifend};
 end;
 
 end.

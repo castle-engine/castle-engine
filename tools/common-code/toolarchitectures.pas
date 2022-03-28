@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis and FPC team.
+  Copyright 2014-2022 Michalis Kamburelis and FPC team.
 
   This file is part of "Castle Game Engine".
 
@@ -120,7 +120,7 @@ Const
 function TargetToString(const Target: TTarget): String;
 Function CPUToString(CPU: TCPU) : String;
 Function OSToString(OS: TOS) : String;
-function TargetCompleteToString(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean): String;
+function TargetCompleteToString(const Target: TTarget; const OS: TOS; const CPU: TCPU): String;
 
 function StringToTarget(const S : String): TTarget;
 Function StringToCPU(const S : String) : TCPU;
@@ -251,14 +251,12 @@ begin
 end;
 
 function TargetCompleteToString(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean): String;
+  const OS: TOS; const CPU: TCPU): String;
 begin
   if Target = targetCustom then
     Result := Format('OS / CPU "%s / %s"', [OSToString(OS), CPUToString(CPU)])
   else
     Result := Format('target "%s"', [TargetToString(Target)]);
-  if Plugin then
-    Result += ' (as a plugin)';
 end;
 
 function TargetOptionHelp: string;

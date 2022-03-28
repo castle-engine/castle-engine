@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis, Andrzej Kilijański.
+  Copyright 2018-2022 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -160,7 +160,7 @@ begin
   { Note: TransitionDuration is not supported for castle-anim-frames.
     TransitionDuration is supported on other model formats (in particular
     glTF, Spine, X3D support animations too). }
-  //OpenScene('../resource_animations/data/knight_single_castle_anim_frames/knight.castle-anim-frames');
+  //OpenScene('../../deprecated_resource_animations/data/deprecated/knight_single_castle_anim_frames/knight.castle-anim-frames');
 end;
 
 procedure TStateMain.ClickButtonOpen2DSpine(Sender: TObject);

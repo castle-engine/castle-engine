@@ -1,36 +1,77 @@
 X3DEnvironmentTextureNode : X3DSingleTextureNode {
+  auto-generate-more: true
 }
 
 ComposedCubeMapTexture : X3DEnvironmentTextureNode {
+  auto-generate-more: true
+
+  # TODO: runtime changes to nodes inside (like ImageTexture.url, for ImageTexture in back/front/etc.)
+  # will not be properly applied.
+  # They should result in chTextureRendererProperties on us.
+
   SFNode [in,out] back     NULL
     range: X3DTexture2DNode
+    change: chTextureRendererProperties
   SFNode [in,out] bottom   NULL
     range: X3DTexture2DNode
+    change: chTextureRendererProperties
   SFNode [in,out] front    NULL
     range: X3DTexture2DNode
+    change: chTextureRendererProperties
   SFNode [in,out] left     NULL
     range: X3DTexture2DNode
+    change: chTextureRendererProperties
   SFNode [in,out] right    NULL
     range: X3DTexture2DNode
+    change: chTextureRendererProperties
   SFNode [in,out] top      NULL
     range: X3DTexture2DNode
+    change: chTextureRendererProperties
+  # X3D spec 3.2 doesn't specify this field, but it's natural, instantreality also uses this.
   SFNode   []       textureProperties NULL
     range: TextureProperties
+    change: chTextureRendererProperties
 }
 
 GeneratedCubeMapTexture : X3DEnvironmentTextureNode {
+  auto-generate-more: true
   SFString [in,out] update            "NONE"
     range: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
-    # TODO: use enumerated-type
+    enumerated-type: TTextureUpdate TextureUpdateNames upNone
+    doc: When to update the texture contents.
+    # When changing "update" to NEXT_FRAME_ONLY or ALWAYS, all we need
+    # is to do chRedisplay.
+    # At next UpdateGeneratedTextures call the texture will be updated.
+    #
+    # Note: chVisibleGeometry, chVisibleNonGeometry are not necessary,
+    # they would actually eliminate a useful optimization:
+    # if no visible change was registered since last update
+    # of the texture, the texture will not be actually immediately
+    # regenerated, even if you set update to NEXT_FRAME_ONLY or ALWAYS ---
+    # correct optimization!
+    #
+    # Note: When changing to upNone, then changes could be chNone.
+    # But we ignore this optimization now, redisplaying is not a problem.
+    change: chRedisplay
   SFInt32  []       size              128
     range: (0,Inf)
+    change: chTextureRendererProperties
   SFNode   []       textureProperties NULL
     range: TextureProperties
+    change: chTextureRendererProperties
+  SFVec3f  [in,out] bias              0 0 0
+    change: chNone # bias is applied at next update
+    doc: Bias from shape center to the point from which we generate a cubemap texture. TODO: for now in world space, should be in shape space.
 }
 
 ImageCubeMapTexture : X3DEnvironmentTextureNode, X3DUrlObject {
+  auto-generate-more: true
   MFString [in,out] url               []
     range: [URI]
+    # The image loaded by LoadImage method isn't saved at ImageCubeMapTexture.
+    # So we don't need chTextureImage in case of change,  instead just let renderer load the texture again.
+    change: chTextureRendererProperties
   SFNode   []       textureProperties NULL
     range: TextureProperties
+    change: chTextureRendererProperties
 }

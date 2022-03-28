@@ -5,7 +5,7 @@
   qualified_name="io.castleengine.play.animation"
   caption="Play Animation"
 >
-  <compiler_options>
+  <compiler_options detect_memory_leaks="true">
     <search_paths>
       <path value="code/" />
     </search_paths>

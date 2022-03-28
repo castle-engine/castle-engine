@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="x3d_call_pascal_code"
+  standalone_source="x3d_call_pascal_code_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.x3d.call.pascal.code"
+  caption="From X3D Call Pascal Code"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

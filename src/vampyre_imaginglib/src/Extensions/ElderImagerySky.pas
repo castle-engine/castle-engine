@@ -24,7 +24,7 @@ type
     8 bit indexed format found in Daggerfall, and maybe other old Bethesda
     games. Files are named SKY##.DAT and each contains two sets of 32 images
     (512 by 220 pixels), each with its palette. First set contains sky
-    without sun, seconf set sky with sun. }
+    without sun, second set sky with sun. }
   TSKYFileFormat = class(TElderFileFormat)
   protected
     procedure Define; override;

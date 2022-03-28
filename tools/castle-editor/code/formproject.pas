@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,8 +42,16 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionOutputCopyAll: TAction;
+    ActionOutputCopySelected: TAction;
+    ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemEdit: TMenuItem;
+    MenuItemOutputCopyAll: TMenuItem;
+    MenuItemOutputCopySelected: TMenuItem;
+    MenuItemSeparator12312123123: TMenuItem;
+    MenuItemOutputClean: TMenuItem;
     MenuItemUIOutput: TMenuItem;
     MenuItemUIWarnings: TMenuItem;
     MenuItemUIFiles: TMenuItem;
@@ -141,6 +149,7 @@ type
     MenuItemDesignNewTransform: TMenuItem;
     MenuItemDesignNewUserInterfaceRect: TMenuItem;
     ShellListPopupMenu: TPopupMenu;
+    OutputPopup: TPopupMenu;
     ShellTreePopupMenu: TPopupMenu;
     SaveDesignDialog: TCastleSaveDialog;
     MenuItemSaveAsDesign: TMenuItem;
@@ -181,6 +190,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionOutputCleanExecute(Sender: TObject);
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionEditAssociatedUnitExecute(Sender: TObject);
     procedure ActionEditUnitExecute(Sender: TObject);
@@ -191,6 +201,9 @@ type
     procedure ActionNewUnitHereStateExecute(Sender: TObject);
     procedure ActionNewUnitStateExecute(Sender: TObject);
     procedure ActionOpenProjectCodeExecute(Sender: TObject);
+    procedure ActionOutputCopyAllExecute(Sender: TObject);
+    procedure ActionOutputCopySelectedExecute(Sender: TObject);
+    procedure ActionOutputCopySelectedUpdate(Sender: TObject);
     procedure ActionRegenerateProjectExecute(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
@@ -525,6 +538,11 @@ begin
   SpriteSheetEditorForm.NewSpriteSheet;
 end;
 
+procedure TProjectForm.ActionOutputCleanExecute(Sender: TObject);
+begin
+  ListOutput.Clear;
+end;
+
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
 begin
   { Refresh contents of selected dir, and tree of subdirectories,
@@ -616,6 +634,26 @@ begin
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
+end;
+
+procedure TProjectForm.ActionOutputCopyAllExecute(Sender: TObject);
+begin
+  Clipboard.AsText := ListOutput.Items.Text;
+end;
+
+procedure TProjectForm.ActionOutputCopySelectedExecute(Sender: TObject);
+begin
+  { Although ActionOutputCopySelectedUpdate should secure from it too,
+    but check it in case ActionOutputCopySelectedUpdate doesn't run often enough. }
+  if ListOutput.ItemIndex <> -1 then
+  begin
+    Clipboard.AsText := ListOutput.Items[ListOutput.ItemIndex];
+  end;
+end;
+
+procedure TProjectForm.ActionOutputCopySelectedUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := ListOutput.ItemIndex <> -1;
 end;
 
 procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
@@ -775,7 +813,7 @@ begin
   URLFileName := ApplicationConfig(DockLayoutFileName);
   { Try to load default layout if user layout is not exist }
   if not URIFileExists(URLFileName) then
-    URLFileName := EditorApplicationData + 'layouts/' + DockLayoutFileNameDefault;
+    URLFileName := InternalCastleDesignData + 'layouts/' + DockLayoutFileNameDefault;
   try
     XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
     try
@@ -936,6 +974,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       'Directory',
       'Compressed zip',
       'Compressed tar.gz',
+      'Debian Package (DEB)',
       'Android APK',
       'Android App Bundle (AAB)',
       'iOS Xcode Project',
@@ -1579,7 +1618,7 @@ begin
       SpriteSheetEditorForm.Close; // not needed on GTK2, maybe add ifdef?
     end;
 
-    Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
+    Release; // do not call MenuItemDesignClose, to avoid OnCloseQuery
     ChooseProjectForm.Show;
   end;
 end;
@@ -2187,8 +2226,13 @@ begin
   else
     S := '';
   S := S + SQuoteLCLCaption(ProjectName);
-  if InternalHasCustomComponents then
-    S := S + ' (With Custom Components)';
+  if InternalCustomComponentsForProject <> '' then
+  begin
+    if InternalCustomComponentsForProject = ProjectName then
+      S := S + ' (With Custom Components)'
+    else
+      S := S + ' (With Custom Components from ' + InternalCustomComponentsForProject + ')';
+  end;
   Caption := S + ' | Castle Game Engine';
 end;
 
@@ -2234,9 +2278,6 @@ begin
   ProjectStandaloneSource := Manifest.StandaloneSource;
   ProjectLazarus := Manifest.LazarusProject;
   ProjectDelphi := Manifest.DelphiProject;
-  if (Manifest.EditorUnits <> '') and
-     (not InternalHasCustomComponents) then
-    WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
 
   { Make some fields absolute paths, or empty }
   if ProjectStandaloneSource <> '' then
@@ -2266,6 +2307,17 @@ begin
 
   DesignExistenceChanged;
   UpdateFormCaption(nil); // make form Caption reflect project name (although this is now done also by DesignExistenceChanged)
+
+  if (Manifest.EditorUnits <> '') and
+     (ProjectName <> InternalCustomComponentsForProject) then
+  begin
+    if YesNoBox(Format('Project "%s" uses custom components.' + NL + NL +
+          'Rebuild and restart editor with custom components?', [
+          ProjectName
+        ])) then
+      MenuItemRestartRebuildEditorClick(nil);
+      //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
+  end;
 end;
 
 procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);

@@ -3,31 +3,31 @@ CastleMessages,
 {$endif}
 
 {$ifdef read_implementation}
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
   Result := MessageInputQuery(Self, Title, FileName);
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
 var
   NewColor: TVector3;
 begin
   Result := false;
-  if not MessageInputQuery(Self, 'Input Red value:'  , NewColor.Data[0]) then Exit;
-  if not MessageInputQuery(Self, 'Input Green value:', NewColor.Data[1]) then Exit;
-  if not MessageInputQuery(Self, 'Input Blue value:' , NewColor.Data[2]) then Exit;
+  if not MessageInputQuery(Self, 'Input Red value:'  , NewColor.X) then Exit;
+  if not MessageInputQuery(Self, 'Input Green value:', NewColor.Y) then Exit;
+  if not MessageInputQuery(Self, 'Input Blue value:' , NewColor.Z) then Exit;
 
   Result := true;
   Color := NewColor;
 end;
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
   CastleMessages.MessageOK(Self, S);
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
+function TCastleWindow.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
   Result := CastleMessages.MessageYesNo(Self, S);

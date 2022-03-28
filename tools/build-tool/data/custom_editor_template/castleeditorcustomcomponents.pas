@@ -25,5 +25,5 @@ implementation
 uses CastleComponentSerialize;
 
 initialization
-  InternalHasCustomComponents := true;
+  InternalCustomComponentsForProject := '${NAME}';
 end.

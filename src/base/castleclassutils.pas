@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2021 Michalis Kamburelis.
+  Copyright 2000-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -703,7 +703,7 @@ var
 
 type
   { Extended TObjectStack for Castle Game Engine. }
-  TCastleObjectStack = class(Contnrs.TObjectStack)
+  TCastleObjectStack = class({$ifndef PASDOC}Contnrs.{$endif}TObjectStack)
   private
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
@@ -712,7 +712,7 @@ type
   end;
 
   { Extended TObjectQueue for Castle Game Engine. }
-  TCastleObjectQueue = class(Contnrs.TObjectQueue)
+  TCastleObjectQueue = class({$ifndef PASDOC}Contnrs.{$endif}TObjectQueue)
   private
     function GetCapacity: TListSize;
     procedure SetCapacity(const Value: TListSize);
@@ -721,7 +721,7 @@ type
   end;
 
   { Extended TObjectList for Castle Game Engine. }
-  TCastleObjectList = class(Contnrs.TObjectList)
+  TCastleObjectList = class({$ifndef PASDOC}Contnrs.{$endif}TObjectList)
   public
     { Create and fill with the contents of given array.
 
@@ -755,10 +755,10 @@ type
       a descendant from ReplaceClass, and you always keep at most one
       ReplaceClass descendant on the list.
       For example, you have UI controls list (like
-      TCastleWindowBase.Controls), and you want your NewItem to be the only instance
+      TCastleWindow.Controls), and you want your NewItem to be the only instance
       of TCastleOnScreenMenu class inside.
       Moreover, in case order on the list is important (for example on
-      TCastleWindowBase.Controls order corresponds to screen depth --- what control
+      TCastleWindow.Controls order corresponds to screen depth --- what control
       is under / above each other), you want to place NewItem at the same
       position as previous TCastleOnScreenMenu instance, if any. }
     function MakeSingle(ReplaceClass: TClass; NewItem: TObject;
@@ -1350,8 +1350,11 @@ begin
     Result := 0 else
   if IsPeekedChar then
   begin
-    PChar(@Buffer)[0] := Chr(PeekedChar);
-    Result := 1 + SourceStream.Read(PChar(@Buffer)[1], Count - 1);
+    { Note: It would be more natural to access
+        PAnsiChar(@Buffer)[...],
+      but on Delphi the PAnsiChar cannot be indexed like an array. }
+    PByteArray(@Buffer)^[0] := PeekedChar;
+    Result := 1 + SourceStream.Read(PByteArray(@Buffer)^[1], Count - 1);
     { Note that if SourceStream.Read will raise an exception,
       we will still have IsPeekedChar = true. }
     IsPeekedChar := false;
@@ -1364,7 +1367,7 @@ end;
 
 function TSimplePeekCharStream.PeekChar: Integer;
 var
-  C: Char;
+  C: AnsiChar;
 begin
   if not IsPeekedChar then
   begin
@@ -2112,6 +2115,11 @@ var
   TextFile: Text;
   StringStream: TStringStream;
 begin
+  {$ifdef VER3_3} {$define CASTLE_SECURE_BACKTRACE} {$endif}
+  {$ifdef CASTLE_SECURE_BACKTRACE}
+  try
+  {$endif}
+
   StringStream := TStringStream.Create('');
   try
     AssignStream(TextFile, StringStream);
@@ -2121,6 +2129,15 @@ begin
     finally CloseFile(TextFile) end;
     Result := StringStream.DataString;
   finally FreeAndNil(StringStream) end;
+
+  {$ifdef CASTLE_SECURE_BACKTRACE}
+  except
+    // TODO: investigate and report, reproducible by running play_animation with non-existent data.
+    // WritelnWarning('Capturing backtrace failed, this is known to happen with some FPC 3.3.1 versions.');
+    // Cannot log this problem -- as logging itself could use backtrace, causing infinite loop...
+    Result := '';
+  end;
+  {$endif}
 {$endif}
 end;
 {$endif}

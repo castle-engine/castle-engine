@@ -205,7 +205,7 @@ end;
 
 procedure TMainForm.SetSupported;
 var
-  XRes, YRes: Single;
+  XRes, YRes: Double;
   ImgSize: Integer;
 begin
   // Update image info and enable previous/next buttons

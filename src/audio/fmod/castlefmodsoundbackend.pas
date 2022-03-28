@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2021 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -103,7 +103,7 @@ type
     FMODSystem: PFMOD_SYSTEM;
     FDistanceModel: TSoundDistanceModel;
   public
-    function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
+    function ContextOpen(const ADevice: String; out Information, InformationSummary: String): Boolean; override;
     procedure ContextClose; override;
     function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
@@ -501,7 +501,7 @@ begin
 end;
 
 function TFMODSoundEngineBackend.ContextOpen(const ADevice: String;
-  out Information: String): Boolean;
+  out Information, InformationSummary: String): Boolean;
 var
   Version: CUInt;
   {$ifdef ANDROID} Env: PJNIEnv; {$endif}
@@ -533,11 +533,12 @@ begin
   { Use FMOD_INIT_3D_RIGHTHANDED, as by default FMOD uses left-handed coordinate system. }
   CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL or FMOD_INIT_3D_RIGHTHANDED, nil), 'FMOD_System_Init');
   CheckFMOD(FMOD_System_GetVersion(FMODSystem, @Version), 'FMOD_System_GetVersion');
-  Information := Format('FMOD version %d.%d.%d initialized', [
+  Information := Format('FMOD %d.%d.%d', [
     Version shr 16,
     (Version and $FF00) shr 8,
     Version and $FF
   ]);
+  InformationSummary := Information;
   Result := true;
 end;
 
@@ -575,7 +576,7 @@ end;
 
 procedure TFMODSoundEngineBackend.SetListener(const Position, Direction, Up: TVector3);
 const
-  ListenerVelocity: TVector3 = (Data: (0, 0, 0));
+  ListenerVelocity: TVector3 = (X: 0; Y: 0; Z: 0);
 begin
   CheckFMOD(FMOD_System_Set3DListenerAttributes(FMODSystem, 0,  @Position, @ListenerVelocity, @Direction, @Up));
 end;

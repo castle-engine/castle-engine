@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -145,7 +145,13 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   begin
     ToolExe := FindExeCastleTool('CompressonatorCLI');
     { otherwise, assume it's on $PATH }
-    TryToolExePath(ToolExe, 'CompressonatorCLI', C);
+    if ToolExe = '' then
+      ToolExe := FindExe('CompressonatorCLI');
+    if ToolExe = '' then
+      // on Linux, new released on https://github.com/GPUOpen-Tools/Compressonator/releases have it lowercase
+      ToolExe := FindExe('compressonatorcli');
+    if ToolExe = '' then
+      raise ECannotFindTool.Create('CompressonatorCLI', C);
 
     TempPrefix := GetTempFileNamePrefix;
 
@@ -443,12 +449,13 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         tcATITC_RGBA_InterpolatedAlpha: Compressonator(InputFile, OutputFile, C, 'ATC_RGBA_Interpolated');
         tcATITC_RGBA_ExplicitAlpha    : Compressonator(InputFile, OutputFile, C, 'ATC_RGBA_Explicit'    );
 
-        tcPvrtc1_4bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_4_RGB');
-        tcPvrtc1_2bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_2_RGB');
-        tcPvrtc1_4bpp_RGBA: PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_4');
-        tcPvrtc1_2bpp_RGBA: PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_2');
-        tcPvrtc2_4bpp:      PVRTexTool(InputFile, OutputFile, C, 'PVRTC2_4');
-        tcPvrtc2_2bpp:      PVRTexTool(InputFile, OutputFile, C, 'PVRTC2_2');
+        // format names for PVRTexTool from https://docs.imgtec.com/oxy_ex-2/UtilitiesSrc/PVRTexTool/Documentation/PVRTexTool_Manual/topics/PVRTexTool%20CLI/command_line_options.html
+        tcPvrtc1_4bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTCI_4BPP_RGB');
+        tcPvrtc1_2bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTCI_2BPP_RGB');
+        tcPvrtc1_4bpp_RGBA: PVRTexTool(InputFile, OutputFile, C, 'PVRTCI_4BPP_RGBA');
+        tcPvrtc1_2bpp_RGBA: PVRTexTool(InputFile, OutputFile, C, 'PVRTCI_2BPP_RGBA');
+        tcPvrtc2_4bpp:      PVRTexTool(InputFile, OutputFile, C, 'PVRTCII_4BPP');
+        tcPvrtc2_2bpp:      PVRTexTool(InputFile, OutputFile, C, 'PVRTCII_2BPP');
 
         tcETC1:             PVRTexTool(InputFile, OutputFile, C, 'ETC1');
                       // or Compressonator(InputFile, OutputFile, C, 'ETC_RGB');

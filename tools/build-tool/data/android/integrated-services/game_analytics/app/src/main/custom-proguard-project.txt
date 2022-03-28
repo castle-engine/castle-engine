@@ -3,14 +3,13 @@
 # This will be added to the main integrated/custom-proguard-project.txt
 # file by the build tool.
 
-# from
-# http://support.gameanalytics.com/hc/en-us/articles/200841746-Options
+# from https://gameanalytics.com/docs/s/article/Android-SDK-Setup
 
-## GSON (used by Game Analytics 1.x) ##
--keepattributes Signature
--keepattributes *Annotation*
--keep class sun.misc.Unsafe { *; }
--keep class com.google.gson.stream.** { *; }
+-keep class  com.gameanalytics.sdk { *; }
+-keep class  com.gameanalytics.sdk.** { *; }
 
-## GAME ANALYTICS ##
--keep class com.gameanalytics.android.** { *; }
+-keep class  com.gameanalytics.sdk.GAPlatform { *; }
+-keep class  com.gameanalytics.sdk.GAPlatform.** { *; }
+-keep class android.net.ConnectivityManager.** { *; }
+-keep class com.google.android.instantapps.InstantApps { *; }
+-keepclassmembers class com.google.android.instantapps.InstantApps { *; }

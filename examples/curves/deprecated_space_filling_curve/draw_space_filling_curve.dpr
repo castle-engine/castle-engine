@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
 }
 
 { This is a simple demo of the recursive space filling curves implemented in the
-  CastleSpaceFillingCurves unit.
+  CastleInternalSpaceFillingCurves unit.
 
   Always run with at least 2 command-line params:
     curve-type (may be "peano" or "hilbert" for now)
@@ -37,15 +37,15 @@ program draw_space_filling_curve;
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils, CastleWindow, CastleUtils, CastleGLUtils, CastleParameters,
-  CastleImages, CastleVectors, Math, CastleSpaceFillingCurves, CastleStringUtils, CastleGLImages,
+  CastleImages, CastleVectors, Math, CastleInternalSpaceFillingCurves, CastleStringUtils, CastleGLImages,
   CastleKeysMouse, CastleColors;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   CurveImage: TRGBImage;
 const
-  CurveCol: TVector3Byte = (Data: (255, 255, 255));
-  CurveImageBGCol: TVector4Byte = (Data: (0, 0, 0, 0));
+  CurveCol: TVector3Byte = (X: 255; Y: 255; Z: 255);
+  CurveImageBGCol: TVector4Byte = (X: 0; Y: 0; Z: 0; W: 0);
 
 { CastleWindow callbacks ------------------------------------------------------- }
 
@@ -120,7 +120,7 @@ var
   InitialOrient: boolean; { default value depends on DoPeano }
   StepsResolution, AllStepsCount: Cardinal;
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   { parse params }
   if Parameters.High >= 1 then

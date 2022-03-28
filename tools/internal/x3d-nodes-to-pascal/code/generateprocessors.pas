@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -77,6 +77,7 @@ type
     GenerateMore: boolean;
     { Set TSFFloat/TMFFloat.Angle (to make it treated as an angle for UNIT conversions. }
     Angle: Boolean;
+    WeakLink: Boolean;
     constructor Create;
     destructor Destroy; override;
     function AccessType: TX3DAccessType;
@@ -100,6 +101,9 @@ type
 
     { Field is SFString / MFString with a strictly limited set of values. }
     function IsEnumString: Boolean;
+
+    { Field type is numeric, and range indicates it must be >= 0. }
+    function MustBeNonnegative: Boolean;
 
     { Call when the field is completely parsed, e.g. Range is known. }
     procedure Finished;
@@ -207,6 +211,10 @@ begin
       FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangeAlways := ' + Field.ChangeAlways + ';' + NL;
       if Field.Angle then
         FieldConfigure += '   ' + Field.PascalNamePrefixed + '.Angle := true;' + NL;
+      if Field.MustBeNonnegative then
+        FieldConfigure += '   ' + Field.PascalNamePrefixed + '.MustBeNonnegative := true;' + NL;
+      if Field.WeakLink then
+        FieldConfigure += '   ' + Field.PascalNamePrefixed + '.WeakLink := true;' + NL;
       FieldExposed := BoolToStr(Field.AccessType = atInputOutput, true);
 
       if Field.Comment <> '' then
@@ -592,7 +600,10 @@ begin
       the difference here. }
     if (DefaultValue <> 'NULL') and
        (DefaultValue <> '[]') then
-      raise EInvalidSpecificationFile.Create('Invalid default SFNode / MFNode value: ' + DefaultValue);
+      raise EInvalidSpecificationFile.CreateFmt('Invalid default SFNode / MFNode value for "%s": %s', [
+        X3DName,
+        DefaultValue
+      ]);
 
     if IsPrefix('[', Range, false) or
        IsSuffix(']', Range, false) then
@@ -610,6 +621,19 @@ begin
       end;
     finally FreeAndNil(AllowedChildrenNodesSplitted) end;
   end;
+end;
+
+function TX3DFieldInformation.MustBeNonnegative: Boolean;
+begin
+  Result :=
+    (
+      (X3DType = 'SFFloat') or
+      (X3DType = 'SFLong') or
+      (X3DType = 'SFInt32')
+    ) and (
+      (Range = '(0,Inf)') or
+      (Range = '[0,Inf)')
+    );
 end;
 
 { TProcessor ----------------------------------------------------------------- }
@@ -937,6 +961,13 @@ begin
           begin
             ValidatePerFieldCommand('angle');
             LastField.Angle := true;
+          end else
+
+          if (Tokens.Count = 1) and
+             (Tokens[0] = 'weak-link') then
+          begin
+            ValidatePerFieldCommand('weak-link');
+            LastField.WeakLink := true;
           end else
 
           if (Tokens.Count = 2) and

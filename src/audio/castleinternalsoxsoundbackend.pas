@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -77,7 +77,7 @@ type
   private
     SoxCommand: String;
   public
-    function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
+    function ContextOpen(const ADevice: String; out Information, InformationSummary: String): Boolean; override;
     procedure ContextClose; override;
     function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
@@ -214,7 +214,7 @@ end;
 { TSoxSoundEngineBackend -------------------------------------------------- }
 
 function TSoxSoundEngineBackend.ContextOpen(const ADevice: String;
-  out Information: String): Boolean;
+  out Information, InformationSummary: String): Boolean;
 var
   SoxVersion: String;
 begin
@@ -222,11 +222,13 @@ begin
   if SoxCommand = '' then
   begin
     Information := 'SOX executable not found on $PATH';
+    InformationSummary := Information;
     Exit(false);
   end;
   if not RunCommand(SoxCommand, ['--version'], SoxVersion) then
   begin
     Information := 'Failed to execute SOX executable with --version';
+    InformationSummary := Information;
     Exit(false);
   end;
 
@@ -236,6 +238,7 @@ begin
   Information := 'SOX command found:' + NL +
     'Executable path: ' + SoxCommand + NL +
     'Version: ' + SoxVersion;
+  InformationSummary := 'SOX ' + SoxVersion;
 end;
 
 procedure TSoxSoundEngineBackend.ContextClose;

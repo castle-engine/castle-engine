@@ -2,9 +2,9 @@
 <build_gradle_merge>
   <!-- https://docs.tenjin.com/en/send-events/android.html -->
   <dependencies>
-    <!--dependency>compile project(":tenjin")</dependency-->
+    <!--dependency>implementation project(":tenjin")</dependency-->
     <!-- This works better in CGE -->
-    <dependency>compile(name:'tenjin', ext:'aar')</dependency>
+    <dependency>implementation(name:'tenjin', ext:'aar')</dependency>
 
     <!-- Tenjin docs say to use any version: https://docs.tenjin.com/en/send-events/android.html
          We use version matching our google_analytics service.

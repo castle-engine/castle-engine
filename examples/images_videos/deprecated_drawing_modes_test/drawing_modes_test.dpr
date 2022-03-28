@@ -33,7 +33,7 @@ type
   end;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
   { Fills Window background with a simple color.
     Add all the other controls as children of this. }
@@ -161,7 +161,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Background := TCastleRectangleControl.Create(Application);
   Background.FullSize := true;

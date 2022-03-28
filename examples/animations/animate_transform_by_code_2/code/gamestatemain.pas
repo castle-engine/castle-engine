@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -114,7 +114,7 @@ begin
     for J := 0 to YCount - 1 do
     begin
       T := Transform[I, J].Translation;
-      T[2] := 2 *
+      T.Z := 2 *
         Sin(I / 2 + Time) *
         Cos(J / 2 + Time);
       Transform[I, J].Translation := T;
