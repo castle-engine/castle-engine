@@ -1234,6 +1234,7 @@ begin
   FCurrentViewportObserver := TFreeNotificationObserver.Create(Self);
   FCurrentViewportObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CurrentViewportFreeNotification;
 
+  // needed to set right action state maybe lazarus bug?
   ActionPhysicsPauseSimulation.Update;
 end;
 
