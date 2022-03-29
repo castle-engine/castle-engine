@@ -33,7 +33,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="7">
+    <Units Count="8">
       <Unit0>
         <Filename Value="physics_simulation_in_editor.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -45,6 +45,7 @@
       <Unit2>
         <Filename Value="code/gamestatemain.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="GameStateMain"/>
       </Unit2>
       <Unit3>
         <Filename Value="code/gameinitialize.pas"/>
@@ -53,15 +54,23 @@
       <Unit4>
         <Filename Value="code/abstracttimedurationbehavior.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="AbstractTimeDurationBehavior"/>
       </Unit4>
       <Unit5>
         <Filename Value="code/addvelocitybehavior.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="AddVelocityBehavior"/>
       </Unit5>
       <Unit6>
         <Filename Value="code/addforcebehavior.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="AddForceBehavior"/>
       </Unit6>
+      <Unit7>
+        <Filename Value="code/serializedvectors.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SerializedVectors"/>
+      </Unit7>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
