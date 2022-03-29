@@ -65,6 +65,9 @@ procedure TAbstractTimeDurationBehavior.Update(const SecondsPassed: Single;
 begin
   inherited Update(SecondsPassed, RemoveMe);
 
+  if not World.IsPhysicsRunning then
+    Exit;
+
   if ShouldStart then
     FExpiredDurationTime := FExpiredDurationTime + SecondsPassed
   else

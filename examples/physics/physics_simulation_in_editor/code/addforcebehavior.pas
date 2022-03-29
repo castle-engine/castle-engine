@@ -87,6 +87,9 @@ var
 begin
   inherited Update(SecondsPassed, RemoveMe);
 
+  if not World.IsPhysicsRunning then
+    Exit;
+
   if OneShot then
   begin
     if Shoted then
@@ -103,7 +106,6 @@ begin
     RigidBody.AddForce(Force, Position);
     RigidBody.WakeUp;
   end;
-
 end;
 
 initialization
