@@ -438,6 +438,15 @@ begin
   Result := PointCollision2D(Point, nil);
 end;
 
+function TCastleAbstractRootTransform.IsPhysicsRunning: Boolean;
+begin
+  Result := (EnablePhysics and (FKraftEngine <> nil) and
+    ( (CastleDesignMode = false) or
+      (CastleDesignMode and (CastleDesignPhysicsMode = pmPlaying))
+    )
+  );
+end;
+
 function TCastleAbstractRootTransform.WorldHeight(const APosition: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin

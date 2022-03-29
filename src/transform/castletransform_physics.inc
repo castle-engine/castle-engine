@@ -2353,10 +2353,7 @@ begin
     Exit;
   UpdateFrameId := TFramesPerSecond.FrameId;
 
-  if EnablePhysics and (FKraftEngine <> nil) and
-    ( (CastleDesignMode = false) or
-      (CastleDesignMode and (CastleDesignPhysicsMode = pmPlaying))
-    ) then
+  if IsPhysicsRunning then
   begin
     FrameProfiler.Start(fmUpdatePhysics);
 
