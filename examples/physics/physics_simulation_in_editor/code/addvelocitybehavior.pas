@@ -94,7 +94,7 @@ begin
   if RigidBody <> nil then
   begin
     //RigidBody.LinearVelocity := RigidBody.LinearVelocity + DeltaVelocity;
-    RigidBody.LinearVelocity := RigidBody.LinearVelocity + DVelocity.GetVector3^;
+    RigidBody.LinearVelocity := RigidBody.LinearVelocity + DVelocity.GetPVector3^;
   end;
 end;
 
