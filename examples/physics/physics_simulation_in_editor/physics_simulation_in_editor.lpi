@@ -33,7 +33,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="11">
       <Unit0>
         <Filename Value="physics_simulation_in_editor.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -71,6 +71,21 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="SerializedVectors"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="code/gravityforcebehavior.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GravityForceBehavior"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="code/forcebehavior.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ForceBehavior"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="code/windforcebehavior.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="WindForceBehavior"/>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
