@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="physics-simulation-in-editor"
+  standalone_source="physics_simulation_in_editor.dpr"
+  game_units="GameInitialize"
+  qualified_name="com.mycompany.physicssimulationineditor"
+  caption="Physics Simulation In Editor"
+  editor_units="AddForceBehavior,AddVelocityBehavior"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>
