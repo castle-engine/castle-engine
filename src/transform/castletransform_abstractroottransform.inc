@@ -238,6 +238,10 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
 
+    { Check all conditions (EnablePhysics, CastleDesignPhysicsMode) to find out
+      is physics running. }
+    function IsPhysicsRunning: Boolean;
+
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
     property EnablePhysics: boolean read FEnablePhysics write FEnablePhysics
