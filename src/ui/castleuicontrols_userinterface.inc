@@ -565,13 +565,37 @@
       if possible. }
     procedure InsertControl(const Index: Integer; const NewItem: TCastleUserInterface);
 
-    { Remove control added by @link(InsertFront) or @link(InsertBack). }
+    { Remove control added by @link(InsertFront) or @link(InsertBack).
+
+      Note that this method @italic(does not) free the Item instance.
+      This method merely removes Item from our controls,
+      so that Item is no longer rendered as part of this parent.
+      It is still the caller's responsibility to make sure the Item is freed
+      at some point.
+
+      See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
+      for description how to free instances in Pascal.
+      As TCastleUserInterface descends from TComponent, a simple and proper solution
+      is often just to create it with some "owner" (like @link(TUIState.FreeAtStop) or @link(Application))
+      that will take care of freeing it. }
     procedure RemoveControl(const Item: TCastleUserInterface);
 
     { Index of child control, or -1 if not present. }
     function IndexOfControl(const Item: TCastleUserInterface): Integer;
 
-    { Remove all child controls added by @link(InsertFront) or @link(InsertBack). }
+    { Remove all child controls added by @link(InsertFront) or @link(InsertBack).
+
+      Note that, just like @link(RemoveControl), this method @italic(does not) free
+      the children controls. This method merely removes children controls,
+      so they are no longer rendered as part of the parent.
+      It is still the caller's responsibility to make sure the children controls
+      are freed at some point.
+
+      See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
+      for description how to free instances in Pascal.
+      As TCastleUserInterface descends from TComponent, a simple and proper solution
+      is often just to create it with some "owner" (like @link(TUIState.FreeAtStop) or @link(Application))
+      that will take care of freeing it. }
     procedure ClearControls;
 
     {$ifdef FPC}
