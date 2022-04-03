@@ -1,9 +1,18 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
+# ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
+#
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # (but without IFS modification, deliberately, we want to split on space).
+#
+# Requires a few Unix utilities, like
+# - make, sed
+# - and fpc, lazbuild on $PATH
+#
+# Works on Linux, Windows (with Cygwin), FreeBSD (install GNU make and sed).
+# ----------------------------------------------------------------------------
 
 OUTPUT_DIRECTORY=`pwd`
 VERBOSE=false
@@ -32,10 +41,16 @@ detect_platform ()
 
   MAKE='make'
   FIND='find'
+  SED='sed'
 
   if which cygpath.exe > /dev/null; then
     MAKE='/bin/make' # On Cygwin, make sure to use Cygwin's make, not the one from Embarcadero
     FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
+  fi
+
+  if [ "`uname -s`" '=' 'FreeBSD' ]; then
+    MAKE='gmake'
+    SED='gsed'
   fi
 }
 
@@ -61,7 +76,7 @@ prepare_build_tool ()
   fi
   FOUND_CGE_BUILD_TOOL="`which castle-engine${HOST_EXE_EXTENSION}`"
   # remove double slashes, may happen in which output because the $PATH component we added ends with slash
-  FOUND_CGE_BUILD_TOOL="`echo -n \"${FOUND_CGE_BUILD_TOOL}\" | sed -e 's|//|/|' -`"
+  FOUND_CGE_BUILD_TOOL="`echo -n \"${FOUND_CGE_BUILD_TOOL}\" | $SED -e 's|//|/|' -`"
   EXPECTED_CGE_BUILD_TOOL="${BIN_TEMP_PATH}castle-engine${HOST_EXE_EXTENSION}"
   if [ "${FOUND_CGE_BUILD_TOOL}" '!=' "${EXPECTED_CGE_BUILD_TOOL}" ]; then
     echo "pack_release: Unexpected CGE build tool on \$PATH: found ${FOUND_CGE_BUILD_TOOL}, expected ${EXPECTED_CGE_BUILD_TOOL}"
