@@ -44,14 +44,6 @@ interface
 const
   ZLIB_VERSION = '1.1.3';
 
-  ZLibraryName =
-    {$ifdef UNIX}
-      {$ifdef DARWIN} 'libz.dylib'
-      {$else} 'libz.so.1'
-      {$endif}
-    {$endif}
-    {$ifdef MSWINDOWS} 'zlib1.dll' {$endif};
-
 type
   { Compatible with paszlib }
   { }
@@ -235,8 +227,22 @@ begin
 end;
 
 procedure ZLibInitialization;
+const
+  ZLibraryName =
+    {$ifdef UNIX}
+      {$ifdef DARWIN} 'libz.dylib'
+      {$else} 'libz.so.1'
+      {$endif}
+    {$endif}
+    {$ifdef MSWINDOWS} 'zlib1.dll' {$endif};
 begin
   ZLibrary := TDynLib.Load(ZLibraryName, false);
+
+  {$ifdef FREEBSD}
+  if ZLibrary = nil then
+    ZLibrary := TDynLib.Load('libz.so.6', false);
+  {$endif}
+
   if ZLibrary <> nil then
   begin
     Pointer({$ifndef FPC}@{$endif} zlibVersionpchar) := ZLibrary.Symbol('zlibVersion');
@@ -280,11 +286,13 @@ begin
     Pointer({$ifndef FPC}@{$endif} zErrorpchar) := ZLibrary.Symbol('zError');
     Pointer({$ifndef FPC}@{$endif} inflateSyncPoint) := ZLibrary.Symbol('inflateSyncPoint');
     Pointer({$ifndef FPC}@{$endif} get_crc_table) := ZLibrary.Symbol('get_crc_table');
+
+    WritelnLog('ZLib detected (version %s).', [zlibVersionpchar()]);
   end;
 
   if not CastleZLibInitialized then
     WritelnWarning('Initializing dynamic Zlib library failed.' + NL +
-      '  Note that it will also cause failures to initialize libraries that require Zlib, like LibPng.'
+      '  Note that it may also cause failures to initialize libraries that require Zlib, like LibPng.'
       {$ifdef MSWINDOWS} +
       NL +
       '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
