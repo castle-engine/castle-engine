@@ -9,9 +9,11 @@ varying mat3 castle_tangent_to_eye_space;
   #ifndef castle_normal_map_defined
   #define castle_normal_map_defined
   uniform sampler2D castle_normal_map;
+  uniform float castle_normalScale;
   #endif
 #else
   uniform sampler2D castle_normal_map;
+  uniform float castle_normalScale;
 #endif
 
 // avoid redeclaring for GL_ES
@@ -25,6 +27,8 @@ void PLUG_fragment_eye_space(const vec4 vertex, inout vec3 normal_eye_fragment)
   // Unpack normals, they are in texture in [0..1] range and we want in [-1..1].
   vec3 normal_tangent = texture2D(castle_normal_map,
     castle_TexCoord<NormalMapTextureCoordinatesId>.st).xyz * 2.0 - vec3(1.0);
+
+  normal_tangent *= vec3(castle_normalScale, castle_normalScale, 1.0);
 
   /* We have to take two-sided lighting into account here, in tangent space.
      Simply negating whole normal in eye space (like we do without bump mapping)

@@ -36,6 +36,8 @@
     procedure SetNormalTexture(const Value: TAbstractTexture2DNode);
     function GetNormalTextureMapping: String;
     procedure SetNormalTextureMapping(const Value: String);
+    function GetNormalScale: Single;
+    procedure SetNormalScale(const Value: Single);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -69,6 +71,12 @@
     public property FdNormalTextureMapping: TSFString read FFdNormalTextureMapping;
     { X3D field "normalTextureMapping". } { }
     property NormalTextureMapping: String read GetNormalTextureMapping write SetNormalTextureMapping;
+
+    strict private FFdNormalScale: TSFFloat;
+    { X3D field "normalScale". } { }
+    public property FdNormalScale: TSFFloat read FFdNormalScale;
+    { X3D field "normalScale". } { }
+    property NormalScale: Single read GetNormalScale write SetNormalScale;
 
 {$endif read_interface}
 
@@ -132,6 +140,16 @@ begin
   FdNormalTextureMapping.Send(Value);
 end;
 
+function TAbstractOneSidedMaterialNode.GetNormalScale: Single;
+begin
+  Result := FdNormalScale.Value;
+end;
+
+procedure TAbstractOneSidedMaterialNode.SetNormalScale(const Value: Single);
+begin
+  FdNormalScale.Send(Value);
+end;
+
 class function TAbstractOneSidedMaterialNode.ClassX3DType: String;
 begin
   Result := 'X3DOneSidedMaterialNode';
@@ -160,6 +178,11 @@ begin
   FFdNormalTextureMapping := TSFString.Create(Self, True, 'normalTextureMapping', '');
    FdNormalTextureMapping.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdNormalTextureMapping);
+
+  FFdNormalScale := TSFFloat.Create(Self, True, 'normalScale', 1);
+   FdNormalScale.ChangeAlways := chEverything;
+   FdNormalScale.MustBeNonnegative := true;
+  AddField(FFdNormalScale);
 
   DefaultContainerField := 'material';
 end;

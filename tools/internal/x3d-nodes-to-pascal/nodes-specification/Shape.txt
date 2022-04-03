@@ -29,6 +29,9 @@ X3DOneSidedMaterialNode : X3DMaterialNode {
     range: X3DTexture2DNode
     change: chEverything
   SFString [in,out] normalTextureMapping    ""
+  SFFloat  [in,out] normalScale             1
+    range: [0,Inf)
+    change: chEverything
 }
 
 X3DShapeNode : X3DChildNode, X3DBoundedObject {

@@ -407,6 +407,7 @@ type
     FBumpMapping: TBumpMapping;
     FNormalMapTextureCoordinatesId: Cardinal;
     FNormalMapTextureUnit: Cardinal;
+    FNormalMapScale: Single;
     FHeightMapInAlpha: boolean;
     FHeightMapScale: Single;
     FSurfaceTextureShaders: array [TSurfaceTexture] of TSurfaceTextureShader;
@@ -609,6 +610,7 @@ type
     procedure EnableAlphaTest(const AlphaCutoff: Single);
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
       const NormalMapTextureUnit, NormalMapTextureCoordinatesId: Cardinal;
+      const NormalMapScale: Single;
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
     procedure EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
       const TextureUnit, TextureCoordinatesId: Cardinal;
@@ -2032,6 +2034,7 @@ begin
   FBumpMapping := Low(TBumpMapping);
   FNormalMapTextureUnit := 0;
   FNormalMapTextureCoordinatesId := 0;
+  FNormalMapScale := 1;
   FHeightMapInAlpha := false;
   FHeightMapScale := 0;
   for SurfaceTexture := Low(TSurfaceTexture) to High(TSurfaceTexture) do
@@ -2711,10 +2714,12 @@ var
   end;
 
 var
-  BumpMappingUniformName1: string;
-  BumpMappingUniformValue1: LongInt;
-  BumpMappingUniformName2: string;
-  BumpMappingUniformValue2: Single;
+  HasBumpMappingUniform_NormalMapTextureUnit: Boolean;
+  BumpMappingUniform_NormalMapTextureUnit: LongInt;
+  HasBumpMappingUniform_NormalMapScale: Boolean;
+  BumpMappingUniform_NormalMapScale: Single;
+  HasBumpMappingUniform_HeightMapScale: Boolean;
+  BumpMappingUniform_HeightMapScale: Single;
 
   procedure EnableShaderBumpMapping;
   var
@@ -2730,8 +2735,11 @@ var
     Plug(stVertex  , VertexShader);
     Plug(stFragment, FragmentShader);
 
-    BumpMappingUniformName1 := 'castle_normal_map';
-    BumpMappingUniformValue1 := FNormalMapTextureUnit;
+    HasBumpMappingUniform_NormalMapTextureUnit := true;
+    BumpMappingUniform_NormalMapTextureUnit := FNormalMapTextureUnit;
+
+    HasBumpMappingUniform_NormalMapScale := true;
+    BumpMappingUniform_NormalMapScale := FNormalMapScale;
 
     if FHeightMapInAlpha and (FBumpMapping >= bmParallax) then
     begin
@@ -2744,8 +2752,8 @@ var
       Plug(stVertex  , VertexShader);
       Plug(stFragment, FragmentShader);
 
-      BumpMappingUniformName2 := 'castle_parallax_bm_scale';
-      BumpMappingUniformValue2 := FHeightMapScale;
+      HasBumpMappingUniform_HeightMapScale := true;
+      BumpMappingUniform_HeightMapScale := FHeightMapScale;
 
       if (FBumpMapping >= bmSteepParallaxShadowing) and (LightShaders.Count > 0) then
       begin
@@ -2897,13 +2905,17 @@ var
                               TTextureShader(TextureShaders[I]).UniformValue);
     end;
 
-    if BumpMappingUniformName1 <> '' then
-      AProgram.SetUniform(BumpMappingUniformName1,
-                          BumpMappingUniformValue1);
+    if HasBumpMappingUniform_NormalMapTextureUnit then
+      AProgram.SetUniform('castle_normal_map',
+        BumpMappingUniform_NormalMapTextureUnit);
 
-    if BumpMappingUniformName2 <> '' then
-      AProgram.SetUniform(BumpMappingUniformName2,
-                          BumpMappingUniformValue2);
+    if HasBumpMappingUniform_NormalMapScale then
+      AProgram.SetUniform('castle_normalScale',
+        BumpMappingUniform_NormalMapScale);
+
+    if HasBumpMappingUniform_HeightMapScale then
+      AProgram.SetUniform('castle_parallax_bm_scale',
+        BumpMappingUniform_HeightMapScale);
 
     for SurfaceTexture := Low(TSurfaceTexture) to High(TSurfaceTexture) do
       if FSurfaceTextureShaders[SurfaceTexture].Enable then
@@ -2971,6 +2983,10 @@ var
   GeometryInputSize: string;
   I: Integer;
 begin
+  HasBumpMappingUniform_NormalMapTextureUnit := false;
+  HasBumpMappingUniform_NormalMapScale := false;
+  HasBumpMappingUniform_HeightMapScale := false;
+
   EnableLightingModel; // do this early, as later EnableLights may assume it's done
   RequireTextureCoordinateForSurfaceTextures;
   EnableTextures;
@@ -3485,11 +3501,13 @@ end;
 
 procedure TShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
   const NormalMapTextureUnit, NormalMapTextureCoordinatesId: Cardinal;
+  const NormalMapScale: Single;
   const HeightMapInAlpha: boolean; const HeightMapScale: Single);
 begin
   FBumpMapping := BumpMapping;
   FNormalMapTextureUnit := NormalMapTextureUnit;
   FNormalMapTextureCoordinatesId := NormalMapTextureCoordinatesId;
+  FNormalMapScale := NormalMapScale;
   FHeightMapInAlpha := HeightMapInAlpha;
   FHeightMapScale := HeightMapScale;
 
@@ -3503,6 +3521,7 @@ begin
       383 * Ord(FHeightMapInAlpha)
     );
     FCodeHash.AddFloat(FHeightMapScale, 2203);
+    FCodeHash.AddFloat(FNormalMapScale, 2281);
   end;
 end;
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -131,7 +131,7 @@ procedure TGLRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
 
   procedure Enable(const NormalTexture: TAbstractTextureNode;
     NormalTextureCoordinatesId: Integer;
-    const ParallaxHeight: Single);
+    const NormalMapScale, ParallaxHeight: Single);
   var
     GLNormalTexture: TGLTextureId;
     { Does NormalTexture have alpha channel. }
@@ -153,7 +153,7 @@ procedure TGLRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
         ActiveTexture(ABoundTextureUnits);
         glBindTexture(GL_TEXTURE_2D, GLNormalTexture);
         Shader.EnableBumpMapping(BumpMapping, ABoundTextureUnits,
-          NormalTextureCoordinatesId, HasAlpha, ParallaxHeight);
+          NormalTextureCoordinatesId, NormalMapScale, HasAlpha, ParallaxHeight);
         Inc(ABoundTextureUnits);
 
         { There is no need to increase the ATexCoordsNeeded unconditionally.
@@ -182,6 +182,7 @@ begin
       Enable(
         SurfaceShader.NormalTexture,
         SurfaceShader.NormalTextureCoordinatesId,
+        1,
         SurfaceShader.NormalTextureParallaxHeight);
     end else
     if Shape.State.ShapeNode.Appearance <> nil then
@@ -193,10 +194,10 @@ begin
       begin
         MatOneSided := TAbstractOneSidedMaterialNode(Mat);
         Shape.Geometry.FindTextureMapping(MatOneSided.NormalTextureMapping, TexCoordIndex, true);
-        Enable(MatOneSided.NormalTexture, TexCoordIndex, 0.0);
+        Enable(MatOneSided.NormalTexture, TexCoordIndex, MatOneSided.NormalScale, 0.0);
       end else
       begin
-        Enable(Appearance.NormalMap, 0, Appearance.HeightMapScale);
+        Enable(Appearance.NormalMap, 0, 1, Appearance.HeightMapScale);
       end;
     end;
   end;

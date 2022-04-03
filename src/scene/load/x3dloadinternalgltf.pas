@@ -1248,6 +1248,9 @@ var
     Result.NormalTexture := NormalTexture;
     Result.NormalTextureMapping := NormalTextureMapping;
 
+    if not Material.NormalTexture.Empty then
+      Result.NormalScale := Material.NormalTexture.Scale;
+
     ReadTexture(Material.EmissiveTexture,
       EmissiveTexture, EmissiveTextureMapping);
     Result.EmissiveTexture := EmissiveTexture;
