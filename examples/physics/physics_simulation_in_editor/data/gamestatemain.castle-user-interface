@@ -119,6 +119,7 @@
           },
           {
             "$$ClassName" : "TCastleBox",
+            "Exists" : false,
             "Material" : "pmUnlit",
             "Name" : "SmallBox",
             "RenderOptions" : {
@@ -149,17 +150,15 @@
                 "Friction" : 1.0000000149011612E-001,
                 "Mass" : 1.0000000000000000E+000,
                 "Name" : "BoxCollider1",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Y" : 1.0000000000000000E+000
+                },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.0000000000000000E+000,
                   "Y" : 1.0000000000000000E+000,
                   "Z" : 1.0000000000000000E+000
-                },
-                "SizePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 2.0000000000000000E+001,
-                  "Y" : 2.0000000000000000E+001,
-                  "Z" : 2.0000000000000000E+001
                 }
               },
               {
@@ -229,6 +228,121 @@
                   "Y" : 1.1000000000000000E+002
                 },
                 "Name" : "AddCentralForceBehavior1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleBox",
+            "Material" : "pmUnlit",
+            "Name" : "SmallBoxImpulse",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "SizePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.0000000000000000E+001,
+              "Y" : 2.0000000000000000E+001,
+              "Z" : 2.0000000000000000E+001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.2000000000000000E+002
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "LockRotation" : [
+                ],
+                "LockTranslation" : [
+                ],
+                "Name" : "RigidBody10"
+              },
+              {
+                "$$ClassName" : "TCastleBoxCollider",
+                "Friction" : 1.0000000149011612E-001,
+                "Mass" : 1.0000000000000000E+000,
+                "Name" : "BoxCollider9",
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.0000000000000000E+000,
+                  "Y" : 1.0000000000000000E+000,
+                  "Z" : 1.0000000000000000E+000
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 2.0000000000000000E+001,
+                  "Y" : 2.0000000000000000E+001,
+                  "Z" : 2.0000000000000000E+001
+                }
+              },
+              {
+                "$$ClassName" : "TApplyImpulseBehavior",
+                "ImpulsePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 1.1000000000000000E+002
+                },
+                "Name" : "ApplyImpulseBehavior1",
+                "OneShot" : true,
+                "PositionPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.2000000000000000E+002
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleBox",
+            "Exists" : false,
+            "Material" : "pmUnlit",
+            "Name" : "SmallBoxCentral2",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "SizePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.0000000000000000E+001,
+              "Y" : 2.0000000000000000E+001,
+              "Z" : 2.0000000000000000E+001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.2000000000000000E+002
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "LockRotation" : [
+                ],
+                "LockTranslation" : [
+                ],
+                "Name" : "RigidBody11"
+              },
+              {
+                "$$ClassName" : "TCastleBoxCollider",
+                "Friction" : 1.0000000149011612E-001,
+                "Mass" : 1.0000000000000000E+000,
+                "Name" : "BoxCollider10",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Y" : 1.0000000000000000E+000
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.0000000000000000E+000,
+                  "Y" : 1.0000000000000000E+000,
+                  "Z" : 1.0000000000000000E+000
+                }
+              },
+              {
+                "$$ClassName" : "TAddCentralForceBehavior",
+                "DurationTime" : 2.0000000000000000E+001,
+                "ForcePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 1.1000000000000000E+002
+                },
+                "Name" : "AddCentralForceBehavior3"
               }
             ]
           },
