@@ -15,7 +15,7 @@ type
     FDurationTime: Single;
     FExpiredDurationTime: Single;
     FOneShot: Boolean;
-    FShoted: Boolean;
+    FWasShot: Boolean;
   protected
     function ShouldStart: Boolean;
     function ShouldStop: Boolean;
@@ -25,7 +25,7 @@ type
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
-    property WasShot: Boolean read FShoted;
+    property WasShot: Boolean read FWasShot;
 
   published
     property OneShot: Boolean read FOneShot write FOneShot default false;
@@ -49,7 +49,7 @@ end;
 
 procedure TAbstractTimeDurationBehavior.Shot;
 begin
-  FShoted := true;
+  FWasShot := true;
 end;
 
 constructor TAbstractTimeDurationBehavior.Create(AOwner: TComponent);
