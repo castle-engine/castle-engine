@@ -36,17 +36,7 @@ var
 begin
   inherited Update(SecondsPassed, RemoveMe);
 
-  if not World.IsPhysicsRunning then
-    Exit;
-
-  if OneShot then
-  begin
-    if WasShot then
-      Exit
-    else
-      Shot;
-  end else
-  if (not ShouldStart) or (ShouldStop) then
+  if not ShouldUpdate then
     Exit;
 
   for I := 0 to World.Count -1 do

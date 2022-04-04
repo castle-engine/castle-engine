@@ -19,6 +19,7 @@ type
   protected
     function ShouldStart: Boolean;
     function ShouldStop: Boolean;
+    function ShouldUpdate: Boolean;
     procedure Shot;
   public
     constructor Create(AOwner: TComponent); override;
@@ -45,6 +46,24 @@ end;
 function TAbstractTimeDurationBehavior.ShouldStop: Boolean;
 begin
   Result := FExpiredDurationTime >= FDurationTime;
+end;
+
+function TAbstractTimeDurationBehavior.ShouldUpdate: Boolean;
+begin
+  if not World.IsPhysicsRunning then
+    Exit(false);
+
+  if OneShot then
+  begin
+    if WasShot then
+      Exit(false)
+    else
+      Shot;
+  end else
+  if (not ShouldStart) or (ShouldStop) then
+    Exit(false);
+
+  Result := true;
 end;
 
 procedure TAbstractTimeDurationBehavior.Shot;
