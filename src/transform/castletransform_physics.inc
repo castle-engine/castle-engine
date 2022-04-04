@@ -541,7 +541,7 @@
     procedure AddForce(const Force, Position: TVector3);
 
     { Force is in local rigid body coordinate system (need WorldToLocal()) }
-    procedure AddCenterForce(const Force: TVector3);
+    procedure AddCenteralForce(const Force: TVector3);
 
     procedure ApplyImpulse(const Impulse, Point: TVector3);
 
@@ -2177,7 +2177,7 @@ begin
   FKraftBody.AddForceAtPosition(VectorToKraft(Force), VectorToKraft(Position));
 end;
 
-procedure TCastleRigidBody.AddCenterForce(const Force: TVector3);
+procedure TCastleRigidBody.AddCenteralForce(const Force: TVector3);
 begin
   FKraftBody.AddBodyForce(VectorToKraft(Force));
 end;
