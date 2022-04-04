@@ -2189,7 +2189,7 @@ end;
 
 procedure TCastleRigidBody.AddTorque(const Torque: TVector3);
 begin
-  FKraftBody.AddBodyTorque(VectorToKraft(Torque));
+  FKraftBody.AddWorldTorque(VectorToKraft(Torque));
 end;
 
 procedure TCastleRigidBody.WakeUp;
