@@ -533,6 +533,7 @@
               "Blue" : 0.0000000000000000E+000,
               "Green" : 0.0000000000000000E+000
             },
+            "Exists" : false,
             "Material" : "pmUnlit",
             "Name" : "ExplosionPoint",
             "Radius" : 1.0000000000000000E+001,
@@ -551,6 +552,33 @@
                 "DurationTime" : 1.0000000000000000E+000,
                 "Name" : "ExplosionBehavior1",
                 "Value" : 1.5000000000000000E+002
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleSphere",
+            "CollisionSphereRadius" : 1.0000000000000000E+001,
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorPersistent",
+              "Green" : 0.0000000000000000E+000
+            },
+            "Material" : "pmUnlit",
+            "Name" : "GravityPoint",
+            "Radius" : 1.0000000000000000E+001,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.4602182006835938E+002,
+              "Y" : 8.0031204223632812E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TGravityForceBehavior",
+                "Name" : "GravityForceBehavior1",
+                "Value" : 1.0000000000000000E+002
               }
             ]
           },
