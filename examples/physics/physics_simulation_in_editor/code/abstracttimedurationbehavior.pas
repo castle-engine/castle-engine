@@ -25,7 +25,7 @@ type
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
-    property Shoted: Boolean read FShoted;
+    property WasShot: Boolean read FShoted;
 
   published
     property OneShot: Boolean read FOneShot write FOneShot default false;

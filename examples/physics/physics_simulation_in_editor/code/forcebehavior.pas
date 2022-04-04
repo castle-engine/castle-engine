@@ -39,7 +39,7 @@ begin
 
   if OneShot then
   begin
-    if Shoted then
+    if WasShot then
       Exit
     else
       Shot;
