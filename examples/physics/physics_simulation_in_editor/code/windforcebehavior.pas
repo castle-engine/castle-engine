@@ -24,7 +24,7 @@ type
 
 implementation
 
-{ TWindForceBehavior }
+{ TWindForceBehavior --------------------------------------------------------- }
 
 procedure TWindForceBehavior.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);

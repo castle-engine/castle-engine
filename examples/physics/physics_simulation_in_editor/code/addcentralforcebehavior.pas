@@ -30,7 +30,7 @@ type
 
 implementation
 
-{ TAddForceBehavior }
+{ TAddCentralForceBehavior --------------------------------------------------- }
 
 function TAddCentralForceBehavior.GetForceForPersistent: TVector3;
 begin

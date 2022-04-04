@@ -36,7 +36,7 @@ type
 
 implementation
 
-{ TAddForceBehavior }
+{ TApplyImpulseBehavior ------------------------------------------------------ }
 
 function TApplyImpulseBehavior.GetImpulseForPersistent: TVector3;
 begin

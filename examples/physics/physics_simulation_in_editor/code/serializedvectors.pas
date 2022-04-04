@@ -33,7 +33,7 @@ type
 
 implementation
 
-{ TSerializedVector3 }
+{ TSerializedVector3 --------------------------------------------------------- }
 
 function TSerializedVector3.GetX: Single;
 begin

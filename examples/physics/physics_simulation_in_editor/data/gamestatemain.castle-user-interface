@@ -233,6 +233,7 @@
           },
           {
             "$$ClassName" : "TCastleBox",
+            "Exists" : false,
             "Material" : "pmUnlit",
             "Name" : "SmallBoxImpulse",
             "RenderOptions" : {
@@ -263,17 +264,15 @@
                 "Friction" : 1.0000000149011612E-001,
                 "Mass" : 1.0000000000000000E+000,
                 "Name" : "BoxCollider9",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Y" : 1.0000000000000000E+000
+                },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.0000000000000000E+000,
                   "Y" : 1.0000000000000000E+000,
                   "Z" : 1.0000000000000000E+000
-                },
-                "SizePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 2.0000000000000000E+001,
-                  "Y" : 2.0000000000000000E+001,
-                  "Z" : 2.0000000000000000E+001
                 }
               },
               {
@@ -293,9 +292,8 @@
           },
           {
             "$$ClassName" : "TCastleBox",
-            "Exists" : false,
             "Material" : "pmUnlit",
-            "Name" : "SmallBoxCentral2",
+            "Name" : "SmallBoxTorque",
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions",
               "Name" : "RenderOptions"
@@ -324,25 +322,26 @@
                 "Friction" : 1.0000000149011612E-001,
                 "Mass" : 1.0000000000000000E+000,
                 "Name" : "BoxCollider10",
-                "RotationPersistent" : {
-                  "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "Y" : 1.0000000000000000E+000
-                },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.0000000000000000E+000,
                   "Y" : 1.0000000000000000E+000,
                   "Z" : 1.0000000000000000E+000
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 2.0000000000000000E+001,
+                  "Y" : 2.0000000000000000E+001,
+                  "Z" : 2.0000000000000000E+001
                 }
               },
               {
-                "$$ClassName" : "TAddCentralForceBehavior",
-                "DurationTime" : 2.0000000000000000E+001,
-                "ForcePersistent" : {
+                "$$ClassName" : "TAddTorqueBehavior",
+                "Name" : "AddTorqueBehavior1",
+                "TorquePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "Y" : 1.1000000000000000E+002
-                },
-                "Name" : "AddCentralForceBehavior3"
+                  "Z" : 1.0000000000000000E+001
+                }
               }
             ]
           },

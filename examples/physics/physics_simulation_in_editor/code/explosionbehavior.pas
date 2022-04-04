@@ -24,7 +24,7 @@ type
 
 implementation
 
-{ TExplosionBehavior }
+{ TExplosionBehavior --------------------------------------------------------- }
 
 procedure TExplosionBehavior.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);

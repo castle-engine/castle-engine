@@ -30,7 +30,7 @@ type
 
 implementation
 
-{ TAddVelocityBehavior }
+{ TAddVelocityBehavior ------------------------------------------------------- }
 
 {
 procedure TAddVelocityBehavior.SetDeltaVelocity(const AValue: TVector3);

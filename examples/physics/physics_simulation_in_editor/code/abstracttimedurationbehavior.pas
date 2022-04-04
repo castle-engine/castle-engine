@@ -36,7 +36,7 @@ type
 
 implementation
 
-{ TAbstractTimeDurationBehavior }
+{ TAbstractTimeDurationBehavior ---------------------------------------------- }
 
 function TAbstractTimeDurationBehavior.ShouldStart: Boolean;
 begin

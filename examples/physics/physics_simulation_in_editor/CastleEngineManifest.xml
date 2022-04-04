@@ -4,7 +4,7 @@
   game_units="GameInitialize"
   qualified_name="com.mycompany.physicssimulationineditor"
   caption="Physics Simulation In Editor"
-  editor_units="AddForceBehavior,AddCentralForceBehavior,AddVelocityBehavior,ApplyImpulseBehavior,ForceBehavior,GravityForceBehavior, ExplosionBehavior, WindForceBehavior"
+  editor_units="AddForceBehavior,AddCentralForceBehavior,AddVelocityBehavior,ApplyImpulseBehavior,AddTorqueBehavior,ForceBehavior,GravityForceBehavior, ExplosionBehavior, WindForceBehavior"
 >
   <compiler_options>
     <search_paths>

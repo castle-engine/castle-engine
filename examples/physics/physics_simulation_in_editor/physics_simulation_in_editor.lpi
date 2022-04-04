@@ -33,7 +33,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="14">
+    <Units Count="15">
       <Unit0>
         <Filename Value="physics_simulation_in_editor.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -99,7 +99,13 @@
       <Unit13>
         <Filename Value="code/applyimpulsebehavior.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ApplyImpulseBehavior"/>
       </Unit13>
+      <Unit14>
+        <Filename Value="code/addtorquebehavior.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="AddTorqueBehavior"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

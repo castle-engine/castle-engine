@@ -24,7 +24,7 @@ type
 
 implementation
 
-{ TForceBehavior }
+{ TForceBehavior ------------------------------------------------------------- }
 
 procedure TForceBehavior.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);

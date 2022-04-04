@@ -36,7 +36,7 @@ type
 
 implementation
 
-{ TAddForceBehavior }
+{ TAddForceBehavior ---------------------------------------------------------- }
 
 function TAddForceBehavior.GetForceForPersistent: TVector3;
 begin

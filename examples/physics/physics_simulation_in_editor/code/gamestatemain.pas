@@ -11,7 +11,7 @@ uses Classes,
   CastleVectors, CastleUIState, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, AddForceBehavior,
   AddVelocityBehavior, ForceBehavior, GravityForceBehavior, ExplosionBehavior,
-  WindForceBehavior, AddCentralForceBehavior, ApplyImpulseBehavior;
+  WindForceBehavior, AddCentralForceBehavior, ApplyImpulseBehavior, AddTorqueBehavior;
 
 type
   { Main state, where most of the application logic takes place. }

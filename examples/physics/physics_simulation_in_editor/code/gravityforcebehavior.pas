@@ -24,7 +24,7 @@ type
 
 implementation
 
-{ TGravityForceBehavior }
+{ TGravityForceBehavior ------------------------------------------------------ }
 
 constructor TGravityForceBehavior.Create(AOwner: TComponent);
 begin
