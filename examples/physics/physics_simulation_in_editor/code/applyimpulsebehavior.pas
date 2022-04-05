@@ -91,7 +91,7 @@ begin
     Exit;
 
   RigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  if RigidBody <> nil then
+  if (RigidBody <> nil) and (RigidBody.Exists) then
   begin
     RigidBody.ApplyImpulse(Impulse, Position);
     RigidBody.WakeUp;

@@ -84,7 +84,7 @@ begin
     Exit;
 
   RigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  if RigidBody <> nil then
+  if (RigidBody <> nil) and (RigidBody.Exists) then
   begin
     { RigidBody.LinearVelocity := RigidBody.LinearVelocity + DeltaVelocity; }
     RigidBody.LinearVelocity := RigidBody.LinearVelocity + DVelocity.GetPVector3^;

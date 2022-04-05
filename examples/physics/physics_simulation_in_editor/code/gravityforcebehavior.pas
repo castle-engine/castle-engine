@@ -51,8 +51,11 @@ begin
     if Transform = Parent then
       continue;
 
+    if not Transform.Exists then
+      continue;
+
     RigidBody := Transform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if RigidBody <> nil then
+    if (RigidBody <> nil) and (RigidBody.Exists) then
     begin
       Direction := Parent.LocalToWorld(Parent.Translation) - Transform.LocalToWorld(Transform.Translation);
       Direction := Direction.Normalize;
