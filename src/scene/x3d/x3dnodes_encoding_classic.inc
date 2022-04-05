@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -261,7 +261,7 @@ begin
            NodeName := Lexer.TokenX3DName;
 
            {get appropriate node}
-           Result := Reader.Nodes.Bound(NodeName, UsedNodeFinished);
+           Result := Reader.Bound(NodeName, UsedNodeFinished, true);
            if (Result = nil) or (not UsedNodeFinished) then
            begin
              if Result = nil then

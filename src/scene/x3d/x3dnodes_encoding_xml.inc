@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -271,7 +271,7 @@ begin
     if XMLAttributeX3DName(Element, 'USE', NodeName) then
     begin
       { get appropriate node }
-      Result := Reader.Nodes.Bound(NodeName, UsedNodeFinished);
+      Result := Reader.Bound(NodeName, UsedNodeFinished, true);
       if (Result = nil) or (not UsedNodeFinished) then
       begin
         if Result = nil then

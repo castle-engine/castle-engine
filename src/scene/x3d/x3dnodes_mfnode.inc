@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -501,7 +501,7 @@ var
   Node: TX3DNode;
   UsedNodeFinished: boolean;
 begin
-  Node := (Reader as TX3DReaderNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
+  Node := (Reader as TX3DReaderNames).Bound(AttributeValue, UsedNodeFinished, true);
   if Node = nil then
   begin
     { NULL not allowed for MFNode, unlike the SFNode }

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -347,7 +347,7 @@ begin
     (other values for SFNode / MFNode cannot be expressed inside
     the attribute). }
 
-  V := (Reader as TX3DReaderNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
+  V := (Reader as TX3DReaderNames).Bound(AttributeValue, UsedNodeFinished, true);
   if (V <> nil) and (not UsedNodeFinished) then
   begin
     WritelnWarning('X3D', Format('Cycles in X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));

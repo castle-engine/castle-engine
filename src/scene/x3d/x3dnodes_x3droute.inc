@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -375,9 +375,7 @@ begin
   UnsetEnding(Node, Event, DestEnding);
 
   try
-    N := Reader.Nodes.Bound(NodeName, IgnoreNodeFinished);
-    if N = nil then
-      N := Reader.Imported.Bound(NodeName, IgnoreNodeFinished);
+    N := Reader.Bound(NodeName, IgnoreNodeFinished, false);
     if N = nil then
       raise ERouteSetEndingError.CreateFmt('Route %s node name "%s" not found',
         [ DestEndingNames[DestEnding], NodeName ]);

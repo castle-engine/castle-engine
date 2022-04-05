@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -89,6 +89,11 @@
 
     procedure DoExport(E: TX3DExport);
     procedure DoImport(I: TX3DImport);
+
+    { Find node bound to given name. Looks in @link(Names) and @link(Imported).
+      Returns @nil if none. }
+    function Bound(const Name: string; out NodeFinished: Boolean;
+      const WarningIfImported: Boolean): TX3DNode;
   end;
 
 {$endif}
@@ -147,7 +152,7 @@ var
   ExportedNode: TX3DNode;
   IgnoreNodeFinished: boolean;
 begin
-  ExportedNode := Nodes.Bound(E.ExportedNodeName, IgnoreNodeFinished);
+  ExportedNode := Bound(E.ExportedNodeName, IgnoreNodeFinished, true);
   if ExportedNode = nil then
   begin
     WritelnWarning('VRML/X3D', Format('Exported node name "%s" not found', [E.ExportedNodeName]));
@@ -181,6 +186,20 @@ begin
   end;
 
   Imported.Bind(ImportedNode, true, I.ImportedNodeAlias);
+end;
+
+function TX3DReaderNames.Bound(const Name: string; out NodeFinished: Boolean;
+  const WarningIfImported: Boolean): TX3DNode;
+begin
+  Result := Nodes.Bound(Name, NodeFinished);
+  if Result = nil then
+  begin
+    Result := Imported.Bound(Name, NodeFinished);
+    if WarningIfImported and (Result <> nil) then
+      WritelnLog('Reusing imported node "%s". This is not allowed by the X3D specification, but is supported by Castle Game Engine', [
+        Name
+      ]);
+  end;
 end;
 
 {$endif}
