@@ -1157,6 +1157,14 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
     Result.ValueFont.Bold := true;
     Result.ShowGutter := false;
     Result.ReadOnlyColor := clWindowText;
+
+    if UseIconsAndColorsForDarkTheme then
+    begin
+      Result.GutterColor := $9EFFFF;
+      Result.ValueFont.Color := $9EFFFF;
+      Result.SubPropertiesColor := clWindowText;
+      Result.ReferencesColor := $9EFFFF;
+    end;
   end;
 
 begin
