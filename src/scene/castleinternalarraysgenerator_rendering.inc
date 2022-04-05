@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -206,6 +206,7 @@ begin
     if (Coord <> nil) and (Color.Count < Coord.Count) then
     begin
       WritelnWarning('VRML/X3D', 'Not enough colors specified for PointSet');
+      ColorNode := nil;
       Color := nil;
     end;
   end;
@@ -218,6 +219,7 @@ begin
     if (Coord <> nil) and (ColorRGBA.Count < Coord.Count) then
     begin
       WritelnWarning('VRML/X3D', 'Not enough colors specified for PointSet');
+      ColorNode := nil;
       ColorRGBA := nil;
     end;
   end;
