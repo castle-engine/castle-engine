@@ -208,8 +208,8 @@ strip-precompiled-libraries:
 # For GitHub Actions, we need to conserve disk space in some cases, as it is limited to ~15 GB.
 #
 # When CASTLE_CONSERVE_DISK_SPACE is
-# - defined -> prefixing command with $(DO_IF_CONSERVE_DISK_SPACE) makes this command execute.
-# - not defined -> prefixing command with $(DO_IF_CONSERVE_DISK_SPACE) makes this command not execute.
+# - true -> prefixing command with $(DO_IF_CONSERVE_DISK_SPACE) makes this command execute.
+# - anything else -> prefixing command with $(DO_IF_CONSERVE_DISK_SPACE) makes this command not execute.
 #
 ifeq ($(CASTLE_CONSERVE_DISK_SPACE),true)
 DO_IF_CONSERVE_DISK_SPACE:=

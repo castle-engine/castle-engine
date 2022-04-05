@@ -45,7 +45,7 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Examples (FPC Stable)
-        run: make clean examples
+        run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
 
   test-fpc-stable-examples-laz:
     name: Examples Using Lazarus (FPC / Lazarus Stable)
@@ -56,7 +56,7 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Examples Using Lazarus (FPC / Lazarus Stable)
-        run: make clean examples-laz
+        run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
   test-fpc-320:
     name: Base Tests (FPC 3.2.0)
@@ -82,7 +82,7 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Examples (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples CASTLE_CONSERVE_DISK_SPACE=true
 
   test-fpc-320-examples-laz:
     name: Examples Using Lazarus (FPC 3.2.0)
@@ -93,7 +93,7 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Examples Using Lazarus (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz
+        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
   test-fpc-latest-unstable:
     name: Base Tests (FPC Latest Unstable)
@@ -119,7 +119,7 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Examples (FPC Latest Unstable)
-        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples
+        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples CASTLE_CONSERVE_DISK_SPACE=true
 
   test-fpc-latest-unstable-examples-laz:
     name: Examples Using Lazarus (FPC Latest Unstable)
@@ -130,7 +130,7 @@ jobs:
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Examples Using Lazarus (FPC Latest Unstable)
-        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz
+        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
   pack:
     name: Pack to zip
