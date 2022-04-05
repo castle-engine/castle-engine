@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -145,7 +145,7 @@
         exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
     procedure LoadInlined(CanReload: boolean;
       const CurrentLengthConversionFactor: Float = 1.0;
-      Exported: TX3DNodeNames = nil);
+      const Exported: TX3DNodeNames = nil);
 
     procedure UnLoadInlined;
 
@@ -360,7 +360,27 @@ end;
 
 procedure TInlineNode.LoadInlined(CanReload: boolean;
   const CurrentLengthConversionFactor: Float;
-  Exported: TX3DNodeNames);
+  const Exported: TX3DNodeNames);
+
+  { Assign TX3DExportList contents to TX3DNodeNames.
+    This is done only after loading the X3D file,
+    as earlier the final names of X3D nodes are not yet finalized,
+    as FixNames may change them. }
+  procedure InitializeExported(const Target: TX3DNodeNames; const Source: TX3DExportList);
+  var
+    NodeName: String;
+    I: Integer;
+  begin
+    Target.Clear;
+    for I := 0 to Source.Count - 1 do
+    begin
+      NodeName := Source[I].ExportedAlias;
+      if NodeName = '' then
+        NodeName := Source[I].ExportedNode.X3DName;
+      Target.Bind(Source[I].ExportedNode, true, NodeName);
+    end;
+  end;
+
 var
   I: Integer;
   FullUrl: string;
@@ -396,7 +416,7 @@ begin
         FInlined := LoadNode(FullUrl);
         if (Exported <> nil) and
            (TX3DRootNode(FInlined).ExportedNames <> nil) then
-          Exported.Assign(TX3DRootNode(FInlined).ExportedNames);
+          InitializeExported(Exported, TX3DRootNode(FInlined).ExportedNames);
         Break;
       except
         on E: Exception do

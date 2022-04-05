@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2019 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -479,6 +479,16 @@ begin
   else
     raise Exception.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"',
       [MimeType, URIDisplay(BaseUrl)]);
+
+  if Result <> nil then
+  begin
+    { Fix names after loading (from any format -- X3D, glTF can have collisions in names),
+      to have non-unique names for accessing everything,
+      e.g. EXPORT statements should use correct (non-unique) names
+      to be IMPORTed.
+      Testcase: x3d-tests/gltf_inlined/avocado_and_exports/avocado_imported.x3dv . }
+    Result.InternalFixNodeNames;
+  end;
 end;
 
 function LoadScene_FileFilters: String;

@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -249,124 +249,6 @@ begin
   {$warnings on}
 end;
 
-{ TFixNamesHandler ----------------------------------------------------------- }
-
-type
-  TFixNamesHandler = class
-  strict private
-    Visited: TList;
-    Names: TCastleStringList;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    function HandleNode(ParentNode, Node: TX3DNode): Pointer;
-  end;
-
-constructor TFixNamesHandler.Create;
-begin
-  inherited;
-  Names := TCastleStringList.Create;
-  Names.CaseSensitive := true;
-  Visited := TList.Create;
-end;
-
-destructor TFixNamesHandler.Destroy;
-begin
-  FreeAndNil(Names);
-  FreeAndNil(Visited);
-  inherited;
-end;
-
-function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
-
-  { Change Node.X3DName to something not yet existing in Names.
-    This knows that Node.X3DName is <> '' and it exists in Names,
-    IOW on entry the Node is named, and the name is not unique. }
-  procedure RenameUniquely(const Node: TX3DNode);
-
-    procedure RenameUniquelyCore(const Node: TX3DNode; const Prefix: String; NextNumber: Int64);
-    begin
-      while Names.IndexOf(Prefix + IntToStr(NextNumber)) <> -1 do
-        Inc(NextNumber);
-      Node.X3DName := Prefix + IntToStr(NextNumber);
-    end;
-
-  var
-    I: Integer;
-    Number: Int64;
-  begin
-    I := BackPos('_', Node.X3DName);
-    if I <> 0 then
-    begin
-      Number := StrToIntDef(SEnding(Node.X3DName, I + 1), -1);
-      if Number >= 0 then
-        RenameUniquelyCore(Node, Copy(Node.X3DName, 1, I - 1), Number + 1)
-      else
-        RenameUniquelyCore(Node, Node.X3DName + '_', 2);
-    end else
-      RenameUniquelyCore(Node, Node.X3DName + '_', 2);
-  end;
-
-  { Assuming Node.X3DName <> '', make sure it is unique name. }
-  procedure MakeUniquelyNamed(const Node: TX3DNode);
-  var
-    I: Integer;
-  begin
-    I := Names.IndexOf(Node.X3DName);
-    if I = - 1 then
-    begin
-      // new name
-      Names.AddObject(Node.X3DName, Node);
-    end else
-    if Names.Objects[I] <> Node then
-    begin
-      // name already taken by a different node
-      RenameUniquely(Node);
-      Names.AddObject(Node.X3DName, Node);
-    end;
-  end;
-
-  { Make sure Node has a non-empty name, and unique name.
-    Given Node may be nil (it is ignored then). }
-  procedure MakeNamed(const Node: TX3DNode);
-  begin
-    if (Node <> nil) and (Node.X3DName = '') then
-    begin
-      Node.X3DName := Node.X3DType;
-      if Node.X3DName = '' then
-        Node.X3DName := 'Node';
-      MakeUniquelyNamed(Node);
-    end;
-  end;
-
-var
-  Route: TX3DRoute;
-  I: Integer;
-begin
-  Result := nil;
-
-  { early exit if this node was already visited,
-    to save time when traversing graph with DEF/USE. }
-  if Visited.IndexOf(Node) <> -1 then
-    Exit;
-  Visited.Add(Node);
-
-  { make sure node name is unique }
-  if Node.X3DName <> '' then
-    MakeUniquelyNamed(Node);
-
-  { make sure nodes used in ROUTEs and uniquely named }
-  for I := 0 to Node.RoutesCount - 1 do
-  begin
-    Route := Node.Routes[I];
-    MakeNamed(Route.SourceNode);
-    MakeNamed(Route.DestinationNode);
-  end;
-
-  { recursively check children }
-  Node.DirectEnumerateAll({$ifdef FPC}@{$endif} Self.HandleNode);
-end;
-
 { global routines ------------------------------------------------------------ }
 
 function Save3DWillConvertToX3D(Version: TX3DVersion;
@@ -384,17 +266,6 @@ procedure Save3D(Node: TX3DNode;
   const ForceConvertingToX3D: boolean);
 var
   Writer: TX3DWriterNames;
-
-  procedure FixNames;
-  var
-    Handler: TFixNamesHandler;
-  begin
-    Handler := TFixNamesHandler.Create;
-    try
-      Handler.HandleNode(nil, Node);
-      Node.DirectEnumerateAll({$ifdef FPC}@{$endif} Handler.HandleNode);
-    finally FreeAndNil(Handler) end;
-  end;
 
   procedure ConvertToX3D;
   begin
@@ -583,8 +454,6 @@ var
 begin
   if Save3DWillConvertToX3D(Version, Encoding, ForceConvertingToX3D) then
     ConvertToX3D;
-
-  FixNames;
 
   Writer := TX3DWriterNames.Create(Stream, Version, Encoding);
   try

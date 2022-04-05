@@ -22,7 +22,7 @@
     FNodes: TX3DNodeNames;
     FPrototypes: TX3DPrototypeNames;
     FImported: TX3DNodeNames;
-    FExported: TX3DNodeNames;
+    FExported: TX3DExportList;
     FImportable: TX3DImportableNames;
     procedure CommonCreate(const AAutoRemoveNodes: boolean);
   public
@@ -39,7 +39,8 @@
       from the outside), and sets them to @nil (to avoid releasing them
       at destruction). }
     procedure ExtractNames(out APrototypes: TX3DPrototypeNames;
-      out AExported, AImported: TX3DNodeNames);
+      out AExported: TX3DExportList;
+      out AImported: TX3DNodeNames);
 
     { Current namespace for DEF/USE.
 
@@ -65,14 +66,8 @@
       under which node was exported). }
     property Imported: TX3DNodeNames read FImported;
 
-    { Currently EXPORTed nodes from this scene.
-
-      The nodes on this list are "bound" to their
-      aliases, as this is the name under which they are visible for
-      the outside VRML scenes (that can import these nodes).
-      Alias is the identifier after the "AS" keyword in "EXPORT" declaration
-      (or, if no "AS xxx" clause, then alias is just normal node name). }
-    property Exported: TX3DNodeNames read FExported;
+    { Currently EXPORTed nodes from this scene. }
+    property Exported: TX3DExportList read FExported;
 
     { Currently loaded Inlines with importable nodes.
 
@@ -87,8 +82,11 @@
       corresponding to exported names within the inline. }
     property Importable: TX3DImportableNames read FImportable;
 
-    procedure DoExport(E: TX3DExport);
-    procedure DoImport(I: TX3DImport);
+    { Set E.ExportedNode based on ExportedNodeName,
+      and modify @link(Exported) list to handle the export. }
+    procedure DoExport(const E: TX3DExport; const ExportedNodeName: String);
+    { modify @link(Imported) list to handle the export. }
+    procedure DoImport(const I: TX3DImport);
 
     { Find node bound to given name. Looks in @link(Names) and @link(Imported).
       Returns @nil if none. }
@@ -121,7 +119,7 @@ begin
   FNodes := TX3DNodeNames.Create(AAutoRemoveNodes);
   FPrototypes := TX3DPrototypeNames.Create;
   FImported := TX3DNodeNames.Create(AAutoRemoveNodes);
-  FExported := TX3DNodeNames.Create(AAutoRemoveNodes);
+  FExported := TX3DExportList.Create(false); // do not own TX3DExport instances, they are owned by TX3DNode.Exports
   FImportable := TX3DImportableNames.Create;
 end;
 
@@ -136,7 +134,8 @@ begin
 end;
 
 procedure TX3DReaderNames.ExtractNames(out APrototypes: TX3DPrototypeNames;
-  out AExported, AImported: TX3DNodeNames);
+  out AExported: TX3DExportList;
+  out AImported: TX3DNodeNames);
 begin
   APrototypes := FPrototypes;
   AExported := FExported;
@@ -147,22 +146,21 @@ begin
   FImported := nil;
 end;
 
-procedure TX3DReaderNames.DoExport(E: TX3DExport);
+procedure TX3DReaderNames.DoExport(const E: TX3DExport; const ExportedNodeName: String);
 var
-  ExportedNode: TX3DNode;
   IgnoreNodeFinished: boolean;
 begin
-  ExportedNode := Bound(E.ExportedNodeName, IgnoreNodeFinished, true);
-  if ExportedNode = nil then
+  E.ExportedNode := Bound(ExportedNodeName, IgnoreNodeFinished, true);
+  if E.ExportedNode = nil then
   begin
-    WritelnWarning('VRML/X3D', Format('Exported node name "%s" not found', [E.ExportedNodeName]));
+    WritelnWarning('VRML/X3D', Format('Exported node name "%s" not found', [ExportedNodeName]));
     Exit;
   end;
 
-  Exported.Bind(ExportedNode, true, E.ExportedNodeAlias);
+  Exported.Add(E);
 end;
 
-procedure TX3DReaderNames.DoImport(I: TX3DImport);
+procedure TX3DReaderNames.DoImport(const I: TX3DImport);
 var
   ImportedNames: TX3DNodeNames;
   ImportedNamesIndex: Integer;

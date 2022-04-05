@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,12 +26,21 @@
     procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 
     procedure SaveToStream(Writer: TX3DWriter); override;
-    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DImport;
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DImport;
   end;
 
   TX3DExport = class(TX3DFileItem)
   public
-    ExportedNodeName, ExportedNodeAlias: string;
+    { Exported node.
+      Note that we store node reference, not just ExportedNodeName,
+      this way renaming the ExportedNode (e.g. by RenameUniquely during saving)
+      is properly reflected in wrtitten EXPORT statement. }
+    ExportedNode: TX3DNode;
+
+    { Name under which the EXPORTed node is available in outer files,
+      i.e. IMPORT statements should refer to this alias.
+      If empty, just use ExportedNode.X3DName. }
+    ExportedAlias: String;
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 
@@ -40,7 +49,12 @@
     procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 
     procedure SaveToStream(Writer: TX3DWriter); override;
-    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DExport;
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DExport;
+  end;
+
+  TX3DExportList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DExport>)
+  public
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DExportList;
   end;
 
 {$endif read_interface}
@@ -125,7 +139,7 @@ begin
   end;
 end;
 
-function TX3DImport.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DImport;
+function TX3DImport.DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DImport;
 begin
   Result := TX3DImport.Create;
   Result.InlineNodeName := InlineNodeName;
@@ -136,6 +150,8 @@ end;
 { TX3DExport ---------------------------------------------------------------- }
 
 procedure TX3DExport.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
+var
+  ExportedNodeName: String;
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'exported node name');
@@ -146,16 +162,18 @@ begin
   begin
     Lexer.NextToken;
     Lexer.CheckTokenIs(vtName, 'alias for exported node name');
-    ExportedNodeAlias := Lexer.TokenX3DName;
+    ExportedAlias := Lexer.TokenX3DName;
 
     Lexer.NextToken;
   end else
-    ExportedNodeAlias := ExportedNodeName;
+    ExportedAlias := '';
 
-  Reader.DoExport(Self);
+  Reader.DoExport(Self, ExportedNodeName);
 end;
 
 procedure TX3DExport.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
+var
+  ExportedNodeName: String;
 begin
   if not Element.AttributeString('localDEF', ExportedNodeName) then
   begin
@@ -163,27 +181,35 @@ begin
     Exit;
   end;
 
-  if not XMLAttributeX3DName(Element, 'AS', ExportedNodeAlias) then
-    ExportedNodeAlias := ExportedNodeName;
+  if not XMLAttributeX3DName(Element, 'AS', ExportedAlias) then
+    ExportedAlias := '';
 
-  Reader.DoExport(Self);
+  Reader.DoExport(Self, ExportedNodeName);
 end;
 
 procedure TX3DExport.SaveToStream(Writer: TX3DWriter);
 begin
+  if ExportedNode.X3DName = '' then
+  begin
+    WritelnWarning('Cannot export node %s with empty name', [ExportedNode.NiceName]);
+    Exit;
+  end;
+
   case Writer.Encoding of
     xeClassic:
       begin
-        Writer.WriteIndent('EXPORT ' + EncodeX3DName(ExportedNodeName));
-        if ExportedNodeName <> ExportedNodeAlias then
-          Writer.Write(' AS ' + EncodeX3DName(ExportedNodeAlias));
+        Writer.WriteIndent('EXPORT ' + EncodeX3DName(ExportedNode.X3DName));
+        if (ExportedAlias <> '') and
+           (ExportedNode.X3DName <> ExportedAlias) then
+          Writer.Write(' AS ' + EncodeX3DName(ExportedAlias));
         Writer.Writeln('');
       end;
     xeXML:
       begin
-        Writer.WriteIndent('<EXPORT localDEF=' + StringToX3DXml(EncodeX3DName(ExportedNodeName)));
-        if ExportedNodeName <> ExportedNodeAlias then
-          Writer.Write(' AS=' + StringToX3DXml(EncodeX3DName(ExportedNodeAlias)));
+        Writer.WriteIndent('<EXPORT localDEF=' + StringToX3DXml(EncodeX3DName(ExportedNode.X3DName)));
+        if (ExportedAlias <> '') and
+           (ExportedNode.X3DName <> ExportedAlias) then
+          Writer.Write(' AS=' + StringToX3DXml(EncodeX3DName(ExportedAlias)));
         Writer.Writeln(' />');
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
@@ -192,11 +218,23 @@ begin
   end;
 end;
 
-function TX3DExport.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DExport;
+function TX3DExport.DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DExport;
 begin
   Result := TX3DExport.Create;
-  Result.ExportedNodeName := ExportedNodeName;
-  Result.ExportedNodeAlias := ExportedNodeAlias;
+  Result.ExportedNode := CopyState.DeepCopy(ExportedNode);
+  Result.ExportedAlias := ExportedAlias;
+end;
+
+{ TX3DExportList ------------------------------------------------------------- }
+
+function TX3DExportList.DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DExportList;
+var
+  I: Integer;
+begin
+  Result := TX3DExportList.Create(false); // do not own TX3DExport instances, they are owned by TX3DNode.Exports
+  Result.Count := Count;
+  for I := 0 to Count - 1 do
+    Result[I] := Items[I].DeepCopy(CopyState);
 end;
 
 {$endif read_implementation}

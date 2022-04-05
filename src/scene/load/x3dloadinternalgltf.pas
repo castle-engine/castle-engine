@@ -832,6 +832,11 @@ var
   { List of TTransformNode nodes, ordered just list glTF nodes.
     Only initialized (non-nil and enough Count) for nodes that we created in ReadNode. }
   Nodes: TX3DNodeList;
+  { List of X3D nodes to be EXPORTed from the glTF scene,
+    so that outer X3D can IMPORT them and use.
+    Nodes with X3DName = '' on this list are ignored.
+    Everything on Appearances, Nodes, Animations is already EXPORTed too. }
+  ExportNodes: TX3DNodeList;
   DefaultAppearance: TGltfAppearanceNode;
   SkinsToInitialize: TSkinToInitializeList;
   Animations: TAnimationList;
@@ -1748,6 +1753,7 @@ var
     Group := TGroupNode.Create;
     Group.X3DName := Mesh.Name;
     ParentGroup.AddChildren(Group);
+    ExportNodes.Add(Group);
 
     ReadMetadata(Mesh.Extras, Group);
 
@@ -1780,6 +1786,8 @@ var
       ParentGroup.AddChildren(OrthoViewpoint);
 
       ReadMetadata(Camera.Extras, OrthoViewpoint);
+
+      ExportNodes.Add(OrthoViewpoint);
     end else
     begin
       Viewpoint := TViewpointNode.Create;
@@ -1792,6 +1800,8 @@ var
       ParentGroup.AddChildren(Viewpoint);
 
       ReadMetadata(Camera.Extras, Viewpoint);
+
+      ExportNodes.Add(Viewpoint);
     end;
   end;
 
@@ -2561,14 +2571,31 @@ var
       ReadSkin(SkinToInitialize, ParentGroup);
   end;
 
-  { EXPORT animations, so that using glTF animations in X3D is possible, like on
+  { EXPORT nodes, so that using glTF animations in X3D is possible, like on
     demo-models/blender/skinned_animation/skinned_anim_run_animations_from_x3d.x3dv }
-  procedure ExportAnimations;
+  procedure DoExportNodes;
   var
+    N: TX3DNode;
     Anim: TAnimation;
   begin
+    for N in ExportNodes do
+      if N.X3DName <> '' then
+        Result.ExportNode(N);
+
+    for N in Appearances do
+      if N.X3DName <> '' then
+        Result.ExportNode(N);
+
+    for N in Nodes do
+      if (N <> nil) and (N.X3DName <> '') then
+        Result.ExportNode(N);
+
     for Anim in Animations do
-      Result.ExportNode(Anim.TimeSensor);
+    begin
+      N := Anim.TimeSensor;
+      if N.X3DName <> '' then
+        Result.ExportNode(N);
+    end;
   end;
 
 var
@@ -2582,6 +2609,7 @@ begin
     DefaultAppearance := nil;
     Appearances := nil;
     Nodes := nil;
+    ExportNodes := nil;
     SkinsToInitialize := nil;
     Animations := nil;
     AnimationSampler := nil;
@@ -2594,6 +2622,7 @@ begin
       AnimationSampler := TAnimationSampler.Create;
       JointMatrix := TMatrix4List.Create;
       Lights := TPunctualLights.Create;
+      ExportNodes := TX3DNodeList.Create(false);
 
       ReadHeader;
       Lights.ReadHeader(Document);
@@ -2624,7 +2653,7 @@ begin
       for Animation in Document.Animations do
         ReadAnimation(Animation, Result);
       ReadSkins(Result);
-      ExportAnimations;
+      DoExportNodes;
     finally
       FreeAndNil(JointMatrix);
       FreeAndNil(Animations);
@@ -2643,6 +2672,7 @@ begin
         Still, X3DNodeList_FreeUnusedAndNil guarantees to handle it.
         Testcase: GLB from https://www.kenney.nl/assets/city-kit-suburban . }
       X3DNodeList_FreeUnusedAndNil(Nodes);
+      FreeAndNil(ExportNodes);
       FreeAndNil(Lights);
       FreeAndNil(Document);
     end;
@@ -2654,4 +2684,3 @@ end;
 {$endif}
 
 end.
-

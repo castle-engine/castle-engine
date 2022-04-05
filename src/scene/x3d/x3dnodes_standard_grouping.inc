@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -215,7 +215,8 @@
       FScale: Single;
   private
     FPrototypeNames: TX3DPrototypeNames;
-    FExportedNames, FImportedNames: TX3DNodeNames;
+    FExportedNames: TX3DExportList;
+    FImportedNames: TX3DNodeNames;
     procedure TopLevelCheckChild(const Child: TX3DNode);
   protected
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
@@ -287,7 +288,7 @@
 
     { Node names exported from the file by EXPORT keyword.
       Useful for importing them later, to handle IMPORT/EXPORT X3D mechanism. }
-    property ExportedNames: TX3DNodeNames read FExportedNames;
+    property ExportedNames: TX3DExportList read FExportedNames;
 
     { Node names imported into this file by the IMPORT keyword.
       You may want to take this into account when searching nodes by name,
@@ -313,6 +314,12 @@
     procedure ExportNode(const Node: TX3DNode; const ExportedAlias: string); overload;
     procedure ExportNode(const Node: TX3DNode); overload;
     { @groupEnd }
+
+    { @exclude
+      Fix X3D names inside to:
+      - make sure all TX3DNode.X3DName within Node are unique
+      - make sure all nodes that are part of ROUTE have non-empty names. }
+    procedure InternalFixNodeNames;
   end;
 
   { Children nodes which cannot be modified.
@@ -752,6 +759,131 @@ procedure TTransformFunctionality.ApplyTransform(var Transformation: TTransforma
 begin
 end;
 
+{ TFixNamesHandler ----------------------------------------------------------- }
+
+type
+  TFixNamesHandler = class
+  strict private
+    Visited: TList;
+    Names: TCastleStringList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function HandleNode(ParentNode, Node: TX3DNode): Pointer;
+  end;
+
+constructor TFixNamesHandler.Create;
+begin
+  inherited;
+  Names := TCastleStringList.Create;
+  Names.CaseSensitive := true;
+  Visited := TList.Create;
+end;
+
+destructor TFixNamesHandler.Destroy;
+begin
+  FreeAndNil(Names);
+  FreeAndNil(Visited);
+  inherited;
+end;
+
+function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
+
+  { Change Node.X3DName to something not yet existing in Names.
+    This knows that Node.X3DName is <> '' and it exists in Names,
+    IOW on entry the Node is named, and the name is not unique. }
+  procedure RenameUniquely(const Node: TX3DNode);
+
+    procedure RenameUniquelyCore(const Node: TX3DNode; const Prefix: String; NextNumber: Int64);
+    begin
+      while Names.IndexOf(Prefix + IntToStr(NextNumber)) <> -1 do
+        Inc(NextNumber);
+      Node.X3DName := Prefix + IntToStr(NextNumber);
+    end;
+
+  var
+    I: Integer;
+    Number: Int64;
+    OriginalName: String;
+  begin
+    OriginalName := Node.X3DName;
+    I := BackPos('_', Node.X3DName);
+    if I <> 0 then
+    begin
+      Number := StrToIntDef(SEnding(Node.X3DName, I + 1), -1);
+      if Number >= 0 then
+        RenameUniquelyCore(Node, Copy(Node.X3DName, 1, I - 1), Number + 1)
+      else
+        RenameUniquelyCore(Node, Node.X3DName + '_', 2);
+    end else
+      RenameUniquelyCore(Node, Node.X3DName + '_', 2);
+
+    WritelnLog('Renaming node "%s" -> "%s" to have unique name', [
+      OriginalName,
+      Node.X3DName
+    ]);
+  end;
+
+  { Assuming Node.X3DName <> '', make sure it is unique name. }
+  procedure MakeUniquelyNamed(const Node: TX3DNode);
+  var
+    I: Integer;
+  begin
+    I := Names.IndexOf(Node.X3DName);
+    if I = - 1 then
+    begin
+      // new name
+      Names.AddObject(Node.X3DName, Node);
+    end else
+    if Names.Objects[I] <> Node then
+    begin
+      // name already taken by a different node
+      RenameUniquely(Node);
+      Names.AddObject(Node.X3DName, Node);
+    end;
+  end;
+
+  { Make sure Node has a non-empty name, and unique name.
+    Given Node may be nil (it is ignored then). }
+  procedure MakeNamed(const Node: TX3DNode);
+  begin
+    if (Node <> nil) and (Node.X3DName = '') then
+    begin
+      Node.X3DName := Node.X3DType;
+      if Node.X3DName = '' then
+        Node.X3DName := 'Node';
+      MakeUniquelyNamed(Node);
+    end;
+  end;
+
+var
+  Route: TX3DRoute;
+  I: Integer;
+begin
+  Result := nil;
+
+  { early exit if this node was already visited,
+    to save time when traversing graph with DEF/USE. }
+  if Visited.IndexOf(Node) <> -1 then
+    Exit;
+  Visited.Add(Node);
+
+  { make sure node name is unique }
+  if Node.X3DName <> '' then
+    MakeUniquelyNamed(Node);
+
+  { make sure nodes used in ROUTEs are uniquely named }
+  for I := 0 to Node.RoutesCount - 1 do
+  begin
+    Route := Node.Routes[I];
+    MakeNamed(Route.SourceNode);
+    MakeNamed(Route.DestinationNode);
+  end;
+
+  { recursively check children }
+  Node.DirectEnumerateAll({$ifdef FPC}@{$endif} Self.HandleNode);
+end;
+
 { TX3DRootNode.TX3DRootNodeTransformFunctionality -------------------------------------- }
 
 constructor TX3DRootNode.TX3DRootNodeTransformFunctionality.Create(const AParent: TX3DRootNode);
@@ -918,14 +1050,15 @@ begin
 
   ExportItem := TX3DExport.Create;
   AddExport(ExportItem);
-  ExportItem.ExportedNodeName := Node.X3DName;
-  ExportItem.ExportedNodeAlias := ExportedAlias;
+  ExportItem.ExportedNode := Node;
+  if ExportedAlias <> Node.X3DName then
+    ExportItem.ExportedAlias := ExportedAlias;
 
   { merely adding ExportItem is not enough, we have to also replicate what
     parsing of EXPORT clause does, and add it to ExportedNames. }
   if FExportedNames = nil then
-    FExportedNames := TX3DNodeNames.Create(false);
-  ExportedNames.Bind(Node, true, ExportedAlias);
+    FExportedNames := TX3DExportList.Create(false); // do not own TX3DExport instances, they are owned by TX3DNode.Exports
+  FExportedNames.Add(ExportItem);
 end;
 
 procedure TX3DRootNode.ExportNode(const Node: TX3DNode);
@@ -936,6 +1069,17 @@ end;
 function TX3DRootNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
+end;
+
+procedure TX3DRootNode.InternalFixNodeNames;
+var
+  Handler: TFixNamesHandler;
+begin
+  Handler := TFixNamesHandler.Create;
+  try
+    Handler.HandleNode(nil, Self);
+    DirectEnumerateAll({$ifdef FPC}@{$endif} Handler.HandleNode);
+  finally FreeAndNil(Handler) end;
 end;
 
 { TStaticGroupNode ----------------------------------------------------------- }
