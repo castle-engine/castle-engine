@@ -435,6 +435,8 @@
     FCollisionList: TCastleTransformList;
 
     procedure UpdateCollides(const Transform: TCastleTransform);
+    procedure UpdateExist(const TransformExists: Boolean);
+    procedure UpdateExistBody(const TransformExists: Boolean);
 
     { Sets all values from Kraft to CGE private fields. }
     procedure SynchronizeFromKraft;
@@ -903,8 +905,8 @@ begin
   FKraftShape.Density := Density;
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
-  if not FParent.Exists then
-    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
+  if (not FParent.Exists) or (not FPArent.FTransform.ExistsInRoot) then
+    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable];
 end;
 
 destructor TCollider.Destroy;
@@ -963,8 +965,8 @@ begin
   FKraftShape.Density := Density;
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
-  if (not ACastleRigidBody.Exists) or (not Parent.Exists) then // should be ExistInRoot
-    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
+  if (not ACastleRigidBody.Exists) or (not Parent.ExistsInRoot) then
+    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable];
 
   UpdateLocalTransform;
 
@@ -1614,8 +1616,8 @@ begin
   if 0 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisX];
   if 1 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisY];
   if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
-  if not FExists then
-    FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
+
+  UpdateExistBody(Transform.ExistsInRoot);
 
   if FTrigger then
     FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
@@ -1898,6 +1900,37 @@ begin
   begin
     FKraftBody.CollideWithCollisionGroups := [];
     FKraftBody.CollisionGroups := [];
+  end;
+end;
+
+procedure TCastleRigidBody.UpdateExist(const TransformExists: Boolean);
+var
+  KraftShape: TKraftShape;
+begin
+  UpdateExistBody(TransformExists);
+
+  KraftShape := GetKraftShape;
+
+  if Assigned(KraftShape) then
+  begin
+    { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
+    if FExists and TransformExists then
+      KraftShape.Flags := KraftShape.Flags + [ksfCollision,
+        ksfRayCastable]
+    else
+      KraftShape.Flags := KraftShape.Flags - [ksfCollision,
+        ksfRayCastable];
+  end;
+end;
+
+procedure TCastleRigidBody.UpdateExistBody(const TransformExists: Boolean);
+begin
+  if Assigned(FKraftBody) then
+  begin
+    if FExists and TransformExists then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfActive]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
   end;
 end;
 
@@ -2225,34 +2258,14 @@ begin
 end;
 
 procedure TCastleRigidBody.SetExists(const Value: Boolean);
-var
-  KraftShape: TKraftShape;
 begin
   if FExists = Value then
     Exit;
 
   FExists := Value;
 
-  if Assigned(FKraftBody) then
-  begin
-    if FExists then
-      FKraftBody.Flags := FKraftBody.Flags + [krbfActive]
-    else
-      FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
-  end;
-
-  KraftShape := GetKraftShape;
-
-  if Assigned(KraftShape) then
-  begin
-    { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
-    if FExists then
-      KraftShape.Flags := KraftShape.Flags + [ksfCollision,
-        ksfRayCastable]
-    else
-      KraftShape.Flags := KraftShape.Flags - [ksfCollision,
-        ksfRayCastable];
-  end;
+  if FTransform <> nil then
+    UpdateExist(FTransform.ExistsInRoot);
 end;
 
 procedure TCastleRigidBody.SetTrigger(const Value: Boolean);
