@@ -1825,7 +1825,6 @@
     procedure AddWorldChangeNotification(const Behavior: TCastleBehavior);
     procedure RemoveWorldChangeNotification(const Behavior: TCastleBehavior);
 
-  published
     { Does this object, and all it's parents up to the root, exist.
       This has undefined value in case you place this TCastleTransform instance
       (or any parent) many times within the viewport root,
