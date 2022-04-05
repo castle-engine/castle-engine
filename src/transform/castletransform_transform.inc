@@ -1822,7 +1822,12 @@
       Do not call this method in other contexts, it is only useful for "for..in" construction. }
     function BehaviorsEnumerate: TCastleBehaviorEnumerator;
 
+    { Adds a behavior to the list that needs to be informed about the world
+      change. }
     procedure AddWorldChangeNotification(const Behavior: TCastleBehavior);
+
+    { Removes a behavior from the list that needs to be informed about the world
+      change. }
     procedure RemoveWorldChangeNotification(const Behavior: TCastleBehavior);
 
     { Does this object, and all it's parents up to the root, exist.
