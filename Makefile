@@ -205,6 +205,18 @@ strip-precompiled-libraries:
 
 # compiling examples -----------------------------------------------------------
 
+# For GitHub Actions, we need to conserve disk space in some cases, as it is limited to ~15 GB.
+#
+# When CASTLE_CONSERVE_DISK_SPACE is
+# - defined -> prefixing command with $(DO_IF_CONSERVE_DISK_SPACE) makes this command execute.
+# - not defined -> prefixing command with $(DO_IF_CONSERVE_DISK_SPACE) makes this command not execute.
+#
+ifeq ($(CASTLE_CONSERVE_DISK_SPACE),true)
+DO_IF_CONSERVE_DISK_SPACE:=
+else
+DO_IF_CONSERVE_DISK_SPACE:=true
+endif
+
 # Note that examples with CastleEngineManifest.xml are not listed here.
 # They will be found and compiled by a Makefile rule that searches using
 # "find ... -iname CastleEngineManifest.xml ..." .
@@ -275,9 +287,6 @@ examples:
 
 # Compile all examples and tools with CastleEngineManifest.xml inside.
 #
-# We clean output afterwards, to avoid using a lot of disk space (would be a problem
-# with GitHub Actions).
-#
 # We want this to fail if some application failed to compile.
 # Unfortunately find seems to ignore -exec result.
 # (see e.g. https://unix.stackexchange.com/questions/392970/how-to-get-the-exit-code-of-commands-started-by-find )
@@ -308,7 +317,7 @@ examples:
 	set -e && for MANIFEST in `cat /tmp/cge-projects.txt`; do \
 	  echo 'Compiling project '$${MANIFEST}; \
 	  $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} compile; \
-	  $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} clean; \
+	  $(DO_IF_CONSERVE_DISK_SPACE) $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} clean; \
 	done
 
 # Compile editor templates
@@ -367,6 +376,7 @@ examples-laz:
 	set -e && for PROJECT_LPI in `cat /tmp/cge-laz-projects.txt`; do \
 	  echo 'Compiling project '$${PROJECT_LPI}; \
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}; \
+	  $(DO_IF_CONSERVE_DISK_SPACE) git clean --force -d -x "`dirname $${PROJECT_LPI}`"; \
 	done
 
 # cleaning ------------------------------------------------------------
@@ -398,6 +408,7 @@ clean: cleanexamples
 	     | xargs rm -f
 # Note: *.app directory is a macOS bundle
 	$(FIND) . -type d '(' -name 'lib' -or \
+	                      -name 'backup' -or \
 	                      -name 'castle-engine-output' -or \
 			      -name '__recovery' -or \
 			      -name '*.app' ')' \
