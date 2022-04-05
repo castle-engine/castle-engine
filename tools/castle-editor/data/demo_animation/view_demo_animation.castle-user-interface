@@ -1,0 +1,84 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "AutoCamera" : true,
+      "Camera" : {
+        "$$ClassName" : "TCastleCamera",
+        "InitialDirectionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -6.7929065227508545E-001,
+          "Y" : -5.7986038923263550E-001,
+          "Z" : 4.4980669021606445E-001
+        },
+        "InitialPositionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 8.7255878448486328E+000,
+          "Y" : 1.1744249343872070E+001,
+          "Z" : -5.7778344154357910E+000
+        },
+        "InitialUpPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -4.8347389698028564E-001,
+          "Y" : 8.1471592187881470E-001,
+          "Z" : 3.2014238834381104E-001
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "Name" : "Orthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective",
+          "FieldOfView" : 6.9111120700836182E-001,
+          "Name" : "Perspective"
+        }
+      },
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "MainScene" : "Scene1",
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "Name" : "PhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "rotate_cam_rotor",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "Scene1",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "URL" : "castle-data:/demo_animation/demo_animation.gltf"
+          }
+        ],
+        "$Behaviors" : [
+          {
+            "$$ClassName" : "TCastleSoundSource",
+            "Name" : "SoundSource1",
+            "Sound" : "Sound1",
+            "Spatial" : false,
+            "Volume" : 5.0000000000000000E-001,
+            "$NonVisualComponents" : [
+              {
+                "$$ClassName" : "TCastleSound",
+                "Name" : "Sound1",
+                "URL" : "castle-data:/demo_animation/amb_bird_cricket_frog/amb_bird_2.wav"
+              }
+            ]
+          }
+        ]
+      },
+      "Name" : "Viewport1"
+    }
+  ]
+}

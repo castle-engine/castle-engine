@@ -22,7 +22,13 @@ See the [manual documenting the editor](https://castle-engine.io/manual_editor.p
 - Adjust `ShowInTaskBar`, this is important for selecting form on Windows in case of multiple windows.
 - Make sure closing the form with "X" (Alt + F4) works OK.
 - For a form you create manually, make sure it is freed at some point (preferably, not only at the end of application, if you can free it earlier; e.g. we don't want to have 100 of TProjectForm instances in memory after using the editor for a long time).
-- For a form created automatically, make sure you synchronize the line `Application.CreateForm(...);` from lpr with ../build-tool/data/custom_editor_template/castle_editor.lpr
+
+When adding new units, like forms, make sure you synchronize the custom editor template. Just
+
+```
+cd ../build-tool/data/
+./custom_editor_template_rebuild.sh
+```
 
 ## License
 

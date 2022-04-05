@@ -38,7 +38,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="21">
+    <Units Count="22">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -173,6 +173,14 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CastleShellCtrls"/>
       </Unit20>
+      <Unit21>
+        <Filename Value="code/formsysteminformation.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="SystemInformationForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormSystemInformation"/>
+      </Unit21>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

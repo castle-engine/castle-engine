@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,7 +43,7 @@ uses
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
   FormPreferences, VisualizeTransform, FormSpriteSheetEditor, DataModuleIcons,
   FormImportAtlas, FormImportStarling, FormNewUnit, EditorCodeTools,
-  CastleShellCtrls;
+  CastleShellCtrls, FormSystemInformation;
 
 {$R *.res}
 
@@ -59,5 +59,6 @@ begin
   Application.CreateForm(TImportAtlasForm, ImportAtlasForm);
   Application.CreateForm(TImportStarlingForm, ImportStarlingForm);
   Application.CreateForm(TNewUnitForm, NewUnitForm);
+  Application.CreateForm(TSystemInformationForm, SystemInformationForm);
   Application.Run;
 end.

@@ -552,6 +552,9 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator: TMenuItem
         Caption = '-'
       end
+      object MenuItemSystemInformation: TMenuItem
+        Action = ActionSystemInformation
+      end
       object MenuItemAbout: TMenuItem
         Caption = 'About Castle Game Engine Editor'
         OnClick = MenuItemAboutClick
@@ -795,6 +798,10 @@ object ProjectForm: TProjectForm
       Category = 'Output'
       Caption = 'Copy All'
       OnExecute = ActionOutputCopyAllExecute
+    end
+    object ActionSystemInformation: TAction
+      Caption = 'System Information'
+      OnExecute = ActionSystemInformationExecute
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

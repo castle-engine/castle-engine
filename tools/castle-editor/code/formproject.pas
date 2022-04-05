@@ -42,11 +42,13 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionSystemInformation: TAction;
     ActionOutputCopyAll: TAction;
     ActionOutputCopySelected: TAction;
     ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemSystemInformation: TMenuItem;
     MenuItemEdit: TMenuItem;
     MenuItemOutputCopyAll: TMenuItem;
     MenuItemOutputCopySelected: TMenuItem;
@@ -190,6 +192,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionSystemInformationExecute(Sender: TObject);
     procedure ActionOutputCleanExecute(Sender: TObject);
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionEditAssociatedUnitExecute(Sender: TObject);
@@ -380,7 +383,9 @@ uses TypInfo, LCLType,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleClassUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait, ToolFpcVersion;
+  FormSystemInformation,
+  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait,
+  ToolFpcVersion;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -541,6 +546,11 @@ end;
 procedure TProjectForm.ActionOutputCleanExecute(Sender: TObject);
 begin
   ListOutput.Clear;
+end;
+
+procedure TProjectForm.ActionSystemInformationExecute(Sender: TObject);
+begin
+  SystemInformationForm.Show;
 end;
 
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
