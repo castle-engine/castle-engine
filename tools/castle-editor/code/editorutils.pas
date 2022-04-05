@@ -236,6 +236,9 @@ function CgePathStatus(const CgePath: String): Boolean;
 procedure PrepareSaveDesignDialog(const SaveDialog: TSaveDialog;
   const ComponentToSave: TComponent);
 
+{ Should we use colors and icons for dark theme. Based on luminance. }
+function UseIconsAndColorsForDarkTheme: Boolean;
+
 implementation
 
 uses SysUtils, Graphics, TypInfo, Generics.Defaults,
@@ -1066,6 +1069,24 @@ begin
     SaveDialog.DefaultExt := 'castle-component';
     SaveDialog.Filter := 'CGE Component Design (*.castle-component)|*.castle-component|All Files|*';
   end;
+end;
+
+function UseIconsAndColorsForDarkTheme: Boolean;
+var
+  RGBColor: LongInt;
+  R, G, B: Byte;
+  Luminance: Single;
+begin
+  RGBColor := ColorToRGB(clBackground);
+
+  R := (RGBColor shr 16) and $0000ff;
+  G := (RGBColor shr 8) and $0000ff;
+  B := RGBColor and $0000ff;
+
+  { https://stackoverflow.com/questions/12043187/how-to-check-if-hex-color-is-too-black }
+  Luminance :=  0.2126 * R + 0.7152 * G + 0.0722 * B;
+
+  Result := Luminance < 180;
 end;
 
 end.
