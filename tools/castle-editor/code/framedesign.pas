@@ -3375,34 +3375,8 @@ end;
 
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   Y: Integer);
-var
-  Src, Dst: TTreeNode;
-  SrcComponent, DstComponent: TComponent;
 
-  procedure Refresh;
-  var
-    DestinationName: String;
-  begin
-    case ControlsTreeNodeUnderMouseSide of
-      tnsRight:
-        begin
-          Src.MoveTo(Dst, naAddChild);
-          DestinationName := DstComponent.Name;
-        end;
-      tnsBottom:
-        begin
-          Src.MoveTo(Dst, naInsertBehind);
-          DestinationName := TComponent(Dst.Parent.Data).Name;
-        end;
-      tnsTop:
-        begin
-          Src.MoveTo(Dst, naInsert);
-          DestinationName := TComponent(Dst.Parent.Data).Name;
-        end;
-    end;
-    ModifiedOutsideObjectInspector('Drag''n''drop ' + SrcComponent.Name + ' into ' +
-      DestinationName, ucHigh);
-  end;
+  procedure Refresh; forward;
 
   { Does Parent contains PotentialChild, searching recursively.
     It checks is Parent equal PotentialChild,
@@ -3506,6 +3480,69 @@ var
     end;
   end;
 
+  procedure MoveBehavior(const Src: TCastleBehavior; const Dst: TCastleTransform);
+  begin
+    case ControlsTreeNodeUnderMouseSide of
+      tnsRight:
+        begin
+          Src.Parent.RemoveBehavior(Src);
+          Dst.AddBehavior(Src);
+          // TODO: update tree in a simple way for now
+          UpdateDesign;
+          ModifiedOutsideObjectInspector('Drag''n''drop ' + Src.Name + ' into ' +
+            Dst.Name, ucHigh);
+        end;
+    end;
+  end;
+
+  procedure MoveNonVisual(const SrcParentComponent: TCastleComponent;
+    const Src: TComponent;
+    const Dst: TCastleComponent);
+  begin
+    case ControlsTreeNodeUnderMouseSide of
+      tnsRight:
+        begin
+          SrcParentComponent.RemoveNonVisualComponent(Src);
+          Dst.AddNonVisualComponent(Src);
+          // TODO: update tree in a simple way for now
+          UpdateDesign;
+          ModifiedOutsideObjectInspector('Drag''n''drop ' + Src.Name + ' into ' +
+            Dst.Name, ucHigh);
+        end;
+    end;
+  end;
+
+var
+  Src, Dst: TTreeNode;
+  SrcComponent, DstComponent: TComponent;
+
+  { Move only the nodes in TTreeView, and update their captions.
+    Also calls ModifiedOutsideObjectInspector to make Undo work. }
+  procedure Refresh;
+  var
+    DestinationName: String;
+  begin
+    case ControlsTreeNodeUnderMouseSide of
+      tnsRight:
+        begin
+          Src.MoveTo(Dst, naAddChild);
+          DestinationName := DstComponent.Name;
+        end;
+      tnsBottom:
+        begin
+          Src.MoveTo(Dst, naInsertBehind);
+          DestinationName := TComponent(Dst.Parent.Data).Name;
+        end;
+      tnsTop:
+        begin
+          Src.MoveTo(Dst, naInsert);
+          DestinationName := TComponent(Dst.Parent.Data).Name;
+        end;
+    end;
+    ModifiedOutsideObjectInspector('Drag''n''drop ' + SrcComponent.Name + ' into ' +
+      DestinationName, ucHigh);
+  end;
+
 begin
   Src := ControlsTree.Selected;
   Dst := ControlsTreeNodeUnderMouse;
@@ -3538,6 +3575,31 @@ begin
         is changed to nil but in TTreeNode.Selected stays true. That's why we see
         selection but TTreeView.Selected state is incorect }
       ControlsTree.Selected := Src;
+    end else
+    if (SrcComponent is TCastleBehavior) and
+       (DstComponent is TCastleTransform) then
+    begin
+      MoveBehavior(
+        TCastleBehavior(SrcComponent),
+        TCastleTransform(DstComponent));
+      // as for now we just refresh tree view, so set SelectedComponent and don't do ValidateHierarchy
+      SelectedComponent := SrcComponent;
+      Exit;
+    end else
+    if (not ( (SrcComponent is TCastleBehavior) or
+              (SrcComponent is TCastleTransform) or
+              (SrcComponent is TCastleUserInterface) ) ) and
+       (DstComponent is TCastleComponent) and
+       (Src.Parent <> nil) and
+       (SelectedFromNode(Src.Parent) is TCastleComponent) then
+    begin
+      MoveNonVisual(
+        TCastleComponent(SelectedFromNode(Src.Parent)),
+        SrcComponent,
+        TCastleComponent(DstComponent));
+      // as for now we just refresh tree view, so set SelectedComponent and don't do ValidateHierarchy
+      SelectedComponent := SrcComponent;
+      Exit;
     end;
     ValidateHierarchy;
   end;

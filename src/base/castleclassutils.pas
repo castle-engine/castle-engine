@@ -561,6 +561,9 @@ type
       @seealso NonVisualComponentsEnumerate }
     procedure AddNonVisualComponent(const NonVisualComponent: TComponent);
 
+    { Remove component previously added by AddNonVisualComponent. }
+    procedure RemoveNonVisualComponent(const NonVisualComponent: TComponent);
+
     { Count of components added by AddNonVisualComponent.
 
       @seealso AddNonVisualComponent
@@ -1718,6 +1721,12 @@ begin
   if FNonVisualComponents = nil then
     FNonVisualComponents := TComponentList.Create(false);
   FNonVisualComponents.Add(NonVisualComponent);
+end;
+
+procedure TCastleComponent.RemoveNonVisualComponent(const NonVisualComponent: TComponent);
+begin
+  if FNonVisualComponents <> nil then
+    FNonVisualComponents.Remove(NonVisualComponent);
 end;
 
 function TCastleComponent.NonVisualComponentsEnumerate: TNonVisualComponentsEnumerator;
