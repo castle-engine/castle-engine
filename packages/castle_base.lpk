@@ -1209,6 +1209,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/services/castletestfairy.pas"/>
         <UnitName Value="CastleTestFairy"/>
       </Item277>
+      <Item278>
+        <Filename Value="../src/scene/castlescene_environmentlight.inc"/>
+        <Type Value="Include"/>
+      </Item278>
       <Item279>
         <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlebillboard_persistent_vectors.inc"/>
         <Type Value="Include"/>
@@ -1306,6 +1310,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/transform/castleinternalrays.pas"/>
         <UnitName Value="CastleInternalRays"/>
       </Item302>
+      <Item303>
+        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlespotlight_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item303>
       <Item304>
         <Filename Value="../src/transform/castlesectors.pas"/>
         <UnitName Value="CastleSectors"/>
@@ -3977,14 +3985,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastledirectionallight_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item970>
-      <Item303>
-        <Filename Value="../src/scene/auto_generated_persistent_vectors/tcastlespotlight_persistent_vectors.inc"/>
-        <Type Value="Include"/>
-      </Item303>
-      <Item278>
-        <Filename Value="../src/scene/castlescene_environmentlight.inc"/>
-        <Type Value="Include"/>
-      </Item278>
       <Item971>
         <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_plane.inc"/>
         <Type Value="Include"/>
@@ -4013,7 +4013,20 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/scene/castlescene_editorgizmo.inc"/>
         <Type Value="Include"/>
       </Item977>
+      <Item972>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item972>
+      <Item973>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item973>
+      <Item974>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item974>
     </Files>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
       <Item1>
         <PackageName Value="VampyreImagingPackageExt"/>
