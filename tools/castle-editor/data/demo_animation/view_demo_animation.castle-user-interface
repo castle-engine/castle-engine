@@ -10,21 +10,21 @@
         "$$ClassName" : "TCastleCamera",
         "InitialDirectionPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -6.7929065227508545E-001,
+          "X" : 1.0871795564889908E-001,
           "Y" : -5.7986038923263550E-001,
-          "Z" : 4.4980669021606445E-001
+          "Z" : 8.0742943286895752E-001
         },
         "InitialPositionPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 8.7255878448486328E+000,
+          "X" : -1.3964990377426147E+000,
           "Y" : 1.1744249343872070E+001,
-          "Z" : -5.7778344154357910E+000
+          "Z" : -1.0371550559997559E+001
         },
         "InitialUpPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -4.8347389698028564E-001,
-          "Y" : 8.1471592187881470E-001,
-          "Z" : 3.2014238834381104E-001
+          "X" : 7.7378094196319580E-002,
+          "Y" : 8.1471586227416992E-001,
+          "Z" : 5.7467442750930786E-001
         },
         "Name" : "Camera",
         "Orthographic" : {
@@ -51,6 +51,7 @@
             "$$ClassName" : "TCastleScene",
             "AutoAnimation" : "rotate_cam_rotor",
             "ExposeTransforms" : [
+              "BirdObject"
             ],
             "Name" : "Scene1",
             "ProcessEvents" : true,
@@ -58,21 +59,41 @@
               "$$ClassName" : "TCastleScene.TSceneRenderOptions",
               "Name" : "RenderOptions"
             },
-            "URL" : "castle-data:/demo_animation/demo_animation.gltf"
-          }
-        ],
-        "$Behaviors" : [
-          {
-            "$$ClassName" : "TCastleSoundSource",
-            "Name" : "SoundSource1",
-            "Sound" : "Sound1",
-            "Spatial" : false,
-            "Volume" : 5.0000000000000000E-001,
-            "$NonVisualComponents" : [
+            "URL" : "castle-data:/demo_animation/demo_animation.gltf",
+            "$Children" : [
               {
-                "$$ClassName" : "TCastleSound",
-                "Name" : "Sound1",
-                "URL" : "castle-data:/demo_animation/amb_bird_cricket_frog/amb_bird_2.wav"
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "BirdObject",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.8313063383102417E-001,
+                  "Y" : 4.8313063383102417E-001,
+                  "Z" : 4.8313063383102417E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 7.2157044410705566E+000,
+                  "Z" : -4.9594073295593262E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleSoundSource",
+                    "Name" : "SoundSource1",
+                    "Sound" : "Sound1",
+                    "Volume" : 5.0000000000000000E-001,
+                    "$NonVisualComponents" : [
+                      {
+                        "$$ClassName" : "TCastleSound",
+                        "Name" : "Sound1",
+                        "URL" : "castle-data:/demo_animation/amb_bird_cricket_frog/amb_bird_2.wav"
+                      }
+                    ]
+                  }
+                ]
               }
             ]
           }
