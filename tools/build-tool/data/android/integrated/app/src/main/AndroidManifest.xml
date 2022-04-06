@@ -23,7 +23,8 @@
                 android:theme="@style/AppTheme"
                 android:launchMode="singleTask"
                 android:configChanges="orientation|screenSize|keyboardHidden"
-                android:screenOrientation="${ANDROID_SCREEN_ORIENTATION}">
+                android:screenOrientation="${ANDROID_SCREEN_ORIENTATION}"
+                android:exported="true">
             <!-- NativeActivity must know the name of our library with JNI callbacks. -->
             <meta-data android:name="android.app.lib_name"
                        android:value="${ANDROID_LIBRARY_NAME}" />
