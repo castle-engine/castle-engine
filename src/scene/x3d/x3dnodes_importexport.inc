@@ -175,7 +175,7 @@ procedure TX3DExport.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 var
   ExportedNodeName: String;
 begin
-  if not Element.AttributeString('localDEF', ExportedNodeName) then
+  if not XMLAttributeX3DName(Element, 'localDEF', ExportedNodeName) then
   begin
     WritelnWarning('VRML/X3D', 'Missing EXPORT "localDEF" attribute');
     Exit;
@@ -189,9 +189,15 @@ end;
 
 procedure TX3DExport.SaveToStream(Writer: TX3DWriter);
 begin
+  if ExportedNode = nil then
+  begin
+    WritelnWarning('Cannot save EXPORT statement to X3D: Exported node not set');
+    Exit;
+  end;
+
   if ExportedNode.X3DName = '' then
   begin
-    WritelnWarning('Cannot export node %s with empty name', [ExportedNode.NiceName]);
+    WritelnWarning('Cannot save EXPORT statement to X3D: Exported node %s has empty name', [ExportedNode.NiceName]);
     Exit;
   end;
 
