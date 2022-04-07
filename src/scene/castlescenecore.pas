@@ -7728,9 +7728,10 @@ begin
 
   ACamera.GravityUp := GravityUp;
 
-  { If RelativeCameraTransform, then we will move relative to
-    initial camera changes. Else, we will jump to new initial camera vectors. }
-  ACamera.SetInitialView(APosition, ADirection, AUp, RelativeCameraTransform);
+  { TODO: If RelativeCameraTransform, then we will move relative to
+    initial camera changes. Else, we will jump to new initial camera vectors.  }
+
+  ACamera.SetView(APosition, ADirection, AUp);
   if not RelativeCameraTransform then
   begin
     if AllowTransitionAnimate and (not ForceTeleportTransitions) then

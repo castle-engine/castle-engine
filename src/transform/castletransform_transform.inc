@@ -1672,7 +1672,7 @@
     { @groupEnd }
 
     { Get at once vectors: position, direction, up. }
-    procedure GetView(out APos, ADir, AUp: TVector3);
+    procedure GetView(out APos, ADir, AUp: TVector3); overload;
 
     { Set at once vectors: position, direction, up.
 

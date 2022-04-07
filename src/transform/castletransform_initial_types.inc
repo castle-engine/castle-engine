@@ -22,6 +22,7 @@
   TRenderingCamera = class;
   TRigidBody = class;
   TPhysicsProperties = class;
+  TCastleCamera = class;
 
   TCastleTransformClass = class of TCastleTransform;
 

@@ -3842,15 +3842,9 @@ end;
 
 procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
   Sender: TObject);
-var
-  V: TCastleViewport;
 begin
-  V := SelectedViewport;
-  V.Camera.SetView(
-    V.Camera.InitialPosition,
-    V.Camera.InitialDirection,
-    V.Camera.InitialUp);
-  ModifiedOutsideObjectInspector('Camera Current := Initial for ' + V.Name, ucHigh);
+  // TODO: This menu item will be gone, once we invent new design-time camera.
+  // For now, this is not implementable, new camera has no separation initial/current.
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraViewAllClick(Sender: TObject);
@@ -3894,17 +3888,9 @@ begin
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraSetInitialClick(Sender: TObject);
-var
-  V: TCastleViewport;
-  APos, ADir, AUp: TVector3;
 begin
-  V := SelectedViewport;
-
-  V.Camera.GetView(APos, ADir, AUp);
-  V.Camera.SetInitialView(APos, ADir, AUp, false);
-  V.AutoCamera := false;
-
-  ModifiedOutsideObjectInspector('Camera Initial := Current for ' + V.Name, ucHigh);
+  // TODO: This menu item will be gone, once we invent new design-time camera.
+  // For now, this is not implementable, new camera has no separation initial/current.
 end;
 
 procedure TDesignFrame.MenuItemViewportSort2DClick(Sender: TObject);

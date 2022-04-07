@@ -1871,11 +1871,6 @@ begin
 
   SecondsPassedScaled := SecondsPassed * Items.TimeScale;
 
-  { Note that TCastleCamera.Update doesn't process any input
-    (only TCastleNavigation processes inputs),
-    so passing HandleInput there is not necessary. }
-  Camera.Update(SecondsPassedScaled);
-
   PrepareUpdateGeneratedTexturesParameters;
   ItemsUpdate;
   UpdateVisibleChange;

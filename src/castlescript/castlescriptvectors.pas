@@ -281,7 +281,7 @@ type
 implementation
 
 uses Math,
-  CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleCameras,
+  CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleTransform,
   CastleQuaternions, CastleColors;
 
 { TCasScriptVec ---------------------------------------------------------- }
