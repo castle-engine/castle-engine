@@ -360,9 +360,6 @@ procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
 
   { Calculate Position.Z and AProjectionFar. }
   function PositionZ: Single;
-  const
-    Default2DProjectionFar = Default2DProjectionFar;
-    Default2DCameraZ = Default2DCameraZ;
   var
     MinZ, MaxZ: Single;
   begin
