@@ -1640,10 +1640,9 @@
     }
     property RigidBody: TRigidBody read FRigidBody write SetRigidBody;
 
-    {$ifdef FPC}
+    { @deprecated Deprecated name for Translation. }
     property Position: TVector3 read FTranslation write SetTranslation;
-      deprecated 'use Translation';
-    {$endif}
+      {$ifdef FPC}deprecated 'use Translation';{$endif}
 
     { Direction the creature is facing, and up vector.
       These properties provide an alternative way to get and set the @link(Rotation)
