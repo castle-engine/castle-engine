@@ -235,6 +235,9 @@ type
 
     { Ensure Camera and FProjection are initialized for PositionToXxx family of methods. }
     procedure PositionToPrerequisites;
+
+    { Notification done by TCastleCamera when our Camera state changed. }
+    procedure InternalCameraChanged(Sender: TObject);
   private
     var
       FNavigation: TCastleNavigation;
@@ -367,8 +370,6 @@ type
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
-      Default2DProjectionFar = 1000.0;
-      Default2DCameraZ = Default2DProjectionFar / 2;
       DefaultPrepareOptions = [prRenderSelf, prRenderClones, prBackground, prBoundingBox, prScreenEffects];
 
     var
@@ -412,10 +413,6 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
-
-    { Notification done by TCastleCamera when our Camera state changed.
-      @exclude }
-    procedure InternalCameraChanged;
 
     {$ifdef FPC}
     { Current projection parameters,
@@ -1401,9 +1398,9 @@ begin
   InternalDistortViewAspect := 1;
 
   FCamera := TCastleCamera.Create(Self);
-  FCamera.InternalViewport := Self;
   FCamera.SetSubComponent(true);
   FCamera.Name := 'Camera';
+  FCamera.InternalOnCameraChanged := {$ifdef FPC}@{$endif} InternalCameraChanged;
   FCamera.InternalOnSceneBoundViewpointChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundViewpointChanged;
   FCamera.InternalOnSceneBoundViewpointVectorsChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundViewpointVectorsChanged;
   FCamera.InternalOnSceneBoundNavigationInfoChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundNavigationInfoChanged;
@@ -3682,7 +3679,7 @@ begin
   Result := PointingDeviceMoveCore(MouseRayHit, MouseRayOrigin, MouseRayDirection);
 end;
 
-procedure TCastleViewport.InternalCameraChanged;
+procedure TCastleViewport.InternalCameraChanged(Sender: TObject);
 var
   Pos, Dir, Up: TVector3;
   MC: TCastleCamera;

@@ -286,7 +286,8 @@
 
     InternalOnSceneBoundViewpointChanged,
     InternalOnSceneBoundViewpointVectorsChanged,
-    InternalOnSceneBoundNavigationInfoChanged: TNotifyEvent;
+    InternalOnSceneBoundNavigationInfoChanged,
+    InternalOnCameraChanged: TNotifyEvent;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -678,8 +679,8 @@ end;
 
 procedure TCastleCamera.VisibleChange;
 begin
-  if InternalViewport <> nil then
-    (InternalViewport as TCastleViewport).InternalCameraChanged;
+  if Assigned(InternalOnCameraChanged) then
+    InternalOnCameraChanged(Self);
 end;
 
 function TCastleCamera.Matrix: TMatrix4;

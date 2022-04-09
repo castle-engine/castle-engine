@@ -46,7 +46,7 @@ type
 implementation
 
 uses CastleLog, CastleApplicationProperties,
-  CastleURIUtils, CastleViewport, CastleInternalRays;
+  CastleURIUtils, CastleInternalRays;
 
 {$define read_implementation}
 {$I castletransform_initial_types.inc}
