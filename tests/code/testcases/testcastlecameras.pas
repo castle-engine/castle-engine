@@ -32,7 +32,8 @@ type
 
 implementation
 
-uses CastleUtils, CastleVectors, X3DCameraUtils, Math, CastleCameras, CastleQuaternions;
+uses CastleUtils, CastleVectors, X3DCameraUtils, Math, CastleCameras, CastleQuaternions,
+  CastleTransform;
 
 procedure TTestCameras.TestToOrientationAndBack;
 
