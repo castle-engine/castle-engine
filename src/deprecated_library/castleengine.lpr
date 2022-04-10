@@ -37,7 +37,7 @@ uses CTypes, Math, SysUtils, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
   CastleBoxes, CastleControls, CastleApplicationProperties,
-  CastleWindow, CastleViewport, CastleScene;
+  CastleWindow, CastleViewport, CastleScene, CastleTransform;
 
 type
   TCrosshairManager = class(TObject)
@@ -485,10 +485,13 @@ begin
 end;
 
 procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl;
+var
+  DummyRemoveType: TRemoveType;
 begin
   try
     Viewport.Items.MainScene.IncreaseTime(fTimeS);
-    Viewport.Camera.Update(fTimeS);
+    DummyRemoveType := rtNone;
+    Viewport.Camera.Update(fTimeS, DummyRemoveType);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
