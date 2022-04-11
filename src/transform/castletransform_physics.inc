@@ -923,7 +923,7 @@ begin
   FKraftShape.Density := Density;
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
-  if (not FParent.Exists) or (not FPArent.FTransform.ExistsInRoot) then
+  if not FParent.ExistsInRoot then
     FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable];
 end;
 
