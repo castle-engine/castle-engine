@@ -473,7 +473,7 @@
       1. Creation of Kraft rigid body in InitializeEngineRigidBody
       2. Creation of Kraft shape based on TCollder or TCastleCollider
       3. Finishing initialization when creation of Kraft shape succeeded }
-    procedure InitializePhysicsEngineObjects(const Transform: TCastleTransform);
+    procedure InitializePhysicsEngineObjects;
     { Frees physics objects in three steps:
       1. Deinitialize colliders
       2. Removes self from other rigid bodies collision lists
@@ -481,11 +481,11 @@
     procedure DeinitializePhysicsEngineObjects;
 
     { Initialize rigid body objects from physics engine }
-    procedure InitializeEngineRigidBody(const Transform: TCastleTransform);
+    procedure InitializeEngineRigidBody;
     { Initialize collider from physics engine }
     function TryInitializeColliders: Boolean;
     { Things to initialize after collider initialization }
-    procedure FinishInitialization(const Transform: TCastleTransform);
+    procedure FinishInitialization;
     { Used by TCastleCollider when it's parent changes to handle case when
       rigid body is added before collider behavior }
     procedure CheckInitialization(const ACastleCollider: TCastleCollider);
@@ -1507,23 +1507,26 @@ begin
   if 2 in Locked then Result.Z := 0;
 end;
 
-procedure TCastleRigidBody.InitializePhysicsEngineObjects(const Transform: TCastleTransform);
+procedure TCastleRigidBody.InitializePhysicsEngineObjects;
 
   procedure RecreateKraftInstance;
   begin
-    InitializeEngineRigidBody(Transform);
+    InitializeEngineRigidBody;
 
     if TryInitializeColliders then
-      FinishInitialization(Transform);
+      FinishInitialization;
   end;
 
 begin
   Assert(FKraftBody = nil, 'Kraft body is initialized!');
 
-  if Transform.Parent = nil then
+  if Parent = nil then
+    raise Exception.Create('Cannot initialize physics in behavior not added to transform.');
+
+  if Parent.Parent = nil then
     raise EMultipleReferencesInWorld.Create('Cannot use physics with TCastleTransform instances inserted multiple times into the Viewport.Items. Use TCastleTransformReference to refer to the TCastleTransform multiple times, or clone the instance instead of referencing it multiple times.');
 
-  FTransform := Transform;
+  FTransform := Parent;
   RecreateKraftInstance;
 end;
 
@@ -1618,8 +1621,7 @@ begin
     FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
 end;
 
-procedure TCastleRigidBody.InitializeEngineRigidBody(
-  const Transform: TCastleTransform);
+procedure TCastleRigidBody.InitializeEngineRigidBody;
 begin
   World.InitializePhysicsEngine;
 
@@ -1689,7 +1691,7 @@ begin
   Result := true;
 end;
 
-procedure TCastleRigidBody.FinishInitialization(const Transform: TCastleTransform);
+procedure TCastleRigidBody.FinishInitialization;
 var
   V: TVector3;
 begin
@@ -1703,7 +1705,7 @@ begin
 
   FKraftBody.Finish;
 
-  UpdateCollides(Transform);
+  UpdateCollides(FTransform);
 
   if (not FAngularVelocity.IsPerfectlyZero) or
      (not FLinearVelocity.IsPerfectlyZero) then
@@ -1722,13 +1724,13 @@ begin
   end;
 
   FKraftBody.LinearVelocityDamp := FLinearVelocityDamp;
-  FKraftBody.MaximalLinearVelocity := FMaximalLinearVelocity / Transform.World.FKraftEngine.WorldFrequency;
+  FKraftBody.MaximalLinearVelocity := FMaximalLinearVelocity / FTransform.World.FKraftEngine.WorldFrequency;
 
   FKraftBody.AngularVelocityDamp := FAngularVelocityDamp;
-  FKraftBody.MaximalAngularVelocity := FMaximalAngularVelocity / Transform.World.FKraftEngine.WorldFrequency;
+  FKraftBody.MaximalAngularVelocity := FMaximalAngularVelocity / FTransform.World.FKraftEngine.WorldFrequency;
 
   // set initial transformation
-  FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform));
+  FKraftBody.SetWorldTransformation(MatrixToKraft(FTransform.WorldTransform));
 
   { Synchronize Kraft rigid body and shapes (colliders) transform to make
     collider position correct. Without the SynchronizeTransformIncludingShapes,
@@ -1766,7 +1768,7 @@ begin
     if FCastleCollider = nil then
     begin
       if TryInitializeColliders then
-        FinishInitialization(Parent);
+        FinishInitialization;
     end else
     if FCastleCollider <> ACastleCollider then
     begin
@@ -1806,7 +1808,7 @@ begin
     Exit;
 
   if TryInitializeColliders then
-    FinishInitialization(FTransform);
+    FinishInitialization;
 end;
 
 class procedure TCastleRigidBody.CreateComponent2D(Sender: TObject);
@@ -2111,7 +2113,7 @@ begin
   inherited;
 
   if World <> nil then
-    InitializePhysicsEngineObjects(Parent);
+    InitializePhysicsEngineObjects;
 end;
 
 procedure TCastleRigidBody.WorldBeforeDetach;
@@ -2120,7 +2122,7 @@ begin
 
   if FState <> crbsNotInitialized then
   begin
-    Assert(Parent = FTransform, 'FTransform should be Parent.');
+    Assert(Parent = FTransform, 'Parent and FTransform should be the same.');
     DeinitializePhysicsEngineObjects;
   end;
 end;
