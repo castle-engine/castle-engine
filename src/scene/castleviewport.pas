@@ -1419,8 +1419,11 @@ begin
   FCameraObserver := TFreeNotificationObserver.Create(Self);
   FCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
 
-  // set Camera using property setter, done at the end of constructor once everything else is initialized
-  NewCamera := TCastleCamera.Create(Self);
+  { Set Camera using property setter, done at the end of constructor once
+    everything else is initialized.
+    We use current Owner as the owner, not Self.
+    This way new Camera is available in editor, as a regular chooseable component. }
+  NewCamera := TCastleCamera.Create(AOwner);
   NewCamera.Name := 'Camera';
   Camera := NewCamera;
   Assert(Camera = NewCamera);
