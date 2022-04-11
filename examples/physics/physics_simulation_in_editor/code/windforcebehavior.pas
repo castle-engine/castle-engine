@@ -16,6 +16,7 @@ type
 
   public
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
   published
     property Value: Single read FValue write FValue;
   end;
@@ -46,11 +47,11 @@ begin
     if Transform = Parent then
       continue;
 
-    if not Transform.Exists then
+    if not Transform.ExistsInRoot then
       continue;
 
     RigidBody := Transform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if (RigidBody <> nil) and (RigidBody.Exists) then
+    if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
     begin
       Direction := Vector3(0,0,0) - Parent.LocalToWorld(Parent.Translation);
       Direction := Direction.Normalize;

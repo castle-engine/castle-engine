@@ -40,11 +40,11 @@ begin
   if FTarget = nil then
     Exit;
 
-  if not FTarget.Exists then
+  if not FTarget.ExistsInRoot then
     Exit;
 
   RigidBody := FTarget.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  if (RigidBody <> nil) and (RigidBody.Exists) then
+  if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
   begin
     Direction := FTarget.LocalToWorld(FTarget.Translation) - Parent.LocalToWorld(Parent.Translation);
     Direction := Direction.Normalize;
