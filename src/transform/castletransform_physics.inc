@@ -2118,13 +2118,10 @@ procedure TCastleRigidBody.WorldBeforeDetach;
 begin
   inherited;
 
-  if Parent <> nil then
+  if FState <> crbsNotInitialized then
   begin
-    if FState <> crbsNotInitialized then
-    begin
-      Assert(Parent = FTransform, 'FTransform should be Parent.');
-      DeinitializePhysicsEngineObjects(Parent);
-    end;
+    Assert(Parent = FTransform, 'FTransform should be Parent.');
+    DeinitializePhysicsEngineObjects;
   end;
 end;
 
