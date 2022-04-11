@@ -434,11 +434,15 @@
     FTransform: TCastleTransform;
     FCollisionList: TCastleTransformList;
 
+    { Updates engine collision groups to old Transform.Collides property value. }
     procedure UpdateCollides(const Transform: TCastleTransform);
-    procedure UpdateExist(const TransformExists: Boolean);
-    procedure UpdateExistBody(const TransformExists: Boolean);
+    { Updates existence state of all physics engine objects - body and collider. }
+    procedure UpdateExist;
+    { Updates existence state of physics engine body. }
+    procedure UpdateExistBody;
 
-    { Sets all values from Kraft to CGE private fields. }
+    { Sets all values from Kraft to CGE private fields. Currently angular and
+      linear velocity. }
     procedure SynchronizeFromKraft;
 
     procedure SetAngularVelocity(const AVelocity: TVector3);
@@ -460,7 +464,7 @@
     procedure SetExists(const Value: Boolean);
     procedure SetTrigger(const Value: Boolean);
 
-    { Creates physics engine object and connects this rigid body with
+    { Creates physics engine object and connects the rigid body with
       Transform and Transform.World.
 
       Initialization is done in three steps:
@@ -468,7 +472,10 @@
       2. Creation of Kraft shape based on TCollder or TCastleCollider
       3. Finishing initialization when creation of Kraft shape succeeded }
     procedure InitializeTransform(const Transform: TCastleTransform);
-    { Disconnect from Transform.World, if was connected. }
+    { Frees physics objects in three steps:
+      1. Deinitialize colliders
+      2. Removes self from other rigid bodies collision lists
+      3. Frees the physics engine rigid body object }
     procedure DeinitializeTransform(const Transform: TCastleTransform);
 
     { Initialize rigid body objects from physics engine }
@@ -481,15 +488,20 @@
       rigid body is added before collider behavior }
     procedure CheckInitialization(const ACastleCollider: TCastleCollider);
 
+    { Deinitializes physics engine collider object }
     procedure DeinitializeColliders;
 
-    { Called by Collider when it's shape changes }
+    { Called by TCastleCollider when it's shape changes }
     procedure ReinitializeCastleCollider;
 
     class procedure CreateComponent2D(Sender: TObject);
   protected
+    { Initializes physics engine objects when TCastleRigidBody is attached
+      to world. }
     procedure WorldAfterAttach; override;
 
+    { Deinitializes physics engine objects when TCastleRigidBody is attached
+      to world. }
     procedure WorldBeforeDetach; override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
@@ -548,6 +560,10 @@
     procedure ApplyImpulse(const Impulse, Point: TVector3);
 
     procedure AddTorque(const Torque: TVector3);
+
+    { Returns true when rigid body behavior exists, and is added to Castle
+      Transform, and this transform ExistsInRoot = true. }
+    function ExistsInRoot: Boolean;
 
     procedure WakeUp;
 
@@ -1631,7 +1647,7 @@ var
 begin
   if FState = crbsNotInitialized then
     raise Exception.Create(
-      'TryInitializeColliders: Trying to add collider but rigid body not initilized');
+      'TryInitializeColliders: Trying to add collider but rigid body not initialized.');
 
   CastleColliderFromTransform := GetCastleColliderFromParent;
   if (Collider <> nil) and (CastleColliderFromTransform <> nil) then
@@ -1892,7 +1908,7 @@ const
     Low (TKraftRigidBodyCollisionGroup)..
     High(TKraftRigidBodyCollisionGroup)];
 begin
-  if Transform.ExistsInRoot and Transform.Collides then
+  if Transform.Collides then
   begin
     FKraftBody.CollideWithCollisionGroups := AllCollisionGroups;
     FKraftBody.CollisionGroups := [0]; // TODO: make this configurable
@@ -1903,7 +1919,7 @@ begin
   end;
 end;
 
-procedure TCastleRigidBody.UpdateExist(const TransformExists: Boolean);
+procedure TCastleRigidBody.UpdateExist;
 var
   KraftShape: TKraftShape;
 begin
@@ -1914,7 +1930,7 @@ begin
   if Assigned(KraftShape) then
   begin
     { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
-    if FExists and TransformExists then
+    if ExistsInRoot then
       KraftShape.Flags := KraftShape.Flags + [ksfCollision,
         ksfRayCastable]
     else
@@ -1923,11 +1939,11 @@ begin
   end;
 end;
 
-procedure TCastleRigidBody.UpdateExistBody(const TransformExists: Boolean);
+procedure TCastleRigidBody.UpdateExistBody;
 begin
   if Assigned(FKraftBody) then
   begin
-    if FExists and TransformExists then
+    if ExistsInRoot then
       FKraftBody.Flags := FKraftBody.Flags + [krbfActive]
     else
       FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
@@ -2210,22 +2226,37 @@ end;
 
 procedure TCastleRigidBody.AddForce(const Force, Position: TVector3);
 begin
-  FKraftBody.AddForceAtPosition(VectorToKraft(Force), VectorToKraft(Position));
+  if ExistsInRoot then
+    FKraftBody.AddForceAtPosition(VectorToKraft(Force), VectorToKraft(Position));
 end;
 
 procedure TCastleRigidBody.AddCenteralForce(const Force: TVector3);
 begin
-  FKraftBody.AddBodyForce(VectorToKraft(Force));
+  if ExistsInRoot then
+    FKraftBody.AddBodyForce(VectorToKraft(Force));
 end;
 
 procedure TCastleRigidBody.ApplyImpulse(const Impulse, Point: TVector3);
 begin
-  FKraftBody.ApplyImpulseAtPosition(VectorToKraft(Point), VectorToKraft(Impulse));
+  if ExistsInRoot then
+    FKraftBody.ApplyImpulseAtPosition(VectorToKraft(Point), VectorToKraft(Impulse));
 end;
 
 procedure TCastleRigidBody.AddTorque(const Torque: TVector3);
 begin
-  FKraftBody.AddWorldTorque(VectorToKraft(Torque));
+  if ExistsInRoot then
+    FKraftBody.AddWorldTorque(VectorToKraft(Torque));
+end;
+
+function TCastleRigidBody.ExistsInRoot: Boolean;
+begin
+  if Exists = false then
+    Exit(false);
+
+  if Parent = nil then
+    Exit(false);
+
+  Result := Parent.ExistsInRoot;
 end;
 
 procedure TCastleRigidBody.WakeUp;
