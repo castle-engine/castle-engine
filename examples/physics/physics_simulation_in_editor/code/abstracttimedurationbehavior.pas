@@ -8,6 +8,7 @@ uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors;
 
 type
+  { Functions used in many physics simulation behaviors }
   TAbstractTimeDurationBehavior = class (TCastleBehavior)
   private
     FStartTime: Single;
@@ -17,9 +18,13 @@ type
     FOneShot: Boolean;
     FWasShot: Boolean;
   protected
+    { Checks Start Time expired }
     function ShouldStart: Boolean;
+    { Checks Duration Time expired }
     function ShouldStop: Boolean;
+    { Check should we run our code in Update }
     function ShouldUpdate: Boolean;
+    { If OneShot = true make a shot }
     procedure Shot;
   public
     constructor Create(AOwner: TComponent); override;
@@ -77,6 +82,8 @@ begin
 
   FDurationTime := 10;
   FStartTime := 0;
+  FExpiredTimeToStart := 0;
+  FExpiredDurationTime := 0;
 end;
 
 procedure TAbstractTimeDurationBehavior.Update(const SecondsPassed: Single;
