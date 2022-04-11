@@ -167,6 +167,7 @@ type
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
     procedure SetScreenSpaceReflections(const Value: Boolean);
     procedure SetScreenSpaceReflectionsSurfaceGlossiness(const Value: Single);
+    procedure SetupDesignTimeCamera;
     procedure SSAOShaderInitialize;
     procedure SSRShaderInitialize;
     function GetNavigationType: TNavigationType;
@@ -248,7 +249,8 @@ type
       FProjection: TProjection;
       FSceneManager: TCastleSceneManager;
 
-    class procedure CreateComponentSetup2D(Sender: TObject);
+    class procedure CreateComponentWithCameraSetup2D(Sender: TObject);
+    class procedure CreateComponentWithCamera(Sender: TObject);
 
     procedure RecalculateCursor(Sender: TObject);
     function ItemsBoundingBox: TBox3D;
@@ -964,8 +966,7 @@ type
       instance. }
     property Items: TCastleRootTransform read FItems write SetItems;
 
-    { Camera determines the viewer position and orientation.
-      The given camera instance is always available and connected with this viewport. }
+    { Camera determines the viewer position and orientation. }
     property Camera: TCastleCamera read FCamera write SetCamera;
 
     { Navigation method is an optional component that handles
@@ -1419,19 +1420,40 @@ begin
   FCameraObserver := TFreeNotificationObserver.Create(Self);
   FCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
 
-  { Set Camera using property setter, done at the end of constructor once
-    everything else is initialized.
-    We use current Owner as the owner, not Self.
-    This way new Camera is available in editor, as a regular chooseable component. }
-  NewCamera := TCastleCamera.Create(AOwner);
-  NewCamera.Name := 'Camera';
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+procedure TCastleViewport.SetupDesignTimeCamera;
+var
+  NewCamera: TCastleCamera;
+begin
+  { Do this only when adding viewport in editor.
+    Otherwise, we'd always create some useless camera,
+    each time when deserializing the viewport.
+
+    This makes the camera a regular user-controlled component,
+    that user can freely
+    - remove (and eventually free),
+    - rename,
+    - see in editor (e.g. in dropdown Viewport.Camera),
+    - access at runtime using TUIState.DesignedComponent }
+
+  Assert(Owner <> nil); // Use SetupDesignTimeCamera only on viewports with owner
+
+  NewCamera := TCastleCamera.Create(Owner);
+  NewCamera.Name := InternalProposeName(TCastleCamera, Owner);
   Camera := NewCamera;
   Assert(Camera = NewCamera);
   Assert(FItems.MainCamera = Camera);
 
-  {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
-  {$undef read_implementation_constructor}
+  // SetCamera doesn't add to World automatically
+  Assert(Camera.World = nil);
+  Assert(Camera.Parent = nil);
+  Items.Add(NewCamera);
+  Assert(Camera.World = Items);
+  Assert(Camera.Parent = Items);
 end;
 
 destructor TCastleViewport.Destroy;
@@ -1492,32 +1514,9 @@ begin
       Check(TMethod(FCamera.InternalOnCameraChanged).Data = TMethod(FCamera.InternalOnSceneBoundViewpointVectorsChanged).Data, 'Inconsistent values of internal TCastleCamera callbacks; do not modify TCastleCamera.InternalXxx callbacks manually.');
       Check(TMethod(FCamera.InternalOnCameraChanged).Data = TMethod(FCamera.InternalOnSceneBoundNavigationInfoChanged).Data, 'Inconsistent values of internal TCastleCamera callbacks; do not modify TCastleCamera.InternalXxx callbacks manually.');
 
-      if (csLoading in ComponentState) and
-         (FCamera.World = nil) and
-         (Value = nil) then
-      begin
-        WritelnWarning('Reading design file from old CGE version, when TCastleViewport.Camera was not assignable; upgrading');
-        Exit;
-
-        { There's actually no need for elaborate "upgrade".
-
-          When "(FCamera.World = nil) and (Value = nil)" it means that streaming system
-          cannot read Viewport.Camera contents from old file
-          (makes sense -- old file has unexpected TCastleCamera contents instead of just a reference).
-          Just don't modify FCamera in this case.
-
-          Next time you save design -- Camera will be part of Items.
-
-          TODO:
-          - hm, Camera is not part of Items after reading old files
-          - Camera can be expanded in viewport, but makes errors. }
-      end;
-
-      Check(FCamera.World = FItems, 'Previous TCastleViewport.Camera was not part of TCastleViewport.Items');
-      Check(FCamera.Parent <> nil, 'Previous TCastleViewport.Camera did not have any (unique) parent; camera can only be present once in viewport');
-
-      FCamera.Parent.Remove(FCamera);
-      Check(FCamera.World = nil, 'Previous TCastleViewport.Camera was present multiple times in TCastleViewport.Items; camera can only be present once in viewport');
+      { Note that we don't remove/add Camera to Viewport.Items.
+        This conflicts with the deserialization, when camera is *already* added explicitly
+        to Viewport.Items. }
 
       FCamera.InternalOnCameraChanged := nil;
       FCamera.InternalOnSceneBoundViewpointChanged := nil;
@@ -1534,8 +1533,6 @@ begin
       FCamera.InternalOnSceneBoundViewpointChanged := {$ifdef FPC}@{$endif} MainSceneAndCamera_BoundViewpointChanged;
       FCamera.InternalOnSceneBoundViewpointVectorsChanged := {$ifdef FPC}@{$endif} MainSceneAndCamera_BoundViewpointVectorsChanged;
       FCamera.InternalOnSceneBoundNavigationInfoChanged := {$ifdef FPC}@{$endif} MainSceneAndCamera_BoundNavigationInfoChanged;
-
-      FItems.Add(FCamera);
     end;
 
     if WasMainCamera then
@@ -1967,13 +1964,16 @@ end;
 
 procedure TCastleViewport.EnsureCameraDetected;
 begin
-  if AutoCamera and not AssignDefaultCameraDone then
-    AssignDefaultCamera;
-  { Set AssignDefaultCameraDone to done,
-    regardless if AssignDefaultCameraDone was done or not.
-    Otherwise later setting AutoCamera to true would suddenly
-    reinitialize camera (initial and current vectors) in the middle of game. }
-  AssignDefaultCameraDone := true;
+  if Camera <> nil then
+  begin
+    if AutoCamera and not AssignDefaultCameraDone then
+      AssignDefaultCamera;
+    { Set AssignDefaultCameraDone to done,
+      regardless if AssignDefaultCameraDone was done or not.
+      Otherwise later setting AutoCamera to true would suddenly
+      reinitialize camera (initial and current vectors) in the middle of game. }
+    AssignDefaultCameraDone := true;
+  end;
 end;
 
 procedure TCastleViewport.ApplyProjection;
@@ -3147,6 +3147,9 @@ var
   Scene: TCastleScene;
   APos, ADir, AUp, NewGravityUp: TVector3;
 begin
+  if Camera = nil then
+    Exit; // abort, until you assign Camera
+
   Box := ItemsBoundingBox;
   Scene := Items.MainScene;
   if Scene <> nil then
@@ -3938,8 +3941,14 @@ begin
     Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
 end;
 
-class procedure TCastleViewport.CreateComponentSetup2D(Sender: TObject);
+class procedure TCastleViewport.CreateComponentWithCamera(Sender: TObject);
 begin
+  (Sender as TCastleViewport).SetupDesignTimeCamera;
+end;
+
+class procedure TCastleViewport.CreateComponentWithCameraSetup2D(Sender: TObject);
+begin
+  (Sender as TCastleViewport).SetupDesignTimeCamera;
   (Sender as TCastleViewport).Setup2D;
 end;
 
@@ -4147,12 +4156,17 @@ initialization
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleTouchNavigation, 'Touch Navigation');
-  RegisterSerializableComponent(TCastleViewport, 'Viewport');
+
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleViewport;
+  R.Caption := 'Viewport';
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithCamera;
+  RegisterSerializableComponent(R);
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleViewport;
   R.Caption := 'Viewport (Configured For 2D)';
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentSetup2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithCameraSetup2D;
   RegisterSerializableComponent(R);
 
   InitializeWarmupCache;

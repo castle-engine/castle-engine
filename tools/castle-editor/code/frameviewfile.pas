@@ -179,6 +179,9 @@ begin
   Viewport.AutoNavigation := true;
   PreviewLayer.InsertFront(Viewport);
 
+  Viewport.Camera := TCastleCamera.Create(Self);
+  Viewport.Items.Add(Viewport.Camera);
+
   Scene := TCastleScene.Create(Self);
   Viewport.Items.Add(Scene);
   Viewport.Items.MainScene := Scene;

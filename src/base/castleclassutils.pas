@@ -804,6 +804,10 @@ function DumpStackToString(const BaseFramePointer: Pointer): string;
 function DumpExceptionBackTraceToString: string;
 {$endif}
 
+{ Propose a name for given component class, making it unique in given ComponentsOwner. }
+function InternalProposeName(const ComponentClass: TComponentClass;
+  const ComponentsOwner: TComponent): String;
+
 type
   TFreeNotificationObserver = class;
 
@@ -2150,6 +2154,67 @@ begin
 {$endif}
 end;
 {$endif}
+
+function InternalProposeName(const ComponentClass: TComponentClass;
+  const ComponentsOwner: TComponent): String;
+
+  { Cleanup S (right now, always taken from some ClassName)
+    to be a nice component name, which also must make it a valid Pascal identifier. }
+  function CleanComponentName(const S: String): String;
+  begin
+    Result := S;
+
+    // remove common prefixes
+    if IsPrefix('TCastleUserInterface', Result, true) then
+      Result := PrefixRemove('TCastleUserInterface', Result, true)
+    else
+    if IsPrefix('TCastle', Result, true) then
+      Result := PrefixRemove('TCastle', Result, true)
+    else
+    if IsPrefix('T', Result, true) then
+      Result := PrefixRemove('T', Result, true);
+
+    // move 2D and 3D to the back, as component name cannot start with a number
+    if IsPrefix('2D', Result, true) then
+      Result := PrefixRemove('2D', Result, true) + '2D';
+    if IsPrefix('3D', Result, true) then
+      Result := PrefixRemove('3D', Result, true) + '3D';
+
+    // in case the replacements above made '', fix it (can happen in case of TCastleUserInterface)
+    if Result = '' then
+      Result := 'Group';
+
+    if SCharIs(Result, 1, ['0'..'9']) then
+      Result := 'Component' + Result;
+  end;
+
+var
+  ResultBase: String;
+  I: Integer;
+begin
+  ResultBase := CleanComponentName(ComponentClass.ClassName);
+
+  { A simple test of the CleanComponentName routine.
+    This is *not* a good place for such automated test, but for now it was simplest to put it here. }
+  {
+  Assert(CleanComponentName('TSomething') = 'Something');
+  Assert(CleanComponentName('TCastleUserInterface') = 'Group');
+  Assert(CleanComponentName('TCastleUserInterfaceButton') = 'Button');
+  Assert(CleanComponentName('TCastleSomething') = 'Something');
+  Assert(CleanComponentName('TCastle2DStuff') = 'Stuff2D');
+  Assert(CleanComponentName('TCastle3DStuff') = 'Stuff3D');
+  Assert(CleanComponentName('TCastle4DProcessing') = 'Component4DProcessing');
+  }
+
+  // make unique
+  I := 1;
+  Result := ResultBase + IntToStr(I);
+  while ComponentsOwner.FindComponent(Result) <> nil do
+  begin
+    Inc(I);
+    Result := ResultBase + IntToStr(I);
+  end;
+end;
 
 { TFreeNotificationObserver -------------------------------------------------- }
 
