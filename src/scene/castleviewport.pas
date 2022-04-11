@@ -107,6 +107,7 @@ type
 
     var
       FCamera: TCastleCamera;
+      FCameraObserver: TFreeNotificationObserver;
       FRenderParams: TViewportRenderParams;
       FPrepareParams: TPrepareParams;
       FBackgroundWireframe: boolean;
@@ -238,6 +239,9 @@ type
 
     { Notification done by TCastleCamera when our Camera state changed. }
     procedure InternalCameraChanged(Sender: TObject);
+
+    procedure SetCamera(const Value: TCastleCamera);
+    procedure CameraFreeNotification(const Sender: TFreeNotificationObserver);
   private
     var
       FNavigation: TCastleNavigation;
@@ -962,7 +966,7 @@ type
 
     { Camera determines the viewer position and orientation.
       The given camera instance is always available and connected with this viewport. }
-    property Camera: TCastleCamera read FCamera;
+    property Camera: TCastleCamera read FCamera write SetCamera;
 
     { Navigation method is an optional component that handles
       the user input to control the camera.
@@ -1385,6 +1389,8 @@ end;
 { TCastleViewport ------------------------------------------------------- }
 
 constructor TCastleViewport.Create(AOwner: TComponent);
+var
+  NewCamera: TCastleCamera;
 begin
   inherited;
   FBackgroundColor := DefaultBackgroundColor;
@@ -1399,25 +1405,26 @@ begin
   InternalDistortFieldOfViewY := 1;
   InternalDistortViewAspect := 1;
 
-  FCamera := TCastleCamera.Create(Self);
-  FCamera.SetSubComponent(true);
-  FCamera.Name := 'Camera';
-  FCamera.InternalOnCameraChanged := {$ifdef FPC}@{$endif} InternalCameraChanged;
-  FCamera.InternalOnSceneBoundViewpointChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundViewpointChanged;
-  FCamera.InternalOnSceneBoundViewpointVectorsChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundViewpointVectorsChanged;
-  FCamera.InternalOnSceneBoundNavigationInfoChanged := {$ifdef FPC}@{$endif}MainSceneAndCamera_BoundNavigationInfoChanged;
-
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
-  FItems.OnCursorChange := {$ifdef FPC}@{$endif}RecalculateCursor;
-  FItems.MainCamera := Camera;
+  FItems.OnCursorChange := {$ifdef FPC}@{$endif} RecalculateCursor;
 
   FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
-  FCapturePointingDeviceObserver.OnFreeNotification := {$ifdef FPC}@{$endif}CapturePointingDeviceFreeNotification;
+  FCapturePointingDeviceObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CapturePointingDeviceFreeNotification;
 
   FBackgroundObserver := TFreeNotificationObserver.Create(Self);
-  FBackgroundObserver.OnFreeNotification := {$ifdef FPC}@{$endif}BackgroundFreeNotification;
+  FBackgroundObserver.OnFreeNotification := {$ifdef FPC}@{$endif} BackgroundFreeNotification;
+
+  FCameraObserver := TFreeNotificationObserver.Create(Self);
+  FCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
+
+  // set Camera using property setter, done at the end of constructor once everything else is initialized
+  NewCamera := TCastleCamera.Create(Self);
+  NewCamera.Name := 'Camera';
+  Camera := NewCamera;
+  Assert(Camera = NewCamera);
+  Assert(FItems.MainCamera = Camera);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -1464,6 +1471,78 @@ begin
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
+end;
+
+procedure TCastleViewport.SetCamera(const Value: TCastleCamera);
+var
+  WasMainCamera: Boolean;
+begin
+  if FCamera <> Value then
+  begin
+    { Note that this is also true when both FCamera and Items.MainCamera are nil,
+      useful at initialization of TCastleViewport. }
+    WasMainCamera := FCamera = Items.MainCamera;
+
+    if FCamera <> nil then
+    begin
+      Check(TMethod(FCamera.InternalOnCameraChanged).Data = TMethod(FCamera.InternalOnSceneBoundViewpointChanged).Data, 'Inconsistent values of internal TCastleCamera callbacks; do not modify TCastleCamera.InternalXxx callbacks manually.');
+      Check(TMethod(FCamera.InternalOnCameraChanged).Data = TMethod(FCamera.InternalOnSceneBoundViewpointVectorsChanged).Data, 'Inconsistent values of internal TCastleCamera callbacks; do not modify TCastleCamera.InternalXxx callbacks manually.');
+      Check(TMethod(FCamera.InternalOnCameraChanged).Data = TMethod(FCamera.InternalOnSceneBoundNavigationInfoChanged).Data, 'Inconsistent values of internal TCastleCamera callbacks; do not modify TCastleCamera.InternalXxx callbacks manually.');
+
+      if (csLoading in ComponentState) and
+         (FCamera.World = nil) and
+         (Value = nil) then
+      begin
+        WritelnWarning('Reading design file from old CGE version, when TCastleViewport.Camera was not assignable; upgrading');
+        Exit;
+
+        { There's actually no need for elaborate "upgrade".
+
+          When "(FCamera.World = nil) and (Value = nil)" it means that streaming system
+          cannot read Viewport.Camera contents from old file
+          (makes sense -- old file has unexpected TCastleCamera contents instead of just a reference).
+          Just don't modify FCamera in this case.
+
+          Next time you save design -- Camera will be part of Items.
+
+          TODO:
+          - hm, Camera is not part of Items after reading old files
+          - Camera can be expanded in viewport, but makes errors. }
+      end;
+
+      Check(FCamera.World = FItems, 'Previous TCastleViewport.Camera was not part of TCastleViewport.Items');
+      Check(FCamera.Parent <> nil, 'Previous TCastleViewport.Camera did not have any (unique) parent; camera can only be present once in viewport');
+
+      FCamera.Parent.Remove(FCamera);
+      Check(FCamera.World = nil, 'Previous TCastleViewport.Camera was present multiple times in TCastleViewport.Items; camera can only be present once in viewport');
+
+      FCamera.InternalOnCameraChanged := nil;
+      FCamera.InternalOnSceneBoundViewpointChanged := nil;
+      FCamera.InternalOnSceneBoundViewpointVectorsChanged := nil;
+      FCamera.InternalOnSceneBoundNavigationInfoChanged := nil;
+    end;
+
+    FCamera := Value;
+    FCameraObserver.Observed := Value;
+
+    if FCamera <> nil then
+    begin
+      FCamera.InternalOnCameraChanged := {$ifdef FPC}@{$endif} InternalCameraChanged;
+      FCamera.InternalOnSceneBoundViewpointChanged := {$ifdef FPC}@{$endif} MainSceneAndCamera_BoundViewpointChanged;
+      FCamera.InternalOnSceneBoundViewpointVectorsChanged := {$ifdef FPC}@{$endif} MainSceneAndCamera_BoundViewpointVectorsChanged;
+      FCamera.InternalOnSceneBoundNavigationInfoChanged := {$ifdef FPC}@{$endif} MainSceneAndCamera_BoundNavigationInfoChanged;
+
+      FItems.Add(FCamera);
+    end;
+
+    if WasMainCamera then
+      Items.MainCamera := FCamera;
+  end;
+end;
+
+procedure TCastleViewport.CameraFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  Camera := nil;
 end;
 
 procedure TCastleViewport.SetCapturePointingDevice(const Value: TCastleTransform);
@@ -1736,7 +1815,9 @@ procedure TCastleViewport.UpdateMouseRayHit;
 var
   MousePosition: TVector2;
 begin
-  if GetMousePosition(MousePosition) then
+  if GetMousePosition(MousePosition) and
+     // PositionToRay assumes Camera <> nil
+     (Camera <> nil) then
   begin
     PositionToRay(MousePosition, true, MouseRayOrigin, MouseRayDirection);
 
@@ -1925,7 +2006,8 @@ begin
 
   { Apply new FProjection values }
   M := FProjection.Matrix(AspectRatio);
-  Camera.ProjectionMatrix := M;
+  if Camera <> nil then // as Camera is assignable, tolerate Camera = nil
+    Camera.ProjectionMatrix := M;
   RenderContext.ProjectionMatrix := M;
 end;
 
@@ -2096,6 +2178,22 @@ var
 begin
   Box := ItemsBoundingBox;
   Viewport := RenderRect;
+
+  if Camera = nil then
+  begin
+    { As Camera is assignable, and may be nil, be tolerant and handle it.
+      Just use default perspective settings. }
+    Result.ProjectionType := ptPerspective;
+    Result.PerspectiveAnglesRad := TViewpointNode.InternalFieldOfView(
+      TCastlePerspective.DefaultFieldOfView,
+      TCastlePerspective.DefaultFieldOfViewAxis,
+      Viewport.Width,
+      Viewport.Height);
+    Result.ProjectionNear := GetDefaultProjectionNear;
+    Result.ProjectionFar := GetDefaultProjectionFar;
+    Result.ProjectionFarFinite := Result.ProjectionFar;
+    Exit;
+  end;
 
   Result.ProjectionType := Camera.ProjectionType;
 
@@ -2523,6 +2621,14 @@ procedure TCastleViewport.RenderWithoutScreenEffects;
 
 begin
   inherited;
+
+  // as Camera is assignable, gracefully handle the case of Camera = nil
+  if Camera = nil then
+  begin
+    RenderContext.Clear([cbColor], BackgroundColor);
+    Exit;
+  end;
+
   ApplyProjection;
   RenderOnScreen(Camera);
 end;
@@ -3119,6 +3225,7 @@ begin
   else
     ContainerPosition := LocalToContainerPosition(Position);
 
+  Assert(Camera <> nil);
   Camera.CustomRay(R, ContainerPosition, FProjection, RayOrigin, RayDirection);
 end;
 

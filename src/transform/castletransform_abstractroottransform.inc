@@ -271,7 +271,7 @@
       - the X3D nodes that "sense" camera like ProximitySensor, Billboard, LOD.
       - an audio listener (controlling the spatial sound).
       - the headlight position/direction.
-      - when X3D nodes change Viewport/NavigationInfo,
+      - when X3D nodes change Viewpoint/NavigationInfo,
         they apply these changes to this camera.
 
       Note that it means that "headlight" is assigned to one camera
@@ -292,10 +292,13 @@
 
       By default this is set to @link(TCastleViewport.Camera) of the @link(TCastleViewport)
       that created this @link(TCastleAbstractRootTransform) instance.
-      So in simple cases (when you just create one @link(TCastleViewport)
+      And if something changes the @link(TCastleViewport.Camera) of that viewport,
+      then this @name is also updated.
+      So in simple cases (when you just have one @link(TCastleViewport)
       and add your scenes to it's already-created @link(TCastleViewport.Items))
       you don't have to do anything, it just works.
-      In general, you can change this to any camera of any associated @link(TCastleViewport),
+      In general, you can change this to any camera (currently used by some
+      associated @link(TCastleViewport) or not),
       or @nil (in case no camera should be that "central" camera). }
     property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
 

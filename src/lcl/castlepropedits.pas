@@ -136,8 +136,6 @@ begin
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
     TSubPropertiesEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleCamera), TCastleViewport, '',
-    TSubPropertiesEditor);
 
   { Other properties }
   RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
@@ -158,8 +156,6 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
-    TViewportNavigationEditor);
   RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
     TViewportNavigationEditor);
 end;

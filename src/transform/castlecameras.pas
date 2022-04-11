@@ -161,6 +161,8 @@ type
     function GoodModelBox: TBox3D;
     function GetIgnoreAllInputs: boolean;
     procedure SetIgnoreAllInputs(const Value: boolean);
+    { Do not call Camera.Xxx if this is @false. }
+    function UseCamera: Boolean;
   protected
     { Needed for niMouseDragging navigation.
       Checking MouseDraggingStarted means that we handle only dragging that
@@ -1984,6 +1986,15 @@ begin
   // end;
 end;
 
+function TCastleNavigation.UseCamera: Boolean;
+begin
+  Result :=
+    (InternalViewport <> nil) and
+    // As Viewport.Camera is assignable, be prepared to handle Camera = nil situation
+    (Camera <> nil) and
+    (not Camera.Animation);
+end;
+
 { TCastleExamineNavigation ------------------------------------------------------------ }
 
 constructor TCastleExamineNavigation.Create(AOwner: TComponent);
@@ -2157,8 +2168,7 @@ const
 begin
   inherited;
 
-  { Do not handle keys or rotations etc. }
-  if Camera.Animation then Exit;
+  if not UseCamera then Exit;
 
   V := ExamineVectors;
 
@@ -2455,7 +2465,7 @@ var
 begin
   Result := inherited;
   if Result or
-     Camera.Animation or
+     (not UseCamera) or
      (ModifiersDown(Container.Pressed) <> []) then
     Exit;
 
@@ -2649,7 +2659,7 @@ begin
   if (Container.MousePressed = []) or
      (not ReallyEnableMouseDragging) or
      (MouseDraggingStarted <> Event.FingerIndex) or
-     Camera.Animation then
+     (not UseCamera) then
     Exit;
 
   ModsDown := ModifiersDown(Container.Pressed) * [mkShift, mkCtrl];
@@ -2868,7 +2878,7 @@ begin
   if UsingMouseLook and
     Container.Focused and
     ContainerSizeKnown and
-    (not Camera.Animation) then
+    UseCamera then
   begin
     HandleMouseLook;
     Exit;
@@ -3901,8 +3911,7 @@ begin
   else
     Cursor := mcDefault;
 
-  { Do not handle keys or gravity etc. }
-  if Camera.Animation then Exit;
+  if (not UseCamera) then Exit;
 
   ModsDown := ModifiersDown(Container.Pressed);
 
@@ -4098,7 +4107,9 @@ begin
     Exit;
   end;
 
-  if (not (niNormal in UsingInput)) or Camera.Animation then Exit(false);
+  if (not (niNormal in UsingInput)) or
+     (not UseCamera) then
+    Exit(false);
 
   if Input_GravityUp.IsEvent(Event) then
   begin
@@ -4282,7 +4293,7 @@ begin
     // Not need to check here ReallyEnableMouseDragging, as MouseDraggingStarted is already <> -1
     // ReallyEnableMouseDragging and
     (MouseDragMode = mdRotate) and
-    (not Camera.Animation) and
+    UseCamera and
     (not UsingMouseLook) then
   begin
     HandleMouseDrag;
