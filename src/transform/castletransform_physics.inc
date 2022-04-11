@@ -1633,7 +1633,7 @@ begin
   if 1 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisY];
   if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
 
-  UpdateExistBody(Transform.ExistsInRoot);
+  UpdateExistBody;
 
   if FTrigger then
     FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
@@ -1760,7 +1760,6 @@ begin
 
   if (FState = crbsNoCollider) then
   begin
-
     if FCastleCollider = nil then
     begin
       if TryInitializeColliders then
@@ -1923,7 +1922,7 @@ procedure TCastleRigidBody.UpdateExist;
 var
   KraftShape: TKraftShape;
 begin
-  UpdateExistBody(TransformExists);
+  UpdateExistBody;
 
   KraftShape := GetKraftShape;
 
@@ -2299,7 +2298,7 @@ begin
   FExists := Value;
 
   if FTransform <> nil then
-    UpdateExist(FTransform.ExistsInRoot);
+    UpdateExist;
 end;
 
 procedure TCastleRigidBody.SetTrigger(const Value: Boolean);

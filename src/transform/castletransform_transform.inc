@@ -3894,7 +3894,7 @@ begin
   { Update rigid body existence when ExistsInRoot changes }
   if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) and (RigidBody <> nil) then
   begin
-    RigidBody.UpdateExist(ExistsInRoot);
+    RigidBody.UpdateExist;
   end;
 end;
 
