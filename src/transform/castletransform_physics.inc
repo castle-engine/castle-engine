@@ -384,6 +384,8 @@
         if physics engine collider was not initialized }
       FCastleCollider: TCastleCollider;
 
+      FTransform: TCastleTransform; // transform for which we initialized the physics objects or nil
+
       { List of collisions from previous step. }
       FPrevCollisions: TCastleRigidBodyList;
       { List of collisions from current step. }
@@ -431,7 +433,7 @@
     FLinearVelocity: TVector3;
     FLinearVelocityDamp: Single;
     FMaximalLinearVelocity: Single;
-    FTransform: TCastleTransform;
+
     FCollisionList: TCastleTransformList;
 
     { Updates engine collision groups to old Transform.Collides property value. }
@@ -476,7 +478,7 @@
       1. Deinitialize colliders
       2. Removes self from other rigid bodies collision lists
       3. Frees the physics engine rigid body object }
-    procedure DeinitializePhysicsEngineObjects(const Transform: TCastleTransform);
+    procedure DeinitializePhysicsEngineObjects;
 
     { Initialize rigid body objects from physics engine }
     procedure InitializeEngineRigidBody(const Transform: TCastleTransform);
@@ -1525,7 +1527,7 @@ begin
   RecreateKraftInstance;
 end;
 
-procedure TCastleRigidBody.DeinitializePhysicsEngineObjects(const Transform: TCastleTransform);
+procedure TCastleRigidBody.DeinitializePhysicsEngineObjects;
 
   procedure RemoveSelfFromOtherRigidBodiesCollisionLists;
   var
@@ -1570,9 +1572,10 @@ procedure TCastleRigidBody.DeinitializePhysicsEngineObjects(const Transform: TCa
 
 begin
   Assert(FKraftBody <> nil, 'Second deinitialization!');
-  Assert(Transform.World <> nil, 'Transform.World should be assigned at the time of TRigidBody.DeinitializeTransform call');
+  Assert(Parent = FTransform, 'Parent should be the transform for which physics engine objects was initiated.');
+  Assert(Parent.World <> nil, 'Transform.World should be assigned at the time of TRigidBody.DeinitializeTransform call');
 
-  Assert(not ((Transform.World.FKraftEngine = nil) and (FKraftBody <> nil)), 'KraftBody should not live longer than KraftEngine!');
+  Assert(not ((Parent.World.FKraftEngine = nil) and (FKraftBody <> nil)), 'KraftBody should not live longer than KraftEngine!');
 
   DeinitializeColliders;
 
@@ -2376,7 +2379,7 @@ begin
       if Assigned(KraftRigidBody.UserData) then
       begin
         CastleRigidBody := TCastleRigidBody(KraftRigidBody.UserData);
-        CastleRigidBody.DeinitializePhysicsEngineObjects(CastleRigidBody.FTransform);
+        CastleRigidBody.DeinitializePhysicsEngineObjects;
       end;
       KraftRigidBody := NextKraftRigidBody;
     end;
