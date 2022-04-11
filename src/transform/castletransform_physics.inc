@@ -471,12 +471,12 @@
       1. Creation of Kraft rigid body in InitializeEngineRigidBody
       2. Creation of Kraft shape based on TCollder or TCastleCollider
       3. Finishing initialization when creation of Kraft shape succeeded }
-    procedure InitializeTransform(const Transform: TCastleTransform);
+    procedure InitializePhysicsEngineObjects(const Transform: TCastleTransform);
     { Frees physics objects in three steps:
       1. Deinitialize colliders
       2. Removes self from other rigid bodies collision lists
       3. Frees the physics engine rigid body object }
-    procedure DeinitializeTransform(const Transform: TCastleTransform);
+    procedure DeinitializePhysicsEngineObjects(const Transform: TCastleTransform);
 
     { Initialize rigid body objects from physics engine }
     procedure InitializeEngineRigidBody(const Transform: TCastleTransform);
@@ -1479,7 +1479,7 @@ end;
 destructor TCastleRigidBody.Destroy;
 begin
   { The FKraftBody will be freed now if you free TRigidBody
-    instance explicitly. In most other cases, DeinitializeTransform
+    instance explicitly. In most other cases, DeinitializePhysicsEngineObjects
     already freed FKraftBody and set it nil. }
 
   FreeAndNil(FKraftBody);
@@ -1505,7 +1505,7 @@ begin
   if 2 in Locked then Result.Z := 0;
 end;
 
-procedure TCastleRigidBody.InitializeTransform(const Transform: TCastleTransform);
+procedure TCastleRigidBody.InitializePhysicsEngineObjects(const Transform: TCastleTransform);
 
   procedure RecreateKraftInstance;
   begin
@@ -1525,7 +1525,7 @@ begin
   RecreateKraftInstance;
 end;
 
-procedure TCastleRigidBody.DeinitializeTransform(const Transform: TCastleTransform);
+procedure TCastleRigidBody.DeinitializePhysicsEngineObjects(const Transform: TCastleTransform);
 
   procedure RemoveSelfFromOtherRigidBodiesCollisionLists;
   var
@@ -2109,7 +2109,7 @@ begin
   inherited;
 
   if World <> nil then
-    InitializeTransform(Parent);
+    InitializePhysicsEngineObjects(Parent);
 end;
 
 procedure TCastleRigidBody.WorldBeforeDetach;
@@ -2121,7 +2121,7 @@ begin
     if FState <> crbsNotInitialized then
     begin
       Assert(Parent = FTransform, 'FTransform should be Parent.');
-      DeinitializeTransform(Parent);
+      DeinitializePhysicsEngineObjects(Parent);
     end;
   end;
 end;
@@ -2377,7 +2377,7 @@ begin
       if Assigned(KraftRigidBody.UserData) then
       begin
         CastleRigidBody := TCastleRigidBody(KraftRigidBody.UserData);
-        CastleRigidBody.DeinitializeTransform(CastleRigidBody.FTransform);
+        CastleRigidBody.DeinitializePhysicsEngineObjects(CastleRigidBody.FTransform);
       end;
       KraftRigidBody := NextKraftRigidBody;
     end;
