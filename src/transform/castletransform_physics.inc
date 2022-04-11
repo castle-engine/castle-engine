@@ -2102,8 +2102,11 @@ begin
 
   if Parent <> nil then
   begin
-    Assert(Parent = FTransform, 'FTransform should be Parent');
-    DeinitializeTransform(Parent);
+    if FState <> crbsNotInitialized then
+    begin
+      Assert(Parent = FTransform, 'FTransform should be Parent.');
+      DeinitializeTransform(Parent);
+    end;
   end;
 end;
 
