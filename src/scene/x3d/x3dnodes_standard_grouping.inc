@@ -764,8 +764,12 @@ end;
 type
   TFixNamesHandler = class
   strict private
-    Visited: TList;
-    Names: TCastleStringList;
+    var
+      Visited: TList;
+      Names: TCastleStringList;
+      LogsDone: Cardinal;
+    const
+      MaxLogsDone = 5;
   public
     constructor Create;
     destructor Destroy; override;
@@ -818,10 +822,16 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
     end else
       RenameUniquelyCore(Node, Node.X3DName + '_', 2);
 
-    WritelnLog('Renaming node "%s" -> "%s" to have unique name', [
-      OriginalName,
-      Node.X3DName
-    ]);
+    if LogsDone < MaxLogsDone then
+    begin
+      WritelnLog('Renaming node "%s" -> "%s" to have unique name', [
+        OriginalName,
+        Node.X3DName
+      ]);
+      Inc(LogsDone);
+      if LogsDone = MaxLogsDone then
+        WritelnLog('Further renames done in this file will not be reported, to not flood log with messages');
+    end;
   end;
 
   { Assuming Node.X3DName <> '', make sure it is unique name. }
