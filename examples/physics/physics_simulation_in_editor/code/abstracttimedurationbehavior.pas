@@ -5,7 +5,8 @@ unit AbstractTimeDurationBehavior;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors;
+  Classes, SysUtils,
+  CastleTransform, CastleBehaviors, CastleVectors, CastleClassUtils;
 
 type
   { Functions used in many physics simulation behaviors }
@@ -32,6 +33,8 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     property WasShot: Boolean read FWasShot;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
   published
     property OneShot: Boolean read FOneShot write FOneShot default false;
@@ -98,6 +101,17 @@ begin
     FExpiredDurationTime := FExpiredDurationTime + SecondsPassed
   else
     FExpiredTimeToStart := FExpiredTimeToStart + SecondsPassed;
+end;
+
+function TAbstractTimeDurationBehavior.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'OneShot') or
+     (PropertyName = 'DurationTime') or
+     (PropertyName = 'StartTime') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 end.

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, AbstractTimeDurationBehavior;
+  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
 
 type
   { Add this behavior to another body and select body you want to use it }
@@ -17,6 +17,8 @@ type
 
   public
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property Target: TCastleTransform read FTarget write FTarget;
     property Value: Single read FValue write FValue;
@@ -51,6 +53,16 @@ begin
     RigidBody.AddForce(Direction * Value, Parent.LocalToWorld(Parent.Translation));
     RigidBody.WakeUp;
   end;
+end;
+
+function TForceBehavior.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'Target') or
+     (PropertyName = 'Value') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 initialization

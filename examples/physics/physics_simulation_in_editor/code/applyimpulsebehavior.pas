@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, AbstractTimeDurationBehavior;
+  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
 
 type
   TApplyImpulseBehavior = class (TAbstractTimeDurationBehavior)
@@ -26,6 +26,8 @@ type
     destructor Destroy;override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property Impulse: TVector3 read FImpulse write FImpulse;
     property Position: TVector3 read FPosition write FPosition;
@@ -96,6 +98,16 @@ begin
     RigidBody.ApplyImpulse(Impulse, Position);
     RigidBody.WakeUp;
   end;
+end;
+
+function TApplyImpulseBehavior.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'Impulse') or
+     (PropertyName = 'Position') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 initialization

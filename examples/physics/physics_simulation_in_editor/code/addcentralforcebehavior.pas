@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, AbstractTimeDurationBehavior;
+  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
 
 type
   TAddCentralForceBehavior = class (TAbstractTimeDurationBehavior)
@@ -22,6 +22,8 @@ type
     destructor Destroy;override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property Force: TVector3 read FForce write FForce;
   published
@@ -74,6 +76,15 @@ begin
     RigidBody.AddCenteralForce(Force);
     RigidBody.WakeUp;
   end;
+end;
+
+function TAddCentralForceBehavior.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if PropertyName = 'Force' then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 initialization

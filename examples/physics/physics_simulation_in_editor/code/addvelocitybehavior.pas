@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, AbstractTimeDurationBehavior, SerializedVectors;
+  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior,
+  SerializedVectors;
 
 type
   TAddVelocityBehavior = class (TAbstractTimeDurationBehavior)
@@ -20,6 +21,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     {property DeltaVelocity: TVector3 read FDeltaVelocity write SetDeltaVelocity;}
@@ -71,6 +74,15 @@ begin
   FreeAndNil(FDVelocity);
   {FreeAndNil(FDeltaVelocityPersistent);}
   inherited Destroy;
+end;
+
+function TAddVelocityBehavior.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'DVelocity') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TAddVelocityBehavior.Update(const SecondsPassed: Single;

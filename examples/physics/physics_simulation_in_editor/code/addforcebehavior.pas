@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, AbstractTimeDurationBehavior;
+  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
 
 type
   TAddForceBehavior = class (TAbstractTimeDurationBehavior)
@@ -26,6 +26,8 @@ type
     destructor Destroy;override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property Force: TVector3 read FForce write FForce;
     property Position: TVector3 read FPosition write FPosition;
@@ -96,6 +98,16 @@ begin
     RigidBody.AddForce(Force, Position);
     RigidBody.WakeUp;
   end;
+end;
+
+function TAddForceBehavior.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'Force') or
+     (PropertyName = 'Position') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 initialization
