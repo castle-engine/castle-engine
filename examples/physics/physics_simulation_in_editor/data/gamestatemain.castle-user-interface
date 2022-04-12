@@ -180,6 +180,7 @@
           },
           {
             "$$ClassName" : "TCastleBox",
+            "Exists" : false,
             "Material" : "pmUnlit",
             "Name" : "SmallBoxCentral",
             "RenderOptions" : {
