@@ -384,7 +384,8 @@
         if physics engine collider was not initialized }
       FCastleCollider: TCastleCollider;
 
-      FTransform: TCastleTransform; // transform for which we initialized the physics objects or nil
+      { Transform for which we initialized the physics objects or nil }
+      FTransform: TCastleTransform;
 
       { List of collisions from previous step. }
       FPrevCollisions: TCastleRigidBodyList;
