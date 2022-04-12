@@ -1941,6 +1941,15 @@ begin
       KraftShape.Flags := KraftShape.Flags - [ksfCollision,
         ksfRayCastable];
   end;
+
+  { If TCastleTransform did not exist in root at initialization, it may be
+    wrong size when it is determined with autosize. Which can cause the torque
+    to be incorrect. }
+  if ExistsInRoot and (FCastleCollider <> nil) then
+  begin
+    if FCastleCollider.AutoSize then
+      FCastleCollider.DoAutoSize;
+  end;
 end;
 
 procedure TCastleRigidBody.UpdateExistBody;
