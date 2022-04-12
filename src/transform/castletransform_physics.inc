@@ -983,7 +983,7 @@ begin
   FKraftShape.Density := Density;
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
-  if (not ACastleRigidBody.Exists) or (not Parent.ExistsInRoot) then
+  if not ACastleRigidBody.ExistsInRoot then
     FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable];
 
   UpdateLocalTransform;
