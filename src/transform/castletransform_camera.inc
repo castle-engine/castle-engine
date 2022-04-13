@@ -265,6 +265,9 @@
     FFrustum: TFrustum;
     FPerspective: TCastlePerspective;
     FOrthographic: TCastleOrthographic;
+    FInitialPosition: TVector3;
+    FInitialDirection: TVector3;
+    FInitialUp: TVector3;
 
     procedure RecalculateFrustum;
 
@@ -276,8 +279,16 @@
     procedure SetProjectionNear(const Value: Single);
     procedure SetProjectionFar(const Value: Single);
     procedure SetProjectionType(const Value: TProjectionType);
+
+    { These are only used when deserializing, to support old design files.
+      We'll later set Translation and Rotation based on them. }
+    property InitialPosition: TVector3 read FInitialPosition write FInitialPosition;
+    property InitialDirection: TVector3 read FInitialDirection write FInitialDirection;
+    property InitialUp: TVector3 read FInitialUp write FInitialUp;
   private
     procedure VisibleChange;
+  protected
+    procedure Loaded; override;
   public
     { Associated viewport.
       Do not set this directly, instead always set @link(TCastleViewport.Navigation).
@@ -599,6 +610,10 @@ end;
 constructor TCastleCamera.Create(AOwner: TComponent);
 begin
   inherited;
+
+  { Override orientation, this is more intuitive for cameras. }
+  Orientation := otUpYDirectionMinusZ;
+
   FProjectionType := ptPerspective;
   SetView(
     TVector3.Zero,
@@ -839,6 +854,12 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleCamera.Loaded;
+begin
+  inherited; //< important, as inherited removes csLoading from ComponentState
+  SetView(InitialPosition, InitialDirection, InitialUp);
 end;
 
 {$define read_implementation_methods}

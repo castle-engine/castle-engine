@@ -58,6 +58,9 @@
 ../../../src/transform/ TCastleTransform Translation TVector3
 
 ../../../src/transform/ TCastleCamera GravityUp TVector3
+../../../src/transform/ TCastleCamera InitialPosition TVector3
+../../../src/transform/ TCastleCamera InitialDirection TVector3
+../../../src/transform/ TCastleCamera InitialUp TVector3
 
 ../../../src/transform/ TCastleOrthographic Origin TVector2
 

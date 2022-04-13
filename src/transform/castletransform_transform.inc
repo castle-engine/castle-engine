@@ -489,8 +489,14 @@
 
     class var
       { Default value of @link(TCastleTransform.Orientation) for new instances.
-        By default @link(otUpYDirectionZ), matching glTF orientation
-        (as exported from Blender and other software). }
+        By default:
+
+        @unorderedList(
+          @item(@link(otUpYDirectionMinusZ) for cameras (TCastleCamera),)
+
+          @item(@link(otUpYDirectionZ) for other transformations,
+            matching glTF orientation (as exported from Blender and other software).)
+        ) }
       DefaultOrientation: TOrientationType;
 
     var
@@ -1644,7 +1650,7 @@
     property Position: TVector3 read FTranslation write SetTranslation;
       {$ifdef FPC}deprecated 'use Translation';{$endif}
 
-    { Direction the creature is facing, and up vector.
+    { Direction the transformation (like creature or camera) is facing, and up vector.
       These properties provide an alternative way to get and set the @link(Rotation)
       of the transformation.
       Thinking in terms of "direction" and "up" is often more natural
@@ -1652,9 +1658,15 @@
 
       The @link(Orientation) determines what is your default direction and up
       (when the @link(Rotation) is zero).
-      By default we follow X3D standard vectors suitable for gravity along
-      the Y axis. So direction is -Z (DefaultCameraDirection),
-      up is +Y (DefaultCameraUp).
+      By default it's
+
+      @unorderedList(
+        @item(@link(otUpYDirectionMinusZ) for cameras (TCastleCamera).
+          So direction is Z (DefaultCameraDirection), up is +Y (DefaultCameraUp).)
+
+        @item(@link(otUpYDirectionZ) for other transformations (matching default orientation
+          of glTF models exported from Blender).)
+      )
 
       The @link(Direction) and @link(Up) vectors should always be normalized
       (have length 1). When setting them by these properties, we will normalize
@@ -1708,8 +1720,15 @@
       The default value of this is determined by static variable
       DefaultOrientation, this is usually comfortable (because almost
       always you use the same Orientation throughout your game).
-      By default it's otUpYDirectionMinusZ (matching default cameras
-      of OpenGL and VRML/X3D).
+      By default it's
+
+      @unorderedList(
+        @item(@link(otUpYDirectionMinusZ) for cameras (TCastleCamera).
+          So direction is Z (DefaultCameraDirection), up is +Y (DefaultCameraUp).)
+
+        @item(@link(otUpYDirectionZ) for other transformations (matching default orientation
+          of glTF models exported from Blender).)
+      )
 
       This value determines how you should model your 3D models,
       like the creatures, the items, and the player weapons.
