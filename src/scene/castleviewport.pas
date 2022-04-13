@@ -367,6 +367,8 @@ type
     procedure BoundViewpointChanged; virtual;
 
     procedure RenderWithoutScreenEffects; override;
+
+    procedure Loaded; override;
   public
     const
       DefaultScreenSpaceAmbientOcclusion = false;
@@ -1390,8 +1392,6 @@ end;
 { TCastleViewport ------------------------------------------------------- }
 
 constructor TCastleViewport.Create(AOwner: TComponent);
-var
-  NewCamera: TCastleCamera;
 begin
   inherited;
   FBackgroundColor := DefaultBackgroundColor;
@@ -1543,6 +1543,33 @@ end;
 procedure TCastleViewport.CameraFreeNotification(const Sender: TFreeNotificationObserver);
 begin
   Camera := nil;
+end;
+
+procedure TCastleViewport.Loaded;
+begin
+  inherited; //< important, as inherited removes csLoading from ComponentState
+
+  { To read old designs (before Camera was assignable, before Camera was a TCastleTransform):
+    - add Camera to Items (so that it doesn't disappear when saving the design)
+    - invent name for Camera (default 'Camera' could conflict e.g. in case of multiple viewports)
+  }
+  if (Camera <> nil) and
+     (Camera.World = nil) then
+  begin
+    Check(Camera.Owner = Owner, 'After loading design, Camera and Veiewport must have equal owner');
+    Items.Add(Camera);
+    WritelnLog('Camera in viewport "%s" was not part of Viewport.Items, adding it to Viewport.Items', [
+      Name
+    ]);
+    if CastleDesignMode and (Camera.Name = 'Camera') and (Owner <> nil) then
+    begin
+      Camera.Name := InternalProposeName(TCastleCamera, Owner);
+      WritelnLog('Camera in viewport "%s" renamed to "%s" to not conflict with other components', [
+        Name,
+        Camera.Name
+      ]);
+    end;
+  end;
 end;
 
 procedure TCastleViewport.SetCapturePointingDevice(const Value: TCastleTransform);

@@ -431,27 +431,54 @@ procedure TCastleJsonReader.GetObject(AObject: TObject; Info: PPropInfo;
   AData: TJsonObject; DataName: TJsonStringType; var AValue: TObject);
 var
   R: TResolveObjectProperty;
+  ValueClass: TClass;
 begin
-  { OnGetObject may also be called with other parameters,
-    looking at FpJsonRtti code. Ignore them. }
-  if (DataName = '') or (Info = nil) then
-    Exit;
-
-  AValue := Owner.FindComponent(DataName);
-
-  { In this case TJsonDeStreamer.GetObject will create a new instance.
-    Allow it (we have no choise), but also rememeber to finalize this property later. }
-  if AValue = nil then
+  if (DataName = '') and (Info <> nil) then
   begin
-    R := TResolveObjectProperty.Create;
-    R.Instance := AObject;
-    R.InstanceProperty := Info;
-    R.PropertyValue := DataName;
-    ResolveObjectProperties.Add(R);
-    // This is too verbose (and alarming) for normal user. Everything is OK when you see this log.
-    // WritelnLog('Delaying resolving of component name "%s" (we will create a new empty instance, and resolve it at the end of loading)', [
-    //   DataName
-    // ]);
+    (*This happens when JSON wants to set object property that is currently nil,
+      but it has some content in JSON.
+      In theory it should not happen -- such properties should be a non-nil
+      subcomponent. But in practice it is possible for backward-compatibility.
+      This is possible in old designs:
+
+        "Camera": { Name: "Camera1", ... }
+
+      The default implementation in  TJSONDeStreamer.GetObject
+      does *almost* what we want... except the owner is then wrong
+      (it creates new object, with owner from containing object).
+    *)
+
+    ValueClass := GetTypeData(Info^.PropType)^.ClassType;
+    if ValueClass.InheritsFrom(TComponent) then
+      AValue := TComponentClass(ValueClass).Create(Owner);
+  end;
+
+  if (DataName <> '') and (Info <> nil) then
+  begin
+    { This happens when JSON wants to set object property using a name
+      of some existing instance. Like
+        "Camera": "Camera1"
+    }
+    AValue := Owner.FindComponent(DataName);
+
+    if AValue = nil then
+    begin
+      { In this case TJsonDeStreamer.GetObject will create a new instance,
+        that is useless (we will want to throw it away later),
+        but we cannot avoid this creation in TJsonDeStreamer.GetObject.
+
+        But at least rememeber to finalize this property later. }
+
+      R := TResolveObjectProperty.Create;
+      R.Instance := AObject;
+      R.InstanceProperty := Info;
+      R.PropertyValue := DataName;
+      ResolveObjectProperties.Add(R);
+      // This is too verbose (and alarming) for normal user. Everything is OK when you see this log.
+      // WritelnLog('Delaying resolving of component name "%s" (we will create a new empty instance, and resolve it at the end of loading)', [
+      //   DataName
+      // ]);
+    end;
   end;
 end;
 
