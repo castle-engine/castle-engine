@@ -1556,7 +1556,7 @@ begin
   if (Camera <> nil) and
      (Camera.World = nil) then
   begin
-    Check(Camera.Owner = Owner, 'After loading design, Camera and Veiewport must have equal owner');
+    Check(Camera.Owner = Owner, 'After loading design, Camera and Viewport must have equal owner');
     Items.Add(Camera);
     WritelnLog('Camera in viewport "%s" was not part of Viewport.Items, adding it to Viewport.Items', [
       Name
