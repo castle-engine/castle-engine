@@ -5,4 +5,4 @@ set -euo pipefail
 # In debug mode, with text runner.
 # One optional additional parameter possible, like -dXXX.
 
-castle-engine --mode=debug --compiler-option="$@" compile
+castle-engine --mode=debug compile --verbose
