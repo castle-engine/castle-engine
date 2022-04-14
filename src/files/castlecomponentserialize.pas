@@ -239,7 +239,12 @@ type
           }
         }
     *)
-    procedure FinishResolvingObjectProperties(const WarnAboutUnresolved: Boolean);
+    procedure FinishResolvingComponentProperties;
+
+    { Like FinishResolvingComponentProperties, but only resolves references to C,
+      so it is much faster, and doesn't warn about other references remaining
+      unsolved. }
+    procedure ResolveComponentReferences(const C: TComponent);
   public
     constructor Create;
     destructor Destroy; override;
@@ -381,12 +386,14 @@ begin
     C.InternalLoaded; // remove csLoading flag from ComponentState
   end;
 
-  { Resolve references that you can.
+  { Resolve references to this object, as soon as this object is read
+    (without waiting for final FinishResolvingComponentProperties).
+
     This is necessary for TCastleViewport.Loaded to function correctly,
     it assumes that Camera inside has the same owner as Viewport,
     which means that it is not a "dummy" instance created by FpRttiJson
     when property was nil. }
-  FinishResolvingObjectProperties(false);
+  ResolveComponentReferences(C);
 end;
 
 procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
@@ -505,22 +512,45 @@ begin
   end;
 end;
 
-procedure TCastleJsonReader.FinishResolvingObjectProperties(const WarnAboutUnresolved: Boolean);
+procedure TCastleJsonReader.ResolveComponentReferences(const C: TComponent);
 var
   R: TResolveObjectProperty;
-  PropertyValueAsObject, OldPropertyValue: TObject;
+  OldPropertyValue: TObject;
   I: Integer;
 begin
+  if C.Name = '' then Exit; // nothing to resolve for unnamed component
+
   for I := ResolveObjectProperties.Count - 1 downto 0 do
   begin
     R := ResolveObjectProperties[I];
+    if R.PropertyValue = C.Name then
+    begin
+      // free previous property value, in the safest way possible
+      OldPropertyValue := GetObjectProp(R.Instance, R.InstanceProperty);
+      SetObjectProp(R.Instance, R.InstanceProperty, nil);
+      FreeAndNil(OldPropertyValue);
+
+      // set new property value
+      SetObjectProp(R.Instance, R.InstanceProperty, C);
+
+      ResolveObjectProperties.Delete(I);
+    end;
+  end;
+end;
+
+procedure TCastleJsonReader.FinishResolvingComponentProperties;
+var
+  R: TResolveObjectProperty;
+  PropertyValueAsObject, OldPropertyValue: TObject;
+begin
+  for R in ResolveObjectProperties do
+  begin
     PropertyValueAsObject := Owner.FindComponent(R.PropertyValue);
     if PropertyValueAsObject = nil then
     begin
-      if WarnAboutUnresolved then
-        WritelnWarning('Cannot resolve component name "%s", it will be a new empty instance', [
-          R.PropertyValue
-        ]);
+      WritelnWarning('Cannot resolve component name "%s", it will be a new empty instance', [
+        R.PropertyValue
+      ]);
       Continue;
     end;
 
@@ -531,9 +561,9 @@ begin
 
     // set new property value
     SetObjectProp(R.Instance, R.InstanceProperty, PropertyValueAsObject);
-
-    ResolveObjectProperties.Delete(I);
   end;
+
+  ResolveObjectProperties.Clear;
 end;
 
 { This is a global routine because TJsonDeStreamer.OnGetObject requires global.
@@ -622,7 +652,7 @@ begin
     { read Result contents from JSON }
     Reader.DeStreamer.JsonToObject(JsonObject, Result);
 
-    Reader.FinishResolvingObjectProperties(true);
+    Reader.FinishResolvingComponentProperties;
 
     if Assigned(OnInternalTranslateDesign) and (FTranslationGroupName <> '') then
       OnInternalTranslateDesign(Result, FTranslationGroupName);
