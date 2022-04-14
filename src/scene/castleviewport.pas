@@ -1392,6 +1392,8 @@ end;
 { TCastleViewport ------------------------------------------------------- }
 
 constructor TCastleViewport.Create(AOwner: TComponent);
+var
+  NewCamera: TCastleCamera;
 begin
   inherited;
   FBackgroundColor := DefaultBackgroundColor;
@@ -1419,6 +1421,16 @@ begin
 
   FCameraObserver := TFreeNotificationObserver.Create(Self);
   FCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
+
+  { only when not deserializing: create automatic Camera
+    - unnamed, to not collide
+    - owned by Self (viewport), to not assume anything about AOwner }
+  if InternalLoadingComponent = 0 then
+  begin
+    NewCamera := TCastleCamera.Create(Self);
+    Camera := NewCamera;
+    Items.Add(NewCamera);
+  end;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}

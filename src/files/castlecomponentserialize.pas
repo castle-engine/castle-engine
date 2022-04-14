@@ -129,6 +129,12 @@ var
     @exclude }
   InternalCustomComponentsForProject: String;
 
+  { Are we inside ComponentLoad.
+    Prefer to instead look at "csLoading in ComponentState", this variable
+    is really only a hack for exceptional situations.
+    @exclude }
+  InternalLoadingComponent: Cardinal;
+
 implementation
 
 uses JsonParser, RtlConsts, StrUtils,
@@ -545,6 +551,10 @@ constructor TCastleJsonReader.Create;
 begin
   inherited;
 
+  { Do this early, so that destructor can just rely that it was for sure done,
+    even if there's exception from constructor. }
+  Inc(InternalLoadingComponent);
+
   FDeStreamer := TMyJsonDeStreamer.Create(nil);
   FDeStreamer.Reader := Self;
   FDeStreamer.BeforeReadObject := {$ifdef FPC}@{$endif}BeforeReadObject;
@@ -562,6 +572,7 @@ begin
   FreeAndNil(ResolveObjectProperties);
   FreeAndNil(FDeStreamer);
   FreeAndNil(SerializationProcessPool);
+  Dec(InternalLoadingComponent);
   inherited;
 end;
 
