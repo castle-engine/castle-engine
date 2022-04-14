@@ -1674,7 +1674,8 @@ begin
           But InternalViewport is a trivial internal field now, so no need to protect,
           user code should not touch it. }
         FNavigation.InternalViewport := nil;
-      RemoveControl(FNavigation);
+      if InternalLoadingComponent = 0 then // when deserializing, assume that proper Navigation is already part of children
+        RemoveControl(FNavigation);
     end;
 
     FNavigation := Value;
@@ -1685,11 +1686,11 @@ begin
       FNavigation.OnInternalHeight := {$ifdef FPC}@{$endif}NavigationHeight;
       FNavigation.FreeNotification(Self);
       FNavigation.InternalViewport := Self;
-      { Check IndexOfControl first, in case the FNavigation is already part
-        of our controls. This happens when deserializing: "Navigation" field
-        points to an instance that is within our GetChildren. }
-      if IndexOfControl(FNavigation) = -1 then
-        InsertControl(0, FNavigation);
+      if InternalLoadingComponent = 0 then // when deserializing, assume that proper Navigation is already part of children
+        { Check IndexOfControl first, in case the FNavigation is already part
+          of our controls. }
+        if IndexOfControl(FNavigation) = -1 then
+          InsertControl(0, FNavigation);
     end;
 
     { Call OnBoundNavigationInfoChanged when Navigation instance changed.
