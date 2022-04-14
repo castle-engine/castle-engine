@@ -633,6 +633,10 @@ begin
   FOrthographic.Name := 'Orthographic';
   FOrthographic.SetSubComponent(true);
 
+  FInitialPosition := TVector3.Zero;
+  FInitialDirection := DefaultCameraDirection;
+  FInitialUp := DefaultCameraUp;
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlecamera_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -859,7 +863,20 @@ end;
 procedure TCastleCamera.Loaded;
 begin
   inherited; //< important, as inherited removes csLoading from ComponentState
-  SetView(InitialPosition, InitialDirection, InitialUp);
+
+  { Apply deprecated InitialXxx props only if they have been modified by the design.
+    Otherwise, they would override the values read
+    from non-deprecated Translation and Rotation. }
+  if (not TVector3.PerfectlyEquals(FInitialPosition, TVector3.Zero)) or
+     (not TVector3.PerfectlyEquals(FInitialDirection, DefaultCameraDirection)) or
+     (not TVector3.PerfectlyEquals(FInitialUp, DefaultCameraUp)) then
+  begin
+    SetView(InitialPosition, InitialDirection, InitialUp);
+    // reset to defaults, to not store in design on save
+    FInitialPosition := TVector3.Zero;
+    FInitialDirection := DefaultCameraDirection;
+    FInitialUp := DefaultCameraUp;
+  end;
 end;
 
 {$define read_implementation_methods}
