@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -160,7 +160,10 @@ uses SysUtils,
 constructor TCastle2DSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
-  Setup2D;
+  { When not deserializing, do Setup2D now.
+    When deserializing, the camera should already be saved with 2D configuration. }
+  if Camera <> nil then
+    Setup2D;
   AutoNavigation := false;
 end;
 
