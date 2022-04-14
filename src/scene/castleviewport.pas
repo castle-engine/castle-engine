@@ -1546,6 +1546,15 @@ begin
 end;
 
 procedure TCastleViewport.Loaded;
+
+  function ComponentDebugStr(const C: TComponent): String;
+  begin
+    if C = nil then
+      Result := 'nil'
+    else
+      Result := C.Name + ' (' + C.ClassName + ')';
+  end;
+
 begin
   inherited; //< important, as inherited removes csLoading from ComponentState
 
@@ -1556,7 +1565,15 @@ begin
   if (Camera <> nil) and
      (Camera.World = nil) then
   begin
-    Check(Camera.Owner = Owner, 'After loading design, Camera and Viewport must have equal owner');
+    if Camera.Owner <> Owner then
+    begin
+      raise EInternalError.CreateFmt('After loading design, Camera and Viewport must have equal owner. But Camera = %s, Viewport = %s, Camera.Owner = %s, Viewport.Owner = %s', [
+        ComponentDebugStr(Camera),
+        ComponentDebugStr(Self),
+        ComponentDebugStr(Camera.Owner),
+        ComponentDebugStr(Owner)
+      ]);
+    end;
     Items.Add(Camera);
     WritelnLog('Camera in viewport "%s" was not part of Viewport.Items, adding it to Viewport.Items', [
       Name
