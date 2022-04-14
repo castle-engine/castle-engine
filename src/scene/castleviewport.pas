@@ -968,7 +968,47 @@ type
       instance. }
     property Items: TCastleRootTransform read FItems write SetItems;
 
-    { Camera determines the viewer position and orientation. }
+    { Camera determines the viewer position and orientation.
+
+      You should create TCastleCamera, assign to this property,
+      and add it somewhere to @link(Items).
+
+      Note that camera can be placed anywhere within @link(Items),
+      not necessary as direct child of @link(Items).
+      For example it can be a children of some deeper TCastleTransform,
+      this way you can attach camera e.g. to some bone or to a moving object.
+
+      Generally, TCastleCamera is a regular component that can be added and removed
+      freely from @link(Items), renamed, freed etc.
+      And setting this property is an independent action
+      that doesn't add/remove any camera from @link(Items).
+      This property can also be set to @nil.
+
+      For convenience, there are however some moments when we set up this property and
+      add camera to @link(Items) automatically:
+
+      @orderedList(
+        @item(
+          When you create TCastleViewport from code (not by deserializing some
+          @code(xxx.castle-user-interface) file) then we automatically add new (unnamed)
+          camera and set Viewport.Camera and add it to Viewport.Items.)
+
+        @item(
+          Only at design-time (in editor): creating new viewport also adds a default camera to it.
+          In this case camera component is named and owned by the same owner as viewport.
+          This is done only at creation and only at design-time.)
+
+        @item(
+          For backward compatibility, after deserializing file from previous engine versions,
+          we add the camera from it to Viewport.Items.
+          This is made strictly for backward compatibility, it shouldn't occur when reading new
+          design files.)
+      )
+
+      It's important to note that when deserializing camera from new engine versions, there's no "magic".
+      We just expect that Viewport.Camera and Viewport.Items are good.
+      Trying to do something automatic/smart in this case turned out to be quite troublesome
+      and breaking more than helping. }
     property Camera: TCastleCamera read FCamera write SetCamera;
 
     { Navigation method is an optional component that handles
