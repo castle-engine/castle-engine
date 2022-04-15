@@ -174,6 +174,7 @@ begin
   ClearLoaded;
 
   Viewport := TCastleViewport.Create(Self);
+  Viewport.SetupCamera; // since CastleDesignMode = true, we need to create camera exlicitly
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
   Viewport.AutoNavigation := true;

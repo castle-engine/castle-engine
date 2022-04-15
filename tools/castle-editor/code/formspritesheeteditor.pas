@@ -1299,6 +1299,7 @@ begin
     FNavigation := TCastle2DNavigation.Create(Self);
 
     FViewport := TCastleViewport.Create(Self);
+    FViewport.SetupCamera; // since CastleDesignMode = true, we need to create camera exlicitly
     FViewport.FullSize := true;
     FViewport.Navigation := FNavigation;
     FViewport.Setup2D;

@@ -956,6 +956,17 @@ type
     property SceneManager: TCastleSceneManager read FSceneManager write SetSceneManager;
       deprecated 'assign Items from one TCastleViewport to another to view the same world from multiple viewports';
     {$endif}
+
+    { Create new camera and make it used by this viewport.
+      This creates new unnamed TCastleCamera, owned by this viewport,
+      assigns it to @link(Camera) and adds it to @link(Items).
+
+      Call this only when @link(Camera) is @nil.
+
+      This is done automatically when creating TCastleViewport (not in design-mode,
+      not at deserialization) using the standard TCastleViewport.Create constructor.
+      So you likely don't need to call this in typical applications. }
+    procedure SetupCamera;
   published
     { Transformations and scenes visible in this viewport.
       You should add here your @link(TCastleTransform) and @link(TCastleScene)
@@ -990,19 +1001,21 @@ type
       @orderedList(
         @item(
           When you create TCastleViewport from code (not by deserializing some
-          @code(xxx.castle-user-interface) file) then we automatically add new (unnamed)
-          camera and set Viewport.Camera and add it to Viewport.Items.)
+          @code(xxx.castle-user-interface) file, not in design-mode in editor)
+          then we automatically add new (unnamed) camera and set
+          Viewport.Camera and add it to Viewport.Items.)
 
         @item(
-          Only at design-time (in editor): creating new viewport also adds a default camera to it.
+          Only at design-time (in editor): creating new viewport by editor menu
+          also adds a default camera to it.
           In this case camera component is named and owned by the same owner as viewport.
-          This is done only at creation and only at design-time.)
+          This is done right after TCastleViewport creation and only at design-time.)
 
         @item(
           For backward compatibility, after deserializing file from previous engine versions,
           we add the camera from it to Viewport.Items.
-          This is made strictly for backward compatibility, it shouldn't occur when reading new
-          design files.)
+          This is made strictly for backward compatibility, only when deserializing,
+          and it shouldn't occur when reading new design files.)
       )
 
       It's important to note that when deserializing camera from new engine versions, there's no "magic".
@@ -1432,8 +1445,6 @@ end;
 { TCastleViewport ------------------------------------------------------- }
 
 constructor TCastleViewport.Create(AOwner: TComponent);
-var
-  NewCamera: TCastleCamera;
 begin
   inherited;
   FBackgroundColor := DefaultBackgroundColor;
@@ -1462,19 +1473,31 @@ begin
   FCameraObserver := TFreeNotificationObserver.Create(Self);
   FCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
 
-  { only when not deserializing: create automatic Camera
-    - unnamed, to not collide
+  { only when not deserializing, and not in editor: create automatic Camera
+    - unnamed, to not collide with name of sthg else
     - owned by Self (viewport), to not assume anything about AOwner }
-  if InternalLoadingComponent = 0 then
-  begin
-    NewCamera := TCastleCamera.Create(Self);
-    Camera := NewCamera;
-    Items.Add(NewCamera);
-  end;
+  if (InternalLoadingComponent = 0) and (not CastleDesignMode) then
+    SetupCamera;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_implementation_constructor}
+end;
+
+procedure TCastleViewport.SetupCamera;
+var
+  NewCamera: TCastleCamera;
+begin
+  { This could actually work fine also when previous Camera <> nil.
+    But for now, leave it not allowed -- we need to decide whether,
+    in case of Camera <> nil, it would:
+    - do nothing
+    - or replace existing camera. }
+  Assert(Camera = nil);
+
+  NewCamera := TCastleCamera.Create(Self);
+  Camera := NewCamera;
+  Items.Add(NewCamera);
 end;
 
 procedure TCastleViewport.SetupDesignTimeCamera;
