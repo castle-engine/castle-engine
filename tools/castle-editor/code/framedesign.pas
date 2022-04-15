@@ -209,6 +209,14 @@ type
         Also owner of a temporary viewport for .castle-transform,
         in general this owns everything specific to display currrent design. }
       DesignOwner: TComponent;
+
+      { If design is visual (DesignRoot is TCastleUserInterface or
+        TCastleTransform) then these are non-nil and allow to visualize
+        alternative selected camera view. }
+      ViewportForSelectedCamera: TCastleViewport;
+      LabelForSelectedCamera: TCastleLabel;
+      ContainerForSelectedCamera: TCastleUserInterface;
+
       FDesignerLayer: TDesignerLayer;
       FDesignModified: Boolean;
       CastleControl: TCastleControl;
@@ -1176,6 +1184,9 @@ begin
   UpdateSelectedControl;
   //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
   FDesignRoot := nil;
+  ViewportForSelectedCamera := nil;
+  LabelForSelectedCamera := nil;
+  ContainerForSelectedCamera := nil;
 
   // this actually frees everything inside DesignRoot
   FreeAndNil(DesignOwner);
@@ -1248,6 +1259,44 @@ end;
 
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
   const NewDesignUrl: String);
+
+  procedure CreateInternalViewportForSelectedCamera(
+    const Owner: TComponent;
+    out Viewport: TCastleViewport;
+    out LabelCaption: TCastleLabel;
+    out Container: TCastleUserInterface);
+  const
+    LabelFontSize = 12;
+    Margin = 10;
+  var
+    Rect: TCastleRectangleControl;
+  begin
+    Rect := TCastleRectangleControl.Create(Owner);
+    Rect.Border.AllSides := Margin;
+    Rect.Border.Top := Margin + LabelFontSize + Margin;
+    Rect.Color := Gray;
+    Rect.WidthFraction := 0.33;
+    Rect.HeightFraction := 0.33;
+    Rect.SetTransient;
+    Rect.Anchor(hpRight, -Margin);
+    Rect.Anchor(vpBottom, Margin);
+    Container := Rect;
+
+    LabelCaption := TCastleLabel.Create(Owner);
+    LabelCaption.Color := Yellow;
+    LabelCaption.FontSize := LabelFontSize;
+    LabelCaption.Caption := 'Test Caption';
+    LabelCaption.Anchor(vpTop, -Margin);
+    LabelCaption.Anchor(hpMiddle);
+    LabelCaption.SetTransient;
+    Rect.InsertFront(LabelCaption);
+
+    Viewport := TCastleViewport.Create(Owner);
+    Viewport.FullSize := true;
+    Viewport.SetTransient;
+    Rect.InsertFront(Viewport);
+  end;
+
 var
   Background: TCastleRectangleControl;
   TempViewport: TCastleViewport;
@@ -1259,14 +1308,28 @@ begin
   { We use CastleControl.Controls.InsertBack here, to keep DesignerLayer
     in the front. }
 
+  DesignRootVisual :=
+    (NewDesignRoot is TCastleUserInterface) or
+    (NewDesignRoot is TCastleTransform);
+
+  if DesignRootVisual then
+  begin
+    CreateInternalViewportForSelectedCamera(NewDesignRoot,
+      ViewportForSelectedCamera,
+      LabelForSelectedCamera,
+      ContainerForSelectedCamera);
+    CastleControl.Controls.InsertBack(ContainerForSelectedCamera);
+  end;
+
   if NewDesignRoot is TCastleUserInterface then
   begin
     CastleControl.Controls.InsertBack(NewDesignRoot as TCastleUserInterface);
-    DesignRootVisual := true;
+    Assert(DesignRootVisual);
   end else
   if NewDesignRoot is TCastleTransform then
   begin
     TempViewport := TCastleViewport.Create(NewDesignOwner);
+    TempViewport.SetupCamera; // since CastleDesignMode = true, we need to create camera exlicitly
     TempViewport.Transparent := true;
     TempViewport.Items.UseHeadlight := hlOn;
     TempViewport.Items.Add(NewDesignRoot as TCastleTransform);
@@ -1274,7 +1337,7 @@ begin
     TempViewport.AutoCamera := true;
     TempViewport.AutoNavigation := true;
     CastleControl.Controls.InsertBack(TempViewport);
-    DesignRootVisual := true;
+    Assert(DesignRootVisual);
   end else
   begin
     { This is normal situation for non-visual components. }
@@ -1289,7 +1352,7 @@ begin
     LabelNonVisualHint.FontSize := 40;
     CastleControl.Controls.InsertBack(LabelNonVisualHint);
     *)
-    DesignRootVisual := false;
+    Assert(not DesignRootVisual);
   end;
 
   SetEnabledVisible(CastleControl, DesignRootVisual);
