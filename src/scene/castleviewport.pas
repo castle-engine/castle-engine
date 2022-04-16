@@ -161,6 +161,8 @@ type
       FBackgroundObserver: TFreeNotificationObserver;
       // reused between frames for speed
       FRenderWithoutScreenEffectsRenderingCamera: TRenderingCamera;
+      FMissingCameraRect: TCastleRectangleControl;
+      FMissingCameraLabel: TCastleLabel;
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -1473,6 +1475,25 @@ begin
   FCameraObserver := TFreeNotificationObserver.Create(Self);
   FCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
 
+  FMissingCameraRect := TCastleRectangleControl.Create(Self);
+  FMissingCameraRect.SetTransient;
+  FMissingCameraRect.Exists := false;
+  FMissingCameraRect.FullSize := true;
+  InsertBack(FMissingCameraRect);
+
+  FMissingCameraLabel := TCastleLabel.Create(Self);
+  FMissingCameraLabel.Caption :=
+    'No camera selected.' + NL +
+    NL +
+    'To see the viewport contents,' + NL +
+    'set TCastleViewport.Camera.';
+  FMissingCameraLabel.SetTransient;
+  FMissingCameraLabel.Alignment := hpMiddle;
+  FMissingCameraLabel.FontSize := 20;
+  FMissingCameraLabel.Anchor(hpMiddle);
+  FMissingCameraLabel.Anchor(vpMiddle);
+  FMissingCameraRect.InsertFront(FMissingCameraLabel);
+
   { only when not deserializing, and not in editor: create automatic Camera
     - unnamed, to not collide with name of sthg else
     - owned by Self (viewport), to not assume anything about AOwner }
@@ -2746,9 +2767,19 @@ begin
   inherited;
 
   // as Camera is assignable, gracefully handle the case of Camera = nil
-  if Camera = nil then
+  FMissingCameraRect.Exists := Camera = nil;
+  if FMissingCameraRect.Exists then
   begin
-    RenderContext.Clear([cbColor], BackgroundColor);
+    { We show the "No camera selected" using UI controls, as this is most flexible.
+
+      Note: in paricular, we do not clear viewport using RenderContext.Clear here,
+      as RenderContext.Clear requires logic of RenderContext.ScissorEnable/Disable
+      around it to be properlylimited.
+      The FMissingCameraRect clears the viewport with BackgroundColor already. }
+
+    FMissingCameraRect.Color := BackgroundColor;
+    FMissingCameraLabel.Color := Vector4(WhiteRGB - BackgroundColor.XYZ, 1);
+    FMissingCameraLabel.MaxWidth := FMissingCameraRect.EffectiveWidthForChildren;
     Exit;
   end;
 
