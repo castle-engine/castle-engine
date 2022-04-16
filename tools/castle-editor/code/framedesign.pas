@@ -32,7 +32,7 @@ uses
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
   CastleViewport, CastleClassUtils, CastleControls, CastleTiledMap,
   CastleCameras, CastleBoxes, CastleTransform, CastleDebugTransform,
-  CastleColors,
+  CastleColors, CastleScene,
   // editor units
   FrameAnchors, VisualizeTransform,
   CastleUndoSystem;
@@ -214,6 +214,7 @@ type
         TCastleTransform) then these are non-nil and allow to visualize
         alternative selected camera view. }
       ViewportForSelectedCamera: TCastleViewport;
+      EmptyItemsForSelectedCamera: TCastleRootTransform;
       LabelForSelectedCamera: TCastleLabel;
       ContainerForSelectedCamera: TCastleUserInterface;
 
@@ -390,7 +391,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs, LCLType, ObjInspStrConsts,
   Castle2DSceneManager, CastleComponentSerialize, CastleFileFilters,
-  CastleGLUtils, CastleImages, CastleLog,  CastleProjection, CastleScene,
+  CastleGLUtils, CastleImages, CastleLog,  CastleProjection,
   CastleShellCtrls, CastleStringUtils, CastleThirdPersonNavigation,
   CastleTimeUtils, CastleURIUtils, CastleUtils, CastleBehaviors, CastleSoundEngine,
   X3DLoad,
@@ -1185,6 +1186,7 @@ begin
   //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
   FDesignRoot := nil;
   ViewportForSelectedCamera := nil;
+  EmptyItemsForSelectedCamera := nil;
   LabelForSelectedCamera := nil;
   ContainerForSelectedCamera := nil;
 
@@ -1263,6 +1265,7 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
   procedure CreateInternalViewportForSelectedCamera(
     const Owner: TComponent;
     out Viewport: TCastleViewport;
+    out EmptyItems: TCastleRootTransform;
     out LabelCaption: TCastleLabel;
     out Container: TCastleUserInterface);
   const
@@ -1281,6 +1284,7 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
     Rect.SetTransient;
     Rect.Anchor(hpRight, -Margin);
     Rect.Anchor(vpBottom, Margin);
+    Rect.Exists := false;
     Container := Rect;
 
     LabelCaption := TCastleLabel.Create(Owner);
@@ -1296,6 +1300,8 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
     Viewport.FullSize := true;
     Viewport.SetTransient;
     Rect.InsertFront(Viewport);
+
+    EmptyItems := Viewport.Items;
   end;
 
 var
@@ -1317,6 +1323,7 @@ begin
   begin
     CreateInternalViewportForSelectedCamera(NewDesignRoot,
       ViewportForSelectedCamera,
+      EmptyItemsForSelectedCamera,
       LabelForSelectedCamera,
       ContainerForSelectedCamera);
     CastleControl.Controls.InsertBack(ContainerForSelectedCamera);
@@ -3244,6 +3251,28 @@ begin
   T := SelectedTransform;
   SetEnabledVisible(PanelLayoutTransform, T <> nil);
   VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
+
+  if ContainerForSelectedCamera <> nil then
+  begin
+    { Show ContainerForSelectedCamera if selected a camera
+      that is *not* the current camera in this viewport. }
+    ContainerForSelectedCamera.Exists := (T is TCastleCamera) and
+      (V <> nil) and (T.World = V.Items) and (V.Camera <> T);
+    if ContainerForSelectedCamera.Exists then
+    begin
+      ViewportForSelectedCamera.Items := V.Items;
+      ViewportForSelectedCamera.Camera := T as TCastleCamera;
+      LabelForSelectedCamera.Caption := T.Name;
+    end else
+    begin
+      { Assign "empty" values for Items/Camera.
+        This is esp. important for ViewportForSelectedCamera.Items,
+        because TCastleViewport.SetItems doesn't set up any observer right now
+        to be notified when given Items are freed by something. }
+      ViewportForSelectedCamera.Items := EmptyItemsForSelectedCamera;
+      ViewportForSelectedCamera.Camera := nil;
+    end;
+  end;
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);

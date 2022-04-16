@@ -3545,7 +3545,7 @@ begin
   if FItems <> Value then
   begin
     if Value = nil then
-      raise EInternalError.Create('Cannot set TCastleSceneManager.Items to nil');
+      raise EInternalError.Create('Cannot set TCastleViewport.Items to nil');
     FItems := Value;
     LastVisibleStateIdForVisibleChange := 0;
 
