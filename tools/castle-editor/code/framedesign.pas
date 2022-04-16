@@ -1266,15 +1266,16 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
     out LabelCaption: TCastleLabel;
     out Container: TCastleUserInterface);
   const
-    LabelFontSize = 12;
-    Margin = 10;
+    LabelFontSize = 20;
+    Margin = 5;
   var
     Rect: TCastleRectangleControl;
   begin
     Rect := TCastleRectangleControl.Create(Owner);
     Rect.Border.AllSides := Margin;
     Rect.Border.Top := Margin + LabelFontSize + Margin;
-    Rect.Color := Gray;
+    Rect.BorderColor := Gray;
+    //Rect.Color := Gray;
     Rect.WidthFraction := 0.33;
     Rect.HeightFraction := 0.33;
     Rect.SetTransient;
@@ -1286,7 +1287,7 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
     LabelCaption.Color := Yellow;
     LabelCaption.FontSize := LabelFontSize;
     LabelCaption.Caption := 'Test Caption';
-    LabelCaption.Anchor(vpTop, -Margin);
+    LabelCaption.Anchor(vpBottom, vpTop, Margin);
     LabelCaption.Anchor(hpMiddle);
     LabelCaption.SetTransient;
     Rect.InsertFront(LabelCaption);
