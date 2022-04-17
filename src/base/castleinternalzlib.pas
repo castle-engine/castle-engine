@@ -1,17 +1,21 @@
-{ @abstract(Bindings to zlib library.)
+{ Zlib bindings, for Castle Game Engine.
 
-  Copied from FPC zlib.pp in packages.
-  Changed by Kambi to
+  Based on FPC zlib.pp unit.
+  Adjusted to:
+
   @unorderedList(
     @item(link to zlib1.dll under Windows (from [http://gnuwin32.sourceforge.net/]),
       this uses cdecl calling convention)
     @item(name changed from zlib to CastleInternalZLib to not collide with FPC and Kylix
       zlib units)
-    @item(changed to link using my TDynLib instead of linking with
+    @item(changed to link using CGE TDynLib instead of linking with
       "external libz ...")
     @item(just like CastleInternalPng: zlib library does not need to be
       actually present on the user system.
       If zlib is not be installed, CastleZLibInitialized will be simply set to @false.)
+    @item(honor ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION)
+    @item(For both FPC and Delphi (uses PAnsiChar for new unicode Delphis).)
+
   )
 
   @exclude (This is only a C header translation --- no nice PasDoc docs.)
@@ -24,7 +28,7 @@ unit CastleInternalZLib;
 {$ifdef CASTLE_ZLIB_USING_PASZLIB}
 interface
 { CastleInternalZLib unit doesn't expose anything when CASTLE_ZLIB_USING_PASZLIB
-  is defined. Instead, use PasZLib, which implement Zlib API in pure Pascal. }
+  is defined. Instead, use PasZLib, which implements Zlib API in pure Pascal. }
 implementation
 end.
 {$else}
@@ -117,7 +121,7 @@ const
   Z_NULL = 0;
 
 var
-  zlibVersionpchar: function:pchar;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  zlibVersionpchar: function:PAnsiChar;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   deflate: function(var strm:TZStream; flush:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   deflateEnd: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   inflate: function(var strm:TZStream; flush:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
@@ -132,8 +136,8 @@ var
   compress: function(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   compress2: function(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong; level:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   uncompress: function(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzopen: function(path:pchar; mode:pchar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzdopen: function(fd:longint; mode:pchar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzopen: function(path:PAnsiChar; mode:PAnsiChar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzdopen: function(fd:longint; mode:PAnsiChar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzsetparams: function(thefile:gzFile; level:longint; strategy:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzread: function(thefile:gzFile; buf:pointer; len:cardinal):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzwrite: function(thefile:gzFile; buf:pointer; len:cardinal):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
@@ -158,11 +162,11 @@ var
   gzerror: function(thefile:gzFile; var errnum:longint):pbytef;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   adler32: function(adler:uLong;buf : pbytef; len:uInt):uLong;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   crc32: function(crc:uLong;buf : pbytef; len:uInt):uLong;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateInit_: function(var strm:TZStream; level:longint; version:pchar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateInit_: function(var strm:TZStream; version:pchar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateInit2_: function(var strm:TZStream; level:longint; method:longint; windowBits:longint; memLevel:longint;strategy:longint; version:pchar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateInit2_: function(var strm:TZStream; windowBits:longint; version:pchar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  zErrorpchar: function(err:longint):pchar;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateInit_: function(var strm:TZStream; level:longint; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateInit_: function(var strm:TZStream; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateInit2_: function(var strm:TZStream; level:longint; method:longint; windowBits:longint; memLevel:longint;strategy:longint; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateInit2_: function(var strm:TZStream; windowBits:longint; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  zErrorpchar: function(err:longint):PAnsiChar;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   inflateSyncPoint: function(z:PZstream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   get_crc_table: function:pointer;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
 
