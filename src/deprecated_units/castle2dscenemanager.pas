@@ -57,8 +57,8 @@ type
     procedure SetProjectionOriginCenter(const Value: Boolean);
   public
     const
-      DefaultProjectionSpan = Default2DProjectionFar deprecated 'use Default2DProjectionFar';
-      DefaultCameraZ = Default2DCameraZ deprecated 'use Default2DCameraZ';
+      DefaultProjectionSpan = TCastleViewport.Default2DProjectionFar deprecated 'use Default2DProjectionFar';
+      DefaultCameraZ = TCastleViewport.Default2DCameraZ deprecated 'use Default2DCameraZ';
 
     constructor Create(AOwner: TComponent); override;
 
@@ -85,14 +85,17 @@ type
       read GetProjectionAutoSize write SetProjectionAutoSize default true;
       {$ifdef FPC}deprecated 'use Camera.Orthographic.Width and Height; only when both are zero, it is auto-sized';{$endif}
     property ProjectionHeight: Single
-      read GetProjectionHeight write SetProjectionHeight default 0;
+      read GetProjectionHeight write SetProjectionHeight
+      {$ifdef FPC}default 0{$endif};
       {$ifdef FPC}deprecated 'use Camera.Orthographic.Height, and note that ProjectionAutoSize is ignored';{$endif}
     property ProjectionWidth: Single
-      read GetProjectionWidth write SetProjectionWidth default 0;
+      read GetProjectionWidth write SetProjectionWidth
+      {$ifdef FPC}default 0{$endif};
       {$ifdef FPC}deprecated 'use Camera.Orthographic.Width, and note that ProjectionAutoSize is ignored';{$endif}
 
     property ProjectionSpan: Single
-      read GetProjectionSpan write SetProjectionSpan default Default2DProjectionFar;
+      read GetProjectionSpan write SetProjectionSpan
+      {$ifdef FPC}default Default2DProjectionFar{$endif};
       {$ifdef FPC}deprecated 'use Camera.ProjectionFar';{$endif}
 
     { Where is the (0,0) world point with respect to the viewport.
@@ -122,7 +125,8 @@ type
     property ProjectionOriginCenter: boolean
       read GetProjectionOriginCenter write SetProjectionOriginCenter default false;
       {$ifdef FPC}deprecated 'use Camera.Orthographic.Origin';{$endif}
-  end deprecated 'use TCastleViewport. To have the same initial behavior call Setup2D method, and set FullSize:=true';
+  end
+    {$ifdef FPC}deprecated 'use TCastleViewport. To have the same initial behavior call Setup2D method, and set FullSize:=true'{$endif};
 
   T2DSceneManager = class(TCastle2DSceneManager)
   public
@@ -147,7 +151,7 @@ type
 
   {$warnings off} // refering to deprecated from deprecated
   T2DScene = TCastle2DScene deprecated 'use TCastleScene, and call Setup2D right after creating';
-  {$wanrings on}
+  {$warnings on}
 
 implementation
 

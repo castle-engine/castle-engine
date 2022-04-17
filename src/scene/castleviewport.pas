@@ -1263,7 +1263,7 @@ type
       Action: TCollectionNotification); override;
   end deprecated 'internal for TCastleSceneManager';
 
-  { Deprecated way to manage transformatiosn and scenes.
+  { Deprecated way to manage transformations and scenes.
     To upgrade:
     - use @link(TCastleViewport)
     - set FullSize, AutoCamera and AutoNavigation to true. }
@@ -1293,13 +1293,11 @@ type
 
     procedure Render; override;
 
-    {$ifdef FPC}
     { Limit the movement allowed by @link(TCastleAbstractRootTransform.WorldMoveAllowed).
       Ignored when empty (default).
       @seealso TCastleAbstractRootTransform.MoveLimit }
     property MoveLimit: TBox3D read GetMoveLimit write SetMoveLimit;
-      deprecated 'use Items.MoveLimit';
-    {$endif}
+      {$ifdef FPC}deprecated 'use Items.MoveLimit';{$endif}
 
     { List of viewports connected to this scene manager.
       This contains all TCastleViewport instances that have
@@ -1317,33 +1315,32 @@ type
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3; deprecated 'use Camera.GravityUp';
 
-    {$ifdef FPC}
     { See @link(TCastleRootTransform.HeadlightNode). }
     property HeadlightNode: TAbstractLightNode
       read GetHeadlightNode write SetHeadlightNode;
-      deprecated 'use Items.HeadlightNode';
+      {$ifdef FPC}deprecated 'use Items.HeadlightNode';{$endif}
 
     { See @link(TCastleAbstractRootTransform.MainCamera). }
     property MainCamera: TCastleCamera read GetMainCamera write SetMainCamera;
-      deprecated 'use Items.MainCamera';
+      {$ifdef FPC}deprecated 'use Items.MainCamera';{$endif}
 
     { See @link(TCastleAbstractRootTransform.PhysicsProperties). }
     function PhysicsProperties: TPhysicsProperties;
       deprecated 'use Items.PhysicsProperties';
 
     { See @link(TCastleAbstractRootTransform.TimeScale). }
-    property TimeScale: Single read GetTimeScale write SetTimeScale default 1;
-      deprecated 'use Items.TimeScale';
+    property TimeScale: Single read GetTimeScale write SetTimeScale
+      {$ifdef FPC}default 1{$endif};
+      {$ifdef FPC}deprecated 'use Items.TimeScale';{$endif}
 
     { See @link(TCastleRootTransform.MainScene). }
     property MainScene: TCastleScene read GetMainSceneInternal write SetMainScene;
-      deprecated 'use Items.MainScene';
+      {$ifdef FPC}deprecated 'use Items.MainScene';{$endif}
 
     { See @link(TCastleRootTransform.UseHeadlight). }
     property UseHeadlight: TUseHeadlight
       read GetUseHeadlight write SetUseHeadlight default hlMainScene;
-      deprecated 'use Items.UseHeadlight';
-    {$endif}
+      {$ifdef FPC}deprecated 'use Items.UseHeadlight';{$endif}
   published
     { Should we render the 3D world in a default viewport that covers
       the whole window. This is usually what you want. For more complicated
@@ -4296,12 +4293,10 @@ begin
   Items.MoveLimit := Value;
 end;
 
-{$ifdef FPC}
 function TCastleSceneManager.PhysicsProperties: TPhysicsProperties;
 begin
   Result := Items.PhysicsProperties;
 end;
-{$endif}
 
 function TCastleSceneManager.GetTimeScale: Single;
 begin
