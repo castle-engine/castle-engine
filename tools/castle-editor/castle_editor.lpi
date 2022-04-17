@@ -107,9 +107,9 @@
         <UnitName Value="FormPreferences"/>
       </Unit9>
       <Unit10>
-        <Filename Value="code/visualizetransform.pas"/>
+        <Filename Value="code/designvisualizetransform.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="VisualizeTransform"/>
+        <UnitName Value="DesignVisualizeTransform"/>
       </Unit10>
       <Unit11>
         <Filename Value="code/formspritesheeteditor.pas"/>

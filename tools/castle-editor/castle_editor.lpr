@@ -41,7 +41,7 @@ uses
   //castle_editor_automatic_package,
   Forms, anchordockpkg, FormChooseProject, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
-  FormPreferences, VisualizeTransform, FormSpriteSheetEditor, DataModuleIcons,
+  FormPreferences, DesignVisualizeTransform, FormSpriteSheetEditor, DataModuleIcons,
   FormImportAtlas, FormImportStarling, FormNewUnit, EditorCodeTools,
   CastleShellCtrls, FormSystemInformation;
 

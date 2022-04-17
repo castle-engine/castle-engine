@@ -10,7 +10,9 @@ See the [manual documenting the editor](https://castle-engine.io/manual_editor.p
 
     You can set such scaling e.g. by GNOME 3 _"Large fonts"_ accessibilty option, or by adjusting Xorg dpi to 120 (96 * 1.25), Windows also allows to set 125% scaling.
 
-### Contributing: When creating a new Lazarus form, remember to...
+### Contributing
+
+When creating a new Lazarus form, remember to:
 
 - Save form class `TFooForm` (so it will have singleton `FooForm`) in unit name `FormFoo`.
 - Adjust form's `Caption`.
@@ -29,6 +31,8 @@ When adding new units, like forms, make sure you synchronize the custom editor t
 cd ../build-tool/data/
 ./custom_editor_template_rebuild.sh
 ```
+
+Units called `DesignXxx` are helper units for `FrameDesign`, i.e. for design editing.
 
 ## License
 

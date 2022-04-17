@@ -34,8 +34,8 @@ uses
   CastleCameras, CastleBoxes, CastleTransform, CastleDebugTransform,
   CastleColors, CastleScene,
   // editor units
-  FrameAnchors, VisualizeTransform,
-  CastleUndoSystem, DesignCameraPreview;
+  FrameAnchors,
+  DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview;
 
 type
   { Frame to visually design component hierarchy. }

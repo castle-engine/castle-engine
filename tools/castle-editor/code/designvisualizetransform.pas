@@ -14,7 +14,7 @@
 }
 
 { Visualize TCastleTransform selection and dragging to transform (TVisualizeTransform). }
-unit VisualizeTransform;
+unit DesignVisualizeTransform;
 
 interface
 

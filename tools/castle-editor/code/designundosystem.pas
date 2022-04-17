@@ -1,9 +1,22 @@
+{
+  Copyright 2020-2022 Yevhen Loza, Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
 { An undo system that handles:
   Recording the changes made to the designed Scene
   Performing Undo/Redo actions based on current undo history }
-unit CastleUndoSystem;
-
-{$mode objfpc}{$H+}
+unit DesignUndoSystem;
 
 interface
 
