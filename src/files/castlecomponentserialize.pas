@@ -386,14 +386,15 @@ begin
     C.InternalLoaded; // remove csLoading flag from ComponentState
   end;
 
-  { Resolve references to this object, as soon as this object is read
-    (without waiting for final FinishResolvingComponentProperties).
+  if AObject is TComponent then
+    { Resolve references to this object, as soon as this object is read
+      (without waiting for final FinishResolvingComponentProperties).
 
-    This is necessary for TCastleViewport.Loaded to function correctly,
-    it assumes that Camera inside has the same owner as Viewport,
-    which means that it is not a "dummy" instance created by FpRttiJson
-    when property was nil. }
-  ResolveComponentReferences(C);
+      This is necessary for TCastleViewport.Loaded to function correctly,
+      it assumes that Camera inside has the same owner as Viewport,
+      which means that it is not a "dummy" instance created by FpRttiJson
+      when property was nil. }
+    ResolveComponentReferences(TComponent(AObject));
 end;
 
 procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
