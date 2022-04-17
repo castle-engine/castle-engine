@@ -611,6 +611,10 @@ procedure TVisualizeTransform.TGizmoScene.LocalRender(const Params: TRenderParam
 const
   RenderOnTop = true;
 begin
+  { Do not show gizmo when it visualizes the camera that we are currently rendering through. }
+  if Parent = Params.RenderingCamera.Camera then
+    Exit;
+
   { We show gizmo on top, to be easily always visible.
     This makes sense because it is also interactable even when obscured.
 

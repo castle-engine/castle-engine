@@ -105,6 +105,8 @@
   strict private
     FTarget: TRenderTarget;
   public
+    Camera: TCastleCamera;
+
     { Current camera position.
       In world coordinates, i.e. this is equal TCastleCamera.Position,
       and in coordinates of whole TCastleViewport.Items. }
@@ -166,7 +168,8 @@
 
     { Set all properties (except Target) from explict matrices (and explicit position,
       makes it faster than extracting position from matrix).
-      ProjectionMatrix is needed to calculate frustum. }
+      ProjectionMatrix is needed to calculate frustum.
+      Sets @link(Camera) to @nil. }
     procedure FromMatrix(
       const APosition: TVector3;
       const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4);
@@ -358,6 +361,7 @@ end;
 
 procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleCamera);
 begin
+  Camera := ACamera;
   Position := ACamera.Translation;
   Matrix := ACamera.Matrix;
   InverseMatrixDone := false;
@@ -370,6 +374,7 @@ procedure TRenderingCamera.FromMatrix(
   const APosition: TVector3;
   const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4);
 begin
+  Camera := nil;
   Position := APosition;
   Matrix := AMatrix;
   InverseMatrixDone := false;
