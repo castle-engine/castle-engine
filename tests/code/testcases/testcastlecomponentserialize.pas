@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleComponentSerialize" -*-
 {
-  Copyright 2017-2021 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,19 +29,17 @@ type
     procedure TestEmptyCaption;
     procedure TestSaveLoad1;
     procedure TestSaveLoad2;
-    {$ifdef FPC}
     procedure TestDeserializeObjectReferences;
-    {$endif}
     procedure TestDepth;
   end;
 
 implementation
 
 uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
-  CastleUIControls, CastleControls, CastleUtils, {$ifdef FPC}CastleSceneManager,{$endif}
-  CastleScene{$ifdef FPC},
+  CastleUIControls, CastleControls, CastleUtils, CastleSceneManager,
+  CastleScene,
   { needed to deserialize castle-data:/designs/test_object_references.castle-user-interface }
-  Castle2DSceneManager{$endif};
+  Castle2DSceneManager;
 
 { TMyComponent -------------------------------------------------------------- }
 
@@ -276,7 +274,6 @@ begin
   finally FreeAndNil(UiOwner) end;
 end;
 
-{$ifdef FPC}
 procedure TTestCastleComponentSerialize.TestDeserializeObjectReferences;
 var
   UiOwner: TComponent;
@@ -301,8 +298,6 @@ begin
     AssertTrue(Sm3.MainScene = nil);
   finally FreeAndNil(UiOwner) end;
 end;
-{$endif FPC}
-
 
 procedure TTestCastleComponentSerialize.TestDepth;
 { Internally, CastleComponentSerialize must increase SerializationProcessPool

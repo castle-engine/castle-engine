@@ -14,7 +14,7 @@
 }
 
 { Scene manager (TCastle2DSceneManager) and scene (TCastle2DScene) best suited for 2D worlds. }
-unit Castle2DSceneManager;
+unit Castle2DSceneManager deprecated 'use CastleViewport';
 
 {$I castleconf.inc}
 
@@ -83,17 +83,17 @@ type
       can be checked to see actual projection dimensions. }
     property ProjectionAutoSize: boolean
       read GetProjectionAutoSize write SetProjectionAutoSize default true;
-      deprecated 'use Camera.Orthographic.Width and Height; only when both are zero, it is auto-sized';
+      {$ifdef FPC}deprecated 'use Camera.Orthographic.Width and Height; only when both are zero, it is auto-sized';{$endif}
     property ProjectionHeight: Single
       read GetProjectionHeight write SetProjectionHeight default 0;
-      deprecated 'use Camera.Orthographic.Height, and note that ProjectionAutoSize is ignored';
+      {$ifdef FPC}deprecated 'use Camera.Orthographic.Height, and note that ProjectionAutoSize is ignored';{$endif}
     property ProjectionWidth: Single
       read GetProjectionWidth write SetProjectionWidth default 0;
-      deprecated 'use Camera.Orthographic.Width, and note that ProjectionAutoSize is ignored';
+      {$ifdef FPC}deprecated 'use Camera.Orthographic.Width, and note that ProjectionAutoSize is ignored';{$endif}
 
     property ProjectionSpan: Single
       read GetProjectionSpan write SetProjectionSpan default Default2DProjectionFar;
-      deprecated 'use Camera.ProjectionFar';
+      {$ifdef FPC}deprecated 'use Camera.ProjectionFar';{$endif}
 
     { Where is the (0,0) world point with respect to the viewport.
 
@@ -121,7 +121,7 @@ type
     }
     property ProjectionOriginCenter: boolean
       read GetProjectionOriginCenter write SetProjectionOriginCenter default false;
-      deprecated 'use Camera.Orthographic.Origin';
+      {$ifdef FPC}deprecated 'use Camera.Orthographic.Origin';{$endif}
   end deprecated 'use TCastleViewport. To have the same initial behavior call Setup2D method, and set FullSize:=true';
 
   T2DSceneManager = class(TCastle2DSceneManager)
