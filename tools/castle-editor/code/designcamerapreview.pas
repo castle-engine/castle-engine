@@ -25,7 +25,6 @@ type
   TCameraPreview = class
   strict private
     Viewport: TCastleViewport;
-    EmptyItems: TCastleRootTransform;
     LabelCaption: TCastleLabel;
     Rect: TCastleRectangleControl;
   public
@@ -74,8 +73,6 @@ begin
   Viewport.FullSize := true;
   Viewport.SetTransient;
   Rect.InsertFront(Viewport);
-
-  EmptyItems := Viewport.Items;
 end;
 
 function TCameraPreview.UiRoot: TCastleUserInterface;
@@ -97,11 +94,10 @@ begin
     LabelCaption.Caption := T.Name;
   end else
   begin
-    { Assign "empty" values for Items/Camera.
-      This is esp. important for Viewport.Items,
-      because TCastleViewport.SetItems doesn't set up any observer right now
-      to be notified when given Items are freed by something. }
-    Viewport.Items := EmptyItems;
+    { Assign "empty" values for Items/Camera,
+      to avoid needlessly refering to them when they could be destroyed
+      (although we have observers to detect it anyway). }
+    Viewport.Items := nil;
     Viewport.Camera := nil;
   end;
 end;

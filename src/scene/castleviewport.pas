@@ -146,6 +146,7 @@ type
         @nil when OpenGL context is not yet initialized. }
       FShadowVolumeRenderer: TGLShadowVolumeRenderer;
       FItems: TCastleRootTransform;
+      FItemsObserver: TFreeNotificationObserver;
       LastVisibleStateIdForVisibleChange: TFrameId;
 
       FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
@@ -177,7 +178,7 @@ type
     procedure SetAutoNavigation(const Value: Boolean);
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
-    procedure SetItems(const Value: TCastleRootTransform);
+    procedure SetItems(Value: TCastleRootTransform);
     function GetPaused: Boolean;
     procedure SetPaused(const Value: Boolean);
     procedure SetBackground(const Value: TCastleBackground);
@@ -245,6 +246,7 @@ type
 
     procedure SetCamera(const Value: TCastleCamera);
     procedure CameraFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure ItemsFreeNotification(const Sender: TFreeNotificationObserver);
   private
     var
       FNavigation: TCastleNavigation;
@@ -974,11 +976,16 @@ type
       You should add here your @link(TCastleTransform) and @link(TCastleScene)
       instances.
 
-      It is by default created (not nil), but you can also assign here your own
+      It is by default created (not @nil), but you can also assign here your own
       TCastleRootTransform instance.
       You can also copy a TCastleRootTransform from one TCastleViewport to another,
       that is multiple TCastleViewport can refer to the same TCastleRootTransform
-      instance. }
+      instance.
+
+      Note that assigning here @nil is allowed, but under the hood it just creates
+      an empty TCastleRootTransform instance. So this property is never @nil when reading.
+      But try to not depend on it for the future, at some point this property may be
+      allowed to be @nil, for consistency. }
     property Items: TCastleRootTransform read FItems write SetItems;
 
     { Camera determines the viewer position and orientation.
@@ -1474,6 +1481,9 @@ begin
 
   FCameraObserver := TFreeNotificationObserver.Create(Self);
   FCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
+
+  FItemsObserver := TFreeNotificationObserver.Create(Self);
+  FItemsObserver.OnFreeNotification := {$ifdef FPC}@{$endif} ItemsFreeNotification;
 
   FMissingCameraRect := TCastleRectangleControl.Create(Self);
   FMissingCameraRect.SetTransient;
@@ -3540,13 +3550,20 @@ begin
   );
 end;
 
-procedure TCastleViewport.SetItems(const Value: TCastleRootTransform);
+procedure TCastleViewport.SetItems(Value: TCastleRootTransform);
 begin
   if FItems <> Value then
   begin
+    { Do not allow to set this to nil, for now. }
     if Value = nil then
-      raise EInternalError.Create('Cannot set TCastleViewport.Items to nil');
+    begin
+      Value := TCastleRootTransform.Create(Self);
+      Value.OnCursorChange := {$ifdef FPC}@{$endif} RecalculateCursor;
+    end;
+
     FItems := Value;
+    FItemsObserver.Observed := Value;
+
     LastVisibleStateIdForVisibleChange := 0;
 
     { TODO: do the same thing we did when creating internal FItems:
@@ -3555,8 +3572,12 @@ begin
     // No need to change this, it's documented that MainCamera has to be manually managed if you reuse items
     // FItems.MainCamera := Camera;
     }
-
   end;
+end;
+
+procedure TCastleViewport.ItemsFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  Items := nil;
 end;
 
 function TCastleViewport.GetPaused: Boolean;
