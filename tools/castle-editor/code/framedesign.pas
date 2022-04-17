@@ -35,7 +35,7 @@ uses
   CastleColors, CastleScene,
   // editor units
   FrameAnchors, VisualizeTransform,
-  CastleUndoSystem;
+  CastleUndoSystem, DesignCameraPreview;
 
 type
   { Frame to visually design component hierarchy. }
@@ -209,15 +209,10 @@ type
         Also owner of a temporary viewport for .castle-transform,
         in general this owns everything specific to display currrent design. }
       DesignOwner: TComponent;
-
       { If design is visual (DesignRoot is TCastleUserInterface or
-        TCastleTransform) then these are non-nil and allow to visualize
+        TCastleTransform) then this is non-nil and allows to visualize
         alternative selected camera view. }
-      ViewportForSelectedCamera: TCastleViewport;
-      EmptyItemsForSelectedCamera: TCastleRootTransform;
-      LabelForSelectedCamera: TCastleLabel;
-      ContainerForSelectedCamera: TCastleUserInterface;
-
+      CameraPreview: TCameraPreview;
       FDesignerLayer: TDesignerLayer;
       FDesignModified: Boolean;
       CastleControl: TCastleControl;
@@ -1185,10 +1180,7 @@ begin
   UpdateSelectedControl;
   //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
   FDesignRoot := nil;
-  ViewportForSelectedCamera := nil;
-  EmptyItemsForSelectedCamera := nil;
-  LabelForSelectedCamera := nil;
-  ContainerForSelectedCamera := nil;
+  FreeAndNil(CameraPreview);
 
   // this actually frees everything inside DesignRoot
   FreeAndNil(DesignOwner);
@@ -1261,49 +1253,6 @@ end;
 
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
   const NewDesignUrl: String);
-
-  procedure CreateInternalViewportForSelectedCamera(
-    const Owner: TComponent;
-    out Viewport: TCastleViewport;
-    out EmptyItems: TCastleRootTransform;
-    out LabelCaption: TCastleLabel;
-    out Container: TCastleUserInterface);
-  const
-    LabelFontSize = 20;
-    Margin = 5;
-  var
-    Rect: TCastleRectangleControl;
-  begin
-    Rect := TCastleRectangleControl.Create(Owner);
-    Rect.Border.AllSides := Margin;
-    Rect.Border.Top := Margin + LabelFontSize + Margin;
-    Rect.BorderColor := Gray;
-    //Rect.Color := Gray;
-    Rect.WidthFraction := 0.33;
-    Rect.HeightFraction := 0.33;
-    Rect.SetTransient;
-    Rect.Anchor(hpRight, -Margin);
-    Rect.Anchor(vpBottom, Margin);
-    Rect.Exists := false;
-    Container := Rect;
-
-    LabelCaption := TCastleLabel.Create(Owner);
-    LabelCaption.Color := Yellow;
-    LabelCaption.FontSize := LabelFontSize;
-    LabelCaption.Caption := 'Test Caption';
-    LabelCaption.Anchor(vpBottom, vpTop, Margin);
-    LabelCaption.Anchor(hpMiddle);
-    LabelCaption.SetTransient;
-    Rect.InsertFront(LabelCaption);
-
-    Viewport := TCastleViewport.Create(Owner);
-    Viewport.FullSize := true;
-    Viewport.SetTransient;
-    Rect.InsertFront(Viewport);
-
-    EmptyItems := Viewport.Items;
-  end;
-
 var
   Background: TCastleRectangleControl;
   TempViewport: TCastleViewport;
@@ -1321,12 +1270,8 @@ begin
 
   if DesignRootVisual then
   begin
-    CreateInternalViewportForSelectedCamera(NewDesignRoot,
-      ViewportForSelectedCamera,
-      EmptyItemsForSelectedCamera,
-      LabelForSelectedCamera,
-      ContainerForSelectedCamera);
-    CastleControl.Controls.InsertBack(ContainerForSelectedCamera);
+    CameraPreview := TCameraPreview.Create(NewDesignRoot);
+    CastleControl.Controls.InsertBack(CameraPreview.UiRoot);
   end;
 
   if NewDesignRoot is TCastleUserInterface then
@@ -3252,27 +3197,8 @@ begin
   SetEnabledVisible(PanelLayoutTransform, T <> nil);
   VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
 
-  if ContainerForSelectedCamera <> nil then
-  begin
-    { Show ContainerForSelectedCamera if selected a camera
-      that is *not* the current camera in this viewport. }
-    ContainerForSelectedCamera.Exists := (T is TCastleCamera) and
-      (V <> nil) and (T.World = V.Items) and (V.Camera <> T);
-    if ContainerForSelectedCamera.Exists then
-    begin
-      ViewportForSelectedCamera.Items := V.Items;
-      ViewportForSelectedCamera.Camera := T as TCastleCamera;
-      LabelForSelectedCamera.Caption := T.Name;
-    end else
-    begin
-      { Assign "empty" values for Items/Camera.
-        This is esp. important for ViewportForSelectedCamera.Items,
-        because TCastleViewport.SetItems doesn't set up any observer right now
-        to be notified when given Items are freed by something. }
-      ViewportForSelectedCamera.Items := EmptyItemsForSelectedCamera;
-      ViewportForSelectedCamera.Camera := nil;
-    end;
-  end;
+  if CameraPreview <> nil then
+    CameraPreview.SelectedChanged(T, V);
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
