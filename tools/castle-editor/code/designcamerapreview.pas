@@ -19,7 +19,8 @@ unit DesignCameraPreview;
 interface
 
 uses Classes,
-  CastleViewport, CastleControls, CastleScene, CastleTransform, CastleUIControls;
+  CastleViewport, CastleControls, CastleScene, CastleTransform, CastleUIControls,
+  CastleClassUtils;
 
 type
   TCameraPreview = class
@@ -30,12 +31,14 @@ type
     ButtonLarger, ButtonSmaller, ButtonPin, ButtonClose: TCastleButton;
     Pinned: Boolean;
     Size: Integer;
+    CameraObserver: TFreeNotificationObserver;
     procedure ClickLarger(Sender: TObject);
     procedure ClickSmaller(Sender: TObject);
     procedure ClickPin(Sender: TObject);
     procedure ClickClose(Sender: TObject);
     procedure Show(const T: TCastleTransform; const V: TCastleViewport);
     procedure SizeChange(const Change: Integer);
+    procedure CameraFreeNotification(const Sender: TFreeNotificationObserver);
   public
     constructor Create(const DesignOwner: TComponent);
     { Add this to design to make camera preview potentially visible. }
@@ -71,6 +74,9 @@ const
   Margin = 5;
 begin
   inherited Create;
+
+  CameraObserver := TFreeNotificationObserver.Create(DesignOwner);
+  CameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
 
   Size := 2;
 
@@ -141,6 +147,13 @@ begin
   Rect.HeightFraction := Sizes[Size];
 end;
 
+procedure TCameraPreview.CameraFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  // This is useful when current camera was pinned
+  Show(nil, nil);
+end;
+
 procedure TCameraPreview.ClickLarger(Sender: TObject);
 begin
   SizeChange(1);
@@ -189,6 +202,8 @@ begin
     Viewport.BackgroundColor := V.BackgroundColor;
     Viewport.Transparent := V.Transparent;
     LabelCaption.Caption := T.Name;
+
+    CameraObserver.Observed := T;
   end else
   begin
     { Assign "empty" values for Items/Camera,
@@ -201,6 +216,8 @@ begin
     // unpin when hiding, this is most natural
     Pinned := false;
     ButtonPin.Pressed := Pinned;
+
+    CameraObserver.Observed := nil;
   end;
 end;
 
