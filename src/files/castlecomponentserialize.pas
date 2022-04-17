@@ -479,7 +479,7 @@ begin
       (it creates new object, with owner from containing object).
     *)
 
-    ValueClass := GetTypeData(Info^.PropType)^.ClassType;
+    ValueClass := GetTypeData(Info^.PropType {$ifndef FPC}^{$endif})^.ClassType;
     if ValueClass.InheritsFrom(TComponent) then
       AValue := TComponentClass(ValueClass).Create(Owner);
   end;
