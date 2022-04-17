@@ -625,6 +625,12 @@ begin
   Result := inherited Press(Event);
   if Result then Exit;
 
+  { Avoid handling mouse events over CameraPreview, to avoid messing with clicking
+    on CameraPreview buttons, and using gizmos in CameraPreview viewport. }
+  if Frame.CameraPreview.UiRoot.Exists and
+     Frame.CameraPreview.UiRoot.RenderRectWithBorder.Contains(Event.Position) then
+    Exit;
+
   if (Frame.Mode = moModifyUi) and
      (Event.IsMouseButton(buttonLeft) or Event.IsMouseButton(buttonRight)) then
   begin
@@ -677,6 +683,12 @@ var
 begin
   Result := inherited Press(Event);
   if Result then Exit;
+
+  { Avoid handling mouse events over CameraPreview, to avoid messing with clicking
+    on CameraPreview buttons, and using gizmos in CameraPreview viewport. }
+  if Frame.CameraPreview.UiRoot.Exists and
+     Frame.CameraPreview.UiRoot.RenderRectWithBorder.Contains(Event.Position) then
+    Exit;
 
   if (Event.IsMouseButton(buttonLeft) or Event.IsMouseButton(buttonRight)) then
   begin
@@ -888,6 +900,12 @@ var
 begin
   Result := inherited Motion(Event);
   if Result then Exit;
+
+  { Avoid handling mouse events over CameraPreview, to avoid messing with clicking
+    on CameraPreview buttons, and using gizmos in CameraPreview viewport. }
+  if Frame.CameraPreview.UiRoot.Exists and
+     Frame.CameraPreview.UiRoot.RenderRectWithBorder.Contains(Event.Position) then
+    Exit;
 
   { in case user left mouse button, but the event didn't reach us for some reason
     (maybe can happen e.g. if you Alt+Tab during dragging?),

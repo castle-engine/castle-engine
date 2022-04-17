@@ -27,6 +27,15 @@ type
     Viewport: TCastleViewport;
     LabelCaption: TCastleLabel;
     Rect: TCastleRectangleControl;
+    ButtonLarger, ButtonSmaller, ButtonPin, ButtonClose: TCastleButton;
+    Pinned: Boolean;
+    Size: Integer;
+    procedure ClickLarger(Sender: TObject);
+    procedure ClickSmaller(Sender: TObject);
+    procedure ClickPin(Sender: TObject);
+    procedure ClickClose(Sender: TObject);
+    procedure Show(const T: TCastleTransform; const V: TCastleViewport);
+    procedure SizeChange(const Change: Integer);
   public
     constructor Create(const DesignOwner: TComponent);
     { Add this to design to make camera preview potentially visible. }
@@ -39,22 +48,36 @@ type
 
 implementation
 
-uses CastleColors;
+uses Math,
+  CastleColors, CastleUtils;
+
+const
+  MinSize = 1;
+  MaxSize = 5;
+  Sizes: array [MinSize..MaxSize] of Single = (
+    0.2,
+    0.33,
+    0.5,
+    0.66,
+    0.8
+  );
 
 constructor TCameraPreview.Create(const DesignOwner: TComponent);
+var
+  ButtonsLayout: TCastleHorizontalGroup;
 const
-  LabelFontSize = 20;
+  ButtonsFontSize = 16;
+  LabelFontSize = 30;
   Margin = 5;
 begin
   inherited Create;
 
+  Size := 2;
+
   Rect := TCastleRectangleControl.Create(DesignOwner);
-  Rect.Border.AllSides := Margin;
-  Rect.Border.Top := Margin + LabelFontSize + Margin;
-  Rect.BorderColor := Gray;
-  //Rect.Color := Gray;
-  Rect.WidthFraction := 0.33;
-  Rect.HeightFraction := 0.33;
+  Rect.Color := Gray;
+  Rect.WidthFraction := Sizes[Size];
+  Rect.HeightFraction := Sizes[Size];
   Rect.SetTransient;
   Rect.Anchor(hpRight, -Margin);
   Rect.Anchor(vpBottom, Margin);
@@ -64,15 +87,79 @@ begin
   LabelCaption.Color := Yellow;
   LabelCaption.FontSize := LabelFontSize;
   //LabelCaption.Caption := 'Test Caption';
-  LabelCaption.Anchor(vpBottom, vpTop, Margin);
-  LabelCaption.Anchor(hpMiddle);
+  LabelCaption.Anchor(vpTop, -Margin);
+  LabelCaption.Anchor(hpLeft, Margin);
   LabelCaption.SetTransient;
   Rect.InsertFront(LabelCaption);
 
+  ButtonsLayout := TCastleHorizontalGroup.Create(DesignOwner);
+  ButtonsLayout.Anchor(vpTop, -Margin);
+  ButtonsLayout.Anchor(hpRight, -Margin);
+  //ButtonsLayout.Spacing := 4;
+  Rect.InsertFront(ButtonsLayout);
+
+  ButtonLarger := TCastleButton.Create(DesignOwner);
+  ButtonLarger.Caption := '+';
+  ButtonLarger.OnClick := @ClickLarger;
+  ButtonLarger.FontSize := ButtonsFontSize;
+  ButtonsLayout.InsertFront(ButtonLarger);
+
+  ButtonSmaller := TCastleButton.Create(DesignOwner);
+  ButtonSmaller.Caption := '-';
+  ButtonSmaller.OnClick := @ClickSmaller;
+  ButtonSmaller.FontSize := ButtonsFontSize;
+  ButtonsLayout.InsertFront(ButtonSmaller);
+
+  ButtonPin := TCastleButton.Create(DesignOwner);
+  ButtonPin.Caption := 'pin';
+  ButtonPin.OnClick := @ClickPin;
+  ButtonPin.Toggle := true;
+  ButtonPin.Pressed := Pinned;
+  ButtonPin.FontSize := ButtonsFontSize;
+  ButtonsLayout.InsertFront(ButtonPin);
+
+  ButtonClose := TCastleButton.Create(DesignOwner);
+  ButtonClose.Caption := 'x';
+  ButtonClose.OnClick := @ClickClose;
+  ButtonClose.FontSize := ButtonsFontSize;
+  ButtonsLayout.InsertFront(ButtonClose);
+
   Viewport := TCastleViewport.Create(DesignOwner);
+  Viewport.Border.AllSides := Margin;
+  Viewport.Border.Top := Margin +
+    Max(LabelCaption.EffectiveHeight, ButtonsLayout.EffectiveHeight) + Margin;
   Viewport.FullSize := true;
   Viewport.SetTransient;
   Rect.InsertFront(Viewport);
+end;
+
+procedure TCameraPreview.SizeChange(const Change: Integer);
+begin
+  Size := Clamped(Size + Change, MinSize, MaxSize);
+
+  Rect.WidthFraction := Sizes[Size];
+  Rect.HeightFraction := Sizes[Size];
+end;
+
+procedure TCameraPreview.ClickLarger(Sender: TObject);
+begin
+  SizeChange(1);
+end;
+
+procedure TCameraPreview.ClickSmaller(Sender: TObject);
+begin
+  SizeChange(-1);
+end;
+
+procedure TCameraPreview.ClickPin(Sender: TObject);
+begin
+  Pinned := not Pinned;
+  ButtonPin.Pressed := Pinned;
+end;
+
+procedure TCameraPreview.ClickClose(Sender: TObject);
+begin
+  Show(nil, nil)
 end;
 
 function TCameraPreview.UiRoot: TCastleUserInterface;
@@ -81,6 +168,13 @@ begin
 end;
 
 procedure TCameraPreview.SelectedChanged(const T: TCastleTransform; const V: TCastleViewport);
+begin
+  // when Pinned, merely changing selection doesn't change what is displayed
+  if not Pinned then
+    Show(T, V);
+end;
+
+procedure TCameraPreview.Show(const T: TCastleTransform; const V: TCastleViewport);
 begin
   { Show Rect if selected a camera
     that is *not* the current camera in this viewport. }
@@ -91,6 +185,9 @@ begin
   begin
     Viewport.Items := V.Items;
     Viewport.Camera := T as TCastleCamera;
+    Viewport.Background := V.Background;
+    Viewport.BackgroundColor := V.BackgroundColor;
+    Viewport.Transparent := V.Transparent;
     LabelCaption.Caption := T.Name;
   end else
   begin
@@ -99,6 +196,11 @@ begin
       (although we have observers to detect it anyway). }
     Viewport.Items := nil;
     Viewport.Camera := nil;
+    Viewport.Background := nil;
+
+    // unpin when hiding, this is most natural
+    Pinned := false;
+    ButtonPin.Pressed := Pinned;
   end;
 end;
 
