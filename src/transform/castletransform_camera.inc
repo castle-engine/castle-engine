@@ -1,3 +1,4 @@
+{%MainUnit castletransform.pas}
 {
   Copyright 2003-2022 Michalis Kamburelis.
 
@@ -305,33 +306,14 @@
     procedure Assign(Source: TPersistent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Express current view as camera vectors: position, direction, up and gravity.
-
-      Returned Dir and Up must be orthogonal.
-      Returned Dir and Up and GravityUp are already normalized. }
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); overload;
-
-    { Set camera view from vectors: position, direction, up and gravity.
-
-      Direction, Up and GravityUp do not have to be normalized,
-      we will normalize them internally if necessary.
-      But make sure they are non-zero.
-
-      We will automatically fix Direction and Up to be orthogonal, if necessary:
-      when AdjustUp = @true (the default) we will adjust the up vector
-      (preserving the given direction value),
-      otherwise we will adjust the direction (preserving the given up value). }
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-      const AdjustUp: boolean = true); overload;
-
     { "Up" direction of the world in which player moves.
       Always normalized (when setting this property, we take
       care to normalize the provided vector).
 
       This determines in which direction @link(TCastleWalkNavigation.Gravity) works.
 
-      This is also the "normal" value for @link(Up) --- one that means that player is looking
-      straight foward. This is used for features like PreferGravityUpForRotations
+      This is also the "normal" value for "up" vector in world coordinates.
+      Navigation uses it, e.g. features like PreferGravityUpForRotations
       and/or PreferGravityUpForMoving.
 
       The default value of this vector is (0, 1, 0) (same as the default
@@ -414,7 +396,7 @@
     function Animation: boolean;
 
     procedure Init(const AInitialPosition, AInitialDirection, AInitialUp,
-      AGravityUp: TVector3); deprecated 'use SetView';
+      AGravityUp: TVector3); deprecated 'use SetWorldView, set GravityUp directly';
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
@@ -618,8 +600,8 @@ begin
   SetView(
     TVector3.Zero,
     DefaultCameraDirection,
-    DefaultCameraUp,
     DefaultCameraUp);
+  FGravityUp := DefaultCameraUp;
   FProjectionMatrix := TMatrix4.Identity; // any sensible initial value
   FFrustum.Init(TMatrix4.Identity); // any sensible initial value
 
@@ -659,11 +641,11 @@ begin
     SourceCamera := TCastleCamera(Source);
 
     { Copies non-temporary properties (in particular, the published properties). }
-    SetView(
+    SetView( // copy local vectors -- TODO: where is this used, do we need global vectors?
       SourceCamera.Position,
       SourceCamera.Direction,
-      SourceCamera.Up,
-      SourceCamera.GravityUp);
+      SourceCamera.Up);
+    GravityUp                   := SourceCamera.GravityUp;
     ProjectionNear              := SourceCamera.ProjectionNear;
     ProjectionFar               := SourceCamera.ProjectionFar;
     ProjectionType              := SourceCamera.ProjectionType;
@@ -678,19 +660,6 @@ begin
     inherited Assign(Source);
 end;
 
-procedure TCastleCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3);
-begin
-  GetView(APos, ADir, AUp);
-  AGravityUp := FGravityUp;
-end;
-
-procedure TCastleCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-  const AdjustUp: boolean = true);
-begin
-  GravityUp := AGravityUp;
-  SetView(APos, ADir, AUp, AdjustUp);
-end;
-
 procedure TCastleCamera.SetGravityUp(const Value: TVector3);
 begin
   FGravityUp := Value.Normalize;
@@ -703,13 +672,19 @@ begin
 end;
 
 function TCastleCamera.Matrix: TMatrix4;
+var
+  P, D, U: TVector3;
 begin
-  Result := LookDirMatrix(Position, Direction, Up);
+  GetWorldView(P, D, U);
+  Result := LookDirMatrix(P, D, U);
 end;
 
 function TCastleCamera.RotationMatrix: TMatrix4;
+var
+  P, D, U: TVector3;
 begin
-  Result := FastLookDirMatrix(Direction, Up);
+  GetWorldView(P, D, U);
+  Result := FastLookDirMatrix(D, U);
 end;
 
 function TCastleCamera.MatrixInverse: TMatrix4;
@@ -737,7 +712,7 @@ procedure TCastleCamera.CustomRay(
 var
   APos, ADir, AUp: TVector3;
 begin
-  GetView(APos, ADir, AUp);
+  GetWorldView(APos, ADir, AUp);
 
   PrimaryRay(
     WindowPosition[0] - ViewportRect.Left,
@@ -751,7 +726,8 @@ end;
 procedure TCastleCamera.Init(
   const AInitialPosition, AInitialDirection, AInitialUp, AGravityUp: TVector3);
 begin
-  SetView(AInitialPosition, AInitialDirection, AInitialUp, AGravityUp);
+  SetWorldView(AInitialPosition, AInitialDirection, AInitialUp);
+  GravityUp := AGravityUp;
 end;
 
 procedure TCastleCamera.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -764,10 +740,10 @@ begin
     begin
       FAnimation := false;
       { When animation ended, make sure you're exactly at the final view. }
-      SetView(AnimationEndPosition, AnimationEndDirection, AnimationEndUp);
+      SetWorldView(AnimationEndPosition, AnimationEndDirection, AnimationEndUp);
     end else
     begin
-      SetView(
+      SetWorldView(
         Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginPosition , AnimationEndPosition),
         Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginDirection, AnimationEndDirection),
         Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginUp       , AnimationEndUp));
@@ -777,7 +753,7 @@ end;
 
 procedure TCastleCamera.AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime);
 begin
-  GetView(
+  GetWorldView(
     AnimationBeginPosition,
     AnimationBeginDirection,
     AnimationBeginUp);
@@ -800,7 +776,7 @@ procedure TCastleCamera.AnimateTo(const OtherCamera: TCastleCamera; const Time: 
 var
   APos, ADir, AUp: TVector3;
 begin
-  OtherCamera.GetView(APos, ADir, AUp);
+  OtherCamera.GetWorldView(APos, ADir, AUp);
   AnimateTo(APos, ADir, AUp, Time);
 end;
 
@@ -871,7 +847,11 @@ begin
      (not TVector3.PerfectlyEquals(FInitialDirection, DefaultCameraDirection)) or
      (not TVector3.PerfectlyEquals(FInitialUp, DefaultCameraUp)) then
   begin
-    SetView(InitialPosition, InitialDirection, InitialUp);
+    { Old cameras with InitialPosition/Direction/Up could not be a child
+      of some TCastleTransform.
+      Does it matter if we use SetView or SetWorldView here?
+      Only when Viewport.Items had some transformation. }
+    SetWorldView(InitialPosition, InitialDirection, InitialUp);
     // reset to defaults, to not store in design on save
     FInitialPosition := TVector3.Zero;
     FInitialDirection := DefaultCameraDirection;

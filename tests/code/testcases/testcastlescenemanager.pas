@@ -117,7 +117,7 @@ begin
     AssertTrue(SceneManager.NavigationType = ntNone);
     SceneManager.RequiredNavigation;
     AssertTrue(SceneManager.NavigationType = ntExamine);
-    SceneManager.Navigation.GetView(Pos, Dir, Up);
+    SceneManager.Navigation.Camera.GetWorldView(Pos, Dir, Up);
   finally FreeAndNil(SceneManager) end;
 
   SceneManager := TCastleSceneManager.Create(nil);
@@ -132,7 +132,7 @@ begin
     // changes Examine into Walk, preserving the camera view
     SceneManager.NavigationType := ntWalk;
     SceneManager.WalkNavigation.MoveSpeed := 10;
-    SceneManager.Navigation.GetView(Pos2, Dir2, Up2);
+    SceneManager.Navigation.Camera.GetWorldView(Pos2, Dir2, Up2);
     AssertVectorEquals(Pos, Pos2);
     AssertVectorEquals(Pos, Vector3(3.249692, 2.000000, -5.416155));
     AssertVectorEquals(Dir, Dir2);

@@ -1682,8 +1682,19 @@
     property Up: TVector3 read GetUp write SetUp;
     { @groupEnd }
 
-    { Get at once vectors: position, direction, up. }
+    { Get at once vectors: position, direction, up.
+
+      Just like @link(Translation) and @link(Rotation),
+      these vectors reflect the transformation defined locally
+      in this TCastleTransform, disregarding the parent transformations.
+      Use GetWorldView to account for parent transformations. }
     procedure GetView(out APos, ADir, AUp: TVector3); overload;
+
+    { Get position, direction, up. Similar to @link(GetView), but in world coordinates.
+
+      Returned ADir and AUp are always orthogonal.
+      Returned ADir and AUp are always normalized. }
+    procedure GetWorldView(out APos, ADir, AUp: TVector3); overload;
 
     { Set at once vectors: position, direction, up.
 
@@ -1692,10 +1703,28 @@
       They will be automatically fixed to be orthogonal, if necessary:
       when AdjustUp = @true (the default) we will adjust the up vector
       (preserving the given direction value),
-      otherwise we will adjust the direction (preserving the given up value). }
+      otherwise we will adjust the direction (preserving the given up value).
+
+      Just like @link(Translation) and @link(Rotation),
+      these vectors reflect the transformation defined locally
+      in this TCastleTransform, disregarding the parent transformations.
+      Use SetWorldView to account for parent transformations. }
     procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); overload;
     procedure SetView(const ADir, AUp: TVector3;
+      const AdjustUp: boolean = true); overload;
+
+    { Set position, direction, up. Similar to @link(SetView), but in world coordinates.
+
+      Given ADir, AUp do not have to be normalized,
+      we will normalize them internally if necessary.
+      But make sure they are non-zero.
+
+      We will automatically fix ADir and AUp to be orthogonal, if necessary:
+      when AdjustUp = @true (the default) we will adjust the up vector
+      (preserving the given direction value),
+      otherwise we will adjust the direction (preserving the given up value). }
+    procedure SetWorldView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); overload;
 
     { Change up vector, keeping the direction unchanged.
@@ -2665,7 +2694,12 @@ begin
     if Self = World then
       raise ETransformParentUndefined.Create('Parent not available: This is the root node (World)')
     else
-      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to Viewport.Items' + ' (references through TCastleTransformReference are not counted here). To have a Parent, add it only once (you can still use TCastleTransformReference to have more instances).');
+      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available.' + NL +
+        NL +
+        'This instance is not part of TCastleRootTransform (Viewport.Items).' + NL +
+        'Or it was (at some point in time) added multiple times to TCastleRootTransform (Viewport.Items). References through TCastleTransformReference are not counted here.' + NL +
+        NL +
+        'To have a Parent (and WorldTransform), add it exactly once to TCastleRootTransform (Viewport.Items). You can still use TCastleTransformReference to have more instances.');
   end;
   Result := FParent;
 end;
@@ -3459,6 +3493,17 @@ begin
   AUp  := Up;
 end;
 
+procedure TCastleTransform.GetWorldView(out APos, ADir, AUp: TVector3);
+var
+  T, S: TVector3;
+  R: TVector4;
+begin
+  MatrixDecompose(WorldTransform, T, R, S);
+  APos := T;
+  ADir := RotationToDirection(R);
+  AUp := RotationToUp(R);
+end;
+
 procedure TCastleTransform.SetView(const APos, ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
@@ -3478,6 +3523,54 @@ begin
   else
     MakeVectorsOrthoOnTheirPlane(D, U);
   Rotation := RotationFromDirectionUp(D, U);
+end;
+
+procedure TCastleTransform.SetWorldView(const APos, ADir, AUp: TVector3;
+  const AdjustUp: boolean = true);
+var
+  D, U, T, S: TVector3;
+  R: TVector4;
+  DesiredWorldTransform, ParentWorldTransform, LocalTransform: TMatrix4;
+  ParentWorldTransformDeterminant: Single;
+begin
+  if Parent = nil then
+  begin
+    SetView(APos, ADir, AUp, AdjustUp);
+    Exit;
+  end;
+
+  D := ADir; // no need to normalize here
+  U := AUp; // no need to normalize here
+  if AdjustUp then
+    MakeVectorsOrthoOnTheirPlane(U, D)
+  else
+    MakeVectorsOrthoOnTheirPlane(D, U);
+  DesiredWorldTransform := TranslationMatrix(APos) * RotationMatrix(RotationFromDirectionUp(D, U));
+
+  { Note: This would be wrong:
+      DesiredWorldTransform := LookDirMatrix(APos, D, U);
+    as LookDirMatrix already assumes some things about camera, e.g. that it looks along -Z.
+    But SetWorldView and GetWorldView are independent from cameras,
+    so think only in terms of "rotations" (just like GetWorldView does),
+    and only convert from/to direction/up using RotationFromDirectionUp/RotationTo...
+  }
+
+  ParentWorldTransform := Parent.WorldTransform;
+  ParentWorldTransformDeterminant := ParentWorldTransform.Determinant;
+  if IsZero(ParentWorldTransformDeterminant) then
+  begin
+    WritelnWarning('Camera under non-reversible world transformation, cannot apply camera vectors reliably.');
+    SetView(APos, ADir, AUp, AdjustUp);
+    Exit;
+  end;
+
+  { We want LocalTransform such that
+    ParentWorldTransform * LocalTransform = DesiredWorldTransform }
+  LocalTransform := ParentWorldTransform.Inverse(ParentWorldTransformDeterminant) * DesiredWorldTransform;
+  MatrixDecompose(LocalTransform, T, R, S);
+  Translation := T;
+  Rotation := R;
+  Scale := S;
 end;
 
 function TCastleTransform.GetEnumerator: TEnumerator;

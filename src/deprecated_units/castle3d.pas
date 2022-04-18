@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,12 +36,12 @@ type
 
   T3DOrient = class(CastleTransform.TCastleTransform)
   private
-    FCamera: TCastleWalkNavigation;
+    FNavigation: TCastleWalkNavigation;
   protected
     procedure ChangedTransform; override;
   public
     { Camera that is automatically synchronized with this 3D object. }
-    property Camera: TCastleWalkNavigation read FCamera; deprecated 'instead of using this, better define your own TCastleWalkNavigation instance synchronized with this TCastleTransform';
+    property Camera: TCastleWalkNavigation read FNavigation; deprecated 'instead of using this, better define your own TCastleWalkNavigation instance synchronized with this TCastleTransform';
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     constructor Create(AOwner: TComponent); override;
   end deprecated 'use TCastleTransform from CastleTransform unit';
@@ -121,7 +121,7 @@ uses CastleLog;
 constructor T3DOrient.Create(AOwner: TComponent);
 begin
   inherited;
-  FCamera := TCastleWalkNavigation.Create(Self);
+  FNavigation := TCastleWalkNavigation.Create(Self);
 end;
 
 procedure T3DOrient.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -131,7 +131,7 @@ begin
   inherited;
   // synchronize Position, Direction, Up *from* Camera
   {$warnings off} // knowingly using deprecated
-  Camera.GetView(P, D, U);
+  FNavigation.Camera.GetView(P, D, U);
   {$warnings on}
   SetView(P, D, U);
 end;
@@ -144,7 +144,7 @@ begin
   // synchronize Position, Direction, Up *to* Camera
   GetView(P, D, U);
   {$warnings off} // knowingly using deprecated
-  Camera.SetView(P, D, U);
+  FNavigation.Camera.SetView(P, D, U);
   {$warnings on}
 end;
 

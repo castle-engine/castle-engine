@@ -188,35 +188,46 @@
 
   { Orientation of the model is 3D world, determining where is
     the conceptual "up" direction of the model,
-    and where is it facing. Used by the @link(TCastleTransform.Orientation)
-    and @link(TCastleTransform.DefaultOrientation). }
+    and where is it facing.
+
+    This type is used by the @link(TCastleTransform.Orientation)
+    and @link(TCastleTransform.DefaultOrientation).
+
+    Orientation determines how @link(TCastleTransform.Direction),
+    @link(TCastleTransform.Up) work, i.e. what is
+    @link(TCastleTransform.Direction) and @link(TCastleTransform.Up)
+    relation to @link(TCastleTransform.Rotation).
+    The names of the enum values describe what is the direction/up
+    when rotation is zero. }
   TOrientationType = (
-    { Orientation sensible for models oriented around Y axis,
-      using default export from Blender to X3D.
+    { Model up is +Y axis,
+      direction is -Z which matches cameras of glTF, OpenGL, X3D.
+
+      This also matches default export from Blender to X3D, with Blender "front"
+      pointing toward -Z in the exported model.
+      (But it mismatches default export from Blender to glTF in this regard.)
 
       Gravity pulls in -Y and GravityUp vector is +Y.
       Transformation makes -Z and +Y match (respectively) Direction and Up.
 
-      This matches default direction/up of OpenGL and VRML/X3D cameras.
-
       For example, using this value for @link(TCastleTransform.Orientation) (or even
       @link(TCastleTransform.DefaultOrientation)) is sensible if you use default
       Blender X3D exporter, and you let the exporter to make
-      a default transformation (to make +Z up into +Y up). This is the default setting.
+      a default transformation (to make +Z up into +Y up).
       Then you can follow the standard Blender view names
       ("front", "top" and such) when modelling, and Blender tools like
       "X-axis mirror" will work best. }
     otUpYDirectionMinusZ,
 
-    { Orientation sensible for models oriented around Y axis,
-      using default export from Blender to glTF or Wavefront OBJ.
+    { Model up is +Y axis,
+      direction is +Z which matches export from Blender to glTF or Wavefront OBJ.
       This matches glTF specification that explicitly says "The front of a glTF asset faces +Z".
 
       Gravity pulls in -Y and GravityUp vector is +Y.
       Transformation makes +Z and +Y match (respectively) Direction and Up.
 
-      This does not match default direction/up of OpenGL and VRML/X3D cameras.
-      When viewed from the default direction/up of OpenGL and VRML/X3D cameras,
+      This does not match default direction of OpenGL, X3D and glTF cameras.
+      When viewed from the default direction of OpenGL, X3D and glTF cameras,
       you will see the front of the model,
       which means that the model's direction is the opposite of the camera direction.
 
@@ -234,7 +245,7 @@
 
       Using this value for @link(TCastleTransform.Orientation) (or even
       @link(TCastleTransform.DefaultOrientation)) is sensible if you export your models
-      from Blender @italic(without transforming them during export).
+      from Blender to X3D @italic(without transforming them during export).
       Note that @italic(this is not the default Blender X3D exporter behavior).
       But you can configure the exporter to work like this (not transform),
       and then you can follow the standard Blender view names

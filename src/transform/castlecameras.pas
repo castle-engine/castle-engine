@@ -147,14 +147,6 @@ type
     FOnInternalHeight: THeightEvent;
     FOnFall: TFallNotifyFunc;
 
-    function GetPosition: TVector3;
-    function GetDirection: TVector3;
-    function GetUp: TVector3;
-    function GetGravityUp: TVector3;
-    procedure SetPosition(const Value: TVector3);
-    procedure SetDirection(const Value: TVector3);
-    procedure SetUp(const Value: TVector3);
-    procedure SetGravityUp(const Value: TVector3);
     function GetProjectionMatrix: TMatrix4;
     procedure SetProjectionMatrix(const Value: TMatrix4);
     function GetFrustum: TFrustum;
@@ -327,66 +319,6 @@ type
         )
       ) }
     property Radius: Single read FRadius write FRadius {$ifdef FPC}default DefaultRadius{$endif};
-
-    { Express current view as camera vectors: position, direction, up.
-
-      Returned Dir and Up must be orthogonal.
-      Returned Dir and Up and GravityUp are already normalized. }
-    procedure GetView(out APos, ADir, AUp: TVector3); overload;
-      deprecated 'use Viewport.Camera.GetView';
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); overload;
-      deprecated 'use Viewport.Camera.GetView';
-
-    { Set camera view from vectors: position, direction, up.
-
-      Direction, Up and GravityUp do not have to be normalized,
-      we will normalize them internally if necessary.
-      But make sure they are non-zero.
-
-      We will automatically fix Direction and Up to be orthogonal, if necessary:
-      when AdjustUp = @true (the default) we will adjust the up vector
-      (preserving the given direction value),
-      otherwise we will adjust the direction (preserving the given up value). }
-    procedure SetView(const APos, ADir, AUp: TVector3;
-      const AdjustUp: boolean = true); overload;
-      deprecated 'use Viewport.Camera.SetView';
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-      const AdjustUp: boolean = true); overload;
-      deprecated 'use Viewport.Camera.SetView';
-
-    {$ifdef FPC}
-    { Camera position, looking direction and up vector.
-
-      The @link(Direction) and @link(Up) vectors should always be normalized
-      (have length 1). When setting them by these properties, we will normalize
-      them automatically, so their given length is actually ignored.
-
-      When setting @link(Direction), @link(Up) will always be automatically
-      adjusted to be orthogonal to @link(Direction). And vice versa ---
-      when setting @link(Up), @link(Direction) will be adjusted.
-
-      @groupBegin }
-    property Position : TVector3 read GetPosition  write SetPosition; deprecated 'use Viewport.Camera.Position';
-    property Direction: TVector3 read GetDirection write SetDirection; deprecated 'use Viewport.Camera.Direction';
-    property Up       : TVector3 read GetUp        write SetUp; deprecated 'use Viewport.Camera.Up';
-    { @groupEnd }
-
-    { "Up" direction of the world in which player moves.
-      Always normalized (when setting this property, we take
-      care to normalize the provided vector).
-
-      This determines in which direction @link(TCastleWalkNavigation.Gravity) works.
-
-      This is also the "normal" value for both @link(Up) and
-      @link(InitialUp) --- one that means that player is looking
-      straight foward. This is used for features like PreferGravityUpForRotations
-      and/or PreferGravityUpForMoving.
-
-      The default value of this vector is (0, 1, 0) (same as the default
-      @link(Up) and
-      @link(InitialUp) vectors). }
-    property GravityUp: TVector3 read GetGravityUp write SetGravityUp; deprecated 'use Viewport.Camera.GravityUp';
-    {$endif FPC}
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
 
@@ -779,9 +711,9 @@ type
       sets ModelBox and goes to a nice view over the entire scene.
 
       In other words, this is just a shortcut to setting ModelBox,
-      and setting suitable view by SetView. }
+      and setting suitable view by SetWorldView. }
     procedure Init(const AModelBox: TBox3D; const ARadius: Single);
-      deprecated 'use Viewport.Camera.Init, and set ModelBox, Radius manually';
+      deprecated 'use Viewport.Camera.SetWorldView, and set GravityUp, ModelBox, Radius manually';
 
     { Methods performing navigation.
       Usually you want to just leave this for user to control. --------------- }
@@ -859,14 +791,14 @@ type
       When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
 
       Note that this doesn't prevent from rotating by code, e.g. by setting
-      @link(Rotations) property or calling @link(SetView). }
+      @link(Rotations) property or calling @link(SetWorldView). }
     property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled default true;
 
     { Enable moving the camera by user input.
       When @false, no keys / mouse dragging / 3D mouse etc. can make a move.
 
       Note that this doesn't prevent from moving by code, e.g. by setting
-      @link(Translation) property or calling @link(SetView). }
+      @link(Translation) property or calling @link(SetWorldView). }
     property MoveEnabled: Boolean read FMoveEnabled write FMoveEnabled default true;
 
     { Enable zooming the camera on the model by user input.
@@ -876,7 +808,7 @@ type
 
       Note that this doesn't prevent from zooming by code, e.g. by setting
       @link(ScaleFactor) property (to scale the projection size)
-      or calling @link(SetView) (to move closer to the model). }
+      or calling @link(SetWorldView) (to move closer to the model). }
     property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
 
     { When @true, rotation keys make the rotation faster, and the model keeps
@@ -1240,7 +1172,7 @@ type
       const AGravityUp: TVector3;
       const APreferredHeight: Single;
       const ARadius: Single); overload;
-      deprecated 'use Viewport.Camera.SetView, and set PreferredHeight, Radius and call CorrectPreferredHeight manually';
+      deprecated 'use Viewport.Camera.SetWorldView, and set GravityUp, PreferredHeight, Radius and call CorrectPreferredHeight manually';
 
     { Alternative Init that sets camera properties such that
       an object inside Box is more or less "visible good".
@@ -1502,6 +1434,7 @@ type
     property RotationHorizontalPivot: Single
       read FRotationHorizontalPivot write FRotationHorizontalPivot
       {$ifdef FPC}default 0{$endif};
+      {$ifdef FPC}deprecated 'use TCastleThirdPersonNavigation for real 3rd-person navigation';{$endif}
   published
     property MouseLook;
     property MouseLookHorizontalSensitivity;
@@ -1755,7 +1688,7 @@ procedure TCastleNavigation.AnimateTo(const OtherNavigation: TCastleNavigation; 
 var
   APos, ADir, AUp: TVector3;
 begin
-  OtherNavigation.Camera.GetView(APos, ADir, AUp);
+  OtherNavigation.Camera.GetWorldView(APos, ADir, AUp);
   Camera.AnimateTo(APos, ADir, AUp, Time);
 end;
 
@@ -1865,68 +1798,6 @@ begin
     Result := []
   else
     Result := Input;
-end;
-
-procedure TCastleNavigation.GetView(out APos, ADir, AUp: TVector3);
-begin
-  Camera.GetView(APos, ADir, AUp);
-end;
-
-procedure TCastleNavigation.GetView(out APos, ADir, AUp, AGravityUp: TVector3);
-begin
-  Camera.GetView(APos, ADir, AUp, AGravityUp);
-end;
-
-procedure TCastleNavigation.SetView(const APos, ADir, AUp: TVector3;
-  const AdjustUp: boolean);
-begin
-  Camera.SetView(APos, ADir, AUp, AdjustUp);
-end;
-
-procedure TCastleNavigation.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-  const AdjustUp: boolean);
-begin
-  Camera.SetView(APos, ADir, AUp, AGravityUp, AdjustUp);
-end;
-
-function TCastleNavigation.GetPosition: TVector3;
-begin
-  Result := Camera.Position;
-end;
-
-function TCastleNavigation.GetDirection: TVector3;
-begin
-  Result := Camera.Direction;
-end;
-
-function TCastleNavigation.GetUp: TVector3;
-begin
-  Result := Camera.Up;
-end;
-
-function TCastleNavigation.GetGravityUp: TVector3;
-begin
-  Result := Camera.GravityUp;
-end;
-
-procedure TCastleNavigation.SetPosition(const Value: TVector3);
-begin
-  Camera.Position := Value;
-end;
-
-procedure TCastleNavigation.SetDirection(const Value: TVector3);
-begin
-  Camera.Direction := Value;
-end;
-
-procedure TCastleNavigation.SetUp(const Value: TVector3);
-begin
-  Camera.Up := Value;
-end;
-
-procedure TCastleNavigation.SetGravityUp(const Value: TVector3);
-begin
-  Camera.GravityUp := Value;
 end;
 
 function TCastleNavigation.Matrix: TMatrix4;
@@ -2092,7 +1963,7 @@ function TCastleExamineNavigation.GetExamineVectors: TExamineVectors;
 var
   APos, ADir, AUp: TVector3;
 begin
-  Camera.GetView(APos, ADir, AUp);
+  Camera.GetWorldView(APos, ADir, AUp);
 
   Result.Translation := -APos;
 
@@ -2127,7 +1998,7 @@ begin
     That's because M is composed from translations, rotations, scaling,
     which preserve points/directions (4th component in homogeneous coordinates)
     nicely. }
-  Camera.SetView(
+  Camera.SetWorldView(
     MInverse.MultPoint(TVector3.Zero),
     MInverse.MultDirection(DefaultCameraDirection),
     MInverse.MultDirection(DefaultCameraUp)
@@ -2457,7 +2328,8 @@ function TCastleExamineNavigation.Press(const Event: TInputPressRelease): boolea
   begin
     CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
       APos, ADir, AUp, AGravityUp);
-    Camera.SetView(APos, ADir, AUp, AGravityUp);
+    Camera.SetWorldView(APos, ADir, AUp);
+    Camera.GravityUp := AGravityUp;
   end;
 
 var
@@ -3107,22 +2979,23 @@ begin
 
   NewPosition := AdjustPositionForRotationHorizontalPivot(OldDirection, NewDirection);
 
-  Camera.SetView(NewPosition, NewDirection, NewUp);
+  Camera.SetWorldView(NewPosition, NewDirection, NewUp);
 end;
 
 procedure TCastleWalkNavigation.RotateAroundUp(const Angle: Single);
 var
-  OldDirection, NewPosition, NewDirection: TVector3;
+  OldPosition, OldDirection, OldUp, NewPosition, NewDirection: TVector3;
 begin
+  Camera.GetWorldView(OldPosition, OldDirection, OldUp);
+
   { We know that RotatePointAroundAxisRad below doesn't change the length
-    of the Direction (so it will remain normalized) and it will keep
-    Direction and Up vectors orthogonal. }
-  OldDirection := Camera.Direction;
-  NewDirection := RotatePointAroundAxisRad(Angle, Camera.Direction, Camera.Up);
+    of the NewDirection (so it will remain normalized, like OldDirection)
+    and it will keep NewDirection and OldUp vectors orthogonal. }
+  NewDirection := RotatePointAroundAxisRad(Angle, OldDirection, OldUp);
 
   NewPosition := AdjustPositionForRotationHorizontalPivot(OldDirection, NewDirection);
 
-  Camera.SetView(NewPosition, NewDirection, Camera.Up);
+  Camera.SetWorldView(NewPosition, NewDirection, OldUp);
 end;
 
 procedure TCastleWalkNavigation.RotateHorizontal(const Angle: Single);
@@ -3136,31 +3009,33 @@ end;
 procedure TCastleWalkNavigation.RotateVertical(AngleRad: Single);
 var
   Side: TVector3;
-  NewDirection, NewUp: TVector3;
+  OldPosition, OldDirection, OldUp, NewDirection, NewUp: TVector3;
 
   procedure DoRealRotate;
   begin
-    { Rotate Up around Side }
-    NewUp        := RotatePointAroundAxisRad(AngleRad, Camera.Up,        Side);
-    { Rotate Direction around Side }
-    NewDirection := RotatePointAroundAxisRad(AngleRad, Camera.Direction, Side);
+    { Rotate NewUp around Side }
+    NewUp        := RotatePointAroundAxisRad(AngleRad, OldUp       , Side);
+    { Rotate NewDirection around Side }
+    NewDirection := RotatePointAroundAxisRad(AngleRad, OldDirection, Side);
   end;
 
 var
   AngleRadBetween: Single;
 begin
+  Camera.GetWorldView(OldPosition, OldDirection, OldUp);
+
   if PreferGravityUpForRotations and (MinAngleFromGravityUp <> 0.0) then
   begin
-    Side := TVector3.CrossProduct(Camera.Direction, Camera.GravityUp);
+    Side := TVector3.CrossProduct(OldDirection, Camera.GravityUp);
     if Side.IsZero then
     begin
-      { Brutally adjust Direction and Up to be correct.
+      { Brutally adjust NewDirection and NewUp to be correct.
         This should happen only if your code was changing values of
         PreferGravityUpForRotations and MinAngleFromGravityUp at runtime.
         E.g. first you let Direction and Up to be incorrect,
         and then you set PreferGravityUpForRotations to @true and
         MinAngleFromGravityUp
-        to > 0 --- and suddenly we find that Up can be temporarily bad. }
+        to > 0 --- and suddenly we find that OldUp can be temporarily bad. }
       NewDirection := DefaultCameraDirection;
       NewUp := DefaultCameraUp;
 
@@ -3179,7 +3054,7 @@ begin
         node transformation.
         So the above will mean that gravity vector is parallel to your
         looking direction. }
-      Side := TVector3.CrossProduct(Camera.Direction, Camera.GravityUp);
+      Side := TVector3.CrossProduct(NewDirection, Camera.GravityUp);
       if Side.IsZero then
       begin
         NewDirection := AnyOrthogonalVector(Camera.GravityUp);
@@ -3188,9 +3063,10 @@ begin
     end else
     begin
       { Calculate AngleRadBetween, and possibly adjust AngleRad. }
-      AngleRadBetween := AngleRadBetweenVectors(Camera.Direction, Camera.GravityUp);
+      AngleRadBetween := AngleRadBetweenVectors(OldDirection, Camera.GravityUp);
       if AngleRadBetween - AngleRad < MinAngleFromGravityUp then
-        AngleRad := AngleRadBetween - MinAngleFromGravityUp else
+        AngleRad := AngleRadBetween - MinAngleFromGravityUp
+      else
       if AngleRadBetween - AngleRad > Pi - MinAngleFromGravityUp then
         AngleRad := AngleRadBetween - (Pi - MinAngleFromGravityUp);
 
@@ -3198,11 +3074,11 @@ begin
     end;
   end else
   begin
-    Side := TVector3.CrossProduct(Camera.Direction, Camera.Up);
+    Side := TVector3.CrossProduct(OldDirection, OldUp);
     DoRealRotate;
   end;
 
-  Camera.SetView(NewDirection, NewUp);
+  Camera.SetWorldView(OldPosition, NewDirection, NewUp);
 end;
 
 function TCastleWalkNavigation.MoveTo(const ProposedNewPos: TVector3;
@@ -4058,11 +3934,13 @@ function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
 
   procedure SetUpToGravityUp;
   var
-    NewDirection, NewUp: TVector3;
+    OldPosition, OldDirection, OldUp, NewDirection, NewUp: TVector3;
   begin
-    if VectorsParallel(Camera.Direction, Camera.GravityUp) then
+    Camera.GetWorldView(OldPosition, OldDirection, OldUp);
+
+    if VectorsParallel(OldDirection, Camera.GravityUp) then
     begin
-      { We can't carelessly set Up to something parallel to GravityUp
+      { We can't carelessly set NewUp to something parallel to GravityUp
         in this case.
 
         Yes, this situation can happen: for example open a model with
@@ -4072,9 +3950,13 @@ function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
 
       NewUp := Camera.GravityUp;
       NewDirection := AnyOrthogonalVector(NewUp);
-      Camera.SetView(NewDirection, NewUp);
     end else
-      Camera.Up := Camera.GravityUp;
+    begin
+      NewUp := Camera.GravityUp;
+      NewDirection := OldDirection; // we use AdjustUp = false with SetWorldView, it will already adjust direction
+    end;
+
+    Camera.SetWorldView(OldPosition, NewDirection, NewUp, false);
   end;
 
 const

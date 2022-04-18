@@ -198,7 +198,8 @@ begin
     CameraViewpointForWholeScene(Viewport.Items.BoundingBox,
       2, 1, false, true, Pos, Dir, Up, GravityUp);
     Viewport.NavigationType := ntExamine;
-    Viewport.Camera.SetView(Pos, Dir, Up, GravityUp);
+    Viewport.Camera.SetWorldView(Pos, Dir, Up);
+    Viewport.Camera.GravityUp := GravityUp;
   except
     on E: Exception do
     begin

@@ -8102,7 +8102,8 @@ begin
   if Navigation.InternalViewport = nil then
     raise Exception.Create('Navigation must be part of some Viewport before using AddViewpointFromNavigation');
 
-  Navigation.Camera.GetView(APosition, ADirection, AUp, GravityUp);
+  Navigation.Camera.GetWorldView(APosition, ADirection, AUp);
+  GravityUp := Navigation.Camera.GravityUp;
 
   if RootNode.HasForceVersion and (RootNode.ForceVersion.Major <= 1) then
     Version := cvVrml1_Inventor else

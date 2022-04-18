@@ -676,7 +676,8 @@ begin
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
-    Camera.GetView(CameraPos, CameraDir, CameraUp, GravUp);
+    Camera.GetWorldView(CameraPos, CameraDir, CameraUp);
+    GravUp := Camera.GravityUp;
 
     TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
     // Since camera may update with some delay, we may not look exactly at TargetWorldPos if avatar moved
@@ -689,10 +690,10 @@ begin
 
     CameraPos := LookPos + ToCamera;
     CameraDir := LookPos - CameraPos;
-    CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
+    CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetWorldView
     if ImmediatelyFixBlockedCamera then
       FixCameraForCollisions(CameraPos, CameraDir);
-    Camera.SetView(CameraPos, CameraDir, CameraUp);
+    Camera.SetWorldView(CameraPos, CameraDir, CameraUp);
   end;
 end;
 
