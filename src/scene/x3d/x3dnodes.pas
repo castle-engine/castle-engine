@@ -324,7 +324,7 @@ uses
 {$I x3dnodes_miscellaneous_globals.inc}
 {$I x3dnodes_utils_materials.inc}
 
-// These must be includes after x3dnodes_encoding_{classic,xml}.inc
+// These must be included after x3dnodes_encoding_{classic,xml}.inc
 {$I x3dnodes_x3dnode.inc}
 {$I x3dnodes_sfnode.inc}
 {$I x3dnodes_mfnode.inc}
