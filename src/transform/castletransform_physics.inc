@@ -576,6 +576,11 @@
       Transform, and this transform ExistsInRoot = true. }
     function ExistsInRoot: Boolean;
 
+    { If TCastleTransform did not exist in root at initialization or
+      TCastleScene URL changes it may be wrong size when it is
+      determined with autosize. Which can cause e.g. the torque to be incorrect. }
+    procedure UpdateColliderAutosize;
+
     procedure WakeUp;
 
     procedure Sleep;
@@ -1964,14 +1969,7 @@ begin
         ksfRayCastable];
   end;
 
-  { If TCastleTransform did not exist in root at initialization, it may be
-    wrong size when it is determined with autosize. Which can cause the torque
-    to be incorrect. }
-  if ExistsInRoot and (FCastleCollider <> nil) then
-  begin
-    if FCastleCollider.AutoSize then
-      FCastleCollider.DoAutoSize;
-  end;
+  UpdateColliderAutosize;
 end;
 
 procedure TCastleRigidBody.UpdateExistBody;
@@ -2302,6 +2300,15 @@ begin
     Exit(false);
 
   Result := Parent.ExistsInRoot;
+end;
+
+procedure TCastleRigidBody.UpdateColliderAutosize;
+begin
+  if ExistsInRoot and (FCastleCollider <> nil) then
+  begin
+    if FCastleCollider.AutoSize then
+      FCastleCollider.DoAutoSize;
+  end;
 end;
 
 procedure TCastleRigidBody.WakeUp;

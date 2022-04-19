@@ -3463,7 +3463,13 @@ end;
 procedure TCastleSceneCore.SetURL(const AValue: string);
 begin
   if AValue <> FURL then
+  begin
     Load(AValue);
+
+    { After loading another model the size of collider will be incorrect. }
+    if RigidBody <> nil then
+      RigidBody.UpdateColliderAutosize;
+  end;
 end;
 
 (* This is working, and ultra-fast thanks to TShapeTree.AssociatedShape,
