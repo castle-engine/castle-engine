@@ -364,9 +364,6 @@
     property Height: Single read FHeight write SetHeight;
   end;
 
-  T3DCoord = 0..2;
-  T3DCoords = set of T3DCoord;
-
   TCollisionEvent = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
   TOnCollision = TCollisionEvent deprecated 'use TCollisionEvent';
 
