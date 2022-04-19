@@ -120,6 +120,8 @@
     { Notify CastleRigidBody that kraft shape need be recreated }
     procedure ShapeChangedNotifyRigidBody;
     procedure CalculateAutoSize; virtual;
+
+    function StoredWithAutoSize: Boolean;
   protected
     procedure ParentAfterAttach; override;
     procedure ParentBeforeDetach; override;
@@ -260,9 +262,9 @@
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    property Normal: TVector3 read FNormal write SetNormal;
+    property Normal: TVector3 read FNormal write SetNormal stored StoredWithAutoSize;
   published
-    property Distance: Single read FDistance write SetDistance;
+    property Distance: Single read FDistance write SetDistance stored StoredWithAutoSize;
     {$define read_interface_class}
     {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
     {$undef read_interface_class}
@@ -329,7 +331,7 @@
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
-    property Radius: Single read FRadius write SetRadius;
+    property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
   end;
 
   { Collide as a capsule.
@@ -360,8 +362,8 @@
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
-    property Radius: Single read FRadius write SetRadius;
-    property Height: Single read FHeight write SetHeight;
+    property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
+    property Height: Single read FHeight write SetHeight stored StoredWithAutoSize;
   end;
 
   TCollisionEvent = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
@@ -1155,6 +1157,11 @@ end;
 procedure TCastleCollider.CalculateAutoSize;
 begin
 
+end;
+
+function TCastleCollider.StoredWithAutoSize: Boolean;
+begin
+  Result := not AutoSize;
 end;
 
 constructor TCastleCollider.Create(AOwner: TComponent);
