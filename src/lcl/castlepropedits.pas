@@ -46,7 +46,7 @@ uses SysUtils, Classes, TypInfo, Forms,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
-  CastleScriptParser;
+  CastleScriptParser, CastleRenderOptions;
 
 function PropertyEditorsAdviceDataDirectory: Boolean;
 begin
