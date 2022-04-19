@@ -123,6 +123,12 @@
   protected
     procedure ParentAfterAttach; override;
     procedure ParentBeforeDetach; override;
+
+    { Only one TCastleCollider behavior can be added to a given
+      TCastleTransform so we check that here. }
+    function CanAttachToParent(const NewParent: TCastleTransform;
+      out ReasonWhyCannot: String): Boolean; override;
+
     { Removes AutoSize = true when someone changes any collider size }
     procedure UpdateAutoSizeProperty;
   public
@@ -508,6 +514,11 @@
     procedure WorldBeforeDetach; override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
+    { Only one TCastleRigidBody behavior can be added to a given
+      TCastleTransform so we check that here. }
+    function CanAttachToParent(const NewParent: TCastleTransform;
+      out ReasonWhyCannot: String): Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1109,6 +1120,19 @@ begin
   begin
     // deinitialize collider
     CastleRBody.DeinitializeColliders;
+  end;
+end;
+
+function TCastleCollider.CanAttachToParent(const NewParent: TCastleTransform;
+  out ReasonWhyCannot: String): Boolean;
+begin
+  Result := inherited;
+  if not Result then Exit;
+
+  if NewParent.FindBehavior(TCastleCollider) <> nil then
+  begin
+    ReasonWhyCannot := 'Only one TCastleCollider behavior can be added to a given TCastleTransform';
+    Result := false;
   end;
 end;
 
@@ -2115,6 +2139,19 @@ begin
 
     // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
     // or will this require recreating rigid body?
+  end;
+end;
+
+function TCastleRigidBody.CanAttachToParent(const NewParent: TCastleTransform;
+  out ReasonWhyCannot: String): Boolean;
+begin
+  Result := inherited;
+  if not Result then Exit;
+
+  if NewParent.FindBehavior(TCastleRigidBody) <> nil then
+  begin
+    ReasonWhyCannot := 'Only one TCastleRigidBody behavior can be added to a given TCastleTransform';
+    Result := false;
   end;
 end;
 
