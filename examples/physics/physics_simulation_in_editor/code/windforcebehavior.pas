@@ -6,60 +6,38 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior,
+  AbstractIterateRigidBodyBehavior;
 
 type
   { Add this behavior to CastleTransform }
-  TWindForceBehavior = class (TAbstractTimeDurationBehavior)
+  TWindForceBehavior = class (TAbstractIterateRigidBodyBehavior)
   private
     FValue: Single;
 
+  protected
+    { Updates all found rigid bodies. }
+    procedure UpdateRigidBody(const RigidBody: TCastleRigidBody;
+      const SecondsPassed: Single; var RemoveMe: TRemoveType) override;
   public
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property Value: Single read FValue write FValue;
   end;
 
-
-
 implementation
 
 { TWindForceBehavior --------------------------------------------------------- }
 
-procedure TWindForceBehavior.Update(const SecondsPassed: Single;
-  var RemoveMe: TRemoveType);
+procedure TWindForceBehavior.UpdateRigidBody(const RigidBody: TCastleRigidBody;
+  const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  Transform: TCastleTransform;
-  RigidBody: TCastleRigidBody;
-  I: Integer;
   Direction: TVector3;
 begin
-  inherited Update(SecondsPassed, RemoveMe);
-
-  if not ShouldUpdate then
-    Exit;
-
-  for I := 0 to World.Count -1 do
-  begin
-    Transform := World.Items[I];
-
-    if Transform = Parent then
-      continue;
-
-    if not Transform.ExistsInRoot then
-      continue;
-
-    RigidBody := Transform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
-    begin
-      Direction := Vector3(0,0,0) - Parent.LocalToWorld(Parent.Translation);
-      Direction := Direction.Normalize;
-      RigidBody.AddForce(Direction * Value, Parent.LocalToWorld(Parent.Translation));
-      RigidBody.WakeUp;
-    end;
-  end;
+  Direction := Vector3(0,0,0) - Parent.LocalToWorld(Parent.Translation);
+  Direction := Direction.Normalize;
+  RigidBody.AddForce(Direction * Value, Parent.LocalToWorld(Parent.Translation));
+  RigidBody.WakeUp;
 end;
 
 function TWindForceBehavior.PropertySections(const PropertyName: String

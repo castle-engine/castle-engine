@@ -6,17 +6,20 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleVectors,
-  CastleComponentSerialize, CastleClassUtils, AbstractTimeDurationBehavior;
+  CastleComponentSerialize, CastleClassUtils, AbstractIterateRigidBodyBehavior;
 
 type
   { Add this behavior to CastleTransform }
-  TExplosionBehavior = class (TAbstractTimeDurationBehavior)
+  TExplosionBehavior = class (TAbstractIterateRigidBodyBehavior)
   private
     FValue: Single;
 
-  public
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+  protected
+    { Updates all found rigid bodies. }
+    procedure UpdateRigidBody(const RigidBody: TCastleRigidBody;
+      const SecondsPassed: Single; var RemoveMe: TRemoveType) override;
 
+  public
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
   published
@@ -29,38 +32,17 @@ implementation
 
 { TExplosionBehavior --------------------------------------------------------- }
 
-procedure TExplosionBehavior.Update(const SecondsPassed: Single;
-  var RemoveMe: TRemoveType);
+procedure TExplosionBehavior.UpdateRigidBody(const RigidBody: TCastleRigidBody;
+  const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  Transform: TCastleTransform;
-  RigidBody: TCastleRigidBody;
-  I: Integer;
   Direction: TVector3;
+  Transform: TCastleTransform;
 begin
-  inherited Update(SecondsPassed, RemoveMe);
-
-  if not ShouldUpdate then
-    Exit;
-
-  for I := 0 to World.Count -1 do
-  begin
-    Transform := World.Items[I];
-
-    if Transform = Parent then
-      continue;
-
-    if not Transform.ExistsInRoot then
-      continue;
-
-    RigidBody := Transform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
-    begin
-      Direction := Transform.LocalToWorld(Transform.Translation) - Parent.LocalToWorld(Parent.Translation);
-      Direction := Direction.Normalize;
-      RigidBody.AddForce(Direction * Value, Parent.LocalToWorld(Parent.Translation));
-      RigidBody.WakeUp;
-    end;
-  end;
+  Transform := RigidBody.Parent;
+  Direction := Transform.LocalToWorld(Transform.Translation) - Parent.LocalToWorld(Parent.Translation);
+  Direction := Direction.Normalize;
+  RigidBody.AddForce(Direction * Value, Parent.LocalToWorld(Parent.Translation));
+  RigidBody.WakeUp;
 end;
 
 function TExplosionBehavior.PropertySections(const PropertyName: String
