@@ -82,7 +82,6 @@
                 "Friction" : 1.0000000149011612E-001,
                 "Mass" : 2.0000000000000000E+000,
                 "Name" : "SphereCollider1",
-                "Radius" : 1.0000000000000000E+002,
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.0000000000000000E+000,
