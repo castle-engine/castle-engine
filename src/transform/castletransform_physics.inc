@@ -2276,26 +2276,42 @@ end;
 
 procedure TCastleRigidBody.AddForce(const Force, Position: TVector3);
 begin
-  if ExistsInRoot then
-    FKraftBody.AddForceAtPosition(VectorToKraft(Force), VectorToKraft(Position));
+  if FKraftBody <> nil then
+  begin
+    if ExistsInRoot then
+      FKraftBody.AddForceAtPosition(VectorToKraft(Force), VectorToKraft(Position));
+  end else
+    WritelnWarning('Attempting to add force before physics engine initialization.');
 end;
 
 procedure TCastleRigidBody.AddCenteralForce(const Force: TVector3);
 begin
-  if ExistsInRoot then
-    FKraftBody.AddBodyForce(VectorToKraft(Force));
+  if FKraftBody <> nil then
+  begin
+    if ExistsInRoot then
+      FKraftBody.AddBodyForce(VectorToKraft(Force));
+  end else
+    WritelnWarning('Attempting to add force before physics engine initialization.');
 end;
 
 procedure TCastleRigidBody.ApplyImpulse(const Impulse, Point: TVector3);
 begin
-  if ExistsInRoot then
-    FKraftBody.ApplyImpulseAtPosition(VectorToKraft(Point), VectorToKraft(Impulse));
+  if FKraftBody <> nil then
+  begin
+    if ExistsInRoot then
+      FKraftBody.ApplyImpulseAtPosition(VectorToKraft(Point), VectorToKraft(Impulse));
+  end else
+    WritelnWarning('Attempting to apply impulse before physics engine initialization.');
 end;
 
 procedure TCastleRigidBody.AddTorque(const Torque: TVector3);
 begin
-  if ExistsInRoot then
-    FKraftBody.AddWorldTorque(VectorToKraft(Torque));
+  if FKraftBody <> nil then
+  begin
+    if ExistsInRoot then
+      FKraftBody.AddWorldTorque(VectorToKraft(Torque));
+  end else
+    WritelnWarning('Attempting to add torque before physics engine initialization.');
 end;
 
 function TCastleRigidBody.ExistsInRoot: Boolean;
