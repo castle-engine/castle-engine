@@ -368,7 +368,8 @@ begin
   try
     if not CGE_VerifyWindow('CGE_GetViewCoords') then exit;
 
-    Viewport.Camera.GetView(Pos, Dir, Up, GravityUp);
+    Viewport.Camera.GetWorldView(Pos, Dir, Up);
+    GravityUp := Viewport.Camera.GravityUp;
     pfPosX^ := Pos.X; pfPosY^ := Pos.Y; pfPosZ^ := Pos.Z;
     pfDirX^ := Dir.X; pfDirY^ := Dir.Y; pfDirZ^ := Dir.Z;
     pfUpX^ := Up.X; pfUpY^ := Up.Y; pfUpZ^ := Up.Z;
@@ -394,7 +395,8 @@ begin
     if bAnimated then
       Viewport.Camera.AnimateTo(Pos, Dir, Up, 0.5)
     else
-      Viewport.Camera.SetView(Pos, Dir, Up, GravityUp);
+      Viewport.Camera.SetWorldView(Pos, Dir, Up);
+    Viewport.Camera.GravityUp := GravityUp;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
