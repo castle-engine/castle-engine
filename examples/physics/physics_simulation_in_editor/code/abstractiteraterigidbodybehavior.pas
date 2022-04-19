@@ -58,32 +58,13 @@ end;
 
 procedure TAbstractIterateRigidBodyBehavior.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
-var
-  I: Integer;
-  Transform: TCastleTransform;
-  RigidBody: TCastleRigidBody;
 begin
   inherited Update(SecondsPassed, RemoveMe);
 
   if not ShouldUpdate then
     Exit;
 
-  for I := 0 to World.Count -1 do
-  begin
-    Transform := World.Items[I];
-
-    if Transform = Parent then
-      continue;
-
-    if not Transform.ExistsInRoot then
-      continue;
-
-    RigidBody := Transform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
-      UpdateRigidBody(RigidBody, SecondsPassed, RemoveMe)
-    else
-      UpdateTransformChildren(Transform, SecondsPassed, RemoveMe);
-  end;
+  UpdateTransformChildren(World, SecondsPassed, RemoveMe);
 end;
 
 end.
