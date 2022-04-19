@@ -1609,7 +1609,7 @@ begin
   begin
     { Note that this is also true when both FCamera and Items.MainCamera are nil,
       useful at initialization of TCastleViewport. }
-    WasMainCamera := FCamera = Items.MainCamera;
+    WasMainCamera := (Items <> nil) and (FCamera = Items.MainCamera);
 
     if FCamera <> nil then
     begin
@@ -3551,8 +3551,8 @@ procedure TCastleViewport.SetItems(Value: TCastleRootTransform);
 begin
   if FItems <> Value then
   begin
-    { Do not allow to set this to nil, for now. }
-    if Value = nil then
+    { Do not allow to set this to nil, for now, unless csDestroying. }
+    if (Value = nil) and not (csDestroying in ComponentState) then
     begin
       Value := TCastleRootTransform.Create(Self);
       Value.OnCursorChange := {$ifdef FPC}@{$endif} RecalculateCursor;
