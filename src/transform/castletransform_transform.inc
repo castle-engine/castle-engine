@@ -1694,7 +1694,7 @@
 
       Returned ADir and AUp are always orthogonal.
       Returned ADir and AUp are always normalized. }
-    procedure GetWorldView(out APos, ADir, AUp: TVector3); overload;
+    procedure GetWorldView(out APos, ADir, AUp: TVector3);
 
     { Set at once vectors: position, direction, up.
 
@@ -1725,7 +1725,7 @@
       (preserving the given direction value),
       otherwise we will adjust the direction (preserving the given up value). }
     procedure SetWorldView(const APos, ADir, AUp: TVector3;
-      const AdjustUp: boolean = true); overload;
+      const AdjustUp: boolean = true);
 
     { Change up vector, keeping the direction unchanged.
       If necessary, the up vector provided here will be fixed to be orthogonal
