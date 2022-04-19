@@ -1688,7 +1688,7 @@
       these vectors reflect the transformation defined locally
       in this TCastleTransform, disregarding the parent transformations.
       Use GetWorldView to account for parent transformations. }
-    procedure GetView(out APos, ADir, AUp: TVector3); overload;
+    procedure GetView(out APos, ADir, AUp: TVector3);
 
     { Get position, direction, up. Similar to @link(GetView), but in world coordinates.
 

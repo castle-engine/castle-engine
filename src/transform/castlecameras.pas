@@ -1153,14 +1153,11 @@ type
     function DirectionInGravityPlane: TVector3;
 
     { Set the most important properties of this navigation, in one call.
-      Sets initial camera properties (InitialPosition, InitialDirection,
-      InitialUp),
-      sets current camera properties to them (Position := InitialPosition
-      and so on).
+      Sets camera properties (Translation, Direction, Up).
 
       Given here AInitialDirection, AInitialUp, AGravityUp will be normalized,
       and AInitialUp will be adjusted to be orthogonal to AInitialDirection
-      (see SetView).
+      (see SetWorldView).
 
       Sets also PreferredHeight and Radius.
       PreferredHeight may be adjusted to be sensible
@@ -1181,7 +1178,7 @@ type
       Sets GravityUp to the same thing as InitialUp.
       Sets also PreferredHeight to make it behave "sensibly". }
     procedure Init(const box: TBox3D; const ARadius: Single); overload;
-      deprecated 'use Viewport.Camera.Init, and set PreferredHeight, Radius and call CorrectPreferredHeight manually';
+      deprecated 'use Viewport.Camera.SetWorldView, and set GravityUp, PreferredHeight, Radius and call CorrectPreferredHeight manually';
 
     { This sets the minimal angle (in radians) between GravityUp
       and @link(Direction), and also between -GravityUp and @link(Direction).
