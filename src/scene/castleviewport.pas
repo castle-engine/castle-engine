@@ -560,7 +560,9 @@ type
       navigation in Examine mode. }
     procedure AssignDefaultNavigation; virtual;
 
-    { Assign initial and current camera vectors and projection.
+    { Assign current camera vectors and projection.
+      This only fills existing @link(Camera) with contents, it doesn't change
+      the @link(Camera) to new component.
 
       This is automatically used at first rendering if @link(AutoCamera).
       You can also use it explicitly. }
@@ -1667,17 +1669,27 @@ begin
     - invent name for Camera (default 'Camera' could conflict e.g. in case of multiple viewports)
   }
   if (Camera <> nil) and
-     (Camera.World = nil) then
+     (Camera.World = nil) and
+     { We used to make exception when "Camera.Owner <> Owner", like this:
+
+         if Camera.Owner <> Owner then
+         begin
+           raise EInternalError.CreateFmt('After loading design, Camera and Viewport must have equal owner. But Camera = %s, Viewport = %s, Camera.Owner = %s, Viewport.Owner = %s', [
+             ComponentDebugStr(Camera),
+             ComponentDebugStr(Self),
+             ComponentDebugStr(Camera.Owner),
+             ComponentDebugStr(Owner)
+           ]);
+         end;
+
+       But now, this situation is valid in new designs (after we made TCastleCamera
+       a normal component, assignable to Viewport.Items, settable in Viewport.Camera).
+       Viewport.Camera may be just not resolved yet, if it is in another Viewport.Items
+       (see examples/viewport_and_scenes/multiple_viewports/ for valid example).
+
+       Ignore this case -- this is not an "old design", nothing to fix. }
+     (Camera.Owner = Owner) then
   begin
-    if Camera.Owner <> Owner then
-    begin
-      raise EInternalError.CreateFmt('After loading design, Camera and Viewport must have equal owner. But Camera = %s, Viewport = %s, Camera.Owner = %s, Viewport.Owner = %s', [
-        ComponentDebugStr(Camera),
-        ComponentDebugStr(Self),
-        ComponentDebugStr(Camera.Owner),
-        ComponentDebugStr(Owner)
-      ]);
-    end;
     Items.Add(Camera);
     WritelnLog('Camera in viewport "%s" was not part of Viewport.Items, adding it to Viewport.Items', [
       Name
