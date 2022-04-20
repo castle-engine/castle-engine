@@ -1638,7 +1638,7 @@ function TCastleNavigation.Camera: TCastleCamera;
 begin
   if InternalViewport = nil then
     raise EViewportNotAssigned.Create('Viewport not assigned, cannot get Camera properties');
-  Result := (InternalViewport as TCastleViewport).Camera;
+  Result := (InternalViewport as TCastleViewport).InternalCamera;
 end;
 
 procedure TCastleNavigation.Ray(const WindowPosition: TVector2;
@@ -1788,13 +1788,20 @@ begin
 end;
 
 function TCastleNavigation.UsingInput: TNavigationInputs;
+var
+  V: TCastleViewport;
 begin
-  { Behave like Input=[] on a paused viewport }
-  if (InternalViewport <> nil) and
-     ((InternalViewport as TCastleViewport).Items.Paused) then
-    Result := []
-  else
-    Result := Input;
+  if InternalViewport <> nil then
+  begin
+    V := InternalViewport as TCastleViewport;
+    if { Ignore input if viewport is using InternalDesignManipulation, and we're not the design-time navigation. }
+       (V.InternalDesignManipulation and (V.InternalDesignNavigation <> Self)) or
+       { Ignore input on a paused viewport }
+       V.Items.Paused then
+      Exit([]);
+  end;
+
+  Result := Input;
 end;
 
 function TCastleNavigation.Matrix: TMatrix4;
@@ -2756,7 +2763,11 @@ end;
 
 function TCastleMouseLookNavigation.UsingMouseLook: Boolean;
 begin
-  Result := MouseLook and (niNormal in UsingInput) and not CastleDesignMode;
+  Result := MouseLook and (niNormal in UsingInput);
+
+  { Note: we used to have here condition "and (not CastleDesignMode)"
+    as escaping from MouseLook was impossible, if you enable it in Object Inspector.
+    But it is OK now: our TCastleWalkNavigationDesign makes mouse look intuitive to use. }
 end;
 
 { TCastleWalkNavigation ---------------------------------------------------------------- }

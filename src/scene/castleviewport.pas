@@ -165,6 +165,7 @@ type
       FMissingCameraRect: TCastleRectangleControl;
       FMissingCameraLabel: TCastleLabel;
       WarningCameraInvalidItemsDone: Boolean;
+      FInternalDesignManipulation: Boolean;
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -412,8 +413,20 @@ type
         (which would be very disorienting).
 
         Set to true when some TCastleTransform handles PointingDevicePress,
-        set to false in PointingDeviceRelease. }
+        set to false in PointingDeviceRelease.
+        @exclude }
       InternalPointingDeviceDragging: Boolean;
+
+      { At design-time (in CGE editor), this is the camera used by the editor.
+        Usually use InternalCamera, to automatically pick either design-time camera
+        or runtime Camera. }
+      InternalDesignCamera: TCastleCamera;
+
+      { At design-time (in CGE editor), this is the navigation used by the editor.
+        Usually use InternalNavigation, to automatically pick either design-time navigation
+        or runtime Navigation.
+        @exclude }
+      InternalDesignNavigation: TCastleNavigation;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -426,6 +439,32 @@ type
       var HandleInput: boolean); override;
     procedure BeforeRender; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { Return either @link(Camera) or @link(InternalDesignCamera),
+      depending on whether we're in design mode (InternalDesignManipulation) or not.
+      May return @nil.
+      @exclude }
+    function InternalCamera: TCastleCamera;
+
+    { Return either @link(Navigation) or @link(InternalDesignNavigation),
+      depending on whether we're in design mode (InternalDesignManipulation) or not.
+      May return @nil.
+      @exclude }
+    function InternalNavigation: TCastleNavigation;
+
+    { Determines if viewport is in design-mode. Initialized from CastleDesignMode,
+      may be toggled to false later by InternalDisableDesignManipulation
+      (because CGE editor may sometimes want to use viewports
+      with "normal" Camera and Navigation treatment, without
+      InternalDesignCamera / InternalDesignNavigation).
+
+      When false, the InternalDesignCamera and InternalDesignNavigation don't matter,
+      viewport behaves as regular viewport.
+      @exclude }
+    property InternalDesignManipulation: Boolean read FInternalDesignManipulation;
+
+    { Disable special design-mode viewport camera/navigation. }
+    procedure InternalDisableDesignManipulation;
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
@@ -1386,6 +1425,7 @@ uses DOM, Math,
 {$I castleviewport_touchnavigation.inc}
 {$I castleviewport_warmup_cache.inc}
 {$I castleviewport_serialize.inc}
+{$I castleviewport_design_navigation.inc}
 {$undef read_implementation}
 
 { TViewportRenderParams ------------------------------------------------------- }
@@ -1440,15 +1480,18 @@ begin
 
   { set special uniforms for SSR shader }
 
+  { TODO: instead of relying on Viewport.InternalCamera,
+    it should get and use RenderingCamera reference. }
+
   Uniform('near').SetValue(0.1);
   Uniform('far').SetValue(1000.0);
-  ViewProjectionMatrix := Viewport.Camera.ProjectionMatrix * Viewport.Camera.Matrix;
+  ViewProjectionMatrix := Viewport.InternalCamera.ProjectionMatrix * Viewport.InternalCamera.Matrix;
   if not ViewProjectionMatrix.TryInverse(ViewProjectionMatrixInverse) then
     ViewProjectionMatrixInverse := TMatrix4.Identity;
   Uniform('defaultSurfaceGlossiness').SetValue(Viewport.ScreenSpaceReflectionsSurfaceGlossiness);
   Uniform('castle_ViewProjectionMatrix').SetValue(ViewProjectionMatrix);
   Uniform('castle_ViewProjectionMatrixInverse').SetValue(ViewProjectionMatrixInverse);
-  Uniform('castle_CameraPosition').SetValue(Viewport.Camera.Position);
+  Uniform('castle_CameraPosition').SetValue(Viewport.InternalCamera.Position);
 end;
 
 { TCastleViewport ------------------------------------------------------- }
@@ -1510,9 +1553,59 @@ begin
   if (InternalLoadingComponent = 0) and (not CastleDesignMode) then
     SetupCamera;
 
+  FInternalDesignManipulation := CastleDesignMode;
+
+  if InternalDesignManipulation then
+  begin
+    InternalDesignCamera := TCastleCamera.Create(Self);
+    InternalDesignCamera.SetTransient;
+    // this somewhat replicates what happens at SetCamera
+    InternalDesignCamera.InternalOnCameraChanged := {$ifdef FPC}@{$endif} InternalCameraChanged;
+    Items.Add(InternalDesignCamera);
+
+    InternalDesignNavigation := TCastleWalkNavigationDesign.Create(Self);
+    InternalDesignNavigation.SetTransient;
+    // This somewhat replicates what happens at SetNavigation:
+    // For now: don't assign OnInternalMoveAllowed - allow to move without collisions in editor
+    // InternalDesignNavigation.OnInternalMoveAllowed := {$ifdef FPC}@{$endif} NavigationMoveAllowed;
+    // InternalDesignNavigation.OnInternalHeight := {$ifdef FPC}@{$endif} NavigationHeight;
+    InternalDesignNavigation.InternalViewport := Self;
+    InsertControl(0, InternalDesignNavigation);
+  end;
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_implementation_constructor}
+end;
+
+function TCastleViewport.InternalCamera: TCastleCamera;
+begin
+  if InternalDesignManipulation then
+    Result := InternalDesignCamera
+  else
+    Result  := Camera;
+end;
+
+function TCastleViewport.InternalNavigation: TCastleNavigation;
+begin
+  if InternalDesignManipulation then
+    Result := InternalDesignNavigation
+  else
+    Result  := Navigation;
+end;
+
+procedure TCastleViewport.InternalDisableDesignManipulation;
+begin
+  { Note: it's not enough to set InternalDesignManipulation to false,
+    as InternalDesignNavigation would still receive events and could try to manipulate
+    the connected viewport.
+
+    Happened with viewport in DesignCameraPreview,
+    merely seting InternalDesignManipulation:=false didn't prevent InternalDesignNavigation
+    there from using mouse look on right-click, }
+  FInternalDesignManipulation := false;
+  FreeAndNil(InternalDesignNavigation);
+  FreeAndNil(InternalDesignCamera);
 end;
 
 procedure TCastleViewport.SetupCamera;
@@ -1653,6 +1746,7 @@ end;
 
 procedure TCastleViewport.Loaded;
 
+{
   function ComponentDebugStr(const C: TComponent): String;
   begin
     if C = nil then
@@ -1660,7 +1754,10 @@ procedure TCastleViewport.Loaded;
     else
       Result := C.Name + ' (' + C.ClassName + ')';
   end;
+}
 
+var
+  APos, ADir, AUp, AGravityUp: TVector3;
 begin
   inherited; //< important, as inherited removes csLoading from ComponentState
 
@@ -1702,6 +1799,20 @@ begin
         Camera.Name
       ]);
     end;
+  end;
+
+  if InternalDesignManipulation then
+  begin
+    { Make sure InternalDesignCamera, InternalDesignNavigation are on children.
+      As TCastleUserInterface.SerializeChildrenClear, TCastleTransform.SerializeChildrenClear
+      do not touch csTransient children, they should be OK always. }
+    Assert(Items.List.IndexOf(InternalDesignCamera) <> -1);
+    Assert(IndexOfControl(InternalDesignNavigation) <> -1);
+
+    { initialize sensible camera view (TODO: this is OK until we serialize/deserialize design-time camera vectors) }
+    CameraViewpointForWholeScene(ItemsBoundingBox, 2, 1, false, true,
+      APos, ADir, AUp, AGravityUp);
+    InternalDesignCamera.Init(APos, ADir, AUp, AGravityUp);
   end;
 end;
 
@@ -1977,8 +2088,8 @@ var
   MousePosition: TVector2;
 begin
   if GetMousePosition(MousePosition) and
-     // PositionToRay assumes Camera <> nil
-     (Camera <> nil) then
+     // PositionToRay assumes InternalCamera <> nil
+     (InternalCamera <> nil) then
   begin
     PositionToRay(MousePosition, true, MouseRayOrigin, MouseRayDirection);
 
@@ -2170,8 +2281,8 @@ begin
 
   { Apply new FProjection values }
   M := FProjection.Matrix(AspectRatio);
-  if Camera <> nil then // as Camera is assignable, tolerate Camera = nil
-    Camera.ProjectionMatrix := M;
+  if InternalCamera <> nil then // as InternalCamera is assignable, tolerate InternalCamera = nil
+    InternalCamera.ProjectionMatrix := M;
   RenderContext.ProjectionMatrix := M;
 end;
 
@@ -2254,55 +2365,55 @@ var
   Box: TBox3D;
   Viewport: TFloatRectangle;
 
-  { Update Result.Dimensions and Camera.Orthographic.EffectiveXxx
-    based on Camera.Orthographic.Width, Height and current control size. }
+  { Update Result.Dimensions and InternalCamera.Orthographic.EffectiveXxx
+    based on InternalCamera.Orthographic.Width, Height and current control size. }
   procedure UpdateOrthographicDimensions;
   var
     ControlWidth, ControlHeight, EffectiveProjectionWidth, EffectiveProjectionHeight: Single;
 
     procedure CalculateDimensions;
     begin
-      { Apply Camera.Orthographic.Scale here,
+      { Apply InternalCamera.Orthographic.Scale here,
         this way it scales around Origin (e.g. around middle, when Origin is 0.5,0.5) }
-      EffectiveProjectionWidth  := EffectiveProjectionWidth * Camera.Orthographic.Scale;
-      EffectiveProjectionHeight := EffectiveProjectionHeight * Camera.Orthographic.Scale;
+      EffectiveProjectionWidth  := EffectiveProjectionWidth * InternalCamera.Orthographic.Scale;
+      EffectiveProjectionHeight := EffectiveProjectionHeight * InternalCamera.Orthographic.Scale;
 
       Result.Dimensions.Width  := EffectiveProjectionWidth;
       Result.Dimensions.Height := EffectiveProjectionHeight;
-      Result.Dimensions.Left   := - Camera.Orthographic.Origin.X * EffectiveProjectionWidth;
-      Result.Dimensions.Bottom := - Camera.Orthographic.Origin.Y * EffectiveProjectionHeight;
+      Result.Dimensions.Left   := - InternalCamera.Orthographic.Origin.X * EffectiveProjectionWidth;
+      Result.Dimensions.Bottom := - InternalCamera.Orthographic.Origin.Y * EffectiveProjectionHeight;
     end;
 
   begin
     ControlWidth := EffectiveWidthForChildren;
     ControlHeight := EffectiveHeightForChildren;
 
-    if (Camera.Orthographic.Width = 0) and
-       (Camera.Orthographic.Height = 0) then
+    if (InternalCamera.Orthographic.Width = 0) and
+       (InternalCamera.Orthographic.Height = 0) then
     begin
       EffectiveProjectionWidth := ControlWidth;
       EffectiveProjectionHeight := ControlHeight;
       CalculateDimensions;
     end else
-    if Camera.Orthographic.Width = 0 then
+    if InternalCamera.Orthographic.Width = 0 then
     begin
-      EffectiveProjectionWidth := Camera.Orthographic.Height * ControlWidth / ControlHeight;
-      EffectiveProjectionHeight := Camera.Orthographic.Height;
+      EffectiveProjectionWidth := InternalCamera.Orthographic.Height * ControlWidth / ControlHeight;
+      EffectiveProjectionHeight := InternalCamera.Orthographic.Height;
       CalculateDimensions;
     end else
-    if Camera.Orthographic.Height = 0 then
+    if InternalCamera.Orthographic.Height = 0 then
     begin
-      EffectiveProjectionWidth := Camera.Orthographic.Width;
-      EffectiveProjectionHeight := Camera.Orthographic.Width * ControlHeight / ControlWidth;
+      EffectiveProjectionWidth := InternalCamera.Orthographic.Width;
+      EffectiveProjectionHeight := InternalCamera.Orthographic.Width * ControlHeight / ControlWidth;
       CalculateDimensions;
     end else
     begin
-      EffectiveProjectionWidth := Camera.Orthographic.Width;
-      EffectiveProjectionHeight := Camera.Orthographic.Height;
+      EffectiveProjectionWidth := InternalCamera.Orthographic.Width;
+      EffectiveProjectionHeight := InternalCamera.Orthographic.Height;
 
       CalculateDimensions;
 
-      if not Camera.Orthographic.Stretch then
+      if not InternalCamera.Orthographic.Stretch then
         Result.Dimensions := TOrthoViewpointNode.InternalFieldOfView(
           Result.Dimensions,
           Viewport.Width,
@@ -2315,7 +2426,7 @@ var
     Assert(Result.Dimensions.Width  = EffectiveProjectionWidth);
     Assert(Result.Dimensions.Height = EffectiveProjectionHeight);
 
-    Camera.Orthographic.InternalSetEffectiveSize(
+    InternalCamera.Orthographic.InternalSetEffectiveSize(
       Result.Dimensions.Width,
       Result.Dimensions.Height);
   end;
@@ -2343,9 +2454,9 @@ begin
   Box := ItemsBoundingBox;
   Viewport := RenderRect;
 
-  if Camera = nil then
+  if InternalCamera = nil then
   begin
-    { As Camera is assignable, and may be nil, be tolerant and handle it.
+    { As InternalCamera is assignable, and may be nil, be tolerant and handle it.
       Just use default perspective settings. }
     Result.ProjectionType := ptPerspective;
     Result.PerspectiveAnglesRad := TViewpointNode.InternalFieldOfView(
@@ -2359,16 +2470,16 @@ begin
     Exit;
   end;
 
-  Result.ProjectionType := Camera.ProjectionType;
+  Result.ProjectionType := InternalCamera.ProjectionType;
 
   Result.PerspectiveAnglesRad := TViewpointNode.InternalFieldOfView(
-    Camera.Perspective.FieldOfView,
-    Camera.Perspective.FieldOfViewAxis,
+    InternalCamera.Perspective.FieldOfView,
+    InternalCamera.Perspective.FieldOfViewAxis,
     Viewport.Width,
     Viewport.Height);
 
   { calculate Result.ProjectionNear }
-  Result.ProjectionNear := Camera.ProjectionNear;
+  Result.ProjectionNear := InternalCamera.ProjectionNear;
   if (Result.ProjectionType = ptPerspective) and
      (Result.ProjectionNear <= 0) then
   begin
@@ -2377,7 +2488,7 @@ begin
   end;
 
   { calculate Result.ProjectionFar, algorithm documented at DefaultVisibilityLimit }
-  Result.ProjectionFar := Camera.ProjectionFar;
+  Result.ProjectionFar := InternalCamera.ProjectionFar;
   {$ifdef FPC}
   {$warnings off} // using deprecated to keep it working
   if Result.ProjectionFar <= 0 then
@@ -2406,7 +2517,7 @@ begin
      ShadowVolumes then
     Result.ProjectionFar := ZFarInfinity;
 
-  Camera.InternalSetEffectiveProjection(
+  InternalCamera.InternalSetEffectiveProjection(
     Result.ProjectionNear,
     Result.ProjectionFar);
 
@@ -2787,7 +2898,7 @@ begin
   inherited;
 
   // as Camera is assignable, gracefully handle the case of Camera = nil
-  FMissingCameraRect.Exists := Camera = nil;
+  FMissingCameraRect.Exists := InternalCamera = nil;
   if FMissingCameraRect.Exists then
   begin
     { We show the "No camera selected" using UI controls, as this is most flexible.
@@ -2803,10 +2914,10 @@ begin
     Exit;
   end;
 
-  if (Camera.World <> Items) and not WarningCameraInvalidItemsDone then
+  if (InternalCamera.World <> Items) and not WarningCameraInvalidItemsDone then
   begin
     WritelnWarning('Camera "%s" of viewport "%s" is not part of this viewport Items hierarchy. You should add it to %s.Items.', [
-      Camera.Name,
+      InternalCamera.Name,
       Name,
       Name
     ]);
@@ -2814,7 +2925,7 @@ begin
   end;
 
   ApplyProjection;
-  RenderOnScreen(Camera);
+  RenderOnScreen(InternalCamera);
 end;
 
 function TCastleViewport.InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram;
@@ -3412,8 +3523,8 @@ begin
   else
     ContainerPosition := LocalToContainerPosition(Position);
 
-  Assert(Camera <> nil);
-  Camera.CustomRay(R, ContainerPosition, FProjection, RayOrigin, RayDirection);
+  Assert(InternalCamera <> nil);
+  InternalCamera.CustomRay(R, ContainerPosition, FProjection, RayOrigin, RayDirection);
 end;
 
 function TCastleViewport.PositionToCameraPlane(const Position: TVector2;
@@ -3425,11 +3536,11 @@ var
 begin
   PositionToRay(Position, ContainerCoordinates, RayOrigin, RayDirection);
 
-  Plane := Vector4(Camera.Direction,
-    { We know that Camera.Direction, which is used as Plane.XYZ, is normalized.
-      Calculate Plane[3] such that point RayOrigin + Camera.Direction * Depth
+  Plane := Vector4(InternalCamera.Direction,
+    { We know that InternalCamera.Direction, which is used as Plane.XYZ, is normalized.
+      Calculate Plane[3] such that point RayOrigin + InternalCamera.Direction * Depth
       satisfies the plane equation. }
-    - TVector3.DotProduct(RayOrigin + Camera.Direction * Depth, Camera.Direction));
+    - TVector3.DotProduct(RayOrigin + InternalCamera.Direction * Depth, InternalCamera.Direction));
 
   Result := TryPlaneRayIntersection(PlanePosition, Plane, RayOrigin, RayDirection);
 end;
@@ -3521,7 +3632,7 @@ var
 begin
   PositionToPrerequisites;
 
-  CameraToWorldMatrix := Camera.MatrixInverse;
+  CameraToWorldMatrix := InternalCamera.MatrixInverse;
 
   if ContainerCoordinates then
     P := ContainerToLocalPosition(Position)
@@ -3543,7 +3654,7 @@ var
 begin
   PositionToPrerequisites;
 
-  CameraFromWorldMatrix := Camera.Matrix;
+  CameraFromWorldMatrix := InternalCamera.Matrix;
   P := CameraFromWorldMatrix.MultPoint(Vector3(WorldPosition, 0)).XY;
   P := Vector2(
     MapRange(P.X, FProjection.Dimensions.Left  , FProjection.Dimensions.Right, 0, EffectiveWidth ),
@@ -3562,7 +3673,7 @@ var
 begin
   PositionToPrerequisites;
 
-  Matrix := Camera.ProjectionMatrix * Camera.Matrix;
+  Matrix := InternalCamera.ProjectionMatrix * InternalCamera.Matrix;
   P := Matrix.MultPoint(WorldPosition);
   Result := Vector2(
     MapRange(P.X, -1, 1, 0, EffectiveWidth ),
@@ -3581,8 +3692,21 @@ begin
       Value.OnCursorChange := {$ifdef FPC}@{$endif} RecalculateCursor;
     end;
 
+    if InternalDesignManipulation then
+      if FItems <> nil then
+        FItems.Remove(InternalDesignCamera);
+
     FItems := Value;
     FItemsObserver.Observed := Value;
+
+    { Keep InternalDesignCamera part of current Items.
+      Note: This is actually never executed in reality, for now.
+      Because we don't allow to do SetItems on viewports in designs in CGE editor.
+      And only they have InternalDesignManipulation = true.
+      Maybe it will become useful in the future, once we allow to set Items in editor. }
+    if InternalDesignManipulation then
+      if FItems <> nil then
+        FItems.Add(InternalDesignCamera);
 
     LastVisibleStateIdForVisibleChange := 0;
 
@@ -3989,10 +4113,13 @@ end;
 procedure TCastleViewport.InternalCameraChanged(Sender: TObject);
 var
   Pos, Dir, Up: TVector3;
-  MC: TCastleCamera;
+  SenderCamera: TCastleCamera;
+  MainCamera: TCastleCamera;
 begin
-  MC := Items.MainCamera;
-  if MC = Camera then
+  SenderCamera := Sender as TCastleCamera; // may be Camera or InternalDesignCamera
+  MainCamera := Items.MainCamera;
+  if (SenderCamera = MainCamera) or
+     (SenderCamera = InternalDesignCamera) then
   begin
     Inc(Items.InternalMainCameraStateId);
 
@@ -4003,7 +4130,7 @@ begin
     if Items.InternalHeadlight <> nil then
       Inc(Items.InternalVisibleNonGeometryStateId);
 
-    Camera.GetView(Pos, Dir, Up);
+    SenderCamera.GetView(Pos, Dir, Up);
     SoundEngine.InternalUpdateListener(Pos, Dir, Up);
   end;
 

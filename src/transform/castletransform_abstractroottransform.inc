@@ -268,19 +268,32 @@
 
       This camera controls:
 
-      - the X3D nodes that "sense" camera like ProximitySensor, Billboard, LOD.
-      - an audio listener (controlling the spatial sound).
-      - the headlight position/direction.
-      - when X3D nodes change Viewpoint/NavigationInfo,
-        they apply these changes to this camera.
+      @unorderedList(
+        @item(The X3D nodes that "sense" camera like ProximitySensor, Billboard, LOD.)
 
-      Note that it means that "headlight" is assigned to one camera
+        @item(an audio listener (controlling the spatial sound).)
+
+        @item(the headlight position/direction, if you enable headlight by @link(TCastleRootTransform.UseHeadlight).)
+
+        @item(when X3D nodes change Viewpoint/NavigationInfo,
+          they apply these changes to this camera.)
+      )
+
+      Note that it means that "headlight" done by
+      @link(TCastleRootTransform.UseHeadlight) is assigned to one camera
       in case of multiple viewports looking at the same world.
       You cannot have a different "headlight" in each viewport,
       this would cause subtle problems since it's not how it would work in reality
       (where every light is visible in all viewports),
       e.g. mirror textures (like GeneratedCubeMapTexture)
       would need different contents in different viewpoints.
+
+      Note that we no longer advise using @link(TCastleRootTransform.UseHeadlight)
+      for headlight. It's easier to just place light as child of whatever camera
+      you want, like adding TCastleDirectionalLight as child of TCastleCaemera.
+      See examples/viewport_and_scenes/headlight/ .
+      In this case MainCamera doesn't matter, instead you explicitly make headlight
+      by placing light as child of chosen camera.
 
       Note that features like LOD or Billboard or ProximitySensor
       need to transform this camera to scene local space.

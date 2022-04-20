@@ -1300,6 +1300,7 @@ begin
   if NewDesignRoot is TCastleTransform then
   begin
     TempViewport := TCastleViewport.Create(NewDesignOwner);
+    TempViewport.InternalDisableDesignManipulation;
     TempViewport.SetupCamera; // since CastleDesignMode = true, we need to create camera exlicitly
     TempViewport.Transparent := true;
     TempViewport.Items.UseHeadlight := hlOn;

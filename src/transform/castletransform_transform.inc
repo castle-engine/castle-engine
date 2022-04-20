@@ -2692,14 +2692,21 @@ begin
   if FParent = nil then
   begin
     if Self = World then
-      raise ETransformParentUndefined.Create('Parent not available: This is the root node (World)')
+      raise ETransformParentUndefined.CreateFmt('Parent not available: This is the root node (%s %s).', [
+        Name,
+        ClassName
+      ])
     else
-      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available.' + NL +
+      raise ETransformParentUndefined.CreateFmt('Parent (and WorldTransform) not available for %s %s.' + NL +
         NL +
         'This instance is not part of TCastleRootTransform (Viewport.Items).' + NL +
         'Or it was (at some point in time) added multiple times to TCastleRootTransform (Viewport.Items). References through TCastleTransformReference are not counted here.' + NL +
         NL +
-        'To have a Parent (and WorldTransform), add it exactly once to TCastleRootTransform (Viewport.Items). You can still use TCastleTransformReference to have more instances.');
+        'To have a Parent (and WorldTransform), add it exactly once to TCastleRootTransform (Viewport.Items). You can still use TCastleTransformReference to have more instances.',
+      [
+        Name,
+        ClassName
+      ]);
   end;
   Result := FParent;
 end;

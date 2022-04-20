@@ -131,6 +131,7 @@ begin
   ButtonsLayout.InsertFront(ButtonClose);
 
   Viewport := TCastleViewport.Create(DesignOwner);
+  Viewport.InternalDisableDesignManipulation;
   Viewport.Border.AllSides := Margin;
   Viewport.Border.Top := Margin +
     Max(LabelCaption.EffectiveHeight, ButtonsLayout.EffectiveHeight) + Margin;
@@ -192,7 +193,7 @@ begin
   { Show Rect if selected a camera
     that is *not* the current camera in this viewport. }
   Rect.Exists := (T is TCastleCamera) and
-    (V <> nil) and (T.World = V.Items) and (V.Camera <> T);
+    (V <> nil) and (T.World = V.Items) and (V.InternalCamera <> T);
 
   if Rect.Exists then
   begin
