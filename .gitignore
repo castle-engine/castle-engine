@@ -94,7 +94,6 @@ castle-game-engine-*.fpm
 /examples/fonts/text_tests/text_tests
 /examples/fonts/texture-font-to-pascal
 /examples/fps_game/fps_game
-/examples/headlight_test/headlight_test
 /examples/images_videos/background_tiling/background_tiling
 /examples/images_videos/dds_decompose/dds_decompose
 /examples/images_videos/deprecated_drawing_modes_test/drawing_modes_test
@@ -179,6 +178,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/deprecated_x3d_call_pascal_code/x3d_call_pascal_code
 /examples/viewport_and_scenes/detect_scene_hit/detect_scene_hit
 /examples/viewport_and_scenes/fog_and_distance_culling/fog_and_distance_culling
+/examples/viewport_and_scenes/headlight/headlight
 /examples/viewport_and_scenes/listen_on_x3d_events/listen_on_x3d_events
 /examples/viewport_and_scenes/multiple_viewports/multiple_viewports
 /examples/viewport_and_scenes/position_from_world/position_from_world

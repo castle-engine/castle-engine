@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="headlight_test"
-  standalone_source="headlight_test_standalone.dpr"
+<project name="headlight"
+  standalone_source="headlight_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="io.castleengine.headlight.test"
+  qualified_name="com.mycompany.headlight"
   caption="Headlight Test"
 >
   <compiler_options>

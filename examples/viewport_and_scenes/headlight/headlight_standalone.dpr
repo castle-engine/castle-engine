@@ -15,7 +15,7 @@
 { Do not specify program name below.
   It is not used anyway, and this way allows developer
   to change standalone_source in CastleEngineManifest.xml easier. }
-// program headlight_test_standalone;
+// program headlight_standalone;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 

@@ -21,7 +21,7 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'headlight_test';
+  ApplicationProperties.ApplicationName := 'headlight';
   ApplicationProperties.Caption := 'Headlight Test';
   ApplicationProperties.Version := '0.1';
 
