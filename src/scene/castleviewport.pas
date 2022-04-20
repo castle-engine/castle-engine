@@ -164,6 +164,7 @@ type
       FRenderWithoutScreenEffectsRenderingCamera: TRenderingCamera;
       FMissingCameraRect: TCastleRectangleControl;
       FMissingCameraLabel: TCastleLabel;
+      WarningCameraInvalidItemsDone: Boolean;
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -2788,6 +2789,16 @@ begin
     FMissingCameraLabel.Color := Vector4(WhiteRGB - BackgroundColor.XYZ, 1);
     FMissingCameraLabel.MaxWidth := FMissingCameraRect.EffectiveWidthForChildren;
     Exit;
+  end;
+
+  if (Camera.World <> Items) and not WarningCameraInvalidItemsDone then
+  begin
+    WritelnWarning('Camera "%s" of viewport "%s" is not part of this viewport Items hierarchy. You should add it to %s.Items.', [
+      Camera.Name,
+      Name,
+      Name
+    ]);
+    WarningCameraInvalidItemsDone := true; // avoid flooding log with warnings about it
   end;
 
   ApplyProjection;

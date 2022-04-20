@@ -442,10 +442,27 @@ begin
      (Info^.Name = 'Name') then
   begin
     { We handle setting Name ourselves, this way we can change the Name
-      to avoid conflicts. This is the only way to make Copy+Paste in CGE editor,
-      it is also a useful feature in general (makes it easier to instantiate
-      designs, when you don't have to worry that owner may have this name
-      already reserved). }
+      to avoid conflicts. This way we can safely add new components into
+      existing hierarchy (with some names already reserved in Owner).
+      This way:
+
+      - We can make Copy+Paste in CGE editor, by just pasting the components
+        into existing owner.
+
+      - In general, code can safely instantiate designs,
+        without worrying that owner may have some names already reserved
+        (which would otherwise cause exception when trying to add new children
+        with the same name).
+
+      - Even invalid old designs can be read: in old designs, you could have
+        multiple camera components named 'Camera'. This was not a problem,
+        as camera was a subcomponent owned by each viewport.
+        In new designs, these cameras are all owned by a single DesignOwner,
+        Thanks to this mechanism, these cameras will be renamed as necessary,
+        to not conflict. (While TCastleViewport.Loaded also does renaming,
+        but only in CastleDesignMode; if you load old design at runtime,
+        then the mechanism below kicks-in.)
+    }
     NewName := AValue.AsString;
     if Owner.FindComponent(NewName) <> nil then
     begin
