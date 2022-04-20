@@ -1398,9 +1398,9 @@ type
   end {$ifdef FPC}deprecated 'use TCastleViewport to render scenes. To have the same initial behavior, set FullSize, AutoCamera and AutoNavigation to true'{$endif};
 
 var
-  { Key/mouse combination to interact with clickable things in 3D world.
-    More precisely, this input will activate pointing device sensors in VRML/X3D,
-    which are used to touch (click) or drag 3D things.
+  { Key/mouse combination to interact with clickable things in TCastleViewport.Items.
+    More precisely, this input will activate pointing device sensors in X3D,
+    which are used to touch (click) or drag things.
     By default this is left mouse button click.
 
     You can change it to any other mouse button or even to key combination.
@@ -1859,7 +1859,7 @@ begin
   { Viewport will handle passing events to their camera,
     and will also pass our own Container to Camera.Container.
     This is desired, this way events are correctly passed
-    and interpreted before passing them to 3D objects.
+    and interpreted before passing them to TCastleTransform objects.
     And this way we avoid the question whether camera should be before
     or after the viewport on the Controls list (as there's really
     no perfect ordering for them).
@@ -2069,17 +2069,18 @@ begin
     PointingDeviceMove;
   end;
 
-  { update the cursor, since 3D object under the cursor possibly changed.
+  { update the cursor, since TCastleTransform object under the cursor possibly changed.
 
     Accidentally, this also workarounds the problem of TCastleViewport:
-    when the 3D object stayed the same but it's Cursor value changed,
-    Items.CursorChange notify only TCastleSceneManager (not custom viewport).
-    But thanks to doing RecalculateCursor below, this isn't
-    a problem for now, as we'll update cursor anyway, as long as it changes
-    only during mouse move.
 
-    TODO: this comment is probably no longer valid, TCastleViewport
-    is now used for everything. }
+    When the TCastleTransform object has its Cursor value changed,
+    Items.OnCursorChange notify only 1st TCastleViewport that owned the Items.
+    The other viewports are not notified, as SetItems doesn't set
+    FItems.OnCursorChange (as we only have 1 OnCursorChange for now).
+
+    But thanks to doing RecalculateCursor below, this isn't
+    a problem, as we'll update cursor to follow TCastleTransform anyway,
+    as long as it changes only during mouse move. }
   RecalculateCursor(Self);
 end;
 
@@ -2113,7 +2114,7 @@ procedure TCastleViewport.RecalculateCursor(Sender: TObject);
 var
   T: TCastleTransform;
 begin
-  if { This may be called from TCastleViewport without SceneManager assigned. }
+  if { Be prepared for Items=nil case, as it may happen e.g. at destruction. }
      (Items = nil) or
      { This may be called from
        TCastleTransformList.Notify when removing stuff owned by other
@@ -2131,12 +2132,12 @@ begin
     Exit;
   end;
 
-  { We show mouse cursor from top-most 3D object.
-    This is sensible, if multiple 3D scenes obscure each other at the same
+  { We show mouse cursor from top-most TCastleTransform.
+    This is sensible, if multiple TCastleTransform scenes obscure each other at the same
     pixel --- the one "on the top" (visible by the player at that pixel)
     determines the mouse cursor.
 
-    We ignore Cursor value of other 3d stuff along
+    We ignore Cursor value of other TCastleTransform along
     the MouseRayHit list. Maybe we should browse Cursor values along the way,
     and choose the first non-none? }
 
@@ -2170,10 +2171,10 @@ var
       RemoveItem := rtNone;
 
       { Note that Items.Update do not take HandleInput
-        parameter, as it would not be controllable for them: 3D objects do not
+        parameter, as it would not be controllable for them: TCastleTransform objects do not
         have strict front-to-back order, so we would not know in what order
         call their Update methods, so we have to let many Items handle keys anyway.
-        So, it's consistent to just treat 3D objects as "cannot definitely
+        So, it's consistent to just treat TCastleTransform objects as "cannot definitely
         mark keys/mouse as handled". }
 
       Items.Update(SecondsPassedScaled, RemoveItem);
