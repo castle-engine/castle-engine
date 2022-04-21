@@ -945,7 +945,11 @@ begin
     end;
   end;
 
-  UpdateCursor;
+  if not InternalDesignMouseLook then
+    { do not override cursor when InternalDesignMouseLook,
+      to allow mouse look to hide cursor. }
+    UpdateCursor;
+
   UpdateHoverTransform;
 end;
 
@@ -2087,6 +2091,10 @@ begin
     PanelAnchors.Visible;
   TabEvents.TabVisible :=
     (Inspector[itEvents].RowCount <> 0);
+
+  { If necessary, reset OverrideCursor modified by UpdateCursor, to allow mouse look to hide cursor }
+  if InternalDesignMouseLook then
+    CastleControl.Container.OverrideCursor := mcDefault;
 end;
 
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,

@@ -1411,6 +1411,7 @@ var
 {$define read_interface}
 {$I castleviewport_touchnavigation.inc}
 {$I castleviewport_serialize.inc}
+{$I castleviewport_design_navigation.inc}
 {$undef read_interface}
 
 implementation

@@ -18,6 +18,10 @@
 
 {$ifdef read_interface}
 
+var
+  { @exclude }
+  InternalDesignMouseLook: Boolean;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -54,6 +58,7 @@ begin
   if Event.IsMouseButton(buttonRight) then
   begin
     MouseLook := true;
+    InternalDesignMouseLook := true;
     Exit(true);
   end;
 
@@ -81,6 +86,7 @@ begin
   if Event.IsMouseButton(buttonRight) then
   begin
     MouseLook := false;
+    InternalDesignMouseLook := false;
     Exit(true);
   end;
 end;
