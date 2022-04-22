@@ -130,8 +130,7 @@ begin
   ButtonClose.FontSize := ButtonsFontSize;
   ButtonsLayout.InsertFront(ButtonClose);
 
-  Viewport := TCastleViewport.Create(DesignOwner);
-  Viewport.InternalDisableDesignManipulation;
+  Viewport := TCastleViewport.InternalCreateNonDesign(DesignOwner);
   Viewport.Border.AllSides := Margin;
   Viewport.Border.Top := Margin +
     Max(LabelCaption.EffectiveHeight, ButtonsLayout.EffectiveHeight) + Margin;

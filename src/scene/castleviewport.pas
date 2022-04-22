@@ -167,6 +167,7 @@ type
       WarningCameraInvalidItemsDone: Boolean;
       FInternalDesignManipulation: Boolean;
 
+    procedure CommonCreate(const AOwner: TComponent; const ADesignManipulation: Boolean);
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
@@ -452,19 +453,28 @@ type
       @exclude }
     function InternalNavigation: TCastleNavigation;
 
-    { Determines if viewport is in design-mode. Initialized from CastleDesignMode,
-      may be toggled to false later by InternalDisableDesignManipulation
-      (because CGE editor may sometimes want to use viewports
+    { Determines if viewport is in design-mode.
+
+      Initialized from CastleDesignMode, unless viewport is created using InternalCreateNonDesign
+      in which case it is always false.
+      (useful only in CGE editor, when it wants to use viewports
       with "normal" Camera and Navigation treatment, without
       InternalDesignCamera / InternalDesignNavigation).
 
       When false, the InternalDesignCamera and InternalDesignNavigation don't matter,
       viewport behaves as regular viewport.
+
+      Note that you cannot change it after creation, it would not be so easy
+      (we'd have to destroy InternalDesignCamera, InternalDesignNavigation,
+      figure out what should be Items.MainCamera...).
+
       @exclude }
     property InternalDesignManipulation: Boolean read FInternalDesignManipulation;
 
-    { Disable special design-mode viewport camera/navigation. }
-    procedure InternalDisableDesignManipulation;
+    { Constructor that disables special design-mode viewport camera/navigation.
+      Useful in editor.
+      @exclude }
+    constructor InternalCreateNonDesign(AOwner: TComponent);
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
@@ -1497,9 +1507,10 @@ end;
 
 { TCastleViewport ------------------------------------------------------- }
 
-constructor TCastleViewport.Create(AOwner: TComponent);
+procedure TCastleViewport.CommonCreate(const AOwner: TComponent; const ADesignManipulation: Boolean);
 begin
-  inherited;
+  inherited Create(AOwner);
+
   FBackgroundColor := DefaultBackgroundColor;
   FUseGlobalLights := DefaultUseGlobalLights;
   FUseGlobalFog := DefaultUseGlobalFog;
@@ -1548,13 +1559,13 @@ begin
   FMissingCameraLabel.Anchor(vpMiddle);
   FMissingCameraRect.InsertFront(FMissingCameraLabel);
 
+  FInternalDesignManipulation := ADesignManipulation;
+
   { only when not deserializing, and not in editor: create automatic Camera
     - unnamed, to not collide with name of sthg else
     - owned by Self (viewport), to not assume anything about AOwner }
-  if (InternalLoadingComponent = 0) and (not CastleDesignMode) then
+  if (InternalLoadingComponent = 0) and (not InternalDesignManipulation) then
     SetupCamera;
-
-  FInternalDesignManipulation := CastleDesignMode;
 
   if InternalDesignManipulation then
   begin
@@ -1563,6 +1574,13 @@ begin
     // this somewhat replicates what happens at SetCamera
     InternalDesignCamera.InternalOnCameraChanged := {$ifdef FPC}@{$endif} InternalCameraChanged;
     Items.Add(InternalDesignCamera);
+
+    { when InternalDesignManipulation,
+      then Items.MainCamera just always follows InternalDesignCamera,
+      ignoring Camera. This way
+      - gizmos adjust to design-time camera, so they have proper size
+      - billboards adjust to design-time camera, so e.g. light gizmos look OK. }
+    Items.MainCamera := InternalDesignCamera;
 
     InternalDesignNavigation := TCastleWalkNavigationDesign.Create(Self);
     InternalDesignNavigation.SetTransient;
@@ -1579,6 +1597,16 @@ begin
   {$undef read_implementation_constructor}
 end;
 
+constructor TCastleViewport.Create(AOwner: TComponent);
+begin
+  CommonCreate(AOwner, CastleDesignMode);
+end;
+
+constructor TCastleViewport.InternalCreateNonDesign(AOwner: TComponent);
+begin
+  CommonCreate(AOwner, false);
+end;
+
 function TCastleViewport.InternalCamera: TCastleCamera;
 begin
   if InternalDesignManipulation then
@@ -1593,20 +1621,6 @@ begin
     Result := InternalDesignNavigation
   else
     Result  := Navigation;
-end;
-
-procedure TCastleViewport.InternalDisableDesignManipulation;
-begin
-  { Note: it's not enough to set InternalDesignManipulation to false,
-    as InternalDesignNavigation would still receive events and could try to manipulate
-    the connected viewport.
-
-    Happened with viewport in DesignCameraPreview,
-    merely seting InternalDesignManipulation:=false didn't prevent InternalDesignNavigation
-    there from using mouse look on right-click, }
-  FInternalDesignManipulation := false;
-  FreeAndNil(InternalDesignNavigation);
-  FreeAndNil(InternalDesignCamera);
 end;
 
 procedure TCastleViewport.SetupCamera;
@@ -1792,7 +1806,7 @@ begin
     WritelnLog('Camera in viewport "%s" was not part of Viewport.Items, adding it to Viewport.Items', [
       Name
     ]);
-    if CastleDesignMode and (Camera.Name = 'Camera') and (Owner <> nil) then
+    if InternalDesignManipulation and (Camera.Name = 'Camera') and (Owner <> nil) then
     begin
       Camera.Name := InternalProposeName(TCastleCamera, Owner);
       WritelnLog('Camera in viewport "%s" renamed to "%s" to not conflict with other components', [
@@ -2189,7 +2203,7 @@ var
 
   procedure WatchMainSceneChange;
   begin
-    if CastleDesignMode then
+    if InternalDesignManipulation then
     begin
       if FLastSeenMainScene <> Items.MainScene then
       begin
@@ -2338,7 +2352,7 @@ begin
     in editor immediately, without reloading file.
     *)
 
-    if CastleDesignMode and Value then
+    if InternalDesignManipulation and Value then
       AssignDefaultCameraDone := false;
   end;
 end;
@@ -2350,7 +2364,7 @@ begin
     FAutoNavigation := Value;
     { Not necessary, and we actually don't have AssignDefaultNavigationDone.
       The navigation will be auto-assigned when it is nil. }
-    // if CastleDesignMode and Value then
+    // if InternalDesignManipulation and Value then
     //   AssignDefaultNavigationDone := false;
   end;
 end;
