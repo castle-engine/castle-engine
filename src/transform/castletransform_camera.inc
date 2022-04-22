@@ -234,14 +234,6 @@
     and add them to @link(TCastleViewport.Items),
     and set them as @link(TCastleViewport.Camera).
 
-    Also, an instance of this class is automatically created inside
-    @link(TCastleViewport.Camera) whenever you access it.
-    And @link(TCastleViewport.Camera) is automatically added
-    to @link(TCastleViewport.Items), if it's not there already
-    (this also covers the case when you changed @link(TCastleViewport.Items)
-    to something completely different, to watch other world in the viewport
-    --- the camera will move there).
-
     Note that this class does not handle any user input to modify the camera.
     For this, see TCastleNavigation descendants. }
   TCastleCamera = class(TCastleTransform)
