@@ -362,8 +362,7 @@ end;
 procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleCamera);
 begin
   Camera := ACamera;
-  // TODO: this should take position in world space
-  Position := ACamera.Translation;
+  Position := ACamera.WorldTranslation;
   Matrix := ACamera.Matrix;
   InverseMatrixDone := false;
   RotationMatrix := ACamera.RotationMatrix;

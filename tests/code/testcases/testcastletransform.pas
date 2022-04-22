@@ -1717,6 +1717,9 @@ begin
     TParent.Add(CamChild);
     TParent.Add(TChild);
 
+    AssertVectorEquals(TVector3.Zero, TChild.WorldTranslation);
+    AssertVectorEquals(TVector3.Zero, CamChild.WorldTranslation);
+
     TChild.GetView(P, D, U);
 
     AssertVectorEquals(TVector3.Zero, TChild.Translation); // no change
@@ -1774,6 +1777,7 @@ begin
     AssertVectorEquals(Vector3(100, 200, 300), TChild.Translation);
     AssertVectorEquals(TVector4.Zero, TChild.Rotation); // no change
     AssertVectorEquals(Vector3(100, 200, 300) + Vector3(1, 2, 3), P);
+    AssertVectorEquals(Vector3(100, 200, 300) + Vector3(1, 2, 3), TChild.WorldTranslation);
     // for non-camera transformations, the default Orientation=otUpYDirectionZ
     AssertVectorEquals(Vector3(0, 0, 1), D);
     AssertVectorEquals(Vector3(0, 1, 0), U);
@@ -1792,6 +1796,7 @@ begin
     AssertVectorEquals(Vector3(100, 200, 300), CamChild.Translation);
     AssertVectorEquals(Vector4(0, 0, 1, 0), CamChild.Rotation);
     AssertVectorEquals(Vector3(100, 200, 300) + Vector3(1, 2, 3), P);
+    AssertVectorEquals(Vector3(100, 200, 300) + Vector3(1, 2, 3), CamChild.WorldTranslation);
     // for camera transformations, the default Orientation=otUpYDirectionMinusZ
     AssertVectorEquals(Vector3(0, 0, -1), D);
     AssertVectorEquals(Vector3(0, 1, 0), U);
@@ -1804,6 +1809,7 @@ begin
     AssertVectorEquals(Vector3(400, 500, 600), TChild.Translation);
     AssertVectorEquals(Vector4(0, 0, 1, 0), TChild.Rotation);
     AssertVectorEquals(Vector3(400, 500, 600) + Vector3(1, 2, 3), P);
+    AssertVectorEquals(Vector3(400, 500, 600) + Vector3(1, 2, 3), TChild.WorldTranslation);
     // for non-camera transformations, the default Orientation=otUpYDirectionZ
     AssertVectorEquals(Vector3(0, 0, 1), D);
     AssertVectorEquals(Vector3(0, 1, 0), U);
@@ -1816,6 +1822,7 @@ begin
     AssertVectorEquals(Vector3(400, 500, 600), CamChild.Translation);
     AssertVectorEquals(Vector4(0, 0, 1, 0), CamChild.Rotation);
     AssertVectorEquals(Vector3(400, 500, 600) + Vector3(1, 2, 3), P);
+    AssertVectorEquals(Vector3(400, 500, 600) + Vector3(1, 2, 3), CamChild.WorldTranslation);
     // for camera transformations, the default Orientation=otUpYDirectionMinusZ
     AssertVectorEquals(Vector3(0, 0, -1), D);
     AssertVectorEquals(Vector3(0, 1, 0), U);

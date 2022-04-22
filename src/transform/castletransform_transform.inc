@@ -1696,6 +1696,13 @@
       Returned ADir and AUp are always normalized. }
     procedure GetWorldView(out APos, ADir, AUp: TVector3);
 
+    { Get position in world coordinates.
+
+      The returned position is the same as by @link(GetWorldView).
+      This method just doesn't calculation anything else, thus it is faster
+      than @link(GetWorldView) if you don't need direction/up. }
+    function WorldTranslation: TVector3;
+
     { Set at once vectors: position, direction, up.
 
       ADir and AUp given here do not have to be normalized
@@ -3509,6 +3516,11 @@ begin
   APos := T;
   ADir := RotationToDirection(R);
   AUp := RotationToUp(R);
+end;
+
+function TCastleTransform.WorldTranslation: TVector3;
+begin
+  Result := TranslationFromMatrix(WorldTransform);
 end;
 
 procedure TCastleTransform.SetView(const APos, ADir, AUp: TVector3;

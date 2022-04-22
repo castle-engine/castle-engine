@@ -727,6 +727,7 @@ type
       The given camera position, direction, up should be in world space
       (that is, in TCastleRootTransform space,
       not in space local to this TCastleScene).
+      These camera vectors are used to update TRenderedTextureNode, if any.
 
       This does not change current viewport or projection matrix. }
     procedure UpdateGeneratedTextures(const Shape: TX3DRendererShape;
