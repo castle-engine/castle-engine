@@ -25,20 +25,30 @@ uses Classes,
 type
   TCameraPreview = class
   strict private
-    Viewport: TCastleViewport;
-    LabelCaption: TCastleLabel;
-    Rect: TCastleRectangleControl;
-    ButtonLarger, ButtonSmaller, ButtonPin, ButtonClose: TCastleButton;
-    Pinned: Boolean;
-    Size: Integer;
-    CameraObserver: TFreeNotificationObserver;
+    type
+      TMyViewport = class(TCastleViewport)
+      protected
+        function InternalHeadlightCamera: TCastleCamera; override;
+      public
+        SelectedViewport: TCastleViewport;
+      end;
+    var
+      Viewport: TMyViewport;
+      LabelCaption: TCastleLabel;
+      Rect: TCastleRectangleControl;
+      ButtonLarger, ButtonSmaller, ButtonPin, ButtonClose: TCastleButton;
+      Pinned: Boolean;
+      Size: Integer;
+      SelectedCameraObserver: TFreeNotificationObserver;
+      SelectedViewportObserver: TFreeNotificationObserver;
     procedure ClickLarger(Sender: TObject);
     procedure ClickSmaller(Sender: TObject);
     procedure ClickPin(Sender: TObject);
     procedure ClickClose(Sender: TObject);
     procedure Show(const T: TCastleTransform; const V: TCastleViewport);
     procedure SizeChange(const Change: Integer);
-    procedure CameraFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SelectedCameraFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SelectedViewportFreeNotification(const Sender: TFreeNotificationObserver);
   public
     constructor Create(const DesignOwner: TComponent);
     { Add this to design to make camera preview potentially visible. }
@@ -53,6 +63,21 @@ implementation
 
 uses Math,
   CastleColors, CastleUtils;
+
+function TCameraPreview.TMyViewport.InternalHeadlightCamera: TCastleCamera;
+begin
+  { Inherited implementation of InternalHeadlightCamera would mean we use
+    Items.MainCamera, as InternalDesignManipulation = false in TMyViewport.
+    This would be wrong: Items.MainCamera is now the *design-time camera
+    of main (non-preview) viewport*.
+
+    Using our Camera would also be wrong: in case we preview non-current
+    camera, i.e. SelectedViewport.Camera=Camera1 but we preview Camera2.
+
+    The correct behavior is to follow SelectedViewport.InternalHeadlightCamera. }
+
+  Result := SelectedViewport.InternalHeadlightCamera;
+end;
 
 const
   MinSize = 1;
@@ -75,8 +100,11 @@ const
 begin
   inherited Create;
 
-  CameraObserver := TFreeNotificationObserver.Create(DesignOwner);
-  CameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
+  SelectedCameraObserver := TFreeNotificationObserver.Create(DesignOwner);
+  SelectedCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} SelectedCameraFreeNotification;
+
+  SelectedViewportObserver := TFreeNotificationObserver.Create(DesignOwner);
+  SelectedViewportObserver.OnFreeNotification := {$ifdef FPC}@{$endif} SelectedViewportFreeNotification;
 
   Size := 2;
 
@@ -130,7 +158,7 @@ begin
   ButtonClose.FontSize := ButtonsFontSize;
   ButtonsLayout.InsertFront(ButtonClose);
 
-  Viewport := TCastleViewport.InternalCreateNonDesign(DesignOwner);
+  Viewport := TMyViewport.InternalCreateNonDesign(DesignOwner);
   Viewport.Border.AllSides := Margin;
   Viewport.Border.Top := Margin +
     Max(LabelCaption.EffectiveHeight, ButtonsLayout.EffectiveHeight) + Margin;
@@ -147,10 +175,16 @@ begin
   Rect.HeightFraction := Sizes[Size];
 end;
 
-procedure TCameraPreview.CameraFreeNotification(
+procedure TCameraPreview.SelectedCameraFreeNotification(
   const Sender: TFreeNotificationObserver);
 begin
-  // This is useful when current camera was pinned
+  // This is useful when selected current camera was pinned, and then freed
+  Show(nil, nil);
+end;
+
+procedure TCameraPreview.SelectedViewportFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
   Show(nil, nil);
 end;
 
@@ -203,7 +237,10 @@ begin
     Viewport.Transparent := V.Transparent;
     LabelCaption.Caption := T.Name;
 
-    CameraObserver.Observed := T;
+    SelectedCameraObserver.Observed := T;
+
+    Viewport.SelectedViewport := V;
+    SelectedViewportObserver.Observed := Viewport.SelectedViewport;
   end else
   begin
     { Assign "empty" values for Items/Camera,
@@ -217,7 +254,10 @@ begin
     Pinned := false;
     ButtonPin.Pressed := Pinned;
 
-    CameraObserver.Observed := nil;
+    SelectedCameraObserver.Observed := nil;
+
+    Viewport.SelectedViewport := nil;
+    SelectedViewportObserver.Observed := Viewport.SelectedViewport;
   end;
 end;
 

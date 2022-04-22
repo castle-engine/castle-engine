@@ -691,6 +691,10 @@ type
     function HeadlightInstance(out Instance: TLightInstance): boolean;
       deprecated 'internal information, do not use this';
 
+    { Camera that makes a headlight (if only TCastleRootTransform.UseHeadlight).
+      @exclude}
+    function InternalHeadlightCamera: TCastleCamera; virtual;
+
     { Enable built-in SSAO screen effect in the world. }
     property ScreenSpaceAmbientOcclusion: boolean
       read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
@@ -2615,19 +2619,29 @@ begin
   InitializeGlobalLights(GlobalLights);
 end;
 
+function TCastleViewport.InternalHeadlightCamera: TCastleCamera;
+begin
+  { At design-time: As an exception, this *does not* use design-time camera for headlight
+    pos/dir/up, as this would prevent observing headlight from various other points of view.
+    So below condition actually *avoids* using InternalDesignCamera when InternalDesignManipulation. }
+  if InternalDesignManipulation then
+    Result := Camera
+  else
+    Result := Items.MainCamera;
+end;
+
 function TCastleViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
 var
   Node: TAbstractLightNode;
-  HC: TCastleCamera;
 
-  procedure PrepareInstance;
+  procedure PrepareInstance(const HC: TCastleCamera);
   var
     Position, Direction, Up: TVector3;
   begin
     Assert(Node <> nil);
     Node.InternalHeadlight := true;
 
-    HC.GetView(Position, Direction, Up);
+    HC.GetWorldView(Position, Direction, Up);
 
     { set location/direction of Node }
     if Node is TAbstractPositionalLightNode then
@@ -2650,15 +2664,17 @@ var
     Instance.WorldCoordinates := true;
   end;
 
+var
+  HC: TCastleCamera;
 begin
   Result := false;
   Node := Items.InternalHeadlight;
   if Node <> nil then
   begin
-    HC := Items.MainCamera;
+    HC := InternalHeadlightCamera;
     if HC <> nil then
     begin
-      PrepareInstance;
+      PrepareInstance(HC);
       Result := true;
     end;
   end;
