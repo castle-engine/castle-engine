@@ -269,14 +269,20 @@
       This camera controls:
 
       @unorderedList(
-        @item(The X3D nodes that "sense" camera like ProximitySensor, Billboard, LOD.)
+        @item(Nodes that "sense" camera like TProximitySensorNode, TBillboardNode, TLODNode.)
 
-        @item(an audio listener (controlling the spatial sound).)
+        @item(TCastleBillboard.)
 
-        @item(the headlight position/direction, if you enable headlight by @link(TCastleRootTransform.UseHeadlight).)
+        @item(Audio listener (controlling the spatial sound).)
 
-        @item(when X3D nodes change Viewpoint/NavigationInfo,
-          they apply these changes to this camera.)
+        @item(Headlight position/direction, if you enable headlight by @link(TCastleRootTransform.UseHeadlight).)
+
+        @item(When X3D nodes change Viewpoint/NavigationInfo (possible if TCastleViewport.AutoCamera),
+          they apply changes to this camera.)
+
+        @item(Rendering of TRenderedTextureNode contents (which camera this texture shows).)
+
+        @item(At design-time: gizmo size is determined with respect to this camera.)
       )
 
       Note that it means that "headlight" done by
