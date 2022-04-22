@@ -2378,11 +2378,11 @@ initialization
   RegisterSerializableComponent(TCastleCylinder, 'Cylinder');
   RegisterSerializableComponent(TCastleImageTransform, 'Image');
   RegisterSerializableComponent(TCastleBackground, 'Background');
-  RegisterSerializableComponent(TCastlePointLight, 'Point Light');
-  RegisterSerializableComponent(TCastleDirectionalLight, 'Directional Light');
-  RegisterSerializableComponent(TCastleSpotLight, 'Spot Light');
+  RegisterSerializableComponent(TCastlePointLight, 'Light/Point');
+  RegisterSerializableComponent(TCastleDirectionalLight, 'Light/Directional');
+  RegisterSerializableComponent(TCastleSpotLight, 'Light/Spot');
   {$ifdef CASTLE_EXPERIMENTAL_ENVIRONMENT_LIGHT}
-  RegisterSerializableComponent(TCastleEnvironmentLight, 'Environment Light (Experimental)');
+  RegisterSerializableComponent(TCastleEnvironmentLight, 'Light/Environment');
   {$endif}
 finalization
   GLContextCache.FreeWhenEmpty(@GLContextCache);
