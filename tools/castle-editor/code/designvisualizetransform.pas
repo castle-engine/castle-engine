@@ -426,7 +426,7 @@ begin
       ScaleUniform := Parent.WorldToLocalDistance(GizmoScale);
     end else
     begin
-      GizmoScale := 0.25 {TODO:* Camera.Perspective.EffeectiveFieldOfViewVertical};
+      GizmoScale := 0.25 {TODO:* Camera.Perspective.EffectiveFieldOfViewVertical};
       ScaleUniform := GetPerspectiveGizmoScale(Camera, GizmoScale);
     end;
 
