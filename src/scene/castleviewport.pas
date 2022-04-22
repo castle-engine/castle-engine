@@ -1890,8 +1890,6 @@ begin
           But InternalViewport is a trivial internal field now, so no need to protect,
           user code should not touch it. }
         FNavigation.InternalViewport := nil;
-      if InternalLoadingComponent = 0 then // when deserializing, assume that proper Navigation is already part of children
-        RemoveControl(FNavigation);
     end;
 
     FNavigation := Value;
@@ -1902,11 +1900,6 @@ begin
       FNavigation.OnInternalHeight := {$ifdef FPC}@{$endif}NavigationHeight;
       FNavigation.FreeNotification(Self);
       FNavigation.InternalViewport := Self;
-      if InternalLoadingComponent = 0 then // when deserializing, assume that proper Navigation is already part of children
-        { Check IndexOfControl first, in case the FNavigation is already part
-          of our controls. }
-        if IndexOfControl(FNavigation) = -1 then
-          InsertControl(0, FNavigation);
     end;
 
     { Call OnBoundNavigationInfoChanged when Navigation instance changed.
@@ -3188,6 +3181,7 @@ begin
       entire lifetime of FInternalExamineNavigation instance,
       even before calling SetNavigation on it. }
     FInternalExamineNavigation.InternalViewport := Self;
+    InsertControl(0, FInternalExamineNavigation);
   end;
   Result := FInternalExamineNavigation;
 end;
@@ -3202,6 +3196,7 @@ begin
       entire lifetime of FInternalExamineNavigation instance,
       even before calling SetNavigation on it. }
     FInternalWalkNavigation.InternalViewport := Self;
+    InsertControl(0, FInternalWalkNavigation);
   end;
   Result := FInternalWalkNavigation;
 end;

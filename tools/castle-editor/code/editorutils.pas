@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -164,7 +164,7 @@ function ApiReference(const PropertyObject: TObject;
 
   All created menu items have OnClick set to OnClickEvent. }
 procedure BuildComponentsMenu(
-  const ParentNavigation, ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
+  const ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
   const OnClickEvent: TNotifyEvent);
 
 type
@@ -804,7 +804,7 @@ begin
 end;
 
 procedure BuildComponentsMenu(
-  const ParentNavigation, ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
+  const ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
   const OnClickEvent: TNotifyEvent);
 
   function CreateMenuItemForComponent(const OwnerAndParent: TMenuItem;
@@ -839,9 +839,6 @@ begin
   for R in RegisteredComponents do
     if not R.IsDeprecated then
     begin
-      if R.ComponentClass.InheritsFrom(TCastleNavigation) then
-        CreateMenuItemForComponent(ParentNavigation, R)
-      else
       if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
         CreateMenuItemForComponent(ParentUserInterface, R)
       else

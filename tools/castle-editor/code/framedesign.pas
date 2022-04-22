@@ -1125,19 +1125,11 @@ begin
   ChangeMode(moModifyUi); // most expected default, it seems
 
   BuildComponentsMenu(
-    nil,
     MenuTreeViewItemAddUserInterface,
     MenuTreeViewItemAddTransform,
     MenuTreeViewItemAddBehavior,
     MenuTreeViewItemAddNonVisual,
     @MenuItemAddComponentClick);
-  BuildComponentsMenu(
-    MenuItemViewportChangeNavigation,
-    nil,
-    nil,
-    nil,
-    nil,
-    @MenuItemViewportChangeNavigationClick);
   // Input_Interact (for gizmos) reacts to both left and right
   Input_Interact.MouseButton2Use := true;
   Input_Interact.MouseButton2 := buttonRight;

@@ -1794,8 +1794,11 @@ begin
   if InternalViewport <> nil then
   begin
     V := InternalViewport as TCastleViewport;
-    if { Ignore input if viewport is using InternalDesignManipulation, and we're not the design-time navigation. }
-       (V.InternalDesignManipulation and (V.InternalDesignNavigation <> Self)) or
+    if { Ignore input if viewport is using other navigation.
+         There may be multiple navigation components refering to the same InternalViewport,
+         as InternalDesignNavigation, FInternalExamineNavigation, FInternalWalkNavigation
+         all do this, in addition to user-created navigation components. }
+       (V.InternalNavigation <> Self) or
        { Ignore input on a paused viewport }
        V.Items.Paused then
       Exit([]);
@@ -4258,11 +4261,11 @@ var
 initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleWalkNavigation;
-  R.Caption := 'Fly (Walk with Gravity=false)';
+  R.Caption := 'Navigation/Fly (Walk with Gravity=false)';
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleWalkNavigation{$ifdef FPC}(nil){$endif}.CreateComponentFly;
   RegisterSerializableComponent(R);
 
-  RegisterSerializableComponent(TCastleWalkNavigation, 'Walk');
-  RegisterSerializableComponent(TCastleExamineNavigation, 'Examine');
-  RegisterSerializableComponent(TCastle2DNavigation, '2D');
+  RegisterSerializableComponent(TCastleWalkNavigation, 'Navigation/Walk');
+  RegisterSerializableComponent(TCastleExamineNavigation, 'Navigation/Examine');
+  RegisterSerializableComponent(TCastle2DNavigation, 'Navigation/2D');
 end.

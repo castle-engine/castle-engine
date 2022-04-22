@@ -75,7 +75,6 @@ end;
 {$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
-{$I castlepropedits_viewport_navigation.inc}
 {$I castlepropedits_float.inc}
 {$I castlepropedits_exposetransforms.inc}
 
@@ -156,8 +155,6 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
-    TViewportNavigationEditor);
 end;
 
 initialization
