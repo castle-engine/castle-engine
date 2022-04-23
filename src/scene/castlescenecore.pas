@@ -1730,11 +1730,6 @@ type
     function GetNavigationInfoStack: TX3DBindableStackBasic; override;
     function GetViewpointStack: TX3DBindableStackBasic; override;
 
-    function CameraPosition: TVector3; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera.Position';
-    function CameraDirection: TVector3; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera.GetView';
-    function CameraUp: TVector3; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera.GetView';
-    function CameraViewKnown: boolean; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera';
-
     { List of handlers for VRML/X3D Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
     property CompiledScriptHandlers: TCompiledScriptHandlerInfoList
@@ -7439,34 +7434,6 @@ begin
   }
   if Value <> nil then
     InternalCameraChanged;
-end;
-
-function TCastleSceneCore.CameraPosition: TVector3;
-begin
-  {$warnings off} // using deprecated from deprecated
-  Result := World.CameraPosition;
-  {$warnings on}
-end;
-
-function TCastleSceneCore.CameraDirection: TVector3;
-begin
-  {$warnings off} // using deprecated from deprecated
-  Result := World.CameraDirection;
-  {$warnings on}
-end;
-
-function TCastleSceneCore.CameraUp: TVector3;
-begin
-  {$warnings off} // using deprecated from deprecated
-  Result := World.CameraUp;
-  {$warnings on}
-end;
-
-function TCastleSceneCore.CameraViewKnown: boolean;
-begin
-  {$warnings off} // using deprecated from deprecated
-  Result := (World <> nil) and World.CameraKnown;
-  {$warnings on}
 end;
 
 { compiled scripts ----------------------------------------------------------- }

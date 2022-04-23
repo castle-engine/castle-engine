@@ -320,12 +320,6 @@
       associated @link(TCastleViewport) or not),
       or @nil (in case no camera should be that "central" camera). }
     property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
-
-    function CameraPosition: TVector3; deprecated 'use MainCamera.Position if MainCamera <> nil';
-    function CameraDirection: TVector3; deprecated 'use MainCamera.Direction if MainCamera <> nil';
-    function CameraUp: TVector3; deprecated 'use MainCamera.Up if MainCamera <> nil';
-    function CameraGravityUp: TVector3; deprecated 'use MainCamera.GravityUp if MainCamera <> nil';
-    function CameraKnown: Boolean; deprecated 'use MainCamera <> nil';
   published
     { Adjust physics properties. }
     property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
@@ -534,38 +528,6 @@ begin
   MainCamera := nil;
 end;
 
-function TCastleAbstractRootTransform.CameraPosition: TVector3;
-begin
-  if MainCamera = nil then
-    Result := TVector3.Zero
-  else
-    Result := MainCamera.Position;
-end;
-
-function TCastleAbstractRootTransform.CameraDirection: TVector3;
-begin
-  if MainCamera = nil then
-    Result := DefaultCameraDirection
-  else
-    Result := MainCamera.Direction;
-end;
-
-function TCastleAbstractRootTransform.CameraUp: TVector3;
-begin
-  if MainCamera = nil then
-    Result := DefaultCameraUp
-  else
-    Result := MainCamera.Up;
-end;
-
-function TCastleAbstractRootTransform.CameraGravityUp: TVector3;
-begin
-  if MainCamera = nil then
-    Result := DefaultCameraUp
-  else
-    Result := MainCamera.GravityUp;
-end;
-
 function TCastleAbstractRootTransform.GravityUp: TVector3;
 begin
   if MainCamera = nil then
@@ -574,11 +536,6 @@ begin
     Result := DefaultCameraUp
   else
     Result := MainCamera.GravityUp;
-end;
-
-function TCastleAbstractRootTransform.CameraKnown: Boolean;
-begin
-  Result := MainCamera <> nil;
 end;
 
 procedure TCastleAbstractRootTransform.RegisterPressRelease(const T: TCastleTransform);

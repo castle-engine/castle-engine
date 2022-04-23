@@ -27,10 +27,9 @@ type
   strict private
     type
       TMyViewport = class(TCastleViewport)
-      protected
-        function InternalHeadlightCamera: TCastleCamera; override;
       public
         SelectedViewport: TCastleViewport;
+        function InternalHeadlightCamera: TCastleCamera; override;
       end;
     var
       Viewport: TMyViewport;

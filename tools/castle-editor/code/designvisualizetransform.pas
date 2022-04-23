@@ -343,7 +343,8 @@ var
     // ViewProjectionMatrix: TMatrix4;
     ZeroProjected, OneProjected: TVector2;
     OneDistance: Single;
-    ZeroWorld, OneWorld, OneProjected3, ZeroProjected3, CameraPos, CameraSide: TVector3;
+    CameraPos, CameraDir, CameraUp: TVector3; //< camera vectors in world-coordinates
+    ZeroWorld, OneWorld, OneProjected3, ZeroProjected3, CameraSide: TVector3;
     CameraNearPlane: TVector4;
     SceneSizeMultiplier: Single;
   begin
@@ -354,6 +355,8 @@ var
       So we use to calculate in larger coordinates, and then scale it back to achieve the same.
       Testcase: gizmo_flickering_bug . }
     SceneSizeMultiplier := World.BoundingBox.AverageSize(false, 1.0);
+
+    Camera.GetWorldView(CameraPos, CameraDir, CameraUp);
 
     BeginWorldTransform;
 
@@ -366,9 +369,9 @@ var
     }
     Scale := Vector3(1, 1, 1); // assume gizmo scale = 1, will be changed later
     ZeroWorld := LocalToWorld(TVector3.Zero);
-    { Note: We use Camera.Up, not Camera.GravityUp, to work sensibly even
+    { Note: We use CameraUp, not Camera.GravityUp, to work sensibly even
       when looking at world at a direction similar to +Y. }
-    OneWorld := LocalToWorld(WorldToLocalDirection(Camera.Up).AdjustToLength(SceneSizeMultiplier));
+    OneWorld := LocalToWorld(WorldToLocalDirection(CameraUp).AdjustToLength(SceneSizeMultiplier));
 
     EndWorldTransform;
 
@@ -378,13 +381,12 @@ var
     OneProjected := (ViewProjectionMatrix * Vector4(OneWorld, 1)).XY;
     *)
 
-    CameraPos := Camera.Position;
     CameraNearPlane := Vector4(
-      Camera.Direction,
+      CameraDir,
       { plane equation should yield 0 when used with point in front of camera }
       - TVector3.DotProduct(
-          CameraPos + Camera.Direction * AssumeNear * SceneSizeMultiplier,
-          Camera.Direction
+          CameraPos + CameraDir * AssumeNear * SceneSizeMultiplier,
+          CameraDir
         )
     );
     if not TryPlaneLineIntersection(OneProjected3, CameraNearPlane, CameraPos, OneWorld - CameraPos) then
@@ -392,9 +394,9 @@ var
     if not TryPlaneLineIntersection(ZeroProjected3, CameraNearPlane, CameraPos, ZeroWorld - CameraPos) then
       Exit(1.0); // no valid value can be calculated
 
-    CameraSide := TVector3.CrossProduct(Camera.Direction, Camera.Up);
-    ZeroProjected := Projected(ZeroProjected3, CameraSide, Camera.Up);
-    OneProjected := Projected(OneProjected3, CameraSide, Camera.Up);
+    CameraSide := TVector3.CrossProduct(CameraDir, CameraUp);
+    ZeroProjected := Projected(ZeroProjected3, CameraSide, CameraUp);
+    OneProjected := Projected(OneProjected3, CameraSide, CameraUp);
 
     // get the distance, on screen in pixels, of a 1 unit in 3D around gizmo
     OneDistance := PointsDistance(ZeroProjected, OneProjected);
@@ -456,6 +458,7 @@ var
        and (World <> nil)
        and (World.MainCamera <> nil)
        and (World.MainCamera.ProjectionType = ptOrthographic)
+       // TODO: should check world-space direction
        and (TVector3.Equals(World.MainCamera.Direction, Vector3(0, 0, -1)))
       );
   end;

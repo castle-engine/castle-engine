@@ -636,7 +636,7 @@ begin
 
     { Copies non-temporary properties (in particular, the published properties). }
     SetView( // copy local vectors -- TODO: where is this used, do we need global vectors?
-      SourceCamera.Position,
+      SourceCamera.Translation,
       SourceCamera.Direction,
       SourceCamera.Up);
     GravityUp                   := SourceCamera.GravityUp;
