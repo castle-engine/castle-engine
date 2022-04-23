@@ -931,7 +931,7 @@
       If you want to @italic(react) to visibility changes,
       you should not override this method, instead watch above "state id" variables
       and react when they change. }
-    procedure VisibleChangeHere(const Changes: TVisibleChanges);
+    procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
 
     { Root transformation (TCastleAbstractRootTransform) containing us.
       @nil if we are not (yet) part of some hierarchy rooted in TCastleAbstractRootTransform. }

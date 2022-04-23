@@ -279,7 +279,7 @@
     property InitialDirection: TVector3 read FInitialDirection write FInitialDirection;
     property InitialUp: TVector3 read FInitialUp write FInitialUp;
   private
-    procedure VisibleChange;
+    procedure VisibleParameterChange;
   protected
     procedure Loaded; override;
   public
@@ -404,6 +404,8 @@
     // @exclude
     procedure InternalSetEffectiveProjection(
       const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
+
+    procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
   published
     { Projection near plane distance.
 
@@ -454,7 +456,7 @@ begin
   if FFieldOfView <> Value then
   begin
     FFieldOfView := Value;
-    Camera.VisibleChange;
+    Camera.VisibleParameterChange;
   end;
 end;
 
@@ -463,7 +465,7 @@ begin
   if FFieldOfViewAxis <> Value then
   begin
     FFieldOfViewAxis := Value;
-    Camera.VisibleChange;
+    Camera.VisibleParameterChange;
   end;
 end;
 
@@ -508,7 +510,7 @@ begin
   if not TVector2.PerfectlyEquals(FOrigin, Value) then
   begin
     FOrigin := Value;
-    Camera.VisibleChange;
+    Camera.VisibleParameterChange;
   end;
 end;
 
@@ -517,7 +519,7 @@ begin
   if FWidth <> Value then
   begin
     FWidth := Value;
-    Camera.VisibleChange;
+    Camera.VisibleParameterChange;
   end;
 end;
 
@@ -526,7 +528,7 @@ begin
   if FHeight <> Value then
   begin
     FHeight := Value;
-    Camera.VisibleChange;
+    Camera.VisibleParameterChange;
   end;
 end;
 
@@ -539,7 +541,7 @@ begin
         Value
       ]);
     FScale := Value;
-    Camera.VisibleChange;
+    Camera.VisibleParameterChange;
   end;
 end;
 
@@ -548,7 +550,7 @@ begin
   if FStretch <> Value then
   begin
     FStretch := Value;
-    Camera.VisibleChange;
+    Camera.VisibleParameterChange;
   end;
 end;
 
@@ -655,12 +657,6 @@ end;
 procedure TCastleCamera.SetGravityUp(const Value: TVector3);
 begin
   FGravityUp := Value.Normalize;
-end;
-
-procedure TCastleCamera.VisibleChange;
-begin
-  if Assigned(InternalOnCameraChanged) then
-    InternalOnCameraChanged(Self);
 end;
 
 function TCastleCamera.Matrix: TMatrix4;
@@ -782,7 +778,7 @@ begin
   if FProjectionNear <> Value then
   begin
     FProjectionNear := Value;
-    VisibleChange;
+    VisibleParameterChange;
   end;
 end;
 
@@ -791,7 +787,7 @@ begin
   if FProjectionFar <> Value then
   begin
     FProjectionFar := Value;
-    VisibleChange;
+    VisibleParameterChange;
   end;
 end;
 
@@ -800,7 +796,7 @@ begin
   if FProjectionType <> Value then
   begin
     FProjectionType := Value;
-    VisibleChange;
+    VisibleParameterChange;
   end;
 end;
 
@@ -849,6 +845,25 @@ begin
     FInitialDirection := DefaultCameraDirection;
     FInitialUp := DefaultCameraUp;
   end;
+end;
+
+procedure TCastleCamera.VisibleParameterChange;
+begin
+  { What to do when camera parameter, like projection fov, changes?
+    For now we just cause vcVisibleGeometry because we just want to cause
+    InternalOnCameraChanged. }
+  VisibleChangeHere([vcVisibleGeometry]);
+end;
+
+procedure TCastleCamera.VisibleChangeHere(const Changes: TVisibleChanges);
+begin
+  inherited;
+
+  { When e.g. Translation of camera changes, make sure to call InternalOnCameraChanged.
+    This way e.g. CGE editor gizmo is updated when we get closer/further to it. }
+  if vcVisibleGeometry in Changes then
+    if Assigned(InternalOnCameraChanged) then
+      InternalOnCameraChanged(Self);
 end;
 
 {$define read_implementation_methods}
