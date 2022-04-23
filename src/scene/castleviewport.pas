@@ -4145,8 +4145,7 @@ var
 begin
   SenderCamera := Sender as TCastleCamera; // may be Camera or InternalDesignCamera
   MainCamera := Items.MainCamera;
-  if (SenderCamera = MainCamera) or
-     (SenderCamera = InternalDesignCamera) then
+  if SenderCamera = MainCamera then
   begin
     Inc(Items.InternalMainCameraStateId);
 
