@@ -1502,8 +1502,10 @@ end;
 
 function TCreature.GetCollides: boolean;
 begin
+  {$warnings off} // internally using deprecated, in a deprecated unit
   Result := (inherited GetCollides) and
     (Resource.CollidesWhenDead or (not Dead));
+  {$warnings on}
 end;
 
 destructor TCreature.Destroy;
