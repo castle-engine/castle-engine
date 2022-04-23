@@ -42,12 +42,17 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionViewportViewSelected: TAction;
+    ActionViewportViewAll: TAction;
     ActionSystemInformation: TAction;
     ActionOutputCopyAll: TAction;
     ActionOutputCopySelected: TAction;
     ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemViewportViewAll: TMenuItem;
+    MenuItemViewportViewSelected: TMenuItem;
+    MenuItemViewport: TMenuItem;
     MenuItemSystemInformation: TMenuItem;
     MenuItemEdit: TMenuItem;
     MenuItemOutputCopyAll: TMenuItem;
@@ -208,6 +213,10 @@ type
     procedure ActionOutputCopySelectedExecute(Sender: TObject);
     procedure ActionOutputCopySelectedUpdate(Sender: TObject);
     procedure ActionRegenerateProjectExecute(Sender: TObject);
+    procedure ActionViewportViewAllExecute(Sender: TObject);
+    procedure ActionViewportViewAllUpdate(Sender: TObject);
+    procedure ActionViewportViewSelectedExecute(Sender: TObject);
+    procedure ActionViewportViewSelectedUpdate(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure ButtonClearWarningsClick(Sender: TObject);
@@ -669,6 +678,28 @@ end;
 procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
 begin
   BuildToolCall(['generate-program']);
+end;
+
+procedure TProjectForm.ActionViewportViewAllExecute(Sender: TObject);
+begin
+  if (Design <> nil) and Design.ViewportActionsAllowed then
+    Design.ViewportViewAll;
+end;
+
+procedure TProjectForm.ActionViewportViewAllUpdate(Sender: TObject);
+begin
+  ActionViewportViewAll.Enabled := (Design <> nil) and Design.ViewportActionsAllowed;
+end;
+
+procedure TProjectForm.ActionViewportViewSelectedExecute(Sender: TObject);
+begin
+  if (Design <> nil) and Design.ViewportActionsAllowed then
+    Design.ViewportViewSelected;
+end;
+
+procedure TProjectForm.ActionViewportViewSelectedUpdate(Sender: TObject);
+begin
+  ActionViewportViewSelected.Enabled := (Design <> nil) and Design.ViewportActionsAllowed;
 end;
 
 procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);

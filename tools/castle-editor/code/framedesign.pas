@@ -272,6 +272,10 @@ type
       return it. Otherwise return nil. }
     function SelectedViewport: TCastleViewport;
 
+    { Use when desperately needing viewport to act on.
+      Returns selected or hover viewport. }
+    function ViewportSelectedOrHover: TCastleViewport;
+
     { If there is exactly one item selected, and it is TCastleTransform,
       return it. Otherwise return nil. }
     function GetSelectedTransform: TCastleTransform;
@@ -378,6 +382,10 @@ type
       const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
 
     procedure CurrentComponentApiUrl(var Url: String);
+
+    function ViewportActionsAllowed: Boolean;
+    procedure ViewportViewAll;
+    procedure ViewportViewSelected;
   end;
 
 implementation
@@ -1954,6 +1962,68 @@ begin
       Url := ApiReference(PropertyInstance, PropertyName, PropertyNameForLink)
     else
       Url := ApiReference(C, '', '');
+  end;
+end;
+
+function TDesignFrame.ViewportSelectedOrHover: TCastleViewport;
+var
+  HoverUi: TCastleUserInterface;
+begin
+  Result := SelectedViewport;
+  if Result = nil then
+  begin
+    HoverUi := FDesignerLayer.HoverUserInterface(CastleControl.MousePosition);
+    if HoverUi is TCastleViewport then // also checks HoverUi <> nil
+      Exit(TCastleViewport(HoverUi));
+  end
+end;
+
+function TDesignFrame.ViewportActionsAllowed: Boolean;
+begin
+  Result := (ViewportSelectedOrHover <> nil);
+end;
+
+procedure TDesignFrame.ViewportViewAll;
+var
+  APos, ADir, AUp, AGravityUp: TVector3;
+  V: TCastleViewport;
+begin
+  V := ViewportSelectedOrHover;
+  if V.Items <> nil then
+  begin
+    CameraViewpointForWholeScene(
+      V.Items.BoundingBox, 2, 1, false, true,
+      APos, ADir, AUp, AGravityUp);
+    V.InternalCamera.AnimateTo(APos, ADir, AUp, 0.25);
+  end;
+end;
+
+procedure TDesignFrame.ViewportViewSelected;
+var
+  Selected: TComponentList;
+  SelectedCount, I: Integer;
+  APos, ADir, AUp, AGravityUp: TVector3;
+  SelectedBox: TBox3D;
+  V: TCastleViewport;
+begin
+  V := ViewportSelectedOrHover;
+
+  SelectedBox := TBox3D.Empty;
+
+  GetSelected(Selected, SelectedCount);
+  try
+    for I := 0 to SelectedCount - 1 do
+      if (Selected[I] is TCastleTransform) and
+         (TCastleTransform(Selected[I]).World = V.Items) then
+        SelectedBox := SelectedBox + TCastleTransform(Selected[I]).WorldBoundingBox;
+  finally FreeAndNil(Selected) end;
+
+  // in particular, condition below means we don't do anything if no TCastleTransform selected
+  if not SelectedBox.IsEmpty then
+  begin
+    CameraViewpointForWholeScene(SelectedBox, 2, 1, false, true,
+      APos, ADir, AUp, AGravityUp);
+    V.InternalCamera.AnimateTo(APos, ADir, AUp, 0.25);
   end;
 end;
 

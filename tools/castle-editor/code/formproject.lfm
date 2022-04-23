@@ -352,6 +352,15 @@ object ProjectForm: TProjectForm
         OnClick = MenuItemDesignDeleteComponentClick
       end
     end
+    object MenuItemViewport: TMenuItem
+      Caption = 'Viewport'
+      object MenuItemViewportViewAll: TMenuItem
+        Action = ActionViewportViewAll
+      end
+      object MenuItemViewportViewSelected: TMenuItem
+        Action = ActionViewportViewSelected
+      end
+    end
     object MenuItemCode: TMenuItem
       Caption = 'Code'
       object MenuItemOpenProjectCode: TMenuItem
@@ -802,6 +811,20 @@ object ProjectForm: TProjectForm
     object ActionSystemInformation: TAction
       Caption = 'System Information'
       OnExecute = ActionSystemInformationExecute
+    end
+    object ActionViewportViewAll: TAction
+      Category = 'Viewport'
+      Caption = 'View All'
+      OnExecute = ActionViewportViewAllExecute
+      OnUpdate = ActionViewportViewAllUpdate
+      ShortCut = 36
+    end
+    object ActionViewportViewSelected: TAction
+      Category = 'Viewport'
+      Caption = 'Focus Selected Transform'
+      OnExecute = ActionViewportViewSelectedExecute
+      OnUpdate = ActionViewportViewSelectedUpdate
+      ShortCut = 70
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
