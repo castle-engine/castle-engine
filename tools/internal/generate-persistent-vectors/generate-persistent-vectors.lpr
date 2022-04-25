@@ -23,12 +23,13 @@ type
   TAutoGenerateProperty = class
     PropertyName, PropertyType: String;
     NoStore: Boolean;
+    StoreCheckFunction: String;
     function PersistentPropertyClass: String;
   end;
 
   TAutoGeneratePropertyList = class(specialize TObjectList<TAutoGenerateProperty>)
     procedure Add(const PropertyName, PropertyType: String;
-      const NoStore: Boolean); reintroduce;
+      const NoStore: Boolean; const StoreCheckFunction: String); reintroduce;
   end;
 
   TAutoGenerateClass = class
@@ -41,7 +42,7 @@ type
 
   TAutoGenerateClasses = class(specialize TObjectDictionary<String, TAutoGenerateClass>)
     procedure Add(const Path, OutputClassName, PropertyName, PropertyType: String;
-      const NoStore: Boolean);
+      const NoStore: Boolean; const StoreCheckFunction: String);
     procedure GenerateAll;
   end;
 
@@ -59,7 +60,7 @@ end;
 { TAutoGeneratePropertyList --------------------------------------------------}
 
 procedure TAutoGeneratePropertyList.Add(
-  const PropertyName, PropertyType: String; const NoStore: Boolean);
+  const PropertyName, PropertyType: String; const NoStore: Boolean; const StoreCheckFunction: String);
 var
   P: TAutoGenerateProperty;
 begin
@@ -68,6 +69,7 @@ begin
   P.PropertyName := PropertyName;
   P.PropertyType := PropertyType;
   P.NoStore := NoStore;
+  P.StoreCheckFunction := StoreCheckFunction;
 end;
 
 { TAutoGenerateClass --------------------------------------------------------- }
@@ -105,7 +107,10 @@ begin
       Macros.Add('${CLASS_NAME}', OutputClassName);
       Macros.Add('${PROPERTY_NAME}', P.PropertyName);
       Macros.Add('${PROPERTY_TYPE}', P.PropertyType);
-      Macros.Add('${PROPERTY_STORED}', IfThen(P.NoStore, 'stored false', ''));
+      if P.StoreCheckFunction <> '' then
+        Macros.Add('${PROPERTY_STORED}', 'stored ' + P.StoreCheckFunction)
+      else
+        Macros.Add('${PROPERTY_STORED}', IfThen(P.NoStore, 'stored false', ''));
       Macros.Add('${PERSISTENT_PROPERTY_CLASS}', P.PersistentPropertyClass);
       OutputCode := OutputCode + SReplacePatterns(InputTemplate, Macros, false) + NL;
     finally FreeAndNil(Macros) end;
@@ -119,7 +124,7 @@ end;
 
 procedure TAutoGenerateClasses.Add(
   const Path, OutputClassName, PropertyName, PropertyType: String;
-  const NoStore: Boolean);
+  const NoStore: Boolean; const StoreCheckFunction: String);
 var
   C: TAutoGenerateClass;
 begin
@@ -131,7 +136,7 @@ begin
     inherited Add(Path + OutputClassName, C);
   end;
 
-  C.Properties.Add(PropertyName, PropertyType, NoStore);
+  C.Properties.Add(PropertyName, PropertyType, NoStore, StoreCheckFunction);
 end;
 
 procedure TAutoGenerateClasses.GenerateAll;
@@ -147,8 +152,8 @@ end;
 var
   AutoGenerateClasses: TAutoGenerateClasses;
   InputFile: TTextReader;
-  Line, Path, OutputClassName, PropertyName, PropertyType: String;
-  NoStore: Boolean;
+  Line, Path, OutputClassName, PropertyName, PropertyType, StoreCheckFunction: String;
+  NoStore, IsStoreFunction: Boolean;
   LineSplit: TCastleStringList;
 begin
   AutoGenerateClasses := TAutoGenerateClasses.Create([doOwnsValues]);
@@ -167,6 +172,15 @@ begin
           if NoStore then
             LineSplit.Delete(4);
 
+          IsStoreFunction := (LineSplit.Count = 5) and
+            (LineSplit[4] <> 'no-store');
+          if IsStoreFunction then
+          begin
+            StoreCheckFunction := trim(LineSplit[4]);
+            LineSplit.Delete(4);
+          end else
+            StoreCheckFunction := '';
+
           if LineSplit.Count <> 4 then
             raise Exception.CreateFmt('Expected 4 tokens at line "%s"', [Line]);
           Path := InclPathDelim(LineSplit[0]);
@@ -176,7 +190,7 @@ begin
         finally FreeAndNil(LineSplit) end;
 
         AutoGenerateClasses.Add(Path, OutputClassName,
-          PropertyName, PropertyType, NoStore);
+          PropertyName, PropertyType, NoStore, StoreCheckFunction);
       end;
     finally FreeAndNil(InputFile) end;
 
