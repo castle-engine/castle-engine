@@ -34,7 +34,7 @@ published
     instead read or write @link(Normal) directly.
 
     @seealso Normal }
-  property NormalPersistent: TCastleVector3Persistent read FNormalPersistent ;
+  property NormalPersistent: TCastleVector3Persistent read FNormalPersistent stored StoredWithAutoSize;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

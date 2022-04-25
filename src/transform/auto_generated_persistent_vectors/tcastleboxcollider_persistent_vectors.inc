@@ -34,7 +34,7 @@ published
     instead read or write @link(Size) directly.
 
     @seealso Size }
-  property SizePersistent: TCastleVector3Persistent read FSizePersistent ;
+  property SizePersistent: TCastleVector3Persistent read FSizePersistent stored StoredWithAutoSize;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
