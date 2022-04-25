@@ -3366,10 +3366,20 @@ begin
 end;
 
 procedure TCastleTransform.ChangedTransform;
+var
+  RBody: TCastleRigidBody;
 begin
   FTransformationValid := false;
   FWorldTransformationValid := false;
   VisibleChangeHere([vcVisibleGeometry]);
+
+  if (FWorld <> nil) and (FWorld.EnablePhysics) then
+  begin
+    RBody := RigidBody; // RigidBody iterates behaviors
+    if (RBody <> nil) and
+       (not RBody.DuringSettingTransformationFromPhysicsEngine) then
+      RBody.SetWorldTransformation(WorldTransform);
+  end;
 end;
 
 procedure TCastleTransform.CustomSerialization(const SerializationProcess: TSerializationProcess);

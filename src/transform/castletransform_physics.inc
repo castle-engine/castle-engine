@@ -391,6 +391,7 @@
 
       { Transform for which we initialized the physics objects or nil }
       FTransform: TCastleTransform;
+      FDuringSettingTransformationFromPhysicsEngine: Boolean;
 
       { List of collisions from previous step. }
       FPrevCollisions: TCastleRigidBodyList;
@@ -423,7 +424,6 @@
       and InitializeEngineRigidBody. }
     procedure UpdateKraftGravity;
   private
-
     FKraftBody: TKraftRigidBody;
     FCollider: TCollider;
     FGravity: Boolean;
@@ -452,6 +452,8 @@
     { Sets all values from Kraft to CGE private fields. Currently angular and
       linear velocity. }
     procedure SynchronizeFromKraft;
+
+    procedure SetWorldTransformation(const WorldTransform: TMatrix4);
 
     procedure SetAngularVelocity(const AVelocity: TVector3);
     procedure SetAngularVelocityDamp(const AValue: Single);
@@ -503,6 +505,9 @@
     procedure ReinitializeCastleCollider;
 
     class procedure CreateComponent2D(Sender: TObject);
+
+    property DuringSettingTransformationFromPhysicsEngine: Boolean read
+      FDuringSettingTransformationFromPhysicsEngine;
   protected
     { Initializes physics engine objects when TCastleRigidBody is attached
       to world. }
@@ -1493,6 +1498,8 @@ begin
   { This behavior needs WorldAttached() WorldDetached() }
   NeedWorldChangeNotification := true;
 
+  FDuringSettingTransformationFromPhysicsEngine := false;
+
   // properties defaults
   FGravity := true;
   FDynamic := true;
@@ -1764,22 +1771,7 @@ begin
   FKraftBody.MaximalAngularVelocity := FMaximalAngularVelocity / FTransform.World.FKraftEngine.WorldFrequency;
 
   // set initial transformation
-  FKraftBody.SetWorldTransformation(MatrixToKraft(FTransform.WorldTransform));
-
-  { Synchronize Kraft rigid body and shapes (colliders) transform to make
-    collider position correct. Without the SynchronizeTransformIncludingShapes,
-    first (before physics step) TransformationFromKraft
-    would set weird TCastleTransform position.
-
-    Testcase: run physics_2d_collisions, press space (pause) and R (restart).
-    The plane should jump to predictable initial position (TPlane.Create).
-    Without the SynchronizeTransformIncludingShapes call, it jumps to
-    an incorrect position.
-
-    Also, because we use shape InterpolatedWorldTransform we need to store
-    it for correct result. }
-  FKraftBody.SynchronizeTransformIncludingShapes;
-  GetKraftShape.StoreWorldTransform;
+  SetWorldTransformation(FTransform.WorldTransform);
 
   CheckPhysicsPostStepNeeded;
   FState := crbsInitialized;
@@ -2074,6 +2066,35 @@ begin
   FAngularVelocity := VectorFromKraft(FKraftBody.AngularVelocity);
 end;
 
+procedure TCastleRigidBody.SetWorldTransformation(const WorldTransform: TMatrix4
+  );
+begin
+  { If we just set transformation from physics engine this is a guard
+    to not update rigid body transformation. See TransformationFromKraft }
+  if FDuringSettingTransformationFromPhysicsEngine then
+    Exit;
+
+  if FKraftBody = nil then
+    Exit;
+
+  FKraftBody.SetWorldTransformation(MatrixToKraft(WorldTransform));
+
+  { Synchronize Kraft rigid body and shapes (colliders) transform to make
+    collider position correct. Without the SynchronizeTransformIncludingShapes,
+    first (before physics step) TransformationFromKraft
+    would set weird TCastleTransform position.
+
+    Testcase: run physics_2d_collisions, press space (pause) and R (restart).
+    The plane should jump to predictable initial position (TPlane.Create).
+    Without the SynchronizeTransformIncludingShapes call, it jumps to
+    an incorrect position.
+
+    Also, because we use shape InterpolatedWorldTransform we need to store
+    it for correct result. }
+  FKraftBody.SynchronizeTransformIncludingShapes;
+  GetKraftShape.StoreWorldTransform;
+end;
+
 procedure TCastleRigidBody.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
   // function TranslationFromMatrix(const M: TMatrix4): TVector3;
@@ -2092,27 +2113,32 @@ procedure TCastleRigidBody.Update(const SecondsPassed: Single; var RemoveMe: TRe
     Translation, Scale: TVector3;
     Rotation: TVector4;
   begin
-    Shape := GetKraftShape;
+    FDuringSettingTransformationFromPhysicsEngine := true;
+    try
+      Shape := GetKraftShape;
 
-    if Shape = nil then
-      Exit;
+      if Shape = nil then
+        Exit;
 
-    LocalTransform := Parent.CheckParent.WorldInverseTransform *
-      MatrixFromKraft(Shape.InterpolatedWorldTransform);
-    if (FCollider = nil) and (FCastleCollider <> nil) and
-       (FCastleCollider.FUseLocalTransform) then
-      LocalTransform := LocalTransform * FCastleCollider.FLocalInverseTransform;
+      LocalTransform := Parent.CheckParent.WorldInverseTransform *
+        MatrixFromKraft(Shape.InterpolatedWorldTransform);
+      if (FCollider = nil) and (FCastleCollider <> nil) and
+         (FCastleCollider.FUseLocalTransform) then
+        LocalTransform := LocalTransform * FCastleCollider.FLocalInverseTransform;
 
-    MatrixDecompose(LocalTransform, Translation, Rotation, Scale);
-    Parent.Rotation := Rotation;
-    Parent.Translation := Translation;
+      MatrixDecompose(LocalTransform, Translation, Rotation, Scale);
+      Parent.Rotation := Rotation;
+      Parent.Translation := Translation;
 
-    { This is an alternative version using Kraft to do matrix decomposition. }
-    // Q := QuaternionFromMatrix4x4(MatrixToKraft(LocalTransform));
-    // QuaternionToAxisAngle(Q, Axis, Angle);
-    // Transform.Rotation := Vector4(Axis.X, Axis.Y, Axis.Z, Angle);
+      { This is an alternative version using Kraft to do matrix decomposition. }
+      // Q := QuaternionFromMatrix4x4(MatrixToKraft(LocalTransform));
+      // QuaternionToAxisAngle(Q, Axis, Angle);
+      // Transform.Rotation := Vector4(Axis.X, Axis.Y, Axis.Z, Angle);
 
-    // Transform.Translation := TranslationFromMatrix(LocalTransform);
+      // Transform.Translation := TranslationFromMatrix(LocalTransform);
+    finally
+      FDuringSettingTransformationFromPhysicsEngine := false;
+    end;
   end;
 
 begin
