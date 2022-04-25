@@ -233,6 +233,7 @@ type
       VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
       CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
       DesignStateBeforePhysicsRun: String;
+      DesignModifiedBeforePhysicsRun: Boolean;
       FCurrentViewport: TCastleViewport;
       FCurrentViewportObserver: TFreeNotificationObserver;
 
@@ -4180,6 +4181,7 @@ begin
     ActionPhysicsPlayStopSimulation.ImageIndex := TImageIndex(iiPhysicsStop);
     ActionPhysicsPauseSimulation.Visible := true;
     DesignStateBeforePhysicsRun := ComponentToString(DesignRoot);
+    DesignModifiedBeforePhysicsRun := FDesignModified;
   end
   else
     begin
@@ -4188,6 +4190,8 @@ begin
       ActionPhysicsPauseSimulation.Checked := false;
       NewDesignOwner := TComponent.Create(Self);
       OpenDesign(StringToComponent(DesignStateBeforePhysicsRun, NewDesignOwner), NewDesignOwner, FDesignUrl);
+      FDesignModified := DesignModifiedBeforePhysicsRun;
+      OnUpdateFormCaption(Self);
     end;
 end;
 
