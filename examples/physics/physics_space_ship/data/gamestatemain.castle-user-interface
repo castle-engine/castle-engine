@@ -1,0 +1,432 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Camera" : {
+        "$$ClassName" : "TCastleCamera",
+        "InitialPositionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Z" : 5.0000000000000000E+002
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "Name" : "Orthographic",
+          "Scale" : 1.2214027643203735E+000
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective",
+          "Name" : "Perspective"
+        },
+        "ProjectionFar" : 1.0000000000000000E+003,
+        "ProjectionNear" : -1.0000000000000000E+003,
+        "ProjectionType" : "ptOrthographic"
+      },
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "Name" : "PhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "Ship",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 5.0000000000000000E-001,
+              "Y" : 5.0000000000000000E-001,
+              "Z" : 5.0000000000000000E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 6.8588140869140625E+002,
+              "Y" : 4.1770669555664062E+002
+            },
+            "Url" : "castle-data:/graphics/ship/spiked_ship_%203.png",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 1.0000000000000000E+000,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 1.0000000000000000E+000,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody"
+              },
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Friction" : 0.0000000000000000E+000,
+                "Mass" : 1.0000000000000000E+000,
+                "Name" : "SphereCollider"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "Asteroid",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0371752929687500E+003,
+              "Y" : 3.6294851684570312E+002
+            },
+            "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Mass" : 5.0000000000000000E-001,
+                "Name" : "SphereCollider1"
+              },
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 1.0000000149011612E-001,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 1.0000000149011612E-001,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "Asteroid1",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000001192092896E-001,
+              "Y" : 3.0000001192092896E-001,
+              "Z" : 3.0000001192092896E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 9.3767089843750000E+002,
+              "Y" : 1.0211984863281250E+003
+            },
+            "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Mass" : 5.0000000000000000E-001,
+                "Name" : "SphereCollider2"
+              },
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 1.0000000149011612E-001,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 1.0000000149011612E-001,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody2"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "Asteroid2",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000001192092896E-001,
+              "Y" : 3.0000001192092896E-001,
+              "Z" : 3.0000001192092896E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.1271443176269531E+002,
+              "Y" : 4.0226199340820312E+002
+            },
+            "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Mass" : 5.0000000000000000E-001,
+                "Name" : "SphereCollider3"
+              },
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 1.0000000149011612E-001,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 1.0000000149011612E-001,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody3"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "Asteroid3",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000001192092896E-001,
+              "Y" : 3.0000001192092896E-001,
+              "Z" : 3.0000001192092896E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.5873626708984375E+002,
+              "Y" : 7.0694219970703125E+002
+            },
+            "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Mass" : 5.0000000000000000E-001,
+                "Name" : "SphereCollider4"
+              },
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 1.0000000149011612E-001,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 1.0000000149011612E-001,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody4"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "Asteroid4",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000001192092896E-001,
+              "Y" : 3.0000001192092896E-001,
+              "Z" : 3.0000001192092896E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 5.8619329833984375E+002,
+              "Y" : 9.3018707275390625E+002
+            },
+            "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Mass" : 5.0000000000000000E-001,
+                "Name" : "SphereCollider5"
+              },
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 1.0000000149011612E-001,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 1.0000000149011612E-001,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody5"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "Asteroid5",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000001192092896E-001,
+              "Y" : 3.0000001192092896E-001,
+              "Z" : 3.0000001192092896E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.2267972412109375E+003,
+              "Y" : 5.0754013061523438E+002
+            },
+            "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Mass" : 5.0000000000000000E-001,
+                "Name" : "SphereCollider6"
+              },
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 1.0000000149011612E-001,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 1.0000000149011612E-001,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody6"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "Asteroid6",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000001192092896E-001,
+              "Y" : 3.0000001192092896E-001,
+              "Z" : 3.0000001192092896E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 5.0469656372070312E+002,
+              "Y" : -3.2613910675048828E+001
+            },
+            "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Mass" : 5.0000000000000000E-001,
+                "Name" : "SphereCollider7"
+              },
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 1.0000000149011612E-001,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 1.0000000149011612E-001,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody7"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "Asteroid7",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000001192092896E-001,
+              "Y" : 3.0000001192092896E-001,
+              "Z" : 3.0000001192092896E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 9.8230645751953125E+002,
+              "Y" : 6.9138214111328125E+002
+            },
+            "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Mass" : 5.0000000000000000E-001,
+                "Name" : "SphereCollider8"
+              },
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 1.0000000149011612E-001,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 1.0000000149011612E-001,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody8"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleSphere",
+            "CollisionSphereRadius" : 4.0000000000000000E+001,
+            "Material" : "pmUnlit",
+            "Name" : "Sphere1",
+            "Radius" : 4.0000000000000000E+001,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 6.8082244873046875E+002,
+              "Y" : 6.5166882324218750E+002
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 1.0000000149011612E-001,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 1.0000000149011612E-001,
+                "LockRotation" : [
+                  0,
+                  1
+                ],
+                "LockTranslation" : [
+                  2
+                ],
+                "Name" : "RigidBody9"
+              },
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Name" : "SphereCollider9"
+              }
+            ]
+          }
+        ]
+      },
+      "Name" : "Viewport",
+      "Navigation" : "Navigation2D1",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastle2DNavigation",
+          "Name" : "Navigation2D1"
+        }
+      ]
+    }
+  ]
+}
