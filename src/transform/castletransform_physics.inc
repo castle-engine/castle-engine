@@ -573,7 +573,7 @@
     procedure AddForce(const Force, Position: TVector3);
 
     { Force is in local rigid body coordinate system (need WorldToLocal()) }
-    procedure AddCenteralForce(const Force: TVector3);
+    procedure AddCentralForce(const Force: TVector3);
 
     procedure ApplyImpulse(const Impulse, Point: TVector3);
 
@@ -2330,7 +2330,7 @@ begin
     WritelnWarning('Attempting to add force before physics engine initialization.');
 end;
 
-procedure TCastleRigidBody.AddCenteralForce(const Force: TVector3);
+procedure TCastleRigidBody.AddCentralForce(const Force: TVector3);
 begin
   if FKraftBody <> nil then
   begin
