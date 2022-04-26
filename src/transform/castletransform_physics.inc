@@ -2308,8 +2308,10 @@ begin
      (PropertyName = 'Gravity') or
      (PropertyName = 'LockTranslation') or
      (PropertyName = 'Exists') or
+     (PropertyName = 'AngularVelocityPersistent') or
      (PropertyName = 'AngularVelocityDamp') or
      (PropertyName = 'MaximalAngularVelocity') or
+     (PropertyName = 'LinearVelocityPersistent') or
      (PropertyName = 'LinearVelocityDamp') or
      (PropertyName = 'MaximalLinearVelocity') or
      (PropertyName = 'LockRotation') then
