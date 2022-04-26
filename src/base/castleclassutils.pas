@@ -45,7 +45,7 @@ unit CastleClassUtils;
 interface
 
 uses Classes, SysUtils, Contnrs, Generics.Collections,
-  CastleUtils, CastleStringUtils, CastleVectors;
+  CastleUtils, CastleStringUtils;
 
 { ---------------------------------------------------------------------------- }
 { @section(TStrings utilities) }
