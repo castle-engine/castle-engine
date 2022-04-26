@@ -63,6 +63,8 @@
 
 ../../../src/transform/ TCastlePlaneCollider Normal TVector3
 ../../../src/transform/ TCastleBoxCollider Size TVector3
+../../../src/transform/ TCastleRigidBody AngularVelocity TVector3
+../../../src/transform/ TCastleRigidBody LinearVelocity TVector3
 ../../../src/transform/ TCastleCamera GravityUp TVector3
 
 ../../../src/transform/ TCastleOrthographic Origin TVector2
