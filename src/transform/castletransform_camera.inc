@@ -406,6 +406,8 @@
       const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
 
     procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
+
+    property Orientation default otUpYDirectionMinusZ;
   published
     { Projection near plane distance.
 
@@ -591,10 +593,24 @@ begin
   Orientation := otUpYDirectionMinusZ;
 
   FProjectionType := ptPerspective;
+
+  { This is not necessary,
+    as this is actually the effect of default state of TCastleTransform.
+
+    Moreover, this would set Rotation to (0,0,1,0)
+    (because OrientationQuaternionFromDirectionUp uses DefaultUp for axis
+    when there's no need rotation), causing bugs when reading back
+    for serialized JSON. As RotationPersistent.InternalDefaultValue
+    would remain at (0,0,0,0). Thus Z=0 is not saved to JSON (as it's default)
+    but after creation+deserialization Z=1.
+
+    We could workaround it by changing RotationPersistent.InternalDefaultValue,
+    but actually it's easiest to not modify it at all.
   SetView(
     TVector3.Zero,
     DefaultCameraDirection,
-    DefaultCameraUp);
+    DefaultCameraUp); }
+
   FGravityUp := DefaultCameraUp;
   FProjectionMatrix := TMatrix4.Identity; // any sensible initial value
   FFrustum.Init(TMatrix4.Identity); // any sensible initial value
