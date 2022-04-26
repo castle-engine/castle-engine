@@ -651,10 +651,8 @@ begin
     SourceCamera := TCastleCamera(Source);
 
     { Copies non-temporary properties (in particular, the published properties). }
-    SetView( // copy local vectors -- TODO: where is this used, do we need global vectors?
-      SourceCamera.Translation,
-      SourceCamera.Direction,
-      SourceCamera.Up);
+    Translation                 := SourceCamera.Translation;
+    Rotation                    := SourceCamera.Rotation;
     GravityUp                   := SourceCamera.GravityUp;
     ProjectionNear              := SourceCamera.ProjectionNear;
     ProjectionFar               := SourceCamera.ProjectionFar;
