@@ -58,6 +58,7 @@ type
     procedure TestRemoveDelayed_EarlyFree;
     procedure TestExistsInRoot;
     procedure TestGetSetWorldView;
+    procedure TestCameraDefaults;
   end;
 
 implementation
@@ -1712,7 +1713,7 @@ begin
     AssertVectorEquals(TVector3.Zero, TChild.Translation);
     AssertVectorEquals(TVector4.Zero, TChild.Rotation);
     AssertVectorEquals(TVector3.Zero, CamChild.Translation);
-    AssertVectorEquals(Vector4(0, 0, 1, 0), CamChild.Rotation); // camera is initialized with SetView that sets zero rotation, but with non-zero axis
+    AssertVectorEquals(TVector4.Zero, CamChild.Rotation);
 
     TParent.Add(CamChild);
     TParent.Add(TChild);
@@ -1742,7 +1743,7 @@ begin
     CamChild.GetView(P, D, U);
 
     AssertVectorEquals(TVector3.Zero, CamChild.Translation);
-    AssertVectorEquals(Vector4(0, 0, 1, 0), CamChild.Rotation);
+    AssertVectorEquals(TVector4.Zero, CamChild.Rotation);
     AssertVectorEquals(TVector3.Zero, P);
     // for camera transformations, the default Orientation=otUpYDirectionMinusZ
     AssertVectorEquals(Vector3(0, 0, -1), D);
@@ -1752,7 +1753,7 @@ begin
 
     // GetWorldView and GetView should give the same answers, as TParent has no transformation yet
     AssertVectorEquals(TVector3.Zero, CamChild.Translation);
-    AssertVectorEquals(Vector4(0, 0, 1, 0), CamChild.Rotation);
+    AssertVectorEquals(TVector4.Zero, CamChild.Rotation);
     AssertVectorEquals(TVector3.Zero, P);
     // for camera transformations, the default Orientation=otUpYDirectionMinusZ
     AssertVectorEquals(Vector3(0, 0, -1), D);
@@ -1785,7 +1786,7 @@ begin
     CamChild.GetView(P, D, U);
 
     AssertVectorEquals(Vector3(100, 200, 300), CamChild.Translation);
-    AssertVectorEquals(Vector4(0, 0, 1, 0), CamChild.Rotation);
+    AssertVectorEquals(TVector4.Zero, CamChild.Rotation);
     AssertVectorEquals(Vector3(100, 200, 300), P);
     // for camera transformations, the default Orientation=otUpYDirectionMinusZ
     AssertVectorEquals(Vector3(0, 0, -1), D);
@@ -1794,7 +1795,7 @@ begin
     CamChild.GetWorldView(P, D, U);
 
     AssertVectorEquals(Vector3(100, 200, 300), CamChild.Translation);
-    AssertVectorEquals(Vector4(0, 0, 1, 0), CamChild.Rotation);
+    AssertVectorEquals(TVector4.Zero, CamChild.Rotation);
     AssertVectorEquals(Vector3(100, 200, 300) + Vector3(1, 2, 3), P);
     AssertVectorEquals(Vector3(100, 200, 300) + Vector3(1, 2, 3), CamChild.WorldTranslation);
     // for camera transformations, the default Orientation=otUpYDirectionMinusZ
@@ -1830,6 +1831,47 @@ begin
     FreeAndNil(CamChild);
     FreeAndNil(TChild);
     FreeAndNil(TParent);
+  end;
+end;
+
+procedure TTestCastleTransform.TestCameraDefaults;
+var
+  Parent: TCastleRootTransform;
+  C: TCastleCamera;
+  P, D, U: TVector3;
+begin
+  Parent := TCastleRootTransform.Create(nil);
+  C := TCastleCamera.Create(nil);
+  try
+    AssertVectorEquals(TVector3.Zero, C.Position);
+    AssertVectorEquals(TVector3.Zero, C.Translation);
+    AssertVectorEquals(DefaultCameraDirection, C.Direction);
+    AssertVectorEquals(DefaultCameraUp, C.Up);
+    // even zero axis; keeping this default is important, otherwise reading design files would be broken, if we change defaults
+    AssertVectorEquals(TVector4.Zero, C.Rotation);
+
+    Parent.Add(C);
+
+    AssertVectorEquals(TVector3.Zero, C.Position);
+    AssertVectorEquals(TVector3.Zero, C.Translation);
+    AssertVectorEquals(DefaultCameraDirection, C.Direction);
+    AssertVectorEquals(DefaultCameraUp, C.Up);
+    AssertVectorEquals(TVector4.Zero, C.Rotation);
+
+    C.GetView(P, D, U);
+
+    AssertVectorEquals(TVector3.Zero, P);
+    AssertVectorEquals(DefaultCameraDirection, D);
+    AssertVectorEquals(DefaultCameraUp, U);
+
+    C.GetWorldView(P, D, U);
+
+    AssertVectorEquals(TVector3.Zero, P);
+    AssertVectorEquals(DefaultCameraDirection, D);
+    AssertVectorEquals(DefaultCameraUp, U);
+  finally
+    FreeAndNil(C);
+    FreeAndNil(Parent);
   end;
 end;
 
