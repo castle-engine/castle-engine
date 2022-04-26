@@ -750,6 +750,10 @@
 
     property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp;
     property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
+
+    {$define read_interface_class}
+    {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
+    {$undef read_interface_class}
   end;
 
   TRigidBody = class(TCastleRigidBody)
@@ -1519,6 +1523,10 @@ begin
   FOnCollisionExit := nil;
   FTransform := nil;
   FState := crbsNotInitialized;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleRigidBody.Destroy;
@@ -1532,6 +1540,10 @@ begin
   FreeAndNil(FCollisionList);
   FreeAndNil(FPrevCollisions);
   FreeAndNil(FCurrentCollisions);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -2424,6 +2436,10 @@ begin
       FKraftBody.Flags := FKraftBody.Flags - [krbfSensor];
   end;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TCastleTransform ---------------------------------------------------------- }
 
