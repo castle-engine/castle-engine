@@ -4025,6 +4025,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item974>
+      <Item975>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item975>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
