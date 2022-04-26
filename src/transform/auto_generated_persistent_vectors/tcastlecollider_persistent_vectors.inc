@@ -34,7 +34,7 @@ published
     instead read or write @link(Translation) directly.
 
     @seealso Translation }
-  property TranslationPersistent: TCastleVector3Persistent read FTranslationPersistent ;
+  property TranslationPersistent: TCastleVector3Persistent read FTranslationPersistent stored StoredWithAutoSize;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -96,7 +96,7 @@ published
     instead read or write @link(Rotation) directly.
 
     @seealso Rotation }
-  property RotationPersistent: TCastleVector4RotationPersistent read FRotationPersistent ;
+  property RotationPersistent: TCastleVector4RotationPersistent read FRotationPersistent stored StoredWithAutoSize;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -158,7 +158,7 @@ published
     instead read or write @link(Scale) directly.
 
     @seealso Scale }
-  property ScalePersistent: TCastleVector3Persistent read FScalePersistent ;
+  property ScalePersistent: TCastleVector3Persistent read FScalePersistent stored StoredWithAutoSize;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
