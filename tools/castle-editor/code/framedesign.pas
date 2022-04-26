@@ -2240,13 +2240,32 @@ begin
      (AEditor.GetInstProp^.Instance <> nil) then
   begin
     Instance := AEditor.GetInstProp^.Instance;
-    { Show=true when Instance is some class used for subcomponents,
-      like TCastleVector3Persistent, TBorder, TCastleImagePersistent... }
-    if (not (Instance is TCastleComponent)) or
-       (Section in TCastleComponent(Instance).PropertySections(PropertyName)) then
+    if Instance is TComponent then
     begin
+      { Early exit: never show Name on components not owned by DesignOwner.
+        Such components are subcomponents of something,
+        like Camera.Perspective, and their Name is
+        - shown weird (with dot, like 'Camera1.Perspective')
+        - not useful to edit (we don't really want to allow editing it,
+          you cannot search for such component later with DesignedComponent
+          anyway, and the name must be unique within the owner -- better
+          to leave it unedited) }
+      if (PropertyName = 'Name') and
+         (TComponent(Instance).Owner <> DesignOwner) then
+        Exit;
+
+      if Instance is TCastleComponent then
+      begin
+        AShow := Section in TCastleComponent(Instance).PropertySections(PropertyName);
+      end else
+      begin
+        AShow := true;
+      end;
+    end else
+    begin
+      { Show=true when Instance is some class used for subcomponents,
+        like TCastleVector3Persistent, TBorder, TCastleImagePersistent... }
       AShow := true;
-      Exit;
     end;
   end;
 end;
