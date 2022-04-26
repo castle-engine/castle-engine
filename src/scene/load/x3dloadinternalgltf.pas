@@ -1970,7 +1970,11 @@ var
       {$endif}
     end;
 
-    Interpolator.X3DName := 'Animate_' + TargetField.X3DName + '_' + TimeSensor.X3DName;
+    { Put both Node.X3DName and TargetField.X3DName into Interpolator.X3DName.
+      We create new interpolator for each target node (Transform) and field
+      (like translation, rotation...) so we want to generate unique names for them
+      (if animation names in glTF were unique). }
+    Interpolator.X3DName := 'Animate_' + TimeSensor.X3DName + '_' + Node.X3DName + '_' + TargetField.X3DName;
 
     AccessorToFloat(Sampler.Input, Interpolator.FdKey, false);
     if Interpolator.FdKey.Count <> 0 then
