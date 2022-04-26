@@ -593,12 +593,8 @@
     procedure Sleep;
 
     property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
-    property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
-    property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
 
     property LinearVelocity: TVector3 read FLinearVelocity write SetLinearVelocity;
-    property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp;
-    property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
 
     {$ifdef FPC}
     property InitialAngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
@@ -748,6 +744,12 @@
       When this is @false, the rigid body is not updated by the physics engine,
       and it does not cause collisions with other rigid bodies. }
     property Exists: Boolean read FExists write SetExists default true;
+
+    property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
+    property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
+
+    property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp;
+    property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
   end;
 
   TRigidBody = class(TCastleRigidBody)
@@ -2294,6 +2296,10 @@ begin
      (PropertyName = 'Gravity') or
      (PropertyName = 'LockTranslation') or
      (PropertyName = 'Exists') or
+     (PropertyName = 'AngularVelocityDamp') or
+     (PropertyName = 'MaximalAngularVelocity') or
+     (PropertyName = 'LinearVelocityDamp') or
+     (PropertyName = 'MaximalLinearVelocity') or
      (PropertyName = 'LockRotation') then
     Result := [psBasic]
   else
