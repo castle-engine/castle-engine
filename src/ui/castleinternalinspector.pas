@@ -342,6 +342,9 @@ begin
 
   FreeAndNil(Properties);
 
+  FreeAndNil(SerializedHierarchyRowTemplate);
+  FreeAndNil(SerializedPropertyRowTemplate);
+
   inherited;
 end;
 
