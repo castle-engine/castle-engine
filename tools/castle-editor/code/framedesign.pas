@@ -231,6 +231,7 @@ type
       const NewNavigation: TCastleNavigation);
     procedure CollectionPropertyEditorFormUnassign;
     function ComponentCaption(const C: TComponent): String;
+    function TreeNodeCaption(const C: TComponent): String;
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
     procedure FrameAnchorsChange(Sender: TObject);
     procedure AdjustUserInterfaceAnchorsToKeepRect(const UI: TCastleUserInterface;
@@ -1946,6 +1947,11 @@ begin
   Result := C.Name + ' (' + ClassCaption(C.ClassType) + ')';
 end;
 
+function TDesignFrame.TreeNodeCaption(const C: TComponent): String;
+begin
+  Result := C.Name;
+end;
+
 procedure TDesignFrame.CastleControlResize(Sender: TObject);
 var
   CalculatedUIScale: Single;
@@ -2333,7 +2339,7 @@ procedure TDesignFrame.PropertyGridModified(Sender: TObject);
         That is because in case of special tree items "Behaviors" or "Non-Visual Components",
         the ControlsTree.Selected could be different. }
       if TreeNodeMap.TryGetValue(Sel, SelNode) then
-        SelNode.Text := ComponentCaption(Sel);
+        SelNode.Text := TreeNodeCaption(Sel);
     end;
   end;
 
@@ -2535,7 +2541,7 @@ procedure TDesignFrame.UpdateDesign;
     S: String;
     Child: TComponent;
   begin
-    S := ComponentCaption(C);
+    S := TreeNodeCaption(C);
     Result := ControlsTree.Items.AddChildObject(Parent, S, C);
     TreeNodeMap.AddOrSetValue(C, Result);
     if C is TCastleComponent then
@@ -2583,7 +2589,7 @@ procedure TDesignFrame.UpdateDesign;
     S: String;
     I: Integer;
   begin
-    S := ComponentCaption(T);
+    S := TreeNodeCaption(T);
     Result := ControlsTree.Items.AddChildObject(Parent, S, T);
     TreeNodeMap.AddOrSetValue(T, Result);
 
@@ -2602,7 +2608,7 @@ procedure TDesignFrame.UpdateDesign;
     I: Integer;
     Viewport: TCastleViewport;
   begin
-    S := ComponentCaption(C);
+    S := TreeNodeCaption(C);
     Result := ControlsTree.Items.AddChildObject(Parent, S, C);
     TreeNodeMap.AddOrSetValue(C, Result);
 
@@ -2659,7 +2665,7 @@ const
     Child: TComponent;
     I: Integer;
   begin
-    S := ComponentCaption(C);
+    S := TreeNodeCaption(C);
 
     { Check component caption and pointer in tree node }
     if (NonVisualComponentNode.Data <> Pointer(C)) or (NonVisualComponentNode.Text <> S) then
@@ -2790,7 +2796,7 @@ const
     NodeIndex: Integer;
     LastCheckedChildNodeIndex: Integer;
   begin
-    S := ComponentCaption(T);
+    S := TreeNodeCaption(T);
 
     { Check component caption and pointer in tree node }
     if (TransformNode.Data <> Pointer(T)) or (TransformNode.Text <> S) then
@@ -2833,7 +2839,7 @@ const
     LastCheckedChildNodeIndex: Integer;
     Viewport: TCastleViewport;
   begin
-    S := ComponentCaption(C);
+    S := TreeNodeCaption(C);
 
     { Check component caption and pointer in tree node }
     if (ControlNode.Data <> Pointer(C)) or (ControlNode.Text <> S) then
@@ -3275,7 +3281,7 @@ begin
         and we want to show new name + class name.
       - If the name was not correct, then "Sel.Name := " raises exception,
         and we want to show old name + class name. }
-    Node.Text := ComponentCaption(Sel);
+    Node.Text := TreeNodeCaption(Sel);
   end;
 end;
 
@@ -3608,58 +3614,78 @@ end;
 procedure TDesignFrame.ControlsTreeAdvancedCustomDrawItem(
   Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
   Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
-const
-  ColorOutline = clBlack;
-  ColorDecoration = clGray;
 var
-  NodeRect, R: TRect;
+  C: TCanvas;
+
+  procedure DrawTreeNodeUnderMouse;
+  const
+    ColorOutline = clBlack;
+    ColorDecoration = clGray;
+  var
+    NodeRect, R: TRect;
+  begin
+    NodeRect := Node.DisplayRect(false);
+
+    { We can't draw it in cdPrePaint, as after csPrePaint
+      the node rectangle is cleared anyway.
+      And we can't draw it in any cdXxxErase, which are not implemented
+      in LCL (2.1.0). }
+    C.Pen.Color := ColorOutline;
+    C.Pen.Style := psDot;
+    C.Brush.Style := bsClear;
+    C.Rectangle(NodeRect);
+
+    if ControlsTreeNodeUnderMouseSide = tnsRight then
+    begin
+      R := NodeRect.SplitRect(srRight, NodeRect.Height);
+      R.Inflate(-5, -5);
+      C.Brush.Color := ColorDecoration;
+      C.Brush.Style := bsSolid;
+      C.Pen.Color := ColorOutline;
+      C.Pen.Style := psSolid;
+      //C.FillRect(R);
+      C.Polygon([
+        Point(R.Left , R.Top),
+        Point(R.Right, R.CenterPoint.Y),
+        Point(R.Left , R.Bottom)
+      ]);
+    end else
+    begin
+      if ControlsTreeNodeUnderMouseSide = tnsTop then
+        R := NodeRect.SplitRect(srTop, 0.1)
+      else
+        R := NodeRect.SplitRect(srBottom, 0.1);
+      R.Left := R.Left + ((Node.Level + 1)* ControlsTree.Indent);
+
+      C.Brush.Color := ColorDecoration;
+      C.Brush.Style := bsSolid;
+      C.FillRect(R);
+    end;
+  end;
+
+  procedure DrawTreeNodeClassName(const NodeClassName: String);
+  var
+    TextRect: TRect;
+  begin
+    TextRect := Node.DisplayRect(true);
+    C.Brush.Style := bsClear;
+    C.Font.Color := clLtGray;
+    C.TextOut(TextRect.Right, TextRect.Top, ' (' + NodeClassName + ')');
+  end;
+
 begin
+  C := ControlsTree.Canvas;
   DefaultDraw := true;
 
-  if Node = ControlsTreeNodeUnderMouse then
-  begin
-    case Stage of
-      cdPostPaint:
-        begin
-          NodeRect := Node.DisplayRect(false);
+  case Stage of
+    cdPostPaint:
+      begin
+        if Node = ControlsTreeNodeUnderMouse then
+          DrawTreeNodeUnderMouse;
 
-          { We can't draw it in cdPrePaint, as after csPrePaint
-            the node rectangle is cleared anyway.
-            And we can't draw it in any cdXxxErase, which are not implemented
-            in LCL (2.1.0). }
-          ControlsTree.Canvas.Pen.Color := ColorOutline;
-          ControlsTree.Canvas.Pen.Style := psDot;
-          ControlsTree.Canvas.Brush.Style := bsClear;
-          ControlsTree.Canvas.Rectangle(NodeRect);
-
-          if ControlsTreeNodeUnderMouseSide = tnsRight then
-          begin
-            R := NodeRect.SplitRect(srRight, NodeRect.Height);
-            R.Inflate(-5, -5);
-            ControlsTree.Canvas.Brush.Color := ColorDecoration;
-            ControlsTree.Canvas.Brush.Style := bsSolid;
-            ControlsTree.Canvas.Pen.Color := ColorOutline;
-            ControlsTree.Canvas.Pen.Style := psSolid;
-            //ControlsTree.Canvas.FillRect(R);
-            ControlsTree.Canvas.Polygon([
-              Point(R.Left , R.Top),
-              Point(R.Right, R.CenterPoint.Y),
-              Point(R.Left , R.Bottom)
-            ]);
-          end else
-          begin
-            if ControlsTreeNodeUnderMouseSide = tnsTop then
-              R := NodeRect.SplitRect(srTop, 0.1)
-            else
-              R := NodeRect.SplitRect(srBottom, 0.1);
-            R.Left := R.Left + ((Node.Level + 1)* ControlsTree.Indent);
-
-            ControlsTree.Canvas.Brush.Color := ColorDecoration;
-            ControlsTree.Canvas.Brush.Style := bsSolid;
-            ControlsTree.Canvas.FillRect(R);
-          end;
-        end;
-    end;
+        if Node.Data <> nil then
+          DrawTreeNodeClassName(TObject(Node.Data).ClassName);
+      end;
   end;
 end;
 
