@@ -410,7 +410,6 @@ var
       Result := Sqr(SceneSizeMultiplier) * BaseGizmoScale / OneDistance;
   end;
 
-
 const
   BaseGizmoScaleOrtho = 0.15 * 0.5;
   BaseGizmoScalePerspective = 0.25 * 0.5;
