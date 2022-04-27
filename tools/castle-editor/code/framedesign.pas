@@ -19,6 +19,12 @@ unit FrameDesign;
 
 {$mode objfpc}{$H+}
 
+{ Show additional UI over CastleControl to show selected/hover UI.
+  While these labels can be helpful, they often obscure important UI
+  (even the one you're trying to edit) so it is also causing trouble.
+  For now, by default we disable them. }
+{.$define CASTLE_DESIGNER_LABELS}
+
 interface
 
 uses
@@ -969,7 +975,6 @@ procedure TDesignFrame.TDesignerLayer.Render;
     const Lab: TCastleLabel; const Rect: TCastleRectangleControl;
     const LabelColor: TCastleColor);
   begin
-    {$define CASTLE_DESIGNER_LABELS}
     {$ifdef CASTLE_DESIGNER_LABELS}
     if UI <> nil then
     begin
