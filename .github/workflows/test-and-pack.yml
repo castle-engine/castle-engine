@@ -136,8 +136,14 @@ jobs:
     name: All Tests (without Docker)
     strategy:
       matrix:
-        operating-system: [windows-latest, ubuntu-latest, macos-latest]
-        # older Lazarus versions are with unsupported FPC on https://github.com/marketplace/actions/setup-lazarus-environment
+        # TODO: giving up on windows-latest for now, fails with
+        #    tools/build-tool/castle-engine_compile.sh
+        #    Windows Subsystem for Linux has no installed distributions.
+        # https://github.com/castle-engine/castle-engine/runs/6219455015?check_suite_focus=true
+        operating-system: [ubuntu-latest, macos-latest]
+
+        # Older Lazarus versions are with unsupported FPC,
+        # see https://github.com/marketplace/actions/setup-lazarus-environment .
         lazarus-versions: [stable, 2.2.0, 2.0.12, 2.0.10]
     runs-on: ${{ matrix.operating-system }}
     steps:

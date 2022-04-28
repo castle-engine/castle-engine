@@ -1,5 +1,5 @@
 #!/bin/bash
-set -xeuo pipefail
+set -euo pipefail
 # See http://redsymbol.net/articles/unofficial-bash-strict-mode/
 
 # ----------------------------------------------------------------------------
