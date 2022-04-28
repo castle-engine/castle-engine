@@ -138,7 +138,7 @@ jobs:
       matrix:
         operating-system: [windows-latest, ubuntu-latest, macos-latest]
         # older Lazarus versions are with unsupported FPC on https://github.com/marketplace/actions/setup-lazarus-environment
-        lazarus-versions: [dist, stable, 2.2.0, 2.0.12, 2.0.10]
+        lazarus-versions: [stable, 2.2.0, 2.0.12, 2.0.10]
     runs-on: ${{ matrix.operating-system }}
     steps:
       - uses: actions/checkout@v2
