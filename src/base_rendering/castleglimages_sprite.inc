@@ -17,7 +17,7 @@
 
 {$ifdef read_interface}
 {$ifdef read_interface_type}
-// type - don't add type delphi can't parse it correctly when some types are forward declared
+// type (continue type section from previous include file)
   { A frame of a custom animation. Part of the TSpriteAnimation. }
   TSpriteAnimationFrame = record
     { Frame number from the sprite. }

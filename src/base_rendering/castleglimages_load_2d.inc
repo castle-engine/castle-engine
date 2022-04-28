@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,7 @@
   Usually you don't need these functions, LoadGLTexture* and TDrawableImage
   and such call it automatically when needed. }
 {$ifdef read_interface_type}
-// type - don't add type Delphi can't parse it correctly
+// type (continue type section from previous include file)
   TTextureSizing = (
     { Texture size does not have to be a power of two
       (unless GLFeatures.TextureNonPowerOfTwo = @false, in which case all textures
@@ -185,7 +185,7 @@ function GLDecompressTexture(Image: TGPUCompressedImage): TCastleImage;
 {$endif read_interface_func}
 
 {$ifdef read_interface_type}
-//type - don't add type Delphi can't parse it correctly
+// type (continue type section from previous include file)
   ECannotSaveTextureContents = class(Exception);
 {$endif read_interface_type}
 

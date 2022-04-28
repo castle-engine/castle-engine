@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,7 +18,7 @@
 {$ifdef read_interface}
 
 {$ifdef read_interface_type}
-//type - don't add type Delphi can't parse it correctly
+// type (continue type section from previous include file)
   TColorBuffer = (
     cbFront,
     cbBack,
