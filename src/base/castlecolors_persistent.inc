@@ -30,7 +30,7 @@ type
   }
   TCastleColorRGBPersistent = class(TCastleComponent)
   strict private
-    { During csLoading, Set* only modifies ScheduledSetValue,
+    { During IsLoading, Set* only modifies ScheduledSetValue,
       and then in Loaded we send whole vector by one InternalSetValue call.
       This decreases the number of calls to the vector setters during deserialization.
       Also it means that we send the vector as a whole, which is good if the setter
@@ -79,7 +79,7 @@ type
   }
   TCastleColorPersistent = class(TCastleComponent)
   strict private
-    { During csLoading, Set* only modifies ScheduledSetValue,
+    { During IsLoading, Set* only modifies ScheduledSetValue,
       and then in Loaded we send whole vector by one InternalSetValue call.
       This decreases the number of calls to the vector setters during deserialization.
       Also it means that we send the vector as a whole, which is good if the setter
@@ -160,7 +160,7 @@ procedure TCastleColorRGBPersistent.SetRed(const AValue: Single);
 var
   V: TCastleColorRGB;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.X := AValue;
   end else
@@ -175,7 +175,7 @@ procedure TCastleColorRGBPersistent.SetGreen(const AValue: Single);
 var
   V: TCastleColorRGB;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.Y := AValue;
   end else
@@ -190,7 +190,7 @@ procedure TCastleColorRGBPersistent.SetBlue(const AValue: Single);
 var
   V: TCastleColorRGB;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.Z := AValue;
   end else
@@ -292,7 +292,7 @@ procedure TCastleColorPersistent.SetRed(const AValue: Single);
 var
   V: TCastleColor;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.X := AValue;
   end else
@@ -307,7 +307,7 @@ procedure TCastleColorPersistent.SetGreen(const AValue: Single);
 var
   V: TCastleColor;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.Y := AValue;
   end else
@@ -322,7 +322,7 @@ procedure TCastleColorPersistent.SetBlue(const AValue: Single);
 var
   V: TCastleColor;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.Z := AValue;
   end else
@@ -337,7 +337,7 @@ procedure TCastleColorPersistent.SetAlpha(const AValue: Single);
 var
   V: TCastleColor;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.W := AValue;
   end else

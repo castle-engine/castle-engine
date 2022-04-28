@@ -190,7 +190,7 @@ end;
 
 procedure TCastleBackground.Loaded;
 begin
-  inherited; //< important, as inherited removes csLoading from ComponentState
+  inherited;
   if FPendingUpdateRenderer then
     UpdateRenderer;
 end;

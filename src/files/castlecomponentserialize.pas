@@ -125,8 +125,8 @@ var
   InternalCustomComponentsForProject: String;
 
   { Are we inside ComponentLoad.
-    Prefer to instead look at "csLoading in ComponentState", this variable
-    is really only a hack for exceptional situations.
+    Prefer to instead look at component property TCastleComponent.IsLoading,
+    this variable is really only a hack for exceptional situations.
     @exclude }
   InternalLoadingComponent: Cardinal;
 
@@ -321,7 +321,7 @@ begin
   if AObject is TCastleComponent then
   begin
     C := TCastleComponent(AObject);
-    C.InternalLoading; // add csLoading flag to ComponentState
+    C.InternalLoading; // set C.IsLoading := true, (FPC only) add csLoading flag to ComponentState
   end;
 end;
 
@@ -378,7 +378,7 @@ begin
     C := TCastleComponent(AObject);
     SynchronizeNameWithInternalText(C);
     CustomSerialization(C);
-    C.InternalLoaded; // remove csLoading flag from ComponentState
+    C.InternalLoaded; // set IsLoading = false, (FPC only) remove csLoading flag from ComponentState, calls Loaded virtual method
   end;
 
   if AObject is TComponent then

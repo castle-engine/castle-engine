@@ -37,7 +37,7 @@ type
   }
   TCastleVector2Persistent = class(TCastleComponent)
   strict private
-    { During csLoading, Set* only modifies ScheduledSetValue,
+    { During IsLoading, Set* only modifies ScheduledSetValue,
       and then in Loaded we send whole vector by one InternalSetValue call.
       This decreases the number of calls to the vector setters during deserialization.
       Also it means that we send the vector as a whole, which is good if the setter
@@ -82,7 +82,7 @@ type
   }
   TCastleVector3Persistent = class(TCastleComponent)
   strict private
-    { During csLoading, Set* only modifies ScheduledSetValue,
+    { During IsLoading, Set* only modifies ScheduledSetValue,
       and then in Loaded we send whole vector by one InternalSetValue call.
       This decreases the number of calls to the vector setters during deserialization.
       Also it means that we send the vector as a whole, which is good if the setter
@@ -131,7 +131,7 @@ type
   }
   TCastleVector4Persistent = class(TCastleComponent)
   strict private
-    { During csLoading, Set* only modifies ScheduledSetValue,
+    { During IsLoading, Set* only modifies ScheduledSetValue,
       and then in Loaded we send whole vector by one InternalSetValue call.
       This decreases the number of calls to the vector setters during deserialization.
       Also it means that we send the vector as a whole, which is good if the setter
@@ -207,7 +207,7 @@ procedure TCastleVector2Persistent.SetX(const AValue: Single);
 var
   V: TVector2;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.X := AValue;
   end else
@@ -222,7 +222,7 @@ procedure TCastleVector2Persistent.SetY(const AValue: Single);
 var
   V: TVector2;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.Y := AValue;
   end else
@@ -313,7 +313,7 @@ procedure TCastleVector3Persistent.SetX(const AValue: Single);
 var
   V: TVector3;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.X := AValue;
   end else
@@ -328,7 +328,7 @@ procedure TCastleVector3Persistent.SetY(const AValue: Single);
 var
   V: TVector3;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.Y := AValue;
   end else
@@ -343,7 +343,7 @@ procedure TCastleVector3Persistent.SetZ(const AValue: Single);
 var
   V: TVector3;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.Z := AValue;
   end else
@@ -445,7 +445,7 @@ procedure TCastleVector4Persistent.SetX(const AValue: Single);
 var
   V: TVector4;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.X := AValue;
   end else
@@ -460,7 +460,7 @@ procedure TCastleVector4Persistent.SetY(const AValue: Single);
 var
   V: TVector4;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.Y := AValue;
   end else
@@ -475,7 +475,7 @@ procedure TCastleVector4Persistent.SetZ(const AValue: Single);
 var
   V: TVector4;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.Z := AValue;
   end else
@@ -490,7 +490,7 @@ procedure TCastleVector4Persistent.SetW(const AValue: Single);
 var
   V: TVector4;
 begin
-  if csLoading in ComponentState then
+  if IsLoading then
   begin
     InitScheduledSetValue^.W := AValue;
   end else

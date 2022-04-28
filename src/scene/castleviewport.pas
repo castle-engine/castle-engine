@@ -1778,7 +1778,7 @@ procedure TCastleViewport.Loaded;
 var
   APos, ADir, AUp, AGravityUp: TVector3;
 begin
-  inherited; //< important, as inherited removes csLoading from ComponentState
+  inherited;
 
   { To read old designs (before Camera was assignable, before Camera was a TCastleTransform):
     - add Camera to Items (so that it doesn't disappear when saving the design)

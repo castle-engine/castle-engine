@@ -512,11 +512,17 @@ type
       @exclude }
     property InternalText: String read GetInternalText write SetInternalText;
 
-    { Add csLoading. Used when deserializing.
+    { Set IsLoading to @true and (only on FPC) add csLoading flag to ComponentState.
+      Used when deserializing.
+      Do not call this yourself, CastleComponentSerialize automatically calls this.
       @exclude }
     procedure InternalLoading;
 
-    { Remove csLoading. Used when deserializing.
+    { Set IsLoading to @false and (only on FPC) remove csLoading flag from ComponentState
+      and call virtual TComponent.Loaded.
+      Used when deserializing.
+      Do not call this yourself, CastleComponentSerialize automatically calls this.
+      Descendants can override TComponent.Loaded to react to being loaded.
       @exclude }
     procedure InternalLoaded;
 

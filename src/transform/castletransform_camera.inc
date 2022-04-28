@@ -840,7 +840,7 @@ end;
 
 procedure TCastleCamera.Loaded;
 begin
-  inherited; //< important, as inherited removes csLoading from ComponentState
+  inherited;
 
   { Apply deprecated InitialXxx props only if they have been modified by the design.
     Otherwise, they would override the values read

@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -322,7 +322,7 @@ end;
 
 procedure TCastleSound.Loaded;
 begin
-  inherited; //< important, as inherited removes csLoading from ComponentState
+  inherited;
   ReloadBuffer;
 end;
 
