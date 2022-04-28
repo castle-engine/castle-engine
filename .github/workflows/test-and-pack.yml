@@ -132,6 +132,33 @@ jobs:
       - name: Build Examples Using Lazarus (FPC Latest Unstable)
         run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
+  test-everything:
+    name: All Tests (without Docker)
+    strategy:
+      matrix:
+        operating-system: [windows-latest, ubuntu-latest, macos-latest]
+        # older Lazarus versions are with unsupported FPC on https://github.com/marketplace/actions/setup-lazarus-environment
+        lazarus-versions: [dist, stable, 2.2.0, 2.0.12, 2.0.10]
+    runs-on: ${{ matrix.operating-system }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install FPC+Lazarus
+        uses: gcarreno/setup-lazarus@v3.0.16
+        with:
+          lazarus-version: ${{ matrix.lazarus-versions }}
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Tools
+        run: make clean default
+      - name: Build And Run Auto-Tests
+        run: make clean tests
+      - name: Build Using FpMake
+        run: make clean test-fpmake
+      - name: Build Examples
+        run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
+      - name: Build Examples Using Lazarus
+        run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
+
   pack:
     name: Pack to zip
     runs-on: ubuntu-latest
