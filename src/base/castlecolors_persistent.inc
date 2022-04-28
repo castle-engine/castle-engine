@@ -28,8 +28,15 @@ type
     TCastleColorRGB are simple records, so they are naturally copied on assignment,
     and various operators like additions work in a natural way too.
   }
-  TCastleColorRGBPersistent = class(TPersistent)
+  TCastleColorRGBPersistent = class(TCastleComponent)
   strict private
+    { During csLoading, Set* only modifies ScheduledSetValue,
+      and then in Loaded we send whole vector by one InternalSetValue call.
+      This decreases the number of calls to the vector setters during deserialization.
+      Also it means that we send the vector as a whole, which is good if the setter
+      is doing some processing (e.g. normalizing the value). }
+    ScheduledSetValue: TCastleColorRGB;
+    HasScheduledSetValue: Boolean;
     function GetValue: TCastleColorRGB;
     function GetRed: Single;
     function GetGreen: Single;
@@ -41,12 +48,19 @@ type
     function RedIsStored: Boolean;
     function GreenIsStored: Boolean;
     function BlueIsStored: Boolean;
+    { Make sure HasScheduledSetValue is true, ScheduledSetValue is valid,
+      and return @ScheduledSetValue. }
+    function InitScheduledSetValue: PCastleColorRGB;
+  protected
+    procedure Loaded; override;
   public
     InternalGetValue: TGetVector3Event;
     InternalSetValue: TSetVector3Event;
     InternalDefaultValue: TCastleColorRGB;
+    constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TCastleColorRGB read GetValue write SetValue;
     function HasDefaultValue: Boolean;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property Red: Single read GetRed write SetRed stored RedIsStored nodefault;
     property Green: Single read GetGreen write SetGreen stored GreenIsStored nodefault;
@@ -63,8 +77,15 @@ type
     TCastleColor are simple records, so they are naturally copied on assignment,
     and various operators like additions work in a natural way too.
   }
-  TCastleColorPersistent = class(TPersistent)
+  TCastleColorPersistent = class(TCastleComponent)
   strict private
+    { During csLoading, Set* only modifies ScheduledSetValue,
+      and then in Loaded we send whole vector by one InternalSetValue call.
+      This decreases the number of calls to the vector setters during deserialization.
+      Also it means that we send the vector as a whole, which is good if the setter
+      is doing some processing (e.g. normalizing the value). }
+    ScheduledSetValue: TCastleColor;
+    HasScheduledSetValue: Boolean;
     function GetValue: TCastleColor;
     function GetRed: Single;
     function GetGreen: Single;
@@ -79,12 +100,19 @@ type
     function GreenIsStored: Boolean;
     function BlueIsStored: Boolean;
     function AlphaIsStored: Boolean;
+    { Make sure HasScheduledSetValue is true, ScheduledSetValue is valid,
+      and return @ScheduledSetValue. }
+    function InitScheduledSetValue: PCastleColor;
+  protected
+    procedure Loaded; override;
   public
     InternalGetValue: TGetVector4Event;
     InternalSetValue: TSetVector4Event;
     InternalDefaultValue: TCastleColor;
+    constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TCastleColor read GetValue write SetValue;
     function HasDefaultValue: Boolean;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property Red: Single read GetRed write SetRed stored RedIsStored nodefault;
     property Green: Single read GetGreen write SetGreen stored GreenIsStored nodefault;
@@ -97,6 +125,11 @@ type
 {$ifdef read_implementation}
 
 { TCastleColorRGBPersistent ---------------------------------------------------- }
+
+constructor TCastleColorRGBPersistent.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+end;
 
 function TCastleColorRGBPersistent.GetValue: TCastleColorRGB;
 begin
@@ -127,27 +160,45 @@ procedure TCastleColorRGBPersistent.SetRed(const AValue: Single);
 var
   V: TCastleColorRGB;
 begin
-  V := Value;
-  V.X := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.X := AValue;
+  end else
+  begin
+    V := Value;
+    V.X := AValue;
+    Value := V;
+  end;
 end;
 
 procedure TCastleColorRGBPersistent.SetGreen(const AValue: Single);
 var
   V: TCastleColorRGB;
 begin
-  V := Value;
-  V.Y := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.Y := AValue;
+  end else
+  begin
+    V := Value;
+    V.Y := AValue;
+    Value := V;
+  end;
 end;
 
 procedure TCastleColorRGBPersistent.SetBlue(const AValue: Single);
 var
   V: TCastleColorRGB;
 begin
-  V := Value;
-  V.Z := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.Z := AValue;
+  end else
+  begin
+    V := Value;
+    V.Z := AValue;
+    Value := V;
+  end;
 end;
 
 function TCastleColorRGBPersistent.RedIsStored: Boolean;
@@ -170,7 +221,42 @@ begin
   Result := TVector3.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
+function TCastleColorRGBPersistent.InitScheduledSetValue: PCastleColorRGB;
+begin
+  if not HasScheduledSetValue then
+  begin
+    HasScheduledSetValue := true;
+    ScheduledSetValue := Value;
+  end;
+  Result := @ScheduledSetValue;
+end;
+
+procedure TCastleColorRGBPersistent.Loaded;
+begin
+  inherited;
+  if HasScheduledSetValue then
+  begin
+    HasScheduledSetValue := false;
+    Value := ScheduledSetValue;
+  end;
+end;
+
+function TCastleColorRGBPersistent.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'Red') or
+     (PropertyName = 'Green') or
+     (PropertyName = 'Blue') then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 { TCastleColorPersistent ---------------------------------------------------- }
+
+constructor TCastleColorPersistent.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+end;
 
 function TCastleColorPersistent.GetValue: TCastleColor;
 begin
@@ -206,36 +292,60 @@ procedure TCastleColorPersistent.SetRed(const AValue: Single);
 var
   V: TCastleColor;
 begin
-  V := Value;
-  V.X := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.X := AValue;
+  end else
+  begin
+    V := Value;
+    V.X := AValue;
+    Value := V;
+  end;
 end;
 
 procedure TCastleColorPersistent.SetGreen(const AValue: Single);
 var
   V: TCastleColor;
 begin
-  V := Value;
-  V.Y := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.Y := AValue;
+  end else
+  begin
+    V := Value;
+    V.Y := AValue;
+    Value := V;
+  end;
 end;
 
 procedure TCastleColorPersistent.SetBlue(const AValue: Single);
 var
   V: TCastleColor;
 begin
-  V := Value;
-  V.Z := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.Z := AValue;
+  end else
+  begin
+    V := Value;
+    V.Z := AValue;
+    Value := V;
+  end;
 end;
 
 procedure TCastleColorPersistent.SetAlpha(const AValue: Single);
 var
   V: TCastleColor;
 begin
-  V := Value;
-  V.W := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.W := AValue;
+  end else
+  begin
+    V := Value;
+    V.W := AValue;
+    Value := V;
+  end;
 end;
 
 function TCastleColorPersistent.RedIsStored: Boolean;
@@ -261,6 +371,37 @@ end;
 function TCastleColorPersistent.HasDefaultValue: Boolean;
 begin
   Result := TVector4.PerfectlyEquals(Value, InternalDefaultValue);
+end;
+
+function TCastleColorPersistent.InitScheduledSetValue: PCastleColor;
+begin
+  if not HasScheduledSetValue then
+  begin
+    HasScheduledSetValue := true;
+    ScheduledSetValue := Value;
+  end;
+  Result := @ScheduledSetValue;
+end;
+
+procedure TCastleColorPersistent.Loaded;
+begin
+  inherited;
+  if HasScheduledSetValue then
+  begin
+    HasScheduledSetValue := false;
+    Value := ScheduledSetValue;
+  end;
+end;
+
+function TCastleColorPersistent.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'Red') or
+     (PropertyName = 'Green') or
+     (PropertyName = 'Blue') or
+     (PropertyName = 'Alpha') then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,6 +51,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FColorPersistent := TCastleColorRGBPersistent.Create;
+  FColorPersistent.SetSubComponent(true);
   FColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetColorForPersistent;
   FColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetColorForPersistent;
   FColorPersistent.InternalDefaultValue := Color; // current value is default
@@ -62,7 +63,7 @@ end;
 
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -113,6 +114,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FAttenuationPersistent := TCastleVector3Persistent.Create;
+  FAttenuationPersistent.SetSubComponent(true);
   FAttenuationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAttenuationForPersistent;
   FAttenuationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAttenuationForPersistent;
   FAttenuationPersistent.InternalDefaultValue := Attenuation; // current value is default

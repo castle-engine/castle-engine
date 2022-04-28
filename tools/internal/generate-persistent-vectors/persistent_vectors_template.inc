@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,6 +51,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   F${PROPERTY_NAME}Persistent := ${PERSISTENT_PROPERTY_CLASS}.Create;
+  F${PROPERTY_NAME}Persistent.SetSubComponent(true);
   F${PROPERTY_NAME}Persistent.InternalGetValue := {$ifdef FPC}@{$endif}Get${PROPERTY_NAME}ForPersistent;
   F${PROPERTY_NAME}Persistent.InternalSetValue := {$ifdef FPC}@{$endif}Set${PROPERTY_NAME}ForPersistent;
   F${PROPERTY_NAME}Persistent.InternalDefaultValue := ${PROPERTY_NAME}; // current value is default

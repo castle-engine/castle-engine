@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,6 +51,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FSizePersistent := TCastleVector3Persistent.Create;
+  FSizePersistent.SetSubComponent(true);
   FSizePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetSizeForPersistent;
   FSizePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetSizeForPersistent;
   FSizePersistent.InternalDefaultValue := Size; // current value is default

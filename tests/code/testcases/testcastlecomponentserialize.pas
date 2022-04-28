@@ -31,6 +31,7 @@ type
     procedure TestSaveLoad2;
     procedure TestDeserializeObjectReferences;
     procedure TestDepth;
+    procedure TestVectorDeserializedOnce;
   end;
 
 implementation
@@ -54,6 +55,7 @@ type
     function GetScale: TVector3;
     procedure SetScale(const AValue: TVector3);
   public
+    SetScalePersistentCalls, SetPositionPersistentCalls: Cardinal;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Position: TVector3 read FPosition write FPosition;
@@ -96,11 +98,13 @@ begin
   // FScaleComponent.InternalDefaultValue := FScale; // current value is default
 
   FPositionPersistent := TCastleVector3Persistent.Create;
+  FPositionPersistent.SetSubComponent(true);
   FPositionPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetPosition;
   FPositionPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetPosition;
   FPositionPersistent.InternalDefaultValue := FPosition; // current value is default
 
   FScalePersistent := TCastleVector3Persistent.Create;
+  FScalePersistent.SetSubComponent(true);
   FScalePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetScale;
   FScalePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetScale;
   FScalePersistent.InternalDefaultValue := FScale; // current value is default
@@ -120,6 +124,7 @@ end;
 
 procedure TMyComponent.SetPosition(const AValue: TVector3);
 begin
+  Inc(SetPositionPersistentCalls);
   Position := AValue;
 end;
 
@@ -130,6 +135,7 @@ end;
 
 procedure TMyComponent.SetScale(const AValue: TVector3);
 begin
+  Inc(SetScalePersistentCalls);
   Scale := AValue;
 end;
 
@@ -363,6 +369,37 @@ begin
       ParentLabel := ChildLabel;
     end;
   finally FreeAndNil(UiOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestVectorDeserializedOnce;
+var
+  TestOutputOwner: TComponent;
+  TestInput, TestOutput: TMyComponent;
+  TempFileName: String;
+begin
+  TestInput := TMyComponent.Create(nil);
+  try
+    TestInput.Position := Vector3(1, 2, 3);
+    TestInput.Scale := Vector3(4, 5, 6);
+    AssertEquals(0, TestInput.SetScalePersistentCalls);
+    AssertEquals(0, TestInput.SetPositionPersistentCalls);
+
+    TempFileName := GetTempFileNameCheck;
+    ComponentSave(TestInput, TempFileName);
+  finally
+    FreeAndNil(TestInput);
+  end;
+
+  TestOutputOwner := TComponent.Create(nil);
+  try
+    TestOutput := ComponentLoad(TempFileName, TestOutputOwner) as TMyComponent;
+    AssertVectorEquals(Vector3(1, 2, 3), TestOutput.Position);
+    AssertVectorEquals(Vector3(4, 5, 6), TestOutput.Scale);
+    AssertEquals(1, TestOutput.SetScalePersistentCalls);
+    AssertEquals(1, TestOutput.SetPositionPersistentCalls);
+  finally
+    FreeAndNil(TestOutputOwner);
+  end;
 end;
 
 initialization

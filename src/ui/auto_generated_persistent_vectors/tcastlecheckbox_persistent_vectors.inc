@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,6 +51,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTextColorPersistent := TCastleColorPersistent.Create;
+  FTextColorPersistent.SetSubComponent(true);
   FTextColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTextColorForPersistent;
   FTextColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTextColorForPersistent;
   FTextColorPersistent.InternalDefaultValue := TextColor; // current value is default
@@ -62,7 +63,7 @@ end;
 
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -113,6 +114,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCheckboxColorPersistent := TCastleColorPersistent.Create;
+  FCheckboxColorPersistent.SetSubComponent(true);
   FCheckboxColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCheckboxColorForPersistent;
   FCheckboxColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCheckboxColorForPersistent;
   FCheckboxColorPersistent.InternalDefaultValue := CheckboxColor; // current value is default

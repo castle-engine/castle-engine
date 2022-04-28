@@ -25,6 +25,8 @@ type
     function GetName: shortstring; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
+    function GetDefaultValue: String; override;
+    function ValueIsStreamed: boolean; override;
   end;
 
 function TCastleColorPropertyEditor.GetAttributes: TPropertyAttributes;
@@ -85,6 +87,22 @@ begin
   Modified;
 end;
 
+function TCastleColorPropertyEditor.GetDefaultValue: String;
+var
+  ColorPersistent: TCastleColorPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorPersistent);
+  Result := ColorPersistent.InternalDefaultValue.ToString;
+end;
+
+function TCastleColorPropertyEditor.ValueIsStreamed: boolean;
+var
+  ColorPersistent: TCastleColorPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorPersistent);
+  Result := not ColorPersistent.HasDefaultValue;
+end;
+
 { TCastleColorRGBPropertyEditor ------------------------------------------------- }
 
 type
@@ -94,6 +112,8 @@ type
     function GetName: shortstring; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
+    function GetDefaultValue: String; override;
+    function ValueIsStreamed: boolean; override;
   end;
 
 function TCastleColorRGBPropertyEditor.GetAttributes: TPropertyAttributes;
@@ -147,4 +167,20 @@ begin
   ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
   ColorPersistent.Value := HexToColorRGB(NewValue);
   Modified;
+end;
+
+function TCastleColorRGBPropertyEditor.GetDefaultValue: String;
+var
+  ColorPersistent: TCastleColorRGBPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
+  Result := ColorPersistent.InternalDefaultValue.ToString;
+end;
+
+function TCastleColorRGBPropertyEditor.ValueIsStreamed: boolean;
+var
+  ColorPersistent: TCastleColorRGBPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
+  Result := not ColorPersistent.HasDefaultValue;
 end;

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,6 +51,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FAvatarTargetPersistent := TCastleVector3Persistent.Create;
+  FAvatarTargetPersistent.SetSubComponent(true);
   FAvatarTargetPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAvatarTargetForPersistent;
   FAvatarTargetPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAvatarTargetForPersistent;
   FAvatarTargetPersistent.InternalDefaultValue := AvatarTarget; // current value is default

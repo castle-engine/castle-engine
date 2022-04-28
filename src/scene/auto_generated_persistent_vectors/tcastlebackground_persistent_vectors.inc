@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,6 +51,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FSkyTopColorPersistent := TCastleColorRGBPersistent.Create;
+  FSkyTopColorPersistent.SetSubComponent(true);
   FSkyTopColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetSkyTopColorForPersistent;
   FSkyTopColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetSkyTopColorForPersistent;
   FSkyTopColorPersistent.InternalDefaultValue := SkyTopColor; // current value is default
@@ -62,7 +63,7 @@ end;
 
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -113,6 +114,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FSkyEquatorColorPersistent := TCastleColorRGBPersistent.Create;
+  FSkyEquatorColorPersistent.SetSubComponent(true);
   FSkyEquatorColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetSkyEquatorColorForPersistent;
   FSkyEquatorColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetSkyEquatorColorForPersistent;
   FSkyEquatorColorPersistent.InternalDefaultValue := SkyEquatorColor; // current value is default
@@ -124,7 +126,7 @@ end;
 
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -175,6 +177,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FGroundBottomColorPersistent := TCastleColorRGBPersistent.Create;
+  FGroundBottomColorPersistent.SetSubComponent(true);
   FGroundBottomColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetGroundBottomColorForPersistent;
   FGroundBottomColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetGroundBottomColorForPersistent;
   FGroundBottomColorPersistent.InternalDefaultValue := GroundBottomColor; // current value is default
@@ -186,7 +189,7 @@ end;
 
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -237,6 +240,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FGroundEquatorColorPersistent := TCastleColorRGBPersistent.Create;
+  FGroundEquatorColorPersistent.SetSubComponent(true);
   FGroundEquatorColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetGroundEquatorColorForPersistent;
   FGroundEquatorColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetGroundEquatorColorForPersistent;
   FGroundEquatorColorPersistent.InternalDefaultValue := GroundEquatorColor; // current value is default
@@ -248,7 +252,7 @@ end;
 
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -299,6 +303,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FRotationPersistent := TCastleVector4Persistent.Create;
+  FRotationPersistent.SetSubComponent(true);
   FRotationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRotationForPersistent;
   FRotationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRotationForPersistent;
   FRotationPersistent.InternalDefaultValue := Rotation; // current value is default

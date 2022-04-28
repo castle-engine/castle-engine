@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,6 +51,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCenterPersistent := TCastleVector3Persistent.Create;
+  FCenterPersistent.SetSubComponent(true);
   FCenterPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCenterForPersistent;
   FCenterPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCenterForPersistent;
   FCenterPersistent.InternalDefaultValue := Center; // current value is default
@@ -62,7 +63,7 @@ end;
 
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -113,6 +114,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FRotationPersistent := TCastleVector4Persistent.Create;
+  FRotationPersistent.SetSubComponent(true);
   FRotationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRotationForPersistent;
   FRotationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRotationForPersistent;
   FRotationPersistent.InternalDefaultValue := Rotation; // current value is default
@@ -124,7 +126,7 @@ end;
 
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -175,6 +177,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FScalePersistent := TCastleVector3Persistent.Create;
+  FScalePersistent.SetSubComponent(true);
   FScalePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetScaleForPersistent;
   FScalePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetScaleForPersistent;
   FScalePersistent.InternalDefaultValue := Scale; // current value is default
@@ -186,7 +189,7 @@ end;
 
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -237,6 +240,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FScaleOrientationPersistent := TCastleVector4Persistent.Create;
+  FScaleOrientationPersistent.SetSubComponent(true);
   FScaleOrientationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetScaleOrientationForPersistent;
   FScaleOrientationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetScaleOrientationForPersistent;
   FScaleOrientationPersistent.InternalDefaultValue := ScaleOrientation; // current value is default
@@ -248,7 +252,7 @@ end;
 
 { -*- buffer-read-only: t -*-
 
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -299,6 +303,7 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTranslationPersistent := TCastleVector3Persistent.Create;
+  FTranslationPersistent.SetSubComponent(true);
   FTranslationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTranslationForPersistent;
   FTranslationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTranslationForPersistent;
   FTranslationPersistent.InternalDefaultValue := Translation; // current value is default

@@ -35,8 +35,15 @@ type
     TVector2 are simple records, so they are naturally copied on assignment,
     and various operators like additions work in a natural way too.
   }
-  TCastleVector2Persistent = class(TPersistent)
+  TCastleVector2Persistent = class(TCastleComponent)
   strict private
+    { During csLoading, Set* only modifies ScheduledSetValue,
+      and then in Loaded we send whole vector by one InternalSetValue call.
+      This decreases the number of calls to the vector setters during deserialization.
+      Also it means that we send the vector as a whole, which is good if the setter
+      is doing some processing (e.g. normalizing the value). }
+    ScheduledSetValue: TVector2;
+    HasScheduledSetValue: Boolean;
     function GetValue: TVector2;
     function GetX: Single;
     function GetY: Single;
@@ -45,12 +52,19 @@ type
     procedure SetY(const AValue: Single);
     function XIsStored: Boolean;
     function YIsStored: Boolean;
+    { Make sure HasScheduledSetValue is true, ScheduledSetValue is valid,
+      and return @ScheduledSetValue. }
+    function InitScheduledSetValue: PVector2;
+  protected
+    procedure Loaded; override;
   public
     InternalGetValue: TGetVector2Event;
     InternalSetValue: TSetVector2Event;
     InternalDefaultValue: TVector2;
+    constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TVector2 read GetValue write SetValue;
     function HasDefaultValue: Boolean;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property X: Single read GetX write SetX stored XIsStored nodefault;
     property Y: Single read GetY write SetY stored YIsStored nodefault;
@@ -66,8 +80,15 @@ type
     TVector3 are simple records, so they are naturally copied on assignment,
     and various operators like additions work in a natural way too.
   }
-  TCastleVector3Persistent = class(TPersistent)
+  TCastleVector3Persistent = class(TCastleComponent)
   strict private
+    { During csLoading, Set* only modifies ScheduledSetValue,
+      and then in Loaded we send whole vector by one InternalSetValue call.
+      This decreases the number of calls to the vector setters during deserialization.
+      Also it means that we send the vector as a whole, which is good if the setter
+      is doing some processing (e.g. normalizing the value). }
+    ScheduledSetValue: TVector3;
+    HasScheduledSetValue: Boolean;
     function GetValue: TVector3;
     function GetX: Single;
     function GetY: Single;
@@ -79,12 +100,19 @@ type
     function XIsStored: Boolean;
     function YIsStored: Boolean;
     function ZIsStored: Boolean;
+    { Make sure HasScheduledSetValue is true, ScheduledSetValue is valid,
+      and return @ScheduledSetValue. }
+    function InitScheduledSetValue: PVector3;
+  protected
+    procedure Loaded; override;
   public
     InternalGetValue: TGetVector3Event;
     InternalSetValue: TSetVector3Event;
     InternalDefaultValue: TVector3;
+    constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TVector3 read GetValue write SetValue;
     function HasDefaultValue: Boolean;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property X: Single read GetX write SetX stored XIsStored nodefault;
     property Y: Single read GetY write SetY stored YIsStored nodefault;
@@ -101,8 +129,15 @@ type
     TVector4 are simple records, so they are naturally copied on assignment,
     and various operators like additions work in a natural way too.
   }
-  TCastleVector4Persistent = class(TPersistent)
+  TCastleVector4Persistent = class(TCastleComponent)
   strict private
+    { During csLoading, Set* only modifies ScheduledSetValue,
+      and then in Loaded we send whole vector by one InternalSetValue call.
+      This decreases the number of calls to the vector setters during deserialization.
+      Also it means that we send the vector as a whole, which is good if the setter
+      is doing some processing (e.g. normalizing the value). }
+    ScheduledSetValue: TVector4;
+    HasScheduledSetValue: Boolean;
     function GetValue: TVector4;
     function GetX: Single;
     function GetY: Single;
@@ -117,12 +152,19 @@ type
     function YIsStored: Boolean;
     function ZIsStored: Boolean;
     function WIsStored: Boolean;
+    { Make sure HasScheduledSetValue is true, ScheduledSetValue is valid,
+      and return @ScheduledSetValue. }
+    function InitScheduledSetValue: PVector4;
+  protected
+    procedure Loaded; override;
   public
     InternalGetValue: TGetVector4Event;
     InternalSetValue: TSetVector4Event;
     InternalDefaultValue: TVector4;
+    constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TVector4 read GetValue write SetValue;
     function HasDefaultValue: Boolean;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property X: Single read GetX write SetX stored XIsStored nodefault;
     property Y: Single read GetY write SetY stored YIsStored nodefault;
@@ -135,6 +177,11 @@ type
 {$ifdef read_implementation}
 
 { TCastleVector2Persistent ---------------------------------------------------- }
+
+constructor TCastleVector2Persistent.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+end;
 
 function TCastleVector2Persistent.GetValue: TVector2;
 begin
@@ -160,18 +207,30 @@ procedure TCastleVector2Persistent.SetX(const AValue: Single);
 var
   V: TVector2;
 begin
-  V := Value;
-  V.X := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.X := AValue;
+  end else
+  begin
+    V := Value;
+    V.X := AValue;
+    Value := V;
+  end;
 end;
 
 procedure TCastleVector2Persistent.SetY(const AValue: Single);
 var
   V: TVector2;
 begin
-  V := Value;
-  V.Y := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.Y := AValue;
+  end else
+  begin
+    V := Value;
+    V.Y := AValue;
+    Value := V;
+  end;
 end;
 
 function TCastleVector2Persistent.XIsStored: Boolean;
@@ -189,7 +248,41 @@ begin
   Result := TVector2.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
+function TCastleVector2Persistent.InitScheduledSetValue: PVector2;
+begin
+  if not HasScheduledSetValue then
+  begin
+    HasScheduledSetValue := true;
+    ScheduledSetValue := Value;
+  end;
+  Result := @ScheduledSetValue;
+end;
+
+procedure TCastleVector2Persistent.Loaded;
+begin
+  inherited;
+  if HasScheduledSetValue then
+  begin
+    HasScheduledSetValue := false;
+    Value := ScheduledSetValue;
+  end;
+end;
+
+function TCastleVector2Persistent.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'X') or
+     (PropertyName = 'Y') then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 { TCastleVector3Persistent ---------------------------------------------------- }
+
+constructor TCastleVector3Persistent.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+end;
 
 function TCastleVector3Persistent.GetValue: TVector3;
 begin
@@ -220,27 +313,45 @@ procedure TCastleVector3Persistent.SetX(const AValue: Single);
 var
   V: TVector3;
 begin
-  V := Value;
-  V.X := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.X := AValue;
+  end else
+  begin
+    V := Value;
+    V.X := AValue;
+    Value := V;
+  end;
 end;
 
 procedure TCastleVector3Persistent.SetY(const AValue: Single);
 var
   V: TVector3;
 begin
-  V := Value;
-  V.Y := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.Y := AValue;
+  end else
+  begin
+    V := Value;
+    V.Y := AValue;
+    Value := V;
+  end;
 end;
 
 procedure TCastleVector3Persistent.SetZ(const AValue: Single);
 var
   V: TVector3;
 begin
-  V := Value;
-  V.Z := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.Z := AValue;
+  end else
+  begin
+    V := Value;
+    V.Z := AValue;
+    Value := V;
+  end;
 end;
 
 function TCastleVector3Persistent.XIsStored: Boolean;
@@ -263,7 +374,42 @@ begin
   Result := TVector3.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
+function TCastleVector3Persistent.InitScheduledSetValue: PVector3;
+begin
+  if not HasScheduledSetValue then
+  begin
+    HasScheduledSetValue := true;
+    ScheduledSetValue := Value;
+  end;
+  Result := @ScheduledSetValue;
+end;
+
+procedure TCastleVector3Persistent.Loaded;
+begin
+  inherited;
+  if HasScheduledSetValue then
+  begin
+    HasScheduledSetValue := false;
+    Value := ScheduledSetValue;
+  end;
+end;
+
+function TCastleVector3Persistent.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'X') or
+     (PropertyName = 'Y') or
+     (PropertyName = 'Z') then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 { TCastleVector4Persistent ---------------------------------------------------- }
+
+constructor TCastleVector4Persistent.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+end;
 
 function TCastleVector4Persistent.GetValue: TVector4;
 begin
@@ -299,36 +445,60 @@ procedure TCastleVector4Persistent.SetX(const AValue: Single);
 var
   V: TVector4;
 begin
-  V := Value;
-  V.X := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.X := AValue;
+  end else
+  begin
+    V := Value;
+    V.X := AValue;
+    Value := V;
+  end;
 end;
 
 procedure TCastleVector4Persistent.SetY(const AValue: Single);
 var
   V: TVector4;
 begin
-  V := Value;
-  V.Y := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.Y := AValue;
+  end else
+  begin
+    V := Value;
+    V.Y := AValue;
+    Value := V;
+  end;
 end;
 
 procedure TCastleVector4Persistent.SetZ(const AValue: Single);
 var
   V: TVector4;
 begin
-  V := Value;
-  V.Z := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.Z := AValue;
+  end else
+  begin
+    V := Value;
+    V.Z := AValue;
+    Value := V;
+  end;
 end;
 
 procedure TCastleVector4Persistent.SetW(const AValue: Single);
 var
   V: TVector4;
 begin
-  V := Value;
-  V.W := AValue;
-  Value := V;
+  if csLoading in ComponentState then
+  begin
+    InitScheduledSetValue^.W := AValue;
+  end else
+  begin
+    V := Value;
+    V.W := AValue;
+    Value := V;
+  end;
 end;
 
 function TCastleVector4Persistent.XIsStored: Boolean;
@@ -354,6 +524,37 @@ end;
 function TCastleVector4Persistent.HasDefaultValue: Boolean;
 begin
   Result := TVector4.PerfectlyEquals(Value, InternalDefaultValue);
+end;
+
+function TCastleVector4Persistent.InitScheduledSetValue: PVector4;
+begin
+  if not HasScheduledSetValue then
+  begin
+    HasScheduledSetValue := true;
+    ScheduledSetValue := Value;
+  end;
+  Result := @ScheduledSetValue;
+end;
+
+procedure TCastleVector4Persistent.Loaded;
+begin
+  inherited;
+  if HasScheduledSetValue then
+  begin
+    HasScheduledSetValue := false;
+    Value := ScheduledSetValue;
+  end;
+end;
+
+function TCastleVector4Persistent.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'X') or
+     (PropertyName = 'Y') or
+     (PropertyName = 'Z') or
+     (PropertyName = 'W') then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

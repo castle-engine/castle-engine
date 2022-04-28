@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2018-2019 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,6 +24,17 @@ type
     function GetName: shortstring; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
+    { Unsure if this is necessary to be overridden anymore.
+      It is used by default ValueIsStreamed implementation, but we override that. }
+    function GetDefaultValue: String; override;
+    { Determines if value is displayed bold or not.
+
+      Default implementation looks at GetDefaultValue but also at HasDefaultValue
+      value, which is always true for our vectors but TPropertyEditor.HasDefaultValue
+      will be always false.
+
+      So we override it to check using TCastleVectorXxPersistent.HasDefaultValue. }
+    function ValueIsStreamed: boolean; override;
   end;
 
 function TCastleVector2PropertyEditor.GetAttributes: TPropertyAttributes;
@@ -59,6 +70,22 @@ begin
   Modified;
 end;
 
+function TCastleVector2PropertyEditor.GetDefaultValue: String;
+var
+  VectorPersistent: TCastleVector2Persistent;
+begin
+  VectorPersistent := (GetObjectValue as TCastleVector2Persistent);
+  Result := VectorPersistent.InternalDefaultValue.ToString;
+end;
+
+function TCastleVector2PropertyEditor.ValueIsStreamed: boolean;
+var
+  VectorPersistent: TCastleVector2Persistent;
+begin
+  VectorPersistent := (GetObjectValue as TCastleVector2Persistent);
+  Result := not VectorPersistent.HasDefaultValue;
+end;
+
 { TCastleVector3PropertyEditor ------------------------------------------------- }
 
 type
@@ -67,6 +94,8 @@ type
     function GetName: shortstring; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
+    function GetDefaultValue: String; override;
+    function ValueIsStreamed: boolean; override;
   end;
 
 function TCastleVector3PropertyEditor.GetAttributes: TPropertyAttributes;
@@ -99,6 +128,22 @@ var
 begin
   VectorPersistent := (GetObjectValue as TCastleVector3Persistent);
   VectorPersistent.Value := Vector3FromStr(NewValue);
+end;
+
+function TCastleVector3PropertyEditor.GetDefaultValue: String;
+var
+  VectorPersistent: TCastleVector3Persistent;
+begin
+  VectorPersistent := (GetObjectValue as TCastleVector3Persistent);
+  Result := VectorPersistent.InternalDefaultValue.ToString;
+end;
+
+function TCastleVector3PropertyEditor.ValueIsStreamed: boolean;
+var
+  VectorPersistent: TCastleVector3Persistent;
+begin
+  VectorPersistent := (GetObjectValue as TCastleVector3Persistent);
+  Result := not VectorPersistent.HasDefaultValue;
 end;
 
 { TScalePropertyEditor ------------------------------------------------- }
@@ -136,6 +181,8 @@ type
     function GetName: shortstring; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
+    function GetDefaultValue: String; override;
+    function ValueIsStreamed: boolean; override;
   end;
 
 function TCastleVector4PropertyEditor.GetAttributes: TPropertyAttributes;
@@ -166,4 +213,20 @@ begin
   VectorPersistent := (GetObjectValue as TCastleVector4Persistent);
   VectorPersistent.Value := Vector4FromStr(NewValue);
   Modified;
+end;
+
+function TCastleVector4PropertyEditor.GetDefaultValue: String;
+var
+  VectorPersistent: TCastleVector4Persistent;
+begin
+  VectorPersistent := (GetObjectValue as TCastleVector4Persistent);
+  Result := VectorPersistent.InternalDefaultValue.ToString;
+end;
+
+function TCastleVector4PropertyEditor.ValueIsStreamed: boolean;
+var
+  VectorPersistent: TCastleVector4Persistent;
+begin
+  VectorPersistent := (GetObjectValue as TCastleVector4Persistent);
+  Result := not VectorPersistent.HasDefaultValue;
 end;

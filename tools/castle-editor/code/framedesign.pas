@@ -2364,8 +2364,8 @@ begin
       end;
     end else
     begin
-      { Show=true when Instance is some class used for subcomponents,
-        like TCastleVector3Persistent, TBorder, TCastleImagePersistent... }
+      { Show=true when Instance is some non-TComponent class used for subcomponents,
+        like TBorder, TCastleImagePersistent... }
       AShow := true;
     end;
   end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -152,7 +152,7 @@ unit CastleVectors;
 interface
 
 uses SysUtils, Generics.Collections, Classes,
-  CastleUtils, CastleVectorsInternalSingle, CastleVectorsInternalDouble;
+  CastleUtils, CastleVectorsInternalSingle, CastleVectorsInternalDouble, CastleClassUtils;
 
 {$define read_interface}
 

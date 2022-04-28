@@ -21,11 +21,13 @@ unit CastleColors;
 interface
 
 uses Math, Classes,
-  CastleVectors;
+  CastleVectors, CastleClassUtils;
 
 type
   TCastleColor = TVector4;
+  PCastleColor = PVector4;
   TCastleColorRGB = TVector3;
+  PCastleColorRGB = PVector3;
 
 const
   { Common color constants, for comfort.
