@@ -141,6 +141,8 @@ type
     procedure ClickAutoSelectNothing(Sender: TObject);
     procedure ClickAutoSelectUi(Sender: TObject);
     procedure ClickAutoSelectTransform(Sender: TObject);
+    class procedure AdjustColorsBasedOnPropertyDefault(
+      const Edit: TCastleEdit; const IsDefault: Boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -180,7 +182,7 @@ implementation
 
 uses SysUtils, StrUtils, RttiUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
-  CastleUtils, CastleLog, CastleInternalInspectorUtils,
+  CastleUtils, CastleLog, CastleInternalRttiUtils,
   CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleCameras;
 
 { TODO:
@@ -828,7 +830,7 @@ end;
 procedure TCastleInspector.UpdateProperties;
 
   procedure AddPropertyRow(const PropObject: TObject; const PropInfo: PPropInfo;
-    const PropName, PropValue: String);
+    const PropName, PropValue: String; const IsDefault: Boolean);
   var
     PropertyOwner: TPropertyOwner;
   begin
@@ -849,6 +851,7 @@ procedure TCastleInspector.UpdateProperties;
     PropertyOwner.LabelName.Caption := PropName;
     // TODO: editing PropValue has no effect now
     PropertyOwner.EditValue.Text := PropValue;
+    AdjustColorsBasedOnPropertyDefault(PropertyOwner.EditValue, IsDefault);
   end;
 
 var
@@ -865,7 +868,8 @@ begin
     try
       for I := 0 to PropInfos.Count - 1 do
         if PropertyGet(FSelectedComponent, PropInfos.Items[I], PropName, PropValue) then
-          AddPropertyRow(FSelectedComponent, PropInfos.Items[I], PropName, PropValue);
+          AddPropertyRow(FSelectedComponent, PropInfos.Items[I], PropName, PropValue,
+            PropertyHasDefaultValue(FSelectedComponent, PropInfos.Items[I], true));
     finally FreeAndNil(PropInfos) end;
   end;
 end;
@@ -880,6 +884,8 @@ begin
     if PropertyGet(Po.PropObject, Po.PropInfo, PropName, PropValue) then
     begin
       Po.EditValue.Text := PropValue;
+      AdjustColorsBasedOnPropertyDefault(Po.EditValue,
+        PropertyHasDefaultValue(Po.PropObject, Po.PropInfo, true));
     end else
       WritelnWarning('Cannot read property name/value, but it was possible to read it earlier');
   end;
@@ -1091,6 +1097,15 @@ procedure TCastleInspector.ClickAutoSelectTransform(Sender: TObject);
 begin
   AutoSelect := asTransform;
   SynchronizeButtonsAutoSelect;
+end;
+
+class procedure TCastleInspector.AdjustColorsBasedOnPropertyDefault(
+  const Edit: TCastleEdit; const IsDefault: Boolean);
+begin
+  if IsDefault then
+    Edit.BackgroundColor := White
+  else
+    Edit.BackgroundColor := Vector4(0.8, 0.8, 1, 1);
 end;
 
 initialization

@@ -30,11 +30,6 @@ interface
 
 uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo;
 
-{$ifndef FPC}
-Resourcestring
-  SErrNoVariantSupport          = 'No variant support for properties. Please use the variants unit in your project and recompile';
-{$endif}
-
 type
   EInvalidComponentFile = class(Exception);
 
@@ -139,7 +134,7 @@ implementation
 
 uses JsonParser, RtlConsts, StrUtils,
   CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
-  CastleURIUtils, CastleVectors, CastleColors;
+  CastleURIUtils, CastleVectors, CastleColors, CastleInternalRttiUtils;
 
 { component registration ----------------------------------------------------- }
 
@@ -737,9 +732,6 @@ type
       SerializationProcessPool: TSerializationProcessWriterList;
       SerializationProcessPoolUsed: Integer;
 
-    { Does the property have default value. }
-    class function HasDefaultValue(const Instance: TPersistent; const PropInfo: PPropInfo): Boolean; static;
-
     procedure BeforeStreamObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
     procedure AfterStreamObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
     procedure StreamProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; var Res: TJsonData);
@@ -880,129 +872,11 @@ begin
   end;
 
   // do not store properties with default values
-  if HasDefaultValue(AObject as TPersistent, Info) then
+  if PropertyHasDefaultValue(AObject, Info) then
   begin
     //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because it has default value');
     FreeAndNil(Res);
     Exit;
-  end;
-end;
-
-class function TCastleJsonWriter.HasDefaultValue(
-  const Instance: TPersistent; const PropInfo: PPropInfo): Boolean; {$ifdef FPC}static;{$endif}
-
-{ Implemented looking closely at what standard FPC writer does,
-  3.0.4/fpcsrc/rtl/objpas/classes/writer.inc ,
-  and simplified a lot for CGE purposes. }
-
-var
-  PropType: PTypeInfo;
-  Value, DefValue: LongInt;
-{$ifndef FPUNONE}
-  FloatValue, DefFloatValue: Extended;
-{$endif}
-  MethodValue, DefMethodValue: TMethod;
-  VarValue, DefVarValue: tvardata;
-  BoolValue, DefBoolValue, DefValueUse: Boolean;
-  C: TObject;
-begin
-  Result := false; // for unknown types, assume false
-
-  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
-  DefValue := PropInfo^.Default;
-  { $80000000 means that there's no default value (in case of Single or String,
-    you need to specify it by "nodefault") }
-  DefValueUse := DefValue <> LongInt($80000000);
-  case PropType^.Kind of
-    tkInteger, tkChar, tkEnumeration, tkSet, tkWChar:
-      begin
-        Value := GetOrdProp(Instance, PropInfo);
-        Result := (Value = DefValue) and DefValueUse;
-      end;
-{$ifndef FPUNONE}
-    tkFloat:
-      begin
-        FloatValue := GetFloatProp(Instance, PropInfo);
-        DefFloatValue := PSingle(@PropInfo^.Default)^;
-        Result := (FloatValue = DefFloatValue) and DefValueUse;
-      end;
-{$endif}
-    tkMethod:
-      begin
-        MethodValue := GetMethodProp(Instance, PropInfo);
-        DefMethodValue.Data := nil;
-        DefMethodValue.Code := nil;
-        Result := SameMethods(MethodValue, DefMethodValue);
-      end;
-{$ifdef FPC}
-    tkSString, tkLString, tkAString:
-      begin
-        Result := (GetStrProp(Instance, PropInfo) = '') and DefValueUse;
-      end;
-{$else}
-    tkString, tkLString:
-      begin
-        Result := (GetAnsiStrProp(Instance, PropInfo) = '') and DefValueUse;
-      end;
-{$endif}
-    tkWString:
-      begin
-        Result := (GetWideStrProp(Instance, PropInfo) = '') and DefValueUse;
-      end;
-    tkUString:
-      begin
-        Result := (GetUnicodeStrProp(Instance, PropInfo) = '') and DefValueUse;
-      end;
-    tkVariant:
-      begin
-        { Ensure that a Variant manager is installed }
-        if not Assigned(VarClearProc) then
-          raise EWriteError.Create(SErrNoVariantSupport);
-        VarValue := tvardata(GetVariantProp(Instance, PropInfo));
-        FillChar(DefVarValue,sizeof(DefVarValue),0);
-        {$ifdef FPC}
-        Result := CompareByte(VarValue,DefVarValue,sizeof(VarValue)) = 0;
-        {$else}
-        Result := CompareMem(@VarValue, @DefVarValue, sizeof(VarValue));
-        {$endif}
-      end;
-    tkClass:
-      begin
-        C := GetObjectProp(Instance, PropInfo);
-        Result :=
-          (C = nil) or
-          (
-            { Avoid saving common subcomponents with all values left as default.
-              This makes .castle-user-interface files smaller, which makes also their
-              diffs easier to read (useful when commiting them, reviewing etc.)
-
-              The TCastleVector*Persistent and TBorder do not descend from TComponent
-              so we cannot actually check are they subcomponents:
-
-                (C is TComponent) and
-                (csSubComponent * TComponent(C).ComponentState) and
-            }
-            ((C.ClassType = TCastleVector2Persistent) and TCastleVector2Persistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleVector3Persistent) and TCastleVector3Persistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleVector4Persistent) and TCastleVector4Persistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleColorRGBPersistent) and TCastleColorRGBPersistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleColorPersistent) and TCastleColorPersistent(C).HasDefaultValue) or
-            ((C.ClassType = TBorder) and TBorder(C).HasDefaultValue)
-          );
-      end;
-    tkInt64{$ifdef FPC}, tkQWord{$endif}:
-      begin
-        Result := GetInt64Prop(Instance, PropInfo) = 0;
-      end;
-{$ifdef FPC}
-    tkBool:
-      begin
-        BoolValue := GetOrdProp(Instance, PropInfo)<>0;
-        DefBoolValue := DefValue <> 0;
-        Result := (BoolValue = DefBoolValue) and DefValueUse;
-      end;
-{$endif}
-    else ;
   end;
 end;
 

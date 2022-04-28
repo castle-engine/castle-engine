@@ -193,6 +193,7 @@ begin
     P.Targets.AddUnit('castleprojection.pas');
     P.Targets.AddUnit('castlerectangles.pas');
     P.Targets.AddUnit('castlerenderoptions.pas');
+    P.Targets.AddUnit('castleinternalrttiutils.pas');
     P.Targets.AddUnit('castlestreamutils.pas');
     P.Targets.AddUnit('castlestringutils.pas');
     P.Targets.AddUnit('castlesystemlanguage.pas');
@@ -308,7 +309,6 @@ begin
     P.Targets.AddUnit('castleinternalcameragestures.pas');
     P.Targets.AddUnit('castleinternalcontrolsimages.pas');
     P.Targets.AddUnit('castleinternalinspector.pas');
-    P.Targets.AddUnit('castleinternalinspectorutils.pas');
     P.Targets.AddUnit('castleinternaljoysticksexplicit.pas');
     P.Targets.AddUnit('castleinternalpk3dconnexion.pas');
     P.Targets.AddUnit('castleinternalsettings.pas');

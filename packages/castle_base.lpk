@@ -1593,8 +1593,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalInspector"/>
       </Item374>
       <Item375>
-        <Filename Value="../src/ui/castleinternalinspectorutils.pas"/>
-        <UnitName Value="CastleInternalInspectorUtils"/>
+        <Filename Value="../src/base/castleinternalrttiutils.pas"/>
+        <UnitName Value="CastleInternalRttiUtils"/>
       </Item375>
       <Item376>
         <Filename Value="../src/ui/castleinternalsettings.pas"/>
