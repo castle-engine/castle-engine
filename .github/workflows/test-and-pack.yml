@@ -153,7 +153,7 @@ jobs:
         with:
           lazarus-version: ${{ matrix.lazarus-versions }}
       - name: Install Ubuntu dependencies
-        if: ${{ matrix.operating-system != 'ubuntu-latest' }}
+        if: ${{ matrix.operating-system == 'ubuntu-latest' }}
         run: sudo apt-get --no-install-recommends -y install libgl-dev
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
