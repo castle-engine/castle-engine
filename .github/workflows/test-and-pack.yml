@@ -144,7 +144,9 @@ jobs:
 
         # Older Lazarus versions are with unsupported FPC,
         # see https://github.com/marketplace/actions/setup-lazarus-environment .
-        lazarus-versions: [stable, 2.2.0, 2.0.12, 2.0.10]
+        #
+        # lazbuild from Lazarus 2.0.10 may crash, so don't test either.
+        lazarus-versions: [stable, 2.2.0, 2.0.12]
     runs-on: ${{ matrix.operating-system }}
     steps:
       - uses: actions/checkout@v2
