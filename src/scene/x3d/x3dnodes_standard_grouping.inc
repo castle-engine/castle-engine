@@ -840,7 +840,8 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
     begin
       Number := StrToIntDef(SEnding(Node.X3DName, I + 1), -1);
       if Number >= 0 then
-        RenameUniquelyCore(Node, Copy(Node.X3DName, 1, I - 1), Number + 1)
+        { Include in prefix the final "_" }
+        RenameUniquelyCore(Node, Copy(Node.X3DName, 1, I), Number + 1)
       else
         RenameUniquelyCore(Node, Node.X3DName + '_', 2);
     end else
