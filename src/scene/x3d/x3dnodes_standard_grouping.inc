@@ -766,6 +766,7 @@ type
   strict private
     var
       Visited: TList;
+      Prefixes: TStringList;
       Names: TCastleStringList;
       LogsDone: Cardinal;
     const
@@ -782,12 +783,14 @@ begin
   Names := TCastleStringList.Create;
   Names.CaseSensitive := true;
   Visited := TList.Create;
+  Prefixes := TStringList.Create;
 end;
 
 destructor TFixNamesHandler.Destroy;
 begin
   FreeAndNil(Names);
   FreeAndNil(Visited);
+  FreeAndNil(Prefixes);
   inherited;
 end;
 
@@ -799,10 +802,31 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
   procedure RenameUniquely(const Node: TX3DNode);
 
     procedure RenameUniquelyCore(const Node: TX3DNode; const Prefix: String; NextNumber: Int64);
+    var
+      PrefixIndex: Integer;
     begin
+      { Look for next free number for this prefix.
+
+        If on Prefixes: bump NextNumber to what is in Prefixes + 1,
+        as we know all previous ones are taken.
+
+        This optimization avoids spending longer and longer times
+        to find unique names for names with the same prefix.
+        Testcase: https://github.com/castle-engine/view3dscene/issues/43
+        (received privately by Michalis, due to model being copyrighted).
+      }
+      PrefixIndex := Prefixes.IndexOf(Prefix);
+      if PrefixIndex <> -1 then
+        MaxVar(NextNumber, PtrUInt(Prefixes.Objects[PrefixIndex]) + 1);
+
       while Names.IndexOf(Prefix + IntToStr(NextNumber)) <> -1 do
         Inc(NextNumber);
       Node.X3DName := Prefix + IntToStr(NextNumber);
+
+      if PrefixIndex <> -1 then
+        Prefixes.Objects[PrefixIndex] := TObject(Pointer(NextNumber))
+      else
+        Prefixes.AddObject(Prefix, TObject(Pointer(NextNumber)));
     end;
 
   var
