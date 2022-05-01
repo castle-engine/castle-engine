@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2021 Michalis Kamburelis.
+  Copyright 2006-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -177,7 +177,10 @@ var
 procedure cgeNxLog(Message: PChar); cdecl; external 'cgeNxLog';
 {$endif CASTLE_NINTENDO_SWITCH}
 
-{ Where it the log output going. }
+{ Where is the log output going.
+  This is either a filename, or something special in brackets, like @code(<stdout>),
+  @code(<logging-not-initialized>),
+  @code(<custom-stream>). }
 function LogOutput: String;
 
 const
