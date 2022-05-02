@@ -423,9 +423,11 @@ type
     { @groupEnd }
 
     { Translation (position, location) of the camera. }
-    property Translation: TVector3 read FPosition  write SetPosition;
+    property Translation: TVector3 read FPosition write SetPosition;
 
-    property Position : TVector3 read FPosition  write SetPosition; deprecated 'use Translation';
+    { Deprecated name for Translation. @deprecated }
+    property Position : TVector3 read FPosition write SetPosition;
+      {$ifdef FPC}deprecated 'use Translation';{$endif}
 
     { Change up vector, keeping the direction unchanged.
       If necessary, the up vector provided here will be fixed to be orthogonal
