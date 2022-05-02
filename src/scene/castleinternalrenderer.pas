@@ -2005,8 +2005,16 @@ end;
 
 procedure TGLRenderer.UnprepareAll;
 begin
-  GLTextureNodes.UnprepareAll;
-  ScreenEffectPrograms.Count := 0; { this will free programs inside }
+  { Secure here in case various fields are nil, in case
+    - we are in the middle of TGLRenderer constructor
+      (possible if TCastleRenderOptions.OnCreate fires)
+    - TGLRenderer constructor failed, and now we're in destructor.
+    Testcase: castle-game. }
+
+  if GLTextureNodes <> nil then
+    GLTextureNodes.UnprepareAll;
+  if ScreenEffectPrograms <> nil then
+    ScreenEffectPrograms.Count := 0; { this will free programs inside }
 end;
 
 function TGLRenderer.BumpMapping: TBumpMapping;
