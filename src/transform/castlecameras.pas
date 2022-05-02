@@ -407,12 +407,7 @@ type
     procedure SetWorldView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true);
 
-    { Camera position, looking direction and up vector.
-
-      Call @link(GoToInitial) to set the current vectors to initial vectors,
-      making them equal to InitialPosition, InitialDirection, InitialUp.
-      You can also use @code(Init) method on some navigation descendants
-      like @link(TCastleExamineNavigation.Init) and @link(TCastleWalkNavigation.Init).
+    { Camera looking direction and up vector.
 
       The @link(Direction) and @link(Up) vectors should always be normalized
       (have length 1). When setting them by these properties, we will normalize
@@ -423,10 +418,14 @@ type
       when setting @link(Up), @link(Direction) will be adjusted.
 
       @groupBegin }
-    property Position : TVector3 read FPosition  write SetPosition;
     property Direction: TVector3 read FDirection write SetDirection;
     property Up       : TVector3 read FUp        write SetUp;
     { @groupEnd }
+
+    { Translation (position, location) of the camera. }
+    property Translation: TVector3 read FPosition  write SetPosition;
+
+    property Position : TVector3 read FPosition  write SetPosition; deprecated 'use Translation';
 
     { Change up vector, keeping the direction unchanged.
       If necessary, the up vector provided here will be fixed to be orthogonal

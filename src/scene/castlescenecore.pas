@@ -7390,7 +7390,7 @@ begin
   Result := HasWorldTransform and (World.MainCamera <> nil);
   if Result then
   begin
-    CameraVectors.Position  := WorldInverseTransform.MultPoint    (World.MainCamera.Position);
+    CameraVectors.Position  := WorldInverseTransform.MultPoint    (World.MainCamera.Translation);
     CameraVectors.Direction := WorldInverseTransform.MultDirection(World.MainCamera.Direction);
     CameraVectors.Up        := WorldInverseTransform.MultDirection(World.MainCamera.Up);
   end;
@@ -7402,7 +7402,7 @@ begin
   // note that HasWorldTransform implies also World <> nil
   Result := HasWorldTransform and (World.MainCamera <> nil);
   if Result then
-    CameraLocalPosition := WorldInverseTransform.MultPoint(World.MainCamera.Position);
+    CameraLocalPosition := WorldInverseTransform.MultPoint(World.MainCamera.Translation);
 end;
 
 procedure TCastleSceneCore.ChangedTransform;

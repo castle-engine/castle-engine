@@ -1961,7 +1961,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
     if World.MainCamera <> nil then
     begin
-      CamPos := World.MainCamera.Position;
+      CamPos := World.MainCamera.Translation;
       CamDir := World.MainCamera.Direction;
       CamUp  := World.MainCamera.Up;
     end else

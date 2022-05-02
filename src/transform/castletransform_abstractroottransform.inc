@@ -517,7 +517,7 @@ begin
   if MainCamera = nil then
     Result := TVector3.Zero
   else
-    Result := MainCamera.Position;
+    Result := MainCamera.Translation;
 end;
 
 function TCastleAbstractRootTransform.CameraDirection: TVector3;

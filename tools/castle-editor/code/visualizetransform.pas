@@ -378,7 +378,7 @@ var
     OneProjected := (ViewProjectionMatrix * Vector4(OneWorld, 1)).XY;
     *)
 
-    CameraPos := Camera.Position;
+    CameraPos := Camera.Translation;
     CameraNearPlane := Vector4(
       Camera.Direction,
       { plane equation should yield 0 when used with point in front of camera }

@@ -358,7 +358,7 @@ end;
 
 procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleCamera);
 begin
-  Position := ACamera.Position;
+  Position := ACamera.Translation;
   Matrix := ACamera.Matrix;
   InverseMatrixDone := false;
   RotationMatrix := ACamera.RotationMatrix;

@@ -1380,7 +1380,7 @@ begin
   Uniform('defaultSurfaceGlossiness').SetValue(Viewport.ScreenSpaceReflectionsSurfaceGlossiness);
   Uniform('castle_ViewProjectionMatrix').SetValue(ViewProjectionMatrix);
   Uniform('castle_ViewProjectionMatrixInverse').SetValue(ViewProjectionMatrixInverse);
-  Uniform('castle_CameraPosition').SetValue(Viewport.Camera.Position);
+  Uniform('castle_CameraPosition').SetValue(Viewport.Camera.Translation);
 end;
 
 { TCastleViewport ------------------------------------------------------- }
