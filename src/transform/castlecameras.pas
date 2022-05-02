@@ -83,8 +83,6 @@ type
 
   TCastleNavigation = class;
 
-  TCastleCamera = CastleTransform.TCastleCamera;
-
   { }
   T3BoolInputs = array [0..2, boolean] of TInputShortcut;
 
@@ -2737,7 +2735,7 @@ function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): boolean;
   var
     MouseChange: TVector2;
   begin
-    MouseChange := Container.MouseLookDelta(Event);
+    MouseChange := Container.MouseLookDelta(Event, RenderRect);
 
     if not MouseChange.IsPerfectlyZero then
     begin
