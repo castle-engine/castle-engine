@@ -475,13 +475,17 @@
     { For tracking mouse look. See @link(MouseLookDelta). }
     procedure MouseLookUpdate;
 
-    { Read mouse position delta from container middle,
-      and try to set mouse position to container middle.
+    { Read mouse position delta from ControlRect middle,
+      and try to set mouse position to ControlRect middle.
+
+      ControlRect is usually the container rectangle (in final device coordinates)
+      but in general it should be the rectangle of control over which we should do mouse look
+      (so TCastleUserInterface.RenderRect).
 
       This can be used to perform "mouse look" or a similar effect,
       when user doesn't see the mouse cursor, but user can move something by dragging with mouse.
       Moreover, user should not notice any "bounds" to this dragging (that's why we try
-      to keep mouse position in container middle,
+      to keep mouse position in ControlRect middle,
       to avoid screen borders from acting as constrains on mouse movement).
 
       This is automatically used by @link(TCastleWalkNavigation.MouseLook).
@@ -534,7 +538,7 @@
 
         if Drag then
         begin
-          Delta := Container.MouseLookDelta(Event);
+          Delta := Container.MouseLookDelta(Event, Container.Rect);
           // ...
           // Use Delta to perform any logic you want.
           // It may be zero if mouse was not positioned correctly yet,
@@ -547,7 +551,10 @@
 
       #)
     }
-    function MouseLookDelta(const Event: TInputMotion): TVector2;
+    function MouseLookDelta(const Event: TInputMotion; const ControlRect: TFloatRectangle): TVector2; overload;
+
+    function MouseLookDelta(const Event: TInputMotion): TVector2; overload;
+      deprecated 'use MouseLookDelta overload with ControlRect parameter';
 
     { Force passing events to the given control first,
       regardless if this control is under the mouse cursor.
@@ -1864,6 +1871,12 @@ begin
 end;
 
 function TCastleContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
+begin
+  Result := MouseLookDelta(Event, FloatRectangle(Rect));
+end;
+
+function TCastleContainer.MouseLookDelta(const Event: TInputMotion;
+  const ControlRect: TFloatRectangle): TVector2;
 
   { There's a lot of tricky things in implementing this correctly.
 
@@ -1938,8 +1951,8 @@ function TCastleContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
   { Position is roughly within the center of the window. }
   function ValidArea(const P, Middle: TVector2; const Margin: Single): Boolean;
   begin
-    Result := (Abs(P.X - Middle.X) < Margin * Width) and
-              (Abs(P.Y - Middle.Y) < Margin * Height);
+    Result := (Abs(P.X - Middle.X) < Margin * ControlRect.Width) and
+              (Abs(P.Y - Middle.Y) < Margin * ControlRect.Height);
   end;
 
 var
@@ -1947,12 +1960,14 @@ var
 begin
   Result := TVector2.Zero;
 
-  { Dividing by "div", not "/", because if CastleWindow backend doesn't support
+  Middle := ControlRect.Center;
+  { Round to integers, because if CastleWindow backend doesn't support
     sup-pixel accuracy for SetMousePosition, then it ignores the fractional
     part of SetMousePosition argument.
-    Such fractional part would only cause later "error by 0.5"
+    Such fractional part would only cause later "error by 0.5 (or other epsilon)"
     when using FMouseLookMotionToSubtract to modify Result. }
-  Middle := Vector2(Width div 2, Height div 2);
+  Middle.X := Trunc(Middle.X);
+  Middle.Y := Trunc(Middle.Y);
 
   if FMouseLookIgnoreNextMotion then
   begin
