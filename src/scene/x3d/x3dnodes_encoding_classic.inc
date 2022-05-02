@@ -121,8 +121,9 @@ end;
 
   @raises(EX3DParserError On various parsing errors.)
 *)
-function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
-  NilIfUnresolvedUSE: boolean): TX3DNode;
+function ParseNode(const Lexer: TX3DLexer; const Reader: TX3DReaderNames;
+  const NilIfUnresolvedUSE: Boolean;
+  const AllowNodeCycle: Boolean; var UsingNodeCycle: Boolean): TX3DNode; overload;
 
   procedure ParseNamedNode(const NodeName: string);
   var
@@ -169,12 +170,19 @@ function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
       end;
     end;
 
+    { Register node name early, before it is finalized.
+      Reason:
+      - Some X3D models use ROUTEs inside the nodes to/from which they lead.
+      - Some X3D models may have cycles in node graph (see notes below about Script).
+    }
     Reader.Nodes.Bind(Result, false);
 
     Result.Parse(Lexer, Reader);
 
     if Result is TX3DPrototypeNode then
     try
+      { Note that this changes Result, and the new Result must be send to Nodes.Bind,
+        as the "instantiated" node must be registered. }
       Result := TX3DPrototypeNode(Result).Instantiate;
     except
       on E: EX3DPrototypeInstantiateError do
@@ -183,52 +191,43 @@ function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
         WritelnWarning('VRML/X3D', E.Message);
     end;
 
-    { Cycles in VRML graph are bad:
-      - they can cause our current traversing routines
-        to loop infinitely (we don't check there to avoid visiting already
-        visited nodes).
+    { Cycles in VRML / X3D graph are possible.
+
+      Problems with them:
+      - they can cause our traversing routines to loop infinitely
+        (we don't check there to avoid visiting already visited nodes).
       - they can cause memory leaks, since reference
         counting doesn't work when we have loops.
 
-      My initial brilliant idea is that I can 100% avoid having cycles
-      by simply doing Result.Bind *after* the node is parsed.
-      This is trivially simple and works 100% to avoid cycles.
-      Moreover, this is needed in the light of possible
-        "Result := TX3DPrototypeNode(Result).Instantiate"
-      which means that before parsing, our Result is possibly not something
-      that we wanted to insert to NodeNames.
+      But we cannot really avoid handling them.
+      We need to
+        Reader.Nodes.Bind(Result, false)
+      before parsing node centents, and
+        Reader.Nodes.Bind(Result, true)
+      after.
 
-      So there I was, swimming in joy with ultra-simple and 100% correct
-      solution. Until I found a problem with it...
+      That is because a Script node's interface declarations may contain
+      cyclic references, to Script node itself or it's parents. See
+        demo-models/x3d/node_cycle_in_script.x3d
+        demo-models/x3d/node_cycle_in_script.x3dv
 
-      In VRML 2.0, there is a Script node. It has interface declarations.
-      It's interface declaration may have SFNode type. And then it can
-      do USE call. And the trouble: VRML allows this very special USE
-      clause to create cycle. E.g. see
-      ~/sources/openvrml/openvrml/models/jsTouch.wrl.
+      Also RenderedTexture.scene may contain a cycle.
 
-      Similar usage occurs for RenderedTexture.scene.
-      And many X3D models use ROUTEs inside the nodes to/from which they lead.
-      Although ROUTEs do not cause cycles when traversing, they still mean
-      that node name must be bound earlier.
+      Looking at spec: It prohibits certain special kinds of cycles,
+      but not *any* cycles in graph.
 
-      Cycles in graph aren't common,
-      at least for grouping nodes X3D specification (but not VRML 97,
-      as far as I see) says explicitly
-      "A children field is not allowed to contain nodes that
-      are ancestors of the grouping node"
-      so in case of this particular "children" MFNode field cycles
-      are not possible. In many other cases cycles are not possible,
-      e.g. Appearance cannot create cycles since no Appearance children
-      can be of Appearance type... But generally there is no rule that
-      guarantees "no cycles" in VRML file, as we can see.
-      And events like addChildren can create cycles easily.
+      - X3D specification says
+        "A children field is not allowed to contain nodes that
+        are ancestors of the grouping node"
+        (so "children" MFNode field cycles are not allowed).
 
-      For now, NilIfUnresolvedUSE successfully changes there special
-      cycles in Script into mere WritelnWarning, so they don't stop
-      us from reading the rest of VRML file. And since we don't handle
-      any scripting, this is not a problem in practice. But some day it'll
-      have to be fixed... }
+      - Many other cases cycles are not possible,
+        e.g. Appearance cannot create cycles since no Appearance children
+        can be of Appearance type.
+
+      SFNode can handle cycles in some cases with AutomaticWeakLink.
+      When not AutomaticWeakLink, at least we use NilIfUnresolvedUSE
+      to clearly ignore such cycles and continue reading the file. }
 
     Reader.Nodes.Bind(Result, true);
   end;
@@ -262,6 +261,13 @@ begin
 
            {get appropriate node}
            Result := Reader.Bound(NodeName, UsedNodeFinished, true);
+           { When AllowNodeCycle, then UsedNodeFinished=false is not a problem.
+             Just flip UsingNodeCycle to true, caller can handle a loop in node definition. }
+           if (Result <> nil) and (not UsedNodeFinished) and AllowNodeCycle then
+           begin
+             UsingNodeCycle := true;
+             UsedNodeFinished := true;
+           end;
            if (Result = nil) or (not UsedNodeFinished) then
            begin
              if Result = nil then
@@ -271,7 +277,8 @@ begin
                Result := nil; { return nil in case of cycles }
              end;
              if NilIfUnresolvedUSE then
-               WritelnWarning('VRML/X3D', S) else
+               WritelnWarning('VRML/X3D', S)
+             else
                raise EX3DParserError.Create(Lexer, S);
            end;
 
@@ -285,6 +292,15 @@ begin
             'Expected node type or DEF or USE, got '+Lexer.DescribeToken);
     end;
   except FreeAndNil(Result); raise end;
+end;
+
+function ParseNode(const Lexer: TX3DLexer; const Reader: TX3DReaderNames;
+  const NilIfUnresolvedUSE: Boolean): TX3DNode; overload;
+var
+  IgnoredUsingNodeCycle: Boolean;
+begin
+  IgnoredUsingNodeCycle := false;
+  Result := ParseNode(Lexer, Reader, NilIfUnresolvedUSE, false, IgnoredUsingNodeCycle);
 end;
 
 { Parses a sequence of VRML/X3D statements: any number of nodes,

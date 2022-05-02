@@ -66,9 +66,13 @@ const
   SAttrContainerField = 'containerField';
   SAttrDEF = 'DEF';
 
-function ParseXMLNode(Element: TDOMElement;
-  out ContainerField: string; Reader: TX3DReaderNames;
-  NilIfUnresolvedUSE: boolean): TX3DNode; forward;
+function ParseXMLNode(const Element: TDOMElement;
+  out ContainerField: string; const Reader: TX3DReaderNames;
+  const NilIfUnresolvedUSE: boolean): TX3DNode; overload; forward;
+function ParseXMLNode(const Element: TDOMElement;
+  out ContainerField: string; const Reader: TX3DReaderNames;
+  const NilIfUnresolvedUSE: Boolean;
+  const AllowNodeCycle: Boolean; var UsingNodeCycle: Boolean): TX3DNode; overload; forward;
 function ParseStatements(Element: TDOMElement;
   FileTopLevel: boolean;
   X3DHeaderElement: TDOMElement; Reader: TX3DReaderNames): TX3DRootNode; overload; forward;
@@ -152,9 +156,10 @@ end;
     unknown field / proto etc. name, so error message for the user should
     be better.)
 *)
-function ParseXMLNode(Element: TDOMElement;
-  out ContainerField: string; Reader: TX3DReaderNames;
-  NilIfUnresolvedUSE: boolean): TX3DNode;
+function ParseXMLNode(const Element: TDOMElement;
+  out ContainerField: string; const Reader: TX3DReaderNames;
+  const NilIfUnresolvedUSE: Boolean;
+  const AllowNodeCycle: Boolean; var UsingNodeCycle: Boolean): TX3DNode;
 
   procedure ParseNamedNode(const NodeName: string);
   var
@@ -272,6 +277,13 @@ begin
     begin
       { get appropriate node }
       Result := Reader.Bound(NodeName, UsedNodeFinished, true);
+      { When AllowNodeCycle, then UsedNodeFinished=false is not a problem.
+        Just flip UsingNodeCycle to true, caller can handle a loop in node definition. }
+      if (Result <> nil) and (not UsedNodeFinished) and AllowNodeCycle then
+      begin
+        UsingNodeCycle := true;
+        UsedNodeFinished := true;
+      end;
       if (Result = nil) or (not UsedNodeFinished) then
       begin
         if Result = nil then
@@ -281,7 +293,8 @@ begin
           Result := nil; { return nil in case of cycles }
         end;
         if NilIfUnresolvedUSE then
-          WritelnWarning('X3D', S) else
+          WritelnWarning('X3D', S)
+        else
           raise EX3DXmlNotAllowedError.Create(S);
       end;
     end else
@@ -310,6 +323,16 @@ begin
     Element.AttributeString(SAttrContainerField, ContainerField);
 
   except FreeAndNil(Result); raise end;
+end;
+
+function ParseXMLNode(const Element: TDOMElement;
+  out ContainerField: string; const Reader: TX3DReaderNames;
+  const NilIfUnresolvedUSE: boolean): TX3DNode;
+var
+  IgnoredUsingNodeCycle: Boolean;
+begin
+  IgnoredUsingNodeCycle := false;
+  Result := ParseXMLNode(Element, ContainerField, Reader, NilIfUnresolvedUSE, false, IgnoredUsingNodeCycle);
 end;
 
 { This parses a sequence of X3D statements: any number of nodes,

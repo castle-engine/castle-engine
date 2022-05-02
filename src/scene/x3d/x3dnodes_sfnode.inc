@@ -40,11 +40,12 @@
     FDefaultValue: TX3DNode;
     FDefaultValueExists: boolean;
     FWeakLink: boolean;
+    FAutomaticWeakLink: Boolean;
     procedure SetValue(const AValue: TX3DNode);
     procedure SetDefaultValue(const ADefaultValue: TX3DNode);
     procedure SetDefaultValueExists(const AValue: boolean);
     procedure SetWeakLink(const AValue: boolean);
-    procedure WarningIfUnusedWeakLink;
+    procedure WarningIfUnusedWeakLink(const Reader: TX3DReaderNames);
     procedure DestructionNotification(const Node: TX3DNode);
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
@@ -179,6 +180,28 @@
     }
     property WeakLink: boolean
       read FWeakLink write SetWeakLink default false;
+
+    (*Automatically use WeakLink if field would contain a node cycle.
+      Using WeakLink=true allows to handle node cycles, like common in VRML/X3D
+
+      @preformatted(
+      DEF Xxx Transform {
+        children [
+          ...
+          Script {
+            ...
+            inputOutput SFNode someField USE Xxx
+          }
+        ]
+      }
+
+      When AutomaticWeakLink, the given field contents may, but doesn't have to,
+      be a node cycle -- we only use WeakLink when necessary.
+
+      Use this only for fields that are not enumerated by DirectEnumerateActive,
+      Traverse etc., otherwise you create a cycle in nodes that we generally cannot handle. *)
+    property AutomaticWeakLink: Boolean
+      read FAutomaticWeakLink write FAutomaticWeakLink default false;
   end;
 
   TSFNodeEventHelper = class helper for TSFNodeEvent
@@ -301,13 +324,14 @@ begin
     ChildNotAllowed;
 end;
 
-procedure TSFNode.WarningIfUnusedWeakLink;
+procedure TSFNode.WarningIfUnusedWeakLink(const Reader: TX3DReaderNames);
 begin
   if WeakLink and
      (Value <> nil) and
      (Value.VRML1ParentsCount = 0) and
      (Value.FParentFields.Count = 0) and
-     (Value.KeepExisting = 0) then
+     (Value.KeepExisting = 0) and
+     (not Reader.Nodes.NodeDuringReading(Value)) then
   begin
     FValue.FreeIfUnused; // we know it will be freed now
     FValue := nil;
@@ -318,6 +342,9 @@ begin
 end;
 
 procedure TSFNode.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
+var
+  UsingNodeCycle: Boolean;
+  NewValue: TX3DNode;
 begin
   if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkNULL) then
   begin
@@ -325,12 +352,20 @@ begin
     Lexer.NextToken;
   end else
   begin
+    UsingNodeCycle := false;
     { This is one case when we can use NilIfUnresolvedUSE = @true }
-    Value := ParseNode(Lexer, Reader as TX3DReaderNames, true);
+    NewValue := ParseNode(Lexer, Reader as TX3DReaderNames, true, AutomaticWeakLink, UsingNodeCycle);
+    if UsingNodeCycle then
+      WeakLink := true;
+
+    { Copying NewValue -> Value only after WeakLink was adjusted by AutomaticWeakLink,
+      as Value cannot change once WeakLink changed. }
+    Value := NewValue;
+
     if Value <> nil then
     begin
       WarningIfChildNotAllowed(Value);
-      WarningIfUnusedWeakLink;
+      WarningIfUnusedWeakLink(Reader as TX3DReaderNames);
     end;
   end;
 end;
@@ -340,22 +375,29 @@ const
   SNull = 'NULL';
 var
   UsedNodeFinished: boolean;
-  V: TX3DNode;
+  NewValue: TX3DNode;
 begin
   { For SFNode and MFNode, X3D XML encoding has special handling:
     field value just indicates the node name, or NULL.
     (other values for SFNode / MFNode cannot be expressed inside
     the attribute). }
 
-  V := (Reader as TX3DReaderNames).Bound(AttributeValue, UsedNodeFinished, true);
-  if (V <> nil) and (not UsedNodeFinished) then
+  NewValue := (Reader as TX3DReaderNames).Bound(AttributeValue, UsedNodeFinished, true);
+  { When AutomaticWeakLink, then UsedNodeFinished=false is not a problem.
+    Just flip WeakLink to true, and we can handle a loop in node definition. }
+  if (NewValue <> nil) and (not UsedNodeFinished) and AutomaticWeakLink then
+  begin
+    WeakLink := true;
+    UsedNodeFinished := true;
+  end;
+  if (NewValue <> nil) and (not UsedNodeFinished) then
   begin
     WritelnWarning('X3D', Format('Cycles in X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
     Value := nil;
     Exit;
   end;
 
-  Value := V;
+  Value := NewValue;
   if Value = nil then
   begin
     if AttributeValue <> SNull then
@@ -363,7 +405,7 @@ begin
   end else
   begin
     WarningIfChildNotAllowed(Value);
-    WarningIfUnusedWeakLink;
+    WarningIfUnusedWeakLink(Reader as TX3DReaderNames);
   end;
 end;
 
@@ -372,13 +414,19 @@ var
   Child: TX3DNode;
   I: TXMLElementIterator;
   ContainerFieldDummy: string;
+  UsingNodeCycle: Boolean;
 begin
   I := Element.ChildrenIterator;
   try
     if I.GetNext then
     begin
+      UsingNodeCycle := false;
       Child := ParseXMLNode(I.Current,
-        ContainerFieldDummy { ignore containerField }, Reader as TX3DReaderNames, true);
+        ContainerFieldDummy { ignore containerField }, Reader as TX3DReaderNames,
+        true, AutomaticWeakLink, UsingNodeCycle);
+      if UsingNodeCycle then
+        WeakLink := true;
+
       if Child <> nil then
       begin
         Value := Child;

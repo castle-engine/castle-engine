@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -256,7 +256,11 @@ begin
   end else
   begin
     if FieldValue then
-      Field.Parse(Lexer, Reader, IsClauseAllowed) else
+    begin
+      if Field is TSFNode then
+        TSFNode(Field).AutomaticWeakLink := true;
+      Field.Parse(Lexer, Reader, IsClauseAllowed)
+    end else
     if IsClauseAllowed then
       Field.ParseIsClause(Lexer);
   end;
@@ -321,8 +325,12 @@ begin
   begin
     if FieldValue then
     begin
+      if Field is TSFNode then
+        TSFNode(Field).AutomaticWeakLink := true;
+
       if Element.AttributeString('value', FieldActualValue) then
-        Field.ParseXMLAttribute(FieldActualValue, Reader) else
+        Field.ParseXMLAttribute(FieldActualValue, Reader)
+      else
         Field.ParseXMLElement(Element, Reader);
     end;
 

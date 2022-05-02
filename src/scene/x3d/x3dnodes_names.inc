@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,6 +59,11 @@
 
     { Find node bound to given name. @nil if none. }
     function Bound(const Name: string; out NodeFinished: boolean): TX3DNode; overload;
+
+    { Node is during reading, judging from Bind calls with NodeFinished=@false
+      (when node reading starts) and with NodeFinished=@true (when node reading
+      finishes). }
+    function NodeDuringReading(const Node: TX3DNode): Boolean;
 
     { Check is Node bound in the current namespace.
       @false means that node is not within this namespace,
@@ -140,6 +145,16 @@ begin
     if List^[Result].Name = Name then
       Exit;
   Result := -1;
+end;
+
+function TX3DNodeNames.NodeDuringReading(const Node: TX3DNode): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if List^[I].Node = Node then
+      Exit(not List^[I].Finished);
+  Result := false; // Node reading not even started
 end;
 
 procedure TX3DNodeNames.DestructionNotification(const Node: TX3DNode);
