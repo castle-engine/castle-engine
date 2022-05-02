@@ -1605,13 +1605,13 @@ begin
 
   if Result and Assigned(OnInternalMoveAllowed) then
   begin
-    Result := OnInternalMoveAllowed(Self, Camera.Position, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
+    Result := OnInternalMoveAllowed(Self, Camera.Translation, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
     // update ProposedNewPos for OnMoveAllowed call
     if Result then
       ProposedNewPos := NewPos;
   end;
   if Result and Assigned(OnMoveAllowed) then
-    Result := OnMoveAllowed(Self, Camera.Position, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
+    Result := OnMoveAllowed(Self, Camera.Translation, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
 end;
 
 procedure TCastleNavigation.Height(const APosition: TVector3;
@@ -2405,7 +2405,7 @@ function TCastleExamineNavigation.Zoom(const Factor: Single): boolean;
 
 var
   Size: Single;
-  OldTranslation, OldPosition: TVector3;
+  OldTranslation, OldCameraTranslation: TVector3;
   B: TBox3D;
 begin
   B := GoodModelBox;
@@ -2423,7 +2423,7 @@ begin
       Size := B.AverageSize;
 
       OldTranslation := Translation;
-      OldPosition := Camera.Position;
+      OldCameraTranslation := Camera.Translation;
 
       Translation := Translation + Vector3(0, 0, Size * Factor);
 
@@ -2432,8 +2432,8 @@ begin
         so zoomin in/out inside the box is still always allowed.
         See http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=24 }
       if (Factor > 0) and
-         (B.PointDistance(Camera.Position) >
-          B.PointDistance(OldPosition)) then
+         (B.PointDistance(Camera.Translation) >
+          B.PointDistance(OldCameraTranslation)) then
       begin
         Translation := OldTranslation;
         Exit(false);
@@ -2938,12 +2938,13 @@ function TCastleWalkNavigation.AdjustPositionForRotationHorizontalPivot(
 var
   Pivot, OldDirectionInGravityPlane, NewDirectionInGravityPlane: TVector3;
 begin
-  Result := Camera.Position;
+  Result := Camera.Translation;
+  {$warnings off} // using deprecated RotationHorizontalPivot to keep it working
   if RotationHorizontalPivot <> 0 then
   begin
     if PreferGravityUpForRotations then
     begin
-      Pivot := Camera.Position + OldDirection * RotationHorizontalPivot;
+      Pivot := Camera.Translation + OldDirection * RotationHorizontalPivot;
       Result := Pivot - NewDirection * RotationHorizontalPivot;
     end else
     begin
@@ -2953,10 +2954,11 @@ begin
       NewDirectionInGravityPlane := NewDirection;
       if not VectorsParallel(NewDirectionInGravityPlane, Camera.GravityUp) then
         MakeVectorsOrthoOnTheirPlane(NewDirectionInGravityPlane, Camera.GravityUp);
-      Pivot := Camera.Position + OldDirectionInGravityPlane * RotationHorizontalPivot;
+      Pivot := Camera.Translation + OldDirectionInGravityPlane * RotationHorizontalPivot;
       Result := Pivot - NewDirectionInGravityPlane * RotationHorizontalPivot;
     end;
   end;
+  {$warnings on}
 end;
 
 procedure TCastleWalkNavigation.RotateAroundGravityUp(const Angle: Single);
@@ -3098,7 +3100,7 @@ var
   NewAboveHeight, OldAbsoluteHeight, NewAbsoluteHeight: Single;
   NewAboveGround: PTriangle;
 begin
-  Result := MoveAllowed(Camera.Position, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
+  Result := MoveAllowed(Camera.Translation, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
 
   if Result and Gravity and CheckClimbHeight and (ClimbHeight <> 0) and IsAbove and
     { if we're already below ClimbHeight then do not check if new position
@@ -3111,7 +3113,7 @@ begin
     Height(NewPos, NewIsAbove, NewAboveHeight, NewAboveGround);
     if NewIsAbove then
     begin
-      OldAbsoluteHeight := TVector3.DotProduct(Camera.GravityUp, Camera.Position);
+      OldAbsoluteHeight := TVector3.DotProduct(Camera.GravityUp, Camera.Translation);
       NewAbsoluteHeight := TVector3.DotProduct(Camera.GravityUp, NewPos);
       Result := not (
         AboveHeight - NewAboveHeight - (OldAbsoluteHeight - NewAbsoluteHeight) >
@@ -3123,13 +3125,13 @@ begin
   end;
 
   if Result then
-    Camera.Position := NewPos;
+    Camera.Translation := NewPos;
 end;
 
 function TCastleWalkNavigation.Move(const MoveVector: TVector3;
   const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
 begin
-  Result := MoveTo(Camera.Position + MoveVector, BecauseOfGravity, CheckClimbHeight);
+  Result := MoveTo(Camera.Translation + MoveVector, BecauseOfGravity, CheckClimbHeight);
 end;
 
 procedure TCastleWalkNavigation.MoveHorizontal(const SecondsPassed: Single; const Multiply: Integer = 1);
@@ -3315,7 +3317,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
         FFallSpeed := FallSpeedStart;
 
       { try to fall down }
-      PositionBefore := Camera.Position;
+      PositionBefore := Camera.Translation;
 
       { calculate FallingVectorLength.
 
@@ -3354,7 +3356,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       MinVar(FallingVectorLength, AboveHeight - RealPreferredHeight);
 
       if Move(Camera.GravityUp * (- FallingVectorLength), true, false) and
-        (not TVector3.PerfectlyEquals(Camera.Position, PositionBefore)) then
+        (not TVector3.PerfectlyEquals(Camera.Translation, PositionBefore)) then
       begin
         if not Falling then
         begin
@@ -3550,7 +3552,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
         { Project Position and FFallingStartPosition
           onto GravityUp vector to calculate fall height. }
         BeginPos := PointOnLineClosestToPoint(TVector3.Zero, Camera.GravityUp, FFallingStartPosition);
-        EndPos   := PointOnLineClosestToPoint(TVector3.Zero, Camera.GravityUp, Camera.Position);
+        EndPos   := PointOnLineClosestToPoint(TVector3.Zero, Camera.GravityUp, Camera.Translation);
         FallVector := BeginPos - EndPos;
 
         { Because of various growing and jumping effects (imagine you jump up
@@ -3620,7 +3622,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     if Gravity then
     begin
       { update IsAbove, AboveHeight }
-      Height(Camera.Position, FIsAbove, FAboveHeight, FAboveGround);
+      Height(Camera.Translation, FIsAbove, FAboveHeight, FAboveGround);
 
       FIsOnTheGround := GetIsOnTheGround;
       FIsWalkingOnTheGround := MoveHorizontalDone and FIsOnTheGround;
@@ -3924,7 +3926,7 @@ begin
     to be able to jump. }
 
   { update IsAbove, AboveHeight }
-  Height(Camera.Position, FIsAbove, FAboveHeight, FAboveGround);
+  Height(Camera.Translation, FIsAbove, FAboveHeight, FAboveGround);
 
   if AboveHeight > RealPreferredHeight + RealPreferredHeightMargin then
     Exit;
