@@ -2006,8 +2006,16 @@ end;
 
 procedure TGLRenderer.UnprepareAll;
 begin
-  GLTextureNodes.UnprepareAll;
-  ScreenEffectPrograms.Count := 0; { this will free programs inside }
+  { Secure here in case various fields are nil, in case
+    - we are in the middle of TGLRenderer constructor
+      (possible if TCastleRenderOptions.OnCreate fires)
+    - TGLRenderer constructor failed, and now we're in destructor.
+    Testcase: castle-game. }
+
+  if GLTextureNodes <> nil then
+    GLTextureNodes.UnprepareAll;
+  if ScreenEffectPrograms <> nil then
+    ScreenEffectPrograms.Count := 0; { this will free programs inside }
 end;
 
 function TGLRenderer.BumpMapping: TBumpMapping;
@@ -2377,6 +2385,11 @@ begin
      ShapeUsesEnvironmentLight(Shape) or
      (not Shape.Geometry.Solid) { two-sided lighting required by solid=FALSE } then
     PhongShading := true;
+  { As an exception, in case of buggy shader pipeline, force using Gouraud shading.
+    We cannot do Phong shading in this case, as it implies using "pure shader pipeline".
+    See https://forum.castle-engine.io/t/win64-lcl-simple-shapes-something-got-broken/579/14 }
+  if GLVersion.BuggyPureShaderPipeline then
+    PhongShading := false;
 
   Shader.Initialize(PhongShading);
 
