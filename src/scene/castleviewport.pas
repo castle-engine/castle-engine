@@ -2228,6 +2228,15 @@ var
     Items.InternalProjectionFar := FProjection.ProjectionFar;
   end;
 
+  procedure FixNavigation;
+  begin
+    if (Navigation <> nil) and (Navigation.Parent = nil) then
+    begin
+      WritelnWarning('Current TCastleViewport.Navigation was not part of the UI. We advise adding it explicitly as TCastleViewport child. Adding it now.');
+      InsertBack(Navigation);
+    end;
+  end;
+
 begin
   inherited;
 
@@ -2240,6 +2249,7 @@ begin
   ItemsUpdate;
   UpdateVisibleChange;
   WatchMainSceneChange;
+  FixNavigation;
 end;
 
 function TCastleViewport.AllowSuspendForInput: boolean;
