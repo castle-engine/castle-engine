@@ -626,7 +626,7 @@ type
     var
       FStreamer: TJsonStreamer;
       { Using just one TSerializationProcessWriter instance is not enough,
-        as C.CustomSerialiazion calls may happen recursively. }
+        as C.CustomSerialization calls may happen recursively. }
       SerializationProcessPool: TSerializationProcessWriterList;
       SerializationProcessPoolUsed: Integer;
 

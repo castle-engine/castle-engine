@@ -540,13 +540,16 @@ type
       then make it a "subcomponent" instead, by @code(SetSubComponent(true)).
 
       Note that both csSubComponent and csTransient only disable the component
-      serialization as part of parent's @code(TComponent.GetChildren) list.
+      serialization as part of parent's lists enumerated by CustomSerialization
+      (see internal TCastleUserInterface.SerializeChildrenEnumerate ,
+      TCastleTransform.SerializeChildrenEnumerate,
+      TCastleTransform.SerializeBehaviorsEnumerate).
+
       If you will make the component published in its own property
       (which is normal for "subcomponents")
       then it will be serialized anyway, just as part of it's own property
       (like TCastleScrollView.ScrollArea).
-      So to @italic(really) avoid serializing the component
-      (that you have to insert to @code(TComponent.GetChildren) list),
+      So to @italic(really) avoid serializing a children component
       make it csSubComponent and/or csTransient,
       and do not publish it.
     }
@@ -603,7 +606,7 @@ type
 
   For every TComponent it also recursively enumerates properties
   to translate in children, i.e. in all published subcomponents and children
-  (returned by TComponent.GetChildren). The goal is to be 100% consistent with
+  (returned by TCastleComponent.CustomSerialization). The goal is to be 100% consistent with
   CastleComponentSerialize, which is used to (de)serialize hierarchy of
   components (like TCastleUserInterface or TCastleTransform).
 
@@ -1771,14 +1774,28 @@ end;
 
 type
   { Helper class to implement TranslateProperties. }
-  TTranslatePropertiesGetChildren = class
-    TranslatePropertyEvent: TTranslatePropertyEvent;
+  TTranslatePropertiesGetChildren = class(TSerializationProcess)
+  strict private
     procedure TranslatePropertiesOnChild(Child: TComponent);
+  public
+    TranslatePropertyEvent: TTranslatePropertyEvent;
+    procedure ReadWrite(const AKey: String;
+      const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
+      const ListAdd: TSerializationProcess.TListAddEvent;
+      const ListClear: TSerializationProcess.TListClearEvent); override;
   end;
 
 procedure TTranslatePropertiesGetChildren.TranslatePropertiesOnChild(Child: TComponent);
 begin
   TranslateProperties(Child, TranslatePropertyEvent);
+end;
+
+procedure TTranslatePropertiesGetChildren.ReadWrite(const AKey: String;
+  const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
+  const ListAdd: TSerializationProcess.TListAddEvent;
+  const ListClear: TSerializationProcess.TListClearEvent);
+begin
+  ListEnumerate({$ifdef FPC}@{$endif} TranslatePropertiesOnChild);
 end;
 
 procedure TranslateProperties(const C: TComponent;
@@ -1812,8 +1829,7 @@ begin
     GetChildrenHandler := TTranslatePropertiesGetChildren.Create;
     try
       GetChildrenHandler.TranslatePropertyEvent := TranslatePropertyEvent;
-      TCastleComponent(C).GetChildren(
-        {$ifdef FPC}@{$endif} GetChildrenHandler.TranslatePropertiesOnChild, nil);
+      TCastleComponent(C).CustomSerialization(GetChildrenHandler);
     finally FreeAndNil(GetChildrenHandler) end;
   end;
 
@@ -1830,7 +1846,7 @@ begin
   finally FreeAndNil(PropInfos) end;
 {$else}
 begin
-  // TODO: not yet implemented for Delphi
+  WritelnWarning('Localization (TranslateProperties) not implemented for Delphi yet.');
 {$endif}
 end;
 
