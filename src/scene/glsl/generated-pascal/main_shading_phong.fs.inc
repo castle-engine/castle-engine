@@ -87,6 +87,7 @@
 '  /* PLUG: lighting_apply (fragment_color, castle_vertex_eye, normal_eye_fragment) */' + LineEnding +
 '  /* PLUG: steep_parallax_shadow_apply (fragment_color) */' + LineEnding +
 '  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */' + LineEnding +
+'  /* PLUG: fragment_modify (fragment_color) */' + LineEnding +
 '' + LineEnding +
 '  #ifdef CASTLE_GAMMA_CORRECTION' + LineEnding +
 '  fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);' + LineEnding +

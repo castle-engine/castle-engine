@@ -33,6 +33,8 @@ void main(void)
 
 #undef normal_eye_fragment
 
+  /* PLUG: fragment_modify (fragment_color) */
+
   #ifdef CASTLE_GAMMA_CORRECTION
   fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);
   #else

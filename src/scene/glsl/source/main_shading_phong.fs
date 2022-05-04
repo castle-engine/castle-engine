@@ -85,6 +85,7 @@ void main(void)
   /* PLUG: lighting_apply (fragment_color, castle_vertex_eye, normal_eye_fragment) */
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */
+  /* PLUG: fragment_modify (fragment_color) */
 
   #ifdef CASTLE_GAMMA_CORRECTION
   fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);

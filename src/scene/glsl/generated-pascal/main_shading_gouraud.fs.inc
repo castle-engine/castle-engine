@@ -35,6 +35,8 @@
 '' + LineEnding +
 '#undef normal_eye_fragment' + LineEnding +
 '' + LineEnding +
+'  /* PLUG: fragment_modify (fragment_color) */' + LineEnding +
+'' + LineEnding +
 '  #ifdef CASTLE_GAMMA_CORRECTION' + LineEnding +
 '  fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);' + LineEnding +
 '  #else' + LineEnding +

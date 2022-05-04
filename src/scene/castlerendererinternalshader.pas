@@ -2220,6 +2220,8 @@ begin
     if PlugName = 'texture_coord_shift' then
       PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
         '#define HAS_TEXTURE_COORD_SHIFT', false);
+    if PlugName = 'texture_apply' then
+      WritelnWarning('Using PLUG_texture_apply is deprecated. Upgrade to 1. PLUG_main_texture_apply (to do something after main texture application; but remember that it happens *before* lighting application in case of Phong shading), 2. or PLUG_fragment_modify (to do final fragment color adjustment)');
 
     { PlugName is not needed below to make this unique,
       but it makes reading shader code easier. }
