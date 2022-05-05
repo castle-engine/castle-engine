@@ -27,34 +27,21 @@ uses
 type
   TTestCastleUIControls = class(TCastleTestCase)
   published
-    procedure TestRectOverrides;
-    procedure TestRecursiveRect;
+    procedure TestRectEffective;
+    procedure TestRecursiveSize;
     procedure TestForIn;
   end;
 
 implementation
 
-uses CastleRectangles, CastleVectors;
+uses CastleRectangles, CastleVectors, CastleUtils;
 
-type
-  TNothingOverrriden = class(TCastleUserInterface)
-  end;
-
-  TFloatOverrriden = class(TCastleUserInterface)
-    function Rect: TFloatRectangle; override;
-  end;
-
-function TFloatOverrriden.Rect: TFloatRectangle;
-begin
-  Result := FloatRectangle(100, 200, 300, 400);
-end;
-
-procedure TTestCastleUIControls.TestRectOverrides;
+procedure TTestCastleUIControls.TestRectEffective;
 var
-  N: TNothingOverrriden;
-  F: TFloatOverrriden;
+  N: TCastleUserInterface;
+  F: TCastleUserInterface;
 begin
-  N := TNothingOverrriden.Create(nil);
+  N := TCastleUserInterface.Create(nil);
   try
     AssertEquals(100, N.EffectiveWidth);
     AssertEquals(100, N.EffectiveHeight);
@@ -65,8 +52,10 @@ begin
     AssertEquals(0, N.EffectiveHeight);
   finally FreeAndNil(N); end;
 
-  F := TFloatOverrriden.Create(nil);
+  F := TCastleUserInterface.Create(nil);
   try
+    F.Width := 300;
+    F.Height := 400;
     AssertEquals(300, F.EffectiveWidth);
     AssertEquals(400, F.EffectiveHeight);
   finally FreeAndNil(F); end;
@@ -74,23 +63,23 @@ end;
 
 type
   TParentAdjustsToChildren = class(TCastleUserInterface)
-    function Rect: TFloatRectangle; override;
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   end;
 
-function TParentAdjustsToChildren.Rect: TFloatRectangle;
+procedure TParentAdjustsToChildren.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   I: Integer;
   C: TCastleUserInterface;
 begin
-  Result := TFloatRectangle.Empty;
   for I := 0 to ControlsCount - 1 do
   begin
     C := Controls[I];
-    Result := Result + C.Rect;
+    MaxVar(PreferredWidth, C.EffectiveWidth * UIScale);
+    MaxVar(PreferredHeight, C.EffectiveHeight * UIScale);
   end;
 end;
 
-procedure TTestCastleUIControls.TestRecursiveRect;
+procedure TTestCastleUIControls.TestRecursiveSize;
 var
   UiParent: TParentAdjustsToChildren;
   UiChild: TCastleUserInterface;
@@ -101,16 +90,12 @@ begin
     UiParent.InsertFront(UiChild);
 
     // check that calculating rects doesn't cause infinite loop
-    UiParent.Rect;
-    UiChild.Rect;
     UiParent.RenderRect;
     UiChild.RenderRect;
 
     UiChild.FullSize := true;
 
     // check that calculating rects doesn't cause infinite loop
-    UiParent.Rect;
-    UiChild.Rect;
     UiParent.RenderRect;
     UiChild.RenderRect;
   finally
