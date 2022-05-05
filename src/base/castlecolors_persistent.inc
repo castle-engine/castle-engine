@@ -129,6 +129,8 @@ type
 constructor TCastleColorRGBPersistent.Create(const AOwner: TComponent = nil);
 begin
   inherited Create(AOwner);
+  { See TCastleVector2Persistent.Create comments about SetSubComponent call. }
+  SetSubComponent(true);
 end;
 
 function TCastleColorRGBPersistent.GetValue: TCastleColorRGB;
@@ -256,6 +258,8 @@ end;
 constructor TCastleColorPersistent.Create(const AOwner: TComponent = nil);
 begin
   inherited Create(AOwner);
+  { See TCastleVector2Persistent.Create comments about SetSubComponent call. }
+  SetSubComponent(true);
 end;
 
 function TCastleColorPersistent.GetValue: TCastleColor;

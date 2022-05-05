@@ -181,6 +181,15 @@ type
 constructor TCastleVector2Persistent.Create(const AOwner: TComponent = nil);
 begin
   inherited Create(AOwner);
+  { Usually the class should not call on itself SetSubComponent,
+    as being subcomponent is determined by the caller/owner.
+    But in this case
+    1. we know that this class should *only* be useful to help with serialization,
+       as subcomponent
+    2. we don't want to break compatibility in how this class is used,
+       and users may have used these classes in own projects following our
+       earlier template without SetSubComponent call. }
+  SetSubComponent(true);
 end;
 
 function TCastleVector2Persistent.GetValue: TVector2;
@@ -282,6 +291,8 @@ end;
 constructor TCastleVector3Persistent.Create(const AOwner: TComponent = nil);
 begin
   inherited Create(AOwner);
+  { See TCastleVector2Persistent.Create comments about SetSubComponent call. }
+  SetSubComponent(true);
 end;
 
 function TCastleVector3Persistent.GetValue: TVector3;
@@ -409,6 +420,8 @@ end;
 constructor TCastleVector4Persistent.Create(const AOwner: TComponent = nil);
 begin
   inherited Create(AOwner);
+  { See TCastleVector2Persistent.Create comments about SetSubComponent call. }
+  SetSubComponent(true);
 end;
 
 function TCastleVector4Persistent.GetValue: TVector4;
