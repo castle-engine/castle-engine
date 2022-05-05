@@ -151,8 +151,6 @@ type
     function GoodModelBox: TBox3D;
     function GetIgnoreAllInputs: boolean;
     procedure SetIgnoreAllInputs(const Value: boolean);
-    { Do not call Camera.Xxx if this is @false. }
-    function UseCamera: Boolean;
   protected
     { Needed for niMouseDragging navigation.
       Checking MouseDraggingStarted means that we handle only dragging that
@@ -162,10 +160,15 @@ type
     MouseDraggingStarted: Integer;
     MouseDraggingStart: TVector2;
 
+    { If this is @true, then Camera is non-nil, InternalViewport is non-nil,
+      and navigation should function as usual. }
+    function Valid: Boolean;
+
     { Behave as if @link(Input) is like this.
-      This allows to disable input on paused viewport. }
+      This allows to disable input when not @link(Valid). }
     function UsingInput: TNavigationInputs;
 
+    { Can we use mouse dragging. Checks @link(UsingInput) and so @link(Valid) already. }
     function ReallyEnableMouseDragging: boolean; virtual;
 
     { Check collisions to determine how high above ground is given point.
@@ -253,6 +256,7 @@ type
     property OnFall: TFallNotifyFunc read FOnFall write FOnFall;
 
     { Associated TCastleCamera of the viewport.
+      May return @nil if the viewport camera is not assigned.
       @raises EViewportNotAssigned If Viewport not assigned yet. }
     function Camera: TCastleCamera;
 
@@ -1635,7 +1639,10 @@ end;
 function TCastleNavigation.Camera: TCastleCamera;
 begin
   if InternalViewport = nil then
-    raise EViewportNotAssigned.Create('Viewport not assigned, cannot get Camera properties');
+    raise EViewportNotAssigned.CreateFmt('Viewport not assigned, cannot get Camera properties (from %s %s)', [
+      Name,
+      ClassName
+    ]);
   Result := (InternalViewport as TCastleViewport).InternalCamera;
 end;
 
@@ -1643,7 +1650,7 @@ procedure TCastleNavigation.Ray(const WindowPosition: TVector2;
   const Projection: TProjection;
   out RayOrigin, RayDirection: TVector3);
 begin
-  Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCastleNavigation.Ray');
+  Assert(ContainerSizeKnown, 'Container size not known yet (probably navigation instance not added to UI controls hierarchy of some container), cannot use TCastleNavigation.Ray');
   Camera.CustomRay(FloatRectangle(ContainerRect), WindowPosition, Projection, RayOrigin, RayDirection);
 end;
 
@@ -1712,14 +1719,18 @@ end;
 
 function TCastleNavigation.ReallyEnableMouseDragging: boolean;
 begin
-  Result := (niMouseDragging in UsingInput) and
-    { Is mouse dragging allowed by viewport.
-      This is an additional condition to enable mouse dragging,
-      above the existing niMouseDragging in UsingInput.
-      It is used to prevent camera navigation by
-      dragging when we already drag a 3D item (like X3D TouchSensor). }
-    ( (InternalViewport = nil) or
-      not (InternalViewport as TCastleViewport).InternalPointingDeviceDragging );
+  Result := niMouseDragging in UsingInput;
+
+  { Is mouse dragging allowed by viewport.
+    This is an additional condition to enable mouse dragging,
+    above the existing niMouseDragging in UsingInput.
+    It is used to prevent camera navigation by
+    dragging when we already drag a 3D item (like X3D TouchSensor). }
+  if Result then
+  begin
+    Assert(InternalViewport <> nil); // UsingInput is [] otherwise
+    Result := not (InternalViewport as TCastleViewport).InternalPointingDeviceDragging;
+  end;
 end;
 
 function TCastleNavigation.Press(const Event: TInputPressRelease): boolean;
@@ -1786,23 +1797,11 @@ begin
 end;
 
 function TCastleNavigation.UsingInput: TNavigationInputs;
-var
-  V: TCastleViewport;
 begin
-  if InternalViewport <> nil then
-  begin
-    V := InternalViewport as TCastleViewport;
-    if { Ignore input if viewport is using other navigation.
-         There may be multiple navigation components refering to the same InternalViewport,
-         as InternalDesignNavigation, FInternalExamineNavigation, FInternalWalkNavigation
-         all do this, in addition to user-created navigation components. }
-       (V.InternalNavigation <> Self) or
-       { Ignore input on a paused viewport }
-       V.Items.Paused then
-      Exit([]);
-  end;
-
-  Result := Input;
+  if Valid then
+    Result := Input
+  else
+    Result := [];
 end;
 
 function TCastleNavigation.Matrix: TMatrix4;
@@ -1862,13 +1861,26 @@ begin
   // end;
 end;
 
-function TCastleNavigation.UseCamera: Boolean;
+function TCastleNavigation.Valid: Boolean;
+var
+  V: TCastleViewport;
 begin
+  if InternalViewport = nil then
+    Exit(false);
+
+  V := InternalViewport as TCastleViewport;
   Result :=
-    (InternalViewport <> nil) and
-    // As Viewport.Camera is assignable, be prepared to handle Camera = nil situation
-    (Camera <> nil) and
-    (not Camera.Animation);
+    { Ignore input if viewport is using other navigation.
+       There may be multiple navigation components refering to the same InternalViewport,
+       as InternalDesignNavigation, FInternalExamineNavigation, FInternalWalkNavigation
+       all do this, in addition to user-created navigation components. }
+    (V.InternalNavigation = Self) and
+    { Ignore input on a paused viewport }
+    (not V.Items.Paused) and
+    { As Viewport.Camera is assignable, be prepared to handle InternalCamera = nil situation }
+    (V.InternalCamera <> nil) and
+    { During camera animation, all navigation is disabled. }
+    (not V.InternalCamera.Animation);
 end;
 
 { TCastleExamineNavigation ------------------------------------------------------------ }
@@ -2044,7 +2056,7 @@ const
 begin
   inherited;
 
-  if not UseCamera then Exit;
+  if not Valid then Exit;
 
   V := ExamineVectors;
 
@@ -2342,7 +2354,7 @@ var
 begin
   Result := inherited;
   if Result or
-     (not UseCamera) or
+     (not Valid) or
      (ModifiersDown(Container.Pressed) <> []) then
     Exit;
 
@@ -2536,7 +2548,7 @@ begin
   if (Container.MousePressed = []) or
      (not ReallyEnableMouseDragging) or
      (MouseDraggingStarted <> Event.FingerIndex) or
-     (not UseCamera) then
+     (not Valid) then
     Exit;
 
   ModsDown := ModifiersDown(Container.Pressed) * [mkShift, mkCtrl];
@@ -2755,7 +2767,7 @@ begin
   if UsingMouseLook and
     Container.Focused and
     ContainerSizeKnown and
-    UseCamera then
+    Valid then
   begin
     HandleMouseLook;
     Exit;
@@ -3798,7 +3810,7 @@ begin
   else
     Cursor := mcDefault;
 
-  if (not UseCamera) then Exit;
+  if (not Valid) then Exit;
 
   ModsDown := ModifiersDown(Container.Pressed);
 
@@ -4001,7 +4013,7 @@ begin
   end;
 
   if (not (niNormal in UsingInput)) or
-     (not UseCamera) then
+     (not Valid) then
     Exit(false);
 
   if Input_GravityUp.IsEvent(Event) then
@@ -4186,7 +4198,7 @@ begin
     // Not need to check here ReallyEnableMouseDragging, as MouseDraggingStarted is already <> -1
     // ReallyEnableMouseDragging and
     (MouseDragMode = mdRotate) and
-    UseCamera and
+    Valid and
     (not UsingMouseLook) then
   begin
     HandleMouseDrag;
