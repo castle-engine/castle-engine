@@ -51,7 +51,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FAvatarTargetPersistent := TCastleVector3Persistent.Create;
-  FAvatarTargetPersistent.SetSubComponent(true);
   FAvatarTargetPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAvatarTargetForPersistent;
   FAvatarTargetPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAvatarTargetForPersistent;
   FAvatarTargetPersistent.InternalDefaultValue := AvatarTarget; // current value is default

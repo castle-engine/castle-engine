@@ -51,7 +51,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FFocusedColorPersistent := TCastleColorPersistent.Create;
-  FFocusedColorPersistent.SetSubComponent(true);
   FFocusedColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetFocusedColorForPersistent;
   FFocusedColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetFocusedColorForPersistent;
   FFocusedColorPersistent.InternalDefaultValue := FocusedColor; // current value is default
@@ -114,7 +113,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FUnfocusedColorPersistent := TCastleColorPersistent.Create;
-  FUnfocusedColorPersistent.SetSubComponent(true);
   FUnfocusedColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetUnfocusedColorForPersistent;
   FUnfocusedColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetUnfocusedColorForPersistent;
   FUnfocusedColorPersistent.InternalDefaultValue := UnfocusedColor; // current value is default
@@ -177,7 +175,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FPlaceholderColorPersistent := TCastleColorPersistent.Create;
-  FPlaceholderColorPersistent.SetSubComponent(true);
   FPlaceholderColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetPlaceholderColorForPersistent;
   FPlaceholderColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetPlaceholderColorForPersistent;
   FPlaceholderColorPersistent.InternalDefaultValue := PlaceholderColor; // current value is default
@@ -240,7 +237,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FBackgroundColorPersistent := TCastleColorPersistent.Create;
-  FBackgroundColorPersistent.SetSubComponent(true);
   FBackgroundColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetBackgroundColorForPersistent;
   FBackgroundColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetBackgroundColorForPersistent;
   FBackgroundColorPersistent.InternalDefaultValue := BackgroundColor; // current value is default

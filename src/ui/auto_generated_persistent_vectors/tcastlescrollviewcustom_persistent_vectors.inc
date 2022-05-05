@@ -51,7 +51,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTintScrollBarInactivePersistent := TCastleColorPersistent.Create;
-  FTintScrollBarInactivePersistent.SetSubComponent(true);
   FTintScrollBarInactivePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTintScrollBarInactiveForPersistent;
   FTintScrollBarInactivePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTintScrollBarInactiveForPersistent;
   FTintScrollBarInactivePersistent.InternalDefaultValue := TintScrollBarInactive; // current value is default

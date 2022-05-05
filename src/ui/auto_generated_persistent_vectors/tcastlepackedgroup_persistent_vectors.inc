@@ -51,7 +51,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FFrameColorPersistent := TCastleColorPersistent.Create;
-  FFrameColorPersistent.SetSubComponent(true);
   FFrameColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetFrameColorForPersistent;
   FFrameColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetFrameColorForPersistent;
   FFrameColorPersistent.InternalDefaultValue := FrameColor; // current value is default

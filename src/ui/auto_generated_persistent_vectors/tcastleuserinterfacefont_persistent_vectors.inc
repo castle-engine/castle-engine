@@ -51,7 +51,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FOutlineColorPersistent := TCastleColorPersistent.Create;
-  FOutlineColorPersistent.SetSubComponent(true);
   FOutlineColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetOutlineColorForPersistent;
   FOutlineColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetOutlineColorForPersistent;
   FOutlineColorPersistent.InternalDefaultValue := OutlineColor; // current value is default

@@ -51,7 +51,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FPivotPersistent := TCastleVector2Persistent.Create;
-  FPivotPersistent.SetSubComponent(true);
   FPivotPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetPivotForPersistent;
   FPivotPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetPivotForPersistent;
   FPivotPersistent.InternalDefaultValue := Pivot; // current value is default
@@ -114,7 +113,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FSizePersistent := TCastleVector2Persistent.Create;
-  FSizePersistent.SetSubComponent(true);
   FSizePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetSizeForPersistent;
   FSizePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetSizeForPersistent;
   FSizePersistent.InternalDefaultValue := Size; // current value is default
@@ -177,7 +175,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FRepeatImagePersistent := TCastleVector2Persistent.Create;
-  FRepeatImagePersistent.SetSubComponent(true);
   FRepeatImagePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRepeatImageForPersistent;
   FRepeatImagePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRepeatImageForPersistent;
   FRepeatImagePersistent.InternalDefaultValue := RepeatImage; // current value is default
@@ -240,7 +237,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FShiftPersistent := TCastleVector2Persistent.Create;
-  FShiftPersistent.SetSubComponent(true);
   FShiftPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetShiftForPersistent;
   FShiftPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetShiftForPersistent;
   FShiftPersistent.InternalDefaultValue := Shift; // current value is default
@@ -303,7 +299,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FColorPersistent := TCastleColorPersistent.Create;
-  FColorPersistent.SetSubComponent(true);
   FColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetColorForPersistent;
   FColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetColorForPersistent;
   FColorPersistent.InternalDefaultValue := Color; // current value is default

@@ -51,7 +51,6 @@ end;
 
 {$ifdef read_implementation_constructor}
   FOriginPersistent := TCastleVector2Persistent.Create;
-  FOriginPersistent.SetSubComponent(true);
   FOriginPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetOriginForPersistent;
   FOriginPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetOriginForPersistent;
   FOriginPersistent.InternalDefaultValue := Origin; // current value is default
