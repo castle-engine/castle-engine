@@ -768,9 +768,6 @@
       (if set) is our direct parent. }
     property Parent: TCastleUserInterface read FParent;
 
-    function Rect: TFloatRectangle; virtual;
-      deprecated 'instead of using this, use EffectiveRect or RenderRect depending on the situation; instead of overriding this, override PreferredSize';
-
     { Control position and size.
       Use this to base other controls size/position on this control's
       calculated size/position.
@@ -2197,29 +2194,13 @@ end;
 
 {$warnings on}
 
-function TCastleUserInterface.Rect: TFloatRectangle;
-begin
-  Result := TFloatRectangle.Empty;
-end;
-
 procedure TCastleUserInterface.BeforeSizing;
 begin
 end;
 
 procedure TCastleUserInterface.PreferredSize(var PreferredWidth, PreferredHeight: Single);
-var
-  R: TFloatRectangle;
 begin
-  { Keep the old code, written when Rect was not deprecated
-    and PreferredSize was not available, working. }
-  {$warnings off}
-  R := Rect;
-  {$warnings on}
-  if (not R.IsEmpty) then // this means that Rect was overridden
-  begin
-    PreferredWidth := R.Width;
-    PreferredHeight := R.Height;
-  end;
+  // nothing to be done here
 end;
 
 function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
