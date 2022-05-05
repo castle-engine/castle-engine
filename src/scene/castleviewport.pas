@@ -489,17 +489,16 @@ type
     {$endif}
 
     { Return current navigation. Automatically creates it if missing. }
-    function RequiredNavigation: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation/TCastleExamineNavigation and assign it, or call AssignDefaultNavigation';
-    function RequiredCamera: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation/TCastleExamineNavigation and assign it, or call AssignDefaultNavigation';
+    function RequiredNavigation: TCastleNavigation; deprecated 'if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation/TCastleExamineNavigation and assign it, or call AssignDefaultNavigation';
 
-    { Return the currently used camera as TCastleWalkNavigation, making sure that current
+    { Return the currently used navigation as TCastleWalkNavigation, making sure that current
       NavigationType is something using TCastleWalkNavigation.
 
       @unorderedList(
         @item(
           When SwitchNavigationTypeIfNeeded is @true (the default),
           this method makes sure that the @link(NavigationType) corresponds to a type
-          handled by TCastleWalkNavigation, creating and adjusting the camera if necessary.
+          handled by TCastleWalkNavigation, creating and adjusting the navigation if necessary.
 
           If the current NavigationType does not use TCastleWalkNavigation
           (see @link(TNavigationType) documentation for information which
@@ -509,28 +508,26 @@ type
 
         @item(
           When SwitchNavigationTypeIfNeeded is @false,
-          then we return @nil if the current camera is not already
+          then we return @nil if the current navigation is not already
           a TCastleWalkNavigation instance.
 
-          We @italic(never) create a new camera in this case
+          We @italic(never) create a new navigation in this case
           (even if the NavigatinInfo node in MainScene would indicate
-          that the new camera would be a TCastleWalkNavigation).
+          that the new navigation would be a TCastleWalkNavigation).
         )
       )
     }
     function WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleWalkNavigation;
       deprecated 'create own instance of TCastleWalkNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
-    function WalkCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleWalkNavigation;
-      deprecated 'create own instance of TCastleWalkNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
 
-    { Return the currently used camera as TCastleExamineNavigation, making sure that current
+    { Return the currently used navigation as TCastleExamineNavigation, making sure that current
       NavigationType is something using TCastleExamineNavigation.
 
       @unorderedList(
         @item(
           When SwitchNavigationTypeIfNeeded is @true (the default),
           this method makes sure that the @link(NavigationType) corresponds to a type
-          handled by TCastleExamineNavigation, creating and adjusting the camera if necessary.
+          handled by TCastleExamineNavigation, creating and adjusting the navigation if necessary.
 
           If the current NavigationType does not use TCastleExamineNavigation
           (see @link(TNavigationType) documentation for information which
@@ -540,57 +537,43 @@ type
 
         @item(
           When SwitchNavigationTypeIfNeeded is @false,
-          then we return @nil if the current camera is not already
+          then we return @nil if the current navigation is not already
           a TCastleExamineNavigation instance.
 
-          We @italic(never) create a new camera in this case
+          We @italic(never) create a new navigation in this case
           (even if the NavigatinInfo node in MainScene would indicate
-          that the new camera would be a TCastleExamineNavigation).
+          that the new navigation would be a TCastleExamineNavigation).
         )
       )
     }
     function ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation;
       deprecated 'create own instance of TCastleExamineNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
-    function ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation;
-      deprecated 'create own instance of TCastleExamineNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
 
-    { Make @link(Navigation) @nil.
-      The actual creation may be caused by calling
-      @link(ExamineCamera), @link(WalkCamera),
-      @link(InternalExamineCamera), @link(InternalWalkCamera),
-      or by setting @link(NavigationType).
-
-      In all cases, these methods will create a new camera instance
-      after a @name call. No previous cached camera instance will be used. }
-    procedure ClearCameras; deprecated 'just set Navigation to nil instead of using this method; to avoid reusing previous instance, do not use WalkNavigation/ExamineNavigation methods, instead create and destroy your own TCastleWalkNavigation/TCastleExamineNavigation whenever you want';
-
-    { Camera instances used by this viewport.
+    { Navigation instances internally used by this viewport.
       Using these methods automatically creates these instances
       (so they are never @nil).
 
       Using these methods @italic(does not) make these
-      camera instances current (in contast to calling @link(ExamineCamera),
-      @link(WalkCamera) or setting @link(NavigationType)).
+      navigation instances current (in contast to calling @link(ExamineNavigation),
+      @link(WalkNavigation) or setting @link(NavigationType)).
 
-      When you switch navigation types by calling @link(ExamineCamera),
-      @link(WalkCamera) or setting @link(NavigationType)
-      the viewport keeps using these instances of cameras,
-      instead of creating new camera instances.
-      This way all the camera properties
+      When you switch navigation types by calling @link(ExamineNavigation),
+      @link(WalkNavigation) or setting @link(NavigationType)
+      the viewport keeps using these instances of navigation,
+      instead of creating new navigation instances.
+      This way all the navigation properties
       (not only those copied by TCastleNavigation.Assign) are preserved when you switch
       e.g. NavigationType from ntWalk to ntExamine to ntWalk again.
 
       @deprecated This is deprecated now, because it causes auto-detection
       of navigation parameters, which is (in general) more surprising than helpful.
-      E.g. it adjusts camera radius, speed and more properties.
+      E.g. it adjusts navigation radius, speed and more properties.
 
       @groupBegin }
     function InternalExamineNavigation: TCastleExamineNavigation;
       deprecated 'create own instance of TCastleExamineNavigation instead of using this one, it results in more obvious code';
     function InternalWalkNavigation: TCastleWalkNavigation;
       deprecated 'create own instance of TCastleWalkNavigation instead of using this one, it results in more obvious code';
-    function InternalExamineCamera: TCastleExamineNavigation; deprecated 'use InternalExamineNavigation';
-    function InternalWalkCamera: TCastleWalkNavigation; deprecated 'use InternalWalkNavigation';
     { @groupEnd }
 
     { Assign @link(Navigation) to a default TCastleNavigation suitable
@@ -3173,13 +3156,6 @@ begin
   end;
 end;
 
-function TCastleViewport.RequiredCamera: TCastleNavigation;
-begin
-  {$warnings off} // using deprecated in deprecated
-  Result := RequiredNavigation;
-  {$warnings on}
-end;
-
 function TCastleViewport.RequiredNavigation: TCastleNavigation;
 begin
   { For backward-compatibility, this also initializes Camera vectors
@@ -3195,20 +3171,6 @@ begin
     Result := InternalExamineNavigation;
   {$warnings on}
   Result := Navigation;
-end;
-
-function TCastleViewport.InternalExamineCamera: TCastleExamineNavigation;
-begin
-  {$warnings off} // using deprecated in deprecated
-  Result := InternalExamineNavigation;
-  {$warnings on}
-end;
-
-function TCastleViewport.InternalWalkCamera: TCastleWalkNavigation;
-begin
-  {$warnings off} // using deprecated in deprecated
-  Result := InternalWalkNavigation;
-  {$warnings on}
 end;
 
 function TCastleViewport.InternalExamineNavigation: TCastleExamineNavigation;
@@ -3273,13 +3235,6 @@ begin
   Result := Navigation as TCastleExamineNavigation;
 end;
 
-function TCastleViewport.ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean): TCastleExamineNavigation;
-begin
-  {$warnings off} // using deprecated in deprecated
-  Result := ExamineNavigation(SwitchNavigationTypeIfNeeded);
-  {$warnings on}
-end;
-
 function TCastleViewport.WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
 var
   NewNavigation: TCastleWalkNavigation;
@@ -3310,13 +3265,6 @@ begin
     {$warnings on}
   end;
   Result := Navigation as TCastleWalkNavigation;
-end;
-
-function TCastleViewport.WalkCamera(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
-begin
-  {$warnings off} // using deprecated in deprecated
-  Result := WalkNavigation(SwitchNavigationTypeIfNeeded);
-  {$warnings on}
 end;
 
 function TCastleViewport.GetNavigationType: TNavigationType;
@@ -3423,13 +3371,6 @@ begin
 
   { Call OnBoundNavigationInfoChanged when NavigationType changed. }
   BoundNavigationInfoChanged;
-end;
-
-procedure TCastleViewport.ClearCameras;
-begin
-  Navigation := nil;
-  FreeAndNil(FInternalExamineNavigation);
-  FreeAndNil(FInternalWalkNavigation);
 end;
 
 procedure TCastleViewport.AssignDefaultNavigation;

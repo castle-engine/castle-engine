@@ -97,7 +97,7 @@ begin
   AssertTrue(Viewport.Navigation = nil);
   Viewport.RequiredNavigation;
 
-  Viewport.ClearCameras;
+  Viewport.Navigation := nil;
   AssertTrue(Viewport.Navigation = nil);
 
   { Force preparing and using OpenGL resources for the scene.
