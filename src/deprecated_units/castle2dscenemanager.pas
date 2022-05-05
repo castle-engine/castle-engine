@@ -64,6 +64,7 @@ type
 
     function CurrentProjectionWidth: Single; deprecated 'use Camera.Orthographic.EffectiveWidth';
     function CurrentProjectionHeight: Single; deprecated 'use Camera.Orthographic.EffectiveHeight';
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   published
     property AutoCamera default false;
     property AutoNavigation default false;
@@ -171,13 +172,18 @@ begin
   AutoNavigation := false;
 end;
 
+{ Below we allow all getters to tolerate Camera=nil case,
+  as undo system needs to be able to serialize this component in any state. }
+
 function TCastle2DSceneManager.CurrentProjectionWidth: Single;
 begin
+  if Camera = nil then Exit(0);
   Result := Camera.Orthographic.EffectiveWidth;
 end;
 
 function TCastle2DSceneManager.CurrentProjectionHeight: Single;
 begin
+  if Camera = nil then Exit(0);
   Result := Camera.Orthographic.EffectiveHeight;
 end;
 
@@ -188,21 +194,25 @@ end;
 
 function TCastle2DSceneManager.GetProjectionWidth: Single;
 begin
+  if Camera = nil then Exit(0);
   Result := Camera.Orthographic.Width;
 end;
 
 function TCastle2DSceneManager.GetProjectionHeight: Single;
 begin
+  if Camera = nil then Exit(0);
   Result := Camera.Orthographic.Height;
 end;
 
 function TCastle2DSceneManager.GetProjectionSpan: Single;
 begin
+  if Camera = nil then Exit(Default2DProjectionFar);
   Result := Camera.ProjectionFar;
 end;
 
 function TCastle2DSceneManager.GetProjectionOriginCenter: Boolean;
 begin
+  if Camera = nil then Exit(false);
   Result := not Camera.Orthographic.Origin.IsPerfectlyZero;
 end;
 
@@ -233,6 +243,23 @@ begin
     Camera.Orthographic.Origin := Vector2(0.5, 0.5)
   else
     Camera.Orthographic.Origin := TVector2.Zero;
+end;
+
+procedure TCastle2DSceneManager.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+begin
+  inherited;
+
+  { At run-time, auto-create camera, for backward compatibility.
+    Why it can remain nil?
+    When deserializing, and no camera were contained in design file.
+    Testcase: castle-engine-priv/contrib/scaling_bug/my_new_project_standalone.lpr . }
+  if (not CastleDesignMode) and (Camera = nil) then
+  begin
+    WritelnWarning('Creating camera, because it was missing in design file. For the future, please uppgrade to use TCastleViewport instead of deprecated TCastle2DSceneManager.');
+    SetupCamera;
+    Setup2D;
+  end;
 end;
 
 { T2DSceneManager ------------------------------------------------------------ }
