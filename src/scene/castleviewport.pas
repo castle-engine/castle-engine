@@ -163,8 +163,6 @@ type
     procedure SSAOShaderInitialize;
     procedure SSRShaderInitialize;
     procedure SetAutoCamera(const Value: Boolean);
-    { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
-    procedure EnsureCameraDetected;
     procedure SetItems(Value: TCastleRootTransform);
     function GetPaused: Boolean;
     procedure SetPaused(const Value: Boolean);
@@ -228,6 +226,9 @@ type
     var
       FProjection: TProjection;
       FSceneManager: TCastleSceneManager;
+
+    { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
+    procedure EnsureCameraDetected;
 
     class procedure CreateComponentWithCameraSetup2D(Sender: TObject);
     class procedure CreateComponentWithCamera(Sender: TObject);

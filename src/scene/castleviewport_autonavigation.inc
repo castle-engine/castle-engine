@@ -297,6 +297,11 @@ end;
 
 function TCastleAutoNavigationViewport.RequiredNavigation: TCastleNavigation;
 begin
+  { For backward-compatibility, this also initializes Camera vectors
+    (even though the method docs only guarantee that it initializes Navigation,
+    but in the past Camera and Navigation were the same thing). }
+  EnsureCameraDetected;
+
   {$warnings off} // using deprecated in deprecated
   if Navigation = nil then
     AssignDefaultNavigation;
@@ -337,6 +342,11 @@ begin
     if not SwitchNavigationTypeIfNeeded then
       Exit(nil);
 
+    { For backward-compatibility, this also initializes Camera vectors
+      (even though the method docs only guarantee that it initializes Navigation,
+      but in the past Camera and Navigation were the same thing). }
+    EnsureCameraDetected;
+
     NewNavigation := InternalExamineNavigation;
     if Navigation = nil then
       AssignDefaultNavigation; // initialize defaults from MainScene
@@ -361,6 +371,11 @@ begin
   begin
     if not SwitchNavigationTypeIfNeeded then
       Exit(nil);
+
+    { For backward-compatibility, this also initializes Camera vectors
+      (even though the method docs only guarantee that it initializes Navigation,
+      but in the past Camera and Navigation were the same thing). }
+    EnsureCameraDetected;
 
     NewNavigation := InternalWalkNavigation;
     if Navigation = nil then
