@@ -187,12 +187,14 @@ begin
         FControl[RightSide].GetSensorRotation(Rx, Ry, Rz, RAngle);
       end;
 
+    {$warnings off} // ignore using deprecated Navigation, TODO: we should fix the way we pass 3D mouse events
     if (Viewport <> nil) and
        (Viewport.Navigation <> nil) then
     begin
       Viewport.Navigation.SensorTranslation(Tx, Ty, Tz, TLength, SecondsPassed);
       Viewport.Navigation.SensorRotation(Rx, Ry, Rz, RAngle, SecondsPassed);
     end;
+    {$warnings on}
   end;
 
   {$warnings off} // ignore using deprecated NavigationType

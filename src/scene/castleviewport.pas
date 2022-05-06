@@ -827,7 +827,6 @@ type
       So you likely don't need to call this in typical applications. }
     procedure SetupCamera;
 
-    {$ifndef CASTLE_FORWARD_COMPATIBLE}
     { Navigation method is an optional component that handles
       the user input to control the camera.
 
@@ -849,7 +848,7 @@ type
       Or you can leave it as @nil. }
     property Navigation: TCastleNavigation read GetNavigation write SetNavigation
       stored false;
-    {$endif}
+      {$ifdef FPC}deprecated 'no need to set this, instead add TCastleNavigation like "MyViewport.InsertBack(MyNavigation)"';{$endif}
 
     { Check collisions with @link(Items) for TCastleNavigation. @exclude }
     function InternalNavigationMoveAllowed(const Sender: TCastleNavigation;
@@ -1385,26 +1384,6 @@ begin
   { unregister free notification from these objects }
   SetMouseRayHit(nil);
   AvoidNavigationCollisions := nil;
-
-  { unregister self from Navigation callbacs, etc.
-
-    This includes setting FNavigation to nil.
-    Yes, this setting FNavigation to nil is needed, it's not just paranoia.
-
-    Consider e.g. when our Navigation is owned by Self.
-    This means that this navigation will be freed in "inherited" destructor call
-    below. Since we just did FNavigation.RemoveFreeNotification, we would have
-    no way to set FNavigation to nil, and FNavigation would then remain as invalid
-    pointer.
-
-    And when Viewport is freed it sends a free notification
-    (this is also done in "inherited" destructor) to TCastleWindow instance,
-    which causes removing us from TCastleWindow.Controls list,
-    which causes SetContainer(nil) call that tries to access Navigation.
-
-    This scenario would cause segfault, as FNavigation pointer is invalid
-    at this time. }
-  Navigation := nil;
 
   FreeAndNil(FRenderParams);
   FreeAndNil(FPrepareParams);

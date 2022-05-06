@@ -296,14 +296,14 @@ end;
 
 function TCastleAutoNavigationViewport.RequiredNavigation: TCastleNavigation;
 begin
+  {$warnings off} // using deprecated in deprecated
   if Navigation = nil then
     AssignDefaultNavigation;
-  {$warnings off} // using deprecated in deprecated
   // Since AssignDefaultNavigation may leave Navigation nil, make sure it is assigned now
   if Navigation = nil then
     Result := InternalExamineNavigation;
-  {$warnings on}
   Result := Navigation;
+  {$warnings on}
 end;
 
 function TCastleAutoNavigationViewport.InternalExamineNavigation: TCastleExamineNavigation;
@@ -332,14 +332,13 @@ function TCastleAutoNavigationViewport.ExamineNavigation(const SwitchNavigationT
 var
   NewNavigation: TCastleExamineNavigation;
 begin
+  {$warnings off} // using deprecated in deprecated
   if not (Navigation is TCastleExamineNavigation) then
   begin
     if not SwitchNavigationTypeIfNeeded then
       Exit(nil);
 
-    {$warnings off} // using deprecated in deprecated
     NewNavigation := InternalExamineNavigation;
-    {$warnings on}
     if Navigation = nil then
       AssignDefaultNavigation; // initialize defaults from MainScene
     // AssignDefaultNavigation could leave Navigation at nil, in which case ignor
@@ -348,25 +347,23 @@ begin
     Navigation := NewNavigation;
     { make sure it's in ntExamine mode (as we possibly reuse old navigation,
       by reusing InternalExamineNavigation, so we're not sure what state it's in. }
-    {$warnings off} // using deprecated to keep it working
     NavigationType := ntExamine;
-    {$warnings on}
   end;
   Result := Navigation as TCastleExamineNavigation;
+  {$warnings on}
 end;
 
 function TCastleAutoNavigationViewport.WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
 var
   NewNavigation: TCastleWalkNavigation;
 begin
+  {$warnings off} // using deprecated in deprecated
   if not (Navigation is TCastleWalkNavigation) then
   begin
     if not SwitchNavigationTypeIfNeeded then
       Exit(nil);
 
-    {$warnings off} // using deprecated in deprecated
     NewNavigation := InternalWalkNavigation;
-    {$warnings on}
     if Navigation = nil then
       AssignDefaultNavigation; // initialize defaults from MainScene
     // AssignDefaultNavigation could leave Navigation at nil, in which case ignor
@@ -375,18 +372,19 @@ begin
     Navigation := NewNavigation;
     { make sure it's in ntWalk mode (as we possibly reuse old navigation,
       by reusing InternalWalkNavigation, so we're not sure what state it's in. }
-    {$warnings off} // using deprecated to keep it working
     NavigationType := ntWalk;
-    {$warnings on}
   end;
   Result := Navigation as TCastleWalkNavigation;
+  {$warnings on}
 end;
 
 class function TCastleAutoNavigationViewport.InternalGetNavigationType(const V: TCastleViewport): TNavigationType;
 var
   Nav: TCastleNavigation;
 begin
+  {$warnings off} // using deprecated in deprecated
   Nav := V.Navigation;
+  {$warnings on}
 
   { We are using here Navigation, not RequiredNavigation, as automatically
     creating Navigation could have surprising consequences.
@@ -516,6 +514,7 @@ var
   C: TCastleExamineNavigation;
   Nav: TNavigationType;
 begin
+  {$warnings off} // using deprecated in deprecated
   Box := ItemsBoundingBox;
   Scene := Items.MainScene;
   if Scene <> nil then
@@ -525,26 +524,20 @@ begin
     { Set Navigation explicitly, otherwise SetNavigationType below could call
       ExamineNavigation / WalkNavigation that call AssignDefaultNavigation when Navigation = nil,
       and we would have infinite AssignDefaultNavigation calls loop. }
-    {$warnings off} // TODO: this should be internal
     if Nav in [ntExamine, ntTurntable] then
       Navigation := InternalExamineNavigation
     else
       Navigation := InternalWalkNavigation;
-    {$warnings on}
-
-    {$warnings off} // using deprecated to keep it working
     NavigationType := Nav;
-    {$warnings on}
     Scene.InternalUpdateNavigation(Navigation, Box);
   end else
   begin
-    {$warnings off} // TODO: this should be internal
     C := InternalExamineNavigation;
-    {$warnings on}
     C.ModelBox := Box;
     C.Radius := Box.AverageSize(false, 1.0) * WorldBoxSizeToRadius;
     Navigation := C;
   end;
+  {$warnings on}
 end;
 
 procedure TCastleAutoNavigationViewport.Notification(AComponent: TComponent; Operation: TOperation);
