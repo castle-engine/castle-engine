@@ -41,33 +41,30 @@ type
   TProjectionEvent = procedure (var Parameters: TProjection) of object;
 
   { Viewport displays a tree of scenes and transformations
-    (TCastleTransform and TCastleScene).
+    (TCastleTransform and descendants of it, like TCastleScene).
     Add the scenes and transformations to @link(Items).
-
-    For some features, that require a notion of "main" scene,
-    it is useful to set @link(TCastleRootTransform.MainScene Items.MainScene).
-    See the @link(TCastleRootTransform.MainScene) docs.
+    See https://castle-engine.io/viewport_and_scenes /
 
     Each viewport has a @link(Camera) with a position and orientation.
+    Viewport may have multiple cameras.
     The initial camera may be auto-detected if @link(AutoCamera).
 
-    Viewport may also have a @link(Navigation) that allows to move
+    Viewport may also have a navigation that allows to move
     camera by keyboard, mouse and other inputs.
     You can use any navigation method implemented in the engine
     (TCastleExamineNavigation, TCastleWalkNavigation, TCastleThirdPersonNavigation)
     or implement your own
     (you can create your own descendants of @link(TCastleNavigation),
     or just move/rotate the camera by calling @link(TCastleCamera.SetView) from anywhere).
-    The inital navigation method may be auto-detected if @link(AutoNavigation).
+    Just add @link(TCastleNavigation) as a child of @link(TCastleViewport).
 
-    Viewport may clear its area at the beginning of rendering,
-    with a solid color or using a TAbstractBackgroundNode defined in
-    @link(TCastleRootTransform.MainScene Items.MainScene).
-    This way you can use e.g. a skybox.
-    You can control this using @link(Transparent), @link(BackgroundColor) properties.
-
-    Viewport may also add headlight to the scene,
-    see @link(TCastleRootTransform.UseHeadlight Items.UseHeadlight).
+    Viewport may display a background.
+    It may be a solid color, a 3D skybox or a gradient.
+    See @link(Background), @link(BackgroundColor) properties and
+    https://castle-engine.io/background .
+    Alternatively, viewport background may be transparent
+    (so other TCastleUserInterface underneath will be visible)
+    if @link(Transparent).
 
     Multiple viewports can display the same world.
     To do this, simply copy @link(Items) reference from one
@@ -77,14 +74,7 @@ type
     with 2 viewports, on a single monitor).
     Or you can show in a 3D FPS game an additional view from some security camera,
     or from a flying rocket.
-    For examples of using multiple viewports see:
-
-    @unorderedList(
-      @item(Docs: https://castle-engine.io/multiple_viewports_to_display_one_world )
-      @item(CGE example: examples/viewport_and_scenes/multiple_viewports/)
-      @item(CGE example: examples/fps_game/)
-    )
-  }
+    See https://castle-engine.io/multiple_viewports_to_display_one_world . }
   TCastleViewport = class(TCastleScreenEffects)
   strict private
     type
@@ -116,15 +106,11 @@ type
       FApproximateActivation: boolean;
       FDefaultVisibilityLimit: Single;
       FTransparent, FClearDepth: boolean;
-      FInternalExamineNavigation: TCastleExamineNavigation;
-      FInternalWalkNavigation: TCastleWalkNavigation;
-      FWithinSetNavigationType: boolean;
       LastPressEvent: TInputPressRelease;
       FOnProjection: TProjectionEvent;
       FEnableParentDragging: boolean;
       AssignDefaultCameraDone: Boolean;
       FAutoCamera: Boolean;
-      FAutoNavigation: Boolean;
 
       FShadowVolumes: boolean;
       FShadowVolumesRender: boolean;
@@ -149,7 +135,8 @@ type
       FItemsObserver: TFreeNotificationObserver;
       LastVisibleStateIdForVisibleChange: TFrameId;
 
-      FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
+      FOnBoundViewpointChanged: TNotifyEvent;
+      FOnBoundNavigationInfoChanged: TNotifyEvent;
       FMouseRayHit: TRayCollision;
       MouseRayOrigin, MouseRayDirection: TVector3;
       FAvoidNavigationCollisions: TCastleTransform;
@@ -169,16 +156,13 @@ type
 
     procedure CommonCreate(const AOwner: TComponent; const ADesignManipulation: Boolean);
     function FillsWholeContainer: boolean;
-    function IsStoredNavigation: Boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
     procedure SetScreenSpaceReflections(const Value: Boolean);
     procedure SetScreenSpaceReflectionsSurfaceGlossiness(const Value: Single);
     procedure SetupDesignTimeCamera;
     procedure SSAOShaderInitialize;
     procedure SSRShaderInitialize;
-    function GetNavigationType: TNavigationType;
     procedure SetAutoCamera(const Value: Boolean);
-    procedure SetAutoNavigation(const Value: Boolean);
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
     procedure SetItems(Value: TCastleRootTransform);
@@ -195,18 +179,8 @@ type
     procedure SetMouseRayHit(const Value: TRayCollision);
     function MouseRayHitContains(const Item: TCastleTransform): boolean;
     procedure SetAvoidNavigationCollisions(const Value: TCastleTransform);
-    procedure SetNavigationType(const Value: TNavigationType);
 
-    { Handle navigation events by checking collisions with @link(Items).
-      @groupBegin }
-    function NavigationMoveAllowed(const Sender: TCastleNavigation;
-      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-      const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
-    function NavigationHeight(const Sender: TCastleNavigation;
-      const Position: TVector3;
-      out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
-    { @groupEnd }
-
+    function GetNavigation: TCastleNavigation;
     procedure SetNavigation(const Value: TCastleNavigation);
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
     procedure SetSceneManager(const Value: TCastleSceneManager);
@@ -252,7 +226,6 @@ type
     procedure ItemsFreeNotification(const Sender: TFreeNotificationObserver);
   private
     var
-      FNavigation: TCastleNavigation;
       FProjection: TProjection;
       FSceneManager: TCastleSceneManager;
 
@@ -270,11 +243,9 @@ type
       If AutoCamera then the initial and current @link(Camera) vectors
       are also initialized here (see TCastleCamera.Init
       and @link(AssignDefaultCamera).
-      If AutoNavigation then the @link(Navigation) is automatically created here,
-      see @link(AssignDefaultNavigation).
 
       This takes care to always update Camera.ProjectionMatrix, Projection. }
-    procedure ApplyProjection;
+    procedure ApplyProjection; virtual;
 
     { Render shadow quads for all the things rendered by @link(RenderOnePass).
       You can use here ShadowVolumeRenderer instance, which is guaranteed
@@ -424,8 +395,6 @@ type
       InternalDesignCamera: TCastleCamera;
 
       { At design-time (in CGE editor), this is the navigation used by the editor.
-        Usually use InternalNavigation, to automatically pick either design-time navigation
-        or runtime Navigation.
         @exclude }
       InternalDesignNavigation: TCastleNavigation;
 
@@ -446,12 +415,6 @@ type
       May return @nil.
       @exclude }
     function InternalCamera: TCastleCamera;
-
-    { Return either @link(Navigation) or @link(InternalDesignNavigation),
-      depending on whether we're in design mode (InternalDesignManipulation) or not.
-      May return @nil.
-      @exclude }
-    function InternalNavigation: TCastleNavigation;
 
     { Determines if viewport is in design-mode.
 
@@ -487,110 +450,6 @@ type
     property Projection: TProjection read FProjection;
       deprecated 'in most cases, you can instead read Camera parameters, like Camera.Orthographic.EffectiveWidth, Camera.Orthographic.EffectiveHeight';
     {$endif}
-
-    { Return current navigation. Automatically creates it if missing. }
-    function RequiredNavigation: TCastleNavigation; deprecated 'if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation/TCastleExamineNavigation and assign it, or call AssignDefaultNavigation';
-
-    { Return the currently used navigation as TCastleWalkNavigation, making sure that current
-      NavigationType is something using TCastleWalkNavigation.
-
-      @unorderedList(
-        @item(
-          When SwitchNavigationTypeIfNeeded is @true (the default),
-          this method makes sure that the @link(NavigationType) corresponds to a type
-          handled by TCastleWalkNavigation, creating and adjusting the navigation if necessary.
-
-          If the current NavigationType does not use TCastleWalkNavigation
-          (see @link(TNavigationType) documentation for information which
-          navigation types use which TCastleNavigation descendants),
-          then it's switched to ntWalk.
-        )
-
-        @item(
-          When SwitchNavigationTypeIfNeeded is @false,
-          then we return @nil if the current navigation is not already
-          a TCastleWalkNavigation instance.
-
-          We @italic(never) create a new navigation in this case
-          (even if the NavigatinInfo node in MainScene would indicate
-          that the new navigation would be a TCastleWalkNavigation).
-        )
-      )
-    }
-    function WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleWalkNavigation;
-      deprecated 'create own instance of TCastleWalkNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
-
-    { Return the currently used navigation as TCastleExamineNavigation, making sure that current
-      NavigationType is something using TCastleExamineNavigation.
-
-      @unorderedList(
-        @item(
-          When SwitchNavigationTypeIfNeeded is @true (the default),
-          this method makes sure that the @link(NavigationType) corresponds to a type
-          handled by TCastleExamineNavigation, creating and adjusting the navigation if necessary.
-
-          If the current NavigationType does not use TCastleExamineNavigation
-          (see @link(TNavigationType) documentation for information which
-          navigation types use which TCastleNavigation descendants),
-          then it's switched to ntExamine.
-        )
-
-        @item(
-          When SwitchNavigationTypeIfNeeded is @false,
-          then we return @nil if the current navigation is not already
-          a TCastleExamineNavigation instance.
-
-          We @italic(never) create a new navigation in this case
-          (even if the NavigatinInfo node in MainScene would indicate
-          that the new navigation would be a TCastleExamineNavigation).
-        )
-      )
-    }
-    function ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation;
-      deprecated 'create own instance of TCastleExamineNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
-
-    { Navigation instances internally used by this viewport.
-      Using these methods automatically creates these instances
-      (so they are never @nil).
-
-      Using these methods @italic(does not) make these
-      navigation instances current (in contast to calling @link(ExamineNavigation),
-      @link(WalkNavigation) or setting @link(NavigationType)).
-
-      When you switch navigation types by calling @link(ExamineNavigation),
-      @link(WalkNavigation) or setting @link(NavigationType)
-      the viewport keeps using these instances of navigation,
-      instead of creating new navigation instances.
-      This way all the navigation properties
-      (not only those copied by TCastleNavigation.Assign) are preserved when you switch
-      e.g. NavigationType from ntWalk to ntExamine to ntWalk again.
-
-      @deprecated This is deprecated now, because it causes auto-detection
-      of navigation parameters, which is (in general) more surprising than helpful.
-      E.g. it adjusts navigation radius, speed and more properties.
-
-      @groupBegin }
-    function InternalExamineNavigation: TCastleExamineNavigation;
-      deprecated 'create own instance of TCastleExamineNavigation instead of using this one, it results in more obvious code';
-    function InternalWalkNavigation: TCastleWalkNavigation;
-      deprecated 'create own instance of TCastleWalkNavigation instead of using this one, it results in more obvious code';
-    { @groupEnd }
-
-    { Assign @link(Navigation) to a default TCastleNavigation suitable
-      for navigating in this scene.
-
-      This is automatically used when @link(Navigation) is @nil
-      and @link(AutoNavigation).
-      You can also use it explicitly.
-
-      The implementation in base TCastleViewport uses
-      @link(TCastleSceneCore.NavigationTypeFromNavigationInfo MainScene.NavigationTypeFromNavigationInfo)
-      and
-      @link(TCastleSceneCore.InternalUpdateNavigation MainScene.InternalUpdateNavigation),
-      thus it follows your X3D scene NavigationInfo.
-      If MainScene is not assigned, we create a simple
-      navigation in Examine mode. }
-    procedure AssignDefaultNavigation; virtual;
 
     { Assign current camera vectors and projection.
       This only fills existing @link(Camera) with contents, it doesn't change
@@ -742,49 +601,6 @@ type
       )
     }
     procedure Setup2D;
-
-    { Set @link(Navigation) and some of its' parameters
-      (like TCastleWalkNavigation.Gravity and so on).
-
-      If @link(AutoNavigation), the initial @link(Navigation)
-      as well as initial value of this property are automatically determined
-      by the currently bound X3D NavigatinInfo node in the @link(TCastleRootTransform.MainScene MainScene),
-      and world bounding box.
-      They are also automatically adjusted e.g. when current NavigatinInfo
-      node changes.
-
-      But you can set @link(Navigation), or this property,
-      manually to override the detected navigation.
-      You should set @link(AutoNavigation) to @false to take control
-      of @link(Navigation) and this property completely (no auto-detection
-      based on @link(TCastleRootTransform.MainScene MainScene) will then take place).
-
-      Note that you can also affect the current NavigationType by directly
-      changing the camera properties,
-      e.g. you can directly change @link(TCastleWalkNavigation.Gravity) from @false to @true,
-      and thus you effectively switch from ntFly to ntWalk navigation types.
-      When you read the NavigationType property, we determine the current navigation
-      type from current camera properties.
-
-      Setting this sets:
-      @unorderedList(
-        @itemSpacing compact
-        @item @link(TCastleNavigation.Input)
-        @item @link(TCastleExamineNavigation.Turntable), only in case of @link(TCastleExamineNavigation)
-        @item @link(TCastleWalkNavigation.Gravity), only in case of @link(TCastleWalkNavigation)
-        @item @link(TCastleWalkNavigation.PreferGravityUpForRotations), only in case of @link(TCastleWalkNavigation)
-        @item @link(TCastleWalkNavigation.PreferGravityUpForMoving), only in case of @link(TCastleWalkNavigation)
-      )
-
-      If you write to NavigationType, then you @italic(should not) touch the
-      above properties directly. That's because not every combination of
-      above properties correspond to some sensible value of NavigationType.
-      If you directly set some weird configuration, reading NavigationType will
-      try it's best to determine the closest TNavigationType value
-      that is similar to your configuration. }
-    property NavigationType: TNavigationType
-      read GetNavigationType write SetNavigationType
-      default ntNone; {$ifdef FPC}deprecated 'create own instances of TCastleNavigation descendants to change the navigation';{$endif}
 
     { Convert 2D position on the viewport into 3D "world coordinates",
       by colliding camera ray with a plane parallel to the viewport at given Depth.
@@ -1010,6 +826,40 @@ type
       not at deserialization) using the standard TCastleViewport.Create constructor.
       So you likely don't need to call this in typical applications. }
     procedure SetupCamera;
+
+    {$ifndef CASTLE_FORWARD_COMPATIBLE}
+    { Navigation method is an optional component that handles
+      the user input to control the camera.
+
+      @deprecated
+      This is a deprecated property.
+      There's no point in assigning current navigation like this.
+      Instead add the @link(TCastleNavigation) instance
+      as a child of TCastleViewport and it will affect the viewport
+      automatically.
+      This property is now only a shortcut to
+
+      - get the current @link(TCastleNavigation) child (if multiple present,
+        it is undefined which is returned)
+
+      - make the given set @link(TCastleNavigation) as the only child.
+
+      You can assign here an instance of @link(TCastleNavigation),
+      like @link(TCastleWalkNavigation) or @link(TCastleExamineNavigation).
+      Or you can leave it as @nil. }
+    property Navigation: TCastleNavigation read GetNavigation write SetNavigation
+      stored false;
+    {$endif}
+
+    { Check collisions with @link(Items) for TCastleNavigation. @exclude }
+    function InternalNavigationMoveAllowed(const Sender: TCastleNavigation;
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
+      const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
+
+    { Check collisions with @link(Items) for TCastleNavigation. @exclude }
+    function InternalNavigationHeight(const Sender: TCastleNavigation;
+      const Position: TVector3;
+      out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
   published
     { Transformations and scenes visible in this viewport.
       You should add here your @link(TCastleTransform) and @link(TCastleScene)
@@ -1071,28 +921,6 @@ type
       Trying to do something automatic/smart in this case turned out to be quite troublesome
       and breaking more than helping. }
     property Camera: TCastleCamera read FCamera write SetCamera;
-
-    { Navigation method is an optional component that handles
-      the user input to control the camera.
-
-      You can assign here an instance of @link(TCastleNavigation),
-      like @link(TCastleWalkNavigation) or @link(TCastleExamineNavigation).
-      Or you can leave it as @nil.
-
-      Note that, if you leave it as @nil and have @link(AutoNavigation) as @true
-      (default) then a default navigation will be calculated
-      right before the first rendering. It will take into account the 3D world
-      initialized in Viewport.Items, e.g. the NavigatinInfo inside Viewport.Items.MainScene.
-      Set @link(AutoNavigation) to false to avoid this automatic detection.
-
-      Note that assigning @link(NavigationType) also implicitly sets
-      this property to an internal instance of
-      @link(TCastleWalkNavigation) or @link(TCastleExamineNavigation).
-      Setting @link(NavigationType) to @nil sets this property to @nil.
-
-      @seealso OnCameraChanged }
-    property Navigation: TCastleNavigation read FNavigation write SetNavigation
-      stored IsStoredNavigation;
 
     { Should we render with shadow volumes.
       You can change this at any time, to switch rendering shadows on/off.
@@ -1260,17 +1088,6 @@ type
     property AutoCamera: Boolean
       read FAutoCamera write SetAutoCamera default false;
 
-    { Assign sensible @link(Navigation) looking
-      at the initial world (@link(Items)) if it is not assigned.
-
-      This also allows to later synchronize navigation properties when X3D NavigationInfo
-      node changes, or a new NavigationInfo node is bound.
-
-      By default it is @false, which means that you control @link(Navigation) on your own.
-    }
-    property AutoNavigation: Boolean
-      read FAutoNavigation write SetAutoNavigation default false; {$ifdef FPC}deprecated 'unless you implement an X3D browser, it is better to configure Navigation explicitly';{$endif}
-
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
     property OnBoundViewpointChanged: TNotifyEvent read FOnBoundViewpointChanged write FOnBoundViewpointChanged;
@@ -1302,97 +1119,13 @@ type
       Action: TCollectionNotification); override;
   end deprecated 'internal for TCastleSceneManager';
 
-  { Deprecated way to manage transformations and scenes.
-    To upgrade:
-    - use @link(TCastleViewport)
-    - set FullSize, AutoCamera and AutoNavigation to true. }
-  TCastleSceneManager = class(TCastleViewport)
-  strict private
-    FDefaultViewport: boolean;
-    {$warnings off} // using deprecated in deprecated
-    FViewports: TCastleViewportList;
-    {$warnings on}
-
-    function GetMoveLimit: TBox3D;
-    procedure SetMoveLimit(const Value: TBox3D);
-    function GetTimeScale: Single;
-    procedure SetTimeScale(const Value: Single);
-    procedure SetDefaultViewport(const Value: boolean);
-    function GetMainCamera: TCastleCamera;
-    procedure SetMainCamera(const Value: TCastleCamera);
-    function GetMainSceneInternal: TCastleScene;
-    procedure SetMainScene(const Value: TCastleScene);
-    function GetUseHeadlight: TUseHeadlight;
-    procedure SetUseHeadlight(const Value: TUseHeadlight);
-    function GetHeadlightNode: TAbstractLightNode;
-    procedure SetHeadlightNode(const Value: TAbstractLightNode);
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-
-    procedure Render; override;
-
-    { Limit the movement allowed by @link(TCastleAbstractRootTransform.WorldMoveAllowed).
-      Ignored when empty (default).
-      @seealso TCastleAbstractRootTransform.MoveLimit }
-    property MoveLimit: TBox3D read GetMoveLimit write SetMoveLimit;
-      {$ifdef FPC}deprecated 'use Items.MoveLimit';{$endif}
-
-    { List of viewports connected to this scene manager.
-      This contains all TCastleViewport instances that have
-      TCastleViewport.SceneManager set to us. Also it contains Self
-      (this very scene manager) if and only if DefaultViewport = @true
-      (because when DefaultViewport, scene manager acts as an
-      additional viewport too).
-
-      This list is read-only from the outside! It's automatically managed
-      in this unit (when you change TCastleViewport.SceneManager
-      or TCastleSceneManager.DefaultViewport, we automatically update this list
-      as appropriate). }
-    property Viewports: TCastleViewportList read FViewports;
-
-    { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
-    function GravityUp: TVector3; deprecated 'use Camera.GravityUp';
-
-    { See @link(TCastleRootTransform.HeadlightNode). }
-    property HeadlightNode: TAbstractLightNode
-      read GetHeadlightNode write SetHeadlightNode;
-      {$ifdef FPC}deprecated 'use Items.HeadlightNode';{$endif}
-
-    { See @link(TCastleAbstractRootTransform.MainCamera). }
-    property MainCamera: TCastleCamera read GetMainCamera write SetMainCamera;
-      {$ifdef FPC}deprecated 'use Items.MainCamera';{$endif}
-
-    { See @link(TCastleAbstractRootTransform.PhysicsProperties). }
-    function PhysicsProperties: TPhysicsProperties;
-      deprecated 'use Items.PhysicsProperties';
-
-    { See @link(TCastleAbstractRootTransform.TimeScale). }
-    property TimeScale: Single read GetTimeScale write SetTimeScale
-      {$ifdef FPC}default 1{$endif};
-      {$ifdef FPC}deprecated 'use Items.TimeScale';{$endif}
-
-    { See @link(TCastleRootTransform.MainScene). }
-    property MainScene: TCastleScene read GetMainSceneInternal write SetMainScene;
-      {$ifdef FPC}deprecated 'use Items.MainScene';{$endif}
-
-    { See @link(TCastleRootTransform.UseHeadlight). }
-    property UseHeadlight: TUseHeadlight
-      read GetUseHeadlight write SetUseHeadlight default hlMainScene;
-      {$ifdef FPC}deprecated 'use Items.UseHeadlight';{$endif}
-  published
-    { Should we render the 3D world in a default viewport that covers
-      the whole window. This is usually what you want. For more complicated
-      uses, you can turn this off, and use explicit TCastleViewport
-      (connected to this scene manager by TCastleViewport.SceneManager property)
-      for making your world visible. }
-    property DefaultViewport: boolean
-      read FDefaultViewport write SetDefaultViewport default true;
-
-    property FullSize default true;
-    property AutoCamera default true;
-    property AutoNavigation default true;
-  end {$ifdef FPC}deprecated 'use TCastleViewport to render scenes. To have the same initial behavior, set FullSize, AutoCamera and AutoNavigation to true'{$endif};
+{$define read_interface}
+{$I castleviewport_autonavigation.inc}
+{$I castleviewport_scenemanager.inc}
+{$I castleviewport_touchnavigation.inc}
+{$I castleviewport_serialize.inc}
+{$I castleviewport_design_navigation.inc}
+{$undef read_interface}
 
 var
   { Key/mouse combination to interact with clickable things in TCastleViewport.Items.
@@ -1405,12 +1138,6 @@ var
     or TInputShortcut.MouseButtonUse. }
   Input_Interact: TInputShortcut;
 
-{$define read_interface}
-{$I castleviewport_touchnavigation.inc}
-{$I castleviewport_serialize.inc}
-{$I castleviewport_design_navigation.inc}
-{$undef read_interface}
-
 implementation
 
 uses DOM, Math,
@@ -1420,6 +1147,8 @@ uses DOM, Math,
   CastleRenderContext, CastleApplicationProperties;
 
 {$define read_implementation}
+{$I castleviewport_autonavigation.inc}
+{$I castleviewport_scenemanager.inc}
 {$I castleviewport_touchnavigation.inc}
 {$I castleviewport_warmup_cache.inc}
 {$I castleviewport_serialize.inc}
@@ -1571,11 +1300,7 @@ begin
 
     InternalDesignNavigation := TCastleWalkNavigationDesign.Create(Self);
     InternalDesignNavigation.SetTransient;
-    // This somewhat replicates what happens at SetNavigation:
-    // For now: don't assign OnInternalMoveAllowed - allow to move without collisions in editor
-    // InternalDesignNavigation.OnInternalMoveAllowed := {$ifdef FPC}@{$endif} NavigationMoveAllowed;
-    // InternalDesignNavigation.OnInternalHeight := {$ifdef FPC}@{$endif} NavigationHeight;
-    InternalDesignNavigation.InternalViewport := Self;
+    InternalDesignNavigation.CheckCollisions := false;
     InsertControl(0, InternalDesignNavigation);
   end;
 
@@ -1600,14 +1325,6 @@ begin
     Result := InternalDesignCamera
   else
     Result  := Camera;
-end;
-
-function TCastleViewport.InternalNavigation: TCastleNavigation;
-begin
-  if InternalDesignManipulation then
-    Result := InternalDesignNavigation
-  else
-    Result  := Navigation;
 end;
 
 procedure TCastleViewport.SetupCamera;
@@ -1814,7 +1531,8 @@ begin
     { initialize sensible camera view (TODO: this is OK until we serialize/deserialize design-time camera vectors) }
     CameraViewpointForWholeScene(ItemsBoundingBox, 2, 1, false, true,
       APos, ADir, AUp, AGravityUp);
-    InternalDesignCamera.Init(APos, ADir, AUp, AGravityUp);
+    InternalDesignCamera.SetWorldView(APos, ADir, AUp);
+    InternalDesignCamera.GravityUp := AGravityUp;
   end;
 end;
 
@@ -1856,57 +1574,25 @@ begin
     Result := RenderRect.Round.Equals(Container.Rect);
 end;
 
-procedure TCastleViewport.SetNavigation(const Value: TCastleNavigation);
+function TCastleViewport.GetNavigation: TCastleNavigation;
+var
+  I: Integer;
 begin
-  { Viewport will handle passing events to their camera,
-    and will also pass our own Container to Camera.Container.
-    This is desired, this way events are correctly passed
-    and interpreted before passing them to TCastleTransform objects.
-    And this way we avoid the question whether camera should be before
-    or after the viewport on the Controls list (as there's really
-    no perfect ordering for them).
+  for I := ControlsCount - 1 downto 0 do
+    if Controls[I] is TCastleNavigation then
+      Exit(TCastleNavigation(Controls[I]));
+  Result := nil;
+end;
 
-    Note that one Navigation instance can be assigned only to one TCastleViewport.
-    Not only the viewport "takes over" some navigation events,
-    and sets Navigation.Viewport,
-    but also Navigation (as any other TCastleUserInterface) cannot be present
-    multiple times in UI hierarchy. }
-
-  if FNavigation <> Value then
-  begin
-    { Check csDestroying, as this may be called from Notification,
-      which may be called by navigation destructor *after* TCastleNavigation
-      after freed it's fields. }
-    if (FNavigation <> nil) and not (csDestroying in FNavigation.ComponentState) then
-    begin
-      FNavigation.OnInternalMoveAllowed := nil;
-      FNavigation.OnInternalHeight := nil;
-      FNavigation.RemoveFreeNotification(Self);
-      { For easy backward-compatibility, leave Viewport assigned on
-        FInternalWalkNavigation and FInternalExamineNavigation. }
-      if (FNavigation <> FInternalWalkNavigation) and
-         (FNavigation <> FInternalExamineNavigation) then
-        { Note that InternalViewport has no setter to, in turn, set Viewport.Navigation.
-          This would cause a recursive call from which we should protect.
-          But InternalViewport is a trivial internal field now, so no need to protect,
-          user code should not touch it. }
-        FNavigation.InternalViewport := nil;
-    end;
-
-    FNavigation := Value;
-
-    if FNavigation <> nil then
-    begin
-      FNavigation.OnInternalMoveAllowed := {$ifdef FPC}@{$endif}NavigationMoveAllowed;
-      FNavigation.OnInternalHeight := {$ifdef FPC}@{$endif}NavigationHeight;
-      FNavigation.FreeNotification(Self);
-      FNavigation.InternalViewport := Self;
-    end;
-
-    { Call OnBoundNavigationInfoChanged when Navigation instance changed.
-      This allows code that observes NavigationType to work. }
-    BoundNavigationInfoChanged;
-  end;
+procedure TCastleViewport.SetNavigation(const Value: TCastleNavigation);
+var
+  I: Integer;
+begin
+  for I := ControlsCount - 1 downto 0 do
+    if Controls[I] is TCastleNavigation then
+      RemoveControl(Controls[I]);
+  if Value <> nil then
+    InsertBack(Value);
 end;
 
 procedure TCastleViewport.Notification(AComponent: TComponent; Operation: TOperation);
@@ -1915,18 +1601,6 @@ begin
 
   if Operation = opRemove then
   begin
-    if AComponent = FNavigation then
-    begin
-      { set to nil by SetNavigation, to clean nicely }
-      Navigation := nil;
-    end;
-    // Note that we don't register on FInternalExamine/WalkNavigation destruction
-    // when they are not current, so they should never be freed in that case.
-    if AComponent = FInternalWalkNavigation then
-      FInternalWalkNavigation := nil;
-    if AComponent = FInternalExamineNavigation then
-      FInternalExamineNavigation := nil;
-
     if (AComponent is TCastleTransform) and
        MouseRayHitContains(TCastleTransform(AComponent)) then
     begin
@@ -2211,15 +1885,6 @@ var
     Items.InternalProjectionFar := FProjection.ProjectionFar;
   end;
 
-  procedure FixNavigation;
-  begin
-    if (Navigation <> nil) and (Navigation.Parent = nil) then
-    begin
-      WritelnWarning('Current TCastleViewport.Navigation was not part of the UI. We advise adding it explicitly as TCastleViewport child. Adding it now.');
-      InsertBack(Navigation);
-    end;
-  end;
-
 begin
   inherited;
 
@@ -2232,7 +1897,6 @@ begin
   ItemsUpdate;
   UpdateVisibleChange;
   WatchMainSceneChange;
-  FixNavigation;
 end;
 
 function TCastleViewport.AllowSuspendForInput: boolean;
@@ -2260,11 +1924,6 @@ var
   AspectRatio: Single;
   M: TMatrix4;
 begin
-  {$warnings off} // using deprecated to keep it working
-  if AutoNavigation and (Navigation = nil) then
-    AssignDefaultNavigation; // create Navigation if necessary
-  {$warnings on}
-
   EnsureCameraDetected;
 
   { We need to know container size now. }
@@ -2298,16 +1957,6 @@ begin
     Result := Items.BoundingBox
   else
     Result := TBox3D.Empty;
-end;
-
-function TCastleViewport.IsStoredNavigation: Boolean;
-begin
-  { Do not store Navigation when it is an internal instance
-    (set by AutoNavigation being true at some point).
-    This is consistent with what editor shows: internal instances
-    have csTransient, so they are not shown. }
-  Result := (Navigation <> nil) and
-    (not (csTransient in Navigation.ComponentStyle));
 end;
 
 procedure TCastleViewport.SetAutoCamera(const Value: Boolean);
@@ -2351,18 +2000,6 @@ begin
 
     if InternalDesignManipulation and Value then
       AssignDefaultCameraDone := false;
-  end;
-end;
-
-procedure TCastleViewport.SetAutoNavigation(const Value: Boolean);
-begin
-  if FAutoNavigation <> Value then
-  begin
-    FAutoNavigation := Value;
-    { Not necessary, and we actually don't have AssignDefaultNavigationDone.
-      The navigation will be auto-assigned when it is nil. }
-    // if InternalDesignManipulation and Value then
-    //   AssignDefaultNavigationDone := false;
   end;
 end;
 
@@ -3156,261 +2793,6 @@ begin
   end;
 end;
 
-function TCastleViewport.RequiredNavigation: TCastleNavigation;
-begin
-  { For backward-compatibility, this also initializes Camera vectors
-    (even though the method docs only guarantee that it initializes Navigation,
-    but in the past Camera and Navigation were the same thing). }
-  EnsureCameraDetected;
-
-  if Navigation = nil then
-    AssignDefaultNavigation;
-  {$warnings off} // using deprecated in deprecated
-  // Since AssignDefaultNavigation may leave Navigation nil, make sure it is assigned now
-  if Navigation = nil then
-    Result := InternalExamineNavigation;
-  {$warnings on}
-  Result := Navigation;
-end;
-
-function TCastleViewport.InternalExamineNavigation: TCastleExamineNavigation;
-begin
-  if FInternalExamineNavigation = nil then
-  begin
-    FInternalExamineNavigation := TCastleExamineNavigation.Create(Self);
-    FInternalExamineNavigation.SetTransient;
-    { For easy backward-compatibility, Viewport is assigned here for the
-      entire lifetime of FInternalExamineNavigation instance,
-      even before calling SetNavigation on it. }
-    FInternalExamineNavigation.InternalViewport := Self;
-    InsertControl(0, FInternalExamineNavigation);
-  end;
-  Result := FInternalExamineNavigation;
-end;
-
-function TCastleViewport.InternalWalkNavigation: TCastleWalkNavigation;
-begin
-  if FInternalWalkNavigation = nil then
-  begin
-    FInternalWalkNavigation := TCastleWalkNavigation.Create(Self);
-    FInternalWalkNavigation.SetTransient;
-    { For easy backward-compatibility, Viewport is assigned here for the
-      entire lifetime of FInternalExamineNavigation instance,
-      even before calling SetNavigation on it. }
-    FInternalWalkNavigation.InternalViewport := Self;
-    InsertControl(0, FInternalWalkNavigation);
-  end;
-  Result := FInternalWalkNavigation;
-end;
-
-function TCastleViewport.ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleExamineNavigation;
-var
-  NewNavigation: TCastleExamineNavigation;
-begin
-  if not (Navigation is TCastleExamineNavigation) then
-  begin
-    if not SwitchNavigationTypeIfNeeded then
-      Exit(nil);
-
-    { For backward-compatibility, this also initializes Camera vectors
-      (even though the method docs only guarantee that it initializes Navigation,
-      but in the past Camera and Navigation were the same thing). }
-    EnsureCameraDetected;
-
-    {$warnings off} // using deprecated in deprecated
-    NewNavigation := InternalExamineNavigation;
-    {$warnings on}
-    if Navigation = nil then
-      AssignDefaultNavigation; // initialize defaults from MainScene
-    // AssignDefaultNavigation could leave Navigation at nil, in which case ignor
-    if Navigation <> nil then
-      NewNavigation.Assign(Navigation);
-    Navigation := NewNavigation;
-    { make sure it's in ntExamine mode (as we possibly reuse old navigation,
-      by reusing InternalExamineNavigation, so we're not sure what state it's in. }
-    {$warnings off} // using deprecated to keep it working
-    NavigationType := ntExamine;
-    {$warnings on}
-  end;
-  Result := Navigation as TCastleExamineNavigation;
-end;
-
-function TCastleViewport.WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
-var
-  NewNavigation: TCastleWalkNavigation;
-begin
-  if not (Navigation is TCastleWalkNavigation) then
-  begin
-    if not SwitchNavigationTypeIfNeeded then
-      Exit(nil);
-
-    { For backward-compatibility, this also initializes Camera vectors
-      (even though the method docs only guarantee that it initializes Navigation,
-      but in the past Camera and Navigation were the same thing). }
-    EnsureCameraDetected;
-
-    {$warnings off} // using deprecated in deprecated
-    NewNavigation := InternalWalkNavigation;
-    {$warnings on}
-    if Navigation = nil then
-      AssignDefaultNavigation; // initialize defaults from MainScene
-    // AssignDefaultNavigation could leave Navigation at nil, in which case ignor
-    if Navigation <> nil then
-      NewNavigation.Assign(Navigation);
-    Navigation := NewNavigation;
-    { make sure it's in ntWalk mode (as we possibly reuse old navigation,
-      by reusing InternalWalkNavigation, so we're not sure what state it's in. }
-    {$warnings off} // using deprecated to keep it working
-    NavigationType := ntWalk;
-    {$warnings on}
-  end;
-  Result := Navigation as TCastleWalkNavigation;
-end;
-
-function TCastleViewport.GetNavigationType: TNavigationType;
-var
-  C: TCastleNavigation;
-begin
-  C := Navigation;
-  { We are using here Navigation, not RequiredNavigation, as automatically
-    creating Navigation could have surprising consequences.
-    E.g. it means that SetNavigation(nil) may recreate the navigation,
-    as BoundNavigationInfoChanged calls something that checks
-    NavigationType. }
-  if C = nil then
-    Result := ntNone
-  else
-    Result := C.GetNavigationType;
-end;
-
-procedure TCastleViewport.SetNavigationType(const Value: TNavigationType);
-var
-  E: TCastleExamineNavigation;
-  W: TCastleWalkNavigation;
-begin
-  { Do this even if "Value = GetNavigationType".
-    This makes sense, in case you set some weird values.
-    On the other hand, it makes "NavigationType := NavigationType" sometimes
-    a sensible operation that changes something.
-
-    It also avoids recursive loop when first assigning navigation
-    in AssignDefaultNavigation. }
-
-  { do not change NavigationType when
-    SetNavigationType is called from ExamineNavigation or WalkNavigation
-    that were already called by NavigationType.
-    It's actually harmless, but still useless. }
-  if FWithinSetNavigationType then
-    Exit;
-  FWithinSetNavigationType := true;
-
-  case Value of
-    ntExamine:
-      begin
-        {$warnings off} // TODO: this should be internal
-        E := ExamineNavigation;
-        {$warnings on}
-        E.Input := TCastleNavigation.DefaultInput;
-        E.Turntable := false;
-      end;
-    ntTurntable:
-      begin
-        {$warnings off} // TODO: this should be internal
-        E := ExamineNavigation;
-        {$warnings on}
-        E.Input := TCastleNavigation.DefaultInput;
-        E.Turntable := true;
-      end;
-    ntWalk:
-      begin
-        {$warnings off} // TODO: this should be internal
-        W := WalkNavigation;
-        {$warnings on}
-        W.Input := TCastleNavigation.DefaultInput;
-        W.PreferGravityUpForRotations := true;
-        W.PreferGravityUpForMoving := true;
-        W.Gravity := true;
-      end;
-    ntFly:
-      begin
-        {$warnings off} // TODO: this should be internal
-        W := WalkNavigation;
-        {$warnings on}
-        W.Input := TCastleNavigation.DefaultInput;
-        W.PreferGravityUpForRotations := true;
-        W.PreferGravityUpForMoving := false;
-        W.Gravity := false;
-      end;
-    ntNone:
-      begin
-        { Advantage: This way setting NavigationType to ntNone (default NavigationType value)
-          will restore Navigation to nil, which is Navigation default value. }
-        // Navigation := nil;
-
-        { Advantage: This way of setting NavigationType to ntNone (by making Navigation non-nil)
-          explicitly will prevent
-          Navigation from being auto-created (in case AutoNavigation remains @true),
-          which would make setting "NavigationType := ntNone" moot. }
-        {$warnings off} // TODO: this should be internal
-        W := WalkNavigation;
-        {$warnings on}
-        W.Input := [];
-        W.Gravity := false;
-      end;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('TCastleViewport.SetNavigationType: Value?');
-    {$endif}
-  end;
-
-  { This assertion should be OK. It is commented out only to prevent
-    GetNavigationType from accidentally creating something intermediate,
-    and thus making debug and release behavior different) }
-  // Assert(GetNavigationType = Value);
-
-  FWithinSetNavigationType := false;
-
-  { Call OnBoundNavigationInfoChanged when NavigationType changed. }
-  BoundNavigationInfoChanged;
-end;
-
-procedure TCastleViewport.AssignDefaultNavigation;
-var
-  Box: TBox3D;
-  Scene: TCastleScene;
-  C: TCastleExamineNavigation;
-  Nav: TNavigationType;
-begin
-  Box := ItemsBoundingBox;
-  Scene := Items.MainScene;
-  if Scene <> nil then
-  begin
-    Nav := Scene.NavigationTypeFromNavigationInfo;
-
-    { Set Navigation explicitly, otherwise SetNavigationType below could call
-      ExamineNavigation / WalkNavigation that call AssignDefaultNavigation when Navigation = nil,
-      and we would have infinite AssignDefaultNavigation calls loop. }
-    {$warnings off} // TODO: this should be internal
-    if Nav in [ntExamine, ntTurntable] then
-      Navigation := InternalExamineNavigation
-    else
-      Navigation := InternalWalkNavigation;
-    {$warnings on}
-
-    {$warnings off} // using deprecated to keep it working
-    NavigationType := Nav;
-    {$warnings on}
-    Scene.InternalUpdateNavigation(Navigation, Box);
-  end else
-  begin
-    {$warnings off} // TODO: this should be internal
-    C := InternalExamineNavigation;
-    {$warnings on}
-    C.ModelBox := Box;
-    C.Radius := Box.AverageSize(false, 1.0) * WorldBoxSizeToRadius;
-    Navigation := C;
-  end;
-end;
-
 procedure TCastleViewport.AssignDefaultCamera;
 var
   Box: TBox3D;
@@ -3429,7 +2811,8 @@ begin
   begin
     CameraViewpointForWholeScene(Box, 2, 1, false, true,
       APos, ADir, AUp, NewGravityUp);
-    Camera.Init(APos, ADir, AUp, NewGravityUp);
+    Camera.SetWorldView(APos, ADir, AUp);
+    Camera.GravityUp := NewGravityUp;
   end;
 
   { Mark it as done, so that next EnsureCameraDetected does nothing
@@ -3447,12 +2830,11 @@ end;
 
 procedure TCastleViewport.Setup2D;
 begin
-  Camera.Init(
+  Camera.SetWorldView(
     { pos } Vector3(0, 0, Default2DCameraZ),
     { dir } Vector3(0, 0, -1),
-    { up } Vector3(0, 1, 0),
-    { gravity up } Vector3(0, 1, 0)
-  ); // sets both initial and current vectors
+    { up } Vector3(0, 1, 0));
+  Camera.GravityUp := Vector3(0, 1, 0);
   Camera.ProjectionNear := -Default2DProjectionFar;
   Camera.ProjectionFar := Default2DProjectionFar;
   Camera.ProjectionType := ptOrthographic;
@@ -4126,7 +3508,7 @@ begin
   Result := (AvoidNavigationCollisions <> nil) and (AvoidNavigationCollisions.World = Items);
 end;
 
-function TCastleViewport.NavigationMoveAllowed(const Sender: TCastleNavigation;
+function TCastleViewport.InternalNavigationMoveAllowed(const Sender: TCastleNavigation;
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
 
@@ -4171,7 +3553,7 @@ begin
       Box3DAroundPoint(ProposedNewPos, Radius * 2), BecauseOfGravity);
 end;
 
-function TCastleViewport.NavigationHeight(const Sender: TCastleNavigation;
+function TCastleViewport.InternalNavigationHeight(const Sender: TCastleNavigation;
   const Position: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
@@ -4218,13 +3600,6 @@ end;
 
 procedure TCastleViewport.MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
 begin
-  {$warnings off} // using deprecated to keep it working
-  if AutoNavigation and (Navigation <> nil) then
-  begin
-    NavigationType := Items.MainScene.NavigationTypeFromNavigationInfo;
-    Items.MainScene.InternalUpdateNavigation(Navigation, Items.BoundingBox);
-  end;
-  {$warnings on}
   BoundNavigationInfoChanged;
 end;
 
@@ -4298,141 +3673,6 @@ begin
       // Action in [cnRemoved, cnExtracted]
       Value.Items := TCastleRootTransform.Create(Value);
   end;
-end;
-
-{ TCastleSceneManager -------------------------------------------------------- }
-
-constructor TCastleSceneManager.Create(AOwner: TComponent);
-begin
-  inherited;
-
-  FDefaultViewport := true;
-  FullSize := true;
-  AutoNavigation := true;
-  AutoCamera := true;
-
-  {$warnings off} // using deprecated in deprecated
-  FViewports := TCastleViewportList.Create(false);
-  {$warnings on}
-  FViewports.SceneManager := Self;
-  if DefaultViewport then FViewports.Add(Self);
-end;
-
-destructor TCastleSceneManager.Destroy;
-var
-  I: Integer;
-begin
-  if FViewports <> nil then
-  begin
-    for I := 0 to FViewports.Count - 1 do
-      if FViewports[I] is TCastleViewport then
-      begin
-        {$ifdef FPC}
-        {$warnings off} // using deprecated in deprecated
-        Assert(
-          (TCastleViewport(FViewports[I]).SceneManager = Self) or
-          (TCastleViewport(FViewports[I]).SceneManager = nil)
-        );
-        {$warnings on}
-        {$endif}
-
-        { Set SceneManager by direct field (FSceneManager),
-          otherwise TCastleViewport.SetSceneManager would try to update
-          our Viewports list, that we iterate over right now... }
-        TCastleViewport(FViewports[I]).FSceneManager := nil;
-      end;
-    FreeAndNil(FViewports);
-  end;
-
-  inherited;
-end;
-
-procedure TCastleSceneManager.Render;
-begin
-  if not DefaultViewport then Exit;
-  inherited;
-end;
-
-procedure TCastleSceneManager.SetDefaultViewport(const Value: boolean);
-begin
-  if Value <> FDefaultViewport then
-  begin
-    FDefaultViewport := Value;
-    if DefaultViewport then
-      Viewports.Add(Self)
-    else
-      Viewports.Remove(Self);
-  end;
-end;
-
-function TCastleSceneManager.GetMainCamera: TCastleCamera;
-begin
-  Result := Items.MainCamera;
-end;
-
-procedure TCastleSceneManager.SetMainCamera(const Value: TCastleCamera);
-begin
-  Items.MainCamera := Value;
-end;
-
-function TCastleSceneManager.GetMainSceneInternal: TCastleScene;
-begin
-  Result := Items.MainScene;
-end;
-
-procedure TCastleSceneManager.SetMainScene(const Value: TCastleScene);
-begin
-  Items.MainScene := Value;
-end;
-
-function TCastleSceneManager.GetUseHeadlight: TUseHeadlight;
-begin
-  Result := Items.UseHeadlight;
-end;
-
-procedure TCastleSceneManager.SetUseHeadlight(const Value: TUseHeadlight);
-begin
-  Items.UseHeadlight := Value;
-end;
-
-function TCastleSceneManager.GravityUp: TVector3;
-begin
-  Result := Camera.GravityUp;
-end;
-
-function TCastleSceneManager.GetHeadlightNode: TAbstractLightNode;
-begin
-  Result := Items.HeadlightNode;
-end;
-
-procedure TCastleSceneManager.SetHeadlightNode(const Value: TAbstractLightNode);
-begin
-  Items.HeadlightNode := Value;
-end;
-
-function TCastleSceneManager.GetMoveLimit: TBox3D;
-begin
-  Result := Items.MoveLimit;
-end;
-
-procedure TCastleSceneManager.SetMoveLimit(const Value: TBox3D);
-begin
-  Items.MoveLimit := Value;
-end;
-
-function TCastleSceneManager.PhysicsProperties: TPhysicsProperties;
-begin
-  Result := Items.PhysicsProperties;
-end;
-
-function TCastleSceneManager.GetTimeScale: Single;
-begin
-  Result := Items.TimeScale;
-end;
-
-procedure TCastleSceneManager.SetTimeScale(const Value: Single);
-begin
-  Items.TimeScale := Value;
 end;
 
 var

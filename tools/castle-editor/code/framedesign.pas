@@ -1283,7 +1283,9 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
   const NewDesignUrl: String);
 var
   Background: TCastleRectangleControl;
-  TempViewport: TCastleViewport;
+  {$warnings off} // using TCastleAutoNavigationViewport that should be internal
+  TempViewport: TCastleAutoNavigationViewport;
+  {$warnings on}
   //LabelNonVisualHint: TCastleLabel;
   DesignRootVisual: Boolean;
 begin
@@ -1309,7 +1311,9 @@ begin
   end else
   if NewDesignRoot is TCastleTransform then
   begin
-    TempViewport := TCastleViewport.InternalCreateNonDesign(NewDesignOwner);
+    {$warnings off} // using TCastleAutoNavigationViewport that should be internal
+    TempViewport := TCastleAutoNavigationViewport.InternalCreateNonDesign(NewDesignOwner);
+    {$warnings on}
     TempViewport.Transparent := true;
     TempViewport.Items.UseHeadlight := hlOn;
     TempViewport.Items.Add(NewDesignRoot as TCastleTransform);
@@ -1867,9 +1871,9 @@ begin
       if Sel is TCastleNavigation then
       begin
         Nav := Sel as TCastleNavigation;
-        if Nav.InternalViewport is TCastleViewport then
+        if Nav.Parent is TCastleViewport then
         begin
-          NewResult := Nav.InternalViewport as TCastleViewport;
+          NewResult := Nav.Parent as TCastleViewport;
           if (Result <> nil) and (Result <> NewResult) then
             Exit(nil); // multiple viewports selected
           Result := NewResult;
@@ -4078,6 +4082,7 @@ end;
 }
 
 procedure TDesignFrame.ChangeViewportNavigation(const NewNavigation: TCastleNavigation);
+(*
 var
   V: TCastleViewport;
 begin
@@ -4110,6 +4115,10 @@ begin
   else
     SelectedUserInterface := V;
   ModifiedOutsideObjectInspector('Change Viewport Navigation for ' + V.Name, ucHigh);
+end;
+*)
+begin
+  // TODO: change V.InternalDesignNavigation
 end;
 
 procedure TDesignFrame.MenuItemViewportChangeNavigationNoneClick(Sender: TObject);

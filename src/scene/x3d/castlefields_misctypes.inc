@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -195,8 +195,8 @@
     chDragSensorEnabled,
 
     { NavigationInfo field value used in
-      TCastleSceneCore.NavigationTypeFromNavigationInfo or
-      TCastleSceneCore.UpdateNavigation changed. }
+      NavigationTypeFromNavigationInfo or
+      TCastleSceneCore.InternalUpdateNavigation changed. }
     chNavigationInfo,
 
     { ScreenEffect.enabled changed. }

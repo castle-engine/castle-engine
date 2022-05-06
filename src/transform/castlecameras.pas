@@ -58,27 +58,6 @@ type
   TCameraInput = TNavigationInput deprecated 'use TNavigationInput';
   TCameraInputs = TNavigationInputs deprecated 'use TNavigationInputs';
 
-  { Navigation type that determines various navigation properties,
-    used by @link(TCastleViewport.NavigationType). }
-  TNavigationType = (
-    { Examine mode, comfortable to rotate the scene like an item held in your hand.
-      Uses TCastleExamineNavigation. }
-    ntExamine,
-    { Turntable mode, similar to examine mode, but with a bit different interpretation
-      of moves.
-      Uses TCastleExamineNavigation. }
-    ntTurntable,
-    { Walk mode, comfortable to walk around the scene with gravity.
-      Uses TCastleWalkNavigation. }
-    ntWalk,
-    { Fly mode, comfortable to move around around the scene without gravity.
-      Uses TCastleWalkNavigation. }
-    ntFly,
-    { Disable user navigation on the scene.
-      Uses TCastleWalkNavigation. }
-    ntNone
-  );
-
   EViewportNotAssigned = class(Exception);
 
   TCastleNavigation = class;
@@ -100,29 +79,26 @@ type
   THeightEvent = function (const Sender: TCastleNavigation;
     const Position: TVector3;
     out AboveHeight: Single; out AboveGround: PTriangle): Boolean of object;
+    deprecated 'unused';
 
   { Handle user input to modify viewport's camera.
 
-    Create an instance of this class, and set it as @link(TCastleViewport.Navigation) value.
-    It will become a child control of the associated @link(TCastleViewport).
+    Once you create an instance of this class (create non-abstract descendants
+    like TCastleExamineNavigation, TCastleWalkNavigation, TCastleThirdPersonNavigation)
+    just and add it as @link(TCastleViewport) child.
+    The navigation will automatically affect the current camera of parent viewport.
 
     In many ways, this is just a normal @link(TCastleUserInterface) descendant.
     E.g. it processes input just like any other @link(TCastleUserInterface) descendant
     (there isn't any special mechanism through which @link(TCastleViewport) passes
     input to the navigation),
     the @link(Exists) property works and so on.
-    Setting it as @link(TCastleViewport.Navigation)
-    (as opposed to just adding it manually by @link(TCastleUserInterface.InsertFront)
-    to the viewport) serves just two purposes: we set internal link to the viewport,
-    and we make sure to remove previous @link(TCastleViewport.Navigation) value
-    from children.
 
-    The point of the above explanation is that you can modify
-    @link(TCastleViewport.Camera) (move, rotate and do other stuff with camera)
-    from any place in the code.
-    You don't @italic(need) to use an ancestor of TCastleNavigation to manipulate
-    the camera. TCastleNavigation is a comfortable way to encapsulate
-    common navigation methods, but it's not the only way to move the camera.
+    Note that you don't really @italic(need) to use any TCastleNavigation to manipulate
+    the camera. You can just access @link(TCastleViewport.Camera) from anywhere
+    (like TUIState code) and move, rotate it as you wish.
+    TCastleNavigation is just a comfortable way to encapsulate
+    some navigation methods, but it's not the only way to manipulate the camera.
 
     Various TCastleNavigation descendants implement various navigation
     methods, for example TCastleExamineNavigation allows the user to rotate
@@ -131,7 +107,7 @@ type
     implements typical navigation in the style of first-person shooter
     games. }
   TCastleNavigation = class(TCastleUserInterface)
-  private
+  strict private
     FInput: TNavigationInputs;
     FRadius: Single;
     FPreferredHeight: Single;
@@ -141,14 +117,14 @@ type
     FClimbHeight: Single;
     FModelBox: TBox3D;
     FCrouchHeight: Single;
-    FOnMoveAllowed, FOnInternalMoveAllowed: TMoveAllowedFunc;
-    FOnInternalHeight: THeightEvent;
+    FOnMoveAllowed: TMoveAllowedFunc;
     FOnFall: TFallNotifyFunc;
+    FWarningInvalidParentDone: Boolean;
+    FCheckCollisions: Boolean;
 
     function GetProjectionMatrix: TMatrix4;
     procedure SetProjectionMatrix(const Value: TMatrix4);
     function GetFrustum: TFrustum;
-    function GoodModelBox: TBox3D;
     function GetIgnoreAllInputs: boolean;
     procedure SetIgnoreAllInputs(const Value: boolean);
   protected
@@ -159,6 +135,11 @@ type
       (to support multitouch). }
     MouseDraggingStarted: Integer;
     MouseDraggingStart: TVector2;
+
+    { Viewport we should manipulate.
+      This is @nil, or TCastleViewport instance, but it cannot be declared as
+      TCastleViewport due to unit dependencies. }
+    function InternalViewport: TCastleUserInterface;
 
     { If this is @true, then Camera is non-nil, InternalViewport is non-nil,
       and navigation should function as usual. }
@@ -172,7 +153,7 @@ type
     function ReallyEnableMouseDragging: boolean; virtual;
 
     { Check collisions to determine how high above ground is given point.
-      Calls OnInternalHeight callback. }
+      Checks collisions through parent TCastleViewport, if CheckCollisions. }
     procedure Height(const APosition: TVector3;
       out AIsAbove: Boolean;
       out AnAboveHeight: Single; out AnAboveGround: PTriangle);
@@ -201,7 +182,8 @@ type
       dragging the player down. You can use BecauseOfGravity e.g. to implement
       @link(TCastleViewport.PreventInfiniteFallingDown).
 
-      Implementation calls OnMoveAllowed and OnInternalMoveAllowed. }
+      Implementation calls OnMoveAllowed and
+      checks collisions through parent TCastleViewport, if CheckCollisions. }
     function MoveAllowed(
       const OldPos: TVector3; ProposedNewPos: TVector3; out NewPos: TVector3;
       const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
@@ -218,12 +200,6 @@ type
       DefaultHeadBobbing = 0.02;
       DefaultCrouchHeight = 0.5;
 
-    var
-      { Associated viewport.
-        Do not set this directly, instead always set @link(TCastleViewport.Navigation).
-        @exclude }
-      InternalViewport: TCastleUserInterface;
-
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -231,19 +207,6 @@ type
     { Used by @link(MoveAllowed), see there for description.
       You can assign this property. }
     property OnMoveAllowed: TMoveAllowedFunc read FOnMoveAllowed write FOnMoveAllowed;
-
-    { Used by @link(MoveAllowed), see there for description.
-      This property is used internally by TCastleViewport. }
-    property OnInternalMoveAllowed: TMoveAllowedFunc
-      read FOnInternalMoveAllowed write FOnInternalMoveAllowed;
-
-    { Assign here the callback to check collisions
-      and determine what is the current height of position above the ground.
-      This should be calculated like collision of ray from @link(Position)
-      in direction -GravityUp with the world.
-      See @link(TCastleTransform.Height) for specification what returned parameters
-      mean. }
-    property OnInternalHeight: THeightEvent read FOnInternalHeight write FOnInternalHeight;
 
     { Notification that we have been falling down for some time due to gravity,
       and suddenly stopped (which means we "hit the ground").
@@ -325,10 +288,8 @@ type
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
 
       Uses current container size, which means that it assumes that viewport
-      fills the whole window,
-      and requires that it's added to @link(TCastleViewport.Navigation)
-      and this @link(TCastleViewport) must be part of
-      TCastleWindow.Controls or TCastleControl.Controls.
+      fills the whole container. The navigation, as well as the parent viewport,
+      must be part of some container UI hierarchy for this to work.
 
       Projection (read-only here) describe your projection,
       required for calculating the ray properly.
@@ -343,10 +304,8 @@ type
     { Calculate a ray picked by current mouse position on the window.
 
       Uses current container size, which means that it assumes that viewport
-      fills the whole window,
-      and requires that it's added to @link(TCastleViewport.Navigation)
-      and this @link(TCastleViewport) must be part of
-      TCastleWindow.Controls or TCastleControl.Controls.
+      fills the whole container. The navigation, as well as the parent viewport,
+      must be part of some container UI hierarchy for this to work.
 
       @seealso Ray
       @seealso CustomRay }
@@ -384,12 +343,6 @@ type
     procedure AnimateTo(const OtherNavigation: TCastleNavigation; const Time: TFloatTime); overload; deprecated 'use AnimateTo with TCastleCamera, not TCastleNavigation';
     procedure AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime); overload; deprecated 'use Viewport.Camera.AnimateTo';
     function Animation: boolean; deprecated 'use Viewport.Camera.Animation';
-
-    { By default this returns ntNone.
-      Internal navigation descendants can return something else,
-      to cooperate with @link(TCastleViewport.NavigationType).
-      Your custom navigation descendants can just return ntNone. }
-    function GetNavigationType: TNavigationType; virtual;
 
     { Height above the ground, only used by @link(TCastleWalkNavigation) descendant
       when @link(TCastleWalkNavigation.Gravity) is @true.
@@ -536,18 +489,24 @@ type
       type for possible values and their meaning.
 
       To disable any user interaction with this navigation
-      you can simply set this to empty.
-      You can also leave @link(TCastleViewport.Navigation) as @nil. }
+      you can simply set this to empty. }
     property Input: TNavigationInputs read FInput write FInput default DefaultInput;
   published
     // By default this captures events from whole parent, which should be whole Viewport.
     property FullSize default true;
+
+    { Check collisions when moving with the environment.
+
+      Note: some descendants, like TCastleExamineNavigation, ignore it and never check collisions
+      right now. But it may change in future engine versions, so be sure to set CheckCollisions
+      appropriately. }
+    property CheckCollisions: Boolean read FCheckCollisions write FCheckCollisions default true;
   end;
 
   { Navigate the 3D model in examine mode, like you would hold
     a box with the model inside. }
   TCastleExamineNavigation = class(TCastleNavigation)
-  private
+  strict private
     type
       { Camera pos/dir/up expressed as vectors more comfortable
         for Examine methods. }
@@ -590,6 +549,7 @@ type
 
       FMouseButtonRotate, FMouseButtonMove, FMouseButtonZoom: TCastleMouseButton;
 
+    function GoodModelBox: TBox3D;
     procedure SetRotationsAnim(const Value: TVector3);
     function GetRotations: TQuaternion;
     procedure SetRotations(const Value: TQuaternion);
@@ -734,8 +694,6 @@ type
     property Inputs_Move: T3BoolInputs read FInputs_Move;
     property Inputs_Rotate: T3BoolInputs read FInputs_Rotate;
     { @groupEnd }
-
-    function GetNavigationType: TNavigationType; override;
 
     { TODO: Input_Xxx not published, although setting them in object inspector
       actually works Ok. They are not published, because they would be always
@@ -1331,8 +1289,6 @@ type
       some "footsteps" sound for the player. }
     property IsWalkingOnTheGround: boolean read FIsWalkingOnTheGround;
 
-    function GetNavigationType: TNavigationType; override;
-
     { Change up vector, keeping the direction unchanged.
       If necessary, the up vector provided here will be fixed to be orthogonal
       to direction.
@@ -1340,10 +1296,6 @@ type
     procedure UpPrefer(const AUp: TVector3); deprecated 'use Viewport.Camera.UpPrefer';
 
     { Last known information about whether camera is over the ground.
-      Updated by using @link(Height) call. For normal TCastleNavigation descendants,
-      this means using OnInternalHeight callback,
-      which is handled by @link(TCastleViewport) if you assigned @link(TCastleViewport.Navigation)
-      to this navigation.
 
       These are updated continuously only when @link(Gravity) is @true.
 
@@ -1482,7 +1434,7 @@ type
 
       Summary of things done by gravity:
       @unorderedList(
-        @item(It uses OnInternalHeight to get camera height above the ground.)
+        @item(It performs collision detection with parent TCastleViewport to get camera height above the ground.)
         @item(It allows player to jump. See Input_Jump, IsJumping, JumpMaxHeight,
           JumpHorizontalSpeedMultiply.)
         @item(It allows player to crouch. See Input_Crouch, CrouchHeight.)
@@ -1567,17 +1519,6 @@ uses Math,
   CastleStringUtils, CastleLog, CastleViewport,
   CastleComponentSerialize;
 
-{ TCastle2DNavigation -------------------------------------------------------- }
-
-constructor TCastle2DNavigation.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-
-  RotationEnabled := false;
-  MouseButtonMove := buttonLeft;
-  MouseButtonZoom := buttonMiddle;
-end;
-
 { TCastleNavigation ------------------------------------------------------------ }
 
 constructor TCastleNavigation.Create(AOwner: TComponent);
@@ -1593,6 +1534,7 @@ begin
   FMoveVerticalSpeed := 1;
   FMoveSpeed := 1;
   FCrouchHeight := DefaultCrouchHeight;
+  FCheckCollisions := true;
 
   // interaction state
   MouseDraggingStarted := -1;
@@ -1607,9 +1549,9 @@ begin
   Result := true;
   NewPos := ProposedNewPos;
 
-  if Result and Assigned(OnInternalMoveAllowed) then
+  if Result and Valid and CheckCollisions then
   begin
-    Result := OnInternalMoveAllowed(Self, Camera.Translation, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
+    Result := (InternalViewport as TCastleViewport).InternalNavigationMoveAllowed(Self, Camera.Translation, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
     // update ProposedNewPos for OnMoveAllowed call
     if Result then
       ProposedNewPos := NewPos;
@@ -1622,18 +1564,13 @@ procedure TCastleNavigation.Height(const APosition: TVector3;
   out AIsAbove: Boolean;
   out AnAboveHeight: Single; out AnAboveGround: PTriangle);
 begin
-  if Assigned(OnInternalHeight) then
-    AIsAbove := OnInternalHeight(Self, APosition, AnAboveHeight, AnAboveGround) else
+  if Valid and CheckCollisions then
+    AIsAbove := (InternalViewport as TCastleViewport).InternalNavigationHeight(Self, APosition, AnAboveHeight, AnAboveGround) else
   begin
     AIsAbove := false;
     AnAboveHeight := MaxSingle;
     AnAboveGround := nil;
   end;
-end;
-
-function TCastleNavigation.GetNavigationType: TNavigationType;
-begin
-  Result := ntNone;
 end;
 
 function TCastleNavigation.Camera: TCastleCamera;
@@ -1834,31 +1771,23 @@ begin
   Result := Camera.Frustum;
 end;
 
-function TCastleNavigation.GoodModelBox: TBox3D;
+function TCastleNavigation.InternalViewport: TCastleUserInterface;
 begin
-  { Try hard to return non-empty bounding box, otherwise examine navigation
-    doesn't work sensibly, as movement and zooming speed must depend on box
-    sizes.
-    This is important in case you use TCastleExamineNavigation without
-    setting it's ModelBox explicitly, which happens e.g. when CGE editor
-    adds TCastleExamineNavigation. }
-  if FModelBox.IsEmpty and
-     (InternalViewport <> nil) then
-    Result := (InternalViewport as TCastleViewport).Items.BoundingBox
-  else
-    Result := FModelBox;
-end;
-
-function TCastleNavigation.PropertySections(
-  const PropertyName: String): TPropertySections;
-begin
-// not sure if useful enough:
-  // case PropertyName of
-  //   'Input':
-  //     Result := [psBasic];
-  //   else
-      Result := inherited PropertySections(PropertyName);
-  // end;
+  if Parent <> nil then
+  begin
+    if Parent is TCastleViewport then
+      Result := Parent
+    else
+    begin
+      Result := nil;
+      if not FWarningInvalidParentDone then
+      begin
+        FWarningInvalidParentDone := true;
+        raise Exception.Create('TCastleNavigation should be only added as an immediate child of TCastleViewport, otherwise it does not do anything');
+      end;
+    end;
+  end else
+    Result := nil;
 end;
 
 function TCastleNavigation.Valid: Boolean;
@@ -1870,17 +1799,23 @@ begin
 
   V := InternalViewport as TCastleViewport;
   Result :=
-    { Ignore input if viewport is using other navigation.
-       There may be multiple navigation components refering to the same InternalViewport,
-       as InternalDesignNavigation, FInternalExamineNavigation, FInternalWalkNavigation
-       all do this, in addition to user-created navigation components. }
-    (V.InternalNavigation = Self) and
-    { Ignore input on a paused viewport }
-    (not V.Items.Paused) and
+    { At design-time, honor only V.InternalDesignNavigation. }
+    ((not V.InternalDesignManipulation) or (V.InternalDesignNavigation = Self)) and
+    { Ignore input on a paused viewport at runtime (ignore Paused at design-time) }
+    (V.InternalDesignManipulation or (not V.Items.Paused)) and
     { As Viewport.Camera is assignable, be prepared to handle InternalCamera = nil situation }
     (V.InternalCamera <> nil) and
     { During camera animation, all navigation is disabled. }
     (not V.InternalCamera.Animation);
+end;
+
+function TCastleNavigation.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'CheckCollisions') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TCastleExamineNavigation ------------------------------------------------------------ }
@@ -2020,6 +1955,21 @@ begin
     MInverse.MultDirection(DefaultCameraDirection),
     MInverse.MultDirection(DefaultCameraUp)
   );
+end;
+
+function TCastleExamineNavigation.GoodModelBox: TBox3D;
+begin
+  { Try hard to return non-empty bounding box, otherwise examine navigation
+    doesn't work sensibly, as movement and zooming speed must depend on box
+    sizes.
+    This is important in case you use TCastleExamineNavigation without
+    setting it's ModelBox explicitly, which happens e.g. when CGE editor
+    adds TCastleExamineNavigation. }
+  if ModelBox.IsEmpty and
+     (InternalViewport <> nil) then
+    Result := (InternalViewport as TCastleViewport).Items.BoundingBox
+  else
+    Result := ModelBox;
 end;
 
 procedure TCastleExamineNavigation.Update(const SecondsPassed: Single;
@@ -2251,13 +2201,14 @@ procedure TCastleExamineNavigation.Init(const AModelBox: TBox3D; const ARadius: 
 var
   APos, ADir, AUp, NewGravityUp: TVector3;
 begin
-  FModelBox := AModelBox; // set using FModelBox, as there's no need to preserve view
+  ModelBox := AModelBox; // set using FModelBox, as there's no need to preserve view
   Radius := ARadius;
 
   CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
     APos, ADir, AUp, NewGravityUp);
 
-  Camera.Init(APos, ADir, AUp, NewGravityUp);
+  Camera.SetWorldView(APos, ADir, AUp);
+  Camera.GravityUp := NewGravityUp;
   Camera.ProjectionNear := Radius * RadiusToProjectionNear;
 end;
 
@@ -2673,17 +2624,6 @@ begin
     Input := Input - [niMouseDragging];
 end;
 
-function TCastleExamineNavigation.GetNavigationType: TNavigationType;
-begin
-  if Input = [] then
-    Result := ntNone
-  else
-  if Turntable then
-    Result := ntTurntable
-  else
-    Result := ntExamine;
-end;
-
 function TCastleExamineNavigation.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
@@ -2695,6 +2635,17 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+{ TCastle2DNavigation -------------------------------------------------------- }
+
+constructor TCastle2DNavigation.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  RotationEnabled := false;
+  MouseButtonMove := buttonLeft;
+  MouseButtonZoom := buttonMiddle;
 end;
 
 { TCastleMouseLookNavigation ------------------------------------------------- }
@@ -4087,7 +4038,8 @@ begin
   Radius := ARadius;
   CorrectPreferredHeight;
 
-  Camera.Init(AInitialPosition, AInitialDirection, AInitialUp, AGravityUp);
+  Camera.SetWorldView(AInitialPosition, AInitialDirection, AInitialUp);
+  Camera.GravityUp := AGravityUp;
   Camera.ProjectionNear := Radius * RadiusToProjectionNear;
 end;
 
@@ -4104,10 +4056,10 @@ begin
 
     Camera.ProjectionNear := Radius * RadiusToProjectionNear;
 
-    Camera.Init(TVector3.Zero,
+    Camera.SetWorldView(TVector3.Zero,
       DefaultCameraDirection,
-      DefaultCameraUp,
       DefaultCameraUp);
+    Camera.GravityUp := DefaultCameraUp;
   end else
   begin
     Radius := ARadius;
@@ -4122,10 +4074,10 @@ begin
       (Box.Data[0].Y + Box.Data[1].Y) / 2,
       (Box.Data[0].Z + Box.Data[1].Z) / 2
     );
-    Camera.Init(Pos,
+    Camera.SetWorldView(Pos,
       DefaultCameraDirection,
-      DefaultCameraUp,
       DefaultCameraUp);
+    Camera.GravityUp := DefaultCameraUp;
   end;
 end;
 
@@ -4204,17 +4156,6 @@ begin
     HandleMouseDrag;
     Result := ExclusiveEvents;
   end;
-end;
-
-function TCastleWalkNavigation.GetNavigationType: TNavigationType;
-begin
-  if Input = [] then
-    Result := ntNone
-  else
-  if Gravity then
-    Result := ntWalk
-  else
-    Result := ntFly;
 end;
 
 function TCastleWalkNavigation.PropertySections(

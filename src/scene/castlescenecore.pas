@@ -1741,9 +1741,6 @@ type
     procedure RegisterCompiledScript(const HandlerName: string;
       Handler: TCompiledScriptHandler);
 
-    { TNavigationType value determined by current NavigationInfo node. }
-    function NavigationTypeFromNavigationInfo: TNavigationType;
-
     { Update TCastleNavigation properties based on currently bound NavigationInfo.
 
       Bound NavigationInfo node is taken from
@@ -7463,62 +7460,6 @@ end;
 
 { camera ------------------------------------------------------------------ }
 
-function TCastleSceneCore.NavigationTypeFromNavigationInfo: TNavigationType;
-
-  function StringToNavigationType(const S: string;
-    out NavigationType: TNavigationType): boolean;
-  begin
-    Result := false;
-    if S = 'WALK' then
-    begin
-      Result := true;
-      NavigationType := ntWalk;
-    end else
-    if S = 'FLY' then
-    begin
-      Result := true;
-      NavigationType := ntFly
-    end else
-    if S = 'NONE' then
-    begin
-      Result := true;
-      NavigationType := ntNone
-    end else
-    if (S = 'EXAMINE') or
-       (S = 'LOOKAT') then
-    begin
-      if S = 'LOOKAT' then
-        WritelnWarning('X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
-      Result := true;
-      NavigationType := ntExamine;
-    end else
-    if (S = 'ARCHITECTURE') or
-       (S = 'TURNTABLE') then
-    begin
-      Result := true;
-      NavigationType := ntTurntable
-    end else
-    if S = 'ANY' then
-    begin
-      { Do nothing, also do not report this NavigationInfo.type as unknown. }
-    end else
-      WritelnWarning('X3D', 'Unknown NavigationInfo.type "%s"', [S]);
-  end;
-
-var
-  I: Integer;
-  NavigationNode: TNavigationInfoNode;
-begin
-  NavigationNode := NavigationInfoStack.Top;
-  if NavigationNode <> nil then
-    for I := 0 to NavigationNode.FdType.Count - 1 do
-      if StringToNavigationType(NavigationNode.FdType.Items[I], Result) then
-        Exit;
-
-  { No recognized "type" found, so use default type EXAMINE. }
-  Result := ntExamine;
-end;
-
 function TCastleSceneCore.SensibleCameraRadius(const WorldBox: TBox3D;
   out RadiusAutomaticallyDerivedFromBox: Boolean): Single;
 var
@@ -8070,7 +8011,7 @@ var
 begin
   if RootNode = nil then
     raise Exception.Create('You have to initialize RootNode, usually just by loading some scene to TCastleSceneCore.Load, before adding viewpoints');
-  if Navigation.InternalViewport = nil then
+  if Navigation.Camera <> nil then
     raise Exception.Create('Navigation must be part of some Viewport before using AddViewpointFromNavigation');
 
   Navigation.Camera.GetWorldView(APosition, ADirection, AUp);

@@ -30,7 +30,9 @@ type
     FURL, FSuccessMessage, FErrorMessage: String;
     LabelURL, LabelInformation: TCastleLabel;
     PreviewLayer: TCastleUserInterface;
-    Viewport: TCastleViewport;
+    {$warnings off} // using TCastleAutoNavigationViewport that should be internal
+    Viewport: TCastleAutoNavigationViewport;
+    {$warnings on}
     Scene: TCastleScene;
     Image: TCastleImageControl;
     Sound: TCastleSound;
@@ -173,7 +175,9 @@ begin
   OldInternalCastleDesignInvalidate := InternalCastleDesignInvalidate;
   ClearLoaded;
 
-  Viewport := TCastleViewport.InternalCreateNonDesign(Self);
+  {$warnings off} // using TCastleAutoNavigationViewport that should be internal
+  Viewport := TCastleAutoNavigationViewport.InternalCreateNonDesign(Self);
+  {$warnings on}
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
   Viewport.AutoNavigation := true;

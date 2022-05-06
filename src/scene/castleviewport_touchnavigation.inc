@@ -1,6 +1,6 @@
 {%MainUnit castleviewport.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -197,7 +197,7 @@ begin
 
   {$warnings off} // ignore using deprecated NavigationType
   if (Viewport <> nil) and
-     (FLastSeenNavigationType <> Viewport.NavigationType) then
+     (FLastSeenNavigationType <> TCastleAutoNavigationViewport.InternalGetNavigationType(Viewport)) then
   begin
     UpdateAutoTouchInterface; // will update FLastSeenNavigationType
   end;
@@ -288,7 +288,7 @@ begin
   if (Viewport <> nil) and AutoTouchInterface then
   begin
     {$warnings off} // ignore using deprecated NavigationType
-    FLastSeenNavigationType := Viewport.NavigationType;
+    FLastSeenNavigationType := TCastleAutoNavigationViewport.InternalGetNavigationType(Viewport);
     {$warnings on}
     case FLastSeenNavigationType of
       ntNone:      TouchInterface := tiNone;
