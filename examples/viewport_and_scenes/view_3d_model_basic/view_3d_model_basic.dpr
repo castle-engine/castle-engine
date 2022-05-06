@@ -80,7 +80,7 @@ begin
 
   { Setting the scene as MainScene allows the engine to initialize some central
     things based on this scene:
-    - Viewport.AutoCamera and Viewport.AutoNavigation
+    - Viewport.AutoCamera
       will look for camera/navigation information in the MainScene.
     - The headlight will, by default, follow configuration from the MainScene
       (though you can explicitly enable/disable it by Viewport.Items.Headlight too).

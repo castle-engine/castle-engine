@@ -24,7 +24,7 @@ uses SysUtils, Math,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleVectors, CastleTransform, X3DNodes, CastleTimeUtils, CastleViewport,
-  CastleApplicationProperties, CastleUtils;
+  CastleApplicationProperties, CastleUtils, CastleCameras;
 
 var
   Window: TCastleWindow;
@@ -69,7 +69,7 @@ begin
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Window.Controls.InsertFront(Viewport);
 
   Scene1 := TCastleScene.Create(Application);

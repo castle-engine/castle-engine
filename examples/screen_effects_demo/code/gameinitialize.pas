@@ -26,7 +26,7 @@ uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleScreenEffects,
-  CastleViewport, X3DNodes, X3DLoad, CastleUtils,
+  CastleViewport, X3DNodes, X3DLoad, CastleUtils, CastleCameras,
   CastleRenderOptions, CastleVectors;
 
 var
@@ -303,7 +303,7 @@ begin
 
   Viewport3D := TCastleViewport.Create(Application);
   Viewport3D.AutoCamera := true;
-  Viewport3D.AutoNavigation := true;
+  Viewport3D.InsertBack(TCastleExamineNavigation.Create(Application));
   Viewport3D.Anchor(hpMiddle, 300 + 50);
   Viewport3D.Anchor(vpMiddle);
   Viewport3D.FullSize := false;
