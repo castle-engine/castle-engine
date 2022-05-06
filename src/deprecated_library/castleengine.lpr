@@ -54,7 +54,7 @@ type
 
 var
   Window: TCastleWindow;
-  Viewport: TCastleViewport;
+  Viewport: TCastleAutoNavigationViewport;
   TouchNavigation: TCastleTouchNavigation;
   Crosshair: TCrosshairManager;
 
@@ -97,7 +97,7 @@ begin
     Window := TCastleWindow.Create(nil);
     Application.MainWindow := Window;
 
-    Viewport := TCastleViewport.Create(Window);
+    Viewport := TCastleAutoNavigationViewport.Create(Window);
     Viewport.FullSize := true;
     Window.Controls.InsertFront(Viewport);
 
