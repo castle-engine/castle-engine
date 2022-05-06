@@ -2796,10 +2796,10 @@ begin
   end;
 
   { Mark it as done, so that next EnsureCameraDetected does nothing
-    if you manually call this.
+    if you manually called this earlier.
     This is consistent with AssignDefaultNavigation,
-    that sets Navigation <> nil thus it is no longer auto-detected
-    if you call AssignDefaultNavigation. }
+    that always sets Navigation <> nil thus it is no longer auto-detected
+    if you call AssignDefaultNavigation again. }
   AssignDefaultCameraDone := true;
 end;
 
