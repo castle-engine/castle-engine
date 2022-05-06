@@ -64,7 +64,7 @@
     FInternalExamineNavigation: TCastleExamineNavigation;
     FInternalWalkNavigation: TCastleWalkNavigation;
     FAutoNavigation: Boolean;
-    FWithinSetNavigationType: boolean;
+    FWithinSetNavigationType: Boolean;
     InsideBoundNavigationInfoChanged: Boolean;
 
     function GetNavigationType: TNavigationType;
@@ -313,7 +313,6 @@ begin
   begin
     FInternalExamineNavigation := TCastleExamineNavigation.Create(Self);
     FInternalExamineNavigation.SetTransient;
-    InsertControl(0, FInternalExamineNavigation);
   end;
   Result := FInternalExamineNavigation;
 end;
@@ -324,7 +323,6 @@ begin
   begin
     FInternalWalkNavigation := TCastleWalkNavigation.Create(Self);
     FInternalWalkNavigation.SetTransient;
-    InsertControl(0, FInternalWalkNavigation);
   end;
   Result := FInternalWalkNavigation;
 end;
@@ -504,8 +502,10 @@ begin
 
   FWithinSetNavigationType := false;
 
-  { Call OnBoundNavigationInfoChanged when NavigationType changed. }
-  BoundNavigationInfoChanged;
+  { Call OnBoundNavigationInfoChanged when NavigationType changed.
+    Use "inherited" to not do own code that would recursively change NavigationType
+    (to something else than Value, possibly). }
+  inherited BoundNavigationInfoChanged;
 end;
 
 procedure TCastleAutoNavigationViewport.AssignDefaultNavigation;
