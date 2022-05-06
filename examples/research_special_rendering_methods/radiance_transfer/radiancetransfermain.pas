@@ -31,7 +31,7 @@ implementation
 uses SysUtils, Classes, Math,
   {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, X3DNodes, CastleWindow, CastleShapes,
-  CastleClassUtils, CastleUtils,
+  CastleClassUtils, CastleUtils, CastleCameras,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleViewport,
   CastleFilesUtils, CastleLog, CastleInternalSphericalHarmonics, CastleImages,
   CastleInternalGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
@@ -344,7 +344,7 @@ begin
   Viewport := TMyViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   { we will clear context by our own Background,
     to keep SHVectorGLCapture visible for debugging }
   Viewport.Transparent := true;

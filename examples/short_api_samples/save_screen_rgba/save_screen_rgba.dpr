@@ -17,7 +17,7 @@
 }
 uses SysUtils,
   CastleWindow, CastleLog, CastleVectors, CastleUIControls, CastleScene,
-  CastleViewport, CastleKeysMouse, CastleImages;
+  CastleViewport, CastleKeysMouse, CastleImages, CastleCameras;
 
 procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
 var
@@ -49,7 +49,7 @@ begin
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Viewport.Transparent := true; // do not fill parent with Viewport.BackgroundColor
   Window.Controls.InsertFront(Viewport);
 

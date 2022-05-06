@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,8 @@ program view_3d_model_advanced;
 uses SysUtils, Classes,
   CastleUtils, CastleWindow, CastleProgress, CastleWindowProgress,
   CastleSceneCore, CastleLog, CastleParameters, CastleScene, X3DLoad,
-  CastleControls, CastleURIUtils, CastleApplicationProperties, CastleViewport;
+  CastleControls, CastleURIUtils, CastleApplicationProperties, CastleViewport,
+  CastleCameras;
 
 var
   Window: TCastleWindow;
@@ -49,7 +50,6 @@ begin
     { Move camera to most suitable place for the *new* scene (ignoring previous camera
       position). }
     Viewport.AssignDefaultCamera;
-    Viewport.AssignDefaultNavigation;
   end;
 end;
 
@@ -68,7 +68,7 @@ begin
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Window.Controls.InsertFront(Viewport);
 
   { Enable rendering models using shadow volumes. This requires some special
@@ -103,9 +103,6 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Viewport.Items.Add(Scene);
   Viewport.Items.MainScene := Scene;
-
-  Viewport.AssignDefaultCamera;
-  Viewport.AssignDefaultNavigation;
 
   { Output some information about the loaded scene }
   WritelnLog('Scene vertexes: %d, triangles: %d, bounding box: %s', [

@@ -897,7 +897,7 @@ begin
     Viewport := TMyViewport.Create(Application);
     Viewport.FullSize := true;
     Viewport.AutoCamera := true;
-    Viewport.AutoNavigation := true;
+    Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
     Window.Controls.InsertFront(Viewport);
 
     { initialize Scene }

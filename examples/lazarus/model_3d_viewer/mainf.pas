@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -90,7 +90,7 @@ type
     CrosshairCtl: TCastleCrosshair;
     CrosshairActive: Boolean;    // there is something to touch under the crosshair
     RecentFiles: TCastleRecentFiles;
-    Viewport: TCastleViewport;
+    Viewport: TCastleAutoNavigationViewport;
 
     procedure OpenScene(const URL: string);
     procedure UpdateCaption;
@@ -307,7 +307,7 @@ begin
   UserConfig.Load;
   SoundEngine.LoadFromConfig(UserConfig);
 
-  Viewport := TCastleViewport.Create(Application);
+  Viewport := TCastleAutoNavigationViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
   Viewport.AutoNavigation := true;

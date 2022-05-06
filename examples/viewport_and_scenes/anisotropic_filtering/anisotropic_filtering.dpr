@@ -17,7 +17,7 @@
 
 uses SysUtils, Classes,
   X3DNodes, X3DLoad, CastleLog, CastleVectors, CastleTransform, CastleScene,
-  CastleWindow, CastleViewport, CastleTextureImages;
+  CastleWindow, CastleViewport, CastleTextureImages, CastleCameras;
 
 type
   { The node processing callback (given to Node.EnumerateNodes) must be a method
@@ -70,7 +70,7 @@ begin
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Window.Controls.InsertFront(Viewport);
 
   Node := LoadNode('castle-data:/test_environment.gltf');

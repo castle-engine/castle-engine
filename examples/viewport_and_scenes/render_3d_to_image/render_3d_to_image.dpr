@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,7 @@
 uses SysUtils,
   CastleWindow, CastleScene, CastleVectors, CastleLog,
   CastleFilesUtils, CastleImages, CastleRectangles, CastleGLImages,
-  CastleViewport, CastleURIUtils;
+  CastleViewport, CastleURIUtils, CastleCameras;
 
 var
   Window: TCastleWindow;
@@ -43,7 +43,7 @@ begin
   try
     Scene.Load(Url);
 
-    Viewport.Items.Clear;
+    Viewport.Items.MainScene.Free; // free previous MainScene
     Viewport.Items.Add(Scene);
     { Setting MainScene allows Viewport to adjust
       viewpoint, headlight, background etc. based on MainScene contents. }
@@ -102,7 +102,7 @@ begin
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.AutoCamera := false;
-  Viewport.AutoNavigation := false;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Viewport.FullSize := false;
   Viewport.Width := ImageWidth;
   Viewport.Height := ImageHeight;

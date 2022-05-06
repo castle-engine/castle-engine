@@ -43,7 +43,7 @@ begin
   Viewport := TCastleViewport.Create(FreeAtStop);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   InsertFront(Viewport);
 
   Scene := TCastleScene.Create(FreeAtStop);
