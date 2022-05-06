@@ -165,15 +165,6 @@ procedure TTestCameras.TestInput;
     const IgnoreAllInputs, MouseNavigation: boolean);
   begin
     AssertTrue(C.Input = Input);
-    {$ifdef FPC}
-    {$warnings off}
-    { Consciously using here deprecated IgnoreAllInputs
-      and MouseNavigation (to test it's still Ok) }
-    AssertTrue(C.IgnoreAllInputs = IgnoreAllInputs);
-    if C is TExamineCamera then
-      AssertTrue(TExamineCamera(C).MouseNavigation = MouseNavigation);
-    {$warnings on}
-    {$endif}
   end;
 
 var

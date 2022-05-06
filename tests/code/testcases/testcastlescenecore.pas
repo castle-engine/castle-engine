@@ -279,7 +279,6 @@ begin
   try
     Viewport.FullSize := true;
     Viewport.AutoCamera := true;
-    Viewport.AutoNavigation := true;
     Scene := TCastleScene.Create(nil);
     try
       Scene.URL := 'castle-data:/city_from_bugreport_38.x3dv';

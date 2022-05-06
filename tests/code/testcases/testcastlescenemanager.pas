@@ -33,7 +33,7 @@ type
 implementation
 
 uses CastleCameras, CastleSceneManager, CastleScene, CastleSceneCore,
-  CastleFilesUtils, CastleVectors;
+  CastleFilesUtils, CastleVectors, CastleViewport;
 
 procedure TTestCastleSceneManager.TestNavigationCreating;
 var

@@ -38,7 +38,7 @@ type
   private
     { Available only during Test1 }
     Window: TCastleWindow;
-    Viewport: TCastleViewport;
+    Viewport: TCastleAutoNavigationViewport;
     Scene: TCastleScene;
     RecreateSceneEachTime: boolean;
 
@@ -161,7 +161,7 @@ begin
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ProcessEvents := true;
 
-    Viewport := TCastleViewport.Create(Window);
+    Viewport := TCastleAutoNavigationViewport.Create(Window);
     Viewport.Items.Add(Scene);
     Viewport.Items.MainScene := Scene;
 

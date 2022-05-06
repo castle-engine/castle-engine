@@ -65,6 +65,7 @@
     FInternalWalkNavigation: TCastleWalkNavigation;
     FAutoNavigation: Boolean;
     FWithinSetNavigationType: boolean;
+    InsideBoundNavigationInfoChanged: Boolean;
 
     function GetNavigationType: TNavigationType;
     procedure SetNavigationType(const Value: TNavigationType);
@@ -569,13 +570,21 @@ end;
 
 procedure TCastleAutoNavigationViewport.BoundNavigationInfoChanged;
 begin
-  {$warnings off} // using deprecated to keep it working
-  if AutoNavigation and (Navigation <> nil) then
+  { Use InsideBoundNavigationInfoChanged to prevent infinite loop
+    of BoundNavigationInfoChanged calls, as "NavigationType := " causes
+    BoundNavigationInfoChanged. }
+  if not InsideBoundNavigationInfoChanged then
   begin
-    NavigationType := NavigationTypeFromNavigationInfo(Items.MainScene);
-    Items.MainScene.InternalUpdateNavigation(Navigation, Items.BoundingBox);
+    InsideBoundNavigationInfoChanged := true;
+    {$warnings off} // using deprecated to keep it working
+    if AutoNavigation and (Navigation <> nil) and (Items.MainScene <> nil) then
+    begin
+      NavigationType := NavigationTypeFromNavigationInfo(Items.MainScene);
+      Items.MainScene.InternalUpdateNavigation(Navigation, Items.BoundingBox);
+    end;
+    {$warnings on}
+    InsideBoundNavigationInfoChanged := false;
   end;
-  {$warnings on}
   inherited;
 end;
 
