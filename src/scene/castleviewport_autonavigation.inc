@@ -233,7 +233,7 @@
     }
     property AutoNavigation: Boolean
       read FAutoNavigation write SetAutoNavigation default false;
-  end  {$ifdef FPC}deprecated 'use TCastleViewport instead of this; it is more straightforward to create TCastleNavigation explicitly (rather than auto-detecting it) and just add it as TCastleViewport child'{$endif};
+  end {$ifdef FPC}deprecated 'use TCastleViewport instead of this; it is more straightforward to create TCastleNavigation explicitly (rather than auto-detecting it) and just add it as TCastleViewport child'{$endif};
 
 {$endif read_interface}
 
