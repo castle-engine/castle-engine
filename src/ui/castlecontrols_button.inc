@@ -54,7 +54,7 @@
     FToggle: boolean;
     ClickStarted: boolean;
     ClickStartedPosition: TVector2;
-    ClickStartedFinger: Integer;
+    ClickStartedFinger: TFingerIndex;
     FMinImageWidth: Single;
     FMinImageHeight: Single;
     FImageLayout: TCastleButtonImageLayout;
