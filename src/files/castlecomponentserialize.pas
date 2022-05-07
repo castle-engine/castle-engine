@@ -852,9 +852,26 @@ end;
 procedure TCastleJsonWriter.StreamProperty(Sender: TObject;
   AObject: TObject; Info: PPropInfo; var Res: TJsonData);
 begin
-  // always save it
   if Info^.Name = 'Name' then
+  begin
+    if (AObject is TComponent) and
+       (csSubComponent in TComponent(AObject).ComponentStyle) then
+    begin
+      { Do not stream names of subcomponents, like
+        - TCastlePerspective (their names are internal, not really supposed to be edited by user -- no point)
+        - TCastleVector3Persistent (their names are internal, not really supposed to be edited by user -- no point, and always empty)
+
+        This is consistent with TDesignFrame.InspectorFilter that hides such names.
+        Although here we cannot detect them by "Owner is different than DesignOwner",
+        because when serializing we don't know the DesignOwner. }
+      //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because it is a subcomponent name');
+      FreeAndNil(Res);
+    end;
+
+    { Otherwise (for not subcomponents) serialize 'Name' always,
+      ignore the rest of the checks (they would reject serializing Name). }
     Exit;
+  end;
 
   // do not stream null values, as reader makes errors on them
   if Res is TJsonNull then
