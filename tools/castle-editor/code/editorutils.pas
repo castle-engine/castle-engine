@@ -189,6 +189,8 @@ var
   CodeEditor: TCodeEditor;
   { Code editor used to open Pascal files, when CodeEditor = ceCustom. }
   CodeEditorCommand: String;
+  { Code editor used to open Pascal files with line and number, when CodeEditor = ceCustom. }
+  CodeEditorCommandLineColumn: String;
   { Code editor used to open project, when CodeEditor = ceCustom. }
   CodeEditorCommandProject: String;
 

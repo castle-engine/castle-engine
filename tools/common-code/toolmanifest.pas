@@ -298,8 +298,14 @@ type
     // unused: function SearchFile(const BaseName: String): String;
 
     { Find a unit with given name among SearchPaths of this project.
-      Returns absolute filename, or '' if not found. }
+      Returns absolute filename, or '' if not found.
+      AUnitName is a Pascal unit name (not a filename, without any extension). }
     function SearchPascalUnit(const AUnitName: String): String;
+
+    { Find a Pascal source file with given name among SearchPaths of this project.
+      Returns absolute filename, or '' if not found.
+      ABaseFileName is a filename (without any path separators) to search for. }
+    function SearchPascalFile(const ABaseFileName: String): String;
 
     { Finds all Pascal files (units and includes -- not lpr / dpr for now).
       Returns a list with filenames relative to Path. }
@@ -1001,6 +1007,21 @@ begin
       Exit(FileNameAbsolute);
 
     FileNameAbsolute := CombinePaths(SearchPathAbsolute, LowerCase(AUnitName) + '.pp');
+    if RegularFileExists(FileNameAbsolute) then
+      Exit(FileNameAbsolute);
+  end;
+  Result := '';
+end;
+
+function TCastleManifest.SearchPascalFile(const ABaseFileName: String): String;
+var
+  SearchPath, FileNameAbsolute, SearchPathAbsolute: String;
+begin
+  for SearchPath in SearchPaths do
+  begin
+    SearchPathAbsolute := CombinePaths(Path, SearchPath);
+
+    FileNameAbsolute := CombinePaths(SearchPathAbsolute, ABaseFileName);
     if RegularFileExists(FileNameAbsolute) then
       Exit(FileNameAbsolute);
   end;

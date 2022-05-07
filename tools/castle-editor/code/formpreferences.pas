@@ -30,8 +30,10 @@ type
     DirectoryEditFpc: TDirectoryEdit;
     DirectoryEditLazarus: TDirectoryEdit;
     EditCodeEditorCommand: TFileNameEdit;
+    EditCodeEditorCommandLineColumn: TFileNameEdit;
     EditCodeEditorCommandProject: TFileNameEdit;
     LabelCodeEditorAutodetect: TLabel;
+    LabelCodeEditorCommandLineColumn: TLabel;
     LabelCompilerAutodetect: TLabel;
     LabelCompilerDelphi: TLabel;
     LabelCompilationHeader: TLabel;
@@ -76,6 +78,8 @@ type
     procedure DirectoryEditLazarusChange(Sender: TObject);
     procedure EditCodeEditorCommandAcceptFileName(Sender: TObject;
       var Value: String);
+    procedure EditCodeEditorCommandLineColumnAcceptFileName(Sender: TObject;
+      var Value: String);
     procedure EditCodeEditorCommandProjectAcceptFileName(Sender: TObject;
       var Value: String);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -119,6 +123,7 @@ end;
 procedure TPreferencesForm.RadioCodeEditorAnyChange(Sender: TObject);
 begin
   EditCodeEditorCommand.Enabled := RadioCodeEditorCustom.Checked;
+  EditCodeEditorCommandLineColumn.Enabled := RadioCodeEditorCustom.Checked;
   EditCodeEditorCommandProject.Enabled := RadioCodeEditorCustom.Checked;
 end;
 
@@ -242,6 +247,7 @@ begin
     else raise EInternalError.Create('CodeEditor?');
   end;
   EditCodeEditorCommand.Text := CodeEditorCommand;
+  EditCodeEditorCommandLineColumn.Text := CodeEditorCommandLineColumn;
   EditCodeEditorCommandProject.Text := CodeEditorCommandProject;
 
   // compilation tab
@@ -283,6 +289,7 @@ begin
       raise EInternalError.Create('Cannot determine CodeEditor choice, no radio selected');
 
     CodeEditorCommand := EditCodeEditorCommand.Text;
+    CodeEditorCommandLineColumn := EditCodeEditorCommandLineColumn.Text;
     CodeEditorCommandProject := EditCodeEditorCommandProject.Text;
 
     // compilation tab
@@ -324,7 +331,7 @@ begin
     if RadioCodeEditorCustom.Checked and
        (Trim(EditCodeEditorCommand.Text) = '') then
     begin
-      ErrorBox('You must specify some custom editor command, or switch to use "Lazarus" as code editor');
+      ErrorBox('You must specify some custom editor command, or switch to use other (e.g. autodetected) code editor');
       CanClose := false;
       Exit;
     end;
@@ -397,6 +404,13 @@ procedure TPreferencesForm.EditCodeEditorCommandAcceptFileName(Sender: TObject;
 begin
   // auto-add ${PAS} macro and propose quoting
   Value := '"' + Value + '" ${PAS}';
+end;
+
+procedure TPreferencesForm.EditCodeEditorCommandLineColumnAcceptFileName(
+  Sender: TObject; var Value: String);
+begin
+  // auto-add macros and propose quoting
+  Value := '"' + Value + '" ${PAS}:${LINE}:${COLUMN}';
 end;
 
 procedure TPreferencesForm.EditCodeEditorCommandProjectAcceptFileName(

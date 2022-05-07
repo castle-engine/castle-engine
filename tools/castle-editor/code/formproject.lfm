@@ -52,6 +52,7 @@ object ProjectForm: TProjectForm
         Align = alClient
         ItemHeight = 21
         OnClick = ListOutputClick
+        OnDblClick = ListOutputDblClick
         ParentFont = False
         PopupMenu = OutputPopup
         ScrollWidth = 902
