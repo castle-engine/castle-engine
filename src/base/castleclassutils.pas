@@ -922,7 +922,8 @@ implementation
 uses
   {$ifdef UNIX} {$ifdef FPC} Unix, {$endif} {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
-  StrUtils, Math {$ifdef FPC}, StreamIO, RTTIUtils {$endif}, TypInfo;
+  StrUtils, Math {$ifdef FPC}, StreamIO, RTTIUtils {$endif}, TypInfo,
+  CastleLog;
 
 { TStrings helpers ------------------------------------------------------- }
 
