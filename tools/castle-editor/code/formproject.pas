@@ -218,6 +218,7 @@ type
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure ListOutputDblClick(Sender: TObject);
     procedure MenuItemDesignNewNonVisualClick(Sender: TObject);
     procedure MenuItemEnableDisableDockingClick(Sender: TObject);
     procedure MenuItemInstallClick(Sender: TObject);
@@ -321,15 +322,23 @@ type
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure MenuItemPackageFormatChangeClick(Sender: TObject);
-    procedure OpenPascal(const FileName: String);
+    { Open Pascal file in preferred code editor.
+      Line = -1 means to not use any particular line.
+      Column = -1 means to not use any particular column. }
+    procedure OpenPascal(const FileName: String;
+      Line: Integer = -1;
+      Column: Integer = -1);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
     (*Runs custom code editor.
       Use this only when CodeEditor = ceCustom.
       CustomCodeEditorCommand is the command to use (like CodeEditorCommand
       or CodeEditorCommandProject).
-      PascalFileName will be used as ${PAS} macro value. *)
+      PascalFileName will be used as ${PAS} macro value.
+      Line and Column, if not -1, will be passed as ${LINE} ${COLUMN macros. *)
     procedure RunCustomCodeEditor(const CustomCodeEditorCommand: String;
-      const PascalFileName: String);
+      const PascalFileName: String;
+      const Line: Integer = -1;
+      const Column: Integer = -1);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
     procedure ShellListViewDoubleClick(Sender: TObject);
@@ -374,7 +383,7 @@ implementation
 
 {$R *.lfm}
 
-uses TypInfo, LCLType,
+uses TypInfo, LCLType, RegExpr,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
   CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
@@ -1219,7 +1228,76 @@ end;
 
 procedure TProjectForm.ListOutputClick(Sender: TObject);
 begin
-  // TODO: jump to source code line in case of error message here
+end;
+
+procedure TProjectForm.ListOutputDblClick(Sender: TObject);
+
+  { For a filename in output, return absolute filename or raise exception. }
+  function FilenameFromOutput(const S: String): String;
+  var
+    Test: String;
+    CgeFileInfo: TFileInfo;
+  begin
+    // absolute filename
+    if IsPathAbsolute(S) then
+      Exit(S);
+
+    // filename relative to project root
+    Test := CombinePaths(ProjectPath, S);
+    if FileExists(Test) then
+      Exit(Test);
+
+    // filename that has to be found on search paths
+    if CharsPos(AllowDirectorySeparators, S) = 0 then
+    begin
+      Test := Manifest.SearchPascalFile(S);
+      if Test <> '' then
+         Exit(Test);
+    end;
+
+    // filename in CGE sources
+    if (CastleEnginePath <> '') and
+       FindFirstFile(CastleEnginePath, S, false, [ffRecursive], CgeFileInfo) then
+      Exit(CgeFileInfo.AbsoluteName);
+
+    raise Exception.CreateFmt('Cannot find Pascal filename "%s"', [S]);
+  end;
+
+var
+  R: TRegExpr;
+  Line: String;
+begin
+  // jump to source code line in case of error message here
+
+  if ListOutput.ItemIndex = -1 then
+    Exit;
+  Line := ListOutput.Items[ListOutput.ItemIndex];
+
+  R := TRegExpr.Create;
+  try
+    R.Expression := '^([^() ]+)\(([\d]+),([\d]+)\) (Error|Fatal|Warning|Note):';
+    if R.Exec(Line) then
+    begin
+      OpenPascal(FilenameFromOutput(R.Match[1]), StrToInt(R.Match[2]), StrToInt(R.Match[3]));
+      Exit;
+    end;
+
+    R.Expression := '^([^() ]+)\(([\d]+)\) (Error|Fatal|Warning|Note):';
+    if R.Exec(Line) then
+    begin
+      OpenPascal(FilenameFromOutput(R.Match[1]), StrToInt(R.Match[2]));
+      Exit;
+    end;
+
+    R.Expression := '^Compiling ([^() ]+)';
+    if R.Exec(Line) then
+    begin
+      OpenPascal(FilenameFromOutput(R.Match[1]));
+      Exit;
+    end;
+  finally
+    FreeAndNil(R);
+  end;
 end;
 
 procedure TProjectForm.MenuItemDesignNewNonVisualClick(Sender: TObject);
@@ -1729,8 +1807,8 @@ begin
 end;
 
 procedure TProjectForm.RunCustomCodeEditor(
-  const CustomCodeEditorCommand: String;
-  const PascalFileName: String);
+  const CustomCodeEditorCommand: String; const PascalFileName: String;
+  const Line: Integer; const Column: Integer);
 
   { Copied from FPC packages/fcl-process/src/processbody.inc
     (licence "LGPL with static linking exception", so compatible with us). }
@@ -1797,6 +1875,7 @@ var
   Exe: String;
   Parameters: TCastleStringList;
   I: Integer;
+  Macros: TStringStringMap;
 begin
   Parameters := TCastleStringList.Create;
   try
@@ -1805,18 +1884,26 @@ begin
       raise Exception.CreateFmt('Code editor command was split into zero items: "%s"', [CustomCodeEditorCommand]);
     Exe := Parameters[0];
     Parameters.Delete(0);
-    for I := 0 to Parameters.Count - 1 do
-      Parameters[I] := SReplacePatterns(Parameters[I],
-        ['${PAS}', '${STANDALONE_SOURCE}', '${PROJECT_DIR}'],
-        [PascalFileName, ProjectStandaloneSource, ProjectPath],
-        true);
+    Macros := TStringStringMap.Create;
+    try
+      Macros.Add('${PAS}', PascalFileName);
+      Macros.Add('${STANDALONE_SOURCE}', ProjectStandaloneSource);
+      Macros.Add('${PROJECT_DIR}', ProjectPath);
+      if Line <> -1 then
+        Macros.Add('${LINE}', IntToStr(Line));
+      if Column <> -1 then
+        Macros.Add('${COLUMN}', IntToStr(Column));
+      for I := 0 to Parameters.Count - 1 do
+        Parameters[I] := SReplacePatterns(Parameters[I], Macros, true);
+    finally FreeAndNil(Macros) end;
     RunCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
   finally FreeAndNil(Parameters) end;
 end;
 
-procedure TProjectForm.OpenPascal(const FileName: String);
+procedure TProjectForm.OpenPascal(const FileName: String; Line: Integer;
+  Column: Integer);
 var
-  Exe, DelphiExe: String;
+  Exe, DelphiExe, VsCodeFileArgument: String;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -1827,7 +1914,14 @@ begin
   case Ce of
     ceCustom:
       begin
-        RunCustomCodeEditor(CodeEditorCommand, FileName);
+        if (Line <> -1) and
+           (CodeEditorCommandLineColumn <> '') then
+        begin
+          if Column = -1 then
+            Column := 1; // we don't have a command to open only at line, so use column = 1
+          RunCustomCodeEditor(CodeEditorCommandLineColumn, FileName, Line, Column);
+        end else
+          RunCustomCodeEditor(CodeEditorCommand, FileName);
       end;
     ceLazarus:
       begin
@@ -1916,32 +2010,47 @@ begin
     ceVSCode:
       begin
         Exe := FindExeVSCode(true);
-        RunCommandNoWait(ProjectPath, Exe, [
-          { --add would add project to workspace in current window.
-            It avoids opening new window ever,
-            but it seems more confusing than helpful in our case
-            -- it creates multi-root workspace which may be surprising to users.
 
-            Instead we just pass project dir, as ".", to make sure this is
-            opened as a workspace.
-            See https://code.visualstudio.com/docs/editor/command-line ,
-            https://stackoverflow.com/questions/29955785/opening-microsoft-visual-studio-code-from-command-prompt-windows }
-          //'--add',
+        { Explanation of ExtractRelativePath:
 
-          { We pass relative filenames, not absolute, to avoid
-            VS Code on Windows inability to deal with spaces in filenames.
-            Other solutions tried:
+          We pass relative filenames, not absolute, to avoid
+          VS Code on Windows inability to deal with spaces in filenames.
+          Other solutions tried:
 
-            - calling code.exe without intermediate code.cmd
-            - using vscode:// URL with spaces encoded using %20.
+          - calling code.exe without intermediate code.cmd
+          - using vscode:// URL with spaces encoded using %20.
 
-            See EditorUtils -- nothing helped.
+          See EditorUtils -- nothing helped.
 
-            Using relative paths is a workaround, as long as you don't
-            place Pascal code in subdirectory with spaces. }
-          '.',
-          ExtractRelativePath(ProjectPath, FileName)
-        ], [rcNoConsole]);
+          Using relative paths is a workaround, as long as you don't
+          place Pascal code in subdirectory with spaces. }
+        VsCodeFileArgument := ExtractRelativePath(ProjectPath, FileName);
+
+        { Explanation of '.':
+
+          How to open a project?
+          -add would add project to workspace in current window.
+          It avoids opening new window ever,
+          but it seems more confusing than helpful in our case
+          -- it creates multi-root workspace which may be surprising to users.
+
+          Instead we just pass project dir, as ".", to make sure this is
+          opened as a workspace.
+          See https://code.visualstudio.com/docs/editor/command-line ,
+          https://stackoverflow.com/questions/29955785/opening-microsoft-visual-studio-code-from-command-prompt-windows
+          //'--add'
+        }
+
+        if Line <> -1 then
+        begin
+          VsCodeFileArgument += ':' + IntToStr(Line);
+          if Column <> -1 then
+            VsCodeFileArgument += ':' + IntToStr(Column);
+          RunCommandNoWait(ProjectPath, Exe, ['.', '--goto', VsCodeFileArgument],
+            [rcNoConsole]);
+        end else
+          RunCommandNoWait(ProjectPath, Exe, ['.', VsCodeFileArgument],
+            [rcNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
