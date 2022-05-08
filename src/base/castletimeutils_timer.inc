@@ -1,6 +1,6 @@
 {%MainUnit castletimeutils.pas}
 {
-  Copyright 2000-2019 Michalis Kamburelis.
+  Copyright 2000-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,6 +29,9 @@ type
     { Seconds passed since this time sample up to now.
       Equivalent to @code(TimerSeconds(Timer, Self)) }
     function ElapsedTime: TFloatTime;
+    { Holds non-zero value. Use to detect whether this TTimerResult comes from Timer
+      call, or is just a zero field in new class instance. }
+    function Initialized: Boolean;
   end;
 
 { Timer to measure (real) time passed during some operations.
@@ -164,6 +167,11 @@ end;
 function TTimerResult.ElapsedTime: TFloatTime;
 begin
   Result := TimerSeconds(Timer, Self);
+end;
+
+function TTimerResult.Initialized: Boolean;
+begin
+  Result := Value <> 0;
 end;
 
 {$endif read_implementation}
