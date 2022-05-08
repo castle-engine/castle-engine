@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -351,6 +351,7 @@ begin
     World := TCastleRootTransform.Create(Self);
     World.Add(ScreenEffectsScene);
     World.MainCamera := TCastleCamera.Create(Self);
+    World.Add(World.MainCamera); // necessary to be able to query camera world coords
   end;
 
   { Note that AddChildren by default has AllowDuplicates=true,
