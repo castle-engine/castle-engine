@@ -239,7 +239,7 @@
 
 {$ifdef read_implementation}
 
-class function TCastleAutoNavigationViewport.NavigationTypeFromNavigationInfo(const Scene: TCastleSceneCore): TNavigationType; static;
+class function TCastleAutoNavigationViewport.NavigationTypeFromNavigationInfo(const Scene: TCastleSceneCore): TNavigationType;
 
   function StringToNavigationType(const S: string;
     out NavigationType: TNavigationType): boolean;
