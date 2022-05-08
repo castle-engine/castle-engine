@@ -75,12 +75,6 @@ type
   TFallNotifyFunc = procedure (const Sender: TCastleNavigation;
     const FallHeight: Single) of object;
 
-  { See @link(TCastleNavigation.OnInternalHeight). }
-  THeightEvent = function (const Sender: TCastleNavigation;
-    const Position: TVector3;
-    out AboveHeight: Single; out AboveGround: PTriangle): Boolean of object;
-    deprecated 'unused';
-
   { Handle user input to modify viewport's camera.
 
     Once you create an instance of this class (create non-abstract descendants
