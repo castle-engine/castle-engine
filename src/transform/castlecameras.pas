@@ -3964,13 +3964,28 @@ begin
   if Input_GravityUp.IsEvent(Event) then
   begin
     SetUpToGravityUp;
-    Result := ExclusiveEvents;
-  end else
+    Result := Result and ExclusiveEvents;
+  end;
+
   if Input_Jump.IsEvent(Event) then
   begin
-    Result := Jump and ExclusiveEvents;
-  end else
-    Result := false;
+    Result := Jump and Result and ExclusiveEvents;
+  end;
+
+  { Input_MoveSpeedInc/Dec are handled in Update, usually.
+    But the mouse wheel is never is pressed state, so it cannot be handled in Update
+    -- we handle it here. }
+  if Input_MoveSpeedInc.IsEvent(Event) and (Event.EventType = itMouseWheel) then
+  begin
+    MoveSpeed := MoveSpeed * Power(10, 1/30);
+    Result := Result and ExclusiveEvents;
+  end;
+
+  if Input_MoveSpeedDec.IsEvent(Event) and (Event.EventType = itMouseWheel) then
+  begin
+    MoveSpeed := MoveSpeed / Power(10, 1/30);
+    Result := Result and ExclusiveEvents;
+  end;
 end;
 
 function TCastleWalkNavigation.SensorTranslation(const X, Y, Z, Length: Double;
