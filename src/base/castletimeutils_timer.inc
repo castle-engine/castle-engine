@@ -101,8 +101,6 @@ begin
     QueryPerformanceCounter(Int64(Result.Value))
   else
   begin
-    { Unfortunately, below will cast CastleGetTickCount64 back to 32-bit.
-      Hopefully QueryPerformanceCounter is usually available. }
     Result.Value := CastleGetTickCount64;
   end;
 end;
