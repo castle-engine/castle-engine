@@ -88,7 +88,6 @@ begin
   SceneMain.Load(Url);
   LabelLoadedUrl.Caption := 'Loaded: ' + Url;
   Viewport.AssignDefaultCamera;
-  Viewport.AssignDefaultNavigation;
 end;
 
 procedure TState${MAIN_STATE}.ClickLoadKnight(Sender: TObject);
