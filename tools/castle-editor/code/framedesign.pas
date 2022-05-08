@@ -3406,7 +3406,7 @@ end;
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   Y: Integer);
 
-  procedure Refresh; forward;
+  procedure MoveOnlyTreeNodes; forward;
 
   { Does Parent contains PotentialChild, searching recursively.
     It checks is Parent equal PotentialChild,
@@ -3453,7 +3453,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
               Src.Parent.RemoveControl(Src);
             Dst.InsertFront(Src);
             AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
-            Refresh;
+            MoveOnlyTreeNodes;
           end;
         end;
       tnsBottom, tnsTop:
@@ -3469,7 +3469,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
               Inc(Index);
             Dst.Parent.InsertControl(Index, Src);
             AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
-            Refresh;
+            MoveOnlyTreeNodes;
           end;
         end;
       else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
@@ -3488,7 +3488,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if Src.Parent <> nil then
               Src.Parent.Remove(Src);
             Dst.Add(Src);
-            Refresh;
+            MoveOnlyTreeNodes;
           end;
         end;
       tnsBottom, tnsTop:
@@ -3503,7 +3503,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
             Dst.Parent.Insert(Index, Src);
-            Refresh;
+            MoveOnlyTreeNodes;
           end;
         end;
       else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
@@ -3542,20 +3542,46 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     end;
   end;
 
+  function ViewportItemsNode(const Viewport: TCastleViewport;
+    const ViewportTreeNode: TTreeNode): TTreeNode;
+  var
+    I: Integer;
+  begin
+    Assert(TObject(ViewportTreeNode.Data) = Viewport);
+    Assert(ViewportTreeNode.Data <> nil);
+    Assert(TObject(ViewportTreeNode.Data) is TCastleViewport);
+
+    for I := 0 to ViewportTreeNode.Count - 1 do
+      if TObject(ViewportTreeNode[I].Data) = Viewport.Items then
+        Exit(ViewportTreeNode[I]);
+    raise EInternalError.CreateFmt('No tree node for viewport Items (TCastleTransform) found: %s %s', [
+      Viewport.Name,
+      Viewport.ClassName
+    ]);
+  end;
+
 var
   Src, Dst: TTreeNode;
   SrcComponent, DstComponent: TComponent;
 
   { Move only the nodes in TTreeView, and update their captions.
+    Assumes the move is possible.
     Also calls ModifiedOutsideObjectInspector to make Undo work. }
-  procedure Refresh;
+  procedure MoveOnlyTreeNodes;
   var
     DestinationName: String;
   begin
     case ControlsTreeNodeUnderMouseSide of
       tnsRight:
         begin
-          Src.MoveTo(Dst, naAddChild);
+          { Special treatment when inserting UI into TCastleViewport,
+            testcase: try to drag some UI into TCastleViewport (with tnsRight),
+            it should be added right before "Items" node. }
+          if (DstComponent is TCastleViewport) and
+             (SrcComponent is TCastleUserInterface) then
+            Src.MoveTo(ViewportItemsNode(TCastleViewport(DstComponent), Dst), naInsert)
+          else
+            Src.MoveTo(Dst, naAddChild);
           DestinationName := DstComponent.Name;
         end;
       tnsBottom:
