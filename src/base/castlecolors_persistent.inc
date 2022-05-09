@@ -120,6 +120,32 @@ type
     property Alpha: Single read GetAlpha write SetAlpha stored AlphaIsStored nodefault;
   end;
 
+  { Helper methods you can use from TCastleComponent.CustomSerialization
+    to manage reading/writing of colors. }
+  TSerializationProcessColorsHelper = class helper(TSerializationProcessVectorsHelper) for TSerializationProcess
+    { Serialize and deserialize given color Value.
+
+      When deserializing, we always try to read it from file.
+      If it is not present, the Value is not modified.
+      If it is present in the file, but not all components,
+      then the not present componens are not modified (they are @italic(not)
+      reset to DefaultValue! The DefaultValue is only used at writing).
+
+      When serializing, we write it to file only if IsStored.
+      Generally IsStored=false should indicate "the Value is the same as when the object
+      is created, thus there's no point in serializing it".
+      Moreover, each color component (Value.X, Value.Y...)
+      is written only if it is different than corresponding DefaultValue
+      color component (DefaultValue.X, DefaultValue.Y...).
+
+      @groupBegin }
+    procedure ReadWriteColor(const Key: String; var Value: TCastleColor;
+      const DefaultValue: TCastleColor; const IsStored: Boolean); overload;
+    procedure ReadWriteColor(const Key: String; var Value: TCastleColorRGB;
+      const DefaultValue: TCastleColorRGB; const IsStored: Boolean); overload;
+    { @groupEnd }
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -406,6 +432,98 @@ begin
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+{ TCastleColorPersistentSimple -------------------------------------------- }
+
+type
+  { Like TCastleColorPersistent, but it just contains TCastleColor,
+    you don't need to provide InternalGetValue, InternalSetValue callbacks. }
+  TCastleColorPersistentSimple = class(TCastleColorPersistent)
+  strict private
+    function GetValueSimple: TCastleColor;
+    procedure SetValueSimple(const AValue: TCastleColor);
+  public
+    SimpleValue: TCastleColor;
+    constructor Create(const AOwner: TComponent = nil);
+  end;
+
+constructor TCastleColorPersistentSimple.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+  InternalGetValue := {$ifdef FPC}@{$endif} GetValueSimple;
+  InternalSetValue := {$ifdef FPC}@{$endif} SetValueSimple;
+end;
+
+function TCastleColorPersistentSimple.GetValueSimple: TCastleColor;
+begin
+  Result := SimpleValue;
+end;
+
+procedure TCastleColorPersistentSimple.SetValueSimple(const AValue: TCastleColor);
+begin
+  SimpleValue := AValue;
+end;
+
+{ TCastleColorRGBPersistentSimple -------------------------------------------- }
+
+type
+  { Like TCastleColorRGBPersistent, but it just contains TCastleColorRGB,
+    you don't need to provide InternalGetValue, InternalSetValue callbacks. }
+  TCastleColorRGBPersistentSimple = class(TCastleColorRGBPersistent)
+  strict private
+    function GetValueSimple: TCastleColorRGB;
+    procedure SetValueSimple(const AValue: TCastleColorRGB);
+  public
+    SimpleValue: TCastleColorRGB;
+    constructor Create(const AOwner: TComponent = nil);
+  end;
+
+constructor TCastleColorRGBPersistentSimple.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+  InternalGetValue := {$ifdef FPC}@{$endif} GetValueSimple;
+  InternalSetValue := {$ifdef FPC}@{$endif} SetValueSimple;
+end;
+
+function TCastleColorRGBPersistentSimple.GetValueSimple: TCastleColorRGB;
+begin
+  Result := SimpleValue;
+end;
+
+procedure TCastleColorRGBPersistentSimple.SetValueSimple(const AValue: TCastleColorRGB);
+begin
+  SimpleValue := AValue;
+end;
+
+{ TSerializationProcessColorsHelper ----------------------------------------- }
+
+procedure TSerializationProcessColorsHelper.ReadWriteColor(
+  const Key: String; var Value: TCastleColor; const DefaultValue: TCastleColor; const IsStored: Boolean);
+var
+  Persistent: TCastleColorPersistentSimple;
+begin
+  Persistent := TCastleColorPersistentSimple.Create;
+  try
+    Persistent.SimpleValue := Value;
+    Persistent.InternalDefaultValue := DefaultValue;
+    ReadWriteSubComponent(Key, Persistent, IsStored);
+    Value := Persistent.SimpleValue; // read back, in case ReadWriteSubComponent read it from file
+  finally FreeAndNil(Persistent) end;
+end;
+
+procedure TSerializationProcessColorsHelper.ReadWriteColor(
+  const Key: String; var Value: TCastleColorRGB; const DefaultValue: TCastleColorRGB; const IsStored: Boolean);
+var
+  Persistent: TCastleColorRGBPersistentSimple;
+begin
+  Persistent := TCastleColorRGBPersistentSimple.Create;
+  try
+    Persistent.SimpleValue := Value;
+    Persistent.InternalDefaultValue := DefaultValue;
+    ReadWriteSubComponent(Key, Persistent, IsStored);
+    Value := Persistent.SimpleValue; // read back, in case ReadWriteSubComponent read it from file
+  finally FreeAndNil(Persistent) end;
 end;
 
 {$endif read_implementation}

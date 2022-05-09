@@ -3296,11 +3296,11 @@ end;
 procedure TCastleTransform.CustomSerialization(const SerializationProcess: TSerializationProcess);
 begin
   inherited;
-  SerializationProcess.ReadWrite('Children',
+  SerializationProcess.ReadWriteList('Children',
     {$ifdef FPC}@{$endif}SerializeChildrenEnumerate,
     {$ifdef FPC}@{$endif}SerializeChildrenAdd,
     {$ifdef FPC}@{$endif}SerializeChildrenClear);
-  SerializationProcess.ReadWrite('Behaviors',
+  SerializationProcess.ReadWriteList('Behaviors',
     {$ifdef FPC}@{$endif}SerializeBehaviorsEnumerate,
     {$ifdef FPC}@{$endif}SerializeBehaviorsAdd,
     {$ifdef FPC}@{$endif}SerializeBehaviorsClear);

@@ -60,6 +60,13 @@ type
   public
     InternalGetValue: TGetVector2Event;
     InternalSetValue: TSetVector2Event;
+    { Default value, just like Pascal "default" property attribute,
+      is only used to decide which vector components to write to file.
+
+      It is your responsibility to make sure that this is really the default
+      (right after creation) state of the object,
+      and the deserialization will just @italic(not modify) components not specified
+      (it will not reset them to InternalDefaultValue value). }
     InternalDefaultValue: TVector2;
     constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TVector2 read GetValue write SetValue;
@@ -170,6 +177,34 @@ type
     property Y: Single read GetY write SetY stored YIsStored nodefault;
     property Z: Single read GetZ write SetZ stored ZIsStored nodefault;
     property W: Single read GetW write SetW stored WIsStored nodefault;
+  end;
+
+  { Helper methods you can use from TCastleComponent.CustomSerialization
+    to manage reading/writing of vectors. }
+  TSerializationProcessVectorsHelper = class helper for TSerializationProcess
+    { Serialize and deserialize given vector Value.
+
+      When deserializing, we always try to read it from file.
+      If it is not present, the Value is not modified.
+      If it is present in the file, but not all components,
+      then the not present componens are not modified (they are @italic(not)
+      reset to DefaultValue! The DefaultValue is only used at writing).
+
+      When serializing, we write it to file only if IsStored.
+      Generally IsStored=false should indicate "the Value is the same as when the object
+      is created, thus there's no point in serializing it".
+      Moreover, each vector component (Value.X, Value.Y...)
+      is written only if it is different than corresponding DefaultValue
+      vector component (DefaultValue.X, DefaultValue.Y...).
+
+      @groupBegin }
+    procedure ReadWriteVector(const Key: String; var Value: TVector2;
+      const DefaultValue: TVector2; const IsStored: Boolean); overload;
+    procedure ReadWriteVector(const Key: String; var Value: TVector3;
+      const DefaultValue: TVector3; const IsStored: Boolean); overload;
+    procedure ReadWriteVector(const Key: String; var Value: TVector4;
+      const DefaultValue: TVector4; const IsStored: Boolean); overload;
+    { @groupEnd }
   end;
 
 {$endif read_interface}
@@ -568,6 +603,143 @@ begin
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+{ TCastleVector2PersistentSimple -------------------------------------------- }
+
+type
+  { Like TCastleVector2Persistent, but it just contains TVector2,
+    you don't need to provide InternalGetValue, InternalSetValue callbacks. }
+  TCastleVector2PersistentSimple = class(TCastleVector2Persistent)
+  strict private
+    function GetValueSimple: TVector2;
+    procedure SetValueSimple(const AValue: TVector2);
+  public
+    SimpleValue: TVector2;
+    constructor Create(const AOwner: TComponent = nil);
+  end;
+
+constructor TCastleVector2PersistentSimple.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+  InternalGetValue := {$ifdef FPC}@{$endif} GetValueSimple;
+  InternalSetValue := {$ifdef FPC}@{$endif} SetValueSimple;
+end;
+
+function TCastleVector2PersistentSimple.GetValueSimple: TVector2;
+begin
+  Result := SimpleValue;
+end;
+
+procedure TCastleVector2PersistentSimple.SetValueSimple(const AValue: TVector2);
+begin
+  SimpleValue := AValue;
+end;
+
+{ TCastleVector3PersistentSimple -------------------------------------------- }
+
+type
+  { Like TCastleVector3Persistent, but it just contains TVector3,
+    you don't need to provide InternalGetValue, InternalSetValue callbacks. }
+  TCastleVector3PersistentSimple = class(TCastleVector3Persistent)
+  strict private
+    function GetValueSimple: TVector3;
+    procedure SetValueSimple(const AValue: TVector3);
+  public
+    SimpleValue: TVector3;
+    constructor Create(const AOwner: TComponent = nil);
+  end;
+
+constructor TCastleVector3PersistentSimple.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+  InternalGetValue := {$ifdef FPC}@{$endif} GetValueSimple;
+  InternalSetValue := {$ifdef FPC}@{$endif} SetValueSimple;
+end;
+
+function TCastleVector3PersistentSimple.GetValueSimple: TVector3;
+begin
+  Result := SimpleValue;
+end;
+
+procedure TCastleVector3PersistentSimple.SetValueSimple(const AValue: TVector3);
+begin
+  SimpleValue := AValue;
+end;
+
+{ TCastleVector4PersistentSimple -------------------------------------------- }
+
+type
+  { Like TCastleVector4Persistent, but it just contains TVector4,
+    you don't need to provide InternalGetValue, InternalSetValue callbacks. }
+  TCastleVector4PersistentSimple = class(TCastleVector4Persistent)
+  strict private
+    function GetValueSimple: TVector4;
+    procedure SetValueSimple(const AValue: TVector4);
+  public
+    SimpleValue: TVector4;
+    constructor Create(const AOwner: TComponent = nil);
+  end;
+
+constructor TCastleVector4PersistentSimple.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+  InternalGetValue := {$ifdef FPC}@{$endif} GetValueSimple;
+  InternalSetValue := {$ifdef FPC}@{$endif} SetValueSimple;
+end;
+
+function TCastleVector4PersistentSimple.GetValueSimple: TVector4;
+begin
+  Result := SimpleValue;
+end;
+
+procedure TCastleVector4PersistentSimple.SetValueSimple(const AValue: TVector4);
+begin
+  SimpleValue := AValue;
+end;
+
+{ TSerializationProcessVectorsHelper ----------------------------------------- }
+
+procedure TSerializationProcessVectorsHelper.ReadWriteVector(
+  const Key: String; var Value: TVector2; const DefaultValue: TVector2; const IsStored: Boolean);
+var
+  Persistent: TCastleVector2PersistentSimple;
+begin
+  Persistent := TCastleVector2PersistentSimple.Create;
+  try
+    Persistent.SimpleValue := Value;
+    Persistent.InternalDefaultValue := DefaultValue;
+    ReadWriteSubComponent(Key, Persistent, IsStored);
+    Value := Persistent.SimpleValue; // read back, in case ReadWriteSubComponent read it from file
+  finally FreeAndNil(Persistent) end;
+end;
+
+procedure TSerializationProcessVectorsHelper.ReadWriteVector(
+  const Key: String; var Value: TVector3; const DefaultValue: TVector3; const IsStored: Boolean);
+var
+  Persistent: TCastleVector3PersistentSimple;
+begin
+  Persistent := TCastleVector3PersistentSimple.Create;
+  try
+    Persistent.SimpleValue := Value;
+    Persistent.InternalDefaultValue := DefaultValue;
+    ReadWriteSubComponent(Key, Persistent, IsStored);
+    Value := Persistent.SimpleValue; // read back, in case ReadWriteSubComponent read it from file
+  finally FreeAndNil(Persistent) end;
+end;
+
+procedure TSerializationProcessVectorsHelper.ReadWriteVector(
+  const Key: String; var Value: TVector4; const DefaultValue: TVector4; const IsStored: Boolean);
+var
+  Persistent: TCastleVector4PersistentSimple;
+begin
+  Persistent := TCastleVector4PersistentSimple.Create;
+  try
+    Persistent.SimpleValue := Value;
+    Persistent.InternalDefaultValue := DefaultValue;
+    ReadWriteSubComponent(Key, Persistent, IsStored);
+    Value := Persistent.SimpleValue; // read back, in case ReadWriteSubComponent read it from file
+  finally FreeAndNil(Persistent) end;
 end;
 
 {$endif read_implementation}

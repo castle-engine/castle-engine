@@ -1584,7 +1584,7 @@ end;
 procedure TCastleUserInterface.CustomSerialization(const SerializationProcess: TSerializationProcess);
 begin
   inherited;
-  SerializationProcess.ReadWrite('Children',
+  SerializationProcess.ReadWriteList('Children',
     {$ifdef FPC}@{$endif}SerializeChildrenEnumerate,
     {$ifdef FPC}@{$endif}SerializeChildrenAdd,
     {$ifdef FPC}@{$endif}SerializeChildrenClear);

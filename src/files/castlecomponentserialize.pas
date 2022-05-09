@@ -202,7 +202,17 @@ type
       public
         Reader: TCastleJsonReader;
         CurrentlyReading: TJsonObject;
-        procedure ReadWrite(const Key: String;
+        procedure ReadWriteInteger(const Key: String; var Value: Integer; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteBoolean(const Key: String; var Value: Boolean; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteString(const Key: String; var Value: String; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteSingle(const Key: String; var Value: Single; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteSubComponent(const Key: String; const Value: TComponent;
+          const IsStored: Boolean); override;
+        procedure ReadWriteList(const Key: String;
           const ListEnumerate: TSerializationProcess.TListEnumerateEvent; const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
       end;
@@ -283,7 +293,58 @@ begin
   Result := ResultClass.Create(Owner);
 end;
 
-procedure TCastleJsonReader.TSerializationProcessReader.ReadWrite(const Key: String;
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteInteger(
+  const Key: String; var Value: Integer; const IsStored: Boolean);
+var
+  JsonData: TJsonData;
+begin
+  JsonData := CurrentlyReading.Find(Key) as TJsonData;
+  if JsonData <> nil then
+    Value := JsonData.AsInteger;
+end;
+
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteBoolean(
+  const Key: String; var Value: Boolean; const IsStored: Boolean);
+var
+  JsonData: TJsonData;
+begin
+  JsonData := CurrentlyReading.Find(Key) as TJsonData;
+  if JsonData <> nil then
+    Value := JsonData.AsBoolean;
+end;
+
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteString(
+  const Key: String; var Value: String; const IsStored: Boolean);
+var
+  JsonData: TJsonData;
+begin
+  JsonData := CurrentlyReading.Find(Key) as TJsonData;
+  if JsonData <> nil then
+    Value := JsonData.AsString;
+end;
+
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteSingle(
+  const Key: String; var Value: Single; const IsStored: Boolean);
+var
+  JsonData: TJsonData;
+begin
+  JsonData := CurrentlyReading.Find(Key) as TJsonData;
+  if JsonData <> nil then
+    Value := JsonData.AsFloat;
+end;
+
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteSubComponent(
+  const Key: String; const Value: TComponent; const IsStored: Boolean);
+var
+  JsonData: TJsonData;
+begin
+  Assert(Value <> nil);
+  JsonData := CurrentlyReading.Find(Key) as TJsonData;
+  if (JsonData <> nil) and (JsonData.JsonType = jtObject) then
+    Reader.FDeStreamer.JsonToObject(JsonData as TJsonObject, Value);
+end;
+
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWriteList(const Key: String;
   const ListEnumerate: TSerializationProcess.TListEnumerateEvent; const ListAdd: TSerializationProcess.TListAddEvent;
   const ListClear: TSerializationProcess.TListClearEvent);
 var
@@ -718,7 +779,17 @@ type
       public
         Writer: TCastleJsonWriter;
         CurrentlyWriting: TJsonObject;
-        procedure ReadWrite(const AKey: String;
+        procedure ReadWriteInteger(const AKey: String; var Value: Integer; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteBoolean(const AKey: String; var Value: Boolean; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteString(const AKey: String; var Value: String; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteSingle(const AKey: String; var Value: Single; const IsStored: Boolean);
+          overload; override;
+        procedure ReadWriteSubComponent(const AKey: String; const Value: TComponent;
+          const IsStored: Boolean); override;
+        procedure ReadWriteList(const AKey: String;
           const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
           const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
@@ -753,7 +824,37 @@ begin
   CurrentlyWritingArray.Add(Writer.Streamer.ObjectToJson(C));
 end;
 
-procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWrite(const AKey: String;
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteInteger(
+  const AKey: String; var Value: Integer; const IsStored: Boolean);
+begin
+  // TODO
+end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteBoolean(
+  const AKey: String; var Value: Boolean; const IsStored: Boolean);
+begin
+  // TODO
+end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteString(
+  const AKey: String; var Value: String; const IsStored: Boolean);
+begin
+  // TODO
+end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteSingle(
+  const AKey: String; var Value: Single; const IsStored: Boolean);
+begin
+  // TODO
+end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteSubComponent(
+  const AKey: String; const Value: TComponent; const IsStored: Boolean);
+begin
+  // TODO
+end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteList(const AKey: String;
   const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
   const ListAdd: TSerializationProcess.TListAddEvent;
   const ListClear: TSerializationProcess.TListClearEvent);

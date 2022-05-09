@@ -32,13 +32,14 @@ type
     procedure TestDeserializeObjectReferences;
     procedure TestDepth;
     procedure TestVectorDeserializedOnce;
+    procedure TestCustomSerialization;
   end;
 
 implementation
 
 uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
   CastleUIControls, CastleControls, CastleUtils, CastleSceneManager,
-  CastleScene,
+  CastleScene, CastleClassUtils, CastleColors,
   { needed to deserialize castle-data:/designs/test_object_references.castle-user-interface }
   Castle2DSceneManager;
 
@@ -402,8 +403,156 @@ begin
   end;
 end;
 
+type
+  TTestComponent2 = class;
+
+  TTestComponent1 = class(TCastleComponent)
+  strict private
+    FSomeSingle: Single;
+  private
+    InternalSingle: Single;
+    InternalString: String;
+    InternalBoolean: Boolean;
+    InternalInteger: Integer;
+    InternalSubComponent: TTestComponent2;
+    InternalColor: TCastleColor;
+    InternalColorRGB: TCastleColorRGB;
+    InternalVec2: TVector2;
+    InternalVec3: TVector3;
+    InternalVec4: TVector4;
+    InternalVecNotPresent: TVector4;
+    InternalVecOnly2ComponentsPresent: TVector4;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+  published
+    property SomeSingle: Single read FSomeSingle write FSomeSingle default 0;
+  end;
+
+  TTestComponent2 = class(TCastleComponent)
+  strict private
+    FSomeSingle: Single;
+  private
+    InternalSingle: Single;
+    InternalString: String;
+    InternalBoolean: Boolean;
+    InternalInteger: Integer;
+    InternalColor: TCastleColor;
+    InternalColorRGB: TCastleColorRGB;
+    InternalVec2: TVector2;
+    InternalVec3: TVector3;
+    InternalVec4: TVector4;
+    InternalVecNotPresent: TVector4;
+    InternalVecOnly2ComponentsPresent: TVector4;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+  published
+    property SomeSingle: Single read FSomeSingle write FSomeSingle default 0;
+  end;
+
+constructor TTestComponent1.Create(AOwner: TComponent);
+begin
+  inherited;
+  InternalSubComponent := TTestComponent2.Create(Self);
+  InternalSubComponent.Name := 'SomeSubComponentName';
+  InternalSubComponent.SetSubComponent(true); // this only decides if SomeSubComponentName is recorded
+
+  InternalVecNotPresent := Vector4(901, 902, 903, 904);
+  InternalVecOnly2ComponentsPresent := Vector4(801, 802, 803, 804);
+end;
+
+procedure TTestComponent1.CustomSerialization(const SerializationProcess: TSerializationProcess);
+begin
+  inherited;
+  SerializationProcess.ReadWriteInteger('InternalInteger', InternalInteger, true);
+  SerializationProcess.ReadWriteBoolean('InternalBoolean', InternalBoolean, true);
+  SerializationProcess.ReadWriteString('InternalString', InternalString, true);
+  SerializationProcess.ReadWriteSingle('InternalSingle', InternalSingle, true);
+
+  SerializationProcess.ReadWriteSubComponent('InternalSubComponent', InternalSubComponent, true);
+
+  SerializationProcess.ReadWriteColor('InternalColor', InternalColor, White, true);
+  SerializationProcess.ReadWriteColor('InternalColorRGB', InternalColorRGB, WhiteRGB, true);
+  SerializationProcess.ReadWriteVector('InternalVec2', InternalVec2, Vector2(-1, -1), true);
+  SerializationProcess.ReadWriteVector('InternalVec3', InternalVec3, Vector3(-1, -1, -1), true);
+  SerializationProcess.ReadWriteVector('InternalVec4', InternalVec4, Vector4(-1, -1, -1, -1), true);
+  SerializationProcess.ReadWriteVector('InternalVecNotPresent', InternalVecNotPresent, Vector4(-1, -1, -1, -1), true);
+  SerializationProcess.ReadWriteVector('InternalVecOnly2ComponentsPresent', InternalVecOnly2ComponentsPresent, Vector4(-1, -1, -1, -1), true);
+end;
+
+constructor TTestComponent2.Create(AOwner: TComponent);
+begin
+  inherited;
+  InternalVecNotPresent := Vector4(11901, 11902, 11903, 11904);
+  InternalVecOnly2ComponentsPresent := Vector4(11801, 11802, 11803, 11804);
+end;
+
+procedure TTestComponent2.CustomSerialization(const SerializationProcess: TSerializationProcess);
+begin
+  inherited;
+  SerializationProcess.ReadWriteInteger('InternalInteger', InternalInteger, true);
+  SerializationProcess.ReadWriteBoolean('InternalBoolean', InternalBoolean, true);
+  SerializationProcess.ReadWriteString('InternalString', InternalString, true);
+  SerializationProcess.ReadWriteSingle('InternalSingle', InternalSingle, true);
+
+  SerializationProcess.ReadWriteColor('InternalColor', InternalColor, White, true);
+  SerializationProcess.ReadWriteColor('InternalColorRGB', InternalColorRGB, WhiteRGB, true);
+  SerializationProcess.ReadWriteVector('InternalVec2', InternalVec2, Vector2(-1, -1), true);
+  SerializationProcess.ReadWriteVector('InternalVec3', InternalVec3, Vector3(-1, -1, -1), true);
+  SerializationProcess.ReadWriteVector('InternalVec4', InternalVec4, Vector4(-1, -1, -1, -1), true);
+  SerializationProcess.ReadWriteVector('InternalVecNotPresent', InternalVecNotPresent, Vector4(-1, -1, -1, -1), true);
+  SerializationProcess.ReadWriteVector('InternalVecOnly2ComponentsPresent', InternalVecOnly2ComponentsPresent, Vector4(-1, -1, -1, -1), true);
+end;
+
+procedure TTestCastleComponentSerialize.TestCustomSerialization;
+var
+  COwner: TComponent;
+  T1: TTestComponent1;
+begin
+  COwner := TComponent.Create(nil);
+  try
+    T1 := ComponentLoad('castle-data:/designs/test_custom_serialization.castle-component', COwner) as TTestComponent1;
+
+    AssertEquals('TestComponent1', T1.Name);
+    AssertSameValue(3333, T1.SomeSingle);
+    AssertSameValue(123.456, T1.InternalSingle);
+    AssertEquals('something something', T1.InternalString);
+    AssertTrue(T1.InternalBoolean);
+    AssertEquals(123, T1.InternalInteger);
+    AssertVectorEquals(Vector4(1, 2, 3, 4), T1.InternalColor);
+    AssertVectorEquals(Vector3(5, 6, 7), T1.InternalColorRGB);
+    AssertVectorEquals(Vector2(10, 11), T1.InternalVec2);
+    AssertVectorEquals(Vector3(20, 21, 22), T1.InternalVec3);
+    AssertVectorEquals(Vector4(30, 31, 32, 33), T1.InternalVec4);
+    AssertVectorEquals(Vector4(901, 902, 903, 904), T1.InternalVecNotPresent);
+    AssertVectorEquals(Vector4(801, 60031, 60032, 804), T1.InternalVecOnly2ComponentsPresent);
+
+    AssertEquals('TestComponent2', T1.InternalSubComponent.Name);
+    AssertSameValue(4444, T1.InternalSubComponent.SomeSingle);
+    AssertSameValue(789.123, T1.InternalSubComponent.InternalSingle);
+    AssertEquals('something else something', T1.InternalSubComponent.InternalString);
+    AssertTrue(T1.InternalSubComponent.InternalBoolean);
+    AssertEquals(789, T1.InternalSubComponent.InternalInteger);
+    AssertVectorEquals(Vector4(4001, 4002, 4003, 4004), T1.InternalSubComponent.InternalColor);
+    AssertVectorEquals(Vector3(4005, 4006, 4007), T1.InternalSubComponent.InternalColorRGB);
+    AssertVectorEquals(Vector2(40010, 40011), T1.InternalSubComponent.InternalVec2);
+    AssertVectorEquals(Vector3(40020, 40021, 40022), T1.InternalSubComponent.InternalVec3);
+    AssertVectorEquals(Vector4(40030, 40031, 40032, 40033), T1.InternalSubComponent.InternalVec4);
+    AssertVectorEquals(Vector4(11901, 11902, 11903, 11904), T1.InternalSubComponent.InternalVecNotPresent);
+    AssertVectorEquals(Vector4(11801, 4060031, 4060032, 11804), T1.InternalSubComponent.InternalVecOnly2ComponentsPresent);
+  finally FreeAndNil(COwner) end;
+
+  // test writing
+  // test that SomeSubComponentNameIgnored not written when it's SetSubComponent, and written otherwise
+end;
+
 initialization
   RegisterTest(TTestCastleComponentSerialize);
+
   RegisterSerializableComponent(TMyComponent, 'My Test Component');
   RegisterSerializableComponent(TComponent, 'Component (Basic)');
+
+  RegisterSerializableComponent(TTestComponent1, 'T1');
+  RegisterSerializableComponent(TTestComponent2, 'T2');
 end.
