@@ -426,7 +426,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
   published
-    property SomeSingle: Single read FSomeSingle write FSomeSingle default 0;
+    property SomeSingle: Single read FSomeSingle write FSomeSingle {$ifdef FPC}default 0{$endif};
   end;
 
   TTestComponent2 = class(TCastleComponent)
@@ -448,7 +448,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
   published
-    property SomeSingle: Single read FSomeSingle write FSomeSingle default 0;
+    property SomeSingle: Single read FSomeSingle write FSomeSingle {$ifdef FPC}default 0{$endif};
   end;
 
 constructor TTestComponent1.Create(AOwner: TComponent);
@@ -516,7 +516,7 @@ begin
 
     AssertEquals('TestComponent1', T1.Name);
     AssertSameValue(3333, T1.SomeSingle);
-    AssertSameValue(123.456, T1.InternalSingle);
+    AssertSameValue(123.456, T1.InternalSingle, 0.0001);
     AssertEquals('something something', T1.InternalString);
     AssertTrue(T1.InternalBoolean);
     AssertEquals(123, T1.InternalInteger);
@@ -530,7 +530,7 @@ begin
 
     AssertEquals('TestComponent2', T1.InternalSubComponent.Name);
     AssertSameValue(4444, T1.InternalSubComponent.SomeSingle);
-    AssertSameValue(789.123, T1.InternalSubComponent.InternalSingle);
+    AssertSameValue(789.123, T1.InternalSubComponent.InternalSingle, 0.0001);
     AssertEquals('something else something', T1.InternalSubComponent.InternalString);
     AssertTrue(T1.InternalSubComponent.InternalBoolean);
     AssertEquals(789, T1.InternalSubComponent.InternalInteger);
