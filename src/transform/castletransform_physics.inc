@@ -144,7 +144,6 @@
     { Removes AutoSize = true when someone changes any collider size }
     procedure UpdateAutoSizeProperty;
 
-    function LocalBoundingBoxWithScale: TBox3D;
   public
     const
       { Default for @link(Density). }
@@ -1187,11 +1186,6 @@ begin
     Exit;
 
   AutoSize := false;
-end;
-
-function TCastleCollider.LocalBoundingBoxWithScale: TBox3D;
-begin
-
 end;
 
 procedure TCastleCollider.CalculateAutoSize;
