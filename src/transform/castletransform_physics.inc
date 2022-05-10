@@ -1445,9 +1445,6 @@ end;
 procedure TCastleBoxCollider.CalculateAutoSize;
 var
   LocalBoundingBox: TBox3D;
-
-  {WorldTranslation, WorldScale: TVector3;
-  WorldRotation: TVector4;}
 begin
   inherited;
 
@@ -1458,13 +1455,6 @@ begin
   end;
 
   LocalBoundingBox := Parent.LocalBoundingBox;
-  {if World <> nil then
-  begin
-    MatrixDecompose(Parent.WorldTransform, WorldTranslation, WorldRotation, WorldScale);
-    LocalBoundingBox.Data[0] := LocalBoundingBox.Data[0] * WorldScale * Parent.Scale;
-    LocalBoundingBox.Data[1] := LocalBoundingBox.Data[1] * WorldScale * Parent.Scale;
-  end;}
-
   Size := LocalBoundingBox.Size;
 
   Translation := LocalBoundingBox.Center;
