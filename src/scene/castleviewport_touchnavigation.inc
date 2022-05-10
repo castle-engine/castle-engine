@@ -54,9 +54,7 @@ type
     and has @link(FullSize) = @true, this way it just fills the TCastleViewport.
 
     The @link(Viewport) determines the viewport where navigation is affected
-    by this control. In case of @link(AutoTouchInterface), we also look
-    at @link(Viewport) value of @link(TCastleViewport.NavigationType)
-    to determine the best navigation automatically.
+    by this control.
     Typically the @link(Viewport) is also our visual parent, but it doesn't have to be.
   }
   TCastleTouchNavigation = class(TCastleUserInterface)
@@ -95,9 +93,6 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Viewport where navigation is affected by this control.
-      In case of @link(AutoTouchInterface), we also look
-      at @link(Viewport) value of @link(TCastleViewport.NavigationType)
-      to determine the best navigation automatically.
 
       You must set this property to something non-nil,
       otherwise this UI control doesn't do much, it will not affect anything. }
@@ -118,8 +113,7 @@ type
       default tiNone;
 
     { Automatically adjust @link(TouchInterface) (showing / hiding proper
-      touch controls) based on the current @link(Viewport)
-      navigation type in @link(TCastleViewport.NavigationType). }
+      touch controls) based on the detected current @link(Viewport) navigation type. }
     property AutoTouchInterface: boolean
       read FAutoTouchInterface write SetAutoTouchInterface
       default false;

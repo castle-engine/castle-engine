@@ -88,7 +88,7 @@
     { modify @link(Imported) list to handle the export. }
     procedure DoImport(const I: TX3DImport);
 
-    { Find node bound to given name. Looks in @link(Names) and @link(Imported).
+    { Find node bound to given name. Looks in @link(Nodes) and @link(Imported).
       Returns @nil if none. }
     function Bound(const Name: string; out NodeFinished: Boolean;
       const WarningIfImported: Boolean): TX3DNode;

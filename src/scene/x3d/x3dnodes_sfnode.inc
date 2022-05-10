@@ -194,6 +194,7 @@
           }
         ]
       }
+      )
 
       When AutomaticWeakLink, the given field contents may, but doesn't have to,
       be a node cycle -- we only use WeakLink when necessary.
