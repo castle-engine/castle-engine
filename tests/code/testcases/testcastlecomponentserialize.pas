@@ -509,6 +509,7 @@ procedure TTestCastleComponentSerialize.TestCustomSerialization;
 var
   COwner: TComponent;
   T1: TTestComponent1;
+  ValidOutput: String;
 begin
   COwner := TComponent.Create(nil);
   try
@@ -541,10 +542,10 @@ begin
     AssertVectorEquals(Vector4(40030, 40031, 40032, 40033), T1.InternalSubComponent.InternalVec4);
     AssertVectorEquals(Vector4(11901, 11902, 11903, 11904), T1.InternalSubComponent.InternalVecNotPresent);
     AssertVectorEquals(Vector4(11801, 4060031, 4060032, 11804), T1.InternalSubComponent.InternalVecOnly2ComponentsPresent);
-  finally FreeAndNil(COwner) end;
 
-  // test writing
-  // test that SomeSubComponentNameIgnored not written when it's SetSubComponent, and written otherwise
+    ValidOutput := FileToString('castle-data:/designs/test_custom_serialization_valid_output.castle-component');
+    AssertEquals(Trim(ValidOutput), Trim(ComponentToString(T1)));
+  finally FreeAndNil(COwner) end;
 end;
 
 initialization

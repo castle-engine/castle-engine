@@ -827,31 +827,46 @@ end;
 procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteInteger(
   const AKey: String; var Value: Integer; const IsStored: Boolean);
 begin
-  // TODO
+  if IsStored then
+  begin
+    CurrentlyWriting.Add(AKey, TJsonIntegerNumber.Create(Value));
+  end;
 end;
 
 procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteBoolean(
   const AKey: String; var Value: Boolean; const IsStored: Boolean);
 begin
-  // TODO
+  if IsStored then
+  begin
+    CurrentlyWriting.Add(AKey, TJsonBoolean.Create(Value));
+  end;
 end;
 
 procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteString(
   const AKey: String; var Value: String; const IsStored: Boolean);
 begin
-  // TODO
+  if IsStored then
+  begin
+    CurrentlyWriting.Add(AKey, TJsonString.Create(Value));
+  end;
 end;
 
 procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteSingle(
   const AKey: String; var Value: Single; const IsStored: Boolean);
 begin
-  // TODO
+  if IsStored then
+  begin
+    CurrentlyWriting.Add(AKey, TJsonFloatNumber.Create(Value));
+  end;
 end;
 
 procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteSubComponent(
   const AKey: String; const Value: TComponent; const IsStored: Boolean);
 begin
-  // TODO
+  if IsStored then
+  begin
+    CurrentlyWriting.Add(AKey, Writer.Streamer.ObjectToJson(Value));
+  end;
 end;
 
 procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWriteList(const AKey: String;
