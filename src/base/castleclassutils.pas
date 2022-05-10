@@ -454,7 +454,9 @@ type
 
     { Serialize and deserialize a subcomponent.
       Being a subcomponent, we know that Value is not nil,
-      we just serialize and deserialize the contents.
+      and it is not referenced anywhere else in the design
+      (so serialization/deserialization can expect class contents, not just name),
+      so we just serialize and deserialize the contents.
 
       When deserializing, we always try to read it from file.
       If it is not present, nothing is modified.
