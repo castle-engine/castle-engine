@@ -2163,7 +2163,7 @@ begin
   if FDuringSettingTransformationFromPhysicsEngine then
     Exit;
 
-  if FKraftBody = nil then
+  if not (FState in [crbsNoFinalization, crbsInitialized]) then
     Exit;
 
   FKraftBody.SetWorldTransformation(MatrixToKraft(WorldTransform));
