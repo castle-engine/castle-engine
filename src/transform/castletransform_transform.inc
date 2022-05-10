@@ -222,6 +222,10 @@
       add procedure that is called in behavior destructor to call all
       needed events before destroy. }
     procedure BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
+
+    { When CastleTransform change scale colliders are not scaled we need do this
+      manually. }
+    procedure RecursivelyUpdateCollidersScale(CastleTransform: TCastleTransform);
   protected
     { Call this when doing anything that allocates GL resources.
       This will make sure GLContextClose will get called. }
@@ -2031,7 +2035,7 @@ begin
   end;
 end;
 
-function TCastleTransform.CheckCollides: boolean;
+function TCastleTransform.CheckCollides: Boolean;
 begin
   {$warnings off} // using deprecated to keep it working
   Result := GetCollides;
@@ -2797,6 +2801,20 @@ begin
   end;
 end;
 
+procedure TCastleTransform.RecursivelyUpdateCollidersScale(
+  CastleTransform: TCastleTransform);
+var
+  CastleCollider: TCastleCollider;
+  I: Integer;
+begin
+  CastleCollider := CastleTransform.FindBehavior(TCastleCollider) as TCastleCollider;
+  if CastleCollider <> nil then
+    CastleCollider.UpdateScale(false);
+
+  for I := 0 to CastleTransform.Count -1 do
+    RecursivelyUpdateCollidersScale(CastleTransform.Items[I]);
+end;
+
 function TCastleTransform.HasWorldTransform: boolean;
 begin
   { Check for "FWorld <> nil" is still necessary, otherwise a TCastleTransform
@@ -3487,6 +3505,15 @@ begin
   FOnlyTranslation := FOnlyTranslation and
     (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
   ChangedTransform;
+  if (FWorld <> nil) and
+    (
+      (FWorld.PhysicsProperties.UpdateCollidersScaleOnRuntime) or
+      (CastleDesignMode)
+    ) and
+    (FWorld.EnablePhysics) then
+  begin
+    RecursivelyUpdateCollidersScale(Self);
+  end;
 end;
 
 procedure TCastleTransform.SetScaleOrientation(const Value: TVector4);

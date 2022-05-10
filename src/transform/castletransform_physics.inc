@@ -34,10 +34,13 @@
     FFrequency: Single;
     FGravityStrength: Single;
     FMaxPhysicsTicksPerUpdate: Cardinal;
+    FUpdateCollidersScaleOnRuntime: Boolean;
 
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
+
+    procedure SetUpdateCollidersScaleOnRuntime(const AValue: Boolean);
 
   private
     { Buffer to not count physics step time per frame }
@@ -51,8 +54,11 @@
       DefaultFrequency = 60.0;
       DefaultMaxPhysicsTicksPerUpdate = 5;
       DefaultGravityStrength = 9.81;
+      DefaultUpdateCollidersScaleOnRuntime = true;
 
     constructor Create(AOwner: TComponent); override;
+
+
 
   published
     { Use a more precise (but also more expensive) method for simulating angular velocity.
@@ -77,6 +83,11 @@
       next time it will take even longer time to calculate (it will need more steps),
       thus we have a "spiral of death" that leads to lower and lower FPS. }
     property MaxPhysicsTicksPerUpdate: Cardinal read FMaxPhysicsTicksPerUpdate write FMaxPhysicsTicksPerUpdate default DefaultMaxPhysicsTicksPerUpdate;
+
+    { When set to true it works like in editor - when you change scale,
+      it changes colliders size, otherwise scale is updated only after attaching
+      collider to world. }
+    property UpdateCollidersScaleOnRuntime: Boolean read FUpdateCollidersScaleOnRuntime write SetUpdateCollidersScaleOnRuntime default DefaultUpdateCollidersScaleOnRuntime;
   end;
 
   { Don't have any Kraft objects only describe shape }
@@ -123,12 +134,6 @@
     procedure ShapeChangedNotifyRigidBody;
     procedure CalculateAutoSize; virtual;
 
-    { Updates scale after for example adding collider to world
-      This procedure only updates FLastScale and calls
-      ShapeChangedNotifyRigidBody. You should multiply collider size in
-      your descendant CreateKraftShape(). }
-    procedure UpdateScale(ForceUpdate: Boolean); overload;
-
     function StoredWithAutoSize: Boolean;
   protected
     procedure ParentAfterAttach; override;
@@ -141,9 +146,14 @@
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; override;
 
+    { Updates scale after for example adding collider to world
+      This procedure only updates FLastScale and calls
+      ShapeChangedNotifyRigidBody. You should multiply collider size in
+      your descendant CreateKraftShape(). }
+    procedure UpdateScale(ForceUpdate: Boolean); overload;
+
     { Removes AutoSize = true when someone changes any collider size }
     procedure UpdateAutoSizeProperty;
-
   public
     const
       { Default for @link(Density). }
@@ -904,6 +914,16 @@ begin
     RootTransform.FKraftEngine.SetFrequency(AValue);
 end;
 
+procedure TPhysicsProperties.SetUpdateCollidersScaleOnRuntime(
+  const AValue: Boolean);
+begin
+  if FUpdateCollidersScaleOnRuntime <> AValue then
+  begin
+    FUpdateCollidersScaleOnRuntime := AValue;
+
+  end;
+end;
+
 procedure TPhysicsProperties.SetLinearVelocityRK4Integration(const AValue: Boolean);
 begin
   if FLinearVelocityRK4Integration = AValue then
@@ -935,6 +955,7 @@ begin
   FGravityStrength := DefaultGravityStrength;
   FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
+  FUpdateCollidersScaleOnRuntime := DefaultUpdateCollidersScaleOnRuntime;
 end;
 
 { TCollider ------------------------------------------------------------------ }
