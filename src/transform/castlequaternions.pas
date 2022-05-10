@@ -513,6 +513,7 @@ end;
 procedure ScaleFromMatrix(const Matrix: TMatrix4; out Scale: TVector3);
 var
   I: Integer;
+  Column: TVector3;
 begin
   for I := 0 to 2 do
   begin

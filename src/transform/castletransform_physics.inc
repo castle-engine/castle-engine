@@ -1216,12 +1216,11 @@ end;
 
 procedure TCastleCollider.UpdateScale(ForceUpdate: Boolean);
 var
-  WorldTranslation, NewScale: TVector3;
-  WorldRotation: TVector4;
+  NewScale: TVector3;
 begin
   if World <> nil then
   begin
-    MatrixDecompose(Parent.WorldTransform, WorldTranslation, WorldRotation, NewScale);
+    ScaleFromMatrix(Parent.WorldTransform, NewScale);
   end else
     NewScale := NoScale * Parent.Scale;
 
