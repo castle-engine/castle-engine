@@ -1,106 +1,106 @@
 {
   "$$ClassName" : "TTestComponent1",
   "Name" : "TestComponent1",
-  "SomeSingle" : 3.3330000000000000E+003,
+  "SomeSingle" : %f,
   "InternalInteger" : 123,
   "InternalBoolean" : true,
   "InternalString" : "something something",
-  "InternalSingle" : 1.2345600128173828E+002,
+  "InternalSingle" : %f,
   "InternalSubComponent" : {
     "$$ClassName" : "TTestComponent2",
-    "SomeSingle" : 4.4440000000000000E+003,
+    "SomeSingle" : %f,
     "InternalInteger" : 789,
     "InternalBoolean" : true,
     "InternalString" : "something else something",
-    "InternalSingle" : 7.8912298583984375E+002,
+    "InternalSingle" : %f,
     "InternalColor" : {
       "$$ClassName" : "TCastleColorPersistentSimple",
-      "Alpha" : 4.0040000000000000E+003,
-      "Blue" : 4.0030000000000000E+003,
-      "Green" : 4.0020000000000000E+003,
-      "Red" : 4.0010000000000000E+003
+      "Alpha" : %f,
+      "Blue" : %f,
+      "Green" : %f,
+      "Red" : %f
     },
     "InternalColorRGB" : {
       "$$ClassName" : "TCastleColorRGBPersistentSimple",
-      "Blue" : 4.0070000000000000E+003,
-      "Green" : 4.0060000000000000E+003,
-      "Red" : 4.0050000000000000E+003
+      "Blue" : %f,
+      "Green" : %f,
+      "Red" : %f
     },
     "InternalVec2" : {
       "$$ClassName" : "TCastleVector2PersistentSimple",
-      "X" : 4.0010000000000000E+004,
-      "Y" : 4.0011000000000000E+004
+      "X" : %f,
+      "Y" : %f
     },
     "InternalVec3" : {
       "$$ClassName" : "TCastleVector3PersistentSimple",
-      "X" : 4.0020000000000000E+004,
-      "Y" : 4.0021000000000000E+004,
-      "Z" : 4.0022000000000000E+004
+      "X" : %f,
+      "Y" : %f,
+      "Z" : %f
     },
     "InternalVec4" : {
       "$$ClassName" : "TCastleVector4PersistentSimple",
-      "W" : 4.0033000000000000E+004,
-      "X" : 4.0030000000000000E+004,
-      "Y" : 4.0031000000000000E+004,
-      "Z" : 4.0032000000000000E+004
+      "W" : %f,
+      "X" : %f,
+      "Y" : %f,
+      "Z" : %f
     },
     "InternalVecNotPresent" : {
       "$$ClassName" : "TCastleVector4PersistentSimple",
-      "W" : 1.1904000000000000E+004,
-      "X" : 1.1901000000000000E+004,
-      "Y" : 1.1902000000000000E+004,
-      "Z" : 1.1903000000000000E+004
+      "W" : %f,
+      "X" : %f,
+      "Y" : %f,
+      "Z" : %f
     },
     "InternalVecOnly2ComponentsPresent" : {
       "$$ClassName" : "TCastleVector4PersistentSimple",
-      "W" : 1.1804000000000000E+004,
-      "X" : 1.1801000000000000E+004,
-      "Y" : 4.0600310000000000E+006,
-      "Z" : 4.0600320000000000E+006
+      "W" : %f,
+      "X" : %f,
+      "Y" : %f,
+      "Z" : %f
     }
   },
   "InternalColor" : {
     "$$ClassName" : "TCastleColorPersistentSimple",
-    "Alpha" : 4.0000000000000000E+000,
-    "Blue" : 3.0000000000000000E+000,
-    "Green" : 2.0000000000000000E+000
+    "Alpha" : %f,
+    "Blue" : %f,
+    "Green" : %f
   },
   "InternalColorRGB" : {
     "$$ClassName" : "TCastleColorRGBPersistentSimple",
-    "Blue" : 7.0000000000000000E+000,
-    "Green" : 6.0000000000000000E+000,
-    "Red" : 5.0000000000000000E+000
+    "Blue" : %f,
+    "Green" : %f,
+    "Red" : %f
   },
   "InternalVec2" : {
     "$$ClassName" : "TCastleVector2PersistentSimple",
-    "X" : 1.0000000000000000E+001,
-    "Y" : 1.1000000000000000E+001
+    "X" : %f,
+    "Y" : %f
   },
   "InternalVec3" : {
     "$$ClassName" : "TCastleVector3PersistentSimple",
-    "X" : 2.0000000000000000E+001,
-    "Y" : 2.1000000000000000E+001,
-    "Z" : 2.2000000000000000E+001
+    "X" : %f,
+    "Y" : %f,
+    "Z" : %f
   },
   "InternalVec4" : {
     "$$ClassName" : "TCastleVector4PersistentSimple",
-    "W" : 3.3000000000000000E+001,
-    "X" : 3.0000000000000000E+001,
-    "Y" : 3.1000000000000000E+001,
-    "Z" : 3.2000000000000000E+001
+    "W" : %f,
+    "X" : %f,
+    "Y" : %f,
+    "Z" : %f
   },
   "InternalVecNotPresent" : {
     "$$ClassName" : "TCastleVector4PersistentSimple",
-    "W" : 9.0400000000000000E+002,
-    "X" : 9.0100000000000000E+002,
-    "Y" : 9.0200000000000000E+002,
-    "Z" : 9.0300000000000000E+002
+    "W" : %f,
+    "X" : %f,
+    "Y" : %f,
+    "Z" : %f
   },
   "InternalVecOnly2ComponentsPresent" : {
     "$$ClassName" : "TCastleVector4PersistentSimple",
-    "W" : 8.0400000000000000E+002,
-    "X" : 8.0100000000000000E+002,
-    "Y" : 6.0031000000000000E+004,
-    "Z" : 6.0032000000000000E+004
+    "W" : %f,
+    "X" : %f,
+    "Y" : %f,
+    "Z" : %f
   }
 }

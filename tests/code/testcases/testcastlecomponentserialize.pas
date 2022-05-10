@@ -39,7 +39,7 @@ implementation
 
 uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
   CastleUIControls, CastleControls, CastleUtils, CastleSceneManager,
-  CastleScene, CastleClassUtils, CastleColors,
+  CastleScene, CastleClassUtils, CastleColors, CastleStringUtils,
   { needed to deserialize castle-data:/designs/test_object_references.castle-user-interface }
   Castle2DSceneManager;
 
@@ -506,14 +506,88 @@ begin
 end;
 
 procedure TTestCastleComponentSerialize.TestCustomSerialization;
+const
+  ValidOutputNumbersCount = 51;
+  ValidOutputNumbers: array [0..ValidOutputNumbersCount - 1] of Float = (
+    3333,
+    123.456,
+    4444,
+    789.123,
+
+    4004,
+    4003,
+    4002,
+    4001,
+
+    4007,
+    4006,
+    4005,
+
+    40010,
+    40011,
+
+    40020,
+    40021,
+    40022,
+
+    40033,
+    40030,
+    40031,
+    40032,
+
+    11904,
+    11901,
+    11902,
+    11903,
+
+    11804,
+    11801,
+    4060031,
+    4060032,
+
+    4,
+    3,
+    2,
+
+    7,
+    6,
+    5,
+
+    10,
+    11,
+
+    20,
+    21,
+    22,
+
+    33,
+    30,
+    31,
+    32,
+
+    904,
+    901,
+    902,
+    903,
+
+    804,
+    801,
+    60031,
+    60032
+  );
 var
   COwner: TComponent;
   T1: TTestComponent1;
   ValidOutput: String;
+  I: Integer;
+  NumbersReadBack: array [0..ValidOutputNumbersCount - 1] of Float;
+  NumbersReadBackPtrs: array [0..ValidOutputNumbersCount - 1] of Pointer;
 begin
   COwner := TComponent.Create(nil);
   try
     T1 := ComponentLoad('castle-data:/designs/test_custom_serialization.castle-component', COwner) as TTestComponent1;
+
+    { Test reading with CustomSerialization }
 
     AssertEquals('TestComponent1', T1.Name);
     AssertSameValue(3333, T1.SomeSingle);
@@ -543,8 +617,20 @@ begin
     AssertVectorEquals(Vector4(11901, 11902, 11903, 11904), T1.InternalSubComponent.InternalVecNotPresent);
     AssertVectorEquals(Vector4(11801, 4060031, 4060032, 11804), T1.InternalSubComponent.InternalVecOnly2ComponentsPresent);
 
+    { Test writing with CustomSerialization.
+      Save the result to string, see whether it matches what we expect.
+      Note that we don't enforce how floats are encoded in JSON,
+      this may be different between compilers and platforms due to floating-point accuracy,
+      and the way default conversion float->string is done. }
+
+    for I := 0 to ValidOutputNumbersCount - 1 do
+      NumbersReadBackPtrs[I] := @(NumbersReadBack[I]);
+
     ValidOutput := FileToString('castle-data:/designs/test_custom_serialization_valid_output.castle-component');
-    AssertEquals(Trim(ValidOutput), Trim(ComponentToString(T1)));
+    DeFormat(ComponentToString(T1), ValidOutput, NumbersReadBackPtrs, false);
+
+    for I := 0 to ValidOutputNumbersCount - 1 do
+      AssertEquals(ValidOutputNumbers[I], NumbersReadBack[I]);
   finally FreeAndNil(COwner) end;
 end;
 
