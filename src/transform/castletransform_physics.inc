@@ -1222,8 +1222,6 @@ begin
   if World <> nil then
   begin
     MatrixDecompose(Parent.WorldTransform, WorldTranslation, WorldRotation, NewScale);
-
-    NewScale := NewScale * Parent.Scale;
   end else
     NewScale := NoScale * Parent.Scale;
 
