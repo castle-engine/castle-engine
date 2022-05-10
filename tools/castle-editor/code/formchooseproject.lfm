@@ -11,6 +11,7 @@ object ChooseProjectForm: TChooseProjectForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
+  OnHide = FormHide
   Position = poScreenCenter
   LCLVersion = '2.2.0.4'
   object PanelBottom: TPanel

@@ -23,7 +23,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Buttons, Menus,
-  CastleDialogs, CastleLCLRecentFiles;
+  CastleDialogs, CastleLCLRecentFiles, CastleSoundEngine;
 
 type
   { Choose project (new or existing). }
@@ -52,9 +52,12 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormHide(Sender: TObject);
   private
     RecentProjects: TCastleRecentFiles;
     CommandLineHandled: Boolean;
+    CodingTheme: TCastleSound;
+    CodingThemePlaying: TCastlePlayingSound;
     procedure MenuItemRecentClick(Sender: TObject);
     procedure OpenProjectFromCommandLine;
     procedure UpdateWarningMissingCompiler;
@@ -288,6 +291,23 @@ begin
   ButtonOpenRecent.Enabled := RecentProjects.URLs.Count <> 0;
   OpenProjectFromCommandLine;
   UpdateWarningMissingCompiler;
+
+  if (CastleEnginePath <> '') and URIFileExists(CastleEnginePath + 'game.pas:666') then
+  begin
+    CodingTheme := TCastleSound.Create(Self);
+    CodingTheme.Stream := true;
+    CodingTheme.Url := InternalCastleDesignData + 'not_an_easter_egg/ente_evil.ogg';
+    CodingThemePlaying := TCastlePlayingSound.Create(Self);
+    CodingThemePlaying.Loop := true;
+    CodingThemePlaying.Sound := CodingTheme;
+    SoundEngine.Play(CodingThemePlaying);
+  end;
+end;
+
+procedure TChooseProjectForm.FormHide(Sender: TObject);
+begin
+  FreeAndNil(CodingThemePlaying);
+  FreeAndNil(CodingTheme);
 end;
 
 procedure TChooseProjectForm.UpdateWarningMissingCompiler;
