@@ -2193,8 +2193,6 @@ begin
 end;
 
 procedure TCastleTransform.Notification(AComponent: TComponent; Operation: TOperation);
-var
-  Beh: TCastleBehavior;
 begin
   inherited;
 
