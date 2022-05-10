@@ -146,6 +146,9 @@ function QuatFromRotationMatrix(const Matrix: TMatrix3): TQuaternion;
 procedure MatrixDecompose(const Matrix: TMatrix4;
   out Translation: TVector3; out Rotation: TVector4; out Scale: TVector3);
 
+{ Returns scale from matrix }
+procedure ScaleFromMatrix(const Matrix: TMatrix4; out Scale: TVector3);
+
 { Interpolate between two rotations, along the shortest path on the unit sphere,
   with constant speed.
 
@@ -507,13 +510,23 @@ begin
   Rotation := Quaternion.ToAxisAngle;
 end;
 
+procedure ScaleFromMatrix(const Matrix: TMatrix4; out Scale: TVector3);
+var
+  I: Integer;
+begin
+  for I := 0 to 2 do
+  begin
+    Column := Vector3(Matrix.Data[I, 0], Matrix.Data[I, 1], Matrix.Data[I, 2]);
+    Scale.InternalData[I] := Column.Length;
+  end;
+end;
+
 { For SLerp and NLerp implementations, see
   http://www.3dkingdoms.com/weekly/weekly.php?a=36
   http://www.3dkingdoms.com/weekly/quat.h
   http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
   http://en.wikipedia.org/wiki/Slerp
 }
-
 function SLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
 var
   W1, W2, NegateOneQuaternion: Single;
