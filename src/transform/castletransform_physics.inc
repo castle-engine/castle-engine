@@ -1554,7 +1554,7 @@ begin
   end;
 
   LocalBoundingBox := Parent.LocalBoundingBox;
-  Radius := Parent.BoundingBox.SizeY / 2; //LocalBoundingBox.AverageSize(false, 2) / 2;
+  Radius := LocalBoundingBox.AverageSize(false, 2) / 2;
 
   Translation := LocalBoundingBox.Center;
   Scale := NoScale;
