@@ -563,9 +563,11 @@ end;
 procedure TPlayer.TBox.UpdateBox;
 var
   B: TBox3D;
-  Navigation: TCastleNavigation;
+  Navigation: TCastleWalkNavigation;
 begin
-  Navigation := TPlayer(Owner).Navigation;
+  Assert(not TPlayer(Owner).UseThirdPerson, 'TPlayer.TBox should be used only for 1st person navigation');
+
+  Navigation := TPlayer(Owner).WalkNavigation;
 
   B.Data[0].X := -Navigation.Radius;
   B.Data[0].Y := -Navigation.Radius;

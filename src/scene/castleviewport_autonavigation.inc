@@ -154,7 +154,7 @@
       the viewport keeps using these instances of navigation,
       instead of creating new navigation instances.
       This way all the navigation properties
-      (not only those copied by TCastleNavigation.Assign) are preserved when you switch
+      are preserved when you switch
       e.g. NavigationType from ntWalk to ntExamine to ntWalk again.
 
       @deprecated This is deprecated now, because it causes auto-detection

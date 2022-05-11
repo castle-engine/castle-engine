@@ -104,13 +104,7 @@ type
   strict private
     FInput: TNavigationInputs;
     FRadius: Single;
-    FPreferredHeight: Single;
-    FMoveHorizontalSpeed, FMoveVerticalSpeed, FMoveSpeed: Single;
-    FHeadBobbing: Single;
-    FHeadBobbingTime: Single;
-    FClimbHeight: Single;
     FModelBox: TBox3D;
-    FCrouchHeight: Single;
     FOnMoveAllowed: TMoveAllowedFunc;
     FOnFall: TFallNotifyFunc;
     FWarningInvalidParentDone: Boolean;
@@ -337,141 +331,6 @@ type
     procedure AnimateTo(const OtherNavigation: TCastleNavigation; const Time: TFloatTime); overload; deprecated 'use AnimateTo with TCastleCamera, not TCastleNavigation';
     procedure AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime); overload; deprecated 'use Viewport.Camera.AnimateTo';
     function Animation: boolean; deprecated 'use Viewport.Camera.Animation';
-
-    { Height above the ground, only used by @link(TCastleWalkNavigation) descendant
-      when @link(TCastleWalkNavigation.Gravity) is @true.
-      The @link(Position) tries to stay PreferredHeight above the ground.
-      Temporarily it may still be lower (e.g. player can
-      shortly "duck" when he falls from high).
-
-      This must always be >= 0.
-      You should set this to something greater than zero to get sensible
-      behavior of some things related to @link(TCastleWalkNavigation.Gravity).
-
-      See CorrectPreferredHeight for important property
-      of PreferredHeight that you should keep. }
-    property PreferredHeight: Single
-      read FPreferredHeight write FPreferredHeight {$ifdef FPC}default DefaultPreferredHeight{$endif};
-
-    { Correct PreferredHeight based on @link(Radius)
-      and on current @link(HeadBobbing).
-
-      Exactly what and why is done: if you do any kind of collision
-      detection with some Radius, then
-      you should make sure that RealPreferredHeight is always >= of your
-      Radius, otherwise strange effects may happen when crouching
-      or when head bobbing forces camera to go down.
-
-      Exactly, the required equation is
-
-      @preformatted(
-        MinimumRealPreferredHeight :=
-          PreferredHeight * CrouchHeight * (1 - HeadBobbing);
-      )
-
-      and always must be
-
-      @preformatted(
-        MinimumRealPreferredHeight >= RealPreferredHeight
-      )
-
-      Reasoning: otherwise this class would "want camera to fall down"
-      (because we will always be higher than RealPreferredHeight)
-      but your OnMoveAllowed would not allow it (because Radius
-      would not allow it).
-
-      This method will make sure that this condition
-      holds by eventually adjusting (making larger) PreferredHeight.
-      Note that for Radius = 0.0 this will always leave
-      PreferredHeight as it is. }
-    procedure CorrectPreferredHeight;
-
-    { Preferred height when crouching.
-      This is always mutiplied to PreferredHeight.
-      This should always be <= 1 (CrouchHeight = 1 effectively disables
-      crouching, although it's better to do this by calling MakeClear
-      on Input_Crouch). }
-    property CrouchHeight: Single
-      read FCrouchHeight write FCrouchHeight {$ifdef FPC}default DefaultCrouchHeight{$endif};
-
-    { When @link(TCastleWalkNavigation) moves, it may make a "head bobbing" effect,
-      by moving the camera a bit up and down.
-
-      This property mutiplied by PreferredHeight
-      says how much head bobbing can move you along GravityUp.
-      Set this to 0 to disable head bobbing.
-      This must always be < 1.0. For sensible effects, this should
-      be rather close to 0.0, for example 0.02.
-
-      This is meaningfull only when @link(TCastleWalkNavigation.Gravity) works. }
-    property HeadBobbing: Single
-      read FHeadBobbing write FHeadBobbing {$ifdef FPC}default DefaultHeadBobbing{$endif};
-
-    { Controls head bobbing frequency. In the time of HeadBobbingTime seconds,
-      we do full head bobbing sequence (camera swing up, then down again).
-
-      Note that if you do a footsteps sound in your game (see
-      stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
-      then you will want this property to match your footsteps sound length,
-      things feel and sound natural then.
-      Also, often it sounds better to record two footsteps inside
-      a single sound file, in which case the footstep sound length should be twice
-      as long as this property. For example, record 2 steps inside a 1-second long
-      footstep sound, and set this property to 0.5 a second (which is a default
-      in fact). }
-    property HeadBobbingTime: Single
-      read FHeadBobbingTime write FHeadBobbingTime
-      {$ifdef FPC}default DefaultHeadBobbingTime{$endif};
-
-    { Moving speeds, only used by @link(TCastleWalkNavigation) descendant.
-      MoveHorizontalSpeed is only for horizontal movement,
-      MoveVerticalSpeed is only for vertical, and MoveSpeed simply affects
-      both types of movement. Effectively, we always scale the speed
-      of movement by either @code(MoveHorizontalSpeed * MoveSpeed) or
-      @code(MoveVerticalSpeed * MoveSpeed).
-
-      We move by distance @code(MoveSpeed * MoveHorizontalSpeed (or MoveVerticalSpeed))
-      during one second.
-      So if you leave MoveHorizontalSpeed = MoveVerticalSpeed = 1 (as default),
-      MoveSpeed expresses the speed in nice units / per second.
-
-      Default values for all these speed properties is 1.0,
-      so you simply move by 1 unit per second.
-
-      @groupBegin }
-    property MoveHorizontalSpeed: Single
-      read FMoveHorizontalSpeed write FMoveHorizontalSpeed {$ifdef FPC}default 1.0{$endif};
-    property MoveVerticalSpeed: Single
-      read FMoveVerticalSpeed write FMoveVerticalSpeed {$ifdef FPC}default 1.0{$endif};
-    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed {$ifdef FPC}default 1.0{$endif};
-    { @groupEnd }
-
-    { The tallest height that you can climb,
-      only used by @link(TCastleWalkNavigation) descendant
-      when @link(TCastleWalkNavigation.Gravity) is @true.
-      This is checked in each single horizontal move when @link(TCastleWalkNavigation.Gravity) works.
-      Must be >= 0. Value 0 means there is no limit (and makes a small speedup).
-
-      This is reliable to prevent user from climbing stairs and such,
-      when vertical walls are really vertical (not just steep-almost-vertical).
-
-      It's not 100% reliable to prevent player from climbing steep hills.
-      That's because, depending on how often an event processing occurs,
-      you actually climb using less or more steps.
-      So even a very steep hill can be always
-      climbed on a computer with very fast speed, because with large FPS you
-      effectively climb it using a lot of very small steps (assuming that
-      FPS limit is not enabled, that is CastleWindow.TCastleApplication.LimitFPS
-      or CastleControl.LimitFPS is zero).
-
-      Remember that user can still try jumping to climb on high obstactes.
-      See @link(TCastleWalkNavigation.JumpMaxHeight) for a way to control jumping.
-
-      For a 100% reliable way to prevent user from reaching some point,
-      that does not rely on specific navigation settings,
-      you should build actual walls in 3D (invisible walls
-      can be created by Collision.proxy in VRML/X3D). }
-    property ClimbHeight: Single read FClimbHeight write FClimbHeight;
 
     { Approximate size of 3D world that is viewed,
       used by @link(TCastleExamineNavigation) descendant.
@@ -910,6 +769,18 @@ type
     MoveHorizontalDone: boolean;
 
     FMoveForward, FMoveBackward: boolean;
+    FMoveHorizontalSpeed, FMoveVerticalSpeed, FMoveSpeed: Single;
+    FMoveSpeedMin, FMoveSpeedMax: Single;
+    FPreferredHeight: Single;
+    FHeadBobbing: Single;
+    FHeadBobbingTime: Single;
+    FClimbHeight: Single;
+    FCrouchHeight: Single;
+
+    { React to Input_MoveSpeedInc. }
+    procedure MoveSpeedInc(const SecondsPassed: Single);
+    { React to Input_MoveSpeedDec. }
+    procedure MoveSpeedDec(const SecondsPassed: Single);
 
     procedure RotateAroundGravityUp(const Angle: Single);
     procedure RotateAroundUp(const Angle: Single);
@@ -1010,6 +881,8 @@ type
       DefaultMouseDraggingHorizontalRotationSpeed = Pi * 0.1 / 180;
       DefaultMouseDraggingVerticalRotationSpeed = Pi * 0.1 / 180;
       DefaultMouseDraggingMoveSpeed = 0.01;
+      DefaultMoveSpeedMin = 0.01;
+      DefaultMoveSpeedMax = 1000.0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1380,6 +1253,116 @@ type
       read FRotationHorizontalPivot write FRotationHorizontalPivot
       {$ifdef FPC}default 0{$endif};
       {$ifdef FPC}deprecated 'use TCastleThirdPersonNavigation for real 3rd-person navigation';{$endif}
+
+    { Height above the ground, only used when @link(TCastleWalkNavigation.Gravity) is @true.
+      The @link(Position) tries to stay PreferredHeight above the ground.
+      Temporarily it may still be lower (e.g. player can
+      shortly "duck" when he falls from high).
+
+      This must always be >= 0.
+      You should set this to something greater than zero to get sensible
+      behavior of some things related to @link(TCastleWalkNavigation.Gravity).
+
+      See CorrectPreferredHeight for important property
+      of PreferredHeight that you should keep. }
+    property PreferredHeight: Single
+      read FPreferredHeight write FPreferredHeight {$ifdef FPC}default DefaultPreferredHeight{$endif};
+
+    { Correct PreferredHeight based on @link(Radius)
+      and on current @link(HeadBobbing).
+
+      Exactly what and why is done: if you do any kind of collision
+      detection with some Radius, then
+      you should make sure that RealPreferredHeight is always >= of your
+      Radius, otherwise strange effects may happen when crouching
+      or when head bobbing forces camera to go down.
+
+      Exactly, the required equation is
+
+      @preformatted(
+        MinimumRealPreferredHeight :=
+          PreferredHeight * CrouchHeight * (1 - HeadBobbing);
+      )
+
+      and always must be
+
+      @preformatted(
+        MinimumRealPreferredHeight >= RealPreferredHeight
+      )
+
+      Reasoning: otherwise this class would "want camera to fall down"
+      (because we will always be higher than RealPreferredHeight)
+      but your OnMoveAllowed would not allow it (because Radius
+      would not allow it).
+
+      This method will make sure that this condition
+      holds by eventually adjusting (making larger) PreferredHeight.
+      Note that for Radius = 0.0 this will always leave
+      PreferredHeight as it is. }
+    procedure CorrectPreferredHeight;
+
+    { Preferred height when crouching.
+      This is always mutiplied to PreferredHeight.
+      This should always be <= 1 (CrouchHeight = 1 effectively disables
+      crouching, although it's better to do this by calling MakeClear
+      on Input_Crouch). }
+    property CrouchHeight: Single
+      read FCrouchHeight write FCrouchHeight {$ifdef FPC}default DefaultCrouchHeight{$endif};
+
+    { We may make a "head bobbing" effect,
+      by moving the camera a bit up and down.
+
+      This property mutiplied by PreferredHeight
+      says how much head bobbing can move you along GravityUp.
+      Set this to 0 to disable head bobbing.
+      This must always be < 1.0. For sensible effects, this should
+      be rather close to 0.0, for example 0.02.
+
+      This is meaningfull only when @link(TCastleWalkNavigation.Gravity) works. }
+    property HeadBobbing: Single
+      read FHeadBobbing write FHeadBobbing {$ifdef FPC}default DefaultHeadBobbing{$endif};
+
+    { Controls head bobbing frequency. In the time of HeadBobbingTime seconds,
+      we do full head bobbing sequence (camera swing up, then down again).
+
+      Note that if you do a footsteps sound in your game (see
+      stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
+      then you will want this property to match your footsteps sound length,
+      things feel and sound natural then.
+      Also, often it sounds better to record two footsteps inside
+      a single sound file, in which case the footstep sound length should be twice
+      as long as this property. For example, record 2 steps inside a 1-second long
+      footstep sound, and set this property to 0.5 a second (which is a default
+      in fact). }
+    property HeadBobbingTime: Single
+      read FHeadBobbingTime write FHeadBobbingTime
+      {$ifdef FPC}default DefaultHeadBobbingTime{$endif};
+
+    { The tallest height that you can climb only used
+      when @link(TCastleWalkNavigation.Gravity) is @true.
+      This is checked in each single horizontal move when @link(TCastleWalkNavigation.Gravity) works.
+      Must be >= 0. Value 0 means there is no limit (and makes a small speedup).
+
+      This is reliable to prevent user from climbing stairs and such,
+      when vertical walls are really vertical (not just steep-almost-vertical).
+
+      It's not 100% reliable to prevent player from climbing steep hills.
+      That's because, depending on how often an event processing occurs,
+      you actually climb using less or more steps.
+      So even a very steep hill can be always
+      climbed on a computer with very fast speed, because with large FPS you
+      effectively climb it using a lot of very small steps (assuming that
+      FPS limit is not enabled, that is CastleWindow.TCastleApplication.LimitFPS
+      or CastleControl.LimitFPS is zero).
+
+      Remember that user can still try jumping to climb on high obstactes.
+      See @link(TCastleWalkNavigation.JumpMaxHeight) for a way to control jumping.
+
+      For a 100% reliable way to prevent user from reaching some point,
+      that does not rely on specific navigation settings,
+      you should build actual walls in 3D (invisible walls
+      can be created by Collision.proxy in VRML/X3D). }
+    property ClimbHeight: Single read FClimbHeight write FClimbHeight;
   published
     property MouseLook;
     property MouseLookHorizontalSensitivity;
@@ -1395,6 +1378,38 @@ type
     property RotationVerticalSpeed: Single
       read FRotationVerticalSpeed write FRotationVerticalSpeed
       {$ifdef FPC}default DefaultRotationVerticalSpeed{$endif};
+    { @groupEnd }
+
+    { Moving speeds.
+      MoveHorizontalSpeed is only for horizontal movement,
+      MoveVerticalSpeed is only for vertical, and MoveSpeed simply affects
+      both types of movement. Effectively, we always scale the speed
+      of movement by either @code(MoveHorizontalSpeed * MoveSpeed) or
+      @code(MoveVerticalSpeed * MoveSpeed).
+
+      We move by distance @code(MoveSpeed * MoveHorizontalSpeed (or MoveVerticalSpeed))
+      during one second.
+      So if you leave MoveHorizontalSpeed = MoveVerticalSpeed = 1 (as default),
+      MoveSpeed expresses the speed in nice units / per second.
+
+      Default values for all these speed properties is 1.0,
+      so you simply move by 1 unit per second.
+
+      @groupBegin }
+    property MoveHorizontalSpeed: Single
+      read FMoveHorizontalSpeed write FMoveHorizontalSpeed {$ifdef FPC}default 1.0{$endif};
+    property MoveVerticalSpeed: Single
+      read FMoveVerticalSpeed write FMoveVerticalSpeed {$ifdef FPC}default 1.0{$endif};
+    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed {$ifdef FPC}default 1.0{$endif};
+    { @groupEnd }
+
+    { Minimum and maximum values for possible @link(MoveSpeed) that user can make,
+      using Input_MoveSpeedInc, Input_MoveSpeedInc.
+      Note that code can still set @link(MoveSpeed) to any value, however small or large,
+      these limits only apply to user changing speed by Input_MoveSpeedInc, Input_MoveSpeedInc.
+      @groupBegin }
+    property MoveSpeedMin: Single read FMoveSpeedMin write FMoveSpeedMin {$ifdef FPC}default DefaultMoveSpeedMin{$endif};
+    property MoveSpeedMax: Single read FMoveSpeedMax write FMoveSpeedMax {$ifdef FPC}default DefaultMoveSpeedMax{$endif};
     { @groupEnd }
 
     { Speed (radians per pixel delta) of rotations by mouse dragging.
@@ -1454,10 +1469,6 @@ type
     property Gravity: boolean
       read FGravity write FGravity default true;
 
-    property PreferredHeight;
-    property MoveHorizontalSpeed;
-    property MoveVerticalSpeed;
-    property MoveSpeed;
     property Radius;
   end;
 
@@ -1519,15 +1530,8 @@ constructor TCastleNavigation.Create(AOwner: TComponent);
 begin
   inherited;
   FRadius := DefaultRadius;
-  FPreferredHeight := DefaultPreferredHeight;
   FInput := DefaultInput;
   FModelBox := TBox3D.Empty;
-  FHeadBobbing := DefaultHeadBobbing;
-  FHeadBobbingTime := DefaultHeadBobbingTime;
-  FMoveHorizontalSpeed := 1;
-  FMoveVerticalSpeed := 1;
-  FMoveSpeed := 1;
-  FCrouchHeight := DefaultCrouchHeight;
   FCheckCollisions := true;
 
   // interaction state
@@ -1691,12 +1695,6 @@ begin
   Result := inherited;
 end;
 
-procedure TCastleNavigation.CorrectPreferredHeight;
-begin
-  CastleCameras.CorrectPreferredHeight(
-    FPreferredHeight, Radius, CrouchHeight, HeadBobbing);
-end;
-
 procedure TCastleNavigation.Assign(Source: TPersistent);
 var
   SourceNav: TCastleNavigation;
@@ -1709,18 +1707,20 @@ begin
     { The Cursor should be synchronized with TCastleMouseLookNavigation.MouseLook,
       do not blindly copy it from TCastleWalkNavigation to TCastleExamineNavigation. }
     // Cursor              := SourceNav.Cursor             ;
-    PreferredHeight     := SourceNav.PreferredHeight    ;
-    MoveHorizontalSpeed := SourceNav.MoveHorizontalSpeed;
-    MoveVerticalSpeed   := SourceNav.MoveVerticalSpeed  ;
-    MoveSpeed           := SourceNav.MoveSpeed          ;
-    HeadBobbing         := SourceNav.HeadBobbing        ;
-    HeadBobbingTime     := SourceNav.HeadBobbingTime    ;
-    ClimbHeight         := SourceNav.ClimbHeight        ;
     ModelBox            := SourceNav.ModelBox           ;
-    CrouchHeight        := SourceNav.CrouchHeight       ;
 
+    { TODO: should move to TCastleWalkNavigation.Assign,
+      but actually we'll probably resign from maintaining Assign on navigation classes. }
+    // PreferredHeight     := SourceNav.PreferredHeight    ;
+    // MoveHorizontalSpeed := SourceNav.MoveHorizontalSpeed;
+    // MoveVerticalSpeed   := SourceNav.MoveVerticalSpeed  ;
+    // MoveSpeed           := SourceNav.MoveSpeed          ;
+    // HeadBobbing         := SourceNav.HeadBobbing        ;
+    // HeadBobbingTime     := SourceNav.HeadBobbingTime    ;
+    // ClimbHeight         := SourceNav.ClimbHeight        ;
+    // CrouchHeight        := SourceNav.CrouchHeight       ;
     { Always call CorrectPreferredHeight after changing Radius or PreferredHeight }
-    CorrectPreferredHeight;
+    // CorrectPreferredHeight;
   end else
     { Call inherited ONLY when you cannot handle Source class,
       to raise EConvertError from TPersistent.Assign. }
@@ -2753,6 +2753,15 @@ begin
   FMouseDraggingHorizontalRotationSpeed := DefaultMouseDraggingHorizontalRotationSpeed;
   FMouseDraggingVerticalRotationSpeed := DefaultMouseDraggingVerticalRotationSpeed;
   FMouseDraggingMoveSpeed := DefaultMouseDraggingMoveSpeed;
+  FMoveHorizontalSpeed := 1;
+  FMoveVerticalSpeed := 1;
+  FMoveSpeed := 1;
+  FMoveSpeedMin := DefaultMoveSpeedMin;
+  FMoveSpeedMax := DefaultMoveSpeedMax;
+  FPreferredHeight := DefaultPreferredHeight;
+  FHeadBobbing := DefaultHeadBobbing;
+  FHeadBobbingTime := DefaultHeadBobbingTime;
+  FCrouchHeight := DefaultCrouchHeight;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -2828,6 +2837,12 @@ end;
 destructor TCastleWalkNavigation.Destroy;
 begin
   inherited;
+end;
+
+procedure TCastleWalkNavigation.CorrectPreferredHeight;
+begin
+  CastleCameras.CorrectPreferredHeight(
+    FPreferredHeight, Radius, CrouchHeight, HeadBobbing);
 end;
 
 function TCastleWalkNavigation.UseHeadBobbing: boolean;
@@ -3805,21 +3820,10 @@ begin
           MoveVertical(SecondsPassed, 1);
         if Input_Crouch.IsPressed(Container) then
           MoveVertical(SecondsPassed, -1);
-
-        { How to apply SecondsPassed here ?
-          I can't just ignore SecondsPassed, but I can't also write
-            FMoveSpeed := FMoveSpeed * (10 * SecondsPassed);
-          What I want is such continuous function that e.g.
-            F(FMoveSpeed, 10) = F(F(FMoveSpeed, 1), 1)
-          I.e. SecondsPassed = 10 should work just like doing the same change twice.
-          So F is FMoveSpeed * Power(10, SecondsPassed)
-          Easy!
-        }
         if Input_MoveSpeedInc.IsPressed(Container) then
-          MoveSpeed := MoveSpeed * Power(10, SecondsPassed);
-
+          MoveSpeedInc(SecondsPassed);
         if Input_MoveSpeedDec.IsPressed(Container) then
-          MoveSpeed := MoveSpeed / Power(10, SecondsPassed);
+          MoveSpeedDec(SecondsPassed);
       end else
       if ModsDown = [mkCtrl] then
       begin
@@ -3929,6 +3933,7 @@ function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
 
 const
   MouseWheelScrollSpeed = Pi * 3 / 180.0;
+  PretendSecondsPassed = 1 / 30;
 begin
   Result := inherited;
   if Result then Exit;
@@ -3977,15 +3982,36 @@ begin
     -- we handle it here. }
   if Input_MoveSpeedInc.IsEvent(Event) and (Event.EventType = itMouseWheel) then
   begin
-    MoveSpeed := MoveSpeed * Power(10, 1/30);
+    MoveSpeedInc(PretendSecondsPassed);
     Result := Result and ExclusiveEvents;
   end;
 
   if Input_MoveSpeedDec.IsEvent(Event) and (Event.EventType = itMouseWheel) then
   begin
-    MoveSpeed := MoveSpeed / Power(10, 1/30);
+    MoveSpeedDec(PretendSecondsPassed);
     Result := Result and ExclusiveEvents;
   end;
+end;
+
+procedure TCastleWalkNavigation.MoveSpeedInc(const SecondsPassed: Single);
+begin
+  { Time-based animation for multiplication: use SecondsPassed as an exponent.
+
+    We want to do "MoveSpeed *= 10", intuitively.
+
+    To do it correctly (accounting that each system has different FPS)
+    we want to apply SecondsPassed such that the effect is the same, regardless
+    if we apply it in 10 steps over 1 second, or 1 step over 1 second.
+    Using SecondsPassed as the exponent is the solution.
+  }
+  if MoveSpeed < MoveSpeedMax then
+    MoveSpeed := Min(MoveSpeedMax, MoveSpeed * Power(10, SecondsPassed));
+end;
+
+procedure TCastleWalkNavigation.MoveSpeedDec(const SecondsPassed: Single);
+begin
+  if MoveSpeed > MoveSpeedMin then
+    MoveSpeed := Max(MoveSpeedMin, MoveSpeed / Power(10, SecondsPassed));
 end;
 
 function TCastleWalkNavigation.SensorTranslation(const X, Y, Z, Length: Double;
