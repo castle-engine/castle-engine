@@ -258,9 +258,6 @@
     FFrustum: TFrustum;
     FPerspective: TCastlePerspective;
     FOrthographic: TCastleOrthographic;
-    FInitialPosition: TVector3;
-    FInitialDirection: TVector3;
-    FInitialUp: TVector3;
 
     procedure RecalculateFrustum;
 
@@ -272,16 +269,8 @@
     procedure SetProjectionNear(const Value: Single);
     procedure SetProjectionFar(const Value: Single);
     procedure SetProjectionType(const Value: TProjectionType);
-
-    { These are only used when deserializing, to support old design files.
-      We'll later set Translation and Rotation based on them. }
-    property InitialPosition: TVector3 read FInitialPosition write FInitialPosition;
-    property InitialDirection: TVector3 read FInitialDirection write FInitialDirection;
-    property InitialUp: TVector3 read FInitialUp write FInitialUp;
   private
     procedure VisibleParameterChange;
-  protected
-    procedure Loaded; override;
   public
     { Associated viewport.
       Do not set this directly, instead always set @link(TCastleViewport.Navigation).
@@ -297,6 +286,7 @@
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
     { "Up" direction of the world in which player moves.
       Always normalized (when setting this property, we take
@@ -625,10 +615,6 @@ begin
   FOrthographic.Name := 'Orthographic';
   FOrthographic.SetSubComponent(true);
 
-  FInitialPosition := TVector3.Zero;
-  FInitialDirection := DefaultCameraDirection;
-  FInitialUp := DefaultCameraUp;
-
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlecamera_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -838,26 +824,36 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TCastleCamera.Loaded;
+procedure TCastleCamera.CustomSerialization(const SerializationProcess: TSerializationProcess);
+const
+  DefaultCameraPosition: TVector3 = (X: 0; Y: 0; Z: 0);
+var
+  InitialPosition, InitialDirection, InitialUp: TVector3;
 begin
   inherited;
+
+  { Support old designs, before new-cameras branch, with old camera properties. }
+
+  InitialPosition := DefaultCameraPosition;
+  InitialDirection := DefaultCameraDirection;
+  InitialUp := DefaultCameraUp;
+
+  SerializationProcess.ReadWriteVector('InitialPositionPersistent', InitialPosition, DefaultCameraPosition, false);
+  SerializationProcess.ReadWriteVector('InitialDirectionPersistent', InitialDirection, DefaultCameraDirection, false);
+  SerializationProcess.ReadWriteVector('InitialUpPersistent', InitialUp, DefaultCameraUp, false);
 
   { Apply deprecated InitialXxx props only if they have been modified by the design.
     Otherwise, they would override the values read
     from non-deprecated Translation and Rotation. }
-  if (not TVector3.PerfectlyEquals(FInitialPosition, TVector3.Zero)) or
-     (not TVector3.PerfectlyEquals(FInitialDirection, DefaultCameraDirection)) or
-     (not TVector3.PerfectlyEquals(FInitialUp, DefaultCameraUp)) then
+  if (not TVector3.PerfectlyEquals(InitialPosition, DefaultCameraPosition)) or
+     (not TVector3.PerfectlyEquals(InitialDirection, DefaultCameraDirection)) or
+     (not TVector3.PerfectlyEquals(InitialUp, DefaultCameraUp)) then
   begin
     { Old cameras with InitialPosition/Direction/Up could not be a child
       of some TCastleTransform.
       Does it matter if we use SetView or SetWorldView here?
       Only when Viewport.Items had some transformation. }
     SetWorldView(InitialPosition, InitialDirection, InitialUp);
-    // reset to defaults, to not store in design on save
-    FInitialPosition := TVector3.Zero;
-    FInitialDirection := DefaultCameraDirection;
-    FInitialUp := DefaultCameraUp;
   end;
 end;
 
