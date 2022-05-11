@@ -528,24 +528,28 @@ var
   Box: TBox3D;
   Scene: TCastleScene;
   C: TCastleExamineNavigation;
-  Nav: TNavigationType;
+  NewNavigationType: TNavigationType;
 begin
   {$warnings off} // using deprecated in deprecated
   Box := ItemsBoundingBox;
   Scene := Items.MainScene;
   if Scene <> nil then
   begin
-    Nav := NavigationTypeFromNavigationInfo(Scene);
+    NewNavigationType := NavigationTypeFromNavigationInfo(Scene);
 
     { Set Navigation explicitly, otherwise SetNavigationType below could call
       ExamineNavigation / WalkNavigation that call AssignDefaultNavigation when Navigation = nil,
       and we would have infinite AssignDefaultNavigation calls loop. }
-    if Nav in [ntExamine, ntTurntable] then
+    if NewNavigationType in [ntExamine, ntTurntable] then
       Navigation := InternalExamineNavigation
     else
       Navigation := InternalWalkNavigation;
-    NavigationType := Nav;
-    Scene.InternalUpdateNavigation(Navigation, Box);
+    NavigationType := NewNavigationType;
+    { Call InternalUpdateNavigation on both internal navigation instances,
+      not only on current Navigation, to keep all properties, even the ones specific
+      to a class (like TCastleWalkNavigation.PreferredHeight) always up-to-date. }
+    Scene.InternalUpdateNavigation(InternalExamineNavigation, Box);
+    Scene.InternalUpdateNavigation(InternalWalkNavigation, Box);
   end else
   begin
     C := InternalExamineNavigation;
@@ -584,6 +588,8 @@ begin
 end;
 
 procedure TCastleAutoNavigationViewport.BoundNavigationInfoChanged;
+var
+  Box: TBox3D;
 begin
   { Use InsideBoundNavigationInfoChanged to prevent infinite loop
     of BoundNavigationInfoChanged calls, as "NavigationType := " causes
@@ -595,7 +601,15 @@ begin
     if AutoNavigation and (Navigation <> nil) and (Items.MainScene <> nil) then
     begin
       NavigationType := NavigationTypeFromNavigationInfo(Items.MainScene);
-      Items.MainScene.InternalUpdateNavigation(Navigation, Items.BoundingBox);
+      Box := Items.BoundingBox;
+      Items.MainScene.InternalUpdateNavigation(Navigation, Box);
+      { Call InternalUpdateNavigation also on both internal navigation instances,
+        to keep all properties, even the ones not copied by Assign (because specific
+        to a class, like TCastleWalkNavigation.PreferredHeight) always up-to-date. }
+      if Navigation <> InternalWalkNavigation then
+        Items.MainScene.InternalUpdateNavigation(InternalWalkNavigation, Box);
+      if Navigation <> InternalExamineNavigation then
+        Items.MainScene.InternalUpdateNavigation(InternalExamineNavigation, Box);
     end;
     {$warnings on}
     InsideBoundNavigationInfoChanged := false;
