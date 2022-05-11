@@ -32,7 +32,6 @@ type
   TCastleWalkNavigationDesign = class(TCastleWalkNavigation)
   strict private
     LabelMessage: TCastleLabel;
-    LastMoveSpeed: Single;
     MessageStart: TTimerResult;
   public
     constructor Create(AOwner: TComponent); override;
@@ -63,8 +62,6 @@ begin
   LabelMessage.Anchor(vpMiddle);
   LabelMessage.FontSize := 60;
   InsertFront(LabelMessage);
-
-  LastMoveSpeed := MoveSpeed;
 end;
 
 function TCastleWalkNavigationDesign.Press(const Event: TInputPressRelease): Boolean;
@@ -77,6 +74,14 @@ begin
     MouseLook := true;
     InternalDesignMouseLook := true;
     Exit(true);
+  end;
+
+  { Display current speed if user presses key/mouse wheel to change speed
+    (even if speed doesn't actually change because of MoveSpeedMin/Max limit) }
+  if Input_MoveSpeedInc.IsEvent(Event) or
+     Input_MoveSpeedDec.IsEvent(Event) then
+  begin
+    MessageStart := Timer;
   end;
 
 {
@@ -120,10 +125,11 @@ var
 begin
   inherited;
 
-  if LastMoveSpeed <> MoveSpeed then
+  { Display current speed if user presses key/mouse wheel to change speed
+    (even if speed doesn't actually change because of MoveSpeedMin/Max limit) }
+  if Input_MoveSpeedInc.IsPressed(Container) or
+     Input_MoveSpeedDec.IsPressed(Container) then
   begin
-    LastMoveSpeed := MoveSpeed;
-    LabelMessage.Caption := Format('Speed: %f', [MoveSpeed]);
     MessageStart := Timer;
   end;
 
@@ -133,6 +139,7 @@ begin
     LabelMessage.Exists := T < TimeToExist;
     if LabelMessage.Exists then
     begin
+      LabelMessage.Caption := Format('Speed: %f', [MoveSpeed]);
       if T < TimeToExist - TimeToFade then
         Alpha := MessageAlpha
       else
