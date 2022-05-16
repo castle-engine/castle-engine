@@ -3505,7 +3505,7 @@ begin
   ChangedTransform;
   if (FWorld <> nil) and
     (
-      (FWorld.PhysicsProperties.UpdateCollidersScaleOnRuntime) or
+      (FWorld.PhysicsProperties.UpdateCollidersScaleAtRuntime) or
       (CastleDesignMode)
     ) and
     (FWorld.EnablePhysics) then

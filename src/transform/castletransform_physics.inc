@@ -34,13 +34,13 @@
     FFrequency: Single;
     FGravityStrength: Single;
     FMaxPhysicsTicksPerUpdate: Cardinal;
-    FUpdateCollidersScaleOnRuntime: Boolean;
+    FUpdateCollidersScaleAtRuntime: Boolean;
 
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
 
-    procedure SetUpdateCollidersScaleOnRuntime(const AValue: Boolean);
+    procedure SetUpdateCollidersScaleAtRuntime(const AValue: Boolean);
 
   private
     { Buffer to not count physics step time per frame }
@@ -54,7 +54,7 @@
       DefaultFrequency = 60.0;
       DefaultMaxPhysicsTicksPerUpdate = 5;
       DefaultGravityStrength = 9.81;
-      DefaultUpdateCollidersScaleOnRuntime = true;
+      DefaultUpdateCollidersScaleAtRuntime = true;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -87,7 +87,7 @@
     { When set to true it works like in editor - when you change scale,
       it changes colliders size, otherwise scale is updated only after attaching
       collider to world. }
-    property UpdateCollidersScaleOnRuntime: Boolean read FUpdateCollidersScaleOnRuntime write SetUpdateCollidersScaleOnRuntime default DefaultUpdateCollidersScaleOnRuntime;
+    property UpdateCollidersScaleAtRuntime: Boolean read FUpdateCollidersScaleAtRuntime write SetUpdateCollidersScaleAtRuntime default DefaultUpdateCollidersScaleAtRuntime;
   end;
 
   { Don't have any Kraft objects only describe shape }
@@ -914,13 +914,15 @@ begin
     RootTransform.FKraftEngine.SetFrequency(AValue);
 end;
 
-procedure TPhysicsProperties.SetUpdateCollidersScaleOnRuntime(
+procedure TPhysicsProperties.SetUpdateCollidersScaleAtRuntime(
   const AValue: Boolean);
 begin
-  if FUpdateCollidersScaleOnRuntime <> AValue then
+  if FUpdateCollidersScaleAtRuntime <> AValue then
   begin
-    FUpdateCollidersScaleOnRuntime := AValue;
+    FUpdateCollidersScaleAtRuntime := AValue;
 
+    if FUpdateCollidersScaleAtRuntime and RootTransform.EnablePhysics then
+      RootTransform.RecursivelyUpdateCollidersScale(RootTransform);
   end;
 end;
 
@@ -955,7 +957,7 @@ begin
   FGravityStrength := DefaultGravityStrength;
   FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
-  FUpdateCollidersScaleOnRuntime := DefaultUpdateCollidersScaleOnRuntime;
+  FUpdateCollidersScaleAtRuntime := DefaultUpdateCollidersScaleAtRuntime;
 end;
 
 { TCollider ------------------------------------------------------------------ }

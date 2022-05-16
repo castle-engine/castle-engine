@@ -9,7 +9,7 @@ interface
 
 uses Classes,
   CastleVectors, CastleUIState, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleTransform;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleTransform, CastleViewport;
 
 type
   { Main state, where most of the application logic takes place. }
@@ -23,10 +23,13 @@ type
     RedBox: TCastleTransform;
     GreenSphere: TCastleTransform;
     TransformAll: TCastleTransform;
+    UpdateCollidersAtRuntime: TCastleCheckbox;
+    Viewport: TCastleViewport;
 
     procedure ClickScaleAll(Sender: TObject);
     procedure ClickScaleGreenSphere(Sender: TObject);
     procedure ClickScaleRedBox(Sender: TObject);
+    procedure ChangeUpdateCollidersAtRuntime(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -58,6 +61,11 @@ begin
   RedBox.Scale := Vector3(3,1,1);
 end;
 
+procedure TStateMain.ChangeUpdateCollidersAtRuntime(Sender: TObject);
+begin
+  Viewport.Items.PhysicsProperties.UpdateCollidersScaleAtRuntime := UpdateCollidersAtRuntime.Checked;
+end;
+
 constructor TStateMain.Create(AOwner: TComponent);
 begin
   inherited;
@@ -83,6 +91,9 @@ begin
   RedBox := DesignedComponent('RedBox') as TCastleTransform;
   GreenSphere := DesignedComponent('GreenSphere') as TCastleTransform;
   TransformAll := DesignedComponent('TransformAll') as TCastleTransform;
+  Viewport := DesignedComponent('Viewport') as TCastleViewport;
+  UpdateCollidersAtRuntime := DesignedComponent('UpdateCollidersAtRuntime') as TCastleCheckbox;
+  UpdateCollidersAtRuntime.OnChange := {$ifdef FPC}@{$endif}ChangeUpdateCollidersAtRuntime;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

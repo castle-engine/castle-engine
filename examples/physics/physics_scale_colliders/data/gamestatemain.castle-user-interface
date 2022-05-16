@@ -55,6 +55,10 @@
           {
             "$$ClassName" : "TCastleTransform",
             "Name" : "TransformAll",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "Z" : 1.0000000000000000E+000
+            },
             "$Children" : [
               {
                 "$$ClassName" : "TCastleBox",
@@ -69,6 +73,10 @@
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
                   "Name" : "RenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
                 },
                 "SizePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -98,6 +106,55 @@
                       2
                     ],
                     "Name" : "RigidBody1"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 3.0196079611778259E-001,
+                  "Green" : 3.0196079611778259E-001,
+                  "Red" : 9.0588235855102539E-001
+                },
+                "Material" : "pmUnlit",
+                "Name" : "RedBox1",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "Name" : "RenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 1.0000000000000000E+002,
+                  "Y" : 1.0000000000000000E+002,
+                  "Z" : 1.0000000000000000E+002
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 2.2464901733398438E+002,
+                  "Y" : 6.9781591796875000E+002
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider3"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 1.0000000149011612E-001,
+                    "LinearVelocityDamp" : 1.0000000149011612E-001,
+                    "LockRotation" : [
+                      0,
+                      1
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody4"
                   }
                 ]
               },
@@ -207,6 +264,26 @@
       "VerticalAnchorSelf" : "vpMiddle",
       "$Children" : [
         {
+          "$$ClassName" : "TCastleCheckbox",
+          "Caption" : "Update colliders at run time",
+          "CheckboxColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Checked" : true,
+          "Name" : "UpdateCollidersAtRuntime",
+          "TextColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
           "$$ClassName" : "TCastleButton",
           "Caption" : "Scale Red Box",
           "CustomBackgroundDisabled" : {
@@ -224,8 +301,9 @@
           "Image" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
-          "MinWidth" : 2.0000000000000000E+002,
+          "MinWidth" : 3.2000000000000000E+002,
           "Name" : "ButtonScaleRedBox",
+          "VerticalAnchorDelta" : -2.4000001907348633E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -247,9 +325,9 @@
           "Image" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
-          "MinWidth" : 2.0000000000000000E+002,
+          "MinWidth" : 3.2000000000000000E+002,
           "Name" : "ButtonScaleGreenSphere",
-          "VerticalAnchorDelta" : -3.8999996185302734E+001,
+          "VerticalAnchorDelta" : -6.3000000000000000E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -271,9 +349,9 @@
           "Image" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
-          "MinWidth" : 2.0000000000000000E+002,
+          "MinWidth" : 3.2000000000000000E+002,
           "Name" : "ButtonScaleAll",
-          "VerticalAnchorDelta" : -7.7999992370605469E+001,
+          "VerticalAnchorDelta" : -1.0200000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         }
