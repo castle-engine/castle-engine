@@ -1858,7 +1858,7 @@ begin
   FKraftBody.AngularVelocityDamp := FAngularVelocityDamp;
   FKraftBody.MaximalAngularVelocity := FMaximalAngularVelocity / FTransform.World.FKraftEngine.WorldFrequency;
 
-  // set initial transformation
+  { Set initial transformation }
   SetWorldTransformation(FTransform.WorldTransform);
 
   CheckPhysicsPostStepNeeded;
@@ -2156,6 +2156,10 @@ end;
 
 procedure TCastleRigidBody.SetWorldTransformation(const WorldTransform: TMatrix4
   );
+var
+  Translation, Scale: TVector3;
+  Rotation: TVector4;
+  T: TTransformation;
 begin
   { If we just set transformation from physics engine this is a guard
     to not update rigid body transformation. See TransformationFromKraft }
@@ -2165,7 +2169,14 @@ begin
   if not (FState in [crbsNoFinalization, crbsInitialized]) then
     Exit;
 
-  FKraftBody.SetWorldTransformation(MatrixToKraft(WorldTransform));
+  { Remove scale from world transfrom becouse using scale in kraft
+    leads to an undefined state. }
+  MatrixDecompose(WorldTransform, Translation, Rotation, Scale);
+
+  T.Init;
+  T.Multiply(Rotation, NoScale, Translation);
+
+  FKraftBody.SetWorldTransformation(MatrixToKraft(T.Transform));
 
   { Synchronize Kraft rigid body and shapes (colliders) transform to make
     collider position correct. Without the SynchronizeTransformIncludingShapes,
@@ -2214,6 +2225,8 @@ procedure TCastleRigidBody.Update(const SecondsPassed: Single; var RemoveMe: TRe
          (FCastleCollider.FUseLocalTransform) then
         LocalTransform := LocalTransform * FCastleCollider.FLocalInverseTransform;
 
+      { Don't use Scale form kraft it's always 1.
+        See SetWorldTransformation() for more information. }
       MatrixDecompose(LocalTransform, Translation, Rotation, Scale);
       Parent.Rotation := Rotation;
       Parent.Translation := Translation;
