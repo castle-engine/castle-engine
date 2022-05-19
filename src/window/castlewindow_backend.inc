@@ -44,6 +44,10 @@
   {$I castlewindow_backend_template.inc}
 {$endif}
 
+{$ifdef CASTLE_WINDOW_COCOA}
+  {$I castlewindow_cocoa.inc}
+{$endif}
+
 {$ifdef KAMBI_CHECK_POINTER}
 { Turn checkpointer back on }
 {$checkpointer on}
