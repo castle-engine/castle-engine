@@ -209,8 +209,9 @@ unit CastleWindow;
              {$define CASTLE_WINDOW_LIBRARY}
            {$elseif defined(DARWIN)}
              // various possible backends on macOS (desktop):
-             {$define CASTLE_WINDOW_XLIB} // easiest to compile
-             { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on macOS, but requires LCL
+             {$define CASTLE_WINDOW_COCOA} // best (looks native) on macOS
+             { $define CASTLE_WINDOW_XLIB} // requires Xlib to compile and to work
+             { $define CASTLE_WINDOW_LCL} // looks native (can use Cocoa through LCL), but requires LCL to compile
              { $define CASTLE_WINDOW_GTK_2}
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
@@ -291,6 +292,10 @@ unit CastleWindow;
   situations you want to define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN. }
 {$ifdef CASTLE_WINDOW_GTK_ANY} {$define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
 {$ifdef CASTLE_WINDOW_XLIB}    {$define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
+
+{$ifdef CASTLE_WINDOW_COCOA}
+  {$modeswitch objectivec1}
+{$endif}
 
 interface
 
