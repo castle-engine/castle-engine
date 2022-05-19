@@ -20,13 +20,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ TODO:
-  - crash at exit from view3dscene (do we close our windows cleanly?)
-  - crash at minimize or zoom from menu also
-  - FileDialog etc. do not work (either use Cocoa native, or use CastleMessages as temp)
-  - browse TODO here for easy stuff to be plugged, like SetCursor or updating caption
+{ TODO p1:
   - run through app bundle automatically?
     make "castle-engine run" just work
+
+  TODO p2:
+  - FileDialog etc. do not work (either use Cocoa native, or use CastleMessages as temp)
+  - crash at minimize or zoom from menu also
+  - browse TODO here for easy stuff to be plugged, like SetCursor or updating caption
+  - fullscreen: should be on top of dock / menu
+  - menu implement, with key shortcuts
   - submit PR for GLPT:
     - wglpt -> want
     - attributes size must be 32, 4 is too small to sometimes fit!
@@ -283,6 +286,7 @@ type
   TCocoaWindow = objcclass (TBorderlessWindow)
   private
     ref: TCastleWindow;
+    withinCloseBackend: Cardinal;
   public
     procedure close; override;
     procedure becomeKeyWindow; override;
@@ -292,7 +296,8 @@ type
 
 procedure TCocoaWindow.close;
 begin
-  ref.DoCloseQuery;
+  if withinCloseBackend = 0 then
+    ref.DoCloseQuery;
   inherited;
 end;
 
@@ -713,8 +718,13 @@ end;
 
 procedure TCastleWindow.CloseBackend;
 begin
-  ref.close;
-  ref := nil;
+  if ref <> nil then
+  begin
+    Inc(TCocoaWindow(ref).withinCloseBackend);
+    ref.close;
+    Dec(TCocoaWindow(ref).withinCloseBackend);
+    ref := nil;
+  end;
 end;
 
 procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
