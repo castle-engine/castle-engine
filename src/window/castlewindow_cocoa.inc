@@ -22,6 +22,7 @@
 
 { TODO:
   - crash at exit from view3dscene (do we close our windows cleanly?)
+  - crash at minimize or zoom from menu also
   - FileDialog etc. do not work (either use Cocoa native, or use CastleMessages as temp)
   - browse TODO here for easy stuff to be plugged, like SetCursor or updating caption
   - run through app bundle automatically?
@@ -29,12 +30,12 @@
   - submit PR for GLPT:
     - wglpt -> want
     - attributes size must be 32, 4 is too small to sometimes fit!
-  - test LeftTop fix, once I can run again
 
   testing
-  ./view3dscene ../castle-engine/examples/viewport_and_scenes/shader_effects/data/knight/knight.gltf
+  cd ~/sources/castle-engine/view3dscene/macosx
+  ./pack_macosx.sh
+  ./view3dscene.app/Contents/MacOS/view3dscene ../../castle-engine/examples/viewport_and_scenes/shader_effects/data/knight/knight.gltf
 }
-
 
 {$ifdef read_interface_uses}
 CocoaAll,
@@ -883,13 +884,30 @@ function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boole
 begin
   if Terminated then Exit(false);
 
+  { TODO: honor WaitForMessage }
+
   // note: do we really need to call on main thread? isn't the first thread "main"?
   //TCocoaApp(TCocoaApp.sharedApplication).poll;
   NSApp.performSelectorOnMainThread_withObject_waitUntilDone(objcselector('poll'), nil, true);
   if Terminated then Exit(false);
 
+  { TODO: UpdateAndRenderEverything should be called only if no message was in the queue.
+
+    This follows castlewindow_winsystem.inc approach, and works very good
+    to prevent doing Update / Render when we're clogged with events
+    (typically happens when walking with mouse look, then we're clogged
+    with mouse move events). }
+
   UpdateAndRenderEverything;
   Result := not Terminated;
+
+  { TODO:
+  if (not WasAnyMessage) and
+     (not Terminated) and
+     (not WaitForMessage) and
+     WaitToLimitFPS then
+    DoLimitFPS;
+  }
 end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
@@ -917,7 +935,7 @@ end;
 
 procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
-  { TODO }
+  Terminate; // set Terminated := true
 end;
 
 function TCastleApplication.ScreenWidth: integer;
