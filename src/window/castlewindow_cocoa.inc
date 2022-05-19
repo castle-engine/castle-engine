@@ -26,7 +26,6 @@
 
   TODO p2:
   - FileDialog etc. do not work (either use Cocoa native, or use CastleMessages as temp)
-  - crash at minimize or zoom from menu also
   - browse TODO here for easy stuff to be plugged, like SetCursor or updating caption
   - fullscreen: should be on top of dock / menu
   - menu implement, with key shortcuts
@@ -286,7 +285,7 @@ type
   TCocoaWindow = objcclass (TBorderlessWindow)
   private
     ref: TCastleWindow;
-    withinCloseBackend: Cardinal;
+    WithinCloseBackend: Cardinal;
   public
     procedure close; override;
     procedure becomeKeyWindow; override;
@@ -296,7 +295,7 @@ type
 
 procedure TCocoaWindow.close;
 begin
-  if withinCloseBackend = 0 then
+  if WithinCloseBackend = 0 then
     ref.DoCloseQuery;
   inherited;
 end;
@@ -342,45 +341,58 @@ begin
   event := nextEventMatchingMask_untilDate_inMode_dequeue(NSAnyEventMask, {NSDate.distantPast}nil, NSDefaultRunLoopMode, true);
   if event <> nil then
     begin
-      //writeln(event.description.utf8string);
+      //WritelnLog('Cocoa event ' + event.description.UTF8String);
 
-      if event.window <> nil then
+      if (event.window <> nil) and
+         { We need to check the class of event.window, as when clicking "minimize" / "zoom" in menu
+           we get events not related to this window. }
+         (event.window.ClassName.UTF8String = 'TCocoaWindow') then
         win := TCocoaWindow(event.window).ref;
-        // TODO: always exception when not set?
 
-      case event.type_ of
-        NSMouseMoved:
-          begin
-            win.DoMotion(InputMotion(win.MousePosition,
-              Vector2(event.locationInWindow.x, event.locationInWindow.y), win.MousePressed, 0));
-          end;
-        NSLeftMouseDown, NSRightMouseDown:
-          begin
-            case event.type_ of
-              NSLeftMouseDown:  CastleMouseButton := buttonLeft;
-              NSRightMouseDown: CastleMouseButton := buttonRight;
-              else raise EInternalError.Create('Unexpected event.type_');
+      if win <> nil then
+      begin
+        case event.type_ of
+          NSMouseMoved:
+            begin
+              win.DoMotion(InputMotion(win.MousePosition,
+                Vector2(event.locationInWindow.x, event.locationInWindow.y), win.MousePressed, 0));
             end;
-            win.DoMouseDown(Vector2(event.locationInWindow.x, event.locationInWindow.y),
-              CastleMouseButton, 0);
-          end;
-        NSLeftMouseUp, NSRightMouseUp:
-          begin
-            case event.type_ of
-              NSLeftMouseUp:  CastleMouseButton := buttonLeft;
-              NSRightMouseUp: CastleMouseButton := buttonRight;
-              else raise EInternalError.Create('Unexpected event.type_');
+          NSLeftMouseDown, NSRightMouseDown:
+            begin
+              case event.type_ of
+                NSLeftMouseDown:  CastleMouseButton := buttonLeft;
+                NSRightMouseDown: CastleMouseButton := buttonRight;
+                else raise EInternalError.Create('Unexpected event.type_');
+              end;
+              win.DoMouseDown(Vector2(event.locationInWindow.x, event.locationInWindow.y),
+                CastleMouseButton, 0);
             end;
-            win.DoMouseUp(Vector2(event.locationInWindow.x, event.locationInWindow.y),
-              CastleMouseButton, 0);
-          end;
-        NSKeyDown:
-          win.DoKeyDown(darwin_scancode_table[event.keycode], event.characters.utf8string);
-          // TODO we could use event.isARepeat for our KeyRepeated, instead we always calculate it manually
-        NSKeyUp:
-          win.DoKeyUp(darwin_scancode_table[event.keycode]);
-        otherwise
-          ;
+          NSLeftMouseUp, NSRightMouseUp:
+            begin
+              case event.type_ of
+                NSLeftMouseUp:  CastleMouseButton := buttonLeft;
+                NSRightMouseUp: CastleMouseButton := buttonRight;
+                else raise EInternalError.Create('Unexpected event.type_');
+              end;
+              win.DoMouseUp(Vector2(event.locationInWindow.x, event.locationInWindow.y),
+                CastleMouseButton, 0);
+            end;
+          NSKeyDown:
+            win.DoKeyDown(darwin_scancode_table[event.keycode], event.characters.UTF8String);
+            // TODO we could use event.isARepeat for our KeyRepeated, instead we always calculate it manually
+          NSKeyUp:
+            win.DoKeyUp(darwin_scancode_table[event.keycode]);
+          otherwise
+            ;
+        end;
+      end else
+      begin
+        { This is normal:
+          - at start Cocoa sends message
+            NSEvent: type=Kitdefined loc=(0,1080) time=608959.3 flags=0x40 win=0x0 winNum=0 ctxt=0x0 subtype=1 data1=627 data2=0
+          - when doing minimize / zoom, we get messages for window that is not TCocoaWindow
+        }
+        //WritelnWarning('Ignoring Cocoa event %s, window does not exist', [event.description.UTF8String]);
       end;
 
       sendEvent(event);
@@ -717,12 +729,15 @@ begin
 end;
 
 procedure TCastleWindow.CloseBackend;
+var
+  CocoaWindow: TCocoaWindow;
 begin
   if ref <> nil then
   begin
-    Inc(TCocoaWindow(ref).withinCloseBackend);
-    ref.close;
-    Dec(TCocoaWindow(ref).withinCloseBackend);
+    CocoaWindow := TCocoaWindow(ref);
+    Inc(CocoaWindow.WithinCloseBackend); // avoids infinite loop at closing
+    CocoaWindow.close;
+    Dec(CocoaWindow.WithinCloseBackend);
     ref := nil;
   end;
 end;
