@@ -345,7 +345,15 @@ begin
 
       if (event.window <> nil) and
          { We need to check the class of event.window, as when clicking "minimize" / "zoom" in menu
-           we get events not related to this window. }
+           we get events not related to this window.
+
+           Note: It seems we cannot use
+             (event.window is TCocoaWindow)
+           or even
+             (event.window.ClassType = TCocoaWindow)
+           with objcclass. Comparing ClassName.UTF8String seems like the only solution
+           (report if you know a cleaner approach).
+         }
          (event.window.ClassName.UTF8String = 'TCocoaWindow') then
         win := TCocoaWindow(event.window).ref;
 
