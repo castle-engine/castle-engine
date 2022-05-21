@@ -7574,11 +7574,31 @@ begin
   if ViewpointNode <> nil then
   begin
     ViewpointNode.GetView(APosition, ADirection, AUp, GravityUp);
-    { transform into world coordinates }
-    APosition  := WorldTransform.MultPoint    (APosition);
-    ADirection := WorldTransform.MultDirection(ADirection);
-    AUp        := WorldTransform.MultDirection(AUp);
-    GravityUp  := WorldTransform.MultDirection(GravityUp);
+
+    { Transform into world coordinates, as camera is set in world coordinates.
+      As an exception for backward compatibility: when HasWorldTransform = false,
+      we just assume that this scene will be added to world without any transformations.
+
+      This is possible when you load a scene to Viewport.Items.MainScene,
+      but MainScene is not yet part of Viewport.Items, like
+
+        Viewport.Items.MainScene := TCastleScene.Create(Self);
+        Viewport.Items.MainScene.Load(...);
+        Viewport.Items.Insert(0, Items.MainScene);
+
+      ... which is even done by src/deprecated_units/castlelevels.pas.
+      Then MainScene.Load causes InternalUpdateCamera, with MainScene being used.
+      In the long-term future, some day MainScene will be removed and this
+      complication should disappear.
+
+      Testcase: mountains-of-fire. }
+    if HasWorldTransform then
+    begin
+      APosition  := WorldTransform.MultPoint    (APosition);
+      ADirection := WorldTransform.MultDirection(ADirection);
+      AUp        := WorldTransform.MultDirection(AUp);
+      GravityUp  := WorldTransform.MultDirection(GravityUp);
+    end;
 
     if ViewpointNode is TViewpointNode then
     begin
