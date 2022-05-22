@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,6 +15,12 @@
 
 { Quick file viewer for various file types supported by CGE. }
 unit FrameViewFile;
+
+{$if defined(LCLGTK3) or defined(LCLQt) or defined(LCLQt5)}
+  {$error Do not use LCL Qt or GTK3 widgetsets to build CGE editor, as LCL TOpenGLControl doesn't support OpenGL context sharing in this case. Use LCL default widgetset instead, like GTK2.}
+  // Didn't fit in message above:
+  // For your own applications, if you only use one TCastleControl in the application, it's not a problem.
+{$endif}
 
 interface
 
