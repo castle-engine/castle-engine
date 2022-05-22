@@ -24,6 +24,15 @@
   - run through app bundle automatically?
     make "castle-engine run" just work
 
+    Hm, made bundle, but running it fails.
+    (with both our methods). From CLI build tool, from CGE editor.
+
+    Somehow Lazarus runs bundles reliably?
+
+    bundle also:
+    - misses proper icon?
+    - use Caption instead of project Name to show it?
+
   TODO p2:
   - FileDialog etc. do not work (either use Cocoa native, or use CastleMessages as temp)
   - browse TODO here for easy stuff to be plugged, like SetCursor or updating caption
@@ -32,6 +41,8 @@
   - submit PR for GLPT:
     - wglpt -> want
     - attributes size must be 32, 4 is too small to sometimes fit!
+  - castle-engine run shorter output -- sips is too talkative.
+    Maybe even remove sips? We can resize PNG on our side.
 
   testing
   cd ~/sources/castle-engine/view3dscene/macosx

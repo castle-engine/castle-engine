@@ -252,7 +252,7 @@ implementation
 uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolResources, ToolAndroid,
+  ToolResources, ToolAndroid, ToolMacOS,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
 
@@ -914,7 +914,33 @@ procedure TCastleProject.DoRun(const Target: TTarget;
     end;
   end;
 
+  procedure MaybeRunThroughAppBundle(var RunWorkingDir, ExeName: String; const NewParams: TStrings);
+  var
+    ExeInBundle: String;
+  begin
+    if OS = Darwin then
+    begin
+      Writeln('Running on macOS using temporary AppBundle');
+      CreateAppBundle(Self, true, ExeInBundle);
+
+      { We need to really execute bundle using "open".
+        Otherwise 1st execution of the application fails, as we cannot find "data",
+        as BundlePath inside the application will just return path.
+
+      RunWorkingDir := ExtractFilePath(ExeInBundle);
+      ExeName := ExeInBundle;
+      }
+
+      ExeName := 'open';
+      NewParams.Insert(0, '--new');
+      NewParams.Insert(1, '--wait-apps');
+      NewParams.Insert(2, TempOutputPath(Path) + 'macos' + PathDelim + Name + '.app');
+      NewParams.Insert(3, '--args');
+    end;
+  end;
+
 var
+  RunWorkingDir: String;
   ExeName: string;
   NewParams: TCastleStringList;
 begin
@@ -930,15 +956,18 @@ begin
   if Target = targetCustom then
   begin
     ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+    RunWorkingDir := Path;
+
     MaybeUseWrapperToRun(ExeName);
     Writeln('Running ' + ExeName);
     NewParams := TCastleStringList.Create;
     try
       NewParams.Assign(Params);
       MaybeUseWineToRun(ExeName, NewParams);
+      MaybeRunThroughAppBundle(RunWorkingDir, ExeName, NewParams);
       Flush(Output); // needed to see "Running Windows EXE on Unix, trying to use WINE." in right order in editor
       { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
-      RunCommandSimple(Path, ExeName, NewParams.ToArray, 'CASTLE_LOG', 'stdout');
+      RunCommandSimple(RunWorkingDir, ExeName, NewParams.ToArray, 'CASTLE_LOG', 'stdout');
     finally FreeAndNil(NewParams) end;
   end else
     raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
