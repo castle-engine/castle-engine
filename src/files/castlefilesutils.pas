@@ -379,6 +379,9 @@ procedure CheckRenameFile(const Source, Dest: string);
   with all the files and subdirectories inside).
   DirName may but doesn't have to end with PathDelim.
 
+  In case of symlinks, removes the symlink (but does not descend inside,
+  i.e. will not remove files inside a symlink to a directory).
+
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
@@ -858,16 +861,18 @@ var
 begin
   Warn := PBoolean(Data)^;
 
-  if FileInfo.Directory then
-    CheckRemoveDir(FileInfo.AbsoluteName, Warn)
+  if FileInfo.Directory and not FileInfo.Symlink then
+    RemoveNonEmptyDir(FileInfo.AbsoluteName, Warn)
   else
     CheckDeleteFile(FileInfo.AbsoluteName, Warn);
 end;
 
 procedure RemoveNonEmptyDir(const DirName: string; const Warn: Boolean = false);
 begin
-  FindFiles(DirName, '*', true,
-    @RemoveNonEmptyDir_Internal, @Warn, [ffRecursive, ffDirContentsLast]);
+  { Note that we don't use ffRecursive,
+    as we don't want to descend into directory with symlink.
+    We will implement recursion in RemoveNonEmptyDir_Internal manually. }
+  FindFiles(DirName, '*', true, @RemoveNonEmptyDir_Internal, @Warn, []);
   CheckRemoveDir(Dirname, Warn);
 end;
 
