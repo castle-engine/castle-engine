@@ -71,6 +71,23 @@ begin
 end;
 
 procedure TSystemInformationForm.FormShow(Sender: TObject);
+const
+  { Return current widgetset as a string.
+    Esp. useful to detect when someone uses non-standard widgetsets that don't support
+    OpenGL context sharing.
+    See https://wiki.lazarus.freepascal.org/LCL_Defines#General_LCL_defines
+    https://wiki.freepascal.org/Widgetset
+  }
+  SCurrentWidgetset =
+    {$if defined(LCLCocoa)} 'Cocoa'
+    {$elseif defined(LCLCarbon)} 'Carbon'
+    {$elseif defined(LCLGtk2)} 'GTK 2'
+    {$elseif defined(LCLGtk3)} 'GTK 3'
+    {$elseif defined(LCLQt)} 'Qt 4'
+    {$elseif defined(LCLQt5)} 'Qt 5'
+    {$elseif defined(LCLWin32)} 'Win32'
+    {$else} 'Unknown'
+    {$endif};
 var
   OldApplicationDataOverride: String;
 begin
@@ -88,7 +105,8 @@ begin
   Info[itOther] :=
     'Castle Game Engine version: ' + CastleEngineVersion + '.' + NL +
     'Editor compiled with ' + SCompilerDescription + '.' + NL +
-    'Editor platform: ' + SPlatformDescription + '.' + NL;
+    'Editor platform: ' + SPlatformDescription + '.' + NL +
+    'Editor widgetset: ' + SCurrentWidgetset + '.' + NL;
 
   SoundEngine.OnOpenClose.Add(@SoundEngineOpenClose);
 
