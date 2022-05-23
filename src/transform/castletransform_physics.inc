@@ -382,9 +382,14 @@
   strict private
     FRadius: Single;
     FHeight: Single;
+    FSetup2D: Boolean;
 
     procedure SetRadius(const AValue: Single);
     procedure SetHeight(const AValue: Single);
+
+  private
+    class procedure CreateComponent2D(Sender: TObject);
+
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -392,6 +397,10 @@
     procedure CalculateAutoSize; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { Prepare collider for 2D, currently only change the way auto size
+      is calculated. }
+    procedure Setup2D;
   published
     property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
     property Height: Single read FHeight write SetHeight stored StoredWithAutoSize;
@@ -859,6 +868,11 @@ begin
   end;
 end;
 
+class procedure TCastleCapsuleCollider.CreateComponent2D(Sender: TObject);
+begin
+  (Sender as TCastleCapsuleCollider).Setup2D;
+end;
+
 function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
@@ -880,7 +894,11 @@ begin
 
   LocalBoundingBox := Parent.LocalBoundingBox;
 
-  Radius := LocalBoundingBox.SizeX * 0.50;
+  if FSetup2D then
+    Radius := LocalBoundingBox.SizeX * 0.50
+  else
+    Radius := ((LocalBoundingBox.SizeX * 0.50) + (LocalBoundingBox.SizeZ * 0.50)) / 2;
+
   { If radius * 2 is bigger than height make it smaller. }
   if Radius * 2 > LocalBoundingBox.SizeY then
     Radius := LocalBoundingBox.SizeY / 2 - 0.001;
@@ -900,6 +918,15 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleCapsuleCollider.Setup2D;
+begin
+  if not FSetup2D then
+  begin
+    FSetup2D := true;
+    DoAutoSize;
+  end;
 end;
 
 { TPhysicsCollisionDetails --------------------------------------------------- }
