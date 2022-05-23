@@ -342,16 +342,25 @@
   TCastleSphereCollider = class(TCastleCollider)
   strict private
     FRadius: Single;
+    FSetup2D: Boolean;
 
     procedure SetRadius(const AValue: Single);
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
+
+  private
+    class procedure CreateComponent2D(Sender: TObject);
   protected
     procedure CalculateAutoSize; override;
 
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { Prepare collider for 2D, currently only change the way auto size
+      is calculated. }
+    procedure Setup2D;
+
   published
     property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
   end;
@@ -1008,7 +1017,11 @@ begin
   FLocalTransform := T.Transform;
   FLocalInverseTransform := T.InverseTransform;
   if FKraftShape <> nil then
+  begin
     FKraftShape.LocalTransform := MatrixToKraft(FLocalTransform);
+    Parent.RigidBody.FKraftBody.SynchronizeTransformIncludingShapes;
+    FKraftShape.StoreWorldTransform;
+  end;
 
   { After setting the appropriate transformation, we can optimize the matrix
     multiplication when rotation = 0, translation = 0,0,0, scale = 1,1,1 }
@@ -1549,6 +1562,11 @@ begin
   Result := TKraftShapeSphere.Create(APhysics, ARigidBody, FRadius * FLastScale.Max);
 end;
 
+class procedure TCastleSphereCollider.CreateComponent2D(Sender: TObject);
+begin
+  (Sender as TCastleSphereCollider).Setup2D;
+end;
+
 procedure TCastleSphereCollider.CalculateAutoSize;
 var
   LocalBoundingBox: TBox3D;
@@ -1561,7 +1579,10 @@ begin
   end;
 
   LocalBoundingBox := Parent.LocalBoundingBox;
-  Radius := LocalBoundingBox.AverageSize(false, 2) / 2;
+  if FSetup2D then
+    Radius := LocalBoundingBox.AverageSize2D(false, 2, 2) / 2
+  else
+    Radius := LocalBoundingBox.AverageSize(false, 2) / 2;
 
   Translation := LocalBoundingBox.Center;
   Scale := NoScale;
@@ -1576,6 +1597,15 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleSphereCollider.Setup2D;
+begin
+  if not FSetup2D then
+  begin
+    FSetup2D := true;
+    DoAutoSize;
+  end;
 end;
 
 { TRigidBody ----------------------------------------------------------------- }
