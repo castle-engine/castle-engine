@@ -85,4 +85,9 @@ initialization
   RegisterSerializableComponent(TCastleCapsuleCollider, 'Capsule Colllider');
   RegisterSerializableComponent(TCastlePlaneCollider, 'Plane Colllider');
   RegisterSerializableComponent(TCastleSphereCollider, 'Sphere Colllider');
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleSphereCollider;
+  R.Caption := 'Sphere Colllider (2D)';
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleSphereCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
+  RegisterSerializableComponent(R);
 end.
