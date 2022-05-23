@@ -125,7 +125,7 @@
     procedure SetScale(const AValue: TVector3);
     procedure SetAutoSize(const AValue: Boolean);
   strict protected
-    FLastScale: TVector3; // Last scale used to change collider size
+    FLastUsedWorldScale: TVector3; // Last world scale used to change collider size
 
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
@@ -147,7 +147,7 @@
       out ReasonWhyCannot: String): Boolean; override;
 
     { Updates scale after for example adding collider to world
-      This procedure only updates FLastScale and calls
+      This procedure only updates FLastUsedWorldScale and calls
       ShapeChangedNotifyRigidBody. You should multiply collider size in
       your descendant CreateKraftShape(). }
     procedure UpdateScale(ForceUpdate: Boolean); overload;
@@ -879,7 +879,7 @@ function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
   Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
-    FRadius * FLastScale.X, FHeight * FLastScale.Y);
+    FRadius * FLastUsedWorldScale.X, FHeight * FLastUsedWorldScale.Y);
 end;
 
 procedure TCastleCapsuleCollider.CalculateAutoSize;
@@ -1042,7 +1042,7 @@ var
 begin
   { initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
   T.Init;
-  T.Multiply(Rotation, Scale, Translation * FLastScale); //Translation should be multiplayed by
+  T.Multiply(Rotation, Scale, Translation * FLastUsedWorldScale); //Translation should be multiplayed by
   FLocalTransform := T.Transform;
   FLocalInverseTransform := T.InverseTransform;
   if FKraftShape <> nil then
@@ -1268,9 +1268,9 @@ begin
   end else
     NewScale := NoScale * Parent.Scale;
 
-  if ForceUpdate or not FLastScale.PerfectlyEquals(FLastScale, NewScale) then
+  if ForceUpdate or not FLastUsedWorldScale.PerfectlyEquals(FLastUsedWorldScale, NewScale) then
   begin
-    FLastScale := NewScale;
+    FLastUsedWorldScale := NewScale;
     { Scale is added in CreateCraftShape so we only need notify
       RigidBody to recreate it }
     ShapeChangedNotifyRigidBody;
@@ -1295,7 +1295,7 @@ begin
   FRestitution := DefaultRestitution;
   FFriction := DefaultFriction;
   FScale := NoScale;
-  FLastScale := NoScale;
+  FLastUsedWorldScale := NoScale;
   FTranslation := Vector3(0, 0, 0);
   FRotation := Vector4(0, 1, 0, 0);
 
@@ -1384,7 +1384,7 @@ begin
   end;
 
   Result := TKraftShapePlane.Create(APhysics, ARigidBody,
-    Plane(Vector3Norm(VectorToKraft(FNormal)), Distance * FLastScale.Max));
+    Plane(Vector3Norm(VectorToKraft(FNormal)), Distance * FLastUsedWorldScale.Max));
 end;
 
 procedure TCastlePlaneCollider.CalculateAutoSize;
@@ -1488,7 +1488,7 @@ function TCastleBoxCollider.CreateKraftShape(const APhysics: TKraft;
 var
   ScaledSize: TVector3;
 begin
-  ScaledSize := FSize * FLastScale;
+  ScaledSize := FSize * FLastUsedWorldScale;
 
   { Check it ourselves, otherwise Kraft will crash on such invalid box with segfault.
     First Kraft raises nice
@@ -1588,7 +1588,7 @@ function TCastleSphereCollider.CreateKraftShape(const APhysics: TKraft;
 begin
   { Scale support: There is no good way to do it, so I took the Unity solution,
     we take the largest value. }
-  Result := TKraftShapeSphere.Create(APhysics, ARigidBody, FRadius * FLastScale.Max);
+  Result := TKraftShapeSphere.Create(APhysics, ARigidBody, FRadius * FLastUsedWorldScale.Max);
 end;
 
 class procedure TCastleSphereCollider.CreateComponent2D(Sender: TObject);
