@@ -343,8 +343,21 @@ type
 
 procedure TCocoaApp.poll;
 var
-  event: NSEvent;
   win: TCastleWindow = nil;
+
+  procedure CheckMotionDragged(const MouseButton: TCastleMouseButton);
+  begin
+    if not (MouseButton in win.MousePressed) then
+    begin
+      WritelnWarning('Cocoa event indicated that %s should be pressed, but not registered as pressed yet', [
+        MouseButtonStr[MouseButton]
+      ]);
+      win.DoMouseDown(win.MousePosition, MouseButton, 0);
+    end;
+  end;
+
+var
+  event: NSEvent;
   pool: NSAutoreleasePool;
   CastleMouseButton: TCastleMouseButton;
 begin
@@ -371,26 +384,36 @@ begin
       if win <> nil then
       begin
         case event.type_ of
-          NSMouseMoved:
+          NSMouseMoved,
+          NSLeftMouseDragged,
+          NSRightMouseDragged,
+          NSOtherMouseDragged:
             begin
+              case event.type_ of
+                NSLeftMouseDragged : CheckMotionDragged(buttonLeft);
+                NSRightMouseDragged: CheckMotionDragged(buttonRight);
+                NSOtherMouseDragged: CheckMotionDragged(buttonMiddle);
+              end;
               win.DoMotion(InputMotion(win.MousePosition,
                 Vector2(event.locationInWindow.x, event.locationInWindow.y), win.MousePressed, 0));
             end;
-          NSLeftMouseDown, NSRightMouseDown:
+          NSLeftMouseDown, NSRightMouseDown, NSOtherMouseDown:
             begin
               case event.type_ of
                 NSLeftMouseDown:  CastleMouseButton := buttonLeft;
                 NSRightMouseDown: CastleMouseButton := buttonRight;
+                NSOtherMouseDown: CastleMouseButton := buttonMiddle;
                 else raise EInternalError.Create('Unexpected event.type_');
               end;
               win.DoMouseDown(Vector2(event.locationInWindow.x, event.locationInWindow.y),
                 CastleMouseButton, 0);
             end;
-          NSLeftMouseUp, NSRightMouseUp:
+          NSLeftMouseUp, NSRightMouseUp, NSOtherMouseUp:
             begin
               case event.type_ of
                 NSLeftMouseUp:  CastleMouseButton := buttonLeft;
                 NSRightMouseUp: CastleMouseButton := buttonRight;
+                NSOtherMouseUp: CastleMouseButton := buttonMiddle;
                 else raise EInternalError.Create('Unexpected event.type_');
               end;
               win.DoMouseUp(Vector2(event.locationInWindow.x, event.locationInWindow.y),
