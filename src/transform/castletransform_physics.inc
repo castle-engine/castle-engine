@@ -99,7 +99,6 @@
       This is an often case, so we want to optimize it. }
     FTranslation: TVector3;
     FRotation: TVector4;
-    FScale: TVector3;
     FAutoSize: Boolean;
     FAutoSizing: Boolean; // are we calculating auto size?
   private
@@ -126,6 +125,7 @@
     procedure SetAutoSize(const AValue: Boolean);
   strict protected
     FLastUsedWorldScale: TVector3; // Last world scale used to change collider size
+    FScale: TVector3; // Collider scale
 
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
@@ -879,7 +879,7 @@ function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
   Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
-    FRadius * FLastUsedWorldScale.X, FHeight * FLastUsedWorldScale.Y);
+    FRadius * FLastUsedWorldScale.X * FScale.X, FHeight * FLastUsedWorldScale.Y * FScale.Y);
 end;
 
 procedure TCastleCapsuleCollider.CalculateAutoSize;
@@ -1040,9 +1040,9 @@ procedure TCastleCollider.UpdateLocalTransform;
 var
   T: TTransformation;
 begin
-  { initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
+  { Initialize FLocalTransform, FLocalInverseTransform and pass transform to FKraftShape }
   T.Init;
-  T.Multiply(Rotation, Scale, Translation * FLastUsedWorldScale); //Translation should be multiplayed by
+  T.Multiply(Rotation, NoScale, Translation * FLastUsedWorldScale * FScale);
   FLocalTransform := T.Transform;
   FLocalInverseTransform := T.InverseTransform;
   if FKraftShape <> nil then
@@ -1053,11 +1053,12 @@ begin
   end;
 
   { After setting the appropriate transformation, we can optimize the matrix
-    multiplication when rotation = 0, translation = 0,0,0, scale = 1,1,1 }
+    multiplication when rotation = 0, translation = 0,0,0 scale is not
+    checked here becouse it must to be 1,1,1 in kraft and it's added in
+    collider shape creation }
   FUseLocalTransform := not (
     FTranslation.IsPerfectlyZero and
-    (FRotation.W = 0) and
-    TVector3.PerfectlyEquals(FScale, NoScale)
+    (FRotation.W = 0)
   );
 end;
 
@@ -1159,7 +1160,8 @@ begin
 
   FScale := AValue;
   UpdateAutoSizeProperty;
-  UpdateLocalTransform;
+  // Scale is added to collider on shape creation not by transform
+  ShapeChangedNotifyRigidBody;
 end;
 
 procedure TCastleCollider.SetAutoSize(const AValue: Boolean);
@@ -1384,7 +1386,8 @@ begin
   end;
 
   Result := TKraftShapePlane.Create(APhysics, ARigidBody,
-    Plane(Vector3Norm(VectorToKraft(FNormal)), Distance * FLastUsedWorldScale.Max));
+    Plane(Vector3Norm(VectorToKraft(FNormal)),
+    Distance * FLastUsedWorldScale.Max * FScale.Max));
 end;
 
 procedure TCastlePlaneCollider.CalculateAutoSize;
@@ -1488,7 +1491,7 @@ function TCastleBoxCollider.CreateKraftShape(const APhysics: TKraft;
 var
   ScaledSize: TVector3;
 begin
-  ScaledSize := FSize * FLastUsedWorldScale;
+  ScaledSize := FSize * FLastUsedWorldScale * FScale;
 
   { Check it ourselves, otherwise Kraft will crash on such invalid box with segfault.
     First Kraft raises nice
@@ -1588,7 +1591,8 @@ function TCastleSphereCollider.CreateKraftShape(const APhysics: TKraft;
 begin
   { Scale support: There is no good way to do it, so I took the Unity solution,
     we take the largest value. }
-  Result := TKraftShapeSphere.Create(APhysics, ARigidBody, FRadius * FLastUsedWorldScale.Max);
+  Result := TKraftShapeSphere.Create(APhysics, ARigidBody,
+    FRadius * FLastUsedWorldScale.Max * FScale.Max);
 end;
 
 class procedure TCastleSphereCollider.CreateComponent2D(Sender: TObject);
