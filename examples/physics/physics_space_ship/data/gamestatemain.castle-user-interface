@@ -71,7 +71,7 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000000000000E+000,
+                "AngularVelocityDamp" : 2.0000000000000000E+000,
                 "Gravity" : false,
                 "LinearVelocityDamp" : 1.0000000000000000E+000,
                 "LockRotation" : [
@@ -84,10 +84,10 @@
                 "Name" : "RigidBody"
               },
               {
-                "$$ClassName" : "TCastleSphereCollider",
-                "Friction" : 0.0000000000000000E+000,
+                "$$ClassName" : "TCastleBoxCollider",
+                "Friction" : 1.0000000149011612E-001,
                 "Mass" : 1.0000000000000000E+000,
-                "Name" : "SphereCollider"
+                "Name" : "BoxCollider1"
               }
             ]
           },
@@ -102,11 +102,6 @@
             "Url" : "castle-data:/graphics/asteroid/layered_%20rock.png",
             "$Behaviors" : [
               {
-                "$$ClassName" : "TCastleSphereCollider",
-                "Mass" : 5.0000000000000000E-001,
-                "Name" : "SphereCollider1"
-              },
-              {
                 "$$ClassName" : "TCastleRigidBody",
                 "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Gravity" : false,
@@ -119,6 +114,10 @@
                   2
                 ],
                 "Name" : "RigidBody1"
+              },
+              {
+                "$$ClassName" : "TCastleSphereCollider",
+                "Name" : "SphereCollider1"
               }
             ]
           },
