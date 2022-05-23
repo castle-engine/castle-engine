@@ -1475,6 +1475,14 @@ begin
   end;
 
   LocalBoundingBox := Parent.LocalBoundingBox;
+
+  { 2D objects like TCastleImageTransform can have 0 at Z axis }
+  if LocalBoundingBox.Data[0].Z = LocalBoundingBox.Data[1].Z then
+  begin
+    LocalBoundingBox.Data[0].Z := LocalBoundingBox.Data[0].Z - 0.5;
+    LocalBoundingBox.Data[1].Z := LocalBoundingBox.Data[1].Z + 0.5;
+  end;
+
   Size := LocalBoundingBox.Size;
 
   Translation := LocalBoundingBox.Center;
