@@ -345,12 +345,14 @@
     FSetup2D: Boolean;
 
     procedure SetRadius(const AValue: Single);
+
+  private
+    class procedure CreateComponent2D(Sender: TObject);
+
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
 
-  private
-    class procedure CreateComponent2D(Sender: TObject);
   protected
     procedure CalculateAutoSize; override;
 
