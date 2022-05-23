@@ -1952,6 +1952,7 @@ begin
     Macros.Add('DELPHI_SEARCH_PATHS', DelphiSearchPaths);
     Macros.Add('ICO_PATH', IcoPath);
     Macros.Add('PROJECT_GUID', ProjectGuid);
+    Macros.Add('APPLE_BUNDLE_SIGNATURE', Copy(ExecutableName + '????', 1, 4));
 
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
