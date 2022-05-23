@@ -18,6 +18,7 @@ type
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
     ButtonScaleRedBox: TCastleButton;
+    ButtonLocalScaleRedBoxCollider: TCastleButton;
     ButtonScaleGreenSphere: TCastleButton;
     ButtonScaleAll: TCastleButton;
     RedBox: TCastleTransform;
@@ -29,6 +30,7 @@ type
     procedure ClickScaleAll(Sender: TObject);
     procedure ClickScaleGreenSphere(Sender: TObject);
     procedure ClickScaleRedBox(Sender: TObject);
+    procedure ClickLocalScaleRedBoxCollider(Sender: TObject);
     procedure ChangeUpdateCollidersAtRuntime(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -66,6 +68,15 @@ begin
   //RedBox.Scale := Vector3(0.6,5.3,0.3);
 end;
 
+procedure TStateMain.ClickLocalScaleRedBoxCollider(Sender: TObject);
+var
+  Collider: TCastleCollider;
+begin
+  Collider := RedBox.FindBehavior(TCastleCollider) as TCastleCollider;
+  if Collider <> nil then
+    Collider.Scale := Vector3(0.5, 0.5, 0.5);
+end;
+
 procedure TStateMain.ChangeUpdateCollidersAtRuntime(Sender: TObject);
 begin
   Viewport.Items.PhysicsProperties.UpdateCollidersScaleAtRuntime := UpdateCollidersAtRuntime.Checked;
@@ -92,6 +103,9 @@ begin
 
   ButtonScaleRedBox := DesignedComponent('ButtonScaleRedBox') as TCastleButton;
   ButtonScaleRedBox.OnClick := {$ifdef FPC}@{$endif}ClickScaleRedBox;
+
+  ButtonLocalScaleRedBoxCollider := DesignedComponent('ButtonLocalScaleRedBoxCollider') as TCastleButton;
+  ButtonLocalScaleRedBoxCollider.OnClick := {$ifdef FPC}@{$endif}ClickLocalScaleRedBoxCollider;
 
   RedBox := DesignedComponent('RedBox') as TCastleTransform;
   GreenSphere := DesignedComponent('GreenSphere') as TCastleTransform;

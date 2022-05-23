@@ -336,6 +336,30 @@
         },
         {
           "$$ClassName" : "TCastleButton",
+          "Caption" : "Local Scale Red Box Collider",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "MinWidth" : 3.2000000000000000E+002,
+          "Name" : "ButtonLocalScaleRedBoxCollider",
+          "VerticalAnchorDelta" : -6.3000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleButton",
           "Caption" : "Scale sphere",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
@@ -354,7 +378,7 @@
           },
           "MinWidth" : 3.2000000000000000E+002,
           "Name" : "ButtonScaleGreenSphere",
-          "VerticalAnchorDelta" : -6.3000000000000000E+001,
+          "VerticalAnchorDelta" : -1.0200000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -378,7 +402,7 @@
           },
           "MinWidth" : 3.2000000000000000E+002,
           "Name" : "ButtonScaleAll",
-          "VerticalAnchorDelta" : -1.0200000000000000E+002,
+          "VerticalAnchorDelta" : -1.4100000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         }
