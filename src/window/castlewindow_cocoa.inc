@@ -826,32 +826,165 @@ end;
 
 { TCastleWindow dialogs -------------------------------------------------- }
 
-{ Methods below should make native-looking dialog boxes.
-  Alternatively, you can include castlewindow_dialogs_by_messages.inc
-  (outside of $ifdef read_implementation, usually at the beginning of
-  castlewindow_xxx.inc file), to have simple dialog boxes drawn on
-  OpenGL context using our CastleMessages unit. }
+type
+  TCocoaSheetDelegate = objcclass(NSObject)
+  public
+    ended: Boolean;
+    retCode: NSInteger;
+    procedure alertDidEnd(alert:NSAlert; returncode: NSInteger; contextInfo: Pointer); message 'alertDidEnd:::';
+  end;
 
-function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+procedure TCocoaSheetDelegate.alertDidEnd(alert:NSAlert;
+  returncode: NSInteger; contextInfo: Pointer);
 begin
-  { TODO } Result := false;
+  ended := true;
+  retCode := returnCode;
 end;
 
-function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
+{ Run anAlert until it ends, or application ends.
+  Returns -1 if application ends, or the tag of button that closed the alert. }
+function RunSheetAsModal(const anAlert: NSAlert; const ownerWindow: NSWindow): NSInteger;
+var
+  alertDel: TCocoaSheetDelegate;
 begin
-  { TODO } Result := false;
+  alertDel := TCocoaSheetDelegate.alloc.init;
+  try
+    alertDel.retCode := -1;
+    anAlert.beginSheetModalForWindow_modalDelegate_didEndSelector_contextInfo(
+      ownerWindow, alertDel, ObjCSelector('alertDidEnd:::'), nil);
+
+    while not alertDel.ended do
+      if not Application.ProcessMessage(true, true) then
+        Break;
+
+    Result := alertDel.retCode;
+
+    { Make the ownerWindow again receive keys, otherwise closing the dialog
+      with key makes weird experience -- further key presses will not be send
+      to the application window you're looking at. }
+    ownerWindow.makeKeyAndOrderFront(nil);
+  finally
+    alertDel.release;
+  end;
 end;
+
+{ Show Cocoa modal message box.
+
+  Use Cocoa Sheet called NSAlert.
+  See https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Sheets/Tasks/UsingAlertSheets.html#//apple_ref/doc/uid/20001045-BABFIBIA .
+  Based on Lazarus LCL lcl/interfaces/cocoa/cocoalclintf.inc ,
+  but greatly simplified.
+
+  @param(AlertStyle Pass NSCriticalAlertStyle or NSInformationalAlertStyle.
+    You can also use NSWarningAlertStyle, but Apple docs openly say it is
+    equivalent to NSInformationalAlertStyle, see
+    https://developer.apple.com/documentation/appkit/nsalertstyle.)
+
+  @param(ButtonCaptions Array of button captions.)
+
+  @param(ButtonResults Array of button result values. May have equal length as ButtonCaptions.)
+
+  @param(sheetOfWindow Shows the prompt as a sheet to the specified NSWindow.)
+
+  @returns(The value from ButtonResults corresponding to the button that was pressed.
+    Returns -1 if application ended while the message was active.) }
+function CocoaPromptUser(const DialogCaption : string;
+  const DialogMessage : string;
+  const AlertStyle: NSAlertStyle;
+  const ButtonCaptions: array of String;
+  const ButtonResults: array of NSInteger;
+  const sheetOfWindow : NSWindow): NSInteger;
+var
+  anAlert: NSAlert;
+  informativeText: NSString;
+  messageText: NSString;
+  I: Integer;
+  aButton: NSButton;
+  Str: string;
+  isMenuOn: Boolean;
+begin
+  Assert(sheetOfWindow <> nil);
+  Assert(High(ButtonCaptions) = High(ButtonResults));
+  Assert(High(ButtonCaptions) >= 0);
+
+  Result := -1;
+  AnAlert := NSAlert.alloc.init;
+  try
+    informativeText := NSSTR(DialogMessage);
+    messageText := NSSTR(DialogCaption);
+    anAlert.setAlertStyle(AlertStyle);
+    anAlert.setInformativeText(informativeText);
+    anAlert.setMessageText(messageText);
+
+    for I := Low(ButtonCaptions) to High(ButtonCaptions) do
+    begin
+      aButton := anAlert.addButtonWithTitle(NSSTR(ButtonCaptions[I]));
+      aButton.setKeyEquivalentModifierMask(0);
+
+      // call aButton.setKeyEquivalent
+      if (ButtonCaptions[I] = 'OK') or
+         (ButtonCaptions[I] = 'Yes') then
+        aButton.setKeyEquivalent(NSSTR(#13))
+      else
+      if ButtonCaptions[I] = 'No' then
+        aButton.setKeyEquivalent(NSSTR(#27))
+      else
+        // By default, the first button is the default button. If in our
+        // case this should not be the case, remove the default status
+        // from the first button.
+        aButton.setKeyEquivalent(NSSTR(''));
+
+      aButton.setTag(ButtonResults[I]);
+    end;
+
+    Result := RunSheetAsModal(anAlert, sheetOfWindow);
+  finally
+    AnAlert.release;
+  end;
+end;
+
+const
+  CaptionFromMessageType: array [TWindowMessageType] of String = (
+    'Information',
+    'Warning',
+    'Question',
+    'Error',
+    'Message' // mtOther
+  );
+  AlertStyleFromMessageType: array [TWindowMessageType] of NSAlertStyle = (
+    NSInformationalAlertStyle, // mtInfo
+    NSWarningAlertStyle, // mtWarning
+    NSInformationalAlertStyle, // mtQuestion
+    NSCriticalAlertStyle, // mtError
+    NSInformationalAlertStyle // mtOther
+  );
 
 procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
-  { TODO }
+  CocoaPromptUser(CaptionFromMessageType[MessageType], S,
+    AlertStyleFromMessageType[MessageType], ['OK'], [0], ref);
 end;
 
 function TCastleWindow.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
-  { TODO } Result := true;
+  Result := CocoaPromptUser(CaptionFromMessageType[MessageType], S,
+    AlertStyleFromMessageType[MessageType], ['Yes', 'No'], [0, 1], ref) = 0;
+end;
+
+function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
+  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+begin
+  MessageOK('TODO: Filename dialog on Cocoa', mtError);
+  { TODO }
+  Result := false;
+end;
+
+function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
+begin
+  MessageOK('TODO: Color dialog on Cocoa', mtError);
+  { TODO }
+  Result := false;
 end;
 
 { TCastleApplication ---------------------------------------------------------- }
