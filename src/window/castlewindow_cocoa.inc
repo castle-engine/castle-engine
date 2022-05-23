@@ -424,6 +424,13 @@ begin
             // TODO we could use event.isARepeat for our KeyRepeated, instead we always calculate it manually
           NSKeyUp:
             win.DoKeyUp(darwin_scancode_table[event.keycode]);
+          NSScrollWheel:
+            begin
+              if event.deltaX <> 0 then
+                win.DoMouseWheel(event.deltaX, false);
+              if event.deltaY <> 0 then
+                win.DoMouseWheel(event.deltaY, true);
+            end;
           otherwise
             ;
         end;
