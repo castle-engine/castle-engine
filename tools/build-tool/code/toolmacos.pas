@@ -57,15 +57,16 @@ begin
   IconsetDir := TempPath + Project.Name + '.iconset';
   ForceDirectories(IconsetDir);
 
-  RunCommandSimple(TempPath, 'sips', ['-z', '16' , '16' , PngFile, '--out', IconsetDir + PathDelim + 'icon_16x16.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '32' , '32' , PngFile, '--out', IconsetDir + PathDelim + 'icon_16x16@2x.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '32' , '32' , PngFile, '--out', IconsetDir + PathDelim + 'icon_32x32.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '64' , '64' , PngFile, '--out', IconsetDir + PathDelim + 'icon_32x32@2x.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '128', '128', PngFile, '--out', IconsetDir + PathDelim + 'icon_128x128.png.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '256', '256', PngFile, '--out', IconsetDir + PathDelim + 'icon_128x128@2x.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '256', '256', PngFile, '--out', IconsetDir + PathDelim + 'icon_256x256.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '512', '512', PngFile, '--out', IconsetDir + PathDelim + 'icon_256x256@2x.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '512', '512', PngFile, '--out', IconsetDir + PathDelim + 'icon_512x512.png']);
+  RunCommandSimple(TempPath, 'sips', ['-z', '16'  , '16'  , PngFile, '--out', IconsetDir + PathDelim + 'icon_16x16.png']);
+  RunCommandSimple(TempPath, 'sips', ['-z', '32'  , '32'  , PngFile, '--out', IconsetDir + PathDelim + 'icon_16x16@2x.png']);
+  RunCommandSimple(TempPath, 'sips', ['-z', '32'  , '32'  , PngFile, '--out', IconsetDir + PathDelim + 'icon_32x32.png']);
+  RunCommandSimple(TempPath, 'sips', ['-z', '64'  , '64'  , PngFile, '--out', IconsetDir + PathDelim + 'icon_32x32@2x.png']);
+  RunCommandSimple(TempPath, 'sips', ['-z', '128' , '128' , PngFile, '--out', IconsetDir + PathDelim + 'icon_128x128.png']);
+  RunCommandSimple(TempPath, 'sips', ['-z', '256' , '256' , PngFile, '--out', IconsetDir + PathDelim + 'icon_128x128@2x.png']);
+  RunCommandSimple(TempPath, 'sips', ['-z', '256' , '256' , PngFile, '--out', IconsetDir + PathDelim + 'icon_256x256.png']);
+  RunCommandSimple(TempPath, 'sips', ['-z', '512' , '512' , PngFile, '--out', IconsetDir + PathDelim + 'icon_256x256@2x.png']);
+  RunCommandSimple(TempPath, 'sips', ['-z', '512' , '512' , PngFile, '--out', IconsetDir + PathDelim + 'icon_512x512.png']);
+  RunCommandSimple(TempPath, 'sips', ['-z', '1024', '1024', PngFile, '--out', IconsetDir + PathDelim + 'icon_512x512@2x.png']);
 
   RunCommandSimple(TempPath, 'iconutil', ['-c', 'icns', Project.Name + '.iconset']);
 
