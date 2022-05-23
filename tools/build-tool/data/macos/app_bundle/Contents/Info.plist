@@ -15,7 +15,7 @@
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleSignature</key>
-  <string>view</string>
+  <string>${APPLE_BUNDLE_SIGNATURE}</string>
   <key>CFBundleShortVersionString</key>
   <string>${VERSION}</string>
   <key>CFBundleVersion</key>

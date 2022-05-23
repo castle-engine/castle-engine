@@ -73,6 +73,13 @@ begin
   Result := TempPath + Project.Name + '.icns';
 end;
 
+{ Create App Bundle to run on macOS, with reliable input, menu etc.
+
+  See
+  https://wiki.freepascal.org/Application_Bundle
+  https://wiki.freepascal.org/macOS_property_list_files
+  https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html
+}
 procedure CreateAppBundle(const Project: TCastleProject; const SymlinkToFiles: Boolean;
   out ExeInBundle: String);
 
@@ -118,6 +125,9 @@ begin
     RemoveNonEmptyDir(OutputBundlePath);
 
   Project.ExtractTemplate('macos/app_bundle', OutputBundlePath);
+
+  // check Info.plist correctness, following https://wiki.freepascal.org/macOS_property_list_files
+  RunCommandSimple('plutil', [OutputBundlePath + 'Contents' + PathDelim + 'Info.plist']);
 
   OutputBundleExePath := OutputBundlePath +
     'Contents' + PathDelim + 'MacOS' + PathDelim;
