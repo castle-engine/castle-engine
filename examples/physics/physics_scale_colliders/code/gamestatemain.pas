@@ -48,7 +48,8 @@ uses SysUtils;
 
 procedure TStateMain.ClickScaleAll(Sender: TObject);
 begin
-  TransformAll.Scale := Vector3(0.5, 0.5, 0.5);
+  //TransformAll.Scale := Vector3(0.5, 0.5, 0.5);
+  TransformAll.Scale := Vector3(1.5, 1.5, 1.5);
 end;
 
 procedure TStateMain.ClickScaleGreenSphere(Sender: TObject);
@@ -58,7 +59,11 @@ end;
 
 procedure TStateMain.ClickScaleRedBox(Sender: TObject);
 begin
-  RedBox.Scale := Vector3(3,1,1);
+  //RedBox.Scale := Vector3(0.9,0.3,0.4);
+  //RedBox.Scale := Vector3(3,3,3);
+  //RedBox.Scale := Vector3(0.6,0.3,0.3);
+  RedBox.Scale := Vector3(3,3,3);
+  //RedBox.Scale := Vector3(0.6,5.3,0.3);
 end;
 
 procedure TStateMain.ChangeUpdateCollidersAtRuntime(Sender: TObject);
