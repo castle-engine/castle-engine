@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2019 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
   Parts of this file are based on FPC packages/fcl-process/src/process.pp ,
@@ -229,7 +229,7 @@ begin
       This makes detection in case of CGE editor work OK. }
     {$ifdef DARWIN}
     if BundlePath <> '' then
-      ToolDir := ExclPathDelim(BundlePath);
+      ToolDir := ExtractFileDir(ExclPathDelim(BundlePath));
     {$endif}
 
     { Check ../ of current exe, makes sense in released CGE version when
