@@ -71,7 +71,7 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 2.0000000000000000E+000,
+                "AngularVelocityDamp" : 3.0000000000000000E+000,
                 "Gravity" : false,
                 "LinearVelocityDamp" : 1.0000000000000000E+000,
                 "LockRotation" : [
@@ -85,15 +85,37 @@
               },
               {
                 "$$ClassName" : "TCastleBoxCollider",
-                "Friction" : 1.0000000149011612E-001,
+                "AutoSize" : false,
+                "Friction" : 5.0000000745058060E-002,
                 "Mass" : 1.0000000000000000E+000,
-                "Name" : "BoxCollider1"
+                "Name" : "BoxCollider1",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Y" : 1.0000000000000000E+000
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 9.4999998807907104E-001,
+                  "Y" : 9.4999998807907104E-001,
+                  "Z" : 9.4999998807907104E-001
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.4800000000000000E+002,
+                  "Y" : 2.7900000000000000E+002
+                }
               }
             ]
           },
           {
             "$$ClassName" : "TCastleImageTransform",
             "Name" : "Asteroid",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.5000000000000000E-001,
+              "Y" : 2.5000000000000000E-001,
+              "Z" : 2.5000000000000000E-001
+            },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : 1.0371752929687500E+003,
@@ -117,6 +139,7 @@
               },
               {
                 "$$ClassName" : "TCastleSphereCollider",
+                "Mode2D" : true,
                 "Name" : "SphereCollider1"
               }
             ]
@@ -140,6 +163,7 @@
               {
                 "$$ClassName" : "TCastleSphereCollider",
                 "Mass" : 5.0000000000000000E-001,
+                "Mode2D" : true,
                 "Name" : "SphereCollider2"
               },
               {
@@ -177,6 +201,7 @@
               {
                 "$$ClassName" : "TCastleSphereCollider",
                 "Mass" : 5.0000000000000000E-001,
+                "Mode2D" : true,
                 "Name" : "SphereCollider3"
               },
               {
@@ -214,6 +239,7 @@
               {
                 "$$ClassName" : "TCastleSphereCollider",
                 "Mass" : 5.0000000000000000E-001,
+                "Mode2D" : true,
                 "Name" : "SphereCollider4"
               },
               {
@@ -251,6 +277,7 @@
               {
                 "$$ClassName" : "TCastleSphereCollider",
                 "Mass" : 5.0000000000000000E-001,
+                "Mode2D" : true,
                 "Name" : "SphereCollider5"
               },
               {
@@ -288,6 +315,7 @@
               {
                 "$$ClassName" : "TCastleSphereCollider",
                 "Mass" : 5.0000000000000000E-001,
+                "Mode2D" : true,
                 "Name" : "SphereCollider6"
               },
               {
@@ -325,6 +353,7 @@
               {
                 "$$ClassName" : "TCastleSphereCollider",
                 "Mass" : 5.0000000000000000E-001,
+                "Mode2D" : true,
                 "Name" : "SphereCollider7"
               },
               {
@@ -362,6 +391,7 @@
               {
                 "$$ClassName" : "TCastleSphereCollider",
                 "Mass" : 5.0000000000000000E-001,
+                "Mode2D" : true,
                 "Name" : "SphereCollider8"
               },
               {
@@ -412,6 +442,7 @@
               },
               {
                 "$$ClassName" : "TCastleSphereCollider",
+                "Mode2D" : true,
                 "Name" : "SphereCollider9"
               }
             ]
