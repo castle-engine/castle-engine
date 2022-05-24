@@ -342,9 +342,10 @@
   TCastleSphereCollider = class(TCastleCollider)
   strict private
     FRadius: Single;
-    FSetup2D: Boolean;
+    FMode2D: Boolean;
 
     procedure SetRadius(const AValue: Single);
+    procedure SetMode2D(const AValue: Boolean);
 
   private
     class procedure CreateComponent2D(Sender: TObject);
@@ -359,12 +360,12 @@
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Prepare collider for 2D, currently only change the way auto size
-      is calculated. }
-    procedure Setup2D;
-
   published
     property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
+
+    { Determines how to treat collider, currently change the way auto size
+      and scale is calculated. }
+    property Mode2D: Boolean read FMode2D write SetMode2D default false;
   end;
 
   { Collide as a capsule.
@@ -384,10 +385,11 @@
   strict private
     FRadius: Single;
     FHeight: Single;
-    FSetup2D: Boolean;
+    FMode2D: Boolean;
 
     procedure SetRadius(const AValue: Single);
     procedure SetHeight(const AValue: Single);
+    procedure SetMode2D(const AValue: Boolean);
 
   private
     class procedure CreateComponent2D(Sender: TObject);
@@ -400,12 +402,13 @@
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Prepare collider for 2D, currently only change the way auto size
-      is calculated. }
-    procedure Setup2D;
   published
     property Radius: Single read FRadius write SetRadius stored StoredWithAutoSize;
     property Height: Single read FHeight write SetHeight stored StoredWithAutoSize;
+
+    { Determines how to treat collider, currently change the way auto size
+      and scale is calculated. }
+    property Mode2D: Boolean read FMode2D write SetMode2D default false;
   end;
 
   TCollisionEvent = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
@@ -872,14 +875,21 @@ end;
 
 class procedure TCastleCapsuleCollider.CreateComponent2D(Sender: TObject);
 begin
-  (Sender as TCastleCapsuleCollider).Setup2D;
+  (Sender as TCastleCapsuleCollider).Mode2D := true;
 end;
 
 function TCastleCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
-  Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
-    FRadius * FLastUsedWorldScale.X * FScale.X, FHeight * FLastUsedWorldScale.Y * FScale.Y);
+  if FMode2D then
+    Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
+      FRadius * FLastUsedWorldScale.X * FScale.X,
+      FHeight * FLastUsedWorldScale.Y * FScale.Y)
+  else
+    Result := TKraftShapeCapsule.Create(APhysics, ARigidBody,
+      FRadius * Max(FLastUsedWorldScale.X, FLastUsedWorldScale.Z) *
+      Max(FScale.X, FScale.Y),
+      FHeight * FLastUsedWorldScale.Y * FScale.Y);
 end;
 
 procedure TCastleCapsuleCollider.CalculateAutoSize;
@@ -896,7 +906,7 @@ begin
 
   LocalBoundingBox := Parent.LocalBoundingBox;
 
-  if FSetup2D then
+  if FMode2D then
     Radius := LocalBoundingBox.SizeX * 0.50
   else
     Radius := ((LocalBoundingBox.SizeX * 0.50) + (LocalBoundingBox.SizeZ * 0.50)) / 2;
@@ -915,6 +925,7 @@ function TCastleCapsuleCollider.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'AutoSize') or
+     (PropertyName = 'Mode2D') or
      (PropertyName = 'Height') or
      (PropertyName = 'Radius') then
     Result := [psBasic]
@@ -922,11 +933,11 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TCastleCapsuleCollider.Setup2D;
+procedure TCastleCapsuleCollider.SetMode2D(const AValue: Boolean);
 begin
-  if not FSetup2D then
+  if FMode2D <> AValue then
   begin
-    FSetup2D := true;
+    FMode2D := AValue;
     DoAutoSize;
   end;
 end;
@@ -1591,13 +1602,19 @@ function TCastleSphereCollider.CreateKraftShape(const APhysics: TKraft;
 begin
   { Scale support: There is no good way to do it, so I took the Unity solution,
     we take the largest value. }
-  Result := TKraftShapeSphere.Create(APhysics, ARigidBody,
-    FRadius * FLastUsedWorldScale.Max * FScale.Max);
+
+  if FMode2D then
+    Result := TKraftShapeSphere.Create(APhysics, ARigidBody,
+      FRadius * Max(FLastUsedWorldScale.X, FLastUsedWorldScale.Y) *
+      Max(FScale.X, FScale.Y))
+  else
+    Result := TKraftShapeSphere.Create(APhysics, ARigidBody,
+      FRadius * FLastUsedWorldScale.Max * FScale.Max);
 end;
 
 class procedure TCastleSphereCollider.CreateComponent2D(Sender: TObject);
 begin
-  (Sender as TCastleSphereCollider).Setup2D;
+  (Sender as TCastleSphereCollider).Mode2D := true;
 end;
 
 procedure TCastleSphereCollider.CalculateAutoSize;
@@ -1612,7 +1629,7 @@ begin
   end;
 
   LocalBoundingBox := Parent.LocalBoundingBox;
-  if FSetup2D then
+  if FMode2D then
     Radius := LocalBoundingBox.AverageSize2D(false, 2, 2) / 2
   else
     Radius := LocalBoundingBox.AverageSize(false, 2) / 2;
@@ -1626,17 +1643,18 @@ function TCastleSphereCollider.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if (PropertyName = 'AutoSize') or
+     (PropertyName = 'Mode2D') or
      (PropertyName = 'Radius') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TCastleSphereCollider.Setup2D;
+procedure TCastleSphereCollider.SetMode2D(const AValue: Boolean);
 begin
-  if not FSetup2D then
+  if FMode2D <> AValue then
   begin
-    FSetup2D := true;
+    FMode2D := AValue;
     DoAutoSize;
   end;
 end;
