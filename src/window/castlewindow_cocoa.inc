@@ -20,22 +20,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ TODO p1:
-  - run through app bundle automatically?
-    make "castle-engine run" just work
-
-    Hm, made bundle, but running it fails.
-    (with both our methods). From CLI build tool, from CGE editor.
-
-    Somehow Lazarus runs bundles reliably?
-
-    bundle also:
-    - misses proper icon?
-    - use Caption instead of project Name to show it?
-
-  TODO p2:
-  - FileDialog etc. do not work (either use Cocoa native, or use CastleMessages as temp)
-  - browse TODO here for easy stuff to be plugged, like SetCursor or updating caption
+{ TODO p2:
+  - bundle: use Caption instead of project Name to show bundle?
+  - restore main menu - why does it crash?
+    Somehow Lazarus runs the application with same menu OK.
+  - "castle-engine run" using symlinks, at least for data? or relying on data as sibling?
+  - FileDialog, ColorDialog
+  - SetCursor
+  - update caption at runtime
+  - browse TODO here for easy stuff to be plugged
   - fullscreen: should be on top of dock / menu
   - menu implement, with key shortcuts
   - submit PR for GLPT:
@@ -1037,6 +1030,7 @@ procedure TCastleApplication.CreateBackend;
     appleMenu: NSMenu;
     windowMenu: NSMenu;
   begin
+    Exit; // TODO: this causes a crash when running through "castle-engine run"
 
     // main menu
     mainMenu := NSMenu.alloc.init.autorelease;
