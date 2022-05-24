@@ -1238,7 +1238,10 @@ begin
   begin
     bundle := CFBundleGetMainBundle();
     if bundle = nil then
-      BundlePathCache := '' else
+    begin
+      BundlePathCache := '';
+      WritelnLog('We cannot detect our macOS AppBundle. Probably the application was run directly (like a Unix application, without being wrapped in a directory like "xxx.app"). Some GUI features (like application menu) will not work without running through AppBundle.');
+    end else
     begin
       pathRef := CFBundleCopyBundleURL(bundle);
       pathCFStr := CFURLCopyFileSystemPath(pathRef, kCFURLPOSIXPathStyle);
