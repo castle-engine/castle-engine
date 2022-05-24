@@ -139,6 +139,7 @@ begin
 
   ExeInBundle := OutputBundleExePath + Project.ExecutableName;
   CopyOrSymlinkFile(Project.Path + Project.ExecutableName, ExeInBundle);
+  DoMakeExecutable(ExeInBundle);
 
   IconIcns := Project.Icons.FindExtension(['.icns']);
   if IconIcns = '' then
