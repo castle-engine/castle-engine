@@ -24,7 +24,6 @@
   - bundle: use Caption instead of project Name to show bundle?
   - restore main menu - why does it crash?
     Somehow Lazarus runs the application with same menu OK.
-  - "castle-engine run" using symlinks, at least for data? or relying on data as sibling?
   - FileDialog, ColorDialog
   - SetCursor
   - update caption at runtime
@@ -36,6 +35,7 @@
     - attributes size must be 32, 4 is too small to sometimes fit!
   - castle-engine run shorter output -- sips is too talkative.
     Maybe even remove sips? We can resize PNG on our side.
+  - use AppBundle for "castle-engine package" too
 
   testing
   cd ~/sources/castle-engine/view3dscene/macosx
