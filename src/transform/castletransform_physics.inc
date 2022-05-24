@@ -2349,15 +2349,11 @@ begin
   begin
     TransformationFromKraft;
     SynchronizeFromKraft; // I think its only required for dynamic bodies.
-  end else
-  if Animated then
-  begin
-    // TODO: check "if TransformChanged then" or such, don't do this every frame
-    FKraftBody.SetWorldTransformation(MatrixToKraft(Parent.WorldTransform))
+  end
 
-    // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
-    // or will this require recreating rigid body?
-  end;
+  { Animated: I think we don't need do anything here becouse when
+      TCastleTransform transformation changes SetWorldTransformation() is
+      called in TCastleTransform.ChangedTransform. }
 end;
 
 function TCastleRigidBody.CanAttachToParent(const NewParent: TCastleTransform;
