@@ -923,19 +923,21 @@ procedure TCastleProject.DoRun(const Target: TTarget;
       Writeln('Running on macOS using temporary AppBundle');
       CreateAppBundle(Self, true, ExeInBundle);
 
-      { We need to really execute bundle using "open".
-        Otherwise 1st execution of the application fails, as we cannot find "data",
-        as BundlePath inside the application will just return path.
-
       RunWorkingDir := ExtractFilePath(ExeInBundle);
       ExeName := ExeInBundle;
-      }
+
+      { Executing using "open" is also a reasonable option, this simulates more what Finder
+        is doing when double-clicking the application.
+        However
+        - it doesn't seem to have any benefit for us, over executing ExeInBundle directly
+        - it doesn't capture the stdout/stderr of the application.
 
       ExeName := 'open';
       NewParams.Insert(0, '--new');
       NewParams.Insert(1, '--wait-apps');
       NewParams.Insert(2, TempOutputPath(Path) + 'macos' + PathDelim + Name + '.app');
       NewParams.Insert(3, '--args');
+      }
     end;
   end;
 
