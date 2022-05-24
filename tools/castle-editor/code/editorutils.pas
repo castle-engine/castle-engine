@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -231,7 +231,7 @@ implementation
 uses SysUtils, Dialogs, Graphics, TypInfo, Generics.Defaults,
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
-  ToolCompilerInfo;
+  ToolCompilerInfo, ToolCommonUtils;
 
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
 begin
@@ -375,6 +375,17 @@ begin
     It seems more reliable to just add them to PATH. }
   Environment.Values['PATH'] := PathExtendForFpcLazarus(Environment.Values['PATH']);
   WritelnLog('Calling process with extended PATH: ' + Environment.Values['PATH']);
+
+  { Pass CASTLE_ENGINE_PATH to build tool, to use the same CGE as detected by editor.
+    This means that e.g. editor that autodetects CGE (based on GetCastleEnginePathFromExeName,
+    because editor exe is in <cge>/tools/castle-editor/castle-editor)
+    invokes build tool in local bin (like ~/bin)
+    and the build tool uses the same <cge> as detected by editor. }
+  if CastleEnginePath <> '' then
+  begin
+    Environment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
+    WritelnLog('Calling process with extended CASTLE_ENGINE_PATH: ' + Environment.Values['CASTLE_ENGINE_PATH']);
+  end;
 
   { create Process and call Process.Execute }
   Process := TProcess.Create(nil);
