@@ -507,6 +507,19 @@ var
     end;
   end;
 
+  procedure AddMacOSOptions;
+  begin
+    if (Options.OS = darwin) and (Options.CPU = X86_64) then
+    begin
+      // Lazarus passes such options to compile with Cocoa, so we do too. Do not seem necessary in practice.
+      FpcOptions.Add('-k-framework');
+      FpcOptions.Add('-kCocoa');
+      // TODO: Lazarus proposes such debugger options; should we pass them too? Why aren't they FPC defaults?
+      // FpcOptions.Add('-gw2');
+      // FpcOptions.Add('-godwarfsets');
+    end;
+  end;
+
   procedure AddDefines;
   var
     S: String;
@@ -722,6 +735,7 @@ begin
     end;
 
     AddIOSOptions;
+    AddMacOSOptions;
     AddDefines;
     FpcOptions.AddRange(Options.ExtraOptions);
 
