@@ -65,7 +65,9 @@ type
     FBaseUrl: string;
   public
     property BaseUrl: string read FBaseUrl write FBaseUrl;
-    { Find image with given extension, or '' if not found. }
+    { Find image with given extension, or '' if not found.
+      Note that the returned image filename is relative to project path,
+      usually you should process it like @code(IconPath := CombinePaths(Project.Path, IconPath)). }
     function FindExtension(const Extensions: array of string): string;
     { Find and read an image format that we can process with our CastleImages.
       Try to read it to a class that supports nice-quality resizing (TResizeInterpolationFpImage).
