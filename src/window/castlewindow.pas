@@ -295,6 +295,7 @@ unit CastleWindow;
 
 {$ifdef CASTLE_WINDOW_COCOA}
   {$modeswitch objectivec1}
+  {$modeswitch cblocks}
 {$endif}
 
 interface
