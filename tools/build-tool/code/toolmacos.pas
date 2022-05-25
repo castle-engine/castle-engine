@@ -134,7 +134,7 @@ var
 begin
   { create clean OutputBundlePath }
   OutputBundlePath := TempOutputPath(Project.Path) +
-    'macos' + PathDelim + Project.Name + '.app' + PathDelim;
+    'macos' + PathDelim + Project.Caption + '.app' + PathDelim;
   if DirectoryExists(OutputBundlePath) then
     RemoveNonEmptyDir(OutputBundlePath);
 

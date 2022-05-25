@@ -6,8 +6,8 @@
   <string>English</string>
   <key>CFBundleExecutable</key>
   <string>${EXECUTABLE_NAME}</string>
-  <key>CFBundleName</key>
-  <string>${NAME}</string>
+  <key>CFBundleDisplayName</key>
+  <string>${CAPTION}</string>
   <key>CFBundleIdentifier</key>
   <string>${QUALIFIED_NAME}</string>
   <key>CFBundleInfoDictionaryVersion</key>
