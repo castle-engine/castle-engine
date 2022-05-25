@@ -21,7 +21,6 @@
 }
 
 { TODO p2:
-  - bundle: use Caption instead of project Name to show bundle?
   - restore main menu - why does it crash?
     Somehow Lazarus runs the application with same menu OK.
   - FileDialog, ColorDialog
