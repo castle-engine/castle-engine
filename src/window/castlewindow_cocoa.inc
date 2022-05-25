@@ -33,10 +33,6 @@
     - wglpt -> want
     - attributes size must be 32, 4 is too small to sometimes fit!
   - use AppBundle for "castle-engine package" too
-  - avoid deprecated warnings
-    castlewindow_cocoa.inc(211,68) Warning: Symbol "stringWithCString_length" is deprecated: "in 10_0, 10_4, 2_0, 2_0"
-    castlewindow_cocoa.inc(884,66) Warning: Symbol "beginSheetModalForWindow_modalDelegate_didEndSelector_contextInfo" is deprecated: "in 10_3, 10_10, "Use -beginSheetModalForWindow:completionHandler: instead""
-    castlewindow_cocoa.inc(1088,23) Warning: Symbol "terminate" is deprecated: "in 10_0, 10_6"
   - avoid deprecated warnings at assembling
     Assembling castlewindow
     /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263336:10: warning: section "__datacoal_nt" is deprecated
@@ -51,6 +47,9 @@
     /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263484:10: note: change section name to "__data"
     .section __DATA, __datacoal_nt, coalesced
              ^      ~~~~~~~~~~~~~~
+    Unknown how to deal with it.
+    https://wiki.lazarus.freepascal.org/Mac_Installation_FAQ#Lazarus_reports_success.2C_but_there_are_errors.21
+    mentions it, without any answer except "ignore them"..
   - entering modal message leaves the key pressed down, testcase: test_all_state_events, press Q
   - hiding cursor doesn't work for unknown reason
 }
@@ -220,11 +219,6 @@ type
   NSFileManager_Additions = objccategory external (NSFileManager)
     function createDirectoryAtURL_withIntermediateDirectories_attributes_error (url: NSURL; createIntermediates: boolean; attributes: NSDictionary; error: NSErrorPtr): boolean; message 'createDirectoryAtURL:withIntermediateDirectories:attributes:error:'; { available in 10_7, 5_0 }
   end;
-
-function NSSTR(str: string): NSString; overload;
-begin
-  result := NSString.stringWithCString_length(@str[1], length(str));
-end;
 
 {=============================================}
 {@! ___BORDERLESS WINDOW___ }
@@ -874,47 +868,19 @@ end;
 
 { TCastleWindow dialogs -------------------------------------------------- }
 
-type
-  TCocoaSheetDelegate = objcclass(NSObject)
-  public
-    ended: Boolean;
-    retCode: NSInteger;
-    procedure alertDidEnd(alert:NSAlert; returncode: NSInteger; contextInfo: Pointer); message 'alertDidEnd:::';
-  end;
-
-procedure TCocoaSheetDelegate.alertDidEnd(alert:NSAlert;
-  returncode: NSInteger; contextInfo: Pointer);
-begin
-  ended := true;
-  retCode := returnCode;
-end;
-
-{ Run anAlert until it ends, or application ends.
-  Returns -1 if application ends, or the tag of button that closed the alert. }
-function RunSheetAsModal(const anAlert: NSAlert; const ownerWindow: NSWindow): NSInteger;
 var
-  alertDel: TCocoaSheetDelegate;
+  AlertEnded: Boolean;
+  AlertResultCode: NSModalResponse;
+
+procedure AlertCompletionHandler(ResultCode: NSModalResponse);
+  {cdecl; No need to change calling convention, looking at examples}
 begin
-  alertDel := TCocoaSheetDelegate.alloc.init;
-  try
-    alertDel.retCode := -1;
-    anAlert.beginSheetModalForWindow_modalDelegate_didEndSelector_contextInfo(
-      ownerWindow, alertDel, ObjCSelector('alertDidEnd:::'), nil);
-
-    while not alertDel.ended do
-      if not Application.ProcessMessage(true, true) then
-        Break;
-
-    Result := alertDel.retCode;
-
-    { Make the ownerWindow again receive keys, otherwise closing the dialog
-      with key makes weird experience -- further key presses will not be send
-      to the application window you're looking at. }
-    ownerWindow.makeKeyAndOrderFront(nil);
-  finally
-    alertDel.release;
-  end;
+  AlertEnded := true;
+  AlertResultCode := ResultCode;
 end;
+
+type
+  TAlertCompletionHandler = reference to procedure(ResultCode: NSModalResponse); cdecl; cblock;
 
 { Show Cocoa modal message box.
 
@@ -932,7 +898,7 @@ end;
 
   @param(ButtonResults Array of button result values. May have equal length as ButtonCaptions.)
 
-  @param(sheetOfWindow Shows the prompt as a sheet to the specified NSWindow.)
+  @param(ParentWindow Shows the prompt as a sheet to the specified NSWindow.)
 
   @returns(The value from ButtonResults corresponding to the button that was pressed.
     Returns -1 if application ended while the message was active.) }
@@ -941,17 +907,15 @@ function CocoaPromptUser(const DialogCaption : string;
   const AlertStyle: NSAlertStyle;
   const ButtonCaptions: array of String;
   const ButtonResults: array of NSInteger;
-  const sheetOfWindow : NSWindow): NSInteger;
+  const ParentWindow : NSWindow): NSInteger;
 var
   anAlert: NSAlert;
   informativeText: NSString;
   messageText: NSString;
   I: Integer;
   aButton: NSButton;
-  Str: string;
-  isMenuOn: Boolean;
 begin
-  Assert(sheetOfWindow <> nil);
+  Assert(ParentWindow <> nil);
   Assert(High(ButtonCaptions) = High(ButtonResults));
   Assert(High(ButtonCaptions) >= 0);
 
@@ -985,10 +949,35 @@ begin
       aButton.setTag(ButtonResults[I]);
     end;
 
-    Result := RunSheetAsModal(anAlert, sheetOfWindow);
+    AlertResultCode := -1;
+    AlertEnded := false;
+
+    { Using beginSheetModalForWindow_completionHandler with callback
+      based on https://wiki.freepascal.org/macOS_NSAlert
+
+      This requires casting AlertCompletionHandler to "cblock", see
+      https://forum.lazarus.freepascal.org/index.php?topic=57724.0
+        The OpaqueCBlocks predated FPC support for cblocks. So they're basically untyped parameters used as placeholders for cblock parameters.
+      https://wiki.freepascal.org/FPC_New_Features_3.2.0#Support_for_interfacing_with_C_blocks_functionality
+    }
+
+    anAlert.beginSheetModalForWindow_completionHandler(ParentWindow,
+      TAlertCompletionHandler(@AlertCompletionHandler));
+
+    while not AlertEnded do
+      if not Application.ProcessMessage(true, true) then
+        Break;
+
+    if AlertEnded then
+      Result := AlertResultCode;
   finally
     AnAlert.release;
   end;
+
+  { Make the ParentWindow again receive keys, otherwise closing the dialog
+    with key makes weird experience -- further key presses will not be send
+    to the application window you're looking at. }
+  ParentWindow.makeKeyAndOrderFront(nil);
 end;
 
 const
@@ -1103,7 +1092,8 @@ end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  NSApp.terminate(nil);
+  // This is deprecated, and seems to do nothing for us, we call this when windows are already closed.
+  //  NSApp.terminate(nil);
 end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
