@@ -37,14 +37,27 @@ uses {$ifdef UNIX} BaseUnix, {$endif} SysUtils,
   CastleFilesUtils, CastleLog, CastleImages,
   ToolArchitectures, ToolCommonUtils, ToolUtils, ToolEmbeddedImages;
 
-{ Turn a PNG -> ICNS.
+procedure SaveResized(const Image: TCastleImage; const Size: Integer; const OutputFileName: string);
+var
+  R: TCastleImage;
+begin
+  R := Image.MakeResized(Size, Size, BestInterpolation);
+  try
+    SaveImage(R, OutputFileName);
+  finally FreeAndNil(R) end;
+end;
+
+{ Turn a TCastleImage -> ICNS.
 
   Based on
   https://www.codingforentrepreneurs.com/blog/create-icns-icons-for-macos-apps/
   https://stackoverflow.com/questions/12306223/how-to-manually-create-icns-files-using-iconutil/20703594#20703594
   https://gist.github.com/jamieweavis/b4c394607641e1280d447deed5fc85fc
+
+  We don't use sips, ImageMagick etc., instead process image using our TCastleImage.
+  This way we control the resize quality and the output messages.
 }
-function PngToIcns(const Project: TCastleProject; const PngFile: String): String;
+function ImageToIcns(const Project: TCastleProject; const Image: TCastleImage): String;
 var
   TempPath, IconsetDir: String;
 begin
@@ -57,16 +70,16 @@ begin
   IconsetDir := TempPath + Project.Name + '.iconset';
   ForceDirectories(IconsetDir);
 
-  RunCommandSimple(TempPath, 'sips', ['-z', '16'  , '16'  , PngFile, '--out', IconsetDir + PathDelim + 'icon_16x16.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '32'  , '32'  , PngFile, '--out', IconsetDir + PathDelim + 'icon_16x16@2x.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '32'  , '32'  , PngFile, '--out', IconsetDir + PathDelim + 'icon_32x32.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '64'  , '64'  , PngFile, '--out', IconsetDir + PathDelim + 'icon_32x32@2x.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '128' , '128' , PngFile, '--out', IconsetDir + PathDelim + 'icon_128x128.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '256' , '256' , PngFile, '--out', IconsetDir + PathDelim + 'icon_128x128@2x.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '256' , '256' , PngFile, '--out', IconsetDir + PathDelim + 'icon_256x256.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '512' , '512' , PngFile, '--out', IconsetDir + PathDelim + 'icon_256x256@2x.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '512' , '512' , PngFile, '--out', IconsetDir + PathDelim + 'icon_512x512.png']);
-  RunCommandSimple(TempPath, 'sips', ['-z', '1024', '1024', PngFile, '--out', IconsetDir + PathDelim + 'icon_512x512@2x.png']);
+  SaveResized(Image,   16, IconsetDir + PathDelim + 'icon_16x16.png');
+  SaveResized(Image,   32, IconsetDir + PathDelim + 'icon_16x16@2x.png');
+  SaveResized(Image,   32, IconsetDir + PathDelim + 'icon_32x32.png');
+  SaveResized(Image,   64, IconsetDir + PathDelim + 'icon_32x32@2x.png');
+  SaveResized(Image,  128, IconsetDir + PathDelim + 'icon_128x128.png');
+  SaveResized(Image,  256, IconsetDir + PathDelim + 'icon_128x128@2x.png');
+  SaveResized(Image,  256, IconsetDir + PathDelim + 'icon_256x256.png');
+  SaveResized(Image,  512, IconsetDir + PathDelim + 'icon_256x256@2x.png');
+  SaveResized(Image,  512, IconsetDir + PathDelim + 'icon_512x512.png');
+  SaveResized(Image, 1024, IconsetDir + PathDelim + 'icon_512x512@2x.png');
 
   RunCommandSimple(TempPath, 'iconutil', ['-c', 'icns', Project.Name + '.iconset']);
 
@@ -117,6 +130,7 @@ procedure CreateAppBundle(const Project: TCastleProject; const SymlinkToFiles: B
 
 var
   OutputBundlePath, OutputBundleExePath, OutputBundleResourcesPath, IconIcns, IconPng: String;
+  LoadedIcon: TCastleImage;
 begin
   { create clean OutputBundlePath }
   OutputBundlePath := TempOutputPath(Project.Path) +
@@ -126,8 +140,10 @@ begin
 
   Project.ExtractTemplate('macos/app_bundle', OutputBundlePath);
 
-  // check Info.plist correctness, following https://wiki.freepascal.org/macOS_property_list_files
-  RunCommandSimple('plutil', [OutputBundlePath + 'Contents' + PathDelim + 'Info.plist']);
+  { Check Info.plist correctness, following https://wiki.freepascal.org/macOS_property_list_files.
+    See https://www.unix.com/man-page/osx/1/plutil/ for command-line options:
+    -s means "Don't print anything on success." }
+  RunCommandSimple('plutil', ['-s', OutputBundlePath + 'Contents' + PathDelim + 'Info.plist']);
 
   OutputBundleExePath := OutputBundlePath +
     'Contents' + PathDelim + 'MacOS' + PathDelim;
@@ -142,16 +158,23 @@ begin
   DoMakeExecutable(ExeInBundle);
 
   IconIcns := Project.Icons.FindExtension(['.icns']);
-  if IconIcns = '' then
+  if IconIcns <> '' then
+  begin
+    { Icons.FindExtension is relative to project path,
+      we need absolute path -- as current dir may not be project path,
+      and also for symlink we need absolute path. }
+    IconIcns := CombinePaths(Project.Path, IconIcns);
+  end else
   begin
     IconPng := Project.Icons.FindExtension(['.png']);
-    if IconPng = '' then
+    if IconPng <> '' then
     begin
-      WritelnWarning('No icon in ICNS or PNG format found, using default Castle Game Engine icon.');
-      IconPng := TempOutputPath(Project.Path) + 'macos' + PathDelim + 'cge_icon.png';
-      SaveImage(DefaultIcon, IconPng);
-    end;
-    IconIcns := PngToIcns(Project, IconPng);
+      LoadedIcon := LoadImage(IconPng);
+      try
+        IconIcns := ImageToIcns(Project, LoadedIcon);
+      finally FreeAndNil(LoadedIcon) end;
+    end else
+      IconIcns := ImageToIcns(Project, DefaultIcon);
   end;
   CopyOrSymlinkFile(IconIcns, OutputBundleResourcesPath + Project.Name + '.icns');
 

@@ -33,8 +33,6 @@
   - submit PR for GLPT:
     - wglpt -> want
     - attributes size must be 32, 4 is too small to sometimes fit!
-  - castle-engine run shorter output -- sips is too talkative.
-    Maybe even remove sips? We can resize PNG on our side.
   - use AppBundle for "castle-engine package" too
 
   testing
