@@ -20,24 +20,39 @@
   ----------------------------------------------------------------------------
 }
 
-{ TODO p2:
+{ TODO p1:
+  - FileDialog, ColorDialog
   - restore main menu - why does it crash?
     Somehow Lazarus runs the application with same menu OK.
-  - FileDialog, ColorDialog
-  - SetCursor
-  - update caption at runtime
-  - browse TODO here for easy stuff to be plugged
   - fullscreen: should be on top of dock / menu
+
+  TODO p2:
+  - update caption at runtime
   - menu implement, with key shortcuts
   - submit PR for GLPT:
     - wglpt -> want
     - attributes size must be 32, 4 is too small to sometimes fit!
   - use AppBundle for "castle-engine package" too
-
-  testing
-  cd ~/sources/castle-engine/view3dscene/macosx
-  ./pack_macosx.sh
-  ./view3dscene.app/Contents/MacOS/view3dscene ../../castle-engine/examples/viewport_and_scenes/shader_effects/data/knight/knight.gltf
+  - avoid deprecated warnings
+    castlewindow_cocoa.inc(211,68) Warning: Symbol "stringWithCString_length" is deprecated: "in 10_0, 10_4, 2_0, 2_0"
+    castlewindow_cocoa.inc(884,66) Warning: Symbol "beginSheetModalForWindow_modalDelegate_didEndSelector_contextInfo" is deprecated: "in 10_3, 10_10, "Use -beginSheetModalForWindow:completionHandler: instead""
+    castlewindow_cocoa.inc(1088,23) Warning: Symbol "terminate" is deprecated: "in 10_0, 10_6"
+  - avoid deprecated warnings at assembling
+    Assembling castlewindow
+    /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263336:10: warning: section "__datacoal_nt" is deprecated
+    .section __DATA, __datacoal_nt, coalesced
+             ^      ~~~~~~~~~~~~~~
+    /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263336:10: note: change section name to "__data"
+    .section __DATA, __datacoal_nt, coalesced
+             ^      ~~~~~~~~~~~~~~
+    /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263484:10: warning: section "__datacoal_nt" is deprecated
+    .section __DATA, __datacoal_nt, coalesced
+             ^      ~~~~~~~~~~~~~~
+    /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263484:10: note: change section name to "__data"
+    .section __DATA, __datacoal_nt, coalesced
+             ^      ~~~~~~~~~~~~~~
+  - entering modal message leaves the key pressed down, testcase: test_all_state_events, press Q
+  - hiding cursor doesn't work for unknown reason
 }
 
 {$ifdef read_interface_uses}
@@ -54,6 +69,8 @@ private
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
+private
+  CursorHidden: Boolean;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -643,42 +660,35 @@ end;
 
 procedure TCastleWindow.CreateBackend;
 begin
-  { TODO (initialize backend-specific per-window stuff; may do nothing) }
 end;
 
 procedure TCastleWindow.BackendMenuInitialize;
 begin
-  { TODO (may do nothing if you do not care about displaying menu) }
+  { TODO: implement menu on Cocoa }
 end;
 
 procedure TCastleWindow.BackendMenuFinalize;
 begin
-  { TODO (may do nothing if you do not care about displaying menu) }
+  { TODO: implement menu on Cocoa }
 end;
 
 procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
+  { TODO: implement menu on Cocoa faster, without reinitialize on update }
   MenuFinalize;
   MenuInitialize;
 end;
 
 procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
+  { TODO: implement menu on Cocoa faster, without reinitialize on update }
   MenuFinalize;
   MenuInitialize;
 end;
 
 procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
+  { TODO: implement menu on Cocoa faster, without reinitialize on update }
   MenuFinalize;
   MenuInitialize;
 end;
@@ -691,9 +701,7 @@ end;
 procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
+  { TODO: implement menu on Cocoa faster, without reinitialize on update }
   MenuFinalize;
   MenuInitialize;
 end;
@@ -701,9 +709,7 @@ end;
 procedure TCastleWindow.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
+  { TODO: implement menu on Cocoa faster, without reinitialize on update }
   MenuFinalize;
   MenuInitialize;
 end;
@@ -793,34 +799,56 @@ begin
 end;
 
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
+var
+  WantsCursorHidden: Boolean;
 begin
   if FCursor <> Value then
   begin
     FCursor := Value;
     if not Closed then
     begin
-      // TODO adjust below code from GLPT
-      {
-      case cursor of
-        GLPT_ARROW_CURSOR:
+      { To implement mcNone, mcForceNone we need to hide/unhide the cursor.
+        The calls to hide/unhide in Cocoa must be balanced, following docs,
+        so we use CursorHidden to know when they are actually necessary to call. }
+      WantsCursorHidden := Value in [mcNone, mcForceNone];
+      if Application.CursorHidden <> WantsCursorHidden then
+      begin
+        Application.CursorHidden := WantsCursorHidden;
+        // TODO: hiding cursor doesn't work for unknown reason
+        if Application.CursorHidden then
+          NSCursor.hide()
+        else
+          NSCursor.unhide();
+      end;
+
+      // Set Cocoa (global) cursor, see https://developer.apple.com/documentation/appkit/nscursor
+      case Value of
+        mcDefault:
           NSCursor.arrowCursor.set_;
-        GLPT_IBEAM_CURSOR:
+        mcNone, mcForceNone:
+          { do nothing here, without any warning };
+        mcText:
           NSCursor.IBeamCursor.set_;
-        GLPT_CROSSHAIR_CURSOR:
-          NSCursor.crosshairCursor.set_;
-        GLPT_HAND_CURSOR:
+        mcHand:
           NSCursor.openHandCursor.set_;
-        GLPT_HRESIZE_CURSOR:
+        mcResizeHorizontal:
           NSCursor.resizeLeftRightCursor.set_;
-        GLPT_VRESIZE_CURSOR:
+        mcResizeVertical:
           NSCursor.resizeUpDownCursor.set_;
-        otherwise
+        mcResizeLeft:
+          NSCursor.resizeLeftCursor.set_;
+        mcResizeRight:
+          NSCursor.resizeRightCursor.set_;
+        mcResizeTop:
+          NSCursor.resizeUpCursor.set_;
+        mcResizeBottom:
+          NSCursor.resizeDownCursor.set_;
+        else
           begin
             NSCursor.arrowCursor.set_;
-            glptError(GLPT_ERROR_PLATFORM, 'cursor is not supported, using GLPT_ARROW_CURSOR instead.');
+            WritelnWarning('Cursor %d not implemented on Cocoa', [Ord(Value)]);
           end;
       end;
-      }
     end;
   end;
 end;
