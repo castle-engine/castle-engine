@@ -65,6 +65,8 @@ CocoaAll,
 private
   ref: NSWindow;
   GLcontext: NSOpenGLContext;
+  procedure FullScreenBegin;
+  procedure FullScreenEnd;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -714,6 +716,53 @@ begin
   glcontext.flushBuffer;
 end;
 
+{ TODO:
+  This causes error from all examples:
+  EOpenGLError: End of TCastleWindow.DoRender
+  OpenGL error (1286): The command is trying to render to or read from the framebuffer while the currently bound framebuffer is not framebuffer complete (i.e. the return value from glCheckFramebufferStatus is not GL_FRAMEBUFFER_COMPLETE).
+}
+{.$define COCOA_FULL_SCREEN}
+
+procedure TCastleWindow.FullScreenBegin;
+{$ifdef COCOA_FULL_SCREEN}
+var
+  FullScreenOptions: NSDictionary;
+begin
+  { TODO: alternative:
+
+    if NSAppKitVersionNumber >= NSAppKitVersionNumber10_7 then
+    begin
+      if ref.collectionBehavior and (
+           NSWindowCollectionBehaviorFullScreenPrimary or
+           NSWindowCollectionBehaviorFullScreenAuxiliary
+         ) = 0 then
+        ref.setCollectionBehavior(ref.collectionBehavior or NSWindowCollectionBehaviorFullScreenPrimary);
+      ref.toggleFullScreen(nil);
+    end
+  }
+
+  { In Objective-C:
+      NSDictionary fullScreenOptions = [[NSDictionary dictionaryWithObject: [NSNumber numberWithBool: YES] forKey: NSFullScreenModeSetting] retain];
+    See https://thinkstack.wordpress.com/2015/12/19/full-screen-mode-for-cocoa-applications/
+  }
+  FullScreenOptions := NSDictionary.dictionaryWithObjectsAndKeys(
+    NSNumber.numberWithBool(true), NSFullScreenModeSetting,
+    nil);
+  FFullScreenBackend := ref.contentView.EnterFullScreenMode_withOptions(ref.screen, FullScreenOptions);
+  if not FFullScreenBackend then
+    WritelnWarning('Cannot enter full-screen mode');
+{$else}
+begin
+{$endif COCOA_FULL_SCREEN}
+end;
+
+procedure TCastleWindow.FullScreenEnd;
+begin
+{$ifdef COCOA_FULL_SCREEN}
+  ref.contentView.ExitFullScreenModeWithOptions(nil);
+{$endif COCOA_FULL_SCREEN}
+end;
+
 procedure TCastleWindow.OpenBackend;
 const
   NSWindowCollectionBehaviorFullScreenPrimary = 1 shl 7 { available in 10_7 };
@@ -749,6 +798,9 @@ begin
   openGLView := TOpenGLView.alloc.initWithFrame(window.contentView.bounds);
   window.setContentView(openGLView);
   openGLView.release;
+
+  if FullScreen then
+    FullScreenBegin;
 
   window.makeFirstResponder(openGLView);
 
@@ -860,10 +912,17 @@ end;
 
 procedure TCastleWindow.UpdateFullScreenBackend;
 begin
-  { This is the simplest implementation of this method: }
-  SimpleUpdateFullScreenBackend;
-  { Some backends may provide a better way of doing this.
-    Remove the above line then, and put better implementation here. }
+  if FFullScreenBackend <> FFullScreenWanted then
+  begin
+    if not Closed then
+    begin
+      if FFullScreenWanted then
+        FullScreenBegin
+      else
+        FullScreenEnd;
+    end else
+      FFullScreenBackend := FFullScreenWanted;
+  end;
 end;
 
 { ----------------------------------------------------------------------------
