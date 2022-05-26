@@ -2151,10 +2151,10 @@ type
       If user accepts, we return true and set Color accordingly, else
       we return false (and do not modify Color).
 
-      Some overloaded versions (the one with TCastleColor) specify a color with alpha,
-      but note that @italic(currently no implemetation allows
-      the user to adjust the color's alpha value).
-      Alpha always remains unchanged.
+      Overloaded version with TCastleColor specifies a color with alpha.
+      But it is implementation-specific whether backend actually allows
+      user to adjust alpha. Right now, none of the backends actually allow
+      to adjust alpha, so it remains unchanged.
 
       @groupBegin }
     function ColorDialog(var Color: TCastleColor): boolean; overload;
