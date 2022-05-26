@@ -2152,14 +2152,14 @@ type
       we return false (and do not modify Color).
 
       Overloaded version with TCastleColor specifies a color with alpha.
-      But it is implementation-specific whether backend actually allows
-      user to adjust alpha. Right now, none of the backends actually allow
-      to adjust alpha, so it remains unchanged.
+      But note that only some backends actually allow user to adjust alpha
+      (others leave alpha unchanged).
+      Backends that allow alpha editing now are: Cocoa, Xlib, GTK.
 
       @groupBegin }
-    function ColorDialog(var Color: TCastleColor): boolean; overload;
-    function ColorDialog(var Color: TVector3): boolean; overload;
-    function ColorDialog(var Color: TVector3Byte): boolean; overload;
+    function ColorDialog(var Color: TCastleColor): Boolean; overload;
+    function ColorDialog(var Color: TCastleColorRGB): Boolean; overload;
+    function ColorDialog(var Color: TVector3Byte): Boolean; overload;
     { @groupEnd }
 
     { Show some information and just ask to press "OK",
@@ -3670,26 +3670,27 @@ begin
   finally FreeAndNil(FFList) end;
 end;
 
-function TCastleWindow.ColorDialog(var Color: TCastleColor): boolean;
+function TCastleWindow.ColorDialog(var Color: TCastleColorRGB): boolean;
 var
-  Color3: TVector3;
+  Color4: TCastleColor;
 begin
-  Color3 := Color.XYZ;
-  Result := ColorDialog(Color3);
+  Color4 := Vector4(Color, 1);
+  Result := ColorDialog(Color4);
   if Result then
-    Color := Vector4(Color3, 1.0);
+    Color := Color4.RGB;
 end;
 
 function TCastleWindow.ColorDialog(var Color: TVector3Byte): boolean;
 var
-  ColorSingle: TVector3;
+  ColorSingle: TVector4;
 begin
   ColorSingle.X := Color.X / High(Byte);
   ColorSingle.Y := Color.Y / High(Byte);
   ColorSingle.Z := Color.Z / High(Byte);
+  ColorSingle.W := 1;
   Result := ColorDialog(ColorSingle);
   if Result then
-    Color := Vector3Byte(ColorSingle);
+    Color := Vector3Byte(ColorSingle.XYZ);
 end;
 
 { OpenAndRun ----------------------------------------------------------------- }

@@ -1551,7 +1551,7 @@ begin
   end;
 end;
 
-function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TCastleColor): Boolean;
 
   function Vector3ToColorRef(const Value: TVector3): TColorRef;
   begin
@@ -1580,7 +1580,7 @@ begin
   FillChar(Struct, SizeOf(Struct), 0);
   Struct.lStructSize := SizeOf(Struct);
   Struct.hwndOwner := H_Wnd;
-  Struct.rgbResult := Vector3ToColorRef(Color);
+  Struct.rgbResult := Vector3ToColorRef(Color.RGB);
   Struct.lpCustColors := @CustomColors;
   { Give CC_FULLOPEN since this is intended to give user a free choice from RGB
     colors. So we suggest user to choose any RGB color freely, instead of using
@@ -1593,7 +1593,7 @@ begin
   finally Mode.Free end;
 
   if Result then
-    Color := ColorRefToVector3(Struct.rgbResult);
+    Color := Vector4(ColorRefToVector3(Struct.rgbResult), Color.W);
 end;
 
 (*

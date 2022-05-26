@@ -1218,7 +1218,7 @@ begin
   colorPanel.close();
 end;
 
-function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TCastleColor): boolean;
 
   function GetNSRect(x, y, width, height: Integer): NSRect;
   begin
@@ -1274,8 +1274,7 @@ begin
   colorPanel := NSColorPanel.sharedColorPanel();
   if (colorPanel.respondsToSelector(ObjCSelector('setRestorable:'))) then
     colorPanel.setRestorable(false);
-  // TODO: pass color with alpha
-  colorPanel.setColor(NSColorFromCastle(Vector4(Color, 1)));
+  colorPanel.setColor(NSColorFromCastle(Color));
 
   colorDelegate := TColorPanelDelegate.alloc.init();
   colorDelegate.colorPanel := colorPanel;
@@ -1305,7 +1304,7 @@ begin
 
   colorPanel.setDelegate(colorDelegate);
   colorPanel.setAccessoryView(accessoryView.autorelease);
-  colorPanel.setShowsAlpha(False);
+  colorPanel.setShowsAlpha(true);
   colorPanel.setDefaultButtonCell(okButton.cell);
 
   // show panel
@@ -1317,7 +1316,7 @@ begin
     Result := colorDelegate.didPickColor;
     if Result then
       // TODO: pass color with alpha
-      Color := NSColorToCastle(colorPanel.color).XYZ;
+      Color := NSColorToCastle(colorPanel.color);
   finally
     // TODO: ToggleAppMenu(isMenuOn);
   end;
