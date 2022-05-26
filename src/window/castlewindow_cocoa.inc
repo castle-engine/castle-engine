@@ -21,12 +21,12 @@
 }
 
 { TODO p1:
-  - FileDialog, ColorDialog
   - restore main menu - why does it crash?
     Somehow Lazarus runs the application with same menu OK.
   - fullscreen: should be on top of dock / menu
 
   TODO p2:
+  - use filters in FileDialog to highlight correct files
   - update caption at runtime
   - menu implement, with key shortcuts
   - submit PR for GLPT:
@@ -866,7 +866,9 @@ begin
     Remove the above line then, and put better implementation here. }
 end;
 
-{ TCastleWindow dialogs -------------------------------------------------- }
+{ ----------------------------------------------------------------------------
+  TCastleWindow.MessageOK, MessageYesNo (Cocoa alerts)
+}
 
 var
   AlertEnded: Boolean;
@@ -959,6 +961,8 @@ begin
       https://forum.lazarus.freepascal.org/index.php?topic=57724.0
         The OpaqueCBlocks predated FPC support for cblocks. So they're basically untyped parameters used as placeholders for cblock parameters.
       https://wiki.freepascal.org/FPC_New_Features_3.2.0#Support_for_interfacing_with_C_blocks_functionality
+      https://gitlab.com/freepascal.org/fpc/source/-/blob/main/tests/test/tblock1.pp
+      https://gitlab.com/freepascal.org/fpc/source/-/blob/main/tests/test/tblock2.pp
     }
 
     anAlert.beginSheetModalForWindow_completionHandler(ParentWindow,
@@ -1009,19 +1013,316 @@ begin
     AlertStyleFromMessageType[MessageType], ['Yes', 'No'], [0, 1], ref) = 0;
 end;
 
+{ TCastleWindow.BackendFileDialog -------------------------------------------- }
+
 function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+
+{ Implementation based on LCL TCocoaWSFileDialog.ShowModal }
+
+var
+  openDlg: NSOpenPanel;
+  saveDlg: NSSavePanel;
+  InitName, InitDir: string;
+
+  // filter accessory view
+  // accessoryView: NSView;
+  // lFilter: TCocoaFilterComboBox;
+
+  // isMenuOn: Boolean;
+
+(*
+  // setup panel and its accessory view
+  procedure CreateAccessoryView(AOpenOwner: NSOpenPanel; ASaveOwner: NSSavePanel);
+  const
+    INT_MIN_ACCESSORYVIEW_WIDTH = 300;
+    OFS_HRZ = 10;
+  var
+    lRect: NSRect;
+    lText: NSTextField;
+    lTextStr: NSString;
+    lDialogView: NSView;
+    lAccessoryWidth: Integer = INT_MIN_ACCESSORYVIEW_WIDTH;
+    w: Integer;
+    nw: Integer;
+    fw: Integer;
+  begin
+    // check if the accessory is necessary
+    if FileDialog.Filter = '' then Exit;
+
+    // try to obtain the dialog size
+    lDialogView := NSView(ASaveOwner.contentView);
+    if lDialogView <> nil then
+    begin
+      if (NSAppkitVersionNumber >= NSAppKitVersionNumber11_0) then
+        // starting with Big Sur, the dialog retains the last openned size
+        // causing the width to be increased on every openning of the dialog
+        // we'd simply force the lAccessoryWidth to start with the minimum width
+        lAccessoryWidth := INT_MIN_ACCESSORYVIEW_WIDTH
+      else if lDialogView.frame.size.width > INT_MIN_ACCESSORYVIEW_WIDTH then
+        lAccessoryWidth := Round(lDialogView.frame.size.width);
+    end;
+    lRect := GetNSRect(0, 0, lAccessoryWidth, 30);
+    accessoryView := NSView.alloc.initWithFrame(lRect);
+
+    // "Format:" label
+    lText := NSTextField.alloc.initWithFrame(NSNullRect);
+    {$ifdef BOOLFIX}
+    lText.setBezeled_(Ord(False));
+    lText.setDrawsBackground_(Ord(False));
+    lText.setEditable_(Ord(False));
+    lText.setSelectable_(Ord(False));
+    {$else}
+    lText.setBezeled(False);
+    lText.setDrawsBackground(False);
+    lText.setEditable(False);
+    lText.setSelectable(False);
+    {$endif}
+    lTextStr := NSStringUTF8(rsMacOSFileFormat);
+    lText.setStringValue(lTextStr);
+    lText.setFont(NSFont.systemFontOfSize(NSFont.systemFontSizeForControlSize(NSRegularControlSize)));
+    lText.sizeToFit;
+
+    // Combobox
+    lFilter := TCocoaFilterComboBox.alloc.initWithFrame(NSNullRect);
+    lFilter.IsOpenDialog := AOpenOwner <> nil;
+    if lFilter.IsOpenDialog then
+      lFilter.DialogHandle := AOpenOwner
+    else
+      lFilter.DialogHandle := ASaveOwner;
+    lFilter.Owner := FileDialog;
+    lFilter.setTarget(lFilter);
+    lFilter.setAction(objcselector('comboboxAction:'));
+    lFilter.updateFilterList();
+    if FileDialog.FilterIndex <= 0 then
+      lFilter.lastSelectedItemIndex := 0
+    else
+      lFilter.lastSelectedItemIndex := FileDialog.FilterIndex-1;
+    lFilter.lastSelectedItemIndex := lFilter.setDialogFilter(lFilter.lastSelectedItemIndex);
+    lFilter.sizeToFit;
+    lFilter.setAutoresizingMask(NSViewWidthSizable);
+    if FileDialog.FilterIndex>0 then
+      lFilter.selectItemAtIndex(FileDialog.FilterIndex-1);
+
+    // Trying to put controls into the center of the Acc-view
+    //  Label must fit in full. Whatever is left is for filter
+    w:=lAccessoryWidth - OFS_HRZ - OFS_HRZ;
+    fw:=Round(lFilter.frame.size.width);
+    nw:=Round(lText.frame.size.width + fw + OFS_HRZ);
+    if nw>w then begin
+      dec(fw, nw-w);
+      nw:=w;
+    end;
+
+    lText.setFrame(  NSMakeRect(
+       Round((w-nw) / 2+OFS_HRZ)
+       , 0
+       , lText.frame.size.width
+       , lFilter.frame.size.height
+    ));
+
+    lFilter.setFrame( NSMakeRect(
+       lText.frame.origin.x+lText.frame.size.width+OFS_HRZ
+       ,4
+       ,fw
+       ,lFilter.frame.size.height
+      ));
+
+    accessoryView.addSubview(lText.autorelease);
+    accessoryView.addSubview(lFilter.autorelease);
+
+    lFilter.setAutoresizingMask(NSViewWidthSizable);
+
+    lFilter.DialogHandle.setAccessoryView(accessoryView.autorelease);
+    lFilter.DialogHandle.setDelegate(lFilter);
+  end;
+*)
+
 begin
-  MessageOK('TODO: Filename dialog on Cocoa', mtError);
-  { TODO }
-  Result := false;
+  InitName := ExtractFileName(FileName);
+  InitDir := ExtractFileDir(FileName);
+
+  // TODO: FileFilters
+  // Adapt LCL code? Or resign -- Cocoa doesn't have such filters natively.
+  // lFilter := nil;
+
+  if OpenDialog then
+  begin
+    openDlg := NSOpenPanel.openPanel;
+    openDlg.setAllowsMultipleSelection(false);
+
+    { to choose only directory we would do this:
+    openDlg.setCanChooseDirectories(true);
+    openDlg.setCanChooseFiles(false);
+    }
+    openDlg.setCanChooseFiles(true);
+    openDlg.setCanChooseDirectories(false);
+
+    // that's correct, NSOpenPanel descends from NSSavePanel and we use it
+    saveDlg := openDlg;
+  end else
+  begin
+    saveDlg := NSSavePanel.savePanel;
+    saveDlg.setCanCreateDirectories(true);
+    saveDlg.setNameFieldStringValue(NSSTR(InitName));
+    openDlg := nil;
+  end;
+
+  saveDlg.setAccessoryView(nil);
+  saveDlg.retain; // LCL comment: this is for OSX 10.6 (and we don't use ARC either)
+  saveDlg.setTitle(NSSTR(Title));
+  saveDlg.setDirectoryURL(NSURL.fileURLWithPath(NSSTR(InitDir)));
+
+  // TODO: isMenuOn := ToggleAppMenu(false);
+  try
+    Result := saveDlg.runModal = NSModalResponseOK;
+    if Result then
+      FileName := saveDlg.URL.path.UTF8String;
+
+    // release everything
+    saveDlg.release;
+  finally
+    // TODO: ToggleAppMenu(isMenuOn);
+  end;
+
+  ref.makeKeyAndOrderFront(nil);
+end;
+
+type
+  TColorPanelDelegate = objcclass(NSObject, NSWindowDelegateProtocol)
+  public
+    colorPanel: NSColorPanel;
+    didPickColor: Boolean;
+    // NSWindowDelegateProtocol
+    procedure windowWillClose(notification: NSNotification); message 'windowWillClose:';
+    //
+    procedure pickColor; message 'pickColor'; // button action
+    procedure exit; message 'exit'; // button action
+  end;
+
+{ TColorPanelDelegate }
+
+procedure TColorPanelDelegate.windowWillClose(notification: NSNotification);
+begin
+  NSApp.stopModal();
+end;
+
+procedure TColorPanelDelegate.pickColor();
+begin
+  didPickColor := true;
+  exit();
+end;
+
+procedure TColorPanelDelegate.exit();
+begin
+  colorPanel.close();
 end;
 
 function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
+
+  function GetNSRect(x, y, width, height: Integer): NSRect;
+  begin
+    Result.origin.x := x;
+    Result.origin.y := y;
+    Result.size.width := width;
+    Result.size.height := height;
+  end;
+
+  function NSColorFromCastle(const Color: TCastleColor): NSColor;
+  begin
+    Result := NSColor.colorWithDeviceRed_green_blue_alpha(
+      Color.X,
+      Color.Y,
+      Color.Z,
+      Color.W
+    );
+  end;
+
+  function NSColorToCastle(Color: NSColor): TCastleColor;
+  begin
+    // We must convert color to device RGB to be able to read it,
+    // otherwise reading e.g. grayscale results in crash.
+    if Color.colorSpace <> NSColorSpace.deviceRGBColorSpace then
+    begin
+      Color := Color.colorUsingColorSpace(NSColorSpace.deviceRGBColorSpace);
+      if Color = nil then
+      begin
+        WritelnWarning('Cannot convert color to RGB');
+        Exit(Black);
+      end;
+    end;
+
+    Result := Vector4(
+      Color.redComponent,
+      Color.greenComponent,
+      Color.blueComponent,
+      Color.alphaComponent
+    );
+  end;
+
+{ Implementation based on LCL TCocoaWSColorDialog.ShowModal }
+
+var
+  colorDelegate: TColorPanelDelegate;
+  colorPanel: NSColorPanel;
+  // accessory view
+  accessoryView: NSView;
+  lRect: NSRect;
+  okButton, cancelButton: NSButton;
+  //isMenuOn: Boolean;
 begin
-  MessageOK('TODO: Color dialog on Cocoa', mtError);
-  { TODO }
-  Result := false;
+  colorPanel := NSColorPanel.sharedColorPanel();
+  if (colorPanel.respondsToSelector(ObjCSelector('setRestorable:'))) then
+    colorPanel.setRestorable(false);
+  // TODO: pass color with alpha
+  colorPanel.setColor(NSColorFromCastle(Vector4(Color, 1)));
+
+  colorDelegate := TColorPanelDelegate.alloc.init();
+  colorDelegate.colorPanel := colorPanel;
+
+  // setup panel and its accessory view
+  lRect := GetNSRect(0, 0, 220, 30);
+  accessoryView := NSView.alloc.initWithFrame(lRect);
+
+  lRect := GetNSRect(110, 4, 110-8, 24);
+  okButton := NSButton.alloc.initWithFrame(lRect);
+  okButton.setButtonType(NSMomentaryPushInButton);
+  okButton.setBezelStyle(NSRoundedBezelStyle);
+  okButton.setTitle(NSSTR('Pick'));
+  okButton.setAction(objcselector('pickColor'));
+  okButton.setTarget(colorDelegate);
+
+  lRect := GetNSRect(8, 4, 110-8, 24);
+  cancelButton := NSButton.alloc.initWithFrame(lRect);
+  cancelButton.setButtonType(NSMomentaryPushInButton);
+  cancelButton.setBezelStyle(NSRoundedBezelStyle);
+  cancelButton.setTitle(NSSTR('Cancel'));
+  cancelButton.SetAction(objcselector('exit'));
+  cancelButton.setTarget(colorDelegate);
+
+  accessoryView.addSubview(okButton.autorelease);
+  accessoryView.addSubview(cancelButton.autorelease);
+
+  colorPanel.setDelegate(colorDelegate);
+  colorPanel.setAccessoryView(accessoryView.autorelease);
+  colorPanel.setShowsAlpha(False);
+  colorPanel.setDefaultButtonCell(okButton.cell);
+
+  // show panel
+  // TODO: isMenuOn := ToggleAppMenu(false);
+  try
+    colorPanel.makeKeyAndOrderFront(colorDelegate);
+    NSApp.runModalForWindow(colorPanel);
+
+    Result := colorDelegate.didPickColor;
+    if Result then
+      // TODO: pass color with alpha
+      Color := NSColorToCastle(colorPanel.color).XYZ;
+  finally
+    // TODO: ToggleAppMenu(isMenuOn);
+  end;
+
+  ref.makeKeyAndOrderFront(nil);
 end;
 
 { TCastleApplication ---------------------------------------------------------- }
