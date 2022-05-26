@@ -800,21 +800,21 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TCastleColor): boolean;
 var
   Dialog: TColorDialog;
   ColorByte: TVector3Byte;
 begin
   Dialog := TColorDialog.Create(nil);
   try
-    ColorByte := Vector3Byte(Color);
+    ColorByte := Vector3Byte(Color.RGB);
     Dialog.Color := RGBToColor(ColorByte.X, ColorByte.Y, ColorByte.Z);
     ReleaseAllKeysAndMouse; // do it manually
     Result := Dialog.Execute;
     if Result then
     begin
       RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
-      Color := Vector3(ColorByte);
+      Color := Vector4(Vector3(ColorByte), Color.W);
     end;
   finally FreeAndNil(Dialog) end;
 end;

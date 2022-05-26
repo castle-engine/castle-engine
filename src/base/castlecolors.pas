@@ -27,6 +27,18 @@ type
   TCastleColor = TVector4;
   TCastleColorRGB = TVector3;
 
+  TCastleColorHelper = record helper for TVector4
+    { Get first 3 color components, ignore alpha. }
+    function RGB: TCastleColorRGB;
+    { Return color converted into grayscale. Alpha is left unchanged. }
+    function Grayscale: TCastleColor;
+  end;
+
+  TCastleColorRGBHelper = record helper for TVector3
+    { Return color converted into grayscale. }
+    function Grayscale: TCastleColorRGB;
+  end;
+
 const
   { Common color constants, for comfort.
     They follow the CSS colors constants
@@ -177,6 +189,25 @@ uses SysUtils, CastleUtils, CastleStringUtils;
 {$define read_implementation}
 {$I castlecolors_persistent.inc}
 {$undef read_implementation}
+
+{ TCastleColorHelper --------------------------------------------------------------- }
+
+function TCastleColorHelper.RGB: TCastleColorRGB;
+begin
+  Result := XYZ;
+end;
+
+function TCastleColorHelper.Grayscale: TCastleColor;
+begin
+  Result := CastleColors.Grayscale(Self);
+end;
+
+{ TCastleColorRGBHelper ------------------------------------------------------------ }
+
+function TCastleColorRGBHelper.Grayscale: TCastleColorRGB;
+begin
+  Result := CastleColors.Grayscale(Self);
+end;
 
 { grayscale ------------------------------------------------------------------ }
 

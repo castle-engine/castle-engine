@@ -247,7 +247,7 @@ begin
   { TODO } Result := false;
 end;
 
-function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TCastleColor): Boolean;
 begin
   { TODO } Result := false;
 end;
