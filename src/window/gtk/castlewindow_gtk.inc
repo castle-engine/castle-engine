@@ -1421,7 +1421,13 @@ begin
     if Result then
     begin
       gtk_color_selection_get_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
-      for i := 0 to 3 do
+      { Note: Do not touch Color.InternalData[3], leave it unchanged. Reason:
+        While https://developer-old.gnome.org/gtk2/2.24/GtkColorSelection.html#gtk-color-selection-set-color
+        says it wants a pointer to 4 components, including alpha, but actually alpha treatment is useless:
+        - user cannot edit alpha
+        - on return, it seems always 65535.0 (why this, max of Word? it's in Double...)
+      }
+      for i := 0 to 2 do
         Color.InternalData[i] := GtkColor[i];
     end;
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
