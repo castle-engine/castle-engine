@@ -21,18 +21,11 @@
 }
 
 { TODO p1:
-  - restore main menu - why does it crash?
-    Somehow Lazarus runs the application with same menu OK.
   - fullscreen: should be on top of dock / menu
 
   TODO p2:
   - use filters in FileDialog to highlight correct files
   - update caption at runtime
-  - menu implement, with key shortcuts
-  - submit PR for GLPT:
-    - wglpt -> want
-    - attributes size must be 32, 4 is too small to sometimes fit!
-  - use AppBundle for "castle-engine package" too
   - avoid deprecated warnings at assembling
     Assembling castlewindow
     /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263336:10: warning: section "__datacoal_nt" is deprecated
@@ -65,6 +58,8 @@ CocoaAll,
 private
   ref: NSWindow;
   GLcontext: NSOpenGLContext;
+  procedure FullScreenBegin;
+  procedure FullScreenEnd;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -656,14 +651,122 @@ procedure TCastleWindow.CreateBackend;
 begin
 end;
 
-procedure TCastleWindow.BackendMenuInitialize;
+type
+  TCocoaMenuItem = objcclass(NSMenuItem)
+    ParentWindow: TCastleWindow;
+    MenuItem: TMenuItem;
+    procedure castleClick(sender: id); message 'castleClick:';
+  end;
+
+procedure TCocoaMenuItem.castleClick(sender: id);
 begin
-  { TODO: implement menu on Cocoa }
+  //WritelnLog('DoMenuClick ', MenuItem.Caption);
+  ParentWindow.DoMenuClick(MenuItem);
+end;
+
+procedure TCastleWindow.BackendMenuInitialize;
+
+  { Cocoa menu item keyEquivalent which represents menu item key shortcut. }
+  procedure CocoaMenuKey(const KeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
+    out CocoaKeyEquivalent: String;
+    out CocoaKeyModifier: NSUInteger);
+  var
+    // KeyString expressed as a single 8-bit character, or 0 if not possible
+    KeyString1: AnsiChar;
+  begin
+    if Length(KeyString) = 1 then
+      KeyString1 := KeyString[1]
+    else
+      KeyString1 := #0;
+
+    case KeyString1 of
+      CtrlA .. CtrlZ:
+        begin
+          CocoaKeyEquivalent := Chr(Ord(KeyString1) - Ord(CtrlA) + Ord('a'));
+          CocoaKeyModifier := NSCommandKeyMask {NSControlKeyMask};
+        end;
+      else
+        begin
+          CocoaKeyEquivalent := KeyString;
+          CocoaKeyModifier := 0;
+        end;
+    end;
+
+    if mkShift in Modifiers then
+      CocoaKeyModifier := CocoaKeyModifier or NSShiftKeyMask;
+    if mkCtrl in Modifiers then
+      CocoaKeyModifier := CocoaKeyModifier or NSCommandKeyMask {NSControlKeyMask};
+    if mkAlt in Modifiers then
+      CocoaKeyModifier := CocoaKeyModifier or NSAlternateKeyMask;
+
+    // TODO: handle Key
+  end;
+
+  procedure AddMenuItem(const ParentMenu: NSMenu; const Entry: TMenuEntry);
+  var
+    I: Integer;
+    EntryItem: TMenuItem;
+    EntryMenu: TMenu;
+    CocoaSubMenu: NSMenu;
+    CocoaMenuItem: NSMenuItem; // sometimes, but not always, TCocoaMenuItem
+    CocoaKeyEquivalent: String;
+    CocoaKeyModifier: NSUInteger;
+  begin
+    if Entry is TMenuItem then
+    begin
+      EntryItem := TMenuItem(Entry);
+      CocoaMenuKey(EntryItem.KeyString, EntryItem.Key, EntryItem.Modifiers,
+        CocoaKeyEquivalent, CocoaKeyModifier);
+      CocoaMenuItem := TCocoaMenuItem.alloc.initWithTitle_action_keyEquivalent(
+        NSSTR(SRemoveMnemonics(EntryItem.Caption)),
+        ObjCSelector('castleClick:'),
+        NSSTR(CocoaKeyEquivalent)
+      );
+      TCocoaMenuItem(CocoaMenuItem).MenuItem := EntryItem;
+      TCocoaMenuItem(CocoaMenuItem).ParentWindow := Self;
+      CocoaMenuItem.SetEnabled(EntryItem.Enabled);
+      CocoaMenuItem.SetKeyEquivalentModifierMask(CocoaKeyModifier);
+      CocoaMenuItem.setTarget(CocoaMenuItem); // determines where do we look for castleClick: selector
+    end else
+    if Entry is TMenuSeparator then
+    begin
+      CocoaMenuItem := NSMenuItem.SeparatorItem;
+    end else
+    if Entry is TMenu then
+    begin
+      EntryMenu := TMenu(Entry);
+      CocoaSubMenu := NSMenu.alloc.initWithTitle(
+        NSSTR(SRemoveMnemonics(EntryMenu.Caption)));
+      CocoaSubMenu.setAutoenablesItems(false);
+      for I := 0 to EntryMenu.Count - 1 do
+        AddMenuItem(CocoaSubMenu, EntryMenu.Entries[I]);
+      CocoaMenuItem := NSMenuItem.alloc.initWithTitle_action_keyEquivalent(
+        NSSTR(SRemoveMnemonics(EntryMenu.Caption)), nil,
+        NSSTR('')).autorelease;
+      CocoaMenuItem.SetEnabled(EntryMenu.Enabled);
+      CocoaMenuItem.setSubmenu(CocoaSubMenu);
+    end else
+      raise EInternalError.Create('Not implemented TMenuEntry subclass');
+
+    ParentMenu.AddItem(CocoaMenuItem);
+    Entry.Handle := CocoaMenuItem;
+  end;
+
+var
+  I: Integer;
+begin
+  NSApp.MainMenu.setAutoenablesItems(false);
+
+  for I := 0 to MainMenu.Count - 1 do
+    AddMenuItem(NSApp.MainMenu, MainMenu.Entries[I]);
 end;
 
 procedure TCastleWindow.BackendMenuFinalize;
+var
+  I: Integer;
 begin
-  { TODO: implement menu on Cocoa }
+  for I := 0 to MainMenu.Count - 1 do
+    NSApp.mainMenu.RemoveItem(NSMenuItem(MainMenu.Entries[I].Handle));
 end;
 
 procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
@@ -714,6 +817,53 @@ begin
   glcontext.flushBuffer;
 end;
 
+{ TODO:
+  This causes error from all examples:
+  EOpenGLError: End of TCastleWindow.DoRender
+  OpenGL error (1286): The command is trying to render to or read from the framebuffer while the currently bound framebuffer is not framebuffer complete (i.e. the return value from glCheckFramebufferStatus is not GL_FRAMEBUFFER_COMPLETE).
+}
+{.$define COCOA_FULL_SCREEN}
+
+procedure TCastleWindow.FullScreenBegin;
+{$ifdef COCOA_FULL_SCREEN}
+var
+  FullScreenOptions: NSDictionary;
+begin
+  { TODO: alternative:
+
+    if NSAppKitVersionNumber >= NSAppKitVersionNumber10_7 then
+    begin
+      if ref.collectionBehavior and (
+           NSWindowCollectionBehaviorFullScreenPrimary or
+           NSWindowCollectionBehaviorFullScreenAuxiliary
+         ) = 0 then
+        ref.setCollectionBehavior(ref.collectionBehavior or NSWindowCollectionBehaviorFullScreenPrimary);
+      ref.toggleFullScreen(nil);
+    end
+  }
+
+  { In Objective-C:
+      NSDictionary fullScreenOptions = [[NSDictionary dictionaryWithObject: [NSNumber numberWithBool: YES] forKey: NSFullScreenModeSetting] retain];
+    See https://thinkstack.wordpress.com/2015/12/19/full-screen-mode-for-cocoa-applications/
+  }
+  FullScreenOptions := NSDictionary.dictionaryWithObjectsAndKeys(
+    NSNumber.numberWithBool(true), NSFullScreenModeSetting,
+    nil);
+  FFullScreenBackend := ref.contentView.EnterFullScreenMode_withOptions(ref.screen, FullScreenOptions);
+  if not FFullScreenBackend then
+    WritelnWarning('Cannot enter full-screen mode');
+{$else}
+begin
+{$endif COCOA_FULL_SCREEN}
+end;
+
+procedure TCastleWindow.FullScreenEnd;
+begin
+{$ifdef COCOA_FULL_SCREEN}
+  ref.contentView.ExitFullScreenModeWithOptions(nil);
+{$endif COCOA_FULL_SCREEN}
+end;
+
 procedure TCastleWindow.OpenBackend;
 const
   NSWindowCollectionBehaviorFullScreenPrimary = 1 shl 7 { available in 10_7 };
@@ -749,6 +899,9 @@ begin
   openGLView := TOpenGLView.alloc.initWithFrame(window.contentView.bounds);
   window.setContentView(openGLView);
   openGLView.release;
+
+  if FullScreen then
+    FullScreenBegin;
 
   window.makeFirstResponder(openGLView);
 
@@ -860,10 +1013,17 @@ end;
 
 procedure TCastleWindow.UpdateFullScreenBackend;
 begin
-  { This is the simplest implementation of this method: }
-  SimpleUpdateFullScreenBackend;
-  { Some backends may provide a better way of doing this.
-    Remove the above line then, and put better implementation here. }
+  if FFullScreenBackend <> FFullScreenWanted then
+  begin
+    if not Closed then
+    begin
+      if FFullScreenWanted then
+        FullScreenBegin
+      else
+        FullScreenEnd;
+    end else
+      FFullScreenBackend := FFullScreenWanted;
+  end;
 end;
 
 { ----------------------------------------------------------------------------
@@ -1330,7 +1490,7 @@ procedure TCastleApplication.CreateBackend;
 
   procedure SetupMainMenu;
 
-    procedure AddMenu (menu: NSMenu);
+    procedure AddMenu(menu: NSMenu);
     var
       menuItem: NSMenuItem;
     begin
@@ -1342,28 +1502,28 @@ procedure TCastleApplication.CreateBackend;
   var
     mainMenu: NSMenu;
     appleMenu: NSMenu;
-    windowMenu: NSMenu;
+    //windowMenu: NSMenu;
   begin
-    Exit; // TODO: this causes a crash when running through "castle-engine run"
-
     // main menu
     mainMenu := NSMenu.alloc.init.autorelease;
     NSApp.setMainMenu(mainMenu);
 
     // apple menu
     appleMenu := NSMenu.alloc.initWithTitle(NSSTR('')).autorelease;
-    appleMenu.addItemWithTitle_action_keyEquivalent(NSSTR('Quit '+NSProcessInfo.processInfo.processName.UTF8String), objcselector('terminate:'), NSSTR('q'));
+    appleMenu.addItemWithTitle_action_keyEquivalent(NSSTR('Quit ' + ApplicationName), objcselector('terminate:'), NSSTR('q'));
 
     AddMenu(appleMenu);
+
+    { This is consistent with some Apple applications,
+      but it would mix with TCastleWindow.MainMenu and be surprisingly uneditable for developer.
 
     // window menu
     windowMenu := NSMenu.alloc.initWithTitle(NSSTR('Window')).autorelease;
     windowMenu.addItemWithTitle_action_keyEquivalent(NSSTR('Minimize'), objcselector('performMiniaturize:'), NSSTR('m'));
     windowMenu.addItemWithTitle_action_keyEquivalent(NSSTR('Zoom'), objcselector('performZoom:'), NSSTR(''));
 
-    // TODO: add CGE menu
-
     AddMenu(windowMenu);
+    }
   end;
 
 var
