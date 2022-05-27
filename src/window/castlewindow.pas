@@ -2154,7 +2154,7 @@ type
       Overloaded version with TCastleColor specifies a color with alpha.
       But note that only some backends actually allow user to adjust alpha
       (others leave alpha unchanged).
-      Backends that allow alpha editing now are: Cocoa, Xlib, GTK.
+      Backends that allow alpha editing now are: Cocoa, Xlib.
 
       @groupBegin }
     function ColorDialog(var Color: TCastleColor): Boolean; overload;
