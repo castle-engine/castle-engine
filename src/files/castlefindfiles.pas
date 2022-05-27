@@ -262,7 +262,9 @@ function FindFiles_NonRecursive(const Path, Mask: string;
           FileInfo.Name := FileRec.Name;
           FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
           FileInfo.Size := FileRec.Size;
+          {$warnings off} // we know faSymLink is platform-specific, this is OK
           FileInfo.Symlink := (FileRec.Attr and faSymLink) <> 0;
+          {$warnings on}
           FileInfo.URL := FilenameToURISafe(AbsoluteName);
           if Assigned(FileProc) then
             FileProc(FileInfo, FileProcData, StopSearch);
