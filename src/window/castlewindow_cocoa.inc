@@ -21,16 +21,11 @@
 }
 
 { TODO p1:
-  - menu click perform
   - fullscreen: should be on top of dock / menu
 
   TODO p2:
   - use filters in FileDialog to highlight correct files
   - update caption at runtime
-  - submit PR for GLPT:
-    - wglpt -> want
-    - attributes size must be 32, 4 is too small to sometimes fit!
-  - use AppBundle for "castle-engine package" too
   - avoid deprecated warnings at assembling
     Assembling castlewindow
     /Users/administrator/sources/castle-engine/castle-engine/examples/user_interface/test_all_state_events/castle-engine-output/compilation/x86_64-darwin/castlewindow.s:263336:10: warning: section "__datacoal_nt" is deprecated
