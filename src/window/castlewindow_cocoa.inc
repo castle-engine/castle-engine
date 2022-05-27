@@ -21,14 +21,12 @@
 }
 
 { TODO p1:
-  - restore main menu - why does it crash?
-    Somehow Lazarus runs the application with same menu OK.
+  - menu click perform
   - fullscreen: should be on top of dock / menu
 
   TODO p2:
   - use filters in FileDialog to highlight correct files
   - update caption at runtime
-  - menu implement, with key shortcuts
   - submit PR for GLPT:
     - wglpt -> want
     - attributes size must be 32, 4 is too small to sometimes fit!
@@ -658,14 +656,121 @@ procedure TCastleWindow.CreateBackend;
 begin
 end;
 
-procedure TCastleWindow.BackendMenuInitialize;
+type
+  TCocoaMenuItem = objcclass(NSMenuItem)
+    ParentWindow: TCastleWindow;
+    MenuItem: TMenuItem;
+    procedure castleClick(sender: id); message 'castleClick:';
+  end;
+
+procedure TCocoaMenuItem.castleClick(sender: id);
 begin
-  { TODO: implement menu on Cocoa }
+  //WritelnLog('DoMenuClick ', MenuItem.Caption);
+  ParentWindow.DoMenuClick(MenuItem);
+end;
+
+procedure TCastleWindow.BackendMenuInitialize;
+
+  { Cocoa menu item keyEquivalent which represents menu item key shortcut. }
+  procedure CocoaMenuKey(const KeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
+    out CocoaKeyEquivalent: String;
+    out CocoaKeyModifier: NSUInteger);
+  var
+    // KeyString expressed as a single 8-bit character, or 0 if not possible
+    KeyString1: AnsiChar;
+  begin
+    if Length(KeyString) = 1 then
+      KeyString1 := KeyString[1]
+    else
+      KeyString1 := #0;
+
+    case KeyString1 of
+      CtrlA .. CtrlZ:
+        begin
+          CocoaKeyEquivalent := Chr(Ord(KeyString1) - Ord(CtrlA) + Ord('a'));
+          CocoaKeyModifier := NSCommandKeyMask {NSControlKeyMask};
+        end;
+      else
+        begin
+          CocoaKeyEquivalent := KeyString;
+          CocoaKeyModifier := 0;
+        end;
+    end;
+
+    if mkShift in Modifiers then
+      CocoaKeyModifier := CocoaKeyModifier or NSShiftKeyMask;
+    if mkCtrl in Modifiers then
+      CocoaKeyModifier := CocoaKeyModifier or NSCommandKeyMask {NSControlKeyMask};
+    if mkAlt in Modifiers then
+      CocoaKeyModifier := CocoaKeyModifier or NSAlternateKeyMask;
+
+    // TODO: handle Key
+  end;
+
+  procedure AddMenuItem(const ParentMenu: NSMenu; const Entry: TMenuEntry);
+  var
+    I: Integer;
+    EntryItem: TMenuItem;
+    EntryMenu: TMenu;
+    CocoaSubMenu: NSMenu;
+    CocoaMenuItem: NSMenuItem; // sometimes, but not always, TCocoaMenuItem
+    CocoaKeyEquivalent: String;
+    CocoaKeyModifier: NSUInteger;
+  begin
+    if Entry is TMenuItem then
+    begin
+      EntryItem := TMenuItem(Entry);
+      CocoaMenuKey(EntryItem.KeyString, EntryItem.Key, EntryItem.Modifiers,
+        CocoaKeyEquivalent, CocoaKeyModifier);
+      CocoaMenuItem := TCocoaMenuItem.alloc.initWithTitle_action_keyEquivalent(
+        NSSTR(SRemoveMnemonics(EntryItem.Caption)),
+        ObjCSelector('castleClick:'),
+        NSSTR(CocoaKeyEquivalent)
+      );
+      TCocoaMenuItem(CocoaMenuItem).MenuItem := EntryItem;
+      TCocoaMenuItem(CocoaMenuItem).ParentWindow := Self;
+      CocoaMenuItem.SetEnabled(EntryItem.Enabled);
+      CocoaMenuItem.SetKeyEquivalentModifierMask(CocoaKeyModifier);
+    end else
+    if Entry is TMenuSeparator then
+    begin
+      CocoaMenuItem := NSMenuItem.SeparatorItem;
+    end else
+    if Entry is TMenu then
+    begin
+      EntryMenu := TMenu(Entry);
+      CocoaSubMenu := NSMenu.alloc.initWithTitle(
+        NSSTR(SRemoveMnemonics(EntryMenu.Caption)));
+      CocoaSubMenu.setAutoenablesItems(false);
+      for I := 0 to EntryMenu.Count - 1 do
+        AddMenuItem(CocoaSubMenu, EntryMenu.Entries[I]);
+      CocoaMenuItem := NSMenuItem.alloc.initWithTitle_action_keyEquivalent(
+        NSSTR(SRemoveMnemonics(EntryMenu.Caption)), nil,
+        NSSTR('')).autorelease;
+      CocoaMenuItem.SetEnabled(EntryMenu.Enabled);
+      CocoaMenuItem.setSubmenu(CocoaSubMenu);
+    end else
+      raise EInternalError.Create('Not implemented TMenuEntry subclass');
+
+    ParentMenu.AddItem(CocoaMenuItem);
+    Entry.Handle := CocoaMenuItem;
+  end;
+
+var
+  I: Integer;
+begin
+  NSApp.MainMenu.setAutoenablesItems(false);
+
+  for I := 0 to MainMenu.Count - 1 do
+    AddMenuItem(NSApp.MainMenu, MainMenu.Entries[I]);
 end;
 
 procedure TCastleWindow.BackendMenuFinalize;
+var
+  I: Integer;
 begin
-  { TODO: implement menu on Cocoa }
+  for I := 0 to MainMenu.Count - 1 do
+    NSApp.mainMenu.RemoveItem(NSMenuItem(MainMenu.Entries[I].Handle));
 end;
 
 procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
@@ -1389,7 +1494,7 @@ procedure TCastleApplication.CreateBackend;
 
   procedure SetupMainMenu;
 
-    procedure AddMenu (menu: NSMenu);
+    procedure AddMenu(menu: NSMenu);
     var
       menuItem: NSMenuItem;
     begin
@@ -1401,28 +1506,28 @@ procedure TCastleApplication.CreateBackend;
   var
     mainMenu: NSMenu;
     appleMenu: NSMenu;
-    windowMenu: NSMenu;
+    //windowMenu: NSMenu;
   begin
-    Exit; // TODO: this causes a crash when running through "castle-engine run"
-
     // main menu
     mainMenu := NSMenu.alloc.init.autorelease;
     NSApp.setMainMenu(mainMenu);
 
     // apple menu
     appleMenu := NSMenu.alloc.initWithTitle(NSSTR('')).autorelease;
-    appleMenu.addItemWithTitle_action_keyEquivalent(NSSTR('Quit '+NSProcessInfo.processInfo.processName.UTF8String), objcselector('terminate:'), NSSTR('q'));
+    appleMenu.addItemWithTitle_action_keyEquivalent(NSSTR('Quit ' + ApplicationName), objcselector('terminate:'), NSSTR('q'));
 
     AddMenu(appleMenu);
+
+    { This is consistent with some Apple applications,
+      but it would mix with TCastleWindow.MainMenu and be surprisingly uneditable for developer.
 
     // window menu
     windowMenu := NSMenu.alloc.initWithTitle(NSSTR('Window')).autorelease;
     windowMenu.addItemWithTitle_action_keyEquivalent(NSSTR('Minimize'), objcselector('performMiniaturize:'), NSSTR('m'));
     windowMenu.addItemWithTitle_action_keyEquivalent(NSSTR('Zoom'), objcselector('performZoom:'), NSSTR(''));
 
-    // TODO: add CGE menu
-
     AddMenu(windowMenu);
+    }
   end;
 
 var
