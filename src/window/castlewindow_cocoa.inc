@@ -731,6 +731,7 @@ procedure TCastleWindow.BackendMenuInitialize;
       TCocoaMenuItem(CocoaMenuItem).ParentWindow := Self;
       CocoaMenuItem.SetEnabled(EntryItem.Enabled);
       CocoaMenuItem.SetKeyEquivalentModifierMask(CocoaKeyModifier);
+      CocoaMenuItem.setTarget(CocoaMenuItem); // determines where do we look for castleClick: selector
     end else
     if Entry is TMenuSeparator then
     begin
