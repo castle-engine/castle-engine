@@ -25,11 +25,16 @@ uses Classes,
 { Create AppBundle to run the project in castle-engine-output.
   This is the only reliable way to run GUI applications on macOS.
 
+  @param(BundleParenPath Path (may, but doesn't have to, end with PathDelim)
+    where the xxx.app directory (app bundle) will be placed.)
+
   @param(SymlinkToFiles If @true we'll only make (relative) symlinks to actual project
     executable, icon (if already in icns format) and data,
     otherwise we will copy them into the bundle.) }
-procedure CreateAppBundle(const Project: TCastleProject; const SymlinkToFiles: Boolean;
-  out ExeInBundle: String);
+procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPath: String;
+  const SymlinkToFiles: Boolean; out ExeInBundle: String);
+procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPath: String;
+  const SymlinkToFiles: Boolean);
 
 implementation
 
@@ -93,8 +98,8 @@ end;
   https://wiki.freepascal.org/macOS_property_list_files
   https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html
 }
-procedure CreateAppBundle(const Project: TCastleProject; const SymlinkToFiles: Boolean;
-  out ExeInBundle: String);
+procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPath: String;
+  const SymlinkToFiles: Boolean; out ExeInBundle: String);
 
   procedure SymlinkCheck(const Src, Dst: String);
   begin
@@ -133,8 +138,7 @@ var
   LoadedIcon: TCastleImage;
 begin
   { create clean OutputBundlePath }
-  OutputBundlePath := TempOutputPath(Project.Path) +
-    'macos' + PathDelim + Project.Caption + '.app' + PathDelim;
+  OutputBundlePath := InclPathDelim(BundleParenPath) + Project.Caption + '.app' + PathDelim;
   if DirectoryExists(OutputBundlePath) then
     RemoveNonEmptyDir(OutputBundlePath);
 
@@ -180,6 +184,19 @@ begin
 
   if Project.DataExists then
     CopyOrSymlinkData(OutputBundleResourcesPath + 'data' + PathDelim);
+
+  Writeln(Format('Created macOS AppBundle %s"%s"', [
+    Iff(SymlinkToFiles, '(using symlinks to actual data, in temp dir) ', ''),
+    ExtractFileName(ExclPathDelim(OutputBundlePath))
+  ]));
+end;
+
+procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPath: String;
+  const SymlinkToFiles: Boolean);
+var
+  IgnoreExeInBundle: String;
+begin
+  CreateMacAppBundle(Project, BundleParenPath, SymlinkToFiles, IgnoreExeInBundle);
 end;
 
 end.

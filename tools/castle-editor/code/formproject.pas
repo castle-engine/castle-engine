@@ -1000,7 +1000,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       'iOS Archive -> Development',
       'iOS Archive -> ad-hoc',
       'iOS Archive -> AppStore',
-      'Nintendo Switch Project'
+      'Nintendo Switch Project',
+      'macOS App Bundle (APP)'
     );
   var
     Mi: TMenuItem;

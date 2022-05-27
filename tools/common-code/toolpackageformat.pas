@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,7 +33,8 @@ type
     pfIosArchiveDevelopment,
     pfIosArchiveAdHoc,
     pfIosArchiveAppStore,
-    pfNintendoSwitchProject
+    pfNintendoSwitchProject,
+    pfMacAppBundle
   );
   TPackageFormatNoDefault = pfDirectory..High(TPackageFormat);
 
@@ -57,7 +58,8 @@ const
     'ios-archive-development',
     'ios-archive-ad-hoc',
     'ios-archive-app-store',
-    'nintendo-switch-project'
+    'nintendo-switch-project',
+    'mac-app-bundle'
   );
 
 function PackageFormatToString(const O: TPackageFormat): String;

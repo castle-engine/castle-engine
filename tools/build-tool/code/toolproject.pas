@@ -632,6 +632,9 @@ begin
     if OS in AllWindowsOSes then
       Result := pfZip
     else
+    if OS = Darwin then
+      Result := pfMacAppBundle
+    else
       Result := pfTarGz;
   end else
     Result := PackageFormat;
@@ -835,6 +838,8 @@ begin
       PackageNintendoSwitch(Self);
     pfDirectory, pfZip, pfTarGz, pfDeb:
       PackageDirectory(PackageFormatFinal);
+    pfMacAppBundle:
+      CreateMacAppBundle(Self, OutputPath, false);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Unhandled PackageFormatFinal in DoPackage');
     {$endif}
@@ -914,14 +919,13 @@ procedure TCastleProject.DoRun(const Target: TTarget;
     end;
   end;
 
-  procedure MaybeRunThroughAppBundle(var RunWorkingDir, ExeName: String; const NewParams: TStrings);
+  procedure MaybeRunThroughMacAppBundle(var RunWorkingDir, ExeName: String; const NewParams: TStrings);
   var
     ExeInBundle: String;
   begin
     if OS = Darwin then
     begin
-      Writeln('Running on macOS using temporary AppBundle');
-      CreateAppBundle(Self, true, ExeInBundle);
+      CreateMacAppBundle(Self, TempOutputPath(Path) + 'macos' + PathDelim, true, ExeInBundle);
 
       RunWorkingDir := ExtractFilePath(ExeInBundle);
       ExeName := ExeInBundle;
@@ -966,7 +970,7 @@ begin
     try
       NewParams.Assign(Params);
       MaybeUseWineToRun(ExeName, NewParams);
-      MaybeRunThroughAppBundle(RunWorkingDir, ExeName, NewParams);
+      MaybeRunThroughMacAppBundle(RunWorkingDir, ExeName, NewParams);
       Flush(Output); // needed to see "Running Windows EXE on Unix, trying to use WINE." in right order in editor
       { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
       RunCommandSimple(RunWorkingDir, ExeName, NewParams.ToArray, 'CASTLE_LOG', 'stdout');
