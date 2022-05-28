@@ -11,7 +11,11 @@ set -euo pipefail
 # - make, sed
 # - and fpc, lazbuild on $PATH
 #
-# Works on Linux, Windows (with Cygwin), FreeBSD (install GNU make and sed).
+# Works on
+# - Linux,
+# - Windows (with Cygwin),
+# - FreeBSD (install GNU make and sed),
+# - macOS (install GNU sed from Homebrew).
 # ----------------------------------------------------------------------------
 
 OUTPUT_DIRECTORY=`pwd`
@@ -50,6 +54,10 @@ detect_platform ()
 
   if [ "`uname -s`" '=' 'FreeBSD' ]; then
     MAKE='gmake'
+    SED='gsed'
+  fi
+
+  if [ "`uname -s`" '=' 'Darwin' ]; then
     SED='gsed'
   fi
 }
