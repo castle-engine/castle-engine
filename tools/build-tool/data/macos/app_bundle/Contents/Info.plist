@@ -24,23 +24,7 @@
   <true/>
   <key>CFBundleIconFile</key>
   <string>${NAME}</string>
-  <key>CFBundleDocumentTypes</key>
-  <array>
-    <dict>
-      <key>CFBundleTypeRole</key>
-      <string>Viewer</string>
-      <key>CFBundleTypeExtensions</key>
-      <array>
-        <string>*</string>
-      </array>
-      <key>CFBundleTypeOSTypes</key>
-      <array>
-        <string>fold</string>
-        <string>disk</string>
-        <string>****</string>
-      </array>
-    </dict>
-  </array>
+  ${APPLE_ASSOCIATE_DOCUMENT_TYPES}
   <key>NSHighResolutionCapable</key>
   <true/>
 </dict>
