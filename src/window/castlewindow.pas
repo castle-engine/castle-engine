@@ -1659,7 +1659,9 @@ type
     { Called when user drag and drops file(s) on the window.
       In case of macOS bundle, this is also called when user opens a document
       associated with our application by double-clicking.
-      Note: this is currently supported only by CASTLE_WINDOW_LCL backend. }
+
+      Note: this is currently supported only by LCL and Cocoa backends
+      of TCastleWindow, see https://castle-engine.io/castlewindow_backends . }
     property OnDropFiles: TDropFilesFunc read FOnDropFiles write FOnDropFiles;
 
     { Should we automatically redraw the window all the time,

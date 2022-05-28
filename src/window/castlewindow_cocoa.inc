@@ -1,12 +1,24 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis and GLPT authors.
+  Copyright 2022-2022 Michalis Kamburelis and GLPT, LCL contributors.
 
   The Cocoa integration code is based on
-  - (mostly) GLPT original from https://github.com/daar/GLPT
-  - fork from https://github.com/genericptr/GLPT
-  Thank you go to all GLPT contributors, in particular:
-  - Darius Blaszyk (daar)
-  - Ryan Joseph (genericptr)
+
+  - GLPT
+
+      The base code to create window with OpenGL context
+      comes from GLPT original, from https://github.com/daar/GLPT .
+      The fork from https://github.com/genericptr/GLPT was also useful.
+
+      Thank you go to all GLPT contributors, in particular:
+      - Darius Blaszyk (daar)
+      - Ryan Joseph (genericptr)
+
+  - LCL Cocoa widgetset
+
+      The code for alerts and file/color dialogs is based
+      on LCL Cocoa widgetset.
+      In many other cases we consulted LCL Cocoa widgetset code
+      to see "how to do something properly with Cocoa".
 
   This file is part of "Castle Game Engine".
 
@@ -328,6 +340,7 @@ type
 
 type
   TCocoaAppDelegate = objcclass (NSObject, NSApplicationDelegateProtocol)
+    procedure application_openFiles(sender: NSApplication; filenames: NSArray); message 'application:openFiles:';
   end;
 
 procedure TCocoaApp.poll;
@@ -439,6 +452,22 @@ begin
   pool.release;
 end;
 
+procedure TCocoaAppDelegate.application_openFiles(sender: NSApplication; filenames: NSArray);
+var
+  lFiles: array of string;
+  lNSStr: NSString;
+  I: Integer;
+begin
+  SetLength(lFiles, filenames.count);
+  for I := 0 to filenames.count-1 do
+  begin
+    lNSStr := NSString(filenames.objectAtIndex(I));
+    lFiles[I] := lNSStr.UTF8String;
+  end;
+  if Application.MainWindow <> nil then
+    Application.MainWindow.DoDropFiles(lFiles);
+end;
+
 {=============================================}
 {@! ___OPENGL VIEW___ }
 {=============================================}
@@ -455,6 +484,11 @@ type
       procedure updateTrackingAreas; override;
       procedure keyDown(theEvent: NSEvent); override;
       procedure drawRect(dirtyRect: NSRect); override;
+
+      { Realizes TCastleWindow.OnDropFiles, allows to handle dropping files. }
+      function performDragOperation(sender: NSDraggingInfoProtocol): ObjCBOOL; override;
+      function prepareForDragOperation(sender: NSDraggingInfoProtocol): ObjCBool; override;
+      function draggingEntered(sender: NSDraggingInfoProtocol): NSDragOperation; override;
     private
       openGLContext: NSOpenGLContext;
       trackingArea: NSTrackingArea;
@@ -626,6 +660,57 @@ begin
     NSNotificationCenter(NSNotificationCenter.defaultCenter).addObserver_selector_name_object(result, objcselector('frameChanged:'), NSViewGlobalFrameDidChangeNotification, nil);
 end;
 
+function TOpenGLView.draggingEntered(sender: NSDraggingInfoProtocol): NSDragOperation;
+begin
+  // Result := NSDragOperationNone;
+  // Necessary to support drag-and-drop files on the application.
+  Result := sender.draggingSourceOperationMask();
+end;
+
+function TOpenGLView.prepareForDragOperation(sender: NSDraggingInfoProtocol): ObjCBool;
+begin
+  { According to docs https://developer.apple.com/documentation/appkit/nsdraggingdestination/1416066-preparefordragoperation?language=objc ,
+    it is necessary to return true to support drag-and-drop files on the application.
+
+    In practice overriding prepareForDragOperation doesn't seem to do anything
+    - it is not necessary (overriding  draggingEntered is enough),
+    - it doesn't make drag-and-drop possible without draggingEntered.
+
+    Still we override it, following the docs. }
+
+  Result := true;
+end;
+
+function TOpenGLView.performDragOperation(sender: NSDraggingInfoProtocol): ObjCBOOL;
+{ Based on LCL Cocoa widgetset }
+var
+  draggedURLs: NSArray;
+  lFiles: array of string;
+  i: Integer;
+  pboard: NSPasteboard;
+  lNSStr: NSString;
+  CastleWindow: TCastleWindow;
+begin
+  Result := False;
+  pboard := sender.draggingPasteboard();
+
+  // Multiple strings
+  draggedURLs := pboard.propertyListForType(NSFilenamesPboardType);
+  SetLength(lFiles, draggedURLs.count);
+  for i := 0 to draggedURLs.count-1 do
+  begin
+    lNSStr := NSString(draggedURLs.objectAtIndex(i));
+    lFiles[i] := lNSStr.UTF8String;
+  end;
+
+  CastleWindow := TCocoaWindow(window).ref;
+
+  if Length(lFiles) > 0 then
+    CastleWindow.DoDropFiles(lFiles);
+
+  Result := True;
+end;
+
 {=============================================}
 {@! ___GLPT___ }
 {=============================================}
@@ -730,6 +815,8 @@ begin
   window.ref := Self;
 
   openGLView := TOpenGLView.alloc.initWithFrame(window.contentView.bounds);
+  // makes drag-and-drop files on window work
+  openGLView.registerForDraggedTypes(NSArray.arrayWithObjects_count(@NSFilenamesPboardType, 1));
   window.setContentView(openGLView);
   openGLView.release;
 
