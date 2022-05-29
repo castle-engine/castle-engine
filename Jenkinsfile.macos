@@ -75,15 +75,15 @@ pipeline {
       }
     }
     stage('Build Editor') {
-      dir ('tools/castle-editor/') {
-        steps {
+      steps {
+        dir ('tools/castle-editor/') {
           sh 'castle-engine package'
         }
       }
     }
     stage('Package') {
-      dir ('tools/internal/pack_release/') {
-        steps {
+      steps {
+        dir ('tools/internal/pack_release/') {
           sh './pack_release.sh darwin x86_64'
         }
       }
