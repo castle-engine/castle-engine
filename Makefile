@@ -406,12 +406,10 @@ clean: cleanexamples
 	                   -iname '*.log' ')' \
 	     -print \
 	     | xargs rm -f
-# Note: *.app directory is a macOS bundle
 	$(FIND) . -type d '(' -name 'lib' -or \
 	                      -name 'backup' -or \
 	                      -name 'castle-engine-output' -or \
-			      -name '__recovery' -or \
-			      -name '*.app' ')' \
+			      -name '__recovery' ')' \
 	     -exec rm -Rf '{}' ';' -prune
 	rm -Rf bin/ \
 	  castle-engine-copy$(EXE_EXTENSION) \

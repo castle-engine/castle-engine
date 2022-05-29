@@ -251,7 +251,7 @@ do_pack_platform ()
   # place it in bin-to-keep subdirectory
   if [ "$OS" '=' 'darwin' ]; then
     cd tools/castle-editor/
-    tools/build-tool/castle-engine"${EXE_EXTENSION}" $CASTLE_BUILD_TOOL_OPTIONS package
+    ../build-tool/castle-engine"${EXE_EXTENSION}" $CASTLE_BUILD_TOOL_OPTIONS package
     cd ../../
     cp -R tools/castle-editor/castle-editor.app \
        "${TEMP_PATH_CGE}"bin-to-keep
