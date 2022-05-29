@@ -20,7 +20,8 @@ unit ToolCommonUtils;
 
 interface
 
-uses CastleStringUtils;
+uses Classes,
+  CastleStringUtils;
 
 var
   { Trivial verbosity global setting. }
@@ -41,6 +42,9 @@ function FindExeCastleTool(const ExeName: String): String;
   Otherwise, the returned path always ends with path delimiter,
   and always exists. }
 function CastleEnginePath: String;
+
+{ Copy current environemt variables. }
+function EnvironmentStrings: TStringList;
 
 type
   { Line filtering used by MyRunCommandIndir and friends.
@@ -74,6 +78,10 @@ type
 
   @param(LineFilteringData Passed to the LineFiltering callback.
     Ignored if LineFiltering is nil.)
+
+  @param(If defined, this overrides all environment variables.
+    The value is owned by this routine.
+    You can start from EnvironmentStrings.)
 }
 procedure MyRunCommandIndir(
   const CurrentDirectory: string; const ExeName: string;
@@ -81,7 +89,8 @@ procedure MyRunCommandIndir(
   out OutputString: string; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil;
-  const Flags: TRunCommandFlags = []);
+  const Flags: TRunCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
 
 { Run command in given directory with given arguments,
   gathering output and status to string, and also letting output
@@ -139,7 +148,7 @@ var
 
 implementation
 
-uses Classes, SysUtils, Process,
+uses SysUtils, Process,
   CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog,
   ToolArchitectures;
 
@@ -493,12 +502,22 @@ end;
 
 { Running processes ---------------------------------------------------------- }
 
+function EnvironmentStrings: TStringList;
+var
+  I: Integer;
+begin
+  Result := TStringList.Create;
+  for I := 1 to GetEnvironmentVariableCount do
+    Result.Add(GetEnvironmentString(I));
+end;
+
 procedure MyRunCommandIndir(const CurrentDirectory: string;
   const ExeName: string;const Options: array of string;
   out OutputString: string; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil;
-  const Flags: TRunCommandFlags = []);
+  const Flags: TRunCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
 var
   P: TProcess;
   I: Integer;
@@ -526,6 +545,8 @@ begin
     P.Options := [poUsePipes, poStderrToOutPut];
     if rcNoConsole in Flags then
       P.Options := P.Options + [poNoConsole];
+    if OverrideEnvironment <> nil then
+      P.Environment := OverrideEnvironment;
     P.Execute;
 
     Capture := TCaptureOutput.Construct(P.Output, LineFiltering, LineFilteringData);
@@ -575,9 +596,7 @@ begin
 
     if OverrideEnvironmentName <> '' then
     begin
-      NewEnvironment := TStringList.Create;
-      for I := 1 to GetEnvironmentVariableCount do
-        NewEnvironment.Add(GetEnvironmentString(I));
+      NewEnvironment := EnvironmentStrings;
       NewEnvironment.Values[OverrideEnvironmentName] := OverrideEnvironmentValue;
       P.Environment := NewEnvironment;
       // WritelnVerbose('Environment: ' + P.Environment.Text);

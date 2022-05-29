@@ -360,12 +360,9 @@ end;
 procedure TAsynchronousProcess.Start;
 var
   S, LogLine: String;
-  I: Integer;
 begin
   { copy environment }
-  Environment := TStringList.Create;
-  for I := 1 to GetEnvironmentVariableCount do
-    Environment.Add(GetEnvironmentString(I));
+  Environment := EnvironmentStrings;
 
   { Extend PATH, to effectively use FpcCustomPath and LazarusCustomPath
     in the build tool.
