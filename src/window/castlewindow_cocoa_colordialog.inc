@@ -99,7 +99,6 @@ var
   accessoryView: NSView;
   lRect: NSRect;
   okButton, cancelButton: NSButton;
-  //isMenuOn: Boolean;
 begin
   colorPanel := NSColorPanel.sharedColorPanel();
   if (colorPanel.respondsToSelector(ObjCSelector('setRestorable:'))) then
@@ -137,18 +136,16 @@ begin
   colorPanel.setShowsAlpha(true);
   colorPanel.setDefaultButtonCell(okButton.cell);
 
-  // show panel
-  // TODO: isMenuOn := ToggleAppMenu(false);
+  MenuForcefullyDisabled := true;
   try
     colorPanel.makeKeyAndOrderFront(colorDelegate);
     NSApp.runModalForWindow(colorPanel);
 
     Result := colorDelegate.didPickColor;
     if Result then
-      // TODO: pass color with alpha
       Color := NSColorToCastle(colorPanel.color);
   finally
-    // TODO: ToggleAppMenu(isMenuOn);
+    MenuForcefullyDisabled := false;
   end;
 
   ref.makeKeyAndOrderFront(nil);

@@ -32,8 +32,6 @@ var
   // accessoryView: NSView;
   // lFilter: TCocoaFilterComboBox;
 
-  // isMenuOn: Boolean;
-
 (*
   // setup panel and its accessory view
   procedure CreateAccessoryView(AOpenOwner: NSOpenPanel; ASaveOwner: NSSavePanel);
@@ -176,7 +174,7 @@ begin
   saveDlg.setTitle(NSSTR(Title));
   saveDlg.setDirectoryURL(NSURL.fileURLWithPath(NSSTR(InitDir)));
 
-  // TODO: isMenuOn := ToggleAppMenu(false);
+  MenuForcefullyDisabled := true;
   try
     Result := saveDlg.runModal = NSModalResponseOK;
     if Result then
@@ -185,7 +183,7 @@ begin
     // release everything
     saveDlg.release;
   finally
-    // TODO: ToggleAppMenu(isMenuOn);
+    MenuForcefullyDisabled := false;
   end;
 
   ref.makeKeyAndOrderFront(nil);

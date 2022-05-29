@@ -70,8 +70,11 @@ CocoaAll,
 private
   ref: NSWindow;
   GLcontext: NSOpenGLContext;
+  FMenuForcefullyDisabled: Boolean;
   procedure FullScreenBegin;
   procedure FullScreenEnd;
+  procedure SetMenuForcefullyDisabled(const Value: Boolean);
+  property MenuForcefullyDisabled: Boolean read FMenuForcefullyDisabled write SetMenuForcefullyDisabled;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}

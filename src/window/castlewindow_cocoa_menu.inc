@@ -94,7 +94,7 @@ procedure TCastleWindow.BackendMenuInitialize;
       );
       TCocoaMenuItem(CocoaMenuItem).MenuItem := EntryItem;
       TCocoaMenuItem(CocoaMenuItem).ParentWindow := Self;
-      CocoaMenuItem.SetEnabled(EntryItem.Enabled);
+      CocoaMenuItem.SetEnabled(EntryItem.Enabled and (not MenuForcefullyDisabled));
       CocoaMenuItem.SetKeyEquivalentModifierMask(CocoaKeyModifier);
       CocoaMenuItem.setTarget(CocoaMenuItem); // determines where do we look for castleClick: selector
       if EntryItem is TMenuItemChecked then
@@ -115,7 +115,7 @@ procedure TCastleWindow.BackendMenuInitialize;
       CocoaMenuItem := NSMenuItem.alloc.initWithTitle_action_keyEquivalent(
         NSSTR(SRemoveMnemonics(EntryMenu.Caption)), nil,
         NSSTR('')).autorelease;
-      CocoaMenuItem.SetEnabled(EntryMenu.Enabled);
+      CocoaMenuItem.SetEnabled(EntryMenu.Enabled and (not MenuForcefullyDisabled));
       CocoaMenuItem.setSubmenu(CocoaSubMenu);
     end else
       raise EInternalError.Create('Not implemented TMenuEntry subclass');
@@ -159,7 +159,7 @@ begin
   if Entry.Handle <> nil then
   begin
     CocoaMenuItem := NSMenuItem(Entry.Handle);
-    CocoaMenuItem.SetEnabled(Entry.Enabled);
+    CocoaMenuItem.SetEnabled(Entry.Enabled and (not MenuForcefullyDisabled));
   end;
 end;
 
@@ -193,4 +193,28 @@ begin
   { TODO: implement menu on Cocoa faster, without reinitialize on update }
   MenuFinalize;
   MenuInitialize;
+end;
+
+procedure TCastleWindow.SetMenuForcefullyDisabled(const Value: Boolean);
+
+  procedure UpdateForcefullyDisabled(const Menu: TMenu);
+  var
+    I: Integer;
+  begin
+    MenuUpdateEnabled(Menu);
+    for I := 0 to Menu.Count - 1 do
+      if Menu[I] is TMenu then
+        UpdateForcefullyDisabled(TMenu(Menu[I]))
+      else
+      if Menu[I] is TMenuEntryWithCaption then
+        MenuUpdateEnabled(TMenuEntryWithCaption(Menu[I]));
+  end;
+
+begin
+  if FMenuForcefullyDisabled <> Value then
+  begin
+    FMenuForcefullyDisabled := Value;
+    if MainMenu <> nil then
+      UpdateForcefullyDisabled(MainMenu);
+  end;
 end;
