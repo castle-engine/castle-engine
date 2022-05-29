@@ -167,6 +167,19 @@ begin
     Result := CastleEnginePath + 'bin' + PathDelim + ExeName + ExeExtension;
     if RegularFileExists(Result) then
       Exit;
+
+    { Look for exe wrapped in macOS application bundle,
+      necessary to find view3dscene, castle-view-image in CGE bin. }
+    {$ifdef DARWIN}
+    Result := CastleEnginePath + 'bin' + PathDelim +
+      ExeName + '.app' + PathDelim +
+      'Contents' + PathDelim +
+      'MacOS' + PathDelim +
+      ExeName + ExeExtension;
+    if RegularFileExists(Result) then
+      Exit;
+    {$endif}
+
     Result := CastleEnginePath + 'tools' + PathDelim + 'contrib' + PathDelim +
       CPUToString(DefaultCPU) + '-' + OSToString(DefaultOS) + PathDelim +
       ExeName + ExeExtension;
