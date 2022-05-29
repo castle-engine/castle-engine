@@ -1543,10 +1543,16 @@ begin
     AddExternalLibraries(EditorPath);
 
     NewEditorExe := EditorPath + 'castle-editor-new' + ExeExtension;
-    EditorExe := EditorPath + 'castle-editor' + ExeExtension;
     if not RegularFileExists(NewEditorExe) then
       raise Exception.Create('Editor should be compiled, but we cannot find file "' + NewEditorExe + '"');
+
+    {$ifdef DARWIN}
+    // on macOS, run new editor through app bundle
+    EditorExe := NewEditorExe + '.app/Contents/MacOS/castle-editor-new';
+    {$else}
+    EditorExe := EditorPath + 'castle-editor' + ExeExtension;
     CheckRenameFile(NewEditorExe, EditorExe);
+    {$endif}
   end;
 
   { Running with CurrentDirectory = Path, so that at least on Windows
