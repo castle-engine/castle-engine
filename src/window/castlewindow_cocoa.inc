@@ -75,6 +75,30 @@ private
   procedure FullScreenEnd;
   procedure SetMenuForcefullyDisabled(const Value: Boolean);
   property MenuForcefullyDisabled: Boolean read FMenuForcefullyDisabled write SetMenuForcefullyDisabled;
+
+  { Show Cocoa modal message box.
+
+    Use Cocoa Sheet called NSAlert.
+    See https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Sheets/Tasks/UsingAlertSheets.html#//apple_ref/doc/uid/20001045-BABFIBIA .
+    Based on Lazarus LCL lcl/interfaces/cocoa/cocoalclintf.inc ,
+    but greatly simplified.
+
+    @param(AlertStyle Pass NSCriticalAlertStyle or NSInformationalAlertStyle.
+      You can also use NSWarningAlertStyle, but Apple docs openly say it is
+      equivalent to NSInformationalAlertStyle, see
+      https://developer.apple.com/documentation/appkit/nsalertstyle.)
+
+    @param(ButtonCaptions Array of button captions.)
+
+    @param(ButtonResults Array of button result values. May have equal length as ButtonCaptions.)
+
+    @returns(The value from ButtonResults corresponding to the button that was pressed.
+      Returns -1 if application ended while the message was active.) }
+  function CocoaPromptUser(const DialogCaption: String;
+    const DialogMessage: String;
+    const AlertStyle: NSAlertStyle;
+    const ButtonCaptions: array of String;
+    const ButtonResults: array of NSInteger): NSInteger;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -857,7 +881,7 @@ begin
   end;
 end;
 
-procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then { TODO: use GetWholeCaption };
@@ -1100,7 +1124,7 @@ begin
   Result := 0;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'Cocoa';
 end;

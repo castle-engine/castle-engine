@@ -32,32 +32,11 @@ end;
 type
   TAlertCompletionHandler = reference to procedure(ResultCode: NSModalResponse); cdecl; cblock;
 
-{ Show Cocoa modal message box.
-
-  Use Cocoa Sheet called NSAlert.
-  See https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Sheets/Tasks/UsingAlertSheets.html#//apple_ref/doc/uid/20001045-BABFIBIA .
-  Based on Lazarus LCL lcl/interfaces/cocoa/cocoalclintf.inc ,
-  but greatly simplified.
-
-  @param(AlertStyle Pass NSCriticalAlertStyle or NSInformationalAlertStyle.
-    You can also use NSWarningAlertStyle, but Apple docs openly say it is
-    equivalent to NSInformationalAlertStyle, see
-    https://developer.apple.com/documentation/appkit/nsalertstyle.)
-
-  @param(ButtonCaptions Array of button captions.)
-
-  @param(ButtonResults Array of button result values. May have equal length as ButtonCaptions.)
-
-  @param(ParentWindow Shows the prompt as a sheet to the specified NSWindow.)
-
-  @returns(The value from ButtonResults corresponding to the button that was pressed.
-    Returns -1 if application ended while the message was active.) }
-function CocoaPromptUser(const DialogCaption : string;
-  const DialogMessage : string;
+function TCastleWindow.CocoaPromptUser(const DialogCaption: String;
+  const DialogMessage: String;
   const AlertStyle: NSAlertStyle;
   const ButtonCaptions: array of String;
-  const ButtonResults: array of NSInteger;
-  const ParentWindow : NSWindow): NSInteger;
+  const ButtonResults: array of NSInteger): NSInteger;
 var
   anAlert: NSAlert;
   informativeText: NSString;
@@ -65,7 +44,7 @@ var
   I: Integer;
   aButton: NSButton;
 begin
-  Assert(ParentWindow <> nil);
+  Assert(ref <> nil);
   Assert(High(ButtonCaptions) = High(ButtonResults));
   Assert(High(ButtonCaptions) >= 0);
 
@@ -113,12 +92,20 @@ begin
       https://gitlab.com/freepascal.org/fpc/source/-/blob/main/tests/test/tblock2.pp
     }
 
-    anAlert.beginSheetModalForWindow_completionHandler(ParentWindow,
+    anAlert.beginSheetModalForWindow_completionHandler(ref,
       TAlertCompletionHandler(@AlertCompletionHandler));
 
-    while not AlertEnded do
-      if not Application.ProcessMessage(true, true) then
-        Break;
+    { Using MenuForcefullyDisabled is important here, as we run
+      Application.ProcessMessage and in general process all events as usual
+      underneath the message box. }
+    MenuForcefullyDisabled := true;
+    try
+      while not AlertEnded do
+        if not Application.ProcessMessage(true, true) then
+          Break;
+    finally
+      MenuForcefullyDisabled := false;
+    end;
 
     if AlertEnded then
       Result := AlertResultCode;
@@ -126,10 +113,10 @@ begin
     AnAlert.release;
   end;
 
-  { Make the ParentWindow again receive keys, otherwise closing the dialog
+  { Make the ref again receive keys, otherwise closing the dialog
     with key makes weird experience -- further key presses will not be send
     to the application window you're looking at. }
-  ParentWindow.makeKeyAndOrderFront(nil);
+  ref.makeKeyAndOrderFront(nil);
 end;
 
 const
@@ -148,15 +135,15 @@ const
     NSInformationalAlertStyle // mtOther
   );
 
-procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindow.MessageOK(const S: String; const MessageType: TWindowMessageType);
 begin
   CocoaPromptUser(CaptionFromMessageType[MessageType], S,
-    AlertStyleFromMessageType[MessageType], ['OK'], [0], ref);
+    AlertStyleFromMessageType[MessageType], ['OK'], [0]);
 end;
 
-function TCastleWindow.MessageYesNo(const S: string;
+function TCastleWindow.MessageYesNo(const S: String;
   const MessageType: TWindowMessageType): boolean;
 begin
   Result := CocoaPromptUser(CaptionFromMessageType[MessageType], S,
-    AlertStyleFromMessageType[MessageType], ['Yes', 'No'], [0, 1], ref) = 0;
+    AlertStyleFromMessageType[MessageType], ['Yes', 'No'], [0, 1]) = 0;
 end;
