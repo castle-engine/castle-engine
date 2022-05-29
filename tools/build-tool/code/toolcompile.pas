@@ -341,7 +341,10 @@ begin
   LineLower := LowerCase(Line);
   Result := not (
     IsPrefix('generics.collections.pas(', LineLower, false) or
-    IsPrefix('generics.dictionaries.inc(', LineLower, false)
+    IsPrefix('generics.dictionaries.inc(', LineLower, false) or
+    IsSuffix('note: change section name to "__data"  ', LineLower, false) or
+    (Line = '.section __DATA, __datacoal_nt, coalesced') or
+    (Line = '         ^      ~~~~~~~~~~~~~~')
   );
   // Uncomment this just to debug that our line splitting in TCaptureOutputFilter works
   // Line := '<begin>' + Line + '<end>';
