@@ -145,15 +145,25 @@ add_external_tool ()
   download https://codeload.github.com/castle-engine/"${GITHUB_NAME}"/zip/master "${GITHUB_NAME}".zip
   unzip "${GITHUB_NAME}".zip
   cd "${GITHUB_NAME}"-master
-  castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
-  mv "${EXE_NAME}" "${OUTPUT_BIN}"
+
+  if [ "$OS" '=' 'darwin' ]; then
+    # on macOS, build app bundle, and move it to output path
+    castle-engine $CASTLE_BUILD_TOOL_OPTIONS package
+    mv "${EXE_NAME}".app "${OUTPUT_BIN}"
+  else
+    castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
+    mv "${EXE_NAME}" "${OUTPUT_BIN}"
+  fi
 }
 
 do_pack_platform ()
 {
-  local OS="$1"
-  local CPU="$2"
+  OS="$1"
+  CPU="$2"
   shift 2
+
+  # comparisons in this script assume lowercase OS name, like darwin or win32
+  OS=`echo -n $OS | tr '[:upper:]' '[:lower:]'`
 
   # restore CGE path, otherwise it points to a temporary (and no longer existing)
   # dir after one execution of do_pack_platform
@@ -225,19 +235,32 @@ do_pack_platform ()
   # Remove Vampyre Demos - take up 60 MB space, and are not necessary for users of CGE.
   rm -Rf src/vampyre_imaginglib/src/Demos/
 
-  # Compile most tools with FPC, and castle-editor with lazbuild
+  # Compile tools (except editor) with just FPC
   "${MAKE}" tools ${MAKE_OPTIONS} BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
 
-  # Place tools binaries in bin/ subdirectory
+  # Place tools (except editor) binaries in bin-to-keep subdirectory
   mkdir -p "${TEMP_PATH_CGE}"bin-to-keep
   cp tools/build-tool/castle-engine"${EXE_EXTENSION}" \
      tools/texture-font-to-pascal/texture-font-to-pascal"${EXE_EXTENSION}" \
      tools/image-to-pascal/image-to-pascal"${EXE_EXTENSION}" \
      tools/castle-curves/castle-curves"${EXE_EXTENSION}" \
      tools/to-data-uri/to-data-uri"${EXE_EXTENSION}" \
-     tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
      "${TEMP_PATH_CGE}"bin-to-keep
+
+  # Compile castle-editor with lazbuild (or CGE build tool, to get macOS app bundle),
+  # place it in bin-to-keep subdirectory
+  if [ "$OS" '=' 'darwin' ]; then
+    cd tools/castle-editor/
+    tools/build-tool/castle-engine"${EXE_EXTENSION}" $CASTLE_BUILD_TOOL_OPTIONS package
+    cd ../../
+    cp -R tools/castle-editor/castle-editor.app \
+       "${TEMP_PATH_CGE}"bin-to-keep
+  else
+    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
+    cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
+       "${TEMP_PATH_CGE}"bin-to-keep
+  fi
+
   # Add DLLs on Windows
   case "$OS" in
     win32|win64)
