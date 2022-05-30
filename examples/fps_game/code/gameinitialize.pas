@@ -28,7 +28,8 @@ interface
 implementation
 
 uses SysUtils, Classes,
-  CastleWindow, CastleApplicationProperties, CastleUIState
+  CastleWindow, CastleApplicationProperties, CastleUIState,
+  CastleMaterialProperties
   {$ifdef UPCOMING_FPS_GAME_REDESIGN}
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
@@ -40,7 +41,7 @@ uses SysUtils, Classes,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleTransform, CastleFilesUtils, CastleGameNotifications,
   CastleVectors, CastleUIControls, CastleGLUtils, CastleViewport,
-  CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
+  CastleColors, CastleItems, CastleUtils, CastleCameras,
   CastleCreatures, CastleRectangles, CastleImages,
   CastleLoadGltf, CastleSceneCore, CastleScene
   {$endif};
@@ -56,6 +57,9 @@ procedure ApplicationInitialize;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  { Load texture properties, used to enable GPU-compressed textures. }
+  MaterialProperties.URL := 'castle-data:/material_properties.xml';
 
   { Create game states and set initial state }
   {$region 'Castle State Creation'}
@@ -608,7 +612,7 @@ begin
   SoundEngine.RepositoryURL := 'castle-data:/sounds/index.xml';
 
   { Load texture properties, used to assign footsteps sounds based
-    on ground texture }
+    on ground texture, and to enable using GPU-compressed textures. }
   MaterialProperties.URL := 'castle-data:/material_properties.xml';
 
   { Change Theme image tiActiveFrame, used to draw rectangle under image }
