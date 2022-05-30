@@ -35,13 +35,13 @@
     FGravityStrength: Single;
     FMaxPhysicsTicksPerUpdate: Cardinal;
     FUpdateCollidersScaleAtRuntime: Boolean;
-    FContinuousCollisionDetection: Boolean;
+    FContinuousCD: Boolean;
 
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
     procedure SetUpdateCollidersScaleAtRuntime(const AValue: Boolean);
-    procedure SetContinuousCollisionDetection(const AValue: Boolean);
+    procedure SetContinuousCD(const AValue: Boolean);
 
   private
     { Buffer to not count physics step time per frame }
@@ -56,7 +56,7 @@
       DefaultMaxPhysicsTicksPerUpdate = 5;
       DefaultGravityStrength = 9.81;
       DefaultUpdateCollidersScaleAtRuntime = true;
-      DefaultContinuousCollisionDetection = true;
+      DefaultContinuousCD = true;
     constructor Create(AOwner: TComponent); override;
 
   published
@@ -88,7 +88,7 @@
       collider to world. }
     property UpdateCollidersScaleAtRuntime: Boolean read FUpdateCollidersScaleAtRuntime write SetUpdateCollidersScaleAtRuntime default DefaultUpdateCollidersScaleAtRuntime;
     { Should engine use continous collision detection (CCD). }
-    property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
+    property ContinuousCD: Boolean read FContinuousCD write SetContinuousCD default DefaultContinuousCD;
   end;
 
   { Don't have any Kraft objects only describe shape }
@@ -984,13 +984,13 @@ begin
   end;
 end;
 
-procedure TPhysicsProperties.SetContinuousCollisionDetection(
+procedure TPhysicsProperties.SetContinuousCD(
   const AValue: Boolean);
 begin
-  if FContinuousCollisionDetection = AValue then
+  if FContinuousCD = AValue then
     Exit;
 
-  FContinuousCollisionDetection := AValue;
+  FContinuousCD := AValue;
   if Assigned(RootTransform.FKraftEngine) then
     if AValue then
       RootTransform.FKraftEngine.ContinuousMode := kcmTimeOfImpactSubSteps
@@ -1030,7 +1030,7 @@ begin
   FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
   FUpdateCollidersScaleAtRuntime := DefaultUpdateCollidersScaleAtRuntime;
-  FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
+  FContinuousCD := DefaultContinuousCD;
 end;
 
 { TCollider ------------------------------------------------------------------ }
@@ -2711,7 +2711,7 @@ begin
     FKraftEngine.SetFrequency(PhysicsProperties.Frequency);
     FKraftEngine.AngularVelocityRK4Integration := PhysicsProperties.AngularVelocityRK4Integration;
     FKraftEngine.LinearVelocityRK4Integration := PhysicsProperties.LinearVelocityRK4Integration;
-    if PhysicsProperties.ContinuousCollisionDetection then
+    if PhysicsProperties.ContinuousCD then
       FKraftEngine.ContinuousMode := kcmTimeOfImpactSubSteps
     else
       FKraftEngine.ContinuousMode := kcmNone;
