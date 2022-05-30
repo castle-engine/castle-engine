@@ -35,12 +35,13 @@
     FGravityStrength: Single;
     FMaxPhysicsTicksPerUpdate: Cardinal;
     FUpdateCollidersScaleAtRuntime: Boolean;
+    FContinuousCollisionDetection: Boolean;
 
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
-
     procedure SetUpdateCollidersScaleAtRuntime(const AValue: Boolean);
+    procedure SetContinuousCollisionDetection(const AValue: Boolean);
 
   private
     { Buffer to not count physics step time per frame }
@@ -55,10 +56,8 @@
       DefaultMaxPhysicsTicksPerUpdate = 5;
       DefaultGravityStrength = 9.81;
       DefaultUpdateCollidersScaleAtRuntime = true;
-
+      DefaultContinuousCollisionDetection = true;
     constructor Create(AOwner: TComponent); override;
-
-
 
   published
     { Use a more precise (but also more expensive) method for simulating angular velocity.
@@ -88,6 +87,8 @@
       it changes colliders size, otherwise scale is updated only after attaching
       collider to world. }
     property UpdateCollidersScaleAtRuntime: Boolean read FUpdateCollidersScaleAtRuntime write SetUpdateCollidersScaleAtRuntime default DefaultUpdateCollidersScaleAtRuntime;
+    { Should engine use continous collision detection (CCD). }
+    property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
   end;
 
   { Don't have any Kraft objects only describe shape }
@@ -2664,6 +2665,10 @@ begin
     FKraftEngine.SetFrequency(PhysicsProperties.Frequency);
     FKraftEngine.AngularVelocityRK4Integration := PhysicsProperties.AngularVelocityRK4Integration;
     FKraftEngine.LinearVelocityRK4Integration := PhysicsProperties.LinearVelocityRK4Integration;
+    if PhysicsProperties.ContinuousCollisionDetection then
+      FKraftEngine.ContinuousMode := kcmTimeOfImpactSubSteps
+    else
+      FKraftEngine.ContinuousMode := kcmNone;
   end;
 end;
 
