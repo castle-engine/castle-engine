@@ -923,7 +923,7 @@ procedure TCastleProject.DoRun(const Target: TTarget;
   var
     ExeInBundle: String;
   begin
-    if OS = Darwin then
+    if (OS = Darwin) and Manifest.MacRunThroughAppBundle then
     begin
       CreateMacAppBundle(Self, TempOutputPath(Path) + 'macos' + PathDelim, true, ExeInBundle);
 
