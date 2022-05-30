@@ -225,10 +225,41 @@ begin
 end;
 
 function TX3DExport.DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DExport;
+var
+  CopyIndex: Integer;
 begin
-  Result := TX3DExport.Create;
-  Result.ExportedNode := CopyState.DeepCopy(ExportedNode);
-  Result.ExportedAlias := ExportedAlias;
+  CopyIndex := CopyState.OriginalExport.IndexOf(Self);
+  if CopyIndex <> -1 then
+  begin
+    { Reuse existing TX3DExport reference.
+
+      Useful, because:
+
+      TX3DRootNode.ExportedNodes, which is TX3DExportList,
+      carries references to the same TX3DExport instances that are also
+      listed in TX3DNode.Exports.
+      So TX3DExportList is created with OwnsObjects=false,
+      because it should not own TX3DExport instances.
+      All TX3DExport instances should be on TX3DNode.Exports list, which already
+      owns them.
+      And TX3DExportList should only have additional references to them.
+
+      This is what happens when reading the file in normal case, without DeepCopy.
+
+      In TX3DExportList.DeepCopy, for consistency,
+      also TX3DExportList is created with OwnsObjects=false.
+      So it should also carry the same references (not have new TX3DExport instances).
+    }
+    Result := CopyState.NewExport[CopyIndex];
+  end else
+  begin
+    Result := TX3DExport.Create;
+    Result.ExportedNode := CopyState.DeepCopy(ExportedNode);
+    Result.ExportedAlias := ExportedAlias;
+
+    CopyState.OriginalExport.Add(Self);
+    CopyState.NewExport.Add(Result);
+  end;
 end;
 
 { TX3DExportList ------------------------------------------------------------- }

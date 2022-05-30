@@ -22,6 +22,7 @@
   private
     { These two lists must always have exactly the same length. }
     Original, New: TX3DNodeList;
+    OriginalExport, NewExport: TX3DExportList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1151,12 +1152,16 @@ begin
   inherited;
   Original := TX3DNodeList.Create(false);
   New := TX3DNodeList.Create(false);
+  OriginalExport := TX3DExportList.Create(false);
+  NewExport := TX3DExportList.Create(false);
 end;
 
 destructor TX3DNodeDeepCopyState.Destroy;
 begin
   FreeAndNil(Original);
   FreeAndNil(New);
+  FreeAndNil(OriginalExport);
+  FreeAndNil(NewExport);
   inherited;
 end;
 
