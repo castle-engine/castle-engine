@@ -1836,7 +1836,7 @@ begin
   end else
   begin
     { There is a bug in Kraft that makes you can't change body type when it
-      was onece selected so we need recreate all physics objects. }
+      was onece selected so we need recreate rigid body physics objects. }
     DeinitializePhysicsEngineObjects;
     InitializePhysicsEngineObjects;
   end;
