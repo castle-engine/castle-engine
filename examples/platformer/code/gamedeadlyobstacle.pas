@@ -86,6 +86,9 @@ end;
 procedure TDeadlyObstacle.ParentChanged;
 begin
   inherited ParentChanged;
+
+  if Parent = nil then
+    Exit;
   Scene := Parent as TCastleScene;
   ConfigureDeadlyObstaclePhysics(Scene);
 end;

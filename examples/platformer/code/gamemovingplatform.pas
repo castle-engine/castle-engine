@@ -62,6 +62,10 @@ var
   Distance: Single;
 begin
   inherited;
+
+  if Parent = nil then
+    Exit;
+
   Scene := Parent as TCastleScene;
 
   if Scene.Scale.X < 0 then

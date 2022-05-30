@@ -79,6 +79,8 @@ end;
 procedure TFallingObstacle.ParentChanged;
 begin
   inherited ParentChanged;
+  if Parent = nil then
+    Exit;
   Scene := Parent as TCastleScene;
   ConfigureFallingObstaclePhysics(Scene);
 end;
