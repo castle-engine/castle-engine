@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="check_lazarus_packages"
   standalone_source="check_lazarus_packages.lpr"
-  mac_run_through_app_bundle="false">
+  mac_app_bundle="false">
   <data exists="false" />
 </project>

@@ -100,7 +100,7 @@ type
       DefaultDataExists = true;
       DefaultFullscreenImmersive = true;
       DefaultDetectMemoryLeaks = false;
-      DefaultMacRunThroughAppBundle = true;
+      DefaultMacAppBundle = true;
 
       { character sets }
       ControlChars = [#0 .. Chr(Ord(' ') - 1)];
@@ -152,7 +152,7 @@ type
       FFreeDesktopCategories: String;
       FFreeDesktopComment: String;
       FDetectMemoryLeaks: Boolean;
-      FMacRunThroughAppBundle: Boolean;
+      FMacAppBundle: Boolean;
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
@@ -296,7 +296,7 @@ type
 
     property DetectMemoryLeaks: Boolean read FDetectMemoryLeaks;
 
-    property MacRunThroughAppBundle: Boolean read FMacRunThroughAppBundle;
+    property MacAppBundle: Boolean read FMacAppBundle;
 
     { Find a file with given BaseName (contains filename, with extension, but without any path)
       among SearchPaths of this project.
@@ -448,7 +448,7 @@ begin
   FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
   FFullscreenImmersive := DefaultFullscreenImmersive;
   FDetectMemoryLeaks := DefaultDetectMemoryLeaks;
-  FMacRunThroughAppBundle := DefaultMacRunThroughAppBundle;
+  FMacAppBundle := DefaultMacAppBundle;
 
   FPath := InclPathDelim(APath);
   FPathUrl := FilenameToURISafe(FPath);
@@ -519,8 +519,8 @@ begin
       Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
     FFullscreenImmersive := Doc.DocumentElement.AttributeBooleanDef('fullscreen_immersive', true);
     FBuildUsingLazbuild := Doc.DocumentElement.AttributeBooleanDef('build_using_lazbuild', false);
-    FMacRunThroughAppBundle := Doc.DocumentElement.AttributeBooleanDef('mac_run_through_app_bundle',
-      DefaultMacRunThroughAppBundle);
+    FMacAppBundle := Doc.DocumentElement.AttributeBooleanDef('mac_app_bundle',
+      DefaultMacAppBundle);
 
     FVersion := ReadVersion(Doc.DocumentElement.ChildElement('version', false));
     // create default FVersion value, if necessary

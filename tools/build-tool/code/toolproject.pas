@@ -632,7 +632,7 @@ begin
     if OS in AllWindowsOSes then
       Result := pfZip
     else
-    if OS = Darwin then
+    if (OS = Darwin) and Manifest.MacAppBundle then
       Result := pfMacAppBundle
     else
       Result := pfTarGz;
@@ -923,7 +923,7 @@ procedure TCastleProject.DoRun(const Target: TTarget;
   var
     ExeInBundle: String;
   begin
-    if (OS = Darwin) and Manifest.MacRunThroughAppBundle then
+    if (OS = Darwin) and Manifest.MacAppBundle then
     begin
       CreateMacAppBundle(Self, TempOutputPath(Path) + 'macos' + PathDelim, true, ExeInBundle);
 
