@@ -476,6 +476,7 @@
     FDynamic: Boolean;
     FAnimated: Boolean;
     FTrigger: Boolean;
+    FContinuousCD: Boolean;
     FExists: Boolean;
     FLockTranslation: T3DCoords;
     FLockRotation: T3DCoords;
@@ -494,6 +495,8 @@
     procedure UpdateExist;
     { Updates existence state of physics engine body. }
     procedure UpdateExistBody;
+    { Updates Continuous Collision Detection state of physics engine body. }
+    procedure UpdateContinuousCD;
 
     { Sets all values from Kraft to CGE private fields. Currently angular and
       linear velocity. }
@@ -512,6 +515,8 @@
     procedure SetOnCollisionEnter(const AValue: TCollisionEvent);
     procedure SetOnCollisionStay(const AValue: TCollisionEvent);
     procedure SetOnCollisionExit(const AValue: TCollisionEvent);
+
+    procedure SetContinuousCD(const AValue: Boolean);
 
     procedure SetDynamic(const AValue: Boolean);
     procedure SetAnimated(const AValue: Boolean);
@@ -767,6 +772,9 @@
       specifying this @link(TRigidBody) as it's parent. }
     property Collider: TCollider read FCollider;
 
+    { Sets Continuous Collision Detection state of rigid body. }
+    property ContinuousCD: Boolean read FContinuousCD write SetContinuousCD default false;
+
     { Is this object affected by gravity. }
     property Gravity: Boolean read FGravity write SetGravity default true;
 
@@ -976,6 +984,20 @@ begin
   end;
 end;
 
+procedure TPhysicsProperties.SetContinuousCollisionDetection(
+  const AValue: Boolean);
+begin
+  if FContinuousCollisionDetection = AValue then
+    Exit;
+
+  FContinuousCollisionDetection := AValue;
+  if Assigned(RootTransform.FKraftEngine) then
+    if AValue then
+      RootTransform.FKraftEngine.ContinuousMode := kcmTimeOfImpactSubSteps
+    else
+      RootTransform.FKraftEngine.ContinuousMode := kcmNone;
+end;
+
 procedure TPhysicsProperties.SetLinearVelocityRK4Integration(const AValue: Boolean);
 begin
   if FLinearVelocityRK4Integration = AValue then
@@ -1008,6 +1030,7 @@ begin
   FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
   FUpdateCollidersScaleAtRuntime := DefaultUpdateCollidersScaleAtRuntime;
+  FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
 end;
 
 { TCollider ------------------------------------------------------------------ }
@@ -1867,6 +1890,7 @@ begin
   if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
 
   UpdateExistBody;
+  UpdateContinuousCD;
 
   if FTrigger then
     FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
@@ -2169,6 +2193,17 @@ begin
   end;
 end;
 
+procedure TCastleRigidBody.UpdateContinuousCD;
+begin
+  if Assigned(FKraftBody) then
+  begin
+    if FContinuousCD then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfContinuous]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfContinuous];
+  end;
+end;
+
 procedure TCastleRigidBody.SetMaximalAngularVelocity(const AValue: Single);
 begin
   FMaximalAngularVelocity := AValue;
@@ -2201,6 +2236,15 @@ procedure TCastleRigidBody.SetOnCollisionExit(const AValue: TCollisionEvent);
 begin
   FOnCollisionExit := AValue;
   CheckPhysicsPostStepNeeded;
+end;
+
+procedure TCastleRigidBody.SetContinuousCD(const AValue: Boolean);
+begin
+  if FContinuousCD = AValue then
+    Exit;
+
+  FContinuousCD := AValue;
+  UpdateContinuousCD;
 end;
 
 procedure TCastleRigidBody.SetDynamic(const AValue: Boolean);
@@ -2357,8 +2401,10 @@ begin
   UpdateCollides(Parent);
   if Dynamic then
   begin
+    { This is not called with Animated because Kraft Kinematic Bodies are never
+      updated by physics engine. }
     TransformationFromKraft;
-    SynchronizeFromKraft; // I think its only required for dynamic bodies.
+    SynchronizeFromKraft;
   end
 
   { Animated: I think we don't need do anything here becouse when
