@@ -1821,15 +1821,24 @@ end;
 
 procedure TCastleRigidBody.UpdateKraftRigidBodyType;
 begin
-  if FKraftBody <> nil then
+  if FState in [crbsNotInitialized] then
   begin
-    if FDynamic then
-      FKraftBody.SetRigidBodyType(krbtDynamic)
-    else
-    if FAnimated then
-      FKraftBody.SetRigidBodyType(krbtKinematic)
-    else
-      FKraftBody.SetRigidBodyType(krbtStatic);
+    if FKraftBody <> nil then
+    begin
+      if FDynamic then
+        FKraftBody.SetRigidBodyType(krbtDynamic)
+      else
+      if FAnimated then
+        FKraftBody.SetRigidBodyType(krbtKinematic)
+      else
+        FKraftBody.SetRigidBodyType(krbtStatic);
+    end;
+  end else
+  begin
+    { There is a bug in Kraft that makes you can't change body type when it
+      was onece selected so we need recreate all physics objects. }
+    DeinitializePhysicsEngineObjects;
+    InitializePhysicsEngineObjects;
   end;
 end;
 
