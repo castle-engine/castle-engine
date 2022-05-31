@@ -1305,6 +1305,9 @@ begin
   end else
     NewScale := NoScale * Parent.Scale;
 
+  { Never use a negative scale for colliders }
+  NewScale := NewScale.Abs;
+
   if ForceUpdate or not FLastUsedWorldScale.PerfectlyEquals(FLastUsedWorldScale, NewScale) then
   begin
     FLastUsedWorldScale := NewScale;
