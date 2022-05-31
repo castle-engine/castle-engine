@@ -381,7 +381,7 @@ begin
     RegisterPackage('packages/alternative_castle_window_based_on_lcl.lpk');
     RegisterPackage('packages/castle_indy.lpk');
 
-    ShowMessage('Lazarus packages registed successfully.');
+    ShowMessage('Lazarus packages registered successfully.');
   except
     on E: Exception do
       ErrorBox(E.Message);
