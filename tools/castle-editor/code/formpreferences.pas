@@ -417,9 +417,15 @@ end;
 
 procedure TPreferencesForm.UpdatePageVisible;
 var
+  PageIndex: Integer;
   SelectedPage: TPanel;
 begin
-  case ListPages.ItemIndex of
+  PageIndex := ListPages.ItemIndex;
+  if PageIndex = -1 then
+    // on macOS (Cocoa) user can click anywhere in list to deselect it, tolerate it
+    PageIndex := 0;
+
+  case PageIndex of
     0: SelectedPage := PanelCodeEditor;
     1: SelectedPage := PanelCompilation;
     2: SelectedPage := PanelFpcLazarusConfig;
@@ -427,7 +433,7 @@ begin
     else raise Exception.CreateFmt('Unexpected ListPages.ItemIndex %d', [ListPages.ItemIndex]);
   end;
   SetEnabledVisible(PanelCodeEditor      , PanelCodeEditor       = SelectedPage);
-  SetEnabledVisible(PanelCompilation     , PanelCompilation       = SelectedPage);
+  SetEnabledVisible(PanelCompilation     , PanelCompilation      = SelectedPage);
   SetEnabledVisible(PanelFpcLazarusConfig, PanelFpcLazarusConfig = SelectedPage);
   SetEnabledVisible(PanelSound           , PanelSound            = SelectedPage);
 end;
