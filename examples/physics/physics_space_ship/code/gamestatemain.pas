@@ -9,10 +9,20 @@ interface
 
 uses Classes,
   CastleVectors, CastleUIState, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleTransform;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleTransform,
+  CastleScene, CastleViewport;
 
 type
   { Main state, where most of the application logic takes place. }
+
+  TBullet = class(TCastleTransform)
+  strict private
+    Duration: Single;
+  public
+    constructor Create(AOwner: TComponent; BulletSpriteScene: TCastleScene); reintroduce;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+  end;
+
   TStateMain = class(TUIState)
   strict private
     const
@@ -29,6 +39,8 @@ type
     LabelFps: TCastleLabel;
     Ship: TCastleTransform;
     ShipRigidBody: TCastleRigidBody;
+    BulletSpriteScene: TCastleScene;
+    Viewport: TCastleViewport;
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -43,6 +55,42 @@ var
 implementation
 
 uses SysUtils, CastleLog, Math;
+
+{ TBullet }
+
+constructor TBullet.Create(AOwner: TComponent; BulletSpriteScene: TCastleScene);
+var
+  RBody: TCastleRigidBody;
+  Collider: TCastleSphereCollider;
+begin
+  inherited Create(AOwner);
+
+  Add(BulletSpriteScene);
+  BulletSpriteScene.Visible := true;
+  BulletSpriteScene.Translation := Vector3(0, 0, 0);
+
+  RBody := TCastleRigidBody.Create(Self);
+  RBody.Setup2D;
+  RBody.Dynamic := true;
+  RBody.MaximalLinearVelocity := 0;
+  RBody.Gravity := false;
+  AddBehavior(RBody);
+
+  Collider := TCastleSphereCollider.Create(Self);
+  Collider.Mass := 1;
+
+  AddBehavior(Collider);
+end;
+
+procedure TBullet.Update(const SecondsPassed: Single;
+  var RemoveMe: TRemoveType);
+begin
+  inherited Update(SecondsPassed, RemoveMe);
+
+  Duration := Duration + SecondsPassed;
+  if Duration > 3 then
+    RemoveMe := rtRemoveAndFree;
+end;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -89,13 +137,18 @@ begin
 
   Ship := DesignedComponent('Ship') as TCastleTransform;
   ShipRigidBody := Ship.RigidBody;
+
+  BulletSpriteScene := TCastleScene.Create(FreeAtStop);
+  BulletSpriteScene.URL := 'castle-data:/graphics/bullet/bullet.png';
+  BulletSpriteScene.Scale := Vector3(2, 2, 2);
+
+  Viewport := DesignedComponent('Viewport') as TCastleViewport;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 var
   Torque: TVector3;
   Direction: TVector3;
-  Rotation: Single;
 begin
   inherited;
   { This virtual method is executed every frame.}
@@ -104,9 +157,6 @@ begin
   if InputUp then
   begin
     Direction := Vector3(0, 1, 0);
-    Rotation := Ship.Rotation.W;
-    Direction := RotatePointAroundAxisRad(Ship.Rotation.W, Direction, Vector3(0, 1, 0));
-
     ShipRigidBody.AddCentralForce(Direction * ThrustForce);
     ShipRigidBody.WakeUp;
   end;
@@ -126,10 +176,12 @@ begin
   end;
 
 
-
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+var
+  Bullet: TBullet;
+  Direction: TVector3;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -145,13 +197,16 @@ begin
   }
 
   // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
+  if Event.IsKey(keySpace) then
   begin
-    // DoSomething;
+    Bullet := TBullet.Create(FreeAtStop, BulletSpriteScene);
+    Bullet.Translation := Ship.LocalToWorld(Vector3(0, Ship.LocalBoundingBox.SizeY / 2 + 5 , 0));
+    Viewport.Items.Add(Bullet);
+
+    Direction := Ship.LocalToWorldDirection(Vector3(0,1,0));
+    Bullet.RigidBody.ApplyImpulse(Direction * 500, Bullet.Translation);
     Exit(true); // key was handled
   end;
-  }
 end;
 
 end.

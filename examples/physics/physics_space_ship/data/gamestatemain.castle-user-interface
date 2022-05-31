@@ -73,7 +73,7 @@
                 "$$ClassName" : "TCastleRigidBody",
                 "AngularVelocityDamp" : 3.0000000000000000E+000,
                 "Gravity" : false,
-                "LinearVelocityDamp" : 1.0000000000000000E+000,
+                "LinearVelocityDamp" : 5.0000000000000000E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -125,9 +125,7 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Gravity" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -139,6 +137,7 @@
               },
               {
                 "$$ClassName" : "TCastleSphereCollider",
+                "Mass" : 3.0000001192092896E-001,
                 "Mode2D" : true,
                 "Name" : "SphereCollider1"
               }
@@ -168,9 +167,7 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Gravity" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -206,9 +203,7 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Gravity" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -244,9 +239,7 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Gravity" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -282,9 +275,7 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Gravity" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -320,9 +311,7 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Gravity" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -358,9 +347,7 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Gravity" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -396,9 +383,7 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Gravity" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -407,43 +392,6 @@
                   2
                 ],
                 "Name" : "RigidBody8"
-              }
-            ]
-          },
-          {
-            "$$ClassName" : "TCastleSphere",
-            "CollisionSphereRadius" : 4.0000000000000000E+001,
-            "Material" : "pmUnlit",
-            "Name" : "Sphere1",
-            "Radius" : 4.0000000000000000E+001,
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "Name" : "RenderOptions"
-            },
-            "TranslationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 6.8082244873046875E+002,
-              "Y" : 6.5166882324218750E+002
-            },
-            "$Behaviors" : [
-              {
-                "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
-                "Gravity" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
-                "LockRotation" : [
-                  0,
-                  1
-                ],
-                "LockTranslation" : [
-                  2
-                ],
-                "Name" : "RigidBody9"
-              },
-              {
-                "$$ClassName" : "TCastleSphereCollider",
-                "Mode2D" : true,
-                "Name" : "SphereCollider9"
               }
             ]
           }
