@@ -23,47 +23,47 @@ describing them.
   <textures>
     <texture url="example_level/textures/large-stone-wall.png" depth="1" width="2048" height="512" original_platforms="all" last_processed_content_hash="f4b63c8a875be8e112f6e42c01aed130">
       <generated url="example_level/textures/auto_generated/dxt1_rgb/large-stone-wall.png.dds" scale="1" platforms="all" compressed="True" compression="DXT1_RGB"/>
-      <generated url="example_level/textures/auto_generated/astc_8x8_rgba/large-stone-wall.png.astc" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
+      <generated url="example_level/textures/auto_generated/astc_8x8_rgba/large-stone-wall.png.ktx" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
     </texture>
     <texture url="example_level/textures/tilable-img_0044.png" depth="1" width="1024" height="1024" original_platforms="all" last_processed_content_hash="a50ac44a3cc4a96fa6e833bedb69d115">
       <generated url="example_level/textures/auto_generated/dxt1_rgb/tilable-img_0044.png.dds" scale="1" platforms="all" compressed="True" compression="DXT1_RGB"/>
-      <generated url="example_level/textures/auto_generated/astc_8x8_rgba/tilable-img_0044.png.astc" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
+      <generated url="example_level/textures/auto_generated/astc_8x8_rgba/tilable-img_0044.png.ktx" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
     </texture>
     <texture url="example_level/textures/concrete-normalmap.png" depth="1" width="1024" height="1024" original_platforms="all" last_processed_content_hash="885f2e78a9c3d4c7a7f7c0002a86d2dd">
       <generated url="example_level/textures/auto_generated/dxt1_rgb/concrete-normalmap.png.dds" scale="1" platforms="all" compressed="True" compression="DXT1_RGB"/>
-      <generated url="example_level/textures/auto_generated/astc_8x8_rgba/concrete-normalmap.png.astc" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
+      <generated url="example_level/textures/auto_generated/astc_8x8_rgba/concrete-normalmap.png.ktx" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
     </texture>
     <texture url="example_level/textures/stone_wall_4.png" depth="1" width="512" height="512" original_platforms="all" last_processed_content_hash="9745ddc4d4c04b23f0a1a3befd964325">
       <generated url="example_level/textures/auto_generated/dxt1_rgb/stone_wall_4.png.dds" scale="1" platforms="all" compressed="True" compression="DXT1_RGB"/>
-      <generated url="example_level/textures/auto_generated/astc_8x8_rgba/stone_wall_4.png.astc" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
+      <generated url="example_level/textures/auto_generated/astc_8x8_rgba/stone_wall_4.png.ktx" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
     </texture>
     <texture url="example_level/textures/concrete.png" depth="1" width="1024" height="1024" original_platforms="all" last_processed_content_hash="4c1984dacfdbbfa71925a93186f509dc">
       <generated url="example_level/textures/auto_generated/dxt1_rgb/concrete.png.dds" scale="1" platforms="all" compressed="True" compression="DXT1_RGB"/>
-      <generated url="example_level/textures/auto_generated/astc_8x8_rgba/concrete.png.astc" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
+      <generated url="example_level/textures/auto_generated/astc_8x8_rgba/concrete.png.ktx" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
     </texture>
     <texture url="example_level/sky/sky_left.png" depth="1" width="512" height="512" original_platforms="all" last_processed_content_hash="81d1bcae323756d9b43aa3ff34cbb9e6">
       <generated url="example_level/sky/auto_generated/dxt1_rgb/sky_left.png.dds" scale="1" platforms="all" compressed="True" compression="DXT1_RGB"/>
-      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_left.png.astc" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
+      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_left.png.ktx" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
     </texture>
     <texture url="example_level/sky/sky_right.png" depth="1" width="512" height="512" original_platforms="all" last_processed_content_hash="dee7335cc70c8d21db23517e6b3e1e2a">
       <generated url="example_level/sky/auto_generated/dxt1_rgb/sky_right.png.dds" scale="1" platforms="all" compressed="True" compression="DXT1_RGB"/>
-      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_right.png.astc" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
+      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_right.png.ktx" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
     </texture>
     <texture url="example_level/sky/sky_front.png" depth="1" width="512" height="512" original_platforms="all" last_processed_content_hash="03f287983ff3ff0628b2942debcac5b4">
       <generated url="example_level/sky/auto_generated/dxt1_rgb/sky_front.png.dds" scale="1" platforms="all" compressed="True" compression="DXT1_RGB"/>
-      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_front.png.astc" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
+      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_front.png.ktx" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
     </texture>
     <texture url="example_level/sky/sky_back.png" depth="1" width="512" height="512" original_platforms="all" last_processed_content_hash="ce2229780c3925e14a262e6f75f55190">
       <generated url="example_level/sky/auto_generated/dxt1_rgb/sky_back.png.dds" scale="1" platforms="all" compressed="True" compression="DXT1_RGB"/>
-      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_back.png.astc" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
+      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_back.png.ktx" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
     </texture>
     <texture url="example_level/sky/sky_bottom.png" depth="1" width="512" height="512" original_platforms="all" last_processed_content_hash="b3f63793f8f5e9772ca86024a4e9f1d5">
       <generated url="example_level/sky/auto_generated/dxt1_rgb/sky_bottom.png.dds" scale="1" platforms="all" compressed="True" compression="DXT1_RGB"/>
-      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_bottom.png.astc" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
+      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_bottom.png.ktx" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
     </texture>
     <texture url="example_level/sky/sky_top.png" depth="1" width="512" height="512" original_platforms="all" last_processed_content_hash="1a235d27f6f4be8d3122c2ca39275e70">
       <generated url="example_level/sky/auto_generated/dxt1_rgb/sky_top.png.dds" scale="1" platforms="all" compressed="True" compression="DXT1_RGB"/>
-      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_top.png.astc" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
+      <generated url="example_level/sky/auto_generated/astc_8x8_rgba/sky_top.png.ktx" scale="1" platforms="all" compressed="True" compression="ASTC_8x8_RGBA"/>
     </texture>
     <texture url="example_level/textures/brushwalker437.png" depth="1" width="512" height="512" original_platforms="all" last_processed_content_hash="f21ccdf01999620aa9d097d8f411b5fe">
       <generated url="example_level/textures/auto_generated/dxt5/brushwalker437.png.dds" scale="1" platforms="all" compressed="True" compression="DXT5"/>

@@ -136,7 +136,8 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   end;
 
   procedure Compressonator(const InputFile, OutputFile: string;
-    const C: TTextureCompression; const CompressionNameForTool: string);
+    const C: TTextureCompression; const CompressionNameForTool: String;
+    const AstcBlockRate: String = '');
   var
     ToolExe, InputFlippedFile, OutputTempFile, TempPrefix: string;
     Image: TCastleImage;
@@ -177,11 +178,21 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     CommandOptions := TCastleStringList.Create;
     try
       CommandExe := ToolExe;
+
+      if AstcBlockRate <> '' then
+      begin
+        CommandOptions.Add('-BlockRate');
+        CommandOptions.Add(AstcBlockRate);
+      end;
+
       CommandOptions.AddRange([
         '-fd',
         CompressionNameForTool,
+        '-miplevels',
+        '20', // make mipmaps, useful for textures in 3D
         InputFlippedFile,
-        OutputTempFile]);
+        OutputTempFile
+      ]);
 
       {$ifdef UNIX}
       // CompressonatorCLI is just a bash script on Unix
@@ -460,6 +471,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         tcETC1:             PVRTexTool(InputFile, OutputFile, C, 'ETC1');
                       // or Compressonator(InputFile, OutputFile, C, 'ETC_RGB');
 
+        {$ifdef USE_ASTCENC}
         tcASTC_4x4_RGBA:           AstcEncTool(InputFile, OutputFile, C, '4x4', '-cl');
         tcASTC_5x4_RGBA:           AstcEncTool(InputFile, OutputFile, C, '5x4', '-cl');
         tcASTC_5x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, '5x5', '-cl');
@@ -489,6 +501,70 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         tcASTC_10x10_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, '10x10', '-ch');
         tcASTC_12x10_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, '12x10', '-ch');
         tcASTC_12x12_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, '12x12', '-ch');
+
+        {$else}
+        // tcASTC_4x4_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_4x4');
+        // tcASTC_5x4_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x4');
+        // tcASTC_5x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x5');
+        // tcASTC_6x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x5');
+        // tcASTC_6x6_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x6');
+        // tcASTC_8x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x5');
+        // tcASTC_8x6_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x6');
+        // tcASTC_8x8_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x8');
+        // tcASTC_10x5_RGBA:          PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x5');
+        // tcASTC_10x6_RGBA:          PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x6');
+        // tcASTC_10x8_RGBA:          PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x8');
+        // tcASTC_10x10_RGBA:         PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x10');
+        // tcASTC_12x10_RGBA:         PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x10');
+        // tcASTC_12x12_RGBA:         PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x12');
+
+        // tcASTC_4x4_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_4x4,UBN,sRGB');
+        // tcASTC_5x4_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x4,UBN,sRGB');
+        // tcASTC_5x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x5,UBN,sRGB');
+        // tcASTC_6x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x5,UBN,sRGB');
+        // tcASTC_6x6_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x6,UBN,sRGB');
+        // tcASTC_8x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x5,UBN,sRGB');
+        // tcASTC_8x6_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x6,UBN,sRGB');
+        // tcASTC_8x8_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x8,UBN,sRGB');
+        // tcASTC_10x5_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x5,UBN,sRGB');
+        // tcASTC_10x6_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x6,UBN,sRGB');
+        // tcASTC_10x8_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x8,UBN,sRGB');
+        // tcASTC_10x10_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x10,UBN,sRGB');
+        // tcASTC_12x10_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x10,UBN,sRGB');
+        // tcASTC_12x12_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x12,UBN,sRGB');
+
+        tcASTC_4x4_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '4x4');
+        tcASTC_5x4_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '5x4');
+        tcASTC_5x5_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '5x5');
+        tcASTC_6x5_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '6x5');
+        tcASTC_6x6_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '6x6');
+        tcASTC_8x5_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '8x5');
+        tcASTC_8x6_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '8x6');
+        tcASTC_8x8_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '8x8');
+        tcASTC_10x5_RGBA:          Compressonator(InputFile, OutputFile, C, 'ASTC', '10x5');
+        tcASTC_10x6_RGBA:          Compressonator(InputFile, OutputFile, C, 'ASTC', '10x6');
+        tcASTC_10x8_RGBA:          Compressonator(InputFile, OutputFile, C, 'ASTC', '10x8');
+        tcASTC_10x10_RGBA:         Compressonator(InputFile, OutputFile, C, 'ASTC', '10x10');
+        tcASTC_12x10_RGBA:         Compressonator(InputFile, OutputFile, C, 'ASTC', '12x10');
+        tcASTC_12x12_RGBA:         Compressonator(InputFile, OutputFile, C, 'ASTC', '12x12');
+
+        // TODO: pass here special option for SRGB8_ALPHA8
+        tcASTC_4x4_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '4x4');
+        tcASTC_5x4_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '5x4');
+        tcASTC_5x5_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '5x5');
+        tcASTC_6x5_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '6x5');
+        tcASTC_6x6_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '6x6');
+        tcASTC_8x5_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '8x5');
+        tcASTC_8x6_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '8x6');
+        tcASTC_8x8_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '8x8');
+        tcASTC_10x5_SRGB8_ALPHA8:  Compressonator(InputFile, OutputFile, C, 'ASTC', '10x5');
+        tcASTC_10x6_SRGB8_ALPHA8:  Compressonator(InputFile, OutputFile, C, 'ASTC', '10x6');
+        tcASTC_10x8_SRGB8_ALPHA8:  Compressonator(InputFile, OutputFile, C, 'ASTC', '10x8');
+        tcASTC_10x10_SRGB8_ALPHA8: Compressonator(InputFile, OutputFile, C, 'ASTC', '10x10');
+        tcASTC_12x10_SRGB8_ALPHA8: Compressonator(InputFile, OutputFile, C, 'ASTC', '12x10');
+        tcASTC_12x12_SRGB8_ALPHA8: Compressonator(InputFile, OutputFile, C, 'ASTC', '12x12');
+
+        {$endif}
 
         {$ifndef COMPILER_CASE_ANALYSIS}
         else WritelnWarning('GPUCompression', Format('Compressing to GPU format %s not implemented (to update "%s")',

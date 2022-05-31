@@ -536,4 +536,16 @@
 }
 {$define USE_VAMPYRE_IMAGING}
 
+{ GPU texture compression ---------------------------------------------------- }
+
+{ If defined, use "astcenc" tool to compress textures to ASTC
+  (resulting in ASTC compression in .astc file format).
+
+  Advantage: astcenc is fully open-source, simple tool distributed with CGE.
+
+  Disadvantage: .astc cannot express mipmaps, and we cannot autogenerate mipmaps
+  for compressed textures. So this makes such textures bad for situations when
+  mipmaps are desired, which is typical for textures in 3D games. }
+{.$define USE_ASTCENC}
+
 {$endif not CASTLE_CONF_INCLUDED}
