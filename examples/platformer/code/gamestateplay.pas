@@ -1,4 +1,4 @@
-﻿{
+{
   Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -43,9 +43,6 @@ type
   end;
 
   { Main "playing game" state, where most of the game logic takes place. }
-
-  { TStatePlay }
-
   TStatePlay = class(TUIState)
   strict private
     { Components designed using CGE editor, loaded from state_play.castle-user-interface. }
@@ -764,6 +761,8 @@ begin
   Player.AddBehavior(RBody);
   Player.AddBehavior(Collider);
   //Player.AddBehavior(RBody);
+
+  WasInputJump := false;
 end;
 
 procedure TStatePlay.ConfigurePlayerPhysicsBehaviorsEditor(
@@ -777,6 +776,8 @@ begin
     RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
     RBody.OnCollisionExit := {$ifdef FPC}@{$endif}PlayerCollisionExit;
   end;
+
+  WasInputJump := false;
 end;
 
 procedure TStatePlay.ConfigurePlayerAbilities(const Player: TCastleScene);

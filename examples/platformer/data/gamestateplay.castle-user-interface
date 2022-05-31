@@ -5100,6 +5100,8 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 0.0000000000000000E+000,
+                "LinearVelocityDamp" : 0.0000000000000000E+000,
                 "LockRotation" : [
                   0,
                   1,
@@ -5113,21 +5115,10 @@
               {
                 "$$ClassName" : "TCastleCapsuleCollider",
                 "Friction" : 2.5000000000000000E-001,
-                "Height" : 3.8000000000000000E+001,
                 "Mass" : 5.0000000000000000E+001,
+                "Mode2D" : true,
                 "Name" : "CapsuleCollider",
-                "Radius" : 3.6000000000000000E+001,
-                "Restitution" : 9.9999997473787516E-005,
-                "RotationPersistent" : {
-                  "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "Y" : 1.0000000000000000E+000
-                },
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
+                "Restitution" : 9.9999997473787516E-005
               }
             ]
           },
