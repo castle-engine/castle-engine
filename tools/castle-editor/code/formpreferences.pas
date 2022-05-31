@@ -345,18 +345,17 @@ begin
 end;
 
 procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
-var
-  ExecutionLog: String;
 
   procedure RegisterPackage(const LpkFileName: String);
   var
-    LazbuildExe, LazbuildOutput, PackageFileName, CommandLog: String;
+    LazbuildExe, LazbuildOutput, PackageFileName: String;
     LazbuildExitStatus: integer;
   begin
     LazbuildExe := FindExeLazbuild;
 
     PackageFileName := CastleEnginePath + LpkFileName;
 
+    WritelnLog('Executing: lazbuild --add-package-link "' + PackageFileName + '"');
     MyRunCommandIndir(
       GetCurrentDir { no better directory, but also should not matter },
       LazbuildExe, [
@@ -364,9 +363,7 @@ var
         PackageFileName
       ], LazbuildOutput, LazbuildExitStatus);
 
-    CommandLog := 'lazbuild --add-package-link "' + PackageFileName + '"';
-    ExecutionLog := ExecutionLog + NL + NL + CommandLog;
-    WritelnLog('lazbuild status %d, output:' + NL + '%s', [LazbuildExitStatus, LazbuildOutput]);
+    WritelnLog('Execution finished: lazbuild status %d, output:' + NL + '%s', [LazbuildExitStatus, LazbuildOutput]);
 
     if (LazbuildExitStatus <> 0) or
        (Pos('Invalid option', LazbuildOutput) <> 0) { lazbuild has exit status 0 in this case } then
@@ -374,8 +371,6 @@ var
   end;
 
 begin
-  ExecutionLog := 'Lazarus packages registed successfully.' + NL + NL +
-    'Executed the following commands:';
   try
     RegisterPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk');
     RegisterPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk');
@@ -386,7 +381,7 @@ begin
     RegisterPackage('packages/alternative_castle_window_based_on_lcl.lpk');
     RegisterPackage('packages/castle_indy.lpk');
 
-    ShowMessage(ExecutionLog);
+    ShowMessage('Lazarus packages registed successfully.');
   except
     on E: Exception do
       ErrorBox(E.Message);
