@@ -60,8 +60,17 @@ uses CastleGLUtils, CastleSoundEngine, CastleUtils, CastleFilesUtils,
   ProjectUtils;
 
 procedure TSystemInformationForm.ListSectionsClick(Sender: TObject);
+var
+  Selected: TInfoType;
 begin
-  MemoSysInfo.Lines.Text := Info[TInfoType(ListSections.ItemIndex)];
+  if Between(ListSections.ItemIndex, Ord(Low(TInfoType)), Ord(High(TInfoType))) then
+    Selected := TInfoType(ListSections.ItemIndex)
+  else
+    { on macOS (Cocoa) user can click anywhere in list to deselect it,
+      setting ItemIndex = -1, tolerate it. }
+    Selected := Low(TInfoType);
+
+  MemoSysInfo.Lines.Text := Info[Selected];
 end;
 
 procedure TSystemInformationForm.SoundEngineOpenClose(Sender: TObject);
