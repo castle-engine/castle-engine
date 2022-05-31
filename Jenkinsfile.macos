@@ -23,7 +23,7 @@ pipeline {
        this should be supported. */
     CASTLE_ENGINE_PATH = "${WORKSPACE}"
     CGE_INSTALL_PREFIX = "${CASTLE_ENGINE_PATH}/jenkins-installed/"
-    PATH = "${PATH}:${CGE_INSTALL_PREFIX}/bin/"
+    PATH = "${PATH}:${CGE_INSTALL_PREFIX}/bin/:${WORKSPACE}/pasdoc/bin/"
     /* By default old Lazarus wanted to build with Carbon, which is 32-bit only and deprecated by Apple.
        No longer necessary with Lazarus 2.2.2. */
     // CASTLE_LAZBUILD_OPTIONS = "--widgetset=cocoa"
@@ -42,6 +42,7 @@ pipeline {
         sh "repository_cleanup . --remove-unversioned"
       }
     }
+    /*
     stage('Build Tools') {
       steps {
         sh 'rm -Rf ${CGE_INSTALL_PREFIX}'
@@ -59,13 +60,16 @@ pipeline {
         sh 'make tests'
       }
     }
-    /* // TODO: ignore fpmake test, we don't have fpmake "opengl" package ok after installing on macOS using fpcupdeluxe?
+    */
+    /*
+    // TODO: ignore fpmake test, we don't have fpmake "opengl" package ok after installing on macOS using fpcupdeluxe?
     stage('Build Using FpMake') {
       steps {
         sh 'make clean test-fpmake'
       }
     }
     */
+    /*
     stage('Build Lazarus Packages') {
       steps {
         sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk'
@@ -81,6 +85,18 @@ pipeline {
         dir ('tools/castle-editor/') {
           sh 'castle-engine package'
         }
+      }
+    }
+    */
+    stage('Get PasDoc') {
+      steps {
+        /* remove older PasDoc versions, so that later "tar xzvf pasdoc-*-darwin-x86_64.tar.gz"
+           expands "tar xzvf pasdoc-*-darwin-x86_64.tar.gz" only to one file.
+           This matters when PasDoc version change, e.g. from 0.15.0 to 0.16.0. */
+        sh 'rm -f pasdoc-*-darwin-x86_64.tar.gz'
+        /* Use https://plugins.jenkins.io/copyartifact/ plugin to copy last pasdoc build into this build. */
+        copyArtifacts(projectName: 'pasdoc_organization/pasdoc/master', filter: 'pasdoc-*-darwin-x86_64.tar.gz')
+        sh 'tar xzvf pasdoc-*-darwin-x86_64.tar.gz'
       }
     }
     stage('Package') {
