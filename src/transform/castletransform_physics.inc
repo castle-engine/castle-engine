@@ -799,10 +799,10 @@
       and it does not cause collisions with other rigid bodies. }
     property Exists: Boolean read FExists write SetExists default true;
 
-    property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
+    property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp default 0.1;
     property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
 
-    property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp;
+    property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp default 0.1;
     property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
 
     {$define read_interface_class}
