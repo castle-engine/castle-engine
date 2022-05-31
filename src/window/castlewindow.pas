@@ -3940,7 +3940,7 @@ const
 var
   Data: TOptionProcData;
 
-  procedure HandleMacOsXProcessSerialNumber;
+  procedure RemoveMacOsProcessSerialNumber;
   {$ifdef DARWIN}
   var
     I: Integer;
@@ -3967,7 +3967,7 @@ begin
     if ParamKind in AllowedOptions then
     begin
       if ParamKind = poMacOsXProcessSerialNumber then
-        HandleMacOsXProcessSerialNumber
+        RemoveMacOsProcessSerialNumber
       else
         Parameters.Parse(OptionsForParam[ParamKind].pOptions,
           OptionsForParam[ParamKind].Count,

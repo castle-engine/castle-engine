@@ -366,10 +366,40 @@ begin
 end;
 
 procedure TChooseProjectForm.OpenProjectFromCommandLine;
+
+  { On macOS, on the first run (after accepting "open application downloaded from the Internet")
+    we may get additional command-line parameter -psn_...,
+    which stands for "Process Serial Number".
+
+    See e.g.
+    https://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder
+    https://forums.macrumors.com/threads/application-adding-argument.207344/
+    Note: It definitely happens even for Cocoa-based editor, not only Carbon,
+    despite some suggestions on the Internet that it's Carbon-specific.
+    Unfortunately there no (not anymore) official docs about it from Apple.
+
+    We have to remove it, to not confuse it with a project name. }
+  procedure RemoveMacOsProcessSerialNumber;
+  {$ifdef DARWIN}
+  var
+    I: Integer;
+  begin
+    for I := 1 to Parameters.Count - 1 do
+      if IsPrefix('-psn_', Parameters[I], false) then
+      begin
+        Parameters.Delete(I);
+        Exit;
+      end;
+  {$else}
+  begin
+  {$endif}
+  end;
+
 begin
   if CommandLineHandled then Exit;
   CommandLineHandled := true;
 
+  RemoveMacOsProcessSerialNumber;
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
   begin
