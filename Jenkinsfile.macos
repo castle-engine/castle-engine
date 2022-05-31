@@ -99,11 +99,10 @@ pipeline {
         sh 'unzip pasdoc-*-darwin-x86_64.zip'
       }
     }
-    stage('Package') {
+    stage('Pack Release') {
       steps {
-        dir ('tools/internal/pack_release/') {
-          sh './pack_release.sh darwin x86_64'
-        }
+        sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
+        sh './tools/internal/pack_release/pack_release.sh darwin x86_64'
       }
     }
   }
