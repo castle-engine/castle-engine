@@ -91,66 +91,68 @@ type
       "Uncompressed texture data matches a GL_UNPACK_ALIGNMENT of 4." }
     function RowBytePadding(const Image: TCastleImage): Integer;
 
-    procedure ReadOneImage(const Stream: TStream);
+    procedure ReadOneImage(const Stream: TStream; const W, H, D: Cardinal);
 
-    { Optionally invert Y, depending on RowsTopToBottom. }
-    function TargetY(const Y: Integer): Integer;
+    { Optionally invert Y, depending on RowsTopToBottom.
+      H should be height of the current image. }
+    function TargetY(const Y: Integer; const H: Cardinal): Integer;
 
-    { Optionally invert Z, depending on SlicesFrontToBack. }
-    function TargetZ(const Z: Integer): Integer;
+    { Optionally invert Z, depending on SlicesFrontToBack.
+      D should be depth of the current image. }
+    function TargetZ(const Z: Integer; const D: Cardinal): Integer;
 
-    procedure ReadG(const Stream: TStream);
-    procedure ReadG16(const Stream: TStream);
-    procedure ReadGA(const Stream: TStream);
-    procedure ReadRGB(const Stream: TStream);
-    procedure ReadBGR(const Stream: TStream);
-    procedure ReadRGBA(const Stream: TStream);
-    procedure ReadBGRA(const Stream: TStream);
-    procedure ReadFloatImage(const Stream: TStream);
-    procedure ReadCompressed(const Stream: TStream; const Compression: TTextureCompression);
+    procedure ReadG(const Stream: TStream; const W, H, D: Cardinal);
+    procedure ReadG16(const Stream: TStream; const W, H, D: Cardinal);
+    procedure ReadGA(const Stream: TStream; const W, H, D: Cardinal);
+    procedure ReadRGB(const Stream: TStream; const W, H, D: Cardinal);
+    procedure ReadBGR(const Stream: TStream; const W, H, D: Cardinal);
+    procedure ReadRGBA(const Stream: TStream; const W, H, D: Cardinal);
+    procedure ReadBGRA(const Stream: TStream; const W, H, D: Cardinal);
+    procedure ReadFloatImage(const Stream: TStream; const W, H, D: Cardinal);
+    procedure ReadCompressed(const Stream: TStream; const Compression: TTextureCompression; const W, H, D: Cardinal);
   public
     procedure LoadFromStream(const Stream: TStream; const URL: string); override;
   end;
 
-function TKTXHandler.TargetY(const Y: Integer): Integer;
+function TKTXHandler.TargetY(const Y: Integer; const H: Cardinal): Integer;
 begin
   if RowsTopToBottom then
-    Result := Height - Y - 1
+    Result := H - Y - 1
   else
     Result := Y;
 end;
 
-function TKTXHandler.TargetZ(const Z: Integer): Integer;
+function TKTXHandler.TargetZ(const Z: Integer; const D: Cardinal): Integer;
 begin
   if SlicesFrontToBack then
-    Result := Depth - Z - 1
+    Result := D - Z - 1
   else
     Result := Z;
 end;
 
-procedure TKTXHandler.ReadG(const Stream: TStream);
+procedure TKTXHandler.ReadG(const Stream: TStream; const W, H, D: Cardinal);
 var
   Y, Z: Integer;
   Row: PByteArray;
   Image: TGrayscaleImage;
   Padding: Integer;
 begin
-  Image := TGrayscaleImage.Create(Width, Height, Depth);
+  Image := TGrayscaleImage.Create(W, H, D);
   Images.Add(Image);
 
   Padding := RowBytePadding(Image);
 
-  for Z := 0 to Image.Depth - 1 do
-    for Y := 0 to Image.Height - 1 do
+  for Z := 0 to D - 1 do
+    for Y := 0 to H - 1 do
     begin
-      Row := Image.RowPtr(TargetY(Y), TargetZ(Z));
-      Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
+      Row := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
+      Stream.ReadBuffer(Row^, Image.PixelSize * W);
       if Padding <> 0 then
         Stream.Seek(Padding, soFromCurrent);
     end;
 end;
 
-procedure TKTXHandler.ReadG16(const Stream: TStream);
+procedure TKTXHandler.ReadG16(const Stream: TStream; const W, H, D: Cardinal);
 var
   RowData: TWordList;
   TargetRow: PByteArray;
@@ -158,22 +160,22 @@ var
   Image: TGrayscaleImage;
   Padding: Integer;
 begin
-  Image := TGrayscaleImage.Create(Width, Height, Depth);
+  Image := TGrayscaleImage.Create(W, H, D);
   Images.Add(Image);
 
   Padding := RowBytePadding(Image);
 
   RowData := TWordList.Create;
   try
-    RowData.Count := Image.Width;
+    RowData.Count := W;
 
-    for Z := 0 to Image.Depth - 1 do
-      for Y := 0 to Image.Height - 1 do
+    for Z := 0 to D - 1 do
+      for Y := 0 to H - 1 do
       begin
-        Stream.ReadBuffer(RowData.List^, Image.Width * SizeOf(Word));
+        Stream.ReadBuffer(RowData.List^, W * SizeOf(Word));
         { convert row of Words to Bytes }
-        TargetRow := Image.RowPtr(TargetY(Y), TargetZ(Z));
-        for X := 0 to Image.Width - 1 do
+        TargetRow := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
+        for X := 0 to W - 1 do
           TargetRow^[X] := RowData.List^[X] shr 8;
          if Padding <> 0 then
            Stream.Seek(Padding, soFromCurrent);
@@ -181,69 +183,69 @@ begin
   finally FreeAndNil(RowData) end;
 end;
 
-procedure TKTXHandler.ReadGA(const Stream: TStream);
+procedure TKTXHandler.ReadGA(const Stream: TStream; const W, H, D: Cardinal);
 var
   Y, Z: Integer;
   Row: PVector2ByteArray;
   Image: TGrayscaleAlphaImage;
   Padding: Integer;
 begin
-  Image := TGrayscaleAlphaImage.Create(Width, Height, Depth);
+  Image := TGrayscaleAlphaImage.Create(W, H, D);
   Images.Add(Image);
 
   Padding := RowBytePadding(Image);
 
-  for Z := 0 to Image.Depth - 1 do
-    for Y := 0 to Image.Height - 1 do
+  for Z := 0 to D - 1 do
+    for Y := 0 to H - 1 do
     begin
-      Row := Image.RowPtr(TargetY(Y), TargetZ(Z));
-      Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
+      Row := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
+      Stream.ReadBuffer(Row^, Image.PixelSize * W);
       if Padding <> 0 then
         Stream.Seek(Padding, soFromCurrent);
     end;
 end;
 
-procedure TKTXHandler.ReadRGB(const Stream: TStream);
+procedure TKTXHandler.ReadRGB(const Stream: TStream; const W, H, D: Cardinal);
 var
   Y, Z: Integer;
   Row: PVector3ByteArray;
   Image: TRGBImage;
   Padding: Integer;
 begin
-  Image := TRGBImage.Create(Width, Height, Depth);
+  Image := TRGBImage.Create(W, H, D);
   Images.Add(Image);
 
   Padding := RowBytePadding(Image);
 
-  for Z := 0 to Image.Depth - 1 do
-    for Y := 0 to Image.Height - 1 do
+  for Z := 0 to D - 1 do
+    for Y := 0 to H - 1 do
     begin
-      Row := Image.RowPtr(TargetY(Y), TargetZ(Z));
-      Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
+      Row := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
+      Stream.ReadBuffer(Row^, Image.PixelSize * W);
       if Padding <> 0 then
         Stream.Seek(Padding, soFromCurrent);
     end;
 end;
 
-procedure TKTXHandler.ReadBGR(const Stream: TStream);
+procedure TKTXHandler.ReadBGR(const Stream: TStream; const W, H, D: Cardinal);
 var
   X, Y, Z: Integer;
   Row: PVector3Byte;
   Image: TRGBImage;
   Padding: Integer;
 begin
-  Image := TRGBImage.Create(Width, Height, Depth);
+  Image := TRGBImage.Create(W, H, D);
   Images.Add(Image);
 
   Padding := RowBytePadding(Image);
 
-  for Z := 0 to Image.Depth - 1 do
-    for Y := 0 to Image.Height - 1 do
+  for Z := 0 to D - 1 do
+    for Y := 0 to H - 1 do
     begin
-      Row := PVector3Byte(Image.RowPtr(TargetY(Y), TargetZ(Z)));
-      Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
+      Row := PVector3Byte(Image.RowPtr(TargetY(Y, H), TargetZ(Z, D)));
+      Stream.ReadBuffer(Row^, Image.PixelSize * W);
       { Now invert red and blue. }
-      for X := 0 to Image.Width - 1 do
+      for X := 0 to W - 1 do
       begin
         SwapValues(Row^.Z, Row^.X);
         Inc(Row);
@@ -253,43 +255,43 @@ begin
     end;
 end;
 
-procedure TKTXHandler.ReadRGBA(const Stream: TStream);
+procedure TKTXHandler.ReadRGBA(const Stream: TStream; const W, H, D: Cardinal);
 var
   Y, Z: Integer;
   Row: PVector4ByteArray;
   Image: TRGBAlphaImage;
 begin
-  Image := TRGBAlphaImage.Create(Width, Height, Depth);
+  Image := TRGBAlphaImage.Create(W, H, D);
   // when Image.PixelSize is 4, there is never any padding
   Assert(RowBytePadding(Image) = 0);
   Images.Add(Image);
 
-  for Z := 0 to Image.Depth - 1 do
-    for Y := 0 to Image.Height - 1 do
+  for Z := 0 to D - 1 do
+    for Y := 0 to H - 1 do
     begin
-      Row := Image.RowPtr(TargetY(Y), TargetZ(Z));
-      Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
+      Row := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
+      Stream.ReadBuffer(Row^, Image.PixelSize * W);
     end;
 end;
 
-procedure TKTXHandler.ReadBGRA(const Stream: TStream);
+procedure TKTXHandler.ReadBGRA(const Stream: TStream; const W, H, D: Cardinal);
 var
   X, Y, Z: Integer;
   Row: PVector4Byte;
   Image: TRGBAlphaImage;
 begin
-  Image := TRGBAlphaImage.Create(Width, Height, Depth);
+  Image := TRGBAlphaImage.Create(W, H, D);
   // when Image.PixelSize is 4, there is never any padding
   Assert(RowBytePadding(Image) = 0);
   Images.Add(Image);
 
-  for Z := 0 to Image.Depth - 1 do
-    for Y := 0 to Image.Height - 1 do
+  for Z := 0 to D - 1 do
+    for Y := 0 to H - 1 do
     begin
-      Row := PVector4Byte(Image.RowPtr(TargetY(Y), TargetZ(Z)));
-      Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
+      Row := PVector4Byte(Image.RowPtr(TargetY(Y, H), TargetZ(Z, D)));
+      Stream.ReadBuffer(Row^, Image.PixelSize * W);
       { Now invert red and blue. }
-      for X := 0 to Image.Width - 1 do
+      for X := 0 to W - 1 do
       begin
         SwapValues(Row^.Z, Row^.X);
         Inc(Row);
@@ -297,7 +299,7 @@ begin
     end;
 end;
 
-procedure TKTXHandler.ReadFloatImage(const Stream: TStream);
+procedure TKTXHandler.ReadFloatImage(const Stream: TStream; const W, H, D: Cardinal);
 var
   Floats: TSingleList;
   X, Y, Z: Integer;
@@ -305,23 +307,23 @@ var
   PixelSource: PSingle;
   Image: TRGBFloatImage;
 begin
-  Image := TRGBFloatImage.Create(Width, Height, Depth);
+  Image := TRGBFloatImage.Create(W, H, D);
   // when Image.PixelSize is 4, there is never any padding
   Assert(RowBytePadding(Image) = 0);
   Images.Add(Image);
 
   Floats := TSingleList.Create;
   try
-    Floats.Count := Image.Width * Image.Height * Image.Depth;
+    Floats.Count := W * H * D;
     Stream.ReadBuffer(Floats.List^, Floats.Count * SizeOf(Single));
     PixelSource := PSingle(Floats.List);
 
     // move Floats data to Image.Pixels
-    for Z := 0 to Image.Depth - 1 do
-      for Y := 0 to Image.Height - 1 do
+    for Z := 0 to D - 1 do
+      for Y := 0 to H - 1 do
       begin
-        Pixel := PVector3(Image.RowPtr(TargetY(Y), TargetZ(Z)));
-        for X := 0 to Image.Width - 1 do
+        Pixel := PVector3(Image.RowPtr(TargetY(Y, H), TargetZ(Z, D)));
+        for X := 0 to W - 1 do
         begin
           Pixel^.X := PixelSource^;
           Pixel^.Y := PixelSource^;
@@ -411,11 +413,11 @@ begin
   end;
 end;
 
-procedure TKTXHandler.ReadCompressed(const Stream: TStream; const Compression: TTextureCompression);
+procedure TKTXHandler.ReadCompressed(const Stream: TStream; const Compression: TTextureCompression; const W, H, D: Cardinal);
 var
   Image: TGPUCompressedImage;
 begin
-  Image := TGPUCompressedImage.Create(Width, Height, Depth, Compression);
+  Image := TGPUCompressedImage.Create(W, H, D, Compression);
   Images.Add(Image);
 
   Stream.ReadBuffer(Image.RawPixels^, Image.Size);
@@ -431,7 +433,7 @@ begin
     Result := 4 - Result;
 end;
 
-procedure TKTXHandler.ReadOneImage(const Stream: TStream);
+procedure TKTXHandler.ReadOneImage(const Stream: TStream; const W, H, D: Cardinal);
 {$I gl_texture_compression_constants.inc}
 var
   Compression: TTextureCompression;
@@ -442,7 +444,7 @@ begin
      (Header.GlInternalFormat = GL_LUMINANCE8_EXT) and
      (Header.GlBaseInternalFormat = GL_LUMINANCE) then
   begin
-    ReadG(Stream);
+    ReadG(Stream, W, H, D);
   end else
   if (
        { You can generate this with
@@ -465,7 +467,7 @@ begin
        (Header.GlBaseInternalFormat = GL_RED)
      ) then
   begin
-    ReadG16(Stream);
+    ReadG16(Stream, W, H, D);
   end else
   if (Header.GlType = GL_UNSIGNED_BYTE) and
      (Header.GlTypeSize = 1) and
@@ -473,7 +475,7 @@ begin
      (Header.GlInternalFormat = GL_RG8) and
      (Header.GlBaseInternalFormat = GL_RG) then
   begin
-    ReadGA(Stream);
+    ReadGA(Stream, W, H, D);
   end else
   if (Header.GlType = GL_UNSIGNED_BYTE) and
      (Header.GlTypeSize = 1) and
@@ -481,7 +483,7 @@ begin
      (Header.GlInternalFormat = GL_BGRA) and
      (Header.GlBaseInternalFormat = GL_BGRA) then
   begin
-    ReadBGRA(Stream);
+    ReadBGRA(Stream, W, H, D);
   end else
   if (Header.GlType = GL_UNSIGNED_BYTE) and
      (Header.GlTypeSize = 1) and
@@ -489,7 +491,7 @@ begin
      (Header.GlInternalFormat = GL_RGBA) and
      (Header.GlBaseInternalFormat = GL_RGBA) then
   begin
-    ReadRGBA(Stream);
+    ReadRGBA(Stream, W, H, D);
   end else
   if (Header.GlType = GL_UNSIGNED_BYTE) and
      (Header.GlTypeSize = 1) and
@@ -497,7 +499,7 @@ begin
      (Header.GlInternalFormat = GL_BGR) and
      (Header.GlBaseInternalFormat = GL_BGR) then
   begin
-    ReadBGR(Stream);
+    ReadBGR(Stream, W, H, D);
   end else
   if (Header.GlType = GL_UNSIGNED_BYTE) and
      (Header.GlTypeSize = 1) and
@@ -513,7 +515,7 @@ begin
        (Header.GlInternalFormat = GL_SRGB8) ) and
      (Header.GlBaseInternalFormat = GL_RGB) then
   begin
-    ReadRGB(Stream);
+    ReadRGB(Stream, W, H, D);
   end else
   if (Header.GlType = GL_FLOAT) and
      (Header.GlTypeSize = 4) and
@@ -521,7 +523,7 @@ begin
      (Header.GlInternalFormat = GL_R32F) and
      (Header.GlBaseInternalFormat = GL_RED) then
   begin
-    ReadFloatImage(Stream);
+    ReadFloatImage(Stream, W, H, D);
   end else
   if Header.GlType = GL_HALF_FLOAT then
   begin
@@ -589,7 +591,7 @@ begin
         [Header.GlInternalFormat]);
     end;
 
-    ReadCompressed(Stream, Compression);
+    ReadCompressed(Stream, Compression, W, H, D);
   end else
   begin
     raise EInvalidKTX.CreateFmt('Cannot handle this KTX data type: glType 0x%.4x, glTypeSize %d, glFormat 0x%.4x, glInternalFormat 0x%.4x, glBaseInternalFormat 0x%.4x',
@@ -602,9 +604,35 @@ begin
 end;
 
 procedure TKTXHandler.LoadFromStream(const Stream: TStream; const URL: string);
+
+  procedure ReadMipmapLevel(const W, H, D: Cardinal);
+  var
+    I: Integer;
+    ImageSize: LongWord;
+  begin
+    Stream.ReadBuffer(ImageSize, SizeOf(ImageSize));
+    if SwapEndianness then
+      ImageSize := Swap32(ImageSize);
+
+    ReadOneImage(Stream, W, H, D);
+
+    { TODO: For now, we don't support cubemaps.
+      But we can read multiple images in case of NumberOfArrayElements > 1. }
+    if (Header.NumberOfFaces <= 1) and
+       (Header.NumberOfArrayElements > 1) then
+    begin
+      for I := 1 to Header.NumberOfArrayElements - 1 do
+        ReadOneImage(Stream, W, H, D);
+    end;
+
+    { Note: Ignoring mipPadding from KTX spec
+      https://www.khronos.org/registry/KTX/specs/1.0/ktxspec_v1.html
+      as it should be 0 in practice. }
+  end;
+
 var
   I: Integer;
-  ImageSize: LongWord;
+  W, H, D: Cardinal;
 begin
   try
     Stream.ReadBuffer(Header, SizeOf(Header));
@@ -647,22 +675,37 @@ begin
 
     ReadKeyValues(Stream);
 
-    Stream.ReadBuffer(ImageSize, SizeOf(ImageSize));
-    if SwapEndianness then
-      ImageSize := Swap32(ImageSize);
-
-    ReadOneImage(Stream);
-
-    // TODO: read mipmaps
-    //WritelnLog('KTX', 'Mipmap levels: %d', [Header.NumberOfMipmapLevels]);
-
-    { TODO: For now, we don't support cubemaps.
-      But we can read multiple images in case of NumberOfArrayElements > 1. }
-    if (Header.NumberOfFaces <= 1) and
-       (Header.NumberOfArrayElements > 1) then
+    { interpret mipmap information }
+    if Header.NumberOfMipmapLevels = 0 then
     begin
-      for I := 1 to Header.NumberOfArrayElements - 1 do
-        ReadOneImage(Stream);
+      WritelnWarning('TODO: Not supported KTX numberOfMipmapLevels = 0 (indicates we should generate mipmaps at KTX loading)');
+      Header.NumberOfMipmapLevels := 1;
+    end;
+    Composite.FMipmaps := Header.NumberOfMipmapLevels > 1;
+    Composite.FMipmapsCount := Header.NumberOfMipmapLevels;
+    { Check that Width/Height are power of two, this is needed to make
+      sure images reading code is sensible (otherwise, there's no way
+      to tell what are the sizes of following images). }
+    if Composite.FMipmaps then
+    begin
+      if (not IsPowerOf2(Width)) or
+         (not IsPowerOf2(Height)) then
+      begin
+        WritelnWarning('KTX image has mipmaps, but width or height are not a power of 2: %d x %d. We will ignore these mipmaps, since we cannot determine their size', [Width, Height]);
+        Composite.FMipmaps := false;
+      end;
+    end;
+    //WritelnLog('KTX', 'Mipmap levels: %d', [Composite.FMipmapsCount]);
+
+    W := Width;
+    H := Height;
+    D := Depth;
+    for I := 0 to Composite.FMipmapsCount - 1 do
+    begin
+      ReadMipmapLevel(W, H, D);
+      W := Max(1, W div 2);
+      H := Max(1, H div 2);
+      D := Max(1, D div 2);
     end;
   except
     { EReadError is raised by Stream.ReadBuffer when it can't read
