@@ -1022,7 +1022,7 @@ begin
   end;
   }
 
-  StatusText := 'Status: OK (engine found, version matches editor)';
+  StatusText := 'Status: OK (engine found)';
   Result := true;
 end;
 
