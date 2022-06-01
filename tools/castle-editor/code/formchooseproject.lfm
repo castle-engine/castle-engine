@@ -10,8 +10,8 @@ object ChooseProjectForm: TChooseProjectForm
   DesignTimePPI = 120
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnShow = FormShow
   OnHide = FormHide
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.2.0.4'
   object PanelBottom: TPanel
@@ -170,7 +170,7 @@ object ChooseProjectForm: TChooseProjectForm
       OnClick = ButtonSupportUsClick
       TabOrder = 2
     end
-    object PanelWarningMissingCompiler: TPanel
+    object PanelWarning: TPanel
       AnchorSideLeft.Control = ButtonPreferences
       AnchorSideLeft.Side = asrBottom
       AnchorSideBottom.Control = ButtonPreferences
@@ -220,7 +220,7 @@ object ChooseProjectForm: TChooseProjectForm
           44AE426082
         }
       end
-      object Label1: TLabel
+      object LabelWarning: TLabel
         Left = 58
         Height = 44
         Top = 8

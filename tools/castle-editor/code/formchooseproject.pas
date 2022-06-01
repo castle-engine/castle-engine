@@ -36,12 +36,12 @@ type
     ButtonSupportUs: TBitBtn;
     GroupBoxOpen: TGroupBox;
     Image1: TImage;
-    Label1: TLabel;
+    LabelWarning: TLabel;
     OpenProject: TCastleOpenDialog;
     ImageLogo: TImage;
     LabelTitle: TLabel;
     PanelBottom: TPanel;
-    PanelWarningMissingCompiler: TPanel;
+    PanelWarning: TPanel;
     PopupMenuRecentProjects: TPopupMenu;
     procedure ButtonOpenExampleClick(Sender: TObject);
     procedure ButtonPreferencesClick(Sender: TObject);
@@ -60,7 +60,7 @@ type
     CodingThemePlaying: TCastlePlayingSound;
     procedure MenuItemRecentClick(Sender: TObject);
     procedure OpenProjectFromCommandLine;
-    procedure UpdateWarningMissingCompiler;
+    procedure UpdateWarning;
     { Open ProjectForm.
       ManifestUrl may be absolute or relative here. }
     procedure ProjectOpen(ManifestUrl: string);
@@ -188,7 +188,7 @@ end;
 procedure TChooseProjectForm.ButtonPreferencesClick(Sender: TObject);
 begin
   PreferencesForm.ShowModal;
-  UpdateWarningMissingCompiler;
+  UpdateWarning;
 end;
 
 procedure TChooseProjectForm.ButtonOpenExampleClick(Sender: TObject);
@@ -246,6 +246,7 @@ procedure TChooseProjectForm.FormCreate(Sender: TObject);
   begin
     FpcCustomPath := UserConfig.GetValue('fpc_custom_path', '');
     LazarusCustomPath := UserConfig.GetValue('lazarus_custom_path', '');
+    CastleEngineOverridePath := UserConfig.GetValue('castle_engine_override_path', '');
     CodeEditor := TCodeEditor(UserConfig.GetValue('code_editor/setting', Ord(DefaultCodeEditor)));
     CodeEditorCommand := UserConfig.GetValue('code_editor/command', '');
     CodeEditorCommandProject := UserConfig.GetValue('code_editor/command_project', '');
@@ -272,6 +273,7 @@ procedure TChooseProjectForm.FormDestroy(Sender: TObject);
   begin
     UserConfig.SetDeleteValue('fpc_custom_path', FpcCustomPath, '');
     UserConfig.SetDeleteValue('lazarus_custom_path', LazarusCustomPath, '');
+    UserConfig.SetDeleteValue('castle_engine_override_path', CastleEngineOverridePath, '');
     UserConfig.SetDeleteValue('code_editor/setting', Ord(CodeEditor), Ord(DefaultCodeEditor));
     UserConfig.SetDeleteValue('code_editor/command', CodeEditorCommand, '');
     UserConfig.SetDeleteValue('code_editor/command_project', CodeEditorCommandProject, '');
@@ -290,7 +292,7 @@ procedure TChooseProjectForm.FormShow(Sender: TObject);
 begin
   ButtonOpenRecent.Enabled := RecentProjects.URLs.Count <> 0;
   OpenProjectFromCommandLine;
-  UpdateWarningMissingCompiler;
+  UpdateWarning;
 
   if (CastleEnginePath <> '') and URIFileExists(CastleEnginePath + 'game.pas:666') then
   begin
@@ -310,7 +312,7 @@ begin
   FreeAndNil(CodingTheme);
 end;
 
-procedure TChooseProjectForm.UpdateWarningMissingCompiler;
+procedure TChooseProjectForm.UpdateWarning;
 
   function CompilerFound: Boolean;
   begin
@@ -335,7 +337,21 @@ procedure TChooseProjectForm.UpdateWarningMissingCompiler;
   end;
 
 begin
-  PanelWarningMissingCompiler.Visible := not CompilerFound;
+  if (CastleEnginePath = '') or not CgePathStatus(CastleEnginePath) then
+  begin
+    PanelWarning.Visible := true;
+    LabelWarning.Caption :=
+      'Warning: Engine path not found or invalid.' + NL +
+      'Configure valid path in "Preferences".';
+  end else
+  if not CompilerFound then
+  begin
+    PanelWarning.Visible := true;
+    LabelWarning.Caption :=
+      'Warning: Compiler (FPC or Delphi) not found.' + NL +
+      'Install a compiler and configure in "Preferences".';
+  end else
+    PanelWarning.Visible := false;
 end;
 
 procedure TChooseProjectForm.MenuItemRecentClick(Sender: TObject);

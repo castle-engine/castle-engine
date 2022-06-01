@@ -28,6 +28,7 @@ type
     ButtonPanel1: TButtonPanel;
     CheckBoxMuteOnRun: TCheckBox;
     DirectoryEditFpc: TDirectoryEdit;
+    DirectoryEditCgePath: TDirectoryEdit;
     DirectoryEditLazarus: TDirectoryEdit;
     EditCodeEditorCommand: TFileNameEdit;
     EditCodeEditorCommandLineColumn: TFileNameEdit;
@@ -41,6 +42,9 @@ type
     LabelCodeEditorDelphi: TLabel;
     LabelCompilerFpc: TLabel;
     LabelCodeEditorVSCode: TLabel;
+    LabelCgePath: TLabel;
+    LabelCgePathAutoDetected: TLabel;
+    LabelCgePathAutoDetectedCaption: TLabel;
     LabelInstructions0: TLabel;
     LabelInstructions1: TLabel;
     LabelInstructions2: TLabel;
@@ -59,6 +63,7 @@ type
     LabelFpcAutoDetected: TLabel;
     LabelLazarusAutoDetected: TLabel;
     ListPages: TListBox;
+    PanelGeneral: TPanel;
     PanelCompilation: TPanel;
     PanelInstructions: TPanel;
     PanelCodeEditor: TPanel;
@@ -74,6 +79,7 @@ type
     RadioCodeEditorVSCode: TRadioButton;
     TrackVolume: TTrackBar;
     procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
+    procedure DirectoryEditCgePathChange(Sender: TObject);
     procedure DirectoryEditFpcChange(Sender: TObject);
     procedure DirectoryEditLazarusChange(Sender: TObject);
     procedure EditCodeEditorCommandAcceptFileName(Sender: TObject;
@@ -90,7 +96,7 @@ type
     procedure RadioCodeEditorAnyChange(Sender: TObject);
     procedure TrackVolumeChange(Sender: TObject);
   private
-    OriginalFpcCustomPath, OriginalLazarusCustomPath: String;
+    OriginalFpcCustomPath, OriginalLazarusCustomPath, OriginalCastleEngineOverridePath: String;
     procedure UpdateAutoDetectedLabels;
     procedure UpdatePageVisible;
   public
@@ -103,6 +109,7 @@ var
 implementation
 
 uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
+  CastleStringUtils,
   ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils, ToolManifest,
   EditorUtils;
 
@@ -137,8 +144,12 @@ end;
 
 procedure TPreferencesForm.UpdateAutoDetectedLabels;
 var
-  FpcExe, FpcVer, LazarusExe, LazarusVer, DelphiPath, VSCodeExe: String;
+  FpcExe, FpcVer, LazarusExe, LazarusVer, DelphiPath, VSCodeExe,
+    CgePathStatusText: String;
 begin
+  CgePathStatus(CastleEnginePath, CgePathStatusText);
+  LabelCgePathAutoDetected.Caption := CgePathStatusText;
+
   FpcExe := '';
   try
     FpcExe := FindExeFpcCompiler;
@@ -232,10 +243,12 @@ begin
 
   DirectoryEditFpc.Directory := FpcCustomPath;
   DirectoryEditLazarus.Directory := LazarusCustomPath;
+  DirectoryEditCgePath.Directory := CastleEngineOverridePath;
   { We will change the global Fpc/LazarusCustomPath during this dialog,
     so allow to revert them on "Cancel". }
   OriginalFpcCustomPath := FpcCustomPath;
   OriginalLazarusCustomPath := LazarusCustomPath;
+  OriginalCastleEngineOverridePath := CastleEngineOverridePath;
 
   // Note that making any RadioCodeEditorXxx checked will uncheck the others
   case CodeEditor of
@@ -316,6 +329,7 @@ begin
       accept the changes by clicking "OK". }
     FpcCustomPath := OriginalFpcCustomPath;
     LazarusCustomPath := OriginalLazarusCustomPath;
+    CastleEngineOverridePath := OriginalCastleEngineOverridePath;
   end;
 
   { Set SoundEngine.Volume regardless if we accepted
@@ -388,6 +402,12 @@ begin
   end;
 end;
 
+procedure TPreferencesForm.DirectoryEditCgePathChange(Sender: TObject);
+begin
+  CastleEngineOverridePath := DirectoryEditCgePath.Directory;
+  UpdateAutoDetectedLabels;
+end;
+
 procedure TPreferencesForm.DirectoryEditLazarusChange(Sender: TObject);
 begin
   LazarusCustomPath := DirectoryEditLazarus.Directory;
@@ -426,12 +446,14 @@ begin
     PageIndex := 0;
 
   case PageIndex of
-    0: SelectedPage := PanelCodeEditor;
-    1: SelectedPage := PanelCompilation;
-    2: SelectedPage := PanelFpcLazarusConfig;
-    3: SelectedPage := PanelSound;
+    0: SelectedPage := PanelGeneral;
+    1: SelectedPage := PanelCodeEditor;
+    2: SelectedPage := PanelCompilation;
+    3: SelectedPage := PanelFpcLazarusConfig;
+    4: SelectedPage := PanelSound;
     else raise Exception.CreateFmt('Unexpected ListPages.ItemIndex %d', [ListPages.ItemIndex]);
   end;
+  SetEnabledVisible(PanelGeneral         , PanelGeneral          = SelectedPage);
   SetEnabledVisible(PanelCodeEditor      , PanelCodeEditor       = SelectedPage);
   SetEnabledVisible(PanelCompilation     , PanelCompilation      = SelectedPage);
   SetEnabledVisible(PanelFpcLazarusConfig, PanelFpcLazarusConfig = SelectedPage);

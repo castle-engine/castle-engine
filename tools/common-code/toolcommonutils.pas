@@ -35,6 +35,10 @@ procedure WritelnVerbose(const S: String);
   Castle Game Engine bin/ subdirectory. }
 function FindExeCastleTool(const ExeName: String): String;
 
+var
+  { When non-empty, determines the CastleEnginePath result unconditionally. }
+  CastleEngineOverridePath: String;
+
 { Path to CGE main directory.
   Autodetected or obtained from $CASTLE_ENGINE_PATH environment variable.
 
@@ -293,6 +297,12 @@ var
 
 function CastleEnginePath: String;
 begin
+  { In case of CastleEngineOverridePath, ignore CastleEnginePathCached.
+    This avoids clearing this cache when CastleEngineOverridePath changes
+    at runtime, like in editor. }
+  if CastleEngineOverridePath <> '' then
+    Result := InclPathDelim(CastleEngineOverridePath)
+  else
   if CastleEnginePathIsCached then
     Result := CastleEnginePathCached
   else

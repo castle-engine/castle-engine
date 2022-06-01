@@ -226,6 +226,11 @@ function FindExeVSCode(const ExceptionWhenMissing: Boolean): String;
   @eaises Exception if cannot autodetect, no IDE available. }
 function AutodetectCodeEditor: TCodeEditor;
 
+{ Consider this path as candidate for CastleEngineOverridePath,
+  check (without setting anything) whether it would make sense. }
+function CgePathStatus(const CgePath: String; out StatusText: String): Boolean;
+function CgePathStatus(const CgePath: String): Boolean;
+
 implementation
 
 uses SysUtils, Dialogs, Graphics, TypInfo, Generics.Defaults,
@@ -954,6 +959,70 @@ begin
     Result := ceVSCode
   else
     raise Exception.Create('Cannot auto-detect IDE. Install one of the supported IDEs: Lazarus, Delphi or Visual Studio Code.');
+end;
+
+function CgePathStatus(const CgePath: String; out StatusText: String): Boolean;
+var
+  VersionFile, VersionLine, Version: String;
+  VersionContentsList: TStringList;
+begin
+  if CgePath = '' then
+  begin
+    StatusText := 'Status: Cannot auto-detect engine location, set it manually above';
+    Exit(false);
+  end;
+
+  VersionFile := InclPathDelim(CgePath) + 'src' + PathDelim +
+    'base' + PathDelim + 'castleversion.inc';
+  if not FileExists(VersionFile) then
+  begin
+    StatusText := Format('Status: Invalid, cannot find file "%s"', [VersionFile]);
+    Exit(false);
+  end;
+
+  VersionContentsList := TStringList.Create;
+  try
+    try
+      VersionContentsList.LoadFromFile(VersionFile);
+    except
+      StatusText := Format('Status: Invalid, cannot read file "%s"', [VersionFile]);
+      Result := true;
+    end;
+
+    if VersionContentsList.Count = 0 then
+    begin
+      StatusText := Format('Status: Invalid, empty file "%s"', [VersionFile]);
+      Exit(false);
+    end;
+
+    VersionLine := VersionContentsList[0];
+    if (not SCharIs(VersionLine, 1, '''')) or
+       (not SCharIs(VersionLine, Length(VersionLine), '''')) then
+    begin
+      StatusText := Format('Status: Invalid, first line is not a String: "%s"', [VersionFile]);
+      Exit(false);
+    end;
+  finally FreeAndNil(VersionContentsList) end;
+
+  Version := Copy(VersionLine, 2, Length(VersionLine) - 2);
+  if Version <> CastleEngineVersion then
+  begin
+    StatusText := Format('Status: Valid engine, but version mismatch with editor: "%s" vs editor "%s"', [
+      Version,
+      CastleEngineVersion
+    ]);
+    Exit(False);
+  end;
+
+  StatusText := 'Status: OK (engine found, version matches editor)';
+  Result := true;
+end;
+
+function CgePathStatus(const CgePath: String): Boolean;
+var
+  IgnoreStatusText: String;
+begin
+  Result := CgePathStatus(CgePath, IgnoreStatusText);
 end;
 
 end.
