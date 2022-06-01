@@ -143,12 +143,22 @@ begin
 end;
 
 procedure TPreferencesForm.UpdateAutoDetectedLabels;
+
+  function CgePathAutodetectedLine: String;
+  begin
+    if (CastleEngineOverridePath = '') and
+       (CastleEnginePath <> '') then
+      Result := 'Auto-detected in: ' + CastleEnginePath + NL
+    else
+      Result := '';
+  end;
+
 var
   FpcExe, FpcVer, LazarusExe, LazarusVer, DelphiPath, VSCodeExe,
     CgePathStatusText: String;
 begin
   CgePathStatus(CastleEnginePath, CgePathStatusText);
-  LabelCgePathAutoDetected.Caption := CgePathStatusText;
+  LabelCgePathAutoDetected.Caption := CgePathAutodetectedLine + CgePathStatusText;
 
   FpcExe := '';
   try

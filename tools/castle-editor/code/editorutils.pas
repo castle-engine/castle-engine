@@ -962,8 +962,20 @@ begin
 end;
 
 function CgePathStatus(const CgePath: String; out StatusText: String): Boolean;
+
+  function RemoveCommitHash(const Ver: String): String;
+  var
+    I: Integer;
+  begin
+    I := Pos(' (commit ', Ver);
+    if I <> 0 then
+      Result := Copy(Ver, 1, I - 1)
+    else
+      Result := Ver;
+  end;
+
 var
-  VersionFile, VersionLine, Version: String;
+  VersionFile, VersionLine, Version, EditorVersion: String;
   VersionContentsList: TStringList;
 begin
   if CgePath = '' then
@@ -1006,23 +1018,22 @@ begin
 
   Version := Copy(VersionLine, 2, Length(VersionLine) - 2);
 
-  {
-  // Abort version check because:
-  // - It causes mismatches, as pack_release now adds a commit hash to version
-  // - It is not very useful, as almost all used engine versions (ignoring commit hash) are now 7.0-alpha.snapshot
-  // Maybe this will be again useful once we make regular releases again.
+  { Due to the way pack_release.sh works, actually Version will never have a hash.
+    Only CastleEngineVersion can have it,
+    and it would cause mismatches, to remove it. }
+  Version := RemoveCommitHash(Version);
+  EditorVersion := RemoveCommitHash(CastleEngineVersion);
 
-  if Version <> CastleEngineVersion then
+  if Version <> EditorVersion then
   begin
     StatusText := Format('Status: Valid engine, but version mismatch with editor: "%s" vs editor "%s"', [
       Version,
-      CastleEngineVersion
+      EditorVersion
     ]);
     Exit(False);
   end;
-  }
 
-  StatusText := 'Status: OK (engine found)';
+  StatusText := 'Status: OK (engine found, version matches editor)';
   Result := true;
 end;
 
