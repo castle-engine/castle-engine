@@ -1005,6 +1005,13 @@ begin
   finally FreeAndNil(VersionContentsList) end;
 
   Version := Copy(VersionLine, 2, Length(VersionLine) - 2);
+
+  {
+  // Abort version check because:
+  // - It causes mismatches, as pack_release now adds a commit hash to version
+  // - It is not very useful, as almost all used engine versions (ignoring commit hash) are now 7.0-alpha.snapshot
+  // Maybe this will be again useful once we make regular releases again.
+
   if Version <> CastleEngineVersion then
   begin
     StatusText := Format('Status: Valid engine, but version mismatch with editor: "%s" vs editor "%s"', [
@@ -1013,6 +1020,7 @@ begin
     ]);
     Exit(False);
   end;
+  }
 
   StatusText := 'Status: OK (engine found, version matches editor)';
   Result := true;
