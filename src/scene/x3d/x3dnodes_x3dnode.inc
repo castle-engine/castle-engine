@@ -21,8 +21,8 @@
   TX3DNodeDeepCopyState = class
   private
     type
-      TNodeNodeMap = specialize TDictionary<TX3DNode, TX3DNode>;
-      TExportExportMap = specialize TDictionary<TX3DExport, TX3DExport>;
+      TNodeNodeMap = {$ifdef FPC}specialize{$endif} TDictionary<TX3DNode, TX3DNode>;
+      TExportExportMap = {$ifdef FPC}specialize{$endif} TDictionary<TX3DExport, TX3DExport>;
     var
       NodeOriginalToCopy: TNodeNodeMap;
       ExportOriginalToCopy: TExportExportMap;
