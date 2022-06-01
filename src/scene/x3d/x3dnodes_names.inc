@@ -20,7 +20,7 @@
     Node: TX3DNode;
     Name: string;
     Finished: boolean;
-    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNameRec;
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DNodeNameRec;
   end;
   PX3DNodeNameRec = ^TX3DNodeNameRec;
 
@@ -29,7 +29,7 @@
   strict private
     FAutoRemove: boolean;
     procedure DestructionNotification(const Node: TX3DNode);
-    function IndexOfNode(Node: TX3DNode): Integer;
+    function IndexOfNode(const Node: TX3DNode): Integer;
     function IndexOfName(const Name: string): Integer;
   public
     constructor Create(const AAutoRemove: boolean);
@@ -54,8 +54,8 @@
       For now, we just disallow such cycles. Still, we allow
       ROUTEs from inside the node, so calling with NodeFinished = false
       is still useful for parsing. }
-    procedure Bind(Node: TX3DNode; const NodeFinished: boolean); overload;
-    procedure Bind(Node: TX3DNode; const NodeFinished: boolean; const BindToName: string); overload;
+    procedure Bind(const Node: TX3DNode; const NodeFinished: boolean); overload;
+    procedure Bind(const Node: TX3DNode; const NodeFinished: boolean; const BindToName: string); overload;
 
     { Find node bound to given name. @nil if none. }
     function Bound(const Name: string; out NodeFinished: boolean): TX3DNode; overload;
@@ -75,7 +75,7 @@
       (when nothing can change in the middle of parsing). }
     function Bound(Node: TX3DNode): boolean; overload;
 
-    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
   end;
 
   TX3DPrototypeNames = class(TStringListCaseSens)
@@ -102,7 +102,7 @@
 
 { TX3DNodeNameRec ------------------------------------------------------------ }
 
-function TX3DNodeNameRec.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNameRec;
+function TX3DNodeNameRec.DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DNodeNameRec;
 begin
   Result.Node := CopyState.DeepCopy(Node);
   Result.Name := Name;
@@ -131,7 +131,7 @@ begin
   inherited;
 end;
 
-function TX3DNodeNames.IndexOfNode(Node: TX3DNode): Integer;
+function TX3DNodeNames.IndexOfNode(const Node: TX3DNode): Integer;
 begin
   for Result := 0 to Count - 1 do
     if List^[Result].Node = Node then
@@ -166,7 +166,7 @@ begin
     Delete(I);
 end;
 
-procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: boolean; const BindToName: string);
+procedure TX3DNodeNames.Bind(const Node: TX3DNode; const NodeFinished: boolean; const BindToName: string);
 var
   I: Integer;
   P: PX3DNodeNameRec;
@@ -183,7 +183,7 @@ begin
   end;
 end;
 
-procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: boolean);
+procedure TX3DNodeNames.Bind(const Node: TX3DNode; const NodeFinished: boolean);
 begin
   Bind(Node, NodeFinished, Node.X3DName);
 end;
@@ -206,7 +206,7 @@ begin
   Result := IndexOfNode(Node) <> -1;
 end;
 
-function TX3DNodeNames.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
+function TX3DNodeNames.DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
 var
   I: Integer;
 begin

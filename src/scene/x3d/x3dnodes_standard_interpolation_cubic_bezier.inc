@@ -49,14 +49,18 @@
   public
     destructor Destroy; override;
 
+
     { Once the FdControlPoints value is settled, call this to precalculate
       curve parameters. This makes the following interpolation using this node
-      work fast. }
-    procedure OptimizeControlPoints;
+      work fast.
 
-  {$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}
+      You can pass CopyOptimizedDataFrom if you have a copy of this
+      node (with exactly equal FdControlPoints) from which we could copy optimized data. }
+    procedure OptimizeControlPoints(
+      const CopyOptimizedDataFrom: TAbstractCubicBezierInterpolatorNode = nil);
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}
   end;
-
   { Basis for all nodes interpolating (animating) an array of values using cubic Bezier curve. }
   {$ifdef FPC}generic{$endif}
   TAbstractCubicBezierArrayInterpolatorNode<
@@ -224,15 +228,23 @@ begin
     Curve[I] := CubicBezier2D(I / High(Curve), CurvePoints);
 end;
 
-procedure TAbstractCubicBezierInterpolatorNode.OptimizeControlPoints;
+procedure TAbstractCubicBezierInterpolatorNode.OptimizeControlPoints(
+  const CopyOptimizedDataFrom: TAbstractCubicBezierInterpolatorNode);
 var
   I: Integer;
 begin
   FreeAndNil(FCalculatedCurves);
   FCalculatedCurves := TCalculatedCurve2DList.Create;
-  FCalculatedCurves.Count := FdControlPoints.Items.Count;
-  for I := 0 to FdControlPoints.Items.Count - 1 do
-    CalculatedCurve2D(FdControlPoints.Items.List^[I], FCalculatedCurves.List^[I]);
+  if (CopyOptimizedDataFrom <> nil) and
+     (CopyOptimizedDataFrom.FCalculatedCurves <> nil) then
+  begin
+    FCalculatedCurves.AddRange(CopyOptimizedDataFrom.FCalculatedCurves);
+  end else
+  begin
+    FCalculatedCurves.Count := FdControlPoints.Items.Count;
+    for I := 0 to FdControlPoints.Items.Count - 1 do
+      CalculatedCurve2D(FdControlPoints.Items.List^[I], FCalculatedCurves.List^[I]);
+  end;
 end;
 
 function TAbstractCubicBezierInterpolatorNode.CubicBezierValue(
@@ -274,7 +286,7 @@ var
 begin
   Result := inherited;
   Res := Result as TAbstractCubicBezierInterpolatorNode;
-  Res.OptimizeControlPoints;
+  Res.OptimizeControlPoints(Self);
 end;
 
 { TAbstractCubicBezierArrayInterpolatorNode --------------------------------------------- }
