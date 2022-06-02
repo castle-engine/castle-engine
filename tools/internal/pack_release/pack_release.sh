@@ -4,6 +4,21 @@ set -euo pipefail
 # ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
 #
+# Call with:
+#
+# - 2 arguments, OS and CPU (names matching CGE build tool and FPC),
+#   to pack for the given platform. Example:
+#
+#     ./pack_release.sh linux x86_64
+#     ./pack_release.sh win64 x86_64
+#     ./pack_release.sh darwin x86_64
+#     ./pack_release.sh freebsd x86_64
+#
+# - no arguments, to pack for "default" platforms.
+#   "Default" are desktop target platforms possible thanks to Docker image
+#   https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/
+#   -- right now this means Linux and Windows.
+#
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # (but without IFS modification, deliberately, we want to split on space).
 #
