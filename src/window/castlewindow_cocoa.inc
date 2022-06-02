@@ -611,11 +611,21 @@ begin
     When window=nil, accessing windowRef would be an error. }
   if (window <> nil) and (windowRef <> nil) then
   begin
+    { On high-resolution displays, the bounds.size needs to be scaled by
+      https://developer.apple.com/documentation/appkit/nswindow/1419459-backingscalefactor?language=objc
+      See also
+      https://developer.apple.com/documentation/appkit/nsviewlayercontentscaledelegate?language=objc
+      https://developer.apple.com/documentation/quartzcore/calayer/1410746-contentsscale?language=objc
+      (possibly we could use NSViewLayerContentScaleDelegate
+      to avoid such scaling on OpenGL control; for now this solution seems easier). }
     if window.respondsToSelector( ObjCSelector('backingScaleFactor')) then
       ScaleFactor := window.backingScaleFactor
     else
-    if win.respondsToSelector( ObjCSelector('userSpaceScaleFactor')) then // for older OSX
+    if window.respondsToSelector( ObjCSelector('userSpaceScaleFactor')) then // for older OSX
+      {$warnings off}
+      // do not warn about userSpaceScaleFactor being deprecated, we only use it for older OS
       ScaleFactor := window.userSpaceScaleFactor
+      {$warnings on}
     else
       ScaleFactor := 1;
 
