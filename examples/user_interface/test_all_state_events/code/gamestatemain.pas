@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -95,6 +95,8 @@ begin
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+var
+  W: TCastleWindow;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle event
@@ -111,6 +113,8 @@ begin
 
   Notifications.Show('Press: ' + Event.ToString);
 
+  W := Application.MainWindow;
+
   case Event.KeyCharacter of
     { cursor tests: }
     'n': Container.OverrideCursor := mcNone;
@@ -123,6 +127,15 @@ begin
     '3': Container.MousePosition := Vector2(Container.Width    , Container.Height);
     '4': Container.MousePosition := Vector2(0                  , Container.Height);
     '5': Container.MousePosition := Vector2(Container.Width / 2, Container.Height / 2);
+    { test TCastleWindow.MessageXxx }
+    'm': W.MessageOK('Test information.', mtInfo);
+    'q':
+      begin
+        if W.MessageYesNo('Test question. Would you like to?', mtError) then
+          W.MessageOK('You answered yes.', mtInfo)
+        else
+          W.MessageOK('You answered no.', mtInfo);
+      end;
   end;
 
   // switching FullScreen

@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -249,7 +249,7 @@ procedure TCastleWindow.BackendMenuInitialize;
     Signals signal_menu_item_activate and signal_menu_bar_activation are
     registered. Everything that should be shown is shown.
     You just have to insert MainMenu.Handle in your window. }
-  procedure make_main_menu;
+  procedure MakeMainMenu;
 
     function MenuEntryToGtkMenuItem(Entry: TMenuEntry): PGtkMenuItem;
 
@@ -264,7 +264,7 @@ procedure TCastleWindow.BackendMenuInitialize;
 
     var
       SubMenu: PGtkMenu;
-      i: Integer;
+      I: Integer;
       EntryItem: TMenuItem;
       EntryChecked: TMenuItemChecked;
       EntryMenu: TMenu;
@@ -340,34 +340,35 @@ procedure TCastleWindow.BackendMenuInitialize;
       gtk_widget_show(GTK_WIDGET(Result));
     end;
 
-  var i: Integer;
+  var
+    I: Integer;
   begin
-   MainMenu.Handle := PGtkMenuBar(gtk_menu_bar_new());
+    MainMenu.Handle := PGtkMenuBar(gtk_menu_bar_new());
 
-   MenuUpdateEnabled(MainMenu);
+    MenuUpdateEnabled(MainMenu);
 
-   gtk_widget_show(GTK_WIDGET(MainMenu.Handle));
-   for i := 0 to MainMenu.Count - 1 do
-    { Don't put TMenuSeparator in menu bar because that would look ugly. }
-    if not (MainMenu.Entries[i] is TMenuSeparator) then
-     gtk_menu_bar_append(GTK_WIDGET(MainMenu.Handle),
-       GTK_WIDGET( MenuEntryToGtkMenuItem(MainMenu.Entries[i]) ));
+    gtk_widget_show(GTK_WIDGET(MainMenu.Handle));
+    for I := 0 to MainMenu.Count - 1 do
+      { Don't put TMenuSeparator in menu bar because that would look ugly. }
+      if not (MainMenu.Entries[I] is TMenuSeparator) then
+        gtk_menu_bar_append(GTK_WIDGET(MainMenu.Handle),
+          GTK_WIDGET( MenuEntryToGtkMenuItem(MainMenu.Entries[I]) ));
 
-   { How to catch the moment when the menu bar is opened/selected/clicked
-     etc. by the user ? It should be caught when user enters menu by clicking
-     on menu bar or pressing some menu key (like F10 in GTK 2).
+    { How to catch the moment when the menu bar is opened/selected/clicked
+      etc. by the user ? It should be caught when user enters menu by clicking
+      on menu bar or pressing some menu key (like F10 in GTK 2).
 
-     There is no way do this nicely in GTK 1 ?
-     So I'm using threre very non-elegant soltuion to catch button-press-event.
-     GTK 1 does not allow user to enter menu by F10 or some other key like that. }
-   gtk_signal_connect(GTK_OBJECT(MainMenu.Handle), 'button-press-event',
-     GTK_SIGNAL_FUNC(@signal_menu_bar_activation), Self);
+      There is no way do this nicely in GTK 1 ?
+      So I'm using threre very non-elegant soltuion to catch button-press-event.
+      GTK 1 does not allow user to enter menu by F10 or some other key like that. }
+    gtk_signal_connect(GTK_OBJECT(MainMenu.Handle), 'button-press-event',
+      GTK_SIGNAL_FUNC(@signal_menu_bar_activation), Self);
   end;
 
 begin
   if MenuRecreateForbidden <> 0 then Exit;
 
-  make_main_menu;
+  MakeMainMenu;
   gtk_box_pack_start(PGtkBox(window_vbox), GTK_WIDGET(MainMenu.Handle),
     gfalse, gfalse, 0);
 end;

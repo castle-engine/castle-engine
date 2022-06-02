@@ -125,7 +125,7 @@ begin
   end;
 
   try
-    Prog := ParseProgram(FileToString('data/test_script.kscript'), VarsAsValue);
+    Prog := ParseProgram(FileToString('castle-data:/test_script.kscript'), VarsAsValue);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
@@ -180,7 +180,7 @@ begin
     AssertTrue((Vars[2] as TCasScriptBoolean).Value = false);
     AssertTrue((Vars[3] as TCasScriptString).Value = 'foo');
 
-    Prog := ParseProgram(FileToString('data/test_script2.kscript'), Vars);
+    Prog := ParseProgram(FileToString('castle-data:/test_script2.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
@@ -367,7 +367,7 @@ begin
 
     { test if() }
 
-    Prog := ParseProgram(FileToString('data/test_script3.kscript'), Vars);
+    Prog := ParseProgram(FileToString('castle-data:/test_script3.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
     AssertTrue((Vars[0] as TCasScriptInteger).Value = 12);
     AssertTrue((Vars[1] as TCasScriptFloat).Value = 0);
@@ -441,7 +441,7 @@ begin
     Vars[3].Name := 'my_string';
     Vars[4].Name := 'a_int';
 
-    Prog := ParseProgram(FileToString('data/test_script_array.kscript'), Vars);
+    Prog := ParseProgram(FileToString('castle-data:/test_script_array.kscript'), Vars);
 
     Prog.ExecuteFunction('main', []);
     AssertTrue(TCasScriptInteger(Vars[0]).Value = 1 + 4 + 9 + 1 + 1 + 1);
@@ -455,7 +455,7 @@ begin
 
     FreeAndNil(Prog);
 
-    Prog := ParseProgram(FileToString('data/test_script_string_as_array.kscript'), Vars);
+    Prog := ParseProgram(FileToString('castle-data:/test_script_string_as_array.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
     AssertTrue(TCasScriptString(Vars[3]).Value = 'bbbbbbbbbbbb' + #123 + '13');
 

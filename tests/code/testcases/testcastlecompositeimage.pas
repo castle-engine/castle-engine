@@ -148,10 +148,10 @@ begin
     {$endif}
   {$endif}
 
-  TestImage('data/images/mipmaps_no.dds', false);
-  TestImage('data/images/mipmaps_yes.dds', false);
-  TestImage('data/images/random3d.dds', true);
-  TestImage('data/images/random3d_with_mipmaps.dds', true);
+  TestImage('castle-data:/images/mipmaps_no.dds', false);
+  TestImage('castle-data:/images/mipmaps_yes.dds', false);
+  TestImage('castle-data:/images/random3d.dds', true);
+  TestImage('castle-data:/images/random3d_with_mipmaps.dds', true);
 end;
 
 procedure TTestCastleCompositeImage.TestLoadSaveS3TC;
@@ -199,7 +199,7 @@ procedure TTestCastleCompositeImage.TestLoadSaveS3TC;
   end;
 
 begin
-  TestImage('data/images/metal_decal_dxt5.dds', true);
+  TestImage('castle-data:/images/metal_decal_dxt5.dds', true);
 end;
 
 initialization

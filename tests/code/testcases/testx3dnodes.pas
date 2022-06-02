@@ -319,8 +319,8 @@ begin
   // META "generator" "test_castle_game_engine"
   // so the Second file has always 3 more tokens.
 
-  // TestReadWrite('data/demo-models-copy/proto_sfnode_default.x3dv');
-  // TestReadWrite('data/demo-models-copy/tricky_def_use.x3dv');
+  // TestReadWrite('castle-data:/demo-models-copy/proto_sfnode_default.x3dv');
+  // TestReadWrite('castle-data:/demo-models-copy/tricky_def_use.x3dv');
 end;
 
 procedure TTestX3DNodes.TestInheritsFrom;

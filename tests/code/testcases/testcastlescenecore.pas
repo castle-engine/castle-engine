@@ -75,7 +75,7 @@ var
 begin
   Scene := TCastleSceneCore.Create(nil);
   try
-    Scene.Load('data/model_manifold.wrl');
+    Scene.Load('castle-data:/model_manifold.wrl');
     Scene.EdgesCount(Manifold, Border);
     AssertEquals(0, Border);
   finally FreeAndNil(Scene) end;
@@ -132,8 +132,8 @@ begin
   CheckIteratorSpeed('../../demo_models/x3d/switches_and_transforms.x3dv');
   CheckIteratorSpeed('../../demo_models/x3d/key_sensor.x3dv');
 
-  CheckIteratorSpeed('data/switches_and_transforms_2.x3dv');
-  CheckIteratorSpeed('data/key_sensor_2.x3dv');
+  CheckIteratorSpeed('castle-data:/switches_and_transforms_2.x3dv');
+  CheckIteratorSpeed('castle-data:/key_sensor_2.x3dv');
 
   CheckIteratorSpeed('/home/michalis/sources/rrtankticks2/rrtankticks3/rrtt.wrl',
     10); { smaller TestCount, as it's quite slow }
@@ -176,22 +176,22 @@ procedure TTestSceneCore.TestIterator;
   end;
 
 begin
-  CheckIterator('data/demo-models-copy/deranged_house_final.x3dv');
-  CheckIterator('data/demo-models-copy/anchor_test.x3dv');
-  CheckIterator('data/switches_and_transforms_2.x3dv');
-  CheckIterator('data/key_sensor_2.x3dv');
-  CheckIterator('data/extrusion_empty_spine.x3dv');
-  CheckIterator('data/extrusion_empty_spine_concave.x3dv');
-  CheckIterator('data/extrusion_empty_spine_smooth.x3dv');
+  CheckIterator('castle-data:/demo-models-copy/deranged_house_final.x3dv');
+  CheckIterator('castle-data:/demo-models-copy/anchor_test.x3dv');
+  CheckIterator('castle-data:/switches_and_transforms_2.x3dv');
+  CheckIterator('castle-data:/key_sensor_2.x3dv');
+  CheckIterator('castle-data:/extrusion_empty_spine.x3dv');
+  CheckIterator('castle-data:/extrusion_empty_spine_concave.x3dv');
+  CheckIterator('castle-data:/extrusion_empty_spine_smooth.x3dv');
 
   // This once failed to be read with FPC 3.1.1
-  CheckIterator('data/spine/escape_from_the_universe_boss/boss.json');
+  CheckIterator('castle-data:/spine/escape_from_the_universe_boss/boss.json');
 
   // This once failed to be read, as the Spine has DefaultSkin = nil
-  CheckIterator('data/spine/empty_spine.json');
+  CheckIterator('castle-data:/spine/empty_spine.json');
 
   // This once failed with access violation because TClippingAttachment.BuildNodes didn't assign Material
-  CheckIterator('data/spine/clip_region/skeleton.json');
+  CheckIterator('castle-data:/spine/clip_region/skeleton.json');
 end;
 
 procedure TTestSceneCore.TestFind;
@@ -215,7 +215,7 @@ begin
       Fail('Should fail with EX3DNotFound');
     except on EX3DNotFound do ; end;
 
-    Scene.URL := 'data/switches_and_transforms_2.x3dv';
+    Scene.URL := 'castle-data:/switches_and_transforms_2.x3dv';
     Scene.Node('Left');
     Scene.Field('Left', 'translation');
     Scene.Event('Left', 'addChildren');

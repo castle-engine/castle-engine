@@ -25,6 +25,9 @@ var
   CgePathExpanded: String;
   HasWarnings: Boolean = false;
 
+const
+  TryFixing = false;
+
 type
   EInvalidPackage = class(Exception);
 
@@ -46,6 +49,17 @@ type
     FLpkFileName: String;
     procedure GatherRequiredFiles(const FileInfo: TFileInfo; var StopSearch: Boolean);
     procedure ExcludeFromRequiredFiles(const FileInfo: TFileInfo; var StopSearch: Boolean);
+    { If TryFixing, this will overwrite LPK file adding the missing units.
+
+      This automatic fix is not perfect, so beware! Known issues:
+
+      - It only adds missing files. Doesn't remove files that should not be in package.
+      - It can mess some initial LPK XML stuff, causing unnecessary edits. Revert them.
+      - Generated UnitName follows filename, so it is all lowercase.
+      - It doesn't add to units (because it doesn't know which are platform-specific)
+        <AddToUsesPkgSection Value="False"/>
+    }
+    procedure ProposeLpkFix(const MissingFiles: TCastleStringList);
   public
     Files: TCastleStringList;
     constructor Create(const ALpkFileName: String);
@@ -143,6 +157,7 @@ procedure TLazarusPackage.CheckFiles(const RequiredFiles, ExcludedFromRequiredFi
 var
   I, FilesIndex: Integer;
   FindPath: String;
+  MissingFiles: TCastleStringList;
 begin
   RequiredFilesList := TCastleStringList.Create;
   RequiredFilesList.CaseSensitive := FileNameCaseSensitive;
@@ -168,17 +183,25 @@ begin
   Writeln('Required files after removing exclusions: ', RequiredFilesList.Count);
 
   { verify that all RequiredFilesList are in package, remove them from Files }
-  for I := 0 to RequiredFilesList.Count - 1 do
-  begin
-    FilesIndex := Files.IndexOf(RequiredFilesList[I]);
-    if FilesIndex = -1 then
-      PackageWarning('Required file "%s" is not present in package "%s"', [
-        RequiredFilesList[I],
-        FLpkFileName
-      ])
-    else
-      Files.Delete(FilesIndex);
-  end;
+  MissingFiles := TCastleStringList.Create;
+  try
+    for I := 0 to RequiredFilesList.Count - 1 do
+    begin
+      FilesIndex := Files.IndexOf(RequiredFilesList[I]);
+      if FilesIndex = -1 then
+      begin
+        PackageWarning('Required file "%s" is not present in package "%s"', [
+          RequiredFilesList[I],
+          FLpkFileName
+        ]);
+        MissingFiles.Add(RequiredFilesList[I]);
+      end else
+        Files.Delete(FilesIndex);
+    end;
+
+    if MissingFiles.Count <> 0 then
+      ProposeLpkFix(MissingFiles);
+  finally FreeAndNil(MissingFiles) end;
 
   { verify that rest of Files is in OptionalFiles }
   for I := 0 to Files.Count - 1 do
@@ -189,6 +212,42 @@ begin
       ]);
 
   FreeAndNil(RequiredFilesList);
+end;
+
+procedure TLazarusPackage.ProposeLpkFix(const MissingFiles: TCastleStringList);
+var
+  Doc: TXMLDocument;
+  FilesElement, FileElement,
+    FileFilenameElement, FileTypeElement, FileUnitNameElement: TDOMElement;
+  FilesCount: Cardinal;
+  MissingFile: String;
+begin
+  if not TryFixing then Exit;
+
+  Doc := URLReadXML(FLpkFileName);
+  try
+    FilesElement := Doc.DocumentElement.Child('Package').Child('Files');
+    FilesCount := FilesElement.AttributeCardinal('Count');
+    for MissingFile in MissingFiles do
+    begin
+      Inc(FilesCount); // ItemXxx numbering is 1-based, so increment FilesCount first
+      FileElement := FilesElement.CreateChild('Item' + IntToStr(FilesCount));
+      FileFilenameElement := FileElement.CreateChild('Filename');
+      FileFilenameElement.AttributeSet('Value', '../src/' + MissingFile);
+      if ExtractFileExt(MissingFile) = '.inc' then
+      begin
+        FileTypeElement := FileElement.CreateChild('Type');
+        FileTypeElement.AttributeSet('Value', 'Include');
+      end;
+      if ExtractFileExt(MissingFile) = '.pas' then
+      begin
+        FileUnitNameElement := FileElement.CreateChild('UnitName');
+        FileUnitNameElement.AttributeSet('Value', DeleteFileExt(ExtractFileName(MissingFile)));
+      end;
+    end;
+    FilesElement.AttributeSet('Count', FilesCount);
+    URLWriteXML(Doc, FLpkFileName);
+  finally FreeAndNil(Doc) end;
 end;
 
 { main routine --------------------------------------------------------------- }

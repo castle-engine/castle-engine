@@ -341,7 +341,11 @@ begin
   LineLower := LowerCase(Line);
   Result := not (
     IsPrefix('generics.collections.pas(', LineLower, false) or
-    IsPrefix('generics.dictionaries.inc(', LineLower, false)
+    IsPrefix('generics.dictionaries.inc(', LineLower, false) or
+    IsSuffix('warning: section "__datacoal_nt" is deprecated', LineLower, false) or
+    IsSuffix('note: change section name to "__data"', LineLower, false) or
+    (Line = '.section __DATA, __datacoal_nt, coalesced') or
+    (Line = '         ^      ~~~~~~~~~~~~~~')
   );
   // Uncomment this just to debug that our line splitting in TCaptureOutputFilter works
   // Line := '<begin>' + Line + '<end>';
@@ -504,6 +508,19 @@ var
       FpcOptions.Add('-o' +
         CompilationOutputPath(coFpc, Options.OS, Options.CPU, WorkingDirectory) +
         'libcge_ios_project_unused.a');
+    end;
+  end;
+
+  procedure AddMacOSOptions;
+  begin
+    if (Options.OS = darwin) and (Options.CPU = X86_64) then
+    begin
+      // Lazarus passes such options to compile with Cocoa, so we do too. Do not seem necessary in practice.
+      FpcOptions.Add('-k-framework');
+      FpcOptions.Add('-kCocoa');
+      // TODO: Lazarus proposes such debugger options; should we pass them too? Why aren't they FPC defaults?
+      // FpcOptions.Add('-gw2');
+      // FpcOptions.Add('-godwarfsets');
     end;
   end;
 
@@ -722,6 +739,7 @@ begin
     end;
 
     AddIOSOptions;
+    AddMacOSOptions;
     AddDefines;
     FpcOptions.AddRange(Options.ExtraOptions);
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2019 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
   Parts of this file are based on FPC packages/fcl-process/src/process.pp ,
@@ -20,7 +20,8 @@ unit ToolCommonUtils;
 
 interface
 
-uses CastleStringUtils;
+uses Classes,
+  CastleStringUtils;
 
 var
   { Trivial verbosity global setting. }
@@ -34,6 +35,10 @@ procedure WritelnVerbose(const S: String);
   Castle Game Engine bin/ subdirectory. }
 function FindExeCastleTool(const ExeName: String): String;
 
+var
+  { When non-empty, determines the CastleEnginePath result unconditionally. }
+  CastleEngineOverridePath: String;
+
 { Path to CGE main directory.
   Autodetected or obtained from $CASTLE_ENGINE_PATH environment variable.
 
@@ -41,6 +46,9 @@ function FindExeCastleTool(const ExeName: String): String;
   Otherwise, the returned path always ends with path delimiter,
   and always exists. }
 function CastleEnginePath: String;
+
+{ Copy current environemt variables. }
+function EnvironmentStrings: TStringList;
 
 type
   { Line filtering used by MyRunCommandIndir and friends.
@@ -74,6 +82,10 @@ type
 
   @param(LineFilteringData Passed to the LineFiltering callback.
     Ignored if LineFiltering is nil.)
+
+  @param(If defined, this overrides all environment variables.
+    The value is owned by this routine.
+    You can start from EnvironmentStrings.)
 }
 procedure MyRunCommandIndir(
   const CurrentDirectory: string; const ExeName: string;
@@ -81,7 +93,8 @@ procedure MyRunCommandIndir(
   out OutputString: string; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil;
-  const Flags: TRunCommandFlags = []);
+  const Flags: TRunCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
 
 { Run command in given directory with given arguments,
   gathering output and status to string, and also letting output
@@ -139,7 +152,7 @@ var
 
 implementation
 
-uses Classes, SysUtils, Process,
+uses SysUtils, Process,
   CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog,
   ToolArchitectures;
 
@@ -158,6 +171,19 @@ begin
     Result := CastleEnginePath + 'bin' + PathDelim + ExeName + ExeExtension;
     if RegularFileExists(Result) then
       Exit;
+
+    { Look for exe wrapped in macOS application bundle,
+      necessary to find view3dscene, castle-view-image in CGE bin. }
+    {$ifdef DARWIN}
+    Result := CastleEnginePath + 'bin' + PathDelim +
+      ExeName + '.app' + PathDelim +
+      'Contents' + PathDelim +
+      'MacOS' + PathDelim +
+      ExeName + ExeExtension;
+    if RegularFileExists(Result) then
+      Exit;
+    {$endif}
+
     Result := CastleEnginePath + 'tools' + PathDelim + 'contrib' + PathDelim +
       CPUToString(DefaultCPU) + '-' + OSToString(DefaultOS) + PathDelim +
       ExeName + ExeExtension;
@@ -229,7 +255,7 @@ begin
       This makes detection in case of CGE editor work OK. }
     {$ifdef DARWIN}
     if BundlePath <> '' then
-      ToolDir := ExclPathDelim(BundlePath);
+      ToolDir := ExtractFileDir(ExclPathDelim(BundlePath));
     {$endif}
 
     { Check ../ of current exe, makes sense in released CGE version when
@@ -271,6 +297,12 @@ var
 
 function CastleEnginePath: String;
 begin
+  { In case of CastleEngineOverridePath, ignore CastleEnginePathCached.
+    This avoids clearing this cache when CastleEngineOverridePath changes
+    at runtime, like in editor. }
+  if CastleEngineOverridePath <> '' then
+    Result := InclPathDelim(CastleEngineOverridePath)
+  else
   if CastleEnginePathIsCached then
     Result := CastleEnginePathCached
   else
@@ -493,12 +525,22 @@ end;
 
 { Running processes ---------------------------------------------------------- }
 
+function EnvironmentStrings: TStringList;
+var
+  I: Integer;
+begin
+  Result := TStringList.Create;
+  for I := 1 to GetEnvironmentVariableCount do
+    Result.Add(GetEnvironmentString(I));
+end;
+
 procedure MyRunCommandIndir(const CurrentDirectory: string;
   const ExeName: string;const Options: array of string;
   out OutputString: string; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil;
-  const Flags: TRunCommandFlags = []);
+  const Flags: TRunCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
 var
   P: TProcess;
   I: Integer;
@@ -526,6 +568,8 @@ begin
     P.Options := [poUsePipes, poStderrToOutPut];
     if rcNoConsole in Flags then
       P.Options := P.Options + [poNoConsole];
+    if OverrideEnvironment <> nil then
+      P.Environment := OverrideEnvironment;
     P.Execute;
 
     Capture := TCaptureOutput.Construct(P.Output, LineFiltering, LineFilteringData);
@@ -575,9 +619,7 @@ begin
 
     if OverrideEnvironmentName <> '' then
     begin
-      NewEnvironment := TStringList.Create;
-      for I := 1 to GetEnvironmentVariableCount do
-        NewEnvironment.Add(GetEnvironmentString(I));
+      NewEnvironment := EnvironmentStrings;
       NewEnvironment.Values[OverrideEnvironmentName] := OverrideEnvironmentValue;
       P.Environment := NewEnvironment;
       // WritelnVerbose('Environment: ' + P.Environment.Text);

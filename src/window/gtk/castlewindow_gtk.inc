@@ -1404,7 +1404,7 @@ begin
   gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
 
-function TCastleWindow.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TCastleColor): Boolean;
 var
   Dialog: PGtkColorSelectionDialog;
   GtkColor: array [0..3] of GDouble;
@@ -1412,7 +1412,7 @@ var
 begin
   Dialog := PGtkColorSelectionDialog(gtk_color_selection_dialog_new('Choose color'));
   try
-    for i := 0 to 2 do GtkColor[i] := Color[i];
+    for i := 0 to 3 do GtkColor[i] := Color[i];
     gtk_color_selection_set_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
 
     Result := GtkDialogRun(PGtkWindow(Dialog),
@@ -1421,6 +1421,12 @@ begin
     if Result then
     begin
       gtk_color_selection_get_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
+      { Note: Do not touch Color.InternalData[3], leave it unchanged. Reason:
+        While https://developer-old.gnome.org/gtk2/2.24/GtkColorSelection.html#gtk-color-selection-set-color
+        says it wants a pointer to 4 components, including alpha, but actually alpha treatment is useless:
+        - user cannot edit alpha
+        - on return, it seems always 65535.0 (why this, max of Word? it's in Double...)
+      }
       for i := 0 to 2 do
         Color.InternalData[i] := GtkColor[i];
     end;

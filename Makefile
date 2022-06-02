@@ -86,7 +86,7 @@ else
   # see https://stackoverflow.com/questions/714100/os-detecting-makefile
   UNAME_S := $(shell uname -s)
 
-  # On macOS, use gsed and ginstall (e.g. from Homebrew).
+  # On macOS, use gsed and ginstall (e.g. from Homebrew, use "brew install gnu-sed coreutils").
   # See https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/
   # http://www.legendu.net/en/blog/install-gnu-utils-using-homebrew/
   ifeq ($(UNAME_S),Darwin)
@@ -406,12 +406,12 @@ clean: cleanexamples
 	                   -iname '*.log' ')' \
 	     -print \
 	     | xargs rm -f
-# Note: *.app directory is a macOS bundle
+# Note: *.app directory is a macOS bundle,
+# we *do not* remove it here anymore as it would break pack_release.
 	"$(FIND)" . -type d '(' -name 'lib' -or \
 	                      -name 'backup' -or \
 	                      -name 'castle-engine-output' -or \
-			      -name '__recovery' -or \
-			      -name '*.app' ')' \
+			      -name '__recovery' ')' \
 	     -exec rm -Rf '{}' ';' -prune
 	rm -Rf bin/ \
 	  castle-engine-copy$(EXE_EXTENSION) \

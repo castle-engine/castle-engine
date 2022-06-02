@@ -129,6 +129,7 @@ type
     procedure DoEditor;
     procedure DoEditorRebuildIfNeeded;
     procedure DoEditorRun(const WaitForProcessId: TProcessId);
+    procedure DoOutput(const OutputKey: String);
 
     { Information about the project, derived from CastleEngineManifest.xml. }
     { }
@@ -252,7 +253,7 @@ implementation
 uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolResources, ToolAndroid,
+  ToolResources, ToolAndroid, ToolMacOS,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
 
@@ -632,6 +633,9 @@ begin
     if OS in AllWindowsOSes then
       Result := pfZip
     else
+    if (OS = Darwin) and Manifest.MacAppBundle then
+      Result := pfMacAppBundle
+    else
       Result := pfTarGz;
   end else
     Result := PackageFormat;
@@ -835,6 +839,8 @@ begin
       PackageNintendoSwitch(Self);
     pfDirectory, pfZip, pfTarGz, pfDeb:
       PackageDirectory(PackageFormatFinal);
+    pfMacAppBundle:
+      CreateMacAppBundle(Self, OutputPath, false);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Unhandled PackageFormatFinal in DoPackage');
     {$endif}
@@ -914,7 +920,34 @@ procedure TCastleProject.DoRun(const Target: TTarget;
     end;
   end;
 
+  procedure MaybeRunThroughMacAppBundle(var RunWorkingDir, ExeName: String; const NewParams: TStrings);
+  var
+    ExeInBundle: String;
+  begin
+    if (OS = Darwin) and Manifest.MacAppBundle then
+    begin
+      CreateMacAppBundle(Self, TempOutputPath(Path) + 'macos' + PathDelim, true, ExeInBundle);
+
+      RunWorkingDir := ExtractFilePath(ExeInBundle);
+      ExeName := ExeInBundle;
+
+      { Executing using "open" is also a reasonable option, this simulates more what Finder
+        is doing when double-clicking the application.
+        However
+        - it doesn't seem to have any benefit for us, over executing ExeInBundle directly
+        - it doesn't capture the stdout/stderr of the application.
+
+      ExeName := 'open';
+      NewParams.Insert(0, '--new');
+      NewParams.Insert(1, '--wait-apps');
+      NewParams.Insert(2, TempOutputPath(Path) + 'macos' + PathDelim + Name + '.app');
+      NewParams.Insert(3, '--args');
+      }
+    end;
+  end;
+
 var
+  RunWorkingDir: String;
   ExeName: string;
   NewParams: TCastleStringList;
 begin
@@ -930,15 +963,18 @@ begin
   if Target = targetCustom then
   begin
     ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+    RunWorkingDir := Path;
+
     MaybeUseWrapperToRun(ExeName);
     Writeln('Running ' + ExeName);
     NewParams := TCastleStringList.Create;
     try
       NewParams.Assign(Params);
       MaybeUseWineToRun(ExeName, NewParams);
+      MaybeRunThroughMacAppBundle(RunWorkingDir, ExeName, NewParams);
       Flush(Output); // needed to see "Running Windows EXE on Unix, trying to use WINE." in right order in editor
       { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
-      RunCommandSimple(Path, ExeName, NewParams.ToArray, 'CASTLE_LOG', 'stdout');
+      RunCommandSimple(RunWorkingDir, ExeName, NewParams.ToArray, 'CASTLE_LOG', 'stdout');
     finally FreeAndNil(NewParams) end;
   end else
     raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
@@ -1508,10 +1544,16 @@ begin
     AddExternalLibraries(EditorPath);
 
     NewEditorExe := EditorPath + 'castle-editor-new' + ExeExtension;
-    EditorExe := EditorPath + 'castle-editor' + ExeExtension;
     if not RegularFileExists(NewEditorExe) then
       raise Exception.Create('Editor should be compiled, but we cannot find file "' + NewEditorExe + '"');
+
+    {$ifdef DARWIN}
+    // on macOS, run new editor through app bundle
+    EditorExe := NewEditorExe + '.app/Contents/MacOS/castle-editor-new';
+    {$else}
+    EditorExe := EditorPath + 'castle-editor' + ExeExtension;
     CheckRenameFile(NewEditorExe, EditorExe);
+    {$endif}
   end;
 
   { Running with CurrentDirectory = Path, so that at least on Windows
@@ -1522,6 +1564,15 @@ begin
     We should have a system of services for desktop, to manage DLLs, including custom
     DLLs like Effekseer and FMOD. }
   RunCommandNoWait(Path, EditorExe, [ManifestFile]);
+end;
+
+procedure TCastleProject.DoOutput(const OutputKey: String);
+begin
+  case OutputKey of
+    'version': Writeln(Manifest.Version.DisplayValue);
+    'version-code': Writeln(Manifest.Version.Code);
+    else raise Exception.CreateFmt('Unsupported output key: "%s"', [OutputKey]);
+  end;
 end;
 
 procedure TCastleProject.AddMacrosAndroid(const Macros: TStringStringMap);
@@ -1923,6 +1974,8 @@ begin
     Macros.Add('DELPHI_SEARCH_PATHS', DelphiSearchPaths);
     Macros.Add('ICO_PATH', IcoPath);
     Macros.Add('PROJECT_GUID', ProjectGuid);
+    Macros.Add('APPLE_BUNDLE_SIGNATURE', Copy(ExecutableName + '????', 1, 4));
+    Macros.Add('APPLE_ASSOCIATE_DOCUMENT_TYPES', AssociateDocumentTypes.ToPListSection(QualifiedName, Name));
 
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);

@@ -226,12 +226,17 @@ function FindExeVSCode(const ExceptionWhenMissing: Boolean): String;
   @eaises Exception if cannot autodetect, no IDE available. }
 function AutodetectCodeEditor: TCodeEditor;
 
+{ Consider this path as candidate for CastleEngineOverridePath,
+  check (without setting anything) whether it would make sense. }
+function CgePathStatus(const CgePath: String; out StatusText: String): Boolean;
+function CgePathStatus(const CgePath: String): Boolean;
+
 implementation
 
 uses SysUtils, Dialogs, Graphics, TypInfo, Generics.Defaults,
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
-  ToolCompilerInfo;
+  ToolCompilerInfo, ToolCommonUtils;
 
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
 begin
@@ -360,12 +365,9 @@ end;
 procedure TAsynchronousProcess.Start;
 var
   S, LogLine: String;
-  I: Integer;
 begin
   { copy environment }
-  Environment := TStringList.Create;
-  for I := 1 to GetEnvironmentVariableCount do
-    Environment.Add(GetEnvironmentString(I));
+  Environment := EnvironmentStrings;
 
   { Extend PATH, to effectively use FpcCustomPath and LazarusCustomPath
     in the build tool.
@@ -375,6 +377,17 @@ begin
     It seems more reliable to just add them to PATH. }
   Environment.Values['PATH'] := PathExtendForFpcLazarus(Environment.Values['PATH']);
   WritelnLog('Calling process with extended PATH: ' + Environment.Values['PATH']);
+
+  { Pass CASTLE_ENGINE_PATH to build tool, to use the same CGE as detected by editor.
+    This means that e.g. editor that autodetects CGE (based on GetCastleEnginePathFromExeName,
+    because editor exe is in <cge>/tools/castle-editor/castle-editor)
+    invokes build tool in local bin (like ~/bin)
+    and the build tool uses the same <cge> as detected by editor. }
+  if CastleEnginePath <> '' then
+  begin
+    Environment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
+    WritelnLog('Calling process with extended CASTLE_ENGINE_PATH: ' + Environment.Values['CASTLE_ENGINE_PATH']);
+  end;
 
   { create Process and call Process.Execute }
   Process := TProcess.Create(nil);
@@ -943,6 +956,89 @@ begin
     Result := ceVSCode
   else
     raise Exception.Create('Cannot auto-detect IDE. Install one of the supported IDEs: Lazarus, Delphi or Visual Studio Code.');
+end;
+
+function CgePathStatus(const CgePath: String; out StatusText: String): Boolean;
+
+  function RemoveCommitHash(const Ver: String): String;
+  var
+    I: Integer;
+  begin
+    I := Pos(' (commit ', Ver);
+    if I <> 0 then
+      Result := Copy(Ver, 1, I - 1)
+    else
+      Result := Ver;
+  end;
+
+var
+  VersionFile, VersionLine, Version, EditorVersion: String;
+  VersionContentsList: TStringList;
+begin
+  if CgePath = '' then
+  begin
+    StatusText := 'Status: Cannot auto-detect engine location, set it manually above';
+    Exit(false);
+  end;
+
+  VersionFile := InclPathDelim(CgePath) + 'src' + PathDelim +
+    'base' + PathDelim + 'castleversion.inc';
+  if not FileExists(VersionFile) then
+  begin
+    StatusText := Format('Status: Invalid, cannot find file "%s"', [VersionFile]);
+    Exit(false);
+  end;
+
+  VersionContentsList := TStringList.Create;
+  try
+    try
+      VersionContentsList.LoadFromFile(VersionFile);
+    except
+      StatusText := Format('Status: Invalid, cannot read file "%s"', [VersionFile]);
+      Result := true;
+    end;
+
+    if VersionContentsList.Count = 0 then
+    begin
+      StatusText := Format('Status: Invalid, empty file "%s"', [VersionFile]);
+      Exit(false);
+    end;
+
+    VersionLine := VersionContentsList[0];
+    if (not SCharIs(VersionLine, 1, '''')) or
+       (not SCharIs(VersionLine, Length(VersionLine), '''')) then
+    begin
+      StatusText := Format('Status: Invalid, first line is not a String: "%s"', [VersionFile]);
+      Exit(false);
+    end;
+  finally FreeAndNil(VersionContentsList) end;
+
+  Version := Copy(VersionLine, 2, Length(VersionLine) - 2);
+
+  { Due to the way pack_release.sh works, actually Version will never have a hash.
+    Only CastleEngineVersion can have it,
+    and it would cause mismatches, to remove it. }
+  Version := RemoveCommitHash(Version);
+  EditorVersion := RemoveCommitHash(CastleEngineVersion);
+
+  if Version <> EditorVersion then
+  begin
+    StatusText := Format('Status: Valid engine, but version mismatch with editor: "%s" vs editor "%s"', [
+      Version,
+      EditorVersion
+    ]);
+    Exit(False);
+  end;
+
+  StatusText := 'Status: OK (engine found, version matches editor)';
+  Result := true;
+end;
+
+function CgePathStatus(const CgePath: String): Boolean;
+var
+  IgnoreStatusText: String;
+begin
+  Result := CgePathStatus(CgePath, IgnoreStatusText);
 end;
 
 end.

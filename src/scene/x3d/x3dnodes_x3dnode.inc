@@ -20,8 +20,12 @@
   { Private stuff for TX3DNode.DeepCopy and friends implementation. }
   TX3DNodeDeepCopyState = class
   private
-    { These two lists must always have exactly the same length. }
-    Original, New: TX3DNodeList;
+    type
+      TNodeNodeMap = {$ifdef FPC}specialize{$endif} TDictionary<TX3DNode, TX3DNode>;
+      TExportExportMap = {$ifdef FPC}specialize{$endif} TDictionary<TX3DExport, TX3DExport>;
+    var
+      NodeOriginalToCopy: TNodeNodeMap;
+      ExportOriginalToCopy: TExportExportMap;
   public
     constructor Create;
     destructor Destroy; override;
@@ -33,7 +37,7 @@
       first time with OriginalNode, it actually creates a duplicate
       (by OriginalNode.DeepCopy). Next time, it will just return
       this copy. }
-    function DeepCopy(OriginalNode: TX3DNode): TX3DNode;
+    function DeepCopy(const OriginalNode: TX3DNode): TX3DNode;
   end;
 
   { Simple component system inside TX3DNode.
@@ -1149,31 +1153,24 @@
 constructor TX3DNodeDeepCopyState.Create;
 begin
   inherited;
-  Original := TX3DNodeList.Create(false);
-  New := TX3DNodeList.Create(false);
+  NodeOriginalToCopy := TNodeNodeMap.Create;
+  ExportOriginalToCopy := TExportExportMap.Create;
 end;
 
 destructor TX3DNodeDeepCopyState.Destroy;
 begin
-  FreeAndNil(Original);
-  FreeAndNil(New);
+  FreeAndNil(NodeOriginalToCopy);
+  FreeAndNil(ExportOriginalToCopy);
   inherited;
 end;
 
-function TX3DNodeDeepCopyState.DeepCopy(OriginalNode: TX3DNode): TX3DNode;
-var
-  I: Integer;
+function TX3DNodeDeepCopyState.DeepCopy(const OriginalNode: TX3DNode): TX3DNode;
 begin
-  Assert(New.Count = Original.Count);
-
-  I := Original.IndexOf(OriginalNode);
-  if I = -1 then
+  if not NodeOriginalToCopy.TryGetValue(OriginalNode, Result) then
   begin
-    { DeepCopyCore will expand (Original, New) lists by (OriginalNode, Result).
-      This is needed, see DeepCopyCore comments. }
+    { DeepCopyCore will expand NodeOriginalToCopy at the beginning. }
     Result := OriginalNode.DeepCopyCore(Self);
-  end else
-    Result := New[I];
+  end;
 end;
 
 { TNodeFunctionality --------------------------------------------------------- }
@@ -3172,7 +3169,7 @@ begin
 
   try
 
-    { We expand CopyState arrays now, right after DeepCopyCreate.
+    { We expand CopyState.NodeOriginalToCopy now, right after DeepCopyCreate.
       This is needed, as later during DeepCopyCore we may need this node
       in case of loops within hierarchy.
 
@@ -3185,8 +3182,7 @@ begin
       Also, in the future we will have to allow loops in Script nodes
       (USE within Script node may refer to the same node). So again loop
       will be created. }
-    CopyState.Original.Add(Self);
-    CopyState.New.Add(Result);
+    CopyState.NodeOriginalToCopy.Add(Self, Result);
 
     for I := 0 to VRML1ChildrenCount - 1 do
       Result.VRML1ChildAdd(CopyState.DeepCopy(VRML1Children[I]));

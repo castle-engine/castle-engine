@@ -35,7 +35,13 @@ type
     AbsoluteName: string;
     { Absolute URL. }
     URL: string;
-    Directory: boolean;
+    Directory: Boolean;
+    { Whether this is a symbolic link.
+      Note that this is independent from Directory:
+      symlinks may have Directory=false (when the symlink is to file)
+      or Directory=true (when the symlink is to directory,
+      and thus can be browsed like directory). }
+    Symlink: Boolean;
     Size: Int64; //< This may be 0 in case of non-local file
   end;
 
@@ -256,6 +262,9 @@ function FindFiles_NonRecursive(const Path, Mask: string;
           FileInfo.Name := FileRec.Name;
           FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
           FileInfo.Size := FileRec.Size;
+          {$warnings off} // we know faSymLink is platform-specific, this is OK
+          FileInfo.Symlink := (FileRec.Attr and faSymLink) <> 0;
+          {$warnings on}
           FileInfo.URL := FilenameToURISafe(AbsoluteName);
           if Assigned(FileProc) then
             FileProc(FileInfo, FileProcData, StopSearch);
@@ -306,6 +315,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
             FileInfo.Directory := false;
             FileInfo.Size := F.Size;
             FileInfo.URL := URIIncludeSlash(Path) + F.Name;
+            FileInfo.Symlink := false; // packaged data cannot contain symlinks, as they are not portable to all platforms
             if Assigned(FileProc) then
             begin
               FileProc(FileInfo, FileProcData, StopSearch);

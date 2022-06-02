@@ -14,7 +14,7 @@ pipeline {
     disableConcurrentBuilds()
   }
   agent {
-    label 'ios-cge-builder'
+    label 'mac-cge-builder'
   }
   environment {
     /* Used by CGE build tool ("castle-engine").
@@ -23,9 +23,10 @@ pipeline {
        this should be supported. */
     CASTLE_ENGINE_PATH = "${WORKSPACE}"
     CGE_INSTALL_PREFIX = "${CASTLE_ENGINE_PATH}/jenkins-installed/"
-    PATH = "${PATH}:${CGE_INSTALL_PREFIX}/bin/"
-    /* By default Lazarus wants to build with Carbon, which is 32-bit only and deprecated by Apple */
-    CASTLE_LAZBUILD_OPTIONS = "--widgetset=cocoa"
+    PATH = "${PATH}:${CGE_INSTALL_PREFIX}/bin/:${WORKSPACE}/pasdoc/bin/"
+    /* By default old Lazarus wanted to build with Carbon, which is 32-bit only and deprecated by Apple.
+       No longer necessary with Lazarus 2.2.2. */
+    // CASTLE_LAZBUILD_OPTIONS = "--widgetset=cocoa"
   }
   stages {
     stage('Info') {
@@ -48,22 +49,27 @@ pipeline {
         sh 'make clean tools install PREFIX=${CGE_INSTALL_PREFIX}'
       }
     }
-    // TODO: faster
-    // stage('Build Examples') {
-    //   steps {
-    //     sh 'make clean examples'
-    //   }
-    // }
+    /*
+    // TODO: Commented-out temporarily, just for quick testing
+    stage('Build Examples') {
+      steps {
+        sh 'make clean examples'
+      }
+    }
+    */
     stage('Build And Run Auto-Tests') {
       steps {
         sh 'make tests'
       }
     }
+    /*
+    // TODO: ignore fpmake test, we don't have fpmake "opengl" package ok after installing on macOS using fpcupdeluxe?
     stage('Build Using FpMake') {
       steps {
         sh 'make clean test-fpmake'
       }
     }
+    */
     stage('Build Lazarus Packages') {
       steps {
         sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk'
@@ -76,29 +82,32 @@ pipeline {
     }
     stage('Build Editor') {
       steps {
-        sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi'
-        sh 'cd tools/castle-editor/ && macos/create_bundle.sh'
-        sh 'cp -R "tools/castle-editor/Castle Game Engine.app" ${CGE_INSTALL_PREFIX}/bin'
+        dir ('tools/castle-editor/') {
+          sh 'castle-engine package'
+        }
       }
     }
-    /* TODO: We use a custom method to create macOS package now,
-       only with sources + command-line tools (without editor),
-       instead of full way in ./tools/internal/pack_release/pack_release.sh .
-    */
-    stage('Package macOS') {
+    stage('Get PasDoc') {
       steps {
-        sh 'make clean'
-        // Make binaries packaged in bin/ (similar to official release), remove other leftovers from "make install"
-        sh 'rm -Rf bin/'
-        sh 'mv ${CGE_INSTALL_PREFIX}/bin bin'
-        sh 'rm -Rf ${CGE_INSTALL_PREFIX}'
-        sh 'tar -czv --exclude=.git -f castle-game-engine-macos.tar.gz .'
+        /* remove older PasDoc versions, so that later "pasdoc-*-darwin-x86_64.zip"
+           expands "pasdoc-*-darwin-x86_64.zip" only to one file.
+           This matters when PasDoc version change, e.g. from 0.15.0 to 0.16.0. */
+        sh 'rm -f pasdoc-*-darwin-x86_64.zip'
+        /* Use https://plugins.jenkins.io/copyartifact/ plugin to copy last pasdoc build into this build. */
+        copyArtifacts(projectName: 'pasdoc_organization/pasdoc/master', filter: 'pasdoc-*-darwin-x86_64.zip')
+        sh 'unzip pasdoc-*-darwin-x86_64.zip'
+      }
+    }
+    stage('Pack Release') {
+      steps {
+        sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
+        sh './tools/internal/pack_release/pack_release.sh darwin x86_64'
       }
     }
   }
   post {
     success {
-      archiveArtifacts artifacts: 'castle-game-engine-macos.tar.gz'
+      archiveArtifacts artifacts: 'castle-engine*.zip'
     }
     regression {
       mail to: 'michalis@castle-engine.io',

@@ -202,7 +202,18 @@ function LoadTextureImage(const URL: string; out Composite: TCompositeImage;
 begin
   if not TCompositeImage.MatchesURL(URL) then
   begin
-    Result := LoadEncodedImage(URL, TextureImageClasses, LoadOptions);
+    { Note: We need to enable here GPU-compressed textures, TGPUCompressedImage,
+      which is (for now) in TextureImageClassesAll, but not in TextureImageClasses.
+      Otherwise loading non-composite but still GPU-compressed format, like .astc,
+      would always fail (or go through DecompressTexture unpacking).
+
+      Testcase:
+      - fps_game on GPU supporting ASTC (michalis: worm-linux)
+      - view3dscene on demo-models/texturing_advanced/astc_compressed/textures_astc_compressed.x3dv
+
+      Loading through TCompositeImage also allows them.
+    }
+    Result := LoadEncodedImage(URL, TextureImageClassesAll, LoadOptions);
     Composite := nil;
   end else
   begin

@@ -23,7 +23,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Buttons, Menus,
-  CastleDialogs, CastleLCLRecentFiles;
+  CastleDialogs, CastleLCLRecentFiles, CastleSoundEngine;
 
 type
   { Choose project (new or existing). }
@@ -36,12 +36,12 @@ type
     ButtonSupportUs: TBitBtn;
     GroupBoxOpen: TGroupBox;
     Image1: TImage;
-    Label1: TLabel;
+    LabelWarning: TLabel;
     OpenProject: TCastleOpenDialog;
     ImageLogo: TImage;
     LabelTitle: TLabel;
     PanelBottom: TPanel;
-    PanelWarningMissingCompiler: TPanel;
+    PanelWarning: TPanel;
     PopupMenuRecentProjects: TPopupMenu;
     procedure ButtonOpenExampleClick(Sender: TObject);
     procedure ButtonPreferencesClick(Sender: TObject);
@@ -52,12 +52,15 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormHide(Sender: TObject);
   private
     RecentProjects: TCastleRecentFiles;
     CommandLineHandled: Boolean;
+    CodingTheme: TCastleSound;
+    CodingThemePlaying: TCastlePlayingSound;
     procedure MenuItemRecentClick(Sender: TObject);
     procedure OpenProjectFromCommandLine;
-    procedure UpdateWarningMissingCompiler;
+    procedure UpdateWarning;
     { Open ProjectForm.
       ManifestUrl may be absolute or relative here. }
     procedure ProjectOpen(ManifestUrl: string);
@@ -185,7 +188,7 @@ end;
 procedure TChooseProjectForm.ButtonPreferencesClick(Sender: TObject);
 begin
   PreferencesForm.ShowModal;
-  UpdateWarningMissingCompiler;
+  UpdateWarning;
 end;
 
 procedure TChooseProjectForm.ButtonOpenExampleClick(Sender: TObject);
@@ -243,6 +246,7 @@ procedure TChooseProjectForm.FormCreate(Sender: TObject);
   begin
     FpcCustomPath := UserConfig.GetValue('fpc_custom_path', '');
     LazarusCustomPath := UserConfig.GetValue('lazarus_custom_path', '');
+    CastleEngineOverridePath := UserConfig.GetValue('castle_engine_override_path', '');
     CodeEditor := TCodeEditor(UserConfig.GetValue('code_editor/setting', Ord(DefaultCodeEditor)));
     CodeEditorCommand := UserConfig.GetValue('code_editor/command', '');
     CodeEditorCommandProject := UserConfig.GetValue('code_editor/command_project', '');
@@ -269,6 +273,7 @@ procedure TChooseProjectForm.FormDestroy(Sender: TObject);
   begin
     UserConfig.SetDeleteValue('fpc_custom_path', FpcCustomPath, '');
     UserConfig.SetDeleteValue('lazarus_custom_path', LazarusCustomPath, '');
+    UserConfig.SetDeleteValue('castle_engine_override_path', CastleEngineOverridePath, '');
     UserConfig.SetDeleteValue('code_editor/setting', Ord(CodeEditor), Ord(DefaultCodeEditor));
     UserConfig.SetDeleteValue('code_editor/command', CodeEditorCommand, '');
     UserConfig.SetDeleteValue('code_editor/command_project', CodeEditorCommandProject, '');
@@ -287,10 +292,27 @@ procedure TChooseProjectForm.FormShow(Sender: TObject);
 begin
   ButtonOpenRecent.Enabled := RecentProjects.URLs.Count <> 0;
   OpenProjectFromCommandLine;
-  UpdateWarningMissingCompiler;
+  UpdateWarning;
+
+  if (CastleEnginePath <> '') and URIFileExists(CastleEnginePath + 'game.pas:666') then
+  begin
+    CodingTheme := TCastleSound.Create(Self);
+    CodingTheme.Stream := true;
+    CodingTheme.Url := InternalCastleDesignData + 'not_an_easter_egg/ente_evil.ogg';
+    CodingThemePlaying := TCastlePlayingSound.Create(Self);
+    CodingThemePlaying.Loop := true;
+    CodingThemePlaying.Sound := CodingTheme;
+    SoundEngine.Play(CodingThemePlaying);
+  end;
 end;
 
-procedure TChooseProjectForm.UpdateWarningMissingCompiler;
+procedure TChooseProjectForm.FormHide(Sender: TObject);
+begin
+  FreeAndNil(CodingThemePlaying);
+  FreeAndNil(CodingTheme);
+end;
+
+procedure TChooseProjectForm.UpdateWarning;
 
   function CompilerFound: Boolean;
   begin
@@ -315,7 +337,21 @@ procedure TChooseProjectForm.UpdateWarningMissingCompiler;
   end;
 
 begin
-  PanelWarningMissingCompiler.Visible := not CompilerFound;
+  if (CastleEnginePath = '') or not CgePathStatus(CastleEnginePath) then
+  begin
+    PanelWarning.Visible := true;
+    LabelWarning.Caption :=
+      'Warning: Engine path not found or invalid.' + NL +
+      'Configure valid path in "Preferences".';
+  end else
+  if not CompilerFound then
+  begin
+    PanelWarning.Visible := true;
+    LabelWarning.Caption :=
+      'Warning: Compiler (FPC or Delphi) not found.' + NL +
+      'Install a compiler and configure in "Preferences".';
+  end else
+    PanelWarning.Visible := false;
 end;
 
 procedure TChooseProjectForm.MenuItemRecentClick(Sender: TObject);
@@ -346,10 +382,40 @@ begin
 end;
 
 procedure TChooseProjectForm.OpenProjectFromCommandLine;
+
+  { On macOS, on the first run (after accepting "open application downloaded from the Internet")
+    we may get additional command-line parameter -psn_...,
+    which stands for "Process Serial Number".
+
+    See e.g.
+    https://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder
+    https://forums.macrumors.com/threads/application-adding-argument.207344/
+    Note: It definitely happens even for Cocoa-based editor, not only Carbon,
+    despite some suggestions on the Internet that it's Carbon-specific.
+    Unfortunately there no (not anymore) official docs about it from Apple.
+
+    We have to remove it, to not confuse it with a project name. }
+  procedure RemoveMacOsProcessSerialNumber;
+  {$ifdef DARWIN}
+  var
+    I: Integer;
+  begin
+    for I := 1 to Parameters.Count - 1 do
+      if IsPrefix('-psn_', Parameters[I], false) then
+      begin
+        Parameters.Delete(I);
+        Exit;
+      end;
+  {$else}
+  begin
+  {$endif}
+  end;
+
 begin
   if CommandLineHandled then Exit;
   CommandLineHandled := true;
 
+  RemoveMacOsProcessSerialNumber;
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
   begin

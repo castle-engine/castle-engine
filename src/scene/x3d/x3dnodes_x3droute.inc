@@ -33,10 +33,10 @@
     procedure UnsetEnding(
       var Node: TX3DNode; var Event: TX3DEvent;
       const DestEnding: boolean;
-      RemoveFromDestructionNotification: boolean = true);
+      const RemoveFromDestructionNotification: boolean = true);
 
     procedure SetEnding(const NodeName, FieldOrEventName: string;
-      Reader: TX3DReaderNames;
+      const Reader: TX3DReaderNames;
       var Node: TX3DNode; var Event: TX3DEvent;
       const DestEnding: boolean);
 
@@ -176,7 +176,7 @@
     }
     property Internal: boolean read FInternal write FInternal default false;
 
-    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DRoute;
+    function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DRoute;
   end;
 
   TX3DRouteList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DRoute>);
@@ -272,7 +272,7 @@ end;
 procedure TX3DRoute.UnsetEnding(
   var Node: TX3DNode; var Event: TX3DEvent;
   const DestEnding: boolean;
-  RemoveFromDestructionNotification: boolean);
+  const RemoveFromDestructionNotification: boolean);
 begin
   if (Event <> nil) and (not DestEnding) then
     Event.RemoveNotification({$ifdef FPC}@{$endif} EventReceive);
@@ -364,7 +364,7 @@ begin
 end;
 
 procedure TX3DRoute.SetEnding(const NodeName, FieldOrEventName: string;
-  Reader: TX3DReaderNames;
+  const Reader: TX3DReaderNames;
   var Node: TX3DNode; var Event: TX3DEvent;
   const DestEnding: boolean);
 var
@@ -567,7 +567,7 @@ begin
     UnsetEnding(FDestinationNode, FDestinationEvent, true , false);
 end;
 
-function TX3DRoute.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DRoute;
+function TX3DRoute.DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DRoute;
 var
   NewSourceNode, NewDestinationNode: TX3DNode;
   NewSourceEvent, NewDestinationEvent: TX3DEvent;
@@ -584,7 +584,7 @@ begin
       raise EInternalError.CreateFmt('Route source node "%s" (%s) has event "%s", which is not found in this node''s deep copy',
         [ NewSourceNode.X3DName,
           NewSourceNode.X3DType,
-	  NewSourceEvent.X3DName ]);
+          NewSourceEvent.X3DName ]);
     Result.SetSourceDirectly(NewSourceNode, NewSourceEvent);
   end;
 
@@ -597,7 +597,7 @@ begin
       raise EInternalError.CreateFmt('Route destination node "%s" (%s) has event "%s", which is not found in this node''s deep copy',
         [ NewDestinationNode.X3DName,
           NewDestinationNode.X3DType,
-	  NewDestinationEvent.X3DName ]);
+          NewDestinationEvent.X3DName ]);
     Result.SetDestinationDirectly(NewDestinationNode, NewDestinationEvent);
   end;
 end;

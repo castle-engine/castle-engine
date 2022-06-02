@@ -43,13 +43,13 @@
 
 This package, castle_window.lpk, contains the CastleWindow unit (and friends). It allows to create a window suitable for engine rendering.
 
-This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
+This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit may initialize some things that conflict with Lazarus reserving the same resources."/>
     <License Value="GNU LGPL with static linking exception >= 2.
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="28">
+    <Files Count="33">
       <Item1>
         <Filename Value="../src/window/castleinternalwindowmodes.pas"/>
         <UnitName Value="CastleInternalWindowModes"/>
@@ -166,6 +166,26 @@ See https://castle-engine.io/license.php for details.
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleWindowModes"/>
       </Item11>
+      <Item29>
+        <Filename Value="../src/window/castlewindow_cocoa.inc"/>
+        <Type Value="Include"/>
+      </Item29>
+      <Item30>
+        <Filename Value="../src/window/castlewindow_cocoa_menu.inc"/>
+        <Type Value="Include"/>
+      </Item30>
+      <Item31>
+        <Filename Value="../src/window/castlewindow_cocoa_message.inc"/>
+        <Type Value="Include"/>
+      </Item31>
+      <Item32>
+        <Filename Value="../src/window/castlewindow_cocoa_filedialog.inc"/>
+        <Type Value="Include"/>
+      </Item32>
+      <Item33>
+        <Filename Value="../src/window/castlewindow_cocoa_colordialog.inc"/>
+        <Type Value="Include"/>
+      </Item33>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
