@@ -584,7 +584,7 @@ object DesignFrame: TDesignFrame
       object ButtonModifyUiMode: TSpeedButton
         Left = 62
         Height = 36
-        Hint = 'Select / Move / Resize user interface controls (TCastleUserInterface).'#10#10'Use right mouse button to Move / Resize, but without changing the current selection.'
+        Hint = 'Select, Move and Resize user interface controls (TCastleUserInterface).'#10#10'Hold "Shift" to Move and Resize without changing the selection.'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -769,7 +769,7 @@ object DesignFrame: TDesignFrame
       object ButtonTransformSelectMode: TSpeedButton
         Left = 240
         Height = 36
-        Hint = 'Select Scene (TCastleScene)'
+        Hint = 'Select transform (TCastleTransform)'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -914,7 +914,7 @@ object DesignFrame: TDesignFrame
       object ButtonTransformTranslateMode: TSpeedButton
         Left = 280
         Height = 36
-        Hint = 'Move / Select Transform (TCastleTransform, including TCastleScene).'#10#10'Use right mouse button to Move, but without changing the current selection.'
+        Hint = 'Select and Move transform (TCastleTransform).'#10#10'Hold "Shift" to Move without changing the selection.'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -1059,7 +1059,7 @@ object DesignFrame: TDesignFrame
       object ButtonTransformRotateMode: TSpeedButton
         Left = 320
         Height = 36
-        Hint = 'Rotate / Select Transform (TCastleTransform, including TCastleScene).'#10#10'Use right mouse button to Rotate, but without changing the current selection.'
+        Hint = 'Select and Rotate transform (TCastleTransform).'#10#10'Hold "Shift" to Rotate without changing the selection.'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -1204,7 +1204,7 @@ object DesignFrame: TDesignFrame
       object ButtonTransformScaleMode: TSpeedButton
         Left = 360
         Height = 36
-        Hint = 'Scale / Select Transform (TCastleTransform, including TCastleScene).'#10#10'Use right mouse button to Scale, but without changing the current selection.'
+        Hint = 'Select and Scale transform (TCastleTransform).'#10#10'Hold "Shift" to Scale without changing the selection.'
         Top = 0
         Width = 36
         AllowAllUp = True

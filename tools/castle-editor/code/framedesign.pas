@@ -646,15 +646,16 @@ begin
      Frame.CameraPreview.UiRoot.RenderRectWithBorder.Contains(Event.Position) then
     Exit;
 
-  if (Frame.Mode = moModifyUi) and
-     (Event.IsMouseButton(buttonLeft) or Event.IsMouseButton(buttonRight)) then
+  if (Frame.Mode = moModifyUi) and Event.IsMouseButton(buttonLeft) then
   begin
-    { Left mouse button selects before moving/resizing.
-      Right mouse button doesn't. This allows to change the size of the control
+    { Without shift pressed, we select before moving/resizing.
+      With shift pressed we don't change selection.
+
+      This allows to change the position/size of the control
       without changing the selected control, e.g. when you want to change
       the size of TCastleScrollView without
       selecting TCastleScrollView.ScrollArea inside. }
-    if Event.IsMouseButton(buttonLeft) then
+    if (not (mkShift in Event.ModifiersDown)) then
       Frame.SelectedUserInterface := HoverUserInterface(Event.Position);
 
     UI := Frame.SelectedUserInterface;
@@ -671,7 +672,11 @@ begin
   end;
 
   if (Frame.Mode in TransformModes) and
-      Event.IsMouseButton(buttonLeft) then
+      Event.IsMouseButton(buttonLeft) and
+      { When Shift is pressed, left mouse button should not change the selection,
+        only Move/Rotate/Scale. And Move/Rotate/Scale is not handled here,
+        it's done by TVisualizeTransform. }
+      (not (mkShift in Event.ModifiersDown)) then
   begin
     T := HoverTransform(Event.Position);
     { Do not change Frame.SelectedTransform in case T is nil,
@@ -705,7 +710,7 @@ begin
      Frame.CameraPreview.UiRoot.RenderRectWithBorder.Contains(Event.Position) then
     Exit;
 
-  if (Event.IsMouseButton(buttonLeft) or Event.IsMouseButton(buttonRight)) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     DraggingMode := dmNone;
 
@@ -922,12 +927,11 @@ begin
      Frame.CameraPreview.UiRoot.RenderRectWithBorder.Contains(Event.Position) then
     Exit;
 
-  { in case user left mouse button, but the event didn't reach us for some reason
+  { in case user released mouse button, but the event didn't reach us for some reason
     (maybe can happen e.g. if you Alt+Tab during dragging?),
     reset DraggingMode. }
   if (DraggingMode <> dmNone) and
-     // neither buttonLeft nor buttonRight
-     ([buttonLeft, buttonRight] * Event.Pressed = []) then
+     (not (buttonLeft in Event.Pressed)) then
     DraggingMode := dmNone;
 
   if (Frame.Mode = moModifyUi) and (DraggingMode <> dmNone) then
@@ -1144,9 +1148,6 @@ begin
     MenuTreeViewItemAddBehavior,
     MenuTreeViewItemAddNonVisual,
     @MenuItemAddComponentClick);
-  // Input_Interact (for gizmos) reacts to both left and right
-  Input_Interact.MouseButton2Use := true;
-  Input_Interact.MouseButton2 := buttonRight;
 end;
 
 destructor TDesignFrame.Destroy;
