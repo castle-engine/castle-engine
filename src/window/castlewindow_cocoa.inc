@@ -602,13 +602,27 @@ begin
 end;
 
 procedure TOpenGLView.reshape;
+var
+  ScaleFactor: Single;
 begin
   openGLContext.update;
 
-  if window <> nil then // TODO should be windowRef?
-    begin
-      windowRef.DoResize(trunc(bounds.size.width), trunc(bounds.size.height), false);
-    end;
+  { To be secure, check both window and windowRef.
+    When window=nil, accessing windowRef would be an error. }
+  if (window <> nil) and (windowRef <> nil) then
+  begin
+    if window.respondsToSelector( ObjCSelector('backingScaleFactor')) then
+      ScaleFactor := window.backingScaleFactor
+    else
+    if win.respondsToSelector( ObjCSelector('userSpaceScaleFactor')) then // for older OSX
+      ScaleFactor := window.userSpaceScaleFactor
+    else
+      ScaleFactor := 1;
+
+    windowRef.DoResize(
+      trunc(ScaleFactor * bounds.size.width),
+      trunc(ScaleFactor * bounds.size.height), false);
+  end;
 end;
 
 function TOpenGLView.isOpaque: ObjCBool;
