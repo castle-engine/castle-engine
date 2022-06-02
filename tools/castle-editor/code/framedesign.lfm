@@ -439,7 +439,7 @@ object DesignFrame: TDesignFrame
       object ButtonInteractMode: TSpeedButton
         Left = 22
         Height = 36
-        Hint = 'Use components as a normal user.'#10#10'Allows to press buttons, navigate in viewports by mouse dragging, and more.'
+        Hint = 'Use components as a normal user.'#10#10'Allows to test pressing UI buttons, using the scrollbar etc.'
         Top = 0
         Width = 36
         AllowAllUp = True
