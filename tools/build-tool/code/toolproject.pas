@@ -129,6 +129,7 @@ type
     procedure DoEditor;
     procedure DoEditorRebuildIfNeeded;
     procedure DoEditorRun(const WaitForProcessId: TProcessId);
+    procedure DoOutput(const OutputKey: String);
 
     { Information about the project, derived from CastleEngineManifest.xml. }
     { }
@@ -1563,6 +1564,15 @@ begin
     We should have a system of services for desktop, to manage DLLs, including custom
     DLLs like Effekseer and FMOD. }
   RunCommandNoWait(Path, EditorExe, [ManifestFile]);
+end;
+
+procedure TCastleProject.DoOutput(const OutputKey: String);
+begin
+  case OutputKey of
+    'version': Writeln(Manifest.Version.DisplayValue);
+    'version-code': Writeln(Manifest.Version.Code);
+    else raise Exception.CreateFmt('Unsupported output key: "%s"', [OutputKey]);
+  end;
 end;
 
 procedure TCastleProject.AddMacrosAndroid(const Macros: TStringStringMap);
