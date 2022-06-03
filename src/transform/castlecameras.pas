@@ -2401,7 +2401,6 @@ end;
 
 function TCastleExamineNavigation.Motion(const Event: TInputMotion): boolean;
 var
-  Size: Single;
   ModsDown: TModifierKeys;
   MoveDivConst: Single;
   Dpi: Single;
@@ -2472,6 +2471,70 @@ var
     ExamineVectors := V;
   end;
 
+  procedure MoveNonExact;
+  var
+    Size: Single;
+  begin
+    Size := GoodModelBox.AverageSize(false, 1.0);
+    Translation := Translation - Vector3(
+      DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0])
+      / (2 * MoveDivConst),
+      DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1])
+      / (2 * MoveDivConst),
+      0);
+  end;
+
+  procedure MoveExact;
+  var
+    V: TCastleViewport;
+    RayOrigin, RayDirection, NewHitPoint, OldHitPoint: TVector3;
+    HitDistance: Single;
+  begin
+    V := InternalViewport as TCastleViewport;
+    if (Camera.ProjectionType = ptOrthographic) and
+       TVector3.Equals(Camera.Direction, DefaultCameraDirection) and
+       TVector3.Equals(Camera.Up, DefaultCameraUp) then
+    begin
+      Translation := Translation + Vector3(
+        V.PositionTo2DWorld(Event.Position, true) -
+        V.PositionTo2DWorld(Event.OldPosition, true),
+        0);
+    end else
+    begin
+      { general solution to ExactMovement, that works with any camera direction,
+        with both orthogonal and perspective. }
+
+      // TODO: not ready yet, just fallback to non-ExactMovement implementation
+      MoveNonExact;
+
+(*
+      { calculate HitDistance: distance to thing in viewport under the mouse. }
+      V.PositionToRay(Event.OldPosition, true, RayOrigin, RayDirection);
+      if V.Items.WorldRayCast(RayOrigin, RayDirection, HitDistance) = nil then
+      begin
+        { if nothing under the mouse, assume the distance to the 3D plane
+          - that passes through GoodModelBox.Center
+          - that is parallel to camera plane
+          So just project vector (GoodModelBox.Center - Camera.Translation)
+          on Camera.Direction
+          ( https://en.wikipedia.org/wiki/Dot_product ). }
+        HitDistance := TVector3.DotProduct(
+          GoodModelBox.Center - Camera.Translation,
+          Camera.Direction);
+      end;
+      OldHitPoint := RayOrigin + RayDirection * HitDistance;
+
+      if not V.PositionToCameraPlane(Event.Position, true, HitDistance, NewHitPoint) then
+      begin
+        WritelnWarning('PositionToCameraPlane returned false in MoveExact, this indicates extreme camera fov');
+        Exit;
+      end;
+
+      Translation := Translation + NewHitPoint - OldHitPoint;
+*)
+    end;
+  end;
+
 var
   DraggingMouseButton: TCastleMouseButton;
 begin
@@ -2528,30 +2591,15 @@ begin
       Result := ExclusiveEvents;
   end;
 
-  { Moving uses box size, so requires non-empty box. }
   if MoveEnabled and
-     (not GoodModelBox.IsEmpty) and
      (MouseButtonMove = DraggingMouseButton) then
   begin
-    if ExactMovement and
-       (Camera.ProjectionType = ptOrthographic) and
-       TVector3.Equals(Camera.Direction, DefaultCameraDirection) and
-       TVector3.Equals(Camera.Up, DefaultCameraUp) and
-       (InternalViewport <> nil) then
+    if ExactMovement and (InternalViewport <> nil) and (not GoodModelBox.IsEmpty) then
     begin
-      Translation := Translation + Vector3(
-        (InternalViewport as TCastleViewport).PositionTo2DWorld(Event.Position, true) -
-        (InternalViewport as TCastleViewport).PositionTo2DWorld(Event.OldPosition, true),
-        0);
+      MoveExact;
     end else
     begin
-      Size := GoodModelBox.AverageSize;
-      Translation := Translation - Vector3(
-        DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0])
-        / (2 * MoveDivConst),
-        DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1])
-        / (2 * MoveDivConst),
-        0);
+      MoveNonExact;
     end;
     Result := ExclusiveEvents;
   end;
