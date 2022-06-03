@@ -46,6 +46,7 @@ begin
   Input := [niNormal, ni3dMouse]; // no niMouseDragging, no niGesture
   Gravity := false;
   MoveSpeed := 10; // faster default
+  MinAngleFromGravityUp := 0; // allow to rotate smoothly from Top (7) view
 
   // use mouse wheel, as alterntive to +/-, to increase/decrease movement speed
   Input_MoveSpeedInc.Assign(keyNumpadPlus , keyNone, '+', false, buttonLeft, mwUp);

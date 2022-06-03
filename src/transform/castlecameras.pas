@@ -2935,30 +2935,22 @@ end;
 
 procedure TCastleWalkNavigation.RotateAroundGravityUp(const Angle: Single);
 var
-  Axis, OldDirection, NewPosition, NewDirection, NewUp: TVector3;
+  GravityAxis,
+    OldPosition, OldDirection, OldUp,
+    NewPosition, NewDirection, NewUp: TVector3;
 begin
-  { nie obracamy Direction wokol Up, takie obroty w polaczeniu z
-    obrotami vertical moglyby sprawic ze kamera staje sie przechylona w
-    stosunku do plaszczyny poziomu (plaszczyzny dla ktorej wektorem normalnym
-    jest GravityUp) (a my chcemy zeby zawsze plaszczyzna wyznaczana przez
-    wektory Dir i Up byla prostopadla do plaszczyzny poziomu - bo to po prostu
-    daje wygodniejsze sterowanie (chociaz troche bardziej ograniczone -
-    jestesmy wtedy w jakis sposob uwiazani do plaszczyzny poziomu)).
+  Camera.GetWorldView(OldPosition, OldDirection, OldUp);
 
-    Acha, i jeszcze jedno : zeby trzymac zawsze obroty w ta sama strone
-    (ze np. strzalka w lewo zawsze powoduje ze swiat ze obraca w prawo
-    wzgledem nas) musze czasami obracac sie wokol GravityUp, a czasem
-    wokol -GravityUp.
-  }
-  if AngleRadBetweenVectors(Camera.Up, Camera.GravityUp) > Pi/2 then
-    Axis := -Camera.GravityUp
+  { We need to sometimes use GravityUp, sometimes -GravityUp,
+    to intuitively keep rotations to left -> going left even
+    when looking upside-down. }
+  if AngleRadBetweenVectors(OldUp, Camera.GravityUp) > Pi/2 then
+    GravityAxis := -Camera.GravityUp
   else
-    Axis := Camera.GravityUp;
+    GravityAxis := Camera.GravityUp;
 
-  NewUp := RotatePointAroundAxisRad(Angle, Camera.Up, Axis);
-
-  OldDirection := Camera.Direction;
-  NewDirection := RotatePointAroundAxisRad(Angle, Camera.Direction, Axis);
+  NewUp        := RotatePointAroundAxisRad(Angle,        OldUp, GravityAxis);
+  NewDirection := RotatePointAroundAxisRad(Angle, OldDirection, GravityAxis);
 
   NewPosition := AdjustPositionForRotationHorizontalPivot(OldDirection, NewDirection);
 
@@ -2992,74 +2984,51 @@ end;
 procedure TCastleWalkNavigation.RotateVertical(AngleRad: Single);
 var
   Side: TVector3;
-  OldPosition, OldDirection, OldUp, NewDirection, NewUp: TVector3;
-
-  procedure DoRealRotate;
-  begin
-    { Rotate NewUp around Side }
-    NewUp        := RotatePointAroundAxisRad(AngleRad, OldUp       , Side);
-    { Rotate NewDirection around Side }
-    NewDirection := RotatePointAroundAxisRad(AngleRad, OldDirection, Side);
-  end;
-
-var
+  GravityAxis, OldPosition, OldDirection, OldUp, NewDirection, NewUp: TVector3;
   AngleRadBetween: Single;
 begin
   Camera.GetWorldView(OldPosition, OldDirection, OldUp);
 
-  if PreferGravityUpForRotations and (MinAngleFromGravityUp <> 0.0) then
+  { We need to sometimes use GravityUp, sometimes -GravityUp,
+    to intuitively keep rotations to left -> going left even
+    when looking upside-down. }
+  if AngleRadBetweenVectors(OldUp, Camera.GravityUp) > Pi/2 then
+    GravityAxis := -Camera.GravityUp
+  else
+    GravityAxis := Camera.GravityUp;
+
+  if PreferGravityUpForRotations then
   begin
-    Side := TVector3.CrossProduct(OldDirection, Camera.GravityUp);
+    Side := TVector3.CrossProduct(OldDirection, GravityAxis);
     if Side.IsZero then
     begin
-      { Brutally adjust NewDirection and NewUp to be correct.
-        This should happen only if your code was changing values of
-        PreferGravityUpForRotations and MinAngleFromGravityUp at runtime.
-        E.g. first you let Direction and Up to be incorrect,
-        and then you set PreferGravityUpForRotations to @true and
-        MinAngleFromGravityUp
-        to > 0 --- and suddenly we find that OldUp can be temporarily bad. }
-      NewDirection := DefaultCameraDirection;
-      NewUp := DefaultCameraUp;
-
-      { Now check Side again. If it's still bad, this means that the
-        InitialDirection is parallel to GravityUp. This shouldn't
-        happen if you correctly set InitialDirection and GravityUp.
-        So just pick any sensible NewDirection to satisfy MinAngleFromGravityUp
-        for sure.
-
-        This is a common problem on some VRML models:
-        - You wanted to place your camera such that camera looking direction
-          is in +Y or -Y (and camera up is e.g. +Z).
-        - You did this by using untransformed PerspectiveCamera/Viewpoint node.
-        But VRML (2.0 spec, I also do this in VMRL 1.0)
-        gravity is set by transforming (0, 1, 0) by PerspectiveCamera/Viewpoint
-        node transformation.
-        So the above will mean that gravity vector is parallel to your
-        looking direction. }
-      Side := TVector3.CrossProduct(NewDirection, Camera.GravityUp);
-      if Side.IsZero then
-      begin
-        NewDirection := AnyOrthogonalVector(Camera.GravityUp);
-        NewUp := Camera.GravityUp;
-      end;
+      { if OldDirection is parallel to GravityAxis,
+        then realizing PreferGravityUpForRotations is not really possible.
+        Allow rotation as if PreferGravityUpForRotations = false.
+        This is important to do right, to allow in CGE editor to use mouse look
+        right after pressing Top (7). }
+      Side := TVector3.CrossProduct(OldDirection, OldUp);
     end else
+    if MinAngleFromGravityUp <> 0 then
     begin
       { Calculate AngleRadBetween, and possibly adjust AngleRad. }
-      AngleRadBetween := AngleRadBetweenVectors(OldDirection, Camera.GravityUp);
+      AngleRadBetween := AngleRadBetweenVectors(OldDirection, GravityAxis);
+
       if AngleRadBetween - AngleRad < MinAngleFromGravityUp then
         AngleRad := AngleRadBetween - MinAngleFromGravityUp
       else
       if AngleRadBetween - AngleRad > Pi - MinAngleFromGravityUp then
         AngleRad := AngleRadBetween - (Pi - MinAngleFromGravityUp);
-
-      DoRealRotate;
     end;
   end else
   begin
     Side := TVector3.CrossProduct(OldDirection, OldUp);
-    DoRealRotate;
   end;
+
+  { Rotate NewUp around Side }
+  NewUp        := RotatePointAroundAxisRad(AngleRad, OldUp       , Side);
+  { Rotate NewDirection around Side }
+  NewDirection := RotatePointAroundAxisRad(AngleRad, OldDirection, Side);
 
   Camera.SetWorldView(OldPosition, NewDirection, NewUp);
 end;
