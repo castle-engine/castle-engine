@@ -48,14 +48,11 @@ type
   TDesignFrame = class(TFrame)
     ButtonResetTransformation: TButton;
     ButtonClearAnchorDeltas: TButton;
-    ButtonViewportMenu: TSpeedButton;
     LabelHeaderTransform: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
-    LabelSelectedViewport: TLabel;
     MenuItemSeparator898989: TMenuItem;
-    MenuItemViewportNavigationNone: TMenuItem;
     MenuTreeViewItemSeparator127u30130120983: TMenuItem;
     MenuTreeViewItemAddNonVisual: TMenuItem;
     MenuTreeViewItemAddBehavior: TMenuItem;
@@ -66,20 +63,11 @@ type
     MenuTreeViewItemPaste: TMenuItem;
     MenuTreeViewItemCopy: TMenuItem;
     MenuTreeViewItemDuplicate: TMenuItem;
-    MenuItemViewportCameraCurrentFromInitial: TMenuItem;
-    MenuItemSeparator123: TMenuItem;
-    MenuItemSeparator2: TMenuItem;
-    MenuItemViewportCamera2DViewInitial: TMenuItem;
-    MenuItemViewportCameraSetInitial: TMenuItem;
-    MenuItemViewportCameraViewAll: TMenuItem;
     MenuItemSeparator1: TMenuItem;
-    MenuItemViewportSort2D: TMenuItem;
-    MenuItemViewportChangeNavigation: TMenuItem;
     PanelLayoutTop: TPanel;
     PanelLayoutTransform: TPanel;
     PanelEventsInfo: TPanel;
     PanelAnchors: TPanel;
-    MenuViewport: TPopupMenu;
     MenuTreeView: TPopupMenu;
     SelfAnchorsFrame: TAnchorsFrame;
     ParentAnchorsFrame: TAnchorsFrame;
@@ -115,7 +103,6 @@ type
     procedure ButtonTransformScaleModeClick(Sender: TObject);
     procedure ButtonTransformSelectModeClick(Sender: TObject);
     procedure ButtonTransformTranslateModeClick(Sender: TObject);
-    procedure ButtonViewportMenuClick(Sender: TObject);
     procedure CheckParentSelfAnchorsEqualChange(Sender: TObject);
     procedure ControlsTreeAdvancedCustomDrawItem(Sender: TCustomTreeView;
       Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
@@ -136,14 +123,8 @@ type
     procedure MenuTreeViewItemDeleteClick(Sender: TObject);
     procedure MenuTreeViewItemCopyClick(Sender: TObject);
     procedure MenuTreeViewItemDuplicateClick(Sender: TObject);
-    procedure MenuItemViewportCamera2DViewInitialClick(Sender: TObject);
-    procedure MenuItemViewportCameraCurrentFromInitialClick(Sender: TObject);
-    procedure MenuItemViewportCameraViewAllClick(Sender: TObject);
-    procedure MenuItemViewportCameraSetInitialClick(Sender: TObject);
-    procedure MenuItemViewportSort2DClick(Sender: TObject);
     procedure MenuTreeViewItemPasteClick(Sender: TObject);
     procedure MenuTreeViewPopup(Sender: TObject);
-    procedure MenuItemViewportChangeNavigationNoneClick(Sender: TObject);
     procedure ClearDesign;
     procedure RenameSelectedItem;
     procedure PerformUndoRedo(const UHE: TUndoHistoryElement);
@@ -230,6 +211,7 @@ type
       PendingErrorBox: String;
       VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
       CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
+      FViewportDesignNavigation: TInternalDesignNavigationType;
 
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
@@ -237,16 +219,14 @@ type
     procedure CastleControlDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
     procedure CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
-    procedure ChangeViewportNavigation(
-      const NewNavigation: TCastleNavigation);
     procedure CollectionPropertyEditorFormUnassign;
     function ComponentCaption(const C: TComponent): String;
+    procedure SetViewportDesignNavigation(const AValue: TInternalDesignNavigationType);
     function TreeNodeCaption(const C: TComponent): String;
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
     procedure FrameAnchorsChange(Sender: TObject);
     procedure AdjustUserInterfaceAnchorsToKeepRect(const UI: TCastleUserInterface;
       const RenderRectBeforeChange: TFloatRectangle);
-    procedure MenuItemViewportChangeNavigationClick(Sender: TObject);
     // Save and restore selection.
     // Careful: you can use it only if the operation between will *never* free any of them.
     //procedure SelectionRestoreAndFree(var Selection: Classes.TList);
@@ -395,6 +375,9 @@ type
     procedure ViewportViewAxis(const Dir, Up: TVector3);
     procedure ViewportViewAll;
     procedure ViewportViewSelected;
+    property ViewportDesignNavigation: TInternalDesignNavigationType read FViewportDesignNavigation write SetViewportDesignNavigation;
+    procedure ViewportSetup2D;
+    procedure ViewportSort2D;
   end;
 
 implementation
@@ -2031,7 +2014,7 @@ begin
 
     { Convert Box to use maximum size in all 3 dimensions.
       This results in better camera view for boxes mostly flat in 1 dimension. }
-    Box := Box3DAroundPoint(Box.Center, Box.Sizes.Max);
+    Box := Box3DAroundPoint(Box.Center, Box.Size.Max);
     if not Box.TryRayClosestIntersection(IntersectionDistance, Box.Center, -ADir) then
     begin
       { TryRayClosestIntersection may return false for box with size zero
@@ -2104,6 +2087,19 @@ function TDesignFrame.ComponentCaption(const C: TComponent): String;
 
 begin
   Result := C.Name + ' (' + ClassCaption(C.ClassType) + ')';
+end;
+
+procedure TDesignFrame.SetViewportDesignNavigation(const AValue: TInternalDesignNavigationType);
+var
+  V: TCastleViewport;
+begin
+  if FViewportDesignNavigation <> AValue then
+  begin
+    FViewportDesignNavigation := AValue;
+    V := ViewportSelectedOrHover;
+    if V <> nil then
+      V.InternalDesignNavigationType := AValue;
+  end;
 end;
 
 function TDesignFrame.TreeNodeCaption(const C: TComponent): String;
@@ -3362,11 +3358,6 @@ begin
   end;
 
   V := SelectedViewport;
-  SetEnabledVisible(LabelSelectedViewport, V <> nil);
-  SetEnabledVisible(ButtonViewportMenu, V <> nil);
-  if V <> nil then
-    LabelSelectedViewport.Caption := V.Name + ':';
-
   T := SelectedTransform;
   SetEnabledVisible(PanelLayoutTransform, T <> nil);
   VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
@@ -3982,12 +3973,6 @@ begin
   InsideToggleModeClick := false;
 end;
 
-procedure TDesignFrame.ButtonViewportMenuClick(Sender: TObject);
-begin
-  MenuViewport.PopupComponent := ButtonViewportMenu;
-  MenuViewport.PopUp;
-end;
-
 procedure TDesignFrame.ButtonInteractModeClick(Sender: TObject);
 begin
   if InsideToggleModeClick then Exit;
@@ -4067,79 +4052,29 @@ begin
   DuplicateComponent;
 end;
 
-procedure TDesignFrame.MenuItemViewportCamera2DViewInitialClick(
-  Sender: TObject);
+procedure TDesignFrame.ViewportSetup2D;
 var
   V: TCastleViewport;
 begin
-  V := SelectedViewport;
-  V.Setup2D;
-  ModifiedOutsideObjectInspector('Camera Setup for 2D View and Projection for ' + V.Name, ucHigh);
-end;
-
-procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
-  Sender: TObject);
-begin
-  // TODO: This menu item will be gone, once we invent new design-time camera.
-  // For now, this is not implementable, new camera has no separation initial/current.
-end;
-
-procedure TDesignFrame.MenuItemViewportCameraViewAllClick(Sender: TObject);
-var
-  V: TCastleViewport;
-  Position, Direction, Up, GravityUp: TVector3;
-  ProjectionWidth, ProjectionHeight, ProjectionFar: Single;
-  Box: TBox3D;
-begin
-  V := SelectedViewport;
-  Box := V.Items.BoundingBox;
-
-  if V.Camera.ProjectionType = ptOrthographic then
+  V := ViewportSelectedOrHover;
+  if V <> nil then
   begin
-    CameraOrthoViewpointForWholeScene(Box,
-      V.EffectiveWidth,
-      V.EffectiveHeight,
-      V.Camera.Orthographic.Origin,
-      Position, ProjectionWidth, ProjectionHeight, ProjectionFar);
-    V.Camera.Orthographic.Width := ProjectionWidth;
-    V.Camera.Orthographic.Height := ProjectionHeight;
-    V.Camera.ProjectionFar := ProjectionFar;
-    // set the rest of variables to constant values, matching 2D game view
-    Direction := Vector3(0, 0, -1);
-    Up := Vector3(0, 1, 0);
-    GravityUp := Up;
-  end else
-  begin
-    CameraViewpointForWholeScene(Box,
-      2, 1, false, true, // dir = -Z, up = +Y
-      Position, Direction, Up, GravityUp);
+    V.Setup2D;
+    ModifiedOutsideObjectInspector('2D Camera And Projection At Runtime: ' + V.Name, ucHigh);
   end;
-
-  V.Camera.AnimateTo(Position, Direction, Up, 0.5);
-  V.Camera.GravityUp := GravityUp;
-  if V.Navigation <> nil then
-    // Makes Examine camera pivot, and scroll speed, adjust to sizes
-    V.Navigation.ModelBox := Box;
-
-  ModifiedOutsideObjectInspector('Camera Current := View All for ' + V.Name, ucHigh);
 end;
 
-procedure TDesignFrame.MenuItemViewportCameraSetInitialClick(Sender: TObject);
-begin
-  // TODO: This menu item will be gone, once we invent new design-time camera.
-  // For now, this is not implementable, new camera has no separation initial/current.
-end;
-
-procedure TDesignFrame.MenuItemViewportSort2DClick(Sender: TObject);
+procedure TDesignFrame.ViewportSort2D;
 var
   V: TCastleViewport;
 begin
-  V := SelectedViewport;
-
-  V.Items.SortBackToFront2D;
-
-  UpdateDesign; // make the tree reflect new order
-  ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending for ' + V.Name, ucHigh);
+  V := ViewportSelectedOrHover;
+  if V <> nil then
+  begin
+    V.Items.SortBackToFront2D;
+    UpdateDesign; // make the tree reflect new order
+    ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending: ' + V.Name, ucHigh);
+  end;
 end;
 
 {
@@ -4159,65 +4094,6 @@ begin
   FreeAndNil(Selection);
 end;
 }
-
-procedure TDesignFrame.ChangeViewportNavigation(const NewNavigation: TCastleNavigation);
-(*
-var
-  V: TCastleViewport;
-begin
-  V := SelectedViewport;
-
-  // fixes crash, in case current selection was equal to old V.Navigation that will be freed
-  SelectedUserInterface := nil;
-
-  // free previous V.Navigation
-  if (V.Navigation <> nil) and
-     (V.Navigation.Owner = DesignOwner) then
-    V.Navigation.Free
-  else
-    // using internal navigation instance, through SetNavigationType
-    V.Navigation := nil;
-  Assert(V.Navigation = nil);
-
-  // set new V.Navigation
-  V.Navigation := NewNavigation;
-  if NewNavigation <> nil then
-    NewNavigation.Name := InternalProposeName(TComponentClass(NewNavigation.ClassType), DesignOwner);
-
-  // otherwise, setting Navigation to nil would not work, as it would be replaced by internal navigation
-  V.AutoNavigation := false;
-
-  UpdateDesign;
-
-  if NewNavigation <> nil then
-    SelectedUserInterface := NewNavigation
-  else
-    SelectedUserInterface := V;
-  ModifiedOutsideObjectInspector('Change Viewport Navigation for ' + V.Name, ucHigh);
-end;
-*)
-begin
-  // TODO: change V.InternalDesignNavigation
-end;
-
-procedure TDesignFrame.MenuItemViewportChangeNavigationNoneClick(Sender: TObject);
-begin
-  ChangeViewportNavigation(nil);
-end;
-
-procedure TDesignFrame.MenuItemViewportChangeNavigationClick(Sender: TObject);
-var
-  R: TRegisteredComponent;
-  Nav: TCastleNavigation;
-begin
-  R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
-
-  Nav := R.ComponentClass.Create(DesignOwner) as TCastleNavigation;
-  if Assigned(R.OnCreate) then // call OnCreate ASAP after constructor
-    R.OnCreate(Nav);
-
-  ChangeViewportNavigation(Nav);
-end;
 
 procedure TDesignFrame.SetParent(AParent: TWinControl);
 {$ifdef LCLwin32}

@@ -26,6 +26,8 @@ var
 
 {$ifdef read_implementation}
 
+{ TCastleWalkNavigationDesign ------------------------------------------------ }
+
 type
   { Descendant of TCastleWalkNavigation configured to work nicely for design-time
     navigation in walk/fly mode. }
@@ -47,6 +49,7 @@ begin
   Gravity := false;
   MoveSpeed := 10; // faster default
   MinAngleFromGravityUp := 0; // allow to rotate smoothly from Top (7) view
+  CheckCollisions := false;
 
   // use mouse wheel, as alterntive to +/-, to increase/decrease movement speed
   Input_MoveSpeedInc.Assign(keyNumpadPlus , keyNone, '+', false, buttonLeft, mwUp);
@@ -149,6 +152,37 @@ begin
       LabelMessage.OutlineColor := Vector4(LabelMessage.OutlineColor.XYZ, Alpha);
     end;
   end;
+end;
+
+{ TCastleExamineNavigationDesign ------------------------------------------------ }
+
+type
+  TCastleExamineNavigationDesign = class(TCastleExamineNavigation)
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+constructor TCastleExamineNavigationDesign.Create(AOwner: TComponent);
+begin
+  inherited;
+  RotationAccelerate := false;
+  MoveEnabled := false;
+  ZoomEnabled := false;
+  MouseButtonRotate := buttonRight;
+end;
+
+{ TCastle2DNavigationDesign ------------------------------------------------ }
+
+type
+  TCastle2DNavigationDesign = class(TCastle2DNavigation)
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+constructor TCastle2DNavigationDesign.Create(AOwner: TComponent);
+begin
+  inherited;
+  MouseButtonMove := buttonRight;
 end;
 
 {$endif read_implementation}

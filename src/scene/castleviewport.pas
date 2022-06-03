@@ -40,6 +40,8 @@ type
   { Event for @link(TCastleViewport.OnProjection). }
   TProjectionEvent = procedure (var Parameters: TProjection) of object;
 
+  TInternalDesignNavigationType = (dnFly, dnExamine, dn2D);
+
   { Viewport displays a tree of scenes and transformations
     (TCastleTransform and descendants of it, like TCastleScene).
     Add the scenes and transformations to @link(Items).
@@ -153,6 +155,8 @@ type
       FMissingCameraLabel: TCastleLabel;
       WarningCameraInvalidItemsDone: Boolean;
       FInternalDesignManipulation: Boolean;
+      FInternalDesignNavigationType: TInternalDesignNavigationType;
+      FInternalDesignNavigations: array [TInternalDesignNavigationType] of TCastleNavigation;
 
     procedure CommonCreate(const AOwner: TComponent; const ADesignManipulation: Boolean);
     function FillsWholeContainer: boolean;
@@ -168,6 +172,7 @@ type
     procedure SetPaused(const Value: Boolean);
     procedure SetBackground(const Value: TCastleBackground);
     procedure BackgroundFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SetInternalDesignNavigationType(const Value: TInternalDesignNavigationType);
 
     { Callbacks when MainCamera is notified that MainScene changes camera/navigation }
     procedure MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
@@ -395,10 +400,6 @@ type
         or runtime Camera. }
       InternalDesignCamera: TCastleCamera;
 
-      { At design-time (in CGE editor), this is the navigation used by the editor.
-        @exclude }
-      InternalDesignNavigation: TCastleNavigation;
-
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -434,6 +435,15 @@ type
 
       @exclude }
     property InternalDesignManipulation: Boolean read FInternalDesignManipulation;
+
+    { Change design-time navigation.
+      @exclude }
+    property InternalDesignNavigationType: TInternalDesignNavigationType
+      read FInternalDesignNavigationType write SetInternalDesignNavigationType default dnFly;
+
+    { At design-time (in CGE editor), this is the navigation used by the editor.
+      @exclude }
+    function InternalDesignNavigation: TCastleNavigation;
 
     { Constructor that disables special design-mode viewport camera/navigation.
       Useful in editor.
@@ -1298,10 +1308,22 @@ begin
       - billboards adjust to design-time camera, so e.g. light gizmos look OK. }
     Items.MainCamera := InternalDesignCamera;
 
-    InternalDesignNavigation := TCastleWalkNavigationDesign.Create(Self);
-    InternalDesignNavigation.SetTransient;
-    InternalDesignNavigation.CheckCollisions := false;
-    InsertControl(0, InternalDesignNavigation);
+    FInternalDesignNavigationType := dnFly;
+
+    FInternalDesignNavigations[dnFly] := TCastleWalkNavigationDesign.Create(Self);
+    FInternalDesignNavigations[dnFly].SetTransient;
+    FInternalDesignNavigations[dnFly].Exists := FInternalDesignNavigationType = dnFly;
+    InsertControl(0, FInternalDesignNavigations[dnFly]);
+
+    FInternalDesignNavigations[dnExamine] := TCastleExamineNavigationDesign.Create(Self);
+    FInternalDesignNavigations[dnExamine].SetTransient;
+    FInternalDesignNavigations[dnExamine].Exists := FInternalDesignNavigationType = dnExamine;
+    InsertControl(0, FInternalDesignNavigations[dnExamine]);
+
+    FInternalDesignNavigations[dn2D] := TCastle2DNavigationDesign.Create(Self);
+    FInternalDesignNavigations[dn2D].SetTransient;
+    FInternalDesignNavigations[dn2D].Exists := FInternalDesignNavigationType = dn2D;
+    InsertControl(0, FInternalDesignNavigations[dn2D]);
   end;
 
   {$define read_implementation_constructor}
@@ -1325,6 +1347,23 @@ begin
     Result := InternalDesignCamera
   else
     Result  := Camera;
+end;
+
+procedure TCastleViewport.SetInternalDesignNavigationType(const Value: TInternalDesignNavigationType);
+begin
+  if FInternalDesignNavigationType <> Value then
+  begin
+    if InternalDesignManipulation then
+      FInternalDesignNavigations[FInternalDesignNavigationType].Exists := false;
+    FInternalDesignNavigationType := Value;
+    if InternalDesignManipulation then
+      FInternalDesignNavigations[FInternalDesignNavigationType].Exists := true;
+  end;
+end;
+
+function TCastleViewport.InternalDesignNavigation: TCastleNavigation;
+begin
+  Result := FInternalDesignNavigations[FInternalDesignNavigationType];
 end;
 
 procedure TCastleViewport.SetupCamera;

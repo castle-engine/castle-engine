@@ -406,6 +406,15 @@ object ProjectForm: TProjectForm
       object MenuItem17: TMenuItem
         Action = ActionNavigationToggle2D
       end
+      object Separator4: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem18: TMenuItem
+        Action = ActionViewportSetup2D
+      end
+      object MenuItem19: TMenuItem
+        Action = ActionViewportSort2D
+      end
     end
     object MenuItemCode: TMenuItem
       Caption = 'Code'
@@ -943,12 +952,14 @@ object ProjectForm: TProjectForm
       Category = 'Viewport'
       Caption = 'Examine'
       GroupIndex = 400
+      OnExecute = ActionNavigationExamineExecute
       OnUpdate = ActionViewportUpdate
     end
     object ActionNavigation2D: TAction
       Category = 'Viewport'
       Caption = '2D'
       GroupIndex = 400
+      OnExecute = ActionNavigation2DExecute
       OnUpdate = ActionViewportUpdate
     end
     object ActionNavigationToggle2D: TAction
@@ -969,6 +980,18 @@ object ProjectForm: TProjectForm
     object ActionViewportAlignCameraToView: TAction
       Category = 'Viewport'
       Caption = 'Align Camera To View'
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionViewportSetup2D: TAction
+      Category = 'Viewport'
+      Caption = '2D Camera And Projection At Runtime'
+      OnExecute = ActionViewportSetup2DExecute
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionViewportSort2D: TAction
+      Category = 'Viewport'
+      Caption = 'Sort Items For Correct 2D Blending'
+      OnExecute = ActionViewportSort2DExecute
       OnUpdate = ActionViewportUpdate
     end
   end
