@@ -42,6 +42,18 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionViewportAlignCameraToView: TAction;
+    ActionViewportTop: TAction;
+    ActionNavigationToggle2D: TAction;
+    ActionViewportAlignViewToCamera: TAction;
+    ActionViewportBottom: TAction;
+    ActionViewportFront: TAction;
+    ActionViewportBack: TAction;
+    ActionViewportRight: TAction;
+    ActionViewportLeft: TAction;
+    ActionNavigationFly: TAction;
+    ActionNavigationExamine: TAction;
+    ActionNavigation2D: TAction;
     ActionViewportViewSelected: TAction;
     ActionViewportViewAll: TAction;
     ActionSystemInformation: TAction;
@@ -50,6 +62,21 @@ type
     ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
+    MenuItem12: TMenuItem;
+    MenuItem2: TMenuItem;
+    Separator2: TMenuItem;
+    MenuItem13: TMenuItem;
+    MenuItem14: TMenuItem;
+    Separator3: TMenuItem;
+    MenuItem16: TMenuItem;
+    MenuItem17: TMenuItem;
+    Separator1: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
     MenuItemViewportViewAll: TMenuItem;
     MenuItemViewportViewSelected: TMenuItem;
     MenuItemViewport: TMenuItem;
@@ -197,6 +224,8 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionNavigationFlyExecute(Sender: TObject);
+    procedure ActionNavigationToggle2DExecute(Sender: TObject);
     procedure ActionSystemInformationExecute(Sender: TObject);
     procedure ActionOutputCleanExecute(Sender: TObject);
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
@@ -213,10 +242,15 @@ type
     procedure ActionOutputCopySelectedExecute(Sender: TObject);
     procedure ActionOutputCopySelectedUpdate(Sender: TObject);
     procedure ActionRegenerateProjectExecute(Sender: TObject);
+    procedure ActionViewportBackExecute(Sender: TObject);
+    procedure ActionViewportBottomExecute(Sender: TObject);
+    procedure ActionViewportFrontExecute(Sender: TObject);
+    procedure ActionViewportLeftExecute(Sender: TObject);
+    procedure ActionViewportRightExecute(Sender: TObject);
+    procedure ActionViewportTopExecute(Sender: TObject);
     procedure ActionViewportViewAllExecute(Sender: TObject);
-    procedure ActionViewportViewAllUpdate(Sender: TObject);
     procedure ActionViewportViewSelectedExecute(Sender: TObject);
-    procedure ActionViewportViewSelectedUpdate(Sender: TObject);
+    procedure ActionViewportUpdate(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure ButtonClearWarningsClick(Sender: TObject);
@@ -571,6 +605,16 @@ begin
   SystemInformationForm.Show;
 end;
 
+procedure TProjectForm.ActionNavigationToggle2DExecute(Sender: TObject);
+begin
+
+end;
+
+procedure TProjectForm.ActionNavigationFlyExecute(Sender: TObject);
+begin
+
+end;
+
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
 begin
   { Refresh contents of selected dir, and tree of subdirectories,
@@ -689,15 +733,47 @@ begin
   BuildToolCall(['generate-program']);
 end;
 
+procedure TProjectForm.ActionViewportBackExecute(Sender: TObject);
+begin
+  if (Design <> nil) and Design.ViewportActionsAllowed then
+    Design.ViewportViewAxis(Vector3(0, 0, 1), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportBottomExecute(Sender: TObject);
+begin
+  if (Design <> nil) and Design.ViewportActionsAllowed then
+    Design.ViewportViewAxis(Vector3(0, 1, 0), Vector3(0, 0, -1));
+end;
+
+procedure TProjectForm.ActionViewportFrontExecute(Sender: TObject);
+begin
+  if (Design <> nil) and Design.ViewportActionsAllowed then
+    Design.ViewportViewAxis(Vector3(0, 0, -1), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportLeftExecute(Sender: TObject);
+begin
+  if (Design <> nil) and Design.ViewportActionsAllowed then
+    Design.ViewportViewAxis(Vector3(1, 0, 0), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportRightExecute(Sender: TObject);
+begin
+  if (Design <> nil) and Design.ViewportActionsAllowed then
+    Design.ViewportViewAxis(Vector3(-1, 0, 0), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportTopExecute(Sender: TObject);
+begin
+  if (Design <> nil) and Design.ViewportActionsAllowed then
+    { up -Z better than up +Z: makes more natural rotation when using 1/3/7 }
+    Design.ViewportViewAxis(Vector3(0, -1, 0), Vector3(0, 0, -1));
+end;
+
 procedure TProjectForm.ActionViewportViewAllExecute(Sender: TObject);
 begin
   if (Design <> nil) and Design.ViewportActionsAllowed then
     Design.ViewportViewAll;
-end;
-
-procedure TProjectForm.ActionViewportViewAllUpdate(Sender: TObject);
-begin
-  ActionViewportViewAll.Enabled := (Design <> nil) and Design.ViewportActionsAllowed;
 end;
 
 procedure TProjectForm.ActionViewportViewSelectedExecute(Sender: TObject);
@@ -706,9 +782,19 @@ begin
     Design.ViewportViewSelected;
 end;
 
-procedure TProjectForm.ActionViewportViewSelectedUpdate(Sender: TObject);
+procedure TProjectForm.ActionViewportUpdate(Sender: TObject);
+//var
+//  ViewportActionsAllowed: Boolean;
 begin
-  ActionViewportViewSelected.Enabled := (Design <> nil) and Design.ViewportActionsAllowed;
+  { For now, not updating the Enabled feels actually better for user.
+    As the enabled is determined by hover over viewport,
+    it is actually disabled too eagerly when we view the menu.
+    Better to leave it always enabled, we check Design.ViewportActionsAllowed
+    anyway in all OnExecute callbacks. }
+
+  //ViewportActionsAllowed := (Design <> nil) and Design.ViewportActionsAllowed;
+  // //MenuItemViewport.Enabled := ViewportActionsAllowed; // TODO would disable everything without ability to restore
+  //(Sender as TAction).Enabled := ViewportActionsAllowed;
 end;
 
 procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);

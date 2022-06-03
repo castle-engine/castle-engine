@@ -361,6 +361,51 @@ object ProjectForm: TProjectForm
       object MenuItemViewportViewSelected: TMenuItem
         Action = ActionViewportViewSelected
       end
+      object Separator1: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem4: TMenuItem
+        Action = ActionViewportTop
+      end
+      object MenuItem6: TMenuItem
+        Action = ActionViewportBottom
+      end
+      object MenuItem10: TMenuItem
+        Action = ActionViewportFront
+      end
+      object MenuItem11: TMenuItem
+        Action = ActionViewportBack
+      end
+      object MenuItem7: TMenuItem
+        Action = ActionViewportRight
+      end
+      object MenuItem8: TMenuItem
+        Action = ActionViewportLeft
+      end
+      object Separator2: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem13: TMenuItem
+        Action = ActionViewportAlignViewToCamera
+      end
+      object MenuItem14: TMenuItem
+        Action = ActionViewportAlignCameraToView
+      end
+      object Separator3: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem12: TMenuItem
+        Action = ActionNavigationFly
+      end
+      object MenuItem2: TMenuItem
+        Action = ActionNavigationExamine
+      end
+      object MenuItem16: TMenuItem
+        Action = ActionNavigation2D
+      end
+      object MenuItem17: TMenuItem
+        Action = ActionNavigationToggle2D
+      end
     end
     object MenuItemCode: TMenuItem
       Caption = 'Code'
@@ -817,15 +862,114 @@ object ProjectForm: TProjectForm
       Category = 'Viewport'
       Caption = 'View All'
       OnExecute = ActionViewportViewAllExecute
-      OnUpdate = ActionViewportViewAllUpdate
+      OnUpdate = ActionViewportUpdate
       ShortCut = 36
     end
     object ActionViewportViewSelected: TAction
       Category = 'Viewport'
       Caption = 'Focus Selected Transform'
       OnExecute = ActionViewportViewSelectedExecute
-      OnUpdate = ActionViewportViewSelectedUpdate
+      OnUpdate = ActionViewportUpdate
       ShortCut = 70
+    end
+    object ActionViewportTop: TAction
+      Category = 'Viewport'
+      Caption = 'Top'
+      OnExecute = ActionViewportTopExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Num7'
+      )
+      ShortCut = 55
+    end
+    object ActionViewportBottom: TAction
+      Category = 'Viewport'
+      Caption = 'Bottom'
+      OnExecute = ActionViewportBottomExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+Num7'
+      )
+      ShortCut = 16439
+    end
+    object ActionViewportFront: TAction
+      Category = 'Viewport'
+      Caption = 'Front'
+      OnExecute = ActionViewportFrontExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Num1'
+      )
+      ShortCut = 49
+    end
+    object ActionViewportBack: TAction
+      Category = 'Viewport'
+      Caption = 'Back'
+      OnExecute = ActionViewportBackExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+Num1'
+      )
+      ShortCut = 16433
+    end
+    object ActionViewportRight: TAction
+      Category = 'Viewport'
+      Caption = 'Right'
+      OnExecute = ActionViewportRightExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Num3'
+      )
+      ShortCut = 51
+    end
+    object ActionViewportLeft: TAction
+      Category = 'Viewport'
+      Caption = 'Left'
+      OnExecute = ActionViewportLeftExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+Num3'
+      )
+      ShortCut = 16435
+    end
+    object ActionNavigationFly: TAction
+      Category = 'Viewport'
+      Caption = 'Fly'
+      GroupIndex = 400
+      OnExecute = ActionNavigationFlyExecute
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionNavigationExamine: TAction
+      Category = 'Viewport'
+      Caption = 'Examine'
+      GroupIndex = 400
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionNavigation2D: TAction
+      Category = 'Viewport'
+      Caption = '2D'
+      GroupIndex = 400
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionNavigationToggle2D: TAction
+      Category = 'Viewport'
+      Caption = 'Toggle Fly / 2D'
+      OnExecute = ActionNavigationToggle2DExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Num2'
+      )
+      ShortCut = 50
+    end
+    object ActionViewportAlignViewToCamera: TAction
+      Category = 'Viewport'
+      Caption = 'Align View To Camera'
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionViewportAlignCameraToView: TAction
+      Category = 'Viewport'
+      Caption = 'Align Camera To View'
+      OnUpdate = ActionViewportUpdate
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

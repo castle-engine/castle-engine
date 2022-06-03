@@ -349,6 +349,7 @@ type
       AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
     procedure GizmoHasModifiedParent(Sender: TObject);
     procedure GizmoStopDrag(Sender: TObject);
+    procedure ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -391,6 +392,7 @@ type
     procedure CurrentComponentApiUrl(var Url: String);
 
     function ViewportActionsAllowed: Boolean;
+    procedure ViewportViewAxis(const Dir, Up: TVector3);
     procedure ViewportViewAll;
     procedure ViewportViewSelected;
   end;
@@ -1994,26 +1996,82 @@ begin
   Result := (ViewportSelectedOrHover <> nil);
 end;
 
-procedure TDesignFrame.ViewportViewAll;
+const
+  CameraTransitionTime = 0.25;
+
+procedure TDesignFrame.ViewportViewAxis(const Dir, Up: TVector3);
 var
-  APos, ADir, AUp, AGravityUp: TVector3;
   V: TCastleViewport;
+  Box: TBox3D;
+  Distance: Single;
+  NewPos: TVector3;
 begin
   V := ViewportSelectedOrHover;
   if V.Items <> nil then
   begin
-    CameraViewpointForWholeScene(
-      V.Items.BoundingBox, 2, 1, false, true,
-      APos, ADir, AUp, AGravityUp);
-    V.InternalCamera.AnimateTo(APos, ADir, AUp, 0.25);
+    Box := V.Items.BoundingBox;
+    if not Box.IsEmpty then
+    begin
+      Distance := PointsDistance(V.InternalCamera.WorldTranslation, Box.Center);
+      NewPos := Box.Center - Dir * Distance;
+      V.InternalCamera.AnimateTo(NewPos, Dir, Up, CameraTransitionTime);
+    end;
   end;
+end;
+
+procedure TDesignFrame.ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
+var
+  APos, ADir, AUp: TVector3;
+  IntersectionDistance: Single;
+begin
+  // in particular, condition below means we don't do anything if no TCastleTransform selected
+  if not Box.IsEmpty then
+  begin
+    V.InternalCamera.GetWorldView(APos, ADir, AUp);
+
+    { Convert Box to use maximum size in all 3 dimensions.
+      This results in better camera view for boxes mostly flat in 1 dimension. }
+    Box := Box3DAroundPoint(Box.Center, Box.Sizes.Max);
+    if not Box.TryRayClosestIntersection(IntersectionDistance, Box.Center, -ADir) then
+    begin
+      { TryRayClosestIntersection may return false for box with size zero
+        (though not observed in practice),
+        only then ray from Box.Center may not hit one of box walls. }
+      IntersectionDistance := 1;
+      WritelnWarning('Ray from box center didn''t hit any of box walls');
+    end;
+    APos := Box.Center - ADir * IntersectionDistance * 2;
+
+    { Older version of this routine was doing:
+
+    CameraViewpointForWholeScene(Box, 2, 1, false, true,
+      APos, ADir, AUp, AGravityUp);
+
+    New version only modifies the camera position, preserving existing
+    dir, up. This is more flexible for movement by key shortcuts,
+    and consistent with
+    - Blender home
+    - Unity F
+    - Godot O
+    }
+
+    V.InternalCamera.AnimateTo(APos, ADir, AUp, CameraTransitionTime);
+  end;
+end;
+
+procedure TDesignFrame.ViewportViewAll;
+var
+  V: TCastleViewport;
+begin
+  V := ViewportSelectedOrHover;
+  if V.Items <> nil then
+    ViewportViewBox(V, V.Items.BoundingBox);
 end;
 
 procedure TDesignFrame.ViewportViewSelected;
 var
   Selected: TComponentList;
   SelectedCount, I: Integer;
-  APos, ADir, AUp, AGravityUp: TVector3;
   SelectedBox: TBox3D;
   V: TCastleViewport;
 begin
@@ -2029,13 +2087,7 @@ begin
         SelectedBox := SelectedBox + TCastleTransform(Selected[I]).WorldBoundingBox;
   finally FreeAndNil(Selected) end;
 
-  // in particular, condition below means we don't do anything if no TCastleTransform selected
-  if not SelectedBox.IsEmpty then
-  begin
-    CameraViewpointForWholeScene(SelectedBox, 2, 1, false, true,
-      APos, ADir, AUp, AGravityUp);
-    V.InternalCamera.AnimateTo(APos, ADir, AUp, 0.25);
-  end;
+  ViewportViewBox(V, SelectedBox);
 end;
 
 function TDesignFrame.ComponentCaption(const C: TComponent): String;

@@ -44,8 +44,8 @@ constructor TCastleWalkNavigationDesign.Create(AOwner: TComponent);
 begin
   inherited;
   Input := [niNormal, ni3dMouse]; // no niMouseDragging, no niGesture
-
   Gravity := false;
+  MoveSpeed := 10; // faster default
 
   // use mouse wheel, as alterntive to +/-, to increase/decrease movement speed
   Input_MoveSpeedInc.Assign(keyNumpadPlus , keyNone, '+', false, buttonLeft, mwUp);
