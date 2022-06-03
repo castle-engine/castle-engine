@@ -385,6 +385,12 @@ object ProjectForm: TProjectForm
       object Separator2: TMenuItem
         Caption = '-'
       end
+      object MenuItem20: TMenuItem
+        Action = ActionViewportToggleProjection
+      end
+      object Separator5: TMenuItem
+        Caption = '-'
+      end
       object MenuItem13: TMenuItem
         Action = ActionViewportAlignViewToCamera
       end
@@ -993,6 +999,16 @@ object ProjectForm: TProjectForm
       Caption = 'Sort Items For Correct 2D Blending'
       OnExecute = ActionViewportSort2DExecute
       OnUpdate = ActionViewportUpdate
+    end
+    object ActionViewportToggleProjection: TAction
+      Category = 'Viewport'
+      Caption = 'View Perspective / Orthogonal'
+      OnExecute = ActionViewportToggleProjectionExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Num5'
+      )
+      ShortCut = 53
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

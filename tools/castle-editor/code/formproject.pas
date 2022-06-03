@@ -42,6 +42,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionViewportToggleProjection: TAction;
     ActionViewportSetup2D: TAction;
     ActionViewportSort2D: TAction;
     ActionViewportAlignCameraToView: TAction;
@@ -67,6 +68,8 @@ type
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
+    Separator5: TMenuItem;
+    MenuItem20: TMenuItem;
     Separator4: TMenuItem;
     MenuItem18: TMenuItem;
     MenuItem19: TMenuItem;
@@ -229,6 +232,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionViewportToggleProjectionExecute(Sender: TObject);
     procedure ActionNavigation2DExecute(Sender: TObject);
     procedure ActionNavigationExamineExecute(Sender: TObject);
     procedure ActionNavigationFlyExecute(Sender: TObject);
@@ -650,6 +654,12 @@ begin
     Design.ViewportDesignNavigation := dn2D;
     ActionNavigation2D.Checked := true;
   end;
+end;
+
+procedure TProjectForm.ActionViewportToggleProjectionExecute(Sender: TObject);
+begin
+  if (Design <> nil) and Design.ViewportActionsAllowed then
+    Design.ViewportToggleProjection;
 end;
 
 procedure TProjectForm.ActionNavigationExamineExecute(Sender: TObject);

@@ -378,6 +378,7 @@ type
     property ViewportDesignNavigation: TInternalDesignNavigationType read FViewportDesignNavigation write SetViewportDesignNavigation;
     procedure ViewportSetup2D;
     procedure ViewportSort2D;
+    procedure ViewportToggleProjection;
   end;
 
 implementation
@@ -4074,6 +4075,21 @@ begin
     V.Items.SortBackToFront2D;
     UpdateDesign; // make the tree reflect new order
     ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending: ' + V.Name, ucHigh);
+  end;
+end;
+
+procedure TDesignFrame.ViewportToggleProjection;
+var
+  V: TCastleViewport;
+begin
+  V := ViewportSelectedOrHover;
+  if V <> nil then
+  begin
+    ShowMessage('switching');
+    if V.InternalCamera.ProjectionType = ptPerspective then
+      V.InternalCamera.ProjectionType := ptOrthographic
+    else
+      V.InternalCamera.ProjectionType := ptPerspective;
   end;
 end;
 
