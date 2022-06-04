@@ -32,9 +32,6 @@ type
   { Descendant of TCastleWalkNavigation configured to work nicely for design-time
     navigation in walk/fly mode. }
   TCastleWalkNavigationDesign = class(TCastleWalkNavigation)
-  strict private
-    LabelMessage: TCastleLabel;
-    MessageStart: TTimerResult;
   public
     constructor Create(AOwner: TComponent); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
@@ -56,16 +53,6 @@ begin
   Input_MoveSpeedDec.Assign(keyNumpadMinus, keyNone, '-', false, buttonLeft, mwDown);
   Input_Jump.Assign(keyE);
   Input_Crouch.Assign(keyQ);
-
-  LabelMessage := TCastleLabel.Create(Self);
-  LabelMessage.SetTransient;
-  LabelMessage.Outline := 1;
-  LabelMessage.Color := White;
-  LabelMessage.Exists := false;
-  LabelMessage.Anchor(hpMiddle);
-  LabelMessage.Anchor(vpMiddle);
-  LabelMessage.FontSize := 60;
-  InsertFront(LabelMessage);
 end;
 
 function TCastleWalkNavigationDesign.Press(const Event: TInputPressRelease): Boolean;
@@ -78,14 +65,6 @@ begin
     MouseLook := true;
     InternalDesignMouseLook := true;
     Exit(true);
-  end;
-
-  { Display current speed if user presses key/mouse wheel to change speed
-    (even if speed doesn't actually change because of MoveSpeedMin/Max limit) }
-  if Input_MoveSpeedInc.IsEvent(Event) or
-     Input_MoveSpeedDec.IsEvent(Event) then
-  begin
-    MessageStart := Timer;
   end;
 
 {
@@ -119,39 +98,8 @@ end;
 
 procedure TCastleWalkNavigationDesign.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
-const
-  TimeToExist = 1.0;
-  TimeToFade = 0.75;
-  MessageAlpha = 0.75;
-var
-  T: TFloatTime;
-  Alpha: Single;
 begin
   inherited;
-
-  { Display current speed if user presses key/mouse wheel to change speed
-    (even if speed doesn't actually change because of MoveSpeedMin/Max limit) }
-  if Input_MoveSpeedInc.IsPressed(Container) or
-     Input_MoveSpeedDec.IsPressed(Container) then
-  begin
-    MessageStart := Timer;
-  end;
-
-  if MessageStart.Initialized then
-  begin
-    T := MessageStart.ElapsedTime;
-    LabelMessage.Exists := T < TimeToExist;
-    if LabelMessage.Exists then
-    begin
-      LabelMessage.Caption := Format('Speed: %f', [MoveSpeed]);
-      if T < TimeToExist - TimeToFade then
-        Alpha := MessageAlpha
-      else
-        Alpha := MapRange(T, TimeToExist - TimeToFade, TimeToExist, MessageAlpha, 0.0);
-      LabelMessage.Color := Vector4(LabelMessage.Color.XYZ, Alpha);
-      LabelMessage.OutlineColor := Vector4(LabelMessage.OutlineColor.XYZ, Alpha);
-    end;
-  end;
 end;
 
 { TCastleExamineNavigationDesign ------------------------------------------------ }

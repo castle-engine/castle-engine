@@ -49,6 +49,7 @@ type
     ButtonResetTransformation: TButton;
     ButtonClearAnchorDeltas: TButton;
     LabelHeaderTransform: TLabel;
+    LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
@@ -2186,8 +2187,57 @@ begin
 end;
 
 procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
+
+  function ViewportDebugInfo(const V: TCastleViewport): String;
+
+    function CameraDirectionStr: String;
+    begin
+      { This detection matches TProjectForm.ActionViewport*Execute methods in CGE editor. }
+      if TVector3.Equals(V.InternalCamera.Direction, Vector3(0, -1, 0)) then
+        Result := 'Top '
+      else
+      if TVector3.Equals(V.InternalCamera.Direction, Vector3(0, 1, 0)) then
+        Result := 'Bottom '
+      else
+      if TVector3.Equals(V.InternalCamera.Direction, Vector3(0, 0, -1)) then
+        Result := 'Front '
+      else
+      if TVector3.Equals(V.InternalCamera.Direction, Vector3(0, 0, 1)) then
+        Result := 'Back '
+      else
+      if TVector3.Equals(V.InternalCamera.Direction, Vector3(1, 0, 0)) then
+        Result := 'Left '
+      else
+      if TVector3.Equals(V.InternalCamera.Direction, Vector3(-1, 0, 0)) then
+        Result := 'Right '
+      else
+        Result := '';
+    end;
+
+    function ProjectionStr: String;
+    begin
+      Result := ProjectionTypeToStr(V.InternalCamera.ProjectionType);
+    end;
+
+    function DesignNavigationStr: String;
+    const
+      Names: array [TInternalDesignNavigationType] of String = ('Fly', 'Examine', '2D');
+    begin
+      Result := Names[V.InternalDesignNavigationType];
+      if V.InternalDesignNavigationType = dnFly then
+        Result := Result + Format(' (speed %f)', [
+          (V.InternalDesignNavigation as TCastleWalkNavigation).MoveSpeed
+        ]);
+    end;
+
+  begin
+    Result := V.Name + ': ' + CameraDirectionStr + ProjectionStr + ' ' + NL +
+      DesignNavigationStr;
+  end;
+
 var
   SavedErrorBox: String;
+  V: TCastleViewport;
 begin
   { process PendingErrorBox }
   if PendingErrorBox <> '' then
@@ -2220,6 +2270,11 @@ begin
   { If necessary, reset OverrideCursor modified by UpdateCursor, to allow mouse look to hide cursor }
   if InternalDesignMouseLook then
     CastleControl.Container.OverrideCursor := mcDefault;
+
+  V := ViewportSelectedOrHover;
+  LabelViewport.Visible := V <> nil;
+  if V <> nil then
+    LabelViewport.Caption := ViewportDebugInfo(V);
 end;
 
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
@@ -4085,7 +4140,6 @@ begin
   V := ViewportSelectedOrHover;
   if V <> nil then
   begin
-    ShowMessage('switching');
     if V.InternalCamera.ProjectionType = ptPerspective then
       V.InternalCamera.ProjectionType := ptOrthographic
     else

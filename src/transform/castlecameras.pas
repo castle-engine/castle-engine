@@ -882,7 +882,7 @@ type
       DefaultMouseDraggingVerticalRotationSpeed = Pi * 0.1 / 180;
       DefaultMouseDraggingMoveSpeed = 0.01;
       DefaultMoveSpeedMin = 0.01;
-      DefaultMoveSpeedMax = 1000.0;
+      DefaultMoveSpeedMax = 10000.0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;

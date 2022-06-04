@@ -1346,12 +1346,25 @@ object DesignFrame: TDesignFrame
         OnClick = ButtonTransformScaleModeClick
         ParentFont = False
       end
+      object LabelViewport: TLabel
+        Left = 495
+        Height = 44
+        Top = 0
+        Width = 266
+        BorderSpacing.Left = 30
+        BorderSpacing.Right = 10
+        Caption = 'Viewport123: Front Perspective '#10'Fly (speed 1000.00)'
+        Layout = tlCenter
+        Font.Height = 15
+        ParentFont = False
+        Visible = False
+      end
     end
   end
   object MenuTreeView: TPopupMenu
     OnPopup = MenuTreeViewPopup
-    Left = 653
-    Top = 139
+    Left = 816
+    Top = 174
     object MenuTreeViewItemAddUserInterface: TMenuItem
       Caption = 'Add User Interface'
     end
