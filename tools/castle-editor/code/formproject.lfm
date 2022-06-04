@@ -982,11 +982,19 @@ object ProjectForm: TProjectForm
       Category = 'Viewport'
       Caption = 'Align View To Camera'
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Num0'
+      )
+      ShortCut = 48
     end
     object ActionViewportAlignCameraToView: TAction
       Category = 'Viewport'
       Caption = 'Align Camera To View'
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+Num0'
+      )
+      ShortCut = 16432
     end
     object ActionViewportSetup2D: TAction
       Category = 'Viewport'
@@ -1002,7 +1010,7 @@ object ProjectForm: TProjectForm
     end
     object ActionViewportToggleProjection: TAction
       Category = 'Viewport'
-      Caption = 'View Perspective / Orthogonal'
+      Caption = 'Toggle Perspective / Orthogonal'
       OnExecute = ActionViewportToggleProjectionExecute
       OnUpdate = ActionViewportUpdate
       SecondaryShortCuts.Strings = (
