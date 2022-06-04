@@ -272,11 +272,6 @@
   private
     procedure VisibleParameterChange;
   public
-    { Associated viewport.
-      Do not set this directly, instead always set @link(TCastleViewport.Navigation).
-      @exclude }
-    InternalViewport: TCastleUserInterface;
-
     InternalOnSceneBoundViewpointChanged,
     InternalOnSceneBoundViewpointVectorsChanged,
     InternalOnSceneBoundNavigationInfoChanged,
