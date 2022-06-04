@@ -260,7 +260,7 @@
     FOrthographic: TCastleOrthographic;
 
     FGizmo: Boolean;
-    FGizmoImage, FGizmoScene: TCastleTransform;
+    FGizmoImage, FGizmoScene, FGizmoSelect: TCastleTransform;
 
     procedure CommonCreate(const AOwner: TComponent; const AGizmo: Boolean);
     procedure RecalculateFrustum;
@@ -274,6 +274,9 @@
     procedure SetProjectionType(const Value: TProjectionType);
   private
     procedure VisibleParameterChange;
+  protected
+    function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
   public
     InternalOnSceneBoundViewpointChanged,
     InternalOnSceneBoundViewpointVectorsChanged,
@@ -692,9 +695,8 @@ begin
     // to make picking natural, restore to default these values, after InternalTransform modified them
     GizmoSelect.Pickable := true;
     GizmoSelect.InternalExcludeFromParentBoundingVolume := false;
-    // TODO: this blocks selecting stuff when this is current camera
-    GizmoSelect.Exists := false;
     Add(GizmoSelect);
+    FGizmoSelect := GizmoSelect;
 
     GizmoImage := TCastleImageTransform.Create(Self);
     GizmoImage.Size := Vector2(GizmoSize, GizmoSize);
@@ -976,9 +978,10 @@ begin
       InternalOnCameraChanged(Self);
 end;
 
-procedure TCastleCamera.LocalRender(const Params: TRenderParams);
 const
   DistanceToHide = 1;
+
+procedure TCastleCamera.LocalRender(const Params: TRenderParams);
 var
   DistanceToCameraSqr: Single;
   GizmoVisible: Boolean;
@@ -993,7 +996,25 @@ begin
     FGizmoImage.Exists := GizmoVisible;
     FGizmoScene.Exists := GizmoVisible;
   end;
-  inherited; // this renders FGizmoImage, FGizmoScene if existing
+  inherited; // this renders children (FGizmoXxx) if existing
+end;
+
+function TCastleCamera.LocalRayCollision(const RayOrigin, RayDirection: TVector3;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
+var
+  DistanceToCameraSqr: Single;
+  GizmoVisible: Boolean;
+begin
+  if FGizmo then
+  begin
+    DistanceToCameraSqr := PointsDistanceSqr(
+      TVector3.Zero,
+      RayOrigin
+    );
+    GizmoVisible := DistanceToCameraSqr > Sqr(DistanceToHide);
+    FGizmoSelect.Exists := GizmoVisible;
+  end;
+  Result := inherited;  // this make collisions with children (FGizmoXxx) if existing
 end;
 
 {$define read_implementation_methods}
