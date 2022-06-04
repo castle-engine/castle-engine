@@ -892,60 +892,42 @@ object ProjectForm: TProjectForm
       Caption = 'Top'
       OnExecute = ActionViewportTopExecute
       OnUpdate = ActionViewportUpdate
-      SecondaryShortCuts.Strings = (
-        'Num7'
-      )
-      ShortCut = 55
+      ShortCut = 103
     end
     object ActionViewportBottom: TAction
       Category = 'Viewport'
       Caption = 'Bottom'
       OnExecute = ActionViewportBottomExecute
       OnUpdate = ActionViewportUpdate
-      SecondaryShortCuts.Strings = (
-        'Ctrl+Num7'
-      )
-      ShortCut = 16439
+      ShortCut = 16487
     end
     object ActionViewportFront: TAction
       Category = 'Viewport'
       Caption = 'Front'
       OnExecute = ActionViewportFrontExecute
       OnUpdate = ActionViewportUpdate
-      SecondaryShortCuts.Strings = (
-        'Num1'
-      )
-      ShortCut = 49
+      ShortCut = 97
     end
     object ActionViewportBack: TAction
       Category = 'Viewport'
       Caption = 'Back'
       OnExecute = ActionViewportBackExecute
       OnUpdate = ActionViewportUpdate
-      SecondaryShortCuts.Strings = (
-        'Ctrl+Num1'
-      )
-      ShortCut = 16433
+      ShortCut = 16481
     end
     object ActionViewportRight: TAction
       Category = 'Viewport'
       Caption = 'Right'
       OnExecute = ActionViewportRightExecute
       OnUpdate = ActionViewportUpdate
-      SecondaryShortCuts.Strings = (
-        'Num3'
-      )
-      ShortCut = 51
+      ShortCut = 99
     end
     object ActionViewportLeft: TAction
       Category = 'Viewport'
       Caption = 'Left'
       OnExecute = ActionViewportLeftExecute
       OnUpdate = ActionViewportUpdate
-      SecondaryShortCuts.Strings = (
-        'Ctrl+Num3'
-      )
-      ShortCut = 16435
+      ShortCut = 16483
     end
     object ActionNavigationFly: TAction
       Category = 'Viewport'
@@ -973,30 +955,21 @@ object ProjectForm: TProjectForm
       Caption = 'Toggle Fly / 2D'
       OnExecute = ActionNavigationToggle2DExecute
       OnUpdate = ActionViewportUpdate
-      SecondaryShortCuts.Strings = (
-        'Num2'
-      )
-      ShortCut = 50
+      ShortCut = 98
     end
     object ActionViewportAlignViewToCamera: TAction
       Category = 'Viewport'
       Caption = 'Align View To Camera'
       OnExecute = ActionViewportAlignViewToCameraExecute
       OnUpdate = ActionViewportUpdate
-      SecondaryShortCuts.Strings = (
-        'Num0'
-      )
-      ShortCut = 48
+      ShortCut = 96
     end
     object ActionViewportAlignCameraToView: TAction
       Category = 'Viewport'
       Caption = 'Align Camera To View'
       OnExecute = ActionViewportAlignCameraToViewExecute
       OnUpdate = ActionViewportUpdate
-      SecondaryShortCuts.Strings = (
-        'Ctrl+Num0'
-      )
-      ShortCut = 16432
+      ShortCut = 16480
     end
     object ActionViewportSetup2D: TAction
       Category = 'Viewport'
@@ -1015,10 +988,7 @@ object ProjectForm: TProjectForm
       Caption = 'Toggle Perspective / Orthogonal'
       OnExecute = ActionViewportToggleProjectionExecute
       OnUpdate = ActionViewportUpdate
-      SecondaryShortCuts.Strings = (
-        'Num5'
-      )
-      ShortCut = 53
+      ShortCut = 101
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
