@@ -2487,8 +2487,8 @@ var
   procedure MoveExact;
   var
     V: TCastleViewport;
-    RayOrigin, RayDirection, NewHitPoint, OldHitPoint: TVector3;
-    HitDistance: Single;
+    //RayOrigin, RayDirection, NewHitPoint, OldHitPoint: TVector3;
+    //HitDistance: Single;
   begin
     V := InternalViewport as TCastleViewport;
     if (Camera.ProjectionType = ptOrthographic) and
