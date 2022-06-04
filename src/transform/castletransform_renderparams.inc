@@ -108,7 +108,7 @@
     Camera: TCastleCamera;
 
     { Current camera position.
-      In world coordinates, i.e. this is equal TCastleCamera.Position,
+      In world coordinates, i.e. this is equal TCastleCamera.WorldTranslation,
       and in coordinates of whole TCastleViewport.Items. }
     Position: TVector3;
 
