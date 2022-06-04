@@ -670,6 +670,8 @@ begin
   FGizmo := CastleDesignMode;
   if FGizmo then
   begin
+    (* // TODO: this blocks selecting stuff when this is current camera
+
     // This allows user to select camera by clicking in CGE editor
     GizmoSelect := TCastleBox.Create(Self);
     GizmoSelect.Size := Vector3(GizmoSize, GizmoSize, GizmoSize);
@@ -679,6 +681,7 @@ begin
     GizmoSelect.Pickable := true;
     GizmoSelect.InternalExcludeFromParentBoundingVolume := false;
     Add(GizmoSelect);
+    *)
 
     GizmoImage := TCastleImageTransform.Create(Self);
     GizmoImage.Size := Vector2(GizmoSize, GizmoSize);
