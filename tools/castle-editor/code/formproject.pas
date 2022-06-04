@@ -232,6 +232,8 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionViewportAlignCameraToViewExecute(Sender: TObject);
+    procedure ActionViewportAlignViewToCameraExecute(Sender: TObject);
     procedure ActionViewportToggleProjectionExecute(Sender: TObject);
     procedure ActionNavigation2DExecute(Sender: TObject);
     procedure ActionNavigationExamineExecute(Sender: TObject);
@@ -660,6 +662,18 @@ procedure TProjectForm.ActionViewportToggleProjectionExecute(Sender: TObject);
 begin
   if (Design <> nil) and Design.ViewportActionsAllowed then
     Design.ViewportToggleProjection;
+end;
+
+procedure TProjectForm.ActionViewportAlignViewToCameraExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportAlignViewToCamera;
+end;
+
+procedure TProjectForm.ActionViewportAlignCameraToViewExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportAlignCameraToView;
 end;
 
 procedure TProjectForm.ActionNavigationExamineExecute(Sender: TObject);

@@ -56,6 +56,7 @@ type
       T is current selection as TCastleTransform (or nil if none),
       V is the current selection as viewport or viewport containing current selection (or nil if none). }
     procedure SelectedChanged(const T: TCastleTransform; const V: TCastleViewport);
+    function SelectedCamera: TCastleCamera;
   end;
 
 implementation
@@ -258,6 +259,11 @@ begin
     Viewport.SelectedViewport := nil;
     SelectedViewportObserver.Observed := Viewport.SelectedViewport;
   end;
+end;
+
+function TCameraPreview.SelectedCamera: TCastleCamera;
+begin
+  Result := Viewport.Camera;
 end;
 
 end.

@@ -214,6 +214,8 @@ type
       CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
       FViewportDesignNavigation: TInternalDesignNavigationType;
 
+    function CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
+    procedure CameraSynchronize(const Source, Target: TCastleCamera);
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
     procedure CastleControlUpdate(Sender: TObject);
@@ -380,6 +382,8 @@ type
     procedure ViewportSetup2D;
     procedure ViewportSort2D;
     procedure ViewportToggleProjection;
+    procedure ViewportAlignViewToCamera;
+    procedure ViewportAlignCameraToView;
   end;
 
 implementation
@@ -4144,6 +4148,64 @@ begin
       V.InternalCamera.ProjectionType := ptOrthographic
     else
       V.InternalCamera.ProjectionType := ptPerspective;
+  end;
+end;
+
+function TDesignFrame.CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
+begin
+  { Prefer to use camera from CameraPreview, as this is most natural in UI,
+    because user sees CameraPreview.
+    Do this even when SelectedTransform is also (maybe different) camera. }
+  if (CameraPreview <> nil) and
+     (CameraPreview.SelectedCamera <> nil) and
+     (CameraPreview.SelectedCamera.World = V.Items) then
+    Result := CameraPreview.SelectedCamera
+  else
+  if (SelectedTransform is TCastleCamera) and
+     (TCastleCamera(SelectedTransform).World = V.Items) then
+    Result := TCastleCamera(SelectedTransform)
+  else
+    Result := V.Camera;
+end;
+
+procedure TDesignFrame.CameraSynchronize(const Source, Target: TCastleCamera);
+begin
+  Target.AnimateTo(Source, CameraTransitionTime);
+  Target.ProjectionType := Source.ProjectionType;
+  Target.Perspective.FieldOfView     := Source.Perspective.FieldOfView;
+  Target.Perspective.FieldOfViewAxis := Source.Perspective.FieldOfViewAxis;
+  Target.Orthographic.Origin  := Source.Orthographic.Origin;
+  Target.Orthographic.Width   := Source.Orthographic.Width;
+  Target.Orthographic.Height  := Source.Orthographic.Height;
+  Target.Orthographic.Scale   := Source.Orthographic.Scale;
+  Target.Orthographic.Stretch := Source.Orthographic.Stretch;
+end;
+
+procedure TDesignFrame.ViewportAlignViewToCamera;
+var
+  V: TCastleViewport;
+  C: TCastleCamera;
+begin
+  V := ViewportSelectedOrHover;
+  if V <> nil then
+  begin
+    C := CameraToSynchronize(V);
+    if C <> nil then
+      CameraSynchronize(C, V.InternalCamera);
+  end;
+end;
+
+procedure TDesignFrame.ViewportAlignCameraToView;
+var
+  V: TCastleViewport;
+  C: TCastleCamera;
+begin
+  V := ViewportSelectedOrHover;
+  if V <> nil then
+  begin
+    C := CameraToSynchronize(V);
+    if C <> nil then
+      CameraSynchronize(V.InternalCamera, C);
   end;
 end;
 
