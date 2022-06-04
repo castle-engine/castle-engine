@@ -260,7 +260,6 @@
     FOrthographic: TCastleOrthographic;
 
     FGizmo: Boolean;
-    FGizmoImage, FGizmoScene, FGizmoSelect: TCastleTransform;
 
     procedure CommonCreate(const AOwner: TComponent; const AGizmo: Boolean);
     procedure RecalculateFrustum;
@@ -696,7 +695,6 @@ begin
     GizmoSelect.Pickable := true;
     GizmoSelect.InternalExcludeFromParentBoundingVolume := false;
     Add(GizmoSelect);
-    FGizmoSelect := GizmoSelect;
 
     GizmoImage := TCastleImageTransform.Create(Self);
     GizmoImage.Size := Vector2(GizmoSize, GizmoSize);
@@ -704,7 +702,6 @@ begin
     GizmoImage.Url := InternalCastleDesignData + 'gizmos/camera/camera.png';
     InternalTransform(GizmoImage);
     Add(GizmoImage);
-    FGizmoImage := GizmoImage;
 
     GizmoBillboard := TCastleBillboard.Create(Self);
     GizmoBillboard.AxisOfRotation := TVector3.Zero;
@@ -714,7 +711,6 @@ begin
     GizmoScene.Load(BuildNode, true);
     InternalTransform(GizmoScene);
     Add(GizmoScene);
-    FGizmoScene := GizmoScene;
   end;
 
   {$define read_implementation_constructor}
@@ -993,10 +989,10 @@ begin
       Params.RenderingCamera.Position
     );
     GizmoVisible := DistanceToCameraSqr > Sqr(DistanceToHide);
-    FGizmoImage.Exists := GizmoVisible;
-    FGizmoScene.Exists := GizmoVisible;
+    if not GizmoVisible then
+      Exit; // do not render GizmoImage, GizmoBillboard children
   end;
-  inherited; // this renders children (FGizmoXxx) if existing
+  inherited;
 end;
 
 function TCastleCamera.LocalRayCollision(const RayOrigin, RayDirection: TVector3;
@@ -1012,7 +1008,10 @@ begin
       RayOrigin
     );
     GizmoVisible := DistanceToCameraSqr > Sqr(DistanceToHide);
-    FGizmoSelect.Exists := GizmoVisible;
+    if not GizmoVisible then
+      { Do not collide with FGizmoSelect, it would prevent using selection as
+        FGizmoSelect would collide with all rays cast from camera position. }
+      Exit(nil);
   end;
   Result := inherited;  // this make collisions with children (FGizmoXxx) if existing
 end;

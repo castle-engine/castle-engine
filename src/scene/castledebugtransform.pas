@@ -149,6 +149,7 @@ type
       TInternalScene = class(TCastleScene)
         Container: TDebugTransformBox;
         procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+        procedure LocalRender(const Params: TRenderParams); override;
       end;
     var
       FBox: TDebugBox;
@@ -460,6 +461,29 @@ procedure TDebugTransformBox.TInternalScene.Update(const SecondsPassed: Single; 
 begin
   inherited;
   Container.UpdateSafe;
+end;
+
+procedure TDebugTransformBox.TInternalScene.LocalRender(const Params: TRenderParams);
+const
+  DistanceToHide = 1;
+var
+  DistanceToCameraSqr: Single;
+  GizmoVisible: Boolean;
+begin
+  { Do not render cameras debug, when their center is equal or very close
+    to the rendering camera.
+    This avoids weird debug display of camera on top of itself. }
+  if Exists and (Parent is TCastleCamera) then
+  begin
+    DistanceToCameraSqr := PointsDistanceSqr(
+      Params.Transform^.MultPoint(TVector3.Zero),
+      Params.RenderingCamera.Position
+    );
+    GizmoVisible := DistanceToCameraSqr > Sqr(DistanceToHide);
+    if not GizmoVisible then
+      Exit;
+  end;
+  inherited;
 end;
 
 { TDebugTransformBox ---------------------------------------------------- }
