@@ -259,11 +259,11 @@
     FPerspective: TCastlePerspective;
     FOrthographic: TCastleOrthographic;
 
-    { For now just always constant and initialized from CastleDesignMode. }
     FGizmo: Boolean;
+    FGizmoImage, FGizmoScene: TCastleTransform;
 
+    procedure CommonCreate(const AOwner: TComponent; const AGizmo: Boolean);
     procedure RecalculateFrustum;
-
     procedure SetGravityUp(const Value: TVector3);
 
     { Setter of the @link(ProjectionMatrix) property. }
@@ -281,10 +281,13 @@
     InternalOnCameraChanged: TNotifyEvent;
 
     constructor Create(AOwner: TComponent); override;
+    { @exclude Create camera that doesn't show any gizmo in CGE editor. }
+    constructor InternalCreateNonDesign(AOwner: TComponent);
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+    procedure LocalRender(const Params: TRenderParams); override;
 
     { "Up" direction of the world in which player moves.
       Always normalized (when setting this property, we take
@@ -574,6 +577,16 @@ end;
 { TCastleCamera -------------------------------------------------------------- }
 
 constructor TCastleCamera.Create(AOwner: TComponent);
+begin
+  CommonCreate(AOwner, CastleDesignMode);
+end;
+
+constructor TCastleCamera.InternalCreateNonDesign(AOwner: TComponent);
+begin
+  CommonCreate(AOwner, false);
+end;
+
+procedure TCastleCamera.CommonCreate(const AOwner: TComponent; const AGizmo: Boolean);
 
   procedure InternalTransform(const T: TCastleTransform);
   begin
@@ -628,7 +641,7 @@ var
   GizmoScene: TCastleScene;
   GizmoSelect: TCastleBox;
 begin
-  inherited;
+  inherited Create(AOwner);
 
   { Override orientation, this is more intuitive for cameras. }
   Orientation := otUpYDirectionMinusZ;
@@ -666,12 +679,11 @@ begin
   FOrthographic.Name := 'Orthographic';
   FOrthographic.SetSubComponent(true);
 
-  { Gizmo initialization code copied from TCastleAbstractLight.Create }
-  FGizmo := CastleDesignMode;
+  { Gizmo initialization code copied and adjusted from TCastleAbstractLight.Create
+    TODO: make a common class TInternalCastleEditorGizmo }
+  FGizmo := AGizmo;
   if FGizmo then
   begin
-    (* // TODO: this blocks selecting stuff when this is current camera
-
     // This allows user to select camera by clicking in CGE editor
     GizmoSelect := TCastleBox.Create(Self);
     GizmoSelect.Size := Vector3(GizmoSize, GizmoSize, GizmoSize);
@@ -680,8 +692,9 @@ begin
     // to make picking natural, restore to default these values, after InternalTransform modified them
     GizmoSelect.Pickable := true;
     GizmoSelect.InternalExcludeFromParentBoundingVolume := false;
+    // TODO: this blocks selecting stuff when this is current camera
+    GizmoSelect.Exists := false;
     Add(GizmoSelect);
-    *)
 
     GizmoImage := TCastleImageTransform.Create(Self);
     GizmoImage.Size := Vector2(GizmoSize, GizmoSize);
@@ -689,6 +702,7 @@ begin
     GizmoImage.Url := InternalCastleDesignData + 'gizmos/camera/camera.png';
     InternalTransform(GizmoImage);
     Add(GizmoImage);
+    FGizmoImage := GizmoImage;
 
     GizmoBillboard := TCastleBillboard.Create(Self);
     GizmoBillboard.AxisOfRotation := TVector3.Zero;
@@ -698,6 +712,7 @@ begin
     GizmoScene.Load(BuildNode, true);
     InternalTransform(GizmoScene);
     Add(GizmoScene);
+    FGizmoScene := GizmoScene;
   end;
 
   {$define read_implementation_constructor}
@@ -959,6 +974,26 @@ begin
   if vcVisibleGeometry in Changes then
     if Assigned(InternalOnCameraChanged) then
       InternalOnCameraChanged(Self);
+end;
+
+procedure TCastleCamera.LocalRender(const Params: TRenderParams);
+const
+  DistanceToHide = 1;
+var
+  DistanceToCameraSqr: Single;
+  GizmoVisible: Boolean;
+begin
+  if FGizmo then
+  begin
+    DistanceToCameraSqr := PointsDistanceSqr(
+      Params.Transform^.MultPoint(TVector3.Zero),
+      Params.RenderingCamera.Position
+    );
+    GizmoVisible := DistanceToCameraSqr > Sqr(DistanceToHide);
+    FGizmoImage.Exists := GizmoVisible;
+    FGizmoScene.Exists := GizmoVisible;
+  end;
+  inherited; // this renders FGizmoImage, FGizmoScene if existing
 end;
 
 {$define read_implementation_methods}

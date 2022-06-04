@@ -1295,7 +1295,9 @@ begin
 
   if InternalDesignManipulation then
   begin
-    InternalDesignCamera := TCastleCamera.Create(Self);
+    { We need to use TCastleCamera.InternalCreateNonDesign,
+      otherwise InternalDesignCamera would be visible in preview of other camera. }
+    InternalDesignCamera := TCastleCamera.InternalCreateNonDesign(Self);
     InternalDesignCamera.SetTransient;
     // this somewhat replicates what happens at SetCamera
     InternalDesignCamera.InternalOnCameraChanged := {$ifdef FPC}@{$endif} InternalCameraChanged;
