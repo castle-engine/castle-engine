@@ -259,6 +259,9 @@
     FPerspective: TCastlePerspective;
     FOrthographic: TCastleOrthographic;
 
+    { For now just always constant and initialized from CastleDesignMode. }
+    FGizmo: Boolean;
+
     procedure RecalculateFrustum;
 
     procedure SetGravityUp(const Value: TVector3);
@@ -571,6 +574,59 @@ end;
 { TCastleCamera -------------------------------------------------------------- }
 
 constructor TCastleCamera.Create(AOwner: TComponent);
+
+  procedure InternalTransform(const T: TCastleTransform);
+  begin
+    T.SetTransient;
+    T.InternalExcludeFromParentBoundingVolume := true;
+    T.Pickable := false;
+    T.Collides := false;
+    T.CastShadowVolumes := false;
+    T.ExcludeFromStatistics := true;
+  end;
+
+  function BuildNode: TX3DRootNode;
+  const
+    { Length of gizmo line along Z }
+    D = 4.0;
+  var
+    Coord: TCoordinateNode;
+    LineSet: TLineSetNode;
+    Material: TUnlitMaterialNode;
+    Appearance: TAppearanceNode;
+    Shape: TShapeNode;
+  begin
+    Coord := TCoordinateNode.Create;
+    Coord.SetPoint([
+      Vector3(0, 0, 0),
+      DefaultCameraDirection * D
+    ]);
+
+    LineSet := TLineSetNode.Create;
+    LineSet.Coord := Coord;
+    LineSet.SetVertexCount([2]);
+
+    Material := TUnlitMaterialNode.Create;
+    Material.EmissiveColor := HexToColorRGB('FC9C2D');
+
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+
+    Shape := TShapeNode.Create;
+    Shape.Geometry := LineSet;
+    Shape.Appearance := Appearance;
+
+    Result := TX3DRootNode.Create;
+    Result.AddChildren(Shape);
+  end;
+
+const
+  GizmoSize = 1.0;
+var
+  GizmoImage: TCastleImageTransform;
+  GizmoBillboard: TCastleBillboard;
+  GizmoScene: TCastleScene;
+  GizmoSelect: TCastleBox;
 begin
   inherited;
 
@@ -609,6 +665,37 @@ begin
   FOrthographic.Camera := Self;
   FOrthographic.Name := 'Orthographic';
   FOrthographic.SetSubComponent(true);
+
+  { Gizmo initialization code copied from TCastleAbstractLight.Create }
+  FGizmo := CastleDesignMode;
+  if FGizmo then
+  begin
+    // This allows user to select camera by clicking in CGE editor
+    GizmoSelect := TCastleBox.Create(Self);
+    GizmoSelect.Size := Vector3(GizmoSize, GizmoSize, GizmoSize);
+    InternalTransform(GizmoSelect);
+    GizmoSelect.Visible := false;
+    // to make picking natural, restore to default these values, after InternalTransform modified them
+    GizmoSelect.Pickable := true;
+    GizmoSelect.InternalExcludeFromParentBoundingVolume := false;
+    Add(GizmoSelect);
+
+    GizmoImage := TCastleImageTransform.Create(Self);
+    GizmoImage.Size := Vector2(GizmoSize, GizmoSize);
+    GizmoImage.Mipmaps := true;
+    GizmoImage.Url := InternalCastleDesignData + 'gizmos/camera/camera.png';
+    InternalTransform(GizmoImage);
+    Add(GizmoImage);
+
+    GizmoBillboard := TCastleBillboard.Create(Self);
+    GizmoBillboard.AxisOfRotation := TVector3.Zero;
+    GizmoImage.AddBehavior(GizmoBillboard);
+
+    GizmoScene := TCastleScene.Create(Self);
+    GizmoScene.Load(BuildNode, true);
+    InternalTransform(GizmoScene);
+    Add(GizmoScene);
+  end;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlecamera_persistent_vectors.inc}

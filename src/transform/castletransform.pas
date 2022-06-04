@@ -45,8 +45,9 @@ type
 
 implementation
 
-uses CastleLog, CastleApplicationProperties,
-  CastleURIUtils, CastleInternalRays;
+uses CastleLog, CastleApplicationProperties, CastleURIUtils, CastleInternalRays,
+  // TODO: this breaks unit dependencies, transform->scene
+  X3DNodes, CastleScene, CastleColors, CastleBehaviors;
 
 {$define read_implementation}
 {$I castletransform_initial_types.inc}
