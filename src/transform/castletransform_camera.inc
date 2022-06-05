@@ -614,7 +614,7 @@ procedure TCastleCamera.CommonCreate(const AOwner: TComponent; const AGizmo: Boo
   begin
     Coord := TCoordinateNode.Create;
     Coord.SetPoint([
-      Vector3(0, 0, 0),
+      CastleVectors.Vector3(0, 0, 0),
       DefaultCameraDirection * D
     ]);
 
@@ -689,7 +689,7 @@ begin
   begin
     // This allows user to select camera by clicking in CGE editor
     GizmoSelect := TCastleBox.Create(Self);
-    GizmoSelect.Size := Vector3(GizmoSize, GizmoSize, GizmoSize);
+    GizmoSelect.Size := CastleVectors.Vector3(GizmoSize, GizmoSize, GizmoSize);
     InternalTransform(GizmoSelect);
     GizmoSelect.Visible := false;
     // to make picking natural, restore to default these values, after InternalTransform modified them
