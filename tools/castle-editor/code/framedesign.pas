@@ -546,12 +546,29 @@ function TDesignFrame.TDesignerLayer.HoverTransform(
       if (RayHit[I].Item is TCastleTransformReference) and Selectable(RayHit[I].Item) then
         Exit(RayHit[I].Item);
 
-    // set the inner-most TCastleTransform hit, but not anything transient (to avoid hitting gizmo)
-    for I := 0 to RayHit.Count - 1 do
-      if Selectable(RayHit[I].Item) then
-        Exit(RayHit[I].Item);
+    { We want the inner-most TCastleTransform hit, but not anything non-selectable
+      (which means csTransient) (to avoid hitting gizmo).
+      Moreover, things that are children of csTransient should always be treated like csTransient
+      too, e.g. GizmoSelect in TInternalCastleEditorGizmo should never be returned by this.
 
-    Result := nil;
+      So if there's anything non-selectable (which just means csTransient),
+      searching from outer (world),
+      then pick the selected transform right above it. }
+
+    for I := RayHit.Count - 1 downto 0 do
+      if not Selectable(RayHit[I].Item) then
+      begin
+        if I + 1 < RayHit.Count then
+          Exit(RayHit[I + 1].Item)
+        else
+          Exit(nil);
+      end;
+
+    { Nothing non-selectable (csTransient) on the list, pick the inner-most transform }
+    if RayHit.Count <> 0 then
+      Result := RayHit[0].Item
+    else
+      Result := nil;
   end;
 
 var

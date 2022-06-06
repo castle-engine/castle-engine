@@ -259,10 +259,7 @@
     FPerspective: TCastlePerspective;
     FOrthographic: TCastleOrthographic;
 
-    FGizmo: Boolean;
-    FGizmoScene, FGizmoImage, FGizmoSelect: TCastleTransform;
-
-    procedure CommonCreate(const AOwner: TComponent; const AGizmo: Boolean);
+    procedure CommonCreate(const AOwner: TComponent; const AShowGizmo: Boolean);
     procedure RecalculateFrustum;
     procedure SetGravityUp(const Value: TVector3);
 
@@ -274,9 +271,6 @@
     procedure SetProjectionType(const Value: TProjectionType);
   private
     procedure VisibleParameterChange;
-  protected
-    function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
   public
     InternalOnSceneBoundViewpointChanged,
     InternalOnSceneBoundViewpointVectorsChanged,
@@ -285,12 +279,11 @@
 
     constructor Create(AOwner: TComponent); override;
     { @exclude Create camera that doesn't show any gizmo in CGE editor. }
-    constructor InternalCreateNonDesign(AOwner: TComponent);
+    constructor InternalCreateNonDesign(const AOwner: TComponent);
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
-    procedure LocalRender(const Params: TRenderParams); override;
 
     { "Up" direction of the world in which player moves.
       Always normalized (when setting this property, we take
@@ -584,65 +577,24 @@ begin
   CommonCreate(AOwner, CastleDesignMode);
 end;
 
-constructor TCastleCamera.InternalCreateNonDesign(AOwner: TComponent);
+constructor TCastleCamera.InternalCreateNonDesign(const AOwner: TComponent);
 begin
   CommonCreate(AOwner, false);
 end;
 
-procedure TCastleCamera.CommonCreate(const AOwner: TComponent; const AGizmo: Boolean);
-
-  procedure InternalTransform(const T: TCastleTransform);
-  begin
-    T.SetTransient;
-    T.InternalExcludeFromParentBoundingVolume := true;
-    T.Pickable := false;
-    T.Collides := false;
-    T.CastShadowVolumes := false;
-    T.ExcludeFromStatistics := true;
-  end;
-
-  function BuildNode: TX3DRootNode;
-  const
-    { Length of gizmo line along Z }
-    D = 4.0;
-  var
-    Coord: TCoordinateNode;
-    LineSet: TLineSetNode;
-    Material: TUnlitMaterialNode;
-    Appearance: TAppearanceNode;
-    Shape: TShapeNode;
-  begin
-    Coord := TCoordinateNode.Create;
-    Coord.SetPoint([
-      CastleVectors.Vector3(0, 0, 0),
-      DefaultCameraDirection * D
-    ]);
-
-    LineSet := TLineSetNode.Create;
-    LineSet.Coord := Coord;
-    LineSet.SetVertexCount([2]);
-
-    Material := TUnlitMaterialNode.Create;
-    Material.EmissiveColor := HexToColorRGB('FC9C2D');
-
-    Appearance := TAppearanceNode.Create;
-    Appearance.Material := Material;
-
-    Shape := TShapeNode.Create;
-    Shape.Geometry := LineSet;
-    Shape.Appearance := Appearance;
-
-    Result := TX3DRootNode.Create;
-    Result.AddChildren(Shape);
-  end;
-
-const
-  GizmoSize = 1.0;
+procedure TCastleCamera.CommonCreate(const AOwner: TComponent; const AShowGizmo: Boolean);
 var
-  GizmoImage: TCastleImageTransform;
-  GizmoBillboard: TCastleBillboard;
-  GizmoScene: TCastleScene;
-  GizmoSelect: TCastleBox;
+  Gizmo: TInternalCastleEditorGizmo;
+
+  function BuildGizmo: TX3DRootNode;
+  begin
+    Result := TX3DRootNode.Create;
+    Result.AddChildren(Gizmo.LinesShape([
+      CastleVectors.Vector3(0, 0, 0),
+      DefaultCameraDirection * 4
+    ]));
+  end;
+
 begin
   inherited Create(AOwner);
 
@@ -682,39 +634,13 @@ begin
   FOrthographic.Name := 'Orthographic';
   FOrthographic.SetSubComponent(true);
 
-  { Gizmo initialization code copied and adjusted from TCastleAbstractLight.Create
-    TODO: make a common class TInternalCastleEditorGizmo }
-  FGizmo := AGizmo;
-  if FGizmo then
+  if AShowGizmo then
   begin
-    // This allows user to select camera by clicking in CGE editor
-    GizmoSelect := TCastleBox.Create(Self);
-    GizmoSelect.Size := CastleVectors.Vector3(GizmoSize, GizmoSize, GizmoSize);
-    InternalTransform(GizmoSelect);
-    GizmoSelect.Visible := false;
-    // to make picking natural, restore to default these values, after InternalTransform modified them
-    GizmoSelect.Pickable := true;
-    GizmoSelect.InternalExcludeFromParentBoundingVolume := false;
-    Add(GizmoSelect);
-    FGizmoSelect := GizmoSelect;
-
-    GizmoImage := TCastleImageTransform.Create(Self);
-    GizmoImage.Size := Vector2(GizmoSize, GizmoSize);
-    GizmoImage.Mipmaps := true;
-    GizmoImage.Url := InternalCastleDesignData + 'gizmos/camera/camera.png';
-    InternalTransform(GizmoImage);
-    Add(GizmoImage);
-    FGizmoImage := GizmoImage;
-
-    GizmoBillboard := TCastleBillboard.Create(Self);
-    GizmoBillboard.AxisOfRotation := TVector3.Zero;
-    GizmoImage.AddBehavior(GizmoBillboard);
-
-    GizmoScene := TCastleScene.Create(Self);
-    GizmoScene.Load(BuildNode, true);
-    InternalTransform(GizmoScene);
-    Add(GizmoScene);
-    FGizmoScene := GizmoScene;
+    Gizmo := TInternalCastleEditorGizmo.Create(Self);
+    Gizmo.SetParent(Self);
+    Gizmo.LoadVisualization(BuildGizmo);
+    Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/camera/camera.png');
+    Add(Gizmo);
   end;
 
   {$define read_implementation_constructor}
@@ -976,51 +902,6 @@ begin
   if vcVisibleGeometry in Changes then
     if Assigned(InternalOnCameraChanged) then
       InternalOnCameraChanged(Self);
-end;
-
-const
-  DistanceToHide = 1;
-
-procedure TCastleCamera.LocalRender(const Params: TRenderParams);
-var
-  DistanceToCameraSqr: Single;
-  GizmoVisible: Boolean;
-begin
-  if FGizmo then
-  begin
-    DistanceToCameraSqr := PointsDistanceSqr(
-      Params.Transform^.MultPoint(TVector3.Zero),
-      Params.RenderingCamera.Position
-    );
-    GizmoVisible := DistanceToCameraSqr > Sqr(DistanceToHide);
-    FGizmoScene.Exists := GizmoVisible;
-    FGizmoImage.Exists := GizmoVisible;
-  end;
-
-  { Note that we always run "inherited", even when GizmoVisible = false.
-    This way camera children (normal children added by user, like weapon in FPS game)
-    are rendered always, even when we hide camera gizmo. }
-  inherited;
-end;
-
-function TCastleCamera.LocalRayCollision(const RayOrigin, RayDirection: TVector3;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
-var
-  DistanceToCameraSqr: Single;
-  GizmoVisible: Boolean;
-begin
-  { Do not collide with FGizmoSelect, it would prevent using selection as
-    FGizmoSelect would collide with all rays cast from camera position. }
-  if FGizmo then
-  begin
-    DistanceToCameraSqr := PointsDistanceSqr(
-      TVector3.Zero,
-      RayOrigin
-    );
-    GizmoVisible := DistanceToCameraSqr > Sqr(DistanceToHide);
-    FGizmoSelect.Exists := GizmoVisible;
-  end;
-  Result := inherited;
 end;
 
 {$define read_implementation_methods}

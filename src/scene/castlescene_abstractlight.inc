@@ -23,23 +23,14 @@ type
   TCastleAbstractLight = class(TCastleTransform)
   strict private
     FScene: TCastleScene;
-    FGizmoImage: TCastleImageTransform;
-    FGizmoTextureUrl: String;
-    FGizmoBillboard: TCastleBillboard;
     FRootNode: TX3DRootNode;
     FLightNode: TAbstractLightNode;
-    { For now just always constant and initialized from CastleDesignMode. }
-    FGizmo: Boolean;
-    FGizmoScene: TCastleScene;
-    FGizmoSelect: TCastleBox;
+    FGizmo: TInternalCastleEditorGizmo;
     procedure SetLightNode(const Value: TAbstractLightNode);
-    procedure SetGizmoTextureUrl(const Value: String);
   protected
     { Descendants should set X3D light node here. }
     property LightNode: TAbstractLightNode read FLightNode write SetLightNode;
-    property GizmoTextureUrl: String read FGizmoTextureUrl write SetGizmoTextureUrl;
-    property GizmoScene: TCastleScene read FGizmoScene;
-    property Gizmo: Boolean read FGizmo;
+    property Gizmo: TInternalCastleEditorGizmo read FGizmo;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -52,19 +43,6 @@ type
 {$ifdef read_implementation}
 
 constructor TCastleAbstractLight.Create(AOwner: TComponent);
-
-  procedure InternalTransform(const T: TCastleTransform);
-  begin
-    T.SetTransient;
-    T.InternalExcludeFromParentBoundingVolume := true;
-    T.Pickable := false;
-    T.Collides := false;
-    T.CastShadowVolumes := false;
-    T.ExcludeFromStatistics := true;
-  end;
-
-const
-  GizmoSize = 1.0;
 begin
   inherited;
 
@@ -74,46 +52,21 @@ begin
   FScene.CastGlobalLights := true;
   Add(FScene);
 
-  FGizmo := CastleDesignMode;
-
   { build X3D nodes }
   FRootNode := TX3DRootNode.Create;
   FScene.Load(FRootNode, true);
 
-  if Gizmo then
+  if CastleDesignMode then
   begin
-    // This allows user to select light by clicking in CGE editor
-    FGizmoSelect := TCastleBox.Create(nil);
-    FGizmoSelect.Size := Vector3(GizmoSize, GizmoSize, GizmoSize);
-    InternalTransform(FGizmoSelect);
-    FGizmoSelect.Visible := false;
-    // to make picking natural, restore to default these values, after InternalTransform modified them
-    FGizmoSelect.Pickable := true;
-    FGizmoSelect.InternalExcludeFromParentBoundingVolume := false;
-    Add(FGizmoSelect);
-
-    FGizmoImage := TCastleImageTransform.Create(nil);
-    FGizmoImage.Size := Vector2(GizmoSize, GizmoSize);
-    FGizmoImage.Mipmaps := true;
-    InternalTransform(FGizmoImage);
-    Add(FGizmoImage);
-
-    FGizmoBillboard := TCastleBillboard.Create(nil);
-    FGizmoBillboard.AxisOfRotation := TVector3.Zero;
-    FGizmoImage.AddBehavior(FGizmoBillboard);
-
-    FGizmoScene := TCastleScene.Create(nil);
-    InternalTransform(FGizmoScene);
-    Add(FGizmoScene);
+    FGizmo := TInternalCastleEditorGizmo.Create(Self);
+    FGizmo.SetParent(Self);
+    Add(FGizmo);
   end;
 end;
 
 destructor TCastleAbstractLight.Destroy;
 begin
   FreeAndNil(FScene);
-  FreeAndNil(FGizmoScene);
-  FreeAndNil(FGizmoImage);
-  FreeAndNil(FGizmoBillboard);
   inherited;
 end;
 
@@ -126,16 +79,6 @@ begin
     FLightNode := Value;
     if FLightNode <> nil then
       FRootNode.AddChildren(FLightNode);
-  end;
-end;
-
-procedure TCastleAbstractLight.SetGizmoTextureUrl(const Value: String);
-begin
-  if FGizmoTextureUrl <> Value then
-  begin
-    FGizmoTextureUrl := Value;
-    if Gizmo then
-      FGizmoImage.Url := FGizmoTextureUrl;
   end;
 end;
 

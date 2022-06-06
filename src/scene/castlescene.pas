@@ -606,6 +606,7 @@ const
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
 {$I castlescene_background.inc}
+{$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
 {$I castlescene_pointlight.inc}
 {$I castlescene_directionallight.inc}
@@ -633,6 +634,7 @@ uses Math,
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
 {$I castlescene_background.inc}
+{$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
 {$I castlescene_pointlight.inc}
 {$I castlescene_directionallight.inc}
