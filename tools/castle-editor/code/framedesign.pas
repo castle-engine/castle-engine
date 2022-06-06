@@ -215,7 +215,7 @@ type
       FViewportDesignNavigation: TInternalDesignNavigationType;
 
     function CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
-    procedure CameraSynchronize(const Source, Target: TCastleCamera);
+    procedure CameraSynchronize(const Source, Target: TCastleCamera; const MakeUndo: Boolean);
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
     procedure CastleControlUpdate(Sender: TObject);
@@ -4185,9 +4185,10 @@ begin
     Result := V.Camera;
 end;
 
-procedure TDesignFrame.CameraSynchronize(const Source, Target: TCastleCamera);
+procedure TDesignFrame.CameraSynchronize(const Source, Target: TCastleCamera; const MakeUndo: Boolean);
+var
+  BeginPos, BeginDir, BeginUp, EndPos, EndDir, EndUp: TVector3;
 begin
-  Target.AnimateTo(Source, CameraTransitionTime);
   Target.ProjectionType := Source.ProjectionType;
   Target.Perspective.FieldOfView     := Source.Perspective.FieldOfView;
   Target.Perspective.FieldOfViewAxis := Source.Perspective.FieldOfViewAxis;
@@ -4196,6 +4197,22 @@ begin
   Target.Orthographic.Height  := Source.Orthographic.Height;
   Target.Orthographic.Scale   := Source.Orthographic.Scale;
   Target.Orthographic.Stretch := Source.Orthographic.Stretch;
+
+  if MakeUndo then
+  begin
+    { To record undo for Target camera pos/dir/up, we do a little trick.
+      As we want to animate using AnimateTo, but we want to record undo state
+      with already final pos/dir/up, so we *temporarily* adjust Target instantly
+      to Source pos/dir/up. }
+    Target.GetWorldView(BeginPos, BeginDir, BeginUp);
+    Source.GetWorldView(EndPos, EndDir, EndUp);
+    Target.SetWorldView(EndPos, EndDir, EndUp);
+    ModifiedOutsideObjectInspector('Align Camera To View: ' + Target.Name, ucHigh);
+    // restore Target to begin positions, to animate to it
+    Target.SetWorldView(BeginPos, BeginDir, BeginUp);
+  end;
+
+  Target.AnimateTo(Source, CameraTransitionTime);
 end;
 
 procedure TDesignFrame.ViewportAlignViewToCamera;
@@ -4208,7 +4225,7 @@ begin
   begin
     C := CameraToSynchronize(V);
     if C <> nil then
-      CameraSynchronize(C, V.InternalCamera);
+      CameraSynchronize(C, V.InternalCamera, false);
   end;
 end;
 
@@ -4222,7 +4239,7 @@ begin
   begin
     C := CameraToSynchronize(V);
     if C <> nil then
-      CameraSynchronize(V.InternalCamera, C);
+      CameraSynchronize(V.InternalCamera, C, true);
   end;
 end;
 
