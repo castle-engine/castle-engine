@@ -24,6 +24,10 @@ type
     GizmoImage: TCastleImageTransform;
     GizmoBillboard: TCastleBillboard;
     GizmoScene: TCastleScene; //< Note that it may remain nil, if LoadVisualization not called
+
+    const
+      DistanceToExistGizmo = 1;
+
     { Set various properties for internal TCastleTransform, shown only for debug. }
     procedure InternalTransform(const T: TCastleTransform);
   protected
@@ -138,9 +142,6 @@ begin
   Result.Geometry := LineSet;
   Result.Appearance := Appearance;
 end;
-
-const
-  DistanceToExistGizmo = 1;
 
 procedure TInternalCastleEditorGizmo.LocalRender(const Params: TRenderParams);
 var

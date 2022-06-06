@@ -43,6 +43,9 @@ type
         GizmoScalingAssumeScaleValue: TVector3;
         InsideInternalCameraChanged: Boolean;
 
+        const
+          DistanceToExistGizmo = 1;
+
         { Point on axis closest to given pick.
           Axis may be -1 to indicate we drag on all axes with the same amount
           or -2 to indicate we drag X and Y axes for 2D. }
@@ -248,21 +251,6 @@ begin
     inherited;
     GizmoDragging := false;
   end;
-end;
-
-function TVisualizeTransform.TGizmoScene.LocalRayCollision(
-  const RayOrigin, RayDirection: TVector3;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
-begin
-  Result := inherited;
-  { Hack to make picking of the gizmo work even when gizmo is obscured
-    by other TCastleTransform (including bbox of Parent, which is what
-    we actually want to transform).
-    Hacking Distance to be smallest possible means that it "wins"
-    when TCastleTransform.LocalRayCollision desides which collision
-    is first along the ray. }
-  if Result <> nil then
-    Result.Distance := 0;
 end;
 
 constructor TVisualizeTransform.TGizmoScene.Create(AOwner: TComponent);
@@ -616,10 +604,19 @@ end;
 procedure TVisualizeTransform.TGizmoScene.LocalRender(const Params: TRenderParams);
 const
   RenderOnTop = true;
+var
+  DistanceToCameraSqr: Single;
+  GizmoShouldExist: Boolean;
 begin
-  { Do not show gizmo when it visualizes the camera that we are currently rendering through. }
-  if Parent = Params.RenderingCamera.Camera then
-    Exit;
+  { Similar to TInternalCastleEditorGizmo.LocalRender, do not render when gizmo is over
+    the rendering camera (happens when moving/rotating/scaling the camera that is aligned to view). }
+  DistanceToCameraSqr := PointsDistanceSqr(
+    Params.Transform^.MultPoint(TVector3.Zero),
+    Params.RenderingCamera.Position
+  );
+  GizmoShouldExist := DistanceToCameraSqr > Sqr(DistanceToExistGizmo);
+  if not GizmoShouldExist then
+    Exit; // do not show gizmo
 
   { We show gizmo on top, to be easily always visible.
     This makes sense because it is also interactable even when obscured.
@@ -634,6 +631,36 @@ begin
 
   if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
     RenderContext.DepthRange := drFar;
+end;
+
+function TVisualizeTransform.TGizmoScene.LocalRayCollision(
+  const RayOrigin, RayDirection: TVector3;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
+var
+  DistanceToCameraSqr: Single;
+  GizmoShouldExist: Boolean;
+begin
+  { Similar to TInternalCastleEditorGizmo.LocalRayCollision, do not collide
+    when gizmo is also hidden. }
+
+  DistanceToCameraSqr := PointsDistanceSqr(
+    TVector3.Zero,
+    RayOrigin
+  );
+  GizmoShouldExist := DistanceToCameraSqr > Sqr(DistanceToExistGizmo);
+  if not GizmoShouldExist then
+    Exit(nil); // do not pick with gizmo with raycast
+
+  Result := inherited;
+
+  { Hack to make picking of the gizmo work even when gizmo is obscured
+    by other TCastleTransform (including bbox of Parent, which is what
+    we actually want to transform).
+    Hacking Distance to be smallest possible means that it "wins"
+    when TCastleTransform.LocalRayCollision desides which collision
+    is first along the ray. }
+  if Result <> nil then
+    Result.Distance := 0;
 end;
 
 { TVisualizeTransform ------------------------------------------------------ }
