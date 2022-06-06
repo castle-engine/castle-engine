@@ -37,6 +37,16 @@ type
     function Press(const Event: TInputPressRelease): Boolean; override;
     function Release(const Event: TInputPressRelease): Boolean; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+  published
+    property Input default [niNormal, ni3dMouse];
+    property Gravity default false;
+    property MoveSpeed default 10;
+    property MinAngleFromGravityUp default 0;
+    property CheckCollisions default false;
+
+    property MouseLook stored false;
+    { Also adjusted by MouseLook, and we also don't want to persist this. }
+    property Cursor stored false;
   end;
 
 constructor TCastleWalkNavigationDesign.Create(AOwner: TComponent);
@@ -108,6 +118,13 @@ type
   TCastleExamineNavigationDesign = class(TCastleExamineNavigation)
   public
     constructor Create(AOwner: TComponent); override;
+  published
+    property RotationAccelerate default false;
+    property MoveEnabled default false;
+    property ZoomEnabled default false;
+    property MouseButtonRotate default buttonRight;
+
+    property Cursor stored false;
   end;
 
 constructor TCastleExamineNavigationDesign.Create(AOwner: TComponent);
@@ -125,6 +142,10 @@ type
   TCastle2DNavigationDesign = class(TCastle2DNavigation)
   public
     constructor Create(AOwner: TComponent); override;
+  published
+    property MouseButtonMove default buttonRight;
+
+    property Cursor stored false;
   end;
 
 constructor TCastle2DNavigationDesign.Create(AOwner: TComponent);

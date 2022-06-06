@@ -365,6 +365,8 @@ type
       Default2DProjectionFar = CastleTransform.Default2DProjectionFar;
       Default2DCameraZ = CastleTransform.Default2DCameraZ;
       DefaultPrepareOptions = [prRenderSelf, prRenderClones, prBackground, prBoundingBox, prScreenEffects];
+      { @exclude }
+      DefaultInternalDesignNavigationType = dnFly;
 
     var
       { Rendering pass, for user purposes.
@@ -411,6 +413,7 @@ type
       var HandleInput: boolean); override;
     procedure BeforeRender; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
     { Return either @link(Camera) or @link(InternalDesignCamera),
       depending on whether we're in design mode (InternalDesignManipulation) or not.
@@ -439,7 +442,8 @@ type
     { Change design-time navigation.
       @exclude }
     property InternalDesignNavigationType: TInternalDesignNavigationType
-      read FInternalDesignNavigationType write SetInternalDesignNavigationType default dnFly;
+      read FInternalDesignNavigationType write SetInternalDesignNavigationType
+      default DefaultInternalDesignNavigationType;
 
     { At design-time (in CGE editor), this is the navigation used by the editor.
       @exclude }
@@ -1150,7 +1154,7 @@ var
 
 implementation
 
-uses DOM, Math,
+uses DOM, Math, TypInfo,
   CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
   CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
@@ -1310,7 +1314,7 @@ begin
       - billboards adjust to design-time camera, so e.g. light gizmos look OK. }
     Items.MainCamera := InternalDesignCamera;
 
-    FInternalDesignNavigationType := dnFly;
+    FInternalDesignNavigationType := DefaultInternalDesignNavigationType;
 
     FInternalDesignNavigations[dnFly] := TCastleWalkNavigationDesign.Create(Self);
     FInternalDesignNavigations[dnFly].SetTransient;
@@ -1497,7 +1501,7 @@ procedure TCastleViewport.Loaded;
 }
 
 var
-  APos, ADir, AUp, AGravityUp: TVector3;
+  InitialPos, InitialDir, InitialUp: TVector3;
 begin
   inherited;
 
@@ -1531,6 +1535,13 @@ begin
     WritelnLog('Camera in viewport "%s" was not part of Viewport.Items, adding it to Viewport.Items', [
       Name
     ]);
+
+    { Assign useful InternalDesignCamera vectors, because in case of reading old designs --
+      TCastleViewport.CustomSerialization could not read any useful InternalDesignCamera
+      from design file. }
+    Camera.GetWorldView(InitialPos, InitialDir, InitialUp);
+    InternalDesignCamera.SetWorldView(InitialPos, InitialDir, InitialUp);
+
     if InternalDesignManipulation and (Camera.Name = 'Camera') and (Owner <> nil) then
     begin
       Camera.Name := InternalProposeName(TCastleCamera, Owner);
@@ -1548,12 +1559,6 @@ begin
       do not touch csTransient children, they should be OK always. }
     Assert(Items.List.IndexOf(InternalDesignCamera) <> -1);
     Assert(IndexOfControl(InternalDesignNavigation) <> -1);
-
-    { initialize sensible camera view (TODO: this is OK until we serialize/deserialize design-time camera vectors) }
-    CameraViewpointForWholeScene(ItemsBoundingBox, 2, 1, false, true,
-      APos, ADir, AUp, AGravityUp);
-    InternalDesignCamera.SetWorldView(APos, ADir, AUp);
-    InternalDesignCamera.GravityUp := AGravityUp;
   end;
 end;
 
@@ -3670,6 +3675,43 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleViewport.CustomSerialization(const SerializationProcess: TSerializationProcess);
+var
+  Nav: TInternalDesignNavigationType;
+  InternalDesignNavigationTypeInt: Integer;
+begin
+  inherited;
+
+  { Note: We are not loading/saving design-time params when InternalDesignManipulation=false.
+
+    Reason: the instances of design-time cameras/navigation are not even available.
+
+    Consequence: This means that loading+saving a design at runtime may result in losing
+    design-time information. There's no easy way around it. If we would create dummy
+    instances of InternalDesignCamera just to carry this info, we would waste time/memory
+    only to support a special case without a certain use-case. }
+
+  if InternalDesignManipulation then
+  begin
+    { We want to serialize
+      - camera pos,dir,up
+      - projection properties, changed by TDesignFrame.CameraSynchronize
+    }
+    SerializationProcess.ReadWriteSubComponent('InternalDesignCamera', InternalDesignCamera, true);
+
+    InternalDesignNavigationTypeInt := Ord(InternalDesignNavigationType);
+    SerializationProcess.ReadWriteInteger('InternalDesignNavigationType',
+      InternalDesignNavigationTypeInt,
+      InternalDesignNavigationType <> DefaultInternalDesignNavigationType);
+    InternalDesignNavigationType := TInternalDesignNavigationType(InternalDesignNavigationTypeInt);
+
+    for Nav := Low(Nav) to High(Nav) do
+      SerializationProcess.ReadWriteSubComponent('InternalDesignNavigations[' +
+        GetEnumName(TypeInfo(TInternalDesignNavigationType), Ord(Nav)) + ']',
+        FInternalDesignNavigations[Nav], true);
+  end;
 end;
 
 {$define read_implementation_methods}
