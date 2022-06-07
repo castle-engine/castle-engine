@@ -109,7 +109,9 @@ begin
   CheckboxDebugAvatarColliders.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxDebugAvatarColliders;
   CheckboxImmediatelyFixBlockedCamera.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxImmediatelyFixBlockedCamera;
 
-  { When avatar don't have Rigid body use old physics }
+
+  { When avatar don't have Rigid body use old physics. Rigid body and collider is
+    configured in design in editor check castle-data:/gamestateplay.castle-user-interface }
   if SceneAvatar.RigidBody = nil then
   begin
     { Make SceneAvatar collide using a sphere.
