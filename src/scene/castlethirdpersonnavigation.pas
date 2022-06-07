@@ -338,8 +338,7 @@ type
       - 0 - not
       - 1 - full control like on ground
       - between 0 - 1 - limited control
-      - above 1 - faster than on ground
-    }
+      - above 1 - faster than on ground }
     property AirMovementControl: Single read FAirMovementControl write FAirMovementControl
       {$ifdef FPC}default DefaultAirMovementControl{$endif};
     { Should we have control on avatar rotation in the air.
@@ -347,9 +346,7 @@ type
       - 0 - not
       - 1 - full control like on ground
       - between 0 - 1 - limited control
-      - above 1 - faster than on ground
-    }
-
+      - above 1 - faster than on ground }
     property AirRotationControl: Single read FAirRotationControl write FAirRotationControl
       {$ifdef FPC}default DefaultAirRotationControl{$endif};
 
