@@ -74,42 +74,6 @@ begin
 end;
 
 procedure TStatePlay.Start;
-
-  procedure UsePhysicsForAvatarGravity;
-  var
-    LevelBody: TCastleRigidBody;
-    LevelCollider: TCastleMeshCollider;
-    AvatarBody: TCastleRigidBody;
-    //AvatarCollider: TCastleBoxCollider;
-    AvatarCollider: TCastleCapsuleCollider;
-  begin
-    LevelBody := TCastleRigidBody.Create(FreeAtStop);
-    LevelBody.Dynamic := false;
-
-    LevelCollider := TCastleMeshCollider.Create(SceneLevel);
-    LevelCollider.Scene := SceneLevel;
-    LevelCollider.Restitution := 0.2;
-    LevelCollider.Friction := 0.25;
-
-    SceneLevel.AddBehavior(LevelBody);
-    SceneLevel.AddBehavior(LevelCollider);
-
-    AvatarBody := TCastleRigidBody.Create(FreeAtStop);
-    AvatarBody.LockRotation := [0, 2];
-
-    //AvatarCollider := TCastleBoxCollider.Create(SceneAvatar);
-    AvatarCollider := TCastleCapsuleCollider.Create(SceneAvatar);
-    // Currently using AutoSize uncoment to set your own size
-    //AvatarCollider.Size := Vector3(1, 2, 1);
-    //AvatarCollider.Translation := Vector3(0, 5, 0);
-    AvatarCollider.Restitution := 0.01;
-    AvatarCollider.Friction := 0.10;
-    AvatarCollider.Mass := 50;
-
-    SceneAvatar.AddBehavior(AvatarBody);
-    SceneAvatar.AddBehavior(AvatarCollider);
-  end;
-
 var
   SoldierScene: TCastleScene;
   Enemy: TEnemy;
@@ -145,39 +109,24 @@ begin
   CheckboxDebugAvatarColliders.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxDebugAvatarColliders;
   CheckboxImmediatelyFixBlockedCamera.OnChange := {$ifdef FPC}@{$endif}ChangeCheckboxImmediatelyFixBlockedCamera;
 
-  { TODO: This code does not define USE_PHYSICS_FOR_AVATAR_GRAVITY,
-    and uses CGE old physics using TCastleTransform.Gravity.
-    We no longer advise using TCastleTransform.Gravity in general,
-    and advise to realize gravity using only "full" physics engine like Kraft,
-    using TCastleRigidBody / TCastleCollider.
+  { When avatar don't have Rigid body use old physics }
+  if SceneAvatar.RigidBody = nil then
+  begin
+    { Make SceneAvatar collide using a sphere.
+      Sphere is more useful than default bounding box for avatars and creatures
+      that move in the world, look ahead, can climb stairs etc. }
+    SceneAvatar.MiddleHeight := 0.9;
+    SceneAvatar.CollisionSphereRadius := 0.5;
 
-    We work on making this applicable to 3rd-person avatar too,
-    so that you could enable UsePhysicsForAvatarGravity (and actually design
-    the physics in CGE editor).
-    For now, you can use deprecated TCastleTransform.Gravity for avatar.
-
-    Most likely, this will be made possible by enabling TRigidBody.Dynamic and
-    TRigidBody.Animated to be both @true. }
-  {$define USE_PHYSICS_FOR_AVATAR_GRAVITY}
-
-  {$ifdef USE_PHYSICS_FOR_AVATAR_GRAVITY}
-  UsePhysicsForAvatarGravity;
-  {$else}
-  { Make SceneAvatar collide using a sphere.
-    Sphere is more useful than default bounding box for avatars and creatures
-    that move in the world, look ahead, can climb stairs etc. }
-  SceneAvatar.MiddleHeight := 0.9;
-  SceneAvatar.CollisionSphereRadius := 0.5;
-
-  { Gravity means that object tries to maintain a constant height
-    (SceneAvatar.PreferredHeight) above the ground.
-    GrowSpeed means that object raises properly (makes walking up the stairs work).
-    FallSpeed means that object falls properly (makes walking down the stairs,
-    falling down pit etc. work). }
-  SceneAvatar.Gravity := true;
-  SceneAvatar.GrowSpeed := 10.0;
-  SceneAvatar.FallSpeed := 10.0;
-  {$endif}
+    { Gravity means that object tries to maintain a constant height
+      (SceneAvatar.PreferredHeight) above the ground.
+      GrowSpeed means that object raises properly (makes walking up the stairs work).
+      FallSpeed means that object falls properly (makes walking down the stairs,
+      falling down pit etc. work). }
+    SceneAvatar.Gravity := true;
+    SceneAvatar.GrowSpeed := 10.0;
+    SceneAvatar.FallSpeed := 10.0;
+  end;
 
   { Visualize SceneAvatar bounding box, sphere, middle point, direction etc. }
   DebugAvatar := TDebugTransform.Create(FreeAtStop);
