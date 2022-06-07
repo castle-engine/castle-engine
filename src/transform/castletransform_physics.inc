@@ -2553,6 +2553,7 @@ begin
      (PropertyName = 'LinearVelocityPersistent') or
      (PropertyName = 'LinearVelocityDamp') or
      (PropertyName = 'MaximalLinearVelocity') or
+     (PropertyName = 'CollisionDetectionType') or
      (PropertyName = 'LockRotation') then
     Result := [psBasic]
   else
