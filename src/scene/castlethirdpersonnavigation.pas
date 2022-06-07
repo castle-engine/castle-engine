@@ -168,7 +168,7 @@ type
       DefaultAnimationJump = 'jump';
       DefaultAnimationFall = 'fall';
       DefaultAirMovementControl = 0.5;
-      DefaultAirRotateControl = 0.5;
+      DefaultAirRotationControl = 0.5;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -333,6 +333,26 @@ type
     { Speed of rotating by keys, in radians per second. }
     property RotationSpeed: Single read FRotationSpeed write FRotationSpeed
       {$ifdef FPC}default DefaultRotationSpeed{$endif};
+    { Should we have control on avatar movement in the air.
+
+      - 0 - not
+      - 1 - full control like on ground
+      - between 0 - 1 - limited control
+      - above 1 - faster than on ground
+    }
+    property AirMovementControl: Single read FAirMovementControl write FAirMovementControl
+      {$ifdef FPC}default DefaultAirMovementControl{$endif};
+    { Should we have control on avatar rotation in the air.
+
+      - 0 - not
+      - 1 - full control like on ground
+      - between 0 - 1 - limited control
+      - above 1 - faster than on ground
+    }
+
+    property AirRotationControl: Single read FAirRotationControl write FAirRotationControl
+      {$ifdef FPC}default DefaultAirRotationControl{$endif};
+
 
     { Animation when character is not moving, not rotating and not crouching.
       Default 'idle'. }
@@ -473,7 +493,7 @@ begin
   //FMovementType := mtForce;
   FWasJumpInput := false;
   FAirMovementControl := DefaultAirMovementControl;
-  FAirRotationControl := DefaultAirRotateControl;
+  FAirRotationControl := DefaultAirRotationControl;
 end;
 
 procedure TCastleThirdPersonNavigation.MySetAvatarTargetForPersistent(const AValue: TVector3);
