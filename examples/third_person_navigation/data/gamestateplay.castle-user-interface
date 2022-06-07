@@ -9,9 +9,9 @@
         "$$ClassName" : "TCastleCamera",
         "InitialDirectionPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 2.3075357079505920E-001,
-          "Y" : -7.7720039826090215E-007,
-          "Z" : 9.7301226854324341E-001
+          "X" : 2.2514826059341431E-001,
+          "Y" : -7.7987738222873304E-007,
+          "Z" : 9.7432452440261841E-001
         },
         "InitialPositionPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
@@ -122,8 +122,8 @@
             ],
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 1.8750000000000000E+001,
-              "Y" : 6.0000000000000000E+000,
+              "X" : 3.7500000000000000E+000,
+              "Y" : 2.0000000000000000E+000,
               "Z" : 8.0000001192092896E-001
             },
             "URL" : "castle-data:/avatar/avatar.gltf",
@@ -304,7 +304,7 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "VerticalAnchorDelta" : -3.1500000000000000E+002,
+          "VerticalAnchorDelta" : -3.1500003051757812E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -326,7 +326,7 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "VerticalAnchorDelta" : -3.4900000000000000E+002,
+          "VerticalAnchorDelta" : -3.4900003051757812E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -348,7 +348,7 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "VerticalAnchorDelta" : -3.8300000000000000E+002,
+          "VerticalAnchorDelta" : -3.8300003051757812E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -370,7 +370,7 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "VerticalAnchorDelta" : -4.1700000000000000E+002,
+          "VerticalAnchorDelta" : -4.1700003051757812E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         }
