@@ -75,7 +75,10 @@ end;
 
 procedure TStateMain.CheckboxContinuousCDChange(Sender: TObject);
 begin
-  SpherePlayer.RigidBody.ContinuousCD := CheckboxContinuousCD.Checked;
+  if CheckboxContinuousCD.Checked then
+    SpherePlayer.RigidBody.CollisionDetectionType := cdtContinuous
+  else
+    SpherePlayer.RigidBody.CollisionDetectionType := cdtDiscrete;
 end;
 
 procedure TStateMain.MakeDynamic(Sender: TObject);

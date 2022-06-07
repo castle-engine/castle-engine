@@ -88,9 +88,7 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Dynamic" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -132,11 +130,9 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Animated" : true,
-                "ContinuousCD" : true,
+                "CollisionDetectionType" : "cdtContinuous",
                 "Dynamic" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -178,9 +174,6 @@
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
-                "ContinuousCD" : true,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -219,9 +212,7 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Dynamic" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -265,9 +256,7 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "AngularVelocityDamp" : 1.0000000149011612E-001,
                 "Dynamic" : false,
-                "LinearVelocityDamp" : 1.0000000149011612E-001,
                 "LockRotation" : [
                   0,
                   1
@@ -330,7 +319,7 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "VerticalAnchorDelta" : -3.1999998092651367E+001,
+          "VerticalAnchorDelta" : -3.2000000000000000E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
@@ -389,7 +378,7 @@
               },
               "MinWidth" : 2.0000000000000000E+002,
               "Name" : "ButtonChangeToDynamic",
-              "VerticalAnchorDelta" : -3.8999996185302734E+001,
+              "VerticalAnchorDelta" : -3.9000000000000000E+001,
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             }
@@ -438,7 +427,7 @@
                 "Green" : 1.0000000000000000E+000,
                 "Red" : 1.0000000000000000E+000
               },
-              "VerticalAnchorDelta" : -2.4000001907348633E+001,
+              "VerticalAnchorDelta" : -2.4000000000000000E+001,
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"
             },
