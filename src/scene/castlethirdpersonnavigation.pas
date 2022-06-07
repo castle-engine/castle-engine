@@ -1291,7 +1291,7 @@ begin
   begin
     case FMovementType of
       mtVelocity:
-        if AvatarRigidBody.LinearVelocity.Y > 0 then
+        if AvatarRigidBody.LinearVelocity.Y > 0.1 then
           SetAnimation([AnimationJump, AnimationIdle])
         else
           { When avatar fall we change animation to fall only when distance
