@@ -84,6 +84,7 @@
       FExists: Boolean;
       FParentExistsInRoot: Boolean;
       FExistsInRoot: Boolean;
+      FLastExistsChangeFrameId: TFrameId;
       FCollides: Boolean;
       FPickable: Boolean;
       FVisible: Boolean;
@@ -3906,6 +3907,16 @@ begin
   begin
     FExists := Value;
     UpdateExistsInRoot;
+
+    if RigidBody <> nil then
+    begin
+      if FLastExistsChangeFrameId = TFramesPerSecond.FrameId then
+        WritelnWarning('Repeatedly changing the existence of CastleTransform with' + NL +
+        ' rigid body can cause performance degradation and physics simulation errors.' + NL +
+        ' Especially with autosize enabled in collider and animation changing local boundingbox.');
+      FLastExistsChangeFrameId := TFramesPerSecond.FrameId;
+    end;
+
   end;
 end;
 
