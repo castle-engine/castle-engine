@@ -55,6 +55,7 @@
     { Called after @link(Parent) changed, at the end of @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
+      deprecated 'Use ParentAfterAttach/Detach or WorldAfterAttach/Detach';
 
     procedure ParentAfterAttach; virtual;
 
