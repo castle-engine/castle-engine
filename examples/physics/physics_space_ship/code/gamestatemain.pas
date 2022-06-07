@@ -204,7 +204,8 @@ begin
     Viewport.Items.Add(Bullet);
 
     Direction := Ship.LocalToWorldDirection(Vector3(0,1,0));
-    Bullet.RigidBody.ApplyImpulse(Direction * 500, Bullet.Translation);
+    { Change Bullet.Translation to Vector3(0,1,0) to keep the bullets rotating }
+    Bullet.RigidBody.ApplyImpulse(Direction * 500, {Vector3(0,1,0)} Bullet.Translation);
     Exit(true); // key was handled
   end;
 end;
