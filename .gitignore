@@ -131,8 +131,12 @@ castle-game-engine-*.fpm
 /examples/network/tcp_connection/server/server
 /examples/physics/physics_2d_collisions/physics_2d_collisions
 /examples/physics/physics_2d_game_sopwith/physics_2d_game_sopwith
+/examples/physics/physics_2d_transformation_sync_test/physics_2d_transformation_sync_test
 /examples/physics/physics_3d_demo/physics_3d_demo
+/examples/physics/physics_animated/physics-animated
+/examples/physics/physics_scale_colliders/physics-scale-colliders
 /examples/physics/physics_simulation_in_editor/physics-simulation-in-editor
+/examples/physics/physics_space_ship/physics-space-ship
 /examples/platformer/platformer
 /examples/plugin/cge_3d_viewer/cge_3d_viewer
 /examples/plugin/cge_3d_viewer/npcge_3d_viewer.linux-i386.so
