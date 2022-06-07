@@ -9,9 +9,9 @@
         "$$ClassName" : "TCastleCamera",
         "InitialDirectionPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 2.3678076267242432E-001,
-          "Y" : -7.7428899203368928E-007,
-          "Z" : 9.7156316041946411E-001
+          "X" : 2.3075357079505920E-001,
+          "Y" : -7.7720039826090215E-007,
+          "Z" : 9.7301226854324341E-001
         },
         "InitialPositionPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
@@ -222,7 +222,7 @@
             "Y" : 1.7500000000000000E+000
           },
           "CrouchSpeed" : 2.0000000000000000E+000,
-          "MoveSpeed" : 4.0000000000000000E+000,
+          "MoveSpeed" : 3.7500000000000000E+000,
           "Name" : "ThirdPersonNavigation",
           "RunSpeed" : 8.0000000000000000E+000
         }
