@@ -63,7 +63,7 @@ type
     {$ifdef AVATAR_TARGET_FORWARD}
     FAvatarTargetForward: TVector3;
     {$endif}
-    FMoveSpeed, FCrouchSpeed, FRunSpeed: Single;
+    FMoveSpeed, FCrouchSpeed, FRunSpeed, FJumpSpeed: Single;
     FRotationSpeed: Single;
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
@@ -153,6 +153,7 @@ type
       DefaultMoveSpeed = 1.0;
       DefaultCrouchSpeed = 0.5;
       DefaultRunSpeed = 2.0;
+      DefaultJumpSpeed = 5.0;
       DefaultRotationSpeed = Pi * 150 / 180;
       DefaultCameraDistanceChangeSpeed = 1;
       DefaultMinDistanceToAvatarTarget = 0.5;
@@ -326,6 +327,9 @@ type
     { Speed of movement by keys, when running. }
     property RunSpeed: Single read FRunSpeed write FRunSpeed
       {$ifdef FPC}default DefaultRunSpeed{$endif};
+    { Speed of jump by keys. }
+    property JumpSpeed: Single read FJumpSpeed write FJumpSpeed
+      {$ifdef FPC}default DefaultJumpSpeed{$endif};
     { Speed of rotating by keys, in radians per second. }
     property RotationSpeed: Single read FRotationSpeed write FRotationSpeed
       {$ifdef FPC}default DefaultRotationSpeed{$endif};
@@ -390,6 +394,7 @@ begin
   FMoveSpeed := DefaultMoveSpeed;
   FCrouchSpeed := DefaultCrouchSpeed;
   FRunSpeed := DefaultRunSpeed;
+  FJumpSpeed := DefaultJumpSpeed;
   FRotationSpeed := DefaultRotationSpeed;
   FCameraDistanceChangeSpeed := DefaultCameraDistanceChangeSpeed;
   FMinDistanceToAvatarTarget := DefaultMinDistanceToAvatarTarget;
@@ -914,8 +919,6 @@ var
   // force
   DeltaForce: Single;
   Torque: Single;
-const
-  JumpVelocity = 5;
 begin
   inherited;
 
@@ -1111,7 +1114,7 @@ begin
           //if  and (not FWasJumpInput) and IsOnGround
           FWasJumpInput := true;
           Moving := false;
-          Jump := JumpVelocity;
+          Jump := JumpSpeed;
         end else
           FWasJumpInput := false;
 
