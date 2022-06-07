@@ -418,6 +418,11 @@
   TRigidBodyList = {$ifdef FPC}specialize{$endif} TList<TRigidBody>;
   TCastleRigidBodyList = {$ifdef FPC}specialize{$endif} TList<TCastleRigidBody>;
 
+  TCollisionDetectionType = (
+    cdtDiscrete,
+    cdtContinuous
+  );
+
   { Rigid body behavior for the physics engine }
   TCastleRigidBody = class(TCastleBehavior)
   strict private
@@ -476,7 +481,7 @@
     FDynamic: Boolean;
     FAnimated: Boolean;
     FTrigger: Boolean;
-    FContinuousCD: Boolean;
+    FCollisionDetectionType: TCollisionDetectionType;
     FExists: Boolean;
     FLockTranslation: T3DCoords;
     FLockRotation: T3DCoords;
@@ -495,8 +500,8 @@
     procedure UpdateExist;
     { Updates existence state of physics engine body. }
     procedure UpdateExistBody;
-    { Updates Continuous Collision Detection state of physics engine body. }
-    procedure UpdateContinuousCD;
+    { Updates colision detection type (discrete, continous) of physics engine body. }
+    procedure UpdateCollisionDetectionType;
 
     { Sets all values from Kraft to CGE private fields. Currently angular and
       linear velocity. }
@@ -516,7 +521,7 @@
     procedure SetOnCollisionStay(const AValue: TCollisionEvent);
     procedure SetOnCollisionExit(const AValue: TCollisionEvent);
 
-    procedure SetContinuousCD(const AValue: Boolean);
+    procedure SetCollisionDetectionType(const AValue: TCollisionDetectionType);
 
     procedure SetDynamic(const AValue: Boolean);
     procedure SetAnimated(const AValue: Boolean);
@@ -772,8 +777,9 @@
       specifying this @link(TRigidBody) as it's parent. }
     property Collider: TCollider read FCollider;
 
-    { Sets Continuous Collision Detection state of rigid body. }
-    property ContinuousCD: Boolean read FContinuousCD write SetContinuousCD default false;
+    { Sets CollisionDetectionMode in rigid body to Discrete or ContinuousSweep. }
+    property CollisionDetectionType: TCollisionDetectionType read FCollisionDetectionType
+      write SetCollisionDetectionType default cdtDiscrete;
 
     { Is this object affected by gravity. }
     property Gravity: Boolean read FGravity write SetGravity default true;
@@ -1893,7 +1899,7 @@ begin
   if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
 
   UpdateExistBody;
-  UpdateContinuousCD;
+  UpdateCollisionDetectionType;
 
   if FTrigger then
     FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
@@ -2196,14 +2202,16 @@ begin
   end;
 end;
 
-procedure TCastleRigidBody.UpdateContinuousCD;
+procedure TCastleRigidBody.UpdateCollisionDetectionType;
 begin
   if Assigned(FKraftBody) then
   begin
-    if FContinuousCD then
-      FKraftBody.Flags := FKraftBody.Flags + [krbfContinuous]
-    else
-      FKraftBody.Flags := FKraftBody.Flags - [krbfContinuous];
+    case FCollisionDetectionType of
+      cdtDiscrete:
+        FKraftBody.Flags := FKraftBody.Flags - [krbfContinuous, krbfContinuousAgainstDynamics];
+      cdtContinuous:
+        FKraftBody.Flags := FKraftBody.Flags + [krbfContinuous];
+    end;
   end;
 end;
 
@@ -2241,13 +2249,13 @@ begin
   CheckPhysicsPostStepNeeded;
 end;
 
-procedure TCastleRigidBody.SetContinuousCD(const AValue: Boolean);
+procedure TCastleRigidBody.SetCollisionDetectionType(const AValue: TCollisionDetectionType);
 begin
-  if FContinuousCD = AValue then
+  if FCollisionDetectionType = AValue then
     Exit;
 
-  FContinuousCD := AValue;
-  UpdateContinuousCD;
+  FCollisionDetectionType := AValue;
+  UpdateCollisionDetectionType;
 end;
 
 procedure TCastleRigidBody.SetDynamic(const AValue: Boolean);
