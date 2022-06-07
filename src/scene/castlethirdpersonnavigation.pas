@@ -95,7 +95,7 @@ type
     SetAnimationWarningsDone: Cardinal;
     FMovementType: TMovementType;
     FWasJumpInput: Boolean;
-    { Zero we can't control avatar in air, one we have full control, 0.5  }
+    { Zero we can't control avatar in air, one we have full control }
     FAirMovementControl: Single;
     FAirRotationControl: Single;
     function RealAvatarHierarchy: TCastleTransform;
@@ -166,8 +166,8 @@ type
       DefaultAnimationCrouchRotate = 'crouch_rotate';
       DefaultAnimationJump = 'jump';
       DefaultAnimationFall = 'fall';
-      DefaultAirMovementControl = 0.0;
-      DefaultAirRotateControl = 0.0;
+      DefaultAirMovementControl = 0.5;
+      DefaultAirRotateControl = 0.5;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -988,8 +988,6 @@ begin
     Rotating := UpdateAimAvatar;
   end else
   begin
-    //FAirMovementControl := 0.5;
-    //FAirRotationControl := 0.5;
     { New movement algorithms based on physics. }
     case FMovementType of
       mtVelocity:
