@@ -164,6 +164,8 @@ type
     procedure SetScreenSpaceReflections(const Value: Boolean);
     procedure SetScreenSpaceReflectionsSurfaceGlossiness(const Value: Single);
     procedure SetupDesignTimeCamera;
+    procedure SetupChildren2D;
+    procedure SetupChildren3D;
     procedure SSAOShaderInitialize;
     procedure SSRShaderInitialize;
     procedure SetAutoCamera(const Value: Boolean);
@@ -235,8 +237,8 @@ type
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
 
-    class procedure CreateComponentWithCameraSetup2D(Sender: TObject);
-    class procedure CreateComponentWithCamera(Sender: TObject);
+    class procedure CreateComponentWithChildren2D(Sender: TObject);
+    class procedure CreateComponentWithChildren3D(Sender: TObject);
 
     procedure RecalculateCursor(Sender: TObject);
     function ItemsBoundingBox: TBox3D;
@@ -3638,15 +3640,99 @@ begin
     Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
 end;
 
-class procedure TCastleViewport.CreateComponentWithCamera(Sender: TObject);
+class procedure TCastleViewport.CreateComponentWithChildren3D(Sender: TObject);
 begin
-  (Sender as TCastleViewport).SetupDesignTimeCamera;
+  (Sender as TCastleViewport).SetupChildren3D;
 end;
 
-class procedure TCastleViewport.CreateComponentWithCameraSetup2D(Sender: TObject);
+class procedure TCastleViewport.CreateComponentWithChildren2D(Sender: TObject);
 begin
-  (Sender as TCastleViewport).SetupDesignTimeCamera;
-  (Sender as TCastleViewport).Setup2D;
+  (Sender as TCastleViewport).SetupChildren2D;
+end;
+
+procedure TCastleViewport.SetupChildren2D;
+var
+  Plane: TCastlePlane;
+begin
+  FullSize := true;
+  SetupDesignTimeCamera;
+  { Better Origin default, makes things in center }
+  Camera.Orthographic.Origin := Vector2(0.5, 0.5);
+  Setup2D;
+
+  { purpose: initial 2D object,
+    that you can see as a whole in initial view,
+    allows to see screen corner - also has distance from edge. }
+  Plane := TCastlePlane.Create(Owner);
+  Plane.Name := InternalProposeName(TCastlePlane, Owner);
+  Plane.Axis := 2;
+  Plane.Size := Vector2(100, 100);
+  Plane.Material := pmUnlit;
+  Items.Add(Plane);
+
+  if InternalDesignManipulation then
+  begin
+    { Similar to Setup2D, but here done on design-time camera. }
+    InternalDesignCamera.ProjectionType := ptOrthographic;
+    InternalDesignCamera.SetWorldView(
+      { pos } Vector3(0, 0, Default2DCameraZ),
+      { dir } Vector3(0, 0, -1),
+      { up } Vector3(0, 1, 0));
+    InternalDesignCamera.ProjectionNear := -Default2DProjectionFar;
+    InternalDesignCamera.ProjectionFar := Default2DProjectionFar;
+    { Better Origin default, makes things in center }
+    InternalDesignCamera.Orthographic.Origin := Vector2(0.5, 0.5);
+  end;
+
+  { Darker than 0.5, which is default in CGE editor background.
+    But not so dark as to look like black. }
+  BackgroundColor := Vector4(0.25, 0.25, 0.25, 1);
+end;
+
+procedure TCastleViewport.SetupChildren3D;
+var
+  Light: TCastlePointLight;
+  Plane: TCastlePlane;
+  NewBackground: TCastleBackground;
+begin
+  FullSize := true;
+  SetupDesignTimeCamera;
+  Camera.Translation := Vector3(0.00, 2.00, 4.00);
+
+  { purpose: initial light,
+    bright to make PBR colors visible (e.g. yellow sphere should visibly be really yellow),
+    low above ground to see the attenuation on floor.  }
+  Light := TCastlePointLight.Create(Owner);
+  Light.Name := InternalProposeName(TCastlePointLight, Owner);
+  Light.Translation := Vector3(4.00, 1.00, 1.00);
+  Light.Intensity := 10;
+  Items.Add(Light);
+
+  { purpose: initial 3D object,
+    that you can see as a whole in initial view,
+    serves as floor to place new 3D stuff }
+  Plane := TCastlePlane.Create(Owner);
+  Plane.Name := InternalProposeName(TCastlePlane, Owner);
+  Plane.Size := Vector2(5, 5);
+  Items.Add(Plane);
+
+  if InternalDesignManipulation then
+  begin
+    InternalDesignCamera.Translation := Vector3(
+      7.7023463249206543E+000,
+      3.3161113262176514E+000,
+      8.0032939910888672E+000);
+    InternalDesignCamera.Rotation := Vector4(
+      -2.9199448227882385E-001,
+      9.4821619987487793E-001,
+      1.2500144541263580E-001,
+      8.6496734619140625E-001);
+  end;
+
+  NewBackground := TCastleBackground.Create(Owner);
+  NewBackground.Name := InternalProposeName(TCastleBackground, Owner);
+  AddNonVisualComponent(NewBackground);
+  Background := NewBackground;
 end;
 
 procedure TCastleViewport.SetSceneManager(const Value: TCastleSceneManager);
@@ -3756,14 +3842,14 @@ initialization
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleViewport;
-  R.Caption := 'Viewport';
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithCamera;
+  R.Caption := 'Viewport (3D)';
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithChildren3D;
   RegisterSerializableComponent(R);
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleViewport;
-  R.Caption := 'Viewport (Configured For 2D)';
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithCameraSetup2D;
+  R.Caption := 'Viewport (2D)';
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithChildren2D;
   RegisterSerializableComponent(R);
 
   InitializeWarmupCache;
