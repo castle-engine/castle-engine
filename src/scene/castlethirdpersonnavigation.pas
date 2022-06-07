@@ -370,7 +370,7 @@ type
 implementation
 
 uses Math,
-  CastleUtils, CastleStringUtils, CastleComponentSerialize, CastleLog;
+  CastleUtils, CastleStringUtils, CastleComponentSerialize, CastleLog, CastleBoxes;
 
 { TCastleThirdPersonNavigation ----------------------------------------------- }
 
@@ -894,6 +894,11 @@ var
   DeltaAngular: Single;
   AvatarRigidBody: TCastleRigidBody;
 
+  // physics velocity + force
+  Collider: TCastleCollider;
+  AvatarBoundingBox: TBox3D;
+  AvatarHeight: Single;
+
   // velocity
   MaxHorizontalVelocityChange: Single;
   Acceleration: Single;
@@ -904,10 +909,10 @@ var
   IsOnGround: Boolean;
   DistanceToGround: Single;
   Jump: Single;
+  RayOrigin: TVector3;
 
   // force
   DeltaForce: Single;
-  Collider: TCastleCollider;
   Torque: Single;
 const
   JumpVelocity = 5;
@@ -1000,15 +1005,82 @@ begin
           Exit;
         end;
 
+        Collider := A.FindBehavior(TCastleCollider) as TCastleCollider;
+        if Collider = nil then
+        begin
+          WritelnWarning('Avatar don''t have collider!');
+          Exit;
+        end;
+
         { Check player is on ground, we use avatar size multiplied by ten to try
           found ground. Distance is used to check we should set animation to fall
-          or we are almost on ground so use default animation. }
-        Ground := AvatarRigidBody.PhysicsRayCast(A.Translation,
-          Vector3(0, -1, 0),
-          A.BoundingBox.SizeY / 2 + A.BoundingBox.SizeY * 10,
-          DistanceToGround);
+          or we are almost on ground so use default animation.
 
-        IsOnGround := ((Ground <> nil) and (DistanceToGround < A.BoundingBox.SizeY * 0.1));
+          We need add Collider.Translation because sometimes rigid body origin can be
+          under the collider. And ray will be casted under the floor. }
+        AvatarBoundingBox := A.BoundingBox;
+        AvatarHeight := AvatarBoundingBox.SizeY;
+        RayOrigin := A.Translation + Collider.Translation;
+
+        Ground := AvatarRigidBody.PhysicsRayCast(
+          RayOrigin,
+          Vector3(0, -1, 0),
+          AvatarHeight * 3,
+          DistanceToGround
+        );
+
+        { Four more checks - player should slide down when player just
+          on the edge, but sometimes it stay and center ray don't "see" that we are
+          on ground }
+        if Ground = nil then
+          Ground := AvatarRigidBody.PhysicsRayCast(
+            RayOrigin + Vector3(AvatarBoundingBox.SizeX * 0.49, 0, 0),
+            Vector3(0, -1, 0),
+            AvatarHeight * 3,
+            DistanceToGround
+          );
+
+        if Ground = nil then
+          Ground := AvatarRigidBody.PhysicsRayCast(
+            RayOrigin + Vector3(-AvatarBoundingBox.SizeX * 0.49, 0, 0),
+            Vector3(0, -1, 0),
+            AvatarHeight * 3,
+            DistanceToGround
+          );
+
+        if Ground = nil then
+          Ground := AvatarRigidBody.PhysicsRayCast(
+            RayOrigin + Vector3(0, 0, AvatarBoundingBox.SizeZ * 0.49),
+            Vector3(0, -1, 0),
+            AvatarHeight * 3,
+            DistanceToGround
+          );
+
+        if Ground = nil then
+          Ground := AvatarRigidBody.PhysicsRayCast(
+            RayOrigin + Vector3(0, 0, -AvatarBoundingBox.SizeZ * 0.49),
+            Vector3(0, -1, 0),
+            AvatarHeight * 3,
+            DistanceToGround
+          );
+
+        if (Ground <> nil) then
+        begin
+          { When collider has own translation we need substract it from distance
+            becouse distance will be too big }
+          DistanceToGround  := DistanceToGround - Collider.Translation.Y;
+
+          { Sometimes rigid body center point can be under the collider so
+            the distance can be negative }
+          if DistanceToGround < 0 then
+            DistanceToGround := 0;
+
+          IsOnGround := DistanceToGround < AvatarHeight * 0.1;
+        end else
+        begin
+          IsOnGround := false;
+          DistanceToGround := -1; // For animation checking
+        end;
 
         if Input_Forward.IsPressed(Container) then
         begin
@@ -1139,12 +1211,13 @@ begin
       end;
       mtForce:
       begin
+        // TODO: Not finished.
+
         Collider := A.FindBehavior(TCastleCollider) as TCastleCollider;
         if Collider = nil then
           Exit;
 
         DeltaForce := 0;
-
 
         if Input_Forward.IsPressed(Container) then
         begin
@@ -1223,8 +1296,11 @@ begin
         else
           { When avatar fall we change animation to fall only when distance
             to ground is smaller than 1/4 of avatar height. That fix changing
-            animation from walk to fall on small steps like in stairs }
-          if DistanceToGround > A.LocalBoundingBox.SizeY * 0.25 then
+            animation from walk to fall on small steps like in stairs.
+
+            DistanceToGround < 0 means that we are in air and ground
+            was not found. }
+          if (DistanceToGround < 0) or (DistanceToGround > A.LocalBoundingBox.SizeY * 0.25) then
             SetAnimation([AnimationFall, AnimationIdle]);
       mtForce:
         ;
