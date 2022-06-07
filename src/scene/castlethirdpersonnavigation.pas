@@ -28,7 +28,7 @@ type
   { Used by TCastleThirdPersonNavigation.AimAvatar. }
   TAimAvatar = (aaNone, aaHorizontal, aaFlying);
 
-  TMovementType = (mtVelocity, mtForce);
+  TMovementType = (mtVelocity, mtForce); // only Velocity available currently
 
   { 3rd-person camera navigation.
     Create an instance of this and assign it to @link(TCastleViewport.Navigation) to use.
@@ -464,8 +464,8 @@ begin
   // override vector change method, to call Init in design mode when this changes
   AvatarTargetPersistent.InternalSetValue := {$ifdef FPC}@{$endif}MySetAvatarTargetForPersistent;
 
-  //FMovementType := mtVelocity;
-  FMovementType := mtForce;
+  FMovementType := mtVelocity;
+  //FMovementType := mtForce;
   FWasJumpInput := false;
   FAirMovementControl := DefaultAirMovementControl;
   FAirRotationControl := DefaultAirRotateControl;
