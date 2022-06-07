@@ -177,6 +177,17 @@ begin
     Mesh.AddNormal(VectorToKraft(Normal.Data[1])),
     Mesh.AddNormal(VectorToKraft(Normal.Data[2]))
   );
+
+
+  { Kraft RayCast does not check inverted triangles. }
+  Mesh.AddTriangle(
+      Mesh.AddVertex(VectorToKraft(Position.Data[2])),
+      Mesh.AddVertex(VectorToKraft(Position.Data[1])),
+      Mesh.AddVertex(VectorToKraft(Position.Data[0])),
+      Mesh.AddNormal(VectorToKraft(-Normal.Data[2])),
+      Mesh.AddNormal(VectorToKraft(-Normal.Data[1])),
+      Mesh.AddNormal(VectorToKraft(-Normal.Data[0]))
+    );
 end;
 
 function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
