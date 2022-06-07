@@ -2797,7 +2797,7 @@ begin
     Behavior.ParentBeforeDetach;
 
     Behavior.FParent := nil;
-    Behavior.ParentChanged; // call at end, when state is consistent
+    // Behavior.ParentChanged; // should be called but a lot of exsiting code don't check Parent = nil
     RemoveWorldChangeNotification(Behavior);
   end;
 end;
