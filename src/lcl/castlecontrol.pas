@@ -116,6 +116,7 @@ type
       FDesignUrl: String;
       FDesignLoaded: TCastleUserInterface;
       FDesignLoadedOwner: TComponent;
+      FAutoFocus: Boolean;
 
     { Sometimes, releasing shift / alt / ctrl keys will not be reported
       properly to KeyDown / KeyUp. Example: opening a menu
@@ -349,6 +350,15 @@ type
     property Visible;
     property TabOrder;
     property TabStop default true;
+
+    { Automatically make this control focused (receiving key input)
+      when user hovers mouse over it.
+
+      If this is @true, consider showing it in some way, e.g. draw something special
+      in OnRender when this control is focused. You can check "Focused" property
+      ( https://lazarus-ccr.sourceforge.io/docs/lcl/controls/twincontrol.focused.html )
+      or FormXxx.ActiveControl or register OnEnter / OnExit LCL events. }
+    property AutoFocus: Boolean read FAutoFocus write FAutoFocus default false;
 
     property Container: TContainer read FContainer;
 
@@ -943,9 +953,43 @@ begin
 end;
 
 procedure TCastleControl.ReleaseAllKeysAndMouse;
+
+  { This does a subset of MouseUp implementation, only caring about updating CGE state now. }
+  procedure CastleMouseUp(const MyButton: TCastleMouseButton);
+  begin
+    Container.MousePressed := Container.MousePressed - [MyButton];
+    Container.EventRelease(InputMouseButton(MousePosition, MyButton, 0));
+  end;
+
+  { This does a subset of KeyUp implementation, only caring about updating CGE state now. }
+  procedure CastleKeyUp(const MyKey: TKey);
+  var
+    MyKeyString: String;
+  begin
+    { Do this before anything else, in particular before even Pressed.KeyUp below.
+      This may call OnPress (which sets Pressed to true). }
+    FKeyPressHandler.Flush;
+
+    Pressed.KeyUp(MyKey, MyKeyString);
+
+    if (MyKey <> keyNone) or (MyKeyString <> '') then
+      Container.EventRelease(InputKey(MousePosition, MyKey, MyKeyString));
+  end;
+
+var
+  Key: TKey;
+  MouseButton: TCastleMouseButton;
 begin
-  Pressed.Clear;
-  Container.MousePressed := [];
+  { This should also take care of releasing Characters. }
+  for Key := Low(Key) to High(Key) do
+    if Pressed[Key] then
+      CastleKeyUp(Key);
+
+  for MouseButton := Low(MouseButton) to High(MouseButton) do
+    if MouseButton in MousePressed then
+      CastleMouseUp(MouseButton);
+
+  Container.MouseLookIgnoreNextMotion;
 end;
 
 procedure TCastleControl.UpdateShiftState(const Shift: TShiftState);
@@ -1102,6 +1146,9 @@ begin
   { check GLInitialized, because it seems it can be called before GL context
     is created (on Windows) or after it's destroyed (sometimes on Linux).
     We don't want to pass anything to Container in such case. }
+
+  if AutoFocus and not Focused then
+    SetFocus;
 
   if GLInitialized then
   begin

@@ -1117,7 +1117,7 @@ begin
   Inspector[itEvents].AnchorToNeighbour(akTop, 0, PanelEventsInfo);
 
   CastleControl := TCastleControl.Create(Self);
-  CastleControl.Parent := PanelMiddle;
+  CastleControl.AutoFocus := true; // needed on Windows to receive AWSD, Ctrl+Z...
   CastleControl.Align := alClient;
   CastleControl.OnResize := @CastleControlResize;
   CastleControl.OnOpen := @CastleControlOpen;
@@ -1125,6 +1125,7 @@ begin
   CastleControl.StencilBits := 8; // enable shadow volumes
   CastleControl.OnDragOver := @CastleControlDragOver;
   CastleControl.OnDragDrop := @CastleControlDragDrop;
+  CastleControl.Parent := PanelMiddle; // set Parent last, following https://wiki.freepascal.org/LCL_Tips#Set_the_Parent_as_last
 
   {$ifdef DEBUG_GIZMO_PICK}
   TCastleControl.MainControl := CastleControl;
