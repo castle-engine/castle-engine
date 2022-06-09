@@ -3142,11 +3142,11 @@ end;
 
 procedure TCastleWindow.ReleaseAllKeysAndMouse;
 var
-  k: TKey;
-  mb: TCastleMouseButton;
+  Key: TKey;
+  MouseButton: TCastleMouseButton;
   {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
-  mk: TModifierKey;
-  b: boolean;
+  ModKey: TModifierKey;
+  B: boolean;
   {$endif}
 begin
   {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
@@ -3156,18 +3156,19 @@ begin
     use SetPrivateModifiersDown(mkCtrl, ...).
     This is the only way to make values in PrivateModifiersDown[]
     and Pressed[] arrays consistent. }
-  for mk := Low(mk) to High(mk) do
-    for b := Low(b) to High(b) do
-      SetPrivateModifiersDown(mk, b, false);
+  for ModKey := Low(ModKey) to High(ModKey) do
+    for B := Low(B) to High(B) do
+      SetPrivateModifiersDown(ModKey, B, false);
   {$endif CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
 
-  { Since we do DoKeyUp, this should also take care of Characters. }
+  { Since we do DoKeyUp, this should also take care of releasing Characters. }
+  for Key := Low(Key) to High(Key) do
+    if Pressed[Key] then
+      DoKeyUp(Key);
 
-  for k := Low(k) to High(k) do
-    if Pressed[k] then DoKeyUp(k);
-
-  for mb := Low(mb) to High(mb) do if mb in MousePressed then
-    DoMouseUp(MousePosition, mb);
+  for MouseButton := Low(MouseButton) to High(MouseButton) do
+    if MouseButton in MousePressed then
+      DoMouseUp(MousePosition, MouseButton);
 
   Container.MouseLookIgnoreNextMotion;
 end;
