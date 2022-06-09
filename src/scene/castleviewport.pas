@@ -3682,6 +3682,8 @@ begin
     InternalDesignCamera.ProjectionFar := Default2DProjectionFar;
     { Better Origin default, makes things in center }
     InternalDesignCamera.Orthographic.Origin := Vector2(0.5, 0.5);
+
+    InternalDesignNavigationType := dn2D;
   end;
 
   { Darker than 0.5, which is default in CGE editor background.
