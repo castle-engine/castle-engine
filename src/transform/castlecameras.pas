@@ -2724,8 +2724,14 @@ begin
   inherited Create(AOwner);
 
   RotationEnabled := false;
-  MouseButtonMove := buttonLeft;
-  MouseButtonZoom := buttonMiddle;
+
+  { move with left mouse button, no modifiers }
+  Input_Move.MouseButton := buttonLeft;
+  Input_Move.MouseButtonCheckModifiers := [mkShift, mkCtrl];
+  Input_Move.MouseButtonModifiers := [];
+  Input_Move.MouseButton2Use := false;
+  { no mouse dragging for zoom (but still you can do zoom with mouse wheel) }
+  Input_Zoom.MakeClear;
 end;
 
 { TCastleMouseLookNavigation ------------------------------------------------- }

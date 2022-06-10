@@ -131,9 +131,18 @@ constructor TCastleExamineNavigationDesign.Create(AOwner: TComponent);
 begin
   inherited;
   RotationAccelerate := false;
-  MoveEnabled := false;
-  ZoomEnabled := false;
-  MouseButtonRotate := buttonRight;
+  { rotate with right mouse button, no modifiers }
+  Input_Rotate.MouseButton := buttonRight;
+  Input_Rotate.MouseButtonCheckModifiers := [mkShift, mkCtrl];
+  Input_Rotate.MouseButtonModifiers := [];
+  Input_Rotate.MouseButton2Use := false;
+  { move with right mouse button, Shift }
+  Input_Move.MouseButton := buttonRight;
+  Input_Move.MouseButtonCheckModifiers := [mkShift, mkCtrl];
+  Input_Move.MouseButtonModifiers := [mkShift];
+  Input_Move.MouseButton2Use := false;
+  { no mouse dragging for zoom (but still you can do zoom with mouse wheel) }
+  Input_Zoom.MakeClear;
 end;
 
 { TCastle2DNavigationDesign ------------------------------------------------ }
@@ -151,7 +160,13 @@ type
 constructor TCastle2DNavigationDesign.Create(AOwner: TComponent);
 begin
   inherited;
-  MouseButtonMove := buttonRight;
+  { move with right mouse button, no modifiers }
+  Input_Move.MouseButton := buttonRight;
+  Input_Move.MouseButtonCheckModifiers := [mkShift, mkCtrl];
+  Input_Move.MouseButtonModifiers := [];
+  Input_Move.MouseButton2Use := false;
+  { no mouse dragging for zoom (but still you can do zoom with mouse wheel) }
+  Input_Zoom.MakeClear;
 end;
 
 {$endif read_implementation}
