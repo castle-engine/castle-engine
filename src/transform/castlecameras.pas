@@ -399,8 +399,9 @@ type
       FInput_ScaleSmaller: TInputShortcut;
       FInput_Home: TInputShortcut;
       FInput_StopRotating: TInputShortcut;
-
-      FMouseButtonRotate, FMouseButtonMove, FMouseButtonZoom: TCastleMouseButton;
+      FInput_Move: TInputShortcut;
+      FInput_Rotate: TInputShortcut;
+      FInput_Zoom: TInputShortcut;
 
     function GoodModelBox: TBox3D;
     procedure SetRotationsAnim(const Value: TVector3);
@@ -440,6 +441,13 @@ type
     function GetExamineVectors: TExamineVectors;
     procedure SetExamineVectors(const Value: TExamineVectors);
     property ExamineVectors: TExamineVectors read GetExamineVectors write SetExamineVectors;
+
+    function GetMouseButtonRotate: TCastleMouseButton;
+    procedure SetMouseButtonRotate(const Value: TCastleMouseButton);
+    function GetMouseButtonMove: TCastleMouseButton;
+    procedure SetMouseButtonMove(const Value: TCastleMouseButton);
+    function GetMouseButtonZoom: TCastleMouseButton;
+    procedure SetMouseButtonZoom(const Value: TCastleMouseButton);
   public
     const
       DefaultRotationAccelerationSpeed = 5.0;
@@ -458,33 +466,27 @@ type
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
-    { Drag with this mouse button to rotate the model.
+    { Which input (like mouse button) should rotate the model.
+      By default this is left mouse button. }
+    property Input_Rotate: TInputShortcut read FInput_Rotate;
 
-      The default values for MouseButtonRotate (left),
-      MouseButtonMove (middle), MouseButtonZoom (right)
-      were chosen to 1. match as much as possible behavior
-      of other programs (like Blender) and
-      2. be accessible to all users (e.g. not everyone has middle
-      mouse button in comfortable place, like laptop+touchpad users).
-      See castlecameras_default_examine_mouse_buttons.txt for more in-depth analysis.
+    { Which input (like mouse button) should move the model.
+      By default this is middle mouse button, or left mouse button while holding Shift. }
+    property Input_Move: TInputShortcut read FInput_Move;
 
-      Also note that for this navigation:
+    { Which input (like mouse button) should zoom (look closer / further at model).
+      By default this is right mouse button, or left mouse button while holding Ctrl. }
+    property Input_Zoom: TInputShortcut read FInput_Zoom;
 
-      @unorderedList(
-        @item(pressing left mouse button with Ctrl is considered like
-          pressing right mouse button,)
-        @item(pressing left mouse button with Shift is considered like
-          pressing middle mouse button.)
-      )
-    }
     property MouseButtonRotate: TCastleMouseButton
-      read FMouseButtonRotate write FMouseButtonRotate default buttonLeft;
-    { Drag with this mouse button to move the model. }
+      read GetMouseButtonRotate write SetMouseButtonRotate default buttonLeft;
+      {$ifdef FPC}deprecated 'use Input_Rotate';{$endif}
     property MouseButtonMove: TCastleMouseButton
-      read FMouseButtonMove write FMouseButtonMove default buttonMiddle;
-    { Drag with this mouse button to zoom the model (look closer / further). }
+      read GetMouseButtonMove write SetMouseButtonMove default buttonMiddle;
+      {$ifdef FPC}deprecated 'use Input_Move';{$endif}
     property MouseButtonZoom: TCastleMouseButton
-      read FMouseButtonZoom write FMouseButtonZoom default buttonRight;
+      read GetMouseButtonZoom write SetMouseButtonZoom default buttonRight;
+      {$ifdef FPC}deprecated 'use Input_Zoom';{$endif}
 
     { Current rotation of the model.
       Rotation is done around ModelBox middle (with @link(Translation) added). }
@@ -1843,10 +1845,6 @@ begin
   FRotationSpeed := DefaultRotationSpeed;
   FPinchGestureRecognizer := TCastlePinchPanGestureRecognizer.Create;
   FPinchGestureRecognizer.OnGestureChanged := {$ifdef FPC}@{$endif}OnGestureRecognized;
-
-  FMouseButtonRotate := buttonLeft;
-  FMouseButtonMove := buttonMiddle;
-  FMouseButtonZoom := buttonRight;
   FExactMovement := true;
 
   for I := 0 to 2 do
@@ -1884,6 +1882,40 @@ begin
    Input_StopRotating.Name := 'Input_StopRotating';
    Input_StopRotating.SetSubComponent(true);
    Input_StopRotating.Assign(keySpace, keyNone, '', true, buttonLeft);
+
+  FInput_Rotate := TInputShortcut.Create(Self);
+   Input_Rotate.Name := 'Input_Rotate';
+   Input_Rotate.SetSubComponent(true);
+   { left mouse button, no modifiers }
+   Input_Rotate.Assign(keyNone, keyNone, '', true, buttonLeft);
+   Input_Rotate.MouseButtonCheckModifiers := [mkCtrl, mkShift];
+   Input_Rotate.MouseButtonModifiers := [];
+
+  FInput_Move := TInputShortcut.Create(Self);
+   Input_Move.Name := 'Input_Move';
+   Input_Move.SetSubComponent(true);
+   { middle mouse button, no modifiers }
+   Input_Move.Assign(keyNone, keyNone, '', true, buttonMiddle);
+   Input_Move.MouseButtonCheckModifiers := [mkCtrl, mkShift];
+   Input_Move.MouseButtonModifiers := [];
+   { left mouse button, with Shift }
+   Input_Move.MouseButton2Use := true;
+   Input_Move.MouseButton2 := buttonLeft;
+   Input_Move.MouseButton2CheckModifiers := [mkCtrl, mkShift];
+   Input_Move.MouseButton2Modifiers := [mkShift];
+
+  FInput_Zoom := TInputShortcut.Create(Self);
+   Input_Zoom.Name := 'Input_Zoom';
+   Input_Zoom.SetSubComponent(true);
+   { right mouse button, no modifiers }
+   Input_Zoom.Assign(keyNone, keyNone, '', true, buttonRight);
+   Input_Zoom.MouseButtonCheckModifiers := [mkCtrl, mkShift];
+   Input_Zoom.MouseButtonModifiers := [];
+   { left mouse button, with Ctrl }
+   Input_Zoom.MouseButton2Use := true;
+   Input_Zoom.MouseButton2 := buttonLeft;
+   Input_Zoom.MouseButton2CheckModifiers := [mkCtrl, mkShift];
+   Input_Zoom.MouseButton2Modifiers := [mkCtrl];
 end;
 
 destructor TCastleExamineNavigation.Destroy;
@@ -1903,6 +1935,36 @@ begin
   FreeAndNil(FInput_StopRotating);
   FreeAndNil(FPinchGestureRecognizer);
   inherited;
+end;
+
+function TCastleExamineNavigation.GetMouseButtonRotate: TCastleMouseButton;
+begin
+  Result := Input_Rotate.MouseButton;
+end;
+
+procedure TCastleExamineNavigation.SetMouseButtonRotate(const Value: TCastleMouseButton);
+begin
+  Input_Rotate.MouseButton := Value;
+end;
+
+function TCastleExamineNavigation.GetMouseButtonMove: TCastleMouseButton;
+begin
+  Result := Input_Move.MouseButton;
+end;
+
+procedure TCastleExamineNavigation.SetMouseButtonMove(const Value: TCastleMouseButton);
+begin
+  Input_Move.MouseButton := Value;
+end;
+
+function TCastleExamineNavigation.GetMouseButtonZoom: TCastleMouseButton;
+begin
+  Result := Input_Zoom.MouseButton;
+end;
+
+procedure TCastleExamineNavigation.SetMouseButtonZoom(const Value: TCastleMouseButton);
+begin
+  Input_Zoom.MouseButton := Value;
 end;
 
 function TCastleExamineNavigation.GetExamineVectors: TExamineVectors;
@@ -2401,7 +2463,6 @@ end;
 
 function TCastleExamineNavigation.Motion(const Event: TInputMotion): boolean;
 var
-  ModsDown: TModifierKeys;
   MoveDivConst: Single;
   Dpi: Single;
 
@@ -2535,8 +2596,6 @@ var
     end;
   end;
 
-var
-  DraggingMouseButton: TCastleMouseButton;
 begin
   Result := inherited;
   if Result then Exit;
@@ -2559,40 +2618,19 @@ begin
      (not Valid) then
     Exit;
 
-  ModsDown := ModifiersDown(Container.Pressed) * [mkShift, mkCtrl];
-
-  { Look at Container.MousePressed and ModsDown to determine
-    which mouse button is "dragging" now. }
-  if (buttonLeft in Container.MousePressed) and (ModsDown = []) then
-    DraggingMouseButton := buttonLeft
-  else
-  if ((buttonRight in Container.MousePressed) and (ModsDown = [])) or
-     ((buttonLeft in Container.MousePressed) and (ModsDown = [mkCtrl])) then
-    DraggingMouseButton := buttonRight
-  else
-  if ((buttonMiddle in Container.MousePressed) and (ModsDown = [])) or
-     ((buttonLeft in Container.MousePressed) and (ModsDown = [mkShift])) then
-    DraggingMouseButton := buttonMiddle
-  else
-    Exit;
-
-  { Rotating }
-  if RotationEnabled and
-     (MouseButtonRotate = DraggingMouseButton) then
+  if RotationEnabled and Input_Rotate.IsPressed(Container.Pressed, Container.MousePressed) then
   begin
     DragRotation;
     Result := ExclusiveEvents;
   end;
 
-  if ZoomEnabled and
-     (MouseButtonZoom = DraggingMouseButton) then
+  if ZoomEnabled and Input_Zoom.IsPressed(Container.Pressed, Container.MousePressed) then
   begin
     if Zoom((Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst)) then
       Result := ExclusiveEvents;
   end;
 
-  if MoveEnabled and
-     (MouseButtonMove = DraggingMouseButton) then
+  if MoveEnabled and Input_Move.IsPressed(Container.Pressed, Container.MousePressed) then
   begin
     if ExactMovement and (InternalViewport <> nil) and (not GoodModelBox.IsEmpty) then
     begin
