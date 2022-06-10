@@ -49,6 +49,12 @@ function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
 function ComponentToString(const C: TComponent): String;
 function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
 
+{ @exclude
+  Like StringToComponent but takes additional PreserveDataAcrossUndo
+  that allows viewports to preserve design-time camera/navigation across CGE editor undo. }
+function InternalStringToComponent(const Contents: String;
+  const Owner, PreserveDataAcrossUndo: TComponent): TComponent;
+
 type
   { Describes a component registered using @link(RegisterSerializableComponent),
     enumerated using @link(RegisteredComponents) list. }
@@ -97,6 +103,8 @@ type
   strict private
     FUrl, FTranslationGroupName: String;
     JsonObject: TJsonObject;
+  private
+    function InternalComponentLoad(const Owner, PreserveDataAcrossUndo: TComponent): TComponent;
   public
     constructor Create(const AUrl: String);
     constructor CreateFromString(const Contents: String);
@@ -229,6 +237,7 @@ type
     procedure AfterReadObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
     procedure RestoreProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJsonData; var Handled: Boolean);
   private
+    PreserveDataAcrossUndo: TComponent;
     FOwner: TComponent;
     (*Resolve hanging references, when JSON referred to some component name
       before this component was actually defined.
@@ -713,12 +722,18 @@ begin
 end;
 
 function TSerializedComponent.ComponentLoad(const Owner: TComponent): TComponent;
+begin
+  Result := InternalComponentLoad(Owner, nil);
+end;
+
+function TSerializedComponent.InternalComponentLoad(const Owner, PreserveDataAcrossUndo: TComponent): TComponent;
 var
   Reader: TCastleJsonReader;
 begin
   Reader := TCastleJsonReader.Create;
   try
     Reader.FOwner := Owner;
+    Reader.PreserveDataAcrossUndo := PreserveDataAcrossUndo;
 
     { create Result with appropriate class }
     Result := CreateComponentFromJson(JsonObject, Owner);
@@ -736,12 +751,18 @@ begin
 end;
 
 function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
+begin
+  Result := InternalStringToComponent(Contents, Owner, nil);
+end;
+
+function InternalStringToComponent(const Contents: String;
+  const Owner, PreserveDataAcrossUndo: TComponent): TComponent;
 var
   SerializedComponent: TSerializedComponent;
 begin
   SerializedComponent := TSerializedComponent.CreateFromString(Contents);
   try
-    Result := SerializedComponent.ComponentLoad(Owner);
+    Result := SerializedComponent.InternalComponentLoad(Owner, PreserveDataAcrossUndo);
   finally FreeAndNil(SerializedComponent) end;
 end;
 

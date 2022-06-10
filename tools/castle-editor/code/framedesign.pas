@@ -1239,14 +1239,15 @@ procedure TDesignFrame.PerformUndoRedo(const UHE: TUndoHistoryElement);
   end;
 
 var
-  NewDesignOwner: TComponent;
+  NewDesignOwner, NewDesignRoot: TComponent;
   InspectorType: TInspectorType;
 begin
   for InspectorType in TInspectorType do
     Inspector[InspectorType].SaveChanges;
 
   NewDesignOwner := TComponent.Create(Self);
-  OpenDesign(StringToComponent(UHE.Data, NewDesignOwner), NewDesignOwner, FDesignUrl);
+  NewDesignRoot := InternalStringToComponent(UHE.Data, NewDesignOwner, DesignRoot);
+  OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
 
   if UHE.Selected <> '' then
     SetSelectedComponent(NewDesignOwner.FindRequiredComponent(UHE.Selected));
