@@ -1538,11 +1538,14 @@ begin
       Name
     ]);
 
-    { Assign useful InternalDesignCamera vectors, because in case of reading old designs --
-      TCastleViewport.CustomSerialization could not read any useful InternalDesignCamera
-      from design file. }
-    Camera.GetWorldView(InitialPos, InitialDir, InitialUp);
-    InternalDesignCamera.SetWorldView(InitialPos, InitialDir, InitialUp);
+    if InternalDesignManipulation then
+    begin
+      { Assign useful InternalDesignCamera vectors, because in case of reading old designs --
+        TCastleViewport.CustomSerialization could not read any useful InternalDesignCamera
+        from design file. }
+      Camera.GetWorldView(InitialPos, InitialDir, InitialUp);
+      InternalDesignCamera.SetWorldView(InitialPos, InitialDir, InitialUp);
+    end;
 
     if InternalDesignManipulation and (Camera.Name = 'Camera') and (Owner <> nil) then
     begin
