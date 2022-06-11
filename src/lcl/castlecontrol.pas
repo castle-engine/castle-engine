@@ -352,7 +352,7 @@ type
     property TabStop default true;
 
     { Automatically make this control focused (receiving key input)
-      when user hovers mouse over it.
+      when user clicks on it.
 
       If this is @true, consider showing it in some way, e.g. draw something special
       in OnRender when this control is focused. You can check "Focused" property
@@ -1092,6 +1092,9 @@ procedure TCastleControl.MouseDown(Button: Controls.TMouseButton;
 var
   MyButton: TCastleMouseButton;
 begin
+  if AutoFocus and not Focused then
+    SetFocus;
+
   FMousePosition := Vector2(X, Height - 1 - Y);
 
   if MouseButtonLCLToCastle(Button, MyButton) then
@@ -1146,9 +1149,6 @@ begin
   { check GLInitialized, because it seems it can be called before GL context
     is created (on Windows) or after it's destroyed (sometimes on Linux).
     We don't want to pass anything to Container in such case. }
-
-  if AutoFocus and not Focused then
-    SetFocus;
 
   if GLInitialized then
   begin
