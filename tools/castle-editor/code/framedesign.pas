@@ -648,6 +648,30 @@ begin
   Result := inherited Press(Event);
   if Result then Exit;
 
+  { We have a few shortcuts that should only work when the focus is over viewport
+    (that is, if they reach TDesignerLayer.Press),
+    because otherwise they would conflict with editing text in OI or names in hierarchy. }
+  if Event.IsKey(CtrlZ) and (not (mkShift in Event.ModifiersDown)) then
+  begin
+    Frame.PerformUndo;
+    Exit(ExclusiveEvents);
+  end;
+  if Event.IsKey(CtrlZ) and (mkShift in Event.ModifiersDown) then
+  begin
+    Frame.PerformRedo;
+    Exit(ExclusiveEvents);
+  end;
+  if Event.IsKey(keyF) and Frame.ViewportActionsAllowed then
+  begin
+    Frame.ViewportViewSelected;
+    Exit(ExclusiveEvents);
+  end;
+  if Event.IsKey(keyHome) and Frame.ViewportActionsAllowed then
+  begin
+    Frame.ViewportViewAll;
+    Exit(ExclusiveEvents);
+  end;
+
   { Avoid handling mouse events over CameraPreview, to avoid messing with clicking
     on CameraPreview buttons, and using gizmos in CameraPreview viewport. }
   if Frame.CameraPreview.UiRoot.Exists and

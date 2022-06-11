@@ -323,13 +323,11 @@ object ProjectForm: TProjectForm
         OnClick = MenuItemRenameClick
       end
       object MenuItemUndo: TMenuItem
-        Caption = 'Undo'
-        ShortCut = 16474
+        Caption = 'Undo (Ctrl+Z)'
         OnClick = MenuItemUndoClick
       end
       object MenuItemRedo: TMenuItem
-        Caption = 'Redo'
-        ShortCut = 24666
+        Caption = 'Redo (Shift+Ctrl+Z)'
         OnClick = MenuItemRedoClick
       end
       object MenuItemCopyComponent: TMenuItem
@@ -875,17 +873,15 @@ object ProjectForm: TProjectForm
     end
     object ActionViewportViewAll: TAction
       Category = 'Viewport'
-      Caption = 'View All'
+      Caption = 'View All (Home)'
       OnExecute = ActionViewportViewAllExecute
       OnUpdate = ActionViewportUpdate
-      ShortCut = 36
     end
     object ActionViewportViewSelected: TAction
       Category = 'Viewport'
-      Caption = 'Focus Selected Transform'
+      Caption = 'Focus Selected Transform (F)'
       OnExecute = ActionViewportViewSelectedExecute
       OnUpdate = ActionViewportUpdate
-      ShortCut = 70
     end
     object ActionViewportTop: TAction
       Category = 'Viewport'
