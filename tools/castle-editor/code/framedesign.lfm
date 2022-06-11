@@ -360,7 +360,7 @@ object DesignFrame: TDesignFrame
     object ControlsTree: TTreeView
       Left = 0
       Height = 385
-      Hint = 'Select a control to edit it''s properties.'#10'Hold down "Ctrl" key to select multiple components at once.'#10'Drag the control to move it to the front, back, or even change it''s parent.'
+      Hint = 'Select a component.'#10'Hold "Ctrl" or "Shift" to select multiple components.'#10'Drag the component to move it to the front, back or change parent.'
       Top = 23
       Width = 213
       Align = alClient
