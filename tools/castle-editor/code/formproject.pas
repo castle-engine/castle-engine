@@ -1393,6 +1393,9 @@ procedure TProjectForm.FormKeyDown(Sender: TObject; var Key: Word;
       Result := not Result;
   end;
 
+var
+  E: TEdit;
+  SavedSelStart: Integer;
 begin
   { This is a hack to
     - Have some menu items with simple shortcuts, like Home, F, Ctrl+Z
@@ -1456,48 +1459,93 @@ begin
 
   if ActiveControl is TEdit then
   begin
+    E := TEdit(ActiveControl);
     case Key of
-      VK_HOME: TEdit(ActiveControl).SelStart := 0;
-      {$ifdef LCLCocoa}
+      VK_HOME:
+        begin
+          if Shift = [ssShift] then
+          begin
+            SavedSelStart := E.SelStart;
+            E.SelStart := 0;
+            E.SelLength := SavedSelStart;
+          end else
+            E.SelStart := 0
+        end;
+      {.$ifdef LCLCocoa}
       { If user didn't adjust Home/End system-wide, then actually
         by default Home/End do nothing in TEdit.
         So we could disable Home...
-        but it seems more useful to make Home/End just work in CGE TEdit. }
-      VK_END: TEdit(ActiveControl).SelStart := Length(TEdit(ActiveControl).Text);
-      {$endif}
-      VK_0..VK_9: TEdit(ActiveControl).SelText := Chr(Ord('0') + Key - VK_0);
-      VK_F: TEdit(ActiveControl).SelText := IfThen(LettersUpCase, 'F', 'f');
+        but it seems more useful to make Home/End just work in CGE TEdit.
+
+        For easier testing, we enable our End handling on all platforms. }
+      VK_END:
+        begin
+          if Shift = [ssShift] then
+            E.SelLength := Length(E.Text) - E.SelStart
+          else
+            E.SelStart := Length(E.Text);
+        end;
+      {.$endif}
+      VK_0..VK_9:
+        begin
+          if E.ReadOnly then
+            Beep
+          else
+            E.SelText := Chr(Ord('0') + Key - VK_0);
+        end;
+      VK_F:
+        begin
+          if E.ReadOnly then
+            Beep
+          else
+            E.SelText := IfThen(LettersUpCase, 'F', 'f');
+        end;
       VK_Z:
         if Shift = [ssCtrl] then
-          TEdit(ActiveControl).Undo
+          E.Undo
         else
           Exit; // resign from special handling
         //if Shift = [ssCtrl, ssShift] then
-        //  TEdit(ActiveControl).Redo
+        //  E.Redo
         //else
       VK_C:
         if Shift = [ssCtrl] then
-          TEdit(ActiveControl).CopyToClipboard
+          E.CopyToClipboard
         else
           Exit; // resign from special handling
       VK_V:
         if Shift = [ssCtrl] then
-          TEdit(ActiveControl).PasteFromClipboard
-        else
+        begin
+          if E.ReadOnly then
+            Beep
+          else
+            E.PasteFromClipboard;
+        end else
           Exit; // resign from special handling
       VK_X:
         if Shift = [ssCtrl] then
-          TEdit(ActiveControl).CutToClipboard
-        else
+        begin
+          if E.ReadOnly then
+            Beep
+          else
+            E.CutToClipboard
+        end else
           Exit; // resign from special handling
       VK_DELETE:
+        if E.ReadOnly then
+          Beep
+        else
         begin
-          if TEdit(ActiveControl).SelText <> '' then
-            TEdit(ActiveControl).SelText := ''
+          if E.SelText <> '' then
+            E.SelText := ''
           else
-            TEdit(ActiveControl).Text :=
-              Copy(TEdit(ActiveControl).Text, 1, TEdit(ActiveControl).SelStart) +
-              SEnding(TEdit(ActiveControl).Text, TEdit(ActiveControl).SelStart + 2);
+          begin
+            SavedSelStart := E.SelStart;
+            E.Text :=
+              Copy(E.Text, 1, E.SelStart) +
+              SEnding(E.Text, E.SelStart + 2);
+            E.SelStart := SavedSelStart;
+          end;
         end;
       else
         Exit; // resign from special handling
