@@ -634,7 +634,7 @@ begin
       Result := pfZip
     else
     if (OS = Darwin) and Manifest.MacAppBundle then
-      Result := pfMacAppBundle
+      Result := pfMacAppBundleZip
     else
       Result := pfTarGz;
   end else
@@ -839,8 +839,12 @@ begin
       PackageNintendoSwitch(Self);
     pfDirectory, pfZip, pfTarGz, pfDeb:
       PackageDirectory(PackageFormatFinal);
-    pfMacAppBundle:
-      CreateMacAppBundle(Self, OutputPath, false);
+    pfMacAppBundle, pfMacAppBundleZip:
+      begin
+        CreateMacAppBundle(Self, OutputPath, false);
+        if PackageFormatFinal = pfMacAppBundleZip then
+          ZipMacAppBundle(Self, OutputPath, PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion));
+      end;
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Unhandled PackageFormatFinal in DoPackage');
     {$endif}
@@ -1025,7 +1029,7 @@ begin
     Result += '-' + Version.DisplayValue;
   Result += '-' + OSToString(OS) + '-' + CPUToString(CPU);
   case PackageFormat of
-    pfZip: Result += '.zip';
+    pfZip, pfMacAppBundleZip: Result += '.zip';
     pfTarGz: Result += '.tar.gz';
     pfDeb: Result += '.deb';
     else ; // leave without extension for pfDirectory

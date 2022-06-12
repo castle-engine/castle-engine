@@ -36,6 +36,9 @@ procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPat
 procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPath: String;
   const SymlinkToFiles: Boolean);
 
+{ Zip the bundle created by CreateMacAppBundle. }
+procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, PackageFileName: String);
+
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif} SysUtils,
@@ -197,6 +200,12 @@ var
   IgnoreExeInBundle: String;
 begin
   CreateMacAppBundle(Project, BundleParenPath, SymlinkToFiles, IgnoreExeInBundle);
+end;
+
+procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, PackageFileName: String);
+begin
+  RunCommandSimple(BundleParenPath, 'zip', ['-q', '-r', PackageFileName, Project.Caption + '.app']);
+  Writeln(Format('Packed to "%s"', [PackageFileName]));
 end;
 
 end.
