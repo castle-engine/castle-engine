@@ -323,31 +323,33 @@ object ProjectForm: TProjectForm
         OnClick = MenuItemRenameClick
       end
       object MenuItemUndo: TMenuItem
-        Caption = 'Undo (Ctrl+Z)'
+        Caption = 'Undo'
+        ShortCut = 16474
         OnClick = MenuItemUndoClick
       end
       object MenuItemRedo: TMenuItem
-        Caption = 'Redo (Shift+Ctrl+Z)'
+        Caption = 'Redo'
+        ShortCut = 24666
         OnClick = MenuItemRedoClick
       end
       object MenuItemCopyComponent: TMenuItem
         Caption = 'Copy Component'
-        ShortCut = 24643
+        ShortCut = 16451
         OnClick = MenuItemCopyComponentClick
       end
       object MenuItemPasteComponent: TMenuItem
         Caption = 'Paste Component'
-        ShortCut = 24662
+        ShortCut = 16470
         OnClick = MenuItemPasteComponentClick
       end
       object MenuItemDuplicateComponent: TMenuItem
         Caption = 'Duplicate Component'
-        ShortCut = 24644
+        ShortCut = 16452
         OnClick = MenuItemDuplicateComponentClick
       end
       object MenuItemDesignDeleteComponent: TMenuItem
         Caption = 'Delete Component'
-        ShortCut = 16430
+        ShortCut = 46
         OnClick = MenuItemDesignDeleteComponentClick
       end
     end
@@ -873,21 +875,26 @@ object ProjectForm: TProjectForm
     end
     object ActionViewportViewAll: TAction
       Category = 'Viewport'
-      Caption = 'View All (Home)'
+      Caption = 'View All'
       OnExecute = ActionViewportViewAllExecute
       OnUpdate = ActionViewportUpdate
+      ShortCut = 36
     end
     object ActionViewportViewSelected: TAction
       Category = 'Viewport'
-      Caption = 'Focus Selected Transform (F)'
+      Caption = 'Focus Selected Transform'
       OnExecute = ActionViewportViewSelectedExecute
       OnUpdate = ActionViewportUpdate
+      ShortCut = 70
     end
     object ActionViewportTop: TAction
       Category = 'Viewport'
       Caption = 'Top'
       OnExecute = ActionViewportTopExecute
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        '7'
+      )
       ShortCut = 103
     end
     object ActionViewportBottom: TAction
@@ -895,6 +902,9 @@ object ProjectForm: TProjectForm
       Caption = 'Bottom'
       OnExecute = ActionViewportBottomExecute
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+7'
+      )
       ShortCut = 16487
     end
     object ActionViewportFront: TAction
@@ -902,6 +912,9 @@ object ProjectForm: TProjectForm
       Caption = 'Front'
       OnExecute = ActionViewportFrontExecute
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        '1'
+      )
       ShortCut = 97
     end
     object ActionViewportBack: TAction
@@ -909,6 +922,9 @@ object ProjectForm: TProjectForm
       Caption = 'Back'
       OnExecute = ActionViewportBackExecute
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+1'
+      )
       ShortCut = 16481
     end
     object ActionViewportRight: TAction
@@ -916,6 +932,9 @@ object ProjectForm: TProjectForm
       Caption = 'Right'
       OnExecute = ActionViewportRightExecute
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        '3'
+      )
       ShortCut = 99
     end
     object ActionViewportLeft: TAction
@@ -923,6 +942,9 @@ object ProjectForm: TProjectForm
       Caption = 'Left'
       OnExecute = ActionViewportLeftExecute
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+3'
+      )
       ShortCut = 16483
     end
     object ActionNavigationFly: TAction
@@ -951,6 +973,9 @@ object ProjectForm: TProjectForm
       Caption = 'Toggle Fly / 2D'
       OnExecute = ActionNavigationToggle2DExecute
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        '2'
+      )
       ShortCut = 98
     end
     object ActionViewportAlignViewToCamera: TAction
@@ -958,6 +983,9 @@ object ProjectForm: TProjectForm
       Caption = 'Align View To Camera'
       OnExecute = ActionViewportAlignViewToCameraExecute
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        '0'
+      )
       ShortCut = 96
     end
     object ActionViewportAlignCameraToView: TAction
@@ -965,6 +993,9 @@ object ProjectForm: TProjectForm
       Caption = 'Align Camera To View'
       OnExecute = ActionViewportAlignCameraToViewExecute
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+0'
+      )
       ShortCut = 16480
     end
     object ActionViewportSetup2D: TAction
@@ -984,6 +1015,9 @@ object ProjectForm: TProjectForm
       Caption = 'Toggle Perspective / Orthogonal'
       OnExecute = ActionViewportToggleProjectionExecute
       OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        '5'
+      )
       ShortCut = 101
     end
   end
