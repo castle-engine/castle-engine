@@ -34,7 +34,8 @@ type
     pfIosArchiveAdHoc,
     pfIosArchiveAppStore,
     pfNintendoSwitchProject,
-    pfMacAppBundle
+    pfMacAppBundle,
+    pfMacAppBundleZip
   );
   TPackageFormatNoDefault = pfDirectory..High(TPackageFormat);
 
@@ -59,7 +60,8 @@ const
     'ios-archive-ad-hoc',
     'ios-archive-app-store',
     'nintendo-switch-project',
-    'mac-app-bundle'
+    'mac-app-bundle',
+    'mac-app-bundle-zip'
   );
 
 function PackageFormatToString(const O: TPackageFormat): String;
