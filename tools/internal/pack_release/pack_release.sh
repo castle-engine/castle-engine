@@ -163,7 +163,7 @@ add_external_tool ()
 
   if [ "$OS" '=' 'darwin' ]; then
     # on macOS, build app bundle, and move it to output path
-    castle-engine $CASTLE_BUILD_TOOL_OPTIONS package
+    castle-engine $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
     mv "${EXE_NAME}".app "${OUTPUT_BIN}"
   else
     castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
@@ -266,7 +266,7 @@ do_pack_platform ()
   # place it in bin-to-keep subdirectory
   if [ "$OS" '=' 'darwin' ]; then
     cd tools/castle-editor/
-    ../build-tool/castle-engine"${EXE_EXTENSION}" $CASTLE_BUILD_TOOL_OPTIONS package
+    ../build-tool/castle-engine"${EXE_EXTENSION}" $CASTLE_BUILD_TOOL_OPTIONS package --package-format=mac-app-bundle
     cd ../../
     cp -R tools/castle-editor/castle-editor.app \
        "${TEMP_PATH_CGE}"bin-to-keep
