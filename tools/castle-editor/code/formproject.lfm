@@ -7,16 +7,18 @@ object ProjectForm: TProjectForm
   ClientHeight = 476
   ClientWidth = 914
   DesignTimePPI = 120
+  KeyPreview = True
   Menu = MainMenu1
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnHide = FormHide
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.0.12.0'
+  LCLVersion = '2.2.0.4'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 224
