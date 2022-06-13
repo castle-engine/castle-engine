@@ -2529,7 +2529,7 @@ begin
     if Hit then
     begin
       Distance := FTransform.Parent.WorldToLocalDistance(ResultingDistance);
-      Result := TRigidBody(RayShape.RigidBody.UserData).FTransform;
+      Result := TCastleRigidBody(RayShape.RigidBody.UserData).FTransform;
     end else
       Result := nil;
   finally
