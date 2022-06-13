@@ -1692,7 +1692,7 @@ begin
   end;
 end;
 
-{ TRigidBody ----------------------------------------------------------------- }
+{ TCastleRigidBody ----------------------------------------------------------- }
 
 constructor TCastleRigidBody.Create(AOwner: TComponent);
 begin
