@@ -1780,7 +1780,7 @@ procedure TCastleRigidBody.DeinitializePhysicsEngineObjects;
 
   procedure RemoveSelfFromOtherRigidBodiesCollisionLists;
   var
-    OtherRigidBody: TRigidBody;
+    OtherRigidBody: TCastleRigidBody;
     CollisionDetails: TPhysicsCollisionDetails;
     ContactPairEdge: PKraftContactPairEdge;
   begin
@@ -1793,7 +1793,7 @@ procedure TCastleRigidBody.DeinitializePhysicsEngineObjects;
     begin
       if kcfColliding in ContactPairEdge^.ContactPair^.Flags then
       begin
-        OtherRigidBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
+        OtherRigidBody := TCastleRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
 
         { We need check that only when other body has OnCollisionExit or
           OnCollisionStay event assigned. }
