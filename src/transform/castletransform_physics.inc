@@ -1200,7 +1200,6 @@ begin
     Exit;
 
   FScale := AValue;
-  UpdateAutoSizeProperty;
   // Scale is added to collider on shape creation not by transform
   ShapeChangedNotifyRigidBody;
 end;
