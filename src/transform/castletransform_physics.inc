@@ -2065,7 +2065,7 @@ end;
 procedure TCastleRigidBody.PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
 var
   ContactPairEdge: PKraftContactPairEdge;
-  RBody: TRigidBody;
+  RBody: TCastleRigidBody;
   CollisionDetails: TPhysicsCollisionDetails;
   I: Integer;
 begin
