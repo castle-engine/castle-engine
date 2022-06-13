@@ -932,7 +932,6 @@ begin
   Height := Max(LocalBoundingBox.SizeY - Radius * 2, 0.001);
 
   Translation := LocalBoundingBox.Center;
-  Scale := NoScale;
   Rotation := Vector4(0, 1, 0, 0);
 end;
 
@@ -1463,7 +1462,6 @@ begin
     end;
 
   Translation := LocalBoundingBox.Center;
-  Scale := NoScale;
   Rotation := Vector4(0, 0, 0, 0);
 end;
 
@@ -1574,7 +1572,6 @@ begin
   Size := LocalBoundingBox.Size;
 
   Translation := LocalBoundingBox.Center;
-  Scale := NoScale;
   Rotation := Vector4(0, 0, 0, 0);
 end;
 
@@ -1667,7 +1664,6 @@ begin
     Radius := LocalBoundingBox.AverageSize(false, 2) / 2;
 
   Translation := LocalBoundingBox.Center;
-  Scale := NoScale;
   Rotation := Vector4(0, 0, 0, 0);
 end;
 
