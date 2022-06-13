@@ -19,7 +19,7 @@
 {$ifdef read_interface}
 
   { Information send along with TCollisionEvent event, like
-    TRigidBody.OnCollisionEnter, TRigidBody.OnCollisionExit. }
+    TCastleRigidBody.OnCollisionEnter, TCastleRigidBody.OnCollisionExit. }
   TPhysicsCollisionDetails = record
   public
     Transforms: array[0..1] of TCastleTransform;
@@ -603,7 +603,7 @@
       This ignores the collider of this rigid body (to not accidentally collide
       with your own collider), and checks collisions with the rest of the world in
       given max distance.
-      Only collisions with the physics colliders (defined inside @link(TRigidBody.Collider))
+      Only collisions with the physics colliders (TCastleCollider and TCollider))
       are considered.
 
       The @link(TCastleTransform.Pickable) property is ignored by this method,
@@ -659,7 +659,7 @@
       deprecated 'use LinearVelocity';
     {$endif}
 
-    { Occurs when TRigidBody starts colliding with another TRigidBody.
+    { Occurs when TCastleRigidBody starts colliding with another TCastleRigidBody.
 
       It can occur repeatedly for the same body (in the same time instant)
       if the collision has many points of contact.
@@ -671,7 +671,7 @@
       (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
     property OnCollisionEnter: TCollisionEvent read FOnCollisionEnter write SetOnCollisionEnter;
 
-    { Occurs when TRigidBody stops colliding with another TRigidBody.
+    { Occurs when TCastleRigidBody stops colliding with another TCastleRigidBody.
 
       @italic(Warning:) Do not free the @link(TCastleTransform) instances
       that collide during this event.
@@ -680,7 +680,7 @@
       (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
     property OnCollisionExit: TCollisionEvent read FOnCollisionExit write SetOnCollisionExit;
 
-    { Occurs when TRigidBody still collides with another TRigidBody.
+    { Occurs when TCastleRigidBody still collides with another TCastleRigidBody.
 
       @italic(Warning:) Do not free the @link(TCastleTransform) instances
       that collide during this event.
@@ -767,8 +767,8 @@
       that the player can "consume" by colliding with it.
 
       Triggers report collisions through the same events as other rigid bodies:
-      (@link(TRigidBody.OnCollisionEnter), @link(TRigidBody.OnCollisionStay),
-      @link(TRigidBody.OnCollisionExit)). }
+      (@link(TCastleRigidBody.OnCollisionEnter), @link(TCastleRigidBody.OnCollisionStay),
+      @link(TCastleRigidBody.OnCollisionExit)). }
     property Trigger: Boolean read FTrigger write SetTrigger default false;
 
     { Shape used for collisions with this object.
@@ -2080,7 +2080,7 @@ begin
       collides during a step" }
     if kcfColliding in ContactPairEdge^.ContactPair^.Flags then
     begin
-      RBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
+      RBody := TCastleRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
 
       // Do not send events for next collision points with the same body.
       if FCurrentCollisions.IndexOf(RBody) = - 1 then
@@ -2120,7 +2120,7 @@ begin
 
     for I := 0  to FPrevCollisions.Count - 1 do
     begin
-      CollisionDetails.Transforms[1] := TRigidBody(FPrevCollisions[I]).FTransform;
+      CollisionDetails.Transforms[1] := TCastleRigidBody(FPrevCollisions[I]).FTransform;
       FOnCollisionExit(CollisionDetails);
     end;
   end;
@@ -2471,7 +2471,7 @@ begin
       continue;
     end;
 
-    CastleTransform := (TRigidBody(ContactPairEdge^.OtherRigidBody.UserData)).FTransform;
+    CastleTransform := (TCastleRigidBody(ContactPairEdge^.OtherRigidBody.UserData)).FTransform;
     if FCollisionList.IndexOf(CastleTransform) = -1 then
       FCollisionList.Add(CastleTransform);
     ContactPairEdge := ContactPairEdge^.Next;
