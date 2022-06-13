@@ -214,13 +214,12 @@ object ProjectForm: TProjectForm
       AnchorSideRight.Side = asrCenter
       AnchorSideBottom.Side = asrCenter
       Left = 239
-      Height = 112
-      Top = 67
+      Height = 120
+      Top = 63
       Width = 436
       Alignment = taCenter
       Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
       Font.Height = -26
-      ParentColor = False
       ParentFont = False
       WordWrap = True
     end
@@ -334,25 +333,29 @@ object ProjectForm: TProjectForm
         ShortCut = 24666
         OnClick = MenuItemRedoClick
       end
-      object MenuItemCopyComponent: TMenuItem
-        Caption = 'Copy Component'
-        ShortCut = 16451
-        OnClick = MenuItemCopyComponentClick
-      end
-      object MenuItemPasteComponent: TMenuItem
-        Caption = 'Paste Component'
-        ShortCut = 16470
-        OnClick = MenuItemPasteComponentClick
+      object MenuSeparator6: TMenuItem
+        Caption = '-'
       end
       object MenuItemDuplicateComponent: TMenuItem
-        Caption = 'Duplicate Component'
-        ShortCut = 16452
-        OnClick = MenuItemDuplicateComponentClick
+        Action = ActionComponentDuplicate
+      end
+      object MenuItem15: TMenuItem
+        Action = ActionComponentCut
+      end
+      object MenuItemCopyComponent: TMenuItem
+        Action = ActionComponentCopy
+      end
+      object MenuItemPasteComponent: TMenuItem
+        Action = ActionComponentPaste
+      end
+      object MenuItem21: TMenuItem
+        Action = ActionComponentSaveSelected
+      end
+      object MenuSeparator6123: TMenuItem
+        Caption = '-'
       end
       object MenuItemDesignDeleteComponent: TMenuItem
-        Caption = 'Delete Component'
-        ShortCut = 46
-        OnClick = MenuItemDesignDeleteComponentClick
+        Action = ActionComponentDelete
       end
     end
     object MenuItemViewport: TMenuItem
@@ -726,79 +729,11 @@ object ProjectForm: TProjectForm
     Left = 304
     Top = 376
     Bitmap = {
-      4C69010000001800000018000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000070000008A000000E60000
-      00FF000000FF000000FF000000FF000000FF000000C900000008000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000008A000000FF000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF00000088000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000E6000000FF0000003A0000
-      000000000000000000000000000000000037000000FC000000FC000000370000
-      0000000000000000000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000FF000000FF000000000000
-      00000000000000000000000000000000000000000088000000FF000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00E600000089000000060000000000000000000000FF000000FF000000000000
-      00000000000000000000000000000000000000000008000000C7000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00FF000000FF000000880000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      003B000000FF000000E50000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000E6000000FF0000003B0000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      003D000000FF000000E5000000000000000000000088000000FF000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00FF000000FF0000008600000000000000000000000600000089000000E50000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00E5000000870000000600000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000
+      4C7A010000001800000018000000860000000000000078DA63601816801D88BB
+      80F81910FFC7824F02310705E677E13017197750603ECCDD5658E4CC81F80F14
+      9B93693ECC8DB8400711FE8361905B3B81988D04F341617F9C043BD0C39390F9
+      A4006BA8594F69643E36F346CD1F357FD4FCA16B3EAC7CB6A682D9B658CA1F52
+      CA5F62711B92F96CD032FB2915CC0599D18E56FE0F590000A00D8D10
     }
   end
   object ApplicationProperties1: TApplicationProperties
@@ -811,67 +746,79 @@ object ProjectForm: TProjectForm
     Left = 398
     Top = 19
     object ActionNewSpriteSheet: TAction
+      Category = 'Data'
       Caption = 'New Sprite Sheet...'
       OnExecute = ActionNewSpriteSheetExecute
     end
     object ActionOpenProjectCode: TAction
+      Category = 'Code'
       Caption = 'Open Project in Code Editor'
       OnExecute = ActionOpenProjectCodeExecute
     end
     object ActionEditUnit: TAction
+      Category = 'Code'
       Caption = 'Edit Unit...'
       OnExecute = ActionEditUnitExecute
     end
     object ActionNewUnitEmpty: TAction
+      Category = 'Code'
       Caption = 'Empty Unit...'
       OnExecute = ActionNewUnitEmptyExecute
     end
     object ActionNewUnitClass: TAction
+      Category = 'Code'
       Caption = 'Unit With Class...'
       OnExecute = ActionNewUnitClassExecute
     end
     object ActionNewUnitState: TAction
+      Category = 'Code'
       Caption = 'Unit With State...'
       OnExecute = ActionNewUnitStateExecute
     end
     object ActionNewUnitHereEmpty: TAction
+      Category = 'PopupFiles'
       Caption = 'Empty Unit...'
       OnExecute = ActionNewUnitHereEmptyExecute
     end
     object ActionNewUnitHereClass: TAction
+      Category = 'PopupFiles'
       Caption = 'Unit With Class...'
       OnExecute = ActionNewUnitHereClassExecute
     end
     object ActionNewUnitHereState: TAction
+      Category = 'PopupFiles'
       Caption = 'Unit With State...'
       OnExecute = ActionNewUnitHereStateExecute
     end
     object ActionEditAssociatedUnit: TAction
+      Category = 'Code'
       Caption = 'Edit Unit Associated With Open Design'
       OnExecute = ActionEditAssociatedUnitExecute
       ShortCut = 123
     end
     object ActionRegenerateProject: TAction
+      Category = 'Code'
       Caption = 'Regenerate Project (overwrites LPI, DPR, DPROJ, CastleAutoGenerated)'
       OnExecute = ActionRegenerateProjectExecute
     end
     object ActionOutputClean: TAction
-      Category = 'Output'
+      Category = 'PopupOutput'
       Caption = 'Clean'
       OnExecute = ActionOutputCleanExecute
     end
     object ActionOutputCopySelected: TAction
-      Category = 'Output'
+      Category = 'PopupOutput'
       Caption = 'Copy Selected'
       OnExecute = ActionOutputCopySelectedExecute
       OnUpdate = ActionOutputCopySelectedUpdate
     end
     object ActionOutputCopyAll: TAction
-      Category = 'Output'
+      Category = 'PopupOutput'
       Caption = 'Copy All'
       OnExecute = ActionOutputCopyAllExecute
     end
     object ActionSystemInformation: TAction
+      Category = 'Help'
       Caption = 'System Information'
       OnExecute = ActionSystemInformationExecute
     end
@@ -1021,6 +968,41 @@ object ProjectForm: TProjectForm
         '5'
       )
       ShortCut = 101
+    end
+    object ActionComponentCopy: TAction
+      Category = 'Edit'
+      Caption = 'Copy'
+      OnExecute = ActionCopyComponentExecute
+      ShortCut = 16451
+    end
+    object ActionComponentPaste: TAction
+      Category = 'Edit'
+      Caption = 'Paste'
+      OnExecute = ActionPasteComponentExecute
+      ShortCut = 16470
+    end
+    object ActionComponentCut: TAction
+      Category = 'Edit'
+      Caption = 'Cut'
+      OnExecute = ActionComponentCutExecute
+      ShortCut = 16472
+    end
+    object ActionComponentDelete: TAction
+      Category = 'Edit'
+      Caption = 'Delete'
+      OnExecute = ActionDeleteComponentExecute
+      ShortCut = 46
+    end
+    object ActionComponentSaveSelected: TAction
+      Category = 'Edit'
+      Caption = 'Save Selected...'
+      OnExecute = ActionComponentSaveSelectedExecute
+    end
+    object ActionComponentDuplicate: TAction
+      Category = 'Edit'
+      Caption = 'Duplicate'
+      OnExecute = ActionDuplicateComponentExecute
+      ShortCut = 16452
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

@@ -19,6 +19,7 @@ unit EditorUtils;
 interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
+  Dialogs,
   CastleStringUtils,
   ToolArchitectures, ToolManifest;
 
@@ -231,9 +232,13 @@ function AutodetectCodeEditor: TCodeEditor;
 function CgePathStatus(const CgePath: String; out StatusText: String): Boolean;
 function CgePathStatus(const CgePath: String): Boolean;
 
+{ Set SaveDialog.DefaultExt / Filter, based on ComponentToSave class. }
+procedure PrepareSaveDesignDialog(const SaveDialog: TSaveDialog;
+  const ComponentToSave: TComponent);
+
 implementation
 
-uses SysUtils, Dialogs, Graphics, TypInfo, Generics.Defaults,
+uses SysUtils, Graphics, TypInfo, Generics.Defaults,
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   ToolCompilerInfo, ToolCommonUtils;
@@ -1039,6 +1044,28 @@ var
   IgnoreStatusText: String;
 begin
   Result := CgePathStatus(CgePath, IgnoreStatusText);
+end;
+
+procedure PrepareSaveDesignDialog(const SaveDialog: TSaveDialog; const ComponentToSave: TComponent);
+begin
+  if ComponentToSave is TCastleUserInterface then
+  begin
+    SaveDialog.DefaultExt := 'castle-user-interface';
+    SaveDialog.Filter := 'CGE User Interface Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
+  end else
+  if ComponentToSave is TCastleTransform then
+  begin
+    { We modify both Filter and DefaultExt, otherwise (at least on GTK2)
+      the default extension (for filter like '*.castle-user-interface;*.castle-transform')
+      would still be castle-user-interface. I.e. DefaultExt seems to be ignored,
+      and instead GTK applies first filter. }
+    SaveDialog.DefaultExt := 'castle-transform';
+    SaveDialog.Filter := 'CGE Transform Design (*.castle-transform)|*.castle-transform|All Files|*';
+  end else
+  begin
+    SaveDialog.DefaultExt := 'castle-component';
+    SaveDialog.Filter := 'CGE Component Design (*.castle-component)|*.castle-component|All Files|*';
+  end;
 end;
 
 end.

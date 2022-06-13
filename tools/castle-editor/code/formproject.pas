@@ -42,6 +42,12 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionComponentDuplicate: TAction;
+    ActionComponentSaveSelected: TAction;
+    ActionComponentDelete: TAction;
+    ActionComponentCut: TAction;
+    ActionComponentPaste: TAction;
+    ActionComponentCopy: TAction;
     ActionViewportToggleProjection: TAction;
     ActionViewportSetup2D: TAction;
     ActionViewportSort2D: TAction;
@@ -68,6 +74,10 @@ type
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
+    MenuItem15: TMenuItem;
+    MenuItem21: TMenuItem;
+    MenuSeparator6123: TMenuItem;
+    MenuSeparator6: TMenuItem;
     Separator5: TMenuItem;
     MenuItem20: TMenuItem;
     Separator4: TMenuItem;
@@ -232,6 +242,8 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionComponentCutExecute(Sender: TObject);
+    procedure ActionComponentSaveSelectedExecute(Sender: TObject);
     procedure ActionViewportAlignCameraToViewExecute(Sender: TObject);
     procedure ActionViewportAlignViewToCameraExecute(Sender: TObject);
     procedure ActionViewportToggleProjectionExecute(Sender: TObject);
@@ -308,10 +320,10 @@ type
     procedure MenuItemCleanClick(Sender: TObject);
     procedure MenuItemCompileClick(Sender: TObject);
     procedure MenuItemCompileRunClick(Sender: TObject);
-    procedure MenuItemCopyComponentClick(Sender: TObject);
+    procedure ActionCopyComponentExecute(Sender: TObject);
     procedure MenuItemDesignCloseClick(Sender: TObject);
-    procedure MenuItemDesignDeleteComponentClick(Sender: TObject);
-    procedure MenuItemDuplicateComponentClick(Sender: TObject);
+    procedure ActionDeleteComponentExecute(Sender: TObject);
+    procedure ActionDuplicateComponentExecute(Sender: TObject);
     procedure MenuItemManualClick(Sender: TObject);
     procedure MenuItemModeDebugClick(Sender: TObject);
     procedure MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
@@ -320,7 +332,7 @@ type
     procedure MenuItemOpenDesignClick(Sender: TObject);
     procedure MenuItemPackageClick(Sender: TObject);
     procedure MenuItemPackageSourceClick(Sender: TObject);
-    procedure MenuItemPasteComponentClick(Sender: TObject);
+    procedure ActionPasteComponentExecute(Sender: TObject);
     procedure MenuItemQuitClick(Sender: TObject);
     procedure MenuItemReferenceClick(Sender: TObject);
     procedure MenuItemModeReleaseClick(Sender: TObject);
@@ -495,26 +507,7 @@ end;
 procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
-
-  if Design.DesignRoot is TCastleUserInterface then
-  begin
-    SaveDesignDialog.DefaultExt := 'castle-user-interface';
-    SaveDesignDialog.Filter := 'CGE User Interface Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
-  end else
-  if Design.DesignRoot is TCastleTransform then
-  begin
-    { We modify both Filter and DefaultExt, otherwise (at least on GTK2)
-      the default extension (for filter like '*.castle-user-interface;*.castle-transform')
-      would still be castle-user-interface. I.e. DefaultExt seems to be ignored,
-      and instead GTK applies first filter. }
-    SaveDesignDialog.DefaultExt := 'castle-transform';
-    SaveDesignDialog.Filter := 'CGE Transform Design (*.castle-transform)|*.castle-transform|All Files|*';
-  end else
-  begin
-    SaveDesignDialog.DefaultExt := 'castle-component';
-    SaveDesignDialog.Filter := 'CGE Component Design (*.castle-component)|*.castle-component|All Files|*';
-  end;
-
+  PrepareSaveDesignDialog(SaveDesignDialog, Design.DesignRoot);
   SaveDesignDialog.Url := Design.DesignUrl;
   if SaveDesignDialog.Execute then
     Design.SaveDesign(SaveDesignDialog.Url);
@@ -675,6 +668,18 @@ procedure TProjectForm.ActionViewportAlignCameraToViewExecute(Sender: TObject);
 begin
   if Design <> nil then
     Design.ViewportAlignCameraToView;
+end;
+
+procedure TProjectForm.ActionComponentCutExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.CutComponent;
+end;
+
+procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.SaveSelected;
 end;
 
 procedure TProjectForm.ActionNavigationExamineExecute(Sender: TObject);
@@ -1704,7 +1709,7 @@ begin
   end;
 end;
 
-procedure TProjectForm.MenuItemCopyComponentClick(Sender: TObject);
+procedure TProjectForm.ActionCopyComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.CopyComponent;
@@ -1725,13 +1730,13 @@ begin
   end;
 end;
 
-procedure TProjectForm.MenuItemDesignDeleteComponentClick(Sender: TObject);
+procedure TProjectForm.ActionDeleteComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.DeleteComponent;
 end;
 
-procedure TProjectForm.MenuItemDuplicateComponentClick(Sender: TObject);
+procedure TProjectForm.ActionDuplicateComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.DuplicateComponent;
@@ -1759,10 +1764,12 @@ begin
   MenuItemDesignAddUserInterface.Enabled := Design <> nil;
   MenuItemDesignAddBehavior.Enabled := Design <> nil;
   MenuItemDesignAddNonVisual.Enabled := Design <> nil;
-  MenuItemDesignDeleteComponent.Enabled := Design <> nil;
-  MenuItemCopyComponent.Enabled := Design <> nil;
-  MenuItemPasteComponent.Enabled := Design <> nil;
-  MenuItemDuplicateComponent.Enabled := Design <> nil;
+  ActionComponentDelete.Enabled := Design <> nil;
+  ActionComponentCopy.Enabled := Design <> nil;
+  ActionComponentPaste.Enabled := Design <> nil;
+  ActionComponentCut.Enabled := Design <> nil;
+  ActionComponentDuplicate.Enabled := Design <> nil;
+  ActionComponentSaveSelected.Enabled := Design <> nil;
   ActionEditAssociatedUnit.Enabled := Design <> nil;
 
   UpdateUndo(nil);
@@ -1907,7 +1914,7 @@ begin
   BuildToolCall(['package-source']);
 end;
 
-procedure TProjectForm.MenuItemPasteComponentClick(Sender: TObject);
+procedure TProjectForm.ActionPasteComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.PasteComponent;

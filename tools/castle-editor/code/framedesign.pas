@@ -53,6 +53,9 @@ type
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
+    MenuTreeViewItemSaveSelected: TMenuItem;
+    MenuSeparator1: TMenuItem;
+    MenuTreeViewItemCut: TMenuItem;
     MenuItemSeparator898989: TMenuItem;
     MenuTreeViewItemSeparator127u30130120983: TMenuItem;
     MenuTreeViewItemAddNonVisual: TMenuItem;
@@ -70,6 +73,7 @@ type
     PanelEventsInfo: TPanel;
     PanelAnchors: TPanel;
     MenuTreeView: TPopupMenu;
+    SaveDesignDialog: TCastleSaveDialog;
     SelfAnchorsFrame: TAnchorsFrame;
     ParentAnchorsFrame: TAnchorsFrame;
     CheckParentSelfAnchorsEqual: TCheckBox;
@@ -120,11 +124,13 @@ type
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
+    procedure MenuTreeViewItemCutClick(Sender: TObject);
     procedure MenuTreeViewItemRenameClick(Sender: TObject);
     procedure MenuTreeViewItemDeleteClick(Sender: TObject);
     procedure MenuTreeViewItemCopyClick(Sender: TObject);
     procedure MenuTreeViewItemDuplicateClick(Sender: TObject);
     procedure MenuTreeViewItemPasteClick(Sender: TObject);
+    procedure MenuTreeViewItemSaveSelectedClick(Sender: TObject);
     procedure MenuTreeViewPopup(Sender: TObject);
     procedure ClearDesign;
     procedure RenameSelectedItem;
@@ -247,16 +253,16 @@ type
     procedure GetSelected(out Selected: TComponentList;
       out SelectedCount: Integer);
 
-    { If there is exactly one item selected, and it is TCastleUserInterface,
-      return it. Otherwise return nil. }
     function GetSelectedUserInterface: TCastleUserInterface;
     procedure SetSelectedUserInterface(const Value: TCastleUserInterface);
+    { If there is exactly one item selected, and it is TCastleUserInterface,
+      return it. Otherwise return nil. }
     property SelectedUserInterface: TCastleUserInterface
       read GetSelectedUserInterface write SetSelectedUserInterface;
 
-    { If there is exactly one item selected, return it. Otherwise return nil. }
     function GetSelectedComponent: TComponent;
     procedure SetSelectedComponent(const Value: TComponent);
+    { If there is exactly one item selected, return it. Otherwise return nil. }
     property SelectedComponent: TComponent
       read GetSelectedComponent write SetSelectedComponent;
 
@@ -361,6 +367,7 @@ type
     procedure DeleteComponent;
     procedure CopyComponent;
     procedure PasteComponent;
+    procedure CutComponent;
     procedure DuplicateComponent;
     { set UIScaling values. }
     procedure UIScaling(const UIScaling: TUIScaling;
@@ -373,6 +380,8 @@ type
     property DesignModified: Boolean read FDesignModified;
     procedure RecordUndo(const UndoComment: String;
       const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
+
+    procedure SaveSelected;
 
     procedure CurrentComponentApiUrl(var Url: String);
 
@@ -397,7 +406,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   CastleGLUtils, CastleImages, CastleLog,  CastleProjection,
   CastleShellCtrls, CastleStringUtils, CastleThirdPersonNavigation,
   CastleTimeUtils, CastleURIUtils, CastleUtils, CastleBehaviors, CastleSoundEngine,
-  X3DLoad,
+  X3DLoad, CastleFilesUtils,
   EditorUtils, FormProject;
 
 {$R *.lfm}
@@ -1178,6 +1187,8 @@ begin
   VisualizeTransformSelected.OnParentModified := @GizmoHasModifiedParent;
   VisualizeTransformSelected.OnGizmoStopDrag := @GizmoStopDrag;
 
+  SaveDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+
   //ChangeMode(moInteract);
   ChangeMode(moModifyUi); // most expected default, it seems
 
@@ -1829,6 +1840,22 @@ begin
     ErrorBox(Format('Clipboard contains an instance of %s class, cannot insert it into the design',
       [NewComponent.ClassName]));
     FreeAndNil(NewComponent);
+  end;
+end;
+
+procedure TDesignFrame.CutComponent;
+var
+  Sel: TComponent;
+begin
+  Sel := SelectedComponent;
+  if (Sel <> nil) and
+     (not (csSubComponent in Sel.ComponentStyle)) then
+  begin
+    Clipboard.AsText := ComponentToString(Sel);
+    DeleteComponent;
+  end else
+  begin
+    ErrorBox('Select exactly one component, that is not a subcomponent, to copy');
   end;
 end;
 
@@ -2815,6 +2842,31 @@ begin
 
   UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, ItemIndex, ControlProperties.TabIndex, UndoComment, UndoCommentPriority);
   UndoSystem.DoLog('Undo "%s" recorded in %fs for "%s".', [UndoComment, StartTimer.ElapsedTime, SelectedName]);
+end;
+
+procedure TDesignFrame.SaveSelected;
+var
+  ComponentToSave: TComponent;
+begin
+  ComponentToSave := SelectedComponent;
+  if ComponentToSave = nil then
+  begin
+    ErrorBox('Select exactly one component to save');
+    Exit;
+  end;
+
+  PrepareSaveDesignDialog(SaveDesignDialog, ComponentToSave);
+  SaveDesignDialog.Url := '';
+  if SaveDesignDialog.Execute then
+  begin
+    if ComponentToSave is TCastleUserInterface then
+      UserInterfaceSave(TCastleUserInterface(ComponentToSave), SaveDesignDialog.Url)
+    else
+    if ComponentToSave is TCastleTransform then
+      TransformSave(TCastleTransform(ComponentToSave), SaveDesignDialog.Url)
+    else
+      ComponentSave(ComponentToSave, SaveDesignDialog.Url);
+  end;
 end;
 
 procedure TDesignFrame.MarkModified;
@@ -4126,6 +4178,11 @@ begin
   AddComponent(R.ComponentClass, R.OnCreate);
 end;
 
+procedure TDesignFrame.MenuTreeViewItemCutClick(Sender: TObject);
+begin
+  CutComponent;
+end;
+
 procedure TDesignFrame.MenuTreeViewItemRenameClick(Sender: TObject);
 begin
   RenameSelectedItem;
@@ -4146,6 +4203,11 @@ begin
   PasteComponent;
 end;
 
+procedure TDesignFrame.MenuTreeViewItemSaveSelectedClick(Sender: TObject);
+begin
+  SaveSelected;
+end;
+
 procedure TDesignFrame.MenuTreeViewPopup(Sender: TObject);
 var
   Sel: TComponent;
@@ -4153,7 +4215,9 @@ begin
   Sel := SelectedComponent;
   MenuTreeViewItemRename.Enabled := RenamePossible;
   MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
+  MenuTreeViewItemCut.Enabled := Sel <> nil;
   MenuTreeViewItemCopy.Enabled := Sel <> nil;
+  MenuTreeViewItemSaveSelected.Enabled := Sel <> nil;
   MenuTreeViewItemDelete.Enabled := ControlsTree.SelectionCount > 0; // delete can handle multiple objects
   if (Sel is TCastleUserInterface) or ((Sel = nil) and (DesignRoot is TCastleUserInterface)) then
   begin
