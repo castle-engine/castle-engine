@@ -2845,7 +2845,7 @@ begin
   end;
 
   { call inherited at the end,
-    to update transformation of all items in their TRigidBody.Update
+    to update transformation of all items in their TCastleRigidBody.Update
     called from TCastleTransform.Update }
   inherited;
 end;
