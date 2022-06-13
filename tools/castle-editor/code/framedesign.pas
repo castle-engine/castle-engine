@@ -1322,6 +1322,33 @@ end;
 
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
   const NewDesignUrl: String);
+
+  { Initialize TCastleViewport that is internal, and used to edit
+    .castle-transform. It requires some special considerations,
+    as it needs a good camera/navigation, but also user cannot modify them,
+    and they are not saved to .castle-transform. }
+  procedure InitializeDesignViewportForTransforms(const V: TCastleViewport);
+  var
+    APos, ADir, AUp, AGravityUp: TVector3;
+  begin
+    { This Name is user-visible: if user selects anything in viewport,
+      we show ViewportSelectedOrHover.Name in header. }
+    V.Name := 'InternalViewport';
+    V.Transparent := true;
+    V.FullSize := true;
+
+    { Add headlight to design-time camera this way.
+      Note that doing "V.Items.UseHeadLight := hlOn" would not have a desired
+      effect, as this headlight would be done only from runtime camera,
+      which we don't care about in this case. }
+    V.InternalCamera.Add(TCastleDirectionalLight.Create(NewDesignOwner));
+
+    CameraViewpointForWholeScene(V.Items.BoundingBox, 2, 1, false, true,
+      APos, ADir, AUp, AGravityUp);
+    V.InternalCamera.SetWorldView(APos, ADir, AUp);
+    V.InternalCamera.GravityUp := AGravityUp;
+  end;
+
 var
   //LabelNonVisualHint: TCastleLabel;
   DesignRootVisual: Boolean;
@@ -1337,7 +1364,7 @@ begin
 
   if DesignRootVisual then
   begin
-    CameraPreview := TCameraPreview.Create(NewDesignRoot);
+    CameraPreview := TCameraPreview.Create(NewDesignOwner);
     CastleControl.Controls.InsertBack(CameraPreview.UiRoot);
   end;
 
@@ -1349,13 +1376,9 @@ begin
   if NewDesignRoot is TCastleTransform then
   begin
     FDesignViewportForTransforms := TCastleViewport.Create(NewDesignOwner);
-    { This Name is user-visible: if user selects anything in viewport,
-      we show ViewportSelectedOrHover.Name in header. }
-    FDesignViewportForTransforms.Name := 'InternalViewport';
-    FDesignViewportForTransforms.Transparent := true;
-    FDesignViewportForTransforms.Items.UseHeadlight := hlOn;
     FDesignViewportForTransforms.Items.Add(NewDesignRoot as TCastleTransform);
-    FDesignViewportForTransforms.FullSize := true;
+    { Do this after adding NewDesignRoot, as it wants good Items.BoundingBox }
+    InitializeDesignViewportForTransforms(FDesignViewportForTransforms);
     CastleControl.Controls.InsertBack(FDesignViewportForTransforms);
     Assert(DesignRootVisual);
   end else
