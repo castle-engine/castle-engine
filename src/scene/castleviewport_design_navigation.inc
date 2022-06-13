@@ -40,8 +40,8 @@ type
   published
     property Input default [niNormal, ni3dMouse];
     property Gravity default false;
-    property MoveSpeed default 10;
-    property MinAngleFromGravityUp default 0;
+    property MoveSpeed {$ifdef FPC}default 10{$endif};
+    property MinAngleFromGravityUp {$ifdef FPC}default 0{$endif};
     property CheckCollisions default false;
 
     property MouseLook stored false;
