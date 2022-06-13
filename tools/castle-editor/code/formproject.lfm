@@ -923,9 +923,9 @@ object ProjectForm: TProjectForm
       OnExecute = ActionNavigationToggle2DExecute
       OnUpdate = ActionViewportUpdate
       SecondaryShortCuts.Strings = (
-        '2'
+        'Ctrl+2'
       )
-      ShortCut = 98
+      ShortCut = 16482
     end
     object ActionViewportAlignViewToCamera: TAction
       Category = 'Viewport'
