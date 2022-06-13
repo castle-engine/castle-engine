@@ -204,8 +204,8 @@ uses
 
 constructor TBullet.Create(AOwner: TComponent; BulletSpriteScene: TCastleScene);
 var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
+  RBody: TCastleRigidBody;
+  Collider: TCastleSphereCollider;
 begin
   inherited Create(AOwner);
 
@@ -213,19 +213,24 @@ begin
   BulletSpriteScene.Visible := true;
   BulletSpriteScene.Translation := Vector3(0, 0, 0);
 
-  RBody := TRigidBody.Create(Self);
+  { In this case we are adding TCastleRigidBody to TBullet(TCastleTransform)
+    and not to the BulletSpriteScene in order to be able to use this scene in
+    multiple bullets. }
+  RBody := TCastleRigidBody.Create(Self);
   RBody.Setup2D;
   RBody.Dynamic := true;
   RBody.MaximalLinearVelocity := 0;
 
 
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
+  Collider := TCastleSphereCollider.Create(Self);
+  { We don't set the Radius becouse we simply use Autosize }
+  // Collider.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
   { Make bullet more bouncy }
   Collider.Restitution := 0.6;
   Collider.Mass := 1;
 
-  RigidBody := RBody;
+  AddBehavior(Collider);
+  AddBehavior(RBody);
 end;
 
 procedure TBullet.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType
