@@ -1883,6 +1883,17 @@ begin
     (ParentComponent as TCastleTransform).Add(NewComponent as TCastleTransform);
     FinishAddingComponent(NewComponent);
   end else
+  if NewComponent is TCastleBehavior then
+  begin
+    if not (ParentComponent is TCastleTransform) then
+    begin
+      ErrorBox('Clipboard contains a TCastleTransform instance, you need to select a TCastleTransform as a parent before doing "Paste Component"');
+      FreeAndNil(NewComponent);
+      Exit;
+    end;
+    (ParentComponent as TCastleTransform).AddBehavior(NewComponent as TCastleBehavior);
+    FinishAddingComponent(NewComponent);
+  end else
   begin
     ErrorBox(Format('Clipboard contains an instance of %s class, cannot insert it into the design',
       [NewComponent.ClassName]));
