@@ -193,6 +193,8 @@ type
       PropertyEditorHook: TPropertyEditorHook;
       FDesignUrl: String;
       FDesignRoot: TComponent;
+      { Viewport created for editing design with FDesignRoot being TCastleTransform. }
+      FDesignViewportForTransforms: TCastleViewport;
       { Owner of all components saved/loaded to the design file.
         Also owner of a temporary viewport for .castle-transform,
         in general this owns everything specific to display currrent design. }
@@ -527,11 +529,15 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
   end;
 
 begin
-  if MouseOverControl(Frame.CastleControl) and
-     (Frame.DesignRoot is TCastleUserInterface) then
-    Result := ControlUnder(Frame.DesignRoot as TCastleUserInterface, AMousePosition, true)
-  else
-    Result := nil;
+  Result := nil;
+  if MouseOverControl(Frame.CastleControl) then
+  begin
+    if Frame.DesignRoot is TCastleUserInterface then
+      Result := ControlUnder(Frame.DesignRoot as TCastleUserInterface, AMousePosition, true)
+    else
+    if Frame.DesignRoot is TCastleTransform then
+      Result := Frame.FDesignViewportForTransforms;
+  end;
 end;
 
 function TDesignFrame.TDesignerLayer.HoverTransform(
@@ -1317,10 +1323,6 @@ end;
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
   const NewDesignUrl: String);
 var
-  Background: TCastleRectangleControl;
-  {$warnings off} // using TCastleAutoNavigationViewport that should be internal
-  TempViewport: TCastleAutoNavigationViewport;
-  {$warnings on}
   //LabelNonVisualHint: TCastleLabel;
   DesignRootVisual: Boolean;
 begin
@@ -1346,16 +1348,15 @@ begin
   end else
   if NewDesignRoot is TCastleTransform then
   begin
-    {$warnings off} // using TCastleAutoNavigationViewport that should be internal
-    TempViewport := TCastleAutoNavigationViewport.InternalCreateNonDesign(NewDesignOwner);
-    {$warnings on}
-    TempViewport.Transparent := true;
-    TempViewport.Items.UseHeadlight := hlOn;
-    TempViewport.Items.Add(NewDesignRoot as TCastleTransform);
-    TempViewport.FullSize := true;
-    TempViewport.AutoCamera := true;
-    TempViewport.AutoNavigation := true;
-    CastleControl.Controls.InsertBack(TempViewport);
+    FDesignViewportForTransforms := TCastleViewport.Create(NewDesignOwner);
+    { This Name is user-visible: if user selects anything in viewport,
+      we show ViewportSelectedOrHover.Name in header. }
+    FDesignViewportForTransforms.Name := 'InternalViewport';
+    FDesignViewportForTransforms.Transparent := true;
+    FDesignViewportForTransforms.Items.UseHeadlight := hlOn;
+    FDesignViewportForTransforms.Items.Add(NewDesignRoot as TCastleTransform);
+    FDesignViewportForTransforms.FullSize := true;
+    CastleControl.Controls.InsertBack(FDesignViewportForTransforms);
     Assert(DesignRootVisual);
   end else
   begin
@@ -1377,11 +1378,8 @@ begin
   SetEnabledVisible(CastleControl, DesignRootVisual);
   SetEnabledVisible(PanelMiddleTop, DesignRootVisual);
 
-  // make background defined
-  Background := TCastleRectangleControl.Create(NewDesignOwner);
-  Background.Color := Vector4(0.5, 0.5, 0.5, 1);
-  Background.FullSize := true;
-  CastleControl.Controls.InsertBack(Background);
+  // set background to gray
+  CastleControl.Container.BackgroundColor := Vector4(0.5, 0.5, 0.5, 1);
 
   // replace DesignXxx variables, once loading successfull
   FDesignRoot := NewDesignRoot;
@@ -2270,6 +2268,11 @@ procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
     const
       Names: array [TInternalDesignNavigationType] of String = ('Fly', 'Examine', '2D');
     begin
+      if not V.InternalDesignManipulation then
+      begin
+        WritelnWarning('Viewport not in design mode, but selected (submit a bug): %s', [V.Name]);
+        Exit;
+      end;
       Result := Names[V.InternalDesignNavigationType];
       if V.InternalDesignNavigationType = dnFly then
         Result := Result + Format(' (speed %f)', [
