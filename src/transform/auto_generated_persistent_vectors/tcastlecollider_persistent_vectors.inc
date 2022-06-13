@@ -158,7 +158,7 @@ published
     instead read or write @link(Scale) directly.
 
     @seealso Scale }
-  property ScalePersistent: TCastleVector3Persistent read FScalePersistent stored StoredWithAutoSize;
+  property ScalePersistent: TCastleVector3Persistent read FScalePersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
