@@ -1034,7 +1034,7 @@ begin
     on the edge, maybe be can remove that when add Capsule collider }
   if PlayerOnGround = false then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
+    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
@@ -1045,7 +1045,7 @@ begin
 
   if PlayerOnGround = false then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
+    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
@@ -1152,7 +1152,7 @@ begin
     on the edge, maye be can remove that when add Capsule collider }
   if PlayerOnGround = false then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40 , -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
+    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30 , -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
@@ -1163,7 +1163,7 @@ begin
 
   if PlayerOnGround = false then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
+    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
       // WriteLnLog('Distance ', FloatToStr(Distance));
@@ -1291,14 +1291,14 @@ begin
   if PlayerOnGround = false then
   begin
     PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
+      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
       Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
   end;
 
   if PlayerOnGround = false then
   begin
     PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
+      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
       Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
   end;
 
@@ -1445,14 +1445,14 @@ begin
   if GroundScene = nil then
   begin
     GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
+      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
       Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
   end;
 
   if GroundScene = nil then
   begin
     GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
+      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
       Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
   end;
 
