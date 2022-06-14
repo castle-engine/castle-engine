@@ -487,16 +487,15 @@
         (X: 0; Y: 0; Z: 1)
       );
 
+      { Default TCastleCamera.Orientation. }
+      DefaultCameraOrientation = otUpYDirectionMinusZ;
+
     class var
-      { Default value of @link(TCastleTransform.Orientation) for new instances.
-        By default:
+      { Default value of @link(TCastleTransform.Orientation) for new TCastleTransform instances,
+        but not for cameras (cameras use special DefaultCameraOrientation).
 
-        @unorderedList(
-          @item(@link(otUpYDirectionMinusZ) for cameras (TCastleCamera),)
-
-          @item(@link(otUpYDirectionZ) for other transformations,
-            matching glTF orientation (as exported from Blender and other software).)
-        ) }
+        This is @link(otUpYDirectionZ) by default.
+        This matches glTF orientation (as exported from Blender and other software). }
       DefaultOrientation: TOrientationType;
 
     var
@@ -1658,15 +1657,7 @@
 
       The @link(Orientation) determines what is your default direction and up
       (when the @link(Rotation) is zero).
-      By default it's
-
-      @unorderedList(
-        @item(@link(otUpYDirectionMinusZ) for cameras (TCastleCamera).
-          So direction is Z (DefaultCameraDirection), up is +Y (DefaultCameraUp).)
-
-        @item(@link(otUpYDirectionZ) for other transformations (matching default orientation
-          of glTF models exported from Blender).)
-      )
+      See @link(Orientation) for documentation of its default value.
 
       The @link(Direction) and @link(Up) vectors should always be normalized
       (have length 1). When setting them by these properties, we will normalize
@@ -1753,23 +1744,29 @@
     { How the direction and up vectors determine transformation.
       See TOrientationType for values documentation.
 
-      The default value of this is determined by static variable
-      DefaultOrientation, this is usually comfortable (because almost
-      always you use the same Orientation throughout your game).
-      By default it's
+      The default value of this is:
 
       @unorderedList(
-        @item(@link(otUpYDirectionMinusZ) for cameras (TCastleCamera).
-          So direction is Z (DefaultCameraDirection), up is +Y (DefaultCameraUp).)
+        @item(For cameras (TCastleCamera):
 
-        @item(@link(otUpYDirectionZ) for other transformations (matching default orientation
-          of glTF models exported from Blender).)
+          DefaultCameraOrientation, which is just constant @link(otUpYDirectionMinusZ).
+          This means direction is -Z (DefaultCameraDirection), up is +Y (DefaultCameraUp).
+        )
+
+        @item(For all other transformations (not cameras):
+
+          DefaultOrientation, static variable, by default @link(otUpYDirectionZ).
+          This means direction is +Z and up is +Y (DefaultCameraUp).
+          This matches default orientation of glTF models exported from Blender.
+
+          You can adjust the Orientation property of particular models.
+          Or you can adjust DefaultOrientation to set it for all (non-camera) transforms
+          throughout your application.
+        )
       )
 
       This value determines how you should model your 3D models,
-      like the creatures, the items, and the player weapons.
-      Generally, it applies to every 3D model that is used as
-      a child of this TCastleTransform instance. }
+      like the creatures, the items, and the player weapons. }
     property Orientation: TOrientationType read FOrientation write FOrientation;
 
     { Transformation objects inside.

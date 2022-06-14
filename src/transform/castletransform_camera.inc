@@ -394,7 +394,7 @@
 
     procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
 
-    property Orientation default otUpYDirectionMinusZ;
+    property Orientation default DefaultCameraOrientation;
   published
     { Projection near plane distance.
 
@@ -599,7 +599,7 @@ begin
   inherited Create(AOwner);
 
   { Override orientation, this is more intuitive for cameras. }
-  Orientation := otUpYDirectionMinusZ;
+  Orientation := DefaultCameraOrientation;
 
   FProjectionType := ptPerspective;
 
