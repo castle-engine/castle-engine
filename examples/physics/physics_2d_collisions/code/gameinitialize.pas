@@ -1,4 +1,4 @@
-﻿{
+{
   Copyright 2019-2021 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
@@ -184,7 +184,7 @@ procedure LoadPlane;
 begin
   Plane := TPlane.Create(Application);
   Viewport.Items.Add(Plane);
-  Plane.Scale := Vector3(5, 5, 0);
+  Plane.Scale := Vector3(5, 5, 1);
 end;
 
 { One-time initialization of resources. }
