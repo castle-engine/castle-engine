@@ -394,7 +394,7 @@
 
     procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
 
-    property Orientation default DefaultCameraOrientation;
+    property Orientation default TCastleTransform.DefaultCameraOrientation;
   published
     { Projection near plane distance.
 
