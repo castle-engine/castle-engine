@@ -108,8 +108,6 @@ type
     procedure ConfigureGroundPhysicsBehaviors(const Ground: TCastleScene);
     procedure ConfigureStonePhysics(const Stone: TCastleScene);
     procedure ConfigureStonePhysicsBehaviors(const Stone: TCastleScene);
-    procedure ConfigureDoorsPhysics(const Door: TCastleScene);
-    procedure ConfigureDoorsPhysicsBehaviors(const Door: TCastleScene);
 
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerPhysicsBehaviors(const Player:TCastleScene);
@@ -606,50 +604,6 @@ begin
 
   Stone.AddBehavior(Collider);
   Stone.AddBehavior(RBody);
-end;
-
-procedure TStatePlay.ConfigureDoorsPhysics(const Door: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
-begin
-  RBody := TRigidBody.Create(Door);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := Door.BoundingBox.SizeX / 2.1;
-  Door.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigureDoorsPhysicsBehaviors(const Door: TCastleScene);
-var
-  RBody: TCastleRigidBody;
-  Collider: TCastleSphereCollider;
-begin
-  RBody := TCastleRigidBody.Create(Door);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-
-  Collider := TCastleSphereCollider.Create(Door);
-  Collider.Radius := Door.BoundingBox.SizeX / 2.1;
-
-  Door.AddBehavior(RBody);
-  Door.AddBehavior(Collider);
 end;
 
 procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
