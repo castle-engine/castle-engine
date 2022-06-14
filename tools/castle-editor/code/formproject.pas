@@ -454,7 +454,7 @@ implementation
 
 {$R *.lfm}
 
-uses TypInfo, LCLType, RegExpr, StrUtils,
+uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
   CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
@@ -1378,13 +1378,41 @@ end;
 
 procedure TProjectForm.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
+
+  {$if LCL_FULLVERSION >= 2020000}
+    {$define HAS_COMBO_EDIT_BOX}
+  {$endif}
+
+  {$ifndef HAS_COMBO_EDIT_BOX}
+  // Adjusted from TComboBoxStyleHelper.HasEditBox in latest LCL.
+  function ComboHasEditBox(const Style: TComboBoxStyle): Boolean;
+  const
+    ArrHasEditBox: array[TComboBoxStyle] of Boolean = (
+      True,  // csDropDown
+      True,  // csSimple
+      False, // csDropDownList
+      False, // csOwnerDrawFixed
+      False, // csOwnerDrawVariable
+      True,  // csOwnerDrawEditableFixed
+      True   // csOwnerDrawEditableVariable
+    );
+  begin
+    Result := ArrHasEditBox[Style];
+  end;
+  {$endif}
+
 var
   E: TEditBox;
 begin
   { See CastleLclEditHack for an expanation of this hack. }
 
   if (ActiveControl is TComboBox) and
-     (TComboBox(ActiveControl).Style.HasEditBox) then
+     {$ifdef HAS_COMBO_EDIT_BOX}
+     (TComboBox(ActiveControl).Style.HasEditBox)
+     {$else}
+     ComboHasEditBox(TComboBox(ActiveControl).Style)
+     {$endif}
+     then
   begin
     E := TEditBoxForComboBox.Create(TComboBox(ActiveControl));
     try
