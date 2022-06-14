@@ -32,7 +32,7 @@ type
     procedure ConfigureDeadlyObstaclePhysics(const DeadlyObstacleScene: TCastleScene);
   public
     constructor Create(AOwner: TComponent); override;
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure HitPlayer;
 
@@ -46,33 +46,22 @@ implementation
 
 uses GameStatePlay;
 
-{ TDeadlyObstacle }
+{ TDeadlyObstacle ------------------------------------------------------------ }
 
 procedure TDeadlyObstacle.ConfigureDeadlyObstaclePhysics(
   const DeadlyObstacleScene: TCastleScene);
 var
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
+  RBody: TCastleRigidBody;
 begin
-  RBody := TRigidBody.Create(DeadlyObstacleScene);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.Trigger := true;
-  RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
-  RBody.OnCollisionExit := {$ifdef FPC}@{$endif}CollisionExit;
+  { Castle Rigid Body and Collider is added in editor we configure only events
+    in code. }
 
-  Collider:= TBoxCollider.Create(RBody);
-  Collider.Size := Vector3(Scene.BoundingBox.SizeX / 2.2, Scene.BoundingBox.SizeY / 3, 30.0);
-  Collider.Friction := 0.1;
-  Collider.Restitution := 0;
-
-  DeadlyObstacleScene.RigidBody := RBody;
+  RBody := DeadlyObstacleScene.RigidBody;
+  if RBody <> nil then
+  begin
+    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
+    RBody.OnCollisionExit := {$ifdef FPC}@{$endif}CollisionExit;
+  end;
 end;
 
 constructor TDeadlyObstacle.Create(AOwner: TComponent);
@@ -83,12 +72,10 @@ begin
   IsPlayerColliding := false;
 end;
 
-procedure TDeadlyObstacle.ParentChanged;
+procedure TDeadlyObstacle.ParentAfterAttach;
 begin
-  inherited ParentChanged;
+  inherited ParentAfterAttach;
 
-  if Parent = nil then
-    Exit;
   Scene := Parent as TCastleScene;
   ConfigureDeadlyObstaclePhysics(Scene);
 end;
