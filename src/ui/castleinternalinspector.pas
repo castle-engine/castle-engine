@@ -69,6 +69,7 @@ type
       HierarchyRowParent: TCastleUserInterface;
       PropertyRowParent: TCastleUserInterface;
       ScrollLogs: TCastleScrollView;
+      ScrollProperties: TCastleScrollView;
       LogsVerticalGroup: TCastleVerticalGroup;
       LabelEarlierLogsRemoved: TCastleLabel;
       LabelLogHeader: TCastleLabel;
@@ -254,6 +255,7 @@ begin
   HierarchyRowParent := UiOwner.FindRequiredComponent('HierarchyRowParent') as TCastleUserInterface;
   PropertyRowParent := UiOwner.FindRequiredComponent('PropertyRowParent') as TCastleUserInterface;
   ScrollLogs := UiOwner.FindRequiredComponent('ScrollLogs') as TCastleScrollView;
+  ScrollProperties := UiOwner.FindRequiredComponent('ScrollProperties') as TCastleScrollView;
   LogsVerticalGroup := UiOwner.FindRequiredComponent('LogsVerticalGroup') as TCastleVerticalGroup;
   LabelEarlierLogsRemoved := UiOwner.FindRequiredComponent('LabelEarlierLogsRemoved') as TCastleLabel;
   LabelLogHeader := UiOwner.FindRequiredComponent('LabelLogHeader') as TCastleLabel;
@@ -815,6 +817,8 @@ begin
     else
       LabelPropertiesHeader.Caption := 'Properties';
 
+    ScrollProperties.Scroll := ScrollProperties.ScrollMin;
+
     UpdateProperties;
   end;
 end;
@@ -854,6 +858,21 @@ procedure TCastleInspector.UpdateProperties;
     AdjustColorsBasedOnPropertyDefault(PropertyOwner.EditValue, IsDefault);
   end;
 
+  function PropertyShow(const PropObject: TComponent; const PropInfo: PPropInfo;
+    out Name: String): Boolean;
+  begin
+    if (Name = 'Name') and
+       (csSubComponent in PropObject.ComponentStyle) then
+    begin
+      { Do not show names of subcomponents, they are not useful (to view or edit).
+        CastleComponentSerialize also doesn't save them (see TCastleJsonWriter.StreamProperty),
+        CGE editor also doesn't show them (see TDesignFrame.InspectorFilter). }
+      Exit(false);
+    end;
+
+    Result := true;
+  end;
+
 var
   PropInfos: TPropInfoList;
   I: Integer;
@@ -867,7 +886,8 @@ begin
     PropInfos := TPropInfoList.Create(FSelectedComponent, tkProperties);
     try
       for I := 0 to PropInfos.Count - 1 do
-        if PropertyGet(FSelectedComponent, PropInfos.Items[I], PropName, PropValue) then
+        if PropertyShow(FSelectedComponent, PropInfos.Items[I], PropName) and
+           PropertyGet(FSelectedComponent, PropInfos.Items[I], PropName, PropValue) then
           AddPropertyRow(FSelectedComponent, PropInfos.Items[I], PropName, PropValue,
             PropertyHasDefaultValue(FSelectedComponent, PropInfos.Items[I], true));
     finally FreeAndNil(PropInfos) end;

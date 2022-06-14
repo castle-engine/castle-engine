@@ -733,7 +733,7 @@
           },
           "EnableDragging" : true,
           "FullSize" : true,
-          "Name" : "ScrollView4",
+          "Name" : "ScrollProperties",
           "ScrollArea" : {
             "$$ClassName" : "TInternalCastleScrollArea",
             "AutoSizeToChildren" : true,
