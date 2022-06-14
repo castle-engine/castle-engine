@@ -137,10 +137,8 @@
 
     function StoredWithAutoSize: Boolean;
   protected
-    procedure ParentAfterAttach; override;
-    procedure ParentBeforeDetach; override;
-
     procedure WorldAfterAttach; override;
+    procedure WorldBeforeDetach; override;
 
     { Only one TCastleCollider behavior can be added to a given
       TCastleTransform so we check that here. }
@@ -1225,46 +1223,36 @@ begin
   end;
 end;
 
-procedure TCastleCollider.ParentAfterAttach;
+procedure TCastleCollider.WorldAfterAttach;
 var
   CastleRigidBody: TCastleRigidBody;
 begin
-  inherited;
   { Check there is a rigid body and we should try initialize collider.
     This is the case when rigid body was added first to behaviors list }
-  if Parent <> nil then
-  begin
-    CastleRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if CastleRigidBody <> nil then
-      CastleRigidBody.CheckInitialization(Self);
+  CastleRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if CastleRigidBody <> nil then
+    CastleRigidBody.CheckInitialization(Self);
 
-    if AutoSize then
-      DoAutoSize;
-  end;
-end;
-
-procedure TCastleCollider.ParentBeforeDetach;
-var
-  CastleRBody: TCastleRigidBody;
-begin
-  inherited;
-
-  CastleRBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  if CastleRBody <> nil then
-  begin
-    // deinitialize collider
-    CastleRBody.DeinitializeColliders;
-  end;
-end;
-
-procedure TCastleCollider.WorldAfterAttach;
-begin
   if AutoSize then
     DoAutoSize;
 
   UpdateScale(false);
 
   inherited WorldAfterAttach;
+end;
+
+procedure TCastleCollider.WorldBeforeDetach;
+var
+  CastleRBody: TCastleRigidBody;
+begin
+  CastleRBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if CastleRBody <> nil then
+  begin
+    // deinitialize collider
+    CastleRBody.DeinitializeColliders;
+  end;
+
+  inherited WorldBeforeDetach;
 end;
 
 function TCastleCollider.CanAttachToParent(const NewParent: TCastleTransform;
@@ -1722,7 +1710,7 @@ end;
 
 destructor TCastleRigidBody.Destroy;
 begin
-  { The FKraftBody will be freed now if you free TRigidBody
+  { The FKraftBody will be freed now if you free TCastleRigidBody
     instance explicitly. In most other cases, DeinitializePhysicsEngineObjects
     already freed FKraftBody and set it nil. }
 
@@ -1777,61 +1765,19 @@ begin
 end;
 
 procedure TCastleRigidBody.DeinitializePhysicsEngineObjects;
-
-  procedure RemoveSelfFromOtherRigidBodiesCollisionLists;
-  var
-    OtherRigidBody: TCastleRigidBody;
-    CollisionDetails: TPhysicsCollisionDetails;
-    ContactPairEdge: PKraftContactPairEdge;
-  begin
-    if FKraftBody = nil then
-      Exit;
-    { We don't use here FPrevCollisions list because it can be empty when
-      this rigid body don't assign any FOnCollisionXXX event. }
-    ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
-    while Assigned(ContactPairEdge) do
-    begin
-      if kcfColliding in ContactPairEdge^.ContactPair^.Flags then
-      begin
-        OtherRigidBody := TCastleRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
-
-        { We need check that only when other body has OnCollisionExit or
-          OnCollisionStay event assigned. }
-        if Assigned(OtherRigidBody.FOnCollisionExit) or
-           Assigned(OtherRigidBody.FOnCollisionStay) then
-        begin
-          { First we need send OnCollisionExit event if needed. }
-          if Assigned(OtherRigidBody.FOnCollisionExit) then
-          begin
-            CollisionDetails.Transforms[0] := OtherRigidBody.FTransform;
-            CollisionDetails.Transforms[1] := FTransform;
-            OtherRigidBody.FOnCollisionExit(CollisionDetails);
-          end;
-
-          { Now we can simply remove Self from other rigid body FPrevCollisions list }
-          OtherRigidBody.FPrevCollisions.Remove(Self);
-          { Currently not needed because it's not used directly from other functions
-            than PhysicsPostStep() but this can change in the future. }
-          OtherRigidBody.FCurrentCollisions.Remove(Self);
-        end;
-      end;
-      ContactPairEdge := ContactPairEdge^.Next;
-    end;
-  end;
-
 begin
   Assert(FKraftBody <> nil, 'Second deinitialization!');
-  Assert(Parent = FTransform, 'Parent should be the transform for which physics engine objects was initiated.');
-  Assert(Parent.World <> nil, 'Transform.World should be assigned at the time of TRigidBody.DeinitializeTransform call');
 
-  Assert(not ((Parent.World.FKraftEngine = nil) and (FKraftBody <> nil)), 'KraftBody should not live longer than KraftEngine!');
+  Assert(Parent = FTransform,
+    'Parent should be the transform for which physics engine objects was initiated.');
+
+  Assert(Parent.World <> nil,
+    'Transform.World should be assigned at the time of TCastleRigidBody.DeinitializePhysicsEngineObjects call');
+
+  Assert(not ((Parent.World.FKraftEngine = nil) and (FKraftBody <> nil)),
+    'KraftBody should not live longer than KraftEngine!');
 
   DeinitializeColliders;
-
-  { Deinitialize rigid body when it's in collision with other rigid body make
-    this body will be dangling pointer on it's FPrevCollisions list.
-    So other rigid body can crash when it try to send FOnCollisionExit event. }
-  RemoveSelfFromOtherRigidBodiesCollisionLists;
 
   FreeAndNil(FKraftBody);
 
@@ -2021,10 +1967,62 @@ begin
 end;
 
 procedure TCastleRigidBody.DeinitializeColliders;
+
+  procedure RemoveSelfFromOtherRigidBodiesCollisionLists;
+  var
+    OtherRigidBody: TCastleRigidBody;
+    CollisionDetails: TPhysicsCollisionDetails;
+    ContactPairEdge: PKraftContactPairEdge;
+  begin
+    if FKraftBody = nil then
+      Exit;
+
+    { We don't use here FPrevCollisions list because it can be empty when
+      this rigid body don't assign any FOnCollisionXXX event. }
+    ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
+    while Assigned(ContactPairEdge) do
+    begin
+      if kcfColliding in ContactPairEdge^.ContactPair^.Flags then
+      begin
+        OtherRigidBody := TCastleRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
+
+        { We need check that only when other body has OnCollisionExit or
+          OnCollisionStay event assigned. }
+        if Assigned(OtherRigidBody.FOnCollisionExit) or
+           Assigned(OtherRigidBody.FOnCollisionStay) then
+        begin
+          { First we need send OnCollisionExit event if needed. }
+          if Assigned(OtherRigidBody.FOnCollisionExit) then
+          begin
+            CollisionDetails.Transforms[0] := OtherRigidBody.FTransform;
+            CollisionDetails.Transforms[1] := FTransform;
+            OtherRigidBody.FOnCollisionExit(CollisionDetails);
+          end;
+
+          { Now we can simply remove Self from other rigid body FPrevCollisions list }
+          OtherRigidBody.FPrevCollisions.Remove(Self);
+          { Currently not needed because it's not used directly from other functions
+            than PhysicsPostStep() but this can change in the future. }
+          OtherRigidBody.FCurrentCollisions.Remove(Self);
+        end;
+      end;
+      ContactPairEdge := ContactPairEdge^.Next;
+    end;
+  end;
+
 begin
+  { Deinitialize rigid body when it's in collision with other rigid body make
+    this body will be dangling pointer on it's FPrevCollisions list.
+    So other rigid body can crash when it try to send FOnCollisionExit event.
+    Collisons must be handled before CastleCollider deinitialization because
+    kraft resets collisons when you remove collider. }
+  if (Collider <> nil) or (FCastleCollider <> nil) then
+    RemoveSelfFromOtherRigidBodiesCollisionLists;
+
   { Collider.FKraftShape is owned by FKraftBody, it was automatically freed already }
   if Collider <> nil then
   begin
+
     Collider.FKraftShape := nil;
     FState := crbsNoCollider;
   end else
@@ -2441,13 +2439,13 @@ end;
 
 procedure TCastleRigidBody.WorldBeforeDetach;
 begin
-  inherited;
-
   if FState <> crbsNotInitialized then
   begin
     Assert(Parent = FTransform, 'Parent and FTransform should be the same.');
     DeinitializePhysicsEngineObjects;
   end;
+
+  inherited;
 end;
 
 function TCastleRigidBody.GetCollidingTransforms: TCastleTransformList;
