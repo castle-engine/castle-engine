@@ -80,15 +80,85 @@ interface
 uses {$ifdef MSWINDOWS} { for GetKeyState } Windows, {$endif}
   SysUtils, Classes, StdCtrls;
 
-{ Process the given key to realize default TEdit action on it.
-  Processes only a subset of keys for which FormProject has possibly a menu shortcut. }
-procedure ProcessEditKey(const E: TEdit; var Key: Word; const Shift: TShiftState);
+type
+  { Abstact class to wrap capabilities of TEdit and (editable) TComboBox. }
+  TEditBox = class
+  protected
+    function GetSelLength: Integer; virtual; abstract;
+    function GetSelStart: Integer; virtual; abstract;
+    function GetSelText: String; virtual; abstract;
+    function GetText: String; virtual; abstract;
+    procedure SetSelLength(const AValue: Integer); virtual; abstract;
+    procedure SetSelStart(const AValue: Integer); virtual; abstract;
+    procedure SetSelText(const AValue: String); virtual; abstract;
+    procedure SetText(const AValue: String); virtual; abstract;
+
+    property Text: String read GetText write SetText;
+    property SelText: String read GetSelText write SetSelText;
+    property SelStart: Integer read GetSelStart write SetSelStart;
+    property SelLength: Integer read GetSelLength write SetSelLength;
+
+    procedure CopyToClipboard; virtual;
+    procedure CutToClipboard; virtual;
+    procedure PasteFromClipboard; virtual;
+    procedure Undo; virtual;
+    function ReadOnly: Boolean; virtual; abstract;
+  public
+    { Process the given key to realize default editing action on it.
+      Processes only a subset of keys for which FormProject has possibly a menu shortcut. }
+    procedure ProcessKey(var Key: Word; const Shift: TShiftState);
+  end;
+
+  { Wrapper around TEdit. }
+  TEditBoxForEdit = class(TEditBox)
+  strict private
+    E: TEdit;
+  protected
+    function GetSelLength: Integer; override;
+    function GetSelStart: Integer; override;
+    function GetSelText: String; override;
+    function GetText: String; override;
+    procedure SetSelLength(const AValue: Integer); override;
+    procedure SetSelStart(const AValue: Integer); override;
+    procedure SetSelText(const AValue: String); override;
+    procedure SetText(const AValue: String); override;
+
+    procedure CopyToClipboard; override;
+    procedure CutToClipboard; override;
+    procedure PasteFromClipboard; override;
+    procedure Undo; override;
+    function ReadOnly: Boolean; override;
+  public
+    constructor Create(const AEdit: TEdit);
+  end;
+
+  { Wrapper around TComboBox. }
+  TEditBoxForComboBox = class(TEditBox)
+  strict private
+    E: TComboBox;
+  protected
+    function GetSelLength: Integer; override;
+    function GetSelStart: Integer; override;
+    function GetSelText: String; override;
+    function GetText: String; override;
+    procedure SetSelLength(const AValue: Integer); override;
+    procedure SetSelStart(const AValue: Integer); override;
+    procedure SetSelText(const AValue: String); override;
+    procedure SetText(const AValue: String); override;
+
+    function ReadOnly: Boolean; override;
+  public
+    constructor Create(const AEdit: TComboBox);
+  end;
 
 implementation
 
-uses LCLType, StrUtils, CastleStringUtils;
+uses LCLType, StrUtils, Clipbrd,
+  CastleStringUtils;
 
-procedure ProcessEditKey(const E: TEdit; var Key: Word; const Shift: TShiftState);
+{ TEditBox ------------------------------------------------------------------- }
+
+procedure TEditBox.ProcessKey(var Key: Word; const Shift: TShiftState);
 
   { When pressing a letter, should we make it upper?
     It sucks, but in this workaround we cannot depend on OnKeyPress reaching us
@@ -110,11 +180,11 @@ procedure ProcessEditKey(const E: TEdit; var Key: Word; const Shift: TShiftState
 
   procedure InsertChar(const C: String);
   begin
-    if E.ReadOnly then
+    if ReadOnly then
       Beep
     else
       // TODO: in Overwrite mode, with SelText = '', delete next char first
-      E.SelText := C;
+      SelText := C;
   end;
 
 var
@@ -125,11 +195,11 @@ begin
       begin
         if Shift = [ssShift] then
         begin
-          SavedSelStart := E.SelStart;
-          E.SelStart := 0;
-          E.SelLength := SavedSelStart;
+          SavedSelStart := SelStart;
+          SelStart := 0;
+          SelLength := SavedSelStart;
         end else
-          E.SelStart := 0
+          SelStart := 0
       end;
     {.$ifdef LCLCocoa}
     { If user didn't adjust Home/End system-wide, then actually
@@ -141,58 +211,58 @@ begin
     VK_END:
       begin
         if Shift = [ssShift] then
-          E.SelLength := Length(E.Text) - E.SelStart
+          SelLength := Length(Text) - SelStart
         else
-          E.SelStart := Length(E.Text);
+          SelStart := Length(Text);
       end;
     {.$endif}
     VK_0..VK_9: InsertChar(Chr(Ord('0') + Key - VK_0));
     VK_F: InsertChar(IfThen(LettersUpCase, 'F', 'f'));
     VK_Z:
       if Shift = [ssCtrl] then
-        E.Undo
+        Undo
       else
         Exit; // resign from special handling
       //if Shift = [ssCtrl, ssShift] then
-      //  E.Redo
+      //  Redo
       //else
     VK_C:
       if Shift = [ssCtrl] then
-        E.CopyToClipboard
+        CopyToClipboard
       else
         Exit; // resign from special handling
     VK_V:
       if Shift = [ssCtrl] then
       begin
-        if E.ReadOnly then
+        if ReadOnly then
           Beep
         else
-          E.PasteFromClipboard;
+          PasteFromClipboard;
       end else
         Exit; // resign from special handling
     VK_X:
       if Shift = [ssCtrl] then
       begin
-        if E.ReadOnly then
+        if ReadOnly then
           Beep
         else
-          E.CutToClipboard
+          CutToClipboard
       end else
         Exit; // resign from special handling
     VK_DELETE:
-      if E.ReadOnly then
+      if ReadOnly then
         Beep
       else
       begin
-        if E.SelText <> '' then
-          E.SelText := ''
+        if SelText <> '' then
+          SelText := ''
         else
         begin
-          SavedSelStart := E.SelStart;
-          E.Text :=
-            Copy(E.Text, 1, E.SelStart) +
-            SEnding(E.Text, E.SelStart + 2);
-          E.SelStart := SavedSelStart;
+          SavedSelStart := SelStart;
+          Text :=
+            Copy(Text, 1, SelStart) +
+            SEnding(Text, SelStart + 2);
+          SelStart := SavedSelStart;
         end;
       end;
     else
@@ -200,6 +270,179 @@ begin
   end;
 
   Key := 0; // prevent key reaching normal menu/action event
+end;
+
+procedure TEditBox.CopyToClipboard;
+begin
+  if SelText <> '' then
+    Clipboard.AsText := SelText;
+end;
+
+procedure TEditBox.CutToClipboard;
+begin
+  CopyToClipboard;
+  SelText := '';
+end;
+
+procedure TEditBox.PasteFromClipboard;
+begin
+  if Clipboard.HasFormat(CF_TEXT) then
+    SelText := Clipboard.AsText;
+end;
+
+procedure TEditBox.Undo;
+begin
+  // do nothing
+end;
+
+{ TEditBoxForEdit ------------------------------------------------------------ }
+
+function TEditBoxForEdit.GetSelLength: Integer;
+begin
+  Result := E.SelLength;
+end;
+
+function TEditBoxForEdit.GetSelStart: Integer;
+begin
+  Result := E.SelStart;
+end;
+
+function TEditBoxForEdit.GetSelText: String;
+begin
+  Result := E.SelText;
+end;
+
+function TEditBoxForEdit.GetText: String;
+begin
+  Result := E.Text;
+end;
+
+procedure TEditBoxForEdit.SetSelLength(const AValue: Integer);
+begin
+  E.SelLength := AValue;
+end;
+
+procedure TEditBoxForEdit.SetSelStart(const AValue: Integer);
+begin
+  E.SelStart := AValue;
+end;
+
+procedure TEditBoxForEdit.SetSelText(const AValue: String);
+begin
+  E.SelText := AValue;
+end;
+
+procedure TEditBoxForEdit.SetText(const AValue: String);
+begin
+  E.Text := AValue;
+end;
+
+constructor TEditBoxForEdit.Create(const AEdit: TEdit);
+begin
+  inherited Create;
+  E := AEdit;
+end;
+
+procedure TEditBoxForEdit.CopyToClipboard;
+begin
+  E.CopyToClipboard;
+end;
+
+procedure TEditBoxForEdit.CutToClipboard;
+begin
+  E.CutToClipboard;
+end;
+
+procedure TEditBoxForEdit.PasteFromClipboard;
+begin
+  E.PasteFromClipboard;
+end;
+
+procedure TEditBoxForEdit.Undo;
+begin
+  E.Undo;
+end;
+
+function TEditBoxForEdit.ReadOnly: Boolean;
+begin
+  Result := E.ReadOnly;
+end;
+
+{ TEditBoxForComboBox ------------------------------------------------------------ }
+
+function TEditBoxForComboBox.GetSelLength: Integer;
+begin
+  Result := E.SelLength;
+end;
+
+function TEditBoxForComboBox.GetSelStart: Integer;
+begin
+  Result := E.SelStart;
+end;
+
+function TEditBoxForComboBox.GetSelText: String;
+begin
+  Result := E.SelText;
+end;
+
+function TEditBoxForComboBox.GetText: String;
+begin
+  Result := E.Text;
+end;
+
+procedure TEditBoxForComboBox.SetSelLength(const AValue: Integer);
+begin
+  E.SelLength := AValue;
+end;
+
+procedure TEditBoxForComboBox.SetSelStart(const AValue: Integer);
+begin
+  E.SelStart := AValue;
+end;
+
+procedure TEditBoxForComboBox.SetSelText(const AValue: String);
+begin
+  E.SelText := AValue;
+  { Without these lines, by default setting SelText keeps it selected,
+    unlike on TEdit. }
+  E.SelStart := E.SelStart + Length(AValue);
+  E.SelLength := 0;
+end;
+
+procedure TEditBoxForComboBox.SetText(const AValue: String);
+begin
+  E.Text := AValue;
+end;
+
+constructor TEditBoxForComboBox.Create(const AEdit: TComboBox);
+begin
+  inherited Create;
+  E := AEdit;
+end;
+
+//procedure TEditBoxForComboBox.CopyToClipboard;
+//begin
+//  E.CopyToClipboard;
+//end;
+//
+//procedure TEditBoxForComboBox.CutToClipboard;
+//begin
+//  E.CutToClipboard;
+//end;
+//
+//procedure TEditBoxForComboBox.PasteFromClipboard;
+//begin
+//  E.PasteFromClipboard;
+//end;
+//
+//procedure TEditBoxForComboBox.Undo;
+//begin
+//  E.Undo;
+//end;
+
+function TEditBoxForComboBox.ReadOnly: Boolean;
+begin
+  Result := E.ReadOnly;
 end;
 
 end.

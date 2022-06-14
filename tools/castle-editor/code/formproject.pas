@@ -1378,10 +1378,27 @@ end;
 
 procedure TProjectForm.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
+var
+  E: TEditBox;
 begin
   { See CastleLclEditHack for an expanation of this hack. }
+
+  if (ActiveControl is TComboBox) and
+     (TComboBox(ActiveControl).Style.HasEditBox) then
+  begin
+    E := TEditBoxForComboBox.Create(TComboBox(ActiveControl));
+    try
+      E.ProcessKey(Key, Shift);
+    finally FreeAndNil(E) end;
+  end;
+
   if ActiveControl is TEdit then
-    ProcessEditKey(TEdit(ActiveControl), Key, Shift);
+  begin
+    E := TEditBoxForEdit.Create(TEdit(ActiveControl));
+    try
+      E.ProcessKey(Key, Shift);
+    finally FreeAndNil(E) end;
+  end;
 end;
 
 procedure TProjectForm.FormShow(Sender: TObject);
