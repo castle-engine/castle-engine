@@ -1103,9 +1103,15 @@ class procedure TCastleInspector.AdjustColorsBasedOnPropertyDefault(
   const Edit: TCastleEdit; const IsDefault: Boolean);
 begin
   if IsDefault then
-    Edit.BackgroundColor := White
-  else
-    Edit.BackgroundColor := Vector4(0.8, 0.8, 1, 1);
+  begin
+    // TCastleEdit defaults
+    Edit.FocusedColor := Black;
+    Edit.UnfocusedColor := Vector4(0.25, 0.25, 0.25, 1);
+  end else
+  begin
+    Edit.FocusedColor := Blue;
+    Edit.UnfocusedColor := Vector4(0.25, 0.25, 1, 1);
+  end;
 end;
 
 initialization
