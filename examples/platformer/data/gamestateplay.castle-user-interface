@@ -1731,7 +1731,35 @@
                   "X" : 4.1317158203125000E+003,
                   "Y" : 2.2052359008789062E+002
                 },
-                "URL" : "castle-data:/items/keyYellow.png"
+                "URL" : "castle-data:/items/keyYellow.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody22",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider1",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 2.5000000000000000E-001,
+                      "Y" : 2.5000000000000000E-001,
+                      "Z" : 2.5000000000000000E-001
+                    }
+                  }
+                ]
               }
             ]
           },
@@ -1774,6 +1802,34 @@
                       "Y" : 1.2000000000000000E+002
                     },
                     "URL" : "castle-data:/door/doorKeyInfo.png"
+                  }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody23",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider2",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 6.9999998807907104E-001,
+                      "Y" : 6.9999998807907104E-001,
+                      "Z" : 6.9999998807907104E-001
+                    }
                   }
                 ]
               }
