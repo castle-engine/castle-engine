@@ -110,8 +110,6 @@ type
     procedure ConfigureStonePhysicsBehaviors(const Stone: TCastleScene);
     procedure ConfigureDoorsPhysics(const Door: TCastleScene);
     procedure ConfigureDoorsPhysicsBehaviors(const Door: TCastleScene);
-    procedure ConfigureKeysPhysics(const Key: TCastleScene);
-    procedure ConfigureKeysPhysicsBehaviors(const Key: TCastleScene);
 
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerPhysicsBehaviors(const Player:TCastleScene);
@@ -652,49 +650,6 @@ begin
 
   Door.AddBehavior(RBody);
   Door.AddBehavior(Collider);
-end;
-
-procedure TStatePlay.ConfigureKeysPhysics(const Key: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
-begin
-  RBody := TRigidBody.Create(Key);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := Key.BoundingBox.SizeX / 4;
-  Key.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigureKeysPhysicsBehaviors(const Key: TCastleScene);
-var
-  RBody: TCastleRigidBody;
-  Collider: TCastleSphereCollider;
-begin
-  RBody := TCastleRigidBody.Create(Key);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-
-  Collider := TCastleSphereCollider.Create(Key);
-  Collider.Radius := Key.BoundingBox.SizeX / 4;
-  Key.AddBehavior(RBody);
-  Key.AddBehavior(Collider);
 end;
 
 procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
@@ -1843,15 +1798,6 @@ begin
       ConfigureDoorsPhysicsBehaviors(DoorsRoot.Items[I] as TCastleScene)
     else
       ConfigureDoorsPhysics(DoorsRoot.Items[I] as TCastleScene);
-  end;
-
-  KeysRoot := DesignedComponent('Keys') as TCastleTransform;
-  for I := 0 to KeysRoot.Count - 1 do
-  begin
-    if NewPhysicsBehaviors then
-      ConfigureKeysPhysicsBehaviors(KeysRoot.Items[I] as TCastleScene)
-    else
-      ConfigureKeysPhysics(KeysRoot.Items[I] as TCastleScene);
   end;
 
   Enemies := TEnemyList.Create(true);
