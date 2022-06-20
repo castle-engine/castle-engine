@@ -8496,6 +8496,34 @@
                     },
                     "URL" : "castle-data:/ground/grass/grassMid.png"
                   }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody166"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider140",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
                 ]
               },
               {
@@ -8637,6 +8665,34 @@
                       "X" : 5.1200000000000000E+002
                     },
                     "URL" : "castle-data:/ground/grass/grassMid.png"
+                  }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody167"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider141",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
                   }
                 ]
               },
@@ -8780,6 +8836,34 @@
                     },
                     "URL" : "castle-data:/ground/grass/grassMid.png"
                   }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody173"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider143",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
                 ]
               },
               {
@@ -8921,6 +9005,34 @@
                       "X" : 5.1200000000000000E+002
                     },
                     "URL" : "castle-data:/ground/grass/grassMid.png"
+                  }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody174"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider144",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
                   }
                 ]
               },
@@ -9064,6 +9176,34 @@
                     },
                     "URL" : "castle-data:/ground/grass/grassMid.png"
                   }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody175"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider145",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
                 ]
               },
               {
@@ -9205,6 +9345,34 @@
                       "X" : 5.1200000000000000E+002
                     },
                     "URL" : "castle-data:/ground/grass/grassMid.png"
+                  }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody172"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider146",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
                   }
                 ]
               },
@@ -9348,6 +9516,34 @@
                     },
                     "URL" : "castle-data:/ground/grass/grassMid.png"
                   }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody171"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider147",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
                 ]
               },
               {
@@ -9489,6 +9685,34 @@
                       "X" : 5.1200000000000000E+002
                     },
                     "URL" : "castle-data:/ground/grass/grassMid.png"
+                  }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody170"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider142",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
                   }
                 ]
               },
@@ -9633,6 +9857,34 @@
                     },
                     "URL" : "castle-data:/ground/grass/grassHalf_mid.png"
                   }
+                ],
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody176"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider148",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
                 ]
               },
               {
@@ -9653,7 +9905,35 @@
                       "X" : 8.7248999023437500E+002,
                       "Y" : 1.1552999877929688E+002
                     },
-                    "URL" : "castle-data:/ground/grass/grassCenter.png"
+                    "URL" : "castle-data:/ground/grass/grassCenter.png",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleRigidBody",
+                        "AngularVelocityDamp" : 0.0000000000000000E+000,
+                        "Dynamic" : false,
+                        "Gravity" : false,
+                        "LinearVelocityDamp" : 0.0000000000000000E+000,
+                        "LockRotation" : [
+                          0,
+                          1,
+                          2
+                        ],
+                        "LockTranslation" : [
+                          2
+                        ],
+                        "Name" : "RigidBody177"
+                      },
+                      {
+                        "$$ClassName" : "TCastleBoxCollider",
+                        "Name" : "BoxCollider149",
+                        "ScalePersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : 1.0000000000000000E+000,
+                          "Y" : 1.0000000000000000E+000,
+                          "Z" : 1.0000000000000000E+000
+                        }
+                      }
+                    ]
                   },
                   {
                     "$$ClassName" : "TCastleScene",
@@ -9669,7 +9949,35 @@
                       "X" : 9.9961999511718750E+002,
                       "Y" : 1.1552999877929688E+002
                     },
-                    "URL" : "castle-data:/ground/grass/grassCenter.png"
+                    "URL" : "castle-data:/ground/grass/grassCenter.png",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleRigidBody",
+                        "AngularVelocityDamp" : 0.0000000000000000E+000,
+                        "Dynamic" : false,
+                        "Gravity" : false,
+                        "LinearVelocityDamp" : 0.0000000000000000E+000,
+                        "LockRotation" : [
+                          0,
+                          1,
+                          2
+                        ],
+                        "LockTranslation" : [
+                          2
+                        ],
+                        "Name" : "RigidBody178"
+                      },
+                      {
+                        "$$ClassName" : "TCastleBoxCollider",
+                        "Name" : "BoxCollider150",
+                        "ScalePersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : 1.0000000000000000E+000,
+                          "Y" : 1.0000000000000000E+000,
+                          "Z" : 1.0000000000000000E+000
+                        }
+                      }
+                    ]
                   },
                   {
                     "$$ClassName" : "TCastleScene",
@@ -9685,7 +9993,35 @@
                       "X" : 1.1270000000000000E+003,
                       "Y" : 1.1552999877929688E+002
                     },
-                    "URL" : "castle-data:/ground/grass/grassCenter.png"
+                    "URL" : "castle-data:/ground/grass/grassCenter.png",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleRigidBody",
+                        "AngularVelocityDamp" : 0.0000000000000000E+000,
+                        "Dynamic" : false,
+                        "Gravity" : false,
+                        "LinearVelocityDamp" : 0.0000000000000000E+000,
+                        "LockRotation" : [
+                          0,
+                          1,
+                          2
+                        ],
+                        "LockTranslation" : [
+                          2
+                        ],
+                        "Name" : "RigidBody179"
+                      },
+                      {
+                        "$$ClassName" : "TCastleBoxCollider",
+                        "Name" : "BoxCollider151",
+                        "ScalePersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : 1.0000000000000000E+000,
+                          "Y" : 1.0000000000000000E+000,
+                          "Z" : 1.0000000000000000E+000
+                        }
+                      }
+                    ]
                   },
                   {
                     "$$ClassName" : "TCastleScene",
@@ -9701,7 +10037,35 @@
                       "X" : 1.2515899658203125E+003,
                       "Y" : 1.1552999877929688E+002
                     },
-                    "URL" : "castle-data:/ground/grass/grassCenter.png"
+                    "URL" : "castle-data:/ground/grass/grassCenter.png",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleRigidBody",
+                        "AngularVelocityDamp" : 0.0000000000000000E+000,
+                        "Dynamic" : false,
+                        "Gravity" : false,
+                        "LinearVelocityDamp" : 0.0000000000000000E+000,
+                        "LockRotation" : [
+                          0,
+                          1,
+                          2
+                        ],
+                        "LockTranslation" : [
+                          2
+                        ],
+                        "Name" : "RigidBody180"
+                      },
+                      {
+                        "$$ClassName" : "TCastleBoxCollider",
+                        "Name" : "BoxCollider152",
+                        "ScalePersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : 1.0000000000000000E+000,
+                          "Y" : 1.0000000000000000E+000,
+                          "Z" : 1.0000000000000000E+000
+                        }
+                      }
+                    ]
                   },
                   {
                     "$$ClassName" : "TCastleScene",
@@ -9717,7 +10081,35 @@
                       "X" : 8.7248999023437500E+002,
                       "Y" : 2.4250999450683594E+002
                     },
-                    "URL" : "castle-data:/ground/grass/grassCenter.png"
+                    "URL" : "castle-data:/ground/grass/grassCenter.png",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleRigidBody",
+                        "AngularVelocityDamp" : 0.0000000000000000E+000,
+                        "Dynamic" : false,
+                        "Gravity" : false,
+                        "LinearVelocityDamp" : 0.0000000000000000E+000,
+                        "LockRotation" : [
+                          0,
+                          1,
+                          2
+                        ],
+                        "LockTranslation" : [
+                          2
+                        ],
+                        "Name" : "RigidBody181"
+                      },
+                      {
+                        "$$ClassName" : "TCastleBoxCollider",
+                        "Name" : "BoxCollider153",
+                        "ScalePersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : 1.0000000000000000E+000,
+                          "Y" : 1.0000000000000000E+000,
+                          "Z" : 1.0000000000000000E+000
+                        }
+                      }
+                    ]
                   },
                   {
                     "$$ClassName" : "TCastleScene",
@@ -9733,7 +10125,35 @@
                       "X" : 8.7248999023437500E+002,
                       "Y" : 3.6852999877929688E+002
                     },
-                    "URL" : "castle-data:/ground/grass/grassCenter.png"
+                    "URL" : "castle-data:/ground/grass/grassCenter.png",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleRigidBody",
+                        "AngularVelocityDamp" : 0.0000000000000000E+000,
+                        "Dynamic" : false,
+                        "Gravity" : false,
+                        "LinearVelocityDamp" : 0.0000000000000000E+000,
+                        "LockRotation" : [
+                          0,
+                          1,
+                          2
+                        ],
+                        "LockTranslation" : [
+                          2
+                        ],
+                        "Name" : "RigidBody182"
+                      },
+                      {
+                        "$$ClassName" : "TCastleBoxCollider",
+                        "Name" : "BoxCollider154",
+                        "ScalePersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : 1.0000000000000000E+000,
+                          "Y" : 1.0000000000000000E+000,
+                          "Z" : 1.0000000000000000E+000
+                        }
+                      }
+                    ]
                   },
                   {
                     "$$ClassName" : "TCastleScene",
@@ -9749,7 +10169,35 @@
                       "X" : 8.7248999023437500E+002,
                       "Y" : 4.9530999755859375E+002
                     },
-                    "URL" : "castle-data:/ground/grass/grassCenter.png"
+                    "URL" : "castle-data:/ground/grass/grassCenter.png",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleRigidBody",
+                        "AngularVelocityDamp" : 0.0000000000000000E+000,
+                        "Dynamic" : false,
+                        "Gravity" : false,
+                        "LinearVelocityDamp" : 0.0000000000000000E+000,
+                        "LockRotation" : [
+                          0,
+                          1,
+                          2
+                        ],
+                        "LockTranslation" : [
+                          2
+                        ],
+                        "Name" : "RigidBody183"
+                      },
+                      {
+                        "$$ClassName" : "TCastleBoxCollider",
+                        "Name" : "BoxCollider155",
+                        "ScalePersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : 1.0000000000000000E+000,
+                          "Y" : 1.0000000000000000E+000,
+                          "Z" : 1.0000000000000000E+000
+                        }
+                      }
+                    ]
                   },
                   {
                     "$$ClassName" : "TCastleScene",
@@ -9765,7 +10213,35 @@
                       "X" : 8.7248999023437500E+002,
                       "Y" : 6.1797998046875000E+002
                     },
-                    "URL" : "castle-data:/ground/grass/grassMid.png"
+                    "URL" : "castle-data:/ground/grass/grassMid.png",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleRigidBody",
+                        "AngularVelocityDamp" : 0.0000000000000000E+000,
+                        "Dynamic" : false,
+                        "Gravity" : false,
+                        "LinearVelocityDamp" : 0.0000000000000000E+000,
+                        "LockRotation" : [
+                          0,
+                          1,
+                          2
+                        ],
+                        "LockTranslation" : [
+                          2
+                        ],
+                        "Name" : "RigidBody184"
+                      },
+                      {
+                        "$$ClassName" : "TCastleBoxCollider",
+                        "Name" : "BoxCollider156",
+                        "ScalePersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : 1.0000000000000000E+000,
+                          "Y" : 1.0000000000000000E+000,
+                          "Z" : 1.0000000000000000E+000
+                        }
+                      }
+                    ]
                   },
                   {
                     "$$ClassName" : "TCastleScene",
@@ -9781,7 +10257,35 @@
                       "X" : 1.0004899902343750E+003,
                       "Y" : 6.1797998046875000E+002
                     },
-                    "URL" : "castle-data:/ground/grass/grassMid.png"
+                    "URL" : "castle-data:/ground/grass/grassMid.png",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleRigidBody",
+                        "AngularVelocityDamp" : 0.0000000000000000E+000,
+                        "Dynamic" : false,
+                        "Gravity" : false,
+                        "LinearVelocityDamp" : 0.0000000000000000E+000,
+                        "LockRotation" : [
+                          0,
+                          1,
+                          2
+                        ],
+                        "LockTranslation" : [
+                          2
+                        ],
+                        "Name" : "RigidBody185"
+                      },
+                      {
+                        "$$ClassName" : "TCastleBoxCollider",
+                        "Name" : "BoxCollider157",
+                        "ScalePersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : 1.0000000000000000E+000,
+                          "Y" : 1.0000000000000000E+000,
+                          "Z" : 1.0000000000000000E+000
+                        }
+                      }
+                    ]
                   }
                 ]
               }

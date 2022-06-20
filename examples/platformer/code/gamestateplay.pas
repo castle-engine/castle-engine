@@ -102,8 +102,6 @@ type
     procedure ConfigureCoinsPhysicsBehaviors(const Coin: TCastleScene);
     procedure ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
     procedure ConfigurePowerUpsPhysicsBehaviors(const PowerUp: TCastleScene);
-    procedure ConfigureGroundPhysics(const Ground: TCastleScene);
-    procedure ConfigureGroundPhysicsBehaviors(const Ground: TCastleScene);
 
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerPhysicsBehaviors(const Player:TCastleScene);
@@ -406,59 +404,6 @@ begin
   Collider.Friction := 0.1;
   Collider.Restitution := 0.05;
   PowerUp.AddBehavior(Collider);
-end;
-
-procedure TStatePlay.ConfigureGroundPhysics(const Ground: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
-  Size: TVector3;
-begin
-  RBody := TRigidBody.Create(Ground);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-
-  Collider := TBoxCollider.Create(RBody);
-
-  Size.X := Ground.BoundingBox.SizeX;
-  Size.Y := Ground.BoundingBox.SizeY;
-  Size.Z := 1;
-
-  Collider.Size := Size;
-
-  Ground.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigureGroundPhysicsBehaviors(const Ground: TCastleScene);
-var
-  RBody: TCastleRigidBody;
-  Collider: TCastleBoxCollider;
-  Size: TVector3;
-begin
-  RBody := TCastleRigidBody.Create(Ground);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-
-  Collider := TCastleBoxCollider.Create(Ground);
-
-  Size.X := Ground.BoundingBox.SizeX;
-  Size.Y := Ground.BoundingBox.SizeY;
-  Size.Z := 1;
-
-  Collider.Size := Size;
-
-  Ground.AddBehavior(RBody);
-  Ground.AddBehavior(Collider);
 end;
 
 procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
@@ -1526,25 +1471,6 @@ begin
       ConfigureCoinsPhysicsBehaviors(CoinsRoot.Items[I] as TCastleScene)
     else
       ConfigureCoinsPhysics(CoinsRoot.Items[I] as TCastleScene);
-  end;
-
-  { Configure physics for ground  }
-
-  GroundsRoot := DesignedComponent('Grounds') as TCastleTransform;
-  for I := 0 to GroundsRoot.Count - 1 do
-  begin
-    if (Pos('GroundLine', GroundsRoot.Items[I].Name) = 1) or
-       (Pos('GroundOther', GroundsRoot.Items[I].Name) = 1) then
-    begin
-      GroundsLineRoot := GroundsRoot.Items[I];
-      for J := 0 to GroundsLineRoot.Count - 1 do
-      begin
-        if NewPhysicsBehaviors then
-          ConfigureGroundPhysicsBehaviors(GroundsLineRoot.Items[J] as TCastleScene)
-        else
-          ConfigureGroundPhysics(GroundsLineRoot.Items[J] as TCastleScene);
-      end;
-    end;
   end;
 
   PowerUps := DesignedComponent('PowerUps') as TCastleTransform;
