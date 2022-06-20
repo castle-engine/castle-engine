@@ -104,8 +104,6 @@ type
     procedure ConfigurePowerUpsPhysicsBehaviors(const PowerUp: TCastleScene);
 
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
-    procedure ConfigurePlayerPhysicsBehaviors(const Player:TCastleScene);
-    procedure ConfigurePlayerPhysicsBehaviorsEditor(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
     procedure PlayerCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
     procedure PlayerCollisionExit(const CollisionDetails: TPhysicsCollisionDetails);
@@ -406,80 +404,7 @@ begin
   PowerUp.AddBehavior(Collider);
 end;
 
-procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TCapsuleCollider;
-begin
-  RBody := TRigidBody.Create(Player);
-  RBody.Dynamic := true;
-  RBody.Setup2D;
-  RBody.Gravity := true;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
-  RBody.OnCollisionExit := {$ifdef FPC}@{$endif}PlayerCollisionExit;
-
-  Collider := TCapsuleCollider.Create(RBody);
-  Collider.Radius := Player.BoundingBox.SizeX * 0.45; // little smaller than 50%
-  Collider.Height := Player.BoundingBox.SizeY - Collider.Radius * 2;
-  Collider.Friction := 0.25;
-  Collider.Restitution := 0.0001;
-  Collider.Mass := 50;
-
-  {ColliderSP := TSphereCollider.Create(RBody);
-  ColliderSP.Radius := ScenePlayer.BoundingBox.SizeX * 0.45;}
-
-{  ColliderBox := TBoxCollider.Create(RBody);
-  ColliderBox.Size := Vector3(ScenePlayer.BoundingBox.SizeX, ScenePlayer.BoundingBox.SizeY, 60.0);
-  Collider.Friction := 0.5;
-  //Collider.Restitution := 0.05;
-  Collider.Mass := 50;
-
-  WriteLnLog('Player collider: ' + FloatToStr(ColliderBox.Size.X) + ', ' +
-  FloatToStr(ColliderBox.Size.Y) + ', ' + FloatToStr(ColliderBox.Size.Z));}
-
-  Player.RigidBody := RBody;
-
-  WasInputJump := false;
-end;
-
-procedure TStatePlay.ConfigurePlayerPhysicsBehaviors(const Player: TCastleScene);
-var
-  Collider: TCastleCapsuleCollider;
-  RBody: TCastleRigidBody;
-begin
-  RBody := TCastleRigidBody.Create(Player);
-  RBody.Dynamic := true;
-  RBody.Setup2D;
-  RBody.Gravity := true;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
-  RBody.OnCollisionExit := {$ifdef FPC}@{$endif}PlayerCollisionExit;
-
-  Collider := TCastleCapsuleCollider.Create(Player);
-  Collider.Radius := Player.BoundingBox.SizeX * 0.45; // little smaller than 50%
-  Collider.Height := Player.BoundingBox.SizeY - Collider.Radius * 2;
-  Collider.Friction := 0.25;
-  Collider.Restitution := 0.0001;
-  Collider.Mass := 50;
-
-  //Player.RigidBody := RBody;
-  Player.AddBehavior(RBody);
-  Player.AddBehavior(Collider);
-  //Player.AddBehavior(RBody);
-
-  WasInputJump := false;
-end;
-
-procedure TStatePlay.ConfigurePlayerPhysicsBehaviorsEditor(
+procedure TStatePlay.ConfigurePlayerPhysics(
   const Player: TCastleScene);
 var
   RBody: TCastleRigidBody;
@@ -1522,12 +1447,8 @@ begin
     DeadlyObstacles.Add(DeadlyObstacle);
   end;
 
-  { Configure physics for player - done in editor }
-  {if NewPhysicsBehaviors then
-    ConfigurePlayerPhysicsBehaviors(ScenePlayer)
-  else
-    ConfigurePlayerPhysics(ScenePlayer);}
-  ConfigurePlayerPhysicsBehaviorsEditor(ScenePlayer);
+  { Configure physics for player - done in editor, only event in code }
+  ConfigurePlayerPhysics(ScenePlayer);
 
   ConfigurePlayerAbilities(ScenePlayer);
 
