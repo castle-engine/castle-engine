@@ -47,7 +47,6 @@ type
   strict private
     { Components designed using CGE editor, loaded from state_play.castle-user-interface. }
     LabelFps: TCastleLabel;
-    LabelPhysics: TCastleLabel;
     LabelCollectedCoins: TCastleLabel;
     MainViewport: TCastleViewport;
     ScenePlayer: TCastleScene;
@@ -58,7 +57,6 @@ type
     ImageHitPoint2: TCastleImageControl;
     ImageHitPoint1: TCastleImageControl;
     ImageKey: TCastleImageControl;
-    CoinsRoot: TCastleTransform;
 
     { Checks this is first Update when the InputJump occurred.
       See ../README.md for documentation about allowed keys/mouse/touch input. }
@@ -95,8 +93,6 @@ type
 
     { List of moving platforms behaviors }
     MovingPlatforms: TMovingPlatformList;
-
-    NewPhysicsBehaviors: Boolean;
 
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
@@ -1215,16 +1211,9 @@ procedure TStatePlay.Start;
 var
   { TCastleTransforms that groups objects in our level }
   PlatformsRoot: TCastleTransform;
-
-  GroundsRoot: TCastleTransform;
-  GroundsLineRoot: TCastleTransform;
-  StonesRoot: TCastleTransform;
   EnemiesRoot: TCastleTransform;
   FallingObstaclesRoot: TCastleTransform;
   DeadlyObstaclesRoot: TCastleTransform;
-  PowerUps: TCastleTransform;
-  DoorsRoot: TCastleTransform;
-  KeysRoot: TCastleTransform;
 
   { Variables used when interating each object groups }
   PlatformScene: TCastleScene;
@@ -1238,16 +1227,14 @@ var
   DeadlyObstacle: TDeadlyObstacle;
   MovingPlatform: TMovingPlatform;
 
-  I, J: Integer;
+  I: Integer;
 begin
   inherited;
 
   LevelComplete := false;
-  NewPhysicsBehaviors := true;
 
   { Find components, by name, that we need to access from code }
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  LabelPhysics := DesignedComponent('LabelPhysics') as TCastleLabel;
   LabelCollectedCoins := DesignedComponent('LabelCollectedCoins') as TCastleLabel;
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
   CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
@@ -1257,11 +1244,6 @@ begin
   ImageHitPoint3 := DesignedComponent('ImageHitPoint3') as TCastleImageControl;
   ImageHitPoint4 := DesignedComponent('ImageHitPoint4') as TCastleImageControl;
   ImageKey := DesignedComponent('ImageKey') as TCastleImageControl;
-
-  if NewPhysicsBehaviors then
-    LabelPhysics.Caption := 'Physics: Behaviors'
-  else
-    LabelPhysics.Caption := 'Physics: deprecated colliders';
 
   ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
 
