@@ -104,8 +104,6 @@ type
     procedure ConfigurePowerUpsPhysicsBehaviors(const PowerUp: TCastleScene);
     procedure ConfigureGroundPhysics(const Ground: TCastleScene);
     procedure ConfigureGroundPhysicsBehaviors(const Ground: TCastleScene);
-    procedure ConfigureStonePhysics(const Stone: TCastleScene);
-    procedure ConfigureStonePhysicsBehaviors(const Stone: TCastleScene);
 
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerPhysicsBehaviors(const Player:TCastleScene);
@@ -461,59 +459,6 @@ begin
 
   Ground.AddBehavior(RBody);
   Ground.AddBehavior(Collider);
-end;
-
-procedure TStatePlay.ConfigureStonePhysics(const Stone: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
-  Size: TVector3;
-begin
-  RBody := TRigidBody.Create(Stone);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-
-  Collider := TBoxCollider.Create(RBody);
-
-  Size.X := Stone.BoundingBox.SizeX;
-  Size.Y := Stone.BoundingBox.SizeY;
-  Size.Z := 1;
-
-  Collider.Size := Size;
-
-  Stone.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigureStonePhysicsBehaviors(const Stone: TCastleScene);
-var
-  RBody: TCastleRigidBody;
-  Collider: TCastleBoxCollider;
-  Size: TVector3;
-begin
-  RBody := TCastleRigidBody.Create(Stone);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-
-  Collider := TCastleBoxCollider.Create(Stone);
-
-  Size.X := Stone.BoundingBox.SizeX;
-  Size.Y := Stone.BoundingBox.SizeY;
-  Size.Z := 1;
-
-  Collider.Size := Size;
-
-  Stone.AddBehavior(Collider);
-  Stone.AddBehavior(RBody);
 end;
 
 procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
@@ -1600,15 +1545,6 @@ begin
           ConfigureGroundPhysics(GroundsLineRoot.Items[J] as TCastleScene);
       end;
     end;
-  end;
-
-  StonesRoot := DesignedComponent('Stones') as TCastleTransform;
-  for I := 0 to StonesRoot.Count - 1 do
-  begin
-    if NewPhysicsBehaviors then
-      ConfigureStonePhysicsBehaviors(StonesRoot.Items[I] as TCastleScene)
-    else
-      ConfigureStonePhysics(StonesRoot.Items[I] as TCastleScene);
   end;
 
   PowerUps := DesignedComponent('PowerUps') as TCastleTransform;
