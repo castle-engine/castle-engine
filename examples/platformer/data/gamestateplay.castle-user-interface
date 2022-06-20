@@ -1863,7 +1863,41 @@
                   "X" : -8.2729133605957031E+001,
                   "Y" : -3.6126998901367188E+002
                 },
-                "URL" : "castle-data:/obstacle/spikeTop.png"
+                "URL" : "castle-data:/obstacle/spikeTop.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody24"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "AutoSize" : false,
+                    "Friction" : 1.0000000149011612E-001,
+                    "Name" : "BoxCollider21",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "SizePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 5.0000000000000000E+000,
+                      "Y" : 1.5000000000000000E+001
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -1885,7 +1919,45 @@
                   "X" : 1.3084729003906250E+003,
                   "Y" : -2.5876831054687500E+002
                 },
-                "URL" : "castle-data:/obstacle/spikeTop.png"
+                "URL" : "castle-data:/obstacle/spikeTop.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody25"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "AutoSize" : false,
+                    "Friction" : 1.0000000149011612E-001,
+                    "Name" : "BoxCollider22",
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "SizePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 5.0000000000000000E+000,
+                      "Y" : 1.5000000000000000E+001
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -1907,7 +1979,45 @@
                   "X" : 1.2151550292968750E+002,
                   "Y" : 1.0361230468750000E+003
                 },
-                "URL" : "castle-data:/obstacle/spikeTop.png"
+                "URL" : "castle-data:/obstacle/spikeTop.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody26"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "AutoSize" : false,
+                    "Friction" : 1.0000000149011612E-001,
+                    "Name" : "BoxCollider23",
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "SizePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 5.0000000000000000E+000,
+                      "Y" : 1.5000000000000000E+001
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -1929,7 +2039,45 @@
                   "X" : 3.0772583007812500E+003,
                   "Y" : 3.0261141967773438E+002
                 },
-                "URL" : "castle-data:/obstacle/spikeTop.png"
+                "URL" : "castle-data:/obstacle/spikeTop.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody27"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "AutoSize" : false,
+                    "Friction" : 1.0000000149011612E-001,
+                    "Name" : "BoxCollider24",
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "SizePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 5.0000000000000000E+000,
+                      "Y" : 1.5000000000000000E+001
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -1951,7 +2099,45 @@
                   "X" : 4.0512729492187500E+003,
                   "Y" : 5.6302539062500000E+002
                 },
-                "URL" : "castle-data:/obstacle/spikeTop.png"
+                "URL" : "castle-data:/obstacle/spikeTop.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody28"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "AutoSize" : false,
+                    "Friction" : 1.0000000149011612E-001,
+                    "Name" : "BoxCollider25",
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "SizePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 5.0000000000000000E+000,
+                      "Y" : 1.5000000000000000E+001
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -1973,7 +2159,45 @@
                   "X" : 4.2424492187500000E+003,
                   "Y" : 5.6302539062500000E+002
                 },
-                "URL" : "castle-data:/obstacle/spikeTop.png"
+                "URL" : "castle-data:/obstacle/spikeTop.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Gravity" : false,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody29"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "AutoSize" : false,
+                    "Friction" : 1.0000000149011612E-001,
+                    "Name" : "BoxCollider26",
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "SizePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 5.0000000000000000E+000,
+                      "Y" : 1.5000000000000000E+001
+                    }
+                  }
+                ]
               }
             ]
           },

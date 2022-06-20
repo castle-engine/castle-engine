@@ -30,7 +30,7 @@ type
     procedure ConfigureFallingObstaclePhysics(const FallingObstacleScene: TCastleScene);
   public
     constructor Create(AOwner: TComponent); override;
-    procedure ParentChanged; override;
+    procedure ParentAfterAttach; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure HitPlayer;
 
@@ -48,26 +48,16 @@ uses GameStatePlay;
 procedure TFallingObstacle.ConfigureFallingObstaclePhysics(
   const FallingObstacleScene: TCastleScene);
 var
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
+  RBody: TCastleRigidBody;
 begin
-  RBody := TRigidBody.Create(FallingObstacleScene);
-  RBody.Dynamic := true;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
+  { Castle Rigid Body and Collider is added in editor we configure only events
+    in code. }
 
-  Collider:= TBoxCollider.Create(RBody);
-  Collider.Size := Vector3(5, Scene.BoundingBox.SizeY / 3, 30.0);
-  Collider.Friction := 0.1;
-  Collider.Restitution := 0;
-
-  FallingObstacleScene.RigidBody := RBody;
+  RBody := FallingObstacleScene.RigidBody;
+  if RBody <> nil then
+  begin
+    RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
+  end;
 end;
 
 constructor TFallingObstacle.Create(AOwner: TComponent);
@@ -76,11 +66,9 @@ begin
   IsFalling := false;
 end;
 
-procedure TFallingObstacle.ParentChanged;
+procedure TFallingObstacle.ParentAfterAttach;
 begin
-  inherited ParentChanged;
-  if Parent = nil then
-    Exit;
+  inherited ParentAfterAttach;
   Scene := Parent as TCastleScene;
   ConfigureFallingObstaclePhysics(Scene);
 end;
@@ -89,22 +77,32 @@ procedure TFallingObstacle.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 var
   RayHitThat: TCastleTransform;
+  RBody: TCastleRigidBody;
 begin
   inherited Update(SecondsPassed, RemoveMe);
 
   if not IsFalling then
   begin
     { Here we wait for player to start falling down }
-    RayHitThat := Scene.RigidBody.PhysicsRayCast(Scene.Translation,
-      Vector3(0, -1, 0), 300);
 
-    { Check was that a player? }
-    if (RayHitThat <> nil) and (Pos('ScenePlayer', RayHitThat.Name) > 0) then
+    if Scene <> nil then
     begin
-      { Start falling down }
-      Scene.RigidBody.Gravity := true;
-      Scene.RigidBody.LinearVelocity := Vector3(0, -500, 0);
-      IsFalling := true;
+      RBody := Scene.RigidBody;
+
+      if RBody <> nil then
+      begin
+        RayHitThat := Scene.RigidBody.PhysicsRayCast(Scene.Translation,
+          Vector3(0, -1, 0), 300);
+
+        { Check was that a player? }
+        if (RayHitThat <> nil) and (Pos('ScenePlayer', RayHitThat.Name) > 0) then
+        begin
+          { Start falling down }
+          Scene.RigidBody.Gravity := true;
+          Scene.RigidBody.LinearVelocity := Vector3(0, -500, 0);
+          IsFalling := true;
+        end;
+      end;
     end;
   end;
 end;
