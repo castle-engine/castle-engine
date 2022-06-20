@@ -12921,7 +12921,41 @@
                   "Y" : -6.4185510253906250E+002,
                   "Z" : 3.0000000000000000E+000
                 },
-                "URL" : "castle-data:/items/powerup_bunny.png"
+                "URL" : "castle-data:/items/powerup_bunny.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody230",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider69",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -12938,7 +12972,41 @@
                   "Y" : -6.4172943115234375E+002,
                   "Z" : 3.0000000000000000E+000
                 },
-                "URL" : "castle-data:/items/powerup_shot.png"
+                "URL" : "castle-data:/items/powerup_shot.png",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody231",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider70",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               }
             ]
           }

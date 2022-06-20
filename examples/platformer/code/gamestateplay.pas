@@ -98,9 +98,6 @@ type
 
     NewPhysicsBehaviors: Boolean;
 
-    procedure ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
-    procedure ConfigurePowerUpsPhysicsBehaviors(const PowerUp: TCastleScene);
-
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
     procedure PlayerCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
@@ -305,57 +302,6 @@ begin
     { Right mouse button, or 2 fingers, are held. }
     (buttonRight in Container.MousePressed) or
     (Container.TouchesCount >= 2);
-end;
-
-procedure TStatePlay.ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
-begin
-  RBody := TRigidBody.Create(PowerUp);
-  RBody.Dynamic := false;
-  //RBody.Animated := true;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := PowerUp.BoundingBox.SizeY / 8;
-  Collider.Friction := 0.1;
-  Collider.Restitution := 0.05;
-
-  PowerUp.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigurePowerUpsPhysicsBehaviors(
-  const PowerUp: TCastleScene);
-var
-  RBody: TCastleRigidBody;
-  Collider: TCastleSphereCollider;
-begin
-  RBody := TRigidBody.Create(PowerUp);
-  RBody.Dynamic := false;
-  //RBody.Animated := true;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-  PowerUp.AddBehavior(RBody);
-
-  Collider := TCastleSphereCollider.Create(PowerUp);
-  Collider.Radius := PowerUp.BoundingBox.SizeY / 8;
-  Collider.Friction := 0.1;
-  Collider.Restitution := 0.05;
-  PowerUp.AddBehavior(Collider);
 end;
 
 procedure TStatePlay.ConfigurePlayerPhysics(
@@ -1339,15 +1285,6 @@ begin
       PlatformScene.AddBehavior(MovingPlatform);
       MovingPlatforms.Add(MovingPlatform);
     end;
-  end;
-
-  PowerUps := DesignedComponent('PowerUps') as TCastleTransform;
-  for I := 0 to PowerUps.Count - 1 do
-  begin
-    if NewPhysicsBehaviors then
-      ConfigurePowerUpsPhysicsBehaviors(PowerUps.Items[I] as TCastleScene)
-    else
-      ConfigurePowerUpsPhysics(PowerUps.Items[I] as TCastleScene);
   end;
 
   Enemies := TEnemyList.Create(true);
