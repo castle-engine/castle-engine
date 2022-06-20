@@ -10370,7 +10370,37 @@
                   "X" : 1.1379816894531250E+003,
                   "Y" : 2.5219767761230469E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody186",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider25",
+                    "Radius" : 5.0000000000000000E+000,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10394,7 +10424,41 @@
                   "X" : 1.1379816894531250E+003,
                   "Y" : 3.1794128417968750E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody187",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider26",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10418,7 +10482,41 @@
                   "X" : 1.1379816894531250E+003,
                   "Y" : 3.7688381958007812E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody188",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider27",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10442,7 +10540,41 @@
                   "X" : 1.1379816894531250E+003,
                   "Y" : 4.4489447021484375E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody189",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider28",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10466,7 +10598,41 @@
                   "X" : 1.1379816894531250E+003,
                   "Y" : 5.1743914794921875E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody190",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider29",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10490,7 +10656,41 @@
                   "X" : 1.1379816894531250E+003,
                   "Y" : 5.9225085449218750E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody191",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider30",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10514,7 +10714,41 @@
                   "X" : 1.1379816894531250E+003,
                   "Y" : 6.6252850341796875E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody192",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider31",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10538,7 +10772,41 @@
                   "X" : -2.7998535156250000E+002,
                   "Y" : 9.4973242187500000E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody193",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider32",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10562,7 +10830,41 @@
                   "X" : 7.0153717041015625E+002,
                   "Y" : 1.2751680908203125E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody194",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider33",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10586,7 +10888,41 @@
                   "X" : 7.0153717041015625E+002,
                   "Y" : 1.6087254638671875E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody195",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider34",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10610,7 +10946,41 @@
                   "X" : 7.0153717041015625E+002,
                   "Y" : 1.6944099121093750E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody196",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider35",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10634,7 +11004,41 @@
                   "X" : 8.6444390869140625E+002,
                   "Y" : 1.2721077880859375E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody197",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider36",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10658,7 +11062,41 @@
                   "X" : 1.0323889160156250E+003,
                   "Y" : 1.2721079101562500E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody198",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider37",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10682,7 +11120,41 @@
                   "X" : 1.1952956542968750E+003,
                   "Y" : 1.2751679687500000E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody199",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider38",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10706,7 +11178,41 @@
                   "X" : 1.5876075439453125E+003,
                   "Y" : 1.0079899902343750E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody200",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider39",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10730,7 +11236,41 @@
                   "X" : 1.5876075439453125E+003,
                   "Y" : 9.0991198730468750E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody201",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider40",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10754,7 +11294,41 @@
                   "X" : 1.5876075439453125E+003,
                   "Y" : 8.2536199951171875E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody202",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider41",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10778,7 +11352,41 @@
                   "X" : 4.8838945312500000E+003,
                   "Y" : -6.6613958740234375E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody203",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider42",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10802,7 +11410,41 @@
                   "X" : 4.8157895507812500E+003,
                   "Y" : -6.6613958740234375E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody204",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider43",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10826,7 +11468,41 @@
                   "X" : 4.7340634765625000E+003,
                   "Y" : -6.6613958740234375E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody205",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider44",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10850,7 +11526,41 @@
                   "X" : 2.4902133789062500E+003,
                   "Y" : 1.2690476074218750E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody206",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider45",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10874,7 +11584,41 @@
                   "X" : 2.6900681152343750E+003,
                   "Y" : 3.0168392944335938E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody207",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider46",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10898,7 +11642,41 @@
                   "X" : 3.3249003906250000E+003,
                   "Y" : -1.7192123413085938E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody208",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider47",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10922,7 +11700,41 @@
                   "X" : 2.6432211914062500E+003,
                   "Y" : 1.2690476074218750E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody209",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider48",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10946,7 +11758,41 @@
                   "X" : 2.8207104492187500E+003,
                   "Y" : 1.2690476074218750E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody210",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider49",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10970,7 +11816,41 @@
                   "X" : 2.9645380859375000E+003,
                   "Y" : 1.2690476074218750E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody211",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider50",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -10994,7 +11874,41 @@
                   "X" : 3.1389672851562500E+003,
                   "Y" : 1.2690476074218750E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody212",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider51",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11018,7 +11932,41 @@
                   "X" : 4.4217939453125000E+003,
                   "Y" : 1.6753522949218750E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody213",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider52",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11042,7 +11990,41 @@
                   "X" : 4.0951870117187500E+003,
                   "Y" : 1.3117703857421875E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody214",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider53",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11066,7 +12048,41 @@
                   "X" : 4.0951870117187500E+003,
                   "Y" : 1.4411807861328125E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody215",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider54",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11090,7 +12106,41 @@
                   "X" : 4.4961977539062500E+003,
                   "Y" : 1.6753522949218750E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody216",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider55",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11114,7 +12164,41 @@
                   "X" : 4.4961977539062500E+003,
                   "Y" : 1.7497562255859375E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody217",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider56",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11138,7 +12222,41 @@
                   "X" : 4.4184116210937500E+003,
                   "Y" : 1.7497562255859375E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody218",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider57",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11162,7 +12280,41 @@
                   "X" : 4.4184116210937500E+003,
                   "Y" : 1.8207781982421875E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody219",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider58",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11186,7 +12338,41 @@
                   "X" : 4.4995795898437500E+003,
                   "Y" : 1.8207781982421875E+003
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody220",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider59",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11210,7 +12396,41 @@
                   "X" : -1.1874266052246094E+002,
                   "Y" : -1.8308329772949219E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody221",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider60",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11234,7 +12454,41 @@
                   "X" : -1.4412346191406250E+003,
                   "Y" : -6.7299645996093750E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody222",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider61",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11258,7 +12512,41 @@
                   "X" : -2.0797491455078125E+002,
                   "Y" : -6.7299645996093750E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody223",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider62",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11282,7 +12570,41 @@
                   "X" : -1.3158831787109375E+003,
                   "Y" : -5.5259356689453125E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody224",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider63",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11306,7 +12628,41 @@
                   "X" : -1.5828599853515625E+003,
                   "Y" : -2.5299999237060547E+001
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody225",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider64",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11330,7 +12686,41 @@
                   "X" : -2.3573378906250000E+003,
                   "Y" : 8.7000000000000000E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody226",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider65",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11354,7 +12744,41 @@
                   "X" : -2.2119121093750000E+003,
                   "Y" : 8.7000000000000000E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody227",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider66",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11378,7 +12802,41 @@
                   "X" : -2.0664863281250000E+003,
                   "Y" : 8.7000000000000000E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody228",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider67",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -11402,7 +12860,41 @@
                   "X" : -1.9142963867187500E+003,
                   "Y" : 8.7000000000000000E+002
                 },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet"
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody229",
+                    "Trigger" : true
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "AutoSize" : false,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider68",
+                    "Radius" : 5.0000000000000000E+000,
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Y" : 1.0000000000000000E+000
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               }
             ]
           },

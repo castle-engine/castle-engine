@@ -98,8 +98,6 @@ type
 
     NewPhysicsBehaviors: Boolean;
 
-    procedure ConfigureCoinsPhysics(const Coin: TCastleScene);
-    procedure ConfigureCoinsPhysicsBehaviors(const Coin: TCastleScene);
     procedure ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
     procedure ConfigurePowerUpsPhysicsBehaviors(const PowerUp: TCastleScene);
 
@@ -307,50 +305,6 @@ begin
     { Right mouse button, or 2 fingers, are held. }
     (buttonRight in Container.MousePressed) or
     (Container.TouchesCount >= 2);
-end;
-
-procedure TStatePlay.ConfigureCoinsPhysics(const Coin: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
-begin
-  RBody := TRigidBody.Create(Coin);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := Coin.BoundingBox.SizeY / 8;
-  Coin.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigureCoinsPhysicsBehaviors(const Coin: TCastleScene);
-var
-  RBody: TCastleRigidBody;
-  Collider: TCastleSphereCollider;
-begin
-  RBody := TCastleRigidBody.Create(Coin);
-  RBody.Dynamic := false;
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.Trigger := true;
-
-  Collider := TCastleSphereCollider.Create(RBody);
-  Collider.Radius := Coin.BoundingBox.SizeY / 8;
-
-  Coin.AddBehavior(Collider);
-  Coin.AddBehavior(RBody);
 end;
 
 procedure TStatePlay.ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
@@ -1385,17 +1339,6 @@ begin
       PlatformScene.AddBehavior(MovingPlatform);
       MovingPlatforms.Add(MovingPlatform);
     end;
-  end;
-
-  { Configure physics for coins }
-  CoinsRoot := DesignedComponent('Coins') as TCastleTransform;
-  for I := 0 to CoinsRoot.Count - 1 do
-  begin
-    WritelnLog('Configure coin: ' + CoinsRoot.Items[I].Name);
-    if NewPhysicsBehaviors then
-      ConfigureCoinsPhysicsBehaviors(CoinsRoot.Items[I] as TCastleScene)
-    else
-      ConfigureCoinsPhysics(CoinsRoot.Items[I] as TCastleScene);
   end;
 
   PowerUps := DesignedComponent('PowerUps') as TCastleTransform;
