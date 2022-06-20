@@ -1745,15 +1745,6 @@ begin
       ConfigurePowerUpsPhysics(PowerUps.Items[I] as TCastleScene);
   end;
 
-  DoorsRoot := DesignedComponent('Doors') as TCastleTransform;
-  for I := 0 to DoorsRoot.Count - 1 do
-  begin
-    if NewPhysicsBehaviors then
-      ConfigureDoorsPhysicsBehaviors(DoorsRoot.Items[I] as TCastleScene)
-    else
-      ConfigureDoorsPhysics(DoorsRoot.Items[I] as TCastleScene);
-  end;
-
   Enemies := TEnemyList.Create(true);
   EnemiesRoot := DesignedComponent('Enemies') as TCastleTransform;
   for I := 0 to EnemiesRoot.Count - 1 do
