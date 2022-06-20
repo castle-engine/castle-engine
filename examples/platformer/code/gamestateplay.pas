@@ -119,8 +119,6 @@ type
       Ground: TCastleTransform);
     procedure ConfigureBulletSpriteScene;
 
-    procedure ConfigureEnemyPhysics(const EnemyScene: TCastleScene);
-
     { Simplest version }
     procedure UpdatePlayerSimpleDependOnlyVelocity(const SecondsPassed: Single;
       var HandleInput: Boolean);
@@ -790,36 +788,6 @@ begin
         CastleCollider.Restitution := 0.05;
     end;
   end;
-end;
-
-procedure TStatePlay.ConfigureEnemyPhysics(const EnemyScene: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TSphereCollider;
-begin
-  RBody := TRigidBody.Create(EnemyScene);
-  RBody.Dynamic := true;
-  //RBody.Animated := true;
-  RBody.Setup2D;
-  RBody.Gravity := true;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
-
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := EnemyScene.BoundingBox.SizeY * 0.45; // little smaller than 50%
-  Collider.Friction := 0.1;
-  Collider.Restitution := 0.05;
-
-  {ColliderBox := TBoxCollider.Create(RBody);
-  ColliderBox.Size := Vector3(ScenePlayer.BoundingBox.SizeX, ScenePlayer.BoundingBox.SizeY, 30.0);
-  ColliderBox.Friction := 0.1;
-  ColliderBox.Restitution := 0.05;}
-
-  EnemyScene.RigidBody := RBody;
 end;
 
 procedure TStatePlay.ConfigureBulletSpriteScene;
@@ -1754,7 +1722,6 @@ begin
     if not EnemyScene.Exists then
       Continue;
 
-    ConfigureEnemyPhysics(EnemyScene);
     { Below using nil as Owner of TEnemy, as the Enemies list already "owns"
       instances of this class, i.e. it will free them. }
     Enemy := TEnemy.Create(nil);

@@ -2226,7 +2226,36 @@
                   "X" : 8.9301391601562500E+001,
                   "Y" : -2.2872998046875000E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody30"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider3",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2245,7 +2274,36 @@
                   "X" : 4.2685483398437500E+003,
                   "Y" : -6.8183715820312500E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody31"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider4",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2264,7 +2322,36 @@
                   "X" : 3.4796247558593750E+003,
                   "Y" : -6.5916699218750000E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody32"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider5",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2283,7 +2370,36 @@
                   "X" : 2.6385595703125000E+003,
                   "Y" : -4.1886273193359375E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody33"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider6",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2302,7 +2418,36 @@
                   "X" : 2.6385595703125000E+003,
                   "Y" : -6.7050207519531250E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody34"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider7",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2321,7 +2466,36 @@
                   "X" : 4.4388110351562500E+003,
                   "Y" : -6.8183715820312500E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody35"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider24",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2340,7 +2514,36 @@
                   "X" : 4.5545898437500000E+003,
                   "Y" : -6.8183715820312500E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody36"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider8",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2359,7 +2562,36 @@
                   "X" : 4.2030498046875000E+003,
                   "Y" : 2.5193750000000000E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody37"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider9",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2378,7 +2610,36 @@
                   "X" : 4.2030498046875000E+003,
                   "Y" : 7.0850732421875000E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody38"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider10",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2397,7 +2658,36 @@
                   "X" : 3.8513220214843750E+003,
                   "Y" : 7.0850732421875000E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody39"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider11",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2416,7 +2706,36 @@
                   "X" : 3.2757182617187500E+003,
                   "Y" : 4.7303302001953125E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody40"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider12",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2435,7 +2754,36 @@
                   "X" : 8.7438220214843750E+002,
                   "Y" : 7.1905120849609375E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody41"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider13",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2454,7 +2802,36 @@
                   "X" : -1.4722357177734375E+002,
                   "Y" : 9.0849938964843750E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody42"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider14",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2473,7 +2850,36 @@
                   "X" : -1.5006972656250000E+003,
                   "Y" : 5.6820141601562500E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody43"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider15",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2492,7 +2898,36 @@
                   "X" : -1.5722735595703125E+003,
                   "Y" : -6.7663049316406250E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody44"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider17",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2511,7 +2946,36 @@
                   "X" : -9.6095336914062500E+002,
                   "Y" : -6.7663049316406250E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody45"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider16",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2534,7 +2998,36 @@
                   "X" : -2.2898571777343750E+003,
                   "Y" : -6.7663049316406250E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody46"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider18",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2553,7 +3046,36 @@
                   "X" : -1.4652751464843750E+003,
                   "Y" : -3.9616485595703125E+001
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody47"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider19",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2577,7 +3099,36 @@
                   "X" : -2.2914028320312500E+003,
                   "Y" : -6.7663049316406250E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody48"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider20",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2601,7 +3152,36 @@
                   "X" : -2.2067995605468750E+003,
                   "Y" : -6.7663049316406250E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody50"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider21",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2625,7 +3205,36 @@
                   "X" : -2.4817609863281250E+003,
                   "Y" : -6.7663049316406250E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody49"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider22",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -2648,7 +3257,36 @@
                   "X" : -1.8932691650390625E+003,
                   "Y" : -5.5594616699218750E+002
                 },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet"
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody51"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider23",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 8.9999997615814209E-001,
+                      "Y" : 8.9999997615814209E-001,
+                      "Z" : 1.0000000000000000E+000
+                    }
+                  }
+                ]
               }
             ]
           },
