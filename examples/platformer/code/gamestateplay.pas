@@ -98,8 +98,6 @@ type
 
     NewPhysicsBehaviors: Boolean;
 
-    procedure ConfigurePlatformPhysics(Platform: TCastleScene);
-    procedure ConfigurePlatformPhysicsBehaviors(Platform: TCastleScene);
     procedure ConfigureCoinsPhysics(const Coin: TCastleScene);
     procedure ConfigureCoinsPhysicsBehaviors(const Coin: TCastleScene);
     procedure ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
@@ -316,92 +314,6 @@ begin
     (buttonRight in Container.MousePressed) or
     (Container.TouchesCount >= 2);
 end;
-
-procedure TStatePlay.ConfigurePlatformPhysics(Platform: TCastleScene);
-var
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
-  Size: TVector3;
-begin
-  RBody := TRigidBody.Create(Platform);
-
-  { Platforms that can move has Tag <> 0, so they are dynamic bodies }
-  RBody.Dynamic := (Platform.Tag <> 0);
-
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-
-  { If Tag > 0 we move platform horizontal, if Tag < 0 we move platform
-    vertical. }
-  if Platform.Tag > 0 then
-    RBody.LockTranslation := [1, 2]
-  else if Platform.Tag < 0 then
-    RBody.LockTranslation := [0, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.MaximalAngularVelocity := 0;
-
-  Collider := TBoxCollider.Create(RBody);
-
-  Size.X := Platform.BoundingBox.SizeX;
-  Size.Y := Platform.BoundingBox.SizeY;
-  Size.Z := 60;
-
-  Collider.Size := Size;
-  if Platform.Tag <> 0 then
-    Collider.Friction := 100;
-  Collider.Restitution := 0.0;
-  Collider.Mass := 1000;
-
-  Platform.RigidBody := RBody;
-end;
-
-procedure TStatePlay.ConfigurePlatformPhysicsBehaviors(Platform: TCastleScene);
-var
-  RBody: TCastleRigidBody;
-  Collider: TCastleBoxCollider;
-  Size: TVector3;
-begin
-  RBody := TRigidBody.Create(Platform);
-
-  { Platforms that can move has Tag <> 0, so they are dynamic bodies }
-  RBody.Dynamic := (Platform.Tag <> 0);
-
-  RBody.Setup2D;
-  RBody.Gravity := false;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-
-  { If Tag > 0 we move platform horizontal, if Tag < 0 we move platform
-    vertical. }
-  if Platform.Tag > 0 then
-    RBody.LockTranslation := [1, 2]
-  else if Platform.Tag < 0 then
-    RBody.LockTranslation := [0, 2];
-  RBody.MaximalLinearVelocity := 0;
-  RBody.MaximalAngularVelocity := 0;
-
-  Collider := TCastleBoxCollider.Create(Platform);
-
-  Size.X := Platform.BoundingBox.SizeX;
-  Size.Y := Platform.BoundingBox.SizeY;
-  Size.Z := 60;
-
-  Collider.Size := Size;
-  if Platform.Tag <> 0 then
-    Collider.Friction := 100;
-  Collider.Restitution := 0.0;
-  Collider.Mass := 1000;
-
-  Platform.AddBehavior(RBody);
-  Platform.AddBehavior(Collider);
-end;
-
 
 procedure TStatePlay.ConfigureCoinsPhysics(const Coin: TCastleScene);
 var
@@ -1649,11 +1561,6 @@ begin
   begin
     PlatformScene := PlatformsRoot.Items[I] as TCastleScene;
     WritelnLog('Configure platform: ' + PlatformScene.Name);
-
-    if NewPhysicsBehaviors then
-      ConfigurePlatformPhysicsBehaviors(PlatformScene)
-    else
-      ConfigurePlatformPhysics(PlatformScene);
 
     { We use Tag to set distance for moving platform, so when its other than 0
       we need add behavior to it. }
