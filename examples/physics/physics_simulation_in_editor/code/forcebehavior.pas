@@ -1,6 +1,6 @@
 unit ForceBehavior;
 
-{$mode ObjFPC}{$H+}
+{$ifdef FPC}{$mode ObjFPC}{$H+}{$endif}
 
 interface
 

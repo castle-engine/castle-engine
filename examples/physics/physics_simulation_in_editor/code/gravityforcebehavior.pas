@@ -1,6 +1,6 @@
 unit GravityForceBehavior;
 
-{$mode ObjFPC}{$H+}
+{$ifdef FPC}{$mode ObjFPC}{$H+}{$endif}
 
 interface
 
@@ -17,7 +17,7 @@ type
   protected
     { Updates all found rigid bodies. }
     procedure UpdateRigidBody(const RigidBody: TCastleRigidBody;
-      const SecondsPassed: Single; var RemoveMe: TRemoveType) override;
+      const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
   public
     constructor Create(AOwner: TComponent); override;

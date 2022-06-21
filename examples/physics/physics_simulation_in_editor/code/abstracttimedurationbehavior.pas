@@ -1,6 +1,6 @@
 unit AbstractTimeDurationBehavior;
 
-{$mode ObjFPC}{$H+}
+{$ifdef FPC}{$mode ObjFPC}{$H+}{$endif}
 
 interface
 
@@ -38,8 +38,8 @@ type
 
   published
     property OneShot: Boolean read FOneShot write FOneShot default false;
-    property DurationTime: Single read FDurationTime write FDurationTime default 10;
-    property StartTime: Single read FStartTime write FStartTime default 0;
+    property DurationTime: Single read FDurationTime write FDurationTime {$ifdef FPC}default 10{$endif};
+    property StartTime: Single read FStartTime write FStartTime {$ifdef FPC}default 0{$endif};
   end;
 
 implementation

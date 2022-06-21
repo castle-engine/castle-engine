@@ -1,6 +1,6 @@
 unit AddVelocityBehavior;
 
-{$mode ObjFPC}{$H+}
+{$ifdef FPC}{$mode ObjFPC}{$H+}{$endif}
 
 interface
 
@@ -56,12 +56,12 @@ constructor TAddVelocityBehavior.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  {
+  (*
   FDeltaVelocityPersistent := TCastleVector3Persistent.Create;
   FDeltaVelocityPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetDeltaVelocityForPersistent;
   FDeltaVelocityPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetDeltaVelocityForPersistent;
   FDeltaVelocityPersistent.InternalDefaultValue := DeltaVelocity; // current value is default
-  }
+  *)
 
   FDVelocity := TSerializedVector3.Create;
 

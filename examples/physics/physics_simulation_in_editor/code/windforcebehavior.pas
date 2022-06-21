@@ -1,6 +1,6 @@
 unit WindForceBehavior;
 
-{$mode ObjFPC}{$H+}
+{$ifdef FPC}{$mode ObjFPC}{$H+}{$endif}
 
 interface
 
@@ -18,7 +18,7 @@ type
   protected
     { Updates all found rigid bodies. }
     procedure UpdateRigidBody(const RigidBody: TCastleRigidBody;
-      const SecondsPassed: Single; var RemoveMe: TRemoveType) override;
+      const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published

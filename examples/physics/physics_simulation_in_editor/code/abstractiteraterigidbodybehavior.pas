@@ -1,6 +1,6 @@
 unit AbstractIterateRigidBodyBehavior;
 
-{$mode ObjFPC}{$H+}
+{$ifdef FPC}{$mode ObjFPC}{$H+}{$endif}
 
 interface
 
@@ -21,7 +21,7 @@ type
   protected
     { Override it to update found rigid bodies. }
     procedure UpdateRigidBody(const RigidBody: TCastleRigidBody; const SecondsPassed: Single;
-      var RemoveMe: TRemoveType) virtual; abstract;
+      var RemoveMe: TRemoveType); virtual; abstract;
   public
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
