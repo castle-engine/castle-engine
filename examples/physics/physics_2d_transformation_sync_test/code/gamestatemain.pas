@@ -57,7 +57,7 @@ begin
   ButtonMoveSphere := DesignedComponent('ButtonMoveSphere') as TCastleButton;
   Sphere := DesignedComponent('Sphere') as TCastleTransform;
 
-  ButtonMoveSphere.OnClick := @ButtonMoveSphereClick;
+  ButtonMoveSphere.OnClick := {$ifdef FPC}@{$endif}ButtonMoveSphereClick;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
