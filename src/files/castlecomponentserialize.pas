@@ -1000,7 +1000,11 @@ end;
 procedure TCastleJsonWriter.StreamProperty(Sender: TObject;
   AObject: TObject; Info: PPropInfo; var Res: TJsonData);
 var
+  {$ifdef FPC}
   ValueOfSet, I: Integer;
+  {$else}
+  ValueOfSet, I: Byte;
+  {$endif}
 begin
   if Info^.Name = 'Name' then
   begin
@@ -1052,9 +1056,15 @@ begin
     ValueOfSet := GetOrdProp(AObject, Info);
     FreeAndNil(Res);
     Res := TJSONArray.Create;
+    {$ifdef FPC}
     for I := Low(T3DCoords) to High(T3DCoords) do
       if (I in T3DCoords(ValueOfSet)) then
         TJSONArray(Res).Add(I)
+    {$else}
+    for I := Low(T3DCoord) to High(T3DCoord) do
+      if (I in T3DCoords(ValueOfSet)) then
+        TJSONArray(Res).Add(I)
+    {$endif}
   end;
 end;
 
