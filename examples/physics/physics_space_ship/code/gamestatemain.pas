@@ -158,7 +158,6 @@ begin
   begin
     Direction := Vector3(0, 1, 0);
     ShipRigidBody.AddCentralForce(Direction * ThrustForce);
-    ShipRigidBody.WakeUp;
   end;
 
   Torque := Vector3(0, 0, 0);
@@ -170,12 +169,7 @@ begin
     Torque := Vector3(0, 0, -1);
 
   if not Torque.IsPerfectlyZero then
-  begin
     ShipRigidBody.AddTorque(Torque * TorqueValue);
-    ShipRigidBody.WakeUp;
-  end;
-
-
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
