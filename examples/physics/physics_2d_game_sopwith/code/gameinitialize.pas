@@ -70,22 +70,20 @@ procedure ApplicationInitialize;
 
   procedure LoadLevel;
   var
-    RigidBody: TRigidBody;
-    Collider: TMeshCollider;
+    RigidBody: TCastleRigidBody;
+    Collider: TCastleMeshCollider;
   begin
     Level := TCastleScene.Create(Application);
     Level.Load('castle-data:/level.x3d');
 
-    RigidBody := TRigidBody.Create(Level);
+    RigidBody := TCastleRigidBody.Create(Level);
     RigidBody.Dynamic := false;
     RigidBody.Setup2D; // not really needed for objects with Dynamic = false
+    Level.AddBehavior(RigidBody);
 
-    Collider := TMeshCollider.Create(RigidBody);
+    Collider := TCastleMeshCollider.Create(Level);
     Collider.Scene := Level;
-
-    { assign this only once RigidBody and Collider
-      are fully configured, this initializes physics engine }
-    Level.RigidBody := RigidBody;
+    Level.AddBehavior(Collider);
 
     Viewport.Items.Add(Level);
     Viewport.Items.MainScene := Level;
@@ -93,24 +91,22 @@ procedure ApplicationInitialize;
 
   procedure LoadPlane;
   var
-    RigidBody: TRigidBody;
-    Collider: TBoxCollider;
+    RigidBody: TCastleRigidBody;
+    Collider: TCastleBoxCollider;
   begin
     Plane := TCastleScene.Create(Application);
     Plane.Load('castle-data:/plane.x3d');
     Plane.Translation := Vector3(50, 50, 0); // initial position
 
-    RigidBody := TRigidBody.Create(Plane);
+    RigidBody := TCastleRigidBody.Create(Plane);
     RigidBody.Dynamic := false;
     RigidBody.Animated := true;
     RigidBody.Setup2D; // not really needed for objects with Dynamic = false
+    Plane.AddBehavior(RigidBody);
 
-    Collider := TBoxCollider.Create(RigidBody);
+    Collider := TCastleBoxCollider.Create(Plane);
     Collider.Size := Plane.LocalBoundingBox.Size;
-
-    { assign this only once RigidBody and Collider
-      are fully configured, this initializes physics engine }
-    Plane.RigidBody := RigidBody;
+    Plane.AddBehavior(Collider);
 
     Viewport.Items.Add(Plane);
   end;
@@ -195,8 +191,8 @@ procedure WindowUpdate(Container: TCastleContainer);
 
   procedure DropBox;
   var
-    RigidBody: TRigidBody;
-    Collider: TBoxCollider;
+    RigidBody: TCastleRigidBody;
+    Collider: TCastleBoxCollider;
     Transform: TCastleTransform;
   begin
     // stop dropping boxes when too many, it would slow down the game
@@ -209,24 +205,21 @@ procedure WindowUpdate(Container: TCastleContainer);
       This is an optimization, allowed because BoxScene doesn't change at all inside. }
     Transform.Add(BoxScene);
 
-    RigidBody := TRigidBody.Create(Transform);
+    RigidBody := TCastleRigidBody.Create(Transform);
     RigidBody.Setup2D;
+    Transform.AddBehavior(RigidBody);
 
-    Collider := TBoxCollider.Create(RigidBody);
-    Collider.Size := BoxScene.BoundingBox.Size;
+    Collider := TCastleBoxCollider.Create(RigidBody);
     Collider.Mass := 10;
-
-    { assign this only once RigidBody and Collider
-      are fully configured, this initializes physics engine }
-    Transform.RigidBody := RigidBody;
+    Transform.AddBehavior(Collider);
 
     Viewport.Items.Add(Transform);
   end;
 
   procedure ShootMissile;
   var
-    RigidBody: TRigidBody;
-    Collider: TSphereCollider;
+    RigidBody: TCastleRigidBody;
+    Collider: TCastleSphereCollider;
     Transform: TCastleTransform;
   begin
     Transform := TAutoDisappearTransform.Create(Application);
@@ -235,17 +228,14 @@ procedure WindowUpdate(Container: TCastleContainer);
       This is an optimization, allowed because MissileScene doesn't change at all inside. }
     Transform.Add(MissileScene);
 
-    RigidBody := TRigidBody.Create(Transform);
+    RigidBody := TCastleRigidBody.Create(Transform);
     RigidBody.Setup2D;
     RigidBody.LinearVelocity := Vector3(100, 0, 0);
+    Transform.AddBehavior(RigidBody);
 
-    Collider := TSphereCollider.Create(RigidBody);
-    Collider.Radius := MissileScene.BoundingBox.Size.X / 2;
+    Collider := TCastleSphereCollider.Create(RigidBody);
     Collider.Mass := 10;
-
-    { assign this only once RigidBody and Collider
-      are fully configured, this initializes physics engine }
-    Transform.RigidBody := RigidBody;
+    Transform.AddBehavior(Collider);
 
     Viewport.Items.Add(Transform);
   end;
