@@ -35,23 +35,25 @@ var
 
 procedure LoadLevel(const URL: string; const MeshCollider: boolean);
 
-  function CreatePlaneCollider(const ParentBody: TRigidBody): TPlaneCollider;
+  function CreatePlaneCollider: TCastlePlaneCollider;
   begin
-    Result := TPlaneCollider.Create(ParentBody);
+    Result := TCastlePlaneCollider.Create(Level);
     Result.Normal := Vector3(0, 1, 0);
     Result.Distance := 0;
     Result.Restitution := 0.3;
+    Level.AddBehavior(Result);
   end;
 
-  function CreateMeshCollider(const ParentBody: TRigidBody): TMeshCollider;
+  function CreateMeshCollider: TCastleMeshCollider;
   begin
-    Result := TMeshCollider.Create(ParentBody);
+    Result := TCastleMeshCollider.Create(Level);
     Result.Scene := Level;
     Result.Restitution := 0.3;
+    Level.AddBehavior(Result);
   end;
 
 var
-  LevelBody: TRigidBody;
+  LevelBody: TCastleRigidBody;
   MoveLimit: TBox3D;
 begin
   { free previous level, which also frees all related rigid bodies }
@@ -65,17 +67,14 @@ begin
   Level.ProcessEvents := true;
   Level.RenderOptions.PhongShading := true; // nicer lighting
 
-  LevelBody := TRigidBody.Create(Level);
+  LevelBody := TCastleRigidBody.Create(Level);
   LevelBody.Dynamic := false;
+  Level.AddBehavior(LevelBody);
 
   if MeshCollider then
-    CreateMeshCollider(LevelBody)
+    CreateMeshCollider
   else
-    CreatePlaneCollider(LevelBody);
-
-  { assign this only once LevelBody and LevelCollider
-    are fully configured, this initializes physics engine }
-  Level.RigidBody := LevelBody;
+    CreatePlaneCollider;
 
   Viewport.Items.Add(Level);
   Viewport.Items.MainScene := Level;
