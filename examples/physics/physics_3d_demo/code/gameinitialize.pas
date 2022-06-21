@@ -166,8 +166,8 @@ end;
 
 procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 
-  procedure Spawn(const Template: TCastleScene; const Collider: TCollider;
-    const RigidBody: TRigidBody);
+  procedure Spawn(const Template: TCastleScene; const Collider: TCastleCollider;
+    const RigidBody: TCastleRigidBody);
   var
     Scene: TCastleScene;
     CameraPos, CameraDir, CameraUp: TVector3;
@@ -180,14 +180,15 @@ procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelea
 
     Viewport.Items.Add(Scene);
 
-    RigidBody.LinearVelocity := CameraDir * 4.0;
-    Scene.RigidBody := RigidBody;
+    RigidBody.LinearVelocity := CameraDir * 8.0;
+    Scene.AddBehavior(RigidBody);
+    Scene.AddBehavior(Collider);
   end;
 
 var
-  RigidBody: TRigidBody;
-  BoxCollider: TBoxCollider;
-  SphereCollider: TSphereCollider;
+  RigidBody: TCastleRigidBody;
+  BoxCollider: TCastleBoxCollider;
+  SphereCollider: TCastleSphereCollider;
 begin
   if Event.IsKey(keyF4) then
     Navigation.MouseLook := not Navigation.MouseLook;
@@ -197,10 +198,9 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    RigidBody := TRigidBody.Create(BoxTemplate);
+    RigidBody := TCastleRigidBody.Create(BoxTemplate);
 
-    BoxCollider := TBoxCollider.Create(RigidBody);
-    BoxCollider.Size := BoxTemplate.BoundingBox.Size;
+    BoxCollider := TCastleBoxCollider.Create(BoxTemplate);
     BoxCollider.Restitution := 0.3;
     BoxCollider.Density := 100.0;
     Spawn(BoxTemplate, BoxCollider, RigidBody);
@@ -208,10 +208,9 @@ begin
 
   if Event.IsMouseButton(buttonRight) then
   begin
-    RigidBody := TRigidBody.Create(SphereTemplate);
+    RigidBody := TCastleRigidBody.Create(SphereTemplate);
 
-    SphereCollider := TSphereCollider.Create(RigidBody);
-    SphereCollider.Radius := SphereTemplate.BoundingBox.Size.X / 2;
+    SphereCollider := TCastleSphereCollider.Create(SphereTemplate);
     SphereCollider.Friction := 0.4;
     SphereCollider.Restitution := 0.2;
     SphereCollider.Density := 20.0;
