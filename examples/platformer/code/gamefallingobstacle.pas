@@ -111,8 +111,6 @@ procedure TFallingObstacle.HitPlayer;
 begin
   StatePlay.HitPlayer;
   Scene.Exists := false;
-  //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-  Scene.RigidBody.Exists := false;
 end;
 
 procedure TFallingObstacle.CollisionEnter(

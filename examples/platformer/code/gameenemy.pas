@@ -156,8 +156,6 @@ procedure TEnemy.TakeDamageFromBullet(const Bullet: TCastleTransform);
 begin
   SoundEngine.Play(SoundEngine.SoundFromName('hit_enemy'));
   Bullet.Exists := false;
-  //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-  Bullet.RigidBody.Exists := false;
 
   Dead := true;
   Parent.RigidBody.Exists := false;

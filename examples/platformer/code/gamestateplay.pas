@@ -333,31 +333,23 @@ begin
     begin
       CollectCoin;
       CollisionDetails.OtherTransform.Exists := false;
-      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       SoundEngine.Play(SoundEngine.SoundFromName('power_up'));
       PlayerCanDoubleJump := true;
       CollisionDetails.OtherTransform.Exists := false;
-      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('Shot', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       SoundEngine.Play(SoundEngine.SoundFromName('power_up'));
       PlayerCanShot := true;
       CollisionDetails.OtherTransform.Exists := false;
-      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('Key', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       CollectKey;
       CollisionDetails.OtherTransform.Exists := false;
-      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('Door', CollisionDetails.OtherTransform.Name) > 0 then
     begin
@@ -1315,8 +1307,6 @@ begin
   if IsPlayerDead and (TUIState.CurrentTop <> StateGameOver) then
   begin
     ScenePlayer.Exists := false;
-    //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
-    ScenePlayer.RigidBody.Exists := false;
 
     TUIState.Push(StateGameOver);
     Exit;
