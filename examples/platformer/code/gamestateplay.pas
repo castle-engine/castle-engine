@@ -98,8 +98,6 @@ type
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
     procedure PlayerCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
     procedure PlayerCollisionExit(const CollisionDetails: TPhysicsCollisionDetails);
-    procedure ChangePlayerPhysicsSettingsBasedOnGround(const Player,
-      Ground: TCastleTransform);
     procedure ConfigureBulletSpriteScene;
 
     { Simplest version }
@@ -381,35 +379,6 @@ begin
     if (Pos('Door', CollisionDetails.OtherTransform.Name) > 0) and
        (not PlayerHasKey) then
       CollisionDetails.OtherTransform.Items[0].Exists := false;
-  end;
-end;
-
-procedure TStatePlay.ChangePlayerPhysicsSettingsBasedOnGround(const Player,
-  Ground: TCastleTransform);
-var
-  CastleCollider: TCastleCollider;
-begin
-  { When player is on moving platform he can't have Restitution > 0.0001 because
-    he will slide on it. But when he fall to other ground and Restitution is
-    small the movement looks not naturally. }
-  if Player.RigidBody.Collider <> nil then
-  begin
-    if (Ground <> nil) and (Pos('Platform', Ground.Name) > 0) and
-       (Ground.Tag <> 0) then
-      Player.RigidBody.Collider.Restitution := 0.0001
-    else
-      Player.RigidBody.Collider.Restitution := 0.05;
-  end else
-  begin
-    CastleCollider := Player.FindBehavior(TCastleCollider) as TCastleCollider;
-    if CastleCollider <> nil then
-    begin
-      if (Ground <> nil) and (Pos('Platform', Ground.Name) > 0) and
-         (Ground.Tag <> 0) then
-        CastleCollider.Restitution := 0.0001
-      else
-        CastleCollider.Restitution := 0.05;
-    end;
   end;
 end;
 
@@ -960,12 +929,6 @@ begin
       + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
       Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
   end;
-
-  { Fix restitution for moving platforms - when player is on moving platform
-    and restitution is to big he can slide from platform because it will jumping
-    a little, but in other hand when restitution is too small jumping looks
-    not natural }
-  ChangePlayerPhysicsSettingsBasedOnGround(ScenePlayer, GroundScene);
 
   { Player is on ground when RayCasts hits something }
   PlayerOnGround := (GroundScene <> nil);
