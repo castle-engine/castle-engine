@@ -72,6 +72,7 @@ begin
 
   Assert(Collider <> nil, 'No Castle Collider in Parent');
   Collider.Friction := 100;
+  Collider.Restitution := 0;
 end;
 
 constructor TMovingPlatform.Create(AOwner: TComponent);
