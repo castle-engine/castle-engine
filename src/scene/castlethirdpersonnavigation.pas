@@ -1267,8 +1267,6 @@ begin
           Torque := RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGround)};
         end;
 
-        AvatarRigidBody.WakeUp;
-
         if not IsZero(Torque) then
         begin
           AvatarRigidBody.AddTorque(A.Up * Torque);
