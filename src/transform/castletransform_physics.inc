@@ -474,7 +474,9 @@
     procedure UpdateKraftGravity;
   private
     FKraftBody: TKraftRigidBody;
+    {$warnings off}
     FCollider: TCollider;
+    {$warnings on}
     FGravity: Boolean;
     FDynamic: Boolean;
     FAnimated: Boolean;

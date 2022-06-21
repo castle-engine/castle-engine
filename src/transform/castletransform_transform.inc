@@ -3789,7 +3789,9 @@ begin
     OldParent := Behavior.FParent;
     Behavior.FParent := Self;
     Behavior.ParentAfterAttach;
+    {$warnings off}
     Behavior.ParentChanged; // call at end, when state is consistent
+    {$warnings on}
 
     { Call WorldAttached directly }
     if Behavior.NeedWorldChangeNotification then
@@ -3817,7 +3819,9 @@ begin
 
   Beh.FParent := nil;
   FBehaviors.Delete(BehaviorIndex);
+  {$warnings off}
   Beh.ParentChanged; // call at end, when state is consistent
+  {$warnings on}
   RemoveWorldChangeNotification(Beh);
 end;
 
