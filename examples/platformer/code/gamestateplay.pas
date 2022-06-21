@@ -1369,9 +1369,6 @@ begin
 end;
 
 function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
-var
-  CastleCapsuleCollider: TCastleCapsuleCollider;
-  CastleCollider: TCastleCollider;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -1392,64 +1389,12 @@ begin
     Exit(true);
   end;
 
-  // This will be working when exists in root will be fixed
-  {if Event.IsKey(keyF6) then
-    CoinsRoot.Exists := not CoinsRoot.Exists;}
-
   if Event.IsKey(keyEscape) and (TUIState.CurrentTop = StatePlay) then
   begin
     PauseGame;
     TUIState.Push(StatePause);
     Exit(true);
   end;
-
-  if Event.IsKey(keyEqual) then
-  begin
-    CastleCapsuleCollider := ScenePlayer.FindBehavior(TCastleCapsuleCollider) as TCastleCapsuleCollider;
-    if CastleCapsuleCollider <> nil then
-    begin
-      CastleCapsuleCollider.Height := CastleCapsuleCollider.Height + 10;
-    end;
-  end;
-
-  if Event.IsKey(keyMinus) then
-  begin
-    CastleCapsuleCollider := ScenePlayer.FindBehavior(TCastleCapsuleCollider) as TCastleCapsuleCollider;
-    if CastleCapsuleCollider <> nil then
-    begin
-      CastleCapsuleCollider.Height := CastleCapsuleCollider.Height - 10;
-    end;
-  end;
-
-  if Event.IsKey(keyO) then
-  begin
-    CastleCollider := ScenePlayer.FindBehavior(TCastleCollider) as TCastleCollider;
-    if CastleCollider <> nil then
-    begin
-      ScenePlayer.RemoveBehavior(CastleCollider);
-      FreeAndNil(CastleCollider);
-    end;
-
-  end;
-
-  if Event.IsKey(keyK) then
-  begin
-    CastleCollider := ScenePlayer.FindBehavior(TCastleCollider) as TCastleCollider;
-    if CastleCollider <> nil then
-    begin
-      ScenePlayer.RemoveBehavior(CastleCollider);
-      FreeAndNil(CastleCollider);
-    end;
-
-    CastleCapsuleCollider := TCastleCapsuleCollider.Create(ScenePlayer);
-    CastleCapsuleCollider.Radius := ScenePlayer.BoundingBox.SizeX * 0.45; // little smaller than 50%
-    CastleCapsuleCollider.Height := ScenePlayer.BoundingBox.SizeY - CastleCapsuleCollider.Radius * 2;
-    CastleCapsuleCollider.Friction := 0.25;
-    CastleCapsuleCollider.Restitution := 0.0001;
-    CastleCapsuleCollider.Mass := 50;
-    ScenePlayer.AddBehavior(CastleCapsuleCollider);
-  end;
-
 end;
 
 end.
