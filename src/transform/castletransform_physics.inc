@@ -805,10 +805,10 @@
       and it does not cause collisions with other rigid bodies. }
     property Exists: Boolean read FExists write SetExists default true;
 
-    property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp default 0.1;
+    property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp {$ifdef FPC}default 0.1{$endif};
     property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
 
-    property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp default 0.1;
+    property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp {$ifdef FPC}default 0.1{$endif};
     property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
 
     {$define read_interface_class}
@@ -1330,7 +1330,7 @@ begin
   FFriction := DefaultFriction;
   FScale := NoScale;
   FLastUsedWorldScale := NoScale;
-  FTranslation := Vector3(0, 0, 0);
+  FTranslation := CastleVectors.Vector3(0, 0, 0);
   FRotation := Vector4(0, 1, 0, 0);
 
   { Will be updated in TCastleCollider.InitializeKraft to reflect FKraftShape.LocalTransform }
@@ -1430,7 +1430,7 @@ begin
 
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
-    Normal := Vector3(0, 1, 0);
+    Normal := CastleVectors.Vector3(0, 1, 0);
     Exit;
   end;
 
@@ -1439,16 +1439,16 @@ begin
   if LocalBoundingBox.SizeX > LocalBoundingBox.SizeY then
   begin
     if LocalBoundingBox.SizeY > LocalBoundingBox.SizeZ then
-      Normal := Vector3(0, 0, 1)
+      Normal := CastleVectors.Vector3(0, 0, 1)
     else
-      Normal := Vector3(0, 1, 0);
+      Normal := CastleVectors.Vector3(0, 1, 0);
   end
   else
     begin
       if LocalBoundingBox.SizeX > LocalBoundingBox.SizeZ then
-        Normal := Vector3(0, 0, 1)
+        Normal := CastleVectors.Vector3(0, 0, 1)
       else
-        Normal := Vector3(1, 0, 0);
+        Normal := CastleVectors.Vector3(1, 0, 0);
     end;
 
   Translation := LocalBoundingBox.Center;
@@ -1546,7 +1546,7 @@ begin
 
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
-    Size := Vector3(1, 1, 1);
+    Size := CastleVectors.Vector3(1, 1, 1);
     Exit;
   end;
 
@@ -1568,7 +1568,7 @@ end;
 constructor TCastleBoxCollider.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FSize := Vector3(1.0, 1.0, 1.0);
+  FSize := CastleVectors.Vector3(1.0, 1.0, 1.0);
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
   {$undef read_implementation_constructor}

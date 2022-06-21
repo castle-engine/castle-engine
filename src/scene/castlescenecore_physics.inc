@@ -233,8 +233,8 @@ procedure TCastleMeshCollider.CalculateAutoSize;
 begin
   inherited;
   Rotation := Vector4(0, 0, 0, 0);
-  Scale := Vector3(1, 1, 1);
-  Translation := Vector3(0, 0, 0);
+  Scale := CastleVectors.Vector3(1, 1, 1);
+  Translation := CastleVectors.Vector3(0, 0, 0);
 end;
 
 function TCastleMeshCollider.PropertySections(
