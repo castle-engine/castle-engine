@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2019-2021 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
@@ -69,8 +69,8 @@ var
   Box: TBoxNode;
   Shape: TShapeNode;
   Root: TX3DRootNode;
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
+  RBody: TCastleRigidBody;
+  Collider: TCastleBoxCollider;
   Material: TUnlitMaterialNode;
 begin
   inherited Create(AOwner);
@@ -90,15 +90,15 @@ begin
 
   Load(Root, true);
 
-  RBody := TRigidBody.Create(Self);
+  RBody := TCastleRigidBody.Create(Self);
   RBody.Dynamic := false;
   RBody.Trigger := true;
   RBody.Setup2D;
+  AddBehavior(RBody);
 
-  Collider := TBoxCollider.Create(RBody);
+  Collider := TCastleBoxCollider.Create(Self);
   Collider.Size := Size;
-
-  RigidBody := RBody;
+  AddBehavior(Collider);
 end;
 
 { TPlane }
@@ -118,14 +118,14 @@ end;
 
 constructor TPlane.Create(AOwner: TComponent);
 var
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
+  RBody: TCastleRigidBody;
+  Collider: TCastleBoxCollider;
 begin
   inherited Create(AOwner);
   Load('castle-data:/plane.x3d');
   Translation := Vector3(550, 450, 0); // initial position
 
-  RBody := TRigidBody.Create(Self);
+  RBody := TCastleRigidBody.Create(Self);
   RBody.Dynamic := true;
   RBody.Setup2D;
   RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
@@ -133,11 +133,11 @@ begin
   RBody.MaximalLinearVelocity := 200;
   RBody.AngularVelocityDamp := 0;
 
-  Collider := TBoxCollider.Create(RBody);
-  Collider.Size := LocalBoundingBox.Size * 5;
+  Collider := TCastleBoxCollider.Create(Self);
   Collider.Restitution := 0.4;
 
-  RigidBody := RBody;
+  AddBehavior(RBody);
+  AddBehavior(Collider);
 end;
 
 { TWall }
@@ -147,8 +147,8 @@ var
   Box: TBoxNode;
   Shape: TShapeNode;
   Root: TX3DRootNode;
-  RBody: TRigidBody;
-  Collider: TBoxCollider;
+  RBody: TCastleRigidBody;
+  Collider: TCastleBoxCollider;
   Material: TUnlitMaterialNode;
 begin
   inherited Create(AOwner);
@@ -168,14 +168,14 @@ begin
 
   Load(Root, true);
 
-  RBody := TRigidBody.Create(Self);
+  RBody := TCastleRigidBody.Create(Self);
   RBody.Dynamic := false;
   RBody.Setup2D;
+  AddBehavior(RBody);
 
-  Collider := TBoxCollider.Create(RBody);
+  Collider := TCastleBoxCollider.Create(Self);
   Collider.Size := Size;
-
-  RigidBody := RBody;
+  AddBehavior(Collider);
 end;
 
 { ---------------------------------------------------------------------------- }
@@ -273,10 +273,10 @@ begin
     'Linear velocity: %f' + NL +
     'Use AWSD to change plane velocity, space to pause, R to restart plane.' + NL +
     NL+
-    'Current Plane Colisions (from TRigidBody.GetCollidingTransforms):' + NL +
+    'Current Plane Colisions (from TCastleRigidBody.GetCollidingTransforms):' + NL +
     '  %s' + NL +
     NL +
-    'Last Plane Collision Enter (from TRigidBody.OnCollisionEnter):' + NL +
+    'Last Plane Collision Enter (from TCastleRigidBody.OnCollisionEnter):' + NL +
     '  %s', [
     Container.Fps.ToString,
     Viewport.Items.Count,
