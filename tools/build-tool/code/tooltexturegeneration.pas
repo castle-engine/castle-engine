@@ -136,7 +136,8 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   end;
 
   procedure Compressonator(const InputFile, OutputFile: string;
-    const C: TTextureCompression; const CompressionNameForTool: String;
+    const C: TTextureCompression; MipmapsLevel: Cardinal;
+    const CompressionNameForTool: String;
     const AstcBlockRate: String = '');
   var
     ToolExe, InputFlippedFile, OutputTempFile, TempPrefix: string;
@@ -185,11 +186,27 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         CommandOptions.Add(AstcBlockRate);
       end;
 
+      if MipmapsLevel > 1 then
+      begin
+        if MipmapsLevel > 20 then
+        begin
+          WritelnWarning('Compressonator only supports mipmap levels up to 20, capping specified %d to 20', [MipmapsLevel]);
+          MipmapsLevel := 20;
+        end;
+        CommandOptions.AddRange([
+          '-miplevels',
+          IntToStr(MipmapsLevel)
+        ]);
+      end else
+      begin
+        CommandOptions.AddRange([
+          '-nomipmap'
+        ]);
+      end;
+
       CommandOptions.AddRange([
         '-fd',
         CompressionNameForTool,
-        '-miplevels',
-        '20', // make mipmaps, useful for textures in 3D
         InputFlippedFile,
         OutputTempFile
       ]);
@@ -218,7 +235,8 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   end;
 
   procedure PVRTexTool(const InputFile, OutputFile: string;
-    const C: TTextureCompression; const CompressionNameForTool: string);
+    const C: TTextureCompression; const MipmapsLevel: Cardinal;
+    const CompressionNameForTool: string);
   var
     ToolExe: string;
   begin
@@ -234,63 +252,72 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     { otherwise, assume it's on $PATH }
     TryToolExePath(ToolExe, 'PVRTexToolCLI', C);
 
-    RunCommandSimple(ToolExe,
-      ['-f', CompressionNameForTool,
-       '-q', 'pvrtcbest',
-       '-m', '1',
-       { On iOS, it seems that PVRTC textures must be square.
-         See
-         - https://en.wikipedia.org/wiki/PVRTC
-         - https://developer.apple.com/library/ios/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/TextureTool/TextureTool.html
-         But this is only an Apple implementation limitation, not a limitation
-         of PVRTC1 compression.
-         More info on this compression on
-         - http://cdn.imgtec.com/sdk-documentation/PVRTC+%26+Texture+Compression.User+Guide.pdf
-         - http://blog.imgtec.com/powervr/pvrtc2-taking-texture-compression-to-a-new-dimension
+    RunCommandSimple(ToolExe, [
+      '-f', CompressionNameForTool,
+      '-q', 'pvrtcbest',
+      '-m', IntToStr(MipmapsLevel),
+      { On iOS, it seems that PVRTC textures must be square.
+        See
+        - https://en.wikipedia.org/wiki/PVRTC
+        - https://developer.apple.com/library/ios/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/TextureTool/TextureTool.html
+        But this is only an Apple implementation limitation, not a limitation
+        of PVRTC1 compression.
+        More info on this compression on
+        - http://cdn.imgtec.com/sdk-documentation/PVRTC+%26+Texture+Compression.User+Guide.pdf
+        - http://blog.imgtec.com/powervr/pvrtc2-taking-texture-compression-to-a-new-dimension
 
-         In practice, forcing texture here to be square is very bad:
-         - If a texture is addressed from the top, e.g. in Spine atlas file,
-           then it's broken now. So using a texture atlases like 1024x512 from Spine
-           would be broken.
-         - ... and there's no sensible solution to the above problem.
-           We could shift the texture, but then what if something addresses
-           it from the bottom?
-         - What if something (VRML/X3D or Collada texture coords) addresses
-           texture in 0...1 range?
-         - To fully work with it, we would have to store original texture
-           size somewhere, and it's shift with regards to new compressed texture,
-           and support it everywhere where we "interpret" texture coordinates
-           (like when reading Spine atlas, or in shaders when sampling
-           texture coordinates). Absolutely ugly.
+        In practice, forcing texture here to be square is very bad:
+        - If a texture is addressed from the top, e.g. in Spine atlas file,
+          then it's broken now. So using a texture atlases like 1024x512 from Spine
+          would be broken.
+        - ... and there's no sensible solution to the above problem.
+          We could shift the texture, but then what if something addresses
+          it from the bottom?
+        - What if something (VRML/X3D or Collada texture coords) addresses
+          texture in 0...1 range?
+        - To fully work with it, we would have to store original texture
+          size somewhere, and it's shift with regards to new compressed texture,
+          and support it everywhere where we "interpret" texture coordinates
+          (like when reading Spine atlas, or in shaders when sampling
+          texture coordinates). Absolutely ugly.
 
-         So, don't do this! Allow rectangular PVRTC textures!
-       }
-       // '-squarecanvas', '+' ,
+        So, don't do this! Allow rectangular PVRTC textures!
+      }
+      // '-squarecanvas', '+' ,
 
-       { TODO: use "-flip y" only when
-         - TextureCompressionInfo[C].DDSFlipped (it is false for DXTn)
-         - OutputFile is DDS.
+      { TODO: use "-flip y" only when
+        - TextureCompressionInfo[C].DDSFlipped (it is false for DXTn)
+        - OutputFile is DDS.
 
-         If OutputFile is KTX, then always use
-         '-flip' 'y,flag'
-         which means that file should be ordered bottom-to-top (and marked as such
-         in the KTX header). This means it can be read in an efficient way.
-         Using KTX requires some improvements to CastleAutoGenerated.xml
-         first (to mark that we were able to generate KTX).
-       }
-       '-flip', 'y',
+        If OutputFile is KTX, then always use
+        '-flip' 'y,flag'
+        which means that file should be ordered bottom-to-top (and marked as such
+        in the KTX header). This means it can be read in an efficient way.
+        Using KTX requires some improvements to CastleAutoGenerated.xml
+        first (to mark that we were able to generate KTX).
+      }
+      '-flip', 'y',
 
-       '-i', InputFile,
-       '-o', OutputFile]);
+      '-i', InputFile,
+      '-o', OutputFile
+    ]);
   end;
 
   procedure AstcEncTool(const InputFile, OutputFile: String;
-    const C: TTextureCompression; const CompressionNameForTool: String;
+    const C: TTextureCompression; const MipmapsLevel: Cardinal;
+    const CompressionNameForTool: String;
     const ColorspaceOption: String);
   var
     ToolExe: String;
     ToolName: String;
   begin
+    if MipmapsLevel > 1 then
+      raise Exception.CreateFmt('astcenc tool doesn''t support generating mipmaps, cannot generate %s->%s with mipmaps level %d', [
+        InputFile,
+        OutputFile,
+        MipmapsLevel
+      ]);
+
     ToolName := 'astcenc';
     {$ifdef CPU64}
       ToolName := 'astcenc-sse2'; // https://github.com/ARM-software/astc-encoder says this will always work on a 64-bit processor
@@ -316,36 +343,53 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   end;
 
   procedure NVCompress(const InputFile, OutputFile: string;
-    const C: TTextureCompression; const CompressionNameForTool: string);
+    const C: TTextureCompression; const MipmapsLevel: Cardinal;
+    const CompressionNameForTool: string);
   var
     ToolExe: string;
+    CommandOptions: TCastleStringList;
   begin
     ToolExe := FindExeCastleTool('nvcompress');
 
     { assume it's on $PATH }
     TryToolExePath(ToolExe, 'nvcompress', C);
 
-    RunCommandSimple(ToolExe,
-      ['-' + CompressionNameForTool,
-       InputFile,
-       OutputFile]);
+    CommandOptions := TCastleStringList.Create;
+    try
+      CommandOptions.AddRange([
+        '-' + CompressionNameForTool,
+        InputFile,
+        OutputFile
+      ]);
+      if MipmapsLevel <= 1 then
+      begin
+        CommandOptions.AddRange(['-nomips']);
+      end else
+      begin
+        WritelnWarning('nvcompress doesn''t allow to select mipmaps level to generate, generating %s->%s with default mipmaps level of nvcompress', [
+          InputFile,
+          OutputFile
+        ]);
+      end;
+      RunCommandSimple(ToolExe, CommandOptions.ToArray);
+    finally FreeAndNil(CommandOptions) end;
   end;
 
   procedure NVCompress_FallbackCompressonator(
     const InputFile, OutputFile: string;
-    const C: TTextureCompression;
+    const C: TTextureCompression; const MipmapsLevel: Cardinal;
     const CompressionNameForNVCompress,
           CompressionNameForCompressonator: string);
   begin
     try
-      NVCompress(InputFile, OutputFile, C, CompressionNameForNVCompress);
+      NVCompress(InputFile, OutputFile, C, MipmapsLevel, CompressionNameForNVCompress);
       Exit; // if there was no ECannotFindTool exception, then success: exit
     except
       on E: ECannotFindTool do
         Writeln('Cannot find nvcompress executable. Falling back to Compressonator.');
     end;
 
-    Compressonator(InputFile, OutputFile, C, CompressionNameForCompressonator);
+    Compressonator(InputFile, OutputFile, C, MipmapsLevel, CompressionNameForCompressonator);
   end;
 
   { Convert both URLs to filenames and check whether output should be updated.
@@ -436,8 +480,8 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   end;
 
   procedure UpdateTextureCompress(const InputURL, OutputURL: string;
-    const C: TTextureCompression; var Stats: TStats;
-    const ContentAlreadyProcessed: boolean);
+    const C: TTextureCompression; const MipmapsLevel: Cardinal;
+    var Stats: TStats; const ContentAlreadyProcessed: boolean);
   var
     InputFile, OutputFile: string;
     TimeStart: TProcessTimerResult;
@@ -451,118 +495,118 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         { For Compressonator DXT1:
           We have special handling for C = tcDxt1_RGB versus tcDxt1_RGBA,
           they will be handled differently, even though they are both called 'DXT1'. }
-        tcDxt1_RGB : NVCompress_FallbackCompressonator(InputFile, OutputFile, C, 'bc1' , 'DXT1');
-        tcDxt1_RGBA: NVCompress_FallbackCompressonator(InputFile, OutputFile, C, 'bc1a', 'DXT1');
-        tcDxt3     : NVCompress_FallbackCompressonator(InputFile, OutputFile, C, 'bc2' , 'DXT3');
-        tcDxt5     : NVCompress_FallbackCompressonator(InputFile, OutputFile, C, 'bc3' , 'DXT5');
+        tcDxt1_RGB : NVCompress_FallbackCompressonator(InputFile, OutputFile, C, MipmapsLevel, 'bc1' , 'DXT1');
+        tcDxt1_RGBA: NVCompress_FallbackCompressonator(InputFile, OutputFile, C, MipmapsLevel, 'bc1a', 'DXT1');
+        tcDxt3     : NVCompress_FallbackCompressonator(InputFile, OutputFile, C, MipmapsLevel, 'bc2' , 'DXT3');
+        tcDxt5     : NVCompress_FallbackCompressonator(InputFile, OutputFile, C, MipmapsLevel, 'bc3' , 'DXT5');
 
-        tcATITC_RGB                   : Compressonator(InputFile, OutputFile, C, 'ATC_RGB'              );
-        tcATITC_RGBA_InterpolatedAlpha: Compressonator(InputFile, OutputFile, C, 'ATC_RGBA_Interpolated');
-        tcATITC_RGBA_ExplicitAlpha    : Compressonator(InputFile, OutputFile, C, 'ATC_RGBA_Explicit'    );
+        tcATITC_RGB                   : Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ATC_RGB'              );
+        tcATITC_RGBA_InterpolatedAlpha: Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ATC_RGBA_Interpolated');
+        tcATITC_RGBA_ExplicitAlpha    : Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ATC_RGBA_Explicit'    );
 
         // format names for PVRTexTool from https://docs.imgtec.com/oxy_ex-2/UtilitiesSrc/PVRTexTool/Documentation/PVRTexTool_Manual/topics/PVRTexTool%20CLI/command_line_options.html
-        tcPvrtc1_4bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTCI_4BPP_RGB');
-        tcPvrtc1_2bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTCI_2BPP_RGB');
-        tcPvrtc1_4bpp_RGBA: PVRTexTool(InputFile, OutputFile, C, 'PVRTCI_4BPP_RGBA');
-        tcPvrtc1_2bpp_RGBA: PVRTexTool(InputFile, OutputFile, C, 'PVRTCI_2BPP_RGBA');
-        tcPvrtc2_4bpp:      PVRTexTool(InputFile, OutputFile, C, 'PVRTCII_4BPP');
-        tcPvrtc2_2bpp:      PVRTexTool(InputFile, OutputFile, C, 'PVRTCII_2BPP');
+        tcPvrtc1_4bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'PVRTCI_4BPP_RGB');
+        tcPvrtc1_2bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'PVRTCI_2BPP_RGB');
+        tcPvrtc1_4bpp_RGBA: PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'PVRTCI_4BPP_RGBA');
+        tcPvrtc1_2bpp_RGBA: PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'PVRTCI_2BPP_RGBA');
+        tcPvrtc2_4bpp:      PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'PVRTCII_4BPP');
+        tcPvrtc2_2bpp:      PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'PVRTCII_2BPP');
 
-        tcETC1:             PVRTexTool(InputFile, OutputFile, C, 'ETC1');
-                      // or Compressonator(InputFile, OutputFile, C, 'ETC_RGB');
+        tcETC1:             PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ETC1');
+                      // or Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ETC_RGB');
 
         {$ifdef USE_ASTCENC}
-        tcASTC_4x4_RGBA:           AstcEncTool(InputFile, OutputFile, C, '4x4', '-cl');
-        tcASTC_5x4_RGBA:           AstcEncTool(InputFile, OutputFile, C, '5x4', '-cl');
-        tcASTC_5x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, '5x5', '-cl');
-        tcASTC_6x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, '6x5', '-cl');
-        tcASTC_6x6_RGBA:           AstcEncTool(InputFile, OutputFile, C, '6x6', '-cl');
-        tcASTC_8x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, '8x5', '-cl');
-        tcASTC_8x6_RGBA:           AstcEncTool(InputFile, OutputFile, C, '8x6', '-cl');
-        tcASTC_8x8_RGBA:           AstcEncTool(InputFile, OutputFile, C, '8x8', '-cl');
-        tcASTC_10x5_RGBA:          AstcEncTool(InputFile, OutputFile, C, '10x5', '-cl');
-        tcASTC_10x6_RGBA:          AstcEncTool(InputFile, OutputFile, C, '10x6', '-cl');
-        tcASTC_10x8_RGBA:          AstcEncTool(InputFile, OutputFile, C, '10x8', '-cl');
-        tcASTC_10x10_RGBA:         AstcEncTool(InputFile, OutputFile, C, '10x10', '-cl');
-        tcASTC_12x10_RGBA:         AstcEncTool(InputFile, OutputFile, C, '12x10', '-cl');
-        tcASTC_12x12_RGBA:         AstcEncTool(InputFile, OutputFile, C, '12x12', '-cl');
+        tcASTC_4x4_RGBA:           AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '4x4', '-cl');
+        tcASTC_5x4_RGBA:           AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '5x4', '-cl');
+        tcASTC_5x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '5x5', '-cl');
+        tcASTC_6x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '6x5', '-cl');
+        tcASTC_6x6_RGBA:           AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '6x6', '-cl');
+        tcASTC_8x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '8x5', '-cl');
+        tcASTC_8x6_RGBA:           AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '8x6', '-cl');
+        tcASTC_8x8_RGBA:           AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '8x8', '-cl');
+        tcASTC_10x5_RGBA:          AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '10x5', '-cl');
+        tcASTC_10x6_RGBA:          AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '10x6', '-cl');
+        tcASTC_10x8_RGBA:          AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '10x8', '-cl');
+        tcASTC_10x10_RGBA:         AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '10x10', '-cl');
+        tcASTC_12x10_RGBA:         AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '12x10', '-cl');
+        tcASTC_12x12_RGBA:         AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '12x12', '-cl');
 
-        tcASTC_4x4_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '4x4', '-ch');
-        tcASTC_5x4_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '5x4', '-ch');
-        tcASTC_5x5_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '5x5', '-ch');
-        tcASTC_6x5_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '6x5', '-ch');
-        tcASTC_6x6_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '6x6', '-ch');
-        tcASTC_8x5_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '8x5', '-ch');
-        tcASTC_8x6_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '8x6', '-ch');
-        tcASTC_8x8_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '8x8', '-ch');
-        tcASTC_10x5_SRGB8_ALPHA8:  AstcEncTool(InputFile, OutputFile, C, '10x5', '-ch');
-        tcASTC_10x6_SRGB8_ALPHA8:  AstcEncTool(InputFile, OutputFile, C, '10x6', '-ch');
-        tcASTC_10x8_SRGB8_ALPHA8:  AstcEncTool(InputFile, OutputFile, C, '10x8', '-ch');
-        tcASTC_10x10_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, '10x10', '-ch');
-        tcASTC_12x10_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, '12x10', '-ch');
-        tcASTC_12x12_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, '12x12', '-ch');
+        tcASTC_4x4_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '4x4', '-ch');
+        tcASTC_5x4_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '5x4', '-ch');
+        tcASTC_5x5_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '5x5', '-ch');
+        tcASTC_6x5_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '6x5', '-ch');
+        tcASTC_6x6_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '6x6', '-ch');
+        tcASTC_8x5_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '8x5', '-ch');
+        tcASTC_8x6_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '8x6', '-ch');
+        tcASTC_8x8_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '8x8', '-ch');
+        tcASTC_10x5_SRGB8_ALPHA8:  AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '10x5', '-ch');
+        tcASTC_10x6_SRGB8_ALPHA8:  AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '10x6', '-ch');
+        tcASTC_10x8_SRGB8_ALPHA8:  AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '10x8', '-ch');
+        tcASTC_10x10_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '10x10', '-ch');
+        tcASTC_12x10_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '12x10', '-ch');
+        tcASTC_12x12_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, MipmapsLevel, '12x12', '-ch');
 
         {$else}
-        // tcASTC_4x4_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_4x4');
-        // tcASTC_5x4_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x4');
-        // tcASTC_5x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x5');
-        // tcASTC_6x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x5');
-        // tcASTC_6x6_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x6');
-        // tcASTC_8x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x5');
-        // tcASTC_8x6_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x6');
-        // tcASTC_8x8_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x8');
-        // tcASTC_10x5_RGBA:          PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x5');
-        // tcASTC_10x6_RGBA:          PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x6');
-        // tcASTC_10x8_RGBA:          PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x8');
-        // tcASTC_10x10_RGBA:         PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x10');
-        // tcASTC_12x10_RGBA:         PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x10');
-        // tcASTC_12x12_RGBA:         PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x12');
+        // tcASTC_4x4_RGBA:           PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_4x4');
+        // tcASTC_5x4_RGBA:           PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_5x4');
+        // tcASTC_5x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_5x5');
+        // tcASTC_6x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_6x5');
+        // tcASTC_6x6_RGBA:           PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_6x6');
+        // tcASTC_8x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_8x5');
+        // tcASTC_8x6_RGBA:           PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_8x6');
+        // tcASTC_8x8_RGBA:           PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_8x8');
+        // tcASTC_10x5_RGBA:          PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_10x5');
+        // tcASTC_10x6_RGBA:          PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_10x6');
+        // tcASTC_10x8_RGBA:          PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_10x8');
+        // tcASTC_10x10_RGBA:         PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_10x10');
+        // tcASTC_12x10_RGBA:         PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_12x10');
+        // tcASTC_12x12_RGBA:         PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_12x12');
 
-        // tcASTC_4x4_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_4x4,UBN,sRGB');
-        // tcASTC_5x4_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x4,UBN,sRGB');
-        // tcASTC_5x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x5,UBN,sRGB');
-        // tcASTC_6x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x5,UBN,sRGB');
-        // tcASTC_6x6_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x6,UBN,sRGB');
-        // tcASTC_8x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x5,UBN,sRGB');
-        // tcASTC_8x6_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x6,UBN,sRGB');
-        // tcASTC_8x8_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x8,UBN,sRGB');
-        // tcASTC_10x5_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x5,UBN,sRGB');
-        // tcASTC_10x6_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x6,UBN,sRGB');
-        // tcASTC_10x8_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x8,UBN,sRGB');
-        // tcASTC_10x10_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x10,UBN,sRGB');
-        // tcASTC_12x10_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x10,UBN,sRGB');
-        // tcASTC_12x12_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x12,UBN,sRGB');
+        // tcASTC_4x4_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_4x4,UBN,sRGB');
+        // tcASTC_5x4_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_5x4,UBN,sRGB');
+        // tcASTC_5x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_5x5,UBN,sRGB');
+        // tcASTC_6x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_6x5,UBN,sRGB');
+        // tcASTC_6x6_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_6x6,UBN,sRGB');
+        // tcASTC_8x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_8x5,UBN,sRGB');
+        // tcASTC_8x6_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_8x6,UBN,sRGB');
+        // tcASTC_8x8_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_8x8,UBN,sRGB');
+        // tcASTC_10x5_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_10x5,UBN,sRGB');
+        // tcASTC_10x6_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_10x6,UBN,sRGB');
+        // tcASTC_10x8_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_10x8,UBN,sRGB');
+        // tcASTC_10x10_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_10x10,UBN,sRGB');
+        // tcASTC_12x10_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_12x10,UBN,sRGB');
+        // tcASTC_12x12_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, MipmapsLevel, 'ASTC_12x12,UBN,sRGB');
 
-        tcASTC_4x4_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '4x4');
-        tcASTC_5x4_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '5x4');
-        tcASTC_5x5_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '5x5');
-        tcASTC_6x5_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '6x5');
-        tcASTC_6x6_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '6x6');
-        tcASTC_8x5_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '8x5');
-        tcASTC_8x6_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '8x6');
-        tcASTC_8x8_RGBA:           Compressonator(InputFile, OutputFile, C, 'ASTC', '8x8');
-        tcASTC_10x5_RGBA:          Compressonator(InputFile, OutputFile, C, 'ASTC', '10x5');
-        tcASTC_10x6_RGBA:          Compressonator(InputFile, OutputFile, C, 'ASTC', '10x6');
-        tcASTC_10x8_RGBA:          Compressonator(InputFile, OutputFile, C, 'ASTC', '10x8');
-        tcASTC_10x10_RGBA:         Compressonator(InputFile, OutputFile, C, 'ASTC', '10x10');
-        tcASTC_12x10_RGBA:         Compressonator(InputFile, OutputFile, C, 'ASTC', '12x10');
-        tcASTC_12x12_RGBA:         Compressonator(InputFile, OutputFile, C, 'ASTC', '12x12');
+        tcASTC_4x4_RGBA:           Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '4x4');
+        tcASTC_5x4_RGBA:           Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '5x4');
+        tcASTC_5x5_RGBA:           Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '5x5');
+        tcASTC_6x5_RGBA:           Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '6x5');
+        tcASTC_6x6_RGBA:           Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '6x6');
+        tcASTC_8x5_RGBA:           Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '8x5');
+        tcASTC_8x6_RGBA:           Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '8x6');
+        tcASTC_8x8_RGBA:           Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '8x8');
+        tcASTC_10x5_RGBA:          Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '10x5');
+        tcASTC_10x6_RGBA:          Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '10x6');
+        tcASTC_10x8_RGBA:          Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '10x8');
+        tcASTC_10x10_RGBA:         Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '10x10');
+        tcASTC_12x10_RGBA:         Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '12x10');
+        tcASTC_12x12_RGBA:         Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '12x12');
 
         // TODO: pass here special option for SRGB8_ALPHA8
-        tcASTC_4x4_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '4x4');
-        tcASTC_5x4_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '5x4');
-        tcASTC_5x5_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '5x5');
-        tcASTC_6x5_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '6x5');
-        tcASTC_6x6_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '6x6');
-        tcASTC_8x5_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '8x5');
-        tcASTC_8x6_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '8x6');
-        tcASTC_8x8_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, 'ASTC', '8x8');
-        tcASTC_10x5_SRGB8_ALPHA8:  Compressonator(InputFile, OutputFile, C, 'ASTC', '10x5');
-        tcASTC_10x6_SRGB8_ALPHA8:  Compressonator(InputFile, OutputFile, C, 'ASTC', '10x6');
-        tcASTC_10x8_SRGB8_ALPHA8:  Compressonator(InputFile, OutputFile, C, 'ASTC', '10x8');
-        tcASTC_10x10_SRGB8_ALPHA8: Compressonator(InputFile, OutputFile, C, 'ASTC', '10x10');
-        tcASTC_12x10_SRGB8_ALPHA8: Compressonator(InputFile, OutputFile, C, 'ASTC', '12x10');
-        tcASTC_12x12_SRGB8_ALPHA8: Compressonator(InputFile, OutputFile, C, 'ASTC', '12x12');
+        tcASTC_4x4_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '4x4');
+        tcASTC_5x4_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '5x4');
+        tcASTC_5x5_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '5x5');
+        tcASTC_6x5_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '6x5');
+        tcASTC_6x6_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '6x6');
+        tcASTC_8x5_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '8x5');
+        tcASTC_8x6_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '8x6');
+        tcASTC_8x8_SRGB8_ALPHA8:   Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '8x8');
+        tcASTC_10x5_SRGB8_ALPHA8:  Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '10x5');
+        tcASTC_10x6_SRGB8_ALPHA8:  Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '10x6');
+        tcASTC_10x8_SRGB8_ALPHA8:  Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '10x8');
+        tcASTC_10x10_SRGB8_ALPHA8: Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '10x10');
+        tcASTC_12x10_SRGB8_ALPHA8: Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '12x10');
+        tcASTC_12x12_SRGB8_ALPHA8: Compressonator(InputFile, OutputFile, C, MipmapsLevel, 'ASTC', '12x12');
 
         {$endif}
 
@@ -597,7 +641,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   end;
 
   { Like UpdateTextureCompress, and also record the output in AutoGeneratedTex.Generated }
-  procedure UpdateTextureCompressWhole(const MatProps: TMaterialProperties;
+  procedure UpdateTextureCompressWhole(const AutoGeneratedTexInfo: TAutoGeneratedTextures;
     const AutoGeneratedTex: TAutoGenerated.TTexture;
     const C: TTextureCompression;
     const OriginalTextureURL, UncompressedURL: String;
@@ -620,10 +664,11 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         TextureCompressionInfo[C].Name
       ]);
 
-    CompressedURL := MatProps.AutoGeneratedTextureURL(OriginalTextureURL, true, C, Scale);
+    CompressedURL := AutoGeneratedTexInfo.GeneratedTextureURL(OriginalTextureURL, true, C, Scale);
     { We use the UncompressedURL that was updated previously.
       This way there's no need to scale the texture here. }
-    UpdateTextureCompress(UncompressedURL, CompressedURL, C, Stats, ContentAlreadyProcessed);
+    UpdateTextureCompress(UncompressedURL, CompressedURL, C,
+      AutoGeneratedTexInfo.MipmapsLevel, Stats, ContentAlreadyProcessed);
 
     Generated := AutoGeneratedTex.Generated(true, C, Scale);
     Generated.URL := MakeUrlRelativeToData(Project, CompressedURL);
@@ -631,8 +676,12 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     Generated.Used := true;
   end;
 
-  procedure UpdateTexture(const MatProps: TMaterialProperties;
-    const OriginalTextureURL: String; var Stats: TStats;
+  procedure UpdateTexture(
+    const OriginalTextureURL: String;
+    { Determines how the texture should be processed (comes from material_properties.xml) }
+    const AutoGeneratedTexInfo: TAutoGeneratedTextures;
+    var Stats: TStats;
+    { Determines how were the textures processed now (comes from CastleAutoGenerated.xml) }
     const AutoGenerated: TAutoGenerated);
   var
     UncompressedURL: String;
@@ -643,7 +692,9 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     CompressionPair: TCompressionsMap.TDictionaryPair;
     RelativeOriginalTextureUrl, Hash: String;
     ContentAlreadyProcessed: Boolean;
+    { Determines how was the texture processed now (comes from CastleAutoGenerated.xml) }
     AutoGeneratedTex: TAutoGenerated.TTexture;
+    MipmapsLevel: Cardinal;
   begin
     Inc(Stats.Count);
 
@@ -651,9 +702,13 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
 
     // calculate and compare Hash with AutoGenerated
     RelativeOriginalTextureUrl := MakeUrlRelativeToData(Project, OriginalTextureUrl);
-    AutoGeneratedTex := AutoGenerated.Texture(RelativeOriginalTextureUrl, MatProps.OriginalPlatforms(OriginalTextureURL), true);
+    AutoGeneratedTex := AutoGenerated.Texture(RelativeOriginalTextureUrl,
+      AutoGeneratedTexInfo.OriginalPlatforms, true);
     AutoGeneratedTex.Used := true;
-    ContentAlreadyProcessed := AutoGeneratedTex.Hash = Hash;
+    MipmapsLevel := AutoGeneratedTexInfo.MipmapsLevel;
+    ContentAlreadyProcessed :=
+      (AutoGeneratedTex.Hash = Hash) and
+      (AutoGeneratedTex.MipmapsLevel = MipmapsLevel);
 
     { We could just Exit now if ContentAlreadyProcessed.
       But it's safer to continue, and check do the indicated (generated) files exist.
@@ -670,16 +725,16 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
       UpdateTextureDimensions(AutoGeneratedTex, OriginalTextureURL, Stats);
     end;
 
-    for Scale in MatProps.Scales(OriginalTextureURL) do
+    for Scale in AutoGeneratedTexInfo.Scales do
     begin
-      if (Scale.Value <> 1) or MatProps.TrivialUncompressedConvert(OriginalTextureURL) then
+      if (Scale.Value <> 1) or AutoGeneratedTexInfo.TrivialUncompressedConvert then
       begin
-        UncompressedURL := MatProps.AutoGeneratedTextureURL(OriginalTextureURL, false, Low(TTextureCompression), Scale.Value);
+        UncompressedURL := AutoGeneratedTexInfo.GeneratedTextureURL(OriginalTextureURL, false, Low(TTextureCompression), Scale.Value);
         UpdateTextureScaleWhole(AutoGeneratedTex, OriginalTextureURL, UncompressedURL, Scale, Stats, ContentAlreadyProcessed);
       end else
         UncompressedURL := OriginalTextureURL;
 
-      ToGenerate := MatProps.AutoCompressedTextureFormats(OriginalTextureURL);
+      ToGenerate := AutoGeneratedTexInfo.CompressedFormatsToGenerate;
       if ToGenerate <> nil then
       begin
         Compressions := ToGenerate.Compressions;
@@ -690,7 +745,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
           if ToGenerate.DxtAutoDetectPlatforms * Scale.Platforms <> [] then
           begin
             C := AutoDetectDxt(OriginalTextureURL, Stats);
-            UpdateTextureCompressWhole(MatProps, AutoGeneratedTex, C, OriginalTextureURL, UncompressedURL, Scale.Value, Stats, ContentAlreadyProcessed,
+            UpdateTextureCompressWhole(AutoGeneratedTexInfo, AutoGeneratedTex, C, OriginalTextureURL, UncompressedURL, Scale.Value, Stats, ContentAlreadyProcessed,
               ToGenerate.DxtAutoDetectPlatforms * Scale.Platforms);
           end;
 
@@ -698,7 +753,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
           if CompressionPair.Value * Scale.Platforms <> [] then
           begin
             C := CompressionPair.Key;
-            UpdateTextureCompressWhole(MatProps, AutoGeneratedTex, C, OriginalTextureURL, UncompressedURL, Scale.Value, Stats, ContentAlreadyProcessed,
+            UpdateTextureCompressWhole(AutoGeneratedTexInfo, AutoGeneratedTex, C, OriginalTextureURL, UncompressedURL, Scale.Value, Stats, ContentAlreadyProcessed,
               CompressionPair.Value * Scale.Platforms);
           end;
       end;
@@ -739,7 +794,8 @@ begin
       Textures := MatProps.AutoGeneratedTextures;
       try
         for I := 0 to Textures.Count - 1 do
-          UpdateTexture(MatProps, Textures[I], Stats, AutoGenerated);
+          UpdateTexture(Textures[I], Textures.Objects[I] as TAutoGeneratedTextures,
+            Stats, AutoGenerated);
       finally FreeAndNil(Textures) end;
     finally FreeAndNil(MatProps) end;
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -88,6 +88,9 @@ type
           this generated texture is still mentioned in material_properties.xml
           (e.g. the original was not excluded, or given compression/scale was not excluded). }
         Used: Boolean;
+
+        { How many mipmaps should be generated in all @link(Generated) of this texture. }
+        MipmapsLevel: Cardinal;
 
         constructor Create;
         destructor Destroy; override;
@@ -247,6 +250,8 @@ begin
   E.AttributeSet('height', Height);
   E.AttributeSet('depth', Depth);
   E.AttributeSet('original_platforms', PlatformsToStr(OriginalPlatforms));
+  if MipmapsLevel <> 0 then
+    E.AttributeSet('mipmaps_level', MipmapsLevel);
 
   for G in FGenerated do
     G.Save(E);
@@ -262,6 +267,7 @@ begin
   Width := E.AttributeCardinalDef('width', 0);
   Height := E.AttributeCardinalDef('height', 0);
   Depth := E.AttributeCardinalDef('depth', 0);
+  MipmapsLevel := E.AttributeCardinalDef('mipmaps_level', 0);
   if E.HasAttribute('original_platforms') then
     OriginalPlatforms := StrToPlatforms(E.AttributeString('original_platforms'))
   else

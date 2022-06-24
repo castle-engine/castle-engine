@@ -38,6 +38,8 @@
     <include path="example_level/textures/*" recursive="True" />
     <include path="example_level/sky/*" recursive="True" />
     <exclude path="example_level/textures/brushwalker437.png" />
+
+    <mipmaps level="20" />
   </auto_generated_textures>
 
   <auto_generated_textures>
@@ -45,5 +47,6 @@
       <format name="DXT5" />
     </compress>
     <include path="example_level/textures/brushwalker437.png" />
+    <mipmaps level="20" />
   </auto_generated_textures>
 </properties>
