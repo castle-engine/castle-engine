@@ -154,7 +154,7 @@ type
 implementation
 
 uses LCLType, StrUtils, Clipbrd,
-  CastleStringUtils;
+  CastleStringUtils, CastleUnicode;
 
 { TEditBox ------------------------------------------------------------------- }
 
@@ -211,9 +211,9 @@ begin
     VK_END:
       begin
         if Shift = [ssShift] then
-          SelLength := Length(Text) - SelStart
+          SelLength := UTF8Length(Text) - SelStart
         else
-          SelStart := Length(Text);
+          SelStart := UTF8Length(Text);
       end;
     {.$endif}
     VK_0..VK_9: InsertChar(Chr(Ord('0') + Key - VK_0));
@@ -260,8 +260,8 @@ begin
         begin
           SavedSelStart := SelStart;
           Text :=
-            Copy(Text, 1, SelStart) +
-            SEnding(Text, SelStart + 2);
+            UTF8Copy(Text, 1, SelStart) +
+            UTF8SEnding(Text, SelStart + 2);
           SelStart := SavedSelStart;
         end;
       end;
@@ -405,7 +405,7 @@ begin
   E.SelText := AValue;
   { Without these lines, by default setting SelText keeps it selected,
     unlike on TEdit. }
-  E.SelStart := E.SelStart + Length(AValue);
+  E.SelStart := E.SelStart + UTF8Length(AValue);
   E.SelLength := 0;
 end;
 

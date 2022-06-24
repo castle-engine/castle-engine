@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis,
+  Copyright 2014-2022 Michalis Kamburelis,
   parts based on LazUTF8 unit copyright by Lazarus developers.
   Parts of this source code are based on Lazarus LazUTF8 source code,
   but no worries --- Lazarus license is exactly the same as Castle Game Engine :)
@@ -55,6 +55,7 @@ function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt; overload;
 
 function UTF8CharStart(UTF8Str: PChar; Len, CharIndex: PtrInt): PChar;
 function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
+function UTF8SEnding(const S: String; const StartCharIndex: PtrInt): String;
 
 { Return unicode character pointed by P.
   CharLen is set to 0 only when pointer P is @nil, otherwise it's always > 0.
@@ -271,6 +272,11 @@ begin
     else
       Result:=copy(s,StartBytePos-PChar(s)+1,EndBytePos-StartBytePos);
   end;
+end;
+
+function UTF8SEnding(const S: String; const StartCharIndex: PtrInt): String;
+begin
+  result := UTF8Copy(S, StartCharIndex, MaxInt)
 end;
 
 function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): Cardinal;
