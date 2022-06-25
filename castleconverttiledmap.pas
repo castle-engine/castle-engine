@@ -248,6 +248,8 @@ begin
 end;
 
 procedure TTiledMapConverter.ConvertTilesets;
+type
+  TTileFlip = (tfNoFlip, tfHFlip, tfVFlip, tfDFlip);
 var
   Tile: TTiledMap.TTile;
   Tileset: TTiledMap.TTileset;            // A tileset
@@ -263,6 +265,9 @@ var
     If the map node is free'd, all tiles of the tilesets are free'd via
     the ghost node, even if they were not used as actual map tiles. }
   GhostNode: TX3DRootNode;
+  I: Cardinal;
+  TilesetTexCoordOrigin: TVector2 = (X: 0; Y: 0);
+  TileFlip: TTileFlip;
 
   { Calculate the number of rows (of tiles) of a tileset. }
   function RowsInTileset: Cardinal;
@@ -296,51 +301,70 @@ begin
       TilesetTextureNode.TextureProperties.BoundaryModeT := bmMirroredRepeat;
     end;
 
-    for Tile in Tileset.Tiles do
+    for TileFlip in TTileFlip do
     begin
-      { Make tiles of tileset rectangular and with correct dimensions. }
-      TileGeometryNode := TRectangle2DNode.CreateWithShape(TileShapeNode);
-      TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
+      { no flip mode }
+      if TileFlip = tfNoFlip then
+        TilesetTexCoordOrigin := Vector2(0, 0);
+      { horizontal flip }
+      if TileFlip = tfHFlip then
+        TilesetTexCoordOrigin := Vector2(TilesetWidth(TilesetTextureNode), 0);
+      { vertical flip }
+      if TileFlip = tfVFlip then
+        TilesetTexCoordOrigin := Vector2(0, 0);
+      { diagonal flip }
+      if TileFlip = tfDFlip then
+        TilesetTexCoordOrigin := Vector2(0, 0);
 
-      { Make tiles textured and find correct texture coordinates. }
-      TileShapeNode.Appearance := TAppearanceNode.Create;
-      if Assigned(TilesetTextureNode) then
+      for Tile in Tileset.Tiles do
       begin
-        TileShapeNode.Appearance.Texture := TilesetTextureNode;
-        TilesetTextureTransformNode := TTextureTransformNode.Create;
+        { Make tiles of tileset rectangular and with correct dimensions. }
+        TileGeometryNode := TRectangle2DNode.CreateWithShape(TileShapeNode);
+        TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
 
-        { Scale tileset texture to fit tile size:
-          Scale factor is inverted: E. g. 0.5 means 2x dimension.
-          Divide Tileset Tile width/height by full Tileset width/height.
-          The latter is extracted from the texture node. }
-        TilesetTextureTransformNode.Scale := Vector2(
-          Tileset.TileWidth / TilesetWidth(TilesetTextureNode),
-          Tileset.TileHeight / TilesetHeight(TilesetTextureNode)
-        );
+        { Make tiles textured and find correct texture coordinates. }
+        TileShapeNode.Appearance := TAppearanceNode.Create;
+        if Assigned(TilesetTextureNode) then
+        begin
+          TileShapeNode.Appearance.Texture := TilesetTextureNode;
+          TilesetTextureTransformNode := TTextureTransformNode.Create;
 
-        { Get tile texture by translation of tileset texture:
-        Important: Origin (0/0) of tex. coordinate is bottom-left! }
-        TilesetTextureTransformNode.Translation := Vector2(
-          { X: Calc. Column (e. g. 0, 1, 2, ...) = No. of full tile widths
-                 in tex. coord. space (0,0 to 1,0)
-               + Spacing: Col. * No. of spacings in tex. coord. space
-               + Margin in Tex. coord. space }
-          (Tile.Id mod Tileset.Columns)
-          + (Tile.Id mod Tileset.Columns) * (Tileset.Spacing / Tileset.TileWidth)
-          + (Tileset.Margin / Tileset.TileWidth),
-          { Y: Calc. Row (e. g. 3, 2, 1, 0 if 4 rows exist)
-               + Spacing: Row * Spacing in tex. coord. space
-               + Margin in Tex. coord. space }
-          ((RowsInTileset - 1) - Floor(Tile.Id / Tileset.Columns))
-          + ((RowsInTileset - 1) - Floor(Tile.Id / Tileset.Columns)) * (Tileset.Spacing / Tileset.TileWidth)
-          + (Tileset.Margin / Tileset.TileHeight)
-        );
+          { Scale tileset texture to fit tile size:
+            Scale factor is inverted: E. g. 0.5 means 2x dimension.
+            Divide Tileset Tile width/height by full Tileset width/height.
+            The latter is extracted from the texture node. }
+          TilesetTextureTransformNode.Scale := Vector2(
+            Tileset.TileWidth / TilesetWidth(TilesetTextureNode),
+            Tileset.TileHeight / TilesetHeight(TilesetTextureNode)
+          );
 
-        TileShapeNode.Appearance.TextureTransform := TilesetTextureTransformNode;
+          { Get all tile textures from tileset texture as shape nodes:
+          Important: Origin (0/0) of tex. coordinate is bottom-left! }
+          TilesetTextureTransformNode.Translation :=
+            { Origin: Base coordinate depending on tile flip mode }
+            TilesetTexCoordOrigin
+            + Vector2(
+            { X: Calc. Column (e. g. 0, 1, 2, ...) = No. of full tile widths
+                   in tex. coord. space (0,0 to 1,0)
+                 + Spacing: Col. * No. of spacings in tex. coord. space
+                 + Margin in Tex. coord. space }
+            (Tile.Id mod Tileset.Columns)
+            + (Tile.Id mod Tileset.Columns) * (Tileset.Spacing / Tileset.TileWidth)
+            + (Tileset.Margin / Tileset.TileWidth),
+            { Y: Calc. Row (e. g. 3, 2, 1, 0 if 4 rows exist)
+                 + Spacing: Row * Spacing in tex. coord. space
+                 + Margin in Tex. coord. space }
+            ((RowsInTileset - 1) - Floor(Tile.Id / Tileset.Columns))
+            + ((RowsInTileset - 1) - Floor(Tile.Id / Tileset.Columns)) * (Tileset.Spacing / Tileset.TileWidth)
+            + (Tileset.Margin / Tileset.TileHeight)
+          );
+
+          TileShapeNode.Appearance.TextureTransform := TilesetTextureTransformNode;
+        end;
+
+        TilesetShapeNodeList.Add(TileShapeNode);
+        GhostNode.AddChildren(TileShapeNode);
       end;
-
-      TilesetShapeNodeList.Add(TileShapeNode);
-      GhostNode.AddChildren(TileShapeNode);
     end;
 
     { Add list of shape nodes of this tileset to
