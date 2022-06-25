@@ -99,8 +99,6 @@ uses
 
 const
   LayerZDistanceDefault: Single = 0.1;
-
-  //OrangeRedRGB   : TCastleColorRGB = (Data: ( 1.0 , 0.27 , 0.0));
   OrangeRedRGB   : TCastleColorRGB = (X: 1.0; Y: 0.27; Z: 0.0);
 
 type
