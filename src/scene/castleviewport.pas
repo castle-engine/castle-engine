@@ -3769,9 +3769,32 @@ begin
 end;
 
 procedure TCastleViewport.CustomSerialization(const SerializationProcess: TSerializationProcess);
+
+  { If PreserveDataAcrossUndo contains a viewport from which we should copy design data
+    (camera, navigation at design-time), return @true and set CopyFromViewport. }
+  function CopyDesignDataFromViewport(const PreserveDataAcrossUndo: TComponent;
+    out CopyFromViewport: TCastleViewport): Boolean;
+  var
+    CopyFrom: TComponent;
+  begin
+    Result := false;
+    CopyFromViewport := nil;
+    if (PreserveDataAcrossUndo <> nil) and
+       (Name <> '') then
+    begin
+      CopyFrom := PreserveDataAcrossUndo.FindComponent(Name);
+      if CopyFrom is TCastleViewport then // also checks CopyFrom <> nil
+      begin
+        CopyFromViewport := TCastleViewport(CopyFrom);
+        Result := true;
+      end;
+    end;
+  end;
+
 var
   Nav: TInternalDesignNavigationType;
   InternalDesignNavigationTypeInt: Integer;
+  CopyFromViewport: TCastleViewport;
 begin
   inherited;
 
@@ -3786,22 +3809,36 @@ begin
 
   if InternalDesignManipulation then
   begin
-    { We want to serialize
-      - camera pos,dir,up
-      - projection properties, changed by TDesignFrame.CameraSynchronize
-    }
-    SerializationProcess.ReadWriteSubComponent('InternalDesignCamera', InternalDesignCamera, true);
+    if CopyDesignDataFromViewport(SerializationProcess.InternalPreserveDataAcrossUndo, CopyFromViewport) then
+    begin
+      { This copies the same things that are (de)serialized below when
+        CopyDesignDataFromViewport returns false. }
+      SerializationProcess.InternalAssignUsingSerialization(
+        InternalDesignCamera, CopyFromViewport.InternalDesignCamera);
+      InternalDesignNavigationType := CopyFromViewport.InternalDesignNavigationType;
+      for Nav := Low(Nav) to High(Nav) do
+        SerializationProcess.InternalAssignUsingSerialization(
+          FInternalDesignNavigations[Nav],
+          CopyFromViewport.FInternalDesignNavigations[Nav]);
+    end else
+    begin
+      { We want to serialize
+        - camera pos,dir,up
+        - projection properties, changed by TDesignFrame.CameraSynchronize
+      }
+      SerializationProcess.ReadWriteSubComponent('InternalDesignCamera', InternalDesignCamera, true);
 
-    InternalDesignNavigationTypeInt := Ord(InternalDesignNavigationType);
-    SerializationProcess.ReadWriteInteger('InternalDesignNavigationType',
-      InternalDesignNavigationTypeInt,
-      InternalDesignNavigationType <> DefaultInternalDesignNavigationType);
-    InternalDesignNavigationType := TInternalDesignNavigationType(InternalDesignNavigationTypeInt);
+      InternalDesignNavigationTypeInt := Ord(InternalDesignNavigationType);
+      SerializationProcess.ReadWriteInteger('InternalDesignNavigationType',
+        InternalDesignNavigationTypeInt,
+        InternalDesignNavigationType <> DefaultInternalDesignNavigationType);
+      InternalDesignNavigationType := TInternalDesignNavigationType(InternalDesignNavigationTypeInt);
 
-    for Nav := Low(Nav) to High(Nav) do
-      SerializationProcess.ReadWriteSubComponent('InternalDesignNavigations[' +
-        GetEnumName(TypeInfo(TInternalDesignNavigationType), Ord(Nav)) + ']',
-        FInternalDesignNavigations[Nav], true);
+      for Nav := Low(Nav) to High(Nav) do
+        SerializationProcess.ReadWriteSubComponent('InternalDesignNavigations[' +
+          GetEnumName(TypeInfo(TInternalDesignNavigationType), Ord(Nav)) + ']',
+          FInternalDesignNavigations[Nav], true);
+    end;
   end;
 end;
 

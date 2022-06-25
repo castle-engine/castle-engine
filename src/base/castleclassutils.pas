@@ -420,6 +420,16 @@ type
       TListAddEvent = procedure (const NewComponent: TComponent) of object;
       TListClearEvent = procedure of object;
 
+    var
+      { @exclude
+        Used by TCastleViewport to keep navigation/camera across undo. }
+      InternalPreserveDataAcrossUndo: TComponent;
+
+    { @exclude
+      May be used to copy fields from Source to Destination by internally (de)serializing. }
+    procedure InternalAssignUsingSerialization(const Destination, Source: TComponent);
+      virtual; abstract;
+
     { Serialize and deserialize given simple Value.
       This mechanism allows to explicitly serialize/deserialize any internal value,
       without the need to make it a published property.

@@ -223,6 +223,7 @@ type
         procedure ReadWriteList(const Key: String;
           const ListEnumerate: TSerializationProcess.TListEnumerateEvent; const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
+        procedure InternalAssignUsingSerialization(const Destination, Source: TComponent); override;
       end;
       TSerializationProcessReaderList = {$ifdef FPC}specialize{$endif} TObjectList<TSerializationProcessReader>;
 
@@ -414,6 +415,7 @@ procedure TCastleJsonReader.AfterReadObject(
   begin
     SerializationProcess.CurrentlyReading := Json;
     SerializationProcess.Reader := Self;
+    SerializationProcess.InternalPreserveDataAcrossUndo := PreserveDataAcrossUndo;
     C.CustomSerialization(SerializationProcess);
   end;
 
@@ -814,6 +816,7 @@ type
           const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
           const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
+        procedure InternalAssignUsingSerialization(const Destination, Source: TComponent); override;
       end;
       TSerializationProcessWriterList = {$ifdef FPC}specialize{$endif} TObjectList<TSerializationProcessWriter>;
 
@@ -832,6 +835,14 @@ type
     destructor Destroy; override;
     property Streamer: TJsonStreamer read FStreamer;
   end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.InternalAssignUsingSerialization(
+  const Destination, Source: TComponent);
+begin
+  { This should never happen, as TCastleViewport calls InternalAssignUsingSerialization
+    only when PreserveDataAcrossUndo is non-nil, which is only in reader. }
+  raise Exception.Create('Cannot use InternalAssignUsingSerialization when writing');
+end;
 
 procedure TCastleJsonWriter.TSerializationProcessWriter.WriteItem(C: TComponent);
 begin
@@ -1051,6 +1062,25 @@ end;
 procedure ComponentSave(const C: TComponent; const Url: String);
 begin
   StringToFile(Url, ComponentToString(C));
+end;
+
+{ part of TCastleJsonReader that can be defined only now --------------------- }
+
+procedure TCastleJsonReader.TSerializationProcessReader.InternalAssignUsingSerialization(
+  const Destination, Source: TComponent);
+var
+  JsonData: TJsonData;
+var
+  Json: TJsonObject;
+  Writer: TCastleJsonWriter;
+begin
+  Writer := TCastleJsonWriter.Create;
+  try
+    Json := Writer.Streamer.ObjectToJson(Source);
+    try
+      Reader.FDeStreamer.JsonToObject(Json, Destination);
+    finally FreeAndNil(Json) end;
+  finally FreeAndNil(Writer) end;
 end;
 
 { TComponentHelper ----------------------------------------------------------- }

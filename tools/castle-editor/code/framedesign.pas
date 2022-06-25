@@ -1287,7 +1287,7 @@ begin
     Inspector[InspectorType].SaveChanges;
 
   NewDesignOwner := TComponent.Create(Self);
-  NewDesignRoot := InternalStringToComponent(UHE.Data, NewDesignOwner, DesignRoot);
+  NewDesignRoot := InternalStringToComponent(UHE.Data, NewDesignOwner, DesignOwner);
   OpenDesign(NewDesignRoot, NewDesignOwner, FDesignUrl);
 
   if UHE.Selected <> '' then
