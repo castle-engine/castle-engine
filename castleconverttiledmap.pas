@@ -318,7 +318,7 @@ begin
           Tileset.TileHeight / TilesetHeight(TilesetTextureNode)
         );
 
-        { Translate tileset texture:
+        { Get tile texture by translation of tileset texture:
         Important: Origin (0/0) of tex. coordinate is bottom-left! }
         TilesetTextureTransformNode.Translation := Vector2(
           { X: Calc. Column (e. g. 0, 1, 2, ...) = No. of full tile widths
