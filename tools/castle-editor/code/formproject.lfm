@@ -407,12 +407,15 @@ object ProjectForm: TProjectForm
       end
       object MenuItem12: TMenuItem
         Action = ActionNavigationFly
+        RadioItem = True
       end
       object MenuItem2: TMenuItem
         Action = ActionNavigationExamine
+        RadioItem = True
       end
       object MenuItem16: TMenuItem
         Action = ActionNavigation2D
+        RadioItem = True
       end
       object MenuItem17: TMenuItem
         Action = ActionNavigationToggle2D

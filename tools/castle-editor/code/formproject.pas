@@ -442,6 +442,7 @@ type
     procedure SaveDockLayout;
     procedure MenuItemPlatformChangeClick(Sender: TObject);
     procedure RestartEditor(Sender: TObject);
+    procedure CurrentViewportChanged(Sender: TObject);
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -589,8 +590,7 @@ begin
   ClearAllWarnings;
 end;
 
-procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction
-  );
+procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   SaveDockLayout;
 end;
@@ -616,19 +616,19 @@ end;
 
 procedure TProjectForm.ActionNavigationToggle2DExecute(Sender: TObject);
 begin
-  if Design <> nil then
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
   begin
     { This comparison also determines what happens if current navigation
       is neither 2D, nor Fly.
       In this case we want to switch to 2D, because all other navigations
       are more 3D. }
-    if Design.ViewportDesignNavigation = dn2D then
+    if Design.CurrentViewport.InternalDesignNavigationType = dn2D then
     begin
-      Design.ViewportDesignNavigation := dnFly;
+      Design.CurrentViewport.InternalDesignNavigationType := dnFly;
       ActionNavigationFly.Checked := true;
     end else
     begin
-      Design.ViewportDesignNavigation := dn2D;
+      Design.CurrentViewport.InternalDesignNavigationType := dn2D;
       ActionNavigation2D.Checked := true;
     end;
   end;
@@ -636,25 +636,34 @@ end;
 
 procedure TProjectForm.ActionNavigationFlyExecute(Sender: TObject);
 begin
-  if Design <> nil then
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
   begin
-    Design.ViewportDesignNavigation := dnFly;
+    Design.CurrentViewport.InternalDesignNavigationType := dnFly;
     ActionNavigationFly.Checked := true;
   end;
 end;
 
 procedure TProjectForm.ActionNavigation2DExecute(Sender: TObject);
 begin
-  if Design <> nil then
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
   begin
-    Design.ViewportDesignNavigation := dn2D;
+    Design.CurrentViewport.InternalDesignNavigationType := dn2D;
     ActionNavigation2D.Checked := true;
+  end;
+end;
+
+procedure TProjectForm.ActionNavigationExamineExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    Design.CurrentViewport.InternalDesignNavigationType := dnExamine;
+    ActionNavigationExamine.Checked := true;
   end;
 end;
 
 procedure TProjectForm.ActionViewportToggleProjectionExecute(Sender: TObject);
 begin
-  if (Design <> nil) and Design.ViewportActionsAllowed then
+  if Design <> nil then
     Design.ViewportToggleProjection;
 end;
 
@@ -680,15 +689,6 @@ procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.SaveSelected;
-end;
-
-procedure TProjectForm.ActionNavigationExamineExecute(Sender: TObject);
-begin
-  if Design <> nil then
-  begin
-    Design.ViewportDesignNavigation := dnExamine;
-    ActionNavigationExamine.Checked := true;
-  end;
 end;
 
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
@@ -811,62 +811,62 @@ end;
 
 procedure TProjectForm.ActionViewportBackExecute(Sender: TObject);
 begin
-  if (Design <> nil) and Design.ViewportActionsAllowed then
+  if Design <> nil then
     Design.ViewportViewAxis(Vector3(0, 0, 1), Vector3(0, 1, 0));
 end;
 
 procedure TProjectForm.ActionViewportBottomExecute(Sender: TObject);
 begin
-  if (Design <> nil) and Design.ViewportActionsAllowed then
+  if Design <> nil then
     Design.ViewportViewAxis(Vector3(0, 1, 0), Vector3(0, 0, -1));
 end;
 
 procedure TProjectForm.ActionViewportFrontExecute(Sender: TObject);
 begin
-  if (Design <> nil) and Design.ViewportActionsAllowed then
+  if Design <> nil then
     Design.ViewportViewAxis(Vector3(0, 0, -1), Vector3(0, 1, 0));
 end;
 
 procedure TProjectForm.ActionViewportLeftExecute(Sender: TObject);
 begin
-  if (Design <> nil) and Design.ViewportActionsAllowed then
+  if Design <> nil then
     Design.ViewportViewAxis(Vector3(1, 0, 0), Vector3(0, 1, 0));
 end;
 
 procedure TProjectForm.ActionViewportRightExecute(Sender: TObject);
 begin
-  if (Design <> nil) and Design.ViewportActionsAllowed then
+  if Design <> nil then
     Design.ViewportViewAxis(Vector3(-1, 0, 0), Vector3(0, 1, 0));
 end;
 
 procedure TProjectForm.ActionViewportSetup2DExecute(Sender: TObject);
 begin
-  if (Design <> nil) and Design.ViewportActionsAllowed then
+  if Design <> nil then
     Design.ViewportSetup2D;
 end;
 
 procedure TProjectForm.ActionViewportSort2DExecute(Sender: TObject);
 begin
-  if (Design <> nil) and Design.ViewportActionsAllowed then
+  if Design <> nil then
     Design.ViewportSort2D;
 end;
 
 procedure TProjectForm.ActionViewportTopExecute(Sender: TObject);
 begin
-  if (Design <> nil) and Design.ViewportActionsAllowed then
+  if Design <> nil then
     { up -Z better than up +Z: makes more natural rotation when using 1/3/7 }
     Design.ViewportViewAxis(Vector3(0, -1, 0), Vector3(0, 0, -1));
 end;
 
 procedure TProjectForm.ActionViewportViewAllExecute(Sender: TObject);
 begin
-  if (Design <> nil) and Design.ViewportActionsAllowed then
+  if Design <> nil then
     Design.ViewportViewAll;
 end;
 
 procedure TProjectForm.ActionViewportViewSelectedExecute(Sender: TObject);
 begin
-  if (Design <> nil) and Design.ViewportActionsAllowed then
+  if Design <> nil then
     Design.ViewportViewSelected;
 end;
 
@@ -1848,13 +1848,7 @@ begin
     Design.OnUpdateFormCaption := @UpdateFormCaption;
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
-
-    { update menu state from Design.ViewportDesignNavigation }
-    case Design.ViewportDesignNavigation of
-      dn2D     : ActionNavigation2D.Checked := true;
-      dnFly    : ActionNavigationFly.Checked := true;
-      dnExamine: ActionNavigationExamine.Checked := true;
-    end;
+    Design.OnCurrentViewportChanged := @CurrentViewportChanged;
 
     DesignExistenceChanged;
     if Docking then
@@ -1871,6 +1865,29 @@ begin
       Design.SplitterRight.Visible := False;
     end;
   end;
+end;
+
+procedure TProjectForm.CurrentViewportChanged(Sender: TObject);
+
+  procedure UnselectAll;
+  begin
+    ActionNavigation2D.Checked := false;
+    ActionNavigationFly.Checked := false;
+    ActionNavigationExamine.Checked := false;
+  end;
+
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    { update menu state from Design.CurrentViewport.InternalDesignNavigationType }
+    case Design.CurrentViewport.InternalDesignNavigationType of
+      dn2D     : ActionNavigation2D.Checked := true;
+      dnFly    : ActionNavigationFly.Checked := true;
+      dnExamine: ActionNavigationExamine.Checked := true;
+      else UnselectAll;
+    end;
+  end else
+    UnselectAll;
 end;
 
 procedure TProjectForm.NewDesign(const ComponentClass: TComponentClass;

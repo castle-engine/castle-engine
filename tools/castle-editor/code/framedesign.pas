@@ -220,7 +220,8 @@ type
       PendingErrorBox: String;
       VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
       CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
-      FViewportDesignNavigation: TInternalDesignNavigationType;
+      FCurrentViewport: TCastleViewport;
+      FCurrentViewportObserver: TFreeNotificationObserver;
 
     function CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
     procedure CameraSynchronize(const Source, Target: TCastleCamera; const MakeUndo: Boolean);
@@ -232,7 +233,6 @@ type
     procedure CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure CollectionPropertyEditorFormUnassign;
     function ComponentCaption(const C: TComponent): String;
-    procedure SetViewportDesignNavigation(const AValue: TInternalDesignNavigationType);
     function TreeNodeCaption(const C: TComponent): String;
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
     procedure FrameAnchorsChange(Sender: TObject);
@@ -270,9 +270,9 @@ type
       return it. Otherwise return nil. }
     function SelectedViewport: TCastleViewport;
 
-    { Use when desperately needing viewport to act on.
-      Returns selected or hover viewport. }
-    function ViewportSelectedOrHover: TCastleViewport;
+    { Look at current selection and hover and possibly change CurrentViewport,
+      calling also OnCurrentViewportChanged. }
+    procedure UpdateCurrentViewport;
 
     { If there is exactly one item selected, and it is TCastleTransform,
       return it. Otherwise return nil. }
@@ -341,11 +341,14 @@ type
     procedure GizmoHasModifiedParent(Sender: TObject);
     procedure GizmoStopDrag(Sender: TObject);
     procedure ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
+    procedure CurrentViewportFreeNotification(const Sender: TFreeNotificationObserver);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     OnUpdateFormCaption: TNotifyEvent;
     OnSelectionChanged: TNotifyEvent;
+    { Called always when CurrentViewport value changed. }
+    OnCurrentViewportChanged: TNotifyEvent;
     function RenamePossible: Boolean;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -385,11 +388,20 @@ type
 
     procedure CurrentComponentApiUrl(var Url: String);
 
-    function ViewportActionsAllowed: Boolean;
+    { Viewport to act on using various commands.
+
+      Chosen "aggressively" by looking at selected viewport
+      (based on selected ui or transform within viewport)
+      or viewport over which mouse hovers. We want to enable user to set current viewport
+      as easily as possible, to avoid the "selection of viewport" being an extra step
+      user needs to remember to do.
+
+      @nil if none. }
+    property CurrentViewport: TCastleViewport read FCurrentViewport;
+
     procedure ViewportViewAxis(const Dir, Up: TVector3);
     procedure ViewportViewAll;
     procedure ViewportViewSelected;
-    property ViewportDesignNavigation: TInternalDesignNavigationType read FViewportDesignNavigation write SetViewportDesignNavigation;
     procedure ViewportSetup2D;
     procedure ViewportSort2D;
     procedure ViewportToggleProjection;
@@ -592,6 +604,13 @@ var
   RayOrigin, RayDirection: TVector3;
   RayHit: TRayCollision;
 begin
+  { Note: We don't call here CurrentViewport, even though we perform
+    similar checks -- HoverUserInterface, SelectedViewport.
+    That is because here:
+    - we check HoverUserInterface first, SelectedViewport last
+    - we don't remember last hovered/selected viewport, it would be weird for HoverTransform
+  }
+
   UI := HoverUserInterface(AMousePosition);
   if UI is TCastleViewport then // also checks UI <> nil
     Viewport := TCastleViewport(UI)
@@ -676,12 +695,12 @@ begin
     Frame.PerformRedo;
     Exit(ExclusiveEvents);
   end;
-  if Event.IsKey(keyF) and Frame.ViewportActionsAllowed then
+  if Event.IsKey(keyF) then
   begin
     Frame.ViewportViewSelected;
     Exit(ExclusiveEvents);
   end;
-  if Event.IsKey(keyHome) and Frame.ViewportActionsAllowed then
+  if Event.IsKey(keyHome) then
   begin
     Frame.ViewportViewAll;
     Exit(ExclusiveEvents);
@@ -1198,6 +1217,9 @@ begin
     MenuTreeViewItemAddBehavior,
     MenuTreeViewItemAddNonVisual,
     @MenuItemAddComponentClick);
+
+  FCurrentViewportObserver := TFreeNotificationObserver.Create(Self);
+  FCurrentViewportObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CurrentViewportFreeNotification;
 end;
 
 destructor TDesignFrame.Destroy;
@@ -1343,7 +1365,7 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
     APos, ADir, AUp, AGravityUp: TVector3;
   begin
     { This Name is user-visible: if user selects anything in viewport,
-      we show ViewportSelectedOrHover.Name in header. }
+      we show CurrentViewport.Name in header. }
     V.Name := 'InternalViewport';
     V.Transparent := true;
     V.FullSize := true;
@@ -2058,22 +2080,39 @@ begin
   end;
 end;
 
-function TDesignFrame.ViewportSelectedOrHover: TCastleViewport;
+procedure TDesignFrame.UpdateCurrentViewport;
 var
+  NewCurrentViewport: TCastleViewport;
   HoverUi: TCastleUserInterface;
 begin
-  Result := SelectedViewport;
-  if Result = nil then
+  { try SelectedViewport }
+  NewCurrentViewport := SelectedViewport;
+
+  if NewCurrentViewport = nil then
   begin
+    { try HoverUserInterface as TCastleViewport }
     HoverUi := FDesignerLayer.HoverUserInterface(CastleControl.MousePosition);
     if HoverUi is TCastleViewport then // also checks HoverUi <> nil
-      Exit(TCastleViewport(HoverUi));
-  end
+      NewCurrentViewport := TCastleViewport(HoverUi);
+  end;
+
+  if (NewCurrentViewport <> nil) and
+     (FCurrentViewport <> NewCurrentViewport) then
+  begin
+    FCurrentViewport := NewCurrentViewport;
+    FCurrentViewportObserver.Observed := NewCurrentViewport;
+    if Assigned(OnCurrentViewportChanged) then
+      OnCurrentViewportChanged(Self);
+  end;
+  { otherwise keep using FCurrentViewport we had so far }
 end;
 
-function TDesignFrame.ViewportActionsAllowed: Boolean;
+procedure TDesignFrame.CurrentViewportFreeNotification(
+  const Sender: TFreeNotificationObserver);
 begin
-  Result := (ViewportSelectedOrHover <> nil);
+  FCurrentViewport := nil;
+  if Assigned(OnCurrentViewportChanged) then
+    OnCurrentViewportChanged(Self);
 end;
 
 const
@@ -2086,17 +2125,16 @@ var
   Distance: Single;
   NewPos: TVector3;
 begin
-  V := ViewportSelectedOrHover;
-  if V.Items <> nil then
-  begin
-    Box := V.Items.BoundingBox;
-    if not Box.IsEmpty then
-    begin
-      Distance := PointsDistance(V.InternalCamera.WorldTranslation, Box.Center);
-      NewPos := Box.Center - Dir * Distance;
-      V.InternalCamera.AnimateTo(NewPos, Dir, Up, CameraTransitionTime);
-    end;
-  end;
+  V := CurrentViewport;
+  if V = nil then Exit;
+  if V.Items = nil then Exit;
+
+  Box := V.Items.BoundingBox;
+  if Box.IsEmpty then Exit;
+
+  Distance := PointsDistance(V.InternalCamera.WorldTranslation, Box.Center);
+  NewPos := Box.Center - Dir * Distance;
+  V.InternalCamera.AnimateTo(NewPos, Dir, Up, CameraTransitionTime);
 end;
 
 procedure TDesignFrame.ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
@@ -2143,7 +2181,9 @@ procedure TDesignFrame.ViewportViewAll;
 var
   V: TCastleViewport;
 begin
-  V := ViewportSelectedOrHover;
+  V := CurrentViewport;
+  if V = nil then Exit;
+
   if V.Items <> nil then
     ViewportViewBox(V, V.Items.BoundingBox);
 end;
@@ -2155,7 +2195,8 @@ var
   SelectedBox: TBox3D;
   V: TCastleViewport;
 begin
-  V := ViewportSelectedOrHover;
+  V := CurrentViewport;
+  if V = nil then Exit;
 
   SelectedBox := TBox3D.Empty;
 
@@ -2184,19 +2225,6 @@ function TDesignFrame.ComponentCaption(const C: TComponent): String;
 
 begin
   Result := C.Name + ' (' + ClassCaption(C.ClassType) + ')';
-end;
-
-procedure TDesignFrame.SetViewportDesignNavigation(const AValue: TInternalDesignNavigationType);
-var
-  V: TCastleViewport;
-begin
-  if FViewportDesignNavigation <> AValue then
-  begin
-    FViewportDesignNavigation := AValue;
-    V := ViewportSelectedOrHover;
-    if V <> nil then
-      V.InternalDesignNavigationType := AValue;
-  end;
 end;
 
 function TDesignFrame.TreeNodeCaption(const C: TComponent): String;
@@ -2337,7 +2365,6 @@ procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
 
 var
   SavedErrorBox: String;
-  V: TCastleViewport;
 begin
   { process PendingErrorBox }
   if PendingErrorBox <> '' then
@@ -2371,10 +2398,11 @@ begin
   if InternalDesignMouseLook then
     CastleControl.Container.OverrideCursor := mcDefault;
 
-  V := ViewportSelectedOrHover;
-  LabelViewport.Visible := V <> nil;
-  if V <> nil then
-    LabelViewport.Caption := ViewportDebugInfo(V);
+  UpdateCurrentViewport;
+
+  LabelViewport.Visible := FCurrentViewport <> nil;
+  if FCurrentViewport <> nil then
+    LabelViewport.Caption := ViewportDebugInfo(FCurrentViewport);
 end;
 
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
@@ -3545,6 +3573,10 @@ begin
 
   if CameraPreview <> nil then
     CameraPreview.SelectedChanged(T, V);
+
+  { if selection determines CurrentViewport, update CurrentViewport immediately
+    (without waiting for OnUpdate) -- maybe this will be relevant at some point }
+  UpdateCurrentViewport;
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
@@ -4249,39 +4281,36 @@ procedure TDesignFrame.ViewportSetup2D;
 var
   V: TCastleViewport;
 begin
-  V := ViewportSelectedOrHover;
-  if V <> nil then
-  begin
-    V.Setup2D;
-    ModifiedOutsideObjectInspector('2D Camera And Projection At Runtime: ' + V.Name, ucHigh);
-  end;
+  V := CurrentViewport;
+  if V = nil then Exit;
+
+  V.Setup2D;
+  ModifiedOutsideObjectInspector('2D Camera And Projection At Runtime: ' + V.Name, ucHigh);
 end;
 
 procedure TDesignFrame.ViewportSort2D;
 var
   V: TCastleViewport;
 begin
-  V := ViewportSelectedOrHover;
-  if V <> nil then
-  begin
-    V.Items.SortBackToFront2D;
-    UpdateDesign; // make the tree reflect new order
-    ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending: ' + V.Name, ucHigh);
-  end;
+  V := CurrentViewport;
+  if V = nil then Exit;
+
+  V.Items.SortBackToFront2D;
+  UpdateDesign; // make the tree reflect new order
+  ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending: ' + V.Name, ucHigh);
 end;
 
 procedure TDesignFrame.ViewportToggleProjection;
 var
   V: TCastleViewport;
 begin
-  V := ViewportSelectedOrHover;
-  if V <> nil then
-  begin
-    if V.InternalCamera.ProjectionType = ptPerspective then
-      V.InternalCamera.ProjectionType := ptOrthographic
-    else
-      V.InternalCamera.ProjectionType := ptPerspective;
-  end;
+  V := CurrentViewport;
+  if V = nil then Exit;
+
+  if V.InternalCamera.ProjectionType = ptPerspective then
+    V.InternalCamera.ProjectionType := ptOrthographic
+  else
+    V.InternalCamera.ProjectionType := ptPerspective;
 end;
 
 function TDesignFrame.CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
@@ -4336,13 +4365,12 @@ var
   V: TCastleViewport;
   C: TCastleCamera;
 begin
-  V := ViewportSelectedOrHover;
-  if V <> nil then
-  begin
-    C := CameraToSynchronize(V);
-    if C <> nil then
-      CameraSynchronize(C, V.InternalCamera, false);
-  end;
+  V := CurrentViewport;
+  if V = nil then Exit;
+
+  C := CameraToSynchronize(V);
+  if C <> nil then
+    CameraSynchronize(C, V.InternalCamera, false);
 end;
 
 procedure TDesignFrame.ViewportAlignCameraToView;
@@ -4350,13 +4378,12 @@ var
   V: TCastleViewport;
   C: TCastleCamera;
 begin
-  V := ViewportSelectedOrHover;
-  if V <> nil then
-  begin
-    C := CameraToSynchronize(V);
-    if C <> nil then
-      CameraSynchronize(V.InternalCamera, C, true);
-  end;
+  V := CurrentViewport;
+  if V = nil then Exit;
+
+  C := CameraToSynchronize(V);
+  if C <> nil then
+    CameraSynchronize(V.InternalCamera, C, true);
 end;
 
 {
