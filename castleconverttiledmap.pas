@@ -293,12 +293,9 @@ begin
       TilesetTextureNode.TextureProperties.MagnificationFilter := magDefault;
       TilesetTextureNode.TextureProperties.MinificationFilter := minDefault;
 
-      { TODO : Update after implementation of MIRROR_REPEAT mode.
-        See: https://github.com/castle-engine/castle-engine/issues/324
-
-        This setting here does nothing at the moment! }
-      TilesetTextureNode.TextureProperties.BoundaryModeS := 'MIRRORED_REPEAT';
-      TilesetTextureNode.TextureProperties.BoundaryModeT := 'MIRRORED_REPEAT';
+      { Set S,T boundary modes. }
+      TilesetTextureNode.TextureProperties.BoundaryModeS := bmMirroredRepeat;
+      TilesetTextureNode.TextureProperties.BoundaryModeT := bmMirroredRepeat;
     end;
 
     for Tile in Tileset.Tiles do
