@@ -302,18 +302,29 @@ begin
 
     for TileFlip in TTileFlip do
     begin
-      { no flip mode }
+      { No flip mode }
       if TileFlip = tfNoFlip then
         TilesetTexCoordOrigin := Vector2(0, 0);
-      { horizontal flip }
+
+      { Hint: The usual coordnate space covers [0, 1], but because of scaling
+              the actual space may cover different dimensions.
+
+        Example for horizontal flipping:
+             If the scale factor is 0.5, the texture is expanded by
+             factor 2, hence the (unflipped) texture is covered by [0, 2].
+             For the flipped texture we do not look at 1 + ...
+             but consequently at tileset width / tile width = 2. }
+
+      { Horizontal flip }
       if TileFlip = tfHFlip then
-        TilesetTexCoordOrigin := Vector2(TilesetWidth(TilesetTextureNode), 0);
-      { vertical flip }
+        TilesetTexCoordOrigin := Vector2(TilesetWidth(TilesetTextureNode) / Tileset.TileWidth, 0);
+      { Vertical flip }
       if TileFlip = tfVFlip then
-        TilesetTexCoordOrigin := Vector2(0, 0);
-      { diagonal flip }
+        TilesetTexCoordOrigin := Vector2(0, TilesetHeight(TilesetTextureNode) / Tileset.Tileheight);
+      { Diagonal flip }
       if TileFlip = tfDFlip then
-        TilesetTexCoordOrigin := Vector2(0, 0);
+        TilesetTexCoordOrigin := Vector2(TilesetWidth(TilesetTextureNode) / Tileset.TileWidth,
+          TilesetHeight(TilesetTextureNode) / Tileset.Tileheight);
 
       for Tile in Tileset.Tiles do
       begin
