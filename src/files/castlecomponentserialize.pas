@@ -1069,8 +1069,6 @@ end;
 procedure TCastleJsonReader.TSerializationProcessReader.InternalAssignUsingSerialization(
   const Destination, Source: TComponent);
 var
-  JsonData: TJsonData;
-var
   Json: TJsonObject;
   Writer: TCastleJsonWriter;
 begin
