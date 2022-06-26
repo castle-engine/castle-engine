@@ -78,7 +78,7 @@ interface
 
 uses
   Classes,
-  X3DNodes, CastleTiledMap;
+  X3DNodes, CastleLog, CastleTiledMap;
 
 { Converts a Tiled map into a X3D representation for the Castle Game Engine.
   The result can be returned to Scene.Load method.
