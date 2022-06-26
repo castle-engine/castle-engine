@@ -874,18 +874,9 @@ procedure TProjectForm.ActionViewportUpdate(Sender: TObject);
 var
   ViewportActionsAllowed: Boolean;
 begin
-  { For now, ignoring ViewportActionsAllowed here
-    feels actually better for user.
-
-    As the enabled is determined by hover over viewport,
-    it is actually disabled too eagerly when we view the menu.
-    Better to check Design.ViewportActionsAllowed
-    anyway in all OnExecute callbacks. }
-
-  ViewportActionsAllowed := (Design <> nil) {and Design.ViewportActionsAllowed};
+  ViewportActionsAllowed := (Design <> nil) and (Design.CurrentViewport <> nil);
   (Sender as TAction).Enabled := ViewportActionsAllowed;
-
-  //MenuItemViewport.Enabled := ViewportActionsAllowed; // TODO would disable everything without ability to restore
+  // MenuItemViewport.Enabled := ViewportActionsAllowed; // TODO would disable everything without ability to restore
 end;
 
 procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);
