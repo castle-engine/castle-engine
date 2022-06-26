@@ -49,14 +49,11 @@ pipeline {
         sh 'make clean tools install PREFIX=${CGE_INSTALL_PREFIX}'
       }
     }
-    /*
-    // TODO: Commented-out temporarily, just for quick testing
     stage('Build Examples') {
       steps {
         sh 'make clean examples'
       }
     }
-    */
     stage('Build And Run Auto-Tests') {
       steps {
         sh 'make tests'
