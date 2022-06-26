@@ -2172,7 +2172,7 @@ begin
      IsWild(FileName, Name + '*-android-debug.aab', true) or
      IsWild(FileName, Name + '*-android-release.apk', true) or
      IsWild(FileName, Name + '*-android-release.aab', true) or
-     { do not pack AndroidAntProperties.txt with private stuff }
+     { do not pack AndroidSigningProperties.txt (AndroidAntProperties.txt is older name for it) with private stuff }
      SameFileName(FileName, 'AndroidAntProperties.txt') or
      SameFileName(FileName, 'AndroidSigningProperties.txt') then
     Exit(true);
