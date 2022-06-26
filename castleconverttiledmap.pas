@@ -558,61 +558,59 @@ var
 
   { The resolved tile shape node is textured correctly considering
     all the flipping bits (horizontal, vertical, diagonal bit). }
-  function GetResolvedTileShapeNode(const ATileShapeNode: TShapeNode;
-    const ATileset: TTiledMap.TTileset; const ATileGID: Cardinal): TShapeNode;
+  function GetResolvedTileShapeNode(const ATileset: TTiledMap.TTileset;
+    const ATile: TTiledMap.TTile; const ATileGID: Cardinal): TShapeNode;
   var
-    HFlip, VFlip, DFlip: Boolean;
-    ATextureTransformNode: TTextureTransformNode;
-    //TextureTransformMatrix: TMatrix2;
+    HFlip: Boolean = False;
+    VFlip: Boolean = False;
+    DFlip: Boolean = False;
+    ATilesetShapeNodeList: TShapeNodeList;
   begin
-    Result := ATileShapeNode;
-    if ((not Assigned(ATileShapeNode)) or (ATileGID = 0)) then
+    Result := nil;
+
+    { Get tileset's shape node list. }
+    ATilesetShapeNodeList := TilesetShapeNodeListList.Items[
+      Map.Tilesets.IndexOf(ATileset)];
+    if not Assigned(ATilesetShapeNodeList) then
       Exit;
 
-    HFlip := False;
-    VFlip := False;
-    DFlip := False;
-
+    { Get flip mode of tile }
+    { Important:
+      "When rendering an orthographic or isometric tile, the order of
+       operations matters. The diagonal flip is done first, followed
+       by the horizontal and vertical flips. The diagonal flip should
+       flip the bottom left and top right corners of the tile, and can
+       be thought of as an x/y axis swap. For hexagonal tiles,
+       the order does not matter."
+       https://doc.mapeditor.org/en/stable/reference/global-tile-ids/#tile-flipping }
     GetResolvedGID(ATileGID, HFlip, VFlip, DFlip);
 
-    if (HFlip or VFlip or DFlip) = False then
+    { Get correct shape node from tileset list. WIP }
+    if not (HFlip or VFlip or DFlip) then
+    begin
+      Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile)];
       Exit;
+    end;
 
-    { TODO : Implement flipping and rotation according to flip bits.
-      See: https://cseweb.ucsd.edu/classes/wi18/cse167-a/lec9.pdf (Page 16)
+    if HFlip and not (VFlip or DFlip) then
+    begin
+      Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile) + 9];
+      Exit;
+    end;
 
-      Needs implementation of MIRRORED_REPEAT mode.
-      See: https://github.com/castle-engine/castle-engine/issues/324
+    if VFlip and not (HFlip or DFlip) then
+    begin
+      Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile) + 18];
+      Exit;
+    end;
 
-      The following code block is a first idea to be extended and refined
-      if MIRRORED_REPEAT is implemented. It is no finished code! }
-
-    //if ((HFlip = False) and (VFlip = False) and (DFlip = True)) then
-    //begin
-    //  ATextureTransformNode := ATileShapeNode.TextureTransform.DeepCopy as TTextureTransformNode;
-
-    { This for rotation. Probably not necessary. }
-    //  ATextureTransformNode.Rotation := pi;
-
-    { This for flipping. Probably sufficent for rotations, too. }
-    //  Writeln((ATextureTransformNode.Translation).X);
-    //  Writeln((ATextureTransformNode.Translation).Y);
-
-    { Solution 1 (Matrix) }
-    //  TextureTransformMatrix.Items[0,0] := 1.0;
-    //  TextureTransformMatrix.Items[1,0] := 0;
-    //  TextureTransformMatrix.Items[0,1] := 0;
-    //  TextureTransformMatrix.Items[1,1] := 1;
-    //  ATextureTransformNode.Translation := TextureTransformMatrix * ATextureTransformNode.Translation;
-
-    { Solution 2 (Vector) }
-    //  ATextureTransformNode.Translation := ATextureTransformNode.Translation + Vector2(1.0, 0.0);
-
-    //  Writeln((ATextureTransformNode.Translation).X);
-    //  Writeln((ATextureTransformNode.Translation).Y);
-
-    //  ATileShapeNode.TextureTransform := ATextureTransformNode;
-    //end;
+    if DFlip or (HFlip and VFlip) then
+    begin
+      if DFlip and (HFlip or VFlip) then
+        WritelnWarning('Horizontal/vertical flip cannot be combined with diagnonal flip. Flags are ignored.');
+      Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile) + 27];
+      Exit;
+    end;
   end;
 
   { Get the associated tileset of a specific tile by the tileset's FirstGID.
@@ -711,22 +709,6 @@ var
        );
   end;
 
-  function GetTileShapeNode(const ATileset: TTiledMap.TTileset;
-    const ATile: TTiledMap.TTile): TShapeNode;
-  var
-    ATilesetShapeNodeList: TShapeNodeList;
-  begin
-    Result := nil;
-    { Get tileset's shape node list. }
-    ATilesetShapeNodeList := TilesetShapeNodeListList.Items[
-      Map.Tilesets.IndexOf(ATileset)];
-    if not Assigned(ATilesetShapeNodeList) then
-      Exit;
-
-    { Get correct shape node from tileset list. }
-    Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile)];
-  end;
-
   { The actual conversion of a tile. }
   procedure ConvertTile;
   var
@@ -745,7 +727,6 @@ var
       TileNode := TTiledTileNode.Create;
       TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset),
         LayerZDistance);
-      TileShapeNode := GetTileShapeNode(Tileset, Tile);
 
       { Consider horizontal-, vertical-, diagonal flipping.
 
@@ -754,7 +735,7 @@ var
        by the horizontal and vertical flips."
       (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#layer)
       }
-      TileShapeNode := GetResolvedTileShapeNode(TileShapeNode, Tileset, ALayer.Data.Data[I]);
+      TileShapeNode := GetResolvedTileShapeNode(Tileset, Tile, ALayer.Data.Data[I]);
 
 
       TileNode.AddChildren(TileShapeNode);
