@@ -632,7 +632,30 @@ var
 
     if VFlip and not (HFlip or DFlip) then
     begin
-      Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile) + 18];
+      { Calc. of correct vertically flipped tile:
+
+        Tile indices:
+        orig.       flipped
+        Tex.        Tex.
+        0 1 2       6 7 8
+        3 4 5  -->  3 4 5
+        6 7 8       0 1 2
+
+        In the tileset shape node list, the flipped texture shape nodes follow
+        directly after the original texture shape nodes.
+        List indices: 0 1 2 3 4 5 6 7 8 ... (horizontally flipped) ... 6 7 8...
+
+        1. Shift index to start of indices of vert. flipped textures
+        2. Shift into last row
+        3. Substract "row index" of original texture
+        4. Shift to correct texture in row
+      }
+      Result := ATilesetShapeNodeList.Items[
+                  ATileset.TileCount * 2
+                  + ((ATileset.TileCount div ATileset.Columns) - 1) * ATileset.Columns
+                  - Floor(ATileset.Tiles.IndexOf(ATile) / ATileset.Columns) * ATileset.Columns
+                  + ATileset.Tiles.IndexOf(ATile) mod ATileset.Columns
+                ];
       Exit;
     end;
 
