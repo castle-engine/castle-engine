@@ -265,7 +265,6 @@ var
     If the map node is free'd, all tiles of the tilesets are free'd via
     the ghost node, even if they were not used as actual map tiles. }
   GhostNode: TX3DRootNode;
-  I: Cardinal;
   TilesetTexCoordOrigin: TVector2 = (X: 0; Y: 0);
   TileFlip: TTileFlip;
 
