@@ -606,10 +606,10 @@ var
 
         In the tileset shape node list, the flipped texture shape nodes follow
         directly after the original texture shape nodes.
-        List indices: 0 1 2 3 4 5 6 7 8 2 1 0 5 4 3 8 7 6 ...
+        List indices: (0 1 2 3 4 5 6 7 8) (2 1 0 5 4 3 8 7 6) ...
 
         1. Shift index to start of indices of hor. flipped textures
-        2. Add "rows"
+        2. Shift to row (in which index lies)
         3. Add a row to be on the right side (correct by -1 bc. the last col.
            on the right side is adressed by column count - 1)
         4. Substract index within the correct row to correct index
@@ -645,7 +645,7 @@ var
 
         In the tileset shape node list, the flipped texture shape nodes follow
         directly after the original texture shape nodes.
-        List indices: 0 1 2 3 4 5 6 7 8 ... (horizontally flipped) ... 6 7 8...
+        List indices: (0 1 2 3 4 5 6 7 8) ... (horizontally flipped) ... (6 7 8...
 
         1. Shift index to start of indices of vert. flipped textures
         2. Shift into last row
@@ -675,7 +675,33 @@ var
       or if horizontal and vertical flip flags (= diagonal flip) are set. }
     if (DFlip and not (HFlip or VFlip)) xor ((HFlip and VFlip) and not DFlip) then
     begin
-      Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile) + 27];
+      { Calc. of correct diagonally flipped tile:
+
+        Tile indices:
+        orig.       flipped
+        Tex.        Tex.
+        0 1 2       8 7 6
+        3 4 5  -->  5 4 3
+        6 7 8       2 1 0
+
+        In the tileset shape node list, the flipped texture shape nodes follow
+        after the horizontally and vertically flipped texture shape nodes.
+        List indices:
+        (0 1 2 3 4 5 6 7 8) (horizon. flipped) (vert. flipped) (8 7 6 5 4 3 2 1 0)
+
+        1. Shift index to start of indices of diag. flipped textures
+        2. Shift into last row
+        3. Substract "row index" of original texture
+        4. Shift to last col.
+        5. Shift back by index
+      }
+      Result := ATilesetShapeNodeList.Items[
+                  ATileset.TileCount * 3
+                  + ((ATileset.TileCount div ATileset.Columns) - 1) * ATileset.Columns
+                  - Floor(ATileset.Tiles.IndexOf(ATile) / ATileset.Columns) * ATileset.Columns
+                  + ATileset.Columns - 1
+                  - ATileset.Tiles.IndexOf(ATile) mod ATileset.Columns
+                ];
       Exit;
     end;
   end;
