@@ -196,7 +196,7 @@
       }
       )
 
-      When AutomaticWeakLink, the given field contents may, but doesn't have to,
+      When AutomaticWeakLink, the given field contents may, but don't have to,
       be a node cycle -- we only use WeakLink when necessary.
 
       Use this only for fields that are not enumerated by DirectEnumerateActive,

@@ -1460,7 +1460,7 @@ begin
       Check(TMethod(FCamera.InternalOnCameraChanged).Data = TMethod(FCamera.InternalOnSceneBoundNavigationInfoChanged).Data, 'Inconsistent values of internal TCastleCamera callbacks; do not modify TCastleCamera.InternalXxx callbacks manually.');
 
       { Note that we don't remove/add Camera to Viewport.Items.
-        This conflicts with the deserialization, when camera is *already* added explicitly
+        This would conflict with the deserialization, when camera is *already* added explicitly
         to Viewport.Items. }
 
       FCamera.InternalOnCameraChanged := nil;
@@ -2591,7 +2591,7 @@ begin
 
       Note: in paricular, we do not clear viewport using RenderContext.Clear here,
       as RenderContext.Clear requires logic of RenderContext.ScissorEnable/Disable
-      around it to be properlylimited.
+      around it to be properly limited.
       The FMissingCameraRect clears the viewport with BackgroundColor already. }
 
     FMissingCameraRect.Color := BackgroundColor;
