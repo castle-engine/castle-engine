@@ -117,12 +117,12 @@ BUILD_TOOL = ./tools/build-tool/castle-engine$(EXE_EXTENSION)
 
 .PHONY: default
 default: tools
-	lazbuild --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
-	lazbuild --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
-	lazbuild --add-package-link packages/castle_base.lpk
-	lazbuild --add-package-link packages/castle_window.lpk
-	lazbuild --add-package-link packages/castle_components.lpk
-	lazbuild tools/castle-editor/castle_editor.lpi
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_base.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_window.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) tools/castle-editor/castle_editor.lpi
 # move binaries to bin/
 	$(INSTALL) -d bin/
 	$(INSTALL) tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) bin/
@@ -355,11 +355,11 @@ cleanexamples:
 
 .PHONY: examples-laz
 examples-laz:
-	lazbuild src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
-	lazbuild src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
-	lazbuild packages/castle_base.lpk
-	lazbuild packages/castle_window.lpk
-	lazbuild packages/castle_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_base.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_window.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_components.lpk
 	set -e && for PROJECT_LPI in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
 	done

@@ -159,6 +159,10 @@ jobs:
         run: sudo apt-get --no-install-recommends -y install libgl-dev
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      # Enable compilation of LCL applications on new macOS with old Lazarus 2.0.x. Thankfully in Lazarus >= 2.2 this is no longer necessary.
+      - name: Set environment on macOS
+        if: ${{ matrix.operating-system == 'macos-latest' && matrix.lazarus-versions == '2.0.12' }}
+        run: echo "CASTLE_LAZBUILD_OPTIONS=--widgetset=cocoa" >> $GITHUB_ENV
       - name: Build Tools
         run: make clean default
       - name: Build And Run Auto-Tests
