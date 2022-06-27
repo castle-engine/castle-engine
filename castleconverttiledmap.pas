@@ -585,13 +585,14 @@ var
        https://doc.mapeditor.org/en/stable/reference/global-tile-ids/#tile-flipping }
     GetResolvedGID(ATileGID, HFlip, VFlip, DFlip);
 
-    { Get correct shape node from tileset list. WIP }
+    { Get shape node from tileset list if no flip flags are set. }
     if not (HFlip or VFlip or DFlip) then
     begin
       Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile)];
       Exit;
     end;
 
+    { Get shape node from tileset list if exclusivly the horizontal flip flag is set. }
     if HFlip and not (VFlip or DFlip) then
     begin
       { Calc. of correct horizontally flipped tile:
@@ -630,6 +631,7 @@ var
       Exit;
     end;
 
+    { Get shape node from tileset list if exclusivly the vertical flip flag is set. }
     if VFlip and not (HFlip or DFlip) then
     begin
       { Calc. of correct vertically flipped tile:
@@ -659,7 +661,10 @@ var
       Exit;
     end;
 
-    if DFlip or (HFlip and VFlip) then
+    { Ignore all flip flags if DFlip and additionally
+      HFlip/VFlip is set (results in rotation).
+      TODO: Implement rotation. }
+    if DFlip and (HFlip or VFlip) then
     begin
       if DFlip and (HFlip or VFlip) then
         WritelnWarning('Horizontal/vertical flip cannot be combined with diagnonal flip. Flags are ignored.');
