@@ -666,8 +666,15 @@ var
       TODO: Implement rotation. }
     if DFlip and (HFlip or VFlip) then
     begin
-      if DFlip and (HFlip or VFlip) then
-        WritelnWarning('Horizontal/vertical flip cannot be combined with diagnonal flip. Flags are ignored.');
+      WritelnWarning('Horizontal/vertical flip cannot be combined with diagnonal flip. Flags are ignored.');
+      Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile)];
+      Exit;
+    end;
+
+    { Get shape node from tileset list if exclusivly the diagonal flip flag is set
+      or if horizontal and vertical flip flags (= diagonal flip) are set. }
+    if (DFlip and not (HFlip or VFlip)) xor ((HFlip and VFlip) and not DFlip) then
+    begin
       Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile) + 27];
       Exit;
     end;
