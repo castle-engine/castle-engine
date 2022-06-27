@@ -48,7 +48,10 @@ uses
 implementation
 
 uses Generics.Defaults, DateUtils,
-  {$ifdef FREEBSD} FreeBSD, {$endif} // for clock_gettime
+  {$ifdef FPC}
+    {$ifdef LINUX} Linux, {$endif} // for clock_gettime
+    {$ifdef FREEBSD} FreeBSD, {$endif} // for clock_gettime
+  {$endif}
   CastleLog;
 
 {$define read_implementation}
