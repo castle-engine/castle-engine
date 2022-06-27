@@ -157,6 +157,9 @@ jobs:
       - name: Install Ubuntu dependencies
         if: ${{ matrix.operating-system == 'ubuntu-latest' }}
         run: sudo apt-get --no-install-recommends -y install libgl-dev
+      - name: Install macOS dependencies
+        if: ${{ matrix.operating-system == 'macos-latest' }}
+        run: brew install gnu-sed coreutils
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       # Enable compilation of LCL applications on new macOS with old Lazarus 2.0.x. Thankfully in Lazarus >= 2.2 this is no longer necessary.
