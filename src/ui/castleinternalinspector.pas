@@ -858,10 +858,12 @@ procedure TCastleInspector.UpdateProperties;
     AdjustColorsBasedOnPropertyDefault(PropertyOwner.EditValue, IsDefault);
   end;
 
-  function PropertyShow(const PropObject: TComponent; const PropInfo: PPropInfo;
-    out Name: String): Boolean;
+  function PropertyShow(const PropObject: TComponent; const PropInfo: PPropInfo): Boolean;
+  var
+    PropName: String;
   begin
-    if (Name = 'Name') and
+    PropName := PropInfo^.Name;
+    if (PropName = 'Name') and
        (csSubComponent in PropObject.ComponentStyle) then
     begin
       { Do not show names of subcomponents, they are not useful (to view or edit).
@@ -886,7 +888,7 @@ begin
     PropInfos := TPropInfoList.Create(FSelectedComponent, tkProperties);
     try
       for I := 0 to PropInfos.Count - 1 do
-        if PropertyShow(FSelectedComponent, PropInfos.Items[I], PropName) and
+        if PropertyShow(FSelectedComponent, PropInfos.Items[I]) and
            PropertyGet(FSelectedComponent, PropInfos.Items[I], PropName, PropValue) then
           AddPropertyRow(FSelectedComponent, PropInfos.Items[I], PropName, PropValue,
             PropertyHasDefaultValue(FSelectedComponent, PropInfos.Items[I], true));
