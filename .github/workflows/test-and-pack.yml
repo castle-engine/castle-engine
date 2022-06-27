@@ -163,8 +163,9 @@ jobs:
         run: make clean default
       - name: Build And Run Auto-Tests
         run: make clean tests
-      - name: Build Using FpMake
-        run: make clean test-fpmake
+      # TODO: Set FPCDIR to make it possible to use fpmake in GH actions
+      # - name: Build Using FpMake
+      #   run: make clean test-fpmake
       - name: Build Examples
         run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
       - name: Build Examples Using Lazarus
