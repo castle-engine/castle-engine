@@ -1809,11 +1809,13 @@ type
 
       @groupBegin }
     procedure CameraTransition(const Camera: TCastleCamera; const APosition, ADirection, AUp: TVector3); overload;
+      deprecated 'use Camera.AnimateTo(APosition, ADirection, AUp)';
     procedure CameraTransition(const Camera: TCastleCamera; const APosition, ADirection, AUp, GravityUp: TVector3); overload;
+      deprecated 'use Camera.AnimateTo(APosition, ADirection, AUp)';
     procedure CameraTransition(const Navigation: TCastleNavigation; const APosition, ADirection, AUp: TVector3); overload;
-      deprecated 'use overloaded version with TCastleCamera';
+      deprecated 'use Camera.AnimateTo(APosition, ADirection, AUp)';
     procedure CameraTransition(const Navigation: TCastleNavigation; const APosition, ADirection, AUp, GravityUp: TVector3); overload;
-      deprecated 'use overloaded version with TCastleCamera';
+      deprecated 'use Camera.AnimateTo(APosition, ADirection, AUp)';
     { @groupEnd }
 
     { Detect position/direction of the main light that produces shadow volumes.
@@ -7652,17 +7654,17 @@ begin
 
   ACamera.GravityUp := GravityUp;
 
-  { TODO: If RelativeCameraTransform, then we will move relative to
-    initial camera changes. Else, we will jump to new initial camera vectors.  }
+  { TODO:
+    If RelativeCameraTransform, then we should move relative to initial camera changes,
+    to honor X3D dictated Viewpoint animation behavior.
+    Right now, we always behave like RelativeCameraTransform=false. }
 
-  ACamera.SetWorldView(APosition, ADirection, AUp);
-  if not RelativeCameraTransform then
-  begin
-    if AllowTransitionAnimate and (not ForceTeleportTransitions) then
-      CameraTransition(ACamera, APosition, ADirection, AUp)
-    else
-      ACamera.SetWorldView(APosition, ADirection, AUp);
-  end;
+  if AllowTransitionAnimate and (not ForceTeleportTransitions) then
+    {$warnings off} // using deprecated, it really should be internal - camera transition following X3D events
+    CameraTransition(ACamera, APosition, ADirection, AUp)
+    {$warnings on}
+  else
+    ACamera.SetWorldView(APosition, ADirection, AUp);
 end;
 
 procedure TCastleSceneCore.CameraTransition(const Camera: TCastleCamera;
@@ -7722,19 +7724,25 @@ procedure TCastleSceneCore.CameraTransition(const Camera: TCastleCamera;
   const APosition, ADirection, AUp, GravityUp: TVector3);
 begin
   Camera.GravityUp := GravityUp;
+  {$warnings off} // using deprecated in deprecated
   CameraTransition(Camera, APosition, ADirection, AUp);
+  {$warnings on}
 end;
 
 procedure TCastleSceneCore.CameraTransition(const Navigation: TCastleNavigation;
   const APosition, ADirection, AUp: TVector3);
 begin
+  {$warnings off} // using deprecated in deprecated
   CameraTransition(Navigation.Camera, APosition, ADirection, AUp);
+  {$warnings on}
 end;
 
 procedure TCastleSceneCore.CameraTransition(const Navigation: TCastleNavigation;
   const APosition, ADirection, AUp, GravityUp: TVector3);
 begin
+  {$warnings off} // using deprecated in deprecated
   CameraTransition(Navigation.Camera, APosition, ADirection, AUp, GravityUp);
+  {$warnings on}
 end;
 
 { misc ----------------------------------------------------------------------- }
