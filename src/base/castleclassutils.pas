@@ -1882,6 +1882,7 @@ type
       const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
       const ListAdd: TSerializationProcess.TListAddEvent;
       const ListClear: TSerializationProcess.TListClearEvent); override;
+    procedure InternalAssignUsingSerialization(const Destination, Source: TComponent); override;
   end;
 
 procedure TTranslatePropertiesOnChildren.TranslatePropertiesOnChild(Child: TComponent);
@@ -1921,6 +1922,14 @@ end;
 procedure TTranslatePropertiesOnChildren.ReadWriteSingle(const Key: String; var Value: Single; const IsStored: Boolean);
 begin
   // just override abstract method to do nothing
+end;
+
+procedure TTranslatePropertiesOnChildren.InternalAssignUsingSerialization(
+  const Destination, Source: TComponent);
+begin
+  { This should never happen, as TCastleViewport calls InternalAssignUsingSerialization
+    only when PreserveDataAcrossUndo is non-nil, which is only in reader. }
+  raise Exception.Create('Cannot use InternalAssignUsingSerialization when TTranslatePropertiesOnChildren');
 end;
 
 procedure TranslateProperties(const C: TComponent;
