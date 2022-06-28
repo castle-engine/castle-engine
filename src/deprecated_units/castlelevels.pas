@@ -894,11 +894,7 @@ function TLevel.UnloadCore: T3DResourceList;
 var
   I: Integer;
 begin
-  for I := Items.Count - 1 downto 0 do
-    { Clear Items, removing everything from previous level, except TCastleCamera
-      which has to remain in Items. }
-    if not (Items[I] is TCastleCamera) then
-      Items.Delete(I);
+  ClearExceptCameras;
 
   { free stuff like creatures, items, level logic.
     Note that things not owned by FreeAtUnload, like usual Player and FInternalLogic,

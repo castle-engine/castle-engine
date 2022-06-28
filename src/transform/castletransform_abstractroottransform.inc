@@ -296,7 +296,7 @@
 
       Note that we no longer advise using @link(TCastleRootTransform.UseHeadlight)
       for headlight. It's easier to just place light as child of whatever camera
-      you want, like adding TCastleDirectionalLight as child of TCastleCaemera.
+      you want, like adding TCastleDirectionalLight as child of TCastleCamera.
       See examples/viewport_and_scenes/headlight/ .
       In this case MainCamera doesn't matter, instead you explicitly make headlight
       by placing light as child of chosen camera.
@@ -320,6 +320,12 @@
       associated @link(TCastleViewport) or not),
       or @nil (in case no camera should be that "central" camera). }
     property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
+
+    { Remove all items except TCastleCamera instances.
+      This only avoids removing TCastleCamera instances that are direct children
+      of this TCastleAbstractRootTransform, the TCastleCamera instances that are deeper
+      (e.g. TCastleCamera inside some TCastleTransform) will still be removed. }
+    procedure ClearExceptCameras;
   published
     { Adjust physics properties. }
     property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
@@ -561,6 +567,15 @@ begin
   end;
 
   FInternalPressReleaseListeners.Delete(I);
+end;
+
+procedure TCastleAbstractRootTransform.ClearExceptCameras;
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+    if not (Items[I] is TCastleCamera) then
+      Delete(I);
 end;
 
 {$endif read_implementation}
