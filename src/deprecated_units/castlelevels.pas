@@ -894,7 +894,7 @@ function TLevel.UnloadCore: T3DResourceList;
 var
   I: Integer;
 begin
-  ClearExceptCameras;
+  Items.ClearExceptCameras;
 
   { free stuff like creatures, items, level logic.
     Note that things not owned by FreeAtUnload, like usual Player and FInternalLogic,
