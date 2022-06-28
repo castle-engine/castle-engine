@@ -870,6 +870,89 @@
   TRigidBody = class(TCastleRigidBody)
   end;
 
+  TJointTest = class(TCastleBehavior)
+    private
+      FJoint1: TKraftConstraintJointRope;
+      FJoint2: TKraftConstraintJointBallSocket;
+      FJoint3: TKraftConstraintJointDistance;
+    public
+      RigidBodyA:TCastleRigidBody;
+      RigidBodyB:TCastleRigidBody;
+
+      procedure WorldAfterAttach; override;
+      constructor Create(AOwner: TComponent); override;
+  end;
+
+  TJointHinge = class(TCastleBehavior)
+    private
+      FKraftJointHinge: TKraftConstraintJoint;
+      FSecondTransform: TCastleTransform;
+      FRotationAxis: TVector3;
+      FAnchorPoint: TVector3;
+    public
+      constructor Create(AOwner: TComponent); override;
+
+      procedure WorldAfterAttach; override;
+    published
+      property SecondTransform: TCastleTransform read FSecondTransform write FSecondTransform;
+  end;
+
+  TJointRope = class(TCastleBehavior)
+    private
+      FKraftJointRope: TKraftConstraintJointRope;
+      FSecondTransform: TCastleTransform;
+      FAnchorPoint: TVector3;
+      FSecondAnchorPoint: TVector3;
+      FDistance: Single;
+    public
+      constructor Create(AOwner: TComponent); override;
+      procedure WorldAfterAttach; override;
+
+    published
+      property SecondTransform: TCastleTransform read FSecondTransform write FSecondTransform;
+      property Distance:Single read FDistance write FDistance;
+  end;
+
+  TJointFixed = class(TCastleBehavior)
+  private
+    FKraftJointFixed: TKraftConstraintJointFixed;
+    FSecondTransform: TCastleTransform;
+    FAnchorPoint: TVector3;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    procedure WorldAfterAttach; override;
+  published
+    property SecondTransform: TCastleTransform read FSecondTransform write FSecondTransform;
+  end;
+
+  TJointBall = class(TCastleBehavior)
+  private
+    FKraftJointBall: TKraftConstraintJointBallSocket;
+    FSecondTransform: TCastleTransform;
+    FAnchorPoint: TVector3;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    procedure WorldAfterAttach; override;
+  published
+    property SecondTransform: TCastleTransform read FSecondTransform write FSecondTransform;
+  end;
+
+  TJointDistance = class(TCastleBehavior)
+  private
+    FKraftJointDistance: TKraftConstraintJointDistance;
+    FSecondTransform: TCastleTransform;
+    FAnchorPoint: TVector3;
+    FSecondAnchorPoint: TVector3;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    procedure WorldAfterAttach; override;
+  published
+    property SecondTransform: TCastleTransform read FSecondTransform write FSecondTransform;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -2883,6 +2966,251 @@ end;
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
 {$undef read_implementation_methods}
+
+{ TJointTest ----------------------------------------------------------------- }
+
+procedure TJointTest.WorldAfterAttach;
+begin
+  inherited WorldAfterAttach;
+  //{
+  FJoint1 := TKraftConstraintJointRope.Create(
+    World.FKraftEngine,
+    RigidBodyA.FKraftBody,
+    RigidBodyB.FKraftBody,
+    VectorToKraft(Vector3(0,0,0)),
+    VectorToKraft(Vector3(0,0,0)),
+    480,
+    false
+  );
+  //}
+
+  {
+  FJoint2 := TKraftConstraintJointBallSocket.Create(
+      World.FKraftEngine,
+      RigidBodyA.FKraftBody,
+      RigidBodyB.FKraftBody,
+      VectorToKraft(Vector3(0,0,0)),
+      VectorToKraft(Vector3(0,0,0)),
+      false
+    );
+  }
+
+  {
+  FJoint3 := TKraftConstraintJointDistance.Create(
+    World.FKraftEngine,
+    RigidBodyA.FKraftBody,
+    RigidBodyB.FKraftBody,
+    VectorToKraft(Vector3(0,0,0)),
+    VectorToKraft(Vector3(0,0,0)),
+    10,
+    1,
+    false
+    //true
+  );
+
+  }
+end;
+
+constructor TJointTest.Create(AOwner: TComponent);
+begin
+  inherited;
+  NeedWorldChangeNotification := true;
+end;
+
+{ TJointHinge --------------------------------------------------------------- }
+
+constructor TJointHinge.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  NeedWorldChangeNotification := true;
+  FRotationAxis:= Vector3(0, 0, 1);
+  FAnchorPoint := Vector3(0, 0, 0);
+end;
+
+procedure TJointHinge.WorldAfterAttach;
+var
+  FirstRigidBody: TCastleRigidBody;
+  SecondRigidBody: TCastleRigidBody;
+begin
+  inherited WorldAfterAttach;
+
+  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if FirstRigidBody = nil then
+    Exit;
+
+  if SecondTransform = nil then
+    Exit;
+
+  SecondRigidBody := SecondTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if SecondRigidBody = nil then
+    Exit;
+
+  FKraftJointHinge := TKraftConstraintJointHinge.Create(
+    World.FKraftEngine,
+    FirstRigidBody.FKraftBody,
+    SecondRigidBody.FKraftBody,
+    VectorToKraft(Parent.LocalToWorld(FAnchorPoint)),
+    VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis))
+  );
+end;
+
+
+{ TJointRope --------------------------------------------------------------- }
+
+constructor TJointRope.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  NeedWorldChangeNotification := true;
+  FAnchorPoint := Vector3(0, 0, 0);
+  FSecondAnchorPoint := Vector3(0, 0, 0);
+end;
+
+procedure TJointRope.WorldAfterAttach;
+var
+  FirstRigidBody: TCastleRigidBody;
+  SecondRigidBody: TCastleRigidBody;
+begin
+  inherited WorldAfterAttach;
+
+  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if FirstRigidBody = nil then
+    Exit;
+
+  if SecondTransform = nil then
+    Exit;
+
+  SecondRigidBody := SecondTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if SecondRigidBody = nil then
+    Exit;
+
+  FKraftJointRope := TKraftConstraintJointRope.Create(
+    World.FKraftEngine,
+    FirstRigidBody.FKraftBody,
+    SecondRigidBody.FKraftBody,
+    VectorToKraft(FAnchorPoint),
+    VectorToKraft(FSecondAnchorPoint),
+    FDistance
+  );
+end;
+
+
+{ TJointFixed --------------------------------------------------------------- }
+
+constructor TJointFixed.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  NeedWorldChangeNotification := true;
+  FAnchorPoint := Vector3(0, 0, 0);
+end;
+
+procedure TJointFixed.WorldAfterAttach;
+var
+  FirstRigidBody: TCastleRigidBody;
+  SecondRigidBody: TCastleRigidBody;
+begin
+  inherited WorldAfterAttach;
+
+  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if FirstRigidBody = nil then
+    Exit;
+
+  if SecondTransform = nil then
+    Exit;
+
+  SecondRigidBody := SecondTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if SecondRigidBody = nil then
+    Exit;
+
+  FKraftJointFixed := TKraftConstraintJointFixed.Create(
+    World.FKraftEngine,
+    FirstRigidBody.FKraftBody,
+    SecondRigidBody.FKraftBody,
+    VectorToKraft(Parent.LocalToWorld(FAnchorPoint))
+  );
+end;
+
+{ TJointBall --------------------------------------------------------------- }
+
+constructor TJointBall.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  NeedWorldChangeNotification := true;
+  FAnchorPoint := Vector3(0, 0, 0);
+end;
+
+procedure TJointBall.WorldAfterAttach;
+var
+  FirstRigidBody: TCastleRigidBody;
+  SecondRigidBody: TCastleRigidBody;
+begin
+  inherited WorldAfterAttach;
+
+  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if FirstRigidBody = nil then
+    Exit;
+
+  if SecondTransform = nil then
+    Exit;
+
+  SecondRigidBody := SecondTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if SecondRigidBody = nil then
+    Exit;
+
+  FKraftJointBall := TKraftConstraintJointBallSocket.Create(
+    World.FKraftEngine,
+    FirstRigidBody.FKraftBody,
+    SecondRigidBody.FKraftBody,
+    VectorToKraft(Parent.LocalToWorld(FAnchorPoint))
+  );
+end;
+
+{ TJointBall --------------------------------------------------------------- }
+
+constructor TJointDistance.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  NeedWorldChangeNotification := true;
+  FAnchorPoint := Vector3(0, 0, 0);
+  FSecondAnchorPoint := Vector3(0, 0, 0);
+end;
+
+procedure TJointDistance.WorldAfterAttach;
+var
+  FirstRigidBody: TCastleRigidBody;
+  SecondRigidBody: TCastleRigidBody;
+begin
+  inherited WorldAfterAttach;
+
+  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if FirstRigidBody = nil then
+    Exit;
+
+  if SecondTransform = nil then
+    Exit;
+
+  SecondRigidBody := SecondTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if SecondRigidBody = nil then
+    Exit;
+
+  FKraftJointDistance := TKraftConstraintJointDistance.Create(
+    World.FKraftEngine,
+    FirstRigidBody.FKraftBody,
+    SecondRigidBody.FKraftBody,
+    VectorToKraft(FAnchorPoint),
+    VectorToKraft(FSecondAnchorPoint),
+    300
+  );
+end;
 
 { TCastleTransform ---------------------------------------------------------- }
 
