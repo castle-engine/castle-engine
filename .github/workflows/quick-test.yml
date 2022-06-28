@@ -19,7 +19,10 @@ jobs:
     name: Quick Test of Tools
     strategy:
       matrix:
-        operating-system: [ubuntu-latest, macos-latest, windows-latest]
+        # TODO: Not including windows-latest, as it fails:
+        # ./tools/build-tool/castle-engine_compile.sh: line 43: fpc: command not found
+        # Looks like https://github.com/gcarreno/setup-lazarus doesn't put FPC on $PATH on Windows?
+        operating-system: [ubuntu-latest, macos-latest]
         lazarus-versions: [stable]
     runs-on: ${{ matrix.operating-system }}
     steps:
