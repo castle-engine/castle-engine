@@ -53,6 +53,7 @@ type
     ActionListDesign: TActionList;
     ButtonResetTransformation: TButton;
     ButtonClearAnchorDeltas: TButton;
+    LabelPhysics: TLabel;
     ButtonViewportMenu: TSpeedButton;
     LabelHeaderTransform: TLabel;
     LabelViewport: TLabel;

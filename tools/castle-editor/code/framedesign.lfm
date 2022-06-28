@@ -2,14 +2,14 @@ object DesignFrame: TDesignFrame
   Left = 0
   Height = 510
   Top = 0
-  Width = 1478
+  Width = 1552
   ClientHeight = 510
-  ClientWidth = 1478
+  ClientWidth = 1552
   DesignTimePPI = 120
   ParentFont = False
   TabOrder = 0
-  DesignLeft = 368
-  DesignTop = 210
+  DesignLeft = 326
+  DesignTop = 269
   object SplitterLeft: TSplitter
     Left = 266
     Height = 510
@@ -17,7 +17,7 @@ object DesignFrame: TDesignFrame
     Width = 8
   end
   object SplitterRight: TSplitter
-    Left = 1144
+    Left = 1218
     Height = 510
     Top = 0
     Width = 8
@@ -25,7 +25,7 @@ object DesignFrame: TDesignFrame
     ResizeAnchor = akRight
   end
   object PanelRight: TPanel
-    Left = 1152
+    Left = 1226
     Height = 510
     Top = 0
     Width = 326
@@ -355,9 +355,9 @@ object DesignFrame: TDesignFrame
     TabOrder = 3
     object ControlsTree: TTreeView
       Left = 0
-      Height = 478
+      Height = 480
       Hint = 'Select a component.'#10'Hold "Ctrl" or "Shift" to select multiple components.'#10'Drag the component to move it to the front, back or change parent.'
-      Top = 32
+      Top = 30
       Width = 266
       Align = alClient
       DragMode = dmAutomatic
@@ -395,18 +395,18 @@ object DesignFrame: TDesignFrame
     Left = 274
     Height = 510
     Top = 0
-    Width = 870
+    Width = 944
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 510
-    ClientWidth = 870
+    ClientWidth = 944
     ParentFont = False
     TabOrder = 4
     object PanelMiddleTop: TPanel
       Left = 5
       Height = 36
       Top = 5
-      Width = 860
+      Width = 934
       Align = alTop
       AutoSize = True
       BorderSpacing.Around = 5
@@ -415,14 +415,14 @@ object DesignFrame: TDesignFrame
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 100
       ClientHeight = 36
-      ClientWidth = 860
+      ClientWidth = 934
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
       object LabelHeaderUi: TLabel
         Left = 0
-        Height = 38
+        Height = 36
         Top = 0
         Width = 19
         BorderSpacing.Right = 10
@@ -576,8 +576,8 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object ButtonModifyUiMode: TSpeedButton
-        Left = 73
-        Height = 38
+        Left = 69
+        Height = 36
         Hint = 'Select, Move and Resize user interface controls (TCastleUserInterface).'#10#10'Hold "Shift" to Move and Resize without changing the selection.'
         Top = 0
         Width = 36
@@ -745,7 +745,7 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object LabelUIScaling: TLabel
-        Left = 828
+        Left = 902
         Height = 20
         Hint = 'UI Scaling to 1600x900'
         Top = 0
@@ -759,8 +759,8 @@ object DesignFrame: TDesignFrame
         ShowHint = True
       end
       object ButtonTransformSelectMode: TSpeedButton
-        Left = 309
-        Height = 38
+        Left = 294
+        Height = 36
         Hint = 'Select transform (TCastleTransform)'
         Top = 0
         Width = 36
@@ -904,12 +904,11 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object ButtonTransformTranslateMode: TSpeedButton
-        Left = 349
-        Height = 38
+        Left = 334
+        Height = 36
         Hint = 'Select and Move transform (TCastleTransform).'#10#10'Hold "Shift" to Move without changing the selection.'
         Top = 0
         Width = 36
-        AllowAllUp = True
         Constraints.MinHeight = 34
         Constraints.MinWidth = 34
         Glyph.Data = {
@@ -1049,8 +1048,8 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object ButtonTransformRotateMode: TSpeedButton
-        Left = 389
-        Height = 38
+        Left = 374
+        Height = 36
         Hint = 'Select and Rotate transform (TCastleTransform).'#10#10'Hold "Shift" to Rotate without changing the selection.'
         Top = 0
         Width = 36
@@ -1194,8 +1193,8 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object ButtonTransformScaleMode: TSpeedButton
-        Left = 429
-        Height = 38
+        Left = 414
+        Height = 36
         Hint = 'Select and Scale transform (TCastleTransform).'#10#10'Hold "Shift" to Scale without changing the selection.'
         Top = 0
         Width = 36
@@ -1339,8 +1338,8 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object LabelViewport: TLabel
-        Left = 503
-        Height = 38
+        Left = 488
+        Height = 36
         Top = 0
         Width = 218
         BorderSpacing.Left = 38
@@ -1351,8 +1350,9 @@ object DesignFrame: TDesignFrame
         ParentFont = False
         Visible = False
       end
-      object ButtonStartPhysics: TSpeedButton
-        Left = 627
+      object LabelPhysicsSimulation: TLabel
+        AnchorSideTop.Side = asrCenter
+        Left = 736
         Height = 36
         Top = 0
         Width = 57
@@ -1363,21 +1363,23 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object ButtonPhysicsPlayStop: TSpeedButton
-        Left = 720
+        Left = 803
         Height = 36
         Top = 0
         Width = 36
         Action = ActionPhysicsPlayStopSimulation
+        AllowAllUp = True
         AutoSize = True
         Constraints.MinHeight = 34
         Constraints.MinWidth = 34
+        GroupIndex = 10
         Images = Icons.ToolbarStroke1_5
         ImageIndex = 5
         ImageWidth = 32
         ShowCaption = False
       end
       object ButtonPhysicsPause: TSpeedButton
-        Left = 760
+        Left = 843
         Height = 36
         Top = 0
         Width = 36
@@ -1466,6 +1468,7 @@ object DesignFrame: TDesignFrame
     object ActionPhysicsPlayStopSimulation: TAction
       Category = 'Physics'
       Caption = 'Play/Stop Physics Simulation'
+      GroupIndex = 10
       Hint = 'Play/Stop Physics Simulation '
       ImageIndex = 5
       OnExecute = ActionPhysicsPlayStopSimulationExecute
@@ -1473,7 +1476,7 @@ object DesignFrame: TDesignFrame
     object ActionPhysicsPauseSimulation: TAction
       Category = 'Physics'
       Caption = 'Pause Physics Simulation'
-      GroupIndex = 4
+      GroupIndex = 9
       ImageIndex = 7
       OnExecute = ActionPhysicsPauseSimulationExecute
       OnUpdate = ActionPhysicsPauseSimulationUpdate
