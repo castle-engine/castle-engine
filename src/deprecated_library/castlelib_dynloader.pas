@@ -124,5 +124,9 @@ procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl; external 'castleengine';
 
 implementation
 
+{$ifdef DARWIN}
+  {$linklib castleengine}
+{$endif}
+
 begin
 end.
