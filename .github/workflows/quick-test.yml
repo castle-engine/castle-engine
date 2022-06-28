@@ -45,3 +45,7 @@ jobs:
         run: ./tools/build-tool/castle-engine compile --project ./tools/castle-editor/
       - name: Build FPS Game
         run: ./tools/build-tool/castle-engine compile --project ./examples/fps_game/
+      - name: Run Autotests
+        run: |
+          ./tools/build-tool/castle-engine compile --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM
+          ./tools/build-tool/castle-engine run -- --console
