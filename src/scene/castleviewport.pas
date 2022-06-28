@@ -3813,12 +3813,10 @@ begin
     begin
       { This copies the same things that are (de)serialized below when
         CopyDesignDataFromViewport returns false. }
-      SerializationProcess.InternalAssignUsingSerialization(
-        InternalDesignCamera, CopyFromViewport.InternalDesignCamera);
+      InternalAssignUsingSerialization(InternalDesignCamera, CopyFromViewport.InternalDesignCamera);
       InternalDesignNavigationType := CopyFromViewport.InternalDesignNavigationType;
       for Nav := Low(Nav) to High(Nav) do
-        SerializationProcess.InternalAssignUsingSerialization(
-          FInternalDesignNavigations[Nav],
+        InternalAssignUsingSerialization(FInternalDesignNavigations[Nav],
           CopyFromViewport.FInternalDesignNavigations[Nav]);
     end else
     begin

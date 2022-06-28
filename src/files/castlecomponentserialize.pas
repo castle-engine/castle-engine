@@ -138,6 +138,31 @@ var
     @exclude }
   InternalLoadingComponent: Cardinal;
 
+{ Copy the properties of Source to Destination using the serialization to JSON.
+  This has a nice advantage that you don't need to implement field-by-field
+  assignment manually (e.g. overriding TPersistent.Assign).
+
+  It has however problems:
+
+  - It works correctly only when Destination is in completely default state
+    (right after constructor).
+    Or, at least, the properties of Source that are in default state
+    are also already in default state in Destination.
+    That's because these properties are not serialized, and thus will not be modified
+    in Destination.
+
+  - It's inefficient, doing serializing + deserializing.
+    While this doesn't actually serialize JSON to string,
+    it only uses in-memory JSON  classes,
+    still there's a lot of unnecessary creation of temporary structures and copying
+    compared to traditional approach of overriding TPersistent.Assign.
+
+  For these 2 reasons, this remains an internal "hack",
+  and not something we advise you to use.
+  @exclude
+}
+procedure InternalAssignUsingSerialization(const Destination, Source: TComponent);
+
 implementation
 
 uses JsonParser, RtlConsts, StrUtils,
@@ -223,7 +248,6 @@ type
         procedure ReadWriteList(const Key: String;
           const ListEnumerate: TSerializationProcess.TListEnumerateEvent; const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
-        procedure InternalAssignUsingSerialization(const Destination, Source: TComponent); override;
       end;
       TSerializationProcessReaderList = {$ifdef FPC}specialize{$endif} TObjectList<TSerializationProcessReader>;
 
@@ -816,7 +840,6 @@ type
           const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
           const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
-        procedure InternalAssignUsingSerialization(const Destination, Source: TComponent); override;
       end;
       TSerializationProcessWriterList = {$ifdef FPC}specialize{$endif} TObjectList<TSerializationProcessWriter>;
 
@@ -835,14 +858,6 @@ type
     destructor Destroy; override;
     property Streamer: TJsonStreamer read FStreamer;
   end;
-
-procedure TCastleJsonWriter.TSerializationProcessWriter.InternalAssignUsingSerialization(
-  const Destination, Source: TComponent);
-begin
-  { This should never happen, as TCastleViewport calls InternalAssignUsingSerialization
-    only when PreserveDataAcrossUndo is non-nil, which is only in reader. }
-  raise Exception.Create('Cannot use InternalAssignUsingSerialization when writing');
-end;
 
 procedure TCastleJsonWriter.TSerializationProcessWriter.WriteItem(C: TComponent);
 begin
@@ -1064,19 +1079,34 @@ begin
   StringToFile(Url, ComponentToString(C));
 end;
 
-{ part of TCastleJsonReader that can be defined only now --------------------- }
-
-procedure TCastleJsonReader.TSerializationProcessReader.InternalAssignUsingSerialization(
-  const Destination, Source: TComponent);
+procedure InternalAssignUsingSerialization(const Destination, Source: TComponent);
 var
   Json: TJsonObject;
+  Reader: TCastleJsonReader;
   Writer: TCastleJsonWriter;
 begin
+  { We check proper inheritance here,
+    this way we don't need to later care about whether Json has proper
+      Json.Strings['$$ClassName']
+    recorded. }
+  if not Destination.InheritsFrom(Source.ClassType) then
+    raise Exception.CreateFmt('Cannot assign instance of %s (source) to %s (destination). Destination class should be equal or inherit from Source class.', [
+      Source.ClassName,
+      Destination.ClassName
+    ]);
+
   Writer := TCastleJsonWriter.Create;
   try
     Json := Writer.Streamer.ObjectToJson(Source);
     try
-      Reader.FDeStreamer.JsonToObject(Json, Destination);
+      Reader := TCastleJsonReader.Create;
+      try
+        Reader.FOwner := Destination;
+
+        { read Result contents from JSON }
+        Reader.DeStreamer.JsonToObject(Json, Destination);
+        Reader.FinishResolvingComponentProperties;
+      finally FreeAndNil(Reader) end;
     finally FreeAndNil(Json) end;
   finally FreeAndNil(Writer) end;
 end;
