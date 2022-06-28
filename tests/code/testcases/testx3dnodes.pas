@@ -97,6 +97,7 @@ type
     procedure TestNiceName;
     procedure TestTextureProperties;
     procedure TestFixNames;
+    procedure TestAutomaticWeakLink;
   end;
 
 implementation
@@ -2221,6 +2222,31 @@ begin
     AssertEquals('EE_5', R.FdChildren[22].X3DName);
     AssertEquals('EE_6', R.FdChildren[23].X3DName);
     AssertEquals('EE_7', R.FdChildren[24].X3DName);
+  finally FreeAndNil(R) end;
+end;
+
+procedure TTestX3DNodes.TestAutomaticWeakLink;
+var
+  R: TX3DRootNode;
+  MyTransform: TTransformNode;
+  Script: TScriptNode;
+begin
+  R := LoadNode('castle-data:/script_node_recursive_def_use.x3dv');
+  try
+    AssertTrue(R.FdChildren.Count = 1);
+    AssertTrue(R.FdChildren[0].X3DName = 'MyTransform');
+    MyTransform := R.FdChildren.Items[0] as TTransformNode;
+
+    AssertTrue(MyTransform.FdChildren.Count = 1);
+    AssertTrue(MyTransform.FdChildren[0] is TScriptNode);
+    Script := MyTransform.FdChildren[0] as TScriptNode;
+
+    AssertTrue((Script.Field('container1', true) as TSFNode).Value = MyTransform);
+    AssertTrue((Script.Field('container2', true) as TSFNode).Value = MyTransform);
+    AssertTrue((Script.Field('container3', true) as TSFNode).Value =
+               (Script.Field('container5', true) as TSFNode).Value);
+    AssertTrue((Script.Field('container4', true) as TSFNode).Value =
+               (Script.Field('container6', true) as TSFNode).Value);
   finally FreeAndNil(R) end;
 end;
 

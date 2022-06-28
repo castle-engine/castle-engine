@@ -99,14 +99,14 @@ type
     FCastleTester: TCastleTester;
 
     function PrepareCustomMsg(const Msg: String): String;
+  protected
+    procedure Setup; virtual;
+    procedure TearDown; virtual;
   public
     Enabled: Boolean;
 
     constructor Create;
     destructor Destroy; override;
-
-    procedure Setup; virtual;
-    procedure TearDown; virtual;
 
     procedure Fail(const Msg: String; const AddrOfError: Pointer = nil);
     procedure AssertTrue(const ACondition: Boolean); overload;
