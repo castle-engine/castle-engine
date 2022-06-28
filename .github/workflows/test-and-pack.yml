@@ -173,7 +173,10 @@ jobs:
       # TODO: Set FPCDIR to make it possible to use fpmake in GH actions
       # - name: Build Using FpMake
       #   run: make clean test-fpmake
+      # TODO: FPC 3.2.0 + Lazarus 2.0.12 + macOS has problems linking examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester.lpi :
+      # ld: library not found for -lcastleengine
       - name: Build Examples
+        if: ${{ ! (matrix.operating-system == 'macos-latest' && matrix.lazarus-versions == '2.0.12') }}
         run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
       - name: Build Examples Using Lazarus
         run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
