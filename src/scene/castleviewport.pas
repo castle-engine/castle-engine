@@ -1544,6 +1544,12 @@ begin
         from design file. }
       Camera.GetWorldView(InitialPos, InitialDir, InitialUp);
       InternalDesignCamera.SetWorldView(InitialPos, InitialDir, InitialUp);
+      { If Camera was orthographic,
+        then design-time camera should also be orthographic and default to 2D navigation.
+        This makes better experience when opening old designs. }
+      InternalDesignCamera.ProjectionType := Camera.ProjectionType;
+      if InternalDesignCamera.ProjectionType = ptOrthographic then
+        InternalDesignNavigationType := dn2D;
     end;
 
     if InternalDesignManipulation and (Camera.Name = 'Camera') and (Owner <> nil) then
