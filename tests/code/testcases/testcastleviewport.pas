@@ -27,12 +27,13 @@ type
   TTestCastleViewport = class(TCastleTestCase)
     procedure TestReadingOldDesigns;
     procedure TestReadingOldDesigns2DSceneManager;
+    procedure TestCameraNonDesign;
   end;
 
 implementation
 
 uses CastleComponentSerialize, CastleUIControls, CastleViewport, CastleCameras,
-  Castle2DSceneManager, CastleProjection;
+  Castle2DSceneManager, CastleProjection, CastleUtils;
 
 procedure TTestCastleViewport.TestReadingOldDesigns;
 
@@ -112,6 +113,26 @@ begin
   try
     AssertCameraUpgraded2DSceneManager(RootOwner.FindRequiredComponent('SceneManager1') as TCastle2DSceneManager);
   finally FreeAndNil(RootOwner) end;
+end;
+
+procedure TTestCastleViewport.TestCameraNonDesign;
+var
+  V: TCastleViewport;
+  SavedCastleDesignMode: Boolean;
+begin
+  // fake design-mode (CGE editor) for test
+  SavedCastleDesignMode := CastleDesignMode;
+  CastleDesignMode := true;
+  try
+    V := TCastleViewport.InternalCreateNonDesign(nil);
+    try
+      // V.Camera will be auto-created, but it will not have a bounding box or any children (so no gizmo)
+      AssertTrue(V.Camera <> nil);
+      AssertTrue(V.Camera.BoundingBox.IsEmpty);
+      AssertTrue(V.Camera.Count = 0);
+      AssertTrue(V.Items.BoundingBox.IsEmpty);
+    finally FreeAndNil(V) end;
+  finally CastleDesignMode := SavedCastleDesignMode end;
 end;
 
 initialization

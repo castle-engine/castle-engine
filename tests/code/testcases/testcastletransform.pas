@@ -59,6 +59,7 @@ type
     procedure TestExistsInRoot;
     procedure TestGetSetWorldView;
     procedure TestCameraDefaults;
+    procedure TestExcludeBoundingVolume;
   end;
 
 implementation
@@ -1872,6 +1873,34 @@ begin
   finally
     FreeAndNil(C);
     FreeAndNil(Parent);
+  end;
+end;
+
+procedure TTestCastleTransform.TestExcludeBoundingVolume;
+var
+  T, Box: TCastleTransform;
+begin
+  T := nil;
+  Box := nil;
+  try
+    T := TCastleTransform.Create(nil);
+    Box := TCastleBox.Create(nil);
+
+    AssertTrue(T.BoundingBox.IsEmpty);
+    AssertFalse(Box.BoundingBox.IsEmpty);
+
+    T.Add(Box);
+
+    AssertFalse(T.BoundingBox.IsEmpty);
+    AssertFalse(Box.BoundingBox.IsEmpty);
+
+    Box.InternalExcludeFromParentBoundingVolume := true;
+
+    AssertTrue(T.BoundingBox.IsEmpty);
+    AssertFalse(Box.BoundingBox.IsEmpty);
+  finally
+    FreeAndNil(T);
+    FreeAndNil(Box);
   end;
 end;
 

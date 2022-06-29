@@ -840,7 +840,12 @@ type
 
       This is done automatically when creating TCastleViewport (not in design-mode,
       not at deserialization) using the standard TCastleViewport.Create constructor.
-      So you likely don't need to call this in typical applications. }
+      So you likely don't need to call this in typical applications.
+
+      Note: Even when used from CGE editor (CastleDesignMode), this creates non-design camera.
+      This way viewports created with InternalCreateNonDesign have also non-design cameras.
+      This is important, so that e.g. camera has no bounding box, and thus
+      AssignDefaultCamera in sprite sheet editor doesn't put camera further and further away. }
     procedure SetupCamera;
 
     { Navigation method is an optional component that handles
@@ -1384,7 +1389,7 @@ begin
     - or replace existing camera. }
   Assert(Camera = nil);
 
-  NewCamera := TCastleCamera.Create(Self);
+  NewCamera := TCastleCamera.InternalCreateNonDesign(Self);
   Camera := NewCamera;
   Items.Add(NewCamera);
 end;
