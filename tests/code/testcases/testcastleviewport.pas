@@ -47,10 +47,10 @@ procedure TTestCastleViewport.TestReadingOldDesigns;
 
 var
   RootOwner: TComponent;
-  Root: TCastleUserInterface;
+  //Root: TCastleUserInterface;
 begin
   RootOwner := TComponent.Create(nil);
-  Root := UserInterfaceLoad('castle-data:/designs_before_camera_as_transform/multiple_viewports.castle-user-interface', RootOwner);
+  {Root := }UserInterfaceLoad('castle-data:/designs_before_camera_as_transform/multiple_viewports.castle-user-interface', RootOwner);
   try
     AssertCameraUpgraded(RootOwner.FindRequiredComponent('ViewportTransparent') as TCastleViewport, 'Camera');
     // when reading at runtime, we don't rename it to Camera1 etc. unless we have to, at CastleComponentSerialize
@@ -60,13 +60,13 @@ begin
   finally FreeAndNil(RootOwner) end;
 
   RootOwner := TComponent.Create(nil);
-  Root := UserInterfaceLoad('castle-data:/designs_before_camera_as_transform/template_2d.castle-user-interface', RootOwner);
+  {Root := }UserInterfaceLoad('castle-data:/designs_before_camera_as_transform/template_2d.castle-user-interface', RootOwner);
   try
     AssertCameraUpgraded(RootOwner.FindRequiredComponent('MainViewport') as TCastleViewport, 'Camera');
   finally FreeAndNil(RootOwner) end;
 
   RootOwner := TComponent.Create(nil);
-  Root := UserInterfaceLoad('castle-data:/designs_before_camera_as_transform/template_3d.castle-user-interface', RootOwner);
+  {Root := }UserInterfaceLoad('castle-data:/designs_before_camera_as_transform/template_3d.castle-user-interface', RootOwner);
   try
     AssertCameraUpgraded(RootOwner.FindRequiredComponent('MainViewport') as TCastleViewport, 'Camera');
     AssertTrue((RootOwner.FindRequiredComponent('WalkNavigation') as TCastleNavigation).Parent =
@@ -74,7 +74,7 @@ begin
   finally FreeAndNil(RootOwner) end;
 
   RootOwner := TComponent.Create(nil);
-  Root := UserInterfaceLoad('castle-data:/designs_before_camera_as_transform/template_3d_viewer.castle-user-interface', RootOwner);
+  {Root := }UserInterfaceLoad('castle-data:/designs_before_camera_as_transform/template_3d_viewer.castle-user-interface', RootOwner);
   try
     AssertCameraUpgraded(RootOwner.FindRequiredComponent('Viewport') as TCastleViewport, 'Camera');
     AssertTrue((RootOwner.FindRequiredComponent('ExamineNavigation1') as TCastleNavigation).Parent =
@@ -105,10 +105,10 @@ procedure TTestCastleViewport.TestReadingOldDesigns2DSceneManager;
 
 var
   RootOwner: TComponent;
-  Root: TCastleUserInterface;
+  //Root: TCastleUserInterface;
 begin
   RootOwner := TComponent.Create(nil);
-  Root := UserInterfaceLoad('castle-data:/designs_before_camera_as_transform/old_scaling_tests_2dscenemanager_without_camera.castle-user-interface', RootOwner);
+  {Root := }UserInterfaceLoad('castle-data:/designs_before_camera_as_transform/old_scaling_tests_2dscenemanager_without_camera.castle-user-interface', RootOwner);
   try
     AssertCameraUpgraded2DSceneManager(RootOwner.FindRequiredComponent('SceneManager1') as TCastle2DSceneManager);
   finally FreeAndNil(RootOwner) end;
