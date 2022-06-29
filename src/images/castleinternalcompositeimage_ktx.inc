@@ -76,6 +76,7 @@ type
       //GL_R16F           = $822D;
       GL_R32F           = $822E;
       GL_R16UI          = $8234;
+      GL_SRGB8_ALPHA8   = $8C43;
 
       GL_RED_INTEGER    = $8D94;
 
@@ -488,7 +489,13 @@ begin
   if (Header.GlType = GL_UNSIGNED_BYTE) and
      (Header.GlTypeSize = 1) and
      (Header.GlFormat = GL_RGBA) and
-     (Header.GlInternalFormat = GL_RGBA) and
+     (
+       (Header.GlInternalFormat = GL_RGBA) or
+       { Testcase: rgba-reference.ktx from https://github.com/KhronosGroup/KTX-Software/tree/master/tests/testimages
+         Note that we ignore sRGB here for now, we read it just like regular image.
+         In CGE we don't have a control per-image for sRGB, yet. }
+       (Header.GlInternalFormat = GL_SRGB8_ALPHA8)
+     ) and
      (Header.GlBaseInternalFormat = GL_RGBA) then
   begin
     ReadRGBA(Stream, W, H, D);
