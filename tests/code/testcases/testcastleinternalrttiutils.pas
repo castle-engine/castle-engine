@@ -25,6 +25,7 @@ type
   TTestCastleInternalRttiUtils = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
   published
     procedure TestPropertyHasDefaultValue;
+    procedure TestPropertyGetValue;
   end;
 
 implementation
@@ -56,6 +57,43 @@ begin
     AssertTrue(IsStoredProp(Cam.TranslationPersistent, GetPropInfo(Cam.TranslationPersistent, 'X')));
     AssertFalse(IsStoredProp(Cam.TranslationPersistent, GetPropInfo(Cam.TranslationPersistent, 'Y')));
     AssertFalse(IsStoredProp(Cam.TranslationPersistent, GetPropInfo(Cam.TranslationPersistent, 'Z')));
+  finally FreeAndNil(Cam) end;
+end;
+
+procedure TTestCastleInternalRttiUtils.TestPropertyGetValue;
+var
+  Cam: TCastleCamera;
+  PropName, PropValue: String;
+begin
+  Cam := TCastleCamera.Create(nil);
+  try
+    Cam.ProjectionNear := 10;
+
+    PropertyGet(Cam, GetPropInfo(Cam, 'ProjectionType'), PropName, PropValue);
+    AssertEquals('ProjectionType', PropName);
+    AssertEquals('ptPerspective', PropValue);
+
+    PropertyGet(Cam, GetPropInfo(Cam, 'ProjectionNear'), PropName, PropValue);
+    AssertEquals('ProjectionNear', PropName);
+    AssertEquals('10', PropValue);
+
+    PropertyGet(Cam, GetPropInfo(Cam, 'ProjectionFar'), PropName, PropValue);
+    AssertEquals('ProjectionFar', PropName);
+    AssertEquals('0', PropValue);
+
+    Cam.Translation := Vector3(10, 0, 0);
+
+    PropertyGet(Cam.TranslationPersistent, GetPropInfo(Cam.TranslationPersistent, 'X'), PropName, PropValue);
+    AssertEquals('X', PropName);
+    AssertEquals('10', PropValue);
+
+    PropertyGet(Cam.TranslationPersistent, GetPropInfo(Cam.TranslationPersistent, 'Y'), PropName, PropValue);
+    AssertEquals('Y', PropName);
+    AssertEquals('0', PropValue);
+
+    PropertyGet(Cam.TranslationPersistent, GetPropInfo(Cam.TranslationPersistent, 'Z'), PropName, PropValue);
+    AssertEquals('Z', PropName);
+    AssertEquals('0', PropValue);
   finally FreeAndNil(Cam) end;
 end;
 
