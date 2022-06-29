@@ -1,0 +1,190 @@
+{
+  "Border" : {
+    "$ClassName" : "TBorder"
+  },
+  "BorderColorPersistent" : {
+    "$ClassName" : "TCastleColorPersistent"
+  },
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "BackgroundColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Border" : {
+        "$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Items" : {
+        "CenterPersistent" : {
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "Name" : "Items",
+        "RotationPersistent" : {
+          "$ClassName" : "TCastleVector4Persistent"
+        },
+        "ScaleOrientationPersistent" : {
+          "$ClassName" : "TCastleVector4Persistent"
+        },
+        "ScalePersistent" : {
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "TranslationPersistent" : {
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "$Children" : [
+          {
+            "CenterPersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "Name" : "Scene1",
+            "RotationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "X" : 1.0000000000000000E+002,
+              "Y" : 1.0000000000000000E+002,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastle2DScene"
+          },
+          {
+            "CenterPersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "Name" : "Scene2",
+            "RotationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "X" : 2.0000000000000000E+002,
+              "Y" : 2.0000000000000000E+002,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastle2DScene"
+          },
+          {
+            "CenterPersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "Name" : "Scene3",
+            "RotationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "X" : 3.0000000000000000E+002,
+              "Y" : 3.0000000000000000E+002,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastle2DScene"
+          },
+          {
+            "CenterPersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "Name" : "Scene4",
+            "RotationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "X" : 4.0000000000000000E+002,
+              "Y" : 4.0000000000000000E+002,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastle2DScene"
+          },
+          {
+            "CenterPersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "Name" : "Scene5",
+            "RotationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "X" : 5.0000000000000000E+002,
+              "Y" : 5.0000000000000000E+002,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastle2DScene"
+          },
+          {
+            "CenterPersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "Name" : "Scene6",
+            "RotationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "X" : 6.0000000000000000E+002,
+              "Y" : 6.0000000000000000E+002,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastle2DScene"
+          }
+        ],
+        "$ClassName" : "TSceneManagerWorldConcrete"
+      },
+      "Name" : "SceneManager1",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastle2DSceneManager"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}
