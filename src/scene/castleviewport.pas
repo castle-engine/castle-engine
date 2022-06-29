@@ -1790,7 +1790,9 @@ var
 begin
   if GetMousePosition(MousePosition) and
      // PositionToRay assumes InternalCamera <> nil
-     (InternalCamera <> nil) then
+     (InternalCamera <> nil) and
+     // do not update MouseRayHit if camera doesn't exist
+     InternalCamera.ExistsInRoot then
   begin
     PositionToRay(MousePosition, true, MouseRayOrigin, MouseRayDirection);
 
@@ -2128,7 +2130,7 @@ begin
   Box := ItemsBoundingBox;
   Viewport := RenderRect;
 
-  if InternalCamera = nil then
+  if (InternalCamera = nil) or (not InternalCamera.ExistsInRoot) then
   begin
     { As InternalCamera is assignable, and may be nil, be tolerant and handle it.
       Just use default perspective settings. }
@@ -2289,6 +2291,10 @@ begin
     Result := Camera
   else
     Result := Items.MainCamera;
+
+  // do not cast headlight from camera that does not exist
+  if (Result <> nil) and (not Result.ExistsInRoot) then
+    Result := nil;
 end;
 
 function TCastleViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
@@ -2584,12 +2590,12 @@ begin
   inherited;
 
   // as Camera is assignable, gracefully handle the case of Camera = nil
-  FMissingCameraRect.Exists := InternalCamera = nil;
+  FMissingCameraRect.Exists := (InternalCamera = nil) or (not InternalCamera.ExistsInRoot);
   if FMissingCameraRect.Exists then
   begin
     { We show the "No camera selected" using UI controls, as this is most flexible.
 
-      Note: in paricular, we do not clear viewport using RenderContext.Clear here,
+      Note: in particular, we do not clear viewport using RenderContext.Clear here,
       as RenderContext.Clear requires logic of RenderContext.ScissorEnable/Disable
       around it to be properly limited.
       The FMissingCameraRect clears the viewport with BackgroundColor already. }
