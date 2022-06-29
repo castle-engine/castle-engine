@@ -967,6 +967,7 @@ type
       Available on almost all Android OpenGLES 2.0 devices,
       unfortunately it doesn't support alpha channel. }
     tcETC1,
+
     { ASTC compression with alpha - should be available on all modern mobile GPU.
       See https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_texture_compression_astc_hdr.txt}
     tcASTC_4x4_RGBA,

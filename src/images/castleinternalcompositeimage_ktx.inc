@@ -594,12 +594,33 @@ begin
     ReadCompressed(Stream, Compression, W, H, D);
   end else
   begin
-    raise EInvalidKTX.CreateFmt('Cannot handle this KTX data type: glType 0x%.4x, glTypeSize %d, glFormat 0x%.4x, glInternalFormat 0x%.4x, glBaseInternalFormat 0x%.4x',
-      [Header.GlType,
-       Header.GlTypeSize,
-       Header.GlFormat,
-       Header.GlInternalFormat,
-       Header.GlBaseInternalFormat]);
+    if (Header.GlType = 0) and (Header.GlFormat = 0) then
+    begin
+      raise EInvalidKTX.CreateFmt('Cannot read data from this KTX (compressed) format.' + NL +
+        'Details:' + NL +
+        '  glTypeSize %d' + NL +
+        '  glInternalFormat 0x%.4x' + NL +
+        '  glBaseInternalFormat 0x%.4x', [
+        Header.GlTypeSize,
+        Header.GlInternalFormat,
+        Header.GlBaseInternalFormat
+      ]);
+    end else
+    begin
+      raise EInvalidKTX.CreateFmt('Cannot read data from this KTX (uncompressed) format.' + NL +
+        'Details:' + NL +
+        '  glType 0x%.4x' + NL +
+        '  glTypeSize %d' + NL +
+        '  glFormat 0x%.4x' + NL +
+        '  glInternalFormat 0x%.4x' + NL +
+        '  glBaseInternalFormat 0x%.4x', [
+        Header.GlType,
+        Header.GlTypeSize,
+        Header.GlFormat,
+        Header.GlInternalFormat,
+        Header.GlBaseInternalFormat
+      ]);
+    end;
   end;
 end;
 
