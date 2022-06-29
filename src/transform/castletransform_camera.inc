@@ -379,8 +379,6 @@
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
-    procedure Free; deprecated 'do not Free camera instance explicitly, only the TCastleViewport should create and destroy TCastleViewport.Camera; this method does nothing now';
-
     { Currently used projection near.
       Derived from @link(ProjectionNear) and possibly scene sizes. }
     property EffectiveProjectionNear: Single read FEffectiveProjectionNear;
@@ -826,10 +824,6 @@ begin
     FProjectionType := Value;
     VisibleParameterChange;
   end;
-end;
-
-procedure TCastleCamera.Free;
-begin
 end;
 
 procedure TCastleCamera.InternalSetEffectiveProjection(
