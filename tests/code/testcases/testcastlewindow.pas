@@ -683,6 +683,7 @@ begin
     {$endif}
   end;
 end;
+
 initialization
   RegisterTest(TTestCastleWindow);
 end.

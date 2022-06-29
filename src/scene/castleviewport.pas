@@ -153,7 +153,6 @@ type
       FRenderWithoutScreenEffectsRenderingCamera: TRenderingCamera;
       FMissingCameraRect: TCastleRectangleControl;
       FMissingCameraLabel: TCastleLabel;
-      WarningCameraInvalidItemsDone: Boolean;
       FInternalDesignManipulation: Boolean;
       FInternalDesignNavigationType: TInternalDesignNavigationType;
       FInternalDesignNavigations: array [TInternalDesignNavigationType] of TCastleNavigation;
@@ -2606,6 +2605,15 @@ begin
     Exit;
   end;
 
+  { What happens if Camera is not part of our Items?
+
+    In principle we could tolerate this right now and
+    even render from camera from unrelated viewport.
+    But this is not something we want to support in the long run -- it's hard to define
+    what should be the behavior (maybe camera from another viewport should show
+    another viewport?). As there doesn't seem to be a useful usecase to allow this,
+    better to prohibit it now. }
+  (*
   if (InternalCamera.World <> Items) and not WarningCameraInvalidItemsDone then
   begin
     WritelnWarning('Camera "%s" of viewport "%s" is not part of this viewport Items hierarchy. You should add it to %s.Items.', [
@@ -2615,6 +2623,13 @@ begin
     ]);
     WarningCameraInvalidItemsDone := true; // avoid flooding log with warnings about it
   end;
+  *)
+  if InternalCamera.World <> Items then
+    raise Exception.CreateFmt('Camera "%s" of viewport "%s" is not part of this viewport''s Items. You must add the camera to %s.Items.', [
+      InternalCamera.Name,
+      Name,
+      Name
+    ]);
 
   ApplyProjection;
   RenderOnScreen(InternalCamera);
