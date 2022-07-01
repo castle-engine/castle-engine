@@ -1107,6 +1107,8 @@ type
     }
     property AutoCamera: Boolean
       read FAutoCamera write SetAutoCamera default false;
+      // {$ifdef FPC} deprecated 'it is simpler to set camera at design-time explicitly, or use CameraViewpointForWholeScene to auto-adjust camera'; {$endif}
+      // TODO: Not deprecated *yet*, only because AutoCamera is the only way to run camera animation designed in glTF / X3D
 
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
@@ -1909,11 +1911,13 @@ var
   begin
     if InternalDesignManipulation then
     begin
+      {$warnings off} // using deprecated to keep it working
       if FLastSeenMainScene <> Items.MainScene then
       begin
         FLastSeenMainScene := Items.MainScene;
         AssignDefaultCameraDone := false;
       end;
+      {$warnings on}
     end;
   end;
 

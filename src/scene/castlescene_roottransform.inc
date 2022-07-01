@@ -124,7 +124,7 @@ type
 
       @unorderedList(
         @item(Determines initial @link(TCastleViewport.Camera) (if @link(TCastleViewport.AutoCamera))
-          and @link(TCastleViewport.Navigation) (if @link(TCastleViewport.AutoNavigation)) properties.
+          and @link(TCastleViewport.Navigation) (if @link(TCastleAutoNavigationViewport.AutoNavigation)) properties.
           This includes camera position, orientation, projection.
           This includes navigation type (examine, walk, fly), move speed.
           These follow the X3D Viewpoint, OrthoViewpoint
@@ -135,8 +135,15 @@ type
           For example in X3D you can animate the Viewpoint position,
           and it will actually animate our @link(TCastleViewport.Camera) position.
 
-          If both @link(TCastleViewport.AutoCamera) and @link(TCastleViewport.AutoNavigation) are @false,
+          If both @link(TCastleViewport.AutoCamera) and
+          @link(TCastleAutoNavigationViewport.AutoNavigation) are @false,
           none of these things are applied.
+
+          @bold(Instead of relying on MainScene for this,
+          we advise to leave
+          @link(TCastleViewport.AutoCamera) and
+          @link(TCastleAutoNavigationViewport.AutoNavigation) as @false,
+          and set proper camera and navigation at design-time.)
         )
 
         @item(Determines what background is rendered.
@@ -154,6 +161,9 @@ type
           Note that when @link(TCastleViewport.Transparent) is @true,
           we never render any background (neither from MainScene,
           nor from @link(TCastleViewport.BackgroundColor)).
+
+          @bold(Instead of relying on MainScene for this,
+          we advise to set @link(TCastleViewport.Background).)
         )
 
         @item(Determines whether headlight is used if @link(UseHeadlight)
@@ -162,7 +172,11 @@ type
           then determines the headlight.
           The initial
           @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
-          value depends on the X3D NavigationInfo node inside MainScene.)
+          value depends on the X3D NavigationInfo node inside MainScene.
+
+          @bold(Instead of relying on MainScene for this,
+          we advise to add light instance (like TCastleDirectionalLight) as TCastleCamera child.)
+        )
 
         @item(Determines the main light casting shadow volumes.)
 
@@ -170,12 +184,22 @@ type
           as this scene has by default @link(TCastleScene.CastGlobalLights)
           when you set it as MainScene.
           This can also be achieved on any other scene too,
-          by setting @link(TCastleScene.CastGlobalLights).)
+          by setting @link(TCastleScene.CastGlobalLights).
+
+          @bold(Instead of relying on MainScene for lights,
+          we advise to setup light instances (TCastleDirectionalLight, TCastlePointLight,
+          TCastleSpotLight) in viewport items and/or set @link(TCastleScene.CastGlobalLights)
+          on some scenes.)
+        )
 
         @item(Determines fog on all scenes, if @link(TCastleViewport.UseGlobalFog).)
 
         @item(The screen effects defined inside MainScene (TScreenEffectNode)
-          are automatically used.)
+          are automatically used.
+
+          @bold(Instead of relying on MainScene for this,
+          add screen effects using @link(TCastleScreenEffects.AddScreenEffect).)
+        )
 
         @item(Main scene is informed about pointing device move,
           even when the pointing device is @italic(not) over this scene,
@@ -186,10 +210,13 @@ type
 
       Freeing MainScene will automatically set this property to @nil. }
     property MainScene: TCastleScene read FMainScene write SetMainScene;
+      // {$ifdef FPC} deprecated 'leave MainScene unset; almost all useful MainScene features can be now achieved without setting MainScene'; {$endif}
+      // TODO: Not deprecated *yet*, only because AutoCamera is the only way to run camera animation designed in glTF / X3D, and AutoCamera depends on MainScene
 
     { Whether the headlight is shown, see @link(TUseHeadlight) for possible values. }
     property UseHeadlight: TUseHeadlight
       read FUseHeadlight write FUseHeadlight default hlMainScene;
+      {$ifdef FPC} deprecated 'create TCastleDirectionalLight and add it as TCastleCamera child, for a more flexible headlight'; {$endif}
   end;
 
 {$endif read_interface}
@@ -211,7 +238,9 @@ begin
   { unregister self from MainScene callbacs,
     make MainScene.RemoveFreeNotification(Self)... this is all
     done by SetMainScene(nil) already. }
+  {$warnings off} // using deprecated to keep it working
   MainScene := nil;
+  {$warnings on}
 
   FreeIfUnusedAndNil(FHeadlightNode);
   FreeAndNil(FInternalScenesCastGlobalLights);
@@ -258,7 +287,9 @@ end;
 procedure TCastleRootTransform.MainSceneFreeNotification(
   const Sender: TFreeNotificationObserver);
 begin
+  {$warnings off} // using deprecated to keep it working
   MainScene := nil;
+  {$warnings on}
 end;
 
 procedure TCastleRootTransform.MainScene_BoundViewpointChanged(Sender: TObject);
@@ -307,6 +338,7 @@ function TCastleRootTransform.InternalHeadlight: TAbstractLightNode;
 begin
   Result := nil;
 
+  {$warnings off} // using deprecated to keep it working
   case UseHeadlight of
     hlOn : Result := HeadlightNode;
     hlOff: Result := nil;
@@ -322,6 +354,7 @@ begin
     else raise EInternalError.Create(2018081902);
     {$endif}
   end;
+  {$warnings on}
 end;
 
 function TCastleRootTransform.PropertySections(const PropertyName: String): TPropertySections;
