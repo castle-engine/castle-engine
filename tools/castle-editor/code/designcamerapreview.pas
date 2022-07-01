@@ -165,6 +165,8 @@ begin
   Viewport.FullSize := true;
   Viewport.SetTransient;
   Rect.InsertFront(Viewport);
+
+  ForceFallbackLook(Rect);
 end;
 
 procedure TCameraPreview.SizeChange(const Change: Integer);
