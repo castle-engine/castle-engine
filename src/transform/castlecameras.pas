@@ -1256,20 +1256,6 @@ type
       {$ifdef FPC}default 0{$endif};
       {$ifdef FPC}deprecated 'use TCastleThirdPersonNavigation for real 3rd-person navigation';{$endif}
 
-    { Height above the ground, only used when @link(TCastleWalkNavigation.Gravity) is @true.
-      The @link(Position) tries to stay PreferredHeight above the ground.
-      Temporarily it may still be lower (e.g. player can
-      shortly "duck" when he falls from high).
-
-      This must always be >= 0.
-      You should set this to something greater than zero to get sensible
-      behavior of some things related to @link(TCastleWalkNavigation.Gravity).
-
-      See CorrectPreferredHeight for important property
-      of PreferredHeight that you should keep. }
-    property PreferredHeight: Single
-      read FPreferredHeight write FPreferredHeight {$ifdef FPC}default DefaultPreferredHeight{$endif};
-
     { Correct PreferredHeight based on @link(Radius)
       and on current @link(HeadBobbing).
 
@@ -1302,14 +1288,6 @@ type
       Note that for Radius = 0.0 this will always leave
       PreferredHeight as it is. }
     procedure CorrectPreferredHeight;
-
-    { Preferred height when crouching.
-      This is always mutiplied to PreferredHeight.
-      This should always be <= 1 (CrouchHeight = 1 effectively disables
-      crouching, although it's better to do this by calling MakeClear
-      on Input_Crouch). }
-    property CrouchHeight: Single
-      read FCrouchHeight write FCrouchHeight {$ifdef FPC}default DefaultCrouchHeight{$endif};
 
     { We may make a "head bobbing" effect,
       by moving the camera a bit up and down.
@@ -1470,6 +1448,28 @@ type
       Gravity says what happens to player due to ... well, due to gravity. }
     property Gravity: boolean
       read FGravity write FGravity default true;
+
+    { Height above the ground, only used when @link(TCastleWalkNavigation.Gravity) is @true.
+      The @link(Position) tries to stay PreferredHeight above the ground.
+      Temporarily it may still be lower (e.g. player can
+      shortly "duck" when he falls from high).
+
+      This must always be >= 0.
+      You should set this to something greater than zero to get sensible
+      behavior of some things related to @link(TCastleWalkNavigation.Gravity).
+
+      See CorrectPreferredHeight for important property
+      of PreferredHeight that you should keep. }
+    property PreferredHeight: Single
+      read FPreferredHeight write FPreferredHeight {$ifdef FPC}default DefaultPreferredHeight{$endif};
+
+    { Preferred height when crouching.
+      This is always mutiplied to PreferredHeight.
+      This should always be <= 1 (CrouchHeight = 1 effectively disables
+      crouching, although it's better to do this by calling MakeClear
+      on Input_Crouch). }
+    property CrouchHeight: Single
+      read FCrouchHeight write FCrouchHeight {$ifdef FPC}default DefaultCrouchHeight{$endif};
 
     property Radius;
   end;
@@ -4260,6 +4260,7 @@ begin
   if (PropertyName = 'Gravity') or
      (PropertyName = 'MoveSpeed') or
      (PropertyName = 'Radius') or
+     (PropertyName = 'CrouchHeight') or
      (PropertyName = 'PreferredHeight') or
      (PropertyName = 'MoveHorizontalSpeed') or
      (PropertyName = 'MoveVerticalSpeed') or
