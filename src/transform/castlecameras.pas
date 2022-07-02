@@ -2880,8 +2880,8 @@ begin
   Input_RightStrafe             .Assign(keyD);
   Input_UpRotate                .Assign(keyNone);
   Input_DownRotate              .Assign(keyNone);
-  Input_IncreasePreferredHeight .Assign(keyInsert);
-  Input_DecreasePreferredHeight .Assign(keyDelete);
+  Input_IncreasePreferredHeight .Assign(keyNone);
+  Input_DecreasePreferredHeight .Assign(keyNone);
   Input_GravityUp               .Assign(keyNone);
   { For move speed we use also character codes +/-, as numpad
     may be hard to reach on some keyboards (e.g. on laptops). }
@@ -3885,22 +3885,15 @@ begin
           MoveSpeedInc(SecondsPassed);
         if Input_MoveSpeedDec.IsPressed(Container) then
           MoveSpeedDec(SecondsPassed);
+        if Input_IncreasePreferredHeight.IsPressed(Container) then
+          ChangePreferredHeight(+1);
+        if Input_DecreasePreferredHeight.IsPressed(Container) then
+          ChangePreferredHeight(-1);
       end else
       if ModsDown = [mkCtrl] then
       begin
         if AllowSlowerRotations then
           CheckRotates(0.1);
-
-        { Either MoveSpeedInc/Dec work, or Increase/DecreasePreferredHeight,
-          as they by default have the same shortcuts, so should not work
-          together. }
-        if ModsDown = [mkCtrl] then
-        begin
-          if Input_IncreasePreferredHeight.IsPressed(Container) then
-            ChangePreferredHeight(+1);
-          if Input_DecreasePreferredHeight.IsPressed(Container) then
-            ChangePreferredHeight(-1);
-        end;
       end;
     end;
 
