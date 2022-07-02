@@ -17,7 +17,8 @@
 
 type
   { Attaches a gizmo to visualize parent transform.
-    Create this only if you need it (usually check "if CastleDesignMode ..."). }
+    Create this only if you need it (usually check "if CastleDesignMode ...").
+    @exclude }
   TInternalCastleEditorGizmo = class(TCastleTransform)
   strict private
     GizmoSelect: TCastleBox;
