@@ -5,6 +5,7 @@
   "$Children" : [
     {
       "$$ClassName" : "TCastleViewport",
+      "Background" : "Background1",
       "Camera" : "Camera1",
       "FullSize" : true,
       "Items" : {
@@ -260,6 +261,12 @@
         ]
       },
       "Name" : "Viewport1",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        }
+      ],
       "$Children" : [
         {
           "$$ClassName" : "TCastleWalkNavigation",
