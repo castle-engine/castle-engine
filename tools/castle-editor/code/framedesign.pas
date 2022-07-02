@@ -2189,11 +2189,27 @@ begin
 end;
 
 procedure TDesignFrame.ViewportViewSelected;
+
+  { Determine selected TCastleTransform based on selected component, or @nil.
+    This routine treats selecting a behavior just like selecting a transform,
+    so that pressing F on behavior works. }
+  function TransformFromSelected(const C: TComponent): TCastleTransform;
+  begin
+    if C is TCastleTransform then
+      Result := TCastleTransform(C)
+    else
+    if C is TCastleBehavior then
+      Result := TCastleBehavior(C).Parent
+    else
+      Result := nil;
+  end;
+
 var
   Selected: TComponentList;
   SelectedCount, I: Integer;
   SelectedBox: TBox3D;
   V: TCastleViewport;
+  T: TCastleTransform;
 begin
   V := CurrentViewport;
   if V = nil then Exit;
@@ -2203,9 +2219,12 @@ begin
   GetSelected(Selected, SelectedCount);
   try
     for I := 0 to SelectedCount - 1 do
-      if (Selected[I] is TCastleTransform) and
-         (TCastleTransform(Selected[I]).World = V.Items) then
-        SelectedBox := SelectedBox + TCastleTransform(Selected[I]).WorldBoundingBox;
+    begin
+      T := TransformFromSelected(Selected[I]);
+      if (T <> nil) and
+         (T.World = V.Items) then
+        SelectedBox := SelectedBox + T.WorldBoundingBox;
+    end;
   finally FreeAndNil(Selected) end;
 
   ViewportViewBox(V, SelectedBox);
