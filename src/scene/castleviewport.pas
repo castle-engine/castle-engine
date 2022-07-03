@@ -1556,17 +1556,38 @@ begin
 
     if InternalDesignManipulation then
     begin
+      { If Camera was orthographic,
+        then design-time camera should also be orthographic.
+        This makes better experience when opening old designs. }
+      InternalDesignCamera.ProjectionType := Camera.ProjectionType;
+
       { Assign useful InternalDesignCamera vectors, because in case of reading old designs --
         TCastleViewport.CustomSerialization could not read any useful InternalDesignCamera
         from design file. }
       Camera.GetWorldView(InitialPos, InitialDir, InitialUp);
-      InternalDesignCamera.SetWorldView(InitialPos, InitialDir, InitialUp);
-      { If Camera was orthographic,
-        then design-time camera should also be orthographic and default to 2D navigation.
-        This makes better experience when opening old designs. }
-      InternalDesignCamera.ProjectionType := Camera.ProjectionType;
-      if InternalDesignCamera.ProjectionType = ptOrthographic then
+      if Camera.ProjectionType = ptOrthographic then
+      begin
+        InternalDesignCamera.SetWorldView(
+          { We move Z back, to be able to see from design-time camera the runtime camera gizmo.
+            Note that 2D Camera.ProjectionNear is negative by default (after Setup2D),
+            so "- Camera.ProjectionNear" actually does "+ 1000". }
+          InitialPos + Vector3(0, 0, - Camera.ProjectionNear + 100),
+          InitialDir,
+          InitialUp);
+        InternalDesignCamera.ProjectionNear := -Default2DProjectionFar;
+        { Like in SetupChildren2D:
+          Increase ProjectionFar, to make sure we view *everything* at design-time that is visible at run-time. }
+        InternalDesignCamera.ProjectionFar := Default2DProjectionFar * 4;
+
+        // best navigation for 2D
         InternalDesignNavigationType := dn2D;
+      end else
+      begin
+        InternalDesignCamera.SetWorldView(InitialPos, InitialDir, InitialUp);
+
+        // best navigation for 3D
+        InternalDesignNavigationType := dnFly;
+      end;
     end;
 
     if InternalDesignManipulation and (Camera.Name = 'Camera') and (Owner <> nil) then
@@ -3732,8 +3753,10 @@ begin
     { Similar to Setup2D, but here done on design-time camera. }
     InternalDesignCamera.ProjectionType := ptOrthographic;
     InternalDesignCamera.SetWorldView(
-      { We move Z back, to be able to see from design-time camera the runtime camera gizmo. }
-      { pos } Vector3(0, 0, Camera.Translation.Z - Camera.ProjectionNear - 100),
+      { We move Z back, to be able to see from design-time camera the runtime camera gizmo.
+        Note that 2D Camera.ProjectionNear is negative by default (after Setup2D),
+        so "- Camera.ProjectionNear" actually does "+ 1000". }
+      { pos } Vector3(0, 0, Camera.Translation.Z - Camera.ProjectionNear + 100),
       { dir } Vector3(0, 0, -1),
       { up } Vector3(0, 1, 0));
     InternalDesignCamera.ProjectionNear := -Default2DProjectionFar;
