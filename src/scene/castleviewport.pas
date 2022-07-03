@@ -106,7 +106,6 @@ type
       FBackgroundColor: TCastleColor;
       FUseGlobalLights, FUseGlobalFog: boolean;
       FApproximateActivation: boolean;
-      FDefaultVisibilityLimit: Single;
       FTransparent, FClearDepth: boolean;
       LastPressEvent: TInputPressRelease;
       FOnProjection: TProjectionEvent;
@@ -156,6 +155,7 @@ type
       FInternalDesignManipulation: Boolean;
       FInternalDesignNavigationType: TInternalDesignNavigationType;
       FInternalDesignNavigations: array [TInternalDesignNavigationType] of TCastleNavigation;
+      FWarningZFarInfinityDone: Boolean;
 
     procedure CommonCreate(const AOwner: TComponent; const ADesignManipulation: Boolean);
     function FillsWholeContainer: boolean;
@@ -1062,30 +1062,6 @@ type
       read FApproximateActivation write FApproximateActivation default false;
 
     {$ifdef FPC}
-    { Visibility limit of your 3D world. This is the distance the far projection
-      clipping plane.
-
-      The default @link(CalculateProjection) implementation
-      calculates the final visibility limit as follows:
-
-      @unorderedList(
-        @item(First of all, if (GLFeatures.ShadowVolumesPossible and ShadowVolumes),
-          then it's infinity.)
-        @item(Then we look NavigationInfo.visibilityLimit value inside MainScene.
-          This allows your 3D data creators to set this inside VRML/X3D data.
-
-          Only if MainScene is not set, or doesn't contain NavigationInfo node,
-          or NavigationInfo.visibilityLimit is left at (default) zero,
-          we look further.)
-        @item(We use this property, DefaultVisibilityLimit, if it's not zero.)
-        @item(Finally, as a last resort we calculate something suitable looking
-          at the 3D bounding box of items inside our 3D world.)
-      )
-    }
-    property DefaultVisibilityLimit: Single
-      read FDefaultVisibilityLimit write FDefaultVisibilityLimit default 0.0;
-      deprecated 'use Camera.ProjectionFar, and set AutoCamera to false';
-
     { Adjust the projection parameters. This event is called before every render.
       See the @link(CalculateProjection) for a description how to default
       projection parameters are calculated. }
@@ -2169,13 +2145,35 @@ var
   end;
 
   { Calculate reasonable perspective projection far, looking at Box. }
-  function GetDefaultProjectionFar: Single;
+  function GetDefaultProjectionFarFinite: Single;
   begin
     { Note that when box is empty (or has 0 sizes),
       ProjectionFar cannot be simply "any dummy value".
       It must be appropriately larger than GetDefaultProjectionNear
       to provide sufficient space for rendering Background node. }
     Result := Box.AverageSize(false, 1) * WorldBoxSizeToProjectionFar;
+  end;
+
+  { Calculate reasonable perspective projection far, looking at Box and shadow volumes.
+    May return ZFarInfinity = 0. }
+  function GetDefaultProjectionFar(const CurrentProjectionType: TProjectionType): Single;
+  begin
+    { We need ZFarInfinity for shadow volumes.
+      But only perspective projection supports ZFarInfinity, there's just no equivalent
+      equation for orthographic projection to implement infinite z far. }
+    if (CurrentProjectionType = ptPerspective) and
+       { Check "GLFeatures = nil" to allow using CalculateProjection and
+         things depending on it when no OpenGL context available.
+
+         Testcase: open CGE editor, open a project with any sprite sheet,
+         open sprite sheet editor with some .castle-sprite-sheet file,
+         then do "Close Project" (without closing sprite sheet editor
+         explicitly). It should not crash. }
+       ((GLFeatures = nil) or GLFeatures.ShadowVolumesPossible) and
+       ShadowVolumes then
+      Result := ZFarInfinity
+    else
+      Result := GetDefaultProjectionFarFinite;
   end;
 
 begin
@@ -2193,8 +2191,8 @@ begin
       Viewport.Width,
       Viewport.Height);
     Result.ProjectionNear := GetDefaultProjectionNear;
-    Result.ProjectionFar := GetDefaultProjectionFar;
-    Result.ProjectionFarFinite := Result.ProjectionFar;
+    Result.ProjectionFar := GetDefaultProjectionFar(Result.ProjectionType);
+    Result.ProjectionFarFinite := GetDefaultProjectionFarFinite;
     Exit;
   end;
 
@@ -2215,35 +2213,34 @@ begin
     Assert(Result.ProjectionNear > 0);
   end;
 
-  { calculate Result.ProjectionFar, algorithm documented at DefaultVisibilityLimit }
-  Result.ProjectionFar := InternalCamera.ProjectionFar;
-  {$ifdef FPC}
-  {$warnings off} // using deprecated to keep it working
-  if Result.ProjectionFar <= 0 then
-    Result.ProjectionFar := DefaultVisibilityLimit;
-  {$warnings on}
-  {$endif}
-  if Result.ProjectionFar <= 0 then
-    Result.ProjectionFar := GetDefaultProjectionFar;
-  Assert(Result.ProjectionFar > 0);
+  { calculate Result.ProjectionFar, ProjectionFarFinite }
+  if InternalCamera.ProjectionFar > 0 then
+  begin
+    { When ProjectionFar is non-zero on camera, use it unconditionally
+      (do not override e.g. with ZFarInfinity, even if shadow volumes are possible).
+      Reasons:
 
-  { update ProjectionFarFinite.
-    ProjectionFar may be later changed to ZFarInfinity. }
-  Result.ProjectionFarFinite := Result.ProjectionFar;
+      - This is more intuitive for developer. We do what was requested.
+        Maybe developer wants ProjectionFar to really limit player's view,
+        for gameplay purposes.
 
-  { We need infinite ZFar in case of shadow volumes.
-    But only perspective projection supports ZFar in infinity. }
-  if (Result.ProjectionType = ptPerspective) and
-     { Check "GLFeatures = nil" to allow using CalculateProjection and
-       things depending on it when no OpenGL context available.
+      - Overriding with ZFarInfinity when shadow volumes are possible
+        was also bad, because "shadow volumes are possible" may differ between
+        CGE editor and runtime.
 
-       Testcase: open CGE editor, open a project with any sprite sheet,
-       open sprite sheet editor with some .castle-sprite-sheet file,
-       then do "Close Project" (without closing sprite sheet editor
-       explicitly). It should not crash. }
-     ((GLFeatures = nil) or GLFeatures.ShadowVolumesPossible) and
-     ShadowVolumes then
-    Result.ProjectionFar := ZFarInfinity;
+        TCastleControl is initialized without stencil, TCastleWindow with stencil.
+        So CGE editor preview was honoring ProjectionFar,
+        while runtime TCastleWindow was ignoring it, overriding with ZFarInfinity.
+        Testcase: physics-joints in physics_j branch.
+    }
+    Result.ProjectionFar := InternalCamera.ProjectionFar;
+    Result.ProjectionFarFinite := InternalCamera.ProjectionFar;
+  end else
+  begin
+    Result.ProjectionFar := GetDefaultProjectionFar(Result.ProjectionType);
+    Result.ProjectionFarFinite := GetDefaultProjectionFarFinite;
+  end;
+  Assert(Result.ProjectionFarFinite > 0);
 
   InternalCamera.InternalSetEffectiveProjection(
     Result.ProjectionNear,
@@ -2446,6 +2443,11 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
 
   procedure RenderWithShadows(const MainLightPosition: TVector4);
   begin
+    if (FProjection.ProjectionFar <> ZFarInfinity) and (not FWarningZFarInfinityDone) then
+    begin
+      FWarningZFarInfinityDone := true;
+      WritelnWarning('Rendering with Shadow Volumes, but ProjectionFar is not ZFarInfinity. Shadow volumes require ProjectionFar = ZFarInfinity. Leave TCastleCamera.ProjectionFar = 0.');
+    end;
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
     FShadowVolumeRenderer.Render(Params,
       {$ifdef FPC}@{$endif}RenderOnePass,
@@ -2458,7 +2460,8 @@ begin
   if GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadows(MainLightPosition) then
-    RenderWithShadows(MainLightPosition) else
+    RenderWithShadows(MainLightPosition)
+  else
     RenderNoShadows;
 end;
 
