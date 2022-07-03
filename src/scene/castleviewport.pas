@@ -1548,15 +1548,11 @@ begin
       begin
         InternalDesignCamera.SetWorldView(
           { We move Z back, to be able to see from design-time camera the runtime camera gizmo.
-            Note that 2D Camera.ProjectionNear is negative by default (after Setup2D),
-            so "- Camera.ProjectionNear" actually does "+ 1000". }
-          InitialPos + Vector3(0, 0, - Camera.ProjectionNear + 100),
+            Note that 2D Camera.EffectiveProjectionNear is negative by default (after Setup2D),
+            so "- Camera.EffectiveProjectionNear" actually does "+ 1000". }
+          InitialPos + Vector3(0, 0, - Camera.EffectiveProjectionNear + 100),
           InitialDir,
           InitialUp);
-        InternalDesignCamera.ProjectionNear := Default2DProjectionNear;
-        { Like in SetupChildren2D:
-          Increase ProjectionFar, to make sure we view *everything* at design-time that is visible at run-time. }
-        InternalDesignCamera.ProjectionFar := Default2DProjectionFar * 4;
 
         // best navigation for 2D
         InternalDesignNavigationType := dn2D;
@@ -2136,22 +2132,55 @@ var
   end;
 
   { Calculate reasonable perspective projection near, looking at Box. }
-  function GetDefaultProjectionNear: Single;
+  function GetDefaultProjectionNear(const CurrentProjectionType: TProjectionType): Single;
   var
     Radius: Single;
   begin
-    Radius := Box.AverageSize(false, 1) * WorldBoxSizeToRadius;
-    Result := Radius * RadiusToProjectionNear;
+    if CurrentProjectionType = ptOrthographic then
+    begin
+      // TODO: in 2D we can also account for Box, in case Box is outside of Default2DProjectionNear/Far
+      Result := Default2DProjectionNear;
+    end else
+    begin
+      Radius := Box.AverageSize(false, 1) * WorldBoxSizeToRadius;
+      Result := Radius * RadiusToProjectionNear;
+    end;
   end;
 
   { Calculate reasonable perspective projection far, looking at Box. }
-  function GetDefaultProjectionFarFinite: Single;
+  function GetDefaultProjectionFarFinite(const CurrentProjectionType: TProjectionType): Single;
   begin
-    { Note that when box is empty (or has 0 sizes),
-      ProjectionFar cannot be simply "any dummy value".
-      It must be appropriately larger than GetDefaultProjectionNear
-      to provide sufficient space for rendering Background node. }
-    Result := Box.AverageSize(false, 1) * WorldBoxSizeToProjectionFar;
+    if CurrentProjectionType = ptOrthographic then
+    begin
+      // TODO: in 2D we can also account for Box, in case Box is outside of Default2DProjectionNear/Far
+      if InternalCamera = InternalDesignCamera then
+        { The design-time camera in 2D should have larger ProjectionFar than
+          at run-time, to really see everything that runtime sees,
+          because design-time camera Z is larger than runtime.
+          Increasing this ProjectionFar here, as special case, means it affects:
+
+          - design-time camera when reading old designs (before new-cameras)
+
+          - design-time camera when using new designs, with viewport initialized by SetupChildren2D
+
+          - broken designs with ProjectionNear/Far for InternalDesignCamera not recorded
+            in design file (looks like they could happen some time after merging new-cameras,
+            before we fixed everything).
+
+          In general it means we don't rely on stuff stored in design file.
+          Autocalculating is more future-proof.
+        }
+        Result := Default2DProjectionFar * 4
+      else
+        Result := Default2DProjectionFar;
+    end else
+    begin
+      { Note that when box is empty (or has 0 sizes),
+        ProjectionFar cannot be simply "any dummy value".
+        It must be appropriately larger than GetDefaultProjectionNear
+        to provide sufficient space for rendering Background node. }
+      Result := Box.AverageSize(false, 1) * WorldBoxSizeToProjectionFar;
+    end;
   end;
 
   { Calculate reasonable perspective projection far, looking at Box and shadow volumes.
@@ -2173,7 +2202,7 @@ var
        ShadowVolumes then
       Result := ZFarInfinity
     else
-      Result := GetDefaultProjectionFarFinite;
+      Result := GetDefaultProjectionFarFinite(CurrentProjectionType);
   end;
 
 begin
@@ -2190,9 +2219,9 @@ begin
       TCastlePerspective.DefaultFieldOfViewAxis,
       Viewport.Width,
       Viewport.Height);
-    Result.ProjectionNear := GetDefaultProjectionNear;
+    Result.ProjectionNear := GetDefaultProjectionNear(Result.ProjectionType);
     Result.ProjectionFar := GetDefaultProjectionFar(Result.ProjectionType);
-    Result.ProjectionFarFinite := GetDefaultProjectionFarFinite;
+    Result.ProjectionFarFinite := GetDefaultProjectionFarFinite(Result.ProjectionType);
     Exit;
   end;
 
@@ -2206,11 +2235,13 @@ begin
 
   { calculate Result.ProjectionNear }
   Result.ProjectionNear := InternalCamera.ProjectionNear;
-  if (Result.ProjectionType = ptPerspective) and
-     (Result.ProjectionNear <= 0) then
+  if (Result.ProjectionNear = 0) or
+     ((Result.ProjectionType = ptPerspective) and
+       (Result.ProjectionNear <= 0) ) then
   begin
-    Result.ProjectionNear := GetDefaultProjectionNear;
-    Assert(Result.ProjectionNear > 0);
+    Result.ProjectionNear := GetDefaultProjectionNear(Result.ProjectionType);;
+    // in perspective, effective ProjectionNear must be > 0
+    Assert((Result.ProjectionNear > 0) or (Result.ProjectionType <> ptPerspective));
   end;
 
   { calculate Result.ProjectionFar, ProjectionFarFinite }
@@ -2238,7 +2269,7 @@ begin
   end else
   begin
     Result.ProjectionFar := GetDefaultProjectionFar(Result.ProjectionType);
-    Result.ProjectionFarFinite := GetDefaultProjectionFarFinite;
+    Result.ProjectionFarFinite := GetDefaultProjectionFarFinite(Result.ProjectionType);
   end;
   Assert(Result.ProjectionFarFinite > 0);
 
@@ -2943,8 +2974,6 @@ begin
     { dir } Vector3(0, 0, -1),
     { up } Vector3(0, 1, 0));
   Camera.GravityUp := Vector3(0, 1, 0);
-  Camera.ProjectionNear := Default2DProjectionNear;
-  Camera.ProjectionFar := Default2DProjectionFar;
   Camera.ProjectionType := ptOrthographic;
   AutoCamera := false;
 end;
@@ -3760,14 +3789,11 @@ begin
     InternalDesignCamera.ProjectionType := ptOrthographic;
     InternalDesignCamera.SetWorldView(
       { We move Z back, to be able to see from design-time camera the runtime camera gizmo.
-        Note that 2D Camera.ProjectionNear is negative by default (after Setup2D),
-        so "- Camera.ProjectionNear" actually does "+ 1000". }
-      { pos } Vector3(0, 0, Camera.Translation.Z - Camera.ProjectionNear + 100),
+        Note that 2D Camera.EffectiveProjectionNear is negative by default (after Setup2D),
+        so "- Camera.EffectiveProjectionNear" actually does "+ 1000". }
+      { pos } Vector3(0, 0, Camera.Translation.Z - Camera.EffectiveProjectionNear + 100),
       { dir } Vector3(0, 0, -1),
       { up } Vector3(0, 1, 0));
-    InternalDesignCamera.ProjectionNear := Default2DProjectionNear;
-    { Increase ProjectionFar, to make sure we view *everything* at design-time that is visible at run-time. }
-    InternalDesignCamera.ProjectionFar := Default2DProjectionFar * 4;
     { Better Origin default, makes things in center.
       Makes ViewSelected, ViewAll sensible in 2D }
     InternalDesignCamera.Orthographic.Origin := Vector2(0.5, 0.5);

@@ -2157,7 +2157,7 @@ begin
     if V.Camera <> nil then
     begin
       CameraZ := V.Camera.Translation.Z;
-      CameraProjectionNear := V.Camera.ProjectionNear;
+      CameraProjectionNear := V.Camera.EffectiveProjectionNear;
     end else
     begin
       CameraZ := Default2DCameraZ;
