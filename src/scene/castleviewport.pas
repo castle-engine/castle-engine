@@ -374,6 +374,7 @@ type
       DefaultShadowVolumes = true;
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
       Default2DProjectionFar = CastleTransform.Default2DProjectionFar;
+      Default2DProjectionNear = CastleTransform.Default2DProjectionNear;
       Default2DCameraZ = CastleTransform.Default2DCameraZ;
       DefaultPrepareOptions = [prRenderSelf, prRenderClones, prBackground, prBoundingBox, prScreenEffects];
       { @exclude }
@@ -1560,6 +1561,8 @@ begin
         then design-time camera should also be orthographic.
         This makes better experience when opening old designs. }
       InternalDesignCamera.ProjectionType := Camera.ProjectionType;
+      { This makes ViewSelected, ViewAll sensible in 2D }
+      InternalDesignCamera.Orthographic.Origin := Vector2(0.5, 0.5);
 
       { Assign useful InternalDesignCamera vectors, because in case of reading old designs --
         TCastleViewport.CustomSerialization could not read any useful InternalDesignCamera
@@ -1574,7 +1577,7 @@ begin
           InitialPos + Vector3(0, 0, - Camera.ProjectionNear + 100),
           InitialDir,
           InitialUp);
-        InternalDesignCamera.ProjectionNear := -Default2DProjectionFar;
+        InternalDesignCamera.ProjectionNear := Default2DProjectionNear;
         { Like in SetupChildren2D:
           Increase ProjectionFar, to make sure we view *everything* at design-time that is visible at run-time. }
         InternalDesignCamera.ProjectionFar := Default2DProjectionFar * 4;
@@ -2937,7 +2940,7 @@ begin
     { dir } Vector3(0, 0, -1),
     { up } Vector3(0, 1, 0));
   Camera.GravityUp := Vector3(0, 1, 0);
-  Camera.ProjectionNear := -Default2DProjectionFar;
+  Camera.ProjectionNear := Default2DProjectionNear;
   Camera.ProjectionFar := Default2DProjectionFar;
   Camera.ProjectionType := ptOrthographic;
   AutoCamera := false;
@@ -3759,10 +3762,11 @@ begin
       { pos } Vector3(0, 0, Camera.Translation.Z - Camera.ProjectionNear + 100),
       { dir } Vector3(0, 0, -1),
       { up } Vector3(0, 1, 0));
-    InternalDesignCamera.ProjectionNear := -Default2DProjectionFar;
+    InternalDesignCamera.ProjectionNear := Default2DProjectionNear;
     { Increase ProjectionFar, to make sure we view *everything* at design-time that is visible at run-time. }
     InternalDesignCamera.ProjectionFar := Default2DProjectionFar * 4;
-    { Better Origin default, makes things in center }
+    { Better Origin default, makes things in center.
+      Makes ViewSelected, ViewAll sensible in 2D }
     InternalDesignCamera.Orthographic.Origin := Vector2(0.5, 0.5);
 
     InternalDesignNavigationType := dn2D;

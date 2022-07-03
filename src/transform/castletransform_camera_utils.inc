@@ -27,6 +27,7 @@ const
   { @groupEnd }
 
   Default2DProjectionFar = 1000.0;
+  Default2DProjectionNear = -Default2DProjectionFar;
   Default2DCameraZ = Default2DProjectionFar / 2;
 
 { Convert camera direction and up vectors into a rotation (X3D "orientation" vector).
