@@ -293,6 +293,9 @@ type
     { Update MouseRayHit. }
     procedure UpdateMouseRayHit;
   protected
+    { @exclude }
+    function InternalOverride2DProjectionSizing: TCastleUserInterface; virtual;
+
     { Calculate projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
       Called each time at the beginning of rendering.
@@ -2060,6 +2063,11 @@ begin
   end;
 end;
 
+function TCastleViewport.InternalOverride2DProjectionSizing: TCastleUserInterface;
+begin
+  Result := nil;
+end;
+
 function TCastleViewport.CalculateProjection: TProjection;
 var
   Box: TBox3D;
@@ -2091,6 +2099,16 @@ var
     if (InternalCamera.Orthographic.Width = 0) and
        (InternalCamera.Orthographic.Height = 0) then
     begin
+      { Bugfix for camera preview in CGE editor, when the selected viewport has
+        Orthographic.Width = 0 and Orthographic.Height = 0.
+        The camera preview uses the same camera (and items) as selected viewport,
+        but the orthographic size should be then derived from selected viewport size,
+        not size of camera preview. }
+      if InternalOverride2DProjectionSizing <> nil then
+      begin
+        ControlWidth := InternalOverride2DProjectionSizing.EffectiveWidthForChildren;
+        ControlHeight := InternalOverride2DProjectionSizing.EffectiveHeightForChildren;
+      end;
       EffectiveProjectionWidth := ControlWidth;
       EffectiveProjectionHeight := ControlHeight;
       CalculateDimensions;

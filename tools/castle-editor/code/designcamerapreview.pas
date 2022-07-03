@@ -27,6 +27,8 @@ type
   strict private
     type
       TMyViewport = class(TCastleViewport)
+      protected
+        function InternalOverride2DProjectionSizing: TCastleUserInterface; override;
       public
         Preview: TCameraPreview;
         SelectedViewport: TCastleViewport;
@@ -89,6 +91,11 @@ procedure TCameraPreview.TMyViewport.Update(const SecondsPassed: Single; var Han
 begin
   inherited;
   Preview.SynchronizeSelectedProperties;
+end;
+
+function TCameraPreview.TMyViewport.InternalOverride2DProjectionSizing: TCastleUserInterface;
+begin
+  Result := SelectedViewport;
 end;
 
 { TCameraPreview ------------------------------------------------------------- }
