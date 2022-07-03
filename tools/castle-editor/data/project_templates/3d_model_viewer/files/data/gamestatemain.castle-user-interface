@@ -47,7 +47,7 @@
             "$Children" : [
               {
                 "$$ClassName" : "TCastleSpotLight",
-                "Intensity" : 1.0000000000000000E+001,
+                "Intensity" : 2.0000000000000000E+000,
                 "Name" : "SpotLight1"
               }
             ]
