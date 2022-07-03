@@ -3586,7 +3586,11 @@ begin
   end;
 
   V := SelectedViewport;
-  T := SelectedTransform;
+  if SelectedComponent is TCastleBehavior then
+    { Highlight using VisualizeTransformSelected also transformation of selected behavior }
+    T := TCastleBehavior(SelectedComponent).Parent
+  else
+    T := SelectedTransform;
   SetEnabledVisible(PanelLayoutTransform, T <> nil);
   VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
 
