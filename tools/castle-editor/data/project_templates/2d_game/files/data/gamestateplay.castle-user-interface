@@ -132,7 +132,8 @@
               "Height" : 4.0000000000000000E+003,
               "OriginPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 5.0000000000000000E-001
+                "X" : 5.0000000000000000E-001,
+                "Y" : 5.0000000000000000E-001
               }
             },
             "Perspective" : {
@@ -147,6 +148,7 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 2.0000000000000000E+003,
               "Z" : 5.0000000000000000E+002
             }
           }
@@ -158,7 +160,13 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Scale" : 4.9530320167541504E+000
+          "Height" : 4.0000000000000000E+003,
+          "OriginPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 5.0000000000000000E-001,
+            "Y" : 5.0000000000000000E-001
+          },
+          "Scale" : 1.1051709651947021E+000
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"
@@ -170,9 +178,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -3.7849379882812500E+003,
-          "Y" : -2.7216113281250000E+002,
-          "Z" : 5.0000000000000000E+002
+          "Y" : 2.0803762207031250E+003,
+          "Z" : 1.6000000000000000E+003
         }
       },
       "InternalDesignNavigationType" : 2,
