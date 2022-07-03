@@ -28,12 +28,14 @@ type
     procedure TestReadingOldDesigns;
     procedure TestReadingOldDesigns2DSceneManager;
     procedure TestCameraNonDesign;
+    procedure TestAutoCameraIgnoresGizmos;
   end;
 
 implementation
 
 uses CastleComponentSerialize, CastleUIControls, CastleViewport, CastleCameras,
-  Castle2DSceneManager, CastleProjection, CastleUtils;
+  Castle2DSceneManager, CastleProjection, CastleUtils, CastleTransform, CastleVectors,
+  CastleScene, CastleBoxes;
 
 procedure TTestCastleViewport.TestReadingOldDesigns;
 
@@ -131,6 +133,51 @@ begin
       AssertTrue(V.Camera.BoundingBox.IsEmpty);
       AssertTrue(V.Camera.Count = 0);
       AssertTrue(V.Items.BoundingBox.IsEmpty);
+    finally FreeAndNil(V) end;
+  finally CastleDesignMode := SavedCastleDesignMode end;
+end;
+
+procedure TTestCastleViewport.TestAutoCameraIgnoresGizmos;
+var
+  V: TCastleViewport;
+  C: TCastleCamera;
+  L: TCastlePointLight;
+  SavedCastleDesignMode: Boolean;
+begin
+  // fake design-mode (CGE editor) for test
+  SavedCastleDesignMode := CastleDesignMode;
+  CastleDesignMode := true;
+  try
+    V := TCastleViewport.Create(nil);
+    try
+      V.Items.Add(TCastleBox.Create(V));
+
+      { Bbox of C gizmo should not affect camera determined by V.AssignDefaultCamera }
+      C := TCastleCamera.Create(V);
+      C.Translation := Vector3(10, 10, 10);
+      V.Camera := C;
+      V.Items.Add(C);
+
+      { Bbox of L gizmo should not affect camera determined by V.AssignDefaultCamera }
+      L := TCastlePointLight.Create(V);
+      L.Translation := Vector3(100, 100, 100);
+      V.Items.Add(L);
+
+      { Bbox of L gizmo should not affect camera determined by V.AssignDefaultCamera }
+      L := TCastlePointLight.Create(V);
+      L.Translation := Vector3(1000, 1000, 1000);
+      V.Items.Add(L);
+
+      { Bbox will be larger because of C and L, this is normal,
+        they have bboxes to allow picking. }
+      AssertBoxesEqual(Box3D(
+        Vector3(-1.00, -1.00, -1.00),
+        Vector3(1000.50, 1000.50, 1000.50)
+      ), V.Items.BoundingBox);
+
+      V.AssignDefaultCamera;
+
+      AssertVectorEquals(Vector3(0.00, 0.00, 5.00), C.Translation);
     finally FreeAndNil(V) end;
   finally CastleDesignMode := SavedCastleDesignMode end;
 end;
