@@ -3711,6 +3711,10 @@ begin
   SetupDesignTimeCamera;
   { Better Origin default, makes things in center }
   Camera.Orthographic.Origin := Vector2(0.5, 0.5);
+  { Advise user to set Camera.Orthographic.Width/Height to non-zero,
+    this way the displayed items don't depend on your viewport size
+    (and you can even change UI scaling,and viewport will have the same fov). }
+  Camera.Orthographic.Height := 1000;
   Setup2D;
 
   { purpose: initial 2D object,
@@ -3728,11 +3732,13 @@ begin
     { Similar to Setup2D, but here done on design-time camera. }
     InternalDesignCamera.ProjectionType := ptOrthographic;
     InternalDesignCamera.SetWorldView(
-      { pos } Vector3(0, 0, Default2DCameraZ),
+      { We move Z back, to be able to see from design-time camera the runtime camera gizmo. }
+      { pos } Vector3(0, 0, Camera.Translation.Z - Camera.ProjectionNear - 100),
       { dir } Vector3(0, 0, -1),
       { up } Vector3(0, 1, 0));
     InternalDesignCamera.ProjectionNear := -Default2DProjectionFar;
-    InternalDesignCamera.ProjectionFar := Default2DProjectionFar;
+    { Increase ProjectionFar, to make sure we view *everything* at design-time that is visible at run-time. }
+    InternalDesignCamera.ProjectionFar := Default2DProjectionFar * 4;
     { Better Origin default, makes things in center }
     InternalDesignCamera.Orthographic.Origin := Vector2(0.5, 0.5);
 
