@@ -190,22 +190,30 @@ end;
 
 function TCastleSceneManager.GetMainSceneInternal: TCastleScene;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := Items.MainScene;
+  {$warnings on}
 end;
 
 procedure TCastleSceneManager.SetMainScene(const Value: TCastleScene);
 begin
+  {$warnings off} // using deprecated in deprecated
   Items.MainScene := Value;
+  {$warnings on}
 end;
 
 function TCastleSceneManager.GetUseHeadlight: TUseHeadlight;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := Items.UseHeadlight;
+  {$warnings on}
 end;
 
 procedure TCastleSceneManager.SetUseHeadlight(const Value: TUseHeadlight);
 begin
+  {$warnings off} // using deprecated in deprecated
   Items.UseHeadlight := Value;
+  {$warnings on}
 end;
 
 function TCastleSceneManager.GravityUp: TVector3;

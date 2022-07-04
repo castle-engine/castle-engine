@@ -110,8 +110,7 @@
     {$I auto_generated_node_helpers/x3dnodes_rectangle2d.inc}
   end;
 
-  { Set of triangles in 2D.
-    @bold(Rendering of this node is not implemented yet.) }
+  { Set of triangles in 2D. }
   TTriangleSet2DNode = class(TAbstractGeometryNode)
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;

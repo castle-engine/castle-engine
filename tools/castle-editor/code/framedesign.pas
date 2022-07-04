@@ -355,6 +355,14 @@ type
       AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
     procedure GizmoHasModifiedParent(Sender: TObject);
     procedure GizmoStopDrag(Sender: TObject);
+    { Fix Pos.Z, to keep camera to see whole 2D world.
+      Use this before doing V.InternalCamera.AnimateTo/SetWorldView with given Pos,Dir,Up.
+
+      When operating in 2D (*not* detected by navigation type, but by projection type and axis,
+      to keep things also working in Fly mode for 2D games),
+      keep proper distance in Z to see the whole 2D world (including run-time 2D camera)
+      and Pos. }
+    procedure FixCamera2D(const V: TCastleViewport; var Pos: TVector3; const Dir, Up: TVector3);
     procedure ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
     procedure CurrentViewportFreeNotification(const Sender: TFreeNotificationObserver);
   protected
@@ -2171,7 +2179,30 @@ begin
 
   Distance := PointsDistance(V.InternalCamera.WorldTranslation, Box.Center);
   NewPos := Box.Center - Dir * Distance;
+  FixCamera2D(V, NewPos, Dir, Up);
   V.InternalCamera.AnimateTo(NewPos, Dir, Up, CameraTransitionTime);
+end;
+
+procedure TDesignFrame.FixCamera2D(const V: TCastleViewport; var Pos: TVector3; const Dir, Up: TVector3);
+var
+  CameraZ, CameraProjectionNear: Single;
+begin
+  if (V.InternalCamera.ProjectionType = ptOrthographic) and
+     TVector3.Equals(Dir, Vector3(0, 0, -1)) and
+     TVector3.Equals(Up, Vector3(0, 1, 0)) then
+  begin
+    if V.Camera <> nil then
+    begin
+      CameraZ := V.Camera.Translation.Z;
+      CameraProjectionNear := V.Camera.EffectiveProjectionNear;
+    end else
+    begin
+      CameraZ := Default2DCameraZ;
+      CameraProjectionNear := Default2DProjectionNear;
+    end;
+
+    Pos.Z := Max(Pos.Z, CameraZ - CameraProjectionNear + 100);
+  end;
 end;
 
 procedure TDesignFrame.ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
@@ -2210,6 +2241,7 @@ begin
     - Godot O
     }
 
+    FixCamera2D(V, APos, ADir, AUp);
     V.InternalCamera.AnimateTo(APos, ADir, AUp, CameraTransitionTime);
   end;
 end;
@@ -2226,11 +2258,27 @@ begin
 end;
 
 procedure TDesignFrame.ViewportViewSelected;
+
+  { Determine selected TCastleTransform based on selected component, or @nil.
+    This routine treats selecting a behavior just like selecting a transform,
+    so that pressing F on behavior works. }
+  function TransformFromSelected(const C: TComponent): TCastleTransform;
+  begin
+    if C is TCastleTransform then
+      Result := TCastleTransform(C)
+    else
+    if C is TCastleBehavior then
+      Result := TCastleBehavior(C).Parent
+    else
+      Result := nil;
+  end;
+
 var
   Selected: TComponentList;
   SelectedCount, I: Integer;
   SelectedBox: TBox3D;
   V: TCastleViewport;
+  T: TCastleTransform;
 begin
   V := CurrentViewport;
   if V = nil then Exit;
@@ -2240,9 +2288,12 @@ begin
   GetSelected(Selected, SelectedCount);
   try
     for I := 0 to SelectedCount - 1 do
-      if (Selected[I] is TCastleTransform) and
-         (TCastleTransform(Selected[I]).World = V.Items) then
-        SelectedBox := SelectedBox + TCastleTransform(Selected[I]).WorldBoundingBox;
+    begin
+      T := TransformFromSelected(Selected[I]);
+      if (T <> nil) and
+         (T.World = V.Items) then
+        SelectedBox := SelectedBox + T.WorldBoundingBox;
+    end;
   finally FreeAndNil(Selected) end;
 
   ViewportViewBox(V, SelectedBox);
@@ -3604,7 +3655,11 @@ begin
   end;
 
   V := SelectedViewport;
-  T := SelectedTransform;
+  if SelectedComponent is TCastleBehavior then
+    { Highlight using VisualizeTransformSelected also transformation of selected behavior }
+    T := TCastleBehavior(SelectedComponent).Parent
+  else
+    T := SelectedTransform;
   SetEnabledVisible(PanelLayoutTransform, T <> nil);
   VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
 
@@ -4424,21 +4479,30 @@ begin
   Target.Orthographic.Scale   := Source.Orthographic.Scale;
   Target.Orthographic.Stretch := Source.Orthographic.Stretch;
 
+  Target.GetWorldView(BeginPos, BeginDir, BeginUp);
+  Source.GetWorldView(EndPos, EndDir, EndUp);
+
+  { Instead of using FixCamera2D, just explicitly force Z values to be unchanged. }
+  if (Source.ProjectionType = ptOrthographic) and
+     TVector3.Equals(EndDir, Vector3(0, 0, -1)) and
+     TVector3.Equals(EndUp, Vector3(0, 1, 0)) then
+  begin
+    EndPos.Z := BeginPos.Z;
+  end;
+
   if MakeUndo then
   begin
     { To record undo for Target camera pos/dir/up, we do a little trick.
       As we want to animate using AnimateTo, but we want to record undo state
       with already final pos/dir/up, so we *temporarily* adjust Target instantly
       to Source pos/dir/up. }
-    Target.GetWorldView(BeginPos, BeginDir, BeginUp);
-    Source.GetWorldView(EndPos, EndDir, EndUp);
     Target.SetWorldView(EndPos, EndDir, EndUp);
     ModifiedOutsideObjectInspector('Align Camera To View: ' + Target.Name, ucHigh);
     // restore Target to begin positions, to animate to it
     Target.SetWorldView(BeginPos, BeginDir, BeginUp);
   end;
 
-  Target.AnimateTo(Source, CameraTransitionTime);
+  Target.AnimateTo(EndPos, EndDir, EndUp, CameraTransitionTime);
 end;
 
 procedure TDesignFrame.ViewportAlignViewToCamera;

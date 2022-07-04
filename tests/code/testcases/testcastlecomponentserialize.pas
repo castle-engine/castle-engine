@@ -33,13 +33,14 @@ type
     procedure TestDepth;
     procedure TestVectorDeserializedOnce;
     procedure TestCustomSerialization;
+    procedure TestInternalAssignUsingSerialization;
   end;
 
 implementation
 
 uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
   CastleUIControls, CastleControls, CastleUtils, CastleSceneManager,
-  CastleScene, CastleClassUtils, CastleColors, CastleStringUtils,
+  CastleScene, CastleClassUtils, CastleColors, CastleStringUtils, CastleTransform,
   { needed to deserialize castle-data:/designs/test_object_references.castle-user-interface }
   Castle2DSceneManager;
 
@@ -632,6 +633,35 @@ begin
     for I := 0 to ValidOutputNumbersCount - 1 do
       AssertEquals(ValidOutputNumbers[I], NumbersReadBack[I]);
   finally FreeAndNil(COwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestInternalAssignUsingSerialization;
+var
+  C1, C2: TCastleCamera;
+  Pos, Dir, Up: TVector3;
+begin
+  C1 := nil;
+  C2 := nil;
+  try
+    C1 := TCastleCamera.Create(nil);
+    C2 := TCastleCamera.Create(nil);
+    C1.SetView(
+      Vector3(1, 2, 3),
+      Vector3(0, 0, 1),
+      Vector3(-1, 0, 0)
+    );
+    InternalAssignUsingSerialization(C2, C1);
+    C2.GetView(
+      Pos,
+      Dir,
+      Up);
+    AssertVectorEquals(Vector3(1, 2, 3), Pos);
+    AssertVectorEquals(Vector3(0, 0, 1), Dir);
+    AssertVectorEquals(Vector3(-1, 0, 0), Up);
+  finally
+    FreeAndNil(C1);
+    FreeAndNil(C2);
+  end;
 end;
 
 initialization

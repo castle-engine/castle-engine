@@ -27,11 +27,14 @@ type
   published
     procedure TestLoadSave;
     procedure TestLoadSaveS3TC;
+    procedure TestLoadKtx;
+    { TODO: Test reading KTX with cubemap, with and without mipmaps }
   end;
 
 implementation
 
-uses SysUtils, CastleVectors, CastleImages, CastleInternalCompositeImage, Classes;
+uses SysUtils, Math, Classes,
+  CastleVectors, CastleImages, CastleInternalCompositeImage;
 
 procedure TTestCastleCompositeImage.TestLoadSave;
 
@@ -200,6 +203,69 @@ procedure TTestCastleCompositeImage.TestLoadSaveS3TC;
 
 begin
   TestImage('castle-data:/images/metal_decal_dxt5.dds', true);
+end;
+
+procedure TTestCastleCompositeImage.TestLoadKtx;
+
+  procedure TestLoadKtxCore(const Recreate: Boolean);
+  var
+    Composite: TCompositeImage;
+    I: Integer;
+  begin
+    Composite := TCompositeImage.Create;
+    try
+      Composite.LoadFromFile('castle-data:/ktx/large-stone-wall.png.ktx');
+      AssertEquals(10, Composite.Images.Count);
+      AssertEquals(2048, Composite.Images[0].Width);
+      AssertEquals(512, Composite.Images[0].Height);
+      for I := 1 to 9 do
+      begin
+        AssertEquals(Max(1, 2048 shr I), Composite.Images[I].Width);
+        AssertEquals(Max(1, 512 shr I), Composite.Images[I].Height);
+      end;
+
+      if Recreate then
+      begin
+        FreeAndNil(Composite);
+        Composite := TCompositeImage.Create;
+      end;
+
+      Composite.LoadFromFile('castle-data:/ktx/rgba-reference.ktx');
+      AssertEquals(1, Composite.Images.Count);
+      AssertTrue(Composite.Images[0] is TRGBAlphaImage);
+      AssertTrue((Composite.Images[0] as TRGBAlphaImage).Colors[0, 0, 0].W = 0); // left-bottom pixel has alpha = 0
+
+      if Recreate then
+      begin
+        FreeAndNil(Composite);
+        Composite := TCompositeImage.Create;
+      end;
+
+      Composite.LoadFromFile('castle-data:/ktx/rgb-mipmap-reference.ktx');
+      AssertEquals(7, Composite.Images.Count);
+      AssertEquals(64, Composite.Images[0].Width);
+      AssertEquals(64, Composite.Images[0].Height);
+      for I := 1 to 6 do
+      begin
+        AssertEquals(Max(1, 64 shr I), Composite.Images[I].Width);
+        AssertEquals(Max(1, 64 shr I), Composite.Images[I].Height);
+      end;
+
+      if Recreate then
+      begin
+        FreeAndNil(Composite);
+        Composite := TCompositeImage.Create;
+      end;
+
+      Composite.LoadFromFile('castle-data:/ktx/rgb-reference.ktx');
+      AssertEquals(1, Composite.Images.Count);
+      AssertTrue(Composite.Images[0] is TRGBImage);
+    finally FreeAndNil(Composite) end;
+  end;
+
+begin
+  TestLoadKtxCore(false);
+  TestLoadKtxCore(true);
 end;
 
 initialization

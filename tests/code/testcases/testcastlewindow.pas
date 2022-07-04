@@ -1,4 +1,4 @@
-// -*- compile-command: "./test_single_testcase.sh TTestWindow" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestCastleWindow" -*-
 {
   Copyright 2010-2022 Michalis Kamburelis.
 
@@ -23,7 +23,7 @@ uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase
      {$else}CastleTester{$endif};
 
 type
-  TTestWindow = class(TCastleTestCase)
+  TTestCastleWindow = class(TCastleTestCase)
   published
     procedure Test1;
     procedure TestNotifications;
@@ -39,6 +39,7 @@ type
     procedure TestStateAutoStop;
     procedure TestStateSize;
     procedure TestStateSize2;
+    procedure TestViewportWithoutCamera;
   end;
 
 implementation
@@ -50,7 +51,7 @@ uses SysUtils, Classes, Math,
   CastleTransform, CastleScene, CastleApplicationProperties, CastleUIState,
   CastleViewport;
 
-procedure TTestWindow.Test1;
+procedure TTestCastleWindow.Test1;
 var
   Window: TCastleWindow;
 begin
@@ -68,7 +69,7 @@ begin
   end;
 end;
 
-procedure TTestWindow.TestNotifications;
+procedure TTestCastleWindow.TestNotifications;
 var
   Window: TCastleWindow;
   C: TCastleButton;
@@ -85,7 +86,7 @@ begin
   finally FreeAndNil(Window) end;
 end;
 
-procedure TTestWindow.TestMenu;
+procedure TTestCastleWindow.TestMenu;
 var
   M: TMenuItem;
 begin
@@ -112,7 +113,7 @@ begin
   FreeAndNil(M);
 end;
 
-procedure TTestWindow.TestAutoSizeToChildren;
+procedure TTestCastleWindow.TestAutoSizeToChildren;
 var
   Window: TCastleWindow;
   Parent, Child1, Child2: TCastleUserInterface;
@@ -186,7 +187,7 @@ begin
 end;
 
 
-procedure TTestWindow.TestFocus;
+procedure TTestCastleWindow.TestFocus;
 var
   Window: TCastleWindow;
   ManualButton, Button2: TCastleButton;
@@ -276,7 +277,7 @@ begin
   finally FreeAndNil(Window) end;
 end;
 
-procedure TTestWindow.TestEventLoop;
+procedure TTestCastleWindow.TestEventLoop;
 var
   Window: TCastleWindow;
 
@@ -338,7 +339,7 @@ begin
   end;
 end;
 
-procedure TTestWindow.TestViewportPositionTo;
+procedure TTestCastleWindow.TestViewportPositionTo;
 var
   Viewport: TCastleViewport;
 
@@ -411,7 +412,7 @@ begin
   finally FreeAndNil(Window) end;
 end;
 
-procedure TTestWindow.TestStateAutoStop;
+procedure TTestCastleWindow.TestStateAutoStop;
 
 { Test something similar to https://github.com/castle-engine/castle-engine/issues/307 .
 
@@ -504,7 +505,7 @@ begin
   TestCase.AssertSameValue(H, EffectiveHeight);
 end;
 
-procedure TTestWindow.TestStateSize;
+procedure TTestCastleWindow.TestStateSize;
 var
   Window: TCastleWindow;
   StateTesting: TStateTestingSize;
@@ -589,7 +590,7 @@ begin
   TestCase.AssertSameValue(H, EffectiveHeight);
 end;
 
-procedure TTestWindow.TestStateSize2;
+procedure TTestCastleWindow.TestStateSize2;
 var
   Window: TCastleWindow;
   StateTesting: TStateTestingSize2;
@@ -639,6 +640,50 @@ begin
   {$endif}
 end;
 
+
+procedure TTestCastleWindow.TestViewportWithoutCamera;
+var
+  Window: TCastleWindow;
+  V: TCastleViewport;
+  DummyHandleInput: Boolean;
+begin
+  {$ifndef CASTLE_TESTER}
+  Window := TCastleWindow.Create(nil);
+  {$else}
+  Window := CreateWindowForTest;
+  {$endif}
+  try
+    Window.Visible := false;
+    Window.Open;
+
+    V := TCastleViewport.Create(Window);
+    AssertTrue(V.Camera <> nil);
+    AssertTrue(V.Camera.Owner = V); // camera created by TCastleViewport.CommonCreate is owned by viewport
+    V.Camera.Free;
+    AssertTrue(V.Camera = nil); // freeing camera should make it nil also
+
+    { test V.PrepareResources has no problem with Camera=nil }
+    V.PrepareResources;
+
+    { test V.Update has no problem with Camera=nil }
+    DummyHandleInput := true;
+    V.Update(1/30, DummyHandleInput);
+
+    { test V.Render and friends have no problem with Camera=nil }
+    V.BeforeRender;
+    V.Render;
+    V.RenderOverChildren;
+
+    FreeAndNil(V);
+  finally
+    {$ifndef CASTLE_TESTER}
+    FreeAndNil(Window);
+    {$else}
+    DestroyWindowForTest;
+    {$endif}
+  end;
+end;
+
 initialization
-  RegisterTest(TTestWindow);
+  RegisterTest(TTestCastleWindow);
 end.

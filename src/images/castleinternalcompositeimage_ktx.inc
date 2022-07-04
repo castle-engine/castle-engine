@@ -76,6 +76,7 @@ type
       //GL_R16F           = $822D;
       GL_R32F           = $822E;
       GL_R16UI          = $8234;
+      GL_SRGB8_ALPHA8   = $8C43;
 
       GL_RED_INTEGER    = $8D94;
 
@@ -488,7 +489,13 @@ begin
   if (Header.GlType = GL_UNSIGNED_BYTE) and
      (Header.GlTypeSize = 1) and
      (Header.GlFormat = GL_RGBA) and
-     (Header.GlInternalFormat = GL_RGBA) and
+     (
+       (Header.GlInternalFormat = GL_RGBA) or
+       { Testcase: rgba-reference.ktx from https://github.com/KhronosGroup/KTX-Software/tree/master/tests/testimages
+         Note that we ignore sRGB here for now, we read it just like regular image.
+         In CGE we don't have a control per-image for sRGB, yet. }
+       (Header.GlInternalFormat = GL_SRGB8_ALPHA8)
+     ) and
      (Header.GlBaseInternalFormat = GL_RGBA) then
   begin
     ReadRGBA(Stream, W, H, D);
@@ -594,12 +601,33 @@ begin
     ReadCompressed(Stream, Compression, W, H, D);
   end else
   begin
-    raise EInvalidKTX.CreateFmt('Cannot handle this KTX data type: glType 0x%.4x, glTypeSize %d, glFormat 0x%.4x, glInternalFormat 0x%.4x, glBaseInternalFormat 0x%.4x',
-      [Header.GlType,
-       Header.GlTypeSize,
-       Header.GlFormat,
-       Header.GlInternalFormat,
-       Header.GlBaseInternalFormat]);
+    if (Header.GlType = 0) and (Header.GlFormat = 0) then
+    begin
+      raise EInvalidKTX.CreateFmt('Cannot read data from this KTX (compressed) format.' + NL +
+        'Details:' + NL +
+        '  glTypeSize %d' + NL +
+        '  glInternalFormat 0x%.4x' + NL +
+        '  glBaseInternalFormat 0x%.4x', [
+        Header.GlTypeSize,
+        Header.GlInternalFormat,
+        Header.GlBaseInternalFormat
+      ]);
+    end else
+    begin
+      raise EInvalidKTX.CreateFmt('Cannot read data from this KTX (uncompressed) format.' + NL +
+        'Details:' + NL +
+        '  glType 0x%.4x' + NL +
+        '  glTypeSize %d' + NL +
+        '  glFormat 0x%.4x' + NL +
+        '  glInternalFormat 0x%.4x' + NL +
+        '  glBaseInternalFormat 0x%.4x', [
+        Header.GlType,
+        Header.GlTypeSize,
+        Header.GlFormat,
+        Header.GlInternalFormat,
+        Header.GlBaseInternalFormat
+      ]);
+    end;
   end;
 end;
 

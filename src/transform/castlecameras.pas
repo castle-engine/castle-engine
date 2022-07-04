@@ -110,9 +110,6 @@ type
     FWarningInvalidParentDone: Boolean;
     FCheckCollisions: Boolean;
 
-    function GetProjectionMatrix: TMatrix4;
-    procedure SetProjectionMatrix(const Value: TMatrix4);
-    function GetFrustum: TFrustum;
     function GetIgnoreAllInputs: boolean;
     procedure SetIgnoreAllInputs(const Value: boolean);
   protected
@@ -211,22 +208,6 @@ type
       @raises EViewportNotAssigned If Viewport not assigned yet. }
     function Camera: TCastleCamera;
 
-    { Camera matrix, transforming from world space into camera space. }
-    function Matrix: TMatrix4; deprecated 'use Viewport.Camera.Matrix';
-
-    { Inverse of @link(Matrix), transforming from camera space into world space. }
-    function MatrixInverse: TMatrix4; deprecated 'use Viewport.Camera.MatrixInverse';
-
-    { Extract only rotation from your current camera @link(Matrix).
-      This is useful for rendering skybox in 3D programs
-      (e.g. for VRML/X3D Background node) and generally to transform
-      directions between world and camera space.
-
-      It's guaranteed that this is actually only 3x3 matrix,
-      the 4th row and 4th column are all zero except the lowest right item
-      which is 1.0. }
-    function RotationMatrix: TMatrix4; deprecated 'use Viewport.Camera.RotationMatrix';
-
     {$ifdef FPC}
     { Deprecated, use more flexible @link(Input) instead.
       @code(IgnoreAllInputs := true) is equivalent to @code(Input := []),
@@ -234,23 +215,6 @@ type
       @deprecated }
     property IgnoreAllInputs: boolean
       read GetIgnoreAllInputs write SetIgnoreAllInputs default false; deprecated;
-
-    { Things related to frustum ---------------------------------------- }
-
-    { The current camera viewing frustum, based on
-      @link(ProjectionMatrix) (set by the outside) and @link(Matrix) (calculated here).
-      This is recalculated whenever one of these two properties change.
-      Be sure to set @link(ProjectionMatrix) before using this. }
-    property Frustum: TFrustum read GetFrustum; deprecated 'use Viewport.Camera.Frustum';
-
-    { Projection matrix of the camera.
-      Camera needs to know this to calculate @link(Frustum),
-      which in turn allows rendering code to use frustum culling.
-
-      In normal circumstances, if you use TCastleViewport for rendering,
-      this is automatically correctly set. }
-    property ProjectionMatrix: TMatrix4
-      read GetProjectionMatrix write SetProjectionMatrix; deprecated 'use Viewport.Camera.ProjectionMatrix';
     {$endif FPC}
 
     { The radius of a sphere around the camera
@@ -1256,20 +1220,6 @@ type
       {$ifdef FPC}default 0{$endif};
       {$ifdef FPC}deprecated 'use TCastleThirdPersonNavigation for real 3rd-person navigation';{$endif}
 
-    { Height above the ground, only used when @link(TCastleWalkNavigation.Gravity) is @true.
-      The @link(Position) tries to stay PreferredHeight above the ground.
-      Temporarily it may still be lower (e.g. player can
-      shortly "duck" when he falls from high).
-
-      This must always be >= 0.
-      You should set this to something greater than zero to get sensible
-      behavior of some things related to @link(TCastleWalkNavigation.Gravity).
-
-      See CorrectPreferredHeight for important property
-      of PreferredHeight that you should keep. }
-    property PreferredHeight: Single
-      read FPreferredHeight write FPreferredHeight {$ifdef FPC}default DefaultPreferredHeight{$endif};
-
     { Correct PreferredHeight based on @link(Radius)
       and on current @link(HeadBobbing).
 
@@ -1302,14 +1252,6 @@ type
       Note that for Radius = 0.0 this will always leave
       PreferredHeight as it is. }
     procedure CorrectPreferredHeight;
-
-    { Preferred height when crouching.
-      This is always mutiplied to PreferredHeight.
-      This should always be <= 1 (CrouchHeight = 1 effectively disables
-      crouching, although it's better to do this by calling MakeClear
-      on Input_Crouch). }
-    property CrouchHeight: Single
-      read FCrouchHeight write FCrouchHeight {$ifdef FPC}default DefaultCrouchHeight{$endif};
 
     { We may make a "head bobbing" effect,
       by moving the camera a bit up and down.
@@ -1470,6 +1412,28 @@ type
       Gravity says what happens to player due to ... well, due to gravity. }
     property Gravity: boolean
       read FGravity write FGravity default true;
+
+    { Height above the ground, only used when @link(TCastleWalkNavigation.Gravity) is @true.
+      The @link(Position) tries to stay PreferredHeight above the ground.
+      Temporarily it may still be lower (e.g. player can
+      shortly "duck" when he falls from high).
+
+      This must always be >= 0.
+      You should set this to something greater than zero to get sensible
+      behavior of some things related to @link(TCastleWalkNavigation.Gravity).
+
+      See CorrectPreferredHeight for important property
+      of PreferredHeight that you should keep. }
+    property PreferredHeight: Single
+      read FPreferredHeight write FPreferredHeight {$ifdef FPC}default DefaultPreferredHeight{$endif};
+
+    { Preferred height when crouching.
+      This is always mutiplied to PreferredHeight.
+      This should always be <= 1 (CrouchHeight = 1 effectively disables
+      crouching, although it's better to do this by calling MakeClear
+      on Input_Crouch). }
+    property CrouchHeight: Single
+      read FCrouchHeight write FCrouchHeight {$ifdef FPC}default DefaultCrouchHeight{$endif};
 
     property Radius;
   end;
@@ -1735,36 +1699,6 @@ begin
     Result := Input
   else
     Result := [];
-end;
-
-function TCastleNavigation.Matrix: TMatrix4;
-begin
-  Result := Camera.Matrix;
-end;
-
-function TCastleNavigation.RotationMatrix: TMatrix4;
-begin
-  Result := Camera.RotationMatrix;
-end;
-
-function TCastleNavigation.MatrixInverse: TMatrix4;
-begin
-  Result := Camera.MatrixInverse;
-end;
-
-function TCastleNavigation.GetProjectionMatrix: TMatrix4;
-begin
-  Result := Camera.ProjectionMatrix;
-end;
-
-procedure TCastleNavigation.SetProjectionMatrix(const Value: TMatrix4);
-begin
-  Camera.ProjectionMatrix := Value;
-end;
-
-function TCastleNavigation.GetFrustum: TFrustum;
-begin
-  Result := Camera.Frustum;
 end;
 
 function TCastleNavigation.InternalViewport: TCastleUserInterface;
@@ -2880,8 +2814,8 @@ begin
   Input_RightStrafe             .Assign(keyD);
   Input_UpRotate                .Assign(keyNone);
   Input_DownRotate              .Assign(keyNone);
-  Input_IncreasePreferredHeight .Assign(keyInsert);
-  Input_DecreasePreferredHeight .Assign(keyDelete);
+  Input_IncreasePreferredHeight .Assign(keyNone);
+  Input_DecreasePreferredHeight .Assign(keyNone);
   Input_GravityUp               .Assign(keyNone);
   { For move speed we use also character codes +/-, as numpad
     may be hard to reach on some keyboards (e.g. on laptops). }
@@ -3885,22 +3819,15 @@ begin
           MoveSpeedInc(SecondsPassed);
         if Input_MoveSpeedDec.IsPressed(Container) then
           MoveSpeedDec(SecondsPassed);
+        if Input_IncreasePreferredHeight.IsPressed(Container) then
+          ChangePreferredHeight(+1);
+        if Input_DecreasePreferredHeight.IsPressed(Container) then
+          ChangePreferredHeight(-1);
       end else
       if ModsDown = [mkCtrl] then
       begin
         if AllowSlowerRotations then
           CheckRotates(0.1);
-
-        { Either MoveSpeedInc/Dec work, or Increase/DecreasePreferredHeight,
-          as they by default have the same shortcuts, so should not work
-          together. }
-        if ModsDown = [mkCtrl] then
-        begin
-          if Input_IncreasePreferredHeight.IsPressed(Container) then
-            ChangePreferredHeight(+1);
-          if Input_DecreasePreferredHeight.IsPressed(Container) then
-            ChangePreferredHeight(-1);
-        end;
       end;
     end;
 
@@ -4260,6 +4187,7 @@ begin
   if (PropertyName = 'Gravity') or
      (PropertyName = 'MoveSpeed') or
      (PropertyName = 'Radius') or
+     (PropertyName = 'CrouchHeight') or
      (PropertyName = 'PreferredHeight') or
      (PropertyName = 'MoveHorizontalSpeed') or
      (PropertyName = 'MoveVerticalSpeed') or

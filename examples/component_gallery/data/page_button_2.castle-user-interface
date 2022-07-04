@@ -73,8 +73,6 @@
               ],
               "$ClassName" : "TCastlePerspective"
             },
-            "ProjectionFar" : 1.0000000000000000E+003,
-            "ProjectionNear" : -1.0000000000000000E+003,
             "ProjectionType" : "ptOrthographic",
             "$Children" : [
             ],

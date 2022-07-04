@@ -891,8 +891,6 @@ begin
 end;
 
 function TLevel.UnloadCore: T3DResourceList;
-var
-  I: Integer;
 begin
   Items.ClearExceptCameras;
 

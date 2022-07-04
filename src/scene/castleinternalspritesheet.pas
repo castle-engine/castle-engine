@@ -369,7 +369,7 @@ type
     procedure Generate; override;
   end;
 
-  { TODO: Advaned sprite sheet generator with all features like trimming,
+  { TODO: Advanced sprite sheet generator with all features like trimming,
     padding and everything else we want }
   TCastleSpriteSheetAdvancedImageGen = class (TCastleSpriteSheetAbstractAtlasGen)
   public

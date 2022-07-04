@@ -1,52 +1,54 @@
 object ImportAtlasForm: TImportAtlasForm
-  Left = 635
-  Height = 252
-  Top = 370
-  Width = 600
+  Left = 2540
+  Height = 275
+  Top = 415
+  Width = 728
   AutoSize = True
   BorderWidth = 8
   Caption = 'Import Atlas'
-  ClientHeight = 252
-  ClientWidth = 600
+  ClientHeight = 275
+  ClientWidth = 728
   Constraints.MinWidth = 600
   DesignTimePPI = 120
   Position = poMainFormCenter
-  LCLVersion = '2.0.12.0'
+  LCLVersion = '2.2.0.4'
   object LabelCols: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = SpinEditCols
     AnchorSideTop.Side = asrCenter
     Left = 8
-    Height = 20
-    Top = 101
+    Height = 22
+    Top = 103
     Width = 169
     Caption = 'Number of columns:'
-    ParentColor = False
   end
   object LabelRows: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = SpinEditRows
+    AnchorSideTop.Side = asrCenter
     Left = 8
-    Height = 20
-    Top = 134
+    Height = 22
+    Top = 146
     Width = 139
     Caption = 'Number of rows:'
-    ParentColor = False
   end
   object ButtonImport: TButton
-    AnchorSideTop.Control = SpinEditRows
+    AnchorSideTop.Control = chbxImportByColumns
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Side = asrBottom
-    Left = 279
-    Height = 32
-    Top = 184
-    Width = 313
-    Anchors = [akTop, akLeft, akRight]
+    Left = 631
+    Height = 51
+    Top = 219
+    Width = 89
+    Anchors = [akTop, akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Top = 4
     BorderSpacing.Around = 8
+    BorderSpacing.InnerBorder = 8
     Caption = 'Import'
+    Default = True
     OnClick = ButtonImportClick
-    TabOrder = 0
+    TabOrder = 5
   end
   object SpinEditCols: TSpinEdit
     AnchorSideLeft.Side = asrBottom
@@ -55,14 +57,14 @@ object ImportAtlasForm: TImportAtlasForm
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 289
-    Height = 38
-    Top = 92
-    Width = 303
+    Height = 39
+    Top = 95
+    Width = 431
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 4
     MaxValue = 1000
     MinValue = 1
-    TabOrder = 1
+    TabOrder = 2
     Value = 2
   end
   object SpinEditRows: TSpinEdit
@@ -71,27 +73,27 @@ object ImportAtlasForm: TImportAtlasForm
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 288
-    Height = 38
-    Top = 134
-    Width = 304
+    Height = 39
+    Top = 138
+    Width = 432
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 4
     MaxValue = 1000
     MinValue = 1
-    TabOrder = 2
+    TabOrder = 3
     Value = 2
   end
   object PanelAtlasURL: TPanel
     Left = 8
-    Height = 38
+    Height = 39
     Top = 8
-    Width = 584
+    Width = 712
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 38
-    ClientWidth = 584
-    TabOrder = 3
+    ClientHeight = 39
+    ClientWidth = 712
+    TabOrder = 0
     object EditAtlasURL: TEdit
       AnchorSideLeft.Control = LabelAtlasNameTitle
       AnchorSideLeft.Side = asrBottom
@@ -99,9 +101,9 @@ object ImportAtlasForm: TImportAtlasForm
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Side = asrBottom
       Left = 90
-      Height = 38
+      Height = 39
       Top = 0
-      Width = 493
+      Width = 621
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 4
       ReadOnly = True
@@ -112,36 +114,34 @@ object ImportAtlasForm: TImportAtlasForm
       AnchorSideTop.Control = PanelAtlasURL
       AnchorSideTop.Side = asrCenter
       Left = 0
-      Height = 20
-      Top = 9
+      Height = 22
+      Top = 8
       Width = 86
       Caption = 'Atlas URL:'
-      ParentColor = False
     end
   end
   object PanelAnimationName: TPanel
     AnchorSideTop.Control = PanelAtlasURL
     Left = 8
-    Height = 38
-    Top = 50
-    Width = 584
+    Height = 40
+    Top = 51
+    Width = 712
     Align = alTop
     AutoSize = True
     BorderSpacing.Top = 4
     BevelOuter = bvNone
-    ClientHeight = 38
-    ClientWidth = 584
-    TabOrder = 4
+    ClientHeight = 40
+    ClientWidth = 712
+    TabOrder = 1
     object LabelAnimationName: TLabel
       AnchorSideLeft.Control = PanelAnimationName
       AnchorSideTop.Control = PanelAnimationName
       AnchorSideTop.Side = asrCenter
       Left = 0
-      Height = 20
+      Height = 22
       Top = 9
       Width = 144
       Caption = 'Animation name:'
-      ParentColor = False
     end
     object EditAnimationName: TEdit
       AnchorSideLeft.Control = LabelAnimationName
@@ -151,9 +151,9 @@ object ImportAtlasForm: TImportAtlasForm
       AnchorSideRight.Control = PanelAnimationName
       AnchorSideRight.Side = asrBottom
       Left = 148
-      Height = 38
-      Top = 0
-      Width = 436
+      Height = 39
+      Top = 1
+      Width = 564
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 4
       TabOrder = 0
@@ -161,14 +161,16 @@ object ImportAtlasForm: TImportAtlasForm
   end
   object chbxImportByColumns: TCheckBox
     AnchorSideLeft.Control = LabelRows
-    AnchorSideTop.Control = LabelRows
+    AnchorSideTop.Control = SpinEditRows
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 26
-    Top = 158
-    Width = 181
+    Top = 181
+    Width = 290
     BorderSpacing.Top = 4
-    Caption = 'Import by columns'
-    TabOrder = 5
+    Caption = 'Import animation row after row'
+    Checked = True
+    State = cbChecked
+    TabOrder = 4
   end
 end

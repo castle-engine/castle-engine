@@ -27,9 +27,13 @@ type
   strict private
     type
       TMyViewport = class(TCastleViewport)
+      protected
+        function InternalOverride2DProjectionSizing: TCastleUserInterface; override;
       public
+        Preview: TCameraPreview;
         SelectedViewport: TCastleViewport;
         function InternalHeadlightCamera: TCastleCamera; override;
+        procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
       end;
     var
       Viewport: TMyViewport;
@@ -48,6 +52,8 @@ type
     procedure SizeChange(const Change: Integer);
     procedure SelectedCameraFreeNotification(const Sender: TFreeNotificationObserver);
     procedure SelectedViewportFreeNotification(const Sender: TFreeNotificationObserver);
+    { Synchronize properties of selected viewport/camera that can change at any point. }
+    procedure SynchronizeSelectedProperties;
   public
     constructor Create(const DesignOwner: TComponent);
     { Add this to design to make camera preview potentially visible. }
@@ -64,6 +70,8 @@ implementation
 uses Math,
   CastleColors, CastleUtils;
 
+{ TCameraPreview.TMyViewport ------------------------------------------------- }
+
 function TCameraPreview.TMyViewport.InternalHeadlightCamera: TCastleCamera;
 begin
   { Inherited implementation of InternalHeadlightCamera would mean we use
@@ -78,6 +86,19 @@ begin
 
   Result := SelectedViewport.InternalHeadlightCamera;
 end;
+
+procedure TCameraPreview.TMyViewport.Update(const SecondsPassed: Single; var HandleInput: boolean);
+begin
+  inherited;
+  Preview.SynchronizeSelectedProperties;
+end;
+
+function TCameraPreview.TMyViewport.InternalOverride2DProjectionSizing: TCastleUserInterface;
+begin
+  Result := SelectedViewport;
+end;
+
+{ TCameraPreview ------------------------------------------------------------- }
 
 const
   MinSize = 1;
@@ -159,12 +180,15 @@ begin
   ButtonsLayout.InsertFront(ButtonClose);
 
   Viewport := TMyViewport.InternalCreateNonDesign(DesignOwner);
+  Viewport.Preview := Self;
   Viewport.Border.AllSides := Margin;
   Viewport.Border.Top := Margin +
     Max(LabelCaption.EffectiveHeight, ButtonsLayout.EffectiveHeight) + Margin;
   Viewport.FullSize := true;
   Viewport.SetTransient;
   Rect.InsertFront(Viewport);
+
+  ForceFallbackLook(Rect);
 end;
 
 procedure TCameraPreview.SizeChange(const Change: Integer);
@@ -232,15 +256,13 @@ begin
   begin
     Viewport.Items := V.Items;
     Viewport.Camera := T as TCastleCamera;
-    Viewport.Background := V.Background;
-    Viewport.BackgroundColor := V.BackgroundColor;
-    Viewport.Transparent := V.Transparent;
-    LabelCaption.Caption := T.Name;
 
     SelectedCameraObserver.Observed := T;
 
     Viewport.SelectedViewport := V;
     SelectedViewportObserver.Observed := Viewport.SelectedViewport;
+
+    SynchronizeSelectedProperties;
   end else
   begin
     { Assign "empty" values for Items/Camera,
@@ -264,6 +286,19 @@ end;
 function TCameraPreview.SelectedCamera: TCastleCamera;
 begin
   Result := Viewport.Camera;
+end;
+
+procedure TCameraPreview.SynchronizeSelectedProperties;
+begin
+  if Viewport.SelectedViewport <> nil then
+  begin
+    Assert(SelectedCamera <> nil);
+    LabelCaption.Caption := SelectedCamera.Name;
+
+    Viewport.Background := Viewport.SelectedViewport.Background;
+    Viewport.BackgroundColor := Viewport.SelectedViewport.BackgroundColor;
+    Viewport.Transparent := Viewport.SelectedViewport.Transparent;
+  end;
 end;
 
 end.

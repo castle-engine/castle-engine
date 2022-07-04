@@ -20,8 +20,6 @@
           "$$ClassName" : "TCastlePerspective",
           "Name" : "Perspective"
         },
-        "ProjectionFar" : 1.0000000000000000E+003,
-        "ProjectionNear" : -1.0000000000000000E+003,
         "ProjectionType" : "ptOrthographic"
       },
       "FullSize" : true,

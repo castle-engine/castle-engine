@@ -64,7 +64,7 @@ type
 
     function CurrentProjectionWidth: Single; deprecated 'use Camera.Orthographic.EffectiveWidth';
     function CurrentProjectionHeight: Single; deprecated 'use Camera.Orthographic.EffectiveHeight';
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   published
     property AutoCamera default false;
     property AutoNavigation default false;
@@ -82,7 +82,7 @@ type
 
       In all cases, CurrentProjectionWidth and CurrentProjectionHeight
       can be checked to see actual projection dimensions. }
-    property ProjectionAutoSize: boolean
+    property ProjectionAutoSize: Boolean
       read GetProjectionAutoSize write SetProjectionAutoSize default true;
       {$ifdef FPC}deprecated 'use Camera.Orthographic.Width and Height; only when both are zero, it is auto-sized';{$endif}
     property ProjectionHeight: Single
@@ -123,7 +123,7 @@ type
           to the left-bottom corner.)
       )
     }
-    property ProjectionOriginCenter: boolean
+    property ProjectionOriginCenter: Boolean
       read GetProjectionOriginCenter write SetProjectionOriginCenter default false;
       {$ifdef FPC}deprecated 'use Camera.Orthographic.Origin';{$endif}
   end
@@ -246,7 +246,7 @@ begin
 end;
 
 procedure TCastle2DSceneManager.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 begin
   inherited;
 

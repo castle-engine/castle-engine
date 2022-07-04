@@ -1,98 +1,83 @@
 {
+  "$$ClassName" : "TCastleUserInterface",
   "FullSize" : true,
   "Name" : "Group1",
   "$Children" : [
     {
-      "Camera" : {
-        "InitialPositionPersistent" : {
-          "Z" : 5.0000000000000000E+002,
-          "$ClassName" : "TCastleVector3Persistent"
-        },
-        "Name" : "Camera",
-        "Orthographic" : {
-          "Name" : "Orthographic",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleOrthographic"
-        },
-        "Perspective" : {
-          "Name" : "Perspective",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastlePerspective"
-        },
-        "ProjectionFar" : 1.0000000000000000E+003,
-        "ProjectionNear" : -1.0000000000000000E+003,
-        "ProjectionType" : "ptOrthographic",
-        "$Children" : [
-        ],
-        "$ClassName" : "TCastleCamera"
-      },
+      "$$ClassName" : "TCastleViewport",
+      "Camera" : "Camera1",
       "FullSize" : true,
       "Items" : {
-        "Name" : "Items",
+        "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "Name" : "PhysicsProperties",
-          "$Children" : [
-          ],
-          "$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties"
         },
         "$Children" : [
           {
+            "$$ClassName" : "TCastleScene",
             "AutoAnimation" : "walk",
             "ExposeTransforms" : [
             ],
             "Name" : "Scene1",
             "ProcessEvents" : true,
             "RenderOptions" : {
-              "Name" : "RenderOptions",
-              "$Children" : [
-              ],
-              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
               "X" : 2.5801800537109375E+002,
-              "Y" : 3.2305838012695312E+002,
-              "$ClassName" : "TCastleVector3Persistent"
+              "Y" : 3.2305838012695312E+002
             },
-            "URL" : "castle-data:/hero_animation/hero_low_fps.castle-sprite-sheet",
-            "$Children" : [
-            ],
-            "$ClassName" : "TCastleScene"
+            "URL" : "castle-data:/hero_animation/hero_low_fps.castle-sprite-sheet"
           },
           {
+            "$$ClassName" : "TCastleScene",
             "AutoAnimation" : "walk",
             "ExposeTransforms" : [
             ],
             "Name" : "Scene2",
             "ProcessEvents" : true,
             "RenderOptions" : {
-              "Name" : "RenderOptions",
-              "$Children" : [
-              ],
-              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
               "X" : 7.5963964843750000E+002,
-              "Y" : 3.3108471679687500E+002,
-              "$ClassName" : "TCastleVector3Persistent"
+              "Y" : 3.3108471679687500E+002
             },
-            "URL" : "castle-data:/hero_animation/hero_high_fps.castle-sprite-sheet",
-            "$Children" : [
-            ],
-            "$ClassName" : "TCastleScene"
+            "URL" : "castle-data:/hero_animation/hero_high_fps.castle-sprite-sheet"
+          },
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic",
+              "Height" : 9.0000000000000000E+002
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "ProjectionType" : "ptOrthographic",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent",
+              "Z" : 1.0000000000000000E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 5.0000000000000000E+002
+            }
           }
-        ],
-        "$ClassName" : "TCastleRootTransform"
+        ]
       },
       "Name" : "Viewport1",
       "$Children" : [
         {
+          "$$ClassName" : "TCastleLabel",
           "Alignment" : "hpMiddle",
           "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 1.0000000000000000E+000
           },
           "HorizontalAnchorDelta" : 1.4000000000000000E+002,
           "Name" : "Label1",
@@ -100,17 +85,15 @@
             "Hero walk",
             "(23 frames per second)"
           ],
-          "VerticalAnchorDelta" : 5.8000000000000000E+002,
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleLabel"
+          "VerticalAnchorDelta" : 5.8000000000000000E+002
         },
         {
+          "$$ClassName" : "TCastleLabel",
           "Alignment" : "hpMiddle",
           "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
             "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "Red" : 1.0000000000000000E+000
           },
           "HorizontalAnchorDelta" : 6.0000000000000000E+002,
           "Name" : "Label2",
@@ -118,19 +101,57 @@
             "Hero walk",
             "(55 frames per second)"
           ],
-          "VerticalAnchorDelta" : 5.8000000000000000E+002,
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleLabel"
+          "VerticalAnchorDelta" : 5.8000000000000000E+002
         }
       ],
-      "$ClassName" : "TCastleViewport"
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "OriginPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 5.0000000000000000E-001,
+            "Y" : 5.0000000000000000E-001
+          }
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "ProjectionType" : "ptOrthographic",
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent",
+          "Z" : 1.0000000000000000E+000
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 8.2963635253906250E+002,
+          "Y" : 4.7945455932617188E+002,
+          "Z" : 1.6000000000000000E+003
+        }
+      },
+      "InternalDesignNavigationType" : 2,
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Name" : ""
+      }
     },
     {
+      "$$ClassName" : "TCastleLabel",
       "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
         "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000,
-        "$ClassName" : "TCastleColorPersistent"
+        "Red" : 1.0000000000000000E+000
       },
       "FontSize" : 2.0000000000000000E+001,
       "HorizontalAnchorDelta" : -2.0000000000000000E+001,
@@ -142,11 +163,7 @@
       ],
       "VerticalAnchorDelta" : -2.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop",
-      "$Children" : [
-      ],
-      "$ClassName" : "TCastleLabel"
+      "VerticalAnchorSelf" : "vpTop"
     }
-  ],
-  "$ClassName" : "TCastleUserInterface"
+  ]
 }

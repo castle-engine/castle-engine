@@ -5,7 +5,6 @@
   "$Children" : [
     {
       "$$ClassName" : "TCastleViewport",
-      "AutoCamera" : true,
       "Camera" : "Camera1",
       "FullSize" : true,
       "Items" : {
@@ -14,6 +13,7 @@
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties"
         },
+        "UseHeadlight" : "hlOff",
         "$Children" : [
           {
             "$$ClassName" : "TCastleScene",
@@ -43,7 +43,14 @@
               "X" : -3.5521388053894043E-002,
               "Y" : 1.0612101554870605E+000,
               "Z" : 5.0610933303833008E+000
-            }
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleSpotLight",
+                "Intensity" : 2.0000000000000000E+000,
+                "Name" : "SpotLight1"
+              }
+            ]
           }
         ]
       },
@@ -53,7 +60,44 @@
           "$$ClassName" : "TCastleExamineNavigation",
           "Name" : "ExamineNavigation1"
         }
-      ]
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent",
+          "W" : 1.1823388338088989E+000,
+          "X" : -3.4037941694259644E-001,
+          "Y" : 9.1825044155120850E-001,
+          "Z" : 2.0238126814365387E-001
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 3.8437895774841309E+000,
+          "Y" : 3.8297743797302246E+000,
+          "Z" : 5.5787301063537598E+000
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
     },
     {
       "$$ClassName" : "TCastleRectangleControl",

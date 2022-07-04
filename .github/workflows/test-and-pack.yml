@@ -176,6 +176,9 @@ jobs:
       - name: Build Examples
         run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
       - name: Build Examples Using Lazarus
+        # TODO: FPC 3.2.0 + Lazarus 2.0.12 + macOS has problems linking examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester.lpi :
+        # ld: library not found for -lcastleengine
+        if: ${{ ! (matrix.operating-system == 'macos-latest' && matrix.lazarus-versions == '2.0.12') }}
         run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
   pack:

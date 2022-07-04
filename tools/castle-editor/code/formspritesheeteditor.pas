@@ -1299,6 +1299,7 @@ begin
     FNavigation := TCastle2DNavigation.Create(Self);
 
     FViewport := TCastleViewport.InternalCreateNonDesign(Self);
+    Assert(FViewport.Camera <> nil);
     FViewport.FullSize := true;
     FViewport.Navigation := FNavigation;
     FViewport.Setup2D;
@@ -1344,9 +1345,9 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
     end else
     begin
       FPreviewScene.Exists := true;
-      FViewport.Camera.Orthographic.Width := Animation.Frame[0].FrameWidth +
-        PreviewMargin * 2;
-      FViewport.AssignDefaultCamera; // reset camera
+      FViewport.AssignDefaultCamera;
+      // set this after AssignDefaultCamera, as AssignDefaultCamera resets it
+      FViewport.Camera.Orthographic.Width := Animation.Frame[0].FrameWidth + PreviewMargin * 2;
       FPreviewScene.PlayAnimation(Animation.Name, true, true);
     end;
   end;
@@ -1385,8 +1386,9 @@ begin
 
     FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
     FPreviewScene.Load(FSpriteSheet.ToX3D, true);
+    FViewport.AssignDefaultCamera;
+    // set this after AssignDefaultCamera, as AssignDefaultCamera resets it
     FViewport.Camera.Orthographic.Width := DefaultFrameIconSize + PreviewMargin * 2;
-    FViewport.AssignDefaultCamera; // reset camera
   except
     on E: Exception do
     begin
@@ -1455,10 +1457,11 @@ begin
   FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
   FPreviewScene.Load(Generate3XDWithImage, true);
 
+  FViewport.AssignDefaultCamera;
   { Always set to the width of the first frame because we want to see the
     size difference }
+  // set this after AssignDefaultCamera, as AssignDefaultCamera resets it
   FViewport.Camera.Orthographic.Width := Frame.Animation.Frame[0].FrameWidth;
-  FViewport.AssignDefaultCamera; // reset camera
 end;
 
 procedure TSpriteSheetEditorForm.LockUpdatePreview;

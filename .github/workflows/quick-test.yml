@@ -1,0 +1,51 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to quickly test that some CGE tools/examples compile.
+#
+# This is a small subset of tests done by test-and-pack.yml ,
+# just to make a quick error in case you break the compilation of a critical CGE part.
+# The full test-and-pack.yml tests much more, but takes about 2h now.
+# ----------------------------------------------------------------------------
+
+name: Quick Test
+on: [push]
+
+# setup.sh inside Docker requires using bash
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test-quick:
+    name: Quick Test of Tools
+    strategy:
+      matrix:
+        # TODO: Not including windows-latest, as it fails:
+        # ./tools/build-tool/castle-engine_compile.sh: line 43: fpc: command not found
+        # Looks like https://github.com/gcarreno/setup-lazarus doesn't put FPC on $PATH on Windows?
+        operating-system: [ubuntu-latest, macos-latest]
+        lazarus-versions: [stable]
+    runs-on: ${{ matrix.operating-system }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install FPC+Lazarus
+        uses: gcarreno/setup-lazarus@v3.0.16
+        with:
+          lazarus-version: ${{ matrix.lazarus-versions }}
+      - name: Install Ubuntu dependencies
+        if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+        run: sudo apt-get --no-install-recommends -y install libgl-dev
+      - name: Install macOS dependencies
+        if: ${{ matrix.operating-system == 'macos-latest' }}
+        run: brew install gnu-sed coreutils
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Tool
+        run: ./tools/build-tool/castle-engine_compile.sh
+      - name: Build Editor
+        run: ./tools/build-tool/castle-engine compile --project ./tools/castle-editor/
+      - name: Build FPS Game
+        run: ./tools/build-tool/castle-engine compile --project ./examples/fps_game/
+      - name: Run Autotests
+        run: |
+          ./tools/build-tool/castle-engine --project ./tests/ compile --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM
+          ./tools/build-tool/castle-engine --project ./tests/ run -- --console

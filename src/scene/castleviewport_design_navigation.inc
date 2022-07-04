@@ -120,10 +120,6 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property RotationAccelerate default false;
-    property MoveEnabled default false;
-    property ZoomEnabled default false;
-    property MouseButtonRotate default buttonRight;
-
     property Cursor stored false;
   end;
 

@@ -379,15 +379,15 @@
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
-    procedure Free; deprecated 'do not Free camera instance explicitly, only the TCastleViewport should create and destroy TCastleViewport.Camera; this method does nothing now';
-
     { Currently used projection near.
       Derived from @link(ProjectionNear) and possibly scene sizes. }
-    property EffectiveProjectionNear: Single read FEffectiveProjectionNear;
+    function EffectiveProjectionNear: Single;
+
     { Currently used projection far.
       Derived from @link(ProjectionFar) and possibly scene sizes.
       May be equal ZFarInfinity. }
-    property EffectiveProjectionFar: Single read FEffectiveProjectionFar;
+    function EffectiveProjectionFar: Single;
+
     // @exclude
     procedure InternalSetEffectiveProjection(
       const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
@@ -398,17 +398,26 @@
   published
     { Projection near plane distance.
 
-      For perspective projection, values <= 0 are invalid,
-      and imply that a suitable value should actually be automatically
-      calculated (looking at the world size).
+      0 (default) means to automatically calculate a correct value.
+      Note that automatic calculation differs between
+      perspective projection (looks at the world size and whether shadow volumes are possible)
+      and orthographic projection (uses Default2DProjectionNear).
 
-      For orthographic projection, all values are valid and reasonable,
-      including 0 and < 0 values. }
+      For perspective projection, values <= 0 are invalid.
+      So both value = 0 and value < 0 behave the same:
+      they indicate we should automatically calculate the effective ProjectionNear.
+
+      For orthographic projection, all values are valid and reasonable.
+      So value < 0 is just used literally,
+      it doesn't cause the effective value to be autocalculated. }
     property ProjectionNear: Single read FProjectionNear write SetProjectionNear {$ifdef FPC}default 0{$endif};
 
     { Projection far plane distance.
-      Use 0 to auto-calculate this each frame, based on world bounding box.
-      If shadow volumes are used, this may be overridden to be infinite. }
+
+      0 (default) means to automatically calculate a correct value.
+      Note that automatic calculation differs between
+      perspective projection (looks at the world size and whether shadow volumes are possible)
+      and orthographic projection (uses Default2DProjectionNear). }
     property ProjectionFar: Single read FProjectionFar write SetProjectionFar {$ifdef FPC}default 0{$endif};
 
     { Perspective or orthographic projection.
@@ -828,8 +837,47 @@ begin
   end;
 end;
 
-procedure TCastleCamera.Free;
+function TCastleCamera.EffectiveProjectionNear: Single;
 begin
+  { Sometimes we can return something valid (usually non-zero)
+    even when ProjectionNear is zero (indicating "autocalculate")
+    before the 1st InternalSetEffectiveProjection call.
+
+    This allows to depend on EffectiveProjectionNear more,
+    which matters for CGE editor design-time viewport manipulations in 2D,
+    that refer to Camera.EffectiveProjectionNear.
+
+    So instead of just returning FEffectiveProjectionNear,
+    we duplicate part of the logic that TCastleViewport.ApplyProjection does.
+
+    Still, trust FEffectiveProjectionNear more (when it is set),
+    e.g. because here (actually in EffectiveProjectionFar)
+    we don't account for special logic for design-time cameras having "Default2DProjectionFar * 4".
+  }
+  if FEffectiveProjectionNear <> 0 then
+    Exit(FEffectiveProjectionNear);
+
+  if FProjectionNear <> 0 then
+    Result := FProjectionNear
+  else
+  if FProjectionType = ptOrthographic then
+    Result := Default2DProjectionNear
+  else
+    Result := FEffectiveProjectionNear;
+end;
+
+function TCastleCamera.EffectiveProjectionFar: Single;
+begin
+  if FEffectiveProjectionFar <> 0 then
+    Exit(FEffectiveProjectionFar);
+
+  if FProjectionFar <> 0 then
+    Result := FProjectionFar
+  else
+  if FProjectionType = ptOrthographic then
+    Result := Default2DProjectionFar
+  else
+    Result := FEffectiveProjectionFar;
 end;
 
 procedure TCastleCamera.InternalSetEffectiveProjection(

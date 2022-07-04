@@ -17,7 +17,8 @@
 
 type
   { Attaches a gizmo to visualize parent transform.
-    Create this only if you need it (usually check "if CastleDesignMode ..."). }
+    Create this only if you need it (usually check "if CastleDesignMode ...").
+    @exclude }
   TInternalCastleEditorGizmo = class(TCastleTransform)
   strict private
     GizmoSelect: TCastleBox;
@@ -34,8 +35,13 @@ type
     function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
   public
+    class var
+      { When non-zero, LocalBoundingBox and BoundingBox of it is empty. }
+      EmptyBoundingBox: Cardinal;
+
     constructor Create(AOwner: TComponent); override;
     procedure LocalRender(const Params: TRenderParams); override;
+    function LocalBoundingBox: TBox3D; override;
 
     { You have to call it once, right after creating. }
     procedure SetParent(const AOwner: TCastleTransform);
@@ -141,6 +147,14 @@ begin
   Result := TShapeNode.Create;
   Result.Geometry := LineSet;
   Result.Appearance := Appearance;
+end;
+
+function TInternalCastleEditorGizmo.LocalBoundingBox: TBox3D;
+begin
+  if EmptyBoundingBox <> 0 then
+    Exit(TBox3D.Empty)
+  else
+    Result := inherited LocalBoundingBox;
 end;
 
 procedure TInternalCastleEditorGizmo.LocalRender(const Params: TRenderParams);
