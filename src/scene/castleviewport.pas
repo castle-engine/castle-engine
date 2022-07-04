@@ -1557,6 +1557,10 @@ begin
           InitialDir,
           InitialUp);
 
+        // copy also ortho size, to match at design-time the default view
+        InternalDesignCamera.Orthographic.Width := Camera.Orthographic.Width;
+        InternalDesignCamera.Orthographic.Height := Camera.Orthographic.Height;
+
         // best navigation for 2D
         InternalDesignNavigationType := dn2D;
       end else
@@ -3778,6 +3782,8 @@ begin
 end;
 
 procedure TCastleViewport.SetupChildren2D;
+const
+  DefaulOrthoHeight = 1000;
 var
   Plane: TCastlePlane;
 begin
@@ -3788,7 +3794,7 @@ begin
   { Advise user to set Camera.Orthographic.Width/Height to non-zero,
     this way the displayed items don't depend on your viewport size
     (and you can even change UI scaling,and viewport will have the same fov). }
-  Camera.Orthographic.Height := 1000;
+  Camera.Orthographic.Height := DefaulOrthoHeight;
   Setup2D;
 
   { purpose: initial 2D object,
@@ -3815,6 +3821,18 @@ begin
     { Better Origin default, makes things in center.
       Makes ViewSelected, ViewAll sensible in 2D }
     InternalDesignCamera.Orthographic.Origin := Vector2(0.5, 0.5);
+    { Having non-zero Orthographic.Height or Width is better, as then resizing viewport
+      (e.g. to squeeze it into some TCastleButton) works more naturally.
+      Note that
+
+      - design-time InternalDesignCamera.Orthographic.Height
+
+      - and run-time Camera.Orthographic.Height
+
+      may become desynchronized. They just start equal. This is deliberate,
+      design-time projection doesn't have to match run-time.
+      User can use "Align View To Camera" to make them match. }
+    InternalDesignCamera.Orthographic.Height := DefaulOrthoHeight;
 
     InternalDesignNavigationType := dn2D;
   end;
