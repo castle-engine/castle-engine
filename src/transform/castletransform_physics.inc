@@ -1424,7 +1424,7 @@ end;
 
 procedure TCastlePlaneCollider.CalculateAutoSize;
 var
-  LocalBoundingBox: TBox3D;
+  WorldBoundingBox: TBox3D;
 begin
   inherited;
 
@@ -1435,29 +1435,30 @@ begin
   end;
 
   Distance := 0;
-  LocalBoundingBox := Parent.LocalBoundingBox;
-  if LocalBoundingBox.SizeX > LocalBoundingBox.SizeY then
+  WorldBoundingBox := Parent.WorldBoundingBox;
+  if WorldBoundingBox.SizeX > WorldBoundingBox.SizeY then
   begin
-    if LocalBoundingBox.SizeY > LocalBoundingBox.SizeZ then
+    if WorldBoundingBox.SizeY > WorldBoundingBox.SizeZ then
       Normal := CastleVectors.Vector3(0, 0, 1)
     else
       Normal := CastleVectors.Vector3(0, 1, 0);
   end
   else
     begin
-      if LocalBoundingBox.SizeX > LocalBoundingBox.SizeZ then
+      if WorldBoundingBox.SizeX > WorldBoundingBox.SizeZ then
         Normal := CastleVectors.Vector3(0, 0, 1)
       else
         Normal := CastleVectors.Vector3(1, 0, 0);
     end;
 
-  Translation := LocalBoundingBox.Center;
+  Translation := Parent.LocalBoundingBox.Center;
   Rotation := Vector4(0, 0, 0, 0);
 end;
 
 constructor TCastlePlaneCollider.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FNormal := CastleVectors.Vector3(0, 1, 0);
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleplanecollider_persistent_vectors.inc}
   {$undef read_implementation_constructor}
