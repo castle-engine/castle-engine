@@ -95,6 +95,7 @@ begin
   GizmoImage := TCastleImageTransform.Create(Self);
   GizmoImage.Size := Vector2(GizmoSize, GizmoSize);
   GizmoImage.Mipmaps := true;
+  GizmoImage.Exists := false; // will change to true in SetIconUrl, just a tiny optimization to not use GizmoImage when no icon
   InternalTransform(GizmoImage);
   Add(GizmoImage);
 
@@ -196,6 +197,7 @@ end;
 procedure TInternalCastleEditorGizmo.SetIconUrl(const Url: String);
 begin
   GizmoImage.Url := Url;
+  GizmoImage.Exists := Url <> '';
 end;
 
 {$endif read_implementation}
