@@ -49,6 +49,7 @@
   strict private
     FFieldOfView: Single;
     FFieldOfViewAxis: TFieldOfViewAxis;
+    FEffectiveFieldOfView: TVector2;
     procedure SetFieldOfView(const Value: Single);
     procedure SetFieldOfViewAxis(const Value: TFieldOfViewAxis);
     function IsStoredFieldOfView: Boolean;
@@ -61,6 +62,14 @@
 
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { Effective field of view, horizontal and vertical, in radians.
+      Calculated looking at @link(FieldOfView) and @link(FieldOfViewAxis),
+      taking into account sizes of the viewport using this camera. }
+    property EffectiveFieldOfView: TVector2 read FEffectiveFieldOfView;
+
+    // @exclude
+    procedure InternalSetEffectiveFieldOfView(const AEffectiveFieldOfView: TVector2);
   published
     { Perspective field of view angle, in radians.
       The @link(FieldOfViewAxis) determines whether this is horizontal
@@ -83,7 +92,7 @@
   strict private
     FOrigin: TVector2;
     FWidth, FHeight, FScale: Single;
-    FEffectiveWidth, FEffectiveHeight: Single;
+    FEffectiveRect: TFloatRectangle;
     FStretch, WarningEffectiveSizeZeroDone: Boolean;
     procedure SetOrigin(const Value: TVector2);
     procedure SetWidth(const Value: Single);
@@ -125,14 +134,15 @@
     }
     property Origin: TVector2 read FOrigin write SetOrigin;
 
-    procedure InternalSetEffectiveSize(const W, H: Single);
+    // @exclude
+    procedure InternalSetEffectiveRect(const AEffectiveRect: TFloatRectangle);
 
-    { Currently used projection width and height, calculated following
-      the algorithm described at @link(Width) and @link(Height).
-      @groupBegin }
-    property EffectiveWidth: Single read FEffectiveWidth;
-    property EffectiveHeight: Single read FEffectiveHeight;
-    { @groupEnd }
+    { Currently used projection dimensions,
+      calculated following the algorithm described at @link(Width) and @link(Height),
+      taking into account sizes of the viewport using this camera. }
+    property EffectiveRect: TFloatRectangle read FEffectiveRect;
+    function EffectiveWidth: Single; deprecated 'use EffectiveRect.Width';
+    function EffectiveHeight: Single; deprecated 'use EffectiveRect.Height';
   published
     { Orthographic projection width and height.
 
@@ -259,9 +269,12 @@
     FPerspective: TCastlePerspective;
     FOrthographic: TCastleOrthographic;
 
+    FGizmoCoord: TObject; //< This is TCoordinateNode but we cannot declare it as such
+
     procedure CommonCreate(const AOwner: TComponent; const AShowGizmo: Boolean);
     procedure RecalculateFrustum;
     procedure SetGravityUp(const Value: TVector3);
+    procedure UpdateGizmoCoord;
 
     { Setter of the @link(ProjectionMatrix) property. }
     procedure SetProjectionMatrix(const Value: TMatrix4);
@@ -467,11 +480,17 @@ begin
   end;
 end;
 
+procedure TCastlePerspective.InternalSetEffectiveFieldOfView(const AEffectiveFieldOfView: TVector2);
+begin
+  FEffectiveFieldOfView := AEffectiveFieldOfView;
+end;
+
 function TCastlePerspective.IsStoredFieldOfView: Boolean;
 begin
   { Seems like this is the only way to avoid always serializing FieldOfView.
     Possibly displaying it in object inspector always modifies it a bit,
-    due to rounding when displaying? }
+    due to rounding when displaying?
+    TODO: Is this really necessary still? }
   Result := not SameValue(FFieldOfView, DefaultFieldOfView);
 end;
 
@@ -552,17 +571,27 @@ begin
   end;
 end;
 
-procedure TCastleOrthographic.InternalSetEffectiveSize(const W, H: Single);
+procedure TCastleOrthographic.InternalSetEffectiveRect(const AEffectiveRect: TFloatRectangle);
 begin
-  if ((W <= 0) or (H <= 0)) and (not WarningEffectiveSizeZeroDone) then
+  if ((AEffectiveRect.Width <= 0) or (AEffectiveRect.Height <= 0)) and (not WarningEffectiveSizeZeroDone) then
   begin
     WritelnWarning('Orthographic projection effective width and height (calculated based on Camera.Orthographic.Width,Height,Scale and viewport size) should be > 0, but are %f x %f (further warnings about it will be supressed, to not spam log)', [
-      W, H
+      AEffectiveRect.Width,
+      AEffectiveRect.Height
     ]);
     WarningEffectiveSizeZeroDone := true;
   end;
-  FEffectiveWidth := W;
-  FEffectiveHeight := H;
+  FEffectiveRect := AEffectiveRect;
+end;
+
+function TCastleOrthographic.EffectiveWidth: Single;
+begin
+  Result := FEffectiveRect.Width;
+end;
+
+function TCastleOrthographic.EffectiveHeight: Single;
+begin
+  Result := FEffectiveRect.Height;
 end;
 
 function TCastleOrthographic.PropertySections(const PropertyName: String): TPropertySections;
@@ -598,10 +627,11 @@ var
   function BuildGizmo: TX3DRootNode;
   begin
     Result := TX3DRootNode.Create;
-    Result.AddChildren(Gizmo.LinesShape([
-      CastleVectors.Vector3(0, 0, 0),
-      DefaultCameraDirection * 4
+    Result.AddChildren(Gizmo.LinesShape(TCoordinateNode(FGizmoCoord), [
+      2, 2, 2, 2,
+      2, 2, 2, 2
     ]));
+    UpdateGizmoCoord;
   end;
 
 begin
@@ -648,7 +678,9 @@ begin
     Gizmo := TInternalCastleEditorGizmo.Create(Self);
     Gizmo.SetParent(Self);
     Gizmo.LoadVisualization(BuildGizmo);
-    Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/camera/camera.png');
+    { No need for icon anymore, gizmo is recognizeable enough.
+      And it removes worry about icon size in 2D games, where it would be too small. }
+    // Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/camera/camera.png');
     Add(Gizmo);
   end;
 
@@ -774,6 +806,9 @@ begin
         Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginUp       , AnimationEndUp));
     end;
   end;
+
+  if FGizmoCoord <> nil then
+    UpdateGizmoCoord;
 end;
 
 procedure TCastleCamera.AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime);
@@ -950,6 +985,51 @@ begin
   if vcVisibleGeometry in Changes then
     if Assigned(InternalOnCameraChanged) then
       InternalOnCameraChanged(Self);
+end;
+
+procedure TCastleCamera.UpdateGizmoCoord;
+const
+  { Camera plane is shown at EffectiveProjectionNear, unless it is smaller than this. }
+  MinDistanceToPlane = 1;
+var
+  PlanePoints: array [0..3] of TVector3;
+  TanX, TanY, PlaneZ: Single;
+begin
+  { TODO: Don't do this every frame, optimize to do nothing if related EffectiveXxx didn't change. }
+
+  PlaneZ := -Max(EffectiveProjectionNear, MinDistanceToPlane);
+
+  case ProjectionType of
+    ptOrthographic:
+      begin
+        PlanePoints[0] := Vector3(Orthographic.EffectiveRect.Left , Orthographic.EffectiveRect.Bottom, PlaneZ);
+        PlanePoints[1] := Vector3(Orthographic.EffectiveRect.Right, Orthographic.EffectiveRect.Bottom, PlaneZ);
+        PlanePoints[2] := Vector3(Orthographic.EffectiveRect.Right, Orthographic.EffectiveRect.Top   , PlaneZ);
+        PlanePoints[3] := Vector3(Orthographic.EffectiveRect.Left , Orthographic.EffectiveRect.Top   , PlaneZ);
+      end;
+    ptPerspective:
+      begin
+        TanX := Tan(Perspective.EffectiveFieldOfView.X);
+        TanY := Tan(Perspective.EffectiveFieldOfView.Y);
+        PlanePoints[0] := Vector3(-TanX * EffectiveProjectionNear, -TanY * EffectiveProjectionNear, PlaneZ);
+        PlanePoints[1] := Vector3( TanX * EffectiveProjectionNear, -TanY * EffectiveProjectionNear, PlaneZ);
+        PlanePoints[2] := Vector3( TanX * EffectiveProjectionNear,  TanY * EffectiveProjectionNear, PlaneZ);
+        PlanePoints[3] := Vector3(-TanX * EffectiveProjectionNear,  TanY * EffectiveProjectionNear, PlaneZ);
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TCastleCamera.UpdateGizmoCoord:ProjectionType?');
+    {$endif}
+  end;
+  TCoordinateNode(FGizmoCoord).SetPoint([
+    Vector3(0, 0, 0), PlanePoints[0],
+    Vector3(0, 0, 0), PlanePoints[1],
+    Vector3(0, 0, 0), PlanePoints[2],
+    Vector3(0, 0, 0), PlanePoints[3],
+    PlanePoints[0], PlanePoints[1],
+    PlanePoints[1], PlanePoints[2],
+    PlanePoints[2], PlanePoints[3],
+    PlanePoints[3], PlanePoints[0]
+  ]);
 end;
 
 {$define read_implementation_methods}

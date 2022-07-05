@@ -2148,9 +2148,8 @@ var
     Assert(Result.Dimensions.Width  = EffectiveProjectionWidth);
     Assert(Result.Dimensions.Height = EffectiveProjectionHeight);
 
-    InternalCamera.Orthographic.InternalSetEffectiveSize(
-      Result.Dimensions.Width,
-      Result.Dimensions.Height);
+    InternalCamera.Orthographic.InternalSetEffectiveRect(
+      Result.Dimensions);
   end;
 
   { Calculate reasonable perspective projection near, looking at Box. }
@@ -2254,6 +2253,8 @@ begin
     InternalCamera.Perspective.FieldOfViewAxis,
     Viewport.Width,
     Viewport.Height);
+  InternalCamera.Perspective.InternalSetEffectiveFieldOfView(
+    Result.PerspectiveAnglesRad);
 
   { calculate Result.ProjectionNear }
   Result.ProjectionNear := InternalCamera.ProjectionNear;
