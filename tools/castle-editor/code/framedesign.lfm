@@ -909,6 +909,7 @@ object DesignFrame: TDesignFrame
         Hint = 'Select and Move transform (TCastleTransform).'#10#10'Hold "Shift" to Move without changing the selection.'
         Top = 0
         Width = 36
+        AllowAllUp = True
         Constraints.MinHeight = 34
         Constraints.MinWidth = 34
         Glyph.Data = {
