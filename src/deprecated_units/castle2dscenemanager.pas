@@ -178,13 +178,13 @@ end;
 function TCastle2DSceneManager.CurrentProjectionWidth: Single;
 begin
   if Camera = nil then Exit(0);
-  Result := Camera.Orthographic.EffectiveWidth;
+  Result := Camera.Orthographic.EffectiveRect.Width;
 end;
 
 function TCastle2DSceneManager.CurrentProjectionHeight: Single;
 begin
   if Camera = nil then Exit(0);
-  Result := Camera.Orthographic.EffectiveHeight;
+  Result := Camera.Orthographic.EffectiveRect.Height;
 end;
 
 function TCastle2DSceneManager.GetProjectionAutoSize: Boolean;
