@@ -870,87 +870,207 @@
   TRigidBody = class(TCastleRigidBody)
   end;
 
-  TJointTest = class(TCastleBehavior)
-    private
-      FJoint1: TKraftConstraintJointRope;
-      FJoint2: TKraftConstraintJointBallSocket;
-      FJoint3: TKraftConstraintJointDistance;
-    public
-      RigidBodyA:TCastleRigidBody;
-      RigidBodyB:TCastleRigidBody;
+  TAbstractJoint = class(TCastleBehavior)
+  strict protected
+    FBreakThresholdForce: Single;
+    FBreakThresholdTorque: Single;
 
-      procedure WorldAfterAttach; override;
-      constructor Create(AOwner: TComponent); override;
+    function GetKraftJoint: TKraftConstraintJoint; virtual; abstract;
+    procedure RecreateKraftJoint; virtual; abstract;
+
+    procedure SetBreakThresholdForce(const AValue: Single);
+    procedure SetBreakThresholdTorque(const AValue: Single);
+  published
+    property BreakThresholdForce:Single read FBreakThresholdForce write SetBreakThresholdForce;
+    property BreakThresholdTorque:Single read FBreakThresholdTorque write SetBreakThresholdTorque;
   end;
 
-  TJointHinge = class(TCastleBehavior)
+  TAbstractOneBodyJoint = class(TAbstractJoint)
+
+  end;
+
+  TAbstractTwoBodiesJoint = class (TAbstractJoint)
+  private
+    FConnectedTransform: TCastleTransform;
+    FConnectedCollide: Boolean;
+
+  strict protected
+    procedure SetConnectedTransform(const AConnectedTransform: TCastleTransform); virtual;
+    procedure SetConnectedCollide(const AValue: Boolean); virtual;
+
+  published
+    property ConnectedTransform: TCastleTransform read FConnectedTransform
+      write SetConnectedTransform;
+
+    property ConnectedCollide: Boolean read FConnectedCollide
+      write SetConnectedCollide default false;
+  end;
+
+  TJointHinge = class(TAbstractTwoBodiesJoint)
     private
-      FKraftJointHinge: TKraftConstraintJoint;
-      FSecondTransform: TCastleTransform;
+      FKraftJointHinge: TKraftConstraintJointHinge;
+      FMotorSpeed: Single;
       FRotationAxis: TVector3;
       FAnchorPoint: TVector3;
+      FMinimumAngleLimit: Single;
+      FMaximumAngleLimit: Single;
+      FEnableLimits: Boolean;
+      FEnableMotor: Boolean;
+
+      procedure SetAnchorPoint(const AValue: TVector3);
+      procedure SetRotationAxis(const AValue: TVector3);
+      procedure SetEnableLimits(const AValue: Boolean);
+      procedure SetMinimumAngleLimit(const AValue: Single);
+      procedure SetMaximumAngleLimit(const AValue: Single);
+      procedure SetEnableMotor(const AValue: Boolean);
+      procedure SetMotorSpeed(const AValue: Single);
+      function GetMotorSpeed: Single;
+
+    strict protected
+      function GetKraftJoint: TKraftConstraintJoint; override;
+      procedure RecreateKraftJoint; override;
+
     public
       constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
 
       procedure WorldAfterAttach; override;
+      procedure WorldBeforeDetach; override;
+
+      // TODO: This is local point should be world?
+      property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
+      // TODO: currently this is local and in kraft is world maybe we should
+      // change to world or to castle default?
+      property RotationAxis: TVector3 read FRotationAxis write SetRotationAxis;
     published
-      property SecondTransform: TCastleTransform read FSecondTransform write FSecondTransform;
+      property EnableLimits: Boolean read FEnableLimits write SetEnableLimits;
+      property MinimumAngleLimit: Single read FMinimumAngleLimit write SetMinimumAngleLimit;
+      property MaximimAngleLimit: Single read FMaximumAngleLimit write SetMaximumAngleLimit;
+      property EnableMotor: Boolean read FEnableMotor write SetEnableMotor;
+      property MotorSpeed: Single read GetMotorSpeed write SetMotorSpeed;
+      {$define read_interface_class}
+      {$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
+      {$undef read_interface_class}
   end;
 
-  TJointRope = class(TCastleBehavior)
+  TJointRope = class(TAbstractTwoBodiesJoint)
     private
       FKraftJointRope: TKraftConstraintJointRope;
-      FSecondTransform: TCastleTransform;
       FAnchorPoint: TVector3;
-      FSecondAnchorPoint: TVector3;
+      FConnectedAnchorPoint: TVector3;
       FDistance: Single;
+
+      procedure SetAnchorPoint(const AValue: TVector3);
+      procedure SetConnectedAnchorPoint(const AValue: TVector3);
+      procedure SetDistance(const AValue: Single);
+    strict protected
+      function GetKraftJoint: TKraftConstraintJoint; override;
+      procedure RecreateKraftJoint; override;
+
     public
       constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
       procedure WorldAfterAttach; override;
+      procedure WorldBeforeDetach; override;
+
+      // TODO: This is local point should be world?
+      property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
+      property ConnectedAnchorPoint: TVector3 read FConnectedAnchorPoint
+        write SetConnectedAnchorPoint;
 
     published
-      property SecondTransform: TCastleTransform read FSecondTransform write FSecondTransform;
-      property Distance:Single read FDistance write FDistance;
+      property Distance: Single read FDistance write SetDistance;
+      {$define read_interface_class}
+      {$I auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc}
+      {$undef read_interface_class}
   end;
 
-  TJointFixed = class(TCastleBehavior)
+  TJointFixed = class(TAbstractTwoBodiesJoint)
   private
     FKraftJointFixed: TKraftConstraintJointFixed;
-    FSecondTransform: TCastleTransform;
     FAnchorPoint: TVector3;
+
+    procedure SetAnchorPoint(const AValue: TVector3);
+  strict protected
+    function GetKraftJoint: TKraftConstraintJoint; override;
+    procedure RecreateKraftJoint; override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     procedure WorldAfterAttach; override;
+    procedure WorldBeforeDetach; override;
+
+    // TODO: This is local point should be world?
+    property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
   published
-    property SecondTransform: TCastleTransform read FSecondTransform write FSecondTransform;
+    {$define read_interface_class}
+    {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
+    {$undef read_interface_class}
   end;
 
-  TJointBall = class(TCastleBehavior)
+  TJointBall = class(TAbstractTwoBodiesJoint)
   private
     FKraftJointBall: TKraftConstraintJointBallSocket;
-    FSecondTransform: TCastleTransform;
     FAnchorPoint: TVector3;
+
+    procedure SetAnchorPoint(const AValue: TVector3);
+  strict protected
+    function GetKraftJoint: TKraftConstraintJoint; override;
+    procedure RecreateKraftJoint; override;
+
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     procedure WorldAfterAttach; override;
-  published
-    property SecondTransform: TCastleTransform read FSecondTransform write FSecondTransform;
+    procedure WorldBeforeDetach; override;
+
+    // TODO: This is local point should be world?
+    property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
+
+   published
+    {$define read_interface_class}
+    {$I auto_generated_persistent_vectors/tjointball_persistent_vectors.inc}
+    {$undef read_interface_class}
   end;
 
-  TJointDistance = class(TCastleBehavior)
+  TJointDistance = class(TAbstractTwoBodiesJoint)
   private
     FKraftJointDistance: TKraftConstraintJointDistance;
-    FSecondTransform: TCastleTransform;
     FAnchorPoint: TVector3;
-    FSecondAnchorPoint: TVector3;
+    FConnectedAnchorPoint: TVector3;
+    FFrequencyHz: Single;
+    FDampingRatio: Single;
+
+    procedure SetAnchorPoint(const AValue: TVector3);
+    procedure SetConnectedAnchorPoint(const AValue: TVector3);
+    procedure SetFrequencyHz(const AValue: Single);
+    procedure SetDampingRatio(const AValue: Single);
+
+  strict protected
+    function GetKraftJoint: TKraftConstraintJoint; override;
+    procedure RecreateKraftJoint; override;
+
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     procedure WorldAfterAttach; override;
+    procedure WorldBeforeDetach; override;
+
+    // TODO: This is local point should be world?
+    property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
+    // TODO: This is local point should be world?
+    property ConnectedAnchorPoint: TVector3 read FAnchorPoint
+      write SetConnectedAnchorPoint;
   published
-    property SecondTransform: TCastleTransform read FSecondTransform write FSecondTransform;
+    property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
+    property DampingRatio: Single read FDampingRatio write SetDampingRatio;
+
+    {$define read_interface_class}
+    {$I auto_generated_persistent_vectors/tjointdistance_persistent_vectors.inc}
+    {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -2967,82 +3087,136 @@ end;
 {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
-{ TJointTest ----------------------------------------------------------------- }
+{ TAbstractTwoBodiesJoint ---------------------------------------------------- }
 
-procedure TJointTest.WorldAfterAttach;
+procedure TAbstractTwoBodiesJoint.SetConnectedCollide(const AValue: Boolean);
 begin
-  inherited WorldAfterAttach;
-  //{
-  FJoint1 := TKraftConstraintJointRope.Create(
-    World.FKraftEngine,
-    RigidBodyA.FKraftBody,
-    RigidBodyB.FKraftBody,
-    VectorToKraft(Vector3(0,0,0)),
-    VectorToKraft(Vector3(0,0,0)),
-    480,
-    false
-  );
-  //}
-
-  {
-  FJoint2 := TKraftConstraintJointBallSocket.Create(
-      World.FKraftEngine,
-      RigidBodyA.FKraftBody,
-      RigidBodyB.FKraftBody,
-      VectorToKraft(Vector3(0,0,0)),
-      VectorToKraft(Vector3(0,0,0)),
-      false
-    );
-  }
-
-  {
-  FJoint3 := TKraftConstraintJointDistance.Create(
-    World.FKraftEngine,
-    RigidBodyA.FKraftBody,
-    RigidBodyB.FKraftBody,
-    VectorToKraft(Vector3(0,0,0)),
-    VectorToKraft(Vector3(0,0,0)),
-    10,
-    1,
-    false
-    //true
-  );
-
-  }
+  if FConnectedCollide = AValue then
+    Exit;
+  FConnectedCollide := AValue;
+  RecreateKraftJoint;
 end;
 
-constructor TJointTest.Create(AOwner: TComponent);
+procedure TAbstractTwoBodiesJoint.SetConnectedTransform(
+  const AConnectedTransform: TCastleTransform);
 begin
-  inherited;
-  NeedWorldChangeNotification := true;
+  if FConnectedTransform <> AConnectedTransform then
+  begin
+    FConnectedTransform := AConnectedTransform;
+    RecreateKraftJoint;
+  end;
+end;
+
+{ TAbstractJoint ------------------------------------------------------------- }
+
+procedure TAbstractJoint.SetBreakThresholdForce(const AValue: Single);
+begin
+  FBreakThresholdForce := AValue;
+  if GetKraftJoint <> nil then
+    GetKraftJoint.BreakThresholdForce := AValue;
+end;
+
+procedure TAbstractJoint.SetBreakThresholdTorque(const AValue: Single);
+begin
+  FBreakThresholdTorque := AValue;
+  if GetKraftJoint <> nil then
+    GetKraftJoint.BreakThresholdTorque := AValue;
 end;
 
 { TJointHinge --------------------------------------------------------------- }
 
-constructor TJointHinge.Create(AOwner: TComponent);
+procedure TJointHinge.SetAnchorPoint(const AValue: TVector3);
 begin
-  inherited Create(AOwner);
-  NeedWorldChangeNotification := true;
-  FRotationAxis:= Vector3(0, 0, 1);
-  FAnchorPoint := Vector3(0, 0, 0);
+  if TVector3.Equals(FAnchorPoint, AValue) then
+    Exit;
+
+  FAnchorPoint := AValue;
+  RecreateKraftJoint;
 end;
 
-procedure TJointHinge.WorldAfterAttach;
+procedure TJointHinge.SetRotationAxis(const AValue: TVector3);
+begin
+  FRotationAxis := AValue;
+  if FKraftJointHinge <> nil then
+    FKraftJointHinge.SetWorldRotationAxis(
+      VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis)));
+end;
+
+procedure TJointHinge.SetEnableLimits(const AValue: Boolean);
+begin
+  if FEnableLimits = AValue then
+    Exit;
+
+  FEnableLimits := AValue;
+
+  if FKraftJointHinge <> nil then
+    FKraftJointHinge.EnableLimit(AValue);
+end;
+
+procedure TJointHinge.SetMinimumAngleLimit(const AValue: Single);
+begin
+  FMinimumAngleLimit := AValue;
+  if FKraftJointHinge <> nil then
+    FKraftJointHinge.SetMinimumAngleLimit(FMinimumAngleLimit);
+end;
+
+procedure TJointHinge.SetMaximumAngleLimit(const AValue: Single);
+begin
+  FMaximumAngleLimit := AValue;
+  if FKraftJointHinge <> nil then
+    FKraftJointHinge.SetMaximumAngleLimit(FMaximumAngleLimit);
+end;
+
+procedure TJointHinge.SetEnableMotor(const AValue: Boolean);
+begin
+  if FEnableMotor = AValue then
+    Exit;
+
+  FEnableMotor := AValue;
+
+  if FKraftJointHinge <> nil then
+    FKraftJointHinge.EnableLimit(AValue);
+end;
+
+procedure TJointHinge.SetMotorSpeed(const AValue: Single);
+begin
+  FMotorSpeed := AValue;
+  if FKraftJointHinge <> nil then
+    FKraftJointHinge.SetMotorSpeed(AValue);
+end;
+
+function TJointHinge.GetMotorSpeed: Single;
+begin
+  if FKraftJointHinge <> nil then
+    FMotorSpeed := FKraftJointHinge.GetMotorSpeed;
+
+  Result := FMotorSpeed;
+end;
+
+function TJointHinge.GetKraftJoint: TKraftConstraintJoint;
+begin
+  Result := FKraftJointHinge;
+end;
+
+procedure TJointHinge.RecreateKraftJoint;
 var
   FirstRigidBody: TCastleRigidBody;
   SecondRigidBody: TCastleRigidBody;
 begin
-  inherited WorldAfterAttach;
+  FreeAndNil(FKraftJointHinge);
+
+  if World = nil then
+    Exit;
+
+  if FConnectedTransform = nil then
+    Exit;
 
   FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 
   if FirstRigidBody = nil then
     Exit;
 
-  if SecondTransform = nil then
-    Exit;
-
-  SecondRigidBody := SecondTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 
   if SecondRigidBody = nil then
     Exit;
@@ -3052,37 +3226,113 @@ begin
     FirstRigidBody.FKraftBody,
     SecondRigidBody.FKraftBody,
     VectorToKraft(Parent.LocalToWorld(FAnchorPoint)),
-    VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis))
+    VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis)),
+    FEnableLimits,
+    FEnableMotor,
+    FMinimumAngleLimit,
+    FMaximumAngleLimit,
+    FMotorSpeed,
+    0.0,
+    ConnectedCollide
   );
+  FKraftJointHinge.SetMinimumAngleLimit(FMinimumAngleLimit);
+  FKraftJointHinge.SetMaximumAngleLimit(FMaximumAngleLimit);
+  FKraftJointHinge.EnableLimit(FEnableLimits);
+  FKraftJointHinge.EnableMotor(FEnableMotor);
+  FKraftJointHinge.SetMotorSpeed(FMotorSpeed);
 end;
 
-
-{ TJointRope --------------------------------------------------------------- }
-
-constructor TJointRope.Create(AOwner: TComponent);
+constructor TJointHinge.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
+  FRotationAxis:= Vector3(0, 0, 1);
   FAnchorPoint := Vector3(0, 0, 0);
-  FSecondAnchorPoint := Vector3(0, 0, 0);
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
-procedure TJointRope.WorldAfterAttach;
+destructor TJointHinge.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
+  inherited Destroy;
+end;
+
+procedure TJointHinge.WorldAfterAttach;
+begin
+  inherited WorldAfterAttach;
+
+  RecreateKraftJoint;
+end;
+
+procedure TJointHinge.WorldBeforeDetach;
+begin
+  // TODO: how to remove joint
+  //FreeAndNil(FKraftJointHinge);
+  inherited WorldBeforeDetach;
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
+{$undef read_implementation_methods}
+
+{ TJointRope --------------------------------------------------------------- }
+
+procedure TJointRope.SetAnchorPoint(const AValue: TVector3);
+begin
+  if TVector3.Equals(FAnchorPoint, AValue) then
+    Exit;
+
+  FAnchorPoint := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointRope.SetConnectedAnchorPoint(const AValue: TVector3);
+begin
+  if TVector3.Equals(FConnectedAnchorPoint, AValue) then
+    Exit;
+
+  FConnectedAnchorPoint := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointRope.SetDistance(const AValue: Single);
+begin
+  if SameValue(FDistance, AValue) then
+    Exit;
+  FDistance := AValue;
+  RecreateKraftJoint;
+end;
+
+function TJointRope.GetKraftJoint: TKraftConstraintJoint;
+begin
+  Result := FKraftJointRope;
+end;
+
+procedure TJointRope.RecreateKraftJoint;
 var
   FirstRigidBody: TCastleRigidBody;
   SecondRigidBody: TCastleRigidBody;
 begin
-  inherited WorldAfterAttach;
+  FreeAndNil(FKraftJointRope);
+
+  if World = nil then
+    Exit;
+
+  if FConnectedTransform = nil then
+    Exit;
 
   FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 
   if FirstRigidBody = nil then
     Exit;
 
-  if SecondTransform = nil then
-    Exit;
-
-  SecondRigidBody := SecondTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 
   if SecondRigidBody = nil then
     Exit;
@@ -3092,37 +3342,84 @@ begin
     FirstRigidBody.FKraftBody,
     SecondRigidBody.FKraftBody,
     VectorToKraft(FAnchorPoint),
-    VectorToKraft(FSecondAnchorPoint),
+    VectorToKraft(FConnectedAnchorPoint),
     FDistance
   );
 end;
 
-
-{ TJointFixed --------------------------------------------------------------- }
-
-constructor TJointFixed.Create(AOwner: TComponent);
+constructor TJointRope.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
   FAnchorPoint := Vector3(0, 0, 0);
+  FConnectedAnchorPoint := Vector3(0, 0, 0);
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
-procedure TJointFixed.WorldAfterAttach;
+destructor TJointRope.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
+  inherited Destroy;
+end;
+
+procedure TJointRope.WorldAfterAttach;
+begin
+  inherited WorldAfterAttach;
+  RecreateKraftJoint;
+end;
+
+procedure TJointRope.WorldBeforeDetach;
+begin
+  // TODO: how to remove joint
+  //FreeAndNil(FKraftJointRope);
+  inherited WorldBeforeDetach;
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc}
+{$undef read_implementation_methods}
+
+{ TJointFixed --------------------------------------------------------------- }
+
+procedure TJointFixed.SetAnchorPoint(const AValue: TVector3);
+begin
+  if TVector3.Equals(FAnchorPoint, AValue) then
+    Exit;
+
+  FAnchorPoint := AValue;
+  RecreateKraftJoint;
+end;
+
+function TJointFixed.GetKraftJoint: TKraftConstraintJoint;
+begin
+  Result := FKraftJointFixed;
+end;
+
+procedure TJointFixed.RecreateKraftJoint;
 var
   FirstRigidBody: TCastleRigidBody;
   SecondRigidBody: TCastleRigidBody;
 begin
-  inherited WorldAfterAttach;
+  FreeAndNil(FKraftJointFixed);
+
+  if World = nil then
+    Exit;
+
+  if FConnectedTransform = nil then
+    Exit;
 
   FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 
   if FirstRigidBody = nil then
     Exit;
 
-  if SecondTransform = nil then
-    Exit;
-
-  SecondRigidBody := SecondTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 
   if SecondRigidBody = nil then
     Exit;
@@ -3135,31 +3432,77 @@ begin
   );
 end;
 
-{ TJointBall --------------------------------------------------------------- }
-
-constructor TJointBall.Create(AOwner: TComponent);
+constructor TJointFixed.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
   FAnchorPoint := Vector3(0, 0, 0);
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
-procedure TJointBall.WorldAfterAttach;
+destructor TJointFixed.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
+  inherited Destroy;
+end;
+
+procedure TJointFixed.WorldAfterAttach;
+begin
+  inherited WorldAfterAttach;
+  RecreateKraftJoint;
+end;
+
+procedure TJointFixed.WorldBeforeDetach;
+begin
+  // TODO: how to remove joint
+  //FreeAndNil(FKraftJointFixed);
+  inherited WorldBeforeDetach;
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
+{$undef read_implementation_methods}
+
+{ TJointBall --------------------------------------------------------------- }
+
+procedure TJointBall.SetAnchorPoint(const AValue: TVector3);
+begin
+  if TVector3.Equals(FAnchorPoint, AValue) then
+    Exit;
+
+  FAnchorPoint := AValue;
+  RecreateKraftJoint;
+end;
+
+function TJointBall.GetKraftJoint: TKraftConstraintJoint;
+begin
+  Result := FKraftJointBall;
+end;
+
+procedure TJointBall.RecreateKraftJoint;
 var
   FirstRigidBody: TCastleRigidBody;
   SecondRigidBody: TCastleRigidBody;
 begin
-  inherited WorldAfterAttach;
+  FreeAndNil(FKraftJointBall);
+
+  if World = nil then
+    Exit;
+
+  if FConnectedTransform = nil then
+    Exit;
 
   FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 
   if FirstRigidBody = nil then
     Exit;
 
-  if SecondTransform = nil then
-    Exit;
-
-  SecondRigidBody := SecondTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 
   if SecondRigidBody = nil then
     Exit;
@@ -3172,14 +3515,135 @@ begin
   );
 end;
 
-{ TJointBall --------------------------------------------------------------- }
+constructor TJointBall.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  NeedWorldChangeNotification := true;
+  FAnchorPoint := Vector3(0, 0, 0);
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tjointball_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TJointBall.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tjointball_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
+  inherited Destroy;
+end;
+
+procedure TJointBall.WorldAfterAttach;
+begin
+  inherited WorldAfterAttach;
+  RecreateKraftJoint;
+end;
+
+procedure TJointBall.WorldBeforeDetach;
+begin
+  // TODO: how to remove joint
+  //FreeAndNil(FKraftJointBall);
+  inherited WorldBeforeDetach;
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tjointball_persistent_vectors.inc}
+{$undef read_implementation_methods}
+
+{ TJointDistance ------------------------------------------------------------- }
+
+procedure TJointDistance.SetAnchorPoint(const AValue: TVector3);
+begin
+  if TVector3.Equals(FAnchorPoint, AValue) then
+    Exit;
+
+  FAnchorPoint := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointDistance.SetConnectedAnchorPoint(const AValue: TVector3);
+begin
+  if TVector3.Equals(FConnectedAnchorPoint, AValue) then
+    Exit;
+
+  FConnectedAnchorPoint := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointDistance.SetFrequencyHz(const AValue: Single);
+begin
+  if SameValue(FFrequencyHz, AValue) then
+    Exit;
+
+  FFrequencyHz := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointDistance.SetDampingRatio(const AValue: Single);
+begin
+  if SameValue(FDampingRatio, AValue) then
+    Exit;
+  RecreateKraftJoint;
+end;
+
+function TJointDistance.GetKraftJoint: TKraftConstraintJoint;
+begin
+  Result := FKraftJointDistance;
+end;
+
+procedure TJointDistance.RecreateKraftJoint;
+var
+  FirstRigidBody: TCastleRigidBody;
+  SecondRigidBody: TCastleRigidBody;
+begin
+  FreeAndNil(FKraftJointDistance);
+
+  if World = nil then
+    Exit;
+
+  if FConnectedTransform = nil then
+    Exit;
+
+  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if FirstRigidBody = nil then
+    Exit;
+
+  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+
+  if SecondRigidBody = nil then
+    Exit;
+
+  FKraftJointDistance := TKraftConstraintJointDistance.Create(
+    World.FKraftEngine,
+    FirstRigidBody.FKraftBody,
+    SecondRigidBody.FKraftBody,
+    VectorToKraft(FAnchorPoint),
+    VectorToKraft(FConnectedAnchorPoint),
+    FFrequencyHz,
+    FDampingRatio
+  );
+end;
 
 constructor TJointDistance.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
   FAnchorPoint := Vector3(0, 0, 0);
-  FSecondAnchorPoint := Vector3(0, 0, 0);
+  FConnectedAnchorPoint := Vector3(0, 0, 0);
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TJointDistance.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tjointdistance_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
+  inherited Destroy;
 end;
 
 procedure TJointDistance.WorldAfterAttach;
@@ -3194,10 +3658,10 @@ begin
   if FirstRigidBody = nil then
     Exit;
 
-  if SecondTransform = nil then
+  if ConnectedTransform = nil then
     Exit;
 
-  SecondRigidBody := SecondTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 
   if SecondRigidBody = nil then
     Exit;
@@ -3207,10 +3671,20 @@ begin
     FirstRigidBody.FKraftBody,
     SecondRigidBody.FKraftBody,
     VectorToKraft(FAnchorPoint),
-    VectorToKraft(FSecondAnchorPoint),
-    300
+    VectorToKraft(FConnectedAnchorPoint)
   );
 end;
+
+procedure TJointDistance.WorldBeforeDetach;
+begin
+  // TODO: how to remove joint
+  //FreeAndNil(FKraftJointDistance);
+  inherited WorldBeforeDetach;
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tjointdistance_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TCastleTransform ---------------------------------------------------------- }
 

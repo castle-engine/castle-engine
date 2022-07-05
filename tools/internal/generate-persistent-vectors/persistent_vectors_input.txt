@@ -67,6 +67,15 @@
 ../../../src/transform/ TCastleRigidBody AngularVelocity TVector3
 ../../../src/transform/ TCastleRigidBody LinearVelocity TVector3
 
+../../../src/transform/ TJointHinge AnchorPoint TVector3
+../../../src/transform/ TJointHinge RotationAxis TVector3
+../../../src/transform/ TJointRope AnchorPoint TVector3
+../../../src/transform/ TJointRope ConnectedAnchorPoint TVector3
+../../../src/transform/ TJointFixed AnchorPoint TVector3
+../../../src/transform/ TJointBall AnchorPoint TVector3
+../../../src/transform/ TJointDistance AnchorPoint TVector3
+../../../src/transform/ TJointDistance ConnectedAnchorPoint TVector3
+
 ../../../src/transform/ TCastleCamera GravityUp TVector3
 
 ../../../src/transform/ TCastleOrthographic Origin TVector2
