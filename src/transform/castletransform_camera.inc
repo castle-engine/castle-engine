@@ -1002,29 +1002,29 @@ begin
   case ProjectionType of
     ptOrthographic:
       begin
-        PlanePoints[0] := Vector3(Orthographic.EffectiveRect.Left , Orthographic.EffectiveRect.Bottom, PlaneZ);
-        PlanePoints[1] := Vector3(Orthographic.EffectiveRect.Right, Orthographic.EffectiveRect.Bottom, PlaneZ);
-        PlanePoints[2] := Vector3(Orthographic.EffectiveRect.Right, Orthographic.EffectiveRect.Top   , PlaneZ);
-        PlanePoints[3] := Vector3(Orthographic.EffectiveRect.Left , Orthographic.EffectiveRect.Top   , PlaneZ);
+        PlanePoints[0] := CastleVectors.Vector3(Orthographic.EffectiveRect.Left , Orthographic.EffectiveRect.Bottom, PlaneZ);
+        PlanePoints[1] := CastleVectors.Vector3(Orthographic.EffectiveRect.Right, Orthographic.EffectiveRect.Bottom, PlaneZ);
+        PlanePoints[2] := CastleVectors.Vector3(Orthographic.EffectiveRect.Right, Orthographic.EffectiveRect.Top   , PlaneZ);
+        PlanePoints[3] := CastleVectors.Vector3(Orthographic.EffectiveRect.Left , Orthographic.EffectiveRect.Top   , PlaneZ);
       end;
     ptPerspective:
       begin
         TanX := Tan(Perspective.EffectiveFieldOfView.X);
         TanY := Tan(Perspective.EffectiveFieldOfView.Y);
-        PlanePoints[0] := Vector3(-TanX * EffectiveProjectionNear, -TanY * EffectiveProjectionNear, PlaneZ);
-        PlanePoints[1] := Vector3( TanX * EffectiveProjectionNear, -TanY * EffectiveProjectionNear, PlaneZ);
-        PlanePoints[2] := Vector3( TanX * EffectiveProjectionNear,  TanY * EffectiveProjectionNear, PlaneZ);
-        PlanePoints[3] := Vector3(-TanX * EffectiveProjectionNear,  TanY * EffectiveProjectionNear, PlaneZ);
+        PlanePoints[0] := CastleVectors.Vector3(-TanX * EffectiveProjectionNear, -TanY * EffectiveProjectionNear, PlaneZ);
+        PlanePoints[1] := CastleVectors.Vector3( TanX * EffectiveProjectionNear, -TanY * EffectiveProjectionNear, PlaneZ);
+        PlanePoints[2] := CastleVectors.Vector3( TanX * EffectiveProjectionNear,  TanY * EffectiveProjectionNear, PlaneZ);
+        PlanePoints[3] := CastleVectors.Vector3(-TanX * EffectiveProjectionNear,  TanY * EffectiveProjectionNear, PlaneZ);
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleCamera.UpdateGizmoCoord:ProjectionType?');
     {$endif}
   end;
   TCoordinateNode(FGizmoCoord).SetPoint([
-    Vector3(0, 0, 0), PlanePoints[0],
-    Vector3(0, 0, 0), PlanePoints[1],
-    Vector3(0, 0, 0), PlanePoints[2],
-    Vector3(0, 0, 0), PlanePoints[3],
+    CastleVectors.Vector3(0, 0, 0), PlanePoints[0],
+    CastleVectors.Vector3(0, 0, 0), PlanePoints[1],
+    CastleVectors.Vector3(0, 0, 0), PlanePoints[2],
+    CastleVectors.Vector3(0, 0, 0), PlanePoints[3],
     PlanePoints[0], PlanePoints[1],
     PlanePoints[1], PlanePoints[2],
     PlanePoints[2], PlanePoints[3],
