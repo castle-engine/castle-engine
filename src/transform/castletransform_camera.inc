@@ -629,7 +629,8 @@ var
     Result := TX3DRootNode.Create;
     Result.AddChildren(Gizmo.LinesShape(TCoordinateNode(FGizmoCoord), [
       2, 2, 2, 2,
-      2, 2, 2, 2
+      2, 2, 2, 2,
+      2, 2
     ]));
     UpdateGizmoCoord;
   end;
@@ -991,8 +992,10 @@ procedure TCastleCamera.UpdateGizmoCoord;
 const
   { Camera plane is shown at EffectiveProjectionNear, unless it is smaller than this. }
   MinDistanceToPlane = 1;
+  UpArrowSize = 0.1; // fraction of upper plane line to take for arrow
 var
   PlanePoints: array [0..3] of TVector3;
+  UpArrowPoints: array [0..2] of TVector3;
   TanX, TanY, PlaneZ: Single;
 begin
   { TODO: Don't do this every frame, optimize to do nothing if related EffectiveXxx didn't change. }
@@ -1020,6 +1023,11 @@ begin
     else raise EInternalError.Create('TCastleCamera.UpdateGizmoCoord:ProjectionType?');
     {$endif}
   end;
+  UpArrowPoints[0] := CastleVectors.Vector3(Lerp(0.5 - UpArrowSize, PlanePoints[3].X, PlanePoints[2].X), PlanePoints[3].Y, PlaneZ);
+  UpArrowPoints[2] := CastleVectors.Vector3(Lerp(0.5 + UpArrowSize, PlanePoints[3].X, PlanePoints[2].X), PlanePoints[3].Y, PlaneZ);
+  UpArrowPoints[1] := CastleVectors.Vector3(Lerp(0.5              , PlanePoints[3].X, PlanePoints[2].X),
+    PlanePoints[3].Y + PointsDistance(UpArrowPoints[0], UpArrowPoints[2]) / 2,
+    PlaneZ);
   TCoordinateNode(FGizmoCoord).SetPoint([
     CastleVectors.Vector3(0, 0, 0), PlanePoints[0],
     CastleVectors.Vector3(0, 0, 0), PlanePoints[1],
@@ -1028,7 +1036,9 @@ begin
     PlanePoints[0], PlanePoints[1],
     PlanePoints[1], PlanePoints[2],
     PlanePoints[2], PlanePoints[3],
-    PlanePoints[3], PlanePoints[0]
+    PlanePoints[3], PlanePoints[0],
+    UpArrowPoints[0], UpArrowPoints[1],
+    UpArrowPoints[1], UpArrowPoints[2]
   ]);
 end;
 
