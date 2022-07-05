@@ -54,7 +54,6 @@ end;
 
 procedure TStateMain.Start;
 var
-  J:TJointTest;
   JHinge: TJointHinge;
   JRope: TJointRope;
   JFixed: TJointFixed;
@@ -71,7 +70,7 @@ begin
   BoxRopeEndPoint := DesignedComponent('BoxRopeEndPoint') as TCastleTransform;
 
   JRope := TJointRope.Create(Self);
-  JRope.SecondTransform := BoxRopeEndPoint;
+  JRope.ConnectedTransform := BoxRopeEndPoint;
   JRope.Distance := 300;
   BoxRopeStartPoint.AddBehavior(JRope);
 
@@ -79,30 +78,31 @@ begin
   SphereHinge := DesignedComponent('SphereHinge') as TCastleTransform;
 
   JHinge := TJointHinge.Create(Self);
-  JHinge.SecondTransform := BoxHinge;
+  JHinge.ConnectedTransform := BoxHinge;
   SphereHinge.AddBehavior(JHinge);
 
   SphereFixed := DesignedComponent('SphereFixed') as TCastleTransform;
   BoxFixed := DesignedComponent('BoxFixed') as TCastleTransform;
 
   JFixed := TJointFixed.Create(Self);
-  JFixed.SecondTransform := BoxFixed;
+  JFixed.ConnectedTransform := BoxFixed;
   SphereFixed.AddBehavior(JFixed);
 
   SphereBall := DesignedComponent('SphereBall') as TCastleTransform;
   BoxBall := DesignedComponent('BoxBall') as TCastleTransform;
 
   JBall := TJointBall.Create(Self);
-  JBall.SecondTransform := BoxBall;
+  JBall.ConnectedTransform := BoxBall;
   SphereBall.AddBehavior(JBall);
 
   SphereDistance := DesignedComponent('SphereDistance') as TCastleTransform;
   BoxDistance := DesignedComponent('BoxDistance') as TCastleTransform;
 
   JDistance := TJointDistance.Create(Self);
-  JBall.SecondTransform := BoxDistance;
-  SphereDistance.AddBehavior(JBall);
-
+  JDistance.ConnectedTransform := BoxDistance;
+  JDistance.AnchorPoint := Vector3(0, 0,0);
+  JDistance.ConnectedAnchorPoint := Vector3(0, -100,0);
+  SphereDistance.AddBehavior(JDistance);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

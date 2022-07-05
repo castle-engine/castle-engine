@@ -581,6 +581,10 @@
                 "$$ClassName" : "TCastleRigidBody",
                 "CollisionDetectionType" : "cdtContinuous",
                 "Gravity" : false,
+                "LinearVelocityPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 1.1100000000000000E+003
+                },
                 "LockRotation" : [
                   0,
                   1
@@ -611,6 +615,7 @@
               "Green" : 6.3921570777893066E-001,
               "Red" : 4.4705882668495178E-001
             },
+            "Exists" : false,
             "Material" : "pmUnlit",
             "Name" : "BoxShotDistance",
             "RenderOptions" : {
