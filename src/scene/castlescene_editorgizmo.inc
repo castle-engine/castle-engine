@@ -132,8 +132,18 @@ var
   LineSet: TLineSetNode;
   Material: TUnlitMaterialNode;
   Appearance: TAppearanceNode;
+  ThisVertexCount: Integer;
+  TotalVertexCount: Cardinal;
+  InitialVertexes: array of TVector3;
 begin
+  TotalVertexCount := 0;
+  for ThisVertexCount in VertexCount do
+    TotalVertexCount := TotalVertexCount + ThisVertexCount;
+
   Coord := TCoordinateNode.Create;
+  // Initialize with zero vectors, to allow to initialize VBO and avoid warnings about not enough coordinates.
+  SetLength(InitialVertexes, TotalVertexCount);
+  Coord.SetPoint(InitialVertexes);
 
   LineSet := TLineSetNode.Create;
   LineSet.Coord := Coord;
