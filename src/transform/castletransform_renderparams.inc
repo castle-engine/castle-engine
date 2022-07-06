@@ -252,6 +252,12 @@
       i.e. outside of TCastleTransformReference.Reference. }
     InMeaningfulParent: Boolean;
 
+    { At design-time, cameras update their own projection, to show camera gizmo.
+      These are parameters to do this. }
+    ProjectionBox: TBox3D;
+    ProjectionViewportWidth, ProjectionViewportHeight: Single;
+    ProjectionShadowVolumesPossible: Boolean;
+
     constructor Create;
 
     { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }

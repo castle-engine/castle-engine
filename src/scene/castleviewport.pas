@@ -2444,13 +2444,21 @@ begin
   end;
 
   { clear FRenderParams instance }
-
   FRenderParams.InternalPass := 0;
-  FRenderParams.UserPass := CustomRenderingPass;
-  FRenderParams.RenderingCamera := RenderingCamera;
   FillChar(FRenderParams.Statistics, SizeOf(FRenderParams.Statistics), #0);
 
-  { Calculate FRenderParams.FGlobalLights }
+  { various FRenderParams initialization }
+  FRenderParams.UserPass := CustomRenderingPass;
+  FRenderParams.RenderingCamera := RenderingCamera;
+
+  { calculate FRenderParams.Projection*, simplified from just like CalculateProjection does }
+  FRenderParams.ProjectionBox := ItemsBoundingBox;
+  FRenderParams.ProjectionViewportWidth := EffectiveWidthForChildren;
+  FRenderParams.ProjectionViewportHeight := EffectiveHeightForChildren;
+  FRenderParams.ProjectionShadowVolumesPossible :=
+    ((GLFeatures = nil) or GLFeatures.ShadowVolumesPossible) and ShadowVolumes;
+
+  { calculate FRenderParams.FGlobalLights }
   FRenderParams.FGlobalLights.Clear;
   { Add headlight }
   InitializeGlobalLights(FRenderParams.FGlobalLights);
@@ -2463,7 +2471,7 @@ begin
       if Items.MainScene <> SceneCastingLights then // MainScene is already accounted for above
         AddGlobalLightsFromScene(SceneCastingLights);
 
-  { initialize FRenderParams.GlobalFog }
+  { calculate FRenderParams.GlobalFog }
   if UseGlobalFog and
      (Items.MainScene <> nil) then
     FRenderParams.GlobalFog := Items.MainScene.FogStack.Top

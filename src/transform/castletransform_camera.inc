@@ -298,6 +298,7 @@
     procedure Assign(Source: TPersistent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+    procedure LocalRender(const Params: TRenderParams); override;
 
     { "Up" direction of the world in which player moves.
       Always normalized (when setting this property, we take
@@ -811,9 +812,6 @@ begin
         Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginUp       , AnimationEndUp));
     end;
   end;
-
-  if FGizmoCoord <> nil then
-    UpdateGizmoCoord;
 end;
 
 procedure TCastleCamera.AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime);
@@ -1250,6 +1248,20 @@ begin
     Result.ProjectionFar
   ]));
 }
+end;
+
+procedure TCastleCamera.LocalRender(const Params: TRenderParams);
+begin
+  if FGizmoCoord <> nil then
+  begin
+    { Update EffectiveProjection to show latest projection values. }
+    InternalProjection(Params.ProjectionBox,
+      Params.ProjectionViewportWidth, Params.ProjectionViewportHeight,
+      false, Params.ProjectionShadowVolumesPossible);
+    UpdateGizmoCoord;
+  end;
+
+  inherited;
 end;
 
 {$define read_implementation_methods}
