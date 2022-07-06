@@ -410,7 +410,8 @@
       sizes and update EffectiveXxx properties like EffectiveProjectionNear,
       EffectiveProjectionFar.
       @exclude }
-    function InternalProjection(const Box: TBox3D; const ViewportWidth, ViewportHeight: Single): TProjection; virtual;
+    function InternalProjection(const Box: TBox3D; const ViewportWidth, ViewportHeight: Single;
+      const DesignCamera, ShadowVolumesPossible: Boolean): TProjection; virtual;
   published
     { Projection near plane distance.
 
@@ -1045,7 +1046,8 @@ begin
   ]);
 end;
 
-function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth, ViewportHeight: Single): TProjection;
+function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth, ViewportHeight: Single;
+  const DesignCamera, ShadowVolumesPossible: Boolean): TProjection;
 
   { Update Result.Dimensions and Orthographic.EffectiveXxx
     based on Orthographic.Width, Height and viewport size. }
@@ -1131,7 +1133,7 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
     if CurrentProjectionType = ptOrthographic then
     begin
       // TODO: in 2D we can also account for Box, in case Box is outside of Default2DProjectionNear/Far
-      if InternalCamera = InternalDesignCamera then
+      if DesignCamera then
         { The design-time camera in 2D should have larger ProjectionFar than
           at run-time, to really see everything that runtime sees,
           because design-time camera Z is larger than runtime.
@@ -1168,16 +1170,7 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
     { We need ZFarInfinity for shadow volumes.
       But only perspective projection supports ZFarInfinity, there's just no equivalent
       equation for orthographic projection to implement infinite z far. }
-    if (CurrentProjectionType = ptPerspective) and
-       { Check "GLFeatures = nil" to allow using CalculateProjection and
-         things depending on it when no OpenGL context available.
-
-         Testcase: open CGE editor, open a project with any sprite sheet,
-         open sprite sheet editor with some .castle-sprite-sheet file,
-         then do "Close Project" (without closing sprite sheet editor
-         explicitly). It should not crash. }
-       ((GLFeatures = nil) or GLFeatures.ShadowVolumesPossible) and
-       ShadowVolumes then
+    if (CurrentProjectionType = ptPerspective) and ShadowVolumesPossible then
       Result := ZFarInfinity
     else
       Result := GetDefaultProjectionFarFinite(CurrentProjectionType);
