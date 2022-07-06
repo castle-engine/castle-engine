@@ -2075,160 +2075,32 @@ end;
 function TCastleViewport.CalculateProjection: TProjection;
 var
   Box: TBox3D;
-  Viewport: TFloatRectangle;
-
-  { Update Result.Dimensions and InternalCamera.Orthographic.EffectiveXxx
-    based on InternalCamera.Orthographic.Width, Height and current control size. }
-  procedure UpdateOrthographicDimensions;
-  var
-    ControlWidth, ControlHeight, EffectiveProjectionWidth, EffectiveProjectionHeight: Single;
-
-    procedure CalculateDimensions;
-    begin
-      { Apply InternalCamera.Orthographic.Scale here,
-        this way it scales around Origin (e.g. around middle, when Origin is 0.5,0.5) }
-      EffectiveProjectionWidth  := EffectiveProjectionWidth * InternalCamera.Orthographic.Scale;
-      EffectiveProjectionHeight := EffectiveProjectionHeight * InternalCamera.Orthographic.Scale;
-
-      Result.Dimensions.Width  := EffectiveProjectionWidth;
-      Result.Dimensions.Height := EffectiveProjectionHeight;
-      Result.Dimensions.Left   := - InternalCamera.Orthographic.Origin.X * EffectiveProjectionWidth;
-      Result.Dimensions.Bottom := - InternalCamera.Orthographic.Origin.Y * EffectiveProjectionHeight;
-    end;
-
-  begin
-    ControlWidth := EffectiveWidthForChildren;
-    ControlHeight := EffectiveHeightForChildren;
-
-    if (InternalCamera.Orthographic.Width = 0) and
-       (InternalCamera.Orthographic.Height = 0) then
-    begin
-      { Bugfix for camera preview in CGE editor, when the selected viewport has
-        Orthographic.Width = 0 and Orthographic.Height = 0.
-        The camera preview uses the same camera (and items) as selected viewport,
-        but the orthographic size should be then derived from selected viewport size,
-        not size of camera preview. }
-      if InternalOverride2DProjectionSizing <> nil then
-      begin
-        ControlWidth := InternalOverride2DProjectionSizing.EffectiveWidthForChildren;
-        ControlHeight := InternalOverride2DProjectionSizing.EffectiveHeightForChildren;
-      end;
-      EffectiveProjectionWidth := ControlWidth;
-      EffectiveProjectionHeight := ControlHeight;
-      CalculateDimensions;
-    end else
-    if InternalCamera.Orthographic.Width = 0 then
-    begin
-      EffectiveProjectionWidth := InternalCamera.Orthographic.Height * ControlWidth / ControlHeight;
-      EffectiveProjectionHeight := InternalCamera.Orthographic.Height;
-      CalculateDimensions;
-    end else
-    if InternalCamera.Orthographic.Height = 0 then
-    begin
-      EffectiveProjectionWidth := InternalCamera.Orthographic.Width;
-      EffectiveProjectionHeight := InternalCamera.Orthographic.Width * ControlHeight / ControlWidth;
-      CalculateDimensions;
-    end else
-    begin
-      EffectiveProjectionWidth := InternalCamera.Orthographic.Width;
-      EffectiveProjectionHeight := InternalCamera.Orthographic.Height;
-
-      CalculateDimensions;
-
-      if not InternalCamera.Orthographic.Stretch then
-        Result.Dimensions := TOrthoViewpointNode.InternalFieldOfView(
-          Result.Dimensions,
-          Viewport.Width,
-          Viewport.Height);
-
-      EffectiveProjectionWidth := Result.Dimensions.Width;
-      EffectiveProjectionHeight := Result.Dimensions.Height;
-    end;
-
-    Assert(Result.Dimensions.Width  = EffectiveProjectionWidth);
-    Assert(Result.Dimensions.Height = EffectiveProjectionHeight);
-
-    InternalCamera.Orthographic.InternalSetEffectiveRect(
-      Result.Dimensions);
-  end;
-
-  { Calculate reasonable perspective projection near, looking at Box. }
-  function GetDefaultProjectionNear(const CurrentProjectionType: TProjectionType): Single;
-  var
-    Radius: Single;
-  begin
-    if CurrentProjectionType = ptOrthographic then
-    begin
-      // TODO: in 2D we can also account for Box, in case Box is outside of Default2DProjectionNear/Far
-      Result := Default2DProjectionNear;
-    end else
-    begin
-      Radius := Box.AverageSize(false, 1) * WorldBoxSizeToRadius;
-      Result := Radius * RadiusToProjectionNear;
-    end;
-  end;
-
-  { Calculate reasonable perspective projection far, looking at Box. }
-  function GetDefaultProjectionFarFinite(const CurrentProjectionType: TProjectionType): Single;
-  begin
-    if CurrentProjectionType = ptOrthographic then
-    begin
-      // TODO: in 2D we can also account for Box, in case Box is outside of Default2DProjectionNear/Far
-      if InternalCamera = InternalDesignCamera then
-        { The design-time camera in 2D should have larger ProjectionFar than
-          at run-time, to really see everything that runtime sees,
-          because design-time camera Z is larger than runtime.
-          Increasing this ProjectionFar here, as special case, means it affects:
-
-          - design-time camera when reading old designs (before new-cameras)
-
-          - design-time camera when using new designs, with viewport initialized by SetupChildren2D
-
-          - broken designs with ProjectionNear/Far for InternalDesignCamera not recorded
-            in design file (looks like they could happen some time after merging new-cameras,
-            before we fixed everything).
-
-          In general it means we don't rely on stuff stored in design file.
-          Autocalculating is more future-proof.
-        }
-        Result := Default2DProjectionFar * 4
-      else
-        Result := Default2DProjectionFar;
-    end else
-    begin
-      { Note that when box is empty (or has 0 sizes),
-        ProjectionFar cannot be simply "any dummy value".
-        It must be appropriately larger than GetDefaultProjectionNear
-        to provide sufficient space for rendering Background node. }
-      Result := Box.AverageSize(false, 1) * WorldBoxSizeToProjectionFar;
-    end;
-  end;
-
-  { Calculate reasonable perspective projection far, looking at Box and shadow volumes.
-    May return ZFarInfinity = 0. }
-  function GetDefaultProjectionFar(const CurrentProjectionType: TProjectionType): Single;
-  begin
-    { We need ZFarInfinity for shadow volumes.
-      But only perspective projection supports ZFarInfinity, there's just no equivalent
-      equation for orthographic projection to implement infinite z far. }
-    if (CurrentProjectionType = ptPerspective) and
-       { Check "GLFeatures = nil" to allow using CalculateProjection and
-         things depending on it when no OpenGL context available.
-
-         Testcase: open CGE editor, open a project with any sprite sheet,
-         open sprite sheet editor with some .castle-sprite-sheet file,
-         then do "Close Project" (without closing sprite sheet editor
-         explicitly). It should not crash. }
-       ((GLFeatures = nil) or GLFeatures.ShadowVolumesPossible) and
-       ShadowVolumes then
-      Result := ZFarInfinity
-    else
-      Result := GetDefaultProjectionFarFinite(CurrentProjectionType);
-  end;
-
+  ViewportWidth, ViewportHeight: Single;
 begin
   Box := ItemsBoundingBox;
-  Viewport := RenderRect;
+
+  if (InternalOverride2DProjectionSizing <> nil)
+     { We could use InternalOverride2DProjectionSizing only when really necessary,
+       but it more consistent and easier to test to use it always when available.
+       TODO test }
+     { and
+     (InternalCamera <> nil) and
+     (InternalCamera.ProjectionType = ptOrthographic) and
+     (InternalCamera.Orthographic.Width = 0) and
+     (InternalCamera.Orthographic.Height = 0) } then
+  begin
+    { Bugfix for camera preview in CGE editor, when the selected viewport has
+      Orthographic.Width = 0 and Orthographic.Height = 0.
+      The camera preview uses the same camera (and items) as selected viewport,
+      but the orthographic size should be then derived from selected viewport size,
+      not size of camera preview. }
+    ViewportWidth := InternalOverride2DProjectionSizing.EffectiveWidthForChildren;
+    ViewportHeight := InternalOverride2DProjectionSizing.EffectiveHeightForChildren;
+  end else
+  begin
+    ViewportWidth := EffectiveWidthForChildren;
+    ViewportHeight := EffectiveHeightForChildren;
+  end;
 
   if (InternalCamera = nil) or (not InternalCamera.ExistsInRoot) then
   begin
@@ -2238,87 +2110,15 @@ begin
     Result.PerspectiveAnglesRad := TViewpointNode.InternalFieldOfView(
       TCastlePerspective.DefaultFieldOfView,
       TCastlePerspective.DefaultFieldOfViewAxis,
-      Viewport.Width,
-      Viewport.Height);
-    Result.ProjectionNear := GetDefaultProjectionNear(Result.ProjectionType);
-    Result.ProjectionFar := GetDefaultProjectionFar(Result.ProjectionType);
-    Result.ProjectionFarFinite := GetDefaultProjectionFarFinite(Result.ProjectionType);
+      ViewportWidth,
+      ViewportHeight);
+    Result.ProjectionNear := 1;
+    Result.ProjectionFar := 1000;
+    Result.ProjectionFarFinite := 1000;
     Exit;
   end;
 
-  Result.ProjectionType := InternalCamera.ProjectionType;
-
-  Result.PerspectiveAnglesRad := TViewpointNode.InternalFieldOfView(
-    InternalCamera.Perspective.FieldOfView,
-    InternalCamera.Perspective.FieldOfViewAxis,
-    Viewport.Width,
-    Viewport.Height);
-  InternalCamera.Perspective.InternalSetEffectiveFieldOfView(
-    Result.PerspectiveAnglesRad);
-
-  { calculate Result.ProjectionNear }
-  Result.ProjectionNear := InternalCamera.ProjectionNear;
-  if (Result.ProjectionNear = 0) or
-     ((Result.ProjectionType = ptPerspective) and
-       (Result.ProjectionNear <= 0) ) then
-  begin
-    Result.ProjectionNear := GetDefaultProjectionNear(Result.ProjectionType);;
-    // in perspective, effective ProjectionNear must be > 0
-    Assert((Result.ProjectionNear > 0) or (Result.ProjectionType <> ptPerspective));
-  end;
-
-  { calculate Result.ProjectionFar, ProjectionFarFinite }
-  if InternalCamera.ProjectionFar > 0 then
-  begin
-    { When ProjectionFar is non-zero on camera, use it unconditionally
-      (do not override e.g. with ZFarInfinity, even if shadow volumes are possible).
-      Reasons:
-
-      - This is more intuitive for developer. We do what was requested.
-        Maybe developer wants ProjectionFar to really limit player's view,
-        for gameplay purposes.
-
-      - Overriding with ZFarInfinity when shadow volumes are possible
-        was also bad, because "shadow volumes are possible" may differ between
-        CGE editor and runtime.
-
-        TCastleControl is initialized without stencil, TCastleWindow with stencil.
-        So CGE editor preview was honoring ProjectionFar,
-        while runtime TCastleWindow was ignoring it, overriding with ZFarInfinity.
-        Testcase: physics-joints in physics_j branch.
-    }
-    Result.ProjectionFar := InternalCamera.ProjectionFar;
-    Result.ProjectionFarFinite := InternalCamera.ProjectionFar;
-  end else
-  begin
-    Result.ProjectionFar := GetDefaultProjectionFar(Result.ProjectionType);
-    Result.ProjectionFarFinite := GetDefaultProjectionFarFinite(Result.ProjectionType);
-  end;
-  Assert(Result.ProjectionFarFinite > 0);
-
-  InternalCamera.InternalSetEffectiveProjection(
-    Result.ProjectionNear,
-    Result.ProjectionFar);
-
-  { Calculate Result.Dimensions regardless of Result.ProjectionType,
-    this way OnProjection can easily change projection type to orthographic. }
-  UpdateOrthographicDimensions;
-
-{
-  WritelnLogMultiline('Projection', Format(
-    'ProjectionType: %s' + NL +
-    'Perspective Field of View (in degrees): %f x %f' + NL +
-    'Orthographic Dimensions: %s' + NL +
-    'Near: %f' + NL +
-    'Far: %f', [
-    ProjectionTypeToStr(Result.ProjectionType),
-    Result.PerspectiveAngles.X,
-    Result.PerspectiveAngles.Y,
-    Result.Dimensions.ToString,
-    Result.ProjectionNear,
-    Result.ProjectionFar
-  ]));
-}
+  Result := InternalCamera.InternalProjection(Box, ViewportWidth, ViewportHeight);
 end;
 
 function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): boolean;

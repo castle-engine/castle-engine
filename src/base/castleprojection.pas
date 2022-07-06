@@ -29,7 +29,7 @@ type
 
   { Projection determines how does the 3D world map onto 2D.
     To change the currently displayed projection,
-    you usually want to override the @link(TCastleViewport.CalculateProjection). }
+    you usually want to override the @link(TCastleCamera.InternalProjection). }
   TProjection = record
     ProjectionType: TProjectionTypeCore;
 

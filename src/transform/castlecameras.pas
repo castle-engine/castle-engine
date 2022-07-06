@@ -1455,35 +1455,6 @@ const
   ciGesture       = niGesture       deprecated 'use niGesture';
   ci3dMouse       = ni3dMouse       deprecated 'use ni3dMouse';
 
-{ TODO: move these consts somewhere more private? }
-
-const
-  { Following X3D spec of NavigationType:
-    "It is recommended that the near clipping plane be set to one-half
-    of the collision radius as specified in the avatarSize field." }
-  RadiusToProjectionNear = 0.6;
-
-  { Used when it is necessary to calculate projection far based on world size. }
-  WorldBoxSizeToProjectionFar = 20.0;
-
-  { Multiply radius by this to get sensible "preferred height".
-
-    We need to make "preferred height" much larger than Radius * 2, to allow some
-    space to decrease (e.g. by Input_DecreasePreferredHeight).
-    Remember that CorrectPreferredHeight
-    adds a limit to PreferredHeight, around Radius * 2.
-
-    This determines minimal PreferredHeight, it should be used always like
-      Max(DefaultPreferredHeight, Radius * RadiusToPreferredHeightMin)
-    This way, in case of models that are small, but still follow the standard "1 unit = 1 meter",
-    the PreferredHeight will not get weirdly small, it will be DefaultPreferredHeight.
-    Testcase: examples/third_person_navigation/data/level/level-dungeon.gltf open with view3dscene.
-  }
-  RadiusToPreferredHeightMin = 4.0;
-
-  { Multiply world bounding box AverageSize by this to get sensible radius. }
-  WorldBoxSizeToRadius = 0.005;
-
 implementation
 
 uses Math,
