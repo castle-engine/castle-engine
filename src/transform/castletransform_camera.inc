@@ -1001,7 +1001,7 @@ const
 var
   PlanePoints: array [0..3] of TVector3;
   UpArrowPoints: array [0..2] of TVector3;
-  TanX, TanY, PlaneZ: Single;
+  PerspX, PerspY, PlaneZ: Single;
 begin
   { We use LastXxx to avoid repeating this calculation, and updating gizmo points,
     every frame. In practice gizmo changes seldom -- e.g. if camera params change
@@ -1027,12 +1027,12 @@ begin
         end;
       ptPerspective:
         begin
-          TanX := Tan(Perspective.EffectiveFieldOfView.X);
-          TanY := Tan(Perspective.EffectiveFieldOfView.Y);
-          PlanePoints[0] := CastleVectors.Vector3(-TanX * EffectiveProjectionNear, -TanY * EffectiveProjectionNear, PlaneZ);
-          PlanePoints[1] := CastleVectors.Vector3( TanX * EffectiveProjectionNear, -TanY * EffectiveProjectionNear, PlaneZ);
-          PlanePoints[2] := CastleVectors.Vector3( TanX * EffectiveProjectionNear,  TanY * EffectiveProjectionNear, PlaneZ);
-          PlanePoints[3] := CastleVectors.Vector3(-TanX * EffectiveProjectionNear,  TanY * EffectiveProjectionNear, PlaneZ);
+          PerspX := Tan(Perspective.EffectiveFieldOfView.X / 2) * Abs(PlaneZ);
+          PerspY := Tan(Perspective.EffectiveFieldOfView.Y / 2) * Abs(PlaneZ);
+          PlanePoints[0] := CastleVectors.Vector3(-PerspX, -PerspY, PlaneZ);
+          PlanePoints[1] := CastleVectors.Vector3( PerspX, -PerspY, PlaneZ);
+          PlanePoints[2] := CastleVectors.Vector3( PerspX,  PerspY, PlaneZ);
+          PlanePoints[3] := CastleVectors.Vector3(-PerspX,  PerspY, PlaneZ);
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TCastleCamera.UpdateGizmoCoord:ProjectionType?');
