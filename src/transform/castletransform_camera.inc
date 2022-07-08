@@ -157,7 +157,8 @@
       In effect the @link(Width) and @link(Height)
       (if both non-zero) are applied directly, without correcting them to follow
       aspect ratio of the viewport. }
-    property Stretch: Boolean read FStretch write SetStretch default false; experimental;
+    property Stretch: Boolean read FStretch write SetStretch default false;
+      {$ifdef FPC} experimental; {$endif}
   published
     { Orthographic projection width and height.
 
