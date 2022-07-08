@@ -3607,8 +3607,6 @@ begin
 end;
 
 procedure TCastleViewport.SetupChildren2D;
-const
-  DefaulOrthoHeight = 1000;
 var
   Plane: TCastlePlane;
 begin
@@ -3616,10 +3614,14 @@ begin
   SetupDesignTimeCamera;
   { Better Origin default, makes things in center }
   Camera.Orthographic.Origin := Vector2(0.5, 0.5);
-  { Advise user to set Camera.Orthographic.Width/Height to non-zero,
-    this way the displayed items don't depend on your viewport size
-    (and you can even change UI scaling,and viewport will have the same fov). }
-  Camera.Orthographic.Height := DefaulOrthoHeight;
+  { Set Orthographic.Height,
+    as we advise users to set Camera.Orthographic.Width/Height to non-zero.
+
+    This way the displayed items don't depend on your viewport size.
+    So you can change viewport size (even to something very small,
+    e.g. to squeeze it into some TCastleButton) and keep the same fov.
+    You can also change UI scaling and keep the same fov. }
+  Camera.Orthographic.Height := 1000;
   Setup2D;
 
   { purpose: initial 2D object,
@@ -3646,18 +3648,10 @@ begin
     { Better Origin default, makes things in center.
       Makes ViewSelected, ViewAll sensible in 2D }
     InternalDesignCamera.Orthographic.Origin := Vector2(0.5, 0.5);
-    { Having non-zero Orthographic.Height or Width is better, as then resizing viewport
-      (e.g. to squeeze it into some TCastleButton) works more naturally.
-      Note that
-
-      - design-time InternalDesignCamera.Orthographic.Height
-
-      - and run-time Camera.Orthographic.Height
-
-      may become desynchronized. They just start equal. This is deliberate,
-      design-time projection doesn't have to match run-time.
-      User can use "Align View To Camera" to make them match. }
-    InternalDesignCamera.Orthographic.Height := DefaulOrthoHeight;
+    { Just like for run-time camera,
+      we set non-zero Orthographic.Height for design-time camera.
+      This is a bit larger, this way it is clear what happens when creating new 2D viewport. }
+    InternalDesignCamera.Orthographic.Height := Camera.Orthographic.Height + 200;
 
     InternalDesignNavigationType := dn2D;
   end;
