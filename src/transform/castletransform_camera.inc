@@ -106,6 +106,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
     { Additional translation of the camera.
       The camera movement applied here is always scaled by
@@ -141,6 +142,16 @@
     property EffectiveRect: TFloatRectangle read FEffectiveRect;
     function EffectiveWidth: Single; deprecated 'use EffectiveRect.Width';
     function EffectiveHeight: Single; deprecated 'use EffectiveRect.Height';
+
+    { Scales the projection size derived from @link(Width) and @link(Height).
+
+      The effect of this scale is also affected by the @link(Origin).
+      When @link(Origin) is zero, this behaves like scaling around left-botttom corner
+      of the viewport.
+      When @link(Origin) is (0.5,0.5), this behaves like scaling around
+      the middle of the viewport. }
+    property Scale: Single read FScale write SetScale {$ifdef FPC}default 1{$endif};
+      deprecated 'just multiply Width or Height instead of using this';
   published
     { Orthographic projection width and height.
 
@@ -215,15 +226,6 @@
     property Width: Single read FWidth write SetWidth {$ifdef FPC}default 0{$endif};
     property Height: Single read FHeight write SetHeight {$ifdef FPC}default 0{$endif};
     { @groupEnd }
-
-    { Scales the projection size derived from @link(Width) and @link(Height).
-
-      The effect of this scale is also affected by the @link(Origin).
-      When @link(Origin) is zero, this behaves like scaling around left-botttom corner
-      of the viewport.
-      When @link(Origin) is (0.5,0.5), this behaves like scaling around
-      the middle of the viewport. }
-    property Scale: Single read FScale write SetScale {$ifdef FPC}default 1{$endif};
 
     { Allow non-proportional stretch of projection.
       In effect the @link(Width) and @link(Height)
@@ -300,8 +302,8 @@
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
-    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     procedure LocalRender(const Params: TRenderParams); override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
     { "Up" direction of the world in which player moves.
       Always normalized (when setting this property, we take
@@ -610,6 +612,26 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleOrthographic.CustomSerialization(const SerializationProcess: TSerializationProcess);
+var
+  ScaleValue: Single;
+begin
+  inherited;
+  ScaleValue := 1;
+  SerializationProcess.ReadWriteSingle('Scale', ScaleValue, false);
+  if ScaleValue <> 1 then
+  begin
+    WritelnWarning('Upgrading deprecated TCastleOrthographic.Scale to just multiply TCastleOrthographic.Width and TCastleOrthographic.Height. Width x Height: old %f x %f -> new %f x %f.', [
+      Width,
+      Height,
+      Width * ScaleValue,
+      Height * ScaleValue
+    ]);
+    Width  := Width * ScaleValue;
+    Height := Height * ScaleValue;
+  end;
 end;
 
 {$define read_implementation_methods}

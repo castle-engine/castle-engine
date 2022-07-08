@@ -123,10 +123,11 @@
             "Name" : "Camera1",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic",
-              "Height" : 4.0000000000000000E+003,
+              "Height" : 4.2000000000000000E+003,
               "OriginPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 5.0000000000000000E-001
+                "X" : 5.0000000000000000E-001,
+                "Y" : 5.0000000000000000E-001
               }
             },
             "Perspective" : {
@@ -139,6 +140,7 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 2.1054421386718750E+003,
               "Z" : 5.0000000000000000E+002
             }
           }
@@ -150,12 +152,12 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
+          "Height" : 5.3994350585937500E+003,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
-          },
-          "Scale" : 5.4739470481872559E+000
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"
@@ -167,8 +169,7 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 6.0199780273437500E+002,
-          "Y" : 1.9827111816406250E+003,
+          "Y" : 2.0515249023437500E+003,
           "Z" : 1.6000000000000000E+003
         }
       },

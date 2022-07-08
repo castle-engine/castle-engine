@@ -371,10 +371,6 @@ type
     procedure SetRotationsAnim(const Value: TVector3);
     function GetRotations: TQuaternion;
     procedure SetRotations(const Value: TQuaternion);
-    function GetScaleFactor: Single;
-    procedure SetScaleFactor(const Value: Single);
-    procedure SetScaleFactorMin(const Value: Single);
-    procedure SetScaleFactorMax(const Value: Single);
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
     { Negative Factor makes "zoom out", positive makes "zoom on",
@@ -477,16 +473,12 @@ type
     property Turntable: boolean
       read FTurntable write FTurntable default false;
 
-    {$ifdef FPC}
-    { Scale the projection size. }
-    property ScaleFactor: Single
-      read GetScaleFactor write SetScaleFactor default 1;
-      deprecated 'use Camera.Orthographic.Scale';
-    {$endif}
     property ScaleFactorMin: Single
-      read FScaleFactorMin write SetScaleFactorMin {$ifdef FPC}default 0.01{$endif};
+      read FScaleFactorMin write FScaleFactorMin {$ifdef FPC}default 0.01{$endif};
+      {$ifdef FPC} deprecated 'this does nothing now; it was already only a limit in case of orthographic projection'; {$endif}
     property ScaleFactorMax: Single
-      read FScaleFactorMax write SetScaleFactorMax {$ifdef FPC}default 100.0{$endif};
+      read FScaleFactorMax write FScaleFactorMax {$ifdef FPC}default 100.0{$endif};
+      {$ifdef FPC} deprecated 'this does nothing now; it was already only a limit in case of orthographic projection'; {$endif}
 
     { Initialize most important properties of this class:
       sets ModelBox and goes to a nice view over the entire scene.
@@ -583,11 +575,7 @@ type
     { Enable zooming the camera on the model by user input.
       Depending on the projection, zooming either moves camera or scales
       the projection size.
-      When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom.
-
-      Note that this doesn't prevent from zooming by code, e.g. by setting
-      @link(ScaleFactor) property (to scale the projection size)
-      or calling @link(SetWorldView) (to move closer to the model). }
+      When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom. }
     property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
 
     { When @true, rotation keys make the rotation faster, and the model keeps
@@ -2194,36 +2182,6 @@ begin
   ExamineVectors := V;
 end;
 
-function TCastleExamineNavigation.GetScaleFactor: Single;
-begin
-  Result := Camera.Orthographic.Scale;
-end;
-
-procedure TCastleExamineNavigation.SetScaleFactor(const Value: Single);
-begin
-  Camera.Orthographic.Scale := Value;
-end;
-
-procedure TCastleExamineNavigation.SetScaleFactorMin(const Value: Single);
-begin
-  if FScaleFactorMin <> Value then
-  begin
-    FScaleFactorMin := Value;
-    { Correct ScaleFactor now }
-    Camera.Orthographic.Scale := Clamped(Camera.Orthographic.Scale, FScaleFactorMin, FScaleFactorMax);
-  end;
-end;
-
-procedure TCastleExamineNavigation.SetScaleFactorMax(const Value: Single);
-begin
-  if FScaleFactorMax <> Value then
-  begin
-    FScaleFactorMax := Value;
-    { Correct ScaleFactor now }
-    Camera.Orthographic.Scale := Clamped(Camera.Orthographic.Scale, FScaleFactorMin, FScaleFactorMax);
-  end;
-end;
-
 function TCastleExamineNavigation.GetTranslation: TVector3;
 begin
   Result := ExamineVectors.Translation;
@@ -2340,7 +2298,20 @@ begin
     begin
       { In case of OrthographicProjection, changing Translation
         would have no effect. So instead scale the projection size. }
-      Camera.Orthographic.Scale := Camera.Orthographic.Scale * Exp(-Factor);
+      if (Camera.Orthographic.Width = 0) and
+         (Camera.Orthographic.Height = 0) then
+      begin
+        { Note: We had approach in CGE to make Orthographic.Scale,
+          to enable scaling orthographic view always.
+          But it was unnatural to not change Orthographic.Width/Height
+          in the most common case, which is that Orthographic.Width/Height
+          is non-zero. }
+        WritelnWarning('Scaling orthographic view is not possible without setting Camera.Orthographic.Width / Camera.Orthographic.Height to non-zero')
+      end else
+      begin
+        Camera.Orthographic.Width  := Camera.Orthographic.Width  * Exp(-Factor);
+        Camera.Orthographic.Height := Camera.Orthographic.Height * Exp(-Factor);
+      end;
     end else
     begin
       { zoom by changing Translation }

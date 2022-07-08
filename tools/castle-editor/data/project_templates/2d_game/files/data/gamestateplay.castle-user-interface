@@ -158,13 +158,12 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 4.0000000000000000E+003,
+          "Height" : 4.4206840820312500E+003,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
             "Y" : 5.0000000000000000E-001
-          },
-          "Scale" : 1.1051709651947021E+000
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"
