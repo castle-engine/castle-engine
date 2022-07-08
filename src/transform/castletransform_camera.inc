@@ -152,6 +152,12 @@
       the middle of the viewport. }
     property Scale: Single read FScale write SetScale {$ifdef FPC}default 1{$endif};
       deprecated 'just multiply Width or Height instead of using this';
+
+    { Allow non-proportional stretch of projection.
+      In effect the @link(Width) and @link(Height)
+      (if both non-zero) are applied directly, without correcting them to follow
+      aspect ratio of the viewport. }
+    property Stretch: Boolean read FStretch write SetStretch default false; experimental;
   published
     { Orthographic projection width and height.
 
@@ -226,12 +232,6 @@
     property Width: Single read FWidth write SetWidth {$ifdef FPC}default 0{$endif};
     property Height: Single read FHeight write SetHeight {$ifdef FPC}default 0{$endif};
     { @groupEnd }
-
-    { Allow non-proportional stretch of projection.
-      In effect the @link(Width) and @link(Height)
-      (if both non-zero) are applied directly, without correcting them to follow
-      aspect ratio of the viewport. }
-    property Stretch: Boolean read FStretch write SetStretch default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleorthographic_persistent_vectors.inc}
@@ -1094,8 +1094,10 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
     begin
       { Apply Orthographic.Scale here,
         this way it scales around Origin (e.g. around middle, when Origin is 0.5,0.5) }
-      EffectiveProjectionWidth  := EffectiveProjectionWidth * Orthographic.Scale;
+      {$warnings off} // using deprecated to keep it working
+      EffectiveProjectionWidth  := EffectiveProjectionWidth  * Orthographic.Scale;
       EffectiveProjectionHeight := EffectiveProjectionHeight * Orthographic.Scale;
+      {$warnings on}
 
       Result.Dimensions.Width  := EffectiveProjectionWidth;
       Result.Dimensions.Height := EffectiveProjectionHeight;

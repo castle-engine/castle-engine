@@ -2827,9 +2827,9 @@ begin
     That's because Camera settings, that determine how CalculateProjection calculates
     FProjection, may change at any moment, e.g. when doing a sequence
 
-      ViewPort.PositionToCameraPlane(...);
+      Viewport.PositionToCameraPlane(...);
       Camera.Orthographic.Scale := Camera.Orthographic.Scale * ...;
-      ViewPort.PositionToCameraPlane(...);
+      Viewport.PositionToCameraPlane(...);
   }
   if (EffectiveWidth = 0) or
      (EffectiveHeight = 0) then
