@@ -31,6 +31,8 @@ type
 
     { Set various properties for internal TCastleTransform, shown only for debug. }
     procedure InternalTransform(const T: TCastleTransform);
+    function GetSelectBoxTranslation: TVector3;
+    procedure SetSelectBoxTranslation(const Value: TVector3);
   protected
     function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
@@ -55,6 +57,7 @@ type
     function LinesShape(out Coord: TCoordinateNode; const VertexCount: array of Integer): TShapeNode; overload;
     { Set the image to display as icon. }
     procedure SetIconUrl(const Url: String);
+    property SelectBoxTranslation: TVector3 read GetSelectBoxTranslation write SetSelectBoxTranslation;
   end;
 
 {$endif read_interface}
@@ -208,6 +211,16 @@ procedure TInternalCastleEditorGizmo.SetIconUrl(const Url: String);
 begin
   GizmoImage.Url := Url;
   GizmoImage.Exists := Url <> '';
+end;
+
+function TInternalCastleEditorGizmo.GetSelectBoxTranslation: TVector3;
+begin
+  Result := GizmoSelect.Translation;
+end;
+
+procedure TInternalCastleEditorGizmo.SetSelectBoxTranslation(const Value: TVector3);
+begin
+  GizmoSelect.Translation := Value;
 end;
 
 {$endif read_implementation}

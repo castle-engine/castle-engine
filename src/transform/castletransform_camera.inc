@@ -687,6 +687,7 @@ begin
     Gizmo := TInternalCastleEditorGizmo.Create(Self);
     Gizmo.SetParent(Self);
     Gizmo.LoadVisualization(BuildGizmo);
+    Gizmo.SelectBoxTranslation := Vector3(0, 0, -0.5); // matches nicely our visualization set by UpdateGizmoCoord
     { No need for icon anymore, gizmo is recognizeable enough.
       And it removes worry about icon size in 2D games, where it would be too small. }
     // Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/camera/camera.png');
