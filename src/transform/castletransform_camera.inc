@@ -151,7 +151,7 @@
       When @link(Origin) is (0.5,0.5), this behaves like scaling around
       the middle of the viewport. }
     property Scale: Single read FScale write SetScale {$ifdef FPC}default 1{$endif};
-      deprecated 'just multiply Width or Height instead of using this';
+      {$ifdef FPC} deprecated 'just multiply Width or Height instead of using this'; {$endif}
 
     { Allow non-proportional stretch of projection.
       In effect the @link(Width) and @link(Height)
