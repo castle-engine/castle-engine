@@ -102,9 +102,9 @@ const
   OrangeRedRGB   : TCastleColorRGB = (X: 1.0; Y: 0.27; Z: 0.0);
 
 type
-  TTiledLayerNode = TTransformNode;
-  TTiledObjectNode = TTransformNode;
-  TTiledTileNode = TTransformNode;
+  TTiledLayerNode = type TTransformNode;
+  TTiledObjectNode = type TTransformNode;
+  TTiledTileNode = type TTransformNode;
   TShapeNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNode>;
   TShapeNodeListList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNodeList>;
 
