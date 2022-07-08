@@ -807,6 +807,7 @@ var
   var
     Tile: TTiledMap.TTile;                  // A Tile.
     Tileset: TTiledMap.TTileset;            // A Tileset.
+    GID: Cardinal;
 
     { Tile nodes. }
     TileNode: TTiledTileNode;
@@ -814,10 +815,11 @@ var
   begin
     { Try to get tileset. Only if it exists for this tile,
       an actual tile node is created. }
-    GetTilesetAndTileByGID(ALayer.Data.Data[I], Tileset, Tile);
+    GID := ALayer.Data.Data[I];
+    GetTilesetAndTileByGID(GID, Tileset, Tile);
     if Assigned(Tileset) and Assigned(Tile) then
     begin
-      TileNode := TTiledTileNode.Create;
+      TileNode := TTiledTileNode.Create('Tile node');
       TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset),
         LayerZDistance);
 
@@ -828,7 +830,7 @@ var
        by the horizontal and vertical flips."
       (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#layer)
       }
-      TileShapeNode := GetResolvedTileShapeNode(Tileset, Tile, ALayer.Data.Data[I]);
+      TileShapeNode := GetResolvedTileShapeNode(Tileset, Tile, GID);
 
 
       TileNode.AddChildren(TileShapeNode);
