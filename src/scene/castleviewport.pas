@@ -1540,8 +1540,17 @@ begin
         then design-time camera should also be orthographic.
         This makes better experience when opening old designs. }
       InternalDesignCamera.ProjectionType := Camera.ProjectionType;
-      { This makes ViewSelected, ViewAll sensible in 2D }
-      InternalDesignCamera.Orthographic.Origin := Vector2(0.5, 0.5);
+
+      { Copy all camera projection (field of view) parameters, just like
+        TDesignFrame.CameraSynchronize does.
+        This makes the design-time view behave just as run-time,
+        when opening old designs, which is best for backward compatibility.
+      }
+      InternalDesignCamera.Perspective.FieldOfView     := Camera.Perspective.FieldOfView;
+      InternalDesignCamera.Perspective.FieldOfViewAxis := Camera.Perspective.FieldOfViewAxis;
+      InternalDesignCamera.Orthographic.Origin  := Camera.Orthographic.Origin;
+      InternalDesignCamera.Orthographic.Width   := Camera.Orthographic.Width;
+      InternalDesignCamera.Orthographic.Height  := Camera.Orthographic.Height;
 
       { Assign useful InternalDesignCamera vectors, because in case of reading old designs --
         TCastleViewport.CustomSerialization could not read any useful InternalDesignCamera
@@ -1556,10 +1565,6 @@ begin
           InitialPos + Vector3(0, 0, - Camera.EffectiveProjectionNear + 100),
           InitialDir,
           InitialUp);
-
-        // copy also ortho size, to match at design-time the default view
-        InternalDesignCamera.Orthographic.Width := Camera.Orthographic.Width;
-        InternalDesignCamera.Orthographic.Height := Camera.Orthographic.Height;
 
         // best navigation for 2D
         InternalDesignNavigationType := dn2D;

@@ -4395,10 +4395,6 @@ begin
   Target.Orthographic.Origin  := Source.Orthographic.Origin;
   Target.Orthographic.Width   := Source.Orthographic.Width;
   Target.Orthographic.Height  := Source.Orthographic.Height;
-  {$warnings off} // using deprecated/experimental to keep it working
-  Target.Orthographic.Scale   := Source.Orthographic.Scale;
-  Target.Orthographic.Stretch := Source.Orthographic.Stretch;
-  {$warnings on}
 
   Target.GetWorldView(BeginPos, BeginDir, BeginUp);
   Source.GetWorldView(EndPos, EndDir, EndUp);
