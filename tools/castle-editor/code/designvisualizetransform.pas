@@ -688,9 +688,9 @@ begin
 
   Box := TDebugTransformBox.Create(Self);
   if FHover then
-    Box.BoxColor := ColorOpacity(ColorHover, 0.75)
+    Box.BoxColor := ColorOpacity(ColorHover, 0.25)
   else
-    Box.BoxColor := ColorOpacity(ColorSelected, 0.75);
+    Box.BoxColor := ColorOpacity(ColorSelected, 0.5);
   Box.Exists := true;
 
   // Gizmo[voSelect] remains nil
