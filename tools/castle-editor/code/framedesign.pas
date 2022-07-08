@@ -424,14 +424,20 @@ type
 
 implementation
 
-uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
+uses
+  { Standard FPC/Lazarus units }
+  // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs, LCLType, ObjInspStrConsts,
-  Castle2DSceneManager, CastleComponentSerialize, CastleFileFilters,
-  CastleGLUtils, CastleImages, CastleLog,  CastleProjection,
-  CastleShellCtrls, CastleStringUtils, CastleThirdPersonNavigation,
-  CastleTimeUtils, CastleURIUtils, CastleUtils, CastleBehaviors, CastleSoundEngine,
-  X3DLoad, CastleFilesUtils,
+  { CGE units }
+  CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
+  CastleLog, CastleProjection, CastleShellCtrls, CastleStringUtils, CastleTimeUtils,
+  CastleURIUtils, X3DLoad, CastleFilesUtils,
+  { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
+    to register the core CGE components for (de)serialization. }
+  Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
+  CastleBehaviors,
+  { Editor units }
   EditorUtils, FormProject;
 
 {$R *.lfm}
