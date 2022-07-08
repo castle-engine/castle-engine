@@ -1133,7 +1133,8 @@ begin
   DebugObject.Translation := Vector3(
     Single(X),
     ConvY(Single(Y)),
-    LayerZDistance);
+    LayerZDistance + LayerZDistanceDefault / 2);   // Z: Shift debug object slightly infront of layer
+                                                   //    (esp. important for tile layers).
   DebugObject.AddChildren(DebugShapeOutline);
   DebugNode.AddChildren(DebugObject);
 
@@ -1141,7 +1142,8 @@ begin
   DebugObject.Translation := Vector3(
     Single(X) + DebugNameGap,
     ConvY(Single(Y)) + DebugNameGap,
-    LayerZDistance);
+    LayerZDistance + LayerZDistanceDefault / 2);   // Z: Shift debug object slightly infront of layer
+                                                   //    (esp. important for tile layers).
   DebugObject.AddChildren(DebugShapeName);
   DebugNode.AddChildren(DebugObject);
 end;
