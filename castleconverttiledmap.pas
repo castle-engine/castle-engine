@@ -80,6 +80,11 @@ uses
   Classes,
   X3DNodes, CastleLog, CastleTiledMap;
 
+type
+  TTiledLayerNode = type TTransformNode;
+  TTiledObjectNode = type TTransformNode;
+  TTiledTileNode = type TTransformNode;
+
 { Converts a Tiled map into a X3D representation for the Castle Game Engine.
   The result can be returned to Scene.Load method.
 
@@ -102,9 +107,6 @@ const
   OrangeRedRGB   : TCastleColorRGB = (X: 1.0; Y: 0.27; Z: 0.0);
 
 type
-  TTiledLayerNode = type TTransformNode;
-  TTiledObjectNode = type TTransformNode;
-  TTiledTileNode = type TTransformNode;
   TShapeNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNode>;
   TShapeNodeListList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNodeList>;
 
@@ -831,7 +833,6 @@ var
       (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#layer)
       }
       TileShapeNode := GetResolvedTileShapeNode(Tileset, Tile, GID);
-
 
       TileNode.AddChildren(TileShapeNode);
       Result.AddChildren(TileNode);
