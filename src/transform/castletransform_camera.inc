@@ -1132,11 +1132,13 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
 
       CalculateDimensions;
 
+      {$warnings off} // using experimental to make it working
       if not Orthographic.Stretch then
         Result.Dimensions := TOrthoViewpointNode.InternalFieldOfView(
           Result.Dimensions,
           ViewportWidth,
           ViewportHeight);
+      {$warnings on}
 
       EffectiveProjectionWidth := Result.Dimensions.Width;
       EffectiveProjectionHeight := Result.Dimensions.Height;
