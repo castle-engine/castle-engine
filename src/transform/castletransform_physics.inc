@@ -164,6 +164,16 @@
       { Default for @link(Friction). }
       DefaultFriction = 0.5;
 
+    class var
+      { Minimal collider thickness used by autosize in default 3d mode.
+
+        AutoSizeMinimalThickness change only affects new size recalculations.}
+      AutoSizeMinimalThickness: Single;
+      { Minimal collider thickness used by autosize in 2d mode.
+
+        AutoSizeMinimalThickness change only affects new size recalculations.}
+      AutoSizeMinimalThickness2D: Single;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -304,9 +314,15 @@
     Add this to transform behavior list. }
   TCastleBoxCollider = class(TCastleCollider)
   strict private
+    FMode2D: Boolean;
     FSize: TVector3; // calculated size without scale
 
     procedure SetSize(const AValue: TVector3);
+    procedure SetMode2D(const AValue: Boolean);
+
+  private
+    class procedure CreateComponent2D(Sender: TObject);
+
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -320,6 +336,10 @@
 
     property Size: TVector3 read FSize write SetSize;
   published
+    { Determines how to treat collider, currently change the way auto size
+      and scale is calculated. }
+    property Mode2D: Boolean read FMode2D write SetMode2D default false;
+
     {$define read_interface_class}
     {$I auto_generated_persistent_vectors/tcastleboxcollider_persistent_vectors.inc}
     {$undef read_interface_class}
@@ -910,12 +930,21 @@ end;
 procedure TCastleCapsuleCollider.CalculateAutoSize;
 var
   LocalBoundingBox: TBox3D;
+  MinimalThickness: Single;
 begin
   inherited;
+
+  if FMode2D then
+    MinimalThickness := AutoSizeMinimalThickness2D
+  else
+    MinimalThickness := AutoSizeMinimalThickness;
+
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
-    Radius := 1;
-    Height := 2.5;
+    Radius := MinimalThickness;
+    Height := MinimalThickness;
+    Translation := CastleVectors.Vector3(0, 0, 0);
+    Rotation := Vector4(0, 0, 0, 0);
     Exit;
   end;
 
@@ -929,6 +958,9 @@ begin
   { If radius * 2 is bigger than height make it smaller. }
   if Radius * 2 > LocalBoundingBox.SizeY then
     Radius := LocalBoundingBox.SizeY / 2 - 0.001;
+  { Radius must be at least MinimalThickness }
+  Radius := Max(Radius, MinimalThickness);
+
   Height := Max(LocalBoundingBox.SizeY - Radius * 2, 0.001);
 
   Translation := LocalBoundingBox.Center;
@@ -1431,6 +1463,8 @@ begin
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
     Normal := CastleVectors.Vector3(0, 1, 0);
+    Translation := CastleVectors.Vector3(0, 0, 0);
+    Rotation := Vector4(0, 0, 0, 0);
     Exit;
   end;
 
@@ -1518,6 +1552,20 @@ begin
   end;
 end;
 
+procedure TCastleBoxCollider.SetMode2D(const AValue: Boolean);
+begin
+  if FMode2D <> AValue then
+  begin
+    FMode2D := AValue;
+    DoAutoSize;
+  end;
+end;
+
+class procedure TCastleBoxCollider.CreateComponent2D(Sender: TObject);
+begin
+  (Sender as TCastleBoxCollider).Mode2D := true;
+end;
+
 function TCastleBoxCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 var
@@ -1542,25 +1590,37 @@ end;
 procedure TCastleBoxCollider.CalculateAutoSize;
 var
   LocalBoundingBox: TBox3D;
+  TempSize: TVector3;
+  MinimalThickness: Single;
 begin
   inherited;
 
+  if FMode2D then
+    MinimalThickness := AutoSizeMinimalThickness2D
+  else
+    MinimalThickness := AutoSizeMinimalThickness;
+
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
-    Size := CastleVectors.Vector3(1, 1, 1);
+    Size := CastleVectors.Vector3(MinimalThickness, MinimalThickness, MinimalThickness);
+    Translation :=  CastleVectors.Vector3(0, 0, 0);
+    Rotation := Vector4(0, 0, 0, 0);
     Exit;
   end;
 
   LocalBoundingBox := Parent.LocalBoundingBox;
+  TempSize := LocalBoundingBox.Size;
 
-  { 2D objects like TCastleImageTransform can have 0 at Z axis }
-  if LocalBoundingBox.Data[0].Z = LocalBoundingBox.Data[1].Z then
-  begin
-    LocalBoundingBox.Data[0].Z := LocalBoundingBox.Data[0].Z - 0.5;
-    LocalBoundingBox.Data[1].Z := LocalBoundingBox.Data[1].Z + 0.5;
-  end;
+  if TempSize.X < MinimalThickness then
+    TempSize.X := MinimalThickness;
 
-  Size := LocalBoundingBox.Size;
+  if TempSize.Y < MinimalThickness then
+    TempSize.Y := MinimalThickness;
+
+  if TempSize.Z < MinimalThickness then
+    TempSize.Z := MinimalThickness;
+
+  Size := TempSize;
 
   Translation := LocalBoundingBox.Center;
   Rotation := Vector4(0, 0, 0, 0);
@@ -1587,6 +1647,7 @@ function TCastleBoxCollider.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if (PropertyName = 'AutoSize') or
+     (PropertyName = 'Mode2D') or
      (PropertyName = 'SizePersistent') then
     Result := [psBasic]
   else
@@ -1640,11 +1701,20 @@ end;
 procedure TCastleSphereCollider.CalculateAutoSize;
 var
   LocalBoundingBox: TBox3D;
+  MinimalThickness: Single;
 begin
   inherited;
+
+  if FMode2D then
+    MinimalThickness := AutoSizeMinimalThickness2D
+  else
+    MinimalThickness := AutoSizeMinimalThickness;
+
   if (Parent = nil) or (Parent.BoundingBox.IsEmptyOrZero) then
   begin
-    Radius := 1;
+    Radius := MinimalThickness;
+    Translation := CastleVectors.Vector3(0, 0, 0);
+    Rotation := Vector4(0, 0, 0, 0);
     Exit;
   end;
 
@@ -1653,6 +1723,9 @@ begin
     Radius := LocalBoundingBox.AverageSize2D(false, 2, 2) / 2
   else
     Radius := LocalBoundingBox.AverageSize(false, 2) / 2;
+
+  { Check minimal size }
+  Radius := Max(Radius, MinimalThickness);
 
   Translation := LocalBoundingBox.Center;
   Rotation := Vector4(0, 0, 0, 0);
