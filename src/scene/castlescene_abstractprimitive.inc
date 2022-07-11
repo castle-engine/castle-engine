@@ -63,6 +63,12 @@ type
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { Does this transform have a collision mesh that TCastleMeshCollider can use. }
+    function HasColliderMesh: Boolean; override;
+    { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
+    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); override;
+
+
     { Color of the text. Opaque white by default.
 
       What exactly it means, depends on @link(Material):
@@ -294,6 +300,17 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleAbstractPrimitive.HasColliderMesh: Boolean;
+begin
+  Result := true;
+end;
+
+procedure TCastleAbstractPrimitive.ColliderMesh(
+  const TriangleEvent: TTriangleEvent);
+begin
+  FScene.ColliderMesh(TriangleEvent);
 end;
 
 procedure TCastleAbstractPrimitive.SetPreciseCollisions(const Value: Boolean);

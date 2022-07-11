@@ -555,6 +555,11 @@
     property GetExists: Boolean read FExists; deprecated 'use Exists';
     {$endif}
 
+    { Does this transform have a collision mesh that TCastleMeshCollider can use. }
+    function HasColliderMesh: Boolean; virtual; // default implementation returns false
+    { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
+    procedure ColliderMesh(const TriangleEvent: TTriangleEvent); virtual; // default implementation does nothing
+
     { Does the item really collide. Trivial shortcut for checking @link(Collides) and @link(Exists). }
     function CheckCollides: Boolean;
     function GetCollides: boolean; virtual; deprecated 'use CheckCollides';
@@ -3701,6 +3706,16 @@ end;
 function TCastleTransform.GetEnumerator: TEnumerator;
 begin
   Result := TEnumerator.Create(FList);
+end;
+
+function TCastleTransform.HasColliderMesh: Boolean;
+begin
+  Result := false;
+end;
+
+procedure TCastleTransform.ColliderMesh(const TriangleEvent: TTriangleEvent);
+begin
+
 end;
 
 function TCastleTransform.BehaviorsEnumerate: TCastleBehaviorEnumerator;
