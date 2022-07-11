@@ -194,6 +194,7 @@ begin
   RBody := TCastleRigidBody.Create(Self);
   RBody.Setup2D;
   RBody.Dynamic := true;
+  RBody.CollisionDetectionType := cdtContinuous;
   RBody.MaximalLinearVelocity := 0;
 
 
