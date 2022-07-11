@@ -48,7 +48,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="16">
+    <Files Count="17">
       <Item1>
         <Filename Value="../src/lcl/castlecontrol.pas"/>
         <HasRegisterProc Value="True"/>
@@ -81,7 +81,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item7>
       <Item8>
-        <Filename Value="../src/lcl/castlepropedits_autoanimation.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_meshcolliderscene.inc"/>
         <Type Value="Include"/>
       </Item8>
       <Item9>
@@ -114,7 +114,12 @@ See https://castle-engine.io/license.php for details.
       </Item15>
       <Item16>
         <Filename Value="../src/lcl/castlepropedits_rangeset.inc"/>
+        <UnitName Value="castlepropedits_rangeset"/>
       </Item16>
+      <Item17>
+        <Filename Value="../src/lcl/castlepropedits_autoanimation.inc"/>
+        <Type Value="Include"/>
+      </Item17>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="4">

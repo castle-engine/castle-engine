@@ -72,6 +72,7 @@ end;
   they don't look at read_interface/read_implementation symbols. }
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
+{$I castlepropedits_meshcolliderscene.inc}
 {$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
@@ -158,6 +159,9 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
+
+  RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Scene',
+    TMeshColliderScenePropertyEditor);
 
   RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockTranslation',
     T3DCoordsRangeSetPropertyEditor);
