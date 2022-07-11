@@ -18,8 +18,8 @@ function read_cge_version()
 }
 
 $cgeVersions = array(
-    '6.4' => array('url' => CASTLE_FINAL_URL . 'apidoc/html/'),
-    '7.0-alpha.snapshot (unstable)' => array('url' => CASTLE_FINAL_URL . 'apidoc-unstable/html/'),
+    '6.4' => array('url' => CASTLE_PROD_URL . 'apidoc/html/'),
+    '7.0-alpha.snapshot (unstable)' => array('url' => CASTLE_PROD_URL . 'apidoc-unstable/html/'),
 );
 
 $cgeCurrentVersion = read_cge_version();
