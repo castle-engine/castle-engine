@@ -24,6 +24,7 @@
   and such call it automatically when needed. }
 {$ifdef read_interface_type}
 // type (continue type section from previous include file)
+  { Constraints on texture size, used by @link(ResizeToTextureSize) and @link(IsTextureSized). }
   TTextureSizing = (
     { Texture size does not have to be a power of two
       (unless GLFeatures.TextureNonPowerOfTwo = @false, in which case all textures
@@ -191,6 +192,7 @@ function GLDecompressTexture(Image: TGPUCompressedImage): TCastleImage;
 
 {$ifdef read_interface_type}
 // type (continue type section from previous include file)
+  { Raised by SaveTextureContents when we cannot get texture contents. }
   ECannotSaveTextureContents = class(Exception);
 {$endif read_interface_type}
 
