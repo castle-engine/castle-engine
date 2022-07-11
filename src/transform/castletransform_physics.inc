@@ -984,7 +984,8 @@ begin
   if FMode2D <> AValue then
   begin
     FMode2D := AValue;
-    DoAutoSize;
+    if AutoSize then
+      DoAutoSize;
   end;
 end;
 
@@ -1557,7 +1558,8 @@ begin
   if FMode2D <> AValue then
   begin
     FMode2D := AValue;
-    DoAutoSize;
+    if AutoSize then
+      DoAutoSize;
   end;
 end;
 
@@ -1747,7 +1749,8 @@ begin
   if FMode2D <> AValue then
   begin
     FMode2D := AValue;
-    DoAutoSize;
+    if AutoSize then
+      DoAutoSize;
   end;
 end;
 
