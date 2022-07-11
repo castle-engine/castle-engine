@@ -7238,6 +7238,17 @@
                       2
                     ],
                     "Name" : "RigidBody142"
+                  },
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Mode2D" : true,
+                    "Name" : "BoxCollider158",
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0000000000000000E+000,
+                      "Y" : 1.0000000000000000E+000,
+                      "Z" : 1.0000000000000000E+000
+                    }
                   }
                 ]
               },
