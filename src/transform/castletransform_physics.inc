@@ -430,6 +430,37 @@
     property Mode2D: Boolean read FMode2D write SetMode2D default false;
   end;
 
+  { Collide as a mesh, constructed from the given scene shapes.
+    Add this behavior to your Scene }
+  TCastleMeshCollider = class(TCastleCollider)
+  strict private
+    Mesh: TKraftMesh;
+    FScene: TCastleTransform;
+    procedure AddTriangle(Shape: TObject;
+      const Position: TTriangle3;
+      const Normal: TTriangle3; const TexCoord: TTriangle4;
+      const Face: TFaceIndex);
+  strict protected
+    function CreateKraftShape(const APhysics: TKraft;
+      const ARigidBody: TKraftRigidBody): TKraftShape; override;
+    procedure SetScene(const AValue: TCastleTransform);
+    { In case of mesh collider only remove Translation, Rotation and Scale }
+    procedure CalculateAutoSize; override;
+  public
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+  published
+    { Mesh which is used to collide.
+      It does not have to be convex.
+
+      The @link(TCastleTransform.Collides Scene.Collides) and
+      @link(TCastleTransform.GetCollides Scene.GetCollides) do not matter here.
+      Using the TCollisionNode inside Scene matters (so the scene may collide
+      as something different than it's visible, see
+      https://castle-engine.io/x3d_implementation_navigation.php ). }
+    property Scene: TCastleTransform read FScene write SetScene;
+  end;
+
+
   TCollisionEvent = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
   TOnCollision = TCollisionEvent deprecated 'use TCollisionEvent';
 
@@ -988,6 +1019,92 @@ begin
       DoAutoSize;
   end;
 end;
+
+{ TCastleMeshCollider -------------------------------------------------------- }
+
+procedure TCastleMeshCollider.AddTriangle(Shape: TObject;
+  const Position: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
+  const Face: TFaceIndex);
+begin
+  { TODO: it's probably not optimal to call AddTriangle
+    for each triangle, we should instead call Load with a list. }
+
+  Mesh.AddTriangle(
+    Mesh.AddVertex(VectorToKraft(Position.Data[0])),
+    Mesh.AddVertex(VectorToKraft(Position.Data[1])),
+    Mesh.AddVertex(VectorToKraft(Position.Data[2])),
+    Mesh.AddNormal(VectorToKraft(Normal.Data[0])),
+    Mesh.AddNormal(VectorToKraft(Normal.Data[1])),
+    Mesh.AddNormal(VectorToKraft(Normal.Data[2]))
+  );
+
+
+  { Kraft RayCast does not check inverted triangles. }
+  Mesh.AddTriangle(
+      Mesh.AddVertex(VectorToKraft(Position.Data[2])),
+      Mesh.AddVertex(VectorToKraft(Position.Data[1])),
+      Mesh.AddVertex(VectorToKraft(Position.Data[0])),
+      Mesh.AddNormal(VectorToKraft(-Normal.Data[2])),
+      Mesh.AddNormal(VectorToKraft(-Normal.Data[1])),
+      Mesh.AddNormal(VectorToKraft(-Normal.Data[0]))
+    );
+end;
+
+function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody): TKraftShape;
+begin
+  if FScene = nil then
+  begin
+    Result := nil;
+    Exit;
+  end;
+
+  if ARigidBody.RigidBodyType <> krbtStatic then
+  begin
+    WritelnWarning('TCastleMeshCollider is available only for static rigid bodies.');
+    Result := nil;
+    Exit;
+  end;
+
+  Mesh := TKraftMesh.Create(APhysics);
+
+  FScene.ColliderMesh({$ifdef FPC}@{$endif}AddTriangle);
+
+  if Mesh.CountVertices = 0 then
+    WritelnWarning('The scene assigned to TCastleMeshCollider.Scene is empty (no collidable triangles)');
+  Mesh.Finish;
+
+  Result := TKraftShapeMesh.Create(APhysics, ARigidBody, Mesh);
+end;
+
+procedure TCastleMeshCollider.SetScene(const AValue: TCastleTransform);
+begin
+  if FScene <> AValue then
+  begin
+    FScene := AValue;
+    ShapeChangedNotifyRigidBody;
+  end;
+end;
+
+procedure TCastleMeshCollider.CalculateAutoSize;
+begin
+  inherited;
+  Rotation := Vector4(0, 0, 0, 0);
+  Scale := CastleVectors.Vector3(1, 1, 1);
+  Translation := CastleVectors.Vector3(0, 0, 0);
+end;
+
+function TCastleMeshCollider.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'AutoSize') or
+     (PropertyName = 'Scene') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 
 { TPhysicsCollisionDetails --------------------------------------------------- }
 
