@@ -210,6 +210,7 @@ procedure WindowUpdate(Container: TCastleContainer);
     Transform.AddBehavior(RigidBody);
 
     Collider := TCastleBoxCollider.Create(RigidBody);
+    Collider.Mode2D := true;
     Collider.Mass := 10;
     Transform.AddBehavior(Collider);
 
@@ -234,6 +235,7 @@ procedure WindowUpdate(Container: TCastleContainer);
     Transform.AddBehavior(RigidBody);
 
     Collider := TCastleSphereCollider.Create(RigidBody);
+    Collider.Mode2D := true;
     Collider.Mass := 10;
     Transform.AddBehavior(Collider);
 
