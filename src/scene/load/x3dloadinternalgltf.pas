@@ -1101,6 +1101,7 @@ var
     Stream: TMemoryStream;
   begin
     Texture := nil;
+    GltfImage := nil;
     TexMapping := ''; // for no texture, use empty mapping, to keep output X3D simple
 
     if not GltfTextureAtMaterial.Empty then
@@ -1181,6 +1182,10 @@ var
 
         if Texture <> nil then // above clause succeded in reading Texture
         begin
+          { Use glTF name for X3D node name. }
+          if GltfImage <> nil then
+            Texture.X3DName := GltfImage.Name;
+
           TexMapping := 'TEXCOORD_' + IntToStr(GltfTextureAtMaterial.TexCoord);
 
           // read wrap and filtering options
