@@ -18,10 +18,12 @@ type
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
     SpherePlayer: TCastleTransform;
+    SphereDynamic: TCastleTransform;
     CheckboxMoveByTranslate: TCastleCheckbox;
     CheckboxMoveByVelocity: TCastleCheckbox;
     CheckboxMoveByAnimateTranslation: TCastleCheckbox;
     CheckboxContinuousCD: TCastleCheckbox;
+    CheckboxContinuousCDSphereDynamic: TCastleCheckbox;
     ButtonChangeToAnimated: TCastleButton;
     ButtonChangeToDynamic: TCastleButton;
 
@@ -30,6 +32,7 @@ type
     procedure CheckboxMoveByAnimateTranslationChange(Sender: TObject);
 
     procedure CheckboxContinuousCDChange(Sender: TObject);
+    procedure CheckboxContinuousCDSphereDynamicChange(Sender: TObject);
 
     procedure MakeDynamic(Sender: TObject);
     procedure MakeAnimated(Sender: TObject);
@@ -81,6 +84,14 @@ begin
     SpherePlayer.RigidBody.CollisionDetectionType := cdtDiscrete;
 end;
 
+procedure TStateMain.CheckboxContinuousCDSphereDynamicChange(Sender: TObject);
+begin
+  if CheckboxContinuousCDSphereDynamic.Checked then
+    SphereDynamic.RigidBody.CollisionDetectionType := cdtContinuous
+  else
+    SphereDynamic.RigidBody.CollisionDetectionType := cdtDiscrete;
+end;
+
 procedure TStateMain.MakeDynamic(Sender: TObject);
 begin
   SpherePlayer.RigidBody.Dynamic := true;
@@ -121,6 +132,7 @@ begin
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
 
   SpherePlayer := DesignedComponent('SpherePlayer') as TCastleTransform;
+  SphereDynamic := DesignedComponent('SphereDynamic') as TCastleTransform;
 
   CheckboxMoveByTranslate := DesignedComponent('CheckboxMoveByTranslate') as TCastleCheckbox;
   CheckboxMoveByTranslate.OnChange := {$ifdef FPC}@{$endif}CheckboxMoveByTranslateChange;
@@ -133,6 +145,9 @@ begin
 
   CheckboxContinuousCD := DesignedComponent('CheckboxContinuousCD') as TCastleCheckbox;
   CheckboxContinuousCD.OnChange := {$ifdef FPC}@{$endif}CheckboxContinuousCDChange;
+
+  CheckboxContinuousCDSphereDynamic := DesignedComponent('CheckboxContinuousCDSphereDynamic') as TCastleCheckbox;
+  CheckboxContinuousCDSphereDynamic.OnChange := {$ifdef FPC}@{$endif}CheckboxContinuousCDSphereDynamicChange;
 
   ButtonChangeToDynamic := DesignedComponent('ButtonChangeToDynamic') as TCastleButton;
   ButtonChangeToDynamic.OnClick := {$ifdef FPC}@{$endif}MakeDynamic;
