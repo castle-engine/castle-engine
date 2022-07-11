@@ -73,30 +73,39 @@ initialization
   TCastleCollider.AutoSizeMinimalThickness := 0.01;
   TCastleCollider.AutoSizeMinimalThickness2D := 1;
   GlobalIdentityMatrix := TMatrix4.Identity;
+
   RegisterSerializableComponent(TCastleTransform, 'Transform');
   RegisterSerializableComponent(TCastleTransformDesign, 'Transform Design (Use Another castle-transform File)');
   RegisterSerializableComponent(TCastleTransformReference, 'Reference Another Transform');
   RegisterSerializableComponent(TCastleCamera, 'Camera');
+
   RegisterSerializableComponent(TCastleRigidBody, 'Rigid Body');
+
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleRigidBody;
   R.Caption := 'Rigid Body (2D)';
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleRigidBody{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
+
   RegisterSerializableComponent(TCastleBoxCollider, 'Box Colllider');
+
   R := TRegisteredComponent.Create;
-  R.ComponentClass := TCastleCapsuleCollider;
+  R.ComponentClass := TCastleBoxCollider;
   R.Caption := 'Box Colllider (2D)';
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleBoxCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
+
   RegisterSerializableComponent(TCastleCapsuleCollider, 'Capsule Colllider');
+
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleCapsuleCollider;
   R.Caption := 'Capsule Colllider (2D)';
   R.OnCreate := {$ifdef FPC}@{$endif}TCastleCapsuleCollider{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
+
   RegisterSerializableComponent(TCastlePlaneCollider, 'Plane Colllider');
   RegisterSerializableComponent(TCastleSphereCollider, 'Sphere Colllider');
+
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleSphereCollider;
   R.Caption := 'Sphere Colllider (2D)';
