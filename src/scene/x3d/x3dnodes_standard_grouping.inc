@@ -761,6 +761,17 @@ end;
 
 { TFixNamesHandler ----------------------------------------------------------- }
 
+const
+  { Do not log node renames by default, because
+
+    1. there are a lot of them, in practical glTF (clashes between meshes,
+       nodes, materials) and Spine and X3D (clashes between inlines) models too.
+
+    2. we are not 100% sure we will always do them.
+       See discussion in src/scene/load/README_node_names_at_import.md]
+  }
+  LogNodeRenames = false;
+
 type
   TFixNamesHandler = class
   strict private
@@ -847,7 +858,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
     end else
       RenameUniquelyCore(Node, Node.X3DName + '_', 2);
 
-    if LogsDone < MaxLogsDone then
+    if LogNodeRenames and (LogsDone < MaxLogsDone) then
     begin
       WritelnLog('Renaming node "%s" -> "%s" to have unique name', [
         OriginalName,
@@ -915,7 +926,26 @@ begin
     MakeNamed(Route.DestinationNode);
   end;
 
-  { recursively check children }
+  { Recursively check children.
+
+    Should we descend into TInlineNode?
+    Strictly thinking about X3D namespace, the names don't have to be unique
+    across multiple files, each file is a separate namespace. Actually even prototypes
+    have a separate namespace.
+
+    That said, in CGE our TCastleScene.Node and TX3DRootNode node searching methods
+    access the graph as a whole, because this is much easier to use in normal case
+    (and allows developer to "not care" whether something is wrapped in Inline or not).
+    So for CGE, we just make all names unique.
+
+    So we don't have here condition like
+
+      if not (Node is TInlineNode) then
+
+    Just do this for all nodes.
+
+    Moreover, the ROUTEs have to be fixed in Inlines too.
+  }
   Node.DirectEnumerateAll({$ifdef FPC}@{$endif} Self.HandleNode);
 end;
 
