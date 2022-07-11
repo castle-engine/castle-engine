@@ -145,8 +145,10 @@ jobs:
         # Older Lazarus versions are with unsupported FPC,
         # see https://github.com/marketplace/actions/setup-lazarus-environment .
         #
-        # lazbuild from Lazarus 2.0.10 may crash, so don't test either.
-        lazarus-versions: [stable, 2.2.0, 2.0.12]
+        # lazbuild from Lazarus 2.0.10 or 2.0.12 may crash, so don't test.
+        # See e.g. https://github.com/castle-engine/castle-engine/runs/7275163005?check_suite_focus=true#step:8:4698
+        # - EAccessViolation from lazbuild (not FPC).
+        lazarus-versions: [stable, 2.2.0]
     runs-on: ${{ matrix.operating-system }}
     steps:
       - uses: actions/checkout@v2
@@ -176,9 +178,6 @@ jobs:
       - name: Build Examples
         run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
       - name: Build Examples Using Lazarus
-        # TODO: FPC 3.2.0 + Lazarus 2.0.12 + macOS has problems linking examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester.lpi :
-        # ld: library not found for -lcastleengine
-        if: ${{ ! (matrix.operating-system == 'macos-latest' && matrix.lazarus-versions == '2.0.12') }}
         run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
   pack:
