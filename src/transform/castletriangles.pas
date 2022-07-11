@@ -380,6 +380,14 @@ type
   TTriangleIgnoreFunc = function (const Sender: TObject;
     const Triangle: PTriangle): boolean of object;
 
+  { Triangle information, called by TShape.LocalTriangulate and such.
+    See the @link(TTriangle) fields documentation for the meaning
+    of parameters of this callback. }
+  TTriangleEvent = procedure (Shape: TObject;
+    const Position: TTriangle3;
+    const Normal: TTriangle3; const TexCoord: TTriangle4;
+    const Face: TFaceIndex) of object;
+
   T3DTriangleGeometry = TTriangleGeometry deprecated 'use TTriangleGeometry';
   T3DTriangle = TTriangle deprecated 'use TTriangle';
   P3DTriangle = PTriangle deprecated 'use PTriangle';
