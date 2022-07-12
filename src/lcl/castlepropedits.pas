@@ -40,7 +40,7 @@ implementation
 
 uses SysUtils, Classes, TypInfo, Forms,
   ComponentEditors, LResources, Dialogs, Controls, LCLVersion, LazIDEIntf,
-  OpenGLContext, Graphics,
+  OpenGLContext, Graphics, ObjInspStrConsts,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
