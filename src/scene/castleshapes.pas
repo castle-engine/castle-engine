@@ -318,9 +318,9 @@ type
     FGeometry: array [boolean] of TAbstractGeometryNode;
     FState: array [boolean] of TX3DGraphTraverseState;
 
-    FGeometryParentNodeName,
-    FGeometryGrandParentNodeName,
-    FGeometryGrandGrandParentNodeName: string;
+    FGeometryParentNode,
+    FGeometryGrandParentNode,
+    FGeometryGrandGrandParentNode: TX3DNode;
 
     FLocalGeometryChangedCount: Cardinal;
     FDynamicGeometry: Boolean;
@@ -686,20 +686,36 @@ type
       May be used as an optimization hint. }
     property DynamicGeometry: Boolean read FDynamicGeometry;
 
-    { Shape node in VRML/X3D graph.
-      This is always present for VRML >= 2 (including X3D).
-      For VRML 1.0 and Inventor this is @nil. }
+    { Shape node in X3D graph.
+      This is always non-nil for X3D, VRML 2 and all model formats that are imported
+      as X3D, like glTF, Spine, sprite sheets and more.
+      This is @nil only for old VRML 1.0 and Inventor model formats. }
     function Node: TAbstractShapeNode;
 
-    { Node names of parents of the geometry node.
-      Note that for X3D/VRML 2.0, GeometryParentNodeName is the same
-      as Node.NodeName, because the parent of geometry node is always
-      a TShapeNode.
+    { Parent, grand-parent, grand-grand-parent nodes determined during traversing
+      of the X3D node graph.
+
+      Note that GeometryParentNode is almost always equal to @link(Node),
+      for X3D, VRML 2 and all model formats that are imported
+      as X3D, like glTF, Spine, sprite sheets and more.
+      That's because in VRML 2 and X3D, parent of geometry node must be a TShapeNode.
+
+      Only in old VRML 1.0 and Inventor model formats the GeometryParentNode
+      may be different than @link(Node).
+
+      All these nodes (GeometryParentNode, GeometryGrandParentNode and
+      GeometryGrandGrandParentNode) may be useful if you
+      need to take a different action depending on the parent nodes of this shape.
+
       @groupBegin }
-    property GeometryParentNodeName: string read FGeometryParentNodeName;
-    property GeometryGrandParentNodeName: string read FGeometryGrandParentNodeName;
-    property GeometryGrandGrandParentNodeName: string read FGeometryGrandGrandParentNodeName;
+    property GeometryParentNode: TX3DNode read FGeometryParentNode;
+    property GeometryGrandParentNode: TX3DNode read FGeometryGrandParentNode;
+    property GeometryGrandGrandParentNode: TX3DNode read FGeometryGrandGrandParentNode;
     { @groupEnd }
+
+    function GeometryParentNodeName: String; deprecated 'use GeometryParentNode.X3DName';
+    function GeometryGrandParentNodeName: String; deprecated 'use GeometryGrandParentNode.X3DName';
+    function GeometryGrandGrandParentNodeName: String; deprecated 'use GeometryGrandGrandParentNode.X3DName';
 
     { Material property associated with this shape's material/texture. }
     function InternalMaterialProperty: TMaterialProperty;
@@ -1010,9 +1026,9 @@ type
 
     When implementing this, you may find useful the following properties
     of the shape: TShape.OriginalGeometry.X3DName,
-    TShape.Node.X3DName, TShape.GeometryParentNodeName,
-    TShape.GeometryGrandParentNodeName,
-    TShape.GeometryGrandGrandParentNodeName.
+    TShape.Node.X3DName, TShape.GeometryParentNode.X3DName,
+    TShape.GeometryGrandParentNode.X3DName,
+    TShape.GeometryGrandGrandParentNode.X3DName.
 
     Preferably, the result should be unique, only for this VRML/X3D shape.
     But in practice it's the responsibility of the modeler
@@ -1380,14 +1396,14 @@ begin
   PI := ParentInfo;
   if PI <> nil then
   begin
-    FGeometryParentNodeName := PI^.Node.X3DName;
+    FGeometryParentNode := PI^.Node;
     PI := PI^.ParentInfo;
     if PI <> nil then
     begin
-      FGeometryGrandParentNodeName := PI^.Node.X3DName;
+      FGeometryGrandParentNode := PI^.Node;
       PI := PI^.ParentInfo;
       if PI <> nil then
-        FGeometryGrandGrandParentNodeName := PI^.Node.X3DName;
+        FGeometryGrandGrandParentNode := PI^.Node;
     end;
   end;
 
@@ -1409,6 +1425,30 @@ begin
   end;
   FreeOctreeTriangles;
   inherited;
+end;
+
+function TShape.GeometryParentNodeName: String;
+begin
+  if GeometryParentNode <> nil then
+    Result := GeometryParentNode.X3DName
+  else
+    Result := '';
+end;
+
+function TShape.GeometryGrandParentNodeName: String;
+begin
+  if GeometryGrandParentNode <> nil then
+    Result := GeometryGrandParentNode.X3DName
+  else
+    Result := '';
+end;
+
+function TShape.GeometryGrandGrandParentNodeName: String;
+begin
+  if GeometryGrandGrandParentNode <> nil then
+    Result := GeometryGrandGrandParentNode.X3DName
+  else
+    Result := '';
 end;
 
 procedure TShape.AssociateGeometryState(
@@ -3784,15 +3824,15 @@ begin
       imported to X3D nodes by CGE.
       In this case, the name comes from Blender mesh name (not Blender object name),
       and has no prefixes/suffixes.
-      It is still in GeometryGrandGrandParentNodeName, because of how
+      It is still in GeometryGrandGrandParentNode.X3DName, because of how
       X3DLoadInternalGltf organizes data.
     }
 
     // not needed:
-    // BlenderMeshName := PrefixRemove('ME_', GeometryGrandParentNodeName, false);
+    // BlenderMeshName := PrefixRemove('ME_', GeometryGrandParentNode.X3DName, false);
 
     Result := SuffixRemove('_ifs_TRANSFORM', PrefixRemove('OB_',
-      Shape.GeometryGrandGrandParentNodeName, false), false);
+      Shape.GeometryGrandGrandParentNode.X3DName, false), false);
   end;
 end;
 
