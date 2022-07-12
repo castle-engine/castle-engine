@@ -17,6 +17,29 @@
 {$ifdef read_interface}
 
 //type
+  TComponentEvent = procedure(const Component: TComponent) of object;
+
+  TCastleNotification = class (TComponent)
+  private
+    FEventList: {$ifdef FPC}specialize{$endif} TList<TComponentEvent>;
+    FObjectList: {$ifdef FPC}specialize{$endif} TList<TComponent>;
+
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+
+  public
+    procedure AddNotification(const AEventComponent: TComponent;
+      const AEvent: TComponentEvent);
+
+    procedure RemoveNotification(const AEventComponent: TComponent;
+      const AEvent: TComponentEvent);
+
+    procedure Notify(const AComponent: TComponent);
+
+    destructor Destroy; override;
+  end;
+
+
   { Group and transform (move, rotate, scale) children objects.
 
     Add and remove children using the @link(Add), @link(Remove) and similar methods.
@@ -131,6 +154,10 @@
       FLastParentWorldTransformation: TTransformation;
       FLastParentWorldTransformationId: Cardinal;
 
+      FOnAddedBehaviorNotification: TCastleNotification;
+      FBeforeRemoveBehaviorNotification: TCastleNotification;
+      FOnBehaviorReadyChange: TCastleNotification;
+
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
     procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -219,6 +246,21 @@
 
     procedure NotifyWorldAttach(const NewWorld: TCastleAbstractRootTransform);
     procedure NotifyWorldDetach(const PreviousWorld: TCastleAbstractRootTransform);
+
+    procedure AddNotificationOnBehaviorAdded(
+      const EventComponent: TComponent; const Event: TComponentEvent);
+
+    procedure NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
+
+    procedure AddNotificationOnBehaviorReadyChange(
+      const EventComponent: TComponent; const Event: TComponentEvent);
+
+    procedure NotifyBehaviorReadyChange(const ABehavior: TCastleBehavior);
+
+    procedure AddNotificationBeforeBehaviorRemove(
+      const EventComponent: TComponent; const Event: TComponentEvent);
+
+    procedure NotifyBeforeBehaviorRemove(const ABehavior: TCastleBehavior);
 
     { When someone calls Free Behavior it is fired but doesn't call
       WorldBeforeDetach, ParentBeforeDetach, ParentChanged, so we need
@@ -2773,6 +2815,58 @@ begin
   end;
 end;
 
+procedure TCastleTransform.AddNotificationOnBehaviorAdded(
+  const EventComponent: TComponent; const Event: TComponentEvent);
+begin
+  if FOnAddedBehaviorNotification = nil then
+    FOnAddedBehaviorNotification := TCastleNotification.Create(Self);
+
+  FOnAddedBehaviorNotification.AddNotification(EventComponent, Event);
+end;
+
+procedure TCastleTransform.NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
+begin
+  if FOnAddedBehaviorNotification = nil then
+    Exit;
+
+  FOnAddedBehaviorNotification.Notify(ABehavior);
+end;
+
+procedure TCastleTransform.AddNotificationOnBehaviorReadyChange(
+  const EventComponent: TComponent; const Event: TComponentEvent);
+begin
+  if FOnBehaviorReadyChange = nil then
+    FOnBehaviorReadyChange := TCastleNotification.Create(Self);
+
+  FOnBehaviorReadyChange.AddNotification(EventComponent, Event);
+end;
+
+procedure TCastleTransform.NotifyBehaviorReadyChange(const ABehavior: TCastleBehavior
+  );
+begin
+  if FOnBehaviorReadyChange = nil then
+    Exit;
+
+  FOnBehaviorReadyChange.Notify(ABehavior);
+end;
+
+procedure TCastleTransform.AddNotificationBeforeBehaviorRemove(
+  const EventComponent: TComponent; const Event: TComponentEvent);
+begin
+  if FBeforeRemoveBehaviorNotification = nil then
+    FBeforeRemoveBehaviorNotification := TCastleNotification.Create(Self);
+
+  FBeforeRemoveBehaviorNotification.AddNotification(EventComponent, Event);
+end;
+
+procedure TCastleTransform.NotifyBeforeBehaviorRemove(const ABehavior: TCastleBehavior);
+begin
+  if FBeforeRemoveBehaviorNotification = nil then
+    Exit;
+
+  FBeforeRemoveBehaviorNotification.Notify(ABehavior);
+end;
+
 procedure TCastleTransform.BeforeBehaviorDestroy(const Behavior: TCastleBehavior);
 begin
   if Behavior.Parent <> nil then
@@ -3799,6 +3893,7 @@ begin
        ((OldParent = nil) or ((OldParent <> nil) and (OldParent.World <> FWorld))) then
         Behavior.WorldAfterAttach;
     end;
+    NotifyBehaviorAdded(Behavior);
   end;
 end;
 
@@ -3807,6 +3902,8 @@ var
   Beh: TCastleBehavior;
 begin
   Beh := FBehaviors[BehaviorIndex] as TCastleBehavior;
+
+  NotifyBeforeBehaviorRemove(Beh);
 
   { Call WorldDetached directly }
   if Beh.NeedWorldChangeNotification and (FWorld <> nil) then

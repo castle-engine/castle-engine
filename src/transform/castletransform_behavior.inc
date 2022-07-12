@@ -40,6 +40,7 @@
   TCastleBehavior = class(TCastleComponent)
   strict private
     FNeedWorldChangeNotification: Boolean;
+    FReady: Boolean;
 
     procedure SetNeedWorldChangeNotification(const Value: Boolean);
   private
@@ -65,6 +66,7 @@
 
     procedure WorldBeforeDetach; virtual;
 
+    procedure SetReady(const ANewReadyValue: Boolean);
 
     { Check can this behavior be added to NewParent.
       When this returns @false, it has to set also ReasonWhyCannot.
@@ -178,6 +180,15 @@ end;
 procedure TCastleBehavior.WorldBeforeDetach;
 begin
 
+end;
+
+procedure TCastleBehavior.SetReady(const ANewReadyValue: Boolean);
+begin
+  if FReady = ANewReadyValue then
+    Exit;
+  FReady := ANewReadyValue;
+  if Parent <> nil then
+    Parent.NotifyBehaviorReadyChange(Self);
 end;
 
 function TCastleBehavior.CanAttachToParent(const NewParent: TCastleTransform;

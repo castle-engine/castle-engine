@@ -876,7 +876,9 @@
     FBreakThresholdTorque: Single;
 
     function GetKraftJoint: TKraftConstraintJoint; virtual; abstract;
-    procedure RecreateKraftJoint; virtual; abstract;
+    procedure RecreateKraftJoint;
+    procedure InitializeKraftJoint; virtual; abstract;
+    procedure DeinitializeKraftJoint; virtual; abstract;
 
     procedure SetBreakThresholdForce(const AValue: Single);
     procedure SetBreakThresholdTorque(const AValue: Single);
@@ -897,6 +899,9 @@
   strict protected
     procedure SetConnectedTransform(const AConnectedTransform: TCastleTransform); virtual;
     procedure SetConnectedCollide(const AValue: Boolean); virtual;
+
+    procedure OnConnectedTransformAddBehavior(const Component: TComponent); virtual;
+    procedure OnConnectedTransfromRemoveBehavior(const Component: TComponent); virtual;
 
   published
     property ConnectedTransform: TCastleTransform read FConnectedTransform
@@ -928,7 +933,8 @@
 
     strict protected
       function GetKraftJoint: TKraftConstraintJoint; override;
-      procedure RecreateKraftJoint; override;
+      procedure InitializeKraftJoint; override;
+      procedure DeinitializeKraftJoint; override;
 
     public
       constructor Create(AOwner: TComponent); override;
@@ -965,7 +971,8 @@
       procedure SetDistance(const AValue: Single);
     strict protected
       function GetKraftJoint: TKraftConstraintJoint; override;
-      procedure RecreateKraftJoint; override;
+      procedure InitializeKraftJoint; override;
+      procedure DeinitializeKraftJoint; override;
 
     public
       constructor Create(AOwner: TComponent); override;
@@ -993,7 +1000,8 @@
     procedure SetAnchorPoint(const AValue: TVector3);
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
-    procedure RecreateKraftJoint; override;
+    procedure InitializeKraftJoint; override;
+    procedure DeinitializeKraftJoint; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1017,8 +1025,8 @@
     procedure SetAnchorPoint(const AValue: TVector3);
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
-    procedure RecreateKraftJoint; override;
-
+    procedure InitializeKraftJoint; override;
+    procedure DeinitializeKraftJoint; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1050,8 +1058,8 @@
 
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
-    procedure RecreateKraftJoint; override;
-
+    procedure InitializeKraftJoint; override;
+    procedure DeinitializeKraftJoint; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -3097,17 +3105,48 @@ begin
   RecreateKraftJoint;
 end;
 
+procedure TAbstractTwoBodiesJoint.OnConnectedTransformAddBehavior(
+  const Component: TComponent);
+begin
+  if Component is TCastleRigidBody then
+  begin
+    DeinitializeKraftJoint;
+    InitializeKraftJoint;
+  end;
+end;
+
+procedure TAbstractTwoBodiesJoint.OnConnectedTransfromRemoveBehavior(
+  const Component: TComponent);
+begin
+  if Component is TCastleRigidBody then
+    DeinitializeKraftJoint;
+end;
+
 procedure TAbstractTwoBodiesJoint.SetConnectedTransform(
   const AConnectedTransform: TCastleTransform);
 begin
   if FConnectedTransform <> AConnectedTransform then
   begin
     FConnectedTransform := AConnectedTransform;
+    if FConnectedTransform <> nil then
+    begin
+      FConnectedTransform.AddNotificationOnBehaviorAdded(Self,
+        @OnConnectedTransformAddBehavior);
+
+      FConnectedTransform.AddNotificationBeforeBehaviorRemove(Self,
+        @OnConnectedTransfromRemoveBehavior);
+    end;
     RecreateKraftJoint;
   end;
 end;
 
 { TAbstractJoint ------------------------------------------------------------- }
+
+procedure TAbstractJoint.RecreateKraftJoint;
+begin
+  DeinitializeKraftJoint;
+  InitializeKraftJoint;
+end;
 
 procedure TAbstractJoint.SetBreakThresholdForce(const AValue: Single);
 begin
@@ -3198,13 +3237,11 @@ begin
   Result := FKraftJointHinge;
 end;
 
-procedure TJointHinge.RecreateKraftJoint;
+procedure TJointHinge.InitializeKraftJoint;
 var
   FirstRigidBody: TCastleRigidBody;
   SecondRigidBody: TCastleRigidBody;
 begin
-  FreeAndNil(FKraftJointHinge);
-
   if World = nil then
     Exit;
 
@@ -3240,6 +3277,11 @@ begin
   FKraftJointHinge.EnableLimit(FEnableLimits);
   FKraftJointHinge.EnableMotor(FEnableMotor);
   FKraftJointHinge.SetMotorSpeed(FMotorSpeed);
+end;
+
+procedure TJointHinge.DeinitializeKraftJoint;
+begin
+  FreeAndNil(FKraftJointHinge);
 end;
 
 constructor TJointHinge.Create(AOwner: TComponent);
@@ -3314,13 +3356,11 @@ begin
   Result := FKraftJointRope;
 end;
 
-procedure TJointRope.RecreateKraftJoint;
+procedure TJointRope.InitializeKraftJoint;
 var
   FirstRigidBody: TCastleRigidBody;
   SecondRigidBody: TCastleRigidBody;
 begin
-  FreeAndNil(FKraftJointRope);
-
   if World = nil then
     Exit;
 
@@ -3345,6 +3385,11 @@ begin
     VectorToKraft(FConnectedAnchorPoint),
     FDistance
   );
+end;
+
+procedure TJointRope.DeinitializeKraftJoint;
+begin
+  FreeAndNil(FKraftJointRope);
 end;
 
 constructor TJointRope.Create(AOwner: TComponent);
@@ -3401,13 +3446,11 @@ begin
   Result := FKraftJointFixed;
 end;
 
-procedure TJointFixed.RecreateKraftJoint;
+procedure TJointFixed.InitializeKraftJoint;
 var
   FirstRigidBody: TCastleRigidBody;
   SecondRigidBody: TCastleRigidBody;
 begin
-  FreeAndNil(FKraftJointFixed);
-
   if World = nil then
     Exit;
 
@@ -3430,6 +3473,11 @@ begin
     SecondRigidBody.FKraftBody,
     VectorToKraft(Parent.LocalToWorld(FAnchorPoint))
   );
+end;
+
+procedure TJointFixed.DeinitializeKraftJoint;
+begin
+  FreeAndNil(FKraftJointFixed);
 end;
 
 constructor TJointFixed.Create(AOwner: TComponent);
@@ -3484,13 +3532,11 @@ begin
   Result := FKraftJointBall;
 end;
 
-procedure TJointBall.RecreateKraftJoint;
+procedure TJointBall.InitializeKraftJoint;
 var
   FirstRigidBody: TCastleRigidBody;
   SecondRigidBody: TCastleRigidBody;
 begin
-  FreeAndNil(FKraftJointBall);
-
   if World = nil then
     Exit;
 
@@ -3513,6 +3559,11 @@ begin
     SecondRigidBody.FKraftBody,
     VectorToKraft(Parent.LocalToWorld(FAnchorPoint))
   );
+end;
+
+procedure TJointBall.DeinitializeKraftJoint;
+begin
+  FreeAndNil(FKraftJointBall);
 end;
 
 constructor TJointBall.Create(AOwner: TComponent);
@@ -3592,13 +3643,11 @@ begin
   Result := FKraftJointDistance;
 end;
 
-procedure TJointDistance.RecreateKraftJoint;
+procedure TJointDistance.InitializeKraftJoint;
 var
   FirstRigidBody: TCastleRigidBody;
   SecondRigidBody: TCastleRigidBody;
 begin
-  FreeAndNil(FKraftJointDistance);
-
   if World = nil then
     Exit;
 
@@ -3624,6 +3673,11 @@ begin
     FFrequencyHz,
     FDampingRatio
   );
+end;
+
+procedure TJointDistance.DeinitializeKraftJoint;
+begin
+  FreeAndNil(FKraftJointDistance);
 end;
 
 constructor TJointDistance.Create(AOwner: TComponent);

@@ -59,6 +59,7 @@ var
   JFixed: TJointFixed;
   JBall: TJointBall;
   JDistance: TJointDistance;
+  B: TCastleBehavior;
 begin
   inherited;
 
@@ -103,6 +104,14 @@ begin
   JDistance.AnchorPoint := Vector3(0, 0,0);
   JDistance.ConnectedAnchorPoint := Vector3(0, -100,0);
   SphereDistance.AddBehavior(JDistance);
+  // check event removing:
+  //SphereDistance.RemoveBehavior(JDistance);
+  //FreeAndNil(JDistance);
+
+  // check event remove
+  //B := BoxDistance.FindBehavior(TCastleRigidBody);
+  //BoxDistance.RemoveBehavior(B);
+
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
