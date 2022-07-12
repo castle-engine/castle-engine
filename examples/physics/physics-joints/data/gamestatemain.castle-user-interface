@@ -190,7 +190,7 @@
             "Perspective" : {
               "$$ClassName" : "TCastlePerspective"
             },
-            "ProjectionFar" : 1.0000000000000000E+003,
+            "ProjectionFar" : 5.0000000000000000E+003,
             "ProjectionNear" : -1.0000000000000000E+003,
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -695,9 +695,7 @@
       "InternalDesignNavigations[dnExamine]" : {
         "$$ClassName" : "TCastleExamineNavigationDesign",
         "Exists" : false,
-        "MoveEnabled" : true,
-        "Name" : "",
-        "ZoomEnabled" : true
+        "Name" : ""
       },
       "InternalDesignNavigations[dn2D]" : {
         "$$ClassName" : "TCastle2DNavigationDesign",
