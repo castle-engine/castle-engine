@@ -52,6 +52,7 @@ code, kbd, pre, samp {
 /* all images, movies responsive */
 img, iframe {
   max-width: 100%;
+  height: auto; /* scale to max-width preserving proportions, even if intrinsic image sizes (width/height on <img>) are given */
 }
 
 
@@ -190,6 +191,7 @@ dl.vrml_ver_differences > dt {
 .cge-gallery-link img {
   border: none;
   max-width: 100%; /* force scaling down on narrow window width, for 3-column layout of all_programs.php */
+  height: auto; /* scale to max-width preserving proportions, even if intrinsic image sizes (width/height on <img>) are given */
 }
 
 @media only screen and (min-width : 768px) {
@@ -231,6 +233,9 @@ a.screenshot:hover img { border: 2pt solid #888; }
 
 .main-page-thumbnail {
     width: 100%;
+    /* This way image height is also adjusted, to follow image aspect ratio.
+       And we can still specify img intrinsic size in <img> element. */
+    height: auto;
     margin-bottom: 1rem;
 }
 
