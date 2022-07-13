@@ -742,7 +742,7 @@
         and EX3DNotFound is never raised.)
     }
     function FindNode(const NodeClass: TX3DNodeClass; const FindName: string;
-      const Options: TFindNodeOptions = []): TX3DNode;
+      const Options: TFindNodeOptions = []): TX3DNode; overload;
 
     function FindNode(const FindName: string): TX3DNode; overload; deprecated 'use FindNode(NodeClass, FindName)';
 
