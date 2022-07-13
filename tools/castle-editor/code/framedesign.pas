@@ -1976,7 +1976,7 @@ var
   World: TCastleAbstractRootTransform;
   Sel: TComponent;
   NewResult: TCastleViewport;
-  Nav: TCastleNavigation;
+  ViewportChild: TCastleUserInterface;
 begin
   Result := nil;
 
@@ -1992,12 +1992,14 @@ begin
           Exit(nil); // multiple viewports selected
         Result := NewResult;
       end else
-      if Sel is TCastleNavigation then
+      if Sel is TCastleUserInterface then
       begin
-        Nav := Sel as TCastleNavigation;
-        if Nav.Parent is TCastleViewport then
+        { When hovering over TCastleNavigation, or TCastleTouchNavigation,
+          or really any UI over viewport -> select viewport. }
+        ViewportChild := Sel as TCastleUserInterface;
+        if {ViewportChild.FullSize and} (ViewportChild.Parent is TCastleViewport) then
         begin
-          NewResult := Nav.Parent as TCastleViewport;
+          NewResult := ViewportChild.Parent as TCastleViewport;
           if (Result <> nil) and (Result <> NewResult) then
             Exit(nil); // multiple viewports selected
           Result := NewResult;
@@ -2112,7 +2114,11 @@ begin
     { try HoverUserInterface as TCastleViewport }
     HoverUi := FDesignerLayer.HoverUserInterface(CastleControl.MousePosition);
     if HoverUi is TCastleViewport then // also checks HoverUi <> nil
-      NewCurrentViewport := TCastleViewport(HoverUi);
+      NewCurrentViewport := TCastleViewport(HoverUi)
+    else
+    { try HoverUserInterface as TCastleViewport child, like TCastleNavigation, TCastleTouchNavigation }
+    if (HoverUi <> nil) and (HoverUi.Parent is TCastleViewport) then // also checks HoverUi.Parent <> nil
+      NewCurrentViewport := TCastleViewport(HoverUi.Parent);
   end;
 
   if (NewCurrentViewport <> nil) and
@@ -2177,8 +2183,8 @@ begin
 
     Pos.Z := Max(Pos.Z, CameraZ - CameraProjectionNear + 100);
 
-    Pos.X := Pos.X - (0.5 - V.InternalCamera.Orthographic.Origin.X) * V.InternalCamera.Orthographic.EffectiveWidth;
-    Pos.Y := Pos.Y - (0.5 - V.InternalCamera.Orthographic.Origin.Y) * V.InternalCamera.Orthographic.EffectiveHeight;
+    Pos.X := Pos.X - (0.5 - V.InternalCamera.Orthographic.Origin.X) * V.InternalCamera.Orthographic.EffectiveRect.Width;
+    Pos.Y := Pos.Y - (0.5 - V.InternalCamera.Orthographic.Origin.Y) * V.InternalCamera.Orthographic.EffectiveRect.Height;
   end;
 end;
 
