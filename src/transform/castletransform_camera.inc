@@ -112,7 +112,7 @@
       The camera movement applied here is always scaled by
       the calculated orthographic projection width and height.
 
-      By default this equals (0,0) which means that TCastleCamera.Position
+      By default this equals (0,0) which means that @link(TCastleTransform.Translation Camera.Translation)
       determines what is visible in the left-bottom corner of the viewport.
       This matches the typical 2D drawing coordinates used throughout our engine.
       In other words, if the camera is at position (0,0,whatever),
@@ -201,10 +201,10 @@
               You can read the @link(EffectiveWidth), @link(EffectiveHeight) to know
               the adjusted values.
 
-              Note that the @link(TCastleCamera.Position) is considered to be relative
+              Note that the @link(TCastleTransform.Translation Camera.Translation) is considered to be relative
               to unadjusted @link(Width) and @link(Height), not to the adjusted
               @link(EffectiveWidth), @link(EffectiveHeight).
-              In effect, when @link(Origin) is zero, the @link(TCastleCamera.Position) does not point
+              In effect, when @link(Origin) is zero, the @link(TCastleTransform.Translation Camera.Translation) does not point
               to the left-bottom of the whole viewport.
               It points to the left-bottom of the rectangle of aspect ratio
               @link(Width) / @link(Height) within the viewport.

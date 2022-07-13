@@ -117,9 +117,7 @@ type
     { Returns @true for triangles that should be ignored by shadow rays.
       Returns @true for transparent triangles
       (with Material.Transparency > 0) and non-shadow-casting triangles
-      (with Appearance.shadowCaster = FALSE).
-
-      @seealso TBaseTrianglesOctree.IgnoreForShadowRays }
+      (with Appearance.shadowCaster = FALSE). }
     function IgnoreForShadowRays: boolean;
 
     {$ifndef CONSERVE_TRIANGLE_MEMORY}

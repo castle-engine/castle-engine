@@ -562,14 +562,14 @@ type
       When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
 
       Note that this doesn't prevent from rotating by code, e.g. by setting
-      @link(Rotations) property or calling @link(SetWorldView). }
+      @link(Rotations) property or calling @link(TCastleTransform.SetWorldView Camera.SetWorldView). }
     property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled default true;
 
     { Enable moving the camera by user input.
       When @false, no keys / mouse dragging / 3D mouse etc. can make a move.
 
       Note that this doesn't prevent from moving by code, e.g. by setting
-      @link(Translation) property or calling @link(SetWorldView). }
+      @link(Translation) property or calling @link(TCastleTransform.SetWorldView Camera.SetWorldView). }
     property MoveEnabled: Boolean read FMoveEnabled write FMoveEnabled default true;
 
     { Enable zooming the camera on the model by user input.
@@ -851,7 +851,7 @@ type
     { If PreferGravityUpForRotations or PreferGravityUpForMoving
       then various operations are done with respect
       to GravityUp, otherwise they are done with
-      respect to current @link(Up).
+      respect to current @link(TCastleTransform.Up Camera.Up).
 
       With PreferGravityUpForRotations, this affects rotations:
       horizontal rotations (Input_LeftRotate and Input_RightRotate)
@@ -862,8 +862,9 @@ type
       Note that you can change it freely at runtime,
       and when you set PreferGravityUpForRotations from @false to @true
       then in nearest Update
-      calls @link(Up) will be gradually fixed, so that @link(Direction) and @link(Up)
-      and GravityUp are on the same plane. Also @link(Direction) may be adjusted
+      the @link(TCastleTransform.Up Camera.Up) will be gradually fixed,
+      so that @link(TCastleTransform.Direction Camera.Direction) and @link(TCastleTransform.Up Camera.Up)
+      and GravityUp are on the same plane. Also @link(TCastleTransform.Direction Camera.Direction) may be adjusted
       to honour MinAngleFromGravityUp.
 
       With PreferGravityUpForMoving, this affects moving:
@@ -872,7 +873,7 @@ type
       E.g. when PreferGravityUpForMoving then forward/backward keys are tied
       to horizontal plane defined by GravityUp.
       When not PreferGravityUpForMoving then forward/backward try to move
-      you just in the @link(Direction). Which is usually more handy when
+      you just in the @link(TCastleTransform.Direction Camera.Direction). Which is usually more handy when
       e.g. simulating flying.
 
       @unorderedList(
@@ -892,8 +893,8 @@ type
 
           Without PreferGravityUpForRotations, we quickly start to do rotations
           in an awkward way --- once you do some vertical rotation,
-          you changed @link(Up), and next horizontal rotation will be
-          done versus new @link(Up).
+          you changed @link(TCastleTransform.Up Camera.Up), and next horizontal rotation will be
+          done versus new @link(TCastleTransform.Up Camera.Up).
 
           If your GravityUp is good, then you generally should
           leave PreferGravityUpForRotations to @true. Unless you really @bold(want)
@@ -922,15 +923,16 @@ type
       read FPreferGravityUpForMoving write FPreferGravityUpForMoving default true;
     { @groupEnd }
 
-    { Return @link(Direction) vector rotated such that it is
-      orthogonal to GravityUp. This way it returns @link(Direction) projected
+    { Return @link(TCastleTransform.Direction Camera.Direction) vector rotated such that it is
+      orthogonal to GravityUp. This way it returns
+      @link(TCastleTransform.Direction Camera.Direction) projected
       on the gravity horizontal plane, which neutralizes such things
       like raising / bowing your head.
       Result is always normalized (length 1).
 
-      Note that when @link(Direction) and GravityUp are parallel,
-      this just returns current @link(Direction) --- because in such case
-      we can't project @link(Direction) on the horizontal plane. }
+      Note that when @link(TCastleTransform.Direction Camera.Direction) and GravityUp are parallel,
+      this just returns current @link(TCastleTransform.Direction Camera.Direction) --- because in such case
+      we can't project @link(TCastleTransform.Direction Camera.Direction) on the horizontal plane. }
     function DirectionInGravityPlane: TVector3;
 
     { Set the most important properties of this navigation, in one call.
@@ -938,7 +940,7 @@ type
 
       Given here AInitialDirection, AInitialUp, AGravityUp will be normalized,
       and AInitialUp will be adjusted to be orthogonal to AInitialDirection
-      (see SetWorldView).
+      (see @link(TCastleTransform.SetWorldView Camera.SetWorldView)).
 
       Sets also PreferredHeight and Radius.
       PreferredHeight may be adjusted to be sensible
@@ -962,7 +964,8 @@ type
       deprecated 'use Viewport.Camera.SetWorldView, and set GravityUp, PreferredHeight, Radius and call CorrectPreferredHeight manually';
 
     { This sets the minimal angle (in radians) between GravityUp
-      and @link(Direction), and also between -GravityUp and @link(Direction).
+      and @link(TCastleTransform.Direction Camera.Direction), and also between -GravityUp and
+      @link(TCastleTransform.Direction Camera.Direction).
       This way vertical rotations (like Input_UpRotate,
       Input_DownRotate) are "bounded" to not allow player to do something
       strange, i.e. bow your head too much and raise your head too much.
@@ -985,8 +988,8 @@ type
       Note that while falling down,
       the camera will actually fall with greater and greated speed
       (this adds more realism to the gravity effect...).
-      Note that this is always relative to @link(Direction) length.
-      @link(Direction) determines moving speed --- and so it determines
+      Note that this is always relative to @link(TCastleTransform.Direction Camera.Direction) length.
+      @link(TCastleTransform.Direction Camera.Direction) determines moving speed --- and so it determines
       also falling speed. The default DefaultFallSpeedStart
       is chosen to be something sensible, to usually get nice effect
       of falling.
@@ -1019,7 +1022,7 @@ type
       back to true. (but then we will start falling down from the beginning
       with initial falling down speed).
 
-      This is useful to call if you just changed @link(Position) because
+      This is useful to call if you just changed @link(TCastleTransform.Translation Camera.Translation) because
       e.g. the player teleported somewhere (or e.g. game levels changed).
       In this case you just want to forget the fact that camera
       was falling down --- no consequences (like lowering player's
@@ -1043,7 +1046,7 @@ type
       i.e. camera position increases along the GravityUp
       so that camera height above the ground is closer to
       PreferredHeight. This property (together with length of
-      @link(Direction), that always determines every moving speed)
+      @link(TCastleTransform.Direction Camera.Direction), that always determines every moving speed)
       determines the speed of this growth. }
     property GrowSpeed: Single
       read FGrowSpeed write FGrowSpeed
@@ -1084,7 +1087,7 @@ type
     { This makes a visual effect of camera falling down horizontally
       on the ground. Nice to use when player died, and you want to show
       that it's body falled on the ground.
-      This works by gradually changing @link(Up) such that
+      This works by gradually changing @link(TCastleTransform.Up Camera.Up) such that
       it gets orthogonal to GravityUp. }
     procedure FallOnTheGround;
 
@@ -1379,9 +1382,9 @@ type
         @item(It allows player to jump. See Input_Jump, IsJumping, JumpMaxHeight,
           JumpHorizontalSpeedMultiply.)
         @item(It allows player to crouch. See Input_Crouch, CrouchHeight.)
-        @item(It tries to keep @link(Position) above the ground on
+        @item(It tries to keep @link(TCastleTransform.Translation Camera.Translation) above the ground on
           PreferredHeight height.)
-        @item(When current height is too small --- @link(Position) is moved up.
+        @item(When current height is too small --- @link(TCastleTransform.Translation Camera.Translation) is moved up.
           See GrowSpeed.)
         @item(When current height is too large --- we're falling down.
           See Falling, OnFall, FallSpeedStart,
@@ -1402,7 +1405,7 @@ type
       read FGravity write FGravity default true;
 
     { Height above the ground, only used when @link(TCastleWalkNavigation.Gravity) is @true.
-      The @link(Position) tries to stay PreferredHeight above the ground.
+      The @link(TCastleTransform.Translation Camera.Translation) tries to stay PreferredHeight above the ground.
       Temporarily it may still be lower (e.g. player can
       shortly "duck" when he falls from high).
 
