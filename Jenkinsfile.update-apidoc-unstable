@@ -19,7 +19,7 @@ pipeline {
         /* Use https://plugins.jenkins.io/copyartifact/ plugin to copy last pasdoc build into this build. */
         copyArtifacts(projectName: 'pasdoc_organization/pasdoc/master', filter: 'pasdoc-*-linux-x86_64.tar.gz')
         sh 'tar xzvf pasdoc-*-linux-x86_64.tar.gz'
-        sh 'make upload -C doc/pasdoc/ SSH_PATH=/home/michalis/cge-html/apidoc-unstable/'
+        sh 'make upload -C doc/pasdoc/'
       }
     }
   }

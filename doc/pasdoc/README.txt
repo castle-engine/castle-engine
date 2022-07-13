@@ -4,12 +4,9 @@ using PasDoc (http://pasdoc.sourceforge.net/).
 
 The online version of this documentation is already generated for you:
 
-- On https://castle-engine.io/apidoc/html/ , for the last stable
-  engine release.
-
-- Or on http://michalis.ii.uni.wroc.pl/cge-www-preview/apidoc/html/ ,
-  for the unstable (bleeding-edge) engine version from GitHub / SVN.
-  Automatically regenerated after every commit.
+- On https://castle-engine.io/apidoc/html/ .
+  Right now this corresponds to 7.0-alpha.snapshot version,
+  and is automatically regenerated after every commit.
 
 - If you downloaded engine sources as tar.gz or zip archive, then you also
   already have an offline version of this documentation generated in doc/reference/ .
