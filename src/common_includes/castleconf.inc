@@ -548,4 +548,23 @@
   mipmaps are desired, which is typical for textures in 3D games. }
 {.$define USE_ASTCENC}
 
+{ Features ------------------------------------------------------------------- }
+
+(*Generic methods are a cool idea, and we have at least one important use-case
+  for them: node searching that filters and returns proper type.
+  See TCastleScene.Node, TX3DRootNode.Find.
+
+  Unfortunately generic methods suck now with FPC 3.2.2.
+  - In ObjFpc you need to use "specialize" keyword, which looks excessive.
+    Esp. that we actually need "{$ifdef FPC}specialize{$endif}".
+  - If you forget about "specialize" keyword,
+    sometimes you get FPC internal error,
+    sometimes it compiles code that always results in EAccessViolation.
+
+  Until this is fixed, we cannot really use them.
+  But we have some ready code with them, you can undefine this symbol
+  and try out the new generic TCastleScene.Node, TX3DRootNode.Find.
+*)
+{.$define GENERIC_METHODS}
+
 {$endif not CASTLE_CONF_INCLUDED}

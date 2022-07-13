@@ -59,6 +59,11 @@ type
     procedure TestUnassociateChangeMaterialOneLeft;
     procedure TestUnassociateChangeMaterialSharedAppearance;
     procedure TestUnassociateChangeAppearance;
+    procedure TestNonGenericNode;
+    {$ifdef GENERIC_METHODS}
+    procedure TestGenericNode;
+    {$endif}
+    procedure TestNonGenericNodeAndFindNodeOptions;
   end;
 
 implementation
@@ -66,7 +71,7 @@ implementation
 uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
-  CastleURIUtils;
+  CastleURIUtils, CastleColors;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -875,6 +880,166 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
+end;
+
+procedure TTestSceneCore.TestNonGenericNode;
+var
+  Mat: TPhysicalMaterialNode;
+  Appearance: TAppearanceNode;
+  Shape: TShapeNode;
+  Box: TBoxNode;
+  Switch: TSwitchNode;
+  RootNode: TX3DRootNode;
+  Scene: TCastleSceneCore;
+begin
+  Mat := TPhysicalMaterialNode.Create('Foo');
+  Mat.BaseColor := RedRGB;
+
+  Appearance := TAppearanceNode.Create('Foo');
+  Appearance.Material := Mat;
+
+  Box := TBoxNode.CreateWithShape(Shape);
+  Box.X3DName := 'Foo';
+  Box.Size := Vector3(1, 2, 3);
+  Shape.X3DName := 'Foo';
+  Shape.Appearance := Appearance;
+
+  Switch := TSwitchNode.Create;
+  Switch.WhichChoice := -1; // Shape is inactive, but it doesn't matter for Find
+  Switch.AddChildren(Shape);
+
+  RootNode := TX3DRootNode.Create;
+  RootNode.AddChildren(Switch);
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load(RootNode, true);
+
+    AssertTrue(Scene.Node(TX3DNode, 'Foo') <> nil); // undefined which node it will be
+
+    AssertTrue((Scene.Node(TPhysicalMaterialNode, 'Foo') as TPhysicalMaterialNode) <> nil);
+    AssertVectorEquals(RedRGB, (Scene.Node(TPhysicalMaterialNode, 'Foo') as TPhysicalMaterialNode).BaseColor);
+
+    AssertTrue((Scene.Node(TBoxNode, 'Foo') as TBoxNode) <> nil);
+    AssertVectorEquals(Vector3(1, 2, 3), (Scene.Node(TBoxNode, 'Foo') as TBoxNode).Size);
+  finally FreeAndNil(Scene) end;
+end;
+
+{$ifdef GENERIC_METHODS}
+
+procedure TTestSceneCore.TestGenericNode;
+var
+  Mat: TPhysicalMaterialNode;
+  Appearance: TAppearanceNode;
+  Shape: TShapeNode;
+  Box: TBoxNode;
+  Switch: TSwitchNode;
+  RootNode: TX3DRootNode;
+  Scene: TCastleSceneCore;
+begin
+  Mat := TPhysicalMaterialNode.Create('Foo');
+  Mat.BaseColor := RedRGB;
+
+  Appearance := TAppearanceNode.Create('Foo');
+  Appearance.Material := Mat;
+
+  Box := TBoxNode.CreateWithShape(Shape);
+  Box.X3DName := 'Foo';
+  Box.Size := Vector3(1, 2, 3);
+  Shape.X3DName := 'Foo';
+  Shape.Appearance := Appearance;
+
+  Switch := TSwitchNode.Create;
+  Switch.WhichChoice := -1; // Shape is inactive, but it doesn't matter for Find
+  Switch.AddChildren(Shape);
+
+  RootNode := TX3DRootNode.Create;
+  RootNode.AddChildren(Switch);
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load(RootNode, true);
+
+    AssertTrue(Scene.{$ifdef FPC}specialize{$endif} Node<TX3DNode>('Foo') <> nil); // undefined which node it will be
+
+    AssertTrue(Scene.{$ifdef FPC}specialize{$endif} Node<TPhysicalMaterialNode>('Foo') <> nil);
+    AssertVectorEquals(RedRGB, Scene.{$ifdef FPC}specialize{$endif} Node<TPhysicalMaterialNode>('Foo').BaseColor);
+
+    AssertTrue(Scene.{$ifdef FPC}specialize{$endif} Node<TBoxNode>('Foo') <> nil);
+    AssertVectorEquals(Vector3(1, 2, 3), Scene.{$ifdef FPC}specialize{$endif} Node<TBoxNode>('Foo').Size);
+  finally FreeAndNil(Scene) end;
+end;
+
+{$endif GENERIC_METHODS}
+
+procedure TTestSceneCore.TestNonGenericNodeAndFindNodeOptions;
+var
+  Mat: TPhysicalMaterialNode;
+  Appearance: TAppearanceNode;
+  Shape: TShapeNode;
+  Box: TBoxNode;
+  Switch: TSwitchNode;
+  RootNode: TX3DRootNode;
+  Scene: TCastleSceneCore;
+begin
+  Mat := TPhysicalMaterialNode.Create('M');
+  Mat.BaseColor := RedRGB;
+
+  Appearance := TAppearanceNode.Create('A');
+  Appearance.Material := Mat;
+
+  Box := TBoxNode.CreateWithShape(Shape);
+  Box.X3DName := 'B';
+  Box.Size := Vector3(1, 2, 3);
+  Shape.X3DName := 'S';
+  Shape.Appearance := Appearance;
+
+  Switch := TSwitchNode.Create;
+  Switch.WhichChoice := -1; // Shape is inactive, but it doesn't matter for Find
+  Switch.AddChildren(Shape);
+
+  RootNode := TX3DRootNode.Create;
+  RootNode.AddChildren(Switch);
+
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    { Test with Scene.RootNode = nil }
+    AssertTrue(Scene.RootNode = nil);
+
+    try
+      Scene.Node(TX3DNode, 'Foo');
+      Fail('This should have raised exception');
+    except on E: EX3DNotFound do { valid response }; end;
+
+    AssertTrue(Scene.Node(TX3DNode, 'Foo', [fnNilOnMissing]) = nil);
+
+    { Test with Scene.RootNode <> nil }
+    Scene.Load(RootNode, true);
+    AssertTrue(Scene.RootNode <> nil);
+
+    try
+      Scene.Node(TX3DNode, 'Foo');
+      Fail('This should have raised exception');
+    except on E: EX3DNotFound do { valid response }; end;
+
+    AssertTrue(Scene.Node(TX3DNode, 'Foo', [fnNilOnMissing]) = nil);
+
+    try
+      Scene.RootNode.FindNode(TX3DNode, 'Foo');
+      Fail('This should have raised exception');
+    except on E: EX3DNotFound do { valid response }; end;
+
+    AssertTrue(Scene.RootNode.FindNode(TX3DNode, 'Foo', [fnNilOnMissing]) = nil);
+
+    { Test fnOnlyActive: box is only in active subgraph }
+    try
+      Scene.RootNode.FindNode(TBoxNode, 'B', [fnOnlyActive]);
+      Fail('This should have raised exception');
+    except on E: EX3DNotFound do { valid response }; end;
+    AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', [fnOnlyActive, fnNilOnMissing]) = nil);
+    AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', []) <> nil);
+    AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', [fnNilOnMissing]) <> nil);
+  finally FreeAndNil(Scene) end;
 end;
 
 initialization

@@ -316,9 +316,7 @@
     { @groupEnd }
 
     { @exclude
-      Fix X3D names inside to:
-      - make sure all TX3DNode.X3DName within Node are unique
-      - make sure all nodes that are part of ROUTE have non-empty names. }
+      Fix X3D names inside to make sure all nodes that are part of ROUTE have non-empty names. }
     procedure InternalFixNodeNames;
   end;
 
@@ -761,17 +759,6 @@ end;
 
 { TFixNamesHandler ----------------------------------------------------------- }
 
-const
-  { Do not log node renames by default, because
-
-    1. there are a lot of them, in practical glTF (clashes between meshes,
-       nodes, materials) and Spine and X3D (clashes between inlines) models too.
-
-    2. we are not 100% sure we will always do them.
-       See discussion in src/scene/load/README_node_names_at_import.md]
-  }
-  LogNodeRenames = false;
-
 type
   TFixNamesHandler = class
   strict private
@@ -858,9 +845,9 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
     end else
       RenameUniquelyCore(Node, Node.X3DName + '_', 2);
 
-    if LogNodeRenames and (LogsDone < MaxLogsDone) then
+    if LogsDone < MaxLogsDone then
     begin
-      WritelnLog('Renaming node "%s" -> "%s" to have unique name', [
+      WritelnLog('Renaming node "%s" -> "%s" to have unique name; these renames are done to allow saving ROUTEs later', [
         OriginalName,
         Node.X3DName
       ]);
@@ -914,9 +901,17 @@ begin
     Exit;
   Visited.Add(Node);
 
-  { make sure node name is unique }
+  { make sure node name is unique.
+
+    Not done anymore: see discussion in src/scene/load/README_node_names_at_import.md .
+    These renames to not prevent 100% name clashes anyway,
+    and they are not expected and not reliable (from user's POV,
+    it is hard to predict which node gets _2, _3 suffix).
+  }
+  (*
   if Node.X3DName <> '' then
     MakeUniquelyNamed(Node);
+  *)
 
   { make sure nodes used in ROUTEs are uniquely named }
   for I := 0 to Node.RoutesCount - 1 do

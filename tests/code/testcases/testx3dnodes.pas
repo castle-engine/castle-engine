@@ -98,13 +98,17 @@ type
     procedure TestTextureProperties;
     procedure TestFixNames;
     procedure TestAutomaticWeakLink;
+    procedure TestNonGenericFind;
+    {$ifdef GENERIC_METHODS}
+    procedure TestGenericFind;
+    {$endif}
   end;
 
 implementation
 
 uses Generics.Collections, Math,
   CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
-  X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime,
+  X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime, CastleColors,
   CastleApplicationProperties, CastleTextureImages;
 
 { TNode* ------------------------------------------------------------ }
@@ -2193,6 +2197,8 @@ var
 begin
   R := LoadNode('castle-data:/test_fix_names.x3dv');
   try
+    { We no longer do renames, so this test outcome just checks that nothing changed }
+    {
     AssertEquals('AA', R.FdChildren[0].X3DName);
     AssertEquals('AA_2', R.FdChildren[1].X3DName);
     AssertEquals('AA_3', R.FdChildren[2].X3DName);
@@ -2222,6 +2228,36 @@ begin
     AssertEquals('EE_5', R.FdChildren[22].X3DName);
     AssertEquals('EE_6', R.FdChildren[23].X3DName);
     AssertEquals('EE_7', R.FdChildren[24].X3DName);
+    }
+    AssertEquals('AA', R.FdChildren[0].X3DName);
+    AssertEquals('AA', R.FdChildren[1].X3DName);
+    AssertEquals('AA', R.FdChildren[2].X3DName);
+    AssertEquals('AA', R.FdChildren[3].X3DName);
+    AssertEquals('AA', R.FdChildren[4].X3DName);
+
+    AssertEquals('BB_1', R.FdChildren[5].X3DName);
+    AssertEquals('BB_1', R.FdChildren[6].X3DName);
+    AssertEquals('BB_1', R.FdChildren[7].X3DName);
+    AssertEquals('BB_1', R.FdChildren[8].X3DName);
+    AssertEquals('BB_1', R.FdChildren[9].X3DName);
+
+    AssertEquals('CC_1a1', R.FdChildren[10].X3DName);
+    AssertEquals('CC_1a1', R.FdChildren[11].X3DName);
+    AssertEquals('CC_1a1', R.FdChildren[12].X3DName);
+    AssertEquals('CC_1a1', R.FdChildren[13].X3DName);
+    AssertEquals('CC_1a1', R.FdChildren[14].X3DName);
+
+    AssertEquals('DD_3', R.FdChildren[15].X3DName);
+    AssertEquals('DD_3', R.FdChildren[16].X3DName);
+    AssertEquals('DD_3', R.FdChildren[17].X3DName);
+    AssertEquals('DD_3', R.FdChildren[18].X3DName);
+    AssertEquals('DD_3', R.FdChildren[19].X3DName);
+
+    AssertEquals('EE_3', R.FdChildren[20].X3DName);
+    AssertEquals('EE_3', R.FdChildren[21].X3DName);
+    AssertEquals('EE_4', R.FdChildren[22].X3DName);
+    AssertEquals('EE_4', R.FdChildren[23].X3DName);
+    AssertEquals('EE_5', R.FdChildren[24].X3DName);
   finally FreeAndNil(R) end;
 end;
 
@@ -2249,6 +2285,88 @@ begin
                (Script.Field('container6', true) as TSFNode).Value);
   finally FreeAndNil(R) end;
 end;
+
+procedure TTestX3DNodes.TestNonGenericFind;
+var
+  Mat: TPhysicalMaterialNode;
+  Appearance: TAppearanceNode;
+  Shape: TShapeNode;
+  Box: TBoxNode;
+  Switch: TSwitchNode;
+  RootNode: TX3DRootNode;
+begin
+  Mat := TPhysicalMaterialNode.Create('Foo');
+  Mat.BaseColor := RedRGB;
+
+  Appearance := TAppearanceNode.Create('Foo');
+  Appearance.Material := Mat;
+
+  Box := TBoxNode.CreateWithShape(Shape);
+  Box.X3DName := 'Foo';
+  Box.Size := Vector3(1, 2, 3);
+  Shape.X3DName := 'Foo';
+  Shape.Appearance := Appearance;
+
+  Switch := TSwitchNode.Create;
+  Switch.WhichChoice := -1; // Shape is inactive, but it doesn't matter for Find
+  Switch.AddChildren(Shape);
+
+  RootNode := TX3DRootNode.Create;
+  try
+    RootNode.AddChildren(Switch);
+
+    AssertTrue(RootNode.FindNode(TX3DNode, 'Foo') <> nil); // undefined which node it will be
+
+    AssertTrue((RootNode.FindNode(TPhysicalMaterialNode, 'Foo') as TPhysicalMaterialNode) <> nil);
+    AssertVectorEquals(RedRGB, (RootNode.FindNode(TPhysicalMaterialNode, 'Foo') as TPhysicalMaterialNode).BaseColor);
+
+    AssertTrue((RootNode.FindNode(TBoxNode, 'Foo') as TBoxNode) <> nil);
+    AssertVectorEquals(Vector3(1, 2, 3), (RootNode.FindNode(TBoxNode, 'Foo') as TBoxNode).Size);
+  finally FreeAndNil(RootNode) end;
+end;
+
+{$ifdef GENERIC_METHODS}
+
+procedure TTestX3DNodes.TestGenericFind;
+var
+  Mat: TPhysicalMaterialNode;
+  Appearance: TAppearanceNode;
+  Shape: TShapeNode;
+  Box: TBoxNode;
+  Switch: TSwitchNode;
+  RootNode: TX3DRootNode;
+begin
+  Mat := TPhysicalMaterialNode.Create('Foo');
+  Mat.BaseColor := RedRGB;
+
+  Appearance := TAppearanceNode.Create('Foo');
+  Appearance.Material := Mat;
+
+  Box := TBoxNode.CreateWithShape(Shape);
+  Box.X3DName := 'Foo';
+  Box.Size := Vector3(1, 2, 3);
+  Shape.X3DName := 'Foo';
+  Shape.Appearance := Appearance;
+
+  Switch := TSwitchNode.Create;
+  Switch.WhichChoice := -1; // Shape is inactive, but it doesn't matter for Find
+  Switch.AddChildren(Shape);
+
+  RootNode := TX3DRootNode.Create;
+  try
+    RootNode.AddChildren(Switch);
+
+    AssertTrue(RootNode.{$ifdef FPC}specialize{$endif} Find<TX3DNode>('Foo') <> nil); // undefined which node it will be
+
+    AssertTrue(RootNode.{$ifdef FPC}specialize{$endif} Find<TPhysicalMaterialNode>('Foo') <> nil);
+    AssertVectorEquals(RedRGB, RootNode.{$ifdef FPC}specialize{$endif} Find<TPhysicalMaterialNode>('Foo').BaseColor);
+
+    AssertTrue(RootNode.{$ifdef FPC}specialize{$endif} Find<TBoxNode>('Foo') <> nil);
+    AssertVectorEquals(Vector3(1, 2, 3), RootNode.{$ifdef FPC}specialize{$endif} Find<TBoxNode>('Foo').Size);
+  finally FreeAndNil(RootNode) end;
+end;
+
+{$endif GENERIC_METHODS}
 
 initialization
   RegisterTest(TTestX3DNodes);

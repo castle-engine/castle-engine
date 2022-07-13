@@ -240,8 +240,8 @@ begin
       begin
         if CurrentRootNode <> nil then
         begin
-          NewViewpoint := CurrentRootNode.TryFindNodeByName(TAbstractViewpointNode,
-            NewViewpointName, true) as TAbstractViewpointNode;
+          NewViewpoint := CurrentRootNode.FindNode(TAbstractViewpointNode,
+            NewViewpointName, [fnOnlyActive, fnNilOnMissing]) as TAbstractViewpointNode;
           if NewViewpoint <> nil then
             Exit(true) else
             ViewpointNameInvalid(NewViewpointName);
@@ -291,8 +291,8 @@ begin
         NewViewpoint := nil;
       end else
       begin
-        NewViewpoint := NewRootNode.TryFindNodeByName(TAbstractViewpointNode,
-          NewViewpointName, true) as TAbstractViewpointNode;
+        NewViewpoint := NewRootNode.FindNode(TAbstractViewpointNode,
+          NewViewpointName, [fnOnlyActive, fnNilOnMissing]) as TAbstractViewpointNode;
         if NewViewpoint = nil then
           ViewpointNameInvalid(NewViewpointName);
 

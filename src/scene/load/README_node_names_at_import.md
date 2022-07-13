@@ -10,7 +10,7 @@ Both glTF and X3D allow (optionally) to assing string names to various things in
 
 - In case of X3D, node names are global. And they are not guranteed to be unique (even if it's advised).
 
-- Moreover, in CGE, we merge some X3D namespaces. That is, our `TCastleScene.Node` and `TX3DNode.FindNode` methods do not take namespaces (like Inline and prototypes) into account (because in many cases it would be extra complication that is not necessary) and they just search the whole X3D node graph.
+- Moreover, in CGE, we merge some X3D namespaces. That is, our `TCastleScene.Node`, `TX3DNode.FindNode` methods do not take namespaces (like Inline and prototypes) into account (because in many cases it would be extra complication that is not necessary) and they just search the whole X3D node graph.
 
 ## So node name clashes can and certainly will happen. What to do?
 
@@ -22,7 +22,11 @@ Both glTF and X3D allow (optionally) to assing string names to various things in
 
       From user perspective, if user creates in Blender something called `"Foo"`, we want to make it accessible in CGE using `Scene.Node('Foo')`. Not `Scene.Node('Mesh_Foo')` or such, as that is surprising.
 
-    - In Pascal API, we have ways to make it better. Like `Scene<TAbstractGeometryNode>.Node('Foo')` or `Scene<TAbstractMaterialNode>.Node('Foo')` that could filter by type and only look for names inside.
+    - In Pascal API, we already have a way to make it better:
+
+      Search for node name, specifying also node class as a criteria. Already working: `Scene.Node(TAbstractGeometryNode, 'Foo')` or `Scene.Node(TAbstractMaterialNode, 'Foo')` that can filter by type and only look for names inside.
+
+      And in the future (see `GENERIC_METHODS` define) maybe we can change it to type-safe `Scene.Node<TAbstractGeometryNode>('Foo')` or `Scene.Node<TAbstractMaterialNode>('Foo')`.
 
 - Should we to try to make names unique by adding suffix like `_2`, `_3`?
 
@@ -30,14 +34,20 @@ Both glTF and X3D allow (optionally) to assing string names to various things in
 
     - Should we do it *at all*? Maybe we should not do unique renames in `TX3DRootNode.InternalFixNodeNames`, and just let names clash. Just like X3D and glTF in the end allow.
 
+      Moreover `TX3DRootNode.InternalFixNodeNames` is not 100% reliable. If you add nodes manually, they are not automatically renamed.
+
       But then, some things will be just not accessible from X3D. Like referencing meshes/nodes using X3D export, from imported glTF file with duplicate names. But then, using suffixes like `_2`, `_3` to access them is not reliable also (the order is implementation-dependant).
 
-      But having unreliable suffixes like `_2`, `_3` is better than nothing. For X3D author. See `x3d-tests/gltf_inlined/avocado_and_exports/avocado_imported.x3dv` testcase.
+      From POV of X3D author: Having unreliable suffixes like `_2`, `_3` is better than nothing. For X3D author. See `x3d-tests/gltf_inlined/avocado_and_exports/avocado_imported.x3dv` testcase.
 
-      For Pascal author, more flexible API like `Scene<TAbstractMaterialNode>.Node('Foo')` is actually the future.
+      For Pascal author: More flexible API like `Scene.Node(TAbstractMaterialNode, 'Foo')` is the future. Name clashes can happen anyway, glTF and X3D and CGE allow them in various situations. Better to accept them,
 
-## TODO
+      Decision: Don't do this. Unreliable suffixes `_2`, `_3` are not that helpful.
 
-- Pascal API with types, to allow `Scene<TAbstractMaterialNode>.Node('Foo')`, to find name `Foo` even if it is shared also by meshes, materials etc.
+Decision:
 
-- Should `TX3DRootNode.InternalFixNodeNames` do unique renames at all? Not doing them is better for Pascal developer using `Scene<TAbstractMaterialNode>.Node('Foo')`.
+- Do not rename at all. Do not add prefixes like `Mesh_`, `Material_` . Do not add suffixes like `_2`, `_3`.
+
+- `TX3DRootNode.InternalFixNodeNames` no longer renames nodes (it only fixes nodes references in ROUTEs now).
+
+**User should guarantee node name is unique (if user wants to later find it), or use node-searching criteria that make it unique, like Pascal API `Scene.Node(TAbstractMaterialNode, 'Foo')` that limit search to specific type.**

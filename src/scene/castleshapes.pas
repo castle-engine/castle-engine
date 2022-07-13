@@ -3803,7 +3803,7 @@ begin
       its mesh. The mesh node may have many parents representing its objects
       (unfortunately, the object names are not recorded in exported file,
       so we use mesh name for BlenderPlaceholder. }
-    Result := Shape.GeometryParentNodeName;
+    Result := Shape.GeometryParentNode.X3DName;
   end else
   begin
     { For VRML 2.0 and X3D exporter, the situation is quite similar.

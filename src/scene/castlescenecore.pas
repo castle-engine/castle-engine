@@ -1044,6 +1044,9 @@ type
     const
       DefaultShadowMapsDefaultSize = 256;
 
+  public // repeat "public" is necessary for FPC to parse Node<NodeType> method declaration later with FPC 3.2.2
+
+    { }
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1922,20 +1925,82 @@ type
     property GlobalLights: TLightInstancesList read FGlobalLights; deprecated;
     {$endif}
 
-    { Find a named X3D node (and a field or event within this node)
-      in the current node graph. They search all nodes
-      (in active or not) graph parts.
+    { Find a named X3D node in the current node graph.
 
-      For more flexible and extensive search methods, use RootNode property
-      along with TX3DNode.FindNodeByName, TX3DNode.FindNode and other methods.
+      By default it searches both active and inactive graph parts.
+      Add fnOnlyActive to search only in active parts.
 
-      @raises(EX3DNotFound If given node (or field/event inside this node)
-        could not be found.)
-      @groupBegin }
-    function Node(const NodeName: string): TX3DNode;
-    function Field(const NodeName, FieldName: string): TX3DField;
-    function Event(const NodeName, EventName: string): TX3DEvent;
-    { @groupEnd }
+      It searches only within nodes of given type (NodeClass).
+      Specifying NodeClass helps to make search unambiguous
+      (as name clashes are possible, some authoring tools may write models with duplicate
+      names for materials, meshes etc. and both glTF and X3D allow it).
+      This allows to safely write code like:
+
+      @longCode(#
+        MyMaterial := Scene.Node(TNodePhysicalMaterial, 'MyMaterial') as TNodePhysicalMaterial;
+      #)
+
+      TODO: An even better version, "MyMaterial := Scene.Node<TNodePhysicalMaterial>('MyMaterial')",
+      may be available in the future, if FPC support for generic methods will improve.
+      Define GENERIC_METHODS to try it out now, but heed the warnings in castleconf.inc .
+
+      @raises(EX3DNotFound When node is not found.
+        Unless fnNilOnMissing in Options, then it returns @nil on missing node,
+        and EX3DNotFound is never raised.)
+    }
+    function Node(const NodeClass: TX3DNodeClass; const NodeName: string;
+      const Options: TFindNodeOptions = []): TX3DNode; overload;
+    function Node(const NodeName: string): TX3DNode; overload;
+      { deprecated 'use Node(NodeClass, NodeName)';
+
+        Do not deprecate. It doesn't offer that big benefit over using version
+        without NodeClass, when you know that node name is unique.
+        The "as" with perform check in case types differ. }
+
+    { Find a named field within an X3D node in the current node graph.
+
+      Like @link(Node), this searches all nodes (in active or not) graph parts.
+
+      @raises(EX3DNotFound If given node or field could not be found.) }
+    function Field(const NodeName, FieldName: string): TX3DField; overload;
+      {$ifdef GENERIC_METHODS} deprecated 'use Field<NodeType>(NodeName, FieldName)'; {$endif}
+
+    { Find a named event within an X3D node in the current node graph.
+
+      Like @link(Node), this searches all nodes (in active or not) graph parts.
+
+      @raises(EX3DNotFound If given node or event could not be found.) }
+    function Event(const NodeName, EventName: string): TX3DEvent; overload;
+      {$ifdef GENERIC_METHODS} deprecated 'use Event<NodeType>(NodeName, FieldName)'; {$endif}
+
+    {$ifdef GENERIC_METHODS}
+    (*Find a named X3D node in the current node graph.
+      See non-generic Node for description of Options.
+
+      It searches only within nodes of given type (T) and also
+      returns the appropriate type. Use it like this:
+
+      @longCode(#
+      var
+        Material: TPhysicalMaterialNode;
+      begin
+        Material := MyScene.{$ifdef FPC}specialize{$endif} Node<TPhysicalMaterialNode>('MyMaterialName');
+      end;
+      #)
+
+      You can simplify the code if you only care about FPC or Delphi compiler.
+
+      TODO: The extra "specialize" looks ugly, it is excessive. It is even uglier when compounded
+      if "ifdef FPC", if you need to support both FPC and Delphi.
+
+      TODO: FPC 3.2.2. unfortunately makes internal error if you forget
+      "specialize", not a proper error message.
+      And sometimes it compiles something weird, that always crashes. *)
+    {$ifdef FPC}generic{$endif} function Node<T: TX3DNode>(const NodeName: string;
+      const Options: TFindNodeOptions = []): T; overload;
+    {$ifdef FPC}generic{$endif} function Field<T: TX3DNode>(const NodeName, FieldName: string): TX3DField; overload;
+    {$ifdef FPC}generic{$endif} function Event<T: TX3DNode>(const NodeName, EventName: string): TX3DEvent; overload;
+    {$endif}
 
     { List the names of available animations in current scene.
       Animations are detected looking for TimeSensor nodes.
@@ -7568,7 +7633,9 @@ begin
   ACamera.Orthographic.Width := 0;
   ACamera.Orthographic.Height := 0;
   ACamera.Orthographic.Origin := TVector2.Zero;
+  {$warnings off} // using deprecated to keep it working
   ACamera.Orthographic.Stretch := false;
+  {$warnings on}
 
   ViewpointNode := ViewpointStack.Top;
   NavigationNode := NavigationInfoStack.Top;
@@ -7938,34 +8005,77 @@ function TCastleSceneCore.Caption: string;
 var
   WorldInfoNode: TWorldInfoNode;
 begin
-  WorldInfoNode := RootNode.TryFindNode(TWorldInfoNode, true) as TWorldInfoNode;
+  if RootNode <> nil then
+    {$warnings off} // using deprecated, as for now there's no way to search for unnamed nodes
+    WorldInfoNode := RootNode.TryFindNode(TWorldInfoNode, true) as TWorldInfoNode
+    {$warnings on}
+  else
+    WorldInfoNode := nil;
+
   if (WorldInfoNode <> nil) and
      (WorldInfoNode.FdTitle.Value <> '') then
     Result := WorldInfoNode.FdTitle.Value else
     Result := URICaption(URL);
 end;
 
-function TCastleSceneCore.Node(const NodeName: string): TX3DNode;
+function TCastleSceneCore.Node(const NodeClass: TX3DNodeClass; const NodeName: string;
+  const Options: TFindNodeOptions): TX3DNode;
 begin
   if RootNode = nil then
-    raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName])
-  else
-    Result := RootNode.FindNode(NodeName);
+  begin
+    if fnNilOnMissing in Options then
+      Result := nil
+    else
+      raise EX3DNotFound.CreateFmt('Cannot find node "%s" because no model is loaded', [NodeName]);
+  end else
+    Result := RootNode.FindNode(NodeClass, NodeName, Options);
+end;
+
+function TCastleSceneCore.Node(const NodeName: string): TX3DNode;
+begin
+  Result := Node(TX3DNode, NodeName);
 end;
 
 function TCastleSceneCore.Field(const NodeName, FieldName: string): TX3DField;
 begin
-  Result := Node(NodeName).Field(FieldName);
+  Result := Node(TX3DNode, NodeName).Field(FieldName);
   if Result = nil then
     raise EX3DNotFound.CreateFmt('Field name "%s" not found', [FieldName]);
 end;
 
 function TCastleSceneCore.Event(const NodeName, EventName: string): TX3DEvent;
 begin
-  Result := Node(NodeName).AnyEvent(EventName);
+  Result := Node(TX3DNode, NodeName).AnyEvent(EventName);
   if Result = nil then
     raise EX3DNotFound.CreateFmt('Event name "%s" not found', [EventName]);
 end;
+
+{$ifdef GENERIC_METHODS}
+
+{$ifdef FPC}generic{$endif} function TCastleSceneCore.Node<T>(const NodeName: string;
+  const Options: TFindNodeOptions): T;
+begin
+  if RootNode = nil then
+    raise EX3DNotFound.CreateFmt('Cannot find node "%s" because no model is loaded', [NodeName])
+  else
+    Result := RootNode.{$ifdef FPC}specialize{$endif} Find<T>(NodeName, Options);
+end;
+
+{$ifdef FPC}generic{$endif} function TCastleSceneCore.Field<T>(const NodeName, FieldName: string): TX3DField;
+begin
+  Result := {$ifdef FPC}specialize{$endif} Node<T>(NodeName).Field(FieldName);
+  if Result = nil then
+    raise EX3DNotFound.CreateFmt('Field name "%s" not found', [FieldName]);
+end;
+
+{$ifdef FPC}generic{$endif} function TCastleSceneCore.Event<T>(const NodeName, EventName: string): TX3DEvent;
+begin
+  Result := {$ifdef FPC}specialize{$endif} Node<T>(NodeName).AnyEvent(EventName);
+  if Result = nil then
+    raise EX3DNotFound.CreateFmt('Event name "%s" not found', [EventName]);
+end;
+
+{$endif}
 
 procedure TCastleSceneCore.InternalInvalidateBackgroundRenderer;
 begin
@@ -8631,7 +8741,7 @@ begin
       Continue;
 
     // calculate TransformNode
-    TransformNode := RootNode.TryFindNodeByName(TTransformNode, TransformName, false) as TTransformNode;
+    TransformNode := RootNode.FindNode(TTransformNode, TransformName, [fnNilOnMissing]) as TTransformNode;
     if TransformNode = nil then
     begin
       WritelnWarning('No TTransformNode (bone) named "%s" found in model', [TransformName]);
