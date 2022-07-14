@@ -1097,8 +1097,7 @@ type
     }
     property AutoCamera: Boolean
       read FAutoCamera write SetAutoCamera default false;
-      // {$ifdef FPC} deprecated 'it is simpler to set camera at design-time explicitly, or use CameraViewpointForWholeScene to auto-adjust camera'; {$endif}
-      // TODO: Not deprecated *yet*, only because AutoCamera is the only way to run camera animation designed in glTF / X3D
+      {$ifdef FPC} deprecated 'it is simpler to set camera at design-time explicitly, or use CameraViewpointForWholeScene to auto-adjust camera; if you want to animate the camera, attach TCastleCamera to a bone transformation exposed by Scene.ExposeTransforms'; {$endif}
 
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
@@ -1595,6 +1594,11 @@ begin
     Assert(Items.List.IndexOf(InternalDesignCamera) <> -1);
     Assert(IndexOfControl(InternalDesignNavigation) <> -1);
   end;
+
+  if AutoCamera then
+    WritelnWarning('AutoCamera is deprecated (on TCastleViewport named "%s"). Instead: It is simpler to set camera at design-time explicitly, or use CameraViewpointForWholeScene from code to auto-adjust camera.' + ' If you want to animate the camera, attach TCastleCamera to a bone transformation exposed by Scene.ExposeTransforms', [
+      Name
+    ]);
 end;
 
 procedure TCastleViewport.SetCapturePointingDevice(const Value: TCastleTransform);
@@ -3766,6 +3770,7 @@ var
   Nav: TInternalDesignNavigationType;
   InternalDesignNavigationTypeInt: Integer;
   CopyFromViewport: TCastleViewport;
+  AutoNavigation: Boolean;
 begin
   inherited;
 
@@ -3808,6 +3813,15 @@ begin
           GetEnumName(TypeInfo(TInternalDesignNavigationType), Ord(Nav)) + ']',
           FInternalDesignNavigations[Nav], true);
     end;
+  end;
+
+  AutoNavigation := false;
+  SerializationProcess.ReadWriteBoolean('AutoNavigation', AutoNavigation, false);
+  if AutoNavigation then
+  begin
+    WritelnWarning('Viewport named "%s" uses AutoNavigation, this is no longer supported. Instead: 1. (Advised) Add explicit navigation instance to viewport. 2. (Eventually, a temporary solution) Use TCastleAutoNavigationViewport.', [
+      Name
+    ]);
   end;
 end;
 
