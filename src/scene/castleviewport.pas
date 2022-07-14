@@ -1595,10 +1595,12 @@ begin
     Assert(IndexOfControl(InternalDesignNavigation) <> -1);
   end;
 
+  {$warnings off} // using deprecated to warn about it
   if AutoCamera then
     WritelnWarning('AutoCamera is deprecated (on TCastleViewport named "%s"). Instead: It is simpler to set camera at design-time explicitly, or use CameraViewpointForWholeScene from code to auto-adjust camera.' + ' If you want to animate the camera, attach TCastleCamera to a bone transformation exposed by Scene.ExposeTransforms', [
       Name
     ]);
+  {$warnings on}
 end;
 
 procedure TCastleViewport.SetCapturePointingDevice(const Value: TCastleTransform);
@@ -1979,8 +1981,10 @@ procedure TCastleViewport.EnsureCameraDetected;
 begin
   if Camera <> nil then
   begin
+    {$warnings off} // using deprecated to warn about it
     if AutoCamera and not AssignDefaultCameraDone then
       AssignDefaultCamera;
+    {$warnings on}
     { Set AssignDefaultCameraDone to done,
       regardless if AssignDefaultCameraDone was done or not.
       Otherwise later setting AutoCamera to true would suddenly
@@ -2147,6 +2151,7 @@ function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): 
 var
   AMainLightPosition3D: PVector3;
 begin
+  {$warnings off} // using deprecated MainScene to keep it working
   if Items.MainScene <> nil then
   begin
     Result :=
@@ -2170,6 +2175,7 @@ begin
     end;
   end else
     Result := false;
+  {$warnings on}
 end;
 
 procedure TCastleViewport.Render3D(const Params: TRenderParams);
@@ -2287,9 +2293,11 @@ begin
   FPrepareParams.InternalGlobalLights := FRenderParams.FGlobalLights;
 
   { initialize FPrepareParams.InternalGlobalFog }
+  {$warnings off} // using deprecated MainScene to keep it working
   if UseGlobalFog and
      (Items.MainScene <> nil) then
     FPrepareParams.InternalGlobalFog := Items.MainScene.FogStack.Top
+  {$warnings on}
   else
     FPrepareParams.InternalGlobalFog := nil;
 
@@ -2402,9 +2410,11 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
     if Background <> nil then
       BackgroundRenderer := Background.InternalBackgroundRenderer
     else
+    {$warnings off} // using deprecated MainScene to keep it working
     if Items.MainScene <> nil then
       BackgroundRenderer := Items.MainScene.InternalBackgroundRenderer
     else
+    {$warnings on}
       BackgroundRenderer := nil;
 
     if BackgroundRenderer <> nil then
@@ -2474,6 +2484,7 @@ begin
   { Add headlight }
   InitializeGlobalLights(FRenderParams.FGlobalLights);
   { Add lights from MainScene  }
+  {$warnings off} // using deprecated MainScene to keep it working
   if Items.MainScene <> nil then
     AddGlobalLightsFromScene(Items.MainScene);
   { Add lights from all scenes with CastGlobalLights }
@@ -2481,12 +2492,15 @@ begin
     for SceneCastingLights in Items.InternalScenesCastGlobalLights do
       if Items.MainScene <> SceneCastingLights then // MainScene is already accounted for above
         AddGlobalLightsFromScene(SceneCastingLights);
+  {$warnings on}
 
   { calculate FRenderParams.GlobalFog }
+  {$warnings off} // using deprecated MainScene to keep it working
   if UseGlobalFog and
      (Items.MainScene <> nil) then
     FRenderParams.GlobalFog := Items.MainScene.FogStack.Top
   else
+  {$warnings on}
     FRenderParams.GlobalFog := nil;
 
   RenderFromView3D(FRenderParams);
@@ -2597,6 +2611,7 @@ begin
   if ScreenSpaceReflections then
     SSRShaderInitialize;
 
+  {$warnings off} // using deprecated MainScene to keep it working
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) and ScreenSpaceReflections and (SSRShader <> nil) then
   begin
     if Index = 0 then
@@ -2626,6 +2641,7 @@ begin
   else
     { no Index is valid, since ScreenEffectsCount = 0 in this class }
     Result := nil;
+  {$warnings on}
 end;
 
 function TCastleViewport.ScreenEffectsCount: Integer;
@@ -2635,10 +2651,13 @@ begin
   if ScreenSpaceReflections then
     SSRShaderInitialize;
 
+  {$warnings off} // using deprecated MainScene to keep it working
   if Items.MainScene <> nil then
     Result := Items.MainScene.ScreenEffectsCount
   else
     Result := 0;
+  {$warnings off}
+
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
     Inc(Result);
   if ScreenSpaceReflections and (SSRShader <> nil) then
@@ -2656,9 +2675,11 @@ begin
     Exit(true);
   if ScreenSpaceReflections and (SSRShader <> nil) then
     Exit(true);
+  {$warnings off} // using deprecated MainScene to keep it working
   if Items.MainScene <> nil then
     Result := Items.MainScene.ScreenEffectsNeedDepth
   else
+  {$warnings on}
     Result := false;
 end;
 
@@ -2795,7 +2816,9 @@ begin
     Exit; // abort, until you assign Camera
 
   Box := ItemsBoundingBox;
+  {$warnings off} // using deprecated MainScene to keep it working
   Scene := Items.MainScene;
+  {$warnings on}
   if Scene <> nil then
   begin
     Scene.InternalUpdateCamera(Camera, Box, false, false);
@@ -2828,7 +2851,9 @@ begin
     { up } Vector3(0, 1, 0));
   Camera.GravityUp := Vector3(0, 1, 0);
   Camera.ProjectionType := ptOrthographic;
+  {$warnings off} // using deprecated MainScene to keep it working
   AutoCamera := false;
+  {$warnings on}
 end;
 
 procedure TCastleViewport.PositionToPrerequisites;
@@ -3086,7 +3111,9 @@ end;
 
 function TCastleViewport.GetMainScene: TCastleScene;
 begin
+  {$warnings off} // using deprecated MainScene to keep it working
   Result := Items.MainScene;
+  {$warnings on}
 end;
 
 function TCastleViewport.MouseRayHitContains(const Item: TCastleTransform): boolean;
@@ -3452,10 +3479,12 @@ function TCastleViewport.PointingDeviceMove: boolean;
         end;
 
     // call MainScene.PointingDeviceMove, to allow to update X3D sensors "isOver"
+    {$warnings off} // using deprecated MainScene to keep it working
     if (Items.MainScene <> nil) and
        (CapturePointingDevice <> Items.MainScene) and
        ((RayHit = nil) or (RayHit.IndexOfItem(Items.MainScene) = -1)) then
       CallMove(FakeRayCollisionNode(RayOrigin, RayDirection, Items.MainScene), Distance);
+    {$warnings on}
   end;
 
 begin
@@ -3583,11 +3612,13 @@ end;
 
 procedure TCastleViewport.MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
 begin
+  {$warnings off} // using deprecated AutoCamera and MainScene to keep it working
   if AutoCamera then
   begin
     Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, false);
     BoundViewpointChanged;
   end;
+  {$warnings on}
 end;
 
 procedure TCastleViewport.MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
@@ -3597,11 +3628,10 @@ end;
 
 procedure TCastleViewport.MainSceneAndCamera_BoundViewpointVectorsChanged(Sender: TObject);
 begin
-  { TODO: It may be useful to enable camera animation by some specific property,
-    like AnimateCameraByViewpoint (that works even when AutoCamera = false,
-    as we advise for new viewports). }
+  {$warnings off} // using deprecated AutoCamera and MainScene to keep it working
   if AutoCamera { or AnimateCameraByViewpoint } then
     Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
+  {$warnings on}
 end;
 
 class procedure TCastleViewport.CreateComponentWithChildren3D(Sender: TObject);
