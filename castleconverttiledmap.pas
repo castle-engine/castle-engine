@@ -34,8 +34,7 @@
   5. Shift TShapeNodeList(+ListList) (generic) to x3dnodes_standard_texturing.inc?
   6. How to handle overlapping tiles of the same layer (Z-buffer fighting)?
   7. Refine spacing/margin calculations, still borders in desert example.
-  8. Texture flipped tiles correctly (needs support of MIRRORED_REPEAT mode).
-     See: https://github.com/castle-engine/castle-engine/issues/324.
+  8. Implement support for 90° rotated tiles.
 
   EXPECTED X3D HIERARCHY:
 
