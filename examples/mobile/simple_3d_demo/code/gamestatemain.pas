@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,7 +43,7 @@ type
     StatusText: TCastleLabel;
     TouchNavigation: TCastleTouchNavigation;
     MainViewport: TCastleViewport;
-    MainScene: TCastleScene;
+    SceneCastle, SceneTeapots: TCastleScene;
     SoundWav, SoundOgg: TCastleSound;
 
     { Other fields, initialized in Start }
@@ -122,7 +122,8 @@ begin
   ButtonTerminate := DesignedComponent('ButtonTerminate') as TCastleButton;
   TouchNavigation := DesignedComponent('TouchNavigation') as TCastleTouchNavigation;
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
-  MainScene := DesignedComponent('MainScene') as TCastleScene;
+  SceneCastle := DesignedComponent('SceneCastle') as TCastleScene;
+  SceneTeapots := DesignedComponent('SceneTeapots') as TCastleScene;
   SoundWav := DesignedComponent('SoundWav') as TCastleSound;
   SoundOgg := DesignedComponent('SoundOgg') as TCastleSound;
 
@@ -148,12 +149,10 @@ begin
 
   { initialize other fields }
 
-  MyShaderEffect := MainScene.RootNode.TryFindNodeByName(
-    TEffectNode, 'MyShaderEffect', false) as TEffectNode;
+  MyShaderEffect := SceneCastle.Node('MyShaderEffect') as TEffectNode;
   ButtonToggleShader.Pressed := (MyShaderEffect <> nil) and MyShaderEffect.Enabled;
 
-  MyScreenEffect := MainScene.RootNode.TryFindNodeByName(
-    TScreenEffectNode, 'MyScreenEffect', false) as TScreenEffectNode;
+  MyScreenEffect := SceneCastle.Node('MyScreenEffect') as TScreenEffectNode;
   ButtonToggleScreenEffect.Pressed := (MyScreenEffect <> nil) and MyScreenEffect.Enabled;
 
   { Test that FindFiles works also on Android asset filesystem.
@@ -283,7 +282,7 @@ end;
 
 procedure TStateMain.ClickToggleTextureUpdates(Sender: TObject);
 begin
-  MainScene.RootNode.EnumerateNodes(
+  SceneTeapots.RootNode.EnumerateNodes(
     TGeneratedCubeMapTextureNode, {$ifdef FPC}@{$endif}ToggleTextureUpdatesCallback, false);
 end;
 
