@@ -9,6 +9,7 @@ PROFILE Interchange
 #
 # - MyScreenEffect, using ScreenEffect node, see https://castle-engine.io/x3d_extensions_screen_effects.php .
 #   These effects allow to post-process rendering using GLSL.
+# ----------------------------------------------------------------------------
 
 DEF MyShaderEffect Effect {
   language "GLSL"
