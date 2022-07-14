@@ -36,7 +36,7 @@
   7. Refine spacing/margin calculations, still borders in desert example.
   8. Implement support for 90° rotated tiles.
 
-  EXPECTED X3D HIERARCHY:
+  EXPECTED X3D HIERARCHY OF A CONVERTED TILED MAP (.TMX):
 
   Root Node --> [0] Switch Node --> [0] Map Node --> [0] Layer Node 1 --> ...
                                                  --> [1] Layer Node 2 --> ...
@@ -110,9 +110,6 @@ type
   TShapeNodeListList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNodeList>;
 
   { Converter class to convert Tiled map into X3D representations. }
-
-  { TTiledMapConverter }
-
   TTiledMapConverter = class
   strict private
     FDebugMode: Boolean;
