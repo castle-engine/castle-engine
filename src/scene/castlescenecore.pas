@@ -2537,21 +2537,25 @@ type
     property AutoAnimationLoop: Boolean
       read FAutoAnimationLoop write SetAutoAnimationLoop default true;
 
-    { List of names of transformation nodes (TTransformNode in X3D, "bones" in most authoring software)
-      that should result in creation of children TCastleTransform instances, with the same name,
-      as children of this TCastleScene.
-      These auto-created children TCastleTransform instances will have their transformation
-      (translation, rotation, scale) automatically synchronized with the bone transformation
-      in our model.
+    { Transformation nodes inside the model
+      that are synchronized with automatically-created children TCastleTransform.
 
-      In effect, this exposes the transformation of a bone, e.g. "hand that may hold a weapon",
-      or "slot of a plane where to attach a gun", as TCastleTransform.
-      This allows to place new scenes (e.g. model of a weapon) as TCastleScene,
-      as children of such transformations. This makes these scenes automatically
-      animated when the scene skeleton animates.
+      This allows to expose transformation nodes from glTF, X3D and other model formats
+      as TCastleTransform.
+      These transformation nodes include animated bones from skeletons (armatures).
+      Such "exposed transformation" results in a creation of TCastleTransform child,
+      with the same name and synchronized transformation (translation, rotation, scale).
+
+      This allows to expose e.g. "hand that may hold a weapon",
+      or "slot of a vehicle where to attach a camera", as TCastleTransform.
+      And this allows, in turn, to attach various things to (possibly animated) transformations,
+      e.g. attach model of a weapon to a hand, or attach TCastleCamera to some bone.
+      The attached things will be automatically animated when the scene skeleton animates.
 
       Setting this property merely copies the contents using TStrings.Assign,
       as is usual for published TStrings properties.
+      In CGE editor, there's a nice GUI editor to pick the transfomation nodes,
+      click on "..." at this property.
 
       Note: the owner of auto-created children is equal to this scene's Owner.
       This is most natural when you edit this in CGE editor,
