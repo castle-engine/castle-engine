@@ -908,6 +908,16 @@ to be realized. }
 
 function TCastleControl.MakeCurrent(SaveOldToStack: boolean): boolean;
 begin
+  { This call makes no sense when OpenGL context is no longer available,
+    which means Handle = 0.
+    Inherited would make error - LOpenGLMakeCurrent in LCL would
+    make "RaiseGDBException('LOpenGLSwapBuffers Handle=0');".
+    For some reason, it may be reported as EDivByZero, "Division by zero".
+
+    Better to just exit with false. }
+  if Handle = 0 then
+    Exit(false);
+
   Result := inherited MakeCurrent(SaveOldToStack);
 
   RenderContext := Container.Context;
