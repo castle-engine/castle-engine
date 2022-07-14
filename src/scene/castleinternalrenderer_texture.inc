@@ -1888,7 +1888,7 @@ begin
     SetTextureRGBFromImage(InitialImage);
 
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
-      '' { generated texture contents means empty URL },
+      '' { generated texture contents means empty URL; this also prevents sharing textures by TextureCubeMap_IncReference },
       Filter, Anisotropy,
       InitialImage, InitialImage,
       InitialImage, InitialImage,
