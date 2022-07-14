@@ -143,7 +143,7 @@ function YesNoBox(const Caption, Message: String): Boolean;
 procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 
 const
-  ApiReferenceUrl = 'https://castle-engine.io/apidoc-unstable/html/';
+  ApiReferenceUrl = 'https://castle-engine.io/apidoc/html/';
   FpcRtlApiReferenceUrl = 'https://www.freepascal.org/docs-html/rtl/';
   LclApiReferenceUrl = 'https://lazarus-ccr.sourceforge.io/docs/lcl/';
 

@@ -15,7 +15,7 @@ Documentation:
 
 - [Manual](https://castle-engine.io/manual_intro.php) is the most recommended way to learn the engine.
 
-- [API reference](https://castle-engine.io/apidoc-unstable/html/index.html).
+- [API reference](https://castle-engine.io/apidoc/html/index.html).
 
     It is also available offline in the engine archive (if you downloaded the binary engine release), just open the file `doc/reference/index.html` in your WWW browser.
 
