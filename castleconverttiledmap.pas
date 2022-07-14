@@ -150,31 +150,23 @@ type
     function MapWidthPx: Cardinal;
     { Map height in pixels. }
     function MapHeightPx: Cardinal;
-
     { Get the dimensions of the tileset image in pixels.
-
       TODO: Easier just to use rows/columns? Vec2(1/Rows, 1/Cols)
-
       @groupBegin }
     function TilesetWidthPx(const AImageTextureNode: TImageTextureNode): Cardinal;
     function TilesetHeightPx(const AImageTextureNode: TImageTextureNode): Cardinal;
     { @groupEnd }
-
     { Tile width of map tile (not necessarily tileset tile!) in pixels. }
     function TileWidthPx: Cardinal;
     { Tile height of map tile (not necessarily tileset tile!) in pixels. }
     function TileHeightPx: Cardinal;
-    { Convert Tiled Y-values to Y-values according to definition, see remarks
-      above.
-
+    { Convert Tiled Y-values (CY: Convert Y) to Y-values according to
+      definition, see remarks above.
       @groupBegin }
     function ConvY(const TiledY: Single): Single; overload;
     function ConvY(const TiledYVector2: TVector2): TVector2; overload;
-    { @groupEnd }
-
-    { Converts two float values into TVector2 and Y-value (CY: Convert Y)
-      according to def., see remarks above. }
     function Vector2CY(const X, Y: Single): TVector2;
+    { @groupEnd }
 
     {   DEBUG FUNCTIONS    }
 
