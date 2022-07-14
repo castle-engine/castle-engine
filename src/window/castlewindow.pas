@@ -882,7 +882,7 @@ type
     procedure DoTimer;
     { Just call it when user presses some MenuItem.
       This takes care of MainMenu.Enabled,
-        MakeCurent,
+        MakeCurrent,
         Item.DoClick,
         optional OnMenuClick or Container.EventKeyDown }
     procedure DoMenuClick(Item: TMenuItem);
