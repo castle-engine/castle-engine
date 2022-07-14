@@ -28,7 +28,30 @@
               "X" : 2.5801800537109375E+002,
               "Y" : 3.2305838012695312E+002
             },
-            "URL" : "castle-data:/hero_animation/hero_low_fps.castle-sprite-sheet"
+            "URL" : "castle-data:/hero_animation/hero_low_fps.castle-sprite-sheet",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleText",
+                "Alignment" : "hpMiddle",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 0.0000000000000000E+000
+                },
+                "Name" : "Text1",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "Size" : 2.0000000000000000E+001,
+                "Text" : [
+                  "Hero walk",
+                  "(23 frames per second)"
+                ],
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 2.4351004028320312E+002
+                }
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -45,14 +68,42 @@
               "X" : 7.5963964843750000E+002,
               "Y" : 3.3108471679687500E+002
             },
-            "URL" : "castle-data:/hero_animation/hero_high_fps.castle-sprite-sheet"
+            "URL" : "castle-data:/hero_animation/hero_high_fps.castle-sprite-sheet",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleText",
+                "Alignment" : "hpMiddle",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 0.0000000000000000E+000
+                },
+                "Name" : "Text2",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "Size" : 2.0000000000000000E+001,
+                "Text" : [
+                  "Hero walk",
+                  "(55 frames per second)"
+                ],
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 2.4351007080078125E+002
+                }
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleCamera",
             "Name" : "Camera1",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic",
-              "Height" : 9.0000000000000000E+002
+              "Height" : 9.0000000000000000E+002,
+              "OriginPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 5.0000000000000000E-001,
+                "Y" : 5.0000000000000000E-001
+              }
             },
             "Perspective" : {
               "$$ClassName" : "TCastlePerspective"
@@ -64,51 +115,20 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 5.4194152832031250E+002,
+              "Y" : 3.8448556518554688E+002,
               "Z" : 5.0000000000000000E+002
             }
           }
         ]
       },
       "Name" : "Viewport1",
-      "$Children" : [
-        {
-          "$$ClassName" : "TCastleLabel",
-          "Alignment" : "hpMiddle",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "HorizontalAnchorDelta" : 1.4000000000000000E+002,
-          "Name" : "Label1",
-          "Text" : [
-            "Hero walk",
-            "(23 frames per second)"
-          ],
-          "VerticalAnchorDelta" : 5.8000000000000000E+002
-        },
-        {
-          "$$ClassName" : "TCastleLabel",
-          "Alignment" : "hpMiddle",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "HorizontalAnchorDelta" : 6.0000000000000000E+002,
-          "Name" : "Label2",
-          "Text" : [
-            "Hero walk",
-            "(55 frames per second)"
-          ],
-          "VerticalAnchorDelta" : 5.8000000000000000E+002
-        }
-      ],
       "InternalDesignCamera" : {
         "$$ClassName" : "TCastleCamera",
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
+          "Height" : 1.3426422119140625E+003,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -125,8 +145,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 8.2963635253906250E+002,
-          "Y" : 4.7945455932617188E+002,
+          "X" : 6.0551605224609375E+002,
+          "Y" : 3.3233779907226562E+002,
           "Z" : 1.6000000000000000E+003
         }
       },
