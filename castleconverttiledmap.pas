@@ -147,23 +147,23 @@ type
     {   HELPER FUNCTIONS   }
 
     { Map width in pixels. }
-    function MapWidth: Cardinal;
+    function MapWidthPx: Cardinal;
     { Map height in pixels. }
-    function MapHeight: Cardinal;
+    function MapHeightPx: Cardinal;
 
     { Get the dimensions of the tileset image in pixels.
 
       TODO: Easier just to use rows/columns? Vec2(1/Rows, 1/Cols)
 
       @groupBegin }
-    function TilesetWidth(const AImageTextureNode: TImageTextureNode): Cardinal;
-    function TilesetHeight(const AImageTextureNode: TImageTextureNode): Cardinal;
+    function TilesetWidthPx(const AImageTextureNode: TImageTextureNode): Cardinal;
+    function TilesetHeightPx(const AImageTextureNode: TImageTextureNode): Cardinal;
     { @groupEnd }
 
     { Tile width of map tile (not necessarily tileset tile!) in pixels. }
-    function TileWidth: Cardinal;
+    function TileWidthPx: Cardinal;
     { Tile height of map tile (not necessarily tileset tile!) in pixels. }
-    function TileHeight: Cardinal;
+    function TileHeightPx: Cardinal;
     { Convert Tiled Y-values to Y-values according to definition, see remarks
       above.
 
@@ -315,14 +315,14 @@ begin
 
       { Horizontal flip }
       if TileFlip = tfHFlip then
-        TilesetTexCoordOrigin := Vector2(TilesetWidth(TilesetTextureNode) / Tileset.TileWidth, 0);
+        TilesetTexCoordOrigin := Vector2(TilesetWidthPx(TilesetTextureNode) / Tileset.TileWidth, 0);
       { Vertical flip }
       if TileFlip = tfVFlip then
-        TilesetTexCoordOrigin := Vector2(0, TilesetHeight(TilesetTextureNode) / Tileset.Tileheight);
+        TilesetTexCoordOrigin := Vector2(0, TilesetHeightPx(TilesetTextureNode) / Tileset.Tileheight);
       { Diagonal flip }
       if TileFlip = tfDFlip then
-        TilesetTexCoordOrigin := Vector2(TilesetWidth(TilesetTextureNode) / Tileset.TileWidth,
-          TilesetHeight(TilesetTextureNode) / Tileset.Tileheight);
+        TilesetTexCoordOrigin := Vector2(TilesetWidthPx(TilesetTextureNode) / Tileset.TileWidth,
+          TilesetHeightPx(TilesetTextureNode) / Tileset.Tileheight);
 
       for Tile in Tileset.Tiles do
       begin
@@ -342,8 +342,8 @@ begin
             Divide Tileset Tile width/height by full Tileset width/height.
             The latter is extracted from the texture node. }
           TilesetTextureTransformNode.Scale := Vector2(
-            Tileset.TileWidth / TilesetWidth(TilesetTextureNode),
-            Tileset.TileHeight / TilesetHeight(TilesetTextureNode)
+            Tileset.TileWidth / TilesetWidthPx(TilesetTextureNode),
+            Tileset.TileHeight / TilesetHeightPx(TilesetTextureNode)
           );
 
           { Get all tile textures from tileset texture as shape nodes:
@@ -393,8 +393,8 @@ begin
   for Layer in Map.Layers do
   begin
     if DebugMode then
-      BuildDebugObject(Round(Layer.OffsetX), Round(Layer.OffsetY), MapWidth,
-        MapHeight, Layer.Name);
+      BuildDebugObject(Round(Layer.OffsetX), Round(Layer.OffsetY), MapWidthPx,
+        MapHeightPx, Layer.Name);
 
     if not Layer.Visible then
       Continue;
@@ -793,9 +793,9 @@ var
       Exit;
 
     Result := Vector2CY(
-      ColumnOfTileInMap * TileWidth       // X
+      ColumnOfTileInMap * TileWidthPx       // X
       + ATileset.TileWidth div 2,         // Compensate centring of rect. 2d node (see quote above)
-      (RowOfTileInMap + 1) * TileHeight   // Y
+      (RowOfTileInMap + 1) * TileHeightPx   // Y
       - ATileset.TileHeight * 0.5         // Tileset tiles are "anchored" bottom-left and compensate centring
        );
   end;
@@ -846,8 +846,8 @@ begin
       if Assigned(DebugTileset) and Assigned(DebugTile) then
       begin
         BuildDebugObject(
-          ColumnOfTileInMap * TileWidth,
-          (RowOfTileInMap + 1) * TileHeight - DebugTileset.TileHeight, // Y: The tiles of tilesets are "anchored" bottom-left
+          ColumnOfTileInMap * TileWidthPx,
+          (RowOfTileInMap + 1) * TileHeightPx - DebugTileset.TileHeight, // Y: The tiles of tilesets are "anchored" bottom-left
           DebugTileset.TileWidth,
           DebugTileset.TileHeight, 'GID: ' + IntToStr(DebugTile.Id + 1));
       end;
@@ -901,7 +901,7 @@ begin
     DebugAppearanceNode.LineProperties := DebugLinePropertiesNode;
 
     DebugFontStyleNode := TFontStyleNode.Create;
-    DebugFontStyleNode.Size := 0.5 * (MapWidth + MapHeight) / 25;
+    DebugFontStyleNode.Size := 0.5 * (MapWidthPx + MapHeightPx) / 25;
   end;
 
   ConvYMatrix.Items[0,0] := 1;
@@ -917,17 +917,17 @@ begin
   inherited Destroy;
 end;
 
-function TTiledMapConverter.MapWidth: Cardinal;
+function TTiledMapConverter.MapWidthPx: Cardinal;
 begin
-  Result := TileWidth * Map.Width;
+  Result := TileWidthPx * Map.Width;
 end;
 
-function TTiledMapConverter.MapHeight: Cardinal;
+function TTiledMapConverter.MapHeightPx: Cardinal;
 begin
-  Result := TileHeight * Map.Height;
+  Result := TileHeightPx * Map.Height;
 end;
 
-function TTiledMapConverter.TilesetWidth(
+function TTiledMapConverter.TilesetWidthPx(
   const AImageTextureNode: TImageTextureNode): Cardinal;
 begin
   Result := 0;
@@ -936,7 +936,7 @@ begin
   Result :=  AImageTextureNode.TextureImage.Width;
 end;
 
-function TTiledMapConverter.TilesetHeight(
+function TTiledMapConverter.TilesetHeightPx(
   const AImageTextureNode: TImageTextureNode): Cardinal;
 begin
   Result := 0;
@@ -945,12 +945,12 @@ begin
   Result :=  AImageTextureNode.TextureImage.Height;
 end;
 
-function TTiledMapConverter.TileWidth: Cardinal;
+function TTiledMapConverter.TileWidthPx: Cardinal;
 begin
   Result := Map.TileWidth;
 end;
 
-function TTiledMapConverter.TileHeight: Cardinal;
+function TTiledMapConverter.TileHeightPx: Cardinal;
 begin
   Result := Map.TileHeight;
 end;
@@ -984,12 +984,12 @@ begin
   DebugInfoLabelShape.Appearance := DebugAppearanceNode;
   DebugInfoLabel := TTransformNode.Create;
   DebugInfoLabel.AddChildren(DebugInfoLabelShape);
-  DebugInfoLabel.Translation := Vector3(MapWidth + 20.0, 0.0, 0.1);
+  DebugInfoLabel.Translation := Vector3(MapWidthPx + 20.0, 0.0, 0.1);
   InfoLabelStringList := TCastleStringList.Create;
   try
     InfoLabelStringList.Add('Map width/height (in tiles | in px): ' +
       IntToStr(Map.Width) + '/' + IntToStr(Map.Height) + ' | ' +
-      IntToStr(MapWidth) + '/' + IntToStr(MapHeight));
+      IntToStr(MapWidthPx) + '/' + IntToStr(MapHeightPx));
     InfoLabelStringList.Add(' ');
 
     InfoLabelStringList.Add('Tilesets (GIDs):');
@@ -1037,8 +1037,8 @@ var
   AxisLength, AxisNameGap: Single;
 begin
   OriginVector := Vector3(0.0, 0.0, 0.1); // Z = 0.1 to be visible against layer
-  AxisLength := 0.5 * (MapWidth + MapHeight) / 3;
-  AxisNameGap := 0.5 * (MapWidth + MapHeight) / 10;
+  AxisLength := 0.5 * (MapWidthPx + MapHeightPx) / 3;
+  AxisNameGap := 0.5 * (MapWidthPx + MapHeightPx) / 10;
 
   DebugAxisMaterial := TUnlitMaterialNode.Create;
   DebugAxisMaterial.EmissiveColor := WhiteRGB;
