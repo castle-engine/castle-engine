@@ -1190,6 +1190,24 @@ procedure TCastleControl.DoUpdate;
 begin
   if AutoRedisplay then Invalidate;
   FKeyPressHandler.Flush; // finish any pending key presses
+
+  { Update event also requires that proper OpenGL context is current.
+
+    This matters because OpenGL resources may be used durign update,
+    e.g. TCastleScene.Update will update auto-generated textures,
+    doing e.g. TGLGeneratedCubeMapTextureNode.Update.
+    This should run in proper OpenGL context.
+    Esp. as not all resources must be shared between contexts:
+    FBO are not shared in new OpenGL versions, see
+    https://stackoverflow.com/questions/4385655/is-it-possible-to-share-an-opengl-framebuffer-object-between-contexts-threads
+
+    Testcase: open examples/mobile/simple_3d_demo/ in editor,
+    open main design,
+    click on previews with GeneratedCubeMap like castle_with_lights_and_camera.wrl .
+    Without this fix, we'll have an OpenGL error.
+
+    Doing MakeCurrent here is consistent with TCastleWindow.DoUpdate . }
+  MakeCurrent;
   Container.EventUpdate;
 end;
 
