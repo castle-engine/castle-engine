@@ -134,7 +134,7 @@ type
 
       IMPORTANT: This procedure must ensure that the number of shape node lists
       is always the same as the actual tilesets in Map.Tilesets.
-      This crucial for retrieving the correct tileset shape node list from
+      This is crucial for retrieving the correct tileset shape node list from
       TilesetShapeNodeListList later! }
     procedure ConvertTilesets;
     { Tries to construct X3D nodes for each layer. }
