@@ -250,10 +250,12 @@ procedure TCastleTouchNavigation.UpdateTouchInterface;
   begin
     UpdateTouchController(false, LeftVisible , LeftMode);
     UpdateTouchController(true , RightVisible, RightMode);
+    {$warnings off} // TODO: using deprecated for now - this needs to know a "central" navigation
     if ControlMouseDragMode and
-      (Viewport <> nil) and
-      (Viewport.Navigation is TCastleWalkNavigation) then
+       (Viewport <> nil) and
+       (Viewport.Navigation is TCastleWalkNavigation) then
       (Viewport.Navigation as TCastleWalkNavigation).MouseDragMode := MouseDragMode;
+    {$warnings on}
   end;
 
 begin

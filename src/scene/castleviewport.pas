@@ -1766,6 +1766,7 @@ begin
   Result := inherited;
   if (not Result) and (not Items.Paused) then
   begin
+    {$warnings off} // TODO: using deprecated Navigation for now
     if Navigation <> nil then
     begin
       TopMostTransform := TransformUnderMouse;
@@ -1789,6 +1790,7 @@ begin
         Navigation.Press(LastPressEvent);
       end;
     end;
+    {$warnings on}
 
     UpdateMouseRayHit;
 
@@ -3209,8 +3211,10 @@ begin
   Result := C <> nil;
   if Result then
   begin
+    {$warnings off} // TODO: using deprecated Navigation for now
     if (Navigation is TCastleMouseLookNavigation) and
        TCastleMouseLookNavigation(Navigation).MouseLook then
+    {$warnings on}
       MousePosition := RenderRect.Center
     else
       MousePosition := C.MousePosition;
