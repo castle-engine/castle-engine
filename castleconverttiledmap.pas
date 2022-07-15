@@ -426,7 +426,10 @@ var
   I: Cardinal;
 
 begin
-  Result := nil;
+  Result := TTiledLayerNode.Create;   // Tiled object group layer node.
+
+  { Move layer node according to layer offset }
+  Result.Translation := Vector3(ConvY(ALayer.OffsetX, ALayer.OffsetY), 0);
 
   AVector2List := TVector2List.Create;
 
@@ -435,12 +438,6 @@ begin
 
     if not TiledObject.Visible then
       Continue;
-
-    { At this point it is clear that at least one visible Tiled object is
-      present on the Object group layer. Hence the layer node and the material
-      node is created. }
-    if not Assigned(Result) then
-      Result := TTiledLayerNode.Create;   // Tiled object group layer node.
 
     { All Tiled objects of this layer share the same material node. The color
       depends on the layer color in accordance with handling of Tiled editor. }
@@ -452,8 +449,7 @@ begin
 
     { Every Tiled object is based on a transform node. }
     TiledObjectNode := TTiledObjectNode.Create;
-    TiledObjectNode.Translation := Vector3(ConvY(ALayer.Offset +
-      TiledObject.Position), LayerZDistance);
+    TiledObjectNode.Translation := Vector3(ConvY(TiledObject.Position), 0);
 
     { Every primitive is implemented as polyline node. Hint: For better
       performance rectangle and point could be implemented as rect. node?}
@@ -831,6 +827,9 @@ var
 
 begin
   Result := TTiledLayerNode.Create;        // The resulting layer node.
+
+  { Move layer node according to layer offset }
+  Result.Translation := Vector3(ConvY(ALayer.OffsetX, ALayer.OffsetY), 0);
 
   if DebugMode then
   begin
