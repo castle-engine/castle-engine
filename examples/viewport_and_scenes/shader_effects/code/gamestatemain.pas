@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -92,6 +92,9 @@ procedure TStateMain.Start;
       See https://castle-engine.io/compositing_shaders.php and in particular
       https://castle-engine.io/compositing_shaders_doc/html/ about shader effects. }
     Scene.RootNode.AddChildren([Effect]);
+
+    // adding node to Scene turns off animation set by AutoAnimation, run it again
+    Scene.PlayAnimation('Walk', true);
   end;
 
 begin
