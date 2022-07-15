@@ -125,8 +125,6 @@ type
     FRootNode: TX3DRootNode;
     FTilesetShapeNodeListList: TShapeNodeListList;
 
-    FConvYMatrix: TMatrix2;
-
     { Converts tilesets to shape node lists.
 
       For every tileset in Map.Tilesets there is one TShapeNodeList created
@@ -161,7 +159,8 @@ type
     { Tile height of map tile (not necessarily tileset tile!) in pixels. }
     function TileHeightPx: Cardinal;
     { Convert Tiled Y-values (CY: Convert Y) to Y-values according to
-      definition, see remarks above.
+      definition. Mirrors 2d-vector at X-axis in XY-plane.
+      See remarks at head of unit file.
       @groupBegin }
     function ConvY(const TiledY: Single): Single; overload;
     function ConvY(const TiledYVector2: TVector2): TVector2; overload;
@@ -196,9 +195,6 @@ type
 
     {   MAP PROPERTIES   }
 
-    { Mirrors 2d-vector at X-axis in XY-plane. Necessary for conversion of
-      Tiled Y-values according to definition, see remarks above. }
-    property ConvYMatrix: TMatrix2 read FConvYMatrix;
     { The elements of this list are themselves lists which contain
       the shape node of a tileset each. }
     property TilesetShapeNodeListList: TShapeNodeListList read FTilesetShapeNodeListList write FTilesetShapeNodeListList;
@@ -895,11 +891,6 @@ begin
     DebugFontStyleNode := TFontStyleNode.Create;
     DebugFontStyleNode.Size := 0.5 * (MapWidthPx + MapHeightPx) / 25;
   end;
-
-  ConvYMatrix.Items[0,0] := 1;
-  ConvYMatrix.Items[1,0] := 0;
-  ConvYMatrix.Items[0,1] := 0;
-  ConvYMatrix.Items[1,1] := -1;
 end;
 
 destructor TTiledMapConverter.Destroy;
@@ -953,6 +944,8 @@ begin
 end;
 
 function TTiledMapConverter.ConvY(const TiledYVector2: TVector2): TVector2;
+const
+  ConvYMatrix: TMatrix2 = (Data: ((1, 0), (0, -1)));
 begin
   Result :=  ConvYMatrix * TiledYVector2;
 end;
