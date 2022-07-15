@@ -399,7 +399,7 @@ var
   end;
 
 const
-  BaseGizmoScaleOrtho = 0.15 * 0.5;
+  BaseGizmoScaleOrtho = 0.3 * 0.5;
   BaseGizmoScalePerspective = 0.25 * 0.5;
 var
   Camera: TCastleCamera;
@@ -415,7 +415,7 @@ begin
     if Camera.ProjectionType = ptOrthographic then
     begin
       { We just want gizmo is about 15% of effective height }
-      GizmoScale := BaseGizmoScaleOrtho * Camera.Orthographic.EffectiveHeight;
+      GizmoScale := BaseGizmoScaleOrtho * Camera.Orthographic.EffectiveRect.Height;
       ScaleUniform := Parent.WorldToLocalDistance(GizmoScale);
     end else
     begin
