@@ -79,6 +79,8 @@ uses
   Classes,
   X3DNodes, CastleLog, CastleTiledMap;
 
+{ These transform node types can be useful to find the desired node more
+  reliably in event routines. }
 type
   TTiledLayerNode = type TTransformNode;
   TTiledObjectNode = type TTransformNode;
