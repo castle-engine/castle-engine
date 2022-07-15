@@ -166,7 +166,6 @@ type
       @groupBegin }
     function ConvY(const TiledYVector2: TVector2): TVector2; overload;
     function ConvY(const X, Y: Single): TVector2; overload;
-    //function Vector2CY(const X, Y: Single): TVector2;
     { @groupEnd }
 
     {   DEBUG FUNCTIONS    }
