@@ -1404,6 +1404,7 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
     Shape: TShapeNode;
     Tri: TTriangleSetNode;
     Tex: TPixelTextureNode;
+    TexProperties: TTexturePropertiesNode;
     HalfFrameWidth: Single;
     HalfFrameHeight: Single;
     ShapeCoord: TCoordinateNode;
@@ -1416,9 +1417,21 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
 
     Tex := TPixelTextureNode.Create;
     Tex.FdImage.Value := Frame.MakeImageCopy;
+    { No point in adjusting RepeatS/T: TextureProperties override it.
     Tex.RepeatS := false;
     Tex.RepeatT := false;
+    }
     Shape.Texture := Tex;
+
+    TexProperties := TTexturePropertiesNode.Create;
+    TexProperties.BoundaryModeS := bmClampToEdge;
+    TexProperties.BoundaryModeT := bmClampToEdge;
+    { Do not force "power of 2" size, which may prevent mipmaps.
+      This seems like a better default (otherwise the resizing underneath
+      may cause longer loading time, and loss of quality, if not expected).
+      Consistent with X3DLoadInternalImage and sprite sheet loaders. }
+    TexProperties.GuiTexture := true;
+    Tex.TextureProperties := TexProperties;
 
     Tri := TTriangleSetNode.Create;
     Tri.Solid := false;
