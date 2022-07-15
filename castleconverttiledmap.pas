@@ -654,7 +654,7 @@ var
       TODO: Implement rotation. }
     if DFlip and (HFlip or VFlip) then
     begin
-      WritelnWarning('Horizontal/vertical flip cannot be combined with diagnonal flip. Flags are ignored.');
+      WritelnWarning('Not implemented yet: Combination of diagonal- with other flips and rotations. Flags are ignored.');
       Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile)];
       Exit;
     end;
