@@ -1198,8 +1198,11 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
       { Note that when box is empty (or has 0 sizes),
         ProjectionFar cannot be simply "any dummy value".
         It must be appropriately larger than GetDefaultProjectionNear
-        to provide sufficient space for rendering Background node. }
-      Result := Box.AverageSize(false, 1) * WorldBoxSizeToProjectionFar;
+        to provide sufficient space for rendering Background node.
+
+        Testcase for using larger WorldBoxSizeToProjectionFar with MaxSize:
+        gettext demo. }
+      Result := Box.MaxSize(false, 1) * WorldBoxSizeToProjectionFar;
     end;
   end;
 

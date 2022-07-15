@@ -124,7 +124,7 @@ const
   RadiusToProjectionNear = 0.6;
 
   { Used when it is necessary to calculate projection far based on world size. }
-  WorldBoxSizeToProjectionFar = 20.0;
+  WorldBoxSizeToProjectionFar = 100.0;
 
   { Multiply radius by this to get sensible "preferred height".
 
