@@ -1,15 +1,12 @@
 ## TODO
 
 ------------------------------------------------------------------------------
-Before 7.0 release:
+Lower priority:
+OK if after 7.0 release:
 
 * when trying to drag to resize, we could show a hint from EditorAllowResize
   (ResizeDisabledReason) somewhere
   (at tooltip)?
-
-------------------------------------------------------------------------------
-Lower priority:
-OK if after nearest release:
 
 * Define EditorAllowResize for
   castledialogstates_dialog.inc
@@ -27,8 +24,6 @@ OK if after nearest release:
 * TCastleButton:
   - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
   - Test a way to upgrade names in design files while doing above?
-
-* component class display with grayed-out color, to be visually separate from name
 
 * *All* images from theme should also be customizable at the control level,
   and naming should be consistent.
@@ -62,10 +57,6 @@ OK if after nearest release:
 
 * Add components tab at the bottom, with large icon for each component
 
-* Allow to attach rigidbody and collision instances.
-
-  Allow to autosynchronize them (e.g. size) with size of the model?
-
 * allow to control auto-scaling
 
     when clicking on 44% (currently shows a hint about UI scaling) a dialog:
@@ -82,7 +73,7 @@ OK if after nearest release:
 
 * Make files browser with features as documented.
     * allow dropping scenes/images on UI design - done, but show preview when dropping
-	* on audio files, you can open them with `examples/audio/audio_player/` (should this be moved to tools directory? probably!)
+    * on audio files, you can open them with `examples/audio/audio_player/` (should this be moved to tools directory? probably!)
 
 * build tool integration:
     * For "run", colorized CastleLog warnings
@@ -120,25 +111,16 @@ OK if after nearest release:
     * allow switching list/icon/etc. view on "Files"
     * allow configuring command output "word wrap"
     * Output ListBox has some width (and horiz scrollbar) on Windows, unrelated to anything?
-    * remember ProjectForm state of maximized/not
-
-* move CastleComponentSerialize to src/files/
 
 * Project options:
     * Allow to configure project qualified name from "Project Options" in editor
     * Icon, other stuff from CastleEngineManifest.xml could be configuirable in editor
-* Desing also X3D nodes inside TCastleScene. This would be powerful... But not for now. I also deliberately do not want to turn CGE editor into Blender :) For creating 3D models, the recommended workflow will remain to use external editor (like Blender), and only e.g. adjust materials in CGE (override material properties using material_properties.xml). An editor for X3D nodes would be great to add stuff not possible in Blender, though (Background, clip planes, primitives...).
 
 * For editor on Lazarus at design-time:
     * TCastleControl (or sthg else) in designer mode should set ApplicationDataOverride,
         to allow our dialogs to replace URL with castle-data:/ nicely.
-    * saving TCastleColorPersistent to LFM for now doesn't work?
-        maybe ignore, we will save TCastleControl to JSON?
 
 * at scene loading show something "wait, loading..."
-
-* "Camera View All" button more prominent?
-  Maybe attached to viewport in designer mode?
 
 * allow to import file with textures, audio, inline tracked
   as alternative at warning message when opening file outside of castle-data:
