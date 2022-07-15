@@ -461,16 +461,9 @@
         {
             "doubleSided" : true,
             "name" : "Material.001",
-            "pbrMetallicRoughness" : {
-                "baseColorTexture" : {
-                    "index" : 0
-                },
-                "metallicFactor" : 0
-            }
-        },
-        {
-            "doubleSided" : true,
-            "name" : "Material.002",
+            "normalTexture" : {
+                "index" : 0
+            },
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
                     "index" : 1
@@ -480,17 +473,10 @@
         },
         {
             "doubleSided" : true,
-            "name" : "Material.003",
-            "pbrMetallicRoughness" : {
-                "baseColorTexture" : {
-                    "index" : 2
-                },
-                "metallicFactor" : 0
-            }
-        },
-        {
-            "doubleSided" : true,
-            "name" : "tower_walls",
+            "name" : "Material.002",
+            "normalTexture" : {
+                "index" : 2
+            },
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
                     "index" : 3
@@ -500,10 +486,39 @@
         },
         {
             "doubleSided" : true,
-            "name" : "tower_top",
+            "name" : "Material.003",
+            "normalTexture" : {
+                "index" : 4
+            },
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
-                    "index" : 4
+                    "index" : 5
+                },
+                "metallicFactor" : 0
+            }
+        },
+        {
+            "doubleSided" : true,
+            "name" : "tower_walls",
+            "normalTexture" : {
+                "index" : 6
+            },
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 7
+                },
+                "metallicFactor" : 0
+            }
+        },
+        {
+            "doubleSided" : true,
+            "name" : "tower_top",
+            "normalTexture" : {
+                "index" : 8
+            },
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 9
                 },
                 "metallicFactor" : 0,
                 "roughnessFactor" : 0.5
@@ -514,7 +529,7 @@
             "name" : "Material.007",
             "pbrMetallicRoughness" : {
                 "baseColorTexture" : {
-                    "index" : 5
+                    "index" : 10
                 },
                 "metallicFactor" : 0
             }
@@ -766,13 +781,43 @@
         {
             "sampler" : 0,
             "source" : 5
+        },
+        {
+            "sampler" : 0,
+            "source" : 6
+        },
+        {
+            "sampler" : 0,
+            "source" : 7
+        },
+        {
+            "sampler" : 0,
+            "source" : 8
+        },
+        {
+            "sampler" : 0,
+            "source" : 9
+        },
+        {
+            "sampler" : 0,
+            "source" : 10
         }
     ],
     "images" : [
         {
             "mimeType" : "image/png",
+            "name" : "grassfull_normalmap",
+            "uri" : "textures/grassfull_normalmap.png"
+        },
+        {
+            "mimeType" : "image/png",
             "name" : "grassfull",
             "uri" : "textures/grassfull.png"
+        },
+        {
+            "mimeType" : "image/png",
+            "name" : "water2_normalmap",
+            "uri" : "textures/water2_normalmap.png"
         },
         {
             "mimeType" : "image/png",
@@ -781,13 +826,28 @@
         },
         {
             "mimeType" : "image/png",
+            "name" : "misslescararm_normalmap",
+            "uri" : "textures/misslescararm_normalmap.png"
+        },
+        {
+            "mimeType" : "image/png",
             "name" : "misslescararm",
             "uri" : "textures/misslescararm.png"
         },
         {
             "mimeType" : "image/png",
+            "name" : "waterwall_normalmap",
+            "uri" : "textures/waterwall_normalmap.png"
+        },
+        {
+            "mimeType" : "image/png",
             "name" : "waterwall",
             "uri" : "textures/waterwall.png"
+        },
+        {
+            "mimeType" : "image/png",
+            "name" : "france_housered_normalmap",
+            "uri" : "textures/france_housered_normalmap.png"
         },
         {
             "mimeType" : "image/png",
