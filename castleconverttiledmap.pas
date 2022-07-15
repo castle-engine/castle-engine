@@ -164,9 +164,9 @@ type
       definition. Mirrors 2d-vector at X-axis in XY-plane.
       See remarks at head of unit file.
       @groupBegin }
-    function ConvY(const TiledY: Single): Single; overload;
     function ConvY(const TiledYVector2: TVector2): TVector2; overload;
-    function Vector2CY(const X, Y: Single): TVector2;
+    function ConvY(const X, Y: Single): TVector2; overload;
+    //function Vector2CY(const X, Y: Single): TVector2;
     { @groupEnd }
 
     {   DEBUG FUNCTIONS    }
@@ -474,21 +474,21 @@ begin
         end;
       topRectangle:
         begin
-          TiledObjectGeometry.SetLineSegments([Vector2CY(0.0, 0.0), Vector2CY(
-            TiledObject.Width, 0.0), Vector2CY(
-            TiledObject.Width, TiledObject.Height), Vector2CY(
-            0.0, TiledObject.Height), Vector2CY(0.0, 0.0)]);
+          TiledObjectGeometry.SetLineSegments([ConvY(0.0, 0.0), ConvY(
+            TiledObject.Width, 0.0), ConvY(
+            TiledObject.Width, TiledObject.Height), ConvY(
+            0.0, TiledObject.Height), ConvY(0.0, 0.0)]);
         end;
       topPoint:
         begin
           { TODO : Use rectangle as representation of point. }
           AVector2List.Clear;
           { Construct a rectangle around position of point. }
-          AVector2List.Add(Vector2CY(-1, -1));
-          AVector2List.Add(Vector2CY(-1, 1));
-          AVector2List.Add(Vector2CY(1, 1));
-          AVector2List.Add(Vector2CY(1,-1));
-          AVector2List.Add(Vector2CY(-1, -1));
+          AVector2List.Add(ConvY(-1, -1));
+          AVector2List.Add(ConvY(-1, 1));
+          AVector2List.Add(ConvY(1, 1));
+          AVector2List.Add(ConvY(1,-1));
+          AVector2List.Add(ConvY(-1, -1));
           TiledObjectGeometry.SetLineSegments(AVector2List);
         end;
       // TODO: handle ellipse
@@ -782,7 +782,7 @@ var
     if not Assigned(ATileset) then
       Exit;
 
-    Result := Vector2CY(
+    Result := ConvY(
       ColumnOfTileInMap * TileWidthPx       // X
       + ATileset.TileWidth div 2,         // Compensate centring of rect. 2d node (see quote above)
       (RowOfTileInMap + 1) * TileHeightPx   // Y
@@ -940,11 +940,6 @@ begin
   Result := Map.TileHeight;
 end;
 
-function TTiledMapConverter.ConvY(const TiledY: Single): Single;
-begin
-  Result := -TiledY;
-end;
-
 function TTiledMapConverter.ConvY(const TiledYVector2: TVector2): TVector2;
 const
   ConvYMatrix: TMatrix2 = (Data: ((1, 0), (0, -1)));
@@ -952,7 +947,7 @@ begin
   Result :=  ConvYMatrix * TiledYVector2;
 end;
 
-function TTiledMapConverter.Vector2CY(const X, Y: Single): TVector2;
+function TTiledMapConverter.ConvY(const X, Y: Single): TVector2;
 begin
   Result := ConvY(Vector2(X, Y));
 end;
@@ -1102,9 +1097,9 @@ begin
   DebugGeometryOutline := TPolyline2DNode.CreateWithShape(DebugShapeOutline);
   DebugShapeOutline.Appearance := DebugAppearanceNode;
   { Create anti-clockwise rectangle. }
-  DebugGeometryOutline.SetLineSegments([Vector2(0.0, ConvY(0.0)),
-  Vector2(Single(W), ConvY(0.0)), Vector2(Single(W), ConvY(Single(H))),
-  Vector2(0.0, ConvY(Single(H))), Vector2(0.0, ConvY(0.0))]);
+  DebugGeometryOutline.SetLineSegments([ConvY(0.0, 0.0),
+  ConvY(Single(W), 0.0), ConvY(Single(W), Single(H)),
+  ConvY(0.0, Single(H)), ConvY(0.0, 0.0)]);
 
   { Build Name-Debug object. }
   DebugGeometryName := TTextNode.CreateWithShape(DebugShapeName);
@@ -1117,8 +1112,7 @@ begin
     the Debug node. }
   DebugObject := TTransformNode.Create;
   DebugObject.Translation := Vector3(
-    Single(X),
-    ConvY(Single(Y)),
+    ConvY(Single(X), Single(Y)),
     LayerZDistance + LayerZDistanceDefault / 2);   // Z: Shift debug object slightly infront of layer
                                                    //    (esp. important for tile layers).
   DebugObject.AddChildren(DebugShapeOutline);
@@ -1126,8 +1120,7 @@ begin
 
   DebugObject := TTransformNode.Create;
   DebugObject.Translation := Vector3(
-    Single(X) + DebugNameGap,
-    ConvY(Single(Y)) + DebugNameGap,
+    ConvY(Single(X), Single(Y)) + Vector2(DebugNameGap, DebugNameGap),
     LayerZDistance + LayerZDistanceDefault / 2);   // Z: Shift debug object slightly infront of layer
                                                    //    (esp. important for tile layers).
   DebugObject.AddChildren(DebugShapeName);
