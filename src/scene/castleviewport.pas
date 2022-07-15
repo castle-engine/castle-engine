@@ -1553,7 +1553,11 @@ begin
 
       { Assign useful InternalDesignCamera vectors, because in case of reading old designs --
         TCastleViewport.CustomSerialization could not read any useful InternalDesignCamera
-        from design file. }
+        from design file.
+
+        Note known limitation: This will not adjust InternalCamera to final Camera view
+        if AutoCamera is used. AutoCamera is applied later.
+        This will only adjust InternalCamera to Camera view that is serialized. }
       Camera.GetWorldView(InitialPos, InitialDir, InitialUp);
       if Camera.ProjectionType = ptOrthographic then
       begin
