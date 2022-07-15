@@ -35,6 +35,7 @@
   6. How to handle overlapping tiles of the same layer (Z-buffer fighting)?
   7. Refine spacing/margin calculations, still borders in desert example.
   8. Implement support for 90° rotated tiles.
+  9. Implement ImageLayer support
 
   EXPECTED X3D HIERARCHY OF A CONVERTED TILED MAP (.TMX):
 
