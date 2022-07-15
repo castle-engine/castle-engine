@@ -2,7 +2,7 @@
 PROFILE Interchange
 
 # ----------------------------------------------------------------------------
-# Includes new_castle.gltf with 2 effects:
+# Includes castle.gltf with 2 effects:
 #
 # - MyShaderEffect, using Effect node, see https://castle-engine.io/compositing_shaders.php .
 #   These effects allow to modify rendering using GLSL.
@@ -49,4 +49,4 @@ DEF MyScreenEffect ScreenEffect {
   }
 }
 
-Inline { url "new_castle.gltf" }
+Inline { url "castle.gltf" }

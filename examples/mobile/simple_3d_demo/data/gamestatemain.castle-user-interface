@@ -41,7 +41,7 @@
               "ssRendering",
               "ssDynamicCollisions"
             ],
-            "URL" : "castle-data:/new_castle_with_effects.x3dv"
+            "URL" : "castle-data:/castle_with_effects.x3dv"
           },
           {
             "$$ClassName" : "TCastleCamera",

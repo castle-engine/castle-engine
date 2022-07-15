@@ -772,32 +772,32 @@
         {
             "mimeType" : "image/png",
             "name" : "grassfull",
-            "uri" : "textures/castle/grassfull.png"
+            "uri" : "textures/grassfull.png"
         },
         {
             "mimeType" : "image/png",
             "name" : "water2",
-            "uri" : "textures/castle/water2.png"
+            "uri" : "textures/water2.png"
         },
         {
             "mimeType" : "image/png",
             "name" : "misslescararm",
-            "uri" : "textures/castle/misslescararm.png"
+            "uri" : "textures/misslescararm.png"
         },
         {
             "mimeType" : "image/png",
             "name" : "waterwall",
-            "uri" : "textures/castle/waterwall.png"
+            "uri" : "textures/waterwall.png"
         },
         {
             "mimeType" : "image/png",
             "name" : "france_housered",
-            "uri" : "textures/castle/france_housered.png"
+            "uri" : "textures/france_housered.png"
         },
         {
             "mimeType" : "image/png",
             "name" : "bricksmokesidebot",
-            "uri" : "textures/castle/bricksmokesidebot.png"
+            "uri" : "textures/bricksmokesidebot.png"
         }
     ],
     "accessors" : [
@@ -1589,7 +1589,7 @@
     "buffers" : [
         {
             "byteLength" : 210180,
-            "uri" : "new_castle.bin"
+            "uri" : "castle.bin"
         }
     ]
 }
