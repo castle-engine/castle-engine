@@ -9,11 +9,9 @@
       "FullSize" : true,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
-        "MainScene" : "SceneMain",
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties"
         },
-        "UseHeadlight" : "hlOff",
         "$Children" : [
           {
             "$$ClassName" : "TCastleScene",

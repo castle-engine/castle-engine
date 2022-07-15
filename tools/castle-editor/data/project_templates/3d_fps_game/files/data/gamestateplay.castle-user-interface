@@ -13,7 +13,6 @@
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties"
         },
-        "UseHeadlight" : "hlOff",
         "$Children" : [
           {
             "$$ClassName" : "TCastleScene",
