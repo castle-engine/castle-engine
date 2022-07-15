@@ -492,6 +492,10 @@ begin
           TiledObjectGeometry.SetLineSegments(AVector2List);
         end;
       // TODO: handle ellipse
+      topEllipse:
+        begin
+          WritelnWarning('Not supported yet: Ellipse object primitive. Ignored.');
+        end;
     end;
     TiledObjectShape.Material := TiledObjectMaterial;
     TiledObjectNode.AddChildren(TiledObjectShape);
