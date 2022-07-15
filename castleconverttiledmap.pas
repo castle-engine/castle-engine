@@ -177,7 +177,7 @@ type
       origin. It is slightly moved along Z-axis to be infront of everything. }
     procedure BuildDebugCoordinateSystem;
     { Build a rectangluar debug object at pos. X,Y with dim. W,H. }
-    procedure BuildDebugObject(const X, Y, W, H: Longint; const AName: String);
+    procedure BuildDebugObject(const X, Y, W, H: Integer; const AName: String);
 
     {   DEBUG PROPERTIES   }
 
@@ -1077,7 +1077,7 @@ begin
   end;
 end;
 
-procedure TTiledMapConverter.BuildDebugObject(const X, Y, W, H: Longint;
+procedure TTiledMapConverter.BuildDebugObject(const X, Y, W, H: Integer;
   const AName: String);
 var
   { All Debug objects are based on a Transform node. }
