@@ -1301,7 +1301,7 @@ begin
     FViewport := TCastleViewport.InternalCreateNonDesign(Self);
     Assert(FViewport.Camera <> nil);
     FViewport.FullSize := true;
-    FViewport.Navigation := FNavigation;
+    FViewport.InsertFront(FNavigation);
     FViewport.Setup2D;
     FViewport.Camera.Orthographic.Origin := Vector2(0.5, 0.5);
     CastleControlPreview.Controls.InsertFront(FViewport);
@@ -1309,7 +1309,7 @@ begin
     FPreviewScene := TCastleScene.Create(Self);
 
     FViewport.Items.Add(FPreviewScene);
-    FViewport.Items.MainScene := FPreviewScene;
+    FViewport.Items.MainScene := FPreviewScene; // TODO: removing MainScene assignment makes camera not OK, testcase: tentacles
   end;
 end;
 
