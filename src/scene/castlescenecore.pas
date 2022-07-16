@@ -1794,11 +1794,13 @@ type
           there exists a "user" camera transformation that is the child
           of the viewpoint. When viewpoint is moved, then the current
           camera moves with it.)
-      ) }
+      )
+
+      @exclude }
     procedure InternalUpdateCamera(const ACamera: TCastleCamera;
       const WorldBox: TBox3D;
-      const RelativeCameraTransform: boolean = false;
-      const AllowTransitionAnimate: boolean = true);
+      const RelativeCameraTransform: boolean;
+      const AllowTransitionAnimate: boolean);
 
     { Make Camera go to the view given by (world coordinates) APosition, ADirection, AUp.
 

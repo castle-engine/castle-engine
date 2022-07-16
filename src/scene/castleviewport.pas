@@ -3619,7 +3619,7 @@ begin
   {$warnings off} // using deprecated AutoCamera and MainScene to keep it working
   if AutoCamera then
   begin
-    Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, false);
+    Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, false, true);
     BoundViewpointChanged;
   end;
   {$warnings on}
@@ -3634,7 +3634,8 @@ procedure TCastleViewport.MainSceneAndCamera_BoundViewpointVectorsChanged(Sender
 begin
   {$warnings off} // using deprecated AutoCamera and MainScene to keep it working
   if AutoCamera { or AnimateCameraByViewpoint } then
-    Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
+    Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, true,
+      { AllowTransitionAnimate - this would break Viewpoint animation from X3D if true } false);
   {$warnings on}
 end;
 
