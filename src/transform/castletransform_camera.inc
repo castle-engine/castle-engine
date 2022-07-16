@@ -416,8 +416,13 @@
     { Calculate current projection based on this camera parameters and viewport
       sizes and update EffectiveXxx properties like EffectiveProjectionNear,
       EffectiveProjectionFar.
+
+      Note that we get TBox3D as an event, we only use it if necessary (usually
+      not necessary).
+
       @exclude }
-    function InternalProjection(const Box: TBox3D; const ViewportWidth, ViewportHeight: Single;
+    function InternalProjection(const BoxEvent: TBox3DEvent;
+      const ViewportWidth, ViewportHeight: Single;
       const DesignCamera: Boolean): TProjection; virtual;
   published
     { Projection near plane distance.
@@ -1082,7 +1087,7 @@ begin
   end;
 end;
 
-function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth, ViewportHeight: Single;
+function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const ViewportWidth, ViewportHeight: Single;
   const DesignCamera: Boolean): TProjection;
 
   { Update Result.Dimensions and Orthographic.EffectiveXxx
@@ -1166,12 +1171,16 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
     end;
   end;
 
-  { Calculate reasonable perspective projection far, maybe looking at Box.
+  { Calculate reasonable perspective projection far, maybe looking at BoxEvent.
     May return ZFarInfinity (0). }
   function GetDefaultProjectionFar(const CurrentProjectionType: TProjectionType): Single;
+  var
+    Box: TBox3D;
   begin
     if CurrentProjectionType = ptOrthographic then
     begin
+      Box := BoxEvent();
+
       // TODO: in 2D we can also account for Box, in case Box is outside of Default2DProjectionNear/Far
       if DesignCamera then
         { The design-time camera in 2D should have larger ProjectionFar than
@@ -1195,12 +1204,7 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
         Result := Default2DProjectionFar;
     end else
     begin
-      { Note that when box is empty (or has 0 sizes),
-        ProjectionFar cannot be simply "any dummy value".
-        It must be appropriately larger than GetDefaultProjectionNear
-        to provide sufficient space for rendering Background node.
-
-        We used to have a smart calculation of it here, based on Box.
+      { We used to have a smart calculation of it here, based on Box.
         And override with ZFarInfinity if ShadowVolumesPossible (usually true).
 
         But it is simpler to just use ZFarInfinity always:
@@ -1238,6 +1242,11 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
 
         Note: Only perspective projection supports ZFarInfinity, there's just no equivalent
         equation for orthographic projection to implement infinite z far.
+
+        Old Note (when we had calculation based on Box): when box is empty (or has 0 sizes),
+        ProjectionFar cannot be simply "any dummy value".
+        It must be appropriately larger than GetDefaultProjectionNear
+        to provide sufficient space for rendering Background node.
       }
       Result := ZFarInfinity;
     end;

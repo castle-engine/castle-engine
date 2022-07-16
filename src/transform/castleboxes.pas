@@ -645,6 +645,9 @@ function IsCenteredBox3DPlaneCollision(
 function BoundingBox3DFromSphere(const Center: TVector3;
   const Radius: Single): TBox3D;
 
+type
+  TBox3DEvent = function: TBox3D of object;
+
 implementation
 
 uses Math;

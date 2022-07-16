@@ -254,7 +254,7 @@
 
     { At design-time, cameras update their own projection, to show camera gizmo.
       These are parameters to do this. }
-    ProjectionBox: TBox3D;
+    ProjectionBox: TBox3DEvent;
     ProjectionViewportWidth, ProjectionViewportHeight: Single;
 
     constructor Create;

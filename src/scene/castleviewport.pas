@@ -2096,11 +2096,8 @@ end;
 
 function TCastleViewport.CalculateProjection: TProjection;
 var
-  Box: TBox3D;
   ViewportWidth, ViewportHeight: Single;
 begin
-  Box := ItemsBoundingBox;
-
   if (InternalOverride2DProjectionSizing <> nil)
      { We could use InternalOverride2DProjectionSizing only when really necessary,
        but it more consistent and easier to test to use it always when available.
@@ -2139,7 +2136,8 @@ begin
     Exit;
   end;
 
-  Result := InternalCamera.InternalProjection(Box, ViewportWidth, ViewportHeight,
+  Result := InternalCamera.InternalProjection({$ifdef FPC}@{$endif} ItemsBoundingBox,
+    ViewportWidth, ViewportHeight,
     InternalCamera = InternalDesignCamera);
 end;
 
@@ -2469,7 +2467,7 @@ begin
   FRenderParams.RenderingCamera := RenderingCamera;
 
   { calculate FRenderParams.Projection*, simplified from just like CalculateProjection does }
-  FRenderParams.ProjectionBox := ItemsBoundingBox;
+  FRenderParams.ProjectionBox := {$ifdef FPC}@{$endif} ItemsBoundingBox;
   FRenderParams.ProjectionViewportWidth := EffectiveWidthForChildren;
   FRenderParams.ProjectionViewportHeight := EffectiveHeightForChildren;
 
