@@ -151,9 +151,6 @@ const
   }
   DefaultCameraRadius = 0.1;
 
-  { Used when it is necessary to calculate projection far based on world size. }
-  WorldBoxSizeToProjectionFar = 100.0;
-
   { Multiply radius by this to get sensible "preferred height".
 
     We need to make "preferred height" much larger than Radius * 2, to allow some
