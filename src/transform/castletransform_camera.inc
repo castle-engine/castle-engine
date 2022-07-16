@@ -1223,15 +1223,8 @@ function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const Vie
           It was never observed in profiler,
           but in theory Viewport.ItemsBoundingBox may be costly when you have a lot of scenes.
 
-        - Super-Minor reason: It was non-trivial to have good calculation anyway.
-          Using Viewport.ItemsBoundingBox.AverageSize is bad (testcase: gettext,
-          flat shape like box may bring AverageSize to be small, better to use MaxSize),
-          using Viewport.ItemsBoundingBox.MaxSize * WorldBoxSizeToProjectionFar is bad
-          (need to guess WorldBoxSizeToProjectionFar), you should really calculate max distance
-          from camera to box e.g. by TBox3D.PointDistances and use MaxDistance.
-
-          It's so so much easier, and simpler from the user point of view, to just use
-          ZFarInfinity.
+        - Super-Minor reason: It's much easier, for implementation and from the user point of view,
+          to just use ZFarInfinity.
 
         - Super-Minor reason: It also means user has a way to choose ZFarInfinity,
           despite our unfortunate choice of Camera.ProjectionFar = 0 meaning "autocalculate"
