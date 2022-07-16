@@ -25,16 +25,16 @@ uses SysUtils, Classes,
   CastleApplicationProperties;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Edit1, Edit2, EditNumbers: TCastleEdit;
   ButtonCopyText: TCastleButton;
 
 type
   TEventHandler = class
-    procedure ButtonCopyTextClick(Sender: TObject);
+    class procedure ButtonCopyTextClick(Sender: TObject);
   end;
 
-procedure TEventHandler.ButtonCopyTextClick(Sender: TObject);
+class procedure TEventHandler.ButtonCopyTextClick(Sender: TObject);
 begin
   Edit2.Text := Edit1.Text;
 end;
@@ -75,7 +75,7 @@ begin
   ButtonCopyText := TCastleButton.Create(Application);
   ButtonCopyText.AutoSizeWidth := false;
   ButtonCopyText.Caption := 'Copy text from one edit box to another';
-  ButtonCopyText.OnClick := @TEventHandler(nil).ButtonCopyTextClick;
+  ButtonCopyText.OnClick := {$ifdef FPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.ButtonCopyTextClick;
   Group.InsertFront(ButtonCopyText);
 
   Spacer := TCastleUserInterface.Create(Application);
@@ -110,7 +110,7 @@ begin
   Group.InsertFront(EditNumbers);
 end;
 
-procedure WindowResize(Container: TUIContainer);
+procedure WindowResize(Container: TCastleContainer);
 const
   Margin = 10;
 begin
@@ -123,7 +123,7 @@ end;
 initialization
   Application.OnInitialize := @ApplicationInitialize;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Window.OnResize := @WindowResize;
   Application.MainWindow := Window;

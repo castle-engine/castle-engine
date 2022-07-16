@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>JPEG Network Graphics File Format</title>
+  <chapter>
+    <title>JPEG Network Graphics File Format</title>
+
+    <par>
+      JNG is a lossy single-image member of the Network Graphics format family.
+      It encapsulates a JPEG datastream in PNG-style chunks,
+      along with an optional alpha channel.
+      While JNG is primarily intended as a subformat of
+      the MNG (Multiple Network Graphics)
+      format, standalone JNG files are also possible.
+    </par>
+    
+    <par>
+      Alpha channel in JNG images is stored separately from color/gray data and
+      can be lossy (as JPEG image) or lossless (as PNG image) compressed.
+    </par>
+
+    <table>
+      <title>JPEG Network Graphics File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+        <th>Loading</th>
+        <th>Saving</th>
+      </row>
+      <row>
+        <td>24 bit RGB</td>
+        <td><icode>ifR8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>32 bit ARGB</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>8 bit grayscale</td>
+        <td><icode>ifGray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>16 bit grayscale + alpha</td>
+        <td><icode>ifA8Gray8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+    </table>
+
+    <note>
+      Lossless JNG alpha channels can have 1, 2, 4, 8, or 16 bit depths
+      but they are converted to 8 bits so that corresponding Imaging data formats
+      for joint color/gray + alpha images can be found. Alpha channels are always
+      saved as 8 bit.
+    </note>
+    
+    
+    <par>
+      When working with JNG files you can find useful some options
+      which can be set by <ref>SetOption</ref> function and their current values
+      can be get by <ref>GetOption</ref> function.
+      Or you can set them by modifying properties of <ref>TJNGFileFormat</ref>
+      class.
+    </par>
+    
+    <table>
+      <title>Options Related to JNG Files</title>
+      <row>
+        <th>OptionId</th>
+        <th>Allowed Values</th>
+        <th>Usage</th>
+      </row>
+      <row>
+        <td><ref>ImagingJNGLossyAlpha</ref></td>
+        <td><b>0 (False)</b> or <b>1 (True)</b></td>
+        <td> Specifies whether alpha channels of JNG images are lossy compressed.
+          Default value is <b>0</b>. </td>
+      </row>
+      <row>
+        <td><ref>ImagingJNGAlphaPreFilter</ref></td>
+        <td><b>0, 1, 2, 3, 4, 5, 6</b></td>
+        <td>Sets precompression filter used when saving lossless alpha channels.
+          Allowed values are:
+          <list>
+            <li>0 - None Filter</li>
+            <li>1 - Sub Filter</li>
+            <li>2 - Up Filter</li>
+            <li>3 - Average Filter</li>
+            <li>4 - Paeth Filter</li>
+            <li>5 - Use 0 for indexed/gray images and 4 for RGB/ARGB images</li>
+            <li>6 - Adaptive filtering - use best filter for each scanline - very slow</li>
+          </list>
+          Note that filters 3 and 4 are much slower than filters 1 and 2.
+          Default value is <b>5</b>. </td>
+      </row>
+      <row>
+        <td><ref>ImagingJNGAlphaCompressLevel</ref></td>
+        <td><b>0 (no compression)</b> to <b>9 (best compression)</b></td>
+        <td>Sets ZLib compression level used when saving lossless alpha channels.
+          Default value is <b>5</b>. </td>
+      </row>
+      <row>
+        <td><ref>ImagingJNGQuality</ref></td>
+        <td><b>1</b> to <b>100</b></td>
+        <td>Defines compression quality used when saving JNG images (and lossy alpha channels).
+        Higher value means worse compression/better image quality/larger file size.
+        Default value is <b>90</b>.</td>
+      </row>
+      <row>
+        <td><ref>ImagingJNGProgressive</ref></td>
+        <td><b>0 (False)</b> or <b>1 (True)</b></td>
+        <td>Specifies whether JNG images are saved in progressive format.
+        Progressive JPEG rearranges the stored data into a series of scans of
+        increasing quality.  In situations where a JPEG file is transmitted across a
+        slow communications link, a decoder can generate a low-quality image very
+        quickly from the first scan, then gradually improve the displayed quality as
+        more scans are received. Default value is <b>0 (False)</b>. </td>
+      </row>
+    </table>
+    
+  </chapter>
+</doc>

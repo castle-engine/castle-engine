@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,7 +29,7 @@ type
 
   { Projection determines how does the 3D world map onto 2D.
     To change the currently displayed projection,
-    you usually want to override the @link(TCastleViewport.CalculateProjection). }
+    you usually want to override the @link(TCastleCamera.InternalProjection). }
   TProjection = record
     ProjectionType: TProjectionTypeCore;
 
@@ -68,7 +68,7 @@ type
     function Matrix(const AspectRatio: Single): TMatrix4;
 
     { Detect whether any sensible projection values are initialized. }
-    function Initialized: Boolean;
+    function Initialized: Boolean; deprecated 'this should not be necessary anymore';
   end;
 
 { Calculate second viewing angle for perspective projection.
@@ -141,7 +141,7 @@ begin
   case ProjectionType of
     ptPerspective:
       Result := PerspectiveProjectionMatrixRad(
-        PerspectiveAnglesRad.Data[1],
+        PerspectiveAnglesRad.Y,
         AspectRatio,
         ProjectionNear,
         ProjectionFar);
@@ -164,7 +164,10 @@ end;
 function TProjection.Initialized: Boolean;
 begin
   Result :=
-    (ProjectionNear <> 0) and
+    { ProjectionNear may remain = 0 in case of orthographic projection,
+      see TCastleViewport.CalculateProjection .
+      Testcase: glTF-Sample-Models/2.0/Cameras/glTF/Cameras.gltf , switch to ortho viewpoint. }
+    // (ProjectionNear <> 0) and
     (ProjectionFarFinite <> 0) and
     (Dimensions.Width <> 0) and
     (Dimensions.Height <> 0);

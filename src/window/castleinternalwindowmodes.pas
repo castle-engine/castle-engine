@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2020 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,12 +14,12 @@
 }
 
 { Helpers for making modal boxes (TGLMode, TGLModeFrozenScreen)
-  cooperating with the TCastleWindowBase windows.
-  They allow to easily save / restore TCastleWindowBase attributes.
+  cooperating with the TCastleWindow windows.
+  They allow to easily save / restore TCastleWindow attributes.
 
   This unit is a tool for creating functions like
   @link(CastleMessages.MessageOK). To make nice "modal" box,
-  you want to temporarily replace TCastleWindowBase callbacks with your own,
+  you want to temporarily replace TCastleWindow callbacks with your own,
   call Application.ProcessMessage method in a loop until user gives an answer,
   and restore everything. This way you can implement functions that
   wait for some keypress, or wait until user inputs some
@@ -39,8 +39,8 @@ uses SysUtils, Classes, CastleWindow, CastleGLUtils, CastleImages,
   CastleUIControls, CastleKeysMouse, CastleGLImages, CastleControls;
 
 type
-  { Enter / exit modal state on a TCastleWindowBase.
-    Saves/restores the state of TCastleWindowBase. }
+  { Enter / exit modal state on a TCastleWindow.
+    Saves/restores the state of TCastleWindow. }
   TGLMode = class
   strict private
     OldWidth, OldHeight: integer;
@@ -49,7 +49,7 @@ type
     type
       TWindowState = class(TComponent)
       strict private
-        Window: TCastleWindowBase;
+        Window: TCastleWindow;
         OldMotion: TInputMotionEvent;
         OldPress, OldRelease: TInputPressReleaseEvent;
         OldOpenObject, OldCloseObject: TContainerObjectEvent;
@@ -65,15 +65,14 @@ type
           and SetWindowState will restore this. }
         OldMainMenuEnabled: boolean;
         OldCursor: TMouseCursor;
-        OldCustomCursor: TRGBAlphaImage;
         OldSwapFullScreen_Key: TKey;
         OldClose_KeyString: String;
-        OldControls: TChildrenControls;
+        OldControls: TInternalChildrenControls;
         OldAutomaticTouchControl: boolean;
-        procedure WindowOpen(Container: TUIContainer);
-        procedure WindowClose(Container: TUIContainer);
+        procedure WindowOpen(Container: TCastleContainer);
+        procedure WindowClose(Container: TCastleContainer);
       public
-        { When adding new attributes to TCastleWindowBase that should be saved/restored,
+        { When adding new attributes to TCastleWindow that should be saved/restored,
           you must remember to
           1. expand this class with new fields
           2. expand constructor, destructor and SetStandardState } { }
@@ -81,17 +80,17 @@ type
         procedure SetStandardState(
           NewRender, NewResize, NewCloseQuery: TContainerEvent);
 
-        { Constructor saves the TCastleWindowBase state, destructor applies this state
+        { Constructor saves the TCastleWindow state, destructor applies this state
           back to the window.
-          Every property that can change when TCastleWindowBase is open are saved.
-          This way you can save/restore TCastleWindowBase state, you can also copy
+          Every property that can change when TCastleWindow is open are saved.
+          This way you can save/restore TCastleWindow state, you can also copy
           a state from one window into another.
 
-          Notes about TCastleWindowBase.MainMenu saving: only the reference
+          Notes about TCastleWindow.MainMenu saving: only the reference
           to MainMenu is stored. So:
 
           @unorderedList(
-            @item(If you use TCastleWindowBase.MainMenu,
+            @item(If you use TCastleWindow.MainMenu,
               be careful when copying it to another window (no two windows
               may own the same MainMenu instance at the same time;
               also, you would have to make sure MainMenu instance will not be
@@ -106,15 +105,15 @@ type
               change MainMenu.Enabled, that is saved specially for this.)
           )
         }
-        constructor Create(AWindow: TCastleWindowBase); reintroduce;
+        constructor Create(AWindow: TCastleWindow); reintroduce;
         destructor Destroy; override;
       end;
     var
     OldState: TWindowState;
-    Window: TCastleWindowBase;
+    Window: TCastleWindow;
     DisabledContextOpenClose: boolean;
   public
-    { Constructor saves open TCastleWindowBase and OpenGL state.
+    { Constructor saves open TCastleWindow and OpenGL state.
       Destructor will restore them.
 
       Some gory details (that you will usually not care about...
@@ -124,22 +123,22 @@ type
         @item(We save/restore window state.)
 
         @item(OpenGL context connected to this window is also made current
-          during constructor and destructor. Also, TCastleWindowBase.Invalidate
+          during constructor and destructor. Also, TCastleWindow.Invalidate
           is called (since new callbacks, as well as original callbacks,
           probably want to redraw window contents.))
 
         @item(
           All pressed keys and mouse butons are saved and faked to be released,
-          by calling TCastleWindowBase.EventRelease with original
+          by calling TCastleWindow.EventRelease with original
           callbacks.
           This way, if user releases some keys/mouse inside modal box,
-          your original TCastleWindowBase callbacks will not miss this fact.
+          your original TCastleWindow callbacks will not miss this fact.
           This way e.g. user scripts in VRML/X3D worlds that observe keys
           work fine.
 
           If FakeMouseDown then at destruction (after restoring original
           callbacks) we will also notify your original callbacks that
-          user pressed these buttons (by sending TCastleWindowBase.EventMouseDown).
+          user pressed these buttons (by sending TCastleWindow.EventMouseDown).
           Note that FakeMouseDown feature turned out to be usually more
           troublesome than  usefull --- too often some unwanted MouseDown
           event was caused by this mechanism.
@@ -154,7 +153,7 @@ type
         )
 
         @item(At destructor, we notify original callbacks about size changes
-          by sending TCastleWindowBase.EventResize. This way your original callbacks
+          by sending TCastleWindow.EventResize. This way your original callbacks
           know about size changes, and can set OpenGL projection etc.)
 
         @item(
@@ -162,12 +161,12 @@ type
           see TFramesPerSecond.ZeroNextSecondsPassed for comments why this is needed.)
 
         @item(This also performs important optimization to avoid closing /
-          reinitializing window TCastleWindowBase.Controls OpenGL resources,
+          reinitializing window TCastleWindow.Controls OpenGL resources,
           see TCastleUserInterface.DisableContextOpenClose.)
       ) }
-    constructor Create(AWindow: TCastleWindowBase);
+    constructor Create(AWindow: TCastleWindow);
 
-    { Save TCastleWindowBase state, and then change it to a standard
+    { Save TCastleWindow state, and then change it to a standard
       state. Destructor will restore saved state.
 
       For most properties, we simply reset them to some sensible default
@@ -198,24 +197,24 @@ type
               inside a modal message in CastleMessages or a progress bar).)
           )
         )
-        @item(TCastleWindowBase.Caption and TCastleWindowBase.MainMenu are left as they were.)
-        @item(TCastleWindowBase.Cursor is reset to mcDefault.)
-        @item(TCastleWindowBase.UserData is reset to @nil.)
-        @item(TCastleWindowBase.AutoRedisplay is reset to @false.)
-        @item(TCastleWindowBase.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
+        @item(TCastleWindow.Caption and TCastleWindow.MainMenu are left as they were.)
+        @item(TCastleWindow.Cursor is reset to mcDefault.)
+        @item(TCastleWindow.UserData is reset to @nil.)
+        @item(TCastleWindow.AutoRedisplay is reset to @false.)
+        @item(TCastleWindow.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
 
         @item(TCastleWindowDemo.SwapFullScreen_Key will be reset to keyNone.)
         @item(TCastleWindowDemo.Close_KeyString will be reset to ''.)
 
-        @item(All TCastleWindowBase.Controls are temporarily removed.)
+        @item(All TCastleWindow.Controls are temporarily removed.)
       )
 
       If you're looking for a suitable callback to pass as NewCloseQuery
-      (new TCastleWindowBase.OnCloseQuery), @@NoClose may be suitable:
+      (new TCastleWindow.OnCloseQuery), @@NoClose may be suitable:
       it's an empty callback, thus using it disables the possibility
       to close the window by window manager
       (usually using "close" button in some window corner or Alt+F4). }
-    constructor CreateReset(AWindow: TCastleWindowBase;
+    constructor CreateReset(AWindow: TCastleWindow;
       NewRender, NewResize, NewCloseQuery: TContainerEvent);
 
     destructor Destroy; override;
@@ -224,35 +223,32 @@ type
       read FFakeMouseDown write FFakeMouseDown default false;
   end;
 
-  { Enter / exit modal box on a TCastleWindowBase, additionally saving the screen
+  { Enter / exit modal box on a TCastleWindow, additionally saving the screen
     contents before entering modal box. This is nice if you want to wait
     for some event (like pressing a key), keeping the same screen
     displayed.
 
-    During this lifetime, we set special TCastleWindowBase.OnRender and TCastleWindowBase.OnResize
+    During this lifetime, we set special TCastleWindow.OnRender and TCastleWindow.OnResize
     to draw the saved image in a simplest 2D OpenGL projection. }
   TGLModeFrozenScreen = class(TGLMode)
   private
     BackgroundControls: TCastleUserInterface;
   public
-    constructor Create(AWindow: TCastleWindowBase);
+    constructor Create(AWindow: TCastleWindow);
     destructor Destroy; override;
   end;
 
-{ Empty TCastleWindowBase callback, useful as TCastleWindowBase.OnCloseQuery
+{ Empty TCastleWindow callback, useful as TCastleWindow.OnCloseQuery
   to disallow closing the window by user. }
-procedure NoClose(Container: TUIContainer);
+procedure NoClose(Container: TCastleContainer);
 
 implementation
 
-uses CastleUtils, CastleColors, CastleVectors
-  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-  , CastleWindowTouch
-  {$endif};
+uses CastleUtils, CastleColors, CastleVectors;
 
 { TGLMode.TWindowState -------------------------------------------------------------- }
 
-constructor TGLMode.TWindowState.Create(AWindow: TCastleWindowBase);
+constructor TGLMode.TWindowState.Create(AWindow: TCastleWindow);
 begin
   inherited Create(nil);
   Window := AWindow;
@@ -269,7 +265,11 @@ begin
   OldCloseQuery := Window.OnCloseQuery;
   OldResize := Window.OnResize;
   OldUpdate := Window.OnUpdate;
+  {$ifdef FPC}
+  {$warnings off} // keep deprecated working
   OldTimer := Window.OnTimer;
+  {$warnings on}
+  {$endif}
   OldMenuClick := Window.OnMenuClick;
   oldCaption := Window.Caption;
   oldUserdata := Window.Userdata;
@@ -278,26 +278,12 @@ begin
   if Window.MainMenu <> nil then
     oldMainMenuEnabled := Window.MainMenu.Enabled;
   OldCursor := Window.InternalCursor;
-  OldCustomCursor := Window.CustomCursor;
   oldSwapFullScreen_Key := Window.SwapFullScreen_Key;
   oldClose_KeyString := Window.Close_KeyString;
 
-  OldControls := TChildrenControls.Create(nil);
+  OldControls := TInternalChildrenControls.Create(nil);
   OldControls.Assign(Window.Controls);
   OldControls.BeginDisableContextOpenClose;
-
-  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-  { save AutomaticTouchInterface,
-    as it has to be reset in SetStandardState,
-    as adding to Controls during a mode doesn't work (Controls contain
-    only a temporary list of controls e.g. for progress bar UI),
-    so TouchInterface (e.g. when camera changes to nil,
-    then to non-nil, during TLevel.Load) should remain unchanged. }
-  {$warnings off} // code only to keep deprecated working
-  if Window is TCastleWindowTouch then
-    OldAutomaticTouchControl := TCastleWindowTouch(Window).AutomaticTouchInterface;
-  {$warnings on}
-  {$endif}
 end;
 
 destructor TGLMode.TWindowState.Destroy;
@@ -312,7 +298,11 @@ begin
   Window.OnCloseQuery := OldCloseQuery;
   Window.OnResize := OldResize;
   Window.OnUpdate := OldUpdate;
+  {$ifdef FPC}
+  {$warnings off} // keep deprecated working
   Window.OnTimer := OldTimer;
+  {$warnings on}
+  {$endif}
   Window.OnMenuClick := OldMenuClick;
   Window.Caption := oldCaption;
   Window.Userdata := oldUserdata;
@@ -321,7 +311,6 @@ begin
   if Window.MainMenu <> nil then
     Window.MainMenu.Enabled := OldMainMenuEnabled;
   Window.InternalCursor := OldCursor;
-  Window.CustomCursor := OldCustomCursor;
   Window.SwapFullScreen_Key := oldSwapFullScreen_Key;
   Window.Close_KeyString := oldClose_KeyString;
 
@@ -332,20 +321,10 @@ begin
     FreeAndNil(OldControls);
   end;
 
-  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-  { restore AutomaticTouchInterface after Controls are restored,
-    as it may add/remove touch controls, if navigation type changed
-    during the mode. }
-  {$warnings off} // code only to keep deprecated working
-  if Window is TCastleWindowTouch then
-    TCastleWindowTouch(Window).AutomaticTouchInterface := OldAutomaticTouchControl;
-  {$warnings on}
-  {$endif}
-
   inherited;
 end;
 
-procedure TGLMode.TWindowState.WindowOpen(Container: TUIContainer);
+procedure TGLMode.TWindowState.WindowOpen(Container: TCastleContainer);
 var
   I: Integer;
   C: TCastleUserInterface;
@@ -363,7 +342,7 @@ begin
   end;
 end;
 
-procedure TGLMode.TWindowState.WindowClose(Container: TUIContainer);
+procedure TGLMode.TWindowState.WindowClose(Container: TCastleContainer);
 var
   I: Integer;
   C: TCastleUserInterface;
@@ -384,8 +363,8 @@ end;
 procedure TGLMode.TWindowState.SetStandardState(
   NewRender, NewResize, NewCloseQuery: TContainerEvent);
 begin
-  Window.OnOpenObject := @WindowOpen;
-  Window.OnCloseObject := @WindowClose;
+  Window.OnOpenObject := {$ifdef FPC}@{$endif}WindowOpen;
+  Window.OnCloseObject := {$ifdef FPC}@{$endif}WindowClose;
   Window.OnMotion := nil;
   Window.OnPress := nil;
   Window.OnRelease := nil;
@@ -393,7 +372,11 @@ begin
   Window.OnRender := nil;
   Window.OnCloseQuery := nil;
   Window.OnUpdate := nil;
+  {$ifdef FPC}
+  {$warnings off} // keep deprecated working
   Window.OnTimer := nil;
+  {$warnings on}
+  {$endif}
   Window.OnResize := nil;
   Window.OnMenuClick := nil;
   Window.OnRender := NewRender;
@@ -408,18 +391,12 @@ begin
   Window.InternalCursor := mcDefault;
   Window.SwapFullScreen_Key := keyNone;
   Window.Close_KeyString := '';
-  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-  {$warnings off} // code only to keep deprecated working
-  if Window is TCastleWindowTouch then
-    TCastleWindowTouch(Window).AutomaticTouchInterface := false;
-  {$warnings on}
-  {$endif}
   Window.Controls.Clear;
 end;
 
 { TGLMode -------------------------------------------------------------------- }
 
-constructor TGLMode.Create(AWindow: TCastleWindowBase);
+constructor TGLMode.Create(AWindow: TCastleWindow);
 
   procedure SimulateReleaseAll;
   var
@@ -462,7 +439,7 @@ begin
   Window.Invalidate;
 end;
 
-constructor TGLMode.CreateReset(AWindow: TCastleWindowBase;
+constructor TGLMode.CreateReset(AWindow: TCastleWindow;
   NewRender, NewResize, NewCloseQuery: TContainerEvent);
 begin
   Create(AWindow);
@@ -475,7 +452,7 @@ var
 begin
   FreeAndNil(OldState);
 
-  { Although it's forbidden to use TGLMode on Closed TCastleWindowBase,
+  { Although it's forbidden to use TGLMode on Closed TCastleWindow,
     in destructor we must take care of every possible situation
     (because this may be called in finally ... end things when
     everything should be possible). }
@@ -501,7 +478,7 @@ end;
 
 { TGLModeFrozenScreen ------------------------------------------------------ }
 
-constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowBase);
+constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindow);
 
   { Fill BackgroundControls with UI to represent frozen screen.
     This is quite similar to what TStateDialog.Start does. }
@@ -511,7 +488,7 @@ constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowBase);
     BackgroundImage: TCastleImageControl;
     BackgroundRect: TCastleRectangleControl;
   begin
-    if Theme.InternalForceOpaqueBackground then
+    if Theme.InternalMessageFallbackLook then
       BackgroundColor := Vector4(Theme.BackgroundOpaqueColor, 1)
     else
       BackgroundColor := Theme.BackgroundColor;
@@ -554,7 +531,7 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
-procedure NoClose(Container: TUIContainer);
+procedure NoClose(Container: TCastleContainer);
 begin
 end;
 

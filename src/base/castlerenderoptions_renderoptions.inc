@@ -1,7 +1,7 @@
 {%MainUnit castlerenderoptions.pas}
 
 {
-  Copyright 2002-2020 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,7 +27,7 @@ type
   TCastleRenderOptions = class(TComponent)
   strict private
     FLighting: boolean;
-    FSceneLights: boolean;
+    FReceiveSceneLights, FReceiveGlobalLights: boolean;
     FTextures: boolean;
     FMinificationFilter: TAutoMinificationFilter;
     FMagnificationFilter: TAutoMagnificationFilter;
@@ -58,6 +58,7 @@ type
     FSolidWireframeBias: Single;
     FSilhouetteScale: Single;
     FSilhouetteBias: Single;
+    FRobustNegativeScale: Boolean;
 
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
@@ -97,8 +98,8 @@ type
       DefaultPointSize = 3.0;
       DefaultLineWidth = 2.0;
       DefaultBumpMapping = bmSteepParallaxShadowing;
-      DefaultPhongShading = false;
-      DefaultMaxLightsPerShape = 8;
+      DefaultPhongShading = true;
+      DefaultMaxLightsPerShape = 64;
 
       { }
       DefaultBlendingSourceFactor = bsSrcAlpha;
@@ -129,7 +130,7 @@ type
       { Default value of @link(TCastleRenderOptions.BlendingSort). }
       DefaultBlendingSort = bs3D;
 
-      DefaultWireframeColor: TCastleColorRGB = (Data: (0, 0, 0));
+      DefaultWireframeColor: TCastleColorRGB = (X: 0; Y: 0; Z: 0);
 
       DefaultSolidWireframeScale = 1;
       DefaultSolidWireframeBias = 1;
@@ -158,6 +159,7 @@ type
       ReleaseCachedResources --- only the ones that affect TShapeCache. }
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
 
+    {$ifdef FPC}
     { @deprecated @exclude Old name for @link(Textures). }
     property EnableTextures: boolean
       read FTextures write SetTextures default true; deprecated 'use Textures';
@@ -193,6 +195,7 @@ type
       @exclude }
     property CustomShaderAlphaTest: TObject read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
       deprecated 'use Effect node to define GLSL shaders that are more flexible';
+    {$endif FPC}
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
@@ -233,6 +236,7 @@ type
       read FSolidColorBlendingPipeline
       write FSolidColorBlendingPipeline;
 
+    {$ifdef FPC}
     { @deprecated @exclude Ignored now.
 
       Set to @true to make diffuse texture affect only material diffuse color
@@ -255,20 +259,25 @@ type
       read FSeparateDiffuseTexture
       write FSeparateDiffuseTexture default false;
       deprecated 'rendering always behaves as if this was true now, with Phong shading';
+    {$endif FPC}
 
     { Wireframe color, used with some WireframeEffect values.
       Default value is DefaultWireframeColor. }
     property WireframeColor: TCastleColorRGB
       read FWireframeColor write FWireframeColor;
 
-    { Should we use ARB_occlusion_query (if available) with
-      a hierarchical algorithm to avoid rendering
-      shapes that didn't pass occlusion test in previous frame.
-      Ignored if GPU doesn't support ARB_occlusion_query.
+    { Use the advanced version of the occlusion query:
+      "Coherent Hierarchical Culling", to optimize the rendered shapes.
+      The shapes obscured by other shapes will not be rendered.
 
-      @true may give you a large speedup in some scenes.
+      This is ignored if GPU doesn't support the necessary functionality
+      (for OpenGL, we require ARB_occlusion_query).
 
-      This method doesn't impose any lag of one frame (like @link(OcclusionQuery)).
+      We don't advise this approach to occlusion query now.
+      While this avoids the problem of "lag of one frame" (compared to @link(OcclusionQuery))
+      when the object should appear...
+      But the resulting algorithm (at least in our current implementation)
+      is slow and it does not treat transparent shapes correctly.
 
       This requires the usage of ssRendering in TCastleSceneCore.Spatial.
       Also, it always does frustum culling (like fcBox for now),
@@ -288,7 +297,7 @@ type
     property HierarchicalOcclusionQuery: boolean
       read FHierarchicalOcclusionQuery
       write FHierarchicalOcclusionQuery default false;
-      experimental;
+      {$ifdef FPC}experimental;{$endif FPC}
 
     { View only the shapes that were detected as visible by occlusion query
       in last Render.
@@ -305,30 +314,52 @@ type
       read FDebugHierOcclusionQueryResults
       write FDebugHierOcclusionQueryResults default false;
 
-    { @deprecated @exclude Old name for @link(SceneLights). }
+    { @deprecated @exclude Old name for @link(ReceiveSceneLights). }
     property UseSceneLights: boolean
-      read FSceneLights write FSceneLights default true;
+      read FReceiveSceneLights write FReceiveSceneLights default true;
+      {$ifdef FPC}deprecated 'use ReceiveSceneLights';{$endif}
+
+    { @deprecated @exclude Old name for @link(ReceiveSceneLights). }
+    property SceneLights: boolean
+      read FReceiveSceneLights write FReceiveSceneLights default true;
+      {$ifdef FPC}deprecated 'use ReceiveSceneLights';{$endif}
 
     { @deprecated @exclude Old name for @link(OcclusionQuery). }
     property UseOcclusionQuery: boolean
       read FOcclusionQuery write SetOcclusionQuery default false;
+      {$ifdef FPC}deprecated 'use OcclusionQuery';{$endif}
   published
     { Enable real-time lighting when rendering. }
     property Lighting: boolean read FLighting write FLighting default true;
 
-    { Use lights defined in this scene (in the model loaded to this TCastleScene).
+    { Use lights defined in this scene (in the model loaded to this TCastleScene)
+      to light the shapes in this scene.
 
-      If false, only the headlight (depending on
-      @link(TCastleRootTransform.UseHeadlight Viewport.Items.UseHeadlight))
-      and global lights from
-      @link(TCastleRootTransform.MainScene Viewport.Items.MainScene)
-      (depending on
-      @link(TCastleViewport.UseGlobalLights Viewport.UseGlobalLights))
-      affect this scene.
+      Note: This property controls whether lights defined within a model (TCastleScene)
+      affect the shapes in the same model.
+      In case of such lights, the value of @link(TCastleScene.CastGlobalLights)
+      and @link(GlobalLights) doesn't matter. Only this property, ReceiveSceneLights, controls
+      whether such lights work.
 
-      This doesn't matter if @link(Lighting) is @false. }
-    property SceneLights: boolean
-      read FSceneLights write FSceneLights default true;
+      The other lights are controlled by @link(ReceiveGlobalLights).
+
+      This doesn't matter if @link(Lighting) is @false.
+      If both ReceiveSceneLights and ReceiveGlobalLights are @false,
+      then the scene receives no lighting at all. }
+    property ReceiveSceneLights: boolean
+      read FReceiveSceneLights write FReceiveSceneLights default true;
+
+    { Use lights defined in other scenes to light the shapes in this scene.
+
+      This property controls whether @italic(other) scenes with
+      @link(TCastleScene.CastGlobalLights),
+      as well as headlight, shine on this scene.
+
+      This doesn't matter if @link(Lighting) is @false.
+      If both ReceiveSceneLights and ReceiveGlobalLights are @false,
+      then the scene receives no lighting at all. }
+    property ReceiveGlobalLights: boolean
+      read FReceiveGlobalLights write FReceiveGlobalLights default true;
 
     { Use textures. }
     property Textures: boolean
@@ -353,13 +384,13 @@ type
     { Size of points. This has an effect on TPointSetNode rendering.
       Must be > 0. }
     property PointSize: Single
-      read FPointSize write FPointSize default DefaultPointSize;
+      read FPointSize write FPointSize {$ifdef FPC}default DefaultPointSize{$endif};
 
     { Line width. This has an effect on TLineSetNode rendering,
       and on wireframe rendering when @link(TCastleRenderOptions.WireframeEffect) indicates it.
       Must be > 0. }
     property LineWidth: Single
-      read FLineWidth write FLineWidth default DefaultLineWidth;
+      read FLineWidth write FLineWidth {$ifdef FPC}default DefaultLineWidth{$endif};
 
     { Use bump mapping. The bump mapping is only done when particular shape
       defines a normal map (and a height map, if you want parallax bump mapping).
@@ -412,17 +443,19 @@ type
       default DefaultShadowSampling;
 
     { For efficiency reasons, we only allow a finite number of lights that can affect
-      the given shape. You can increase this number if necessary.
+      the given shape.
 
-      Note that, instead of increasing this limit,
-      you can sometimes adjust your models to fit within this limit.
-      Do this using light source radius and/or scope (e.g. you can use "radius" in Blender,
+      You can increase this number if necessary,
+      although note that it is alreday quite large by default.
+      Instead of increasing this limit,
+      it is always more efficient to design your scenes to fit within this limit.
+      Use the light source radius and/or scope (e.g. you can use "radius" in Blender,
       it is exported OK to glTF), and make smaller shapes.
 
       Note that on ancient dekstops, with fixed-function OpenGL pipeline,
       there is an additional hard limit (dependent on GPU, but usually 8, for this).
-      But on modern desktops, as well as mobile and other platforms, you can increase this limit
-      freely. }
+      But on modern desktops, as well as mobile and other platforms,
+      you can increase this limit freely. }
     property MaxLightsPerShape: Cardinal
       read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
 
@@ -431,7 +464,7 @@ type
       More precisely: if this is @true, all shapes with
       transparent materials or textures with non-trivial (not only yes/no)
       alpha channel will be rendered using blending.
-      See https://github.com/castle-engine/castle-engine/wiki/Blending
+      See https://castle-engine.io/blending
       for details how it works.
 
       If this is @false, everything will be rendered as opaque. }
@@ -443,7 +476,7 @@ type
       for specific shapes using @link(TBlendModeNode).
       See https://castle-engine.io/x3d_extensions.php#section_ext_blending for details of TBlendModeNode.
 
-      See https://github.com/castle-engine/castle-engine/wiki/Blending
+      See https://castle-engine.io/blending
       for details how it works.
 
       @groupBegin }
@@ -484,32 +517,29 @@ type
     property WireframeEffect: TWireframeEffect
       read FWireframeEffect write FWireframeEffect default weNormal;
 
-    property SolidWireframeScale: Single read FSolidWireframeScale write FSolidWireframeScale default DefaultSolidWireframeScale;
-    property SolidWireframeBias: Single read FSolidWireframeBias write FSolidWireframeBias default DefaultSolidWireframeBias;
-    property SilhouetteScale: Single read FSilhouetteScale write FSilhouetteScale default DefaultSilhouetteScale;
-    property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias default DefaultSilhouetteBias;
+    property SolidWireframeScale: Single read FSolidWireframeScale write FSolidWireframeScale {$ifdef FPC}default DefaultSolidWireframeScale{$endif};
+    property SolidWireframeBias: Single read FSolidWireframeBias write FSolidWireframeBias {$ifdef FPC}default DefaultSolidWireframeBias{$endif};
+    property SilhouetteScale: Single read FSilhouetteScale write FSilhouetteScale {$ifdef FPC}default DefaultSilhouetteScale{$endif};
+    property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias {$ifdef FPC}default DefaultSilhouetteBias{$endif};
 
-    { Should we use ARB_occlusion_query (if available) to avoid rendering
-      shapes that didn't pass occlusion test in previous frame.
-      Ignored if GPU doesn't support ARB_occlusion_query.
+    { Use the occlusion query to optimize the rendering.
+      The shapes obscured by other shapes will not be rendered.
+      This makes sense when in your view, many shapes are typically obscured by others.
 
-      @true may give you a large speedup in some scenes.
-      OTOH, a lag of one frame may happen between an object should
-      be rendered and it actually appears.
+      See the https://castle-engine.io/occlusion_query
+      for details how does this work.
 
-      When you render more than once the same instance of TCastleScene scene,
-      you should not activate it (as the occlusion query doesn't make sense
-      if each following render of the scene takes place at totally different
-      translation). Also, when rendering something more than just
-      one TCastleScene scene (maybe many times the same TCastleScene instance,
-      maybe many different TCastleScene instances, maybe some other
-      3D objects) you should try to sort rendering order
-      from the most to the least possible occluder (otherwise occlusion
-      query will not be as efficient at culling).
+      This is ignored if HierarchicalOcclusionQuery.
 
-      This is ignored if HierarchicalOcclusionQuery. }
+      This is ignored if GPU doesn't support the necessary functionality
+      (for OpenGL, we require ARB_occlusion_query). }
     property OcclusionQuery: boolean
       read FOcclusionQuery write SetOcclusionQuery default false;
+
+    { Support lighting and backface culling for models using negative scale.
+      This has a small performance cost, and so is disabled by default. }
+    property RobustNegativeScale: Boolean
+      read FRobustNegativeScale write FRobustNegativeScale default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
@@ -529,7 +559,8 @@ begin
   inherited;
 
   FLighting := true;
-  FSceneLights := true;
+  FReceiveSceneLights := true;
+  FReceiveGlobalLights := true;
   FTextures := true;
   FMinificationFilter := minDefault;
   FMagnificationFilter := magDefault;
@@ -573,7 +604,8 @@ begin
   if Source is TCastleRenderOptions then
   begin
     Lighting := TCastleRenderOptions(Source).Lighting;
-    SceneLights := TCastleRenderOptions(Source).SceneLights;
+    ReceiveSceneLights := TCastleRenderOptions(Source).ReceiveSceneLights;
+    ReceiveGlobalLights := TCastleRenderOptions(Source).ReceiveGlobalLights;
     Textures := TCastleRenderOptions(Source).Textures;
     MinificationFilter := TCastleRenderOptions(Source).MinificationFilter;
     MagnificationFilter := TCastleRenderOptions(Source).MagnificationFilter;

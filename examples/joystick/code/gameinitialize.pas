@@ -1,5 +1,5 @@
-{
-  Copyright 2016-2019 Tomasz Wojtyś, Michalis Kamburelis.
+﻿{
+  Copyright 2016-2019, 2022 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleVectors, CastleWindow, CastleControls, CastleOnScreenMenu,
-  CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
+  CastleImages, CastleFilesUtils, CastleColors,
   CastleUIControls, CastleNotifications, CastleLog, CastleJoysticks,
   CastleApplicationProperties, CastleUtils;
 
@@ -89,7 +89,7 @@ const
   );
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Notifications: TCastleNotifications;
   ButtonReinitialize: TCastleButton;
   OnScreenMenu: TCastleOnScreenMenu;
@@ -261,7 +261,7 @@ begin
   begin
     JoystickSelect := TCastleOnScreenMenuItem.Create(Application);
     JoystickSelect.Caption := Format('[%d] %s', [I, Joysticks.GetInfo(I)^.Name]);
-    JoystickSelect.OnClick := @TEventsHandler(nil).ClickJoystickSelect;
+    JoystickSelect.OnClick := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.ClickJoystickSelect;
     JoystickSelect.Tag := I;
     OnScreenMenu.Add(JoystickSelect);
   end;
@@ -281,7 +281,7 @@ end;
 
 { other routines ------------------------------------------------------------- }
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 begin
   { update JoyAxisVisualize.Axis }
   if SelectedJoystick <> -1 then
@@ -314,7 +314,7 @@ begin
   ButtonReinitialize.Caption := 'Detect connected joysticks again (Joysticks.Initialize)';
   ButtonReinitialize.Left := 10;
   ButtonReinitialize.Bottom := 10;
-  ButtonReinitialize.OnClick := @TEventsHandler(nil).ClickReinitialize;
+  ButtonReinitialize.OnClick := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.ClickReinitialize;
   Window.Controls.InsertFront(ButtonReinitialize);
 
   MenuGroup := TCastleVerticalGroup.Create(Application);
@@ -335,13 +335,13 @@ begin
   LabelSelectedJoystick.Caption := 'Selected: none';
   MenuGroup.InsertFront(LabelSelectedJoystick);
 
-  Joysticks.OnChange := @TEventsHandler(nil).InitializeJoystickUI;
-  Joysticks.OnDisconnect := @TEventsHandler(nil).JoystickDisconnected;
-  Joysticks.OnConnect := @TEventsHandler(nil).JoystickConnected;
-  Joysticks.OnAxisMove := @TEventsHandler(nil).JoyAxisMove;
-  Joysticks.OnButtonDown := @TEventsHandler(nil).JoyButtonDown;
-  Joysticks.OnButtonPress := @TEventsHandler(nil).JoyButtonPress;
-  Joysticks.OnButtonUp := @TEventsHandler(nil).JoyButtonUp;
+  Joysticks.OnChange := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.InitializeJoystickUI;
+  Joysticks.OnDisconnect := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.JoystickDisconnected;
+  Joysticks.OnConnect := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.JoystickConnected;
+  Joysticks.OnAxisMove := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.JoyAxisMove;
+  Joysticks.OnButtonDown := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.JoyButtonDown;
+  Joysticks.OnButtonPress := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.JoyButtonPress;
+  Joysticks.OnButtonUp := {$ifdef FPC}@{$endif} TEventsHandler {$ifdef FPC}(nil){$endif}.JoyButtonUp;
 
   { Actually detect joysticks.
     This will automatically call TEventsHandler.JoysticksChanged on some platforms. }
@@ -353,7 +353,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 end.

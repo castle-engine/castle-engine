@@ -1,5 +1,5 @@
 {
-  Copyright 1999-2018 Michalis Kamburelis.
+  Copyright 1999-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -77,8 +77,8 @@
       throughout your code, and everything will just work.
 
       This way your applications will behave the same, whether they use LCL
-      (which happens if you use TCastleControlBase on Lazarus form) or not
-      (which happens if you use TCastleWindowBase).
+      (which happens if you use TCastleControl on Lazarus form) or not
+      (which happens if you use TCastleWindow).
 
       This is also consistent with what our TCastleAbstractFont expects (it's
       rendering assumes UTF-8 encoding of strings) and what some of our
@@ -89,37 +89,14 @@
 
 unit CastleUtils;
 
-{$ifdef VER3_0}
-  { Almost all CGE code uses ObjFpc mode under FPC,
-    but this unit needs Delphi mode for FPC 3.0.x
-    to workaround FPC 3.0.0 and 3.0.2 bug:
-    they segfault on TStructList definition
-    "generic TStructList<T> = class(specialize TList<T>)".
-
-    Fixed in FPC 3.1.1 already, but CGE needs to work with FPC 3.0.0 and 3.0.2 too.
-
-    We still use ObjFpc for FPC 3.1.1 and newer.
-    This is consistent with the rest of CGE,
-    and makes Lazarus CodeTools working OK in this case,
-    since Lazarus CodeTools cannot parse correctly Delphi generics for now:
-
-    https://bugs.freepascal.org/view.php?id=32358
-    https://bugs.freepascal.org/view.php?id=32291
-    https://bugs.freepascal.org/view.php?id=30271
-    https://bugs.freepascal.org/view.php?id=32291
-    https://bugs.freepascal.org/view.php?id=30227
-  }
-  {$mode delphi}
-  {$define CASTLE_CONF_DO_NOT_OVERRIDE_MODE}
-{$endif}
-
 {$I castleconf.inc}
-{$undef CASTLE_CONF_DO_NOT_OVERRIDE_MODE}
 
 interface
 
-uses {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
-  {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
+uses
+  {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
+  {$ifdef UNIX} {$ifdef FPC} BaseUnix, Unix, Dl, {$else} Posix.Unistd, {$endif} {$endif}
+  {$ifndef FPC} Classes, {$endif}
   Variants, SysUtils, Math, Generics.Collections;
 
 {$define read_interface}
@@ -192,8 +169,10 @@ initialization
     So Include/ExcludeTrailingPathDelimiter are basically buggy by default.
 
     Fortunately we can fix it by globally changing AllowDirectorySeparators. }
+  {$ifdef FPC}
   {$ifndef MSWINDOWS}
   AllowDirectorySeparators := AllowDirectorySeparators - ['\'];
+  {$endif}
   {$endif}
 
   { Set UTF-8 in AnsiStrings, just like Lazarus

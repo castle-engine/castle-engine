@@ -18,7 +18,7 @@
   See https://castle-engine.io/manual_network.php#section_multi_player .
 
   On Android, it requires adding
-  @url(https://github.com/castle-engine/castle-engine/wiki/Android-Services
+  @url(https://castle-engine.io/android-Services
   client_server service in your project).
   On other platforms, it requires having @url(http://www.indyproject.org/ Indy) available. }
 unit CastleClientServer;
@@ -52,8 +52,8 @@ type
   TConnectionEvent = procedure of object;
   TClientConnectionEvent = procedure(AClientConnection: TClientConnection) of object;
 
-  TMessageRecievedEvent = procedure(const AMessage: String) of object;
-  TClientMessageRecievedEvent = procedure(const AMessage: String; AClientConnection: TClientConnection) of object;
+  TMessageReceivedEvent = procedure(const AMessage: String) of object;
+  TClientMessageReceivedEvent = procedure(const AMessage: String; AClientConnection: TClientConnection) of object;
 
   TSynchronisedStringList = specialize TThreadList<String>;
 
@@ -87,7 +87,7 @@ type
       strict protected
         const AndroidServiceName = 'client-server';
       strict protected
-        FMessageRecieved: TClientMessageRecievedEvent;
+        FMessageReceived: TClientMessageReceivedEvent;
         FOnConnected: TClientConnectionEvent;
         FOnDisconnected: TClientConnectionEvent;
         FConnectedDictionary: TConnectedDictionary;
@@ -108,7 +108,8 @@ type
       public
         property OnConnected: TClientConnectionEvent write FOnConnected;
         property OnDisconnected: TClientConnectionEvent write FOnDisconnected;
-        property OnMessageRecieved: TClientMessageRecievedEvent write FMessageRecieved;
+        property OnMessageReceived: TClientMessageReceivedEvent write FMessageReceived;
+        {$ifdef FPC} property OnMessageRecieved: TClientMessageReceivedEvent write FMessageReceived; deprecated 'use OnMessageReceived'; {$endif}
       public
         function IsConnected: Boolean; overload;
         function IsConnected(AClient: TClientConnection): Boolean; overload;
@@ -120,13 +121,13 @@ type
         FClient: TIdTCPClient;
         FOnConnected: TProcedureObject;
         FOnDisconnected: TProcedureObject;
-        FOnMessageRecieved: TProcedureObject;
+        FOnMessageReceived: TProcedureObject;
       strict protected
         FMessageList: TSynchronisedStringList;
       protected
         procedure Execute; override;
       public
-        constructor Create(const AClient: TIdTCPClient; const AOnMessageRecieved, AOnConnected, AOnDisconnected: TProcedureObject); virtual;
+        constructor Create(const AClient: TIdTCPClient; const AOnMessageReceived, AOnConnected, AOnDisconnected: TProcedureObject); virtual;
         destructor Destroy; override;
       public
         FreeClientOnTerminate: Boolean;
@@ -161,12 +162,12 @@ type
       procedure ServerOnExecute(AContext: TIdContext);
       procedure ServerOnClientConnected;
       procedure ServerOnClientDisconnected;
-      procedure ServerOnMessageRecieved;
+      procedure ServerOnMessageReceived;
     {$endif}
   strict protected
      FOnConnected: TClientConnectionEvent;
      FOnDisconnected: TClientConnectionEvent;
-     FOnMessageRecieved: TClientMessageRecievedEvent;
+     FOnMessageReceived: TClientMessageReceivedEvent;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -182,7 +183,8 @@ type
   public
     property OnConnected: TClientConnectionEvent read FOnConnected write FOnConnected;
     property OnDisconnected: TClientConnectionEvent read FOnDisconnected write FOnDisconnected;
-    property OnMessageRecieved: TClientMessageRecievedEvent read FOnMessageRecieved write FOnMessageRecieved;
+    property OnMessageReceived: TClientMessageReceivedEvent read FOnMessageReceived write FOnMessageReceived;
+    {$ifdef FPC} property OnMessageRecieved: TClientMessageReceivedEvent read FOnMessageReceived write FOnMessageReceived; deprecated 'use OnMessageReceived'; {$endif}
   end;
 
   TCastleTCPClient = class(TCastleSocket)
@@ -191,16 +193,16 @@ type
     {$ifdef ANDROID}
       procedure ClientOnClientConnected(AClientConnection: TClientConnection);
       procedure ClientOnClientDisconnected(AClientConnection: TClientConnection);
-      procedure ClientOnMessageRecieved(const AMessage: String; AClientConnection: TClientConnection);
+      procedure ClientOnMessageReceived(const AMessage: String; AClientConnection: TClientConnection);
     {$else}
       FClient: TIdTCPClient;
       FClientThread: TCastleTCPClientThread;
-      procedure ClientOnMessageRecieved;
+      procedure ClientOnMessageReceived;
     {$endif}
   strict protected
     FOnConnected: TConnectionEvent;
     FOnDisconnected: TConnectionEvent;
-    FOnMessageRecieved: TMessageRecievedEvent;
+    FOnMessageReceived: TMessageReceivedEvent;
   public
     property Hostname: String read FHostname write FHostname;
   public
@@ -215,7 +217,8 @@ type
   public
     property OnConnected: TConnectionEvent read FOnConnected write FOnConnected;
     property OnDisconnected: TConnectionEvent read FOnDisconnected write FOnDisconnected;
-    property OnMessageRecieved: TMessageRecievedEvent read FOnMessageRecieved write FOnMessageRecieved;
+    property OnMessageReceived: TMessageReceivedEvent read FOnMessageReceived write FOnMessageReceived;
+    {$ifdef FPC} property OnMessageRecieved: TMessageReceivedEvent read FOnMessageReceived write FOnMessageReceived; deprecated 'use OnMessageReceived'; {$endif}
   end;
 
 implementation
@@ -237,7 +240,7 @@ uses
   begin
     if not IsInitialised then
     begin
-      ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif}Update);
+      ApplicationProperties.OnUpdate.Add({$ifdef FPC}@{$endif}Update);
       IsInitialised := true;
     end;
   end;
@@ -275,8 +278,8 @@ uses
     Result := false;
     if (Received.Count = 4) and (Received[0] = AndroidServiceName) and (Received[1] = 'message') then //"client-server" "message" message clientid
     begin
-      if Assigned(FMessageRecieved) then
-        FMessageRecieved(Received[2], TClientConnection.Create(Received[3]));
+      if Assigned(FMessageReceived) then
+        FMessageReceived(Received[2], TClientConnection.Create(Received[3]));
       Result := true;
     end
     else if (Received.Count = 3) and (Received[0] = AndroidServiceName) and (Received[1] = 'connected') then //"client-server" "connected" clientid
@@ -362,10 +365,10 @@ uses
 //
 
 {$ifndef ANDROID}
-  constructor TCastleTCPClientThread.Create(const AClient: TIdTCPClient; const AOnMessageRecieved, AOnConnected, AOnDisconnected: TProcedureObject);
+  constructor TCastleTCPClientThread.Create(const AClient: TIdTCPClient; const AOnMessageReceived, AOnConnected, AOnDisconnected: TProcedureObject);
   begin
     FClient := AClient;
-    FOnMessageRecieved := AOnMessageRecieved;
+    FOnMessageReceived := AOnMessageReceived;
     FOnConnected := AOnConnected;
     FOnDisconnected := AOnDisconnected;
 
@@ -400,7 +403,7 @@ uses
         if LMessage <> '' then
         begin
           FMessageList.Add(LMessage);
-          Queue(FOnMessageRecieved);
+          Queue(FOnMessageReceived);
         end;
       except
         //Exception occurs when connection was disconnected (gracefully).
@@ -491,7 +494,7 @@ procedure TCastleTCPServer.Start;
 {$endif}{$endif}
 begin
   {$ifdef ANDROID}
-    FTCPConnectionService.OnMessageRecieved := FOnMessageRecieved;
+    FTCPConnectionService.OnMessageReceived := FOnMessageReceived;
     FTCPConnectionService.OnConnected := FOnConnected;
     FTCPConnectionService.OnDisconnected := FOnDisconnected;
     FTCPConnectionService.CreateServer(FPort);
@@ -603,7 +606,7 @@ end;
 
       FMessageList.Add(LMessageClientRecord);
 
-      TThread.Queue(nil, @ServerOnMessageRecieved);
+      TThread.Queue(nil, @ServerOnMessageReceived);
     end;
   end;
 
@@ -633,14 +636,14 @@ end;
     end;
   end;
 
-  procedure TCastleTCPServer.ServerOnMessageRecieved;
+  procedure TCastleTCPServer.ServerOnMessageReceived;
   var
     LMessageClientRecord: TMessageClientRecord;
   begin
-    if Assigned(FOnMessageRecieved) then
+    if Assigned(FOnMessageReceived) then
     begin
       for LMessageClientRecord in FMessageList.LockList do
-        FOnMessageRecieved(LMessageClientRecord.Message, LMessageClientRecord.Client);
+        FOnMessageReceived(LMessageClientRecord.Message, LMessageClientRecord.Client);
       FMessageList.Clear;
       FMessageList.UnlockList;
     end;
@@ -676,13 +679,13 @@ begin
   {$ifdef ANDROID}
     FTCPConnectionService.OnConnected := @ClientOnClientConnected;
     FTCPConnectionService.OnDisconnected := @ClientOnClientDisconnected;
-    FTCPConnectionService.OnMessageRecieved := @ClientOnMessageRecieved;
+    FTCPConnectionService.OnMessageReceived := @ClientOnMessageReceived;
     FTCPConnectionService.CreateClient(FHostname, FPort);
   {$else}
     FClient.Port := FPort;
     FClient.Host := FHostname;
 
-    FClientThread := TCastleTCPClientThread.Create(FClient, @ClientOnMessageRecieved, FOnConnected, FOnDisconnected);
+    FClientThread := TCastleTCPClientThread.Create(FClient, @ClientOnMessageReceived, FOnConnected, FOnDisconnected);
   {$endif}
 end;
 
@@ -726,20 +729,20 @@ end;
       FOnDisconnected();
   end;
 
-  procedure TCastleTCPClient.ClientOnMessageRecieved(const AMessage: String; AClientConnection: TClientConnection);
+  procedure TCastleTCPClient.ClientOnMessageReceived(const AMessage: String; AClientConnection: TClientConnection);
   begin
-    if Assigned(FOnMessageRecieved) then
-      FOnMessageRecieved(AMessage);
+    if Assigned(FOnMessageReceived) then
+      FOnMessageReceived(AMessage);
   end;
 {$else}
-  procedure TCastleTCPClient.ClientOnMessageRecieved;
+  procedure TCastleTCPClient.ClientOnMessageReceived;
   var
     LMessage: String;
   begin
-    if Assigned(FOnMessageRecieved) then
+    if Assigned(FOnMessageReceived) then
     begin
       for LMessage in FClientThread.MessageList.LockList do
-        FOnMessageRecieved(LMessage);
+        FOnMessageReceived(LMessage);
       FClientThread.MessageList.Clear;
       FClientThread.MessageList.UnlockList;
     end;

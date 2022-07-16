@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
-        <Filename Value="terrain.lpr"/>
+        <Filename Value="terrain.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

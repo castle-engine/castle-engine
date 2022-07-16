@@ -35,7 +35,7 @@ uses SysUtils,
   {$endregion 'Castle Initialization Uses'};
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 { routines ------------------------------------------------------------------- }
 
@@ -84,7 +84,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
   { Assign initial window size and configuration.

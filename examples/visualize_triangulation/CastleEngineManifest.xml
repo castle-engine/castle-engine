@@ -3,10 +3,10 @@
 <!--
   Manifest to compile this application using Castle Game Engine build tool,
   see
-  - https://github.com/castle-engine/castle-engine/wiki/Build-Tool
-  - https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples
+  - https://castle-engine.io/build_tool
+  - https://castle-engine.io/project_manifest
 -->
 
-<project name="visualize_triangulation" standalone_source="visualize_triangulation.lpr">
+<project name="visualize_triangulation" standalone_source="visualize_triangulation.dpr">
   <data exists="false" />
 </project>

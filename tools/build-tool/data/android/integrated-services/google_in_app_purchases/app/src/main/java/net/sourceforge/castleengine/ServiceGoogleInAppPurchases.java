@@ -1,7 +1,7 @@
 /* -*- tab-width: 4 -*- */
 
 /*
-  Copyright 2018-2020 Michalis Kamburelis.
+  Copyright 2018-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,46 +19,48 @@ package net.sourceforge.castleengine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Map.Entry;
 
-import org.json.JSONObject;
-import org.json.JSONException;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import android.content.ServiceConnection;
-import android.content.Intent;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.IntentSender.SendIntentException;
-import android.content.BroadcastReceiver;
-import android.content.IntentFilter;
-import android.os.IBinder;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.RemoteException;
-import android.util.Log;
-import android.app.PendingIntent;
-import android.app.Activity;
-
-import com.android.vending.billing.IInAppBillingService;
+import com.android.billingclient.api.AcknowledgePurchaseParams;
+import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
+import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.BillingClient.SkuType;
+import com.android.billingclient.api.BillingClient.BillingResponseCode;
+import com.android.billingclient.api.BillingClientStateListener;
+import com.android.billingclient.api.BillingFlowParams;
+import com.android.billingclient.api.BillingResult;
+import com.android.billingclient.api.ConsumeParams;
+import com.android.billingclient.api.ConsumeResponseListener;
+import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.Purchase.PurchaseState;
+import com.android.billingclient.api.PurchasesResponseListener;
+import com.android.billingclient.api.PurchasesUpdatedListener;
+import com.android.billingclient.api.SkuDetails;
+import com.android.billingclient.api.SkuDetailsParams;
+import com.android.billingclient.api.SkuDetailsResponseListener;
 
 /**
  * Integration of Google Billing API with Castle Game Engine.
  */
 public class ServiceGoogleInAppPurchases extends ServiceAbstract
+    implements PurchasesUpdatedListener, AcknowledgePurchaseResponseListener
 {
     private static final String CATEGORY = "ServiceGoogleInAppPurchases";
-    private static int REQUEST_PURCHASE = 9200;
     // Log some internal information.
     private final boolean debug = false;
 
-    IInAppBillingService mBillingService;
-    String mPayLoad;
-    // Purchase tokens for known owns products, saved on this list to allow consuming items.
+    BillingClient billingClient;
+    boolean billingClientConnected = false;
+
+    // Purchase tokens for known owned products, saved on this list to allow consuming items.
     Map<String, String> purchaseTokens;
+
     /* Products available. For now, their list (count and ids)
      * must be initialized by the native code, although this assumption should
      * not affect much logic. The remaining information is filled when the store
@@ -76,16 +78,24 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
      *
      * - No two operations will be performed at once. This avoids problems
      *   with trying to consume items when refreshAvailableForPurchaseAndPurchased
-     *   is going (e.g. because onResume occured), which could result in getting
+     *   is on-going (e.g. because onResume occurred), which could result in getting
      *   owns() notifications twice, causing consume() calls twice.
      *
-     * - Some billing operations are executed in background threads,
-     *   otherwise they would block the main thread. This is completely hidden here.
+     *   Note that OperationPurchase however cannot be done nicely like this.
+     *   We have to listen on it all the time,
+     *
+     * - Old:
+     *   Some billing operations are executed in background threads,
+     *   otherwise they would block the main thread. This is completely hidden here,
+     *   using AsyncTask.
+     *
+     *   New: This is actually no longer a problem. The new Google Play Billing API
+     *   has proper asynchronous API for everything, and there's no need to use AsyncTask.
      */
     LinkedList<Operation> operationQueue;
 
-    private final void currentOperationFinished()
-    {
+    private void currentOperationFinished() {
+
         if (operationQueue.poll() == null) {
             logError(CATEGORY, "currentOperationFinished(), but operationQueue is empty");
             return;
@@ -96,7 +106,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         }
     }
 
-    private final void addOperation(Operation o)
+    private void addOperation(Operation o)
     {
         boolean wasEmpty = operationQueue.peek() == null;
         operationQueue.add(o);
@@ -107,21 +117,15 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
 
     /* Operation ------------------------------------------------------------- */
 
-    private abstract class Operation {
+    private abstract static class Operation {
         /* Override and perform the actual work here,
-         * and call currentOperationFinished() at end.
+         * and call currentOperationFinished() at the end.
          *
          * This is called from the main thread, and should call
          * currentOperationFinished() from the main thread, thus completely
          * hiding any possible threads inside.
          */
         public abstract void run();
-
-        /* You may override and handle the result here. */
-        public void purchaseActivityResult(int resultCode, Intent data)
-        {
-            logInfo(CATEGORY, "Received REQUEST_PURCHASE activity result, but the current operation is not a purchase.");
-        }
     }
 
     /* OperationRefreshPrices ---------------------------------- */
@@ -132,111 +136,73 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
      * - in-app-purchases-can-purchase (for each available product)
      * - in-app-purchases-refreshed-prices (at the end)
      *
-     * Secured (silently ignored) if availableProducts or mBillingService are null.
-     * So e.g. onServiceConnected can safely call if (even though availableProducts
+     * Secured (silently ignored) if
+     * - availableProducts are null,
+     * - not billingClientConnected.
+     * So e.g. onResume can safely call it (even though availableProducts
      * may be unset yet) and setAvailableProducts may safely call it (even though
-     * mBillingService be unset yet).
+     * billingClientConnected may be false).
      */
-    private class OperationRefreshPrices extends Operation {
-
-        /* Class to pass productList to RefreshPricesTask.
-         *
-         * Reason: Passing ArrayList<String> makes Java warnings about unsafe code:
-         * warning: [unchecked] unchecked generic array creation for varargs parameter of type ArrayList<String>[]
-         * new RefreshPricesTask().execute(availableProducts);
-         * (compile with
-         * ant "-Djava.compilerargs=-Xlint:unchecked -Xlint:deprecation" debug
-         * to see it, see http://stackoverflow.com/questions/7682150/use-xlintdeprecation-with-android ).
-         */
-        private class RefreshPricesInput {
-            ArrayList<String> productList;
-        }
-
-        private class RefreshPricesTask extends AsyncTask<RefreshPricesInput, Void, Bundle> {
-            protected Bundle doInBackground(RefreshPricesInput... inputs) {
-                ArrayList<String> productList = inputs[0].productList;
-                Bundle queryProducts = new Bundle();
-                queryProducts.putStringArrayList("ITEM_ID_LIST", productList);
-                try {
-                    return mBillingService.getSkuDetails(3, getActivity().getPackageName(), "inapp", queryProducts);
-                } catch (RemoteException e) {
-                    logError(CATEGORY, "RemoteException at getSkuDetails: " + e.getMessage());
-                    return null;
-                }
-            }
-
-            protected void onPostExecute(Bundle productDetails) {
-                try {
-                    if (productDetails == null) {
-                        return; // exit in case there was a RemoteException
-                    }
-                    try {
-                        int response = productDetails.getInt("RESPONSE_CODE");
-                        if (response == InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
-                            ArrayList<String> responseList
-                              = productDetails.getStringArrayList("DETAILS_LIST");
-
-                            logInfo(CATEGORY, responseList.size() + " items available for purchase.");
-                            for (String thisResponse : responseList) {
-                                JSONObject object = new JSONObject(thisResponse);
-                                String productId = object.getString("productId");
-
-                                AvailableProduct product;
-                                if (availableProducts.containsKey(productId)) {
-                                    product = availableProducts.get(productId);
-                                } else {
-                                    logWarning(CATEGORY, "Product " + productId + " reported by getSkuDetails, but not in availableProducts");
-                                    product = new AvailableProduct(productId);
-                                    availableProducts.put(product.id, product);
-                                }
-
-                                product.price = object.getString("price");
-                                product.title = object.getString("title");
-                                product.description = object.getString("description");
-                                product.priceAmountMicros = Long.parseLong(object.getString("price_amount_micros"));
-                                product.priceCurrencyCode = object.getString("price_currency_code");
-                                messageSend(new String[]{"in-app-purchases-can-purchase",
-                                    product.id,
-                                    product.price,
-                                    product.title,
-                                    product.description,
-                                    Long.toString(product.priceAmountMicros),
-                                    product.priceCurrencyCode
-                                });
-                                if (debug) {
-                                    logInfo(CATEGORY, "Product " + productId + " available for purchase, details: " + thisResponse);
-                                }
-                            }
-
-                            messageSend(new String[]{"in-app-purchases-refreshed-prices"});
+    private class OperationRefreshPrices extends Operation
+        implements SkuDetailsResponseListener
+    {
+        @Override
+        public void onSkuDetailsResponse(@NonNull BillingResult billingResult,
+                                         @Nullable List<SkuDetails> skuDetailsList) {
+            try {
+                if (billingResult.getResponseCode() == BillingResponseCode.OK && skuDetailsList != null) {
+                    logInfo(CATEGORY, skuDetailsList.size() + " items available for purchase.");
+                    for (SkuDetails skuDetails : skuDetailsList) {
+                        String productId = skuDetails.getSku();
+                        AvailableProduct product;
+                        if (availableProducts.containsKey(productId)) {
+                            product = availableProducts.get(productId);
                         } else {
-                            logWarning(CATEGORY, "Error response when getting list of stuff available for purchase: " + InAppPurchasesHelper.billingResponseToStr(response));
+                            logWarning(CATEGORY, "Product " + productId + " reported by querySkuDetailsAsync, but not in availableProducts");
+                            product = new AvailableProduct(productId);
+                            availableProducts.put(product.id, product);
                         }
-                    } catch (JSONException e) {
-                        logError(CATEGORY, "Failed to parse getSkuDetails data:  " + e.getMessage());
+
+                        product.price = skuDetails.getPrice();
+                        product.title = skuDetails.getTitle();
+                        product.description = skuDetails.getDescription();
+                        product.priceAmountMicros = skuDetails.getPriceAmountMicros();
+                        product.priceCurrencyCode = skuDetails.getPriceCurrencyCode();
+                        product.skuDetails = skuDetails;
+                        messageSend(new String[]{"in-app-purchases-can-purchase",
+                                product.id,
+                                product.price,
+                                product.title,
+                                product.description,
+                                Long.toString(product.priceAmountMicros),
+                                product.priceCurrencyCode
+                        });
+                        if (debug) {
+                            logInfo(CATEGORY, "Product " + productId + " available for purchase, price: " + product.price + " " + product.priceCurrencyCode);
+                        }
                     }
-                } finally {
-                    currentOperationFinished();
+                    messageSend(new String[]{"in-app-purchases-refreshed-prices"});
+                } else {
+                    logError(CATEGORY, "Error when refreshing price: " + billingResult.getDebugMessage());
                 }
+            } finally {
+                currentOperationFinished();
             }
         }
 
         public final void run()
         {
-            if (availableProducts != null && mBillingService != null) {
-                // calculate input
-                RefreshPricesInput input = new RefreshPricesInput();
-                input.productList = new ArrayList<String>();
+            if (availableProducts != null && billingClientConnected) {
+                // calculate productList
+
+                List<String> productList = new ArrayList<>();
                 for (Entry<String, AvailableProduct> entry : availableProducts.entrySet()) {
-                    input.productList.add(entry.getKey());
+                    productList.add(entry.getKey());
                 }
 
-                /* We use AsyncTask to avoid using synchronous billing methods on the main
-                   UI thread. See
-                   http://developer.android.com/reference/android/os/AsyncTask.html
-                   http://stackoverflow.com/questions/24768070/where-do-i-put-code-to-pass-a-request-to-the-in-app-billing-service-in-android-i
-                */
-                new RefreshPricesTask().execute(input);
+                SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+                params.setSkusList(productList).setType(SkuType.INAPP);
+                billingClient.querySkuDetailsAsync(params.build(), this);
             } else {
                 currentOperationFinished();
             }
@@ -251,70 +217,38 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
      * - in-app-purchases-refreshed-purchases (at the end)
      *
      * Like OperationRefreshPrices, secured (silently ignored)
-     * if availableProducts or mBillingService are null.
+     * if availableProducts is null or billingClientConnected = false.
      */
-    private class OperationRefreshPurchased extends Operation {
-
-        private class RefreshPurchasedTask extends AsyncTask<Void, Void, Bundle> {
-            protected Bundle doInBackground(Void... input) {
-                try {
-                    return mBillingService.getPurchases(3, getActivity().getPackageName(), "inapp", null);
-                } catch (RemoteException e) {
-                    logError(CATEGORY, "RemoteException when getting purchased stuff: " + e.getMessage());
-                    return null;
+    private class OperationRefreshPurchased extends Operation
+        implements PurchasesResponseListener
+    {
+        @Override
+        public void onQueryPurchasesResponse(@NonNull BillingResult billingResult, @Nullable List<Purchase> purchases)
+        {
+            try {
+                // See https://developer.android.com/google/play/billing/integrate#show-products
+                if (billingResult.getResponseCode() == BillingResponseCode.OK && purchases != null) {
+                    /* To allow purchases outside of app (e.g. promo codes redeemed in Google Play),
+                       we react to purchases detected by OperationRefreshPurchased (done from onResume)
+                       just like to regular purchases.
+                       They will be acknowledged, send to analytics, call owns(). */
+                    handlePurchases(purchases);
+                    messageSend(new String[]{"in-app-purchases-refreshed-purchases"});
+                } else if (billingResult.getResponseCode() == BillingResponseCode.USER_CANCELED) {
+                    // No error or warning, this is normal
+                    logInfo(CATEGORY, "User cancelled the purchase");
+                } else {
+                    logWarning(CATEGORY, "Error when getting purchased items: " + billingResult.getDebugMessage());
                 }
-            }
-
-            protected void onPostExecute(Bundle ownedItems) {
-                try {
-                    if (ownedItems == null) {
-                        return; // exit in case there was a RemoteException
-                    }
-                    int response = ownedItems.getInt("RESPONSE_CODE");
-                    if (response == InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
-                        ArrayList<String> ownedProducts =
-                            ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
-                        ArrayList<String>  purchaseDataList =
-                            ownedItems.getStringArrayList("INAPP_PURCHASE_DATA_LIST");
-                        // Not available, it seems.
-                        // ArrayList<String>  signatureList =
-                        //     ownedItems.getStringArrayList("INAPP_DATA_SIGNATURE");
-                        String continuationToken =
-                            ownedItems.getString("INAPP_CONTINUATION_TOKEN");
-                        // if (signatureList == null) {
-                        //     logWarning(CATEGORY, "Missing INAPP_DATA_SIGNATURE");
-                        // }
-
-                        for (int i = 0; i < purchaseDataList.size(); ++i) {
-                            String purchaseData = purchaseDataList.get(i);
-                            // String signature;
-                            // if (signatureList != null) {
-                            //     signature = signatureList.get(i);
-                            // } else {
-                            //     signature = null;
-                            // }
-                            String productId = ownedProducts.get(i);
-                            owns(productId, purchaseData);
-                        }
-
-                        messageSend(new String[]{"in-app-purchases-refreshed-purchases"});
-
-                        if (continuationToken != null) {
-                            logError(CATEGORY, "getPurchases returned continuationToken != null, not supported now");
-                        }
-                    } else {
-                        logWarning(CATEGORY, "Error when getting owned items: " + InAppPurchasesHelper.billingResponseToStr(response));
-                    }
-                } finally {
-                    currentOperationFinished();
-                }
+            } finally {
+                currentOperationFinished();
             }
         }
 
         public final void run()
         {
-            if (availableProducts != null && mBillingService != null) {
-                new RefreshPurchasedTask().execute();
+            if (availableProducts != null && billingClientConnected) {
+                billingClient.queryPurchasesAsync(SkuType.INAPP, this);
             } else {
                 currentOperationFinished();
             }
@@ -323,130 +257,64 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
 
     /* OperationPurchase ----------------------------------------------------- */
 
-    private class OperationPurchase extends Operation {
-
-        public final void purchaseActivityResult(int resultCode, Intent data)
-        {
-            try {
-                if (resultCode == Activity.RESULT_OK) {
-                    //int responseCode = data.getIntExtra("RESPONSE_CODE", 0);
-                    String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
-                    // Watch out, signature may be null, tested on Pawel Android 4.3.
-                    String signature = data.getStringExtra("INAPP_DATA_SIGNATURE");
-                    if (signature == null) {
-                        logWarning(CATEGORY, "Missing INAPP_DATA_SIGNATURE");
-                    }
-
-                    try {
-                        JSONObject jo = new JSONObject(purchaseData);
-                        String productId = jo.getString("productId");
-                        String payLoadReceived = jo.getString("developerPayload");
-                        if (debug) {
-                            logInfo(CATEGORY, "Product " + productId + " purchased, details: " + purchaseData);
-                        }
-                        if (payLoadReceived.equals(mPayLoad)) {
-                            AvailableProduct product;
-                            if (availableProducts.containsKey(productId)) {
-                                product = availableProducts.get(productId);
-                            } else {
-                                product = new AvailableProduct(productId);
-                            }
-                            getActivity().onPurchase(product, purchaseData, signature);
-                            owns(productId, purchaseData);
-                        } else {
-                            logError(CATEGORY, "Rejecting buying the " + productId + " because received payload (" + payLoadReceived + ")  does not match send payload");
-                        }
-                    }
-                    catch (JSONException e) {
-                        logError(CATEGORY, "Failed to parse purchase data: " + e.getMessage());
-                    }
-                } else {
-                    logWarning(CATEGORY, "Purchase result not OK: " +resultCode);
-                }
-            } finally {
-                currentOperationFinished();
-            }
-        }
-
+    private class OperationPurchase extends Operation
+    {
         public String productName;
 
         public final void run()
         {
-            if (mBillingService == null) {
-                currentOperationFinished();
-                return;
-            }
-
             try {
-                Bundle buyIntentBundle = mBillingService.getBuyIntent(
-                    3, getActivity().getPackageName(), productName, "inapp", mPayLoad);
-                int responseCode = buyIntentBundle.getInt("RESPONSE_CODE");
-                if (responseCode != InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
-                    logError(CATEGORY, "Error when starting buy intent: " + InAppPurchasesHelper.billingResponseToStr(responseCode));
-                    currentOperationFinished();
+                if (!billingClientConnected) {
+                    logError(CATEGORY, "Cannot purchase " + productName + " because billing client not connected");
                     return;
                 }
-                PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
-                if (pendingIntent == null) {
-                    logError(CATEGORY, "pendingIntent == null, this should not happen");
-                    currentOperationFinished();
+
+                if (!availableProducts.containsKey(productName)) {
+                    logError(CATEGORY, "Cannot purchase " + productName + " because it is not known in availableProducts");
                     return;
                 }
-                getActivity().startIntentSenderForResult(pendingIntent.getIntentSender(),
-                    REQUEST_PURCHASE, new Intent(), Integer.valueOf(0), Integer.valueOf(0),
-                    Integer.valueOf(0));
-            } catch (SendIntentException e) {
-                logError(CATEGORY, "SendIntentException when sending buy intent: " + e.getMessage());
-            } catch (RemoteException e) {
-                logError(CATEGORY, "RemoteException when sending buy intent: " + e.getMessage());
+
+                AvailableProduct product = availableProducts.get(productName);
+                if (product.skuDetails == null) {
+                    logError(CATEGORY, "Cannot purchase " + productName + " because skuDetails not known yet (Google Play Billing did not initialize yet the information about products)");
+                    return;
+                }
+
+                BillingFlowParams purchaseParams = BillingFlowParams.newBuilder()
+                    .setSkuDetails((SkuDetails)product.skuDetails)
+                    .build();
+
+                BillingResult billingResult = billingClient.launchBillingFlow(getActivity(), purchaseParams);
+                if (billingResult.getResponseCode() != BillingResponseCode.OK) {
+                    logError(CATEGORY, "Error when launchBillingFlow: " + billingResult.getDebugMessage());
+                }
+            } finally{
+                currentOperationFinished();
             }
         }
     }
 
     /* OperationConsume ------------------------------------------------------ */
 
-    private class OperationConsume extends Operation {
-        private class ConsumeInput {
-            String productName;
-            String purchaseToken;
-        }
-
-        private class ConsumePurchaseTask extends AsyncTask<ConsumeInput, Void, Integer> {
-            // Exit code when consumePurchase throws RemoteException,
-            // Different than existing responses of billing API,
-            // see http://developer.android.com/google/play/billing/billing_reference.html
-            private final int REMOTE_EXCEPTION_ERROR = 100;
-
-            private String mProductName;
-
-            @Override
-            protected Integer doInBackground(ConsumeInput... consumeInputs) {
-                ConsumeInput consumeInput = consumeInputs[0]; // just take 1st param
-                mProductName = consumeInput.productName;
-                try {
-                    return mBillingService.consumePurchase(3, getActivity().getPackageName(),
-                        consumeInput.purchaseToken);
-                } catch (RemoteException e) {
-                    logError(CATEGORY, "RemoteException when getting purchased stuff: " + e.getMessage());
-                    return REMOTE_EXCEPTION_ERROR;
-                }
-            }
-
-            protected void onPostExecute(Integer response) {
-                try {
-                    if (response == InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
-                        logInfo(CATEGORY, "Consumed item " + mProductName);
-                        messageSend(new String[]{"in-app-purchases-consumed", mProductName});
-                    } else {
-                        logError(CATEGORY, "Failed to consume item " + mProductName + ", response: " + response);
-                    }
-                } finally {
-                    currentOperationFinished();
-                }
-            }
-        }
-
+    private class OperationConsume extends Operation
+        implements ConsumeResponseListener
+    {
         public String productName;
+
+        @Override
+        public void onConsumeResponse(@NonNull BillingResult billingResult, @NonNull String purchaseToken)
+        {
+            try {
+                if (billingResult.getResponseCode() == BillingResponseCode.OK) {
+                    logInfo(CATEGORY, "Consumed item " + productName);
+                    messageSend(new String[]{"in-app-purchases-consumed", productName});
+                } else {
+                    logError(CATEGORY, "Failed to consume item " + productName + ", response: " + billingResult.getDebugMessage());
+                }
+            } finally {
+                currentOperationFinished();
+            }
+        }
 
         public final void run()
         {
@@ -455,21 +323,151 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                 currentOperationFinished();
                 return;
             }
-            ConsumeInput consumeInput = new ConsumeInput();
-            consumeInput.productName = productName;
-            consumeInput.purchaseToken = purchaseTokens.get(productName);
-            purchaseTokens.remove(productName);
-            new ConsumePurchaseTask().execute(consumeInput);
+            String purchaseToken = purchaseTokens.get(productName);
+
+            ConsumeParams consumeParams = ConsumeParams.newBuilder()
+                .setPurchaseToken(purchaseToken)
+                .build();
+            billingClient.consumeAsync(consumeParams, this);
         }
     }
 
     /* main class implementation --------------------------------------------- */
 
+    private void acknowledgeIfNeeded(Purchase purchase)
+    {
+        /* We need to do acknowledgePurchase so that one-time purchases (non-consumable)
+           are acknowledged, and not refunded.
+
+           For consumables, this is not necessary.
+           Pascal must call Consume which calls Java consumeAsync,
+           and it acknowledges already.
+           But it seems simpler to acknowledge just always.
+        */
+        if (!purchase.isAcknowledged()) {
+            String purchaseToken = purchase.getPurchaseToken();
+
+            AcknowledgePurchaseParams acknowledgePurchaseParams =
+                AcknowledgePurchaseParams.newBuilder()
+                    .setPurchaseToken(purchaseToken)
+                    .build();
+            billingClient.acknowledgePurchase(acknowledgePurchaseParams, this);
+        }
+    }
+
+    private void handlePurchases(@NonNull List<Purchase> purchases)
+    {
+        for (Purchase purchase : purchases) {
+            String signature = purchase.getSignature();
+
+            // Watch out, signature may be null, tested on Pawel Android 4.3.
+            // Should not be possible with Android SDK versions though, result is @NonNull
+            /*
+            if (signature == null) {
+                logWarning(CATEGORY, "Missing purchase signature");
+            }
+            */
+
+            /* Only handle purchases with state PURCHASED.
+               Ignore PENDING purchases, see https://developer.android.com/google/play/billing/integrate#pending
+            */
+            if (purchase.getPurchaseState() == PurchaseState.PURCHASED) {
+
+                /* Use purchaseTokens to avoid applying the same purchase multiple times.
+                 *
+                 * This way:
+                 *
+                 * - We avoid sending multiple "in-app-purchases-owns" (from owns() call)
+                 *   for the same item, when no new purchase occurred.
+                 *   While this is not really prohibited (our CastleInAppPurchases documentation
+                 *   talks about this, and insists that you depend on SuccessfullyConsumed
+                 *   for consumables), we try to avoid it in the common case.
+                 *
+                 *   And it would occur almost always after buying (if not for this safeguard).
+                 *   We refresh purchases after onResume, which happens also when returning
+                 *   from "buy" dialog. In this case, OperationPurchase and then OperationRefreshPurchased
+                 *   notify about owning the same item (unless the OperationConsume
+                 *   will happen between, but it may not have a chance).
+                 *   So you would always get two "in-app-purchases-owns" messages,
+                 *   which in some cases means getting two consume() calls,
+                 *   which means you get 1 error
+                 *
+                 *     Cannot consume item " + productName + ", purchaseToken unknown (it seems item is not purchased yet)"
+                 *
+                 *   for every purchase.
+                 *
+                 * - We avoid sending acknowledgeIfNeeded 2x times for the same item.
+                 *   Asking for acknowledge 2nd time, when the 1st acknowledge request is in progress,
+                 *   would mean that we send to Google request to acknowledge something that is already
+                 *   (on server) acknowledged. Resulting in logs like this:
+                 *
+                 *     09-30 01:37:36.618 28171 30469 I dragon_squash: ServiceGoogleInAppPurchases: Acknowledged purchase OK
+                 *     09-30 01:37:36.722 28171 31165 E dragon_squash: ServiceGoogleInAppPurchases: Error acknowledging purchase: Server error, please try again.
+                 *
+                 *   (so purchase caused 2x acknowledgeIfNeeded, and 2nd one of course failed on server).
+                 *
+                 * - Finally, this effectively checks that each purchase token in used only once.
+                 *
+                 *   So it's some anti-fraud system (but limited to frontend) recommended by
+                 *   https://developer.android.com/google/play/billing/security ,
+                 *   https://developer.android.com/google/play/billing/developer-payload .
+                 */
+                String purchaseToken = purchase.getPurchaseToken();
+                if (!purchaseTokens.containsValue(purchaseToken)) {
+                    acknowledgeIfNeeded(purchase);
+
+                    for (String productName : purchase.getSkus()) {
+                        purchaseTokens.put(productName, purchaseToken);
+
+                        if (debug) {
+                            logInfo(CATEGORY, "Product " + productName + " purchased");
+                        }
+
+                        AvailableProduct product;
+                        if (availableProducts.containsKey(productName)) {
+                            product = availableProducts.get(productName);
+                        } else {
+                            product = new AvailableProduct(productName);
+                        }
+
+                        String originalJson = purchase.getOriginalJson();
+
+                        getActivity().onPurchase(product, originalJson, signature);
+                        owns(productName, purchase);
+                    }
+                }
+            }
+        }
+    }
+
+    /* Handle purchases, initiated by our own code (from OperationPurchase) and outside of our code
+       (e.g. by user using promo code in Google Play app).
+     */
+    @Override
+    public void onPurchasesUpdated(BillingResult responseCode, @Nullable List<Purchase> purchases)
+    {
+        if (responseCode.getResponseCode() == BillingResponseCode.OK && purchases != null) {
+            handlePurchases(purchases);
+        } else {
+            logWarning(CATEGORY, "Purchase failed: " + responseCode.getDebugMessage());
+        }
+    }
+
+    @Override
+    public void onAcknowledgePurchaseResponse(@NonNull BillingResult billingResult)
+    {
+        if (billingResult.getResponseCode() == BillingResponseCode.OK) {
+            logInfo(CATEGORY, "Acknowledged purchase OK");
+        } else {
+            logError(CATEGORY, "Error acknowledging purchase: " + billingResult.getDebugMessage());
+        }
+    }
+
     public ServiceGoogleInAppPurchases(MainActivity activity)
     {
         super(activity);
-        purchaseTokens = new HashMap<String, String>();
-        operationQueue = new LinkedList<Operation>();
+        purchaseTokens = new HashMap<>();
+        operationQueue = new LinkedList<>();
     }
 
     public String getName()
@@ -477,75 +475,42 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         return "google-in-app-purchases";
     }
 
-    ServiceConnection mBillingConnection = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mBillingService = null;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            mBillingService = IInAppBillingService.Stub.asInterface(service);
-            addOperation(new OperationRefreshPrices());
-            addOperation(new OperationRefreshPurchased());
-        }
-    };
-
     @Override
     public void onCreate()
     {
-        RandomString randomString = new RandomString(36);
-        // For now, randomize mPayLoad just once at the beginning of the app.
-        // This avoids thinking what happens when user initiated 2 purchases
-        // in a short time.
-        mPayLoad = randomString.nextString();
-        //logInfo(CATEGORY, "Billing payload: " + mPayLoad);
+        billingClient = BillingClient.newBuilder(getActivity())
+            .enablePendingPurchases()
+            .setListener(this)
+            .build();
+        billingClient.startConnection(new BillingClientStateListener() {
+            @Override
+            public void onBillingSetupFinished(@NonNull BillingResult billingResult) {
+                if (billingResult.getResponseCode() == BillingResponseCode.OK) {
+                    billingClientConnected = true;
+                    addOperation(new OperationRefreshPrices());
+                    addOperation(new OperationRefreshPurchased());
+                } else {
+                    logError(CATEGORY, "Error connecting BillingClient: " + billingResult.getDebugMessage());
+                }
+            }
 
-        myPromoReceiver = new MyPromoReceiver();
-
-        Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
-        serviceIntent.setPackage("com.android.vending");
-        getActivity().bindService(serviceIntent, mBillingConnection, Context.BIND_AUTO_CREATE);
+            @Override
+            public void onBillingServiceDisconnected() {
+                billingClientConnected = false;
+                // TODO: Try to restart the connection on the next request to
+                // Google Play by calling the startConnection() method.
+            }
+        });
     }
-
-    @Override
-    public void onDestroy() {
-        if (mBillingService != null) {
-            getActivity().unbindService(mBillingConnection);
-        }
-    }
-
-    private class MyPromoReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            logInfo(CATEGORY, "PURCHASES_UPDATED received, possibly user redeemed promo code now, refreshing.");
-            addOperation(new OperationRefreshPurchased());
-        }
-    }
-    private MyPromoReceiver myPromoReceiver;
 
     @Override
     public void onResume()
     {
         /* Get purchases on resume, if user bought something while we were paused.
-           Follows
-           https://developer.android.com/google/play/billing/billing_promotions.html */
+           Follows "Recognizing out-of-app purchases" from
+           https://developer.android.com/google/play/billing/migrate */
         addOperation(new OperationRefreshPurchased());
-
-        /* Listen for promo code redeeming while app is running, following
-           https://developer.android.com/google/play/billing/billing_promotions.html */
-        IntentFilter promoFilter = new IntentFilter("com.android.vending.billing.PURCHASES_UPDATED");
-        getActivity().registerReceiver(myPromoReceiver, promoFilter);
     }
-
-    @Override
-    public void onPause()
-    {
-        /* Stop listening for promo code redeeming while app is running, following
-           https://developer.android.com/google/play/billing/billing_promotions.html */
-        getActivity().unregisterReceiver(myPromoReceiver);
-    }
-
 
     private void purchase(String productName)
     {
@@ -561,63 +526,26 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         addOperation(o);
     }
 
-    private void owns(String productName, String purchaseData)
+    /* Internal notification that productName is owned, along with the Purchase instance
+     * (never null) that indicates the ownership.
+     *
+     * This can be called only when purchase.getPurchaseState() == PurchaseState.PURCHASED!
+     */
+    private void owns(String productName, Purchase purchase)
     {
-        String purchaseToken;
-
-        try {
-            JSONObject jo = new JSONObject(purchaseData);
-            int purchaseState = jo.getInt("purchaseState");
-            if (purchaseState == 1) {
-                logWarning(CATEGORY, "Ignoring ownage of a cancelled item " + productName);
-                return;
-            }
-            purchaseToken = jo.getString("purchaseToken");
-
-            /* Use purchaseTokens to avoid sending multiple "in-app-purchases-owns"
-             * for the same item, when no new purchase occured.
-             * While this is not really prohibited (our CastleInAppPurchases documentation
-             * talks about this, and insists that you depend on SuccessfullyConsumed
-             * for consumables), we try to avoid it in the common case.
-             *
-             * And it would occur almost always after buying (if not for this safeguard).
-             * We refresh purchases after onResume, which happens also when returning
-             * from "buy" dialog. In this case, OperationPurchase and then OperationRefreshPurchased
-             * notify about owning the same item (unless the OperationConsume
-             * will happen between, but it may not have a chance).
-             * So you would always get two "in-app-purchases-owns" messages,
-             * which in some cases means getting two consume() calls,
-             * which means you get 1 error
-             *
-             *   Cannot consume item " + productName + ", purchaseToken unknown (it seems item is not purchased yet)"
-             *
-             * for every purchase.
-             */
-            String knownPurchaseToken = purchaseTokens.get(productName);
-            if (purchaseToken == null || !purchaseToken.equals(knownPurchaseToken)) {
-                purchaseTokens.put(productName, purchaseToken);
-                messageSend(new String[]{"in-app-purchases-owns", productName});
-            }
-        } catch (JSONException e) {
-            logError(CATEGORY, "Failed to parse purchaseData in owns: " + e.getMessage());
+        // Should not happen, according to our usage of owns()
+        int purchaseState = purchase.getPurchaseState();
+        if (purchaseState != PurchaseState.PURCHASED) {
+            logError(CATEGORY, "Ignoring owns(" + productName + "), as item not in PURCHASED state: " + purchaseState);
+            return;
         }
-    }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        if (requestCode == REQUEST_PURCHASE) {
-            Operation o = operationQueue.peek();
-            if (o == null) {
-                logError(CATEGORY, "Received REQUEST_PURCHASE activity result, but no purchase operation is in progress now.");
-            } else {
-                o.purchaseActivityResult(resultCode, intent);
-            }
-        }
+        messageSend(new String[]{"in-app-purchases-owns", productName});
     }
 
     private void setAvailableProducts(String productsListStr)
     {
-        availableProducts = new HashMap<String, AvailableProduct>();
+        availableProducts = new HashMap<>();
         String[] productsList = splitString(productsListStr, 2);
         for (String productStr : productsList) {
             String[] productInfo = splitString(productStr, 3);

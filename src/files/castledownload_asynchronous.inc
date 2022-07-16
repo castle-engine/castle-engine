@@ -37,7 +37,7 @@ type
 
     The download continues while your application is running,
     because we use @link(TCastleApplicationProperties.OnUpdate ApplicationProperties.OnUpdate)
-    mechanism. If your application uses TCastleWindowBase or TCastleControlBase,
+    mechanism. If your application uses TCastleWindow or TCastleControl,
     then this just works.
     Note that if you just want to wait for download to finish,
     you can use @link(WaitForFinish) method or just call simpler @link(Download)
@@ -224,7 +224,7 @@ begin
   end;
   if UpdateInitialized then
   begin
-    ApplicationProperties.OnUpdate.Remove({$ifdef CASTLE_OBJFPC}@{$endif}Update);
+    ApplicationProperties.OnUpdate.Remove({$ifdef FPC}@{$endif}Update);
     UpdateInitialized := false;
   end;
   FreeAndNil(FHttpPostData);
@@ -373,7 +373,7 @@ begin
 
   if not UpdateInitialized then
   begin
-    ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif}Update);
+    ApplicationProperties.OnUpdate.Add({$ifdef FPC}@{$endif}Update);
     UpdateInitialized := true;
   end;
 
@@ -471,6 +471,26 @@ begin
   end;
 end;
 
+procedure CopyStreamWithoutRewinding(const Dest: TMemoryStream; const Source: TStream);
+begin
+  { Do not call Dest.LoadFromStream(Source), as it does "Source.Position := 0"
+    (at least in FPC) which should not be required, and actually fails with
+    some stream implementations.
+
+    Testcase: open with view3dscene demo-models/x3d/data_uri.x3dv .
+    The TUrlData.Read returns TBase64DecodingStream which doesn't allow assigning Position.
+  }
+  if Source.Position <> 0 then
+    Source.Position := 0; // set Source.Position, but only if it's not already 0
+    // raise EDownloadError.CreateFmt('Underlying stream %s position should be 0, but is %d', [
+    //   Source.ClassName,
+    //   Source.Position
+    // ]);
+  Dest.SetSize(Source.Size);
+  if Source.Size <> 0 then
+    Source.ReadBuffer(Dest.Memory^, Source.Size);
+end;
+
 procedure TCastleDownload.SetContentsApplyOptions(UnderlyingStream: TStream);
 
   { Load Stream to TMemoryStream.
@@ -479,7 +499,7 @@ procedure TCastleDownload.SetContentsApplyOptions(UnderlyingStream: TStream);
   begin
     Result := TMemoryStream.Create;
     try
-      Result.LoadFromStream(Stream);
+      CopyStreamWithoutRewinding(Result, Stream);
       FreeAndNil(Stream);
       Result.Position := 0; { rewind for easy reading }
     except
@@ -517,7 +537,9 @@ begin
   if soGzip in Options then
     FContents := ReadGzipped(UnderlyingStream, soForceMemoryStream in Options)
   else
-  if soForceMemoryStream in Options then
+  if (soForceMemoryStream in Options) and
+     // if UnderlyingStream is already TMemoryStream, like with data URI, then we're OK
+     (not (UnderlyingStream is TMemoryStream)) then
     FContents := CreateMemoryStream(UnderlyingStream)
   else
     FContents := UnderlyingStream;

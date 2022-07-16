@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2019-2021 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
@@ -31,22 +31,6 @@ type
   TPlane = class;
   TTrigger = class;
 
-{ Global variables ----------------------------------------------------------- }
-
-var
-  Window: TCastleWindowBase;
-  Viewport: TCastleViewport;
-  Status: TCastleLabel;
-  Plane: TPlane;
-  LeftWall: TWall;
-  RightWall: TWall;
-  TopWall: TWall;
-  BottomWall: TWall;
-
-  TriggerGreen: TTrigger;
-
-type
-
   TWall = class(TCastleScene)
   public
     constructor Create(AOwner: TComponent; const WallName: TComponentName; const Pos, Size, Color: TVector3); reintroduce;
@@ -65,6 +49,20 @@ type
   end;
 
 { TTrigger }
+{ Global variables ----------------------------------------------------------- }
+
+var
+  Window: TCastleWindow;
+  Viewport: TCastleViewport;
+  Status: TCastleLabel;
+  Plane: TPlane;
+  LeftWall: TWall;
+  RightWall: TWall;
+  TopWall: TWall;
+  BottomWall: TWall;
+
+  TriggerGreen: TTrigger;
+
 
 constructor TTrigger.Create(AOwner: TComponent; const TriggerName: TComponentName;  const Pos, Size, Color: TVector3);
 var
@@ -130,7 +128,7 @@ begin
   RBody := TRigidBody.Create(Self);
   RBody.Dynamic := true;
   RBody.Setup2D;
-  RBody.OnCollisionEnter := @CollisionEnter;
+  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
   RBody.LinearVelocityDamp := 0;
   RBody.MaximalLinearVelocity := 200;
   RBody.AngularVelocityDamp := 0;
@@ -244,7 +242,7 @@ begin
   Window.Controls.InsertFront(Status);
 end;
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 var
   CollisionsList: TCastleTransformList;
   CollisionsListTXT: String;
@@ -290,7 +288,7 @@ begin
     Status.Caption := Status.Caption + NL + 'Paused';
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 
   procedure Move(const X, Y: Single);
   begin
@@ -325,7 +323,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 

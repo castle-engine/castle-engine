@@ -40,7 +40,7 @@ type
     procedure ClickQuit(Sender: TObject);
     procedure ClickInstructions(Sender: TObject);
     procedure ClickEndTurn(Sender: TObject);
-    procedure MapPress(const Sender: TInputListener;
+    procedure MapPress(const Sender: TCastleUserInterface;
       const Event: TInputPressRelease; var Handled: Boolean);
     procedure UpdateTurnStatus;
   public
@@ -130,10 +130,10 @@ begin
   LabelTurnStatus := DesignedComponent('LabelTurnStatus') as TCastleLabel;
 
   MapControl.URL := 'castle-data:/maps/' + MapName + '.tmx';
-  MapControl.OnPress := @MapPress;
-  ButtonQuit.OnClick := @ClickQuit;
-  ButtonInstructions.OnClick := @ClickInstructions;
-  ButtonEndTurn.OnClick := @ClickEndTurn;
+  MapControl.OnPress := {$ifdef FPC}@{$endif}MapPress;
+  ButtonQuit.OnClick := {$ifdef FPC}@{$endif}ClickQuit;
+  ButtonInstructions.OnClick := {$ifdef FPC}@{$endif}ClickInstructions;
+  ButtonEndTurn.OnClick := {$ifdef FPC}@{$endif}ClickEndTurn;
 
   UnitsOnMap := TUnitsOnMap.Create(FreeAtStop, MapControl);
 
@@ -190,7 +190,7 @@ begin
   UpdateTurnStatus;
 end;
 
-procedure TStatePlay.MapPress(const Sender: TInputListener;
+procedure TStatePlay.MapPress(const Sender: TCastleUserInterface;
   const Event: TInputPressRelease; var Handled: Boolean);
 
   procedure CheckWin;
@@ -319,9 +319,9 @@ begin
   begin
     TileStr := TileUnderMouse.ToString;
     if UnitsOnMap.IsWater(TileUnderMouse) then
-      TileStr += NL + ' Water';
+      TileStr := TileStr + NL + ' Water';
     if UnitUnderMouse <> nil then
-      TileStr += NL + ' Unit: ' + UnitUnderMouse.ToString;
+      TileStr := TileStr + NL + ' Unit: ' + UnitUnderMouse.ToString;
   end else
     TileStr := 'none';
   LabelStatus.Caption := Format('FPS: %s' + NL + 'Tile: %s', [

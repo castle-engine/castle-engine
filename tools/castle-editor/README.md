@@ -10,7 +10,9 @@ See the [manual documenting the editor](https://castle-engine.io/manual_editor.p
 
     You can set such scaling e.g. by GNOME 3 _"Large fonts"_ accessibilty option, or by adjusting Xorg dpi to 120 (96 * 1.25), Windows also allows to set 125% scaling.
 
-### Contributing: When creating a new Lazarus form, remember to...
+### Contributing
+
+When creating a new Lazarus form, remember to:
 
 - Save form class `TFooForm` (so it will have singleton `FooForm`) in unit name `FormFoo`.
 - Adjust form's `Caption`.
@@ -19,9 +21,18 @@ See the [manual documenting the editor](https://castle-engine.io/manual_editor.p
 - Consider using `AutoSize` on the form itself too.
 - Adjust `BorderStyle` from `bsSizeable` to `bsSingle` if it's a small form that doesn't need to be resized (for larger forms, it's safer to allow resizing, even if you think you know the best size -- in case user will view it on a smaller monitor).
 - Adjust `Position` from "as designed" (usually "default" or "main form center" is more sensible).
+- Adjust `ShowInTaskBar`, this is important for selecting form on Windows in case of multiple windows.
 - Make sure closing the form with "X" (Alt + F4) works OK.
 - For a form you create manually, make sure it is freed at some point (preferably, not only at the end of application, if you can free it earlier; e.g. we don't want to have 100 of TProjectForm instances in memory after using the editor for a long time).
-- For a form created automatically, make sure you synchronize the line `Application.CreateForm(...);` from lpr with ../build-tool/data/custom_editor_template/castle_editor.lpr
+
+When adding new units, like forms, make sure you synchronize the custom editor template. Just
+
+```
+cd ../build-tool/data/
+./custom_editor_template_rebuild.sh
+```
+
+Units called `DesignXxx` are helper units for `FrameDesign`, i.e. for design editing.
 
 ## License
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,10 +24,10 @@ uses SysUtils, Math,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleVectors, CastleTransform, X3DNodes, CastleTimeUtils, CastleViewport,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleUtils, CastleCameras;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   SceneVisualizeLight: TCastleScene;
   MainLight: TPointLightNode;
   Time: TFloatTime;
@@ -69,7 +69,7 @@ begin
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Window.Controls.InsertFront(Viewport);
 
   Scene1 := TCastleScene.Create(Application);
@@ -91,19 +91,18 @@ begin
 
   // make MainLight on Scene1 affect all scenes, Scene1 and Scene2
   Viewport.Items.MainScene := Scene1;
-  Viewport.UseGlobalLights := true;
 
   MainLight := Scene1.Node('MainLight') as TPointLightNode;
   Time := 0;
   UpdateMainLightLocation;
 end;
 
-procedure WindowRender(Container: TUIContainer);
+procedure WindowRender(Container: TCastleContainer);
 begin
-  UIFont.Print(10, 10, Yellow, 'FPS: ' + Container.Fps.ToString);
+  GetUIFont.Print(10, 10, Yellow, 'FPS: ' + Container.Fps.ToString);
 end;
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 begin
   Time := Time + Container.Fps.SecondsPassed;
   UpdateMainLightLocation;
@@ -115,7 +114,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 

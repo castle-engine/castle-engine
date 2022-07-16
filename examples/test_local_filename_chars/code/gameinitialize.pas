@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2020-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -26,7 +26,7 @@ uses SysUtils, Classes,
   CastleFilesUtils, CastleFonts;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
@@ -113,7 +113,7 @@ procedure ApplicationInitialize;
     DataPath :=
       {$ifdef MSWINDOWS} ExtractFilePath(ExeNameFromGetModule)
       {$else} InclPathDelim(GetCurrentDir)
-      {$endif} + 'data/';
+      {$endif} + InclPathDelim('data');
 
     if not DirectoryExists(DataPath) then
       raise Exception.CreateFmt('Cannot find directory "%s"', [DataPath]);
@@ -162,7 +162,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 end.

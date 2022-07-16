@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -36,7 +36,7 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-  TMovingPlatformList = specialize TObjectList<TMovingPlatform>;
+  TMovingPlatformList = {$ifdef FPC}specialize{$endif} TObjectList<TMovingPlatform>;
 
 implementation
 

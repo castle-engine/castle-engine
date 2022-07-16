@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -112,24 +112,33 @@ type
     FKeyString: String;
     FMouseButtonUse: boolean;
     FMouseButton: TCastleMouseButton;
+    FMouseButtonCheckModifiers: TModifierKeys;
+    FMouseButtonModifiers: TModifierKeys;
     FMouseButton2Use: boolean;
     FMouseButton2: TCastleMouseButton;
+    FMouseButton2CheckModifiers: TModifierKeys;
+    FMouseButton2Modifiers: TModifierKeys;
     FMouseWheel: TMouseWheelDirection;
-    FCaption: string;
-    FGroup: TInputGroup;
-    FGroupOrder: Integer;
-    { Index of InputsAll. For now this is useful only for sorting,
-      to decide order when GroupOrder is equal between two items. }
-    Index: Integer;
 
     FDefaultKey1: TKey;
     FDefaultKey2: TKey;
     FDefaultKeyString: String;
     FDefaultMouseButtonUse: boolean;
     FDefaultMouseButton: TCastleMouseButton;
+    FDefaultMouseButtonCheckModifiers: TModifierKeys;
+    FDefaultMouseButtonModifiers: TModifierKeys;
     FDefaultMouseButton2Use: boolean;
     FDefaultMouseButton2: TCastleMouseButton;
+    FDefaultMouseButton2CheckModifiers: TModifierKeys;
+    FDefaultMouseButton2Modifiers: TModifierKeys;
     FDefaultMouseWheel: TMouseWheelDirection;
+
+    FCaption: string;
+    FGroup: TInputGroup;
+    FGroupOrder: Integer;
+    { Index of InputsAll. For now this is useful only for sorting,
+      to decide order when GroupOrder is equal between two items. }
+    Index: Integer;
 
     procedure SetKey1(const Value: TKey);
     procedure SetKey2(const Value: TKey);
@@ -138,15 +147,17 @@ type
     procedure SetCharacter(const AValue: Char);
     procedure SetMouseButtonUse(const Value: boolean);
     procedure SetMouseButton(const Value: TCastleMouseButton);
+    procedure SetMouseButtonCheckModifiers(const Value: TModifierKeys);
+    procedure SetMouseButtonModifiers(const Value: TModifierKeys);
     procedure SetMouseButton2Use(const Value: boolean);
     procedure SetMouseButton2(const Value: TCastleMouseButton);
+    procedure SetMouseButton2CheckModifiers(const Value: TModifierKeys);
+    procedure SetMouseButton2Modifiers(const Value: TModifierKeys);
     procedure SetMouseWheel(const Value: TMouseWheelDirection);
   protected
-    { Called always right after the key/character/mouse
-      shortcut value changed. Note that this is called only when
-      the "current" values (Key1, Key2, KeyString, MouseButtonUse, MouseButton,
-      MouseButton2Use, MouseButton2, MouseWheel) changed,
-      and it's not called when just the DefaultXxx values changed. }
+    { Called always right after the shortcut value changed (like key or mouse buton).
+      Called only when the current values changed,
+      not called when just the default values changed. }
     procedure Changed; virtual;
   public
     { Constructor that always creates local shortcuts (with Group = igLocal).
@@ -160,7 +171,7 @@ type
     constructor Create(const AOwner: TComponent;
       const ACaption: string;
       const AName: string;
-      const AGroup: TInputGroup); overload;
+      const AGroup: TInputGroup); reintroduce; overload;
 
     procedure MakeDefault;
 
@@ -168,10 +179,9 @@ type
     procedure AssignFromDefault(Source: TInputShortcut);
 
     { Copy Source properties to this object.
-      It always copies "current" properties (Key1, Key2, KeyString,
-      MouseButtonUse, MouseButton, MouseButton2Use, MouseButton2, MouseWheel),
-      and optionally (if CopyDefaults) also copies the DefaultXxx properties. }
-    procedure Assign(Source: TInputShortcut; CopyDefaults: boolean); reintroduce;
+      It always copies current properties (Key1, MouseButton etc.),
+      and only optionally (if CopyDefaults) also copies the DefaultXxx properties. }
+    procedure Assign(Source: TInputShortcut; CopyDefaults: boolean); reintroduce; overload;
 
     { Set keys/mouse buttons of this shortcut.
 
@@ -189,7 +199,7 @@ type
       AKeyString: String = '';
       const AMouseButtonUse: boolean = false;
       const AMouseButton: TCastleMouseButton = buttonLeft;
-      const AMouseWheel: TMouseWheelDirection = mwNone);
+      const AMouseWheel: TMouseWheelDirection = mwNone); reintroduce; overload;
 
     { Set keys/mouse buttons of this shortcut.
       Sets only the "current" properties (e.g. it changes @link(Key1),
@@ -203,45 +213,42 @@ type
       const AMouseWheel: TMouseWheelDirection = mwNone);
 
     { Make this input impossible to activate by the user.
-      This sets both keys to keyNone, KeyString to '', MouseButtonUse
-      to @false, and MouseWheel to mwNone. }
+      This sets both keys to keyNone, KeyString to '',
+      both MouseButtonUse and MouseButton2Use to @false,
+      and MouseWheel to mwNone. }
     procedure MakeClear(const ClearAlsoDefaultState: boolean = false);
 
     { Given a set of currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
-    function IsPressed(Pressed: TKeysPressed;
+    function IsPressed(const Pressed: TKeysPressed;
       const MousePressed: TCastleMouseButtons): boolean; overload;
 
     { Looking at Container's currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
-    function IsPressed(Container: TUIContainer): boolean; overload;
+    function IsPressed(const Container: TCastleContainer): boolean; overload;
 
     { Check does given Key or AKeyString correspond to this input shortcut.
       If Key = keyNone and AString = '', result is always @false. }
     function IsKey(const Key: TKey; AKeyString: String): boolean;
 
     { Check does given mouse button correspond to this input shortcut. }
-    function IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
+    function IsMouseButton(const AMouseButton: TCastleMouseButton;
+      const ModifiersDown: TModifierKeys): boolean; overload;
+
+    function IsMouseButton(const AMouseButton: TCastleMouseButton): boolean; overload;
+      deprecated 'use overloaded version with additional ModifiersDown parameter';
 
     function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
 
-    { Check does given key or mouse button or mouse wheel use activates
-      this shortcut.
+    { Check does given event (key press, mouse button press, mouse wheel)
+      activates this shortcut. }
+    function IsEvent(const Event: TInputPressRelease): boolean; overload;
 
-      For key/character press, set AKey <> keyNone or AKeyString <> ''.
-      For mouse button press, set AMousePress to @true
-      and pass relevant AMouseButton. For mouse wheel, pass AMouseWheel
-      <> mwNone. Pass only one of these three events here,
-      for example if you AMousePress to @true then pass
-      AKey = keyNone and AKeyString = '' and AMouseWheel = mwNone.
-
-      Basically, this is a "dispatcher" that simply calls one of the IsKey or
-      IsMouseButton or IsMouseWheel methods. It's sometimes more comfortable
-      to use this instead of taking care of them separately. }
     function IsEvent(const AKey: TKey; AKeyString: String;
       const AMousePress: boolean; const AMouseButton: TCastleMouseButton;
-      const AMouseWheel: TMouseWheelDirection): boolean; overload;
-    function IsEvent(const Event: TInputPressRelease): boolean; overload;
+      const AMouseWheel: TMouseWheelDirection;
+      const ModifiersDown: TModifierKeys = []): boolean; overload;
+      deprecated 'use IsEvent(TInputPressRelease)';
 
     { Describe the current value (which key, mouse buttons and such) of this
       shortcut. If there is no way to press this shortcut (all properties
@@ -317,21 +324,40 @@ type
       You can set this to '' to indicate that no character shortcut is assigned. }
     property KeyString: String read FKeyString write SetKeyString;
 
+    {$ifdef FPC}
     property Character: Char read GetCharacter write SetCharacter;
       deprecated 'use KeyString';
+    {$endif}
 
-    { Mouse shortcut for given command. You can set MouseButtonUse to @false
-      if you don't want to use this.
+    { Mouse shortcut for given command.
+      Only relevant if MouseButtonUse is @true.
+      Then we check for MouseButton being pressed.
+
+      MouseButtonCheckModifiers determines what subset of modifiers (Ctrl, Shift, Alt)
+      to check, whether they match MouseButtonModifiers. For example,
+      MouseButtonCheckModifiers = [mkShift, mkCtrl]
+      and MouseButtonModifiers = [mkCtrl] means that you have to press Ctrl,
+      and you cannot keep Shift pressed, to activate this shortcut.
+
+      By default MouseButtonCheckModifiers and MouseButtonModifiers are both empty sets,
+      which means that any state of modifiers is OK.
+
       @groupBegin }
     property MouseButtonUse: boolean read FMouseButtonUse write SetMouseButtonUse;
     property MouseButton: TCastleMouseButton read FMouseButton write SetMouseButton;
+    property MouseButtonCheckModifiers: TModifierKeys read FMouseButtonCheckModifiers write SetMouseButtonCheckModifiers;
+    property MouseButtonModifiers: TModifierKeys read FMouseButtonModifiers write SetMouseButtonModifiers;
     { @groupEnd }
 
-    { Alternative mouse shortcut for given command. You can set MouseButton2Use to @false
-      if you don't want to use this.
+    { Alternative mouse shortcut for given command.
+      Only relevant if MouseButton2Use is @true.
+      All properties work analogously to MouseButtonUse, MouseButton,
+      MouseButtonCheckModifiers, MouseButtonModifiers.
       @groupBegin }
     property MouseButton2Use: boolean read FMouseButton2Use write SetMouseButton2Use;
     property MouseButton2: TCastleMouseButton read FMouseButton2 write SetMouseButton2;
+    property MouseButton2CheckModifiers: TModifierKeys read FMouseButton2CheckModifiers write SetMouseButton2CheckModifiers;
+    property MouseButton2Modifiers: TModifierKeys read FMouseButton2Modifiers write SetMouseButton2Modifiers;
     { @groupEnd }
 
     { Mouse wheel to activate this command. Note that mouse wheels cannot be
@@ -354,14 +380,25 @@ type
     property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2;
     property DefaultKeyString: String
       read FDefaultKeyString write FDefaultKeyString;
+
     property DefaultMouseButtonUse: boolean
       read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
     property DefaultMouseButton: TCastleMouseButton
       read FDefaultMouseButton write FDefaultMouseButton;
+    property DefaultMouseButtonCheckModifiers: TModifierKeys
+      read FDefaultMouseButtonCheckModifiers write FDefaultMouseButtonCheckModifiers;
+    property DefaultMouseButtonModifiers: TModifierKeys
+      read FDefaultMouseButtonModifiers write FDefaultMouseButtonModifiers;
+
     property DefaultMouseButton2Use: boolean
       read FDefaultMouseButton2Use write FDefaultMouseButton2Use;
     property DefaultMouseButton2: TCastleMouseButton
       read FDefaultMouseButton2 write FDefaultMouseButton2;
+    property DefaultMouseButton2CheckModifiers: TModifierKeys
+      read FDefaultMouseButton2CheckModifiers write FDefaultMouseButton2CheckModifiers;
+    property DefaultMouseButton2Modifiers: TModifierKeys
+      read FDefaultMouseButton2Modifiers write FDefaultMouseButton2Modifiers;
+
     property DefaultMouseWheel: TMouseWheelDirection
       read FDefaultMouseWheel write FDefaultMouseWheel;
     { @groupEnd }
@@ -382,7 +419,7 @@ type
 
   { Group of TInputShortcut, to easily manage (search, load, save...)
     the inputs. }
-  TInputShortcutList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInputShortcut>)
+  TInputShortcutList = class({$ifdef FPC}specialize{$endif} TObjectList<TInputShortcut>)
   public
     { Find shortcut by name, returns @nil if not found. }
     function FindName(const Name: string): TInputShortcut;
@@ -481,8 +518,12 @@ begin
   FKeyString := Source.DefaultKeyString;
   FMouseButtonUse := Source.DefaultMouseButtonUse;
   FMouseButton := Source.DefaultMouseButton;
+  FMouseButtonCheckModifiers := Source.DefaultMouseButtonCheckModifiers;
+  FMouseButtonModifiers := Source.DefaultMouseButtonModifiers;
   FMouseButton2Use := Source.DefaultMouseButton2Use;
   FMouseButton2 := Source.DefaultMouseButton2;
+  FMouseButton2CheckModifiers := Source.DefaultMouseButton2CheckModifiers;
+  FMouseButton2Modifiers := Source.DefaultMouseButton2Modifiers;
   FMouseWheel := Source.DefaultMouseWheel;
 
   { we don't set here properties, but directly set FXxx fields,
@@ -506,8 +547,12 @@ begin
   FDefaultKeyString := AKeyString;
   FDefaultMouseButtonUse := AMouseButtonUse;
   FDefaultMouseButton := AMouseButton;
+  FDefaultMouseButtonCheckModifiers := []; // not set by parameters, just reset
+  FDefaultMouseButtonModifiers := []; // not set by parameters, just reset
   FDefaultMouseButton2Use := false; // not set by parameters, just reset
   FDefaultMouseButton2 := buttonLeft; // not set by parameters, just reset
+  FDefaultMouseButton2CheckModifiers := []; // not set by parameters, just reset
+  FDefaultMouseButton2Modifiers := []; // not set by parameters, just reset
   FDefaultMouseWheel := AMouseWheel;
   MakeDefault;
 end;
@@ -528,8 +573,12 @@ begin
   FKeyString := AKeyString;
   FMouseButtonUse := AMouseButtonUse;
   FMouseButton := AMouseButton;
-  FDefaultMouseButton2Use := false; // not set by parameters, just reset
-  FDefaultMouseButton2 := buttonLeft; // not set by parameters, just reset
+  FMouseButtonCheckModifiers := []; // not set by parameters, just reset
+  FMouseButtonModifiers := []; // not set by parameters, just reset
+  FMouseButton2Use := false; // not set by parameters, just reset
+  FMouseButton2 := buttonLeft; // not set by parameters, just reset
+  FMouseButton2CheckModifiers := []; // not set by parameters, just reset
+  FMouseButton2Modifiers := []; // not set by parameters, just reset
   FMouseWheel := AMouseWheel;
   Changed;
 end;
@@ -543,8 +592,12 @@ begin
     DefaultKeyString := Source.DefaultKeyString;
     DefaultMouseButtonUse := Source.DefaultMouseButtonUse;
     DefaultMouseButton := Source.DefaultMouseButton;
+    DefaultMouseButtonCheckModifiers := Source.DefaultMouseButtonCheckModifiers;
+    DefaultMouseButtonModifiers := Source.DefaultMouseButtonModifiers;
     DefaultMouseButton2Use := Source.DefaultMouseButton2Use;
     DefaultMouseButton2 := Source.DefaultMouseButton2;
+    DefaultMouseButton2CheckModifiers := Source.DefaultMouseButton2CheckModifiers;
+    DefaultMouseButton2Modifiers := Source.DefaultMouseButton2Modifiers;
     DefaultMouseWheel := Source.DefaultMouseWheel;
   end;
 
@@ -553,8 +606,12 @@ begin
   FKeyString := Source.KeyString;
   FMouseButtonUse := Source.MouseButtonUse;
   FMouseButton := Source.MouseButton;
+  FMouseButtonCheckModifiers := Source.MouseButtonCheckModifiers;
+  FMouseButtonModifiers := Source.MouseButtonModifiers;
   FMouseButton2Use := Source.MouseButton2Use;
   FMouseButton2 := Source.MouseButton2;
+  FMouseButton2CheckModifiers := Source.MouseButton2CheckModifiers;
+  FMouseButton2Modifiers := Source.MouseButton2Modifiers;
   FMouseWheel := Source.MouseWheel;
 
   { we don't set here properties, but directly set FXxx fields,
@@ -569,8 +626,12 @@ begin
   FKeyString := '';
   FMouseButtonUse := false;
   FMouseButton := buttonLeft;
+  FMouseButtonCheckModifiers := [];
+  FMouseButtonModifiers := [];
   FMouseButton2Use := false;
   FMouseButton2 := buttonLeft;
+  FMouseButton2CheckModifiers := [];
+  FMouseButton2Modifiers := [];
   FMouseWheel := mwNone;
 
   if ClearAlsoDefaultState then
@@ -580,8 +641,12 @@ begin
     FDefaultKeyString := '';
     FDefaultMouseButtonUse := false;
     FDefaultMouseButton := buttonLeft;
+    FDefaultMouseButtonCheckModifiers := [];
+    FDefaultMouseButtonModifiers := [];
     FDefaultMouseButton2Use := false;
     FDefaultMouseButton2 := buttonLeft;
+    FDefaultMouseButton2CheckModifiers := [];
+    FDefaultMouseButton2Modifiers := [];
     FDefaultMouseWheel := mwNone;
   end;
 
@@ -590,18 +655,25 @@ begin
   Changed;
 end;
 
-function TInputShortcut.IsPressed(Pressed: TKeysPressed;
+function TInputShortcut.IsPressed(
+  const Pressed: TKeysPressed;
   const MousePressed: TCastleMouseButtons): boolean;
 begin
   Result :=
     ( (Pressed <> nil) and (Pressed.Keys[Key1] or
                             Pressed.Keys[Key2] or
                             Pressed.Strings[KeyString]) ) or
-    ( MouseButtonUse  and (MouseButton in MousePressed) ) or
-    ( MouseButton2Use and (MouseButton2 in MousePressed) );
+    ( MouseButtonUse and
+      (MouseButton in MousePressed) and
+      (ModifiersDown(Pressed) * MouseButtonCheckModifiers = MouseButtonModifiers)
+    ) or
+    ( MouseButton2Use and
+      (MouseButton2 in MousePressed) and
+      (ModifiersDown(Pressed) * MouseButton2CheckModifiers = MouseButton2Modifiers)
+    );
 end;
 
-function TInputShortcut.IsPressed(Container: TUIContainer): boolean;
+function TInputShortcut.IsPressed(const Container: TCastleContainer): boolean;
 begin
   Result := IsPressed(Container.Pressed, Container.MousePressed);
 end;
@@ -617,11 +689,23 @@ begin
     ( (KeyString <> '') and (KeyString = AKeyString) );
 end;
 
-function TInputShortcut.IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
+function TInputShortcut.IsMouseButton(const AMouseButton: TCastleMouseButton;
+  const ModifiersDown: TModifierKeys): boolean;
 begin
   Result :=
-    ( MouseButtonUse  and (AMouseButton = MouseButton) ) or
-    ( MouseButton2Use and (AMouseButton = MouseButton2) );
+    ( MouseButtonUse and
+      (AMouseButton = MouseButton) and
+      (ModifiersDown * MouseButtonCheckModifiers = MouseButtonModifiers)
+    ) or
+    ( MouseButton2Use and
+      (AMouseButton = MouseButton2) and
+      (ModifiersDown * MouseButton2CheckModifiers = MouseButton2Modifiers)
+    );
+end;
+
+function TInputShortcut.IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
+begin
+  Result := IsMouseButton(AMouseButton, []);
 end;
 
 function TInputShortcut.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
@@ -631,14 +715,15 @@ end;
 
 function TInputShortcut.IsEvent(const AKey: TKey; AKeyString: String;
   const AMousePress: boolean; const AMouseButton: TCastleMouseButton;
-  const AMouseWheel: TMouseWheelDirection): boolean;
+  const AMouseWheel: TMouseWheelDirection;
+  const ModifiersDown: TModifierKeys): boolean;
 begin
   // only for backward compatibility (when this parameter was Char) convert #0 to ''
   if AKeyString = #0 then
     AKeyString := '';
 
   if AMousePress then
-    Result := IsMouseButton(AMouseButton)
+    Result := IsMouseButton(AMouseButton, ModifiersDown)
   else
   if AMouseWheel <> mwNone then
     Result := IsMouseWheel(AMouseWheel)
@@ -650,7 +735,7 @@ function TInputShortcut.IsEvent(const Event: TInputPressRelease): boolean;
 begin
   case Event.EventType of
     itKey        : Result := IsKey(Event.Key, Event.KeyString);
-    itMouseButton: Result := IsMouseButton(Event.MouseButton);
+    itMouseButton: Result := IsMouseButton(Event.MouseButton, Event.ModifiersDown);
     itMouseWheel : Result := IsMouseWheel(Event.MouseWheel);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TInputShortcut.IsEvent: Event.EventType?');
@@ -686,12 +771,16 @@ begin
   begin
     if Result <> '' then Result := Result + ' or ';
     Result := Result + Format('mouse "%s"', [MouseButtonStr[MouseButton]]);
+    if MouseButtonCheckModifiers <> [] then
+      Result := Result + '+' + ModifierKeysToNiceStr(MouseButtonModifiers);
   end;
 
   if MouseButton2Use then
   begin
     if Result <> '' then Result := Result + ' or ';
     Result := Result + Format('mouse "%s"', [MouseButtonStr[MouseButton2]]);
+    if MouseButton2CheckModifiers <> [] then
+      Result := Result + '+' + ModifierKeysToNiceStr(MouseButton2Modifiers);
   end;
 
   if MouseWheel <> mwNone then
@@ -743,6 +832,18 @@ begin
   Changed;
 end;
 
+procedure TInputShortcut.SetMouseButtonCheckModifiers(const Value: TModifierKeys);
+begin
+  FMouseButtonCheckModifiers := Value;
+  Changed;
+end;
+
+procedure TInputShortcut.SetMouseButtonModifiers(const Value: TModifierKeys);
+begin
+  FMouseButtonModifiers := Value;
+  Changed;
+end;
+
 procedure TInputShortcut.SetMouseButton2Use(const Value: boolean);
 begin
   FMouseButton2Use := Value;
@@ -752,6 +853,18 @@ end;
 procedure TInputShortcut.SetMouseButton2(const Value: TCastleMouseButton);
 begin
   FMouseButton2 := Value;
+  Changed;
+end;
+
+procedure TInputShortcut.SetMouseButton2CheckModifiers(const Value: TModifierKeys);
+begin
+  FMouseButton2CheckModifiers := Value;
+  Changed;
+end;
+
+procedure TInputShortcut.SetMouseButton2Modifiers(const Value: TModifierKeys);
+begin
+  FMouseButton2Modifiers := Value;
   Changed;
 end;
 
@@ -778,8 +891,11 @@ begin
   case NewEvent.EventType of
     itMouseButton:
       begin
+        // TODO: add to MouseButton2Xxx, when MouseButtonUse already used
         MouseButtonUse := true;
         MouseButton := NewEvent.MouseButton;
+        MouseButtonCheckModifiers := []; // reset
+        MouseButtonModifiers := []; // reset
       end;
     itMouseWheel:
       MouseWheel := NewEvent.MouseWheel;
@@ -810,14 +926,27 @@ begin
     Key1, DefaultKey1);
   Config.SetDeleteKey(ConfigPath + Name + '/key2',
     Key2, DefaultKey2);
+
   Config.SetDeleteValue(ConfigPath + Name + '/mouse_button_use',
     MouseButtonUse, DefaultMouseButtonUse);
   Config.SetDeleteValue(ConfigPath + Name + '/mouse_button',
     Ord(MouseButton), Ord(DefaultMouseButton));
-  Config.SetDeleteValue(ConfigPath + Name + '/mouse_button_use2',
+  // TODO
+  // Config.SetDeleteValue(ConfigPath + Name + '/mouse_button_check_modifiers',
+  //   ModifiersToString(MouseButtonCheckModifiers), ModifiersToString(DefaultMouseButtonCheckModifiers));
+  // Config.SetDeleteValue(ConfigPath + Name + '/mouse_button_modifiers',
+  //   ModifiersToString(MouseButtonModifiers), ModifiersToString(DefaultMouseButtonModifiers));
+
+  Config.SetDeleteValue(ConfigPath + Name + '/mouse_button2_use',
     MouseButton2Use, DefaultMouseButton2Use);
   Config.SetDeleteValue(ConfigPath + Name + '/mouse_button2',
     Ord(MouseButton2), Ord(DefaultMouseButton2));
+  // TODO
+  // Config.SetDeleteValue(ConfigPath + Name + '/mouse_button2_check_modifiers',
+  //   ModifiersToString(MouseButton2CheckModifiers), ModifiersToString(DefaultMouseButton2CheckModifiers));
+  // Config.SetDeleteValue(ConfigPath + Name + '/mouse_button2_modifiers',
+  //   ModifiersToString(MouseButton2Modifiers), ModifiersToString(DefaultMouseButton2Modifiers));
+
   Config.SetDeleteValue(ConfigPath + Name + '/mouse_wheel',
     Ord(MouseWheel), Ord(DefaultMouseWheel));
 end;
@@ -832,14 +961,27 @@ begin
     ConfigPath + Name + '/key1', DefaultKey1);
   Key2 := Config.GetKey(
     ConfigPath + Name + '/key2', DefaultKey2);
+
   MouseButtonUse := Config.GetValue(
     ConfigPath + Name + '/mouse_button_use', DefaultMouseButtonUse);
   MouseButton := TCastleMouseButton(Config.GetValue(
     ConfigPath + Name + '/mouse_button', Ord(DefaultMouseButton)));
+  // TODO
+  // MouseButtonCheckModifiers := StringToModifiers(Config.GetValue(
+  //   ConfigPath + Name + '/mouse_button_check_modifiers', ModifiersToString(DefaultMouseButtonCheckModifiers)));
+  // MouseButtonModifiers := StringToModifiers(Config.GetValue(
+  //   ConfigPath + Name + '/mouse_button_modifiers', ModifiersToString(DefaultMouseButtonModifiers)));
+
   MouseButton2Use := Config.GetValue(
-    ConfigPath + Name + '/mouse_button_use2', DefaultMouseButton2Use);
+    ConfigPath + Name + '/mouse_button2_use', DefaultMouseButton2Use);
   MouseButton2 := TCastleMouseButton(Config.GetValue(
     ConfigPath + Name + '/mouse_button2', Ord(DefaultMouseButton2)));
+  // TODO
+  // MouseButton2CheckModifiers := StringToModifiers(Config.GetValue(
+  //   ConfigPath + Name + '/mouse_button2_check_modifiers', ModifiersToString(DefaultMouseButton2CheckModifiers)));
+  // MouseButton2Modifiers := StringToModifiers(Config.GetValue(
+  //   ConfigPath + Name + '/mouse_button2_modifiers', ModifiersToString(DefaultMouseButton2Modifiers)));
+
   MouseWheel := TMouseWheelDirection(Config.GetValue(
     ConfigPath + Name + '/mouse_wheel', Ord(DefaultMouseWheel)));
 end;
@@ -882,7 +1024,7 @@ begin
     I.SaveToConfig(Config, ConfigPath);
 end;
 
-function SortInputShortcut(constref A, B: TInputShortcut): Integer;
+function SortInputShortcut({$ifdef FPC}constref{$else}const{$endif} A, B: TInputShortcut): Integer;
 begin
   Result := A.GroupOrder - B.GroupOrder;
   { since TFPSList.Sort is not stable, we use Index to keep order predictable
@@ -893,7 +1035,7 @@ end;
 
 procedure TInputShortcutList.LoadFromConfig(const Config: TCastleConfig; ConfigPath: String);
 type
-  TInputShortcutComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TInputShortcut>;
+  TInputShortcutComparer = {$ifdef FPC}specialize{$endif} TComparer<TInputShortcut>;
 var
   I: TInputShortcut;
   ConflictDescription: string;
@@ -905,8 +1047,8 @@ begin
     raise EInternalError.Create(
       'Default key/mouse shortcuts layout has conflicts: ' + ConflictDescription);
 
-  for G in TInputGroupNotLocal do
-    InputsGroup(G).Sort(TInputShortcutComparer.Construct(@SortInputShortcut));
+  for G := Low(TInputGroupNotLocal) to High(TInputGroupNotLocal) do
+    InputsGroup(G).Sort(TInputShortcutComparer.Construct({$ifdef FPC}@{$endif}SortInputShortcut));
 
   // add slash at the end of ConfigPath, if necessary
   if (ConfigPath <> '') and (ConfigPath[Length(ConfigPath)] <> '/') then
@@ -941,8 +1083,8 @@ begin
     begin
       if Items[J].IsKey(Items[I].Key1, '') or
          Items[J].IsKey(Items[I].Key2, '') or
-         (Items[I].MouseButtonUse  and Items[J].IsMouseButton(Items[I].MouseButton)) or
-         (Items[I].MouseButton2Use and Items[J].IsMouseButton(Items[I].MouseButton2)) then
+         (Items[I].MouseButtonUse  and Items[J].IsMouseButton(Items[I].MouseButton , Items[I].MouseButtonModifiers )) or
+         (Items[I].MouseButton2Use and Items[J].IsMouseButton(Items[I].MouseButton2, Items[I].MouseButton2Modifiers)) then
       begin
         ConflictDescription := Format('"%s" conflicts with "%s"',
           [Items[I].Caption, Items[J].Caption]);
@@ -976,7 +1118,7 @@ begin
   if (not UnitInitialized) and (not UnitFinalization) then
   begin
     FInputsAll := TInputShortcutList.Create(true);
-    for G in TInputGroupNotLocal do
+    for G := Low(TInputGroupNotLocal) to High(TInputGroupNotLocal) do
       FInputsGroup[G] := TInputShortcutList.Create(false);
     UnitInitialized := true;
   end;
@@ -999,7 +1141,7 @@ var
   G: TInputGroupNotLocal;
 begin
   UnitFinalization := true;
-  for G in TInputGroupNotLocal do
+  for G := Low(TInputGroupNotLocal) to High(TInputGroupNotLocal) do
     FreeAndNil(FInputsGroup[G]);
   FreeAndNil(FInputsAll);
 end;

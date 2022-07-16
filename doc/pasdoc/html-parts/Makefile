@@ -24,9 +24,11 @@ CGE_WWW_PATH := ../../../../cge-www/
 
 images:
 	mkdir -p images
-	cp -f $(CGE_WWW_PATH)htdocs/images/header_icon.png \
-	      $(CGE_WWW_PATH)htdocs/images/patreonlogoorange_45px.png \
-	      images/
+	cp -Rf $(CGE_WWW_PATH)htdocs/images/header_icon.png \
+	       $(CGE_WWW_PATH)htdocs/images/castle_game_engine_icon.png \
+	       $(CGE_WWW_PATH)htdocs/images/castle_game_engine_icon_fit_in_square.png \
+	       $(CGE_WWW_PATH)htdocs/images/patreon-brand \
+	       images/
 
 castle-engine-website-base:
 	mkdir -p castle-engine-website-base

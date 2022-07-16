@@ -2,49 +2,6 @@
 <build_gradle_merge>
   <!-- https://developers.facebook.com/docs/android/componentsdks -->
   <dependencies>
-
-<!--
-Using "exclude..." below fixes APK building errors:
-
-  D8: Program type already present: android.support.v4.app.NavUtils
-  ...
-  * What went wrong:
-  Execution failed for task ':app:transformDexArchiveWithExternalLibsDexMergerForRelease'.
-
-Solution adapted from
-https://stackoverflow.com/questions/28149146/gradle-error-dexexception-after-adding-facebook-library
-Although
-
-  { exclude module: 'support-v4' }
-
-didn't work, but
-
-  { exclude group: 'com.android.support' }
-
-works.
-That answer also contains a useful way to debug these problems.
-You can do
-
-  $ cd castle-engine-output/android/project/app/
-  $ ../gradlew -q dependencies
-
-to see what is contained in FB package:
-
-\=== com.facebook.android:facebook-core:[4,5) -> 4.40.0
-     +=== com.parse.bolts:bolts-android:1.4.0
-     |    +=== com.parse.bolts:bolts-tasks:1.4.0
-     |    \=== com.parse.bolts:bolts-applinks:1.4.0
-     |         \=== com.parse.bolts:bolts-tasks:1.4.0
-     +=== com.android.support:support-annotations:27.0.2
-     \=== com.android.support:support-core-utils:27.0.2
-          +=== com.android.support:support-annotations:27.0.2
-          \=== com.android.support:support-compat:27.0.2
-               +=== com.android.support:support-annotations:27.0.2
-               \=== android.arch.lifecycle:runtime:1.0.3
-                    +=== android.arch.lifecycle:common:1.0.3
-                    \=== android.arch.core:common:1.0.0
--->
-
-    <dependency>implementation ('com.facebook.android:facebook-core:[4,5)') { exclude group: 'com.android.support' }</dependency>
+    <dependency>implementation 'com.facebook.android:facebook-core:latest.release'</dependency>
   </dependencies>
 </build_gradle_merge>

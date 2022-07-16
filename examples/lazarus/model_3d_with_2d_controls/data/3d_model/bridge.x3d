@@ -58,7 +58,7 @@
 					<Shape>
 						<Appearance>
 							<ImageTexture DEF="IM_059_plombieresgbr_jpg"
-							              url='"textures/059_plombieresgbr.jpg" "059_plombieresgbr.jpg" "/home/michalis/sources/castle-engine/trunk/castle_game_engine/examples/3d_rendering_processing/data/textures/059_plombieresgbr.jpg"'
+							              url='"textures/059_plombieresgbr.jpg" "059_plombieresgbr.jpg" "/home/michalis/sources/castle-engine/trunk/castle_game_engine/examples/viewport_and_scenes/data/textures/059_plombieresgbr.jpg"'
 							              />
 							<Material DEF="MA_Material_006"
 							          diffuseColor="0.800 0.800 0.800"
@@ -441,7 +441,7 @@
 					<Shape>
 						<Appearance>
 							<ImageTexture DEF="IM_023bois_jpg"
-							              url='"textures/023bois.jpg" "023bois.jpg" "/home/michalis/sources/castle-engine/trunk/castle_game_engine/examples/3d_rendering_processing/data/textures/023bois.jpg"'
+							              url='"textures/023bois.jpg" "023bois.jpg" "/home/michalis/sources/castle-engine/trunk/castle_game_engine/examples/viewport_and_scenes/data/textures/023bois.jpg"'
 							              />
 							<Material DEF="MA_Material_002"
 							          diffuseColor="0.800 0.800 0.800"
@@ -515,7 +515,7 @@
 					<Shape>
 						<Appearance>
 							<ImageTexture DEF="IM_dirtfrancecornergrass"
-							              url='"textures/dirtfrancecornergrass.jpg" "dirtfrancecornergrass.jpg" "/home/michalis/sources/castle-engine/trunk/castle_game_engine/examples/3d_rendering_processing/data/textures/dirtfrancecornergrass.jpg"'
+							              url='"textures/dirtfrancecornergrass.jpg" "dirtfrancecornergrass.jpg" "/home/michalis/sources/castle-engine/trunk/castle_game_engine/examples/viewport_and_scenes/data/textures/dirtfrancecornergrass.jpg"'
 							              />
 							<Material DEF="MA_Material_001"
 							          diffuseColor="0.800 0.800 0.800"
@@ -584,7 +584,7 @@
 					<Shape>
 						<Appearance>
 							<ImageTexture DEF="IM_water2_jpg"
-							              url='"textures/water2.jpg" "water2.jpg" "/home/michalis/sources/castle-engine/trunk/castle_game_engine/examples/3d_rendering_processing/data/textures/water2.jpg"'
+							              url='"textures/water2.jpg" "water2.jpg" "/home/michalis/sources/castle-engine/trunk/castle_game_engine/examples/viewport_and_scenes/data/textures/water2.jpg"'
 							              />
 							<Material DEF="MA_Material_005"
 							          diffuseColor="0.800 0.800 0.800"

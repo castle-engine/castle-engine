@@ -35,7 +35,7 @@ var
   ViewMoveX, ViewMoveY: Single;
   ViewFollowsPlayer: boolean = true;
 
-procedure WindowRender(Container: TUIContainer);
+procedure WindowRender(Container: TCastleContainer);
 var
   RealViewMoveX, RealViewMoveY: Integer;
 
@@ -47,10 +47,10 @@ var
   begin
     PosX := X * BaseWidth;
     if Odd(Y) then
-      PosX += BaseWidth div 2;
-    PosX += RealViewMoveX + SpecialMoveX;
+      PosX := PosX + BaseWidth div 2;
+    PosX := PosX + RealViewMoveX + SpecialMoveX;
     PosY := Y * (BaseHeight div 2);
-    PosY += RealViewMoveY + SpecialMoveY;
+    PosY := PosY + RealViewMoveY + SpecialMoveY;
     DrawableImage.Alpha := acTest;
     DrawableImage.Draw(PosX, PosY);
   end;
@@ -72,8 +72,8 @@ begin
     RealViewMoveY := Player.YPixel;
     if Player.Moving then
     begin
-      RealViewMoveX -= Round(Player.MovingSmallMoveX);
-      RealViewMoveY -= Round(Player.MovingSmallMoveY);
+      RealViewMoveX := RealViewMoveX - Round(Player.MovingSmallMoveX);
+      RealViewMoveY := RealViewMoveY - Round(Player.MovingSmallMoveY);
     end;
   end else
   begin
@@ -87,10 +87,10 @@ begin
   Y1 := -1;
   Y2 := Integer(BaseFitY) - 2;
   { Now translate taking RealViewMoveX/Y into account. }
-  X1 -= Ceil(RealViewMoveX / BaseWidth);
-  X2 -= Floor(RealViewMoveX / BaseWidth);
-  Y1 -= Ceil(2 * RealViewMoveY / BaseHeight);
-  Y2 -= Floor(2 * RealViewMoveY / BaseHeight);
+  X1 := X1 - Ceil(RealViewMoveX / BaseWidth);
+  X2 := X2 - Floor(RealViewMoveX / BaseWidth);
+  Y1 := Y1 - Ceil(2 * RealViewMoveY / BaseHeight);
+  Y2 := Y2 - Floor(2 * RealViewMoveY / BaseHeight);
   { Eventually correct to be inside 0..Map.Width/Height - 1 range }
   ClampVar(X1, 0, Map.Width - 1);
   ClampVar(X2, 0, Map.Width - 1);
@@ -130,7 +130,7 @@ begin
   end;
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 var
   NewViewMoveX, NewViewMoveY: Integer;
 
@@ -236,16 +236,16 @@ begin
   end;
 end;
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 const
   ViewMoveChangeSpeed = 10.0 * 50.0;
 begin
   if not ViewFollowsPlayer then
   begin
-    if Window.Pressed[keyArrowUp]    then ViewMoveY -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
-    if Window.Pressed[keyArrowDown]  then ViewMoveY += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
-    if Window.Pressed[keyArrowRight] then ViewMoveX -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
-    if Window.Pressed[keyArrowLeft]  then ViewMoveX += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowUp]    then ViewMoveY := ViewMoveY - ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowDown]  then ViewMoveY := ViewMoveY + ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowRight] then ViewMoveX := ViewMoveX - ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowLeft]  then ViewMoveX := ViewMoveX + ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
   end else
   begin
     { At first I placed the commands below in KeyDown, as they work
@@ -275,7 +275,7 @@ begin
     end;
   end;
 
-  GameTime += Window.Fps.SecondsPassed;
+  GameTime := GameTime + Window.Fps.SecondsPassed;
 
   Player.Update;
 end;
@@ -304,7 +304,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 

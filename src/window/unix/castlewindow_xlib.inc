@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,20 +36,13 @@ private
   Colormap: TColormap;
   {$endif}
 
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  PluginWindow: TNPWindow;
-  PluginStruct: TNPSetWindowCallbackStruct;
-  {$endif}
-
   function HandleXEvent(const Event: TXEvent): boolean;
   procedure UpdateCursor;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
 private
-  {$ifndef CASTLE_ENGINE_PLUGIN}
   FXDisplayName: string;
-  {$endif}
   FXScreen: Integer;
   InitializeXDisplayDone: boolean;
   XCursors: array [TMouseCursor] of TCursor;
@@ -67,7 +60,7 @@ private
   function KeySymToKey(ksym: TKeySym): TKey;
   { Seek on OpenWindows window with WindowXID = seekWindowXID.
     Returns nil if not found. }
-  function FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
+  function FindWindowXID(seekWindowXID: TWindow): TCastleWindow;
 
   { Initialize and check X display.
     Call this once you're sure that XDisplayName is set to
@@ -87,11 +80,9 @@ private
 public
   function HandleXEvent(Event: TXEvent): boolean;
 
-  {$ifndef CASTLE_ENGINE_PLUGIN}
   { X display name used to communicate with X server (to open windows,
     query screen size and so on). }
   property XDisplayName: string read FXDisplayName write FXDisplayName;
-  {$endif}
   property XDisplay: PDisplay read FXDisplay;
   property XScreen: Integer read FXScreen;
 {$endif read_application_interface}
@@ -104,9 +95,9 @@ const
     ButtonPressMask or ButtonReleaseMask or PointerMotionMask {mouse events} or
     FocusChangeMask;
 
-{ TCastleWindowBase --------------------------------------------------------  }
+{ TCastleWindow --------------------------------------------------------  }
 
-procedure TCastleWindowBase.OpenBackend;
+procedure TCastleWindow.OpenBackend;
 
   procedure InitializeDpi;
   var
@@ -116,37 +107,24 @@ procedure TCastleWindowBase.OpenBackend;
     DWMM := XDisplayWidthMM(Application.XDisplay, Application.XScreen);
     FDpi := DW / (DWMM / 25.4);
 
-    WritelnLog('X11', 'Dots (pixels) per inch is %f (%f * default %f)',
-      [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+    // Too verbose by default, UpdateUIScale will show it if UIScaling is usDpiScale.
+    // WritelnLog('X11', 'Dots (pixels) per inch is %f (%f * default %f)',
+    //   [FDpi, FDpi / DefaultDpi, DefaultDpi]);
   end;
 
 var
   AttrValueMask: Cardinal;
   Attr: TXSetWindowAttributes;
-  {$ifndef CASTLE_ENGINE_PLUGIN}
   CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight: Integer;
   sizeHints: TXSizeHints;
   WindTitleProp: TXTextProperty;
   ClassHint: TXClassHint;
   WMHints: TXWMHints;
   PWindTitle: PChar;
-  {$endif}
 const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
 begin
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  Application.FXDisplay := PluginStruct.Display;
-
-  FLeft := PluginWindow.X;
-  FTop := PluginWindow.Y;
-  FWidth := PluginWindow.Width;
-  FHeight := PluginWindow.Height;
-  // plugin is never fullscreen
-  FFullScreenWanted := false;
-  FFullScreenBackend := false;
-  {$endif}
-
   Application.InitializeXDisplay;
 
   Attr.event_mask := AcceptedEventsMask;
@@ -169,27 +147,18 @@ begin
   begin
     Attr.override_redirect := XBool_true;
     AttrValueMask := AttrValueMask or CWOverrideRedirect;
-    {$ifndef CASTLE_ENGINE_PLUGIN}
     CorrectLeft := 0;
     CorrectTop := 0;
     CorrectWidth := Application.ScreenWidth;
     CorrectHeight := Application.ScreenHeight;
-    {$endif}
   end else
   begin
-    {$ifndef CASTLE_ENGINE_PLUGIN}
     CorrectLeft := Left;
     CorrectTop := Top;
     CorrectWidth := Width;
     CorrectHeight := Height;
-    {$endif}
   end;
 
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  windowXID := TWindow(PluginWindow.Window);
-  { below is crucial, otherwise we'll not listed to events on windowXID }
-  XChangeWindowAttributes(Application.XDisplay, windowXID, CWEventMask, @Attr);
-  {$else}
   windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
     CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight, 0,
     {$ifndef OpenGLES} XVisual^.depth {$else} CopyFromParent {$endif},
@@ -271,7 +240,6 @@ begin
     if Visible then
       XMapWindow(Application.XDisplay, windowXID);
   end;
-  {$endif}
 
   ContextCreateEnd(windowXID);
 
@@ -291,7 +259,7 @@ begin
   InitializeDpi;
 end;
 
-procedure TCastleWindowBase.CloseBackend;
+procedure TCastleWindow.CloseBackend;
 var
   dummy_event: TXEvent;
 begin
@@ -317,9 +285,7 @@ begin
 
   if windowXID <> None then
   begin
-    {$ifndef CASTLE_ENGINE_PLUGIN}
     XDestroyWindow(Application.XDisplay, windowXID);
-    {$endif}
     windowXID := None
   end;
 
@@ -334,7 +300,7 @@ begin
   ContextDestroyEnd;
 end;
 
-procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -344,13 +310,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
-begin
-  FCustomCursor := Value;
-  { TODO }
-end;
-
-procedure TCastleWindowBase.UpdateCursor;
+procedure TCastleWindow.UpdateCursor;
 
   function CreateNoneCursor: TCursor;
   var
@@ -394,8 +354,7 @@ const
     XC_bottom_right_corner   // mcResizeBottomRight
   );
 begin
-  { TODO: for now mcCustom is treated like mcDefault }
-  if InternalCursor in [mcDefault, mcCustom] then
+  if InternalCursor = mcDefault then
   begin
     XUndefineCursor(Application.XDisplay, WindowXID);
   end else
@@ -414,7 +373,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 var
   P: TVector2Integer;
 begin
@@ -430,17 +389,17 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.CreateBackend;
+procedure TCastleWindow.CreateBackend;
 begin
   windowXID := None;
 
   { We don't do here anything depending on X server,
     and thus this doesn't require calling Application.InitializeXDisplay.
-    This way, merely calling TCastleWindowBase.Create
+    This way, merely calling TCastleWindow.Create
     doesn't require X server runnning. }
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
 var
   PValue: PChar;
   WindTitleProp: TXTextProperty;
@@ -458,54 +417,54 @@ begin
   end;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
  Result := true;
 end;
 
-procedure TCastleWindowBase.BackendMenuInitialize;
+procedure TCastleWindow.BackendMenuInitialize;
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.BackendMenuFinalize;
+procedure TCastleWindow.BackendMenuFinalize;
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   { does nothing }
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindow.MenuUpdateCheckedFast: boolean;
 begin
   Result := true; // MenuUpdateChecked does nothing, so yes, it's fast :)
 end;
 
-procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+procedure TCastleWindow.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { does nothing }
 end;
 
-function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
+function TCastleWindow.HandleXEvent(const Event: TXEvent): boolean;
 
   procedure X_KeyPress(const xEvent: TXKeyEvent);
   var
@@ -662,14 +621,14 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.UpdateFullScreenBackend;
+procedure TCastleWindow.UpdateFullScreenBackend;
 begin
   SimpleUpdateFullScreenBackend;
 end;
 
 { TCastleApplication ------------------------------------------------------- }
 
-function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
+function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindow;
 var
   i: integer;
 begin
@@ -698,7 +657,6 @@ const
 begin
   if not InitializeXDisplayDone then
   begin
-    {$ifndef CASTLE_ENGINE_PLUGIN}
     { process FXDisplayName by Xlib.XDisplayName, to make it look nicer }
     FXDisplayName := Xlib.XDisplayName(PCharOrNil(FXDisplayName));
     FXDisplay := XOpenDisplay(PCharOrNil(FXDisplayName));
@@ -716,17 +674,6 @@ begin
       {$endif}
         raise Exception.CreateFmt('XOpenDisplay could not open display "%s"', [XDisplayName]);
     end;
-
-    {$else}
-
-    { For a plugin,
-     - FXDisplay is unknown until NPP_New. It is set in NPP_SetWindow.
-       It must be set before this.
-     - FXDisplayName identifier is undefined, since it's never known. }
-
-    raise Exception.Create('Plugin caller did not set X display');
-
-    {$endif}
 
     // TODO: Is it OK for a plugin to just get XDefaultScreen below?
     FXScreen := XDefaultScreen(XDisplay);
@@ -844,7 +791,7 @@ end;
 
 function TCastleApplication.HandleXEvent(Event: TXEvent): boolean;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
   Result := false;
   if event._type = MappingNotify then
@@ -880,14 +827,6 @@ begin
   Result := 0;
 end;
 
-{$endif}
-
-{ TCastleWindow -------------------------------------------------------------- }
-
-{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-procedure TCastleWindow.NavigationInfoChanged;
-begin
-end;
 {$endif}
 
 { TWindowContainer ----------------------------------------------------------- }

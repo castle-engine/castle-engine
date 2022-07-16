@@ -12,6 +12,10 @@ import android.app.Service;
 import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.core.view.WindowInsetsCompat;
+
 /**
  * Integration of various Android small stuff with
  * Castle Game Engine.
@@ -34,22 +38,20 @@ public class ServiceMiscellaneous extends ServiceAbstract
         int[] attrs = {android.R.attr.windowFullscreen};
         TypedArray ta = getActivity().getTheme().obtainStyledAttributes(attrs);
         if (ta.getBoolean(0, true) && hasFocus) {
-            /* To have all the flags and methods below available
-             * (in particular, SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-             * wee need Android API version 19. Check the version at runtime,
-             * to handle various API versions with the same apk.
-             */
-            if (Build.VERSION.SDK_INT >= 19) {
-                View decorView = getActivity().getWindow().getDecorView();
-                decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                );
+            View decorView = getActivity().getWindow().getDecorView();
+
+            // Implementation follows https://developer.android.com/training/system-ui/immersive
+            WindowInsetsControllerCompat windowInsetsController =
+                ViewCompat.getWindowInsetsController(decorView);
+            if (windowInsetsController == null) {
+                return;
             }
+            // Configure the behavior of the hidden system bars
+            windowInsetsController.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            );
+            // Hide both the status bar and the navigation bar
+            windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
         }
     }
 

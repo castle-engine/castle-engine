@@ -22,17 +22,34 @@
 
 { Handle castlescript protocols, to specify inline CastleScript code. }
 
+{ For historic reasons, special X3D scripting protocols
+  like ecmascript: or castle-script: are read by just stripping protocol,
+  not decoding with ParseURI. }
+function InternalURIDeleteProtocol(const S: String): String;
+begin
+  {$warnings off}
+  Result := URIDeleteProtocol(S);
+  {$warnings on}
+end;
+
 { TUrlCastleScript ------------------------------------------------------------------- }
 
 type
   TUrlCastleScript = class
     class function Read(const Url: string; out MimeType: string): TStream;
+    class function MimeType(const URI: string; out Gzipped: Boolean): String;
   end;
 
 class function TUrlCastleScript.Read(const Url: string; out MimeType: string): TStream;
 begin
   MimeType := 'text/x-castlescript';
-  Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
+  Result := MemoryStreamLoadFromString(InternalURIDeleteProtocol(URL));
+end;
+
+class function TUrlCastleScript.MimeType(const URI: string; out Gzipped: Boolean): String;
+begin
+  Result := 'text/x-castlescript';
+  Gzipped := false;
 end;
 
 {$endif}

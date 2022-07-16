@@ -1,71 +1,104 @@
 X3DNurbsControlCurveNode : X3DNode {
+  auto-generate-more: true
+  default-container-field: children
   MFVec2d  [in,out] controlPoint []
     range: (-Inf,Inf)
 }
 
-X3DNurbsSurfaceGeometryNode : X3DParametricGeometryNode {
-  SFNode   [in,out] controlPoint  []
-    range: X3DCoordinateNode
-  SFNode   [in,out] texCoord      []
-    range: X3DTextureCoordinateNode|NurbsTextureCoordinate
-  SFInt32  [in,out] uTessellation 0
-    range: (-Inf,Inf)
-  SFInt32  [in,out] vTessellation 0
-    range: (-Inf,Inf)
-  MFDouble [in,out] weight        []
-    range: (0,Inf)
-  SFBool   []       solid         TRUE
-  SFBool   []       uClosed       FALSE
-  SFInt32  []       uDimension    0
-    range: [0,Inf)
-  MFDouble []       uKnot         []
-    range: (-Inf,Inf)
-  SFInt32  []       uOrder        3
-    range: [2,Inf)
-  SFBool   []       vClosed       FALSE
-  SFInt32  []       vDimension    0
-    range: [0,Inf)
-  MFDouble []       vKnot         []
-    range: (-Inf,Inf)
-  SFInt32  []       vOrder        3
-    range: [2,Inf)
+X3DParametricGeometryNode : X3DGeometryNode {
+  auto-generate-more: true
 }
 
-X3DParametricGeometryNode : X3DGeometryNode {
+X3DNurbsSurfaceGeometryNode : X3DParametricGeometryNode {
+  auto-generate-more: true
+  SFNode   [in,out] controlPoint  []
+    range: X3DCoordinateNode
+    change: chGeometry
+  SFNode   [in,out] texCoord      []
+    range: X3DTextureCoordinateNode|NurbsTextureCoordinate
+    change: chGeometry
+  SFInt32  [in,out] uTessellation 0
+    range: (-Inf,Inf)
+    change: chGeometry
+  SFInt32  [in,out] vTessellation 0
+    range: (-Inf,Inf)
+    change: chGeometry
+  MFDouble [in,out] weight        []
+    range: (0,Inf)
+    change: chGeometry
+  SFBool   []       solid         TRUE
+    change: chGeometry
+  SFBool   []       uClosed       FALSE
+    change: chGeometry
+  SFInt32  []       uDimension    0
+    range: [0,Inf)
+    change: chGeometry
+  MFDouble []       uKnot         []
+    range: (-Inf,Inf)
+    change: chGeometry
+  SFInt32  []       uOrder        3
+    range: [2,Inf)
+    change: chGeometry
+  SFBool   []       vClosed       FALSE
+    change: chGeometry
+  SFInt32  []       vDimension    0
+    range: [0,Inf)
+    change: chGeometry
+  MFDouble []       vKnot         []
+    range: (-Inf,Inf)
+    change: chGeometry
+  SFInt32  []       vOrder        3
+    range: [2,Inf)
+    change: chGeometry
 }
 
 Contour2D : X3DNode {
+  auto-generate-more: true
+  default-container-field: trimmingContour
   MFNode [in]     addChildren
     range: NurbsCurve2D|ContourPolyline2D
   MFNode [in]     removeChildren
     range: NurbsCurve2D|ContourPolyline2D
   MFNode [in,out] children       []
     range: NurbsCurve2D|ContourPolyline2D
+    change: chEverything
 }
 
 ContourPolyline2D : X3DNurbsControlCurveNode {
+  auto-generate-more: true
+  default-container-field: geometry
 }
 
 CoordinateDouble : X3DCoordinateNode {
+  auto-generate-more: true
   MFVec3d [in,out] point    []
     range: (-Inf,Inf)
+    change: chCoordinate
 }
 
 NurbsCurve : X3DParametricGeometryNode {
+  auto-generate-more: true
   SFNode   [in,out] controlPoint []
     range: X3DCoordinateNode
+    change: chGeometry
   SFInt32  [in,out] tessellation 0
     range: (-Inf,Inf)
+    change: chGeometry
   MFDouble [in,out] weight       []
     range: (0,Inf)
+    change: chGeometry
   SFBool   []       closed       FALSE
+    change: chGeometry
   MFDouble []       knot         []
     range: (-Inf,Inf)
+    change: chGeometry
   SFInt32  []       order        3
     range: [2,Inf)
+    change: chGeometry
 }
 
 NurbsCurve2D : X3DNurbsControlCurveNode {
+  auto-generate-more: true
   SFInt32  [in,out] tessellation 0
     range: (-Inf,Inf)
   MFDouble [in,out] weight       []
@@ -78,6 +111,7 @@ NurbsCurve2D : X3DNurbsControlCurveNode {
 }
 
 NurbsOrientationInterpolator : X3DChildNode {
+  auto-generate-more: true
   SFFloat    [in]     set_fraction
     range: (-Inf,Inf)
   SFNode     [in,out] controlPoint []
@@ -92,9 +126,11 @@ NurbsOrientationInterpolator : X3DChildNode {
 }
 
 NurbsPatchSurface : X3DNurbsSurfaceGeometryNode {
+  auto-generate-more: true
 }
 
 NurbsPositionInterpolator : X3DChildNode {
+  auto-generate-more: true
   SFFloat  [in]     set_fraction
     range: (-Inf,Inf)
   SFNode   [in,out] controlPoint  []
@@ -109,6 +145,7 @@ NurbsPositionInterpolator : X3DChildNode {
 }
 
 NurbsSet : X3DChildNode, X3DBoundedObject {
+  auto-generate-more: true
   MFNode  [in]     addGeometry
     range: X3DNurbsSurfaceGeometryNode
   MFNode  [in]     removeGeometry
@@ -124,6 +161,7 @@ NurbsSet : X3DChildNode, X3DBoundedObject {
 }
 
 NurbsSurfaceInterpolator : X3DChildNode {
+  auto-generate-more: true
   SFVec2f  [in]     set_fraction
     range: (-Inf,Inf)
   SFNode   [in,out] controlPoint     []
@@ -147,24 +185,36 @@ NurbsSurfaceInterpolator : X3DChildNode {
 }
 
 NurbsSweptSurface : X3DParametricGeometryNode {
+  auto-generate-more: true
   SFNode [in,out] crossSectionCurve []
     range: X3DNurbsControlCurveNode
+    change: chGeometry
   SFNode [in,out] trajectoryCurve   []
     range: NurbsCurve
+    change: chGeometry
   SFBool []       ccw               TRUE
+    change: chGeometry
   SFBool []       solid             TRUE
+    change: chGeometry
 }
 
 NurbsSwungSurface : X3DParametricGeometryNode {
+  auto-generate-more: true
   SFNode [in,out] profileCurve      []
     range: X3DNurbsControlCurveNode
+    change: chGeometry
   SFNode [in,out] trajectoryCurve   []
     range: X3DNurbsControlCurveNode
+    change: chGeometry
   SFBool []       ccw               TRUE
+    change: chGeometry
   SFBool []       solid             TRUE
+    change: chGeometry
 }
 
 NurbsTextureCoordinate : X3DNode {
+  auto-generate-more: true
+  default-container-field: texCoord
   MFVec2f  [in,out] controlPoint []
     range: (-Inf,Inf)
   MFFloat  [in,out] weight       []
@@ -184,10 +234,12 @@ NurbsTextureCoordinate : X3DNode {
 }
 
 NurbsTrimmedSurface : X3DNurbsSurfaceGeometryNode {
+  auto-generate-more: true
   MFNode   [in]     addTrimmingContour
     range: Contour2D
   MFNode   [in]     removeTrimmingContour
     range: Contour2D
   MFNode   [in,out] trimmingContour       []
     range: Contour2D
+    change: chGeometry
 }

@@ -1,5 +1,6 @@
+{%MainUnit castleimages.pas}
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,7 +27,7 @@ type
 
   Raises ELibPngNotAvailable exception if libpng library
   was not available or had incorrect version (not CastlePngInitialized). }
-function CurrentLibpngVersion: PChar; forward;
+function CurrentLibpngVersion: PAnsiChar; forward;
 
 { Use all functions below ONLY when CastlePngInitialized = true. }
 
@@ -60,17 +61,17 @@ function PngTextCompressionToStr(const PngTextCompression: longint): string; for
 
 var
   { Call InitializePNG to set these variables }
-  FCurrentLibpngVersion: string;
+  FCurrentLibpngVersion: AnsiString;
   FCurrentLibpngVersionMajor,
   FCurrentLibpngVersionMinor,
   FCurrentLibpngVersionRelease: Integer;
 
-function CurrentLibpngVersion: PChar;
+function CurrentLibpngVersion: PAnsiChar;
 begin
   if not CastlePngInitialized then
     raise ELibPngNotAvailable.Create('LibPng (or it''s dependency, ZLib) is not available, or has incorrect version. Make sure that the dynamic libraries for LibPng and ZLib are installed (or placed alongside the exe file on Windows).');
 
-  Result := PChar(FCurrentLibpngVersion);
+  Result := PAnsiChar(FCurrentLibpngVersion);
 end;
 
 { ------------------------------------------------------------------------------------ }
@@ -508,18 +509,26 @@ var
 begin
   if CastlePngInitialized then
   begin
-    VerNumber := png_access_version_number();
-    FCurrentLibpngVersionRelease := VerNumber mod 100;
-    FCurrentLibpngVersionMinor := (VerNumber mod 10000) div 100;
-    FCurrentLibpngVersionMajor := VerNumber div 10000;
-    FCurrentLibpngVersion := Format('%d.%d.%d', [
-      FCurrentLibpngVersionMajor,
-      FCurrentLibpngVersionMinor,
-      FCurrentLibpngVersionRelease
-    ]);
-    WritelnLog('LibPng detected (version %s).', [FCurrentLibpngVersion]);
+    { Repeated calls to InitializePNGUsingLibpng should do nothing.
+      This is useful because we call it now from LoadPNG, as we need to do it
+      later than "initialization" on Android. }
+    if FCurrentLibpngVersion = '' then
+    begin
+      VerNumber := png_access_version_number();
+      FCurrentLibpngVersionRelease := VerNumber mod 100;
+      FCurrentLibpngVersionMinor := (VerNumber mod 10000) div 100;
+      FCurrentLibpngVersionMajor := VerNumber div 10000;
+      FCurrentLibpngVersion := AnsiString(Format('%d.%d.%d', [
+        FCurrentLibpngVersionMajor,
+        FCurrentLibpngVersionMinor,
+        FCurrentLibpngVersionRelease
+      ]));
+      WritelnLog('LibPng detected (version %s).', [FCurrentLibpngVersion]);
+    end;
   end else
-    WritelnLog('LibPng not found. We will use slower FPImage to load PNG format.');
+    WritelnLog('LibPng not found.' + NL +
+      '  This also happens when a dependency of LibPng, like Zlib, is missing.' + NL +
+      '  We will use slower FPImage to load PNG format.');
 end;
 
 { error / warning handlers --------------------------------------------------- }
@@ -562,7 +571,9 @@ end;
 
 { We dereference here memory allocated with PNG, so pointer checks
   will make false errors. }
+{$ifdef FPC}
 {$checkpointer off}
+{$endif}
 
 procedure our_png_read_fn(png_ptr: png_structp; data: png_bytep; len: png_size_t);
   {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
@@ -606,10 +617,12 @@ var
 
   { Allocates Result to given class and applies libpng transforms to
     make resulting data matching given Result class.
-    Does this (and returns @true) only if ImageClass is allowed. }
-  function TransformPng(ImageClass: TCastleImageClass): boolean;
+
+    When CheckTargetClass, it checks (and returns @true only when it is OK)
+    whether ImageClass is in AllowedImageClasses. }
+  function TransformPng(const ImageClass: TCastleImageClass; const CheckTargetClass: Boolean = true): boolean;
   begin
-    Result := ClassAllowed(ImageClass);
+    Result := (not CheckTargetClass) or ClassAllowed(ImageClass);
 
     if Result then
     begin
@@ -626,7 +639,7 @@ var
   end;
 
 var
-  row_pointers: TFPList;
+  row_pointers: {$ifdef FPC}TFPList{$else}TList{$endif};
   i: Cardinal;
   IsAlpha, IsGrayscale: boolean;
 begin
@@ -649,15 +662,15 @@ begin
     is sufficient for us. }
   png_ptr := png_create_read_struct(CurrentLibpngVersion,
     nil { we could pass here data to warning/error handlers },
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_error_fn,
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_warning_fn);
+    {$ifdef FPC} @ {$endif} our_png_error_fn,
+    {$ifdef FPC} @ {$endif} our_png_warning_fn);
   Check( png_ptr <> nil, 'png_create_read_struct failed');
 
   info_ptr := png_create_info_struct(png_ptr);
   Check( info_ptr <> nil, 'png_create_info_struct failed');
 
   png_set_read_fn(png_ptr, Stream,
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_read_fn);
+    {$ifdef FPC} @ {$endif} our_png_read_fn);
 
   { Note: We could use png_set_read_status_fn to show progress bar of loading.
     Doesn't seem actually necessary, PNG would have to be truly huge to matter. }
@@ -697,14 +710,16 @@ begin
        if not TransformPng(TRGBAlphaImage) then
        if not TransformPng(TGrayscaleImage) then
        if not TransformPng(TRGBImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
+         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+         TransformPng(TGrayscaleAlphaImage, false);
      end else
      begin
        if not TransformPng(TGrayscaleImage) then
        if not TransformPng(TGrayscaleAlphaImage) then
        if not TransformPng(TRGBImage) then
        if not TransformPng(TRGBAlphaImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
+         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+         TransformPng(TGrayscaleImage, false);
      end;
    end else
    begin
@@ -714,14 +729,16 @@ begin
        if not TransformPng(TRGBImage) then
        if not TransformPng(TGrayscaleAlphaImage) then
        if not TransformPng(TGrayscaleImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
+         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+         TransformPng(TRGBAlphaImage, false);
      end else
      begin
        if not TransformPng(TRGBImage) then
        if not TransformPng(TRGBAlphaImage) then
        if not TransformPng(TGrayscaleImage) then
        if not TransformPng(TGrayscaleAlphaImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
+         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+         TransformPng(TRGBImage, false);
      end;
    end;
 
@@ -734,7 +751,7 @@ begin
          PngResult.PixelSize * PngResult.Width]));
 
    { now ready row_pointers as ScanLines }
-   row_pointers := TFPList.Create;
+   row_pointers := {$ifdef FPC}TFPList{$else}TList{$endif}.Create;
    try
     row_pointers.Count := result.Height;
     for i := 0 to result.Height-1 do
@@ -764,7 +781,7 @@ procedure SavePNG_LibPng(const Img: TEncodedImage; const Stream: TStream; const 
 var png_ptr: png_structp;
     info_ptr: png_infop;
     InterlaceType: LongWord;
-    row_pointers: TFPList;
+    row_pointers: {$ifdef FPC}TFPList{$else}TList{$endif};
     i: Cardinal;
     ColorType: LongInt;
 begin
@@ -775,16 +792,16 @@ begin
  try
   png_ptr := png_create_write_struct(CurrentLibpngVersion,
     nil { we could pass here data to warning/error handlers },
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_error_fn,
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_warning_fn);
+    {$ifdef FPC} @ {$endif} our_png_error_fn,
+    {$ifdef FPC} @ {$endif} our_png_warning_fn);
   Check( png_ptr <> nil, 'png_create_write_struct failed');
 
   info_ptr := png_create_info_struct(png_ptr);
   Check( info_ptr <> nil, 'png_create_info_struct failed');
 
   png_set_write_fn(png_ptr, Stream,
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_write_fn,
-    {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_flush_fn);
+    {$ifdef FPC} @ {$endif} our_png_write_fn,
+    {$ifdef FPC} @ {$endif} our_png_flush_fn);
 
   { TODO -- uzyj tu png_set_write_status_fn aby miec progressa }
 
@@ -811,7 +828,7 @@ begin
     This is much simpler than LoadPNG_LibPng, since we don't need to transform
     the format, e.g. we just use always 8 bits per channel. }
 
-  row_pointers := TFPList.Create;
+  row_pointers := {$ifdef FPC}TFPList{$else}TList{$endif}.Create;
   try
    row_pointers.Count := Img.Height;
    for i := 0 to Img.Height-1 do

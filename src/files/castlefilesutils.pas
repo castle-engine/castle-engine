@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -85,7 +85,7 @@ unit CastleFilesUtils;
 interface
 
 uses {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef UNIX} BaseUnix, Unix, {$endif}
+  {$ifdef UNIX} {$ifdef FPC} BaseUnix, Unix, {$endif} {$endif}
   SysUtils, CastleUtils;
 
 type
@@ -314,7 +314,11 @@ function ApplicationConfig(const Path: string): string;
 
       @item(@code(data) subdirectory of the current directory, if exists.
         This is easiest and comfortable for development, just keep
-        the "data" subdirectory alongside the executable binary.)
+        the "data" subdirectory alongside the executable binary.
+
+        Note: This is searched *after* system-wide specific dirs above,
+        to avoid accidentally picking unrelated "data" in current directory
+        instead of system-wide data.)
 
       @item(As a last resort, we just return the current directory.
         So you can just place data files directly inside the current directory.
@@ -375,6 +379,9 @@ procedure CheckRenameFile(const Source, Dest: string);
   with all the files and subdirectories inside).
   DirName may but doesn't have to end with PathDelim.
 
+  In case of symlinks, removes the symlink (but does not descend inside,
+  i.e. will not remove files inside a symlink to a directory).
+
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
@@ -431,7 +438,7 @@ procedure CopyDirectory(SourcePath, DestinationPath: string);
   #)
 
   Note that to save a screenshot in the most cross-platform way possible, we advise using
-  @link(TUIContainer.SaveScreenToDefaultFile Window.Container.SaveScreenToDefaultFile)
+  @link(TCastleContainer.SaveScreenToDefaultFile Window.Container.SaveScreenToDefaultFile)
   instead, it will use @link(SaveScreenPath) or more elebarate mechanism to work on all platforms.
 
   Example usage to save anything else to user config:
@@ -655,7 +662,7 @@ function ApplicationData(const Path: string): string;
     {$ifdef DARWIN}
     if BundlePath <> '' then
     begin
-      {$ifdef IOS}
+      {$ifdef CASTLE_IOS}
       Result := BundlePath + 'data/';
       {$else}
       Result := BundlePath + 'Contents/Resources/data/';
@@ -854,16 +861,18 @@ var
 begin
   Warn := PBoolean(Data)^;
 
-  if FileInfo.Directory then
-    CheckRemoveDir(FileInfo.AbsoluteName, Warn)
+  if FileInfo.Directory and not FileInfo.Symlink then
+    RemoveNonEmptyDir(FileInfo.AbsoluteName, Warn)
   else
     CheckDeleteFile(FileInfo.AbsoluteName, Warn);
 end;
 
 procedure RemoveNonEmptyDir(const DirName: string; const Warn: Boolean = false);
 begin
-  FindFiles(DirName, '*', true,
-    @RemoveNonEmptyDir_Internal, @Warn, [ffRecursive, ffDirContentsLast]);
+  { Note that we don't use ffRecursive,
+    as we don't want to descend into directory with symlink.
+    We will implement recursion in RemoveNonEmptyDir_Internal manually. }
+  FindFiles(DirName, '*', true, @RemoveNonEmptyDir_Internal, @Warn, []);
   CheckRemoveDir(Dirname, Warn);
 end;
 
@@ -903,7 +912,7 @@ begin
   try
     Handler.SourcePath := SourcePath;
     Handler.DestinationPath := DestinationPath;
-    FindFiles(SourcePath, '*', false, {$ifdef CASTLE_OBJFPC}@{$endif} Handler.FoundFile, [ffRecursive]);
+    FindFiles(SourcePath, '*', false, {$ifdef FPC}@{$endif} Handler.FoundFile, [ffRecursive]);
   finally FreeAndNil(Handler) end;
 end;
 
@@ -1115,7 +1124,7 @@ begin
 end;
 {$endif}
 
-{$if defined(UNIX) and (not (defined(DARWIN) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH) or defined(IOS)))}
+{$if defined(UNIX) and (not (defined(DARWIN) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH) or defined(CASTLE_IOS)))}
 { Get preferred user directory, by calling xdg-user-dir
   ( https://jlk.fjfi.cvut.cz/arch/manpages/man/xdg-user-dir.1.en ).
 
@@ -1130,6 +1139,7 @@ var
 begin
   Result := HomePath;
 
+  {$ifdef FPC}
   Exe := FindExe('xdg-user-dir');
   if Exe = '' then
     Exit;
@@ -1141,14 +1151,18 @@ begin
     if (Dir <> '') and DirectoryExists(Dir) then
       Result := InclPathDelim(Dir);
   end else
+  {$endif}
+
     WritelnWarning('xdg-user-dir call failed');
 end;
 {$endif}
 
 {$ifndef FPC}
-{ Get temporary FileName, also creating this file, using WinAPI.
+
+{ Get temporary FileName, also creating this file.
   There seems to be no cross-platform function for this in Delphi. }
-function GetTempFileNameWindows(const Prefix: AnsiString): AnsiString;
+function GetTempFileNameDelphi(const Prefix: AnsiString): AnsiString;
+{$ifdef MSWINDOWS}
 var
   MyPath, MyFileName: array [0..MAX_PATH] of AnsiChar;
 begin
@@ -1157,16 +1171,22 @@ begin
   OSCheck(GetTempPathA(SizeOf(MyPath), MyPath) <> 0);
   OSCheck(GetTempFileNameA(MyPath, PAnsiChar(Prefix), 0, MyFileName) <> 0);
   Result := MyFileName;
+{$endif}
+{$ifdef UNIX}
+begin
+  // TODO: trivial impl for Delphi on Linux
+  Result := '/tmp/' + Prefix;
+{$endif}
 end;
 
 function GetTempFileNameCheck: string;
 begin
-  Result := GetTempFileNameWindows(ApplicationName);
+  Result := GetTempFileNameDelphi(ApplicationName);
 end;
 
 function GetTempFileNamePrefix: string;
 begin
-  Result := GetTempFileNameWindows(ApplicationName);
+  Result := GetTempFileNameDelphi(ApplicationName);
 end;
 {$else}
 
@@ -1218,7 +1238,10 @@ begin
   begin
     bundle := CFBundleGetMainBundle();
     if bundle = nil then
-      BundlePathCache := '' else
+    begin
+      BundlePathCache := '';
+      WritelnLog('We cannot detect our macOS AppBundle. Probably the application was run directly (like a Unix application, without being wrapped in a directory like "xxx.app"). Some GUI features (like application menu) will not work without running through AppBundle.');
+    end else
     begin
       pathRef := CFBundleCopyBundleURL(bundle);
       pathCFStr := CFURLCopyFileSystemPath(pathRef, kCFURLPOSIXPathStyle);
@@ -1280,7 +1303,7 @@ begin
   if HasCachedSaveScreenPath then
     Exit(CachedSaveScreenPath);
 
-  {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+  {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
   { These platforms require special treatment. Although we could use
 
       Result := URIToFilenameSafe(ApplicationConfig(''));
@@ -1318,7 +1341,8 @@ begin
     {$else} ParamStr(0)
     {$endif};
 
-  {$ifdef LINUX}
+  {$if defined(LINUX) and defined(FPC)}
+  // TODO: we could port this to Delphi
   { Under Linux, try to use /proc/getpid()/exe.
     This is more reliable than ParamStr(0),
     as ParamStr(0) is set by the calling process,

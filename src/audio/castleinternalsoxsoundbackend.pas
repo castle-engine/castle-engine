@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,16 +59,16 @@ type
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
-    procedure SetLooping(const Value: boolean); override;
-    procedure SetRelative(const Value: boolean); override;
-    procedure SetGain(const Value: Single); override;
+    procedure SetLoop(const Value: boolean); override;
+    procedure SetSpatial(const Value: boolean); override;
+    procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
     procedure SetBuffer(const Value: TSoundBufferBackend); override;
     procedure SetPitch(const Value: Single); override;
-    procedure SetRolloffFactor(const Value: Single); override;
     procedure SetReferenceDistance(const Value: Single); override;
     procedure SetMaxDistance(const Value: Single); override;
+    procedure SetPriority(const Value: Single); override;
     function GetOffset: Single; override;
     procedure SetOffset(const Value: Single); override;
   end;
@@ -77,12 +77,13 @@ type
   private
     SoxCommand: String;
   public
-    function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
+    function ContextOpen(const ADevice: String; out Information, InformationSummary: String): Boolean; override;
     procedure ContextClose; override;
     function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
-    procedure SetGain(const Value: Single); override;
+    procedure SetVolume(const Value: Single); override;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
+    procedure SetDopplerFactor(const Value: Single); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
   end;
 
@@ -160,15 +161,15 @@ procedure TSoxSoundSourceBackend.SetVelocity(const Value: TVector3);
 begin
 end;
 
-procedure TSoxSoundSourceBackend.SetLooping(const Value: boolean);
+procedure TSoxSoundSourceBackend.SetLoop(const Value: boolean);
 begin
 end;
 
-procedure TSoxSoundSourceBackend.SetRelative(const Value: boolean);
+procedure TSoxSoundSourceBackend.SetSpatial(const Value: boolean);
 begin
 end;
 
-procedure TSoxSoundSourceBackend.SetGain(const Value: Single);
+procedure TSoxSoundSourceBackend.SetVolume(const Value: Single);
 begin
 end;
 
@@ -189,15 +190,15 @@ procedure TSoxSoundSourceBackend.SetPitch(const Value: Single);
 begin
 end;
 
-procedure TSoxSoundSourceBackend.SetRolloffFactor(const Value: Single);
-begin
-end;
-
 procedure TSoxSoundSourceBackend.SetReferenceDistance(const Value: Single);
 begin
 end;
 
 procedure TSoxSoundSourceBackend.SetMaxDistance(const Value: Single);
+begin
+end;
+
+procedure TSoxSoundSourceBackend.SetPriority(const Value: Single);
 begin
 end;
 
@@ -213,7 +214,7 @@ end;
 { TSoxSoundEngineBackend -------------------------------------------------- }
 
 function TSoxSoundEngineBackend.ContextOpen(const ADevice: String;
-  out Information: String): Boolean;
+  out Information, InformationSummary: String): Boolean;
 var
   SoxVersion: String;
 begin
@@ -221,11 +222,13 @@ begin
   if SoxCommand = '' then
   begin
     Information := 'SOX executable not found on $PATH';
+    InformationSummary := Information;
     Exit(false);
   end;
   if not RunCommand(SoxCommand, ['--version'], SoxVersion) then
   begin
     Information := 'Failed to execute SOX executable with --version';
+    InformationSummary := Information;
     Exit(false);
   end;
 
@@ -235,17 +238,22 @@ begin
   Information := 'SOX command found:' + NL +
     'Executable path: ' + SoxCommand + NL +
     'Version: ' + SoxVersion;
+  InformationSummary := 'SOX ' + SoxVersion;
 end;
 
 procedure TSoxSoundEngineBackend.ContextClose;
 begin
 end;
 
-procedure TSoxSoundEngineBackend.SetGain(const Value: Single);
+procedure TSoxSoundEngineBackend.SetVolume(const Value: Single);
 begin
 end;
 
 procedure TSoxSoundEngineBackend.SetDistanceModel(const Value: TSoundDistanceModel);
+begin
+end;
+
+procedure TSoxSoundEngineBackend.SetDopplerFactor(const Value: Single);
 begin
 end;
 

@@ -1,0 +1,23 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "RootTransform",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleScene",
+      "ExposeTransforms" : [
+      ],
+      "Name" : "SceneTntBox",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+        "Name" : "RenderOptions"
+      },
+      "URL" : "castle-data:/extra_objects/tnt.gltf"
+    }
+  ],
+  "$Behaviors" : [
+    {
+      "$$ClassName" : "TCastleSoundSource",
+      "Name" : "SoundSource1"
+    }
+  ]
+}

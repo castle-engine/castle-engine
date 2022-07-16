@@ -12,8 +12,16 @@
 #
 # Most useful targets of this Makefile:
 #
-#   all (default target) --
-#     Compile all units, uses fpmake.
+#   default (default target) --
+#     Build the most useful things:
+#     - tools not depending on LCL (including build tool)
+#     - editor
+#     Also, register all Lazarus packages.
+#     Also, place all tools and editor in bin/ subdirectory.
+#
+#   tools --
+#     Build all tools that don't depend on LCL.
+#     Right now it means: all tools except castle-editor.
 #
 #   examples --
 #     Compile most examples and tools (that don't use Lazarus LCL).
@@ -32,6 +40,11 @@
 #     This compilation method uses our .lpi project files,
 #     and compiles every program by the lazbuild utility.
 #     Lazarus and FPC installation is required.
+#
+#   build-using-fpmake:
+#     Compile all units using FpMake.
+#     We support this as an optional build approach to CGE and applications using CGE.
+#     See https://castle-engine.io/fpmake .
 #
 #   clean --
 #     Delete FPC temporary files, Delphi temporary files,
@@ -61,6 +74,7 @@
 
 SED := sed
 FIND := find
+INSTALL := install
 EXE_EXTENSION :=
 
 ifeq ($(OS),Windows_NT)
@@ -71,9 +85,13 @@ else
   # Only on Unix, you can use "uname" to further detect Unix variants,
   # see https://stackoverflow.com/questions/714100/os-detecting-makefile
   UNAME_S := $(shell uname -s)
-  # On macOS, use gsed (e.g. from Homebrew)
+
+  # On macOS, use gsed and ginstall (e.g. from Homebrew, use "brew install gnu-sed coreutils").
+  # See https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/
+  # http://www.legendu.net/en/blog/install-gnu-utils-using-homebrew/
   ifeq ($(UNAME_S),Darwin)
     SED := gsed
+    INSTALL := ginstall
   endif
 endif
 
@@ -95,44 +113,33 @@ endif
 #
 BUILD_TOOL = ./tools/build-tool/castle-engine$(EXE_EXTENSION)
 
-# compile ------------------------------------------------------------
+# compiling tools ------------------------------------------------------------
 
-.PHONY: all
-all:
-	$(MAKE) --no-print-directory build-using-fpmake
-	$(MAKE) tools
+.PHONY: default
+default: tools
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_base.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_window.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) tools/castle-editor/castle_editor.lpi
+# move binaries to bin/
+	$(INSTALL) -d bin/
+	$(INSTALL) tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) bin/
+	$(INSTALL) tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) bin/
+	$(INSTALL) tools/castle-curves/castle-curves$(EXE_EXTENSION) bin/
+	$(INSTALL) tools/build-tool/castle-engine$(EXE_EXTENSION) bin/
+	$(INSTALL) tools/to-data-uri/to-data-uri$(EXE_EXTENSION) bin/
+	$(INSTALL) tools/castle-editor/castle-editor$(EXE_EXTENSION) bin/
 
 .PHONY: tools
 tools:
 # Compile build tool first, used to compile other tools and examples
 	tools/build-tool/castle-engine_compile.sh
-	$(BUILD_TOOL) --project tools/castle-curves/ compile
-	$(BUILD_TOOL) --project tools/image-to-pascal/ compile
-	$(BUILD_TOOL) --project tools/texture-font-to-pascal/ compile
-	$(BUILD_TOOL) --project tools/to-data-uri/ compile
-
-.PHONY: build-using-fpmake
-build-using-fpmake:
-	fpc fpmake.pp
-	@echo 'Running fpmake. If this fails saying that "rtl" is not found, remember to set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
-# Workaround FPC >= 3.x problem (bug?) --- it ignores $FPCDIR, but --globalunitdir works
-	if [ '(' -n "$(FPCDIR)" ')' ]; then \
-	   ./fpmake --globalunitdir="$(FPCDIR)"; \
-	else \
-	   ./fpmake; \
-	fi
-
-# Full test that fpmake compilation process works
-# (see https://github.com/castle-engine/castle-engine/wiki/FpMake )
-.PHONY: test-fpmake
-test-fpmake: build-using-fpmake
-# Test fpmake with --nofpccfg, to make sure our dependencies in fpmake.pp are correct
-	./fpmake clean --verbose
-	if [ '(' -n "$(FPCDIR)" ')' ]; then \
-	   ./fpmake --globalunitdir="$(FPCDIR)" --nofpccfg --verbose; \
-	else \
-	   ./fpmake --nofpccfg --verbose; \
-	fi
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/castle-curves/ compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/image-to-pascal/ compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/texture-font-to-pascal/ compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/to-data-uri/ compile
 
 # install / uninstall --------------------------------------------------------
 #
@@ -157,16 +164,16 @@ DATADIR=$(DATAROOTDIR)
 
 .PHONY: install
 install:
-	install -d $(BINDIR)
-	install tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
-	install tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) $(BINDIR)
-	install tools/castle-curves/castle-curves$(EXE_EXTENSION) $(BINDIR)
-	install tools/build-tool/castle-engine$(EXE_EXTENSION) $(BINDIR)
-	install tools/to-data-uri/to-data-uri$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) -d $(BINDIR)
+	$(INSTALL) tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/castle-curves/castle-curves$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/build-tool/castle-engine$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/to-data-uri/to-data-uri$(EXE_EXTENSION) $(BINDIR)
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
-	install -d  $(DATADIR)
+	$(INSTALL) -d  $(DATADIR)
 	cd tools/build-tool/data/ && \
-	  $(FIND) . -type f -exec install --mode 644 -D '{}' $(DATADIR)/castle-engine/'{}' ';'
+	  "$(FIND)" . -type f -exec $(INSTALL) --mode 644 -D '{}' $(DATADIR)/castle-engine/'{}' ';'
 
 .PHONY: uninstall
 uninstall:
@@ -196,75 +203,31 @@ strip-precompiled-libraries:
 	       tools/build-tool/data/android/integrated/gradlew \
 	       tools/build-tool/data/android/integrated/gradlew.bat
 
-# examples and tools -----------------------------------------------------------
+# compiling examples -----------------------------------------------------------
 
-# Note that images/examples/fft_tests is not included here,
-# and unit images/imagesfftw.pas is not included in fpmake.pp,
-# because
-# 1. it requires to compile FPC > 2.2.x, and we try to work also with earlier FPC.
-# 2. to link the example, you need the fftw library. I don't want
-#    to force everyone who wants to execute "make examples" to install
-#    fftw library (especially since it's really not needed by my engine,
-#    currently my fftw code is just for testing, it's not actually used
-#    by our engine or any game for anything).
+# For GitHub Actions, we need to conserve disk space in some cases, as it is limited to ~15 GB.
 #
+# When CASTLE_CONSERVE_DISK_SPACE is
+# - true -> prefixing command with $(DO_IF_CONSERVE_DISK_SPACE) makes this command execute.
+# - anything else -> prefixing command with $(DO_IF_CONSERVE_DISK_SPACE) makes this command not execute.
+#
+ifeq ($(CASTLE_CONSERVE_DISK_SPACE),true)
+DO_IF_CONSERVE_DISK_SPACE:=
+else
+DO_IF_CONSERVE_DISK_SPACE:=true
+endif
+
 # Note that examples with CastleEngineManifest.xml are not listed here.
 # They will be found and compiled by a Makefile rule that searches using
 # "find ... -iname CastleEngineManifest.xml ..." .
-#
-# TODO: In the long run, it would be best if *all* examples had CastleEngineManifest.xml,
-# then the need to maintain EXAMPLES_BASE_NAMES would disappear.
 
-EXAMPLES_BASE_NAMES := \
-  examples/3d_rendering_processing/animate_3d_model_by_code \
-  examples/3d_rendering_processing/animate_3d_model_by_code_2 \
-  examples/3d_rendering_processing/build_3d_object_by_code \
-  examples/3d_rendering_processing/build_3d_tunnel \
-  examples/3d_rendering_processing/call_pascal_code_from_3d_model_script \
-  examples/3d_rendering_processing/cars_demo \
-  examples/3d_rendering_processing/combine_multiple_x3d_into_one \
-  examples/3d_rendering_processing/custom_input_shortcuts_saved_to_config \
-  examples/3d_rendering_processing/detect_scene_clicks \
-  examples/3d_rendering_processing/display_box_custom_shaders \
-  examples/3d_rendering_processing/fog_culling \
-  examples/3d_rendering_processing/listen_on_x3d_events \
-  examples/3d_rendering_processing/multiple_viewports \
-  examples/3d_rendering_processing/placeholder_names \
-  examples/3d_rendering_processing/render_3d_to_image \
-  examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad \
-  examples/3d_rendering_processing/transform_scenes_demos \
-  examples/3d_rendering_processing/show_bounding_rect_in_2d \
-  examples/3d_rendering_processing/switch_projection \
-  examples/3d_rendering_processing/transform_feedback \
-  examples/3d_rendering_processing/triangulate_demo \
-  examples/3d_rendering_processing/view_3d_model_advanced \
-  examples/3d_rendering_processing/view_3d_model_basic \
-  examples/curves/simplest_curve_read \
-  examples/fonts/font_draw_over_image \
-  examples/fonts/font_from_texture \
-  examples/fonts/test_font_break \
-  examples/images_videos/background_tiling \
-  examples/images_videos/dds_decompose \
-  examples/images_videos/draw_images_on_gpu \
-  examples/images_videos/drawing_modes_test \
-  examples/images_videos/image_compare \
-  examples/images_videos/image_convert \
-  examples/images_videos/image_identify \
-  examples/images_videos/image_paint \
-  examples/images_videos/image_render_custom_shader \
-  examples/images_videos/simple_video_editor \
-  examples/images_videos/test_castleimage_draw3x3 \
-  examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
-  examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
-  examples/research_special_rendering_methods/radiance_transfer/show_sh \
-  examples/simple_command_line_utilities/dircleaner \
-  examples/simple_command_line_utilities/stringoper
+EXAMPLES_BASE_NAMES :=
 
 # Note that src/library/castleengine must be compiled before
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
 EXAMPLES_LAZARUS_BASE_NAMES := \
-  src/library/castleengine \
-  examples/library/lazarus_library_tester/cge_dynlib_tester
+  src/deprecated_library/castleengine \
+  examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)
@@ -277,9 +240,10 @@ EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
 .PHONY: test-editor-template
 test-editor-template:
 	$(SED) --in-place=.backup \
-	  -e 's|standalone_source="$${PROJECT_PASCAL_NAME}_standalone.lpr"||' \
-	  -e 's|qualified_name="$${PROJECT_QUALIFIED_NAME}"||' \
-	  -e 's|$${PROJECT_NAME}|test_template_project_name|' \
+	  -e 's|standalone_source="$${XmlQuote(PROJECT_PASCAL_NAME)}_standalone.dpr"||' \
+	  -e 's|$${XmlQuote(PROJECT_QUALIFIED_NAME)}|test.project.castle.engine.io|' \
+	  -e 's|$${XmlQuote(PROJECT_CAPTION)}|Test Template Project Caption|' \
+	  -e 's|$${XmlQuote(PROJECT_NAME)}|test_template_project_name|' \
 	  $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml
 	$(SED)  --in-place=.backup \
 	  -e 's|$${PROJECT_NAME}|test_template_project_name|' \
@@ -299,8 +263,8 @@ endif
 	  -e 's|$${CAPTION}|Test Template Project Caption|' \
 	  -e 's|$${VERSION}|0.1|' \
 	  $(EDITOR_TEMPLATE_PATH)castleautogenerated.pas
-	$(BUILD_TOOL) --project $(EDITOR_TEMPLATE_PATH) compile
-	$(BUILD_TOOL) --project $(EDITOR_TEMPLATE_PATH) clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $(EDITOR_TEMPLATE_PATH) compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $(EDITOR_TEMPLATE_PATH) clean
 	mv -f $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml.backup $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml
 	mv -f $(EDITOR_TEMPLATE_PATH)code/gameinitialize.pas.backup $(EDITOR_TEMPLATE_PATH)code/gameinitialize.pas
 ifdef CASTLE_HAS_MAIN_STATE
@@ -319,31 +283,71 @@ test-editor-templates:
 .PHONY: examples
 examples:
 # Compile build tool first, used to compile other tools and examples.
-# Also copy it, as below it will recompile itself (which would be trouble on Windows).
 	tools/build-tool/castle-engine_compile.sh
-	cp -f $(BUILD_TOOL) castle-engine-copy$(EXE_EXTENSION)
 
-# Compile all examples using xxx_compile.sh shell script (calls build tool), TODO: to remove
-	$(foreach NAME,$(EXAMPLES_BASE_NAMES),$(NAME)_compile.sh && ) true
-
-# Compile all examples with CastleEngineManifest.xml inside.
-# Use xargs (not "find ... -execdir") because we want the "make examples" to fail
-# if something failed to compile.
-# We make a copy of castle-engine, otherwise it would fail on Windows
-# (as you cannot replace your own exe).
-# Exceptions:
-# - We do not compile examples/network/tcp_connection/ here,
-#   as it requires Indy which may not be installed.
-	$(FIND) . \
+# Compile all examples and tools with CastleEngineManifest.xml inside.
+#
+# We want this to fail if some application failed to compile.
+# Unfortunately find seems to ignore -exec result.
+# (see e.g. https://unix.stackexchange.com/questions/392970/how-to-get-the-exit-code-of-commands-started-by-find )
+# And we cannot use -execdir.
+# We also cannot use find ... | xargs, we need to execute 2 commands for each (compile and clean).
+#
+# So we use find to generate list of projects, then run using simple "for" over them.
+#
+# Exceptions: We do not process:
+#
+# - examples/network/tcp_connection/: because it requires Indy which may not be installed.
+#
+# - tests/delphi_tests: because it requires Delphi, which is not available on non-Windows.
+#
+# - tools/build-tool: because
+#   - compilation is tested by "make tools" already,
+#   - we don't want to clean it, to have it available for "make test-editor-templates" after this
+#   - on Windows, we'd have to make a copy of castle-engine, as you cannot replace own exe.
+	"$(FIND)" . \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
-	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
-	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
-	  xargs -0 -n1 ./castle-engine-copy$(EXE_EXTENSION) \
-	    $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
+	  '(' -path ./tools/build-tool -prune ')' -o \
+	  '(' -path ./tests/delphi_tests -prune ')' -o \
+	  '(' -type d -iname castle-engine-output -prune ')' -o \
+	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
+	  /tmp/cge-projects.txt
+	echo 'Found projects: '`wc -l < /tmp/cge-projects.txt`
+	set -e && for MANIFEST in `cat /tmp/cge-projects.txt`; do \
+	  echo 'Compiling project '$${MANIFEST}; \
+	  $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} compile; \
+	  $(DO_IF_CONSERVE_DISK_SPACE) $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} clean; \
+	done
 
 # Compile editor templates
 	 $(MAKE) test-editor-templates
+
+# This a bit simpler than "make examples", it assumes
+# - build tool is already build, in $(BUILD_TOOL)
+# - doesn't deal with template tests
+# - only searches examples/ subdir
+.PHONY: examples-delphi
+examples-delphi:
+	"$(FIND)" ./examples/ \
+	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
+	  '(' -path ./examples/castlescript/image_make_by_script -prune ')' -o \
+	  '(' -path ./examples/localization -prune ')' -o \
+	  '(' -path ./examples/network/custom_url_handler -prune ')' -o \
+	  '(' -path ./examples/research_special_rendering_methods -prune ')' -o \
+	  '(' -path ./examples/visualize_triangulation -prune ')' -o \
+	  '(' -path ./examples/audio/audio_player -prune ')' -o \
+	  '(' -path ./examples/audio/test_sound_source_allocator -prune ')' -o \
+	  '(' -path ./examples/deprecated_random_generator -prune ')' -o \
+	  '(' -path ./examples/deprecated_library -prune ')' -o \
+	  '(' -path ./examples/lazarus -prune ')' -o \
+	  '(' -iname CastleEngineManifest.xml -print ')' > \
+	  /tmp/cge-delphi-projects.txt
+	echo 'Found projects: '`wc -l < /tmp/cge-delphi-projects.txt`
+	set -e && for MANIFEST in `cat /tmp/cge-delphi-projects.txt`; do \
+	  echo 'Compiling project '$${MANIFEST}; \
+	  $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} --compiler=delphi compile; \
+	done
 
 .PHONY: cleanexamples
 cleanexamples:
@@ -351,43 +355,63 @@ cleanexamples:
 
 .PHONY: examples-laz
 examples-laz:
-	lazbuild packages/castle_base.lpk
-	lazbuild packages/castle_window.lpk
-	lazbuild packages/castle_components.lpk
-	for LPI_FILENAME in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
-	  ./tools/internal/lazbuild_retry $${LPI_FILENAME}.lpi; \
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_base.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_window.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_components.lpk
+	set -e && for PROJECT_LPI in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
+	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
 	done
-	$(FIND) . \
+	"$(FIND)" . \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
+	  '(' -path ./src/vampyre_imaginglib -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
-	  '(' -iname '*.lpi' -exec ./tools/internal/lazbuild_retry '{}' ';' ')'
+	  '(' -path ./tools/build-tool/data -prune ')' -o \
+	  '(' -path ./examples/deprecated_library -prune ')' -o \
+	  '(' -iname '*.lpi' -print ')'  > \
+	  /tmp/cge-laz-projects.txt
+	echo 'Found projects: '`wc -l < /tmp/cge-laz-projects.txt`
+	set -e && for PROJECT_LPI in `cat /tmp/cge-laz-projects.txt`; do \
+	  echo 'Compiling project '$${PROJECT_LPI}; \
+	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}; \
+	  $(DO_IF_CONSERVE_DISK_SPACE) git clean --force -d -x "`dirname $${PROJECT_LPI}`"; \
+	done
 
 # cleaning ------------------------------------------------------------
 
 .PHONY: clean cleanmore cleanall
 
 clean: cleanexamples
-	$(FIND) . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or -iname '*.aw' -or \
-	                   -iname '*.o'   -or -iname '*.ppu' -or -iname '*.a' -or \
+	"$(FIND)" . -type f '(' -iname '*.ow'  -or \
+	                   -iname '*.ppw' -or \
+			   -iname '*.aw' -or \
+	                   -iname '*.o'   -or \
 			   -iname '*.or'  -or \
-			   -iname '*.res' -or \
+			   -iname '*.ppu' -or \
+			   '(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
+			   '(' -iname '*.res' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
 			   -iname '*.rsj' -or \
 			   -iname '*.compiled' -or \
 			   -iname '*.lps' -or \
 			   -iname '*.libimp*.a' -or \
 			   -iname '*.apk' -or \
 			   -iname '*.dbg' -or \
-	                   -iname '*.dcu' -or -iname '*.dpu' -or \
-			   -iname 'automatic-windows-resources.res' -or \
-			   -iname 'castle-auto-generated-resources.res' -or \
+	                   -iname '*.dcu' -or \
+			   -iname '*.dpu' -or \
+			   -iname '*.dproj.local' -or \
+			   -iname '*.identcache' -or \
+			   -iname '*.rsm' -or \
 	                   -iname '*.log' ')' \
 	     -print \
 	     | xargs rm -f
-# Note: *.app directory is a macOS bundle
-	$(FIND) . -type d '(' -name 'lib' -or \
+# Note: *.app directory is a macOS bundle,
+# we *do not* remove it here anymore as it would break pack_release.
+	"$(FIND)" . -type d '(' -name 'lib' -or \
+	                      -name 'backup' -or \
 	                      -name 'castle-engine-output' -or \
-			      -name '*.app' ')' \
+			      -name '__recovery' ')' \
 	     -exec rm -Rf '{}' ';' -prune
 	rm -Rf bin/ \
 	  castle-engine-copy$(EXE_EXTENSION) \
@@ -397,17 +421,19 @@ clean: cleanexamples
 	  packages/alternative_castle_window_based_on_lcl.pas \
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
+	  tests/castle-tester \
+	  tests/castle-tester.exe \
 	  examples/fonts/font_draw_over_image_output.png \
 	  examples/short_api_samples/transform_save_load/aaa.castle-transform
 	$(MAKE) -C doc/man/man1/ clean
 # fpmake stuff (binary, units/ produced by fpmake compilation, configs)
 	rm -Rf fpmake fpmake.exe units/ *.fpm .fppkg .config
 # lazarus produces lib/ subdirectories during compilation
-	$(FIND) examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
-	rm -Rf src/library/ios-output/\
-	       src/library/libcastleengine.dylib \
-	       src/library/castleengine.dll \
-	       src/library/libcastleengine.so
+	"$(FIND)" examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
+	rm -Rf src/deprecated_library/ios-output/\
+	       src/deprecated_library/libcastleengine.dylib \
+	       src/deprecated_library/castleengine.dll \
+	       src/deprecated_library/libcastleengine.so
 # Clean every project with CastleEngineManifest.xml .
 #
 # Avoid a project in project_templates,
@@ -418,24 +444,23 @@ clean: cleanexamples
 # (will never be compiled).
 #
 # Note: This may cause errors if build tool doesn't exist anymore, ignore them.
-	$(FIND) . \
+	"$(FIND)" . \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -or \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -or \
 	  '(' -iname CastleEngineManifest.xml \
 	      -execdir $(BUILD_TOOL) clean ';' ')'
 
 cleanmore: clean
-	$(FIND) . -type f '(' -iname '*~' -or \
+	"$(FIND)" . -type f '(' -iname '*~' -or \
 	                   -iname '*.bak' -or \
 	                   -iname '*.~???' -or \
 	                   -iname '*.pro.user' -or \
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
-	$(FIND) . -type d '(' -iname 'backup' \
+	"$(FIND)" . -type d '(' -iname 'backup' \
 			')' -exec rm -Rf '{}' ';' -prune
 	$(MAKE) -C doc/pasdoc/ clean
-	rm -Rf tools/build-tool/data/android/integrated-services/giftiz/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
+	rm -Rf tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
 	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar \
 	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.aar \
 	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar \
@@ -451,18 +476,47 @@ cleanall: cleanmore
 .PHONY: tests
 tests:
 	tools/build-tool/castle-engine_compile.sh
+# Build and run check_lazarus_packages
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ --mode=debug compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ run -- ../../../
 # Run in debug mode
-	$(BUILD_TOOL) --project tests/ clean
-	$(BUILD_TOOL) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile
-	$(BUILD_TOOL) --project tests/ run -- -a
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
 # Run in debug mode without LibPng
 # (useful to test image processing, e.g. TTestImages.TestLoadImage, using fcl-image, which matters for mobile now)
-	$(BUILD_TOOL) --project tests/ clean
-	$(BUILD_TOOL) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
-	$(BUILD_TOOL) --project tests/ run -- -a
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
 # Run in release mode, since all tests must pass the same when optimizations are enabled
-	$(BUILD_TOOL) --project tests/ clean
-	$(BUILD_TOOL) --project tests/ --mode=release --compiler-option=-dNO_WINDOW_SYSTEM compile
-	$(BUILD_TOOL) --project tests/ run -- -a
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=release --compiler-option=-dNO_WINDOW_SYSTEM compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+
+# fpmake ---------------------------------------------------------------------
+
+.PHONY: build-using-fpmake
+build-using-fpmake:
+	fpc fpmake.pp
+	@echo 'Running fpmake. If this fails saying that "rtl" is not found, remember to set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
+# Workaround FPC >= 3.x problem (bug?) --- it ignores $FPCDIR, but --globalunitdir works
+	if [ '(' -n "$(FPCDIR)" ')' ]; then \
+	   ./fpmake --globalunitdir="$(FPCDIR)"; \
+	else \
+	   ./fpmake; \
+	fi
+
+# Full test that fpmake compilation process works
+# (see https://castle-engine.io/fpmake )
+.PHONY: test-fpmake
+test-fpmake: build-using-fpmake
+# Test fpmake with --nofpccfg, to make sure our dependencies in fpmake.pp are correct
+	./fpmake clean --verbose
+	if [ '(' -n "$(FPCDIR)" ')' ]; then \
+	   ./fpmake --globalunitdir="$(FPCDIR)" --nofpccfg --verbose; \
+	else \
+	   ./fpmake --nofpccfg --verbose; \
+	fi
 
 # eof ------------------------------------------------------------

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,12 +16,25 @@
 { CastleWindow backend using WinAPI, Windows-only.
 
   TODO:
+
   - Alt key presses are not perfectly detected.
     Is it even possible to cleanly catch VK_Alt key press in WinAPI?
     We would have to catch sys_keydown message but then we also
     block using standard Alt+F4 or Alt+Space? Another trouble:
     if you enter system menu by Alt+Down, we will not get Alt+Up?
+
   - Implement MainMenu.Enabled.
+
+  Note: We use Unicode version of WinAPI (W suffix) throughout the code.
+
+  - Why?
+    Following https://stackoverflow.com/questions/33714546/winapi-unicode-and-ansi-functions ,
+    this is available on all Windowses after Windows 95, 98 and ME,
+    and it is advised to use now (as the "A" routines just call "W" routines doing conversion underneath),
+    and using it is easier on Delphi (where String = UnicodeString),
+    and using it with both FPC and Delphi makes code simpler.
+
+  - Note: LCL win32 widgetset (used on 64-bit Windows too) still uses ANSI.
 }
 
 {$ifdef OpenGLES}
@@ -30,14 +43,15 @@
   {$I castlewindow_wgl.inc}
 {$endif}
 
-{ Create WinAPI window as Unicode (RegisterClassW). }
-{.$define CASTLE_WINAPI_UNICODE}
-
 {$ifdef read_interface_uses}
 { note: this unit's definitions conflict with other definitions used in this file
   But we need it for RegisterDeviceNotification, therefore adding it to the very
   first position in the uses list to be overwritten by subsequent used units }
+{$ifdef FPC}
 JwaWinUser, JwaDbt,
+{$else}
+Winapi.Messages, Character,
+{$endif}
 { /note }
 Windows, CommDlg,
 {$endif}
@@ -71,10 +85,6 @@ private
   VK_BackQuote,
   VK_BackSlash: Byte;
 
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  PluginWindow: TNPWindow;
-  {$endif}
-
   function WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
   { convert virtual key code (VK_xxx) to TKey. Returns keyNone if no conversion
@@ -86,20 +96,19 @@ private
 private
   { Should we do ChangeDisplaySettings(nil, 0) when Destroy? }
   DisplaySettingsChanged: boolean;
-  WndClassName: {$ifdef CASTLE_WINAPI_UNICODE} UnicodeString {$else} String {$endif};
+  WndClassName: UnicodeString;
 
   { A private array, initialized in CreateBackend.
-    NameForLoadCursor are actually constant, taken from Windows unit,
-    but CursorHandle are loaded each time in CreateBackend.
-    Having them all loaded once makes sure that WM_SETCURSOR is able to
+    Having all cursor handles loaded makes sure that WM_SETCURSOR is able to
     use predefined HCURSOR values and so is fast. SetCursor is guaranteed
     by WinAPI to return fast if called with already used cursor.
 
-    For mcDefault, and mcCustom, values in this array are undefined.
-    For mcNone, CursorHandle is 0 (this is what SetCursor always accepts
-    as invisible cursor). }
+    For mcDefault, value in this array is undefined.
+    (but 0 in practice, for now).
+
+    For mcNone and CursorHandles, CursorHandle is guaranteed 0
+    (this is what SetCursor always accepts as invisible cursor). }
   CursorHandles: array [TMouseCursor] of record
-    NameForLoadCursor: LPCTSTR;
     Handle: HCURSOR;
   end;
 
@@ -112,6 +121,20 @@ private
 
 {$I castlewindow_winapi_menu.inc}
 {$I castlewindow_winapi_sendinput.inc}
+
+{ Describe ChangeDisplaySettings result. }
+function DispChangeToStr(L: LongInt): string;
+begin
+ case L of
+  DISP_CHANGE_SUCCESSFUL: Result := 'DISP_CHANGE_SUCCESSFUL';
+  DISP_CHANGE_RESTART: Result := 'DISP_CHANGE_RESTART';
+  DISP_CHANGE_BADFLAGS: Result := 'DISP_CHANGE_BADFLAGS';
+  DISP_CHANGE_FAILED: Result := 'DISP_CHANGE_FAILED';
+  DISP_CHANGE_BADMODE: Result := 'DISP_CHANGE_BADMODE';
+  DISP_CHANGE_NOTUPDATED: Result := 'DISP_CHANGE_NOTUPDATED';
+  else Result := IntToStr(L);
+ end;
+end;
 
 { WMSizing ------------------------------------------------------------------- }
 
@@ -156,7 +179,7 @@ begin
   result := LRESULT(msg.Result);
 end;
 
-{ TCastleWindowBase ------------------------------------------------- }
+{ TCastleWindow ------------------------------------------------- }
 
 const
   { Some constants missing from FPC's Windows unit. }
@@ -176,7 +199,7 @@ const
 
 { convert virtual key code (VK_xxx) to TKey. Returns keyNone if no conversion
   available. }
-function TCastleWindowBase.VirtualKeyToKey(VirtualKey: Byte): TKey;
+function TCastleWindow.VirtualKeyToKey(VirtualKey: Byte): TKey;
 var
   VirtualKeyToKeyResult: TKey absolute Result;
 
@@ -271,9 +294,9 @@ end;
 
 function TryHandlingMessage(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM): boolean;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
-  Window := TCastleWindowBase(GetWindowLongPtr(hWnd, GWL_USERDATA));
+  Window := TCastleWindow(GetWindowLongPtr(hWnd, GWL_USERDATA));
   Result := Application.FindWindow(Window) >= 0;
   if Result then
     Window.WindowProc(uMsg, wParm, lParm);
@@ -281,9 +304,9 @@ end;
 
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
-  Window := TCastleWindowBase(GetWindowLongPtr(hWnd, GWL_USERDATA));
+  Window := TCastleWindow(GetWindowLongPtr(hWnd, GWL_USERDATA));
   { Wszystkie hwnd jakie tu beda wpadac to beda nasze okna
     (it's only different for a plugin, but right now the plugin uses only TryHandlingMessage,
     not this). Ale zanim
@@ -302,11 +325,12 @@ begin
     Application.wndClassName). They don't set Get/SetWindowLongPtr, so Window here
     will be @nil in this case. }
   if Application.FindWindow(Window) >= 0 then
-    result := Window.WindowProc(uMsg, wParm, lParm) else
-    result := DefWindowProc(hWnd, uMsg, wParm, lParm);
+    result := Window.WindowProc(uMsg, wParm, lParm)
+  else
+    result := DefWindowProcW(hWnd, uMsg, wParm, lParm);
 end;
 
-function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
+function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
 { Note: the following Windows events may be called from CloseBackend
   (so they probably should check InCloseBackend):
@@ -343,7 +367,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
       it allows to specify signedness of values as you wish. }
     TWinParam = packed record
       case Integer of
-        0:(Signed: LongInt {$ifdef CPUX86_64}; Dummy: LongWord {$endif});
+        0:(Signed: LongInt {$if defined(cpu64)}; Dummy: LongWord {$endif});
         1:(LoWord, HiWord: Word);
         2:(LoSmallint, HiSmallint: Smallint);
         3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);
@@ -377,8 +401,11 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
         We then hackishly ignored MultiByteToWideChar result,
         and used first returned WideChar.
     }
-
+    {$ifdef FPC}
     Exit(UTF8Encode(WideChar(CharMsgWParam)));
+    {$else}
+    Exit(WideChar(CharMsgWParam));
+    {$endif}
   end;
 
   { Handle WinAPI WM_KEYDOWN message by calling DoKeyDown method.
@@ -389,7 +416,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
     The frequency of "key repeat" depends on user settings.
 
     And... that's completely OK. We still pass each WM_KEYDOWN to DoKeyDown.
-    This way our API (TCastleUserInterface.Press, TCastleWindowBase.OnPress)
+    This way our API (TCastleUserInterface.Press, TCastleWindow.OnPress)
     will generate repeated key presses.
     This is documented and desired (e.g. for implementing UI like edit box).
     User can check TInputPressRelease.KeyRepeated that is calculated
@@ -411,12 +438,11 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
          message corresponding to current WM_KEYDOWN message.
 
       Note PeekMessageW, not PeekMessage.
-      This is necessary (regardless of CASTLE_WINAPI_UNICODE being defined or not)
-      to receive UTF-16 for e.g. Polish chars. Otherwise looks like WM_CHAR
-      gets characters in ANSI encoding.
+      This is necessary to receive UTF-16 for e.g. Polish chars.
+      Otherwise WM_CHAR gets characters in ANSI encoding.
     }
 
-    if PeekMessageW(@CharMsg, h_Wnd, WM_CHAR, WM_CHAR, PM_REMOVE) then
+    if PeekMessageW({$ifdef FPC}@{$endif}CharMsg, h_Wnd, WM_CHAR, WM_CHAR, PM_REMOVE) then
       KeyString := ConvertWmCharToString(CharMsg.wParam)
     else
       KeyString := '';
@@ -434,15 +460,20 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
       to left/right bracket. }
     if Key = keyNone then
     begin
-      case KeyString of
-        '[' : begin VK_LeftBracket_Exists  := true; VK_LeftBracket  := wParm; Key := keyLeftBracket ; end;
-        ']' : begin VK_RightBracket_Exists := true; VK_RightBracket := wParm; Key := keyRightBracket; end;
-        '''': begin VK_Apostrophe_Exists   := true; VK_Apostrophe   := wParm; Key := keyApostrophe  ; end;
-        ';' : begin VK_Semicolon_Exists    := true; VK_Semicolon    := wParm; Key := keySemicolon   ; end;
-        '/' : begin VK_Slash_Exists        := true; VK_Slash        := wParm; Key := keySlash       ; end;
-        '`' : begin VK_BackQuote_Exists    := true; VK_BackQuote    := wParm; Key := keyBackQuote   ; end;
-        '\' : begin VK_BackSlash_Exists    := true; VK_BackSlash    := wParm; Key := keyBackSlash   ; end;
-      end;
+      if KeyString = '[' then
+        begin VK_LeftBracket_Exists  := true; VK_LeftBracket  := wParm; Key := keyLeftBracket ; end
+      else if KeyString = ']' then
+        begin VK_RightBracket_Exists := true; VK_RightBracket := wParm; Key := keyRightBracket; end
+      else if KeyString = '''' then
+        begin VK_Apostrophe_Exists   := true; VK_Apostrophe   := wParm; Key := keyApostrophe  ; end
+      else if KeyString = ';' then
+        begin VK_Semicolon_Exists    := true; VK_Semicolon    := wParm; Key := keySemicolon   ; end
+      else if KeyString = '/' then
+        begin VK_Slash_Exists        := true; VK_Slash        := wParm; Key := keySlash       ; end
+      else if KeyString = '`' then
+        begin VK_BackQuote_Exists    := true; VK_BackQuote    := wParm; Key := keyBackQuote   ; end
+      else if KeyString = '\' then
+        begin VK_BackSlash_Exists    := true; VK_BackSlash    := wParm; Key := keyBackSlash   ; end;
     end;
 
     { Fix some cases when KeyString should better correspond to Key }
@@ -483,7 +514,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
       For Chinese you have a special window that allows to compose Chinese characters.
       Looks like they don't result in WM_KEYDOWN, only WM_CHAR.
       Tested with simplified Chinese input on Windows 10.
-      Note: It does *not* make WM_UNICHAR (regardless of CASTLE_WINAPI_UNICODE).
+      Note: It does *not* make WM_UNICHAR (regardless if we register using RegisterClassW or ANSI version).
 
     - A minor thing about Wine compatibility:
       It seems wine-1.5.30-1 lets WM_CHAR arrive without WM_KEYDOWN
@@ -496,7 +527,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
     KeyString := ConvertWmCharToString(WParm);
     if KeyString <> '' then
       DoKeyDown(keyNone, KeyString);
-    WritelnLog('Received WM_CHAR. Test information for https://github.com/castle-engine/castle-engine/issues/159 : WParam ' + IntToStr(WParm) + ' string: ' + UTF8ToHtmlEntities(KeyString));
+    WritelnLog('Received WM_CHAR. Test information for https://github.com/castle-engine/castle-engine/issues/159 : WParam ' + IntToStr(WParm) + ' string: ' + {$ifdef FPC}UTF8ToHtmlEntities({$endif}KeyString{$ifdef FPC}){$endif});
   end;
 
   { Handle WM_UNICHAR that reports a key press as 32-bit Unicode character.
@@ -520,10 +551,8 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
       Other applications can send us WM_UNICHAR, according to WinAPI docs.
     """
 
-    This means that we need to handle WM_CHAR in ANSI window (without CASTLE_WINAPI_UNICODE).
-    Only WM_CHAR will ever happen in such case.
     Testing in practice: I didn't find a way to cause WM_UNICHAR in either
-    ANSI or Unicode window.
+    ANSI or Unicode window (created with CreateWindowExW).
   }
   procedure Handle_WM_UNICHAR;
   var
@@ -536,7 +565,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
         This is the same: https://en.wikipedia.org/wiki/UTF-32,
         """Each 32-bit value in UTF-32 represents one Unicode code point and is exactly equal to that code point's numerical value. """
       }
-      KeyString := UnicodeToUTF8(WParm);
+      KeyString := {$ifdef FPC}UnicodeToUTF8(WParm){$else}ConvertFromUtf32(WParm){$endif};
       if KeyString <> '' then
         DoKeyDown(keyNone, KeyString);
     end;
@@ -588,11 +617,11 @@ begin
             some DoKeyUp/DoMouseUp (and these even cause BackendMakeCurrent), and no DoXxx
             should be done when the window is closing and releasing it's resources. }
           ReleaseAllKeysAndMouse;
-      { Don't Exit, let control flow to DefWindowProc. }
+      { Don't Exit, let control flow to DefWindowProcW. }
     WM_ACTIVATEAPP:
       begin
         Application.appActive := longbool(wParm);
-        {exit; <- allow DefWindowProc handle WM_ACTIVETAPP too,
+        {exit; <- allow DefWindowProcW handle WM_ACTIVETAPP too,
          since you can't say "we surely handled everything that should be done in
          reaction for this message"}
       end;
@@ -601,7 +630,7 @@ begin
     WM_KEYDOWN: begin Handle_WM_KEYDOWN; Exit end;
     WM_KEYUP: begin Handle_WM_KEYUP; Exit end;
     WM_CHAR: begin Handle_WM_CHAR; Exit end;
-    // WM_UNICHAR answers true, and doesn't call DefWindowProc, because we handled the message
+    // WM_UNICHAR answers true, and doesn't call DefWindowProcW, because we handled the message
     WM_UNICHAR: begin Handle_WM_UNICHAR; Exit(1); end;
 
     WM_SIZE:
@@ -649,7 +678,7 @@ begin
           (This is also non-perfect anyway, because WM_MOVE message may not get to
           FullScreen window at all, so in OpenBackend I also do this trick.) }
         if FullScreen and (MainMenu <> nil) and MainMenuVisible then
-          FTop += GetSystemMetrics(SM_CYMENU);
+          FTop := FTop + GetSystemMetrics(SM_CYMENU);
 
         { TODO: Only position actually changed, not size.
           Do we really need to call DoResize, OnResize?
@@ -663,12 +692,12 @@ begin
         result := WMSizingHandler(lParm, wParm, minWidth, minHeight, maxWidth, maxHeight);
         Exit;
       end;
-    { We do not capture WM_PAINT, let WM_PAINT fallback to DefWindowProc.
+    { We do not capture WM_PAINT, let WM_PAINT fallback to DefWindowProcW.
       WM_PAINT occurs also when there's a need to redraw window frame
       (which we don't care about, we don't draw custom window frame).
 
       If there's a need to actually redraw window contents,
-      then WM_PAINT will cause (immediately, it seems that DefWindowProc
+      then WM_PAINT will cause (immediately, it seems that DefWindowProcW
       will just call WndProc) WM_ERASEBKGND, and we want to capture WM_ERASEBKGND. }
     WM_ERASEBKGND:
       begin
@@ -798,12 +827,11 @@ begin
           Windows.SetCursor(Application.CursorHandles[InternalCursor].Handle);
           Exit(1);
         end;
-        { Otherwise we fall back on DefWindowProc.
+        { Otherwise we fall back on DefWindowProcW.
           It will install our window class cursor (or parent cursor)
           if in client area, or just do the right thing if outside client area.
           So it's suitable when wParm <> h_Wnd,
-          or we want mcDefault,
-          or we want mcCustom. }
+          or we want mcDefault. }
       end;
 
     WM_MOUSEWHEEL, WM_MOUSEHWHEEL:
@@ -859,7 +887,7 @@ begin
       end;
   end;
 
-  { The DefWindowProc may enter a modal loop in some cases, e.g. when
+  { The DefWindowProcW may enter a modal loop in some cases, e.g. when
     WM_NCLBUTTONDOWN initializes window resizing operation.
 
     This makes our normal message loop not working (although application
@@ -903,19 +931,25 @@ begin
   if DoEnableUpdatesFromWindowProc then Inc(EnableUpdatesFromWindowProc);
   if DoDisableUpdatesFromWindowProc then Inc(DisableUpdatesFromWindowProc);
   try
-    Result := DefWindowProc(h_Wnd, uMsg, wParm, lParm);
+    { Note: It is extremely important to use here DefWindowProcW.
+      If you use (ANSI, in FPC) DefWindowProc, then Windows will detect that
+      we want to use ANSI API (with 8-bit strings, not 16-bit)
+      which will make caption provided to CreateWindowExW expected to be encoded
+      as 8-bit (passing there a pointer to UTF-16 will be interpreted wrong,
+      as just 1 single letter). }
+    Result := DefWindowProcW(h_Wnd, uMsg, wParm, lParm);
   finally
     if DoEnableUpdatesFromWindowProc then Dec(EnableUpdatesFromWindowProc);
     if DoDisableUpdatesFromWindowProc then Dec(DisableUpdatesFromWindowProc);
   end;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
   Result := true;
 end;
 
-procedure TCastleWindowBase.BackendMenuFinalize;
+procedure TCastleWindow.BackendMenuFinalize;
 var
   Old_H_Menu: HMenu;
 begin
@@ -926,35 +960,35 @@ begin
   MainMenu.ClearHandles;
 end;
 
-procedure TCastleWindowBase.BackendMenuInitialize;
+procedure TCastleWindow.BackendMenuInitialize;
 begin
   OSCheck( SetMenu(H_Wnd, MakeWinapiMenu(MainMenu, true)), 'SetMenu');
 end;
 
-procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindow.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }
@@ -962,7 +996,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+procedure TCastleWindow.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }
@@ -970,14 +1004,14 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.OpenBackend;
+procedure TCastleWindow.OpenBackend;
 
   // Get initial MousePosition, even before the first mouse move/down event.
   procedure GetInitialCursorPos(const ClientRect: TRect);
   var
     InitialCursorPos: Windows.TPoint;
   begin
-    if GetCursorPos(@InitialCursorPos) then
+    if GetCursorPos({$ifdef FPC}@{$endif}InitialCursorPos) then
     begin
       FMousePosition := LeftTopToCastle(
         InitialCursorPos.X - ClientRect.Left,
@@ -988,8 +1022,9 @@ procedure TCastleWindowBase.OpenBackend;
   procedure InitializeDpi;
   begin
     FDpi := GetDeviceCaps(h_Dc, LOGPIXELSX);
-    WritelnLog('WinAPI', 'Dots (pixels) per inch is %f (%f * default %f)',
-      [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+    // Too verbose by default, UpdateUIScale will show it if UIScaling is usDpiScale.
+    // WritelnLog('WinAPI', 'Dots (pixels) per inch is %f (%f * default %f)',
+    //   [FDpi, FDpi / DefaultDpi, DefaultDpi]);
   end;
 
   { Request WinAPI to send DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events
@@ -997,22 +1032,22 @@ procedure TCastleWindowBase.OpenBackend;
   procedure RegisterForJoystickEvents;
   var
     BroadcastDeviceInterface: DEV_BROADCAST_DEVICEINTERFACE;
-    GUID_DEVINTERFACE_HID: GUID;
+    GUID_DEVINTERFACE_HID: TGuid;
     DeviceNotification: Pointer; // HDEVNOTIFY;
   begin
     { Construct GUID that corresponds to Joysticks/controllers devices
       The values have been taken from SDL2 SDL_windowsjoystick.c }
-    GUID_DEVINTERFACE_HID.Data1 := $4D1E55B2;
-    GUID_DEVINTERFACE_HID.Data2 := $F16F;
-    GUID_DEVINTERFACE_HID.Data3 := $11CF;
-    GUID_DEVINTERFACE_HID.Data4[0] := $88;
-    GUID_DEVINTERFACE_HID.Data4[1] := $CB;
-    GUID_DEVINTERFACE_HID.Data4[2] := 0;
-    GUID_DEVINTERFACE_HID.Data4[3] := $11;
-    GUID_DEVINTERFACE_HID.Data4[4] := $11;
-    GUID_DEVINTERFACE_HID.Data4[5] := 0;
-    GUID_DEVINTERFACE_HID.Data4[6] := 0;
-    GUID_DEVINTERFACE_HID.Data4[7] := $30;
+    GUID_DEVINTERFACE_HID.D1 := $4D1E55B2;
+    GUID_DEVINTERFACE_HID.D2 := $F16F;
+    GUID_DEVINTERFACE_HID.D3 := $11CF;
+    GUID_DEVINTERFACE_HID.D4[0] := $88;
+    GUID_DEVINTERFACE_HID.D4[1] := $CB;
+    GUID_DEVINTERFACE_HID.D4[2] := 0;
+    GUID_DEVINTERFACE_HID.D4[3] := $11;
+    GUID_DEVINTERFACE_HID.D4[4] := $11;
+    GUID_DEVINTERFACE_HID.D4[5] := 0;
+    GUID_DEVINTERFACE_HID.D4[6] := 0;
+    GUID_DEVINTERFACE_HID.D4[7] := $30;
 
     //construct BroadcastDeviceInterface record
     FillChar(BroadcastDeviceInterface, SizeOf(BroadcastDeviceInterface), 0);
@@ -1027,25 +1062,11 @@ procedure TCastleWindowBase.OpenBackend;
   end;
 
 var
-  {$ifndef CASTLE_ENGINE_PLUGIN}
   dwExStyle, dwStyle: dword;
   WindowRect: TRect;
   H_Menu: HMenu;
-  {$endif}
   ClientRect: TRect;
-  {$ifdef CASTLE_WINAPI_UNICODE}
-  CaptionUtf16: UnicodeString;
-  {$endif}
 begin
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  FLeft := PluginWindow.X;
-  FTop := PluginWindow.Y;
-  FWidth := PluginWindow.Width;
-  FHeight := PluginWindow.Height;
-  Fullscreen := false;
-
-  H_wnd := HWND(PluginWindow.Window);
-  {$else}
   { optionally hide mouse in FullScreem,
     set dwStyle and dwExStyle for our window }
   if FullScreen then
@@ -1113,24 +1134,19 @@ begin
 
   { calculate H_Menu }
   if (MainMenu <> nil) and MainMenuVisible then
-    H_Menu := MakeWinapiMenu(MainMenu, true) else
+    H_Menu := MakeWinapiMenu(MainMenu, true)
+  else
     H_Menu := 0;
 
   { main point : create the window }
-  {$ifdef CASTLE_WINAPI_UNICODE}
-  CaptionUtf16 := UTF8Decode(GetWholeCaption);
   H_wnd := CreateWindowExW(dwExStyle,
-    PWideChar(Application.WndClassName), PWideChar(CaptionUtf16),
-    {$else}
-  H_wnd := CreateWindowEx(dwExStyle,
-    PChar(Application.WndClassName), PChar(GetWholeCaption),
-    {$endif}
+    PWideChar(Application.WndClassName),
+    PWideChar(StringToUtf16(GetWholeCaption)),
     dwStyle,
     windowRect.left, windowRect.top,
     windowRect.right-windowRect.left, windowRect.Bottom-windowRect.top,
     0 { no parent window }, H_Menu, hInstance,
     nil { don't pass anything to WM_CREATE } );
-  {$endif}
 
   Check(h_Wnd <> 0, 'Creating window (H_wnd) failed');
 
@@ -1142,7 +1158,7 @@ begin
   end;
   { See WM_MOVE handling comments why this is needed to make Top correct. }
   if FullScreen and (MainMenu <> nil) and MainMenuVisible then
-    FTop += GetSystemMetrics(SM_CYMENU);
+    FTop := FTop + GetSystemMetrics(SM_CYMENU);
 
   SetWindowLongPtr(h_Wnd, GWL_USERDATA, PtrUInt(Self));
 
@@ -1163,14 +1179,12 @@ begin
     ze "dziala kiedy wywolamy Invalidate". }
   Application.OpenWindowsAdd(Self);
 
-  {$ifndef CASTLE_ENGINE_PLUGIN}
   if Visible then
   begin
     ShowWindow(h_Wnd, SW_SHOW);
     SetForegroundWindow(h_Wnd);
     SetFocus(h_Wnd);
   end;
-  {$endif}
 
   OSCheck(GetClientRect(h_Wnd, ClientRect), 'GetClientRect');
 
@@ -1194,7 +1208,7 @@ begin
   RegisterForJoystickEvents;
 end;
 
-procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
 var
   Point: Windows.TPoint;
 begin
@@ -1209,19 +1223,13 @@ begin
       within the window.
 
       This is similar to what glut for Win32 does in glutSetCursor. }
-    GetCursorPos(@Point);
+    GetCursorPos({$ifdef FPC}@{$endif}Point);
     if h_Wnd = WindowFromPoint(Point) then
       PostMessage(h_Wnd, WM_SETCURSOR, h_Wnd, 0 { not important});
   end;
 end;
 
-procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
-begin
-  FCustomCursor := Value;
-  { TODO }
-end;
-
-procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 
   { Perform similar function as WinAPI SetCursorPos (set cursor position,
     given absolute screen coordinates), but using SendInput WinAPI call.
@@ -1229,11 +1237,11 @@ procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
 
     Testcase: dragging_test, if we would use SetCursorPos then:
 
-    - TUIContainer.MouseLookDelta doesn't set FMouseLookWaitingForMiddle to true:
+    - TCastleContainer.MouseLookDelta doesn't set FMouseLookWaitingForMiddle to true:
       then we have problems due to occasional rect jump, when moving mouse slowly
       (because we need to set FMouseLookWaitingForMiddle to true!).
 
-    - TUIContainer.MouseLookDelta sets FMouseLookWaitingForMiddle to true:
+    - TCastleContainer.MouseLookDelta sets FMouseLookWaitingForMiddle to true:
       then we have occasional "blocks" when moving mouse very fast
       (like from edge to edge of the screen). Experimenting, we just
       cannot reliably capture "the end of FMouseLookWaitingForMiddle",
@@ -1276,7 +1284,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.CloseBackend;
+procedure TCastleWindow.CloseBackend;
 begin
   InCloseBackend := true;
   try
@@ -1285,25 +1293,26 @@ begin
     if (h_Dc <> 0) and (ReleaseDC(h_Wnd, h_Dc) = 0) then
       WritelnWarning('WinAPI', 'Releasing device context (ReleaseDC) failed.');
     h_Dc := 0;
-    {$ifndef CASTLE_ENGINE_PLUGIN}
     if (h_Wnd <> 0) and (not DestroyWindow(h_Wnd))then
       WritelnWarning('WinAPI', 'Destroying window (DestroyWindow) failed.');
-    {$endif}
     h_Wnd := 0;
   finally InCloseBackend := false; end;
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
-  if h_Wnd <> 0 then SetWindowText(h_Wnd, PChar(GetWholeCaption));
+  if h_Wnd <> 0 then
+  begin
+    SetWindowTextW(h_Wnd, PWideChar(StringToUtf16(GetWholeCaption)));
+  end;
 end;
 
-procedure TCastleWindowBase.CreateBackend;
+procedure TCastleWindow.CreateBackend;
 begin
 end;
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
   { Make path absolute. Same as ExpandFileName, but knows that
@@ -1346,18 +1355,18 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
     begin
       Filter := FileFilters[I];
 
-      Result += Filter.Name + #0;
+      Result := Result + Filter.Name + #0;
 
       for J := 0 to Filter.Patterns.Count - 1 do
       begin
-        if J <> 0 then Result += ';';
-        Result += Filter.Patterns[J];
+        if J <> 0 then Result := Result + ';';
+        Result := Result + Filter.Patterns[J];
       end;
 
-      Result += #0;
+      Result := Result + #0;
     end;
 
-    Result += #0;
+    Result := Result + #0;
   end;
 
   function SearchFirstPatternWithExtension(const Ext: string): Integer;
@@ -1387,8 +1396,9 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
   end;
 
 var
-  Struct: TOpenFileName;
-  FileNameBuffer: array [0..6000] of char;
+  Struct: TOpenFileNameW;
+  FileNameBuffer: array [0..6000] of widechar;
+  {$ifndef FPC}FileNameString: String;{$endif}
   FilePath: string;
   Mode: TGLModeFrozenScreen;
   CurrentFileNameExt: string;
@@ -1398,7 +1408,11 @@ begin
   Struct.lStructSize := SizeOf(Struct);
   Struct.hwndOwner := H_Wnd;
 
+  {$ifdef FPC}
   FileNameBuffer := ExtractFileName(FileName);
+  {$else}
+  StrPLCopy(FileNameBuffer, ExtractFileName(FileName), High(FileNameBuffer));
+  {$endif}
   Struct.lpstrFile := @FileNameBuffer;
 
   { As for FileNameBuffer size:
@@ -1420,13 +1434,13 @@ begin
     in the form 'subdir1/file' or './subdir1/file' (maybe it does not understand
     that those paths are relative to current dir ??), so I'm always expanding paths. }
   FilePath := ExpandFilePath(FilePath);
-  Struct.lpstrInitialDir := PCharOrNil(FilePath);
+  Struct.lpstrInitialDir := PWideCharOrNil(StringToUtf16(FilePath));
 
  { tests:
    InfoWrite('current dir : "' + GetCurrentDir + '"');
    InfoWrite('dialog box InitialDir : "' + FilePath + '"');}
 
-  Struct.lpstrTitle := PCharOrNil(Title);
+  Struct.lpstrTitle := PWideCharOrNil(StringToUtf16(Title));
   Struct.Flags := OFN_NOCHANGEDIR or OFN_HIDEREADONLY;
   if OpenDialog then
     Struct.Flags := Struct.Flags or OFN_FILEMUSTEXIST else
@@ -1434,7 +1448,7 @@ begin
 
   if FileFilters <> nil then
   begin
-    Struct.lpstrFilter := PChar(MakeStrFilter(FileFilters));
+    Struct.lpstrFilter := PWideCharOrNil(StringToUtf16(MakeStrFilter(FileFilters)));
     Struct.nFilterIndex := FileFilters.DefaultFilter + 1;
 
     if not OpenDialog then
@@ -1487,12 +1501,22 @@ begin
         to ignore extension then; either way, both exits are wrong, since user can very
         easily save a file with data format and extension not related).
       }
-      CurrentFileNameExt := ExtractFileExt(FileNameBuffer);
+      CurrentFileNameExt := ExtractFileExt(Utf16ToString(FileNameBuffer));
       CurrentFormatIndex := SearchFirstPatternWithExtension(CurrentFileNameExt);
       if CurrentFormatIndex <> -1 then
       begin
         { We can use workaround described above. }
+        {$ifdef FPC}
         FileNameBuffer := DeleteFileExt(FileNameBuffer);
+        {$else}
+        if StrLen(FileNameBuffer) > 0 then
+          SetString(FileNameString, PWideChar(@FileNameBuffer[0]), StrLen(FileNameBuffer))
+        else
+          FileNameString := '';
+
+        FileNameString := DeleteFileExt(FileNameString);
+        StrPLCopy(FileNameBuffer, ExtractFileName(FileNameString), High(FileNameBuffer));
+        {$endif}
         Struct.nFilterIndex := CurrentFormatIndex + 1;
 
         { If user selects something like "all files" then also append this extension.
@@ -1506,7 +1530,7 @@ begin
 
           Also note that unregistered extensions are treated somewhat differently.
           Unfortunately, lpstrDefExt will append then, instead of leaving filename alone. }
-        Struct.lpstrDefExt := PChar(SEnding(CurrentFileNameExt, 2));
+        Struct.lpstrDefExt := PWideCharOrNil(StringToUtf16(SEnding(CurrentFileNameExt, 2)));
       end;
     end;
   end;
@@ -1514,12 +1538,12 @@ begin
   Mode := TGLModeFrozenScreen.Create(Self);
   try
     if OpenDialog then
-      Result := GetOpenFileName(@Struct) else
-      Result := GetSaveFileName(@Struct);
+      Result := GetOpenFileNameW({$ifdef FPC}@{$endif}Struct) else
+      Result := GetSaveFileNameW({$ifdef FPC}@{$endif}Struct);
   finally Mode.Free end;
 
   if Result then
-    FileName := FileNameBuffer else
+    FileName := Utf16ToString(FileNameBuffer) else
   begin
     if CommDlgExtendedError <> 0 then
       raise Exception.CreateFmt('GetOpen/SaveFileName failed with error %d',
@@ -1527,20 +1551,20 @@ begin
   end;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindow.ColorDialog(var Color: TCastleColor): Boolean;
 
   function Vector3ToColorRef(const Value: TVector3): TColorRef;
   begin
-   Result := Windows.RGB(Clamped(Round(Value[0]*High(Byte)), 0, High(Byte)),
-                         Clamped(Round(Value[1]*High(Byte)), 0, High(Byte)),
-                         Clamped(Round(Value[2]*High(Byte)), 0, High(Byte)) );
+   Result := Windows.RGB(Clamped(Round(Value.X*High(Byte)), 0, High(Byte)),
+                         Clamped(Round(Value.Y*High(Byte)), 0, High(Byte)),
+                         Clamped(Round(Value.Z*High(Byte)), 0, High(Byte)) );
   end;
 
   function ColorRefToVector3(const Value: TColorRef): TVector3;
   begin
-   Result[0] := GetRValue(Value)/High(Byte);
-   Result[1] := GetGValue(Value)/High(Byte);
-   Result[2] := GetBValue(Value)/High(Byte);
+   Result.X := GetRValue(Value)/High(Byte);
+   Result.Y := GetGValue(Value)/High(Byte);
+   Result.Z := GetBValue(Value)/High(Byte);
   end;
 
 var
@@ -1556,7 +1580,7 @@ begin
   FillChar(Struct, SizeOf(Struct), 0);
   Struct.lStructSize := SizeOf(Struct);
   Struct.hwndOwner := H_Wnd;
-  Struct.rgbResult := Vector3ToColorRef(Color);
+  Struct.rgbResult := Vector3ToColorRef(Color.RGB);
   Struct.lpCustColors := @CustomColors;
   { Give CC_FULLOPEN since this is intended to give user a free choice from RGB
     colors. So we suggest user to choose any RGB color freely, instead of using
@@ -1565,11 +1589,11 @@ begin
 
   Mode := TGLModeFrozenScreen.Create(Self);
   try
-    Result := ChooseColor(@Struct);
+    Result := ChooseColor({$ifdef FPC}@{$endif}Struct);
   finally Mode.Free end;
 
   if Result then
-    Color := ColorRefToVector3(Struct.rgbResult);
+    Color := Vector4(ColorRefToVector3(Struct.rgbResult), Color.W);
 end;
 
 (*
@@ -1589,7 +1613,7 @@ const
     'Information');
 *)
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
   CastleMessages.MessageOK(Self, S);
 
@@ -1608,7 +1632,7 @@ begin
   *)
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
+function TCastleWindow.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
   Result := CastleMessages.MessageYesNo(Self, S);
@@ -1625,7 +1649,7 @@ begin
   *)
 end;
 
-procedure TCastleWindowBase.UpdateFullScreenBackend;
+procedure TCastleWindow.UpdateFullScreenBackend;
 begin
   SimpleUpdateFullScreenBackend;
 end;
@@ -1703,38 +1727,36 @@ end;
 
 procedure TCastleApplication.CreateBackend;
 const
-  WinCursorNameFromCastle: array [mcStandard .. High(TMouseCursor)] of LPCTSTR = (
-    IDC_ARROW,  // mcStandard
-    IDC_WAIT,   // mcWait
-    IDC_IBEAM,  // mcText
-    IDC_HAND,   // mcHand
-    IDC_SIZENS, // mcResizeVertical
-    IDC_SIZEWE, // mcResizeHorizontal
-    IDC_SIZENWSE, // no IDC_SIZENW in Windows, // mcResizeTopLeft
-    IDC_SIZENS,   // no IDC_SIZEN  in Windows, // mcResizeTop
-    IDC_SIZENESW, // no IDC_SIZENE in Windows, // mcResizeTopRight
-    IDC_SIZEWE,   // no IDC_SIZEW  in Windows, // mcResizeLeft
-    IDC_SIZEWE,   // no IDC_SIZEE  in Windows, // mcResizeRight
-    IDC_SIZENESW, // no IDC_SIZESW in Windows, // mcResizeBottomLeft
-    IDC_SIZENS,   // no IDC_SIZES  in Windows, // mcResizeBottom
-    IDC_SIZENWSE  // no IDC_SIZESE in Windows, // mcResizeBottomRight
+  WinCursorNameFromCastle: array [mcStandard .. High(TMouseCursor)] of LPCWSTR = (
+    PWideChar(IDC_ARROW),  // mcStandard
+    PWideChar(IDC_WAIT),   // mcWait
+    PWideChar(IDC_IBEAM),  // mcText
+    PWideChar(IDC_HAND),   // mcHand
+    PWideChar(IDC_SIZENS), // mcResizeVertical
+    PWideChar(IDC_SIZEWE), // mcResizeHorizontal
+    PWideChar(IDC_SIZENWSE), // no IDC_SIZENW in Windows, // mcResizeTopLeft
+    PWideChar(IDC_SIZENS),   // no IDC_SIZEN  in Windows, // mcResizeTop
+    PWideChar(IDC_SIZENESW), // no IDC_SIZENE in Windows, // mcResizeTopRight
+    PWideChar(IDC_SIZEWE),   // no IDC_SIZEW  in Windows, // mcResizeLeft
+    PWideChar(IDC_SIZEWE),   // no IDC_SIZEE  in Windows, // mcResizeRight
+    PWideChar(IDC_SIZENESW), // no IDC_SIZESW in Windows, // mcResizeBottomLeft
+    PWideChar(IDC_SIZENS),   // no IDC_SIZES  in Windows, // mcResizeBottom
+    PWideChar(IDC_SIZENWSE)  // no IDC_SIZESE in Windows, // mcResizeBottomRight
   );
 var
-  WindowClass: {$ifdef CASTLE_WINAPI_UNICODE} TWndClassW {$else} TWndClass {$endif};
+  WindowClass: TWndClassW;
   C: TMouseCursor;
 begin
   RegisterClipboard(TWinApiClipboard.Create);
 
   appActive := true;
 
-  { Initialize NameForLoadCursor for CursorHandles.
+  { Initialize CursorHandles.
     We depend on the fact that CursorHandles is initially filled with zero,
-    so NameForLoadCursor is nil for the rest of TMouseCursor values. }
+    so Handle remains nil for the rest of TMouseCursor values
+    (not in WinCursorNameFromCastle). }
   for C := Low(WinCursorNameFromCastle) to High(WinCursorNameFromCastle) do
-  begin
-    CursorHandles[C].NameForLoadCursor := WinCursorNameFromCastle[C];
-    CursorHandles[C].Handle := LoadCursor(0, CursorHandles[C].NameForLoadCursor);
-  end;
+    CursorHandles[C].Handle := LoadCursorW(0, WinCursorNameFromCastle[C]);
 
   { create window class (WindowClass) }
 
@@ -1757,31 +1779,24 @@ begin
     programow.
     Jesli nie znajdzie ikonki w resource to zaladuj ikone ze zbioru Windowsa
     idi_application. }
-  WindowClass.hIcon := LoadIcon(hInstance, 'MAINICON');
-  if WindowClass.hIcon = 0 then WindowClass.hIcon := LoadIcon(0, IDI_APPLICATION);
-  WindowClass.hCursor := LoadCursor(0, IDC_ARROW);
-  {$ifdef CASTLE_WINAPI_UNICODE}
+  WindowClass.hIcon := LoadIconW(hInstance, 'MAINICON');
+  if WindowClass.hIcon = 0 then
+    WindowClass.hIcon := LoadIconW(0, PWideChar(IDI_APPLICATION));
+  WindowClass.hCursor := CursorHandles[mcStandard].Handle;
   WindowClass.lpszClassName := PWideChar(WndClassName);
   OSCheck( Windows.RegisterClassW(WindowClass) <> 0, 'RegisterClassW');
-  {$else}
-  WindowClass.lpszClassName := PChar(WndClassName);
-  OSCheck( Windows.RegisterClass(WindowClass) <> 0, 'RegisterClass');
-  {$endif}
 end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  {$ifdef CASTLE_WINAPI_UNICODE}
   OSCheck( Windows.UnregisterClassW(PWideChar(WndClassName), hInstance), 'UnregisterClassW');
-  {$else}
-  OSCheck( Windows.UnregisterClass(PChar(WndClassName), hInstance), 'UnregisterClass');
-  {$endif}
 end;
 
 procedure TCastleApplication.VideoReset;
 begin
   { switch back to the desktop mode }
-  if DisplaySettingsChanged then ChangeDisplaySettings(nil, 0);
+  if DisplaySettingsChanged then
+    ChangeDisplaySettings({$ifdef FPC}nil{$else}TDeviceMode(nil^){$endif}, 0);
 end;
 
 function TCastleApplication.TryVideoChange: boolean;
@@ -1876,7 +1891,7 @@ begin
         So I guess that I should just set this to 0 ? }
       dmDriverExtra := 0;
 
-      ChangeResult := ChangeDisplaySettings(@dmScreenSettings, CDS_FullScreen);
+      ChangeResult := ChangeDisplaySettings({$ifdef FPC}@{$endif}dmScreenSettings, CDS_FullScreen);
       Result := ChangeResult = DISP_CHANGE_SUCCESSFUL;
       { tests: InfoWrite('ChangeResult = '+ DispChangeToStr(ChangeResult)); }
       if Result then DisplaySettingsChanged := true;
@@ -1898,7 +1913,7 @@ begin
     if DisplaySettingsChanged then VideoChange(true);
   end else
   if appActive and not value then
-    ChangeDisplaySettings(nil, 0);
+    ChangeDisplaySettings({$ifdef FPC}nil{$else}TDeviceMode(nil^){$endif} , 0);
 
   fappActive := value;
 
@@ -1935,14 +1950,6 @@ function TCastleApplication.BackendName: string;
 begin
   Result := 'WinAPI';
 end;
-
-{ TCastleWindow -------------------------------------------------------------- }
-
-{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-procedure TCastleWindow.NavigationInfoChanged;
-begin
-end;
-{$endif}
 
 { TWindowContainer ----------------------------------------------------------- }
 

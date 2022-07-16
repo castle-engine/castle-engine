@@ -59,7 +59,7 @@ private
 
 {$ifdef read_implementation}
 
-procedure TCastleWindowBase.ContextCreateBegin;
+procedure TCastleWindow.ContextCreateBegin;
 begin
 end;
 
@@ -90,15 +90,17 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.ContextCreateEnd(WndPtr: EGLNativeWindowType);
+procedure TCastleWindow.ContextCreateEnd(WndPtr: EGLNativeWindowType);
 var
   Config: EGLConfig;
   ShareContext: EGLContext;
   NumConfig: EGLint;
   Attribs: TLongIntList;
 const
-  ContextAttribs: array [0..2] of EGLint =
+  ContextAttribsv2: array [0..2] of EGLint =
   ( EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE);
+  ContextAttribsv3: array [0..2] of EGLint =
+  ( EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE);
 begin
   Display := eglGetDisplay(EGL_DEFAULT_DISPLAY);
   if Display = EGL_NO_DISPLAY then
@@ -129,7 +131,9 @@ begin
   if Application.FOpenWindows.Count <> 0 then
     ShareContext := Application.FOpenWindows[0].Context else
     ShareContext := EGL_NO_CONTEXT;
-  Context := eglCreateContext(Display, Config, ShareContext, @ContextAttribs);
+  Context := eglCreateContext(Display, Config, ShareContext, @ContextAttribsv3);
+  if Context = EGL_NO_CONTEXT then
+    Context := eglCreateContext(Display, Config, ShareContext, @ContextAttribsv2);
   if Context = EGL_NO_CONTEXT then
     raise EGLContextNotPossible.Create('EGL: Cannot create context: ' + EGLError);
 
@@ -138,7 +142,7 @@ begin
     raise EGLContextNotPossible.Create('EGL: Cannot create surface: ' + EGLError);
 end;
 
-procedure TCastleWindowBase.ContextDestroyBegin;
+procedure TCastleWindow.ContextDestroyBegin;
 begin
   if Surface <> EGL_NO_SURFACE { nil } then
   begin
@@ -160,24 +164,24 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.ContextDestroyEnd;
+procedure TCastleWindow.ContextDestroyEnd;
 begin
 end;
 
-procedure TCastleWindowBase.BackendMakeCurrent;
+procedure TCastleWindow.BackendMakeCurrent;
 begin
   Assert(not Closed);
   if eglMakeCurrent(Display, Surface, Surface, Context) = EGL_FALSE then
     WritelnWarning('EGL', 'Cannot make context current: ' + EGLError);
 end;
 
-procedure TCastleWindowBase.SwapBuffers;
+procedure TCastleWindow.SwapBuffers;
 begin
   if eglSwapBuffers(Display, Surface) = EGL_FALSE then
     WritelnWarning('EGL', 'Cannot swap buffers (this is normal if app is no longer active): ' + EGLError);
 end;
 
-procedure TCastleWindowBase.QuerySize(out AWidth, AHeight: EGLint);
+procedure TCastleWindow.QuerySize(out AWidth, AHeight: EGLint);
 begin
   if eglQuerySurface(Display, Surface, EGL_WIDTH, @AWidth) = EGL_FALSE then
   begin

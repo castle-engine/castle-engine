@@ -13,6 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$I castleconf.inc} // hide useless Delphi hints/warnings
+
 {$IFDEF FPC}
 {$MODE objfpc}
 {$H+}
@@ -53,7 +56,7 @@ function IsAbsoluteURI(const UriReference: string): Boolean;
 
 implementation
 
-uses SysUtils;
+uses SysUtils, CastleURIUtils;
 
 const
   GenDelims = [':', '/', '?', '#', '[', ']', '@'];
@@ -62,35 +65,6 @@ const
   DIGIT = ['0'..'9'];
   Unreserved = ALPHA + DIGIT + ['-', '.', '_', '~'];
   ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
-
-function Escape(const s: String; const Allowed: TSysCharSet): String;
-var
-  i, L: Integer;
-  P: PChar;
-begin
-  L := Length(s);
-  for i := 1 to Length(s) do
-    if not (s[i] in Allowed) then Inc(L,2);
-  if L = Length(s) then
-  begin
-    Result := s;
-    Exit;
-  end;
-
-  SetLength(Result, L);
-  P := @Result[1];
-  for i := 1 to Length(s) do
-  begin
-    if not (s[i] in Allowed) then
-    begin
-      P^ := '%'; Inc(P);
-      StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
-    end
-    else
-      P^ := s[i];
-    Inc(P);
-  end;
-end;
 
 function EncodeURI(const URI: TURI): String;
 // ! if no scheme then first colon in path should be escaped
@@ -112,17 +86,17 @@ begin
   end;
   if URI.Port <> 0 then
     Result := Result + ':' + IntToStr(URI.Port);
-  Result := Result + Escape(URI.Path, ValidPathChars);
+  Result := Result + InternalURIEscape(URI.Path, ValidPathChars);
   if Length(URI.Document) > 0 then
   begin
     if (Length(URI.Path) > 0) and ((Length(Result) = 0) or (Result[Length(Result)] <> '/')) then
       Result := Result + '/';
-    Result := Result + Escape(URI.Document, ValidPathChars);
+    Result := Result + InternalURIEscape(URI.Document, ValidPathChars);
   end;
   if Length(URI.Params) > 0 then
-    Result := Result + '?' + Escape(URI.Params, ValidPathChars);
+    Result := Result + '?' + InternalURIEscape(URI.Params, ValidPathChars);
   if Length(URI.Bookmark) > 0 then
-    Result := Result + '#' + Escape(URI.Bookmark, ValidPathChars);
+    Result := Result + '#' + InternalURIEscape(URI.Bookmark, ValidPathChars);
 end;
 
 function ParseURI(const URI: String; Decode : Boolean = True):  TURI;
@@ -141,38 +115,13 @@ begin
   end;
 end;
 
-function Unescape(const s: String): String;
-var
-  i, RealLength: Integer;
-  P: PChar;
-begin
-  SetLength(Result, Length(s));
-  i := 1;
-  P := PChar(Result);  { use PChar to prevent numerous calls to UniqueString }
-  RealLength := 0;
-  while i <= Length(s) do
-  begin
-    if s[i] = '%' then
-    begin
-      P[RealLength] := Chr(HexValue(s[i + 1]) shl 4 or HexValue(s[i + 2]));
-      Inc(i, 3);
-    end else
-    begin
-      P[RealLength] := s[i];
-      Inc(i);
-    end;
-    Inc(RealLength);
-  end;
-  SetLength(Result, RealLength);
-end;
-
 function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word;Decode : Boolean = True):  TURI;
 
 var
   s, Authority: String;
   i,j: Integer;
   PortValid: Boolean;
-  
+
 begin
   Result:=Default(TURI);
   Result.Protocol := LowerCase(DefaultProtocol);
@@ -200,7 +149,7 @@ begin
   begin
     Result.Bookmark := Copy(s, i + 1, MaxInt);
     if Decode then
-      Result.Bookmark:=Unescape(Result.Bookmark);
+      Result.Bookmark:=InternalURIUnescape(Result.Bookmark);
     s := Copy(s, 1, i - 1);
   end;
 
@@ -211,7 +160,7 @@ begin
   begin
     Result.Params := Copy(s, i + 1, MaxInt);
     if Decode then
-      Result.Params:=Unescape(Result.Params);
+      Result.Params:=InternalURIUnescape(Result.Params);
     s := Copy(s, 1, i - 1);
   end;
 
@@ -240,7 +189,7 @@ begin
     begin
       Result.Document :=Copy(s, i + 1, Length(s));
       if Decode then
-        Result.Document:=Unescape(Result.Document);
+        Result.Document:=InternalURIUnescape(Result.Document);
       if (Result.Document <> '.') and (Result.Document <> '..') then
         s := Copy(s, 1, i)
       else
@@ -252,7 +201,7 @@ begin
     begin
       Result.Document :=s;
       if Decode then
-        Result.Document:=Unescape(Result.Document);
+        Result.Document:=InternalURIUnescape(Result.Document);
       if (Result.Document <> '.') and (Result.Document <> '..') then
         s := ''
       else
@@ -264,7 +213,7 @@ begin
 
   Result.Path := s;
   if Decode then
-    Result.Path:=Unescape(Result.Path);
+    Result.Path:=InternalURIUnescape(Result.Path);
 
   // Extract the port number
 
@@ -469,7 +418,7 @@ begin
     end;
   end;
   if Encode then
-    FilenamePart := Escape(FilenamePart, ValidPathChars);
+    FilenamePart := InternalURIEscape(FilenamePart, ValidPathChars);
 
   Result := Result + FilenamePart;
 end;

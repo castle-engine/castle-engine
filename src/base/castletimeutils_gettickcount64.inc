@@ -80,12 +80,21 @@ var
   LastGetTickCount64: TMilisecTime;
   {$warnings on}
 
+{$ifndef FPC}
+type
+  TTimeVal = TimeVal;
+{$endif}
+
 {$I norqcheckbegin.inc}
 function CastleGetTickCount64: TMilisecTime;
 var
   timeval: TTimeVal;
 begin
+  {$ifdef FPC}
   FpGettimeofday(@timeval, nil);
+  {$else}
+  Gettimeofday(timeval, nil);
+  {$endif}
 
   { By doing tv_sec * 1000, we reject 3 most significant digits from tv_sec.
     That's Ok, since these digits change least often.

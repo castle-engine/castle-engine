@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2021 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,20 +18,113 @@ unit FormProject;
 
 {$mode objfpc}{$H+}
 
+{ Hack to use OpenDocument instead of RunCommandNoWait to execute Delphi.
+  This assumes that Delphi is associated on your system with Pascal files.
+  OTOH it will work a bit nicer, not opening new Delphi instance each time,
+  as Windows underneath will use DDE to communicate with Delphi BDSLauncher. }
+{$define DELPHI_OPEN_SHELL}
+
 interface
 
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
+  AnchorDocking, XMLPropStorage,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
-  EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest;
+  EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
+  ToolPackageFormat;
+
+const
+  DockLayoutFileName = 'layout.dock-layout';
+  DockLayoutFileNameDefault = 'default.dock-layout';
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionComponentDuplicate: TAction;
+    ActionComponentSaveSelected: TAction;
+    ActionComponentDelete: TAction;
+    ActionComponentCut: TAction;
+    ActionComponentPaste: TAction;
+    ActionComponentCopy: TAction;
+    ActionViewportToggleProjection: TAction;
+    ActionViewportSetup2D: TAction;
+    ActionViewportSort2D: TAction;
+    ActionViewportAlignCameraToView: TAction;
+    ActionViewportTop: TAction;
+    ActionNavigationToggle2D: TAction;
+    ActionViewportAlignViewToCamera: TAction;
+    ActionViewportBottom: TAction;
+    ActionViewportFront: TAction;
+    ActionViewportBack: TAction;
+    ActionViewportRight: TAction;
+    ActionViewportLeft: TAction;
+    ActionNavigationFly: TAction;
+    ActionNavigationExamine: TAction;
+    ActionNavigation2D: TAction;
+    ActionViewportViewSelected: TAction;
+    ActionViewportViewAll: TAction;
+    ActionSystemInformation: TAction;
+    ActionOutputCopyAll: TAction;
+    ActionOutputCopySelected: TAction;
+    ActionOutputClean: TAction;
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
+    MenuItem12: TMenuItem;
+    MenuItem15: TMenuItem;
+    MenuItem21: TMenuItem;
+    MenuSeparator6123: TMenuItem;
+    MenuSeparator6: TMenuItem;
+    Separator5: TMenuItem;
+    MenuItem20: TMenuItem;
+    Separator4: TMenuItem;
+    MenuItem18: TMenuItem;
+    MenuItem19: TMenuItem;
+    MenuItem2: TMenuItem;
+    Separator2: TMenuItem;
+    MenuItem13: TMenuItem;
+    MenuItem14: TMenuItem;
+    Separator3: TMenuItem;
+    MenuItem16: TMenuItem;
+    MenuItem17: TMenuItem;
+    Separator1: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
+    MenuItemViewportViewAll: TMenuItem;
+    MenuItemViewportViewSelected: TMenuItem;
+    MenuItemViewport: TMenuItem;
+    MenuItemSystemInformation: TMenuItem;
+    MenuItemEdit: TMenuItem;
+    MenuItemOutputCopyAll: TMenuItem;
+    MenuItemOutputCopySelected: TMenuItem;
+    MenuItemSeparator12312123123: TMenuItem;
+    MenuItemOutputClean: TMenuItem;
+    MenuItemUIOutput: TMenuItem;
+    MenuItemUIWarnings: TMenuItem;
+    MenuItemUIFiles: TMenuItem;
+    MenuItemUIRestoreDefaultDockSettings: TMenuItem;
+    MenuItemEnableDisableDocking: TMenuItem;
+    MenuItemUIProperties: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItemUIHierarchy: TMenuItem;
+    MenuItemUIExplorer: TMenuItem;
+    MenuItemUIDesign: TMenuItem;
+    MenuItem9: TMenuItem;
+    MenuItemWindow: TMenuItem;
+    MenuItemPackageFormat: TMenuItem;
+    MenuItemSeparator12312332424: TMenuItem;
+    MenuItemInstall: TMenuItem;
+    MenuItemSeparator12312131: TMenuItem;
+    MenuItemPlatform: TMenuItem;
+    MenuItemDesignNewNonVisualCustomRoot: TMenuItem;
+    MenuItemDesignNewNonVisual: TMenuItem;
+    MenuItemDesignAddNonVisual: TMenuItem;
+    MenuItemDesignAddBehavior: TMenuItem;
     MenuItemNewCastleSpriteSheet: TMenuItem;
     MenuItemData: TMenuItem;
     MenuItemNewSpriteSheet: TMenuItem;
@@ -108,6 +201,7 @@ type
     MenuItemDesignNewTransform: TMenuItem;
     MenuItemDesignNewUserInterfaceRect: TMenuItem;
     ShellListPopupMenu: TPopupMenu;
+    OutputPopup: TPopupMenu;
     ShellTreePopupMenu: TPopupMenu;
     SaveDesignDialog: TCastleSaveDialog;
     MenuItemSaveAsDesign: TMenuItem;
@@ -148,6 +242,17 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionComponentCutExecute(Sender: TObject);
+    procedure ActionComponentSaveSelectedExecute(Sender: TObject);
+    procedure ActionViewportAlignCameraToViewExecute(Sender: TObject);
+    procedure ActionViewportAlignViewToCameraExecute(Sender: TObject);
+    procedure ActionViewportToggleProjectionExecute(Sender: TObject);
+    procedure ActionNavigation2DExecute(Sender: TObject);
+    procedure ActionNavigationExamineExecute(Sender: TObject);
+    procedure ActionNavigationFlyExecute(Sender: TObject);
+    procedure ActionNavigationToggle2DExecute(Sender: TObject);
+    procedure ActionSystemInformationExecute(Sender: TObject);
+    procedure ActionOutputCleanExecute(Sender: TObject);
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionEditAssociatedUnitExecute(Sender: TObject);
     procedure ActionEditUnitExecute(Sender: TObject);
@@ -158,19 +263,47 @@ type
     procedure ActionNewUnitHereStateExecute(Sender: TObject);
     procedure ActionNewUnitStateExecute(Sender: TObject);
     procedure ActionOpenProjectCodeExecute(Sender: TObject);
+    procedure ActionOutputCopyAllExecute(Sender: TObject);
+    procedure ActionOutputCopySelectedExecute(Sender: TObject);
+    procedure ActionOutputCopySelectedUpdate(Sender: TObject);
     procedure ActionRegenerateProjectExecute(Sender: TObject);
+    procedure ActionViewportBackExecute(Sender: TObject);
+    procedure ActionViewportBottomExecute(Sender: TObject);
+    procedure ActionViewportFrontExecute(Sender: TObject);
+    procedure ActionViewportLeftExecute(Sender: TObject);
+    procedure ActionViewportRightExecute(Sender: TObject);
+    procedure ActionViewportSetup2DExecute(Sender: TObject);
+    procedure ActionViewportSort2DExecute(Sender: TObject);
+    procedure ActionViewportTopExecute(Sender: TObject);
+    procedure ActionViewportViewAllExecute(Sender: TObject);
+    procedure ActionViewportViewSelectedExecute(Sender: TObject);
+    procedure ActionViewportUpdate(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure ButtonClearWarningsClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormHide(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure ListOutputDblClick(Sender: TObject);
+    procedure MenuItemDesignNewNonVisualClick(Sender: TObject);
+    procedure MenuItemEnableDisableDockingClick(Sender: TObject);
+    procedure MenuItemInstallClick(Sender: TObject);
     procedure MenuItemNewDirectoryClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
     procedure MenuItemShellTreeRefreshClick(Sender: TObject);
+    procedure MenuItemUIDesignClick(Sender: TObject);
+    procedure MenuItemUIExplorerClick(Sender: TObject);
+    procedure MenuItemUIFilesClick(Sender: TObject);
+    procedure MenuItemUIHierarchyClick(Sender: TObject);
+    procedure MenuItemUIOutputClick(Sender: TObject);
+    procedure MenuItemUIPropertiesClick(Sender: TObject);
+    procedure MenuItemUIRestoreDefaultDockSettingsClick(Sender: TObject);
+    procedure MenuItemUIWarningsClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
     procedure UpdateRenameItem(Sender: TObject);
     procedure MenuItemRedoClick(Sender: TObject);
@@ -187,10 +320,10 @@ type
     procedure MenuItemCleanClick(Sender: TObject);
     procedure MenuItemCompileClick(Sender: TObject);
     procedure MenuItemCompileRunClick(Sender: TObject);
-    procedure MenuItemCopyComponentClick(Sender: TObject);
+    procedure ActionCopyComponentExecute(Sender: TObject);
     procedure MenuItemDesignCloseClick(Sender: TObject);
-    procedure MenuItemDesignDeleteComponentClick(Sender: TObject);
-    procedure MenuItemDuplicateComponentClick(Sender: TObject);
+    procedure ActionDeleteComponentExecute(Sender: TObject);
+    procedure ActionDuplicateComponentExecute(Sender: TObject);
     procedure MenuItemManualClick(Sender: TObject);
     procedure MenuItemModeDebugClick(Sender: TObject);
     procedure MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
@@ -199,7 +332,7 @@ type
     procedure MenuItemOpenDesignClick(Sender: TObject);
     procedure MenuItemPackageClick(Sender: TObject);
     procedure MenuItemPackageSourceClick(Sender: TObject);
-    procedure MenuItemPasteComponentClick(Sender: TObject);
+    procedure ActionPasteComponentExecute(Sender: TObject);
     procedure MenuItemQuitClick(Sender: TObject);
     procedure MenuItemReferenceClick(Sender: TObject);
     procedure MenuItemModeReleaseClick(Sender: TObject);
@@ -227,7 +360,8 @@ type
     var
       Manifest: TCastleManifest;
       ProjectName: String;
-      ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
+      ProjectPath, ProjectPathUrl, ProjectStandaloneSource,
+        ProjectLazarus, ProjectDelphi: String;
       BuildMode: TBuildMode;
       OutputList: TOutputList;
       RunningProcess: TAsynchronousProcessQueue;
@@ -236,19 +370,46 @@ type
       ShellTreeView1: TCastleShellTreeView;
       ViewFileFrame: TViewFileFrame;
       SplitterBetweenViewFile: TSplitter;
+      Docking: Boolean;
+      WantedDocking: Boolean;
+      ErrorShownRefreshFilesMissingDirectory: Boolean;
+      { Non-zero prevents the ShellListViewSelectItem from updating
+        preview window (ViewFileFrame). }
+      ShellListViewUpdating: Cardinal;
+      PlatformsInfo: TPlatformInfoList;
+      CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
+      CurrentPackageFormat: TPackageFormat;
+      { Anchor docking forms }
+      DesignForm: TForm;
+      DesignHierarchyForm: TForm;
+      DesignPropertiesForm: TForm;
+      DesignExplorerForm: TForm;
+      DesignFilesForm: TForm;
+      DesignOutputForm: TForm;
+      DesignWarningsForm: TForm;
     procedure BuildToolCall(const Commands: array of String;
-      const ExitOnSuccess: Boolean = false);
+      const RestartOnSuccess: Boolean = false);
+    procedure BuildToolCallFinished(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
-    procedure OpenPascal(const FileName: String);
+    procedure MenuItemPackageFormatChangeClick(Sender: TObject);
+    { Open Pascal file in preferred code editor.
+      Line = -1 means to not use any particular line.
+      Column = -1 means to not use any particular column. }
+    procedure OpenPascal(const FileName: String;
+      Line: Integer = -1;
+      Column: Integer = -1);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
     (*Runs custom code editor.
       Use this only when CodeEditor = ceCustom.
       CustomCodeEditorCommand is the command to use (like CodeEditorCommand
       or CodeEditorCommandProject).
-      PascalFileName will be used as ${PAS} macro value. *)
+      PascalFileName will be used as ${PAS} macro value.
+      Line and Column, if not -1, will be passed as ${LINE} ${COLUMN macros. *)
     procedure RunCustomCodeEditor(const CustomCodeEditorCommand: String;
-      const PascalFileName: String);
+      const PascalFileName: String;
+      const Line: Integer = -1;
+      const Column: Integer = -1);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
     procedure ShellListViewDoubleClick(Sender: TObject);
@@ -274,6 +435,14 @@ type
     procedure WarningNotification(const Category, Message: string);
     { Clears all warnings and hides warnings tab }
     procedure ClearAllWarnings;
+    { Update ViewFileFrame existence and visibility to show currently
+      selected item in ShellListView1. }
+    procedure ViewFileFrameUpdate;
+    procedure LoadDockLayout;
+    procedure SaveDockLayout;
+    procedure MenuItemPlatformChangeClick(Sender: TObject);
+    procedure RestartEditor(Sender: TObject);
+    procedure CurrentViewportChanged(Sender: TObject);
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -286,15 +455,18 @@ implementation
 
 {$R *.lfm}
 
-uses TypInfo, LCLType,
+uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
   CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
+  CastleClassUtils, CastleLclEditHack,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  ToolCompilerInfo, ToolCommonUtils;
+  FormSystemInformation,
+  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait,
+  ToolFpcVersion;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -330,29 +502,13 @@ end;
 
 procedure TProjectForm.MenuItemRestartRebuildEditorClick(Sender: TObject);
 begin
-  BuildToolCall(['editor'], true);
+  BuildToolCall(['editor-rebuild-if-needed'], true);
 end;
 
 procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
-
-  if Design.DesignRoot is TCastleUserInterface then
-  begin
-    SaveDesignDialog.DefaultExt := 'castle-user-interface';
-    SaveDesignDialog.Filter := 'CGE User Interface Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
-  end else
-  if Design.DesignRoot is TCastleTransform then
-  begin
-    { We modify both Filter and DefaultExt, otherwise (at least on GTK2)
-      the default extension (for filter like '*.castle-user-interface;*.castle-transform')
-      would still be castle-user-interface. I.e. DefaultExt seems to be ignored,
-      and instead GTK applies first filter. }
-    SaveDesignDialog.DefaultExt := 'castle-transform';
-    SaveDesignDialog.Filter := 'CGE Transform Design (*.castle-transform)|*.castle-transform|All Files|*';
-  end else
-    raise EInternalError.Create('DesignRoot does not descend from TCastleUserInterface or TCastleTransform');
-
+  PrepareSaveDesignDialog(SaveDesignDialog, Design.DesignRoot);
   SaveDesignDialog.Url := Design.DesignUrl;
   if SaveDesignDialog.Execute then
     Design.SaveDesign(SaveDesignDialog.Url);
@@ -434,6 +590,11 @@ begin
   ClearAllWarnings;
 end;
 
+procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  SaveDockLayout;
+end;
+
 procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
 begin
   if SpriteSheetEditorForm = nil then
@@ -441,6 +602,93 @@ begin
 
   SpriteSheetEditorForm.Show;
   SpriteSheetEditorForm.NewSpriteSheet;
+end;
+
+procedure TProjectForm.ActionOutputCleanExecute(Sender: TObject);
+begin
+  ListOutput.Clear;
+end;
+
+procedure TProjectForm.ActionSystemInformationExecute(Sender: TObject);
+begin
+  SystemInformationForm.Show;
+end;
+
+procedure TProjectForm.ActionNavigationToggle2DExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    { This comparison also determines what happens if current navigation
+      is neither 2D, nor Fly.
+      In this case we want to switch to 2D, because all other navigations
+      are more 3D. }
+    if Design.CurrentViewport.InternalDesignNavigationType = dn2D then
+    begin
+      Design.CurrentViewport.InternalDesignNavigationType := dnFly;
+      ActionNavigationFly.Checked := true;
+    end else
+    begin
+      Design.CurrentViewport.InternalDesignNavigationType := dn2D;
+      ActionNavigation2D.Checked := true;
+    end;
+  end;
+end;
+
+procedure TProjectForm.ActionNavigationFlyExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    Design.CurrentViewport.InternalDesignNavigationType := dnFly;
+    ActionNavigationFly.Checked := true;
+  end;
+end;
+
+procedure TProjectForm.ActionNavigation2DExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    Design.CurrentViewport.InternalDesignNavigationType := dn2D;
+    ActionNavigation2D.Checked := true;
+  end;
+end;
+
+procedure TProjectForm.ActionNavigationExamineExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    Design.CurrentViewport.InternalDesignNavigationType := dnExamine;
+    ActionNavigationExamine.Checked := true;
+  end;
+end;
+
+procedure TProjectForm.ActionViewportToggleProjectionExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportToggleProjection;
+end;
+
+procedure TProjectForm.ActionViewportAlignViewToCameraExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportAlignViewToCamera;
+end;
+
+procedure TProjectForm.ActionViewportAlignCameraToViewExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportAlignCameraToView;
+end;
+
+procedure TProjectForm.ActionComponentCutExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.CutComponent;
+end;
+
+procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.SaveSelected;
 end;
 
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
@@ -452,9 +700,15 @@ end;
 
 procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
 var
-  Exe: String;
+  Exe, DelphiExe: String;
+  Ce: TCodeEditor;
 begin
-  case CodeEditor of
+  if CodeEditor = ceAutodetect then
+    Ce := AutodetectCodeEditor
+  else
+    Ce := CodeEditor;
+
+  case Ce of
     ceCustom:
       begin
         if CodeEditorCommandProject <> '' then
@@ -473,12 +727,7 @@ begin
       begin
         Exe := FindExeLazarusIDE;
 
-        { Prefer to open using LPR (ProjectStandaloneSource) instead of LPI
-          (ProjectLazarus), see OpenPascal comments for reasons. }
-
-        if ProjectStandaloneSource <> '' then
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
-        else
+        { Open through LPI to change the project. }
         if ProjectLazarus <> '' then
           RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
         else
@@ -486,13 +735,148 @@ begin
             NL +
             'Create Lazarus project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
       end;
+    ceDelphi:
+      begin
+        FindDelphiPath(true, DelphiExe);
+
+        { Open through DPROJ, this seems to be the only thing that works reliably. }
+        if ProjectDelphi = '' then
+        begin
+          ErrorBox('Delphi project not defined (neither "standalone_source" nor "delphi_project" were specified in CastleEngineManifest.xml).' + NL +
+            NL +
+            'Create Delphi project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+          Exit;
+        end;
+        if not RegularFileExists(ProjectDelphi) then
+        begin
+          ErrorBox(Format('Delphi project file does not exist: %s.' + NL +
+            NL +
+            'Create Delphi project (by "castle-engine generate-program" or using Delphi).', [
+            ProjectDelphi
+          ]));
+          Exit;
+        end;
+
+        {$ifdef DELPHI_OPEN_SHELL}
+        OpenDocument(ProjectDelphi); // hack to open Pascal names in existing Delphi window, using DDE
+        {$else}
+        RunCommandNoWait(ProjectPath, DelphiExe, [
+          ProjectDelphi
+          //ProjectStandaloneSource
+        ]);
+        {$endif}
+      end;
+    ceVSCode:
+      begin
+        Exe := FindExeVSCode(true);
+        RunCommandNoWait(ProjectPath, Exe, [
+          { --add would add project to workspace in current window.
+            See OpenPascal for comments. }
+          //'--add',
+
+          { We pass relative filenames, not absolute, to avoid
+            VS Code on Windows inability to deal with spaces in filenames.
+            See OpenPascal for comments. }
+          '.'
+        ], [rcNoConsole]);
+      end;
     else raise EInternalError.Create('CodeEditor?');
   end;
+end;
+
+procedure TProjectForm.ActionOutputCopyAllExecute(Sender: TObject);
+begin
+  Clipboard.AsText := ListOutput.Items.Text;
+end;
+
+procedure TProjectForm.ActionOutputCopySelectedExecute(Sender: TObject);
+begin
+  { Although ActionOutputCopySelectedUpdate should secure from it too,
+    but check it in case ActionOutputCopySelectedUpdate doesn't run often enough. }
+  if ListOutput.ItemIndex <> -1 then
+  begin
+    Clipboard.AsText := ListOutput.Items[ListOutput.ItemIndex];
+  end;
+end;
+
+procedure TProjectForm.ActionOutputCopySelectedUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := ListOutput.ItemIndex <> -1;
 end;
 
 procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
 begin
   BuildToolCall(['generate-program']);
+end;
+
+procedure TProjectForm.ActionViewportBackExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAxis(Vector3(0, 0, 1), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportBottomExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAxis(Vector3(0, 1, 0), Vector3(0, 0, -1));
+end;
+
+procedure TProjectForm.ActionViewportFrontExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAxis(Vector3(0, 0, -1), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportLeftExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAxis(Vector3(1, 0, 0), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportRightExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAxis(Vector3(-1, 0, 0), Vector3(0, 1, 0));
+end;
+
+procedure TProjectForm.ActionViewportSetup2DExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportSetup2D;
+end;
+
+procedure TProjectForm.ActionViewportSort2DExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportSort2D;
+end;
+
+procedure TProjectForm.ActionViewportTopExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    { up -Z better than up +Z: makes more natural rotation when using 1/3/7 }
+    Design.ViewportViewAxis(Vector3(0, -1, 0), Vector3(0, 0, -1));
+end;
+
+procedure TProjectForm.ActionViewportViewAllExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewAll;
+end;
+
+procedure TProjectForm.ActionViewportViewSelectedExecute(Sender: TObject);
+begin
+  if Design <> nil then
+    Design.ViewportViewSelected;
+end;
+
+procedure TProjectForm.ActionViewportUpdate(Sender: TObject);
+var
+  ViewportActionsAllowed: Boolean;
+begin
+  ViewportActionsAllowed := (Design <> nil) and (Design.CurrentViewport <> nil);
+  (Sender as TAction).Enabled := ViewportActionsAllowed;
+  // MenuItemViewport.Enabled := ViewportActionsAllowed; // TODO would disable everything without ability to restore
 end;
 
 procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);
@@ -637,6 +1021,56 @@ begin
   ErrorBox(E.Message);
 end;
 
+procedure TProjectForm.LoadDockLayout;
+var
+  XMLConfig: TXMLConfigStorage;
+  Site: TAnchorDockHostSite;
+  URLFileName: String;
+begin
+  if not Docking then Exit;
+  URLFileName := ApplicationConfig(DockLayoutFileName);
+  { Try to load default layout if user layout is not exist }
+  if not URIFileExists(URLFileName) then
+    URLFileName := InternalCastleDesignData + 'layouts/' + DockLayoutFileNameDefault;
+  try
+    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
+    try
+      DockMaster.LoadLayoutFromConfig(XMLConfig, True);
+    finally
+      FreeAndNil(XMLConfig);
+    end;
+  except
+    on E: Exception do
+    begin
+      { If no default layout setting is found, we manually dock design form to
+        main form, and let other forms scatter around. }
+      ErrorBox('Error while loading layout:' + NL + E.Message + NL + NL +
+        'The editor will try to use default layout instead.');
+      Site := DockMaster.GetAnchorSite(DesignForm);
+      DockMaster.ManualDock(Site, Self, alClient);
+    end;
+  end;
+end;
+
+procedure TProjectForm.SaveDockLayout;
+var
+  XMLConfig: TXMLConfigStorage;
+begin
+  if not Docking then Exit;
+  try
+    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)), false);
+    try
+      DockMaster.SaveLayoutToConfig(XMLConfig);
+      XMLConfig.WriteToDisk;
+    finally
+      FreeAndNil(XMLConfig);
+    end;
+  except
+    on E: Exception do
+      ErrorBox('Error saving layout:' + NL + E.Message);
+  end;
+end;
+
 procedure TProjectForm.FormCreate(Sender: TObject);
 
   { We create some components by code, this way we don't have to put
@@ -679,11 +1113,10 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.OnSelectItem := @ShellListViewSelectItem;
     ShellListView1.Hint := 'Double-click to open.' + NL +
       NL +
-      '- Scenes open in engine viewer (view3dscene).' + NL +
-      '- Images open in engine viewer (castle-view-image).' + NL +
-      '- Design opens in this editor window.' + NL +
-      '- Pascal files open in Lazarus.' + NL +
-      '- Other files open in external applications.';
+      '- Scenes and images open in engine viewers (view3dscene, castle-view-image).' + NL +
+      '- Designs open in this editor.' + NL +
+      '- Pascal files open in the code editor.' + NL +
+      '- Other files open in OS default applications.';
     ShellListView1.PopupMenu := ShellListPopupMenu;
     ShellListView1.SmallImages := ShellIcons;
     ShellListView1.DragMode := dmAutomatic;
@@ -692,22 +1125,214 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.ShellTreeView := ShellTreeView1;
   end;
 
+  procedure BuildPlatformsMenu;
+
+    procedure AddPlatform(const Name: String; const Target: TTarget; const OS: TOS; const CPU: TCPU);
+    var
+      Mi: TMenuItem;
+      MiCaption: String;
+      P: TPlatformInfo;
+    begin
+      Mi := TMenuItem.Create(MenuItemPlatform);
+      MiCaption := Name;
+      if Target = targetCustom then
+        MiCaption += ' (' + OSToString(OS) + ' / ' + CPUToString(CPU) + ')';
+      Mi.Caption := MiCaption;
+      Mi.Tag := PlatformsInfo.Count;
+      Mi.OnClick := @MenuItemPlatformChangeClick;
+      Mi.GroupIndex := 200;
+      Mi.RadioItem := true;
+      Mi.ShowAlwaysCheckable := true;
+      Mi.Checked := Mi.Tag = CurrentPlatformInfo;
+      MenuItemPlatform.Add(Mi);
+
+      P := TPlatformInfo.Create;
+      P.Target := Target;
+      P.OS := OS;
+      P.CPU := CPU;
+      PlatformsInfo.Add(P);
+    end;
+
+    procedure AddPlatformSeparator;
+    var
+      Mi: TMenuItem;
+    begin
+      Mi := TMenuItem.Create(MenuItemPlatform);
+      Mi.Caption := '-';
+      MenuItemPlatform.Add(Mi);
+    end;
+
+  begin
+    PlatformsInfo := TPlatformInfoList.Create(true);
+    AddPlatform('Default', targetCustom, DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('Android (Arm 32-bit and 64-bit)', targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('iOS (Arm 32-bit and 64-bit)', targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('Linux 32-bit', targetCustom, Linux, i386);
+    AddPlatform('Linux 64-bit', targetCustom, Linux, x86_64);
+    AddPlatform('Linux Arm 32-bit', targetCustom, Linux, Arm);
+    AddPlatform('Linux Arm 64-bit', targetCustom, Linux, Aarch64);
+    AddPlatformSeparator;
+    AddPlatform('Windows 32-bit', targetCustom, Win32, i386);
+    AddPlatform('Windows 64-bit', targetCustom, Win64, x86_64);
+    AddPlatformSeparator;
+    AddPlatform('macOS 64-bit', targetCustom, Darwin, i386);
+    AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, Aarch64);
+    AddPlatformSeparator;
+    AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
+    AddPlatform('FreeBSD 64-bit', targetCustom, FreeBSD, x86_64);
+  end;
+
+  procedure BuildPackageFormatsMenu;
+  const
+    PackageFormatCaptions: array [TPackageFormat] of string = (
+      'Default',
+      'Directory',
+      'Compressed zip',
+      'Compressed tar.gz',
+      'Debian Package (DEB)',
+      'Android APK',
+      'Android App Bundle (AAB)',
+      'iOS Xcode Project',
+      'iOS Archive -> Development',
+      'iOS Archive -> ad-hoc',
+      'iOS Archive -> AppStore',
+      'Nintendo Switch Project',
+      'macOS App Bundle (APP)',
+      'macOS App Bundle (APP) zip'
+    );
+  var
+    Mi: TMenuItem;
+    P: TPackageFormat;
+  begin
+    for P in TPackageFormat do
+    begin
+      Mi := TMenuItem.Create(MenuItemPackageFormat);
+      Mi.Caption := PackageFormatCaptions[P];
+      Mi.Tag := Ord(P);
+      Mi.OnClick := @MenuItemPackageFormatChangeClick;
+      Mi.GroupIndex := 210;
+      Mi.RadioItem := true;
+      Mi.ShowAlwaysCheckable := true;
+      Mi.Checked := P = CurrentPackageFormat;
+      MenuItemPackageFormat.Add(Mi);
+    end;
+  end;
+
+var
+  EnableDocking: Boolean;
 begin
+  EnableDocking := URIFileExists(ApplicationConfig('enable-docking.txt'));
+  MenuItemWindow.SetEnabledVisible(EnableDocking);
+  Docking := EnableDocking and UserConfig.GetValue('ProjectForm_Docking', false);
   OutputList := TOutputList.Create(ListOutput);
-  BuildComponentsMenu(MenuItemDesignNewUserInterfaceCustomRoot, MenuItemDesignNewTransformCustomRoot, @MenuItemDesignNewCustomRootClick);
-  BuildComponentsMenu(MenuItemDesignAddUserInterface, MenuItemDesignAddTransform, @MenuItemAddComponentClick);
+  BuildComponentsMenu(
+    MenuItemDesignNewUserInterfaceCustomRoot,
+    MenuItemDesignNewTransformCustomRoot,
+    nil,
+    MenuItemDesignNewNonVisualCustomRoot,
+    @MenuItemDesignNewCustomRootClick);
+  BuildComponentsMenu(
+    MenuItemDesignAddUserInterface,
+    MenuItemDesignAddTransform,
+    MenuItemDesignAddBehavior,
+    MenuItemDesignAddNonVisual,
+    @MenuItemAddComponentClick);
   CreateShellViews;
+  BuildPlatformsMenu;
+  BuildPackageFormatsMenu;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
+  if Docking then
+  begin
+    // Create dockable forms
+    //  DockMaster.DockSitesCanBeMinimized := True;
+    DockMaster.MakeDockSite(Self, [akBottom], admrpNone);
+    DesignForm := TForm.CreateNew(nil);
+    DesignForm.Name := 'DesignForm';
+    DesignForm.Caption := 'Design';
+    DesignHierarchyForm := TForm.CreateNew(nil);
+    DesignHierarchyForm.Name := 'DesignHierarchyForm';
+    DesignHierarchyForm.Caption := 'Hierarchy';
+    { We need to set the DesignTimePPI on new forms,
+      otherwise when user has system-wide font scaling 125% then the layout
+      from the initial LoadDockLayout call is not correct (and only calling
+      later "Restore Default Docking Layout" helps). }
+    DesignHierarchyForm.DesignTimePPI := DesignTimePPI;
+    DesignPropertiesForm := TForm.CreateNew(nil);
+    DesignPropertiesForm.Name := 'DesignPropertiesForm';
+    DesignPropertiesForm.Caption := 'Properties';
+    DesignPropertiesForm.DesignTimePPI := DesignTimePPI;
+    DesignExplorerForm := TForm.CreateNew(nil);
+    DesignExplorerForm.Name := 'DesignExplorerForm';
+    DesignExplorerForm.Caption := 'Explorer';
+    DesignExplorerForm.DesignTimePPI := DesignTimePPI;
+    DesignFilesForm := TForm.CreateNew(nil);
+    DesignFilesForm.Name := 'DesignFilesForm';
+    DesignFilesForm.Caption := 'Files';
+    DesignFilesForm.DesignTimePPI := DesignTimePPI;
+    DesignOutputForm := TForm.CreateNew(nil);
+    DesignOutputForm.Name := 'DesignOutputForm';
+    DesignOutputForm.Caption := 'Output';
+    DesignOutputForm.DesignTimePPI := DesignTimePPI;
+    DesignWarningsForm := TForm.CreateNew(nil);
+    DesignWarningsForm.Name := 'DesignWarningsForm';
+    DesignWarningsForm.Caption := 'Warnings';
+    DesignWarningsForm.DesignTimePPI := DesignTimePPI;
+    DockMaster.MakeDockable(DesignForm, true, true);
+    DockMaster.MakeDockable(DesignHierarchyForm, true, true);
+    DockMaster.MakeDockable(DesignPropertiesForm, true, true);
+    DockMaster.MakeDockable(DesignExplorerForm, true, true);
+    DockMaster.MakeDockable(DesignFilesForm, true, true);
+    DockMaster.MakeDockable(DesignOutputForm, true, true);
+    DockMaster.MakeDockable(DesignWarningsForm, true, true);
+
+    PageControlBottom.Parent := DesignExplorerForm;
+    PageControlBottom.Align := alClient;
+    ShellListView1.Parent := DesignFilesForm;
+    ShellTreeView1.Align := alClient;
+    ShellListView1.Align := alClient;
+    ListOutput.Parent := DesignOutputForm;
+    ListWarnings.Parent := DesignWarningsForm;
+    PanelWarnings.Parent := DesignWarningsForm;
+    // Hide splitters, as they aren't needed anymore since we use docked forms
+    Splitter2.Visible := false;
+    SplitterBetweenFiles.Visible := false;
+    // Hide bottom tab's header
+    PageControlBottom.ShowTabs := false;
+
+    LoadDockLayout;
+  end;
+  WantedDocking := Docking;
+  MenuItemEnableDisableDocking.Checked := Docking;
+  MenuItemUIRestoreDefaultDockSettings.Enabled := Docking;
+  MenuItemUIDesign.Enabled := Docking;
+  MenuItemUIExplorer.Enabled := Docking;
+  MenuItemUIHierarchy.Enabled := Docking;
+  MenuItemUIProperties.Enabled := Docking;
+  MenuItemUIFiles.Enabled := Docking;
+  MenuItemUIOutput.Enabled := Docking;
+  MenuItemUIWarnings.Enabled := Docking;
 end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
 begin
+  UserConfig.SetValue('ProjectForm_Docking', WantedDocking);
   FormHide(Self); //to save config properly
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
   ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
   FreeAndNil(Manifest);
+  FreeAndNil(DesignForm);
+  FreeAndNil(DesignHierarchyForm);
+  FreeAndNil(DesignPropertiesForm);
+  FreeAndNil(DesignExplorerForm);
+  FreeAndNil(DesignFilesForm);
+  FreeAndNil(DesignOutputForm);
+  FreeAndNil(DesignWarningsForm);
+  FreeAndNil(PlatformsInfo);
 end;
 
 procedure TProjectForm.FormHide(Sender: TObject);
@@ -723,20 +1348,76 @@ procedure TProjectForm.FormHide(Sender: TObject);
   end;
 
 begin
-  UserConfig.SetValue('ProjectForm_Saved', true);
-  UserConfig.SetValue('ProjectForm_Width', Width);
-  UserConfig.SetValue('ProjectForm_Height', Height);
-  UserConfig.SetValue('ProjectForm_Left', Left);
-  UserConfig.SetValue('ProjectForm_Top', Top);
-  UserConfig.SetValue('ProjectForm_WindowState', WindowStateToStr(WindowState));
-  UserConfig.SetValue('ProjectForm_PageControlBottom.Height', PageControlBottom.Height);
-  if Design <> nil then
+  if not Docking then
   begin
-    UserConfig.SetValue('ProjectForm_DesignSaved', true);
-    UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
-    UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+    UserConfig.SetValue('ProjectForm_Saved', true);
+    UserConfig.SetValue('ProjectForm_Width', Width);
+    UserConfig.SetValue('ProjectForm_Height', Height);
+    UserConfig.SetValue('ProjectForm_Left', Left);
+    UserConfig.SetValue('ProjectForm_Top', Top);
+    UserConfig.SetValue('ProjectForm_WindowState', WindowStateToStr(WindowState));
+    UserConfig.SetValue('ProjectForm_PageControlBottom.Height', PageControlBottom.Height);
+    if Design <> nil then
+    begin
+      UserConfig.SetValue('ProjectForm_DesignSaved', true);
+      UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
+      UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+    end;
+    UserConfig.Save;
   end;
-  UserConfig.Save;
+end;
+
+procedure TProjectForm.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+
+  {$if LCL_FULLVERSION >= 2020000}
+    {$define HAS_COMBO_EDIT_BOX}
+  {$endif}
+
+  {$ifndef HAS_COMBO_EDIT_BOX}
+  // Adjusted from TComboBoxStyleHelper.HasEditBox in latest LCL.
+  function ComboHasEditBox(const Style: TComboBoxStyle): Boolean;
+  const
+    ArrHasEditBox: array[TComboBoxStyle] of Boolean = (
+      True,  // csDropDown
+      True,  // csSimple
+      False, // csDropDownList
+      False, // csOwnerDrawFixed
+      False, // csOwnerDrawVariable
+      True,  // csOwnerDrawEditableFixed
+      True   // csOwnerDrawEditableVariable
+    );
+  begin
+    Result := ArrHasEditBox[Style];
+  end;
+  {$endif}
+
+var
+  E: TEditBox;
+begin
+  { See CastleLclEditHack for an expanation of this hack. }
+
+  if (ActiveControl is TComboBox) and
+     {$ifdef HAS_COMBO_EDIT_BOX}
+     (TComboBox(ActiveControl).Style.HasEditBox)
+     {$else}
+     ComboHasEditBox(TComboBox(ActiveControl).Style)
+     {$endif}
+     then
+  begin
+    E := TEditBoxForComboBox.Create(TComboBox(ActiveControl));
+    try
+      E.ProcessKey(Key, Shift);
+    finally FreeAndNil(E) end;
+  end;
+
+  if ActiveControl is TEdit then
+  begin
+    E := TEditBoxForEdit.Create(TEdit(ActiveControl));
+    try
+      E.ProcessKey(Key, Shift);
+    finally FreeAndNil(E) end;
+  end;
 end;
 
 procedure TProjectForm.FormShow(Sender: TObject);
@@ -753,32 +1434,140 @@ procedure TProjectForm.FormShow(Sender: TObject);
 
 var
   NewWidth, NewHeight, NewLeft, NewTop, NewControlHeight: Integer;
+  NewWindowState: TWindowState;
 begin
-  if UserConfig.GetValue('ProjectForm_Saved', false) then
+  if (not Docking) and UserConfig.GetValue('ProjectForm_Saved', false) then
   begin
     NewWidth := UserConfig.GetValue('ProjectForm_Width', -MaxInt);
     NewHeight := UserConfig.GetValue('ProjectForm_Height', -MaxInt);
     NewLeft := UserConfig.GetValue('ProjectForm_Left', -MaxInt);
     NewTop := UserConfig.GetValue('ProjectForm_Top', -MaxInt);
     NewControlHeight := UserConfig.GetValue('ProjectForm_PageControlBottom.Height', -MaxInt);
-    WindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
-    if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
-       (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
-       (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
-       (NewLeft > -32) and (NewTop > -32) then
-    begin
-      Width := NewWidth;
-      Height := NewHeight;
-      Left := NewLeft;
-      Top := NewTop;
-      PageControlBottom.Height := NewControlHeight;
+    NewWindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
+
+    { Apply new values.
+      Note that we don't apply position/size values when NewWindowState <> wsMaximized,
+      as on Windows this causes form to flicker when it appears (initially with invalid sizes
+      inside a maximized form). }
+    case NewWindowState of
+      wsNormal:
+        begin
+          WindowState := NewWindowState;
+          if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
+             (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
+             (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
+             (NewLeft > -32) and (NewTop > -32) then
+          begin
+            Width := NewWidth;
+            Height := NewHeight;
+            Left := NewLeft;
+            Top := NewTop;
+            PageControlBottom.Height := NewControlHeight;
+          end;
+        end;
+      wsMaximized:
+        begin
+          WindowState := NewWindowState;
+          { We use NewControlHeight, just like with wsNormal, but with a different condition. }
+          if (NewControlHeight <= Screen.Height - 32) and (NewControlHeight >= 0) then
+          begin
+            PageControlBottom.Height := NewControlHeight;
+          end;
+        end;
     end;
   end;
 end;
 
 procedure TProjectForm.ListOutputClick(Sender: TObject);
 begin
-  // TODO: just to source code line in case of error message here
+end;
+
+procedure TProjectForm.ListOutputDblClick(Sender: TObject);
+
+  { For a filename in output, return absolute filename or raise exception. }
+  function FilenameFromOutput(const S: String): String;
+  var
+    Test: String;
+    CgeFileInfo: TFileInfo;
+  begin
+    // absolute filename
+    if IsPathAbsolute(S) then
+      Exit(S);
+
+    // filename relative to project root
+    Test := CombinePaths(ProjectPath, S);
+    if FileExists(Test) then
+      Exit(Test);
+
+    // filename that has to be found on search paths
+    if CharsPos(AllowDirectorySeparators, S) = 0 then
+    begin
+      Test := Manifest.SearchPascalFile(S);
+      if Test <> '' then
+         Exit(Test);
+    end;
+
+    // filename in CGE sources
+    if (CastleEnginePath <> '') and
+       FindFirstFile(CastleEnginePath, S, false, [ffRecursive], CgeFileInfo) then
+      Exit(CgeFileInfo.AbsoluteName);
+
+    raise Exception.CreateFmt('Cannot find Pascal filename "%s"', [S]);
+  end;
+
+var
+  R: TRegExpr;
+  Line: String;
+begin
+  // jump to source code line in case of error message here
+
+  if ListOutput.ItemIndex = -1 then
+    Exit;
+  Line := ListOutput.Items[ListOutput.ItemIndex];
+
+  R := TRegExpr.Create;
+  try
+    R.Expression := '^([^() ]+)\(([\d]+),([\d]+)\) (Error|Fatal|Warning|Note):';
+    if R.Exec(Line) then
+    begin
+      OpenPascal(FilenameFromOutput(R.Match[1]), StrToInt(R.Match[2]), StrToInt(R.Match[3]));
+      Exit;
+    end;
+
+    R.Expression := '^([^() ]+)\(([\d]+)\) (Error|Fatal|Warning|Note):';
+    if R.Exec(Line) then
+    begin
+      OpenPascal(FilenameFromOutput(R.Match[1]), StrToInt(R.Match[2]));
+      Exit;
+    end;
+
+    R.Expression := '^Compiling ([^() ]+)';
+    if R.Exec(Line) then
+    begin
+      OpenPascal(FilenameFromOutput(R.Match[1]));
+      Exit;
+    end;
+  finally
+    FreeAndNil(R);
+  end;
+end;
+
+procedure TProjectForm.MenuItemDesignNewNonVisualClick(Sender: TObject);
+begin
+  if ProposeSaveDesign then
+    NewDesign(TCastleComponent, nil);
+end;
+
+procedure TProjectForm.MenuItemEnableDisableDockingClick(Sender: TObject);
+begin
+  InfoBox('Please close the project window and open it again to activate / deactivate the Docking Layout.');
+  WantedDocking := not WantedDocking;
+  MenuItemEnableDisableDocking.Checked := WantedDocking;
+end;
+
+procedure TProjectForm.MenuItemInstallClick(Sender: TObject);
+begin
+  BuildToolCall(['install']);
 end;
 
 procedure TProjectForm.MenuItemNewDirectoryClick(Sender: TObject);
@@ -791,7 +1580,8 @@ begin
     if not CreateDir(FullNewDir) then
       raise Exception.CreateFmt('Creating new directory "%s" failed', [FullNewDir]);
     RefreshFiles(rfEverythingInCurrentDir);
-    // TODO: Select newly added dir, not so easy in ShellListView1
+    // Select newly added dir
+    ShellListView1.SelectedFileNameInRoot := NewDir;
   end;
 end;
 
@@ -803,6 +1593,53 @@ end;
 procedure TProjectForm.MenuItemShellTreeRefreshClick(Sender: TObject);
 begin
   RefreshFiles(rfEverything);
+end;
+
+procedure TProjectForm.MenuItemUIDesignClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIExplorerClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignExplorerForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIFilesClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignFilesForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIHierarchyClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignHierarchyForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIOutputClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignOutputForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIPropertiesClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignPropertiesForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIRestoreDefaultDockSettingsClick(Sender: TObject
+  );
+var
+  DockLayoutUrl: String;
+begin
+  { Simply remove the dock ui config file in order to restore default settings }
+  DockLayoutUrl := ApplicationConfig(DockLayoutFileName);
+  if URIFileExists(DockLayoutUrl) then
+    CheckDeleteFile(URIToFilenameSafe(DockLayoutUrl));
+  LoadDockLayout;
+end;
+
+procedure TProjectForm.MenuItemUIWarningsClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignWarningsForm, True, True);
 end;
 
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
@@ -898,10 +1735,17 @@ end;
 procedure TProjectForm.MenuItemCompileRunClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
-    BuildToolCall(['compile', 'run']);
+  begin
+    RunningApplication := true;
+    SoundEngineSetVolume;
+    if PlatformsInfo[CurrentPlatformInfo].Target = targetAndroid then
+      BuildToolCall(['package', 'install', 'run'])
+    else
+      BuildToolCall(['compile', 'run']);
+  end;
 end;
 
-procedure TProjectForm.MenuItemCopyComponentClick(Sender: TObject);
+procedure TProjectForm.ActionCopyComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.CopyComponent;
@@ -922,13 +1766,13 @@ begin
   end;
 end;
 
-procedure TProjectForm.MenuItemDesignDeleteComponentClick(Sender: TObject);
+procedure TProjectForm.ActionDeleteComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.DeleteComponent;
 end;
 
-procedure TProjectForm.MenuItemDuplicateComponentClick(Sender: TObject);
+procedure TProjectForm.ActionDuplicateComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.DuplicateComponent;
@@ -954,16 +1798,23 @@ begin
   MenuItemDesignClose.Enabled := Design <> nil;
   MenuItemDesignAddTransform.Enabled := Design <> nil;
   MenuItemDesignAddUserInterface.Enabled := Design <> nil;
-  MenuItemDesignDeleteComponent.Enabled := Design <> nil;
-  MenuItemCopyComponent.Enabled := Design <> nil;
-  MenuItemPasteComponent.Enabled := Design <> nil;
-  MenuItemDuplicateComponent.Enabled := Design <> nil;
+  MenuItemDesignAddBehavior.Enabled := Design <> nil;
+  MenuItemDesignAddNonVisual.Enabled := Design <> nil;
+  ActionComponentDelete.Enabled := Design <> nil;
+  ActionComponentCopy.Enabled := Design <> nil;
+  ActionComponentPaste.Enabled := Design <> nil;
+  ActionComponentCut.Enabled := Design <> nil;
+  ActionComponentDuplicate.Enabled := Design <> nil;
+  ActionComponentSaveSelected.Enabled := Design <> nil;
   ActionEditAssociatedUnit.Enabled := Design <> nil;
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);
+  UpdateFormCaption(nil);
 
-  if (Design <> nil) and UserConfig.GetValue('ProjectForm_DesignSaved', false) then
+  if (Design <> nil) and
+     UserConfig.GetValue('ProjectForm_DesignSaved', false) and
+     (not Docking) then
   begin
     NewPanelRightWidth := UserConfig.GetValue('ProjectForm_Design.PanelRight.Width', -MaxInt);
     NewPanelLeftWidth := UserConfig.GetValue('ProjectForm_Design.PanelLeft.Width', -MaxInt);
@@ -988,8 +1839,46 @@ begin
     Design.OnUpdateFormCaption := @UpdateFormCaption;
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
+    Design.OnCurrentViewportChanged := @CurrentViewportChanged;
+
     DesignExistenceChanged;
+    if Docking then
+    begin
+      // Transfer controls to dock forms, and modify it's align rule
+      Design.Parent := DesignForm;
+      Design.PanelLeft.Parent := DesignHierarchyForm;
+      Design.PanelRight.Parent := DesignPropertiesForm;
+      Design.Align := alClient;
+      Design.PanelLeft.Align := alClient;
+      Design.PanelRight.Align := alClient;
+      // Hide splitters, as they dont need anymore since we use docked forms
+      Design.SplitterLeft.Visible := False;
+      Design.SplitterRight.Visible := False;
+    end;
   end;
+end;
+
+procedure TProjectForm.CurrentViewportChanged(Sender: TObject);
+
+  procedure UnselectAll;
+  begin
+    ActionNavigation2D.Checked := false;
+    ActionNavigationFly.Checked := false;
+    ActionNavigationExamine.Checked := false;
+  end;
+
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+  begin
+    { update menu state from Design.CurrentViewport.InternalDesignNavigationType }
+    case Design.CurrentViewport.InternalDesignNavigationType of
+      dn2D     : ActionNavigation2D.Checked := true;
+      dnFly    : ActionNavigationFly.Checked := true;
+      dnExamine: ActionNavigationExamine.Checked := true;
+      else UnselectAll;
+    end;
+  end else
+    UnselectAll;
 end;
 
 procedure TProjectForm.NewDesign(const ComponentClass: TComponentClass;
@@ -1048,7 +1937,11 @@ end;
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
+  begin
+    RunningApplication := true;
+    SoundEngineSetVolume;
     BuildToolCall(['run']);
+  end;
 end;
 
 procedure TProjectForm.MenuItemOpenDesignClick(Sender: TObject);
@@ -1074,7 +1967,7 @@ begin
   BuildToolCall(['package-source']);
 end;
 
-procedure TProjectForm.MenuItemPasteComponentClick(Sender: TObject);
+procedure TProjectForm.ActionPasteComponentExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.PasteComponent;
@@ -1092,7 +1985,7 @@ begin
       SpriteSheetEditorForm.Close; // not needed on GTK2, maybe add ifdef?
     end;
 
-    Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
+    Release; // do not call MenuItemDesignClose, to avoid OnCloseQuery
     ChooseProjectForm.Show;
   end;
 end;
@@ -1122,6 +2015,12 @@ end;
 
 procedure TProjectForm.ShellListViewSelectItem(Sender: TObject;
   Item: TListItem; Selected: Boolean);
+begin
+  if ShellListViewUpdating = 0 then
+    ViewFileFrameUpdate;
+end;
+
+procedure TProjectForm.ViewFileFrameUpdate;
 
   { Make sure ViewFileFrame is created and visible.
     For now we create ViewFileFrame on-demand, just in case there's a problem
@@ -1187,8 +2086,8 @@ begin
 end;
 
 procedure TProjectForm.RunCustomCodeEditor(
-  const CustomCodeEditorCommand: String;
-  const PascalFileName: String);
+  const CustomCodeEditorCommand: String; const PascalFileName: String;
+  const Line: Integer; const Column: Integer);
 
   { Copied from FPC packages/fcl-process/src/processbody.inc
     (licence "LGPL with static linking exception", so compatible with us). }
@@ -1255,6 +2154,7 @@ var
   Exe: String;
   Parameters: TCastleStringList;
   I: Integer;
+  Macros: TStringStringMap;
 begin
   Parameters := TCastleStringList.Create;
   try
@@ -1263,52 +2163,173 @@ begin
       raise Exception.CreateFmt('Code editor command was split into zero items: "%s"', [CustomCodeEditorCommand]);
     Exe := Parameters[0];
     Parameters.Delete(0);
-    for I := 0 to Parameters.Count - 1 do
-      Parameters[I] := SReplacePatterns(Parameters[I],
-        ['${PAS}', '${STANDALONE_SOURCE}', '${PROJECT_DIR}'],
-        [PascalFileName, ProjectStandaloneSource, ProjectPath],
-        true);
+    Macros := TStringStringMap.Create;
+    try
+      Macros.Add('${PAS}', PascalFileName);
+      Macros.Add('${STANDALONE_SOURCE}', ProjectStandaloneSource);
+      Macros.Add('${PROJECT_DIR}', ProjectPath);
+      if Line <> -1 then
+        Macros.Add('${LINE}', IntToStr(Line));
+      if Column <> -1 then
+        Macros.Add('${COLUMN}', IntToStr(Column));
+      for I := 0 to Parameters.Count - 1 do
+        Parameters[I] := SReplacePatterns(Parameters[I], Macros, true);
+    finally FreeAndNil(Macros) end;
     RunCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
   finally FreeAndNil(Parameters) end;
 end;
 
-procedure TProjectForm.OpenPascal(const FileName: String);
+procedure TProjectForm.OpenPascal(const FileName: String; Line: Integer;
+  Column: Integer);
 var
-  Exe: String;
+  Exe, DelphiExe, VsCodeFileArgument: String;
+  Ce: TCodeEditor;
 begin
-  case CodeEditor of
+  if CodeEditor = ceAutodetect then
+    Ce := AutodetectCodeEditor
+  else
+    Ce := CodeEditor;
+
+  case Ce of
     ceCustom:
       begin
-        RunCustomCodeEditor(CodeEditorCommand, FileName);
+        if (Line <> -1) and
+           (CodeEditorCommandLineColumn <> '') then
+        begin
+          if Column = -1 then
+            Column := 1; // we don't have a command to open only at line, so use column = 1
+          RunCustomCodeEditor(CodeEditorCommandLineColumn, FileName, Line, Column);
+        end else
+          RunCustomCodeEditor(CodeEditorCommand, FileName);
       end;
     ceLazarus:
       begin
         Exe := FindExeLazarusIDE;
 
-        { It would be cleaner to use LPI file, like this:
+        if ProjectLazarus = '' then
+        begin
+          WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+        end else
+        if not LazarusVersion.AtLeast(2, 2, 0) then
+        begin
+          { Before Lazarus 2.2, that brought fix to https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/39338 ,
+            using LPI on the command-line didn't work OK.
 
-        // pass both project name, and particular filename, to open file within this project.
-        RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName]);
+            Lazarus < 2.2 opens LPI as a regular XML file then, without changing the project.
+            Moreover:
+            - using LPR doesn't change the project either
+            - using *only* LPI asks to change the project, even if it's already the current project
+              (so we cannot fix the problem by executing it twice in a row, once with LPI once with PAS
+              -- it would show dialog box every time)
+          }
 
-          But it doesn't work nicely: Lazarus asks for confirmation whether to open
-          LPI as XML file, or a project.
-          Instead opening LPR works better, i.e. just switches project (if necessary)
-          to new one.
+          WritelnWarning('Lazarus is older than 2.2, file will be opened without changing Lazarus project.');
+          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+        end else
+        begin
+          // pass both project name, and particular filename, to open file within this project.
+          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName])
+        end;
+      end;
+    ceDelphi:
+      begin
+        FindDelphiPath(true, DelphiExe);
+
+        { Open through DPROJ }
+        (*
+        if ProjectDelphi = '' then
+        begin
+          ErrorBox('Delphi project not defined (neither "standalone_source" nor "delphi_project" were specified in CastleEngineManifest.xml).' + NL +
+            NL +
+            'Create Delphi project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+          Exit;
+        end;
+        if not RegularFileExists(ProjectDelphi) then
+        begin
+          ErrorBox(Format('Delphi project file does not exist: %s.' + NL +
+            NL +
+            'Create Delphi project (by "castle-engine generate-program" or using Delphi).', [
+            ProjectDelphi
+          ]));
+          Exit;
+        end;
+        *)
+
+        { We use DelphiExe, which is BDS.exe.
+
+          Notes:
+
+          - Do not use BDSLauncher.exe. BDSLauncher is defined in registry as the application
+            doing "shell open", but using BDSLauncher is not so easy: we would need
+            then to pass filename using DDE (Windows inter-process communication API).
+            Using just BDS is simpler.
+
+          - Multiple filenames are not supported.
+            We cannot point to the project *and* filename within, it seems.
+            TODO: Need to use Delphi DDE for this?
+
+          - We cannot open in existing Delphi instance?
+            TODO: Need to use Delphi DDE for this?
+
+          - Using /np doesn't work, in fact it makes the following filename ignored.
+            Maybe BDS doesn't understand /np at all, and treats it as another filename?
+            And only 1 filename is handler, as stated above.
         }
 
-        //if ProjectLazarus = '' then
-        if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
-        begin
-          //WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-          WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-        end;
+        {$ifdef DELPHI_OPEN_SHELL}
+        OpenDocument(FileName); // hack to open Pascal names in existing Delphi window, using DDE
+        {$else}
+        RunCommandNoWait(ProjectPath, DelphiExe, [
+          FileName
+        ]);
+        {$endif}
 
-        if (ProjectStandaloneSource = '') or
-           SameFileName(ProjectStandaloneSource, FileName) then
-          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName])
-        else
-          { pass both project name, and particular filename, to open file within this project. }
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
+      end;
+    ceVSCode:
+      begin
+        Exe := FindExeVSCode(true);
+
+        { Explanation of ExtractRelativePath:
+
+          We pass relative filenames, not absolute, to avoid
+          VS Code on Windows inability to deal with spaces in filenames.
+          Other solutions tried:
+
+          - calling code.exe without intermediate code.cmd
+          - using vscode:// URL with spaces encoded using %20.
+
+          See EditorUtils -- nothing helped.
+
+          Using relative paths is a workaround, as long as you don't
+          place Pascal code in subdirectory with spaces. }
+        VsCodeFileArgument := ExtractRelativePath(ProjectPath, FileName);
+
+        { Explanation of '.':
+
+          How to open a project?
+          -add would add project to workspace in current window.
+          It avoids opening new window ever,
+          but it seems more confusing than helpful in our case
+          -- it creates multi-root workspace which may be surprising to users.
+
+          Instead we just pass project dir, as ".", to make sure this is
+          opened as a workspace.
+          See https://code.visualstudio.com/docs/editor/command-line ,
+          https://stackoverflow.com/questions/29955785/opening-microsoft-visual-studio-code-from-command-prompt-windows
+          //'--add'
+        }
+
+        if Line <> -1 then
+        begin
+          VsCodeFileArgument += ':' + IntToStr(Line);
+          if Column <> -1 then
+            VsCodeFileArgument += ':' + IntToStr(Column);
+          RunCommandNoWait(ProjectPath, Exe, ['.', '--goto', VsCodeFileArgument],
+            [rcNoConsole]);
+        end else
+          RunCommandNoWait(ProjectPath, Exe, ['.', VsCodeFileArgument],
+            [rcNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -1325,7 +2346,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
     Exe := FindExeCastleTool(ToolName);
     if Exe = '' then
     begin
-      EditorUtils.ErrorBox(Format('Cannot find Castle Game Engine tool "%s", opening "%s" failed. Make sure CGE is installed correctly, the tool should be distributed along with engine binary.',
+      ErrorBox(Format('Cannot find Castle Game Engine tool "%s", opening "%s" failed. Make sure CGE is installed correctly, the tool should be distributed along with engine binary.',
         [ToolName, SelectedURL]));
       Exit;
     end;
@@ -1381,7 +2402,8 @@ begin
     end;
 
     if AnsiSameText(Ext, '.castle-user-interface') or
-       AnsiSameText(Ext, '.castle-transform') then
+       AnsiSameText(Ext, '.castle-transform') or
+       AnsiSameText(Ext, '.castle-component') then
     begin
       if ProposeSaveDesign then
         OpenDesign(SelectedURL);
@@ -1405,14 +2427,57 @@ begin
     end;
 
     if not OpenDocument(SelectedFileName) then
-      EditorUtils.ErrorBox(Format('Opening "%s" failed.', [SelectedFileName]));
+      ErrorBox(Format('Opening "%s" failed.', [SelectedFileName]));
   end;
 end;
 
 procedure TProjectForm.BuildToolCall(const Commands: array of String;
-  const ExitOnSuccess: Boolean);
+  const RestartOnSuccess: Boolean);
+
+  procedure AddPlatformParameters(const Params: TStrings; const PlatformInfo: TPlatformInfo);
+  begin
+    if (PlatformInfo.Target = targetCustom) and
+       (PlatformInfo.OS = DefaultOS) and
+       (PlatformInfo.CPU = DefaultCPU) then
+      // keep command-line simple, to be simpler for user; no point is adding extra parameters
+      Exit;
+
+    if PlatformInfo.Target <> targetCustom then
+    begin
+      Params.Add('--target=' + TargetToString(PlatformInfo.Target));
+    end else
+    begin
+      Params.Add('--os=' + OSToString(PlatformInfo.OS));
+      Params.Add('--cpu=' + CPUToString(PlatformInfo.CPU));
+    end;
+  end;
+
+  procedure AddModeParameters(const Params: TStrings);
+  var
+    ModeString: String;
+  begin
+    case BuildMode of
+      bmDebug  : ModeString := '--mode=debug';
+      bmRelease: ModeString := '--mode=release';
+      else raise EInternalError.Create('BuildMode?');
+    end;
+    Params.Add(ModeString);
+  end;
+
+  procedure AddCompilerParameters(const Params: TStrings);
+  begin
+    if Compiler <> DefaultCompiler then
+      Params.Add('--compiler=' + CompilerToString(Compiler));
+  end;
+
+  procedure AddPackageFormatParameters(const Params: TStrings; const Format: TPackageFormat);
+  begin
+    if Format <> pfDefault then
+      Params.Add('--package-format=' + PackageFormatToString(Format));
+  end;
+
 var
-  BuildToolExe, ModeString, Command: String;
+  BuildToolExe, Command: String;
   QueueItem: TAsynchronousProcessQueue.TQueueItem;
 begin
   if RunningProcess <> nil then
@@ -1421,14 +2486,8 @@ begin
   BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
   begin
-    EditorUtils.ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');
+    ErrorBox('Cannot find build tool (castle-engine). Set the $CASTLE_ENGINE_PATH or $PATH environment variables or place all tools in CGE bin/ subdirectory.');
     Exit;
-  end;
-
-  case BuildMode of
-    bmDebug  : ModeString := '--mode=debug';
-    bmRelease: ModeString := '--mode=release';
-    else raise EInternalError.Create('BuildMode?');
   end;
 
   SetEnabledCommandRun(false);
@@ -1444,15 +2503,82 @@ begin
     QueueItem := TAsynchronousProcessQueue.TQueueItem.Create;
     QueueItem.ExeName := BuildToolExe;
     QueueItem.CurrentDirectory := ProjectPath;
-    QueueItem.Parameters.Add(ModeString);
     QueueItem.Parameters.Add(Command);
+    // add --mode=xxx parameter
+    if not (
+        (Command = 'package-source') or
+        (Command = 'clean') or
+        (Command = 'auto-generate-textures') or
+        (Command = 'auto-generate-clean') or
+        (Command = 'generate-program') or
+        (Command = 'editor') or
+        (Command = 'editor-rebuild-if-needed') or
+        (Command = 'editor-run')
+      ) then
+      AddModeParameters(QueueItem.Parameters);
+    // add --compiler parameter
+    if (Command = 'compile') or
+       (Command = 'package') then
+      AddCompilerParameters(QueueItem.Parameters);
+    // add --target, --os, --cpu parameters
+    if (Command = 'compile') or
+       (Command = 'run') or
+       (Command = 'package') or
+       (Command = 'install') then
+      AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
+    // add --package-format
+    if (Command = 'package') or
+       (Command = 'install') then
+      AddPackageFormatParameters(QueueItem.Parameters, CurrentPackageFormat);
+    // editor always add --fast to package, as its more comfortable for normal development
+    if (Command = 'package') then
+      QueueItem.Parameters.Add('--fast');
     RunningProcess.Queue.Add(QueueItem);
   end;
 
-  if ExitOnSuccess then
-    RunningProcess.OnSuccessfullyFinishedAll := @MenuItemQuitClick;
+  if RestartOnSuccess then
+    RunningProcess.OnSuccessfullyFinishedAll := @RestartEditor;
+  RunningProcess.OnFinished := @BuildToolCallFinished;
 
   RunningProcess.Start;
+end;
+
+procedure TProjectForm.RestartEditor(Sender: TObject);
+var
+  BuildToolExe: String;
+begin
+  if ProposeSaveDesign then
+  begin
+    { Run custom editor, and finish current process.
+      We use --wait-for-process-exit primarily because on Windows,
+      we need to "unlock" the exe, to be able to copy new exe over the old exe
+      (otherwise recompiling the custom editor could not just place
+      new editor at the same exe).
+      It is also sensible on all platforms, to make sure previous editor closes
+      stuf (e.g. config files) reliably. }
+    BuildToolExe := FindExeCastleTool('castle-engine');
+    if BuildToolExe = '' then
+    begin
+      ErrorBox('Cannot find build tool (castle-engine). Set the $CASTLE_ENGINE_PATH or $PATH environment variables or place all tools in CGE bin/ subdirectory.');
+      Exit;
+    end;
+
+    RunCommandNoWait(ProjectPath, BuildToolExe,
+      ['editor-run', '--gui-errors', '--wait-for-process-exit', IntToStr(CurrentProcessId)],
+      [rcNoConsole]);
+
+    { Once ProposeSaveDesign and RunCommandNoWait are both successful,
+      we want to terminate ASAP as user is waiting for new editor to run. }
+    Application.Terminate;
+  end;
+end;
+
+procedure TProjectForm.BuildToolCallFinished(Sender: TObject);
+begin
+  // bring back volume, in case MuteOnRun
+  RunningApplication := false;
+  SoundEngineSetVolume;
+  RefreshFiles(rfFilesInCurrentDir); // show new files created by "package"
 end;
 
 procedure TProjectForm.MenuItemAddComponentClick(Sender: TObject);
@@ -1482,6 +2608,7 @@ begin
   MenuItemClean.Enabled := AEnabled;
   MenuItemPackage.Enabled := AEnabled;
   MenuItemPackageSource.Enabled := AEnabled;
+  MenuItemInstall.Enabled := AEnabled;
   MenuItemAutoGenerateTextures.Enabled := AEnabled;
   MenuItemAutoGenerateClean.Enabled := AEnabled;
   MenuItemRestartRebuildEditor.Enabled := AEnabled;
@@ -1497,8 +2624,13 @@ begin
   else
     S := '';
   S := S + SQuoteLCLCaption(ProjectName);
-  if InternalHasCustomComponents then
-    S := S + ' (With Custom Components)';
+  if InternalCustomComponentsForProject <> '' then
+  begin
+    if InternalCustomComponentsForProject = ProjectName then
+      S := S + ' (With Custom Components)'
+    else
+      S := S + ' (With Custom Components from ' + InternalCustomComponentsForProject + ')';
+  end;
   Caption := S + ' | Castle Game Engine';
 end;
 
@@ -1543,15 +2675,15 @@ begin
   ProjectPathUrl := Manifest.PathUrl;
   ProjectStandaloneSource := Manifest.StandaloneSource;
   ProjectLazarus := Manifest.LazarusProject;
-  if (Manifest.EditorUnits <> '') and
-     (not InternalHasCustomComponents) then
-    WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
+  ProjectDelphi := Manifest.DelphiProject;
 
   { Make some fields absolute paths, or empty }
   if ProjectStandaloneSource <> '' then
     ProjectStandaloneSource := CombinePaths(ProjectPath, ProjectStandaloneSource);
   if ProjectLazarus <> '' then
     ProjectLazarus := CombinePaths(ProjectPath, ProjectLazarus);
+  if ProjectDelphi <> '' then
+    ProjectDelphi := CombinePaths(ProjectPath, ProjectDelphi);
 
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }
@@ -1572,31 +2704,97 @@ begin
   MenuItemModeDebug.Checked := true;
 
   DesignExistenceChanged;
-  UpdateFormCaption(nil); // make form Caption reflect project name
+  UpdateFormCaption(nil); // make form Caption reflect project name (although this is now done also by DesignExistenceChanged)
+
+  if (Manifest.EditorUnits <> '') and
+     (ProjectName <> InternalCustomComponentsForProject) then
+  begin
+    if YesNoBox(Format('Project "%s" uses custom components.' + NL + NL +
+          'Rebuild and restart editor with custom components?', [
+          ProjectName
+        ])) then
+      MenuItemRestartRebuildEditorClick(nil);
+      //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
+  end;
 end;
 
 procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
 var
-  TreeViewPath: String;
+  DirToRefresh, ErrorStr, TreeViewPath, SavedSelectedFileNameInRoot: String;
+  SavedListViewOrigin: TPoint;
 begin
-  ShellListView1.RefreshContents;
-
-  { It is important to refresh ShellTreeView1 e.g. when new directory
-    was added, otherwise user could not navigate
-    into newly created directories, since they must exist in ShellTreeView1. }
-
-  case RefreshNecessary of
-    { Unfortunately this special implementation of "refresh current dir"
-      doesn't work for non-root directories. }
-    //rfEverythingInCurrentDir:
-    //  ShellTreeView1.Refresh(ShellTreeView1.Selected);
-    rfEverythingInCurrentDir, rfEverything:
-      begin
-        TreeViewPath := ShellTreeView1.Path;
-        ShellTreeView1.Refresh(nil);
-        ShellTreeView1.Path := TreeViewPath;
-      end;
+  DirToRefresh := CombinePaths(ShellTreeView1.Root, ShellTreeView1.Path);
+  if not DirectoryExists(DirToRefresh) then
+  begin
+    ErrorStr := Format('Directory "%s" no longer exists.', [DirToRefresh]);
+    if not ErrorShownRefreshFilesMissingDirectory then
+    begin
+      { Set it before showing ErrorBox,
+        as going back from ErrorBox can again cause this method to be called,
+        so it may be in recursive call. }
+      ErrorShownRefreshFilesMissingDirectory := true;
+      ErrorBox(ErrorStr + NL +
+        NL +
+        'Further errors about this will be only shown as warnings.');
+    end else
+      WritelnWarning(ErrorStr);
+    Exit;
   end;
+
+  { save and restore selected file when refreshing.
+    This way Alt+Tab doesn't deselect file. }
+  SavedSelectedFileNameInRoot := ShellListView1.SelectedFileNameInRoot;
+  SavedListViewOrigin := ShellListView1.ViewOrigin;
+  Inc(ShellListViewUpdating);
+
+  try
+    ShellListView1.RefreshContents;
+
+    { It is important to refresh ShellTreeView1 e.g. when new directory
+      was added, otherwise user could not navigate
+      into newly created directories, since they must exist in ShellTreeView1. }
+
+    case RefreshNecessary of
+      { Unfortunately this special implementation of "refresh current dir"
+        doesn't work for non-root directories. }
+      //rfEverythingInCurrentDir:
+      //  ShellTreeView1.Refresh(ShellTreeView1.Selected);
+      rfEverythingInCurrentDir, rfEverything:
+        begin
+          TreeViewPath := ShellTreeView1.Path;
+          ShellTreeView1.Refresh(nil);
+          ShellTreeView1.Path := TreeViewPath;
+        end;
+    end;
+
+    ShellListView1.SelectedFileNameInRoot := SavedSelectedFileNameInRoot;
+    ShellListView1.ViewOrigin := SavedListViewOrigin;
+
+  finally
+    { we update ViewFileFrame after everything is done,
+      this way it doesn't blink off/on when doing Alt+Tab }
+    Dec(ShellListViewUpdating);
+    if ShellListViewUpdating = 0 then
+      ViewFileFrameUpdate;
+  end;
+end;
+
+procedure TProjectForm.MenuItemPlatformChangeClick(Sender: TObject);
+var
+  Mi: TMenuItem;
+begin
+  Mi := Sender as TMenuItem;
+  CurrentPlatformInfo := Mi.Tag;
+  Mi.Checked := true;
+end;
+
+procedure TProjectForm.MenuItemPackageFormatChangeClick(Sender: TObject);
+var
+  Mi: TMenuItem;
+begin
+  Mi := Sender as TMenuItem;
+  CurrentPackageFormat := TPackageFormat(Mi.Tag);
+  Mi.Checked := true;
 end;
 
 initialization

@@ -1,5 +1,5 @@
-{
-  Copyright 2010-2019 Michalis Kamburelis.
+﻿{
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,7 +36,7 @@ uses SysUtils, Classes, Math, StrUtils, Generics.Collections,
   CastleInternalOpenAL, CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
-  CastleInternalALUtils, CastleInternalEFX, CastleLog, CastleUtils;
+  CastleInternalALUtils, CastleInternalEFX, CastleLog, CastleUtils, CastleURIUtils;
 
 { sound backend classes interface -------------------------------------------- }
 
@@ -101,16 +101,20 @@ type
   TOpenALSoundSourceBackend = class(TSoundSourceBackend)
   strict private
     Streaming: TOpenALStreaming;
+    FSpatial: Boolean; //< by default true, as this is OpenAL default
+    FPosition, FVelocity: TVector3;
+    FReferenceDistance, FMaxDistance: Single;
     function ALVersion11: Boolean;
   private
     FBuffer: TSoundBufferBackend;
     ALSource: TALuint;
-    FLooping: Boolean;
+    FLoop: Boolean;
 
     { When buffer is stremed, OpenAL source looping need to be off,
       otherwise, one buffer will be looped. This procedure cares about that. }
     procedure AdjustALLooping;
   public
+    constructor Create(const ASoundEngine: TSoundEngineBackend);
     procedure ContextOpen; override;
     procedure ContextClose; override;
     function PlayingOrPaused: boolean; override;
@@ -118,16 +122,16 @@ type
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
-    procedure SetLooping(const Value: boolean); override;
-    procedure SetRelative(const Value: boolean); override;
-    procedure SetGain(const Value: Single); override;
+    procedure SetLoop(const Value: boolean); override;
+    procedure SetSpatial(const Value: boolean); override;
+    procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
     procedure SetBuffer(const Value: TSoundBufferBackend); override;
     procedure SetPitch(const Value: Single); override;
-    procedure SetRolloffFactor(const Value: Single); override;
     procedure SetReferenceDistance(const Value: Single); override;
     procedure SetMaxDistance(const Value: Single); override;
+    procedure SetPriority(const Value: Single); override;
     function GetOffset: Single; override;
     procedure SetOffset(const Value: Single); override;
   end;
@@ -151,13 +155,14 @@ type
     ALVersion11: Boolean;
   public
     procedure DetectDevices(const Devices: TSoundDeviceList); override;
-    function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
+    function ContextOpen(const ADevice: String; out Information, InformationSummary: String): Boolean; override;
     procedure ContextClose; override;
     function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
 
-    procedure SetGain(const Value: Single); override;
+    procedure SetVolume(const Value: Single); override;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
+    procedure SetDopplerFactor(const Value: Single); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
 
     { Is the OpenAL version at least @code(AMajor.AMinor).
@@ -179,6 +184,10 @@ const
     AL_FORMAT_STEREO8,
     AL_FORMAT_STEREO16
   );
+
+{ Check and report (as warnings) OpenAL errors as often as possible.
+  This is useful to localize faulty OpenAL command, that causes OpenAL error. }
+{.$define CASTLE_OPENAL_DEBUG}
 
 { TOpenALStreaming ----------------------------------------- }
 
@@ -217,8 +226,8 @@ begin
   StreamedFile := TStreamedSoundFile.Create(Buffer.URL);
   Buffer.ReadStreamConfig(StreamedFile);
 
-  alCreateBuffers(StreamBuffersCount, ALBuffers);
-  CheckAL('Before filling buffers');
+  alCreateBuffers(StreamBuffersCount, @ALBuffers[Low(ALBuffers)]);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alCreateBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
   try
     NecessaryBuffers := 0;
@@ -232,18 +241,17 @@ begin
       if FillBuffer(ALBuffers[I]) = 0 then
         Break;
       Inc(NecessaryBuffers);
-      CheckAL('After filling buffer '+IntToStr(I));
     end;
   except
     alDeleteBuffers(StreamBuffersCount, @ALBuffers);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alDeleteBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
     raise;
   end;
-  CheckAL('After filling all buffers');
 
   Assert(NecessaryBuffers > 0);
   Assert(NecessaryBuffers <= StreamBuffersCount);
-  alSourceQueueBuffers(Source.ALSource, NecessaryBuffers, ALBuffers);
-  CheckAL('After queue');
+  alSourceQueueBuffers(Source.ALSource, NecessaryBuffers, @ALBuffers[Low(ALBuffers)]);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceQueueBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 destructor TOpenALStreaming.Destroy;
@@ -270,10 +278,13 @@ begin
 
   { Stoping sound source mark all buffers as processed so we can delete them safely. }
   alGetSourcei(Source.ALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetSourcei(.., AL_BUFFERS_PROCESSED, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   for I := 0 to ALBuffersProcessed - 1 do
     alSourceUnqueueBuffers(Source.ALSource, 1, @ALBuffer);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceUnqueueBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
-  alDeleteBuffers(StreamBuffersCount, ALBuffers);
+  alDeleteBuffers(StreamBuffersCount, @ALBuffers[Low(ALBuffers)]);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alDeleteBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
   FreeAndNil(StreamedFile);
 
@@ -308,8 +319,9 @@ begin
   begin
     alBufferData(ALBuffer, ALDataFormat[StreamedFile.DataFormat],
       HelperBufferPtr, Result, StreamedFile.Frequency);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
-  if Source.FLooping then
+  if Source.FLoop then
   begin
     StreamedFile.Rewind;
     Result := FillBuffer(ALBuffer);
@@ -331,14 +343,18 @@ begin
     Sleep(10);
 
     alGetSourcei(ALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetSourcei(.., AL_BUFFERS_PROCESSED, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
     while ALBuffersProcessed > 0 do
     begin
       alSourceUnqueueBuffers(ALSource, 1, @ALBuffer);
+      {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceUnqueueBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
       if Streaming.FillBuffer(ALBuffer) > 0 then
-        alSourceQueueBuffers(ALSource, 1, @ALBuffer)
-      else
+      begin
+        alSourceQueueBuffers(ALSource, 1, @ALBuffer);
+        {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceQueueBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+      end else
         Exit;
 
       Dec(ALBuffersProcessed);
@@ -347,6 +363,7 @@ begin
     if not Streaming.Source.PlayingOrPaused then
     begin
       alSourcePlay(ALSource);
+      {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcePlay ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
     end;
   end;
 end;
@@ -371,19 +388,35 @@ begin
   inherited;
 
   alCreateBuffers(1, @ALBuffer);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alCreateBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   try
     alBufferData(ALBuffer, ALDataFormat[SoundFile.DataFormat],
       SoundFile.Data, SoundFile.DataSize, SoundFile.Frequency);
-  except alDeleteBuffers(1, @ALBuffer); raise end;
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  except
+    alFreeBuffer(ALBuffer);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alFreeBuffer ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+    raise;
+  end;
 end;
 
 procedure TOpenALSoundBufferBackend.ContextClose;
 begin
   alFreeBuffer(ALBuffer);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alFreeBuffer ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   inherited;
 end;
 
 { TOpenALSoundSourceBackend -------------------------------------------------- }
+
+constructor TOpenALSoundSourceBackend.Create(const ASoundEngine: TSoundEngineBackend);
+begin
+  inherited;
+  FSpatial := true;
+  // correspond to OpenAL defaults, https://www.openal.org/documentation/openal-1.1-specification.pdf
+  FReferenceDistance := 1;
+  FMaxDistance := MaxSingle;
+end;
 
 function TOpenALSoundSourceBackend.ALVersion11: Boolean;
 begin
@@ -395,7 +428,8 @@ begin
   if FBuffer is TOpenALStreamBufferBackend then
     alSourcei(ALSource, AL_LOOPING, BoolToAL[false])
   else
-    alSourcei(ALSource, AL_LOOPING, BoolToAL[FLooping]);
+    alSourcei(ALSource, AL_LOOPING, BoolToAL[FLoop]);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_LOOPING, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.ContextOpen;
@@ -421,6 +455,7 @@ procedure TOpenALSoundSourceBackend.ContextClose;
 begin
   FreeAndNil(Streaming);
   alDeleteSources(1, @ALSource);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alDeleteSources ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 function TOpenALSoundSourceBackend.PlayingOrPaused: boolean;
@@ -428,6 +463,7 @@ var
   SourceState: TALuint;
 begin
   SourceState := alGetSource1i(ALSource, AL_SOURCE_STATE);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetSource1i(.., AL_SOURCE_STATE) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   Result := (SourceState = AL_PLAYING) or (SourceState = AL_PAUSED);
 end;
 
@@ -435,10 +471,17 @@ procedure TOpenALSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
 var
   CompleteBuffer: TOpenALSoundBufferBackend;
 begin
+  // make a clear warning when trying to play stereo sound as spatial
+  if FSpatial and
+     (FBuffer.DataFormat in [sfStereo8, sfStereo16]) then
+    WritelnWarning('Stereo sound files are *never* played as spatial by OpenAL. Convert sound file "%s" to mono (e.g. by Audacity or SOX).', [
+      URIDisplay(FBuffer.URL)
+    ]);
+
   if FBuffer is TOpenALStreamBufferBackend then
   begin
-    CheckAL('PlayStream');
     alSourcePlay(ALSource);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcePlay ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
     // start feed buffers thread
     Assert(Streaming <> nil);
@@ -482,13 +525,17 @@ begin
 
       { We have to do CheckAL first, to catch eventual errors.
         Otherwise the loop could hang. }
-      CheckAL('PlaySound');
+      CheckAL('TOpenALSoundSourceBackend.Play');
       while CompleteBuffer.ALBuffer <> alGetSource1ui(ALSource, AL_BUFFER) do
         Sleep(10);
     end;
+
     alSourcePlay(ALSource);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcePlay ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
 
+  // ignore FBuffer = nil which may mean that streaming sound failed to load
+  if FBuffer <> nil then
     raise EInternalError.CreateFmt('Cannot play buffer class type %s', [FBuffer.ClassName]);
 end;
 
@@ -499,19 +546,28 @@ begin
     (like CurrentState := alGetSource1i(ALSource, AL_SOURCE_STATE))
     and simply always call alSourceStop. }
   alSourceStop(ALSource);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceStop ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetPosition(const Value: TVector3);
 begin
+  FPosition := Value;
+
+  if not FSpatial then Exit; // apply this only if Spatial
   alSourceVector3f(ALSource, AL_POSITION, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_POSITION, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetVelocity(const Value: TVector3);
 begin
+  FVelocity := Value;
+
+  if not FSpatial then Exit; // apply this only if Spatial
   alSourceVector3f(ALSource, AL_VELOCITY, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_VELOCITY, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
-procedure TOpenALSoundSourceBackend.SetLooping(const Value: boolean);
+procedure TOpenALSoundSourceBackend.SetLoop(const Value: boolean);
 begin
   { This variable is set from main thread but can be read by 2 threads (main and
     TOpenALStreamFeedThread, but I think this is Boolean and changeing Boolean
@@ -520,31 +576,76 @@ begin
     More info:
     https://stackoverflow.com/questions/5481030/are-delphi-simple-types-thread-safe
     }
-  FLooping := Value;
+  FLoop := Value;
   AdjustALLooping;
 end;
 
-procedure TOpenALSoundSourceBackend.SetRelative(const Value: boolean);
+procedure TOpenALSoundSourceBackend.SetSpatial(const Value: boolean);
 begin
-  alSourcei(ALSource, AL_SOURCE_RELATIVE, BoolToAL[Value]);
+  FSpatial := Value;
+
+  alSourcei(ALSource, AL_SOURCE_RELATIVE, BoolToAL[not Value]);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_SOURCE_RELATIVE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+
+  if not Value then
+  begin
+    { No attenuation by distance. }
+    alSourcef(ALSource, AL_ROLLOFF_FACTOR, 0);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_ROLLOFF_FACTOR, 0) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+
+    { Note: source's AL_REFERENCE_DISTANCE , AL_MAX_DISTANCE don't matter in this case. }
+
+    { Although AL_ROLLOFF_FACTOR := 0 turns off
+      attenuation by distance, we still have to turn off
+      any changes from player's orientation (so that the sound
+      is not played on left or right side, but normally). }
+    alSourceVector3f(ALSource, AL_POSITION, TVector3.Zero);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_POSITION, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+
+    alSourceVector3f(ALSource, AL_VELOCITY, TVector3.Zero);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_VELOCITY, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  end else
+  begin
+    { Attenuation by distance. }
+    alSourcef(ALSource, AL_ROLLOFF_FACTOR, 1);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_ROLLOFF_FACTOR, 1) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+
+    { Set everything that was kept constant when Spatial was false.
+      We rely here on the fact that SetXxx here do not ignore "setting to the same value as previous". }
+    SetPosition(FPosition);
+    SetVelocity(FVelocity);
+    SetReferenceDistance(FReferenceDistance);
+    SetMaxDistance(FMaxDistance);
+  end;
 end;
 
-procedure TOpenALSoundSourceBackend.SetGain(const Value: Single);
+procedure TOpenALSoundSourceBackend.SetVolume(const Value: Single);
 begin
   alSourcef(ALSource, AL_GAIN, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_GAIN, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetMinGain(const Value: Single);
 begin
   alSourcef(ALSource, AL_MIN_GAIN, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_MIN_GAIN, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetMaxGain(const Value: Single);
 begin
   alSourcef(ALSource, AL_MAX_GAIN, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_MAX_GAIN, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetBuffer(const Value: TSoundBufferBackend);
+
+  { Set buffer to 0 on this OpenAL source. }
+  procedure ClearALBuffer;
+  begin
+    alSourcei(ALSource, AL_BUFFER, 0);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_BUFFER, 0) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  end;
+
 var
   CompleteBuffer: TOpenALSoundBufferBackend;
   StreamBuffer: TOpenALStreamBufferBackend;
@@ -566,6 +667,7 @@ begin
         whatever alSourcei requires. }
       {$I norqcheckbegin.inc}
       alSourcei(ALSource, AL_BUFFER, CompleteBuffer.ALBuffer);
+      {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_BUFFER, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
       {$I norqcheckend.inc}
     end else
 
@@ -573,39 +675,84 @@ begin
     begin
       AdjustALLooping;
       StreamBuffer := TOpenALStreamBufferBackend(FBuffer);
-      Streaming := TOpenALStreaming.Create(Self, StreamBuffer);
+      try
+        Streaming := TOpenALStreaming.Create(Self, StreamBuffer);
+      except
+        { Catching exceptions in case of loading errors. Because:
+          - The programs can generally tolerate missing sound files.
+          - Error at OggVorbis reading may be caused by
+            EOggVorbisMissingLibraryError, and we try to gracefully react to missing
+            libraries.
+          See TCastleSound.ReloadBuffer for the same logic and reasons
+          for non-streaming sounds. }
+        on E: ESoundFileError do
+        begin
+          WritelnWarning('Sound', Format('Sound file "%s" cannot be loaded (with streaming): %s', [
+            // Do not use FBuffer.URL, as TOpenALStreaming.Destroy set FBuffer to nil
+            URIDisplay(StreamBuffer.URL),
+            E.Message
+          ]));
+
+          // continue like no buffer was assigned
+          FBuffer := nil; // actually TOpenALStreaming.Destroy just did it
+          ClearALBuffer;
+        end;
+      end;
     end else
 
       raise EInternalError.CreateFmt('Cannot assign buffer class type %s', [FBuffer.ClassName]);
   end else
-    alSourcei(ALSource, AL_BUFFER, 0);
+    ClearALBuffer;
 end;
 
 procedure TOpenALSoundSourceBackend.SetPitch(const Value: Single);
 begin
   alSourcef(ALSource, AL_PITCH, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_PITCH, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
+(*
 procedure TOpenALSoundSourceBackend.SetRolloffFactor(const Value: Single);
 begin
+  FRolloffFactor := Value;
+
+  if not FSpatial then Exit; // apply this only if Spatial
   alSourcef(ALSource, AL_ROLLOFF_FACTOR, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_ROLLOFF_FACTOR, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
+*)
 
 procedure TOpenALSoundSourceBackend.SetReferenceDistance(const Value: Single);
 begin
+  FReferenceDistance := Value;
+
+  if not FSpatial then Exit; // apply this only if Spatial
   alSourcef(ALSource, AL_REFERENCE_DISTANCE, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_REFERENCE_DISTANCE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetMaxDistance(const Value: Single);
 begin
+  FMaxDistance := Value;
+
+  if not FSpatial then Exit; // apply this only if Spatial
   alSourcef(ALSource, AL_MAX_DISTANCE, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_MAX_DISTANCE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+end;
+
+procedure TOpenALSoundSourceBackend.SetPriority(const Value: Single);
+begin
+  { Ignored by OpenAL backend,
+    as it depends on our manual management of sound sources in TSoundAllocator. }
 end;
 
 function TOpenALSoundSourceBackend.GetOffset: Single;
 begin
   if ALVersion11 then
-    Result := alGetSource1f(ALSource, AL_SEC_OFFSET)
-  else
+  begin
+    Result := alGetSource1f(ALSource, AL_SEC_OFFSET);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetSource1f(.., AL_SEC_OFFSET) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  end else
     Result := 0;
 end;
 
@@ -616,8 +763,9 @@ begin
   if ALVersion11 then
   begin
     { We have to check alGetError now, because we need to catch
-      AL_INVALID_VALUE later. }
-    CheckAL('Checking before TOpenALSoundSourceBackend.SetOffset work');
+      AL_INVALID_VALUE later.
+      TODO: only warning now, occurs when switch Stream/URL of TCastleSound. }
+    CheckAL('Checking before TOpenALSoundSourceBackend.SetOffset work', true);
 
     alSourcef(ALSource, AL_SEC_OFFSET, Value);
 
@@ -754,7 +902,7 @@ begin
 end;
 
 function TOpenALSoundEngineBackend.ContextOpen(const ADevice: String;
-  out Information: String): Boolean;
+  out Information, InformationSummary: String): Boolean;
 
   procedure ParseVersion(const Version: string; out Major, Minor: Integer);
   var
@@ -794,6 +942,15 @@ function TOpenALSoundEngineBackend.ContextOpen(const ADevice: String;
         alGetString(AL_VENDOR),
         alGetString(AL_EXTENSIONS)
       ]);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetString ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  end;
+
+  function ALSuccessInformationSummary: string;
+  begin
+    Result := Format('OpenAL %d.%d', [
+      FALMajorVersion,
+      FALMinorVersion
+    ]);
   end;
 
 var
@@ -810,12 +967,13 @@ begin
   { We don't do alcProcessContext/alcSuspendContext, no need
     (spec says that context is initially in processing state). }
 
+  Result := false;
   try
     //raise EOpenALError.Create('Test pretend OpenAL fails');
 
-    Result := false;
     FEFXSupported := false;
     Information := '';
+    InformationSummary := '';
     FALMajorVersion := 0;
     FALMinorVersion := 0;
 
@@ -830,7 +988,7 @@ begin
       ErrMessage := Format('OpenAL audio device "%s" is not available', [ADevice]);
       {$ifdef MSWINDOWS}
       if ADevice = '' then
-        ErrMessage := ErrMessage + '.' + NL + 'Note: It seems that even the default audio device is unavailable. Please check that you have all the necessary OpenAL DLL files present (alongside the exe file, or on $PATH). In case of standard Windows OpenAL implementation, you should have OpenAL32.dll and wrap_oal.dll present.';
+        ErrMessage := ErrMessage + '.' + NL + 'Note: It seems that even the default audio device is unavailable. ' + 'Please check that you have all the necessary OpenAL DLL files present (alongside the exe file, or on $PATH). In case of standard Windows OpenAL implementation, you should have OpenAL32.dll and wrap_oal.dll present.';
       {$endif}
       raise EOpenALError.Create(ErrMessage);
     end;
@@ -848,11 +1006,15 @@ begin
 
     Result := true;
     Information := ALSuccessInformation;
+    InformationSummary := ALSuccessInformationSummary;
     WasAlreadyOpen := true;
     WasAlreadyOpenDevice := ADevice;
   except
     on E: EOpenALError do
+    begin
       Information := E.Message;
+      InformationSummary := Information;
+    end;
   end;
 end;
 
@@ -915,7 +1077,7 @@ begin
   end;
 end;
 
-procedure TOpenALSoundEngineBackend.SetGain(const Value: Single);
+procedure TOpenALSoundEngineBackend.SetVolume(const Value: Single);
 begin
   alListenerf(AL_GAIN, Value);
 end;
@@ -923,15 +1085,43 @@ end;
 procedure TOpenALSoundEngineBackend.SetDistanceModel(const Value: TSoundDistanceModel);
 const
   ALDistanceModelConsts: array [TSoundDistanceModel] of TALenum = (
-    AL_NONE,
-    AL_INVERSE_DISTANCE,
     AL_INVERSE_DISTANCE_CLAMPED,
-    AL_LINEAR_DISTANCE,
-    AL_LINEAR_DISTANCE_CLAMPED,
-    AL_EXPONENT_DISTANCE,
-    AL_EXPONENT_DISTANCE_CLAMPED
+    AL_LINEAR_DISTANCE_CLAMPED
   );
 begin
+  { Note:
+
+    Initially we supported all OpenAL distance models:
+
+      TSoundDistanceModel = (dmNone,
+        dmInverseDistance , dmInverseDistanceClamped,
+        dmLinearDistance  , dmLinearDistanceClamped,
+        dmExponentDistance, dmExponentDistanceClamped);
+
+    mapping to
+
+      const
+        ALDistanceModelConsts: array [TSoundDistanceModel] of TALenum = (
+          AL_NONE,
+          AL_INVERSE_DISTANCE,
+          AL_INVERSE_DISTANCE_CLAMPED,
+          AL_LINEAR_DISTANCE,              //< only OpenAL >= 1.1
+          AL_LINEAR_DISTANCE_CLAMPED,      //< only OpenAL >= 1.1
+          AL_EXPONENT_DISTANCE,            //< only OpenAL >= 1.1
+          AL_EXPONENT_DISTANCE_CLAMPED     //< only OpenAL >= 1.1
+        );
+
+    Now we support only a subset of distance models, that is common to
+    OpenAL ( https://www.openal.org/documentation/openal-1.1-specification.pdf ),
+    FMOD ( https://www.fmod.com/resources/documentation-api?version=2.01&page=white-papers-3d-sounds.html#inverse ).
+
+    Some models are actually available only since OpenAL 1.1
+    version. We eventually may fallback on some other model.
+    This is not be a problem in practice, as all modern OS
+    versions (Linux distros, Windows OpenAL installers etc.) include OpenAL 1.1. }
+
+(* Old version, for all models:
+
   if (not ALVersion11) and (Value in [dmLinearDistance, dmExponentDistance]) then
     alDistanceModel(AL_INVERSE_DISTANCE)
   else
@@ -939,12 +1129,25 @@ begin
     alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED)
   else
     alDistanceModel(ALDistanceModelConsts[Value]);
+*)
+
+  if (not ALVersion11) and (Value = dmLinear) then
+    alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED) // OpenAL < 1.1 doesn't support AL_LINEAR_DISTANCE* models.
+  else
+    alDistanceModel(ALDistanceModelConsts[Value]);
+end;
+
+procedure TOpenALSoundEngineBackend.SetDopplerFactor(const Value: Single);
+begin
+  alDopplerFactor(Value);
 end;
 
 procedure TOpenALSoundEngineBackend.SetListener(const Position, Direction, Up: TVector3);
 begin
   alListenerVector3f(AL_POSITION, Position);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alListenerVector3f(AL_POSITION, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   alListenerOrientation(Direction, Up);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alListenerOrientation ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 function TOpenALSoundEngineBackend.CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend;
@@ -953,7 +1156,9 @@ begin
   case SoundLoading of
     slComplete : Result := TOpenALSoundBufferBackend.Create(Self);
     slStreaming: Result := TOpenALStreamBufferBackend.Create(Self);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TOpenALSoundEngineBackend.CreateBuffer: Invalid SoundLoading');
+    {$endif}
   end;
   {$else}
   Result := TOpenALSoundBufferBackend.Create(Self);

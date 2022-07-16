@@ -1,0 +1,259 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$NonVisualComponents" : [
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "SoundKaboom",
+      "URL" : "castle-data:/sounds/kaboom.wav"
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "SoundRatSqueak",
+      "URL" : "castle-data:/sounds/rat_squeak.wav"
+    }
+  ],
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Camera" : "Camera1",
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneLevel",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "URL" : "castle-data:/levels/base_level_final.x3dv"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "Rat",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent",
+              "W" : 1.5803413391113281E+000,
+              "Y" : -9.9999976158142090E-001
+            },
+            "URL" : "castle-data:/extra_objects/rat.gltf",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSoundSource",
+                "Name" : "SoundSourceRat",
+                "Sound" : "SoundRat",
+                "$NonVisualComponents" : [
+                  {
+                    "$$ClassName" : "TCastleSound",
+                    "Name" : "SoundRat",
+                    "URL" : "castle-data:/sounds/rat_sound.wav"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "TransformCricket",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.1144390106201172E+000,
+              "Y" : 1.0000000000000000E+000,
+              "Z" : -1.4235808849334717E+000
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSoundSource",
+                "Name" : "SoundSourceCricket",
+                "Sound" : "SoundCricket",
+                "$NonVisualComponents" : [
+                  {
+                    "$$ClassName" : "TCastleSound",
+                    "Name" : "SoundCricket",
+                    "Stream" : true,
+                    "URL" : "castle-data:/sounds/cricket.wav",
+                    "Volume" : 2.0000000298023224E-001
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "ProjectionNear" : 6.0000002384185791E-002,
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent",
+              "Z" : 1.0000000000000000E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -5.6043070554733276E-001,
+              "Y" : 1.1162973642349243E+000,
+              "Z" : 3.0712912082672119E+000
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleDirectionalLight",
+                "Name" : "DirectionalLight1"
+              }
+            ]
+          }
+        ]
+      },
+      "Name" : "Viewport",
+      "PreventInfiniteFallingDown" : true,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleWalkNavigation",
+          "MoveSpeed" : 1.0000000000000000E+001,
+          "Name" : "Navigation",
+          "PreferredHeight" : 5.6000000238418579E-001,
+          "Radius" : 5.0000000745058060E-002
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent",
+          "W" : 7.1516370773315430E-001,
+          "X" : -4.0764299035072327E-001,
+          "Y" : 9.0299016237258911E-001,
+          "Z" : 1.3577966392040253E-001
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Z" : 1.0000001192092896E+000
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 3.8272514343261719E+000,
+          "Y" : 3.4387977123260498E+000,
+          "Z" : 5.9261441230773926E+000
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "Frame" : true,
+      "FrameColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 2.5000000000000000E-001,
+        "Green" : 2.5000000000000000E-001,
+        "Red" : 2.5000000000000000E-001
+      },
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "HelpMessage",
+      "Padding" : 1.0000000000000000E+001,
+      "Text" : [
+        "Movement:",
+        "  AWSD, arrows = move and rotate",
+        "  Space = jump",
+        "  C = crouch",
+        "  See the rest of view3dscene key shortcuts.",
+        "",
+        "Other:",
+        "  F1 = toggle this help",
+        "  F4 = toggle mouse look",
+        "  F5 = save screen"
+      ],
+      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleCrosshair",
+      "Exists" : false,
+      "Name" : "CrosshairForMouseLook"
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "URL" : "castle-data:/textures/mute_sign.png"
+      },
+      "Exists" : false,
+      "HorizontalAnchorDelta" : -1.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "MuteImage",
+      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleTimer",
+      "IntervalSeconds" : 1.0000000000000000E+000,
+      "Name" : "TimerSpawnTnts"
+    }
+  ]
+}

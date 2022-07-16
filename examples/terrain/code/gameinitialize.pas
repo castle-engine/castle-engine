@@ -36,7 +36,7 @@ type
 
 var
   { global stuff }
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Scene: TTerrainScene; //< terrain
   EnvironmentScene: TCastleScene; //< defines sky (background) and fog
   ExamineNavigation: TCastleExamineNavigation;
@@ -81,7 +81,7 @@ constructor TBaseOnScreenMenu.Create(AOwner: TComponent);
     const Min, Max: Single);
   begin
     Add(Name, TCastleFloatSlider.Create(
-      Self, ValuePointer, Min, Max, @Scene.UpdateShader));
+      Self, ValuePointer, Min, Max, {$ifdef FPC}@{$endif} Scene.UpdateShader));
   end;
 
 var
@@ -94,19 +94,19 @@ begin
   SubdivisionSlider.Min := 2;
   SubdivisionSlider.Max := 10;
   SubdivisionSlider.Value := Subdivision;
-  SubdivisionSlider.OnChange := @SubdivisionChanged;
+  SubdivisionSlider.OnChange := {$ifdef FPC}@{$endif} SubdivisionChanged;
 
   SizeSlider := TCastleFloatSlider.Create(Self);
   SizeSlider.Min := 5;
   SizeSlider.Max := 1000;
   SizeSlider.Value := Size;
-  SizeSlider.OnChange := @SizeChanged;
+  SizeSlider.OnChange := {$ifdef FPC}@{$endif} SizeChanged;
 
   ImageHeightScaleSlider := TCastleFloatSlider.Create(Self);
   ImageHeightScaleSlider.Min := 0.0;
   ImageHeightScaleSlider.Max := 2.0;
   ImageHeightScaleSlider.Value := 0.25;
-  ImageHeightScaleSlider.OnChange := @ImageHeightScaleChanged;
+  ImageHeightScaleSlider.OnChange := {$ifdef FPC}@{$endif} ImageHeightScaleChanged;
 
   Anchor(hpLeft, 10);
   Anchor(vpBottom, 10);
@@ -195,37 +195,37 @@ begin
   OctavesSlider.Min := 0.0;
   OctavesSlider.Max := 20.0;
   OctavesSlider.Value := 7.0;
-  OctavesSlider.OnChange := @OctavesChanged;
+  OctavesSlider.OnChange := {$ifdef FPC}@{$endif} OctavesChanged;
 
   SmoothnessSlider := TCastleFloatSlider.Create(Self);
   SmoothnessSlider.Min := 1.0;
   SmoothnessSlider.Max := 10.0;
   SmoothnessSlider.Value := 1.5;
-  SmoothnessSlider.OnChange := @SmoothnessChanged;
+  SmoothnessSlider.OnChange := {$ifdef FPC}@{$endif} SmoothnessChanged;
 
   HeterogeneousSlider := TCastleFloatSlider.Create(Self);
   HeterogeneousSlider.Min := 0.0;
   HeterogeneousSlider.Max := 2.0;
   HeterogeneousSlider.Value := 0.5;
-  HeterogeneousSlider.OnChange := @HeterogeneousChanged;
+  HeterogeneousSlider.OnChange := {$ifdef FPC}@{$endif} HeterogeneousChanged;
 
   AmplitudeSlider := TCastleFloatSlider.Create(Self);
   AmplitudeSlider.Min := 0.1;
   AmplitudeSlider.Max := 10.0;
   AmplitudeSlider.Value := 8.0;
-  AmplitudeSlider.OnChange := @AmplitudeChanged;
+  AmplitudeSlider.OnChange := {$ifdef FPC}@{$endif} AmplitudeChanged;
 
   FrequencySlider := TCastleFloatSlider.Create(Self);
   FrequencySlider.Min := 0.001;
   FrequencySlider.Max := 0.1;
   FrequencySlider.Value := 0.05;
-  FrequencySlider.OnChange := @FrequencyChanged;
+  FrequencySlider.OnChange := {$ifdef FPC}@{$endif} FrequencyChanged;
 
   SeedSlider := TCastleIntegerSlider.Create(Self);
   SeedSlider.Min := 0;
   SeedSlider.Max := 99;
   SeedSlider.Value := 0;
-  SeedSlider.OnChange := @SeedChanged;
+  SeedSlider.OnChange := {$ifdef FPC}@{$endif} SeedChanged;
 
   Add('Octaves', OctavesSlider);
   Add('Smoothness', SmoothnessSlider);
@@ -383,10 +383,11 @@ begin
     if Value then
     begin
       Viewport.Navigation := ExamineNavigation;
-      ExamineNavigation.Init(Box3D(
+      ExamineNavigation.ModelBox := Box3D(
         Vector3(-1, -1, -1),
-        Vector3( 1,  1,  1)), { Radius } 0.2);
-      ExamineNavigation.SetView(
+        Vector3( 1,  1,  1));
+      ExamineNavigation.Radius := 0.2;
+      Viewport.Camera.SetView(
         Vector3(0, 20, 0),
         Vector3(0, -1, 0),
         Vector3(0, 0, -1)
@@ -394,16 +395,12 @@ begin
     end else
     begin
       Viewport.Navigation := WalkNavigation;
-      WalkNavigation.Init(
-        Vector3(0, 10, 0),
-        Vector3(0, 0, -1),
-        Vector3(0, 1, 0),
-        Vector3(0, 1, 0),
-        { PreferredHeight } 2,
-        { Radius } 0.02);
+      WalkNavigation.Radius := 0.02;
+      WalkNavigation.PreferredHeight := 2;
+      WalkNavigation.CorrectPreferredHeight;
 
       Y := CurrentTerrain.Height(0, 0) + WalkNavigation.PreferredHeight;
-      WalkNavigation.SetView(
+      Viewport.Camera.SetView(
         Vector3(0, Y, 0),
         Vector3(0, 0, -1),
         Vector3(0, 1, 0));
@@ -417,7 +414,7 @@ begin
   end;
 end;
 
-procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
+procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
 
   procedure ExportToX3D(const URL: string; const UseTriangulatedNode: boolean);
   var
@@ -700,7 +697,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line

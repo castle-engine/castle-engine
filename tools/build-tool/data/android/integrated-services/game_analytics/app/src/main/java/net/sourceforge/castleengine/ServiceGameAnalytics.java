@@ -1,7 +1,7 @@
 /* -*- tab-width: 4 -*- */
 
 /*
-  Copyright 2018-2020 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,8 +51,7 @@ public class ServiceGameAnalytics extends ServiceAbstract
 
     /**
      * Initialize the integration. Pass gameKey and secretKey that should
-     * be passed to GameAnalytics.initializeWithGameKey method ---
-     * you should generate
+     * be passed to GameAnalytics.initialize method --- you should generate
      * these values when creating new game in your gameanalytics.com panel.
      */
     private void initialize(String gameKey, String secretKey)
@@ -76,7 +75,7 @@ public class ServiceGameAnalytics extends ServiceAbstract
         }
 
         // Initialize
-        GameAnalytics.initializeWithGameKey(getActivity(), gameKey, secretKey);
+        GameAnalytics.initialize(getActivity(), gameKey, secretKey);
 
         logInfo(CATEGORY, "GameAnalytics initialized with application version " + version);
 
@@ -112,7 +111,7 @@ public class ServiceGameAnalytics extends ServiceAbstract
         if (!initialized) {
             return;
         }
-        GameAnalytics.addDesignEventWithEventId("screenView:" + screenName);
+        GameAnalytics.addDesignEvent("screenView:" + screenName);
     }
 
     private void sendEvent(String category, String action, String label,
@@ -125,7 +124,7 @@ public class ServiceGameAnalytics extends ServiceAbstract
         if (dimensionIndex > 0 && !dimensionValue.equals("")) {
             id = id + ":dimension" + dimensionIndex + "." + dimensionValue;
         }
-        GameAnalytics.addDesignEventWithEventId(id, (float)value);
+        GameAnalytics.addDesignEvent(id, (float)value);
     }
 
     private void sendTiming(String category, String variable,
@@ -134,7 +133,7 @@ public class ServiceGameAnalytics extends ServiceAbstract
         if (!initialized) {
             return;
         }
-        GameAnalytics.addDesignEventWithEventId(
+        GameAnalytics.addDesignEvent(
             "timing:" + category + ":" + variable + ":" + label, (float)timeMiliseconds);
     }
 
@@ -152,11 +151,11 @@ public class ServiceGameAnalytics extends ServiceAbstract
                 logWarning(CATEGORY, "Invalid analytics-send-progress status " + status);
                 return;
         }
-        GameAnalytics.addProgressionEventWithProgressionStatus(gaStatus, world, level, phase, score);
+        GameAnalytics.addProgressionEvent(gaStatus, world, level, phase, score);
     }
 
     @Override
-    public void onPurchase(AvailableProduct product, String purchaseData, String signature)
+    public void onPurchase(AvailableProduct product, String originalJson, String signature)
     {
         if (!initialized) {
             return;
@@ -182,9 +181,14 @@ public class ServiceGameAnalytics extends ServiceAbstract
 
         int priceAmountCents = (int) (product.priceAmountMicros / 10000.0);
 
-        GameAnalytics.addBusinessEventWithCurrency(
-            currency, priceAmountCents, category,
-            product.id, "defaultCart", purchaseData, "google_play", signature);
+        GameAnalytics.addBusinessEvent(
+            currency, priceAmountCents, category, product.id, "defaultCart",
+            /* Docs ( https://gameanalytics.com/docs/s/article/Android-SDK-Event-Tracking ) say:
+               "The transaction receipt. Null allowed."
+               Later they confirm in example that passing purchase.getOriginalJson() is OK. */
+            originalJson,
+            "google_play",
+            signature);
     }
 
     @Override

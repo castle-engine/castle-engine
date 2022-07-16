@@ -58,8 +58,8 @@ begin
   ButtonPlay := DesignedComponent('ButtonPlay') as TCastleButton;
   ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
 
-  ButtonPlay.OnClick := @ClickPlay;
-  ButtonQuit.OnClick := @ClickQuit;
+  ButtonPlay.OnClick := {$ifdef FPC}@{$endif} ClickPlay;
+  ButtonQuit.OnClick := {$ifdef FPC}@{$endif} ClickQuit;
   // Hide "Quit" button on mobile/console platforms, where users don't expect such button
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 end;

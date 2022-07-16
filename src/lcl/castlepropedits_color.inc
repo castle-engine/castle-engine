@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2010-2019 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,6 +25,8 @@ type
     function GetName: shortstring; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
+    function GetDefaultValue: String; override;
+    function ValueIsStreamed: boolean; override;
   end;
 
 function TCastleColorPropertyEditor.GetAttributes: TPropertyAttributes;
@@ -49,13 +51,13 @@ begin
     Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
     if Dialog.Execute then
     begin
-      RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
+      RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
       // keep Color alpha unchanged ...
-      Color := Vector4(Vector3(ColorByte), Color[3]);
+      Color := Vector4(Vector3(ColorByte), Color.W);
       // ... unless it is zero, then change to 1.
       // This makes changing TCastleUserInterface.BorderColor changing more natural.
-      if Color[3] = 0 then
-        Color[3] := 1;
+      if Color.W = 0 then
+        Color.W := 1;
       ColorPersistent.Value := Color;
       Modified;
     end;
@@ -85,6 +87,22 @@ begin
   Modified;
 end;
 
+function TCastleColorPropertyEditor.GetDefaultValue: String;
+var
+  ColorPersistent: TCastleColorPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorPersistent);
+  Result := ColorPersistent.InternalDefaultValue.ToString;
+end;
+
+function TCastleColorPropertyEditor.ValueIsStreamed: boolean;
+var
+  ColorPersistent: TCastleColorPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorPersistent);
+  Result := not ColorPersistent.HasDefaultValue;
+end;
+
 { TCastleColorRGBPropertyEditor ------------------------------------------------- }
 
 type
@@ -94,6 +112,8 @@ type
     function GetName: shortstring; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
+    function GetDefaultValue: String; override;
+    function ValueIsStreamed: boolean; override;
   end;
 
 function TCastleColorRGBPropertyEditor.GetAttributes: TPropertyAttributes;
@@ -118,7 +138,7 @@ begin
     Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
     if Dialog.Execute then
     begin
-      RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
+      RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
       Color := Vector3(ColorByte);
       ColorPersistent.Value := Color;
       Modified;
@@ -147,4 +167,20 @@ begin
   ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
   ColorPersistent.Value := HexToColorRGB(NewValue);
   Modified;
+end;
+
+function TCastleColorRGBPropertyEditor.GetDefaultValue: String;
+var
+  ColorPersistent: TCastleColorRGBPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
+  Result := ColorPersistent.InternalDefaultValue.ToString;
+end;
+
+function TCastleColorRGBPropertyEditor.ValueIsStreamed: boolean;
+var
+  ColorPersistent: TCastleColorRGBPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
+  Result := not ColorPersistent.HasDefaultValue;
 end;

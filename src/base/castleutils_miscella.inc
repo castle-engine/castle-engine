@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,7 +42,6 @@ type
 
   ECheckFailed = class(Exception);
 
-type
   { Simple notify event with no Sender }
   TSimpleNotifyEvent = procedure of object;
 
@@ -177,10 +176,15 @@ function StrToFloatDot(const S: String): Extended;
 function StrToFloatDefDot(Const S: String; const Default: Extended): Extended;
 
 var
-  { Are we inside Castle Game Engine designer mode. }
+  { Are we inside Castle Game Engine designer mode,
+    or (possible in case of TCastleControl) in Lazarus/Delphi form designer. }
   CastleDesignMode: Boolean;
 
-  { Refresh UI of CGE editor, because hierarchy of UI/transforms changed. }
+  { @exclude Path to editor data, in design mode.
+    Useful e.g. to initialize gizmo textures. }
+  InternalCastleDesignData: String;
+
+  { @exclude Refresh UI of CGE editor, because hierarchy of UI/transforms changed. }
   InternalCastleDesignInvalidate: Boolean;
 
 {$endif read_interface}
@@ -258,7 +262,11 @@ begin
     {$else}
 
     {$ifdef DCC}
-    'Delphi'
+    { Make it clear we show compiler version, not Delphi version, as they are different things:
+      https://docwiki.embarcadero.com/RADStudio/Sydney/en/Compiler_Versions .
+      E.g. Delphi 11 = product version 28 = compiler version 35.
+    }
+    'Delphi (Compiler Version ' + FloatToStr(CompilerVersion) + ')'
     {$else}
 
     {$ifdef __GPC__}
@@ -272,15 +280,16 @@ end;
 
 function SPlatformDescription: String;
 begin
-  Result := PlatformToStr(Platform);
-  {$ifdef FPC}
-  Result +=
+  Result := PlatformToStr(Platform) +
+    {$ifdef FPC}
     ', OS: ' + {$I %FPCTARGETOS%} +
     ', CPU: ' + {$I %FPCTARGETCPU%} +
+    {$else}
+    ', OS Version: ' + TOSVersion.ToString +
+    {$endif}
     { Clearly stating CPU bits is more obvious in some cases.
       E.g. this avoids the question "what does Arm mean, is it 32-bit or 64-bit Arm?". }
-    ' (' + IntToStr(SizeOf(Pointer) * 8) + '-bit)';
-  {$endif}
+    ' (this exe is using ' + IntToStr(SizeOf(Pointer) * 8) + '-bit architecture)';
 end;
 
 function SCastleEngineProgramHelpSuffix(const AppName, AppVersion: String; const Ignored: Boolean): String;

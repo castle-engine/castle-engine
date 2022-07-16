@@ -27,6 +27,7 @@ implementation
 
 uses SysUtils;
 
+initialization
 finalization
   FreeAndNil(GameConfig);
 end.

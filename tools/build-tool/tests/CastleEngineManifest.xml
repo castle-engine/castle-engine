@@ -6,7 +6,7 @@
       <path value="../code/" />
       <path value="../../common-code/" />
       <path value="../embedded_images/" />
-      <path value="../../../tests/code/common/" />
+      <path value="../../../tests/code/tester-castle/" />
     </search_paths>
   </compiler_options>
 </project>

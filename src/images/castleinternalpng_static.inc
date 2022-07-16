@@ -1,4 +1,6 @@
-{ Copied from fpc/trunk/packages/libpng/src/png.pp,
+{%MainUnit castleinternalpng.pas}
+{
+  Copied from fpc/trunk/packages/libpng/src/png.pp,
   and somewhat fixed (added missing constants,
   added missing png_set_expand_gray_1_2_4_to_8,
   removed the deprecated variables and functions).

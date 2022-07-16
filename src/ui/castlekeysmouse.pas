@@ -1,5 +1,5 @@
-{
-  Copyright 2001-2018 Michalis Kamburelis, Tomasz Wojtyś.
+﻿{
+  Copyright 2001-2022 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -19,6 +19,7 @@
 unit CastleKeysMouse;
 
 {$I castleconf.inc}
+{$ifdef FPC} {$modeswitch advancedrecords} {$endif}
 
 interface
 
@@ -376,7 +377,7 @@ type
 
   TCastleMouseButton = (buttonLeft, buttonMiddle, buttonRight, buttonExtra1, buttonExtra2);
   TCastleMouseButtons = set of TCastleMouseButton;
-  
+
   TMouseButton = TCastleMouseButton deprecated 'use TCastleMouseButton';
   TMouseButtons = TCastleMouseButtons deprecated 'use TCastleMouseButtons';
 
@@ -390,9 +391,9 @@ const
 type
   { Look of the mouse cursor.
     Used for various properties:
-    TCastleUserInterface.Cursor, TCastleTransform.Cursor, TCastleWindowBase.Cursor.
+    TCastleUserInterface.Cursor, TCastleTransform.Cursor, TCastleWindow.Cursor.
 
-    mcDefault, mcNone, mcForceNone, mcCustom have somewhat special meanings.
+    mcDefault, mcNone, mcForceNone have somewhat special meanings.
     The rest are some cursor images will well-defined meanings for the user,
     their exact look may depend on current window manager theme etc.  }
   TMouseCursor = (
@@ -407,13 +408,7 @@ type
       This is in contrast to mcNone, that only hides the cursor if
       the currently focused control (under the mouse cursor) sets it. }
     mcForceNone,
-    { Use a custom cursor image in TCastleWindowBase.CustomCursor.
-
-      In normal circumstances, this should not be used for
-      TCastleUserInterface.Cursor, TCastleTransform.Cursor and others, as they have no way
-      to set TCastleWindowBase.CustomCursor. }
-    mcCustom,
-    { Standard arrow, indicates, well, that user can point / click something. }
+    { Standard arrow, indicates that user can point / click something. }
     mcStandard,
     { Indicates the program is busy and user should wait. }
     mcWait,
@@ -599,8 +594,8 @@ const
   ('none', 'up', 'down', 'left', 'right');
 
 { Determine simple mouse wheel direction from a Scroll and Vertical
-  parameters received from TCastleWindowBase.OnMouseWheel.
-  Assumes that Scroll <> 0, like TCastleWindowBase.OnMouseWheel guarantees. }
+  parameters received from TCastleWindow.OnMouseWheel.
+  Assumes that Scroll <> 0, like TCastleWindow.OnMouseWheel guarantees. }
 function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
 
 { Convert string value back to a key name, reversing KeyToStr.
@@ -617,7 +612,7 @@ type
     mouse wheel action.
     This is nicely matching with TInputShortcut processing in CastleInputs,
     so it allows to easily store and check for user actions. }
-  TInputPressRelease = object
+  TInputPressRelease = record
     EventType: TInputPressReleaseType;
 
     { When EventType is itKey, this is the key pressed or released.
@@ -684,14 +679,23 @@ type
       released on a touch device. Always 0 for normal mouse events. }
     FingerIndex: TFingerIndex;
 
-    { The position of the current mouse/finger on the window,
+    { The position of the current mouse/finger on the container,
       for EventType = itMouseButton (in case of mouse press/release).
 
-      For normal backends that simply support a single mouse device,
-      this is just equivalent to TCastleWindowBase.MousePosition
-      and TCastleControlBase.MousePosition, so it's not really interesting.
+      The position is relative to the whole container (rendering area
+      of TCastleWindow or TCastleControl). With left-bottom being
+      (0,0) and X growing to the right and Y growing up.
+      The position is in final device coordinates, i.e. it ignores
+      @link(TCastleContainer.UIScaling).
+      Use e.g. @link(TCastleUserInterface.ContainerToLocalPosition)
+      to easily convert this position into a position suitable for given UI control
+      children.
 
-      For multi-touch devices, this is very useful, as it describes
+      For normal backends that simply support a single mouse device,
+      this is just equivalent to TCastleWindow.MousePosition
+      and TCastleControl.MousePosition.
+
+      For multi-touch devices, this describes
       the position of the current finger (corresponding to FingerIndex).
 
       For other EventType values (not itMouseButton),
@@ -742,9 +746,17 @@ type
   end;
 
   { Motion (movement) of mouse or a finger on a touch device. }
-  TInputMotion = object
+  TInputMotion = record
+    { Old and new positions of the mouse or finger.
+      In the same coordinate system as @link(TInputPressRelease.Position). }
     OldPosition, Position: TVector2;
+
+    { Currently pressed mouse buttons.
+      On touch devices, this is always just [buttonLeft]. }
     Pressed: TCastleMouseButtons;
+
+    { Finger that is moving, on touch devices.
+      If you use mouse, this is always just 0. }
     FingerIndex: TFingerIndex;
   end;
 
@@ -778,69 +790,6 @@ type
     procedure SetDeleteKey(const APath: string;
       const AValue, ADefaultValue: TKey); overload;
     { @groupEnd }
-  end;
-
-  TCastleGestureType = (gtNone, gtPinch, gtPan);
-  TCastleGestureRecognizerState = (grstInvalid, grstStarted, grstUpdate, grstFinished);
-
-  { This gesture recognizer detects pan and pinch gesture, as both use two fingers,
-    but cannot be done at the same time (to have only one active recognizer).
-
-    Pass the input events using Press, Motion and Release functions, listen
-    to recognized gestures in @link(OnGestureChanged) event.
-    }
-  TCastlePinchPanGestureRecognizer = class
-  strict private
-    FGesture: TCastleGestureType;
-    FState: TCastleGestureRecognizerState;
-    FPanOldOffset, FPanOffset: TVector2;   // for panning, use (PanOffset - PanOldOffset)
-    FPinchScaleFactor: Single;
-    FPinchCenter: TVector2;
-
-    FOnGestureChanged: TNotifyEvent;
-
-    FFinger0Pressed, FFinger1Pressed: boolean;
-    FFinger0Pos, FFinger1Pos: TVector2;  // stored position of the fingers, we get only one of them in Motion event
-    FFinger0StartPos, FFinger1StartPos: TVector2; // gesture start finger positions
-
-  public
-    constructor Create;
-
-    { Functions to pass the input to the recognizer from some @link(TInputListener).
-      @groupBegin }
-    function Press(const Event: TInputPressRelease): boolean;
-    function Release(const Event: TInputPressRelease): boolean;
-    function Motion(const Event: TInputMotion; const Dpi: Single): boolean;
-    { @groupEnd }
-
-    { Gesture type once it's recognized. Check it inside OnGestureChanged event. }
-    property Gesture: TCastleGestureType read FGesture;
-
-    { Recognizer state. When not detected any gesture, it is in grstInvalid,
-      grstStarted is when the gesture is first recognized, grstFinished is the
-      last event of the recognized gesture, grstUpdate are all events between
-      started and finished.
-
-      As you get the @link(OnGestureChanged) event only when any gesture
-      is recognized, you may ignore this RecognizerState property, as the
-      gesture parameters are always valid and can be used for transformations.}
-    property RecognizerState: TCastleGestureRecognizerState read FState;
-
-    { Offset of the current pan gesture. To get the actual change, you have
-    to calculate PanOffset - PanOldOffset. }
-    property PanOffset: TVector2 read FPanOffset;
-
-    { Previous pan gesture offset. }
-    property PanOldOffset: TVector2 read FPanOldOffset;
-
-    { Scale factor of the pinch gesture. I.e. 1.0 = no change, >1.0 zoom in. }
-    property PinchScaleFactor: Single read FPinchScaleFactor;
-
-    { Coordinates of the pinch gesture center. }
-    property PinchCenter: TVector2 read FPinchCenter;
-
-    { Listen to this event to receive updates on recognized gestures. }
-    property OnGestureChanged: TNotifyEvent read FOnGestureChanged write FOnGestureChanged;
   end;
 
 implementation
@@ -1132,12 +1081,12 @@ begin
       [CharBackSpace, CharTab, CharEnter];
 
   { add modifiers description }
-  if (mkShift in Modifiers) or (C in ['A'..'Z']) then
+  if (mkShift in Modifiers) or CharInSet(C, ['A'..'Z']) then
     Result := Result + 'Shift+';
   if mkAlt in Modifiers then
     Result := Result + 'Alt+';
   if (mkCtrl in Modifiers) or
-     (C in CharactersImplicatingCtrlModifier) then
+     CharInSet(C, CharactersImplicatingCtrlModifier) then
   begin
     if CtrlIsCommand then
       Result := Result + 'Command+'
@@ -1391,174 +1340,6 @@ procedure TCastleConfigKeysMouseHelper.SetDeleteKey(const APath: string;
   const AValue, ADefaultValue: TKey);
 begin
   SetDeleteValue(APath, KeyToStr(AValue), KeyToStr(ADefaultValue));
-end;
-
-{ TCastlePinchPanGestureRecognizer ------------------------------------------- }
-
-constructor TCastlePinchPanGestureRecognizer.Create;
-begin
-  inherited;
-  FGesture := gtNone;
-  FState := grstInvalid;
-  FOnGestureChanged := nil;
-  FFinger0Pressed := false;
-  FFinger1Pressed := false;
-end;
-
-function TCastlePinchPanGestureRecognizer.Press(const Event: TInputPressRelease): boolean;
-begin
-  if Event.FingerIndex = 0 then
-  begin
-    FFinger0StartPos := Event.Position;
-    FFinger0Pos := Event.Position;
-    FFinger0Pressed := true;
-  end
-  else if Event.FingerIndex = 1 then begin
-    FFinger1StartPos := Event.Position;
-    FFinger1Pos := Event.Position;
-    FFinger1Pressed := true;
-  end;
-  Result := FFinger0Pressed and FFinger1Pressed;
-end;
-
-function TCastlePinchPanGestureRecognizer.Release(const Event: TInputPressRelease): boolean;
-begin
-  Result := false;
-
-  if Event.FingerIndex = 0 then
-    FFinger0Pressed := false
-  else if Event.FingerIndex = 1 then
-    FFinger1Pressed := false;
-
-  // end gesture when any finger up
-  if FState <> grstInvalid then
-  begin
-    if Assigned(FOnGestureChanged) then
-    begin
-      // send 'Finished' event
-      if Gesture = gtPinch then
-        FPinchScaleFactor := 1.0
-      else if Gesture = gtPan then
-        FPanOffset := FPanOldOffset;
-      FState := grstFinished;
-      FOnGestureChanged(Self);
-    end;
-    FGesture := gtNone;
-    FState := grstInvalid;
-    Result := true;
-  end;
-end;
-
-function TCastlePinchPanGestureRecognizer.Motion(const Event: TInputMotion;
-  const Dpi: Single): boolean;
-var
-  OldDist, NewDist: Single;
-  Length0, Length1: Single;
-  DpiScale: Single;
-
-  function CosAngleBetweenVectors(const V1, V2: TVector2): Single;
-  var
-    LensSquared: Float;
-  begin
-    LensSquared := v1.LengthSqr * v2.LengthSqr;
-    if IsZero(LensSquared) then
-      Result := 1
-    else
-      Result := Clamped(TVector2.DotProduct(V1, V2) / Sqrt(LensSquared), -1.0, 1.0);
-  end;
-
-  function AngleRadBetweenVectors(const V1, V2: TVector2): Single;
-  begin
-    Result := ArcCos(CosAngleBetweenVectors(V1, V2));
-  end;
-
-begin
-  Result := false;
-
-  if Event.FingerIndex = 0 then
-    FFinger0Pos := Event.Position
-  else if Event.FingerIndex = 1 then
-    FFinger1Pos := Event.Position
-  else
-    Exit(FState <> grstInvalid);  // moving with additional finger
-
-  if (not FFinger0Pressed) or (not FFinger1Pressed) then
-    Exit(false);
-
-  if FState = grstInvalid then
-  begin
-    DpiScale := Dpi / 96.0;
-    // test if gesture started
-    OldDist := PointsDistance(FFinger0StartPos, FFinger1StartPos);
-    NewDist := PointsDistance(FFinger0Pos, FFinger1Pos);
-    if Abs(OldDist - NewDist) > (20 * DpiScale) then
-    begin
-      // pinch gesture recognized
-      FGesture := gtPinch;
-      FState := grstStarted;
-      FPinchCenter := (FFinger0Pos + FFinger1Pos) / 2.0;
-      FPinchScaleFactor := NewDist / OldDist;
-
-      if Assigned(FOnGestureChanged) then
-        FOnGestureChanged(Self);
-
-      FState := grstUpdate;
-      Result := true;
-    end;
-
-    // ﻿test if it is pan gesture - it should be parralel movement of all fingers
-    Length0 := PointsDistance(FFinger0Pos, FFinger0StartPos);
-    Length1 := PointsDistance(FFinger1Pos, FFinger1StartPos);
-
-    if (Max(Length0, Length1) > (10 * DpiScale)) and (Min(Length0, Length1)*1.5 > Max(Length0, Length1))
-       and (AngleRadBetweenVectors(FFinger0Pos - FFinger0StartPos, FFinger1Pos - FFinger1StartPos) < 1.0) then // angle less then 60 deg
-    begin
-      FGesture := gtPan;
-      FState := grstStarted;
-      FPanOldOffset := FFinger0StartPos;
-      FPanOffset := FFinger0Pos;
-
-      if Assigned(FOnGestureChanged) then
-        FOnGestureChanged(Self);
-
-      FState := grstUpdate;
-      Result := true;
-    end;
-  end
-  else if FState = grstUpdate then begin
-    // update gestures
-    if FGesture = gtPinch then
-    begin
-      NewDist := PointsDistance(FFinger0Pos, FFinger1Pos);
-      if Event.FingerIndex = 0 then
-        OldDist := PointsDistance(Event.OldPosition, FFinger1Pos)
-      else
-        OldDist := PointsDistance(FFinger0Pos, Event.OldPosition);
-
-      FPinchScaleFactor := NewDist / OldDist;
-
-      if Assigned(FOnGestureChanged) then
-        FOnGestureChanged(Self);
-
-      Result := true;
-    end
-    else if FGesture = gtPan then begin
-      if Event.FingerIndex = 0 then // send only when 1st finger moved
-      begin
-        FPanOldOffset := Event.OldPosition;
-        FPanOffset := Event.Position;
-
-        if Assigned(FOnGestureChanged) then
-          FOnGestureChanged(Self);
-      end;
-      Result := true;
-    end;
-  end;
-
-  { Eat all 2 finger moves.
-    Positive effect: camera does not change before the gesture is recognized.
-    Negative effect: in theory, we might block some other two-finger gestures. }
-  Result := true;
 end;
 
 end.

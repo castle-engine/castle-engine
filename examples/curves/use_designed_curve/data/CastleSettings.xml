@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  See https://castle-engine.io/manual_castle_settings.php
+  for documentation of this file format.
+-->
+
+<castle_settings>
+  <ui_scaling
+    mode="EncloseReferenceSize"
+    reference_width="1600"
+    reference_height="900"
+  />
+</castle_settings>

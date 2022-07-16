@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2021 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,14 +20,14 @@ interface
 
 implementation
 
-uses SysUtils, Classes, Zipper,
+uses SysUtils, Classes, Zipper, URIParser,
   CastleWindow, CastleScene, CastleControls, CastleLog, CastleUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleDownload, CastleStringUtils,
-  CastleURIUtils, CastleViewport;
+  CastleURIUtils, CastleViewport, CastleCameras;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Viewport: TCastleViewport;
   Status: TCastleLabel;
   ExampleImage: TCastleImageControl;
@@ -49,11 +49,13 @@ var
 
 function TPackedDataReader.ReadUrl(const Url: string; out MimeType: string): TStream;
 var
+  U: TURI;
   FileInZip: String;
   Unzip: TUnZipper;
   FilesInZipList: TStringlist;
 begin
-  FileInZip := PrefixRemove('/', URIDeleteProtocol(Url), false);
+  U := ParseURI(Url);
+  FileInZip := PrefixRemove('/', U.Path + U.Document, false);
 
   { Unpack file to a temporary directory.
     TODO: TPackedDataReader.ReadUrl should be implemented
@@ -81,13 +83,13 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 begin
   // ... do something every frame
   Status.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   // ... react to press of key, mouse, touch
 end;
@@ -118,7 +120,7 @@ begin
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Window.Controls.InsertFront(Viewport);
 
   { Show a label with frames per second information }
@@ -153,7 +155,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 

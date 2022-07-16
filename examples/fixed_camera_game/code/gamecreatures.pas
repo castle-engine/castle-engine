@@ -63,7 +63,7 @@ type
     procedure LoadFromConfig;
   end;
 
-  TCreatureKindList = class({$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TCreatureKind>)
+  TCreatureKindList = class({$ifdef FPC}specialize{$endif} TObjectList<TCreatureKind>)
   public
     PlayerKind: TCreatureKind;
 
@@ -125,7 +125,7 @@ var
 implementation
 
 uses Math,
-  CastleLog, CastleGLUtils, CastleUIControls, CastleGLBoxes, CastleSceneCore,
+  CastleLog, CastleGLUtils, CastleUIControls, CastleSceneCore,
   GameConfiguration;
 
 const
@@ -498,6 +498,7 @@ begin
   State := csWalk;
 end;
 
+initialization
 finalization
   FreeAndNil(CreatureKinds);
 end.

@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -78,13 +78,13 @@ begin
 
   ButtonDragSimple := TCastleButton.Create(FreeAtStop);
   ButtonDragSimple.Caption := 'Drag by tracking Motion events';
-  ButtonDragSimple.OnClick := @ClickDragSimple;
+  ButtonDragSimple.OnClick := {$ifdef FPC}@{$endif}ClickDragSimple;
   ButtonDragSimple.Toggle := true;
   Buttons.InsertFront(ButtonDragSimple);
 
   ButtonDragMouseLook := TCastleButton.Create(FreeAtStop);
   ButtonDragMouseLook.Caption := 'Drag by MouseLook logic (hide mouse, pretend drag area is unbounded)';
-  ButtonDragMouseLook.OnClick := @ClickDragMouseLook;
+  ButtonDragMouseLook.OnClick := {$ifdef FPC}@{$endif}ClickDragMouseLook;
   ButtonDragMouseLook.Toggle := true;
   Buttons.InsertFront(ButtonDragMouseLook);
 
@@ -146,7 +146,7 @@ begin
   if Dragging then
   begin
     if MouseLook then
-      Delta := Container.MouseLookDelta(Event)
+      Delta := Container.MouseLookDelta(Event, RenderRect)
     else
       Delta := Event.Position - Event.OldPosition;
     DraggedRect.AnchorDelta := DraggedRect.AnchorDelta + Delta / UIScale;

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,14 +22,19 @@ interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolArchitectures, ToolCompile, ToolProject;
+  ToolArchitectures, ToolCompile, ToolPackageFormat, ToolProject,
+  ToolManifest;
 
 { Compile (for all possible Android CPUs) Android unit or library.
-  When Project <> nil, we assume we compile libraries (one of more .so files),
-  and their final names must match Project.AndroidLibraryFile(CPU). }
-procedure CompileAndroid(const Project: TCastleProject;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+  When Project <> nil, we assume we compile libraries (one or more .so files),
+  and their final names must match Project.AndroidLibraryFile(CPU) for each CPU.
+
+  CompilerOptions.OS andCompilerOptions.CPU are ignored by this routine.
+  This routine may modify CompilerOptions contents. }
+procedure CompileAndroid(const Compiler: TCompiler;
+  const Project: TCastleProject;
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
 
 { Android CPU values supported by the current compiler. }
 function DetectAndroidCPUS: TCPUS;
@@ -39,18 +44,23 @@ function DetectAndroidCPUS: TCPUS;
 function CPUToAndroidArchitecture(const CPU: TCPU): String;
 
 procedure PackageAndroid(const Project: TCastleProject;
-  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
-procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
+procedure InstallAndroid(const Project: TCastleProject;
+  const PackageMode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
 procedure RunAndroid(const Project: TCastleProject);
 
 implementation
 
 uses SysUtils, DOM, XMLWrite,
+  // TODO: Should not be needed after https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
+  {$IFDEF UNIX}BaseUnix, {$ENDIF}
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolEmbeddedImages, ToolFPCVersion, ToolPackage, ToolCommonUtils, ToolUtils,
-  ToolManifest;
+  ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
+  ToolServicesOperations;
 
 var
   DetectAndroidCPUSCached: TCPUS;
@@ -68,16 +78,18 @@ begin
   Result := DetectAndroidCPUSCached;
 end;
 
-procedure CompileAndroid(const Project: TCastleProject;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+procedure CompileAndroid(const Compiler: TCompiler;
+  const Project: TCastleProject;
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
 var
   CPU: TCPU;
 begin
   for CPU in DetectAndroidCPUS do
   begin
-    Compile(Android, CPU, { Plugin } false,
-      Mode, WorkingDirectory, CompileFile, SearchPaths, LibraryPaths, ExtraOptions);
+    CompilerOptions.OS := Android;
+    CompilerOptions.CPU := CPU;
+    Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
     if Project <> nil then
     begin
       CheckRenameFile(Project.AndroidLibraryFile(cpuNone), Project.AndroidLibraryFile(CPU));
@@ -128,54 +140,22 @@ begin
     raise Exception.Create('Cannot find "' + ExeName + '" executable on $PATH, or within $' + EnvVarName + '. Install Android ' + BundleName + ' and make sure that "' + ExeName + '" executable is on $PATH, or that $' + EnvVarName + ' environment variable is set correctly.');
 end;
 
-{ Try to find "ndk-build" tool executable.
-  If not found -> exception (if Required) or return '' (if not Required). }
-function NdkBuildExe(const Required: boolean = true): string;
-const
-  ExeName = 'ndk-build';
-  BundleName = 'NDK';
-  EnvVarName = 'ANDROID_NDK_HOME';
-var
-  Env: string;
-begin
-  Result := '';
-  { try to find in $ANDROID_NDK_HOME }
-  Env := GetEnvironmentVariable(EnvVarName);
-  if Env <> '' then
-  begin
-    Result := AddExeExtension(InclPathDelim(Env) + ExeName);
-    if not RegularFileExists(Result) then
-      Result := '';
-  end;
-  { try to find in $ANDROID_HOME }
-  if Result = '' then
-  begin
-    Env := GetEnvironmentVariable('ANDROID_HOME');
-    if Env <> '' then
-    begin
-      Result := AddExeExtension(InclPathDelim(Env) + 'ndk-bundle' + PathDelim + ExeName);
-      if not RegularFileExists(Result) then
-        Result := '';
-    end;
-  end;
-  { try to find on $PATH }
-  if Result = '' then
-    Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
-end;
-
 { Try to find "adb" tool executable.
   If not found -> exception (if Required) or return '' (if not Required). }
 function AdbExe(const Required: boolean = true): string;
 const
   ExeName = 'adb';
   BundleName = 'SDK';
-  EnvVarName = 'ANDROID_HOME';
+  EnvVarName1 = 'ANDROID_SDK_ROOT';
+  EnvVarName2 = 'ANDROID_HOME';
 var
   Env: string;
 begin
   Result := '';
-  { try to find in $ANDROID_HOME }
-  Env := GetEnvironmentVariable(EnvVarName);
+  { try to find in $ANDROID_SDK_ROOT or (deprecated) $ANDROID_HOME }
+  Env := GetEnvironmentVariable(EnvVarName1);
+  if Env = '' then
+    GetEnvironmentVariable(EnvVarName2);
   if Env <> '' then
   begin
     Result := AddExeExtension(InclPathDelim(Env) + 'platform-tools' + PathDelim + ExeName);
@@ -184,11 +164,31 @@ begin
   end;
   { try to find on $PATH }
   if Result = '' then
-    Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
+    Result := FinishExeSearch(ExeName, BundleName, EnvVarName1, Required);
+end;
+
+function AndroidPackageFile(const Project: TCastleProject;
+  const Mode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault;
+  const PackageNameIncludeVersion: Boolean): String;
+begin
+  Result := Project.Name;
+  if PackageNameIncludeVersion and (Project.Version.DisplayValue <> '') then
+    Result += '-' + Project.Version.DisplayValue;
+  Result += '-android' + '-' + PackageModeToName[Mode];
+  case PackageFormat of
+    pfAndroidApk:
+      Result += '.apk';
+    pfAndroidAppBundle:
+      Result += '.aab';
+    else
+      raise Exception.Create('Unexpected PackageFormat in for Android: ' + PackageFormatToString(PackageFormat));
+  end;
 end;
 
 procedure PackageAndroid(const Project: TCastleProject;
-  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 var
   AndroidProjectPath: string;
 
@@ -236,25 +236,8 @@ var
   { Generate files for Android project from templates. }
   procedure GenerateFromTemplates;
   var
-    DestinationPath: string;
-
-    procedure ExtractService(const ServiceName: string);
-    var
-      TemplatePath: string;
-    begin
-      TemplatePath := 'android/integrated-services/' + ServiceName;
-      Project.ExtractTemplate(TemplatePath, DestinationPath);
-    end;
-
-  var
     TemplatePath: string;
-    I: Integer;
   begin
-    { calculate absolute DestinationPath.
-      Use CombinePaths, in case AndroidProjectPath is relative to project dir
-      (although it's not possible now). }
-    DestinationPath := CombinePaths(Project.Path, AndroidProjectPath);
-
     { add Android project core directory }
     case Project.AndroidProjectType of
       apBase      : TemplatePath := 'android/base/';
@@ -263,28 +246,43 @@ var
       else raise EInternalError.Create('GenerateFromTemplates:Project.AndroidProjectType unhandled');
       {$endif}
     end;
-    Project.ExtractTemplate(TemplatePath, DestinationPath);
+    Project.ExtractTemplate(TemplatePath, AndroidProjectPath);
+  end;
 
-    if Project.AndroidProjectType = apIntegrated then
+  { Generate files for Android project from templates, adding services. }
+  procedure GenerateServicesFromTemplates;
+
+    procedure ExtractService(const ServiceName: string);
+    var
+      TemplatePath: string;
     begin
-      { add declared services }
-      for I := 0 to Project.AndroidServices.Count - 1 do
-        ExtractService(Project.AndroidServices[I].Name);
-
-      { add automatic services }
-      if (depSound in Project.Dependencies) and
-         not Project.AndroidServices.HasService('sound') then
-        ExtractService('sound');
-      if (depOggVorbis in Project.Dependencies) and
-         not Project.AndroidServices.HasService('ogg_vorbis') then
-        ExtractService('ogg_vorbis');
-      if (depFreeType in Project.Dependencies) and
-         not Project.AndroidServices.HasService('freetype') then
-        ExtractService('freetype');
-      if (depHttps in Project.Dependencies) and
-         not Project.AndroidServices.HasService('download_urls') then
-        ExtractService('download_urls');
+      TemplatePath := 'android/integrated-services/' + ServiceName;
+      Project.ExtractTemplate(TemplatePath, AndroidProjectPath);
     end;
+
+  var
+    I: Integer;
+  begin
+    { add declared services }
+    for I := 0 to Project.AndroidServices.Count - 1 do
+      ExtractService(Project.AndroidServices[I].Name);
+
+    { add automatic services }
+    if (depSound in Project.Dependencies) and
+       not Project.AndroidServices.HasService('sound') then
+      ExtractService('sound');
+    if (depOggVorbis in Project.Dependencies) and
+       not Project.AndroidServices.HasService('ogg_vorbis') then
+      ExtractService('ogg_vorbis');
+    if (depFreeType in Project.Dependencies) and
+       not Project.AndroidServices.HasService('freetype') then
+      ExtractService('freetype');
+    if (depPng in Project.Dependencies) and
+       not Project.AndroidServices.HasService('png') then
+      ExtractService('png');
+    if (depHttps in Project.Dependencies) and
+       not Project.AndroidServices.HasService('download_urls') then
+      ExtractService('download_urls');
   end;
 
   procedure GenerateIcons;
@@ -400,8 +398,10 @@ var
     JniPath, LibraryWithoutCPU, LibraryFileName: String;
   begin
     JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
-      { Place precompiled libs in jni/ , ndk-build will find them there. }
-      'jni' + PathDelim;
+      { Place precompiled libs in jniLibs/ .
+        This is where precompiled native libs should be, according to
+        https://developer.android.com/studio/projects/gradle-external-native-builds . }
+      'jniLibs' + PathDelim;
     LibraryWithoutCPU := ExtractFileName(Project.AndroidLibraryFile(cpuNone));
 
     for CPU in CPUS do
@@ -412,44 +412,22 @@ var
     end;
   end;
 
-  procedure CopyExternalLibraries;
-  var
-    CPU: TCPU;
-    JniPath: String;
-    FmodLibraryPath, InputFile, OutputFile: String;
-  begin
-    if Project.AndroidServices.HasService('fmod') then
-    begin
-      if not Project.AndroidServices.Service('fmod').Parameters.TryGetValue('library_path', FmodLibraryPath) then
-        raise Exception.Create('Cannot find "library_path" parameter in "fmod" service for Android in CastleEngineManifest.xml');
-      FmodLibraryPath := InclPathDelim(FmodLibraryPath);
-
-      InputFile := FmodLibraryPath + 'fmod.jar';
-      OutputFile := 'app' + PathDelim + 'libs' + PathDelim + 'fmod.jar';
-      PackageSmartCopyFile(InputFile, OutputFile);
-      if Verbose then
-        Writeln('Packaging FMOD library file: ' + InputFile + ' => ' + OutputFile);
-
-      //JniPath := CombinePaths(Project.Path, AndroidProjectPath);
-      JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'jni' + PathDelim;
-
-      for CPU in CPUS do
-      begin
-        InputFile := FmodLibraryPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmod.so';
-        OutputFile := JniPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmod.so';
-        PackageSmartCopyFile(InputFile, OutputFile);
-        if Verbose then
-          Writeln('Packaging FMOD library file: ' + InputFile + ' => ' + OutputFile);
-      end;
-    end;
-  end;
-
 var
   KeyStore, KeyAlias, KeyStorePassword, KeyAliasPassword: string;
 
   procedure CalculateSigningProperties(var PackageMode: TCompilationMode);
   const
-    WWW = 'https://github.com/castle-engine/castle-engine/wiki/Android';
+    SigningPropertiesFile = 'AndroidSigningProperties.txt';
+    WWW = 'https://castle-engine.io/android_faq#_signing_a_release_apk_aab';
+    MissingSigningSuffix =
+      '  See ' + WWW + ' for documentation how to create and use keys to sign release Android APK / AAB.' + NL +
+      '  Falling back to creating debug apk.';
+    MissingSigningInfo =
+      'Key information (key.store, key.alias, key.store.password, key.alias.password) to sign release Android package not found inside "' + SigningPropertiesFile + '" file.' + NL +
+      MissingSigningSuffix;
+    MissingSigningFile =
+      'Information about the keys to sign release Android package not found, because "' + SigningPropertiesFile + '" file does not exist.' + NL +
+      MissingSigningSuffix;
 
     procedure LoadSigningProperties(const FileName: string);
     var
@@ -464,7 +442,7 @@ var
             (S.IndexOfName('key.store.password') = -1) or
             (S.IndexOfName('key.alias.password') = -1)) then
         begin
-          WritelnWarning('Android', 'Key information (key.store, key.alias, key.store.password, key.alias.password) to sign release Android package not found inside "' + FileName + '" file. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
+          WritelnWarning('Android', MissingSigningInfo);
           PackageMode := cmDebug;
         end;
         if PackageMode <> cmDebug then
@@ -509,63 +487,20 @@ var
       finally FreeAndNil(S) end;
     end;
 
-  const
-    SourceAntPropertiesOld = 'AndroidAntProperties.txt';
-    SourceAntProperties = 'AndroidSigningProperties.txt';
   begin
     KeyStore := '';
     KeyAlias := '';
     KeyStorePassword := '';
     KeyAliasPassword := '';
-    if RegularFileExists(Project.Path + SourceAntProperties) then
+    if RegularFileExists(Project.Path + SigningPropertiesFile) then
     begin
-      LoadSigningProperties(Project.Path + SourceAntProperties);
-    end else
-    if RegularFileExists(Project.Path + SourceAntPropertiesOld) then
-    begin
-      LoadSigningProperties(Project.Path + SourceAntPropertiesOld);
-      WritelnWarning('Deprecated', 'Using deprecated configuration file name "' + SourceAntPropertiesOld + '". Rename it to "' + SourceAntProperties + '".');
+      LoadSigningProperties(Project.Path + SigningPropertiesFile);
     end else
     if PackageMode <> cmDebug then
     begin
-      WritelnWarning('Android', 'Information about the keys to sign release Android package not found, because "' + SourceAntProperties + '" file does not exist. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
+      WritelnWarning('Android', MissingSigningFile);
       PackageMode := cmDebug;
     end;
-  end;
-
-  { Run "ndk-build", this moves our .so to the final location in jniLibs,
-    also preserving our debug symbols, so that ndk-gdb remains useful.
-
-    TODO: Calling ndk-build directly is a hack,
-    since Gradle will later call ndk-build anyway.
-    But without calling ndk-build directly
-    it seems impossible to have debug symbols to our prebuilt
-    library correctly preserced, such that ndk-gdb works and sees our symbols.
-  }
-  procedure RunNdkBuild;
-  var
-    Args: TCastleStringList;
-  begin
-    { Place precompiled .so files in jniLibs/ to make them picked up by Gradle.
-      See http://stackoverflow.com/questions/27532062/include-pre-compiled-static-library-using-ndk
-      http://stackoverflow.com/a/28430178
-
-      Possibly we could also let the ndk-build to place them in libs/,
-      as it does by default.
-
-      We know we should not let them be only in jni/ subdir,
-      as they would not be picked by Gradle from there. But that's
-      what ndk-build does: it copies them from jni/ to another directory. }
-
-    Args := TCastleStringList.Create;
-    try
-      if not Verbose then
-        Args.Add('--silent');
-      Args.Add('NDK_LIBS_OUT=./jniLibs');
-
-      RunCommandSimple(AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main',
-        NdkBuildExe, Args.ToArray);
-    finally FreeAndNil(Args) end;
   end;
 
   { Run Gradle to actually build the final apk. }
@@ -575,7 +510,14 @@ var
   begin
     Args := TCastleStringList.Create;
     try
-      Args.Add('assemble' + Capitalize(PackageModeToName[PackageMode]));
+      case PackageFormat of
+        pfAndroidApk:
+          Args.Add('assemble' + Capitalize(PackageModeToName[PackageMode]));
+        pfAndroidAppBundle:
+          Args.Add(':app:bundle' + Capitalize(PackageModeToName[PackageMode]));
+        else
+          raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
+      end;
       if not Verbose then
         Args.Add('--quiet');
       if PackageMode <> cmDebug then
@@ -626,7 +568,7 @@ var
   end;
 
 var
-  ApkName: string;
+  PackageName: string;
   PackageMode: TCompilationMode;
 begin
   { calculate clean AndroidProjectPath }
@@ -640,48 +582,65 @@ begin
   CalculateSigningProperties(PackageMode);
 
   GenerateFromTemplates;
-  CopyExternalLibraries;
+  if Project.AndroidProjectType = apIntegrated then
+  begin
+    GenerateServicesFromTemplates;
+    PackageServices(Project, Project.AndroidServices,
+      'castle-data:/android/integrated-services/', AndroidProjectPath);
+  end;
   GenerateIcons;
   GenerateAssets;
   GenerateLocalization;
   GenerateLibrary;
-  RunNdkBuild;
   RunGradle(PackageMode);
 
-  ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
-  CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
-    'build' +  PathDelim +
-    'outputs' + PathDelim +
-    'apk' + PathDelim +
-    PackageModeToName[PackageMode] + PathDelim +
-    'app-' + PackageModeToName[PackageMode] + '.apk',
-    Project.OutputPath + ApkName);
+  PackageName := AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
+  case PackageFormat of
+    pfAndroidApk:
+      begin
+        CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
+          'build' +  PathDelim +
+          'outputs' + PathDelim +
+          'apk' + PathDelim +
+          PackageModeToName[PackageMode] + PathDelim +
+          'app-' + PackageModeToName[PackageMode] + '.apk',
+          Project.OutputPath + PackageName);
+      end;
+    pfAndroidAppBundle:
+      begin
+        CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
+          'build' +  PathDelim +
+          'outputs' + PathDelim +
+          'bundle' + PathDelim +
+          PackageModeToName[PackageMode] + PathDelim +
+          'app-' + PackageModeToName[PackageMode] + '.aab',
+          Project.OutputPath + PackageName);
+        DoMakeExecutable(Project.OutputPath + PackageName);
+      end;
+    else
+      raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
+  end;
 
-  Writeln('Build ' + ApkName);
+  Writeln('Build ' + PackageName);
 end;
 
-procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
+procedure InstallAndroid(const Project: TCastleProject;
+  const PackageMode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 var
-  ApkDebugName, ApkReleaseName, ApkName: string;
+  PackageName: string;
 begin
-  ApkReleaseName := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmRelease] + '.apk');
-  ApkDebugName   := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmDebug  ] + '.apk');
-  if RegularFileExists(ApkDebugName) and RegularFileExists(ApkReleaseName) then
-    raise Exception.CreateFmt('Both debug and release apk files exist in this directory: "%s" and "%s". We do not know which to install --- resigning. Simply rename or delete one of the apk files.',
-      [ApkDebugName, ApkReleaseName]);
-  if RegularFileExists(ApkDebugName) then
-    ApkName := ApkDebugName else
-  if RegularFileExists(ApkReleaseName) then
-    ApkName := ApkReleaseName else
-    raise Exception.CreateFmt('No Android apk found in this directory: "%s" or "%s"',
-      [ApkDebugName, ApkReleaseName]);
+  PackageName := AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
+  if not RegularFileExists(PackageName) then
+    raise Exception.CreateFmt('No Android package found: "%s"', [PackageName]);
 
   { Uninstall and then install, instead of calling "install -r",
     to avoid failures because apk signed with different keys (debug vs release). }
 
-  Writeln('Reinstalling application identified as "' + QualifiedName + '".');
-  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first (note that it will clear your UserConfig data, unless you use -k) by "adb uninstall ' + QualifiedName + '"');
-  RunCommandSimple(AdbExe, ['install', '-r', ApkName]);
+  Writeln('Reinstalling application identified as "' + Project.QualifiedName + '".');
+  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first (note that it will clear your UserConfig data, unless you use -k) by "adb uninstall ' + Project.QualifiedName + '"');
+  Flush(Output); // don't mix output with adb output
+  RunCommandSimple(AdbExe, ['install', '-r', PackageName]);
   Writeln('Install successful.');
 end;
 

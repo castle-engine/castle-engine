@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2019 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,14 +28,13 @@ uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
-  ToolPackage, ToolProject, ToolCompile, ToolIOS, ToolAndroid,
-  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils;
+  ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
+  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcessWait;
 
 var
   Target: TTarget;
   OS: TOS;
   CPU: TCPU;
-  Plugin: boolean = false;
   Mode: TCompilationMode = cmRelease;
   AssumeCompiled: boolean = false;
   Fast: boolean = false;
@@ -44,9 +43,12 @@ var
   PackageNameIncludeVersion: Boolean = true;
   UpdateOnlyCode: Boolean = false;
   CleanAll: Boolean = false;
+  WaitForProcessId: TProcessId = 0;
+  GuiErrors: Boolean = false;
+  OverrideCompiler: TCompiler = DefaultCompiler;
 
 const
-  Options: array [0..19] of TOption =
+  Options: array [0..22] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -67,7 +69,10 @@ const
     (Short: #0 ; Long: 'update-only-code'; Argument: oaNone),
     (Short: #0 ; Long: 'ios-simulator'; Argument: oaNone),
     (Short: #0 ; Long: 'all'; Argument: oaNone),
-    (Short: #0 ; Long: 'manifest-name'; Argument: oaRequired)
+    (Short: #0 ; Long: 'manifest-name'; Argument: oaRequired),
+    (Short: #0 ; Long: 'wait-for-process-exit'; Argument: oaRequired),
+    (Short: #0 ; Long: 'gui-errors'; Argument: oaNone),
+    (Short: #0 ; Long: 'compiler'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -97,30 +102,29 @@ begin
             NL+
             'Possible commands:' +NL+
             NL+
-            'create-manifest:' +NL+
+            'create-manifest' +NL+
             '    Creates simple CastleEngineManifest.xml with guessed values.' +NL+
             NL+
-            'compile:' +NL+
+            'compile' +NL+
             '    Compile project.' +NL+
             '    By default compiles for the current OS / current CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
             '    You can use --os / --cpu options to compile to some other OS / CPU.' +NL+
             '    You can use --target to compile for a collection of OS / CPU' +NL+
             '    combination (like "iOS" or "Android").' +NL+
             NL+
-            'package:' +NL+
+            'package' +NL+
             '    Package the application into the best archive format for given' +NL+
             '    operating system (OS) / processor (CPU) / target.' +NL+
             '    The OS, CPU and "target" can be changed just like at "compile".' +NL+
             NL+
-            'install:' +NL+
+            'install' +NL+
             '    Install the application created by previous "package" call.' +NL+
             '    Useful when OS is "android", it installs' +NL+
             '    the apk package created by previous "package" call' +NL+
             '    for Android. Useful for quick testing of your app on a device' +NL+
             '    connected through USB.' +NL+
-            '    Useful also for installing compiled web browser plugin.' +NL+
             NL+
-            'run:' +NL+
+            'run' +NL+
             '    Run the application. ' +NL+
             '    On some platforms, it requires installing the application first' +NL+
             '    (e.g. on Android, where we install and run on a device' +NL+
@@ -129,14 +133,14 @@ begin
             '    it simply runs the last compiled application.' +NL+
             '    So just "compile" the application first.' +NL+
             NL+
-            'package-source:' +NL+
+            'package-source' +NL+
             '    Package the source code of the application.' +NL+
             NL +
-            'clean:' +NL+
+            'clean' +NL+
             '    Clean leftover files from compilation and packaging.' +NL+
             '    Does not remove final packaging output.' +NL+
             NL+
-            'simple-compile:' +NL+
+            'simple-compile' +NL+
             '    Compile the Object Pascal file (unit/program/library) given' +NL+
             '    as a parameter. This does not handle the Castle Game Engine projects' +NL+
             '    defined by CastleEngineManifest.xml files.' +NL+
@@ -145,22 +149,34 @@ begin
             '    Use this instead of "compile" only if there''s some good reason' +NL+
             '    you don''t want to use CastleEngineManifest.xml to your project.' +NL+
             NL+
-            'auto-generate-textures:' +NL+
+            'auto-generate-textures' +NL+
             '    Create GPU-compressed versions of textures,' +NL+
             '    for the textures mentioned in <auto_compressed_textures>' +NL+
             '    inside the file data/material_properties.xml.' +NL+
             NL+
-            'auto-generate-clean:' +NL+
+            'auto-generate-clean' +NL+
             '    Clear "auto_compressed" subdirectories, that should contain only' +NL+
             '    the output created by "auto-generate-textures" target.' +NL+
             NL+
-            'generate-program:' +NL+
+            'generate-program' +NL+
             '    Generate files to edit and run this project in Lazarus: lpr, lpi, castleautogenerated unit.' +NL+
             '    Depends on game_units being defined in the CastleEngineManifest.xml.' +NL+
             NL+
-            'editor:' +NL+
+            'editor' +NL+
             '    Run Castle Game Engine Editor within this project, with possible' +NL+
             '    project-specific components.' +NL+
+            NL+
+            'editor-rebuild-if-needed' +NL+
+            '    Internal. 1st part of "editor" command.' + NL +
+            NL+
+            'editor-run [--wait-for-process-exit PROCESS-ID]' +NL+
+            '    Internal. 2nd part of "editor" command.' + NL +
+            NL+
+            'output' +NL+
+            '    Output some project information (from the manifest).' + NL +
+            '    Next parameter determines the information:' + NL +
+            '      version' + NL +
+            '      version-code' + NL +
             NL+
             'Available options are:' +NL+
             HelpOptionHelp +NL+
@@ -174,7 +190,7 @@ begin
             OptionDescription('--fast',
               'Do not "clean" before "package". Recompile only what changed. This is faster for development, but cannot guarantee that everything is recompiled in a release mode.') +NL+
             OptionDescription('--plugin',
-              'Compile/package/install a browser plugin.') +NL+
+              'Compile/package/install a browser NPAPI plugin. DEPRECATED.') +NL+
             OptionDescription('--fpc-version-iphone-simulator VERSION',
               'When compiling for iPhone Simulator, we pass -V<VERSION> to the "fpc" command-line. This is necessary if you use the official "FPC for iOS" package (see the "Getting Started - iOS.rtf" inside the "FPC for iOS" dmg for explanation). You can set this to "auto" (this is the default) to auto-detect this based on regular FPC version. Or you can set this to a particular version, like "3.0.5". Or you can set this to empty "" to avoid passing any -V<VERSION> (suitable for FPC 3.1.1).') +NL+
             OptionDescription('--compiler-option=PARAM',
@@ -183,16 +199,42 @@ begin
               'Where to place the output executables, packages, and the "castle-engine-output" directory with temporary generated files.') +NL+
             OptionDescription('--project=DIR',
               'Where to search for the project (CastleEngineManifest.xml file). By default we search in the current directory. The argument can either be a directory, or a filename of CastleEngineManifest.xml file.') +NL+
+            OptionDescription('--package-format=FORMAT',
+              'Use with "package" command to customize the result.' + NL +
+              'Available FORMAT values: ' +NL+
+              NL +
+              '- default (platform specific; on most platforms creates a zip/tar.gz archive; on Android creates APK; on iOS creates Xcode project)' +NL+
+              '- zip (pack all files into zip)' +NL+
+              '- tar.gz (pack all files into tar.gz)' +NL+
+              '- directory (put all files into a new subdirectory)' +NL+
+              '- android-apk (only on Android: create APK)' +NL+
+              '- android-app-bundle (only on Android: create AAB)' +NL+
+              '- ios-archive-ad-hoc (only on iOS: archive using "ad-hoc" method to IPA file)' +NL+
+              '- ios-archive-development (only on iOS: archive using "development" method)' +NL+
+              '- ios-archive-app-store (only on iOS: distributes the application to the TestFlight and the AppStore)' +NL+
+              '') + NL +
+            OptionDescription('--package-name-no-version',
+              'Use with "package" command. The resulting file/directory name will not contain the version number.') + NL +
+            OptionDescription('--update-only-code',
+              'Use with "package" command. Makes the packaging faster, as you guarantee that only the Pascal code have changed since last packaging (so you did not change e.g. data/ or CastleEngineManifest.xml).') + NL +
+            OptionDescription('--ios-simulator',
+              'Use with "package" command when --target=iOS. Allows to run the project on iOS simulator.') + NL +
             OptionDescription('--all',
-              'Use by "auto-generate-clean", indicates to clean everything auto-generated. By default we only clean unused files from "auto_generated" directories.') +NL+
+              'Use with "auto-generate-clean" command. Indicates to clean everything auto-generated. By default we only clean unused files from "auto_generated" directories.') +NL+
             OptionDescription('--manifest-name=AlternativeManifest.xml',
               'Search and use given "AlternativeManifest.xml" file instead of standard "CastleEngineManifest.xml". Useful if you need to maintain completely different project configurations for any reason.') +NL+
+            OptionDescription('--wait-for-process-exit=PROCESS-ID',
+              'Internal, useful with "editor-run".') +NL+
+            OptionDescription('--gui-errors',
+              'Show errors as GUI boxes. On Unix, requires "zenity" installed.') +NL+
+            OptionDescription('--compiler=COMPILER',
+              'Select compiler: "autodetect", "fpc", "delphi".') +NL+
             TargetOptionHelp + NL +
             OSOptionHelp + NL +
             CPUOptionHelp + NL +
             NL+
             'Full documentation on' + NL +
-            'https://github.com/castle-engine/castle-engine/wiki/Build-Tool' + NL +
+            'https://castle-engine.io/build_tool' + NL +
             NL+
             ApplicationProperties.Description);
           Halt;
@@ -209,7 +251,7 @@ begin
     6 : Mode := StringToMode(Argument);
     7 : AssumeCompiled := true;
     8 : Fast := true;
-    9 : Plugin := true;
+    9 : WritelnWarning('NPAPI plugin is no longer available, ignoring --plugin');
     10: FPCVersionForIPhoneSimulator := Argument;
     11: CompilerExtraOptions.Add(Argument);
     12: OutputPathBase := Argument;
@@ -220,6 +262,9 @@ begin
     17: IosSimulatorSupport := true;
     18: CleanAll := true;
     19: ManifestName := Argument;
+    20: WaitForProcessId := StrToInt64(Argument);
+    21: GuiErrors := true;
+    22: OverrideCompiler := StringToCompiler(Argument);
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -249,6 +294,7 @@ var
   Command, S, FileName: string;
   Project: TCastleProject;
   RestOfParameters: TCastleStringList;
+  SimpleCompileOptions: TCompilerOptions; // used only when command is "simple-compile"
 begin
   ApplicationProperties.ApplicationName := 'castle-engine';
   ApplicationProperties.Version := CastleEngineVersion;
@@ -283,18 +329,26 @@ begin
     { use GetCurrentDir as WorkingDir,
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
-    case Target of
-      targetCustom        : Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetAndroid       : CompileAndroid(nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetIOS           : CompileIOS(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetNintendoSwitch: CompileNintendoSwitch(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('Operation not implemented for this target');
-      {$endif}
-    end;
+    SimpleCompileOptions := TCompilerOptions.Create;
+    try
+      SimpleCompileOptions.OS := OS;
+      SimpleCompileOptions.CPU := CPU;
+      SimpleCompileOptions.DetectMemoryLeaks := false;
+      SimpleCompileOptions.Mode := Mode;
+      SimpleCompileOptions.ExtraOptions.AddRange(CompilerExtraOptions);
+      case Target of
+        targetCustom        : Compile(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
+        targetAndroid       : CompileAndroid(OverrideCompiler, nil, GetCurrentDir, FileName, SimpleCompileOptions);
+        targetIOS           : CompileIOS(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
+        targetNintendoSwitch: CompileNintendoSwitch(GetCurrentDir, FileName, SimpleCompileOptions);
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('Operation not implemented for this target');
+        {$endif}
+      end;
+    finally FreeAndNil(SimpleCompileOptions) end;
   end else
   begin
-    if Command <> 'run' then
+    if (Command <> 'run') and (Command <> 'output') then
       Parameters.CheckHigh(1);
     Project := TCastleProject.Create;
     try
@@ -302,7 +356,7 @@ begin
         Project.DoCreateManifest
       else
       if Command = 'compile' then
-        Project.DoCompile(Target, OS, CPU, Plugin, Mode, CompilerExtraOptions)
+        Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions)
       else
       if Command = 'package' then
       begin
@@ -310,12 +364,13 @@ begin
         begin
           if not Fast then
             Project.DoClean;
-          Project.DoCompile(Target, OS, CPU, Plugin, Mode, CompilerExtraOptions);
+          Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions);
         end;
-        Project.DoPackage(Target, OS, CPU, Plugin, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
+        Project.DoPackage(Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
       end else
       if Command = 'install' then
-        Project.DoInstall(Target, OS, CPU, Plugin) else
+        Project.DoInstall(Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion)
+      else
       if Command = 'run' then
       begin
         RestOfParameters := TCastleStringList.Create;
@@ -323,7 +378,7 @@ begin
           RestOfParameters.Text := Parameters.Text;
           RestOfParameters.Delete(0); // remove our own name
           RestOfParameters.Delete(0); // remove "run"
-          Project.DoRun(Target, OS, CPU, Plugin, RestOfParameters);
+          Project.DoRun(Target, OS, CPU, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end else
       if Command = 'package-source' then
@@ -346,6 +401,17 @@ begin
       if Command = 'editor' then
         Project.DoEditor
       else
+      if Command = 'editor-rebuild-if-needed' then
+        Project.DoEditorRebuildIfNeeded
+      else
+      if Command = 'editor-run' then
+        Project.DoEditorRun(WaitForProcessId)
+      else
+      if Command = 'output' then
+      begin
+        Parameters.CheckHigh(2);
+        Project.DoOutput(Parameters[2]);
+      end else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
   end;
@@ -362,7 +428,10 @@ begin
       { In case of exception, write nice message and exit with non-zero status,
         without dumping any stack trace (because it's normal for build tool to
         exit with exception in case of project/environment error, not a bug). }
-      Writeln(ErrOutput, ExceptMessage(E));
+      if GuiErrors then
+        ErrorBox(ExceptMessage(E))
+      else
+        Writeln(ErrOutput, ExceptMessage(E));
       Halt(1);
     end;
   end;

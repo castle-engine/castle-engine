@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  # on each push and manual trigger
+  push:  
+    branches: [ master ]
+    paths-ignore: [ "**/Readme.md" ]
+  workflow_dispatch:    
+
+jobs:
+  build:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest, windows-latest, macos-latest]
+        # currently stable="Lazarus 2.2.0 / FPC 3.2.2" with setup-lazarus@v3.0.16        
+        lazarus-versions: [stable]        
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Lazarus
+        uses: gcarreno/setup-lazarus@v3.0.16
+        with:
+          lazarus-version: ${{ matrix.lazarus-versions }}          
+      - name: Print Lazarus version
+        run: lazbuild --version
+      - name: Setup Linux
+        if: runner.os == 'Linux'
+        shell: bash                
+        run:  |    
+          # needed for SDL and GL demos
+          sudo apt install libsdl1.2-dev -y
+          # to build LCL demos with Qt5 backend
+          sudo apt install libqt5pas-dev -y
+      - name: Build demos with FPC (Linux)
+        if: runner.os == 'Linux'
+        shell: bash                
+        run:  |    
+          cd Scripts
+          ./BuildDemosFPC.sh
+          ./BuildExtDemosFPC.sh
+          ./Clean.sh --clean-also-bin-dirs    
+      - name: Build demos with Lazarus
+        shell: bash        
+        run:  |          
+          cd Demos/ObjectPascal           
+          
+          lazbuild "Benchmark/Bench.lpi"    
+          lazbuild "VampConvert/VampConvert.lpi"
+                    
+          if [ "$RUNNER_OS" != "macOS" ]; then                                 
+              lazbuild "LCLImager/lclimager.lpi"          
+              lazbuild "ImageBrowser/ImgBrowser.lpi"
+              lazbuild "OpenGLDemo/OpenGLDemo.lpi"
+              lazbuild "SDLDemo/SDLDemo.lpi" 
+          fi
+          
+          if [ "$RUNNER_OS" == "Linux" ]; then                                               
+              lazbuild --ws=qt5 "LCLImager/lclimager.lpi"                        
+              lazbuild --ws=qt5 "ImageBrowser/ImgBrowser.lpi"             
+          fi
+          
+          if [ "$RUNNER_OS" == "Windows" ]; then                                  
+              lazbuild "D3DDemo/D3DDemo.lpi" 
+          fi  
+          
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            lazbuild --ws=cocoa "LCLImager/lclimager.lpi"          
+            lazbuild --ws=cocoa "ImageBrowser/ImgBrowser.lpi"
+          fi
+      - name: List Demos Bin directory
+        shell: bash
+        run:  ls Demos/Bin            
+      - name:  Run demos
+        shell: bash
+        run:   |          
+          cd Demos/Bin           
+          ./Bench
+          ./VampConvert -h           
+      - name: Compile Lazarus Packages
+        shell: bash        
+        run:  |                  
+          lazbuild "Packages/VampyreImagingPackage.lpk"    
+          lazbuild "Packages/VampyreImagingPackageExt.lpk" 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ci-artifacts-${{ matrix.operating-system }}-laz-${{ matrix.lazarus-versions }}
+          # exclude compiled units etc.
+          path: |
+            Demos/Bin            
+            !Demos/Bin/Dcu            
+          if-no-files-found: error

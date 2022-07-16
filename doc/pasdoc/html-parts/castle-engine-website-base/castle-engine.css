@@ -1,3 +1,30 @@
+body {
+  /* Override Bootstrap to add Inter https://fonts.google.com/specimen/Inter */
+  font-family: Inter,"Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  /* Override Bootstrap 14px */
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Makes reading much easier, like on
+   https://docs.asciidoctor.org/asciidoc/latest/macros/audio-and-video/
+   https://castle-engine.io/build_tool */
+p {
+  margin-bottom: 16px;
+}
+
+/* Override Bootstrap default:
+
+   Remove "Courier New",
+   "Courier New" bold width doesn't match regular "Courier New",
+   this hurts our CommonSurfaceShader view on x3d_implementation_texturing_extensions.php .
+   It is also not nice on Linux according to
+   https://github.com/twbs/bootstrap/issues/18609
+*/
+code, kbd, pre, samp {
+  font-family: monospace !important;
+}
+
 @media only screen and (max-width : 767px) {
     .sidebar {
         /* vertical margin between sidebar and content,
@@ -25,6 +52,7 @@
 /* all images, movies responsive */
 img, iframe {
   max-width: 100%;
+  height: auto; /* scale to max-width preserving proportions, even if intrinsic image sizes (width/height on <img>) are given */
 }
 
 
@@ -54,17 +82,6 @@ div.thumbs_cell_with_text_or_movie {
 /* Our <pre> must break, otherwise our right sidebar is shifted and looks bad */
 pre {
   white-space: pre-wrap;
-}
-
-/* Override Bootstrap default:
-   Remove "Courier New", add "Liberation Mono".
-   "Courier New" bold width doesn't match regular "Courier New",
-   this hurts our CommonSurfaceShader view on x3d_implementation_texturing_extensions.php .
-   It is also not nice on Linux according to
-   https://github.com/twbs/bootstrap/issues/18609
-*/
-code, kbd, pre, samp {
-  font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
 }
 
 a.kscript_func_docs { text-decoration: underline; }
@@ -174,6 +191,7 @@ dl.vrml_ver_differences > dt {
 .cge-gallery-link img {
   border: none;
   max-width: 100%; /* force scaling down on narrow window width, for 3-column layout of all_programs.php */
+  height: auto; /* scale to max-width preserving proportions, even if intrinsic image sizes (width/height on <img>) are given */
 }
 
 @media only screen and (min-width : 768px) {
@@ -211,10 +229,18 @@ a.screenshot:hover img { border: 2pt solid #888; }
 }
 */
 
-.main-subtitle { color: #777; }
+.main-subtitle {
+  font-size: medium;
+  color: #444;
+  line-height: 1.5; /* default line-height from <body>, to make this look like <p> */
+  margin-top: 0;
+}
 
 .main-page-thumbnail {
     width: 100%;
+    /* This way image height is also adjusted, to follow image aspect ratio.
+       And we can still specify img intrinsic size in <img> element. */
+    height: auto;
     margin-bottom: 1rem;
 }
 
@@ -254,6 +280,28 @@ article.post .entry-content ul.list-no-margin {
   margin-bottom: 0 !important;
 }
 
+.message_404 {
+  font-size: large;
+  text-align: center;
+}
+
+.message_404 p {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+.docs_improve_hint {
+  font-style: italic;
+}
+
+/* Make long words, like MultiGeneratedTextureCoordinate or MovieTexture.flipVertically,
+   broken -- good for mobile usability.
+   See https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Text/Wrapping_Text */
+h2 {
+  /* word-break: break-all; */
+  overflow-wrap: break-word;
+}
+
 /* main page stuff ----------------------------------------------------------- */
 
 .centered-wrapper {
@@ -275,7 +323,6 @@ article.post .entry-content ul.list-no-margin {
     margin-bottom: 1em;
 }
 .download-hints p {
-    font-size: 87% !important;
     margin-top: 0; /* .download-hints already makes margins */
     margin-bottom: 0; /* .download-hints already makes margins */
 }
@@ -283,6 +330,7 @@ article.post .entry-content ul.list-no-margin {
 .centered-download-wrapper .main-cge-download .btn-primary {
   padding-left: 1em;
   padding-right: 1em;
+  min-width: 10em; /* makes all icons equal width now */
 }
 
 div.main-cge-download {
@@ -400,30 +448,6 @@ table.specification td {
   border-width:medium;
   padding:8px;
   /* white-space:nowrap; */
-}
-
-table.x3dtests {
-  border-collapse: collapse;
-}
-table.x3dtests td {
-  border: thin solid #888;
-  padding:8px;
-}
-table.x3dtests td.x3dtests-links {
-  padding:0px;
-  /* white-space: nowrap; */
-}
-table.x3dtests td.x3dtests-links ul {
-  padding: 0 0 0 1em;
-  margin: 0;
-  font-size: smaller;
-}
-table.x3dtests tr.x3dtests-results td {
-  font-size: smaller;
-  padding: 0.1em;
-}
-table.x3dtests .x3dtests-screens {
-  width: 210px;
 }
 
 div.sidebar_title {
@@ -873,4 +897,36 @@ div.download .download_platform {
 
 .convert-output p {
   text-align: center;
+}
+
+.panel-body::after {
+  clear: none !important;
+}
+
+/* talk page ---------------------------------------------------------------- */
+
+.talk-buttons-row {
+  text-align: center;
+}
+
+.talk-button {
+  display: inline-block;
+  width: 300px; /* buttons have hardcoded size, as one of them is Discord iframe, no other way to size it */
+  height: 300px;
+  margin-left: 1em;
+  margin-right: 1em;
+  margin-bottom: 1em;
+  margin-top: 1em;
+  vertical-align: top; /* align iframe with normal buttons vertically OK */
+}
+
+.talk-button > p {
+  margin-top: 75px; /* buttons have hardcoded size, so hardcode margin is OK too */
+  line-height: 50px;
+  font-weight: bold;
+}
+
+.talk-button > p > img {
+  width: 100px;
+  height: 100px;
 }

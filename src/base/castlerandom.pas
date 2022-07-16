@@ -43,9 +43,9 @@ type
       even if initialization happens absolutely simultaneously. }
     procedure Initialize(RandomSeed: LongWord = 0);
     { Returns random float value in the 0..1 range. }
-    function Random: single;
+    function Random: single; overload;
     { Returns random integer number in the 0..N-1 range. }
-    function Random(N: LongInt): LongInt;
+    function Random(N: LongInt): LongInt; overload;
     { A relatively slow procedure to get a 64 bit integer random number. }
     function RandomInt64(N: int64): int64;
     { A simple Yes/No function that with 50% chance returns true or false.
@@ -80,14 +80,14 @@ function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): Lo
 { Single random instance. }
 function Rand: TCastleRandom;
 
-function Rnd: single; deprecated 'use Rand.Random';
-function Rnd(N: LongInt): LongInt; deprecated 'use Rand.Random';
+function Rnd: single; overload; deprecated 'use Rand.Random';
+function Rnd(N: LongInt): LongInt; overload; deprecated 'use Rand.Random';
 
 implementation
 
 uses SysUtils,
   { Required only for randomization based on CastleNow / CastleGetTickCount64 function. }
-  CastleTimeUtils;
+  CastleTimeUtils{$ifndef FPC}, CastleUtils{$endif};
 
 constructor TCastleRandom.Create(RandomSeed: LongWord);
 begin
@@ -134,7 +134,7 @@ var Store64bitSeed: QWord = 0; //this variable stores 64 bit seed for reusing
    WaitForSeed: boolean = false;
 function Get_Randomseed: longint;
 const DateMultiplier: QWord = 30000000;  // approximate accuracy of the date
-      DateOrder: QWord = 80000 * 30000000; // order of the "now*date_multiplier" variable
+      DateOrder: QWord = {$ifdef FPC}80000 * 30000000{$else}2400000000000{$endif}; // order of the "now*date_multiplier" variable
       {p.s. date_order will be true until year ~2119}
 var c64: QWord; //current seed;
     b64: QWord; //additional seed for multi-threading safety
@@ -213,7 +213,7 @@ begin
      synchronously. But after several xorshift64-s c64 has no information
      left off gettickcount64 and therefore we introduce an additional
      semi-independent shift into the random seed}
-    c64 += QWord(Round(CastleNow * DateMultiplier));
+    c64 := c64 + QWord(Round(CastleNow * DateMultiplier));
     {now we are sure that the player will get a different random seed even
      in case he/she launches the game exactly at the same milisecond since
      the OS startup - different date&time will shift the random seed...
@@ -260,7 +260,7 @@ begin
   {$ENDIF}
 end;
 
-procedure TCastleRandom.XorShiftCycle; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
+procedure TCastleRandom.XorShiftCycle; {$ifdef FPC}{$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}{$endif}
 begin
   { such implementation works a tiny bit faster (+4%) due to better optimization
     by compiler (uses CPU registers instead of a variable) }
@@ -275,7 +275,7 @@ end;
 
 { This procedure is slow so it is better to use XorShiftCycle + direct access
   to seed private field instead }
-function TCastleRandom.Random32bit: LongWord; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
+function TCastleRandom.Random32bit: LongWord; {$ifdef FPC}{$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}{$endif}
 begin
   XorShiftCycle;
   Result := LongWord(Seed);
@@ -308,7 +308,7 @@ end;
   strange results if exact reproduction of the random sequence is required }
 function TCastleRandom.RandomInt64(N: int64): int64;
 var c64: QWord;
-  procedure XorShift64; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
+  procedure XorShift64; {$ifdef FPC}{$ifdef SUPPORTS_INLINE} inline; {$endif}{$endif}
   begin
     c64 := c64 xor (c64 shl 12);
     c64 := c64 xor (c64 shr 25);
@@ -335,7 +335,7 @@ end;
 function TCastleRandom.RandomBoolean: boolean;
 begin
   XorShiftCycle;
-  Result := Seed and %1 = 0   //can be %11 to provide for 1/4, %111 - 1/8 probability ...
+  Result := Seed and {$ifdef FPC}%1{$else}1{$endif} = 0   //can be %11 to provide for 1/4, %111 - 1/8 probability ...
 end;
 
 function TCastleRandom.RandomSign: longint;
@@ -349,48 +349,58 @@ end;
 { MurMur algorithm works on any memory region at pointer Data
   of length Len, and the result differs depending on Seed. }
 function MurMur2(const Data: pointer; const Len: Integer; const Seed: LongWord): LongWord;
-var h, k: LongWord; //MurMur variables
-    p: Pointer;
-    i: Integer;
-  procedure CycleHash(var x: LongWord); {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
-  const m = $5bd1e995; //MurMur "magic" cycling constant
-        MaxLongWord = $FFFFFFFF;
+var H, K: LongWord; //MurMur variables
+    P: PByte;
+    I: Integer;
+
+  procedure CycleHash(var X: LongWord); {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
+  const
+    M = $5bd1e995; //MurMur "magic" cycling constant
+    MaxLongWord = $FFFFFFFF;
   begin
-    x := QWord(x * m) and MaxLongWord //prevent overflows during multiplication;
+    X := QWord(X * M) and MaxLongWord //prevent overflows during multiplication;
   end;
+
 begin
-  i := Len;
-  p := Data;
-  h := Seed xor i; //init the deterministic seed
+  I := Len;
+  P := Data;
+  H := Seed xor I; //init the deterministic seed
 
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   //cycle through all bytes of the string in 32 bit blocks
-  while (i >= 4) do begin
-    k := PLongWord(p)^;   //get next 4 bytes of data and process them
-    CycleHash(k);
-    k := k xor (k shr 24);
-    CycleHash(k);
+  while (I >= 4) do begin
+    K := PLongWord(P)^;   //get next 4 bytes of data and process them
+    CycleHash(K);
+    K := K xor (K shr 24);
+    CycleHash(K);
 
-    CycleHash(h);
-    h := h xor k;         //merge data into hash
+    CycleHash(H);
+    H := H xor K;         //merge data into hash
 
-    inc(p, 4); //advance to next character
-    dec(i, 4); //to gain some speed we don't use p>pmax-4 check
+    inc(P, 4); //advance to next character
+    dec(I, 4); //to gain some speed we don't use p>pmax-4 check
   end;
 
   //upmix 0..3 final bytes of data to hash
-  if i  = 3 then h := h xor (PByte(p + 2)^ shl 16);
-  if i >= 2 then h := h xor (PByte(p + 1)^ shl 8);
-  if i >= 1 then begin
-                   h := h xor PByte(p)^;
-                   CycleHash(h);
-                 end;
+  if I  = 3 then
+    H := H xor (PByte(P + 2)^ shl 16);
+
+  if I >= 2 then
+    H := H xor (PByte(P + 1)^ shl 8);
+
+  if I >= 1 then
+  begin
+    H := H xor PByte(P)^;
+    CycleHash(H);
+  end;
 
   //and add a few final mixes
-  h := h xor (h shr 13);
-  CycleHash(h);
-  h := h xor (h shr 15);
+  H := H xor (H shr 13);
+  CycleHash(H);
+  H := H xor (H shr 15);
 
-  Result := h;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
+  Result := H;
 end;
 
 function StringToHash(const InputString: AnsiString; const Seed: LongWord = 0): LongWord;
@@ -422,6 +432,8 @@ begin
 end;
 
 {$I norqcheckend.inc}
+
+initialization
 
 finalization
   FreeAndNil(GlobalRandom);

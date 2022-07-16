@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
  Result := false;
 end;
@@ -32,7 +32,7 @@ function gtk_check_menu_item_get_draw_as_radio(
 function signal_menu_bar_activation(AGtkMenuBar: PGtkMenuBar;
   Event: PGdkEventButton; UserData: gpointer): gboolean; cdecl;
 var
-  Window: TCastleWindowBase absolute UserData;
+  Window: TCastleWindow absolute UserData;
 begin
   { For reasons of using MenuRecreateForbidden, see signal_menu_item_select
     comments. }
@@ -78,7 +78,7 @@ end;
 function signal_menu_item_select(AItem: PGtkItem;
   UserData: gpointer): gboolean; cdecl;
 var
-  Window: TCastleWindowBase absolute UserData;
+  Window: TCastleWindow absolute UserData;
 begin
   Inc(Window.MenuRecreateForbidden);
   try
@@ -132,7 +132,7 @@ end;
   that window_vbox is empty and current value of MainMenu.Handle
   is clear. }
 
-procedure TCastleWindowBase.BackendMenuInitialize;
+procedure TCastleWindow.BackendMenuInitialize;
 
   { Install GTK menu accelerator (key shortcut) from given MenuItem. }
   procedure InstallGtkAccelerator(const Item: PGtkMenuItem;
@@ -249,7 +249,7 @@ procedure TCastleWindowBase.BackendMenuInitialize;
     Signals signal_menu_item_activate and signal_menu_bar_activation are
     registered. Everything that should be shown is shown.
     You just have to insert MainMenu.Handle in your window. }
-  procedure make_main_menu;
+  procedure MakeMainMenu;
 
     function MenuEntryToGtkMenuItem(Entry: TMenuEntry): PGtkMenuItem;
 
@@ -264,7 +264,7 @@ procedure TCastleWindowBase.BackendMenuInitialize;
 
     var
       SubMenu: PGtkMenu;
-      i: Integer;
+      I: Integer;
       EntryItem: TMenuItem;
       EntryChecked: TMenuItemChecked;
       EntryMenu: TMenu;
@@ -340,39 +340,40 @@ procedure TCastleWindowBase.BackendMenuInitialize;
       gtk_widget_show(GTK_WIDGET(Result));
     end;
 
-  var i: Integer;
+  var
+    I: Integer;
   begin
-   MainMenu.Handle := PGtkMenuBar(gtk_menu_bar_new());
+    MainMenu.Handle := PGtkMenuBar(gtk_menu_bar_new());
 
-   MenuUpdateEnabled(MainMenu);
+    MenuUpdateEnabled(MainMenu);
 
-   gtk_widget_show(GTK_WIDGET(MainMenu.Handle));
-   for i := 0 to MainMenu.Count - 1 do
-    { Don't put TMenuSeparator in menu bar because that would look ugly. }
-    if not (MainMenu.Entries[i] is TMenuSeparator) then
-     gtk_menu_bar_append(GTK_WIDGET(MainMenu.Handle),
-       GTK_WIDGET( MenuEntryToGtkMenuItem(MainMenu.Entries[i]) ));
+    gtk_widget_show(GTK_WIDGET(MainMenu.Handle));
+    for I := 0 to MainMenu.Count - 1 do
+      { Don't put TMenuSeparator in menu bar because that would look ugly. }
+      if not (MainMenu.Entries[I] is TMenuSeparator) then
+        gtk_menu_bar_append(GTK_WIDGET(MainMenu.Handle),
+          GTK_WIDGET( MenuEntryToGtkMenuItem(MainMenu.Entries[I]) ));
 
-   { How to catch the moment when the menu bar is opened/selected/clicked
-     etc. by the user ? It should be caught when user enters menu by clicking
-     on menu bar or pressing some menu key (like F10 in GTK 2).
+    { How to catch the moment when the menu bar is opened/selected/clicked
+      etc. by the user ? It should be caught when user enters menu by clicking
+      on menu bar or pressing some menu key (like F10 in GTK 2).
 
-     There is no way do this nicely in GTK 1 ?
-     So I'm using threre very non-elegant soltuion to catch button-press-event.
-     GTK 1 does not allow user to enter menu by F10 or some other key like that. }
-   gtk_signal_connect(GTK_OBJECT(MainMenu.Handle), 'button-press-event',
-     GTK_SIGNAL_FUNC(@signal_menu_bar_activation), Self);
+      There is no way do this nicely in GTK 1 ?
+      So I'm using threre very non-elegant soltuion to catch button-press-event.
+      GTK 1 does not allow user to enter menu by F10 or some other key like that. }
+    gtk_signal_connect(GTK_OBJECT(MainMenu.Handle), 'button-press-event',
+      GTK_SIGNAL_FUNC(@signal_menu_bar_activation), Self);
   end;
 
 begin
   if MenuRecreateForbidden <> 0 then Exit;
 
-  make_main_menu;
+  MakeMainMenu;
   gtk_box_pack_start(PGtkBox(window_vbox), GTK_WIDGET(MainMenu.Handle),
     gfalse, gfalse, 0);
 end;
 
-procedure TCastleWindowBase.BackendMenuFinalize;
+procedure TCastleWindow.BackendMenuFinalize;
 begin
   if MenuRecreateForbidden <> 0 then Exit;
 
@@ -415,7 +416,7 @@ begin
     WritelnWarning('Menu', 'Menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding GTK menu item object was not created, but it should)');
 end;
 
-procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -428,7 +429,7 @@ begin
     gtk_menu_item_set_label(PGtkMenuItem(EntryGtk), PChar(Entry.Caption));
 end;
 
-procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -437,7 +438,7 @@ begin
   gtk_widget_set_sensitive(PGtkWidget(EntryGtk), Entry.Enabled);
 end;
 
-procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -454,12 +455,12 @@ begin
   end;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindow.MenuUpdateCheckedFast: boolean;
 begin
   Result := true;
 end;
 
-procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }
@@ -467,7 +468,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+procedure TCastleWindow.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }

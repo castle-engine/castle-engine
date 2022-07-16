@@ -24,7 +24,7 @@ interface
 
 uses
   {$ifdef ANDROID} JNI, SyncObjs, {$endif}
-  {$ifdef IOS} CTypes, {$endif}
+  {$ifdef CASTLE_IOS} CTypes, {$endif}
   Generics.Collections, Classes,
   CastleStringUtils, CastleTimeUtils;
 
@@ -41,7 +41,7 @@ type
     const ReceivedStream: TMemoryStream): Boolean of object;
 
   { Used by TMessaging to manage a list of listeners. }
-  TMessageReceivedEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TMessageReceivedEvent>)
+  TMessageReceivedEventList = class({$ifdef FPC}specialize{$endif} TList<TMessageReceivedEvent>)
   public
     procedure ExecuteAll(const Received: TCastleStringList; const ReceivedStream: TMemoryStream);
   end;
@@ -54,7 +54,7 @@ type
 
     To make this work, on Android you need to declare your Android project type
     as "integrated" (this is actually the default now).
-    See https://github.com/castle-engine/castle-engine/wiki/Android-Services .
+    See https://castle-engine.io/android-Services .
     For iOS it is always enabled.
 
     All the communication is asynchronous on all platforms -- Pascal code sends a message,
@@ -72,7 +72,7 @@ type
     FromPascal: TCastleStringList;
     {$endif}
 
-    {$ifdef IOS}
+    {$ifdef CASTLE_IOS}
     type
       TReceiveMessageFromPascalCallback = procedure (Message: PCChar); cdecl;
     class var
@@ -123,7 +123,7 @@ function Java_net_sourceforge_castleengine_MainActivity_jniMessage(
   MessageToPascalStream: jbyteArray): jstring; cdecl;
 {$endif}
 
-{$ifdef IOS}
+{$ifdef CASTLE_IOS}
 procedure CGEApp_SetReceiveMessageFromPascalCallback(
   ACallback: TMessaging.TReceiveMessageFromPascalCallback); cdecl;
 procedure CGEApp_SendMessageToPascal(Message: PCChar); cdecl;
@@ -181,15 +181,15 @@ begin
   {$endif ANDROID}
 
   { Only register the Update on platforms where CastleMessaging is actually used. }
-  {$if defined(ANDROID) or defined(IOS)}
-  ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif} Update);
+  {$if defined(ANDROID) or defined(CASTLE_IOS)}
+  ApplicationProperties.OnUpdate.Add({$ifdef FPC}@{$endif} Update);
   {$endif}
 end;
 
 destructor TMessaging.Destroy;
 begin
   if ApplicationProperties(false) <> nil then
-    ApplicationProperties(false).OnUpdate.Remove({$ifdef CASTLE_OBJFPC}@{$endif} Update);
+    ApplicationProperties(false).OnUpdate.Remove({$ifdef FPC}@{$endif} Update);
   FreeAndNil(ToPascal);
   FreeAndNil(FOnReceive);
 
@@ -228,12 +228,12 @@ procedure TMessaging.Send(const Strings: array of string);
     finally JavaCommunicationCS.Release end;
     {$endif ANDROID}
 
-    {$ifdef IOS}
+    {$ifdef CASTLE_IOS}
     if Assigned(FReceiveMessageFromPascalCallback) then
       FReceiveMessageFromPascalCallback(PCChar(Message))
     else
       WritelnWarning('Messaging', 'Message cannot be delivered, iOS application not finished loading yet');
-    {$endif IOS}
+    {$endif CASTLE_IOS}
   end;
 
 begin
@@ -293,8 +293,7 @@ end;
 
 class function TMessaging.BoolToStr(const Value: boolean): string;
 begin
-  Result := {$ifdef FPC} SysUtils.BoolToStr {$else} Iff {$endif}
-    (Value, 'true', 'false');
+  Result := Iff(Value, 'true', 'false');
 end;
 
 class function TMessaging.TimeToStr(const Value: TFloatTime): string;
@@ -337,7 +336,7 @@ end;
 
 { iOS specific --------------------------------------------------------------- }
 
-{$ifdef IOS}
+{$ifdef CASTLE_IOS}
 procedure CGEApp_SetReceiveMessageFromPascalCallback(
   ACallback: TMessaging.TReceiveMessageFromPascalCallback); cdecl;
 begin
@@ -351,7 +350,7 @@ begin
 
   Messaging.ToPascal.Add(AnsiString(PChar(Message)));
 end;
-{$endif IOS}
+{$endif CASTLE_IOS}
 
 { Android specific ----------------------------------------------------------- }
 

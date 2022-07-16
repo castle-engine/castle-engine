@@ -1,12 +1,18 @@
 /* -*- mode: groovy -*-
-  Confgure how to run our job in Jenkins.
+  Configure how to run our job in Jenkins.
   This runs on Windows.
-  See https://github.com/castle-engine/castle-engine/wiki/Cloud-Builds-(Jenkins) .
+  See https://castle-engine.io/cloud_builds_jenkins .
 */
 
 library 'cag-shared-jenkins-library'
 
 pipeline {
+  options {
+    /* While concurrent builds of CGE work OK,
+       they stuck Jenkins much with too many long-running builds.
+       Better to wait for previous build to finish. */
+    disableConcurrentBuilds()
+  }
   agent {
     label 'windows-cge-builder'
   }
@@ -27,11 +33,24 @@ pipeline {
         sh 'make --version'
       }
     }
+    stage('Cleanup') {
+      steps {
+        sh "repository_cleanup . --remove-unversioned"
+      }
+    }
     stage('Build Tools') {
       steps {
         sh 'rm -Rf installed/'
         sh 'mkdir -p installed/'
-        sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+        /* TODO: do not use "make install" command, as somewhere the Windows path gets
+           messed up and in the end we have created files like this:
+
+           "tools/build-tool/data/E\357\200\272jworkspacecastle_game_engine_delphi_master/installed/share/castle-engine/android/integrated-services/google_play_games/app/src/main/java/net/sourceforge/castleengine/ServiceGooglePlayGames.java"
+        */
+        // sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+        sh 'make clean tools'
+        sh 'mkdir -p ${CASTLE_ENGINE_PATH}/installed/bin/'
+        sh 'cp tools/build-tool/castle-engine.exe ${CASTLE_ENGINE_PATH}/installed/bin/'
       }
     }
     stage('Build Examples') {

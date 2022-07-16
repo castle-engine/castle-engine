@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  Buttons, ButtonPanel, StdCtrls, EditBtn;
+  Buttons, ButtonPanel, StdCtrls, EditBtn, LCLType;
 
 type
   { Determine new project settings. }
@@ -42,6 +42,8 @@ type
     ButtonTemplateEmpty: TSpeedButton;
     ButtonTemplate3dModelViewer: TSpeedButton;
     ButtonTemplate3dFps: TSpeedButton;
+    procedure EditProjectNameUTF8KeyPress(Sender: TObject;
+      var UTF8Key: TUTF8Char);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormShow(Sender: TObject);
     procedure ButtonTemplateClick(Sender: TObject);
@@ -63,6 +65,11 @@ uses {$ifdef MSWINDOWS} WinDirs, {$endif}
   LazFileUtils,
   CastleURIUtils, CastleConfig, CastleUtils, CastleStringUtils,
   EditorUtils;
+
+const
+  AlphaNum = ['a'..'z', 'A'..'Z', '0'..'9'];
+  ValidProjectNameChars = AlphaNum + ['_', '-'];
+  InvalidProjectNameChars = AllChars - ValidProjectNameChars;
 
 procedure TNewProjectForm.FormShow(Sender: TObject);
 
@@ -90,7 +97,7 @@ begin
   EditLocation.Directory := NewProjectDir;
 
   EditProjectName.Text := 'my-new-project';
-
+  EditProjectCaption.Text := 'My New Project';
   EditStateName.Text := 'Main';
 
   AdjustStateNameUi;
@@ -125,10 +132,6 @@ begin
 end;
 
 procedure TNewProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
-const
-  AlphaNum = ['a'..'z', 'A'..'Z', '0'..'9'];
-  ValidProjectNameChars = AlphaNum + ['_', '-'];
-  InvalidProjectNameChars = AllChars - ValidProjectNameChars;
 var
   ProjectDir: String;
   InvalidIndex: Integer;
@@ -185,6 +188,23 @@ begin
 
     UserConfig.SetValue('new_project/default_dir', ProjectLocation);
   end;
+end;
+
+procedure TNewProjectForm.EditProjectNameUTF8KeyPress(Sender: TObject;
+  var UTF8Key: TUTF8Char);
+const
+  { Although these chars are not allowed in project name,
+    but they are allowed by this routine, as they allow to edit the text
+    (e.g. delete by backspace, cut/copy/paste by Ctrl+X/C/V). }
+  ControlChars = [CtrlA .. CtrlZ] +
+    { actually this is already in CtrlA .. CtrlZ, but seemed more obvious to list it explicitly. }
+    [CharBackspace];
+begin
+  if (Length(UTF8Key) <> 1) or
+     ( (UTF8Key[1] in InvalidProjectNameChars) and
+       (not (UTF8Key[1] in ControlChars))
+     ) then
+    UTF8Key := '';
 end;
 
 end.

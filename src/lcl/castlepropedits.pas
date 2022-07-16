@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,30 +28,53 @@ unit CastlePropEdits;
 
 interface
 
-var
-  PropertyEditorsAdviceDataDirectory: Boolean;
+uses PropEdits;
+
+{$define read_interface}
+{$I castlepropedits_url.inc}
+{$undef read_interface}
 
 procedure Register;
 
 implementation
 
 uses SysUtils, Classes, TypInfo, Forms,
-  PropEdits, ComponentEditors, LResources, Dialogs, Controls, LCLVersion,
+  ComponentEditors, LResources, Dialogs, Controls, LCLVersion, LazIDEIntf,
   OpenGLContext, Graphics,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
-  CastleTiledMap, CastleGLImages, CastleStringUtils, CastleTransformExtra,
-  CastleInternalExposeTransformsDialog;
+  CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
+  CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
+  CastleScriptParser;
 
+function PropertyEditorsAdviceDataDirectory: Boolean;
+begin
+  { There's no reason to leave it false, in practice. }
+  Result := true;
+
+  if CastleDesignMode and
+     (LazarusIDE <> nil) and
+     (LazarusIDE.ActiveProject <> nil) then
+  begin
+    { Override ApplicationData interpretation, and castle-data:/xxx URL meaning.
+      This allows PropertyEditorsAdviceDataDirectory to work
+      inside Lazarus IDE, e.g. when setting TCastleControl.DesignUrl. }
+    ApplicationDataOverride := FilenameToURISafeUTF8(
+      InclPathDelim(LazarusIDE.ActiveProject.Directory) + 'data' + PathDelim);
+  end;
+end;
+
+{$define read_implementation}
+{$I castlepropedits_url.inc}
+
+{ These include files are only used in the implementation,
+  they don't look at read_interface/read_implementation symbols. }
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
-{$I castlepropedits_url.inc}
 {$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
-{$I castlepropedits_unused_controls.inc}
-{$I castlepropedits_viewport_navigation.inc}
 {$I castlepropedits_float.inc}
 {$I castlepropedits_exposetransforms.inc}
 
@@ -68,12 +91,34 @@ begin
     'Texture', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleAbstractPrimitive,
     'TextureNormalMap', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBitmapFont,
+    'ImageUrl', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageTransform,
+    'Url', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
     'URL', TDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTransformDesign,
     'URL', TTransformDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
     'URL', TTiledMapURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSound,
+    'URL', TSoundURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleFont,
+    'URL', TFontURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TextureNegativeX', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TextureNegativeY', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TextureNegativeZ', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TexturePositiveX', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TexturePositiveY', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
+    'TexturePositiveZ', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleControl,
+    'DesignUrl', TDesignURLPropertyEditor);
 
   { Improved float properties }
   RegisterPropertyEditor(TypeInfo(Single), nil, '', TCastleFloatPropertyEditor);
@@ -89,8 +134,6 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleRootTransform), TCastleViewport, 'Items',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
-    TSubPropertiesEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleCamera), TCastleViewport, '',
     TSubPropertiesEditor);
 
   { Other properties }
@@ -112,10 +155,6 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
-    TViewportNavigationEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
-    TViewportNavigationEditor);
 end;
 
 initialization

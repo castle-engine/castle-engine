@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2010-2019 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,16 +16,66 @@
 
 { URL editors. }
 
-{ TSceneURLPropertyEditor ---------------------------------------------------- }
+{$ifdef read_interface}
 
 type
-  { Property editor for URL that refers to 3D model.
+  { Property editor for URL that refers to something that can be loaded by
+    @link(LoadNode) or @link(TCastleSceneCore.Load).
     Show an TCastleOpen3DDialog on Edit. }
   TSceneURLPropertyEditor = class(TStringPropertyEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
   end;
+
+  { Property editor for URL that refers to an image readable by Castle Game Engine.
+    Show an TCastleOpenImageDialog on Edit. }
+  TImageURLPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+  { Property editor for URL that refers to a file readable by UserInterfaceLoad. }
+  TDesignURLPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+  { Property editor for URL that refers to a file readable by TransformLoad. }
+  TTransformDesignURLPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+  { Property editor for URL that refers to a Tiled Map file. }
+  TTiledMapURLPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+  { Property editor for URL that refers to a sound file. }
+  TSoundURLPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+  { Property editor for URL that refers to a font file. }
+  TFontURLPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+
+{ TSceneURLPropertyEditor ---------------------------------------------------- }
 
 function TSceneURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
@@ -50,15 +100,6 @@ end;
 
 { TImageURLPropertyEditor ---------------------------------------------------- }
 
-type
-  { Property editor for URL that refers to a file readable by Castle Game Engine.
-    Show an TCastleOpenImageDialog on Edit. }
-  TImageURLPropertyEditor = class(TStringPropertyEditor)
-  public
-    function GetAttributes: TPropertyAttributes; override;
-    procedure Edit; override;
-  end;
-
 function TImageURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paDialog, paRevertable, paMultiSelect];
@@ -81,14 +122,6 @@ begin
 end;
 
 { TDesignURLPropertyEditor ---------------------------------------------------- }
-
-type
-  { Property editor for URL that refers to a file readable by UserInterfaceLoad. }
-  TDesignURLPropertyEditor = class(TStringPropertyEditor)
-  public
-    function GetAttributes: TPropertyAttributes; override;
-    procedure Edit; override;
-  end;
 
 function TDesignURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
@@ -114,14 +147,6 @@ end;
 
 { TTransformDesignURLPropertyEditor ---------------------------------------------------- }
 
-type
-  { Property editor for URL that refers to a file readable by TransformLoad. }
-  TTransformDesignURLPropertyEditor = class(TStringPropertyEditor)
-  public
-    function GetAttributes: TPropertyAttributes; override;
-    procedure Edit; override;
-  end;
-
 function TTransformDesignURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paDialog, paRevertable, paMultiSelect];
@@ -146,14 +171,6 @@ end;
 
 { TTiledMapURLPropertyEditor ---------------------------------------------------- }
 
-type
-  { Property editor for URL that refers to a Tiled Map file. }
-  TTiledMapURLPropertyEditor = class(TStringPropertyEditor)
-  public
-    function GetAttributes: TPropertyAttributes; override;
-    procedure Edit; override;
-  end;
-
 function TTiledMapURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paDialog, paRevertable, paMultiSelect];
@@ -175,3 +192,53 @@ begin
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;
 end;
+
+{ TSoundURLPropertyEditor ---------------------------------------------------- }
+
+function TSoundURLPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paDialog, paRevertable, paMultiSelect];
+end;
+
+procedure TSoundURLPropertyEditor.Edit;
+var
+  Dialog: TCastleOpenDialog;
+begin
+  Dialog := TCastleOpenDialog.Create(nil);
+  try
+    FileFiltersToDialog(LoadSound_FileFilters, Dialog);
+    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
+    if Dialog.Execute then
+      SetStrValue(Dialog.URL);
+  finally FreeAndNil(Dialog) end;
+end;
+
+{ TFontURLPropertyEditor ---------------------------------------------------- }
+
+function TFontURLPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paDialog, paRevertable, paMultiSelect];
+end;
+
+procedure TFontURLPropertyEditor.Edit;
+var
+  Dialog: TCastleOpenDialog;
+begin
+  Dialog := TCastleOpenDialog.Create(nil);
+  try
+    FileFiltersToDialog(LoadFont_FileFilters, Dialog);
+    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
+    if Dialog.Execute then
+      SetStrValue(Dialog.URL);
+  finally FreeAndNil(Dialog) end;
+end;
+
+{$endif read_implementation}

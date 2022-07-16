@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,13 +74,13 @@ begin
   CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
   ButtonShowAchievements := DesignedComponent('ButtonShowAchievements') as TCastleButton;
 
-  CheckboxCameraFollow.OnChange := @ChangeCheckboxCameraFollow;
-  ButtonShowAchievements.OnClick := @ClickShowAchievements;
+  CheckboxCameraFollow.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxCameraFollow;
+  ButtonShowAchievements.OnClick := {$ifdef FPC}@{$endif} ClickShowAchievements;
 end;
 
 procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 const
-  DragonSpeed: TVector2 = (Data: (3000, 1500));
+  DragonSpeed: TVector2 = (X: 3000; Y: 1500);
 var
   T: TVector2;
   CamPos: TVector3;
@@ -137,9 +137,9 @@ begin
 
   if CheckboxCameraFollow.Checked then
   begin
-    CamPos := MainViewport.Camera.Position;
+    CamPos := MainViewport.Camera.Translation;
     CamPos.X := SceneDragon.Translation.X;
-    MainViewport.Camera.Position := CamPos;
+    MainViewport.Camera.Translation := CamPos;
   end;
 end;
 

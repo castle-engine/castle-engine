@@ -1,0 +1,106 @@
+{
+  "$$ClassName" : "TTestComponent1",
+  "Name" : "TestComponent1",
+  "SomeSingle" : %f,
+  "InternalInteger" : 123,
+  "InternalBoolean" : true,
+  "InternalString" : "something something",
+  "InternalSingle" : %f,
+  "InternalSubComponent" : {
+    "$$ClassName" : "TTestComponent2",
+    "SomeSingle" : %f,
+    "InternalInteger" : 789,
+    "InternalBoolean" : true,
+    "InternalString" : "something else something",
+    "InternalSingle" : %f,
+    "InternalColor" : {
+      "$$ClassName" : "TCastleColorPersistentSimple",
+      "Alpha" : %f,
+      "Blue" : %f,
+      "Green" : %f,
+      "Red" : %f
+    },
+    "InternalColorRGB" : {
+      "$$ClassName" : "TCastleColorRGBPersistentSimple",
+      "Blue" : %f,
+      "Green" : %f,
+      "Red" : %f
+    },
+    "InternalVec2" : {
+      "$$ClassName" : "TCastleVector2PersistentSimple",
+      "X" : %f,
+      "Y" : %f
+    },
+    "InternalVec3" : {
+      "$$ClassName" : "TCastleVector3PersistentSimple",
+      "X" : %f,
+      "Y" : %f,
+      "Z" : %f
+    },
+    "InternalVec4" : {
+      "$$ClassName" : "TCastleVector4PersistentSimple",
+      "W" : %f,
+      "X" : %f,
+      "Y" : %f,
+      "Z" : %f
+    },
+    "InternalVecNotPresent" : {
+      "$$ClassName" : "TCastleVector4PersistentSimple",
+      "W" : %f,
+      "X" : %f,
+      "Y" : %f,
+      "Z" : %f
+    },
+    "InternalVecOnly2ComponentsPresent" : {
+      "$$ClassName" : "TCastleVector4PersistentSimple",
+      "W" : %f,
+      "X" : %f,
+      "Y" : %f,
+      "Z" : %f
+    }
+  },
+  "InternalColor" : {
+    "$$ClassName" : "TCastleColorPersistentSimple",
+    "Alpha" : %f,
+    "Blue" : %f,
+    "Green" : %f
+  },
+  "InternalColorRGB" : {
+    "$$ClassName" : "TCastleColorRGBPersistentSimple",
+    "Blue" : %f,
+    "Green" : %f,
+    "Red" : %f
+  },
+  "InternalVec2" : {
+    "$$ClassName" : "TCastleVector2PersistentSimple",
+    "X" : %f,
+    "Y" : %f
+  },
+  "InternalVec3" : {
+    "$$ClassName" : "TCastleVector3PersistentSimple",
+    "X" : %f,
+    "Y" : %f,
+    "Z" : %f
+  },
+  "InternalVec4" : {
+    "$$ClassName" : "TCastleVector4PersistentSimple",
+    "W" : %f,
+    "X" : %f,
+    "Y" : %f,
+    "Z" : %f
+  },
+  "InternalVecNotPresent" : {
+    "$$ClassName" : "TCastleVector4PersistentSimple",
+    "W" : %f,
+    "X" : %f,
+    "Y" : %f,
+    "Z" : %f
+  },
+  "InternalVecOnly2ComponentsPresent" : {
+    "$$ClassName" : "TCastleVector4PersistentSimple",
+    "W" : %f,
+    "X" : %f,
+    "Y" : %f,
+    "Z" : %f
+  }
+}

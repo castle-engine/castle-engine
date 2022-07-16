@@ -30,7 +30,7 @@ type
       FServer: TCastleTCPServer;
       procedure OnConnected(AClient: TClientConnection);
       procedure OnDisconnected(AClient: TClientConnection);
-      procedure OnMessageRecieved(const AMessage: String; AClient: TClientConnection);
+      procedure OnMessageReceived(const AMessage: String; AClient: TClientConnection);
     public
       constructor Create(const APort: Word);
       destructor Destroy; override;
@@ -45,7 +45,7 @@ type
   end;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   PortEdit, SendEdit: TCastleEdit;
   ResponseLabel: TCastleLabel;
   Server: TServer;
@@ -114,7 +114,7 @@ begin
 
   FServer.OnConnected := @OnConnected;
   FServer.OnDisconnected := @OnDisconnected;
-  FServer.OnMessageRecieved := @OnMessageRecieved;
+  FServer.OnMessageReceived := @OnMessageReceived;
 
   FServer.Start;
 end;
@@ -136,7 +136,7 @@ begin
   ResponseLabel.Caption := 'Disconnected!';
 end;
 
-procedure TServer.OnMessageRecieved(const AMessage: String; AClient: TClientConnection);
+procedure TServer.OnMessageReceived(const AMessage: String; AClient: TClientConnection);
 begin
   ResponseLabel.Caption := AMessage;
 end;
@@ -164,7 +164,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
 finalization

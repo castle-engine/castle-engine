@@ -8,8 +8,8 @@ unit GameState${MAIN_STATE};
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
-  CastleKeysMouse, CastleViewport, CastleScene;
+  CastleVectors, CastleUIState, CastleComponentSerialize, CastleUIControls,
+  CastleControls, CastleKeysMouse, CastleViewport, CastleScene;
 
 type
   { Main state, where most of the application logic takes place. }
@@ -71,11 +71,11 @@ begin
   SceneMain := DesignedComponent('SceneMain') as TCastleScene;
 
   { Assign OnClick handler to buttons }
-  ButtonLoadKnight.OnClick := @ClickLoadKnight;
-  ButtonLoadCar.OnClick := @ClickLoadCar;
-  ButtonLoadCustom.OnClick := @ClickLoadCustom;
-  ButtonPlayAnimation.OnClick := @ClickPlayAnimation;
-  ButtonStopAnimation.OnClick := @ClickStopAnimation;
+  ButtonLoadKnight.OnClick := {$ifdef FPC}@{$endif} ClickLoadKnight;
+  ButtonLoadCar.OnClick := {$ifdef FPC}@{$endif} ClickLoadCar;
+  ButtonLoadCustom.OnClick := {$ifdef FPC}@{$endif} ClickLoadCustom;
+  ButtonPlayAnimation.OnClick := {$ifdef FPC}@{$endif} ClickPlayAnimation;
+  ButtonStopAnimation.OnClick := {$ifdef FPC}@{$endif} ClickStopAnimation;
 
   { Although knight.gltf is already loaded at design-time,
     load it again, to always initialize all UI (e.g. LabelLoadedUrl.Caption)
@@ -88,7 +88,6 @@ begin
   SceneMain.Load(Url);
   LabelLoadedUrl.Caption := 'Loaded: ' + Url;
   Viewport.AssignDefaultCamera;
-  Viewport.AssignDefaultNavigation;
 end;
 
 procedure TState${MAIN_STATE}.ClickLoadKnight(Sender: TObject);

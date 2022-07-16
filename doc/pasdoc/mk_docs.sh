@@ -95,7 +95,7 @@ if (( $# == 0 )); then
   #   like castleinternalpk3dconnexion.pas and castleinternaltdxinput_tlb.pas.
   #
   #   There are two units that are "somewhat internal":
-  #   glext.pas, castlegles20.pas. We want them to be treated as internal
+  #   glext.pas, castlegles.pas. We want them to be treated as internal
   #   for most games. But sometimes users can also use them directly,
   #   to do some advanced tricks (direct OpenGL / OpenGLES rendering,
   #   mixed with CGE rendering).
@@ -111,7 +111,7 @@ if (( $# == 0 )); then
             -not '(' \
               '(' -iwholename '*/base/android/*.pas' ')' -or \
               '(' -iwholename '*/castlelib_dynloader.pas' ')' -or \
-              '(' -iwholename '*/castlegles20.pas' ')' -or \
+              '(' -iwholename '*/castlegles.pas' ')' -or \
               '(' -iname 'x3dloadinternal*.pas' ')' -or \
               '(' -iname 'castleinternal*.pas' ')' -or \
               '(' -iname 'castleshapeinternal*.pas' ')' -or \
@@ -119,6 +119,7 @@ if (( $# == 0 )); then
               '(' -iwholename '*/compatibility/*' ')' -or \
               '(' -iwholename '*/deprecated_units/*' ')' -or \
               '(' -iwholename '*/pasgltf/*' ')' -or \
+              '(' -iwholename '*/vampyre_imaginglib/*' ')' -or \
               '(' -iwholename '*/x3d/nodes_specification/*' ')' -or \
               '(' -iwholename '*fonts/castletexturefont_*.pas' ')' \
             ')' \
@@ -132,23 +133,30 @@ else
 fi
 
 PASDOC_INCLUDE_DIRS="\
-  --include 3d/\
-  --include 3d/opengl/\
-  --include x3d/\
-  --include x3d/opengl/\
+  --include common_includes/\
+  --include transform/\
+  --include scene/\
+  --include scene/load/\
+  --include scene/load/spine/\
+  --include scene/load/collada/\
+  --include scene/x3d/\
   --include audio/\
   --include base/\
   --include base/$TARGET_OS/\
-  --include base/opengl/\
+  --include base_rendering/\
   --include fonts/
   --include fonts/$TARGET_OS/\
-  --include fonts/opengl/\
   --include images/\
-  --include images/opengl/\
   --include window/\
   --include window/$TARGET_OS/\
   --include window/gtk/
 "
+
+if [ "${PASDOC_FORMAT}" = 'html' ]; then
+  FORMAT_OPTIONS='--use-tipue-search'
+else
+  FORMAT_OPTIONS=''
+fi
 
 # Run pasdoc.
 #
@@ -180,8 +188,8 @@ pasdoc \
   --html-body-begin ../doc/pasdoc/html-parts/body-begin.html \
   --html-body-end ../doc/pasdoc/html-parts/body-end.html \
   --css ../doc/pasdoc/html-parts/cge-pasdoc.css \
-  --description=../src/x3d/x3dnodes_documentation.txt \
-  --use-tipue-search \
+  --description=../doc/pasdoc/x3dnodes_documentation.txt \
+  $FORMAT_OPTIONS \
   | \
   grep --ignore-case --invert-match --fixed-strings \
     --regexp='Tag "groupbegin" is not implemented yet, ignoring' \

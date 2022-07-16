@@ -8,19 +8,19 @@ object DesignFrame: TDesignFrame
   DesignTimePPI = 120
   ParentFont = False
   TabOrder = 0
-  DesignLeft = 332
-  DesignTop = 175
+  DesignLeft = 392
+  DesignTop = 62
   object SplitterLeft: TSplitter
     Left = 266
     Height = 510
     Top = 0
-    Width = 7
+    Width = 8
   end
   object SplitterRight: TSplitter
-    Left = 928
+    Left = 927
     Height = 510
     Top = 0
-    Width = 7
+    Width = 8
     Align = alRight
     ResizeAnchor = akRight
   end
@@ -37,19 +37,18 @@ object DesignFrame: TDesignFrame
     TabOrder = 2
     object LabelControlSelected: TLabel
       Left = 5
-      Height = 46
+      Height = 44
       Top = 5
       Width = 316
       Align = alTop
       BorderSpacing.Around = 5
       Caption = 'Selected:'#13#10'xxx (yyy)'
-      ParentColor = False
       ParentFont = False
     end
     object ControlProperties: TPageControl
       Left = 0
-      Height = 454
-      Top = 56
+      Height = 456
+      Top = 54
       Width = 326
       ActivePage = TabLayout
       Align = alClient
@@ -62,12 +61,12 @@ object DesignFrame: TDesignFrame
       end
       object TabLayout: TTabSheet
         Caption = 'Layout'
-        ClientHeight = 417
+        ClientHeight = 420
         ClientWidth = 316
         ParentFont = False
         object PanelLayoutTop: TPanel
           Left = 0
-          Height = 327
+          Height = 326
           Top = 0
           Width = 316
           Align = alTop
@@ -76,8 +75,9 @@ object DesignFrame: TDesignFrame
           ChildSizing.ShrinkHorizontal = crsHomogenousSpaceResize
           ChildSizing.Layout = cclTopToBottomThenLeftToRight
           ChildSizing.ControlsPerLine = 100
-          ClientHeight = 327
+          ClientHeight = 326
           ClientWidth = 316
+          ParentFont = False
           TabOrder = 0
           object PanelAnchors: TPanel
             Left = 0
@@ -97,10 +97,10 @@ object DesignFrame: TDesignFrame
               AnchorSideTop.Control = SelfAnchorsFrame
               AnchorSideTop.Side = asrBottom
               Left = 8
-              Height = 27
-              Top = 237
-              Width = 300
-              BorderSpacing.Top = 7
+              Height = 26
+              Top = 238
+              Width = 307
+              BorderSpacing.Top = 8
               Caption = 'Anchor to the same side of Parent'
               OnChange = CheckParentSelfAnchorsEqualChange
               ParentFont = False
@@ -114,7 +114,7 @@ object DesignFrame: TDesignFrame
               Height = 176
               Top = 54
               Width = 152
-              BorderSpacing.Top = 7
+              BorderSpacing.Top = 8
               ClientHeight = 176
               ClientWidth = 152
               TabOrder = 1
@@ -122,7 +122,7 @@ object DesignFrame: TDesignFrame
               inherited GroupBox1: TGroupBox
                 Height = 176
                 Width = 152
-                ClientHeight = 152
+                ClientHeight = 153
                 ClientWidth = 150
                 inherited ButtonLeftTop: TSpeedButton
                   Height = 44
@@ -184,7 +184,7 @@ object DesignFrame: TDesignFrame
               Top = 54
               Width = 152
               BorderSpacing.Left = 10
-              BorderSpacing.Top = 7
+              BorderSpacing.Top = 8
               ClientHeight = 176
               ClientWidth = 152
               TabOrder = 2
@@ -193,7 +193,7 @@ object DesignFrame: TDesignFrame
                 Height = 176
                 Width = 152
                 Caption = 'Parent Side'
-                ClientHeight = 152
+                ClientHeight = 153
                 ClientWidth = 150
                 inherited ButtonLeftTop: TSpeedButton
                   Height = 44
@@ -248,9 +248,9 @@ object DesignFrame: TDesignFrame
             object ButtonClearAnchorDeltas: TButton
               AnchorSideLeft.Control = SelfAnchorsFrame
               Left = 8
-              Height = 39
+              Height = 38
               Top = 8
-              Width = 172
+              Width = 177
               AutoSize = True
               Caption = 'Move to the anchor'
               OnClick = ButtonClearAnchorDeltasClick
@@ -258,16 +258,18 @@ object DesignFrame: TDesignFrame
               TabOrder = 3
             end
             object LabelSizeInfo: TLabel
+              AnchorSideLeft.Control = ButtonClearAnchorDeltas
+              AnchorSideLeft.Side = asrBottom
+              AnchorSideTop.Control = ButtonClearAnchorDeltas
               AnchorSideRight.Side = asrBottom
-              Left = 217
-              Height = 23
+              Left = 210
+              Height = 22
               Top = 8
-              Width = 91
-              Anchors = [akTop, akRight]
+              Width = 88
+              BorderSpacing.Left = 25
               Caption = 'Show sizes'
               Font.Color = clBlue
               Font.Style = [fsUnderline]
-              ParentColor = False
               ParentFont = False
               ParentShowHint = False
               ShowHint = True
@@ -275,7 +277,7 @@ object DesignFrame: TDesignFrame
           end
           object PanelLayoutTransform: TPanel
             Left = 0
-            Height = 55
+            Height = 54
             Top = 272
             Width = 330
             AutoSize = True
@@ -286,17 +288,19 @@ object DesignFrame: TDesignFrame
             ChildSizing.VerticalSpacing = 8
             ChildSizing.Layout = cclLeftToRightThenTopToBottom
             ChildSizing.ControlsPerLine = 10
-            ClientHeight = 55
+            ClientHeight = 54
             ClientWidth = 330
+            ParentFont = False
             TabOrder = 1
             object ButtonResetTransformation: TButton
               Left = 8
-              Height = 39
+              Height = 38
               Top = 8
-              Width = 194
+              Width = 198
               AutoSize = True
               Caption = 'Reset Transformation'
               OnClick = ButtonResetTransformationClick
+              ParentFont = False
               TabOrder = 0
             end
           end
@@ -304,30 +308,29 @@ object DesignFrame: TDesignFrame
       end
       object TabEvents: TTabSheet
         Caption = 'Events'
-        ClientHeight = 417
+        ClientHeight = 420
         ClientWidth = 316
         ParentFont = False
         object PanelEventsInfo: TPanel
           Left = 0
-          Height = 106
+          Height = 104
           Top = 0
           Width = 316
           Align = alTop
           AutoSize = True
           BevelOuter = bvNone
-          ClientHeight = 106
+          ClientHeight = 104
           ClientWidth = 316
           ParentFont = False
           TabOrder = 0
           object LabelEventsInfo: TLabel
-            Left = 7
-            Height = 92
-            Top = 7
-            Width = 302
+            Left = 8
+            Height = 88
+            Top = 8
+            Width = 300
             Align = alTop
-            BorderSpacing.Around = 7
+            BorderSpacing.Around = 8
             Caption = 'TODO: It''s not possible to assign the events using the CGE editor. For now, you have to assign events using code.'
-            ParentColor = False
             ParentFont = False
             WordWrap = True
           end
@@ -352,13 +355,14 @@ object DesignFrame: TDesignFrame
     TabOrder = 3
     object ControlsTree: TTreeView
       Left = 0
-      Height = 477
-      Hint = 'Select a control to edit it''s properties.'#10'Hold down "Ctrl" key to select multiple components at once.'#10'Drag the control to move it to the front, back, or even change it''s parent.'
-      Top = 33
+      Height = 478
+      Hint = 'Select a component.'#10'Hold "Ctrl" or "Shift" to select multiple components.'#10'Drag the component to move it to the front, back or change parent.'
+      Top = 32
       Width = 266
       Align = alClient
       DragMode = dmAutomatic
       MultiSelect = True
+      MultiSelectStyle = [msControlSelect, msShiftSelect]
       ParentFont = False
       ParentShowHint = False
       PopupMenu = MenuTreeView
@@ -378,58 +382,58 @@ object DesignFrame: TDesignFrame
     end
     object LabelHierarchy: TLabel
       Left = 5
-      Height = 23
+      Height = 22
       Top = 5
       Width = 256
       Align = alTop
       BorderSpacing.Around = 5
       Caption = 'Hierarchy'
-      ParentColor = False
       ParentFont = False
     end
   end
   object PanelMiddle: TPanel
-    Left = 273
+    Left = 274
     Height = 510
     Top = 0
-    Width = 655
+    Width = 653
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 510
-    ClientWidth = 655
+    ClientWidth = 653
     ParentFont = False
     TabOrder = 4
     object PanelMiddleTop: TPanel
       Left = 5
-      Height = 40
+      Height = 38
       Top = 5
-      Width = 645
+      Width = 643
       Align = alTop
+      AutoSize = True
       BorderSpacing.Around = 5
       BevelOuter = bvNone
       ChildSizing.HorizontalSpacing = 4
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 100
-      ClientHeight = 40
-      ClientWidth = 645
+      ClientHeight = 38
+      ClientWidth = 643
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
       object LabelHeaderUi: TLabel
         Left = 0
-        Height = 40
+        Height = 38
         Top = 0
         Width = 23
         BorderSpacing.Right = 10
         Caption = 'UI:'
         Layout = tlCenter
-        ParentColor = False
+        ParentFont = False
       end
       object ButtonInteractMode: TSpeedButton
         Left = 33
-        Height = 40
-        Hint = 'Use components as a normal user.'#10#10'Allows to press buttons, navigate in viewports by mouse dragging, and more.'
+        Height = 38
+        Hint = 'Use components as a normal user.'#10#10'Allows to test pressing UI buttons, using the scrollbar etc.'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -573,8 +577,8 @@ object DesignFrame: TDesignFrame
       end
       object ButtonModifyUiMode: TSpeedButton
         Left = 73
-        Height = 40
-        Hint = 'Select / Move / Resize user interface controls (TCastleUserInterface).'#10#10'Use right mouse button to Move / Resize, but without changing the current selection.'
+        Height = 38
+        Hint = 'Select, Move and Resize user interface controls (TCastleUserInterface).'#10#10'Hold "Shift" to Move and Resize without changing the selection.'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -720,7 +724,7 @@ object DesignFrame: TDesignFrame
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Side = asrCenter
         Left = 114
-        Height = 40
+        Height = 38
         Hint = 'Snap (when moving/resizing UI)'
         Top = 0
         Width = 63
@@ -731,34 +735,33 @@ object DesignFrame: TDesignFrame
       end
       object LabelHeaderTransform: TLabel
         Left = 207
-        Height = 40
+        Height = 38
         Top = 0
-        Width = 90
+        Width = 92
         BorderSpacing.Left = 30
         BorderSpacing.Right = 10
         Caption = 'Transform:'
         Layout = tlCenter
-        ParentColor = False
+        ParentFont = False
       end
       object LabelUIScaling: TLabel
-        Left = 605
-        Height = 23
+        Left = 607
+        Height = 22
         Hint = 'UI Scaling to 1600x900'
         Top = 0
-        Width = 40
+        Width = 36
         Align = alCustom
         Alignment = taRightJustify
         Anchors = [akTop, akRight]
         Caption = '50%'
-        ParentColor = False
         ParentFont = False
         ParentShowHint = False
         ShowHint = True
       end
       object ButtonTransformSelectMode: TSpeedButton
-        Left = 307
-        Height = 40
-        Hint = 'Select Scene (TCastleScene)'
+        Left = 309
+        Height = 38
+        Hint = 'Select transform (TCastleTransform)'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -901,9 +904,9 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object ButtonTransformTranslateMode: TSpeedButton
-        Left = 347
-        Height = 40
-        Hint = 'Move / Select Transform (TCastleTransform, including TCastleScene).'#10#10'Use right mouse button to Move, but without changing the current selection.'
+        Left = 349
+        Height = 38
+        Hint = 'Select and Move transform (TCastleTransform).'#10#10'Hold "Shift" to Move without changing the selection.'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -1046,9 +1049,9 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object ButtonTransformRotateMode: TSpeedButton
-        Left = 387
-        Height = 40
-        Hint = 'Rotate / Select Transform (TCastleTransform, including TCastleScene).'#10#10'Use right mouse button to Rotate, but without changing the current selection.'
+        Left = 389
+        Height = 38
+        Hint = 'Select and Rotate transform (TCastleTransform).'#10#10'Hold "Shift" to Rotate without changing the selection.'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -1191,9 +1194,9 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object ButtonTransformScaleMode: TSpeedButton
-        Left = 427
-        Height = 40
-        Hint = 'Scale / Select Transform (TCastleTransform, including TCastleScene).'#10#10'Use right mouse button to Scale, but without changing the current selection.'
+        Left = 429
+        Height = 38
+        Hint = 'Select and Scale transform (TCastleTransform).'#10#10'Hold "Shift" to Scale without changing the selection.'
         Top = 0
         Width = 36
         AllowAllUp = True
@@ -1335,227 +1338,40 @@ object DesignFrame: TDesignFrame
         OnClick = ButtonTransformScaleModeClick
         ParentFont = False
       end
-      object LabelSelectedViewport: TLabel
-        AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Side = asrCenter
-        Left = 493
-        Height = 40
+      object LabelViewport: TLabel
+        Left = 503
+        Height = 38
         Top = 0
-        Width = 105
-        BorderSpacing.Left = 30
-        BorderSpacing.Right = 10
-        Caption = 'MyViewport:'
+        Width = 218
+        BorderSpacing.Left = 38
+        BorderSpacing.Right = 12
+        Caption = 'Viewport123: Front Perspective '#10'Fly (speed 1000.00)'
+        Font.Height = 15
         Layout = tlCenter
-        ParentColor = False
-      end
-      object ButtonViewportMenu: TSpeedButton
-        Left = 608
-        Height = 40
-        Hint = 'Viewport Options'
-        Top = 0
-        Width = 36
-        Constraints.MinHeight = 34
-        Constraints.MinWidth = 34
-        Glyph.Data = {
-          36100000424D3610000000000000360000002800000020000000200000000100
-          2000000000000010000064000000640000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000003100000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000031000000000000000000000000000000000000
-          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FD000000300000000000000000000000000000
-          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FD000000300000000000000000000000000000
-          0000000000000000003100000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000031000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000003100000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000031000000000000000000000000000000000000
-          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FD000000300000000000000000000000000000
-          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FD000000300000000000000000000000000000
-          0000000000000000003100000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000031000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000003100000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000031000000000000000000000000000000000000
-          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FD000000300000000000000000000000000000
-          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-          00FF000000FF000000FF000000FD000000300000000000000000000000000000
-          0000000000000000003100000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000055000000550000005500000055000000550000
-          0055000000550000005500000031000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000000000000000
-          0000000000000000000000000000000000000000000000000000
-        }
-        OnClick = ButtonViewportMenuClick
         ParentFont = False
+        Visible = False
       end
-    end
-  end
-  object MenuViewport: TPopupMenu
-    Left = 816
-    Top = 82
-    object MenuItemViewportCameraSetInitial: TMenuItem
-      Caption = 'Camera Initial (stored in design file) := Current'
-      Hint = 'Sets Viewport.Camera InitialPosition/Direction/Up to current view, and sets Viewport.AutoCamera to false.'
-      OnClick = MenuItemViewportCameraSetInitialClick
-    end
-    object MenuItemViewportCameraCurrentFromInitial: TMenuItem
-      Caption = 'Camera Current := Initial (stored in design file)'
-      OnClick = MenuItemViewportCameraCurrentFromInitialClick
-    end
-    object MenuItemViewportCameraViewAll: TMenuItem
-      Caption = 'Camera Current := View All'
-      OnClick = MenuItemViewportCameraViewAllClick
-    end
-    object MenuItemSeparator123: TMenuItem
-      Caption = '-'
-    end
-    object MenuItemViewportCamera2DViewInitial: TMenuItem
-      Caption = 'Camera Setup (Initial and Current) for 2D View and Projection'
-      Hint = 'Call Viewport.Setup2D'
-      OnClick = MenuItemViewportCamera2DViewInitialClick
-    end
-    object MenuItemSeparator2: TMenuItem
-      Caption = '-'
-    end
-    object MenuViewportNavigationNone: TMenuItem
-      Caption = 'Set Navigation to None (Viewport.Navigation := nil)'
-      OnClick = MenuViewportNavigationNoneClick
-    end
-    object MenuViewportNavigation2D: TMenuItem
-      Caption = 'Set Navigation to 2D (Viewport.Navigation := TCastle2DNavigation.Create)'
-      OnClick = MenuViewportNavigation2DClick
-    end
-    object MenuViewportNavigationExamine: TMenuItem
-      Caption = 'Set Navigation to Examine (Viewport.Navigation := TCastleExamineNavigation.Create)'
-      OnClick = MenuViewportNavigationExamineClick
-    end
-    object MenuViewportNavigationFly: TMenuItem
-      Caption = 'Set Navigation to Fly (Viewport.Navigation := TCastleWalkNavigation.Create, Gravity := false)'
-      OnClick = MenuViewportNavigationFlyClick
-    end
-    object MenuViewportNavigationWalk: TMenuItem
-      Caption = 'Set Navigation to Walk (Viewport.Navigation := TCastleWalkNavigation.Create, Gravity := true)'
-      OnClick = MenuViewportNavigationWalkClick
-    end
-    object MenuViewportNavigationThirdPerson: TMenuItem
-      Caption = 'Set Navigation to Third-Person (Viewport.Navigation := TCastleThirdPersonNavigation.Create)'
-      OnClick = MenuViewportNavigationThirdPersonClick
-    end
-    object MenuItemSeparator1: TMenuItem
-      Caption = '-'
-    end
-    object MenuItemViewportSort2D: TMenuItem
-      Caption = 'Sort Items For Correct 2D Blending'
-      OnClick = MenuItemViewportSort2DClick
     end
   end
   object MenuTreeView: TPopupMenu
     OnPopup = MenuTreeViewPopup
-    Left = 653
-    Top = 139
+    Left = 464
+    Top = 208
+    object MenuTreeViewItemAddUserInterface: TMenuItem
+      Caption = 'Add User Interface'
+    end
+    object MenuTreeViewItemAddTransform: TMenuItem
+      Caption = 'Add Transform'
+    end
+    object MenuTreeViewItemAddBehavior: TMenuItem
+      Caption = 'Add Behavior (Extends Parent Transform)'
+    end
+    object MenuTreeViewItemAddNonVisual: TMenuItem
+      Caption = 'Add Non-Visual Component'
+    end
+    object MenuTreeViewItemSeparator127u30130120983: TMenuItem
+      Caption = '-'
+    end
     object MenuTreeViewItemRename: TMenuItem
       Caption = 'Rename'
       OnClick = MenuTreeViewItemRenameClick
@@ -1563,6 +1379,10 @@ object DesignFrame: TDesignFrame
     object MenuTreeViewItemDuplicate: TMenuItem
       Caption = 'Duplicate'
       OnClick = MenuTreeViewItemDuplicateClick
+    end
+    object MenuTreeViewItemCut: TMenuItem
+      Caption = 'Cut'
+      OnClick = MenuTreeViewItemCutClick
     end
     object MenuTreeViewItemCopy: TMenuItem
       Caption = 'Copy'
@@ -1572,21 +1392,30 @@ object DesignFrame: TDesignFrame
       Caption = 'Paste'
       OnClick = MenuTreeViewItemPasteClick
     end
+    object MenuTreeViewItemSaveSelected: TMenuItem
+      Caption = 'Save Selected...'
+      OnClick = MenuTreeViewItemSaveSelectedClick
+    end
+    object MenuSeparator1: TMenuItem
+      Caption = '-'
+    end
     object MenuTreeViewItemDelete: TMenuItem
       Caption = 'Delete'
       OnClick = MenuTreeViewItemDeleteClick
-    end
-    object MenuTreeViewItemAddUserInterface: TMenuItem
-      Caption = 'Add'
-    end
-    object MenuTreeViewItemAddTransform: TMenuItem
-      Caption = 'Add'
     end
   end
   object UpdateObjectInspector: TTimer
     Interval = 500
     OnTimer = UpdateObjectInspectorTimer
-    Left = 692
-    Top = 79
+    Left = 464
+    Top = 120
+  end
+  object SaveDesignDialog: TCastleSaveDialog
+    Title = 'Save Hierarchy As'
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    AdviceDataDirectory = True
+    Left = 464
+    Top = 320
   end
 end

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="resource_animations"
+  standalone_source="resource_animations_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.resource.animations"
+  caption="Demo of creature animations defined in resource.xml"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

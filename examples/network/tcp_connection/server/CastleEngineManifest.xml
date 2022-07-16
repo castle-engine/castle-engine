@@ -2,7 +2,7 @@
 <project name="server"
   caption="Castle TCP server"
   qualified_name="io.castleengine.tcp.server"
-  standalone_source="server.lpr"
+  standalone_source="server.dpr"
   game_units="GameInitialize"
   author="Benedikt Magnus"
   screen_orientation="portrait"

@@ -33,13 +33,9 @@ type
   PBoolean = ^Boolean;
   {$endif}
 
-  {$ifdef FPC}
   { Infinite array of bytes. }
   PByteArray = ^TByteArray;
   TByteArray = array[0..MaxInt div SizeOf(Byte)-1] of Byte;
-  {$endif}
-
-  PString = ^AnsiString;
 
   { Pointer to TObject.
     Don't call this PObject or PTObject to avoid possible name clashes
@@ -47,5 +43,12 @@ type
     good type-checking, so better to avoid name clashes to avoid some
     nasty errors). }
   PtrObject = ^TObject;
+
+  { Size (signed) used for various list types Count, Capacity, index variables.
+
+    Delphi uses Integer for this.
+    FPC uses SizeInt for this (which may have larger size than Integer,
+    FPC docs say it is matching pointer size, so 64-bit on 64-bit platforms). }
+  TListSize = {$ifdef FPC} SizeInt {$else} Integer {$endif};
 
 {$endif}

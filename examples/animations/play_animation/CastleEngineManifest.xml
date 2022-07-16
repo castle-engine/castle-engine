@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="play_animation"
-  standalone_source="play_animation_standalone.lpr"
+  standalone_source="play_animation_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.play.animation"
   caption="Play Animation"
 >
-  <compiler_options>
+  <compiler_options detect_memory_leaks="true">
     <search_paths>
       <path value="code/" />
     </search_paths>

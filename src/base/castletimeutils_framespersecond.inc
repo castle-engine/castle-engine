@@ -1,6 +1,6 @@
 {%MainUnit castletimeutils.pas}
 {
-  Copyright 2000-2019 Michalis Kamburelis.
+  Copyright 2000-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,12 +22,12 @@ type
   TFrameId = QWord;
 
   { Utility to measure frames per second, independent of actual
-    rendering API. For example, it can be easily "plugged" into TCastleWindowBase
-    (see TCastleWindowBase.Fps) or Lazarus GL control (see TCastleControlBase.Fps).
+    rendering API. For example, it can be easily "plugged" into TCastleWindow
+    (see TCastleWindow.Fps) or Lazarus GL control (see TCastleControl.Fps).
 
-    Things named "_" here are supposed to be internal to the TCastleWindowBase /
-    TCastleControlBase and such implementations. Other properties can be
-    controlled by the user of TCastleWindowBase / TCastleControlBase. }
+    Things named "_" here are supposed to be internal to the TCastleWindow /
+    TCastleControl and such implementations. Other properties can be
+    controlled by the user of TCastleWindow / TCastleControl. }
   TFramesPerSecond = class
   private
     FOnlyRenderFps: TFloatTime;
@@ -67,10 +67,10 @@ type
       time spent inside "render" calls (thus ignoring time spent on
       physics and other logic).
 
-      This measures only time spend in @link(TUIContainer.EventRender)
+      This measures only time spend in @link(TCastleContainer.EventRender)
       method (and it's subordinates, like @link(TCastleUserInterface.Render),
       @link(TCastleScene.LocalRender),
-      @link(TCastleWindowBase.OnRender)).
+      @link(TCastleWindow.OnRender)).
       It does not take into account time spent on other activities,
       like "update" calls, and it doesn't take into account that frames are possibly
       not rendered all the time (when AutoRedisplay = @false).
@@ -84,14 +84,14 @@ type
       {$ifdef FPC} deprecated 'use OnlyRenderFps'; {$endif}
 
     { How many frames per second were actually rendered.
-      This is the number of @link(TUIContainer.EventRender) calls
+      This is the number of @link(TCastleContainer.EventRender) calls
       that actually happened within a real second of time.
       So it's an actual speed of your program.
       Anything can slow this down, not only long rendering,
       but also slow processing of other events (like "update" that does physics).
 
-      When @link(TCastleWindowBase.AutoRedisplay) or
-      @link(TCastleControlBase.AutoRedisplay) is @false,
+      When @link(TCastleWindow.AutoRedisplay) or
+      @link(TCastleControl.AutoRedisplay) is @false,
       this may be very low, since we may not
       render the frames all the time (we may sleep for some time,
       or perform updates without rendering).
@@ -109,8 +109,8 @@ type
 
     { Some of the frames were not rendered, because the scene and camera
       were not moving. This happens only when
-      @link(TCastleWindowBase.AutoRedisplay)
-      or @link(TCastleControlBase.AutoRedisplay) are @false,
+      @link(TCastleWindow.AutoRedisplay)
+      or @link(TCastleControl.AutoRedisplay) are @false,
       and it basically indicates that the @link(RealFps) value is not a useful
       indicator of your application speed.
 
@@ -123,8 +123,8 @@ type
 
     { How much time passed since the last "update".
       You should use this inside "update" events and methods
-      (@link(TUIContainer.EventUpdate),
-      @link(TInputListener.Update),
+      (@link(TCastleContainer.EventUpdate),
+      @link(TCastleUserInterface.Update),
       @link(TCastleTransform.Update)...) to scale the movement.
       This way, your animation will work with the same speed
       (objects will travel at the same speed),
@@ -149,10 +149,10 @@ type
     { Forces SecondsPassed for the next "update" call to be zero.
 
       This is useful if you just came back from some modal state,
-      like a modal dialog box (like TCastleWindowBase.FileDialog or modal boxes
+      like a modal dialog box (like TCastleWindow.FileDialog or modal boxes
       in CastleMessages -- they already call this method).
       SecondsPassed could be ridicoulously long in such case
-      (if our message loop is totally paused, as in TCastleWindowBase.FileDialog
+      (if our message loop is totally paused, as in TCastleWindow.FileDialog
       on Windows) or not relevant (if we do our message loop,
       but we display something entirely different, like CastleMessages).
       So it's best to pretend that SecondsPassed is 0.0,
@@ -169,7 +169,7 @@ type
     { Current frame identifier.
 
       Changed when each container "update" event occurs,
-      so this is equal during all @link(TInputListener.Update),
+      so this is equal during all @link(TCastleUserInterface.Update),
       @link(TCastleUserInterface.Render), @link(TCastleTransform.Update),
       @link(TCastleTransform.LocalRender) occuring within the same frame.
       You can use this to avoid performing the same job many times
@@ -180,9 +180,22 @@ type
       It's a class function, so you can access it like
       @code(TFramesPerSecond.FrameId),
       no need to have a TFramesPerSecond instance (which is usually
-      accessed from TUIContainer, like @link(TUIContainer.Fps),
-      @link(TCastleWindowBase.Fps), @link(TCastleControlBase.Fps). }
+      accessed from TCastleContainer, like @link(TCastleContainer.Fps),
+      @link(TCastleWindow.Fps), @link(TCastleControl.Fps). }
     class function FrameId: TFrameId;
+
+    { Frame identifier within which last render started.
+
+      This is usually equal to @link(FrameId) or @link(FrameId) - 1
+      (depending on the order, whether Update or Render happens first,
+      which may be platform-dependent).
+      Though if you disabled TCastleWindow.AutoRedisplay, it may be something
+      even smaller than @link(FrameId) - 1.
+
+      Never zero. (This allows to easily treat "frame id = zero" as
+      "frame id that never happened" in some logic.)
+    }
+    class function RenderFrameId: TFrameId;
   end;
 
 {$endif read_interface}
@@ -193,6 +206,7 @@ type
 
 var
   FFrameId: TFrameId = 1;
+  FRenderFrameId: TFrameId = 1;
 
 constructor TFramesPerSecond.Create;
 const
@@ -218,6 +232,7 @@ end;
 procedure TFramesPerSecond._RenderBegin;
 begin
   RenderStartTime := Timer;
+  FRenderFrameId := FFrameId;
 end;
 
 procedure TFramesPerSecond._RenderEnd;
@@ -311,6 +326,11 @@ end;
 class function TFramesPerSecond.FrameId: TFrameId;
 begin
   Result := FFrameId;
+end;
+
+class function TFramesPerSecond.RenderFrameId: TFrameId;
+begin
+  Result := FRenderFrameId;
 end;
 
 {$endif read_implementation}

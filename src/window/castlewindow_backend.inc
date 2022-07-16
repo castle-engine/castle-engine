@@ -2,10 +2,8 @@
 
 { In various include files here, we dereference memory allocated
   with various libraries, so pointer checks will make false errors. }
-{$checkpointer off}
-
-{$ifdef CASTLE_ENGINE_PLUGIN}
-  {$I castlewindow_npapi.inc}
+{$ifdef FPC}
+  {$checkpointer off}
 {$endif}
 
 {$ifdef CASTLE_WINDOW_WINAPI}
@@ -44,6 +42,10 @@
 
 {$ifdef CASTLE_WINDOW_TEMPLATE}
   {$I castlewindow_backend_template.inc}
+{$endif}
+
+{$ifdef CASTLE_WINDOW_COCOA}
+  {$I castlewindow_cocoa.inc}
 {$endif}
 
 {$ifdef KAMBI_CHECK_POINTER}

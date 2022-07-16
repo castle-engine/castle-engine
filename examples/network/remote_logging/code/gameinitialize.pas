@@ -21,12 +21,12 @@ interface
 implementation
 
 uses SysUtils, Math, Classes,
-  {$ifndef VER3_0} OpenSSLSockets, {$endif} // support HTTPS
+  {$ifdef FPC} {$ifndef VER3_0} OpenSSLSockets, {$endif} {$endif} // support HTTPS
   CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState,
   GameStateMain, GameLogHandler;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   LogHandler: TLogHandler;
 
 { One-time initialization of resources. }
@@ -34,7 +34,7 @@ procedure ApplicationInitialize;
 begin
   { Initialize LogHandler }
   LogHandler := TLogHandler.Create(Application);
-  ApplicationProperties.OnLog.Add(@LogHandler.LogCallback);
+  ApplicationProperties.OnLog.Add({$ifdef FPC}@{$endif} LogHandler.LogCallback);
 
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
@@ -48,7 +48,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 end.

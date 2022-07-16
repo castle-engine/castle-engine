@@ -31,6 +31,8 @@
          Copyright (c) 1997 Master-Bank
   **********************************************************************}
 
+{$I castleconf.inc}
+
 {$ifdef FPC}
 {$mode objfpc}
 {$H+}

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Graphics Interchange Format</title>
+  <chapter>
+    <title>Graphics Interchange Format</title>
+    <par>
+      GIF was
+      (and is still used) popular format for storing images supporting
+      multiple images per file and single color transparency.
+      Pixel format is 8 bit indexed where each image frame can have
+      its own color palette. GIF uses lossless LZW compression
+      (patent expired few years ago).
+      Imaging can load and save all GIFs with all frames and supports
+      transparency.
+    </par>
+    
+    <par>
+      Loadng of animated GIFs was rewritten in Imaging 0.26.2 (based 
+      on ExtraGIF mod by Sergey Galezdinov).
+      It now supports two modes of operation: 
+      <blist>
+        <li><b>Raw Frames</b> just extracts raw frames from GIF files
+          without any modification. Useful when you want to do your own
+          GIF animator. Extracted frames are all in <icode>ifIndex8</icode>.
+        </li>
+        <li><b>Animated Frames</b> animates all frames using disposal methods
+          and placement of frames onto logical screen. Correctly animates 
+          all tested GIFs (several thousand). Animated frames are 
+          in <icode>ifA8R8G8B8</icode> format so even rare true color GIFs 
+          are supported (each frame has only 256 colors but you can place them
+          side by side onto logical screen to create one larger true color image). 
+          This is the default mode.  
+        </li>        
+      </blist> 
+    </par>
+    
+    <par>
+      You can select which mode you wan to use 
+      with <ref>ImagingGIFLoadAnimated</ref> option along with   
+      <ref>SetOption</ref> and <ref>GetOption</ref> functions.
+      Or you can set them by modifying properties of <ref>TGIFFileFormat</ref>
+      class.
+    </par> 
+    
+    <table>
+      <title>Options Related to GIF Files</title>
+      <row>
+        <th>OptionId</th>
+        <th>Allowed Values</th>
+        <th>Usage</th>
+      </row>
+      <row>
+        <td><ref>ImagingGIFLoadAnimated</ref></td>
+        <td><b>0 (false)</b> or <b>1 (true)</b></td>
+        <td>Boolean option that specifies whether GIF images with more frames
+            are animated by Imaging (according to frame disposal methods) or just
+            raw frames are loaded and sent to user (if you want to animate GIF yourself).
+            Default value is <b>1 (true)</b>. </td>
+      </row>
+    </table>
+    
+    <table>
+      <title>GIF File Format Support</title>
+      <row>
+        <th>Format</th>
+        <th>TImageFormat equivalent</th>
+        <th>Loading</th>
+        <th>Saving</th>
+      </row>
+      <row>
+        <td>up to 256 colors indexed</td>
+        <td><icode>ifIndex8</icode></td>
+        <td>Yes</td><td>Yes</td>
+      </row>
+      <row>
+        <td>true color with transparency for animated frames</td>
+        <td><icode>ifA8R8G8B8</icode></td>
+        <td>Yes</td><td>No</td>
+      </row>
+    </table>
+       
+    
+  </chapter>
+</doc>

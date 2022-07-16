@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,9 +39,6 @@ type
   We can use CastleEnginePath (that uses $CASTLE_ENGINE_PATH environment variable)
   for this. }
 procedure UseEditorApplicationData;
-
-{ URL prefix of editor application data. }
-function EditorApplicationData: String;
 
 implementation
 
@@ -105,6 +102,21 @@ end;
 
 { global routines ------------------------------------------------------------ }
 
+procedure AddMacroXmlQuote(const Macros: TStringStringMap; const MacroName: String);
+
+  function XmlQuote(const S: String): String;
+  begin
+    Result := SReplacePatterns(S,
+      ['&', '<', '>', '"'],
+      ['&amp;', '&lt;', '&gt;', '&quot;'],
+      false { IgnoreCase; can be false, it doesn't matter, as our patterns are not letters }
+    );
+  end;
+
+begin
+  Macros.Add('${XmlQuote(' + MacroName + ')}', XmlQuote(Macros['${' + MacroName + '}']));
+end;
+
 procedure CopyTemplate(const ProjectDirUrl: String;
   const TemplateName, ProjectName, ProjectCaption, MainState: String);
 var
@@ -135,6 +147,12 @@ begin
     Macros.Add('${MAIN_STATE}', MainState);
     Macros.Add('${MAIN_STATE_LOWERCASE}', LowerCase(MainState));
 
+    { Generate versions of some macros with xml_quote function. }
+    AddMacroXmlQuote(Macros, 'PROJECT_NAME');
+    AddMacroXmlQuote(Macros, 'PROJECT_QUALIFIED_NAME');
+    AddMacroXmlQuote(Macros, 'PROJECT_PASCAL_NAME');
+    AddMacroXmlQuote(Macros, 'PROJECT_CAPTION');
+
     CopyProcess := TTemplateCopyProcess.Create;
     try
       CopyProcess.TemplateUrl := TemplateUrl;
@@ -150,6 +168,7 @@ procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
 var
   BuildToolExe, BuildToolOutput: String;
   BuildToolStatus: integer;
+  NewEnvironment: TStringList;
 begin
   BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
@@ -158,8 +177,23 @@ begin
     Exit;
   end;
 
+  { Pass CASTLE_ENGINE_PATH to build tool, to use the same CGE as detected by editor.
+    This means that e.g. editor that autodetects CGE (based on GetCastleEnginePathFromExeName,
+    because editor exe is in <cge>/tools/castle-editor/castle-editor)
+    invokes build tool in local bin (like ~/bin)
+    and the build tool uses the same <cge> as detected by editor. }
+  NewEnvironment := nil;
+  if CastleEnginePath <> '' then
+  begin
+    NewEnvironment := EnvironmentStrings;
+    NewEnvironment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
+  end;
+
   MyRunCommandIndir(URIToFilenameSafe(ProjectDirUrl), BuildToolExe,
-    ['generate-program'], BuildToolOutput, BuildToolStatus);
+    ['generate-program'], BuildToolOutput, BuildToolStatus, nil, nil,
+    // prevent from blinking console on Windows
+    [rcNoConsole],
+    NewEnvironment);
   if BuildToolStatus <> 0 then
   begin
     WarningBox(Format('Generating program with the build tool failed with status code %d and output: "%s"',
@@ -183,18 +217,6 @@ begin
     if DirectoryExists(DataPath) then
       ApplicationDataOverride := FilenameToURISafe(DataPath);
   end;
-end;
-
-function EditorApplicationData: String;
-var
-  ApplicationDataOverrideSaved: String;
-begin
-  ApplicationDataOverrideSaved := ApplicationDataOverride;
-
-  UseEditorApplicationData;
-  Result := ApplicationData('');
-
-  ApplicationDataOverride := ApplicationDataOverrideSaved;
 end;
 
 end.

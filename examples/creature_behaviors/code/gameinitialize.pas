@@ -34,7 +34,7 @@ uses SysUtils,
   {$endregion 'Castle Initialization Uses'};
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
@@ -52,7 +52,7 @@ begin
   TUIState.Current := StateMenu;
 
   SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
-  SoundEngine.MusicPlayer.Sound := SoundEngine.SoundFromName('dark_music');
+  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('dark_music');
 end;
 
 initialization
@@ -60,7 +60,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 

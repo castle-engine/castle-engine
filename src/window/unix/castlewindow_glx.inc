@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -54,7 +54,7 @@ private
 
 {$ifdef read_implementation}
 
-procedure TCastleWindowBase.ContextCreateBegin;
+procedure TCastleWindow.ContextCreateBegin;
 var
   Attribs: TLongIntList;
   FBConfigs: PGLXFBConfig;
@@ -140,7 +140,7 @@ begin
   { Application.XScreen should always be XVisual.screen now }
 end;
 
-procedure TCastleWindowBase.ContextCreateEnd(WndPtr: TWindow);
+procedure TCastleWindow.ContextCreateEnd(WndPtr: TWindow);
 var
   ShareContext: GLXContext;
 begin
@@ -163,7 +163,7 @@ begin
         Right now, our XLibUtils catches X errors, but without XSync
         it's not known where they occur anyway. }
     if GLX_ARB_create_context(Application.XDisplay, Application.XScreen) then
-      Context := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, nil, true, Context30Forward)
+      Context := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, ShareContext, true, Context30Forward)
     else
     {$endif}
       Context := glXCreateNewContext(Application.XDisplay, FBConfig, GLX_RGBA_TYPE, ShareContext, true);
@@ -173,7 +173,7 @@ begin
   Check(Context <> nil, 'Could not create OpenGL rendering context');
 end;
 
-procedure TCastleWindowBase.ContextDestroyBegin;
+procedure TCastleWindow.ContextDestroyBegin;
 begin
   if Context <> nil then
   begin
@@ -182,7 +182,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.ContextDestroyEnd;
+procedure TCastleWindow.ContextDestroyEnd;
 begin
   if XVisual   <> nil then
   begin
@@ -191,13 +191,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.BackendMakeCurrent;
+procedure TCastleWindow.BackendMakeCurrent;
 begin
   Assert(not Closed);
   Check( glXMakeCurrent(Application.XDisplay, WindowXID, Context), 'glXMakeCurrent');
 end;
 
-procedure TCastleWindowBase.SwapBuffers;
+procedure TCastleWindow.SwapBuffers;
 begin
   glXSwapBuffers(Application.XDisplay, windowXID);
 end;

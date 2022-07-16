@@ -78,7 +78,9 @@ unit kraft;
    {$define BIG_ENDIAN}
   {$endif}
  {$endif}
-{$else}
+{$else} // Delphi
+ {$hints off} // added by CGE
+ {$warn SYMBOL_PLATFORM off} // added by CGE
  {$define LITTLE_ENDIAN}
  {$ifndef cpu64}
   {$define cpu32}
@@ -141,9 +143,9 @@ unit kraft;
     kraft.s:86938: Info:    	fadd s0,s0,s1
     kraft.pas(33101) Error: Error while assembling exitcode 1
 }
-{$if defined(VER3_3) and (defined(DARWIN) or defined(CPUARM) or defined(CPUAARCH64))}
+{$if defined(FPC) and defined(VER3_3) and (defined(DARWIN) or defined(CPUARM) or defined(CPUAARCH64))}
   {$undef caninline}
-{$endif}
+{$ifend}
 
 {-$define UseMoreCollisionGroups}
 
@@ -157,7 +159,25 @@ unit kraft;
  {$define NonSIMD}
 {$endif}
 
-{-$define NonSIMD}
+{ CGE: Define NonSIMD. Without this symbol, Kraft uses some i386-only assembler,
+  that causes crashes (access violation at TRigidBody.SynchronizeFromKraft
+  when doing "FLinearVelocity := VectorFromKraft(FKraftBody.LinearVelocity)"). 
+  Testcase:
+
+    castle-engine --os=win32 --cpu=i386 compile --mode=debug
+    wine ./*.exe
+
+  on all physics examples it seems,
+
+    examples/physics/physics_2d_game_sopwith
+    examples/physics/physics_3d_game
+    examples/platformer
+
+  With at least FPC 3.2.0 (but did not check other FPC versions).
+  As this is an i386-specific optimization only (and our focus is on 64-bit platforms
+  as these are, and will be, majority) so disabling it is not a problem in practice
+  anyway. }
+{$define NonSIMD}
 
 {$ifdef NonSIMD}
  {$undef CPU386ASMForSinglePrecision}

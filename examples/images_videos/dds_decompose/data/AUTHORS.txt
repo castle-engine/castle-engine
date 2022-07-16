@@ -1,0 +1,8 @@
+marble_with_colored_mipmaps.dds
+
+  Copied from https://github.com/castle-engine/demo-models .
+  It was remade (to be a DDS, with each mimap deliberately with different color)
+  by Michalis in GIMP.
+
+  Based on marble.jpg image: Origin lost in time.
+  License: TODO: unknown.

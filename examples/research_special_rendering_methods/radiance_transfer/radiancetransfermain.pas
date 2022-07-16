@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2020 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,12 +29,12 @@ interface
 implementation
 
 uses SysUtils, Classes, Math,
-  GL, GLExt,
+  {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, X3DNodes, CastleWindow, CastleShapes,
-  CastleClassUtils, CastleUtils,
+  CastleClassUtils, CastleUtils, CastleCameras,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleViewport,
-  CastleFilesUtils, CastleLog, CastleSphericalHarmonics, CastleImages,
-  CastleGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
+  CastleFilesUtils, CastleLog, CastleInternalSphericalHarmonics, CastleImages,
+  CastleInternalGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
   CastleApplicationProperties, CastleControls, CastleTransform, X3DFields,
   SceneUtilities;
 
@@ -42,7 +42,7 @@ type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Scene: TCastleScene;
   SceneLightVisualize, SceneLightVisualizeForMap: TCastleScene;
   MaterialLight, MaterialLightForMap: TUnlitMaterialNode;
@@ -84,7 +84,7 @@ type
     procedure DrawLight(const RenderParams: TRenderParams);
   public
     procedure Render; override;
-    procedure Render3D(const Params: TRenderParams); override;
+    procedure RenderOnePass(const Params: TRenderParams); override;
   end;
 
 procedure TMyViewport.DrawLight(const RenderParams: TRenderParams);
@@ -151,9 +151,9 @@ begin
     Result := TVector3.Zero;
     for I := 0 to Min(RadianceTransferVertexSize, LightSHBasisCount) - 1 do
     begin
-      Result.Data[0] += RadianceTransferPtr[I].Data[0] * LightSHBasis[I];
-      Result.Data[1] += RadianceTransferPtr[I].Data[1] * LightSHBasis[I];
-      Result.Data[2] += RadianceTransferPtr[I].Data[2] * LightSHBasis[I];
+      Result.X += RadianceTransferPtr[I].X * LightSHBasis[I];
+      Result.Y += RadianceTransferPtr[I].Y * LightSHBasis[I];
+      Result.Z += RadianceTransferPtr[I].Z * LightSHBasis[I];
     end;
   end;
 end;
@@ -184,7 +184,7 @@ begin
   inherited;
 end;
 
-procedure TMyViewport.Render3D(const Params: TRenderParams);
+procedure TMyViewport.RenderOnePass(const Params: TRenderParams);
 begin
   if (not Params.Transparent) and (true in Params.ShadowVolumesReceivers) then
   begin
@@ -199,7 +199,7 @@ end;
 var
   Viewport: TMyViewport;
 
-procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
+procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
 begin
   case Item.IntData of
     10: ViewMode := vmNormal;
@@ -213,11 +213,12 @@ begin
   Window.Invalidate;
 end;
 
-procedure Update(Container: TUIContainer);
+procedure Update(Container: TCastleContainer);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPos.Data[Coord] += Change * Window.Fps.SecondsPassed *
+    LightPos.Data[Coord] := LightPos.Data[Coord] +
+     Change * Window.Fps.SecondsPassed *
       { scale by Box3DAvgSize, to get similar move on all models }
       Scene.BoundingBox.AverageSize;
     Window.Invalidate;
@@ -330,9 +331,9 @@ begin
   begin
     LightRadius := Scene.BoundingBox.AverageSize;
     LightPos := Scene.BoundingBox.Center;
-    LightPos.Data[0] +=
-      Scene.BoundingBox.Data[1].Data[0] -
-      Scene.BoundingBox.Data[0].Data[0] + LightRadius;
+    LightPos.X +=
+      Scene.BoundingBox.Data[1].X -
+      Scene.BoundingBox.Data[0].X + LightRadius;
   end;
 
   Background := TCastleRectangleControl.Create(Application);
@@ -343,7 +344,7 @@ begin
   Viewport := TMyViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   { we will clear context by our own Background,
     to keep SHVectorGLCapture visible for debugging }
   Viewport.Transparent := true;
@@ -371,7 +372,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
   Window.MainMenu := CreateMainMenu;
   Window.OnMenuClick := @MenuClick;

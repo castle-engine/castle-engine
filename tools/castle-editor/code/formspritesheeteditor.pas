@@ -23,7 +23,7 @@ uses
   Classes, SysUtils, Generics.Collections, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, ComCtrls, Buttons, ActnList, StdCtrls, Spin, Menus,
   CastleControl, CastleDialogs, CastleScene, CastleInternalSpriteSheet, CastleVectors,
-  CastleViewport,
+  CastleViewport, CastleCameras,
   DataModuleIcons;
 
 type
@@ -50,7 +50,7 @@ type
     ActionOpenSpriteSheet: TAction;
     ActionListSpriteSheet: TActionList;
     ButtonCloseWindow: TButton;
-    CastleControlPreview: TCastleControlBase;
+    CastleControlPreview: TCastleControl;
     CastleOpenImageDialog: TCastleOpenImageDialog;
     CastleImportAtlasDialog: TCastleOpenImageDialog;
     ImageAtlasSizeWarning: TImage;
@@ -222,6 +222,7 @@ type
       FSpriteSheet: TCastleSpriteSheet;
       FPreviewScene: TCastleScene;
       FViewport: TCastleViewport;
+      FNavigation: TCastle2DNavigation;
       FWindowTitle: String;
       CurrentFrameIconSize: TVector2Integer; // current frame size in list view
       { Should we select added animation (not always desirable) }
@@ -845,12 +846,6 @@ begin
   SetAtlasError('');
   SetAtlasWarning('');
   NewSpriteSheet;
-
-  { adjust InitialDir values to make open/save dialogs natural }
-  OpenDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  SaveDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  CastleOpenImageDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  CastleImportAtlasDialog.InitialDir := URIToFilenameSafe('castle-data:/');
 end;
 
 procedure TSpriteSheetEditorForm.FormDestroy(Sender: TObject);
@@ -874,6 +869,18 @@ begin
     { Update actions state after FormShow - I think this is next GTK2 bug. }
     UpdateActions;
   {$endif}
+
+  { Adjust InitialDir values to make open/save dialogs natural, and clear URL.
+    Do this in FormShow, as one instance of TSpriteSheetEditorForm may exist across
+    many CGE projects being open. }
+  OpenDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  SaveDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  CastleOpenImageDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  CastleImportAtlasDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  OpenDialog.URL := '';
+  SaveDialog.URL := '';
+  CastleOpenImageDialog.URL := '';
+  CastleImportAtlasDialog.URL := '';
 end;
 
 procedure TSpriteSheetEditorForm.ListViewAnimationsDragDrop(Sender,
@@ -947,7 +954,7 @@ begin
 
   if FSpriteSheet.HasAnimation(AValue) then
   begin
-    EditorUtils.ErrorBox('Animation "' + AValue + '" already exist.');
+    ErrorBox('Animation "' + AValue + '" already exist.');
     AValue := Animation.Name;
     Exit;
   end;
@@ -1289,18 +1296,20 @@ procedure TSpriteSheetEditorForm.CreatePreviewUIIfNeeded;
 begin
   if FPreviewScene = nil then
   begin
-    FViewport := TCastleViewport.Create(Application);
+    FNavigation := TCastle2DNavigation.Create(Self);
+
+    FViewport := TCastleViewport.InternalCreateNonDesign(Self);
+    Assert(FViewport.Camera <> nil);
     FViewport.FullSize := true;
-    FViewport.AutoCamera := true;
-    FViewport.AutoNavigation := true;
+    FViewport.InsertFront(FNavigation);
     FViewport.Setup2D;
     FViewport.Camera.Orthographic.Origin := Vector2(0.5, 0.5);
     CastleControlPreview.Controls.InsertFront(FViewport);
 
-    FPreviewScene := TCastleScene.Create(FViewport);
+    FPreviewScene := TCastleScene.Create(Self);
 
     FViewport.Items.Add(FPreviewScene);
-    FViewport.Items.MainScene := FPreviewScene;
+    FViewport.Items.MainScene := FPreviewScene; // TODO: removing MainScene assignment makes camera not OK, testcase: tentacles
   end;
 end;
 
@@ -1336,8 +1345,9 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
     end else
     begin
       FPreviewScene.Exists := true;
-      FViewport.Camera.Orthographic.Width := Animation.Frame[0].FrameWidth +
-        PreviewMargin * 2;
+      FViewport.AssignDefaultCamera;
+      // set this after AssignDefaultCamera, as AssignDefaultCamera resets it
+      FViewport.Camera.Orthographic.Width := Animation.Frame[0].FrameWidth + PreviewMargin * 2;
       FPreviewScene.PlayAnimation(Animation.Name, true, true);
     end;
   end;
@@ -1376,6 +1386,8 @@ begin
 
     FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
     FPreviewScene.Load(FSpriteSheet.ToX3D, true);
+    FViewport.AssignDefaultCamera;
+    // set this after AssignDefaultCamera, as AssignDefaultCamera resets it
     FViewport.Camera.Orthographic.Width := DefaultFrameIconSize + PreviewMargin * 2;
   except
     on E: Exception do
@@ -1392,6 +1404,7 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
     Shape: TShapeNode;
     Tri: TTriangleSetNode;
     Tex: TPixelTextureNode;
+    TexProperties: TTexturePropertiesNode;
     HalfFrameWidth: Single;
     HalfFrameHeight: Single;
     ShapeCoord: TCoordinateNode;
@@ -1404,9 +1417,21 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
 
     Tex := TPixelTextureNode.Create;
     Tex.FdImage.Value := Frame.MakeImageCopy;
+    { No point in adjusting RepeatS/T: TextureProperties override it.
     Tex.RepeatS := false;
     Tex.RepeatT := false;
+    }
     Shape.Texture := Tex;
+
+    TexProperties := TTexturePropertiesNode.Create;
+    TexProperties.BoundaryModeS := bmClampToEdge;
+    TexProperties.BoundaryModeT := bmClampToEdge;
+    { Do not force "power of 2" size, which may prevent mipmaps.
+      This seems like a better default (otherwise the resizing underneath
+      may cause longer loading time, and loss of quality, if not expected).
+      Consistent with X3DLoadInternalImage and sprite sheet loaders. }
+    TexProperties.GuiTexture := true;
+    Tex.TextureProperties := TexProperties;
 
     Tri := TTriangleSetNode.Create;
     Tri.Solid := false;
@@ -1445,9 +1470,11 @@ begin
   FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
   FPreviewScene.Load(Generate3XDWithImage, true);
 
+  FViewport.AssignDefaultCamera;
   { Always set to the width of the first frame because we want to see the
     size difference }
-  FViewport.Camera.Orthographic.Width := Frame.Animation.Frame[0].FrameWidth
+  // set this after AssignDefaultCamera, as AssignDefaultCamera resets it
+  FViewport.Camera.Orthographic.Width := Frame.Animation.Frame[0].FrameWidth;
 end;
 
 procedure TSpriteSheetEditorForm.LockUpdatePreview;

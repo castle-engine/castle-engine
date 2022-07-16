@@ -1,7 +1,7 @@
 In this directory you can find Lazarus packages that allow you
 to easily use Castle Game Engine in Lazarus programs.
 
-Short instructions: just compile and install castle_base and castle_components.
+Short instructions: just compile and install castle_base and castle_components in Lazarus.
 *Do not* install castle_window in Lazarus (only compile it).
 castle_components depends on standard Lazarus package LazOpenGLContext.
 
@@ -59,10 +59,9 @@ Mini-FAQ about these packages:
   ../src/lcl/ subdirectory, corresponding to castle_components package).
 
   So all you actually need is bare FPC installation.
-  Use castle_game_engine/Makefile to compile all units and use compile.sh
-  scripts to compile each particular program. If you need more flexibility,
-  take a look at castle_game_engine/castle-fpc.cfg, this specifies actual options
-  used by castle_game_engine/Makefile and all compile.sh scripts.
+  Use our editor (https://castle-engine.io/manual_editor.php)
+  or build tool (https://castle-engine.io/build_tool)
+  to compile all examples and tools.
 
 - What is the difference between castle_base and castle_components:
 
@@ -81,9 +80,7 @@ Mini-FAQ about these packages:
   provides CastleWindow unit using Lazarus LCL as a backend.
   It's useful for platforms where we don't have a better CastleWindow backend.
 
-  In practice, use this only for macOS, see
-
-    https://castle-engine.io/macosx_requirements.php
+  In practice, use this only for macOS, see https://castle-engine.io/macos
 
   In principle you can use this for other systems as well (Linux, Windows and such),
   but the standard castle_window.lpk package will usually give you a better

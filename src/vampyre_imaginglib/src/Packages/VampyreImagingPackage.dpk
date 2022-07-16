@@ -1,0 +1,132 @@
+package VampyreImagingPackage;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $7A00000}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'Vampyre Imaging Library Package'}
+{$IMPLICITBUILD OFF}
+{$DEFINE FULL_FEATURE_SET}
+
+requires
+  rtl,
+  vcl;
+
+contains
+  Imaging in '..\Source\Imaging.pas',
+  ImagingBitmap in '..\Source\ImagingBitmap.pas',
+  ImagingCanvases in '..\Source\ImagingCanvases.pas',
+  ImagingClasses in '..\Source\ImagingClasses.pas',
+  ImagingColors in '..\Source\ImagingColors.pas',
+  ImagingComponents in '..\Source\ImagingComponents.pas',
+  ImagingDds in '..\Source\ImagingDds.pas',
+  ImagingFormats in '..\Source\ImagingFormats.pas',
+  ImagingGif in '..\Source\ImagingGif.pas',
+  ImagingIO in '..\Source\ImagingIO.pas',
+  ImagingJpeg in '..\Source\ImagingJpeg.pas',
+  ImagingNetworkGraphics in '..\Source\ImagingNetworkGraphics.pas',
+  ImagingPortableMaps in '..\Source\ImagingPortableMaps.pas',
+  ImagingRadiance in '..\Source\ImagingRadiance.pas',
+  ImagingTarga in '..\Source\ImagingTarga.pas',
+  ImagingTypes in '..\Source\ImagingTypes.pas',
+  ImagingUtility in '..\Source\ImagingUtility.pas',
+  ImagingExtFileFormats in '..\Extensions\ImagingExtFileFormats.pas',
+  ImagingJpeg2000 in '..\Extensions\ImagingJpeg2000.pas',
+  ImagingPcx in '..\Extensions\ImagingPcx.pas',
+  ImagingPsd in '..\Extensions\ImagingPsd.pas',
+  ImagingTiff in '..\Extensions\ImagingTiff.pas',
+  ImagingXpm in '..\Extensions\ImagingXpm.pas',
+  OpenJpeg in '..\Extensions\OpenJpeg.pas',
+  dzlib in '..\Source\ZLib\dzlib.pas',
+  imadler in '..\Source\ZLib\imadler.pas',
+  iminfblock in '..\Source\ZLib\iminfblock.pas',
+  iminfcodes in '..\Source\ZLib\iminfcodes.pas',
+  iminffast in '..\Source\ZLib\iminffast.pas',
+  iminftrees in '..\Source\ZLib\iminftrees.pas',
+  iminfutil in '..\Source\ZLib\iminfutil.pas',
+  impaszlib in '..\Source\ZLib\impaszlib.pas',
+  imtrees in '..\Source\ZLib\imtrees.pas',
+  imzdeflate in '..\Source\ZLib\imzdeflate.pas',
+  imzinflate in '..\Source\ZLib\imzinflate.pas',
+  imzutil in '..\Source\ZLib\imzutil.pas',
+  imjcapimin in '..\Source\JpegLib\imjcapimin.pas',
+  imjcapistd in '..\Source\JpegLib\imjcapistd.pas',
+  imjccoefct in '..\Source\JpegLib\imjccoefct.pas',
+  imjccolor in '..\Source\JpegLib\imjccolor.pas',
+  imjcdctmgr in '..\Source\JpegLib\imjcdctmgr.pas',
+  imjcinit in '..\Source\JpegLib\imjcinit.pas',
+  imjcmainct in '..\Source\JpegLib\imjcmainct.pas',
+  imjcmarker in '..\Source\JpegLib\imjcmarker.pas',
+  imjcmaster in '..\Source\JpegLib\imjcmaster.pas',
+  imjcomapi in '..\Source\JpegLib\imjcomapi.pas',
+  imjcparam in '..\Source\JpegLib\imjcparam.pas',
+  imjcphuff in '..\Source\JpegLib\imjcphuff.pas',
+  imjcprepct in '..\Source\JpegLib\imjcprepct.pas',
+  imjcsample in '..\Source\JpegLib\imjcsample.pas',
+  imjdapimin in '..\Source\JpegLib\imjdapimin.pas',
+  imjdapistd in '..\Source\JpegLib\imjdapistd.pas',
+  imjdcoefct in '..\Source\JpegLib\imjdcoefct.pas',
+  imjdcolor in '..\Source\JpegLib\imjdcolor.pas',
+  imjdct in '..\Source\JpegLib\imjdct.pas',
+  imjddctmgr in '..\Source\JpegLib\imjddctmgr.pas',
+  imjdeferr in '..\Source\JpegLib\imjdeferr.pas',
+  imjdhuff in '..\Source\JpegLib\imjdhuff.pas',
+  imjdinput in '..\Source\JpegLib\imjdinput.pas',
+  imjdmainct in '..\Source\JpegLib\imjdmainct.pas',
+  imjdmarker in '..\Source\JpegLib\imjdmarker.pas',
+  imjdmaster in '..\Source\JpegLib\imjdmaster.pas',
+  imjdmerge in '..\Source\JpegLib\imjdmerge.pas',
+  imjdphuff in '..\Source\JpegLib\imjdphuff.pas',
+  imjdpostct in '..\Source\JpegLib\imjdpostct.pas',
+  imjdsample in '..\Source\JpegLib\imjdsample.pas',
+  imjerror in '..\Source\JpegLib\imjerror.pas',
+  imjfdctflt in '..\Source\JpegLib\imjfdctflt.pas',
+  imjfdctfst in '..\Source\JpegLib\imjfdctfst.pas',
+  imjfdctint in '..\Source\JpegLib\imjfdctint.pas',
+  imjchuff in '..\Source\JpegLib\imjchuff.pas',
+  imjidctasm in '..\Source\JpegLib\imjidctasm.pas',
+  imjidctflt in '..\Source\JpegLib\imjidctflt.pas',
+  imjidctfst in '..\Source\JpegLib\imjidctfst.pas',
+  imjidctint in '..\Source\JpegLib\imjidctint.pas',
+  imjidctred in '..\Source\JpegLib\imjidctred.pas',
+  imjinclude in '..\Source\JpegLib\imjinclude.pas',
+  imjmemmgr in '..\Source\JpegLib\imjmemmgr.pas',
+  imjmemnobs in '..\Source\JpegLib\imjmemnobs.pas',
+  imjmorecfg in '..\Source\JpegLib\imjmorecfg.pas',
+  imjpeglib in '..\Source\JpegLib\imjpeglib.pas',
+  imjquant1 in '..\Source\JpegLib\imjquant1.pas',
+  imjquant2 in '..\Source\JpegLib\imjquant2.pas',
+  imjutils in '..\Source\JpegLib\imjutils.pas',
+  ImagingTiffLib in '..\Extensions\LibTiff\ImagingTiffLib.pas',
+  LibDelphi in '..\Extensions\LibTiff\LibDelphi.pas',
+  LibJpegDelphi in '..\Extensions\LibTiff\LibJpegDelphi.pas',
+  LibTiffDelphi in '..\Extensions\LibTiff\LibTiffDelphi.pas',
+  ZLibDelphi in '..\Extensions\LibTiff\ZLibDelphi.pas',
+  ElderImagery in '..\Extensions\ElderImagery.pas',
+  ElderImageryBsi in '..\Extensions\ElderImageryBsi.pas',
+  ElderImageryCif in '..\Extensions\ElderImageryCif.pas',
+  ElderImageryImg in '..\Extensions\ElderImageryImg.pas',
+  ElderImagerySky in '..\Extensions\ElderImagerySky.pas',
+  ElderImageryTexture in '..\Extensions\ElderImageryTexture.pas';
+
+end.

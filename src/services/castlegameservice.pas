@@ -68,13 +68,13 @@ type
 
         For Android, declare your project type as "integrated" and add
         the "google_play_games" service inside CastleEngineManifest.xml.
-        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .
+        See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine .
 
         For iOS, add the "apple_game_center" service inside CastleEngineManifest.xml.
-        See https://github.com/castle-engine/castle-engine/wiki/iOS-Project-Services-Integrated-with-Castle-Game-Engine .
+        See https://castle-engine.io/ios-Project-Services-Integrated-with-Castle-Game-Engine .
 
         Build your project with the Castle Game Engine build tool:
-        https://github.com/castle-engine/castle-engine/wiki/Build-Tool .)
+        https://castle-engine.io/build_tool .)
 
       @item(Create an instance of this class. Only a single instance of this class is allowed.)
 
@@ -321,7 +321,7 @@ type
       or if user was signed-in in this application previously). }
     property OnStatusChanged: TNotifyEvent read FOnStatusChanged write FOnStatusChanged;
     property OnSignedInChanged: TNotifyEvent read FOnStatusChanged write FOnStatusChanged stored false;
-      deprecated 'use OnStatusChanged';
+      {$ifdef FPC}deprecated 'use OnStatusChanged';{$endif}
     { Event received in response to @link(RequestPlayerBestScore). }
     property OnPlayerBestScoreReceived: TPlayerBestScoreEvent read FOnPlayerBestScoreReceived write FOnPlayerBestScoreReceived;
     { Event received in response to @link(ShowSaveGames). }
@@ -339,16 +339,18 @@ uses SysUtils,
 constructor TGameService.Create(AOwner: TComponent);
 begin
   inherited;
-  Messaging.OnReceive.Add(@MessageReceived);
-  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
+  Messaging.OnReceive.Add({$ifdef FPC}@{$endif} MessageReceived);
+  ApplicationProperties.OnInitializeJavaActivity.Add(
+    {$ifdef FPC}@{$endif} ReinitializeJavaActivity);
 end;
 
 destructor TGameService.Destroy;
 begin
   if Messaging <> nil then
-    Messaging.OnReceive.Remove(@MessageReceived);
+    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
   if ApplicationProperties(false) <> nil then
-    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove(
+      {$ifdef FPC}@{$endif} ReinitializeJavaActivity);
   inherited;
 end;
 

@@ -14,7 +14,7 @@
 }
 
 { Create and edit curves.
-  Docs are at https://github.com/castle-engine/castle-engine/wiki/Curves-tool }
+  Docs are at https://castle-engine.io/curves_tool }
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 {$I castleconf.inc}
@@ -28,7 +28,7 @@ uses SysUtils, Classes, Math,
   CastleApplicationProperties, CastleRenderContext;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
   Curves: TControlPointsCurveList;
   { -1 (none selected) or in [0 .. Curves.Count-1].
@@ -69,7 +69,7 @@ var
   SceneMove: TVector2;
 
 const
-  CurvesToolURL = 'https://github.com/castle-engine/castle-engine/wiki/Curves-tool';
+  CurvesToolURL = 'https://castle-engine.io/curves_tool';
   DonateURL = 'https://castle-engine.io/donate.php';
 
 { Call this always when SelectedPoint or SelectedCurve or (any) contents of
@@ -307,7 +307,7 @@ begin
   ClampVar(SceneZoom, 0.01, 100);
 end;
 
-procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
+procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
 
   procedure ClosestControlPoint(const Point: TVector2;
     var CurveNum, PointNum: Integer);
@@ -377,7 +377,7 @@ begin
   Window.Invalidate;
 end;
 
-procedure Release(Container: TUIContainer; const Event: TInputPressRelease);
+procedure Release(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   if Event.IsMouseButton(buttonLeft) then
   begin
@@ -386,7 +386,7 @@ begin
   end;
 end;
 
-procedure Motion(Container: TUIContainer; const Event: TInputMotion);
+procedure Motion(Container: TCastleContainer; const Event: TInputMotion);
 const
   DraggingFarEnough = 5;
 var
@@ -422,7 +422,7 @@ begin
   end;
 end;
 
-procedure Update(Container: TUIContainer);
+procedure Update(Container: TCastleContainer);
 
   procedure ChangeMove(const X, Y: Single);
   const
@@ -451,7 +451,7 @@ end;
 
 { menu ------------------------------------------------------------ }
 
-procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
+procedure MenuClick(Container: TCastleContainer; MenuItem: TMenuItem);
 
   procedure ChangeSelectedCurve(Next: boolean);
   var
@@ -735,10 +735,10 @@ begin
           HelpOptionHelp + NL +
           VersionOptionHelp + NL +
           NL +
-          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) + NL +
+          TCastleWindow.ParseParametersHelp(StandardParseOptions, true) + NL +
           NL +
           'Full documentation on' + NL +
-          'https://github.com/castle-engine/castle-engine/wiki/Curves-tool' + NL +
+          'https://castle-engine.io/curves_tool' + NL +
           NL +
           ApplicationProperties.Description);
         Halt;
@@ -801,7 +801,7 @@ begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   InitializeLog;
 
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Window.ParseParameters(StandardParseOptions);
   Parameters.Parse(Options, @OptionProc, nil);

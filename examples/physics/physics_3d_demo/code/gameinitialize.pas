@@ -27,7 +27,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUIControls, CastleApplicationProperties;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   Viewport: TCastleViewport;
   Navigation: TCastleWalkNavigation;
   Level: TCastleScene;
@@ -141,22 +141,22 @@ begin
 
   ButtonLevelSimple := TCastleButton.Create(Application);
   ButtonLevelSimple.Caption := 'Simple Level (Plane Collider)';
-  ButtonLevelSimple.OnClick := @TEventHandler(nil).LoadLevelSimple;
+  ButtonLevelSimple.OnClick := {$ifdef FPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.LoadLevelSimple;
   ButtonLevelSimple.Anchor(hpLeft, 10);
   ButtonLevelSimple.Anchor(vpTop, -10);
   Window.Controls.InsertFront(ButtonLevelSimple);
 
   ButtonLevelComplex := TCastleButton.Create(Application);
   ButtonLevelComplex.Caption := 'Complex Level (Mesh Collider)';
-  ButtonLevelComplex.OnClick := @TEventHandler(nil).LoadLevelComplex;
+  ButtonLevelComplex.OnClick := {$ifdef FPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.LoadLevelComplex;
   ButtonLevelComplex.Anchor(hpLeft, 10);
   ButtonLevelComplex.Anchor(vpTop, -10 - ButtonLevelSimple.EffectiveHeight - 10);
   Window.Controls.InsertFront(ButtonLevelComplex);
 end;
 
-procedure WindowRender(Container: TUIContainer);
+procedure WindowRender(Container: TCastleContainer);
 begin
-  UIFont.PrintStrings(10, 10, Yellow, [
+  GetUIFont.PrintStrings(10, 10, Yellow, [
     Format('FPS: %s', [Container.Fps.ToString]),
     'Left mouse button - spawn box',
     'Right mouse button - spawn sphere',
@@ -165,7 +165,7 @@ begin
   ], false, 0);
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 
   procedure Spawn(const Template: TCastleScene; const Collider: TCollider;
     const RigidBody: TRigidBody);
@@ -225,7 +225,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 

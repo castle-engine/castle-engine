@@ -13,6 +13,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
+  ShowInTaskBar = stAlways
   LCLVersion = '2.0.10.0'
   object PanelTop: TPanel
     Left = 8
@@ -399,7 +400,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     ClientHeight = 488
     ClientWidth = 310
     TabOrder = 4
-    object CastleControlPreview: TCastleControlBase
+    object CastleControlPreview: TCastleControl
       AnchorSideLeft.Control = PanelRight
       AnchorSideTop.Control = PanelPreviewHead
       AnchorSideTop.Side = asrBottom

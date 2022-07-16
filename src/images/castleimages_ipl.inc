@@ -1,5 +1,6 @@
+{%MainUnit castleimages.pas}
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -65,9 +66,9 @@ begin
         {imgPixel[0] := FiveBitsToByte((IPLPixel and $7C00) shr 10);
         imgPixel[1] := FiveBitsToByte((IPLPixel and $03E0) shr 5);
         imgPixel[2] := FiveBitsToByte(IPLPixel and $001F);}
-        imgPixel^.Data[0] := IPLPixel shr 8;
-        imgPixel^.Data[1] := imgPixel^.Data[0];
-        imgPixel^.Data[2] := imgPixel^.Data[0];
+        imgPixel^.X := IPLPixel shr 8;
+        imgPixel^.Y := imgPixel^.X;
+        imgPixel^.Z := imgPixel^.X;
       end;
   except Result.Free; raise end;
 end;

@@ -1,5 +1,5 @@
-{
-  Copyright 2017-2021 Michalis Kamburelis.
+﻿{
+  Copyright 2017-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@ interface
 uses CastleWindow;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 implementation
 
@@ -30,7 +30,7 @@ uses SysUtils, Classes, DOM,
   CastleFilesUtils, CastleUtils, CastleXMLUtils, CastleConfig, CastleURIUtils,
   CastleTextureFontData, CastleFonts, CastleUnicode, CastleStringUtils,
   X3DNodes, CastleUIControls, CastleColors, CastleVectors, CastleDownload,
-  CastleApplicationProperties, CastleViewport,
+  CastleApplicationProperties, CastleViewport, CastleCameras,
   Font_DejaVuSans, Font_DroidSansFallback;
 
 { TFontContainer ------------------------------------------------------------- }
@@ -39,8 +39,8 @@ type
   TFontContainer = class
   strict private
     procedure LoadFinish;
-    procedure Load(const URL: string);
-    procedure Load(const FontData: TTextureFontData);
+    procedure Load(const URL: string); overload;
+    procedure Load(const FontData: TTextureFontData); overload;
   public
     MyFontData: TTextureFontData;
     MyFont: TCastleFont;
@@ -115,14 +115,14 @@ var
   I: Integer;
 begin
   { use custom font by default in all TCastleLabel }
-  UIFont := FontContainer.MyFont;
+  Window.Container.DefaultFont := FontContainer.MyFont;
   { this is necessary to recalculate button sizes after UIFont measurements changed }
   for I := 0 to Window.Controls.Count - 1 do
     if Window.Controls[I] is TCastleUserInterfaceFont then
       TCastleUserInterfaceFont(Window.Controls[I]).FontChanged;
 
   { use custom font by default when rendering X3D text }
-  TFontStyleNode.OnFont := @FontContainer.GetFont;
+  TFontStyleNode.OnFont := {$ifdef FPC}@{$endif} FontContainer.GetFont;
   { this is necessary to recalculate 3D shape of the text after font changes }
   if SceneUsingText <> nil then
     SceneUsingText.FontChanged;
@@ -174,7 +174,7 @@ begin
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
-  Viewport.AutoNavigation := true;
+  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
   Window.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application);
@@ -202,7 +202,7 @@ begin
 
   ButtonExternalFont := TCastleButton.Create(Application);
   ButtonExternalFont.Caption := 'Switch to external font (without Chinese chars)';
-  ButtonExternalFont.OnClick := @FontContainer.ButtonExternalFontClick;
+  ButtonExternalFont.OnClick := {$ifdef FPC}@{$endif} FontContainer.ButtonExternalFontClick;
   ButtonExternalFont.Left := 10;
   ButtonExternalFont.Bottom := Y;
   Window.Controls.InsertFront(ButtonExternalFont);
@@ -210,7 +210,7 @@ begin
 
   ButtonExternalFontChinese := TCastleButton.Create(Application);
   ButtonExternalFontChinese.Caption := 'Switch to external font (only Chinese chars)';
-  ButtonExternalFontChinese.OnClick := @FontContainer.ButtonExternalFontChineseClick;
+  ButtonExternalFontChinese.OnClick := {$ifdef FPC}@{$endif} FontContainer.ButtonExternalFontChineseClick;
   ButtonExternalFontChinese.Left := 10;
   ButtonExternalFontChinese.Bottom := Y;
   Window.Controls.InsertFront(ButtonExternalFontChinese);
@@ -218,7 +218,7 @@ begin
 
   ButtonEmbeddedFont := TCastleButton.Create(Application);
   ButtonEmbeddedFont.Caption := 'Switch to embedded font (without Chinese chars)';
-  ButtonEmbeddedFont.OnClick := @FontContainer.ButtonEmbeddedFontClick;
+  ButtonEmbeddedFont.OnClick := {$ifdef FPC}@{$endif} FontContainer.ButtonEmbeddedFontClick;
   ButtonEmbeddedFont.Left := 10;
   ButtonEmbeddedFont.Bottom := Y;
   Window.Controls.InsertFront(ButtonEmbeddedFont);
@@ -226,7 +226,7 @@ begin
 
   ButtonEmbeddedFontChinese := TCastleButton.Create(Application);
   ButtonEmbeddedFontChinese.Caption := 'Switch to embedded font (only Chinese chars)';
-  ButtonEmbeddedFontChinese.OnClick := @FontContainer.ButtonEmbeddedFontChineseClick;
+  ButtonEmbeddedFontChinese.OnClick := {$ifdef FPC}@{$endif} FontContainer.ButtonEmbeddedFontChineseClick;
   ButtonEmbeddedFontChinese.Left := 10;
   ButtonEmbeddedFontChinese.Bottom := Y;
   Window.Controls.InsertFront(ButtonEmbeddedFontChinese);
@@ -317,7 +317,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 finalization

@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Michalis Kamburelis.
+  Copyright 2020-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -101,7 +101,7 @@ constructor TCastleCameraTransform.Create(AOwner: TComponent);
 begin
   inherited;
   FCameraObserver := TFreeNotificationObserver.Create(Self);
-  FCameraObserver.OnFreeNotification := @CameraFreeNotification;
+  FCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
 end;
 
 procedure TCastleCameraTransform.SetCamera(const Value: TCastleCamera);
@@ -130,11 +130,11 @@ begin
   if Camera <> nil then
   begin
     GetView(P, D, U);
-    if UniqueParent <> nil then
+    if Parent <> nil then
     begin
-      P := UniqueParent.LocalToWorld(P);
-      D := UniqueParent.LocalToWorldDirection(D);
-      U := UniqueParent.LocalToWorldDirection(U);
+      P := Parent.LocalToWorld(P);
+      D := Parent.LocalToWorldDirection(D);
+      U := Parent.LocalToWorldDirection(U);
     end;
     Camera.SetView(P, D, U);
   end;
@@ -148,11 +148,11 @@ begin
   if Camera  <> nil then
   begin
     Camera.GetView(P, D, U);
-    if UniqueParent <> nil then
+    if Parent <> nil then
     begin
-      P := UniqueParent.WorldToLocal(P);
-      D := UniqueParent.WorldToLocalDirection(D);
-      U := UniqueParent.WorldToLocalDirection(U);
+      P := Parent.WorldToLocal(P);
+      D := Parent.WorldToLocalDirection(D);
+      U := Parent.WorldToLocalDirection(U);
     end;
     Inc(InsideSynchronizeFromCamera);
     SetView(P, D, U);  // this causes ChangedTransform which causes SynchronizeToCamera
@@ -180,7 +180,7 @@ end;
 procedure TCastleCameraTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
-  if not GetExists then Exit;
+  if not Exists then Exit;
   SynchronizeFromCamera;
 end;
 
@@ -197,8 +197,6 @@ var
   SoldierScene: TCastleScene;
   I: Integer;
   // TODO MoveAttackBehavior: TCastleMoveAttack;
-  Billboard: TCastleBillboard;
-  SoundSource: TCastleSoundSource;
 begin
   inherited;
 
@@ -225,16 +223,6 @@ begin
     SoldierScene.PlayAnimation('walk', true);
 
     SoldierScene.AddBehavior(TCastleAliveBehavior.Create(FreeAtStop));
-
-    Billboard := TCastleBillboard.Create(FreeAtStop);
-    // Billboard.AxisOfRotation := Vector3(1, 0, 0); // just test
-    // Billboard.AxisOfRotation := Vector3(0, 0, 0); // just test
-    SoldierScene.AddBehavior(Billboard);
-
-    SoundSource := TCastleSoundSource.Create(FreeAtStop);
-    if I = 5 then // make 5th enemy emit looping sound
-      SoundSource.Sound.URL := 'castle-data:/audio/werewolf_howling.wav';
-    SoldierScene.AddBehavior(SoundSource);
 
     // TODO
     // MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
@@ -275,7 +263,7 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    SoundEngine.Sound(SoundEngine.SoundFromName('shoot_sound'));
+    SoundEngine.Play(SoundEngine.SoundFromName('shoot_sound'));
 
     { We clicked on enemy if
       - TransformUnderMouse indicates we hit something

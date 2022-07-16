@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,38 +23,44 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Buttons, Menus,
-  CastleDialogs, CastleLCLRecentFiles;
+  CastleDialogs, CastleLCLRecentFiles, CastleSoundEngine;
 
 type
   { Choose project (new or existing). }
   TChooseProjectForm = class(TForm)
-    ButtonPreferences: TBitBtn;
-    ButtonOpenRecent: TBitBtn;
-    ButtonNew: TBitBtn;
     ButtonOpen: TBitBtn;
+    ButtonOpenRecent: TBitBtn;
+    ButtonOpenExample: TBitBtn;
+    ButtonNew: TBitBtn;
+    ButtonPreferences: TBitBtn;
+    ButtonSupportUs: TBitBtn;
+    GroupBoxOpen: TGroupBox;
     Image1: TImage;
-    Label1: TLabel;
+    LabelWarning: TLabel;
     OpenProject: TCastleOpenDialog;
     ImageLogo: TImage;
     LabelTitle: TLabel;
-    PanelWarningFpcLazarus: TPanel;
+    PanelBottom: TPanel;
+    PanelWarning: TPanel;
     PopupMenuRecentProjects: TPopupMenu;
+    procedure ButtonOpenExampleClick(Sender: TObject);
     procedure ButtonPreferencesClick(Sender: TObject);
     procedure ButtonNewClick(Sender: TObject);
     procedure ButtonOpenClick(Sender: TObject);
     procedure ButtonOpenRecentClick(Sender: TObject);
+    procedure ButtonSupportUsClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-  protected
-    procedure Show;
-    procedure Hide;
+    procedure FormHide(Sender: TObject);
   private
     RecentProjects: TCastleRecentFiles;
     CommandLineHandled: Boolean;
+    CodingTheme: TCastleSound;
+    CodingThemePlaying: TCastlePlayingSound;
     procedure MenuItemRecentClick(Sender: TObject);
     procedure OpenProjectFromCommandLine;
-    procedure UpdateWarningFpcLazarus;
+    procedure UpdateWarning;
     { Open ProjectForm.
       ManifestUrl may be absolute or relative here. }
     procedure ProjectOpen(ManifestUrl: string);
@@ -69,43 +75,13 @@ implementation
 
 {$R *.lfm}
 
-uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
+uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils, CastleOpenDocument,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
-  ToolCompilerInfo, ToolFpcVersion,
+  ToolCompilerInfo, ToolFpcVersion, ToolManifest, ToolCommonUtils,
   FormProject, FormNewUnit;
 
 { TChooseProjectForm ------------------------------------------------------------- }
-
-procedure TChooseProjectForm.Show;
-begin
-  { Special Show/Hide on Windows, to fix taskbar button visible on Windows
-    (to keep CGE on taskbar, once project is chosen).
-
-    Comment out, this is not a good solution: while it keeps CGE in taskbar,
-    but it also prevents the ChooseProjectForm from being hidden,
-    for Lazarus 2.0.8 and 2.0.10.
-    It is even more important when running editor with project on command-line
-    (which also happens when you rebuild editor with project-specific components),
-    then the ChooseProjectForm may be on top on ProjectForm after start.
-
-    TODO: how to fix CGE on taskbar on Windows correctly? }
-
-  //{$ifdef MSWINDOWS}
-  //Application.ShowMainForm := True;
-  //{$else}
-  inherited Show;
-  //{$endif}
-end;
-
-procedure TChooseProjectForm.Hide;
-begin
-  //{$ifdef MSWINDOWS}
-  //Application.ShowMainForm := False;
-  //{$else}
-  inherited Hide;
-  //{$endif}
-end;
 
 procedure TChooseProjectForm.ProjectOpen(ManifestUrl: string);
 begin
@@ -212,7 +188,18 @@ end;
 procedure TChooseProjectForm.ButtonPreferencesClick(Sender: TObject);
 begin
   PreferencesForm.ShowModal;
-  UpdateWarningFpcLazarus;
+  UpdateWarning;
+end;
+
+procedure TChooseProjectForm.ButtonOpenExampleClick(Sender: TObject);
+begin
+  if CastleEnginePath <> '' then
+  begin
+    OpenProject.FileName := CastleEnginePath + 'examples' + PathDelim;
+  end else
+    WritelnWarning('Cannot find CGE directory');
+
+  ButtonOpenClick(nil);
 end;
 
 procedure TChooseProjectForm.ButtonOpenRecentClick(Sender: TObject);
@@ -248,15 +235,25 @@ begin
   PopupMenuRecentProjects.Popup;
 end;
 
+procedure TChooseProjectForm.ButtonSupportUsClick(Sender: TObject);
+begin
+  OpenURL('https://patreon.com/castleengine/');
+end;
+
 procedure TChooseProjectForm.FormCreate(Sender: TObject);
 
   procedure ConfigLoad;
   begin
     FpcCustomPath := UserConfig.GetValue('fpc_custom_path', '');
     LazarusCustomPath := UserConfig.GetValue('lazarus_custom_path', '');
+    CastleEngineOverridePath := UserConfig.GetValue('castle_engine_override_path', '');
     CodeEditor := TCodeEditor(UserConfig.GetValue('code_editor/setting', Ord(DefaultCodeEditor)));
     CodeEditorCommand := UserConfig.GetValue('code_editor/command', '');
     CodeEditorCommandProject := UserConfig.GetValue('code_editor/command_project', '');
+    MuteOnRun := UserConfig.GetValue('sound/mute_on_run', DefaultMuteOnRun);
+    EditorVolume := UserConfig.GetFloat('sound/editor_volume', DefaultEditorVolume);
+    Compiler := StringToCompiler(UserConfig.GetValue('compiler', CompilerToString(DefaultCompiler)));
+    SoundEngineSetVolume;
   end;
 
 begin
@@ -265,6 +262,9 @@ begin
   RecentProjects.LoadFromConfig(UserConfig);
   //  RecentProjects.NextMenuItem := ; // unused for now
   ConfigLoad;
+
+  UseEditorApplicationData;
+  InternalCastleDesignData := ApplicationData('');
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
@@ -273,9 +273,13 @@ procedure TChooseProjectForm.FormDestroy(Sender: TObject);
   begin
     UserConfig.SetDeleteValue('fpc_custom_path', FpcCustomPath, '');
     UserConfig.SetDeleteValue('lazarus_custom_path', LazarusCustomPath, '');
+    UserConfig.SetDeleteValue('castle_engine_override_path', CastleEngineOverridePath, '');
     UserConfig.SetDeleteValue('code_editor/setting', Ord(CodeEditor), Ord(DefaultCodeEditor));
     UserConfig.SetDeleteValue('code_editor/command', CodeEditorCommand, '');
     UserConfig.SetDeleteValue('code_editor/command_project', CodeEditorCommandProject, '');
+    UserConfig.SetDeleteValue('sound/mute_on_run', MuteOnRun, DefaultMuteOnRun);
+    UserConfig.SetDeleteFloat('sound/editor_volume', EditorVolume, DefaultEditorVolume);
+    UserConfig.SetDeleteValue('compiler', CompilerToString(Compiler), CompilerToString(DefaultCompiler));
   end;
 
 begin
@@ -288,30 +292,66 @@ procedure TChooseProjectForm.FormShow(Sender: TObject);
 begin
   ButtonOpenRecent.Enabled := RecentProjects.URLs.Count <> 0;
   OpenProjectFromCommandLine;
-  UpdateWarningFpcLazarus;
+  UpdateWarning;
+
+  if (CastleEnginePath <> '') and URIFileExists(CastleEnginePath + 'game.pas:666') then
+  begin
+    CodingTheme := TCastleSound.Create(Self);
+    CodingTheme.Stream := true;
+    CodingTheme.Url := InternalCastleDesignData + 'not_an_easter_egg/ente_evil.ogg';
+    CodingThemePlaying := TCastlePlayingSound.Create(Self);
+    CodingThemePlaying.Loop := true;
+    CodingThemePlaying.Sound := CodingTheme;
+    SoundEngine.Play(CodingThemePlaying);
+  end;
 end;
 
-procedure TChooseProjectForm.UpdateWarningFpcLazarus;
+procedure TChooseProjectForm.FormHide(Sender: TObject);
+begin
+  FreeAndNil(CodingThemePlaying);
+  FreeAndNil(CodingTheme);
+end;
 
-  function FpcOrLazarusMissing: Boolean;
+procedure TChooseProjectForm.UpdateWarning;
+
+  function CompilerFound: Boolean;
   begin
-    Result := true;
+    Result := false;
     try
       FindExeFpcCompiler;
       FpcVersion;
-      FindExeLazarusIDE;
-      Result := false;
+      Result := true;
     except
-      { FindExeFpcCompiler or FindExeLazarusIDE exit with EExecutableNotFound,
+      { FindExeFpcCompiler exits with EExecutableNotFound,
         but FpcVersion may fail with any Exception unfortunately
         (it runs external process, and many things can go wrong). }
       on E: Exception do
-        WritelnLog('FPC or Lazarus not detected, or cannot run FPC to get version: ' + ExceptMessage(E));
+      begin
+        WritelnLog('FPC not found, or cannot run FPC to get version: ' + ExceptMessage(E));
+
+        { if FPC failed, try to find Delphi }
+        if FindDelphiPath(false) <> '' then
+          Result := true;
+      end;
     end;
   end;
 
 begin
-  PanelWarningFpcLazarus.Visible := FpcOrLazarusMissing;
+  if (CastleEnginePath = '') or not CgePathStatus(CastleEnginePath) then
+  begin
+    PanelWarning.Visible := true;
+    LabelWarning.Caption :=
+      'Warning: Engine path not found or invalid.' + NL +
+      'Configure valid path in "Preferences".';
+  end else
+  if not CompilerFound then
+  begin
+    PanelWarning.Visible := true;
+    LabelWarning.Caption :=
+      'Warning: Compiler (FPC or Delphi) not found.' + NL +
+      'Install a compiler and configure in "Preferences".';
+  end else
+    PanelWarning.Visible := false;
 end;
 
 procedure TChooseProjectForm.MenuItemRecentClick(Sender: TObject);
@@ -342,10 +382,40 @@ begin
 end;
 
 procedure TChooseProjectForm.OpenProjectFromCommandLine;
+
+  { On macOS, on the first run (after accepting "open application downloaded from the Internet")
+    we may get additional command-line parameter -psn_...,
+    which stands for "Process Serial Number".
+
+    See e.g.
+    https://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder
+    https://forums.macrumors.com/threads/application-adding-argument.207344/
+    Note: It definitely happens even for Cocoa-based editor, not only Carbon,
+    despite some suggestions on the Internet that it's Carbon-specific.
+    Unfortunately there no (not anymore) official docs about it from Apple.
+
+    We have to remove it, to not confuse it with a project name. }
+  procedure RemoveMacOsProcessSerialNumber;
+  {$ifdef DARWIN}
+  var
+    I: Integer;
+  begin
+    for I := 1 to Parameters.Count - 1 do
+      if IsPrefix('-psn_', Parameters[I], false) then
+      begin
+        Parameters.Delete(I);
+        Exit;
+      end;
+  {$else}
+  begin
+  {$endif}
+  end;
+
 begin
   if CommandLineHandled then Exit;
   CommandLineHandled := true;
 
+  RemoveMacOsProcessSerialNumber;
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
   begin

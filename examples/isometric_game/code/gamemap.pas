@@ -109,6 +109,7 @@ begin
   Image := LoadImage(FullURL, [TRGBImage, TRGBAlphaImage], BaseWidth, BaseHeight);
   if not (Image is TRGBAlphaImage) then
   begin
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     NewImage := (Image as TRGBImage).ToRGBAlphaImage;
     NewImage.AlphaDecide(
       Vector3Byte(
@@ -122,6 +123,7 @@ begin
     { This will automatically fix such images, assuming that URL
       extension is PNG.
     SaveImage(Image, FullURL); }
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
   DrawableImage := TDrawableImage.Create(Image, false, true);

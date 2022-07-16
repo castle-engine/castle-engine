@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2018 Michalis Kamburelis.
+  Copyright 2013-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,7 +32,7 @@ private
 
 {$ifdef read_implementation}
 
-procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
+procedure TCastleWindow.ContextCreateEnd(WndPtr: HWND);
 
   { Both SetPixelFormat* set pixel format (required context capabilities)
     of Windows H_Dc device context. They try to set it, and eventually raise some
@@ -71,7 +71,7 @@ procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
                     RoundUpToMultiply(FAccumBits[3], 8);
       iLayerType := PFD_MAIN_PLANE;             // Main Drawing Layer
     end;
-    PixelFormat := Windows.ChoosePixelFormat(h_Dc, pfd);
+    PixelFormat := Windows.ChoosePixelFormat(h_Dc, {$ifndef FPC}@{$endif}pfd);
     OSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
 
     { sprawdzamy czy dostalismy wymagane AlphaBits, DepthBits, StencilBits i
@@ -126,9 +126,9 @@ procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
 
       try
         { create Temp_H_wnd }
-        Temp_H_wnd := CreateWindowEx(WS_EX_APPWINDOW or WS_EX_WINDOWEDGE,
-          PChar(Application.wndClassName),
-          PChar(GetWholeCaption + ' - temporary window for wgl'),
+        Temp_H_wnd := CreateWindowExW(WS_EX_APPWINDOW or WS_EX_WINDOWEDGE,
+          PWideChar(Application.WndClassName),
+          PWideChar(StringToUtf16(GetWholeCaption + ' - temporary window for wgl')),
           WS_OVERLAPPEDWINDOW or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
           0, 0, 100, 100,
           0 { no parent window }, 0 { no menu }, hInstance,
@@ -150,7 +150,7 @@ procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
           iPixelType := PFD_TYPE_RGBA;
           iLayerType := PFD_MAIN_PLANE;
         end;
-        PixelFormat := Windows.ChoosePixelFormat(Temp_h_Dc, pfd);
+        PixelFormat := Windows.ChoosePixelFormat(Temp_h_Dc, {$ifndef FPC}@{$endif}pfd);
         OSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
         OSCheck( SetPixelFormat(Temp_h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
 
@@ -340,7 +340,7 @@ begin
     OSCheck(wglShareLists(Application.OpenWindows[0].h_GLRc, h_GLRc), 'wglShareLists');
 end;
 
-procedure TCastleWindowBase.ContextDestroy;
+procedure TCastleWindow.ContextDestroy;
 begin
   if h_GLRc <> 0 then
   begin
@@ -352,13 +352,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.BackendMakeCurrent;
+procedure TCastleWindow.BackendMakeCurrent;
 begin
   Assert(not Closed);
   OSCheck( wglMakeCurrent(h_Dc, h_GLRc), 'wglMakeCurrent');
 end;
 
-procedure TCastleWindowBase.SwapBuffers;
+procedure TCastleWindow.SwapBuffers;
 begin
   Windows.SwapBuffers(h_Dc);
 end;

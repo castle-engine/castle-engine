@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,9 +25,14 @@ unit CastleInternalUseDeprecatedUnits;
 
 interface
 
-uses CastleGooglePlayGames, CastleShaders, CastleGenericLists, CastleWarnings,
+uses
+  {$ifdef MSWINDOWS} CastleWindowsFonts, {$endif}
+  CastleGooglePlayGames, CastleShaders, CastleGenericLists, CastleWarnings,
   CastleLocalization, CastleLocalizationFileLoader,
-  CastleSceneManager, Castle3D, Castle2DSceneManager;
+  CastleSceneManager, Castle3D, Castle2DSceneManager,
+  CastleRenderer, CastleRendererBaseTypes, CastleGLContainer, CastleGLBoxes,
+  CastleSoundAllocator, CastleOnScreenMenu, CastleProgress, CastleProgressConsole,
+  CastleCreatures, CastleGameNotifications, CastleItems, CastleLevels, CastlePlayer, CastleResources;
 
 implementation
 

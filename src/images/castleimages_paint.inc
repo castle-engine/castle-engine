@@ -1,5 +1,6 @@
+{%MainUnit castleimages.pas}
 {
-  Copyright 2001-2018 Michalis Kamburelis, Yevhen Loza.
+  Copyright 2001-2022 Michalis Kamburelis, Yevhen Loza.
 
   This file is part of "Castle Game Engine".
 
@@ -31,7 +32,7 @@ var
   d, MeanRadius, SqrY: single;
 begin
   MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -43,7 +44,7 @@ begin
           if d >= 0 then
           begin
             OldColor := Colors[ix, iy, 0];
-            Alpha1 := OldColor.Data[3];
+            Alpha1 := OldColor.W;
 
             {antialiasing}
             if d < MeanRadius then
@@ -57,10 +58,10 @@ begin
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
 
 
-            NewColor.Data[0] := (OldColor.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum;
-            NewColor.Data[1] := (OldColor.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum;
-            NewColor.Data[2] := (OldColor.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum;
-            NewColor.Data[3] := AlphaSum;
+            NewColor.X := (OldColor.X * Alpha1d + aColor.X * Alpha2d) / AlphaSum;
+            NewColor.Y := (OldColor.Y * Alpha1d + aColor.Y * Alpha2d) / AlphaSum;
+            NewColor.Z := (OldColor.Z * Alpha1d + aColor.Z * Alpha2d) / AlphaSum;
+            NewColor.W := AlphaSum;
 
             Colors[ix, iy, 0] := NewColor;
           end;
@@ -77,11 +78,11 @@ var
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   d, MeanRadius, SqrY: single;
 begin
-  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
-  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
-  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
+  ByteColor.X := Trunc(255 * aColor.X);
+  ByteColor.Y := Trunc(255 * aColor.Y);
+  ByteColor.Z := Trunc(255 * aColor.Z);
   MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -95,7 +96,7 @@ begin
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
 
-            Alpha1 := p^.Data[3] / 255;
+            Alpha1 := p^.W / 255;
 
             {antialiasing}
             if d < MeanRadius then
@@ -108,11 +109,11 @@ begin
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then begin
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d) / AlphaSum);
-              p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d) / AlphaSum);
-              p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d) / AlphaSum);
+              p^.X := Round((p^.X * Alpha1d + ByteColor.X * Alpha2d) / AlphaSum);
+              p^.Y := Round((p^.Y * Alpha1d + ByteColor.Y * Alpha2d) / AlphaSum);
+              p^.Z := Round((p^.Z * Alpha1d + ByteColor.Z * Alpha2d) / AlphaSum);
             end;
-            p^.Data[3] := Round(255 * AlphaSum);
+            p^.W := Round(255 * AlphaSum);
           end;
         end;
     end;
@@ -127,9 +128,9 @@ var
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   d, MeanRadius, SqrY: single;
 begin
-  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.X, aColor.Y, aColor.Z)));
   MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -143,7 +144,7 @@ begin
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
 
-            Alpha1 := p^.Data[1] / 255;
+            Alpha1 := p^.Y / 255;
 
             {antialiasing}
             if d < MeanRadius then
@@ -156,9 +157,9 @@ begin
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then begin
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
+              p^.X := Round((p^.X * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
             end;
-            p^.Data[1] := Round(255 * AlphaSum);
+            p^.Y := Round(255 * AlphaSum);
           end;
         end;
     end;
@@ -173,11 +174,11 @@ var
   Alpha1d, Alpha2, Alpha2d: single;
   d, MeanRadius, SqrY: single;
 begin
-  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
-  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
-  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
+  ByteColor.X := Trunc(255 * aColor.X);
+  ByteColor.Y := Trunc(255 * aColor.Y);
+  ByteColor.Z := Trunc(255 * aColor.Z);
   MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -200,9 +201,9 @@ begin
               Alpha2d := Alpha2;
 
             Alpha1d := 1 - Alpha2d;
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
-            p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d));
-            p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d));
+            p^.X := Round((p^.X * Alpha1d + ByteColor.X * Alpha2d));
+            p^.Y := Round((p^.Y * Alpha1d + ByteColor.Y * Alpha2d));
+            p^.Z := Round((p^.Z * Alpha1d + ByteColor.Z * Alpha2d));
           end;
         end;
     end;
@@ -217,9 +218,9 @@ var
   Alpha1d, Alpha2, Alpha2d: single;
   d, MeanRadius, SqrY: single;
 begin
-  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.X, aColor.Y, aColor.Z)));
   MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -260,7 +261,7 @@ var
 begin
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
   MeanRadius2 := 1 / (aRadiusX - aWidth) + 1 / (aRadiusY - aWidth);
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -274,7 +275,7 @@ begin
           if (d1 >= 0) and (d2 <= MeanRadius2) then
           begin
             OldColor := Colors[ix, iy, 0];
-            Alpha1 := OldColor.Data[3];
+            Alpha1 := OldColor.W;
 
             {antialiasing}
             if d1 < MeanRadius1 then
@@ -287,10 +288,10 @@ begin
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
 
-            NewColor.Data[0] := (OldColor.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum;
-            NewColor.Data[1] := (OldColor.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum;
-            NewColor.Data[2] := (OldColor.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum;
-            NewColor.Data[3] := AlphaSum;
+            NewColor.X := (OldColor.X * Alpha1d + aColor.X * Alpha2d) / AlphaSum;
+            NewColor.Y := (OldColor.Y * Alpha1d + aColor.Y * Alpha2d) / AlphaSum;
+            NewColor.Z := (OldColor.Z * Alpha1d + aColor.Z * Alpha2d) / AlphaSum;
+            NewColor.W := AlphaSum;
 
             Colors[ix, iy, 0] := NewColor;
           end;
@@ -307,12 +308,12 @@ var
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: single;
 begin
-  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
-  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
-  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
+  ByteColor.X := Trunc(255 * aColor.X);
+  ByteColor.Y := Trunc(255 * aColor.Y);
+  ByteColor.Z := Trunc(255 * aColor.Z);
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
   MeanRadius2 := 1 / (aRadiusX - aWidth) + 1 / (aRadiusY - aWidth);
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -327,7 +328,7 @@ begin
           begin
             p := PixelPtr(ix, iy);
 
-            Alpha1 := p^.Data[3] / 255;
+            Alpha1 := p^.W / 255;
 
             {antialiasing}
             if d1 < MeanRadius1 then
@@ -340,11 +341,11 @@ begin
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then begin
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d) / AlphaSum);
-              p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d) / AlphaSum);
-              p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d) / AlphaSum);
+              p^.X := Round((p^.X * Alpha1d + ByteColor.X * Alpha2d) / AlphaSum);
+              p^.Y := Round((p^.Y * Alpha1d + ByteColor.Y * Alpha2d) / AlphaSum);
+              p^.Z := Round((p^.Z * Alpha1d + ByteColor.Z * Alpha2d) / AlphaSum);
             end;
-            p^.Data[3] := Round(255 * AlphaSum);
+            p^.W := Round(255 * AlphaSum);
           end;
         end;
     end;
@@ -359,10 +360,10 @@ var
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: single;
 begin
-  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.X, aColor.Y, aColor.Z)));
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
   MeanRadius2 := 1 / (aRadiusX - aWidth) + 1 / (aRadiusY - aWidth);
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -377,7 +378,7 @@ begin
           begin
             p := PixelPtr(ix, iy);
 
-            Alpha1 := p^.Data[1] / 255;
+            Alpha1 := p^.Y / 255;
 
             {antialiasing}
             if d1 < MeanRadius1 then
@@ -390,9 +391,9 @@ begin
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then begin
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
+              p^.X := Round((p^.X * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
             end;
-            p^.Data[1] := Round(255 * AlphaSum);
+            p^.Y := Round(255 * AlphaSum);
           end;
         end;
     end;
@@ -407,12 +408,12 @@ var
   Alpha1d, Alpha2, Alpha2d: single;
   d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: single;
 begin
-  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
-  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
-  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
+  ByteColor.X := Trunc(255 * aColor.X);
+  ByteColor.Y := Trunc(255 * aColor.Y);
+  ByteColor.Z := Trunc(255 * aColor.Z);
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
   MeanRadius2 := 1 / (aRadiusX - aWidth) + 1 / (aRadiusY - aWidth);
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -436,9 +437,9 @@ begin
               Alpha2d := Alpha2d * (1 - d2 / MeanRadius2);
 
             Alpha1d := 1 - Alpha2d;
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
-            p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d));
-            p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d));
+            p^.X := Round((p^.X * Alpha1d + ByteColor.X * Alpha2d));
+            p^.Y := Round((p^.Y * Alpha1d + ByteColor.Y * Alpha2d));
+            p^.Z := Round((p^.Z * Alpha1d + ByteColor.Z * Alpha2d));
           end;
         end;
     end;
@@ -453,10 +454,10 @@ var
   Alpha1d, Alpha2, Alpha2d: single;
   d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: single;
 begin
-  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.X, aColor.Y, aColor.Z)));
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
   MeanRadius2 := 1 / (aRadiusX - aWidth) + 1 / (aRadiusY - aWidth);
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -526,7 +527,7 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
 
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
@@ -535,7 +536,7 @@ begin
         if (ix >= 0) and (ix < Width) then
         begin
           OldColor := Colors[ix, iy, 0];
-          Alpha1 := OldColor.Data[3];
+          Alpha1 := OldColor.W;
 
           {antialiasing}
           if ix < MinX then
@@ -557,10 +558,10 @@ begin
           Alpha1d := Alpha1 * (1 - Alpha2d);
           AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
 
-          NewColor.Data[0] := (OldColor.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum;
-          NewColor.Data[1] := (OldColor.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum;
-          NewColor.Data[2] := (OldColor.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum;
-          NewColor.Data[3] := AlphaSum;
+          NewColor.X := (OldColor.X * Alpha1d + aColor.X * Alpha2d) / AlphaSum;
+          NewColor.Y := (OldColor.Y * Alpha1d + aColor.Y * Alpha2d) / AlphaSum;
+          NewColor.Z := (OldColor.Z * Alpha1d + aColor.Z * Alpha2d) / AlphaSum;
+          NewColor.W := AlphaSum;
 
           Colors[ix, iy, 0] := NewColor;
         end;
@@ -606,10 +607,10 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
-  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
-  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
-  Alpha2 := aColor.Data[3];
+  ByteColor.X := Trunc(255 * aColor.X);
+  ByteColor.Y := Trunc(255 * aColor.Y);
+  ByteColor.Z := Trunc(255 * aColor.Z);
+  Alpha2 := aColor.W;
 
 
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
@@ -621,7 +622,7 @@ begin
         begin
           inc(p);
 
-          Alpha1 := p^.Data[3] / 255;
+          Alpha1 := p^.W / 255;
 
           {antialiasing}
           if ix < MinX then
@@ -643,11 +644,11 @@ begin
           Alpha1d := Alpha1 * (1 - Alpha2d);
           AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
           if AlphaSum > 0 then begin
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d) / AlphaSum);
-            p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d) / AlphaSum);
-            p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d) / AlphaSum);
+            p^.X := Round((p^.X * Alpha1d + ByteColor.X * Alpha2d) / AlphaSum);
+            p^.Y := Round((p^.Y * Alpha1d + ByteColor.Y * Alpha2d) / AlphaSum);
+            p^.Z := Round((p^.Z * Alpha1d + ByteColor.Z * Alpha2d) / AlphaSum);
           end;
-          p^.Data[3] := Round(255 * AlphaSum);
+          p^.W := Round(255 * AlphaSum);
         end;
     end;
 end;
@@ -691,8 +692,8 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
-  Alpha2 := aColor.Data[3];
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.X, aColor.Y, aColor.Z)));
+  Alpha2 := aColor.W;
 
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
@@ -703,7 +704,7 @@ begin
         begin
           inc(p);
 
-          Alpha1 := p^.Data[1] / 255;
+          Alpha1 := p^.Y / 255;
 
           {antialiasing}
           if ix < MinX then
@@ -725,9 +726,9 @@ begin
           Alpha1d := Alpha1 * (1 - Alpha2d);
           AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
           if AlphaSum > 0 then begin
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
+            p^.X := Round((p^.X * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
           end;
-          p^.Data[1] := Round(255 * AlphaSum);
+          p^.Y := Round(255 * AlphaSum);
         end;
     end;
 end;
@@ -771,10 +772,10 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
-  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
-  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
-  Alpha2 := aColor.Data[3];
+  ByteColor.X := Trunc(255 * aColor.X);
+  ByteColor.Y := Trunc(255 * aColor.Y);
+  ByteColor.Z := Trunc(255 * aColor.Z);
+  Alpha2 := aColor.W;
 
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
@@ -803,9 +804,9 @@ begin
           Alpha2d := Alpha2 * Sqr(Min(dx, dy));
 
           Alpha1d := 1 - Alpha2d;
-          p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
-          p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d));
-          p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d));
+          p^.X := Round((p^.X * Alpha1d + ByteColor.X * Alpha2d));
+          p^.Y := Round((p^.Y * Alpha1d + ByteColor.Y * Alpha2d));
+          p^.Z := Round((p^.Z * Alpha1d + ByteColor.Z * Alpha2d));
         end;
     end;
 end;
@@ -849,8 +850,8 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
-  Alpha2 := aColor.Data[3];
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.X, aColor.Y, aColor.Z)));
+  Alpha2 := aColor.W;
 
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
@@ -920,7 +921,7 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
 
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
@@ -969,16 +970,16 @@ begin
           if d > 0 then
           begin
             OldColor := Colors[ix, iy, 0];
-            Alpha1 := OldColor.Data[3];
+            Alpha1 := OldColor.W;
             Alpha2d := Alpha2 * Sqr(d);
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
 
-            NewColor.Data[0] := (OldColor.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum;
-            NewColor.Data[1] := (OldColor.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum;
-            NewColor.Data[2] := (OldColor.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum;
-            NewColor.Data[3] := AlphaSum;
+            NewColor.X := (OldColor.X * Alpha1d + aColor.X * Alpha2d) / AlphaSum;
+            NewColor.Y := (OldColor.Y * Alpha1d + aColor.Y * Alpha2d) / AlphaSum;
+            NewColor.Z := (OldColor.Z * Alpha1d + aColor.Z * Alpha2d) / AlphaSum;
+            NewColor.W := AlphaSum;
 
             Colors[ix, iy, 0] := NewColor;
           end;
@@ -1021,10 +1022,10 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
-  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
-  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
-  Alpha2 := aColor.Data[3];
+  ByteColor.X := Trunc(255 * aColor.X);
+  ByteColor.Y := Trunc(255 * aColor.Y);
+  ByteColor.Z := Trunc(255 * aColor.Z);
+  Alpha2 := aColor.W;
 
 
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
@@ -1074,17 +1075,17 @@ begin
           if d > 0 then
           begin
             p := PixelPtr(ix, iy);
-            Alpha1 := p^.Data[3] / 255;
+            Alpha1 := p^.W / 255;
             Alpha2d := Alpha2 * Sqr(d);
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then begin
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d) / AlphaSum);
-              p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d) / AlphaSum);
-              p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d) / AlphaSum);
+              p^.X := Round((p^.X * Alpha1d + ByteColor.X * Alpha2d) / AlphaSum);
+              p^.Y := Round((p^.Y * Alpha1d + ByteColor.Y * Alpha2d) / AlphaSum);
+              p^.Z := Round((p^.Z * Alpha1d + ByteColor.Z * Alpha2d) / AlphaSum);
             end;
-            p^.Data[3] := Round(255 * AlphaSum);
+            p^.W := Round(255 * AlphaSum);
           end;
         end;
     end;
@@ -1125,8 +1126,8 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
-  Alpha2 := aColor.Data[3];
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.X, aColor.Y, aColor.Z)));
+  Alpha2 := aColor.W;
 
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
@@ -1175,15 +1176,15 @@ begin
           if d > 0 then
           begin
             p := PixelPtr(ix, iy);
-            Alpha1 := p^.Data[1] / 255;
+            Alpha1 := p^.Y / 255;
             Alpha2d := Alpha2 * Sqr(d);
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then begin
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
+              p^.X := Round((p^.X * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
             end;
-            p^.Data[1] := Round(255 * AlphaSum);
+            p^.Y := Round(255 * AlphaSum);
           end;
         end;
     end;
@@ -1224,10 +1225,10 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
-  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
-  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
-  Alpha2 := aColor.Data[3];
+  ByteColor.X := Trunc(255 * aColor.X);
+  ByteColor.Y := Trunc(255 * aColor.Y);
+  ByteColor.Z := Trunc(255 * aColor.Z);
+  Alpha2 := aColor.W;
 
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
@@ -1279,9 +1280,9 @@ begin
             Alpha2d := Alpha2 * Sqr(d);
 
             Alpha1d := 1 - Alpha2d;
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
-            p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d));
-            p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d));
+            p^.X := Round((p^.X * Alpha1d + ByteColor.X * Alpha2d));
+            p^.Y := Round((p^.Y * Alpha1d + ByteColor.Y * Alpha2d));
+            p^.Z := Round((p^.Z * Alpha1d + ByteColor.Z * Alpha2d));
           end;
         end;
     end;
@@ -1322,8 +1323,8 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
-  Alpha2 := aColor.Data[3];
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.X, aColor.Y, aColor.Z)));
+  Alpha2 := aColor.W;
 
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
@@ -1418,7 +1419,7 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  Alpha2 := aColor.Data[3];
+  Alpha2 := aColor.W;
 
   nx := x2 - x1; {vector along the line}
   ny := y2 - y1;
@@ -1474,16 +1475,16 @@ begin
           if a > 0 then
           begin
             OldColor := Colors[ix, iy, 0];
-            Alpha1 := OldColor.Data[3];
+            Alpha1 := OldColor.W;
             Alpha2d := Alpha2 * a;
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
 
-            NewColor.Data[0] := (OldColor.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum;
-            NewColor.Data[1] := (OldColor.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum;
-            NewColor.Data[2] := (OldColor.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum;
-            NewColor.Data[3] := AlphaSum;
+            NewColor.X := (OldColor.X * Alpha1d + aColor.X * Alpha2d) / AlphaSum;
+            NewColor.Y := (OldColor.Y * Alpha1d + aColor.Y * Alpha2d) / AlphaSum;
+            NewColor.Z := (OldColor.Z * Alpha1d + aColor.Z * Alpha2d) / AlphaSum;
+            NewColor.W := AlphaSum;
 
             Colors[ix, iy, 0] := NewColor;
           end;
@@ -1527,10 +1528,10 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
-  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
-  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
-  Alpha2 := aColor.Data[3];
+  ByteColor.X := Trunc(255 * aColor.X);
+  ByteColor.Y := Trunc(255 * aColor.Y);
+  ByteColor.Z := Trunc(255 * aColor.Z);
+  Alpha2 := aColor.W;
 
   nx := x2 - x1; {vector along the line}
   ny := y2 - y1;
@@ -1586,17 +1587,17 @@ begin
           if a > 0 then
           begin
             p := PixelPtr(ix, iy);
-            Alpha1 := p^.Data[3] / 255;
+            Alpha1 := p^.W / 255;
             Alpha2d := Alpha2 * a;
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then begin
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d) / AlphaSum);
-              p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d) / AlphaSum);
-              p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d) / AlphaSum);
+              p^.X := Round((p^.X * Alpha1d + ByteColor.X * Alpha2d) / AlphaSum);
+              p^.Y := Round((p^.Y * Alpha1d + ByteColor.Y * Alpha2d) / AlphaSum);
+              p^.Z := Round((p^.Z * Alpha1d + ByteColor.Z * Alpha2d) / AlphaSum);
             end;
-            p^.Data[3] := Round(255 * AlphaSum);
+            p^.W := Round(255 * AlphaSum);
           end;
         end;
     end;
@@ -1638,8 +1639,8 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
-  Alpha2 := aColor.Data[3];
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.X, aColor.Y, aColor.Z)));
+  Alpha2 := aColor.W;
 
   nx := x2 - x1; {vector along the line}
   ny := y2 - y1;
@@ -1695,15 +1696,15 @@ begin
           if a > 0 then
           begin
             p := PixelPtr(ix, iy);
-            Alpha1 := p^.Data[1] / 255;
+            Alpha1 := p^.Y / 255;
             Alpha2d := Alpha2 * a;
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then begin
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
+              p^.X := Round((p^.X * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
             end;
-            p^.Data[1] := Round(255 * AlphaSum);
+            p^.Y := Round(255 * AlphaSum);
           end;
         end;
     end;
@@ -1745,10 +1746,10 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
-  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
-  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
-  Alpha2 := aColor.Data[3];
+  ByteColor.X := Trunc(255 * aColor.X);
+  ByteColor.Y := Trunc(255 * aColor.Y);
+  ByteColor.Z := Trunc(255 * aColor.Z);
+  Alpha2 := aColor.W;
 
   nx := x2 - x1; {vector along the line}
   ny := y2 - y1;
@@ -1807,9 +1808,9 @@ begin
             Alpha2d := Alpha2 * a;
 
             Alpha1d := 1 - Alpha2d;
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
-            p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d));
-            p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d));
+            p^.X := Round((p^.X * Alpha1d + ByteColor.X * Alpha2d));
+            p^.Y := Round((p^.Y * Alpha1d + ByteColor.Y * Alpha2d));
+            p^.Z := Round((p^.Z * Alpha1d + ByteColor.Z * Alpha2d));
           end;
         end;
     end;
@@ -1851,8 +1852,8 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
-  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
-  Alpha2 := aColor.Data[3];
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.X, aColor.Y, aColor.Z)));
+  Alpha2 := aColor.W;
   nx := x2 - x1; {vector along the line}
   ny := y2 - y1;
   nLength := Sqrt(Sqr(nx) + Sqr(ny));
@@ -1929,7 +1930,7 @@ var
   x1, y1, x2, y2: integer;
   aFinished: boolean;
   Flood: array of boolean;
-  function isFloodColor(const ax, ay: integer): boolean; {$IFDEF SUPPORTS_INLINE}Inline;{$ENDIF}
+  function isFloodColor(const ax, ay: integer): boolean; {$ifdef FPC}{$IFDEF SUPPORTS_INLINE}Inline;{$ENDIF}{$endif}
   begin
     if (ax >= 0) and (ay >=0) and (ax <= Width) and (ay <= Height) then
     begin

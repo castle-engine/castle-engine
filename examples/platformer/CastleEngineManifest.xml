@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="platformer"
-  standalone_source="platformer_standalone.lpr"
+  standalone_source="platformer_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.platformer"
+  qualified_name="io.castleengine.platformer"
   caption="Platformer"
 >
+  <version value="1.2.0" code="3" />
   <compiler_options>
     <search_paths>
       <path value="code/" />

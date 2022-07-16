@@ -1,0 +1,33 @@
+test_texture.png
+test_texture_grayscale.png
+
+  based on this photo
+  http://gimp-savvy.com/cgi-bin/img.cgi?ufwsMV1VJR1LXOE702
+  from Copyright-Free Photo Archive on
+  http://gimp-savvy.com/PHOTO-ARCHIVE/
+  (public domain).
+
+bricks2.jpg
+
+  from http://opengameart.org/content/brick-texture
+  GPL >= 2.0, CC-BY-SA >= 3.0.
+
+sky_red_*
+
+  have been rendered in Terragen by Michalis.
+  License: same as CGE examples, see castle-engine/COPYING.md
+
+crown.gif, texture_alpha.png
+
+  silly demo images done in GIMP by Michalis.
+  License: same as CGE examples, see castle-engine/COPYING.md
+
+orient-up.ktx
+rgb-reference.ktx
+
+  From Khronos https://github.com/KhronosGroup/KTX-Software/tree/master/tests/testimages .
+
+  License: Apache 2.0 license.
+  With copyright holders including Mark Callow, the KTX-Software author;
+  The Khronos Group Inc., which has supported KTX development; and other contributors to the KTX project.
+  (see https://github.com/KhronosGroup/KTX-Software/blob/master/LICENSE.md

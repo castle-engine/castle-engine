@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,6 +30,7 @@ uses SysUtils, Classes,
 {$I castledownload_save.inc}
 {$I castledownload_text.inc}
 {$I castledownload_strings_helper.inc}
+{$I castledownload_mime.inc}
 {$I castledownload_utils.inc}
 {$undef read_interface}
 
@@ -39,7 +40,7 @@ uses URIParser, Math, Generics.Collections,
   {$ifdef HAS_FP_HTTP_CLIENT} SSLSockets, FpHttpClient, SyncObjs, {$endif}
   {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)} { for ESocketError } SSockets, {$endif}
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
-  CastleClassUtils, CastleDataURI, CastleStringUtils,
+  CastleClassUtils, CastleInternalDataUri, CastleStringUtils,
   CastleApplicationProperties, CastleFilesUtils
   {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
 
@@ -61,6 +62,7 @@ uses URIParser, Math, Generics.Collections,
 {$I castledownload_save.inc}
 {$I castledownload_text.inc}
 {$I castledownload_strings_helper.inc}
+{$I castledownload_mime.inc}
 {$I castledownload_utils.inc}
 
 initialization

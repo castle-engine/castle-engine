@@ -65,11 +65,11 @@ begin
   ButtonStartListening := DesignedComponent('ButtonStartListening') as TCastleButton;
   ButtonStopListening := DesignedComponent('ButtonStopListening') as TCastleButton;
 
-  ButtonStartListening.OnClick := @ClickStartListening;
-  ButtonStopListening.OnClick := @ClickStopListening;
+  ButtonStartListening.OnClick := {$ifdef FPC}@{$endif} ClickStartListening;
+  ButtonStopListening.OnClick := {$ifdef FPC}@{$endif} ClickStopListening;
 
   ActivityRecognition := TActivityRecognition.Create(FreeAtStop);
-  ActivityRecognition.OnChange := @ActivityRecognitionChange;
+  ActivityRecognition.OnChange := {$ifdef FPC}@{$endif} ActivityRecognitionChange;
   ActivityRecognition.Start;
 
   UpdateStatus;
@@ -81,9 +81,9 @@ var
 begin
   S := 'Started:' + BoolToStr(ActivityRecognition.Started, true) + NL + NL;
   if not ActivityRecognition.ActivityValid then
-    S += 'Not yet detected anything.' + NL
+    S := S + 'Not yet detected anything.' + NL
   else
-    S += 'Detected:' + NL +
+    S := S + 'Detected:' + NL +
       NL +
       'Possible Activities:' + NL +
       PossibleActivitiesToStr(ActivityRecognition.PossibleActivities, ',') + NL +

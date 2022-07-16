@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
 }
 
 { Boxes and OpenGL. }
-unit CastleGLBoxes;
+unit CastleGLBoxes deprecated 'this unit no longer contains anything useful; use TCastleBox to draw boxes';
 
 {$I castleconf.inc}
 
@@ -27,13 +27,13 @@ uses CastleBoxes;
 { Draw the wireframe box.
   Nothing is generated besides vertex positions ---
   no normal vectors, no texture coords, nothing. }
-procedure glDrawBox3DWire(const Box: TBox3D); deprecated 'do not draw like this, instead create TCastleScene with Cube node inside';
+procedure glDrawBox3DWire(const Box: TBox3D); deprecated 'do not draw like this; instead use TCastleBox or TCastleScene with TBoxNode';
 
 {$endif}
 
 implementation
 
-uses {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
+uses {$ifdef FPC} CastleGL {$else} GL, GLExt {$endif};
 
 {$ifndef OpenGLES}
 
@@ -66,8 +66,8 @@ procedure glDrawBox3DWire(const Box: TBox3D);
 
 begin
   glDrawRaw(
-    Box.Data[0].Data[0], Box.Data[0].Data[1], Box.Data[0].Data[2],
-    Box.Data[1].Data[0], Box.Data[1].Data[1], Box.Data[1].Data[2])
+    Box.Data[0].X, Box.Data[0].Y, Box.Data[0].Z,
+    Box.Data[1].X, Box.Data[1].Y, Box.Data[1].Z)
 end;
 
 {$endif}

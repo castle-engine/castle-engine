@@ -1,12 +1,18 @@
 /* -*- mode: groovy -*-
-  Confgure how to run our job in Jenkins.
+  Configure how to run our job in Jenkins.
   This runs on Windows.
-  See https://github.com/castle-engine/castle-engine/wiki/Cloud-Builds-(Jenkins) .
+  See https://castle-engine.io/cloud_builds_jenkins .
 */
 
 library 'cag-shared-jenkins-library'
 
 pipeline {
+  options {
+    /* While concurrent builds of CGE work OK,
+       they stuck Jenkins much with too many long-running builds.
+       Better to wait for previous build to finish. */
+    disableConcurrentBuilds()
+  }
   agent {
     label 'raspberry-pi-cge-builder'
   }
@@ -25,6 +31,11 @@ pipeline {
         sh 'fpc -iV'
         sh 'lazbuild --version'
         sh 'make --version'
+      }
+    }
+    stage('Cleanup') {
+      steps {
+        sh "repository_cleanup . --remove-unversioned"
       }
     }
     stage('Build Tools') {

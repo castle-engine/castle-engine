@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -40,7 +40,7 @@ type
     procedure CollisionExit(const CollisionDetails: TPhysicsCollisionDetails);
   end;
 
-  TDeadlyObstaclesList = specialize TObjectList<TDeadlyObstacle>;
+  TDeadlyObstaclesList = {$ifdef FPC}specialize{$endif} TObjectList<TDeadlyObstacle>;
 
 implementation
 
@@ -64,8 +64,8 @@ begin
   RBody.LockRotation := [0, 1, 2];
   RBody.Trigger := true;
   RBody.MaximalLinearVelocity := 0;
-  RBody.OnCollisionEnter := @CollisionEnter;
-  RBody.OnCollisionExit := @CollisionExit;
+  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
+  RBody.OnCollisionExit := {$ifdef FPC}@{$endif}CollisionExit;
 
   Collider:= TBoxCollider.Create(RBody);
   Collider.Size := Vector3(Scene.BoundingBox.SizeX / 2.2, Scene.BoundingBox.SizeY / 3, 30.0);

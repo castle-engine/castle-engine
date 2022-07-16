@@ -156,6 +156,12 @@ begin
   if E = '.entitlements' then
     Result := 'text.plist.entitlements'
   else
+  if E = '.storyboard' then
+    Result := 'file.storyboard'
+  else
+  if E = '.png' then
+    Result := 'image.png'
+  else
   begin
     WarningWrite('Unrecognized file extension in Xcode project: "%s" on file "%s". Assuming a text file.',
       [E, Name]);
@@ -170,6 +176,10 @@ begin
   E := LowerCase(ExtractFileExt(Name));
   if (E = '.c') or (E = '.m') then
     Result := 'Sources'
+  else
+  // Use new (since iOS 8) launch image in storyboard
+  if (E = '.storyboard') or (Name = 'LaunchScreenImage.png') then
+    Result := 'Resources'
   else
   // Uncomment this to copy .txt files to the final application.
   // if E = '.txt' then
@@ -460,8 +470,7 @@ begin
     #9#9#9#9'4D90CC2219197A82004E90CC /* data in Resources */,' + NL +
     #9#9#9#9'4D629E0A1916B0EB0082689B /* Images.xcassets in Resources */,' + NL;
 
-  { The loop below does nothing for now, as the BuildGroup is never 'Resources'
-    now for any file. Maybe it will be useful in the future. }
+  { The loop below adds 'Resources', which includes launch image storyboard + png. }
   for F in Files do
     if F.BuildGroup = 'Resources' then
       Result := Result + Format(

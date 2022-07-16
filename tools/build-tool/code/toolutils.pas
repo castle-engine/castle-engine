@@ -1,9 +1,7 @@
 {
-  Copyright 2014-2019 Michalis Kamburelis.
+  Copyright 2014-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
-  Parts of this file are based on FPC packages/fcl-process/src/process.pp ,
-  which conveniently uses *exactly* the same license as Castle Game Engine.
 
   "Castle Game Engine" is free software; see the file COPYING.txt,
   included in this distribution, for details about the copyright.
@@ -77,15 +75,36 @@ procedure ParametersAddMacros(const Macros, Parameters: TStringStringMap;
 
 { Find the filename of linker input produced by FPC when called with -Cn .
   Path must contain a final path delimiter.
+  Raises exception if not found (or found too many, and it is ambiguous what to use).
 
   For old FPC, it is just link.res.
-  For new FPC 3.3.1 it may be any link<id>.res and unfortunately we don't know the <id>
-  (it's not the TProcess.ProcessID of "fpc" process, at least under Windows). }
+
+  During FPC 3.2.0 -> 3.2.2 development:
+  it may be any link<id>.res and unfortunately we don't know the <id>
+  (it's not the TProcess.ProcessID of "fpc" process, at least under Windows).
+
+  Since FPC 3.2.2 it is linkfiles<id>.res (and we ignore link<id>.res and linksyms<id>.res). }
 function FindLinkRes(const Path: String): String;
+
+{ Set Unix executable bit.
+  It will not be able to perform the CHMOD operation on non-Unix OS
+  and will log a corresponding warning instead. }
+procedure DoMakeExecutable(const PathAndName: String);
+
+{ Simple GUI error box.
+
+  Implemented without depending on GTK, LCL or any other GUI library
+  on Unix, as build tool should remain command-line only, to be easy to use
+  on servers without GUI libraries installed. We depend on "zenity".
+
+  This is only used when --gui-errors was used. }
+procedure ErrorBox(const Message: String);
 
 implementation
 
-uses Classes, Process, SysUtils,
+uses {$ifdef UNIX} BaseUnix, {$endif}
+  {$ifdef MSWINDOWS} Windows, {$endif}
+  Classes, Process, SysUtils,
   CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog, CastleXMLUtils,
   CastleFindFiles,
   ToolCommonUtils;
@@ -179,11 +198,66 @@ begin
     Exit(LinkFilesRes);
   end;
 
+  { First try to match linkfiles*.res, ignoring other link*.res.
+    This is good for FPC >= 3.2.2. }
+  Handler := TFindLinkResHandler.Create;
+  try
+    FindFiles(Path, 'linkfiles*.res', false, @Handler.FoundFile, []);
+    Result := Handler.FileName;
+    if Result <> '' then
+      Exit;
+  finally FreeAndNil(Handler) end;
+
+  { If no linkfiles*.res found, try to match any link*.res.
+    This is good for FPC development between 3.2.0 and 3.2.2. }
   Handler := TFindLinkResHandler.Create;
   try
     FindFiles(Path, 'link*.res', false, @Handler.FoundFile, []);
     Result := Handler.FileName;
+    if Result <> '' then
+      Exit;
   finally FreeAndNil(Handler) end;
+
+  raise Exception.CreateFmt('Cannot find any linker input file in the directory "%s"', [
+    Path
+  ]);
+end;
+
+procedure DoMakeExecutable(const PathAndName: String);
+{$ifdef UNIX}
+var
+  ChmodResult: CInt;
+begin
+  ChmodResult := FpChmod(PathAndName,
+    S_IRUSR or S_IWUSR or S_IXUSR or
+    S_IRGRP or            S_IXGRP or
+    S_IROTH or            S_IXOTH);
+  if ChmodResult <> 0 then
+    WritelnWarning('Package', Format('Error setting executable bit on "%s": %s', [
+      PathAndName,
+      SysErrorMessage(ChmodResult)
+    ]));
+{$else}
+begin
+  WritelnWarning('Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive may not be 100% comfortable for Unix users');
+{$endif}
+end;
+
+procedure ErrorBox(const Message: String);
+
+  {$ifdef MSWINDOWS}
+  procedure WindowsErrorBox(const Text: String; const Caption: String = 'Error'; const Parent: HWND = 0);
+  begin
+    MessageBox(Parent, PChar(Text), PChar(Caption), MB_OK or MB_ICONERROR or MB_TASKMODAL);
+  end;
+  {$endif}
+
+begin
+  {$ifdef MSWINDOWS}
+  WindowsErrorBox(Message);
+  {$else}
+  RunCommandSimple('zenity', ['--error', '--no-markup', '--text=' + Message]);
+  {$endif}
 end;
 
 end.

@@ -10,7 +10,7 @@ This demo uses the most advised way to deal with sptite sheets:
 
 - load to TCastleScene.
 
-See [sprite sheets documentation](https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets).
+See [sprite sheets documentation](https://castle-engine.io/sprite_sheets).
 
 # Alternatives
 

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Manage a list of recently opened files, and show a menu in TCastleWindowBase.
+{ Manage a list of recently opened files, and show a menu in TCastleWindow.
   See TRecentFiles class. }
 unit CastleWindowRecentFiles;
 
@@ -24,7 +24,7 @@ interface
 uses Classes, CastleWindow, CastleRecentFiles;
 
 type
-  { Manage a list of recently opened files, and show a menu in TCastleWindowBase. }
+  { Manage a list of recently opened files, and show a menu in TCastleWindow. }
   TWindowRecentFiles = class(TRecentFiles)
   private
     FNextMenuItem: TMenuEntry;
@@ -89,7 +89,7 @@ begin
   if Number = 10 then
     S := '1_0' else
     S := IntToStr(Number);
-  S += '. ' + SQuoteMenuEntryCaption(URICaption(URL));
+  S := S + '. ' + SQuoteMenuEntryCaption(URICaption(URL));
 
   inherited Create(S, AIntData);
 end;

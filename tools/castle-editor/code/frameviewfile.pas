@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2019 Michalis Kamburelis.
+  Copyright 2018-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,6 +16,12 @@
 { Quick file viewer for various file types supported by CGE. }
 unit FrameViewFile;
 
+{$if defined(LCLGTK3) or defined(LCLQt) or defined(LCLQt5)}
+  {$error Do not use LCL Qt or GTK3 widgetsets to build CGE editor, as LCL TOpenGLControl doesn't support OpenGL context sharing in this case. Use LCL default widgetset instead, like GTK2.}
+  // Didn't fit in message above:
+  // For your own applications, if you only use one TCastleControl in the application, it's not a problem.
+{$endif}
+
 interface
 
 uses
@@ -25,20 +31,25 @@ uses
 
 type
   TViewFileFrame = class(TFrame)
-    Control: TCastleControlBase;
+    Control: TCastleControl;
   private
     FURL, FSuccessMessage, FErrorMessage: String;
     LabelURL, LabelInformation: TCastleLabel;
     PreviewLayer: TCastleUserInterface;
-    Viewport: TCastleViewport;
+    {$warnings off} // using TCastleAutoNavigationViewport that should be internal
+    Viewport: TCastleAutoNavigationViewport;
+    {$warnings on}
     Scene: TCastleScene;
     Image: TCastleImageControl;
-    SoundSource: TSound;
-    SoundBuffer: TSoundBuffer;
+    Sound: TCastleSound;
+    PlayingSound: TCastlePlayingSound;
     SoundButton: TCastleButton;
+    LabelVolume: TCastleLabel;
     procedure ClickSoundButton(Sender: TObject);
-    procedure SoundSourceRelease(Sound: TSound);
+    procedure SoundStop(Sender: TObject);
     procedure FinishLoading(const AURL: String);
+    procedure UpdateLabelVolume(const Sender: TCastleUserInterface;
+      const SecondsPassed: Single; var HandleInput: Boolean);
   protected
     procedure Loaded; override;
   public
@@ -55,7 +66,8 @@ type
 implementation
 
 uses CastleColors, CastleUtils, CastleSoundBase, CastleVectors, CastleCameras,
-  CastleURIUtils;
+  CastleTransform, CastleURIUtils,
+  EditorUtils;
 
 {$R *.lfm}
 
@@ -75,17 +87,9 @@ begin
   FreeAndNil(Scene);
   FreeAndNil(Image);
   FreeAndNil(SoundButton);
-  if SoundSource <> nil then
-  begin
-    SoundSource.OnRelease := nil;
-    SoundSource.Release;
-    SoundSource := nil;
-  end;
-  if SoundBuffer <> nil then
-  begin
-    SoundEngine.FreeBuffer(SoundBuffer);
-    SoundBuffer := nil;
-  end;
+  FreeAndNil(LabelVolume);
+  FreeAndNil(PlayingSound);
+  FreeAndNil(Sound);
 
   { Save and restore InternalCastleDesignInvalidate here,
     for the same reason as in LoadXxx.
@@ -97,29 +101,29 @@ end;
 
 procedure TViewFileFrame.ClickSoundButton(Sender: TObject);
 begin
-  if SoundBuffer = nil then Exit;
-
-  if SoundSource <> nil then
+  if PlayingSound <> nil then
   begin
-    SoundSource.Release; // will call SoundSourceRelease which will nil SoundSource
+    PlayingSound.Stop;// will call SoundStop which will set PlayingSound := nil
+    Assert(PlayingSound = nil);
     SoundButton.Caption := 'PLAY';
   end else
   begin
-    SoundSource := SoundEngine.PlaySound(SoundBuffer);
-    if SoundSource <> nil then
-    begin
-      SoundSource.OnRelease := @SoundSourceRelease;
-      SoundButton.Caption := 'STOP';
-    end;
+    SoundButton.Caption := 'STOP';
+    PlayingSound := TCastlePlayingSound.Create(Self);
+    PlayingSound.Sound := Sound;
+    PlayingSound.FreeOnStop := true;
+    PlayingSound.OnStop := @SoundStop;
+    { Note: In special cases, if we don't have enough audio sources, the Play immediately
+      stops the sound (calling OnStop (changing SoundButton.Caption) and applying FreeOnStop). }
+    SoundEngine.Play(PlayingSound);
   end;
 end;
 
-procedure TViewFileFrame.SoundSourceRelease(Sound: TSound);
+procedure TViewFileFrame.SoundStop(Sender: TObject);
 begin
-  Sound.OnRelease := nil;
   if SoundButton <> nil then
     SoundButton.Caption := 'PLAY';
-  SoundSource := nil;
+  PlayingSound := nil;
 end;
 
 procedure TViewFileFrame.FinishLoading(const AURL: String);
@@ -177,7 +181,9 @@ begin
   OldInternalCastleDesignInvalidate := InternalCastleDesignInvalidate;
   ClearLoaded;
 
-  Viewport := TCastleViewport.Create(Self);
+  {$warnings off} // using TCastleAutoNavigationViewport that should be internal
+  Viewport := TCastleAutoNavigationViewport.InternalCreateNonDesign(Self);
+  {$warnings on}
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
   Viewport.AutoNavigation := true;
@@ -201,7 +207,8 @@ begin
     CameraViewpointForWholeScene(Viewport.Items.BoundingBox,
       2, 1, false, true, Pos, Dir, Up, GravityUp);
     Viewport.NavigationType := ntExamine;
-    Viewport.Camera.SetView(Pos, Dir, Up, GravityUp);
+    Viewport.Camera.SetWorldView(Pos, Dir, Up);
+    Viewport.Camera.GravityUp := GravityUp;
   except
     on E: Exception do
     begin
@@ -275,10 +282,19 @@ begin
   SoundButton.MinHeight := 100;
   PreviewLayer.InsertFront(SoundButton);
 
-  try
-    SoundBuffer := SoundEngine.LoadBuffer(AURL);
+  LabelVolume := TCastleLabel.Create(Self);
+  LabelVolume.FontSize := 20;
+  LabelVolume.Color := Gray;
+  LabelVolume.Anchor(hpMiddle);
+  LabelVolume.Anchor(vpTop, vpBottom, -5);
+  LabelVolume.OnUpdate := @UpdateLabelVolume;
+  SoundButton.InsertFront(LabelVolume);
 
-    // without this check, LoadBuffer fails silently e.g. when OpenAL dll not found
+  Sound := TCastleSound.Create(Self);
+  try
+    Sound.URL := AURL;
+
+    // without this check, loading fails silently e.g. when OpenAL dll not found
     if not SoundEngine.IsContextOpenSuccess then
       raise Exception.Create('Sound engine backend cannot be initialized.' + NL +
         SoundEngine.Information);
@@ -287,9 +303,9 @@ begin
       'Duration: %f' + NL +
       'Format: %s' + NL +
       'Frequency: %d', [
-      SoundBuffer.Duration,
-      DataFormatToStr(SoundBuffer.DataFormat),
-      SoundBuffer.Frequency
+      Sound.Duration,
+      DataFormatToStr(Sound.DataFormat),
+      Sound.Frequency
     ]);
     SoundButton.Enabled := true;
   except
@@ -302,6 +318,21 @@ begin
 
   FinishLoading(AURL);
   InternalCastleDesignInvalidate := OldInternalCastleDesignInvalidate;
+end;
+
+procedure TViewFileFrame.UpdateLabelVolume(const Sender: TCastleUserInterface;
+  const SecondsPassed: Single; var HandleInput: Boolean);
+var
+  S: String;
+begin
+  if SoundEngine.Volume = 0 then
+  begin
+    S := 'Volume: mute';
+    if RunningApplication and MuteOnRun then
+      S := S + ' (application running)';
+  end else
+    S := Format('Volume: %f', [SoundEngine.Volume]);
+  LabelVolume.Caption := S;
 end;
 
 end.

@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,6 +40,7 @@ CastleAndroidInternalCWString, CastleAndroidInternalLooper,
 CastleAndroidInternalLog, CastleAndroidInternalAssetStream,
 CastleAndroidInternalConfiguration,
 {$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif} CastleDynLib,
+{$ifdef CASTLE_PNG_DYNAMIC} CastleInternalPng, {$endif}
 CastleInternalOpenAL, CastleInternalVorbisFile, CastleInternalFreeTypeH, CastleInternalZLib,
 {$endif}
 
@@ -99,7 +100,7 @@ private
 procedure OpenContext;
 var
   Width, Height: Integer;
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
   NativeWindow: PANativeWindow;
 begin
   Window := Application.MainWindow;
@@ -142,7 +143,7 @@ end;
   It's important that we release all OpenGL resources, to recreate them later. }
 procedure CloseContext;
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 begin
   AndroidLog(alInfo, 'CloseContext');
 
@@ -205,7 +206,7 @@ begin
   case Command of
     APP_CMD_INIT_WINDOW:
       begin
-        { We will actually process this event (calling TCastleWindowBase.Open)
+        { We will actually process this event (calling TCastleWindow.Open)
           later, to avoid ANRs when OnOpen does something time-consuming. }
         MainWindow.NativeWindow := App^.Window;
         MainWindow.Dpi := DetermineDpi(App);
@@ -461,9 +462,9 @@ begin
   Application.Run;
 end;
 
-{ TCastleWindowBase ---------------------------------------------------------- }
+{ TCastleWindow ---------------------------------------------------------- }
 
-procedure TCastleWindowBase.CreateBackend;
+procedure TCastleWindow.CreateBackend;
 begin
 end;
 
@@ -471,59 +472,59 @@ end;
   But we cannot do this from NDK, it would require implementing Java code
   connected to us. }
 
-procedure TCastleWindowBase.BackendMenuInitialize;
+procedure TCastleWindow.BackendMenuInitialize;
 begin
 end;
 
-procedure TCastleWindowBase.BackendMenuFinalize;
+procedure TCastleWindow.BackendMenuFinalize;
 begin
 end;
 
-procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
-begin
-  MenuFinalize;
-  MenuInitialize;
-end;
-
-procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
+begin
+  MenuFinalize;
+  MenuInitialize;
+end;
+
+function TCastleWindow.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+procedure TCastleWindow.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.OpenBackend;
+procedure TCastleWindow.OpenBackend;
 begin
   ContextCreateBegin;
   ContextCreateEnd(NativeWindow);
   Application.OpenWindowsAdd(Self);
 end;
 
-procedure TCastleWindowBase.CloseBackend;
+procedure TCastleWindow.CloseBackend;
 begin
   ContextDestroyBegin;
   ContextDestroyEnd;
@@ -535,29 +536,22 @@ begin
     previous NativeWindow value. }
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
-  if not Closed then { TODO: use GetWholeCaption };
+  // GetWholeCaption is ignored on Android
 end;
 
-procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
     FCursor := Value;
-    if not Closed then
-      { TODO UpdateCursor };
+    // Cursor is ignored on Android
   end;
 end;
 
-procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
-begin
-  { TODO }
-  FCustomCursor := Value;
-end;
-
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
   { Call menu shortcuts on key presses.
     Since we don't show MainMenu, this is the only way how we can at least
@@ -565,7 +559,7 @@ begin
   Result := true;
 end;
 
-procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 begin
   { There is no cursor position on Android devices.
     Just update MousePosition (although we're not really required to
@@ -575,7 +569,7 @@ begin
     FMousePosition := Value;
 end;
 
-procedure TCastleWindowBase.UpdateFullScreenBackend;
+procedure TCastleWindow.UpdateFullScreenBackend;
 begin
   FFullScreenBackend := FFullScreenWanted; // does nothing on Android
 end;
@@ -742,7 +736,7 @@ begin
     may be called many times, because ANativeActivity_onCreate may be called
     multple times. So things below must be implemented in a secure way,
     to work Ok when executed multiple times. }
-  GLES20Initialization;
+  GLESInitialization;
   OpenALInitialization;
   VorbisFileInitialization;
   InitializeAndroidCWString;
@@ -792,14 +786,6 @@ function TCastleApplication.BackendName: string;
 begin
   Result := 'Android';
 end;
-
-{ TCastleWindow -------------------------------------------------------------- }
-
-{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
-procedure TCastleWindow.NavigationInfoChanged;
-begin
-end;
-{$endif}
 
 { TWindowContainer ----------------------------------------------------------- }
 

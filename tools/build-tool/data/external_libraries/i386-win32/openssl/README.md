@@ -6,6 +6,6 @@ They will be automatically packages with your applications and games
 using Castle Game Engine build tool.
 You just use "castle-engine package" and make sure you have "https" in your
 dependencies. See
-https://github.com/castle-engine/castle-engine/wiki/Build-Tool and
-https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples .
+https://castle-engine.io/build_tool and
+https://castle-engine.io/project_manifest .
 

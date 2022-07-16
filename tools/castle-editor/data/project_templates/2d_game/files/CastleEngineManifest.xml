@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="${PROJECT_NAME}"
-  standalone_source="${PROJECT_PASCAL_NAME}_standalone.lpr"
+<project name="${XmlQuote(PROJECT_NAME)}"
+  standalone_source="${XmlQuote(PROJECT_PASCAL_NAME)}_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="${PROJECT_QUALIFIED_NAME}"
-  caption="${PROJECT_CAPTION}"
+  qualified_name="${XmlQuote(PROJECT_QUALIFIED_NAME)}"
+  caption="${XmlQuote(PROJECT_CAPTION)}"
 >
   <compiler_options>
     <search_paths>

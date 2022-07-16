@@ -27,7 +27,7 @@ uses Generics.Collections,
 type
   TGLContextEvent = procedure;
 
-  TGLContextEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TGLContextEvent>)
+  TGLContextEventList = class({$ifdef FPC}specialize{$endif} TList<TGLContextEvent>)
   public
     { Call all items, first to last. }
     procedure ExecuteForward;
@@ -38,12 +38,12 @@ type
   TWarningEvent = procedure (const Category, Message: String) of object;
   TLogEvent = procedure (const Message: String) of object;
 
-  TWarningEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TWarningEvent>)
+  TWarningEventList = class({$ifdef FPC}specialize{$endif} TList<TWarningEvent>)
   public
     procedure ExecuteAll(const Category, Message: String);
   end;
 
-  TLogEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TLogEvent>)
+  TLogEventList = class({$ifdef FPC}specialize{$endif} TList<TLogEvent>)
   public
     procedure ExecuteAll(const Message: String);
   end;
@@ -106,20 +106,20 @@ type
       A "touch device" means that:
 
       @unorderedList(
-        @item(We cannot track @link(TUIContainer.MousePosition)
-          when nothing is pressed (@link(TUIContainer.MousePressed) is [])
+        @item(We cannot track @link(TCastleContainer.MousePosition)
+          when nothing is pressed (@link(TCastleContainer.MousePressed) is [])
           on a touch device.)
 
         @item(The only "mouse button" you will ever see pressed
           on a touch device is buttonLeft.)
 
         @item(On the other hand, touch devices support multitouch, exposed by
-          @link(TUIContainer.Touches) and @link(TUIContainer.TouchesCount).
-          On touch devices, @link(TUIContainer.TouchesCount) can range
+          @link(TCastleContainer.Touches) and @link(TCastleContainer.TouchesCount).
+          On touch devices, @link(TCastleContainer.TouchesCount) can range
           from 0 to a few (modern touch devices support up to 5 simultaneous
           touches).
 
-          On non-touch devices, @link(TUIContainer.TouchesCount) is always 1.)
+          On non-touch devices, @link(TCastleContainer.TouchesCount) is always 1.)
       )
 
       As a debugging feature, you can set this to @true
@@ -157,7 +157,7 @@ type
 
       The mechanism is implemented by occasionally sleeping
       (when we see that we render way faster than we need to).
-      So it's a global thing, not just a property of TCastleWindowBase or TCastleControlBase.
+      So it's a global thing, not just a property of TCastleWindow or TCastleControl.
 
       In some cases, this also means the "desired number of FPS".
       This happens when we may be clogged with events
@@ -169,20 +169,20 @@ type
       it is also capped (by 100.0).
 
       @unorderedList(
-        @item(Comments specifically about TCastleWindowBase:
+        @item(Comments specifically about TCastleWindow:
 
           This limits the number of TCastleApplication.ProcessMessage
           calls per second, in situations when we do not have to process any user input.
-          So we limit not only rendering (TCastleWindowBase.OnRender)
-          but also other animation processing (TCastleWindowBase.OnUpdate) calls per second.
+          So we limit not only rendering (TCastleWindow.OnRender)
+          but also other animation processing (TCastleWindow.OnUpdate) calls per second.
           See TCastleApplication.ProcessMessage.
 
           See TCastleWindow.ProcessMessage documentation about WaitToLimitFPS
           parameter, and see TCastleApplication.LimitFPS documentation.)
 
-        @item(Comments specifically about TCastleControlBase:
+        @item(Comments specifically about TCastleControl:
 
-          This mechanism is activated only when some TCastleControlBase
+          This mechanism is activated only when some TCastleControl
           component is used, and only when LCL idle is fired (so we have no pending
           events, as LCL idle is "lazy" and fires only when process is really idle),
           and not at Lazarus design time.)
@@ -192,10 +192,10 @@ type
 
     { Callbacks called when the OpenGL context is opened or closed.
       Use when you want to be notified about OpenGL context availability,
-      but cannot refer to a particular instance of TCastleControlBase or TCastleWindowBase.
+      but cannot refer to a particular instance of TCastleControl or TCastleWindow.
 
       Note that we may have many OpenGL contexts (many
-      TCastleWindowBase or TCastleControlBase instances) open simultaneously.
+      TCastleWindow or TCastleControl instances) open simultaneously.
       They all share OpenGL resources.
       OnGLContextOpen is called when first OpenGL context is open,
       that is: no previous context was open.
@@ -222,8 +222,8 @@ type
 
     { Callbacks called continuously when (at least one) window is open.
 
-      You can use this just like @link(TCastleControlBase.OnUpdate)
-      or @link(TCastleWindowBase.OnUpdate) or @link(TCastleApplication.OnUpdate). }
+      You can use this just like @link(TCastleControl.OnUpdate)
+      or @link(TCastleWindow.OnUpdate) or @link(TCastleApplication.OnUpdate). }
     property OnUpdate: TNotifyEventList read FOnUpdate;
 
     { Callbacks called when Android Java activity started.
@@ -239,7 +239,7 @@ type
           @link(TCastleApplication.OnInitialize)),
           but we need to reinitialize Java part.
 
-          Note that this is different from @link(TCastleWindowBase.OnOpen).
+          Note that this is different from @link(TCastleWindow.OnOpen).
           We lose OpenGL context often, actually every time user switches to another
           app, without having neither Java nor native threads killed.
         )
@@ -385,7 +385,7 @@ begin
   FOnLog := TLogEventList.Create;
   FFileAccessSafe := true;
   FTouchDevice :=
-    {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
       true
     {$else}
       false
@@ -395,7 +395,7 @@ begin
     E.g. on other consoles, FTouchDevice may be false,
     but FShowUserInterfaceToQuit may be true. }
   FShowUserInterfaceToQuit :=
-    {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
       false
     {$else}
       true

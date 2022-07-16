@@ -186,3 +186,6 @@ TOctree=TObject
 TOctreeNode=TObject
 TX3DShaderProgramBase=TGLSLProgram
 TX3DShaderProgram=TX3DShaderProgramBase
+
+TMOFile=TObject
+TCastleAlive=TCastleTransform

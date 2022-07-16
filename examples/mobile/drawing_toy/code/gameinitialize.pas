@@ -21,7 +21,7 @@ interface
 uses CastleWindow;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 implementation
 
@@ -54,7 +54,7 @@ begin
   Window.Controls.InsertFront(ImageControl);
 end;
 
-procedure WindowRender(Container: TUIContainer);
+procedure WindowRender(Container: TCastleContainer);
 var
   S: TStringList;
   I: Integer;
@@ -72,11 +72,11 @@ begin
         [I,
          Container.Touches[I].FingerIndex,
          Container.Touches[I].Position.ToString ]));
-    UIFont.PrintStrings(10, 10, Yellow, S, false, 2);
+    FallbackFont.PrintStrings(10, 10, Yellow, S, false, 2);
   finally FreeAndNil(S) end;
 end;
 
-procedure WindowResize(Container: TUIContainer);
+procedure WindowResize(Container: TCastleContainer);
 var
   NewImage: TRGBImage;
 begin
@@ -114,13 +114,13 @@ begin
     FloatRectangle(Brush.Rect));
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   if Event.EventType = itMouseButton then
     Draw(Event.Position, Event.FingerIndex);
 end;
 
-procedure WindowMotion(Container: TUIContainer; const Event: TInputMotion);
+procedure WindowMotion(Container: TCastleContainer; const Event: TInputMotion);
 begin
   if Event.Pressed <> [] then
     Draw(Event.Position, Event.FingerIndex);
@@ -139,7 +139,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 

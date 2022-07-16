@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,15 +25,21 @@ uses Classes,
 { Raise exception that Nintendo Switch is not supported in open-source version. }
 procedure NxNotSupported;
 
-{ Compile any Pascal unit for Nintendo Switch. }
-procedure CompileNintendoSwitch(
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+{ Compile any Pascal unit for Nintendo Switch.
 
-{ Compile a final library for Nintendo Switch. }
+  CompilerOptions.OS andCompilerOptions.CPU are ignored by this routine.
+  This routine may modify CompilerOptions contents. }
+procedure CompileNintendoSwitch(
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
+
+{ Compile a final library for Nintendo Switch.
+
+  CompilerOptions.OS andCompilerOptions.CPU are ignored by this routine.
+  This routine may modify CompilerOptions contents. }
 procedure CompileNintendoSwitchLibrary(const Project: TCastleProject;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
 
 procedure PackageNintendoSwitch(const Project: TCastleProject);
 
@@ -51,15 +57,15 @@ begin
 end;
 
 procedure CompileNintendoSwitch(
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
 begin
   NxNotSupported;
 end;
 
 procedure CompileNintendoSwitchLibrary(const Project: TCastleProject;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+  const WorkingDirectory, CompileFile: string;
+  const CompilerOptions: TCompilerOptions);
 begin
   NxNotSupported;
 end;

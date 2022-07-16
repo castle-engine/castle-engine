@@ -1,17 +1,21 @@
-{ @abstract(Bindings to zlib library.)
+{ Zlib bindings, for Castle Game Engine.
 
-  Copied from FPC zlib.pp in packages.
-  Changed by Kambi to
+  Based on FPC zlib.pp unit.
+  Adjusted to:
+
   @unorderedList(
     @item(link to zlib1.dll under Windows (from [http://gnuwin32.sourceforge.net/]),
       this uses cdecl calling convention)
     @item(name changed from zlib to CastleInternalZLib to not collide with FPC and Kylix
       zlib units)
-    @item(changed to link using my TDynLib instead of linking with
+    @item(changed to link using CGE TDynLib instead of linking with
       "external libz ...")
     @item(just like CastleInternalPng: zlib library does not need to be
       actually present on the user system.
       If zlib is not be installed, CastleZLibInitialized will be simply set to @false.)
+    @item(honor ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION)
+    @item(For both FPC and Delphi (uses PAnsiChar for new unicode Delphis).)
+
   )
 
   @exclude (This is only a C header translation --- no nice PasDoc docs.)
@@ -24,31 +28,25 @@ unit CastleInternalZLib;
 {$ifdef CASTLE_ZLIB_USING_PASZLIB}
 interface
 { CastleInternalZLib unit doesn't expose anything when CASTLE_ZLIB_USING_PASZLIB
-  is defined. Instead, use PasZLib, which implement Zlib API in pure Pascal. }
+  is defined. Instead, use PasZLib, which implements Zlib API in pure Pascal. }
 implementation
 end.
 {$else}
 
 interface
 
-{$ifndef DELPHI}
+{$ifdef FPC}
   { for linux for linking with libc }
   {$ifdef unix}
     {$linklib c}
   {$endif}
   {$PACKRECORDS 4}
+{$else}
+  {$ALIGN 4}
 {$endif}
 
 const
   ZLIB_VERSION = '1.1.3';
-
-  ZLibraryName =
-    {$ifdef UNIX}
-      {$ifdef DARWIN} 'libz.dylib'
-      {$else} 'libz.so.1'
-      {$endif}
-    {$endif}
-    {$ifdef MSWINDOWS} 'zlib1.dll' {$endif};
 
 type
   { Compatible with paszlib }
@@ -123,7 +121,7 @@ const
   Z_NULL = 0;
 
 var
-  zlibVersionpchar: function:pchar;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  zlibVersionpchar: function:PAnsiChar;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   deflate: function(var strm:TZStream; flush:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   deflateEnd: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   inflate: function(var strm:TZStream; flush:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
@@ -138,8 +136,8 @@ var
   compress: function(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   compress2: function(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong; level:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   uncompress: function(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzopen: function(path:pchar; mode:pchar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzdopen: function(fd:longint; mode:pchar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzopen: function(path:PAnsiChar; mode:PAnsiChar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzdopen: function(fd:longint; mode:PAnsiChar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzsetparams: function(thefile:gzFile; level:longint; strategy:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzread: function(thefile:gzFile; buf:pointer; len:cardinal):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzwrite: function(thefile:gzFile; buf:pointer; len:cardinal):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
@@ -164,11 +162,11 @@ var
   gzerror: function(thefile:gzFile; var errnum:longint):pbytef;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   adler32: function(adler:uLong;buf : pbytef; len:uInt):uLong;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   crc32: function(crc:uLong;buf : pbytef; len:uInt):uLong;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateInit_: function(var strm:TZStream; level:longint; version:pchar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateInit_: function(var strm:TZStream; version:pchar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateInit2_: function(var strm:TZStream; level:longint; method:longint; windowBits:longint; memLevel:longint;strategy:longint; version:pchar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateInit2_: function(var strm:TZStream; windowBits:longint; version:pchar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  zErrorpchar: function(err:longint):pchar;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateInit_: function(var strm:TZStream; level:longint; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateInit_: function(var strm:TZStream; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateInit2_: function(var strm:TZStream; level:longint; method:longint; windowBits:longint; memLevel:longint;strategy:longint; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateInit2_: function(var strm:TZStream; windowBits:longint; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  zErrorpchar: function(err:longint):PAnsiChar;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   inflateSyncPoint: function(z:PZstream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   get_crc_table: function:pointer;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
 
@@ -192,7 +190,7 @@ procedure ZLibInitialization;
 
 implementation
 
-uses SysUtils, CastleDynLib;
+uses SysUtils, CastleDynLib, CastleUtils, CastleLog;
 
 function zlibversion : string;
   begin
@@ -233,52 +231,78 @@ begin
 end;
 
 procedure ZLibInitialization;
+const
+  ZLibraryName =
+    {$ifdef UNIX}
+      {$ifdef DARWIN} 'libz.dylib'
+      {$else} 'libz.so.1'
+      {$endif}
+    {$endif}
+    {$ifdef MSWINDOWS} 'zlib1.dll' {$endif};
 begin
   ZLibrary := TDynLib.Load(ZLibraryName, false);
+
+  {$ifdef FREEBSD}
+  if ZLibrary = nil then
+    ZLibrary := TDynLib.Load('libz.so.6', false);
+  {$endif}
+
   if ZLibrary <> nil then
   begin
-    Pointer(zlibVersionpchar) := ZLibrary.Symbol('zlibVersion');
-    Pointer(deflate) := ZLibrary.Symbol('deflate');
-    Pointer(deflateEnd) := ZLibrary.Symbol('deflateEnd');
-    Pointer(inflate) := ZLibrary.Symbol('inflate');
-    Pointer(inflateEnd) := ZLibrary.Symbol('inflateEnd');
-    Pointer(deflateSetDictionary) := ZLibrary.Symbol('deflateSetDictionary');
-    Pointer(deflateCopy) := ZLibrary.Symbol('deflateCopy');
-    Pointer(deflateReset) := ZLibrary.Symbol('deflateReset');
-    Pointer(deflateParams) := ZLibrary.Symbol('deflateParams');
-    Pointer(inflateSetDictionary) := ZLibrary.Symbol('inflateSetDictionary');
-    Pointer(inflateSync) := ZLibrary.Symbol('inflateSync');
-    Pointer(inflateReset) := ZLibrary.Symbol('inflateReset');
-    Pointer(compress) := ZLibrary.Symbol('compress');
-    Pointer(compress2) := ZLibrary.Symbol('compress2');
-    Pointer(uncompress) := ZLibrary.Symbol('uncompress');
-    Pointer(gzopen) := ZLibrary.Symbol('gzopen');
-    Pointer(gzdopen) := ZLibrary.Symbol('gzdopen');
-    Pointer(gzsetparams) := ZLibrary.Symbol('gzsetparams');
-    Pointer(gzread) := ZLibrary.Symbol('gzread');
-    Pointer(gzwrite) := ZLibrary.Symbol('gzwrite');
-  //  Pointer(gzprintf) := ZLibrary.Symbol('gzprintf');
-    Pointer(gzputs) := ZLibrary.Symbol('gzputs');
-    Pointer(gzgets) := ZLibrary.Symbol('gzgets');
-    Pointer(gzputc) := ZLibrary.Symbol('gzputc');
-    Pointer(gzgetc) := ZLibrary.Symbol('gzgetc');
-    Pointer(gzflush) := ZLibrary.Symbol('gzflush');
-    Pointer(gzseek) := ZLibrary.Symbol('gzseek');
-    Pointer(gzrewind) := ZLibrary.Symbol('gzrewind');
-    Pointer(gztell) := ZLibrary.Symbol('gztell');
-    Pointer(gzeof) := ZLibrary.Symbol('gzeof');
-    Pointer(gzclose) := ZLibrary.Symbol('gzclose');
-    Pointer(gzerror) := ZLibrary.Symbol('gzerror');
-    Pointer(adler32) := ZLibrary.Symbol('adler32');
-    Pointer(crc32) := ZLibrary.Symbol('crc32');
-    Pointer(deflateInit_) := ZLibrary.Symbol('deflateInit_');
-    Pointer(inflateInit_) := ZLibrary.Symbol('inflateInit_');
-    Pointer(deflateInit2_) := ZLibrary.Symbol('deflateInit2_');
-    Pointer(inflateInit2_) := ZLibrary.Symbol('inflateInit2_');
-    Pointer(zErrorpchar) := ZLibrary.Symbol('zError');
-    Pointer(inflateSyncPoint) := ZLibrary.Symbol('inflateSyncPoint');
-    Pointer(get_crc_table) := ZLibrary.Symbol('get_crc_table');
+    Pointer({$ifndef FPC}@{$endif} zlibVersionpchar) := ZLibrary.Symbol('zlibVersion');
+    Pointer({$ifndef FPC}@{$endif} deflate) := ZLibrary.Symbol('deflate');
+    Pointer({$ifndef FPC}@{$endif} deflateEnd) := ZLibrary.Symbol('deflateEnd');
+    Pointer({$ifndef FPC}@{$endif} inflate) := ZLibrary.Symbol('inflate');
+    Pointer({$ifndef FPC}@{$endif} inflateEnd) := ZLibrary.Symbol('inflateEnd');
+    Pointer({$ifndef FPC}@{$endif} deflateSetDictionary) := ZLibrary.Symbol('deflateSetDictionary');
+    Pointer({$ifndef FPC}@{$endif} deflateCopy) := ZLibrary.Symbol('deflateCopy');
+    Pointer({$ifndef FPC}@{$endif} deflateReset) := ZLibrary.Symbol('deflateReset');
+    Pointer({$ifndef FPC}@{$endif} deflateParams) := ZLibrary.Symbol('deflateParams');
+    Pointer({$ifndef FPC}@{$endif} inflateSetDictionary) := ZLibrary.Symbol('inflateSetDictionary');
+    Pointer({$ifndef FPC}@{$endif} inflateSync) := ZLibrary.Symbol('inflateSync');
+    Pointer({$ifndef FPC}@{$endif} inflateReset) := ZLibrary.Symbol('inflateReset');
+    Pointer({$ifndef FPC}@{$endif} compress) := ZLibrary.Symbol('compress');
+    Pointer({$ifndef FPC}@{$endif} compress2) := ZLibrary.Symbol('compress2');
+    Pointer({$ifndef FPC}@{$endif} uncompress) := ZLibrary.Symbol('uncompress');
+    Pointer({$ifndef FPC}@{$endif} gzopen) := ZLibrary.Symbol('gzopen');
+    Pointer({$ifndef FPC}@{$endif} gzdopen) := ZLibrary.Symbol('gzdopen');
+    Pointer({$ifndef FPC}@{$endif} gzsetparams) := ZLibrary.Symbol('gzsetparams');
+    Pointer({$ifndef FPC}@{$endif} gzread) := ZLibrary.Symbol('gzread');
+    Pointer({$ifndef FPC}@{$endif} gzwrite) := ZLibrary.Symbol('gzwrite');
+  //  Pointer({$ifndef FPC}@{$endif} gzprintf) := ZLibrary.Symbol('gzprintf');
+    Pointer({$ifndef FPC}@{$endif} gzputs) := ZLibrary.Symbol('gzputs');
+    Pointer({$ifndef FPC}@{$endif} gzgets) := ZLibrary.Symbol('gzgets');
+    Pointer({$ifndef FPC}@{$endif} gzputc) := ZLibrary.Symbol('gzputc');
+    Pointer({$ifndef FPC}@{$endif} gzgetc) := ZLibrary.Symbol('gzgetc');
+    Pointer({$ifndef FPC}@{$endif} gzflush) := ZLibrary.Symbol('gzflush');
+    Pointer({$ifndef FPC}@{$endif} gzseek) := ZLibrary.Symbol('gzseek');
+    Pointer({$ifndef FPC}@{$endif} gzrewind) := ZLibrary.Symbol('gzrewind');
+    Pointer({$ifndef FPC}@{$endif} gztell) := ZLibrary.Symbol('gztell');
+    Pointer({$ifndef FPC}@{$endif} gzeof) := ZLibrary.Symbol('gzeof');
+    Pointer({$ifndef FPC}@{$endif} gzclose) := ZLibrary.Symbol('gzclose');
+    Pointer({$ifndef FPC}@{$endif} gzerror) := ZLibrary.Symbol('gzerror');
+    Pointer({$ifndef FPC}@{$endif} adler32) := ZLibrary.Symbol('adler32');
+    Pointer({$ifndef FPC}@{$endif} crc32) := ZLibrary.Symbol('crc32');
+    Pointer({$ifndef FPC}@{$endif} deflateInit_) := ZLibrary.Symbol('deflateInit_');
+    Pointer({$ifndef FPC}@{$endif} inflateInit_) := ZLibrary.Symbol('inflateInit_');
+    Pointer({$ifndef FPC}@{$endif} deflateInit2_) := ZLibrary.Symbol('deflateInit2_');
+    Pointer({$ifndef FPC}@{$endif} inflateInit2_) := ZLibrary.Symbol('inflateInit2_');
+    Pointer({$ifndef FPC}@{$endif} zErrorpchar) := ZLibrary.Symbol('zError');
+    Pointer({$ifndef FPC}@{$endif} inflateSyncPoint) := ZLibrary.Symbol('inflateSyncPoint');
+    Pointer({$ifndef FPC}@{$endif} get_crc_table) := ZLibrary.Symbol('get_crc_table');
+
+    WritelnLog('ZLib detected (version %s).', [zlibVersionpchar()]);
   end;
+
+  if not CastleZLibInitialized then
+    WritelnWarning('Initializing dynamic Zlib library failed.' + NL +
+      '  Note that it may also cause failures to initialize libraries that require Zlib, like LibPng.'
+      {$ifdef MSWINDOWS} +
+      NL +
+      '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
+      '  We advise to build your applications using Castle Game Engine editor or (command-line) build tool, that will automatically place the required DLL files.'
+      {$endif}
+    );
 end;
 
 initialization

@@ -14,7 +14,7 @@
 }
 
 { Container for 2D controls able to render using OpenGL (TGLContainer). }
-unit CastleGLContainer;
+unit CastleGLContainer deprecated 'everything from this unit is now in CastleUIControls';
 
 {$I castleconf.inc}
 
@@ -24,8 +24,8 @@ uses Classes,
   CastleUIControls, CastleRectangles, CastleColors, CastleImages;
 
 type
-  TGLContainer = TUIContainer
-    deprecated 'use TUIContainer from CastleUIControls unit, no need to use CastleGLContainer unit';
+  TGLContainer = TCastleContainer
+    deprecated 'use TCastleContainer from CastleUIControls unit, no need to use CastleGLContainer unit';
 
 function RenderControlToImage(const Container: TGLContainer;
   const Control: TCastleUserInterface;

@@ -1,0 +1,11 @@
+Many textures in this directory come from
+public domain textures from unfinished game "Golgotha":
+- Previously on http://www.jonathanclark.com/ .
+- Previously on http://www.wolfiesden.com/golgotha/golgotha.asp .
+- Now on http://opengameart.org/ (search for "golgotha"), like
+  http://opengameart.org/node/7591 .
+
+016marbre, 17_gris_vert from
+LeMog - 3d Textures:
+http://www.lemog.fr/lemog_textures/index.php
+

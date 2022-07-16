@@ -30,7 +30,7 @@ type
     This is designed as a base class, usable on it's own, but also
     as a parent for classes that show this list inside a menu.
     For Lazarus menu version, see TLazRecentFiles.
-    For TCastleWindowBase menu version, see TCastleRecentFiles. }
+    For TCastleWindow menu version, see TCastleRecentFiles. }
   TRecentFiles = class(TComponent)
   private
     FURLs: TStringList;
@@ -55,9 +55,9 @@ type
       So this method will always call AbsoluteURI (which will eventually
       call ExpandFileName on filename inside, and make sure it has appropriate
       protocol) on the given URL. }
-    procedure Add(const URL: String); virtual;
+    procedure Add(const URL: String); overload; virtual;
 
-    procedure Add(const URL: String; const Ignored: Boolean); deprecated 'use Add(URL)';
+    procedure Add(const URL: String; const Ignored: Boolean); overload; deprecated 'use Add(URL)';
 
     { Remove URL. }
     procedure Remove(const URL: String);

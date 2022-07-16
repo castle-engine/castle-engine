@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2019 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -148,9 +148,9 @@ type
 
     procedure SetPosition(const Value: TVector3); virtual; abstract;
     procedure SetVelocity(const Value: TVector3); virtual; abstract;
-    procedure SetLooping(const Value: boolean); virtual; abstract;
-    procedure SetRelative(const Value: boolean); virtual; abstract;
-    procedure SetGain(const Value: Single); virtual; abstract;
+    procedure SetLoop(const Value: boolean); virtual; abstract;
+    procedure SetSpatial(const Value: boolean); virtual; abstract;
+    procedure SetVolume(const Value: Single); virtual; abstract;
     procedure SetMinGain(const Value: Single); virtual; abstract;
     procedure SetMaxGain(const Value: Single); virtual; abstract;
     { We guarantee that SetBuffer is only called on a stopped sound source
@@ -158,9 +158,9 @@ type
       was explicitly called). }
     procedure SetBuffer(const Value: TSoundBufferBackend); virtual; abstract;
     procedure SetPitch(const Value: Single); virtual; abstract;
-    procedure SetRolloffFactor(const Value: Single); virtual; abstract;
     procedure SetReferenceDistance(const Value: Single); virtual; abstract;
     procedure SetMaxDistance(const Value: Single); virtual; abstract;
+    procedure SetPriority(const Value: Single); virtual; abstract;
     function GetOffset: Single; virtual; abstract;
     procedure SetOffset(const Value: Single); virtual; abstract;
     property Offset: Single read GetOffset write SetOffset;
@@ -173,7 +173,7 @@ type
       Regardless whether it returns @true or @false,
       also fills Information (with reasons of failure,
       or with details about initialized sound backend). }
-    function ContextOpen(const ADevice: String; out Information: String): Boolean; virtual; abstract;
+    function ContextOpen(const ADevice: String; out Information, InformationSummary: String): Boolean; virtual; abstract;
 
     { Close backend.
       Guaranteed to be called only after successful (returning @true) ContextOpen. }
@@ -193,8 +193,9 @@ type
     procedure Update; virtual;
 
     { All the methods below are guaranteed to be called only after ContextOpen. }
-    procedure SetGain(const Value: Single); virtual; abstract;
+    procedure SetVolume(const Value: Single); virtual; abstract;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); virtual; abstract;
+    procedure SetDopplerFactor(const Value: Single); virtual; abstract;
     procedure SetListener(const Position, Direction, Up: TVector3); virtual; abstract;
   end;
 

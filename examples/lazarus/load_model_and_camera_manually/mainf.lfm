@@ -1,19 +1,19 @@
 object Form1: TForm1
   Left = 507
-  Height = 428
+  Height = 367
   Top = 225
-  Width = 505
+  Width = 433
   Caption = 'Form1'
-  ClientHeight = 428
-  ClientWidth = 505
-  DesignTimePPI = 140
+  ClientHeight = 367
+  ClientWidth = 433
+  DesignTimePPI = 120
   OnCreate = FormCreate
-  LCLVersion = '2.0.0.4'
-  object Control1: TCastleControlBase
+  LCLVersion = '2.0.12.0'
+  object Control1: TCastleControl
     Left = 0
-    Height = 428
+    Height = 367
     Top = 0
-    Width = 505
+    Width = 433
     Align = alClient
     Options = []
     TabOrder = 0

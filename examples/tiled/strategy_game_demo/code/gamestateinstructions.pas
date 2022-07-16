@@ -51,7 +51,7 @@ begin
   inherited;
 
   ButtonClose := DesignedComponent('ButtonClose') as TCastleButton;
-  ButtonClose.OnClick := @ClickClose;
+  ButtonClose.OnClick := {$ifdef FPC}@{$endif}ClickClose;
 
   { do not pass clicks to state underneath }
   InterceptInput := true;

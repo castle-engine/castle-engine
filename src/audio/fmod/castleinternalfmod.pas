@@ -1,5 +1,5 @@
 { FMOD API expressed in Pascal, for Castle Game Engine.
-  See https://github.com/castle-engine/castle-engine/wiki/FMOD
+  See https://castle-engine.io/fmod
   about using FMOD with CGE.
 
   Based on FMOD 2.00.01, fmod.h and fmod_common.h header files.
@@ -23,15 +23,12 @@ unit CastleInternalFMOD;
 
 interface
 
-{ FMOD enums have xxx_FORCEINT to force them explicitly to be 4 bytes. }
-{$PACKENUM 4}
-
-{$PACKRECORDS C}
-
-{$if defined(MSWINDOWS)}
-  {$define extdecl_callback := stdcall}
+{ FMOD enums in C have xxx_FORCEINT to force them explicitly to be 4 bytes. }
+{$ifdef FPC}
+  {$PACKENUM 4}
+  {$PACKRECORDS C}
 {$else}
-  {$define extdecl_callback := cdecl}
+  {$MINENUMSIZE 4}
 {$endif}
 
 {$I castleconf.inc}
@@ -350,17 +347,14 @@ type
     FMOD_ERR_ALREADY_LOCKED,
     FMOD_ERR_NOT_LOCKED,
     FMOD_ERR_RECORD_DISCONNECTED,
-    FMOD_ERR_TOOMANYSAMPLES,
-
-    FMOD_RESULT_FORCEINT := 65536
+    FMOD_ERR_TOOMANYSAMPLES
   );
 
   TFMOD_CHANNELCONTROL_TYPE = (
     FMOD_CHANNELCONTROL_CHANNEL,
     FMOD_CHANNELCONTROL_CHANNELGROUP,
 
-    FMOD_CHANNELCONTROL_MAX,
-    FMOD_CHANNELCONTROL_FORCEINT := 65536
+    FMOD_CHANNELCONTROL_MAX
   );
 
   TFMOD_OUTPUTTYPE = (
@@ -383,17 +377,14 @@ type
     FMOD_OUTPUTTYPE_NNAUDIO,
     FMOD_OUTPUTTYPE_WINSONIC,
 
-    FMOD_OUTPUTTYPE_MAX,
-    FMOD_OUTPUTTYPE_FORCEINT := 65536
+    FMOD_OUTPUTTYPE_MAX
   );
   PFMOD_OUTPUTTYPE = ^TFMOD_OUTPUTTYPE;
 
   TFMOD_DEBUG_MODE = (
     FMOD_DEBUG_MODE_TTY,
     FMOD_DEBUG_MODE_FILE,
-    FMOD_DEBUG_MODE_CALLBACK,
-
-    FMOD_DEBUG_MODE_FORCEINT := 65536
+    FMOD_DEBUG_MODE_CALLBACK
   );
 
   TFMOD_SPEAKERMODE = (
@@ -407,8 +398,7 @@ type
     FMOD_SPEAKERMODE_7POINT1,
     FMOD_SPEAKERMODE_7POINT1POINT4,
 
-    FMOD_SPEAKERMODE_MAX,
-    FMOD_SPEAKERMODE_FORCEINT := 65536
+    FMOD_SPEAKERMODE_MAX
   );
   PFMOD_SPEAKERMODE = ^TFMOD_SPEAKERMODE;
 
@@ -426,8 +416,7 @@ type
     FMOD_SPEAKER_TOP_BACK_LEFT,
     FMOD_SPEAKER_TOP_BACK_RIGHT,
 
-    FMOD_SPEAKER_MAX,
-    FMOD_SPEAKER_FORCEINT := 65536
+    FMOD_SPEAKER_MAX
   );
   PFMOD_SPEAKER = ^TFMOD_SPEAKER;
 
@@ -439,8 +428,7 @@ type
     FMOD_CHANNELORDER_ALLSTEREO,
     FMOD_CHANNELORDER_ALSA,
 
-    FMOD_CHANNELORDER_MAX,
-    FMOD_CHANNELORDER_FORCEINT := 65536
+    FMOD_CHANNELORDER_MAX
   );
 
   TFMOD_PLUGINTYPE = (
@@ -448,8 +436,7 @@ type
     FMOD_PLUGINTYPE_CODEC,
     FMOD_PLUGINTYPE_DSP,
 
-    FMOD_PLUGINTYPE_MAX,
-    FMOD_PLUGINTYPE_FORCEINT := 65536
+    FMOD_PLUGINTYPE_MAX
   );
   PFMOD_PLUGINTYPE = ^TFMOD_PLUGINTYPE;
 
@@ -479,8 +466,7 @@ type
     FMOD_SOUND_TYPE_MEDIACODEC,
     FMOD_SOUND_TYPE_FADPCM,
 
-    FMOD_SOUND_TYPE_MAX,
-    FMOD_SOUND_TYPE_FORCEINT := 65536
+    FMOD_SOUND_TYPE_MAX
   );
   PFMOD_SOUND_TYPE = ^TFMOD_SOUND_TYPE;
 
@@ -493,8 +479,7 @@ type
     FMOD_SOUND_FORMAT_PCMFLOAT,
     FMOD_SOUND_FORMAT_BITSTREAM,
 
-    FMOD_SOUND_FORMAT_MAX,
-    FMOD_SOUND_FORMAT_FORCEINT := 65536
+    FMOD_SOUND_FORMAT_MAX
   );
   PFMOD_SOUND_FORMAT = ^TFMOD_SOUND_FORMAT;
 
@@ -508,8 +493,7 @@ type
     FMOD_OPENSTATE_PLAYING,
     FMOD_OPENSTATE_SETPOSITION,
 
-    FMOD_OPENSTATE_MAX,
-    FMOD_OPENSTATE_FORCEINT := 65536
+    FMOD_OPENSTATE_MAX
   );
   PFMOD_OPENSTATE = ^TFMOD_OPENSTATE;
 
@@ -518,8 +502,7 @@ type
     FMOD_SOUNDGROUP_BEHAVIOR_MUTE,
     FMOD_SOUNDGROUP_BEHAVIOR_STEALLOWEST,
 
-    FMOD_SOUNDGROUP_BEHAVIOR_MAX,
-    FMOD_SOUNDGROUP_BEHAVIOR_FORCEINT := 65536
+    FMOD_SOUNDGROUP_BEHAVIOR_MAX
   );
   PFMOD_SOUNDGROUP_BEHAVIOR = ^TFMOD_SOUNDGROUP_BEHAVIOR;
 
@@ -529,16 +512,13 @@ type
     FMOD_CHANNELCONTROL_CALLBACK_SYNCPOINT,
     FMOD_CHANNELCONTROL_CALLBACK_OCCLUSION,
 
-    FMOD_CHANNELCONTROL_CALLBACK_MAX,
-    FMOD_CHANNELCONTROL_CALLBACK_FORCEINT := 65536
+    FMOD_CHANNELCONTROL_CALLBACK_MAX
   );
 
   TFMOD_CHANNELCONTROL_DSP_INDEX = (
-    FMOD_CHANNELCONTROL_DSP_TAIL     := -3,
-    FMOD_CHANNELCONTROL_DSP_FADER    := -2,
-    FMOD_CHANNELCONTROL_DSP_HEAD     := -1,
-
-    FMOD_CHANNELCONTROL_DSP_FORCEINT := 65536
+    FMOD_CHANNELCONTROL_DSP_TAIL     = -3,
+    FMOD_CHANNELCONTROL_DSP_FADER    = -2,
+    FMOD_CHANNELCONTROL_DSP_HEAD     = -1
   );
 
   TFMOD_ERRORCALLBACK_INSTANCETYPE = (
@@ -560,9 +540,7 @@ type
     FMOD_ERRORCALLBACK_INSTANCETYPE_STUDIO_BUS,
     FMOD_ERRORCALLBACK_INSTANCETYPE_STUDIO_VCA,
     FMOD_ERRORCALLBACK_INSTANCETYPE_STUDIO_BANK,
-    FMOD_ERRORCALLBACK_INSTANCETYPE_STUDIO_COMMANDREPLAY,
-
-    FMOD_ERRORCALLBACK_INSTANCETYPE_FORCEINT := 65536
+    FMOD_ERRORCALLBACK_INSTANCETYPE_STUDIO_COMMANDREPLAY
   );
 
   TFMOD_DSP_RESAMPLER = (
@@ -572,8 +550,7 @@ type
     FMOD_DSP_RESAMPLER_CUBIC,
     FMOD_DSP_RESAMPLER_SPLINE,
 
-    FMOD_DSP_RESAMPLER_MAX,
-    FMOD_DSP_RESAMPLER_FORCEINT := 65536
+    FMOD_DSP_RESAMPLER_MAX
   );
 
   TFMOD_DSPCONNECTION_TYPE = (
@@ -582,8 +559,7 @@ type
     FMOD_DSPCONNECTION_TYPE_SEND,
     FMOD_DSPCONNECTION_TYPE_SEND_SIDECHAIN,
 
-    FMOD_DSPCONNECTION_TYPE_MAX,
-    FMOD_DSPCONNECTION_TYPE_FORCEINT := 65536
+    FMOD_DSPCONNECTION_TYPE_MAX
   );
 
   TFMOD_TAGTYPE = (
@@ -599,8 +575,7 @@ type
     FMOD_TAGTYPE_FMOD,
     FMOD_TAGTYPE_USER,
 
-    FMOD_TAGTYPE_MAX,
-    FMOD_TAGTYPE_FORCEINT := 65536
+    FMOD_TAGTYPE_MAX
   );
 
   TFMOD_TAGDATATYPE = (
@@ -612,28 +587,27 @@ type
     FMOD_TAGDATATYPE_STRING_UTF16BE,
     FMOD_TAGDATATYPE_STRING_UTF8,
 
-    FMOD_TAGDATATYPE_MAX,
-    FMOD_TAGDATATYPE_FORCEINT := 65536
+    FMOD_TAGDATATYPE_MAX
   );
 
   { FMOD callbacks. }
-  TFMOD_DEBUG_CALLBACK =            function (flags: TFMOD_DEBUG_FLAGS; file_: PChar; line: CInt; func: PChar; message: PChar): TFMOD_RESULT; extdecl_callback;
-  TFMOD_SYSTEM_CALLBACK =           function (system: PFMOD_SYSTEM; type_: TFMOD_SYSTEM_CALLBACK_TYPE; commanddata1: Pointer; commanddata2: Pointer; userdata: Pointer): TFMOD_RESULT; extdecl_callback;
-  TFMOD_CHANNELCONTROL_CALLBACK =   function (channelcontrol: PFMOD_CHANNELCONTROL; controltype: TFMOD_CHANNELCONTROL_TYPE; callbacktype: TFMOD_CHANNELCONTROL_CALLBACK_TYPE; commanddata1: Pointer; commanddata2: Pointer): TFMOD_RESULT; extdecl_callback;
-  TFMOD_SOUND_NONBLOCK_CALLBACK =   function (sound: PFMOD_SOUND; result: TFMOD_RESULT): TFMOD_RESULT; extdecl_callback;
-  TFMOD_SOUND_PCMREAD_CALLBACK =    function (sound: PFMOD_SOUND; data: Pointer; datalen: CUInt): TFMOD_RESULT; extdecl_callback;
-  TFMOD_SOUND_PCMSETPOS_CALLBACK =  function (sound: PFMOD_SOUND; subsound: CInt; position: CUInt; postype: TFMOD_TIMEUNIT): TFMOD_RESULT; extdecl_callback;
-  TFMOD_FILE_OPEN_CALLBACK =        function (name: PChar; filesize: PCUInt; handle: PPointer; userdata: Pointer): TFMOD_RESULT; extdecl_callback;
-  TFMOD_FILE_CLOSE_CALLBACK =       function (handle: Pointer; userdata: Pointer): TFMOD_RESULT; extdecl_callback;
-  TFMOD_FILE_READ_CALLBACK =        function (handle: Pointer; buffer: Pointer; sizebytes: CUInt; bytesread: PCUInt; userdata: Pointer): TFMOD_RESULT; extdecl_callback;
-  TFMOD_FILE_SEEK_CALLBACK =        function (handle: Pointer; pos: CUInt; userdata: Pointer): TFMOD_RESULT; extdecl_callback;
-  TFMOD_FILE_ASYNCREAD_CALLBACK =   function (info: PFMOD_ASYNCREADINFO; userdata: Pointer): TFMOD_RESULT; extdecl_callback;
-  TFMOD_FILE_ASYNCCANCEL_CALLBACK = function (info: PFMOD_ASYNCREADINFO; userdata: Pointer): TFMOD_RESULT; extdecl_callback;
-  TFMOD_FILE_ASYNCDONE_FUNC =       procedure (info: PFMOD_ASYNCREADINFO; result: TFMOD_RESULT); extdecl_callback;
-  TFMOD_MEMORY_ALLOC_CALLBACK =     function (size: CUInt; type_: TFMOD_MEMORY_TYPE; sourcestr: PChar): Pointer; extdecl_callback;
-  TFMOD_MEMORY_REALLOC_CALLBACK =   function (ptr: Pointer; size: CUInt; type_: TFMOD_MEMORY_TYPE; sourcestr: PChar): Pointer; extdecl_callback;
-  TFMOD_MEMORY_FREE_CALLBACK =      procedure (ptr: Pointer; type_: TFMOD_MEMORY_TYPE; sourcestr: PChar); extdecl_callback;
-  TFMOD_3D_ROLLOFF_CALLBACK =       function (channelcontrol: PFMOD_CHANNELCONTROL; distance: CFloat): CFloat; extdecl_callback;
+  TFMOD_DEBUG_CALLBACK =            function (flags: TFMOD_DEBUG_FLAGS; file_: PChar; line: CInt; func: PChar; message: PChar): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_SYSTEM_CALLBACK =           function (system: PFMOD_SYSTEM; type_: TFMOD_SYSTEM_CALLBACK_TYPE; commanddata1: Pointer; commanddata2: Pointer; userdata: Pointer): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_CHANNELCONTROL_CALLBACK =   function (channelcontrol: PFMOD_CHANNELCONTROL; controltype: TFMOD_CHANNELCONTROL_TYPE; callbacktype: TFMOD_CHANNELCONTROL_CALLBACK_TYPE; commanddata1: Pointer; commanddata2: Pointer): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_SOUND_NONBLOCK_CALLBACK =   function (sound: PFMOD_SOUND; result: TFMOD_RESULT): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_SOUND_PCMREAD_CALLBACK =    function (sound: PFMOD_SOUND; data: Pointer; datalen: CUInt): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_SOUND_PCMSETPOS_CALLBACK =  function (sound: PFMOD_SOUND; subsound: CInt; position: CUInt; postype: TFMOD_TIMEUNIT): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_FILE_OPEN_CALLBACK =        function (name: PChar; filesize: PCUInt; handle: PPointer; userdata: Pointer): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_FILE_CLOSE_CALLBACK =       function (handle: Pointer; userdata: Pointer): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_FILE_READ_CALLBACK =        function (handle: Pointer; buffer: Pointer; sizebytes: CUInt; bytesread: PCUInt; userdata: Pointer): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_FILE_SEEK_CALLBACK =        function (handle: Pointer; pos: CUInt; userdata: Pointer): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_FILE_ASYNCREAD_CALLBACK =   function (info: PFMOD_ASYNCREADINFO; userdata: Pointer): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_FILE_ASYNCCANCEL_CALLBACK = function (info: PFMOD_ASYNCREADINFO; userdata: Pointer): TFMOD_RESULT; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_FILE_ASYNCDONE_FUNC =       procedure (info: PFMOD_ASYNCREADINFO; result: TFMOD_RESULT); {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_MEMORY_ALLOC_CALLBACK =     function (size: CUInt; type_: TFMOD_MEMORY_TYPE; sourcestr: PChar): Pointer; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_MEMORY_REALLOC_CALLBACK =   function (ptr: Pointer; size: CUInt; type_: TFMOD_MEMORY_TYPE; sourcestr: PChar): Pointer; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_MEMORY_FREE_CALLBACK =      procedure (ptr: Pointer; type_: TFMOD_MEMORY_TYPE; sourcestr: PChar); {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
+  TFMOD_3D_ROLLOFF_CALLBACK =       function (channelcontrol: PFMOD_CHANNELCONTROL; distance: CFloat): CFloat; {$ifdef MSWINDOWS}stdcall{$else}cdecl{$endif};
 
   { FMOD structs. }
 

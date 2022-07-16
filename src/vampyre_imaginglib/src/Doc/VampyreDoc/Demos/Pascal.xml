@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Object Pascal Demos</title>
+  <chapter>
+    <title>Object Pascal Demos</title>
+    <par>These Object Pascal demos currently exist:</par>
+    <blist>
+      <li><link url="#benchmark">Benchmark</link></li>
+      <li><link url="#ibrowser">VCL Image Browser</link></li>
+      <li><link url="#lclimager">LCL Imager</link></li>
+      <li><link url="#vampconvert">VampConvert</link></li>
+      <li><link url="#opengldemo">OpenGL Demo</link></li>
+      <li><link url="#d3ddemo">Direct3D 9 Demo</link></li>
+      <li><link url="#sdldemo">SDL Demo</link></li>
+    </blist>
+
+    <note>
+      If you have paths to compilers properly set you can build basic demos at
+      once by calling build scripts named <icode>BuildDemos*.bat</icode>
+      for Windows and DOS and <icode>BuildDemos*.sh</icode> for Linux.
+      They are located in Scripts directory and compiled demos will be
+      placed in Demos/Bin directory.
+      Demos of Imaging extensions (like <keyword>OpenGL</keyword> support)
+      which require 3rd party units (like <keyword>OpenGL</keyword> headers)
+      can be compiled using <icode>BuildExtDemos*.bat</icode> and
+      <icode>BuildExtDemos*.sh</icode> scripts. Remember that you must
+      first set paths to required headers in these scripts for them to
+      work.
+    </note>
+
+    <note>
+      Some demos from older Imaging releases were removed. DXTTool has been
+      replaced by VampConvert. HighLevel was there to show how to use
+      high level interface (class based) which is now used by
+      nearly all demos so HighLevel is no longer necessary.
+    </note>
+
+
+    <!-- BENCHMARK DEMO   ****************************** -->
+    <lcap><anchor name="benchmark">Benchmark</anchor></lcap>
+    <par>
+    Simple program which measures time taken by the main Imaging functions
+    (loading, manipulation, saving) in microsecond resolution.
+    You can use it to compare the speeds of executables created by the supported
+    compilers
+    (you can find results for my machine in BenchmarkResults directory).
+    </par>
+
+    <table>
+      <title>Demo Information</title>
+      <row>
+        <td><b>Name</b></td>
+        <td>Benchmark</td>
+      </row>
+      <row>
+        <td><b>Language</b></td>
+        <td>Object Pascal</td>
+      </row>
+      <row>
+        <td><b>Source Path</b></td>
+        <td>(Imaging Root)\Demos\ObjectPascal\Benchmark</td>
+      </row>
+      <row>
+        <td><b>Exe Path</b></td>
+        <td>(Imaging Root)\Demos\Bin\Bench[.exe]</td>
+      </row>
+      <row>
+        <td><b>Platforms (tested)</b></td>
+        <td><b>W</b>indows, <b>L</b>inux, Free<b>B</b>SD</td>
+      </row>
+      <row>
+        <td><b>Compilers (tested)</b></td>
+        <td>Delphi 7/2007/2009/2010 <b>W</b>
+        Free Pascal 2.2.4 <b>WLBD</b></td>
+      </row>
+      <row>
+        <td><b>Demo shows usage of</b></td>
+        <td>low level</td>
+      </row>
+    </table>
+
+    <par>Benchmark first loads images (one for each supported and registered
+    file format)
+    and then calls various image manipulation functions on them.
+    Finally, images are saved and log file (with time consumption of
+    each action) is written. You can change behaviour of program by
+    commenting/uncommenting two defines:</par>
+    <olist>
+      <li><b>LOG_TO_FILE</b> If defined log is written to file (ResultsPas.log
+        in the directory where executable is located), otherwise it is
+        written to console.  </li>
+      <li><b>SAVE_IMAGES_TO_FILES</b> If not defined, modified
+        images are saved only to memory and taken time is measured.
+        If defined, these images are saved to files
+        after measurement.</li>
+    </olist>
+
+    <par>Also note these things before running this demo:</par>
+    <olist>
+       <li>During the test large amounts of memory can be allocated by
+       the program (e.g. conversion from 3000x3000x64 bit image to 128 bit requires
+       over 200 MB of memory).</li>
+       <li>Program's executable must be located in Demos,
+       Demos\SomeDir or Demos\SomeDir1\SomeDir2 to be able to find used data
+       files.</li>
+    </olist>
+
+    <!-- VCL IMAGE BROWSER DEMO   *************************** -->
+    <lcap><anchor name="ibrowser">VCL Image Browser</anchor></lcap>
+
+    <par>
+     This simple viewer application shows usage of high level class interface
+     to Imaging library and also drawing images onto standard <b>VCL</b> <icode>TCanvas</icode>.
+     TImagingCanvas class is also used here.
+    </par>
+
+    <table>
+      <title>Demo Information</title>
+      <row>
+        <td><b>Name</b></td>
+        <td>VCL Image Browser</td>
+      </row>
+      <row>
+        <td><b>Language</b></td>
+        <td>Object Pascal</td>
+      </row>
+      <row>
+        <td><b>Source Path</b></td>
+        <td>(Imaging Root)\Demos\ObjectPascal\VCLImageBrowser</td>
+      </row>
+      <row>
+        <td><b>Exe Path</b></td>
+        <td>(Imaging Root)\Demos\Bin\ImgBrowser.exe</td>
+      </row>
+      <row>
+        <td><b>Platforms (tested)</b></td>
+        <td><b>W</b>in32</td>
+      </row>
+      <row>
+        <td><b>Compilers (tested)</b></td>
+        <td>Delphi 7/2007/2009/2010 <b>W</b></td>
+      </row>
+      <row>
+        <td><b>Demo shows usage of</b></td>
+        <td>high level/component sets/canvas</td>
+      </row>
+    </table>
+
+    <par>
+      In the left part of the window is shell tree view component. Here you can
+      select files located in your computer. If the selected file is in one of the
+      supported formats it is displayed in the viewer
+      area and some information about the file is displayed in the info area.
+      If image file contains subimages you can view them too. Select active subimage
+      by clicking on buttons with arrows (Previous/Next or First/Last). There is also Save Image Copy
+      button that allows you to save copy (that is used for display, in A8R8G8B8)
+      of currently selected image to file.
+    </par>
+    <par>
+      When supported file is selected in shell tree view it is loaded to
+      <ref>TMultiImage</ref> and converted to <icode>ifA8R8G8B8</icode>
+      data format.
+      Active subimage is then drawn
+      (with alpha blending if there is a alpha channel present -
+      methods of <ref>TImagingCanvas</ref> are used) on background
+      image (filled with back color).
+      Final blended image is then drawn into
+      <icode>TPainBox</icode> component's
+      client area using <ref>DisplayImage</ref> procedure (direct bit copy, no need to
+      convert Imaging's data to <icode>TGraphic</icode>).
+      Image is rescaled to fit the whole display area and
+      there is optional bicubic filtering (nearest neighbor is used when disabled).
+    </par>
+    <image url="imgbrowser.jpg"/>
+
+    <!-- LCL IMAGER DEMO   *************************** -->
+    <lcap><anchor name="lclimager">LCL Imager</anchor></lcap>
+
+    <par>
+    Simple image manipulator program which shows usage of Imaging
+    <keyword>LCL</keyword> classes (<ref>TImagingGraphic</ref> and
+    its descendants) to display images on the form.
+    It also uses high level image classes and low level functions.
+    </par>
+
+    <table>
+      <title>Demo Information</title>
+      <row>
+        <td><b>Name</b></td>
+        <td>LCL Imager</td>
+      </row>
+      <row>
+        <td><b>Language</b></td>
+        <td>Object Pascal</td>
+      </row>
+      <row>
+        <td><b>Source Path</b></td>
+        <td>(Imaging Root)\Demos\ObjectPascal\LCLImager</td>
+      </row>
+      <row>
+        <td><b>Exe Path</b></td>
+        <td>(Imaging Root)\Demos\Bin\LCLImager.exe</td>
+      </row>
+      <row>
+        <td><b>Platforms (tested)</b></td>
+        <td><b>W</b>indows, <b>L</b>inux, Free<b>B</b>SD</td>
+      </row>
+      <row>
+        <td><b>Compilers (tested)</b></td>
+        <td>Lazarus 0.9.28 <b>WLB</b> interfaces: Win32/64, GTK/GTK2, Qt, Carbon</td>
+      </row>
+      <row>
+        <td><b>Demo shows usage of</b></td>
+        <td>high level/component sets/canvas</td>
+      </row>
+    </table>
+
+    <par>
+      Demo uses <ref>TMultiImage</ref> class to store images
+      (loaded from one file so its usually only one for most formats with
+      exceptions like MNG and DDS)
+      which can be modified by user. After each modification image
+      is assigned to <ref>TImagingBitmap</ref> class which provides visualization
+      on the app form (using standard <icode>TImage</icode> component).
+      Demo also uses new <ref>TImagingCanvas</ref> class to do some effects.
+    </par>
+    <par>
+      In <keyword>File</keyword> menu you can open new image and save the
+      current one. Items in <keyword>View</keyword> menu provide
+      information about the current image and controls how it is displayed.
+      You can also select next and previous subimage if loaded file
+      contains more than one image.
+      <keyword>Format</keyword> menu allows you to convert image
+      to different image data formats supported by Imaging. <keyword>Manipulate</keyword>
+      menu allows you to enlarge/shrink/flip/mirror/swap channels/reduce colors
+      of the current image.
+      <keyword>Linear Filters</keyword> menu allows you to apply various linear filters
+      to the image like bluring, sharpening,
+      or edge detection.
+      <keyword>Nonlinear Filters</keyword> menu allows you to apply nonlinear filters
+      like median or maximum.
+      Using operations in <keyword>Point Transforms</keyword> menu you can
+      adjust image contrast, brightness, or gamma.
+      Filters and point transforms are provided by <ref>TImagingCanvas</ref>.
+      <keyword>Binary Morphology</keyword> menu provides image segmentation
+      functions using basic morphology operators (unit <ref>ImagingBinary</ref>).
+      <keyword>Colors</keyword> menu allows user to 
+      set the value of specific color/alpha channel of all image pixels. 
+      There is also option to show histogram of current image (R, G, B, and Gray
+      values displayed).      
+    </par>
+    <image url="lclimager.jpg"/>
+    
+    <!-- VAMPCONVERT DEMO   **************************** -->
+    <lcap><anchor name="vampconvert">VampConvert</anchor></lcap>
+
+    <par>Image Converter is command line tool for converting images between
+      file and data formats. It also provides some basic manipulation functions
+      like resizing, rotating, or color reduction.
+    </par>
+
+    <table>
+      <title>Demo Information</title>
+      <row>
+        <td><b>Name</b></td>
+        <td>VampConvert</td>
+      </row>
+      <row>
+        <td><b>Language</b></td>
+        <td>Object Pascal</td>
+      </row>
+      <row>
+        <td><b>Source Path</b></td>
+        <td>(Imaging Root)\Demos\ObjectPascal\VampConvert</td>
+      </row>
+      <row>
+        <td><b>Exe Path</b></td>
+        <td>(Imaging Root)\Demos\Bin\VampConvert[.exe]</td>
+      </row>
+      <row>
+        <td><b>Platforms (tested)</b></td>
+        <td><b>W</b>indows, <b>L</b>inux, Free<b>B</b>SD</td>
+      </row>
+      <row>
+        <td><b>Compilers (tested)</b></td>
+        <td>Delphi 7/2007/2009/2010 <b>W</b>,
+        Free Pascal 2.2.4 <b>WLBD</b></td>
+      </row>
+      <row>
+        <td><b>Demo shows usage of</b></td>
+        <td>low level</td>
+      </row>
+    </table>
+    
+    <par>
+     Here is usage information with possible command switches and parameters
+     (as printed by demo if invalid input is given):
+    </par>
+    <code>
+Vampyre Image Converter (library version 0.26.0)
+by Marek Mauder
+
+Error: Input file not specified
+
+Usage:
+VampConvert [-op=arg] [..] -infile=file.ext [..] [-outfile=file.ext] [-op=arg]
+  Options:
+    -infile  | -i: specify input image file path
+    -outfile | -o: specify output image file path
+       argument: file path or "*.ext" where input file name will be used
+                 but with "ext" extension
+  Operations:
+    Note: they are processed in the same order as they appear on command line
+    -format:  changes data format of input images
+       argument: name of data format supported by Imaging like A8R8G8B8
+    -resize:  changes size of input images
+       argument: string in format AxBxC (%dx%dx%s) where A is desired
+                 width, B is desired height, and C is resampling filter used.
+                 If A or B is 0 then original dimension will be preserved.
+                 C is optional and can have one of following values:
+                 nearest(default), bilinear, bicubic.
+    -flip:    flips input images upside down
+    -mirror:  mirrors input images left to right
+    -colorcount: reduces number of colors in image
+       argument: number of desired colors (2-4096)
+    -genmipmaps: generates mipmaps for main image
+       argument: number of desired mip levels. 0 or no arg means
+                 create all possible levels
+    -rotate: rotates input images counterclockwise
+       argument: angle in degrees, multiple of 90
+
+ Supported file formats (INPUT):
+bmp jpg png mng jng gif dds tga pbm pgm ppm pam pfm jp2 psd pcx xpm bsi cif img
+dagtexture
+  Supported file formats (OUTPUT):
+bmp jpg png mng jng gif dds tga pgm ppm pam pfm jp2 psd cif img
+  Supported data formats: Index8 Gray8 A8Gray8 Gray16 Gray32 Gray64 A16Gray16 X5
+R1G1B1 R3G3B2 R5G6B5 A1R5G5B5 A4R4G4B4 X1R5G5B5 X4R4G4B4 R8G8B8 A8R8G8B8 X8R8G8B
+8 R16G16B16 A16R16G16B16 B16G16R16 A16B16G16R16 R32F A32R32G32B32F A32B32G32R32F
+ R16F A16R16G16B16F A16B16G16R16F DXT1 DXT3 DXT5 BTC ATI1N ATI2N
+    </code>
+
+    <note>
+      Operations (change format, resize, rotate) are processed in the same order
+      as they appear on the command line.
+    </note>
+    
+    <!-- OPENGL DEMO   *************************** -->
+    <lcap><anchor name="opengldemo">OpenGL Demo</anchor></lcap>
+
+    <par>
+    Demo that shows how to create <keyword>OpenGL</keyword> textures from files
+    and Imaging's images and vice versa.
+    <note>This demo requires <keyword>OpenGL</keyword> drivers and
+      <keyword>SDL</keyword> installed to run and requires
+      <keyword>Object Pascal</keyword> headers to compile.
+    </note>
+    </par>
+
+    <table>
+      <title>Demo Information</title>
+      <row>
+        <td><b>Name</b></td>
+        <td>OpenGL Demo</td>
+      </row>
+      <row>
+        <td><b>Language</b></td>
+        <td>Object Pascal</td>
+      </row>
+      <row>
+        <td><b>Source Path</b></td>
+        <td>(Imaging Root)\Demos\ObjectPascal\OpenGLDemo</td>
+      </row>
+      <row>
+        <td><b>Exe Path</b></td>
+        <td>(Imaging Root)\Demos\Bin\OpenGLDemo[.exe]</td>
+      </row>
+      <row>
+        <td><b>Platforms (tested)</b></td>
+        <td><b>W</b>in32, <b>L</b>inux</td>
+      </row>
+      <row>
+        <td><b>Compilers (tested)</b></td>
+        <td>Delphi 7/2007/2009/2010 <b>W</b>FPC 2.2.4 <b>WL</b></td>
+      </row>
+      <row>
+        <td><b>Demo shows usage of</b></td>
+        <td>low level/OpenGL extension</td>
+      </row>
+    </table>
+
+    <par>
+    This sample uses <keyword>SDL</keyword> to create
+    window and process messages. Background and sprite textures are loaded from
+    files and rendered. Sprite is mapped on the spinning cube in the
+    center of the window.
+    You can change sprite's texture format by pressing <keyboard>SPACE</keyboard> key
+    (it cycles trough all <ref>TImageFormat</ref> values).
+    Screehshot
+    can be saved to file by pressing <keyboard>S</keyboard> key and sprite texture
+    can be saved by pressing <keyboard>D</keyboard> key.
+    </par>
+    <image url="opengldemo.jpg"/>
+
+    <!-- D3D DEMO   *************************** -->
+    <lcap><anchor name="d3ddemo">Direct3D 9 Demo</anchor></lcap>
+
+    <par>
+    Demo that shows how to create <keyword>Direct3D 9</keyword> textures
+    from files and Imaging's images and vice versa.
+    <note>This demo requires <keyword>Direct3D 9.0</keyword> and
+      <keyword>SDL</keyword> installed to run and requires
+      <keyword>Object Pascal</keyword> headers to compile.
+    </note>
+    </par>
+
+    <table>
+      <title>Demo Information</title>
+      <row>
+        <td><b>Name</b></td>
+        <td>D3D Demo</td>
+      </row>
+      <row>
+        <td><b>Language</b></td>
+        <td>Object Pascal</td>
+      </row>
+      <row>
+        <td><b>Source Path</b></td>
+        <td>(Imaging Root)\Demos\ObjectPascal\D3DDemo</td>
+      </row>
+      <row>
+        <td><b>Exe Path</b></td>
+        <td>(Imaging Root)\Demos\Bin\D3DDemo.exe</td>
+      </row>
+      <row>
+        <td><b>Platforms (tested)</b></td>
+        <td><b>W</b>in32</td>
+      </row>
+      <row>
+        <td><b>Compilers (tested)</b></td>
+        <td>Delphi 7/2007/2009/2010 <b>W</b>, FPC 2.0.4 <b>W</b></td>
+      </row>
+      <row>
+        <td><b>Demo shows usage of</b></td>
+        <td>low level/D3D9 extension</td>
+      </row>
+    </table>
+
+    <par>
+    This sample uses <keyword>SDL</keyword> to create
+    window and process messages. Background and sprite textures are loaded from
+    files and rendered. Sprite is rendered in each corner of the window
+    using various texture stage and blending settings.
+    You can change sprite's texture format by pressing <keyboard>SPACE</keyboard> key
+    (it cycles trough all <ref>TImageFormat</ref> values). Screehshot can be
+    saved to file by pressing <keyboard>S</keyboard> key and sprite texture
+    can be saved by pressing <keyboard>D</keyboard> key.
+    </par>
+    <image url="d3ddemo.jpg"/>
+    
+    
+    <!-- SDL DEMO   *************************** -->
+    <lcap><anchor name="sdldemo">SDL Demo</anchor></lcap>
+
+    <par>
+    Demo that shows how to create <keyword>SDL</keyword> surfaces from Imaging's
+    images and vice versa.
+    <note>This demo requires <keyword>SDL</keyword> installed to run and requires
+      <keyword>Object Pascal</keyword> headers to compile.
+    </note>
+    </par>
+
+    <table>
+      <title>Demo Information</title>
+      <row>
+        <td><b>Name</b></td>
+        <td>SDL Demo</td>
+      </row>
+      <row>
+        <td><b>Language</b></td>
+        <td>Object Pascal</td>
+      </row>
+      <row>
+        <td><b>Source Path</b></td>
+        <td>(Imaging Root)\Demos\ObjectPascal\SDLDemo</td>
+      </row>
+      <row>
+        <td><b>Exe Path</b></td>
+        <td>(Imaging Root)\Demos\Bin\SDLDemo[.exe]</td>
+      </row>
+      <row>
+        <td><b>Platforms (tested)</b></td>
+        <td><b>W</b>in32, <b>L</b>inux</td>
+      </row>
+      <row>
+        <td><b>Compilers (tested)</b></td>
+        <td>Delphi 7/2007/2009/2010 <b>W</b>, FPC 2.2.4 <b>WL</b></td>
+      </row>
+      <row>
+        <td><b>Demo shows usage of</b></td>
+        <td>low level/SDL extension</td>
+      </row>
+    </table>
+
+    <par>
+      <keyword>SDL</keyword> window is opened and background
+      and sprite surfaces are loaded and blitted to window. You can change
+      sprite's data format by pressing <keyboard>SPACE</keyboard> key (it cycles trough all
+      <ref>TImageFormat</ref> values) and toggle alpha blending (working only
+      when sprite's current format has alpha channel) and color keying.
+      Sprite can be moved across the screen using arrow keys.
+      Screenshots can also be taken. Status of the sprite
+      and list of active keys are shown in the console window (but <keyword>SDL</keyword>
+      window must have focus for the key input to be recognized).
+    </par>
+    <image url="sdldemo.jpg"/>
+
+  </chapter>
+</doc>

@@ -48,20 +48,26 @@ ImageTexture : X3DTexture2DNode, X3DUrlObject {
 }
 
 MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
+  auto-generate-more: true
   SFString [in,out] description       ""
   SFBool   [in,out] loop              FALSE
   SFTime   [in,out] pauseTime         0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   SFTime   [in,out] resumeTime        0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   SFFloat  [in,out] speed             1.0
     range: (-Inf,Inf)
   SFTime   [in,out] startTime         0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   SFTime   [in,out] stopTime          0
     range: (-Inf,Inf)
+    change: chTimeStopStart
   MFString [in,out] url               []
     range: [URI]
+    change: chTextureImage
   SFBool   []       flipVertically    FALSE
   SFTime   [out]    duration_changed
   SFTime   [out]    elapsedTime
@@ -70,15 +76,22 @@ MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
 }
 
 MultiTexture : X3DTextureNode {
+  auto-generate-more: true
   SFFloat  [in,out] alpha    1
     range: [0,1]
+    change: chTextureRendererProperties
   SFColor  [in,out] color    1 1 1
     range: [0,1]
+    change: chTextureRendererProperties
   MFString [in,out] function []
+    change: chTextureRendererProperties
   MFString [in,out] mode     []
+    change: chTextureRendererProperties
   MFString [in,out] source   []
+    change: chTextureRendererProperties
   MFNode   [in,out] texture  []
     range: X3DSingleTextureNode
+    change: chTextureRendererProperties
 }
 
 MultiTextureCoordinate : X3DTextureCoordinateNode {
@@ -109,30 +122,47 @@ TextureCoordinateGenerator : X3DSingleTextureCoordinateNode {
 }
 
 TextureProperties : X3DNode {
+  auto-generate-more: true
+  default-container-field: textureProperties
   SFFloat     [in,out] anisotropicDegree   1.0
     range: [1,Inf)
+    change: chTexturePropertiesNode
   SFColorRGBA [in,out] borderColor         0 0 0 0
     range: [0,1]
+    change: chTexturePropertiesNode
   SFInt32     [in,out] borderWidth         0
     range: [0,1]
+    change: chTexturePropertiesNode
   SFString    [in,out] boundaryModeS       "REPEAT"
-    range: [see Table 18.7]
+    range: ["CLAMP", "CLAMP_TO_EDGE", "CLAMP_TO_BOUNDARY", "MIRRORED_REPEAT", "REPEAT"]
+    enumerated-type: TBoundaryMode BoundaryModeNames bmRepeat
+    change: chTexturePropertiesNode
   SFString    [in,out] boundaryModeT       "REPEAT"
-    range: [see Table 18.7]
+    range: ["CLAMP", "CLAMP_TO_EDGE", "CLAMP_TO_BOUNDARY", "MIRRORED_REPEAT", "REPEAT"]
+    enumerated-type: TBoundaryMode BoundaryModeNames bmRepeat
+    change: chTexturePropertiesNode
   SFString    [in,out] boundaryModeR       "REPEAT"
-    range: [see Table 18.7]
-  SFString    [in,out] magnificationFilter "FASTEST"
+    range: ["CLAMP", "CLAMP_TO_EDGE", "CLAMP_TO_BOUNDARY", "MIRRORED_REPEAT", "REPEAT"]
+    enumerated-type: TBoundaryMode BoundaryModeNames bmRepeat
+    change: chTexturePropertiesNode
+  SFString    [in,out] magnificationFilter "DEFAULT"
     range: [see Table 18.8]
-  SFString    [in,out] minificationFilter  "FASTEST"
+    change: chTexturePropertiesNode
+  SFString    [in,out] minificationFilter  "DEFAULT"
     range: [see Table 18.9]
+    change: chTexturePropertiesNode
   SFString    [in,out] textureCompression  "FASTEST"
     range: [see Table 18.10]
+    change: chTexturePropertiesNode
   SFFloat     [in,out] texturePriority     0
     range: [0,1]
+    change: chTexturePropertiesNode
   SFBool      []       generateMipMaps     FALSE
+    change: chTexturePropertiesNode
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     []            guiTexture  FALSE
+    change: chTexturePropertiesNode
 }
 
 TextureTransform : X3DSingleTextureTransformNode {

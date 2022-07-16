@@ -48,7 +48,7 @@ type
     procedure Hurt;
   end;
 
-  TEnemyList = specialize TObjectList<TEnemy>;
+  TEnemyList = {$ifdef FPC}specialize{$endif} TObjectList<TEnemy>;
 
 implementation
 

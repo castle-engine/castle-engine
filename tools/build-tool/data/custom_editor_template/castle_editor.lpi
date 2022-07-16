@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <General>
+      <Flags>
+        <CompatibilityMode Value="True"/>
+      </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="castle_editor"/>
       <Scaled Value="True"/>
       <ResourceType Value="res"/>
@@ -24,17 +26,19 @@
     </PublishOptions>
     <RunParams>
       <FormatVersion Value="2"/>
-      <Modes Count="0"/>
     </RunParams>
-    <RequiredPackages Count="3">
+    <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="castle_components"/>
+        <PackageName Value="AnchorDocking"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCL"/>
+        <PackageName Value="castle_components"/>
       </Item2>
-    <Item3> <PackageName Value="castle_editor_automatic_package"/> </Item3> </RequiredPackages>
-    <Units Count="20">
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
+    <Item4> <PackageName Value="castle_editor_automatic_package"/> </Item4> </RequiredPackages>
+    <Units Count="23">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -103,9 +107,9 @@
         <UnitName Value="FormPreferences"/>
       </Unit9>
       <Unit10>
-        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/visualizetransform.pas"/>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/designvisualizetransform.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="VisualizeTransform"/>
+        <UnitName Value="DesignVisualizeTransform"/>
       </Unit10>
       <Unit11>
         <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formspritesheeteditor.pas"/>
@@ -164,15 +168,33 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="EditorCodeTools"/>
       </Unit19>
+      <Unit20>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/castleshellctrls.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleShellCtrls"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formsysteminformation.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="SystemInformationForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormSystemInformation"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/castlelcledithack.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleLclEditHack"/>
+      </Unit22>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="castle-editor"/>
+      <Filename Value="castle-editor-new"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="${CASTLE_ENGINE_PATH}src/base;$(ProjOutDir)"/>
+      <IncludeFiles Value="${CASTLE_ENGINE_PATH}src/common_includes;$(ProjOutDir)"/>
       <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code;${CASTLE_ENGINE_PATH}tools/common-code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     <Libraries Value="${ABSOLUTE_LIBRARY_PATHS}" /> </SearchPaths>
@@ -188,6 +210,9 @@
       </Checks>
     </CodeGeneration>
     <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf2Set"/>
+      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>

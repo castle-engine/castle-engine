@@ -11,7 +11,8 @@
         <UnitOutputDirectory Value="lib-package/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
-        <CustomOptions Value="${EXTRA_COMPILER_OPTIONS_ABSOLUTE}"/>
+        <CustomOptions Value="-dCASTLE_DESIGN_MODE
+${EXTRA_COMPILER_OPTIONS_ABSOLUTE}"/>
       </Other>
     </CompilerOptions>
     <Files Count="1">
@@ -20,7 +21,7 @@
         <UnitName Value="CastleEditorCustomComponents"/>
       </Item1>
     </Files>
-    <RequiredPkgs Count="3">
+    <RequiredPkgs Count="4">
       <Item1>
         <PackageName Value="FCL"/>
       </Item1>
@@ -30,6 +31,9 @@
       <Item3>
         <PackageName Value="LCL"/>
       </Item3>
+      <Item4>
+        <PackageName Value="AnchorDocking"/>
+      </Item4>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>

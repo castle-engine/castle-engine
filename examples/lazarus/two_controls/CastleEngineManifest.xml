@@ -3,5 +3,4 @@
   lazarus_project="two_controls.lpi"
   build_using_lazbuild="true"
 >
-  <data exists="false"/>
 </project>

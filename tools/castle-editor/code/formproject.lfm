@@ -1,26 +1,29 @@
 object ProjectForm: TProjectForm
-  Left = 546
-  Height = 632
-  Top = 273
-  Width = 1142
+  Left = 2239
+  Height = 506
+  Top = 258
+  Width = 914
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 606
-  ClientWidth = 1142
+  ClientHeight = 476
+  ClientWidth = 914
   DesignTimePPI = 120
+  KeyPreview = True
   Menu = MainMenu1
+  OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnHide = FormHide
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.0.10.0'
+  LCLVersion = '2.2.0.4'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 224
-    Top = 382
-    Width = 1142
+    Top = 252
+    Width = 914
     ActivePage = TabFiles
     Align = alBottom
     ParentFont = False
@@ -28,31 +31,33 @@ object ProjectForm: TProjectForm
     TabOrder = 0
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 186
-      ClientWidth = 1136
+      ClientHeight = 188
+      ClientWidth = 904
       ParentFont = False
       object SplitterBetweenFiles: TSplitter
         Left = 0
-        Height = 186
+        Height = 188
         Top = 0
-        Width = 6
+        Width = 5
       end
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 186
-      ClientWidth = 1136
+      ClientHeight = 188
+      ClientWidth = 904
       ParentFont = False
       object ListOutput: TListBox
         Left = 0
-        Height = 217
+        Height = 188
         Top = 0
-        Width = 1326
+        Width = 904
         Align = alClient
-        ItemHeight = 26
+        ItemHeight = 21
         OnClick = ListOutputClick
+        OnDblClick = ListOutputDblClick
         ParentFont = False
-        ScrollWidth = 1324
+        PopupMenu = OutputPopup
+        ScrollWidth = 902
         Style = lbOwnerDrawFixed
         TabOrder = 0
         TopIndex = -1
@@ -60,19 +65,19 @@ object ProjectForm: TProjectForm
     end
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
-      ClientHeight = 186
-      ClientWidth = 1136
+      ClientHeight = 188
+      ClientWidth = 904
       ParentFont = False
       TabVisible = False
       object ListWarnings: TListBox
         Left = 0
-        Height = 147
+        Height = 148
         Top = 40
-        Width = 1132
+        Width = 904
         Align = alClient
         ItemHeight = 0
         ParentFont = False
-        ScrollWidth = 1130
+        ScrollWidth = 902
         TabOrder = 0
         TopIndex = -1
       end
@@ -80,12 +85,13 @@ object ProjectForm: TProjectForm
         Left = 0
         Height = 40
         Top = 0
-        Width = 1132
+        Width = 904
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
         ClientHeight = 40
-        ClientWidth = 1132
+        ClientWidth = 904
+        ParentFont = False
         TabOrder = 1
         object ButtonClearWarnings: TBitBtn
           Left = 0
@@ -95,8 +101,8 @@ object ProjectForm: TProjectForm
           Width = 87
           AutoSize = True
           Caption = 'Clear'
-          Constraints.MinHeight = 27
-          Constraints.MinWidth = 27
+          Constraints.MinHeight = 22
+          Constraints.MinWidth = 22
           Glyph.Data = {
             36090000424D3609000000000000360000002800000018000000180000000100
             2000000000000009000064000000640000000000000000000000000000000000
@@ -174,6 +180,7 @@ object ProjectForm: TProjectForm
             0000000000000000000000000000000000000000000000000000
           }
           OnClick = ButtonClearWarningsClick
+          ParentFont = False
           TabOrder = 0
         end
       end
@@ -183,20 +190,20 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 376
-    Width = 1142
+    Top = 246
+    Width = 914
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 376
+    Height = 246
     Top = 0
-    Width = 1142
+    Width = 914
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 376
-    ClientWidth = 1142
+    ClientHeight = 246
+    ClientWidth = 914
     ParentFont = False
     TabOrder = 2
     object LabelNoDesign: TLabel
@@ -206,21 +213,20 @@ object ProjectForm: TProjectForm
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Side = asrCenter
       AnchorSideBottom.Side = asrCenter
-      Left = 296
-      Height = 144
-      Top = 116
-      Width = 551
+      Left = 239
+      Height = 120
+      Top = 63
+      Width = 436
       Alignment = taCenter
       Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
-      Font.Height = -33
-      ParentColor = False
+      Font.Height = -26
       ParentFont = False
       WordWrap = True
     end
   end
   object MainMenu1: TMainMenu
     Left = 44
-    Top = 21
+    Top = 24
     object MenuItemFile: TMenuItem
       Caption = '&Project'
       object MenuItemRestartRebuildEditor: TMenuItem
@@ -254,14 +260,21 @@ object ProjectForm: TProjectForm
         OnClick = MenuItemDesignNewUserInterfaceRectClick
       end
       object MenuItemDesignNewUserInterfaceCustomRoot: TMenuItem
-        Caption = 'New User Interface (Chosen Root)'
+        Caption = 'New User Interface (Custom Root)'
       end
       object MenuItemDesignNewTransform: TMenuItem
         Caption = 'New Transform (Empty Transform as Root)'
         OnClick = MenuItemDesignNewTransformClick
       end
       object MenuItemDesignNewTransformCustomRoot: TMenuItem
-        Caption = 'New Transform (Chosen Root)'
+        Caption = 'New Transform (Custom Root)'
+      end
+      object MenuItemDesignNewNonVisual: TMenuItem
+        Caption = 'New Non-Visual Component (Empty Component As Root)'
+        OnClick = MenuItemDesignNewNonVisualClick
+      end
+      object MenuItemDesignNewNonVisualCustomRoot: TMenuItem
+        Caption = 'New Non-Visual Component (Custom Root)'
       end
       object MenuItemSeparator201: TMenuItem
         Caption = '-'
@@ -280,14 +293,27 @@ object ProjectForm: TProjectForm
         Caption = 'Save As ...'
         OnClick = MenuItemSaveAsDesignClick
       end
-      object MenuItemSeparator150: TMenuItem
+      object MenuItemSeparator1300: TMenuItem
         Caption = '-'
       end
+      object MenuItemDesignClose: TMenuItem
+        Caption = 'Close'
+        OnClick = MenuItemDesignCloseClick
+      end
+    end
+    object MenuItemEdit: TMenuItem
+      Caption = 'Edit'
       object MenuItemDesignAddUserInterface: TMenuItem
-        Caption = 'Add User Interface Component'
+        Caption = 'Add User Interface'
       end
       object MenuItemDesignAddTransform: TMenuItem
-        Caption = 'Add Transform Component'
+        Caption = 'Add Transform'
+      end
+      object MenuItemDesignAddBehavior: TMenuItem
+        Caption = 'Add Behavior (Extends Parent Transform)'
+      end
+      object MenuItemDesignAddNonVisual: TMenuItem
+        Caption = 'Add Non-Visual Component'
       end
       object MenuItemSeparator170: TMenuItem
         Caption = '-'
@@ -299,40 +325,109 @@ object ProjectForm: TProjectForm
       end
       object MenuItemUndo: TMenuItem
         Caption = 'Undo'
-        ShortCut = 49242
+        ShortCut = 16474
         OnClick = MenuItemUndoClick
       end
       object MenuItemRedo: TMenuItem
         Caption = 'Redo'
-        ShortCut = 57434
+        ShortCut = 24666
         OnClick = MenuItemRedoClick
       end
-      object MenuItemCopyComponent: TMenuItem
-        Caption = 'Copy Component'
-        ShortCut = 24643
-        OnClick = MenuItemCopyComponentClick
-      end
-      object MenuItemPasteComponent: TMenuItem
-        Caption = 'Paste Component'
-        ShortCut = 24662
-        OnClick = MenuItemPasteComponentClick
-      end
-      object MenuItemDuplicateComponent: TMenuItem
-        Caption = 'Duplicate Component'
-        ShortCut = 24644
-        OnClick = MenuItemDuplicateComponentClick
-      end
-      object MenuItemDesignDeleteComponent: TMenuItem
-        Caption = 'Delete Component'
-        ShortCut = 16430
-        OnClick = MenuItemDesignDeleteComponentClick
-      end
-      object MenuItemSeparator1300: TMenuItem
+      object MenuSeparator6: TMenuItem
         Caption = '-'
       end
-      object MenuItemDesignClose: TMenuItem
-        Caption = 'Close'
-        OnClick = MenuItemDesignCloseClick
+      object MenuItemDuplicateComponent: TMenuItem
+        Action = ActionComponentDuplicate
+      end
+      object MenuItem15: TMenuItem
+        Action = ActionComponentCut
+      end
+      object MenuItemCopyComponent: TMenuItem
+        Action = ActionComponentCopy
+      end
+      object MenuItemPasteComponent: TMenuItem
+        Action = ActionComponentPaste
+      end
+      object MenuItem21: TMenuItem
+        Action = ActionComponentSaveSelected
+      end
+      object MenuSeparator6123: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemDesignDeleteComponent: TMenuItem
+        Action = ActionComponentDelete
+      end
+    end
+    object MenuItemViewport: TMenuItem
+      Caption = 'Viewport'
+      object MenuItemViewportViewAll: TMenuItem
+        Action = ActionViewportViewAll
+      end
+      object MenuItemViewportViewSelected: TMenuItem
+        Action = ActionViewportViewSelected
+      end
+      object Separator1: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem4: TMenuItem
+        Action = ActionViewportTop
+      end
+      object MenuItem6: TMenuItem
+        Action = ActionViewportBottom
+      end
+      object MenuItem10: TMenuItem
+        Action = ActionViewportFront
+      end
+      object MenuItem11: TMenuItem
+        Action = ActionViewportBack
+      end
+      object MenuItem7: TMenuItem
+        Action = ActionViewportRight
+      end
+      object MenuItem8: TMenuItem
+        Action = ActionViewportLeft
+      end
+      object Separator2: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem20: TMenuItem
+        Action = ActionViewportToggleProjection
+      end
+      object Separator5: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem13: TMenuItem
+        Action = ActionViewportAlignViewToCamera
+      end
+      object MenuItem14: TMenuItem
+        Action = ActionViewportAlignCameraToView
+      end
+      object Separator3: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem12: TMenuItem
+        Action = ActionNavigationFly
+        RadioItem = True
+      end
+      object MenuItem2: TMenuItem
+        Action = ActionNavigationExamine
+        RadioItem = True
+      end
+      object MenuItem16: TMenuItem
+        Action = ActionNavigation2D
+        RadioItem = True
+      end
+      object MenuItem17: TMenuItem
+        Action = ActionNavigationToggle2D
+      end
+      object Separator4: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem18: TMenuItem
+        Action = ActionViewportSetup2D
+      end
+      object MenuItem19: TMenuItem
+        Action = ActionViewportSort2D
       end
     end
     object MenuItemCode: TMenuItem
@@ -401,6 +496,12 @@ object ProjectForm: TProjectForm
         RadioItem = True
         OnClick = MenuItemModeReleaseClick
       end
+      object MenuItemSeparator12312131: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemPlatform: TMenuItem
+        Caption = 'Platform (To Build And Run)'
+      end
       object MenuItemSeparator2: TMenuItem
         Caption = '-'
       end
@@ -415,9 +516,19 @@ object ProjectForm: TProjectForm
         Caption = 'Package (Release to Users)'
         OnClick = MenuItemPackageClick
       end
+      object MenuItemPackageFormat: TMenuItem
+        Caption = 'Package Format'
+      end
       object MenuItemPackageSource: TMenuItem
         Caption = 'Package Source'
         OnClick = MenuItemPackageSourceClick
+      end
+      object MenuItemSeparator12312332424: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemInstall: TMenuItem
+        Caption = 'Install  (only for Android now)'
+        OnClick = MenuItemInstallClick
       end
       object MenuItemSeparator3: TMenuItem
         Caption = '-'
@@ -443,6 +554,51 @@ object ProjectForm: TProjectForm
       Caption = 'Data'
       object MenuItemNewCastleSpriteSheet: TMenuItem
         Action = ActionNewSpriteSheet
+      end
+    end
+    object MenuItemWindow: TMenuItem
+      Caption = 'Window'
+      object MenuItemEnableDisableDocking: TMenuItem
+        Caption = 'Docking'
+        OnClick = MenuItemEnableDisableDockingClick
+      end
+      object MenuItem5: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemUIDesign: TMenuItem
+        Caption = 'Design'
+        OnClick = MenuItemUIDesignClick
+      end
+      object MenuItemUIExplorer: TMenuItem
+        Caption = 'Explorer'
+        OnClick = MenuItemUIExplorerClick
+      end
+      object MenuItemUIFiles: TMenuItem
+        Caption = 'Files'
+        OnClick = MenuItemUIFilesClick
+      end
+      object MenuItemUIHierarchy: TMenuItem
+        Caption = 'Hierarchy'
+        OnClick = MenuItemUIHierarchyClick
+      end
+      object MenuItemUIOutput: TMenuItem
+        Caption = 'Output'
+        OnClick = MenuItemUIOutputClick
+      end
+      object MenuItemUIProperties: TMenuItem
+        Caption = 'Properties'
+        OnClick = MenuItemUIPropertiesClick
+      end
+      object MenuItemUIWarnings: TMenuItem
+        Caption = 'Warnings'
+        OnClick = MenuItemUIWarningsClick
+      end
+      object MenuItem9: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemUIRestoreDefaultDockSettings: TMenuItem
+        Caption = 'Restore Default Docking Layout'
+        OnClick = MenuItemUIRestoreDefaultDockSettingsClick
       end
     end
     object MenuItemHelp: TMenuItem
@@ -474,6 +630,9 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator: TMenuItem
         Caption = '-'
       end
+      object MenuItemSystemInformation: TMenuItem
+        Action = ActionSystemInformation
+      end
       object MenuItemAbout: TMenuItem
         Caption = 'About Castle Game Engine Editor'
         OnClick = MenuItemAboutClick
@@ -482,28 +641,27 @@ object ProjectForm: TProjectForm
   end
   object ProcessUpdateTimer: TTimer
     OnTimer = ProcessUpdateTimerTimer
-    Left = 145
-    Top = 23
+    Left = 116
+    Top = 18
   end
   object SaveDesignDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
-    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
-    FilterIndex = 0
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     AdviceDataDirectory = True
-    Left = 145
-    Top = 164
+    Left = 116
+    Top = 131
   end
   object OpenDesignDialog: TCastleOpenDialog
-    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     AdviceDataDirectory = True
-    Left = 154
-    Top = 95
+    Left = 116
+    Top = 76
   end
   object ShellListPopupMenu: TPopupMenu
     OnPopup = ShellListPopupMenuPopup
-    Left = 87
-    Top = 260
+    Left = 80
+    Top = 304
     object MenuItemOpenDefault: TMenuItem
       Caption = 'Open'
       Default = True
@@ -554,8 +712,8 @@ object ProjectForm: TProjectForm
     end
   end
   object ShellTreePopupMenu: TPopupMenu
-    Left = 233
-    Top = 288
+    Left = 80
+    Top = 376
     object MenuItemShellTreeOpenDir: TMenuItem
       Caption = 'Open in File Manager'
       OnClick = MenuItemShellTreeOpenDirClick
@@ -571,141 +729,304 @@ object ProjectForm: TProjectForm
   object ShellIcons: TImageList
     Height = 24
     Width = 24
-    Left = 391
-    Top = 300
+    Left = 304
+    Top = 376
     Bitmap = {
-      4C69010000001800000018000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000070000008A000000E60000
-      00FF000000FF000000FF000000FF000000FF000000C900000008000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000008A000000FF000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF00000088000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000E6000000FF0000003A0000
-      000000000000000000000000000000000037000000FC000000FC000000370000
-      0000000000000000000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000FF000000FF000000000000
-      00000000000000000000000000000000000000000088000000FF000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00E600000089000000060000000000000000000000FF000000FF000000000000
-      00000000000000000000000000000000000000000008000000C7000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00FF000000FF000000880000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      003B000000FF000000E50000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000FF000000FF0000000000000000000000E6000000FF0000003B0000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      003D000000FF000000E5000000000000000000000088000000FF000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00FF000000FF0000008600000000000000000000000600000089000000E50000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-      00E5000000870000000600000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000
+      4C7A010000001800000018000000860000000000000078DA63601816801D88BB
+      80F81910FFC7824F02310705E677E13017197750603ECCDD5658E4CC81F80F14
+      9B93693ECC8DB8400711FE8361905B3B81988D04F341617F9C043BD0C39390F9
+      A4006BA8594F69643E36F346CD1F357FD4FCA16B3EAC7CB6A682D9B658CA1F52
+      CA5F62711B92F96CD032FB2915CC0599D18E56FE0F590000A00D8D10
     }
   end
   object ApplicationProperties1: TApplicationProperties
     OnActivate = ApplicationProperties1Activate
     OnException = ApplicationProperties1Exception
-    Left = 344
-    Top = 21
+    Left = 275
+    Top = 18
   end
   object ActionList: TActionList
-    Left = 498
-    Top = 24
+    Left = 398
+    Top = 19
     object ActionNewSpriteSheet: TAction
+      Category = 'Data'
       Caption = 'New Sprite Sheet...'
       OnExecute = ActionNewSpriteSheetExecute
     end
     object ActionOpenProjectCode: TAction
+      Category = 'Code'
       Caption = 'Open Project in Code Editor'
       OnExecute = ActionOpenProjectCodeExecute
     end
     object ActionEditUnit: TAction
+      Category = 'Code'
       Caption = 'Edit Unit...'
       OnExecute = ActionEditUnitExecute
     end
     object ActionNewUnitEmpty: TAction
+      Category = 'Code'
       Caption = 'Empty Unit...'
       OnExecute = ActionNewUnitEmptyExecute
     end
     object ActionNewUnitClass: TAction
+      Category = 'Code'
       Caption = 'Unit With Class...'
       OnExecute = ActionNewUnitClassExecute
     end
     object ActionNewUnitState: TAction
+      Category = 'Code'
       Caption = 'Unit With State...'
       OnExecute = ActionNewUnitStateExecute
     end
     object ActionNewUnitHereEmpty: TAction
+      Category = 'PopupFiles'
       Caption = 'Empty Unit...'
       OnExecute = ActionNewUnitHereEmptyExecute
     end
     object ActionNewUnitHereClass: TAction
+      Category = 'PopupFiles'
       Caption = 'Unit With Class...'
       OnExecute = ActionNewUnitHereClassExecute
     end
     object ActionNewUnitHereState: TAction
+      Category = 'PopupFiles'
       Caption = 'Unit With State...'
       OnExecute = ActionNewUnitHereStateExecute
     end
     object ActionEditAssociatedUnit: TAction
+      Category = 'Code'
       Caption = 'Edit Unit Associated With Open Design'
       OnExecute = ActionEditAssociatedUnitExecute
       ShortCut = 123
     end
     object ActionRegenerateProject: TAction
-      Caption = 'Regenerate Project (overwrites LPR, LPI, CastleAutoGenerated)'
+      Category = 'Code'
+      Caption = 'Regenerate Project (overwrites LPI, DPR, DPROJ, CastleAutoGenerated)'
       OnExecute = ActionRegenerateProjectExecute
+    end
+    object ActionOutputClean: TAction
+      Category = 'PopupOutput'
+      Caption = 'Clean'
+      OnExecute = ActionOutputCleanExecute
+    end
+    object ActionOutputCopySelected: TAction
+      Category = 'PopupOutput'
+      Caption = 'Copy Selected'
+      OnExecute = ActionOutputCopySelectedExecute
+      OnUpdate = ActionOutputCopySelectedUpdate
+    end
+    object ActionOutputCopyAll: TAction
+      Category = 'PopupOutput'
+      Caption = 'Copy All'
+      OnExecute = ActionOutputCopyAllExecute
+    end
+    object ActionSystemInformation: TAction
+      Category = 'Help'
+      Caption = 'System Information'
+      OnExecute = ActionSystemInformationExecute
+    end
+    object ActionViewportViewAll: TAction
+      Category = 'Viewport'
+      Caption = 'View All'
+      OnExecute = ActionViewportViewAllExecute
+      OnUpdate = ActionViewportUpdate
+      ShortCut = 36
+    end
+    object ActionViewportViewSelected: TAction
+      Category = 'Viewport'
+      Caption = 'Focus Selected Transform'
+      OnExecute = ActionViewportViewSelectedExecute
+      OnUpdate = ActionViewportUpdate
+      ShortCut = 70
+    end
+    object ActionViewportTop: TAction
+      Category = 'Viewport'
+      Caption = 'Top'
+      OnExecute = ActionViewportTopExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        '7'
+      )
+      ShortCut = 103
+    end
+    object ActionViewportBottom: TAction
+      Category = 'Viewport'
+      Caption = 'Bottom'
+      OnExecute = ActionViewportBottomExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+7'
+      )
+      ShortCut = 16487
+    end
+    object ActionViewportFront: TAction
+      Category = 'Viewport'
+      Caption = 'Front'
+      OnExecute = ActionViewportFrontExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        '1'
+      )
+      ShortCut = 97
+    end
+    object ActionViewportBack: TAction
+      Category = 'Viewport'
+      Caption = 'Back'
+      OnExecute = ActionViewportBackExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+1'
+      )
+      ShortCut = 16481
+    end
+    object ActionViewportRight: TAction
+      Category = 'Viewport'
+      Caption = 'Right'
+      OnExecute = ActionViewportRightExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        '3'
+      )
+      ShortCut = 99
+    end
+    object ActionViewportLeft: TAction
+      Category = 'Viewport'
+      Caption = 'Left'
+      OnExecute = ActionViewportLeftExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+3'
+      )
+      ShortCut = 16483
+    end
+    object ActionNavigationFly: TAction
+      Category = 'Viewport'
+      Caption = 'Fly'
+      GroupIndex = 400
+      OnExecute = ActionNavigationFlyExecute
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionNavigationExamine: TAction
+      Category = 'Viewport'
+      Caption = 'Examine'
+      GroupIndex = 400
+      OnExecute = ActionNavigationExamineExecute
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionNavigation2D: TAction
+      Category = 'Viewport'
+      Caption = '2D'
+      GroupIndex = 400
+      OnExecute = ActionNavigation2DExecute
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionNavigationToggle2D: TAction
+      Category = 'Viewport'
+      Caption = 'Toggle Fly / 2D'
+      OnExecute = ActionNavigationToggle2DExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+2'
+      )
+      ShortCut = 16482
+    end
+    object ActionViewportAlignViewToCamera: TAction
+      Category = 'Viewport'
+      Caption = 'Align View To Camera'
+      OnExecute = ActionViewportAlignViewToCameraExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        '0'
+      )
+      ShortCut = 96
+    end
+    object ActionViewportAlignCameraToView: TAction
+      Category = 'Viewport'
+      Caption = 'Align Camera To View'
+      OnExecute = ActionViewportAlignCameraToViewExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        'Ctrl+0'
+      )
+      ShortCut = 16480
+    end
+    object ActionViewportSetup2D: TAction
+      Category = 'Viewport'
+      Caption = '2D Camera And Projection At Runtime'
+      OnExecute = ActionViewportSetup2DExecute
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionViewportSort2D: TAction
+      Category = 'Viewport'
+      Caption = 'Sort Items For Correct 2D Blending'
+      OnExecute = ActionViewportSort2DExecute
+      OnUpdate = ActionViewportUpdate
+    end
+    object ActionViewportToggleProjection: TAction
+      Category = 'Viewport'
+      Caption = 'Toggle Perspective / Orthogonal'
+      OnExecute = ActionViewportToggleProjectionExecute
+      OnUpdate = ActionViewportUpdate
+      SecondaryShortCuts.Strings = (
+        '5'
+      )
+      ShortCut = 101
+    end
+    object ActionComponentCopy: TAction
+      Category = 'Edit'
+      Caption = 'Copy'
+      OnExecute = ActionCopyComponentExecute
+      ShortCut = 16451
+    end
+    object ActionComponentPaste: TAction
+      Category = 'Edit'
+      Caption = 'Paste'
+      OnExecute = ActionPasteComponentExecute
+      ShortCut = 16470
+    end
+    object ActionComponentCut: TAction
+      Category = 'Edit'
+      Caption = 'Cut'
+      OnExecute = ActionComponentCutExecute
+      ShortCut = 16472
+    end
+    object ActionComponentDelete: TAction
+      Category = 'Edit'
+      Caption = 'Delete'
+      OnExecute = ActionDeleteComponentExecute
+      ShortCut = 46
+    end
+    object ActionComponentSaveSelected: TAction
+      Category = 'Edit'
+      Caption = 'Save Selected...'
+      OnExecute = ActionComponentSaveSelectedExecute
+    end
+    object ActionComponentDuplicate: TAction
+      Category = 'Edit'
+      Caption = 'Duplicate'
+      OnExecute = ActionDuplicateComponentExecute
+      ShortCut = 16452
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
-    Left = 263
-    Top = 200
+    Left = 296
+    Top = 131
+  end
+  object OutputPopup: TPopupMenu
+    OnPopup = ShellListPopupMenuPopup
+    Left = 304
+    Top = 304
+    object MenuItemOutputClean: TMenuItem
+      Action = ActionOutputClean
+    end
+    object MenuItemSeparator12312123123: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemOutputCopySelected: TMenuItem
+      Action = ActionOutputCopySelected
+    end
+    object MenuItemOutputCopyAll: TMenuItem
+      Action = ActionOutputCopyAll
+    end
   end
 end

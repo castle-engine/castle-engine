@@ -1,3 +1,4 @@
+{%MainUnit castleinternalpng.pas}
 (*
   Libpng bindings. See [http://www.libpng.org/].
   Bases on FPC sources, modified by Kambi.
@@ -292,8 +293,8 @@ type
    ppng_uint_16p = ^png_uint_16p;
    png_int_16p = Ppng_int_16;
 (* Const before type ignored *)
-   png_const_charp = Pchar;
-   png_charp = Pchar;
+   png_const_charp = PAnsichar;
+   png_charp = PAnsichar;
    ppng_charp = ^png_charp;
    png_fixed_point_p = Ppng_fixed_point;
    TFile = Pointer;
@@ -305,15 +306,15 @@ type
    png_uint_16pp = PPpng_uint_16;
    png_int_16pp = PPpng_int_16;
  (* Const before type ignored *)
-   png_const_charpp = PPchar;
-   png_charpp = PPchar;
+   png_const_charpp = PPAnsichar;
+   png_charpp = PPAnsichar;
    ppng_charpp = ^png_charpp;
    png_fixed_point_pp = PPpng_fixed_point;
    PPDouble = ^PDouble;
    png_doublepp = PPdouble;
-   PPPChar = ^PPCHar;
+   PPPChar = ^PPAnsiCHar;
    png_charppp = PPPchar;
-   Pcharf = Pchar;
+   Pcharf = PAnsichar;
    PPcharf = ^Pcharf;
    png_zcharp = Pcharf;
    png_zcharpp = PPcharf;
@@ -547,7 +548,7 @@ png_malloc_ptr = Function (Arg1 : png_structp; Arg2 : png_size_t) : png_voidp ;{
 png_free_ptr = Procedure (Arg1 : png_structp; Arg2 : png_voidp) ; {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 
    png_struct_def = record
-        jmpbuf : jmp_buf;
+        jmpbuf : {$ifdef FPC} jmp_buf {$else} pointer {$endif};
         error_fn : png_error_ptr;
         warning_fn : png_error_ptr;
         error_ptr : png_voidp;
@@ -899,7 +900,7 @@ procedure PngInitialization;
 implementation
 
 uses SysUtils,
-  CastleDynLib, CastleLog
+  CastleDynLib, CastleUtils, CastleLog
   {$ifdef DARWIN}, { for BundlePath } CastleFilesUtils {$endif};
 
 var
@@ -962,7 +963,8 @@ begin
     PngLibrary := TDynLib.Load('libpng14.so', false);
   if PngLibrary = nil then
     PngLibrary := TDynLib.Load('libpng12.so.0', false);
-  { As a final fallback, use the libpng that comes from a package like libpng-dev. }
+  { As a final fallback, use the libpng that comes from a package like libpng-dev.
+    Also this matches name on Android. }
   if PngLibrary = nil then
     PngLibrary := TDynLib.Load('libpng.so', false);
   {$endif DARWIN}
@@ -971,183 +973,189 @@ begin
 
   if PngLibrary <> nil then
   begin
-    Pointer(png_access_version_number) := PngLibrary.Symbol('png_access_version_number');
-    Pointer(png_set_sig_bytes) := PngLibrary.Symbol('png_set_sig_bytes');
-    Pointer(png_sig_cmp) := PngLibrary.Symbol('png_sig_cmp');
-    Pointer(png_create_read_struct) := PngLibrary.Symbol('png_create_read_struct');
-    Pointer(png_create_write_struct) := PngLibrary.Symbol('png_create_write_struct');
-    Pointer(png_get_compression_buffer_size) := PngLibrary.Symbol('png_get_compression_buffer_size');
-    Pointer(png_set_compression_buffer_size) := PngLibrary.Symbol('png_set_compression_buffer_size');
-    Pointer(png_reset_zstream) := PngLibrary.Symbol('png_reset_zstream');
-    Pointer(png_write_chunk) := PngLibrary.Symbol('png_write_chunk');
-    Pointer(png_write_chunk_start) := PngLibrary.Symbol('png_write_chunk_start');
-    Pointer(png_write_chunk_data) := PngLibrary.Symbol('png_write_chunk_data');
-    Pointer(png_write_chunk_end) := PngLibrary.Symbol('png_write_chunk_end');
-    Pointer(png_create_info_struct) := PngLibrary.Symbol('png_create_info_struct');
-    Pointer(png_write_info_before_PLTE) := PngLibrary.Symbol('png_write_info_before_PLTE');
-    Pointer(png_write_info) := PngLibrary.Symbol('png_write_info');
-    Pointer(png_read_info) := PngLibrary.Symbol('png_read_info');
-    Pointer(png_convert_to_rfc1123) := PngLibrary.Symbol('png_convert_to_rfc1123');
-    Pointer(png_convert_from_struct_tm) := PngLibrary.Symbol('png_convert_from_struct_tm');
-    Pointer(png_convert_from_time_t) := PngLibrary.Symbol('png_convert_from_time_t');
-    Pointer(png_set_expand) := PngLibrary.Symbol('png_set_expand');
-    Pointer(png_set_palette_to_rgb) := PngLibrary.Symbol('png_set_palette_to_rgb');
-    Pointer(png_set_tRNS_to_alpha) := PngLibrary.Symbol('png_set_tRNS_to_alpha');
-    Pointer(png_set_bgr) := PngLibrary.Symbol('png_set_bgr');
-    Pointer(png_set_gray_to_rgb) := PngLibrary.Symbol('png_set_gray_to_rgb');
-    Pointer(png_set_rgb_to_gray) := PngLibrary.Symbol('png_set_rgb_to_gray');
-    Pointer(png_set_rgb_to_gray_fixed) := PngLibrary.Symbol('png_set_rgb_to_gray_fixed');
-    Pointer(png_get_rgb_to_gray_status) := PngLibrary.Symbol('png_get_rgb_to_gray_status');
-    Pointer(png_build_grayscale_palette) := PngLibrary.Symbol('png_build_grayscale_palette');
-    Pointer(png_set_strip_alpha) := PngLibrary.Symbol('png_set_strip_alpha');
-    Pointer(png_set_swap_alpha) := PngLibrary.Symbol('png_set_swap_alpha');
-    Pointer(png_set_invert_alpha) := PngLibrary.Symbol('png_set_invert_alpha');
-    Pointer(png_set_filler) := PngLibrary.Symbol('png_set_filler');
-    Pointer(png_set_swap) := PngLibrary.Symbol('png_set_swap');
-    Pointer(png_set_packing) := PngLibrary.Symbol('png_set_packing');
-    Pointer(png_set_packswap) := PngLibrary.Symbol('png_set_packswap');
-    Pointer(png_set_shift) := PngLibrary.Symbol('png_set_shift');
-    Pointer(png_set_interlace_handling) := PngLibrary.Symbol('png_set_interlace_handling');
-    Pointer(png_set_invert_mono) := PngLibrary.Symbol('png_set_invert_mono');
-    Pointer(png_set_background) := PngLibrary.Symbol('png_set_background');
-    Pointer(png_set_strip_16) := PngLibrary.Symbol('png_set_strip_16');
-    Pointer(png_set_gamma) := PngLibrary.Symbol('png_set_gamma');
-    Pointer(png_set_flush) := PngLibrary.Symbol('png_set_flush');
-    Pointer(png_write_flush) := PngLibrary.Symbol('png_write_flush');
-    Pointer(png_start_read_image) := PngLibrary.Symbol('png_start_read_image');
-    Pointer(png_read_update_info) := PngLibrary.Symbol('png_read_update_info');
-    Pointer(png_read_rows) := PngLibrary.Symbol('png_read_rows');
-    Pointer(png_read_row) := PngLibrary.Symbol('png_read_row');
-    Pointer(png_read_image) := PngLibrary.Symbol('png_read_image');
-    Pointer(png_write_row) := PngLibrary.Symbol('png_write_row');
-    Pointer(png_write_rows) := PngLibrary.Symbol('png_write_rows');
-    Pointer(png_write_image) := PngLibrary.Symbol('png_write_image');
-    Pointer(png_write_end) := PngLibrary.Symbol('png_write_end');
-    Pointer(png_read_end) := PngLibrary.Symbol('png_read_end');
-    Pointer(png_destroy_info_struct) := PngLibrary.Symbol('png_destroy_info_struct');
-    Pointer(png_destroy_read_struct) := PngLibrary.Symbol('png_destroy_read_struct');
-    Pointer(png_destroy_write_struct) := PngLibrary.Symbol('png_destroy_write_struct');
-    Pointer(png_set_crc_action) := PngLibrary.Symbol('png_set_crc_action');
-    Pointer(png_set_filter) := PngLibrary.Symbol('png_set_filter');
-    Pointer(png_set_filter_heuristics) := PngLibrary.Symbol('png_set_filter_heuristics');
-    Pointer(png_set_compression_level) := PngLibrary.Symbol('png_set_compression_level');
-    Pointer(png_set_compression_mem_level) := PngLibrary.Symbol('png_set_compression_mem_level');
-    Pointer(png_set_compression_strategy) := PngLibrary.Symbol('png_set_compression_strategy');
-    Pointer(png_set_compression_window_bits) := PngLibrary.Symbol('png_set_compression_window_bits');
-    Pointer(png_set_compression_method) := PngLibrary.Symbol('png_set_compression_method');
-    Pointer(png_init_io) := PngLibrary.Symbol('png_init_io');
-    Pointer(png_set_error_fn) := PngLibrary.Symbol('png_set_error_fn');
-    Pointer(png_get_error_ptr) := PngLibrary.Symbol('png_get_error_ptr');
-    Pointer(png_set_write_fn) := PngLibrary.Symbol('png_set_write_fn');
-    Pointer(png_set_read_fn) := PngLibrary.Symbol('png_set_read_fn');
-    Pointer(png_get_io_ptr) := PngLibrary.Symbol('png_get_io_ptr');
-    Pointer(png_set_read_status_fn) := PngLibrary.Symbol('png_set_read_status_fn');
-    Pointer(png_set_write_status_fn) := PngLibrary.Symbol('png_set_write_status_fn');
-    Pointer(png_set_read_user_transform_fn) := PngLibrary.Symbol('png_set_read_user_transform_fn');
-    Pointer(png_set_write_user_transform_fn) := PngLibrary.Symbol('png_set_write_user_transform_fn');
-    Pointer(png_set_user_transform_info) := PngLibrary.Symbol('png_set_user_transform_info');
-    Pointer(png_get_user_transform_ptr) := PngLibrary.Symbol('png_get_user_transform_ptr');
-    Pointer(png_set_read_user_chunk_fn) := PngLibrary.Symbol('png_set_read_user_chunk_fn');
-    Pointer(png_get_user_chunk_ptr) := PngLibrary.Symbol('png_get_user_chunk_ptr');
-    Pointer(png_set_progressive_read_fn) := PngLibrary.Symbol('png_set_progressive_read_fn');
-    Pointer(png_get_progressive_ptr) := PngLibrary.Symbol('png_get_progressive_ptr');
-    Pointer(png_process_data) := PngLibrary.Symbol('png_process_data');
-    Pointer(png_progressive_combine_row) := PngLibrary.Symbol('png_progressive_combine_row');
-    Pointer(png_malloc) := PngLibrary.Symbol('png_malloc');
-    Pointer(png_free) := PngLibrary.Symbol('png_free');
-    Pointer(png_free_data) := PngLibrary.Symbol('png_free_data');
-    Pointer(png_data_freer) := PngLibrary.Symbol('png_data_freer');
-    Pointer(png_error) := PngLibrary.Symbol('png_error');
-    Pointer(png_chunk_error) := PngLibrary.Symbol('png_chunk_error');
-    Pointer(png_warning) := PngLibrary.Symbol('png_warning');
-    Pointer(png_chunk_warning) := PngLibrary.Symbol('png_chunk_warning');
-    Pointer(png_get_valid) := PngLibrary.Symbol('png_get_valid');
-    Pointer(png_get_rowbytes) := PngLibrary.Symbol('png_get_rowbytes');
-    Pointer(png_get_rows) := PngLibrary.Symbol('png_get_rows');
-    Pointer(png_set_rows) := PngLibrary.Symbol('png_set_rows');
-    Pointer(png_get_channels) := PngLibrary.Symbol('png_get_channels');
-    Pointer(png_get_image_width) := PngLibrary.Symbol('png_get_image_width');
-    Pointer(png_get_image_height) := PngLibrary.Symbol('png_get_image_height');
-    Pointer(png_get_bit_depth) := PngLibrary.Symbol('png_get_bit_depth');
-    Pointer(png_get_color_type) := PngLibrary.Symbol('png_get_color_type');
-    Pointer(png_get_filter_type) := PngLibrary.Symbol('png_get_filter_type');
-    Pointer(png_get_interlace_type) := PngLibrary.Symbol('png_get_interlace_type');
-    Pointer(png_get_compression_type) := PngLibrary.Symbol('png_get_compression_type');
-    Pointer(png_get_pixels_per_meter) := PngLibrary.Symbol('png_get_pixels_per_meter');
-    Pointer(png_get_x_pixels_per_meter) := PngLibrary.Symbol('png_get_x_pixels_per_meter');
-    Pointer(png_get_y_pixels_per_meter) := PngLibrary.Symbol('png_get_y_pixels_per_meter');
-    Pointer(png_get_pixel_aspect_ratio) := PngLibrary.Symbol('png_get_pixel_aspect_ratio');
-    Pointer(png_get_x_offset_pixels) := PngLibrary.Symbol('png_get_x_offset_pixels');
-    Pointer(png_get_y_offset_pixels) := PngLibrary.Symbol('png_get_y_offset_pixels');
-    Pointer(png_get_x_offset_microns) := PngLibrary.Symbol('png_get_x_offset_microns');
-    Pointer(png_get_y_offset_microns) := PngLibrary.Symbol('png_get_y_offset_microns');
-    Pointer(png_get_signature) := PngLibrary.Symbol('png_get_signature');
-    Pointer(png_get_bKGD) := PngLibrary.Symbol('png_get_bKGD');
-    Pointer(png_set_bKGD) := PngLibrary.Symbol('png_set_bKGD');
-    Pointer(png_get_cHRM) := PngLibrary.Symbol('png_get_cHRM');
-    Pointer(png_get_cHRM_fixed) := PngLibrary.Symbol('png_get_cHRM_fixed');
-    Pointer(png_set_cHRM) := PngLibrary.Symbol('png_set_cHRM');
-    Pointer(png_set_cHRM_fixed) := PngLibrary.Symbol('png_set_cHRM_fixed');
-    Pointer(png_get_gAMA) := PngLibrary.Symbol('png_get_gAMA');
-    Pointer(png_get_gAMA_fixed) := PngLibrary.Symbol('png_get_gAMA_fixed');
-    Pointer(png_set_gAMA) := PngLibrary.Symbol('png_set_gAMA');
-    Pointer(png_set_gAMA_fixed) := PngLibrary.Symbol('png_set_gAMA_fixed');
-    Pointer(png_get_hIST) := PngLibrary.Symbol('png_get_hIST');
-    Pointer(png_set_hIST) := PngLibrary.Symbol('png_set_hIST');
-    Pointer(png_get_IHDR) := PngLibrary.Symbol('png_get_IHDR');
-    Pointer(png_set_IHDR) := PngLibrary.Symbol('png_set_IHDR');
-    Pointer(png_get_oFFs) := PngLibrary.Symbol('png_get_oFFs');
-    Pointer(png_set_oFFs) := PngLibrary.Symbol('png_set_oFFs');
-    Pointer(png_get_pCAL) := PngLibrary.Symbol('png_get_pCAL');
-    Pointer(png_set_pCAL) := PngLibrary.Symbol('png_set_pCAL');
-    Pointer(png_get_pHYs) := PngLibrary.Symbol('png_get_pHYs');
-    Pointer(png_set_pHYs) := PngLibrary.Symbol('png_set_pHYs');
-    Pointer(png_get_PLTE) := PngLibrary.Symbol('png_get_PLTE');
-    Pointer(png_set_PLTE) := PngLibrary.Symbol('png_set_PLTE');
-    Pointer(png_get_sBIT) := PngLibrary.Symbol('png_get_sBIT');
-    Pointer(png_set_sBIT) := PngLibrary.Symbol('png_set_sBIT');
-    Pointer(png_get_sRGB) := PngLibrary.Symbol('png_get_sRGB');
-    Pointer(png_set_sRGB) := PngLibrary.Symbol('png_set_sRGB');
-    Pointer(png_set_sRGB_gAMA_and_cHRM) := PngLibrary.Symbol('png_set_sRGB_gAMA_and_cHRM');
-    Pointer(png_get_iCCP) := PngLibrary.Symbol('png_get_iCCP');
-    Pointer(png_set_iCCP) := PngLibrary.Symbol('png_set_iCCP');
-    Pointer(png_get_sPLT) := PngLibrary.Symbol('png_get_sPLT');
-    Pointer(png_set_sPLT) := PngLibrary.Symbol('png_set_sPLT');
-    Pointer(png_get_text) := PngLibrary.Symbol('png_get_text');
-    Pointer(png_set_text) := PngLibrary.Symbol('png_set_text');
-    Pointer(png_get_tIME) := PngLibrary.Symbol('png_get_tIME');
-    Pointer(png_set_tIME) := PngLibrary.Symbol('png_set_tIME');
-    Pointer(png_get_tRNS) := PngLibrary.Symbol('png_get_tRNS');
-    Pointer(png_set_tRNS) := PngLibrary.Symbol('png_set_tRNS');
-    Pointer(png_get_sCAL) := PngLibrary.Symbol('png_get_sCAL');
-    Pointer(png_set_sCAL) := PngLibrary.Symbol('png_set_sCAL');
-    Pointer(png_set_keep_unknown_chunks) := PngLibrary.Symbol('png_set_keep_unknown_chunks');
-    Pointer(png_set_unknown_chunks) := PngLibrary.Symbol('png_set_unknown_chunks');
-    Pointer(png_set_unknown_chunk_location) := PngLibrary.Symbol('png_set_unknown_chunk_location');
-    Pointer(png_get_unknown_chunks) := PngLibrary.Symbol('png_get_unknown_chunks');
-    Pointer(png_set_invalid) := PngLibrary.Symbol('png_set_invalid');
-    Pointer(png_read_png) := PngLibrary.Symbol('png_read_png');
-    Pointer(png_write_png) := PngLibrary.Symbol('png_write_png');
-    Pointer(png_get_header_ver) := PngLibrary.Symbol('png_get_header_ver');
-    Pointer(png_get_header_version) := PngLibrary.Symbol('png_get_header_version');
+    {$ifdef ANDROID}
+    { Temporarily continue, despite missing symbols, on Android, as a workaround for
+      https://trello.com/c/wmxWrx8d/190-android-50-libpng-not-found }
+    PngLibrary.SymbolError := seWarnAndReturnNil;
+    {$endif}
+
+    Pointer({$ifndef FPC}@{$endif} png_access_version_number) := PngLibrary.Symbol('png_access_version_number');
+    Pointer({$ifndef FPC}@{$endif} png_set_sig_bytes) := PngLibrary.Symbol('png_set_sig_bytes');
+    Pointer({$ifndef FPC}@{$endif} png_sig_cmp) := PngLibrary.Symbol('png_sig_cmp');
+    Pointer({$ifndef FPC}@{$endif} png_create_read_struct) := PngLibrary.Symbol('png_create_read_struct');
+    Pointer({$ifndef FPC}@{$endif} png_create_write_struct) := PngLibrary.Symbol('png_create_write_struct');
+    Pointer({$ifndef FPC}@{$endif} png_get_compression_buffer_size) := PngLibrary.Symbol('png_get_compression_buffer_size');
+    Pointer({$ifndef FPC}@{$endif} png_set_compression_buffer_size) := PngLibrary.Symbol('png_set_compression_buffer_size');
+    Pointer({$ifndef FPC}@{$endif} png_reset_zstream) := PngLibrary.Symbol('png_reset_zstream');
+    Pointer({$ifndef FPC}@{$endif} png_write_chunk) := PngLibrary.Symbol('png_write_chunk');
+    Pointer({$ifndef FPC}@{$endif} png_write_chunk_start) := PngLibrary.Symbol('png_write_chunk_start');
+    Pointer({$ifndef FPC}@{$endif} png_write_chunk_data) := PngLibrary.Symbol('png_write_chunk_data');
+    Pointer({$ifndef FPC}@{$endif} png_write_chunk_end) := PngLibrary.Symbol('png_write_chunk_end');
+    Pointer({$ifndef FPC}@{$endif} png_create_info_struct) := PngLibrary.Symbol('png_create_info_struct');
+    Pointer({$ifndef FPC}@{$endif} png_write_info_before_PLTE) := PngLibrary.Symbol('png_write_info_before_PLTE');
+    Pointer({$ifndef FPC}@{$endif} png_write_info) := PngLibrary.Symbol('png_write_info');
+    Pointer({$ifndef FPC}@{$endif} png_read_info) := PngLibrary.Symbol('png_read_info');
+    Pointer({$ifndef FPC}@{$endif} png_convert_to_rfc1123) := PngLibrary.Symbol('png_convert_to_rfc1123');
+    Pointer({$ifndef FPC}@{$endif} png_convert_from_struct_tm) := PngLibrary.Symbol('png_convert_from_struct_tm');
+    Pointer({$ifndef FPC}@{$endif} png_convert_from_time_t) := PngLibrary.Symbol('png_convert_from_time_t');
+    Pointer({$ifndef FPC}@{$endif} png_set_expand) := PngLibrary.Symbol('png_set_expand');
+    Pointer({$ifndef FPC}@{$endif} png_set_palette_to_rgb) := PngLibrary.Symbol('png_set_palette_to_rgb');
+    Pointer({$ifndef FPC}@{$endif} png_set_tRNS_to_alpha) := PngLibrary.Symbol('png_set_tRNS_to_alpha');
+    Pointer({$ifndef FPC}@{$endif} png_set_bgr) := PngLibrary.Symbol('png_set_bgr');
+    Pointer({$ifndef FPC}@{$endif} png_set_gray_to_rgb) := PngLibrary.Symbol('png_set_gray_to_rgb');
+    Pointer({$ifndef FPC}@{$endif} png_set_rgb_to_gray) := PngLibrary.Symbol('png_set_rgb_to_gray');
+    Pointer({$ifndef FPC}@{$endif} png_set_rgb_to_gray_fixed) := PngLibrary.Symbol('png_set_rgb_to_gray_fixed');
+    Pointer({$ifndef FPC}@{$endif} png_get_rgb_to_gray_status) := PngLibrary.Symbol('png_get_rgb_to_gray_status');
+    Pointer({$ifndef FPC}@{$endif} png_build_grayscale_palette) := PngLibrary.Symbol('png_build_grayscale_palette');
+    Pointer({$ifndef FPC}@{$endif} png_set_strip_alpha) := PngLibrary.Symbol('png_set_strip_alpha');
+    Pointer({$ifndef FPC}@{$endif} png_set_swap_alpha) := PngLibrary.Symbol('png_set_swap_alpha');
+    Pointer({$ifndef FPC}@{$endif} png_set_invert_alpha) := PngLibrary.Symbol('png_set_invert_alpha');
+    Pointer({$ifndef FPC}@{$endif} png_set_filler) := PngLibrary.Symbol('png_set_filler');
+    Pointer({$ifndef FPC}@{$endif} png_set_swap) := PngLibrary.Symbol('png_set_swap');
+    Pointer({$ifndef FPC}@{$endif} png_set_packing) := PngLibrary.Symbol('png_set_packing');
+    Pointer({$ifndef FPC}@{$endif} png_set_packswap) := PngLibrary.Symbol('png_set_packswap');
+    Pointer({$ifndef FPC}@{$endif} png_set_shift) := PngLibrary.Symbol('png_set_shift');
+    Pointer({$ifndef FPC}@{$endif} png_set_interlace_handling) := PngLibrary.Symbol('png_set_interlace_handling');
+    Pointer({$ifndef FPC}@{$endif} png_set_invert_mono) := PngLibrary.Symbol('png_set_invert_mono');
+    Pointer({$ifndef FPC}@{$endif} png_set_background) := PngLibrary.Symbol('png_set_background');
+    Pointer({$ifndef FPC}@{$endif} png_set_strip_16) := PngLibrary.Symbol('png_set_strip_16');
+    Pointer({$ifndef FPC}@{$endif} png_set_gamma) := PngLibrary.Symbol('png_set_gamma');
+    Pointer({$ifndef FPC}@{$endif} png_set_flush) := PngLibrary.Symbol('png_set_flush');
+    Pointer({$ifndef FPC}@{$endif} png_write_flush) := PngLibrary.Symbol('png_write_flush');
+    Pointer({$ifndef FPC}@{$endif} png_start_read_image) := PngLibrary.Symbol('png_start_read_image');
+    Pointer({$ifndef FPC}@{$endif} png_read_update_info) := PngLibrary.Symbol('png_read_update_info');
+    Pointer({$ifndef FPC}@{$endif} png_read_rows) := PngLibrary.Symbol('png_read_rows');
+    Pointer({$ifndef FPC}@{$endif} png_read_row) := PngLibrary.Symbol('png_read_row');
+    Pointer({$ifndef FPC}@{$endif} png_read_image) := PngLibrary.Symbol('png_read_image');
+    Pointer({$ifndef FPC}@{$endif} png_write_row) := PngLibrary.Symbol('png_write_row');
+    Pointer({$ifndef FPC}@{$endif} png_write_rows) := PngLibrary.Symbol('png_write_rows');
+    Pointer({$ifndef FPC}@{$endif} png_write_image) := PngLibrary.Symbol('png_write_image');
+    Pointer({$ifndef FPC}@{$endif} png_write_end) := PngLibrary.Symbol('png_write_end');
+    Pointer({$ifndef FPC}@{$endif} png_read_end) := PngLibrary.Symbol('png_read_end');
+    Pointer({$ifndef FPC}@{$endif} png_destroy_info_struct) := PngLibrary.Symbol('png_destroy_info_struct');
+    Pointer({$ifndef FPC}@{$endif} png_destroy_read_struct) := PngLibrary.Symbol('png_destroy_read_struct');
+    Pointer({$ifndef FPC}@{$endif} png_destroy_write_struct) := PngLibrary.Symbol('png_destroy_write_struct');
+    Pointer({$ifndef FPC}@{$endif} png_set_crc_action) := PngLibrary.Symbol('png_set_crc_action');
+    Pointer({$ifndef FPC}@{$endif} png_set_filter) := PngLibrary.Symbol('png_set_filter');
+    Pointer({$ifndef FPC}@{$endif} png_set_filter_heuristics) := PngLibrary.Symbol('png_set_filter_heuristics');
+    Pointer({$ifndef FPC}@{$endif} png_set_compression_level) := PngLibrary.Symbol('png_set_compression_level');
+    Pointer({$ifndef FPC}@{$endif} png_set_compression_mem_level) := PngLibrary.Symbol('png_set_compression_mem_level');
+    Pointer({$ifndef FPC}@{$endif} png_set_compression_strategy) := PngLibrary.Symbol('png_set_compression_strategy');
+    Pointer({$ifndef FPC}@{$endif} png_set_compression_window_bits) := PngLibrary.Symbol('png_set_compression_window_bits');
+    Pointer({$ifndef FPC}@{$endif} png_set_compression_method) := PngLibrary.Symbol('png_set_compression_method');
+    Pointer({$ifndef FPC}@{$endif} png_init_io) := PngLibrary.Symbol('png_init_io');
+    Pointer({$ifndef FPC}@{$endif} png_set_error_fn) := PngLibrary.Symbol('png_set_error_fn');
+    Pointer({$ifndef FPC}@{$endif} png_get_error_ptr) := PngLibrary.Symbol('png_get_error_ptr');
+    Pointer({$ifndef FPC}@{$endif} png_set_write_fn) := PngLibrary.Symbol('png_set_write_fn');
+    Pointer({$ifndef FPC}@{$endif} png_set_read_fn) := PngLibrary.Symbol('png_set_read_fn');
+    Pointer({$ifndef FPC}@{$endif} png_get_io_ptr) := PngLibrary.Symbol('png_get_io_ptr');
+    Pointer({$ifndef FPC}@{$endif} png_set_read_status_fn) := PngLibrary.Symbol('png_set_read_status_fn');
+    Pointer({$ifndef FPC}@{$endif} png_set_write_status_fn) := PngLibrary.Symbol('png_set_write_status_fn');
+    Pointer({$ifndef FPC}@{$endif} png_set_read_user_transform_fn) := PngLibrary.Symbol('png_set_read_user_transform_fn');
+    Pointer({$ifndef FPC}@{$endif} png_set_write_user_transform_fn) := PngLibrary.Symbol('png_set_write_user_transform_fn');
+    Pointer({$ifndef FPC}@{$endif} png_set_user_transform_info) := PngLibrary.Symbol('png_set_user_transform_info');
+    Pointer({$ifndef FPC}@{$endif} png_get_user_transform_ptr) := PngLibrary.Symbol('png_get_user_transform_ptr');
+    Pointer({$ifndef FPC}@{$endif} png_set_read_user_chunk_fn) := PngLibrary.Symbol('png_set_read_user_chunk_fn');
+    Pointer({$ifndef FPC}@{$endif} png_get_user_chunk_ptr) := PngLibrary.Symbol('png_get_user_chunk_ptr');
+    Pointer({$ifndef FPC}@{$endif} png_set_progressive_read_fn) := PngLibrary.Symbol('png_set_progressive_read_fn');
+    Pointer({$ifndef FPC}@{$endif} png_get_progressive_ptr) := PngLibrary.Symbol('png_get_progressive_ptr');
+    Pointer({$ifndef FPC}@{$endif} png_process_data) := PngLibrary.Symbol('png_process_data');
+    Pointer({$ifndef FPC}@{$endif} png_progressive_combine_row) := PngLibrary.Symbol('png_progressive_combine_row');
+    Pointer({$ifndef FPC}@{$endif} png_malloc) := PngLibrary.Symbol('png_malloc');
+    Pointer({$ifndef FPC}@{$endif} png_free) := PngLibrary.Symbol('png_free');
+    Pointer({$ifndef FPC}@{$endif} png_free_data) := PngLibrary.Symbol('png_free_data');
+    Pointer({$ifndef FPC}@{$endif} png_data_freer) := PngLibrary.Symbol('png_data_freer');
+    Pointer({$ifndef FPC}@{$endif} png_error) := PngLibrary.Symbol('png_error');
+    Pointer({$ifndef FPC}@{$endif} png_chunk_error) := PngLibrary.Symbol('png_chunk_error');
+    Pointer({$ifndef FPC}@{$endif} png_warning) := PngLibrary.Symbol('png_warning');
+    Pointer({$ifndef FPC}@{$endif} png_chunk_warning) := PngLibrary.Symbol('png_chunk_warning');
+    Pointer({$ifndef FPC}@{$endif} png_get_valid) := PngLibrary.Symbol('png_get_valid');
+    Pointer({$ifndef FPC}@{$endif} png_get_rowbytes) := PngLibrary.Symbol('png_get_rowbytes');
+    Pointer({$ifndef FPC}@{$endif} png_get_rows) := PngLibrary.Symbol('png_get_rows');
+    Pointer({$ifndef FPC}@{$endif} png_set_rows) := PngLibrary.Symbol('png_set_rows');
+    Pointer({$ifndef FPC}@{$endif} png_get_channels) := PngLibrary.Symbol('png_get_channels');
+    Pointer({$ifndef FPC}@{$endif} png_get_image_width) := PngLibrary.Symbol('png_get_image_width');
+    Pointer({$ifndef FPC}@{$endif} png_get_image_height) := PngLibrary.Symbol('png_get_image_height');
+    Pointer({$ifndef FPC}@{$endif} png_get_bit_depth) := PngLibrary.Symbol('png_get_bit_depth');
+    Pointer({$ifndef FPC}@{$endif} png_get_color_type) := PngLibrary.Symbol('png_get_color_type');
+    Pointer({$ifndef FPC}@{$endif} png_get_filter_type) := PngLibrary.Symbol('png_get_filter_type');
+    Pointer({$ifndef FPC}@{$endif} png_get_interlace_type) := PngLibrary.Symbol('png_get_interlace_type');
+    Pointer({$ifndef FPC}@{$endif} png_get_compression_type) := PngLibrary.Symbol('png_get_compression_type');
+    Pointer({$ifndef FPC}@{$endif} png_get_pixels_per_meter) := PngLibrary.Symbol('png_get_pixels_per_meter');
+    Pointer({$ifndef FPC}@{$endif} png_get_x_pixels_per_meter) := PngLibrary.Symbol('png_get_x_pixels_per_meter');
+    Pointer({$ifndef FPC}@{$endif} png_get_y_pixels_per_meter) := PngLibrary.Symbol('png_get_y_pixels_per_meter');
+    Pointer({$ifndef FPC}@{$endif} png_get_pixel_aspect_ratio) := PngLibrary.Symbol('png_get_pixel_aspect_ratio');
+    Pointer({$ifndef FPC}@{$endif} png_get_x_offset_pixels) := PngLibrary.Symbol('png_get_x_offset_pixels');
+    Pointer({$ifndef FPC}@{$endif} png_get_y_offset_pixels) := PngLibrary.Symbol('png_get_y_offset_pixels');
+    Pointer({$ifndef FPC}@{$endif} png_get_x_offset_microns) := PngLibrary.Symbol('png_get_x_offset_microns');
+    Pointer({$ifndef FPC}@{$endif} png_get_y_offset_microns) := PngLibrary.Symbol('png_get_y_offset_microns');
+    Pointer({$ifndef FPC}@{$endif} png_get_signature) := PngLibrary.Symbol('png_get_signature');
+    Pointer({$ifndef FPC}@{$endif} png_get_bKGD) := PngLibrary.Symbol('png_get_bKGD');
+    Pointer({$ifndef FPC}@{$endif} png_set_bKGD) := PngLibrary.Symbol('png_set_bKGD');
+    Pointer({$ifndef FPC}@{$endif} png_get_cHRM) := PngLibrary.Symbol('png_get_cHRM');
+    Pointer({$ifndef FPC}@{$endif} png_get_cHRM_fixed) := PngLibrary.Symbol('png_get_cHRM_fixed');
+    Pointer({$ifndef FPC}@{$endif} png_set_cHRM) := PngLibrary.Symbol('png_set_cHRM');
+    Pointer({$ifndef FPC}@{$endif} png_set_cHRM_fixed) := PngLibrary.Symbol('png_set_cHRM_fixed');
+    Pointer({$ifndef FPC}@{$endif} png_get_gAMA) := PngLibrary.Symbol('png_get_gAMA');
+    Pointer({$ifndef FPC}@{$endif} png_get_gAMA_fixed) := PngLibrary.Symbol('png_get_gAMA_fixed');
+    Pointer({$ifndef FPC}@{$endif} png_set_gAMA) := PngLibrary.Symbol('png_set_gAMA');
+    Pointer({$ifndef FPC}@{$endif} png_set_gAMA_fixed) := PngLibrary.Symbol('png_set_gAMA_fixed');
+    Pointer({$ifndef FPC}@{$endif} png_get_hIST) := PngLibrary.Symbol('png_get_hIST');
+    Pointer({$ifndef FPC}@{$endif} png_set_hIST) := PngLibrary.Symbol('png_set_hIST');
+    Pointer({$ifndef FPC}@{$endif} png_get_IHDR) := PngLibrary.Symbol('png_get_IHDR');
+    Pointer({$ifndef FPC}@{$endif} png_set_IHDR) := PngLibrary.Symbol('png_set_IHDR');
+    Pointer({$ifndef FPC}@{$endif} png_get_oFFs) := PngLibrary.Symbol('png_get_oFFs');
+    Pointer({$ifndef FPC}@{$endif} png_set_oFFs) := PngLibrary.Symbol('png_set_oFFs');
+    Pointer({$ifndef FPC}@{$endif} png_get_pCAL) := PngLibrary.Symbol('png_get_pCAL');
+    Pointer({$ifndef FPC}@{$endif} png_set_pCAL) := PngLibrary.Symbol('png_set_pCAL');
+    Pointer({$ifndef FPC}@{$endif} png_get_pHYs) := PngLibrary.Symbol('png_get_pHYs');
+    Pointer({$ifndef FPC}@{$endif} png_set_pHYs) := PngLibrary.Symbol('png_set_pHYs');
+    Pointer({$ifndef FPC}@{$endif} png_get_PLTE) := PngLibrary.Symbol('png_get_PLTE');
+    Pointer({$ifndef FPC}@{$endif} png_set_PLTE) := PngLibrary.Symbol('png_set_PLTE');
+    Pointer({$ifndef FPC}@{$endif} png_get_sBIT) := PngLibrary.Symbol('png_get_sBIT');
+    Pointer({$ifndef FPC}@{$endif} png_set_sBIT) := PngLibrary.Symbol('png_set_sBIT');
+    Pointer({$ifndef FPC}@{$endif} png_get_sRGB) := PngLibrary.Symbol('png_get_sRGB');
+    Pointer({$ifndef FPC}@{$endif} png_set_sRGB) := PngLibrary.Symbol('png_set_sRGB');
+    Pointer({$ifndef FPC}@{$endif} png_set_sRGB_gAMA_and_cHRM) := PngLibrary.Symbol('png_set_sRGB_gAMA_and_cHRM');
+    Pointer({$ifndef FPC}@{$endif} png_get_iCCP) := PngLibrary.Symbol('png_get_iCCP');
+    Pointer({$ifndef FPC}@{$endif} png_set_iCCP) := PngLibrary.Symbol('png_set_iCCP');
+    Pointer({$ifndef FPC}@{$endif} png_get_sPLT) := PngLibrary.Symbol('png_get_sPLT');
+    Pointer({$ifndef FPC}@{$endif} png_set_sPLT) := PngLibrary.Symbol('png_set_sPLT');
+    Pointer({$ifndef FPC}@{$endif} png_get_text) := PngLibrary.Symbol('png_get_text');
+    Pointer({$ifndef FPC}@{$endif} png_set_text) := PngLibrary.Symbol('png_set_text');
+    Pointer({$ifndef FPC}@{$endif} png_get_tIME) := PngLibrary.Symbol('png_get_tIME');
+    Pointer({$ifndef FPC}@{$endif} png_set_tIME) := PngLibrary.Symbol('png_set_tIME');
+    Pointer({$ifndef FPC}@{$endif} png_get_tRNS) := PngLibrary.Symbol('png_get_tRNS');
+    Pointer({$ifndef FPC}@{$endif} png_set_tRNS) := PngLibrary.Symbol('png_set_tRNS');
+    Pointer({$ifndef FPC}@{$endif} png_get_sCAL) := PngLibrary.Symbol('png_get_sCAL');
+    Pointer({$ifndef FPC}@{$endif} png_set_sCAL) := PngLibrary.Symbol('png_set_sCAL');
+    Pointer({$ifndef FPC}@{$endif} png_set_keep_unknown_chunks) := PngLibrary.Symbol('png_set_keep_unknown_chunks');
+    Pointer({$ifndef FPC}@{$endif} png_set_unknown_chunks) := PngLibrary.Symbol('png_set_unknown_chunks');
+    Pointer({$ifndef FPC}@{$endif} png_set_unknown_chunk_location) := PngLibrary.Symbol('png_set_unknown_chunk_location');
+    Pointer({$ifndef FPC}@{$endif} png_get_unknown_chunks) := PngLibrary.Symbol('png_get_unknown_chunks');
+    Pointer({$ifndef FPC}@{$endif} png_set_invalid) := PngLibrary.Symbol('png_set_invalid');
+    Pointer({$ifndef FPC}@{$endif} png_read_png) := PngLibrary.Symbol('png_read_png');
+    Pointer({$ifndef FPC}@{$endif} png_write_png) := PngLibrary.Symbol('png_write_png');
+    Pointer({$ifndef FPC}@{$endif} png_get_header_ver) := PngLibrary.Symbol('png_get_header_ver');
+    Pointer({$ifndef FPC}@{$endif} png_get_header_version) := PngLibrary.Symbol('png_get_header_version');
 
     { Allow png_set_expand_gray_1_2_4_to_8 to be nil when not found in library }
     PngLibrary.SymbolError := seReturnNil;
-    Pointer(png_set_expand_gray_1_2_4_to_8) := PngLibrary.Symbol('png_set_expand_gray_1_2_4_to_8');
+    Pointer({$ifndef FPC}@{$endif} png_set_expand_gray_1_2_4_to_8) := PngLibrary.Symbol('png_set_expand_gray_1_2_4_to_8');
     PngLibrary.SymbolError := seRaise;
 
     {$ifdef LIBPNG_DEPRECATED}
-    Pointer(png_check_sig) := PngLibrary.Symbol('png_check_sig');
-    Pointer(png_info_init) := PngLibrary.Symbol('png_info_init');
-    Pointer(png_set_gray_1_2_4_to_8) := PngLibrary.Symbol('png_set_gray_1_2_4_to_8');
-    Pointer(png_permit_empty_plte) := PngLibrary.Symbol('png_permit_empty_plte');
-    Pointer(png_memcpy_check) := PngLibrary.Symbol('png_memcpy_check');
-    Pointer(png_memset_check) := PngLibrary.Symbol('png_memset_check');
-    Pointer(png_read_destroy) := PngLibrary.Symbol('png_read_destroy');
-    Pointer(png_write_destroy_info) := PngLibrary.Symbol('png_write_destroy_info');
-    Pointer(png_write_destroy) := PngLibrary.Symbol('png_write_destroy');
-    Pointer(png_set_sCAL_s) := PngLibrary.Symbol('png_set_sCAL_s');
-    Pointer(png_set_dither) := PngLibrary.Symbol('png_set_dither');
+    Pointer({$ifndef FPC}@{$endif} png_check_sig) := PngLibrary.Symbol('png_check_sig');
+    Pointer({$ifndef FPC}@{$endif} png_info_init) := PngLibrary.Symbol('png_info_init');
+    Pointer({$ifndef FPC}@{$endif} png_set_gray_1_2_4_to_8) := PngLibrary.Symbol('png_set_gray_1_2_4_to_8');
+    Pointer({$ifndef FPC}@{$endif} png_permit_empty_plte) := PngLibrary.Symbol('png_permit_empty_plte');
+    Pointer({$ifndef FPC}@{$endif} png_memcpy_check) := PngLibrary.Symbol('png_memcpy_check');
+    Pointer({$ifndef FPC}@{$endif} png_memset_check) := PngLibrary.Symbol('png_memset_check');
+    Pointer({$ifndef FPC}@{$endif} png_read_destroy) := PngLibrary.Symbol('png_read_destroy');
+    Pointer({$ifndef FPC}@{$endif} png_write_destroy_info) := PngLibrary.Symbol('png_write_destroy_info');
+    Pointer({$ifndef FPC}@{$endif} png_write_destroy) := PngLibrary.Symbol('png_write_destroy');
+    Pointer({$ifndef FPC}@{$endif} png_set_sCAL_s) := PngLibrary.Symbol('png_set_sCAL_s');
+    Pointer({$ifndef FPC}@{$endif} png_set_dither) := PngLibrary.Symbol('png_set_dither');
     {$endif LIBPNG_DEPRECATED}
 
     { In case of incompatible version, free PngLibrary,
@@ -1156,6 +1164,16 @@ begin
     if not CheckVersion then
       FreeAndNil(PngLibrary);
   end;
+
+  if not CastlePngInitialized then
+    WritelnWarning('Initializing dynamic LibPng library failed.' + NL +
+      '  Loading PNG will use the fallback approach (FpImage) which is much slower.'
+      {$ifdef MSWINDOWS} +
+      NL +
+      '  Make sure you have copied the required DLL files alongside the EXE file, with the correct CPU architecture (32-bit vs 64-bit).' + NL +
+      '  We advise to build your applications using Castle Game Engine editor or (command-line) build tool, that will automatically place the required DLL files.'
+      {$endif}
+    );
 end;
 
 initialization

@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="6">
       <Unit0>
-        <Filename Value="isometric_game_standalone.lpr"/>
+        <Filename Value="isometric_game_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -36,19 +36,19 @@
         <UnitName Value="gamemap"/>
       </Unit2>
       <Unit3>
-        <Filename Value="code/gamewindow.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="gamewindow"/>
-      </Unit3>
-      <Unit4>
         <Filename Value="code/gameinitialize.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameinitialize"/>
-      </Unit4>
-      <Unit5>
+      </Unit3>
+      <Unit4>
         <Filename Value="code/gameplayer.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameplayer"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="code/gamewindow.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gamewindow"/>
       </Unit5>
     </Units>
   </ProjectOptions>

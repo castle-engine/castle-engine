@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,11 +35,17 @@ type
     AbsoluteName: string;
     { Absolute URL. }
     URL: string;
-    Directory: boolean;
+    Directory: Boolean;
+    { Whether this is a symbolic link.
+      Note that this is independent from Directory:
+      symlinks may have Directory=false (when the symlink is to file)
+      or Directory=true (when the symlink is to directory,
+      and thus can be browsed like directory). }
+    Symlink: Boolean;
     Size: Int64; //< This may be 0 in case of non-local file
   end;
 
-  TFileInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFileInfo>;
+  TFileInfoList = {$ifdef FPC}specialize{$endif} TStructList<TFileInfo>;
 
   { Called for each file found.
     StopSearch is always initially @false, you can change it to @true to stop
@@ -114,6 +120,19 @@ type
   @param(FileProc Called on each file found.
     May be @nil (useful if you are only interested in the number of files found,
     returned by this function).)
+
+  @param(FileProcData Pointer passed to every call of FileProc.
+    This routine just passes FileProcData value as "Data" parameter to each FileProc call.
+    It is a pointer that may have absolutely any meaning you want,
+    and may point to any data structure you want,
+    it is useful to communicate information between the caller and the FileProc implementation.
+
+    If you don't need this, then just ignore the "Data" in your FileProc implementation,
+    and pass anything (like @nil) as FileProcData value.
+
+    Note that the overloaded version with FileMethod parameter doesn't have
+    any FileProcData, as in this case the instance that implements FileMethod
+    may carry any additional information necessary.)
 
   @param(Options A set of options. See TFindFilesOption for meaning
     of each option.)
@@ -243,6 +262,9 @@ function FindFiles_NonRecursive(const Path, Mask: string;
           FileInfo.Name := FileRec.Name;
           FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
           FileInfo.Size := FileRec.Size;
+          {$warnings off} // we know faSymLink is platform-specific, this is OK
+          FileInfo.Symlink := (FileRec.Attr and faSymLink) <> 0;
+          {$warnings on}
           FileInfo.URL := FilenameToURISafe(AbsoluteName);
           if Assigned(FileProc) then
             FileProc(FileInfo, FileProcData, StopSearch);
@@ -293,6 +315,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
             FileInfo.Directory := false;
             FileInfo.Size := F.Size;
             FileInfo.URL := URIIncludeSlash(Path) + F.Name;
+            FileInfo.Symlink := false; // packaged data cannot contain symlinks, as they are not portable to all platforms
             if Assigned(FileProc) then
             begin
               FileProc(FileInfo, FileProcData, StopSearch);
@@ -522,7 +545,7 @@ var
 begin
   FileMethodWrapper.FileMethod := FileMethod;
   Result := FindFiles(Path, Mask, FindDirectories,
-    {$ifdef CASTLE_OBJFPC}@{$endif} FoundFileProcToMethod,
+    {$ifdef FPC}@{$endif} FoundFileProcToMethod,
     @FileMethodWrapper, Options);
 end;
 
@@ -580,7 +603,7 @@ begin
   Helper := TSearchFileHardHelper.Create;
   try
     Helper.Base := Base;
-    FindFiles(Path + '*', false, {$ifdef CASTLE_OBJFPC}@{$endif}Helper.Callback, []);
+    FindFiles(Path + '*', false, {$ifdef FPC}@{$endif}Helper.Callback, []);
     Result := Helper.IsFound;
     if Result then
       NewBase := Helper.Found;
@@ -610,7 +633,7 @@ begin
   Helper := TFindFirstFileHelper.Create;
   try
     FindFiles(Path, Mask, FindDirectories,
-      {$ifdef CASTLE_OBJFPC}@{$endif} Helper.Callback, Options);
+      {$ifdef FPC}@{$endif} Helper.Callback, Options);
     Result := Helper.IsFound;
     if Result then
       FileInfo := Helper.FoundFile;

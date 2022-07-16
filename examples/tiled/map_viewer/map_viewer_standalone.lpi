@@ -20,9 +20,9 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
-        <Filename Value="map_viewer_standalone.lpr"/>
+        <Filename Value="map_viewer_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -35,6 +35,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameinitialize"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="code/gamestatemain.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gamestatemain"/>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

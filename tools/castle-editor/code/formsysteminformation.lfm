@@ -1,0 +1,100 @@
+object SystemInformationForm: TSystemInformationForm
+  Left = 2384
+  Height = 560
+  Top = 227
+  Width = 1003
+  Caption = 'System Information'
+  ClientHeight = 560
+  ClientWidth = 1003
+  DesignTimePPI = 120
+  OnHide = FormHide
+  OnShow = FormShow
+  Position = poMainFormCenter
+  ShowInTaskBar = stAlways
+  LCLVersion = '2.2.0.4'
+  object ButtonPanel1: TButtonPanel
+    Left = 8
+    Height = 46
+    Top = 506
+    Width = 987
+    BorderSpacing.Around = 8
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.Caption = '&Save To File...'
+    HelpButton.OnClick = HelpButtonClick
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 0
+    ShowButtons = [pbClose, pbHelp]
+    ShowGlyphs = [pbOK, pbCancel, pbClose]
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 498
+    Top = 0
+    Width = 1003
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 498
+    ClientWidth = 1003
+    TabOrder = 1
+    object MemoSysInfo: TMemo
+      Left = 229
+      Height = 482
+      Top = 8
+      Width = 766
+      Align = alClient
+      BorderSpacing.Around = 8
+      ReadOnly = True
+      ScrollBars = ssAutoBoth
+      TabOrder = 0
+    end
+    object Panel2: TPanel
+      Left = 8
+      Height = 482
+      Top = 8
+      Width = 213
+      Align = alLeft
+      BorderSpacing.Around = 8
+      BevelOuter = bvNone
+      ClientHeight = 482
+      ClientWidth = 213
+      TabOrder = 1
+      object ListSections: TListBox
+        Left = 0
+        Height = 305
+        Top = 0
+        Width = 213
+        Align = alClient
+        Items.Strings = (
+          'Rendering'
+          'Audio'
+          'Other'
+        )
+        ItemHeight = 28
+        OnClick = ListSectionsClick
+        TabOrder = 0
+      end
+      object CastleControl1: TCastleControl
+        Left = 0
+        Height = 169
+        Top = 313
+        Width = 213
+        Align = alBottom
+        BorderSpacing.Top = 8
+        Options = [ocoRenderAtDesignTime]
+        TabOrder = 1
+        OnOpen = CastleControl1Open
+      end
+    end
+  end
+  object SaveDialogText: TSaveDialog
+    DefaultExt = '.txt'
+    Filter = 'Text files (*.txt)|*.txt|All Files|*'
+    Left = 263
+    Top = 158
+  end
+end

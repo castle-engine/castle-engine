@@ -26,7 +26,7 @@ uses CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState,
   GameStateMain;
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
@@ -43,7 +43,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.

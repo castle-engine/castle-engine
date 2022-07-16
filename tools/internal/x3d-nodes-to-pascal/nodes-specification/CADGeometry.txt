@@ -14,7 +14,7 @@ CADAssembly : X3DGroupingNode, X3DProductStructureChildNode {
 CADFace : X3DProductStructureChildNode, X3DBoundedObject {
   auto-generate-more: true
   SFNode   [in,out] shape      NULL
-    range: X3DShapeNode, X3DLODNode
+    range: X3DShapeNode, LOD, Transform
   SFVec3f  []       bboxCenter 0 0 0
     range: (-Inf, Inf)
   SFVec3f  []       bboxSize   -1 -1 -1

@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2021 Michalis Kamburelis.
+  Copyright 2021-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,10 +22,12 @@ unit ToolManifest;
 interface
 
 uses DOM, Classes, Generics.Collections,
-  CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles,
+  CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles, CastleColors,
   ToolServices, ToolAssocDocTypes;
 
 type
+  TCompiler = (coAutodetect, coFpc, coDelphi);
+
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
   TDependencies = set of TDependency;
 
@@ -51,6 +53,11 @@ type
   public
     DisplayValue: String;
     Code: Cardinal;
+    { Version components separated by dots in DisplayValue:
+      Major, Minor, Release, Build.
+      Calculated by InitializeItems. }
+    Items: array [0..3] of Cardinal;
+    procedure InitializeItems;
   end;
 
   TImageFileNames = class(TCastleStringList)
@@ -58,12 +65,21 @@ type
     FBaseUrl: string;
   public
     property BaseUrl: string read FBaseUrl write FBaseUrl;
-    { Find image with given extension, or '' if not found. }
+    { Find image with given extension, or '' if not found.
+      Note that the returned image filename is relative to project path,
+      usually you should process it like @code(IconPath := CombinePaths(Project.Path, IconPath)). }
     function FindExtension(const Extensions: array of string): string;
     { Find and read an image format that we can process with our CastleImages.
       Try to read it to a class that supports nice-quality resizing (TResizeInterpolationFpImage).
       @nil if not found. }
     function FindReadable: TCastleImage;
+  end;
+
+  TLaunchImageStoryboard = class
+    BaseUrl, Path: String;
+    Scale: Single;
+    BackgroundColor: TCastleColor;
+    constructor Create;
   end;
 
   { Parsing of CastleEngineManifest.xml files. }
@@ -74,15 +90,17 @@ type
       DefautVersionCode = 1;
       { iOS requires version display to be <> '' }
       DefautVersionDisplayValue = '0.1';
-      DefaultAndroidCompileSdkVersion = 29;
+      DefaultAndroidCompileSdkVersion = 31;
       DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
-      { See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#what-android-devices-are-supported
+      { See https://castle-engine.io/android-FAQ#what-android-devices-are-supported
         for reasons behind this minimal version. }
       ReallyMinSdkVersion = 16;
       DefaultAndroidMinSdkVersion = ReallyMinSdkVersion;
       DefaultUsesNonExemptEncryption = true;
       DefaultDataExists = true;
       DefaultFullscreenImmersive = true;
+      DefaultDetectMemoryLeaks = false;
+      DefaultMacAppBundle = true;
 
       { character sets }
       ControlChars = [#0 .. Chr(Ord(' ') - 1)];
@@ -110,10 +128,13 @@ type
       FIncludePaths: TIncludePathList;
       FExcludePaths: TCastleStringList;
       FExtraCompilerOptions, FExtraCompilerOptionsAbsolute: TCastleStringList;
+      FDefines: TCastleStringList;
       FIcons, FLaunchImages: TImageFileNames;
+      FLaunchImageStoryboard: TLaunchImageStoryboard;
       FSearchPaths, FLibraryPaths: TStringList;
       FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
-      FLazarusProject: String;
+      FCompiler: TCompiler;
+      FLazarusProject, FDelphiProject: String;
       FBuildUsingLazbuild: Boolean;
       FGameUnits, FEditorUnits: string;
       FVersion: TProjectVersion;
@@ -126,6 +147,12 @@ type
       FLocalizedAppNames: TLocalizedAppNameList;
       FIOSTeam: string;
       FindPascalFilesResult: TStringList; // valid only during FindPascalFilesCallback
+      FDebianMenuSection: String;
+      FDebianControlSection: String;
+      FFreeDesktopCategories: String;
+      FFreeDesktopComment: String;
+      FDetectMemoryLeaks: Boolean;
+      FMacAppBundle: Boolean;
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
@@ -140,6 +167,7 @@ type
     function ReadVersion(const Element: TDOMElement): TProjectVersion;
     procedure CreateFinish;
     procedure FindPascalFilesCallback(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure SetBaseUrl(const Value: String);
   public
     const
       DataName = 'data';
@@ -154,10 +182,10 @@ type
     { Load manifest file.
       @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
     constructor CreateFromUrl(const ManifestUrl: String);
-    { Guess values for the manifest, using AName as the project name.
+    { Guess values for the manifest.
       @param APath Project path, must be absolute.
-      @param AName Guessed project name. }
-    constructor CreateGuess(const APath, AName: String);
+      @param AStandaloneSource Guessed StandaloneSource value. Project Name will be derived from it too. }
+    constructor CreateGuess(const APath, AStandaloneSource: String);
 
     destructor Destroy; override;
 
@@ -166,7 +194,9 @@ type
     { }
 
     property Version: TProjectVersion read FVersion;
+    property Compiler: TCompiler read FCompiler;
     property LazarusProject: String read FLazarusProject;
+    property DelphiProject: String read FDelphiProject;
     property BuildUsingLazbuild: Boolean read FBuildUsingLazbuild;
     property GameUnits: String read FGameUnits;
     property EditorUnits: String read FEditorUnits;
@@ -190,6 +220,9 @@ type
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property Icons: TImageFileNames read FIcons;
     property LaunchImages: TImageFileNames read FLaunchImages;
+    { iOS launch image storyboard (see https://castle-engine.io/project_manifest#launch-images-for-now-only-for-ios ).
+      Never @nil (but check Path <> '' before actually using it). }
+    property LaunchImageStoryboard: TLaunchImageStoryboard read FLaunchImageStoryboard;
     property SearchPaths: TStringList read FSearchPaths;
     property LibraryPaths: TStringList read FLibraryPaths;
     property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
@@ -198,6 +231,7 @@ type
     property ExcludePaths: TCastleStringList read FExcludePaths;
     property ExtraCompilerOptions: TCastleStringList read FExtraCompilerOptions;
     property ExtraCompilerOptionsAbsolute: TCastleStringList read FExtraCompilerOptionsAbsolute;
+    property Defines: TCastleStringList read FDefines;
 
     { iOS-specific things }
     property IOSOverrideQualifiedName: string read FIOSOverrideQualifiedName;
@@ -233,19 +267,59 @@ type
       that can optionally auto-create the source file. }
     property PluginSource: string read FPluginSource;
 
+    { Debian-specific section name, for Debian control file.
+      See https://www.debian.org/doc/debian-policy/ch-archive.html#s-subsections
+      for allowed values.
+      Used only by --package-format=deb.
+
+      Default: 'games'. }
+    property DebianControlSection: String read FDebianControlSection;
+
+    { Debian-specific section name, for Debian menu.
+      See https://www.debian.org/doc/packaging-manuals/menu.html/ch3.html#s3.5 and
+      "man menufile" on Debian for more information.
+      Used only by --package-format=deb.
+
+      Default: 'Games'. }
+    property DebianMenuSection: String read FDebianMenuSection;
+
+    { Freedesktop category of the app,
+      see https://www.freedesktop.org/wiki/Specifications/menu-spec/ for more info.
+      Used only by --package-format=deb right now.
+      Default: Game }
+    property FreeDesktopCategories: String read FFreeDesktopCategories;
+
+    { A short description of the project.
+      See https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html for more info.
+      Used only by --package-format=deb right now. }
+    property FreeDesktopComment: String read FFreeDesktopComment;
+
+    property DetectMemoryLeaks: Boolean read FDetectMemoryLeaks;
+
+    property MacAppBundle: Boolean read FMacAppBundle;
+
     { Find a file with given BaseName (contains filename, with extension, but without any path)
       among SearchPaths of this project.
       Returns absolute filename, or '' if not found. }
     // unused: function SearchFile(const BaseName: String): String;
 
     { Find a unit with given name among SearchPaths of this project.
-      Returns absolute filename, or '' if not found. }
+      Returns absolute filename, or '' if not found.
+      AUnitName is a Pascal unit name (not a filename, without any extension). }
     function SearchPascalUnit(const AUnitName: String): String;
+
+    { Find a Pascal source file with given name among SearchPaths of this project.
+      Returns absolute filename, or '' if not found.
+      ABaseFileName is a filename (without any path separators) to search for. }
+    function SearchPascalFile(const ABaseFileName: String): String;
 
     { Finds all Pascal files (units and includes -- not lpr / dpr for now).
       Returns a list with filenames relative to Path. }
     function FindPascalFiles: TStringList;
   end;
+
+function CompilerToString(const C: TCompiler): String;
+function StringToCompiler(const S: String): TCompiler;
 
 function DependencyToString(const D: TDependency): string;
 function StringToDependency(const S: string): TDependency;
@@ -253,22 +327,62 @@ function StringToDependency(const S: string): TDependency;
 function ScreenOrientationToString(const O: TScreenOrientation): string;
 function StringToScreenOrientation(const S: string): TScreenOrientation;
 
+const
+  DefaultCompiler = coAutodetect;
+
 implementation
 
-uses SysUtils,
+uses SysUtils, Math,
   CastleXMLUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
   ToolCommonUtils;
+
+function CompilerToString(const C: TCompiler): String;
+const
+  Names: array [TCompiler] of String = (
+    'autodetect',
+    'fpc',
+    'delphi'
+  );
+begin
+  Result := Names[C];
+end;
+
+function StringToCompiler(const S: String): TCompiler;
+begin
+  for Result in TCompiler do
+    if SameText(CompilerToString(Result), S) then
+      Exit;
+  raise Exception.CreateFmt('Invalid compiler name "%s"', [S]);
+end;
+
+{ TProjectVersion ------------------------------------------------------------- }
+
+procedure TProjectVersion.InitializeItems;
+var
+  Strs: TCastleStringList;
+  I: Integer;
+begin
+  Strs := CastleStringUtils.SplitString(DisplayValue, '.');
+  try
+    for I := 0 to High(Items) do
+      if I < Strs.Count then
+        Items[I] := StrToIntDef(Trim(Strs[I]), 0)
+      else
+        Items[I] := 0;
+  finally FreeAndNil(Strs) end;
+end;
 
 { TImageFileNames ------------------------------------------------------------- }
 
 function TImageFileNames.FindExtension(const Extensions: array of string): string;
 var
-  I: Integer;
+  I, J: Integer;
 begin
   Result := '';
-  for I := 0 to Count - 1 do
-    if AnsiSameText(ExtractFileExt(Strings[I]), '.ico') then
-      Exit(Strings[I]);
+  for J := 0 to Length(Extensions) - 1 do
+    for I := 0 to Count - 1 do
+      if AnsiSameText(ExtractFileExt(Strings[I]), Extensions[J]) then
+        Exit(Strings[I]);
 end;
 
 function TImageFileNames.FindReadable: TCastleImage;
@@ -295,6 +409,16 @@ begin
   AppName := AAppName;
 end;
 
+{ TLaunchImageStoryboard ----------------------------------------------------- }
+
+constructor TLaunchImageStoryboard.Create;
+begin
+  inherited;
+  // default values
+  Scale := 1;
+  BackgroundColor := Black;
+end;
+
 { TCastleManifest ------------------------------------------------------------ }
 
 constructor TCastleManifest.Create(const APath: String);
@@ -305,8 +429,10 @@ begin
   FExcludePaths := TCastleStringList.Create;
   FExtraCompilerOptions := TCastleStringList.Create;
   FExtraCompilerOptionsAbsolute := TCastleStringList.Create;
+  FDefines := TCastleStringList.Create;
   FIcons := TImageFileNames.Create;
   FLaunchImages := TImageFileNames.Create;
+  FLaunchImageStoryboard := TLaunchImageStoryboard.Create;
   FSearchPaths := TStringList.Create;
   FLibraryPaths := TStringList.Create;
   FAndroidProjectType := apIntegrated;
@@ -321,28 +447,31 @@ begin
   FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
   FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
   FFullscreenImmersive := DefaultFullscreenImmersive;
+  FDetectMemoryLeaks := DefaultDetectMemoryLeaks;
+  FMacAppBundle := DefaultMacAppBundle;
 
   FPath := InclPathDelim(APath);
   FPathUrl := FilenameToURISafe(FPath);
   FDataPath := InclPathDelim(FPath + DataName);
 end;
 
-constructor TCastleManifest.CreateGuess(const APath, AName: String);
+constructor TCastleManifest.CreateGuess(const APath, AStandaloneSource: String);
 begin
   Create(APath);
 
   FDataPath := InclPathDelim(Path + DataName);
-  FName := AName;
+  FName := DeleteFileExt(AStandaloneSource);
   FCaption := FName;
   FQualifiedName := DefaultQualifiedName(FName);
   FExecutableName := FName;
-  FStandaloneSource := FName + '.lpr';
+  FCompiler := DefaultCompiler;
+  FStandaloneSource := AStandaloneSource;
   FLazarusProject := FName + '.lpi';
+  FDelphiProject := FName + '.dproj';
   FVersion := TProjectVersion.Create(OwnerComponent);
   FVersion.Code := DefautVersionCode;
   FVersion.DisplayValue := DefautVersionDisplayValue;
-  Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
-  LaunchImages.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
+  SetBaseUrl(FilenameToURISafe(InclPathDelim(GetCurrentDir)));
 
   CreateFinish;
 end;
@@ -353,13 +482,11 @@ var
   AndroidProjectTypeStr: string;
   ChildElements: TXMLElementIterator;
   Element, ChildElement: TDOMElement;
-  NewCompilerOption, DefaultLazarusProject, NewSearchPath: String;
+  NewCompilerOption, DefaultLazarusProject, DefaultDelphiProject, NewSearchPath: String;
   IncludePath: TIncludePath;
 begin
   Create(APath);
-
-  Icons.BaseUrl := ManifestUrl;
-  LaunchImages.BaseUrl := ManifestUrl;
+  SetBaseUrl(ManifestUrl);
 
   Doc := URLReadXML(ManifestURL);
   try
@@ -370,11 +497,18 @@ begin
     FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', DefaultQualifiedName(FName));
     FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
     FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
+    FCompiler := StringToCompiler(Doc.DocumentElement.AttributeStringDef('compiler', 'autodetect'));
     if FStandaloneSource <> '' then
-      DefaultLazarusProject := ChangeFileExt(FStandaloneSource, '.lpi')
-    else
+    begin
+      DefaultLazarusProject := ChangeFileExt(FStandaloneSource, '.lpi');
+      DefaultDelphiProject := ChangeFileExt(FStandaloneSource, '.dproj');
+    end else
+    begin
       DefaultLazarusProject := '';
+      DefaultDelphiProject := '';
+    end;
     FLazarusProject := Doc.DocumentElement.AttributeStringDef('lazarus_project', DefaultLazarusProject);
+    FDelphiProject := Doc.DocumentElement.AttributeStringDef('delphi_project', DefaultDelphiProject);
     FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
     FIOSSource := Doc.DocumentElement.AttributeStringDef('ios_source', '');
     FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
@@ -385,6 +519,8 @@ begin
       Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
     FFullscreenImmersive := Doc.DocumentElement.AttributeBooleanDef('fullscreen_immersive', true);
     FBuildUsingLazbuild := Doc.DocumentElement.AttributeBooleanDef('build_using_lazbuild', false);
+    FMacAppBundle := Doc.DocumentElement.AttributeBooleanDef('mac_app_bundle',
+      DefaultMacAppBundle);
 
     FVersion := ReadVersion(Doc.DocumentElement.ChildElement('version', false));
     // create default FVersion value, if necessary
@@ -459,6 +595,16 @@ begin
           LaunchImages.Add(ChildElement.AttributeString('path'));
         end;
       finally FreeAndNil(ChildElements) end;
+
+      Element := Element.ChildElement('storyboard', false);
+      if Element <> nil then
+      begin
+        FLaunchImageStoryboard.Path := Element.AttributeString('path');
+        FLaunchImageStoryboard.Scale := Element.AttributeSingleDef('scale', 1.0);
+        FLaunchImageStoryboard.BackgroundColor := Element.AttributeColorDef('background_color', Black);
+        if not SameValue(FLaunchImageStoryboard.BackgroundColor[3], 1) then
+          raise Exception.Create('Launch image storyboard background_color alpha must be 1.0, meaning of other values is not defined for now');
+      end;
     end;
 
     Element := Doc.DocumentElement.ChildElement('localization', false);
@@ -540,6 +686,8 @@ begin
     Element := Doc.DocumentElement.ChildElement('compiler_options', false);
     if Element <> nil then
     begin
+      FDetectMemoryLeaks := Element.AttributeBooleanDef('detect_memory_leaks', DefaultDetectMemoryLeaks);
+
       ChildElement := Element.ChildElement('custom_options', false);
       if ChildElement <> nil then
       begin
@@ -551,6 +699,16 @@ begin
             FExtraCompilerOptions.Add(NewCompilerOption);
             FExtraCompilerOptionsAbsolute.Add(MakeAbsoluteCompilerOption(NewCompilerOption));
           end;
+        finally FreeAndNil(ChildElements) end;
+      end;
+
+      ChildElement := Element.ChildElement('defines', false);
+      if ChildElement <> nil then
+      begin
+        ChildElements := ChildElement.ChildrenIterator('define');
+        try
+          while ChildElements.GetNext do
+            FDefines.Add(Trim(ChildElements.Current.TextData));
         finally FreeAndNil(ChildElements) end;
       end;
 
@@ -588,6 +746,24 @@ begin
 
     if FAndroidServices.HasService('open_associated_urls') then
       FAndroidServices.AddService('download_urls'); // downloading is needed when opening files from web
+
+    FDebianControlSection := 'games';
+    FDebianMenuSection := 'Games';
+    Element := Doc.DocumentElement.ChildElement('debian', false);
+    if Element <> nil then
+    begin
+      FDebianControlSection := Element.AttributeStringDef('control_section', FDebianControlSection);
+      FDebianMenuSection := Element.AttributeStringDef('menu_section', FDebianMenuSection);
+    end;
+
+    FFreeDesktopCategories := 'Game';
+    FFreeDesktopComment := '';
+    Element := Doc.DocumentElement.ChildElement('free_desktop', false);
+    if Element <> nil then
+    begin
+      FFreeDesktopCategories := Element.AttributeStringDef('categories', FFreeDesktopCategories);
+      FFreeDesktopComment := Element.AttributeStringDef('comment', FFreeDesktopComment);
+    end;
   finally FreeAndNil(Doc) end;
 
   CreateFinish;
@@ -605,8 +781,10 @@ begin
   FreeAndNil(FExcludePaths);
   FreeAndNil(FExtraCompilerOptions);
   FreeAndNil(FExtraCompilerOptionsAbsolute);
+  FreeAndNil(FDefines);
   FreeAndNil(FIcons);
   FreeAndNil(FLaunchImages);
+  FreeAndNil(FLaunchImageStoryboard);
   FreeAndNil(FSearchPaths);
   FreeAndNil(FLibraryPaths);
   FreeAndNil(FAndroidServices);
@@ -614,6 +792,13 @@ begin
   FreeAndNil(FAssociateDocumentTypes);
   FreeAndNil(FLocalizedAppNames);
   inherited;
+end;
+
+procedure TCastleManifest.SetBaseUrl(const Value: String);
+begin
+  Icons.BaseUrl := Value;
+  LaunchImages.BaseUrl := Value;
+  LaunchImageStoryboard.BaseUrl := Value;
 end;
 
 function TCastleManifest.DefaultQualifiedName(const AName: String): String;
@@ -785,6 +970,7 @@ procedure TCastleManifest.CreateFinish;
   end;
 
 begin
+  Version.InitializeItems;
   CheckDataExists;
   GuessDependencies; // depends on FDataExists finalized, so must be after CheckDataExists
   CloseDependencies; // must be after GuessDependencies, to close also guesses dependencies
@@ -830,6 +1016,21 @@ begin
       Exit(FileNameAbsolute);
 
     FileNameAbsolute := CombinePaths(SearchPathAbsolute, LowerCase(AUnitName) + '.pp');
+    if RegularFileExists(FileNameAbsolute) then
+      Exit(FileNameAbsolute);
+  end;
+  Result := '';
+end;
+
+function TCastleManifest.SearchPascalFile(const ABaseFileName: String): String;
+var
+  SearchPath, FileNameAbsolute, SearchPathAbsolute: String;
+begin
+  for SearchPath in SearchPaths do
+  begin
+    SearchPathAbsolute := CombinePaths(Path, SearchPath);
+
+    FileNameAbsolute := CombinePaths(SearchPathAbsolute, ABaseFileName);
     if RegularFileExists(FileNameAbsolute) then
       Exit(FileNameAbsolute);
   end;

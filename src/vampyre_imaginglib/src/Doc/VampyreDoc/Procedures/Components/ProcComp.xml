@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../Xsl/doc2html.xsl"?>
+<doc>
+  <title>How To ... (VCL/LCL Classes)</title>
+  <chapter>
+    <title>How To ... (VCL/LCL Classes)</title>
+    <par>
+      This section shows few possible usages of
+      VCL/LCL Imaging Classes and related functions
+      described in
+      <link url="../../Usage/Components.xml">VCL/LCL Classes</link>.
+      You can also learn how to use these classes
+      by looking at demos which use them
+      <link url="../../Demos/Pascal.xml">Pascal Demos</link>.
+    </par>
+
+
+    <par>Using <icode>TGraphic</icode> Imaging descendants:</par>
+    <code>
+...
+
+uses
+  ImagingTypes, Imaging, ImagingClasses,
+  // Add unit with VCL/LCL support, new file formats are automatically
+  // registered to TPicture (so they will appear in TOpenPictureDialog for example)
+  <ref>ImagingComponents</ref>;
+  
+...
+
+procedure Assignments;
+var
+  ImgBitmap: <ref>TImagingBitmap</ref>;
+  ImgData: <ref>TImageData</ref>;
+  ImgClass: <ref>TBaseImage</ref>
+begin
+  // Create empty Imaging bitmap
+  ImgBitmap := <ref>TImagingBitmap</ref>.Create;
+  // Load image from file to TImageData record and assign it to bitmap
+  <ref>InitImage</ref>(ImgData);
+  <ref>LoadImageFromFile</ref>('littlecat.png', ImgData);
+  ImgBitmap.AssignFromData(ImgData);
+  // Now create high level image class from file and assign it to bitmap
+  // by overridden TPersistent.Assign method
+  ImgClass := <ref>TSingleImage</ref>.CreateFromFile('notsolittlecat.png');
+  ImgBitmap.Assign(ImgClass);
+  // Assign Imaging bitmap to TImage component on Form1 (it should be immediately
+  // displayed)
+  Form1.Image.Picture.Graphic := ImgBitmap;
+  // Free loaded images
+  <ref>FreeImage</ref>(ImgData);
+  ImgClass.Free;
+end;
+    </code>
+    
+    <par>Displaying Imaging's images in VCL/LCL:</par>
+    <code>
+// This procedure shows given image (high level class) on form
+// by converting it to TBitmap and then drawing on form's canvas
+procedure ShowImageOnForm1(Form: TForm; Image: <ref>TBaseImage</ref>);
+var
+  Bitmap: TBitmap;
+begin
+  Bitmap := TBitmap.Create;
+  // Call Imaging procedure for converting images to Graphics' TBitmap object
+  <ref>ConvertImageToBitmap</ref>(Image, Bitmap);
+  // Draw bitmap onto form's canvas
+  Form.Canvas.Draw(0, 0, Bitmap);
+  Bitmap.Free;
+end;
+
+// This procedure shows given image (high level class) on form's
+// canvas directly without conversion so it is significantly faster
+// than ShowImageOnForm1. But it has a drawback: it does not work
+// with all image data formats.
+procedure ShowImageOnForm2(Form: TForm; Image: <ref>TBaseImage</ref>);
+begin
+  // Call Imaging procedure for displaying images directly on canvas without
+  // costly conversion. Drawback of this is that it supports only images in
+  // ifA8R8G8B8 data format
+  <ref>DisplayImage</ref>(Form.Canvas, Form.BoundsRect, Image, Image.BoundsRect);
+end;
+
+// You have TBitmap and you want to save it as PNG or other file format
+// supported by Imaging
+procedure SaveBitmapAsPNG(Bitmap: TBitmap; const FileName: string);
+var
+  PNG: TImagingPNG;
+begin
+  PNG := TImagingPNG.Create;
+  PNG.Assign(Bitmap);
+  PNG.SaveToFile(FileName);
+  PNG.Free;
+end;
+    </code>
+    
+  </chapter>
+</doc>

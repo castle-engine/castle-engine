@@ -40,10 +40,10 @@ type
       strict private
         ImageEnemy: TCastleImageControl;
         ButtonRun, ButtonFight: TCastleButton;
-        State: TStateAskDialog;
         procedure ClickRun(Sender: TObject);
         procedure ClickFight(Sender: TObject);
       public
+        State: TStateAskDialog; //< set after creation
         constructor Create(AOwner: TComponent; const Male: boolean); reintroduce;
       end;
     var
@@ -85,8 +85,8 @@ begin
   else
     ImageEnemy.URL := 'castle-data:/enemy_images/Female-Zombie-300px.png';
 
-  ButtonRun.OnClick := @ClickRun;
-  ButtonFight.OnClick := @ClickFight;
+  ButtonRun.OnClick := {$ifdef FPC}@{$endif}ClickRun;
+  ButtonFight.OnClick := {$ifdef FPC}@{$endif}ClickFight;
 
   { Set own size to be equal to designed dialog in ask_dialog.castle-user-interface,
     that has explicit Width and Height set in editor. }
@@ -128,6 +128,7 @@ begin
   InterceptInput := true;
 
   Dialog := TZombieDialog.Create(FreeAtStop, Male);
+  Dialog.State := Self;
   Dialog.Anchor(hpMiddle);
   Dialog.Anchor(vpMiddle);
   InsertFront(Dialog);

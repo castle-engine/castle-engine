@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,137 +20,45 @@ interface
 
 implementation
 
-uses SysUtils, Classes,
-  CastleWindow, CastleScene, CastleControls, CastleUtils,
-  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors, CastleLog,
-  CastleParameters, CastleTiledMap, CastleApplicationProperties,
-  CastleUIControls, CastleComponentSerialize;
+uses SysUtils,
+  CastleWindow, CastleScene, CastleControls, CastleLog,
+  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
+  CastleUIControls, CastleApplicationProperties, CastleUIState
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  {$endregion 'Castle Initialization Uses'};
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
 
-{ routines ------------------------------------------------------------------- }
-
-type
-  TEventsHandler = class(TComponent)
-    LabelFps: TCastleLabel;
-    TiledMap: TCastleTiledMapControl;
-    ButtonOpen: TCastleButton;
-    CheckboxSmoothScaling: TCastleCheckbox;
-    CheckboxSmoothScalingSafeBorder: TCastleCheckbox;
-
-    { One-time initialization of resources. }
-    procedure Initialize(Sender: TObject);
-
-    { Various events. }
-    procedure Update(const Sender: TInputListener;
-      const SecondsPassed: Single; var HandleInput: Boolean);
-    procedure ClickOpen(Sender: TObject);
-    procedure MapMotion(const Sender: TInputListener;
-      const Event: TInputMotion; var Handled: Boolean);
-    procedure MapPress(const Sender: TInputListener;
-      const Event: TInputPressRelease; var Handled: Boolean);
-    procedure CheckboxSmoothScalingChange(Sender: TObject);
-    procedure CheckboxSmoothScalingSafeBorderChange(Sender: TObject);
-  end;
-
-procedure TEventsHandler.Initialize(Sender: TObject);
-var
-  Ui: TCastleUserInterface;
+{ One-time initialization of resources. }
+procedure ApplicationInitialize;
 begin
-  { Load designed user interface }
-  Ui := UserInterfaceLoad('castle-data:/main.castle-user-interface', Window);
-  Window.Controls.InsertFront(Ui);
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Find necessary controls from main.castle-user-interface }
-  LabelFps := Window.FindRequiredComponent('LabelFps') as TCastleLabel;
-  TiledMap := Window.FindRequiredComponent('TiledMap') as TCastleTiledMapControl;
-  ButtonOpen := Window.FindRequiredComponent('ButtonOpen') as TCastleButton;
-  CheckboxSmoothScaling := Window.FindRequiredComponent('CheckboxSmoothScaling') as TCastleCheckbox;
-  CheckboxSmoothScalingSafeBorder := Window.FindRequiredComponent('CheckboxSmoothScalingSafeBorder') as TCastleCheckbox;
+  { Create game states and set initial state }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
+  StateMain := TStateMain.Create(Application);
+  {$endregion 'Castle State Creation'}
 
-  { Assign events }
-  Ui.OnUpdate := @Update;
-  ButtonOpen.OnClick := @ClickOpen;
-  TiledMap.OnMotion := @MapMotion;
-  TiledMap.OnPress := @MapPress;
-  CheckboxSmoothScaling.OnChange := @CheckboxSmoothScalingChange;
-  CheckboxSmoothScalingSafeBorder.OnChange := @CheckboxSmoothScalingSafeBorderChange;
-
-  { synchronize initial checkbox state with TiledMap state }
-  CheckboxSmoothScaling.Checked := TiledMap.SmoothScaling;
-  CheckboxSmoothScalingSafeBorder.Checked := TiledMap.SmoothScalingSafeBorder;
-
-  { Load the map from parameter or default. }
-  if Parameters.High = 1 then
-    TiledMap.URL := Parameters[1]
-  else
-    TiledMap.URL := 'castle-data:/maps/desert.tmx';
+  TUIState.Current := StateMain;
 end;
-
-procedure TEventsHandler.Update(const Sender: TInputListener;
-  const SecondsPassed: Single; var HandleInput: Boolean);
-begin
-  LabelFps.Caption := 'FPS: ' + Window.Fps.ToString;
-end;
-
-procedure TEventsHandler.ClickOpen(Sender: TObject);
-var
-  URL: String;
-begin
-  URL := TiledMap.URL;
-  if Window.FileDialog('Open Map', URL, true, 'Tiled Map (*.tmx)|*.tmx|All Files|*') then
-    TiledMap.URL := URL;
-end;
-
-procedure TEventsHandler.MapMotion(const Sender: TInputListener;
-  const Event: TInputMotion; var Handled: Boolean);
-begin
-  if buttonLeft in Event.Pressed then
-  begin
-    TiledMap.Origin := TiledMap.Origin -
-      (Event.Position - Event.OldPosition) / TiledMap.Scale;
-    Handled := true;
-  end;
-end;
-
-procedure TEventsHandler.MapPress(const Sender: TInputListener;
-  const Event: TInputPressRelease; var Handled: Boolean);
-const
-  MinScale = 0.1;
-  MaxScale = 10;
-begin
-  if Event.IsMouseWheel(mwUp) then
-  begin
-    TiledMap.Scale := Clamped(TiledMap.Scale * 1.1, MinScale, MaxScale);
-    Handled := true;
-  end else
-  if Event.IsMouseWheel(mwDown) then
-  begin
-    TiledMap.Scale := Clamped(TiledMap.Scale / 1.1, MinScale, MaxScale);
-    Handled := true;
-  end;
-end;
-
-procedure TEventsHandler.CheckboxSmoothScalingChange(Sender: TObject);
-begin
-  TiledMap.SmoothScaling := CheckboxSmoothScaling.Checked;
-end;
-
-procedure TEventsHandler.CheckboxSmoothScalingSafeBorderChange(Sender: TObject);
-begin
-  TiledMap.SmoothScalingSafeBorder := CheckboxSmoothScalingSafeBorder.Checked;
-end;
-
-var
-  EventsHandler: TEventsHandler;
 
 initialization
-  { initialize Application callbacks }
-  EventsHandler := TEventsHandler.Create(Application);
-  Application.OnInitializeEvent := @EventsHandler.Initialize;
+  { Initialize Application.OnInitialize. }
+  Application.OnInitialize := @ApplicationInitialize;
 
-  { create Window and initialize Window callbacks }
-  Window := TCastleWindowBase.Create(Application);
+  { Create and assign Application.MainWindow. }
+  Window := TCastleWindow.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
+
+  { You should not need to do *anything* more in the unit "initialization" section.
+    Most of your game initialization should happen inside ApplicationInitialize.
+    In particular, it is not allowed to read files before ApplicationInitialize
+    (because in case of non-desktop platforms,
+    some necessary resources may not be prepared yet). }
 end.

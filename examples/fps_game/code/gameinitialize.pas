@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2020 Michalis Kamburelis.
+  Copyright 2012-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,22 +19,60 @@
   (desktop or mobile). }
 unit GameInitialize;
 
+{ Use GameStateMain with UI and level designed in CGE editor.
+  Not functional yet, but this is the future we go for. }
+{.$define UPCOMING_FPS_GAME_REDESIGN}
+
 interface
 
 implementation
 
 uses SysUtils, Classes,
-  CastleWindow, CastleLog, CastleConfig, CastleLevels,
+  CastleWindow, CastleApplicationProperties, CastleUIState,
+  CastleMaterialProperties
+  {$ifdef UPCOMING_FPS_GAME_REDESIGN}
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  {$endregion 'Castle Initialization Uses'}
+  {$else}
+  , CastleLog, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleTransform, CastleFilesUtils, CastleGameNotifications,
   CastleVectors, CastleUIControls, CastleGLUtils, CastleViewport,
-  CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
-  CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties,
-  CastleLoadGltf, CastleSceneCore, CastleScene;
+  CastleColors, CastleItems, CastleUtils, CastleCameras,
+  CastleCreatures, CastleRectangles, CastleImages,
+  CastleLoadGltf, CastleSceneCore, CastleScene
+  {$endif};
 
 var
-  Window: TCastleWindowBase;
+  Window: TCastleWindow;
+
+{$ifdef UPCOMING_FPS_GAME_REDESIGN}
+
+{ Initialize the game.
+  This is assigned to Application.OnInitialize, and will be called only once. }
+procedure ApplicationInitialize;
+begin
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  { Load texture properties, used to enable GPU-compressed textures. }
+  MaterialProperties.URL := 'castle-data:/material_properties.xml';
+
+  { Create game states and set initial state }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
+  StateMain := TStateMain.Create(Application);
+  {$endregion 'Castle State Creation'}
+
+  TUIState.Current := StateMain;
+end;
+
+{$else UPCOMING_FPS_GAME_REDESIGN}
+
+var
   Level: TLevel;
   Player: TPlayer;
   Viewport: TCastleViewport;
@@ -77,7 +115,7 @@ begin
   inherited;
 
   { We use TCastleButton from CastleControls unit for buttons drawn using CGE.
-    If you would use Lazarus and TCastleControlBase (instead of TCastleWindowBase)
+    If you would use Lazarus and TCastleControl (instead of TCastleWindow)
     you can also consider using Lazarus standard buttons and other components
     on your form.
 
@@ -95,7 +133,7 @@ begin
     ToggleMouseLookButton := TCastleButton.Create(Application);
     ToggleMouseLookButton.Caption := 'Mouse Look (F4)';
     ToggleMouseLookButton.Toggle := true;
-    ToggleMouseLookButton.OnClick := @ToggleMouseLookButtonClick;
+    ToggleMouseLookButton.OnClick := {$ifdef FPC}@{$endif}ToggleMouseLookButtonClick;
     ToggleMouseLookButton.Left := ControlsMargin;
     ToggleMouseLookButton.Bottom := NextButtonBottom;
     Window.Controls.InsertFront(ToggleMouseLookButton);
@@ -112,7 +150,7 @@ begin
       See also https://castle-engine.io/manual_cross_platform.php }
     ExitButton := TCastleButton.Create(Application);
     ExitButton.Caption := 'Exit (Escape)';
-    ExitButton.OnClick := @ExitButtonClick;
+    ExitButton.OnClick := {$ifdef FPC}@{$endif}ExitButtonClick;
     ExitButton.Left := ControlsMargin;
     ExitButton.Bottom := NextButtonBottom;
     Window.Controls.InsertFront(ExitButton);
@@ -122,7 +160,7 @@ begin
   RenderDebugCreaturesButton := TCastleButton.Create(Application);
   RenderDebugCreaturesButton.Caption := 'Creatures Debug Visualization';
   RenderDebugCreaturesButton.Toggle := true;
-  RenderDebugCreaturesButton.OnClick := @RenderDebugCreaturesButtonClick;
+  RenderDebugCreaturesButton.OnClick := {$ifdef FPC}@{$endif}RenderDebugCreaturesButtonClick;
   RenderDebugCreaturesButton.Left := ControlsMargin;
   RenderDebugCreaturesButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(RenderDebugCreaturesButton);
@@ -131,7 +169,7 @@ begin
   RenderDebugItemsButton := TCastleButton.Create(Application);
   RenderDebugItemsButton.Caption := 'Items Debug Visualization';
   RenderDebugItemsButton.Toggle := true;
-  RenderDebugItemsButton.OnClick := @RenderDebugItemsButtonClick;
+  RenderDebugItemsButton.OnClick := {$ifdef FPC}@{$endif}RenderDebugItemsButtonClick;
   RenderDebugItemsButton.Left := ControlsMargin;
   RenderDebugItemsButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(RenderDebugItemsButton);
@@ -139,7 +177,7 @@ begin
 
   ScrenshotButton := TCastleButton.Create(Application);
   ScrenshotButton.Caption := 'Screenshot (F5)';
-  ScrenshotButton.OnClick := @ScreenshotButtonClick;
+  ScrenshotButton.OnClick := {$ifdef FPC}@{$endif}ScreenshotButtonClick;
   ScrenshotButton.Left := ControlsMargin;
   ScrenshotButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(ScrenshotButton);
@@ -147,7 +185,7 @@ begin
 
   AddCreatureButton := TCastleButton.Create(Application);
   AddCreatureButton.Caption := 'Add creature (F9)';
-  AddCreatureButton.OnClick := @AddCreatureButtonClick;
+  AddCreatureButton.OnClick := {$ifdef FPC}@{$endif}AddCreatureButtonClick;
   AddCreatureButton.Left := ControlsMargin;
   AddCreatureButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddCreatureButton);
@@ -155,7 +193,7 @@ begin
 
   AddItemButton := TCastleButton.Create(Application);
   AddItemButton.Caption := 'Add item (F10)';
-  AddItemButton.OnClick := @AddItemButtonClick;
+  AddItemButton.OnClick := {$ifdef FPC}@{$endif}AddItemButtonClick;
   AddItemButton.Left := ControlsMargin;
   AddItemButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddItemButton);
@@ -163,7 +201,7 @@ begin
 
   AttackButton := TCastleButton.Create(Application);
   AttackButton.Caption := 'Attack (Ctrl)';
-  AttackButton.OnClick := @AttackButtonClick;
+  AttackButton.OnClick := {$ifdef FPC}@{$endif}AttackButtonClick;
   AttackButton.Left := ControlsMargin;
   AttackButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AttackButton);
@@ -218,7 +256,7 @@ var
 begin
   Translation := Player.Translation + Player.Direction * 10;
   { increase default height, as dropping from above looks better }
-  Translation.Data[1] := Translation.Data[1] + 5;
+  Translation.Y := Translation.Y + 5;
   Direction := Player.Direction; { by default creature is facing back to player }
   CreatureResource := Resources.FindName('Knight') as TCreatureResource;
   { CreateCreature creates TCreature instance and adds it to Viewport.Items }
@@ -237,7 +275,7 @@ var
 begin
   Translation := Player.Translation + Player.Direction * 10;
   { increase default height, as dropping from above looks better }
-  Translation.Data[1] := Translation.Data[1] + 5;
+  Translation.Y := Translation.Y + 5;
   ItemResource := Resources.FindName('MedKit') as TItemResource;
   { ItemResource.CreateItem(<quantity>) creates new TInventoryItem instance.
     PutOnWorld method creates TItemOnWorld (that "wraps" the TInventoryItem
@@ -282,7 +320,7 @@ procedure TPlayerHUD.Render;
         Gun.AmmoLoaded,
         GunResource.AttackAmmoCapacity
       ]);
-      UIFont.Print(10, ContainerHeight - 220, Green, AmmoStr);
+      GetUIFont.Print(10, ContainerHeight - 220, Green, AmmoStr);
     end;
   end;
 
@@ -304,17 +342,17 @@ begin
     (ContainerWidth, ContainerHeight) position is top-right corner.
     You can take font measurements by UIFont.RowHeight or UIFont.TextWidth
     to adjust initial position as needed. }
-  Y := Y - (UIFont.RowHeight + ControlsMargin);
-  UIFont.Print(ControlsMargin, Y, Yellow,
+  Y := Y - (GetUIFont.RowHeight + ControlsMargin);
+  GetUIFont.Print(ControlsMargin, Y, Yellow,
     Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
   DisplayCurrentAmmo;
 
   { show FPS }
-  UIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
+  GetUIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
     'FPS: ' + Window.Fps.ToString, hpRight, vpTop);
 
-  Y := Y - (UIFont.RowHeight + InventoryImageSize);
+  Y := Y - (GetUIFont.RowHeight + InventoryImageSize);
 
   { Mark currently chosen item. You can change currently selected item by
     Input_InventoryPrevious, Input_InventoryNext (by default: [ ] keys or mouse
@@ -345,7 +383,7 @@ begin
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S := S + Format(' (%d)', [Player.Inventory[I].Quantity]);
-    UIFont.Print(X, Y - UIFont.RowHeight, Yellow, S);
+    GetUIFont.Print(X, Y - GetUIFont.RowHeight, Yellow, S);
   end;
 
   { Simple color effects over the screen:
@@ -361,8 +399,7 @@ begin
     To create more fancy effects, you can use our GLSL screen effects API.
     See https://castle-engine.io/x3d_extensions_screen_effects.php .
     They can be even set up completely in VRML/X3D file (no need for ObjectPascal
-    code). Engine example examples/3d_rendering_processing/multiple_viewports.lpr
-    shows how to set them up in code. }
+    code). CGE examples/screen_effects_demo/ shows how to set them up in code. }
   if Player.Swimming = psUnderWater then
     DrawRectangle(ParentRect, Vector4(0, 0, 0.1, 0.5));
   if Player.Dead then
@@ -438,7 +475,7 @@ end;
 
 { Window callbacks ----------------------------------------------------------- }
 
-procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
+procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   { We simulate button presses on some key presses. There is no automatic
     mechanism to assign key shortcut to a TCastleButton right now.
@@ -469,7 +506,7 @@ type
     of item; instances of it will be automatically
     created and placed on the global Resources list, based on resource.xml files
     referring to this class by type="xxx") and non-resource class
-    (information about a particular occurence of this item).
+    (information about a particular occurrence of this item).
     See engine tutorial for more extensive explanation.
     Creating new creatures looks the same.
 
@@ -524,7 +561,7 @@ begin
   Quantity := Quantity - 1;
   Notifications.Show(Format('You use "%s"', [Resource.Caption]));
   { A simplest demo how to play sound defined in sounds/index.xml }
-  SoundEngine.Sound(SoundEngine.SoundFromName('medkit_use'));
+  SoundEngine.Play(SoundEngine.SoundFromName('medkit_use'));
 end;
 
 { If you want to do something immediately at pickup, you can override
@@ -545,16 +582,14 @@ procedure ApplicationInitialize;
 var
   TouchNavigation: TCastleTouchNavigation;
 begin
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
   { Turn on some engine optimizations not enabled by default.
     TODO: In the future they should be default, and these variables should be ignored.
     See their docs for description why they aren't default yet. }
   OptimizeExtensiveTransformations := true;
   InternalFastTransformUpdate := true;
-
-  { automatically scale user interface to reference sizes }
-  Window.Container.UIReferenceWidth := 1024;
-  Window.Container.UIReferenceHeight := 768;
-  Window.Container.UIScaling := usEncloseReferenceSize;
 
   { force using Phong lighting model instead of PBR (physically-based rendering) model.
     Faster, less realistic. }
@@ -577,7 +612,7 @@ begin
   SoundEngine.RepositoryURL := 'castle-data:/sounds/index.xml';
 
   { Load texture properties, used to assign footsteps sounds based
-    on ground texture }
+    on ground texture, and to enable using GPU-compressed textures. }
   MaterialProperties.URL := 'castle-data:/material_properties.xml';
 
   { Change Theme image tiActiveFrame, used to draw rectangle under image }
@@ -587,8 +622,7 @@ begin
   { Create extra viewport to observe the world.
     You can always add additional viewports.
     Each viewport has it's own camera and navigation.
-    See
-    examples/3d_rendering_processing/multiple_viewports and
+    See CGE examples/viewport_and_scenes/multiple_viewports ,
     examples/user_interface/zombie_fighter/ for more examples of custom viewports. }
   ExtraViewport := TCastleViewport.Create(Application);
   ExtraViewport.Items := Viewport.Items; // share the same world as Viewport
@@ -606,7 +640,7 @@ begin
     { up } Vector3(0, 0, 1), false
   );
   { Allow user to actually edit this view, e.g. by mouse scroll. }
-  ExtraViewport.NavigationType := ntExamine;
+  ExtraViewport.Navigation := TCastleExamineNavigation.Create(Application);
 
   { Assign callbacks to some window events.
     Note about initial events: Window.Open calls OnOpen and first OnResize events,
@@ -691,11 +725,13 @@ begin
   Window.Controls.InsertFront(TCastleCrosshair.Create(Application));
 end;
 
+{$endif UPCOMING_FPS_GAME_REDESIGN}
+
 initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create a window. }
-  Window := TCastleWindowBase.Create(Application);
+  Window := TCastleWindow.Create(Application);
   { Set default Window size, and parse command-line parameters
     that may also affect Window size. }
   Window.FullScreen := true; { by default we open in fullscreen }

@@ -4,6 +4,7 @@ add
 align
 alignment
 alpha
+amplitude
 anchor
 angle
 animation
@@ -26,6 +27,7 @@ black
 blending
 blue
 body
+border
 bottom
 bound
 box
@@ -71,7 +73,6 @@ create
 current
 cursor
 curve
-customcursor
 data
 dds
 dead
@@ -136,11 +137,13 @@ flash
 float
 flying
 focused
+forward
 font
 fps
 frame
 framebuffer
 frames
+frequency
 frustum
 fullscreen
 functions
@@ -205,6 +208,7 @@ location
 log
 logic
 long
+loop
 looping
 major
 material
@@ -259,6 +263,7 @@ pitch
 plane
 planes
 platform
+play
 played
 player
 playing
@@ -293,6 +298,7 @@ rectangle
 rectangles
 rects
 red
+reference
 references
 register
 registered

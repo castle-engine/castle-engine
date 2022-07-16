@@ -26,7 +26,7 @@ type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
     ButtonAnimationWalk: TCastleButton;
     ButtonAnimationAttack: TCastleButton;
@@ -81,12 +81,12 @@ begin
   SceneAxe := DesignedComponent('SceneAxe') as TCastleScene;
   SceneSword := DesignedComponent('SceneSword') as TCastleScene;
 
-  ButtonAnimationWalk.OnClick := @ClickAnimationWalk;
-  ButtonAnimationAttack.OnClick := @ClickAnimationAttack;
-  ButtonAnimationStop.OnClick := @ClickAnimationStop;
-  ButtonWeaponAxe.OnClick := @ClickWeaponAxe;
-  ButtonWeaponSword.OnClick := @ClickWeaponSword;
-  ButtonWeaponNone.OnClick := @ClickWeaponNone;
+  ButtonAnimationWalk.OnClick := {$ifdef FPC}@{$endif}ClickAnimationWalk;
+  ButtonAnimationAttack.OnClick := {$ifdef FPC}@{$endif}ClickAnimationAttack;
+  ButtonAnimationStop.OnClick := {$ifdef FPC}@{$endif}ClickAnimationStop;
+  ButtonWeaponAxe.OnClick := {$ifdef FPC}@{$endif}ClickWeaponAxe;
+  ButtonWeaponSword.OnClick := {$ifdef FPC}@{$endif}ClickWeaponSword;
+  ButtonWeaponNone.OnClick := {$ifdef FPC}@{$endif}ClickWeaponNone;
 
   { initially hold axe }
   ClickWeaponAxe(nil);

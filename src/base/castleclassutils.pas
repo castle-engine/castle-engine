@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2018 Michalis Kamburelis.
+  Copyright 2000-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -45,7 +45,7 @@ unit CastleClassUtils;
 interface
 
 uses Classes, SysUtils, Contnrs, Generics.Collections,
-  CastleUtils, CastleStringUtils, CastleVectors;
+  CastleUtils, CastleStringUtils;
 
 { ---------------------------------------------------------------------------- }
 { @section(TStrings utilities) }
@@ -74,7 +74,7 @@ procedure Strings_AddSplittedString(Strings: TStrings;
 
 { Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
   See [http://www.freepascal.org/mantis/view.php?id=6699] }
-procedure Strings_SetText(SList: TStrings; const S: string);
+procedure Strings_SetText(SList: TStrings; const S: String);
 
 { Make sure we don't have more than MaxCount strings on a list.
   Removes the last strings if necessary. }
@@ -90,16 +90,27 @@ function StreamReadLongWord(Stream: TStream): LongWord;
 procedure StreamWriteByte(Stream: TStream; const Value: Byte);
 function StreamReadByte(Stream: TStream): Byte;
 
-{ Write string contents, as 8-bit string (AnsiString), to stream.
-  This isn't a procedure to encode a string within a binary stream,
-  this only writes string contents (Length(S) bytes) into the stream.
-  Versions with "ln" append newline.
+{ Write string contents, encoded as 8-bit (UTF-8), to stream.
+  Versions with "Ln" suffix append a newline.
   Versions without Stream parameter write to StdOutStream.
+
+  Note: When compiled with Delphi, overloaded versions that take
+  Delphi 16-bit String convert it to 8-bit AnsiString,
+  and still write 8-bit. So the output stream contents are the same,
+  in both FPC and Delphi.
+
   @groupBegin }
-procedure WriteStr(Stream: TStream; const S: AnsiString); overload;
-procedure WritelnStr(Stream: TStream; const S: AnsiString); overload;
+procedure WriteStr(const Stream: TStream; const S: AnsiString); overload;
+procedure WritelnStr(const Stream: TStream; const S: AnsiString); overload;
 procedure WriteStr(const S: AnsiString); overload;
 procedure WritelnStr(const S: AnsiString); overload;
+
+{$ifndef FPC}
+procedure WriteStr(const Stream: TStream; const S: String); overload;
+procedure WritelnStr(const Stream: TStream; const S: String); overload;
+procedure WriteStr(const S: String); overload;
+procedure WritelnStr(const S: String); overload;
+{$endif}
 { @groupEnd }
 
 { Read one character from stream.
@@ -168,28 +179,45 @@ procedure ReadGrowingStream(const GrowingStream, DestStream: TStream;
 
 { Read a growing stream, and returns it's contents as a string.
   A "growing stream" is a stream that we can only read
-  sequentially, no seeks allowed, and size is unknown until we hit the end. }
-function ReadGrowingStreamToString(const GrowingStream: TStream): String;
+  sequentially, no seeks allowed, and size is unknown until we hit the end.
+  Works on 8-bit strings, i.e. AnsiStrings. }
+function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
 
 { Encode / decode a string in a binary stream. Records string length (4 bytes),
   then the string contents (Length(S) bytes).
+  Works on 8-bit strings, i.e. AnsiStrings.
   @groupBegin }
-procedure StreamWriteString(Stream: TStream; const s: string);
-function StreamReadString(Stream: TStream): string;
+procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
+function StreamReadString(const Stream: TStream): AnsiString;
 { @groupEnd }
 
 { Convert whole Stream to a string.
   Changes Stream.Position to 0 and then reads Stream.Size bytes,
-  so be sure that Stream.Size is usable. }
-function StreamToString(Stream: TStream): string;
+  so be sure that Stream.Size is usable.
+  Works on 8-bit strings, i.e. AnsiStrings. }
+function StreamToString(const Stream: TStream): AnsiString;
 
-{ Set contents of TMemoryStream to given string.
+{ Set contents of TMemoryStream to given string, in UTF-8 encoding.
   If Rewind then the position is reset to the beginning,
-  otherwise it stays at the end. }
+  otherwise it stays at the end.
+
+  Works on 8-bit strings, i.e. AnsiStrings. }
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: string; const Rewind: boolean = true); overload;
+  const S: AnsiString; const Rewind: boolean = true); overload;
 function MemoryStreamLoadFromString(
-  const S: string; const Rewind: boolean = true): TMemoryStream; overload;
+  const S: AnsiString; const Rewind: boolean = true): TMemoryStream; overload;
+
+{ Set contents of TMemoryStream to given string,
+  in UTF-8 or UTF-16 (matching default String) encoding.
+  If Rewind then the position is reset to the beginning,
+  otherwise it stays at the end.
+
+  On FPC, works with 8-bit strings (AnsiStrings) and is equivalent to MemoryStreamLoadFromString8.
+  On Delphi, works with 16-bit strings (UnicodeString), so the resulting stream size is 2x larger. }
+procedure MemoryStreamLoadFromDefaultString(const Stream: TMemoryStream;
+  const S: String; const Rewind: boolean = true); overload;
+function MemoryStreamLoadFromDefaultString(
+  const S: String; const Rewind: boolean = true): TMemoryStream; overload;
 
 type
   EStreamNotImplemented = class(Exception);
@@ -383,8 +411,132 @@ type
   TTranslatePropertyEvent = procedure (const Sender: TCastleComponent;
     const PropertyName: String; var PropertyValue: String) of object;
 
-  { Component with small CGE extensions. }
+  { Call methods of this class within @link(TCastleComponent.CustomSerialization) override.
+    Do not create instances of this class yourself. }
+  TSerializationProcess = class abstract
+  public
+    type
+      TListEnumerateEvent = procedure (const Proc: TGetChildProc) of object;
+      TListAddEvent = procedure (const NewComponent: TComponent) of object;
+      TListClearEvent = procedure of object;
+
+    var
+      { @exclude
+        Used by TCastleViewport to keep navigation/camera across undo. }
+      InternalPreserveDataAcrossUndo: TComponent;
+
+    { Serialize and deserialize given simple Value.
+      This mechanism allows to explicitly serialize/deserialize any internal value,
+      without the need to make it a published property.
+
+      When deserializing, we always try to read it from file.
+      If it is not present, the Value is not modified.
+
+      When serializing, we write it to file only if IsStored.
+      Generally IsStored=false should indicate "the Value is the same as when the object
+      is created, thus there's no point in serializing it".
+
+      The values are guaranteed to be read/written in the same way as if a published
+      property with the same name (Key) and same type would be read/written.
+      This allows to utilize this mechanism to read, to a local/private variable,
+      a value that was previously a published property value.
+      This is a way to provide backward-compatibility for old designs: this way class
+      can interpret old values in design files, even though it no longer publishes
+      given property.
+
+      @seealso ReadWriteSubComponent
+
+      @groupBegin }
+    procedure ReadWriteInteger(const Key: String; var Value: Integer; const IsStored: Boolean);
+      overload; virtual; abstract;
+    procedure ReadWriteBoolean(const Key: String; var Value: Boolean; const IsStored: Boolean);
+      overload; virtual; abstract;
+    procedure ReadWriteString(const Key: String; var Value: String; const IsStored: Boolean);
+      overload; virtual; abstract;
+    procedure ReadWriteSingle(const Key: String; var Value: Single; const IsStored: Boolean);
+      overload; virtual; abstract;
+    { @groupEnd }
+
+    { Serialize and deserialize a subcomponent.
+      Being a subcomponent, we know that Value is not nil,
+      and it is not referenced anywhere else in the design
+      (so serialization/deserialization can expect class contents, not just name),
+      so we just serialize and deserialize the contents.
+
+      When deserializing, we always try to read it from file.
+      If it is not present, nothing is modified.
+
+      When serializing, we write it to file only if IsStored.
+      Generally IsStored=false should indicate "the Value is the same as when the object
+      is created, thus there's no point in serializing it".
+
+      The values are guaranteed to be read/written in the same way as if a published
+      property with the same name (Key) and same type would be read/written.
+      This allows to utilize this mechanism to read, to a local/private variable,
+      a value that was previously a published property value.
+      This is a way to provide backward-compatibility for old designs: this way class
+      can interpret old values in design files, even though it no longer publishes
+      given property.
+
+      @seealso ReadWriteInteger
+      @seealso ReadWriteBoolean
+      @seealso ReadWriteSingle
+      @seealso ReadWriteString }
+    procedure ReadWriteSubComponent(const Key: String; const Value: TComponent;
+      const IsStored: Boolean); virtual; abstract;
+
+    { Make a list serialized and deserialized.
+      The definition of list is very flexible here, you provide callbacks
+      that should, when called,
+
+      @unorderedList(
+        @itemSpacing compact
+        @item enumerate (call other callback for each item),
+        @item clear all items (that were possibly added by previous deserialization),
+        @item add new item.
+      )
+
+      Do not worry about conflict between Key and some published property.
+      We internally "mangle" keys to avoid it. }
+    procedure ReadWriteList(const Key: String;
+      const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
+      const ListClear: TListClearEvent); virtual; abstract;
+  end;
+
+  { Component with various CGE extensions: can be a parent of other non-visual components
+    (to display them in CGE editor and serialize them to files), can be translated,
+    can have custom logic when serializing/deserializing (CustomSerialization).
+
+    Note that everywhere in CGE (in particular in editor and when serializing) we handle
+    a standard Pascal TComponent as well. So there's no need to derive all your components from
+    TCastleComponent, so you derive from standard TComponent too.
+    You can use TCastleComponent only if necessary, i.e. only if you need one of
+    the extra features in this class. }
   TCastleComponent = class(TComponent)
+  strict private
+    type
+      { Used by @link(TCastleComponent.NonVisualComponentsEnumerate).
+        Do not use this type explicitly, it should only be used by for..in
+        construction like "for C in MyComponent.NonVisualComponentsEnumerate do ...".
+        @exclude }
+      TNonVisualComponentsEnumerator = record
+      strict private
+        FParent: TCastleComponent;
+        FPosition: Integer;
+        function GetCurrent: TComponent; inline;
+      public
+        constructor Create(const AParent: TCastleComponent);
+        function MoveNext: Boolean; inline;
+        property Current: TComponent read GetCurrent;
+        function GetEnumerator: TNonVisualComponentsEnumerator;
+      end;
+    var
+      FNonVisualComponents: TComponentList;
+      FIsLoading: Boolean;
+    function GetNonVisualComponents(const Index: Integer): TComponent;
+    procedure SerializeNonVisualComponentsEnumerate(const Proc: TGetChildProc);
+    procedure SerializeNonVisualComponentsAdd(const C: TComponent);
+    procedure SerializeNonVisualComponentsClear;
   protected
     function GetInternalText: String; virtual;
     procedure SetInternalText(const Value: String); virtual;
@@ -415,20 +567,29 @@ type
       @exclude }
     InternalOriginalName: String;
 
+    destructor Destroy; override;
+
+    { Override this method to call various methods of SerializationProcess,
+      which in turn allows to serialize/deserialize things that are not published.
+      This allows to serialize/deserialize with more freedom, e.g. to serialize/deserialize
+      some private field. }
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); virtual;
+
     { Main text property, that is synchronized with Name initially.
       @exclude }
     property InternalText: String read GetInternalText write SetInternalText;
 
-    { Deserialization will use this to add components that were previously
-      returned by GetChildren method.
-      @exclude }
-    procedure InternalAddChild(const C: TComponent); virtual;
-
-    { Add csLoading. Used when deserializing.
+    { Set IsLoading to @true and (only on FPC) add csLoading flag to ComponentState.
+      Used when deserializing.
+      Do not call this yourself, CastleComponentSerialize automatically calls this.
       @exclude }
     procedure InternalLoading;
 
-    { Remove csLoading. Used when deserializing.
+    { Set IsLoading to @false and (only on FPC) remove csLoading flag from ComponentState
+      and call virtual TComponent.Loaded.
+      Used when deserializing.
+      Do not call this yourself, CastleComponentSerialize automatically calls this.
+      Descendants can override TComponent.Loaded to react to being loaded.
       @exclude }
     procedure InternalLoaded;
 
@@ -452,17 +613,55 @@ type
       then make it a "subcomponent" instead, by @code(SetSubComponent(true)).
 
       Note that both csSubComponent and csTransient only disable the component
-      serialization as part of parent's @code(TComponent.GetChildren) list.
+      serialization as part of parent's lists enumerated by CustomSerialization
+      (see internal TCastleUserInterface.SerializeChildrenEnumerate ,
+      TCastleTransform.SerializeChildrenEnumerate,
+      TCastleTransform.SerializeBehaviorsEnumerate).
+
       If you will make the component published in its own property
       (which is normal for "subcomponents")
       then it will be serialized anyway, just as part of it's own property
       (like TCastleScrollView.ScrollArea).
-      So to @italic(really) avoid serializing the component
-      (that you have to insert to @code(TComponent.GetChildren) list),
+      So to @italic(really) avoid serializing a children component
       make it csSubComponent and/or csTransient,
       and do not publish it.
     }
     procedure SetTransient;
+
+    { Use this component as a container to easily reference any other TComponent instances,
+      and add given TComponent to it.
+      This is useful to group non-visual components, esp. in CGE editor.
+
+      @seealso NonVisualComponentsCount
+      @seealso NonVisualComponents
+      @seealso NonVisualComponentsEnumerate }
+    procedure AddNonVisualComponent(const NonVisualComponent: TComponent);
+
+    { Remove component previously added by AddNonVisualComponent. }
+    procedure RemoveNonVisualComponent(const NonVisualComponent: TComponent);
+
+    { Count of components added by AddNonVisualComponent.
+
+      @seealso AddNonVisualComponent
+      @seealso NonVisualComponents
+      @seealso NonVisualComponentsEnumerate }
+    function NonVisualComponentsCount: Integer;
+
+    { Components added by AddNonVisualComponent. }
+    property NonVisualComponents [const Index: Integer]: TComponent read GetNonVisualComponents;
+
+    { You can enumerate current non-visual components using loop like
+      @code(for C in MyComponent.NonVisualComponentsEnumerate do ...).
+      Do not call this method in other contexts, it is only useful for "for..in" construction.
+
+      @seealso AddNonVisualComponent }
+    function NonVisualComponentsEnumerate: TNonVisualComponentsEnumerator;
+
+    { Is the component during deserialization now.
+
+      Note: We can't use @code(csLoading in ComponentState) because in Delphi
+      it is not possible to control it from CastleComponentSerialize. }
+    property IsLoading: Boolean read FIsLoading;
   end;
 
 { Enumerate all properties that are possible to translate in this component
@@ -480,7 +679,7 @@ type
 
   For every TComponent it also recursively enumerates properties
   to translate in children, i.e. in all published subcomponents and children
-  (returned by TComponent.GetChildren). The goal is to be 100% consistent with
+  (returned by TCastleComponent.CustomSerialization). The goal is to be 100% consistent with
   CastleComponentSerialize, which is used to (de)serialize hierarchy of
   components (like TCastleUserInterface or TCastleTransform).
 
@@ -583,25 +782,25 @@ var
 
 type
   { Extended TObjectStack for Castle Game Engine. }
-  TCastleObjectStack = class(Contnrs.TObjectStack)
+  TCastleObjectStack = class({$ifndef PASDOC}Contnrs.{$endif}TObjectStack)
   private
-    function GetCapacity: Integer;
-    procedure SetCapacity(const Value: Integer);
+    function GetCapacity: TListSize;
+    procedure SetCapacity(const Value: TListSize);
   public
-    property Capacity: Integer read GetCapacity write SetCapacity;
+    property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectQueue for Castle Game Engine. }
-  TCastleObjectQueue = class(Contnrs.TObjectQueue)
+  TCastleObjectQueue = class({$ifndef PASDOC}Contnrs.{$endif}TObjectQueue)
   private
-    function GetCapacity: Integer;
-    procedure SetCapacity(const Value: Integer);
+    function GetCapacity: TListSize;
+    procedure SetCapacity(const Value: TListSize);
   public
-    property Capacity: Integer read GetCapacity write SetCapacity;
+    property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectList for Castle Game Engine. }
-  TCastleObjectList = class(Contnrs.TObjectList)
+  TCastleObjectList = class({$ifndef PASDOC}Contnrs.{$endif}TObjectList)
   public
     { Create and fill with the contents of given array.
 
@@ -635,10 +834,10 @@ type
       a descendant from ReplaceClass, and you always keep at most one
       ReplaceClass descendant on the list.
       For example, you have UI controls list (like
-      TCastleWindowBase.Controls), and you want your NewItem to be the only instance
+      TCastleWindow.Controls), and you want your NewItem to be the only instance
       of TCastleOnScreenMenu class inside.
       Moreover, in case order on the list is important (for example on
-      TCastleWindowBase.Controls order corresponds to screen depth --- what control
+      TCastleWindow.Controls order corresponds to screen depth --- what control
       is under / above each other), you want to place NewItem at the same
       position as previous TCastleOnScreenMenu instance, if any. }
     function MakeSingle(ReplaceClass: TClass; NewItem: TObject;
@@ -666,7 +865,7 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
-  TNotifyEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TNotifyEvent>)
+  TNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TNotifyEvent>)
   public
     { Call all (non-nil) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
@@ -681,6 +880,10 @@ function DumpStackToString(const BaseFramePointer: Pointer): string;
 function DumpExceptionBackTraceToString: string;
 {$endif}
 
+{ Propose a name for given component class, making it unique in given ComponentsOwner. }
+function InternalProposeName(const ComponentClass: TComponentClass;
+  const ComponentsOwner: TComponent): String;
+
 type
   TFreeNotificationObserver = class;
 
@@ -689,21 +892,84 @@ type
     because you can get it from @code(Sender.Observed) if needed. }
   TFreeNotificationEvent = procedure (const Sender: TFreeNotificationObserver) of object;
 
-  { Observe when something is freed, call an event then.
+  (*Observe when something is freed, and call an event then.
     You need to set @link(Observed) of this component
     to make it notified about freeing of something.
-    (It will use standard FreeNotification / RemoveFreeNotification under the hood.)
     When the @link(Observed) is freed, this component will make OnFreeNotification event.
 
-    Using this is useful if one class wants to observe freeing of multiple properties,
-    and some of those properties may be sometimes equal.
-    In this case using FreeNotification / RemoveFreeNotification with the main class
-    would be unreliable (as RemoveFreeNotification removes the notification,
-    even if you registered to it twice by FreeNotification), and requires complicated
-    code to handles these special cases.
+    An example code using it:
 
-    Using this component as a "proxy" to track each property is simpler.
-    See e.g. TCastleThirdPersonNavigation implementation for example. }
+    @longCode(#
+    type
+      TChild = class(TComponent)
+      end;
+
+      TContainer = class(TComponent)
+      private
+        FChild: TChild;
+        FChildObserver: TFreeNotificationObserver;
+        procedure SetChild(const Value: TChild);
+        procedure ChildFreeNotification(const Sender: TFreeNotificationObserver);
+      public
+        constructor Create(AOwner: TComponent);
+        property Child: TChild read FChild write SetChild;
+      end;
+
+    implementation
+
+    constructor TContainer.Create(AOwner: TComponent);
+    begin
+      inherited;
+      FChildObserver := TFreeNotificationObserver.Create(Self);
+      FChildObserver.OnFreeNotification := @ChildFreeNotification;
+    end;
+
+    procedure TContainer.SetChild(const Value: TChild);
+    begin
+      if FChild <> Value then
+      begin
+        FChild := Value;
+        FChildObserver.Observed := Value;
+      end;
+    end;
+
+    procedure TContainer.ChildFreeNotification(const Sender: TFreeNotificationObserver);
+    begin
+      FChild := nil;
+    end;
+    #)
+
+    Using this is an alternative to observing freeing using
+    standard TComponent.FreeNotification / TComponent.RemoveFreeNotification mechanism
+    https://castle-engine.io/modern_pascal_introduction.html#_free_notification .
+    Using TFreeNotificationObserver is:
+
+    @unorderedList(
+      @item(A bit simpler and it's harder to make a mistake.
+
+        E.g. the line @code(FChildObserver.Observed := Value) is simpler
+        than the typical equivalent lines required to unregister notification
+        of the old value and register notification of the new value.
+        (See https://castle-engine.io/modern_pascal_introduction.html#_free_notification
+        example of FreeNotification usage.)
+      )
+
+      @item(The TContainer doesn't need to descend from TComponent.
+
+        You can manually free FChildObserver in the TContainer.Destroy.)
+
+      @item(Reliable if one class wants to observe freeing of multiple properties,
+        and some of those properties may be sometimes equal.
+        In this case using FreeNotification / RemoveFreeNotification with the main class
+        would be unreliable (as RemoveFreeNotification removes the notification,
+        even if you registered to it twice by FreeNotification), and requires complicated
+        code to handles these special cases.
+
+        Using this component as a "proxy" to track each property is simpler,
+        there's no additional code to handle this case. You just need different
+        observer for each property to be observed.)
+    )
+  *)
   TFreeNotificationObserver = class(TComponent)
   strict private
     FObserved: TComponent;
@@ -730,8 +996,11 @@ type
 
 implementation
 
-uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils, Math {$ifdef FPC}, StreamIO, RTTIUtils {$endif}, TypInfo;
+uses
+  {$ifdef UNIX} {$ifdef FPC} Unix, {$endif} {$endif}
+  {$ifdef MSWINDOWS} Windows, {$endif}
+  StrUtils, Math {$ifdef FPC}, StreamIO, RTTIUtils {$endif}, TypInfo,
+  CastleLog;
 
 { TStrings helpers ------------------------------------------------------- }
 
@@ -771,7 +1040,7 @@ begin
   Strings.Append(SEnding(S, Done + 1));
 end;
 
-procedure Strings_SetText(SList: TStrings; const S: string);
+procedure Strings_SetText(SList: TStrings; const S: String);
 begin
   if Length(S) = 1 then
     SList.Text := S + LineEnding else
@@ -806,12 +1075,12 @@ begin
   Stream.ReadBuffer(Result, SizeOf(Result));
 end;
 
-procedure WriteStr(Stream: TStream; const S: AnsiString);
+procedure WriteStr(const Stream: TStream; const S: AnsiString);
 begin
   Stream.WriteBuffer(Pointer(S)^, Length(S));
 end;
 
-procedure WritelnStr(Stream: TStream; const S: AnsiString);
+procedure WritelnStr(const Stream: TStream; const S: AnsiString);
 begin
   WriteStr(Stream, S);
   WriteStr(Stream, nl);
@@ -826,6 +1095,32 @@ procedure WritelnStr(const S: AnsiString);
 begin
   WritelnStr(StdOutStream, S);
 end;
+
+{$ifndef FPC}
+{$warnings off}
+
+procedure WriteStr(const Stream: TStream; const S: String);
+begin
+  WriteStr(Stream, AnsiString(S));
+end;
+
+procedure WritelnStr(const Stream: TStream; const S: String);
+begin
+  WritelnStr(Stream, AnsiString(S));
+end;
+
+procedure WriteStr(const S: String);
+begin
+  WriteStr(AnsiString(S));
+end;
+
+procedure WritelnStr(const S: String);
+begin
+  WritelnStr(AnsiString(S));
+end;
+
+{$warnings on}
+{$endif}
 
 function StreamReadChar(Stream: TStream): AnsiChar;
 begin
@@ -953,7 +1248,7 @@ begin
   if ResetDestStreamPosition then DestStream.Position := 0;
 end;
 
-function ReadGrowingStreamToString(const GrowingStream: TStream): String;
+function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
 const
   BufferSize = 10000;
 var
@@ -969,7 +1264,7 @@ begin
   until false;
 end;
 
-procedure StreamWriteString(Stream: TStream; const s: string);
+procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
 var
   L: Integer;
 begin
@@ -979,7 +1274,7 @@ begin
   if L > 0 then Stream.WriteBuffer(S[1], L);
 end;
 
-function StreamReadString(Stream: TStream): string;
+function StreamReadString(const Stream: TStream): AnsiString;
 var
   L: Integer;
 begin
@@ -989,7 +1284,7 @@ begin
   if L > 0 then Stream.ReadBuffer(Result[1], L);
 end;
 
-function StreamToString(Stream: TStream): string;
+function StreamToString(const Stream: TStream): AnsiString;
 begin
   SetLength(Result, Stream.Size);
   Stream.Position := 0;
@@ -997,7 +1292,7 @@ begin
 end;
 
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: string; const Rewind: boolean);
+  const S: AnsiString; const Rewind: boolean);
 begin
   Stream.Size := Length(S);
   if S <> '' then
@@ -1007,7 +1302,26 @@ begin
   end;
 end;
 
-function MemoryStreamLoadFromString(const S: string; const Rewind: boolean): TMemoryStream;
+function MemoryStreamLoadFromString(const S: AnsiString; const Rewind: boolean): TMemoryStream;
+begin
+  Result := TMemoryStream.Create;
+  try
+    MemoryStreamLoadFromString(Result, S, Rewind);
+  except FreeAndNil(Result); raise end;
+end;
+
+procedure MemoryStreamLoadFromDefaultString(const Stream: TMemoryStream;
+  const S: String; const Rewind: boolean);
+begin
+  Stream.Size := Length(S) * SizeOf(Char);
+  if S <> '' then
+  begin
+    Stream.WriteBuffer(S[1], Length(S) * SizeOf(Char));
+    if Rewind then Stream.Position := 0;
+  end;
+end;
+
+function MemoryStreamLoadFromDefaultString(const S: String; const Rewind: boolean): TMemoryStream;
 begin
   Result := TMemoryStream.Create;
   try
@@ -1047,13 +1361,17 @@ end;
 function TPeekCharStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
   raise EStreamNotImplementedSeek.Create('TPeekCharStream.Seek not supported');
+  {$ifdef FPC}
   Result := 0; { just to get rid of dummy fpc warning }
+  {$endif}
 end;
 
 function TPeekCharStream.Write(const Buffer; Count: Longint): Longint;
 begin
   raise EStreamNotImplementedWrite.Create('TPeekCharStream.Write not supported');
+  {$ifdef FPC}
   Result := 0; { just to get rid of dummy fpc warning }
+  {$endif}
 end;
 
 procedure TPeekCharStream.UpdateLineColumn(const C: AnsiChar);
@@ -1116,8 +1434,11 @@ begin
     Result := 0 else
   if IsPeekedChar then
   begin
-    PChar(@Buffer)[0] := Chr(PeekedChar);
-    Result := 1 + SourceStream.Read(PChar(@Buffer)[1], Count - 1);
+    { Note: It would be more natural to access
+        PAnsiChar(@Buffer)[...],
+      but on Delphi the PAnsiChar cannot be indexed like an array. }
+    PByteArray(@Buffer)^[0] := PeekedChar;
+    Result := 1 + SourceStream.Read(PByteArray(@Buffer)^[1], Count - 1);
     { Note that if SourceStream.Read will raise an exception,
       we will still have IsPeekedChar = true. }
     IsPeekedChar := false;
@@ -1130,7 +1451,7 @@ end;
 
 function TSimplePeekCharStream.PeekChar: Integer;
 var
-  C: Char;
+  C: AnsiChar;
 begin
   if not IsPeekedChar then
   begin
@@ -1225,7 +1546,7 @@ begin
     if LongWord(Count) < BufferSize then
     begin
       FillBuffer;
-      CopyCount := Min(Count, BufferEnd - BufferPos);
+      CopyCount := Min(LongWord(Count), BufferEnd - BufferPos);
       Move(Buffer^[0], PChar(@LocalBuffer)[Result], CopyCount);
       BufferPos := BufferPos + CopyCount;
       Result := Result + LongInt(CopyCount);
@@ -1349,7 +1670,42 @@ begin
     Component := ComponentClass.Create(Owner);
 end;
 
+{ TCastleComponent.TNonVisualComponentsEnumerator ------------------------------------------------- }
+
+{ TNonVisualComponentsEnumerator is optimized to be a record, following
+  https://hallvards.blogspot.com/2007/10/more-fun-with-enumerators.html }
+
+constructor TCastleComponent.TNonVisualComponentsEnumerator.Create(const AParent: TCastleComponent);
+begin
+//  inherited Create;
+  FParent := AParent;
+  FPosition := -1;
+end;
+
+function TCastleComponent.TNonVisualComponentsEnumerator.GetCurrent: TComponent;
+begin
+  Result := FParent.NonVisualComponents[FPosition];
+end;
+
+function TCastleComponent.TNonVisualComponentsEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FParent.NonVisualComponentsCount;
+end;
+
+function TCastleComponent.TNonVisualComponentsEnumerator.GetEnumerator: TNonVisualComponentsEnumerator;
+begin
+  // Returns itself. See https://wiki.freepascal.org/for-in_loop
+  Result := Self;
+end;
+
 { TCastleComponent ----------------------------------------------------------- }
+
+destructor TCastleComponent.Destroy;
+begin
+  FreeAndNil(FNonVisualComponents);
+  inherited;
+end;
 
 procedure TCastleComponent.SetTransient;
 begin
@@ -1365,25 +1721,20 @@ procedure TCastleComponent.SetInternalText(const Value: String);
 begin
 end;
 
-procedure TCastleComponent.InternalAddChild(const C: TComponent);
-begin
-  raise Exception.CreateFmt('Component of class %s is not expected to have children',
-    [ClassName]);
-end;
-
 procedure TCastleComponent.InternalLoading;
 begin
   {$ifdef FPC}
   Loading;
-  {$else}
-  // TODO:
-  // How do we implement this in Delphi?
-  // ComponentState := ComponentState + [csLoading];
   {$endif}
+  FIsLoading := true;
 end;
 
 procedure TCastleComponent.InternalLoaded;
 begin
+  FIsLoading := false;
+
+  { We need to call Loaded because some things can be delayed to run after
+    loading for example TCastleSceneCore.UpdateAutoAnimation() }
   Loaded;
 end;
 
@@ -1402,12 +1753,12 @@ begin
     // reading Name would set Caption.
     // During loading, we assume that all component properties are to be deserialized from file,
     // and InternalText should not be automatically modified.
-    (not (csLoading in ComponentState)) and
+    (not IsLoading) and
     (Name = InternalText) and
-    // Do not update InternalText when Owner has csLoading.
+    // Do not update InternalText when Owner is during deserialization.
     ( (Owner = nil) or
-      (not (Owner is TComponent)) or
-      (not (csLoading in TComponent(Owner).ComponentState)));
+      (not (Owner is TCastleComponent)) or
+      (not TCastleComponent(Owner).IsLoading));
   // Note that this can raise exception is Value is not a valid name.
   inherited SetName(Value);
   if ChangeInternalText then
@@ -1428,18 +1779,146 @@ begin
   // nothing to do in this class
 end;
 
+function TCastleComponent.NonVisualComponentsCount: Integer;
+begin
+  if FNonVisualComponents = nil then
+    Result := 0
+  else
+    Result := FNonVisualComponents.Count;
+end;
+
+function TCastleComponent.GetNonVisualComponents(const Index: Integer): TComponent;
+begin
+  { showing ERangeError will be nicer
+    than showing EAccessViolation when accessing FNonVisualComponents below }
+  if FNonVisualComponents = nil then
+    System.Error(reRangeError);
+  Result := FNonVisualComponents[Index];
+end;
+
+procedure TCastleComponent.AddNonVisualComponent(const NonVisualComponent: TComponent);
+begin
+  // create FNonVisualComponents on-demand, to not burden typical TCastleComponent that doesn't need this
+  if FNonVisualComponents = nil then
+    FNonVisualComponents := TComponentList.Create(false);
+  FNonVisualComponents.Add(NonVisualComponent);
+end;
+
+procedure TCastleComponent.RemoveNonVisualComponent(const NonVisualComponent: TComponent);
+begin
+  if FNonVisualComponents <> nil then
+    FNonVisualComponents.Remove(NonVisualComponent);
+end;
+
+function TCastleComponent.NonVisualComponentsEnumerate: TNonVisualComponentsEnumerator;
+begin
+  Result := TNonVisualComponentsEnumerator.Create(Self);
+end;
+
+procedure TCastleComponent.CustomSerialization(const SerializationProcess: TSerializationProcess);
+begin
+  inherited;
+  SerializationProcess.ReadWriteList('NonVisualComponents',
+    {$ifdef FPC}@{$endif} SerializeNonVisualComponentsEnumerate,
+    {$ifdef FPC}@{$endif} SerializeNonVisualComponentsAdd,
+    {$ifdef FPC}@{$endif} SerializeNonVisualComponentsClear);
+end;
+
+procedure TCastleComponent.SerializeNonVisualComponentsEnumerate(const Proc: TGetChildProc);
+var
+  I: Integer;
+begin
+  if FNonVisualComponents <> nil then
+    for I := 0 to FNonVisualComponents.Count - 1 do
+      if FNonVisualComponents[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+        Proc(FNonVisualComponents[I]);
+end;
+
+procedure TCastleComponent.SerializeNonVisualComponentsAdd(const C: TComponent);
+begin
+  AddNonVisualComponent(C);
+end;
+
+procedure TCastleComponent.SerializeNonVisualComponentsClear;
+var
+  I: Integer;
+begin
+  if FNonVisualComponents <> nil then
+    for I := FNonVisualComponents.Count - 1 downto 0 do // downto, as list may shrink during loop
+      if FNonVisualComponents[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+        FNonVisualComponents[I].Free; // will remove itself from Behaviors list
+end;
+
 { TComponent routines -------------------------------------------------------- }
 
 type
-  { Helper class to implement TranslateProperties. }
-  TTranslatePropertiesGetChildren = class
-    TranslatePropertyEvent: TTranslatePropertyEvent;
+  { Helper class to implement TranslateProperties.
+
+    Calls TranslatePropertyEvent on all "children", where "children" are all
+    components that this class enumerated in CustomSerialization:
+
+    - all items on lists reported by ReadWriteList
+
+    - all subcomponents reported by ReadWriteSubComponent
+  }
+  TTranslatePropertiesOnChildren = class(TSerializationProcess)
+  strict private
     procedure TranslatePropertiesOnChild(Child: TComponent);
+  public
+    TranslatePropertyEvent: TTranslatePropertyEvent;
+    procedure ReadWriteInteger(const Key: String; var Value: Integer; const IsStored: Boolean);
+      overload; override;
+    procedure ReadWriteBoolean(const Key: String; var Value: Boolean; const IsStored: Boolean);
+      overload; override;
+    procedure ReadWriteString(const Key: String; var Value: String; const IsStored: Boolean);
+      overload; override;
+    procedure ReadWriteSingle(const Key: String; var Value: Single; const IsStored: Boolean);
+      overload; override;
+    procedure ReadWriteSubComponent(const Key: String; const Value: TComponent;
+      const IsStored: Boolean); override;
+    procedure ReadWriteList(const Key: String;
+      const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
+      const ListAdd: TSerializationProcess.TListAddEvent;
+      const ListClear: TSerializationProcess.TListClearEvent); override;
   end;
 
-procedure TTranslatePropertiesGetChildren.TranslatePropertiesOnChild(Child: TComponent);
+procedure TTranslatePropertiesOnChildren.TranslatePropertiesOnChild(Child: TComponent);
 begin
   TranslateProperties(Child, TranslatePropertyEvent);
+end;
+
+procedure TTranslatePropertiesOnChildren.ReadWriteList(const Key: String;
+  const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
+  const ListAdd: TSerializationProcess.TListAddEvent;
+  const ListClear: TSerializationProcess.TListClearEvent);
+begin
+  ListEnumerate({$ifdef FPC}@{$endif} TranslatePropertiesOnChild);
+end;
+
+procedure TTranslatePropertiesOnChildren.ReadWriteSubComponent(
+  const Key: String; const Value: TComponent; const IsStored: Boolean);
+begin
+  TranslateProperties(Value, TranslatePropertyEvent);
+end;
+
+procedure TTranslatePropertiesOnChildren.ReadWriteInteger(const Key: String; var Value: Integer; const IsStored: Boolean);
+begin
+  // just override abstract method to do nothing
+end;
+
+procedure TTranslatePropertiesOnChildren.ReadWriteBoolean(const Key: String; var Value: Boolean; const IsStored: Boolean);
+begin
+  // just override abstract method to do nothing
+end;
+
+procedure TTranslatePropertiesOnChildren.ReadWriteString(const Key: String; var Value: String; const IsStored: Boolean);
+begin
+  // just override abstract method to do nothing
+end;
+
+procedure TTranslatePropertiesOnChildren.ReadWriteSingle(const Key: String; var Value: Single; const IsStored: Boolean);
+begin
+  // just override abstract method to do nothing
 end;
 
 procedure TranslateProperties(const C: TComponent;
@@ -1462,20 +1941,19 @@ var
   PropInfo: PPropInfo;
   TypeInfo: PTypeInfo;
   I: Integer;
-  GetChildrenHandler: TTranslatePropertiesGetChildren;
+  ChildrenEnumerator: TTranslatePropertiesOnChildren;
 begin
   if C is TCastleComponent then
   begin
     // translate properties of C
     TCastleComponent(C).TranslateProperties(TranslatePropertyEvent);
 
-    // translate properties of C children in GetChildren
-    GetChildrenHandler := TTranslatePropertiesGetChildren.Create;
+    // translate properties of C children
+    ChildrenEnumerator := TTranslatePropertiesOnChildren.Create;
     try
-      GetChildrenHandler.TranslatePropertyEvent := TranslatePropertyEvent;
-      TCastleComponent(C).GetChildren(
-        {$ifdef CASTLE_OBJFPC}@{$endif} GetChildrenHandler.TranslatePropertiesOnChild, nil);
-    finally FreeAndNil(GetChildrenHandler) end;
+      ChildrenEnumerator.TranslatePropertyEvent := TranslatePropertyEvent;
+      TCastleComponent(C).CustomSerialization(ChildrenEnumerator);
+    finally FreeAndNil(ChildrenEnumerator) end;
   end;
 
   // translate properties of other C serialized children
@@ -1491,7 +1969,7 @@ begin
   finally FreeAndNil(PropInfos) end;
 {$else}
 begin
-  // TODO: not yet implemented for Delphi
+  WritelnWarning('Localization (TranslateProperties) not implemented for Delphi yet.');
 {$endif}
 end;
 
@@ -1549,24 +2027,24 @@ end;
 
 { TCastleObjectStack ------------------------------------------------------------ }
 
-function TCastleObjectStack.GetCapacity: Integer;
+function TCastleObjectStack.GetCapacity: TListSize;
 begin
   Result := List.Capacity;
 end;
 
-procedure TCastleObjectStack.SetCapacity(const Value: Integer);
+procedure TCastleObjectStack.SetCapacity(const Value: TListSize);
 begin
   List.Capacity := Value;
 end;
 
 { TCastleObjectQueue ------------------------------------------------------------ }
 
-function TCastleObjectQueue.GetCapacity: Integer;
+function TCastleObjectQueue.GetCapacity: TListSize;
 begin
   Result := List.Capacity;
 end;
 
-procedure TCastleObjectQueue.SetCapacity(const Value: Integer);
+procedure TCastleObjectQueue.SetCapacity(const Value: TListSize);
 begin
   List.Capacity := Value;
 end;
@@ -1785,6 +2263,11 @@ var
   TextFile: Text;
   StringStream: TStringStream;
 begin
+  {$ifdef VER3_3} {$define CASTLE_SECURE_BACKTRACE} {$endif}
+  {$ifdef CASTLE_SECURE_BACKTRACE}
+  try
+  {$endif}
+
   StringStream := TStringStream.Create('');
   try
     AssignStream(TextFile, StringStream);
@@ -1794,9 +2277,79 @@ begin
     finally CloseFile(TextFile) end;
     Result := StringStream.DataString;
   finally FreeAndNil(StringStream) end;
+
+  {$ifdef CASTLE_SECURE_BACKTRACE}
+  except
+    // TODO: investigate and report, reproducible by running play_animation with non-existent data.
+    // WritelnWarning('Capturing backtrace failed, this is known to happen with some FPC 3.3.1 versions.');
+    // Cannot log this problem -- as logging itself could use backtrace, causing infinite loop...
+    Result := '';
+  end;
+  {$endif}
 {$endif}
 end;
 {$endif}
+
+function InternalProposeName(const ComponentClass: TComponentClass;
+  const ComponentsOwner: TComponent): String;
+
+  { Cleanup S (right now, always taken from some ClassName)
+    to be a nice component name, which also must make it a valid Pascal identifier. }
+  function CleanComponentName(const S: String): String;
+  begin
+    Result := S;
+
+    // remove common prefixes
+    if IsPrefix('TCastleUserInterface', Result, true) then
+      Result := PrefixRemove('TCastleUserInterface', Result, true)
+    else
+    if IsPrefix('TCastle', Result, true) then
+      Result := PrefixRemove('TCastle', Result, true)
+    else
+    if IsPrefix('T', Result, true) then
+      Result := PrefixRemove('T', Result, true);
+
+    // move 2D and 3D to the back, as component name cannot start with a number
+    if IsPrefix('2D', Result, true) then
+      Result := PrefixRemove('2D', Result, true) + '2D';
+    if IsPrefix('3D', Result, true) then
+      Result := PrefixRemove('3D', Result, true) + '3D';
+
+    // in case the replacements above made '', fix it (can happen in case of TCastleUserInterface)
+    if Result = '' then
+      Result := 'Group';
+
+    if SCharIs(Result, 1, ['0'..'9']) then
+      Result := 'Component' + Result;
+  end;
+
+var
+  ResultBase: String;
+  I: Integer;
+begin
+  ResultBase := CleanComponentName(ComponentClass.ClassName);
+
+  { A simple test of the CleanComponentName routine.
+    This is *not* a good place for such automated test, but for now it was simplest to put it here. }
+  {
+  Assert(CleanComponentName('TSomething') = 'Something');
+  Assert(CleanComponentName('TCastleUserInterface') = 'Group');
+  Assert(CleanComponentName('TCastleUserInterfaceButton') = 'Button');
+  Assert(CleanComponentName('TCastleSomething') = 'Something');
+  Assert(CleanComponentName('TCastle2DStuff') = 'Stuff2D');
+  Assert(CleanComponentName('TCastle3DStuff') = 'Stuff3D');
+  Assert(CleanComponentName('TCastle4DProcessing') = 'Component4DProcessing');
+  }
+
+  // make unique
+  I := 1;
+  Result := ResultBase + IntToStr(I);
+  while ComponentsOwner.FindComponent(Result) <> nil do
+  begin
+    Inc(I);
+    Result := ResultBase + IntToStr(I);
+  end;
+end;
 
 { TFreeNotificationObserver -------------------------------------------------- }
 

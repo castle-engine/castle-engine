@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,28 +23,17 @@ type
   { List of @link(TVector2).
     Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
     and AddSubRange (for maximum speed). }
-  TVector2List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector2>)
+  TVector2List = class({$ifdef FPC}specialize{$endif} TStructList<TVector2>)
   public
     { Calculate minimum and maximum values for both dimensions of
       this set of points. Returns @false when Count = 0. }
     function MinMax(out Min, Max: TVector2): boolean;
 
-    { Assign linear interpolation between two other vector arrays.
-      We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and
-      V2[Index2 ... Index2 + ACount - 1], and interpolate between them
-      like normal Lerp functions.
+    procedure AssignLerpRange(const Fraction: Single;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector2>;
+      const Index1, Index2, ACount: TListSize); override;
 
-      It's Ok for both V1 and V2 to be the same objects.
-      But their ranges should not overlap, for future optimizations
-      (although it's Ok for current implementation). }
-    procedure AssignLerp(const Fraction: Single;
-      V1, V2: TVector2List; Index1, Index2, ACount: Integer); overload;
-
-    { Assign linear interpolation between two other vector arrays.
-      @raises EListsDifferentCount If V1 and V2 have different count. }
-    procedure AssignLerp(const Fraction: Single; const V1, V2: TVector2List); overload;
-
-    procedure AddRange(const Source: TVector2List);
+    procedure AddRange(const Source: TVector2List); overload;
     procedure AddSubRange(const Source: TVector2List; const Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector2List; const Index, AddCount: Integer); deprecated 'use AddSubRange';
 
@@ -52,16 +41,12 @@ type
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
     function Equals(SecondValue: TObject): boolean; override;
-
-    { Does the SecondValue have equal length and content.
-      The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(const SecondValue: TObject): boolean;
   end;
 
   { List of @link(TVector3).
     Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
     and AddSubRange (for maximum speed). }
-  TVector3List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector3>)
+  TVector3List = class({$ifdef FPC}specialize{$endif} TStructList<TVector3>)
   public
     procedure AssignNegated(const Source: TVector3List); deprecated 'use Assign and Negate separately';
 
@@ -74,34 +59,25 @@ type
     { Multiply each item, component-wise, with V. }
     procedure MultiplyComponents(const V: TVector3);
 
-    { Assign linear interpolation between two other vector arrays.
-      We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and
-      V2[Index2 ... Index2 + ACount - 1], and interpolate between them
-      like normal Lerp functions.
-
-      It's Ok for both V1 and V2 to be the same objects.
-      But their ranges should not overlap, for future optimizations
-      (although it's Ok for current implementation). }
-    procedure AssignLerp(const Fraction: Single;
-      V1, V2: TVector3List; Index1, Index2, ACount: Integer); overload;
-
-    { Assign linear interpolation between two other vector arrays.
-      @raises EListsDifferentCount If V1 and V2 have different count. }
-    procedure AssignLerp(const Fraction: Single; const V1, V2: TVector3List); overload;
+    procedure AssignLerpRange(const Fraction: Single;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector3>;
+      const Index1, Index2, ACount: TListSize); override;
 
     { Assign linear interpolation between two other vector arrays,
       and normalize resulting vectors.
       @seealso AssignLerp }
     procedure AssignLerpNormalize(const Fraction: Single;
-      V1, V2: TVector3List; Index1, Index2, ACount: Integer);
+      const V1, V2: TVector3List;
+      const Index1, Index2, ACount: TListSize);
 
     { Assign linear interpolation between two other vector arrays,
       treating vectors as RGB colors and interpolating in HSV space.
       @seealso AssignLerp }
     procedure AssignLerpRgbInHsv(const Fraction: Single;
-      V1, V2: TVector3List; Index1, Index2, ACount: Integer);
+      const V1, V2: TVector3List;
+      const Index1, Index2, ACount: TListSize);
 
-    procedure AddRange(const Source: TVector3List);
+    procedure AddRange(const Source: TVector3List); overload;
     procedure AddSubRange(const Source: TVector3List; const Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector3List; const Index, AddCount: Integer); deprecated 'use AddSubRange';
 
@@ -120,39 +96,31 @@ type
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
     function Equals(SecondValue: TObject): boolean; override;
-
-    { Does the SecondValue have equal length and content.
-      The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(const SecondValue: TObject): boolean;
   end;
 
   { List of @link(TVector4).
     Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
     and AddSubRange (for maximum speed). }
-  TVector4List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector4>)
+  TVector4List = class({$ifdef FPC}specialize{$endif} TStructList<TVector4>)
   public
     procedure AddRange(const Source: TVector4List);
     procedure AddSubRange(const Source: TVector4List; const Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector4List; const Index, AddCount: Integer); deprecated 'use AddSubRange';
 
-    { Assign linear interpolation between two other vector arrays.
-      @raises EListsDifferentCount If V1 and V2 have different count. }
-    procedure AssignLerp(const Fraction: Single; const V1, V2: TVector4List);
+    procedure AssignLerpRange(const Fraction: Single;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector4>;
+      const Index1, Index2, ACount: TListSize); override;
 
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
     function Equals(SecondValue: TObject): boolean; override;
-
-    { Does the SecondValue have equal length and content.
-      The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(const SecondValue: TObject): boolean;
   end;
 
   { List of @link(TVector4Integer).
     Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
     and AddSubRange (for maximum speed). }
-  TVector4IntegerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector4Integer>)
+  TVector4IntegerList = class({$ifdef FPC}specialize{$endif} TStructList<TVector4Integer>)
   public
     procedure AddRange(const Source: TVector4IntegerList);
     procedure AddSubRange(const Source: TVector4IntegerList; const Index, AddCount: Integer);
@@ -165,52 +133,44 @@ type
   { List of @link(TMatrix3).
     Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
     and AddSubRange (for maximum speed). }
-  TMatrix3List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix3>)
+  TMatrix3List = class({$ifdef FPC}specialize{$endif} TStructList<TMatrix3>)
   public
     procedure AddRange(const Source: TMatrix3List);
     procedure AddSubRange(const Source: TMatrix3List; const Index, AddCount: Integer);
 
-    { Assign linear interpolation between two other vector arrays.
-      @raises EListsDifferentCount If V1 and V2 have different count. }
-    procedure AssignLerp(const Fraction: Single; const V1, V2: TMatrix3List);
+    procedure AssignLerpRange(const Fraction: Single;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TMatrix3>;
+      const Index1, Index2, ACount: TListSize); override;
 
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
     function Equals(SecondValue: TObject): boolean; override;
-
-    { Does the SecondValue have equal length and content.
-      The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(const SecondValue: TObject): boolean;
   end;
 
   { List of @link(TMatrix4).
     Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
     and AddSubRange (for maximum speed). }
-  TMatrix4List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix4>)
+  TMatrix4List = class({$ifdef FPC}specialize{$endif} TStructList<TMatrix4>)
   public
     procedure AddRange(const Source: TMatrix4List);
     procedure AddSubRange(const Source: TMatrix4List; const Index, AddCount: Integer);
 
-    { Assign linear interpolation between two other vector arrays.
-      @raises EListsDifferentCount If V1 and V2 have different count. }
-    procedure AssignLerp(const Fraction: Single; const V1, V2: TMatrix4List);
+    procedure AssignLerpRange(const Fraction: Single;
+      const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TMatrix4>;
+      const Index1, Index2, ACount: TListSize); override;
 
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
     function Equals(SecondValue: TObject): boolean; override;
-
-    { Does the SecondValue have equal length and content.
-      The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(const SecondValue: TObject): boolean;
   end;
 
   { List of @link(TVector2SmallInt). }
-  TVector2SmallIntList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector2SmallInt>;
+  TVector2SmallIntList = {$ifdef FPC}specialize{$endif} TStructList<TVector2SmallInt>;
 
   { List of @link(TVector2Cardinal). }
-  TVector3CardinalList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector3Cardinal>;
+  TVector3CardinalList = {$ifdef FPC}specialize{$endif} TStructList<TVector3Cardinal>;
 
 {$endif read_interface}
 
@@ -229,36 +189,33 @@ begin
     Max := List^[0];
     for I := 1 to Count - 1 do
     begin
-      if List^[I].Data[0] < Min.Data[0] then Min.Data[0] := List^[I].Data[0] else
-      if List^[I].Data[0] > Max.Data[0] then Max.Data[0] := List^[I].Data[0];
+      if List^[I].X < Min.X then Min.X := List^[I].X else
+      if List^[I].X > Max.X then Max.X := List^[I].X;
 
-      if List^[I].Data[1] < Min.Data[1] then Min.Data[1] := List^[I].Data[1] else
-      if List^[I].Data[1] > Max.Data[1] then Max.Data[1] := List^[I].Data[1];
+      if List^[I].Y < Min.Y then Min.Y := List^[I].Y else
+      if List^[I].Y > Max.Y then Max.Y := List^[I].Y;
     end;
   end;
 end;
 
-procedure TVector2List.AssignLerp(const Fraction: Single;
-  V1, V2: TVector2List; Index1, Index2, ACount: Integer);
+procedure TVector2List.AssignLerpRange(const Fraction: Single;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector2>;
+  const Index1, Index2, ACount: TListSize);
 var
-  I: Integer;
+  I: TListSize;
+  PtrTarget, Ptr1, Ptr2: PVector2;
 begin
   Count := ACount;
+  PtrTarget := PVector2(List);
+  Ptr1 := @V1.List^[Index1];
+  Ptr2 := @V2.List^[Index2];
   for I := 0 to Count - 1 do
-    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
-end;
-
-procedure TVector2List.AssignLerp(const Fraction: Single; const V1, V2: TVector2List);
-var
-  I: Integer;
-begin
-  if V1.Count <> V2.Count then
-    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
-      [V1.Count, V2.Count]);
-
-  Count := V1.Count;
-  for I := 0 to Count - 1 do
-    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
+  begin
+    PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
+    Inc(PtrTarget);
+    Inc(Ptr1);
+    Inc(Ptr2);
+  end;
 end;
 
 procedure TVector2List.AddRange(const Source: TVector2List);
@@ -299,24 +256,6 @@ begin
   end;
 end;
 
-function TVector2List.PerfectlyEquals(const SecondValue: TObject): boolean;
-var
-  I: Integer;
-begin
-  Result := SecondValue is TVector2List;
-  if Result then
-  begin
-    Result := Count = TVector2List(SecondValue).Count;
-    if Result then
-      for I := 0 to Count - 1 do
-        if not TVector2.PerfectlyEquals(TVector2List(SecondValue).List^[I], List^[I]) then
-        begin
-          Result := false;
-          Exit;
-        end;
-  end;
-end;
-
 { TVector3List ----------------------------------------------------- }
 
 procedure TVector3List.AssignNegated(const Source: TVector3List);
@@ -338,7 +277,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    List^[I].NormalizeMe;
+    List^[I] := List^[I].Normalize;
 end;
 
 procedure TVector3List.MultiplyComponents(const V: TVector3);
@@ -349,44 +288,40 @@ begin
     List^[I] := List^[I] * V;
 end;
 
-procedure TVector3List.AssignLerp(const Fraction: Single;
-  V1, V2: TVector3List; Index1, Index2, ACount: Integer);
+procedure TVector3List.AssignLerpRange(const Fraction: Single;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector3>;
+  const Index1, Index2, ACount: TListSize);
 var
-  I: Integer;
+  I: TListSize;
+  PtrTarget, Ptr1, Ptr2: PVector3;
 begin
   Count := ACount;
+  PtrTarget := PVector3(List);
+  Ptr1 := @V1.List^[Index1];
+  Ptr2 := @V2.List^[Index2];
   for I := 0 to Count - 1 do
-    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
-end;
-
-procedure TVector3List.AssignLerp(const Fraction: Single; const V1, V2: TVector3List);
-var
-  I: Integer;
-begin
-  if V1.Count <> V2.Count then
-    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
-      [V1.Count, V2.Count]);
-
-  Count := V1.Count;
-  for I := 0 to Count - 1 do
-    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
+  begin
+    PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
+    Inc(PtrTarget);
+    Inc(Ptr1);
+    Inc(Ptr2);
+  end;
 end;
 
 procedure TVector3List.AssignLerpNormalize(const Fraction: Single;
-  V1, V2: TVector3List; Index1, Index2, ACount: Integer);
+  const V1, V2: TVector3List; const Index1, Index2, ACount: TListSize);
 var
   I: Integer;
 begin
   Count := ACount;
   for I := 0 to Count - 1 do
   begin
-    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
-    List^[I].NormalizeMe;
+    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]).Normalize;
   end;
 end;
 
 procedure TVector3List.AssignLerpRgbInHsv(const Fraction: Single;
-  V1, V2: TVector3List; Index1, Index2, ACount: Integer);
+  const V1, V2: TVector3List; const Index1, Index2, ACount: TListSize);
 var
   I: Integer;
 begin
@@ -481,24 +416,6 @@ begin
   end;
 end;
 
-function TVector3List.PerfectlyEquals(const SecondValue: TObject): boolean;
-var
-  I: Integer;
-begin
-  Result := SecondValue is TVector3List;
-  if Result then
-  begin
-    Result := Count = TVector3List(SecondValue).Count;
-    if Result then
-      for I := 0 to Count - 1 do
-        if not TVector3.PerfectlyEquals(TVector3List(SecondValue).List^[I], List^[I]) then
-        begin
-          Result := false;
-          Exit;
-        end;
-  end;
-end;
-
 procedure TVector3List.AddRangeTransformed(const Source: TVector3List; const Transform: TMatrix4);
 var
   I, OldCount: Integer;
@@ -531,17 +448,24 @@ begin
   AddSubRange(Source, Index, AddCount);
 end;
 
-procedure TVector4List.AssignLerp(const Fraction: Single; const V1, V2: TVector4List);
+procedure TVector4List.AssignLerpRange(const Fraction: Single;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TVector4>;
+  const Index1, Index2, ACount: TListSize);
 var
-  I: Integer;
+  I: TListSize;
+  PtrTarget, Ptr1, Ptr2: PVector4;
 begin
-  if V1.Count <> V2.Count then
-    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
-      [V1.Count, V2.Count]);
-
-  Count := V1.Count;
+  Count := ACount;
+  PtrTarget := PVector4(List);
+  Ptr1 := @V1.List^[Index1];
+  Ptr2 := @V2.List^[Index2];
   for I := 0 to Count - 1 do
-    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
+  begin
+    PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
+    Inc(PtrTarget);
+    Inc(Ptr1);
+    Inc(Ptr2);
+  end;
 end;
 
 function TVector4List.Equals(SecondValue: TObject): boolean;
@@ -555,24 +479,6 @@ begin
     if Result then
       for I := 0 to Count - 1 do
         if not TVector4.Equals(TVector4List(SecondValue).List^[I], List^[I]) then
-        begin
-          Result := false;
-          Exit;
-        end;
-  end;
-end;
-
-function TVector4List.PerfectlyEquals(const SecondValue: TObject): boolean;
-var
-  I: Integer;
-begin
-  Result := SecondValue is TVector4List;
-  if Result then
-  begin
-    Result := Count = TVector4List(SecondValue).Count;
-    if Result then
-      for I := 0 to Count - 1 do
-        if not TVector4.PerfectlyEquals(TVector4List(SecondValue).List^[I], List^[I]) then
         begin
           Result := false;
           Exit;
@@ -622,17 +528,24 @@ end;
 
 { TMatrix3List --------------------------------------------------------------- }
 
-procedure TMatrix3List.AssignLerp(const Fraction: Single; const V1, V2: TMatrix3List);
+procedure TMatrix3List.AssignLerpRange(const Fraction: Single;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TMatrix3>;
+  const Index1, Index2, ACount: TListSize);
 var
-  I: Integer;
+  I: TListSize;
+  PtrTarget, Ptr1, Ptr2: PMatrix3;
 begin
-  if V1.Count <> V2.Count then
-    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
-      [V1.Count, V2.Count]);
-
-  Count := V1.Count;
+  Count := ACount;
+  PtrTarget := PMatrix3(List);
+  Ptr1 := @V1.List^[Index1];
+  Ptr2 := @V2.List^[Index2];
   for I := 0 to Count - 1 do
-    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
+  begin
+    PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
+    Inc(PtrTarget);
+    Inc(Ptr1);
+    Inc(Ptr2);
+  end;
 end;
 
 function TMatrix3List.Equals(SecondValue: TObject): boolean;
@@ -646,24 +559,6 @@ begin
     if Result then
       for I := 0 to Count - 1 do
         if not TMatrix3.Equals(TMatrix3List(SecondValue).List^[I], List^[I]) then
-        begin
-          Result := false;
-          Exit;
-        end;
-  end;
-end;
-
-function TMatrix3List.PerfectlyEquals(const SecondValue: TObject): boolean;
-var
-  I: Integer;
-begin
-  Result := SecondValue is TMatrix3List;
-  if Result then
-  begin
-    Result := Count = TMatrix3List(SecondValue).Count;
-    if Result then
-      for I := 0 to Count - 1 do
-        if not TMatrix3.PerfectlyEquals(TMatrix3List(SecondValue).List^[I], List^[I]) then
         begin
           Result := false;
           Exit;
@@ -688,17 +583,24 @@ end;
 
 { TMatrix4List --------------------------------------------------------------- }
 
-procedure TMatrix4List.AssignLerp(const Fraction: Single; const V1, V2: TMatrix4List);
+procedure TMatrix4List.AssignLerpRange(const Fraction: Single;
+  const V1, V2: {$ifdef FPC}specialize{$endif} TStructList<TMatrix4>;
+  const Index1, Index2, ACount: TListSize);
 var
-  I: Integer;
+  I: TListSize;
+  PtrTarget, Ptr1, Ptr2: PMatrix4;
 begin
-  if V1.Count <> V2.Count then
-    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
-      [V1.Count, V2.Count]);
-
-  Count := V1.Count;
+  Count := ACount;
+  PtrTarget := PMatrix4(List);
+  Ptr1 := @V1.List^[Index1];
+  Ptr2 := @V2.List^[Index2];
   for I := 0 to Count - 1 do
-    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
+  begin
+    PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
+    Inc(PtrTarget);
+    Inc(Ptr1);
+    Inc(Ptr2);
+  end;
 end;
 
 function TMatrix4List.Equals(SecondValue: TObject): boolean;
@@ -712,24 +614,6 @@ begin
     if Result then
       for I := 0 to Count - 1 do
         if not TMatrix4.Equals(TMatrix4List(SecondValue).List^[I], List^[I]) then
-        begin
-          Result := false;
-          Exit;
-        end;
-  end;
-end;
-
-function TMatrix4List.PerfectlyEquals(const SecondValue: TObject): boolean;
-var
-  I: Integer;
-begin
-  Result := SecondValue is TMatrix4List;
-  if Result then
-  begin
-    Result := Count = TMatrix4List(SecondValue).Count;
-    if Result then
-      for I := 0 to Count - 1 do
-        if not TMatrix4.PerfectlyEquals(TMatrix4List(SecondValue).List^[I], List^[I]) then
         begin
           Result := false;
           Exit;
