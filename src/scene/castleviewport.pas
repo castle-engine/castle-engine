@@ -1197,10 +1197,13 @@ begin
     Assignment below works, but it seems that effect is much less noticeable
     then?
 
+    Note: Viewport.ProjectionFar may be ZFarInfinity, this will also have to be accounted for,
+    maybe use ItemsBoundingBox.PointsDistance (max distance to camera) or MaxSize.
+
   WritelnLog('setting near to %f', [Viewport.ProjectionNear]); // testing
-  WritelnLog('setting far to %f', [Viewport.ProjectionFarFinite]); // testing
+  WritelnLog('setting far to %f', [Viewport.ProjectionFar]); // testing
   Uniform('near').SetValue(Viewport.ProjectionNear);
-  Uniform('far').SetValue(Viewport.ProjectionFarFinite);
+  Uniform('far').SetValue(Viewport.ProjectionFar);
   }
 
   Uniform('near').SetValue(1.0);
@@ -2133,22 +2136,11 @@ begin
       ViewportHeight);
     Result.ProjectionNear := 1;
     Result.ProjectionFar := 1000;
-    Result.ProjectionFarFinite := 1000;
     Exit;
   end;
 
   Result := InternalCamera.InternalProjection(Box, ViewportWidth, ViewportHeight,
-    InternalCamera = InternalDesignCamera,
-    { Check "GLFeatures = nil" to allow using CalculateProjection and
-      things depending on it when no OpenGL context available.
-
-      Testcase: open CGE editor, open a project with any sprite sheet,
-      open sprite sheet editor with some .castle-sprite-sheet file,
-      then do "Close Project" (without closing sprite sheet editor
-      explicitly). It should not crash. }
-    ((GLFeatures = nil) or GLFeatures.ShadowVolumesPossible) and
-    ShadowVolumes
-  );
+    InternalCamera = InternalDesignCamera);
 end;
 
 function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): boolean;
@@ -2480,8 +2472,6 @@ begin
   FRenderParams.ProjectionBox := ItemsBoundingBox;
   FRenderParams.ProjectionViewportWidth := EffectiveWidthForChildren;
   FRenderParams.ProjectionViewportHeight := EffectiveHeightForChildren;
-  FRenderParams.ProjectionShadowVolumesPossible :=
-    ((GLFeatures = nil) or GLFeatures.ShadowVolumesPossible) and ShadowVolumes;
 
   { calculate FRenderParams.FGlobalLights }
   FRenderParams.FGlobalLights.Clear;

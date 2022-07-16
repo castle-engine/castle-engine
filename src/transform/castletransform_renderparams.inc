@@ -256,7 +256,6 @@
       These are parameters to do this. }
     ProjectionBox: TBox3D;
     ProjectionViewportWidth, ProjectionViewportHeight: Single;
-    ProjectionShadowVolumesPossible: Boolean;
 
     constructor Create;
 

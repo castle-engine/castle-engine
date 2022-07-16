@@ -418,7 +418,7 @@
       EffectiveProjectionFar.
       @exclude }
     function InternalProjection(const Box: TBox3D; const ViewportWidth, ViewportHeight: Single;
-      const DesignCamera, ShadowVolumesPossible: Boolean): TProjection; virtual;
+      const DesignCamera: Boolean): TProjection; virtual;
   published
     { Projection near plane distance.
 
@@ -1083,7 +1083,7 @@ begin
 end;
 
 function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth, ViewportHeight: Single;
-  const DesignCamera, ShadowVolumesPossible: Boolean): TProjection;
+  const DesignCamera: Boolean): TProjection;
 
   { Update Result.Dimensions and Orthographic.EffectiveXxx
     based on Orthographic.Width, Height and viewport size. }
@@ -1151,7 +1151,7 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
       Result.Dimensions);
   end;
 
-  { Calculate reasonable perspective projection near, looking at Box. }
+  { Calculate reasonable perspective projection near. }
   function GetDefaultProjectionNear(const CurrentProjectionType: TProjectionType): Single;
   var
     Radius: Single;
@@ -1166,8 +1166,9 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
     end;
   end;
 
-  { Calculate reasonable perspective projection far, looking at Box. }
-  function GetDefaultProjectionFarFinite(const CurrentProjectionType: TProjectionType): Single;
+  { Calculate reasonable perspective projection far, maybe looking at Box.
+    May return ZFarInfinity (0). }
+  function GetDefaultProjectionFar(const CurrentProjectionType: TProjectionType): Single;
   begin
     if CurrentProjectionType = ptOrthographic then
     begin
@@ -1199,23 +1200,39 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
         It must be appropriately larger than GetDefaultProjectionNear
         to provide sufficient space for rendering Background node.
 
-        Testcase for using larger WorldBoxSizeToProjectionFar with MaxSize:
-        gettext demo. }
-      Result := Box.MaxSize(false, 1) * WorldBoxSizeToProjectionFar;
-    end;
-  end;
+        We used to have a smart calculation of it here, based on Box.
+        And override with ZFarInfinity if ShadowVolumesPossible (usually true).
 
-  { Calculate reasonable perspective projection far, looking at Box and shadow volumes.
-    May return ZFarInfinity = 0. }
-  function GetDefaultProjectionFar(const CurrentProjectionType: TProjectionType): Single;
-  begin
-    { We need ZFarInfinity for shadow volumes.
-      But only perspective projection supports ZFarInfinity, there's just no equivalent
-      equation for orthographic projection to implement infinite z far. }
-    if (CurrentProjectionType = ptPerspective) and ShadowVolumesPossible then
-      Result := ZFarInfinity
-    else
-      Result := GetDefaultProjectionFarFinite(CurrentProjectionType);
+        But it is simpler to just use ZFarInfinity always:
+
+        - It means that ShadowVolumesPossible don't matter,
+          in particular it doesn't matter whether context has stencil buffer.
+          This removes often "weird" differences due to subtle differences how
+          TCastleControl and TCastleWindow initialize OpenGL context, we usually had
+          ShadowVolumesPossible = false in editor and ShadowVolumesPossible = true
+          in TCastleWindow. So ProjectionFarFinite was only observed in editor.
+
+        - Minor reason: It avoids the need to calculate Viewport.ItemsBoundingBox
+          at each frame, at least for the purpose of automatic projection
+          for ProjectionFar for perspective.
+          It was never observed in profiler,
+          but in theory Viewport.ItemsBoundingBox may be costly when you have a lot of scenes.
+
+        - Super-Minor reason: It was non-trivial to have good calculation anyway.
+          Using Viewport.ItemsBoundingBox.AverageSize is bad (testcase: gettext,
+          flat shape like box may bring AverageSize to be small, better to use MaxSize),
+          using Viewport.ItemsBoundingBox.MaxSize * WorldBoxSizeToProjectionFar is bad
+          (need to guess WorldBoxSizeToProjectionFar), you should really calculate max distance
+          from camera to box e.g. by TBox3D.PointDistances and use MaxDistance.
+
+          It's so so much easier, and simpler from the user point of view, to just use
+          ZFarInfinity.
+
+        Note: Only perspective projection supports ZFarInfinity, there's just no equivalent
+        equation for orthographic projection to implement infinite z far.
+      }
+      Result := ZFarInfinity;
+    end;
   end;
 
 begin
@@ -1240,7 +1257,7 @@ begin
     Assert((Result.ProjectionNear > 0) or (Result.ProjectionType <> ptPerspective));
   end;
 
-  { calculate Result.ProjectionFar, ProjectionFarFinite }
+  { calculate Result.ProjectionFar }
   if ProjectionFar > 0 then
   begin
     { When ProjectionFar is non-zero on camera, use it unconditionally
@@ -1261,13 +1278,10 @@ begin
         Testcase: physics-joints in physics_j branch.
     }
     Result.ProjectionFar := ProjectionFar;
-    Result.ProjectionFarFinite := ProjectionFar;
   end else
   begin
     Result.ProjectionFar := GetDefaultProjectionFar(Result.ProjectionType);
-    Result.ProjectionFarFinite := GetDefaultProjectionFarFinite(Result.ProjectionType);
   end;
-  Assert(Result.ProjectionFarFinite > 0);
 
   InternalSetEffectiveProjection(
     Result.ProjectionNear,
@@ -1301,7 +1315,7 @@ begin
     { Update EffectiveProjection to show latest projection values. }
     InternalProjection(Params.ProjectionBox,
       Params.ProjectionViewportWidth, Params.ProjectionViewportHeight,
-      false, Params.ProjectionShadowVolumesPossible);
+      false);
     UpdateGizmoCoord;
   end;
 
