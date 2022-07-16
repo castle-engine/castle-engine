@@ -35,6 +35,7 @@ type
     procedure TestBox3DMinimumPlane;
     procedure TestBox3DPointDistance;
     procedure Test2D;
+    procedure TestPointDistances;
   end;
 
 implementation
@@ -805,6 +806,22 @@ begin
   AssertSameValue(Sqrt( Sqr(0-2)  + Sqr(0-3)  + Sqr(0-1)  ),
     Box.PointDistance(Vector3(0, 0, 0)),
     Epsilon);
+end;
+
+procedure TTestCastleBoxes.TestPointDistances;
+var
+  MinDistance, MaxDistance: Single;
+begin
+  Box3D(
+    Vector3(10, 10, 10),
+    Vector3(20, 20, 20)
+  ).PointDistances(Vector3(40, 40, 40), MinDistance, MaxDistance);
+  AssertSameValue(PointsDistance(
+    Vector3(40, 40, 40),
+    Vector3(10, 10, 10)), MaxDistance);
+  AssertSameValue(PointsDistance(
+    Vector3(40, 40, 40),
+    Vector3(20, 20, 20)), MinDistance);
 end;
 
 procedure TTestCastleBoxes.Test2D;

@@ -2005,6 +2005,9 @@ begin
   if Contains(P) then
     MinDistance := 0;
 
+  MinDistance := Sqrt(MinDistance);
+  MaxDistance := Sqrt(MaxDistance);
+
   { Because of floating point inaccuracy, MinDistance may be larger
     by epsilon than MaxDistance? Fix it to be sure. }
   { For now: just assert it: }

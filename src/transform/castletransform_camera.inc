@@ -1176,6 +1176,7 @@ function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const Vie
   function GetDefaultProjectionFar(const CurrentProjectionType: TProjectionType): Single;
   var
     Box: TBox3D;
+    //MinBoxDistance, MaxBoxDistance: Single;
   begin
     if CurrentProjectionType = ptOrthographic then
     begin
@@ -1248,6 +1249,17 @@ function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const Vie
         It must be appropriately larger than GetDefaultProjectionNear
         to provide sufficient space for rendering Background node.
       }
+
+      { Just for test, this is a proper code to calculate projection far based on world Box.
+        Test this if you worry that ZFarInfinity causes visible imprecision in depth buffer
+        (results of my tests: it does not). }
+      {
+      Box := BoxEvent();
+      Box.PointDistances(WorldTranslation, MinBoxDistance, MaxBoxDistance);
+      Result := MaxBoxDistance * 2;
+      WritelnLog('Autocalculated ProjectionFar %f', [Result]);
+      }
+
       Result := ZFarInfinity;
     end;
   end;
