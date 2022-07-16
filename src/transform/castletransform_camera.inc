@@ -1158,11 +1158,10 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
   begin
     if CurrentProjectionType = ptOrthographic then
     begin
-      // TODO: in 2D we can also account for Box, in case Box is outside of Default2DProjectionNear/Far
       Result := Default2DProjectionNear;
     end else
     begin
-      Radius := Box.AverageSize(false, 1) * WorldBoxSizeToRadius;
+      Radius := DefaultCameraRadius;
       Result := Radius * RadiusToProjectionNear;
     end;
   end;

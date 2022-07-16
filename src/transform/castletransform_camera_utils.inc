@@ -123,6 +123,34 @@ const
     of the collision radius as specified in the avatarSize field." }
   RadiusToProjectionNear = 0.6;
 
+  { Default Radius, determining also (with RadiusToProjectionNear)
+    default TCastleCamera.EffectiveProjectionNear.
+
+    Note: *Do not* base automatic Radius (and, consistently,
+    automatic ProjectionNear) on Box size.
+
+    - Major reason: It makes things go bad, as automatic ProjectionNear increases
+      and clipping at near plane becomes visible,
+      when you have some TCastleTransform in your world that travels forever
+      (and thus increases the Viewport.ItemsBoundingBox into infinity).
+
+      E.g. a missile that flies into infinity.
+      Or a box that falls down due to gravity into infinity.
+      While such things in general should not happen (you should prevent things
+      from traveling to infinity), but they may happen esp. in development,
+      and it's bad when one problem (flying to infinity) causes another (sudden
+      clipping at near plane).
+
+    - Minor reason: It avoids the need to calculate Viewport.ItemsBoundingBox
+      at each frame, at least for the purpose of automatic projection
+      for ProjectionNear.
+      It was never observed in profiler,
+      but in theory Viewport.ItemsBoundingBox may be costly when you have a lot of scenes.
+
+    Note: This is smaller, so even safer, than X3D default Navigation.avatarSize[0] (0.25).
+  }
+  DefaultCameraRadius = 0.1;
+
   { Used when it is necessary to calculate projection far based on world size. }
   WorldBoxSizeToProjectionFar = 100.0;
 
@@ -140,9 +168,6 @@ const
     Testcase: examples/third_person_navigation/data/level/level-dungeon.gltf open with view3dscene.
   }
   RadiusToPreferredHeightMin = 4.0;
-
-  { Multiply world bounding box AverageSize by this to get sensible radius. }
-  WorldBoxSizeToRadius = 0.005;
 
 {$endif read_interface}
 
