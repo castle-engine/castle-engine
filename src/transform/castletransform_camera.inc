@@ -1228,6 +1228,14 @@ function TCastleCamera.InternalProjection(const Box: TBox3D; const ViewportWidth
           It's so so much easier, and simpler from the user point of view, to just use
           ZFarInfinity.
 
+        - Super-Minor reason: It also means user has a way to choose ZFarInfinity,
+          despite our unfortunate choice of Camera.ProjectionFar = 0 meaning "autocalculate"
+          and ZFarInfinity = 0. So user has no way to explictly request ZFarInfinity...
+          except right now, "autocalculate" actually just implies ZFarInfinity.
+
+          We could have solved it better though, using e.g. ZFarInfinity = -1.
+          But no need anymore.
+
         Note: Only perspective projection supports ZFarInfinity, there's just no equivalent
         equation for orthographic projection to implement infinite z far.
       }
