@@ -922,7 +922,7 @@ begin
 
     Still, trust FEffectiveProjectionNear more (when it is set),
     e.g. because here (actually in EffectiveProjectionFar)
-    we don't account for special logic for design-time cameras having "Default2DProjectionFar * 4".
+    we don't account for special logic for design-time cameras having GetDefaultProjectionFar.
   }
   if FEffectiveProjectionNear <> 0 then
     Exit(FEffectiveProjectionNear);
@@ -1176,33 +1176,21 @@ function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const Vie
   function GetDefaultProjectionFar(const CurrentProjectionType: TProjectionType): Single;
   var
     Box: TBox3D;
+    Pos, Dir, Up: TVector3;
     //MinBoxDistance, MaxBoxDistance: Single;
   begin
     if CurrentProjectionType = ptOrthographic then
     begin
       Box := BoxEvent();
+      GetWorldView(Pos, Dir, Up);
+      { Multiply by 1.1, just to make it a bit larger to avoid imprecision at max depth }
+      Result := Box.MaxDistanceAlongDirection(Pos, Dir) * 1.1;
 
-      // TODO: in 2D we can also account for Box, in case Box is outside of Default2DProjectionNear/Far
-      if DesignCamera then
-        { The design-time camera in 2D should have larger ProjectionFar than
-          at run-time, to really see everything that runtime sees,
-          because design-time camera Z is larger than runtime.
-          Increasing this ProjectionFar here, as special case, means it affects:
+      { Note that the design-time camera in 2D should have larger ProjectionFar than
+        at run-time, to really see everything that runtime sees,
+        because design-time camera Z is larger than runtime.
 
-          - design-time camera when reading old designs (before new-cameras)
-
-          - design-time camera when using new designs, with viewport initialized by SetupChildren2D
-
-          - broken designs with ProjectionNear/Far for InternalDesignCamera not recorded
-            in design file (looks like they could happen some time after merging new-cameras,
-            before we fixed everything).
-
-          In general it means we don't rely on stuff stored in design file.
-          Autocalculating is more future-proof.
-        }
-        Result := Default2DProjectionFar * 4
-      else
-        Result := Default2DProjectionFar;
+        But it doesn't require any special code anymore, as we adjust to Box. }
     end else
     begin
       { We used to have a smart calculation of it here, based on Box.
