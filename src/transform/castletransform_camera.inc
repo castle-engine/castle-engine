@@ -1152,9 +1152,23 @@ function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const Vie
     Assert(Result.Dimensions.Width  = EffectiveProjectionWidth);
     Assert(Result.Dimensions.Height = EffectiveProjectionHeight);
 
-    Orthographic.InternalSetEffectiveRect(
-      Result.Dimensions);
+    Orthographic.InternalSetEffectiveRect(Result.Dimensions);
   end;
+
+  procedure GetBoxDistances(out MinBoxDistance, MaxBoxDistance: Single);
+  var
+    Box: TBox3D;
+    Pos, Dir, Up: TVector3;
+  begin
+    Box := BoxEvent();
+    GetWorldView(Pos, Dir, Up);
+    Box.DirectionDistances(Pos, Dir, MinBoxDistance, MaxBoxDistance);
+    { Multiply by 1.1, just to make it a bit larger to avoid imprecision at max depth }
+    MaxBoxDistance := MaxBoxDistance * 1.1;
+  end;
+
+var
+  MinBoxDistanceForOrtho, MaxBoxDistanceForOrtho: Single;
 
   { Calculate reasonable perspective projection near. }
   function GetDefaultProjectionNear(const CurrentProjectionType: TProjectionType): Single;
@@ -1163,7 +1177,7 @@ function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const Vie
   begin
     if CurrentProjectionType = ptOrthographic then
     begin
-      Result := Default2DProjectionNear;
+      Result := MinBoxDistanceForOrtho;
     end else
     begin
       Radius := DefaultCameraRadius;
@@ -1171,20 +1185,15 @@ function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const Vie
     end;
   end;
 
-  { Calculate reasonable perspective projection far, maybe looking at BoxEvent.
+  { Calculate reasonable perspective projection far.
     May return ZFarInfinity (0). }
   function GetDefaultProjectionFar(const CurrentProjectionType: TProjectionType): Single;
-  var
-    Box: TBox3D;
-    Pos, Dir, Up: TVector3;
+  //var
     //MinBoxDistance, MaxBoxDistance: Single;
   begin
     if CurrentProjectionType = ptOrthographic then
     begin
-      Box := BoxEvent();
-      GetWorldView(Pos, Dir, Up);
-      { Multiply by 1.1, just to make it a bit larger to avoid imprecision at max depth }
-      Result := Box.MaxDistanceAlongDirection(Pos, Dir) * 1.1;
+      Result := MaxBoxDistanceForOrtho;
 
       { Note that the design-time camera in 2D should have larger ProjectionFar than
         at run-time, to really see everything that runtime sees,
@@ -1256,13 +1265,18 @@ begin
   Perspective.InternalSetEffectiveFieldOfView(
     Result.PerspectiveAnglesRad);
 
+  if (ProjectionType = ptOrthographic) and
+     ( (ProjectionNear <= 0) or
+       (ProjectionFar <= 0) ) then
+    GetBoxDistances(MinBoxDistanceForOrtho, MaxBoxDistanceForOrtho);
+
   { calculate Result.ProjectionNear }
   Result.ProjectionNear := ProjectionNear;
   if (Result.ProjectionNear = 0) or
      ((Result.ProjectionType = ptPerspective) and
        (Result.ProjectionNear <= 0) ) then
   begin
-    Result.ProjectionNear := GetDefaultProjectionNear(Result.ProjectionType);;
+    Result.ProjectionNear := GetDefaultProjectionNear(Result.ProjectionType);
     // in perspective, effective ProjectionNear must be > 0
     Assert((Result.ProjectionNear > 0) or (Result.ProjectionType <> ptPerspective));
   end;
