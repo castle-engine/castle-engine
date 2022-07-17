@@ -88,13 +88,11 @@ type
   TTiledTileNode = type TTransformNode;
 
 { Converts a Tiled map into a X3D representation for the Castle Game Engine.
-  The result can be returned to Scene.Load method.
 
-  The debug mode needs considerably more ressources.
+  The debug mode needs considerably more ressources. By default it is turned off.
 
   @param(ATiledMap must be a Tiled map as loaded by the CastleTiledMap unit.)
   @param(ADebugMode turns the debug mode on or off.) }
-//function ConvertTiledMap(ATiledMap: TTiledMap; ADebugMode: Boolean = False): TX3DRootNode;
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
