@@ -1137,18 +1137,20 @@ var
   DebugMode: Boolean = False;
 begin
   Result := nil;
-  { The Tiled converter unit expects a TTiledMap object instance.
-    Try to convert the TStream to a TTiledMap object. }
+  { The Tiled converter unit expects a TTiledMap object instance,
+    hence create one. }
   TiledMapFromStream := TTiledMap.Create(Stream, BaseUrl);
   if not Assigned(TiledMapFromStream) then
     Exit;
-
   try
-    TiledMapConverter := TTiledMapConverter.Create(ATiledMap, DebugMode);
+    TiledMapConverter := TTiledMapConverter.Create(TiledMapFromStream, DebugMode);
     TiledMapConverter.ConvertMap;
     Result := TiledMapConverter.RootNode;
   finally
-    FreeAndNil(TiledMapConverter);
+    if Assigned(TiledMapFromStream) then
+      FreeAndNil(TiledMapFromStream);
+    if Assigned(TiledMapConverter) then
+      FreeAndNil(TiledMapConverter);
   end;
 end;
 
