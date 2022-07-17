@@ -836,11 +836,14 @@ begin
   AssertSameValue(10, MinDistance);
   AssertSameValue(20, MaxDistance);
 
+  (* MaxDistanceAlongDirection not used, so not defined for now.
+
   MaxDistance := Box3D(
     Vector3(10, 10, 10),
     Vector3(20, 20, 20)
   ).MaxDistanceAlongDirection(Vector3(100, 100, 0), Vector3(0, 0, 1));
   AssertSameValue(20, MaxDistance);
+  *)
 
   Box3D(
     Vector3(10, 10, 10),
@@ -849,11 +852,14 @@ begin
   AssertSameValue(-20, MinDistance);
   AssertSameValue(-10, MaxDistance);
 
+  (* MaxDistanceAlongDirection not used, so not defined for now.
+
   MaxDistance := Box3D(
     Vector3(10, 10, 10),
     Vector3(20, 20, 20)
   ).MaxDistanceAlongDirection(Vector3(100, 100, 0), Vector3(0, 0, -1));
   AssertSameValue(-10, MaxDistance);
+  *)
 end;
 
 procedure TTestCastleBoxes.Test2D;

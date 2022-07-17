@@ -479,11 +479,13 @@ type
       const Point, Dir: TVector3;
       out MinDistance, MaxDistance: Single);
 
+    (* MaxDistanceAlongDirection not used, so not defined for now.
     { Maximum distance from Point to one of box corners, along the given direction.
 
       Like DirectionDistances, but only returns MaxDistance,
       and is faster. }
     function MaxDistanceAlongDirection(const Point, Dir: TVector3): Single;
+    *)
 
     { Shortest distance between the box and a point.
       Always zero when the point is inside the box.
@@ -2070,6 +2072,7 @@ begin
   Assert(MinDistance <= MaxDistance);
 end;
 
+(* MaxDistanceAlongDirection not used, so not defined for now.
 function TBox3D.MaxDistanceAlongDirection(const Point, Dir: TVector3): Single;
 var
   B: TBox3DBool absolute Data;
@@ -2105,6 +2108,7 @@ begin
       Result := -Result;
   end;
 end;
+*)
 
 function TBox3D.PointDistance(const Point: TVector3): Single;
 begin
