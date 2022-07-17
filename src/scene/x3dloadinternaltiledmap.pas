@@ -1129,26 +1129,6 @@ begin
   DebugNode.AddChildren(DebugObject);
 end;
 
-//function ConvertTiledMap(ATiledMap: TTiledMap; ADebugMode: Boolean
-//  ): TX3DRootNode;
-//var
-//  ATiledMapConverter: TTiledMapConverter;
-//begin
-//  Result := nil;
-//
-//  if not Assigned(ATiledMap) then
-//    Exit;
-//
-//  try
-//    ATiledMapConverter := TTiledMapConverter.Create(ATiledMap, ADebugMode);
-//    ATiledMapConverter.ConvertMap;
-//    Result := ATiledMapConverter.RootNode;
-//  finally
-//    FreeAndNil(ATiledMapConverter);
-//  end;
-//
-//end;
-
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String
   ): TX3DRootNode;
 var
@@ -1173,16 +1153,3 @@ begin
 end;
 
 end.
-
-//constructor TTiledMapX3DConverter.Create(const Stream: TStream;
-//  const BaseUrl: String);
-//begin
-//  inherited Create;
-//
-//  FMap := TTiledMap.Create(Stream, BaseUrl);
-//  if not Assigned(FMap) then
-//    raise Exception.Create(BaseUrl + ' could not be loaded.');
-//
-//  FMapNode := TX3DRootNode.Create; // Executed after exception?
-//end;
-
