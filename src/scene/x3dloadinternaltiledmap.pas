@@ -207,13 +207,11 @@ type
 
     { Tries to construct X3D representation from TTiledMap data. }
     procedure ConvertMap;
-
+    { The Tiled map is loaded from stream and NOT free'd automatically. }
     property Map: TTiledMap read FMap write FMap;
-    { Holds the X3D representation of the Tiled map. Is not free'd
-      automatically.
-
-      TODO : What if MapNode is never returned and manually free'd?
-      Improve by getter func.! }
+    { Holds the X3D representation of the Tiled map. It is NOT free'd
+      automatically. Usually the X3D representation is added to a scene
+      by Scene.Load(). The scene which will care about freeing. }
     property MapNode: TTransformNode read FMapNode write FMapNode;
     property RootNode: TX3DRootNode read FRootNode write FRootNode;
     { The different layers are rendered in a certain order (last to first).
