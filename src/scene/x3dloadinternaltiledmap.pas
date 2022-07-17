@@ -94,7 +94,7 @@ type
 
   @param(ATiledMap must be a Tiled map as loaded by the CastleTiledMap unit.)
   @param(ADebugMode turns the debug mode on or off.) }
-function ConvertTiledMap(ATiledMap: TTiledMap; ADebugMode: Boolean = False): TX3DRootNode;
+//function ConvertTiledMap(ATiledMap: TTiledMap; ADebugMode: Boolean = False): TX3DRootNode;
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
@@ -110,8 +110,8 @@ const
   OrangeRedRGB   : TCastleColorRGB = (X: 1.0; Y: 0.27; Z: 0.0);
 
 type
-  TShapeNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNode>;
-  TShapeNodeListList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNodeList>;
+  TShapeNodeList = specialize TObjectList<TShapeNode>;
+  TShapeNodeListList = specialize TObjectList<TShapeNodeList>;
 
   { Converter class to convert Tiled map into X3D representations. }
   TTiledMapConverter = class
@@ -1131,37 +1131,46 @@ begin
   DebugNode.AddChildren(DebugObject);
 end;
 
-function ConvertTiledMap(ATiledMap: TTiledMap; ADebugMode: Boolean
-  ): TX3DRootNode;
-var
-  ATiledMapConverter: TTiledMapConverter;
-begin
-  Result := nil;
-
-  if not Assigned(ATiledMap) then
-    Exit;
-
-  try
-    ATiledMapConverter := TTiledMapConverter.Create(ATiledMap, ADebugMode);
-    ATiledMapConverter.ConvertMap;
-    Result := ATiledMapConverter.RootNode;
-  finally
-    FreeAndNil(ATiledMapConverter);
-  end;
-
-end;
+//function ConvertTiledMap(ATiledMap: TTiledMap; ADebugMode: Boolean
+//  ): TX3DRootNode;
+//var
+//  ATiledMapConverter: TTiledMapConverter;
+//begin
+//  Result := nil;
+//
+//  if not Assigned(ATiledMap) then
+//    Exit;
+//
+//  try
+//    ATiledMapConverter := TTiledMapConverter.Create(ATiledMap, ADebugMode);
+//    ATiledMapConverter.ConvertMap;
+//    Result := ATiledMapConverter.RootNode;
+//  finally
+//    FreeAndNil(ATiledMapConverter);
+//  end;
+//
+//end;
 
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String
   ): TX3DRootNode;
 var
-  MapConverter: TTiledMapX3DConverter;
+  TiledMapFromStream: TTiledMap;
+  TiledMapConverter: TTiledMapConverter;
+  DebugMode: Boolean = False;
 begin
   Result := nil;
+  { The Tiled converter unit expects a TTiledMap object instance.
+    Try to convert the TStream to a TTiledMap object. }
+  TiledMapFromStream := TTiledMap.Create(Stream, BaseUrl);
+  if not Assigned(TiledMapFromStream) then
+    Exit;
+
   try
-    MapConverter := TTiledMapX3DConverter.Create(Stream, BaseUrl);
-    Result := MapConverter.MapNode; //BuildSceneFromTiledMap(ATiledMap);
+    TiledMapConverter := TTiledMapConverter.Create(ATiledMap, DebugMode);
+    TiledMapConverter.ConvertMap;
+    Result := TiledMapConverter.RootNode;
   finally
-    FreeAndNil(MapConverter);
+    FreeAndNil(TiledMapConverter);
   end;
 end;
 
