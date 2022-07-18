@@ -2523,8 +2523,8 @@ const
       FogType := AFogFunctionality.FogType;
       FogColor := AFogFunctionality.Color;
       case FogType of
-        ftLinear: FogLinearEnd := VisibilityRangeScaled;
-        ftExp   : FogExpDensity := FogDensityFactor / VisibilityRangeScaled;
+        ftLinear     : FogLinearEnd := VisibilityRangeScaled;
+        ftExponential: FogExpDensity := FogDensityFactor / VisibilityRangeScaled;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType?');
         {$endif}
@@ -2554,7 +2554,8 @@ begin
               glFogf(GL_FOG_START, 0);
               glFogf(GL_FOG_END, FogLinearEnd);
             end;
-          ftExp: begin
+          ftExponential:
+            begin
               glFogi(GL_FOG_MODE, GL_EXP);
               glFogf(GL_FOG_DENSITY, FogExpDensity);
             end;

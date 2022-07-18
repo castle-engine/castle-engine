@@ -606,6 +606,7 @@ const
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
 {$I castlescene_background.inc}
+{$I castlescene_fog.inc}
 {$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
 {$I castlescene_pointlight.inc}
@@ -634,6 +635,7 @@ uses Math,
 {$I castlescene_cylinder.inc}
 {$I castlescene_imagetransform.inc}
 {$I castlescene_background.inc}
+{$I castlescene_fog.inc}
 {$I castlescene_editorgizmo.inc}
 {$I castlescene_abstractlight.inc}
 {$I castlescene_pointlight.inc}
@@ -2385,6 +2387,7 @@ initialization
   RegisterSerializableComponent(TCastleCylinder, 'Cylinder');
   RegisterSerializableComponent(TCastleImageTransform, 'Image');
   RegisterSerializableComponent(TCastleBackground, 'Background');
+  RegisterSerializableComponent(TCastleFog, 'Fog');
   RegisterSerializableComponent(TCastlePointLight, 'Light/Point');
   RegisterSerializableComponent(TCastleDirectionalLight, 'Light/Directional');
   RegisterSerializableComponent(TCastleSpotLight, 'Light/Spot');

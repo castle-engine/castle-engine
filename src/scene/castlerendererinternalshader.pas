@@ -2871,7 +2871,7 @@ var
               So we just divide by castle_FogLinearEnd. }
             FogFactor := 'castle_FogFragCoord / castle_FogLinearEnd';
           end;
-        ftExp:
+        ftExponential:
           begin
             FogUniforms := 'uniform float castle_FogExpDensity;';
             FogFactor := '1.0 - exp(-castle_FogExpDensity * castle_FogFragCoord)';
@@ -3601,7 +3601,7 @@ begin
           USingle.Value := FFogLinearEnd;
           DynamicUniforms.Add(USingle);
         end;
-      ftExp:
+      ftExponential:
         begin
           USingle := TDynamicUniformSingle.Create;
           USingle.Name := 'castle_FogExpDensity';

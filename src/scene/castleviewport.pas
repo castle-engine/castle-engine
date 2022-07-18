@@ -148,6 +148,8 @@ type
       FLastSeenMainScene: TCastleScene; // only used by editor
       FBackground: TCastleBackground;
       FBackgroundObserver: TFreeNotificationObserver;
+      FFog: TCastleFog;
+      FFogObserver: TFreeNotificationObserver;
       // reused between frames for speed
       FRenderWithoutScreenEffectsRenderingCamera: TRenderingCamera;
       FMissingCameraRect: TCastleRectangleControl;
@@ -173,6 +175,8 @@ type
     procedure SetPaused(const Value: Boolean);
     procedure SetBackground(const Value: TCastleBackground);
     procedure BackgroundFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SetFog(const Value: TCastleFog);
+    procedure FogFreeNotification(const Sender: TFreeNotificationObserver);
     procedure SetInternalDesignNavigationType(const Value: TInternalDesignNavigationType);
 
     { Callbacks when MainCamera is notified that MainScene changes camera/navigation }
@@ -983,6 +987,9 @@ type
       Displayed only when not @link(Transparent). }
     property Background: TCastleBackground read FBackground write SetBackground;
 
+    { Fog to use to display @link(Items). }
+    property Fog: TCastleFog read FFog write SetFog;
+
     { If @true then the background (from @link(Background) or
       @link(TCastleRootTransform.MainScene MainScene)) will be rendered wireframe,
       over the solid background filled with BackgroundColor.
@@ -1041,6 +1048,7 @@ type
       from MainScene to shine on all objects. }
     property UseGlobalFog: boolean
       read FUseGlobalFog write FUseGlobalFog default DefaultUseGlobalFog;
+      {$ifdef FPC} deprecated 'configure fog by assigning to TCastleViewport.Fog component; leave deprecated TCastleViewport.MainScene nil'; {$endif}
 
     { Help user to activate pointing device sensors and pick items.
       Every time you press Input_Interact (by default
@@ -1263,6 +1271,9 @@ begin
 
   FBackgroundObserver := TFreeNotificationObserver.Create(Self);
   FBackgroundObserver.OnFreeNotification := {$ifdef FPC}@{$endif} BackgroundFreeNotification;
+
+  FFogObserver := TFreeNotificationObserver.Create(Self);
+  FFogObserver.OnFreeNotification := {$ifdef FPC}@{$endif} FogFreeNotification;
 
   FCameraObserver := TFreeNotificationObserver.Create(Self);
   FCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
@@ -1607,6 +1618,14 @@ begin
     WritelnWarning('AutoCamera is deprecated (on TCastleViewport named "%s"). Instead: It is simpler to set camera at design-time explicitly, or use CameraViewpointForWholeScene from code to auto-adjust camera.' + ' If you want to animate the camera, attach TCastleCamera to a bone transformation exposed by Scene.ExposeTransforms', [
       Name
     ]);
+  if UseGlobalFog <> DefaultUseGlobalFog then
+    WritelnWarning('UseGlobalFog is deprecated (on TCastleViewport named "%s"). Instead: Assign TCastleViewport.Fog to use fog, and leave deprecated TCastleViewport.MainScene = nil', [
+      Name
+    ]);
+  if UseGlobalLights <> DefaultUseGlobalLights then
+    WritelnWarning('UseGlobalLights is deprecated (on TCastleViewport named "%s"). Instead: If you need to tweak lighting, then use regular TCastleScene and set CastGlobalLights as needed; leave deprecated TCastleViewport.MainScene = nil', [
+      Name
+    ]);
   {$warnings on}
 end;
 
@@ -1638,6 +1657,21 @@ procedure TCastleViewport.BackgroundFreeNotification(
   const Sender: TFreeNotificationObserver);
 begin
   Background := nil;
+end;
+
+procedure TCastleViewport.SetFog(const Value: TCastleFog);
+begin
+  if FFog <> Value then
+  begin
+    FFog := Value;
+    FFogObserver.Observed := Value;
+  end;
+end;
+
+procedure TCastleViewport.FogFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  Fog := nil;
 end;
 
 function TCastleViewport.FillsWholeContainer: boolean;
@@ -2287,6 +2321,9 @@ begin
   FPrepareParams.InternalGlobalLights := FRenderParams.FGlobalLights;
 
   { initialize FPrepareParams.InternalGlobalFog }
+  if Fog <> nil then
+    FPrepareParams.InternalGlobalFog := Fog.InternalFogNode
+  else
   {$warnings off} // using deprecated MainScene to keep it working
   if UseGlobalFog and
      (Items.MainScene <> nil) then
@@ -2487,6 +2524,9 @@ begin
   {$warnings on}
 
   { calculate FRenderParams.GlobalFog }
+  if Fog <> nil then
+    FRenderParams.GlobalFog := Fog.InternalFogNode
+  else
   {$warnings off} // using deprecated MainScene to keep it working
   if UseGlobalFog and
      (Items.MainScene <> nil) then
@@ -3760,6 +3800,7 @@ begin
      (PropertyName = 'Camera') or
      (PropertyName = 'Navigation') or
      (PropertyName = 'Background') or
+     (PropertyName = 'Fog') or
      (PropertyName = 'BackgroundColorPersistent') then
     Result := [psBasic]
   else
