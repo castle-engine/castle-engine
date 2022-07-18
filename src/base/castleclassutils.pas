@@ -996,23 +996,21 @@ type
   TCastleComponentNotification = class (TComponent)
   private
     FEventList: {$ifdef FPC}specialize{$endif} TList<TComponentEvent>;
-    FObjectList: {$ifdef FPC}specialize{$endif} TList<TComponent>;
-
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
   public
-    procedure AddNotification(const AEventComponent: TComponent;
-      const AEvent: TComponentEvent);
-
-    procedure RemoveNotification(const AEventComponent: TComponent;
-      const AEvent: TComponentEvent);
+    procedure AddNotification(const AEvent: TComponentEvent);
+    procedure RemoveNotification(const AEvent: TComponentEvent);
 
     procedure Notify(const AComponent: TComponent);
 
     destructor Destroy; override;
   end;
 
+  { Raised when trying add event callback to TCastleComponentNotification that
+    parent is not TComponent }
+  ECastleComponentNotification = class (Exception);
 
 implementation
 
@@ -2436,42 +2434,45 @@ begin
 
   if Operation = opRemove then
   begin
-    for I := FObjectList.Count - 1 downto 0 do
+    for I := FEventList.Count - 1 downto 0 do
     begin
-      if FObjectList[I] = AComponent then
-      begin
-        FObjectList.Delete(I);
+      if TComponent(TMethod(FEventList[I]).Data) = AComponent then
         FEventList.Delete(I);
-      end;
     end;
   end;
 end;
 
-procedure TCastleComponentNotification.AddNotification(
-  const AEventComponent: TComponent; const AEvent: TComponentEvent);
+procedure TCastleComponentNotification.AddNotification(const AEvent: TComponentEvent);
+var
+  EventComponent: TComponent;
 begin
+  EventComponent := TObject(TMethod(AEvent).Data) as TComponent;
+
+  if EventComponent = nil then
+    raise ECastleComponentNotification.Create(
+      'You can only add callbacks form TComponent instances to TCastleComponentNotification.');
+
   if FEventList = nil then
-  begin
     FEventList := {$ifdef FPC}specialize{$endif} TList<TComponentEvent>.Create;
-    FObjectList := {$ifdef FPC}specialize{$endif} TList<TComponent>.Create;
-  end;
-  FObjectList.Add(AEventComponent);
+
   FEventList.Add(AEvent);
-  AEventComponent.FreeNotification(Self);
+  EventComponent.FreeNotification(Self);
 end;
 
 procedure TCastleComponentNotification.RemoveNotification(
-  const AEventComponent: TComponent; const AEvent: TComponentEvent);
+  const AEvent: TComponentEvent);
 var
-  Index: Integer;
+  EventComponent: TComponent;
 begin
   if FEventList = nil then
     Exit;
 
-  Index := FEventList.IndexOf(AEvent);
+  EventComponent := TObject(TMethod(AEvent).Data) as TComponent;
+  if EventComponent = nil then
+    Exit;
 
-  FEventList.Delete(Index);
-  FObjectList.Delete(Index);
+  FEventList.Remove(AEvent);
+  EventComponent.RemoveFreeNotification(Self);
 end;
 
 procedure TCastleComponentNotification.Notify(const AComponent: TComponent);
@@ -2483,10 +2484,14 @@ begin
 end;
 
 destructor TCastleComponentNotification.Destroy;
+var
+  I: integer;
 begin
-  inherited Destroy;
+  for I := 0 to FEventList.Count - 1 do
+    TComponent(TMethod(FEventList[i]).Data).RemoveFreeNotification(Self);
+
   FreeAndNil(FEventList);
-  FreeAndNil(FObjectList);
+  inherited Destroy;
 end;
 
 
