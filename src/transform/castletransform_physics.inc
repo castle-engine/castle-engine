@@ -3130,10 +3130,10 @@ begin
     FConnectedTransform := AConnectedTransform;
     if FConnectedTransform <> nil then
     begin
-      FConnectedTransform.AddNotificationOnBehaviorAdded(Self,
+      FConnectedTransform.AddNotificationOnBehaviorAdded(
         @OnConnectedTransformAddBehavior);
 
-      FConnectedTransform.AddNotificationBeforeBehaviorRemove(Self,
+      FConnectedTransform.AddNotificationBeforeBehaviorRemove(
         @OnConnectedTransfromRemoveBehavior);
     end;
     RecreateKraftJoint;
