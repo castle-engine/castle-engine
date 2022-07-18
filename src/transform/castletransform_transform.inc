@@ -17,29 +17,6 @@
 {$ifdef read_interface}
 
 //type
-  TComponentEvent = procedure(const Component: TComponent) of object;
-
-  TCastleNotification = class (TComponent)
-  private
-    FEventList: {$ifdef FPC}specialize{$endif} TList<TComponentEvent>;
-    FObjectList: {$ifdef FPC}specialize{$endif} TList<TComponent>;
-
-  protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-
-  public
-    procedure AddNotification(const AEventComponent: TComponent;
-      const AEvent: TComponentEvent);
-
-    procedure RemoveNotification(const AEventComponent: TComponent;
-      const AEvent: TComponentEvent);
-
-    procedure Notify(const AComponent: TComponent);
-
-    destructor Destroy; override;
-  end;
-
-
   { Group and transform (move, rotate, scale) children objects.
 
     Add and remove children using the @link(Add), @link(Remove) and similar methods.
@@ -154,9 +131,9 @@
       FLastParentWorldTransformation: TTransformation;
       FLastParentWorldTransformationId: Cardinal;
 
-      FOnAddedBehaviorNotification: TCastleNotification;
-      FBeforeRemoveBehaviorNotification: TCastleNotification;
-      FOnBehaviorReadyChange: TCastleNotification;
+      FOnAddedBehaviorNotification: TCastleComponentNotification;
+      FBeforeRemoveBehaviorNotification: TCastleComponentNotification;
+      FOnBehaviorReadyChange: TCastleComponentNotification;
 
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
@@ -2819,7 +2796,7 @@ procedure TCastleTransform.AddNotificationOnBehaviorAdded(
   const EventComponent: TComponent; const Event: TComponentEvent);
 begin
   if FOnAddedBehaviorNotification = nil then
-    FOnAddedBehaviorNotification := TCastleNotification.Create(Self);
+    FOnAddedBehaviorNotification := TCastleComponentNotification.Create(Self);
 
   FOnAddedBehaviorNotification.AddNotification(EventComponent, Event);
 end;
@@ -2836,7 +2813,7 @@ procedure TCastleTransform.AddNotificationOnBehaviorReadyChange(
   const EventComponent: TComponent; const Event: TComponentEvent);
 begin
   if FOnBehaviorReadyChange = nil then
-    FOnBehaviorReadyChange := TCastleNotification.Create(Self);
+    FOnBehaviorReadyChange := TCastleComponentNotification.Create(Self);
 
   FOnBehaviorReadyChange.AddNotification(EventComponent, Event);
 end;
@@ -2854,7 +2831,7 @@ procedure TCastleTransform.AddNotificationBeforeBehaviorRemove(
   const EventComponent: TComponent; const Event: TComponentEvent);
 begin
   if FBeforeRemoveBehaviorNotification = nil then
-    FBeforeRemoveBehaviorNotification := TCastleNotification.Create(Self);
+    FBeforeRemoveBehaviorNotification := TCastleComponentNotification.Create(Self);
 
   FBeforeRemoveBehaviorNotification.AddNotification(EventComponent, Event);
 end;

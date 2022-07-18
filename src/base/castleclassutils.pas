@@ -991,6 +991,29 @@ type
     property Observed: TComponent read FObserved write SetObserved;
   end;
 
+  TComponentEvent = procedure(const Component: TComponent) of object;
+
+  TCastleComponentNotification = class (TComponent)
+  private
+    FEventList: {$ifdef FPC}specialize{$endif} TList<TComponentEvent>;
+    FObjectList: {$ifdef FPC}specialize{$endif} TList<TComponent>;
+
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+
+  public
+    procedure AddNotification(const AEventComponent: TComponent;
+      const AEvent: TComponentEvent);
+
+    procedure RemoveNotification(const AEventComponent: TComponent;
+      const AEvent: TComponentEvent);
+
+    procedure Notify(const AComponent: TComponent);
+
+    destructor Destroy; override;
+  end;
+
+
 implementation
 
 uses
@@ -2401,6 +2424,72 @@ begin
       FObserved.FreeNotification(Self);
   end;
 end;
+
+{ TCastleComponentNotification -------------------------------------------------------- }
+
+procedure TCastleComponentNotification.Notification(AComponent: TComponent;
+  Operation: TOperation);
+var
+  I: Integer;
+begin
+  inherited Notification(AComponent, Operation);
+
+  if Operation = opRemove then
+  begin
+    for I := FObjectList.Count - 1 downto 0 do
+    begin
+      if FObjectList[I] = AComponent then
+      begin
+        FObjectList.Delete(I);
+        FEventList.Delete(I);
+      end;
+    end;
+  end;
+end;
+
+procedure TCastleComponentNotification.AddNotification(
+  const AEventComponent: TComponent; const AEvent: TComponentEvent);
+begin
+  if FEventList = nil then
+  begin
+    FEventList := {$ifdef FPC}specialize{$endif} TList<TComponentEvent>.Create;
+    FObjectList := {$ifdef FPC}specialize{$endif} TList<TComponent>.Create;
+  end;
+  FObjectList.Add(AEventComponent);
+  FEventList.Add(AEvent);
+  AEventComponent.FreeNotification(Self);
+end;
+
+procedure TCastleComponentNotification.RemoveNotification(
+  const AEventComponent: TComponent; const AEvent: TComponentEvent);
+var
+  Index: Integer;
+begin
+  if FEventList = nil then
+    Exit;
+
+  Index := FEventList.IndexOf(AEvent);
+
+  FEventList.Delete(Index);
+  FObjectList.Delete(Index);
+end;
+
+procedure TCastleComponentNotification.Notify(const AComponent: TComponent);
+var
+  I: Integer;
+begin
+  for I := 0 to FEventList.Count -1 do
+    FEventList[i](AComponent);
+end;
+
+destructor TCastleComponentNotification.Destroy;
+begin
+  inherited Destroy;
+  FreeAndNil(FEventList);
+  FreeAndNil(FObjectList);
+end;
+
+
 
 initialization
   InitStdStreams;
