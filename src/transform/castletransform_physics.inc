@@ -3108,18 +3108,14 @@ end;
 procedure TAbstractTwoBodiesJoint.OnConnectedTransformAddBehavior(
   const Component: TComponent);
 begin
-  if Component is TCastleRigidBody then
-  begin
-    DeinitializeKraftJoint;
-    InitializeKraftJoint;
-  end;
+  DeinitializeKraftJoint;
+  InitializeKraftJoint;
 end;
 
 procedure TAbstractTwoBodiesJoint.OnConnectedTransfromRemoveBehavior(
   const Component: TComponent);
 begin
-  if Component is TCastleRigidBody then
-    DeinitializeKraftJoint;
+  DeinitializeKraftJoint;
 end;
 
 procedure TAbstractTwoBodiesJoint.SetConnectedTransform(
@@ -3131,10 +3127,10 @@ begin
     if FConnectedTransform <> nil then
     begin
       FConnectedTransform.AddNotificationOnBehaviorAdded(
-        @OnConnectedTransformAddBehavior);
+        @OnConnectedTransformAddBehavior, TCastleRigidBody);
 
       FConnectedTransform.AddNotificationBeforeBehaviorRemove(
-        @OnConnectedTransfromRemoveBehavior);
+        @OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
     end;
     RecreateKraftJoint;
   end;

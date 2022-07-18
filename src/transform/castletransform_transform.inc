@@ -223,15 +223,25 @@
     procedure NotifyWorldAttach(const NewWorld: TCastleAbstractRootTransform);
     procedure NotifyWorldDetach(const PreviousWorld: TCastleAbstractRootTransform);
 
-    { You can add a callback (object of procedure have to be TComponent)
+    { Ability to add a callback (object of procedure have to be TComponent)
       to be informed when a behevior is added to this CastleTransform }
-    procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent);
+    procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent); overload;
+    { Ability to add a callback (object of procedure have to be TComponent)
+      to be informed when a behevior is added to this CastleTransform with
+      object class filtering}
+    procedure AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent;
+      const ClassFilter: TComponentClass); overload;
     { Calls all behavior add callbacks with ABehavior as parameter value }
     procedure NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
 
-    { You can add a callback (object of procedure have to be TComponent)
+    { Ability to add a callback (object of procedure have to be TComponent)
       to be informed when a behevior is added to this CastleTransform }
-    procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent);
+    procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent); overload;
+    { Ability to add a callback (object of procedure have to be TComponent)
+      to be informed when a behevior is added to this CastleTransform with
+      object class filtering}
+    procedure AddNotificationBeforeBehaviorRemove(const AEvent: TComponentEvent;
+          const ClassFilter: TComponentClass); overload;
     { Calls all behavior remove callbacks with ABehavior as parameter value }
     procedure NotifyBeforeBehaviorRemove(const ABehavior: TCastleBehavior);
 
@@ -2790,10 +2800,16 @@ end;
 
 procedure TCastleTransform.AddNotificationOnBehaviorAdded(const AEvent: TComponentEvent);
 begin
+  AddNotificationOnBehaviorAdded(AEvent, TCastleComponent);
+end;
+
+procedure TCastleTransform.AddNotificationOnBehaviorAdded(
+  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
+begin
   if FOnAddedBehaviorNotification = nil then
     FOnAddedBehaviorNotification := TCastleComponentNotification.Create(Self);
 
-  FOnAddedBehaviorNotification.AddNotification(AEvent);
+  FOnAddedBehaviorNotification.AddNotification(AEvent, ClassFilter);
 end;
 
 procedure TCastleTransform.NotifyBehaviorAdded(const ABehavior: TCastleBehavior);
@@ -2807,10 +2823,16 @@ end;
 procedure TCastleTransform.AddNotificationBeforeBehaviorRemove(
   const AEvent: TComponentEvent);
 begin
+  AddNotificationBeforeBehaviorRemove(AEvent, TCastleComponent);
+end;
+
+procedure TCastleTransform.AddNotificationBeforeBehaviorRemove(
+  const AEvent: TComponentEvent; const ClassFilter: TComponentClass);
+begin
   if FBeforeRemoveBehaviorNotification = nil then
     FBeforeRemoveBehaviorNotification := TCastleComponentNotification.Create(Self);
 
-  FBeforeRemoveBehaviorNotification.AddNotification(AEvent);
+  FBeforeRemoveBehaviorNotification.AddNotification(AEvent, ClassFilter);
 end;
 
 procedure TCastleTransform.NotifyBeforeBehaviorRemove(
