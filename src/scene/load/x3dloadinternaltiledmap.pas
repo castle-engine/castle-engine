@@ -14,61 +14,36 @@
 }
 
 { Convert Tiled map (see https://www.mapeditor.org/) loaded by
-  CastleTiledMap unit into X3D representation.
+  @link(CastleTiledMap) unit into X3D representation.
 
-  This unit is on purpose not fully integrated with the engine yet. This makes
-  debugging easier. If unit is fully functional, it should be integrated with
-  the Scene.Load mechanism. Until then it works as follows:
+  This unit allows to use the Scene.Load mechanism to load Tiled map files.
+  Tiled map files usually carry the extension "tmx".
 
-  1. Create Tiled map (TTiledMap).
-  2. Prepare X3D scene.
-  3. Convert Tiled map by this unit (CastleConvertTiledMap).
-  4. Load X3D scene directly by X3D representation (use Scene.Load).
+  @bold Unsupported features
+  @orderedList(
+    @item 90° rotated tiles (= vertical/horizontal flip + diagonal flip)
+    @item Tiled image layers
+    @item Tiled object ellipsoids
+  )
 
-  TODO:
-  1. Integrate unit with Castle Game Engine (e.g. add to pack., use castle conf.
-     inc., ...)
-  2. (obsolete)
-  3. (obsolete)
-  4. Update topPoint (see there) + handle ellipsoids (see there)
-  5. Shift TShapeNodeList(+ListList) (generic) to x3dnodes_standard_texturing.inc?
-  6. How to handle overlapping tiles of the same layer (Z-buffer fighting)?
-  7. Refine spacing/margin calculations, still borders in desert example.
-  8. Implement support for 90° rotated tiles.
-  9. Implement ImageLayer support
-
-  EXPECTED X3D HIERARCHY OF A CONVERTED TILED MAP (.TMX):
-
-  Root Node --> [0] Switch Node --> [0] Map Node --> [0] Layer Node 1 --> ...
-                                                 --> [1] Layer Node 2 --> ...
-                                                 ...
-                                                 --> [n] Layer Node n+1 --> ...
-                                --> [1] Ghost Node --> [0] Tileset Shape Node 1
-                                                   --> [1] Tileset Shape Node 2
+  @bold X3D Hierarchy of a converted Tiled Map
+  @preformatted(
+    Root Node --> [0] Switch Node --> [0] Map Node --> [0] Layer Node 1 --> ...
+                                                   --> [1] Layer Node 2 --> ...
                                                    ...
-                                                   --> [m] Tileset Shape Node m+1
+                                                   --> [n] Layer Node n+1 --> ...
+                                  --> [1] Ghost Node --> [0] Tileset Shape Node 1
+                                                     --> [1] Tileset Shape Node 2
+                                                     ...
+                                                     --> [m] Tileset Shape Node m+1
+  )
+  The "Map Node" contains the map as a scene graph.
 
-  REMARKS:
-  1. Coordinate systems: The Tiled editor uses a classical coordinate system
-     with origin (0,0) at top-left position. The CGE uses the OpenGL coordinate
-     system with origin (0,0) at bottom-left. The conversion of coordinates
-     works as follows: The top-left position of the Tiled map is placed at the
-     origin of the CGE coordinate system. In short: the origins are placed onto
-     each other.
-     A simple translation of the Map node by the map height allows it to follow
-     CGE/OpenGL convention.
-  2. Naming convention: Objects that derive from TTiledMap (TTile, TLayer, ...)
-     are called accordingly. Nodes which are derived/converted from these
-     objects should explicitly have the name-suffix "Node" in it. To make these
-     destinctions easier, new node types (usually derived from TTransformNode)
-     are introduced.
-
-       Ex. for layers:
-         var
-           ALayer, Layer, TiledLayer, ... : TTiledMap.TLayer;
-       but
-           ALayerNode, LayerNode, TiledLayerNode, ... : TTiledLayerNode;
-
+  The "Ghost Node"
+  holds all the nodes from which the "Map Node" is composed. It actually holds
+  even all tiles (as ready to use shape nodes) provided by the tileset(s).
+  From the outside you usually work on the "Map Node" and ignore
+  the "Ghost Node".
 }
 unit X3DLoadInternalTiledMap;
 
@@ -80,19 +55,30 @@ uses
   Classes,
   X3DNodes, CastleLog, CastleTiledMap;
 
-{ These transform node types can be useful to find the desired node more
-  reliably in event routines. }
 type
+  { These @link(TTransformNode) types can be useful to find the desired
+    node more reliably in event routines.
+    @groupBegin }
   TTiledLayerNode = type TTransformNode;
   TTiledObjectNode = type TTransformNode;
   TTiledTileNode = type TTransformNode;
+  { @groupEnd }
 
-{ Converts a Tiled map into a X3D representation for the Castle Game Engine.
+{ This function carries out three major steps and is usually triggered by
+  the Scene.Load mechanism.
 
-  The debug mode needs considerably more ressources. By default it is turned off.
+  @bold The major steps carried out by this function are as follows
+    @orderedList(
+      @item Create Tiled map instance (@link(TTiledMap)) from tmx file
+        via @link(TStream).
+      @item Create X3D scene from that instance by the
+        @link(TTiledMapConverter) class.
+      @item Return the generated @link(TX3DRootNode) of the X3D scene.
+    )
 
-  @param(ATiledMap must be a Tiled map as loaded by the CastleTiledMap unit.)
-  @param(ADebugMode turns the debug mode on or off.) }
+  The debug mode needs considerably more ressources. By default it is turned
+  off and can only be turned on in code in this function.
+}
 function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
@@ -111,7 +97,48 @@ type
   TShapeNodeList = specialize TObjectList<TShapeNode>;
   TShapeNodeListList = specialize TObjectList<TShapeNodeList>;
 
-  { Converter class to convert Tiled map into X3D representations. }
+  { Converter class to convert Tiled map into X3D representations.
+
+  @bold(Developer Remarks)
+  @orderedList(
+    @item(
+       @bold(Coordinate systems:)
+       The Tiled editor uses a classical coordinate system
+       with origin (0,0) at top-left position. The CGE uses the OpenGL coordinate
+       system with origin (0,0) at bottom-left. The conversion of coordinates
+       works as follows: The top-left position of the Tiled map is placed at the
+       origin of the CGE coordinate system. In short: the origins are placed onto
+       each other.
+
+       A simple translation of the Map node by the map height allows it to follow
+       CGE/OpenGL convention.
+    )
+    @item(
+      @bold(Naming convention:)
+       Objects that derive from @link(TTiledMap) (@link(TTile), @link(TLayer), ...)
+       are called accordingly. Nodes which are derived/converted from these
+       objects should explicitly have the name-suffix "Node" in it. To make these
+       destinctions easier, new node types (usually derived from @link(TTransformNode))
+       are introduced.
+
+       Ex. for layers:
+       @preformatted(
+           var
+             ALayer, Layer, TiledLayer, ... : TTiledMap.TLayer;
+       )
+       but
+       @preformatted(
+             ALayerNode, LayerNode, TiledLayerNode, ... : TTiledLayerNode;
+       )
+    @item(
+      @orderedList(
+        @item Update topPoint (see there)
+        @item Shift TShapeNodeList(+ListList) (generic) to x3dnodes_standard_texturing.inc?
+        @item How to handle overlapping tiles of the same layer (Z-buffer fighting)?
+        @item Refine spacing/margin calculations, still borders in desert example.
+      )
+    )
+  }
   TTiledMapConverter = class
   strict private
     FDebugMode: Boolean;
@@ -132,16 +159,16 @@ type
       For every tileset in Map.Tilesets there is one TShapeNodeList created
       which holds one shape nodes for every tile of the tileset.
 
-      IMPORTANT: This procedure must ensure that the number of shape node lists
+      @bold(IMPORTANT:) This procedure must ensure that the number of shape node lists
       is always the same as the actual tilesets in Map.Tilesets.
       This is crucial for retrieving the correct tileset shape node list from
       TilesetShapeNodeListList later! }
     procedure ConvertTilesets;
     { Tries to construct X3D nodes for each layer. }
     procedure ConvertLayers;
-    { Builds Object Group layer node from TTiledMap data. }
+    { Builds Object Group layer node from @link(TTiledMap) data. }
     function BuildObjectGroupLayerNode(const ALayer: TTiledMap.TLayer): TTiledLayerNode;
-    { Builds Tile layer node from TTiledMap data. }
+    { Builds Tile layer node from @link(TTiledMap) data. }
     function BuildTileLayerNode(const ALayer: TTiledMap.TLayer): TTiledLayerNode;
 
     {   HELPER FUNCTIONS   }
