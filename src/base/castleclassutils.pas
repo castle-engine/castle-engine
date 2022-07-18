@@ -2538,7 +2538,7 @@ begin
   for I := 0 to FEventList.Count -1 do
   begin
     if AComponent is FFilterList[I] then
-       FEventList[i](AComponent);
+       FEventList[I](AComponent);
   end;
 end;
 

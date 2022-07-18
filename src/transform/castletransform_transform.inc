@@ -2848,6 +2848,7 @@ procedure TCastleTransform.BeforeBehaviorDestroy(const Behavior: TCastleBehavior
 begin
   if Behavior.Parent <> nil then
   begin
+    NotifyBeforeBehaviorRemove(Behavior);
     { Call WorldDetached directly }
     if Behavior.NeedWorldChangeNotification and (FWorld <> nil) then
       Behavior.WorldBeforeDetach;

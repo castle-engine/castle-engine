@@ -880,8 +880,15 @@
     procedure InitializeKraftJoint; virtual; abstract;
     procedure DeinitializeKraftJoint; virtual; abstract;
 
+    procedure OnParentTransformAddBehavior(const Component: TComponent); virtual;
+    procedure OnParentTransfromRemoveBehavior(const Component: TComponent); virtual;
+
     procedure SetBreakThresholdForce(const AValue: Single);
     procedure SetBreakThresholdTorque(const AValue: Single);
+  public
+    destructor Destroy; override;
+    procedure ParentAfterAttach; override;
+
   published
     property BreakThresholdForce:Single read FBreakThresholdForce write SetBreakThresholdForce;
     property BreakThresholdTorque:Single read FBreakThresholdTorque write SetBreakThresholdTorque;
@@ -902,7 +909,6 @@
 
     procedure OnConnectedTransformAddBehavior(const Component: TComponent); virtual;
     procedure OnConnectedTransfromRemoveBehavior(const Component: TComponent); virtual;
-
   published
     property ConnectedTransform: TCastleTransform read FConnectedTransform
       write SetConnectedTransform;
@@ -3131,6 +3137,9 @@ begin
 
       FConnectedTransform.AddNotificationBeforeBehaviorRemove(
         @OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
+
+      FConnectedTransform.AddNotificationBeforeBehaviorRemove(
+        @OnConnectedTransfromRemoveBehavior, TCastleCollider);
     end;
     RecreateKraftJoint;
   end;
@@ -3142,6 +3151,19 @@ procedure TAbstractJoint.RecreateKraftJoint;
 begin
   DeinitializeKraftJoint;
   InitializeKraftJoint;
+end;
+
+procedure TAbstractJoint.OnParentTransformAddBehavior(
+  const Component: TComponent);
+begin
+  DeinitializeKraftJoint;
+  InitializeKraftJoint;
+end;
+
+procedure TAbstractJoint.OnParentTransfromRemoveBehavior(
+  const Component: TComponent);
+begin
+  DeinitializeKraftJoint;
 end;
 
 procedure TAbstractJoint.SetBreakThresholdForce(const AValue: Single);
@@ -3156,6 +3178,26 @@ begin
   FBreakThresholdTorque := AValue;
   if GetKraftJoint <> nil then
     GetKraftJoint.BreakThresholdTorque := AValue;
+end;
+
+destructor TAbstractJoint.Destroy;
+begin
+  DeinitializeKraftJoint;
+  inherited Destroy;
+end;
+
+procedure TAbstractJoint.ParentAfterAttach;
+begin
+  inherited ParentAfterAttach;
+
+  Parent.AddNotificationOnBehaviorAdded(
+    @OnParentTransfromRemoveBehavior, TCastleRigidBody);
+
+  Parent.AddNotificationBeforeBehaviorRemove(
+    @OnParentTransfromRemoveBehavior, TCastleRigidBody);
+
+  Parent.AddNotificationBeforeBehaviorRemove(
+    @OnParentTransfromRemoveBehavior, TCastleCollider);
 end;
 
 { TJointHinge --------------------------------------------------------------- }
