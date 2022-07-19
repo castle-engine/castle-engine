@@ -501,6 +501,8 @@
       FOnCollisionEnter: TCollisionEvent;
       FOnCollisionStay: TCollisionEvent;
       FOnCollisionExit: TCollisionEvent;
+      FNotifyOnInitialized: TCastleComponentNotification;
+      FNotifyBeforeDeinitialized: TCastleComponentNotification;
 
     procedure PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
     { Assign or unassign PhysicsPostStep in TKraftBody.OnPostStep when needed. }
@@ -615,6 +617,23 @@
 
     property DuringSettingTransformationFromPhysicsEngine: Boolean read
       FDuringSettingTransformationFromPhysicsEngine;
+
+    procedure AddNotificationOnInitialized(
+      const AEvent: TComponentEvent); overload;
+    { Calls all callbacks added by AddNotificationOnInitialized }
+    procedure NotifyOnInitialized;
+    procedure RemoveNotificationOnInitialized(
+      const AEvent: TComponentEvent); overload;
+
+    procedure AddNotificationBeforeDeinitialized(
+      const AEvent: TComponentEvent); overload;
+    { Calls all callbacks added by AddNotificationOnInitialized }
+    procedure NotifyBeforeDeinitialized;
+    procedure RemoveNotificationBeforeDeinitialized(
+      const AEvent: TComponentEvent); overload;
+
+    { Is rigid body full initialized? }
+    function IsInitialized: Boolean;
   protected
     { Initializes physics engine objects when TCastleRigidBody is attached
       to world. }
@@ -872,22 +891,42 @@
 
   TAbstractJoint = class(TCastleBehavior)
   strict protected
+    { When joint is added to world we need found parent rigid body and set
+      callbacks for its initialize/deinitialize events. If this pointer is not nil
+      that means that we done that }
+    FParentRigidBody: TCastleRigidBody;
     FBreakThresholdForce: Single;
     FBreakThresholdTorque: Single;
 
+    { Function to get kraft joint }
     function GetKraftJoint: TKraftConstraintJoint; virtual; abstract;
+    { Tries to deinitialize and initialize kraft object }
     procedure RecreateKraftJoint;
     procedure InitializeKraftJoint; virtual; abstract;
     procedure DeinitializeKraftJoint; virtual; abstract;
+    { Means that we can create joint object }
+    function AllNeededKraftObjectsInitialized: Boolean; virtual;
 
+    { Event callback when TCastleRigidBody is added to parent transform }
     procedure OnParentTransformAddBehavior(const Component: TComponent); virtual;
-    procedure OnParentTransfromRemoveBehavior(const Component: TComponent); virtual;
+    { Event callback when TCastleRigidBody is removed from parent transform }
+    procedure OnBeforeParentTransfromRemoveBehavior(const Component: TComponent); virtual;
+    { Event callback when TCastleRigidBody behavior is initialized }
+    procedure OnParentRigidBodyInitialized(const Component: TComponent); virtual;
+    { Event callback when TCastleRigidBody behavior is deinitialized }
+    procedure OnBeforeParentRigidBodyDeinitialized(const Component: TComponent); virtual;
+
+    { Sets TCastleRigidBody behavior initialize/deinitialize callbacks }
+    procedure SetParentRigidBodyEvents;
+    { Removes TCastleRigidBody behavior initialize/deinitialize callbacks }
+    procedure RemoveParentRigidBodyEvents;
 
     procedure SetBreakThresholdForce(const AValue: Single);
     procedure SetBreakThresholdTorque(const AValue: Single);
   public
     destructor Destroy; override;
-    procedure ParentAfterAttach; override;
+    procedure WorldAfterAttach; override;
+    procedure WorldBeforeDetach; override;
 
   published
     property BreakThresholdForce:Single read FBreakThresholdForce write SetBreakThresholdForce;
@@ -898,17 +937,52 @@
 
   end;
 
+  { Abstract class for joint that connects two TCastleTransforms }
   TAbstractTwoBodiesJoint = class (TAbstractJoint)
   private
+    { TAbstractTwoBodiesJoint means that joint connects two transforms so this is
+      the second one transform pointer }
     FConnectedTransform: TCastleTransform;
+    { When connected transform is assigned we need found second rigid body and set
+      callbacks for its initialize/deinitialize events. If this pointer is not nil
+      that means that we done that }
+    FConnectedRigidBody: TCastleRigidBody;
+    { Stores valu should connected rigid bodies collide or not }
     FConnectedCollide: Boolean;
+
+    FConnectedTransfromFreeObserver: TFreeNotificationObserver;
 
   strict protected
     procedure SetConnectedTransform(const AConnectedTransform: TCastleTransform); virtual;
     procedure SetConnectedCollide(const AValue: Boolean); virtual;
 
+    { Means that we can create joint object }
+    function AllNeededKraftObjectsInitialized: Boolean; override;
+
+    procedure OnConnectedTransformFree(const Sender: TFreeNotificationObserver); virtual;
+    { Event callback when TCastleRigidBody is added to connected transform }
     procedure OnConnectedTransformAddBehavior(const Component: TComponent); virtual;
+    { Event callback when TCastleRigidBody is removed from connected transform }
     procedure OnConnectedTransfromRemoveBehavior(const Component: TComponent); virtual;
+    { Event callback when connected transform TCastleRigidBody behavior is initialized }
+    procedure OnConnectedRigidBodyInitialized(const Component: TComponent); virtual;
+    { Event callback when connected transform TCastleRigidBody behavior is deinitialized }
+    procedure OnBeforeConnectedRigidBodyDeinitialized(const Component: TComponent); virtual;
+
+    { Sets connected transform add/remmove behavior callbacks and free
+      notification observer }
+    procedure SetConnectedTransformEvents;
+    { Removes connected transform add/remmove behavior callbacks and free
+      notification observer }
+    procedure RemoveConnectedTransformEvents;
+    { Sets connected TCastleRigidBody behavior initialize/deinitialize callbacks }
+    procedure SetConnectedRigidBodyEvents;
+    { Removes connected TCastleRigidBody behavior initialize/deinitialize
+      callbacks }
+    procedure RemoveConnectedRigidBodyEvents;
+
+    { We don't need check WorldAfterAttach and WorldBeforeDetach because all
+      things are done in TAbstractJoint }
   published
     property ConnectedTransform: TCastleTransform read FConnectedTransform
       write SetConnectedTransform;
@@ -946,9 +1020,6 @@
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
 
-      procedure WorldAfterAttach; override;
-      procedure WorldBeforeDetach; override;
-
       // TODO: This is local point should be world?
       property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
       // TODO: currently this is local and in kraft is world maybe we should
@@ -983,8 +1054,6 @@
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      procedure WorldAfterAttach; override;
-      procedure WorldBeforeDetach; override;
 
       // TODO: This is local point should be world?
       property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
@@ -1012,9 +1081,6 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure WorldAfterAttach; override;
-    procedure WorldBeforeDetach; override;
-
     // TODO: This is local point should be world?
     property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
   published
@@ -1036,9 +1102,6 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
-    procedure WorldAfterAttach; override;
-    procedure WorldBeforeDetach; override;
 
     // TODO: This is local point should be world?
     property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
@@ -1069,9 +1132,6 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
-    procedure WorldAfterAttach; override;
-    procedure WorldBeforeDetach; override;
 
     // TODO: This is local point should be world?
     property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
@@ -2349,6 +2409,7 @@ begin
 
   CheckPhysicsPostStepNeeded;
   FState := crbsInitialized;
+  NotifyOnInitialized;
 end;
 
 procedure TCastleRigidBody.CheckInitialization(const ACastleCollider: TCastleCollider);
@@ -2424,6 +2485,9 @@ procedure TCastleRigidBody.DeinitializeColliders;
   end;
 
 begin
+  if FState = crbsInitialized then
+    NotifyBeforeDeinitialized;
+
   { Deinitialize rigid body when it's in collision with other rigid body make
     this body will be dangling pointer on it's FPrevCollisions list.
     So other rigid body can crash when it try to send FOnCollisionExit event.
@@ -2466,6 +2530,63 @@ end;
 class procedure TCastleRigidBody.CreateComponent2D(Sender: TObject);
 begin
   (Sender as TCastleRigidBody).Setup2D;
+end;
+
+procedure TCastleRigidBody.AddNotificationOnInitialized(
+  const AEvent: TComponentEvent);
+begin
+  if FNotifyOnInitialized = nil then
+    FNotifyOnInitialized := TCastleComponentNotification.Create(Self);
+
+  FNotifyOnInitialized.AddNotification(AEvent);
+end;
+
+procedure TCastleRigidBody.NotifyOnInitialized;
+begin
+  if FNotifyOnInitialized = nil then
+    Exit;
+
+  FNotifyOnInitialized.Notify(Self);
+end;
+
+procedure TCastleRigidBody.RemoveNotificationOnInitialized(
+  const AEvent: TComponentEvent);
+begin
+  if FNotifyOnInitialized = nil then
+    Exit;
+
+  FNotifyOnInitialized.RemoveNotification(AEvent);
+end;
+
+procedure TCastleRigidBody.AddNotificationBeforeDeinitialized(
+  const AEvent: TComponentEvent);
+begin
+  if FNotifyBeforeDeinitialized = nil then
+    FNotifyBeforeDeinitialized := TCastleComponentNotification.Create(Self);
+
+  FNotifyBeforeDeinitialized.AddNotification(AEvent);
+end;
+
+procedure TCastleRigidBody.NotifyBeforeDeinitialized;
+begin
+  if FNotifyBeforeDeinitialized = nil then
+    Exit;
+
+  FNotifyBeforeDeinitialized.Notify(Self);
+end;
+
+procedure TCastleRigidBody.RemoveNotificationBeforeDeinitialized(
+  const AEvent: TComponentEvent);
+begin
+  if FNotifyBeforeDeinitialized = nil then
+    Exit;
+
+  FNotifyBeforeDeinitialized.RemoveNotification(AEvent);
+end;
+
+function TCastleRigidBody.IsInitialized: Boolean;
+begin
+  Result := (FState = crbsInitialized);
 end;
 
 procedure TCastleRigidBody.PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
@@ -3111,17 +3232,102 @@ begin
   RecreateKraftJoint;
 end;
 
+function TAbstractTwoBodiesJoint.AllNeededKraftObjectsInitialized: Boolean;
+begin
+  Result := (inherited AllNeededKraftObjectsInitialized) and
+    (FConnectedRigidBody <> nil) and (FConnectedRigidBody.IsInitialized);
+end;
+
+procedure TAbstractTwoBodiesJoint.OnConnectedTransformFree(
+  const Sender: TFreeNotificationObserver);
+begin
+  DeinitializeKraftJoint;
+  RemoveConnectedRigidBodyEvents;
+  RemoveConnectedTransformEvents;
+  FConnectedRigidBody := nil;
+  FConnectedTransform := nil;
+end;
+
 procedure TAbstractTwoBodiesJoint.OnConnectedTransformAddBehavior(
   const Component: TComponent);
 begin
-  DeinitializeKraftJoint;
-  InitializeKraftJoint;
+  FConnectedRigidBody := Component as TCastleRigidBody;
+  SetConnectedRigidBodyEvents;
 end;
 
 procedure TAbstractTwoBodiesJoint.OnConnectedTransfromRemoveBehavior(
   const Component: TComponent);
 begin
   DeinitializeKraftJoint;
+  RemoveConnectedRigidBodyEvents;
+  FConnectedRigidBody := nil;
+end;
+
+procedure TAbstractTwoBodiesJoint.OnConnectedRigidBodyInitialized(
+  const Component: TComponent);
+begin
+  RecreateKraftJoint;
+end;
+
+procedure TAbstractTwoBodiesJoint.OnBeforeConnectedRigidBodyDeinitialized(
+  const Component: TComponent);
+begin
+  DeinitializeKraftJoint;
+end;
+
+procedure TAbstractTwoBodiesJoint.SetConnectedTransformEvents;
+begin
+  if FConnectedTransform = nil then
+    Exit;
+
+  FConnectedTransform.AddNotificationOnBehaviorAdded(
+    @OnConnectedTransformAddBehavior, TCastleRigidBody);
+
+  FConnectedTransform.AddNotificationBeforeBehaviorRemove(
+    @OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
+
+  if FConnectedTransfromFreeObserver = nil then
+  begin
+    FConnectedTransfromFreeObserver := TFreeNotificationObserver.Create(Self);
+    FConnectedTransfromFreeObserver.OnFreeNotification := {$ifdef FPC}@{$endif}OnConnectedTransformFree;
+  end;
+
+  FConnectedTransfromFreeObserver.Observed := FConnectedTransform;
+end;
+
+procedure TAbstractTwoBodiesJoint.RemoveConnectedTransformEvents;
+begin
+  if FConnectedTransform <> nil then
+  begin
+    { Remove events from previous connected castle transform }
+    FConnectedTransform.AddNotificationOnBehaviorAdded(
+      @OnConnectedTransformAddBehavior, TCastleRigidBody);
+
+    FConnectedTransform.AddNotificationBeforeBehaviorRemove(
+      @OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
+  end;
+
+  { Stop watching this transform }
+  if FConnectedTransfromFreeObserver <> nil then
+    FConnectedTransfromFreeObserver.Observed := nil;
+end;
+
+procedure TAbstractTwoBodiesJoint.SetConnectedRigidBodyEvents;
+begin
+  if FConnectedRigidBody <> nil then
+  begin
+    FConnectedRigidBody.AddNotificationOnInitialized(@OnConnectedRigidBodyInitialized);
+    FConnectedRigidBody.AddNotificationBeforeDeinitialized(@OnBeforeConnectedRigidBodyDeinitialized);
+  end;
+end;
+
+procedure TAbstractTwoBodiesJoint.RemoveConnectedRigidBodyEvents;
+begin
+  if FConnectedRigidBody <> nil then
+  begin
+    FConnectedRigidBody.RemoveNotificationOnInitialized(@OnConnectedRigidBodyInitialized);
+    FConnectedRigidBody.RemoveNotificationBeforeDeinitialized(@OnBeforeConnectedRigidBodyDeinitialized);
+  end;
 end;
 
 procedure TAbstractTwoBodiesJoint.SetConnectedTransform(
@@ -3129,19 +3335,29 @@ procedure TAbstractTwoBodiesJoint.SetConnectedTransform(
 begin
   if FConnectedTransform <> AConnectedTransform then
   begin
+    if FConnectedTransform <> nil then
+    begin
+      { Remove events from previous connected castle transform }
+      RemoveConnectedTransformEvents;
+
+      { Remove events from Rigidbody of old connected transform }
+      RemoveConnectedRigidBodyEvents;
+    end;
+
     FConnectedTransform := AConnectedTransform;
     if FConnectedTransform <> nil then
     begin
-      FConnectedTransform.AddNotificationOnBehaviorAdded(
-        @OnConnectedTransformAddBehavior, TCastleRigidBody);
+      { If FConnectedTransform is not nil set all events and try
+        recreate joint }
+      SetConnectedTransformEvents;
 
-      FConnectedTransform.AddNotificationBeforeBehaviorRemove(
-        @OnConnectedTransfromRemoveBehavior, TCastleRigidBody);
-
-      FConnectedTransform.AddNotificationBeforeBehaviorRemove(
-        @OnConnectedTransfromRemoveBehavior, TCastleCollider);
+      FConnectedRigidBody := FConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+      if FConnectedRigidBody <> nil then
+      begin
+        SetConnectedRigidBodyEvents;
+        RecreateKraftJoint;
+      end;
     end;
-    RecreateKraftJoint;
   end;
 end;
 
@@ -3150,20 +3366,58 @@ end;
 procedure TAbstractJoint.RecreateKraftJoint;
 begin
   DeinitializeKraftJoint;
-  InitializeKraftJoint;
+  if AllNeededKraftObjectsInitialized then
+    InitializeKraftJoint;
+end;
+
+function TAbstractJoint.AllNeededKraftObjectsInitialized: Boolean;
+begin
+  Result := (FParentRigidBody <> nil) and FParentRigidBody.IsInitialized;
 end;
 
 procedure TAbstractJoint.OnParentTransformAddBehavior(
   const Component: TComponent);
 begin
-  DeinitializeKraftJoint;
-  InitializeKraftJoint;
+  FParentRigidBody := Component as TCastleRigidBody;
+  SetParentRigidBodyEvents;
 end;
 
-procedure TAbstractJoint.OnParentTransfromRemoveBehavior(
+procedure TAbstractJoint.OnBeforeParentTransfromRemoveBehavior(
   const Component: TComponent);
 begin
   DeinitializeKraftJoint;
+  RemoveParentRigidBodyEvents;
+  FParentRigidBody := nil;
+end;
+
+procedure TAbstractJoint.OnParentRigidBodyInitialized(
+  const Component: TComponent);
+begin
+  RecreateKraftJoint;
+end;
+
+procedure TAbstractJoint.OnBeforeParentRigidBodyDeinitialized(
+  const Component: TComponent);
+begin
+  DeinitializeKraftJoint;
+end;
+
+procedure TAbstractJoint.SetParentRigidBodyEvents;
+begin
+  if FParentRigidBody <> nil then
+  begin
+    FParentRigidBody.AddNotificationOnInitialized(@OnParentRigidBodyInitialized);
+    FParentRigidBody.AddNotificationBeforeDeinitialized(@OnBeforeParentRigidBodyDeinitialized);
+  end;
+end;
+
+procedure TAbstractJoint.RemoveParentRigidBodyEvents;
+begin
+  if FParentRigidBody <> nil then
+  begin
+    FParentRigidBody.RemoveNotificationOnInitialized(@OnParentRigidBodyInitialized);
+    FParentRigidBody.RemoveNotificationBeforeDeinitialized(@OnBeforeParentRigidBodyDeinitialized);
+  end;
 end;
 
 procedure TAbstractJoint.SetBreakThresholdForce(const AValue: Single);
@@ -3186,18 +3440,40 @@ begin
   inherited Destroy;
 end;
 
-procedure TAbstractJoint.ParentAfterAttach;
+procedure TAbstractJoint.WorldAfterAttach;
 begin
-  inherited ParentAfterAttach;
+  inherited WorldAfterAttach;
+
+  { This means we are added to world so we need to get parent and check
+    Parent has rigid body if has we should try recreate kraft joint. }
 
   Parent.AddNotificationOnBehaviorAdded(
-    @OnParentTransfromRemoveBehavior, TCastleRigidBody);
+    @OnParentTransformAddBehavior, TCastleRigidBody);
 
   Parent.AddNotificationBeforeBehaviorRemove(
-    @OnParentTransfromRemoveBehavior, TCastleRigidBody);
+    @OnBeforeParentTransfromRemoveBehavior, TCastleRigidBody);
 
-  Parent.AddNotificationBeforeBehaviorRemove(
-    @OnParentTransfromRemoveBehavior, TCastleCollider);
+  FParentRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if FParentRigidBody <> nil then
+  begin
+    SetParentRigidBodyEvents;
+    RecreateKraftJoint;
+  end;
+end;
+
+procedure TAbstractJoint.WorldBeforeDetach;
+begin
+  { This means we are before detach from world so we need to get parent
+  remove all callbacks also rigid body callbacks }
+
+  Parent.RemoveNotificationOnBehaviorAdded(
+    @OnParentTransformAddBehavior, TCastleRigidBody);
+
+  Parent.RemoveNotificationBeforeBehaviorRemove(
+    @OnBeforeParentTransfromRemoveBehavior, TCastleRigidBody);
+
+  RemoveParentRigidBodyEvents;
+  inherited ParentBeforeDetach;
 end;
 
 { TJointHinge --------------------------------------------------------------- }
@@ -3276,30 +3552,11 @@ begin
 end;
 
 procedure TJointHinge.InitializeKraftJoint;
-var
-  FirstRigidBody: TCastleRigidBody;
-  SecondRigidBody: TCastleRigidBody;
 begin
-  if World = nil then
-    Exit;
-
-  if FConnectedTransform = nil then
-    Exit;
-
-  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if FirstRigidBody = nil then
-    Exit;
-
-  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if SecondRigidBody = nil then
-    Exit;
-
   FKraftJointHinge := TKraftConstraintJointHinge.Create(
     World.FKraftEngine,
-    FirstRigidBody.FKraftBody,
-    SecondRigidBody.FKraftBody,
+    FParentRigidBody.FKraftBody,
+    FConnectedRigidBody.FKraftBody,
     VectorToKraft(Parent.LocalToWorld(FAnchorPoint)),
     VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis)),
     FEnableLimits,
@@ -3343,19 +3600,6 @@ begin
   inherited Destroy;
 end;
 
-procedure TJointHinge.WorldAfterAttach;
-begin
-  inherited WorldAfterAttach;
-
-  RecreateKraftJoint;
-end;
-
-procedure TJointHinge.WorldBeforeDetach;
-begin
-  // TODO: how to remove joint
-  //FreeAndNil(FKraftJointHinge);
-  inherited WorldBeforeDetach;
-end;
 
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
@@ -3395,30 +3639,11 @@ begin
 end;
 
 procedure TJointRope.InitializeKraftJoint;
-var
-  FirstRigidBody: TCastleRigidBody;
-  SecondRigidBody: TCastleRigidBody;
 begin
-  if World = nil then
-    Exit;
-
-  if FConnectedTransform = nil then
-    Exit;
-
-  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if FirstRigidBody = nil then
-    Exit;
-
-  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if SecondRigidBody = nil then
-    Exit;
-
   FKraftJointRope := TKraftConstraintJointRope.Create(
     World.FKraftEngine,
-    FirstRigidBody.FKraftBody,
-    SecondRigidBody.FKraftBody,
+    FParentRigidBody.FKraftBody,
+    FConnectedRigidBody.FKraftBody,
     VectorToKraft(FAnchorPoint),
     VectorToKraft(FConnectedAnchorPoint),
     FDistance
@@ -3451,19 +3676,6 @@ begin
   inherited Destroy;
 end;
 
-procedure TJointRope.WorldAfterAttach;
-begin
-  inherited WorldAfterAttach;
-  RecreateKraftJoint;
-end;
-
-procedure TJointRope.WorldBeforeDetach;
-begin
-  // TODO: how to remove joint
-  //FreeAndNil(FKraftJointRope);
-  inherited WorldBeforeDetach;
-end;
-
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3485,30 +3697,11 @@ begin
 end;
 
 procedure TJointFixed.InitializeKraftJoint;
-var
-  FirstRigidBody: TCastleRigidBody;
-  SecondRigidBody: TCastleRigidBody;
 begin
-  if World = nil then
-    Exit;
-
-  if FConnectedTransform = nil then
-    Exit;
-
-  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if FirstRigidBody = nil then
-    Exit;
-
-  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if SecondRigidBody = nil then
-    Exit;
-
   FKraftJointFixed := TKraftConstraintJointFixed.Create(
     World.FKraftEngine,
-    FirstRigidBody.FKraftBody,
-    SecondRigidBody.FKraftBody,
+    FParentRigidBody.FKraftBody,
+    FConnectedRigidBody.FKraftBody,
     VectorToKraft(Parent.LocalToWorld(FAnchorPoint))
   );
 end;
@@ -3537,19 +3730,6 @@ begin
   inherited Destroy;
 end;
 
-procedure TJointFixed.WorldAfterAttach;
-begin
-  inherited WorldAfterAttach;
-  RecreateKraftJoint;
-end;
-
-procedure TJointFixed.WorldBeforeDetach;
-begin
-  // TODO: how to remove joint
-  //FreeAndNil(FKraftJointFixed);
-  inherited WorldBeforeDetach;
-end;
-
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3571,30 +3751,11 @@ begin
 end;
 
 procedure TJointBall.InitializeKraftJoint;
-var
-  FirstRigidBody: TCastleRigidBody;
-  SecondRigidBody: TCastleRigidBody;
 begin
-  if World = nil then
-    Exit;
-
-  if FConnectedTransform = nil then
-    Exit;
-
-  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if FirstRigidBody = nil then
-    Exit;
-
-  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if SecondRigidBody = nil then
-    Exit;
-
   FKraftJointBall := TKraftConstraintJointBallSocket.Create(
     World.FKraftEngine,
-    FirstRigidBody.FKraftBody,
-    SecondRigidBody.FKraftBody,
+    FParentRigidBody.FKraftBody,
+    FConnectedRigidBody.FKraftBody,
     VectorToKraft(Parent.LocalToWorld(FAnchorPoint))
   );
 end;
@@ -3621,19 +3782,6 @@ begin
   {$undef read_implementation_destructor}
 
   inherited Destroy;
-end;
-
-procedure TJointBall.WorldAfterAttach;
-begin
-  inherited WorldAfterAttach;
-  RecreateKraftJoint;
-end;
-
-procedure TJointBall.WorldBeforeDetach;
-begin
-  // TODO: how to remove joint
-  //FreeAndNil(FKraftJointBall);
-  inherited WorldBeforeDetach;
 end;
 
 {$define read_implementation_methods}
@@ -3682,30 +3830,12 @@ begin
 end;
 
 procedure TJointDistance.InitializeKraftJoint;
-var
-  FirstRigidBody: TCastleRigidBody;
-  SecondRigidBody: TCastleRigidBody;
 begin
-  if World = nil then
-    Exit;
-
-  if FConnectedTransform = nil then
-    Exit;
-
-  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if FirstRigidBody = nil then
-    Exit;
-
-  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if SecondRigidBody = nil then
-    Exit;
-
+  assert(FKraftJointDistance = nil, 'Second joint initialization');
   FKraftJointDistance := TKraftConstraintJointDistance.Create(
     World.FKraftEngine,
-    FirstRigidBody.FKraftBody,
-    SecondRigidBody.FKraftBody,
+    FParentRigidBody.FKraftBody,
+    FConnectedRigidBody.FKraftBody,
     VectorToKraft(FAnchorPoint),
     VectorToKraft(FConnectedAnchorPoint),
     FFrequencyHz,
@@ -3738,41 +3868,6 @@ begin
   inherited Destroy;
 end;
 
-procedure TJointDistance.WorldAfterAttach;
-var
-  FirstRigidBody: TCastleRigidBody;
-  SecondRigidBody: TCastleRigidBody;
-begin
-  inherited WorldAfterAttach;
-
-  FirstRigidBody :=  Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if FirstRigidBody = nil then
-    Exit;
-
-  if ConnectedTransform = nil then
-    Exit;
-
-  SecondRigidBody := ConnectedTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if SecondRigidBody = nil then
-    Exit;
-
-  FKraftJointDistance := TKraftConstraintJointDistance.Create(
-    World.FKraftEngine,
-    FirstRigidBody.FKraftBody,
-    SecondRigidBody.FKraftBody,
-    VectorToKraft(FAnchorPoint),
-    VectorToKraft(FConnectedAnchorPoint)
-  );
-end;
-
-procedure TJointDistance.WorldBeforeDetach;
-begin
-  // TODO: how to remove joint
-  //FreeAndNil(FKraftJointDistance);
-  inherited WorldBeforeDetach;
-end;
 
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointdistance_persistent_vectors.inc}
