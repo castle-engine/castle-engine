@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="981">
+    <Files Count="986">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4029,6 +4029,26 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc"/>
         <Type Value="Include"/>
       </Item981>
+      <Item982>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointball_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item982>
+      <Item983>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointdistance_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item983>
+      <Item984>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item984>
+      <Item985>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item985>
+      <Item986>
+        <Filename Value="../src/transform/auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc"/>
+        <Type Value="Include"/>
+      </Item986>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
