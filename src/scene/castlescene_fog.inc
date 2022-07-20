@@ -51,7 +51,7 @@ type
     { The fog reaches maximum intensity, that is all colors are equal to @link(Color),
       at this distance from the observer. }
     property VisibilityRange: Single read FVisibilityRange write SetVisibilityRange
-      default DefaultVisibilityRange;
+      {$ifdef FPC}default DefaultVisibilityRange{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlefog_persistent_vectors.inc}
