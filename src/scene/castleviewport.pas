@@ -256,6 +256,11 @@ type
       (see TTestCastleViewport.TestAutoCameraIgnoresGizmos). }
     function ItemsBoundingBox: TBox3D;
 
+    { Bounding box of everything, including design-time gizmos (because you also want to see
+      them accounted for in design-time ortho camera ProjectionNear/Far).
+      Similar to just usign Items.BoundingBox, but handles Items=nil case OK. }
+    function ItemsWithGizmosBoundingBox: TBox3D;
+
     { Set the projection parameters and matrix.
       Used by our Render method.
 
@@ -380,8 +385,8 @@ type
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
-      Default2DProjectionFar = CastleTransform.Default2DProjectionFar;
-      Default2DProjectionNear = CastleTransform.Default2DProjectionNear;
+      Default2DProjectionFar = CastleTransform.Default2DProjectionFar deprecated 'this default is not used; ProjectionFar in orthographic projection is now automatically adjusted to what you display';
+      Default2DProjectionNear = CastleTransform.Default2DProjectionNear deprecated 'this default is not used; ProjectionNear in orthographic projection is now automatically adjusted to what you display';
       Default2DCameraZ = CastleTransform.Default2DCameraZ;
       DefaultPrepareOptions = [prRenderSelf, prRenderClones, prBackground, prBoundingBox, prScreenEffects];
       { @exclude }
@@ -2079,6 +2084,14 @@ begin
     Result := TBox3D.Empty;
 end;
 
+function TCastleViewport.ItemsWithGizmosBoundingBox: TBox3D;
+begin
+  if Items <> nil then
+    Result := Items.BoundingBox
+  else
+    Result := TBox3D.Empty;
+end;
+
 procedure TCastleViewport.SetAutoCamera(const Value: Boolean);
 begin
   if FAutoCamera <> Value then
@@ -2170,7 +2183,7 @@ begin
     Exit;
   end;
 
-  Result := InternalCamera.InternalProjection({$ifdef FPC}@{$endif} ItemsBoundingBox,
+  Result := InternalCamera.InternalProjection({$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox,
     ViewportWidth, ViewportHeight,
     InternalCamera = InternalDesignCamera);
 end;
@@ -2504,7 +2517,7 @@ begin
   FRenderParams.RenderingCamera := RenderingCamera;
 
   { calculate FRenderParams.Projection*, simplified from just like CalculateProjection does }
-  FRenderParams.ProjectionBox := {$ifdef FPC}@{$endif} ItemsBoundingBox;
+  FRenderParams.ProjectionBox := {$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox;
   FRenderParams.ProjectionViewportWidth := EffectiveWidthForChildren;
   FRenderParams.ProjectionViewportHeight := EffectiveHeightForChildren;
 

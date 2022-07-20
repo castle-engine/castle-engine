@@ -345,7 +345,9 @@ type
 
       In case of 2D this means we should:
 
-      - Fix Pos.Z, to keep camera to see whole 2D world (including run-time 2D camera).
+      - Fix Pos.Z, to keep camera Z matching current run-time camera.
+        (this seems most natural and simplest camera behavior at design-time,
+        so that design-time camera uses the same Z).
 
       - Fix Pos.XY, to account that Camera.Orthographic.Origin may <> (0.5,0.5).
 
@@ -2164,24 +2166,15 @@ begin
 end;
 
 procedure TDesignFrame.FixCamera2D(const V: TCastleViewport; var Pos: TVector3; const Dir, Up: TVector3);
-var
-  CameraZ, CameraProjectionNear: Single;
 begin
   if (V.InternalCamera.ProjectionType = ptOrthographic) and
      TVector3.Equals(Dir, Vector3(0, 0, -1)) and
      TVector3.Equals(Up, Vector3(0, 1, 0)) then
   begin
     if V.Camera <> nil then
-    begin
-      CameraZ := V.Camera.Translation.Z;
-      CameraProjectionNear := V.Camera.EffectiveProjectionNear;
-    end else
-    begin
-      CameraZ := Default2DCameraZ;
-      CameraProjectionNear := Default2DProjectionNear;
-    end;
-
-    Pos.Z := Max(Pos.Z, CameraZ - CameraProjectionNear + 100);
+      Pos.Z := V.Camera.Translation.Z
+    else
+      Pos.Z := Default2DCameraZ;
 
     Pos.X := Pos.X - (0.5 - V.InternalCamera.Orthographic.Origin.X) * V.InternalCamera.Orthographic.EffectiveRect.Width;
     Pos.Y := Pos.Y - (0.5 - V.InternalCamera.Orthographic.Origin.Y) * V.InternalCamera.Orthographic.EffectiveRect.Height;
@@ -2538,6 +2531,11 @@ var
 
     if (RayHit = nil) and (Viewport.Camera.ProjectionType = ptOrthographic) then
     begin
+      { Note that EffectiveProjectionNear / Far may be zero if not initialized yet
+        (nothing rendered yet from this camera).
+        Though this cannot really happen at CastleControlDragDrop point (as we probably
+        evaluated this camera for gizmo display).
+        In any case, PlaneZ is then 0, and this is good. }
       PlaneZ := (Viewport.Camera.EffectiveProjectionNear + Viewport.Camera.EffectiveProjectionFar) / 2;
       if not TrySimplePlaneRayIntersection(DropPos, 2, PlaneZ, RayOrigin, RayDirection) then
         Exit(false); // camera direction parallel to 3D plane with Z = constant

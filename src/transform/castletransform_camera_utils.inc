@@ -26,9 +26,9 @@ const
   DefaultCameraUp       : TVector3 = (X: 0; Y: 1; Z: 0);
   { @groupEnd }
 
-  Default2DProjectionFar = 1000.0;
-  Default2DProjectionNear = -Default2DProjectionFar;
-  Default2DCameraZ = Default2DProjectionFar / 2;
+  Default2DProjectionFar = 1000.0 deprecated 'this default is not used; ProjectionFar in orthographic projection is now automatically adjusted to what you display';
+  Default2DProjectionNear = - {Default2DProjectionFar}1000.0 deprecated 'this default is not used; ProjectionNear in orthographic projection is now automatically adjusted to what you display';
+  Default2DCameraZ = {Default2DProjectionFar}1000.0 / 2;
 
 { Convert camera direction and up vectors into a rotation (X3D "orientation" vector).
 
@@ -412,6 +412,8 @@ procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
 
   { Calculate Position.Z and AProjectionFar. }
   function PositionZ: Single;
+  const
+    Default2DProjectionFar = 1000.0;
   var
     MinZ, MaxZ: Single;
   begin

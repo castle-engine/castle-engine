@@ -429,8 +429,9 @@
 
       0 (default) means to automatically calculate a correct value.
       Note that automatic calculation differs between
-      perspective projection (looks at the world size and whether shadow volumes are possible)
-      and orthographic projection (uses Default2DProjectionNear).
+      perspective projection (uses DefaultCameraRadius, RadiusToProjectionNear for near,
+      and infinity for far)
+      and orthographic projection (adjusts to scene sizes and distance from camera).
 
       For perspective projection, values <= 0 are invalid.
       So both value = 0 and value < 0 behave the same:
@@ -445,8 +446,9 @@
 
       0 (default) means to automatically calculate a correct value.
       Note that automatic calculation differs between
-      perspective projection (looks at the world size and whether shadow volumes are possible)
-      and orthographic projection (uses Default2DProjectionNear). }
+      perspective projection (uses DefaultCameraRadius, RadiusToProjectionNear for near,
+      and infinity for far)
+      and orthographic projection (adjusts to scene sizes and distance from camera). }
     property ProjectionFar: Single read FProjectionFar write SetProjectionFar {$ifdef FPC}default 0{$endif};
 
     { Perspective or orthographic projection.
@@ -909,29 +911,12 @@ end;
 
 function TCastleCamera.EffectiveProjectionNear: Single;
 begin
-  { Sometimes we can return something valid (usually non-zero)
-    even when ProjectionNear is zero (indicating "autocalculate")
-    before the 1st InternalSetEffectiveProjection call.
-
-    This allows to depend on EffectiveProjectionNear more,
-    which matters for CGE editor design-time viewport manipulations in 2D,
-    that refer to Camera.EffectiveProjectionNear.
-
-    So instead of just returning FEffectiveProjectionNear,
-    we duplicate part of the logic that TCastleViewport.ApplyProjection does.
-
-    Still, trust FEffectiveProjectionNear more (when it is set),
-    e.g. because here (actually in EffectiveProjectionFar)
-    we don't account for special logic for design-time cameras having GetDefaultProjectionFar.
-  }
   if FEffectiveProjectionNear <> 0 then
     Exit(FEffectiveProjectionNear);
 
+  { In this case, we can return something valid even before the 1st InternalSetEffectiveProjection call. }
   if FProjectionNear <> 0 then
     Result := FProjectionNear
-  else
-  if FProjectionType = ptOrthographic then
-    Result := Default2DProjectionNear
   else
     Result := FEffectiveProjectionNear;
 end;
@@ -941,11 +926,9 @@ begin
   if FEffectiveProjectionFar <> 0 then
     Exit(FEffectiveProjectionFar);
 
+  { In this case, we can return something valid even before the 1st InternalSetEffectiveProjection call. }
   if FProjectionFar <> 0 then
     Result := FProjectionFar
-  else
-  if FProjectionType = ptOrthographic then
-    Result := Default2DProjectionFar
   else
     Result := FEffectiveProjectionFar;
 end;
