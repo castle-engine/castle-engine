@@ -14,96 +14,30 @@
         },
         "$Children" : [
           {
-            "$$ClassName" : "TCastleScene",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "SceneBackground",
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
-            },
-            "TranslationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Y" : 1.5000000000000000E+003
-            },
-            "URL" : "castle-data:/background/background.gltf"
-          },
-          {
-            "$$ClassName" : "TCastleScene",
-            "AutoAnimation" : "idle",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "SceneTentacles2",
-            "ProcessEvents" : true,
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "MagnificationFilter" : "magNearest",
-              "MinificationFilter" : "minNearest"
-            },
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "ImageBackground",
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 1.0000000000000000E+001,
-              "Y" : 1.0000000000000000E+001,
-              "Z" : 1.0000000000000000E+001
+              "X" : 1.2000000000000000E+001,
+              "Y" : 1.2000000000000000E+001
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -1.5316165771484375E+003,
-              "Y" : 5.8082641601562500E+002,
-              "Z" : 2.0000000000000000E+001
+              "Y" : 2.0705375976562500E+003
             },
-            "URL" : "castle-data:/spritesheets/tentacles.castle-sprite-sheet"
-          },
-          {
-            "$$ClassName" : "TCastleScene",
-            "AutoAnimation" : "idle",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "SceneTentacles1",
-            "ProcessEvents" : true,
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "MagnificationFilter" : "magNearest",
-              "MinificationFilter" : "minNearest"
-            },
-            "ScalePersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 1.0000000000000000E+001,
-              "Y" : 1.0000000000000000E+001,
-              "Z" : 1.0000000000000000E+001
-            },
-            "TranslationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -1.0759904785156250E+003,
-              "Y" : 5.8082641601562500E+002,
-              "Z" : 2.0000000000000000E+001
-            },
-            "URL" : "castle-data:/spritesheets/tentacles.castle-sprite-sheet"
-          },
-          {
-            "$$ClassName" : "TCastleScene",
-            "AutoAnimation" : "idle",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "SceneMage",
-            "ProcessEvents" : true,
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "MagnificationFilter" : "magNearest",
-              "MinificationFilter" : "minNearest"
-            },
-            "ScalePersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 1.0000000000000000E+001,
-              "Y" : 1.0000000000000000E+001,
-              "Z" : 1.0000000000000000E+001
-            },
-            "TranslationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -8.0679510498046875E+002,
-              "Y" : 2.7088068847656250E+003,
-              "Z" : 5.0000000000000000E+001
-            },
-            "URL" : "castle-data:/spritesheets/disciple.castle-sprite-sheet"
+            "Url" : "castle-data:/background/background_smaller.png",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "ImageTrees",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : -9.3022430419921875E+001,
+                  "Z" : 1.0000000000000000E+001
+                },
+                "Url" : "castle-data:/background/trees_smaller.png"
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -149,6 +83,84 @@
               "Y" : 2.0000000000000000E+003,
               "Z" : 5.0000000000000000E+002
             }
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "idle",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneTentacles2",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "MagnificationFilter" : "magNearest",
+              "MinificationFilter" : "minNearest"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0000000000000000E+001,
+              "Y" : 1.0000000000000000E+001,
+              "Z" : 1.0000000000000000E+001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.5316165771484375E+003,
+              "Y" : 5.8082641601562500E+002,
+              "Z" : 2.0000000000000000E+001
+            },
+            "URL" : "castle-data:/spritesheets/tentacles.castle-sprite-sheet"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "idle",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneMage",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "MagnificationFilter" : "magNearest",
+              "MinificationFilter" : "minNearest"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0000000000000000E+001,
+              "Y" : 1.0000000000000000E+001,
+              "Z" : 1.0000000000000000E+001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -8.0679510498046875E+002,
+              "Y" : 2.7088068847656250E+003,
+              "Z" : 5.0000000000000000E+001
+            },
+            "URL" : "castle-data:/spritesheets/disciple.castle-sprite-sheet"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "idle",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneTentacles1",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "MagnificationFilter" : "magNearest",
+              "MinificationFilter" : "minNearest"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0000000000000000E+001,
+              "Y" : 1.0000000000000000E+001,
+              "Z" : 1.0000000000000000E+001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0759904785156250E+003,
+              "Y" : 5.8082641601562500E+002,
+              "Z" : 2.0000000000000000E+001
+            },
+            "URL" : "castle-data:/spritesheets/tentacles.castle-sprite-sheet"
           }
         ]
       },
