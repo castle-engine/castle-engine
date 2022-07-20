@@ -385,8 +385,10 @@ type
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
+      {$warnings off} // referencing deprecated in deprecated
       Default2DProjectionFar = CastleTransform.Default2DProjectionFar deprecated 'this default is not used; ProjectionFar in orthographic projection is now automatically adjusted to what you display';
       Default2DProjectionNear = CastleTransform.Default2DProjectionNear deprecated 'this default is not used; ProjectionNear in orthographic projection is now automatically adjusted to what you display';
+      {$warnings on}
       Default2DCameraZ = CastleTransform.Default2DCameraZ;
       DefaultPrepareOptions = [prRenderSelf, prRenderClones, prBackground, prBoundingBox, prScreenEffects];
       { @exclude }
