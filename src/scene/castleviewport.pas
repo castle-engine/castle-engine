@@ -3716,7 +3716,7 @@ begin
   Plane := TCastlePlane.Create(Owner);
   Plane.Name := InternalProposeName(TCastlePlane, Owner);
   Plane.Axis := 2;
-  Plane.Size := Vector2(100, 100);
+  Plane.Size := Vector2(200, 200);
   Plane.Material := pmUnlit;
   Items.Add(Plane);
 
@@ -3771,7 +3771,7 @@ begin
     serves as floor to place new 3D stuff }
   Plane := TCastlePlane.Create(Owner);
   Plane.Name := InternalProposeName(TCastlePlane, Owner);
-  Plane.Size := Vector2(5, 5);
+  Plane.Size := Vector2(10, 10);
   Items.Add(Plane);
 
   if InternalDesignManipulation then
