@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -348,6 +348,7 @@
     constructor CreateUndefined(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: string); override;
     destructor Destroy; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
     { Parse MF field. This class handles parsing fully, usually no need to
       override this more in descendants. It uses TSingleField.Parse method. }
@@ -1003,6 +1004,33 @@ begin
 end;
 
 { TMFString ------------------------------------------------------------------ }
+
+function TMFString.FastEqualsValue(SecondValue: TX3DField): boolean;
+
+  function StringsEqual(const S1, S2: TStrings): Boolean;
+  var
+    I: Integer;
+  begin
+    Result := S1.Count = S2.Count;
+    if Result then
+      for I := 0 to S1.Count - 1 do
+        if S1[I] <> S2[I] then
+          Exit(false);
+  end;
+
+begin
+  { It is important to implement useful FastEqualsValue for MFString,
+    not just return false (as most multi-value fields do) because
+    MFString change happens when you do SetUrl.
+    It's useful that TImageTexture.SetUrl multiple times with the same URL
+    does nothing. See:
+
+    https://github.com/castle-engine/castle-engine/issues/304
+    https://gist.github.com/michaliskambi/876992f8fbc04ac869d8994d520383b4
+  }
+  Result := (SecondValue is TMFString) and
+    StringsEqual(Items, TMFString(SecondValue).Items);
+end;
 
 function TMFString.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
