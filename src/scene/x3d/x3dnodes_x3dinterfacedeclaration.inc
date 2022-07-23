@@ -36,6 +36,7 @@
     exposed or not (in case of field), IsClauseNames. }
   TX3DInterfaceDeclaration = class(TX3DFileItem)
   strict private
+    FParentNode: TX3DNode;
     FFieldOrEvent: TX3DFieldOrEvent;
 
     { kept in synch with FFieldOrEvent by SetFieldOrEvent }
@@ -43,8 +44,21 @@
     FEvent: TX3DEvent;
 
     procedure SetFieldOrEvent(const Value: TX3DFieldOrEvent);
-  strict private
-    FParentNode: TX3DNode;
+  private
+    { Create a copy of current FieldOrEvent.
+      Sets NewParentNode as Result.ParentNode.
+      Note the new copy will not have ParentIntefaceDeclaration set
+      (as the idea is that you own created copy, not this TX3DInterfaceDeclaration
+      instance).
+
+      If CopyState is non-nil, then any nodes referenced inside SFNode / MFNode
+      fields and events are copied using DeepCopy (not by simply copying references). }
+    function CopyFieldOrEvent(const NewParentNode: TX3DNode;
+      const CopyState: TX3DNodeDeepCopyState): TX3DFieldOrEvent;
+
+    { Create a copy of current FieldOrEvent, and add it to Node.Fields
+      or Node.Events. }
+    procedure CopyAndAddFieldOrEvent(const Node: TX3DNode);
   public
     constructor Create(AParentNode: TX3DNode);
     destructor Destroy; override;
@@ -64,17 +78,6 @@
       at destruction). }
     property FieldOrEvent: TX3DFieldOrEvent
       read FFieldOrEvent write SetFieldOrEvent;
-
-    { Create a copy of current FieldOrEvent.
-      Sets NewParentNode as Result.ParentNode.
-      Note the new copy will not have ParentIntefaceDeclaration set
-      (as the idea is that you own created copy, not this TX3DInterfaceDeclaration
-      instance). }
-    function CopyFieldOrEvent(NewParentNode: TX3DNode): TX3DFieldOrEvent;
-
-    { Create a copy of current FieldOrEvent, and add it to Node.Fields
-      or Node.Events. }
-    procedure CopyAndAddFieldOrEvent(Node: TX3DNode);
 
     { Copies only reference to FieldOrEvent, adding it to Node.Fields
       or Node.Events. }
@@ -134,8 +137,8 @@
       happen). }
     function AccessType: TX3DAccessType;
 
-    function DeepCopy(NewParentNode: TX3DNode;
-      CopyState: TX3DNodeDeepCopyState): TX3DInterfaceDeclaration;
+    function DeepCopy(const NewParentNode: TX3DNode;
+      const CopyState: TX3DNodeDeepCopyState): TX3DInterfaceDeclaration;
   end;
 
   TX3DInterfaceDeclarationList = class({$ifdef FPC}specialize{$endif}
@@ -343,7 +346,8 @@ begin
 end;
 
 function TX3DInterfaceDeclaration.CopyFieldOrEvent(
-  NewParentNode: TX3DNode): TX3DFieldOrEvent;
+  const NewParentNode: TX3DNode;
+  const CopyState: TX3DNodeDeepCopyState): TX3DFieldOrEvent;
 var
   F: TX3DField absolute Result;
   E: TX3DEvent absolute Result;
@@ -353,7 +357,11 @@ begin
     { F := copy of Field }
     F := TX3DFieldClass(Field.ClassType).CreateUndefined(NewParentNode,
       Field.Exposed, Field.X3DName);
-    F.Assign(Field);
+
+    if CopyState <> nil then
+      F.InternalAssignDeepCopy(Field, CopyState)
+    else
+      F.Assign(Field);
 
     { CreateUndefined creates field without any default value,
       so it will always get saved later to file.
@@ -383,7 +391,10 @@ begin
       some were omitted (like IsClauseNames --- important for Script with
       eventIn/out events with IS clauses inside prototypes).
       Assign call below takes care of them. }
-    E.Assign(Event);
+    if CopyState <> nil then
+      E.InternalAssignDeepCopy(Event, CopyState) // note: for events actually now InternalAssignDeepCopy = Assign
+    else
+      E.Assign(Event);
   end else
     raise EInternalError.Create('interface declaration but no Field or Event');
 
@@ -402,11 +413,11 @@ begin
 end;
 
 procedure TX3DInterfaceDeclaration.CopyAndAddFieldOrEvent(
-  Node: TX3DNode);
+  const Node: TX3DNode);
 var
   Copy: TX3DFieldOrEvent;
 begin
-  Copy := CopyFieldOrEvent(Node);
+  Copy := CopyFieldOrEvent(Node, nil);
   if Copy is TX3DField then
     Node.AddField(TX3DField(Copy)) else
   begin
@@ -564,11 +575,11 @@ begin
 end;
 
 function TX3DInterfaceDeclaration.DeepCopy(
-  NewParentNode: TX3DNode;
-  CopyState: TX3DNodeDeepCopyState): TX3DInterfaceDeclaration;
+  const NewParentNode: TX3DNode;
+  const CopyState: TX3DNodeDeepCopyState): TX3DInterfaceDeclaration;
 begin
   Result := TX3DInterfaceDeclaration.Create(NewParentNode);
-  Result.FieldOrEvent := CopyFieldOrEvent(NewParentNode);
+  Result.FieldOrEvent := CopyFieldOrEvent(NewParentNode, CopyState);
   Result.FieldOrEvent.ParentInterfaceDeclaration := Result;
 end;
 

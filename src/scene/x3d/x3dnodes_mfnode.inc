@@ -35,8 +35,7 @@
     You should never assert that every item actually is one the requested
     classes.  }
   TMFNode = class(TX3DMultField)
-  private
-    FItems: TX3DNodeList;
+  strict private
     FDefaultItems: TX3DNodeList;
     FDefaultValueExists: boolean;
     FParentNode: TX3DNode;
@@ -44,6 +43,13 @@
     AllowedChildrenClasses: TX3DNodeClassesList;
     AllowedChildrenFunctionality: TNodeFunctionalityClass;
     function GetItems(const Index: Integer): TX3DNode;
+    procedure AddSelfParentField(const AItems: TX3DNodeList);
+    procedure AssignItemsDeepCopy(const SourceItems: TX3DNodeList;
+      const CopyState: TX3DNodeDeepCopyState);
+    procedure AssignDefaultItemsDeepCopy(const SourceDefaultItems: TX3DNodeList;
+      const CopyState: TX3DNodeDeepCopyState);
+  private
+    FItems: TX3DNodeList;
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
@@ -112,6 +118,9 @@
     procedure AssignItems(const SourceItems: TX3DNodeList); overload;
     procedure AssignItems(const SourceItems: array of TX3DNode); overload;
 
+    { @exclude }
+    procedure InternalAssignDeepCopy(const Source: TX3DFieldOrEvent; const CopyState: TObject); override;
+
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
     procedure ParseXMLElement(Element: TDOMElement; Reader: TX3DReader); override;
@@ -154,7 +163,7 @@
 
     { Operate on DefaultItems, just like analogous AssignItems and @link(Clear).
       @groupBegin }
-    procedure AssignDefaultItems(SourceItems: TX3DNodeList);
+    procedure AssignDefaultItems(const SourceDefaultItems: TX3DNodeList);
     procedure ClearDefault;
     { @groupEnd }
 
@@ -404,36 +413,57 @@ begin
   FDefaultItems.Count := 0;
 end;
 
-procedure TMFNode.AssignItems(const SourceItems: TX3DNodeList);
+procedure TMFNode.AddSelfParentField(const AItems: TX3DNodeList);
 var
   I: Integer;
 begin
-  Clear;
-  FItems.Assign(SourceItems);
-  for I := 0 to Count - 1 do
-    FItems[I].AddParentField(Self);
+  for I := 0 to AItems.Count - 1 do
+    AItems[I].AddParentField(Self);
 end;
 
 procedure TMFNode.AssignItems(const SourceItems: array of TX3DNode);
+begin
+  Clear;
+  FItems.Assign(SourceItems);
+  AddSelfParentField(FItems);
+end;
+
+procedure TMFNode.AssignItems(const SourceItems: TX3DNodeList);
+begin
+  Clear;
+  FItems.Assign(SourceItems);
+  AddSelfParentField(FItems);
+end;
+
+procedure TMFNode.AssignDefaultItems(const SourceDefaultItems: TX3DNodeList);
+begin
+  ClearDefault;
+  DefaultItems.Assign(SourceDefaultItems);
+  AddSelfParentField(DefaultItems);
+end;
+
+procedure TMFNode.AssignItemsDeepCopy(const SourceItems: TX3DNodeList;
+  const CopyState: TX3DNodeDeepCopyState);
 var
   I: Integer;
 begin
   Clear;
   FItems.Assign(SourceItems);
-  for I := 0 to Count - 1 do
-    FItems[I].AddParentField(Self);
+  for I := 0 to FItems.Count - 1 do
+    FItems[I] := CopyState.DeepCopy(FItems[I]);
+  AddSelfParentField(FItems);
 end;
 
-procedure TMFNode.AssignDefaultItems(SourceItems: TX3DNodeList);
+procedure TMFNode.AssignDefaultItemsDeepCopy(const SourceDefaultItems: TX3DNodeList;
+  const CopyState: TX3DNodeDeepCopyState);
 var
   I: Integer;
 begin
   ClearDefault;
-
-  DefaultItems.Assign(SourceItems);
-
+  DefaultItems.Assign(SourceDefaultItems);
   for I := 0 to DefaultItems.Count - 1 do
-    DefaultItems[I].AddParentField(Self);
+    DefaultItems[I] := CopyState.DeepCopy(DefaultItems[I]);
+  AddSelfParentField(DefaultItems);
 end;
 
 function TMFNode.ChildAllowed(Child: TX3DNode): boolean;
@@ -563,8 +593,23 @@ begin
     AssignDefaultItems(TMFNode(Source).DefaultItems);
     DefaultValueExists := TMFNode(Source).DefaultValueExists;
     VRMLFieldAssignCommon(TX3DField(Source));
+    { When updating this, remember to also update TMFNode.InternalAssignDeepCopy }
   end else
     inherited;
+end;
+
+procedure TMFNode.InternalAssignDeepCopy(const Source: TX3DFieldOrEvent; const CopyState: TObject);
+var
+  GoodCopyState: TX3DNodeDeepCopyState;
+begin
+  Assert(Source is TMFNode);
+  GoodCopyState := CopyState as TX3DNodeDeepCopyState;
+
+  { Similar to TMFNode.Assign }
+  AssignItemsDeepCopy       (TMFNode(Source).FItems      , GoodCopyState);
+  AssignDefaultItemsDeepCopy(TMFNode(Source).DefaultItems, GoodCopyState);
+  DefaultValueExists := TMFNode(Source).DefaultValueExists;
+  VRMLFieldAssignCommon(TX3DField(Source));
 end;
 
 procedure TMFNode.AssignValue(Source: TX3DField);

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -160,6 +160,14 @@
     { Save IS clauses to stream, only for classic encoding.
       For each IS clause, writeln field/event name followed by "IS" clause. }
     procedure SaveToStreamClassicIsClauses(Writer: TX3DWriter);
+
+    { Similar to Assign, but for SFNode / MFNode fields they are copied by DeepCopy,
+      not merely by copying references.
+      Given CopyState is always TX3DNodeDeepCopyState,
+      but it cannot be declared as such here.
+      @exclude }
+    procedure InternalAssignDeepCopy(const Source: TX3DFieldOrEvent;
+      const CopyState: TObject); virtual;
   end;
 
   TX3DFieldOrEventList = {$ifdef FPC}specialize{$endif} TObjectList<TX3DFieldOrEvent>;
@@ -318,6 +326,12 @@ begin
       Writer.WriteIndent(N + ' ');
     Writer.Writeln('IS ' + IsClauseNames[I]);
   end;
+end;
+
+procedure TX3DFieldOrEvent.InternalAssignDeepCopy(const Source: TX3DFieldOrEvent;
+  const CopyState: TObject);
+begin
+  Assign(Source);
 end;
 
 {$endif read_implementation}
