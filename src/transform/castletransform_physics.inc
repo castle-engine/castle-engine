@@ -1168,6 +1168,38 @@
     {$undef read_interface_class}
   end;
 
+  TJointGrab = class (TAbstractOneBodyJoint)
+  private
+    FDampingRatio: Single;
+    FFrequencyHz: Single;
+    FKraftJointGrab: TKraftConstraintJointGrab;
+    FMaximalForce: Single;
+    FWorldPoint: TVector3;
+
+    procedure SetWorldPoint(const AValue: TVector3);
+    procedure SetFrequencyHz(const AValue: Single);
+    procedure SetDampingRatio(const AValue: Single);
+    procedure SetMaximalForce(const AValue: Single);
+
+  strict protected
+    function GetKraftJoint: TKraftConstraintJoint; override;
+    procedure InitializeKraftJoint; override;
+    procedure DeinitializeKraftJoint; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    // TODO: This is world point should be local? Should be synchronized per update?
+    property WorldPoint: TVector3 read FWorldPoint write SetWorldPoint;
+  published
+    property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
+    property DampingRatio: Single read FDampingRatio write SetDampingRatio;
+    property MaximalForce: Single read FMaximalForce write SetMaximalForce {$ifdef FPC}default MaxSingle{$endif};
+
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -3992,6 +4024,92 @@ end;
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointdistance_persistent_vectors.inc}
 {$undef read_implementation_methods}
+
+{ TJointGrab ----------------------------------------------------------------- }
+
+procedure TJointGrab.SetWorldPoint(const AValue: TVector3);
+begin
+  FWorldPoint := AValue;
+  if FKraftJointGrab <> nil then
+    FKraftJointGrab.SetWorldPoint(VectorToKraft(FWorldPoint));
+end;
+
+procedure TJointGrab.SetFrequencyHz(const AValue: Single);
+begin
+  if SameValue(FFrequencyHz, AValue) then
+    Exit;
+
+  FFrequencyHz := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointGrab.SetDampingRatio(const AValue: Single);
+begin
+  if SameValue(FDampingRatio, AValue) then
+    Exit;
+
+  FDampingRatio := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointGrab.SetMaximalForce(const AValue: Single);
+begin
+  if SameValue(FMaximalForce, AValue) then
+    Exit;
+
+  FMaximalForce := AValue;
+  if FKraftJointGrab <> nil then
+    FKraftJointGrab.SetMaximalForce(AValue);
+end;
+
+function TJointGrab.GetKraftJoint: TKraftConstraintJoint;
+begin
+  Result := FKraftJointGrab;
+end;
+
+procedure TJointGrab.InitializeKraftJoint;
+begin
+  Assert(FKraftJointGrab = nil, 'Second joint initialization');
+  FKraftJointGrab := TKraftConstraintJointGrab.Create(
+    World.FKraftEngine,
+    FParentRigidBody.FKraftBody,
+    VectorToKraft(FWorldPoint),
+    FFrequencyHz,
+    FDampingRatio,
+    FMaximalForce
+  );
+end;
+
+procedure TJointGrab.DeinitializeKraftJoint;
+begin
+  FreeAndNil(FKraftJointGrab);
+end;
+
+constructor TJointGrab.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  NeedWorldChangeNotification := true;
+  FWorldPoint := CastleVectors.Vector3(0, 0, 0);
+  FMaximalForce := MaxSingle;
+end;
+
+destructor TJointGrab.Destroy;
+begin
+  inherited Destroy;
+end;
+
+function TJointGrab.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'WorldPoint') or
+     (PropertyName = 'DampingRatio') or
+     (PropertyName = 'FrequencyHz') or
+     (PropertyName = 'MaximalForce') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 
 { TCastleTransform ---------------------------------------------------------- }
 
