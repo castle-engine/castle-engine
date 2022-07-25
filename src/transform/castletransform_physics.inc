@@ -992,12 +992,15 @@
     { We don't need check WorldAfterAttach and WorldBeforeDetach because all
       things are done in TAbstractJoint }
   published
+    { Second transform of physics joint - can't be the Parent of joint }
     property ConnectedTransform: TCastleTransform read FConnectedTransform
       write SetConnectedTransform;
 
     property ConnectedCollide: Boolean read FConnectedCollide
       write SetConnectedCollide default false;
   end;
+
+  EConnectedTransformTheSameAsParent = class (Exception);
 
   TJointHinge = class(TAbstractTwoBodiesJoint)
     private
@@ -3373,6 +3376,10 @@ end;
 procedure TAbstractTwoBodiesJoint.SetConnectedTransform(
   const AConnectedTransform: TCastleTransform);
 begin
+  if (AConnectedTransform <> nil) and (AConnectedTransform = Parent) then
+    raise EConnectedTransformTheSameAsParent.Create(
+      'Can''t set ConnectedTransform to behavior Parent.');
+
   if FConnectedTransform <> AConnectedTransform then
   begin
     if FConnectedTransform <> nil then
