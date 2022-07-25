@@ -3923,6 +3923,8 @@ procedure TJointDistance.SetDampingRatio(const AValue: Single);
 begin
   if SameValue(FDampingRatio, AValue) then
     Exit;
+
+  FDampingRatio := AValue;
   RecreateKraftJoint;
 end;
 
