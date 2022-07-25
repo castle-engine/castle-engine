@@ -995,7 +995,8 @@
     { Second transform of physics joint - can't be the Parent of joint }
     property ConnectedTransform: TCastleTransform read FConnectedTransform
       write SetConnectedTransform;
-
+    { Should connected transforms (ConnectedTransform and Parent)
+      collide - default no }
     property ConnectedCollide: Boolean read FConnectedCollide
       write SetConnectedCollide default false;
   end;
