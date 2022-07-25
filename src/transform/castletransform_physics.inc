@@ -949,7 +949,8 @@
     FConnectedRigidBody: TCastleRigidBody;
     { Stores valu should connected rigid bodies collide or not }
     FConnectedCollide: Boolean;
-
+    { We need observe second connected transform and remove it form
+      FConnectedTransform when second transform is freed }
     FConnectedTransfromFreeObserver: TFreeNotificationObserver;
 
   strict protected
