@@ -928,6 +928,7 @@
     procedure WorldAfterAttach; override;
     procedure WorldBeforeDetach; override;
 
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property BreakThresholdForce:Single read FBreakThresholdForce write SetBreakThresholdForce;
     property BreakThresholdTorque:Single read FBreakThresholdTorque write SetBreakThresholdTorque;
@@ -982,6 +983,9 @@
       callbacks }
     procedure RemoveConnectedRigidBodyEvents;
 
+  public
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+
     { We don't need check WorldAfterAttach and WorldBeforeDetach because all
       things are done in TAbstractJoint }
   published
@@ -1021,6 +1025,8 @@
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
 
+      function PropertySections(const PropertyName: String): TPropertySections; override;
+
       // TODO: This is local point should be world?
       property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
       // TODO: currently this is local and in kraft is world maybe we should
@@ -1056,6 +1062,8 @@
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
 
+      function PropertySections(const PropertyName: String): TPropertySections; override;
+
       // TODO: This is local point should be world?
       property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
       property ConnectedAnchorPoint: TVector3 read FConnectedAnchorPoint
@@ -1082,6 +1090,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+
     // TODO: This is local point should be world?
     property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
   published
@@ -1104,10 +1114,11 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+
     // TODO: This is local point should be world?
     property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
-
-   published
+  published
     {$define read_interface_class}
     {$I auto_generated_persistent_vectors/tjointball_persistent_vectors.inc}
     {$undef read_interface_class}
@@ -1133,6 +1144,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     // TODO: This is local point should be world?
     property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
@@ -3331,6 +3344,16 @@ begin
   end;
 end;
 
+function TAbstractTwoBodiesJoint.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'ConnectedTransform') or
+     (PropertyName = 'ConnectedCollide') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 procedure TAbstractTwoBodiesJoint.SetConnectedTransform(
   const AConnectedTransform: TCastleTransform);
 begin
@@ -3477,6 +3500,16 @@ begin
   inherited ParentBeforeDetach;
 end;
 
+function TAbstractJoint.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'BreakThresholdForce') or
+     (PropertyName = 'BreakThresholdTorque') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 { TJointHinge --------------------------------------------------------------- }
 
 procedure TJointHinge.SetAnchorPoint(const AValue: TVector3);
@@ -3601,6 +3634,21 @@ begin
   inherited Destroy;
 end;
 
+function TJointHinge.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'AnchorPoint') or
+     (PropertyName = 'EnableLimits') or
+     (PropertyName = 'MinimumAngleLimit') or
+     (PropertyName = 'MaximimAngleLimit') or
+     (PropertyName = 'EnableMotor') or
+     (PropertyName = 'MotorSpeed') or
+     (PropertyName = 'RotationAxis') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
@@ -3677,6 +3725,17 @@ begin
   inherited Destroy;
 end;
 
+function TJointRope.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'AnchorPoint') or
+     (PropertyName = 'ConnectedAnchorPoint') or
+     (PropertyName = 'Distance') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3731,6 +3790,15 @@ begin
   inherited Destroy;
 end;
 
+function TJointFixed.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'AnchorPoint') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3783,6 +3851,15 @@ begin
   {$undef read_implementation_destructor}
 
   inherited Destroy;
+end;
+
+function TJointBall.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'AnchorPoint') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}
@@ -3867,6 +3944,18 @@ begin
   {$undef read_implementation_destructor}
 
   inherited Destroy;
+end;
+
+function TJointDistance.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'AnchorPoint') or
+     (PropertyName = 'ConnectedAnchorPoint') or
+     (PropertyName = 'DampingRatio') or
+     (PropertyName = 'FrequencyHz') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 
