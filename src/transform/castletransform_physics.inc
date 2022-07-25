@@ -3719,7 +3719,8 @@ begin
     FConnectedRigidBody.FKraftBody,
     VectorToKraft(FAnchorPoint),
     VectorToKraft(FConnectedAnchorPoint),
-    FDistance
+    FDistance,
+    ConnectedCollide
   );
 end;
 
@@ -3786,7 +3787,8 @@ begin
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
     FConnectedRigidBody.FKraftBody,
-    VectorToKraft(Parent.LocalToWorld(FAnchorPoint))
+    VectorToKraft(Parent.LocalToWorld(FAnchorPoint)),
+    ConnectedCollide
   );
 end;
 
@@ -3849,7 +3851,8 @@ begin
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
     FConnectedRigidBody.FKraftBody,
-    VectorToKraft(Parent.LocalToWorld(FAnchorPoint))
+    VectorToKraft(Parent.LocalToWorld(FAnchorPoint)),
+    ConnectedCollide
   );
 end;
 
@@ -3935,7 +3938,7 @@ end;
 
 procedure TJointDistance.InitializeKraftJoint;
 begin
-  assert(FKraftJointDistance = nil, 'Second joint initialization');
+  Assert(FKraftJointDistance = nil, 'Second joint initialization');
   FKraftJointDistance := TKraftConstraintJointDistance.Create(
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
@@ -3943,7 +3946,8 @@ begin
     VectorToKraft(FAnchorPoint),
     VectorToKraft(FConnectedAnchorPoint),
     FFrequencyHz,
-    FDampingRatio
+    FDampingRatio,
+    ConnectedCollide
   );
 end;
 
