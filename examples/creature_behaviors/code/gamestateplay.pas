@@ -24,49 +24,6 @@ uses Classes,
   CastleTransform, CastleBehaviors, CastleClassUtils;
 
 type
-  { A transformation that automatically synchronizes (in both ways)
-    with a specific TCastleCamera in @link(Camera).
-    This way it is a TCastleTransform instance that expresses
-    a camera of a given TCastleViewport.
-
-    In the most usual case, the camera in @link(Camera) refers
-    to the same TCastleViewport that contains this TCastleCameraTransform
-    instance. So you set it up like this:
-
-    @longCode(#
-      MyCameraTransform := TCastleCameraTransform.Create(...);
-      MyCameraTransform.Camera := Viewport.Camera;
-      Viewport.Items.Add(MyCameraTransform);
-    #)
-
-    TODO: make this automatically added to viewport.
-
-    TODO: make this class just equal TCastleCamera?
-
-    TODO: `RenderOnTop` available on the `TCastleCameraTransform` too, to have it ready.
-
-    TODO: move to some core unit
-  }
-  TCastleCameraTransform = class(TCastleTransform)
-  strict private
-    InsideSynchronizeFromCamera: Cardinal;
-    FCamera: TCastleCamera;
-    FCameraObserver: TFreeNotificationObserver;
-    procedure SynchronizeToCamera;
-    procedure SynchronizeFromCamera;
-    procedure CameraFreeNotification(const Sender: TFreeNotificationObserver);
-    procedure SetCamera(const Value: TCastleCamera);
-  protected
-    procedure ChangedTransform; override;
-  public
-    constructor Create(AOwner: TComponent); override;
-    procedure Render(const Params: TRenderParams); override;
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-  published
-    { Camera synchronized with this TCastleCameraTransform instance. }
-    property Camera: TCastleCamera read FCamera write SetCamera;
-  end;
-
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
   private
@@ -76,7 +33,6 @@ type
     WalkNavigation: TCastleWalkNavigation;
 
     Enemies: TCastleTransformList;
-    Player: TCastleCameraTransform;
     PlayerAlive: TCastleAliveBehavior;
   public
     constructor Create(AOwner: TComponent); override;
@@ -94,95 +50,6 @@ implementation
 uses SysUtils, Math,
   CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils,
   GameStateMenu;
-
-{ TCastleCameraTransform ----------------------------------------------------- }
-
-constructor TCastleCameraTransform.Create(AOwner: TComponent);
-begin
-  inherited;
-  FCameraObserver := TFreeNotificationObserver.Create(Self);
-  FCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CameraFreeNotification;
-end;
-
-procedure TCastleCameraTransform.SetCamera(const Value: TCastleCamera);
-begin
-  if FCamera <> Value then
-  begin
-    FCamera := Value;
-    FCameraObserver.Observed := Value;
-  end;
-end;
-
-procedure TCastleCameraTransform.CameraFreeNotification(
-  const Sender: TFreeNotificationObserver);
-begin
-  Camera := nil;
-end;
-
-procedure TCastleCameraTransform.SynchronizeToCamera;
-var
-  P, D, U: TVector3;
-begin
-  // avoid recursive calls between SynchronizeToCamera and SynchronizeFromCamera
-  if InsideSynchronizeFromCamera <> 0 then Exit;
-
-  // synchronize Position, Direction, Up *to* Camera
-  if Camera <> nil then
-  begin
-    GetView(P, D, U);
-    if Parent <> nil then
-    begin
-      P := Parent.LocalToWorld(P);
-      D := Parent.LocalToWorldDirection(D);
-      U := Parent.LocalToWorldDirection(U);
-    end;
-    Camera.SetView(P, D, U);
-  end;
-end;
-
-procedure TCastleCameraTransform.SynchronizeFromCamera;
-var
-  P, D, U: TVector3;
-begin
-  // synchronize Position, Direction, Up *from* Camera
-  if Camera  <> nil then
-  begin
-    Camera.GetView(P, D, U);
-    if Parent <> nil then
-    begin
-      P := Parent.WorldToLocal(P);
-      D := Parent.WorldToLocalDirection(D);
-      U := Parent.WorldToLocalDirection(U);
-    end;
-    Inc(InsideSynchronizeFromCamera);
-    SetView(P, D, U);  // this causes ChangedTransform which causes SynchronizeToCamera
-    Dec(InsideSynchronizeFromCamera);
-  end;
-end;
-
-procedure TCastleCameraTransform.ChangedTransform;
-begin
-  inherited;
-  SynchronizeToCamera;
-end;
-
-procedure TCastleCameraTransform.Render(const Params: TRenderParams);
-begin
-  { Do this before rendering, otherwise we could display children in unsynchronized
-    position/orientation.
-    That's because Camera could change after our Update, but before rendering.
-    (Testcase: move/rotate using touch control
-    in fps_game when you have shooting_eye.) }
-  SynchronizeFromCamera;
-  inherited;
-end;
-
-procedure TCastleCameraTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-begin
-  inherited;
-  if not Exists then Exit;
-  SynchronizeFromCamera;
-end;
 
 { TStatePlay ----------------------------------------------------------------- }
 
@@ -205,12 +72,8 @@ begin
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
   WalkNavigation := DesignedComponent('WalkNavigation') as TCastleWalkNavigation;
 
-  Player := TCastleCameraTransform.Create(FreeAtStop);
-  Player.Camera := MainViewport.Camera;
-  MainViewport.Items.Add(Player);
-
   PlayerAlive := TCastleAliveBehavior.Create(FreeAtStop);
-  Player.AddBehavior(PlayerAlive);
+  MainViewport.Camera.AddBehavior(PlayerAlive);
 
   { Initialize Enemies }
   Enemies := TCastleTransformList.Create(false);
