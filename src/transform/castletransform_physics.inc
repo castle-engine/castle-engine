@@ -986,6 +986,9 @@
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { We need to check if sometimes the connected castle transform is not
+      the parent node and we need change the connected node to nil then }
+    procedure ParentAfterAttach; override;
     { We don't need check WorldAfterAttach and WorldBeforeDetach because all
       things are done in TAbstractJoint }
   published
@@ -3352,6 +3355,19 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TAbstractTwoBodiesJoint.ParentAfterAttach;
+begin
+  { Remove connected transform if new parent is the same transform }
+  if Parent = FConnectedTransform then
+  begin
+    WritelnWarning('I disconnect the connected transform because it is the same transform as parent.');
+    RemoveConnectedRigidBodyEvents;
+    FConnectedRigidBody := nil;
+    RemoveConnectedTransformEvents;
+    FConnectedTransform := nil;
+  end;
 end;
 
 procedure TAbstractTwoBodiesJoint.SetConnectedTransform(
