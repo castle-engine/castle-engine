@@ -1198,6 +1198,9 @@
     property DampingRatio: Single read FDampingRatio write SetDampingRatio;
     property MaximalForce: Single read FMaximalForce write SetMaximalForce {$ifdef FPC}default MaxSingle{$endif};
 
+    {$define read_interface_class}
+    {$I auto_generated_persistent_vectors/tjointgrab_persistent_vectors.inc}
+    {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -3693,7 +3696,7 @@ end;
 function TJointHinge.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'AnchorPoint') or
+  if (PropertyName = 'AnchorPointPersistent') or
      (PropertyName = 'EnableLimits') or
      (PropertyName = 'MinimumAngleLimit') or
      (PropertyName = 'MaximimAngleLimit') or
@@ -3785,8 +3788,8 @@ end;
 function TJointRope.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'AnchorPoint') or
-     (PropertyName = 'ConnectedAnchorPoint') or
+  if (PropertyName = 'AnchorPointPersistent') or
+     (PropertyName = 'ConnectedAnchorPointPersistent') or
      (PropertyName = 'Distance') then
     Result := [psBasic]
   else
@@ -3851,7 +3854,7 @@ end;
 function TJointFixed.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'AnchorPoint') then
+  if (PropertyName = 'AnchorPointPersistent') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -3915,7 +3918,7 @@ end;
 function TJointBall.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'AnchorPoint') then
+  if (PropertyName = 'AnchorPointPersistent') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -4011,8 +4014,8 @@ end;
 function TJointDistance.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'AnchorPoint') or
-     (PropertyName = 'ConnectedAnchorPoint') or
+  if (PropertyName = 'AnchorPointPersistent') or
+     (PropertyName = 'ConnectedAnchorPointPersistent') or
      (PropertyName = 'DampingRatio') or
      (PropertyName = 'FrequencyHz') then
     Result := [psBasic]
@@ -4091,17 +4094,24 @@ begin
   NeedWorldChangeNotification := true;
   FWorldPoint := CastleVectors.Vector3(0, 0, 0);
   FMaximalForce := MaxSingle;
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tjointgrab_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TJointGrab.Destroy;
 begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tjointgrab_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
   inherited Destroy;
 end;
 
 function TJointGrab.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'WorldPoint') or
+  if (PropertyName = 'WorldPointPersistent') or
      (PropertyName = 'DampingRatio') or
      (PropertyName = 'FrequencyHz') or
      (PropertyName = 'MaximalForce') then
@@ -4110,6 +4120,9 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tjointgrab_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TCastleTransform ---------------------------------------------------------- }
 
