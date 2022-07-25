@@ -79,6 +79,7 @@ end;
 {$I castlepropedits_float.inc}
 {$I castlepropedits_exposetransforms.inc}
 {$I castlepropedits_rangeset.inc}
+{$I castlepropedits_abstracttwobodiesjoint.inc}
 
 procedure Register;
 begin
@@ -162,6 +163,9 @@ begin
 
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Scene',
     TMeshColliderScenePropertyEditor);
+
+  RegisterPropertyEditor(TypeInfo(TCastleTransform), TAbstractTwoBodiesJoint, 'ConnectedTransform',
+    TConnectedTransformPropertyEditor);
 
   RegisterPropertyEditor(TypeInfo(T3DCoords), TCastleRigidBody, 'LockTranslation',
     T3DCoordsRangeSetPropertyEditor);

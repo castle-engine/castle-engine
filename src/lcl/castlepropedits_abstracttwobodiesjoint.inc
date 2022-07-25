@@ -16,38 +16,47 @@
 
 { TCastle property editor. }
 
-{ TMeshColliderScenePropertyEditor ------------------------------------------ }
+{ TConnectedTransformPropertyEditor ------------------------------------------ }
 
 type
-  TMeshColliderScenePropertyEditor = class(TPersistentPropertyEditor)
 
+  { Removes behavior parent transform from list of transfroms that can be connected }
+  TConnectedTransformPropertyEditor = class(TPersistentPropertyEditor)
   strict private
-    FProc: TGetStrProc;
+    FProc: TGetStrProc; // used by FilterValues
+
     procedure FilterValues(const S: String);
   public
     procedure GetValues(Proc: TGetStrProc); override;
   end;
 
-procedure TMeshColliderScenePropertyEditor.FilterValues(const S: String);
+procedure TConnectedTransformPropertyEditor.FilterValues(const S: String);
 var
   Persistent: TPersistent;
   CastleTransform: TCastleTransform;
+  ParentCastleTransform: TCastleTransform;
 begin
   if Assigned(PropertyHook) and Assigned(FProc) then
   begin
     Persistent := PropertyHook.GetComponent(S);
     CastleTransform := Persistent as TCastleTransform;
 
-    if Assigned(CastleTransform) and CastleTransform.HasColliderMesh then
-      FProc(S);
+    if GetInstProp^.Instance is TCastleBehavior then
+    begin
+      ParentCastleTransform := (GetInstProp^.Instance as TCastleBehavior).Parent;
+
+      if CastleTransform <> ParentCastleTransform then
+        FProc(S);
+    end;
   end;
 end;
 
-procedure TMeshColliderScenePropertyEditor.GetValues(Proc: TGetStrProc);
+procedure TConnectedTransformPropertyEditor.GetValues(Proc: TGetStrProc);
 begin
   FProc := Proc; // used by FilterValues
   Proc(oisNone); // add none value
   if Assigned(PropertyHook) then
     PropertyHook.GetComponentNames(GetTypeData(GetPropType), @FilterValues);
 end;
+
 
