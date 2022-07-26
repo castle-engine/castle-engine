@@ -4036,10 +4036,10 @@ constructor TJointDistance.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FAnchorPoint := Vector3(0, 0, 0);
-  FConnectedAnchorPoint := Vector3(0, 0, 0);
+  FAnchorPoint := CastleVectors.Vector3(0, 0, 0);
+  FConnectedAnchorPoint := CastleVectors.Vector3(0, 0, 0);
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tjointdistance_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
