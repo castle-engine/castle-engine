@@ -1013,6 +1013,7 @@
       FMaximumAngleLimit: Single;
       FEnableLimits: Boolean;
       FEnableMotor: Boolean;
+      FMaximumMotorTorque: Single;
 
       procedure SetAnchorPoint(const AValue: TVector3);
       procedure SetRotationAxis(const AValue: TVector3);
@@ -1022,6 +1023,7 @@
       procedure SetEnableMotor(const AValue: Boolean);
       procedure SetMotorSpeed(const AValue: Single);
       function GetMotorSpeed: Single;
+      procedure SetMaximumMotorTorque(const AValue: Single);
 
     strict protected
       function GetKraftJoint: TKraftConstraintJoint; override;
@@ -1045,6 +1047,8 @@
       property MaximimAngleLimit: Single read FMaximumAngleLimit write SetMaximumAngleLimit;
       property EnableMotor: Boolean read FEnableMotor write SetEnableMotor;
       property MotorSpeed: Single read GetMotorSpeed write SetMotorSpeed;
+      property MaximumMotorTorque: Single read FMaximumMotorTorque
+        write SetMaximumMotorTorque;
       {$define read_interface_class}
       {$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
       {$undef read_interface_class}
@@ -3680,6 +3684,16 @@ begin
   Result := FMotorSpeed;
 end;
 
+procedure TJointHinge.SetMaximumMotorTorque(const AValue: Single);
+begin
+  if SameValue(FMaximumMotorTorque, AValue) then
+    Exit;
+
+  FMaximumMotorTorque := AValue;
+  if FKraftJointHinge <> nil then
+    FKraftJointHinge.SetMaximalMotorTorque(FMaximumMotorTorque);
+end;
+
 function TJointHinge.GetKraftJoint: TKraftConstraintJoint;
 begin
   Result := FKraftJointHinge;
@@ -3698,7 +3712,7 @@ begin
     FMinimumAngleLimit,
     FMaximumAngleLimit,
     FMotorSpeed,
-    0.0,
+    FMaximumMotorTorque,
     ConnectedCollide
   );
   FKraftJointHinge.SetMinimumAngleLimit(FMinimumAngleLimit);
@@ -3743,6 +3757,7 @@ begin
      (PropertyName = 'MaximimAngleLimit') or
      (PropertyName = 'EnableMotor') or
      (PropertyName = 'MotorSpeed') or
+     (PropertyName = 'MaximumMotorTorque') or
      (PropertyName = 'RotationAxis') then
     Result := [psBasic]
   else
