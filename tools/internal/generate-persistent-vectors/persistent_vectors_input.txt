@@ -80,6 +80,8 @@
 ../../../src/transform/ TJointPulley ConnectedWorldAnchorPoint TVector3
 ../../../src/transform/ TJointPulley WorldGroundAnchorPoint TVector3
 ../../../src/transform/ TJointPulley ConnectedWorldGroundAnchorPoint TVector3
+../../../src/transform/ TJointWorldPlaneDistance AnchorPoint TVector3
+../../../src/transform/ TJointWorldPlaneDistance PlaneNormal TVector3
 
 ../../../src/transform/ TCastleCamera GravityUp TVector3
 

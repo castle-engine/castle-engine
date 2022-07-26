@@ -1284,6 +1284,9 @@
     property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
     property DampingRatio: Single read FDampingRatio write SetDampingRatio;
 
+    {$define read_interface_class}
+    {$I auto_generated_persistent_vectors/tjointworldplanedistance_persistent_vectors.inc}
+    {$undef read_interface_class}
   end;
 
 
@@ -4442,19 +4445,38 @@ begin
   FAnchorPoint := CastleVectors.Vector3(0, 0, 0);
   FPlaneNormal := CastleVectors.Vector3(0, 1, 0);
   inherited Create(AOwner);
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tjointworldplanedistance_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TJointWorldPlaneDistance.Destroy;
 begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tjointworldplanedistance_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
   inherited Destroy;
 end;
 
 function TJointWorldPlaneDistance.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  Result := inherited PropertySections(PropertyName);
+  if (PropertyName = 'AnchorPointPersistent') or
+     (PropertyName = 'PlaneNormalPersistent') or
+     (PropertyName = 'PlaneDistance') or
+     (PropertyName = 'WorldDistance') or
+     (PropertyName = 'FrequencyHz') or
+     (PropertyName = 'DampingRatio') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tjointworldplanedistance_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TCastleTransform ---------------------------------------------------------- }
 
