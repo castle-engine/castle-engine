@@ -3662,7 +3662,7 @@ begin
   FEnableMotor := AValue;
 
   if FKraftJointHinge <> nil then
-    FKraftJointHinge.EnableLimit(AValue);
+    FKraftJointHinge.EnableMotor(AValue);
 end;
 
 procedure TJointHinge.SetMotorSpeed(const AValue: Single);
