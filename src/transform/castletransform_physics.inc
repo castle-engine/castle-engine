@@ -1247,6 +1247,45 @@
       {$undef read_interface_class}
   end;
 
+  TJointWorldPlaneDistance = class (TAbstractOneBodyJoint)
+  private
+    FKraftJointWorldPlaneDistance: TKraftConstraintJointWorldPlaneDistance;
+    FAnchorPoint: TVector3;
+    FPlaneNormal: TVector3;
+    FPlaneDistance: Single;
+    FWorldDistance: Single;
+    FDoubleSidedWorldPlane: Boolean;
+    FFrequencyHz: Single;
+    FDampingRatio: Single;
+
+    procedure SetAnchorPoint(const AValue: TVector3);
+    procedure SetPlaneNormal(const AValue: TVector3);
+    procedure SetPlaneDistance(const AValue: Single);
+    procedure SetWorldDistance(const AValue: Single);
+    procedure SetFrequencyHz(const AValue: Single);
+    procedure SetDampingRatio(const AValue: Single);
+    procedure DoubleSidedWorldPlane(const AValue: Boolean);
+
+  strict protected
+    function GetKraftJoint: TKraftConstraintJoint; override;
+    procedure InitializeKraftJoint; override;
+    procedure DeinitializeKraftJoint; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
+    property PlaneNormal: TVector3 read FPlaneNormal write SetPlaneNormal;
+  published
+    property PlaneDistance: Single read FPlaneDistance write SetPlaneDistance;
+    property WorldDistance: Single read FWorldDistance write SetWorldDistance;
+    property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
+    property DampingRatio: Single read FDampingRatio write SetDampingRatio;
+
+  end;
+
 
 {$endif read_interface}
 
@@ -4303,6 +4342,119 @@ end;
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointpulley_persistent_vectors.inc}
 {$undef read_implementation_methods}
+
+{ TJointWorldPlaneDistance --------------------------------------------------- }
+
+procedure TJointWorldPlaneDistance.SetAnchorPoint(const AValue: TVector3);
+begin
+  if TVector3.Equals(FAnchorPoint, AValue) then
+    Exit;
+
+  FAnchorPoint := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointWorldPlaneDistance.SetPlaneNormal(const AValue: TVector3);
+begin
+  if TVector3.Equals(FPlaneNormal, AValue) then
+    Exit;
+
+  FPlaneNormal := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointWorldPlaneDistance.SetPlaneDistance(const AValue: Single);
+begin
+  if SameValue(FPlaneDistance, AValue) then
+    Exit;
+
+  FPlaneDistance := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointWorldPlaneDistance.SetWorldDistance(const AValue: Single);
+begin
+  if SameValue(FWorldDistance, AValue) then
+    Exit;
+
+  FWorldDistance := AValue;
+  if FKraftJointWorldPlaneDistance <> nil then
+    FKraftJointWorldPlaneDistance.SetWorldDistance(FWorldDistance);
+end;
+
+procedure TJointWorldPlaneDistance.SetFrequencyHz(const AValue: Single);
+begin
+  if SameValue(FFrequencyHz, AValue) then
+    Exit;
+
+  FFrequencyHz := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointWorldPlaneDistance.SetDampingRatio(const AValue: Single);
+begin
+  if SameValue(FDampingRatio, AValue) then
+    Exit;
+
+  FDampingRatio := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointWorldPlaneDistance.DoubleSidedWorldPlane(const AValue: Boolean);
+begin
+  if FDoubleSidedWorldPlane = AValue then
+    Exit;
+
+  FDoubleSidedWorldPlane := AValue;
+  RecreateKraftJoint;
+end;
+
+function TJointWorldPlaneDistance.GetKraftJoint: TKraftConstraintJoint;
+begin
+  Result := FKraftJointWorldPlaneDistance;
+end;
+
+procedure TJointWorldPlaneDistance.InitializeKraftJoint;
+begin
+  Assert(FKraftJointWorldPlaneDistance = nil, 'Second joint initialization');
+  FKraftJointWorldPlaneDistance := TKraftConstraintJointWorldPlaneDistance.Create(
+    World.FKraftEngine,
+    FParentRigidBody.FKraftBody,
+    VectorToKraft(FAnchorPoint),
+    Plane(Vector3Norm(VectorToKraft(FPlaneNormal)), FPlaneDistance),
+    FDoubleSidedWorldPlane,
+    FWorldDistance,
+    kclbLimitDistance,
+    FFrequencyHz,
+    FDampingRatio
+  );
+  FKraftJointWorldPlaneDistance.BreakThresholdForce := FBreakThresholdForce;
+  FKraftJointWorldPlaneDistance.BreakThresholdTorque := FBreakThresholdTorque;
+end;
+
+procedure TJointWorldPlaneDistance.DeinitializeKraftJoint;
+begin
+  FreeAndNil(FKraftJointWorldPlaneDistance);
+end;
+
+constructor TJointWorldPlaneDistance.Create(AOwner: TComponent);
+begin
+  FAnchorPoint := CastleVectors.Vector3(0, 0, 0);
+  FPlaneNormal := CastleVectors.Vector3(0, 1, 0);
+  inherited Create(AOwner);
+end;
+
+destructor TJointWorldPlaneDistance.Destroy;
+begin
+  inherited Destroy;
+end;
+
+function TJointWorldPlaneDistance.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  Result := inherited PropertySections(PropertyName);
+end;
+
 
 { TCastleTransform ---------------------------------------------------------- }
 
