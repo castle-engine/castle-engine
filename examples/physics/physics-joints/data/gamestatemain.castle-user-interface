@@ -74,6 +74,12 @@
                   "Y" : 1.0000000000000000E+000,
                   "Z" : 1.0000000000000000E+000
                 }
+              },
+              {
+                "$$ClassName" : "TJointRope",
+                "ConnectedTransform" : "BoxRopeEndPoint",
+                "Distance" : 3.0000000000000000E+002,
+                "Name" : "JointRope1"
               }
             ]
           },
@@ -236,6 +242,13 @@
                   "Y" : 1.0000000000000000E+000,
                   "Z" : 1.0000000000000000E+000
                 }
+              },
+              {
+                "$$ClassName" : "TJointHinge",
+                "ConnectedTransform" : "BoxHinge",
+                "EnableLimits" : false,
+                "EnableMotor" : false,
+                "Name" : "JointHinge1"
               }
             ]
           },
@@ -380,6 +393,11 @@
                   "Y" : 1.0000000000000000E+000,
                   "Z" : 1.0000000000000000E+000
                 }
+              },
+              {
+                "$$ClassName" : "TJointFixed",
+                "ConnectedTransform" : "BoxFixed",
+                "Name" : "JointFixed1"
               }
             ]
           },
@@ -514,6 +532,11 @@
                   "Y" : 1.0000000000000000E+000,
                   "Z" : 1.0000000000000000E+000
                 }
+              },
+              {
+                "$$ClassName" : "TJointBall",
+                "ConnectedTransform" : "BoxBall",
+                "Name" : "JointBall1"
               }
             ]
           },
@@ -682,7 +705,7 @@
           "$$ClassName" : "TCastleVector3Persistent",
           "X" : 7.9978448486328125E+002,
           "Y" : 6.8881915283203125E+002,
-          "Z" : 2.3641647949218750E+003
+          "Z" : 2.1780187988281250E+003
         }
       },
       "InternalDesignNavigationType" : 2,
