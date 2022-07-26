@@ -1203,6 +1203,44 @@
     {$undef read_interface_class}
   end;
 
+  TJointPulley = class(TAbstractTwoBodiesJoint)
+    private
+      FKraftJointPulley: TKraftConstraintJointPulley;
+      FWordGroundAnchorPoint: TVector3;
+      FWorldAnchorPoint: TVector3;
+      FWorldGroundAnchorPoint: TVector3;
+      FConnectedWorldAnchorPoint: TVector3;
+      FConnectedWorldGroundAnchorPoint: TVector3;
+      FRatio: Single;
+
+      procedure SetWorldAnchorPoint(const AValue: TVector3);
+      procedure SetConnectedWorldAnchorPoint(const AValue: TVector3);
+      procedure SetWorldGroundAnchorPoint(const AValue: TVector3);
+      procedure SetConnectedWorldGroundAnchorPoint(const AValue: TVector3);
+      procedure SetRatio(const AValue: Single);
+    strict protected
+      function GetKraftJoint: TKraftConstraintJoint; override;
+      procedure InitializeKraftJoint; override;
+      procedure DeinitializeKraftJoint; override;
+
+    public
+      constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
+
+      function PropertySections(const PropertyName: String): TPropertySections; override;
+
+      property WorldAnchorPoint: TVector3 read FWorldAnchorPoint write SetWorldAnchorPoint;
+      property ConnectedWorldAnchorPoint: TVector3 read FConnectedWorldAnchorPoint
+        write SetConnectedWorldAnchorPoint;
+      property WorldGroundAnchorPoint: TVector3 read FWordGroundAnchorPoint
+        write SetWorldGroundAnchorPoint;
+      property ConnectedWorldGroundAnchorPoint: TVector3
+        read FConnectedWorldGroundAnchorPoint write SetConnectedWorldGroundAnchorPoint;
+    published
+      property Ratio: Single read FRatio write SetRatio {$ifdef FPC}default 1.0{$endif};
+  end;
+
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -4123,6 +4161,108 @@ end;
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tjointgrab_persistent_vectors.inc}
 {$undef read_implementation_methods}
+
+{ TJointPulley ---------------------------------------------------------------- }
+
+procedure TJointPulley.SetWorldAnchorPoint(const AValue: TVector3);
+begin
+  if TVector3.Equals(FWorldAnchorPoint, AValue) then
+    Exit;
+
+  FWorldAnchorPoint := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointPulley.SetConnectedWorldAnchorPoint(const AValue: TVector3);
+begin
+  if TVector3.Equals(FConnectedWorldAnchorPoint, AValue) then
+    Exit;
+
+  FConnectedWorldAnchorPoint := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointPulley.SetWorldGroundAnchorPoint(const AValue: TVector3);
+begin
+  if TVector3.Equals(FWorldGroundAnchorPoint, AValue) then
+    Exit;
+
+  FWorldGroundAnchorPoint := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointPulley.SetConnectedWorldGroundAnchorPoint(const AValue: TVector3
+  );
+begin
+  if TVector3.Equals(FConnectedWorldGroundAnchorPoint, AValue) then
+    Exit;
+
+  FConnectedWorldGroundAnchorPoint := AValue;
+  RecreateKraftJoint;
+end;
+
+procedure TJointPulley.SetRatio(const AValue: Single);
+begin
+  if SameValue(FRatio, AValue) then
+    Exit;
+
+  FRatio := AValue;
+  RecreateKraftJoint;
+end;
+
+function TJointPulley.GetKraftJoint: TKraftConstraintJoint;
+begin
+  Result := FKraftJointPulley;
+end;
+
+procedure TJointPulley.InitializeKraftJoint;
+begin
+  Assert(FKraftJointPulley = nil, 'Second joint initialization');
+  FKraftJointPulley := TKraftConstraintJointPulley.Create(
+    World.FKraftEngine,
+    FParentRigidBody.FKraftBody,
+    FConnectedRigidBody.FKraftBody,
+    VectorToKraft(FWorldAnchorPoint),
+    VectorToKraft(FConnectedWorldAnchorPoint),
+    VectorToKraft(FWorldGroundAnchorPoint),
+    VectorToKraft(FConnectedWorldGroundAnchorPoint),
+    FRatio,
+    ConnectedCollide
+  );
+end;
+
+procedure TJointPulley.DeinitializeKraftJoint;
+begin
+  FreeAndNil(FKraftJointPulley);
+end;
+
+constructor TJointPulley.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FWorldAnchorPoint := CastleVectors.Vector3(0, 0, 0);
+  FWorldGroundAnchorPoint := CastleVectors.Vector3(0, 0, 0);
+  FConnectedWorldAnchorPoint := CastleVectors.Vector3(0, 0, 0);
+  FConnectedWorldGroundAnchorPoint := CastleVectors.Vector3(0, 0, 0);
+  FRatio := 1.0;
+end;
+
+destructor TJointPulley.Destroy;
+begin
+  inherited Destroy;
+end;
+
+function TJointPulley.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if (PropertyName = 'WorldAnchorPointPersistent') or
+     (PropertyName = 'ConnectedWorldAnchorPointPersistent') or
+     (PropertyName = 'WorldGroundAnchorPointPersistent') or
+     (PropertyName = 'ConnectedWorldGroundAnchorPointPersistent') or
+     (PropertyName = 'Ratio') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
 
 { TCastleTransform ---------------------------------------------------------- }
 
