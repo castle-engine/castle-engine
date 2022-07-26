@@ -3715,11 +3715,6 @@ begin
     FMaximumMotorTorque,
     ConnectedCollide
   );
-  FKraftJointHinge.SetMinimumAngleLimit(FMinimumAngleLimit);
-  FKraftJointHinge.SetMaximumAngleLimit(FMaximumAngleLimit);
-  FKraftJointHinge.EnableLimit(FEnableLimits);
-  FKraftJointHinge.EnableMotor(FEnableMotor);
-  FKraftJointHinge.SetMotorSpeed(FMotorSpeed);
 end;
 
 procedure TJointHinge.DeinitializeKraftJoint;
