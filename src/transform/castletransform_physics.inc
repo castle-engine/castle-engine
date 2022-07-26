@@ -1206,7 +1206,6 @@
   TJointPulley = class(TAbstractTwoBodiesJoint)
     private
       FKraftJointPulley: TKraftConstraintJointPulley;
-      FWordGroundAnchorPoint: TVector3;
       FWorldAnchorPoint: TVector3;
       FWorldGroundAnchorPoint: TVector3;
       FConnectedWorldAnchorPoint: TVector3;
@@ -1232,7 +1231,7 @@
       property WorldAnchorPoint: TVector3 read FWorldAnchorPoint write SetWorldAnchorPoint;
       property ConnectedWorldAnchorPoint: TVector3 read FConnectedWorldAnchorPoint
         write SetConnectedWorldAnchorPoint;
-      property WorldGroundAnchorPoint: TVector3 read FWordGroundAnchorPoint
+      property WorldGroundAnchorPoint: TVector3 read FWorldGroundAnchorPoint
         write SetWorldGroundAnchorPoint;
       property ConnectedWorldGroundAnchorPoint: TVector3
         read FConnectedWorldGroundAnchorPoint write SetConnectedWorldGroundAnchorPoint;
