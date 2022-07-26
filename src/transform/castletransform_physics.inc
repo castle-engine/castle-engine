@@ -1157,7 +1157,7 @@
     // TODO: This is local point should be world?
     property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
     // TODO: This is local point should be world?
-    property ConnectedAnchorPoint: TVector3 read FAnchorPoint
+    property ConnectedAnchorPoint: TVector3 read FConnectedAnchorPoint
       write SetConnectedAnchorPoint;
   published
     property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
