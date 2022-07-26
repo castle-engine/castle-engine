@@ -117,4 +117,5 @@ initialization
   RegisterSerializableComponent(TJointBall, 'Joint Ball');
   RegisterSerializableComponent(TJointDistance, 'Joint Distance');
   RegisterSerializableComponent(TJointGrab, 'Joint Grab');
+  RegisterSerializableComponent(TJointPulley, 'Joint Pulley');
 end.

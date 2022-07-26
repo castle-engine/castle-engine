@@ -76,6 +76,10 @@
 ../../../src/transform/ TJointDistance AnchorPoint TVector3
 ../../../src/transform/ TJointDistance ConnectedAnchorPoint TVector3
 ../../../src/transform/ TJointGrab WorldPoint TVector3
+../../../src/transform/ TJointPulley WorldAnchorPoint TVector3
+../../../src/transform/ TJointPulley ConnectedWorldAnchorPoint TVector3
+../../../src/transform/ TJointPulley WorldGroundAnchorPoint TVector3
+../../../src/transform/ TJointPulley ConnectedWorldGroundAnchorPoint TVector3
 
 ../../../src/transform/ TCastleCamera GravityUp TVector3
 

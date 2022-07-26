@@ -1238,6 +1238,10 @@
         read FConnectedWorldGroundAnchorPoint write SetConnectedWorldGroundAnchorPoint;
     published
       property Ratio: Single read FRatio write SetRatio {$ifdef FPC}default 1.0{$endif};
+
+      {$define read_interface_class}
+      {$I auto_generated_persistent_vectors/tjointpulley_persistent_vectors.inc}
+      {$undef read_interface_class}
   end;
 
 
@@ -4244,10 +4248,18 @@ begin
   FConnectedWorldAnchorPoint := CastleVectors.Vector3(0, 0, 0);
   FConnectedWorldGroundAnchorPoint := CastleVectors.Vector3(0, 0, 0);
   FRatio := 1.0;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tjointpulley_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TJointPulley.Destroy;
 begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tjointpulley_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
   inherited Destroy;
 end;
 
@@ -4263,6 +4275,10 @@ begin
   else
     Result := inherited PropertySections(PropertyName);
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tjointpulley_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TCastleTransform ---------------------------------------------------------- }
 
