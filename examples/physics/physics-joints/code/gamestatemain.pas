@@ -54,20 +54,24 @@ end;
 
 procedure TStateMain.Start;
 var
-  JHinge: TJointHinge;
+  {JHinge: TJointHinge;
   JRope: TJointRope;
   JFixed: TJointFixed;
   JBall: TJointBall;
   JDistance: TJointDistance;
-  B: TCastleBehavior;
+  B: TCastleBehavior;}
 begin
   inherited;
+
+  SphereHinge := DesignedComponent('SphereHinge') as TCastleTransform;
+  BoxHinge := DesignedComponent('BoxHinge') as TCastleTransform;
+  (BoxHinge.FindBehavior(TCastleRigidBody) as TCastleRigidBody).AddCentralForce(Vector3(100,100, 0));
 
   { Find components, by name, that we need to access from code }
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
   Viewport := DesignedComponent('Viewport') as TCastleViewport;
 
-  BoxRopeStartPoint := DesignedComponent('BoxRopeStartPoint') as TCastleTransform;
+  {BoxRopeStartPoint := DesignedComponent('BoxRopeStartPoint') as TCastleTransform;
   BoxRopeEndPoint := DesignedComponent('BoxRopeEndPoint') as TCastleTransform;
 
   JRope := TJointRope.Create(Self);
@@ -76,7 +80,7 @@ begin
   BoxRopeStartPoint.AddBehavior(JRope);
 
   BoxHinge := DesignedComponent('BoxHinge') as TCastleTransform;
-  SphereHinge := DesignedComponent('SphereHinge') as TCastleTransform;
+
 
   JHinge := TJointHinge.Create(Self);
   JHinge.ConnectedTransform := BoxHinge;
@@ -103,7 +107,8 @@ begin
   JDistance.ConnectedTransform := BoxDistance;
   JDistance.AnchorPoint := Vector3(0, 0,0);
   JDistance.ConnectedAnchorPoint := Vector3(0, -100,0);
-  SphereDistance.AddBehavior(JDistance);
+  SphereDistance.AddBehavior(JDistance);}
+
   // check event removing:
   //SphereDistance.RemoveBehavior(JDistance);
   //FreeAndNil(JDistance);
@@ -111,7 +116,8 @@ begin
   // check event remove
   //B := BoxDistance.FindBehavior(TCastleRigidBody);
   //BoxDistance.RemoveBehavior(B);
-
+  //B := BoxDistance.FindBehavior(TCastleCollider);
+  //BoxDistance.RemoveBehavior(B);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -119,6 +125,8 @@ begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  (BoxHinge.FindBehavior(TCastleRigidBody) as TCastleRigidBody).AddCentralForce(Vector3(100000,1000, 10));
+
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
