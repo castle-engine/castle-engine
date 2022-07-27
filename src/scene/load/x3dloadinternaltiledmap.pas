@@ -67,14 +67,15 @@ type
 { This function carries out three major steps and is usually triggered by
   the Scene.Load mechanism.
 
-  @bold The major steps carried out by this function are as follows
-    @orderedList(
-      @item Create Tiled map instance (@link(TTiledMap)) from tmx file
-        via @link(TStream).
-      @item Create X3D scene from that instance by the
-        @link(TTiledMapConverter) class.
-      @item Return the generated @link(TX3DRootNode) of the X3D scene.
-    )
+  The major steps carried out by this function are as follows:
+
+  @orderedList(
+    @item(Create Tiled map instance (@link(TTiledMap)) from tmx file
+      via @link(TStream).)
+    @item(Create X3D scene from that instance by the
+      @link(TTiledMapConverter) class.)
+    @item(Return the generated @link(TX3DRootNode) of the X3D scene.)
+  )
 
   The debug mode needs considerably more ressources. By default it is turned
   off and can only be turned on in code in this function.
