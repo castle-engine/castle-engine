@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2020-2022 Matthias J. Molski.
 
   This file is part of "Castle Game Engine".
@@ -91,12 +91,10 @@ const
 
 type
   { These @link(TTransformNode) types can be useful to find the desired
-    node more reliably in event routines.
-    @groupBegin }
-  TTiledLayerNode = type TTransformNode;
-  TTiledObjectNode = type TTransformNode;
-  TTiledTileNode = type TTransformNode;
-  { @groupEnd }
+    node more reliably in event routines. }
+  TTiledLayerNode = TTransformNode;
+  TTiledObjectNode = TTransformNode;
+  TTiledTileNode = TTransformNode;
 
   TShapeNodeList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeNode>;
   TShapeNodeListList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeNodeList>;
@@ -281,7 +279,7 @@ var
     If the map node is free'd, all tiles of the tilesets are free'd via
     the ghost node, even if they were not used as actual map tiles. }
   GhostNode: TX3DRootNode;
-  TilesetTexCoordOrigin: TVector2 = (X: 0; Y: 0);
+  TilesetTexCoordOrigin: TVector2;
   TileFlip: TTileFlip;
 
   { Calculate the number of rows (of tiles) of a tileset. }
@@ -291,6 +289,7 @@ var
   end;
 
 begin
+  TilesetTexCoordOrigin := TVector2.Zero;
   GhostNode := TX3DRootNode.Create;
 
   for Tileset in Map.Tilesets do
@@ -330,7 +329,7 @@ begin
       Continue;
     end;
 
-    for TileFlip in TTileFlip do
+    for TileFlip := Low(TTileFlip) to High(TTileFlip) do
     begin
       { No flip mode }
       if TileFlip = tfNoFlip then
@@ -458,16 +457,27 @@ end;
 function TTiledMapConverter.BuildObjectGroupLayerNode(
   const ALayer: TTiledMap.TLayer): TTiledLayerNode;
 var
-  TiledObjectMaterial: TMaterialNode = nil;    // Material node of a Tiled obj.
-  TiledObject: TTiledMap.TTiledObject;         // A Tiled object instance (as
-                                               // saved in TTiledMap).
-  TiledObjectNode: TTiledObjectNode = nil;     // Node of a Tiled object.
-  TiledObjectGeometry: TPolyline2DNode = nil;  // Geometry node of a TiledObject primitive.
-  TiledObjectShape: TShapeNode = nil;          // Shape node of a TiledObject.
-  AVector2List: TVector2List = nil;            // Helper list.
+  // Material node of a Tiled obj.
+  TiledObjectMaterial: TMaterialNode;
+  // A Tiled object instance (as saved in TTiledMap).
+  TiledObject: TTiledMap.TTiledObject;
+  // Node of a Tiled object.
+  TiledObjectNode: TTiledObjectNode;
+  // Geometry node of a TiledObject primitive.
+  TiledObjectGeometry: TPolyline2DNode;
+  // Shape node of a TiledObject.
+  TiledObjectShape: TShapeNode;
+  // Helper list.
+  AVector2List: TVector2List;
   I: Cardinal;
 
 begin
+  TiledObjectMaterial := nil;
+  TiledObjectNode := nil;
+  TiledObjectGeometry := nil;
+  TiledObjectShape := nil;
+  AVector2List := nil;
+
   Result := TTiledLayerNode.Create;   // Tiled object group layer node.
 
   { Move layer node according to layer offset }
@@ -591,11 +601,14 @@ var
   function GetResolvedTileShapeNode(const ATileset: TTiledMap.TTileset;
     const ATile: TTiledMap.TTile; const ATileGID: Cardinal): TShapeNode;
   var
-    HFlip: Boolean = False;
-    VFlip: Boolean = False;
-    DFlip: Boolean = False;
+    HFlip: Boolean;
+    VFlip: Boolean;
+    DFlip: Boolean;
     ATilesetShapeNodeList: TShapeNodeList;
   begin
+    HFlip := false;
+    VFlip := false;
+    DFlip := false;
     Result := nil;
 
     { Get tileset's shape node list. }
@@ -1129,17 +1142,23 @@ procedure TTiledMapConverter.BuildDebugObject(const X, Y, W, H: Integer;
   const AName: String);
 var
   { All Debug objects are based on a Transform node. }
-  DebugObject: TTransformNode = nil;
+  DebugObject: TTransformNode;
   { Outline-Debug object. }
   { Hint: TRectangle2DNode is always filled, even if TFillPropertiesNode has
     property filled set to false. }
-  DebugGeometryOutline: TPolyline2DNode = nil;
-  DebugShapeOutline: TShapeNode = nil;
+  DebugGeometryOutline: TPolyline2DNode;
+  DebugShapeOutline: TShapeNode;
   { Name-Debug object. }
-  DebugGeometryName: TTextNode = nil;
-  DebugShapeName: TShapeNode = nil;
+  DebugGeometryName: TTextNode;
+  DebugShapeName: TShapeNode;
   DebugNameGap: Single;
 begin
+  DebugObject := nil;
+  DebugGeometryOutline := nil;
+  DebugShapeOutline := nil;
+  DebugGeometryName := nil;
+  DebugShapeName := nil;
+
   { Build Outline-Debug object. }
   DebugGeometryOutline := TPolyline2DNode.CreateWithShape(DebugShapeOutline);
   DebugShapeOutline.Appearance := DebugAppearanceNode;
