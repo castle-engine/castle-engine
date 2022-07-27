@@ -55,6 +55,10 @@ uses
   Classes,
   X3DNodes, CastleLog, CastleTiledMap;
 
+var
+  { When @true, loading Tiled map will add extra nodes with debug information. }
+  TiledDebugMode: Boolean = false;
+
 { This function carries out three major steps and is usually triggered by
   the Scene.Load mechanism.
 
@@ -1175,14 +1179,12 @@ function LoadTiledMap2d(const Stream: TStream; const BaseUrl: String
 var
   TiledMapFromStream: TTiledMap;
   TiledMapConverter: TTiledMapConverter;
-  DebugMode: Boolean = False;
 begin
-  Result := nil;
   { The Tiled converter unit expects a TTiledMap object instance,
     hence create one. }
   TiledMapFromStream := TTiledMap.Create(Stream, BaseUrl);
   try
-    TiledMapConverter := TTiledMapConverter.Create(TiledMapFromStream, DebugMode);
+    TiledMapConverter := TTiledMapConverter.Create(TiledMapFromStream, TiledDebugMode);
     try
       TiledMapConverter.ConvertMap;
       Result := TiledMapConverter.RootNode;
