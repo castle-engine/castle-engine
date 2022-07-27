@@ -1182,18 +1182,13 @@ begin
   { The Tiled converter unit expects a TTiledMap object instance,
     hence create one. }
   TiledMapFromStream := TTiledMap.Create(Stream, BaseUrl);
-  if not Assigned(TiledMapFromStream) then
-    Exit;
   try
     TiledMapConverter := TTiledMapConverter.Create(TiledMapFromStream, DebugMode);
-    TiledMapConverter.ConvertMap;
-    Result := TiledMapConverter.RootNode;
-  finally
-    if Assigned(TiledMapFromStream) then
-      FreeAndNil(TiledMapFromStream);
-    if Assigned(TiledMapConverter) then
-      FreeAndNil(TiledMapConverter);
-  end;
+    try
+      TiledMapConverter.ConvertMap;
+      Result := TiledMapConverter.RootNode;
+    finally FreeAndNil(TiledMapConverter) end;
+  finally FreeAndNil(TiledMapFromStream) end;
 end;
 
 end.
