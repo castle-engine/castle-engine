@@ -55,15 +55,6 @@ uses
   Classes,
   X3DNodes, CastleLog, CastleTiledMap;
 
-type
-  { These @link(TTransformNode) types can be useful to find the desired
-    node more reliably in event routines.
-    @groupBegin }
-  TTiledLayerNode = type TTransformNode;
-  TTiledObjectNode = type TTransformNode;
-  TTiledTileNode = type TTransformNode;
-  { @groupEnd }
-
 { This function carries out three major steps and is usually triggered by
   the Scene.Load mechanism.
 
@@ -95,8 +86,16 @@ const
   OrangeRedRGB   : TCastleColorRGB = (X: 1.0; Y: 0.27; Z: 0.0);
 
 type
-  TShapeNodeList = specialize TObjectList<TShapeNode>;
-  TShapeNodeListList = specialize TObjectList<TShapeNodeList>;
+  { These @link(TTransformNode) types can be useful to find the desired
+    node more reliably in event routines.
+    @groupBegin }
+  TTiledLayerNode = type TTransformNode;
+  TTiledObjectNode = type TTransformNode;
+  TTiledTileNode = type TTransformNode;
+  { @groupEnd }
+
+  TShapeNodeList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeNode>;
+  TShapeNodeListList = {$ifdef FPC}specialize{$endif} TObjectList<TShapeNodeList>;
 
   { Converter class to convert Tiled map into X3D representations.
 
