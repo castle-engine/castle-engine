@@ -943,18 +943,20 @@ function TTiledMapConverter.TilesetWidthPx(
   const AImageTextureNode: TImageTextureNode): Cardinal;
 begin
   Result := 0;
-  if not Assigned(AImageTextureNode) then
-    Exit;
-  Result :=  AImageTextureNode.TextureImage.Width;
+  if (AImageTextureNode <> nil) and
+     // image is nil when it could not be loaded
+     (AImageTextureNode.TextureImage <> nil) then
+    Result :=  AImageTextureNode.TextureImage.Width;
 end;
 
 function TTiledMapConverter.TilesetHeightPx(
   const AImageTextureNode: TImageTextureNode): Cardinal;
 begin
   Result := 0;
-  if not Assigned(AImageTextureNode) then
-    Exit;
-  Result :=  AImageTextureNode.TextureImage.Height;
+  if (AImageTextureNode <> nil) and
+     // image is nil when it could not be loaded
+     (AImageTextureNode.TextureImage <> nil) then
+    Result :=  AImageTextureNode.TextureImage.Height;
 end;
 
 function TTiledMapConverter.TileWidthPx: Cardinal;
