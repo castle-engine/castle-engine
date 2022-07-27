@@ -300,6 +300,14 @@ begin
 
     if Assigned(Tileset.Image) then
     begin
+      { Fix Tileset.Columns if necessary, testcase: examples/tiled/map_viewer/data/maps/desert.tmx }
+      { TODO: This code is also done by TCastleTiledMapControl.LoadTilesetsImages.
+        Move the logic to TTiledMap? }
+      if Tileset.Columns = 0 then
+        Tileset.Columns := Tileset.Image.Width div Tileset.TileWidth;
+      if Tileset.TileCount = 0 then
+        Tileset.TileCount := (Tileset.Image.Height div Tileset.TileHeight) * Tileset.Columns;
+
       { Prepare texture node of tileset. }
       TilesetTextureNode := TImageTextureNode.Create(Tileset.Name, '');
       TilesetTextureNode.SetUrl([Tileset.Image.URL]);
@@ -310,6 +318,12 @@ begin
       { Set S,T boundary modes. }
       TilesetTextureNode.TextureProperties.BoundaryModeS := bmMirroredRepeat;
       TilesetTextureNode.TextureProperties.BoundaryModeT := bmMirroredRepeat;
+    end;
+
+    if (Tileset.TileCount = 0) or (Tileset.Columns = 0) then
+    begin
+      WriteLnWarning('Empty Tileset');
+      Continue;
     end;
 
     for TileFlip in TTileFlip do
