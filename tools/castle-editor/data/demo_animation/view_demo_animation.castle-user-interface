@@ -9,7 +9,6 @@
       "FullSize" : true,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
-        "MainScene" : "Scene1",
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties"
         },
@@ -67,21 +66,20 @@
                 "Name" : "Camera_Orientation",
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4Persistent",
-                  "W" : 2.9069380760192871E+000,
-                  "X" : -3.7662893533706665E-002,
-                  "Y" : 9.5187759399414063E-001,
-                  "Z" : 3.0415570735931396E-001
+                  "W" : 3.7373313903808594E+000,
+                  "X" : 9.8097421228885651E-002,
+                  "Y" : 9.4795894622802734E-001,
+                  "Z" : 3.0290359258651733E-001
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 9.9999994039535522E-001,
                   "Z" : 9.9999994039535522E-001
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 2.5526056289672852E+000,
+                  "X" : -6.1349678039550781E+000,
                   "Y" : 1.1744249343872070E+001,
-                  "Z" : -1.0149063110351562E+001
+                  "Z" : -8.4782924652099609E+000
                 },
                 "$Children" : [
                   {
@@ -108,7 +106,13 @@
                       "$$ClassName" : "TCastleVector3Persistent",
                       "X" : -9.3132328515821428E-009,
                       "Y" : -1.9073486328125000E-006
-                    }
+                    },
+                    "$Children" : [
+                      {
+                        "$$ClassName" : "TCastleDirectionalLight",
+                        "Name" : "DirectionalLight1"
+                      }
+                    ]
                   }
                 ]
               }

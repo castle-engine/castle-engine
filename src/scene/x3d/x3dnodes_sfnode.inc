@@ -31,8 +31,7 @@
     to be as non-destructible as possible. So if user wrote
     invalid class hierarchy, we will output this invalid class hierarchy. }
   TSFNode = class(TX3DSingleField)
-  private
-    FValue: TX3DNode;
+  strict private
     FParentNode: TX3DNode;
     AllowedChildren: TAllowedChildren;
     AllowedChildrenClasses: TX3DNodeClassesList;
@@ -47,6 +46,8 @@
     procedure SetWeakLink(const AValue: boolean);
     procedure WarningIfUnusedWeakLink(const Reader: TX3DReaderNames);
     procedure DestructionNotification(const Node: TX3DNode);
+  private
+    FValue: TX3DNode;
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
@@ -109,6 +110,9 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+
+    { @exclude }
+    procedure InternalAssignDeepCopy(const Source: TX3DFieldOrEvent; const CopyState: TObject); override;
 
     { VRML node containing this field. May be @nil if unknown, in special
       cases.
@@ -491,8 +495,32 @@ begin
     DefaultValue       := TSFNode(Source).DefaultValue;
     DefaultValueExists := TSFNode(Source).DefaultValueExists;
     VRMLFieldAssignCommon(TX3DField(Source));
+    { When updating this, remember to also update TSFNode.InternalAssignDeepCopy }
   end else
     inherited;
+end;
+
+procedure TSFNode.InternalAssignDeepCopy(const Source: TX3DFieldOrEvent; const CopyState: TObject);
+var
+  GoodCopyState: TX3DNodeDeepCopyState;
+
+  function DeepCopyNode(const Node: TX3DNode): TX3DNode;
+  begin
+    if Node = nil then
+      Result := nil
+    else
+      Result := GoodCopyState.DeepCopy(Node);
+  end;
+
+begin
+  Assert(Source is TSFNode);
+  GoodCopyState := CopyState as TX3DNodeDeepCopyState;
+
+  { Similar to TSFNode.Assign }
+  Value              := DeepCopyNode(TSFNode(Source).Value);
+  DefaultValue       := DeepCopyNode(TSFNode(Source).DefaultValue);
+  DefaultValueExists := TSFNode(Source).DefaultValueExists;
+  VRMLFieldAssignCommon(TX3DField(Source));
 end;
 
 procedure TSFNode.AssignValue(Source: TX3DField);

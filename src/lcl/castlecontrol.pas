@@ -1313,35 +1313,57 @@ procedure TCastleControl.LoadDesign;
   methods in TUIState. Here they are much simplified, as we have no concept
   of "started" / "stopped", so no DesignPreload too. }
 
+var
+  OldCastleDesignMode: Boolean;
 begin
   if DesignUrl <> '' then
   begin
-    { make sure CastleDesignMode is correct, to not e.g. do physics in Lazarus/Delphi form designer. }
-    CastleDesignMode := csDesigning in ComponentState;
+    { Make sure CastleDesignMode is correct, to
+      - not e.g. do physics in Lazarus/Delphi form designer.
+      - not show design-time stuff in DesignUrl loaded in CGE editor "help->system information".
 
-    FDesignLoadedOwner := TComponent.Create(nil);
+      Note that we restore later CastleDesignMode.
+      This way we avoid changing CastleDesignMode for future loads,
+      when TCastleControl is used inside castle-editor.
+      Testcase:
+        in CGE editor:
+        - open tools/castle-editor project
+        - double click on demo design in data/demo_animation/
+        - open help->system information (this uses TCastleControl too, with DesignUrl assigned)
+        - close help->system information
+        - close design
+        - reopen design
+    }
+    OldCastleDesignMode := CastleDesignMode;
     try
-      FDesignLoaded := UserInterfaceLoad(DesignUrl, FDesignLoadedOwner);
-      {$ifdef HAS_RENDER_AT_DESIGN_TIME}
-      Options := Options + [ocoRenderAtDesignTime];
-      {$endif}
-    except
-      { If loading design file failed, and we're inside form designer,
-        merely report a warning. This allows deserializing LFMs with broken URLs. }
-      on E: Exception do
-      begin
-        if CastleDesignMode then
+      CastleDesignMode := csDesigning in ComponentState;
+
+      FDesignLoadedOwner := TComponent.Create(nil);
+      try
+        FDesignLoaded := UserInterfaceLoad(DesignUrl, FDesignLoadedOwner);
+        {$ifdef HAS_RENDER_AT_DESIGN_TIME}
+        Options := Options + [ocoRenderAtDesignTime];
+        {$endif}
+      except
+        { If loading design file failed, and we're inside form designer,
+          merely report a warning. This allows deserializing LFMs with broken URLs. }
+        on E: Exception do
         begin
-          WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
-            URIDisplay(DesignUrl),
-            ExceptMessage(E)
-          ]);
-          Exit;
-        end else
-          raise;
+          if CastleDesignMode then
+          begin
+            WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
+              URIDisplay(DesignUrl),
+              ExceptMessage(E)
+            ]);
+            Exit;
+          end else
+            raise;
+        end;
       end;
+      Controls.InsertFront(FDesignLoaded);
+    finally
+      CastleDesignMode := OldCastleDesignMode;
     end;
-    Controls.InsertFront(FDesignLoaded);
   end;
 end;
 

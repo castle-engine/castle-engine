@@ -479,6 +479,14 @@ type
       const Point, Dir: TVector3;
       out MinDistance, MaxDistance: Single);
 
+    (* MaxDistanceAlongDirection not used, so not defined for now.
+    { Maximum distance from Point to one of box corners, along the given direction.
+
+      Like DirectionDistances, but only returns MaxDistance,
+      and is faster. }
+    function MaxDistanceAlongDirection(const Point, Dir: TVector3): Single;
+    *)
+
     { Shortest distance between the box and a point.
       Always zero when the point is inside the box.
 
@@ -644,6 +652,9 @@ function IsCenteredBox3DPlaneCollision(
 { Smallest possible box enclosing a sphere with Center, Radius. }
 function BoundingBox3DFromSphere(const Center: TVector3;
   const Radius: Single): TBox3D;
+
+type
+  TBox3DEvent = function: TBox3D of object;
 
 implementation
 
@@ -2002,6 +2013,9 @@ begin
   if Contains(P) then
     MinDistance := 0;
 
+  MinDistance := Sqrt(MinDistance);
+  MaxDistance := Sqrt(MaxDistance);
+
   { Because of floating point inaccuracy, MinDistance may be larger
     by epsilon than MaxDistance? Fix it to be sure. }
   { For now: just assert it: }
@@ -2057,6 +2071,44 @@ begin
   { For now: just assert it: }
   Assert(MinDistance <= MaxDistance);
 end;
+
+(* MaxDistanceAlongDirection not used, so not defined for now.
+function TBox3D.MaxDistanceAlongDirection(const Point, Dir: TVector3): Single;
+var
+  B: TBox3DBool absolute Data;
+  XMin, YMin, ZMin: boolean;
+  MaxPoint: TVector3;
+  Coord: Integer;
+begin
+  CheckNonEmpty;
+
+  XMin := Dir.X < 0;
+  YMin := Dir.Y < 0;
+  ZMin := Dir.Z < 0;
+
+  MaxPoint := PointOnLineClosestToPoint(Point, Dir,
+    Vector3(B[not XMin].X, B[not YMin].Y, B[not ZMin].Z));
+
+  Result := PointsDistance(Point, MaxPoint);
+
+  { choose one of the 3 coordinates where Dir is largest, for best
+    numerical stability. We need to compare now and see which
+    distances should be negated. }
+  Coord := MaxAbsVectorCoord(Dir);
+
+  if Dir[Coord] > 0 then
+  begin
+    { So the distances to points that are *larger* on Coord are positive.
+      Others should be negative. }
+    if MaxPoint[Coord] < Point[Coord] then
+      Result := -Result;
+  end else
+  begin
+    if MaxPoint[Coord] > Point[Coord] then
+      Result := -Result;
+  end;
+end;
+*)
 
 function TBox3D.PointDistance(const Point: TVector3): Single;
 begin

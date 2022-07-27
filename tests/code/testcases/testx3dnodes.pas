@@ -102,6 +102,7 @@ type
     {$ifdef GENERIC_METHODS}
     procedure TestGenericFind;
     {$endif}
+    procedure TestProtoExpansion;
   end;
 
 implementation
@@ -2367,6 +2368,44 @@ begin
 end;
 
 {$endif GENERIC_METHODS}
+
+procedure TTestX3DNodes.TestProtoExpansion;
+var
+  RootNode: TX3DRootNode;
+
+  procedure CheckProtoInstance(const ProtoIndex: Integer; const CorrectPaletteUrl: String);
+  var
+    T: TTransformNode;
+    S: TShapeNode;
+    CS: TComposedShaderNode;
+    PalleteField: TSFNode;
+    IT: TImageTextureNode;
+  begin
+    AssertTrue(RootNode.FdChildren[ProtoIndex] is TTransformNode);
+    T := RootNode.FdChildren[ProtoIndex] as TTransformNode;
+    AssertEquals(1, T.FdChildren.Count);
+    AssertTrue(T.FdChildren[0] is TShapeNode);
+    S := T.FdChildren[0] as TShapeNode;
+    AssertEquals(1, S.Appearance.FdShaders.Count);
+    AssertTrue(S.Appearance.FdShaders[0] is TComposedShaderNode);
+    CS := S.Appearance.FdShaders[0] as TComposedShaderNode;
+    PalleteField := CS.Field('palette') as TSFNode;
+    AssertTrue(PalleteField <> nil);
+    AssertTrue(PalleteField.Value is TImageTextureNode);
+    IT := PalleteField.Value as TImageTextureNode;
+    AssertEquals(1, IT.FdUrl.Count);
+    AssertEquals(CorrectPaletteUrl, IT.FdUrl.Items[0]);
+  end;
+
+begin
+  RootNode := LoadNode('castle-data:/proto_copy_test/model.x3dv');
+  try
+    AssertEquals(2, RootNode.FdChildren.Count);
+    AssertTrue(RootNode.FdChildren[1] is TTransformNode);
+    CheckProtoInstance(0, 'palette1.png');
+    CheckProtoInstance(1, 'palette2.png');
+  finally FreeAndNil(RootNode) end;
+end;
 
 initialization
   RegisterTest(TTestX3DNodes);

@@ -106,9 +106,9 @@ begin
 
   if CheckboxCameraFollow.Checked then
   begin
-    CamPos := MainViewport.Camera.Position;
+    CamPos := MainViewport.Camera.Translation;
     CamPos.X := SceneDragon.Translation.X;
-    MainViewport.Camera.Position := CamPos;
+    MainViewport.Camera.Translation := CamPos;
   end;
 end;
 

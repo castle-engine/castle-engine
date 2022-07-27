@@ -681,8 +681,7 @@ type
     { Call SetTime on all things in TimeDependentList. }
     procedure UpdateTimeDependentList(const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
-    function SensibleCameraRadius(const WorldBox: TBox3D;
-      out RadiusAutomaticallyDerivedFromBox: Boolean): Single;
+    function SensibleCameraRadius(out RadiusAutoCalculated: Boolean): Single;
 
     { Apply TransformationDirty effect
       (necessary to finalize OptimizeExtensiveTransformations,
@@ -1794,11 +1793,13 @@ type
           there exists a "user" camera transformation that is the child
           of the viewpoint. When viewpoint is moved, then the current
           camera moves with it.)
-      ) }
+      )
+
+      @exclude }
     procedure InternalUpdateCamera(const ACamera: TCastleCamera;
       const WorldBox: TBox3D;
-      const RelativeCameraTransform: boolean = false;
-      const AllowTransitionAnimate: boolean = true);
+      const RelativeCameraTransform: boolean;
+      const AllowTransitionAnimate: boolean);
 
     { Make Camera go to the view given by (world coordinates) APosition, ADirection, AUp.
 
@@ -7522,13 +7523,12 @@ end;
 
 { camera ------------------------------------------------------------------ }
 
-function TCastleSceneCore.SensibleCameraRadius(const WorldBox: TBox3D;
-  out RadiusAutomaticallyDerivedFromBox: Boolean): Single;
+function TCastleSceneCore.SensibleCameraRadius(out RadiusAutoCalculated: Boolean): Single;
 var
   NavigationNode: TNavigationInfoNode;
 begin
   Result := 0;
-  RadiusAutomaticallyDerivedFromBox := false;
+  RadiusAutoCalculated := false;
 
   NavigationNode := NavigationInfoStack.Top;
   if (NavigationNode <> nil) and
@@ -7536,11 +7536,11 @@ begin
     Result := NavigationNode.FdAvatarSize.Items[0];
 
   { if avatarSize doesn't specify Radius, or specifies invalid <= 0,
-    calculate something suitable based on Box. }
+    use DefaultCameraRadius. }
   if Result <= 0 then
   begin
-    Result := WorldBox.AverageSize(false, 1) * WorldBoxSizeToRadius;
-    RadiusAutomaticallyDerivedFromBox := true;
+    Result := DefaultCameraRadius;
+    RadiusAutoCalculated := true;
   end;
 end;
 
@@ -7549,7 +7549,7 @@ procedure TCastleSceneCore.InternalUpdateNavigation(
 var
   NavigationNode: TNavigationInfoNode;
   Radius: Single;
-  RadiusAutomaticallyDerivedFromBox: Boolean;
+  RadiusAutoCalculated: Boolean;
 
   procedure UpdateWalkNavigation(const Navigation: TCastleWalkNavigation);
   begin
@@ -7596,7 +7596,7 @@ begin
   NavigationNode := NavigationInfoStack.Top;
 
   { calculate Radius }
-  Radius := SensibleCameraRadius(WorldBox, RadiusAutomaticallyDerivedFromBox);
+  Radius := SensibleCameraRadius(RadiusAutoCalculated);
   Navigation.Radius := Radius;
 
   if Navigation is TCastleWalkNavigation then
@@ -7614,13 +7614,13 @@ var
   AUp: TVector3;
   GravityUp: TVector3;
   Radius, OriginX, OriginY: Single;
-  RadiusAutomaticallyDerivedFromBox: Boolean;
+  RadiusAutoCalculated: Boolean;
   ViewpointNode: TAbstractViewpointNode;
   NavigationNode: TNavigationInfoNode;
   FieldOfView: TSingleList;
 begin
-  Radius := SensibleCameraRadius(WorldBox, RadiusAutomaticallyDerivedFromBox);
-  if RadiusAutomaticallyDerivedFromBox then
+  Radius := SensibleCameraRadius(RadiusAutoCalculated);
+  if RadiusAutoCalculated then
     { Set ProjectionNear to zero, this way we avoid serializing value
       when it is not necessary to serialize it
       (because it can be calculated by each TCastleViewport.CalculateProjection). }

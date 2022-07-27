@@ -141,6 +141,8 @@ const
     bmRepeat
   );
 
+  ftExp = ftExponential deprecated 'use ftExponential';
+
 var
   { Triangulation settings.
 

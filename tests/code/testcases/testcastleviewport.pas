@@ -29,6 +29,7 @@ type
     procedure TestReadingOldDesigns2DSceneManager;
     procedure TestCameraNonDesign;
     procedure TestAutoCameraIgnoresGizmos;
+    procedure TestAutoProjection;
   end;
 
 implementation
@@ -180,6 +181,50 @@ begin
       AssertVectorEquals(Vector3(0.00, 0.00, 5.00), C.Translation);
     finally FreeAndNil(V) end;
   finally CastleDesignMode := SavedCastleDesignMode end;
+end;
+
+type
+  TMyViewport = class(TCastleViewport)
+    function Proj: TProjection;
+  end;
+
+function TMyViewport.Proj: TProjection;
+begin
+  Result := CalculateProjection;
+end;
+
+procedure TTestCastleViewport.TestAutoProjection;
+var
+  V: TMyViewport;
+  B1, B2: TCastleBox;
+  ProjectionNear: Single;
+begin
+  V := TMyViewport.Create(nil);
+  try
+    ProjectionNear := V.Proj.ProjectionNear;
+    AssertEquals(DefaultCameraRadius * RadiusToProjectionNear, ProjectionNear);
+
+    B1 := TCastleBox.Create(V);
+    B1.Size := Vector3(10, 10, 10);
+    V.Items.Add(B1);
+    ProjectionNear := V.Proj.ProjectionNear;
+    AssertEquals(DefaultCameraRadius * RadiusToProjectionNear, ProjectionNear);
+
+    { At the very least, adding and enlarging B2 should not make ProjectionNear
+      larger, as it would be surprising for user.
+      Actually, now it's simpler: we just use constant
+      DefaultCameraRadius * RadiusToProjectionNear always. }
+
+    B2 := TCastleBox.Create(V);
+    B2.Size := Vector3(10, 10, 10);
+    V.Items.Add(B2);
+    ProjectionNear := V.Proj.ProjectionNear;
+    AssertEquals(DefaultCameraRadius * RadiusToProjectionNear, ProjectionNear);
+
+    B2.Translation := Vector3(1000, 1000, 1000);
+    ProjectionNear := V.Proj.ProjectionNear;
+    AssertEquals(DefaultCameraRadius * RadiusToProjectionNear, ProjectionNear);
+  finally FreeAndNil(V) end;
 end;
 
 initialization

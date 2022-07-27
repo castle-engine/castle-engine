@@ -14,18 +14,30 @@
         },
         "$Children" : [
           {
-            "$$ClassName" : "TCastleScene",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "SceneBackground",
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            "$$ClassName" : "TCastleImageTransform",
+            "Name" : "ImageBackground",
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.2000000000000000E+001,
+              "Y" : 1.2000000000000000E+001
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "Y" : 1.5000000000000000E+003
+              "Y" : 2.0705375976562500E+003
             },
-            "URL" : "castle-data:/background/background.gltf"
+            "Url" : "castle-data:/background/background_smaller.png",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleImageTransform",
+                "Name" : "ImageTrees",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : -9.3022430419921875E+001,
+                  "Z" : 1.0000000000000000E+001
+                },
+                "Url" : "castle-data:/background/trees_smaller.png"
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -68,14 +80,15 @@
             "AutoAnimation" : "animation",
             "ExposeTransforms" : [
             ],
-            "Name" : "SceneTree1",
+            "Name" : "SceneTree3",
             "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
+            "TimePlayingSpeed" : 1.2000000476837158E+000,
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -1.0000000000000000E+003,
+              "X" : -1.6000000000000000E+003,
               "Y" : 2.0000000000000000E+002,
               "Z" : 2.0000000000000000E+002
             },
@@ -86,15 +99,14 @@
             "AutoAnimation" : "animation",
             "ExposeTransforms" : [
             ],
-            "Name" : "SceneTree3",
+            "Name" : "SceneTree1",
             "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "TimePlayingSpeed" : 1.2000000476837158E+000,
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -1.6000000000000000E+003,
+              "X" : -1.0000000000000000E+003,
               "Y" : 2.0000000000000000E+002,
               "Z" : 2.0000000000000000E+002
             },

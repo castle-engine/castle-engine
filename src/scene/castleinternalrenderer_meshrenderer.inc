@@ -926,7 +926,7 @@ begin
 
     { We potentially override the fog already set
       by TGLRenderer.RenderShapeFog here. }
-    Shader.ModifyFog(ftLinear, fcPassedCoordinate, 1, { doesn't matter, it's for ftExp only } 1 );
+    Shader.ModifyFog(ftLinear, fcPassedCoordinate, 1);
   end;
 end;
 

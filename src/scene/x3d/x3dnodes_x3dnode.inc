@@ -100,8 +100,8 @@
     procedure SetVRML1Child(const I: Integer; const Value: TX3DNode);
     function GetParentFieldsItem(Index: Integer): TX3DField;
     function GetParentFieldsNodeItem(Index: Integer): TX3DNode;
-    procedure RemoveParentField(Field: TX3DField);
-    procedure AddParentField(Field: TX3DField);
+    procedure RemoveParentField(const Field: TX3DField);
+    procedure AddParentField(const Field: TX3DField);
     procedure SetHasInterfaceDeclarations(const Value: TX3DAccessTypes);
     { Internal save to stream utility.
       When CurrentContainerField is not empty, it means we know our containing field
@@ -2970,13 +2970,17 @@ begin
   Result := true;
 end;
 
-procedure TX3DNode.RemoveParentField(Field: TX3DField);
+procedure TX3DNode.RemoveParentField(const Field: TX3DField);
 begin
-  Check(FParentFields.Remove(Field) <> -1, 'RemoveParentField: parent not found');
+  if FParentFields.Remove(Field) = -1 then
+    raise EInternalError.CreateFmt('RemoveParentField cannot find indicated parent, node %s, parent field %s', [
+      NiceName,
+      Field.NiceName
+    ]);
   FreeIfUnused;
 end;
 
-procedure TX3DNode.AddParentField(Field: TX3DField);
+procedure TX3DNode.AddParentField(const Field: TX3DField);
 begin
   FParentFields.Add(Field);
 end;
@@ -3178,39 +3182,6 @@ begin
   end;
 end;
 
-{ I couldn't implement this as TX3DField method, as X3DFields
-  cannot declare TX3DNode in the interface, so also
-  cannot declare TX3DNodeDeepCopyState. }
-procedure FieldDeepCopyContents(Destination, Source: TX3DField;
-  CopyState: TX3DNodeDeepCopyState);
-var
-  J: Integer;
-  SF: TSFNode;
-  MF: TMFNode;
-begin
-  { First make "shallow copy" of the field by simple Assign }
-  Destination.Assign(Source);
-
-  if Destination is TSFNode then
-  begin
-    SF := TSFNode(Destination);
-    if SF.Value <> nil then
-      SF.Value := CopyState.DeepCopy(SF.Value);
-  end else
-  if Destination is TMFNode then
-  begin
-    MF := TMFNode(Destination);
-    for J := 0 to MF.Count - 1 do
-      MF.Replace(J, CopyState.DeepCopy(MF.InternalItems[J]));
-  end;
-end;
-
-procedure EventDeepCopyContents(Destination, Source: TX3DEvent);
-begin
-  { For events, simple Assign does all copy we need --- at least for now. }
-  Destination.Assign(Source);
-end;
-
 function TX3DNode.DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
   Result := TX3DNodeClass(ClassType).Create(X3DName, BaseUrl);
@@ -3274,19 +3245,19 @@ begin
       { Copying InterfaceDeclarations field/event already handled. }
       if Fields[I].ParentInterfaceDeclaration = nil then
       begin
-        FieldDeepCopyContents(Result.Fields[I], Fields[I], CopyState);
+        Result.Fields[I].InternalAssignDeepCopy(Fields[I], CopyState);
 
         if Result.Fields[I].Exposed then
         begin
-          EventDeepCopyContents(Result.Fields[I].EventIn , Fields[I].EventIn );
-          EventDeepCopyContents(Result.Fields[I].EventOut, Fields[I].EventOut);
+          Result.Fields[I].EventIn .InternalAssignDeepCopy(Fields[I].EventIn , CopyState);
+          Result.Fields[I].EventOut.InternalAssignDeepCopy(Fields[I].EventOut, CopyState);
         end;
       end;
 
     for I := 0 to EventsCount - 1 do
       { Copying InterfaceDeclarations field/event already handled. }
       if Events[I].ParentInterfaceDeclaration = nil then
-        EventDeepCopyContents(Result.Events[I], Events[I]);
+        Result.Events[I].InternalAssignDeepCopy(Events[I], CopyState);
 
     for I := 0 to RoutesCount - 1 do
       Result.AddRoute(Routes[I].DeepCopy(CopyState));

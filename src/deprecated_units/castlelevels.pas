@@ -1305,7 +1305,7 @@ begin
   // If radius not specified, or invalid (<0), calculate it
   {$warnings off} // using deprecated in deprecated unit
   if Radius <= 0 then
-    Radius := Items.MainScene.BoundingBox.AverageSize(false, 1) * WorldBoxSizeToRadius;
+    Radius := DefaultCameraRadius;
   {$warnings on}
   Assert(Radius > 0, 'Navigation Radius must be > 0');
 

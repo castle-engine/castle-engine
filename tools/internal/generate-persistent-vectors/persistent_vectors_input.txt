@@ -81,6 +81,8 @@
 ../../../src/scene/ TCastleBackground GroundEquatorColor TCastleColorRGB
 ../../../src/scene/ TCastleBackground Rotation TVector4
 
+../../../src/scene/ TCastleFog Color TCastleColorRGB
+
 ../../../src/scene/ TCastlePointLight Color TCastleColorRGB
 ../../../src/scene/ TCastlePointLight Attenuation TVector3
 

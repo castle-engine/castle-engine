@@ -585,8 +585,7 @@ type
     FogEnabled: boolean;
     FogType: TFogType;
     FogColor: TVector3;
-    FogLinearEnd: Single;
-    FogExpDensity: Single;
+    FogVisibilityRangeScaled: Single;
     FogVolumetric: boolean;
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
@@ -2476,8 +2475,6 @@ const
     out VolumetricVisibilityStart: Single);
   var
     VisibilityRangeScaled: Single;
-  const
-    FogDensityFactor = 3.0;
   begin
     GetFog(AFogFunctionality, FogEnabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
 
@@ -2522,16 +2519,12 @@ const
       { calculate FogType and other Fog parameters }
       FogType := AFogFunctionality.FogType;
       FogColor := AFogFunctionality.Color;
-      case FogType of
-        ftLinear: FogLinearEnd := VisibilityRangeScaled;
-        ftExp   : FogExpDensity := FogDensityFactor / VisibilityRangeScaled;
-        {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType?');
-        {$endif}
-      end;
+      FogVisibilityRangeScaled := VisibilityRangeScaled;
     end;
   end;
 
+const
+  FogConstantDensityFactor = 3.0; //< Necessary for exponential fog in fixed-function
 begin
   { Enable / disable fog and set fog parameters if needed }
   if FogFunctionality <> Shape.Fog then
@@ -2552,11 +2545,12 @@ begin
             begin
               glFogi(GL_FOG_MODE, GL_LINEAR);
               glFogf(GL_FOG_START, 0);
-              glFogf(GL_FOG_END, FogLinearEnd);
+              glFogf(GL_FOG_END, FogVisibilityRangeScaled);
             end;
-          ftExp: begin
+          ftExponential:
+            begin
               glFogi(GL_FOG_MODE, GL_EXP);
-              glFogf(GL_FOG_DENSITY, FogExpDensity);
+              glFogf(GL_FOG_DENSITY, FogConstantDensityFactor / FogVisibilityRangeScaled);
             end;
           {$ifndef COMPILER_CASE_ANALYSIS}
           else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType? 2');
@@ -2574,7 +2568,7 @@ begin
 
   if FogEnabled then
     Shader.EnableFog(FogType, FogCoordinateSource[FogVolumetric],
-      FogColor, FogLinearEnd, FogExpDensity);
+      FogColor, FogVisibilityRangeScaled);
   RenderShapeTextureTransform(Shape, Shader, Lighting);
 end;
 

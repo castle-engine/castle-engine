@@ -414,8 +414,7 @@ type
     FFogEnabled: boolean;
     FFogType: TFogType;
     FFogColor: TVector3;
-    FFogLinearEnd: Single;
-    FFogExpDensity: Single;
+    FFogVisibilityRange: Single;
     FFogCoordinateSource: TFogCoordinateSource;
     HasGeometryMain: boolean;
     TextureMatrix: TCardinalList;
@@ -619,14 +618,13 @@ type
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
     procedure EnableFog(const FogType: TFogType;
       const FogCoordinateSource: TFogCoordinateSource;
-      const FogColor: TVector3; const FogLinearEnd: Single;
-      const FogExpDensity: Single);
+      const FogColor: TVector3; const FogVisibilityRange: Single);
     { Modify some fog parameters, relevant only if fog already enabled.
       Used by FogCoordinate, that changes some fog settings,
       but does not change fog color.  }
     procedure ModifyFog(const FogType: TFogType;
       const FogCoordinateSource: TFogCoordinateSource;
-      const FogLinearEnd: Single; const FogExpDensity: Single);
+      const FogVisibilityRange: Single);
     function EnableCustomShaderCode(const Shaders: TMFNode;
       out Node: TComposedShaderNode): boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
@@ -2861,20 +2859,17 @@ var
         '  castle_FogFragCoord = ' + CoordinateSource + ';' +NL+
         '}');
 
+      FogUniforms := 'uniform float castle_FogVisibilityRange;';
+
+      // See equations in https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-CD1/Part01/components/lighting.html#t-foginterpolant
       case FFogType of
         ftLinear:
           begin
-            FogUniforms := 'uniform float castle_FogLinearEnd;';
-            { The fixed-function fog equation multiply by gl_Fog.scale,
-              which is a precomputed 1.0 / (gl_Fog.end - gl_Fog.start),
-              which is just 1.0 / gl_Fog.end for us.
-              So we just divide by castle_FogLinearEnd. }
-            FogFactor := 'castle_FogFragCoord / castle_FogLinearEnd';
+            FogFactor := '1.0 - castle_FogFragCoord / castle_FogVisibilityRange';
           end;
-        ftExp:
+        ftExponential:
           begin
-            FogUniforms := 'uniform float castle_FogExpDensity;';
-            FogFactor := '1.0 - exp(-castle_FogExpDensity * castle_FogFragCoord)';
+            FogFactor := '(castle_FogFragCoord < castle_FogVisibilityRange ? exp(-castle_FogFragCoord / (castle_FogVisibilityRange - castle_FogFragCoord)) : 0.0)';
           end;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TShader.EnableShaderFog:FogType?');
@@ -2887,7 +2882,7 @@ var
         FogUniforms + NL +
         'void PLUG_fog_apply(inout vec4 fragment_color, const vec3 normal_eye_fragment)' +NL+
         '{' +NL+
-        '  fragment_color.rgb = mix(fragment_color.rgb, castle_FogColor,' +NL+
+        '  fragment_color.rgb = mix(castle_FogColor, fragment_color.rgb, ' +NL+
         '    clamp(' + FogFactor + ', 0.0, 1.0));' +NL+
         '}');
     end;
@@ -3575,8 +3570,7 @@ end;
 
 procedure TShader.EnableFog(const FogType: TFogType;
   const FogCoordinateSource: TFogCoordinateSource;
-  const FogColor: TVector3; const FogLinearEnd: Single;
-  const FogExpDensity: Single);
+  const FogColor: TVector3; const FogVisibilityRange: Single);
 var
   UColor: TDynamicUniformVec3;
   USingle: TDynamicUniformSingle;
@@ -3585,30 +3579,17 @@ begin
   FFogType := FogType;
   FFogCoordinateSource := FogCoordinateSource;
   FFogColor := FogColor;
-  FFogLinearEnd := FogLinearEnd;
-  FFogExpDensity := FogExpDensity;
+  FFogVisibilityRange := FogVisibilityRange;
   FCodeHash.AddInteger(
     67 * (Ord(FFogType) + 1) +
     709 * (Ord(FFogCoordinateSource) + 1));
 
   if FFogEnabled then
   begin
-    case FFogType of
-      ftLinear:
-        begin
-          USingle := TDynamicUniformSingle.Create;
-          USingle.Name := 'castle_FogLinearEnd';
-          USingle.Value := FFogLinearEnd;
-          DynamicUniforms.Add(USingle);
-        end;
-      ftExp:
-        begin
-          USingle := TDynamicUniformSingle.Create;
-          USingle.Name := 'castle_FogExpDensity';
-          USingle.Value := FFogExpDensity;
-          DynamicUniforms.Add(USingle);
-        end;
-    end;
+    USingle := TDynamicUniformSingle.Create;
+    USingle.Name := 'castle_FogVisibilityRange';
+    USingle.Value := FFogVisibilityRange;
+    DynamicUniforms.Add(USingle);
 
     UColor := TDynamicUniformVec3.Create;
     UColor.Name := 'castle_FogColor';
@@ -3622,13 +3603,12 @@ end;
 
 procedure TShader.ModifyFog(const FogType: TFogType;
   const FogCoordinateSource: TFogCoordinateSource;
-  const FogLinearEnd: Single; const FogExpDensity: Single);
+  const FogVisibilityRange: Single);
 begin
   { Do not enable fog, or change it's color. Only work if fog already enabled. }
   FFogType := FogType;
   FFogCoordinateSource := FogCoordinateSource;
-  FFogLinearEnd := FogLinearEnd;
-  FFogExpDensity := FogExpDensity;
+  FFogVisibilityRange := FogVisibilityRange;
 
   FCodeHash.AddInteger(
     431 * (Ord(FFogType) + 1) +
