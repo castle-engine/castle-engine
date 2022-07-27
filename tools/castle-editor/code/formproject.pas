@@ -1178,7 +1178,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     AddPlatform('Windows 32-bit', targetCustom, Win32, i386);
     AddPlatform('Windows 64-bit', targetCustom, Win64, x86_64);
     AddPlatformSeparator;
-    AddPlatform('macOS 64-bit', targetCustom, Darwin, i386);
+    AddPlatform('macOS 64-bit', targetCustom, Darwin, x86_64);
     AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, Aarch64);
     AddPlatformSeparator;
     AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
