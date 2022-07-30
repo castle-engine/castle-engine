@@ -511,7 +511,7 @@ type
 
     MainTextureMapping: Integer;
 
-    GammaCorrection: Boolean;
+    ColorSpaceLinear: Boolean;
 
     { In case MultiTexture is used to render this, this is MultiTexture.color+alpha value. }
     MultiTextureColor: TCastleColor;
@@ -1877,9 +1877,9 @@ begin
       if TextureType <> ttShader then
       begin
         { Optimization to not call castle_texture_color_to_linear when not needed.
-          Although it should do nothing when GammaCorrection=false,
+          Although it should do nothing when ColorSpaceLinear=false,
           but to make sure it takes zero time we just not call it at all. }
-        if Shader.GammaCorrection and (TextureType <> tt2DShadow) then
+        if Shader.ColorSpaceLinear and (TextureType <> tt2DShadow) then
           TextureSampleCall := 'castle_texture_color_to_linear(' + TextureSampleCall + ')';
         Code[stFragment].Add(Format(
           'texture_color = ' + TextureSampleCall + ';' +NL+
@@ -2059,7 +2059,7 @@ begin
   RenderingCamera := nil;
   FLightingModel := lmPhong;
   MainTextureMapping := -1;
-  GammaCorrection := false;
+  ColorSpaceLinear := false;
   MultiTextureColor := White;
 end;
 
@@ -3022,7 +3022,7 @@ begin
     Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
   if GLVersion.BuggyGLSLBumpMappingNumSteps then
     Define('CASTLE_BUGGY_BUMP_MAPPING_NUM_STEPS', stFragment);
-  if GammaCorrection then
+  if ColorSpaceLinear then
     Define('CASTLE_GAMMA_CORRECTION', stFragment);
   case ToneMapping of
     tmNone: ;
@@ -3113,7 +3113,7 @@ function TShader.CodeHash: TShaderCodeHash;
   begin
     FCodeHash.AddInteger(Ord(ShadowSampling) * 1009);
     FCodeHash.AddInteger(Ord(LightingModel) * 503);
-    FCodeHash.AddInteger(Ord(GammaCorrection) * 347);
+    FCodeHash.AddInteger(Ord(ColorSpaceLinear) * 347);
     FCodeHash.AddInteger(Ord(ToneMapping) * 331);
     FCodeHash.AddInteger(Ord(MainTextureMapping) * 839);
     FCodeHash.AddFloat(MultiTextureColor.X, 5821);
