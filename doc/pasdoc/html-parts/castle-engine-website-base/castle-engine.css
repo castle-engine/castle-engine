@@ -48,11 +48,16 @@ code, kbd, pre, samp {
     margin-right: auto;
 }
 
-.media-responsive,
 /* all images, movies responsive */
-img, iframe {
+.media-responsive, img, iframe {
   max-width: 100%;
-  height: auto; /* scale to max-width preserving proportions, even if intrinsic image sizes (width/height on <img>) are given */
+}
+/* scale to max-width preserving proportions, even if intrinsic image sizes (width/height on <img>) are given.
+   Note: *Do not* do this for iframe, it would break the height for some reason.
+   Testcase: https://castle-engine.io/sprite_sheets , with height:auto it would have very small height.
+*/
+.media-responsive, img {
+  height: auto;
 }
 
 
@@ -297,7 +302,7 @@ article.post .entry-content ul.list-no-margin {
 /* Make long words, like MultiGeneratedTextureCoordinate or MovieTexture.flipVertically,
    broken -- good for mobile usability.
    See https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Text/Wrapping_Text */
-h2 {
+h2, code {
   /* word-break: break-all; */
   overflow-wrap: break-word;
 }
@@ -336,6 +341,7 @@ h2 {
 div.main-cge-download {
   padding-left: 2em !important;
   padding-right: 2em !important;
+  max-width: 100%; /* otherwise it could want to be wider than viewport on mobile */
 }
 
 /* news on main page --------------------------------------------------------- */
@@ -835,7 +841,8 @@ div.download .download_platform {
   margin-right: auto;
   margin-left: auto;
   display: block;
-  width: 80%;
+  /* Use min-width not width, as on narrow mobile it may want to be a big larger */
+  min-width: 80%;
 }
 
 .centered-download-wrapper .btn-primary .download-button-hint {
