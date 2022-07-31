@@ -338,13 +338,13 @@ type
       Note: This property controls whether lights defined within a model (TCastleScene)
       affect the shapes in the same model.
       In case of such lights, the value of @link(TCastleScene.CastGlobalLights)
-      and @link(GlobalLights) doesn't matter. Only this property, ReceiveSceneLights, controls
+      and @link(ReceiveGlobalLights) doesn't matter. Only this property, ReceiveSceneLights, controls
       whether such lights work.
 
       The other lights are controlled by @link(ReceiveGlobalLights).
 
       This doesn't matter if @link(Lighting) is @false.
-      If both ReceiveSceneLights and ReceiveGlobalLights are @false,
+      Also, if both ReceiveSceneLights and ReceiveGlobalLights are @false,
       then the scene receives no lighting at all. }
     property ReceiveSceneLights: boolean
       read FReceiveSceneLights write FReceiveSceneLights default true;
@@ -356,7 +356,7 @@ type
       as well as headlight, shine on this scene.
 
       This doesn't matter if @link(Lighting) is @false.
-      If both ReceiveSceneLights and ReceiveGlobalLights are @false,
+      Also, if both ReceiveSceneLights and ReceiveGlobalLights are @false,
       then the scene receives no lighting at all. }
     property ReceiveGlobalLights: boolean
       read FReceiveGlobalLights write FReceiveGlobalLights default true;

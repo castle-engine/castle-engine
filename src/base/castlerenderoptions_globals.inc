@@ -77,7 +77,8 @@ type
     { Color calculation is always done in linear space. This results in correct lighting calculation.
 
       It means that texture colors (like for @link(TPhysicalMaterialNode.BaseTexture)
-      or @link(TMaterialNode.DiffuseTexture) or @link(TUnlitMaterialNode.EmissiveTexture))
+      or @link(TMaterialNode.DiffuseTexture) or
+      @link(TAbstractOneSidedMaterialNode.EmissiveTexture TUnlitMaterialNode.EmissiveTexture))
       are converted from sRGB into linear space before using them (to multiply with material
       and lighting colors) and at the end the resulting color is converted back from linear
       to display space (likely sRGB) for proper display.

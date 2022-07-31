@@ -45,11 +45,10 @@ type
   { Viewport displays a tree of scenes and transformations
     (TCastleTransform and descendants of it, like TCastleScene).
     Add the scenes and transformations to @link(Items).
-    See https://castle-engine.io/viewport_and_scenes /
+    See https://castle-engine.io/viewport_and_scenes .
 
     Each viewport has a @link(Camera) with a position and orientation.
     Viewport may have multiple cameras.
-    The initial camera may be auto-detected if @link(AutoCamera).
 
     Viewport may also have a navigation that allows to move
     camera by keyboard, mouse and other inputs.
@@ -57,7 +56,7 @@ type
     (TCastleExamineNavigation, TCastleWalkNavigation, TCastleThirdPersonNavigation)
     or implement your own
     (you can create your own descendants of @link(TCastleNavigation),
-    or just move/rotate the camera by calling @link(TCastleCamera.SetView) from anywhere).
+    or just move/rotate the camera by calling @link(TCastleTransform.SetWorldView Viewport.Camera.SetWorldView) from anywhere).
     Just add @link(TCastleNavigation) as a child of @link(TCastleViewport).
 
     Viewport may display a background.
@@ -991,10 +990,12 @@ type
     property ShadowVolumesRender: boolean read FShadowVolumesRender write FShadowVolumesRender default false;
 
     { Background (like a skybox) to display behind the @link(Items).
-      Displayed only when not @link(Transparent). }
+      Displayed only when not @link(Transparent).
+      See https://castle-engine.io/background }
     property Background: TCastleBackground read FBackground write SetBackground;
 
-    { Fog to use to display @link(Items). }
+    { Fog to use to display viewport contents in @link(Items).
+      See https://castle-engine.io/fog }
     property Fog: TCastleFog read FFog write SetFog;
 
     { If @true then the background (from @link(Background) or

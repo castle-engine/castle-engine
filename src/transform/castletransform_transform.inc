@@ -1520,7 +1520,7 @@
           negative scale is Ok.
 
           If you really need to use negative scale and lighting,
-          enable @link(TRenderOptions.RobustNegativeScale).)
+          enable @link(TCastleRenderOptions.RobustNegativeScale).)
 
         @item(At least, keep all scale components non-zero.
           Otherwise the scaling operation is not invertible,

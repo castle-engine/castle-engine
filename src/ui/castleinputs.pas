@@ -32,8 +32,7 @@
       The purpose of such global input map is to be able to detect key conflicts,
       be able to restore whole input map to default,
       load/save them to the user config file, and so on.
-      @link(CastleViewport.Input_Interact) is global,
-      various inputs defined in @link(CastlePlayer) unit are global too.
+      For example @link(CastleViewport.Input_Interact) is global.
 
       Global shortcuts are owned (they will be freed by) this unit
       (more specifically, they will be freed by InputsAll).

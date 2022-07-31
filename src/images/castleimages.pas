@@ -1947,9 +1947,9 @@ var
   This allows to globally modify / observe your images paths,
   e.g. to use GPU compressed alternative versions.
 
-  The URL processing is automatically used by
-  @link(LoadImage), @link(LoadEncodedImage),
-  @link(TCompositeImage.LoadFromFile).
+  The URL processing is automatically used by all image loaders.
+  This includes @link(LoadImage), @link(LoadEncodedImage)
+  and (internal) @code(TCompositeImage.LoadFromFile).
 
   The URL processing is automatically registered by
   @link(TMaterialProperties MaterialProperties)
