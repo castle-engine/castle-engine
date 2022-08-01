@@ -4339,6 +4339,7 @@ end;
 constructor TJointPulley.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  NeedWorldChangeNotification := true;
   FWorldAnchorPoint := CastleVectors.Vector3(0, 0, 0);
   FWorldGroundAnchorPoint := CastleVectors.Vector3(0, 0, 0);
   FConnectedWorldAnchorPoint := CastleVectors.Vector3(0, 0, 0);
