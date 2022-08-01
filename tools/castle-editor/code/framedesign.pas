@@ -4262,7 +4262,8 @@ begin
       ActionPhysicsPauseSimulation.Visible := false;
       ActionPhysicsPauseSimulation.Checked := false;
       NewDesignOwner := TComponent.Create(Self);
-      OpenDesign(StringToComponent(DesignStateBeforePhysicsRun, NewDesignOwner), NewDesignOwner, FDesignUrl);
+      OpenDesign(InternalStringToComponent(DesignStateBeforePhysicsRun, NewDesignOwner, DesignOwner),
+        NewDesignOwner, FDesignUrl);
       FDesignModified := DesignModifiedBeforePhysicsRun;
       OnUpdateFormCaption(Self);
     end;
