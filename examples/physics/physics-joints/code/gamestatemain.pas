@@ -17,18 +17,6 @@ type
   private
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
-    BoxRopeStartPoint, BoxRopeEndPoint: TCastleTransform;
-    BoxHinge: TCastleTransform;
-    SphereHinge: TCastleTransform;
-    SphereFixed: TCastleTransform;
-    BoxFixed: TCastleTransform;
-
-    SphereBall: TCastleTransform;
-    BoxBall: TCastleTransform;
-
-    SphereDistance: TCastleTransform;
-    BoxDistance: TCastleTransform;
-
     Viewport: TCastleViewport;
   public
     constructor Create(AOwner: TComponent); override;
@@ -53,71 +41,12 @@ begin
 end;
 
 procedure TStateMain.Start;
-var
-  {JHinge: TJointHinge;
-  JRope: TJointRope;
-  JFixed: TJointFixed;
-  JBall: TJointBall;
-  JDistance: TJointDistance;
-  B: TCastleBehavior;}
 begin
   inherited;
-
-  SphereHinge := DesignedComponent('SphereHinge') as TCastleTransform;
-  BoxHinge := DesignedComponent('BoxHinge') as TCastleTransform;
-  (BoxHinge.FindBehavior(TCastleRigidBody) as TCastleRigidBody).AddCentralForce(Vector3(100,100, 0));
 
   { Find components, by name, that we need to access from code }
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
   Viewport := DesignedComponent('Viewport') as TCastleViewport;
-
-  {BoxRopeStartPoint := DesignedComponent('BoxRopeStartPoint') as TCastleTransform;
-  BoxRopeEndPoint := DesignedComponent('BoxRopeEndPoint') as TCastleTransform;
-
-  JRope := TJointRope.Create(Self);
-  JRope.ConnectedTransform := BoxRopeEndPoint;
-  JRope.Distance := 300;
-  BoxRopeStartPoint.AddBehavior(JRope);
-
-  BoxHinge := DesignedComponent('BoxHinge') as TCastleTransform;
-
-
-  JHinge := TJointHinge.Create(Self);
-  JHinge.ConnectedTransform := BoxHinge;
-  SphereHinge.AddBehavior(JHinge);
-
-  SphereFixed := DesignedComponent('SphereFixed') as TCastleTransform;
-  BoxFixed := DesignedComponent('BoxFixed') as TCastleTransform;
-
-  JFixed := TJointFixed.Create(Self);
-  JFixed.ConnectedTransform := BoxFixed;
-  SphereFixed.AddBehavior(JFixed);
-
-  SphereBall := DesignedComponent('SphereBall') as TCastleTransform;
-  BoxBall := DesignedComponent('BoxBall') as TCastleTransform;
-
-  JBall := TJointBall.Create(Self);
-  JBall.ConnectedTransform := BoxBall;
-  SphereBall.AddBehavior(JBall);
-
-  SphereDistance := DesignedComponent('SphereDistance') as TCastleTransform;
-  BoxDistance := DesignedComponent('BoxDistance') as TCastleTransform;
-
-  JDistance := TJointDistance.Create(Self);
-  JDistance.ConnectedTransform := BoxDistance;
-  JDistance.AnchorPoint := Vector3(0, 0,0);
-  JDistance.ConnectedAnchorPoint := Vector3(0, -100,0);
-  SphereDistance.AddBehavior(JDistance);}
-
-  // check event removing:
-  //SphereDistance.RemoveBehavior(JDistance);
-  //FreeAndNil(JDistance);
-
-  // check event remove
-  //B := BoxDistance.FindBehavior(TCastleRigidBody);
-  //BoxDistance.RemoveBehavior(B);
-  //B := BoxDistance.FindBehavior(TCastleCollider);
-  //BoxDistance.RemoveBehavior(B);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -125,8 +54,6 @@ begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-  (BoxHinge.FindBehavior(TCastleRigidBody) as TCastleRigidBody).AddCentralForce(Vector3(100000,1000, 10));
-
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
