@@ -140,7 +140,11 @@ jobs:
         #    tools/build-tool/castle-engine_compile.sh
         #    Windows Subsystem for Linux has no installed distributions.
         # https://github.com/castle-engine/castle-engine/runs/6219455015?check_suite_focus=true
-        operating-system: [ubuntu-latest, macos-latest]
+        #
+        # Not using macos-latest as it randomly fails because of timeouts
+        # (e.g. https://github.com/castle-engine/castle-engine/actions/runs/2771175624 )
+        # Looks like GH hosted macOS runner is just too busy.
+        operating-system: [ubuntu-latest]
 
         # Older Lazarus versions are with unsupported FPC,
         # see https://github.com/marketplace/actions/setup-lazarus-environment .
