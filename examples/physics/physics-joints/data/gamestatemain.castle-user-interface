@@ -1148,7 +1148,7 @@
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : 9.0401416015625000E+002,
-              "Y" : 2.5544856262207031E+002
+              "Y" : 3.5840374755859375E+002
             }
           },
           {
@@ -1173,23 +1173,23 @@
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : 9.2412805175781250E+002,
-              "Y" : 7.0947540283203125E+001
+              "Y" : 1.2468772888183594E+002
             },
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
-                "CollisionDetectionType" : "cdtContinuous",
+                "AngularVelocityDamp" : 0.0000000000000000E+000,
+                "Gravity" : false,
+                "LinearVelocityDamp" : 0.0000000000000000E+000,
                 "LockRotation" : [
-                  0,
-                  1
                 ],
                 "LockTranslation" : [
-                  2
                 ],
                 "Name" : "RigidBody14"
               },
               {
                 "$$ClassName" : "TCastleBoxCollider",
+                "Friction" : 0.0000000000000000E+000,
                 "Mass" : 2.0000000000000000E+001,
                 "Name" : "BoxCollider10",
                 "ScalePersistent" : {
@@ -1213,6 +1213,7 @@
                   "X" : 1.3080999755859375E+003
                 },
                 "Name" : "JointPulley1",
+                "Ratio" : 5.0000000000000000E-001,
                 "WorldAnchorPointPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 9.2413000488281250E+002,
@@ -1247,23 +1248,27 @@
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : 1.3081049804687500E+003,
-              "Y" : 6.9342102050781250E+001
+              "Y" : 1.3137203979492188E+002
             },
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
+                "AngularVelocityDamp" : 0.0000000000000000E+000,
                 "Gravity" : false,
+                "LinearVelocityDamp" : 0.0000000000000000E+000,
+                "LinearVelocityPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : -1.2000000000000000E+002
+                },
                 "LockRotation" : [
-                  0,
-                  1
                 ],
                 "LockTranslation" : [
-                  2
                 ],
                 "Name" : "RigidBody15"
               },
               {
                 "$$ClassName" : "TCastleBoxCollider",
+                "Friction" : 0.0000000000000000E+000,
                 "Mass" : 2.0000000000000000E+001,
                 "Name" : "BoxCollider11",
                 "ScalePersistent" : {
