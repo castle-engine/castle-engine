@@ -897,12 +897,15 @@
     FParentRigidBody: TCastleRigidBody;
     FBreakThresholdForce: Single;
     FBreakThresholdTorque: Single;
+    FBreakable: Boolean;
 
+    { Create kraft joint and set it specialized properties }
+    procedure CreateKraftJoint; virtual; abstract;
     { Function to get kraft joint }
     function GetKraftJoint: TKraftConstraintJoint; virtual; abstract;
     { Tries to deinitialize and initialize kraft object }
     procedure RecreateKraftJoint;
-    procedure InitializeKraftJoint; virtual; abstract;
+    procedure InitializeKraftJoint;
     procedure DeinitializeKraftJoint; virtual; abstract;
     { Means that we can create joint object }
     function AllNeededKraftObjectsInitialized: Boolean; virtual;
@@ -921,8 +924,13 @@
     { Removes TCastleRigidBody behavior initialize/deinitialize callbacks }
     procedure RemoveParentRigidBodyEvents;
 
+    procedure UpdateBreakThresholdForceInKraft;
+    procedure UpdateBreakThresholdTorqueInKraft;
+    procedure UpdateBreakableInKraft;
+
     procedure SetBreakThresholdForce(const AValue: Single);
     procedure SetBreakThresholdTorque(const AValue: Single);
+    procedure SetBreakable(const AValue: Boolean);
   public
     destructor Destroy; override;
     procedure WorldAfterAttach; override;
@@ -930,6 +938,7 @@
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
+    property Breakable: Boolean read FBreakable write SetBreakable;
     property BreakThresholdForce:Single read FBreakThresholdForce write SetBreakThresholdForce;
     property BreakThresholdTorque:Single read FBreakThresholdTorque write SetBreakThresholdTorque;
   end;
@@ -1027,7 +1036,7 @@
 
     strict protected
       function GetKraftJoint: TKraftConstraintJoint; override;
-      procedure InitializeKraftJoint; override;
+      procedure CreateKraftJoint; override;
       procedure DeinitializeKraftJoint; override;
 
     public
@@ -1066,7 +1075,7 @@
       procedure SetDistance(const AValue: Single);
     strict protected
       function GetKraftJoint: TKraftConstraintJoint; override;
-      procedure InitializeKraftJoint; override;
+      procedure CreateKraftJoint; override;
       procedure DeinitializeKraftJoint; override;
 
     public
@@ -1095,7 +1104,7 @@
     procedure SetAnchorPoint(const AValue: TVector3);
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
-    procedure InitializeKraftJoint; override;
+    procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -1119,7 +1128,7 @@
     procedure SetAnchorPoint(const AValue: TVector3);
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
-    procedure InitializeKraftJoint; override;
+    procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -1150,7 +1159,7 @@
 
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
-    procedure InitializeKraftJoint; override;
+    procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -1187,7 +1196,7 @@
 
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
-    procedure InitializeKraftJoint; override;
+    procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -1223,7 +1232,7 @@
       procedure SetRatio(const AValue: Single);
     strict protected
       function GetKraftJoint: TKraftConstraintJoint; override;
-      procedure InitializeKraftJoint; override;
+      procedure CreateKraftJoint; override;
       procedure DeinitializeKraftJoint; override;
 
     public
@@ -1268,7 +1277,7 @@
 
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
-    procedure InitializeKraftJoint; override;
+    procedure CreateKraftJoint; override;
     procedure DeinitializeKraftJoint; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -3540,6 +3549,14 @@ begin
     InitializeKraftJoint;
 end;
 
+procedure TAbstractJoint.InitializeKraftJoint;
+begin
+  CreateKraftJoint;
+  UpdateBreakableInKraft;
+  UpdateBreakThresholdForceInKraft;
+  UpdateBreakThresholdTorqueInKraft;
+end;
+
 function TAbstractJoint.AllNeededKraftObjectsInitialized: Boolean;
 begin
   Result := (FParentRigidBody <> nil) and FParentRigidBody.IsInitialized;
@@ -3590,18 +3607,45 @@ begin
   end;
 end;
 
+procedure TAbstractJoint.UpdateBreakThresholdForceInKraft;
+begin
+  if GetKraftJoint <> nil then
+    GetKraftJoint.BreakThresholdForce := FBreakThresholdForce;
+end;
+
+procedure TAbstractJoint.UpdateBreakThresholdTorqueInKraft;
+begin
+  if GetKraftJoint <> nil then
+    GetKraftJoint.BreakThresholdTorque := FBreakThresholdTorque;
+end;
+
+procedure TAbstractJoint.UpdateBreakableInKraft;
+begin
+  if GetKraftJoint <> nil then
+  begin
+    if FBreakable then
+      GetKraftJoint.Flags := GetKraftJoint.Flags + [kcfBreakable]
+    else
+      GetKraftJoint.Flags := GetKraftJoint.Flags - [kcfBreakable];
+  end;
+end;
+
 procedure TAbstractJoint.SetBreakThresholdForce(const AValue: Single);
 begin
   FBreakThresholdForce := AValue;
-  if GetKraftJoint <> nil then
-    GetKraftJoint.BreakThresholdForce := AValue;
+  UpdateBreakThresholdForceInKraft;
 end;
 
 procedure TAbstractJoint.SetBreakThresholdTorque(const AValue: Single);
 begin
   FBreakThresholdTorque := AValue;
-  if GetKraftJoint <> nil then
-    GetKraftJoint.BreakThresholdTorque := AValue;
+  UpdateBreakThresholdTorqueInKraft;
+end;
+
+procedure TAbstractJoint.SetBreakable(const AValue: Boolean);
+begin
+  FBreakable := AValue;
+  UpdateBreakableInKraft;
 end;
 
 destructor TAbstractJoint.Destroy;
@@ -3741,7 +3785,7 @@ begin
   Result := FKraftJointHinge;
 end;
 
-procedure TJointHinge.InitializeKraftJoint;
+procedure TJointHinge.CreateKraftJoint;
 begin
   FKraftJointHinge := TKraftConstraintJointHinge.Create(
     World.FKraftEngine,
@@ -3757,9 +3801,6 @@ begin
     FMaximumMotorTorque,
     ConnectedCollide
   );
-
-  FKraftJointHinge.BreakThresholdForce := FBreakThresholdForce;
-  FKraftJointHinge.BreakThresholdTorque := FBreakThresholdTorque;
 end;
 
 procedure TJointHinge.DeinitializeKraftJoint;
@@ -3842,7 +3883,7 @@ begin
   Result := FKraftJointRope;
 end;
 
-procedure TJointRope.InitializeKraftJoint;
+procedure TJointRope.CreateKraftJoint;
 begin
   FKraftJointRope := TKraftConstraintJointRope.Create(
     World.FKraftEngine,
@@ -3853,8 +3894,6 @@ begin
     FDistance,
     ConnectedCollide
   );
-  FKraftJointRope.BreakThresholdForce := FBreakThresholdForce;
-  FKraftJointRope.BreakThresholdTorque := FBreakThresholdTorque;
 end;
 
 procedure TJointRope.DeinitializeKraftJoint;
@@ -3914,7 +3953,7 @@ begin
   Result := FKraftJointFixed;
 end;
 
-procedure TJointFixed.InitializeKraftJoint;
+procedure TJointFixed.CreateKraftJoint;
 begin
   FKraftJointFixed := TKraftConstraintJointFixed.Create(
     World.FKraftEngine,
@@ -3923,8 +3962,6 @@ begin
     VectorToKraft(Parent.LocalToWorld(FAnchorPoint)),
     ConnectedCollide
   );
-  FKraftJointFixed.BreakThresholdForce := FBreakThresholdForce;
-  FKraftJointFixed.BreakThresholdTorque := FBreakThresholdTorque;
 end;
 
 procedure TJointFixed.DeinitializeKraftJoint;
@@ -3980,7 +4017,7 @@ begin
   Result := FKraftJointBall;
 end;
 
-procedure TJointBall.InitializeKraftJoint;
+procedure TJointBall.CreateKraftJoint;
 begin
   FKraftJointBall := TKraftConstraintJointBallSocket.Create(
     World.FKraftEngine,
@@ -3989,8 +4026,6 @@ begin
     VectorToKraft(Parent.LocalToWorld(FAnchorPoint)),
     ConnectedCollide
   );
-  FKraftJointBall.BreakThresholdForce := FBreakThresholdForce;
-  FKraftJointBall.BreakThresholdTorque := FBreakThresholdTorque;
 end;
 
 procedure TJointBall.DeinitializeKraftJoint;
@@ -4073,7 +4108,7 @@ begin
   Result := FKraftJointDistance;
 end;
 
-procedure TJointDistance.InitializeKraftJoint;
+procedure TJointDistance.CreateKraftJoint;
 begin
   Assert(FKraftJointDistance = nil, 'Second joint initialization');
   FKraftJointDistance := TKraftConstraintJointDistance.Create(
@@ -4174,7 +4209,7 @@ begin
   Result := FKraftJointGrab;
 end;
 
-procedure TJointGrab.InitializeKraftJoint;
+procedure TJointGrab.CreateKraftJoint;
 begin
   Assert(FKraftJointGrab = nil, 'Second joint initialization');
   FKraftJointGrab := TKraftConstraintJointGrab.Create(
@@ -4283,7 +4318,7 @@ begin
   Result := FKraftJointPulley;
 end;
 
-procedure TJointPulley.InitializeKraftJoint;
+procedure TJointPulley.CreateKraftJoint;
 begin
   Assert(FKraftJointPulley = nil, 'Second joint initialization');
   FKraftJointPulley := TKraftConstraintJointPulley.Create(
@@ -4417,7 +4452,7 @@ begin
   Result := FKraftJointWorldPlaneDistance;
 end;
 
-procedure TJointWorldPlaneDistance.InitializeKraftJoint;
+procedure TJointWorldPlaneDistance.CreateKraftJoint;
 begin
   Assert(FKraftJointWorldPlaneDistance = nil, 'Second joint initialization');
   FKraftJointWorldPlaneDistance := TKraftConstraintJointWorldPlaneDistance.Create(
