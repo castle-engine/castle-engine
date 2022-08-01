@@ -4122,8 +4122,6 @@ begin
     FDampingRatio,
     ConnectedCollide
   );
-  FKraftJointDistance.BreakThresholdForce := FBreakThresholdForce;
-  FKraftJointDistance.BreakThresholdTorque := FBreakThresholdTorque;
 end;
 
 procedure TJointDistance.DeinitializeKraftJoint;
@@ -4221,8 +4219,6 @@ begin
     FDampingRatio,
     FMaximalForce
   );
-  FKraftJointGrab.BreakThresholdForce := FBreakThresholdForce;
-  FKraftJointGrab.BreakThresholdTorque := FBreakThresholdTorque;
 end;
 
 procedure TJointGrab.DeinitializeKraftJoint;
@@ -4333,8 +4329,6 @@ begin
     FRatio,
     ConnectedCollide
   );
-  FKraftJointPulley.BreakThresholdForce := FBreakThresholdForce;
-  FKraftJointPulley.BreakThresholdTorque := FBreakThresholdTorque;
 end;
 
 procedure TJointPulley.DeinitializeKraftJoint;
