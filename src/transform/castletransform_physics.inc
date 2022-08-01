@@ -4322,10 +4322,10 @@ begin
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
     FConnectedRigidBody.FKraftBody,
-    VectorToKraft(FWorldAnchorPoint),
-    VectorToKraft(FConnectedWorldAnchorPoint),
     VectorToKraft(FWorldGroundAnchorPoint),
     VectorToKraft(FConnectedWorldGroundAnchorPoint),
+    VectorToKraft(FWorldAnchorPoint),
+    VectorToKraft(FConnectedWorldAnchorPoint),
     FRatio,
     ConnectedCollide
   );
