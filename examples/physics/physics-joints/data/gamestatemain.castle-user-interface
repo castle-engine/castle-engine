@@ -239,9 +239,9 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 7.9978448486328125E+002,
-              "Y" : 6.8881915283203125E+002,
-              "Z" : 2.3657890625000000E+003
+              "X" : 7.9978002929687500E+002,
+              "Y" : 6.8882000732421875E+002,
+              "Z" : 3.2657900390625000E+003
             }
           },
           {
@@ -1206,18 +1206,17 @@
                 "ConnectedWorldAnchorPointPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.3080999755859375E+003,
-                  "Y" : 2.7033999633789062E+002
+                  "Y" : 1.7136999511718750E+002
                 },
                 "ConnectedWorldGroundAnchorPointPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.3080999755859375E+003
                 },
                 "Name" : "JointPulley1",
-                "Ratio" : 5.0000000000000000E-001,
                 "WorldAnchorPointPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 9.2413000488281250E+002,
-                  "Y" : 2.7095001220703125E+002
+                  "Y" : 1.7469000244140625E+002
                 },
                 "WorldGroundAnchorPointPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
