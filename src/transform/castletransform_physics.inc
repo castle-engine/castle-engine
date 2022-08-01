@@ -3693,7 +3693,8 @@ end;
 function TAbstractJoint.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'BreakThresholdForce') or
+  if (PropertyName = 'Breakable') or
+     (PropertyName = 'BreakThresholdForce') or
      (PropertyName = 'BreakThresholdTorque') then
     Result := [psBasic]
   else
