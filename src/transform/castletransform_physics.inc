@@ -3840,7 +3840,7 @@ begin
      (PropertyName = 'EnableMotor') or
      (PropertyName = 'MotorSpeed') or
      (PropertyName = 'MaximumMotorTorque') or
-     (PropertyName = 'RotationAxis') then
+     (PropertyName = 'RotationAxisPersistent') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
