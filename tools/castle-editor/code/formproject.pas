@@ -568,6 +568,13 @@ end;
 
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
+  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to turn off the editor.');
+    CanClose := false;
+    Exit;
+  end;
+
   if ProposeSaveDesign then
   begin
     { Close sprite sheet editor window if visible }
