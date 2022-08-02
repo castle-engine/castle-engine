@@ -1244,7 +1244,7 @@ begin
 
   { After setting the appropriate transformation, we can optimize the matrix
     multiplication when rotation = 0, translation = 0,0,0 scale is not
-    checked here becouse it must to be 1,1,1 in kraft and it's added in
+    checked here because it must to be 1,1,1 in kraft and it's added in
     collider shape creation }
   FUseLocalTransform := not (
     FTranslation.IsPerfectlyZero and
@@ -2395,7 +2395,7 @@ procedure TCastleRigidBody.UpdateCollisionDetectionType;
 begin
   if Assigned(FKraftBody) then
   begin
-    { We set here krbfContinuous, krbfContinuousAgainstDynamics becouse
+    { We set here krbfContinuous, krbfContinuousAgainstDynamics because
       continuous works only when:
       - one of bodies has krbfContinuous and they are dynamic bodies
       - ContinuousAgainstDynamics is set to true in FKraftEngine
@@ -2517,7 +2517,7 @@ begin
   if not (FState in [crbsNoFinalization, crbsInitialized]) then
     Exit;
 
-  { Remove scale from world transfrom becouse using scale in kraft
+  { Remove scale from world transfrom because using scale in kraft
     leads to an undefined state. }
   MatrixDecompose(WorldTransform, Translation, Rotation, Scale);
 
@@ -2612,7 +2612,7 @@ begin
     SynchronizeFromKraft;
   end
 
-  { Animated: I think we don't need do anything here becouse when
+  { Animated: I think we don't need do anything here because when
       TCastleTransform transformation changes SetWorldTransformation() is
       called in TCastleTransform.ChangedTransform. }
 end;
