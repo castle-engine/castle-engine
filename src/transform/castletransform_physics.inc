@@ -2885,11 +2885,16 @@ procedure TCastleRigidBody.UpdateCollisionDetectionType;
 begin
   if Assigned(FKraftBody) then
   begin
+    { We set here krbfContinuous, krbfContinuousAgainstDynamics becouse
+      continuous works only when:
+      - one of shapes has krbfContinuous and they are dynamic bodies
+      - ContinuousAgainstDynamics is set to true in
+      FKraftEngine and one of shapes has krbfContinuousAgainstDynamics flag }
     case FCollisionDetectionType of
       cdtDiscrete:
         FKraftBody.Flags := FKraftBody.Flags - [krbfContinuous, krbfContinuousAgainstDynamics];
       cdtContinuous:
-        FKraftBody.Flags := FKraftBody.Flags + [krbfContinuous];
+        FKraftBody.Flags := FKraftBody.Flags + [krbfContinuous, krbfContinuousAgainstDynamics];
     end;
   end;
 end;
@@ -4550,9 +4555,29 @@ begin
     FKraftEngine.AngularVelocityRK4Integration := PhysicsProperties.AngularVelocityRK4Integration;
     FKraftEngine.LinearVelocityRK4Integration := PhysicsProperties.LinearVelocityRK4Integration;
     if PhysicsProperties.ContinuousCD then
-      FKraftEngine.ContinuousMode := kcmTimeOfImpactSubSteps
-    else
+    begin
+      { I tested all options:
+         - kcmSpeculativeContacts - its fake so sometime we have fake collisons
+         - kcmTimeOfImpactSubSteps - bullets in platformer sometimes pass
+                                     through the walls, all TimeOfImpactAlgorithm
+                                     algorithm have this issue
+         - kcmMotionClamping - works best I think (but may lead to a momentary
+                               loss of time in a collision)
+         Maybe it can be worth to give user ability to choose what he need }
+      FKraftEngine.ContinuousMode := kcmMotionClamping;
+      { We need set this because continuous works only when:
+        - one of shapes has krbfContinuous and they are dynamic bodies
+        - ContinuousAgainstDynamics is set to true in
+        FKraftEngine and one of shapes has krbfContinuousAgainstDynamics flag }
+      FKraftEngine.ContinuousAgainstDynamics := true;
+      { Only for kcmTimeOfImpactSubSteps mode }
+      // FKraftEngine.TimeOfImpactAlgorithm := ktoiaConservativeAdvancement;
+      // FKraftEngine.MaximalSubSteps := 16;
+    end else
+    begin
       FKraftEngine.ContinuousMode := kcmNone;
+      FKraftEngine.ContinuousAgainstDynamics := false;
+    end;
   end;
 end;
 
