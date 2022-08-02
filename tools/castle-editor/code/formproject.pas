@@ -470,6 +470,12 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
+  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to close editor.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
     Application.Terminate;
 end;
