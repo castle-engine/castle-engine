@@ -443,6 +443,8 @@ type
     procedure MenuItemPlatformChangeClick(Sender: TObject);
     procedure RestartEditor(Sender: TObject);
     procedure CurrentViewportChanged(Sender: TObject);
+    { Question about saving during physics simulation. }
+    function SaveDurringPhysicsSimulation: Boolean;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -513,6 +515,9 @@ end;
 
 procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
 begin
+  if not SaveDurringPhysicsSimulation then
+    Exit;
+
   Assert(Design <> nil); // menu item is disabled otherwise
   PrepareSaveDesignDialog(SaveDesignDialog, Design.DesignRoot);
   SaveDesignDialog.Url := Design.DesignUrl;
@@ -523,6 +528,9 @@ end;
 
 procedure TProjectForm.MenuItemSaveDesignClick(Sender: TObject);
 begin
+  if not SaveDurringPhysicsSimulation then
+    Exit;
+
   Assert(Design <> nil); // menu item is disabled otherwise
 
   if Design.DesignUrl = '' then
@@ -1898,6 +1906,17 @@ begin
     end;
   end else
     UnselectAll;
+end;
+
+function TProjectForm.SaveDurringPhysicsSimulation: Boolean;
+begin
+  Result := true;
+  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  begin
+    Result := YesNoBox('The editor is during of physics simulation.'+ NL +
+      'Saving the design will save the current state, not the state ' + NL +
+      'before the start of the simulation. Do you want to continue?');
+  end;
 end;
 
 procedure TProjectForm.NewDesign(const ComponentClass: TComponentClass;
