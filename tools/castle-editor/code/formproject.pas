@@ -1762,6 +1762,12 @@ procedure TProjectForm.MenuItemDesignCloseClick(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
 
+  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to close design.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
   begin
     UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
