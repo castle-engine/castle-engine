@@ -462,6 +462,7 @@ type
     procedure CurrentViewportChanged(Sender: TObject);
     { Question about saving during physics simulation. }
     function SaveDurringPhysicsSimulation: Boolean;
+    function IsCreatingNewDesignAvailable: Boolean;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -1572,6 +1573,9 @@ end;
 
 procedure TProjectForm.MenuItemDesignNewNonVisualClick(Sender: TObject);
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
     NewDesign(TCastleComponent, nil);
 end;
@@ -1923,6 +1927,16 @@ begin
   end;
 end;
 
+function TProjectForm.IsCreatingNewDesignAvailable: Boolean;
+begin
+  Result := true;
+  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to create new design.');
+    Result := false;
+  end;
+end;
+
 procedure TProjectForm.NewDesign(const ComponentClass: TComponentClass;
   const ComponentOnCreate: TNotifyEvent);
 begin
@@ -1966,12 +1980,18 @@ end;
 
 procedure TProjectForm.MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
     NewDesign(TCastleUserInterface, nil);
 end;
 
 procedure TProjectForm.MenuItemDesignNewTransformClick(Sender: TObject);
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
     NewDesign(TCastleTransform, nil);
 end;
@@ -2675,6 +2695,9 @@ procedure TProjectForm.MenuItemDesignNewCustomRootClick(Sender: TObject);
 var
   R: TRegisteredComponent;
 begin
+  if not IsCreatingNewDesignAvailable then
+    Exit;
+
   if ProposeSaveDesign then
   begin
     R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
