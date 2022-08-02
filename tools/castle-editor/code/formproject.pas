@@ -1963,6 +1963,12 @@ end;
 
 procedure TProjectForm.MenuItemOpenDesignClick(Sender: TObject);
 begin
+  if CastleDesignPhysicsMode in [pmPlaying, pmPaused] then
+  begin
+    InfoBox('Stop the physics simulation to be able to open design.');
+    Exit;
+  end;
+
   if ProposeSaveDesign then
   begin
     if Design <> nil then
