@@ -2887,9 +2887,9 @@ begin
   begin
     { We set here krbfContinuous, krbfContinuousAgainstDynamics becouse
       continuous works only when:
-      - one of shapes has krbfContinuous and they are dynamic bodies
-      - ContinuousAgainstDynamics is set to true in
-      FKraftEngine and one of shapes has krbfContinuousAgainstDynamics flag }
+      - one of bodies has krbfContinuous and they are dynamic bodies
+      - ContinuousAgainstDynamics is set to true in FKraftEngine
+        and one of bodies has krbfContinuousAgainstDynamics flag }
     case FCollisionDetectionType of
       cdtDiscrete:
         FKraftBody.Flags := FKraftBody.Flags - [krbfContinuous, krbfContinuousAgainstDynamics];
@@ -4566,9 +4566,9 @@ begin
          Maybe it can be worth to give user ability to choose what he need }
       FKraftEngine.ContinuousMode := kcmMotionClamping;
       { We need set this because continuous works only when:
-        - one of shapes has krbfContinuous and they are dynamic bodies
+        - one of bodies has krbfContinuous and they are dynamic
         - ContinuousAgainstDynamics is set to true in
-        FKraftEngine and one of shapes has krbfContinuousAgainstDynamics flag }
+        FKraftEngine and one of bodies has krbfContinuousAgainstDynamics flag }
       FKraftEngine.ContinuousAgainstDynamics := true;
       { Only for kcmTimeOfImpactSubSteps mode }
       // FKraftEngine.TimeOfImpactAlgorithm := ktoiaConservativeAdvancement;
