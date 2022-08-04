@@ -216,7 +216,12 @@ begin
           SelStart := UTF8Length(Text);
       end;
     {.$endif}
-    VK_0..VK_9: InsertChar(Chr(Ord('0') + Key - VK_0));
+    VK_0..VK_9:
+      begin
+        if ssShift in Shift then
+          Exit; // resign from special handling, to allow to type !@#$... using alphanumeric keys
+        InsertChar(Chr(Ord('0') + Key - VK_0));
+      end;
     VK_F: InsertChar(IfThen(LettersUpCase, 'F', 'f'));
     VK_Z:
       if Shift = [ssCtrl] then
