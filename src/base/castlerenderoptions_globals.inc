@@ -103,8 +103,46 @@ type
 
   TShadersRendering = (srDisable, srWhenRequired, srAlways) deprecated 'this was only useful with TCastleRenderOptions.Shaders, which is now deprecated in favor of TCastleRenderOptions.PhongShading';
 
-  { Possible bump mapping options. Use with @link(TCastleRenderOptions.BumpMapping). }
-  TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
+  { Possible bump mapping options.
+    Use for @link(TCastleRenderOptions.BumpMapping).
+    See https://castle-engine.io/bump_mapping . }
+  TBumpMapping = (
+    { Do not perform bump mapping. The normal map texture is completely ignored. }
+    bmNone,
+
+    { Simple bump mapping: use the information in normal map RGB channels
+      to change the normal vector at each pixel.
+      Achieves a realistic "rough" surface look.
+
+      See https://en.wikipedia.org/wiki/Bump_mapping . }
+    bmBasic,
+
+    { In addition to bmBasic, the texture coordinates
+      are perturbed based on the height map and camera direction, to create
+      illusion of 3D shape instead of flat surface.
+
+      This makes e.g. the bricks on the texture really
+      visible as "standing out", in 3D, from the wall.
+
+      We rely on the height map information which should be in the alpha channel
+      of the normal map texture.
+      The @link(TCastleRenderOptions.BumpMappingParallaxHeight) can be used
+      to scale that information.
+
+      See https://en.wikipedia.org/wiki/Parallax_mapping . }
+    bmParallax,
+
+    { Improves the parallax effect, by tracing the ray as it goes through the height map.
+      This is more costly, but makes the parallax effect better.
+
+      See http://graphics.cs.brown.edu/games/SteepParallax/index.html . }
+    bmSteepParallax,
+
+    { Improves the bmSteepParallax even more, by adding additional shadow calculation.
+
+      See http://graphics.cs.brown.edu/games/SteepParallax/index.html . }
+    bmSteepParallaxShadowing
+  );
 
   { Possible values of @link(TCastleRenderOptions.Mode). }
   TRenderingMode = (
