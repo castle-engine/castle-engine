@@ -12,112 +12,56 @@
 
   ----------------------------------------------------------------------------
 }
-
-{ Game initialization and logic. }
+{ Game initialization.
+  This unit is cross-platform.
+  It will be used by the platform-specific program or library file. }
 unit GameInitialize;
 
 interface
 
 implementation
 
-uses SysUtils, Math,
-  CastleWindow, CastleScene, CastleControls, CastleLog,
-  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleVectors, CastleTransform, X3DNodes, CastleTimeUtils, CastleViewport,
-  CastleApplicationProperties, CastleUtils, CastleCameras;
+uses SysUtils,
+  CastleWindow, CastleLog, CastleUIState
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindow;
-  SceneVisualizeLight: TCastleScene;
-  MainLight: TPointLightNode;
-  Time: TFloatTime;
-
-procedure UpdateMainLightLocation;
-const
-  Radius = 2;
-var
-  S, C: Float;
-begin
-  SinCos(Time * 2, S, C);
-  MainLight.Location := Vector3(S * Radius, C * Radius + 1, 2);
-end;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
-
-  function CreateSphereModel: TX3DRootNode;
-  var
-    Sphere: TSphereNode;
-    Shape: TShapeNode;
-    Material: TMaterialNode;
-  begin
-    Sphere := TSphereNode.CreateWithShape(Shape);
-    Sphere.Radius := 0.1;
-
-    Material := TMaterialNode.Create;
-    Material.EmissiveColor := YellowRGB * 0.5;
-    Shape.Material := Material;
-
-    Result := TX3DRootNode.Create;
-    Result.AddChildren(Shape);
-  end;
-
-var
-  Viewport: TCastleViewport;
-  Scene1, Scene2: TCastleScene;
 begin
-  Viewport := TCastleViewport.Create(Application);
-  Viewport.FullSize := true;
-  Viewport.AutoCamera := true;
-  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
-  Window.Controls.InsertFront(Viewport);
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  Scene1 := TCastleScene.Create(Application);
-  Scene1.Load('castle-data:/steep_parallax.x3dv');
-  Scene1.Spatial := [ssRendering, ssDynamicCollisions];
-  Scene1.ProcessEvents := true;
-  Viewport.Items.Add(Scene1);
+  { Create TStateMain that will handle "main" state of the game.
+    Larger games may use multiple states,
+    e.g. TStateMainMenu ("main menu state"),
+    TStatePlay ("playing the game state"),
+    TStateCredits ("showing the credits state") etc. }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
+  StateMain := TStateMain.Create(Application);
+  {$endregion 'Castle State Creation'}
 
-  SceneVisualizeLight := TCastleScene.Create(Application);
-  SceneVisualizeLight.Load(CreateSphereModel, true);
-  Viewport.Items.Add(SceneVisualizeLight);
-
-  Scene2 := TCastleScene.Create(Application);
-  Scene2.Load('castle-data:/leaf.x3dv');
-  Scene2.Spatial := [ssRendering, ssDynamicCollisions];
-  Scene2.ProcessEvents := true;
-  Scene2.Translation := Vector3(0, 2, 0);
-  Viewport.Items.Add(Scene2);
-
-  // make MainLight on Scene1 affect all scenes, Scene1 and Scene2
-  Viewport.Items.MainScene := Scene1;
-
-  MainLight := Scene1.Node('MainLight') as TPointLightNode;
-  Time := 0;
-  UpdateMainLightLocation;
-end;
-
-procedure WindowRender(Container: TCastleContainer);
-begin
-  GetUIFont.Print(10, 10, Yellow, 'FPS: ' + Container.Fps.ToString);
-end;
-
-procedure WindowUpdate(Container: TCastleContainer);
-begin
-  Time := Time + Container.Fps.SecondsPassed;
-  UpdateMainLightLocation;
-  SceneVisualizeLight.Translation := MainLight.Location;
+  TUIState.Current := StateMain;
 end;
 
 initialization
-  { initialize Application callbacks }
+  { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
-  { create Window and initialize Window callbacks }
+  { Create and assign Application.MainWindow. }
   Window := TCastleWindow.Create(Application);
   Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 
-  Window.OnRender := @WindowRender;
-  Window.OnUpdate := @WindowUpdate;
+  { You should not need to do *anything* more in the unit "initialization" section.
+    Most of your game initialization should happen inside ApplicationInitialize.
+    In particular, it is not allowed to read files before ApplicationInitialize
+    (because in case of non-desktop platforms,
+    some necessary resources may not be prepared yet). }
 end.
