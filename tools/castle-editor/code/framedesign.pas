@@ -165,6 +165,9 @@ type
         function Release(const Event: TInputPressRelease): Boolean; override;
         function Motion(const Event: TInputMotion): Boolean; override;
         procedure Render; override;
+        { UI under given mouse position.
+          AMousePosition is in coordinates local to TCastleControl and follows
+          CGE conventions that Y goes from bottom to top. }
         function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
         function HoverTransform(const AMousePosition: TVector2): TCastleTransform;
       end;
@@ -2583,7 +2586,7 @@ begin
   if Source is TCastleShellListView then
   begin
     SourceShellList := TCastleShellListView(Source);
-    UI := FDesignerLayer.HoverUserInterface(Vector2(X, Y));
+    UI := FDesignerLayer.HoverUserInterface(Vector2(X, CastleControl.Height - Y));
     if UI is TCastleViewport then
       ParentComponent := TCastleViewport(UI).Items
     else
