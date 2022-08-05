@@ -230,13 +230,13 @@ type
       whose type best matches currently selected file in SourceShellList.
       May return @nil (and do nothing) if the SourceShellList does not
       have a suitable file selected for the given parent. }
-    function AddComponentFromShellList(
+    function ShellListAddComponent(
       const SourceShellList: TCastleShellListView;
       const ParentComponent: TComponent): TComponent;
     { Returns exactly the class that will be returned by
-      AddComponentFromShellList for the same arguments.
-      May return @nil exactly if AddComponentFromShellList also returns @nil. }
-    function ComponentClassFromShellList(
+      ShellListAddComponent for the same arguments.
+      May return @nil exactly if ShellListAddComponent also returns @nil. }
+    function ShellListComponentClass(
       const SourceShellList: TCastleShellListView;
       const ParentComponent: TComponent): TComponentClass;
 
@@ -2489,35 +2489,23 @@ end;
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
   Y: Integer; State: TDragState; var Accept: Boolean);
 var
-  ShellList: TCastleShellListView;
-  SelectedFileName: String;
-  SelectedUrl: String;
+  SourceShellList: TCastleShellListView;
+  UI: TCastleUserInterface;
+  ParentComponent: TComponent;
 begin
   Accept := false;
   if Source is TCastleShellListView then
   begin
-    ShellList := TCastleShellListView(Source);
+    SourceShellList := TCastleShellListView(Source);
+    UI := FDesignerLayer.HoverUserInterface(Vector2(X, CastleControl.Height - Y));
+    if UI is TCastleViewport then
+      ParentComponent := TCastleViewport(UI).Items
+    else
+      ParentComponent := UI;
+    if ParentComponent = nil then // may happen because UI was nil
+      Exit;
 
-    { ShellList.Selected may be nil, testcase:
-      - open any project (empty from template is OK)
-      - create new design using menu item
-        (looks like this step is necessary into tricking LCL that we're
-        in the middle of drag-and-drop on GTK?)
-      - double-click on some design file in data/ by double-clicking
-      - mouse over the design -> without this check, would have access violation
-        due to TDesignFrame.CastleControlDragOver being called with
-        ShellList.Selected = nil. }
-
-    if ShellList.Selected <> nil then
-    begin
-      SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
-      SelectedUrl := FilenameToURISafe(SelectedFileName);
-
-      Accept :=
-        LoadImage_FileFilters.Matches(SelectedUrl) or
-        TFileFilterList.Matches(LoadScene_FileFilters, SelectedUrl) or
-        TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl);
-    end;
+    Accept := ShellListComponentClass(SourceShellList, ParentComponent) <> nil;
   end;
 end;
 
@@ -2594,7 +2582,7 @@ begin
     if ParentComponent = nil then // may happen because UI was nil
       Exit;
 
-    NewComponentClass := ComponentClassFromShellList(SourceShellList, ParentComponent);
+    NewComponentClass := ShellListComponentClass(SourceShellList, ParentComponent);
     if NewComponentClass = nil then
       Exit;
 
@@ -2618,15 +2606,15 @@ begin
         Exit;
       end;
 
-      { We can assume that AddComponentFromShellList creates non-nil,
-        and TCastleTransform, because ComponentClassFromShellList
+      { We can assume that ShellListAddComponent creates non-nil,
+        and TCastleTransform, because ShellListComponentClass
         returned non-nil TCastleTransform descendant. }
-      Transform := AddComponentFromShellList(SourceShellList, ParentComponent) as TCastleTransform;
+      Transform := ShellListAddComponent(SourceShellList, ParentComponent) as TCastleTransform;
       Transform.Translation := DropPos;
     end else
     if NewComponentClass.InheritsFrom(TCastleUserInterface) then
     begin
-      AddComponentFromShellList(SourceShellList, ParentComponent);
+      ShellListAddComponent(SourceShellList, ParentComponent);
     end else
     begin
       WritelnWarning('Cannot drag-and-drop %s on UI %s', [
@@ -2637,7 +2625,7 @@ begin
   end;
 end;
 
-function TDesignFrame.ComponentClassFromShellList(const SourceShellList: TCastleShellListView;
+function TDesignFrame.ShellListComponentClass(const SourceShellList: TCastleShellListView;
   const ParentComponent: TComponent): TComponentClass;
 var
   SelectedFileName: String;
@@ -2646,6 +2634,17 @@ var
 begin
   Result := nil;
   PreferTransform := ParentComponent is TCastleTransform;
+
+  { SourceShellList.Selected may be nil, testcase:
+    - open any project (empty from template is OK)
+    - create new design using menu item
+      (looks like this step is necessary into tricking LCL that we're
+      in the middle of drag-and-drop on GTK?)
+    - double-click on some design file in data/ by double-clicking
+    - mouse over the design -> without this check, would have access violation
+      due to TDesignFrame.CastleControlDragOver being called with
+      ShellList.Selected = nil. }
+
   if SourceShellList.Selected <> nil then
   begin
     SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
@@ -2662,11 +2661,11 @@ begin
       Result := TCastleScene
     else
     if TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl) then
-      Result := TCastleTransform; // AddComponentFromShellList creates TCastleTransform with TCastleSoundSource behavior
+      Result := TCastleTransform; // ShellListAddComponent creates TCastleTransform with TCastleSoundSource behavior
   end;
 end;
 
-function TDesignFrame.AddComponentFromShellList(const SourceShellList: TCastleShellListView;
+function TDesignFrame.ShellListAddComponent(const SourceShellList: TCastleShellListView;
   const ParentComponent: TComponent): TComponent;
 
   function AddImageTransform(const Url: String): TCastleImageTransform;
