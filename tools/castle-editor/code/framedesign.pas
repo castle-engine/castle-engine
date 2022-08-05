@@ -40,7 +40,7 @@ uses
   CastleCameras, CastleBoxes, CastleTransform, CastleDebugTransform,
   CastleColors, CastleScene,
   // editor units
-  FrameAnchors,
+  FrameAnchors, CastleShellCtrls,
   DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview;
 
 type
@@ -222,6 +222,20 @@ type
       CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
       FCurrentViewport: TCastleViewport;
       FCurrentViewportObserver: TFreeNotificationObserver;
+
+    { Create and add to the designed parent a new component,
+      whose type best matches currently selected file in SourceShellList.
+      May return @nil (and do nothing) if the SourceShellList does not
+      have a suitable file selected for the given parent. }
+    function AddComponentFromShellList(
+      const SourceShellList: TCastleShellListView;
+      const ParentComponent: TComponent): TComponent;
+    { Returns exactly the class that will be returned by
+      AddComponentFromShellList for the same arguments.
+      May return @nil exactly if AddComponentFromShellList also returns @nil. }
+    function ComponentClassFromShellList(
+      const SourceShellList: TCastleShellListView;
+      const ParentComponent: TComponent): TComponentClass;
 
     function CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
     procedure CameraSynchronize(const Source, Target: TCastleCamera; const MakeUndo: Boolean);
@@ -433,7 +447,7 @@ uses
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs, LCLType, ObjInspStrConsts,
   { CGE units }
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
-  CastleLog, CastleProjection, CastleShellCtrls, CastleStringUtils, CastleTimeUtils,
+  CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleURIUtils, X3DLoad, CastleFilesUtils,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
@@ -2505,11 +2519,9 @@ begin
 end;
 
 procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
-var
-  Viewport: TCastleViewport;
 
   { Calculate 3D position of a TCastleTransform created by drag-and-drop on a vieport. }
-  function DropPosition(out DropPos: TVector3): Boolean;
+  function DropPosition(const Viewport: TCastleViewport; out DropPos: TVector3): Boolean;
   var
     RayOrigin, RayDirection: TVector3;
     RayHit: TRayCollision;
@@ -2559,75 +2571,155 @@ var
     end;
   end;
 
-  function AddImage(const Url: String): TCastleTransform;
-  var
-    ImageTransform: TCastleImageTransform;
-  begin
-    ImageTransform := AddComponent(Viewport.Items, TCastleImageTransform, nil) as TCastleImageTransform;
-    ImageTransform.Url := Url;
-    Result := ImageTransform;
-  end;
-
-  function AddScene(const Url: String): TCastleTransform;
-  var
-    Scene: TCastleScene;
-  begin
-    Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
-    Scene.Url := Url;
-    Result := Scene;
-  end;
-
-  function AddSound(const Url: String): TCastleTransform;
-  var
-    Transform: TCastleTransform;
-    SoundSource: TCastleSoundSource;
-    Sound: TCastleSound;
-  begin
-    Transform := AddComponent(Viewport.Items, TCastleTransform, nil) as TCastleTransform;
-    SoundSource := AddComponent(Transform, TCastleSoundSource, nil) as TCastleSoundSource;
-    Sound := AddComponent(SoundSource, TCastleSound, nil) as TCastleSound;
-    Sound.Url := Url;
-    SoundSource.Sound := Sound;
-    Result := Transform;
-  end;
-
 var
-  ShellList: TCastleShellListView;
-  SelectedFileName: String;
-  SelectedUrl: String;
+  SourceShellList: TCastleShellListView;
+  ParentComponent: TComponent;
+  NewComponentClass: TComponentClass;
   UI: TCastleUserInterface;
+  Viewport: TCastleViewport;
   DropPos: TVector3;
   Transform: TCastleTransform;
 begin
   if Source is TCastleShellListView then
   begin
-    ShellList := TCastleShellListView(Source);
-    if ShellList.Selected <> nil then
-    begin
-      SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
-      SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+    SourceShellList := TCastleShellListView(Source);
+    UI := FDesignerLayer.HoverUserInterface(Vector2(X, Y));
+    if UI is TCastleViewport then
+      ParentComponent := TCastleViewport(UI).Items
+    else
+      ParentComponent := UI;
+    if ParentComponent = nil then // may happen because UI was nil
+      Exit;
 
-      UI := FDesignerLayer.HoverUserInterface(Vector2(X, Y));
+    NewComponentClass := ComponentClassFromShellList(SourceShellList, ParentComponent);
+    if NewComponentClass = nil then
+      Exit;
+
+    if NewComponentClass.InheritsFrom(TCastleTransform) then
+    begin
       if not (UI is TCastleViewport) then
+      begin
+        WritelnWarning('Cannot drag-and-drop %s on UI %s', [
+          NewComponentClass.ClassName,
+          UI.ClassName
+        ]);
         Exit;
+      end;
       Viewport := TCastleViewport(UI);
 
-      if not DropPosition(DropPos) then
+      if not DropPosition(Viewport, DropPos) then
+      begin
+        WritelnWarning('Cannot drag-and-drop %s on viewport, cannot determine drop position', [
+          NewComponentClass.ClassName
+        ]);
         Exit;
+      end;
 
-      if LoadImage_FileFilters.Matches(SelectedUrl) then
-        Transform := AddImage(SelectedUrl)
-      else
-      if TFileFilterList.Matches(LoadScene_FileFilters, SelectedUrl) then
-        Transform := AddScene(SelectedUrl)
-      else
-      if TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl) then
-        Transform := AddSound(SelectedUrl)
-      else
-        Exit; // cannot drop such file type
-
+      { We can assume that AddComponentFromShellList creates non-nil,
+        and TCastleTransform, because ComponentClassFromShellList
+        returned non-nil TCastleTransform descendant. }
+      Transform := AddComponentFromShellList(SourceShellList, ParentComponent) as TCastleTransform;
       Transform.Translation := DropPos;
+    end else
+    if NewComponentClass.InheritsFrom(TCastleUserInterface) then
+    begin
+      AddComponentFromShellList(SourceShellList, ParentComponent);
+    end else
+    begin
+      WritelnWarning('Cannot drag-and-drop %s on UI %s', [
+        NewComponentClass.ClassName,
+        UI.ClassName
+      ]);
     end;
+  end;
+end;
+
+function TDesignFrame.ComponentClassFromShellList(const SourceShellList: TCastleShellListView;
+  const ParentComponent: TComponent): TComponentClass;
+var
+  SelectedFileName: String;
+  SelectedUrl: String;
+  PreferTransform: Boolean;
+begin
+  Result := nil;
+  PreferTransform := ParentComponent is TCastleTransform;
+  if SourceShellList.Selected <> nil then
+  begin
+    SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
+    SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+
+    if LoadImage_FileFilters.Matches(SelectedUrl) then
+    begin
+      if PreferTransform then
+        Result := TCastleImageTransform
+      else
+        Result := TCastleImageControl;
+    end else
+    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedUrl) then
+      Result := TCastleScene
+    else
+    if TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl) then
+      Result := TCastleTransform; // AddComponentFromShellList creates TCastleTransform with TCastleSoundSource behavior
+  end;
+end;
+
+function TDesignFrame.AddComponentFromShellList(const SourceShellList: TCastleShellListView;
+  const ParentComponent: TComponent): TComponent;
+
+  function AddImageTransform(const Url: String): TCastleImageTransform;
+  begin
+    Result := AddComponent(ParentComponent, TCastleImageTransform, nil) as TCastleImageTransform;
+    Result.Url := Url;
+  end;
+
+  function AddImageControl(const Url: String): TCastleImageControl;
+  begin
+    Result := AddComponent(ParentComponent, TCastleImageControl, nil) as TCastleImageControl;
+    Result.Url := Url;
+  end;
+
+  function AddScene(const Url: String): TCastleScene;
+  begin
+    Result := AddComponent(ParentComponent, TCastleScene, nil) as TCastleScene;
+    Result.Url := Url;
+  end;
+
+  function AddSound(const Url: String): TCastleTransform;
+  var
+    SoundSource: TCastleSoundSource;
+    Sound: TCastleSound;
+  begin
+    Result := AddComponent(ParentComponent, TCastleTransform, nil) as TCastleTransform;
+    SoundSource := AddComponent(Result, TCastleSoundSource, nil) as TCastleSoundSource;
+    Sound := AddComponent(SoundSource, TCastleSound, nil) as TCastleSound;
+    Sound.Url := Url;
+    SoundSource.Sound := Sound;
+  end;
+
+var
+  SelectedFileName: String;
+  SelectedUrl: String;
+  PreferTransform: Boolean;
+begin
+  Result := nil;
+  PreferTransform := ParentComponent is TCastleTransform;
+  if SourceShellList.Selected <> nil then
+  begin
+    SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
+    SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+
+    if LoadImage_FileFilters.Matches(SelectedUrl) then
+    begin
+      if PreferTransform then
+        Result := AddImageTransform(SelectedUrl)
+      else
+        Result := AddImageControl(SelectedUrl);
+    end else
+    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedUrl) then
+      Result := AddScene(SelectedUrl)
+    else
+    if TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl) then
+      Result := AddSound(SelectedUrl);
   end;
 end;
 
