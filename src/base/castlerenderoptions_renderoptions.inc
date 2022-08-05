@@ -421,7 +421,7 @@ type
       bmSteepParallaxShadowing then this property is used to interpret the height information. }
     property BumpMappingParallaxHeight: Single
       read FBumpMappingParallaxHeight write FBumpMappingParallaxHeight
-      default DefaultBumpMappingParallaxHeight;
+      {$ifdef FPC}default DefaultBumpMappingParallaxHeight{$endif};
 
     { Whether to use Phong shading by default.
 
