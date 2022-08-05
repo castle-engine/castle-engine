@@ -122,7 +122,7 @@ castle-game-engine-*.fpm
 /examples/mobile/activity_recognition/activity_recognition
 /examples/mobile/drawing_toy/drawing_toy
 /examples/mobile/simple_3d_demo/simple_3d_demo
-/examples/mobile/test_bump_mapping/test_bump_mapping
+/examples/viewport_and_scenes/bump_mapping/bump_mapping
 /examples/network/asynchronous_download/asynchronous_download
 /examples/network/castle_download/castle_download
 /examples/network/custom_url_handler/read_game_data_from_zip
