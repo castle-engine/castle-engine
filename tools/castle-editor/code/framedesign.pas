@@ -2474,7 +2474,7 @@ procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
 var
   ShellList: TCastleShellListView;
   SelectedFileName: String;
-  SelectedURL: String;
+  SelectedUrl: String;
 begin
   Accept := false;
   if Source is TCastleShellListView then
@@ -2494,11 +2494,12 @@ begin
     if ShellList.Selected <> nil then
     begin
       SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
-      SelectedURL := FilenameToURISafe(SelectedFileName);
+      SelectedUrl := FilenameToURISafe(SelectedFileName);
 
       Accept :=
-        TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) or
-        TFileFilterList.Matches(LoadSound_FileFilters, SelectedURL);
+        LoadImage_FileFilters.Matches(SelectedUrl) or
+        TFileFilterList.Matches(LoadScene_FileFilters, SelectedUrl) or
+        TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl);
     end;
   end;
 end;
