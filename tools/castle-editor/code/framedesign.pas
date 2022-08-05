@@ -2564,17 +2564,19 @@ procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Inte
 
 var
   SourceShellList: TCastleShellListView;
-  ParentComponent: TComponent;
+  ParentComponent, NewComponent: TComponent;
   NewComponentClass: TComponentClass;
   UI: TCastleUserInterface;
   Viewport: TCastleViewport;
+  DropPosition2D: TVector2;
   DropPos: TVector3;
   Transform: TCastleTransform;
 begin
   if Source is TCastleShellListView then
   begin
     SourceShellList := TCastleShellListView(Source);
-    UI := FDesignerLayer.HoverUserInterface(Vector2(X, CastleControl.Height - Y));
+    DropPosition2D := Vector2(X, CastleControl.Height - Y);
+    UI := FDesignerLayer.HoverUserInterface(DropPosition2D);
     if UI is TCastleViewport then
       ParentComponent := TCastleViewport(UI).Items
     else
@@ -2614,7 +2616,13 @@ begin
     end else
     if NewComponentClass.InheritsFrom(TCastleUserInterface) then
     begin
-      ShellListAddComponent(SourceShellList, ParentComponent);
+      NewComponent := ShellListAddComponent(SourceShellList, ParentComponent);
+      if (NewComponent is TCastleUserInterface) and
+         (ParentComponent is TCastleUserInterface) then
+      begin
+        TCastleUserInterface(NewComponent).AnchorDelta :=
+          TCastleUserInterface(ParentComponent).ContainerToLocalPosition(DropPosition2D, true);
+      end;
     end else
     begin
       WritelnWarning('Cannot drag-and-drop %s on UI %s', [
