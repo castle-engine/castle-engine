@@ -3678,22 +3678,26 @@ procedure TDesignFrame.ControlsTreeDragOver(Sender, Source: TObject; X,
 var
   Src, Dst: TTreeNode;
 begin
-  // Thanks to answer on https://stackoverflow.com/questions/18856374/delphi-treeview-drag-and-drop-between-nodes
-  Src := ControlsTree.Selected;
-  Dst := ControlsTree.GetNodeAt(X, Y);
-  ControlsTreeNodeUnderMouse := Dst;
+  Accept := false;
+  if Source = ControlsTree then
+  begin
+    // Thanks to answer on https://stackoverflow.com/questions/18856374/delphi-treeview-drag-and-drop-between-nodes
+    Src := ControlsTree.Selected;
+    Dst := ControlsTree.GetNodeAt(X, Y);
+    ControlsTreeNodeUnderMouse := Dst;
 
-  Accept := ControlsTreeAllowDrag(Src, Dst);
-  if not Accept then
-    ControlsTreeNodeUnderMouse := nil;
+    Accept := ControlsTreeAllowDrag(Src, Dst);
+    if not Accept then
+      ControlsTreeNodeUnderMouse := nil;
 
-  { We don't use TCustomTreeView.GetHitTestInfoAt,
-    it never contains flags htAbove, htBelow, htOnRight that interest us.
-    (Simply not implemented, marked by TODO in Lazarus sources.) }
-  //ControlsTreeNodeUnderMouseHit := ControlsTree.GetHitTestInfoAt(X, Y);
-  if ControlsTreeNodeUnderMouse <> nil then
-    ControlsTreeNodeUnderMouseSide := NodeSide(ControlsTreeNodeUnderMouse, X, Y);
-  ControlsTree.Invalidate; // force custom-drawn look redraw
+    { We don't use TCustomTreeView.GetHitTestInfoAt,
+      it never contains flags htAbove, htBelow, htOnRight that interest us.
+      (Simply not implemented, marked by TODO in Lazarus sources.) }
+    //ControlsTreeNodeUnderMouseHit := ControlsTree.GetHitTestInfoAt(X, Y);
+    if ControlsTreeNodeUnderMouse <> nil then
+      ControlsTreeNodeUnderMouseSide := NodeSide(ControlsTreeNodeUnderMouse, X, Y);
+    ControlsTree.Invalidate; // force custom-drawn look redraw
+  end;
 end;
 
 procedure TDesignFrame.ControlsTreeEditing(Sender: TObject; Node: TTreeNode;
@@ -4039,64 +4043,67 @@ var
   end;
 
 begin
-  Src := ControlsTree.Selected;
-  Dst := ControlsTreeNodeUnderMouse;
-  { Paranoidally check ControlsTreeAllowDrag again.
-    It happens that Src is nil, in my tests. }
-  if ControlsTreeAllowDrag(Src, Dst) then
+  if Source = ControlsTree then
   begin
-    SrcComponent := TComponent(Src.Data);
-    DstComponent := TComponent(Dst.Data);
-    if (SrcComponent is TCastleUserInterface) and
-       (DstComponent is TCastleUserInterface) then
+    Src := ControlsTree.Selected;
+    Dst := ControlsTreeNodeUnderMouse;
+    { Paranoidally check ControlsTreeAllowDrag again.
+      It happens that Src is nil, in my tests. }
+    if ControlsTreeAllowDrag(Src, Dst) then
     begin
-      MoveUserInterface(
-        TCastleUserInterface(SrcComponent),
-        TCastleUserInterface(DstComponent));
-      { Fixes selection after drag'n'drop.
-        I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
-        is changed to nil but in TTreeNode.Selected stays true. That's why we see
-        selection but TTreeView.Selected state is incorect }
-      ControlsTree.Selected := Src;
-    end else
-    if (SrcComponent is TCastleTransform) and
-       (DstComponent is TCastleTransform) then
-    begin
-      MoveTransform(
-        TCastleTransform(SrcComponent),
-        TCastleTransform(DstComponent));
-      { Fixes selection after drag'n'drop.
-        I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
-        is changed to nil but in TTreeNode.Selected stays true. That's why we see
-        selection but TTreeView.Selected state is incorect }
-      ControlsTree.Selected := Src;
-    end else
-    if (SrcComponent is TCastleBehavior) and
-       (DstComponent is TCastleTransform) then
-    begin
-      MoveBehavior(
-        TCastleBehavior(SrcComponent),
-        TCastleTransform(DstComponent));
-      // as for now we just refresh tree view, so set SelectedComponent and don't do ValidateHierarchy
-      SelectedComponent := SrcComponent;
-      Exit;
-    end else
-    if (not ( (SrcComponent is TCastleBehavior) or
-              (SrcComponent is TCastleTransform) or
-              (SrcComponent is TCastleUserInterface) ) ) and
-       (DstComponent is TCastleComponent) and
-       (Src.Parent <> nil) and
-       (SelectedFromNode(Src.Parent) is TCastleComponent) then
-    begin
-      MoveNonVisual(
-        TCastleComponent(SelectedFromNode(Src.Parent)),
-        SrcComponent,
-        TCastleComponent(DstComponent));
-      // as for now we just refresh tree view, so set SelectedComponent and don't do ValidateHierarchy
-      SelectedComponent := SrcComponent;
-      Exit;
+      SrcComponent := TComponent(Src.Data);
+      DstComponent := TComponent(Dst.Data);
+      if (SrcComponent is TCastleUserInterface) and
+         (DstComponent is TCastleUserInterface) then
+      begin
+        MoveUserInterface(
+          TCastleUserInterface(SrcComponent),
+          TCastleUserInterface(DstComponent));
+        { Fixes selection after drag'n'drop.
+          I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
+          is changed to nil but in TTreeNode.Selected stays true. That's why we see
+          selection but TTreeView.Selected state is incorect }
+        ControlsTree.Selected := Src;
+      end else
+      if (SrcComponent is TCastleTransform) and
+         (DstComponent is TCastleTransform) then
+      begin
+        MoveTransform(
+          TCastleTransform(SrcComponent),
+          TCastleTransform(DstComponent));
+        { Fixes selection after drag'n'drop.
+          I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
+          is changed to nil but in TTreeNode.Selected stays true. That's why we see
+          selection but TTreeView.Selected state is incorect }
+        ControlsTree.Selected := Src;
+      end else
+      if (SrcComponent is TCastleBehavior) and
+         (DstComponent is TCastleTransform) then
+      begin
+        MoveBehavior(
+          TCastleBehavior(SrcComponent),
+          TCastleTransform(DstComponent));
+        // as for now we just refresh tree view, so set SelectedComponent and don't do ValidateHierarchy
+        SelectedComponent := SrcComponent;
+        Exit;
+      end else
+      if (not ( (SrcComponent is TCastleBehavior) or
+                (SrcComponent is TCastleTransform) or
+                (SrcComponent is TCastleUserInterface) ) ) and
+         (DstComponent is TCastleComponent) and
+         (Src.Parent <> nil) and
+         (SelectedFromNode(Src.Parent) is TCastleComponent) then
+      begin
+        MoveNonVisual(
+          TCastleComponent(SelectedFromNode(Src.Parent)),
+          SrcComponent,
+          TCastleComponent(DstComponent));
+        // as for now we just refresh tree view, so set SelectedComponent and don't do ValidateHierarchy
+        SelectedComponent := SrcComponent;
+        Exit;
+      end;
+      ValidateHierarchy;
     end;
-    ValidateHierarchy;
   end;
 end;
 
