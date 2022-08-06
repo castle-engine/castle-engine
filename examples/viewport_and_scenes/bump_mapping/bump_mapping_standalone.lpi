@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="test_bump_mapping"/>
+      <Title Value="bump_mapping"/>
     </General>
     <RequiredPackages Count="2">
       <Item1>
@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="test_bump_mapping_standalone.dpr"/>
+        <Filename Value="bump_mapping_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -40,7 +40,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="test_bump_mapping"/>
+      <Filename Value="bump_mapping"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code/"/>

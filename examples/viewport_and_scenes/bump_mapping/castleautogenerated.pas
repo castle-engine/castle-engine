@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'test_bump_mapping';
-  ApplicationProperties.Caption := 'Test Bump Mapping';
+  ApplicationProperties.ApplicationName := 'bump_mapping';
+  ApplicationProperties.Caption := 'Bump Mapping Demo';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
