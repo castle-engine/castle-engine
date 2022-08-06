@@ -41,7 +41,8 @@ var
 
 implementation
 
-uses Math;
+uses Math,
+  CastleUtils { Delphi needs this to define Float };
 
 constructor TStateMain.Create(AOwner: TComponent);
 begin
