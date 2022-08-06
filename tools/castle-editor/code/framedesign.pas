@@ -2498,7 +2498,7 @@ begin
   begin
     SourceShellList := TCastleShellListView(Source);
     UI := FDesignerLayer.HoverUserInterface(Vector2(X, CastleControl.Height - Y));
-    if UI is TCastleViewport then
+    if (UI is TCastleViewport) and not (ssShift in GetKeyShiftState) then
       ParentComponent := TCastleViewport(UI).Items
     else
       ParentComponent := UI;
@@ -2577,7 +2577,7 @@ begin
     SourceShellList := TCastleShellListView(Source);
     DropPosition2D := Vector2(X, CastleControl.Height - Y);
     UI := FDesignerLayer.HoverUserInterface(DropPosition2D);
-    if UI is TCastleViewport then
+    if (UI is TCastleViewport) and not (ssShift in GetKeyShiftState) then
       ParentComponent := TCastleViewport(UI).Items
     else
       ParentComponent := UI;
