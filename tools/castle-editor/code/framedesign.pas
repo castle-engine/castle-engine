@@ -3799,6 +3799,12 @@ begin
     if ControlsTreeNodeUnderMouse <> nil then
       ControlsTreeNodeUnderMouseSide := NodeSide(ControlsTreeNodeUnderMouse, X, Y);
     ControlsTree.Invalidate; // force custom-drawn look redraw
+  end else
+  if Source is TCastleShellListView then
+  begin
+    if SelectedComponent <> nil then
+      Accept := ShellListComponentClass(TCastleShellListView(Source),
+        SelectedComponent) <> nil;
   end;
 end;
 
@@ -4206,6 +4212,11 @@ begin
       end;
       ValidateHierarchy;
     end;
+  end else
+  if Source is TCastleShellListView then
+  begin
+    if SelectedComponent <> nil then
+      ShellListAddComponent(TCastleShellListView(Source), SelectedComponent);
   end;
 end;
 
