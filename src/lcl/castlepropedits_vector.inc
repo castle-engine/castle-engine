@@ -20,7 +20,7 @@
 
 type
   TCastleVector2PropertyEditor = class(TSubPropertiesEditor)
-  strict private
+  strict protected
     procedure SetAllValues(const NewValue: TVector2);
   public
     function GetAttributes: TPropertyAttributes; override;
@@ -122,7 +122,7 @@ end;
 
 type
   TCastleVector3PropertyEditor = class(TSubPropertiesEditor)
-  strict private
+  strict protected
     procedure SetAllValues(const NewValue: TVector3);
   public
     function GetAttributes: TPropertyAttributes; override;
@@ -220,12 +220,9 @@ type
 
 procedure TScalePropertyEditor.SetValue(const NewValue: String);
 var
-  VectorPersistent: TCastleVector3Persistent;
   F: Single;
   V: TVector3;
 begin
-  VectorPersistent := (GetObjectValue as TCastleVector3Persistent);
-
   try
     { accept just a single float as input, so e.g. "2" works the same as "2 2 2" }
     F := StrToFloat(NewValue);
@@ -234,8 +231,31 @@ begin
     on EConvertError do
       V := Vector3FromStr(NewValue);
   end;
+  SetAllValues(V);
+end;
 
-  VectorPersistent.Value := V;
+{ TSize2DPropertyEditor ------------------------------------------------- }
+
+type
+  { Editor for Size:TVector2 properties, like TCastlePlane.Size. }
+  TSize2DPropertyEditor = class(TCastleVector2PropertyEditor)
+    procedure SetValue(const NewValue: String); override;
+  end;
+
+procedure TSize2DPropertyEditor.SetValue(const NewValue: String);
+var
+  F: Single;
+  V: TVector2;
+begin
+  try
+    { accept just a single float as input, so e.g. "2" works the same as "2 2" }
+    F := StrToFloat(NewValue);
+    V := Vector2(F, F);
+  except
+    on EConvertError do
+      V := Vector2FromStr(NewValue);
+  end;
+  SetAllValues(V);
 end;
 
 { TCastleVector4PropertyEditor ------------------------------------------------- }
