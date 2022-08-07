@@ -113,6 +113,14 @@ function ParseExpression(const S: string;
   @raises(ECasScriptSyntaxError in case of error when parsing expression.) }
 function ParseConstantFloatExpression(const S: string): Float;
 
+{ Parse constant Int64 expression.
+  This can be used as a drop-in replacement for StrToInt.
+  Takes a string with any constant mathematical expression,
+  according to CastleScript syntax, parses it and calculates.
+
+  @raises(ECasScriptSyntaxError in case of error when parsing expression.) }
+function ParseConstantIntExpression(const S: string): Int64;
+
 { Parse CastleScript program.
 
   Variable list works like for ParseFloatExpression, see there for
@@ -575,7 +583,7 @@ begin
   finally Lexer.Free end;
 end;
 
-{ ParseConstantFloatExpression ----------------------------------------------- }
+{ ParseConstant*Expression ----------------------------------------------- }
 
 function ParseConstantFloatExpression(const S: string): Float;
 var
@@ -597,6 +605,29 @@ begin
 
   try
     Result := (Expr.Execute as TCasScriptFloat).Value;
+  finally Expr.Free end;
+end;
+
+function ParseConstantIntExpression(const S: string): Int64;
+var
+  Expr: TCasScriptExpression;
+begin
+  try
+    Expr := ParseIntExpression(s, []);
+  except
+    on E: ECasScriptSyntaxError do
+    begin
+      if Trim(S) = '' then
+        // special message in this case, to be friendly to humans
+        E.Message := 'Empty string is not a valid integer value'
+      else
+        E.Message := 'Error when parsing constant integer expression: ' + E.Message;
+      raise;
+    end;
+  end;
+
+  try
+    Result := (Expr.Execute as TCasScriptInteger).Value;
   finally Expr.Free end;
 end;
 
