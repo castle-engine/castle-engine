@@ -75,7 +75,7 @@ end;
 {$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
-{$I castlepropedits_float.inc}
+{$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
 
 procedure Register;
@@ -120,11 +120,14 @@ begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleControl,
     'DesignUrl', TDesignURLPropertyEditor);
 
-  { Improved float properties }
+  { Improved numeric properties }
   RegisterPropertyEditor(TypeInfo(Single), nil, '', TCastleFloatPropertyEditor);
   RegisterPropertyEditor(TypeInfo(Double), nil, '', TCastleFloatPropertyEditor);
   {$ifndef EXTENDED_EQUALS_DOUBLE}
   RegisterPropertyEditor(TypeInfo(Extended), nil, '', TCastleFloatPropertyEditor);
+  {$endif}
+  {$ifdef CPU64}
+  RegisterPropertyEditor(TypeInfo(PtrInt), TComponent, 'Tag', TCastleTagPropertyEditor);
   {$endif}
 
   { Properties that simply use TSubPropertiesEditor.

@@ -14,8 +14,6 @@
   ----------------------------------------------------------------------------
 }
 
-{ Improved float property editor. }
-
 { Require 2.0.8.
 
   With older LCL (1.6.4, at the time of FPC 3.0.2) we get
@@ -28,8 +26,11 @@
   {$define LCL_HAS_DEFAULT_VALUE}
 {$endif}
 
+{ TCastleFloatPropertyEditor ------------------------------------------------- }
+
 type
-  { Property editor for floats, improves standard TFloatPropertyEditor. }
+  { Improved property editor for floats.
+    This is used e.g. for TCastleSpotLight.CutOffAngle editing. }
   TCastleFloatPropertyEditor = class(TFloatPropertyEditor)
   public
     {$ifdef LCL_HAS_DEFAULT_VALUE}
@@ -37,9 +38,9 @@ type
       the current property state as default or not (bold).
 
       The default implementation is faulty: it compares "GetDefaultValue<>GetVisualValue"
-      by GetDefaultValue always returns zero.
+      but GetDefaultValue always returns zero.
 
-      TODO: Submit to fix on LCL. }
+      TODO: Submit to fix in LCL. }
     function GetDefaultValue: String; override;
     {$endif}
 
@@ -78,3 +79,28 @@ begin
       SetFloatValue(ParseConstantFloatExpression(NewValue));
   end;
 end;
+
+{ TCastleTagPropertyEditor ------------------------------------------------- }
+
+{$ifdef CPU64}
+
+type
+  { Improved property editor for TComponent.Tag (PtrInt, which means Int64 on x86_64). }
+  TCastleTagPropertyEditor = class(TInt64PropertyEditor)
+  public
+    {$ifdef LCL_HAS_DEFAULT_VALUE}
+    { Determines whether the object inspector shows
+      the current property state as default or not (bold). }
+    function GetDefaultValue: String; override;
+    {$endif}
+  end;
+
+{$ifdef LCL_HAS_DEFAULT_VALUE}
+{ We know that Tag has always default 0. }
+function TCastleTagPropertyEditor.GetDefaultValue: String;
+begin
+  Result := IntToStr(0);
+end;
+{$endif}
+
+{$endif}

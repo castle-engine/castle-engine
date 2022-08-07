@@ -93,7 +93,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item10>
       <Item11>
-        <Filename Value="../src/lcl/castlepropedits_float.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_number.inc"/>
         <Type Value="Include"/>
       </Item11>
       <Item12>
