@@ -20,6 +20,9 @@
 
 type
   TCastleColorPropertyEditor = class(TSubPropertiesEditor)
+  strict private
+    procedure SetAllValues(const NewValue: TCastleColor);
+  public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
     function GetName: shortstring; override;
@@ -27,6 +30,7 @@ type
     procedure SetValue(const NewValue: String); override;
     function GetDefaultValue: String; override;
     function ValueIsStreamed: boolean; override;
+    function AllEqual: Boolean; override;
   end;
 
 function TCastleColorPropertyEditor.GetAttributes: TPropertyAttributes;
@@ -55,11 +59,11 @@ begin
       // keep Color alpha unchanged ...
       Color := Vector4(Vector3(ColorByte), Color.W);
       // ... unless it is zero, then change to 1.
-      // This makes changing TCastleUserInterface.BorderColor changing more natural.
+      { This makes changing TCastleUserInterface.BorderColor changing more natural,
+        setting it using dialog turns color from transparent -> opaque. }
       if Color.W = 0 then
         Color.W := 1;
-      ColorPersistent.Value := Color;
-      Modified;
+      SetAllValues(Color);
     end;
   finally FreeAndNil(Dialog) end;
 end;
@@ -78,13 +82,22 @@ begin
   Result := ColorToHex(ColorPersistent.Value);
 end;
 
-procedure TCastleColorPropertyEditor.SetValue(const NewValue: String);
+procedure TCastleColorPropertyEditor.SetAllValues(const NewValue: TCastleColor);
 var
+  I: Integer;
   ColorPersistent: TCastleColorPersistent;
 begin
-  ColorPersistent := (GetObjectValue as TCastleColorPersistent);
-  ColorPersistent.Value := HexToColor(NewValue);
+  for I := 0 to PropCount - 1 do
+  begin
+    ColorPersistent := GetObjectValueAt(I) as TCastleColorPersistent;
+    ColorPersistent.Value := NewValue;
+  end;
   Modified;
+end;
+
+procedure TCastleColorPropertyEditor.SetValue(const NewValue: String);
+begin
+  SetAllValues(HexToColor(NewValue));
 end;
 
 function TCastleColorPropertyEditor.GetDefaultValue: String;
@@ -103,10 +116,32 @@ begin
   Result := not ColorPersistent.HasDefaultValue;
 end;
 
+function TCastleColorPropertyEditor.AllEqual: Boolean;
+var
+  I: Integer;
+  Value1, Value2: TCastleColor;
+begin
+  if PropCount > 1 then
+  begin
+    Value1 := (GetObjectValueAt(0) as TCastleColorPersistent).Value;
+    for I := 1 to PropCount - 1 do
+    begin
+      Value2 := (GetObjectValueAt(I) as TCastleColorPersistent).Value;
+      if not TCastleColor.PerfectlyEquals(Value1, Value2) then
+        Exit(false);
+    end;
+  end;
+
+  Result := true;
+end;
+
 { TCastleColorRGBPropertyEditor ------------------------------------------------- }
 
 type
   TCastleColorRGBPropertyEditor = class(TSubPropertiesEditor)
+  strict private
+    procedure SetAllValues(const NewValue: TCastleColorRGB);
+  public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
     function GetName: shortstring; override;
@@ -114,6 +149,7 @@ type
     procedure SetValue(const NewValue: String); override;
     function GetDefaultValue: String; override;
     function ValueIsStreamed: boolean; override;
+    function AllEqual: Boolean; override;
   end;
 
 function TCastleColorRGBPropertyEditor.GetAttributes: TPropertyAttributes;
@@ -140,8 +176,7 @@ begin
     begin
       RedGreenBlue(Dialog.Color, ColorByte.X, ColorByte.Y, ColorByte.Z);
       Color := Vector3(ColorByte);
-      ColorPersistent.Value := Color;
-      Modified;
+      SetAllValues(Color);
     end;
   finally FreeAndNil(Dialog) end;
 end;
@@ -160,13 +195,22 @@ begin
   Result := ColorRGBToHex(ColorPersistent.Value);
 end;
 
-procedure TCastleColorRGBPropertyEditor.SetValue(const NewValue: String);
+procedure TCastleColorRGBPropertyEditor.SetAllValues(const NewValue: TCastleColorRGB);
 var
+  I: Integer;
   ColorPersistent: TCastleColorRGBPersistent;
 begin
-  ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
-  ColorPersistent.Value := HexToColorRGB(NewValue);
+  for I := 0 to PropCount - 1 do
+  begin
+    ColorPersistent := GetObjectValueAt(I) as TCastleColorRGBPersistent;
+    ColorPersistent.Value := NewValue;
+  end;
   Modified;
+end;
+
+procedure TCastleColorRGBPropertyEditor.SetValue(const NewValue: String);
+begin
+  SetAllValues(HexToColorRGB(NewValue));
 end;
 
 function TCastleColorRGBPropertyEditor.GetDefaultValue: String;
@@ -183,4 +227,23 @@ var
 begin
   ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
   Result := not ColorPersistent.HasDefaultValue;
+end;
+
+function TCastleColorRGBPropertyEditor.AllEqual: Boolean;
+var
+  I: Integer;
+  Value1, Value2: TCastleColorRGB;
+begin
+  if PropCount > 1 then
+  begin
+    Value1 := (GetObjectValueAt(0) as TCastleColorRGBPersistent).Value;
+    for I := 1 to PropCount - 1 do
+    begin
+      Value2 := (GetObjectValueAt(I) as TCastleColorRGBPersistent).Value;
+      if not TCastleColorRGB.PerfectlyEquals(Value1, Value2) then
+        Exit(false);
+    end;
+  end;
+
+  Result := true;
 end;
