@@ -2633,6 +2633,10 @@ begin
   end;
 end;
 
+const
+  LoadUiDesign_FileFilters = 'CGE User Interace Design (*.castle-user-interface)|*.castle-user-interface';
+  LoadTransformDesign_FileFilters = 'CGE Transform Design (*.castle-transform)|*.castle-transform';
+
 function TDesignFrame.ShellListComponentClass(const SourceShellList: TCastleShellListView;
   const ParentComponent: TComponent): TComponentClass;
 var
@@ -2669,7 +2673,13 @@ begin
       Result := TCastleScene
     else
     if TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl) then
-      Result := TCastleTransform; // ShellListAddComponent creates TCastleTransform with TCastleSoundSource behavior
+      Result := TCastleTransform // ShellListAddComponent creates TCastleTransform with TCastleSoundSource behavior
+    else
+    if TFileFilterList.Matches(LoadUiDesign_FileFilters, SelectedUrl) then
+      Result := TCastleDesign
+    else
+    if TFileFilterList.Matches(LoadTransformDesign_FileFilters, SelectedUrl) then
+      Result := TCastleTransformDesign;
   end;
 end;
 
@@ -2706,6 +2716,18 @@ function TDesignFrame.ShellListAddComponent(const SourceShellList: TCastleShellL
     SoundSource.Sound := Sound;
   end;
 
+  function AddUiDesign(const Url: String): TCastleDesign;
+  begin
+    Result := AddComponent(ParentComponent, TCastleDesign, nil) as TCastleDesign;
+    Result.Url := Url;
+  end;
+
+  function AddTransformDesign(const Url: String): TCastleTransformDesign;
+  begin
+    Result := AddComponent(ParentComponent, TCastleTransformDesign, nil) as TCastleTransformDesign;
+    Result.Url := Url;
+  end;
+
 var
   SelectedFileName: String;
   SelectedUrl: String;
@@ -2729,7 +2751,13 @@ begin
       Result := AddScene(SelectedUrl)
     else
     if TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl) then
-      Result := AddSound(SelectedUrl);
+      Result := AddSound(SelectedUrl)
+    else
+    if TFileFilterList.Matches(LoadUiDesign_FileFilters, SelectedUrl) then
+      Result := AddUiDesign(SelectedUrl)
+    else
+    if TFileFilterList.Matches(LoadTransformDesign_FileFilters, SelectedUrl) then
+      Result := AddTransformDesign(SelectedUrl);
   end;
 end;
 
