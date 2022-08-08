@@ -13,13 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Lazarus IDE integration with Castle Game Engine:
-  - property editors,
-  - component editors,
-  - making castle-data: work in Lazarus IDE,
-  - sending CGE warnings to Lazarus IDE messages.
-
-  Property and component editors are also used when inside CGE editor.
+{ Property and component editors using LCL.
+  These can be used when we're inside Lazarus IDE or inside CGE editor.
 
   For documentation how to create property editors, component editors etc. see
   - http://wiki.freepascal.org/How_To_Write_Lazarus_Component#Component_editors
@@ -30,11 +25,16 @@ unit CastlePropEdits;
 
 interface
 
-procedure Register;
+uses PropEdits;
 
-{ At design-time (when running in Lazarus IDE) make sure to adjust
-  ApplicationDataOverride. }
-procedure FixApplicationDataInIDE;
+{ Some of the property editors are publicly exposed,
+  to enable using them for your own properties in custom components too.
+  See examples/advanced_editor/custom_component/code/gamecontrols.pas . }
+{$define read_interface}
+{$I castlepropedits_url.inc}
+{$undef read_interface}
+
+procedure Register;
 
 implementation
 
@@ -42,16 +42,20 @@ uses // FPC and LCL units
   SysUtils, Classes, TypInfo, Forms,
   LResources, Dialogs, Controls, LCLVersion, OpenGLContext, Graphics,
   // Lazarus design-time (IDE) units
-  PropEdits, ComponentEditors, LazIDEIntf, IDEMsgIntf, IDEExternToolIntf,
+  ComponentEditors,
   // CGE units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
-  CastleScriptParser, CastleApplicationProperties;
+  CastleScriptParser, CastleInternalLclDesign;
 
+{$define read_implementation}
 {$I castlepropedits_url.inc}
+
+{ These include files are only used in the implementation,
+  they don't look at read_interface/read_implementation symbols. }
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
 {$I castlepropedits_color.inc}
@@ -60,56 +64,7 @@ uses // FPC and LCL units
 {$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
 
-procedure FixApplicationDataInIDE;
-begin
-  { TODO: This should be somehow registered (in Register) to listen to IDE project change,
-    and adjust ApplicationDataOverride at project change.
-
-    Doing it now, when DesignUrl seems needed (
-    by dialog box that sets DesignUrl,
-    by setting TCastleControl.DesignUrl in deserialization)
-    is not a clean way to do this (because we may miss some situations). }
-
-  if CastleDesignMode and
-     (LazarusIDE <> nil) and
-     (LazarusIDE.ActiveProject <> nil) then
-  begin
-    { Override ApplicationData interpretation, and castle-data:/xxx URL meaning. }
-    ApplicationDataOverride := FilenameToURISafeUTF8(
-      InclPathDelim(LazarusIDE.ActiveProject.Directory) + 'data' + PathDelim);
-  end;
-end;
-
-type
-  { Provides integration between Lazarus IDE and CGE that is nice to wrap
-    in a class. }
-  TCastleLazarusIDEIntegration = class(TComponent)
-  strict private
-    procedure WarningToLazarusMessages(const Category, S: string);
-  public
-    constructor Create(AOwner: TComponent); override;
-  end;
-
-constructor TCastleLazarusIDEIntegration.Create(AOwner: TComponent);
-begin
-  inherited;
-  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}WarningToLazarusMessages);
-end;
-
-procedure TCastleLazarusIDEIntegration.WarningToLazarusMessages(const Category, S: string);
-var
-  MessageContent: String;
-begin
-  MessageContent := 'Castle Game Engine: ';
-  if Category <> '' then
-    MessageContent += Category + ': ';
-  MessageContent += S;
-  AddIDEMessage(mluWarning, MessageContent);
-end;
-
 procedure Register;
-//var
-//  LazarusIDEIntegration: TCastleLazarusIDEIntegration;
 begin
   { URL properties }
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore,
@@ -193,9 +148,6 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
-
-  { If running in Lazarus IDE, show CGE warnings on Lazarus messages list. }
-  {LazarusIDEIntegration := }TCastleLazarusIDEIntegration.Create(Application);
 end;
 
 initialization

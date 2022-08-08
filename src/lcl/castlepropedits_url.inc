@@ -16,6 +16,8 @@
 
 { URL editors. }
 
+{$ifdef read_interface}
+
 type
   { Property editor for URL that refers to something that can be loaded by
     @link(LoadNode) or @link(TCastleSceneCore.Load).
@@ -68,6 +70,10 @@ type
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
   end;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
 
 { Useful by many dialogs here ------------------------------------------------ }
 
@@ -246,3 +252,5 @@ begin
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;
 end;
+
+{$endif read_implementation}
