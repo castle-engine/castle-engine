@@ -13,26 +13,22 @@
   ----------------------------------------------------------------------------
 }
 
-{ Property and component editors for components.
-  These are used by object inspectors (inside Lazarus or CGE editor).
+{ Lazarus IDE integration with Castle Game Engine:
+  - property editors,
+  - component editors,
+  - making castle-data: work in Lazarus IDE,
+  - sending CGE warnings to Lazarus IDE messages.
+
+  Property and component editors are also used when inside CGE editor.
 
   For documentation how to create property editors, component editors etc. see
   - http://wiki.freepascal.org/How_To_Write_Lazarus_Component#Component_editors
-  - comments of Lazarus ideintf/propedits.pp sources.
-
-  @exclude This unit is not supposed to be used by normal developers.
-  It should only be used to register the editors (in Lazarus, in CGE editor). }
+  - comments of Lazarus ideintf/propedits.pp sources. }
 unit CastlePropEdits;
 
 {$I castleconf.inc}
 
 interface
-
-uses PropEdits;
-
-{$define read_interface}
-{$I castlepropedits_url.inc}
-{$undef read_interface}
 
 procedure Register;
 
@@ -46,7 +42,7 @@ uses // FPC and LCL units
   SysUtils, Classes, TypInfo, Forms,
   LResources, Dialogs, Controls, LCLVersion, OpenGLContext, Graphics,
   // Lazarus design-time (IDE) units
-  ComponentEditors, LazIDEIntf, IDEMsgIntf, IDEExternToolIntf,
+  PropEdits, ComponentEditors, LazIDEIntf, IDEMsgIntf, IDEExternToolIntf,
   // CGE units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
@@ -54,6 +50,15 @@ uses // FPC and LCL units
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleApplicationProperties;
+
+{$I castlepropedits_url.inc}
+{$I castlepropedits_any_subproperties.inc}
+{$I castlepropedits_autoanimation.inc}
+{$I castlepropedits_color.inc}
+{$I castlepropedits_vector.inc}
+{$I castlepropedits_image.inc}
+{$I castlepropedits_number.inc}
+{$I castlepropedits_exposetransforms.inc}
 
 procedure FixApplicationDataInIDE;
 begin
@@ -69,36 +74,11 @@ begin
      (LazarusIDE <> nil) and
      (LazarusIDE.ActiveProject <> nil) then
   begin
-    { Override ApplicationData interpretation, and castle-data:/xxx URL meaning.
-      This allows PropertyEditorsAdviceDataDirectory to work
-      inside Lazarus IDE, e.g. when setting TCastleControl.DesignUrl. }
+    { Override ApplicationData interpretation, and castle-data:/xxx URL meaning. }
     ApplicationDataOverride := FilenameToURISafeUTF8(
       InclPathDelim(LazarusIDE.ActiveProject.Directory) + 'data' + PathDelim);
   end;
 end;
-
-function PropertyEditorsAdviceDataDirectory: Boolean;
-begin
-  { There's no reason to leave it false, in practice. }
-  Result := true;
-
-  if Result then
-    { By the way, do FixApplicationDataInIDE to have good ApplicationDataOverride. }
-    FixApplicationDataInIDE;
-end;
-
-{$define read_implementation}
-{$I castlepropedits_url.inc}
-
-{ These include files are only used in the implementation,
-  they don't look at read_interface/read_implementation symbols. }
-{$I castlepropedits_any_subproperties.inc}
-{$I castlepropedits_autoanimation.inc}
-{$I castlepropedits_color.inc}
-{$I castlepropedits_vector.inc}
-{$I castlepropedits_image.inc}
-{$I castlepropedits_number.inc}
-{$I castlepropedits_exposetransforms.inc}
 
 type
   { Provides integration between Lazarus IDE and CGE that is nice to wrap
@@ -128,8 +108,8 @@ begin
 end;
 
 procedure Register;
-var
-  LazarusIDEIntegration: TCastleLazarusIDEIntegration;
+//var
+//  LazarusIDEIntegration: TCastleLazarusIDEIntegration;
 begin
   { URL properties }
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore,
@@ -215,7 +195,7 @@ begin
     TExposeTransformsPropertyEditor);
 
   { If running in Lazarus IDE, show CGE warnings on Lazarus messages list. }
-  LazarusIDEIntegration := TCastleLazarusIDEIntegration.Create(Application);
+  {LazarusIDEIntegration := }TCastleLazarusIDEIntegration.Create(Application);
 end;
 
 initialization

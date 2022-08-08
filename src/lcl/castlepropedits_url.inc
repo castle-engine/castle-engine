@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,8 +15,6 @@
 }
 
 { URL editors. }
-
-{$ifdef read_interface}
 
 type
   { Property editor for URL that refers to something that can be loaded by
@@ -71,9 +69,17 @@ type
     procedure Edit; override;
   end;
 
-{$endif read_interface}
+{ Useful by many dialogs here ------------------------------------------------ }
 
-{$ifdef read_implementation}
+function PropertyEditorsAdviceDataDirectory: Boolean;
+begin
+  { There's no reason to leave it false, in practice. }
+  Result := true;
+
+  if Result then
+    { By the way, do FixApplicationDataInIDE to have good ApplicationDataOverride. }
+    FixApplicationDataInIDE;
+end;
 
 { TSceneURLPropertyEditor ---------------------------------------------------- }
 
@@ -240,5 +246,3 @@ begin
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;
 end;
-
-{$endif read_implementation}
