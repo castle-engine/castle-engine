@@ -302,6 +302,8 @@ type
       var aShow: Boolean);
     procedure InspectorLayoutFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: Boolean);
+    procedure InspectorAllFilter(Sender: TObject; AEditor: TPropertyEditor;
+      var aShow: Boolean);
     procedure MarkModified;
     function UndoMessageModified(const Sel: TPersistent;
       const ModifiedProperty, ModifiedValue: String; const SelectedCount: Integer): String;
@@ -353,8 +355,12 @@ type
     procedure ChangeMode(const NewMode: TMode);
     procedure ModifiedOutsideObjectInspector(const UndoComment: String;
       const UndoCommentPriority: TUndoCommentPriority; const UndoOnRelease: Boolean = false);
-    procedure InspectorFilter(Sender: TObject;
-      AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
+    { Filter property in object inspector.
+      When FilterBySection = true, then Section matters and only properties in this section
+      are displayed. }
+    procedure InspectorFilter(const Sender: TObject; const AEditor: TPropertyEditor;
+      var AShow: Boolean;
+      const FilterBySection: Boolean; const Section: TPropertySection);
     procedure GizmoHasModifiedParent(Sender: TObject);
     procedure GizmoStopDrag(Sender: TObject);
     { Fix camera position, to look at Pos.XY in case of 2D games.
@@ -1204,6 +1210,7 @@ begin
   Inspector[itLayout].AnchorToNeighbour(akTop, 0, PanelLayoutTop);
 
   Inspector[itAll] := CommonInspectorCreate;
+  Inspector[itAll].OnEditorFilter := @InspectorAllFilter;
   Inspector[itAll].Parent := TabAll;
   Inspector[itAll].Filter := tkProperties;
 
@@ -2761,8 +2768,9 @@ begin
   end;
 end;
 
-procedure TDesignFrame.InspectorFilter(Sender: TObject;
-  AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
+procedure TDesignFrame.InspectorFilter(const Sender: TObject;
+  const AEditor: TPropertyEditor; var AShow: Boolean;
+  const FilterBySection: Boolean; const Section: TPropertySection);
 var
   PropertyName: String;
   Instance: TPersistent;
@@ -2792,7 +2800,7 @@ begin
          (TComponent(Instance).Owner <> DesignOwner) then
         Exit;
 
-      if Instance is TCastleComponent then
+      if FilterBySection and (Instance is TCastleComponent) then
       begin
         AShow := Section in TCastleComponent(Instance).PropertySections(PropertyName);
       end else
@@ -2826,13 +2834,19 @@ end;
 procedure TDesignFrame.InspectorBasicFilter(Sender: TObject;
   AEditor: TPropertyEditor; var aShow: Boolean);
 begin
-  InspectorFilter(Sender, AEditor, AShow, psBasic);
+  InspectorFilter(Sender, AEditor, AShow, true, psBasic);
 end;
 
 procedure TDesignFrame.InspectorLayoutFilter(Sender: TObject;
   AEditor: TPropertyEditor; var aShow: Boolean);
 begin
-  InspectorFilter(Sender, AEditor, AShow, psLayout);
+  InspectorFilter(Sender, AEditor, AShow, true, psLayout);
+end;
+
+procedure TDesignFrame.InspectorAllFilter(Sender: TObject;
+  AEditor: TPropertyEditor; var aShow: Boolean);
+begin
+  InspectorFilter(Sender, AEditor, AShow, false, {Section doesn't matter here}psBasic);
 end;
 
 function TDesignFrame.UndoMessageModified(const Sel: TPersistent;
