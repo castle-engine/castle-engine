@@ -546,7 +546,7 @@ implementation
 
 uses Math, Contnrs, LazUTF8, Clipbrd,
   CastleControls, CastleGLUtils, CastleStringUtils, CastleLog, CastleRenderContext,
-  CastleURIUtils, CastleComponentSerialize;
+  CastleURIUtils, CastleComponentSerialize, CastlePropEdits;
 
 // TODO: We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
@@ -1337,6 +1337,7 @@ begin
     OldCastleDesignMode := CastleDesignMode;
     try
       CastleDesignMode := csDesigning in ComponentState;
+      FixApplicationDataInIDE; // in case DesignUrl uses castle-data: protocol, which is most often the case
 
       FDesignLoadedOwner := TComponent.Create(nil);
       try

@@ -36,22 +36,34 @@ uses PropEdits;
 
 procedure Register;
 
+{ At design-time (when running in Lazarus IDE) make sure to adjust
+  ApplicationDataOverride. }
+procedure FixApplicationDataInIDE;
+
 implementation
 
-uses SysUtils, Classes, TypInfo, Forms,
-  ComponentEditors, LResources, Dialogs, Controls, LCLVersion, LazIDEIntf,
-  OpenGLContext, Graphics,
+uses // FPC and LCL units
+  SysUtils, Classes, TypInfo, Forms,
+  LResources, Dialogs, Controls, LCLVersion, OpenGLContext, Graphics,
+  // Lazarus design-time (IDE) units
+  ComponentEditors, LazIDEIntf, IDEMsgIntf, IDEExternToolIntf,
+  // CGE units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
-  CastleScriptParser;
+  CastleScriptParser, CastleApplicationProperties;
 
-function PropertyEditorsAdviceDataDirectory: Boolean;
+procedure FixApplicationDataInIDE;
 begin
-  { There's no reason to leave it false, in practice. }
-  Result := true;
+  { TODO: This should be somehow registered (in Register) to listen to IDE project change,
+    and adjust ApplicationDataOverride at project change.
+
+    Doing it now, when DesignUrl seems needed (
+    by dialog box that sets DesignUrl,
+    by setting TCastleControl.DesignUrl in deserialization)
+    is not a clean way to do this (because we may miss some situations). }
 
   if CastleDesignMode and
      (LazarusIDE <> nil) and
@@ -63,6 +75,16 @@ begin
     ApplicationDataOverride := FilenameToURISafeUTF8(
       InclPathDelim(LazarusIDE.ActiveProject.Directory) + 'data' + PathDelim);
   end;
+end;
+
+function PropertyEditorsAdviceDataDirectory: Boolean;
+begin
+  { There's no reason to leave it false, in practice. }
+  Result := true;
+
+  if Result then
+    { By the way, do FixApplicationDataInIDE to have good ApplicationDataOverride. }
+    FixApplicationDataInIDE;
 end;
 
 {$define read_implementation}
@@ -78,7 +100,36 @@ end;
 {$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
 
+type
+  { Provides integration between Lazarus IDE and CGE that is nice to wrap
+    in a class. }
+  TCastleLazarusIDEIntegration = class(TComponent)
+  strict private
+    procedure WarningToLazarusMessages(const Category, S: string);
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+constructor TCastleLazarusIDEIntegration.Create(AOwner: TComponent);
+begin
+  inherited;
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}WarningToLazarusMessages);
+end;
+
+procedure TCastleLazarusIDEIntegration.WarningToLazarusMessages(const Category, S: string);
+var
+  MessageContent: String;
+begin
+  MessageContent := 'Castle Game Engine: ';
+  if Category <> '' then
+    MessageContent += Category + ': ';
+  MessageContent += S;
+  AddIDEMessage(mluWarning, MessageContent);
+end;
+
 procedure Register;
+var
+  LazarusIDEIntegration: TCastleLazarusIDEIntegration;
 begin
   { URL properties }
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore,
@@ -162,6 +213,9 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
+
+  { If running in Lazarus IDE, show CGE warnings on Lazarus messages list. }
+  LazarusIDEIntegration := TCastleLazarusIDEIntegration.Create(Application);
 end;
 
 initialization
