@@ -383,9 +383,6 @@ begin
     if Value then
     begin
       Viewport.Navigation := ExamineNavigation;
-      ExamineNavigation.ModelBox := Box3D(
-        Vector3(-1, -1, -1),
-        Vector3( 1,  1,  1));
       ExamineNavigation.Radius := 0.2;
       Viewport.Camera.SetView(
         Vector3(0, 20, 0),
