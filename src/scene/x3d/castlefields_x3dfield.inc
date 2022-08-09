@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2021 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -323,8 +323,10 @@
     property ValueFromIsClause: boolean
       read FValueFromIsClause write FValueFromIsClause;
 
-    { Zwraca zawsze false w tej klasie. Mozesz to przedefiniowac w podklasach
-      aby SaveToStream nie zapisywalo do strumienia pol o wartosci domyslnej. }
+    { Whether the value is equal to default.
+      Returns always @false in TX3DField, descendants should override it.
+      It is used when writing the field value to X3D file (values that are default
+      do not have to be written, ever). }
     function EqualsDefaultValue: boolean; virtual;
 
     { @true if the SecondValue object has exactly the same type and properties.
