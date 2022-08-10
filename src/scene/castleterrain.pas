@@ -177,6 +177,18 @@ type
     that is CastleScript language expression calculating height
     based on X, Y.
 
+    See https://castle-engine.io/castle_script.php for CastleScript syntax.
+    Try e.g. function like
+
+    - @code(sin(x) + sin(y))
+
+    - Sum sinusoides of various frequencies and amplitudes:
+
+      @preformatted(
+        (sin(x) + sin(x*2) / 2 + sin(x*4) / 4)  *
+        (sin(y) + sin(y*2) / 2 + sin(y*4) / 4)
+      )
+
     This descends from TCastleTerrainImage, so you add an image to
     your function result. }
   TTerrainCasScript = class(TCastleTerrainImage)
@@ -191,9 +203,9 @@ type
 
   TNoiseInterpolation = (niNone, niLinear, niCosine, niSpline);
 
-  { Procedural terrain: data from a procedural noise.
+  { Terrain heights are generated from a smooth noise,
+    combined with some terrain-specific improvements (Heterogeneous).
 
-    "Synthesized noise" means it's not simply something random.
     We take the noise (integer noise, i.e. hash), smooth it
     (how well, and how fast --- see @link(Interpolation) and @link(Blur)),
     and add several
@@ -403,6 +415,14 @@ type
     { @groupEnd }
   end deprecated 'loading SRTM (the only usage of TTerrainGrid) is deprecated due to low usage';
 
+  { Terrain data reader from a simple SRTM-3 *.hgt file.
+
+    See http://www2.jpl.nasa.gov/srtm/, see (linked there) http://dds.cr.usgs.gov/srtm/
+    for sample data for whole Earth.
+
+    If you speak Polish, nice overview is also on http://netgis.geo.uw.edu.pl/srtm/.
+    Sample files for Poland are on http://netgis.geo.uw.edu.pl/srtm/Poland/,
+    for Europe http://netgis.geo.uw.edu.pl/srtm/Europe/. }
   TTerrainSRTM = class(TTerrainGrid)
   strict private
     FData: array [0..1200, 0..1200] of SmallInt;
