@@ -104,6 +104,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -146,6 +147,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
 
@@ -196,6 +198,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -236,6 +239,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -330,6 +334,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -377,6 +382,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TItem); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -415,6 +421,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TMatrix3); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -454,6 +461,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TMatrix3Double); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -493,6 +501,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TMatrix4); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -532,6 +541,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TMatrix4Double); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -595,6 +605,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -630,6 +641,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -700,6 +712,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TItem); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -735,6 +748,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector2); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -771,6 +785,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector3); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -816,6 +831,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector4); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -859,6 +875,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector2Double); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -895,6 +912,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector3Double); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -931,6 +949,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
     procedure Send(const AValue: TVector4Double); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
@@ -1043,6 +1062,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFBool.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFBool.X3DType: string;
@@ -1178,6 +1202,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFFloat.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFFloat.X3DType: string;
 begin
   Result := 'SFFloat';
@@ -1281,6 +1310,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFDouble.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFDouble.X3DType: string;
@@ -1632,6 +1666,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFLong.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFLong.X3DType: string;
 begin
   Result := 'SFLong';
@@ -1785,6 +1824,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFGenericMatrix.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFGenericMatrix.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TEvent.Create(AParentNode, AName, AInEvent);
@@ -1915,6 +1959,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFMatrix3f.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFMatrix3f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -2050,6 +2099,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFMatrix3d.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFMatrix3d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFMatrix3dEvent.Create(AParentNode, AName, AInEvent);
@@ -2180,6 +2234,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFMatrix4f.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFMatrix4f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -2313,6 +2372,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFMatrix4d.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFMatrix4d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -2492,6 +2556,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFRotation.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFRotation.X3DType: string;
 begin
   Result := 'SFRotation';
@@ -2586,6 +2655,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFString.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFString.X3DType: string;
@@ -2819,6 +2893,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFGenericVector.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFGenericVector.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TEvent.Create(AParentNode, AName, AInEvent);
@@ -2931,6 +3010,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFVec2f.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFVec2f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -3054,6 +3138,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFVec3f.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFVec3f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -3183,6 +3272,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFVec4f.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFVec4f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFVec4fEvent.Create(AParentNode, AName, AInEvent);
@@ -3310,6 +3404,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFVec2d.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFVec2d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFVec2dEvent.Create(AParentNode, AName, AInEvent);
@@ -3425,6 +3524,11 @@ begin
   DefaultValueExists := true;
 end;
 
+procedure TSFVec3d.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
+end;
+
 class function TSFVec3d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFVec3dEvent.Create(AParentNode, AName, AInEvent);
@@ -3531,6 +3635,11 @@ begin
     Value := TSFVec4d(Source).Value;
   end else
     AssignValueRaiseInvalidClass(Source);
+end;
+
+procedure TSFVec4d.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 procedure TSFVec4d.AssignDefaultValueFromValue;
@@ -3805,6 +3914,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFEnum.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TSFEnum.X3DType: string;

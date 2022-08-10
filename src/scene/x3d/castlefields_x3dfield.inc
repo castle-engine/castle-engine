@@ -461,6 +461,10 @@
       May be corrected in the future. }
     procedure AssignDefaultValueFromValue; virtual;
 
+    { Remove default value, recording that "no default is known".
+      In effect EqualsDefaultValue will always return @false. }
+    procedure UnassignDefaultValue; virtual;
+
     { Assigns value to this node calculated from linear interpolation
       between two given nodes Value1, Value2. Just like other lerp
       functions in our units (like @link(CastleVectors.Lerp)).
@@ -1139,6 +1143,11 @@ begin
 end;
 
 procedure TX3DField.AssignDefaultValueFromValue;
+begin
+  { do nothing in this class }
+end;
+
+procedure TX3DField.UnassignDefaultValue;
 begin
   { do nothing in this class }
 end;

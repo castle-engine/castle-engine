@@ -2662,9 +2662,24 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
       if HasInterfaceDeclarations <> [] then
       begin
         for I := 0 to InterfaceDeclarations.Count - 1 do
-          Result.Add(InterfaceDeclarations[I]);
-      end;
+        begin
+          { Saving interface declaration within X3D node (like custom Effect or ComposedShader field)
+            should always save the value, as there's no intrinsic "default".
 
+            Testcase: terrain demo saving fields, they have defaults often equal to current value,
+            and could result in incorrect X3D XML like:
+
+            <field accessType="inputOutput" type="SFFloat" name="h0">5</field>
+
+            instead of
+
+            <field accessType="inputOutput" type="SFFloat" name="h0" value="5" />
+          }
+          if InterfaceDeclarations[I].Field <> nil then
+            InterfaceDeclarations[I].Field.UnassignDefaultValue;
+          Result.Add(InterfaceDeclarations[I]);
+        end;
+      end;
       for I := 0 to PrototypesCount - 1 do
         Result.Add(Prototypes[I]);
 

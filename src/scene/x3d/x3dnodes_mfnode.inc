@@ -131,6 +131,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     property ParentNode: TX3DNode read FParentNode;
 
@@ -627,6 +628,11 @@ begin
   inherited;
   AssignDefaultItems(FItems);
   DefaultValueExists := true;
+end;
+
+procedure TMFNode.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 class function TMFNode.X3DType: string;

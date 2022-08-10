@@ -110,6 +110,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     { @exclude }
     procedure InternalAssignDeepCopy(const Source: TX3DFieldOrEvent; const CopyState: TObject); override;
@@ -538,6 +539,11 @@ begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
+end;
+
+procedure TSFNode.UnassignDefaultValue;
+begin
+  DefaultValueExists := false;
 end;
 
 procedure TSFNode.SetValue(const AValue: TX3DNode);

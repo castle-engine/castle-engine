@@ -366,6 +366,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure UnassignDefaultValue; override;
 
     { Checks equality between this and SecondValue field.
       In addition to inherited(Equals), this checks the actual contents
@@ -1376,6 +1377,11 @@ begin
        end;
     else DefaultValuesCount := -1;
   end;
+end;
+
+procedure TMFString.UnassignDefaultValue;
+begin
+  DefaultValuesCount := -1;
 end;
 
 function TMFString.Equals(SecondValue: TX3DField): boolean;
