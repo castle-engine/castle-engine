@@ -917,6 +917,13 @@ begin
   for I := 0 to Node.RoutesCount - 1 do
   begin
     Route := Node.Routes[I];
+    { Do not force nodes to be named because of internal (created for PROTO
+      working) routes.
+      Testcase: load and save to X3D any X3D file with protos, like
+      ../../../../demo-models/x3d/tricky_def_use.x3dv
+      The nodes using protos *should not* get automatic names like
+      "DEF YellowSphereByDefault YellowSphereByDefault". }
+    if Route.Internal then Continue;
     MakeNamed(Route.SourceNode);
     MakeNamed(Route.DestinationNode);
   end;
