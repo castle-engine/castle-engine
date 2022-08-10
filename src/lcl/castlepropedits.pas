@@ -49,7 +49,7 @@ uses // FPC and LCL units
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
-  CastleScriptParser, CastleInternalLclDesign;
+  CastleScriptParser, CastleInternalLclDesign, CastleTerrain;
 
 {$define read_implementation}
 {$I castlepropedits_url.inc}
@@ -81,6 +81,14 @@ begin
     'ImageUrl', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageTransform,
     'Url', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainImage,
+    'ImageUrl', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrain,
+    'Texture1', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrain,
+    'Texture2', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrain,
+    'Texture3', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
     'URL', TDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTransformDesign,

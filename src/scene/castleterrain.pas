@@ -13,7 +13,35 @@
   ----------------------------------------------------------------------------
 }
 
-{ Terrain (height map) implementations. }
+{ Terrain (height map) components.
+
+  TODO: Terrain API is not finalized yet,
+  there may be significant incompatible changes to this unit in the future.
+  Big TODOs:
+
+  @unorderedList(
+    @item(
+      Add editability to terrains, which will likely wreak havoc in the existing API
+      that is targeted at "let the data dictate terrain heights".)
+
+    @item(
+      Add non-trivial rendering algorithm.
+      Right now it is really the simplest possible approach to generate a mesh
+      from heights with a simplest shader mixing a few texture layers.)
+  )
+
+  Smaller TODOs:
+
+  @unorderedList(
+    @item(
+      Various Y should be renamed to Z, like ImageY1, ImageY2.)
+    @item(
+      Randomization should be independent from compiler/platform/future.
+      Let's just use CastleRandom?
+      Or just store the final heights... this makes sense, as we also want to later allow editing terrains.)
+    @item(TCastleTerrain configurable textures number.)
+  )
+}
 unit CastleTerrain;
 
 {$I castleconf.inc}
@@ -21,23 +49,18 @@ unit CastleTerrain;
 interface
 
 uses SysUtils, Classes,
-  CastleScript, CastleImages, X3DNodes, CastleVectors, CastleRectangles;
+  CastleClassUtils, CastleScript, CastleImages, X3DNodes, CastleVectors,
+  CastleRectangles, CastleTransform, CastleScene, X3DFields, CastleRenderOptions;
 
 type
-  TTerrain = class;
-
-  TColorFromHeightFunction =
-    function (Terrain: TTerrain; Height: Single): TVector3;
-
-  { Terrain (height for each X, Y) data. }
-  TTerrain = class
+  { Terrain (height map) data that can be used for @link(TCastleTerrain.Data). }
+  TCastleTerrainData = class(TCastleComponent)
   strict private
+    FChangeNotifications: TNotifyEventList;
     procedure UpdateNodeCore(const Node: TAbstractChildNode;
       const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle;
       const Appearance: TAppearanceNode);
-  public
-    function Height(const X, Y: Single): Single; virtual; abstract;
-
+  private
     { Create X3D node with the given terrain shape.
 
       InputRange determines the range of values (minimum and maximum X and Y)
@@ -70,11 +93,6 @@ type
     procedure UpdateNode(const Node: TAbstractChildNode;
       const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle);
 
-    function CreateNode(const Divisions: Cardinal;
-      const Size: Single; const XRange, ZRange: TVector2;
-      const ColorFromHeight: TColorFromHeightFunction): TAbstractChildNode; overload;
-      deprecated 'use overloaded version without ColorFromHeight; better to set color by shaders or texture color';
-
     { Alternative version of @link(CreateNode) that creates a different shape.
       It's has little less quality (triangulation is not adaptive like
       for ElevationGrid), but updating it (by UpdateTriangulatedNode)
@@ -92,6 +110,21 @@ type
       to the new terrain and it's settings. }
     procedure UpdateTriangulatedNode(const Node: TAbstractChildNode;
       const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle);
+  protected
+    { Use this in descendants implementation to notify that data
+      (affecting @link(Height) results) changed.
+      In the base class, it takes care to run notifications registered
+      by @link(AddChangeNotification). }
+    procedure DoChange;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function Height(const X, Y: Single): Single; virtual; abstract;
+
+    { Add notification when data (affecting @link(Height) results) changes. }
+    procedure AddChangeNotification(const Notify: TNotifyEvent);
+    { Remove notification when data (affecting @link(Height) results) changes. }
+    procedure RemoveChangeNotification(const Notify: TNotifyEvent);
   end;
 
   { Terrain (height for each X, Y) data taken from intensities in an image.
@@ -100,37 +133,43 @@ type
     area in XY plane. If you ask for Height outside of this range,
     it is repeated infinitely (if ImageRepeat) or clamped (if not ImageRepeat).
     Image color (converted to grayscale) acts as height (scaled by
-    ImageHeightScale).
+    ImageHeight).
 
     When image is not loaded, this always returns height = 0. }
-  TTerrainImage = class(TTerrain)
+  TCastleTerrainImage = class(TCastleTerrainData)
   strict private
-    { FImage = nil and FImageURL = '' when not loaded. }
+    { FImage = nil and FImageUrl = '' when not loaded. }
     FImage: TGrayscaleImage;
-    FImageURL: string;
-    FImageHeightScale: Single;
-    FImageRepeat: boolean;
+    FImageUrl: String;
+    FImageHeight: Single;
+    FImageRepeat: Boolean;
     FImageX1, FImageX2, FImageY1, FImageY2: Single;
+    procedure SetImageUrl(const Value: String);
+    procedure SetImageHeight(const Value: Single);
+    procedure SetImageRepeat(const Value: Boolean);
+    procedure SetImageX1(const Value: Single);
+    procedure SetImageY1(const Value: Single);
+    procedure SetImageX2(const Value: Single);
+    procedure SetImageY2(const Value: Single);
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
     function Height(const X, Y: Single): Single; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+  published
+    property ImageUrl: String read FImageUrl write SetImageUrl;
 
-    procedure LoadImage(const AImageURL: string);
-    procedure ClearImage;
-    property ImageURL: string read FImageURL;
+    { The maximum intensity in the image results in this height of the terrain. }
+    property ImageHeight: Single
+      read FImageHeight write SetImageHeight {$ifdef FPC}default 1.0{$endif};
 
-    property ImageHeightScale: Single
-      read FImageHeightScale write FImageHeightScale {$ifdef FPC}default 1.0{$endif};
+    { Whether the image is repeated outside of ImageX1,ImageY1,ImageX2,ImageY2 bounds. }
+    property ImageRepeat: Boolean read FImageRepeat write SetImageRepeat default false;
 
-    property ImageRepeat: boolean
-      read FImageRepeat write FImageRepeat default false;
-
-    property ImageX1: Single read FImageX1 write FImageX1 {$ifdef FPC}default -1{$endif};
-    property ImageY1: Single read FImageY1 write FImageY1 {$ifdef FPC}default -1{$endif};
-    property ImageX2: Single read FImageX2 write FImageX2 {$ifdef FPC}default 1{$endif};
-    property ImageY2: Single read FImageY2 write FImageY2 {$ifdef FPC}default 1{$endif};
+    property ImageX1: Single read FImageX1 write SetImageX1 {$ifdef FPC}default -1{$endif};
+    property ImageY1: Single read FImageY1 write SetImageY1 {$ifdef FPC}default -1{$endif};
+    property ImageX2: Single read FImageX2 write SetImageX2 {$ifdef FPC}default 1{$endif};
+    property ImageY2: Single read FImageY2 write SetImageY2 {$ifdef FPC}default 1{$endif};
   end;
 
   { Terrain (height for each X, Y) data calculated from CastleScript
@@ -138,20 +177,19 @@ type
     that is CastleScript language expression calculating height
     based on X, Y.
 
-    This descends from TTerrainImage, so you add an image to
+    This descends from TCastleTerrainImage, so you add an image to
     your function result. }
-  TTerrainCasScript = class(TTerrainImage)
+  TTerrainCasScript = class(TCastleTerrainImage)
   strict private
     FXVariable, FYVariable: TCasScriptFloat;
     FFunction: TCasScriptExpression;
   public
-    constructor Create(const FunctionExpression: string);
+    constructor Create(const FunctionExpression: string); reintroduce;
     destructor Destroy; override;
     function Height(const X, Y: Single): Single; override;
-  end;
+  end deprecated 'using CastleScript to define terrain is deprecated due to low usage';
 
   TNoiseInterpolation = (niNone, niLinear, niCosine, niSpline);
-  TNoise2DMethod = function (const X, Y: Single; const Seed: Cardinal): Single;
 
   { Procedural terrain: data from a procedural noise.
 
@@ -180,34 +218,55 @@ type
         theirs.)
     )
 
-    This descends from TTerrainImage, so you can add an image to
+    This descends from TCastleTerrainImage, so you can add an image to
     your function result, e.g. to flatten some specific generated area. }
-  TTerrainNoise = class(TTerrainImage)
+  TCastleTerrainNoise = class(TCastleTerrainImage)
   strict private
-    FOctaves: Single;
-    FSmoothness: Single;
-    FAmplitude: Single;
-    FFrequency: Single;
-    FInterpolation: TNoiseInterpolation;
-    NoiseMethod: TNoise2DMethod;
-    FBlur: boolean;
-    FSeed: Cardinal;
-    FHeterogeneous: Single;
+    type
+      TNoise2DMethod = function (const X, Y: Single; const Seed: Cardinal): Single;
+    var
+      FOctaves: Single;
+      FSmoothness: Single;
+      FAmplitude: Single;
+      FFrequency: Single;
+      FInterpolation: TNoiseInterpolation;
+      NoiseMethod: TNoise2DMethod;
+      FBlur: Boolean;
+      FSeed: Cardinal;
+      FHeterogeneous: Single;
+    procedure SetOctaves(const Value: Single);
+    procedure SetSmoothness(const Value: Single);
+    procedure SetAmplitude(const Value: Single);
+    procedure SetFrequency(const Value: Single);
     procedure SetInterpolation(const Value: TNoiseInterpolation);
-    procedure SetBlur(const Value: boolean);
+    procedure SetBlur(const Value: Boolean);
+    procedure SetSeed(const Value: Cardinal);
+    procedure SetHeterogeneous(const Value: Single);
     procedure UpdateNoiseMethod;
   public
-    constructor Create;
-    function Height(const X, Y: Single): Single; override;
+    const
+      DefaultOctaves = 4.0;
+      DefaultSmoothnes = 2.0;
+      DefaultAmplitude = 8.0;
+      DefaultFrequency = 0.05;
+      DefaultInterpolation = niCosine;
+      DefaultBlur = false;
+      DefaultHeterogeneous = 0.5;
 
+    constructor Create(AOwner: TComponent); override;
+    function Height(const X, Y: Single): Single; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+  published
     { Number of noise functions to sum.
       This linearly affects the time for Height call, so don't make
       it too much. Usually ~a few are Ok.
 
       (The fact that it's a float is just a simple trick to allow smooth
       transitions from x to x+1. In fact, it's executed like
-      Trunc(Octaves) * some noises + Frac(Octaves) * some last noise.) }
-    property Octaves: Single read FOctaves write FOctaves {$ifdef FPC}default 4.0{$endif};
+      Trunc(Octaves) * some noises + Frac(Octaves) * some last noise.)
+
+      Reasonable values are roughly between 0..20. }
+    property Octaves: Single read FOctaves write SetOctaves {$ifdef FPC}default DefaultOctaves{$endif};
 
     { How noise amplitude changes, when frequency doubles.
       When we double frequency, amplitude is divided by this.
@@ -228,15 +287,17 @@ type
       each noise frequency is visible the same, so in effect you will
       just see a lot of noise. And values < 1.0 are really nonsense,
       they make more frequency noise even more visible, which means that
-      the terrain is dominated by noise. }
-    property Smoothness: Single read FSmoothness write FSmoothness {$ifdef FPC}default 2.0{$endif};
+      the terrain is dominated by noise.
+
+      Reasonable values are roughly between 1..10. }
+    property Smoothness: Single read FSmoothness write SetSmoothness {$ifdef FPC}default DefaultSmoothnes{$endif};
 
     { Amplitude and frequency of the first noise octave.
       Amplitude scales the height of the result, and Frequency scales
       the size of the bumps.
       @groupBegin }
-    property Amplitude: Single read FAmplitude write FAmplitude {$ifdef FPC}default 1.0{$endif};
-    property Frequency: Single read FFrequency write FFrequency {$ifdef FPC}default 1.0{$endif};
+    property Amplitude: Single read FAmplitude write SetAmplitude {$ifdef FPC}default DefaultAmplitude{$endif};
+    property Frequency: Single read FFrequency write SetFrequency {$ifdef FPC}default DefaultFrequency{$endif};
     { @groupEnd }
 
     { How integer noise is interpolated to get smooth float noise.
@@ -257,7 +318,7 @@ type
       http://en.wikipedia.org/wiki/Bicubic_interpolation).
       But it's more time consuming under current implementation. }
     property Interpolation: TNoiseInterpolation
-      read FInterpolation write SetInterpolation default niCosine;
+      read FInterpolation write SetInterpolation default DefaultInterpolation;
 
     { Resulting noise octaves may be blurred. This helps to remove
       the inherent vertical/horizontal directionality in our 2D noise
@@ -272,10 +333,10 @@ type
       Note about [http://freespace.virgin.net/hugo.elias/models/m_perlin.htm]:
       this "blurring" is called "smoothing" there.
       I call it blurring, as it seems more precise to me. }
-    property Blur: boolean read FBlur write SetBlur default false;
+    property Blur: Boolean read FBlur write SetBlur default DefaultBlur;
 
     { Determines the random seeds used when generating the terrain. }
-    property Seed: Cardinal read FSeed write FSeed default 0;
+    property Seed: Cardinal read FSeed write SetSeed default 0;
 
     { If non-zero, then we generate terrain using heterogeneous fBm.
       Intuitively, the idea is that the terrain details (from higher octaves)
@@ -292,7 +353,7 @@ type
       This is called "threshold" in Musgrave's dissertation (see algorithm
       in section 2.3.2.5 "A Large Scale Terrain Model"). }
     property Heterogeneous: Single
-      read FHeterogeneous write FHeterogeneous {$ifdef FPC}default 0.0{$endif};
+      read FHeterogeneous write SetHeterogeneous {$ifdef FPC}default DefaultHeterogeneous{$endif};
   end;
 
   { Terrain data from a grid of values with specified width * height.
@@ -301,11 +362,11 @@ type
     The idea is that on such terrain, there are special grid points
     where the height data is accurate. Everything else is an interpolation
     derived from this data. }
-  TTerrainGrid = class(TTerrain)
+  TTerrainGrid = class(TCastleTerrainData)
   strict private
     FGridX1, FGridX2, FGridY1, FGridY2, FGridHeightScale: Single;
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
 
     { Get height of the terrain at specified 2D point.
 
@@ -340,7 +401,7 @@ type
     property GridY2: Single read FGridY2 write FGridY2 {$ifdef FPC}default 1{$endif};
     property GridHeightScale: Single read FGridHeightScale write FGridHeightScale {$ifdef FPC}default 1{$endif};
     { @groupEnd }
-  end;
+  end deprecated 'loading SRTM (the only usage of TTerrainGrid) is deprecated due to low usage';
 
   TTerrainSRTM = class(TTerrainGrid)
   strict private
@@ -351,31 +412,214 @@ type
     function GridHeight(const X, Y: Cardinal): Single; override;
     function GridSizeX: Cardinal; override;
     function GridSizeY: Cardinal; override;
-  end;
+  end deprecated 'loading SRTM is deprecated due to low usage';
+
+  TTerrain = TCastleTerrainData deprecated 'use TCastleTerrainData';
+  TTerrainImage = TCastleTerrainImage deprecated 'use TCastleTerrainImage';
+
+  { Scene showing a terrain with 3 layers of textures. }
+  TCastleTerrain = class(TCastleTransform)
+  public
+    const
+      { Texture layers to render this terrain. TODO: Should not be hardcoded here. }
+      LayersCount = 3;
+  strict private
+    type
+      TLayer = record
+        UvScale: TSFFloat;
+        TextureNode: TImageTextureNode;
+      end;
+
+    var
+      Scene: TCastleScene;
+      TerrainNode: TAbstractChildNode;
+      Appearance: TAppearanceNode;
+      Effect: TEffectNode;
+      HeightsFields: array [0..LayersCount] of TSFFloat;
+      Layers: array [1..LayersCount] of TLayer;
+      FData: TCastleTerrainData;
+      FDataObserver: TFreeNotificationObserver;
+      FTriangulate: Boolean;
+      FSize: Single;
+      FTextureMix: Single;
+      FNormalDark: Single;
+      FNormalDarkening: Single;
+      FSubdivisions: Cardinal;
+
+    function GetRenderOptions: TCastleRenderOptions;
+    procedure DataFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure DataChanged(Sender: TObject);
+
+    { Regenerate geometry (vertexes, normals etc.) to show the current Data
+      with current parameters. }
+    procedure UpdateGeometry;
+
+    procedure SetData(const Value: TCastleTerrainData);
+    procedure SetTriangulate(const Value: Boolean);
+    procedure SetSubdivisions(const Value: Cardinal);
+    procedure SetSize(const Value: Single);
+    function GetHeight(const Index: Integer): Single;
+    procedure SetHeight(const Index: Integer; const Value: Single);
+    function GetUvScale(const Index: Integer): Single;
+    procedure SetUvScale(const Index: Integer; const Value: Single);
+    function GetTexture(const Index: Integer): String;
+    procedure SetTexture(const Index: Integer; const Value: String);
+    procedure SetTextureMix(const Value: Single);
+    procedure SetNormalDark(const Value: Single);
+    procedure SetNormalDarkening(const Value: Single);
+  public
+    const
+      DefaultSubdivisions = 64;
+      DefaultSize = 100;
+      DefaultHeight0 = 5.0;
+      DefaultHeight1 = 6.0;
+      DefaultHeight2 = 7.0;
+      DefaultHeight3 = 10.0;
+      { Default values for @link(Height0), @link(Height1) etc.
+
+        Note: This array duplicates information in constants
+        @link(DefaultHeight0), @link(DefaultHeight1) etc.
+        Unfortunately we need the simple constants too, to specify properties default values
+        like "default DefaultHeight0". Using "default DefaultHeight[0]" doesn't work in FPC
+        (nor in Delphi, but that's because Delphi cannot handle Single defaults at all). }
+      DefaultHeight: array [0..LayersCount] of Single = (
+        DefaultHeight0,
+        DefaultHeight1,
+        DefaultHeight2,
+        DefaultHeight3
+      );
+      DefaultUvScale = 1.0;
+      DefaultTextureMix = 1.0;
+      DefaultNormalDark = 0.90;
+      DefaultNormalDarkening = 0.5;
+
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+  published
+    property RenderOptions: TCastleRenderOptions read GetRenderOptions;
+
+    { Data for terrain heights.
+      TODO: observe when this is freed, auto set to @nil.
+
+      Changing this requires rebuild of terrain geometry, so it's costly.
+      Avoid doing it at runtime. }
+    property Data: TCastleTerrainData read FData write SetData;
+
+    { Do we generate as a set of triangles, or ElevationGrid.
+      TODO: this is internal decision, should behave always like true?
+
+      Changing this requires rebuild of terrain geometry, so it's costly.
+      Avoid doing it at runtime. }
+    property Triangulate: Boolean read FTriangulate write SetTriangulate default true;
+
+    { How dense is the mesh. It will have Subdivisions * Subdivisions vertexes.
+      TODO: split into X, Z subdivisions.
+
+      Changing this requires rebuild of terrain geometry, so it's costly.
+      Avoid doing it at runtime. }
+    property Subdivisions: Cardinal read FSubdivisions write SetSubdivisions default DefaultSubdivisions;
+
+    { Size in X and Z.
+      TODO: split into X, Z size, TVector2, just like TCastlePlane.
+
+      Changing this requires rebuild of terrain geometry, so it's costly.
+      Avoid doing it at runtime. }
+    property Size: Single read FSize write SetSize {$ifdef FPC}default DefaultSize{$endif};
+
+    { Below this height we show only Texture1. }
+    property Height0: Single index 0 read GetHeight write SetHeight {$ifdef FPC}default DefaultHeight0{$endif};
+
+    { Between Height0 and Height1, we mix Texture1 with Texture2. }
+    property Height1: Single index 1 read GetHeight write SetHeight {$ifdef FPC}default DefaultHeight1{$endif};
+
+    { Between Height1 and Height2, we show only Texture2. }
+    property Height2: Single index 2 read GetHeight write SetHeight {$ifdef FPC}default DefaultHeight2{$endif};
+
+    { Between Height2 and Height3, we mix Texture2 with Texture3.
+      Above Height3 we show only Texture3. }
+    property Height3: Single index 3 read GetHeight write SetHeight {$ifdef FPC}default DefaultHeight3{$endif};
+
+    { Scale the Texture1. }
+    property UvScale1: Single index 1 read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
+    { Scale the Texture1. }
+    property UvScale2: Single index 2 read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
+    { Scale the Texture1. }
+    property UvScale3: Single index 3 read GetUvScale write SetUvScale {$ifdef FPC}default DefaultUvScale{$endif};
+
+    { 1st texture URL, used (maybe mixed with other textures) when terrain height is below Height1. }
+    property Texture1: String index 1 read GetTexture write SetTexture;
+    { 2st texture URL, used (maybe mixed with other textures) when terrain height is between Height0 and Height3. }
+    property Texture2: String index 2 read GetTexture write SetTexture;
+    { 3rd texture URL, used (maybe mixed with other textures) when terrain height is above Height2. }
+    property Texture3: String index 3 read GetTexture write SetTexture;
+
+    { How much do the textures affect the final color.
+      0.0 means that textures are ignored, 1.0 means maximum influence. }
+    property TextureMix: Single read FTextureMix write SetTextureMix
+      {$ifdef FPC}default DefaultTextureMix{$endif};
+
+    { The steep slope at which we make color maximally darker.
+      The slope is just Y coordinate of the normalized normal vector.
+      NormalDark = 1.0 means that we apply darkness only when slope is really vertical,
+      0.0 means that we start applying the darkness when scope is even horizontal.
+
+      TODO: Better name for this and NormalDarkening?
+      DarknessStartSlope
+      DarknessIntensity
+    }
+    property NormalDark: Single read FNormalDark write SetNormalDark
+      {$ifdef FPC}default DefaultNormalDark{$endif};
+
+    { How darker can we make the color, because of steep slope.
+      0.0 means we can make it completely black, 1.0 disables color darkening. }
+    property NormalDarkening: Single read FNormalDarkening write SetNormalDarkening
+      {$ifdef FPC}default DefaultNormalDarkening{$endif};
+  end experimental;
 
 implementation
 
-uses CastleUtils, CastleScriptParser, CastleNoise, Math, CastleDownload;
+uses Math,
+  CastleUtils, CastleScriptParser, CastleNoise, CastleDownload, CastleLog,
+  CastleURIUtils, CastleComponentSerialize;
 
-{ TTerrain ------------------------------------------------------------------- }
+{ TCastleTerrainData ------------------------------------------------------------------- }
 
-function TTerrain.CreateNode(const Divisions: Cardinal;
-  const Size: Single; const XRange, ZRange: TVector2;
-  const ColorFromHeight: TColorFromHeightFunction): TAbstractChildNode;
-var
-  Appearance: TAppearanceNode;
+constructor TCastleTerrainData.Create(AOwner: TComponent);
 begin
-  Appearance := TAppearanceNode.Create;
-  Appearance.Material := TMaterialNode.Create;
-
-  Result := CreateNode(Divisions,
-    FloatRectangle(
-      XRange.X           , ZRange.X,
-      XRange.Y - XRange.X, ZRange.Y - ZRange.X),
-    FloatRectangle(0, 0, Size, Size), Appearance);
+  inherited;
+  FChangeNotifications := TNotifyEventList.Create;
 end;
 
-function TTerrain.CreateNode(const Divisions: Cardinal;
+destructor TCastleTerrainData.Destroy;
+begin
+  FreeAndNil(FChangeNotifications);
+  inherited;
+end;
+
+procedure TCastleTerrainData.DoChange;
+begin
+  FChangeNotifications.ExecuteAll(Self);
+end;
+
+procedure TCastleTerrainData.AddChangeNotification(const Notify: TNotifyEvent);
+begin
+  FChangeNotifications.Add(Notify);
+end;
+
+procedure TCastleTerrainData.RemoveChangeNotification(const Notify: TNotifyEvent);
+begin
+  if FChangeNotifications = nil then
+  begin
+    WritelnWarning('FChangeNotifications already freed when RemoveFontSizeChangeNotification');
+    { In case it may be nil when destroying, and we make notification.
+      If this ever happens, in valid circumstances, we'll just remove the warning. }
+    Exit;
+  end;
+  FChangeNotifications.Remove(Notify);
+end;
+
+function TCastleTerrainData.CreateNode(const Divisions: Cardinal;
   const InputRange, OutputRange: TFloatRectangle;
   const Appearance: TAppearanceNode): TAbstractChildNode;
 begin
@@ -383,7 +627,7 @@ begin
   UpdateNodeCore(Result, Divisions, InputRange, OutputRange, Appearance);
 end;
 
-procedure TTerrain.UpdateNode(const Node: TAbstractChildNode;
+procedure TCastleTerrainData.UpdateNode(const Node: TAbstractChildNode;
   const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle);
 var
   Transform: TTransformNode;
@@ -400,7 +644,7 @@ begin
   Appearance.KeepExistingEnd;
 end;
 
-procedure TTerrain.UpdateNodeCore(const Node: TAbstractChildNode;
+procedure TCastleTerrainData.UpdateNodeCore(const Node: TAbstractChildNode;
   const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle;
   const Appearance: TAppearanceNode);
 var
@@ -438,7 +682,7 @@ begin
   Transform.AddChildren(Shape);
 end;
 
-function TTerrain.CreateTriangulatedNode(const Divisions: Cardinal;
+function TCastleTerrainData.CreateTriangulatedNode(const Divisions: Cardinal;
   const InputRange, OutputRange: TFloatRectangle;
   const Appearance: TAppearanceNode): TAbstractChildNode;
 var
@@ -464,7 +708,7 @@ begin
   UpdateTriangulatedNode(Result, Divisions, InputRange, OutputRange);
 end;
 
-procedure TTerrain.UpdateTriangulatedNode(const Node: TAbstractChildNode;
+procedure TCastleTerrainData.UpdateTriangulatedNode(const Node: TAbstractChildNode;
   const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle);
 var
   DivisionsPlus1: Cardinal;
@@ -589,42 +833,64 @@ begin
   Geometry.FdIndex.Changed;
 end;
 
-{ TTerrainImage ------------------------------------------------------------ }
+{ TCastleTerrainImage ------------------------------------------------------------ }
 
-constructor TTerrainImage.Create;
+constructor TCastleTerrainImage.Create(AOwner: TComponent);
 begin
   inherited;
-  FImageHeightScale := 1.0;
+  FImageHeight := 1.0;
   FImageX1 := -1;
   FImageY1 := -1;
   FImageX2 :=  1;
   FImageY2 :=  1;
 end;
 
-destructor TTerrainImage.Destroy;
+destructor TCastleTerrainImage.Destroy;
 begin
-  ClearImage;
+  FreeAndNil(FImage);
   inherited;
 end;
 
-procedure TTerrainImage.LoadImage(const AImageURL: string);
-var
-  NewImage: TGrayscaleImage;
-begin
-  NewImage := CastleImages.LoadImage(AImageURL, [TGrayscaleImage]) as TGrayscaleImage;
+procedure TCastleTerrainImage.SetImageUrl(const Value: string);
 
-  FreeAndNil(FImage);
-  FImage := NewImage;
-  FImageURL := AImageURL;
+  procedure LoadImage(const NewImageUrl: string);
+  var
+    NewImage: TGrayscaleImage;
+  begin
+    if NewImageUrl = '' then
+      NewImage := nil
+    else
+      NewImage := CastleImages.LoadImage(NewImageUrl, [TGrayscaleImage]) as TGrayscaleImage;
+
+    FreeAndNil(FImage);
+    FImage := NewImage;
+    FImageUrl := NewImageUrl;
+  end;
+
+begin
+  if FImageUrl <> Value then
+  begin
+    try
+      LoadImage(Value); // in case of exception when loading, LoadImage leaves state unchanged
+    except
+      { If loading file failed, and we're inside CGE editor, merely report a warning.
+        This allows deserializing in CGE editor designs with broken URLs. }
+      on E: Exception do
+      begin
+        if CastleDesignMode then
+        begin
+          WritelnWarning('TCastleTerrainImage', 'Failed to load image "%s": %s', [
+            URIDisplay(Value),
+            ExceptMessage(E)
+          ]);
+        end else
+          raise;
+      end;
+    end;
+  end;
 end;
 
-procedure TTerrainImage.ClearImage;
-begin
-  FreeAndNil(FImage);
-  FImageURL := '';
-end;
-
-function TTerrainImage.Height(const X, Y: Single): Single;
+function TCastleTerrainImage.Height(const X, Y: Single): Single;
 var
   PX, PY: Integer;
 begin
@@ -645,16 +911,80 @@ begin
       ClampVar(PY, 0, FImage.Height - 1);
     end;
 
-    Result := (FImage.PixelPtr(PX, PY)^ / High(Byte)) * ImageHeightScale;
+    Result := (FImage.PixelPtr(PX, PY)^ / High(Byte)) * ImageHeight;
   end else
     Result := 0;
+end;
+
+procedure TCastleTerrainImage.SetImageHeight(const Value: Single);
+begin
+  if FImageHeight <> Value then
+  begin
+    FImageHeight := Value;
+    DoChange;
+  end;
+end;
+
+procedure TCastleTerrainImage.SetImageRepeat(const Value: Boolean);
+begin
+  if FImageRepeat <> Value then
+  begin
+    FImageRepeat := Value;
+    DoChange;
+  end;
+end;
+
+procedure TCastleTerrainImage.SetImageX1(const Value: Single);
+begin
+  if FImageX1 <> Value then
+  begin
+    FImageX1 := Value;
+    DoChange;
+  end;
+end;
+
+procedure TCastleTerrainImage.SetImageY1(const Value: Single);
+begin
+  if FImageY1 <> Value then
+  begin
+    FImageY1 := Value;
+    DoChange;
+  end;
+end;
+
+procedure TCastleTerrainImage.SetImageX2(const Value: Single);
+begin
+  if FImageX2 <> Value then
+  begin
+    FImageX2 := Value;
+    DoChange;
+  end;
+end;
+
+procedure TCastleTerrainImage.SetImageY2(const Value: Single);
+begin
+  if FImageY2 <> Value then
+  begin
+    FImageY2 := Value;
+    DoChange;
+  end;
+end;
+
+function TCastleTerrainImage.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  case PropertyName of
+    'ImageUrl', 'ImageHeight', 'ImageRepeat', 'ImageX1', 'ImageY1', 'ImageX2', 'ImageY2':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 { TTerrainCasScript -------------------------------------------------------- }
 
 constructor TTerrainCasScript.Create(const FunctionExpression: string);
 begin
-  inherited Create;
+  inherited Create(nil);
 
   FXVariable := TCasScriptFloat.Create(false);
   FXVariable.Name := 'x';
@@ -686,21 +1016,24 @@ begin
   Result := Result + (FFunction.Execute as TCasScriptFloat).Value;
 end;
 
-{ TTerrainNoise ------------------------------------------------------------ }
+{ TCastleTerrainNoise ------------------------------------------------------------ }
 
-constructor TTerrainNoise.Create;
+constructor TCastleTerrainNoise.Create(AOwner: TComponent);
 begin
-  inherited Create;
-  FOctaves := 4.0;
-  FSmoothness := 2.0;
-  FAmplitude := 1.0;
-  FFrequency := 1.0;
-  FInterpolation := niCosine;
-  FBlur := false;
+  inherited;
+
+  FOctaves := DefaultOctaves;
+  FSmoothness := DefaultSmoothnes;
+  FAmplitude := DefaultAmplitude;
+  FFrequency := DefaultFrequency;
+  FInterpolation := DefaultInterpolation;
+  FBlur := DefaultBlur;
+  FHeterogeneous := DefaultHeterogeneous;
+
   UpdateNoiseMethod;
 end;
 
-procedure TTerrainNoise.UpdateNoiseMethod;
+procedure TCastleTerrainNoise.UpdateNoiseMethod;
 begin
   if Blur then
     case Interpolation of
@@ -709,7 +1042,7 @@ begin
       niCosine: NoiseMethod := @BlurredInterpolatedNoise2D_Cosine;
       niSpline: NoiseMethod := @BlurredInterpolatedNoise2D_Spline;
       {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('TTerrainNoise.UpdateNoiseMethod(Interpolation?)');
+      else raise EInternalError.Create('TCastleTerrainNoise.UpdateNoiseMethod(Interpolation?)');
       {$endif}
     end else
     case Interpolation of
@@ -718,24 +1051,86 @@ begin
       niCosine: NoiseMethod := @InterpolatedNoise2D_Cosine;
       niSpline: NoiseMethod := @InterpolatedNoise2D_Spline;
       {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('TTerrainNoise.UpdateNoiseMethod(Interpolation?)');
+      else raise EInternalError.Create('TCastleTerrainNoise.UpdateNoiseMethod(Interpolation?)');
       {$endif}
     end;
 end;
 
-procedure TTerrainNoise.SetInterpolation(const Value: TNoiseInterpolation);
+procedure TCastleTerrainNoise.SetOctaves(const Value: Single);
 begin
-  FInterpolation := Value;
-  UpdateNoiseMethod;
+  if FOctaves <> Value then
+  begin
+    FOctaves := Value;
+    DoChange;
+  end;
 end;
 
-procedure TTerrainNoise.SetBlur(const Value: boolean);
+procedure TCastleTerrainNoise.SetSmoothness(const Value: Single);
 begin
-  FBlur := Value;
-  UpdateNoiseMethod;
+  if FSmoothness <> Value then
+  begin
+    FSmoothness := Value;
+    DoChange;
+  end;
 end;
 
-function TTerrainNoise.Height(const X, Y: Single): Single;
+procedure TCastleTerrainNoise.SetAmplitude(const Value: Single);
+begin
+  if FAmplitude <> Value then
+  begin
+    FAmplitude := Value;
+    DoChange;
+  end;
+end;
+
+procedure TCastleTerrainNoise.SetFrequency(const Value: Single);
+begin
+  if FFrequency <> Value then
+  begin
+    FFrequency := Value;
+    DoChange;
+  end;
+end;
+
+procedure TCastleTerrainNoise.SetInterpolation(const Value: TNoiseInterpolation);
+begin
+  if FInterpolation <> Value then
+  begin
+    FInterpolation := Value;
+    UpdateNoiseMethod;
+    DoChange;
+  end;
+end;
+
+procedure TCastleTerrainNoise.SetBlur(const Value: Boolean);
+begin
+  if FBlur <> Value then
+  begin
+    FBlur := Value;
+    UpdateNoiseMethod;
+    DoChange;
+  end;
+end;
+
+procedure TCastleTerrainNoise.SetSeed(const Value: Cardinal);
+begin
+  if FSeed <> Value then
+  begin
+    FSeed := Value;
+    DoChange;
+  end;
+end;
+
+procedure TCastleTerrainNoise.SetHeterogeneous(const Value: Single);
+begin
+  if FHeterogeneous <> Value then
+  begin
+    FHeterogeneous := Value;
+    DoChange;
+  end;
+end;
+
+function TCastleTerrainNoise.Height(const X, Y: Single): Single;
 // const
 //   { Idea, maybe useful --- apply heterogeneous only on higher octaves.
 //     Note that 1st octave is anyway always without heterogeneous,
@@ -797,9 +1192,19 @@ begin
   Result := Result + Frac(Octaves) * NextOctave(Trunc(Octaves) + 1);
 end;
 
+function TCastleTerrainNoise.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  case PropertyName of
+    'Octaves', 'Smoothness', 'Amplitude', 'Frequency', 'Interpolation', 'Blur', 'Seed', 'Heterogeneous':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
+end;
+
 { TTerrainGrid ------------------------------------------------------------- }
 
-constructor TTerrainGrid.Create;
+constructor TTerrainGrid.Create(AOwner: TComponent);
 begin
   inherited;
   FGridX1 := 0;
@@ -826,7 +1231,7 @@ var
   I: Cardinal;
   LastCorrectHeight: SmallInt;
 begin
-  inherited Create;
+  inherited Create(nil);
 
   Stream := Download(URL, [soForceMemoryStream]);
   try
@@ -868,4 +1273,290 @@ begin
   Result := 1201;
 end;
 
+{ TCastleTerrain ------------------------------------------------------------- }
+
+constructor TCastleTerrain.Create(AOwner: TComponent);
+
+  procedure AdjustAppearance;
+  var
+    VertexPart, FragmentPart: TEffectPartNode;
+    Layer: Integer;
+    TextureField: TSFNode;
+  begin
+    { initialize Effect node, for a shader effect }
+    Effect := TEffectNode.Create;
+    Effect.Language := slGLSL;
+    Appearance.SetEffects([Effect]);
+
+    for Layer := 1 to LayersCount do
+    begin
+      Layers[Layer].TextureNode := TImageTextureNode.Create;
+      TextureField := TSFNode.Create(Effect, false, 'tex_' + IntToStr(Layer), [], Layers[Layer].TextureNode);
+      Effect.AddCustomField(TextureField);
+
+      Layers[Layer].UvScale := TSFFloat.Create(Effect, true, 'uv_scale_' + IntToStr(Layer), DefaultUvScale);
+      Effect.AddCustomField(Layers[Layer].UvScale);
+    end;
+
+    for Layer := 0 to LayersCount do
+    begin
+      HeightsFields[Layer] := TSFFloat.Create(Effect, true, 'h' + IntToStr(Layer), DefaultHeight[Layer]);
+      Effect.AddCustomField(HeightsFields[Layer]);
+    end;
+
+    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'texture_mix', FTextureMix));
+    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'normal_dark', FNormalDark));
+    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'normal_darkening', FNormalDarkening));
+
+    { initialize 2 EffectPart nodes (one for vertex shader, one for fragment shader) }
+    FragmentPart := TEffectPartNode.Create;
+    FragmentPart.ShaderType := stFragment;
+    FragmentPart.Contents := {$I terrain.fs.inc};
+
+    VertexPart := TEffectPartNode.Create;
+    VertexPart.ShaderType := stVertex;
+    VertexPart.Contents := {$I terrain.vs.inc};
+
+    Effect.SetParts([FragmentPart, VertexPart]);
+
+    { make the material lit }
+    Appearance.Material := TPhysicalMaterialNode.Create;
+  end;
+
+begin
+  inherited;
+
+  FTriangulate := true;
+  FSubdivisions := DefaultSubdivisions;
+  FSize := DefaultSize;
+  FTextureMix := DefaultTextureMix;
+  FNormalDark := DefaultNormalDark;
+  FNormalDarkening := DefaultNormalDarkening;
+
+  Scene := TCastleScene.Create(Self);
+  Scene.SetTransient;
+  Add(Scene);
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.KeepExistingBegin; // it's easiest to manage release of Appearance
+  AdjustAppearance;
+
+  FDataObserver := TFreeNotificationObserver.Create(Self);
+  FDataObserver.OnFreeNotification := {$ifdef FPC}@{$endif} DataFreeNotification;
+
+  UpdateGeometry;
+end;
+
+destructor TCastleTerrain.Destroy;
+begin
+  inherited;
+  // remove after RootNode containing this is removed too
+  FreeAndNil(Appearance);
+end;
+
+procedure TCastleTerrain.UpdateGeometry;
+
+  function CreateQuadShape(const Range: TFloatRectangle): TShapeNode;
+  var
+    QuadSet: TQuadSetNode;
+    Coord: TCoordinateNode;
+  begin
+    Coord := TCoordinateNode.Create;
+    Coord.SetPoint([
+      { Order of these points matter, must be CCW when observed from top,
+        just like "real" terrain data generated by TCastleTerrainNoise.
+        This way backface culling works in the same way. }
+      Vector3(Range.Left , 0, Range.Top),
+      Vector3(Range.Right, 0, Range.Top),
+      Vector3(Range.Right, 0, Range.Bottom),
+      Vector3(Range.Left , 0, Range.Bottom)
+    ]);
+
+    QuadSet := TQuadSetNode.CreateWithShape(Result);
+    QuadSet.Coord := Coord;
+
+    Result.Appearance := Appearance;
+  end;
+
+var
+  Root: TX3DRootNode;
+  Range: TFloatRectangle;
+begin
+  Range := FloatRectangle(-Size/2, -Size/2, Size, Size);
+
+  if Data <> nil then
+  begin
+    if TerrainNode = nil then
+    begin
+      if Triangulate then
+        TerrainNode := Data.CreateTriangulatedNode(Subdivisions, Range, Range, Appearance)
+      else
+        TerrainNode := Data.CreateNode(Subdivisions, Range, Range, Appearance);
+      Root := TX3DRootNode.Create;
+      Root.AddChildren(TerrainNode);
+      Scene.Load(Root, true);
+    end else
+    begin
+      if Triangulate then
+        Data.UpdateTriangulatedNode(TerrainNode, Subdivisions, Range, Range)
+      else
+        Data.UpdateNode(TerrainNode, Subdivisions, Range, Range);
+    end;
+  end else
+  begin
+    { When Data is empty, show a simple quad to visualize Size of the terrain. }
+    Root := TX3DRootNode.Create;
+    Root.AddChildren(CreateQuadShape(Range));
+    Scene.Load(Root, true);
+  end;
+end;
+
+function TCastleTerrain.GetRenderOptions: TCastleRenderOptions;
+begin
+  Result := Scene.RenderOptions;
+end;
+
+procedure TCastleTerrain.SetData(const Value: TCastleTerrainData);
+begin
+  if FData <> Value then
+  begin
+    { Ignore nonsense assignment done by FpRttiJson when this node references
+      in JSON non-yet-known name. FpRttiJson then creates an instance of
+      TCastleTerrainData and assigns it here -- a useless instance,
+      that would actually cause trouble as it has abstract methods. }
+    if (Value <> nil) and
+       (Value.ClassType = TCastleTerrainData) then
+      Exit;
+
+    if FData <> nil then
+      FData.RemoveChangeNotification({$ifdef FPC}@{$endif} DataChanged);
+    FData := Value;
+    FDataObserver.Observed := Value;
+    if FData <> nil then
+      FData.AddChangeNotification({$ifdef FPC}@{$endif} DataChanged);
+    UpdateGeometry;
+  end;
+end;
+
+procedure TCastleTerrain.DataChanged(Sender: TObject);
+begin
+  UpdateGeometry;
+end;
+
+procedure TCastleTerrain.DataFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  Data := nil;
+end;
+
+procedure TCastleTerrain.SetTriangulate(const Value: Boolean);
+begin
+  if FTriangulate <> Value then
+  begin
+    // free the TerrainNode and RootNode, even if already created, to create new one
+    if TerrainNode <> nil then
+    begin
+      Scene.RootNode := nil; // will free TerrainNode and RootNode
+      TerrainNode := nil;
+    end;
+    FTriangulate := Value;
+    UpdateGeometry;
+  end;
+end;
+
+procedure TCastleTerrain.SetSubdivisions(const Value: Cardinal);
+begin
+  if FSubdivisions <> Value then
+  begin
+    FSubdivisions := Value;
+    UpdateGeometry;
+  end;
+end;
+
+procedure TCastleTerrain.SetSize(const Value: Single);
+begin
+  if FSize <> Value then
+  begin
+    FSize := Value;
+    UpdateGeometry;
+  end;
+end;
+
+function TCastleTerrain.GetHeight(const Index: Integer): Single;
+begin
+  Result := HeightsFields[Index].Value;
+end;
+
+procedure TCastleTerrain.SetHeight(const Index: Integer; const Value: Single);
+begin
+  HeightsFields[Index].Send(Value);
+end;
+
+function TCastleTerrain.GetUvScale(const Index: Integer): Single;
+begin
+  Result := Layers[Index].UvScale.Value;
+end;
+
+procedure TCastleTerrain.SetUvScale(const Index: Integer; const Value: Single);
+begin
+  Layers[Index].UvScale.Send(Value);
+end;
+
+function TCastleTerrain.GetTexture(const Index: Integer): String;
+begin
+  if Layers[Index].TextureNode.FdUrl.Count <> 0 then
+    Result := Layers[Index].TextureNode.FdUrl.Items[0]
+  else
+    Result := '';
+end;
+
+procedure TCastleTerrain.SetTexture(const Index: Integer; const Value: String);
+begin
+  Layers[Index].TextureNode.SetUrl(Value);
+end;
+
+procedure TCastleTerrain.SetTextureMix(const Value: Single);
+begin
+  if FTextureMix <> Value then
+  begin
+    FTextureMix := Value;
+    (Effect.Field('texture_mix') as TSFFloat).Send(Value);
+  end;
+end;
+
+procedure TCastleTerrain.SetNormalDark(const Value: Single);
+begin
+  if FNormalDark <> Value then
+  begin
+    FNormalDark := Value;
+    (Effect.Field('normal_dark') as TSFFloat).Send(Value);
+  end;
+end;
+
+procedure TCastleTerrain.SetNormalDarkening(const Value: Single);
+begin
+  if FNormalDarkening <> Value then
+  begin
+    FNormalDarkening := Value;
+    (Effect.Field('normal_darkening') as TSFFloat).Send(Value);
+  end;
+end;
+
+function TCastleTerrain.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  case PropertyName of
+    'RenderOptions', 'Data', 'Triangulate', 'Subdivisions', 'Size',
+    'Height0', 'Height1', 'Height2', 'Height3',
+    'UvScale1', 'UvScale2', 'UvScale3',
+    'Texture1', 'Texture2', 'Texture3',
+    'TextureMix', 'NormalDark', 'NormalDarkening':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
+end;
+
+initialization
+  RegisterSerializableComponent(TCastleTerrainImage, 'Terrain (Experimental)/Image Data');
+  RegisterSerializableComponent(TCastleTerrainNoise, 'Terrain (Experimental)/Noise Data');
+  RegisterSerializableComponent(TCastleTerrain, 'Terrain (Experimental)/Terrain');
 end.
