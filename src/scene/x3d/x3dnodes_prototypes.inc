@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -174,6 +174,8 @@
     function Instantiate: TX3DNode;
   end;
 
+  { Common class to represent X3D external prototypes (referencing another file)
+    or non-external prototypes (describing how to expand the prototype into other nodes). }
   TX3DPrototypeBase = class(TX3DFileItem)
   private
     FX3DName: string;
@@ -225,6 +227,7 @@
 
   TX3DPrototypeBaseList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DPrototypeBase>);
 
+  { X3D non-external prototype (describing how to expand the prototype into other nodes). }
   TX3DPrototype = class(TX3DPrototypeBase)
   strict private
     FNode: TX3DRootNode;
@@ -239,6 +242,7 @@
     property Node: TX3DRootNode read FNode;
   end;
 
+  { X3D external prototype (referencing another file). }
   TX3DExternalPrototype = class(TX3DPrototypeBase)
   strict private
     FURLList: TMFString;

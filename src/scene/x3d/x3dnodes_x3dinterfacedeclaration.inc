@@ -374,9 +374,10 @@ begin
       by other node name) (otherwise "USE Xxx" could be used, which
       is acceptable).
 
-      See ../../../demo_models/x3d/proto_sfnode_default.x3dv
-      and tricky_def_use.x3dv for
-      examples (open and save it back e.g. in view3dscene).
+      See
+      ../../../../demo-models/prototypes/proto_sfnode_default.x3dv
+      ../../../../demo-models/x3d/tricky_def_use.x3dv
+      for  examples (open and save them back e.g. in view3dscene).
 
       So to make it work right, we have to set DefaultValue for our
       fields, in particular for TSFNode and TMFNode fields.
