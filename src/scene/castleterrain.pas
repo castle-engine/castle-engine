@@ -465,6 +465,7 @@ type
       FNormalDark: Single;
       FNormalDarkening: Single;
       FSubdivisions: Cardinal;
+      FPreciseCollisions: Boolean;
 
     function GetRenderOptions: TCastleRenderOptions;
     procedure DataFreeNotification(const Sender: TFreeNotificationObserver);
@@ -487,6 +488,7 @@ type
     procedure SetTextureMix(const Value: Single);
     procedure SetNormalDark(const Value: Single);
     procedure SetNormalDarkening(const Value: Single);
+    procedure SetPreciseCollisions(const Value: Boolean);
   public
     const
       DefaultSubdivisions = 64;
@@ -595,6 +597,12 @@ type
       0.0 means we can make it completely black, 1.0 disables color darkening. }
     property NormalDarkening: Single read FNormalDarkening write SetNormalDarkening
       {$ifdef FPC}default DefaultNormalDarkening{$endif};
+
+    { Resolve collisions precisely with the terrain geometry.
+      When this is @false we will only consider the terrain bounding box for collisions,
+      which prevents moving on terrain nicely, picking terrain points with mouse etc.
+      This sets @link(TCastleSceneCore.Spatial). }
+    property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default true;
   end experimental;
 
 implementation
@@ -1352,9 +1360,11 @@ begin
   FTextureMix := DefaultTextureMix;
   FNormalDark := DefaultNormalDark;
   FNormalDarkening := DefaultNormalDarkening;
+  FPreciseCollisions := true;
 
   Scene := TCastleScene.Create(Self);
   Scene.SetTransient;
+  Scene.Spatial := [ssDynamicCollisions]; // following FPreciseCollisions = true
   Add(Scene);
 
   Appearance := TAppearanceNode.Create;
@@ -1561,10 +1571,24 @@ begin
   end;
 end;
 
+procedure TCastleTerrain.SetPreciseCollisions(const Value: Boolean);
+begin
+  if FPreciseCollisions <> Value then
+  begin
+    FPreciseCollisions := Value;
+    if Value then
+      Scene.Spatial := [ssDynamicCollisions]
+    else
+      Scene.Spatial := [];
+    { Note that we don't add ssRendering,
+      would be largely useless as primitives are usually just 1 shape in an internal scene. }
+  end;
+end;
+
 function TCastleTerrain.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'RenderOptions', 'Data', 'Triangulate', 'Subdivisions', 'Size',
+    'RenderOptions', 'Data', 'Triangulate', 'Subdivisions', 'Size', 'PreciseCollisions',
     'Height0', 'Height1', 'Height2', 'Height3',
     'UvScale1', 'UvScale2', 'UvScale3',
     'Texture1', 'Texture2', 'Texture3',
