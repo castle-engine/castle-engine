@@ -1000,12 +1000,12 @@ end;
 
 function TCastleTerrainImage.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'ImageUrl', 'ImageHeight', 'ImageRepeat', 'ImageX1', 'ImageY1', 'ImageX2', 'ImageY2':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if ArrayContainsString(PropertyName, [
+       'ImageUrl', 'ImageHeight', 'ImageRepeat', 'ImageX1', 'ImageY1', 'ImageX2', 'ImageY2'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TTerrainCasScript -------------------------------------------------------- }
@@ -1222,12 +1222,12 @@ end;
 
 function TCastleTerrainNoise.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Octaves', 'Smoothness', 'Amplitude', 'Frequency', 'Interpolation', 'Blur', 'Seed', 'Heterogeneous':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if ArrayContainsString(PropertyName, [
+       'Octaves', 'Smoothness', 'Amplitude', 'Frequency', 'Interpolation', 'Blur', 'Seed', 'Heterogeneous'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TTerrainGrid ------------------------------------------------------------- }
@@ -1587,16 +1587,16 @@ end;
 
 function TCastleTerrain.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'RenderOptions', 'Data', 'Triangulate', 'Subdivisions', 'Size', 'PreciseCollisions',
-    'Height0', 'Height1', 'Height2', 'Height3',
-    'UvScale1', 'UvScale2', 'UvScale3',
-    'Texture1', 'Texture2', 'Texture3',
-    'TextureMix', 'NormalDark', 'NormalDarkening':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if ArrayContainsString(PropertyName, [
+       'RenderOptions', 'Data', 'Triangulate', 'Subdivisions', 'Size', 'PreciseCollisions',
+       'Height0', 'Height1', 'Height2', 'Height3',
+       'UvScale1', 'UvScale2', 'UvScale3',
+       'Texture1', 'Texture2', 'Texture3',
+       'TextureMix', 'NormalDark', 'NormalDarkening'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 initialization

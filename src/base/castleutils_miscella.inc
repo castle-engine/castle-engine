@@ -63,9 +63,11 @@ procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
       else SomethingElse;
     end;
   #) }
-function ArrayPosStr(const A: string; const Arr: array of string): Integer; overload;
-function ArrayPosText(const A: string; const Arr: array of string;
+function ArrayPosStr(const A: String; const Arr: array of String): Integer; overload;
+function ArrayPosText(const A: String; const Arr: array of String;
   IgnoreCase: boolean = true): Integer; overload;
+
+function ArrayContainsString(const A: String; const Arr: array of String): Boolean;
 
 { Iff functions ------------------------------------------------------------- }
 
@@ -220,7 +222,7 @@ end;
 
 { arrays searching ---------------------------------------- }
 
-function ArrayPosStr(const A: string; const Arr: array of string): Integer;
+function ArrayPosStr(const A: String; const Arr: array of String): Integer;
 begin
   for Result := 0 to High(Arr) do
     if Arr[Result] = A then
@@ -228,7 +230,12 @@ begin
   Result := -1;
 end;
 
-function ArrayPosText(const A: string; const Arr: array of string;
+function ArrayContainsString(const A: String; const Arr: array of String): Boolean;
+begin
+  Result := ArrayPosStr(A, Arr) <> -1;
+end;
+
+function ArrayPosText(const A: String; const Arr: array of String;
   IgnoreCase: boolean): Integer;
 var
   AA: string;
