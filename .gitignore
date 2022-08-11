@@ -86,7 +86,7 @@ castle-game-engine-*.fpm
 /examples/deprecated_random_generator/random_speed_test/random_speed_test
 /examples/deprecated_random_generator/random_threads_test/random_threads_test
 /examples/deprecated_random_generator/testhash/testhash
-/examples/fixed_camera_game/rift
+/examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/fonts/font_draw_over_image/font_draw_over_image
 /examples/fonts/font_draw_over_image/font_draw_over_image_output.png
 /examples/fonts/html_text/html_text
@@ -106,8 +106,8 @@ castle-game-engine-*.fpm
 /examples/images_videos/image_render_custom_shader/image_render_custom_shader
 /examples/images_videos/simple_video_editor/simple_video_editor
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
-/examples/isometric_game/isometric_game
-/examples/joystick/joystick_demo
+/examples/deprecated_to_upgrade/isometric_game/isometric_game
+/examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
 /examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
 /examples/lazarus/model_3d_viewer/model_3d_viewer
