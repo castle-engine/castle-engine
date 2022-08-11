@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{7AF6C146-39BA-4ED1-9878-9E2B0201A907}</ProjectGuid>
-        <MainSource>terrain.dpr</MainSource>
+        <ProjectGuid>{EEB9DB02-AFFF-44EC-8824-08F97FB3BAF5}</ProjectGuid>
+        <MainSource>terrain_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>33939</TargetedPlatforms>
@@ -180,7 +180,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">terrain.dpr</Source>
+                    <Source Name="MainSource">terrain_standalone.dpr</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
