@@ -40,6 +40,7 @@
       Let's just use CastleRandom?
       Or just store the final heights... this makes sense, as we also want to later allow editing terrains.)
     @item(TCastleTerrain configurable textures number.)
+    @item(TCastleTerrain Use GridCount, GridStep instead of Subdivisions, Size?)
   )
 }
 unit CastleTerrain;
@@ -363,7 +364,9 @@ type
       are scaled down (terrain is smoother).
 
       This is called "threshold" in Musgrave's dissertation (see algorithm
-      in section 2.3.2.5 "A Large Scale Terrain Model"). }
+      in section 2.3.2.5 "A Large Scale Terrain Model").
+
+      Reasonable values for this are between 0..2. }
     property Heterogeneous: Single
       read FHeterogeneous write SetHeterogeneous {$ifdef FPC}default DefaultHeterogeneous{$endif};
   end;
@@ -436,6 +439,7 @@ type
 
   TTerrain = TCastleTerrainData deprecated 'use TCastleTerrainData';
   TTerrainImage = TCastleTerrainImage deprecated 'use TCastleTerrainImage';
+  TTerrainNoise = TCastleTerrainNoise deprecated 'use TCastleTerrainNoise';
 
   { Scene showing a terrain with 3 layers of textures. }
   TCastleTerrain = class(TCastleTransform)
