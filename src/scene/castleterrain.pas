@@ -1604,7 +1604,7 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(TCastleTerrainImage, 'Terrain (Experimental)/Image Data');
-  RegisterSerializableComponent(TCastleTerrainNoise, 'Terrain (Experimental)/Noise Data');
+  RegisterSerializableComponent(TCastleTerrainImage, 'Terrain Data (Experimental)/Image Data');
+  RegisterSerializableComponent(TCastleTerrainNoise, 'Terrain Data (Experimental)/Noise Data');
   RegisterSerializableComponent(TCastleTerrain, 'Terrain (Experimental)/Terrain');
 end.
