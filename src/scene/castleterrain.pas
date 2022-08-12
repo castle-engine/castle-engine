@@ -1309,6 +1309,14 @@ end;
 
 { TCastleTerrain ------------------------------------------------------------- }
 
+const
+  { URL of a white pixel texture, embedded PPM.
+    See http://netpbm.sourceforge.net/doc/ppm.html . }
+  WhitePixel = 'data:image/x-portable-pixmap,P3'#10 +
+    '1 1'#10 +
+    '255'#10 +
+    '255 255 255';
+
 constructor TCastleTerrain.Create(AOwner: TComponent);
 
   procedure AdjustAppearance;
@@ -1325,6 +1333,7 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
     for Layer := 1 to LayersCount do
     begin
       Layers[Layer].TextureNode := TImageTextureNode.Create;
+      Layers[Layer].TextureNode.SetUrl([WhitePixel]);
       TextureField := TSFNode.Create(Effect, false, 'tex_' + IntToStr(Layer), [], Layers[Layer].TextureNode);
       Effect.AddCustomField(TextureField);
 
@@ -1369,6 +1378,7 @@ begin
   FPreciseCollisions := true;
 
   Scene := TCastleScene.Create(Self);
+  //Scene.ProcessEvents := true; // not necessary right now for anything
   Scene.SetTransient;
   Scene.Spatial := [ssDynamicCollisions]; // following FPreciseCollisions = true
   Add(Scene);
@@ -1539,7 +1549,7 @@ end;
 
 function TCastleTerrain.GetTexture(const Index: Integer): String;
 begin
-  if Layers[Index].TextureNode.FdUrl.Count <> 0 then
+  if Layers[Index].TextureNode.FdUrl.Count = 2 then // [image url, WhitePixel]
     Result := Layers[Index].TextureNode.FdUrl.Items[0]
   else
     Result := '';
@@ -1547,7 +1557,15 @@ end;
 
 procedure TCastleTerrain.SetTexture(const Index: Integer; const Value: String);
 begin
-  Layers[Index].TextureNode.SetUrl(Value);
+  if GetTexture(Index) <> Value then
+  begin
+    if Value <> '' then
+      Layers[Index].TextureNode.SetUrl([Value, WhitePixel])
+    else
+      Layers[Index].TextureNode.SetUrl([WhitePixel]);
+    // TODO: Only this will properly update the shader uniform to use new texture
+    Scene.ChangedAll;
+  end;
 end;
 
 procedure TCastleTerrain.SetTextureMix(const Value: Single);
