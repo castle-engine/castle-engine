@@ -256,7 +256,7 @@ begin
   AddField(FFdUrl);
 
   FFdFlipVertically := TSFBool.Create(Self, False, 'flipVertically', false);
-   FdFlipVertically.ChangeAlways := chVisibleNonGeometry;
+   FdFlipVertically.ChangeAlways := chTextureImage;
   AddField(FFdFlipVertically);
 
   FEventDuration_changed := TSFTimeEvent.Create(Self, 'duration_changed', false);
