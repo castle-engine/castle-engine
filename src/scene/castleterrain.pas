@@ -587,8 +587,10 @@ type
 
     { The steep slope at which we make color maximally darker.
       The slope is just Y coordinate of the normalized normal vector.
-      NormalDark = 1.0 means that we apply darkness only when slope is really vertical,
-      0.0 means that we start applying the darkness when scope is even horizontal.
+      NormalDark = 0.0 means that we apply darkness only when slope is really vertical
+      (it practically makes the darkness non-existing),
+      1.0 means that we start applying the darkness when scope is even horizontal
+      (it makes everything covered by darkness).
 
       TODO: Better name for this and NormalDarkening?
       DarknessStartSlope
