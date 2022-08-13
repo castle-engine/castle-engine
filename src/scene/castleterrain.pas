@@ -21,8 +21,10 @@
 
   @unorderedList(
     @item(
-      Add editability to terrains, which will likely wreak havoc in the existing API
-      that is targeted at "let the data dictate terrain heights".)
+      Add editability to terrains, which may wreak havoc in the existing API.
+      Current API is targeted at "let the data dictate terrain heights",
+      though in practice editing TCastleTerrainImage is a great way to manually set
+      or influence it.)
 
     @item(
       Add non-trivial rendering algorithm.
@@ -34,13 +36,17 @@
 
   @unorderedList(
     @item(
-      Various Y should be renamed to Z, like ImageY1, ImageY2.)
+      Various Y should be renamed to Z?
+      Hm. It's true (the 2nd terrain dimension maps to Z) and would follow X3D ElevationGrid.
+      But then, it's weird to think of it as "Z" as some cases.
+      And TVector2 2nd param remains Y.)
     @item(
       Randomization should be independent from compiler/platform/future.
       Let's just use CastleRandom?
       Or just store the final heights... this makes sense, as we also want to later allow editing terrains.)
     @item(TCastleTerrain configurable textures number.)
-    @item(TCastleTerrain Use GridCount, GridStep instead of Subdivisions, Size?)
+    @item(TCastleTerrain Use GridCount, GridStep instead of Subdivisions, Size?
+      See wyrd-forest arguments.)
   )
 }
 unit CastleTerrain;
@@ -120,7 +126,11 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function Height(const X, Y: Single): Single; virtual; abstract;
+
+    { Return height for given terrain point.
+      X and Z are in the range determined by TCastleTerrain.Size.
+      XFraction and ZFraction are in [0..1] range. }
+    function Height(const X, Z: Single; const XFraction, ZFraction: Single): Single; virtual; abstract;
 
     { Add notification when data (affecting @link(Height) results) changes. }
     procedure AddChangeNotification(const Notify: TNotifyEvent);
@@ -128,49 +138,37 @@ type
     procedure RemoveChangeNotification(const Notify: TNotifyEvent);
   end;
 
-  { Terrain (height for each X, Y) data taken from intensities in an image.
+  { Terrain (height map) data taken from intensities in an image.
 
-    The image covers (ImageX1, ImageY1) ... (ImageX2, ImageY2)
-    area in XY plane. If you ask for Height outside of this range,
-    it is repeated infinitely (if ImageRepeat) or clamped (if not ImageRepeat).
-    Image color (converted to grayscale) acts as height (scaled by
-    ImageHeight).
+    The image spans always the entire terrain in X and Z.
 
-    When image is not loaded, this always returns height = 0. }
+    The image minimum intensity (black) maps to height MinLevel,
+    maximum intensity (white) maps to height MaxLevel.
+    Any relation of MinLevel and MaxLevel is OK,
+    that is: both MinLevel<MaxLevel and MinLevel>MaxLevel are valid.
+
+    When image is not loaded, it behaves like all the image intensities are 0.5. }
   TCastleTerrainImage = class(TCastleTerrainData)
   strict private
-    { FImage = nil and FImageUrl = '' when not loaded. }
+    { FImage = nil and FUrl = '' when not loaded. }
     FImage: TGrayscaleImage;
-    FImageUrl: String;
-    FImageHeight: Single;
-    FImageRepeat: Boolean;
-    FImageX1, FImageX2, FImageY1, FImageY2: Single;
-    procedure SetImageUrl(const Value: String);
-    procedure SetImageHeight(const Value: Single);
-    procedure SetImageRepeat(const Value: Boolean);
-    procedure SetImageX1(const Value: Single);
-    procedure SetImageY1(const Value: Single);
-    procedure SetImageX2(const Value: Single);
-    procedure SetImageY2(const Value: Single);
+    FUrl: String;
+    FMinLevel, FMaxLevel: Single;
+    procedure SetUrl(const Value: String);
+    procedure SetMinLevel(const Value: Single);
+    procedure SetMaxLevel(const Value: Single);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function Height(const X, Y: Single): Single; override;
+    function Height(const X, Y: Single; const XFraction, YFraction: Single): Single; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
-    property ImageUrl: String read FImageUrl write SetImageUrl;
-
-    { The maximum intensity in the image results in this height of the terrain. }
-    property ImageHeight: Single
-      read FImageHeight write SetImageHeight {$ifdef FPC}default 1.0{$endif};
-
-    { Whether the image is repeated outside of ImageX1,ImageY1,ImageX2,ImageY2 bounds. }
-    property ImageRepeat: Boolean read FImageRepeat write SetImageRepeat default false;
-
-    property ImageX1: Single read FImageX1 write SetImageX1 {$ifdef FPC}default -1{$endif};
-    property ImageY1: Single read FImageY1 write SetImageY1 {$ifdef FPC}default -1{$endif};
-    property ImageX2: Single read FImageX2 write SetImageX2 {$ifdef FPC}default 1{$endif};
-    property ImageY2: Single read FImageY2 write SetImageY2 {$ifdef FPC}default 1{$endif};
+    { Image URL. Empty string means that no image is loaded. }
+    property Url: String read FUrl write SetUrl;
+    { Height when the image has minimum intensity (black). }
+    property MinLevel: Single read FMinLevel write SetMinLevel {$ifdef FPC}default -0.5{$endif};
+    { Height when the image has maximum intensity (white). }
+    property MaxLevel: Single read FMaxLevel write SetMaxLevel {$ifdef FPC}default  0.5{$endif};
   end;
 
   { Terrain (height for each X, Y) data calculated from CastleScript
@@ -188,18 +186,15 @@ type
       @preformatted(
         (sin(x) + sin(x*2) / 2 + sin(x*4) / 4)  *
         (sin(y) + sin(y*2) / 2 + sin(y*4) / 4)
-      )
-
-    This descends from TCastleTerrainImage, so you add an image to
-    your function result. }
-  TTerrainCasScript = class(TCastleTerrainImage)
+      ) }
+  TTerrainCasScript = class(TCastleTerrainData)
   strict private
     FXVariable, FYVariable: TCasScriptFloat;
     FFunction: TCasScriptExpression;
   public
     constructor Create(const FunctionExpression: string); reintroduce;
     destructor Destroy; override;
-    function Height(const X, Y: Single): Single; override;
+    function Height(const X, Y: Single; const XFraction, YFraction: Single): Single; override;
   end deprecated 'using CastleScript to define terrain is deprecated due to low usage';
 
   TNoiseInterpolation = (niNone, niLinear, niCosine, niSpline);
@@ -229,11 +224,8 @@ type
         [http://freespace.virgin.net/hugo.elias/models/m_perlin.htm].
         It describes how to get nice noise very easily, and my approach follows
         theirs.)
-    )
-
-    This descends from TCastleTerrainImage, so you can add an image to
-    your function result, e.g. to flatten some specific generated area. }
-  TCastleTerrainNoise = class(TCastleTerrainImage)
+    ) }
+  TCastleTerrainNoise = class(TCastleTerrainData)
   strict private
     type
       TNoise2DMethod = function (const X, Y: Single; const Seed: Cardinal): Single;
@@ -267,7 +259,7 @@ type
       DefaultHeterogeneous = 0.5;
 
     constructor Create(AOwner: TComponent); override;
-    function Height(const X, Y: Single): Single; override;
+    function Height(const X, Y: Single; const XFraction, YFraction: Single): Single; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Number of noise functions to sum.
@@ -396,7 +388,7 @@ type
       and it doesn't really present any more interesting information
       (in contrast to typical procedural terrain, where there can be always
       more and more detail at each level). }
-    function Height(const X, Y: Single): Single; override;
+    function Height(const X, Y: Single; const XFraction, YFraction: Single): Single; override;
 
     { GridSizeX, GridSizeY specify grid dimensions.
       Use GridHeight(0..GridSizeX - 1, 0..GridSizeY - 1) to get height
@@ -686,6 +678,7 @@ var
   Shape: TShapeNode;
   Grid: TElevationGridNode;
   X, Z: Cardinal;
+  XFraction, ZFraction: Single;
 begin
   Transform := Node as TTransformNode; // created by CreateNode
   Transform.ClearChildren;
@@ -705,9 +698,12 @@ begin
   for X := 0 to Divisions - 1 do
     for Z := 0 to Divisions - 1 do
     begin
+      XFraction := MapRangeTo01(X, 0, Divisions - 1);
+      ZFraction := MapRangeTo01(Z, 0, Divisions - 1);
       Grid.FdHeight.Items.List^[X + Z * Divisions] := Height(
-        MapRange(X, 0, Divisions - 1, InputRange.Left  , InputRange.Right),
-        MapRange(Z, 0, Divisions - 1, InputRange.Bottom, InputRange.Top));
+        Lerp(XFraction, InputRange.Left  , InputRange.Right),
+        Lerp(ZFraction, InputRange.Bottom, InputRange.Top),
+        XFraction, ZFraction);
     end;
 
   Shape.Appearance := Appearance;
@@ -753,14 +749,17 @@ var
   procedure CalculatePosition(const I, J: Cardinal; out Position: TVector3);
   var
     QueryPosition: TVector2;
+    XFraction, ZFraction: Single;
   begin
-    QueryPosition.X := InputRange.Width  * I / (Divisions-1) + InputRange.Left;
-    QueryPosition.Y := InputRange.Height * J / (Divisions-1) + InputRange.Bottom;
+    XFraction := I / (Divisions-1);
+    ZFraction := J / (Divisions-1);
+    QueryPosition.X := InputRange.Width  * XFraction + InputRange.Left;
+    QueryPosition.Y := InputRange.Height * ZFraction + InputRange.Bottom;
 
-    Position.X := OutputRange.Width  * I / (Divisions-1) + OutputRange.Left;
-    Position.Z := OutputRange.Height * J / (Divisions-1) + OutputRange.Bottom;
+    Position.X := OutputRange.Width  * XFraction + OutputRange.Left;
+    Position.Z := OutputRange.Height * ZFraction + OutputRange.Bottom;
 
-    Position.Y := Height(QueryPosition.X, QueryPosition.Y);
+    Position.Y := Height(QueryPosition.X, QueryPosition.Y, XFraction, ZFraction);
   end;
 
   function Idx(const I, J: Integer): Integer;
@@ -872,11 +871,8 @@ end;
 constructor TCastleTerrainImage.Create(AOwner: TComponent);
 begin
   inherited;
-  FImageHeight := 1.0;
-  FImageX1 := -1;
-  FImageY1 := -1;
-  FImageX2 :=  1;
-  FImageY2 :=  1;
+  FMinLevel := -0.5;
+  FMaxLevel := 0.5;
 end;
 
 destructor TCastleTerrainImage.Destroy;
@@ -885,24 +881,24 @@ begin
   inherited;
 end;
 
-procedure TCastleTerrainImage.SetImageUrl(const Value: string);
+procedure TCastleTerrainImage.SetUrl(const Value: string);
 
-  procedure LoadImage(const NewImageUrl: string);
+  procedure LoadImage(const NewUrl: string);
   var
     NewImage: TGrayscaleImage;
   begin
-    if NewImageUrl = '' then
+    if NewUrl = '' then
       NewImage := nil
     else
-      NewImage := CastleImages.LoadImage(NewImageUrl, [TGrayscaleImage]) as TGrayscaleImage;
+      NewImage := CastleImages.LoadImage(NewUrl, [TGrayscaleImage]) as TGrayscaleImage;
 
     FreeAndNil(FImage);
     FImage := NewImage;
-    FImageUrl := NewImageUrl;
+    FUrl := NewUrl;
   end;
 
 begin
-  if FImageUrl <> Value then
+  if FUrl <> Value then
   begin
     try
       LoadImage(Value); // in case of exception when loading, LoadImage leaves state unchanged
@@ -924,82 +920,37 @@ begin
   end;
 end;
 
-function TCastleTerrainImage.Height(const X, Y: Single): Single;
+function TCastleTerrainImage.Height(const X, Y: Single; const XFraction, YFraction: Single): Single;
 var
   PX, PY: Integer;
+  Intensity: Single;
 begin
   if FImage <> nil then
   begin
-    PX := Floor( ((X - ImageX1) / (ImageX2 - ImageX1)) * FImage.Width );
-    PY := Floor( ((Y - ImageY1) / (ImageY2 - ImageY1)) * FImage.Height);
-
-    if ImageRepeat then
-    begin
-      PX := PX mod FImage.Width;
-      PY := PY mod FImage.Height;
-      if PX < 0 then PX := PX + FImage.Width;
-      if PY < 0 then PY := PY + FImage.Height;
-    end else
-    begin
-      ClampVar(PX, 0, FImage.Width  - 1);
-      ClampVar(PY, 0, FImage.Height - 1);
-    end;
-
-    Result := (FImage.PixelPtr(PX, PY)^ / High(Byte)) * ImageHeight;
+    PX := Floor(XFraction * FImage.Width );
+    PY := Floor(YFraction * FImage.Height);
+    ClampVar(PX, 0, FImage.Width  - 1);
+    ClampVar(PY, 0, FImage.Height - 1);
+    Intensity := MapRangeTo01(FImage.PixelPtr(PX, PY)^, 0, High(Byte));
   end else
-    Result := 0;
+    Intensity := 0.5;
+  Result := Lerp(Intensity, MinLevel, MaxLevel);
 end;
 
-procedure TCastleTerrainImage.SetImageHeight(const Value: Single);
+procedure TCastleTerrainImage.SetMinLevel(const Value: Single);
 begin
-  if FImageHeight <> Value then
+  if FMinLevel <> Value then
   begin
-    FImageHeight := Value;
+    FMinLevel := Value;
     DoChange;
   end;
 end;
 
-procedure TCastleTerrainImage.SetImageRepeat(const Value: Boolean);
+procedure TCastleTerrainImage.SetMaxLevel(const Value: Single);
 begin
-  if FImageRepeat <> Value then
+  if FMaxLevel <> Value then
   begin
-    FImageRepeat := Value;
-    DoChange;
-  end;
-end;
-
-procedure TCastleTerrainImage.SetImageX1(const Value: Single);
-begin
-  if FImageX1 <> Value then
-  begin
-    FImageX1 := Value;
-    DoChange;
-  end;
-end;
-
-procedure TCastleTerrainImage.SetImageY1(const Value: Single);
-begin
-  if FImageY1 <> Value then
-  begin
-    FImageY1 := Value;
-    DoChange;
-  end;
-end;
-
-procedure TCastleTerrainImage.SetImageX2(const Value: Single);
-begin
-  if FImageX2 <> Value then
-  begin
-    FImageX2 := Value;
-    DoChange;
-  end;
-end;
-
-procedure TCastleTerrainImage.SetImageY2(const Value: Single);
-begin
-  if FImageY2 <> Value then
-  begin
-    FImageY2 := Value;
+    FMaxLevel := Value;
     DoChange;
   end;
 end;
@@ -1007,7 +958,7 @@ end;
 function TCastleTerrainImage.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'ImageUrl', 'ImageHeight', 'ImageRepeat', 'ImageX1', 'ImageY1', 'ImageX2', 'ImageY2'
+       'Url', 'MinLevel', 'MaxLevel'
      ]) then
     Result := [psBasic]
   else
@@ -1042,12 +993,11 @@ begin
   inherited;
 end;
 
-function TTerrainCasScript.Height(const X, Y: Single): Single;
+function TTerrainCasScript.Height(const X, Y: Single; const XFraction, YFraction: Single): Single;
 begin
-  Result := inherited;
   FXVariable.Value := X;
   FYVariable.Value := Y;
-  Result := Result + (FFunction.Execute as TCasScriptFloat).Value;
+  Result := (FFunction.Execute as TCasScriptFloat).Value;
 end;
 
 { TCastleTerrainNoise ------------------------------------------------------------ }
@@ -1164,7 +1114,7 @@ begin
   end;
 end;
 
-function TCastleTerrainNoise.Height(const X, Y: Single): Single;
+function TCastleTerrainNoise.Height(const X, Y: Single; const XFraction, YFraction: Single): Single;
 // const
 //   { Idea, maybe useful --- apply heterogeneous only on higher octaves.
 //     Note that 1st octave is anyway always without heterogeneous,
@@ -1207,7 +1157,8 @@ var
 var
   I: Cardinal;
 begin
-  Result := inherited;
+  Result := 0;
+
   A := Amplitude;
   F := Frequency;
   { This will accumulate multiplication of noise octaves.
@@ -1248,7 +1199,7 @@ begin
   FGridHeightScale := 1;
 end;
 
-function TTerrainGrid.Height(const X, Y: Single): Single;
+function TTerrainGrid.Height(const X, Y: Single; const XFraction, YFraction: Single): Single;
 begin
   { TODO: for now, just take the nearest point, no bilinear filtering. }
   Result := GridHeight(

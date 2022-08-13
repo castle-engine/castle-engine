@@ -82,7 +82,7 @@ begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageTransform,
     'Url', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainImage,
-    'ImageUrl', TImageURLPropertyEditor);
+    'Url', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrain,
     'Texture1', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrain,
