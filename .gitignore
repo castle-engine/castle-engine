@@ -106,6 +106,7 @@ castle-game-engine-*.fpm
 /examples/images_videos/image_render_custom_shader/image_render_custom_shader
 /examples/images_videos/simple_video_editor/simple_video_editor
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
+/examples/isometric_game/isometric_game
 /examples/deprecated_to_upgrade/isometric_game/isometric_game
 /examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/lazarus/load_model_and_camera_manually/lib/

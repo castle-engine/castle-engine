@@ -11,7 +11,8 @@ This could be made much more impressive by:
 - And by providing more impressive game assets :)
 - And by designing some interesting map (the current map is just a test).
 
-Contributions are most welcome:)
+This effort is already started -- see `examples/isometric_game` for a new version.
+We only keep this deprecated version to show alternative rendering method.
 
 # Keybindings
 
