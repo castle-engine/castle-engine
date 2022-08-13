@@ -628,6 +628,10 @@ end;
 
 procedure TCastleTerrainData.DoChange;
 begin
+  { TODO: To fully avoid useless UpdateGeometry calls,
+    avoid calling FChangeNotifications when IsLoading.
+    Only schedule it and call when Loaded. }
+
   FChangeNotifications.ExecuteAll(Self);
 end;
 
