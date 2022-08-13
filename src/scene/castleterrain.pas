@@ -47,6 +47,7 @@
     @item(TCastleTerrain configurable textures number.)
     @item(TCastleTerrain Use GridCount, GridStep instead of Subdivisions, Size?
       See wyrd-forest arguments.)
+    @item(TCastleTerrain add property to define material type, like in primitives - unlit, physical, phong?)
   )
 }
 unit CastleTerrain;
