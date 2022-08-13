@@ -8,7 +8,7 @@ Simple example of arranging images in a viewport to show an isometric map layout
 
 - It includes a pre-designed `TCastleScene` with a sprite sheet and `TCastleImageTransform` with a penguin, just to show that we can also place stuff using the editor in `gamestatemain.castle-user-interface`.
 
-- The design contains `TCastleNavigation2D` component so user can easily move (drag with left mouse button) and zoom the map (mouse wheel).
+- The design contains `TCastle2DNavigation` component so user can easily move (drag with left mouse button) and zoom the map (mouse wheel).
 
 TODO:
 
