@@ -606,7 +606,7 @@ type
 implementation
 
 uses Math,
-  CastleUtils, CastleScriptParser, CastleNoise, CastleDownload, CastleLog,
+  CastleUtils, CastleScriptParser, CastleInternalNoise, CastleDownload, CastleLog,
   CastleURIUtils, CastleComponentSerialize;
 
 { TCastleTerrainData ------------------------------------------------------------------- }

@@ -241,7 +241,6 @@ begin
 
     P.SourcePath.Add('src/castlescript');
     P.Targets.AddUnit('castlecurves.pas');
-    P.Targets.AddUnit('castlenoise.pas');
     P.Targets.AddUnit('castlescript.pas');
     P.Targets.AddUnit('castlescriptarrays.pas');
     P.Targets.AddUnit('castlescriptcorefunctions.pas');
@@ -352,6 +351,7 @@ begin
     P.Targets.AddUnit('castleinternalbatchshapes.pas');
     P.Targets.AddUnit('castleinternalglcubemaps.pas');
     P.Targets.AddUnit('castleinternalnodeinterpolator.pas');
+    P.Targets.AddUnit('castleinternalnoise.pas');
     P.Targets.AddUnit('castleinternalnormals.pas');
     P.Targets.AddUnit('castleinternalrenderer.pas');
     P.Targets.AddUnit('castleinternalshadowmaps.pas');

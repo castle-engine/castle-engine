@@ -1,3 +1,5 @@
+{%MainUnit castleinternalnoise.pas}
+
 { Common implementation for both
   InterpolatedNoise2D_Linear, InterpolatedNoise2D_Cosine }
 

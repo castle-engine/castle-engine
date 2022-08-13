@@ -504,8 +504,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleCurves"/>
       </Item107>
       <Item108>
-        <Filename Value="../src/castlescript/castlenoise.pas"/>
-        <UnitName Value="CastleNoise"/>
+        <Filename Value="../src/scene/castleinternalnoise.pas"/>
+        <UnitName Value="CastleInternalNoise"/>
       </Item108>
       <Item109>
         <Filename Value="../src/castlescript/castlescript.pas"/>
@@ -1286,11 +1286,11 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalSphericalHarmonics"/>
       </Item297>
       <Item298>
-        <Filename Value="../src/transform/castlenoise_interpolatednoise2d_linear_cosine.inc"/>
+        <Filename Value="../src/scene/castleinternalnoise_interpolatednoise2d_linear_cosine.inc"/>
         <Type Value="Include"/>
       </Item298>
       <Item299>
-        <Filename Value="../src/transform/castlenoise_interpolatednoise2d_spline.inc"/>
+        <Filename Value="../src/scene/castleinternalnoise_interpolatednoise2d_spline.inc"/>
         <Type Value="Include"/>
       </Item299>
       <Item300>

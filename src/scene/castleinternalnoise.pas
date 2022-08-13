@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2018 Michalis Kamburelis.
+  Copyright 2009-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
 }
 
 { Generating noise. }
-unit CastleNoise;
+unit CastleInternalNoise;
 
 {$I castleconf.inc}
 
@@ -220,15 +220,15 @@ begin
 end;
 
 function InterpolatedNoise2D_Linear(const X, Y: Single; const Seed: Cardinal): Single;
-{$I castlenoise_interpolatednoise2d_linear_cosine.inc}
+{$I castleinternalnoise_interpolatednoise2d_linear_cosine.inc}
 
 function InterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): Single;
 {$define InterpolatedNoise2D_Cosine}
-{$I castlenoise_interpolatednoise2d_linear_cosine.inc}
+{$I castleinternalnoise_interpolatednoise2d_linear_cosine.inc}
 {$undef InterpolatedNoise2D_Cosine}
 
 function InterpolatedNoise2D_Spline(const X, Y: Single; const Seed: Cardinal): Single;
-{$I castlenoise_interpolatednoise2d_spline.inc}
+{$I castleinternalnoise_interpolatednoise2d_spline.inc}
 
 { BlurredInterpolatedNoise* -------------------------------------------------- }
 
@@ -254,15 +254,15 @@ end;
 {$define IntegerNoise := BlurredIntegerNoise}
 
 function BlurredInterpolatedNoise2D_Linear(const X, Y: Single; const Seed: Cardinal): Single;
-{$I castlenoise_interpolatednoise2d_linear_cosine.inc}
+{$I castleinternalnoise_interpolatednoise2d_linear_cosine.inc}
 
 function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): Single;
 {$define InterpolatedNoise2D_Cosine}
-{$I castlenoise_interpolatednoise2d_linear_cosine.inc}
+{$I castleinternalnoise_interpolatednoise2d_linear_cosine.inc}
 {$undef InterpolatedNoise2D_Cosine}
 
 function BlurredInterpolatedNoise2D_Spline(const X, Y: Single; const Seed: Cardinal): Single;
-{$I castlenoise_interpolatednoise2d_spline.inc}
+{$I castleinternalnoise_interpolatednoise2d_spline.inc}
 
 {$undef IntegerNoise}
 
