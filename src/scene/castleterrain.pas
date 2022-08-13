@@ -462,6 +462,7 @@ type
       FNormalDarkening: Single;
       FSubdivisions: Cardinal;
       FPreciseCollisions: Boolean;
+      FUpdateGeometryWhenLoaded: Boolean;
 
     function GetRenderOptions: TCastleRenderOptions;
     procedure DataFreeNotification(const Sender: TFreeNotificationObserver);
@@ -485,6 +486,8 @@ type
     procedure SetNormalDark(const Value: Single);
     procedure SetNormalDarkening(const Value: Single);
     procedure SetPreciseCollisions(const Value: Boolean);
+  protected
+    procedure Loaded; override;
   public
     const
       DefaultSubdivisions = 64;
@@ -1351,6 +1354,17 @@ begin
   FreeAndNil(Appearance);
 end;
 
+procedure TCastleTerrain.Loaded;
+begin
+  inherited;
+  if FUpdateGeometryWhenLoaded then
+  begin
+    FUpdateGeometryWhenLoaded := false;
+    Assert(not IsLoading);
+    UpdateGeometry;
+  end;
+end;
+
 procedure TCastleTerrain.UpdateGeometry;
 
   function CreateQuadShape(const Range: TFloatRectangle): TShapeNode;
@@ -1379,6 +1393,14 @@ var
   Root: TX3DRootNode;
   Range: TFloatRectangle;
 begin
+  { During deserialization, defer the real work to the Loaded moment,
+    to avoid regenerating heights multiple times. }
+  if IsLoading then
+  begin
+    FUpdateGeometryWhenLoaded := true;
+    Exit;
+  end;
+
   Range := FloatRectangle(-Size/2, -Size/2, Size, Size);
 
   if Data <> nil then
