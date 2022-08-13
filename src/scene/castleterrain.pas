@@ -21,10 +21,33 @@
 
   @unorderedList(
     @item(
-      Add editability to terrains, which may wreak havoc in the existing API.
-      Current API is targeted at "let the data dictate terrain heights",
-      though in practice editing TCastleTerrainImage is a great way to manually set
-      or influence it.)
+      Edit terrain heights in the CGE editor.
+
+      Possible approach: turn any data (including TCastleTerrainNoise) into
+      TCastleTerrainImage, then add editing tools to just change this image.
+
+      Alternatively user could edit a TCastleTerrainImage that is combined
+      with TCastleTerrainNoise -- this seems a powerful but uncertain feature,
+      i.e. in the end it means you cannot directly edit the output of TCastleTerrainNoise,
+      so it may be less comfortable (although it would allow to later regenerate
+      TCastleTerrainNoise and keep the edits -- effectively they would work
+      like Blender modifier.)
+    )
+
+    @item(
+      Edit textures influence using splatmap. Just a texture where RGBA
+      are weights for each texture.
+
+      Implement this, and also add a brush to edit splatmap in CGE editor.)
+
+    @item(Adding vegetation to the terrain.
+
+      Adding grass and other small things (that must be placed in large batches
+      and density should be dynamic).
+
+      Adding trees, boulders and other large things (their density should
+      also be dynamic for fast rendering, but at close distance they are just
+      3D models).
 
     @item(
       Add non-trivial rendering algorithm.
