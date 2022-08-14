@@ -135,7 +135,7 @@ type
       and resulting look should be the same. }
     function CreateTriangulatedNode(const Divisions: Cardinal;
       const InputRange, OutputRange: TFloatRectangle;
-      const Appearance: TAppearanceNode): TAbstractChildNode; experimental;
+      const Appearance: TAppearanceNode): TAbstractChildNode;
 
     { Update a node created by @link(CreateTriangulatedNode)
       to the new terrain and it's settings. }
@@ -457,6 +457,46 @@ type
   TTerrainImage = TCastleTerrainImage deprecated 'use TCastleTerrainImage';
   TTerrainNoise = TCastleTerrainNoise deprecated 'use TCastleTerrainNoise';
 
+  { Operation used by TCastleTerrainCombine to combine heights from 2 terrain data sources.
+    See @link(TCastleTerrainCombine.Operation). }
+  TCastleTerrainCombineOperation = (opMax, opMin, opAdd, opMultiply);
+
+  { Combine (add, multiply, do maximum or minimum) two other terrain data sources.
+    This allows to e.g. combine TCastleTerrainNoise with TCastleTerrainImage
+    in a flexible way. For example you can use TCastleTerrainImage to force some
+    mountains / valleys even where TCastleTerrainNoise doesn't have them. }
+  TCastleTerrainCombine = class(TCastleTerrainData)
+  private
+    type
+      TOperationFunc = function (const A, B: Single): Single;
+    var
+      FData1, FData2: TCastleTerrainData;
+      FData1Observer, FData2Observer: TFreeNotificationObserver;
+      FOperation: TCastleTerrainCombineOperation;
+      FOperationFunc: TOperationFunc;
+    procedure Data1FreeNotification(const Sender: TFreeNotificationObserver);
+    procedure Data2FreeNotification(const Sender: TFreeNotificationObserver);
+    procedure Data1Changed(Sender: TObject);
+    procedure Data2Changed(Sender: TObject);
+    procedure SetData1(const Value: TCastleTerrainData);
+    procedure SetData2(const Value: TCastleTerrainData);
+    procedure SetOperation(const Value: TCastleTerrainCombineOperation);
+    procedure UpdateOperationFunc;
+  public
+    const
+      DefaultOperation = opMax;
+    constructor Create(AOwner: TComponent); override;
+    function Height(const X, Y: Single; const XFraction, YFraction: Single): Single; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+  published
+    { First data for terrain heights. }
+    property Data1: TCastleTerrainData read FData1 write SetData1;
+    { Second data for terrain heights. }
+    property Data2: TCastleTerrainData read FData2 write SetData2;
+    { How to combine results of Data1 and Data2. }
+    property Operation: TCastleTerrainCombineOperation read FOperation write SetOperation default opMax;
+  end;
+
   { Scene showing a terrain with 3 layers of textures. }
   TCastleTerrain = class(TCastleTransform)
   public
@@ -545,8 +585,6 @@ type
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
 
     { Data for terrain heights.
-      TODO: observe when this is freed, auto set to @nil.
-
       Changing this requires rebuild of terrain geometry, so it's costly.
       Avoid doing it at runtime. }
     property Data: TCastleTerrainData read FData write SetData;
@@ -1304,6 +1342,150 @@ begin
   Result := 1201;
 end;
 
+{ TCastleTerrainCombine ------------------------------------------------------ }
+
+function CombineOperationMax(const A, B: Single): Single;
+begin
+  Result := Max(A, B);
+end;
+
+function CombineOperationMin(const A, B: Single): Single;
+begin
+  Result := Min(A, B);
+end;
+
+function CombineOperationAdd(const A, B: Single): Single;
+begin
+  Result := A + B;
+end;
+
+function CombineOperationMultiply(const A, B: Single): Single;
+begin
+  Result := A * B;
+end;
+
+constructor TCastleTerrainCombine.Create(AOwner: TComponent);
+begin
+  inherited;
+  FData1Observer := TFreeNotificationObserver.Create(Self);
+  FData1Observer.OnFreeNotification := {$ifdef FPC}@{$endif} Data1FreeNotification;
+  FData2Observer := TFreeNotificationObserver.Create(Self);
+  FData2Observer.OnFreeNotification := {$ifdef FPC}@{$endif} Data2FreeNotification;
+  FOperation := DefaultOperation;
+  UpdateOperationFunc;
+end;
+
+procedure TCastleTerrainCombine.UpdateOperationFunc;
+begin
+  case FOperation of
+    opMax: FOperationFunc := {$ifdef FPC}@{$endif} CombineOperationMax;
+    opMin: FOperationFunc := {$ifdef FPC}@{$endif} CombineOperationMin;
+    opAdd: FOperationFunc := {$ifdef FPC}@{$endif} CombineOperationAdd;
+    opMultiply: FOperationFunc := {$ifdef FPC}@{$endif} CombineOperationMultiply;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TCastleTerrainCombine.UpdateOperationFunc?');
+    {$endif}
+  end;
+end;
+
+procedure TCastleTerrainCombine.SetOperation(const Value: TCastleTerrainCombineOperation);
+begin
+  if FOperation <> Value then
+  begin
+    FOperation := Value;
+    UpdateOperationFunc;
+    DoChange;
+  end;
+end;
+
+function TCastleTerrainCombine.Height(const X, Y: Single; const XFraction, YFraction: Single): Single;
+begin
+  if (Data1 <> nil) and (Data2 <> nil) then
+  begin
+    Result := FOperationFunc(
+      Data1.Height(X, Y, XFraction, YFraction),
+      Data2.Height(X, Y, XFraction, YFraction)
+    );
+  end else
+  if Data1 <> nil then
+    Result := Data1.Height(X, Y, XFraction, YFraction)
+  else
+  if Data2 <> nil then
+    Result := Data2.Height(X, Y, XFraction, YFraction)
+  else
+    Result := 0;
+end;
+
+function TCastleTerrainCombine.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+       'Data1', 'Data2', 'Operation'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleTerrainCombine.Data1FreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  Data1 := nil;
+end;
+
+procedure TCastleTerrainCombine.Data2FreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  Data2 := nil;
+end;
+
+procedure TCastleTerrainCombine.Data1Changed(Sender: TObject);
+begin
+  DoChange;
+end;
+
+procedure TCastleTerrainCombine.Data2Changed(Sender: TObject);
+begin
+  DoChange;
+end;
+
+procedure TCastleTerrainCombine.SetData1(const Value: TCastleTerrainData);
+begin
+  if FData1 <> Value then
+  begin
+    { Ignore nonsense assignment done by FpRttiJson when this node references
+      in JSON non-yet-known name. See TCastleTerrain.SetData comments. }
+    if (Value <> nil) and
+       (Value.ClassType = TCastleTerrainData) then
+      Exit;
+
+    if FData1 <> nil then
+      FData1.RemoveChangeNotification({$ifdef FPC}@{$endif} Data1Changed);
+    FData1 := Value;
+    FData1Observer.Observed := Value;
+    if FData1 <> nil then
+      FData1.AddChangeNotification({$ifdef FPC}@{$endif} Data1Changed);
+    DoChange;
+  end;
+end;
+
+procedure TCastleTerrainCombine.SetData2(const Value: TCastleTerrainData);
+begin
+  if FData2 <> Value then
+  begin
+    { Ignore nonsense assignment done by FpRttiJson when this node references
+      in JSON non-yet-known name. See TCastleTerrain.SetData comments. }
+    if (Value <> nil) and
+       (Value.ClassType = TCastleTerrainData) then
+      Exit;
+
+    if FData2 <> nil then
+      FData2.RemoveChangeNotification({$ifdef FPC}@{$endif} Data2Changed);
+    FData2 := Value;
+    FData2Observer.Observed := Value;
+    if FData2 <> nil then
+      FData2.AddChangeNotification({$ifdef FPC}@{$endif} Data2Changed);
+    DoChange;
+  end;
+end;
+
 { TCastleTerrain ------------------------------------------------------------- }
 
 const
@@ -1410,26 +1592,35 @@ end;
 
 procedure TCastleTerrain.UpdateGeometry;
 
-  function CreateQuadShape(const Range: TFloatRectangle): TShapeNode;
+  function CreateQuadShape(const Range: TFloatRectangle): TAbstractChildNode;
   var
     QuadSet: TQuadSetNode;
     Coord: TCoordinateNode;
+    Shape: TShapeNode;
+    Transform: TTransformNode;
   begin
     Coord := TCoordinateNode.Create;
     Coord.SetPoint([
       { Order of these points matter, must be CCW when observed from top,
         just like "real" terrain data generated by TCastleTerrainNoise.
         This way backface culling works in the same way. }
-      Vector3(Range.Left , 0, Range.Top),
-      Vector3(Range.Right, 0, Range.Top),
-      Vector3(Range.Right, 0, Range.Bottom),
-      Vector3(Range.Left , 0, Range.Bottom)
+      Vector3(          0, 0, Range.Height),
+      Vector3(Range.Width, 0, Range.Height),
+      Vector3(Range.Width, 0,            0),
+      Vector3(          0, 0,            0)
     ]);
 
-    QuadSet := TQuadSetNode.CreateWithShape(Result);
+    QuadSet := TQuadSetNode.CreateWithTransform(Shape, Transform);
     QuadSet.Coord := Coord;
 
-    Result.Appearance := Appearance;
+    Shape.Appearance := Appearance;
+
+    { We translate the quad by TTransformNode, to keep the vertex coordinates
+      in object space consistent with what is generated by CreateNode and CreateTriangulatedNode,
+      and make the texture UV coordinates start the same. }
+    Transform.Translation := Vector3(Range.Left, 0, Range.Bottom);
+
+    Result := Transform;
   end;
 
 var
@@ -1647,5 +1838,6 @@ end;
 initialization
   RegisterSerializableComponent(TCastleTerrainImage, 'Terrain Data (Experimental)/Image Data');
   RegisterSerializableComponent(TCastleTerrainNoise, 'Terrain Data (Experimental)/Noise Data');
+  RegisterSerializableComponent(TCastleTerrainCombine, 'Terrain Data (Experimental)/Combine Data');
   RegisterSerializableComponent(TCastleTerrain, 'Terrain (Experimental)/Terrain');
 end.
