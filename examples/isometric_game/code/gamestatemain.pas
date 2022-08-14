@@ -79,7 +79,7 @@ const
 
   { Return position of the middle of tile (X,Y).
     This position is in the coordinates inside MainViewport world,
-    so you can use it to set TCastleTrasform.Translation, like TCastleImageTransform.Translation. }
+    so you can use it to set TCastleTransform.Translation, like TCastleImageTransform.Translation. }
   function TilePosition(const X, Y: Integer): TVector2;
   begin
     { This is simplest and good for image layout as a simple grid. }
