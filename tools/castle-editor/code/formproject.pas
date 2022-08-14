@@ -42,6 +42,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionViewportGridAxis: TAction;
     ActionComponentDuplicate: TAction;
     ActionComponentSaveSelected: TAction;
     ActionComponentDelete: TAction;
@@ -76,6 +77,8 @@ type
     MenuItem12: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem21: TMenuItem;
+    Separator6: TMenuItem;
+    MenuItem23: TMenuItem;
     MenuSeparator6123: TMenuItem;
     MenuSeparator6: TMenuItem;
     Separator5: TMenuItem;
@@ -242,10 +245,12 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionViewportGridAxisExecute(Sender: TObject);
     procedure ActionComponentCutExecute(Sender: TObject);
     procedure ActionComponentSaveSelectedExecute(Sender: TObject);
     procedure ActionViewportAlignCameraToViewExecute(Sender: TObject);
     procedure ActionViewportAlignViewToCameraExecute(Sender: TObject);
+    procedure ActionViewportGridAxisUpdate(Sender: TObject);
     procedure ActionViewportToggleProjectionExecute(Sender: TObject);
     procedure ActionNavigation2DExecute(Sender: TObject);
     procedure ActionNavigationExamineExecute(Sender: TObject);
@@ -673,6 +678,15 @@ begin
     Design.ViewportAlignViewToCamera;
 end;
 
+procedure TProjectForm.ActionViewportGridAxisUpdate(Sender: TObject);
+begin
+  ActionViewportGridAxis.Checked :=
+    (Design <> nil) and
+    (Design.CurrentViewport <> nil) and
+    Design.CurrentViewport.InternalGridAxis;
+  ActionViewportUpdate(Sender);
+end;
+
 procedure TProjectForm.ActionViewportAlignCameraToViewExecute(Sender: TObject);
 begin
   if Design <> nil then
@@ -683,6 +697,12 @@ procedure TProjectForm.ActionComponentCutExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.CutComponent;
+end;
+
+procedure TProjectForm.ActionViewportGridAxisExecute(Sender: TObject);
+begin
+  if (Design <> nil) and (Design.CurrentViewport <> nil) then
+    Design.CurrentViewport.InternalGridAxis := not Design.CurrentViewport.InternalGridAxis;
 end;
 
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);

@@ -423,6 +423,12 @@ object ProjectForm: TProjectForm
       object Separator4: TMenuItem
         Caption = '-'
       end
+      object MenuItem23: TMenuItem
+        Action = ActionViewportGridAxis
+      end
+      object Separator6: TMenuItem
+        Caption = '-'
+      end
       object MenuItem18: TMenuItem
         Action = ActionViewportSetup2D
       end
@@ -1007,15 +1013,21 @@ object ProjectForm: TProjectForm
       OnExecute = ActionDuplicateComponentExecute
       ShortCut = 16452
     end
+    object ActionViewportGridAxis: TAction
+      Category = 'Viewport'
+      Caption = 'Show Grid And Axis'
+      OnExecute = ActionViewportGridAxisExecute
+      OnUpdate = ActionViewportGridAxisUpdate
+    end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
-    Left = 296
-    Top = 131
+    Left = 284
+    Top = 126
   end
   object OutputPopup: TPopupMenu
     OnPopup = ShellListPopupMenuPopup
-    Left = 304
-    Top = 304
+    Left = 291
+    Top = 291
     object MenuItemOutputClean: TMenuItem
       Action = ActionOutputClean
     end

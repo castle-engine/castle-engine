@@ -45,8 +45,6 @@ type
     procedure LocalRender(const Params: TRenderParams); override;
     function LocalBoundingBox: TBox3D; override;
 
-    { You have to call it once, right after creating. }
-    procedure SetParent(const AOwner: TCastleTransform);
     { Show given node graph as the gizmo visualization.
       The given RootNode will become owned by this instance. }
     procedure LoadVisualization(const RootNode: TX3DRootNode);
@@ -67,24 +65,12 @@ type
 { TInternalCastleEditorGizmo ------------------------------------------------- }
 
 constructor TInternalCastleEditorGizmo.Create(AOwner: TComponent);
-begin
-  inherited;
-  SetTransient;
-end;
-
-procedure TInternalCastleEditorGizmo.InternalTransform(const T: TCastleTransform);
-begin
-  T.InternalExcludeFromParentBoundingVolume := true;
-  T.Pickable := false;
-  T.Collides := false;
-  T.CastShadowVolumes := false;
-  T.ExcludeFromStatistics := true;
-end;
-
-procedure TInternalCastleEditorGizmo.SetParent(const AOwner: TCastleTransform);
 const
   GizmoSize = 1.0;
 begin
+  inherited;
+  SetTransient;
+
   // This allows user to select parent (camera, light etc.) by clicking in CGE editor
   GizmoSelect := TCastleBox.Create(Self);
   GizmoSelect.Size := CastleVectors.Vector3(GizmoSize, GizmoSize, GizmoSize);
@@ -105,6 +91,15 @@ begin
   GizmoBillboard := TCastleBillboard.Create(Self);
   GizmoBillboard.AxisOfRotation := TVector3.Zero;
   GizmoImage.AddBehavior(GizmoBillboard);
+end;
+
+procedure TInternalCastleEditorGizmo.InternalTransform(const T: TCastleTransform);
+begin
+  T.InternalExcludeFromParentBoundingVolume := true;
+  T.Pickable := false;
+  T.Collides := false;
+  T.CastShadowVolumes := false;
+  T.ExcludeFromStatistics := true;
 end;
 
 procedure TInternalCastleEditorGizmo.LoadVisualization(const RootNode: TX3DRootNode);

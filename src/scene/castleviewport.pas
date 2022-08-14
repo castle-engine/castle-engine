@@ -156,6 +156,8 @@ type
       FInternalDesignManipulation: Boolean;
       FInternalDesignNavigationType: TInternalDesignNavigationType;
       FInternalDesignNavigations: array [TInternalDesignNavigationType] of TCastleNavigation;
+      FInternalGridAxis: Boolean;
+      FGizmoGridAxis: TInternalCastleEditorGizmo;
       FWarningZFarInfinityDone: Boolean;
 
     procedure CommonCreate(const AOwner: TComponent; const ADesignManipulation: Boolean);
@@ -177,6 +179,7 @@ type
     procedure SetFog(const Value: TCastleFog);
     procedure FogFreeNotification(const Sender: TFreeNotificationObserver);
     procedure SetInternalDesignNavigationType(const Value: TInternalDesignNavigationType);
+    procedure SetInternalGridAxis(const Value: Boolean);
 
     { Callbacks when MainCamera is notified that MainScene changes camera/navigation }
     procedure MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
@@ -392,6 +395,7 @@ type
       DefaultPrepareOptions = [prRenderSelf, prRenderClones, prBackground, prBoundingBox, prScreenEffects];
       { @exclude }
       DefaultInternalDesignNavigationType = dnFly;
+      DefaultInternalGridAxis = false;
 
     var
       { Rendering pass, for user purposes.
@@ -473,6 +477,11 @@ type
     { At design-time (in CGE editor), this is the navigation used by the editor.
       @exclude }
     function InternalDesignNavigation: TCastleNavigation;
+
+    { At design-time, show grid and axis visualization.
+      @exclude }
+    property InternalGridAxis: Boolean read FInternalGridAxis write SetInternalGridAxis
+      default DefaultInternalGridAxis;
 
     { Constructor that disables special design-mode viewport camera/navigation.
       Useful in editor.
@@ -1171,7 +1180,7 @@ uses DOM, Math, TypInfo,
   CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
   CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
-  CastleRenderContext, CastleApplicationProperties;
+  CastleRenderContext, CastleApplicationProperties, X3DLoad;
 
 {$define read_implementation}
 {$I castleviewport_autonavigation.inc}
@@ -1334,6 +1343,7 @@ begin
     Items.MainCamera := InternalDesignCamera;
 
     FInternalDesignNavigationType := DefaultInternalDesignNavigationType;
+    FInternalGridAxis := DefaultInternalGridAxis;
 
     FInternalDesignNavigations[dnFly] := TCastleWalkNavigationDesign.Create(Self);
     FInternalDesignNavigations[dnFly].SetTransient;
@@ -1349,6 +1359,15 @@ begin
     FInternalDesignNavigations[dn2D].SetTransient;
     FInternalDesignNavigations[dn2D].Exists := FInternalDesignNavigationType = dn2D;
     InsertControl(0, FInternalDesignNavigations[dn2D]);
+
+    FGizmoGridAxis := TInternalCastleEditorGizmo.Create(Self);
+    FGizmoGridAxis.LoadVisualization(LoadNode(InternalCastleDesignData + 'gizmos/grid_axis/grid_axis.gltf'));
+    FGizmoGridAxis.Exists := InternalGridAxis;
+    { Note: This will not work (Gizmo state and our property InternalGridAxis
+      will become desynchronized) if Items are shared across other viewports.
+      But it doesn't matter for CGE editor now, because you cannot share
+      Items in this case. }
+    Items.Add(FGizmoGridAxis);
   end;
 
   {$define read_implementation_constructor}
@@ -1383,6 +1402,16 @@ begin
     FInternalDesignNavigationType := Value;
     if InternalDesignManipulation then
       FInternalDesignNavigations[FInternalDesignNavigationType].Exists := true;
+  end;
+end;
+
+procedure TCastleViewport.SetInternalGridAxis(const Value: Boolean);
+begin
+  if FInternalGridAxis <> Value then
+  begin
+    FInternalGridAxis := Value;
+    if FGizmoGridAxis <> nil then
+      FGizmoGridAxis.Exists := Value;
   end;
 end;
 
@@ -3850,7 +3879,7 @@ var
   Nav: TInternalDesignNavigationType;
   InternalDesignNavigationTypeInt: Integer;
   CopyFromViewport: TCastleViewport;
-  AutoNavigation: Boolean;
+  AutoNavigation, InternalGridAxisVar: Boolean;
 begin
   inherited;
 
@@ -3874,6 +3903,7 @@ begin
       for Nav := Low(Nav) to High(Nav) do
         InternalAssignUsingSerialization(FInternalDesignNavigations[Nav],
           CopyFromViewport.FInternalDesignNavigations[Nav]);
+      InternalGridAxis := CopyFromViewport.InternalGridAxis;
     end else
     begin
       { We want to serialize
@@ -3881,6 +3911,10 @@ begin
         - projection properties, changed by TDesignFrame.CameraSynchronize
       }
       SerializationProcess.ReadWriteSubComponent('InternalDesignCamera', InternalDesignCamera, true);
+      InternalGridAxisVar := InternalGridAxis;
+      SerializationProcess.ReadWriteBoolean('InternalGridAxis', InternalGridAxisVar,
+        InternalGridAxis <> DefaultInternalGridAxis);
+      InternalGridAxis := InternalGridAxisVar;
 
       InternalDesignNavigationTypeInt := Ord(InternalDesignNavigationType);
       SerializationProcess.ReadWriteInteger('InternalDesignNavigationType',

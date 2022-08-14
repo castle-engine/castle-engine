@@ -715,7 +715,6 @@ begin
   if AShowGizmo then
   begin
     Gizmo := TInternalCastleEditorGizmo.Create(Self);
-    Gizmo.SetParent(Self);
     Gizmo.LoadVisualization(BuildGizmo);
     Gizmo.SelectBoxTranslation := CastleVectors.Vector3(0, 0, -0.5); // matches nicely our visualization set by UpdateGizmoCoord
     { No need for icon anymore, gizmo is recognizeable enough.
