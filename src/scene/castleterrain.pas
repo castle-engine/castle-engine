@@ -926,6 +926,7 @@ procedure TCastleTerrainImage.SetUrl(const Value: string);
     FreeAndNil(FImage);
     FImage := NewImage;
     FUrl := NewUrl;
+    DoChange;
   end;
 
 begin
