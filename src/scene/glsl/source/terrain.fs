@@ -29,7 +29,12 @@ void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)
 {
   vec4 tex;
   float h = terrain_position.y;
-  vec2 uv = terrain_position.xz;
+  /* We flip terrain_position.z, to map texture more naturally, when viewed from above.
+     This consistent with calculating TexCoord for TCastleTerrainData.Height.
+     We just flip the sign, because the terrain textures always have repeat = true,
+     so there's no need to shift the texture in any way.
+  */
+  vec2 uv = vec2(terrain_position.x, -terrain_position.z);
   float normal_slope = normalize(terrain_normal).y;
 
   /*

@@ -31,7 +31,12 @@
 '{' + LineEnding +
 '  vec4 tex;' + LineEnding +
 '  float h = terrain_position.y;' + LineEnding +
-'  vec2 uv = terrain_position.xz;' + LineEnding +
+'  /* We flip terrain_position.z, to map texture more naturally, when viewed from above.' + LineEnding +
+'     This consistent with calculating TexCoord for TCastleTerrainData.Height.' + LineEnding +
+'     We just flip the sign, because the terrain textures always have repeat = true,' + LineEnding +
+'     so there''s no need to shift the texture in any way.' + LineEnding +
+'  */' + LineEnding +
+'  vec2 uv = vec2(terrain_position.x, -terrain_position.z);' + LineEnding +
 '  float normal_slope = normalize(terrain_normal).y;' + LineEnding +
 '' + LineEnding +
 '  /*' + LineEnding +

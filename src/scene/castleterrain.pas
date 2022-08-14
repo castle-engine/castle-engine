@@ -152,9 +152,22 @@ type
     destructor Destroy; override;
 
     { Return height for given terrain point.
-      X and Z are in the range determined by TCastleTerrain.Size.
-      XFraction and ZFraction are in [0..1] range. }
-    function Height(const X, Z: Single; const XFraction, ZFraction: Single): Single; virtual; abstract;
+
+      @param(Coord The queried terrain height.
+        Coord.X is the X position in local terrain coordinate space.
+        Coord.Y is the Z position in local terrain coordinate space.
+        They are in the range determined by TCastleTerrain.Size.
+      )
+      @param(TexCoord The texture coordinate at this point,
+        assuming that TCastleTerrain.Size and texture UV scale would cancel each other,
+        making both TexCoord.X and TexCoord.Y always in [0..1] range.
+
+        Note that TexCoord.Y grows in different direction than Coord.Y,
+        this means that textures have natural look when viewer from above the terrain
+        (otherwise they would seem flipped in one direction in CGE right-handed
+        coordinate system).
+      ) }
+    function Height(const Coord, TexCoord: TVector2): Single; virtual; abstract;
 
     { Add notification when data (affecting @link(Height) results) changes. }
     procedure AddChangeNotification(const Notify: TNotifyEvent);
@@ -184,7 +197,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function Height(const X, Y: Single; const XFraction, YFraction: Single): Single; override;
+    function Height(const Coord, TexCoord: TVector2): Single; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Image URL. Empty string means that no image is loaded. }
@@ -218,7 +231,7 @@ type
   public
     constructor Create(const FunctionExpression: string); reintroduce;
     destructor Destroy; override;
-    function Height(const X, Y: Single; const XFraction, YFraction: Single): Single; override;
+    function Height(const Coord, TexCoord: TVector2): Single; override;
   end deprecated 'using CastleScript to define terrain is deprecated due to low usage';
 
   TNoiseInterpolation = (niNone, niLinear, niCosine, niSpline);
@@ -283,7 +296,7 @@ type
       DefaultHeterogeneous = 0.5;
 
     constructor Create(AOwner: TComponent); override;
-    function Height(const X, Y: Single; const XFraction, YFraction: Single): Single; override;
+    function Height(const Coord, TexCoord: TVector2): Single; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Number of noise functions to sum.
@@ -387,72 +400,6 @@ type
       read FHeterogeneous write SetHeterogeneous {$ifdef FPC}default DefaultHeterogeneous{$endif};
   end;
 
-  { Terrain data from a grid of values with specified width * height.
-    Used when your underlying data is a simple 2D array of
-    GridSizeX * GridSizeY heights.
-    The idea is that on such terrain, there are special grid points
-    where the height data is accurate. Everything else is an interpolation
-    derived from this data. }
-  TTerrainGrid = class(TCastleTerrainData)
-  strict private
-    FGridX1, FGridX2, FGridY1, FGridY2, FGridHeightScale: Single;
-  public
-    constructor Create(AOwner: TComponent); override;
-
-    { Get height of the terrain at specified 2D point.
-
-      This is implemented in TTerrainGrid class, using
-      the data returned by GridHeight. For float X in 0..1 range,
-      we return grid values for grid points 0..GridSizeX - 1.
-      Outside 0..1 range, we clamp (that is, take nearest value
-      from 0..1 range) --- this way the terrain seemingly continues
-      into the infinity.
-
-      In comparison to GridHeight, it's (very slightly) slower,
-      and it doesn't really present any more interesting information
-      (in contrast to typical procedural terrain, where there can be always
-      more and more detail at each level). }
-    function Height(const X, Y: Single; const XFraction, YFraction: Single): Single; override;
-
-    { GridSizeX, GridSizeY specify grid dimensions.
-      Use GridHeight(0..GridSizeX - 1, 0..GridSizeY - 1) to get height
-      at particular grid point.
-      @groupBegin }
-    function GridHeight(const X, Y: Cardinal): Single; virtual; abstract;
-    function GridSizeX: Cardinal; virtual; abstract;
-    function GridSizeY: Cardinal; virtual; abstract;
-    { @groupEnd }
-
-    { Specify where terrain is located, for @link(Height) method.
-      These do not affect GridHeight method.
-      @groupBegin }
-    property GridX1: Single read FGridX1 write FGridX1 {$ifdef FPC}default 0{$endif};
-    property GridY1: Single read FGridY1 write FGridY1 {$ifdef FPC}default 0{$endif};
-    property GridX2: Single read FGridX2 write FGridX2 {$ifdef FPC}default 1{$endif};
-    property GridY2: Single read FGridY2 write FGridY2 {$ifdef FPC}default 1{$endif};
-    property GridHeightScale: Single read FGridHeightScale write FGridHeightScale {$ifdef FPC}default 1{$endif};
-    { @groupEnd }
-  end deprecated 'loading SRTM (the only usage of TTerrainGrid) is deprecated due to low usage';
-
-  { Terrain data reader from a simple SRTM-3 *.hgt file.
-
-    See http://www2.jpl.nasa.gov/srtm/, see (linked there) http://dds.cr.usgs.gov/srtm/
-    for sample data for whole Earth.
-
-    If you speak Polish, nice overview is also on http://netgis.geo.uw.edu.pl/srtm/.
-    Sample files for Poland are on http://netgis.geo.uw.edu.pl/srtm/Poland/,
-    for Europe http://netgis.geo.uw.edu.pl/srtm/Europe/. }
-  TTerrainSRTM = class(TTerrainGrid)
-  strict private
-    FData: array [0..1200, 0..1200] of SmallInt;
-  public
-    constructor CreateFromFile(const URL: string);
-
-    function GridHeight(const X, Y: Cardinal): Single; override;
-    function GridSizeX: Cardinal; override;
-    function GridSizeY: Cardinal; override;
-  end deprecated 'loading SRTM is deprecated due to low usage';
-
   TTerrain = TCastleTerrainData deprecated 'use TCastleTerrainData';
   TTerrainImage = TCastleTerrainImage deprecated 'use TCastleTerrainImage';
   TTerrainNoise = TCastleTerrainNoise deprecated 'use TCastleTerrainNoise';
@@ -486,7 +433,7 @@ type
     const
       DefaultOperation = opMax;
     constructor Create(AOwner: TComponent); override;
-    function Height(const X, Y: Single; const XFraction, YFraction: Single): Single; override;
+    function Height(const Coord, TexCoord: TVector2): Single; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { First data for terrain heights. }
@@ -747,7 +694,7 @@ var
   Shape: TShapeNode;
   Grid: TElevationGridNode;
   X, Z: Cardinal;
-  XFraction, ZFraction: Single;
+  Coord, TexCoord: TVector2;
 begin
   Transform := Node as TTransformNode; // created by CreateNode
   Transform.ClearChildren;
@@ -767,12 +714,17 @@ begin
   for X := 0 to Divisions - 1 do
     for Z := 0 to Divisions - 1 do
     begin
-      XFraction := MapRangeTo01(X, 0, Divisions - 1);
-      ZFraction := MapRangeTo01(Z, 0, Divisions - 1);
-      Grid.FdHeight.Items.List^[X + Z * Divisions] := Height(
-        Lerp(XFraction, InputRange.Left  , InputRange.Right),
-        Lerp(ZFraction, InputRange.Bottom, InputRange.Top),
-        XFraction, ZFraction);
+      TexCoord := Vector2(
+        MapRangeTo01(X, 0, Divisions - 1),
+        MapRangeTo01(Z, 0, Divisions - 1)
+      );
+      Coord := Vector2(
+        Lerp(TexCoord.X, InputRange.Left  , InputRange.Right),
+        Lerp(TexCoord.Y, InputRange.Bottom, InputRange.Top)
+      );
+      // TexCoord.Y grows in different direction, see Height docs for reason
+      TexCoord.Y := 1 - TexCoord.Y;
+      Grid.FdHeight.Items.List^[X + Z * Divisions] := Height(Coord, TexCoord);
     end;
 
   Shape.Appearance := Appearance;
@@ -821,13 +773,12 @@ var
 
   procedure CalculatePosition(const I, J: Cardinal; out Position: TVector3);
   var
-    QueryPosition: TVector2;
-    XFraction, ZFraction: Single;
+    TexCoord, Coord: TVector2;
   begin
-    XFraction := I / (Divisions-1);
-    ZFraction := J / (Divisions-1);
-    QueryPosition.X := InputRange.Width  * XFraction + InputRange.Left;
-    QueryPosition.Y := InputRange.Height * ZFraction + InputRange.Bottom;
+    TexCoord.X := I / (Divisions-1);
+    TexCoord.Y := J / (Divisions-1);
+    Coord.X := InputRange.Width  * TexCoord.X + InputRange.Left;
+    Coord.Y := InputRange.Height * TexCoord.Y + InputRange.Bottom;
 
     { Note that we don't shift by OutputRange.Left/Bottom by addition here,
       but by TTransformNode. This way in shader terrain_position (that determines
@@ -835,10 +786,13 @@ var
       which makes it easier (and consistent with UpdateNode for ElevationGrid)
       to apply a texture that covers exactly the terrain once (matching
       TCastleTextureImage image mapping). }
-    Position.X := OutputRange.Width  * XFraction{ + OutputRange.Left};
-    Position.Z := OutputRange.Height * ZFraction{ + OutputRange.Bottom};
+    Position.X := OutputRange.Width  * TexCoord.X{ + OutputRange.Left};
+    Position.Z := OutputRange.Height * TexCoord.Y{ + OutputRange.Bottom};
 
-    Position.Y := Height(QueryPosition.X, QueryPosition.Y, XFraction, ZFraction);
+    // TexCoord.Y grows in different direction, see Height docs for reason
+    TexCoord.Y := 1 - TexCoord.Y;
+
+    Position.Y := Height(Coord, TexCoord);
   end;
 
   function Idx(const I, J: Integer): Integer;
@@ -1004,15 +958,15 @@ begin
   end;
 end;
 
-function TCastleTerrainImage.Height(const X, Y: Single; const XFraction, YFraction: Single): Single;
+function TCastleTerrainImage.Height(const Coord, TexCoord: TVector2): Single;
 var
   PX, PY: Integer;
   Intensity: Single;
 begin
   if FImage <> nil then
   begin
-    PX := Floor(XFraction * FImage.Width );
-    PY := Floor(YFraction * FImage.Height);
+    PX := Floor(TexCoord.X * FImage.Width );
+    PY := Floor(TexCoord.Y * FImage.Height);
     ClampVar(PX, 0, FImage.Width  - 1);
     ClampVar(PY, 0, FImage.Height - 1);
     Intensity := MapRangeTo01(FImage.PixelPtr(PX, PY)^, 0, High(Byte));
@@ -1077,10 +1031,10 @@ begin
   inherited;
 end;
 
-function TTerrainCasScript.Height(const X, Y: Single; const XFraction, YFraction: Single): Single;
+function TTerrainCasScript.Height(const Coord, TexCoord: TVector2): Single;
 begin
-  FXVariable.Value := X;
-  FYVariable.Value := Y;
+  FXVariable.Value := Coord.X;
+  FYVariable.Value := Coord.Y;
   Result := (FFunction.Execute as TCasScriptFloat).Value;
 end;
 
@@ -1198,7 +1152,7 @@ begin
   end;
 end;
 
-function TCastleTerrainNoise.Height(const X, Y: Single; const XFraction, YFraction: Single): Single;
+function TCastleTerrainNoise.Height(const Coord, TexCoord: TVector2): Single;
 // const
 //   { Idea, maybe useful --- apply heterogeneous only on higher octaves.
 //     Note that 1st octave is anyway always without heterogeneous,
@@ -1223,7 +1177,9 @@ var
       When Heterogeneous is close to zero, but not exactly zero,
       the +infinity trick will make the later code behave Ok. }
     if Heterogeneous = 0 then
-      Exit(NoiseMethod(X * F, Y * F, OctaveNumber + Seed) * A);
+      Exit(NoiseMethod(
+        Coord.X * F,
+        Coord.Y * F, OctaveNumber + Seed) * A);
 
     NoiseAccumulator := NoiseAccumulator / Heterogeneous;
     { Following Musgrave's dissertation, we should now force
@@ -1233,7 +1189,9 @@ var
       So we already know NoiseAccumulator is always >= 0. }
     MinVar(NoiseAccumulator, 1);
 
-    NoiseAccumulator := NoiseAccumulator * NoiseMethod(X * F, Y * F, OctaveNumber + Seed);
+    NoiseAccumulator := NoiseAccumulator * NoiseMethod(
+      Coord.X * F,
+      Coord.Y * F, OctaveNumber + Seed);
 
     Result := NoiseAccumulator * A;
   end;
@@ -1269,77 +1227,6 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
-end;
-
-{ TTerrainGrid ------------------------------------------------------------- }
-
-constructor TTerrainGrid.Create(AOwner: TComponent);
-begin
-  inherited;
-  FGridX1 := 0;
-  FGridY1 := 0;
-  FGridX2 := 1;
-  FGridY2 := 1;
-  FGridHeightScale := 1;
-end;
-
-function TTerrainGrid.Height(const X, Y: Single; const XFraction, YFraction: Single): Single;
-begin
-  { TODO: for now, just take the nearest point, no bilinear filtering. }
-  Result := GridHeight(
-    Clamped(Round(MapRange(X, GridX1, GridX2, 0, GridSizeX - 1)), 0, GridSizeX - 1),
-    Clamped(Round(MapRange(Y, GridY1, GridY2, 0, GridSizeY - 1)), 0, GridSizeY - 1)) * GridHeightScale;
-end;
-
-{ TTerrainSRTM ------------------------------------------------------------- }
-
-constructor TTerrainSRTM.CreateFromFile(const URL: string);
-var
-  Stream: TStream;
-  P: PSmallInt;
-  I: Cardinal;
-  LastCorrectHeight: SmallInt;
-begin
-  inherited Create(nil);
-
-  Stream := Download(URL, [soForceMemoryStream]);
-  try
-    Stream.ReadBuffer(FData, SizeOf(FData));
-  finally FreeAndNil(Stream) end;
-
-  LastCorrectHeight := 0; { any sensible value }
-  P := @(FData[0, 0]);
-  for I := 1 to 1201 * 1201 do
-  begin
-    {$ifdef ENDIAN_LITTLE}
-    P^ := Swap(P^);
-    {$endif ENDIAN_LITTLE}
-
-    { Fix unknown data by setting to last correct seen value.
-      Since we scan data cell-by-cell, in a row, this is in practice
-      somewhat excusable approach. Of course, we could do something much better
-      (filling unknown values by interpolating values from around). }
-    if P^ = Low(SmallInt) then
-      P^ := LastCorrectHeight else
-      LastCorrectHeight := P^;
-
-    Inc(P);
-  end;
-end;
-
-function TTerrainSRTM.GridHeight(const X, Y: Cardinal): Single;
-begin
-  Result := FData[X, Y];
-end;
-
-function TTerrainSRTM.GridSizeX: Cardinal;
-begin
-  Result := 1201;
-end;
-
-function TTerrainSRTM.GridSizeY: Cardinal;
-begin
-  Result := 1201;
 end;
 
 { TCastleTerrainCombine ------------------------------------------------------ }
@@ -1398,20 +1285,20 @@ begin
   end;
 end;
 
-function TCastleTerrainCombine.Height(const X, Y: Single; const XFraction, YFraction: Single): Single;
+function TCastleTerrainCombine.Height(const Coord, TexCoord: TVector2): Single;
 begin
   if (Data1 <> nil) and (Data2 <> nil) then
   begin
     Result := FOperationFunc(
-      Data1.Height(X, Y, XFraction, YFraction),
-      Data2.Height(X, Y, XFraction, YFraction)
+      Data1.Height(Coord, TexCoord),
+      Data2.Height(Coord, TexCoord)
     );
   end else
   if Data1 <> nil then
-    Result := Data1.Height(X, Y, XFraction, YFraction)
+    Result := Data1.Height(Coord, TexCoord)
   else
   if Data2 <> nil then
-    Result := Data2.Height(X, Y, XFraction, YFraction)
+    Result := Data2.Height(Coord, TexCoord)
   else
     Result := 0;
 end;
