@@ -751,6 +751,7 @@ var
   CoordNode: TCoordinateNode;
   NormalNode: TNormalNode;
   Shape: TShapeNode;
+  Transform: TTransformNode;
 begin
   Geometry := TIndexedTriangleStripSetNode.Create;
 
@@ -764,7 +765,10 @@ begin
   Shape.Geometry := Geometry;
   Shape.Appearance := Appearance;
 
-  Result := Shape;
+  Transform := TTransformNode.Create;
+  Transform.AddChildren(Shape);
+
+  Result := Transform;
 
   UpdateTriangulatedNode(Result, Divisions, InputRange, OutputRange);
 end;
@@ -787,8 +791,14 @@ var
     QueryPosition.X := InputRange.Width  * XFraction + InputRange.Left;
     QueryPosition.Y := InputRange.Height * ZFraction + InputRange.Bottom;
 
-    Position.X := OutputRange.Width  * XFraction + OutputRange.Left;
-    Position.Z := OutputRange.Height * ZFraction + OutputRange.Bottom;
+    { Note that we don't shift by OutputRange.Left/Bottom by addition here,
+      but by TTransformNode. This way in shader terrain_position (that determines
+      UV for textures) starts from (0,0) at the corner (not middle) of the terrain,
+      which makes it easier (and consistent with UpdateNode for ElevationGrid)
+      to apply a texture that covers exactly the terrain once (matching
+      TCastleTextureImage image mapping). }
+    Position.X := OutputRange.Width  * XFraction{ + OutputRange.Left};
+    Position.Z := OutputRange.Height * ZFraction{ + OutputRange.Bottom};
 
     Position.Y := Height(QueryPosition.X, QueryPosition.Y, XFraction, ZFraction);
   end;
@@ -829,6 +839,7 @@ var
   end;
 
 var
+  Transform: TTransformNode;
   Shape: TShapeNode;
   Geometry: TIndexedTriangleStripSetNode;
   CoordNode: TCoordinateNode;
@@ -837,10 +848,13 @@ var
   IndexPtr: PLongInt;
 begin
   { extract nodes from Node, assuming it was created by CreateTriangulatedNode }
-  Shape := Node as TShapeNode;
+  Transform := Node as TTransformNode;
+  Shape := Transform.FdChildren[0] as TShapeNode;
   Geometry := Shape.Geometry as TIndexedTriangleStripSetNode;
   CoordNode := Geometry.Coord as TCoordinateNode;
   NormalNode := Geometry.Normal as TNormalNode;
+
+  Transform.Translation := Vector3(OutputRange.Left, 0, OutputRange.Bottom);
 
   { Divisions-1 squares (edges) along the way,
     Divisions points along the way.
