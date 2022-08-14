@@ -1,0 +1,299 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Background" : "Background1",
+      "Camera" : "Camera1",
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 2.0000000000000000E+000,
+              "Z" : 4.0000000000000000E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePlane",
+            "Name" : "Plane1",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "SizePersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 1.0000000000000000E+001,
+              "Y" : 1.0000000000000000E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleTerrain",
+            "Data" : "TerrainImage1",
+            "Name" : "TerrainFromImage",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Texture1" : "castle-data:/sample_height_images/test_texture.png",
+            "Texture2" : "castle-data:/sample_height_images/test_texture.png",
+            "Texture3" : "castle-data:/sample_height_images/test_texture.png",
+            "Triangulate" : false,
+            "UvScale1" : 9.9999997764825821E-003,
+            "UvScale2" : 9.9999997764825821E-003,
+            "UvScale3" : 9.9999997764825821E-003,
+            "$NonVisualComponents" : [
+              {
+                "$$ClassName" : "TCastleTerrainImage",
+                "MaxLevel" : 1.0000000000000000E+001,
+                "MinLevel" : 0.0000000000000000E+000,
+                "Name" : "TerrainImage1",
+                "Url" : "castle-data:/sample_height_images/test_texture.png"
+              }
+            ],
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "Intensity" : 1.0000000000000000E+001,
+                "Name" : "PointLight1",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.0000000000000000E+000,
+                  "Y" : 2.8837001800537109E+001,
+                  "Z" : 1.0000000000000000E+000
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTerrain",
+            "Data" : "TerrainNoise1",
+            "Name" : "TerrainFromNoise",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Texture1" : "castle-data:/sample_height_images/test_texture.png",
+            "Texture2" : "castle-data:/sample_height_images/test_texture.png",
+            "Texture3" : "castle-data:/sample_height_images/test_texture.png",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.1612448883056641E+002
+            },
+            "UvScale1" : 9.9999997764825821E-003,
+            "UvScale2" : 9.9999997764825821E-003,
+            "UvScale3" : 9.9999997764825821E-003,
+            "$NonVisualComponents" : [
+              {
+                "$$ClassName" : "TCastleTerrainNoise",
+                "Name" : "TerrainNoise1"
+              }
+            ],
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "Intensity" : 1.0000000000000000E+001,
+                "Name" : "PointLight2",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 2.3135242462158203E+001
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTerrain",
+            "Name" : "TerrainNoData",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Texture1" : "castle-data:/sample_height_images/test_texture.png",
+            "Texture2" : "castle-data:/sample_height_images/test_texture.png",
+            "Texture3" : "castle-data:/sample_height_images/test_texture.png",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.2445172119140625E+002,
+              "Y" : 6.2412261962890625E-001
+            },
+            "UvScale1" : 9.9999997764825821E-003,
+            "UvScale2" : 9.9999997764825821E-003,
+            "UvScale3" : 9.9999997764825821E-003,
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "Intensity" : 1.0000000000000000E+001,
+                "Name" : "PointLight3",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 2.0898780822753906E+001
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTerrain",
+            "Data" : "TerrainCombineMin",
+            "Name" : "TerrainCombineImageMin",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Texture1" : "castle-data:/sample_height_images/test_texture.png",
+            "Texture2" : "castle-data:/sample_height_images/test_texture.png",
+            "Texture3" : "castle-data:/sample_height_images/test_texture.png",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.1491216278076172E+002,
+              "Y" : -4.0741634368896484E-001,
+              "Z" : -1.0546745300292969E+002
+            },
+            "UvScale1" : 9.9999997764825821E-003,
+            "UvScale2" : 9.9999997764825821E-003,
+            "UvScale3" : 9.9999997764825821E-003,
+            "$NonVisualComponents" : [
+              {
+                "$$ClassName" : "TCastleTerrainCombine",
+                "Data1" : "TerrainNoiseForCombineMin",
+                "Data2" : "TerrainImageForCombineMin",
+                "Name" : "TerrainCombineMin",
+                "Operation" : "opMin"
+              },
+              {
+                "$$ClassName" : "TCastleTerrainNoise",
+                "Name" : "TerrainNoiseForCombineMin"
+              },
+              {
+                "$$ClassName" : "TCastleTerrainImage",
+                "MaxLevel" : 2.0000000000000000E+001,
+                "MinLevel" : -2.0000000000000000E+001,
+                "Name" : "TerrainImageForCombineMin",
+                "Url" : "castle-data:/sample_height_images/hill.png"
+              }
+            ],
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "Intensity" : 1.0000000000000000E+001,
+                "Name" : "PointLight4",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 5.2862464904785156E+001
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTerrain",
+            "Data" : "TerrainCombineMax",
+            "Name" : "TerrainCombineImageMax",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Texture1" : "castle-data:/sample_height_images/test_texture.png",
+            "Texture2" : "castle-data:/sample_height_images/test_texture.png",
+            "Texture3" : "castle-data:/sample_height_images/test_texture.png",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.1452383041381836E+001,
+              "Y" : -4.0741634368896484E-001,
+              "Z" : -1.0546745300292969E+002
+            },
+            "UvScale1" : 9.9999997764825821E-003,
+            "UvScale2" : 9.9999997764825821E-003,
+            "UvScale3" : 9.9999997764825821E-003,
+            "$NonVisualComponents" : [
+              {
+                "$$ClassName" : "TCastleTerrainCombine",
+                "Data1" : "TerrainNoiseForCombineMax",
+                "Data2" : "TerrainImageForCombineMax",
+                "Name" : "TerrainCombineMax"
+              },
+              {
+                "$$ClassName" : "TCastleTerrainNoise",
+                "Name" : "TerrainNoiseForCombineMax"
+              },
+              {
+                "$$ClassName" : "TCastleTerrainImage",
+                "MaxLevel" : 2.0000000000000000E+001,
+                "MinLevel" : -2.0000000000000000E+001,
+                "Name" : "TerrainImageForCombineMax",
+                "Url" : "castle-data:/sample_height_images/hill.png"
+              }
+            ],
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "Intensity" : 1.0000000000000000E+001,
+                "Name" : "PointLight5",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 5.2862464904785156E+001
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "Name" : "Viewport1",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent",
+          "W" : 2.7712559700012207E+000,
+          "X" : -5.5585633963346481E-002,
+          "Y" : 9.5700293779373169E-001,
+          "Z" : 2.8470292687416077E-001
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 9.9999994039535522E-001
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 1.2570246124267578E+002,
+          "Y" : 1.1585983276367188E+002,
+          "Z" : -2.1967427062988281E+002
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "MoveSpeed" : 1.0797753143310547E+002,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    }
+  ]
+}
