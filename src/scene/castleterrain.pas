@@ -1456,6 +1456,11 @@ begin
     Root := TX3DRootNode.Create;
     Root.AddChildren(CreateQuadShape(Range));
     Scene.Load(Root, true);
+    { Do not let subsequent calls to use TerrainNode as it was destroyed
+      by Scene.Load above.
+      Testcase: create TCastleTerrain and TCastleTerrainImage,
+      assign TCastleTerrain.Data to TCastleTerrainImage, to nil, again to TCastleTerrainImage. }
+    TerrainNode := nil;
   end;
 end;
 
