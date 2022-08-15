@@ -59,11 +59,6 @@
 
   @unorderedList(
     @item(
-      Various Y should be renamed to Z?
-      Hm. It's true (the 2nd terrain dimension maps to Z) and would follow X3D ElevationGrid.
-      But then, it's weird to think of it as "Z" as some cases.
-      And TVector2 2nd param remains Y.)
-    @item(
       Randomization should be independent from compiler/platform/future.
       Let's just use CastleRandom?
       Or just store the final heights... this makes sense, as we also want to later allow editing terrains.)
@@ -1333,6 +1328,18 @@ begin
   DoChange;
 end;
 
+function ContainsData(const Tree, ValueToFind: TCastleTerrainData): Boolean;
+begin
+  Result :=
+    (Tree = ValueToFind) or
+    (
+      (Tree is TCastleTerrainCombine) and (
+        ContainsData(TCastleTerrainCombine(Tree).Data1, ValueToFind) or
+        ContainsData(TCastleTerrainCombine(Tree).Data2, ValueToFind)
+      )
+    );
+end;
+
 procedure TCastleTerrainCombine.SetData1(const Value: TCastleTerrainData);
 begin
   if FData1 <> Value then
@@ -1342,6 +1349,17 @@ begin
     if (Value <> nil) and
        (Value.ClassType = TCastleTerrainData) then
       Exit;
+
+    // Protect from recursive usage hanging the process (editor or runtime)
+    if (Value <> nil) and
+       ContainsData(Value, Self) then
+    begin
+      raise Exception.CreateFmt('Setting %s as data for %s would make a recursive dependency (infinite calculation) in TCastleTerrainCombine', [
+        Value.Name,
+        Name
+      ]);
+      Exit;
+    end;
 
     if FData1 <> nil then
       FData1.RemoveChangeNotification({$ifdef FPC}@{$endif} Data1Changed);
@@ -1362,6 +1380,17 @@ begin
     if (Value <> nil) and
        (Value.ClassType = TCastleTerrainData) then
       Exit;
+
+    // Protect from recursive usage hanging the process (editor or runtime)
+    if (Value <> nil) and
+       ContainsData(Value, Self) then
+    begin
+      raise Exception.CreateFmt('Setting %s and data for %s would make a recursive dependency (infinite calculation) in TCastleTerrainCombine', [
+        Value.Name,
+        Name
+      ]);
+      Exit;
+    end;
 
     if FData2 <> nil then
       FData2.RemoveChangeNotification({$ifdef FPC}@{$endif} Data2Changed);
