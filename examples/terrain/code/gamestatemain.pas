@@ -20,7 +20,7 @@ interface
 
 uses Classes,
   CastleVectors, CastleUIState, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleTerrain;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleTerrain, CastleCameras;
 
 type
   { Main state, where most of the application logic takes place. }
@@ -28,6 +28,7 @@ type
   private
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
+    WalkNavigation1: TCastleWalkNavigation;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -56,6 +57,7 @@ begin
 
   { Find components, by name, that we need to access from code }
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  WalkNavigation1 := DesignedComponent('WalkNavigation1') as TCastleWalkNavigation;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -63,6 +65,7 @@ begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  WalkNavigation1.MouseLook := buttonRight in Container.MousePressed;
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
