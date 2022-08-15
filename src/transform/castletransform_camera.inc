@@ -1143,6 +1143,13 @@ function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const Vie
     Pos, Dir, Up: TVector3;
   begin
     Box := BoxEvent();
+    if Box.IsEmpty then
+    begin
+      // any values are OK, as we'll not render anyhitng
+      MinBoxDistance := -10;
+      MaxBoxDistance := 10;
+      Exit;
+    end;
     GetWorldView(Pos, Dir, Up);
     Box.DirectionDistances(Pos, Dir, MinBoxDistance, MaxBoxDistance);
     { Make the range MinBoxDistance...MaxBoxDistance slightly larger,
@@ -1230,6 +1237,12 @@ var
         (results of my tests: it does not). }
       {
       Box := BoxEvent();
+      if Box.IsEmpty then
+      begin
+        // any values are OK, as we'll not render anyhitng
+        Result := 10;
+        Exit;
+      end;
       Box.PointDistances(WorldTranslation, MinBoxDistance, MaxBoxDistance);
       Result := MaxBoxDistance * 2;
       WritelnLog('Autocalculated ProjectionFar %f', [Result]);

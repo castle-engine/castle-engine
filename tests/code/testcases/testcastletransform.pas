@@ -19,13 +19,15 @@ unit TestCastleTransform;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
+  Classes, SysUtils, CastleBoxes,
+  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
   CastleTestCase{$else}CastleTester{$endif};
 
 type
   TTestCastleTransform = class(TCastleTestCase)
   strict private
     procedure DoTestWorld(const PrematureFree: boolean);
+    function ReturnEmptyBox: TBox3D;
   published
     procedure TestMy3D;
     procedure TestMy3DNotExists;
@@ -60,13 +62,15 @@ type
     procedure TestGetSetWorldView;
     procedure TestCameraDefaults;
     procedure TestExcludeBoundingVolume;
+    procedure TestProjectionEmptyBox;
   end;
 
 implementation
 
 uses Math, Contnrs,
-  CastleVectors, CastleBoxes, CastleTransform, CastleViewport, CastleClassUtils,
-  CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer;
+  CastleVectors, CastleTransform, CastleViewport, CastleClassUtils,
+  CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
+  CastleProjection;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -1902,6 +1906,28 @@ begin
     FreeAndNil(T);
     FreeAndNil(Box);
   end;
+end;
+
+procedure TTestCastleTransform.TestProjectionEmptyBox;
+var
+  V: TCastleViewport;
+  C: TCastleCamera;
+begin
+  V := TCastleViewport.Create(nil);
+  try
+    C := V.Camera;
+    C.ProjectionType := ptOrthographic;
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
+    C.ProjectionType := ptPerspective;
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
+  finally FreeAndNil(V) end;
+end;
+
+function TTestCastleTransform.ReturnEmptyBox: TBox3D;
+begin
+  Result := TBox3D.Empty;
 end;
 
 initialization
