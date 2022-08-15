@@ -147,6 +147,8 @@ var
 begin
   // fake design-mode (CGE editor) for test
   SavedCastleDesignMode := CastleDesignMode;
+  // TODO: should be done globally at some place where tests start
+  InternalCastleDesignData := 'castle-data:/editor-data/';
   CastleDesignMode := true;
   try
     V := TCastleViewport.Create(nil);
