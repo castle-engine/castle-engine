@@ -42,6 +42,9 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionWarningsCopyAll: TAction;
+    ActionWarningsCopySelected: TAction;
+    ActionWarningsClean: TAction;
     ActionViewportGridAxis: TAction;
     ActionComponentDuplicate: TAction;
     ActionComponentSaveSelected: TAction;
@@ -77,6 +80,11 @@ type
     MenuItem12: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem21: TMenuItem;
+    MenuItem22: TMenuItem;
+    Separator7: TMenuItem;
+    MenuItem25: TMenuItem;
+    MenuItem26: TMenuItem;
+    WarningsPopup: TPopupMenu;
     Separator6: TMenuItem;
     MenuItem23: TMenuItem;
     MenuSeparator6123: TMenuItem;
@@ -143,7 +151,6 @@ type
     ActionEditUnit: TAction;
     ActionOpenProjectCode: TAction;
     ApplicationProperties1: TApplicationProperties;
-    ButtonClearWarnings: TBitBtn;
     MenuItem1: TMenuItem;
     MenuItemRegenerateProject: TMenuItem;
     MenuItemSeparator123123345: TMenuItem;
@@ -283,9 +290,11 @@ type
     procedure ActionViewportViewAllExecute(Sender: TObject);
     procedure ActionViewportViewSelectedExecute(Sender: TObject);
     procedure ActionViewportUpdate(Sender: TObject);
+    procedure ActionWarningsCleanExecute(Sender: TObject);
+    procedure ActionWarningsCopyAllExecute(Sender: TObject);
+    procedure ActionWarningsCopySelectedExecute(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
-    procedure ButtonClearWarningsClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -590,11 +599,6 @@ begin
     CanClose := false;
 end;
 
-procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
-begin
-  ClearAllWarnings;
-end;
-
 procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   SaveDockLayout;
@@ -811,17 +815,12 @@ end;
 
 procedure TProjectForm.ActionOutputCopySelectedExecute(Sender: TObject);
 begin
-  { Although ActionOutputCopySelectedUpdate should secure from it too,
-    but check it in case ActionOutputCopySelectedUpdate doesn't run often enough. }
-  if ListOutput.ItemIndex <> -1 then
-  begin
-    Clipboard.AsText := ListOutput.Items[ListOutput.ItemIndex];
-  end;
+  Clipboard.AsText := ListOutput.GetSelectedText;
 end;
 
 procedure TProjectForm.ActionOutputCopySelectedUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := ListOutput.ItemIndex <> -1;
+  (Sender as TAction).Enabled := ListOutput.SelCount <> 0;
 end;
 
 procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
@@ -897,6 +896,27 @@ begin
   ViewportActionsAllowed := (Design <> nil) and (Design.CurrentViewport <> nil);
   (Sender as TAction).Enabled := ViewportActionsAllowed;
   // MenuItemViewport.Enabled := ViewportActionsAllowed; // TODO would disable everything without ability to restore
+end;
+
+procedure TProjectForm.ActionWarningsCleanExecute(Sender: TObject);
+begin
+  ClearAllWarnings;
+end;
+
+procedure TProjectForm.ActionWarningsCopyAllExecute(Sender: TObject);
+begin
+  Clipboard.AsText := ListWarnings.Items.Text;
+end;
+
+procedure TProjectForm.ActionWarningsCopySelectedExecute(Sender: TObject);
+//var
+//  S: String;
+begin
+  Clipboard.AsText := ListWarnings.GetSelectedText;
+  //S := '';
+  //for I := 0 to ListWarnings.SelCount - 1 do
+  //  S := SAppendPart(S, NL, ListWarnings.Selected[I]);
+  //Clipboard.AsText := S;
 end;
 
 procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);
