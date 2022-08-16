@@ -1018,21 +1018,21 @@
       FMotorSpeed: Single;
       FRotationAxis: TVector3;
       FAnchorPoint: TVector3;
-      FMinimumAngleLimit: Single;
-      FMaximumAngleLimit: Single;
+      FMinAngleLimit: Single;
+      FMaxAngleLimit: Single;
       FEnableLimits: Boolean;
       FEnableMotor: Boolean;
-      FMaximumMotorTorque: Single;
+      FMaxMotorTorque: Single;
 
       procedure SetAnchorPoint(const AValue: TVector3);
       procedure SetRotationAxis(const AValue: TVector3);
       procedure SetEnableLimits(const AValue: Boolean);
-      procedure SetMinimumAngleLimit(const AValue: Single);
-      procedure SetMaximumAngleLimit(const AValue: Single);
+      procedure SetMinAngleLimit(const AValue: Single);
+      procedure SetMaxAngleLimit(const AValue: Single);
       procedure SetEnableMotor(const AValue: Boolean);
       procedure SetMotorSpeed(const AValue: Single);
       function GetMotorSpeed: Single;
-      procedure SetMaximumMotorTorque(const AValue: Single);
+      procedure SetMaxMotorTorque(const AValue: Single);
 
     strict protected
       function GetKraftJoint: TKraftConstraintJoint; override;
@@ -1052,12 +1052,12 @@
       property RotationAxis: TVector3 read FRotationAxis write SetRotationAxis;
     published
       property EnableLimits: Boolean read FEnableLimits write SetEnableLimits;
-      property MinimumAngleLimit: Single read FMinimumAngleLimit write SetMinimumAngleLimit;
-      property MaximimAngleLimit: Single read FMaximumAngleLimit write SetMaximumAngleLimit;
+      property MinAngleLimit: Single read FMinAngleLimit write SetMinAngleLimit;
+      property MaxAngleLimit: Single read FMaxAngleLimit write SetMaxAngleLimit;
       property EnableMotor: Boolean read FEnableMotor write SetEnableMotor;
       property MotorSpeed: Single read GetMotorSpeed write SetMotorSpeed;
-      property MaximumMotorTorque: Single read FMaximumMotorTorque
-        write SetMaximumMotorTorque;
+      property MaxMotorTorque: Single read FMaxMotorTorque
+        write SetMaxMotorTorque;
       {$define read_interface_class}
       {$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
       {$undef read_interface_class}
@@ -3736,18 +3736,18 @@ begin
     FKraftJointHinge.EnableLimit(AValue);
 end;
 
-procedure TJointHinge.SetMinimumAngleLimit(const AValue: Single);
+procedure TJointHinge.SetMinAngleLimit(const AValue: Single);
 begin
-  FMinimumAngleLimit := AValue;
+  FMinAngleLimit := AValue;
   if FKraftJointHinge <> nil then
-    FKraftJointHinge.SetMinimumAngleLimit(FMinimumAngleLimit);
+    FKraftJointHinge.SetMinimumAngleLimit(FMinAngleLimit);
 end;
 
-procedure TJointHinge.SetMaximumAngleLimit(const AValue: Single);
+procedure TJointHinge.SetMaxAngleLimit(const AValue: Single);
 begin
-  FMaximumAngleLimit := AValue;
+  FMaxAngleLimit := AValue;
   if FKraftJointHinge <> nil then
-    FKraftJointHinge.SetMaximumAngleLimit(FMaximumAngleLimit);
+    FKraftJointHinge.SetMaximumAngleLimit(FMaxAngleLimit);
 end;
 
 procedure TJointHinge.SetEnableMotor(const AValue: Boolean);
@@ -3776,14 +3776,14 @@ begin
   Result := FMotorSpeed;
 end;
 
-procedure TJointHinge.SetMaximumMotorTorque(const AValue: Single);
+procedure TJointHinge.SetMaxMotorTorque(const AValue: Single);
 begin
-  if SameValue(FMaximumMotorTorque, AValue) then
+  if SameValue(FMaxMotorTorque, AValue) then
     Exit;
 
-  FMaximumMotorTorque := AValue;
+  FMaxMotorTorque := AValue;
   if FKraftJointHinge <> nil then
-    FKraftJointHinge.SetMaximalMotorTorque(FMaximumMotorTorque);
+    FKraftJointHinge.SetMaximalMotorTorque(FMaxMotorTorque);
 end;
 
 function TJointHinge.GetKraftJoint: TKraftConstraintJoint;
@@ -3801,10 +3801,10 @@ begin
     VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis)),
     FEnableLimits,
     FEnableMotor,
-    FMinimumAngleLimit,
-    FMaximumAngleLimit,
+    FMinAngleLimit,
+    FMaxAngleLimit,
     FMotorSpeed,
-    FMaximumMotorTorque,
+    FMaxMotorTorque,
     ConnectedCollide
   );
 end;
@@ -3840,11 +3840,11 @@ function TJointHinge.PropertySections(const PropertyName: String
 begin
   if (PropertyName = 'AnchorPointPersistent') or
      (PropertyName = 'EnableLimits') or
-     (PropertyName = 'MinimumAngleLimit') or
-     (PropertyName = 'MaximimAngleLimit') or
+     (PropertyName = 'MinAngleLimit') or
+     (PropertyName = 'MaxAngleLimit') or
      (PropertyName = 'EnableMotor') or
      (PropertyName = 'MotorSpeed') or
-     (PropertyName = 'MaximumMotorTorque') or
+     (PropertyName = 'MaxMotorTorque') or
      (PropertyName = 'RotationAxisPersistent') then
     Result := [psBasic]
   else
