@@ -1151,20 +1151,20 @@ procedure TX3DShaderProgramBase.Link;
 begin
   inherited;
 
-  UniformCastle_ModelViewMatrix       := Uniform('castle_ModelViewMatrix'      , uaIgnore);
-  UniformCastle_ProjectionMatrix      := Uniform('castle_ProjectionMatrix'     , uaIgnore);
-  UniformCastle_NormalMatrix          := Uniform('castle_NormalMatrix'         , uaIgnore);
-  UniformCastle_MaterialDiffuseAlpha  := Uniform('castle_MaterialDiffuseAlpha' , uaIgnore);
-  UniformCastle_MaterialBaseAlpha     := Uniform('castle_MaterialBaseAlpha'    , uaIgnore);
-  UniformCastle_MaterialEmissiveAlpha := Uniform('castle_MaterialEmissiveAlpha', uaIgnore);
-  UniformCastle_MaterialShininess     := Uniform('castle_MaterialShininess'    , uaIgnore);
-  UniformCastle_MaterialEmissive      := Uniform('castle_MaterialEmissive'     , uaIgnore);
-  UniformCastle_MaterialAmbient       := Uniform('castle_MaterialAmbient'      , uaIgnore);
-  UniformCastle_MaterialSpecular      := Uniform('castle_MaterialSpecular'     , uaIgnore);
-  UniformCastle_MaterialMetallic      := Uniform('castle_MaterialMetallic'     , uaIgnore);
-  UniformCastle_MaterialRoughness     := Uniform('castle_MaterialRoughness'    , uaIgnore);
-  UniformCastle_GlobalAmbient         := Uniform('castle_GlobalAmbient'        , uaIgnore);
-  UniformCastle_UnlitColor            := Uniform('castle_UnlitColor'           , uaIgnore);
+  UniformCastle_ModelViewMatrix       := Uniform('castle_ModelViewMatrix'      , umIgnore);
+  UniformCastle_ProjectionMatrix      := Uniform('castle_ProjectionMatrix'     , umIgnore);
+  UniformCastle_NormalMatrix          := Uniform('castle_NormalMatrix'         , umIgnore);
+  UniformCastle_MaterialDiffuseAlpha  := Uniform('castle_MaterialDiffuseAlpha' , umIgnore);
+  UniformCastle_MaterialBaseAlpha     := Uniform('castle_MaterialBaseAlpha'    , umIgnore);
+  UniformCastle_MaterialEmissiveAlpha := Uniform('castle_MaterialEmissiveAlpha', umIgnore);
+  UniformCastle_MaterialShininess     := Uniform('castle_MaterialShininess'    , umIgnore);
+  UniformCastle_MaterialEmissive      := Uniform('castle_MaterialEmissive'     , umIgnore);
+  UniformCastle_MaterialAmbient       := Uniform('castle_MaterialAmbient'      , umIgnore);
+  UniformCastle_MaterialSpecular      := Uniform('castle_MaterialSpecular'     , umIgnore);
+  UniformCastle_MaterialMetallic      := Uniform('castle_MaterialMetallic'     , umIgnore);
+  UniformCastle_MaterialRoughness     := Uniform('castle_MaterialRoughness'    , umIgnore);
+  UniformCastle_GlobalAmbient         := Uniform('castle_GlobalAmbient'        , umIgnore);
+  UniformCastle_UnlitColor            := Uniform('castle_UnlitColor'           , umIgnore);
 
   AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
   AttributeCastle_Normal         := AttributeOptional('castle_Normal');
@@ -1268,7 +1268,7 @@ end;
 
 procedure TX3DShaderProgram.SetUniformFromField(
   const UniformName: string; const UniformValue: TX3DField;
-  const EnableDisable: boolean);
+  const EnableDisable: Boolean);
 var
   TempF: TSingleList;
   TempVec2f: TVector2List;
@@ -3041,26 +3041,17 @@ begin
     raise;
   end;
 
-  { All user VRML/X3D uniform values go through SetUniformFromField,
-    that always raises exception on invalid names/types, regardless
-    of UniformNotFoundAction / UniformTypeMismatchAction values.
+  { Note that user X3D uniform values go through SetUniformFromField,
+    which passes UniformMissing based on node configuration
+    (TEffectNode.UniformMissing, TComposedShaderNode.UniformMissing).
 
-    So settings below only control what happens on our uniform values.
-    - Missing uniform name should be ignored, as it's normal in some cases:
-      - When all the lights are off (including headlight) then normal vectors
-        are unused, and so the normalmap texture is unused.
+    So setting AProgram.UniformMissing below only controls what happens on our
+    built-in uniform values.
 
-      Avoid producing any warnings in this case, as this is normal situation.
-      Actually needed at least on NVidia GeForce 450 GTS (proprietary OpenGL
-      under Linux), on ATI (tested proprietary OpenGL drivers under Linux and Windows)
-      this doesn't seem needed (less aggressive removal of unused vars).
-
-    - Invalid types should always be reported in debug mode, as OpenGL errors.
-      This is the fastest option (other values for UniformTypeMismatchAction
-      are not good for performance, causing glGetError around every
-      TGLSLUniform.SetValue call, very very slow). We carefully code to
-      always specify correct types for our uniform variables. }
-  AProgram.UniformNotFoundAction := uaIgnore;
+    Missing uniform name should be ignored, as it's normal in some cases:
+    When all the lights are off (including headlight) then normal vectors
+    are unused, and so the normalmap texture is unused. }
+  AProgram.UniformMissing := umIgnore;
 
   { set uniforms that will not need to be updated at each SetupUniforms call }
   SetupUniformsOnce;
@@ -3079,7 +3070,7 @@ begin
   AProgram.AttachShader(stFragment, FS);
   AProgram.Link;
 
-  AProgram.UniformNotFoundAction := uaIgnore;
+  AProgram.UniformMissing := umIgnore;
 end;
 
 function TShader.CodeHash: TShaderCodeHash;

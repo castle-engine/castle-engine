@@ -2005,7 +2005,7 @@ begin
             { We have to ignore invalid uniforms, as it's normal that when
               rendering screen effect we will pass some screen_* variables
               that you will not use. }
-            ShaderProgram.UniformNotFoundAction := uaIgnore;
+            ShaderProgram.UniformMissing := umIgnore;
 
             Node.Shader := ShaderProgram;
             ScreenEffectPrograms.Add(ShaderProgram);

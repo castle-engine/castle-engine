@@ -710,9 +710,6 @@ begin
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
   GLSLProgram[0].Link;
-  { Only warn on non-used uniforms. This is more comfortable for shader
-    development, you can easily comment shader parts. }
-  GLSLProgram[0].UniformNotFoundAction := uaWarning;
 
   WritelnLogMultiline('Shader for 1st pass', GLSLProgram[0].DebugInfo);
 
@@ -723,7 +720,6 @@ begin
   GLSLProgram[1] := TGLSLProgram.Create;
   GLSLProgram[1].AttachVertexShader(VertexShader);
   GLSLProgram[1].AttachFragmentShader(FragmentShader);
-  GLSLProgram[1].UniformNotFoundAction := uaWarning;
   GLSLProgram[1].Link;
 
   WritelnLogMultiline('Shader for 2nd pass', GLSLProgram[1].DebugInfo);

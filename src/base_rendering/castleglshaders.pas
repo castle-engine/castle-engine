@@ -76,9 +76,9 @@ type
 
   { What to do when GLSL uniform variable is set (TGLSLProgram.SetUniform)
     but doesn't exist in the shader. }
-  TUniformNotFoundAction = (
+  TUniformMissing = (
     { Report that uniform variable not found to WritelnWarning. }
-    uaWarning,
+    umWarning,
     { Report that uniform variable not found by raising EGLSLUniformNotFound.
 
       This was implemented in the past, but was not useful - we converted it to warnings anyway.
@@ -89,7 +89,7 @@ type
     //uaException,
     { Ignore the fact that uniform variable doesn't exist in the GLSL shader.
       Do not warn anywhere. }
-    uaIgnore);
+    umIgnore);
 
   TGLSLProgram = class;
 
@@ -237,7 +237,7 @@ type
     ProgramId: TGLuint;
     ShaderIds: TGLuintList;
 
-    FUniformNotFoundAction: TUniformNotFoundAction;
+    FUniformMissing: TUniformMissing;
 
     FUniformLocations, FAttributeLocations: TLocationCache;
 
@@ -367,25 +367,25 @@ type
       "declared but unused" variables.
 
       This is only the default value, each @link(Uniform) method call
-      may explicitly use other TUniformNotFoundAction.
+      may explicitly use other TUniformMissing.
 
-      @seealso TUniformNotFoundAction }
-    property UniformNotFoundAction: TUniformNotFoundAction
-      read FUniformNotFoundAction write FUniformNotFoundAction
-      default uaWarning;
+      @seealso TUniformMissing }
+    property UniformMissing: TUniformMissing
+      read FUniformMissing write FUniformMissing
+      default umWarning;
 
     { Get the uniform instance. It can be used to make repeated
       @link(TGLSLUniform.SetValue) calls. You must link the program first.
 
       If the uniform doesn't exist (or is unused), the action
-      we take depends on @link(UniformNotFoundAction) property
-      (by default -- uaWarning).
-      The overloaded version with extra @code(AUniformNotFoundAction)
+      we take depends on @link(UniformMissing) property
+      (by default -- umWarning).
+      The overloaded version with extra @code(AUniformMissing)
       parameter follows this parameter value.
 
       @groupBegin }
     function Uniform(const Name: string): TGLSLUniform; overload;
-    function Uniform(const Name: string; const AUniformNotFoundAction: TUniformNotFoundAction): TGLSLUniform; overload;
+    function Uniform(const Name: string; const AUniformMissing: TUniformMissing): TGLSLUniform; overload;
     { @groupEnd }
 
     { Set appropriate uniform variable value.
@@ -416,12 +416,12 @@ type
           Call DebugInfo to see what uniform variables are considered
           active for your shader.
 
-          You can change UniformNotFoundAction not to silently ignore setting
+          You can change UniformMissing not to silently ignore setting
           of inactive (or not existing) uniform values.)
       )
 
       This will make warning if the variable is not found within
-      the program and UniformNotFoundAction = uaWarning (default) or ForceWarning.
+      the program and UniformMissing = umWarning (default) or ForceWarning.
 
       @groupBegin }
     procedure SetUniform(const Name: string; const Value: boolean        ; const ForceWarning: Boolean = false); overload;
@@ -1277,7 +1277,7 @@ begin
 
   ShaderIds := TGLuintList.Create;
 
-  FUniformNotFoundAction := uaWarning;
+  FUniformMissing := umWarning;
 
   FUniformLocations := TLocationCache.Create;
   FAttributeLocations := TLocationCache.Create;
@@ -1925,12 +1925,12 @@ end;
 
 function TGLSLProgram.Uniform(const Name: string): TGLSLUniform;
 begin
-  Result := Uniform(Name, UniformNotFoundAction);
+  Result := Uniform(Name, UniformMissing);
 end;
 
-function TGLSLProgram.Uniform(const Name: string; const AUniformNotFoundAction: TUniformNotFoundAction): TGLSLUniform;
+function TGLSLProgram.Uniform(const Name: string; const AUniformMissing: TUniformMissing): TGLSLUniform;
 
-  procedure ReportUniformNotFound;
+  procedure ReportUniformMissing;
 
     function ErrMessage: string;
     begin
@@ -1938,13 +1938,13 @@ function TGLSLProgram.Uniform(const Name: string; const AUniformNotFoundAction: 
     end;
 
   begin
-    case AUniformNotFoundAction of
-      uaWarning  : WritelnWarning('GLSL', ErrMessage);
+    case AUniformMissing of
+      umWarning  : WritelnWarning('GLSL', ErrMessage);
       // This was implemented in the past, but was not useful - we converted it to warnings anyway
-      //uaException: raise EGLSLUniformNotFound.Create(ErrMessage);
-      uaIgnore   : ;
+      //uaException: raise EGLSLUniformMissing.Create(ErrMessage);
+      umIgnore   : ;
       {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('AUniformNotFoundAction? in TGLSLProgram.UniformNotFound');
+      else raise EInternalError.Create('AUniformMissing? in TGLSLProgram.UniformMissing');
       {$endif}
     end;
   end;
@@ -1969,13 +1969,13 @@ begin
   end;
 
   if Result.Location = -1 then
-    ReportUniformNotFound;
+    ReportUniformMissing;
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: boolean; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -1983,7 +1983,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -1991,7 +1991,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -1999,7 +1999,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2007,7 +2007,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2015,7 +2015,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLfloat; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2023,7 +2023,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2031,7 +2031,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2039,7 +2039,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2047,7 +2047,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2055,7 +2055,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2063,7 +2063,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2071,7 +2071,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TBooleanList; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2079,7 +2079,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TLongIntList; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2087,7 +2087,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TSingleList; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2095,7 +2095,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2List; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2103,7 +2103,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3List; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2111,7 +2111,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4List; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2119,7 +2119,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3List; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;
@@ -2127,7 +2127,7 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4List; const ForceWarning: Boolean);
 begin
   if ForceWarning then
-    Uniform(Name, uaWarning).SetValue(Value)
+    Uniform(Name, umWarning).SetValue(Value)
   else
     Uniform(Name).SetValue(Value);
 end;

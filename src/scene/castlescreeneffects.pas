@@ -51,9 +51,9 @@ function ScreenEffectVertex: string; deprecated 'this will be internal function 
       ScreenEffectFragment(false { or true if you use depth }) +
       '... my custom screen effect GLSL code ...');
     Shader.Link;
-    { uaIgnore is a good idea here, in case some uniform variable
+    { umIgnore is a good idea here, in case some uniform variable
       from ScreenEffectFragment code may be left unused. }
-    Shader.UniformNotFoundAction := uaIgnore;
+    Shader.UniformMissing := umIgnore;
   #)
 
 *)
@@ -79,9 +79,9 @@ type
 
     property NeedsDepth: boolean read FNeedsDepth write FNeedsDepth default false;
 
-    { In this class, UniformNotFoundAction is by default uaIgnore, since it's
+    { In this class, UniformMissing is by default umIgnore, since it's
       normal that screen effect doesn't use some of it's uniform variables. }
-    property UniformNotFoundAction default uaIgnore;
+    property UniformMissing default umIgnore;
 
     { Attach GLSL code for the screen effect (executed as part of fragment shader).
       See https://castle-engine.io/x3d_extensions_screen_effects.php . }
@@ -294,7 +294,7 @@ end;
 constructor TGLSLScreenEffect.Create;
 begin
   inherited;
-  UniformNotFoundAction := uaIgnore;
+  UniformMissing := umIgnore;
 end;
 
 procedure TGLSLScreenEffect.Link;
