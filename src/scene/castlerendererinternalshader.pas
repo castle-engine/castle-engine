@@ -1244,20 +1244,10 @@ begin
     from X3D field or exposedField }
 
   if UniformField <> nil then
-  try
     { Ok, we have a field with a value (interface declarations with
       fields inside ComposedShader / Effect always have a value).
       So set GLSL uniform variable from this field. }
     SetUniformFromField(UniformField.X3DName, UniformField, EnableDisable);
-  except
-    { We capture EGLSLUniformInvalid, converting it to WritelnWarning and exit.
-      This way we will not add this field to EventsObserved. }
-    on E: EGLSLUniformInvalid do
-    begin
-      WritelnWarning('VRML/X3D', E.Message);
-      Exit;
-    end;
-  end;
 
   { Allow future changing of this GLSL uniform variable,
     from VRML eventIn or exposedField }
@@ -1453,19 +1443,7 @@ begin
   else
     UniformName := Event.ParentExposedField.X3DName;
 
-  try
-    SetUniformFromField(UniformName, Value, true);
-  except
-    { We capture EGLSLUniformInvalid, converting it to WritelnWarning.
-      This way we can remove ourselves (EventReceive) from event notifications. }
-    on E: EGLSLUniformInvalid do
-    begin
-      WritelnWarning('VRML/X3D', E.Message);
-      Event.RemoveNotification({$ifdef FPC}@{$endif}EventReceive);
-      EventsObserved.Remove(Event);
-      Exit;
-    end;
-  end;
+  SetUniformFromField(UniformName, Value, true);
 
   { Although ExposedEvents implementation already sends notification
     about changes to Scene, we can also get here
