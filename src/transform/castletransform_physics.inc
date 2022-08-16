@@ -1017,14 +1017,14 @@
       FKraftJointHinge: TKraftConstraintJointHinge;
       FMotorSpeed: Single;
       FRotationAxis: TVector3;
-      FAnchorPoint: TVector3;
+      FAnchor: TVector3;
       FMinAngleLimit: Single;
       FMaxAngleLimit: Single;
       FEnableLimits: Boolean;
       FEnableMotor: Boolean;
       FMaxMotorTorque: Single;
 
-      procedure SetAnchorPoint(const AValue: TVector3);
+      procedure SetAnchor(const AValue: TVector3);
       procedure SetRotationAxis(const AValue: TVector3);
       procedure SetEnableLimits(const AValue: Boolean);
       procedure SetMinAngleLimit(const AValue: Single);
@@ -1046,7 +1046,7 @@
       function PropertySections(const PropertyName: String): TPropertySections; override;
 
       // TODO: This is local point should be world?
-      property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
+      property Anchor: TVector3 read FAnchor write SetAnchor;
       // TODO: currently this is local and in kraft is world maybe we should
       // change to world or to castle default?
       property RotationAxis: TVector3 read FRotationAxis write SetRotationAxis;
@@ -1066,12 +1066,12 @@
   TJointRope = class(TAbstractTwoBodiesJoint)
     private
       FKraftJointRope: TKraftConstraintJointRope;
-      FAnchorPoint: TVector3;
-      FConnectedAnchorPoint: TVector3;
+      FAnchor: TVector3;
+      FConnectedAnchor: TVector3;
       FDistance: Single;
 
-      procedure SetAnchorPoint(const AValue: TVector3);
-      procedure SetConnectedAnchorPoint(const AValue: TVector3);
+      procedure SetAnchor(const AValue: TVector3);
+      procedure SetConnectedAnchor(const AValue: TVector3);
       procedure SetDistance(const AValue: Single);
     strict protected
       function GetKraftJoint: TKraftConstraintJoint; override;
@@ -1085,9 +1085,9 @@
       function PropertySections(const PropertyName: String): TPropertySections; override;
 
       // TODO: This is local point should be world?
-      property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
-      property ConnectedAnchorPoint: TVector3 read FConnectedAnchorPoint
-        write SetConnectedAnchorPoint;
+      property Anchor: TVector3 read FAnchor write SetAnchor;
+      property ConnectedAnchor: TVector3 read FConnectedAnchor
+        write SetConnectedAnchor;
 
     published
       property Distance: Single read FDistance write SetDistance;
@@ -1099,9 +1099,9 @@
   TJointFixed = class(TAbstractTwoBodiesJoint)
   private
     FKraftJointFixed: TKraftConstraintJointFixed;
-    FAnchorPoint: TVector3;
+    FAnchor: TVector3;
 
-    procedure SetAnchorPoint(const AValue: TVector3);
+    procedure SetAnchor(const AValue: TVector3);
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
@@ -1113,7 +1113,7 @@
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     // TODO: This is local point should be world?
-    property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
+    property Anchor: TVector3 read FAnchor write SetAnchor;
   published
     {$define read_interface_class}
     {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
@@ -1123,9 +1123,9 @@
   TJointBall = class(TAbstractTwoBodiesJoint)
   private
     FKraftJointBall: TKraftConstraintJointBallSocket;
-    FAnchorPoint: TVector3;
+    FAnchor: TVector3;
 
-    procedure SetAnchorPoint(const AValue: TVector3);
+    procedure SetAnchor(const AValue: TVector3);
   strict protected
     function GetKraftJoint: TKraftConstraintJoint; override;
     procedure CreateKraftJoint; override;
@@ -1137,7 +1137,7 @@
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     // TODO: This is local point should be world?
-    property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
+    property Anchor: TVector3 read FAnchor write SetAnchor;
   published
     {$define read_interface_class}
     {$I auto_generated_persistent_vectors/tjointball_persistent_vectors.inc}
@@ -1147,13 +1147,13 @@
   TJointDistance = class(TAbstractTwoBodiesJoint)
   private
     FKraftJointDistance: TKraftConstraintJointDistance;
-    FAnchorPoint: TVector3;
-    FConnectedAnchorPoint: TVector3;
+    FAnchor: TVector3;
+    FConnectedAnchor: TVector3;
     FFrequencyHz: Single;
     FDampingRatio: Single;
 
-    procedure SetAnchorPoint(const AValue: TVector3);
-    procedure SetConnectedAnchorPoint(const AValue: TVector3);
+    procedure SetAnchor(const AValue: TVector3);
+    procedure SetConnectedAnchor(const AValue: TVector3);
     procedure SetFrequencyHz(const AValue: Single);
     procedure SetDampingRatio(const AValue: Single);
 
@@ -1168,10 +1168,10 @@
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     // TODO: This is local point should be world?
-    property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
+    property Anchor: TVector3 read FAnchor write SetAnchor;
     // TODO: This is local point should be world?
-    property ConnectedAnchorPoint: TVector3 read FConnectedAnchorPoint
-      write SetConnectedAnchorPoint;
+    property ConnectedAnchor: TVector3 read FConnectedAnchor
+      write SetConnectedAnchor;
   published
     property FrequencyHz: Single read FFrequencyHz write SetFrequencyHz;
     property DampingRatio: Single read FDampingRatio write SetDampingRatio;
@@ -1219,16 +1219,16 @@
   TJointPulley = class(TAbstractTwoBodiesJoint)
     private
       FKraftJointPulley: TKraftConstraintJointPulley;
-      FWorldAnchorPoint: TVector3;
-      FWorldGroundAnchorPoint: TVector3;
-      FConnectedWorldAnchorPoint: TVector3;
-      FConnectedWorldGroundAnchorPoint: TVector3;
+      FWorldAnchor: TVector3;
+      FWorldGroundAnchor: TVector3;
+      FConnectedWorldAnchor: TVector3;
+      FConnectedWorldGroundAnchor: TVector3;
       FRatio: Single;
 
-      procedure SetWorldAnchorPoint(const AValue: TVector3);
-      procedure SetConnectedWorldAnchorPoint(const AValue: TVector3);
-      procedure SetWorldGroundAnchorPoint(const AValue: TVector3);
-      procedure SetConnectedWorldGroundAnchorPoint(const AValue: TVector3);
+      procedure SetWorldAnchor(const AValue: TVector3);
+      procedure SetConnectedWorldAnchor(const AValue: TVector3);
+      procedure SetWorldGroundAnchor(const AValue: TVector3);
+      procedure SetConnectedWorldGroundAnchor(const AValue: TVector3);
       procedure SetRatio(const AValue: Single);
     strict protected
       function GetKraftJoint: TKraftConstraintJoint; override;
@@ -1241,13 +1241,13 @@
 
       function PropertySections(const PropertyName: String): TPropertySections; override;
 
-      property WorldAnchorPoint: TVector3 read FWorldAnchorPoint write SetWorldAnchorPoint;
-      property ConnectedWorldAnchorPoint: TVector3 read FConnectedWorldAnchorPoint
-        write SetConnectedWorldAnchorPoint;
-      property WorldGroundAnchorPoint: TVector3 read FWorldGroundAnchorPoint
-        write SetWorldGroundAnchorPoint;
-      property ConnectedWorldGroundAnchorPoint: TVector3
-        read FConnectedWorldGroundAnchorPoint write SetConnectedWorldGroundAnchorPoint;
+      property WorldAnchor: TVector3 read FWorldAnchor write SetWorldAnchor;
+      property ConnectedWorldAnchor: TVector3 read FConnectedWorldAnchor
+        write SetConnectedWorldAnchor;
+      property WorldGroundAnchor: TVector3 read FWorldGroundAnchor
+        write SetWorldGroundAnchor;
+      property ConnectedWorldGroundAnchor: TVector3
+        read FConnectedWorldGroundAnchor write SetConnectedWorldGroundAnchor;
     published
       property Ratio: Single read FRatio write SetRatio {$ifdef FPC}default 1.0{$endif};
 
@@ -1259,7 +1259,7 @@
   TJointWorldPlaneDistance = class (TAbstractOneBodyJoint)
   private
     FKraftJointWorldPlaneDistance: TKraftConstraintJointWorldPlaneDistance;
-    FAnchorPoint: TVector3;
+    FAnchor: TVector3;
     FPlaneNormal: TVector3;
     FPlaneDistance: Single;
     FWorldDistance: Single;
@@ -1267,7 +1267,7 @@
     FFrequencyHz: Single;
     FDampingRatio: Single;
 
-    procedure SetAnchorPoint(const AValue: TVector3);
+    procedure SetAnchor(const AValue: TVector3);
     procedure SetPlaneNormal(const AValue: TVector3);
     procedure SetPlaneDistance(const AValue: Single);
     procedure SetWorldDistance(const AValue: Single);
@@ -1285,7 +1285,7 @@
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    property AnchorPoint: TVector3 read FAnchorPoint write SetAnchorPoint;
+    property Anchor: TVector3 read FAnchor write SetAnchor;
     property PlaneNormal: TVector3 read FPlaneNormal write SetPlaneNormal;
   published
     property PlaneDistance: Single read FPlaneDistance write SetPlaneDistance;
@@ -3708,12 +3708,12 @@ end;
 
 { TJointHinge --------------------------------------------------------------- }
 
-procedure TJointHinge.SetAnchorPoint(const AValue: TVector3);
+procedure TJointHinge.SetAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FAnchorPoint, AValue) then
+  if TVector3.Equals(FAnchor, AValue) then
     Exit;
 
-  FAnchorPoint := AValue;
+  FAnchor := AValue;
   RecreateKraftJoint;
 end;
 
@@ -3797,7 +3797,7 @@ begin
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
     FConnectedRigidBody.FKraftBody,
-    VectorToKraft(Parent.LocalToWorld(FAnchorPoint)),
+    VectorToKraft(Parent.LocalToWorld(FAnchor)),
     VectorToKraft(Parent.LocalToWorldDirection(FRotationAxis)),
     FEnableLimits,
     FEnableMotor,
@@ -3819,7 +3819,7 @@ begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
   FRotationAxis:= Vector3(0, 0, 1);
-  FAnchorPoint := Vector3(0, 0, 0);
+  FAnchor := Vector3(0, 0, 0);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tjointhinge_persistent_vectors.inc}
@@ -3838,7 +3838,7 @@ end;
 function TJointHinge.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'AnchorPointPersistent') or
+  if (PropertyName = 'AnchorPersistent') or
      (PropertyName = 'EnableLimits') or
      (PropertyName = 'MinAngleLimit') or
      (PropertyName = 'MaxAngleLimit') or
@@ -3858,21 +3858,21 @@ end;
 
 { TJointRope --------------------------------------------------------------- }
 
-procedure TJointRope.SetAnchorPoint(const AValue: TVector3);
+procedure TJointRope.SetAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FAnchorPoint, AValue) then
+  if TVector3.Equals(FAnchor, AValue) then
     Exit;
 
-  FAnchorPoint := AValue;
+  FAnchor := AValue;
   RecreateKraftJoint;
 end;
 
-procedure TJointRope.SetConnectedAnchorPoint(const AValue: TVector3);
+procedure TJointRope.SetConnectedAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FConnectedAnchorPoint, AValue) then
+  if TVector3.Equals(FConnectedAnchor, AValue) then
     Exit;
 
-  FConnectedAnchorPoint := AValue;
+  FConnectedAnchor := AValue;
   RecreateKraftJoint;
 end;
 
@@ -3895,8 +3895,8 @@ begin
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
     FConnectedRigidBody.FKraftBody,
-    VectorToKraft(FAnchorPoint),
-    VectorToKraft(FConnectedAnchorPoint),
+    VectorToKraft(FAnchor),
+    VectorToKraft(FConnectedAnchor),
     FDistance,
     ConnectedCollide
   );
@@ -3911,8 +3911,8 @@ constructor TJointRope.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FAnchorPoint := Vector3(0, 0, 0);
-  FConnectedAnchorPoint := Vector3(0, 0, 0);
+  FAnchor := Vector3(0, 0, 0);
+  FConnectedAnchor := Vector3(0, 0, 0);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tjointrope_persistent_vectors.inc}
@@ -3931,8 +3931,8 @@ end;
 function TJointRope.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'AnchorPointPersistent') or
-     (PropertyName = 'ConnectedAnchorPointPersistent') or
+  if (PropertyName = 'AnchorPersistent') or
+     (PropertyName = 'ConnectedAnchorPersistent') or
      (PropertyName = 'Distance') then
     Result := [psBasic]
   else
@@ -3945,12 +3945,12 @@ end;
 
 { TJointFixed --------------------------------------------------------------- }
 
-procedure TJointFixed.SetAnchorPoint(const AValue: TVector3);
+procedure TJointFixed.SetAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FAnchorPoint, AValue) then
+  if TVector3.Equals(FAnchor, AValue) then
     Exit;
 
-  FAnchorPoint := AValue;
+  FAnchor := AValue;
   RecreateKraftJoint;
 end;
 
@@ -3965,7 +3965,7 @@ begin
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
     FConnectedRigidBody.FKraftBody,
-    VectorToKraft(Parent.LocalToWorld(FAnchorPoint)),
+    VectorToKraft(Parent.LocalToWorld(FAnchor)),
     ConnectedCollide
   );
 end;
@@ -3979,7 +3979,7 @@ constructor TJointFixed.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FAnchorPoint := Vector3(0, 0, 0);
+  FAnchor := Vector3(0, 0, 0);
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tjointfixed_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -3997,7 +3997,7 @@ end;
 function TJointFixed.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'AnchorPointPersistent') then
+  if (PropertyName = 'AnchorPersistent') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -4009,12 +4009,12 @@ end;
 
 { TJointBall --------------------------------------------------------------- }
 
-procedure TJointBall.SetAnchorPoint(const AValue: TVector3);
+procedure TJointBall.SetAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FAnchorPoint, AValue) then
+  if TVector3.Equals(FAnchor, AValue) then
     Exit;
 
-  FAnchorPoint := AValue;
+  FAnchor := AValue;
   RecreateKraftJoint;
 end;
 
@@ -4029,7 +4029,7 @@ begin
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
     FConnectedRigidBody.FKraftBody,
-    VectorToKraft(Parent.LocalToWorld(FAnchorPoint)),
+    VectorToKraft(Parent.LocalToWorld(FAnchor)),
     ConnectedCollide
   );
 end;
@@ -4043,7 +4043,7 @@ constructor TJointBall.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FAnchorPoint := Vector3(0, 0, 0);
+  FAnchor := Vector3(0, 0, 0);
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tjointball_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -4061,7 +4061,7 @@ end;
 function TJointBall.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'AnchorPointPersistent') then
+  if (PropertyName = 'AnchorPersistent') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -4073,21 +4073,21 @@ end;
 
 { TJointDistance ------------------------------------------------------------- }
 
-procedure TJointDistance.SetAnchorPoint(const AValue: TVector3);
+procedure TJointDistance.SetAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FAnchorPoint, AValue) then
+  if TVector3.Equals(FAnchor, AValue) then
     Exit;
 
-  FAnchorPoint := AValue;
+  FAnchor := AValue;
   RecreateKraftJoint;
 end;
 
-procedure TJointDistance.SetConnectedAnchorPoint(const AValue: TVector3);
+procedure TJointDistance.SetConnectedAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FConnectedAnchorPoint, AValue) then
+  if TVector3.Equals(FConnectedAnchor, AValue) then
     Exit;
 
-  FConnectedAnchorPoint := AValue;
+  FConnectedAnchor := AValue;
   RecreateKraftJoint;
 end;
 
@@ -4121,8 +4121,8 @@ begin
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
     FConnectedRigidBody.FKraftBody,
-    VectorToKraft(FAnchorPoint),
-    VectorToKraft(FConnectedAnchorPoint),
+    VectorToKraft(FAnchor),
+    VectorToKraft(FConnectedAnchor),
     FFrequencyHz,
     FDampingRatio,
     ConnectedCollide
@@ -4138,8 +4138,8 @@ constructor TJointDistance.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FAnchorPoint := CastleVectors.Vector3(0, 0, 0);
-  FConnectedAnchorPoint := CastleVectors.Vector3(0, 0, 0);
+  FAnchor := CastleVectors.Vector3(0, 0, 0);
+  FConnectedAnchor := CastleVectors.Vector3(0, 0, 0);
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tjointdistance_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -4157,8 +4157,8 @@ end;
 function TJointDistance.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'AnchorPointPersistent') or
-     (PropertyName = 'ConnectedAnchorPointPersistent') or
+  if (PropertyName = 'AnchorPersistent') or
+     (PropertyName = 'ConnectedAnchorPersistent') or
      (PropertyName = 'DampingRatio') or
      (PropertyName = 'FrequencyHz') then
     Result := [psBasic]
@@ -4269,40 +4269,40 @@ end;
 
 { TJointPulley ---------------------------------------------------------------- }
 
-procedure TJointPulley.SetWorldAnchorPoint(const AValue: TVector3);
+procedure TJointPulley.SetWorldAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FWorldAnchorPoint, AValue) then
+  if TVector3.Equals(FWorldAnchor, AValue) then
     Exit;
 
-  FWorldAnchorPoint := AValue;
+  FWorldAnchor := AValue;
   RecreateKraftJoint;
 end;
 
-procedure TJointPulley.SetConnectedWorldAnchorPoint(const AValue: TVector3);
+procedure TJointPulley.SetConnectedWorldAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FConnectedWorldAnchorPoint, AValue) then
+  if TVector3.Equals(FConnectedWorldAnchor, AValue) then
     Exit;
 
-  FConnectedWorldAnchorPoint := AValue;
+  FConnectedWorldAnchor := AValue;
   RecreateKraftJoint;
 end;
 
-procedure TJointPulley.SetWorldGroundAnchorPoint(const AValue: TVector3);
+procedure TJointPulley.SetWorldGroundAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FWorldGroundAnchorPoint, AValue) then
+  if TVector3.Equals(FWorldGroundAnchor, AValue) then
     Exit;
 
-  FWorldGroundAnchorPoint := AValue;
+  FWorldGroundAnchor := AValue;
   RecreateKraftJoint;
 end;
 
-procedure TJointPulley.SetConnectedWorldGroundAnchorPoint(const AValue: TVector3
+procedure TJointPulley.SetConnectedWorldGroundAnchor(const AValue: TVector3
   );
 begin
-  if TVector3.Equals(FConnectedWorldGroundAnchorPoint, AValue) then
+  if TVector3.Equals(FConnectedWorldGroundAnchor, AValue) then
     Exit;
 
-  FConnectedWorldGroundAnchorPoint := AValue;
+  FConnectedWorldGroundAnchor := AValue;
   RecreateKraftJoint;
 end;
 
@@ -4327,10 +4327,10 @@ begin
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
     FConnectedRigidBody.FKraftBody,
-    VectorToKraft(FWorldGroundAnchorPoint),
-    VectorToKraft(FConnectedWorldGroundAnchorPoint),
-    VectorToKraft(FWorldAnchorPoint),
-    VectorToKraft(FConnectedWorldAnchorPoint),
+    VectorToKraft(FWorldGroundAnchor),
+    VectorToKraft(FConnectedWorldGroundAnchor),
+    VectorToKraft(FWorldAnchor),
+    VectorToKraft(FConnectedWorldAnchor),
     FRatio,
     ConnectedCollide
   );
@@ -4345,10 +4345,10 @@ constructor TJointPulley.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FWorldAnchorPoint := CastleVectors.Vector3(0, 0, 0);
-  FWorldGroundAnchorPoint := CastleVectors.Vector3(0, 0, 0);
-  FConnectedWorldAnchorPoint := CastleVectors.Vector3(0, 0, 0);
-  FConnectedWorldGroundAnchorPoint := CastleVectors.Vector3(0, 0, 0);
+  FWorldAnchor := CastleVectors.Vector3(0, 0, 0);
+  FWorldGroundAnchor := CastleVectors.Vector3(0, 0, 0);
+  FConnectedWorldAnchor := CastleVectors.Vector3(0, 0, 0);
+  FConnectedWorldGroundAnchor := CastleVectors.Vector3(0, 0, 0);
   FRatio := 1.0;
 
   {$define read_implementation_constructor}
@@ -4368,10 +4368,10 @@ end;
 function TJointPulley.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'WorldAnchorPointPersistent') or
-     (PropertyName = 'ConnectedWorldAnchorPointPersistent') or
-     (PropertyName = 'WorldGroundAnchorPointPersistent') or
-     (PropertyName = 'ConnectedWorldGroundAnchorPointPersistent') or
+  if (PropertyName = 'WorldAnchorPersistent') or
+     (PropertyName = 'ConnectedWorldAnchorPersistent') or
+     (PropertyName = 'WorldGroundAnchorPersistent') or
+     (PropertyName = 'ConnectedWorldGroundAnchorPersistent') or
      (PropertyName = 'Ratio') then
     Result := [psBasic]
   else
@@ -4384,12 +4384,12 @@ end;
 
 { TJointWorldPlaneDistance --------------------------------------------------- }
 
-procedure TJointWorldPlaneDistance.SetAnchorPoint(const AValue: TVector3);
+procedure TJointWorldPlaneDistance.SetAnchor(const AValue: TVector3);
 begin
-  if TVector3.Equals(FAnchorPoint, AValue) then
+  if TVector3.Equals(FAnchor, AValue) then
     Exit;
 
-  FAnchorPoint := AValue;
+  FAnchor := AValue;
   RecreateKraftJoint;
 end;
 
@@ -4459,7 +4459,7 @@ begin
   FKraftJointWorldPlaneDistance := TKraftConstraintJointWorldPlaneDistance.Create(
     World.FKraftEngine,
     FParentRigidBody.FKraftBody,
-    VectorToKraft(FAnchorPoint),
+    VectorToKraft(FAnchor),
     Plane(Vector3Norm(VectorToKraft(FPlaneNormal)), FPlaneDistance),
     FDoubleSidedWorldPlane,
     FWorldDistance,
@@ -4478,7 +4478,7 @@ end;
 
 constructor TJointWorldPlaneDistance.Create(AOwner: TComponent);
 begin
-  FAnchorPoint := CastleVectors.Vector3(0, 0, 0);
+  FAnchor := CastleVectors.Vector3(0, 0, 0);
   FPlaneNormal := CastleVectors.Vector3(0, 1, 0);
   inherited Create(AOwner);
 
@@ -4499,7 +4499,7 @@ end;
 function TJointWorldPlaneDistance.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  if (PropertyName = 'AnchorPointPersistent') or
+  if (PropertyName = 'AnchorPersistent') or
      (PropertyName = 'PlaneNormalPersistent') or
      (PropertyName = 'PlaneDistance') or
      (PropertyName = 'WorldDistance') or
