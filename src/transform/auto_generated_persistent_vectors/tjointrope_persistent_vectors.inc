@@ -24,40 +24,40 @@
 
 {$ifdef read_interface_class}
 strict private
-  FAnchorPointPersistent: TCastleVector3Persistent;
-  function GetAnchorPointForPersistent: TVector3;
-  procedure SetAnchorPointForPersistent(const AValue: TVector3);
+  FAnchorPersistent: TCastleVector3Persistent;
+  function GetAnchorForPersistent: TVector3;
+  procedure SetAnchorForPersistent(const AValue: TVector3);
 published
-  { @link(AnchorPoint) that can be visually edited in
+  { @link(Anchor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(AnchorPoint) directly.
+    instead read or write @link(Anchor) directly.
 
-    @seealso AnchorPoint }
-  property AnchorPointPersistent: TCastleVector3Persistent read FAnchorPointPersistent ;
+    @seealso Anchor }
+  property AnchorPersistent: TCastleVector3Persistent read FAnchorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointRope.GetAnchorPointForPersistent: TVector3;
+function TJointRope.GetAnchorForPersistent: TVector3;
 begin
-  Result := AnchorPoint;
+  Result := Anchor;
 end;
 
-procedure TJointRope.SetAnchorPointForPersistent(const AValue: TVector3);
+procedure TJointRope.SetAnchorForPersistent(const AValue: TVector3);
 begin
-  AnchorPoint := AValue;
+  Anchor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FAnchorPointPersistent := TCastleVector3Persistent.Create;
-  FAnchorPointPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAnchorPointForPersistent;
-  FAnchorPointPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAnchorPointForPersistent;
-  FAnchorPointPersistent.InternalDefaultValue := AnchorPoint; // current value is default
+  FAnchorPersistent := TCastleVector3Persistent.Create;
+  FAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAnchorForPersistent;
+  FAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAnchorForPersistent;
+  FAnchorPersistent.InternalDefaultValue := Anchor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FAnchorPointPersistent);
+  FreeAndNil(FAnchorPersistent);
 {$endif read_implementation_destructor}
 
 { -*- buffer-read-only: t -*-
@@ -86,39 +86,39 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FConnectedAnchorPointPersistent: TCastleVector3Persistent;
-  function GetConnectedAnchorPointForPersistent: TVector3;
-  procedure SetConnectedAnchorPointForPersistent(const AValue: TVector3);
+  FConnectedAnchorPersistent: TCastleVector3Persistent;
+  function GetConnectedAnchorForPersistent: TVector3;
+  procedure SetConnectedAnchorForPersistent(const AValue: TVector3);
 published
-  { @link(ConnectedAnchorPoint) that can be visually edited in
+  { @link(ConnectedAnchor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(ConnectedAnchorPoint) directly.
+    instead read or write @link(ConnectedAnchor) directly.
 
-    @seealso ConnectedAnchorPoint }
-  property ConnectedAnchorPointPersistent: TCastleVector3Persistent read FConnectedAnchorPointPersistent ;
+    @seealso ConnectedAnchor }
+  property ConnectedAnchorPersistent: TCastleVector3Persistent read FConnectedAnchorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointRope.GetConnectedAnchorPointForPersistent: TVector3;
+function TJointRope.GetConnectedAnchorForPersistent: TVector3;
 begin
-  Result := ConnectedAnchorPoint;
+  Result := ConnectedAnchor;
 end;
 
-procedure TJointRope.SetConnectedAnchorPointForPersistent(const AValue: TVector3);
+procedure TJointRope.SetConnectedAnchorForPersistent(const AValue: TVector3);
 begin
-  ConnectedAnchorPoint := AValue;
+  ConnectedAnchor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FConnectedAnchorPointPersistent := TCastleVector3Persistent.Create;
-  FConnectedAnchorPointPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetConnectedAnchorPointForPersistent;
-  FConnectedAnchorPointPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetConnectedAnchorPointForPersistent;
-  FConnectedAnchorPointPersistent.InternalDefaultValue := ConnectedAnchorPoint; // current value is default
+  FConnectedAnchorPersistent := TCastleVector3Persistent.Create;
+  FConnectedAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetConnectedAnchorForPersistent;
+  FConnectedAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetConnectedAnchorForPersistent;
+  FConnectedAnchorPersistent.InternalDefaultValue := ConnectedAnchor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FConnectedAnchorPointPersistent);
+  FreeAndNil(FConnectedAnchorPersistent);
 {$endif read_implementation_destructor}
 

@@ -24,40 +24,40 @@
 
 {$ifdef read_interface_class}
 strict private
-  FWorldAnchorPointPersistent: TCastleVector3Persistent;
-  function GetWorldAnchorPointForPersistent: TVector3;
-  procedure SetWorldAnchorPointForPersistent(const AValue: TVector3);
+  FWorldAnchorPersistent: TCastleVector3Persistent;
+  function GetWorldAnchorForPersistent: TVector3;
+  procedure SetWorldAnchorForPersistent(const AValue: TVector3);
 published
-  { @link(WorldAnchorPoint) that can be visually edited in
+  { @link(WorldAnchor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(WorldAnchorPoint) directly.
+    instead read or write @link(WorldAnchor) directly.
 
-    @seealso WorldAnchorPoint }
-  property WorldAnchorPointPersistent: TCastleVector3Persistent read FWorldAnchorPointPersistent ;
+    @seealso WorldAnchor }
+  property WorldAnchorPersistent: TCastleVector3Persistent read FWorldAnchorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointPulley.GetWorldAnchorPointForPersistent: TVector3;
+function TJointPulley.GetWorldAnchorForPersistent: TVector3;
 begin
-  Result := WorldAnchorPoint;
+  Result := WorldAnchor;
 end;
 
-procedure TJointPulley.SetWorldAnchorPointForPersistent(const AValue: TVector3);
+procedure TJointPulley.SetWorldAnchorForPersistent(const AValue: TVector3);
 begin
-  WorldAnchorPoint := AValue;
+  WorldAnchor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FWorldAnchorPointPersistent := TCastleVector3Persistent.Create;
-  FWorldAnchorPointPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWorldAnchorPointForPersistent;
-  FWorldAnchorPointPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWorldAnchorPointForPersistent;
-  FWorldAnchorPointPersistent.InternalDefaultValue := WorldAnchorPoint; // current value is default
+  FWorldAnchorPersistent := TCastleVector3Persistent.Create;
+  FWorldAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWorldAnchorForPersistent;
+  FWorldAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWorldAnchorForPersistent;
+  FWorldAnchorPersistent.InternalDefaultValue := WorldAnchor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FWorldAnchorPointPersistent);
+  FreeAndNil(FWorldAnchorPersistent);
 {$endif read_implementation_destructor}
 
 { -*- buffer-read-only: t -*-
@@ -86,40 +86,40 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FConnectedWorldAnchorPointPersistent: TCastleVector3Persistent;
-  function GetConnectedWorldAnchorPointForPersistent: TVector3;
-  procedure SetConnectedWorldAnchorPointForPersistent(const AValue: TVector3);
+  FConnectedWorldAnchorPersistent: TCastleVector3Persistent;
+  function GetConnectedWorldAnchorForPersistent: TVector3;
+  procedure SetConnectedWorldAnchorForPersistent(const AValue: TVector3);
 published
-  { @link(ConnectedWorldAnchorPoint) that can be visually edited in
+  { @link(ConnectedWorldAnchor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(ConnectedWorldAnchorPoint) directly.
+    instead read or write @link(ConnectedWorldAnchor) directly.
 
-    @seealso ConnectedWorldAnchorPoint }
-  property ConnectedWorldAnchorPointPersistent: TCastleVector3Persistent read FConnectedWorldAnchorPointPersistent ;
+    @seealso ConnectedWorldAnchor }
+  property ConnectedWorldAnchorPersistent: TCastleVector3Persistent read FConnectedWorldAnchorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointPulley.GetConnectedWorldAnchorPointForPersistent: TVector3;
+function TJointPulley.GetConnectedWorldAnchorForPersistent: TVector3;
 begin
-  Result := ConnectedWorldAnchorPoint;
+  Result := ConnectedWorldAnchor;
 end;
 
-procedure TJointPulley.SetConnectedWorldAnchorPointForPersistent(const AValue: TVector3);
+procedure TJointPulley.SetConnectedWorldAnchorForPersistent(const AValue: TVector3);
 begin
-  ConnectedWorldAnchorPoint := AValue;
+  ConnectedWorldAnchor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FConnectedWorldAnchorPointPersistent := TCastleVector3Persistent.Create;
-  FConnectedWorldAnchorPointPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetConnectedWorldAnchorPointForPersistent;
-  FConnectedWorldAnchorPointPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetConnectedWorldAnchorPointForPersistent;
-  FConnectedWorldAnchorPointPersistent.InternalDefaultValue := ConnectedWorldAnchorPoint; // current value is default
+  FConnectedWorldAnchorPersistent := TCastleVector3Persistent.Create;
+  FConnectedWorldAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetConnectedWorldAnchorForPersistent;
+  FConnectedWorldAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetConnectedWorldAnchorForPersistent;
+  FConnectedWorldAnchorPersistent.InternalDefaultValue := ConnectedWorldAnchor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FConnectedWorldAnchorPointPersistent);
+  FreeAndNil(FConnectedWorldAnchorPersistent);
 {$endif read_implementation_destructor}
 
 { -*- buffer-read-only: t -*-
@@ -148,40 +148,40 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FWorldGroundAnchorPointPersistent: TCastleVector3Persistent;
-  function GetWorldGroundAnchorPointForPersistent: TVector3;
-  procedure SetWorldGroundAnchorPointForPersistent(const AValue: TVector3);
+  FWorldGroundAnchorPersistent: TCastleVector3Persistent;
+  function GetWorldGroundAnchorForPersistent: TVector3;
+  procedure SetWorldGroundAnchorForPersistent(const AValue: TVector3);
 published
-  { @link(WorldGroundAnchorPoint) that can be visually edited in
+  { @link(WorldGroundAnchor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(WorldGroundAnchorPoint) directly.
+    instead read or write @link(WorldGroundAnchor) directly.
 
-    @seealso WorldGroundAnchorPoint }
-  property WorldGroundAnchorPointPersistent: TCastleVector3Persistent read FWorldGroundAnchorPointPersistent ;
+    @seealso WorldGroundAnchor }
+  property WorldGroundAnchorPersistent: TCastleVector3Persistent read FWorldGroundAnchorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointPulley.GetWorldGroundAnchorPointForPersistent: TVector3;
+function TJointPulley.GetWorldGroundAnchorForPersistent: TVector3;
 begin
-  Result := WorldGroundAnchorPoint;
+  Result := WorldGroundAnchor;
 end;
 
-procedure TJointPulley.SetWorldGroundAnchorPointForPersistent(const AValue: TVector3);
+procedure TJointPulley.SetWorldGroundAnchorForPersistent(const AValue: TVector3);
 begin
-  WorldGroundAnchorPoint := AValue;
+  WorldGroundAnchor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FWorldGroundAnchorPointPersistent := TCastleVector3Persistent.Create;
-  FWorldGroundAnchorPointPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWorldGroundAnchorPointForPersistent;
-  FWorldGroundAnchorPointPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWorldGroundAnchorPointForPersistent;
-  FWorldGroundAnchorPointPersistent.InternalDefaultValue := WorldGroundAnchorPoint; // current value is default
+  FWorldGroundAnchorPersistent := TCastleVector3Persistent.Create;
+  FWorldGroundAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWorldGroundAnchorForPersistent;
+  FWorldGroundAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWorldGroundAnchorForPersistent;
+  FWorldGroundAnchorPersistent.InternalDefaultValue := WorldGroundAnchor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FWorldGroundAnchorPointPersistent);
+  FreeAndNil(FWorldGroundAnchorPersistent);
 {$endif read_implementation_destructor}
 
 { -*- buffer-read-only: t -*-
@@ -210,39 +210,39 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FConnectedWorldGroundAnchorPointPersistent: TCastleVector3Persistent;
-  function GetConnectedWorldGroundAnchorPointForPersistent: TVector3;
-  procedure SetConnectedWorldGroundAnchorPointForPersistent(const AValue: TVector3);
+  FConnectedWorldGroundAnchorPersistent: TCastleVector3Persistent;
+  function GetConnectedWorldGroundAnchorForPersistent: TVector3;
+  procedure SetConnectedWorldGroundAnchorForPersistent(const AValue: TVector3);
 published
-  { @link(ConnectedWorldGroundAnchorPoint) that can be visually edited in
+  { @link(ConnectedWorldGroundAnchor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(ConnectedWorldGroundAnchorPoint) directly.
+    instead read or write @link(ConnectedWorldGroundAnchor) directly.
 
-    @seealso ConnectedWorldGroundAnchorPoint }
-  property ConnectedWorldGroundAnchorPointPersistent: TCastleVector3Persistent read FConnectedWorldGroundAnchorPointPersistent ;
+    @seealso ConnectedWorldGroundAnchor }
+  property ConnectedWorldGroundAnchorPersistent: TCastleVector3Persistent read FConnectedWorldGroundAnchorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TJointPulley.GetConnectedWorldGroundAnchorPointForPersistent: TVector3;
+function TJointPulley.GetConnectedWorldGroundAnchorForPersistent: TVector3;
 begin
-  Result := ConnectedWorldGroundAnchorPoint;
+  Result := ConnectedWorldGroundAnchor;
 end;
 
-procedure TJointPulley.SetConnectedWorldGroundAnchorPointForPersistent(const AValue: TVector3);
+procedure TJointPulley.SetConnectedWorldGroundAnchorForPersistent(const AValue: TVector3);
 begin
-  ConnectedWorldGroundAnchorPoint := AValue;
+  ConnectedWorldGroundAnchor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FConnectedWorldGroundAnchorPointPersistent := TCastleVector3Persistent.Create;
-  FConnectedWorldGroundAnchorPointPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetConnectedWorldGroundAnchorPointForPersistent;
-  FConnectedWorldGroundAnchorPointPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetConnectedWorldGroundAnchorPointForPersistent;
-  FConnectedWorldGroundAnchorPointPersistent.InternalDefaultValue := ConnectedWorldGroundAnchorPoint; // current value is default
+  FConnectedWorldGroundAnchorPersistent := TCastleVector3Persistent.Create;
+  FConnectedWorldGroundAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetConnectedWorldGroundAnchorForPersistent;
+  FConnectedWorldGroundAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetConnectedWorldGroundAnchorForPersistent;
+  FConnectedWorldGroundAnchorPersistent.InternalDefaultValue := ConnectedWorldGroundAnchor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FConnectedWorldGroundAnchorPointPersistent);
+  FreeAndNil(FConnectedWorldGroundAnchorPersistent);
 {$endif read_implementation_destructor}
 
