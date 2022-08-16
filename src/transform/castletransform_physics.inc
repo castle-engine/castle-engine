@@ -1898,10 +1898,6 @@ end;
 constructor TCastleCollider.Create(AOwner: TComponent);
 begin
   inherited;
-  {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
-  {$undef read_implementation_constructor}
-
   // properties defaults
   FDensity := DefaultDensity;
   FMass := DefaultMass;
@@ -1911,6 +1907,10 @@ begin
   FLastUsedWorldScale := NoScale;
   FTranslation := CastleVectors.Vector3(0, 0, 0);
   FRotation := Vector4(0, 1, 0, 0);
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlecollider_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 
   { Will be updated in TCastleCollider.InitializeKraft to reflect FKraftShape.LocalTransform }
   FUseLocalTransform := false;
