@@ -1423,6 +1423,10 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
     { initialize Effect node, for a shader effect }
     Effect := TEffectNode.Create;
     Effect.Language := slGLSL;
+    { If no light sources are present, it is normal that almost all uniforms
+      in this effect do not exist -- because they affect only
+      the TPhysicalMaterialNode.BaseTexture, which is meaningless when no light shines. }
+    Effect.UniformMissing := umIgnore;
     Appearance.SetEffects([Effect]);
 
     for Layer := 1 to LayersCount do
