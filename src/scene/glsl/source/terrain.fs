@@ -25,6 +25,11 @@ uniform float h3; // below is tex_3 mixed with tex_2
 varying vec3 terrain_position;
 varying vec3 terrain_normal;
 
+// avoid redeclaring when no "separate compilation units" available (OpenGLES)
+#ifndef GL_ES
+vec4 castle_texture_color_to_linear(const in vec4 srgbIn);
+#endif
+
 void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)
 {
   vec4 tex;
@@ -77,13 +82,13 @@ void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)
   if (h < hhalf) {
     float mixfactor = smoothstep(h0, h1, h);
     tex = mix(
-      texture2D(tex_1, uv * uv_scale_1),
-      texture2D(tex_2, uv * uv_scale_2), mixfactor);
+      castle_texture_color_to_linear(texture2D(tex_1, uv * uv_scale_1)),
+      castle_texture_color_to_linear(texture2D(tex_2, uv * uv_scale_2)), mixfactor);
   } else {
     float mixfactor = smoothstep(h2, h3, h);
     tex = mix(
-      texture2D(tex_2, uv * uv_scale_2),
-      texture2D(tex_3, uv * uv_scale_3), mixfactor);
+      castle_texture_color_to_linear(texture2D(tex_2, uv * uv_scale_2)),
+      castle_texture_color_to_linear(texture2D(tex_3, uv * uv_scale_3)), mixfactor);
   }
 
   fragment_color.rgb = mix(fragment_color.rgb, tex.rgb, texture_mix);

@@ -27,6 +27,11 @@
 'varying vec3 terrain_position;' + LineEnding +
 'varying vec3 terrain_normal;' + LineEnding +
 '' + LineEnding +
+'// avoid redeclaring when no "separate compilation units" available (OpenGLES)' + LineEnding +
+'#ifndef GL_ES' + LineEnding +
+'vec4 castle_texture_color_to_linear(const in vec4 srgbIn);' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
 'void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)' + LineEnding +
 '{' + LineEnding +
 '  vec4 tex;' + LineEnding +
@@ -79,13 +84,13 @@
 '  if (h < hhalf) {' + LineEnding +
 '    float mixfactor = smoothstep(h0, h1, h);' + LineEnding +
 '    tex = mix(' + LineEnding +
-'      texture2D(tex_1, uv * uv_scale_1),' + LineEnding +
-'      texture2D(tex_2, uv * uv_scale_2), mixfactor);' + LineEnding +
+'      castle_texture_color_to_linear(texture2D(tex_1, uv * uv_scale_1)),' + LineEnding +
+'      castle_texture_color_to_linear(texture2D(tex_2, uv * uv_scale_2)), mixfactor);' + LineEnding +
 '  } else {' + LineEnding +
 '    float mixfactor = smoothstep(h2, h3, h);' + LineEnding +
 '    tex = mix(' + LineEnding +
-'      texture2D(tex_2, uv * uv_scale_2),' + LineEnding +
-'      texture2D(tex_3, uv * uv_scale_3), mixfactor);' + LineEnding +
+'      castle_texture_color_to_linear(texture2D(tex_2, uv * uv_scale_2)),' + LineEnding +
+'      castle_texture_color_to_linear(texture2D(tex_3, uv * uv_scale_3)), mixfactor);' + LineEnding +
 '  }' + LineEnding +
 '' + LineEnding +
 '  fragment_color.rgb = mix(fragment_color.rgb, tex.rgb, texture_mix);' + LineEnding +
