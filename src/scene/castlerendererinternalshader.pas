@@ -173,7 +173,9 @@ type
         So invalid uniform names should be always catched.
         We also catch type mismatches.) }
     procedure SetUniformFromField(const UniformName: string;
-      const UniformValue: TX3DField; const EnableDisable: boolean);
+      const UniformValue: TX3DField;
+      const AUniformMissing: TUniformMissing;
+      const EnableDisable: boolean);
 
     procedure EventReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
@@ -183,6 +185,7 @@ type
       and will automatically update uniform value when we receive an event. }
     procedure BindNonTextureUniform(
       const FieldOrEvent: TX3DInterfaceDeclaration;
+      const AUniformMissing: TUniformMissing;
       const EnableDisable: boolean);
   protected
     { Nodes that have interface declarations with textures for this shader. }
@@ -665,6 +668,10 @@ type
     function ShapeBoundingBoxInWorld: TBox3D;
   end;
 
+{ Derive UniformMissing behavior for fields within given node.
+  Accepts Node = @nil too. }
+function UniformMissingFromNode(const Node: TX3DNode): TUniformMissing;
+
 implementation
 
 uses SysUtils, StrUtils,
@@ -687,6 +694,18 @@ var
 
 const
   Sampler2DShadow = {$ifndef OpenGLES} 'sampler2DShadow' {$else} 'sampler2D' {$endif};
+
+function UniformMissingFromNode(const Node: TX3DNode): TUniformMissing;
+begin
+// TODO
+{  if Node is TEffectNode then
+    Result := TEffectNode(Node).UniformMissing
+  else
+  if Node is TComposedShaderNode then
+    Result := TComposedShaderNode(Node).UniformMissing
+  else}
+    Result := umWarning;
+end;
 
 { String helpers ------------------------------------------------------------- }
 
@@ -1232,6 +1251,7 @@ end;
 
 procedure TX3DShaderProgram.BindNonTextureUniform(
   const FieldOrEvent: TX3DInterfaceDeclaration;
+  const AUniformMissing: TUniformMissing;
   const EnableDisable: boolean);
 var
   UniformField: TX3DField;
@@ -1247,7 +1267,7 @@ begin
     { Ok, we have a field with a value (interface declarations with
       fields inside ComposedShader / Effect always have a value).
       So set GLSL uniform variable from this field. }
-    SetUniformFromField(UniformField.X3DName, UniformField, EnableDisable);
+    SetUniformFromField(UniformField.X3DName, UniformField, AUniformMissing, EnableDisable);
 
   { Allow future changing of this GLSL uniform variable,
     from VRML eventIn or exposedField }
@@ -1268,6 +1288,7 @@ end;
 
 procedure TX3DShaderProgram.SetUniformFromField(
   const UniformName: string; const UniformValue: TX3DField;
+  const AUniformMissing: TUniformMissing;
   const EnableDisable: Boolean);
 var
   TempF: TSingleList;
@@ -1282,12 +1303,12 @@ begin
     Enable;
 
   if UniformValue is TSFBool then
-    SetUniform(UniformName, TSFBool(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFBool(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFLong then
     { Handling of SFLong also takes care of SFInt32. }
-    SetUniform(UniformName, TSFLong(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFLong(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFVec2f then
-    SetUniform(UniformName, TSFVec2f(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFVec2f(UniformValue).Value, AUniformMissing) else
 
   (*
   { Old approach: Check TSFColor first, otherwise TSFVec3f would also catch and handle
@@ -1299,24 +1320,24 @@ begin
     We now pass SFColor as vec3, it can fallback TSFVec3f clause. }
 
   // if UniformValue is TSFColor then
-  //   SetUniform(UniformName, Vector4(TSFColor(UniformValue).Value, 1.0), true) else
+  //   SetUniform(UniformName, Vector4(TSFColor(UniformValue).Value, 1.0), AUniformMissing) else
   *)
 
   if UniformValue is TSFVec3f then
-    SetUniform(UniformName, TSFVec3f(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFVec3f(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFVec4f then
-    SetUniform(UniformName, TSFVec4f(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFVec4f(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFRotation then
-    SetUniform(UniformName, TSFRotation(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFRotation(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFMatrix3f then
-    SetUniform(UniformName, TSFMatrix3f(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFMatrix3f(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFMatrix4f then
-    SetUniform(UniformName, TSFMatrix4f(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFMatrix4f(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFFloat then
-    SetUniform(UniformName, TSFFloat(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFFloat(UniformValue).Value, AUniformMissing) else
   if UniformValue is TSFDouble then
     { SFDouble also takes care of SFTime }
-    SetUniform(UniformName, TSFDouble(UniformValue).Value, true) else
+    SetUniform(UniformName, TSFDouble(UniformValue).Value, AUniformMissing) else
 
   { Double-precision vector and matrix types.
 
@@ -1329,23 +1350,23 @@ begin
     the reasonable approach: support all double-precision vectors and matrices,
     just like single-precision. }
   if UniformValue is TSFVec2d then
-    SetUniform(UniformName, Vector2(TSFVec2d(UniformValue).Value), true) else
+    SetUniform(UniformName, Vector2(TSFVec2d(UniformValue).Value), AUniformMissing) else
   if UniformValue is TSFVec3d then
-    SetUniform(UniformName, Vector3(TSFVec3d(UniformValue).Value), true) else
+    SetUniform(UniformName, Vector3(TSFVec3d(UniformValue).Value), AUniformMissing) else
   if UniformValue is TSFVec4d then
-    SetUniform(UniformName, Vector4(TSFVec4d(UniformValue).Value), true) else
+    SetUniform(UniformName, Vector4(TSFVec4d(UniformValue).Value), AUniformMissing) else
   if UniformValue is TSFMatrix3d then
-    SetUniform(UniformName, Matrix3(TSFMatrix3d(UniformValue).Value), true) else
+    SetUniform(UniformName, Matrix3(TSFMatrix3d(UniformValue).Value), AUniformMissing) else
   if UniformValue is TSFMatrix4d then
-    SetUniform(UniformName, Matrix4(TSFMatrix4d(UniformValue).Value), true) else
+    SetUniform(UniformName, Matrix4(TSFMatrix4d(UniformValue).Value), AUniformMissing) else
 
   { Now repeat this for array types }
   if UniformValue is TMFBool then
-    SetUniform(UniformName, TMFBool(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFBool(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFLong then
-    SetUniform(UniformName, TMFLong(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFLong(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFVec2f then
-    SetUniform(UniformName, TMFVec2f(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFVec2f(UniformValue).Items, AUniformMissing) else
   (* Old approach: follow X3D spec, and map MFColor to vec4[].
      New approach: ignore nonsense X3D spec, and map MFColor to vec3[].
      Just allow TMFColor to fallback to TMFVec3f.
@@ -1353,62 +1374,62 @@ begin
   begin
     TempVec4f := TMFColor(UniformValue).Items.ToVector4(1.0);
     try
-      SetUniform(UniformName, TempVec4f, true);
+      SetUniform(UniformName, TempVec4f, AUniformMissing);
     finally FreeAndNil(TempVec4f) end;
   end else
   *)
   if UniformValue is TMFVec3f then
-    SetUniform(UniformName, TMFVec3f(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFVec3f(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFVec4f then
-    SetUniform(UniformName, TMFVec4f(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFVec4f(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFRotation then
-    SetUniform(UniformName, TMFRotation(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFRotation(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFMatrix3f then
-    SetUniform(UniformName, TMFMatrix3f(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFMatrix3f(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFMatrix4f then
-    SetUniform(UniformName, TMFMatrix4f(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFMatrix4f(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFFloat then
-    SetUniform(UniformName, TMFFloat(UniformValue).Items, true) else
+    SetUniform(UniformName, TMFFloat(UniformValue).Items, AUniformMissing) else
   if UniformValue is TMFDouble then
   begin
     TempF := TMFDouble(UniformValue).Items.ToSingle;
     try
-      SetUniform(UniformName, TempF, true);
+      SetUniform(UniformName, TempF, AUniformMissing);
     finally FreeAndNil(TempF) end;
   end else
   if UniformValue is TMFVec2d then
   begin
     TempVec2f := TMFVec2d(UniformValue).Items.ToVector2;
     try
-      SetUniform(UniformName, TempVec2f, true);
+      SetUniform(UniformName, TempVec2f, AUniformMissing);
     finally FreeAndNil(TempVec2f) end;
   end else
   if UniformValue is TMFVec3d then
   begin
     TempVec3f := TMFVec3d(UniformValue).Items.ToVector3;
     try
-      SetUniform(UniformName, TempVec3f, true);
+      SetUniform(UniformName, TempVec3f, AUniformMissing);
     finally FreeAndNil(TempVec3f) end;
   end else
   if UniformValue is TMFVec4d then
   begin
     TempVec4f := TMFVec4d(UniformValue).Items.ToVector4;
     try
-      SetUniform(UniformName, TempVec4f, true);
+      SetUniform(UniformName, TempVec4f, AUniformMissing);
     finally FreeAndNil(TempVec4f) end;
   end else
   if UniformValue is TMFMatrix3d then
   begin
     TempMat3f := TMFMatrix3d(UniformValue).Items.ToMatrix3;
     try
-      SetUniform(UniformName, TempMat3f, true);
+      SetUniform(UniformName, TempMat3f, AUniformMissing);
     finally FreeAndNil(TempMat3f) end;
   end else
   if UniformValue is TMFMatrix4d then
   begin
     TempMat4f := TMFMatrix4d(UniformValue).Items.ToMatrix4;
     try
-      SetUniform(UniformName, TempMat4f, true);
+      SetUniform(UniformName, TempMat4f, AUniformMissing);
     finally FreeAndNil(TempMat4f) end;
   end else
 
@@ -1419,7 +1440,7 @@ begin
     { Nothing to do, these will be set by TGLSLRenderer.Enable.
       Right now, these are never passed here. }
   end else
- *)
+  *)
 
     { TODO: other field types, full list is in X3D spec in
       "OpenGL shading language (GLSL) binding".
@@ -1443,7 +1464,7 @@ begin
   else
     UniformName := Event.ParentExposedField.X3DName;
 
-  SetUniformFromField(UniformName, Value, true);
+  SetUniformFromField(UniformName, Value, UniformMissingFromNode(Event.ParentNode as TX3DNode), true);
 
   { Although ExposedEvents implementation already sends notification
     about changes to Scene, we can also get here
@@ -1473,8 +1494,9 @@ begin
     if (IDecl.Field <> nil) and
        ((IDecl.Field is TSFNode) or
         (IDecl.Field is TMFNode)) then
-      UniformsTextures.Add(IDecl.Field) else
-      BindNonTextureUniform(IDecl, EnableDisable);
+      UniformsTextures.Add(IDecl.Field)
+    else
+      BindNonTextureUniform(IDecl, UniformMissingFromNode(Node), EnableDisable);
   end;
 end;
 

@@ -421,30 +421,52 @@ type
       )
 
       This will make warning if the variable is not found within
-      the program and UniformMissing = umWarning (default) or ForceWarning.
+      the program and UniformMissing = umWarning.
+      The overloaded version with explicit AUniformMissing parameter uses that
+      to decide whether to show warning.
 
       @groupBegin }
-    procedure SetUniform(const Name: string; const Value: boolean        ; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TGLint         ; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector2Integer; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector3Integer; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector4Integer; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TGLfloat       ; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector2 ; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector3 ; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector4 ; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TMatrix2 ; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TMatrix3 ; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TMatrix4 ; const ForceWarning: Boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: boolean        ; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TGLint         ; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TVector2Integer; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TVector3Integer; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TVector4Integer; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TGLfloat       ; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TVector2 ; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TVector3 ; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TVector4 ; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix2 ; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix3 ; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix4 ; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TBooleanList; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TLongIntList; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TSingleList ; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TVector2List; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TVector3List; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TVector4List; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix3List; const AUniformMissing: TUniformMissing); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix4List; const AUniformMissing: TUniformMissing); overload;
 
-    procedure SetUniform(const Name: string; const Value: TBooleanList; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TLongIntList; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TSingleList ; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector2List; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector3List; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector4List; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TMatrix3List; const ForceWarning: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TMatrix4List; const ForceWarning: Boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: boolean        ); overload;
+    procedure SetUniform(const Name: string; const Value: TGLint         ); overload;
+    procedure SetUniform(const Name: string; const Value: TVector2Integer); overload;
+    procedure SetUniform(const Name: string; const Value: TVector3Integer); overload;
+    procedure SetUniform(const Name: string; const Value: TVector4Integer); overload;
+    procedure SetUniform(const Name: string; const Value: TGLfloat       ); overload;
+    procedure SetUniform(const Name: string; const Value: TVector2 ); overload;
+    procedure SetUniform(const Name: string; const Value: TVector3 ); overload;
+    procedure SetUniform(const Name: string; const Value: TVector4 ); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix2 ); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix3 ); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix4 ); overload;
+    procedure SetUniform(const Name: string; const Value: TBooleanList); overload;
+    procedure SetUniform(const Name: string; const Value: TLongIntList); overload;
+    procedure SetUniform(const Name: string; const Value: TSingleList ); overload;
+    procedure SetUniform(const Name: string; const Value: TVector2List); overload;
+    procedure SetUniform(const Name: string; const Value: TVector3List); overload;
+    procedure SetUniform(const Name: string; const Value: TVector4List); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix3List); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix4List); overload;
     { @groupEnd }
 
     { Get the attribute instance. It can be used to make repeated
@@ -1972,164 +1994,204 @@ begin
     ReportUniformMissing;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: boolean; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: boolean; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLfloat; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLfloat; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TBooleanList; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TBooleanList; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TLongIntList; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TLongIntList; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TSingleList; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TSingleList; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2List; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2List; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3List; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3List; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4List; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4List; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3List; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3List; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4List; const ForceWarning: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4List; const AUniformMissing: TUniformMissing);
 begin
-  if ForceWarning then
-    Uniform(Name, umWarning).SetValue(Value)
-  else
-    Uniform(Name).SetValue(Value);
+  Uniform(Name, AUniformMissing).SetValue(Value);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: boolean);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLfloat);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TBooleanList);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TLongIntList);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TSingleList);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2List);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3List);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4List);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3List);
+begin
+  SetUniform(Name, Value, UniformMissing);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4List);
+begin
+  SetUniform(Name, Value, UniformMissing);
 end;
 
 function TGLSLProgram.AttributeOptional(const Name: string): TGLSLAttribute;

@@ -72,12 +72,15 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
     J: Integer;
     BoundValue: LongInt;
     UniformValue: TLongIntList;
+    AUniformMissing: TUniformMissing;
   begin
+    AUniformMissing := UniformMissingFromNode(TextureField.ParentNode as TX3DNode);
+
     if TextureField is TSFNode then
     begin
       BoundValue := BindSingleTexture(TSFNode(TextureField).Value);
       if BoundValue <> -1 then
-        SetUniform(TextureField.X3DName, BoundValue, true);
+        SetUniform(TextureField.X3DName, BoundValue, AUniformMissing);
     end else
     begin
       Assert(TextureField is TMFNode);
@@ -96,7 +99,7 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
           if BoundValue = -1 then BoundValue := 0;
           UniformValue[J] := BoundValue;
         end;
-        SetUniform(TextureField.X3DName, UniformValue, true);
+        SetUniform(TextureField.X3DName, UniformValue, AUniformMissing);
       finally FreeAndNil(UniformValue) end;
     end;
     Result := true;
@@ -110,7 +113,8 @@ begin
   while I < UniformsTextures.Count do
   begin
     if BindTextureUniform(UniformsTextures[I]) then
-      Inc(I) else
+      Inc(I)
+    else
       UniformsTextures.Delete(I);
   end;
 end;
