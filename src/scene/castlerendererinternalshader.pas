@@ -697,13 +697,12 @@ const
 
 function UniformMissingFromNode(const Node: TX3DNode): TUniformMissing;
 begin
-// TODO
-{  if Node is TEffectNode then
+  if Node is TEffectNode then
     Result := TEffectNode(Node).UniformMissing
   else
   if Node is TComposedShaderNode then
     Result := TComposedShaderNode(Node).UniformMissing
-  else}
+  else
     Result := umWarning;
 end;
 

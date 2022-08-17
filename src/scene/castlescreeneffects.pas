@@ -23,7 +23,8 @@ interface
 uses SysUtils, Classes,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleGLShaders, CastleUIControls, X3DNodes, CastleGLImages,
-  CastleRectangles, CastleScene, CastleTransform, CastleCameras, CastleGLUtils;
+  CastleRectangles, CastleScene, CastleTransform, CastleCameras, CastleGLUtils,
+  CastleRenderOptions;
 
 { Standard GLSL vertex shader for screen effect.
   @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
@@ -264,7 +265,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleLog, CastleRenderContext, CastleRenderOptions;
+uses CastleUtils, CastleLog, CastleRenderContext;
 
 function ScreenEffectVertex: string;
 begin

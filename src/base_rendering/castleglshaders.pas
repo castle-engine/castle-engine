@@ -74,23 +74,6 @@ type
 
   TGLuintList = TCardinalList;
 
-  { What to do when GLSL uniform variable is set (TGLSLProgram.SetUniform)
-    but doesn't exist in the shader. }
-  TUniformMissing = (
-    { Report that uniform variable not found to WritelnWarning. }
-    umWarning,
-    { Report that uniform variable not found by raising EGLSLUniformNotFound.
-
-      This was implemented in the past, but was not useful - we converted it to warnings anyway.
-      Because OpenGL aggressively removes unused variables from shader code,
-      it was common for perfectly valid shader code to raise this
-      (e.g. when using shader for lit objects, but no light is present on the scene).
-    }
-    //uaException,
-    { Ignore the fact that uniform variable doesn't exist in the GLSL shader.
-      Do not warn anywhere. }
-    umIgnore);
-
   TGLSLProgram = class;
 
   TGLSLUniform = record

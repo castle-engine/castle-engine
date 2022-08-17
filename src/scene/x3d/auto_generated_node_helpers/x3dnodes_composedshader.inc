@@ -25,6 +25,9 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetUniformMissing: TUniformMissing;
+    procedure SetUniformMissing(const Value: TUniformMissing);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -34,6 +37,12 @@
     public property FdParts: TMFNode read FFdParts;
     { Set X3D field "parts". } { }
     procedure SetParts(const Value: array of TShaderPartNode);
+
+    strict private FFdUniformMissing: TSFStringEnum;
+    { X3D field "uniformMissing". } { }
+    public property FdUniformMissing: TSFStringEnum read FFdUniformMissing;
+    { X3D field "uniformMissing". } { }
+    property UniformMissing: TUniformMissing read GetUniformMissing write SetUniformMissing;
 
 {$endif read_interface}
 
@@ -53,6 +62,16 @@ begin
   FdParts.Send(A);
 end;
 
+function TComposedShaderNode.GetUniformMissing: TUniformMissing;
+begin
+  Result := TUniformMissing(FdUniformMissing.EnumValue);
+end;
+
+procedure TComposedShaderNode.SetUniformMissing(const Value: TUniformMissing);
+begin
+  FdUniformMissing.SendEnumValue(Ord(Value));
+end;
+
 class function TComposedShaderNode.ClassX3DType: String;
 begin
   Result := 'ComposedShader';
@@ -65,6 +84,10 @@ begin
   FFdParts := TMFNode.Create(Self, True, 'parts', [TShaderPartNode]);
    FdParts.ChangeAlways := chEverything;
   AddField(FFdParts);
+
+  FFdUniformMissing := TSFStringEnum.Create(Self, False, 'uniformMissing', UniformMissingNames, Ord(umWarning));
+   FdUniformMissing.ChangeAlways := chEverything;
+  AddField(FFdUniformMissing);
 end;
 
 {$endif read_implementation}

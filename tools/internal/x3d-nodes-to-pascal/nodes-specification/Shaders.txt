@@ -24,6 +24,11 @@ ComposedShader : X3DShaderNode, X3DProgrammableShaderObject {
   MFNode    [in,out] parts      []
     range: ShaderPart
     change: chEverything
+  SFString   []            uniformMissing    "WARNING"
+    range: ["WARNING", "IGNORE"]
+    enumerated-type: TUniformMissing UniformMissingNames umWarning
+    change: chEverything
+    doc: Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene.
 }
 
 FloatVertexAttribute : X3DVertexAttributeNode {

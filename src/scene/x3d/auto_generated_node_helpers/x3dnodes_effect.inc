@@ -30,6 +30,8 @@
     procedure SetLanguage(const Value: TShaderLanguage);
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
+    function GetUniformMissing: TUniformMissing;
+    procedure SetUniformMissing(const Value: TUniformMissing);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -51,6 +53,12 @@
     public property FdParts: TMFNode read FFdParts;
     { Set X3D field "parts". } { }
     procedure SetParts(const Value: array of TEffectPartNode);
+
+    strict private FFdUniformMissing: TSFStringEnum;
+    { X3D field "uniformMissing". } { }
+    public property FdUniformMissing: TSFStringEnum read FFdUniformMissing;
+    { X3D field "uniformMissing". } { }
+    property UniformMissing: TUniformMissing read GetUniformMissing write SetUniformMissing;
 
 {$endif read_interface}
 
@@ -90,6 +98,16 @@ begin
   FdParts.Send(A);
 end;
 
+function TEffectNode.GetUniformMissing: TUniformMissing;
+begin
+  Result := TUniformMissing(FdUniformMissing.EnumValue);
+end;
+
+procedure TEffectNode.SetUniformMissing(const Value: TUniformMissing);
+begin
+  FdUniformMissing.SendEnumValue(Ord(Value));
+end;
+
 class function TEffectNode.ClassX3DType: String;
 begin
   Result := 'Effect';
@@ -110,6 +128,10 @@ begin
   FFdParts := TMFNode.Create(Self, False, 'parts', [TEffectPartNode]);
    FdParts.ChangeAlways := chEverything;
   AddField(FFdParts);
+
+  FFdUniformMissing := TSFStringEnum.Create(Self, False, 'uniformMissing', UniformMissingNames, Ord(umWarning));
+   FdUniformMissing.ChangeAlways := chEverything;
+  AddField(FFdUniformMissing);
 end;
 
 {$endif read_implementation}

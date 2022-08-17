@@ -117,6 +117,9 @@ const
   ShaderTypeNameX3D: array [TShaderType] of string =
   ( 'VERTEX', 'GEOMETRY', 'FRAGMENT' );
 
+  UniformMissingNames: array [TUniformMissing] of String =
+  ( 'WARNING', 'IGNORE' );
+
 { TComposedShaderNode -------------------------------------------------------- }
 
 constructor TComposedShaderNode.Create(const AX3DName, ABaseUrl: String);
