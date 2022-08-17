@@ -81,7 +81,7 @@ procedure TEffectPartNode.CreateNode;
 begin
   inherited;
 
-  FFdUrl := TMFString.Create(Self, False, 'url', []);
+  FFdUrl := TMFString.Create(Self, True, 'url', []);
    FdUrl.ChangeAlways := chEverything;
   AddField(FFdUrl);
 

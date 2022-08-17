@@ -237,8 +237,7 @@ EffectPart : X3DNode, X3DUrlObject {
   auto-generate-more: true
   default-container-field: parts
 
-  # URL may change to [in,out] at some point, to allow changing the Effect code
-  MFString []       url      []
+  MFString [in,out] url      []
     change: chEverything
   SFString []       type     "VERTEX"
     range: ["VERTEX"|"FRAGMENT"]
