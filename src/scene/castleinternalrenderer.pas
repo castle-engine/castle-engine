@@ -3334,7 +3334,7 @@ begin
       if not FastUpdateArrays(Shape) then
       begin
         FreeAndNil(Shape.Cache.Arrays); // we just need to create new Arrays
-        Generator := GeneratorClass.Create(Shape, true);
+        Generator := GeneratorClass.Create(Shape);
         try
           Generator.TexCoordsNeeded := TexCoordsNeeded;
           Generator.FogVolumetric := FogVolumetric;

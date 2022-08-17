@@ -114,15 +114,16 @@ end;
 procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3List; Normal: TVector3List;
   TexCoord: TVector2List; MaterialIndex: TLongIntList;
-  OverTriangulate: boolean; const BottomRadius, TopRadius, Height: Single;
+  const BottomRadius, TopRadius, Height: Single;
   const Bottom, Side, Top: boolean;
   const QuadricSlices, QuadricStacks: Cardinal);
 
 { How to make nice normals at the top of the cone?
 
-    It's simply impossible to get nice smooth normals without OverTriangulate.
+    It's simply impossible to get nice smooth normals without adding additional
+    stacks (that don't change the shape, so in a sense are wasteful).
     OpenGL gluCylinder also fails to make smooth cone normals
-    when stacks = 1 (corresponding to our OverTriangulate = false).
+    when stacks = 1.
 
     Ideas:
     1. We can't use a single vertex (with one normal)
@@ -346,46 +347,45 @@ begin
         TexCoord.List^[SideBottomCircleIndex + I] := Vector2(I / QuadricSlices, 0);
     end;
 
-    { Add additional "stacks" to the geometry. }
-    if OverTriangulate then
-      for J := 1 to QuadricStacks - 1 do
+    { Add additional "stacks" to the geometry when QuadricStacks > 1 }
+    for J := 1 to QuadricStacks - 1 do
+    begin
+      { stack height, in range [0..1] (0 = bottom, 1 = top). }
+      Stack := J / QuadricStacks;
+
+      MiddleCircleIndex := Coord.Count;
+      Coord.Count := Coord.Count + QuadricSlices + 1;
+      GenerateCircle(QuadricSlices, Lerp(Stack, BottomRadius, TopRadius), -Height / 2 + Stack * Height, PVector3(Coord.Ptr(MiddleCircleIndex)));
+      Coord.List^[Coord.Count - 1] := Coord.List^[MiddleCircleIndex];
+      Normal.Count := Normal.Count + QuadricSlices + 1;
+      for I := 0 to QuadricSlices - 1 do
+        Normal.List^[MiddleCircleIndex + I] := Normal.List^[SideBottomCircleIndex + I];
+      Normal.List^[Normal.Count - 1] := Normal.List^[MiddleCircleIndex];
+      if TexCoord <> nil then
       begin
-        { stack height, in range [0..1] (0 = bottom, 1 = top). }
-        Stack := J / QuadricStacks;
-
-        MiddleCircleIndex := Coord.Count;
-        Coord.Count := Coord.Count + QuadricSlices + 1;
-        GenerateCircle(QuadricSlices, Lerp(Stack, BottomRadius, TopRadius), -Height / 2 + Stack * Height, PVector3(Coord.Ptr(MiddleCircleIndex)));
-        Coord.List^[Coord.Count - 1] := Coord.List^[MiddleCircleIndex];
-        Normal.Count := Normal.Count + QuadricSlices + 1;
-        for I := 0 to QuadricSlices - 1 do
-          Normal.List^[MiddleCircleIndex + I] := Normal.List^[SideBottomCircleIndex + I];
-        Normal.List^[Normal.Count - 1] := Normal.List^[MiddleCircleIndex];
-        if TexCoord <> nil then
-        begin
-          TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
-          for I := 0 to QuadricSlices do
-            TexCoord.List^[MiddleCircleIndex + I] := Vector2(I / QuadricSlices, Stack);
-        end;
-
-        MiddleFaceIndex := CoordIndex.Count;
-        CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
-        for I := 0 to QuadricSlices - 1 do
-        begin
-          CoordIndex.List^[MiddleFaceIndex + I * 5    ] := MiddleCircleIndex     + I;
-          CoordIndex.List^[MiddleFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
-          CoordIndex.List^[MiddleFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
-          CoordIndex.List^[MiddleFaceIndex + I * 5 + 3] := MiddleCircleIndex     + I + 1;
-          CoordIndex.List^[MiddleFaceIndex + I * 5 + 4] := -1;
-        end;
-
-        if MaterialIndex <> nil then
-          MaterialIndex.AddDuplicate(0, QuadricSlices);
-
-        { Next stack added. Now replace SideBottomCircleIndex,
-          to say that the the current circle is the bottom now. }
-        SideBottomCircleIndex := MiddleCircleIndex;
+        TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
+        for I := 0 to QuadricSlices do
+          TexCoord.List^[MiddleCircleIndex + I] := Vector2(I / QuadricSlices, Stack);
       end;
+
+      MiddleFaceIndex := CoordIndex.Count;
+      CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
+      for I := 0 to QuadricSlices - 1 do
+      begin
+        CoordIndex.List^[MiddleFaceIndex + I * 5    ] := MiddleCircleIndex     + I;
+        CoordIndex.List^[MiddleFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
+        CoordIndex.List^[MiddleFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
+        CoordIndex.List^[MiddleFaceIndex + I * 5 + 3] := MiddleCircleIndex     + I + 1;
+        CoordIndex.List^[MiddleFaceIndex + I * 5 + 4] := -1;
+      end;
+
+      if MaterialIndex <> nil then
+        MaterialIndex.AddDuplicate(0, QuadricSlices);
+
+      { Next stack added. Now replace SideBottomCircleIndex,
+        to say that the the current circle is the bottom now. }
+      SideBottomCircleIndex := MiddleCircleIndex;
+    end;
 
     SideTopCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices + 1;
@@ -442,8 +442,7 @@ end;
 
 { VRML 2 proxy --------------------------------------------------------------- }
 
-function TCylinderNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TCylinderNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   CoordNode: TCoordinateNode;
   NormalNode: TNormalNode;
@@ -474,7 +473,7 @@ begin
 
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
-      OverTriangulate, FdRadius.Value, FdRadius.Value, FdHeight.Value,
+      FdRadius.Value, FdRadius.Value, FdHeight.Value,
       FdBottom.Value, FdSide.Value, FdTop.Value,
       CalculateSlices, CalculateStacks);
 
@@ -485,8 +484,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TConeNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TConeNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   CoordNode: TCoordinateNode;
   NormalNode: TNormalNode;
@@ -517,7 +515,7 @@ begin
 
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
-      OverTriangulate, FdBottomRadius.Value, 0, FdHeight.Value,
+      FdBottomRadius.Value, 0, FdHeight.Value,
       FdBottom.Value, FdSide.Value, false,
       CalculateSlices, CalculateStacks);
 
@@ -530,8 +528,7 @@ end;
 
 { VRML 1 proxy --------------------------------------------------------------- }
 
-function TCylinderNode_1.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TCylinderNode_1.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
   NormalNode: TNormalNode;
@@ -587,7 +584,7 @@ begin
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
       TexCoordNode.FdPoint.Items, MaterialIndex,
-      OverTriangulate, FdRadius.Value, FdRadius.Value, FdHeight.Value,
+      FdRadius.Value, FdRadius.Value, FdHeight.Value,
       FdParts.Flags[CYLINDER_PARTS_BOTTOM],
       FdParts.Flags[CYLINDER_PARTS_SIDES],
       FdParts.Flags[CYLINDER_PARTS_TOP],
@@ -601,8 +598,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TConeNode_1.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TConeNode_1.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
   NormalNode: TNormalNode;
@@ -658,7 +654,7 @@ begin
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
       TexCoordNode.FdPoint.Items, MaterialIndex,
-      OverTriangulate, FdBottomRadius.Value, 0, FdHeight.Value,
+      FdBottomRadius.Value, 0, FdHeight.Value,
       FdParts.Flags[CONE_PARTS_BOTTOM], FdParts.Flags[CONE_PARTS_SIDES], false,
       DefaultTriangulationSlices, DefaultTriangulationStacks);
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2022 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -71,7 +71,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_indexedquadset.inc}
@@ -84,7 +84,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_quadset.inc}

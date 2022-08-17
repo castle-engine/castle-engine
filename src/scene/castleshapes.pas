@@ -296,8 +296,8 @@ type
   strict private
   type
     TShapeValidities = set of (svLocalBBox, svBBox,
-      svVerticesCountNotOver,  svVerticesCountOver,
-      svTrianglesCountNotOver, svTrianglesCountOver,
+      svVerticesCount,
+      svTrianglesCount,
       svBoundingSphere,
       svNormals);
     TNormalsCached = (ncSmooth, ncFlat, ncCreaseAngle);
@@ -305,16 +305,14 @@ type
     var
     FLocalBoundingBox: TBox3D;
     FBoundingBox: TBox3D;
-    FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
+    FVerticesCount, FTrianglesCount: Cardinal;
     Validities: TShapeValidities;
     FBoundingSphereCenter: TVector3;
     FBoundingSphereRadiusSqr: Single;
     FOriginalGeometry: TAbstractGeometryNode;
     FOriginalState: TX3DGraphTraverseState;
-    { FGeometry[false] should be nil exactly when FState[false] is nil.
-      Same for FGeometry[true] and FState[true]. }
-    FGeometry: array [boolean] of TAbstractGeometryNode;
-    FState: array [boolean] of TX3DGraphTraverseState;
+    FGeometry: TAbstractGeometryNode;
+    FState: TX3DGraphTraverseState;
 
     FGeometryParentNode,
     FGeometryGrandParentNode,
@@ -331,15 +329,15 @@ type
     { Just like Geometry() and State(), except return @nil if no proxy available
       (when Geometry would return the same thing as OriginalGeometry).
       @groupBegin }
-    function ProxyGeometry(const OverTriangulate: boolean): TAbstractGeometryNode;
-    function ProxyState(const OverTriangulate: boolean): TX3DGraphTraverseState;
+    function ProxyGeometry: TAbstractGeometryNode;
+    function ProxyState: TX3DGraphTraverseState;
     { @groupEnd }
 
     procedure ValidateBoundingSphere;
 
-    { Make both FGeometry[OverTriangulate] and FState[OverTriangulate] set.
+    { Make both FGeometry and FState set.
       Uses appropriate Proxy calls to initialize them. }
-    procedure ValidateGeometryState(const OverTriangulate: boolean);
+    procedure ValidateGeometryState;
 
     { Make both FGeometry and FState nil (unset),
       freeing eventual instances created by Proxy methods.
@@ -358,8 +356,8 @@ type
     procedure UnAssociateGeometryStateNeverProxied(
       const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState);
-    procedure AssociateProxyGeometryState(const OverTriangulate: Boolean);
-    procedure UnAssociateProxyGeometryState(const OverTriangulate: Boolean);
+    procedure AssociateProxyGeometryState;
+    procedure UnAssociateProxyGeometryState;
   strict private
     TriangleOctreeToAdd: TTriangleOctree;
     procedure AddTriangleToOctreeProgress(Shape: TObject;
@@ -398,7 +396,6 @@ type
     FNormalsCachedCcw: boolean;
     FNormals: TVector3List;
     FNormalsCreaseAngle: Single;
-    FNormalsOverTriangulate: boolean;
 
     { Free and nil FOctreeTriangles. Also, makes sure to call
       PointingDeviceClear on ParentScene (since some PTriangle pointers
@@ -434,7 +431,7 @@ type
       This may come from initial VRML/X3D node graph (see OriginalGeometry),
       or it may be processed by @link(TAbstractGeometryNode.Proxy)
       for easier handling. }
-    function Geometry(const OverTriangulate: boolean = true): TAbstractGeometryNode;
+    function Geometry: TAbstractGeometryNode;
 
     { State of this shape.
       This may come from initial VRML/X3D node graph (see OriginalState),
@@ -442,19 +439,19 @@ type
       for easier handling.
 
       Owned by this TShape class. }
-    function State(const OverTriangulate: boolean = true): TX3DGraphTraverseState;
+    function State: TX3DGraphTraverseState;
 
     { Calculate bounding box and vertices/triangles count,
       see TAbstractGeometryNode methods.
       @groupBegin }
     function LocalBoundingBox: TBox3D;
     function BoundingBox: TBox3D;
-    function VerticesCount(OverTriangulate: boolean): Cardinal;
-    function TrianglesCount(OverTriangulate: boolean): Cardinal;
+    function VerticesCount: Cardinal;
+    function TrianglesCount: Cardinal;
     { @groupEnd }
 
     { Decompose the geometry into primitives, with arrays of per-vertex data. }
-    function GeometryArrays(OverTriangulate: boolean): TGeometryArrays;
+    function GeometryArrays: TGeometryArrays;
 
     { Calculates bounding sphere based on BoundingBox.
       In the future this may be changed to use BoundingSphere method
@@ -646,9 +643,9 @@ type
       will need normals many times (e.g. will be rendered many times).
 
       @groupBegin }
-    function NormalsSmooth(const OverTriangulate, FromCcw: boolean): TVector3List;
-    function NormalsFlat(const OverTriangulate, FromCcw: boolean): TVector3List;
-    function NormalsCreaseAngle(const OverTriangulate, FromCcw: boolean;
+    function NormalsSmooth(const FromCcw: boolean): TVector3List;
+    function NormalsFlat(const FromCcw: boolean): TVector3List;
+    function NormalsCreaseAngle(const FromCcw: boolean;
       const CreaseAngle: Single): TVector3List;
     { @groupEnd }
 
@@ -667,13 +664,9 @@ type
       LocalTriangulate returns coordinates in local shape transformation
       (that is, not transformed by State.Transform yet).
 
-      OverTriangulate determines if we should make more triangles for Gouraud
-      shading. For example, it makes Cones and Cylinders divided into
-      additional stacks.
-
       @groupBegin }
-    procedure Triangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
-    procedure LocalTriangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
+    procedure Triangulate(const TriangleEvent: TTriangleEvent);
+    procedure LocalTriangulate(const TriangleEvent: TTriangleEvent);
     { @groupEnd }
 
     function DebugInfo(const Indent: string = ''): string; override;
@@ -1554,32 +1547,32 @@ begin
   end;
 end;
 
-procedure TShape.AssociateProxyGeometryState(const OverTriangulate: Boolean);
+procedure TShape.AssociateProxyGeometryState;
 begin
-  Assert(FGeometry[OverTriangulate] <> nil);
-  Assert(FState   [OverTriangulate] <> nil);
+  Assert(FGeometry <> nil);
+  Assert(FState    <> nil);
 
   { For speed, do not even call AssociateGeometryState
     when the proxy is equal to actual nodes.
     This way in an usual case, a geometry node will have only 1 associated shape,
     which is best for memory usage. }
 
-  if (FGeometry[OverTriangulate] <> FOriginalGeometry) or
-     (FState   [OverTriangulate] <> FOriginalState) then
+  if (FGeometry <> FOriginalGeometry) or
+     (FState    <> FOriginalState) then
   begin
-    AssociateGeometryState(FGeometry[OverTriangulate], FState[OverTriangulate]);
+    AssociateGeometryState(FGeometry, FState);
   end;
 end;
 
-procedure TShape.UnAssociateProxyGeometryState(const OverTriangulate: Boolean);
+procedure TShape.UnAssociateProxyGeometryState;
 begin
-  Assert(FGeometry[OverTriangulate] <> nil);
-  Assert(FState   [OverTriangulate] <> nil);
+  Assert(FGeometry <> nil);
+  Assert(FState    <> nil);
 
-  if (FGeometry[OverTriangulate] <> FOriginalGeometry) or
-     (FState   [OverTriangulate] <> FOriginalState) then
+  if (FGeometry <> FOriginalGeometry) or
+     (FState    <> FOriginalState) then
   begin
-    UnAssociateGeometryState(FGeometry[OverTriangulate], FState[OverTriangulate]);
+    UnAssociateGeometryState(FGeometry, FState);
   end;
 end;
 
@@ -1624,7 +1617,7 @@ begin
   if not (svLocalBBox in Validities) then
   begin
     FLocalBoundingBox := OriginalGeometry.LocalBoundingBox(OriginalState,
-      ProxyGeometry(false), ProxyState(false));
+      ProxyGeometry, ProxyState);
     Include(Validities, svLocalBBox);
   end;
   Result := FLocalBoundingBox;
@@ -1635,71 +1628,47 @@ begin
   if not (svBBox in Validities) then
   begin
     FBoundingBox := OriginalGeometry.BoundingBox(OriginalState,
-      ProxyGeometry(false), ProxyState(false));
+      ProxyGeometry, ProxyState);
     Include(Validities, svBBox);
   end;
   Result := FBoundingBox;
 end;
 
-function TShape.VerticesCount(OverTriangulate: boolean): Cardinal;
+function TShape.VerticesCount: Cardinal;
 
   procedure Calculate;
   begin
-    FVerticesCount[OverTriangulate] := OriginalGeometry.VerticesCount(
-      OriginalState, OverTriangulate,
-      ProxyGeometry(OverTriangulate),
-      ProxyState(OverTriangulate));
+    FVerticesCount := OriginalGeometry.VerticesCount(
+      OriginalState, ProxyGeometry, ProxyState);
   end;
 
 begin
-  if OverTriangulate then
+  if not (svVerticesCount in Validities) then
   begin
-    if not (svVerticesCountOver in Validities) then
-    begin
-      Calculate;
-      Include(Validities, svVerticesCountOver);
-    end;
-  end else
-  begin
-    if not (svVerticesCountNotOver in Validities) then
-    begin
-      Calculate;
-      Include(Validities, svVerticesCountNotOver);
-    end;
+    Calculate;
+    Include(Validities, svVerticesCount);
   end;
-  Result := FVerticesCount[OverTriangulate];
+  Result := FVerticesCount;
 end;
 
-function TShape.TrianglesCount(OverTriangulate: boolean): Cardinal;
+function TShape.TrianglesCount: Cardinal;
 
   procedure Calculate;
   begin
-    FTrianglesCount[OverTriangulate] := OriginalGeometry.TrianglesCount(
-      OriginalState, OverTriangulate,
-      ProxyGeometry(OverTriangulate),
-      ProxyState(OverTriangulate));
+    FTrianglesCount := OriginalGeometry.TrianglesCount(
+      OriginalState, ProxyGeometry, ProxyState);
   end;
 
 begin
-  if OverTriangulate then
+  if not (svTrianglesCount in Validities) then
   begin
-    if not (svTrianglesCountOver in Validities) then
-    begin
-      Calculate;
-      Include(Validities, svTrianglesCountOver);
-    end;
-  end else
-  begin
-    if not (svTrianglesCountNotOver in Validities) then
-    begin
-      Calculate;
-      Include(Validities, svTrianglesCountNotOver);
-    end;
+    Calculate;
+    Include(Validities, svTrianglesCount);
   end;
-  Result := FTrianglesCount[OverTriangulate];
+  Result := FTrianglesCount;
 end;
 
-function TShape.GeometryArrays(OverTriangulate: boolean): TGeometryArrays;
+function TShape.GeometryArrays: TGeometryArrays;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -1828,12 +1797,12 @@ var
   GeneratorClass: TArraysGeneratorClass;
   Generator: TArraysGenerator;
 begin
-  G := Geometry(OverTriangulate);
-  S := State(OverTriangulate);
+  G := Geometry;
+  S := State;
   GeneratorClass := GetArraysGenerator(G);
   if GeneratorClass <> nil then
   begin
-    Generator := GeneratorClass.Create(Self, OverTriangulate);
+    Generator := GeneratorClass.Create(Self);
     try
       Generator.TexCoordsNeeded := TexCoordsNeeded;
       Generator.FacesNeeded := true;
@@ -1851,50 +1820,26 @@ begin
       (e.g. running from destructor, or with bad state) check. }
     (OriginalGeometry <> nil) and
     (
-    ( (FGeometry[false] <> OriginalGeometry) and (FGeometry[false] <> nil) ) or
-    ( (FGeometry[true ] <> OriginalGeometry) and (FGeometry[true ] <> nil) ) or
-    ( (FState[false] <> OriginalState) and (FState[false] <> nil) ) or
-    ( (FState[true ] <> OriginalState) and (FState[true ] <> nil) )
+    ( (FGeometry <> OriginalGeometry) and (FGeometry <> nil) ) or
+    ( (FState    <> OriginalState   ) and (FState    <> nil) )
     ) then
     WritelnLog('X3D changes', 'Releasing the Proxy geometry of ' + OriginalGeometry.ClassName);
 
-  if FGeometry[false] <> nil then
-    UnAssociateProxyGeometryState(false);
-  if FGeometry[true] <> nil then
-    UnAssociateProxyGeometryState(true);
+  if FGeometry <> nil then
+    UnAssociateProxyGeometryState;
 
-  if FGeometry[false] <> OriginalGeometry then
-  begin
-    if FGeometry[true] = FGeometry[false] then
-      { Then either both FGeometry[] are nil (in which case we do no harm
-        by code below) or they are <> nil because
-        ProxyUsesOverTriangulate = false. In the 2nd case, we should
-        avoid freeing the same instance twice. }
-      FGeometry[true] := nil;
+  if FGeometry <> OriginalGeometry then
+    FreeAndNil(FGeometry)
+  else
+    FGeometry := nil;
 
-    FreeAndNil(FGeometry[false]);
-  end else
-    FGeometry[false] := nil;
+  if FState <> OriginalState then
+    FreeAndNil(FState)
+  else
+    FState := nil;
 
-  if FGeometry[true] <> OriginalGeometry then
-    FreeAndNil(FGeometry[true]) else
-    FGeometry[true] := nil;
-
-  if FState[false] <> OriginalState then
-  begin
-    if FState[true] = FState[false] then FState[true] := nil;
-    FreeAndNil(FState[false]);
-  end else
-    FState[false] := nil;
-
-  if FState[true] <> OriginalState then
-    FreeAndNil(FState[true]) else
-    FState[true] := nil;
-
-  Assert(FGeometry[false] = nil);
-  Assert(FGeometry[true] = nil);
-  Assert(FState[false] = nil);
-  Assert(FState[true] = nil);
+  Assert(FGeometry = nil);
+  Assert(FState = nil);
 end;
 
 procedure TShape.Changed(const InactiveOnly: boolean;
@@ -1943,8 +1888,8 @@ procedure TShape.Changed(const InactiveOnly: boolean;
     { Remove from Validities things that depend on geometry.
       Local geometry change means that also global (world-space) geometry changed. }
     Validities := Validities - [svLocalBBox, svBBox,
-      svVerticesCountNotOver,  svVerticesCountOver,
-      svTrianglesCountNotOver, svTrianglesCountOver,
+      svVerticesCount,
+      svTrianglesCount,
       svBoundingSphere,
       svNormals];
 
@@ -2174,19 +2119,17 @@ begin
       LocalTriangulateBox(LocalBoundingBox);
     end else
     begin
-      Result.Triangles.Capacity := TrianglesCount(false);
+      Result.Triangles.Capacity := TrianglesCount;
       if (ProgressTitle <> '') and
          (not Progress.Active) then
       begin
-        Progress.Init(TrianglesCount(false), ProgressTitle, true);
+        Progress.Init(TrianglesCount, ProgressTitle, true);
         try
           TriangleOctreeToAdd := Result;
-          LocalTriangulate(false,
-            {$ifdef FPC}@{$endif}AddTriangleToOctreeProgress);
+          LocalTriangulate({$ifdef FPC}@{$endif}AddTriangleToOctreeProgress);
         finally Progress.Fini end;
       end else
-        LocalTriangulate(false,
-          {$ifdef FPC}@{$endif}Result.AddItemTriangle);
+        LocalTriangulate({$ifdef FPC}@{$endif}Result.AddItemTriangle);
     end;
   except Result.Free; raise end;
 
@@ -2473,7 +2416,7 @@ begin
   {$endif}
 end;
 
-function TShape.NormalsSmooth(const OverTriangulate, FromCcw: boolean): TVector3List;
+function TShape.NormalsSmooth(const FromCcw: boolean): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -2481,8 +2424,7 @@ begin
   if not (
        (svNormals in Validities) and
        (FNormalsCached = ncSmooth) and
-       (FNormalsCachedCcw = FromCcw) and
-       (FNormalsOverTriangulate = OverTriangulate)
+       (FNormalsCachedCcw = FromCcw)
      ) then
   begin
     if LogShapes then
@@ -2492,20 +2434,19 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    G := Geometry(OverTriangulate);
-    S := State(OverTriangulate);
+    G := Geometry;
+    S := State;
 
     FNormals := CreateSmoothNormalsCoordinateNode(G, S, FromCcw);
     FNormalsCached := ncSmooth;
     FNormalsCachedCcw := FromCcw;
-    FNormalsOverTriangulate := OverTriangulate;
     Include(Validities, svNormals);
   end;
 
   Result := FNormals;
 end;
 
-function TShape.NormalsFlat(const OverTriangulate, FromCcw: boolean): TVector3List;
+function TShape.NormalsFlat(const FromCcw: boolean): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -2513,8 +2454,7 @@ begin
   if not (
        (svNormals in Validities) and
        (FNormalsCached = ncFlat) and
-       (FNormalsCachedCcw = FromCcw) and
-       (FNormalsOverTriangulate = OverTriangulate)
+       (FNormalsCachedCcw = FromCcw)
      ) then
   begin
     if LogShapes then
@@ -2524,21 +2464,20 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    G := Geometry(OverTriangulate);
-    S := State(OverTriangulate);
+    G := Geometry;
+    S := State;
 
     FNormals := CreateFlatNormals(G.CoordIndexField.Items,
       G.InternalCoordinates(S).Items, FromCcw, G.Convex);
     FNormalsCached := ncFlat;
     FNormalsCachedCcw := FromCcw;
-    FNormalsOverTriangulate := OverTriangulate;
     Include(Validities, svNormals);
   end;
 
   Result := FNormals;
 end;
 
-function TShape.NormalsCreaseAngle(const OverTriangulate, FromCcw: boolean;
+function TShape.NormalsCreaseAngle(const FromCcw: boolean;
   const CreaseAngle: Single): TVector3List;
 var
   G: TAbstractGeometryNode;
@@ -2548,7 +2487,6 @@ begin
        (svNormals in Validities) and
        (FNormalsCached = ncCreaseAngle) and
        (FNormalsCachedCcw = FromCcw) and
-       (FNormalsOverTriangulate = OverTriangulate)  and
        (FNormalsCreaseAngle = CreaseAngle)
      ) then
   begin
@@ -2559,14 +2497,13 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    G := Geometry(OverTriangulate);
-    S := State(OverTriangulate);
+    G := Geometry;
+    S := State;
 
     FNormals := CreateNormals(G.CoordIndexField.Items,
       G.InternalCoordinates(S).Items, CreaseAngle, FromCcw, G.Convex);
     FNormalsCached := ncCreaseAngle;
     FNormalsCachedCcw := FromCcw;
-    FNormalsOverTriangulate := OverTriangulate;
     FNormalsCreaseAngle := CreaseAngle;
     Include(Validities, svNormals);
   end;
@@ -2869,75 +2806,59 @@ begin
   end;
 end;
 
-procedure TShape.ValidateGeometryState(const OverTriangulate: boolean);
+procedure TShape.ValidateGeometryState;
 begin
-  if FGeometry[OverTriangulate] = nil then
+  if FGeometry = nil then
   begin
-    Assert(FState[OverTriangulate] = nil);
-    FState[OverTriangulate] := OriginalState;
+    Assert(FState = nil);
+    FState := OriginalState;
 
     try
-      FGeometry[OverTriangulate] := OriginalGeometry.Proxy(
-        FState[OverTriangulate], OverTriangulate);
-      if FGeometry[OverTriangulate] <> nil then
-        AssociateProxyGeometryState(OverTriangulate);
+      FGeometry := OriginalGeometry.Proxy(FState);
+      if FGeometry <> nil then
+        AssociateProxyGeometryState;
     except
       { in case of trouble, remember to keep both
-        FGeometry[OverTriangulate] and FState[OverTriangulate] nil.
+        FGeometry and FState nil.
         Never let one of them be nil, while other it not. }
-      FState[OverTriangulate] := nil;
+      FState := nil;
       raise;
     end;
 
-    if FGeometry[OverTriangulate] <> nil then
+    if FGeometry = nil then
     begin
-      { We just used OriginalGeometry.Proxy successfully.
-        Let's now check can we fill the over FGeometry/FState[] value for free.
-        If ProxyUsesOverTriangulate = false, then we can reuse
-        this Proxy. This may save us from unnecessarily calling Proxy
-        second time. }
-      if (FGeometry[not OverTriangulate] = nil) and
-          not OriginalGeometry.ProxyUsesOverTriangulate then
-      begin
-        Assert(FState[not OverTriangulate] = nil);
-        FGeometry[not OverTriangulate] := FGeometry[OverTriangulate];
-        FState   [not OverTriangulate] := FState   [OverTriangulate];
-        AssociateProxyGeometryState(not OverTriangulate);
-      end;
-    end else
-    begin
-      FGeometry[OverTriangulate] := OriginalGeometry;
-      FState   [OverTriangulate] := OriginalState;
+      FGeometry := OriginalGeometry;
+      FState    := OriginalState;
     end;
   end;
 end;
 
-function TShape.Geometry(const OverTriangulate: boolean): TAbstractGeometryNode;
+function TShape.Geometry: TAbstractGeometryNode;
 begin
-  ValidateGeometryState(OverTriangulate);
-  Result := FGeometry[OverTriangulate];
+  ValidateGeometryState;
+  Result := FGeometry;
 end;
 
-function TShape.State(const OverTriangulate: boolean): TX3DGraphTraverseState;
+function TShape.State: TX3DGraphTraverseState;
 begin
-  ValidateGeometryState(OverTriangulate);
-  Result := FState[OverTriangulate];
+  ValidateGeometryState;
+  Result := FState;
 end;
 
-function TShape.ProxyGeometry(const OverTriangulate: boolean): TAbstractGeometryNode;
+function TShape.ProxyGeometry: TAbstractGeometryNode;
 begin
-  Result := Geometry(OverTriangulate);
+  Result := Geometry;
   if Result = OriginalGeometry then Result := nil;
 end;
 
-function TShape.ProxyState(const OverTriangulate: boolean): TX3DGraphTraverseState;
+function TShape.ProxyState: TX3DGraphTraverseState;
 begin
-  if Geometry(OverTriangulate) <> OriginalGeometry then
-    Result := State(OverTriangulate) else
+  if Geometry <> OriginalGeometry then
+    Result := State else
     Result := nil;
 end;
 
-procedure TShape.LocalTriangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
+procedure TShape.LocalTriangulate(const TriangleEvent: TTriangleEvent);
 var
   Arrays: TGeometryArrays;
   RangeBeginIndex: Integer;
@@ -3064,7 +2985,7 @@ var
   Count: Cardinal;
   I: Integer;
 begin
-  Arrays := GeometryArrays(OverTriangulate);
+  Arrays := GeometryArrays;
   try
     if Arrays.Indexes <> nil then
       Count := Arrays.IndexesCount else
@@ -3098,7 +3019,7 @@ begin
   TriangleEvent(Shape, Position.Transform(Transform^), Normal, TexCoord, Face);
 end;
 
-procedure TShape.Triangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
+procedure TShape.Triangulate(const TriangleEvent: TTriangleEvent);
 var
   TR: TTriangulateRedirect;
 begin
@@ -3106,7 +3027,7 @@ begin
   try
     TR.Transform := @(State.Transformation.Transform);
     TR.TriangleEvent := TriangleEvent;
-    LocalTriangulate(OverTriangulate, {$ifdef FPC}@{$endif}TR.LocalNewTriangle);
+    LocalTriangulate({$ifdef FPC}@{$endif}TR.LocalNewTriangle);
   finally FreeAndNil(TR) end;
 end;
 

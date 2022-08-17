@@ -120,9 +120,7 @@
     destructor Destroy; override;
     function TexCoordField: TSFNode; override;
 
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TX3DGraphTraverseState;
@@ -517,8 +515,7 @@ begin
   finally FreeAndNil(TextWidths) end;
 end;
 
-function TTextNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TTextNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   Size, Spacing: Single;
   Justify, JustifyMinor: TX3DFontJustify;
@@ -850,11 +847,6 @@ end;
 function TTextNode.SolidField: TSFBool;
 begin
   Result := FdSolid;
-end;
-
-function TTextNode.ProxyUsesOverTriangulate: boolean;
-begin
-  Result := false;
 end;
 
 function TTextNode.Font: TTextureFontData;

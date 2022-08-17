@@ -120,7 +120,7 @@ begin
   ShapesList := Scene.Shapes.TraverseList(true);
   for I := 0 to ShapesList.Count - 1 do
     if ShapesList[I].Collidable then
-      ShapesList[I].Triangulate(false, {$ifdef FPC}@{$endif}AddTriangle);
+      ShapesList[I].Triangulate({$ifdef FPC}@{$endif}AddTriangle);
 
   if Mesh.CountVertices = 0 then
     raise Exception.Create('The scene assigned to TMeshCollider.Scene is empty (no collidable triangles)');

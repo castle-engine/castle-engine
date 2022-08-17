@@ -108,15 +108,13 @@ const
 
   { Minimal values for
     @link(DefaultTriangulationSlices),
-    @link(DefaultTriangulationStacks),
-    @link(DefaultTriangulationDivisions).
+    @link(DefaultTriangulationStacks).
 
     Note that MinTriangulationSlices can be lower (2), it works,
     but the result isn't really sensible.
     @groupBegin }
   MinTriangulationSlices: Cardinal = 3;
   MinTriangulationStacks: Cardinal = 1;
-  MinTriangulationDivisions: Cardinal = 0;
   { @groupEnd }
 
   { Classes corresponding to nodes on TVRML1State. }
@@ -167,7 +165,6 @@ var
     @groupBegin }
   DefaultTriangulationSlices: Cardinal = 30;
   DefaultTriangulationStacks: Cardinal = 20;
-  DefaultTriangulationDivisions: Cardinal = 2;
   { @groupEnd }
 
 const

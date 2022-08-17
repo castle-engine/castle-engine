@@ -41,10 +41,8 @@ procedure TTestScene.TestScene;
     CamProjection: TProjectionType;
     CamPos, CamDir, CamUp, GravityUp: TVector3;
   begin
-    AssertTrue(EmptyScene.VerticesCount(false) = 0);
-    AssertTrue(EmptyScene.VerticesCount(true) = 0);
-    AssertTrue(EmptyScene.TrianglesCount(false) = 0);
-    AssertTrue(EmptyScene.TrianglesCount(true) = 0);
+    AssertTrue(EmptyScene.VerticesCount = 0);
+    AssertTrue(EmptyScene.TrianglesCount = 0);
 
     AssertTrue(EmptyScene.BoundingBox.IsEmpty);
 

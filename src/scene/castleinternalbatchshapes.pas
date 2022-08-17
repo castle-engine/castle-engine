@@ -259,7 +259,7 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
       Exit;
 
     // We can only merge TAbstractComposedGeometryNode for now
-    Geometry := Shape.Geometry(true);
+    Geometry := Shape.Geometry;
     if not (Geometry is TAbstractComposedGeometryNode) then
       Exit;
     GeometryComposed := TAbstractComposedGeometryNode(Geometry);
@@ -469,10 +469,10 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     Geometry1, Geometry2: TAbstractGeometryNode;
     State1, State2: TX3DGraphTraverseState;
   begin
-    Geometry1 := Shape1.Geometry(true);
-    Geometry2 := Shape2.Geometry(true);
-    State1 := Shape1.State(true);
-    State2 := Shape2.State(true);
+    Geometry1 := Shape1.Geometry;
+    Geometry2 := Shape2.Geometry;
+    State1 := Shape1.State;
+    State2 := Shape2.State;
     Result :=
       { Checks begin from the ones most likely to be different (exit early).
         Note that everything compared here must be also assigned in Merge
@@ -772,10 +772,10 @@ var
   IndexTarget, IndexSource: TLongIntList;
   OldCoordCount, I: Integer;
 begin
-  StateTarget := Target.State(true);
-  StateSource := Source.State(true);
-  MeshTarget := Target.Geometry(true) as TAbstractComposedGeometryNode;
-  MeshSource := Source.Geometry(true) as TAbstractComposedGeometryNode;
+  StateTarget := Target.State;
+  StateSource := Source.State;
+  MeshTarget := Target.Geometry as TAbstractComposedGeometryNode;
+  MeshSource := Source.Geometry as TAbstractComposedGeometryNode;
 
   // no vertexes in source mesh, ignore it
   if MeshSource.Coord = nil then
@@ -836,8 +836,8 @@ var
   TexCoordTarget: TMFVec2f;
   IndexTarget: TLongIntList;
 begin
-  StateTarget := Target.State(true);
-  MeshTarget := Target.Geometry(true) as TAbstractComposedGeometryNode;
+  StateTarget := Target.State;
+  MeshTarget := Target.Geometry as TAbstractComposedGeometryNode;
   CoordTarget := MeshTarget.InternalCoordinates(StateTarget);
   CoordTarget.Items.Clear;
   IndexTarget := MeshTarget.CoordIndexField.Items;

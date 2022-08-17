@@ -997,15 +997,13 @@ begin
 
           { test proxy may be created }
           ProxyState := State;
-          ProxyGeometry := G.Proxy(ProxyState, false);
+          ProxyGeometry := G.Proxy(ProxyState);
 
           { test that methods are overriden correctly, and don't crash }
           G.BoundingBox(State, ProxyGeometry, ProxyState);
           G.LocalBoundingBox(State, ProxyGeometry, ProxyState);
-          G.VerticesCount(State, true, ProxyGeometry, ProxyState);
-          G.VerticesCount(State, false, ProxyGeometry, ProxyState);
-          G.TrianglesCount(State, true, ProxyGeometry, ProxyState);
-          G.TrianglesCount(State, false, ProxyGeometry, ProxyState);
+          G.VerticesCount(State, ProxyGeometry, ProxyState);
+          G.TrianglesCount(State, ProxyGeometry, ProxyState);
 
           { free proxy temp objects }
           if ProxyGeometry <> nil then FreeAndNil(ProxyGeometry);

@@ -28,8 +28,6 @@
     procedure SetSize(const Value: TVector3);
     function GetCcw: Boolean;
     procedure SetCcw(const Value: Boolean);
-    function GetDivisions: Integer;
-    procedure SetDivisions(const Value: Integer);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -53,12 +51,6 @@
     strict private FFdTexCoord: TSFNode;
     {  }
     public property FdTexCoord: TSFNode read FFdTexCoord;
-
-    strict private FFdDivisions: TSFInt32;
-    {  }
-    public property FdDivisions: TSFInt32 read FFdDivisions;
-    {  }
-    property Divisions: Integer read GetDivisions write SetDivisions;
 
 {$endif read_interface}
 
@@ -86,16 +78,6 @@ begin
   FdCcw.Send(Value);
 end;
 
-function TBoxNode.GetDivisions: Integer;
-begin
-  Result := FdDivisions.Value;
-end;
-
-procedure TBoxNode.SetDivisions(const Value: Integer);
-begin
-  FdDivisions.Send(Value);
-end;
-
 class function TBoxNode.ClassX3DType: String;
 begin
   Result := 'Box';
@@ -120,10 +102,6 @@ begin
   FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
    FdTexCoord.ChangeAlways := chGeometry;
   AddField(FFdTexCoord);
-
-  FFdDivisions := TSFInt32.Create(Self, True, 'divisions', -1);
-   FdDivisions.ChangeAlways := chGeometry;
-  AddField(FFdDivisions);
 end;
 
 {$endif read_implementation}

@@ -55,9 +55,7 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function TexCoordField: TSFNode; override;
     function AutoGenerate3DTexCoords: boolean; override;
@@ -124,9 +122,7 @@
     @deprecated }
   TPlaneNode = class(TAbstractGeometryNode)
   public
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
   {$I auto_generated_node_helpers/x3dnodes_plane.inc}
   end;
 
@@ -537,8 +533,7 @@ begin
   FdTexCoord.ChangeAlways := chGeometry;
 end;
 
-function TTeapotNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TTeapotNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 const
   // Uncomment these if you need to temporarily compile without
   // auto_generated_teapot/teapot.inc.
@@ -583,11 +578,6 @@ begin
       smooth later using fast CreateSmoothNormalsCoordinateNode routine. }
     IFS.FdCreaseAngle.Value := 4;
   except FreeAndNil(Result); raise end;
-end;
-
-function TTeapotNode.ProxyUsesOverTriangulate: boolean;
-begin
-  Result := false;
 end;
 
 function TTeapotNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -738,15 +728,9 @@ end;
 
 { TPlaneNode ----------------------------------------------------------------- }
 
-function TPlaneNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TPlaneNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 begin
   Result := Rectangle2DProxy(Self, FdSize.Value, FdSolid.Value);
-end;
-
-function TPlaneNode.ProxyUsesOverTriangulate: boolean;
-begin
-  Result := false;
 end;
 
 { TTogglerNode --------------------------------------------------------------- }

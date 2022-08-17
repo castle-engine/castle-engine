@@ -12,9 +12,6 @@ Box : X3DGeometryNode {
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
-  SFInt32    [in,out]      divisions   -1
-    range: [-1, infinity)
-    change: chGeometry
 }
 
 Cone : X3DGeometryNode {

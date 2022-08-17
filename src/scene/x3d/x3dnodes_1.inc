@@ -68,9 +68,7 @@
     strict private FFdWidth: TMFFloat;
     public property FdWidth: TMFFloat read FFdWidth;
 
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function FontTextureNode: TAbstractTexture2DNode; override;
@@ -96,14 +94,13 @@
     strict private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
@@ -122,14 +119,13 @@
     strict private FFdDepth: TSFFloat;
     public property FdDepth: TSFFloat read FFdDepth;
 
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
@@ -148,14 +144,13 @@
     strict private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
@@ -187,7 +182,7 @@
   { Common base class for VRML 1.0 indexed polygon nodes
     (IndexedFaceSet and IndexedTriangleMesh). }
   TIndexedFacesOrTrianglesNode_1 = class(TAbstractIndexedNode_1)
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
@@ -209,7 +204,7 @@
 
   TIndexedLineSetNode_1 = class(TAbstractIndexedNode_1)
     class function ClassX3DType: string; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function InternalTexCoord(State: TX3DGraphTraverseState;
@@ -238,7 +233,7 @@
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
   end;
@@ -250,14 +245,13 @@
     strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
@@ -882,8 +876,7 @@ begin
   end;
 end;
 
-function TAsciiTextNode_1.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+function TAsciiTextNode_1.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   FaceSet: TIndexedFaceSetNode_1;
   CoordNode: TCoordinate3Node_1;
@@ -929,11 +922,6 @@ begin
     FFontTextureNode := X3DCache.LoadFontTexture(
       State.VRML1State.FontStyle.Font,
       State.VRML1State.FontStyle.Blending);
-end;
-
-function TAsciiTextNode_1.ProxyUsesOverTriangulate: boolean;
-begin
-  Result := false;
 end;
 
 function TAsciiTextNode_1.FontTextureNode: TAbstractTexture2DNode;
