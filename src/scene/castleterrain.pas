@@ -58,10 +58,6 @@
   Smaller TODOs:
 
   @unorderedList(
-    @item(
-      Randomization should be independent from compiler/platform/future.
-      Let's just use CastleRandom?
-      Or just store the final heights... this makes sense, as we also want to later allow editing terrains.)
     @item(TCastleTerrain configurable textures number.)
     @item(TCastleTerrain Use GridCount, GridStep instead of Subdivisions, Size?
       See wyrd-forest arguments.)
